@@ -826,7 +826,7 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "View All";
+  ot->name = "Frame All";
   ot->idname = "IMAGE_OT_view_all";
   ot->description = "View the entire image";
 

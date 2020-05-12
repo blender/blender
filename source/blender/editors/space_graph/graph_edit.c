@@ -328,7 +328,7 @@ static int graphkeys_view_selected_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_view_all(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "View All";
+  ot->name = "Frame All";
   ot->idname = "GRAPH_OT_view_all";
   ot->description = "Reset viewable area to show full keyframe range";
 

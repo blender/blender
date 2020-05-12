@@ -116,7 +116,7 @@ class IMAGE_MT_view(Menu):
         if show_uvedit:
             layout.operator("image.view_selected", text="Frame Selected")
 
-        layout.operator("image.view_all", text="Frame All")
+        layout.operator("image.view_all")
         layout.operator("image.view_all", text="Frame All Fit").fit_view = True
 
         layout.operator("image.view_center_cursor", text="Center View to Cursor")

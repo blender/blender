@@ -975,7 +975,7 @@ void CLIP_OT_view_all(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "View All";
+  ot->name = "Frame All";
   ot->idname = "CLIP_OT_view_all";
   ot->description = "View whole image with markers";
 

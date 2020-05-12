@@ -671,7 +671,7 @@ static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_graph_view_all(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "View All";
+  ot->name = "Frame All";
   ot->description = "View all curves in editor";
   ot->idname = "CLIP_OT_graph_view_all";
 

@@ -448,7 +448,7 @@ static int actkeys_viewsel_exec(bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_view_all(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "View All";
+  ot->name = "Frame All";
   ot->idname = "ACTION_OT_view_all";
   ot->description = "Reset viewable area to show full keyframe range";
 

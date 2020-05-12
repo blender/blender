@@ -141,7 +141,7 @@ static int node_view_all_exec(bContext *C, wmOperator *op)
 void NODE_OT_view_all(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "View All";
+  ot->name = "Frame All";
   ot->idname = "NODE_OT_view_all";
   ot->description = "Resize view so you can see all nodes";
 

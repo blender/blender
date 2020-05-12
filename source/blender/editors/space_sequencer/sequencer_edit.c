@@ -2930,7 +2930,7 @@ static int sequencer_view_all_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_view_all(wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "View All";
+  ot->name = "Frame All";
   ot->idname = "SEQUENCER_OT_view_all";
   ot->description = "View all the strips in the sequencer";
 
@@ -3017,7 +3017,7 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_view_all_preview(wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "View All";
+  ot->name = "Frame All";
   ot->idname = "SEQUENCER_OT_view_all_preview";
   ot->description = "Zoom preview to fit in the area";
 
