@@ -118,6 +118,8 @@ typedef struct MultiresReshapeSmoothContext {
   /* Subdivision surface created for geometry at a reshape level. */
   Subdiv *reshape_subdiv;
 
+  /* Grids allocated at the top level storing state of the base mesh,
+   * Basically, lower memory footprint version of the base mesh limit surface. */
   SurfaceGrid *base_surface_grids;
 
   /* Defines how displacement is interpolated on the higher levels (for example, whether

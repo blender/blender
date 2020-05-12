@@ -256,7 +256,11 @@ bool multires_reshape_assign_final_coords_from_vertcos(
  * Functions specific to reshaping from CCG.
  */
 
-/* NOTE: Displacement grids to be at least at a reshape level.
+/* Store final object-space coordinates in the displacement grids.
+ * The reason why displacement grids are used for storage is based on memory
+ * footprint optimization.
+ *
+ * NOTE: Displacement grids to be at least at a reshape level.
  *
  * Return truth if all coordinates have been updated. */
 bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext *reshape_context,
