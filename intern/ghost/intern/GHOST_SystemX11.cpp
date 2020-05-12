@@ -2172,13 +2172,23 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
   else if (owner == None)
     return (NULL);
 
+  /* Restore events so copy doesn't swallow other event types (keyboard/mouse). */
+  vector<XEvent> restore_events;
+
   while (1) {
     /* only get an event if xcout() is doing something */
-    if (context != XCLIB_XCOUT_NONE)
+    bool restore_this_event = false;
+    if (context != XCLIB_XCOUT_NONE) {
       XNextEvent(m_display, &evt);
+      restore_this_event = (evt.type != SelectionNotify);
+    }
 
     /* fetch the selection, or part of it */
     getClipboard_xcout(&evt, sseln, target, &sel_buf, &sel_len, &context);
+
+    if (restore_this_event) {
+      restore_events.push_back(evt);
+    }
 
     /* fallback is needed. set XA_STRING to target and restart the loop. */
     if (context == XCLIB_XCOUT_FALLBACK) {
@@ -2206,6 +2216,11 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
     /* only continue if xcout() is doing something */
     if (context == XCLIB_XCOUT_NONE)
       break;
+  }
+
+  while (!restore_events.empty()) {
+    XPutBackEvent(m_display, &restore_events.back());
+    restore_events.pop_back();
   }
 
   if (sel_len) {
