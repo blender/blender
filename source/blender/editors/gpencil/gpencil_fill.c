@@ -669,7 +669,7 @@ static void gpencil_boundaryfill_area(tGPDfill *tgpf)
 }
 
 /* Check if there are some pixel not filled with green. If no points, means nothing to fill. */
-static bool gpencil_check_borders(tGPDfill *tgpf)
+static bool UNUSED_FUNCTION(gpencil_check_borders)(tGPDfill *tgpf)
 {
   ImBuf *ibuf;
   void *lock;
