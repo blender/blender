@@ -784,7 +784,7 @@ void CLIP_OT_view_zoom_in(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "View Zoom In";
+  ot->name = "Zoom In";
   ot->idname = "CLIP_OT_view_zoom_in";
   ot->description = "Zoom in the view";
 
@@ -841,7 +841,7 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "View Zoom Out";
+  ot->name = "Zoom Out";
   ot->idname = "CLIP_OT_view_zoom_out";
   ot->description = "Zoom out the view";
 

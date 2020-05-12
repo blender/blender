@@ -986,7 +986,7 @@ void IMAGE_OT_view_zoom_in(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "View Zoom In";
+  ot->name = "Zoom In";
   ot->idname = "IMAGE_OT_view_zoom_in";
   ot->description = "Zoom in the image (centered around 2D cursor)";
 
@@ -1045,7 +1045,7 @@ void IMAGE_OT_view_zoom_out(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "View Zoom Out";
+  ot->name = "Zoom Out";
   ot->idname = "IMAGE_OT_view_zoom_out";
   ot->description = "Zoom out the image (centered around 2D cursor)";
 
