@@ -45,10 +45,8 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_workspace_types.h"
 
 #include "RNA_access.h"
-#include "RNA_enum_types.h"
 
 #include "BKE_appdir.h"
 #include "BKE_context.h"
@@ -62,10 +60,6 @@
 #include "IMB_thumbs.h"
 
 #include "BIF_glutil.h"
-
-#include "DEG_depsgraph.h"
-
-#include "DRW_engine.h"
 
 #include "ED_datafiles.h"
 #include "ED_keyframes_draw.h"

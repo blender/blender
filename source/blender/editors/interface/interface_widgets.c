@@ -27,7 +27,6 @@
 #include <string.h>
 
 #include "DNA_brush_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_math.h"
@@ -4659,7 +4658,7 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
  * \{ */
 
 /* conversion from old to new buttons, so still messy */
-void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but, rcti *rect)
+void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBut *but, rcti *rect)
 {
   bTheme *btheme = UI_GetTheme();
   const ThemeUI *tui = &btheme->tui;
@@ -5094,7 +5093,10 @@ static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
   GPU_blend(false);
 }
 
-void ui_draw_popover_back(ARegion *region, uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
+void ui_draw_popover_back(struct ARegion *region,
+                          uiStyle *UNUSED(style),
+                          uiBlock *block,
+                          rcti *rect)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
 
