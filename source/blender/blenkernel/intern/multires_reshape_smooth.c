@@ -143,7 +143,7 @@ static float interpolate_masks_grid(const MultiresReshapeSmoothContext *reshape_
                                     const GridCoord *grid_coord)
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
-  if (reshape_context->grid_paint_masks == NULL) {
+  if (reshape_context->orig.grid_paint_masks == NULL) {
     return 0.0f;
   }
 
