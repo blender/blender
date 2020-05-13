@@ -52,6 +52,11 @@
 /** \name Local Structs
  * \{ */
 
+/* Surface refers to a simplified and lower-memory footprint representation of the limit surface.
+ *
+ * Used to store pre-calculated information which is expensive or impossible to evaluate when
+ * travesing the final limit surface.  */
+
 typedef struct SurfacePoint {
   float P[3];
   float tangent_matrix[3][3];
@@ -60,6 +65,9 @@ typedef struct SurfacePoint {
 typedef struct SurfaceGrid {
   SurfacePoint *points;
 } SurfaceGrid;
+
+/* Geometry elements which are used to simplify creation of topology refiner at the sculpt level.
+ * Contains a limited subset of information needed to construct topology refiner. */
 
 typedef struct Vertex {
   /* All grid coordinates which the vertex corresponding to.
@@ -86,6 +94,8 @@ typedef struct Edge {
 
   float sharpness;
 } Edge;
+
+/* Context which holds all information eeded during propagation and smoothing. */
 
 typedef struct MultiresReshapeSmoothContext {
   const MultiresReshapeContext *reshape_context;
@@ -118,8 +128,14 @@ typedef struct MultiresReshapeSmoothContext {
   /* Subdivision surface created for geometry at a reshape level. */
   Subdiv *reshape_subdiv;
 
-  /* Grids allocated at the top level storing state of the base mesh,
-   * Basically, lower memory footprint version of the base mesh limit surface. */
+  /* Limit surface of the base mesh with original sculpt level details on it, subdivided up to the
+   * top level.
+   * Is used as a base point to calculate how much displacement has been made in the sculpt mode.
+   *
+   * NOTE: Referring to sculpt as it is the main user of this functionality and it is clear to
+   * understand what it actually means in a concrete example. This is a generic code which is also
+   * used by Subdivide operation, but the idea is exactly the same as propagation in the sculpt
+   * mode. */
   SurfaceGrid *base_surface_grids;
 
   /* Defines how displacement is interpolated on the higher levels (for example, whether
