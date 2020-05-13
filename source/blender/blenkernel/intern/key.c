@@ -51,6 +51,7 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
@@ -91,6 +92,12 @@ static void shapekey_free_data(ID *id)
   }
 }
 
+static void shapekey_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  Key *key = (Key *)id;
+  BKE_LIB_FOREACHID_PROCESS_ID(data, key->from, IDWALK_CB_LOOPBACK);
+}
+
 IDTypeInfo IDType_ID_KE = {
     .id_code = ID_KE,
     .id_filter = 0,
@@ -105,6 +112,7 @@ IDTypeInfo IDType_ID_KE = {
     .copy_data = shapekey_copy_data,
     .free_data = shapekey_free_data,
     .make_local = NULL,
+    .foreach_id = shapekey_foreach_id,
 };
 
 #define KEY_MODE_DUMMY 0 /* use where mode isn't checked for */

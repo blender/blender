@@ -934,8 +934,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_KE: {
-        Key *key = (Key *)id;
-        CALLBACK_INVOKE_ID(key->from, IDWALK_CB_LOOPBACK);
+        BLI_assert(0);
         break;
       }
 
