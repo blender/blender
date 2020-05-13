@@ -46,6 +46,40 @@
 #include "WM_api.h"
 
 /* -------------------------------------------------------------------- */
+/** \name Window Manager Clipboard Property
+ *
+ * Avoid using the RNA API because this value may change between checking it's length
+ * and creating the buffer, causing writes past the allocated length.
+ * \{ */
+
+static PyObject *pyrna_WindowManager_clipboard_get(PyObject *UNUSED(self), void *UNUSED(flag))
+{
+  int text_len = 0;
+  char *text = WM_clipboard_text_get(false, &text_len);
+  PyObject *result = PyC_UnicodeFromByteAndSize(text ? text : "", text_len);
+  if (text != NULL) {
+    MEM_freeN(text);
+  }
+  return result;
+}
+
+static int pyrna_WindowManager_clipboard_set(PyObject *UNUSED(self),
+                                             PyObject *value,
+                                             void *UNUSED(flag))
+{
+  PyObject *value_coerce = NULL;
+  const char *text = PyC_UnicodeAsByte(value, &value_coerce);
+  if (text == NULL) {
+    return -1;
+  }
+  WM_clipboard_text_set(text, false);
+  Py_XDECREF(value_coerce);
+  return 0;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Window Manager Type
  * \{ */
 
@@ -59,6 +93,15 @@ static struct PyMethodDef pyrna_windowmanager_methods[] = {
      METH_VARARGS | METH_STATIC,
      ""},
     {NULL, NULL, 0, NULL},
+};
+
+static struct PyGetSetDef pyrna_windowmanager_getset[] = {
+    {"clipboard",
+     pyrna_WindowManager_clipboard_get,
+     pyrna_WindowManager_clipboard_set,
+     NULL,
+     NULL},
+    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 /** \} */
@@ -122,7 +165,8 @@ static struct PyMethodDef pyrna_space_methods[] = {
 void BPY_rna_types_extend_capi(void)
 {
   pyrna_struct_type_extend_capi(&RNA_Space, pyrna_space_methods, NULL);
-  pyrna_struct_type_extend_capi(&RNA_WindowManager, pyrna_windowmanager_methods, NULL);
+  pyrna_struct_type_extend_capi(
+      &RNA_WindowManager, pyrna_windowmanager_methods, pyrna_windowmanager_getset);
 }
 
 /** \} */

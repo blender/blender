@@ -1233,39 +1233,6 @@ static bool rna_KeyMapItem_userdefined_get(PointerRNA *ptr)
   return kmi->id < 0;
 }
 
-static void rna_wmClipboard_get(PointerRNA *UNUSED(ptr), char *value)
-{
-  char *pbuf;
-  int pbuf_len;
-
-  pbuf = WM_clipboard_text_get(false, &pbuf_len);
-  if (pbuf) {
-    memcpy(value, pbuf, pbuf_len + 1);
-    MEM_freeN(pbuf);
-  }
-  else {
-    value[0] = '\0';
-  }
-}
-
-static int rna_wmClipboard_length(PointerRNA *UNUSED(ptr))
-{
-  char *pbuf;
-  int pbuf_len;
-
-  pbuf = WM_clipboard_text_get(false, &pbuf_len);
-  if (pbuf) {
-    MEM_freeN(pbuf);
-  }
-
-  return pbuf_len;
-}
-
-static void rna_wmClipboard_set(PointerRNA *UNUSED(ptr), const char *value)
-{
-  WM_clipboard_text_set((void *)value, false);
-}
-
 static PointerRNA rna_WindowManager_xr_session_state_get(PointerRNA *ptr)
 {
   wmWindowManager *wm = ptr->data;
@@ -2492,11 +2459,6 @@ static void rna_def_windowmanager(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "KeyConfig");
   RNA_def_property_ui_text(prop, "Key Configurations", "Registered key configurations");
   rna_def_wm_keyconfigs(brna, prop);
-
-  prop = RNA_def_property(srna, "clipboard", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_funcs(
-      prop, "rna_wmClipboard_get", "rna_wmClipboard_length", "rna_wmClipboard_set");
-  RNA_def_property_ui_text(prop, "Text Clipboard", "");
 
   prop = RNA_def_property(srna, "xr_session_settings", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "xr.session_settings");
