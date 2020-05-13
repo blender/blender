@@ -63,17 +63,6 @@ static void camera_init_data(ID *id)
   MEMCPY_STRUCT_AFTER(cam, DNA_struct_default_get(Camera), id);
 }
 
-void *BKE_camera_add(Main *bmain, const char *name)
-{
-  Camera *cam;
-
-  cam = BKE_libblock_alloc(bmain, ID_CA, name, 0);
-
-  camera_init_data(&cam->id);
-
-  return cam;
-}
-
 /**
  * Only copy internal data of Camera ID from source
  * to already allocated/initialized destination.
@@ -92,13 +81,6 @@ static void camera_copy_data(Main *UNUSED(bmain),
   Camera *cam_dst = (Camera *)id_dst;
   const Camera *cam_src = (const Camera *)id_src;
   BLI_duplicatelist(&cam_dst->bg_images, &cam_src->bg_images);
-}
-
-Camera *BKE_camera_copy(Main *bmain, const Camera *cam)
-{
-  Camera *cam_copy;
-  BKE_id_copy(bmain, &cam->id, (ID **)&cam_copy);
-  return cam_copy;
 }
 
 static void camera_make_local(Main *bmain, ID *id, const int flags)
@@ -130,6 +112,24 @@ IDTypeInfo IDType_ID_CA = {
 };
 
 /******************************** Camera Usage *******************************/
+
+void *BKE_camera_add(Main *bmain, const char *name)
+{
+  Camera *cam;
+
+  cam = BKE_libblock_alloc(bmain, ID_CA, name, 0);
+
+  camera_init_data(&cam->id);
+
+  return cam;
+}
+
+Camera *BKE_camera_copy(Main *bmain, const Camera *cam)
+{
+  Camera *cam_copy;
+  BKE_id_copy(bmain, &cam->id, (ID **)&cam_copy);
+  return cam_copy;
+}
 
 /* get the camera's dof value, takes the dof object into account */
 float BKE_camera_object_dof_distance(Object *ob)
