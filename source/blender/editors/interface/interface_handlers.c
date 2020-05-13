@@ -3709,9 +3709,9 @@ static void ui_do_but_textedit(
             but->selend = but->pos;
             changed = true;
           }
+          retval = WM_UI_HANDLER_BREAK;
+          skip_undo_push = true;
         }
-        skip_undo_push = true;
-        retval = WM_UI_HANDLER_BREAK;
         break;
       }
     }
