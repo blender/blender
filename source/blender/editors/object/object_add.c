@@ -2540,7 +2540,12 @@ static int convert_exec(bContext *C, wmOperator *op)
     }
 
     if (!keep_original && (ob->flag & OB_DONE)) {
-      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+      /* NOTE: Tag transform for update because object parenting to curve with path is handled
+       * differently from all other cases. Converting curve to mesh and mesh to curve will likely
+       * affect the way children are evaluated.
+       * It is not enough to tag only geometry and rely on the curve parenting relations because
+       * this relation is lost when curve is converted to mesh. */
+      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_TRANSFORM);
       ((ID *)ob->data)->tag &= ~LIB_TAG_DOIT; /* flag not to convert this datablock again */
     }
   }
