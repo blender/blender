@@ -275,7 +275,7 @@ void multires_reshape_assign_final_coords_from_mdisps(
     const MultiresReshapeContext *reshape_context);
 
 /* Reads from original CD_MIDTSPS, writes to the current mesh CD_MDISPS. */
-void multires_reshape_assign_final_coords_from_orig_mdisps(
+void multires_reshape_assign_final_elements_from_orig_mdisps(
     const MultiresReshapeContext *reshape_context);
 
 /* --------------------------------------------------------------------

@@ -751,9 +751,9 @@ void multires_reshape_assign_final_coords_from_mdisps(
       reshape_context, reshape_context->top.level, assign_final_coords_from_mdisps, NULL);
 }
 
-static void assign_final_coords_from_orig_mdisps(const MultiresReshapeContext *reshape_context,
-                                                 const GridCoord *grid_coord,
-                                                 void *UNUSED(userdata_v))
+static void assign_final_elements_from_orig_mdisps(const MultiresReshapeContext *reshape_context,
+                                                   const GridCoord *grid_coord,
+                                                   void *UNUSED(userdata_v))
 {
   float P[3];
   float tangent_matrix[3][3];
@@ -768,13 +768,17 @@ static void assign_final_coords_from_orig_mdisps(const MultiresReshapeContext *r
   ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(reshape_context,
                                                                                  grid_coord);
   add_v3_v3v3(grid_element.displacement, P, D);
+
+  if (grid_element.mask != NULL) {
+    *grid_element.mask = orig_grid_element.mask;
+  }
 }
 
-void multires_reshape_assign_final_coords_from_orig_mdisps(
+void multires_reshape_assign_final_elements_from_orig_mdisps(
     const MultiresReshapeContext *reshape_context)
 {
   foreach_grid_coordinate(
-      reshape_context, reshape_context->top.level, assign_final_coords_from_orig_mdisps, NULL);
+      reshape_context, reshape_context->top.level, assign_final_elements_from_orig_mdisps, NULL);
 }
 
 /** \} */
