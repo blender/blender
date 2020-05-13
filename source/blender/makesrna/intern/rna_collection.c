@@ -82,6 +82,23 @@ static void rna_Collection_objects_link(Collection *collection,
                                         ReportList *reports,
                                         Object *object)
 {
+  /* Currently this should not be allowed (might be supported in the future though...). */
+  if (ID_IS_OVERRIDE_LIBRARY(&collection->id)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Could not link the object '%s' because the collection '%s' is overridden.",
+                object->id.name + 2,
+                collection->id.name + 2);
+    return;
+  }
+  if (ID_IS_LINKED(&collection->id)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Could not link the object '%s' because the collection '%s' is linked.",
+                object->id.name + 2,
+                collection->id.name + 2);
+    return;
+  }
   if (!BKE_collection_object_add(bmain, collection, object)) {
     BKE_reportf(reports,
                 RPT_ERROR,

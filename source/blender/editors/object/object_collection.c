@@ -481,6 +481,22 @@ static int collection_link_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
+  /* Currently this should not be allowed (might be supported in the future though...). */
+  if (ID_IS_OVERRIDE_LIBRARY(&collection->id)) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Could not add the collection because it is overridden.");
+    return OPERATOR_CANCELLED;
+  }
+  /* Linked collections are already checked for by using RNA_collection_local_itemf
+   * but operator can be called without invoke */
+  if (ID_IS_LINKED(&collection->id)) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Could not add the collection because it is linked.");
+    return OPERATOR_CANCELLED;
+  }
+
   /* Adding object to collection which is used as dupli-collection for self is bad idea.
    *
    * It is also  bad idea to add object to collection which is in collection which
