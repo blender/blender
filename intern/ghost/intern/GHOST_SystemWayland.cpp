@@ -752,7 +752,7 @@ static const struct wl_data_device_listener data_device_listener = {
     data_device_selection,
 };
 
-static void cursor_buffer_release(void * data, struct wl_buffer *wl_buffer)
+static void cursor_buffer_release(void *data, struct wl_buffer *wl_buffer)
 {
   cursor_t *cursor = static_cast<cursor_t *>(data);
 
