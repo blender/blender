@@ -220,7 +220,9 @@ int pyrna_enum_value_from_id(const EnumPropertyItem *item,
 
 int pyrna_deferred_register_class(struct StructRNA *srna, PyTypeObject *py_class);
 
-void pyrna_struct_type_extend_capi(struct StructRNA *srna, struct PyMethodDef *py_method);
+void pyrna_struct_type_extend_capi(struct StructRNA *srna,
+                                   struct PyMethodDef *py_method,
+                                   struct PyGetSetDef *py_getset);
 
 /* called before stopping python */
 void pyrna_alloc_types(void);
