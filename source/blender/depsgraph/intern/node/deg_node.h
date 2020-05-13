@@ -127,6 +127,8 @@ enum class NodeType {
   DUPLI,
   /* Synchronization back to original datablock. */
   SYNCHRONIZATION,
+  /* Simulation component. */
+  SIMULATION,
 
   /* Total number of meaningful node types. */
   NUM_TYPES,

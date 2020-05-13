@@ -22,6 +22,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_defaults.h"
+#include "DNA_scene_types.h"
 #include "DNA_simulation_types.h"
 
 #include "BLI_compiler_compat.h"
@@ -43,6 +44,8 @@
 #include "NOD_simulation.h"
 
 #include "BLT_translation.h"
+
+#include "DEG_depsgraph.h"
 
 static void simulation_init_data(ID *id)
 {
@@ -108,3 +111,7 @@ IDTypeInfo IDType_ID_SIM = {
     /* free_data */ simulation_free_data,
     /* make_local */ nullptr,
 };
+
+void BKE_simulation_data_update(Depsgraph *UNUSED(depsgraph), Scene *UNUSED(scene))
+{
+}

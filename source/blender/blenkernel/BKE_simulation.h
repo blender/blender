@@ -23,8 +23,11 @@ extern "C" {
 
 struct Main;
 struct Simulation;
+struct Depsgraph;
 
 void *BKE_simulation_add(struct Main *bmain, const char *name);
+
+void BKE_simulation_data_update(struct Depsgraph *depsgraph, struct Scene *scene);
 
 #ifdef __cplusplus
 }

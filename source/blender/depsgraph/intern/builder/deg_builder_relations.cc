@@ -2578,6 +2578,11 @@ void DepsgraphRelationBuilder::build_simulation(Simulation *simulation)
   }
   build_animdata(&simulation->id);
   build_parameters(&simulation->id);
+
+  OperationKey simulation_update_key(
+      &simulation->id, NodeType::SIMULATION, OperationCode::SIMULATION_EVAL);
+  TimeSourceKey time_src_key;
+  add_relation(time_src_key, simulation_update_key, "TimeSrc -> Simulation");
 }
 
 void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)

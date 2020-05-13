@@ -78,6 +78,7 @@ set(SRC
   intern/MOD_shapekey.c
   intern/MOD_shrinkwrap.c
   intern/MOD_simpledeform.c
+  intern/MOD_simulation.cc
   intern/MOD_skin.c
   intern/MOD_smooth.c
   intern/MOD_softbody.c

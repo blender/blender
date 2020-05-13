@@ -39,6 +39,7 @@ struct ID;
 struct Main;
 struct Object;
 struct Scene;
+struct Simulation;
 struct ViewLayer;
 struct bNodeTree;
 
@@ -153,6 +154,9 @@ void DEG_add_object_relation(struct DepsNodeHandle *node_handle,
                              struct Object *object,
                              eDepsObjectComponentType component,
                              const char *description);
+void DEG_add_simulation_relation(struct DepsNodeHandle *node_handle,
+                                 struct Simulation *simulation,
+                                 const char *description);
 void DEG_add_bone_relation(struct DepsNodeHandle *handle,
                            struct Object *object,
                            const char *bone_name,
