@@ -67,10 +67,10 @@ static bool paint_mask_extract_poll(bContext *C)
       return false;
     }
     else {
-      return true;
+      return ED_operator_object_active_editable_mesh(C);
     }
   }
-  return ED_operator_object_active_editable_mesh(C);
+  return false;
 }
 
 static int paint_mask_extract_exec(bContext *C, wmOperator *op)
