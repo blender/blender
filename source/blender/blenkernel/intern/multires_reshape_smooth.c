@@ -175,7 +175,7 @@ static float interpolate_masks_grid(const MultiresReshapeSmoothContext *reshape_
 
   const float u = x_f - x_i;
   const float v = y_f - y_i;
-  const float weights[4] = {(1.0f - u) * (1.0f - v), u * (1.0f - v), (1.0f - u) * v, u * v};
+  const float weights[4] = {(1.0f - u) * (1.0f - v), u * (1.0f - v), u * v, (1.0f - u) * v};
 
   return mask_elements[0] * weights[0] + mask_elements[1] * weights[1] +
          mask_elements[2] * weights[2] + mask_elements[3] * weights[3];
