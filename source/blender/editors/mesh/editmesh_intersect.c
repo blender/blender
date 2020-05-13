@@ -704,6 +704,8 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
   BMEdge *e;
   BMIter iter;
 
+  BLI_SMALLSTACK_DECLARE(loop_stack, BMLoop *);
+
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
@@ -716,8 +718,6 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
     if ((bm->totedgesel == 0) || (bm->totfacesel == 0)) {
       continue;
     }
-
-    BLI_SMALLSTACK_DECLARE(loop_stack, BMLoop *);
 
     {
       BMVert *v;
