@@ -1466,35 +1466,20 @@ static const EnumPropertyItem *object_mode_set_itemsf(bContext *C,
   return item;
 }
 
-static bool object_mode_set_poll(bContext *C)
-{
-  /* Since Grease Pencil editmode is also handled here,
-   * we have a special exception for allowing this operator
-   * to still work in that case when there's no active object
-   * so that users can exit editmode this way as per normal.
-   */
-  if (ED_operator_object_active_editable(C)) {
-    return true;
-  }
-  else {
-    return (CTX_data_gpencil_data(C) != NULL);
-  }
-}
-
 static int object_mode_set_exec(bContext *C, wmOperator *op)
 {
   bool use_submode = STREQ(op->idname, "OBJECT_OT_mode_set_with_submode");
   Object *ob = CTX_data_active_object(C);
   eObjectMode mode = RNA_enum_get(op->ptr, "mode");
-  eObjectMode restore_mode = (ob) ? ob->mode : OB_MODE_OBJECT;
+  eObjectMode restore_mode = ob->mode;
   const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 
   /* by default the operator assume is a mesh, but if gp object change mode */
-  if ((ob != NULL) && (ob->type == OB_GPENCIL) && (mode == OB_MODE_EDIT)) {
+  if ((ob->type == OB_GPENCIL) && (mode == OB_MODE_EDIT)) {
     mode = OB_MODE_EDIT_GPENCIL;
   }
 
-  if (!ob || !ED_object_mode_compat_test(ob, mode)) {
+  if (!ED_object_mode_compat_test(ob, mode)) {
     return OPERATOR_PASS_THROUGH;
   }
 
@@ -1525,7 +1510,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
   }
 
   /* if type is OB_GPENCIL, set cursor mode */
-  if ((ob) && (ob->type == OB_GPENCIL)) {
+  if (ob->type == OB_GPENCIL) {
     if (ob->data) {
       bGPdata *gpd = (bGPdata *)ob->data;
       ED_gpencil_setup_modes(C, gpd, ob->mode);
@@ -1560,8 +1545,7 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = object_mode_set_exec;
-
-  ot->poll = object_mode_set_poll;  // ED_operator_object_active_editable;
+  ot->poll = ED_operator_object_active_editable;
 
   /* flags */
   ot->flag = 0; /* no register/undo here, leave it to operators being called */
