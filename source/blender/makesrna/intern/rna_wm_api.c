@@ -646,6 +646,9 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
     STRNCPY(e.utf8_buf, unicode);
   }
 
+  /* Until we expose setting tablet values here. */
+  WM_event_tablet_data_default_set(&e.tablet);
+
   return WM_event_add_simulate(win, &e);
 }
 

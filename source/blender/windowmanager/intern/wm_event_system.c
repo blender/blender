@@ -4167,6 +4167,19 @@ static void wm_eventemulation(wmEvent *event, bool test_only)
   }
 }
 
+static const wmTabletData wm_event_tablet_data_default = {
+    .active = EVT_TABLET_NONE,
+    .pressure = 1.0f,
+    .x_tilt = 0.0f,
+    .y_tilt = 0.0f,
+    .is_motion_absolute = false,
+};
+
+void WM_event_tablet_data_default_set(wmTabletData *tablet_data)
+{
+  *tablet_data = wm_event_tablet_data_default;
+}
+
 void wm_tablet_data_from_ghost(const GHOST_TabletData *tablet_data, wmTabletData *wmtab)
 {
   if ((tablet_data != NULL) && tablet_data->Active != GHOST_kTabletModeNone) {
@@ -4179,11 +4192,7 @@ void wm_tablet_data_from_ghost(const GHOST_TabletData *tablet_data, wmTabletData
     // printf("%s: using tablet %.5f\n", __func__, wmtab->pressure);
   }
   else {
-    wmtab->active = EVT_TABLET_NONE;
-    wmtab->pressure = 1.0f;
-    wmtab->x_tilt = 0.0f;
-    wmtab->y_tilt = 0.0f;
-    wmtab->is_motion_absolute = false;
+    *wmtab = wm_event_tablet_data_default;
     // printf("%s: not using tablet\n", __func__);
   }
 }
