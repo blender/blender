@@ -360,6 +360,14 @@ MINLINE int divide_floor_i(int a, int b)
 }
 
 /**
+ * Integer division that ceils the result, instead of flooring like normal C division.
+ */
+MINLINE uint divide_ceil_u(uint a, uint b)
+{
+  return (a + b - 1) / b;
+}
+
+/**
  * modulo that handles negative numbers, works the same as Python's.
  */
 MINLINE int mod_i(int i, int n)

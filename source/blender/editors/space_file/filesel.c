@@ -47,6 +47,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_fnmatch.h"
+#include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
 #include "BLO_readfile.h"
@@ -758,11 +759,11 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
     layout->attribute_column_header_h = 0;
     layout->offset_top = 0;
     if (layout->flow_columns > 0) {
-      layout->rows = numfiles / layout->flow_columns + 1;  // XXX dirty, modulo is zero
+      layout->rows = divide_ceil_u(numfiles, layout->flow_columns);
     }
     else {
       layout->flow_columns = 1;
-      layout->rows = numfiles + 1;  // XXX dirty, modulo is zero
+      layout->rows = numfiles;
     }
     layout->height = sfile->layout->rows * (layout->tile_h + 2 * layout->tile_border_y) +
                      layout->tile_border_y * 2 - layout->offset_top;
@@ -807,11 +808,11 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
     file_attribute_columns_init(params, layout);
 
     if (layout->rows > 0) {
-      layout->flow_columns = numfiles / layout->rows + 1;  // XXX dirty, modulo is zero
+      layout->flow_columns = divide_ceil_u(numfiles, layout->rows);
     }
     else {
       layout->rows = 1;
-      layout->flow_columns = numfiles + 1;  // XXX dirty, modulo is zero
+      layout->flow_columns = numfiles;
     }
     layout->width = sfile->layout->flow_columns * (layout->tile_w + 2 * layout->tile_border_x) +
                     layout->tile_border_x * 2;

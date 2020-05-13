@@ -41,6 +41,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 
 #include "MEM_guardedalloc.h"
@@ -66,8 +67,30 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
   BKE_gpencil_modifier_copydata_generic(md, target);
 }
 
-static void update_position(Object *ob, MirrorGpencilModifierData *mmd, bGPDstroke *gps, int axis)
+/* Mirror is using current object as origin. */
+static void update_mirror_local(Object *ob, bGPDstroke *gps, int axis)
 {
+  int i;
+  bGPDspoint *pt;
+  float factor[3] = {1.0f, 1.0f, 1.0f};
+  factor[axis] = -1.0f;
+
+  for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+    mul_v3_v3(&pt->x, factor);
+  }
+}
+
+/* Mirror is using other object as origin. */
+static void update_mirror_object(Object *ob,
+                                 MirrorGpencilModifierData *mmd,
+                                 bGPDstroke *gps,
+                                 int axis)
+{
+  /* Calculate local matrix transformation. */
+  float mat[3][3], inv_mat[3][3];
+  BKE_object_to_mat3(ob, mat);
+  invert_m3_m3(inv_mat, mat);
+
   int i;
   bGPDspoint *pt;
   float factor[3] = {1.0f, 1.0f, 1.0f};
@@ -81,34 +104,44 @@ static void update_position(Object *ob, MirrorGpencilModifierData *mmd, bGPDstro
   float half_origin[3];
   float rot_mat[3][3];
 
-  if (mmd->object) {
-    float eul[3];
-    mat4_to_eul(eul, mmd->object->obmat);
-    mul_v3_fl(eul, 2.0f);
-    eul_to_mat3(rot_mat, eul);
-    sub_v3_v3v3(ob_origin, ob->obmat[3], mmd->object->obmat[3]);
-  }
-  else {
-    copy_v3_v3(ob_origin, ob->obmat[3]);
-  }
+  float eul[3];
+  mat4_to_eul(eul, mmd->object->obmat);
+  mul_v3_fl(eul, 2.0f);
+  eul_to_mat3(rot_mat, eul);
+  sub_v3_v3v3(ob_origin, ob->obmat[3], mmd->object->obmat[3]);
 
-  /* only works with current axis */
+  /* Only works with current axis. */
   mul_v3_v3(ob_origin, clear);
 
+  /* Invert the origin. */
   mul_v3_v3fl(pt_origin, ob_origin, -2.0f);
   mul_v3_v3fl(half_origin, pt_origin, 0.5f);
 
   for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-    mul_v3_v3(&pt->x, factor);
-    if (mmd->object) {
-      /* apply location */
-      add_v3_v3(&pt->x, pt_origin);
+    /* Apply any local transformation. */
+    mul_m3_v3(mat, &pt->x);
 
-      /* apply rotation (around new center) */
-      sub_v3_v3(&pt->x, half_origin);
-      mul_m3_v3(rot_mat, &pt->x);
-      add_v3_v3(&pt->x, half_origin);
-    }
+    /* Apply mirror effect. */
+    mul_v3_v3(&pt->x, factor);
+    /* Apply location. */
+    add_v3_v3(&pt->x, pt_origin);
+    /* Apply rotation (around new center). */
+    sub_v3_v3(&pt->x, half_origin);
+    mul_m3_v3(rot_mat, &pt->x);
+    add_v3_v3(&pt->x, half_origin);
+
+    /* Undo local transformation to avoid double transform in drawing. */
+    mul_m3_v3(inv_mat, &pt->x);
+  }
+}
+
+static void update_position(Object *ob, MirrorGpencilModifierData *mmd, bGPDstroke *gps, int axis)
+{
+  if (mmd->object == NULL) {
+    update_mirror_local(ob, gps, axis);
+  }
+  else {
+    update_mirror_object(ob, mmd, gps, axis);
   }
 }
 
