@@ -314,7 +314,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
   int a, b, totcol, totmat = 0, totedge = 0, totvert = 0;
   int totloop = 0, totpoly = 0, vertofs, *matmap = NULL;
   int i, haskey = 0, edgeofs, loopofs, polyofs;
-  bool ok = false;
+  bool ok = false, join_parent = false;
   bDeformGroup *dg, *odg;
   CustomData vdata, edata, fdata, ldata, pdata;
 
@@ -346,6 +346,10 @@ int join_mesh_exec(bContext *C, wmOperator *op)
         ok = true;
       }
 
+      if ((ob->parent != NULL) && (ob_iter == ob->parent)) {
+        join_parent = true;
+      }
+
       /* check for shapekeys */
       if (me->key) {
         haskey++;
@@ -353,6 +357,13 @@ int join_mesh_exec(bContext *C, wmOperator *op)
     }
   }
   CTX_DATA_END;
+
+  /* Apply parent transform if the active object's parent was joined to it.
+   * Note: This doesn't apply recursive parenting. */
+  if (join_parent) {
+    ob->parent = NULL;
+    BKE_object_apply_mat4_ex(ob, ob->obmat, ob->parent, ob->parentinv, false);
+  }
 
   /* that way the active object is always selected */
   if (ok == false) {
