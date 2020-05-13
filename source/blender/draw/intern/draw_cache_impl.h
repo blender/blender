@@ -93,7 +93,7 @@ struct GPUBatch *DRW_curve_batch_cache_get_wire_edge(struct Curve *cu);
 struct GPUBatch *DRW_curve_batch_cache_get_normal_edge(struct Curve *cu);
 struct GPUBatch *DRW_curve_batch_cache_get_edge_detection(struct Curve *cu, bool *r_is_manifold);
 struct GPUBatch *DRW_curve_batch_cache_get_edit_edges(struct Curve *cu);
-struct GPUBatch *DRW_curve_batch_cache_get_edit_verts(struct Curve *cu, bool handles);
+struct GPUBatch *DRW_curve_batch_cache_get_edit_verts(struct Curve *cu);
 
 struct GPUBatch *DRW_curve_batch_cache_get_triangles_with_normals(struct Curve *cu);
 struct GPUBatch **DRW_curve_batch_cache_get_surface_shaded(struct Curve *cu,

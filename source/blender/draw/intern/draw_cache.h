@@ -150,7 +150,7 @@ struct GPUBatch *DRW_cache_curve_edge_detection_get(struct Object *ob, bool *r_i
 /* edit-mode */
 struct GPUBatch *DRW_cache_curve_edge_normal_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curve_edge_overlay_get(struct Object *ob);
-struct GPUBatch *DRW_cache_curve_vert_overlay_get(struct Object *ob, bool handles);
+struct GPUBatch *DRW_cache_curve_vert_overlay_get(struct Object *ob);
 
 /* Font */
 struct GPUBatch *DRW_cache_text_surface_get(struct Object *ob);

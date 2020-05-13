@@ -1,4 +1,9 @@
 
+/* Keep the same value of `BEZIER_HANDLE` in `draw_cache_imp_curve.c` */
+#define BEZIER_HANDLE 1 << 3
+
+uniform bool showCurveHandles;
+
 in vec3 pos;
 in int data;
 
@@ -26,4 +31,9 @@ void main()
 #ifdef USE_WORLD_CLIP_PLANES
   world_clip_planes_calc_clip_distance(world_pos);
 #endif
+
+  if (!showCurveHandles && ((data & BEZIER_HANDLE) != 0)) {
+    /* We set the vertex at the camera origin to generate 0 fragments. */
+    gl_Position = vec4(0.0, 0.0, -3e36, 0.0);
+  }
 }
