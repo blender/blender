@@ -1718,7 +1718,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
   RNA_def_property_enum_funcs(
       prop, NULL, "rna_GPencilLayer_parent_type_set", "rna_Object_parent_type_itemf");
   RNA_def_property_ui_text(prop, "Parent Type", "Type of parent relation");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_dependency_update");
 
   /* parent bone */
   prop = RNA_def_property(srna, "parent_bone", PROP_STRING, PROP_NONE);
@@ -1726,7 +1726,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_GPencilLayer_parent_bone_set");
   RNA_def_property_ui_text(
       prop, "Parent Bone", "Name of parent bone in case of a bone parenting relation");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_dependency_update");
 
   /* matrix */
   prop = RNA_def_property(srna, "matrix_inverse", PROP_FLOAT, PROP_MATRIX);
