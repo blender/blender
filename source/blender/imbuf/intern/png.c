@@ -177,12 +177,6 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
     return 0;
   }
 
-  if (setjmp(png_jmpbuf(png_ptr))) {
-    png_destroy_write_struct(&png_ptr, &info_ptr);
-    printf("imb_savepng: Cannot setjmp for file: '%s'\n", name);
-    return 0;
-  }
-
   /* copy image data */
   num_bytes = ((size_t)ibuf->x) * ibuf->y * bytesperpixel;
   if (is_16bit) {
@@ -191,15 +185,39 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
   else {
     pixels = MEM_mallocN(num_bytes * sizeof(unsigned char), "png 8bit pixels");
   }
-
   if (pixels == NULL && pixels16 == NULL) {
-    png_destroy_write_struct(&png_ptr, &info_ptr);
     printf(
-        "imb_savepng: Cannot allocate pixels array of %dx%d, %d bytes per pixel for file: '%s'\n",
+        "imb_savepng: Cannot allocate pixels array of %dx%d, %d bytes per pixel for file: "
+        "'%s'\n",
         ibuf->x,
         ibuf->y,
         bytesperpixel,
         name);
+  }
+
+  /* allocate memory for an array of row-pointers */
+  row_pointers = (png_bytepp)MEM_mallocN(ibuf->y * sizeof(png_bytep), "row_pointers");
+  if (row_pointers == NULL) {
+    printf("imb_savepng: Cannot allocate row-pointers array for file '%s'\n", name);
+  }
+
+  if ((pixels == NULL && pixels16 == NULL) || (row_pointers == NULL) ||
+      setjmp(png_jmpbuf(png_ptr))) {
+    /* On error jump here, and free any resources. */
+    png_destroy_write_struct(&png_ptr, &info_ptr);
+    if (pixels) {
+      MEM_freeN(pixels);
+    }
+    if (pixels16) {
+      MEM_freeN(pixels16);
+    }
+    if (row_pointers) {
+      MEM_freeN(row_pointers);
+    }
+    if (fp) {
+      fflush(fp);
+      fclose(fp);
+    }
     return 0;
   }
 
@@ -457,23 +475,6 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
   png_set_swap(png_ptr);
 #endif
 
-  /* allocate memory for an array of row-pointers */
-  row_pointers = (png_bytepp)MEM_mallocN(ibuf->y * sizeof(png_bytep), "row_pointers");
-  if (row_pointers == NULL) {
-    printf("imb_savepng: Cannot allocate row-pointers array for file '%s'\n", name);
-    png_destroy_write_struct(&png_ptr, &info_ptr);
-    if (pixels) {
-      MEM_freeN(pixels);
-    }
-    if (pixels16) {
-      MEM_freeN(pixels16);
-    }
-    if (fp) {
-      fclose(fp);
-    }
-    return 0;
-  }
-
   /* set the individual row-pointers to point at the correct offsets */
   if (is_16bit) {
     for (i = 0; i < ibuf->y; i++) {
@@ -576,6 +577,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
   png_set_read_fn(png_ptr, (void *)&ps, ReadData);
 
   if (setjmp(png_jmpbuf(png_ptr))) {
+    /* On error jump here, and free any resources. */
     png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
     if (pixels) {
       MEM_freeN(pixels);
