@@ -1483,28 +1483,34 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
     return OPERATOR_PASS_THROUGH;
   }
 
-  if (ob->mode != mode) {
-    /* we should be able to remove this call, each operator calls  */
-    ED_object_mode_compat_set(C, ob, mode, op->reports);
+  if (toggle == false) {
+    if (ob->mode != mode) {
+      if (mode != OB_MODE_OBJECT) {
+        /* Enter new mode. */
+        ED_object_mode_toggle(C, mode);
+      }
+      else {
+        ED_object_mode_compat_set(C, ob, mode, op->reports);
+      }
+    }
   }
+  else {
+    /* Exit current mode if it's not the mode we're setting */
+    if (mode != OB_MODE_OBJECT) {
+      /* Enter new mode. */
+      ED_object_mode_toggle(C, mode);
+    }
 
-  /* Exit current mode if it's not the mode we're setting */
-  if (mode != OB_MODE_OBJECT && (ob->mode != mode || toggle)) {
-    /* Enter new mode */
-    ED_object_mode_toggle(C, mode);
-  }
-
-  if (toggle) {
     /* Special case for Object mode! */
-    if (mode == OB_MODE_OBJECT && restore_mode == OB_MODE_OBJECT &&
-        ob->restore_mode != OB_MODE_OBJECT) {
+    if ((mode == OB_MODE_OBJECT) && (restore_mode == OB_MODE_OBJECT) &&
+        (ob->restore_mode != OB_MODE_OBJECT)) {
       ED_object_mode_toggle(C, ob->restore_mode);
     }
     else if (ob->mode == mode) {
       /* For toggling, store old mode so we know what to go back to */
       ob->restore_mode = restore_mode;
     }
-    else if (ob->restore_mode != OB_MODE_OBJECT && ob->restore_mode != mode) {
+    else if ((ob->restore_mode != OB_MODE_OBJECT) && (ob->restore_mode != mode)) {
       ED_object_mode_toggle(C, ob->restore_mode);
     }
   }

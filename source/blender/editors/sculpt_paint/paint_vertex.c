@@ -1450,17 +1450,13 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/* for switching to/from mode */
-static bool paint_poll_test(bContext *C)
+static bool paint_mode_toggle_poll_test(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob == NULL || ob->type != OB_MESH) {
     return 0;
   }
   if (!ob->data || ID_IS_LINKED(ob->data)) {
-    return 0;
-  }
-  if (CTX_data_edit_object(C)) {
     return 0;
   }
   return 1;
@@ -1476,7 +1472,7 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = wpaint_mode_toggle_exec;
-  ot->poll = paint_poll_test;
+  ot->poll = paint_mode_toggle_poll_test;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2683,7 +2679,7 @@ void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = vpaint_mode_toggle_exec;
-  ot->poll = paint_poll_test;
+  ot->poll = paint_mode_toggle_poll_test;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
