@@ -450,6 +450,7 @@ enum {
 #define V3D_GP_FADE_NOACTIVE_GPENCIL (1 << 6) /* Fade other GPencil objects */
 #define V3D_GP_SHOW_STROKE_DIRECTION (1 << 7) /* Show Strokes Directions */
 #define V3D_GP_SHOW_MATERIAL_NAME (1 << 8)    /* Show Material names */
+#define V3D_GP_SHOW_GRID_XRAY (1 << 9)        /* Show Canvas Grid on Top */
 
 /** #View3DShading.flag */
 enum {
