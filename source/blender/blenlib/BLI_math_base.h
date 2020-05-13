@@ -33,6 +33,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_math_inline.h"
+#include "BLI_sys_types.h"
 #include <math.h>
 
 #ifndef M_PI
