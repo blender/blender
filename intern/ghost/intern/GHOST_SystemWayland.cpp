@@ -166,9 +166,6 @@ static void display_destroy(display_t *d)
         munmap(input->cursor.file_buffer->data, input->cursor.file_buffer->size);
         delete input->cursor.file_buffer;
       }
-      if (input->cursor.buffer) {
-        wl_buffer_destroy(input->cursor.buffer);
-      }
       if (input->cursor.surface) {
         wl_surface_destroy(input->cursor.surface);
       }
@@ -755,13 +752,16 @@ static const struct wl_data_device_listener data_device_listener = {
     data_device_selection,
 };
 
-static void buffer_release(void * /*data*/, struct wl_buffer *wl_buffer)
+static void cursor_buffer_release(void * data, struct wl_buffer *wl_buffer)
 {
+  cursor_t *cursor = static_cast<cursor_t *>(data);
+
   wl_buffer_destroy(wl_buffer);
+  cursor->buffer = nullptr;
 }
 
-const struct wl_buffer_listener buffer_listener = {
-    buffer_release,
+const struct wl_buffer_listener cursor_buffer_listener = {
+    cursor_buffer_release,
 };
 
 static void pointer_enter(void *data,
@@ -1565,7 +1565,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(GHOST_TUns8 *bitmap,
   wl_shm_pool_destroy(pool);
   close(fd);
 
-  wl_buffer_add_listener(buffer, &buffer_listener, nullptr);
+  wl_buffer_add_listener(buffer, &cursor_buffer_listener, cursor);
 
   static constexpr uint32_t black = 0xFF000000;
   static constexpr uint32_t white = 0xFFFFFFFF;
@@ -1625,7 +1625,6 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorVisibility(bool visible)
   else {
     if (cursor->visible) {
       set_cursor_buffer(input, nullptr);
-      cursor->buffer = nullptr;
     }
   }
 
