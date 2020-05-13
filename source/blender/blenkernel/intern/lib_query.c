@@ -934,16 +934,11 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_KE: {
-        BLI_assert(0);
         break;
       }
 
       case ID_WO: {
-        World *world = (World *)id;
-        if (world->nodetree) {
-          /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-          BKE_library_foreach_ID_embedded(&data, (ID **)&world->nodetree);
-        }
+        BLI_assert(0);
         break;
       }
 

@@ -38,6 +38,7 @@
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_world.h"
@@ -111,6 +112,16 @@ static void world_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
   }
 }
 
+static void world_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  World *world = (World *)id;
+
+  if (world->nodetree) {
+    /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
+    BKE_library_foreach_ID_embedded(data, (ID **)&world->nodetree);
+  }
+}
+
 IDTypeInfo IDType_ID_WO = {
     .id_code = ID_WO,
     .id_filter = FILTER_ID_WO,
@@ -125,6 +136,7 @@ IDTypeInfo IDType_ID_WO = {
     .copy_data = world_copy_data,
     .free_data = world_free_data,
     .make_local = NULL,
+    .foreach_id = world_foreach_id,
 };
 
 World *BKE_world_add(Main *bmain, const char *name)
