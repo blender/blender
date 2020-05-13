@@ -121,7 +121,6 @@ struct display_t {
   GHOST_SystemWayland *system;
 
   struct wl_display *display;
-  struct wl_registry *registry;
   struct wl_compositor *compositor = nullptr;
   struct xdg_wm_base *xdg_shell = nullptr;
   struct wl_shm *shm = nullptr;
