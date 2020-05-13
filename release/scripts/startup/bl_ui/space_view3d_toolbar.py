@@ -843,8 +843,8 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col = layout.column(heading="Auto-Masking", align=True)
         col.prop(sculpt, "use_automasking_topology", text="Topology")
         col.prop(sculpt, "use_automasking_face_sets", text="Face Sets")
-        col.prop(sculpt, "use_automasking_boundary_edges", text="Boundary Edges")
-        col.prop(sculpt, "use_automasking_boundary_face_sets", text="Boundary Face Sets")
+        col.prop(sculpt, "use_automasking_boundary_edges", text="Mesh Boundary")
+        col.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
 
 
 class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):
