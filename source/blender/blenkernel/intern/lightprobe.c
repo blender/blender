@@ -23,6 +23,7 @@
 
 #include <string.h>
 
+#include "DNA_collection_types.h"
 #include "DNA_defaults.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_object_types.h"
@@ -45,6 +46,14 @@ static void lightprobe_init_data(ID *id)
   MEMCPY_STRUCT_AFTER(probe, DNA_struct_default_get(LightProbe), id);
 }
 
+static void lightprobe_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  LightProbe *probe = (LightProbe *)id;
+
+  BKE_LIB_FOREACHID_PROCESS(data, probe->image, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS(data, probe->visibility_grp, IDWALK_CB_NOP);
+}
+
 IDTypeInfo IDType_ID_LP = {
     .id_code = ID_LP,
     .id_filter = FILTER_ID_LP,
@@ -59,6 +68,7 @@ IDTypeInfo IDType_ID_LP = {
     .copy_data = NULL,
     .free_data = NULL,
     .make_local = NULL,
+    .foreach_id = lightprobe_foreach_id,
 };
 
 void BKE_lightprobe_type_set(LightProbe *probe, const short lightprobe_type)
