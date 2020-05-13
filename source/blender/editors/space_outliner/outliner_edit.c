@@ -362,6 +362,12 @@ static void do_item_rename(ARegion *region,
   else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
     BKE_report(reports, RPT_WARNING, "Cannot edit sequence name");
   }
+  else if (ID_IS_LINKED(tselem->id)) {
+    BKE_report(reports, RPT_WARNING, "Cannot edit external library data");
+  }
+  else if (ID_IS_OVERRIDE_LIBRARY(tselem->id)) {
+    BKE_report(reports, RPT_WARNING, "Cannot edit name of an override data-block");
+  }
   else if (outliner_is_collection_tree_element(te)) {
     Collection *collection = outliner_collection_from_tree_element(te);
 
@@ -371,9 +377,6 @@ static void do_item_rename(ARegion *region,
     else {
       add_textbut = true;
     }
-  }
-  else if (ID_IS_LINKED(tselem->id)) {
-    BKE_report(reports, RPT_WARNING, "Cannot edit external library data");
   }
   else if (te->idcode == ID_LI && ((Library *)tselem->id)->parent) {
     BKE_report(reports, RPT_WARNING, "Cannot edit the path of an indirectly linked library");
