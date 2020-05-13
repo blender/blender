@@ -69,7 +69,7 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 }
 
 /* Mirror is using current object as origin. */
-static void update_mirror_local(Object *ob, bGPDstroke *gps, int axis)
+static void update_mirror_local(bGPDstroke *gps, int axis)
 {
   int i;
   bGPDspoint *pt;
@@ -139,7 +139,7 @@ static void update_mirror_object(Object *ob,
 static void update_position(Object *ob, MirrorGpencilModifierData *mmd, bGPDstroke *gps, int axis)
 {
   if (mmd->object == NULL) {
-    update_mirror_local(ob, gps, axis);
+    update_mirror_local(gps, axis);
   }
   else {
     update_mirror_object(ob, mmd, gps, axis);
