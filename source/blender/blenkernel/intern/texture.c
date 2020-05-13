@@ -151,6 +151,13 @@ IDTypeInfo IDType_ID_TE = {
     .foreach_id = texture_foreach_id,
 };
 
+/* Utils for all IDs using those texture slots. */
+void BKE_texture_mtex_foreach_id(LibraryForeachIDData *data, MTex *mtex)
+{
+  BKE_LIB_FOREACHID_PROCESS(data, mtex->object, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS(data, mtex->tex, IDWALK_CB_USER);
+}
+
 /* ****************** Mapping ******************* */
 
 TexMapping *BKE_texture_mapping_add(int type)

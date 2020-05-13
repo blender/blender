@@ -181,6 +181,20 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
   }
 }
 
+static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  Brush *brush = (Brush *)id;
+
+  BKE_LIB_FOREACHID_PROCESS(data, brush->toggle_brush, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS(data, brush->clone.image, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS(data, brush->paint_curve, IDWALK_CB_USER);
+  if (brush->gpencil_settings) {
+    BKE_LIB_FOREACHID_PROCESS(data, brush->gpencil_settings->material, IDWALK_CB_USER);
+  }
+  BKE_texture_mtex_foreach_id(data, &brush->mtex);
+  BKE_texture_mtex_foreach_id(data, &brush->mask_mtex);
+}
+
 IDTypeInfo IDType_ID_BR = {
     .id_code = ID_BR,
     .id_filter = FILTER_ID_BR,
@@ -195,6 +209,7 @@ IDTypeInfo IDType_ID_BR = {
     .copy_data = brush_copy_data,
     .free_data = brush_free_data,
     .make_local = brush_make_local,
+    .foreach_id = brush_foreach_id,
 };
 
 static RNG *brush_rng;
