@@ -77,6 +77,7 @@ set(SRC
   bpy_rna_driver.c
   bpy_rna_gizmo.c
   bpy_rna_id_collection.c
+  bpy_rna_types_capi.c
   bpy_traceback.c
   bpy_utils_previews.c
   bpy_utils_units.c
@@ -113,6 +114,7 @@ set(SRC
   bpy_rna_driver.h
   bpy_rna_gizmo.h
   bpy_rna_id_collection.h
+  bpy_rna_types_capi.h
   bpy_traceback.h
   bpy_utils_previews.h
   bpy_utils_units.h

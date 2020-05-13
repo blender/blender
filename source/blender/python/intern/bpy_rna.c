@@ -9033,6 +9033,28 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
   Py_RETURN_NONE;
 }
 
+/**
+ * Extend RNA types with C/API methods.
+ */
+void pyrna_struct_type_extend_capi(struct StructRNA *srna, struct PyMethodDef *method)
+{
+  PyObject *cls = pyrna_srna_Subtype(srna);
+  if (method != NULL) {
+    for (; method->ml_name != NULL; method++) {
+      PyObject *func = PyCFunction_New(method, NULL);
+      PyObject *args = PyTuple_New(1);
+      PyTuple_SET_ITEM(args, 0, func);
+      PyObject *classmethod = PyObject_CallObject((PyObject *)&PyClassMethod_Type, args);
+
+      PyObject_SetAttrString(cls, method->ml_name, classmethod);
+
+      Py_DECREF(classmethod);
+      Py_DECREF(args); /* Clears 'func' too. */
+    }
+  }
+  Py_DECREF(cls);
+}
+
 /* Access to 'owner_id' internal global. */
 
 static PyObject *pyrna_bl_owner_id_get(PyObject *UNUSED(self))
@@ -9076,92 +9098,3 @@ PyMethodDef meth_bpy_owner_id_set = {
     METH_O,
     NULL,
 };
-
-/* currently this is fairly limited, we would need to make some way to split up
- * pyrna_callback_classmethod_... if we want more than one callback per type */
-typedef struct BPyRNA_CallBack {
-  PyMethodDef py_method;
-  StructRNA *bpy_srna;
-} PyRNA_CallBack;
-
-PyDoc_STRVAR(
-    pyrna_draw_handler_add_doc,
-    ".. method:: draw_handler_add(callback, args, region_type, draw_type)\n"
-    "\n"
-    "   Add a new draw handler to this space type.\n"
-    "   It will be called every time the specified region in the space type will be drawn.\n"
-    "   Note: All arguments are positional only for now.\n"
-    "\n"
-    "   :param callback:\n"
-    "      A function that will be called when the region is drawn.\n"
-    "      It gets the specified arguments as input.\n"
-    "   :type callback: function\n"
-    "   :param args: Arguments that will be passed to the callback.\n"
-    "   :type args: tuple\n"
-    "   :param region_type: The region type the callback draws in; usually ``WINDOW``. "
-    "(:class:`bpy.types.Region.type`)\n"
-    "   :type region_type: str\n"
-    "   :param draw_type: Usually ``POST_PIXEL`` for 2D drawing and ``POST_VIEW`` for 3D drawing. "
-    "In some cases ``PRE_VIEW`` can be used. ``BACKDROP`` can be used for backdrops in the node "
-    "editor.\n"
-    "   :type draw_type: str\n"
-    "   :return: Handler that can be removed later on.\n"
-    "   :rtype: object");
-
-PyDoc_STRVAR(pyrna_draw_handler_remove_doc,
-             ".. method:: draw_handler_remove(handler, region_type)\n"
-             "\n"
-             "   Remove a draw handler that was added previously.\n"
-             "\n"
-             "   :param handler: The draw handler that should be removed.\n"
-             "   :type handler: object\n"
-             "   :param region_type: Region type the callback was added to.\n"
-             "   :type region_type: str\n");
-
-static struct BPyRNA_CallBack pyrna_cb_methods[] = {
-    {{"draw_handler_add",
-      (PyCFunction)pyrna_callback_classmethod_add,
-      METH_VARARGS | METH_STATIC,
-      pyrna_draw_handler_add_doc},
-     &RNA_Space},
-    {{"draw_handler_remove",
-      (PyCFunction)pyrna_callback_classmethod_remove,
-      METH_VARARGS | METH_STATIC,
-      pyrna_draw_handler_remove_doc},
-     &RNA_Space},
-
-    {{"draw_cursor_add",
-      (PyCFunction)pyrna_callback_classmethod_add,
-      METH_VARARGS | METH_STATIC,
-      ""},
-     &RNA_WindowManager},
-    {{"draw_cursor_remove",
-      (PyCFunction)pyrna_callback_classmethod_remove,
-      METH_VARARGS | METH_STATIC,
-      ""},
-     &RNA_WindowManager},
-    {{NULL, NULL, 0, NULL}, NULL},
-};
-
-void BPY_rna_register_cb(void)
-{
-  int i;
-
-  for (i = 0; pyrna_cb_methods[i].bpy_srna; i++) {
-    PyObject *cls;
-    PyObject *func;
-    PyObject *classmethod;
-    PyObject *args = PyTuple_New(1);
-
-    cls = pyrna_srna_Subtype(pyrna_cb_methods[i].bpy_srna);
-    func = PyCFunction_New(&pyrna_cb_methods[i].py_method, NULL);
-    PyTuple_SET_ITEM(args, 0, func);
-    classmethod = PyObject_CallObject((PyObject *)&PyClassMethod_Type, args);
-
-    PyObject_SetAttrString(cls, pyrna_cb_methods[i].py_method.ml_name, classmethod);
-
-    Py_DECREF(classmethod);
-    Py_DECREF(args); /* Clears 'func' too. */
-    Py_DECREF(cls);
-  }
-}

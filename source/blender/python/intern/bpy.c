@@ -44,6 +44,7 @@
 #include "bpy_rna.h"
 #include "bpy_rna_gizmo.h"
 #include "bpy_rna_id_collection.h"
+#include "bpy_rna_types_capi.h"
 #include "bpy_utils_previews.h"
 #include "bpy_utils_units.h"
 
@@ -406,8 +407,8 @@ void BPy_init_modules(void)
 
   PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
 
-  /* register bpy/rna classmethod callbacks */
-  BPY_rna_register_cb();
+  /* Register methods and property get/set for RNA types. */
+  BPY_rna_types_extend_capi();
 
   /* utility func's that have nowhere else to go */
   PyModule_AddObject(mod,
