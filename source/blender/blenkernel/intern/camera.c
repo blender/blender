@@ -42,6 +42,7 @@
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -95,6 +96,21 @@ static void camera_free_data(ID *id)
   BLI_freelistN(&cam->bg_images);
 }
 
+static void camera_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  Camera *camera = (Camera *)id;
+
+  BKE_LIB_FOREACHID_PROCESS(data, camera->dof.focus_object, IDWALK_CB_NOP);
+  LISTBASE_FOREACH (CameraBGImage *, bgpic, &camera->bg_images) {
+    if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
+      BKE_LIB_FOREACHID_PROCESS(data, bgpic->ima, IDWALK_CB_USER);
+    }
+    else if (bgpic->source == CAM_BGIMG_SOURCE_MOVIE) {
+      BKE_LIB_FOREACHID_PROCESS(data, bgpic->clip, IDWALK_CB_USER);
+    }
+  }
+}
+
 IDTypeInfo IDType_ID_CA = {
     .id_code = ID_CA,
     .id_filter = FILTER_ID_CA,
@@ -109,6 +125,7 @@ IDTypeInfo IDType_ID_CA = {
     .copy_data = camera_copy_data,
     .free_data = camera_free_data,
     .make_local = camera_make_local,
+    .foreach_id = camera_foreach_id,
 };
 
 /******************************** Camera Usage *******************************/

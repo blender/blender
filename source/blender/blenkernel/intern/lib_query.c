@@ -925,22 +925,11 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_LA: {
-        BLI_assert(0);
         break;
       }
 
       case ID_CA: {
-        Camera *camera = (Camera *)id;
-        CALLBACK_INVOKE(camera->dof.focus_object, IDWALK_CB_NOP);
-        LISTBASE_FOREACH (CameraBGImage *, bgpic, &camera->bg_images) {
-          if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
-            CALLBACK_INVOKE(bgpic->ima, IDWALK_CB_USER);
-          }
-          else if (bgpic->source == CAM_BGIMG_SOURCE_MOVIE) {
-            CALLBACK_INVOKE(bgpic->clip, IDWALK_CB_USER);
-          }
-        }
-
+        BLI_assert(0);
         break;
       }
 
