@@ -185,7 +185,6 @@ PyObject *BPY_rna_module(void);
 void BPY_update_rna_module(void);
 /*PyObject *BPY_rna_doc(void);*/
 PyObject *BPY_rna_types(void);
-void BPY_rna_register_cb(void);
 
 PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr);
 PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop);
@@ -220,6 +219,8 @@ int pyrna_enum_value_from_id(const EnumPropertyItem *item,
                              const char *error_prefix);
 
 int pyrna_deferred_register_class(struct StructRNA *srna, PyTypeObject *py_class);
+
+void pyrna_struct_type_extend_capi(struct StructRNA *srna, struct PyMethodDef *py_method);
 
 /* called before stopping python */
 void pyrna_alloc_types(void);
