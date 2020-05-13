@@ -1008,12 +1008,6 @@ void BKE_libblock_init_empty(ID *id)
 /* ********** ID session-wise UUID management. ********** */
 static uint global_session_uuid = 0;
 
-/** Reset the session-wise uuid counter (used when reading a new file e.g.). */
-void BKE_lib_libblock_session_uuid_reset()
-{
-  global_session_uuid = 0;
-}
-
 /**
  * Generate a session-wise uuid for the given \a id.
  *

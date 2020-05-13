@@ -72,7 +72,6 @@ void BKE_libblock_init_empty(struct ID *id) ATTR_NONNULL(1);
 /* When an ID's uuid is of that value, it is unset/invalid (e.g. for runtime IDs, etc.). */
 #define MAIN_ID_SESSION_UUID_UNSET 0
 
-void BKE_lib_libblock_session_uuid_reset(void);
 void BKE_lib_libblock_session_uuid_ensure(struct ID *id);
 void BKE_lib_libblock_session_uuid_renew(struct ID *id);
 
