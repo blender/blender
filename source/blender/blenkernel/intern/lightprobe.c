@@ -31,6 +31,7 @@
 
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_lightprobe.h"
 #include "BKE_main.h"
 
@@ -43,6 +44,22 @@ static void lightprobe_init_data(ID *id)
 
   MEMCPY_STRUCT_AFTER(probe, DNA_struct_default_get(LightProbe), id);
 }
+
+IDTypeInfo IDType_ID_LP = {
+    .id_code = ID_LP,
+    .id_filter = FILTER_ID_LP,
+    .main_listbase_index = INDEX_ID_LP,
+    .struct_size = sizeof(LightProbe),
+    .name = "LightProbe",
+    .name_plural = "lightprobes",
+    .translation_context = BLT_I18NCONTEXT_ID_LIGHTPROBE,
+    .flags = 0,
+
+    .init_data = lightprobe_init_data,
+    .copy_data = NULL,
+    .free_data = NULL,
+    .make_local = NULL,
+};
 
 void BKE_lightprobe_type_set(LightProbe *probe, const short lightprobe_type)
 {
@@ -79,48 +96,9 @@ void *BKE_lightprobe_add(Main *bmain, const char *name)
   return probe;
 }
 
-/**
- * Only copy internal data of #LightProbe ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-static void lightprobe_copy_data(Main *UNUSED(bmain),
-                                 ID *UNUSED(id_dst),
-                                 const ID *UNUSED(id_src),
-                                 const int UNUSED(flag))
-{
-  /* Nothing to do here. */
-}
-
 LightProbe *BKE_lightprobe_copy(Main *bmain, const LightProbe *probe)
 {
   LightProbe *probe_copy;
   BKE_id_copy(bmain, &probe->id, (ID **)&probe_copy);
   return probe_copy;
 }
-
-static void lightprobe_make_local(Main *bmain, ID *id, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, id, flags);
-}
-
-IDTypeInfo IDType_ID_LP = {
-    .id_code = ID_LP,
-    .id_filter = FILTER_ID_LP,
-    .main_listbase_index = INDEX_ID_LP,
-    .struct_size = sizeof(LightProbe),
-    .name = "LightProbe",
-    .name_plural = "lightprobes",
-    .translation_context = BLT_I18NCONTEXT_ID_LIGHTPROBE,
-    .flags = 0,
-
-    .init_data = lightprobe_init_data,
-    .copy_data = lightprobe_copy_data,
-    .free_data = NULL,
-    .make_local = lightprobe_make_local,
-};
