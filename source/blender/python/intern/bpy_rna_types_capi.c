@@ -121,9 +121,8 @@ static struct PyMethodDef pyrna_space_methods[] = {
 
 void BPY_rna_types_extend_capi(void)
 {
-  pyrna_struct_type_extend_capi(&RNA_Space, pyrna_space_methods);
-  pyrna_struct_type_extend_capi(
-      &RNA_WindowManager, pyrna_windowmanager_methods);
+  pyrna_struct_type_extend_capi(&RNA_Space, pyrna_space_methods, NULL);
+  pyrna_struct_type_extend_capi(&RNA_WindowManager, pyrna_windowmanager_methods, NULL);
 }
 
 /** \} */

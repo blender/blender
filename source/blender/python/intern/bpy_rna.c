@@ -9034,9 +9034,11 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 }
 
 /**
- * Extend RNA types with C/API methods.
+ * Extend RNA types with C/API methods, properties.
  */
-void pyrna_struct_type_extend_capi(struct StructRNA *srna, struct PyMethodDef *method)
+void pyrna_struct_type_extend_capi(struct StructRNA *srna,
+                                   struct PyMethodDef *method,
+                                   struct PyGetSetDef *getset)
 {
   PyObject *cls = pyrna_srna_Subtype(srna);
   if (method != NULL) {
@@ -9050,6 +9052,16 @@ void pyrna_struct_type_extend_capi(struct StructRNA *srna, struct PyMethodDef *m
 
       Py_DECREF(classmethod);
       Py_DECREF(args); /* Clears 'func' too. */
+    }
+  }
+
+  if (getset != NULL) {
+    for (; getset->name != NULL; getset++) {
+      PyObject *dict = ((PyTypeObject *)cls)->tp_dict;
+      PyObject *descr = PyDescr_NewGetSet((PyTypeObject *)cls, getset);
+      BLI_assert(PyDict_GetItem(dict, PyDescr_NAME(descr)) == NULL);
+      PyDict_SetItem(dict, PyDescr_NAME(descr), descr);
+      Py_DECREF(descr);
     }
   }
   Py_DECREF(cls);
