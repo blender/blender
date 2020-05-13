@@ -78,17 +78,6 @@ static void world_init_data(ID *id)
   MEMCPY_STRUCT_AFTER(wrld, DNA_struct_default_get(World), id);
 }
 
-World *BKE_world_add(Main *bmain, const char *name)
-{
-  World *wrld;
-
-  wrld = BKE_libblock_alloc(bmain, ID_WO, name, 0);
-
-  world_init_data(&wrld->id);
-
-  return wrld;
-}
-
 /**
  * Only copy internal data of World ID from source
  * to already allocated/initialized destination.
@@ -120,6 +109,33 @@ static void world_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
   else {
     wrld_dst->preview = NULL;
   }
+}
+
+IDTypeInfo IDType_ID_WO = {
+    .id_code = ID_WO,
+    .id_filter = FILTER_ID_WO,
+    .main_listbase_index = INDEX_ID_WO,
+    .struct_size = sizeof(World),
+    .name = "World",
+    .name_plural = "worlds",
+    .translation_context = BLT_I18NCONTEXT_ID_WORLD,
+    .flags = 0,
+
+    .init_data = world_init_data,
+    .copy_data = world_copy_data,
+    .free_data = world_free_data,
+    .make_local = NULL,
+};
+
+World *BKE_world_add(Main *bmain, const char *name)
+{
+  World *wrld;
+
+  wrld = BKE_libblock_alloc(bmain, ID_WO, name, 0);
+
+  world_init_data(&wrld->id);
+
+  return wrld;
 }
 
 World *BKE_world_copy(Main *bmain, const World *wrld)
@@ -158,27 +174,6 @@ World *BKE_world_localize(World *wrld)
 
   return wrldn;
 }
-
-static void world_make_local(Main *bmain, ID *id, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, id, flags);
-}
-
-IDTypeInfo IDType_ID_WO = {
-    .id_code = ID_WO,
-    .id_filter = FILTER_ID_WO,
-    .main_listbase_index = INDEX_ID_WO,
-    .struct_size = sizeof(World),
-    .name = "World",
-    .name_plural = "worlds",
-    .translation_context = BLT_I18NCONTEXT_ID_WORLD,
-    .flags = 0,
-
-    .init_data = world_init_data,
-    .copy_data = world_copy_data,
-    .free_data = world_free_data,
-    .make_local = world_make_local,
-};
 
 void BKE_world_eval(struct Depsgraph *depsgraph, World *world)
 {
