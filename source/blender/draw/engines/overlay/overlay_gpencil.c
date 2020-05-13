@@ -204,6 +204,7 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
   const bool show_grid = (v3d->gp_flag & V3D_GP_SHOW_GRID) != 0 &&
                          ((ts->gpencil_v3d_align &
                            (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE)) == 0);
+  const bool grid_xray = (v3d->gp_flag & V3D_GP_SHOW_GRID_XRAY);
 
   if (show_grid && show_overlays) {
     const char *grid_unit = NULL;
@@ -256,7 +257,9 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
     const int gridlines = (gpd->grid.lines <= 0) ? 1 : gpd->grid.lines;
     int line_ct = gridlines * 4 + 2;
 
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
+    state |= (grid_xray) ? DRW_STATE_DEPTH_ALWAYS : DRW_STATE_DEPTH_LESS_EQUAL;
+
     DRW_PASS_CREATE(psl->gpencil_canvas_ps, state);
 
     sh = OVERLAY_shader_gpencil_canvas();

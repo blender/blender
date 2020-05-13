@@ -3905,6 +3905,11 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
       prop, "Fade Grease Pencil Objects", "Fade Grease Pencil Objects, except the active one");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 
+  prop = RNA_def_property(srna, "use_gpencil_canvas_xray", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_SHOW_GRID_XRAY);
+  RNA_def_property_ui_text(prop, "Canvas X-Ray", "Put Canvas grid on top of any other object");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
+
   prop = RNA_def_property(srna, "use_gpencil_show_directions", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_SHOW_STROKE_DIRECTION);
   RNA_def_property_ui_text(prop,

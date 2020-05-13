@@ -6726,9 +6726,10 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
         col = layout.column()
         row = col.row()
         row.prop(overlay, "use_gpencil_grid", text="")
-        sub = row.row()
+        sub = row.row(align=True)
         sub.active = overlay.use_gpencil_grid
         sub.prop(overlay, "gpencil_grid_opacity", text="Canvas", slider=True)
+        sub.prop(overlay, "use_gpencil_canvas_xray", text="", icon='XRAY')
 
         row = col.row()
         row.prop(overlay, "use_gpencil_fade_layers", text="")
