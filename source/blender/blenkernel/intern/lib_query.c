@@ -943,8 +943,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_SPK: {
-        Speaker *speaker = (Speaker *)id;
-        CALLBACK_INVOKE(speaker->sound, IDWALK_CB_USER);
+        BLI_assert(0);
         break;
       }
 

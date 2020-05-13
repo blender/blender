@@ -30,6 +30,7 @@
 
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_speaker.h"
 
@@ -40,6 +41,13 @@ static void speaker_init_data(ID *id)
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(speaker, id));
 
   MEMCPY_STRUCT_AFTER(speaker, DNA_struct_default_get(Speaker), id);
+}
+
+static void speaker_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  Speaker *speaker = (Speaker *)id;
+
+  BKE_LIB_FOREACHID_PROCESS(data, speaker->sound, IDWALK_CB_USER);
 }
 
 IDTypeInfo IDType_ID_SPK = {
@@ -56,6 +64,7 @@ IDTypeInfo IDType_ID_SPK = {
     .copy_data = NULL,
     .free_data = NULL,
     .make_local = NULL,
+    .foreach_id = speaker_foreach_id,
 };
 
 void *BKE_speaker_add(Main *bmain, const char *name)
