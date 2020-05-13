@@ -714,7 +714,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.operator("object.multires_rebuild_subdiv", text="Rebuild Subdivisions")
         col.prop(md, "uv_smooth", text="")
         col.prop(md, "show_only_control_edges")
-        col.prop(md, "use_creases")
+
+        row = col.row()
+        row.enabled = not have_displacement
+        row.prop(md, "use_creases")
 
         layout.separator()
 
