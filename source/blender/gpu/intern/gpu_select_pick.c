@@ -314,17 +314,10 @@ void gpu_select_pick_begin(uint (*buffer)[4], uint bufsize, const rcti *input, c
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
-
-    if (mode == GPU_SELECT_PICK_ALL) {
-      /* Note that other depth settings (such as #GL_LEQUAL) work too,
-       * since the depth is always cleared.
-       * Noting this for cases when depth picking is used where
-       * drawing calls change depth settings. */
-      glDepthFunc(GL_ALWAYS);
-    }
-    else {
-      glDepthFunc(GL_LEQUAL);
-    }
+    /* Always use #GL_LEQUAL even though GPU_SELECT_PICK_ALL always clears the buffer. This is
+     * because individual objects themselves might have sections that overlap and we need these
+     * to have the correct distance information. */
+    glDepthFunc(GL_LEQUAL);
 
     float viewport[4];
     glGetFloatv(GL_VIEWPORT, viewport);
