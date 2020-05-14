@@ -4786,15 +4786,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             brush->gpencil_weight_tool = brush->gpencil_settings->brush_type;
           }
         }
-        /* Tint brush. */
-        Brush *brush = BLI_findstring(&bmain->brushes, "Tint", offsetof(ID, name) + 2);
-        if (brush == NULL) {
-          brush = BKE_brush_add(bmain, "Tint", OB_MODE_PAINT_GPENCIL);
-          BKE_brush_init_gpencil_settings(brush);
-        }
-        BKE_gpencil_brush_preset_set(bmain, brush, GP_BRUSH_PRESET_TINT);
-
-        BKE_paint_toolslots_init_from_main(bmain);
       }
 
       LISTBASE_FOREACH (Material *, mat, &bmain->materials) {
