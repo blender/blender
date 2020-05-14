@@ -1274,7 +1274,6 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
         break;
       case PBVH_FACES:
         node->draw_buffers = GPU_pbvh_mesh_buffers_build(
-            node->face_vert_indices,
             bvh->mpoly,
             bvh->mloop,
             bvh->looptri,
@@ -1310,14 +1309,11 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
       case PBVH_FACES:
         GPU_pbvh_mesh_buffers_update(node->draw_buffers,
                                      bvh->verts,
-                                     node->vert_indices,
-                                     node->uniq_verts + node->face_verts,
                                      CustomData_get_layer(bvh->vdata, CD_PAINT_MASK),
                                      CustomData_get_layer(bvh->ldata, CD_MLOOPCOL),
                                      CustomData_get_layer(bvh->pdata, CD_SCULPT_FACE_SETS),
                                      bvh->face_sets_color_seed,
                                      bvh->face_sets_color_default,
-                                     node->face_vert_indices,
                                      update_flags);
         break;
       case PBVH_BMESH:

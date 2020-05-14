@@ -105,6 +105,7 @@ extern char datatoc_particle_frag_glsl[];
 extern char datatoc_pointcloud_vert_glsl[];
 extern char datatoc_pointcloud_frag_glsl[];
 extern char datatoc_sculpt_mask_vert_glsl[];
+extern char datatoc_sculpt_mask_frag_glsl[];
 extern char datatoc_volume_velocity_vert_glsl[];
 extern char datatoc_wireframe_vert_glsl[];
 extern char datatoc_wireframe_frag_glsl[];
@@ -1307,7 +1308,7 @@ GPUShader *OVERLAY_shader_sculpt_mask(void)
                                  datatoc_common_view_lib_glsl,
                                  datatoc_sculpt_mask_vert_glsl,
                                  NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_3D_smooth_color_frag_glsl, NULL},
+        .frag = (const char *[]){datatoc_sculpt_mask_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg->def, NULL},
     });
   }

@@ -219,14 +219,11 @@ static bool gpu_pbvh_is_looptri_visible(const MLoopTri *lt,
 /* Threaded - do not call any functions that use OpenGL calls! */
 void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const MVert *mvert,
-                                  const int *vert_indices,
-                                  int totvert,
                                   const float *vmask,
                                   const MLoopCol *vcol,
                                   const int *sculpt_face_sets,
                                   const int face_sets_color_seed,
                                   const int face_sets_color_default,
-                                  const int (*face_vert_indices)[3],
                                   const int update_flags)
 {
   const bool show_mask = vmask && (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
@@ -237,7 +234,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
   bool default_face_set = true;
 
   {
-    int totelem = (buffers->smooth ? totvert : (buffers->tot_tri * 3));
+    const int totelem = buffers->tot_tri * 3;
 
     /* Build VBO */
     if (gpu_pbvh_vert_buf_data_set(buffers, totelem)) {
@@ -255,127 +252,77 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
         GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.col, &col_step);
       }
 
-      /* Vertex data is shared if smooth-shaded, but separate
-       * copies are made for flat shading because normals
-       * shouldn't be shared. */
-      if (buffers->smooth) {
-        for (uint i = 0; i < totvert; i++) {
-          const int vidx = vert_indices[i];
-          const MVert *v = &mvert[vidx];
+      /* calculate normal for each polygon only once */
+      uint mpoly_prev = UINT_MAX;
+      short no[3] = {0, 0, 0};
+
+      for (uint i = 0; i < buffers->face_indices_len; i++) {
+        const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
+        const uint vtri[3] = {
+            buffers->mloop[lt->tri[0]].v,
+            buffers->mloop[lt->tri[1]].v,
+            buffers->mloop[lt->tri[2]].v,
+        };
+
+        if (!gpu_pbvh_is_looptri_visible(lt, mvert, buffers->mloop, sculpt_face_sets)) {
+          continue;
+        }
+
+        /* Face normal and mask */
+        if (lt->poly != mpoly_prev && !buffers->smooth) {
+          const MPoly *mp = &buffers->mpoly[lt->poly];
+          float fno[3];
+          BKE_mesh_calc_poly_normal(mp, &buffers->mloop[mp->loopstart], mvert, fno);
+          normal_float_to_short_v3(no, fno);
+          mpoly_prev = lt->poly;
+        }
+
+        uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
+        if (show_face_sets) {
+          const int fset = abs(sculpt_face_sets[lt->poly]);
+          /* Skip for the default color Face Set to render it white. */
+          if (fset != face_sets_color_default) {
+            face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);
+            default_face_set = false;
+          }
+        }
+
+        float fmask = 0.0f;
+        uchar cmask = 0;
+        if (show_mask && !buffers->smooth) {
+          fmask = (vmask[vtri[0]] + vmask[vtri[1]] + vmask[vtri[2]]) / 3.0f;
+          cmask = (uchar)(fmask * 255);
+        }
+
+        for (uint j = 0; j < 3; j++) {
+          const MVert *v = &mvert[vtri[j]];
           copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), v->co);
-          copy_v3_v3_short(GPU_vertbuf_raw_step(&nor_step), v->no);
 
-          uchar mask;
-          if (show_mask) {
-            mask = (uchar)(vmask[vidx] * 255);
+          if (buffers->smooth) {
+            copy_v3_v3_short(no, v->no);
           }
-          else {
-            mask = 0.0f;
-          }
-          *(uchar *)GPU_vertbuf_raw_step(&msk_step) = mask;
-          empty_mask = empty_mask && (mask == 0);
-        }
+          copy_v3_v3_short(GPU_vertbuf_raw_step(&nor_step), no);
 
-        /* Face Sets. */
-        for (uint i = 0; i < buffers->face_indices_len; i++) {
-          uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
-          if (show_face_sets) {
-            const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
-            const int fset = abs(sculpt_face_sets[lt->poly]);
-
-            /* Skip for the default color Face Set to render it white. */
-            if (fset != face_sets_color_default) {
-              face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);
-              default_face_set = false;
-            }
-          }
-          for (int j = 0; j < 3; j++) {
-            const int vidx = face_vert_indices[i][j];
-            GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.fset, vidx, &face_set_color);
-          }
-        }
-
-        if (show_vcol) {
-          for (uint i = 0; i < buffers->face_indices_len; i++) {
-            const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
-            for (int j = 0; j < 3; j++) {
-              const int loop_index = lt->tri[j];
-              const int vidx = face_vert_indices[i][j];
-              const MLoopCol *mcol = &vcol[loop_index];
-              ushort scol[4];
-              scol[0] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->r]);
-              scol[1] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->g]);
-              scol[2] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->b]);
-              scol[3] = unit_float_to_ushort_clamp(mcol->a * (1.0f / 255.0f));
-              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vidx, scol);
-            }
-          }
-        }
-      }
-      else {
-        /* calculate normal for each polygon only once */
-        uint mpoly_prev = UINT_MAX;
-        short no[3] = {0, 0, 0};
-
-        for (uint i = 0; i < buffers->face_indices_len; i++) {
-          const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
-          const uint vtri[3] = {
-              buffers->mloop[lt->tri[0]].v,
-              buffers->mloop[lt->tri[1]].v,
-              buffers->mloop[lt->tri[2]].v,
-          };
-
-          if (!gpu_pbvh_is_looptri_visible(lt, mvert, buffers->mloop, sculpt_face_sets)) {
-            continue;
+          if (show_mask && buffers->smooth) {
+            cmask = (uchar)(vmask[vtri[j]] * 255);
           }
 
-          /* Face normal and mask */
-          if (lt->poly != mpoly_prev) {
-            const MPoly *mp = &buffers->mpoly[lt->poly];
-            float fno[3];
-            BKE_mesh_calc_poly_normal(mp, &buffers->mloop[mp->loopstart], mvert, fno);
-            normal_float_to_short_v3(no, fno);
-            mpoly_prev = lt->poly;
+          *(uchar *)GPU_vertbuf_raw_step(&msk_step) = cmask;
+          empty_mask = empty_mask && (cmask == 0);
+
+          if (show_vcol) {
+            const uint loop_index = lt->tri[j];
+            const MLoopCol *mcol = &vcol[loop_index];
+            ushort scol[4];
+            scol[0] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->r]);
+            scol[1] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->g]);
+            scol[2] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->b]);
+            scol[3] = unit_float_to_ushort_clamp(mcol->a * (1.0f / 255.0f));
+            memcpy(GPU_vertbuf_raw_step(&col_step), scol, sizeof(scol));
           }
 
-          uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
-          if (show_face_sets) {
-            const int fset = abs(sculpt_face_sets[lt->poly]);
-            /* Skip for the default color Face Set to render it white. */
-            if (fset != face_sets_color_default) {
-              face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);
-              default_face_set = false;
-            }
-          }
-
-          float fmask = 0.0f;
-          uchar cmask = 0;
-          if (show_mask) {
-            fmask = (vmask[vtri[0]] + vmask[vtri[1]] + vmask[vtri[2]]) / 3.0f;
-            cmask = (uchar)(fmask * 255);
-          }
-
-          for (uint j = 0; j < 3; j++) {
-            const MVert *v = &mvert[vtri[j]];
-
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), v->co);
-            copy_v3_v3_short(GPU_vertbuf_raw_step(&nor_step), no);
-            *(uchar *)GPU_vertbuf_raw_step(&msk_step) = cmask;
-            empty_mask = empty_mask && (cmask == 0);
-            /* Face Sets. */
-            memcpy(GPU_vertbuf_raw_step(&fset_step), face_set_color, sizeof(uchar) * 3);
-
-            if (show_vcol) {
-              const uint loop_index = lt->tri[j];
-              const MLoopCol *mcol = &vcol[loop_index];
-              ushort scol[4];
-              scol[0] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->r]);
-              scol[1] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->g]);
-              scol[2] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->b]);
-              scol[3] = unit_float_to_ushort_clamp(mcol->a * (1.0f / 255.0f));
-              memcpy(GPU_vertbuf_raw_step(&col_step), scol, sizeof(scol));
-            }
-          }
+          /* Face Sets. */
+          memcpy(GPU_vertbuf_raw_step(&fset_step), face_set_color, sizeof(uchar) * 3);
         }
       }
 
@@ -393,8 +340,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
 }
 
 /* Threaded - do not call any functions that use OpenGL calls! */
-GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const int (*face_vert_indices)[3],
-                                              const MPoly *mpoly,
+GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const MPoly *mpoly,
                                               const MLoop *mloop,
                                               const MLoopTri *looptri,
                                               const MVert *mvert,
@@ -441,70 +387,34 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const int (*face_vert_indices)[3],
     return buffers;
   }
 
-  /* An element index buffer is used for smooth shading, but flat
-   * shading requires separate vertex normals so an index buffer
-   * can't be used there. */
-  if (buffers->smooth) {
-    /* Fill the triangle and line buffers. */
-    GPUIndexBufBuilder elb, elb_lines;
-    GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, tottri, INT_MAX);
-    GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, tot_real_edges, INT_MAX);
+  /* Fill the only the line buffer. */
+  GPUIndexBufBuilder elb_lines;
+  GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, tot_real_edges, INT_MAX);
+  int vert_idx = 0;
 
-    for (i = 0; i < face_indices_len; i++) {
-      const MLoopTri *lt = &looptri[face_indices[i]];
+  for (i = 0; i < face_indices_len; i++) {
+    const MLoopTri *lt = &looptri[face_indices[i]];
 
-      /* Skip hidden faces */
-      if (!gpu_pbvh_is_looptri_visible(lt, mvert, mloop, sculpt_face_sets)) {
-        continue;
-      }
-
-      GPU_indexbuf_add_tri_verts(&elb, UNPACK3(face_vert_indices[i]));
-      int r_edges[3];
-      BKE_mesh_looptri_get_real_edges(mesh, lt, r_edges);
-
-      if (r_edges[0] != -1) {
-        GPU_indexbuf_add_line_verts(&elb_lines, face_vert_indices[i][0], face_vert_indices[i][1]);
-      }
-      if (r_edges[1] != -1) {
-        GPU_indexbuf_add_line_verts(&elb_lines, face_vert_indices[i][1], face_vert_indices[i][2]);
-      }
-      if (r_edges[2] != -1) {
-        GPU_indexbuf_add_line_verts(&elb_lines, face_vert_indices[i][2], face_vert_indices[i][0]);
-      }
+    /* Skip hidden faces */
+    if (!gpu_pbvh_is_looptri_visible(lt, mvert, mloop, sculpt_face_sets)) {
+      continue;
     }
-    buffers->index_buf = GPU_indexbuf_build(&elb);
-    buffers->index_lines_buf = GPU_indexbuf_build(&elb_lines);
-  }
-  else {
-    /* Fill the only the line buffer. */
-    GPUIndexBufBuilder elb_lines;
-    GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, tot_real_edges, INT_MAX);
-    int vert_idx = 0;
 
-    for (i = 0; i < face_indices_len; i++) {
-      const MLoopTri *lt = &looptri[face_indices[i]];
-
-      /* Skip hidden faces */
-      if (!gpu_pbvh_is_looptri_visible(lt, mvert, mloop, sculpt_face_sets)) {
-        continue;
-      }
-
-      int r_edges[3];
-      BKE_mesh_looptri_get_real_edges(mesh, lt, r_edges);
-      if (r_edges[0] != -1) {
-        GPU_indexbuf_add_line_verts(&elb_lines, vert_idx * 3 + 0, vert_idx * 3 + 1);
-      }
-      if (r_edges[1] != -1) {
-        GPU_indexbuf_add_line_verts(&elb_lines, vert_idx * 3 + 1, vert_idx * 3 + 2);
-      }
-      if (r_edges[2] != -1) {
-        GPU_indexbuf_add_line_verts(&elb_lines, vert_idx * 3 + 2, vert_idx * 3 + 0);
-      }
-
-      vert_idx++;
+    int r_edges[3];
+    BKE_mesh_looptri_get_real_edges(mesh, lt, r_edges);
+    if (r_edges[0] != -1) {
+      GPU_indexbuf_add_line_verts(&elb_lines, vert_idx * 3 + 0, vert_idx * 3 + 1);
     }
-    buffers->index_lines_buf = GPU_indexbuf_build(&elb_lines);
+    if (r_edges[1] != -1) {
+      GPU_indexbuf_add_line_verts(&elb_lines, vert_idx * 3 + 1, vert_idx * 3 + 2);
+    }
+    if (r_edges[2] != -1) {
+      GPU_indexbuf_add_line_verts(&elb_lines, vert_idx * 3 + 2, vert_idx * 3 + 0);
+    }
+
+    vert_idx++;
   }
+  buffers->index_lines_buf = GPU_indexbuf_build(&elb_lines);
 
   buffers->tot_tri = tottri;
 
