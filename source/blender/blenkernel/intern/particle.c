@@ -2383,8 +2383,9 @@ static bool psys_thread_context_init_path(ParticleThreadContext *ctx,
   }
   else {
     totchild = (int)((float)totchild * (float)part->disp / 100.0f);
-    totparent = MIN2(totparent, totchild);
   }
+
+  totparent = MIN2(totparent, totchild);
 
   if (totchild == 0) {
     return false;
