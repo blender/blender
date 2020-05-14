@@ -79,14 +79,25 @@ static CLG_LogRef LOG = {"ed.undo"};
 void ED_undo_push(bContext *C, const char *str)
 {
   CLOG_INFO(&LOG, 1, "name='%s'", str);
+  WM_file_tag_modified();
 
-  const int steps = U.undosteps;
+  wmWindowManager *wm = CTX_wm_manager(C);
+  int steps = U.undosteps;
 
+  /* Ensure steps that have been initialized are always pushed,
+   * even when undo steps are zero.
+   *
+   * Note that some modes (paint, sculpt) initialize an undo step before an action runs,
+   * then accumulate changes there, or restore data from it in the case of 2D painting.
+   *
+   * For this reason we need to handle the undo step even when undo steps is set to zero.
+   */
+  if ((steps <= 0) && wm->undo_stack->step_init != NULL) {
+    steps = 1;
+  }
   if (steps <= 0) {
     return;
   }
-
-  wmWindowManager *wm = CTX_wm_manager(C);
 
   /* Only apply limit if this is the last undo step. */
   if (wm->undo_stack->step_active && (wm->undo_stack->step_active->next == NULL)) {
@@ -103,8 +114,6 @@ void ED_undo_push(bContext *C, const char *str)
   if (CLOG_CHECK(&LOG, 1)) {
     BKE_undosys_print(wm->undo_stack);
   }
-
-  WM_file_tag_modified();
 }
 
 /**
