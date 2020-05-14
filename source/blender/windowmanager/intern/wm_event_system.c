@@ -2952,7 +2952,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
     else {
       wmWindow *win = CTX_wm_window(C);
       if (win) {
-        if (ISKEYMODIFIER(win->eventstate->prevtype)) {
+        if (ISKEYMODIFIER(win->eventstate->type)) {
           win->eventstate->check_click = 0;
         }
       }
