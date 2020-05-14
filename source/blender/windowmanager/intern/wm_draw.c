@@ -293,7 +293,7 @@ static bool wm_region_use_viewport_by_type(short space_type, short region_type)
   return (ELEM(space_type, SPACE_VIEW3D, SPACE_IMAGE) && region_type == RGN_TYPE_WINDOW);
 }
 
-static bool wm_region_use_viewport(ScrArea *area, ARegion *region)
+bool WM_region_use_viewport(ScrArea *area, ARegion *region)
 {
   return wm_region_use_viewport_by_type(area->spacetype, region->regiontype);
 }
@@ -658,7 +658,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if (region->visible && region->do_draw) {
         CTX_wm_region_set(C, region);
-        bool use_viewport = wm_region_use_viewport(area, region);
+        bool use_viewport = WM_region_use_viewport(area, region);
 
         if (stereo && wm_draw_region_stereo_set(bmain, area, region, STEREO_LEFT_ID)) {
           wm_draw_region_buffer_create(region, true, use_viewport);
@@ -1042,7 +1042,7 @@ void WM_draw_region_free(ARegion *region, bool hide)
 void wm_draw_region_test(bContext *C, ScrArea *area, ARegion *region)
 {
   /* Function for redraw timer benchmark. */
-  bool use_viewport = wm_region_use_viewport(area, region);
+  bool use_viewport = WM_region_use_viewport(area, region);
   wm_draw_region_buffer_create(region, false, use_viewport);
   wm_draw_region_bind(region, 0);
   ED_region_do_draw(C, region);

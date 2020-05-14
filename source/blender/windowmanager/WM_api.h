@@ -870,6 +870,8 @@ void WM_generic_callback_free(struct wmGenericCallback *callback);
 
 void WM_generic_user_data_free(struct wmGenericUserData *user_data);
 
+bool WM_region_use_viewport(struct ScrArea *area, struct ARegion *region);
+
 #ifdef WITH_XR_OPENXR
 /* wm_xr.c */
 bool WM_xr_session_exists(const wmXrData *xr);
