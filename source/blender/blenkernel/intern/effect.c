@@ -113,7 +113,7 @@ PartDeflect *BKE_partdeflect_new(int type)
     case PFIELD_TEXTURE:
       pd->f_size = 1.0f;
       break;
-    case PFIELD_SMOKEFLOW:
+    case PFIELD_FLUIDFLOW:
       pd->f_flow = 1.0f;
       break;
   }
@@ -1024,7 +1024,7 @@ static void do_physical_effector(EffectorCache *eff,
 
       mul_v3_fl(force, -efd->falloff * fac * (strength * fac + damp));
       break;
-    case PFIELD_SMOKEFLOW:
+    case PFIELD_FLUIDFLOW:
       zero_v3(force);
 #ifdef WITH_FLUID
       if (pd->f_source) {
@@ -1046,7 +1046,7 @@ static void do_physical_effector(EffectorCache *eff,
   if (pd->flag & PFIELD_DO_LOCATION) {
     madd_v3_v3fl(total_force, force, 1.0f / point->vel_to_sec);
 
-    if (ELEM(pd->forcefield, PFIELD_HARMONIC, PFIELD_DRAG, PFIELD_SMOKEFLOW) == 0 &&
+    if (ELEM(pd->forcefield, PFIELD_HARMONIC, PFIELD_DRAG, PFIELD_FLUIDFLOW) == 0 &&
         pd->f_flow != 0.0f) {
       madd_v3_v3fl(total_force, point->vel, -pd->f_flow * efd->falloff);
     }

@@ -433,7 +433,7 @@ void DepsgraphRelationBuilder::add_particle_forcefield_relations(const Operation
       }
 
       /* Smoke flow relations. */
-      if (relation->pd->forcefield == PFIELD_SMOKEFLOW && relation->pd->f_source) {
+      if (relation->pd->forcefield == PFIELD_FLUIDFLOW && relation->pd->f_source) {
         ComponentKey trf_key(&relation->pd->f_source->id, NodeType::TRANSFORM);
         add_relation(trf_key, key, "Smoke Force Domain");
         ComponentKey eff_key(&relation->pd->f_source->id, NodeType::GEOMETRY);

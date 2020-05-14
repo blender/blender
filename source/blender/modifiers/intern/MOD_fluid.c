@@ -159,7 +159,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
                                  ctx->object,
                                  mmd->domain->effector_weights,
                                  true,
-                                 PFIELD_SMOKEFLOW,
+                                 PFIELD_FLUIDFLOW,
                                  "Fluid Force Field");
 
     if (mmd->domain->guide_parent != NULL) {

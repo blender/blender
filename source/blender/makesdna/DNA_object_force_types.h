@@ -59,8 +59,8 @@ typedef enum ePFieldType {
   PFIELD_TURBULENCE = 11,
   /** Linear & quadratic drag. */
   PFIELD_DRAG = 12,
-  /** Force based on smoke simulation air flow. */
-  PFIELD_SMOKEFLOW = 13,
+  /** Force based on fluid simulation velocities. */
+  PFIELD_FLUIDFLOW = 13,
 
   /* Keep last. */
   NUM_PFIELD_TYPES,

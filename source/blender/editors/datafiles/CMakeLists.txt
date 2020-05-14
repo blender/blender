@@ -336,7 +336,7 @@ set(ICON_NAMES
   force_boid
   force_turbulence
   force_drag
-  force_smokeflow
+  force_fluidflow
   image_plane
   image_background
   image_reference

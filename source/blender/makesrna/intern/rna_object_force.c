@@ -1332,7 +1332,7 @@ static void rna_def_effector_weight(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "weight[13]");
   RNA_def_property_range(prop, -200.0f, 200.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Smoke Flow", "Smoke Flow effector weight");
+  RNA_def_property_ui_text(prop, "Fluid Flow", "Fluid Flow effector weight");
   RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
 }
 
@@ -1396,11 +1396,11 @@ static void rna_def_field(BlenderRNA *brna)
        "Turbulence",
        "Create turbulence with a noise field"},
       {PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", "Create a force that dampens motion"},
-      {PFIELD_SMOKEFLOW,
-       "SMOKE_FLOW",
-       ICON_FORCE_SMOKEFLOW,
-       "Smoke Flow",
-       "Create a force based on smoke simulation air flow"},
+      {PFIELD_FLUIDFLOW,
+       "FLUID_FLOW",
+       ICON_FORCE_FLUIDFLOW,
+       "Fluid Flow",
+       "Create a force based on fluid simulation velocities"},
       {0, NULL, 0, NULL, NULL},
   };
 

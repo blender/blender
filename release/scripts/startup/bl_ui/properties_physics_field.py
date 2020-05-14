@@ -123,7 +123,7 @@ class PHYSICS_PT_field_settings(PhysicButtonsPanel, Panel):
             col.prop(field, "use_object_coords")
             col.prop(field, "use_2d_force")
 
-        elif field.type == 'SMOKE_FLOW':
+        elif field.type == 'FLUID_FLOW':
             col = flow.column()
             col.prop(field, "strength")
             col.prop(field, "flow")

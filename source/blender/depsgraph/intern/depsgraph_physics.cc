@@ -141,11 +141,11 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
     }
 
     /* Smoke flow relations. */
-    if (relation->pd->forcefield == PFIELD_SMOKEFLOW && relation->pd->f_source != nullptr) {
+    if (relation->pd->forcefield == PFIELD_FLUIDFLOW && relation->pd->f_source != nullptr) {
       DEG_add_object_pointcache_relation(
-          handle, relation->pd->f_source, DEG_OB_COMP_TRANSFORM, "Smoke Force Domain");
+          handle, relation->pd->f_source, DEG_OB_COMP_TRANSFORM, "Fluid Force Domain");
       DEG_add_object_pointcache_relation(
-          handle, relation->pd->f_source, DEG_OB_COMP_GEOMETRY, "Smoke Force Domain");
+          handle, relation->pd->f_source, DEG_OB_COMP_GEOMETRY, "Fluid Force Domain");
     }
 
     /* Absorption forces need collision relation. */
