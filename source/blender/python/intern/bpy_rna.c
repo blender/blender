@@ -9056,9 +9056,10 @@ void pyrna_struct_type_extend_capi(struct StructRNA *srna,
   }
 
   if (getset != NULL) {
+    PyObject *dict = ((PyTypeObject *)cls)->tp_dict;
     for (; getset->name != NULL; getset++) {
-      PyObject *dict = ((PyTypeObject *)cls)->tp_dict;
       PyObject *descr = PyDescr_NewGetSet((PyTypeObject *)cls, getset);
+      /* Ensure we're not overwriting anything that already exists. */
       BLI_assert(PyDict_GetItem(dict, PyDescr_NAME(descr)) == NULL);
       PyDict_SetItem(dict, PyDescr_NAME(descr), descr);
       Py_DECREF(descr);
