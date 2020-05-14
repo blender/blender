@@ -34,18 +34,9 @@ CCL_NAMESPACE_BEGIN
 ccl_device int bsdf_ashikhmin_shirley_setup(MicrofacetBsdf *bsdf)
 {
   bsdf->alpha_x = clamp(bsdf->alpha_x, 1e-4f, 1.0f);
-  bsdf->alpha_y = bsdf->alpha_x;
-
-  bsdf->type = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID;
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
-}
-
-ccl_device int bsdf_ashikhmin_shirley_aniso_setup(MicrofacetBsdf *bsdf)
-{
-  bsdf->alpha_x = clamp(bsdf->alpha_x, 1e-4f, 1.0f);
   bsdf->alpha_y = clamp(bsdf->alpha_y, 1e-4f, 1.0f);
 
-  bsdf->type = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID;
+  bsdf->type = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID;
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 

@@ -320,9 +320,9 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
             /* setup bsdf */
             if (distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID ||
                 roughness <= 0.075f) /* use single-scatter GGX */
-              sd->flag |= bsdf_microfacet_ggx_aniso_fresnel_setup(bsdf, sd);
+              sd->flag |= bsdf_microfacet_ggx_fresnel_setup(bsdf, sd);
             else /* use multi-scatter GGX */
-              sd->flag |= bsdf_microfacet_multi_ggx_aniso_fresnel_setup(bsdf, sd);
+              sd->flag |= bsdf_microfacet_multi_ggx_fresnel_setup(bsdf, sd);
           }
         }
 #  ifdef __CAUSTICS_TRICKS__
@@ -515,11 +515,33 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
       float roughness = sqr(param1);
 
       bsdf->N = N;
-      bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
-      bsdf->alpha_x = roughness;
-      bsdf->alpha_y = roughness;
       bsdf->ior = 0.0f;
       bsdf->extra = NULL;
+
+      if (data_node.y == SVM_STACK_INVALID) {
+        bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
+        bsdf->alpha_x = roughness;
+        bsdf->alpha_y = roughness;
+      }
+      else {
+        bsdf->T = stack_load_float3(stack, data_node.y);
+
+        /* rotate tangent */
+        float rotation = stack_load_float(stack, data_node.z);
+        if (rotation != 0.0f)
+          bsdf->T = rotate_around_axis(bsdf->T, bsdf->N, rotation * M_2PI_F);
+
+        /* compute roughness */
+        float anisotropy = clamp(param2, -0.99f, 0.99f);
+        if (anisotropy < 0.0f) {
+          bsdf->alpha_x = roughness / (1.0f + anisotropy);
+          bsdf->alpha_y = roughness * (1.0f + anisotropy);
+        }
+        else {
+          bsdf->alpha_x = roughness * (1.0f - anisotropy);
+          bsdf->alpha_y = roughness / (1.0f - anisotropy);
+        }
+      }
 
       /* setup bsdf */
       if (type == CLOSURE_BSDF_REFLECTION_ID)
@@ -529,10 +551,10 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
       else if (type == CLOSURE_BSDF_MICROFACET_GGX_ID)
         sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
       else if (type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID) {
-        kernel_assert(stack_valid(data_node.z));
+        kernel_assert(stack_valid(data_node.w));
         bsdf->extra = (MicrofacetExtra *)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
         if (bsdf->extra) {
-          bsdf->extra->color = stack_load_float3(stack, data_node.z);
+          bsdf->extra->color = stack_load_float3(stack, data_node.w);
           bsdf->extra->cspec0 = make_float3(0.0f, 0.0f, 0.0f);
           bsdf->extra->clearcoat = 0.0f;
           sd->flag |= bsdf_microfacet_multi_ggx_setup(bsdf);
@@ -673,64 +695,6 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
 
       /* setup bsdf */
       sd->flag |= bsdf_microfacet_multi_ggx_glass_setup(bsdf);
-      break;
-    }
-    case CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID:
-    case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
-    case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ANISO_ID:
-    case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID: {
-#ifdef __CAUSTICS_TRICKS__
-      if (!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE))
-        break;
-#endif
-      float3 weight = sd->svm_closure_weight * mix_weight;
-      MicrofacetBsdf *bsdf = (MicrofacetBsdf *)bsdf_alloc(sd, sizeof(MicrofacetBsdf), weight);
-
-      if (bsdf) {
-        bsdf->N = N;
-        bsdf->extra = NULL;
-        bsdf->T = stack_load_float3(stack, data_node.y);
-
-        /* rotate tangent */
-        float rotation = stack_load_float(stack, data_node.z);
-
-        if (rotation != 0.0f)
-          bsdf->T = rotate_around_axis(bsdf->T, bsdf->N, rotation * M_2PI_F);
-
-        /* compute roughness */
-        float roughness = sqr(param1);
-        float anisotropy = clamp(param2, -0.99f, 0.99f);
-
-        if (anisotropy < 0.0f) {
-          bsdf->alpha_x = roughness / (1.0f + anisotropy);
-          bsdf->alpha_y = roughness * (1.0f + anisotropy);
-        }
-        else {
-          bsdf->alpha_x = roughness * (1.0f - anisotropy);
-          bsdf->alpha_y = roughness / (1.0f - anisotropy);
-        }
-
-        bsdf->ior = 0.0f;
-
-        if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID) {
-          sd->flag |= bsdf_microfacet_beckmann_aniso_setup(bsdf);
-        }
-        else if (type == CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID) {
-          sd->flag |= bsdf_microfacet_ggx_aniso_setup(bsdf);
-        }
-        else if (type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ANISO_ID) {
-          kernel_assert(stack_valid(data_node.w));
-          bsdf->extra = (MicrofacetExtra *)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
-          if (bsdf->extra) {
-            bsdf->extra->color = stack_load_float3(stack, data_node.w);
-            bsdf->extra->cspec0 = make_float3(0.0f, 0.0f, 0.0f);
-            bsdf->extra->clearcoat = 0.0f;
-            sd->flag |= bsdf_microfacet_multi_ggx_aniso_setup(bsdf);
-          }
-        }
-        else
-          sd->flag |= bsdf_ashikhmin_shirley_aniso_setup(bsdf);
-      }
       break;
     }
     case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID: {

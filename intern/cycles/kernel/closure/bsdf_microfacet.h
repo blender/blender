@@ -256,9 +256,7 @@ ccl_device_forceinline float3 reflection_color(const MicrofacetBsdf *bsdf, float
 {
   float3 F = make_float3(1.0f, 1.0f, 1.0f);
   bool use_fresnel = (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID ||
-                      bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID ||
-                      bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_ANISO_FRESNEL_ID);
-
+                      bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID);
   if (use_fresnel) {
     float F0 = fresnel_dielectric_cos(1.0f, bsdf->ior);
 
@@ -311,11 +309,19 @@ ccl_device int bsdf_microfacet_ggx_setup(MicrofacetBsdf *bsdf)
   bsdf->extra = NULL;
 
   bsdf->alpha_x = saturate(bsdf->alpha_x);
-  bsdf->alpha_y = bsdf->alpha_x;
+  bsdf->alpha_y = saturate(bsdf->alpha_y);
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_ID;
 
   return SD_BSDF | SD_BSDF_HAS_EVAL;
+}
+
+/* Required to maintain OSL interface. */
+ccl_device int bsdf_microfacet_ggx_isotropic_setup(MicrofacetBsdf *bsdf)
+{
+  bsdf->alpha_y = bsdf->alpha_x;
+
+  return bsdf_microfacet_ggx_setup(bsdf);
 }
 
 ccl_device int bsdf_microfacet_ggx_fresnel_setup(MicrofacetBsdf *bsdf, const ShaderData *sd)
@@ -323,7 +329,7 @@ ccl_device int bsdf_microfacet_ggx_fresnel_setup(MicrofacetBsdf *bsdf, const Sha
   bsdf->extra->cspec0 = saturate3(bsdf->extra->cspec0);
 
   bsdf->alpha_x = saturate(bsdf->alpha_x);
-  bsdf->alpha_y = bsdf->alpha_x;
+  bsdf->alpha_y = saturate(bsdf->alpha_y);
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID;
 
@@ -359,32 +365,6 @@ ccl_device bool bsdf_microfacet_merge(const ShaderClosure *a, const ShaderClosur
            (isequal_float3(bsdf_a->extra->color, bsdf_b->extra->color)) &&
            (isequal_float3(bsdf_a->extra->cspec0, bsdf_b->extra->cspec0)) &&
            (bsdf_a->extra->clearcoat == bsdf_b->extra->clearcoat)));
-}
-
-ccl_device int bsdf_microfacet_ggx_aniso_setup(MicrofacetBsdf *bsdf)
-{
-  bsdf->extra = NULL;
-
-  bsdf->alpha_x = saturate(bsdf->alpha_x);
-  bsdf->alpha_y = saturate(bsdf->alpha_y);
-
-  bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID;
-
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
-}
-
-ccl_device int bsdf_microfacet_ggx_aniso_fresnel_setup(MicrofacetBsdf *bsdf, const ShaderData *sd)
-{
-  bsdf->extra->cspec0 = saturate3(bsdf->extra->cspec0);
-
-  bsdf->alpha_x = saturate(bsdf->alpha_x);
-  bsdf->alpha_y = saturate(bsdf->alpha_y);
-
-  bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_ANISO_FRESNEL_ID;
-
-  bsdf_microfacet_fresnel_color(sd, bsdf);
-
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
 ccl_device int bsdf_microfacet_ggx_refraction_setup(MicrofacetBsdf *bsdf)
@@ -636,8 +616,7 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals *kg,
             *eval = make_float3(1e6f, 1e6f, 1e6f);
 
             bool use_fresnel = (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID ||
-                                bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID ||
-                                bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_ANISO_FRESNEL_ID);
+                                bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID);
 
             /* if fresnel is used, calculate the color with reflection_color(...) */
             if (use_fresnel) {
@@ -811,19 +790,18 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals *kg,
 ccl_device int bsdf_microfacet_beckmann_setup(MicrofacetBsdf *bsdf)
 {
   bsdf->alpha_x = saturate(bsdf->alpha_x);
-  bsdf->alpha_y = bsdf->alpha_x;
+  bsdf->alpha_y = saturate(bsdf->alpha_y);
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_BECKMANN_ID;
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device int bsdf_microfacet_beckmann_aniso_setup(MicrofacetBsdf *bsdf)
+/* Required to maintain OSL interface. */
+ccl_device int bsdf_microfacet_beckmann_isotropic_setup(MicrofacetBsdf *bsdf)
 {
-  bsdf->alpha_x = saturate(bsdf->alpha_x);
-  bsdf->alpha_y = saturate(bsdf->alpha_y);
+  bsdf->alpha_y = bsdf->alpha_x;
 
-  bsdf->type = CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID;
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
+  return bsdf_microfacet_beckmann_setup(bsdf);
 }
 
 ccl_device int bsdf_microfacet_beckmann_refraction_setup(MicrofacetBsdf *bsdf)

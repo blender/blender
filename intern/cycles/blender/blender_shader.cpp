@@ -384,16 +384,16 @@ static ShaderNode *add_node(Scene *scene,
 
     switch (b_aniso_node.distribution()) {
       case BL::ShaderNodeBsdfAnisotropic::distribution_BECKMANN:
-        aniso->distribution = CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID;
+        aniso->distribution = CLOSURE_BSDF_MICROFACET_BECKMANN_ID;
         break;
       case BL::ShaderNodeBsdfAnisotropic::distribution_GGX:
-        aniso->distribution = CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID;
+        aniso->distribution = CLOSURE_BSDF_MICROFACET_GGX_ID;
         break;
       case BL::ShaderNodeBsdfAnisotropic::distribution_MULTI_GGX:
-        aniso->distribution = CLOSURE_BSDF_MICROFACET_MULTI_GGX_ANISO_ID;
+        aniso->distribution = CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID;
         break;
       case BL::ShaderNodeBsdfAnisotropic::distribution_ASHIKHMIN_SHIRLEY:
-        aniso->distribution = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID;
+        aniso->distribution = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID;
         break;
     }
 
