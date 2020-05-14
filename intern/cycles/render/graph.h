@@ -204,10 +204,6 @@ class ShaderNode : public Node {
   {
     return false;
   }
-  virtual bool has_object_dependency()
-  {
-    return false;
-  }
   virtual bool has_attribute_dependency()
   {
     return false;

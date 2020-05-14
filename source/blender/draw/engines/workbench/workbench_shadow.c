@@ -333,6 +333,11 @@ void workbench_shadow_cache_populate(WORKBENCH_Data *data, Object *ob, const boo
       use_shadow_pass_technique = false;
     }
 
+    /* We cannot use Shadow Pass technique on non-manifold object (see T76168). */
+    if (use_shadow_pass_technique && !is_manifold && (wpd->cull_state != 0)) {
+      use_shadow_pass_technique = false;
+    }
+
     if (use_shadow_pass_technique) {
       grp = DRW_shgroup_create_sub(wpd->shadow_pass_grp[is_manifold]);
       DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);

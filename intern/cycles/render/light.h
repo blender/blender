@@ -88,6 +88,9 @@ class LightManager {
   bool use_light_visibility;
   bool need_update;
 
+  /* Need to update background (including multiple importance map) */
+  bool need_update_background;
+
   LightManager();
   ~LightManager();
 
@@ -97,7 +100,7 @@ class LightManager {
   void remove_ies(int slot);
 
   void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
-  void device_free(Device *device, DeviceScene *dscene);
+  void device_free(Device *device, DeviceScene *dscene, const bool free_background = true);
 
   void tag_update(Scene *scene);
 

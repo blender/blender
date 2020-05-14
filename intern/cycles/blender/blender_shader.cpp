@@ -1231,12 +1231,11 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
     Shader *shader;
 
     /* test if we need to sync */
-    if (shader_map.add_or_update(&shader, b_mat) || shader->need_sync_object || update_all) {
+    if (shader_map.add_or_update(&shader, b_mat) || update_all) {
       ShaderGraph *graph = new ShaderGraph();
 
       shader->name = b_mat.name().c_str();
       shader->pass_id = b_mat.pass_index();
-      shader->need_sync_object = false;
 
       /* create nodes */
       if (b_mat.use_nodes() && b_mat.node_tree()) {

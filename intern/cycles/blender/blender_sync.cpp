@@ -85,8 +85,6 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
   /* Sync recalc flags from blender to cycles. Actual update is done separate,
    * so we can do it later on if doing it immediate is not suitable. */
 
-  bool has_updated_objects = b_depsgraph.id_type_updated(BL::DriverTarget::id_type_OBJECT);
-
   if (experimental) {
     /* Mark all meshes as needing to be exported again if dicing changed. */
     PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
@@ -188,19 +186,6 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
   BlenderViewportParameters new_viewport_parameters(b_v3d);
   if (viewport_parameters.modified(new_viewport_parameters)) {
     world_recalc = true;
-  }
-
-  /* Updates shader with object dependency if objects changed. */
-  if (has_updated_objects) {
-    if (scene->default_background->has_object_dependency) {
-      world_recalc = true;
-    }
-
-    foreach (Shader *shader, scene->shaders) {
-      if (shader->has_object_dependency) {
-        shader->need_sync_object = true;
-      }
-    }
   }
 }
 
