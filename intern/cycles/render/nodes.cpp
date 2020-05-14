@@ -2166,12 +2166,11 @@ NODE_DEFINE(AnisotropicBsdfNode)
   SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
   static NodeEnum distribution_enum;
-  distribution_enum.insert("beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID);
-  distribution_enum.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID);
-  distribution_enum.insert("Multiscatter GGX", CLOSURE_BSDF_MICROFACET_MULTI_GGX_ANISO_ID);
-  distribution_enum.insert("ashikhmin_shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID);
-  SOCKET_ENUM(
-      distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID);
+  distribution_enum.insert("beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_ID);
+  distribution_enum.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_ID);
+  distribution_enum.insert("Multiscatter GGX", CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID);
+  distribution_enum.insert("ashikhmin_shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID);
+  SOCKET_ENUM(distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_ID);
 
   SOCKET_IN_VECTOR(tangent, "Tangent", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_TANGENT);
 
@@ -2186,7 +2185,7 @@ NODE_DEFINE(AnisotropicBsdfNode)
 
 AnisotropicBsdfNode::AnisotropicBsdfNode() : BsdfNode(node_type)
 {
-  closure = CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID;
+  closure = CLOSURE_BSDF_MICROFACET_GGX_ID;
 }
 
 void AnisotropicBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
@@ -2205,7 +2204,7 @@ void AnisotropicBsdfNode::compile(SVMCompiler &compiler)
 {
   closure = distribution;
 
-  if (closure == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ANISO_ID)
+  if (closure == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID)
     BsdfNode::compile(
         compiler, input("Roughness"), input("Anisotropy"), input("Rotation"), input("Color"));
   else
@@ -2299,7 +2298,7 @@ void GlossyBsdfNode::compile(SVMCompiler &compiler)
   if (closure == CLOSURE_BSDF_REFLECTION_ID)
     BsdfNode::compile(compiler, NULL, NULL);
   else if (closure == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID)
-    BsdfNode::compile(compiler, input("Roughness"), NULL, input("Color"));
+    BsdfNode::compile(compiler, input("Roughness"), NULL, NULL, input("Color"));
   else
     BsdfNode::compile(compiler, input("Roughness"), NULL);
 }
