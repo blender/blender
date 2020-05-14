@@ -359,10 +359,6 @@ class PointDensityTextureNode : public ShaderNode {
   {
     return true;
   }
-  bool has_object_dependency()
-  {
-    return true;
-  }
 
   /* Parameters. */
   ustring filename;
@@ -895,10 +891,6 @@ class TextureCoordinateNode : public ShaderNode {
   bool has_spatial_varying()
   {
     return true;
-  }
-  bool has_object_dependency()
-  {
-    return use_transform;
   }
 
   float3 normal_osl;

@@ -206,7 +206,6 @@ Shader::Shader() : Node(node_type)
   has_surface_spatial_varying = false;
   has_volume_spatial_varying = false;
   has_volume_attribute_dependency = false;
-  has_object_dependency = false;
   has_integrator_dependency = false;
   has_volume_connected = false;
   prev_volume_step_rate = 0.0f;
@@ -218,7 +217,6 @@ Shader::Shader() : Node(node_type)
 
   need_update = true;
   need_update_geometry = true;
-  need_sync_object = false;
 }
 
 Shader::~Shader()

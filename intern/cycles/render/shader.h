@@ -98,7 +98,6 @@ class Shader : public Node {
   /* synchronization */
   bool need_update;
   bool need_update_geometry;
-  bool need_sync_object;
 
   /* If the shader has only volume components, the surface is assumed to
    * be transparent.
@@ -121,7 +120,6 @@ class Shader : public Node {
   bool has_surface_spatial_varying;
   bool has_volume_spatial_varying;
   bool has_volume_attribute_dependency;
-  bool has_object_dependency;
   bool has_integrator_dependency;
 
   /* displacement */
