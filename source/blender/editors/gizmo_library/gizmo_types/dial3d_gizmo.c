@@ -381,7 +381,7 @@ static void dial_ghostarc_draw_with_helplines(const float angle_ofs,
 {
   /* Coordinate at which the arc drawing will be started. */
   const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f};
-  const float color_arc_inner[4] = {0.8f, 0.8f, 0.8f, 0.4f};
+  const float color_arc_inner[4] = {0.8f, 0.8f, 0.8f, 0.2f};
   dial_ghostarc_draw(angle_ofs, angle_delta, arc_inner_factor, color_arc_inner);
 
   float line_width = (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE) ? 3.0f : 1.0f;
