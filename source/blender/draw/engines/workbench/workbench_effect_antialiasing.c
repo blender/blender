@@ -176,6 +176,14 @@ void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
     }
   }
 
+  /* Reset the TAA when we have already draw a sample, but the sample count differs from previous
+   * time. This removes render artifacts when the viewport anti-aliasing in the user preferences is
+   * set to a lower value. */
+  if (wpd->taa_sample_len != wpd->taa_sample_len_previous) {
+    wpd->taa_sample = 0;
+    wpd->taa_sample_len_previous = wpd->taa_sample_len;
+  }
+
   if (wpd->view_updated) {
     wpd->taa_sample = 0;
     wpd->view_updated = false;

@@ -231,19 +231,17 @@ static void blo_update_defaults_screen(bScreen *screen,
   /* 2D animation template. */
   if (app_template && STREQ(app_template, "2D_Animation")) {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-        if (area->spacetype == SPACE_ACTION) {
-          SpaceAction *saction = area->spacedata.first;
-          /* Enable Sliders. */
-          saction->flag |= SACTION_SLIDERS;
-        }
-        else if (area->spacetype == SPACE_VIEW3D) {
-          View3D *v3d = area->spacedata.first;
-          /* Set Material Color by default. */
-          v3d->shading.color_type = V3D_SHADING_MATERIAL_COLOR;
-          /* Enable Annotations. */
-          v3d->flag2 |= V3D_SHOW_ANNOTATION;
-        }
+      if (area->spacetype == SPACE_ACTION) {
+        SpaceAction *saction = area->spacedata.first;
+        /* Enable Sliders. */
+        saction->flag |= SACTION_SLIDERS;
+      }
+      else if (area->spacetype == SPACE_VIEW3D) {
+        View3D *v3d = area->spacedata.first;
+        /* Set Material Color by default. */
+        v3d->shading.color_type = V3D_SHADING_MATERIAL_COLOR;
+        /* Enable Annotations. */
+        v3d->flag2 |= V3D_SHOW_ANNOTATION;
       }
     }
   }

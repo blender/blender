@@ -1009,7 +1009,6 @@ typedef struct PBVHUpdateData {
 
   float (*vnors)[3];
   int flag;
-  bool show_vcol;
   bool show_sculpt_face_sets;
 } PBVHUpdateData;
 
@@ -1250,12 +1249,10 @@ void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag)
   BLI_task_parallel_range(0, totnode, &data, pbvh_update_BB_redraw_task_cb, &settings);
 }
 
-static int pbvh_get_buffers_update_flags(PBVH *bvh, bool show_vcol)
+static int pbvh_get_buffers_update_flags(PBVH *UNUSED(bvh))
 {
-  int update_flags = 0;
-  update_flags |= bvh->show_mask ? GPU_PBVH_BUFFERS_SHOW_MASK : 0;
-  update_flags |= show_vcol ? GPU_PBVH_BUFFERS_SHOW_VCOL : 0;
-  update_flags |= bvh->show_face_sets ? GPU_PBVH_BUFFERS_SHOW_SCULPT_FACE_SETS : 0;
+  int update_flags = GPU_PBVH_BUFFERS_SHOW_VCOL | GPU_PBVH_BUFFERS_SHOW_MASK |
+                     GPU_PBVH_BUFFERS_SHOW_SCULPT_FACE_SETS;
   return update_flags;
 }
 
@@ -1295,7 +1292,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   }
 
   if (node->flag & PBVH_UpdateDrawBuffers) {
-    const int update_flags = pbvh_get_buffers_update_flags(bvh, data->show_vcol);
+    const int update_flags = pbvh_get_buffers_update_flags(bvh);
     switch (bvh->type) {
       case PBVH_GRIDS:
         GPU_pbvh_grid_buffers_update(node->draw_buffers,
@@ -1335,8 +1332,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   }
 }
 
-static void pbvh_update_draw_buffers(
-    PBVH *bvh, PBVHNode **nodes, int totnode, bool show_vcol, int update_flag)
+static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode, int update_flag)
 {
   if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(bvh->type, PBVH_GRIDS, PBVH_BMESH)) {
     /* Free buffers uses OpenGL, so not in parallel. */
@@ -1362,7 +1358,6 @@ static void pbvh_update_draw_buffers(
   PBVHUpdateData data = {
       .bvh = bvh,
       .nodes = nodes,
-      .show_vcol = show_vcol,
   };
 
   TaskParallelSettings settings;
@@ -2679,7 +2674,6 @@ static bool pbvh_draw_search_cb(PBVHNode *node, void *data_v)
 }
 
 void BKE_pbvh_draw_cb(PBVH *bvh,
-                      bool show_vcol,
                       bool update_only_visible,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
@@ -2696,7 +2690,7 @@ void BKE_pbvh_draw_cb(PBVH *bvh,
     BKE_pbvh_search_gather(bvh, update_search_cb, POINTER_FROM_INT(update_flag), &nodes, &totnode);
 
     if (totnode) {
-      pbvh_update_draw_buffers(bvh, nodes, totnode, show_vcol, update_flag);
+      pbvh_update_draw_buffers(bvh, nodes, totnode, update_flag);
     }
 
     MEM_SAFE_FREE(nodes);
@@ -2708,7 +2702,7 @@ void BKE_pbvh_draw_cb(PBVH *bvh,
 
   if (update_only_visible && (data.accum_update_flag & update_flag)) {
     /* Update draw buffers in visible nodes. */
-    pbvh_update_draw_buffers(bvh, nodes, totnode, show_vcol, data.accum_update_flag);
+    pbvh_update_draw_buffers(bvh, nodes, totnode, data.accum_update_flag);
   }
 
   /* Draw. */

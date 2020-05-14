@@ -261,6 +261,8 @@ typedef struct WORKBENCH_PrivateData {
   /* Temporal Antialiasing */
   /** Total number of samples to after which TAA stops accumulating samples. */
   int taa_sample_len;
+  /** Total number of samples of the previous TAA. When changed TAA will be reset. */
+  int taa_sample_len_previous;
   /** Current TAA sample index in [0..taa_sample_len[ range. */
   int taa_sample;
   /** Inverse of taa_sample to divide the accumulation buffer. */

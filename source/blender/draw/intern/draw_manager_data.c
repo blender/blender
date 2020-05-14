@@ -954,7 +954,7 @@ static void drw_sculpt_get_frustum_planes(Object *ob, float planes[6][4])
   }
 }
 
-static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd, bool use_vcol)
+static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
 {
   /* PBVH should always exist for non-empty meshes, created by depsgrah eval. */
   PBVH *pbvh = (scd->ob->sculpt) ? scd->ob->sculpt->pbvh : NULL;
@@ -1015,7 +1015,6 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd, bool use_vcol)
   BKE_pbvh_update_normals(pbvh, mesh->runtime.subdiv_ccg);
 
   BKE_pbvh_draw_cb(pbvh,
-                   use_vcol,
                    update_only_visible,
                    &update_frustum,
                    &draw_frustum,
@@ -1033,8 +1032,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd, bool use_vcol)
   }
 }
 
-void DRW_shgroup_call_sculpt(
-    DRWShadingGroup *shgroup, Object *ob, bool use_wire, bool use_mask, bool use_vcol)
+void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup, Object *ob, bool use_wire, bool use_mask)
 {
   DRWSculptCallbackData scd = {
       .ob = ob,
@@ -1044,13 +1042,12 @@ void DRW_shgroup_call_sculpt(
       .use_mats = false,
       .use_mask = use_mask,
   };
-  drw_sculpt_generate_calls(&scd, use_vcol);
+  drw_sculpt_generate_calls(&scd);
 }
 
 void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
                                             int num_shgroups,
-                                            Object *ob,
-                                            bool use_vcol)
+                                            Object *ob)
 {
   DRWSculptCallbackData scd = {
       .ob = ob,
@@ -1060,7 +1057,7 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
       .use_mats = true,
       .use_mask = false,
   };
-  drw_sculpt_generate_calls(&scd, use_vcol);
+  drw_sculpt_generate_calls(&scd);
 }
 
 static GPUVertFormat inst_select_format = {0};

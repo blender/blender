@@ -191,7 +191,6 @@ bool BKE_pbvh_node_find_nearest_to_ray(PBVH *bvh,
 /* Drawing */
 
 void BKE_pbvh_draw_cb(PBVH *bvh,
-                      bool show_vcol,
                       bool update_only_visible,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
