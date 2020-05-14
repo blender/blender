@@ -1819,42 +1819,42 @@ bool RE_is_rendering_allowed(Scene *scene,
     }
   }
 
-  if (scemode & R_DOCOMP) {
-    if (scene->use_nodes) {
-      if (!scene->nodetree) {
-        BKE_report(reports, RPT_ERROR, "No node tree in scene");
-        return 0;
-      }
-
-      if (!check_composite_output(scene)) {
-        BKE_report(reports, RPT_ERROR, "No render output node in scene");
-        return 0;
-      }
-
-      if (scemode & R_FULL_SAMPLE) {
-        if (composite_needs_render(scene, 0) == 0) {
-          BKE_report(reports, RPT_ERROR, "Full sample AA not supported without 3D rendering");
-          return 0;
-        }
-      }
-    }
-  }
-
-  /* check valid camera, without camera render is OK (compo, seq) */
-  if (!check_valid_camera(scene, camera_override, reports)) {
-    return 0;
-  }
-
   if (RE_seq_render_active(scene, &scene->r)) {
+    /* Sequencer */
     if (scene->r.mode & R_BORDER) {
       BKE_report(reports, RPT_ERROR, "Border rendering is not supported by sequencer");
       return false;
     }
   }
+  else if ((scemode & R_DOCOMP) && scene->use_nodes) {
+    /* Compositor */
+    if (!scene->nodetree) {
+      BKE_report(reports, RPT_ERROR, "No node tree in scene");
+      return 0;
+    }
 
-  /* layer flag tests */
-  if (!render_scene_has_layers_to_render(scene, single_layer)) {
-    BKE_report(reports, RPT_ERROR, "All render layers are disabled");
+    if (!check_composite_output(scene)) {
+      BKE_report(reports, RPT_ERROR, "No render output node in scene");
+      return 0;
+    }
+
+    if (scemode & R_FULL_SAMPLE) {
+      if (composite_needs_render(scene, 0) == 0) {
+        BKE_report(reports, RPT_ERROR, "Full sample AA not supported without 3D rendering");
+        return 0;
+      }
+    }
+  }
+  else {
+    /* Regular Render */
+    if (!render_scene_has_layers_to_render(scene, single_layer)) {
+      BKE_report(reports, RPT_ERROR, "All render layers are disabled");
+      return 0;
+    }
+  }
+
+  /* check valid camera, without camera render is OK (compo, seq) */
+  if (!check_valid_camera(scene, camera_override, reports)) {
     return 0;
   }
 
