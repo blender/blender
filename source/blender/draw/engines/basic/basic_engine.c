@@ -202,7 +202,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
                                        stl->g_data->depth_shgrp[do_in_front];
 
   if (use_sculpt_pbvh) {
-    DRW_shgroup_call_sculpt(shgrp, ob, false, false, false);
+    DRW_shgroup_call_sculpt(shgrp, ob, false, false);
   }
   else {
     struct GPUBatch *geom = DRW_cache_object_surface_get(ob);

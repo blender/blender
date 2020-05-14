@@ -2073,23 +2073,21 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
       }
 
       if (use_sculpt_pbvh) {
-        /* Vcol is not supported in the modes that require PBVH drawing. */
-        const bool use_vcol = false;
         struct DRWShadingGroup **sculpt_shgrps_array = BLI_array_alloca(sculpt_shgrps_array,
                                                                         materials_len);
         for (int i = 0; i < materials_len; i++) {
           sculpt_shgrps_array[i] = shgrps_array[i].shading_grp;
         }
-        DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, materials_len, ob, use_vcol);
+        DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, materials_len, ob);
 
         for (int i = 0; i < materials_len; i++) {
           sculpt_shgrps_array[i] = shgrps_array[i].depth_grp;
         }
-        DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, materials_len, ob, use_vcol);
+        DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, materials_len, ob);
         for (int i = 0; i < materials_len; i++) {
           sculpt_shgrps_array[i] = shgrps_array[i].depth_clip_grp;
         }
-        DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, materials_len, ob, use_vcol);
+        DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, materials_len, ob);
 
         for (int renderpass_index = 0;
              renderpass_index < stl->g_data->render_passes_material_count;
@@ -2097,7 +2095,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
           for (int i = 0; i < materials_len; i++) {
             sculpt_shgrps_array[i] = shgrps_array[i].material_accum_grp[renderpass_index];
           }
-          DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, materials_len, ob, use_vcol);
+          DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, materials_len, ob);
         }
 
         /* TODO(fclem): Support shadows in sculpt mode. */

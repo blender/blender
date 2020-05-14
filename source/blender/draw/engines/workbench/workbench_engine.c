@@ -118,7 +118,7 @@ static void workbench_cache_sculpt_populate(WORKBENCH_PrivateData *wpd,
 
   if (use_single_drawcall) {
     DRWShadingGroup *grp = workbench_material_setup(wpd, ob, 0, color_type, NULL);
-    DRW_shgroup_call_sculpt(grp, ob, false, false, use_vcol);
+    DRW_shgroup_call_sculpt(grp, ob, false, false);
   }
   else {
     const int materials_len = DRW_cache_object_material_count_get(ob);
@@ -126,7 +126,7 @@ static void workbench_cache_sculpt_populate(WORKBENCH_PrivateData *wpd,
     for (int i = 0; i < materials_len; i++) {
       shgrps[i] = workbench_material_setup(wpd, ob, i + 1, color_type, NULL);
     }
-    DRW_shgroup_call_sculpt_with_materials(shgrps, materials_len, ob, false);
+    DRW_shgroup_call_sculpt_with_materials(shgrps, materials_len, ob);
   }
 }
 

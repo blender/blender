@@ -54,7 +54,7 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   if (use_pbvh || !ob->sculpt->deform_modifiers_active || ob->sculpt->shapekey_active) {
     if (!use_pbvh || pbvh_has_mask(pbvh) || pbvh_has_face_sets(pbvh)) {
-      DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true, false);
+      DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true);
     }
   }
 }
