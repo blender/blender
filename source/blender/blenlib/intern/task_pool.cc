@@ -114,7 +114,11 @@ class Task {
   /* Execute task. */
   void operator()() const
   {
+#ifdef WITH_TBB
     tbb::this_task_arena::isolate([this] { run(pool, taskdata); });
+#else
+    run(pool, taskdata);
+#endif
   }
 };
 
