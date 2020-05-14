@@ -1332,6 +1332,9 @@ void SCULPT_undo_push_end_ex(const bool use_nested_undo)
   if (wm->op_undo_depth == 0 || use_nested_undo) {
     UndoStack *ustack = ED_undo_stack_get();
     BKE_undosys_step_push(ustack, NULL, NULL);
+    if (wm->op_undo_depth == 0) {
+      BKE_undosys_stack_limit_steps_and_memory_defaults(ustack);
+    }
     WM_file_tag_modified();
   }
 }

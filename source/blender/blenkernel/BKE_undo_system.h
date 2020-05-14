@@ -152,6 +152,8 @@ void BKE_undosys_stack_init_from_context(UndoStack *ustack, struct bContext *C);
 UndoStep *BKE_undosys_stack_active_with_type(UndoStack *ustack, const UndoType *ut);
 UndoStep *BKE_undosys_stack_init_or_active_with_type(UndoStack *ustack, const UndoType *ut);
 void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size_t memory_limit);
+#define BKE_undosys_stack_limit_steps_and_memory_defaults(ustack) \
+  BKE_undosys_stack_limit_steps_and_memory(ustack, U.undosteps, (size_t)U.undomemory * 1024 * 1024)
 
 /* Only some UndoType's require init. */
 UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack,
