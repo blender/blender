@@ -1534,14 +1534,11 @@ bool device_optix_init()
   return true;
 }
 
-void device_optix_info(vector<DeviceInfo> &devices)
+void device_optix_info(const vector<DeviceInfo> &cuda_devices, vector<DeviceInfo> &devices)
 {
   // Simply add all supported CUDA devices as OptiX devices again
-  vector<DeviceInfo> cuda_devices;
-  device_cuda_info(cuda_devices);
-
-  for (auto it = cuda_devices.begin(); it != cuda_devices.end();) {
-    DeviceInfo &info = *it;
+  for (const DeviceInfo &cuda_info : cuda_devices) {
+    DeviceInfo info = cuda_info;
     assert(info.type == DEVICE_CUDA);
     info.type = DEVICE_OPTIX;
     info.id += "_OptiX";
@@ -1564,13 +1561,10 @@ void device_optix_info(vector<DeviceInfo> &devices)
     }
 
     // Only add devices with RTX support
-    if (rtcore_version == 0 && !getenv("CYCLES_OPTIX_TEST"))
-      it = cuda_devices.erase(it);
-    else
-      ++it;
+    if (rtcore_version != 0 || getenv("CYCLES_OPTIX_TEST")) {
+      devices.push_back(info);
+    }
   }
-
-  devices.insert(devices.end(), cuda_devices.begin(), cuda_devices.end());
 }
 
 Device *device_optix_create(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background)

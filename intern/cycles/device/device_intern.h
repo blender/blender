@@ -45,7 +45,7 @@ Device *device_multi_create(DeviceInfo &info, Stats &stats, Profiler &profiler, 
 void device_cpu_info(vector<DeviceInfo> &devices);
 void device_opencl_info(vector<DeviceInfo> &devices);
 void device_cuda_info(vector<DeviceInfo> &devices);
-void device_optix_info(vector<DeviceInfo> &devices);
+void device_optix_info(const vector<DeviceInfo> &cuda_devices, vector<DeviceInfo> &devices);
 void device_network_info(vector<DeviceInfo> &devices);
 
 string device_cpu_capabilities();
