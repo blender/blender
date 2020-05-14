@@ -34,6 +34,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_asan.h"
 #include "BLI_memarena.h"
 #include "BLI_strict_flags.h"
 #include "BLI_utildefines.h"
@@ -44,18 +45,6 @@
 #  define VALGRIND_CREATE_MEMPOOL(pool, rzB, is_zeroed) UNUSED_VARS(pool, rzB, is_zeroed)
 #  define VALGRIND_DESTROY_MEMPOOL(pool) UNUSED_VARS(pool)
 #  define VALGRIND_MEMPOOL_ALLOC(pool, addr, size) UNUSED_VARS(pool, addr, size)
-#endif
-
-/* Clang defines this. */
-#ifndef __has_feature
-#  define __has_feature(x) 0
-#endif
-#if defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)
-#  include "sanitizer/asan_interface.h"
-#else
-/* Ensure return value is used. */
-#  define ASAN_POISON_MEMORY_REGION(addr, size) (void)(0 && ((size) != 0 && (addr) != NULL))
-#  define ASAN_UNPOISON_MEMORY_REGION(addr, size) (void)(0 && ((size) != 0 && (addr) != NULL))
 #endif
 
 struct MemBuf {
@@ -80,7 +69,7 @@ static void memarena_buf_free_all(struct MemBuf *mb)
     struct MemBuf *mb_next = mb->next;
 
     /* Unpoison memory because MEM_freeN might overwrite it. */
-    ASAN_UNPOISON_MEMORY_REGION(mb, (uint)MEM_allocN_len(mb));
+    BLI_asan_unpoison(mb, (uint)MEM_allocN_len(mb));
 
     MEM_freeN(mb);
     mb = mb_next;
@@ -160,7 +149,7 @@ void *BLI_memarena_alloc(MemArena *ma, size_t size)
     mb->next = ma->bufs;
     ma->bufs = mb;
 
-    ASAN_POISON_MEMORY_REGION(ma->curbuf, ma->cursize);
+    BLI_asan_poison(ma->curbuf, ma->cursize);
 
     memarena_curbuf_align(ma);
   }
@@ -171,7 +160,7 @@ void *BLI_memarena_alloc(MemArena *ma, size_t size)
 
   VALGRIND_MEMPOOL_ALLOC(ma, ptr, size);
 
-  ASAN_UNPOISON_MEMORY_REGION(ptr, size);
+  BLI_asan_unpoison(ptr, size);
 
   return ptr;
 }
@@ -215,7 +204,7 @@ void BLI_memarena_clear(MemArena *ma)
     if (ma->use_calloc) {
       memset(ma->curbuf, 0, curbuf_used);
     }
-    ASAN_POISON_MEMORY_REGION(ma->curbuf, ma->cursize);
+    BLI_asan_poison(ma->curbuf, ma->cursize);
   }
 
   VALGRIND_DESTROY_MEMPOOL(ma);

@@ -138,7 +138,7 @@ set(SRC
   intern/list_sort_impl.h
 
 
-
+  BLI_asan.h
   BLI_alloca.h
   BLI_allocator.hh
   BLI_args.h

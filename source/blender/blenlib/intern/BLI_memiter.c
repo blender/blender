@@ -40,6 +40,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "BLI_asan.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_memiter.h" /* own include */
@@ -49,18 +50,6 @@
 #include "BLI_strict_flags.h" /* keep last */
 
 /* TODO: Valgrind. */
-
-/* Clang defines this. */
-#ifndef __has_feature
-#  define __has_feature(x) 0
-#endif
-#if defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)
-#  include "sanitizer/asan_interface.h"
-#else
-/* Ensure return value is used. */
-#  define ASAN_POISON_MEMORY_REGION(addr, size) (void)(0 && ((size) != 0 && (addr) != NULL))
-#  define ASAN_UNPOISON_MEMORY_REGION(addr, size) (void)(0 && ((size) != 0 && (addr) != NULL))
-#endif
 
 typedef uintptr_t data_t;
 typedef intptr_t offset_t;
@@ -114,7 +103,7 @@ static void memiter_set_rewind_offset(BLI_memiter *mi)
 {
   BLI_memiter_elem *elem = (BLI_memiter_elem *)mi->data_curr;
 
-  ASAN_UNPOISON_MEMORY_REGION(elem, sizeof(BLI_memiter_elem));
+  BLI_asan_unpoison(elem, sizeof(BLI_memiter_elem));
 
   elem->size = (offset_t)(((data_t *)mi->tail) - mi->data_curr);
   BLI_assert(elem->size < 0);
@@ -197,14 +186,14 @@ void *BLI_memiter_alloc(BLI_memiter *mi, uint elem_size)
     mi->data_last = chunk->data + (chunk_size - 1);
     data_curr_next = mi->data_curr + (1 + data_offset);
 
-    ASAN_POISON_MEMORY_REGION(chunk->data, chunk_size * sizeof(data_t));
+    BLI_asan_poison(chunk->data, chunk_size * sizeof(data_t));
   }
 
   BLI_assert(data_curr_next <= mi->data_last);
 
   BLI_memiter_elem *elem = (BLI_memiter_elem *)mi->data_curr;
 
-  ASAN_UNPOISON_MEMORY_REGION(elem, sizeof(BLI_memiter_elem) + elem_size);
+  BLI_asan_unpoison(elem, sizeof(BLI_memiter_elem) + elem_size);
 
   elem->size = (offset_t)elem_size;
   mi->data_curr = data_curr_next;
@@ -242,7 +231,7 @@ static void memiter_free_data(BLI_memiter *mi)
     BLI_memiter_chunk *chunk_next = chunk->next;
 
     /* Unpoison memory because MEM_freeN might overwrite it. */
-    ASAN_UNPOISON_MEMORY_REGION(chunk, MEM_allocN_len(chunk));
+    BLI_asan_unpoison(chunk, MEM_allocN_len(chunk));
 
     MEM_freeN(chunk);
     chunk = chunk_next;
