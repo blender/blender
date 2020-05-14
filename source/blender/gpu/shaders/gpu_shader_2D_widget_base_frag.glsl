@@ -35,4 +35,6 @@ void main()
   if (butCo > 0.0) {
     fragColor.a = 1.0;
   }
+
+  fragColor = blender_srgb_to_framebuffer_space(fragColor);
 }

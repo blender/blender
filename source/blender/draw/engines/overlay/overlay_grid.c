@@ -60,8 +60,10 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
   const bool show_ortho_grid = (pd->v3d_gridflag & V3D_SHOW_ORTHO_GRID) != 0;
 
   shd->grid_flag = 0;
+  shd->zneg_flag = 0;
+  shd->zpos_flag = 0;
 
-  if (pd->hide_overlays || !(show_axis_y || show_axis_z || show_floor || show_ortho_grid)) {
+  if (pd->hide_overlays || !pd->v3d_gridflag) {
     return;
   }
 

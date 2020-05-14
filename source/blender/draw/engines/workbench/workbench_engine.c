@@ -113,7 +113,6 @@ static void workbench_cache_sculpt_populate(WORKBENCH_PrivateData *wpd,
                                             Object *ob,
                                             eV3DShadingColorType color_type)
 {
-  const bool use_vcol = ELEM(color_type, V3D_SHADING_VERTEX_COLOR);
   const bool use_single_drawcall = !ELEM(color_type, V3D_SHADING_MATERIAL_COLOR);
   BLI_assert(wpd->shading.color_type != V3D_SHADING_TEXTURE_COLOR);
 

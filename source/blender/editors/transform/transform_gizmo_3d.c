@@ -347,7 +347,7 @@ static void gizmo_get_axis_color(const int axis_idx,
   if (axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END) {
     /* Never fade rotation rings. */
     /* trackball rotation axis is a special case, we only draw a slight overlay */
-    alpha_fac = (axis_idx == MAN_AXIS_ROT_T) ? 0.1f : 1.0f;
+    alpha_fac = (axis_idx == MAN_AXIS_ROT_T) ? 0.05f : 1.0f;
   }
   else {
     bool is_plane = false;

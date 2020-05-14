@@ -66,6 +66,7 @@ void OVERLAY_edit_curve_cache_init(OVERLAY_Data *vedata)
 
     sh = OVERLAY_shader_edit_curve_point();
     pd->edit_curve_points_grp = grp = DRW_shgroup_create(sh, psl->edit_curve_handle_ps);
+    DRW_shgroup_uniform_bool_copy(grp, "showCurveHandles", pd->edit_curve.show_handles);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   }
 }
@@ -94,7 +95,7 @@ void OVERLAY_edit_curve_cache_populate(OVERLAY_Data *vedata, Object *ob)
     DRW_shgroup_call_no_cull(pd->edit_curve_handle_grp, geom, ob);
   }
 
-  geom = DRW_cache_curve_vert_overlay_get(ob, pd->edit_curve.show_handles);
+  geom = DRW_cache_curve_vert_overlay_get(ob);
   if (geom) {
     DRW_shgroup_call_no_cull(pd->edit_curve_points_grp, geom, ob);
   }
@@ -110,7 +111,7 @@ void OVERLAY_edit_surf_cache_populate(OVERLAY_Data *vedata, Object *ob)
     DRW_shgroup_call_no_cull(pd->edit_curve_handle_grp, geom, ob);
   }
 
-  geom = DRW_cache_curve_vert_overlay_get(ob, false);
+  geom = DRW_cache_curve_vert_overlay_get(ob);
   if (geom) {
     DRW_shgroup_call_no_cull(pd->edit_curve_points_grp, geom, ob);
   }

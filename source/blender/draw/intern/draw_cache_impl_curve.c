@@ -49,7 +49,9 @@
 
 #define SELECT 1
 #define ACTIVE_NURB 1 << 2
-#define EVEN_U_BIT 1 << 3 /* Alternate this bit for every U vert. */
+#define BEZIER_HANDLE 1 << 3
+#define EVEN_U_BIT 1 << 4 /* Alternate this bit for every U vert. */
+#define COLOR_SHIFT 5
 
 /* Used as values of `color_id` in `edit_curve_overlay_handle_geom.glsl` */
 enum {
@@ -376,7 +378,7 @@ typedef struct CurveBatchCache {
     GPUIndexBuf *curves_lines;
     GPUIndexBuf *edges_adj_lines;
     /* Edit mode */
-    GPUIndexBuf *edit_verts_points; /* Only control points. Not handles. */
+    GPUIndexBuf *edit_verts;
     GPUIndexBuf *edit_lines;
   } ibo;
 
@@ -387,7 +389,6 @@ typedef struct CurveBatchCache {
     /* control handles and vertices */
     GPUBatch *edit_edges;
     GPUBatch *edit_verts;
-    GPUBatch *edit_handles_verts;
     GPUBatch *edit_normals;
     GPUBatch *edge_detection;
   } batch;
@@ -497,7 +498,6 @@ void DRW_curve_batch_cache_dirty_tag(Curve *cu, int mode)
 
       GPU_BATCH_DISCARD_SAFE(cache->batch.edit_edges);
       GPU_BATCH_DISCARD_SAFE(cache->batch.edit_verts);
-      GPU_BATCH_DISCARD_SAFE(cache->batch.edit_handles_verts);
       break;
     default:
       BLI_assert(0);
@@ -686,14 +686,15 @@ static void curve_create_edit_curves_nor(CurveRenderData *rdata, GPUVertBuf *vbo
 }
 
 static char beztriple_vflag_get(
-    CurveRenderData *rdata, char flag, char col_id, int v_idx, int nu_id)
+    CurveRenderData *rdata, char flag, char col_id, int v_idx, int nu_id, bool handle_point)
 {
   char vflag = 0;
   SET_FLAG_FROM_TEST(vflag, (flag & SELECT), VFLAG_VERT_SELECTED);
   SET_FLAG_FROM_TEST(vflag, (v_idx == rdata->actvert && nu_id == rdata->actnu), VFLAG_VERT_ACTIVE);
   SET_FLAG_FROM_TEST(vflag, (nu_id == rdata->actnu), ACTIVE_NURB);
+  SET_FLAG_FROM_TEST(vflag, handle_point, BEZIER_HANDLE);
   /* handle color id */
-  vflag |= col_id << 4; /* << 4 because of EVEN_U_BIT */
+  vflag |= col_id << COLOR_SHIFT;
   return vflag;
 }
 
@@ -704,7 +705,7 @@ static char bpoint_vflag_get(CurveRenderData *rdata, char flag, int v_idx, int n
   SET_FLAG_FROM_TEST(vflag, (v_idx == rdata->actvert && nu_id == rdata->actnu), VFLAG_VERT_ACTIVE);
   SET_FLAG_FROM_TEST(vflag, (nu_id == rdata->actnu), ACTIVE_NURB);
   SET_FLAG_FROM_TEST(vflag, ((u % 2) == 0), EVEN_U_BIT);
-  vflag |= COLOR_NURB_ULINE_ID << 4; /* << 4 because of EVEN_U_BIT */
+  vflag |= COLOR_NURB_ULINE_ID << COLOR_SHIFT;
   return vflag;
 }
 
@@ -760,7 +761,9 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
         }
 
         if (elbp_verts) {
+          GPU_indexbuf_add_point_vert(elbp_verts, vbo_len_used + 0);
           GPU_indexbuf_add_point_vert(elbp_verts, vbo_len_used + 1);
+          GPU_indexbuf_add_point_vert(elbp_verts, vbo_len_used + 2);
         }
         if (elbp_lines) {
           GPU_indexbuf_add_line_verts(elbp_lines, vbo_len_used + 1, vbo_len_used + 0);
@@ -768,9 +771,9 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
         }
         if (vbo_data) {
           const char vflag[3] = {
-              beztriple_vflag_get(rdata, bezt->f1, bezt->h1, a, nu_id),
-              beztriple_vflag_get(rdata, bezt->f2, bezt->h1, a, nu_id),
-              beztriple_vflag_get(rdata, bezt->f3, bezt->h2, a, nu_id),
+              beztriple_vflag_get(rdata, bezt->f1, bezt->h1, a, nu_id, true),
+              beztriple_vflag_get(rdata, bezt->f2, bezt->h1, a, nu_id, false),
+              beztriple_vflag_get(rdata, bezt->f3, bezt->h2, a, nu_id, true),
           };
           for (int j = 0; j < 3; j++) {
             GPU_vertbuf_attr_set(vbo_data, attr_id.data, vbo_len_used + j, &vflag[j]);
@@ -859,15 +862,10 @@ GPUBatch *DRW_curve_batch_cache_get_edit_edges(Curve *cu)
   return DRW_batch_request(&cache->batch.edit_edges);
 }
 
-GPUBatch *DRW_curve_batch_cache_get_edit_verts(Curve *cu, bool handles)
+GPUBatch *DRW_curve_batch_cache_get_edit_verts(Curve *cu)
 {
   CurveBatchCache *cache = curve_batch_cache_get(cu);
-  if (handles) {
-    return DRW_batch_request(&cache->batch.edit_handles_verts);
-  }
-  else {
-    return DRW_batch_request(&cache->batch.edit_verts);
-  }
+  return DRW_batch_request(&cache->batch.edit_verts);
 }
 
 GPUBatch *DRW_curve_batch_cache_get_triangles_with_normals(struct Curve *cu)
@@ -965,13 +963,9 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
     DRW_vbo_request(cache->batch.edit_edges, &cache->edit.data);
   }
   if (DRW_batch_requested(cache->batch.edit_verts, GPU_PRIM_POINTS)) {
-    DRW_ibo_request(cache->batch.edit_verts, &cache->ibo.edit_verts_points);
+    DRW_ibo_request(cache->batch.edit_verts, &cache->ibo.edit_verts);
     DRW_vbo_request(cache->batch.edit_verts, &cache->edit.pos);
     DRW_vbo_request(cache->batch.edit_verts, &cache->edit.data);
-  }
-  if (DRW_batch_requested(cache->batch.edit_handles_verts, GPU_PRIM_POINTS)) {
-    DRW_vbo_request(cache->batch.edit_handles_verts, &cache->edit.pos);
-    DRW_vbo_request(cache->batch.edit_handles_verts, &cache->edit.data);
   }
   if (DRW_batch_requested(cache->batch.edit_normals, GPU_PRIM_LINES)) {
     DRW_vbo_request(cache->batch.edit_normals, &cache->edit.curves_nor);
@@ -1012,7 +1006,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
   DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->edit.data, CU_DATATYPE_OVERLAY);
   DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->edit.curves_nor, CU_DATATYPE_NORMAL);
   DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->edit.curves_weight, CU_DATATYPE_OVERLAY);
-  DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.edit_verts_points, CU_DATATYPE_OVERLAY);
+  DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.edit_verts, CU_DATATYPE_OVERLAY);
   DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.edit_lines, CU_DATATYPE_OVERLAY);
 
   for (int i = 0; i < cache->mat_len; i++) {
@@ -1065,13 +1059,9 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
   }
 
   if (DRW_vbo_requested(cache->edit.pos) || DRW_vbo_requested(cache->edit.data) ||
-      DRW_ibo_requested(cache->ibo.edit_verts_points) ||
-      DRW_ibo_requested(cache->ibo.edit_lines)) {
-    curve_create_edit_data_and_handles(rdata,
-                                       cache->edit.pos,
-                                       cache->edit.data,
-                                       cache->ibo.edit_verts_points,
-                                       cache->ibo.edit_lines);
+      DRW_ibo_requested(cache->ibo.edit_verts) || DRW_ibo_requested(cache->ibo.edit_lines)) {
+    curve_create_edit_data_and_handles(
+        rdata, cache->edit.pos, cache->edit.data, cache->ibo.edit_verts, cache->ibo.edit_lines);
   }
   if (DRW_vbo_requested(cache->edit.curves_nor)) {
     curve_create_edit_curves_nor(rdata, cache->edit.curves_nor);

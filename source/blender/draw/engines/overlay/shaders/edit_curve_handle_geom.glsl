@@ -1,7 +1,8 @@
 
 /* Keep the same value of `ACTIVE_NURB` in `draw_cache_imp_curve.c` */
 #define ACTIVE_NURB 1 << 2
-#define EVEN_U_BIT 1 << 3
+#define EVEN_U_BIT 1 << 4
+#define COLOR_SHIFT 5
 
 layout(lines) in;
 layout(triangle_strip, max_vertices = 10) out;
@@ -37,7 +38,7 @@ void main()
   vec4 v2 = gl_in[1].gl_Position;
 
   int is_active_nurb = (vertFlag[1] & ACTIVE_NURB);
-  int color_id = (vertFlag[1] >> 4);
+  int color_id = (vertFlag[1] >> COLOR_SHIFT);
 
   /* Don't output any edges if we don't show handles */
   if (!showCurveHandles && (color_id < 5)) {
