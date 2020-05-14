@@ -574,8 +574,8 @@ bool MANTA::runPythonString(vector<string> commands)
     manta_main_module = PyImport_ImportModule("__main__");
   }
 
-  for (vector<std::string>::iterator it = commands.begin(); it != commands.end(); ++it) {
-    std::string command = *it;
+  for (vector<string>::iterator it = commands.begin(); it != commands.end(); ++it) {
+    string command = *it;
 
     PyObject *globals_dict = PyModule_GetDict(manta_main_module);
     PyObject *return_value = PyRun_String(
