@@ -255,7 +255,7 @@ void boundbox_seq(Scene *scene, rctf *rect)
     return;
   }
 
-  min[0] = 0.0;
+  min[0] = SFRA;
   max[0] = EFRA + 1;
   min[1] = 0.0;
   max[1] = 8.0;
