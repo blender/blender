@@ -605,9 +605,11 @@ bool RE_bake_engine(Render *re,
   engine->resolution_x = re->winx;
   engine->resolution_y = re->winy;
 
+  BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
   RE_parts_init(re);
   engine->tile_x = re->r.tilex;
   engine->tile_y = re->r.tiley;
+  BLI_rw_mutex_unlock(&re->partsmutex);
 
   if (type->bake) {
     engine->depsgraph = depsgraph;

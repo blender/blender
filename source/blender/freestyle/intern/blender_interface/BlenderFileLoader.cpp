@@ -85,6 +85,7 @@ NodeGroup *BlenderFileLoader::Load()
 #endif
 
   int id = 0;
+  const eEvaluationMode eval_mode = DEG_get_mode(_depsgraph);
 
   DEG_OBJECT_ITER_BEGIN (_depsgraph,
                          ob,
@@ -96,6 +97,10 @@ NodeGroup *BlenderFileLoader::Load()
     }
 
     if (ob->base_flag & (BASE_HOLDOUT | BASE_INDIRECT_ONLY)) {
+      continue;
+    }
+
+    if (!(BKE_object_visibility(ob, eval_mode) & OB_VISIBLE_SELF)) {
       continue;
     }
 

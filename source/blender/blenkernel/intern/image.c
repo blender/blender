@@ -5726,6 +5726,13 @@ RenderSlot *BKE_image_add_renderslot(Image *ima, const char *name)
 
 bool BKE_image_remove_renderslot(Image *ima, ImageUser *iuser, int index)
 {
+  if (index == ima->last_render_slot) {
+    /* Don't remove render slot while rendering to it. */
+    if (G.is_rendering) {
+      return false;
+    }
+  }
+
   int num_slots = BLI_listbase_count(&ima->renderslots);
   if (index >= num_slots || num_slots == 1) {
     return false;

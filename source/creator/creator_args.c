@@ -1369,6 +1369,7 @@ static int arg_handle_output_set(int argc, const char **argv, void *data)
     Scene *scene = CTX_data_scene(C);
     if (scene) {
       BLI_strncpy(scene->r.pic, argv[1], sizeof(scene->r.pic));
+      DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
     }
     else {
       printf("\nError: no blend loaded. cannot use '-o / --render-output'.\n");
@@ -1402,6 +1403,7 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
       if (scene) {
         if (BLI_findstring(&R_engines, argv[1], offsetof(RenderEngineType, idname))) {
           BLI_strncpy_utf8(scene->r.engine, argv[1], sizeof(scene->r.engine));
+          DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
         }
         else {
           printf("\nError: engine not found '%s'\n", argv[1]);
@@ -1447,6 +1449,7 @@ static int arg_handle_image_type_set(int argc, const char **argv, void *data)
       }
       else {
         scene->r.im_format.imtype = imtype_new;
+        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
       }
     }
     else {
@@ -1532,9 +1535,11 @@ static int arg_handle_extension_set(int argc, const char **argv, void *data)
     if (scene) {
       if (argv[1][0] == '0') {
         scene->r.scemode &= ~R_EXTENSION;
+        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
       }
       else if (argv[1][0] == '1') {
         scene->r.scemode |= R_EXTENSION;
+        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
       }
       else {
         printf("\nError: Use '-x 1 / -x 0' To set the extension option or '--use-extension'\n");
@@ -1693,6 +1698,9 @@ static int arg_handle_frame_start_set(int argc, const char **argv, void *data)
                                     &err_msg)) {
         printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
       }
+      else {
+        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+      }
       return 1;
     }
     else {
@@ -1727,6 +1735,9 @@ static int arg_handle_frame_end_set(int argc, const char **argv, void *data)
                                     &err_msg)) {
         printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
       }
+      else {
+        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+      }
       return 1;
     }
     else {
@@ -1753,6 +1764,9 @@ static int arg_handle_frame_skip_set(int argc, const char **argv, void *data)
       const char *err_msg = NULL;
       if (!parse_int_clamp(argv[1], NULL, 1, MAXFRAME, &scene->r.frame_step, &err_msg)) {
         printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+      }
+      else {
+        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
       }
       return 1;
     }
