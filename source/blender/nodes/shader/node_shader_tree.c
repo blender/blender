@@ -385,9 +385,21 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
           /* Fix the case where the socket is actually converting the data. (see T71374)
            * We only do the case of lossy conversion to float.*/
           if ((socket->type == SOCK_FLOAT) && (link->fromsock->type != link->tosock->type)) {
-            bNode *tmp = nodeAddStaticNode(NULL, localtree, SH_NODE_RGBTOBW);
-            nodeAddLink(localtree, link->fromnode, link->fromsock, tmp, tmp->inputs.first);
-            nodeAddLink(localtree, tmp, tmp->outputs.first, node, socket);
+            if (link->fromsock->type == SOCK_RGBA) {
+              bNode *tmp = nodeAddStaticNode(NULL, localtree, SH_NODE_RGBTOBW);
+              nodeAddLink(localtree, link->fromnode, link->fromsock, tmp, tmp->inputs.first);
+              nodeAddLink(localtree, tmp, tmp->outputs.first, node, socket);
+            }
+            else if (link->fromsock->type == SOCK_VECTOR) {
+              bNode *tmp = nodeAddStaticNode(NULL, localtree, SH_NODE_VECTOR_MATH);
+              tmp->custom1 = NODE_VECTOR_MATH_DOT_PRODUCT;
+              bNodeSocket *dot_input1 = tmp->inputs.first;
+              bNodeSocket *dot_input2 = dot_input1->next;
+              bNodeSocketValueVector *input2_socket_value = dot_input2->default_value;
+              copy_v3_fl(input2_socket_value->value, 1.0f / 3.0f);
+              nodeAddLink(localtree, link->fromnode, link->fromsock, tmp, dot_input1);
+              nodeAddLink(localtree, tmp, tmp->outputs.last, node, socket);
+            }
           }
           continue;
         }
