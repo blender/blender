@@ -55,6 +55,7 @@ void workbench_engine_init(void *ved)
 
   if (!stl->wpd) {
     stl->wpd = MEM_callocN(sizeof(*stl->wpd), __func__);
+    stl->wpd->taa_sample_len_previous = -1;
     stl->wpd->view_updated = true;
   }
 
