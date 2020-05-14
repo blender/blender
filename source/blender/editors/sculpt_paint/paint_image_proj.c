@@ -4022,7 +4022,7 @@ static void project_paint_bleed_add_face_user(const ProjPaintState *ps,
      * Ideally this would be checked later, not to add to the cost of computing non-degenerate
      * triangles, but that would allow other triangles to still find adjacent seams on degenerate
      * triangles, potentially causing incorrect results. */
-    if (area_tri_v2(UNPACK3(lt_tri_uv)) > FLT_EPSILON) {
+    if (area_tri_v2(UNPACK3(lt_tri_uv)) > 0.0f) {
       const int lt_vtri[3] = {PS_LOOPTRI_AS_VERT_INDEX_3(ps, lt)};
       void *tri_index_p = POINTER_FROM_INT(tri_index);
 
