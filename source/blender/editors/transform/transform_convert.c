@@ -83,16 +83,45 @@
 #include "transform_convert.h"
 #include "transform_mode.h"
 
+bool transform_mode_use_local_origins(const TransInfo *t)
+{
+  return ELEM(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL);
+}
+
 /**
  * Transforming around ourselves is no use, fallback to individual origins,
  * useful for curve/armatures.
  */
 void transform_around_single_fallback(TransInfo *t)
 {
-  if ((t->data_len_all == 1) &&
-      (ELEM(t->around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEDIAN, V3D_AROUND_ACTIVE)) &&
-      (ELEM(t->mode, TFM_RESIZE, TFM_ROTATION, TFM_TRACKBALL))) {
-    t->around = V3D_AROUND_LOCAL_ORIGINS;
+  if ((ELEM(t->around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEDIAN, V3D_AROUND_ACTIVE)) &&
+      transform_mode_use_local_origins(t)) {
+
+    bool is_data_single = false;
+    if (t->data_len_all == 1) {
+      is_data_single = true;
+    }
+    else if (t->data_len_all == 3) {
+      if (t->obedit_type == OB_CURVE) {
+        /* Special case check for curve, if we have a single curve bezier triple selected
+         * treat */
+        FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+          if (!tc->data_len) {
+            continue;
+          }
+          if (tc->data_len == 3) {
+            const TransData *td = tc->data;
+            if ((td[0].loc == td[1].loc) && (td[1].loc == td[2].loc)) {
+              is_data_single = true;
+            }
+          }
+          break;
+        }
+      }
+    }
+    if (is_data_single) {
+      t->around = V3D_AROUND_LOCAL_ORIGINS;
+    }
   }
 }
 
