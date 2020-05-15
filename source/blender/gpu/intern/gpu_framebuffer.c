@@ -541,10 +541,6 @@ void GPU_framebuffer_bind(GPUFrameBuffer *fb)
   }
 #endif
 
-  if (fb->multisample) {
-    glEnable(GL_MULTISAMPLE);
-  }
-
   glViewport(0, 0, fb->width, fb->height);
 }
 

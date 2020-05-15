@@ -63,11 +63,11 @@
 #include "ED_space_api.h"
 #include "ED_view3d.h"
 
-#include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 #include "GPU_uniformbuffer.h"
 #include "GPU_viewport.h"
 

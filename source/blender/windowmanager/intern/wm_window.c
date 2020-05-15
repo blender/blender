@@ -84,11 +84,11 @@
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
 #include "GPU_context.h"
-#include "GPU_draw.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_init_exit.h"
 #include "GPU_platform.h"
+#include "GPU_state.h"
 
 #include "UI_resources.h"
 

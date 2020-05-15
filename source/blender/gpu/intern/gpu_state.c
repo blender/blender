@@ -370,4 +370,44 @@ void gpuPopAttr(void)
 #undef Attr
 #undef AttrStack
 
+/* Default OpenGL State
+ *
+ * This is called on startup, for opengl offscreen render.
+ * Generally we should always return to this state when
+ * temporarily modifying the state for drawing, though that are (undocumented)
+ * exceptions that we should try to get rid of. */
+
+void GPU_state_init(void)
+{
+  GPU_program_point_size(false);
+
+  glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+  glDisable(GL_BLEND);
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_COLOR_LOGIC_OP);
+  glDisable(GL_STENCIL_TEST);
+  glDisable(GL_DITHER);
+
+  glDepthFunc(GL_LEQUAL);
+  glDepthRange(0.0, 1.0);
+
+  glFrontFace(GL_CCW);
+  glCullFace(GL_BACK);
+  glDisable(GL_CULL_FACE);
+
+  /* Is default but better be explicit. */
+  glEnable(GL_MULTISAMPLE);
+
+  /* This is a bit dangerous since addons could change this. */
+  glEnable(GL_PRIMITIVE_RESTART);
+  glPrimitiveRestartIndex((GLuint)0xFFFFFFFF);
+
+  /* TODO: Should become default. But needs at least GL 4.3 */
+  if (GLEW_ARB_ES3_compatibility) {
+    /* Takes predecence over GL_PRIMITIVE_RESTART */
+    glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+  }
+}
+
 /** \} */

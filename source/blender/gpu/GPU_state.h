@@ -40,6 +40,12 @@ typedef enum eGPUFilterFunction {
   GPU_LINEAR,
 } eGPUFilterFunction;
 
+/* Initialize
+ * - sets the default Blender opengl state, if in doubt, check
+ *   the contents of this function
+ * - this is called when starting Blender, for opengl rendering. */
+void GPU_state_init(void);
+
 void GPU_blend(bool enable);
 void GPU_blend_set_func(eGPUBlendFunction sfactor, eGPUBlendFunction dfactor);
 void GPU_blend_set_func_separate(eGPUBlendFunction src_rgb,
