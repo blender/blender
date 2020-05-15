@@ -42,6 +42,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "MEM_guardedalloc.h"
@@ -1399,7 +1400,7 @@ ImBuf *BKE_tracking_stabilize_frame(
     return ibuf;
   }
 
-  /* Allocate frame for stabilization result. */
+  /* Allocate frame for stabilization result, copy alpha mode and colorspace.  */
   ibuf_flags = 0;
   if (ibuf->rect) {
     ibuf_flags |= IB_rect;
@@ -1409,6 +1410,7 @@ ImBuf *BKE_tracking_stabilize_frame(
   }
 
   tmpibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, ibuf_flags);
+  IMB_colormanagegent_copy_settings(ibuf, tmpibuf);
 
   /* Calculate stabilization matrix. */
   BKE_tracking_stabilization_data_get(clip, framenr, width, height, tloc, &tscale, &tangle);
