@@ -167,6 +167,8 @@ void createTransCurveVerts(TransInfo *t)
                              ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) :
                              false;
 
+    bool use_around_origins_for_handles_test = ((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
+                                                transform_mode_use_local_origins(t));
     float mtx[3][3], smtx[3][3];
 
     copy_m3_m4(mtx, tc->obedit->obmat);
@@ -342,7 +344,7 @@ void createTransCurveVerts(TransInfo *t)
         if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT, TFM_DUMMY) == 0) {
           /* sets the handles based on their selection,
            * do this after the data is copied to the TransData */
-          BKE_nurb_handles_test(nu, !hide_handles);
+          BKE_nurb_handles_test(nu, !hide_handles, use_around_origins_for_handles_test);
         }
       }
       else {

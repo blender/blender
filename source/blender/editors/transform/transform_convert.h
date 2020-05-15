@@ -100,6 +100,7 @@ void flushTransTracking(TransInfo *t);
 /********************* intern **********************/
 
 /* transform_convert.c */
+bool transform_mode_use_local_origins(const TransInfo *t);
 void transform_around_single_fallback(TransInfo *t);
 bool constraints_list_needinv(TransInfo *t, ListBase *list);
 void calc_distanceCurveVerts(TransData *head, TransData *tail);

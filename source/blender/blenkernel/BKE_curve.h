@@ -261,8 +261,9 @@ void BKE_nurb_handles_calc(struct Nurb *nu);
 void BKE_nurb_handles_autocalc(struct Nurb *nu, int flag);
 void BKE_nurb_bezt_handle_test(struct BezTriple *bezt,
                                const eBezTriple_Flag__Alias sel_flag,
-                               const bool use_handle);
-void BKE_nurb_handles_test(struct Nurb *nu, const bool use_handles);
+                               const bool use_handle,
+                               const bool use_around_local);
+void BKE_nurb_handles_test(struct Nurb *nu, const bool use_handles, const bool use_around_local);
 
 /* **** Depsgraph evaluation **** */
 
