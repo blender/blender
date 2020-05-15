@@ -1178,7 +1178,7 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
 
   /* if brush doesn't exist, create a new set (fix damaged files from old versions) */
   if ((paint->brush == NULL) || (paint->brush->gpencil_settings == NULL)) {
-    BKE_brush_gpencil_paint_presets(bmain, ts);
+    BKE_brush_gpencil_paint_presets(bmain, ts, true);
   }
 
   /* Set Draw brush. */

@@ -5192,6 +5192,15 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Set Brush default color for grease pencil. */
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->gpencil_settings) {
+        brush->rgb[0] = 0.498f;
+        brush->rgb[1] = 1.0f;
+        brush->rgb[2] = 0.498f;
+      }
+    }
   }
 
   /**

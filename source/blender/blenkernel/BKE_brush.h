@@ -57,10 +57,18 @@ struct Brush *BKE_brush_copy(struct Main *bmain, const struct Brush *brush);
 
 void BKE_brush_sculpt_reset(struct Brush *brush);
 
-void BKE_brush_gpencil_paint_presets(struct Main *bmain, struct ToolSettings *ts);
-void BKE_brush_gpencil_vertex_presets(struct Main *bmain, struct ToolSettings *ts);
-void BKE_brush_gpencil_sculpt_presets(struct Main *bmain, struct ToolSettings *ts);
-void BKE_brush_gpencil_weight_presets(struct Main *bmain, struct ToolSettings *ts);
+void BKE_brush_gpencil_paint_presets(struct Main *bmain,
+                                     struct ToolSettings *ts,
+                                     const bool reset);
+void BKE_brush_gpencil_vertex_presets(struct Main *bmain,
+                                      struct ToolSettings *ts,
+                                      const bool reset);
+void BKE_brush_gpencil_sculpt_presets(struct Main *bmain,
+                                      struct ToolSettings *ts,
+                                      const bool reset);
+void BKE_brush_gpencil_weight_presets(struct Main *bmain,
+                                      struct ToolSettings *ts,
+                                      const bool reset);
 void BKE_gpencil_brush_preset_set(struct Main *bmain, struct Brush *brush, const short type);
 
 /* image icon function */

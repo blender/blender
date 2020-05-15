@@ -1748,7 +1748,18 @@ void BKE_gpencil_palette_ensure(Main *bmain, Scene *scene)
   GpPaint *gp_paint = ts->gp_paint;
   Paint *paint = &gp_paint->paint;
 
+  if (paint->palette != NULL) {
+    return;
+  }
+
   paint->palette = BLI_findstring(&bmain->palettes, "Palette", offsetof(ID, name) + 2);
+  /* Try with first palette. */
+  if (bmain->palettes.first != NULL) {
+    paint->palette = bmain->palettes.first;
+    ts->gp_vertexpaint->paint.palette = paint->palette;
+    return;
+  }
+
   if (paint->palette == NULL) {
     paint->palette = BKE_palette_add(bmain, "Palette");
     ts->gp_vertexpaint->paint.palette = paint->palette;

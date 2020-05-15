@@ -117,7 +117,7 @@ static bGPDstroke *gpencil_prepare_stroke(bContext *C, wmOperator *op, int totpo
   /* if not exist, create a new one */
   if ((paint->brush == NULL) || (paint->brush->gpencil_settings == NULL)) {
     /* create new brushes */
-    BKE_brush_gpencil_paint_presets(bmain, ts);
+    BKE_brush_gpencil_paint_presets(bmain, ts, false);
   }
   Brush *brush = paint->brush;
 
