@@ -9909,6 +9909,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 {
   /* WATCH IT!!!: pointers from libdata have not been converted */
 
+  /* Don't allow versioning to create new data-blocks. */
+  main->is_locked_for_linking = true;
+
   if (G.debug & G_DEBUG) {
     char build_commit_datetime[32];
     time_t temp_time = main->build_commit_timestamp;
@@ -9939,6 +9942,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   /* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
 
   /* don't forget to set version number in BKE_blender_version.h! */
+
+  main->is_locked_for_linking = false;
 }
 
 static void do_versions_after_linking(Main *main, ReportList *reports)
@@ -9946,11 +9951,16 @@ static void do_versions_after_linking(Main *main, ReportList *reports)
   //  printf("%s for %s (%s), %d.%d\n", __func__, main->curlib ? main->curlib->name : main->name,
   //         main->curlib ? "LIB" : "MAIN", main->versionfile, main->subversionfile);
 
+  /* Don't allow versioning to create new data-blocks. */
+  main->is_locked_for_linking = true;
+
   do_versions_after_linking_250(main);
   do_versions_after_linking_260(main);
   do_versions_after_linking_270(main);
   do_versions_after_linking_280(main, reports);
   do_versions_after_linking_cycles(main);
+
+  main->is_locked_for_linking = false;
 }
 
 /** \} */
