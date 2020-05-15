@@ -211,7 +211,7 @@ vec2 do_widget(void)
   }
 
   bool is_emboss = (vflag & EMBOSS_FLAG) != 0u;
-  v.y -= (is_emboss) ? 1.0f : 0.0;
+  v.y -= (is_emboss) ? (recti.z - rect.z) : 0.0;
 
   return v;
 }
