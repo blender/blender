@@ -12,42 +12,15 @@
 /* 4bits for corner id */
 #define CORNER_VEC_OFS 2u
 #define CORNER_VEC_RANGE BIT_RANGE(4)
-const vec2 cornervec[36] = vec2[36](vec2(0.0, 1.0),
-                                    vec2(0.02, 0.805),
-                                    vec2(0.067, 0.617),
-                                    vec2(0.169, 0.45),
-                                    vec2(0.293, 0.293),
-                                    vec2(0.45, 0.169),
-                                    vec2(0.617, 0.076),
-                                    vec2(0.805, 0.02),
-                                    vec2(1.0, 0.0),
-                                    vec2(-1.0, 0.0),
-                                    vec2(-0.805, 0.02),
-                                    vec2(-0.617, 0.067),
-                                    vec2(-0.45, 0.169),
-                                    vec2(-0.293, 0.293),
-                                    vec2(-0.169, 0.45),
-                                    vec2(-0.076, 0.617),
-                                    vec2(-0.02, 0.805),
-                                    vec2(0.0, 1.0),
-                                    vec2(0.0, -1.0),
-                                    vec2(-0.02, -0.805),
-                                    vec2(-0.067, -0.617),
-                                    vec2(-0.169, -0.45),
-                                    vec2(-0.293, -0.293),
-                                    vec2(-0.45, -0.169),
-                                    vec2(-0.617, -0.076),
-                                    vec2(-0.805, -0.02),
-                                    vec2(-1.0, 0.0),
-                                    vec2(1.0, 0.0),
-                                    vec2(0.805, -0.02),
-                                    vec2(0.617, -0.067),
-                                    vec2(0.45, -0.169),
-                                    vec2(0.293, -0.293),
-                                    vec2(0.169, -0.45),
-                                    vec2(0.076, -0.617),
-                                    vec2(0.02, -0.805),
-                                    vec2(0.0, -1.0));
+const vec2 cornervec[9] = vec2[9](vec2(0.0, 1.0),
+                                  vec2(0.02, 0.805),
+                                  vec2(0.067, 0.617),
+                                  vec2(0.169, 0.45),
+                                  vec2(0.293, 0.293),
+                                  vec2(0.45, 0.169),
+                                  vec2(0.617, 0.076),
+                                  vec2(0.805, 0.02),
+                                  vec2(1.0, 0.0));
 
 /* 4bits for jitter id */
 #define JIT_OFS 6u
@@ -189,26 +162,26 @@ vec2 do_widget(void)
 {
   uint cflag = vflag & CNR_FLAG_RANGE;
   uint vofs = (vflag >> CORNER_VEC_OFS) & CORNER_VEC_RANGE;
-
-  vec2 v = cornervec[cflag * 9u + vofs];
-
   bool is_inner = (vflag & INNER_FLAG) != 0u;
 
+  vec2 v = cornervec[vofs];
   /* Scale by corner radius */
   v *= roundCorners[cflag] * ((is_inner) ? radsi : rads);
-
-  /* Position to corner */
+  /* Flip in the right direction and osition to corner */
   vec4 rct = (is_inner) ? recti : rect;
   if (cflag == BOTTOM_LEFT) {
     v += rct.xz;
   }
   else if (cflag == BOTTOM_RIGHT) {
+    v = vec2(-v.y, v.x);
     v += rct.yz;
   }
   else if (cflag == TOP_RIGHT) {
+    v = -v;
     v += rct.yw;
   }
   else /* (cflag == TOP_LEFT) */ {
+    v = vec2(v.y, -v.x);
     v += rct.xw;
   }
 
