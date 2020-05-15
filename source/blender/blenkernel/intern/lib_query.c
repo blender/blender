@@ -977,45 +977,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_LS: {
-        FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
-
-        for (i = 0; i < MAX_MTEX; i++) {
-          if (linestyle->mtex[i]) {
-            BKE_texture_mtex_foreach_id(&data, linestyle->mtex[i]);
-          }
-        }
-        if (linestyle->nodetree) {
-          /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-          BKE_library_foreach_ID_embedded(&data, (ID **)&linestyle->nodetree);
-        }
-
-        LISTBASE_FOREACH (LineStyleModifier *, lsm, &linestyle->color_modifiers) {
-          if (lsm->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
-            LineStyleColorModifier_DistanceFromObject *p =
-                (LineStyleColorModifier_DistanceFromObject *)lsm;
-            if (p->target) {
-              CALLBACK_INVOKE(p->target, IDWALK_CB_NOP);
-            }
-          }
-        }
-        LISTBASE_FOREACH (LineStyleModifier *, lsm, &linestyle->alpha_modifiers) {
-          if (lsm->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
-            LineStyleAlphaModifier_DistanceFromObject *p =
-                (LineStyleAlphaModifier_DistanceFromObject *)lsm;
-            if (p->target) {
-              CALLBACK_INVOKE(p->target, IDWALK_CB_NOP);
-            }
-          }
-        }
-        LISTBASE_FOREACH (LineStyleModifier *, lsm, &linestyle->thickness_modifiers) {
-          if (lsm->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
-            LineStyleThicknessModifier_DistanceFromObject *p =
-                (LineStyleThicknessModifier_DistanceFromObject *)lsm;
-            if (p->target) {
-              CALLBACK_INVOKE(p->target, IDWALK_CB_NOP);
-            }
-          }
-        }
+        BLI_assert(0);
         break;
       }
 

@@ -45,9 +45,11 @@
 #include "BKE_freestyle.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_texture.h"
 
 static void linestyle_init_data(ID *id)
 {
@@ -144,6 +146,49 @@ static void linestyle_free_data(ID *id)
   }
 }
 
+static void linestyle_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
+
+  for (int i = 0; i < MAX_MTEX; i++) {
+    if (linestyle->mtex[i]) {
+      BKE_texture_mtex_foreach_id(data, linestyle->mtex[i]);
+    }
+  }
+  if (linestyle->nodetree) {
+    /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
+    BKE_library_foreach_ID_embedded(data, (ID **)&linestyle->nodetree);
+  }
+
+  LISTBASE_FOREACH (LineStyleModifier *, lsm, &linestyle->color_modifiers) {
+    if (lsm->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
+      LineStyleColorModifier_DistanceFromObject *p = (LineStyleColorModifier_DistanceFromObject *)
+          lsm;
+      if (p->target) {
+        BKE_LIB_FOREACHID_PROCESS(data, p->target, IDWALK_CB_NOP);
+      }
+    }
+  }
+  LISTBASE_FOREACH (LineStyleModifier *, lsm, &linestyle->alpha_modifiers) {
+    if (lsm->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
+      LineStyleAlphaModifier_DistanceFromObject *p = (LineStyleAlphaModifier_DistanceFromObject *)
+          lsm;
+      if (p->target) {
+        BKE_LIB_FOREACHID_PROCESS(data, p->target, IDWALK_CB_NOP);
+      }
+    }
+  }
+  LISTBASE_FOREACH (LineStyleModifier *, lsm, &linestyle->thickness_modifiers) {
+    if (lsm->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
+      LineStyleThicknessModifier_DistanceFromObject *p =
+          (LineStyleThicknessModifier_DistanceFromObject *)lsm;
+      if (p->target) {
+        BKE_LIB_FOREACHID_PROCESS(data, p->target, IDWALK_CB_NOP);
+      }
+    }
+  }
+}
+
 IDTypeInfo IDType_ID_LS = {
     .id_code = ID_LS,
     .id_filter = FILTER_ID_LS,
@@ -158,6 +203,7 @@ IDTypeInfo IDType_ID_LS = {
     .copy_data = linestyle_copy_data,
     .free_data = linestyle_free_data,
     .make_local = NULL,
+    .foreach_id = linestyle_foreach_id,
 };
 
 static const char *modifier_name[LS_MODIFIER_NUM] = {
