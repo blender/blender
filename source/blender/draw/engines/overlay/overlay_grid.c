@@ -63,7 +63,8 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
   shd->zneg_flag = 0;
   shd->zpos_flag = 0;
 
-  if (pd->hide_overlays || !pd->v3d_gridflag) {
+  if (pd->hide_overlays || !(pd->v3d_gridflag & (V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z |
+                                                 V3D_SHOW_FLOOR | V3D_SHOW_ORTHO_GRID))) {
     return;
   }
 
