@@ -675,6 +675,10 @@ static bool collection_drop_init(bContext *C,
   if (ID_IS_LINKED(to_collection)) {
     return false;
   }
+  /* Currently this should not be allowed (might be supported in the future though...). */
+  if (ID_IS_OVERRIDE_LIBRARY(to_collection)) {
+    return false;
+  }
 
   /* Get drag datablocks. */
   if (drag->type != WM_DRAG_ID) {
