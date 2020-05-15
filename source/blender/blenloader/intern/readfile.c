@@ -2719,7 +2719,7 @@ static void lib_link_id(FileData *fd, Main *bmain, ID *id);
 static void lib_link_nodetree(FileData *fd, Main *bmain, bNodeTree *ntree);
 static void lib_link_collection(FileData *fd, Main *bmain, Collection *collection);
 
-static void lib_link_id_private_id(FileData *fd, Main *bmain, ID *id)
+static void lib_link_id_embedded_id(FileData *fd, Main *bmain, ID *id)
 {
   /* Handle 'private IDs'. */
   bNodeTree *nodetree = ntreeFromID(id);
@@ -2753,7 +2753,7 @@ static void lib_link_id(FileData *fd, Main *bmain, ID *id)
     id->override_library->storage = newlibadr(fd, id->lib, id->override_library->storage);
   }
 
-  lib_link_id_private_id(fd, bmain, id);
+  lib_link_id_embedded_id(fd, bmain, id);
 }
 
 static void direct_link_id_override_property_operation_cb(FileData *fd, void *data)
@@ -2781,7 +2781,7 @@ static void direct_link_id_common(FileData *fd, ID *id, ID *id_old, const int ta
 static void direct_link_nodetree(FileData *fd, bNodeTree *ntree);
 static void direct_link_collection(FileData *fd, Collection *collection);
 
-static void direct_link_id_private_id(FileData *fd, ID *id, ID *id_old)
+static void direct_link_id_embedded_id(FileData *fd, ID *id, ID *id_old)
 {
   /* Handle 'private IDs'. */
   bNodeTree **nodetree = BKE_ntree_ptr_from_id(id);
@@ -2905,7 +2905,7 @@ static void direct_link_id_common(FileData *fd, ID *id, ID *id_old, const int ta
   }
 
   /* Handle 'private IDs'. */
-  direct_link_id_private_id(fd, id, id_old);
+  direct_link_id_embedded_id(fd, id, id_old);
 }
 
 /** \} */
@@ -10822,7 +10822,7 @@ static void expand_id(FileData *fd, Main *mainvar, ID *id);
 static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree);
 static void expand_collection(FileData *fd, Main *mainvar, Collection *collection);
 
-static void expand_id_private_id(FileData *fd, Main *mainvar, ID *id)
+static void expand_id_embedded_id(FileData *fd, Main *mainvar, ID *id)
 {
   /* Handle 'private IDs'. */
   bNodeTree *nodetree = ntreeFromID(id);
@@ -10854,7 +10854,7 @@ static void expand_id(FileData *fd, Main *mainvar, ID *id)
     expand_animdata(fd, mainvar, adt);
   }
 
-  expand_id_private_id(fd, mainvar, id);
+  expand_id_embedded_id(fd, mainvar, id);
 }
 
 static void expand_action(FileData *fd, Main *mainvar, bAction *act)
