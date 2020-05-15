@@ -24,6 +24,7 @@
 
 #include "ceres/ceres.h"
 #include "ceres/rotation.h"
+#include "libmv/base/map.h"
 #include "libmv/base/vector.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/fundamental.h"
@@ -407,47 +408,39 @@ void UnpackIntrinsicsFromArray(const double intrinsics_block[OFFSET_MAX],
 // Get a vector of camera's rotations denoted by angle axis
 // conjuncted with translations into single block
 //
-// Element with index i matches to a rotation+translation for
+// Element with key i matches to a rotation+translation for
 // camera at image i.
-vector<Vec6> PackCamerasRotationAndTranslation(
-    const Tracks &tracks,
+map<int, Vec6> PackCamerasRotationAndTranslation(
     const EuclideanReconstruction &reconstruction) {
-  vector<Vec6> all_cameras_R_t;
-  int max_image = tracks.MaxImage();
+  map<int, Vec6> all_cameras_R_t;
 
-  all_cameras_R_t.resize(max_image + 1);
-
-  for (int i = 0; i <= max_image; i++) {
-    const EuclideanCamera *camera = reconstruction.CameraForImage(i);
-
-    if (!camera) {
-      continue;
-    }
-
-    ceres::RotationMatrixToAngleAxis(&camera->R(0, 0),
-                                     &all_cameras_R_t[i](0));
-    all_cameras_R_t[i].tail<3>() = camera->t;
+  vector<EuclideanCamera> all_cameras = reconstruction.AllCameras();
+  for (const EuclideanCamera& camera : all_cameras) {
+    Vec6 camera_R_t;
+    ceres::RotationMatrixToAngleAxis(&camera.R(0, 0), &camera_R_t(0));
+    camera_R_t.tail<3>() = camera.t;
+    all_cameras_R_t.insert(make_pair(camera.image, camera_R_t));
   }
+
   return all_cameras_R_t;
 }
 
 // Convert cameras rotations fro mangle axis back to rotation matrix.
 void UnpackCamerasRotationAndTranslation(
-    const Tracks &tracks,
-    const vector<Vec6> &all_cameras_R_t,
+    const map<int, Vec6> &all_cameras_R_t,
     EuclideanReconstruction *reconstruction) {
-  int max_image = tracks.MaxImage();
 
-  for (int i = 0; i <= max_image; i++) {
-    EuclideanCamera *camera = reconstruction->CameraForImage(i);
+  for (map<int, Vec6>::value_type image_and_camera_R_T : all_cameras_R_t) {
+    const int image = image_and_camera_R_T.first;
+    const Vec6& camera_R_t = image_and_camera_R_T.second;
 
+    EuclideanCamera *camera = reconstruction->CameraForImage(image);
     if (!camera) {
       continue;
     }
 
-    ceres::AngleAxisToRotationMatrix(&all_cameras_R_t[i](0),
-                                     &camera->R(0, 0));
-    camera->t = all_cameras_R_t[i].tail<3>();
+    ceres::AngleAxisToRotationMatrix(&camera_R_t(0), &camera->R(0, 0));
+    camera->t = camera_R_t.tail<3>();
   }
 }
 
@@ -476,7 +469,7 @@ void CRSMatrixToEigenMatrix(const ceres::CRSMatrix &crs_matrix,
 
 void EuclideanBundlerPerformEvaluation(const Tracks &tracks,
                                        EuclideanReconstruction *reconstruction,
-                                       vector<Vec6> *all_cameras_R_t,
+                                       map<int, Vec6> *all_cameras_R_t,
                                        ceres::Problem *problem,
                                        BundleEvaluation *evaluation) {
   int max_track = tracks.MaxTrack();
@@ -603,7 +596,7 @@ void AddResidualBlockToProblem(const CameraIntrinsics *invariant_intrinsics,
 // are to be totally still here.
 void EuclideanBundlePointsOnly(const CameraIntrinsics *invariant_intrinsics,
                                const vector<Marker> &markers,
-                               vector<Vec6> &all_cameras_R_t,
+                               map<int, Vec6> &all_cameras_R_t,
                                double intrinsics_block[OFFSET_MAX],
                                EuclideanReconstruction *reconstruction) {
   ceres::Problem::Options problem_options;
@@ -699,8 +692,8 @@ void EuclideanBundleCommonIntrinsics(
   //
   // Block for minimization has got the following structure:
   //   <3 elements for angle-axis> <3 elements for translation>
-  vector<Vec6> all_cameras_R_t =
-    PackCamerasRotationAndTranslation(tracks, *reconstruction);
+  map<int, Vec6> all_cameras_R_t =
+    PackCamerasRotationAndTranslation(*reconstruction);
 
   // Parameterization used to restrict camera motion for modal solvers.
   ceres::SubsetParameterization *constant_translation_parameterization = NULL;
@@ -827,9 +820,7 @@ void EuclideanBundleCommonIntrinsics(
   LG << "Final report:\n" << summary.FullReport();
 
   // Copy rotations and translations back.
-  UnpackCamerasRotationAndTranslation(tracks,
-                                      all_cameras_R_t,
-                                      reconstruction);
+  UnpackCamerasRotationAndTranslation(all_cameras_R_t, reconstruction);
 
   // Copy intrinsics back.
   if (bundle_intrinsics != BUNDLE_NO_INTRINSICS)

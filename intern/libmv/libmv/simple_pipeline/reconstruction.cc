@@ -27,14 +27,14 @@ namespace libmv {
 EuclideanReconstruction::EuclideanReconstruction() {}
 EuclideanReconstruction::EuclideanReconstruction(
     const EuclideanReconstruction &other) {
-  cameras_ = other.cameras_;
+  image_to_cameras_map_ = other.image_to_cameras_map_;
   points_ = other.points_;
 }
 
 EuclideanReconstruction &EuclideanReconstruction::operator=(
     const EuclideanReconstruction &other) {
   if (&other != this) {
-    cameras_ = other.cameras_;
+    image_to_cameras_map_ = other.image_to_cameras_map_;
     points_ = other.points_;
   }
   return *this;
@@ -44,12 +44,13 @@ void EuclideanReconstruction::InsertCamera(int image,
                                            const Mat3 &R,
                                            const Vec3 &t) {
   LG << "InsertCamera " << image << ":\nR:\n"<< R << "\nt:\n" << t;
-  if (image >= cameras_.size()) {
-    cameras_.resize(image + 1);
-  }
-  cameras_[image].image = image;
-  cameras_[image].R = R;
-  cameras_[image].t = t;
+
+  EuclideanCamera camera;
+  camera.image = image;
+  camera.R = R;
+  camera.t = t;
+
+  image_to_cameras_map_.insert(make_pair(image, camera));
 }
 
 void EuclideanReconstruction::InsertPoint(int track, const Vec3 &X) {
@@ -69,22 +70,18 @@ EuclideanCamera *EuclideanReconstruction::CameraForImage(int image) {
 
 const EuclideanCamera *EuclideanReconstruction::CameraForImage(
     int image) const {
-  if (image < 0 || image >= cameras_.size()) {
+  ImageToCameraMap::const_iterator it = image_to_cameras_map_.find(image);
+  if (it == image_to_cameras_map_.end()) {
     return NULL;
   }
-  const EuclideanCamera *camera = &cameras_[image];
-  if (camera->image == -1) {
-    return NULL;
-  }
-  return camera;
+  return &it->second;
 }
 
 vector<EuclideanCamera> EuclideanReconstruction::AllCameras() const {
   vector<EuclideanCamera> cameras;
-  for (int i = 0; i < cameras_.size(); ++i) {
-    if (cameras_[i].image != -1) {
-      cameras.push_back(cameras_[i]);
-    }
+  for (const ImageToCameraMap::value_type& image_and_camera :
+       image_to_cameras_map_) {
+    cameras.push_back(image_and_camera.second);
   }
   return cameras;
 }
@@ -115,14 +112,14 @@ vector<EuclideanPoint> EuclideanReconstruction::AllPoints() const {
   return points;
 }
 
-void ProjectiveReconstruction::InsertCamera(int image,
-                                           const Mat34 &P) {
+void ProjectiveReconstruction::InsertCamera(int image, const Mat34 &P) {
   LG << "InsertCamera " << image << ":\nP:\n"<< P;
-  if (image >= cameras_.size()) {
-    cameras_.resize(image + 1);
-  }
-  cameras_[image].image = image;
-  cameras_[image].P = P;
+
+  ProjectiveCamera camera;
+  camera.image = image;
+  camera.P = P;
+
+  image_to_cameras_map_.insert(make_pair(image, camera));
 }
 
 void ProjectiveReconstruction::InsertPoint(int track, const Vec4 &X) {
@@ -142,22 +139,18 @@ ProjectiveCamera *ProjectiveReconstruction::CameraForImage(int image) {
 
 const ProjectiveCamera *ProjectiveReconstruction::CameraForImage(
     int image) const {
-  if (image < 0 || image >= cameras_.size()) {
-    return NULL;
+  ImageToCameraMap::const_iterator it = image_to_cameras_map_.find(image);
+  if (it == image_to_cameras_map_.end()) {
+    return  NULL;
   }
-  const ProjectiveCamera *camera = &cameras_[image];
-  if (camera->image == -1) {
-    return NULL;
-  }
-  return camera;
+  return &it->second;
 }
 
 vector<ProjectiveCamera> ProjectiveReconstruction::AllCameras() const {
   vector<ProjectiveCamera> cameras;
-  for (int i = 0; i < cameras_.size(); ++i) {
-    if (cameras_[i].image != -1) {
-      cameras.push_back(cameras_[i]);
-    }
+  for (const ImageToCameraMap::value_type& image_and_camera :
+       image_to_cameras_map_) {
+    cameras.push_back(image_and_camera.second);
   }
   return cameras;
 }

@@ -22,6 +22,7 @@
 #define LIBMV_SIMPLE_PIPELINE_RECONSTRUCTION_H_
 
 #include "libmv/base/vector.h"
+#include "libmv/base/map.h"
 #include "libmv/numeric/numeric.h"
 
 namespace libmv {
@@ -120,7 +121,11 @@ class EuclideanReconstruction {
   vector<EuclideanPoint> AllPoints() const;
 
  private:
-  vector<EuclideanCamera> cameras_;
+  // Indexed by frame number.
+  typedef map<int, EuclideanCamera> ImageToCameraMap;
+  ImageToCameraMap image_to_cameras_map_;
+
+  // Insxed by track.
   vector<EuclideanPoint> points_;
 };
 
@@ -208,7 +213,11 @@ class ProjectiveReconstruction {
   vector<ProjectivePoint> AllPoints() const;
 
  private:
-  vector<ProjectiveCamera> cameras_;
+  // Indexed by frame number.
+  typedef map<int, ProjectiveCamera> ImageToCameraMap;
+  ImageToCameraMap image_to_cameras_map_;
+
+  // Indexed by track.
   vector<ProjectivePoint> points_;
 };
 
