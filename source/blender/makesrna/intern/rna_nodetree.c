@@ -960,12 +960,11 @@ static bool rna_NodeTree_check(bNodeTree *ntree, ReportList *reports)
 static void rna_NodeTree_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
-  bNode *node = (bNode *)ptr->data;
 
   WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
   WM_main_add_notifier(NC_SCENE | ND_NODES, &ntree->id);
 
-  ED_node_tag_update_nodetree(bmain, ntree, node);
+  ED_node_tag_update_nodetree(bmain, ntree, NULL);
 }
 
 static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
