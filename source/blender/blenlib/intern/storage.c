@@ -233,8 +233,9 @@ eFileAttributes BLI_file_attributes(const char *path)
 
 #  ifdef WIN32
   WCHAR wline[FILE_MAXDIR];
-  size_t bsize = count_utf_16_from_8(path);
-  conv_utf_8_to_16(path, wline, bsize);
+  if (conv_utf_8_to_16(path, wline, ARRAY_SIZE(wline)) != 0) {
+    return ret;
+  }
   DWORD attr = GetFileAttributesW(wline);
   if (attr & FILE_ATTRIBUTE_READONLY) {
     ret |= FILE_ATTR_READONLY;
