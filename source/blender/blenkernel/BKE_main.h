@@ -105,6 +105,12 @@ typedef struct Main {
    */
   char use_memfile_full_barrier;
 
+  /**
+   * When linking, disallow creation of new data-blocks.
+   * Make sure we don't do this by accident, see T76738.
+   */
+  char is_locked_for_linking;
+
   BlendThumbnail *blen_thumb;
 
   struct Library *curlib;

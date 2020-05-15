@@ -160,6 +160,8 @@ static bScreen *screen_parent_find(const bScreen *screen)
 
 static void do_version_workspaces_create_from_screens(Main *bmain)
 {
+  bmain->is_locked_for_linking = false;
+
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
     const bScreen *screen_parent = screen_parent_find(screen);
     WorkSpace *workspace;
@@ -181,6 +183,8 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
     }
     BKE_workspace_layout_add(bmain, workspace, screen, screen->id.name + 2);
   }
+
+  bmain->is_locked_for_linking = true;
 }
 
 static void do_version_area_change_space_to_space_action(ScrArea *area, const Scene *scene)
@@ -1695,20 +1699,10 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
       rename_id_for_versioning(bmain, ID_MA, "Black Dots", "Dots Stroke");
     }
 
-    /* Remove useless Fill Area.001 brush. */
-    brush = BLI_findstring(&bmain->brushes, "Fill Area.001", offsetof(ID, name) + 2);
-    if (brush) {
-      BKE_id_delete(bmain, brush);
-    }
-
     brush = BLI_findstring(&bmain->brushes, "Pencil", offsetof(ID, name) + 2);
 
     for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
       ToolSettings *ts = scene->toolsettings;
-
-      BKE_brush_gpencil_vertex_presets(bmain, ts);
-      BKE_brush_gpencil_sculpt_presets(bmain, ts);
-      BKE_brush_gpencil_weight_presets(bmain, ts);
 
       /* Ensure new Paint modes. */
       BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_GPENCIL);
@@ -1723,8 +1717,6 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
         /* Enable cursor by default. */
         paint->flags |= PAINT_SHOW_BRUSH;
       }
-      /* Ensure Palette by default. */
-      BKE_gpencil_palette_ensure(bmain, scene);
     }
   }
 
@@ -1738,11 +1730,6 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
 
     /* Reset all grease pencil brushes. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      BKE_brush_gpencil_paint_presets(bmain, scene->toolsettings);
-      BKE_brush_gpencil_sculpt_presets(bmain, scene->toolsettings);
-      BKE_brush_gpencil_weight_presets(bmain, scene->toolsettings);
-      BKE_brush_gpencil_vertex_presets(bmain, scene->toolsettings);
-
       /* Ensure new Paint modes. */
       BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_VERTEX_GPENCIL);
       BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_SCULPT_GPENCIL);
