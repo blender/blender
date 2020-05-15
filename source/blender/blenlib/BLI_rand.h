@@ -21,6 +21,7 @@
 #define __BLI_RAND_H__
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
 
 /** \file
  * \ingroup bli
