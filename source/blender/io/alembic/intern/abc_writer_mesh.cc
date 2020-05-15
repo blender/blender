@@ -137,7 +137,8 @@ static void get_loop_normals(struct Mesh *mesh,
 
   /* If all polygons are smooth shaded, and there are no custom normals, we don't need to export
    * normals at all. This is also done by other software, see T71246. */
-  if (!has_flat_shaded_poly && !CustomData_has_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL)) {
+  if (!has_flat_shaded_poly && !CustomData_has_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL) &&
+      (mesh->flag & ME_AUTOSMOOTH) == 0) {
     return;
   }
 

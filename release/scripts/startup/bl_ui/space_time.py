@@ -142,6 +142,7 @@ class TIME_MT_view(Menu):
         layout.separator()
 
         layout.prop(scene, "show_keys_from_selected_only")
+        layout.prop(st.dopesheet, "show_only_errors")
 
         layout.separator()
 
