@@ -16,6 +16,7 @@ libmv/autotrack/tracks_test.cc
 libmv/base/aligned_malloc.cc
 libmv/base/aligned_malloc.h
 libmv/base/id_generator.h
+libmv/base/map.h
 libmv/base/scoped_ptr.h
 libmv/base/scoped_ptr_test.cc
 libmv/base/vector.h

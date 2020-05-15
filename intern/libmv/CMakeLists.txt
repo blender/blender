@@ -150,6 +150,7 @@ if(WITH_LIBMV)
     libmv/autotrack/tracks.h
     libmv/base/aligned_malloc.h
     libmv/base/id_generator.h
+    libmv/base/map.h
     libmv/base/scoped_ptr.h
     libmv/base/vector.h
     libmv/base/vector_utils.h
