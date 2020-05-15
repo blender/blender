@@ -55,21 +55,22 @@
 #include "BKE_cloth.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
-#include "BKE_effect.h"
-#include "BKE_idtype.h"
-#include "BKE_lattice.h"
-#include "BKE_main.h"
-
 #include "BKE_deform.h"
 #include "BKE_displist.h"
+#include "BKE_effect.h"
+#include "BKE_idtype.h"
 #include "BKE_key.h"
+#include "BKE_lattice.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
+#include "BKE_texture.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -146,6 +147,53 @@ static void particle_settings_free_data(ID *id)
   fluid_free_settings(particle_settings->fluid);
 }
 
+static void particle_settings_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  ParticleSettings *psett = (ParticleSettings *)id;
+  BKE_LIB_FOREACHID_PROCESS(data, psett->instance_collection, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS(data, psett->instance_object, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS(data, psett->bb_ob, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS(data, psett->collision_group, IDWALK_CB_NOP);
+
+  for (int i = 0; i < MAX_MTEX; i++) {
+    if (psett->mtex[i]) {
+      BKE_texture_mtex_foreach_id(data, psett->mtex[i]);
+    }
+  }
+
+  if (psett->effector_weights) {
+    BKE_LIB_FOREACHID_PROCESS(data, psett->effector_weights->group, IDWALK_CB_NOP);
+  }
+
+  if (psett->pd) {
+    BKE_LIB_FOREACHID_PROCESS(data, psett->pd->tex, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS(data, psett->pd->f_source, IDWALK_CB_NOP);
+  }
+  if (psett->pd2) {
+    BKE_LIB_FOREACHID_PROCESS(data, psett->pd2->tex, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS(data, psett->pd2->f_source, IDWALK_CB_NOP);
+  }
+
+  if (psett->boids) {
+    LISTBASE_FOREACH (BoidState *, state, &psett->boids->states) {
+      LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
+        if (rule->type == eBoidRuleType_Avoid) {
+          BoidRuleGoalAvoid *gabr = (BoidRuleGoalAvoid *)rule;
+          BKE_LIB_FOREACHID_PROCESS(data, gabr->ob, IDWALK_CB_NOP);
+        }
+        else if (rule->type == eBoidRuleType_FollowLeader) {
+          BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader *)rule;
+          BKE_LIB_FOREACHID_PROCESS(data, flbr->ob, IDWALK_CB_NOP);
+        }
+      }
+    }
+  }
+
+  LISTBASE_FOREACH (ParticleDupliWeight *, dw, &psett->instance_weights) {
+    BKE_LIB_FOREACHID_PROCESS(data, dw->ob, IDWALK_CB_NOP);
+  }
+}
+
 IDTypeInfo IDType_ID_PA = {
     .id_code = ID_PA,
     .id_filter = FILTER_ID_PA,
@@ -160,6 +208,7 @@ IDTypeInfo IDType_ID_PA = {
     .copy_data = particle_settings_copy_data,
     .free_data = particle_settings_free_data,
     .make_local = NULL,
+    .foreach_id = particle_settings_foreach_id,
 };
 
 unsigned int PSYS_FRAND_SEED_OFFSET[PSYS_FRAND_COUNT];

@@ -962,49 +962,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_PA: {
-        ParticleSettings *psett = (ParticleSettings *)id;
-        CALLBACK_INVOKE(psett->instance_collection, IDWALK_CB_USER);
-        CALLBACK_INVOKE(psett->instance_object, IDWALK_CB_NOP);
-        CALLBACK_INVOKE(psett->bb_ob, IDWALK_CB_NOP);
-        CALLBACK_INVOKE(psett->collision_group, IDWALK_CB_NOP);
-
-        for (i = 0; i < MAX_MTEX; i++) {
-          if (psett->mtex[i]) {
-            BKE_texture_mtex_foreach_id(&data, psett->mtex[i]);
-          }
-        }
-
-        if (psett->effector_weights) {
-          CALLBACK_INVOKE(psett->effector_weights->group, IDWALK_CB_NOP);
-        }
-
-        if (psett->pd) {
-          CALLBACK_INVOKE(psett->pd->tex, IDWALK_CB_USER);
-          CALLBACK_INVOKE(psett->pd->f_source, IDWALK_CB_NOP);
-        }
-        if (psett->pd2) {
-          CALLBACK_INVOKE(psett->pd2->tex, IDWALK_CB_USER);
-          CALLBACK_INVOKE(psett->pd2->f_source, IDWALK_CB_NOP);
-        }
-
-        if (psett->boids) {
-          LISTBASE_FOREACH (BoidState *, state, &psett->boids->states) {
-            LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
-              if (rule->type == eBoidRuleType_Avoid) {
-                BoidRuleGoalAvoid *gabr = (BoidRuleGoalAvoid *)rule;
-                CALLBACK_INVOKE(gabr->ob, IDWALK_CB_NOP);
-              }
-              else if (rule->type == eBoidRuleType_FollowLeader) {
-                BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader *)rule;
-                CALLBACK_INVOKE(flbr->ob, IDWALK_CB_NOP);
-              }
-            }
-          }
-        }
-
-        LISTBASE_FOREACH (ParticleDupliWeight *, dw, &psett->instance_weights) {
-          CALLBACK_INVOKE(dw->ob, IDWALK_CB_NOP);
-        }
+        BLI_assert(0);
         break;
       }
 
