@@ -905,7 +905,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, ImBuf *ibuf, 
     bindcode = gpu_texture_create_tile_array(ima, ibuf_intern);
   }
   else if (textarget == GL_TEXTURE_1D_ARRAY) {
-    bindcode = gpu_texture_create_tile_mapping(ima, iuser->multiview_eye);
+    bindcode = gpu_texture_create_tile_mapping(ima, iuser ? iuser->multiview_eye : 0);
   }
   else {
     bindcode = gpu_texture_create_from_ibuf(ima, ibuf_intern, textarget);
