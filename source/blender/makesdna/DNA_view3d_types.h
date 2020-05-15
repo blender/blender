@@ -550,7 +550,7 @@ enum {
   V3D_AROUND_ACTIVE = 4,
 };
 
-/** #View3d.gridflag */
+/** #View3D.gridflag */
 #define V3D_SHOW_FLOOR (1 << 0)
 #define V3D_SHOW_X (1 << 1)
 #define V3D_SHOW_Y (1 << 2)
