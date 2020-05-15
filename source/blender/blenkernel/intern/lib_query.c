@@ -972,16 +972,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_MSK: {
-        Mask *mask = (Mask *)id;
-
-        LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-          LISTBASE_FOREACH (MaskSpline *, mask_spline, &mask_layer->splines) {
-            for (i = 0; i < mask_spline->tot_point; i++) {
-              MaskSplinePoint *point = &mask_spline->points[i];
-              CALLBACK_INVOKE_ID(point->parent.id, IDWALK_CB_USER);
-            }
-          }
-        }
+        BLI_assert(0);
         break;
       }
 
