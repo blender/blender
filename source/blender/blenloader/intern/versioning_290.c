@@ -29,6 +29,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 
 #include "BLO_readfile.h"
@@ -40,17 +41,16 @@
 void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
   UNUSED_VARS(fd);
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
+
+  /** Repair files from duplicate brushes added to blend files, see: T76738. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 290, 2)) {
+    {
+      short id_codes[] = {ID_BR, ID_PAL};
+      for (int i = 0; i < ARRAY_SIZE(id_codes); i++) {
+        ListBase *lb = which_libbase(bmain, id_codes[i]);
+        BKE_main_id_repair_duplicate_names_listbase(lb);
+      }
+    }
 
     if (!DNA_struct_elem_find(fd->filesdna, "SpaceImage", "float", "uv_opacity")) {
       for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
@@ -83,5 +83,18 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

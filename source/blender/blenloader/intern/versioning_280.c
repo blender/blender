@@ -5194,16 +5194,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /** Repair files from duplicate brushes added to blend files, see: T76738. */
-  if (!MAIN_VERSION_ATLEAST(bmain, 283, 17) ||
-      ((bmain->versionfile == 290) && !MAIN_VERSION_ATLEAST(bmain, 290, 2))) {
-    short id_codes[] = {ID_BR, ID_PAL};
-    for (int i = 0; i < ARRAY_SIZE(id_codes); i++) {
-      ListBase *lb = which_libbase(bmain, id_codes[i]);
-      BKE_main_id_repair_duplicate_names_listbase(lb);
-    }
-  }
-
   /**
    * Versioning code until next subversion bump goes here.
    *
