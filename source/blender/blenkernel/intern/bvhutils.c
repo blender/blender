@@ -517,7 +517,7 @@ BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
                                         float epsilon,
                                         int tree_type,
                                         int axis,
-                                        const int bvh_cache_type,
+                                        const BVHCacheType bvh_cache_type,
                                         BVHCache **bvh_cache)
 {
   BVHTree *tree = NULL;
@@ -581,7 +581,7 @@ BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
                                     float epsilon,
                                     int tree_type,
                                     int axis,
-                                    const int bvh_cache_type,
+                                    const BVHCacheType bvh_cache_type,
                                     BVHCache **bvh_cache)
 {
   bool in_cache = false;
@@ -734,7 +734,7 @@ BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
                                         float epsilon,
                                         int tree_type,
                                         int axis,
-                                        const int bvh_cache_type,
+                                        const BVHCacheType bvh_cache_type,
                                         BVHCache **bvh_cache)
 {
   BVHTree *tree = NULL;
@@ -801,7 +801,7 @@ BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
                                     float epsilon,
                                     int tree_type,
                                     int axis,
-                                    const int bvh_cache_type,
+                                    const BVHCacheType bvh_cache_type,
                                     BVHCache **bvh_cache)
 {
   bool in_cache = false;
@@ -936,7 +936,7 @@ BVHTree *bvhtree_from_mesh_faces_ex(BVHTreeFromMesh *data,
                                     float epsilon,
                                     int tree_type,
                                     int axis,
-                                    const int bvh_cache_type,
+                                    const BVHCacheType bvh_cache_type,
                                     BVHCache **bvh_cache)
 {
   bool in_cache = false;
@@ -1112,7 +1112,7 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
                                           float epsilon,
                                           int tree_type,
                                           int axis,
-                                          const int bvh_cache_type,
+                                          const BVHCacheType bvh_cache_type,
                                           BVHCache **bvh_cache)
 {
   /* BMESH specific check that we have tessfaces,
@@ -1176,7 +1176,7 @@ BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
                                       float epsilon,
                                       int tree_type,
                                       int axis,
-                                      const int bvh_cache_type,
+                                      const BVHCacheType bvh_cache_type,
                                       BVHCache **bvh_cache)
 {
   bool in_cache = false;
@@ -1311,7 +1311,7 @@ static BLI_bitmap *looptri_no_hidden_map_get(const MPoly *mpoly,
  */
 BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
                                    struct Mesh *mesh,
-                                   const int bvh_cache_type,
+                                   const BVHCacheType bvh_cache_type,
                                    const int tree_type)
 {
   BVHTree *tree = NULL;
@@ -1492,7 +1492,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
 BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
                                        struct BMEditMesh *em,
                                        const int tree_type,
-                                       const int bvh_cache_type,
+                                       const BVHCacheType bvh_cache_type,
                                        BVHCache **bvh_cache)
 {
   BVHTree *tree = NULL;
@@ -1621,7 +1621,7 @@ void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
  * \{ */
 
 typedef struct BVHCacheItem {
-  int type;
+  BVHCacheType type;
   BVHTree *tree;
 
 } BVHCacheItem;
@@ -1629,7 +1629,7 @@ typedef struct BVHCacheItem {
 /**
  * Queries a bvhcache for the cache bvhtree of the request type
  */
-bool bvhcache_find(const BVHCache *cache, int type, BVHTree **r_tree)
+bool bvhcache_find(const BVHCache *cache, BVHCacheType type, BVHTree **r_tree)
 {
   while (cache) {
     const BVHCacheItem *item = cache->link;
@@ -1662,7 +1662,7 @@ bool bvhcache_has_tree(const BVHCache *cache, const BVHTree *tree)
  * A call to this assumes that there was no previous cached tree of the given type
  * \warning The #BVHTree can be NULL.
  */
-void bvhcache_insert(BVHCache **cache_p, BVHTree *tree, int type)
+void bvhcache_insert(BVHCache **cache_p, BVHTree *tree, BVHCacheType type)
 {
   BVHCacheItem *item = NULL;
 
