@@ -1907,19 +1907,19 @@ static int gp_brush_reset_all_exec(bContext *C, wmOperator *UNUSED(op))
 
     switch (mode) {
       case CTX_MODE_PAINT_GPENCIL: {
-        BKE_brush_gpencil_paint_presets(bmain, ts);
+        BKE_brush_gpencil_paint_presets(bmain, ts, true);
         break;
       }
       case CTX_MODE_SCULPT_GPENCIL: {
-        BKE_brush_gpencil_sculpt_presets(bmain, ts);
+        BKE_brush_gpencil_sculpt_presets(bmain, ts, true);
         break;
       }
       case CTX_MODE_WEIGHT_GPENCIL: {
-        BKE_brush_gpencil_weight_presets(bmain, ts);
+        BKE_brush_gpencil_weight_presets(bmain, ts, true);
         break;
       }
       case CTX_MODE_VERTEX_GPENCIL: {
-        BKE_brush_gpencil_vertex_presets(bmain, ts);
+        BKE_brush_gpencil_vertex_presets(bmain, ts, true);
         break;
       }
       default: {
