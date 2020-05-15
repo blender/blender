@@ -2104,7 +2104,10 @@ static int edbm_flip_normals_exec(bContext *C, wmOperator *op)
     if (flip_custom_normals(em->bm, lnors_ed_arr) || has_flipped_faces) {
       EDBM_update_generic(obedit->data, true, false);
     }
-    BM_loop_normal_editdata_array_free(lnors_ed_arr);
+
+    if (lnors_ed_arr != NULL) {
+      BM_loop_normal_editdata_array_free(lnors_ed_arr);
+    }
   }
 
   MEM_freeN(objects);
@@ -2419,7 +2422,9 @@ static int edbm_normals_make_consistent_exec(bContext *C, wmOperator *op)
     if (inside) {
       EDBM_op_callf(em, op, "reverse_faces faces=%hf flip_multires=%b", BM_ELEM_SELECT, true);
       flip_custom_normals(em->bm, lnors_ed_arr);
-      BM_loop_normal_editdata_array_free(lnors_ed_arr);
+      if (lnors_ed_arr != NULL) {
+        BM_loop_normal_editdata_array_free(lnors_ed_arr);
+      }
     }
 
     EDBM_update_generic(obedit->data, true, false);
