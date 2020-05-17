@@ -4919,7 +4919,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
 
     /* cache options */
     mmd->domain->cache_frame_start = 1;
-    mmd->domain->cache_frame_end = 50;
+    mmd->domain->cache_frame_end = 250;
     mmd->domain->cache_frame_pause_data = 0;
     mmd->domain->cache_frame_pause_noise = 0;
     mmd->domain->cache_frame_pause_mesh = 0;
