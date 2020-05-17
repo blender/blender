@@ -1148,21 +1148,21 @@ bool MANTA::updateSmokeStructures(FluidModifierData *mmd, int framenr)
   const int fileMode = FLUID_DOMAIN_CACHE_FILES_SINGLE;
   if (fileMode == FLUID_DOMAIN_CACHE_FILES_SINGLE) {
 
-    filesData.push_back((FileItem){fDensity, {gDensity}});
-    filesData.push_back((FileItem){fShadow, {gShadow}});
-    filesData.push_back((FileItem){fVel, {gVel}});
+    filesData.push_back({fDensity, {gDensity}});
+    filesData.push_back({fShadow, {gShadow}});
+    filesData.push_back({fVel, {gVel}});
     if (mUsingHeat) {
-      filesData.push_back((FileItem){fHeat, {gHeat}});
+      filesData.push_back({fHeat, {gHeat}});
     }
     if (mUsingColors) {
-      filesData.push_back((FileItem){fColorR, {gColorR}});
-      filesData.push_back((FileItem){fColorG, {gColorG}});
-      filesData.push_back((FileItem){fColorB, {gColorB}});
+      filesData.push_back({fColorR, {gColorR}});
+      filesData.push_back({fColorG, {gColorG}});
+      filesData.push_back({fColorB, {gColorB}});
     }
     if (mUsingFire) {
-      filesData.push_back((FileItem){fFlame, {gFlame}});
-      filesData.push_back((FileItem){fFuel, {gFuel}});
-      filesData.push_back((FileItem){fReact, {gReact}});
+      filesData.push_back({fFlame, {gFlame}});
+      filesData.push_back({fFuel, {gFuel}});
+      filesData.push_back({fReact, {gReact}});
     }
   }
   else if (fileMode == FLUID_DOMAIN_CACHE_FILES_COMBINED) {
@@ -1187,7 +1187,7 @@ bool MANTA::updateSmokeStructures(FluidModifierData *mmd, int framenr)
     if (with_debug) {
       assertGridItems(gridsData);
     }
-    filesData.push_back((FileItem){fFluid, gridsData});
+    filesData.push_back({fFluid, gridsData});
   }
 
   /* Update files from data directory. */
@@ -1272,19 +1272,19 @@ bool MANTA::updateNoiseStructures(FluidModifierData *mmd, int framenr)
   const int fileMode = FLUID_DOMAIN_CACHE_FILES_SINGLE;
   if (fileMode == FLUID_DOMAIN_CACHE_FILES_SINGLE) {
 
-    filesData.push_back((FileItem){fShadow, {gShadow}});
-    filesData.push_back((FileItem){fVel, {gVel}});
+    filesData.push_back({fShadow, {gShadow}});
+    filesData.push_back({fVel, {gVel}});
 
-    filesNoise.push_back((FileItem){fDensity, {gDensity}});
+    filesNoise.push_back({fDensity, {gDensity}});
     if (mUsingColors) {
-      filesNoise.push_back((FileItem){fColorR, {gColorR}});
-      filesNoise.push_back((FileItem){fColorG, {gColorG}});
-      filesNoise.push_back((FileItem){fColorB, {gColorB}});
+      filesNoise.push_back({fColorR, {gColorR}});
+      filesNoise.push_back({fColorG, {gColorG}});
+      filesNoise.push_back({fColorB, {gColorB}});
     }
     if (mUsingFire) {
-      filesNoise.push_back((FileItem){fFlame, {gFlame}});
-      filesNoise.push_back((FileItem){fFuel, {gFuel}});
-      filesNoise.push_back((FileItem){fReact, {gReact}});
+      filesNoise.push_back({fFlame, {gFlame}});
+      filesNoise.push_back({fFuel, {gFuel}});
+      filesNoise.push_back({fReact, {gReact}});
     }
   }
   else if (fileMode == FLUID_DOMAIN_CACHE_FILES_COMBINED) {
@@ -1308,8 +1308,8 @@ bool MANTA::updateNoiseStructures(FluidModifierData *mmd, int framenr)
       assertGridItems(gridsData);
       assertGridItems(gridsNoise);
     }
-    filesData.push_back((FileItem){fFluid, gridsData});
-    filesNoise.push_back((FileItem){fNoise, gridsNoise});
+    filesData.push_back({fFluid, gridsData});
+    filesNoise.push_back({fNoise, gridsNoise});
   }
 
   /* Update files from data directory. */
