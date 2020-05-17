@@ -843,6 +843,23 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   mRNAMap["GRAVITY_Y"] = to_string(mds->gravity[1]);
   mRNAMap["GRAVITY_Z"] = to_string(mds->gravity[2]);
   mRNAMap["CACHE_DIR"] = cacheDirectory;
+  mRNAMap["NAME_DENSITY"] = FLUID_GRIDNAME_DENSITY;
+  mRNAMap["NAME_SHADOW"] = FLUID_GRIDNAME_SHADOW;
+  mRNAMap["NAME_HEAT"] = FLUID_GRIDNAME_HEAT;
+  mRNAMap["NAME_VELOCITY"] = FLUID_GRIDNAME_VELOCITY;
+  mRNAMap["NAME_COLORR"] = FLUID_GRIDNAME_COLORR;
+  mRNAMap["NAME_COLORG"] = FLUID_GRIDNAME_COLORG;
+  mRNAMap["NAME_COLORB"] = FLUID_GRIDNAME_COLORB;
+  mRNAMap["NAME_FLAME"] = FLUID_GRIDNAME_FLAME;
+  mRNAMap["NAME_FUEL"] = FLUID_GRIDNAME_FUEL;
+  mRNAMap["NAME_REACT"] = FLUID_GRIDNAME_REACT;
+  mRNAMap["NAME_DENSITYNOISE"] = FLUID_GRIDNAME_DENSITYNOISE;
+  mRNAMap["NAME_COLORRNOISE"] = FLUID_GRIDNAME_COLORRNOISE;
+  mRNAMap["NAME_COLORGNOISE"] = FLUID_GRIDNAME_COLORGNOISE;
+  mRNAMap["NAME_COLORBNOISE"] = FLUID_GRIDNAME_COLORBNOISE;
+  mRNAMap["NAME_FLAMENOISE"] = FLUID_GRIDNAME_FLAMENOISE;
+  mRNAMap["NAME_FUELNOISE"] = FLUID_GRIDNAME_FUELNOISE;
+  mRNAMap["NAME_REACTNOISE"] = FLUID_GRIDNAME_REACTNOISE;
 }
 
 string MANTA::getRealValue(const string &varName)
@@ -933,8 +950,7 @@ bool MANTA::updateFlipStructures(FluidModifierData *mmd, int framenr)
   mFlipParticleVelocity->clear();
 
   string pformat = getCacheFileEnding(mds->cache_particle_format);
-  string file = getFile(
-      mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_PP, pformat.c_str(), framenr);
+  string file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_PP, pformat, framenr);
 
   expected += 1;
   if (BLI_exists(file.c_str())) {
@@ -942,7 +958,7 @@ bool MANTA::updateFlipStructures(FluidModifierData *mmd, int framenr)
     assert(result == expected);
   }
 
-  file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_PVEL, pformat.c_str(), framenr);
+  file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_PVEL, pformat, framenr);
   expected += 1;
   if (BLI_exists(file.c_str())) {
     result += updateParticlesFromFile(file, false, true);
@@ -980,7 +996,7 @@ bool MANTA::updateMeshStructures(FluidModifierData *mmd, int framenr)
 
   string mformat = getCacheFileEnding(mds->cache_mesh_format);
   string dformat = getCacheFileEnding(mds->cache_data_format);
-  string file = getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_DOMAIN_FILE_MESH, mformat, framenr);
+  string file = getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_FILENAME_MESH, mformat, framenr);
 
   expected += 1;
   if (BLI_exists(file.c_str())) {
@@ -989,7 +1005,7 @@ bool MANTA::updateMeshStructures(FluidModifierData *mmd, int framenr)
   }
 
   if (mUsingMVel) {
-    file = getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_DOMAIN_FILE_MESHVEL, dformat, framenr);
+    file = getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_FILENAME_MESHVEL, dformat, framenr);
     expected += 1;
     if (BLI_exists(file.c_str())) {
       result += updateMeshFromFile(file);
@@ -1025,8 +1041,7 @@ bool MANTA::updateParticleStructures(FluidModifierData *mmd, int framenr)
   mSndParticleLife->clear();
 
   string pformat = getCacheFileEnding(mds->cache_particle_format);
-  string file = getFile(
-      mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_DOMAIN_FILE_PPSND, pformat, framenr);
+  string file = getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_FILENAME_PPSND, pformat, framenr);
 
   expected += 1;
   if (BLI_exists(file.c_str())) {
@@ -1034,14 +1049,14 @@ bool MANTA::updateParticleStructures(FluidModifierData *mmd, int framenr)
     assert(result == expected);
   }
 
-  file = getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_DOMAIN_FILE_PVELSND, pformat, framenr);
+  file = getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_FILENAME_PVELSND, pformat, framenr);
   expected += 1;
   if (BLI_exists(file.c_str())) {
     result += updateParticlesFromFile(file, true, true);
     assert(result == expected);
   }
 
-  file = getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_DOMAIN_FILE_PLIFESND, pformat, framenr);
+  file = getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_FILENAME_PLIFESND, pformat, framenr);
   expected += 1;
   if (BLI_exists(file.c_str())) {
     result += updateParticlesFromFile(file, true, false);
@@ -1049,6 +1064,26 @@ bool MANTA::updateParticleStructures(FluidModifierData *mmd, int framenr)
   }
 
   return mParticlesFromFile = (result == expected);
+}
+
+static void assertGridItems(vector<MANTA::GridItem> gList)
+{
+  vector<MANTA::GridItem>::iterator gIter = gList.begin();
+  int *resPrev = (*gIter).res;
+
+  for (vector<MANTA::GridItem>::iterator it = gList.begin(); it != gList.end(); ++it) {
+    MANTA::GridItem item = *it;
+    assert(
+        ELEM(item.type, FLUID_DOMAIN_GRID_FLOAT, FLUID_DOMAIN_GRID_INT, FLUID_DOMAIN_GRID_VEC3F));
+    assert(item.pointer[0]);
+    if (item.type == FLUID_DOMAIN_GRID_VEC3F) {
+      assert(item.pointer[1] && item.pointer[2]);
+    }
+    assert(item.res[0] == resPrev[0] && item.res[1] == resPrev[1] && item.res[2] == resPrev[2]);
+    assert((item.name).compare("") != 0);
+  }
+
+  UNUSED_VARS(resPrev);
 }
 
 bool MANTA::updateSmokeStructures(FluidModifierData *mmd, int framenr)
@@ -1065,80 +1100,106 @@ bool MANTA::updateSmokeStructures(FluidModifierData *mmd, int framenr)
     return false;
 
   int result = 0;
-  int expected = 0; /* Expected number of read successes for this frame. */
-
   string dformat = getCacheFileEnding(mds->cache_data_format);
-  string file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_DENSITY, dformat, framenr);
 
-  expected += 1;
-  if (BLI_exists(file.c_str())) {
-    result += updateGridFromFile(file, mDensity, false);
-    assert(result == expected);
-  }
+  vector<FileItem> filesData;
+  vector<GridItem> gridsData;
 
-  file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_SHADOW, dformat, framenr);
-  expected += 1;
-  if (BLI_exists(file.c_str())) {
-    result += updateGridFromFile(file, mShadow, false);
-    assert(result == expected);
-  }
+  int res[] = {mResX, mResY, mResZ};
 
-  if (mUsingHeat) {
-    file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_HEAT, dformat, framenr);
-    expected += 1;
-    if (BLI_exists(file.c_str())) {
-      result += updateGridFromFile(file, mHeat, false);
-      assert(result == expected);
+  /* Put grid pointers into pointer lists, some grids have more than 1 pointer. */
+  void *aDensity[] = {mDensity};
+  void *aShadow[] = {mShadow};
+  void *aVelocities[] = {mVelocityX, mVelocityY, mVelocityZ};
+  void *aHeat[] = {mHeat};
+  void *aColorR[] = {mColorR};
+  void *aColorG[] = {mColorG};
+  void *aColorB[] = {mColorB};
+  void *aFlame[] = {mFlame};
+  void *aFuel[] = {mFuel};
+  void *aReact[] = {mReact};
+
+  /* File names for grids. */
+  string fDensity = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_DENSITY, dformat, framenr);
+  string fShadow = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_SHADOW, dformat, framenr);
+  string fVel = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_VELOCITY, dformat, framenr);
+  string fHeat = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_HEAT, dformat, framenr);
+  string fColorR = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_COLORR, dformat, framenr);
+  string fColorG = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_COLORG, dformat, framenr);
+  string fColorB = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_COLORB, dformat, framenr);
+  string fFlame = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_FLAME, dformat, framenr);
+  string fFuel = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_FUEL, dformat, framenr);
+  string fReact = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_REACT, dformat, framenr);
+  string fFluid = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_DATA, dformat, framenr);
+
+  /* Prepare grid info containers. */
+  GridItem gDensity = {aDensity, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_DENSITY};
+  GridItem gShadow = {aShadow, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_SHADOW};
+  GridItem gVel = {aVelocities, FLUID_DOMAIN_GRID_VEC3F, res, FLUID_GRIDNAME_VELOCITY};
+  GridItem gHeat = {aHeat, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_HEAT};
+  GridItem gColorR = {aColorR, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_COLORR};
+  GridItem gColorG = {aColorG, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_COLORG};
+  GridItem gColorB = {aColorB, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_COLORB};
+  GridItem gFlame = {aFlame, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_FLAME};
+  GridItem gFuel = {aFuel, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_FUEL};
+  GridItem gReact = {aReact, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_REACT};
+
+  /* TODO (sebbas): For now, only allow single file mode. Combined grid file export is todo. */
+  const int fileMode = FLUID_DOMAIN_CACHE_FILES_SINGLE;
+  if (fileMode == FLUID_DOMAIN_CACHE_FILES_SINGLE) {
+
+    filesData.push_back((FileItem){fDensity, {gDensity}});
+    filesData.push_back((FileItem){fShadow, {gShadow}});
+    filesData.push_back((FileItem){fVel, {gVel}});
+    if (mUsingHeat) {
+      filesData.push_back((FileItem){fHeat, {gHeat}});
+    }
+    if (mUsingColors) {
+      filesData.push_back((FileItem){fColorR, {gColorR}});
+      filesData.push_back((FileItem){fColorG, {gColorG}});
+      filesData.push_back((FileItem){fColorB, {gColorB}});
+    }
+    if (mUsingFire) {
+      filesData.push_back((FileItem){fFlame, {gFlame}});
+      filesData.push_back((FileItem){fFuel, {gFuel}});
+      filesData.push_back((FileItem){fReact, {gReact}});
     }
   }
+  else if (fileMode == FLUID_DOMAIN_CACHE_FILES_COMBINED) {
 
-  if (mUsingColors) {
-    file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_COLORR, dformat, framenr);
-    expected += 1;
-    if (BLI_exists(file.c_str())) {
-      result += updateGridFromFile(file, mColorR, false);
-      assert(result == expected);
+    gridsData.push_back(gDensity);
+    gridsData.push_back(gShadow);
+    gridsData.push_back(gVel);
+    if (mUsingHeat) {
+      gridsData.push_back(gHeat);
+    }
+    if (mUsingColors) {
+      gridsData.push_back(gColorR);
+      gridsData.push_back(gColorG);
+      gridsData.push_back(gColorB);
+    }
+    if (mUsingFire) {
+      gridsData.push_back(gFlame);
+      gridsData.push_back(gFuel);
+      gridsData.push_back(gReact);
     }
 
-    file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_COLORG, dformat, framenr);
-    expected += 1;
-    if (BLI_exists(file.c_str())) {
-      result += updateGridFromFile(file, mColorG, false);
-      assert(result == expected);
+    if (with_debug) {
+      assertGridItems(gridsData);
     }
+    filesData.push_back((FileItem){fFluid, gridsData});
+  }
 
-    file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_COLORB, dformat, framenr);
-    expected += 1;
-    if (BLI_exists(file.c_str())) {
-      result += updateGridFromFile(file, mColorB, false);
-      assert(result == expected);
+  /* Update files from data directory. */
+  for (vector<FileItem>::iterator it = filesData.begin(); it != filesData.end(); ++it) {
+    FileItem item = *it;
+    if (BLI_exists(item.filename.c_str())) {
+      result += updateGridsFromFile(item.filename, item.grids);
+      assert(result);
     }
   }
 
-  if (mUsingFire) {
-    file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_FLAME, dformat, framenr);
-    expected += 1;
-    if (BLI_exists(file.c_str())) {
-      result += updateGridFromFile(file, mFlame, false);
-      assert(result == expected);
-    }
-
-    file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_FUEL, dformat, framenr);
-    expected += 1;
-    if (BLI_exists(file.c_str())) {
-      result += updateGridFromFile(file, mFuel, false);
-      assert(result == expected);
-    }
-
-    file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_REACT, dformat, framenr);
-    expected += 1;
-    if (BLI_exists(file.c_str())) {
-      result += updateGridFromFile(file, mReact, false);
-      assert(result == expected);
-    }
-  }
-
-  return mSmokeFromFile = (result == expected);
+  return mSmokeFromFile = result;
 }
 
 bool MANTA::updateNoiseStructures(FluidModifierData *mmd, int framenr)
@@ -1155,73 +1216,121 @@ bool MANTA::updateNoiseStructures(FluidModifierData *mmd, int framenr)
     return false;
 
   int result = 0;
-  int expected = 0; /* Expected number of read successes for this frame. */
-
   string dformat = getCacheFileEnding(mds->cache_data_format);
   string nformat = getCacheFileEnding(mds->cache_noise_format);
-  string file = getFile(
-      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_DENSITYNOISE, nformat, framenr);
 
-  expected += 1;
-  if (BLI_exists(file.c_str())) {
-    result += updateGridFromFile(file, mDensityHigh, true);
-    assert(result == expected);
+  vector<FileItem> filesData, filesNoise;
+  vector<GridItem> gridsData, gridsNoise;
+
+  int resData[] = {mResX, mResY, mResZ};
+  int resNoise[] = {mResXNoise, mResYNoise, mResZNoise};
+
+  /* Put grid pointers into pointer lists, some grids have more than 1 pointer. */
+  void *aShadow[] = {mShadow};
+  void *aVelocities[] = {mVelocityX, mVelocityY, mVelocityZ};
+  void *aDensity[] = {mDensityHigh};
+  void *aColorR[] = {mColorRHigh};
+  void *aColorG[] = {mColorGHigh};
+  void *aColorB[] = {mColorBHigh};
+  void *aFlame[] = {mFlameHigh};
+  void *aFuel[] = {mFuelHigh};
+  void *aReact[] = {mReactHigh};
+
+  /* File names for grids. */
+  string fShadow = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_SHADOW, dformat, framenr);
+  string fVel = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_VELOCITY, dformat, framenr);
+  string fFluid = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_DATA, dformat, framenr);
+
+  string fDensity = getFile(
+      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_DENSITYNOISE, nformat, framenr);
+  string fColorR = getFile(
+      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_COLORRNOISE, nformat, framenr);
+  string fColorG = getFile(
+      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_COLORGNOISE, nformat, framenr);
+  string fColorB = getFile(
+      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_COLORBNOISE, nformat, framenr);
+  string fFlame = getFile(
+      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_FLAMENOISE, nformat, framenr);
+  string fFuel = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_FUELNOISE, nformat, framenr);
+  string fReact = getFile(
+      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_REACTNOISE, nformat, framenr);
+  string fNoise = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_NOISE, nformat, framenr);
+
+  /* Prepare grid info containers. */
+  GridItem gShadow = {aShadow, FLUID_DOMAIN_GRID_FLOAT, resData, FLUID_GRIDNAME_SHADOW};
+  GridItem gVel = {aVelocities, FLUID_DOMAIN_GRID_VEC3F, resData, FLUID_GRIDNAME_VELOCITY};
+
+  GridItem gDensity = {aDensity, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_GRIDNAME_DENSITYNOISE};
+  GridItem gColorR = {aColorR, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_GRIDNAME_COLORRNOISE};
+  GridItem gColorG = {aColorG, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_GRIDNAME_COLORGNOISE};
+  GridItem gColorB = {aColorB, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_GRIDNAME_COLORBNOISE};
+  GridItem gFlame = {aFlame, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_GRIDNAME_FLAMENOISE};
+  GridItem gFuel = {aFuel, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_GRIDNAME_FUELNOISE};
+  GridItem gReact = {aReact, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_GRIDNAME_REACTNOISE};
+
+  /* TODO (sebbas): For now, only allow single file mode. Combined grid file export is todo. */
+  const int fileMode = FLUID_DOMAIN_CACHE_FILES_SINGLE;
+  if (fileMode == FLUID_DOMAIN_CACHE_FILES_SINGLE) {
+
+    filesData.push_back((FileItem){fShadow, {gShadow}});
+    filesData.push_back((FileItem){fVel, {gVel}});
+
+    filesNoise.push_back((FileItem){fDensity, {gDensity}});
+    if (mUsingColors) {
+      filesNoise.push_back((FileItem){fColorR, {gColorR}});
+      filesNoise.push_back((FileItem){fColorG, {gColorG}});
+      filesNoise.push_back((FileItem){fColorB, {gColorB}});
+    }
+    if (mUsingFire) {
+      filesNoise.push_back((FileItem){fFlame, {gFlame}});
+      filesNoise.push_back((FileItem){fFuel, {gFuel}});
+      filesNoise.push_back((FileItem){fReact, {gReact}});
+    }
+  }
+  else if (fileMode == FLUID_DOMAIN_CACHE_FILES_COMBINED) {
+
+    gridsData.push_back(gShadow);
+    gridsData.push_back(gVel);
+
+    gridsNoise.push_back(gDensity);
+    if (mUsingColors) {
+      gridsNoise.push_back(gColorR);
+      gridsNoise.push_back(gColorG);
+      gridsNoise.push_back(gColorB);
+    }
+    if (mUsingFire) {
+      gridsNoise.push_back(gFlame);
+      gridsNoise.push_back(gFuel);
+      gridsNoise.push_back(gReact);
+    }
+
+    if (with_debug) {
+      assertGridItems(gridsData);
+      assertGridItems(gridsNoise);
+    }
+    filesData.push_back((FileItem){fFluid, gridsData});
+    filesNoise.push_back((FileItem){fNoise, gridsNoise});
   }
 
-  file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_SHADOW, dformat, framenr);
-  expected += 1;
-  if (BLI_exists(file.c_str())) {
-    result += updateGridFromFile(file, mShadow, false);
-    assert(result == expected);
-  }
-
-  if (mUsingColors) {
-    file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_COLORRNOISE, nformat, framenr);
-    expected += 1;
-    if (BLI_exists(file.c_str())) {
-      result += updateGridFromFile(file, mColorRHigh, true);
-      assert(result == expected);
-    }
-
-    file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_COLORGNOISE, nformat, framenr);
-    expected += 1;
-    if (BLI_exists(file.c_str())) {
-      result += updateGridFromFile(file, mColorGHigh, true);
-      assert(result == expected);
-    }
-
-    file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_COLORBNOISE, nformat, framenr);
-    expected += 1;
-    if (BLI_exists(file.c_str())) {
-      result += updateGridFromFile(file, mColorBHigh, true);
-      assert(result == expected);
+  /* Update files from data directory. */
+  for (vector<FileItem>::iterator it = filesData.begin(); it != filesData.end(); ++it) {
+    FileItem item = *it;
+    if (BLI_exists(item.filename.c_str())) {
+      result += updateGridsFromFile(item.filename, item.grids);
+      assert(result);
     }
   }
 
-  if (mUsingFire) {
-    file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_FLAMENOISE, nformat, framenr);
-    expected += 1;
-    if (BLI_exists(file.c_str())) {
-      result += updateGridFromFile(file, mFlameHigh, true);
-      assert(result == expected);
-    }
-
-    file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_FUELNOISE, nformat, framenr);
-    expected += 1;
-    if (BLI_exists(file.c_str())) {
-      result += updateGridFromFile(file, mFuelHigh, true);
-      assert(result == expected);
-    }
-
-    file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_REACTNOISE, nformat, framenr);
-    expected += 1;
-    if (BLI_exists(file.c_str())) {
-      result += updateGridFromFile(file, mReactHigh, true);
-      assert(result == expected);
+  /* Update files from noise directory. */
+  for (vector<FileItem>::iterator it = filesNoise.begin(); it != filesNoise.end(); ++it) {
+    FileItem item = *it;
+    if (BLI_exists(item.filename.c_str())) {
+      result += updateGridsFromFile(item.filename, item.grids);
+      assert(result);
     }
   }
 
-  return mNoiseFromFile = (result == expected);
+  return mNoiseFromFile = result;
 }
 
 /* Dirty hack: Needed to format paths from python code that is run via PyRun_SimpleString */
@@ -1247,7 +1356,7 @@ bool MANTA::writeConfiguration(FluidModifierData *mmd, int framenr)
 
   string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_CONFIG);
   string format = FLUID_DOMAIN_EXTENSION_UNI;
-  string file = getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_DOMAIN_FILE_CONFIG, format, framenr);
+  string file = getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_FILENAME_CONFIG, format, framenr);
 
   /* Create 'config' subdir if it does not exist already. */
   BLI_dir_create_recursive(directory.c_str());
@@ -1347,7 +1456,7 @@ bool MANTA::readConfiguration(FluidModifierData *mmd, int framenr)
 
   string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_CONFIG);
   string format = FLUID_DOMAIN_EXTENSION_UNI;
-  string file = getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_DOMAIN_FILE_CONFIG, format, framenr);
+  string file = getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_FILENAME_CONFIG, format, framenr);
 
   if (!hasConfig(mmd, framenr))
     return false;
@@ -2741,14 +2850,13 @@ bool MANTA::updateParticlesFromUni(string filename, bool isSecondarySys, bool is
   return (gzclose(gzf) == Z_OK);
 }
 
-bool MANTA::updateGridFromFile(string filename, float *grid, bool isNoise)
+bool MANTA::updateGridsFromFile(string filename, vector<GridItem> grids)
 {
   if (with_debug)
-    cout << "MANTA::updateGridFromFile()" << endl;
+    cout << "MANTA::updateGridsFromFile()" << endl;
 
-  if (!grid) {
-    cerr << "Fluid Error -- updateGridFromFile(): Cannot read into uninitialized grid (grid "
-            "is null)."
+  if (grids.empty()) {
+    cerr << "Fluid Error -- updateGridsFromFile(): Cannot read into uninitialized grid vector."
          << endl;
     return false;
   }
@@ -2758,118 +2866,141 @@ bool MANTA::updateGridFromFile(string filename, float *grid, bool isNoise)
 
   idx = fname.rfind('.');
   if (idx != string::npos) {
-    string extension = fname.substr(idx + 1);
+    string extension = fname.substr(idx);
 
-    if (extension.compare("uni") == 0)
-      return updateGridFromUni(filename, grid, isNoise);
+    if (extension.compare(FLUID_DOMAIN_EXTENSION_UNI) == 0) {
+      return updateGridsFromUni(filename, grids);
+    }
 #if OPENVDB == 1
-    else if (extension.compare("vdb") == 0)
-      return updateGridFromVDB(filename, grid, isNoise);
+    else if (extension.compare(FLUID_DOMAIN_EXTENSION_OPENVDB) == 0) {
+      return updateGridsFromVDB(filename, grids);
+    }
 #endif
-    else if (extension.compare("raw") == 0)
-      return updateGridFromRaw(filename, grid, isNoise);
-    else
-      cerr << "Fluid Error -- updateGridFromFile(): Invalid file extension in file: " << filename
+    else if (extension.compare(FLUID_DOMAIN_EXTENSION_RAW) == 0) {
+      return updateGridsFromRaw(filename, grids);
+    }
+    else {
+      cerr << "Fluid Error -- updateGridsFromFile(): Invalid file extension in file: " << filename
            << endl;
+    }
     return false;
   }
   else {
-    cerr << "Fluid Error -- updateGridFromFile(): Unable to open file: " << filename << endl;
+    cerr << "Fluid Error -- updateGridsFromFile(): Unable to open file: " << filename << endl;
     return false;
   }
 }
 
-bool MANTA::updateGridFromUni(string filename, float *grid, bool isNoise)
+bool MANTA::updateGridsFromUni(string filename, vector<GridItem> grids)
 {
   if (with_debug)
-    cout << "MANTA::updateGridFromUni()" << endl;
+    cout << "MANTA::updateGridsFromUni()" << endl;
 
   gzFile gzf;
+  int expectedBytes = 0, readBytes = 0;
   int ibuffer[4];
 
   gzf = (gzFile)BLI_gzopen(filename.c_str(), "rb1");
   if (!gzf) {
-    cerr << "Fluid Error -- updateGridFromUni(): Unable to open file: " << filename << endl;
+    cerr << "Fluid Error -- updateGridsFromUni(): Unable to open file: " << filename << endl;
     return false;
   }
 
-  int readBytes = 0;
   char file_magic[5] = {0, 0, 0, 0, 0};
   readBytes = gzread(gzf, file_magic, 4);
   if (!readBytes) {
-    cerr << "Fluid Error -- updateGridFromUni(): Unable to read header in file: " << filename
+    cerr << "Fluid Error -- updateGridsFromUni(): Invalid header in file: " << filename << endl;
+    gzclose(gzf);
+    return false;
+  }
+  if (!strcmp(file_magic, "DDF2") || !strcmp(file_magic, "MNT1") || !strcmp(file_magic, "MNT2")) {
+    cerr << "Fluid Error -- updateGridsFromUni(): Unsupported header in file: " << filename
          << endl;
     gzclose(gzf);
     return false;
   }
 
-  if (!strcmp(file_magic, "DDF2")) {
-    cerr << "Fluid Error -- updateGridFromUni(): Grid uni file format DDF2 not supported anymore."
-         << endl;
-    gzclose(gzf);
-    return false;
-  }
-
-  if (!strcmp(file_magic, "MNT1")) {
-    cerr << "Fluid Error -- updateGridFromUni(): Grid uni file format MNT1 not supported anymore."
-         << endl;
-    gzclose(gzf);
-    return false;
-  }
-
-  if (!strcmp(file_magic, "MNT2")) {
-    cerr << "Fluid Error -- updateGridFromUni(): Grid uni file format MNT2 not supported anymore."
-         << endl;
-    gzclose(gzf);
-    return false;
-  }
-
-  // grid uni header
-  const int STR_LEN_GRID = 252;
-  int elementType, bytesPerElement;  // data type info
-  char info[STR_LEN_GRID];           // mantaflow build information
-  int dimT;                          // optionally store forth dimension for 4d grids
-  unsigned long long timestamp;      // creation time
-
-  // read grid header
-  gzread(gzf, &ibuffer, sizeof(int) * 4);  // dimX, dimY, dimZ, gridType
-  gzread(gzf, &elementType, sizeof(int));
-  gzread(gzf, &bytesPerElement, sizeof(int));
-  gzread(gzf, &info, sizeof(info));
-  gzread(gzf, &dimT, sizeof(int));
-  gzread(gzf, &timestamp, sizeof(unsigned long long));
-
-  int resX = (isNoise) ? mResXNoise : mResX;
-  int resY = (isNoise) ? mResYNoise : mResY;
-  int resZ = (isNoise) ? mResZNoise : mResZ;
-
-  if (with_debug)
-    cout << "Fluid: Read " << ibuffer[3] << " grid type in file: " << filename << endl;
-
-  // Sanity checks
-  if (ibuffer[0] != resX || ibuffer[1] != resY || ibuffer[2] != resZ) {
-    cout << "Fluid: Grid dim doesn't match, read: (" << ibuffer[0] << ", " << ibuffer[1] << ", "
-         << ibuffer[2] << ") vs setup: (" << resX << ", " << resY << ", " << resZ << ")" << endl;
-    gzclose(gzf);
-    return false;
-  }
-
-  // Actual data reading
   if (!strcmp(file_magic, "MNT3")) {
-    gzread(gzf, grid, sizeof(float) * ibuffer[0] * ibuffer[1] * ibuffer[2]);
-  }
 
-  if (with_debug)
-    cout << "Fluid: Read successfully: " << filename << endl;
+    // grid uni header
+    const int STR_LEN_GRID = 252;
+    int elementType, bytesPerElement;  // data type info
+    char info[STR_LEN_GRID];           // mantaflow build information
+    int dimT;                          // optionally store forth dimension for 4d grids
+    unsigned long long timestamp;      // creation time
+
+    // read grid header
+    gzread(gzf, &ibuffer, sizeof(int) * 4);  // dimX, dimY, dimZ, gridType
+    gzread(gzf, &elementType, sizeof(int));
+    gzread(gzf, &bytesPerElement, sizeof(int));
+    gzread(gzf, &info, sizeof(info));
+    gzread(gzf, &dimT, sizeof(int));
+    gzread(gzf, &timestamp, sizeof(unsigned long long));
+
+    if (with_debug)
+      cout << "Fluid: Read " << ibuffer[3] << " grid type in file: " << filename << endl;
+
+    for (vector<GridItem>::iterator gIter = grids.begin(); gIter != grids.end(); ++gIter) {
+      GridItem gridItem = *gIter;
+      void **pointerList = gridItem.pointer;
+      int type = gridItem.type;
+      int *res = gridItem.res;
+      assert(pointerList[0]);
+      assert(res[0] == res[0] && res[1] == res[1] && res[2] == res[2]);
+      UNUSED_VARS(res);
+
+      switch (type) {
+        case FLUID_DOMAIN_GRID_VEC3F: {
+          assert(pointerList[1] && pointerList[2]);
+          float **fpointers = (float **)pointerList;
+          expectedBytes = sizeof(float) * 3 * ibuffer[0] * ibuffer[1] * ibuffer[2];
+          readBytes = 0;
+          for (int i = 0; i < ibuffer[0] * ibuffer[1] * ibuffer[2]; ++i) {
+            for (int j = 0; j < 3; ++j) {
+              readBytes += gzread(gzf, fpointers[j], sizeof(float));
+              ++fpointers[j];
+            }
+          }
+          break;
+        }
+        case FLUID_DOMAIN_GRID_FLOAT: {
+          float **fpointers = (float **)pointerList;
+          expectedBytes = sizeof(float) * ibuffer[0] * ibuffer[1] * ibuffer[2];
+          readBytes = gzread(
+              gzf, fpointers[0], sizeof(float) * ibuffer[0] * ibuffer[1] * ibuffer[2]);
+          break;
+        }
+        default: {
+          cerr << "Fluid Error -- Unknown grid type" << endl;
+        }
+      }
+
+      if (!readBytes) {
+        cerr << "Fluid Error -- updateGridFromRaw(): Unable to read raw file: " << filename
+             << endl;
+        gzclose(gzf);
+        return false;
+      }
+      assert(expectedBytes == readBytes);
+
+      if (with_debug)
+        cout << "Fluid: Read successfully: " << filename << endl;
+    }
+  }
+  else {
+    cerr << "Fluid Error -- updateGridsFromUni(): Unknown header in file: " << filename << endl;
+    gzclose(gzf);
+    return false;
+  }
 
   return (gzclose(gzf) == Z_OK);
 }
 
 #if OPENVDB == 1
-bool MANTA::updateGridFromVDB(string filename, float *grid, bool isNoise)
+bool MANTA::updateGridsFromVDB(string filename, vector<GridItem> grids)
 {
   if (with_debug)
-    cout << "MANTA::updateGridFromVDB()" << endl;
+    cout << "MANTA::updateGridsFromVDB()" << endl;
 
   openvdb::initialize();
   openvdb::io::File file(filename);
@@ -2877,66 +3008,191 @@ bool MANTA::updateGridFromVDB(string filename, float *grid, bool isNoise)
     file.open();
   }
   catch (const openvdb::IoError &) {
-    cerr << "Fluid Error -- updateGridFromVDB(): IOError, invalid OpenVDB file: " << filename
+    cerr << "Fluid Error -- updateGridsFromVDB(): IOError, invalid OpenVDB file: " << filename
          << endl;
     return false;
   }
-
-  openvdb::GridBase::Ptr baseGrid;
-  for (openvdb::io::File::NameIterator nameIter = file.beginName(); nameIter != file.endName();
-       ++nameIter) {
-    baseGrid = file.readGrid(nameIter.gridName());
-    break;
+  if (grids.empty()) {
+    cerr << "Fluid Error -- updateGridsFromVDB(): No grids found in grid vector" << endl;
+    return false;
   }
-  file.close();
-  openvdb::FloatGrid::Ptr gridVDB = openvdb::gridPtrCast<openvdb::FloatGrid>(baseGrid);
-  openvdb::FloatGrid::Accessor accessor = gridVDB->getAccessor();
 
-  int resX = (isNoise) ? mResXNoise : mResX;
-  int resY = (isNoise) ? mResYNoise : mResY;
-  int resZ = (isNoise) ? mResZNoise : mResZ;
+  unordered_map<string, openvdb::FloatGrid::Accessor> floatAccessors;
+  unordered_map<string, openvdb::Vec3SGrid::Accessor> vec3fAccessors;
+  openvdb::GridBase::Ptr baseGrid;
 
-  size_t index = 0;
-  for (int z = 0; z < resZ; ++z) {
-    for (int y = 0; y < resY; ++y) {
-      for (int x = 0; x < resX; ++x, ++index) {
-        openvdb::Coord xyz(x, y, z);
-        float v = accessor.getValue(xyz);
-        grid[index] = v;
+  /* Get accessors to all grids in this OpenVDB file.*/
+  for (vector<GridItem>::iterator gIter = grids.begin(); gIter != grids.end(); ++gIter) {
+    GridItem gridItem = *gIter;
+    string itemName = gridItem.name;
+    int itemType = gridItem.type;
+
+    for (openvdb::io::File::NameIterator nameIter = file.beginName(); nameIter != file.endName();
+         ++nameIter) {
+      string vdbName = nameIter.gridName();
+      bool nameMatch = !itemName.compare(vdbName);
+
+      /* Support for <= 2.83: If file has only one grid in it, use that grid. */
+      openvdb::io::File::NameIterator peekNext = nameIter;
+      bool onlyGrid = (++peekNext == file.endName());
+      if (onlyGrid) {
+        vdbName = itemName;
+      }
+
+      if (nameMatch || onlyGrid) {
+        baseGrid = file.readGrid(nameIter.gridName());
+
+        switch (itemType) {
+          case FLUID_DOMAIN_GRID_VEC3F: {
+            openvdb::Vec3SGrid::Ptr gridVDB = openvdb::gridPtrCast<openvdb::Vec3SGrid>(baseGrid);
+            openvdb::Vec3SGrid::Accessor vdbAccessor = gridVDB->getAccessor();
+            vec3fAccessors.emplace(vdbName, vdbAccessor);
+            break;
+          }
+          case FLUID_DOMAIN_GRID_FLOAT: {
+            openvdb::FloatGrid::Ptr gridVDB = openvdb::gridPtrCast<openvdb::FloatGrid>(baseGrid);
+            openvdb::FloatGrid::Accessor vdbAccessor = gridVDB->getAccessor();
+            floatAccessors.emplace(vdbName, vdbAccessor);
+            break;
+          }
+          default: {
+            cerr << "Fluid Error -- Unknown grid type" << endl;
+          }
+        }
+      }
+      else {
+        cerr << "Fluid Error -- Could not read grid from file" << endl;
+        return false;
       }
     }
   }
+  file.close();
+
+  size_t index = 0;
+
+  /* Use res of first grid for grid loop. All grids must be same size anyways. */
+  vector<GridItem>::iterator gIter = grids.begin();
+  int *res = (*gIter).res;
+
+  for (int z = 0; z < res[2]; ++z) {
+    for (int y = 0; y < res[1]; ++y) {
+      for (int x = 0; x < res[0]; ++x, ++index) {
+        openvdb::Coord xyz(x, y, z);
+
+        for (vector<GridItem>::iterator gIter = grids.begin(); gIter != grids.end(); ++gIter) {
+          GridItem gridItem = *gIter;
+          void **pointerList = gridItem.pointer;
+          int type = gridItem.type;
+          int *res = gridItem.res;
+          assert(pointerList[0]);
+          assert(res[0] == res[0] && res[1] == res[1] && res[2] == res[2]);
+          UNUSED_VARS(res);
+
+          switch (type) {
+            case FLUID_DOMAIN_GRID_VEC3F: {
+              unordered_map<string, openvdb::Vec3SGrid::Accessor>::iterator it;
+              it = vec3fAccessors.find(gridItem.name);
+              if (it == vec3fAccessors.end()) {
+                cerr << "Fluid Error -- '" << gridItem.name << "' not in vdb grid map" << endl;
+                return false;
+              }
+              openvdb::Vec3f v = it->second.getValue(xyz);
+
+              assert(pointerList[1] && pointerList[2]);
+              float **fpointers = (float **)pointerList;
+              for (int j = 0; j < 3; ++j) {
+                (fpointers[j])[index] = (float)v[j];
+              }
+              break;
+            }
+            case FLUID_DOMAIN_GRID_FLOAT: {
+              unordered_map<string, openvdb::FloatGrid::Accessor>::iterator it;
+              it = floatAccessors.find(gridItem.name);
+              if (it == floatAccessors.end()) {
+                cerr << "Fluid Error -- '" << gridItem.name << "' not in vdb grid map" << endl;
+                return false;
+              }
+              float v = it->second.getValue(xyz);
+              float **fpointers = (float **)pointerList;
+              (fpointers[0])[index] = v;
+              break;
+            }
+            default: {
+              cerr << "Fluid Error -- Unknown grid type" << endl;
+            }
+          }
+        }
+      }
+    }
+  }
+  if (with_debug)
+    cout << "Fluid: Read successfully: " << filename << endl;
+
   return true;
 }
 #endif
 
-bool MANTA::updateGridFromRaw(string filename, float *grid, bool isNoise)
+bool MANTA::updateGridsFromRaw(string filename, vector<GridItem> grids)
 {
   if (with_debug)
-    cout << "MANTA::updateGridFromRaw()" << endl;
+    cout << "MANTA::updateGridsFromRaw()" << endl;
 
   gzFile gzf;
   int expectedBytes, readBytes;
 
   gzf = (gzFile)BLI_gzopen(filename.c_str(), "rb");
   if (!gzf) {
-    cout << "MANTA::updateGridFromRaw(): unable to open file" << endl;
+    cout << "MANTA::updateGridsFromRaw(): unable to open file" << endl;
     return false;
   }
 
-  int resX = (isNoise) ? mResXNoise : mResX;
-  int resY = (isNoise) ? mResYNoise : mResY;
-  int resZ = (isNoise) ? mResZNoise : mResZ;
+  for (vector<GridItem>::iterator gIter = grids.begin(); gIter != grids.end(); ++gIter) {
+    GridItem gridItem = *gIter;
+    void **pointerList = gridItem.pointer;
+    int type = gridItem.type;
+    int *res = gridItem.res;
+    assert(pointerList[0]);
+    assert(res[0] == res[0] && res[1] == res[1] && res[2] == res[2]);
+    UNUSED_VARS(res);
 
-  expectedBytes = sizeof(float) * resX * resY * resZ;
-  readBytes = gzread(gzf, grid, expectedBytes);
-  if (!readBytes) {
-    cerr << "Fluid Error -- updateGridFromRaw(): Unable to read raw file: " << filename << endl;
-    gzclose(gzf);
-    return false;
+    switch (type) {
+      case FLUID_DOMAIN_GRID_VEC3F: {
+        assert(pointerList[1] && pointerList[2]);
+        float **fpointers = (float **)pointerList;
+        expectedBytes = sizeof(float) * 3 * res[0] * res[1] * res[2];
+        readBytes = 0;
+        for (int i = 0; i < res[0] * res[1] * res[2]; ++i) {
+          for (int j = 0; j < 3; ++j) {
+            readBytes += gzread(gzf, fpointers[j], sizeof(float));
+            ++fpointers[j];
+          }
+        }
+        break;
+      }
+      case FLUID_DOMAIN_GRID_FLOAT: {
+        float **fpointers = (float **)pointerList;
+        expectedBytes = sizeof(float) * res[0] * res[1] * res[2];
+        readBytes = gzread(gzf, fpointers[0], expectedBytes);
+        break;
+      }
+      default: {
+        cerr << "Fluid Error -- Unknown grid type" << endl;
+      }
+    }
+
+    if (!readBytes) {
+      cerr << "Fluid Error -- updateGridsFromRaw(): Unable to read raw file: " << filename << endl;
+      gzclose(gzf);
+      return false;
+    }
+    assert(expectedBytes == readBytes);
+
+    if (with_debug)
+      cout << "Fluid: Read successfully: " << filename << endl;
   }
 
-  assert(expectedBytes == readBytes);
+  if (with_debug)
+    cout << "Fluid: Read successfully: " << filename << endl;
 
   return (gzclose(gzf) == Z_OK);
 }
@@ -3084,12 +3340,12 @@ bool MANTA::hasConfig(FluidModifierData *mmd, int framenr)
 {
   string extension = FLUID_DOMAIN_EXTENSION_UNI;
   return BLI_exists(
-      getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_DOMAIN_FILE_CONFIG, extension, framenr).c_str());
+      getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_FILENAME_CONFIG, extension, framenr).c_str());
 }
 
 bool MANTA::hasData(FluidModifierData *mmd, int framenr)
 {
-  string filename = (mUsingSmoke) ? FLUID_DOMAIN_FILE_DENSITY : FLUID_DOMAIN_FILE_PP;
+  string filename = (mUsingSmoke) ? FLUID_FILENAME_DENSITY : FLUID_FILENAME_PP;
   string extension = getCacheFileEnding(mmd->domain->cache_data_format);
   return BLI_exists(getFile(mmd, FLUID_DOMAIN_DIR_DATA, filename, extension, framenr).c_str());
 }
@@ -3098,7 +3354,7 @@ bool MANTA::hasNoise(FluidModifierData *mmd, int framenr)
 {
   string extension = getCacheFileEnding(mmd->domain->cache_noise_format);
   return BLI_exists(
-      getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_DENSITYNOISE, extension, framenr)
+      getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_DENSITYNOISE, extension, framenr)
           .c_str());
 }
 
@@ -3106,21 +3362,20 @@ bool MANTA::hasMesh(FluidModifierData *mmd, int framenr)
 {
   string extension = getCacheFileEnding(mmd->domain->cache_mesh_format);
   return BLI_exists(
-      getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_DOMAIN_FILE_MESH, extension, framenr).c_str());
+      getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_FILENAME_MESH, extension, framenr).c_str());
 }
 
 bool MANTA::hasParticles(FluidModifierData *mmd, int framenr)
 {
   string extension = getCacheFileEnding(mmd->domain->cache_particle_format);
   return BLI_exists(
-      getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_DOMAIN_FILE_PPSND, extension, framenr)
-          .c_str());
+      getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_FILENAME_PPSND, extension, framenr).c_str());
 }
 
 bool MANTA::hasGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain)
 {
   string subdirectory = (sourceDomain) ? FLUID_DOMAIN_DIR_DATA : FLUID_DOMAIN_DIR_GUIDE;
-  string filename = (sourceDomain) ? FLUID_DOMAIN_FILE_VEL : FLUID_DOMAIN_FILE_GUIDEVEL;
+  string filename = (sourceDomain) ? FLUID_FILENAME_VELOCITY : FLUID_FILENAME_GUIDEVEL;
   string extension = getCacheFileEnding(mmd->domain->cache_data_format);
   return BLI_exists(getFile(mmd, subdirectory, filename, extension, framenr).c_str());
 }

@@ -259,7 +259,7 @@ const std::string fluid_alloc =
     "\n\
 mantaMsg('Fluid alloc data')\n\
 flags_s$ID$       = s$ID$.create(FlagGrid)\n\
-vel_s$ID$         = s$ID$.create(MACGrid)\n\
+vel_s$ID$         = s$ID$.create(MACGrid, name='$NAME_VELOCITY$')\n\
 velTmp_s$ID$      = s$ID$.create(MACGrid)\n\
 x_vel_s$ID$       = s$ID$.create(RealGrid)\n\
 y_vel_s$ID$       = s$ID$.create(RealGrid)\n\

@@ -81,10 +81,10 @@ using_fire_s$ID$ = True\n";
 const std::string smoke_alloc =
     "\n\
 mantaMsg('Smoke alloc')\n\
-shadow_s$ID$     = s$ID$.create(RealGrid)\n\
+shadow_s$ID$     = s$ID$.create(RealGrid, name='$NAME_SHADOW$')\n\
 emission_s$ID$   = s$ID$.create(RealGrid)\n\
 emissionIn_s$ID$ = s$ID$.create(RealGrid)\n\
-density_s$ID$    = s$ID$.create(RealGrid)\n\
+density_s$ID$    = s$ID$.create(RealGrid, name='$NAME_DENSITY$')\n\
 densityIn_s$ID$  = s$ID$.create(RealGrid)\n\
 heat_s$ID$       = None # allocated dynamically\n\
 heatIn_s$ID$     = None\n\
@@ -108,7 +108,7 @@ const std::string smoke_alloc_noise =
     "\n\
 mantaMsg('Smoke alloc noise')\n\
 vel_sn$ID$        = sn$ID$.create(MACGrid)\n\
-density_sn$ID$    = sn$ID$.create(RealGrid)\n\
+density_sn$ID$    = sn$ID$.create(RealGrid, name='$NAME_DENSITYNOISE$')\n\
 phiIn_sn$ID$      = sn$ID$.create(LevelsetGrid)\n\
 phiOut_sn$ID$     = sn$ID$.create(LevelsetGrid)\n\
 phiObs_sn$ID$     = sn$ID$.create(LevelsetGrid)\n\
@@ -157,9 +157,9 @@ if 'color_g_s$ID$' in globals(): del color_g_s$ID$\n\
 if 'color_b_s$ID$' in globals(): del color_b_s$ID$\n\
 \n\
 mantaMsg('Allocating colors')\n\
-color_r_s$ID$    = s$ID$.create(RealGrid)\n\
-color_g_s$ID$    = s$ID$.create(RealGrid)\n\
-color_b_s$ID$    = s$ID$.create(RealGrid)\n\
+color_r_s$ID$    = s$ID$.create(RealGrid, name='$NAME_COLORR$')\n\
+color_g_s$ID$    = s$ID$.create(RealGrid, name='$NAME_COLORG$')\n\
+color_b_s$ID$    = s$ID$.create(RealGrid, name='$NAME_COLORB$')\n\
 color_r_in_s$ID$ = s$ID$.create(RealGrid)\n\
 color_g_in_s$ID$ = s$ID$.create(RealGrid)\n\
 color_b_in_s$ID$ = s$ID$.create(RealGrid)\n\
@@ -178,9 +178,9 @@ if 'color_g_sn$ID$' in globals(): del color_g_sn$ID$\n\
 if 'color_b_sn$ID$' in globals(): del color_b_sn$ID$\n\
 \n\
 mantaMsg('Allocating colors noise')\n\
-color_r_sn$ID$ = sn$ID$.create(RealGrid)\n\
-color_g_sn$ID$ = sn$ID$.create(RealGrid)\n\
-color_b_sn$ID$ = sn$ID$.create(RealGrid)\n\
+color_r_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_COLORRNOISE$')\n\
+color_g_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_COLORGNOISE$')\n\
+color_b_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_COLORBNOISE$')\n\
 \n\
 # Add objects to dict to load them later on\n\
 if 'smoke_noise_dict_final_s$ID$' in globals():\n\
@@ -213,7 +213,7 @@ if 'heat_s$ID$' in globals(): del heat_s$ID$\n\
 if 'heatIn_s$ID$' in globals(): del heatIn_s$ID$\n\
 \n\
 mantaMsg('Allocating heat')\n\
-heat_s$ID$   = s$ID$.create(RealGrid)\n\
+heat_s$ID$   = s$ID$.create(RealGrid, name='$NAME_HEAT$')\n\
 heatIn_s$ID$ = s$ID$.create(RealGrid)\n\
 \n\
 # Add objects to dict to load them later on\n\
@@ -232,9 +232,9 @@ if 'fuelIn_s$ID$' in globals(): del fuelIn_s$ID$\n\
 if 'reactIn_s$ID$' in globals(): del reactIn_s$ID$\n\
 \n\
 mantaMsg('Allocating fire')\n\
-flame_s$ID$   = s$ID$.create(RealGrid)\n\
-fuel_s$ID$    = s$ID$.create(RealGrid)\n\
-react_s$ID$   = s$ID$.create(RealGrid)\n\
+flame_s$ID$   = s$ID$.create(RealGrid, name='$NAME_FLAME$')\n\
+fuel_s$ID$    = s$ID$.create(RealGrid, name='$NAME_FUEL$')\n\
+react_s$ID$   = s$ID$.create(RealGrid, name='$NAME_REACT$')\n\
 fuelIn_s$ID$  = s$ID$.create(RealGrid)\n\
 reactIn_s$ID$ = s$ID$.create(RealGrid)\n\
 \n\
@@ -252,9 +252,9 @@ if 'fuel_sn$ID$' in globals(): del fuel_sn$ID$\n\
 if 'react_sn$ID$' in globals(): del react_sn$ID$\n\
 \n\
 mantaMsg('Allocating fire noise')\n\
-flame_sn$ID$ = sn$ID$.create(RealGrid)\n\
-fuel_sn$ID$  = sn$ID$.create(RealGrid)\n\
-react_sn$ID$ = sn$ID$.create(RealGrid)\n\
+flame_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_FLAMENOISE$')\n\
+fuel_sn$ID$  = sn$ID$.create(RealGrid, name='$NAME_FUELNOISE$')\n\
+react_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_REACTNOISE$')\n\
 \n\
 # Add objects to dict to load them later on\n\
 if 'smoke_noise_dict_final_s$ID$' in globals():\n\

@@ -3977,9 +3977,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
         }
       }
       if (!baking_data && !baking_noise && next_data && next_noise) {
-        /* TODO (sebbas): Confirm if this read call is really needed or not.
-         * Currently only important to load the shadow grid. */
-        has_data = manta_update_smoke_structures(mds->fluid, mmd, data_frame);
+        /* Nothing to do here since we already loaded noise grids. */
       }
       else {
         has_data = manta_read_data(mds->fluid, mmd, data_frame);

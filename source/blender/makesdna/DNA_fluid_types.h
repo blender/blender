@@ -215,45 +215,71 @@ enum {
 #define FLUID_DOMAIN_SMOKE_SCRIPT "smoke_script.py"
 #define FLUID_DOMAIN_LIQUID_SCRIPT "liquid_script.py"
 
-#define FLUID_DOMAIN_FILE_CONFIG "config_####"
+#define FLUID_FILENAME_CONFIG "config_####"
 
-#define FLUID_DOMAIN_FILE_DENSITY "density_####"
-#define FLUID_DOMAIN_FILE_SHADOW "shadow_####"
-#define FLUID_DOMAIN_FILE_VEL "vel_####"
-#define FLUID_DOMAIN_FILE_HEAT "heat_####"
-#define FLUID_DOMAIN_FILE_COLORR "color_r_####"
-#define FLUID_DOMAIN_FILE_COLORG "color_g_####"
-#define FLUID_DOMAIN_FILE_COLORB "color_b_####"
-#define FLUID_DOMAIN_FILE_FLAME "flame_####"
-#define FLUID_DOMAIN_FILE_FUEL "fuel_####"
-#define FLUID_DOMAIN_FILE_REACT "react_####"
+#define FLUID_FILENAME_DATA "fluid_data_####"
+#define FLUID_FILENAME_NOISE "fluid_noise_####"
+#define FLUID_FILENAME_DENSITY "density_####"
+#define FLUID_FILENAME_SHADOW "shadow_####"
+#define FLUID_FILENAME_VELOCITY "vel_####"
+#define FLUID_FILENAME_HEAT "heat_####"
+#define FLUID_FILENAME_COLORR "color_r_####"
+#define FLUID_FILENAME_COLORG "color_g_####"
+#define FLUID_FILENAME_COLORB "color_b_####"
+#define FLUID_FILENAME_FLAME "flame_####"
+#define FLUID_FILENAME_FUEL "fuel_####"
+#define FLUID_FILENAME_REACT "react_####"
+#define FLUID_FILENAME_PHI "phi_####"
+#define FLUID_FILENAME_PP "pp_####"
+#define FLUID_FILENAME_PVEL "pVel_####"
+#define FLUID_FILENAME_DENSITYNOISE "density_noise_####"
+#define FLUID_FILENAME_COLORRNOISE "color_r_noise_####"
+#define FLUID_FILENAME_COLORGNOISE "color_g_noise_####"
+#define FLUID_FILENAME_COLORBNOISE "color_b_noise_####"
+#define FLUID_FILENAME_FLAMENOISE "flame_noise_####"
+#define FLUID_FILENAME_FUELNOISE "fuel_noise_####"
+#define FLUID_FILENAME_REACTNOISE "react_noise_####"
+#define FLUID_FILENAME_MESH "lMesh_####"
+#define FLUID_FILENAME_MESHVEL "lVelMesh_####"
+#define FLUID_FILENAME_PPSND "ppSnd_####"
+#define FLUID_FILENAME_PVELSND "pVelSnd_####"
+#define FLUID_FILENAME_PLIFESND "pLifeSnd_####"
+#define FLUID_FILENAME_GUIDEVEL "guidevel_####"
 
-#define FLUID_DOMAIN_FILE_PHI "phi_####"
-#define FLUID_DOMAIN_FILE_PP "pp_####"
-#define FLUID_DOMAIN_FILE_PVEL "pVel_####"
-
-#define FLUID_DOMAIN_FILE_DENSITYNOISE "density_noise_####"
-#define FLUID_DOMAIN_FILE_COLORRNOISE "color_r_noise_####"
-#define FLUID_DOMAIN_FILE_COLORGNOISE "color_g_noise_####"
-#define FLUID_DOMAIN_FILE_COLORBNOISE "color_b_noise_####"
-#define FLUID_DOMAIN_FILE_FLAMENOISE "flame_noise_####"
-#define FLUID_DOMAIN_FILE_FUELNOISE "fuel_noise_####"
-#define FLUID_DOMAIN_FILE_REACTNOISE "react_noise_####"
-
-#define FLUID_DOMAIN_FILE_MESH "lMesh_####"
-#define FLUID_DOMAIN_FILE_MESHVEL "lVelMesh_####"
-
-#define FLUID_DOMAIN_FILE_PPSND "ppSnd_####"
-#define FLUID_DOMAIN_FILE_PVELSND "pVelSnd_####"
-#define FLUID_DOMAIN_FILE_PLIFESND "pLifeSnd_####"
-
-#define FLUID_DOMAIN_FILE_GUIDEVEL "guidevel_####"
+#define FLUID_GRIDNAME_DENSITY "density"
+#define FLUID_GRIDNAME_SHADOW "shadow"
+#define FLUID_GRIDNAME_VELOCITY "velocity"
+#define FLUID_GRIDNAME_HEAT "heat"
+#define FLUID_GRIDNAME_COLORR "color_r"
+#define FLUID_GRIDNAME_COLORG "color_g"
+#define FLUID_GRIDNAME_COLORB "color_b"
+#define FLUID_GRIDNAME_FLAME "flame"
+#define FLUID_GRIDNAME_FUEL "fuel"
+#define FLUID_GRIDNAME_REACT "react"
+#define FLUID_GRIDNAME_DENSITYNOISE "density_noise"
+#define FLUID_GRIDNAME_COLORRNOISE "color_r_noise"
+#define FLUID_GRIDNAME_COLORGNOISE "color_g_noise"
+#define FLUID_GRIDNAME_COLORBNOISE "color_b_noise"
+#define FLUID_GRIDNAME_FLAMENOISE "flame_noise"
+#define FLUID_GRIDNAME_FUELNOISE "fuel_noise"
+#define FLUID_GRIDNAME_REACTNOISE "react_noise"
 
 #define FLUID_DOMAIN_EXTENSION_UNI ".uni"
 #define FLUID_DOMAIN_EXTENSION_OPENVDB ".vdb"
 #define FLUID_DOMAIN_EXTENSION_RAW ".raw"
 #define FLUID_DOMAIN_EXTENSION_OBJ ".obj"
 #define FLUID_DOMAIN_EXTENSION_BINOBJ ".bobj.gz"
+
+enum {
+  FLUID_DOMAIN_GRID_FLOAT = 0,
+  FLUID_DOMAIN_GRID_INT = 1,
+  FLUID_DOMAIN_GRID_VEC3F = 2,
+};
+
+enum {
+  FLUID_DOMAIN_CACHE_FILES_SINGLE = 0,
+  FLUID_DOMAIN_CACHE_FILES_COMBINED = 1,
+};
 
 enum {
   FLUID_DOMAIN_CACHE_REPLAY = 0,
