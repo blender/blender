@@ -4378,8 +4378,8 @@ static void manta_smoke_calc_transparency(FluidDomainSettings *mds, ViewLayer *v
   }
 }
 
-/* get smoke velocity and density at given coordinates
- * returns fluid density or -1.0f if outside domain. */
+/* Get fluid velocity and density at given coordinates
+ * Returns fluid density or -1.0f if outside domain. */
 float BKE_fluid_get_velocity_at(struct Object *ob, float position[3], float velocity[3])
 {
   FluidModifierData *mmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
@@ -4388,16 +4388,15 @@ float BKE_fluid_get_velocity_at(struct Object *ob, float position[3], float velo
   if (mmd && (mmd->type & MOD_FLUID_TYPE_DOMAIN) && mmd->domain && mmd->domain->fluid) {
     FluidDomainSettings *mds = mmd->domain;
     float time_mult = 25.f * DT_DEFAULT;
+    float size_mult = MAX3(mds->global_size[0], mds->global_size[1], mds->global_size[2]) /
+                      mds->maxres;
     float vel_mag;
-    float *velX = manta_get_velocity_x(mds->fluid);
-    float *velY = manta_get_velocity_y(mds->fluid);
-    float *velZ = manta_get_velocity_z(mds->fluid);
     float density = 0.0f, fuel = 0.0f;
     float pos[3];
     copy_v3_v3(pos, position);
     manta_pos_to_cell(mds, pos);
 
-    /* check if point is outside domain max bounds */
+    /* Check if position is outside domain max bounds. */
     if (pos[0] < mds->res_min[0] || pos[1] < mds->res_min[1] || pos[2] < mds->res_min[2]) {
       return -1.0f;
     }
@@ -4410,9 +4409,8 @@ float BKE_fluid_get_velocity_at(struct Object *ob, float position[3], float velo
     pos[1] = (pos[1] - mds->res_min[1]) / ((float)mds->res[1]);
     pos[2] = (pos[2] - mds->res_min[2]) / ((float)mds->res[2]);
 
-    /* check if point is outside active area */
-    if (mmd->domain->type == FLUID_DOMAIN_TYPE_GAS &&
-        mmd->domain->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) {
+    /* Check if position is outside active area. */
+    if (mds->type == FLUID_DOMAIN_TYPE_GAS && mds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) {
       if (pos[0] < 0.0f || pos[1] < 0.0f || pos[2] < 0.0f) {
         return 0.0f;
       }
@@ -4421,21 +4419,22 @@ float BKE_fluid_get_velocity_at(struct Object *ob, float position[3], float velo
       }
     }
 
-    /* get interpolated velocity */
-    velocity[0] = BLI_voxel_sample_trilinear(velX, mds->res, pos) * mds->global_size[0] *
-                  time_mult;
-    velocity[1] = BLI_voxel_sample_trilinear(velY, mds->res, pos) * mds->global_size[1] *
-                  time_mult;
-    velocity[2] = BLI_voxel_sample_trilinear(velZ, mds->res, pos) * mds->global_size[2] *
-                  time_mult;
+    /* Get interpolated velocity at given position. */
+    velocity[0] = BLI_voxel_sample_trilinear(manta_get_velocity_x(mds->fluid), mds->res, pos);
+    velocity[1] = BLI_voxel_sample_trilinear(manta_get_velocity_y(mds->fluid), mds->res, pos);
+    velocity[2] = BLI_voxel_sample_trilinear(manta_get_velocity_z(mds->fluid), mds->res, pos);
 
-    /* convert velocity direction to global space */
+    /* Convert simulation units to Blender units. */
+    mul_v3_fl(velocity, size_mult);
+    mul_v3_fl(velocity, time_mult);
+
+    /* Convert velocity direction to global space. */
     vel_mag = len_v3(velocity);
     mul_mat3_m4_v3(mds->obmat, velocity);
     normalize_v3(velocity);
     mul_v3_fl(velocity, vel_mag);
 
-    /* use max value of fuel or smoke density */
+    /* Use max value of fuel or smoke density. */
     density = BLI_voxel_sample_trilinear(manta_smoke_get_density(mds->fluid), mds->res, pos);
     if (manta_smoke_has_fuel(mds->fluid)) {
       fuel = BLI_voxel_sample_trilinear(manta_smoke_get_fuel(mds->fluid), mds->res, pos);
