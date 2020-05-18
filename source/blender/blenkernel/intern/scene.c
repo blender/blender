@@ -1175,34 +1175,6 @@ int BKE_scene_orientation_slot_get_index(const TransformOrientationSlot *orient_
 
 /** \} */
 
-/* That's like really a bummer, because currently animation data for armatures
- * might want to use pose, and pose might be missing on the object.
- * This happens when changing visible layers, which leads to situations when
- * pose is missing or marked for recalc, animation will change it and then
- * object update will restore the pose.
- *
- * This could be solved by the new dependency graph, but for until then we'll
- * do an extra pass on the objects to ensure it's all fine.
- */
-#define POSE_ANIMATION_WORKAROUND
-
-#ifdef POSE_ANIMATION_WORKAROUND
-static void scene_armature_depsgraph_workaround(Main *bmain, Depsgraph *depsgraph)
-{
-  Object *ob;
-  if (BLI_listbase_is_empty(&bmain->armatures) || !DEG_id_type_updated(depsgraph, ID_OB)) {
-    return;
-  }
-  for (ob = bmain->objects.first; ob; ob = ob->id.next) {
-    if (ob->type == OB_ARMATURE && ob->adt) {
-      if (ob->pose == NULL || (ob->pose->flag & POSE_RECALC)) {
-        BKE_pose_rebuild(bmain, ob, ob->data, true);
-      }
-    }
-  }
-}
-#endif
-
 static bool check_rendered_viewport_visible(Main *bmain)
 {
   wmWindowManager *wm = bmain->wm.first;
@@ -1387,9 +1359,6 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph, Main *bmain)
     BKE_image_editors_update_frame(bmain, scene->r.cfra);
     BKE_sound_set_cfra(scene->r.cfra);
     DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
-#ifdef POSE_ANIMATION_WORKAROUND
-    scene_armature_depsgraph_workaround(bmain, depsgraph);
-#endif
     /* Update all objects: drivers, matrices, displists, etc. flags set
      * by depgraph or manual, no layer check here, gets correct flushed.
      *
