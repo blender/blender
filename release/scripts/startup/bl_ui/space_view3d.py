@@ -5270,6 +5270,7 @@ class VIEW3D_MT_sculpt_mask_edit_pie(Menu):
         op.mode = 'INVERT'
         op = pie.operator("paint.mask_flood_fill", text='Clear Mask')
         op.mode = 'VALUE'
+        op.value = 0.0
         op = pie.operator("sculpt.mask_filter", text='Smooth Mask')
         op.filter_type = 'SMOOTH'
         op.auto_iteration_count = True
