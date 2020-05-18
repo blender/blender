@@ -20,10 +20,17 @@
 #  include <iso646.h>
 #endif
 
-#include <GL/glew.h>
+#include "internal/device/device_context_cuda.h"
+#include "internal/device/device_context_glsl_compute.h"
+#include "internal/device/device_context_glsl_transform_feedback.h"
+#include "internal/device/device_context_opencl.h"
+#include "internal/device/device_context_openmp.h"
 
-#include "opensubdiv_device_context_cuda.h"
-#include "opensubdiv_device_context_opencl.h"
+using blender::opensubdiv::CUDADeviceContext;
+using blender::opensubdiv::GLSLComputeDeviceContext;
+using blender::opensubdiv::GLSLTransformFeedbackDeviceContext;
+using blender::opensubdiv::OpenCLDeviceContext;
+using blender::opensubdiv::OpenMPDeviceContext;
 
 void openSubdiv_init(void)
 {
@@ -39,33 +46,25 @@ int openSubdiv_getAvailableEvaluators(void)
 {
   int flags = OPENSUBDIV_EVALUATOR_CPU;
 
-#ifdef OPENSUBDIV_HAS_OPENMP
-  flags |= OPENSUBDIV_EVALUATOR_OPENMP;
-#endif
+  if (OpenMPDeviceContext::isSupported()) {
+    flags |= OPENSUBDIV_EVALUATOR_OPENMP;
+  }
 
-#ifdef OPENSUBDIV_HAS_OPENCL
-  if (CLDeviceContext::HAS_CL_VERSION_1_1()) {
+  if (OpenCLDeviceContext::isSupported()) {
     flags |= OPENSUBDIV_EVALUATOR_OPENCL;
   }
-#endif
 
-#ifdef OPENSUBDIV_HAS_CUDA
-  if (CudaDeviceContext::HAS_CUDA_VERSION_4_0()) {
+  if (CUDADeviceContext::isSupported()) {
     flags |= OPENSUBDIV_EVALUATOR_CUDA;
   }
-#endif
 
-#ifdef OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK
-  if (GLEW_VERSION_4_1) {
+  if (GLSLTransformFeedbackDeviceContext::isSupported()) {
     flags |= OPENSUBDIV_EVALUATOR_GLSL_TRANSFORM_FEEDBACK;
   }
-#endif
 
-#ifdef OPENSUBDIV_HAS_GLSL_COMPUTE
-  if (GLEW_VERSION_4_3 || GLEW_ARB_compute_shader) {
+  if (GLSLComputeDeviceContext::isSupported()) {
     flags |= OPENSUBDIV_EVALUATOR_GLSL_COMPUTE;
   }
-#endif
 
   return flags;
 }
