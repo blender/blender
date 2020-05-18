@@ -65,7 +65,7 @@
                              V3D_OVERLAY_EDIT_SHARP | V3D_OVERLAY_EDIT_FREESTYLE_EDGE | \
                              V3D_OVERLAY_EDIT_FREESTYLE_FACE | V3D_OVERLAY_EDIT_EDGES | \
                              V3D_OVERLAY_EDIT_CREASES | V3D_OVERLAY_EDIT_BWEIGHTS | \
-                             V3D_OVERLAY_EDIT_CU_HANDLES | V3D_OVERLAY_EDIT_CU_NORMALS, \
+                             V3D_OVERLAY_EDIT_CU_HANDLES, \
  \
     .gpencil_paper_opacity = 0.5f, \
     .gpencil_grid_opacity = 0.9f, \
