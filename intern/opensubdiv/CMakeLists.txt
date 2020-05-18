@@ -54,7 +54,6 @@ if(WITH_OPENSUBDIV)
     internal/opensubdiv.cc
     internal/opensubdiv_converter_factory.cc
     internal/opensubdiv_converter_internal.cc
-    internal/opensubdiv_converter_orient.cc
     internal/opensubdiv_device_context_cuda.cc
     internal/opensubdiv_device_context_opencl.cc
     internal/opensubdiv_evaluator.cc
@@ -69,8 +68,6 @@ if(WITH_OPENSUBDIV)
 
     internal/opensubdiv_converter_factory.h
     internal/opensubdiv_converter_internal.h
-    internal/opensubdiv_converter_orient.h
-    internal/opensubdiv_converter_orient_impl.h
     internal/opensubdiv_device_context_cuda.h
     internal/opensubdiv_device_context_opencl.h
     internal/opensubdiv_edge_map.h

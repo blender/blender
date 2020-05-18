@@ -28,7 +28,6 @@
 #include <opensubdiv/far/topologyRefinerFactory.h>
 
 #include "internal/opensubdiv_converter_internal.h"
-#include "internal/opensubdiv_converter_orient.h"
 #include "internal/opensubdiv_internal.h"
 #include "internal/opensubdiv_util.h"
 #include "opensubdiv_converter_capi.h"
