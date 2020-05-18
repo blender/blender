@@ -848,6 +848,7 @@ static void wm_draw_window(bContext *C, wmWindow *win)
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, GPU_texture_opengl_bindcode(texture));
 
+        wmWindowViewport(win);
         if (win->stereo3d_format->display_mode == S3D_DISPLAY_SIDEBYSIDE) {
           wm_stereo3d_draw_sidebyside(win, view);
         }
