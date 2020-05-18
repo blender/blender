@@ -48,6 +48,7 @@ struct WorkSpace;
 struct bContext;
 struct bContextDataResult;
 struct bScreen;
+struct LibraryForeachIDData;
 struct uiLayout;
 struct uiList;
 struct wmGizmoMap;
@@ -389,6 +390,8 @@ float BKE_screen_view3d_zoom_from_fac(float zoomfac);
 void BKE_screen_view3d_shading_init(struct View3DShading *shading);
 
 /* screen */
+void BKE_screen_foreach_id_screen_area(struct LibraryForeachIDData *data, struct ScrArea *area);
+
 void BKE_screen_free(struct bScreen *screen);
 void BKE_screen_area_map_free(struct ScrAreaMap *area_map) ATTR_NONNULL();
 

@@ -44,8 +44,10 @@
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 #include "BKE_workspace.h"
 
 #include "WM_api.h"
@@ -73,6 +75,28 @@ static void window_manager_free_data(ID *id)
   wm_close_and_free(NULL, (wmWindowManager *)id);
 }
 
+static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  wmWindowManager *wm = (wmWindowManager *)id;
+
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    BKE_LIB_FOREACHID_PROCESS(data, win->scene, IDWALK_CB_USER_ONE);
+
+    /* This pointer can be NULL during old files reading, better be safe than sorry. */
+    if (win->workspace_hook != NULL) {
+      ID *workspace = (ID *)BKE_workspace_active_get(win->workspace_hook);
+      BKE_LIB_FOREACHID_PROCESS_ID(data, workspace, IDWALK_CB_NOP);
+      /* allow callback to set a different workspace */
+      BKE_workspace_active_set(win->workspace_hook, (WorkSpace *)workspace);
+    }
+    if (BKE_lib_query_foreachid_process_flags_get(data) & IDWALK_INCLUDE_UI) {
+      LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
+        BKE_screen_foreach_id_screen_area(data, area);
+      }
+    }
+  }
+}
+
 IDTypeInfo IDType_ID_WM = {
     .id_code = ID_WM,
     .id_filter = 0,
@@ -87,6 +111,7 @@ IDTypeInfo IDType_ID_WM = {
     .copy_data = NULL,
     .free_data = window_manager_free_data,
     .make_local = NULL,
+    .foreach_id = window_manager_foreach_id,
 };
 
 #define MAX_OP_REGISTERED 32
