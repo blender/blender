@@ -295,6 +295,18 @@ static void rna_PoseChannel_name_set(PointerRNA *ptr, const char *value)
   ED_armature_bone_rename(G_MAIN, ob->data, oldname, newname);
 }
 
+/* See rna_Bone_update_renamed() */
+static void rna_PoseChannel_name_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+  ID *id = ptr->owner_id;
+
+  /* redraw view */
+  WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+
+  /* update animation channels */
+  WM_main_add_notifier(NC_ANIMATION | ND_ANIMCHAN, id);
+}
+
 static PointerRNA rna_PoseChannel_bone_get(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
@@ -996,6 +1008,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Name", "");
   RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
   RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_update(prop, 0, "rna_PoseChannel_name_update");
 
   /* Baked Bone Path cache data */
   rna_def_motionpath_common(srna);
