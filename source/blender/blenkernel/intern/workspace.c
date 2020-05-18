@@ -32,6 +32,7 @@
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -65,6 +66,23 @@ static void workspace_free_data(ID *id)
   MEM_SAFE_FREE(workspace->status_text);
 }
 
+static void workspace_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  WorkSpace *workspace = (WorkSpace *)id;
+  ListBase *layouts = BKE_workspace_layouts_get(workspace);
+
+  LISTBASE_FOREACH (WorkSpaceLayout *, layout, layouts) {
+    bScreen *screen = BKE_workspace_layout_screen_get(layout);
+
+    /* CALLBACK_INVOKE expects an actual pointer, not a variable holding the pointer.
+     * However we can't access layout->screen here
+     * since we are outside the workspace project. */
+    BKE_LIB_FOREACHID_PROCESS(data, screen, IDWALK_CB_USER);
+    /* allow callback to set a different screen */
+    BKE_workspace_layout_screen_set(layout, screen);
+  }
+}
+
 IDTypeInfo IDType_ID_WS = {
     .id_code = ID_WS,
     .id_filter = FILTER_ID_WS,
@@ -79,6 +97,7 @@ IDTypeInfo IDType_ID_WS = {
     .copy_data = NULL,
     .free_data = workspace_free_data,
     .make_local = NULL,
+    .foreach_id = workspace_foreach_id,
 };
 
 /** \name Internal Utils

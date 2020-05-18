@@ -856,19 +856,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_WS: {
-        WorkSpace *workspace = (WorkSpace *)id;
-        ListBase *layouts = BKE_workspace_layouts_get(workspace);
-
-        LISTBASE_FOREACH (WorkSpaceLayout *, layout, layouts) {
-          bScreen *screen = BKE_workspace_layout_screen_get(layout);
-
-          /* CALLBACK_INVOKE expects an actual pointer, not a variable holding the pointer.
-           * However we can't access layout->screen here
-           * since we are outside the workspace project. */
-          CALLBACK_INVOKE(screen, IDWALK_CB_USER);
-          /* allow callback to set a different screen */
-          BKE_workspace_layout_screen_set(layout, screen);
-        }
+        BLI_assert(0);
         break;
       }
 
