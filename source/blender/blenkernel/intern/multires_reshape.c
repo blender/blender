@@ -197,7 +197,16 @@ void multiresModifier_subdivide_to_level(struct Object *object,
   if (!has_mdisps) {
     CustomData_add_layer(&coarse_mesh->ldata, CD_MDISPS, CD_CALLOC, NULL, coarse_mesh->totloop);
   }
-  if (!has_mdisps || top_level == 1) {
+
+  /* NOTE: Subdivision happens from the top level of the existing multires modifier. If it is set
+   * to 0 and there is mdisps layer it would mean that the modifier went out of sync with the data.
+   * This happens when, for example, linking modifiers from one object to another.
+   *
+   * In such cases simply ensure grids to be the proper level.
+   *
+   * If something smarter is needed it is up to the operators which does data synchronization, so
+   * that the mdisps layer is also synchronized. */
+  if (!has_mdisps || top_level == 1 || mmd->totlvl == 0) {
     multires_reshape_ensure_grids(coarse_mesh, top_level);
     if (ELEM(mode, MULTIRES_SUBDIVIDE_LINEAR, MULTIRES_SUBDIVIDE_SIMPLE)) {
       multires_subdivide_create_tangent_displacement_linear_grids(object, mmd);

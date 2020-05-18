@@ -309,16 +309,18 @@ class TOPBAR_MT_file_new(Menu):
 
         template_paths = bpy.utils.app_template_paths()
 
-        # expand template paths
-        app_templates = []
+        # Expand template paths.
+
+        # Use a set to avoid duplicate user/system templates.
+        # This is a corner case, but users managed to do it! T76849.
+        app_templates = set()
         for path in template_paths:
             for d in os.listdir(path):
                 if d.startswith(("__", ".")):
                     continue
                 template = os.path.join(path, d)
                 if os.path.isdir(template):
-                    # template_paths_expand.append(template)
-                    app_templates.append(d)
+                    app_templates.add(d)
 
         return sorted(app_templates)
 
