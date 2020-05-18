@@ -1910,9 +1910,10 @@ static bool seq_proxy_get_fname(Editing *ed,
 static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int cfra)
 {
   char name[PROXY_MAXFILE];
-  IMB_Proxy_Size psize = seq_rendersize_to_proxysize(context->preview_render_size);
-  int size_flags;
   StripProxy *proxy = seq->strip->proxy;
+  const eSpaceSeq_Proxy_RenderSize psize = context->preview_render_size;
+  const IMB_Proxy_Size psize_flag = seq_rendersize_to_proxysize(psize);
+  int size_flags;
   Editing *ed = context->scene->ed;
   StripAnim *sanim;
 
@@ -1923,7 +1924,7 @@ static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int c
   size_flags = proxy->build_size_flags;
 
   /* only use proxies, if they are enabled (even if present!) */
-  if (psize == IMB_PROXY_NONE || (size_flags & psize) == 0) {
+  if (psize_flag == IMB_PROXY_NONE || (size_flags & psize_flag) == 0) {
     return NULL;
   }
 
