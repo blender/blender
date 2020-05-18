@@ -122,6 +122,11 @@ static BMO_FlagSet bmo_enum_falloff_type[] = {
   {0, NULL},
 };
 
+/* Quiet 'enum-conversion' warning. */
+#define BM_FACE ((int)BM_FACE)
+#define BM_EDGE ((int)BM_EDGE)
+#define BM_VERT ((int)BM_VERT)
+
 /*
  * Vertex Smooth.
  *
@@ -2073,6 +2078,10 @@ static BMOpDefine bmo_symmetrize_def = {
 };
 
 /* clang-format on */
+
+#undef BM_FACE
+#undef BM_EDGE
+#undef BM_VERT
 
 const BMOpDefine *bmo_opdefines[] = {
     &bmo_average_vert_facedata_def,
