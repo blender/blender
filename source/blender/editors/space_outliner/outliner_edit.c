@@ -450,6 +450,9 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
   ot->invoke = outliner_item_rename;
 
   ot->poll = ED_operator_outliner_active;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ID delete --------------------------------------------------- */
@@ -564,6 +567,9 @@ void OUTLINER_OT_id_delete(wmOperatorType *ot)
 
   ot->invoke = outliner_id_delete_invoke;
   ot->poll = ED_operator_outliner_active;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ID remap --------------------------------------------------- */
@@ -697,7 +703,8 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
   ot->exec = outliner_id_remap_exec;
   ot->poll = ED_operator_outliner_active;
 
-  ot->flag = 0;
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   prop = RNA_def_enum(ot->srna, "id_type", rna_enum_id_type_items, ID_OB, "ID Type", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
@@ -801,6 +808,7 @@ void OUTLINER_OT_id_copy(wmOperatorType *ot)
   ot->exec = outliner_id_copy_exec;
   ot->poll = ED_operator_outliner_active;
 
+  /* Flags, don't need any undo here (this operator does not change anything in Blender data). */
   ot->flag = 0;
 }
 
@@ -943,6 +951,9 @@ void OUTLINER_OT_lib_relocate(wmOperatorType *ot)
 
   ot->invoke = outliner_lib_relocate_invoke;
   ot->poll = ED_operator_outliner_active;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* XXX This does not work with several items
@@ -991,6 +1002,9 @@ void OUTLINER_OT_lib_reload(wmOperatorType *ot)
 
   ot->invoke = outliner_lib_reload_invoke;
   ot->poll = ED_operator_outliner_active;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 void lib_reload_cb(bContext *C,

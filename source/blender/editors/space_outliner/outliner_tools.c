@@ -1448,7 +1448,8 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
   }
   else if (event == OL_OP_REMAP) {
     outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_remap_cb, NULL);
-    str = "Remap ID";
+    /* No undo push here, operator does it itself (since it's a modal one, the op_undo_depth trick
+     * does not work here). */
   }
   else if (event == OL_OP_LOCALIZED) { /* disabled, see above enum (ton) */
     outliner_do_object_operation(C, op->reports, scene, soops, &soops->tree, id_local_cb);
@@ -1479,7 +1480,9 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
     ED_outliner_select_sync_from_object_tag(C);
   }
 
-  ED_undo_push(C, str);
+  if (str != NULL) {
+    ED_undo_push(C, str);
+  }
 
   return OPERATOR_FINISHED;
 }
@@ -1722,7 +1725,8 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       if (idlevel > 0) {
         outliner_do_libdata_operation(
             C, op->reports, scene, soops, &soops->tree, id_remap_cb, NULL);
-        ED_undo_push(C, "Remap");
+        /* No undo push here, operator does it itself (since it's a modal one, the op_undo_depth
+         * trick does not work here). */
       }
       break;
     }
@@ -1851,7 +1855,6 @@ static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
 
   switch (event) {
     case OL_LIB_RENAME: {
-      /* rename */
       outliner_do_libdata_operation(
           C, op->reports, scene, soops, &soops->tree, item_rename_cb, NULL);
 
@@ -1866,16 +1869,17 @@ static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
       break;
     }
     case OL_LIB_RELOCATE: {
-      /* rename */
       outliner_do_libdata_operation(
           C, op->reports, scene, soops, &soops->tree, lib_relocate_cb, NULL);
-      ED_undo_push(C, "Relocate Library");
+      /* No undo push here, operator does it itself (since it's a modal one, the op_undo_depth
+       * trick does not work here). */
       break;
     }
     case OL_LIB_RELOAD: {
-      /* rename */
       outliner_do_libdata_operation(
           C, op->reports, scene, soops, &soops->tree, lib_reload_cb, NULL);
+      /* No undo push here, operator does it itself (since it's a modal one, the op_undo_depth
+       * trick does not work here). */
       break;
     }
     default:
