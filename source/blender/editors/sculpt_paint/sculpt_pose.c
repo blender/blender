@@ -131,6 +131,32 @@ static void pose_solve_roll_chain(SculptPoseIKChain *ik_chain,
   }
 }
 
+static void pose_solve_translate_chain(SculptPoseIKChain *ik_chain, const float delta[3])
+{
+  SculptPoseIKChainSegment *segments = ik_chain->segments;
+  const int tot_segments = ik_chain->tot_segments;
+
+  for (int i = 0; i < tot_segments; i++) {
+    /* Move the origin and head of each segment by delta. */
+    add_v3_v3v3(segments[i].head, segments[i].initial_head, delta);
+    add_v3_v3v3(segments[i].orig, segments[i].initial_orig, delta);
+
+    /* Reset the segment rotation. */
+    unit_qt(segments[i].rot);
+  }
+}
+
+static void pose_solve_scale_chain(SculptPoseIKChain *ik_chain, const float scale)
+{
+  SculptPoseIKChainSegment *segments = ik_chain->segments;
+  const int tot_segments = ik_chain->tot_segments;
+
+  for (int i = 0; i < tot_segments; i++) {
+    /* Assign the scale to each segment. */
+    segments[i].scale = scale;
+  }
+}
+
 static void do_pose_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
                                      const TaskParallelTLS *__restrict UNUSED(tls))
@@ -600,7 +626,19 @@ static void pose_ik_chain_origin_heads_init(SculptPoseIKChain *ik_chain,
     copy_v3_v3(ik_chain->segments[i].initial_orig, origin);
     copy_v3_v3(ik_chain->segments[i].initial_head, head);
     ik_chain->segments[i].len = len_v3v3(head, origin);
+    ik_chain->segments[i].scale = 1.0f;
   }
+}
+
+static int pose_brush_num_effective_segments(const Brush *brush)
+{
+  /* Scaling multiple segments at the same time is not supported as the IK solver can't handle
+   * changes in the segment's length. It will also required a better weight distribution to avoid
+   * artifacts in the areas affected by multiple segments. */
+  if (brush->pose_deform_type == BRUSH_POSE_DEFORM_SCALE_TRASLATE) {
+    return 1;
+  }
+  return brush->pose_ik_segments;
 }
 
 static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
@@ -629,7 +667,8 @@ static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
 
   pose_factor_grow[nearest_vertex_index] = 1.0f;
 
-  SculptPoseIKChain *ik_chain = pose_ik_chain_new(br->pose_ik_segments, totvert);
+  const int tot_segments = pose_brush_num_effective_segments(br);
+  SculptPoseIKChain *ik_chain = pose_ik_chain_new(tot_segments, totvert);
 
   /* Calculate the first segment in the chain using the brush radius and the pose origin offset. */
   copy_v3_v3(next_chain_segment_target, initial_location);
@@ -688,7 +727,9 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
 
   int totvert = SCULPT_vertex_count_get(ss);
 
-  SculptPoseIKChain *ik_chain = pose_ik_chain_new(br->pose_ik_segments, totvert);
+  const int tot_segments = pose_brush_num_effective_segments(br);
+
+  SculptPoseIKChain *ik_chain = pose_ik_chain_new(tot_segments, totvert);
 
   GSet *visited_face_sets = BLI_gset_int_new_ex("visited_face_sets", ik_chain->tot_segments);
 
@@ -802,13 +843,86 @@ void SCULPT_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Brush *br
   MEM_SAFE_FREE(nodes);
 }
 
+static void sculpt_pose_do_translate_deform(SculptSession *ss, Brush *brush)
+{
+  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+  BKE_curvemapping_initialize(brush->curve);
+  pose_solve_translate_chain(ik_chain, ss->cache->grab_delta);
+}
+
+static void sculpt_pose_do_scale_deform(SculptSession *ss, Brush *brush)
+{
+  float ik_target[3];
+  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+
+  copy_v3_v3(ik_target, ss->cache->true_location);
+  add_v3_v3(ik_target, ss->cache->grab_delta);
+
+  /* Solve the IK for the first segment to include rotation as part of scale. */
+  pose_solve_ik_chain(ik_chain, ik_target, brush->flag2 & BRUSH_POSE_IK_ANCHORED);
+
+  /* Calculate a scale factor based on the grab delta. */
+  float plane[4];
+  float segment_dir[3];
+  sub_v3_v3v3(segment_dir, ik_chain->segments[0].initial_head, ik_chain->segments[0].initial_orig);
+  normalize_v3(segment_dir);
+  plane_from_point_normal_v3(plane, ik_chain->segments[0].initial_head, segment_dir);
+  const float segment_len = ik_chain->segments[0].len;
+  const float scale = segment_len / (segment_len - dist_signed_to_plane_v3(ik_target, plane));
+
+  /* Write the scale into the segments. */
+  pose_solve_scale_chain(ik_chain, scale);
+}
+
+static void sculpt_pose_do_twist_deform(SculptSession *ss, Brush *brush)
+{
+  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+
+  /* Calculate the maximum roll. 0.02 radians per pixel works fine. */
+  float roll = (ss->cache->initial_mouse[0] - ss->cache->mouse[0]) * ss->cache->bstrength * 0.02f;
+  BKE_curvemapping_initialize(brush->curve);
+  pose_solve_roll_chain(ik_chain, brush, roll);
+}
+
+static void sculpt_pose_do_rotate_deform(SculptSession *ss, Brush *brush)
+{
+  float ik_target[3];
+  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+
+  /* Calculate the IK target. */
+  copy_v3_v3(ik_target, ss->cache->true_location);
+  add_v3_v3(ik_target, ss->cache->grab_delta);
+
+  /* Solve the IK positions. */
+  pose_solve_ik_chain(ik_chain, ik_target, brush->flag2 & BRUSH_POSE_IK_ANCHORED);
+}
+
+static void sculpt_pose_do_rotate_twist_deform(SculptSession *ss, Brush *brush)
+{
+  if (ss->cache->invert) {
+    sculpt_pose_do_twist_deform(ss, brush);
+  }
+  else {
+    sculpt_pose_do_rotate_deform(ss, brush);
+  }
+}
+
+static void sculpt_pose_do_scale_translate_deform(SculptSession *ss, Brush *brush)
+{
+  if (ss->cache->invert) {
+    sculpt_pose_do_translate_deform(ss, brush);
+  }
+  else {
+    sculpt_pose_do_scale_deform(ss, brush);
+  }
+}
+
 /* Main Brush Function. */
 void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
   float grab_delta[3];
-  float ik_target[3];
   const ePaintSymmetryFlags symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
   /* The pose brush applies all enabled symmetry axis in a single iteration, so the rest can be
@@ -818,26 +932,15 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   }
 
   SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+  copy_v3_v3(grab_delta, ss->cache->grab_delta);
 
-  /* Solve the positions and rotations of the IK chain. */
-  if (ss->cache->invert) {
-    /* Roll Mode. */
-    /* Calculate the maximum roll. 0.02 radians per pixel works fine. */
-    float roll = (ss->cache->initial_mouse[0] - ss->cache->mouse[0]) * ss->cache->bstrength *
-                 0.02f;
-    BKE_curvemapping_initialize(brush->curve);
-    pose_solve_roll_chain(ik_chain, brush, roll);
-  }
-  else {
-    /* IK follow target mode. */
-    /* Calculate the IK target. */
-
-    copy_v3_v3(grab_delta, ss->cache->grab_delta);
-    copy_v3_v3(ik_target, ss->cache->true_location);
-    add_v3_v3(ik_target, ss->cache->grab_delta);
-
-    /* Solve the IK positions. */
-    pose_solve_ik_chain(ik_chain, ik_target, brush->flag2 & BRUSH_POSE_IK_ANCHORED);
+  switch (brush->pose_deform_type) {
+    case BRUSH_POSE_DEFORM_ROTATE_TWIST:
+      sculpt_pose_do_rotate_twist_deform(ss, brush);
+      break;
+    case BRUSH_POSE_DEFORM_SCALE_TRASLATE:
+      sculpt_pose_do_scale_translate_deform(ss, brush);
+      break;
   }
 
   /* Flip the segment chain in all symmetry axis and calculate the transform matrices for each
@@ -845,7 +948,7 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   /* This can be optimized by skipping the calculation of matrices where the symmetry is not
    * enabled. */
   for (int symm_it = 0; symm_it < PAINT_SYMM_AREAS; symm_it++) {
-    for (int i = 0; i < brush->pose_ik_segments; i++) {
+    for (int i = 0; i < ik_chain->tot_segments; i++) {
       float symm_rot[4];
       float symm_orig[3];
       float symm_initial_orig[3];
@@ -865,6 +968,7 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
       /* Create the transform matrix and store it in the segment. */
       unit_m4(ik_chain->segments[i].pivot_mat[symm_it]);
       quat_to_mat4(ik_chain->segments[i].trans_mat[symm_it], symm_rot);
+      mul_m4_fl(ik_chain->segments[i].trans_mat[symm_it], ik_chain->segments[i].scale);
 
       translate_m4(ik_chain->segments[i].trans_mat[symm_it],
                    symm_orig[0] - symm_initial_orig[0],

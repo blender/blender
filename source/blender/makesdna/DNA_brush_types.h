@@ -331,6 +331,11 @@ typedef enum eBrushClothForceFalloffType {
   BRUSH_CLOTH_FORCE_FALLOFF_PLANE = 1,
 } eBrushClothForceFalloffType;
 
+typedef enum eBrushPoseDeformType {
+  BRUSH_POSE_DEFORM_ROTATE_TWIST = 0,
+  BRUSH_POSE_DEFORM_SCALE_TRASLATE = 1,
+} eBrushPoseDeformType;
+
 typedef enum eBrushPoseOriginType {
   BRUSH_POSE_ORIGIN_TOPOLOGY = 0,
   BRUSH_POSE_ORIGIN_FACE_SETS = 1,
@@ -478,7 +483,7 @@ typedef struct Brush {
   char gpencil_sculpt_tool;
   /** Active grease pencil weight tool. */
   char gpencil_weight_tool;
-  char _pad1[6];
+  char _pad1[2];
 
   float autosmooth_factor;
 
@@ -510,6 +515,7 @@ typedef struct Brush {
   float elastic_deform_volume_preservation;
 
   /* pose */
+  int pose_deform_type;
   float pose_offset;
   int pose_smooth_iterations;
   int pose_ik_segments;
