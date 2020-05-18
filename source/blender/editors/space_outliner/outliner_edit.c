@@ -835,7 +835,8 @@ void OUTLINER_OT_id_paste(wmOperatorType *ot)
   ot->exec = outliner_id_paste_exec;
   ot->poll = ED_operator_outliner_active;
 
-  ot->flag = 0;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* Library relocate/reload --------------------------------------------------- */
