@@ -1092,7 +1092,7 @@ void BKE_brush_gpencil_paint_presets(Main *bmain, ToolSettings *ts, const bool r
   bool r_new = false;
 
   Paint *paint = &ts->gp_paint->paint;
-
+  Brush *brush_prev = paint->brush;
   Brush *brush, *deft_draw;
   /* Airbrush brush. */
   brush = gpencil_brush_ensure(bmain, ts, "Airbrush", OB_MODE_PAINT_GPENCIL, &r_new);
@@ -1180,7 +1180,9 @@ void BKE_brush_gpencil_paint_presets(Main *bmain, ToolSettings *ts, const bool r
   }
 
   /* Set default Draw brush. */
-  BKE_paint_brush_set(paint, deft_draw);
+  if (reset || brush_prev == NULL) {
+    BKE_paint_brush_set(paint, deft_draw);
+  }
 }
 
 /* Create a set of grease pencil Vertex Paint presets. */
@@ -1189,7 +1191,7 @@ void BKE_brush_gpencil_vertex_presets(Main *bmain, ToolSettings *ts, const bool 
   bool r_new = false;
 
   Paint *vertexpaint = &ts->gp_vertexpaint->paint;
-
+  Brush *brush_prev = vertexpaint->brush;
   Brush *brush, *deft_vertex;
   /* Vertex Draw brush. */
   brush = gpencil_brush_ensure(bmain, ts, "Vertex Draw", OB_MODE_VERTEX_GPENCIL, &r_new);
@@ -1220,7 +1222,9 @@ void BKE_brush_gpencil_vertex_presets(Main *bmain, ToolSettings *ts, const bool 
   }
 
   /* Set default Vertex brush. */
-  BKE_paint_brush_set(vertexpaint, deft_vertex);
+  if (reset || brush_prev == NULL) {
+    BKE_paint_brush_set(vertexpaint, deft_vertex);
+  }
 }
 
 /* Create a set of grease pencil Sculpt Paint presets. */
@@ -1229,6 +1233,7 @@ void BKE_brush_gpencil_sculpt_presets(Main *bmain, ToolSettings *ts, const bool 
   bool r_new = false;
 
   Paint *sculptpaint = &ts->gp_sculptpaint->paint;
+  Brush *brush_prev = sculptpaint->brush;
   Brush *brush, *deft_sculpt;
 
   /* Smooth brush. */
@@ -1287,7 +1292,9 @@ void BKE_brush_gpencil_sculpt_presets(Main *bmain, ToolSettings *ts, const bool 
   }
 
   /* Set default brush. */
-  BKE_paint_brush_set(sculptpaint, deft_sculpt);
+  if (reset || brush_prev == NULL) {
+    BKE_paint_brush_set(sculptpaint, deft_sculpt);
+  }
 }
 
 /* Create a set of grease pencil Weight Paint presets. */
@@ -1296,7 +1303,7 @@ void BKE_brush_gpencil_weight_presets(Main *bmain, ToolSettings *ts, const bool 
   bool r_new = false;
 
   Paint *weightpaint = &ts->gp_weightpaint->paint;
-
+  Brush *brush_prev = weightpaint->brush;
   Brush *brush, *deft_weight;
   /* Vertex Draw brush. */
   brush = gpencil_brush_ensure(bmain, ts, "Draw Weight", OB_MODE_WEIGHT_GPENCIL, &r_new);
@@ -1306,7 +1313,9 @@ void BKE_brush_gpencil_weight_presets(Main *bmain, ToolSettings *ts, const bool 
   deft_weight = brush; /* save default brush. */
 
   /* Set default brush. */
-  BKE_paint_brush_set(weightpaint, deft_weight);
+  if (reset || brush_prev == NULL) {
+    BKE_paint_brush_set(weightpaint, deft_weight);
+  }
 }
 
 struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mode)

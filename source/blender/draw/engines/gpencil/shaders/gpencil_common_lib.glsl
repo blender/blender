@@ -473,8 +473,8 @@ void stroke_vertex()
     float miter_dot = dot(miter_tan, line_adj);
     /* Break corners after a certain angle to avoid really thick corners. */
     const float miter_limit = 0.5; /* cos(60°) */
-    bool miter_break = (miter_dot < miter_limit) || is_stroke_start || is_stroke_end;
-    miter_tan = (miter_break) ? line : (miter_tan / miter_dot);
+    bool miter_break = (miter_dot < miter_limit);
+    miter_tan = (miter_break || is_stroke_start || is_stroke_end) ? line : (miter_tan / miter_dot);
 
     vec2 miter = rotate_90deg(miter_tan);
 
@@ -487,7 +487,7 @@ void stroke_vertex()
 
     /* Reminder: we packed the cap flag into the sign of stength and thickness sign. */
     if ((is_stroke_start && strength1 > 0.0) || (is_stroke_end && thickness1 > 0.0) ||
-        miter_break) {
+        (miter_break && !is_stroke_start && !is_stroke_end)) {
       screen_ofs += line * x;
     }
 
