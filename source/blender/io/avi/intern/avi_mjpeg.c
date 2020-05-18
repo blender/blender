@@ -30,6 +30,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_base.h"
 #include "IMB_imbuf.h"
 
 #include "jerror.h"
@@ -45,14 +46,16 @@ static size_t numbytes;
 static void add_huff_table(j_decompress_ptr dinfo,
                            JHUFF_TBL **htblptr,
                            const UINT8 *bits,
-                           const UINT8 *val)
+                           const size_t bits_size,
+                           const UINT8 *val,
+                           const size_t val_size)
 {
   if (*htblptr == NULL) {
     *htblptr = jpeg_alloc_huff_table((j_common_ptr)dinfo);
   }
 
-  memcpy((*htblptr)->bits, bits, sizeof((*htblptr)->bits));
-  memcpy((*htblptr)->huffval, val, sizeof((*htblptr)->huffval));
+  memcpy((*htblptr)->bits, bits, min_zz(sizeof((*htblptr)->bits), bits_size));
+  memcpy((*htblptr)->huffval, val, min_zz(sizeof((*htblptr)->huffval), val_size));
 
   /* Initialize sent_table false so table will be written to JPEG file. */
   (*htblptr)->sent_table = false;
@@ -200,10 +203,30 @@ static void std_huff_tables(j_decompress_ptr dinfo)
       0xe8, 0xe9, 0xea, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa,
   };
 
-  add_huff_table(dinfo, &dinfo->dc_huff_tbl_ptrs[0], bits_dc_luminance, val_dc_luminance);
-  add_huff_table(dinfo, &dinfo->ac_huff_tbl_ptrs[0], bits_ac_luminance, val_ac_luminance);
-  add_huff_table(dinfo, &dinfo->dc_huff_tbl_ptrs[1], bits_dc_chrominance, val_dc_chrominance);
-  add_huff_table(dinfo, &dinfo->ac_huff_tbl_ptrs[1], bits_ac_chrominance, val_ac_chrominance);
+  add_huff_table(dinfo,
+                 &dinfo->dc_huff_tbl_ptrs[0],
+                 bits_dc_luminance,
+                 sizeof(bits_dc_luminance),
+                 val_dc_luminance,
+                 sizeof(val_dc_luminance));
+  add_huff_table(dinfo,
+                 &dinfo->ac_huff_tbl_ptrs[0],
+                 bits_ac_luminance,
+                 sizeof(bits_ac_luminance),
+                 val_ac_luminance,
+                 sizeof(val_ac_luminance));
+  add_huff_table(dinfo,
+                 &dinfo->dc_huff_tbl_ptrs[1],
+                 bits_dc_chrominance,
+                 sizeof(bits_dc_chrominance),
+                 val_dc_chrominance,
+                 sizeof(val_dc_chrominance));
+  add_huff_table(dinfo,
+                 &dinfo->ac_huff_tbl_ptrs[1],
+                 bits_ac_chrominance,
+                 sizeof(bits_ac_chrominance),
+                 val_ac_chrominance,
+                 sizeof(val_ac_chrominance));
 }
 
 static int Decode_JPEG(unsigned char *inBuffer,
