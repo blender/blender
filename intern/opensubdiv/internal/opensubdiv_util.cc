@@ -23,7 +23,8 @@
 #  include <iso646.h>
 #endif
 
-namespace opensubdiv_capi {
+namespace blender {
+namespace opensubdiv {
 
 void stringSplit(vector<string> *tokens,
                  const string &str,
@@ -56,4 +57,5 @@ void stringSplit(vector<string> *tokens,
   }
 }
 
-}  // namespace opensubdiv_capi
+}  // namespace opensubdiv
+}  // namespace blender

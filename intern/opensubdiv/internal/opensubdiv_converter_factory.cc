@@ -32,9 +32,9 @@
 #include "internal/opensubdiv_util.h"
 #include "opensubdiv_converter_capi.h"
 
-using opensubdiv_capi::min;
-using opensubdiv_capi::stack;
-using opensubdiv_capi::vector;
+using blender::opensubdiv::min;
+using blender::opensubdiv::stack;
+using blender::opensubdiv::vector;
 
 struct TopologyRefinerData {
   const OpenSubdiv_Converter *converter;
@@ -245,7 +245,8 @@ inline void TopologyRefinerFactory<TopologyRefinerData>::reportInvalidTopology(
 } /* namespace OPENSUBDIV_VERSION */
 } /* namespace OpenSubdiv */
 
-namespace opensubdiv_capi {
+namespace blender {
+namespace opensubdiv {
 
 namespace {
 
@@ -291,4 +292,5 @@ OpenSubdiv::Far::TopologyRefiner *createOSDTopologyRefinerFromConverter(
   return TopologyRefinerFactory<TopologyRefinerData>::Create(cb_data, topology_options);
 }
 
-}  // namespace opensubdiv_capi
+}  // namespace opensubdiv
+}  // namespace blender

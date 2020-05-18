@@ -25,7 +25,8 @@
 #include <cassert>
 #include <opensubdiv/sdc/crease.h>
 
-namespace opensubdiv_capi {
+namespace blender {
+namespace opensubdiv {
 
 OpenSubdiv::Sdc::SchemeType getSchemeTypeFromCAPI(OpenSubdiv_SchemeType type)
 {
@@ -85,4 +86,5 @@ OpenSubdiv_FVarLinearInterpolation getCAPIFVarLinearInterpolationFromOSD(
   return OSD_FVAR_LINEAR_INTERPOLATION_NONE;
 }
 
-}  // namespace opensubdiv_capi
+}  // namespace opensubdiv
+}  // namespace blender

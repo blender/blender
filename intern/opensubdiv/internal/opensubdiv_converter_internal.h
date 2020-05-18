@@ -30,7 +30,8 @@
 
 struct OpenSubdiv_Converter;
 
-namespace opensubdiv_capi {
+namespace blender {
+namespace opensubdiv {
 
 // Convert scheme type from C-API enum to an OpenSubdiv native enum.
 OpenSubdiv::Sdc::SchemeType getSchemeTypeFromCAPI(OpenSubdiv_SchemeType type);
@@ -44,6 +45,7 @@ OpenSubdiv::Sdc::Options::FVarLinearInterpolation getFVarLinearInterpolationFrom
 OpenSubdiv_FVarLinearInterpolation getCAPIFVarLinearInterpolationFromOSD(
     OpenSubdiv::Sdc::Options::FVarLinearInterpolation linear_interpolation);
 
-}  // namespace opensubdiv_capi
+}  // namespace opensubdiv
+}  // namespace blender
 
 #endif  // OPENSUBDIV_CONVERTER_INTERNAL_H_

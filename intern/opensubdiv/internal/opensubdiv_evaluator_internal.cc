@@ -53,7 +53,8 @@ using OpenSubdiv::Osd::CpuPatchTable;
 using OpenSubdiv::Osd::CpuVertexBuffer;
 using OpenSubdiv::Osd::PatchCoord;
 
-namespace opensubdiv_capi {
+namespace blender {
+namespace opensubdiv {
 
 namespace {
 
@@ -731,7 +732,8 @@ void CpuEvalOutputAPI::evaluatePatchesLimit(const OpenSubdiv_PatchCoord *patch_c
   }
 }
 
-}  // namespace opensubdiv_capi
+}  // namespace opensubdiv
+}  // namespace blender
 
 OpenSubdiv_EvaluatorInternal::OpenSubdiv_EvaluatorInternal()
     : eval_output(NULL), patch_map(NULL), patch_table(NULL)
@@ -748,7 +750,7 @@ OpenSubdiv_EvaluatorInternal::~OpenSubdiv_EvaluatorInternal()
 OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
     OpenSubdiv_TopologyRefiner *topology_refiner)
 {
-  using opensubdiv_capi::vector;
+  using blender::opensubdiv::vector;
   TopologyRefiner *refiner = topology_refiner->internal->osd_topology_refiner;
   if (refiner == NULL) {
     // Happens on bad topology.
@@ -851,13 +853,13 @@ OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
   }
   // Create OpenSubdiv's CPU side evaluator.
   // TODO(sergey): Make it possible to use different evaluators.
-  opensubdiv_capi::CpuEvalOutput *eval_output = new opensubdiv_capi::CpuEvalOutput(
+  blender::opensubdiv::CpuEvalOutput *eval_output = new blender::opensubdiv::CpuEvalOutput(
       vertex_stencils, varying_stencils, all_face_varying_stencils, 2, patch_table);
   OpenSubdiv::Far::PatchMap *patch_map = new PatchMap(*patch_table);
   // Wrap everything we need into an object which we control from our side.
   OpenSubdiv_EvaluatorInternal *evaluator_descr;
   evaluator_descr = OBJECT_GUARDED_NEW(OpenSubdiv_EvaluatorInternal);
-  evaluator_descr->eval_output = new opensubdiv_capi::CpuEvalOutputAPI(eval_output, patch_map);
+  evaluator_descr->eval_output = new blender::opensubdiv::CpuEvalOutputAPI(eval_output, patch_map);
   evaluator_descr->patch_map = patch_map;
   evaluator_descr->patch_table = patch_table;
   // TOOD(sergey): Look into whether we've got duplicated stencils arrays.

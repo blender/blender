@@ -29,7 +29,8 @@
 struct OpenSubdiv_PatchCoord;
 struct OpenSubdiv_TopologyRefiner;
 
-namespace opensubdiv_capi {
+namespace blender {
+namespace opensubdiv {
 
 // Anonymous forward declaration of actual evaluator implementation.
 class CpuEvalOutput;
@@ -132,14 +133,15 @@ class CpuEvalOutputAPI {
   OpenSubdiv::Far::PatchMap *patch_map_;
 };
 
-}  // namespace opensubdiv_capi
+}  // namespace opensubdiv
+}  // namespace blender
 
 struct OpenSubdiv_EvaluatorInternal {
  public:
   OpenSubdiv_EvaluatorInternal();
   ~OpenSubdiv_EvaluatorInternal();
 
-  opensubdiv_capi::CpuEvalOutputAPI *eval_output;
+  blender::opensubdiv::CpuEvalOutputAPI *eval_output;
   const OpenSubdiv::Far::PatchMap *patch_map;
   const OpenSubdiv::Far::PatchTable *patch_table;
 };

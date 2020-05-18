@@ -84,7 +84,7 @@ int openSubdiv_getVersionHex(void)
   }
   int major = 0, minor = 0, patch = 0;
   vector<string> tokens;
-  opensubdiv_capi::stringSplit(&tokens, version, "_", true);
+  blender::opensubdiv::stringSplit(&tokens, version, "_", true);
   if (tokens.size() == 3) {
     major = atoi(tokens[0].c_str());
     minor = atoi(tokens[1].c_str());

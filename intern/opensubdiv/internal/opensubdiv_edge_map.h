@@ -21,7 +21,8 @@
 
 #include "internal/opensubdiv_util.h"
 
-namespace opensubdiv_capi {
+namespace blender {
+namespace opensubdiv {
 
 // Helper class to ease dealing with edge indexing.
 // Simply takes care of ensuring order of vertices is strictly defined.
@@ -144,12 +145,13 @@ template<typename T> typename EdgeTagMap<T>::value_type &EdgeTagMap<T>::operator
   return edge_tags_[key];
 }
 
-}  // namespace opensubdiv_capi
+}  // namespace opensubdiv
+}  // namespace blender
 
 namespace std {
 
-template<> struct hash<opensubdiv_capi::EdgeKey> {
-  std::size_t operator()(const opensubdiv_capi::EdgeKey &key) const
+template<> struct hash<blender::opensubdiv::EdgeKey> {
+  std::size_t operator()(const blender::opensubdiv::EdgeKey &key) const
   {
     return key.hash();
   }

@@ -28,7 +28,7 @@
 #include "internal/opensubdiv_topology_refiner_internal.h"
 #include "internal/opensubdiv_util.h"
 
-using opensubdiv_capi::vector;
+using blender::opensubdiv::vector;
 
 namespace {
 
@@ -182,7 +182,7 @@ int getNumFVarChannels(const struct OpenSubdiv_TopologyRefiner *topology_refiner
 OpenSubdiv_FVarLinearInterpolation getFVarLinearInterpolation(
     const struct OpenSubdiv_TopologyRefiner *topology_refiner)
 {
-  return opensubdiv_capi::getCAPIFVarLinearInterpolationFromOSD(
+  return blender::opensubdiv::getCAPIFVarLinearInterpolationFromOSD(
       getOSDTopologyRefiner(topology_refiner)->GetFVarLinearInterpolation());
 }
 
@@ -243,7 +243,7 @@ OpenSubdiv_TopologyRefiner *openSubdiv_createTopologyRefinerFromConverter(
     OpenSubdiv_Converter *converter, const OpenSubdiv_TopologyRefinerSettings *settings)
 {
   OpenSubdiv::Far::TopologyRefiner *osd_topology_refiner =
-      opensubdiv_capi::createOSDTopologyRefinerFromConverter(converter);
+      blender::opensubdiv::createOSDTopologyRefinerFromConverter(converter);
   if (osd_topology_refiner == NULL) {
     // Happens on empty or bad topology.
     return NULL;
@@ -265,7 +265,8 @@ void openSubdiv_deleteTopologyRefiner(OpenSubdiv_TopologyRefiner *topology_refin
 ////////////////////////////////////////////////////////////////////////////////
 // Comparison with converter.
 
-namespace opensubdiv_capi {
+namespace blender {
+namespace opensubdiv {
 namespace {
 
 ///////////////////////////////////////////////////////////
@@ -274,8 +275,8 @@ namespace {
 bool checkSchemeTypeMatches(const OpenSubdiv::Far::TopologyRefiner *topology_refiner,
                             const OpenSubdiv_Converter *converter)
 {
-  const OpenSubdiv::Sdc::SchemeType converter_scheme_type = opensubdiv_capi::getSchemeTypeFromCAPI(
-      converter->getSchemeType(converter));
+  const OpenSubdiv::Sdc::SchemeType converter_scheme_type =
+      blender::opensubdiv::getSchemeTypeFromCAPI(converter->getSchemeType(converter));
   return (converter_scheme_type == topology_refiner->GetSchemeType());
 }
 
@@ -286,7 +287,7 @@ bool checkOptionsMatches(const OpenSubdiv::Far::TopologyRefiner *topology_refine
   const Options options = topology_refiner->GetSchemeOptions();
   const Options::FVarLinearInterpolation fvar_interpolation = options.GetFVarLinearInterpolation();
   const Options::FVarLinearInterpolation converter_fvar_interpolation =
-      opensubdiv_capi::getFVarLinearInterpolationFromCAPI(
+      blender::opensubdiv::getFVarLinearInterpolationFromCAPI(
           converter->getFVarLinearInterpolation(converter));
   if (fvar_interpolation != converter_fvar_interpolation) {
     return false;
@@ -660,13 +661,14 @@ bool checkTopologyAttributesMatch(const OpenSubdiv::Far::TopologyRefiner *topolo
 }
 
 }  // namespace
-}  // namespace opensubdiv_capi
+}  // namespace opensubdiv
+}  // namespace blender
 
 bool openSubdiv_topologyRefinerCompareWithConverter(
     const OpenSubdiv_TopologyRefiner *topology_refiner, const OpenSubdiv_Converter *converter)
 {
   const OpenSubdiv::Far::TopologyRefiner *refiner = getOSDTopologyRefiner(topology_refiner);
-  return (opensubdiv_capi::checkPreliminaryMatches(refiner, converter) &&
-          opensubdiv_capi::checkGeometryMatches(refiner, converter) &&
-          opensubdiv_capi::checkTopologyAttributesMatch(refiner, converter));
+  return (blender::opensubdiv::checkPreliminaryMatches(refiner, converter) &&
+          blender::opensubdiv::checkGeometryMatches(refiner, converter) &&
+          blender::opensubdiv::checkTopologyAttributesMatch(refiner, converter));
 }

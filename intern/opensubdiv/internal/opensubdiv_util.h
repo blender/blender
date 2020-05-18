@@ -27,7 +27,8 @@
 #include <utility>
 #include <vector>
 
-namespace opensubdiv_capi {
+namespace blender {
+namespace opensubdiv {
 
 using std::fill;
 using std::make_pair;
@@ -51,6 +52,7 @@ void stringSplit(vector<string> *tokens,
                  const string &separators,
                  bool skip_empty);
 
-}  // namespace opensubdiv_capi
+}  // namespace opensubdiv
+}  // namespace blender
 
 #endif  // OPENSUBDIV_UTIL_H_

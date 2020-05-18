@@ -27,11 +27,13 @@
 
 struct OpenSubdiv_Converter;
 
-namespace opensubdiv_capi {
+namespace blender {
+namespace opensubdiv {
 
 OpenSubdiv::Far::TopologyRefiner *createOSDTopologyRefinerFromConverter(
     struct OpenSubdiv_Converter *converter);
 
-}  // namespace opensubdiv_capi
+}  // namespace opensubdiv
+}  // namespace blender
 
 #endif  // OPENSUBDIV_CONVERTER_FACTORY_H_
