@@ -351,7 +351,7 @@ bool ED_operator_object_active(bContext *C)
   return ((ob != NULL) && !ed_object_hidden(ob));
 }
 
-bool ED_operator_object_active_editable_ex(bContext *C, const Object *ob)
+bool ED_operator_object_active_editable_ex(bContext *UNUSED(C), const Object *ob)
 {
   return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob));
 }
