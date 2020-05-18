@@ -1681,6 +1681,7 @@ static const EnumPropertyItem *outliner_id_operation_itemf(bContext *C,
 
 static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   Scene *scene = CTX_data_scene(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
@@ -1806,11 +1807,16 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       break;
     }
     case OUTLINER_IDOP_COPY: {
+      wm->op_undo_depth++;
       WM_operator_name_call(C, "OUTLINER_OT_id_copy", WM_OP_INVOKE_DEFAULT, NULL);
+      wm->op_undo_depth--;
+      /* No need for undo, this operation does not change anything... */
       break;
     }
     case OUTLINER_IDOP_PASTE: {
+      wm->op_undo_depth++;
       WM_operator_name_call(C, "OUTLINER_OT_id_paste", WM_OP_INVOKE_DEFAULT, NULL);
+      wm->op_undo_depth--;
       ED_outliner_select_sync_from_all_tag(C);
       ED_undo_push(C, "Paste");
       break;
@@ -2102,7 +2108,7 @@ void OUTLINER_OT_action_set(wmOperatorType *ot)
   ot->poll = ED_operator_outliner_active;
 
   /* flags */
-  ot->flag = 0;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
   // TODO: this would be nicer as an ID-pointer...
@@ -2150,6 +2156,7 @@ static const EnumPropertyItem prop_animdata_op_types[] = {
 
 static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
   eOutliner_AnimDataOps event;
@@ -2178,7 +2185,10 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 
     case OUTLINER_ANIMOP_SET_ACT:
       /* delegate once again... */
+      wm->op_undo_depth++;
       WM_operator_name_call(C, "OUTLINER_OT_action_set", WM_OP_INVOKE_REGION_WIN, NULL);
+      wm->op_undo_depth--;
+      ED_undo_push(C, "Set active action");
       break;
 
     case OUTLINER_ANIMOP_CLEAR_ACT:
