@@ -2982,6 +2982,7 @@ bool MANTA::updateGridsFromUni(string filename, vector<GridItem> grids)
         return false;
       }
       assert(expectedBytes == readBytes);
+      (void)expectedBytes;
 
       if (with_debug)
         cout << "Fluid: Read successfully: " << filename << endl;
