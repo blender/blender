@@ -24,7 +24,6 @@
 
 #include "opensubdiv_device_context_cuda.h"
 #include "opensubdiv_device_context_opencl.h"
-#include "opensubdiv_gl_mesh_capi.h"
 
 void openSubdiv_init(void)
 {
@@ -34,7 +33,6 @@ void openSubdiv_init(void)
 
 void openSubdiv_cleanup(void)
 {
-  openSubdiv_deinitGLMeshDrawingResources();
 }
 
 int openSubdiv_getAvailableEvaluators(void)

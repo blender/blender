@@ -31,7 +31,6 @@ set(SRC
   opensubdiv_capi_type.h
   opensubdiv_converter_capi.h
   opensubdiv_evaluator_capi.h
-  opensubdiv_gl_mesh_capi.h
   opensubdiv_topology_refiner_capi.h
 )
 
@@ -58,10 +57,6 @@ if(WITH_OPENSUBDIV)
     internal/opensubdiv_device_context_opencl.cc
     internal/opensubdiv_evaluator.cc
     internal/opensubdiv_evaluator_internal.cc
-    internal/opensubdiv_gl_mesh.cc
-    internal/opensubdiv_gl_mesh_draw.cc
-    internal/opensubdiv_gl_mesh_fvar.cc
-    internal/opensubdiv_gl_mesh_internal.cc
     internal/opensubdiv_topology_refiner.cc
     internal/opensubdiv_topology_refiner_internal.cc
     internal/opensubdiv_util.cc
@@ -72,9 +67,6 @@ if(WITH_OPENSUBDIV)
     internal/opensubdiv_device_context_opencl.h
     internal/opensubdiv_edge_map.h
     internal/opensubdiv_evaluator_internal.h
-    internal/opensubdiv_gl_mesh_draw.h
-    internal/opensubdiv_gl_mesh_fvar.h
-    internal/opensubdiv_gl_mesh_internal.h
     internal/opensubdiv_internal.h
     internal/opensubdiv_topology_refiner_internal.h
     internal/opensubdiv_util.h
@@ -97,10 +89,6 @@ if(WITH_OPENSUBDIV)
   # OPENSUBDIV_DEFINE_COMPONENT(OPENSUBDIV_HAS_CUDA)
   OPENSUBDIV_DEFINE_COMPONENT(OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK)
   OPENSUBDIV_DEFINE_COMPONENT(OPENSUBDIV_HAS_GLSL_COMPUTE)
-
-  data_to_c_simple(shader/gpu_shader_opensubdiv_vertex.glsl SRC)
-  data_to_c_simple(shader/gpu_shader_opensubdiv_geometry.glsl SRC)
-  data_to_c_simple(shader/gpu_shader_opensubdiv_fragment.glsl SRC)
 
   add_definitions(-DGLEW_STATIC)
   add_definitions(-DOSD_USES_GLEW)
@@ -128,7 +116,6 @@ else()
   list(APPEND SRC
     stub/opensubdiv_stub.cc
     stub/opensubdiv_evaluator_stub.cc
-    stub/opensubdiv_gl_mesh_stub.cc
     stub/opensubdiv_topology_refiner_stub.cc
   )
 endif()
