@@ -32,13 +32,6 @@
 #include "CCGSubSurf.h"
 #include "CCGSubSurf_intern.h"
 
-#ifdef WITH_OPENSUBDIV
-#  include "opensubdiv_capi.h"
-#  include "opensubdiv_converter_capi.h"
-#  include "opensubdiv_evaluator_capi.h"
-#  include "opensubdiv_topology_refiner_capi.h"
-#endif
-
 #include "GPU_glew.h"
 
 /***/
@@ -305,21 +298,6 @@ CCGSubSurf *ccgSubSurf_new(CCGMeshIFC *ifc,
     ss->tempVerts = NULL;
     ss->tempEdges = NULL;
 
-#ifdef WITH_OPENSUBDIV
-    ss->osd_evaluator = NULL;
-    ss->osd_mesh = NULL;
-    ss->osd_topology_refiner = NULL;
-    ss->osd_mesh_invalid = false;
-    ss->osd_coarse_coords_invalid = false;
-    ss->osd_vao = 0;
-    ss->skip_grids = false;
-    ss->osd_compute = 0;
-    ss->osd_next_face_ptex_index = 0;
-    ss->osd_coarse_coords = NULL;
-    ss->osd_num_coarse_coords = 0;
-    ss->osd_subdiv_uvs = false;
-#endif
-
     return ss;
   }
 }
@@ -328,23 +306,6 @@ void ccgSubSurf_free(CCGSubSurf *ss)
 {
   CCGAllocatorIFC allocatorIFC = ss->allocatorIFC;
   CCGAllocatorHDL allocator = ss->allocator;
-#ifdef WITH_OPENSUBDIV
-  if (ss->osd_evaluator != NULL) {
-    openSubdiv_deleteEvaluator(ss->osd_evaluator);
-  }
-  if (ss->osd_mesh != NULL) {
-    ccgSubSurf__delete_osdGLMesh(ss->osd_mesh);
-  }
-  if (ss->osd_vao != 0) {
-    ccgSubSurf__delete_vertex_array(ss->osd_vao);
-  }
-  if (ss->osd_coarse_coords != NULL) {
-    MEM_freeN(ss->osd_coarse_coords);
-  }
-  if (ss->osd_topology_refiner != NULL) {
-    openSubdiv_deleteTopologyRefiner(ss->osd_topology_refiner);
-  }
-#endif
 
   if (ss->syncState) {
     ccg_ehash_free(ss->oldFMap, (EHEntryFreeFP)_face_free, ss);
@@ -529,9 +490,6 @@ CCGError ccgSubSurf_initFullSync(CCGSubSurf *ss)
   ss->tempEdges = MEM_mallocN(sizeof(*ss->tempEdges) * ss->lenTempArrays, "CCGSubsurf tempEdges");
 
   ss->syncState = eSyncState_Vert;
-#ifdef WITH_OPENSUBDIV
-  ss->osd_next_face_ptex_index = 0;
-#endif
 
   return eCCGError_None;
 }
@@ -671,9 +629,6 @@ CCGError ccgSubSurf_syncVert(
       ccg_ehash_insert(ss->vMap, (EHEntry *)v);
       v->flags = 0;
     }
-#ifdef WITH_OPENSUBDIV
-    v->osd_index = ss->vMap->numEntries - 1;
-#endif
   }
 
   if (v_r) {
@@ -874,15 +829,6 @@ CCGError ccgSubSurf_syncFace(
         }
       }
     }
-#ifdef WITH_OPENSUBDIV
-    f->osd_index = ss->osd_next_face_ptex_index;
-    if (numVerts == 4) {
-      ss->osd_next_face_ptex_index++;
-    }
-    else {
-      ss->osd_next_face_ptex_index += numVerts;
-    }
-#endif
   }
 
   if (f_r) {
@@ -893,15 +839,7 @@ CCGError ccgSubSurf_syncFace(
 
 static void ccgSubSurf__sync(CCGSubSurf *ss)
 {
-#ifdef WITH_OPENSUBDIV
-  if (ss->skip_grids) {
-    ccgSubSurf__sync_opensubdiv(ss);
-  }
-  else
-#endif
-  {
-    ccgSubSurf__sync_legacy(ss);
-  }
+  ccgSubSurf__sync_legacy(ss);
 }
 
 CCGError ccgSubSurf_processSync(CCGSubSurf *ss)
@@ -1615,12 +1553,6 @@ int ccgSubSurf_getNumFinalVerts(const CCGSubSurf *ss)
                        ss->fMap->numEntries +
                        ss->numGrids * ((gridSize - 2) + ((gridSize - 2) * (gridSize - 2))));
 
-#ifdef WITH_OPENSUBDIV
-  if (ss->skip_grids) {
-    return 0;
-  }
-#endif
-
   return numFinalVerts;
 }
 int ccgSubSurf_getNumFinalEdges(const CCGSubSurf *ss)
@@ -1629,22 +1561,12 @@ int ccgSubSurf_getNumFinalEdges(const CCGSubSurf *ss)
   int gridSize = ccg_gridsize(ss->subdivLevels);
   int numFinalEdges = (ss->eMap->numEntries * (edgeSize - 1) +
                        ss->numGrids * ((gridSize - 1) + 2 * ((gridSize - 2) * (gridSize - 1))));
-#ifdef WITH_OPENSUBDIV
-  if (ss->skip_grids) {
-    return 0;
-  }
-#endif
   return numFinalEdges;
 }
 int ccgSubSurf_getNumFinalFaces(const CCGSubSurf *ss)
 {
   int gridSize = ccg_gridsize(ss->subdivLevels);
   int numFinalFaces = ss->numGrids * ((gridSize - 1) * (gridSize - 1));
-#ifdef WITH_OPENSUBDIV
-  if (ss->skip_grids) {
-    return 0;
-  }
-#endif
   return numFinalFaces;
 }
 

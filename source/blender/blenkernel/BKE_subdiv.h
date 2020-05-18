@@ -194,6 +194,12 @@ typedef struct Subdiv {
   } cache_;
 } Subdiv;
 
+/* =================----====--===== MODULE ==========================------== */
+
+/* (De)initialize the entire subdivision surface module. */
+void BKE_subdiv_init(void);
+void BKE_subdiv_exit(void);
+
 /* ========================== CONVERSION HELPERS ============================ */
 
 /* NOTE: uv_smooth is eSubsurfUVSmooth. */

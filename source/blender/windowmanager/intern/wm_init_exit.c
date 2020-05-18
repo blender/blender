@@ -125,16 +125,14 @@
 #include "GPU_material.h"
 
 #include "BKE_sound.h"
+#include "BKE_subdiv.h"
+
 #include "COM_compositor.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
 #include "DRW_engine.h"
-
-#ifdef WITH_OPENSUBDIV
-#  include "BKE_subsurf.h"
-#endif
 
 CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_OPERATORS, "wm.operator");
 CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_HANDLERS, "wm.handler");
@@ -193,9 +191,8 @@ void WM_init_opengl(Main *bmain)
 
   GPU_pass_cache_init();
 
-#ifdef WITH_OPENSUBDIV
-  BKE_subsurf_osd_init();
-#endif
+  BKE_subdiv_init();
+
   opengl_is_init = true;
 }
 
@@ -576,11 +573,9 @@ void WM_exit_ex(bContext *C, const bool do_python)
   COM_deinitialize();
 #endif
 
-  if (opengl_is_init) {
-#ifdef WITH_OPENSUBDIV
-    BKE_subsurf_osd_cleanup();
-#endif
+  BKE_subdiv_exit();
 
+  if (opengl_is_init) {
     GPU_free_unused_buffers(G_MAIN);
   }
 

@@ -64,8 +64,6 @@ set(SRC
   ${CMAKE_SOURCE_DIR}/release/datafiles/userdef/userdef_default.c
   intern/CCGSubSurf.c
   intern/CCGSubSurf_legacy.c
-  intern/CCGSubSurf_opensubdiv.c
-  intern/CCGSubSurf_opensubdiv_converter.c
   intern/CCGSubSurf_util.c
   intern/DerivedMesh.c
   intern/action.c

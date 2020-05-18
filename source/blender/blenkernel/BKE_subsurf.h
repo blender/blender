@@ -103,7 +103,7 @@ typedef struct CCGDerivedMesh {
 
   struct CCGSubSurf *ss;
   int freeSS;
-  int drawInteriorEdges, useSubsurfUv, useGpuBackend;
+  int drawInteriorEdges, useSubsurfUv;
 
   struct {
     int startVert;
@@ -155,13 +155,6 @@ typedef struct CCGDerivedMesh {
   ThreadMutex loops_cache_lock;
   ThreadRWMutex origindex_cache_rwlock;
 } CCGDerivedMesh;
-
-#ifdef WITH_OPENSUBDIV
-/* TODO(sergey): Not really ideal place, but we don't currently have better one. */
-void BKE_subsurf_osd_init(void);
-void BKE_subsurf_free_unused_buffers(void);
-void BKE_subsurf_osd_cleanup(void);
-#endif
 
 #ifdef __cplusplus
 }

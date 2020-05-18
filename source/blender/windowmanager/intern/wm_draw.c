@@ -982,10 +982,6 @@ void wm_draw_update(bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win;
 
-#ifdef WITH_OPENSUBDIV
-  BKE_subsurf_free_unused_buffers();
-#endif
-
   GPU_free_unused_buffers(bmain);
 
   for (win = wm->windows.first; win; win = win->next) {

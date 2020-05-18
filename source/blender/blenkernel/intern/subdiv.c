@@ -38,6 +38,18 @@
 #include "opensubdiv_evaluator_capi.h"
 #include "opensubdiv_topology_refiner_capi.h"
 
+/* =================----====--===== MODULE ==========================------== */
+
+void BKE_subdiv_init()
+{
+  openSubdiv_init();
+}
+
+void BKE_subdiv_exit()
+{
+  openSubdiv_cleanup();
+}
+
 /* ========================== CONVERSION HELPERS ============================ */
 
 eSubdivFVarLinearInterpolation BKE_subdiv_fvar_interpolation_from_uv_smooth(int uv_smooth)
