@@ -7373,7 +7373,7 @@ static bool sculpt_no_multires_poll(bContext *C)
   return false;
 }
 
-static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
+static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   const Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -7424,7 +7424,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
       MirrorModifierData mmd = {{0}};
       int axis = 0;
       mmd.flag = 0;
-      mmd.tolerance = 0.005f;
+      mmd.tolerance = RNA_float_get(op->ptr, "merge_tolerance");
       switch (sd->symmetrize_direction) {
         case BMO_SYMMETRIZE_NEGATIVE_X:
           axis = 0;
@@ -7481,6 +7481,16 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = sculpt_symmetrize_exec;
   ot->poll = sculpt_no_multires_poll;
+
+  RNA_def_float(ot->srna,
+                "merge_tolerance",
+                0.001f,
+                0.0f,
+                1.0f,
+                "Merge Limit",
+                "Distance within which symmetrical vertices are merged",
+                0.0f,
+                FLT_MAX);
 }
 
 /**** Toggle operator for turning sculpt mode on or off ****/
