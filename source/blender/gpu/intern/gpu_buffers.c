@@ -1083,13 +1083,24 @@ short GPU_pbvh_buffers_material_index_get(GPU_PBVH_Buffers *buffers)
   return buffers->material_index;
 }
 
+static void gpu_pbvh_buffers_clear(GPU_PBVH_Buffers *buffers)
+{
+  GPU_BATCH_DISCARD_SAFE(buffers->lines);
+  GPU_BATCH_DISCARD_SAFE(buffers->lines_fast);
+  GPU_BATCH_DISCARD_SAFE(buffers->triangles);
+  GPU_BATCH_DISCARD_SAFE(buffers->triangles_fast);
+  GPU_INDEXBUF_DISCARD_SAFE(buffers->index_lines_buf_fast);
+  GPU_INDEXBUF_DISCARD_SAFE(buffers->index_lines_buf);
+  GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf_fast);
+  GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf);
+  GPU_VERTBUF_DISCARD_SAFE(buffers->vert_buf);
+}
+
 void GPU_pbvh_buffers_update_flush(GPU_PBVH_Buffers *buffers)
 {
   /* Free empty bmesh node buffers. */
   if (buffers->clear_bmesh_on_flush) {
-    GPU_BATCH_DISCARD_SAFE(buffers->triangles);
-    GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf);
-    GPU_VERTBUF_DISCARD_SAFE(buffers->vert_buf);
+    gpu_pbvh_buffers_clear(buffers);
     buffers->clear_bmesh_on_flush = false;
   }
 
@@ -1102,16 +1113,7 @@ void GPU_pbvh_buffers_update_flush(GPU_PBVH_Buffers *buffers)
 void GPU_pbvh_buffers_free(GPU_PBVH_Buffers *buffers)
 {
   if (buffers) {
-    GPU_BATCH_DISCARD_SAFE(buffers->lines);
-    GPU_BATCH_DISCARD_SAFE(buffers->lines_fast);
-    GPU_BATCH_DISCARD_SAFE(buffers->triangles);
-    GPU_BATCH_DISCARD_SAFE(buffers->triangles_fast);
-    GPU_INDEXBUF_DISCARD_SAFE(buffers->index_lines_buf_fast);
-    GPU_INDEXBUF_DISCARD_SAFE(buffers->index_lines_buf);
-    GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf_fast);
-    GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf);
-    GPU_VERTBUF_DISCARD_SAFE(buffers->vert_buf);
-
+    gpu_pbvh_buffers_clear(buffers);
     MEM_freeN(buffers);
   }
 }

@@ -547,35 +547,35 @@ void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
     paint->runtime.tool_offset = offsetof(Brush, imagepaint_tool);
     paint->runtime.ob_mode = OB_MODE_TEXTURE_PAINT;
   }
-  else if (paint == &ts->sculpt->paint) {
+  else if (ts->sculpt && paint == &ts->sculpt->paint) {
     paint->runtime.tool_offset = offsetof(Brush, sculpt_tool);
     paint->runtime.ob_mode = OB_MODE_SCULPT;
   }
-  else if (paint == &ts->vpaint->paint) {
+  else if (ts->vpaint && paint == &ts->vpaint->paint) {
     paint->runtime.tool_offset = offsetof(Brush, vertexpaint_tool);
     paint->runtime.ob_mode = OB_MODE_VERTEX_PAINT;
   }
-  else if (paint == &ts->wpaint->paint) {
+  else if (ts->wpaint && paint == &ts->wpaint->paint) {
     paint->runtime.tool_offset = offsetof(Brush, weightpaint_tool);
     paint->runtime.ob_mode = OB_MODE_WEIGHT_PAINT;
   }
-  else if (paint == &ts->uvsculpt->paint) {
+  else if (ts->uvsculpt && paint == &ts->uvsculpt->paint) {
     paint->runtime.tool_offset = offsetof(Brush, uv_sculpt_tool);
     paint->runtime.ob_mode = OB_MODE_EDIT;
   }
-  else if (paint == &ts->gp_paint->paint) {
+  else if (ts->gp_paint && paint == &ts->gp_paint->paint) {
     paint->runtime.tool_offset = offsetof(Brush, gpencil_tool);
     paint->runtime.ob_mode = OB_MODE_PAINT_GPENCIL;
   }
-  else if (paint == &ts->gp_vertexpaint->paint) {
+  else if (ts->gp_vertexpaint && paint == &ts->gp_vertexpaint->paint) {
     paint->runtime.tool_offset = offsetof(Brush, gpencil_vertex_tool);
     paint->runtime.ob_mode = OB_MODE_VERTEX_GPENCIL;
   }
-  else if (paint == &ts->gp_sculptpaint->paint) {
+  else if (ts->gp_sculptpaint && paint == &ts->gp_sculptpaint->paint) {
     paint->runtime.tool_offset = offsetof(Brush, gpencil_sculpt_tool);
     paint->runtime.ob_mode = OB_MODE_SCULPT_GPENCIL;
   }
-  else if (paint == &ts->gp_weightpaint->paint) {
+  else if (ts->gp_weightpaint && paint == &ts->gp_weightpaint->paint) {
     paint->runtime.tool_offset = offsetof(Brush, gpencil_weight_tool);
     paint->runtime.ob_mode = OB_MODE_WEIGHT_GPENCIL;
   }

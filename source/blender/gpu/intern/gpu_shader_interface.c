@@ -261,7 +261,9 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
       continue;
     }
 
-    shaderface->enabled_attr_mask |= (1 << input->location);
+    if (input->location != -1) {
+      shaderface->enabled_attr_mask |= (1 << input->location);
+    }
 
     set_input_name(shaderface, input, name, name_len);
 
