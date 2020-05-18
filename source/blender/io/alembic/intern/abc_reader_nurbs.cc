@@ -71,7 +71,7 @@ bool AbcNurbsReader::valid() const
 
 static bool set_knots(const FloatArraySamplePtr &knots, float *&nu_knots)
 {
-  if (!knots || knots->size() == 0) {
+  if (!knots || knots->size() < 2) {
     return false;
   }
 
