@@ -339,7 +339,7 @@ bool ED_operator_console_active(bContext *C)
   return ed_spacetype_test(C, SPACE_CONSOLE);
 }
 
-static bool ed_object_hidden(Object *ob)
+static bool ed_object_hidden(const Object *ob)
 {
   /* if hidden but in edit mode, we still display, can happen with animation */
   return ((ob->restrictflag & OB_RESTRICT_VIEWPORT) && !(ob->mode & OB_MODE_EDIT));
@@ -351,10 +351,15 @@ bool ED_operator_object_active(bContext *C)
   return ((ob != NULL) && !ed_object_hidden(ob));
 }
 
+bool ED_operator_object_active_editable_ex(bContext *C, const Object *ob)
+{
+  return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob));
+}
+
 bool ED_operator_object_active_editable(bContext *C)
 {
   Object *ob = ED_object_active_context(C);
-  return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob));
+  return ED_operator_object_active_editable_ex(C, ob);
 }
 
 bool ED_operator_object_active_editable_mesh(bContext *C)
