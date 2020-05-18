@@ -333,6 +333,13 @@ void SCULPT_cloth_plane_falloff_preview_draw(const uint gpuattr,
                                              struct SculptSession *ss,
                                              const float outline_col[3],
                                              float outline_alpha);
+
+BLI_INLINE bool SCULPT_is_cloth_deform_brush(const Brush *brush)
+{
+  return brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
+         brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB;
+}
+
 /* Pose Brush. */
 void SCULPT_do_pose_brush(struct Sculpt *sd,
                           struct Object *ob,
