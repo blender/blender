@@ -84,6 +84,7 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
                                           const size_t num_pixels,
                                           const bool is_custom_cage,
                                           const float cage_extrusion,
+                                          const float max_ray_distance,
                                           float mat_low[4][4],
                                           float mat_cage[4][4],
                                           struct Mesh *me_cage);

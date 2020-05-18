@@ -4884,13 +4884,23 @@ static void rna_def_bake_data(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Margin", "Extends the baked result as a post process filter");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
+  prop = RNA_def_property(srna, "max_ray_distance", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_range(prop, 0.0, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 3);
+  RNA_def_property_ui_text(prop,
+                           "Max Ray Distance",
+                           "The maximum ray distance for matching points between the active and "
+                           "selected objects. If zero, there is no limit");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
   prop = RNA_def_property(srna, "cage_extrusion", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_range(prop, 0.0, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 3);
   RNA_def_property_ui_text(
       prop,
       "Cage Extrusion",
-      "Distance to use for the inward ray cast when using selected to active");
+      "Inflate the active object by the specified distance for baking. This helps matching to "
+      "points nearer to the outside of the selected object meshes");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "normal_space", PROP_ENUM, PROP_NONE);

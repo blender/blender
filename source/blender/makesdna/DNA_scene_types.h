@@ -555,13 +555,14 @@ typedef struct BakeData {
   short margin, flag;
 
   float cage_extrusion;
+  float max_ray_distance;
   int pass_filter;
 
   char normal_swizzle[3];
   char normal_space;
 
   char save_mode;
-  char _pad[3];
+  char _pad[7];
 
   struct Object *cage_object;
 } BakeData;

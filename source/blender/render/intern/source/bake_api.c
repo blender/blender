@@ -321,11 +321,16 @@ static bool cast_ray_highpoly(BVHTreeFromMesh *treeData,
                               const float co[3],
                               const float dir[3],
                               const int pixel_id,
-                              const int tot_highpoly)
+                              const int tot_highpoly,
+                              const float max_ray_distance)
 {
   int i;
   int hit_mesh = -1;
-  float hit_distance = FLT_MAX;
+  float hit_distance = max_ray_distance;
+  if (hit_distance == 0.0f) {
+    /* No ray distance set, use maximum. */
+    hit_distance = FLT_MAX;
+  }
 
   BVHTreeRayHit *hits;
   hits = MEM_mallocN(sizeof(BVHTreeRayHit) * tot_highpoly, "Bake Highpoly to Lowpoly: BVH Rays");
@@ -520,6 +525,7 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
                                           const size_t num_pixels,
                                           const bool is_custom_cage,
                                           const float cage_extrusion,
+                                          const float max_ray_distance,
                                           float mat_low[4][4],
                                           float mat_cage[4][4],
                                           struct Mesh *me_cage)
@@ -623,7 +629,8 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
                            co,
                            dir,
                            i,
-                           tot_highpoly)) {
+                           tot_highpoly,
+                           max_ray_distance)) {
       /* if it fails mask out the original pixel array */
       pixel_array_from[i].primitive_id = -1;
     }

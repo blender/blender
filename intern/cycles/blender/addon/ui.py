@@ -1907,10 +1907,15 @@ class CYCLES_RENDER_PT_bake_selected_to_active(CyclesButtonsPanel, Panel):
 
         col.prop(cbk, "use_cage", text="Cage")
         if cbk.use_cage:
-            col.prop(cbk, "cage_extrusion", text="Extrusion")
-            col.prop(cbk, "cage_object", text="Cage Object")
+            col.prop(cbk, "cage_object")
+            col = layout.column()
+            col.prop(cbk, "cage_extrusion")
+            col.active = cbk.cage_object is None
         else:
-            col.prop(cbk, "cage_extrusion", text="Ray Distance")
+            col.prop(cbk, "cage_extrusion", text="Extrusion")
+
+        col = layout.column()
+        col.prop(cbk, "max_ray_distance")
 
 
 class CYCLES_RENDER_PT_bake_output(CyclesButtonsPanel, Panel):
