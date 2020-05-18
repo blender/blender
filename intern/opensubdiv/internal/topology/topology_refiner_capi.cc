@@ -18,15 +18,13 @@
 
 #include "opensubdiv_topology_refiner_capi.h"
 
-#include <vector>
-
 #include "MEM_guardedalloc.h"
 #include "internal/opensubdiv_converter_factory.h"
 #include "internal/opensubdiv_converter_internal.h"
 #include "internal/opensubdiv_edge_map.h"
 #include "internal/opensubdiv_internal.h"
-#include "internal/opensubdiv_topology_refiner_internal.h"
 #include "internal/opensubdiv_util.h"
+#include "internal/topology/topology_refiner_impl.h"
 
 using blender::opensubdiv::vector;
 
@@ -35,7 +33,7 @@ namespace {
 const OpenSubdiv::Far::TopologyRefiner *getOSDTopologyRefiner(
     const OpenSubdiv_TopologyRefiner *topology_refiner)
 {
-  return topology_refiner->internal->osd_topology_refiner;
+  return topology_refiner->impl->osd_topology_refiner;
 }
 
 const OpenSubdiv::Far::TopologyLevel *getOSDTopologyBaseLevel(
@@ -46,12 +44,12 @@ const OpenSubdiv::Far::TopologyLevel *getOSDTopologyBaseLevel(
 
 int getSubdivisionLevel(const OpenSubdiv_TopologyRefiner *topology_refiner)
 {
-  return topology_refiner->internal->settings.level;
+  return topology_refiner->impl->settings.level;
 }
 
 bool getIsAdaptive(const OpenSubdiv_TopologyRefiner *topology_refiner)
 {
-  return topology_refiner->internal->settings.is_adaptive;
+  return topology_refiner->impl->settings.is_adaptive;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -232,7 +230,7 @@ void assignFunctionPointers(OpenSubdiv_TopologyRefiner *topology_refiner)
 OpenSubdiv_TopologyRefiner *allocateTopologyRefiner()
 {
   OpenSubdiv_TopologyRefiner *topology_refiner = OBJECT_GUARDED_NEW(OpenSubdiv_TopologyRefiner);
-  topology_refiner->internal = OBJECT_GUARDED_NEW(OpenSubdiv_TopologyRefinerInternal);
+  topology_refiner->impl = OBJECT_GUARDED_NEW(OpenSubdiv_TopologyRefinerImpl);
   assignFunctionPointers(topology_refiner);
   return topology_refiner;
 }
@@ -249,16 +247,16 @@ OpenSubdiv_TopologyRefiner *openSubdiv_createTopologyRefinerFromConverter(
     return NULL;
   }
   OpenSubdiv_TopologyRefiner *topology_refiner = allocateTopologyRefiner();
-  topology_refiner->internal->osd_topology_refiner = osd_topology_refiner;
+  topology_refiner->impl->osd_topology_refiner = osd_topology_refiner;
   // Store setting which we want to keep track of and which can not be stored
   // in OpenSubdiv's descriptor yet.
-  topology_refiner->internal->settings = *settings;
+  topology_refiner->impl->settings = *settings;
   return topology_refiner;
 }
 
 void openSubdiv_deleteTopologyRefiner(OpenSubdiv_TopologyRefiner *topology_refiner)
 {
-  OBJECT_GUARDED_DELETE(topology_refiner->internal, OpenSubdiv_TopologyRefinerInternal);
+  OBJECT_GUARDED_DELETE(topology_refiner->impl, OpenSubdiv_TopologyRefinerImpl);
   OBJECT_GUARDED_DELETE(topology_refiner, OpenSubdiv_TopologyRefiner);
 }
 

@@ -16,14 +16,19 @@
 //
 // Author: Sergey Sharybin
 
-#include "internal/opensubdiv_topology_refiner_internal.h"
+#include "internal/topology/topology_refiner_impl.h"
 
-OpenSubdiv_TopologyRefinerInternal::OpenSubdiv_TopologyRefinerInternal()
-    : osd_topology_refiner(NULL)
+namespace blender {
+namespace opensubdiv {
+
+TopologyRefinerImpl::TopologyRefinerImpl() : osd_topology_refiner(nullptr)
 {
 }
 
-OpenSubdiv_TopologyRefinerInternal::~OpenSubdiv_TopologyRefinerInternal()
+TopologyRefinerImpl::~TopologyRefinerImpl()
 {
   delete osd_topology_refiner;
 }
+
+}  // namespace opensubdiv
+}  // namespace blender

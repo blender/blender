@@ -16,8 +16,8 @@
 //
 // Author: Sergey Sharybin
 
-#ifndef OPENSUBDIV_TOPOLOGY_REFINER_INTERNAL_H_
-#define OPENSUBDIV_TOPOLOGY_REFINER_INTERNAL_H_
+#ifndef OPENSUBDIV_TOPOLOGY_REFINER_IMPL_H_
+#define OPENSUBDIV_TOPOLOGY_REFINER_IMPL_H_
 
 #ifdef _MSC_VER
 #  include <iso646.h>
@@ -27,10 +27,13 @@
 
 #include "opensubdiv_topology_refiner_capi.h"
 
-struct OpenSubdiv_TopologyRefinerInternal {
+namespace blender {
+namespace opensubdiv {
+
+class TopologyRefinerImpl {
  public:
-  OpenSubdiv_TopologyRefinerInternal();
-  ~OpenSubdiv_TopologyRefinerInternal();
+  TopologyRefinerImpl();
+  ~TopologyRefinerImpl();
 
   OpenSubdiv::Far::TopologyRefiner *osd_topology_refiner;
 
@@ -44,4 +47,10 @@ struct OpenSubdiv_TopologyRefinerInternal {
   OpenSubdiv_TopologyRefinerSettings settings;
 };
 
-#endif  // OPENSUBDIV_TOPOLOGY_REFINER_H_
+}  // namespace opensubdiv
+}  // namespace blender
+
+struct OpenSubdiv_TopologyRefinerImpl : public blender::opensubdiv::TopologyRefinerImpl {
+};
+
+#endif  // OPENSUBDIV_TOPOLOGY_REFINER_IMPL_H_

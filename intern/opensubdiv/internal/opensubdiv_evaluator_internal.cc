@@ -37,8 +37,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "internal/opensubdiv_topology_refiner_internal.h"
 #include "internal/opensubdiv_util.h"
+#include "internal/topology/topology_refiner_impl.h"
 #include "opensubdiv_topology_refiner_capi.h"
 
 using OpenSubdiv::Far::PatchMap;
@@ -751,7 +751,7 @@ OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
     OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   using blender::opensubdiv::vector;
-  TopologyRefiner *refiner = topology_refiner->internal->osd_topology_refiner;
+  TopologyRefiner *refiner = topology_refiner->impl->osd_topology_refiner;
   if (refiner == NULL) {
     // Happens on bad topology.
     return NULL;
