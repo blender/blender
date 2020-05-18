@@ -1239,51 +1239,60 @@ static int pose_slide_exec_common(bContext *C, wmOperator *op, tPoseSlideOp *pso
   return OPERATOR_FINISHED;
 }
 
-/* common code for defining RNA properties */
-/* TODO: Skip save on these? */
+/**
+ * Common code for defining RNA properties.
+ */
 static void pose_slide_opdef_properties(wmOperatorType *ot)
 {
-  RNA_def_float_percentage(ot->srna,
-                           "percentage",
-                           0.5f,
-                           0.0f,
-                           1.0f,
-                           "Percentage",
-                           "Weighting factor for which keyframe is favored more",
-                           0.0,
-                           1.0);
+  PropertyRNA *prop;
 
-  RNA_def_int(ot->srna,
-              "prev_frame",
-              0,
-              MINAFRAME,
-              MAXFRAME,
-              "Previous Keyframe",
-              "Frame number of keyframe immediately before the current frame",
-              0,
-              50);
-  RNA_def_int(ot->srna,
-              "next_frame",
-              0,
-              MINAFRAME,
-              MAXFRAME,
-              "Next Keyframe",
-              "Frame number of keyframe immediately after the current frame",
-              0,
-              50);
+  prop = RNA_def_float_percentage(ot->srna,
+                                  "percentage",
+                                  0.5f,
+                                  0.0f,
+                                  1.0f,
+                                  "Percentage",
+                                  "Weighting factor for which keyframe is favored more",
+                                  0.0,
+                                  1.0);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  RNA_def_enum(ot->srna,
-               "channels",
-               prop_channels_types,
-               PS_TFM_ALL,
-               "Channels",
-               "Set of properties that are affected");
-  RNA_def_enum(ot->srna,
-               "axis_lock",
-               prop_axis_lock_types,
-               0,
-               "Axis Lock",
-               "Transform axis to restrict effects to");
+  prop = RNA_def_int(ot->srna,
+                     "prev_frame",
+                     0,
+                     MINAFRAME,
+                     MAXFRAME,
+                     "Previous Keyframe",
+                     "Frame number of keyframe immediately before the current frame",
+                     0,
+                     50);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_int(ot->srna,
+                     "next_frame",
+                     0,
+                     MINAFRAME,
+                     MAXFRAME,
+                     "Next Keyframe",
+                     "Frame number of keyframe immediately after the current frame",
+                     0,
+                     50);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_enum(ot->srna,
+                      "channels",
+                      prop_channels_types,
+                      PS_TFM_ALL,
+                      "Channels",
+                      "Set of properties that are affected");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_enum(ot->srna,
+                      "axis_lock",
+                      prop_axis_lock_types,
+                      0,
+                      "Axis Lock",
+                      "Transform axis to restrict effects to");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ------------------------------------ */
