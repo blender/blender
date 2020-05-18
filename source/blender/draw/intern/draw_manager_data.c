@@ -2000,7 +2000,10 @@ void DRW_pass_sort_shgroup_z(DRWPass *pass)
       }
     }
     /* To be sorted a shgroup needs to have at least one draw command.  */
-    BLI_assert(handle != 0);
+    /* FIXME(fclem) In some case, we can still have empty shading group to sort. However their
+     * final order is not well defined.
+     * (see T76730 & D7729). */
+    // BLI_assert(handle != 0);
 
     DRWObjectMatrix *obmats = DRW_memblock_elem_from_handle(DST.vmempool->obmats, &handle);
 
