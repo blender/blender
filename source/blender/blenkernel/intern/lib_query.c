@@ -982,11 +982,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_AC: {
-        bAction *act = (bAction *)id;
-
-        LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
-          CALLBACK_INVOKE(marker->camera, IDWALK_CB_NOP);
-        }
+        BLI_assert(0);
         break;
       }
 
