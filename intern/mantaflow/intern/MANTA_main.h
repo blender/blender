@@ -85,6 +85,7 @@ struct MANTA {
   void initLiquid(FluidModifierData *mmd = NULL);
   void initLiquidMesh(FluidModifierData *mmd = NULL);
   void initObstacle(FluidModifierData *mmd = NULL);
+  void initCurvature(FluidModifierData *mmd = NULL);
   void initGuiding(FluidModifierData *mmd = NULL);
   void initFractions(FluidModifierData *mmd = NULL);
   void initInVelocity(FluidModifierData *mmd = NULL);
@@ -774,6 +775,7 @@ struct MANTA {
   bool mUsingOutflow;
   bool mUsingNoise;
   bool mUsingMesh;
+  bool mUsingDiffusion;
   bool mUsingMVel;
   bool mUsingLiquid;
   bool mUsingSmoke;

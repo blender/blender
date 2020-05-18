@@ -1869,6 +1869,7 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
           nodeRemoveNode(bmain, ntree, node, true);
         }
       }
+      ntreeUpdateTree(bmain, ntree);
     }
   }
 }
