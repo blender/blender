@@ -847,6 +847,7 @@ static void sculpt_undo_free_list(ListBase *lb)
 
     sculpt_undo_geometry_free_data(&unode->geometry_original);
     sculpt_undo_geometry_free_data(&unode->geometry_modified);
+    sculpt_undo_geometry_free_data(&unode->geometry_bmesh_enter);
 
     if (unode->face_sets) {
       MEM_freeN(unode->face_sets);
