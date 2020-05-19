@@ -327,7 +327,7 @@ class VolatileEvalOutput {
     // Create evaluators for every face varying channel.
     face_varying_evaluators.reserve(all_face_varying_stencils.size());
     int face_varying_channel = 0;
-    foreach (const StencilTable *face_varying_stencils, all_face_varying_stencils) {
+    for (const StencilTable *face_varying_stencils : all_face_varying_stencils) {
       face_varying_evaluators.push_back(new FaceVaryingEval(face_varying_channel,
                                                             face_varying_stencils,
                                                             face_varying_width,
@@ -345,7 +345,7 @@ class VolatileEvalOutput {
     delete patch_table_;
     delete vertex_stencils_;
     delete varying_stencils_;
-    foreach (FaceVaryingEval *face_varying_evaluator, face_varying_evaluators) {
+    for (FaceVaryingEval *face_varying_evaluator : face_varying_evaluators) {
       delete face_varying_evaluator;
     }
   }
@@ -414,7 +414,7 @@ class VolatileEvalOutput {
     }
     // Evaluate face-varying data.
     if (hasFaceVaryingData()) {
-      foreach (FaceVaryingEval *face_varying_evaluator, face_varying_evaluators) {
+      for (FaceVaryingEval *face_varying_evaluator : face_varying_evaluators) {
         face_varying_evaluator->refine();
       }
     }
@@ -865,7 +865,7 @@ OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
   // TOOD(sergey): Look into whether we've got duplicated stencils arrays.
   delete vertex_stencils;
   delete varying_stencils;
-  foreach (const StencilTable *table, all_face_varying_stencils) {
+  for (const StencilTable *table : all_face_varying_stencils) {
     delete table;
   }
   return evaluator_descr;
