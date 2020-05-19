@@ -959,7 +959,7 @@ static const char arg_handle_debug_mode_generic_set_doc_jobs[] =
     "Enable time profiling for background jobs.";
 static const char arg_handle_debug_mode_generic_set_doc_gpu[] =
     "\n\t"
-    "Enable gpu debug context and information for OpenGL 4.3+.";
+    "Enable GPU debug context and information for OpenGL 4.3+.";
 static const char arg_handle_debug_mode_generic_set_doc_depsgraph[] =
     "\n\t"
     "Enable all debug messages from dependency graph.";
@@ -995,7 +995,7 @@ static int arg_handle_debug_mode_generic_set(int UNUSED(argc),
 
 static const char arg_handle_debug_mode_io_doc[] =
     "\n\t"
-    "Enable debug messages for I/O (collada, ...).";
+    "Enable debug messages for I/O (Collada, ...).";
 static int arg_handle_debug_mode_io(int UNUSED(argc),
                                     const char **UNUSED(argv),
                                     void *UNUSED(data))
@@ -1124,7 +1124,7 @@ static int arg_handle_factory_startup_set(int UNUSED(argc),
 
 static const char arg_handle_disable_override_library_doc[] =
     "\n\t"
-    "Enable Library Override features in the UI.";
+    "Disable Library Override features in the UI.";
 static int arg_handle_disable_override_library(int UNUSED(argc),
                                                const char **UNUSED(argv),
                                                void *UNUSED(data))
@@ -1497,7 +1497,7 @@ static int arg_handle_threads_set(int argc, const char **argv, void *UNUSED(data
 
 static const char arg_handle_verbosity_set_doc[] =
     "<verbose>\n"
-    "\tSet logging verbosity level for debug messages which supports it.";
+    "\tSet the logging verbosity level for debug messages that support it.";
 static int arg_handle_verbosity_set(int argc, const char **argv, void *UNUSED(data))
 {
   const char *arg_id = "--verbose";
