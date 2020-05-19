@@ -51,7 +51,6 @@ if(WITH_OPENSUBDIV)
 
   list(APPEND SRC
     # Base.
-    internal/base/edge_map.h
     internal/base/memory.h
     internal/base/opensubdiv_capi.cc
     internal/base/type.h
