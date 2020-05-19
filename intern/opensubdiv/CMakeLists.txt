@@ -54,8 +54,11 @@ if(WITH_OPENSUBDIV)
     internal/base/edge_map.h
     internal/base/memory.h
     internal/base/opensubdiv_capi.cc
+    internal/base/type.h
     internal/base/type_convert.cc
     internal/base/type_convert.h
+    internal/base/util.cc
+    internal/base/util.h
 
     # Device.
     internal/device/device_context_cuda.cc
@@ -79,9 +82,6 @@ if(WITH_OPENSUBDIV)
     internal/topology/topology_refiner_factory.cc
     internal/topology/topology_refiner_impl.cc
     internal/topology/topology_refiner_impl.h
-
-    internal/opensubdiv_util.cc
-    internal/opensubdiv_util.h
   )
 
   list(APPEND LIB

@@ -20,6 +20,7 @@
 #  include <iso646.h>
 #endif
 
+#include "internal/base/util.h"
 #include "internal/device/device_context_cuda.h"
 #include "internal/device/device_context_glsl_compute.h"
 #include "internal/device/device_context_glsl_transform_feedback.h"

@@ -19,7 +19,7 @@
 #ifndef OPENSUBDIV_BASE_EDGE_MAP_H_
 #define OPENSUBDIV_BASE_EDGE_MAP_H_
 
-#include "internal/opensubdiv_util.h"
+#include "internal/base/type.h"
 
 namespace blender {
 namespace opensubdiv {

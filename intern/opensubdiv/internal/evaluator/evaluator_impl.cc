@@ -37,7 +37,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "internal/opensubdiv_util.h"
+#include "internal/base/type.h"
 #include "internal/topology/topology_refiner_impl.h"
 #include "opensubdiv_topology_refiner_capi.h"
 

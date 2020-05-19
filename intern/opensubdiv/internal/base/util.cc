@@ -14,14 +14,7 @@
 // along with this program; if not, write to the Free Software Foundation,
 // Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-#include "internal/opensubdiv_util.h"
-
-#include <GL/glew.h>
-#include <cstring>
-
-#ifdef _MSC_VER
-#  include <iso646.h>
-#endif
+#include "internal/base/util.h"
 
 namespace blender {
 namespace opensubdiv {
@@ -44,7 +37,7 @@ void stringSplit(vector<string> *tokens,
         string token = str.substr(token_start, token_length);
         tokens->push_back(token);
       }
-      // Re-set token pointers,
+      // Re-set token pointers.
       token_start = i + 1;
       token_length = 0;
     }

@@ -27,8 +27,8 @@
 
 #include <opensubdiv/far/topologyRefinerFactory.h>
 
+#include "internal/base/type.h"
 #include "internal/base/type_convert.h"
-#include "internal/opensubdiv_util.h"
 #include "opensubdiv_converter_capi.h"
 
 using blender::opensubdiv::min;
