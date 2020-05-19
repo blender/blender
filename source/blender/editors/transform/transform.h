@@ -139,8 +139,7 @@ typedef struct TransCon {
                    struct TransDataContainer *tc,
                    struct TransData *td,
                    const float in[3],
-                   float out[3],
-                   float pvec[3]);
+                   float out[3]);
   /** Apply function pointer for size transformation. */
   void (*applySize)(struct TransInfo *t,
                     struct TransDataContainer *tc,

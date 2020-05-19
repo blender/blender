@@ -101,9 +101,8 @@ static void applySeqSlide(TransInfo *t, const int mval[2])
   snapSequenceBounds(t, mval);
 
   if (t->con.mode & CON_APPLY) {
-    float pvec[3] = {0.0f, 0.0f, 0.0f};
     float tvec[3];
-    t->con.applyVec(t, NULL, NULL, t->values, tvec, pvec);
+    t->con.applyVec(t, NULL, NULL, t->values, tvec);
     copy_v3_v3(t->values_final, tvec);
   }
   else {

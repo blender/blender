@@ -277,8 +277,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
       }
 
       if (t->con.applyVec) {
-        float pvec[3];
-        t->con.applyVec(t, tc, td, vec, tvec, pvec);
+        t->con.applyVec(t, tc, td, vec, tvec);
       }
       else {
         copy_v3_v3(tvec, vec);
@@ -319,7 +318,6 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 {
   char str[UI_MAX_DRAW_STR];
-  float values_final[3];
 
   if (t->flag & T_INPUT_IS_VALUES_FINAL) {
     copy_v3_v3(t->values_final, t->values);
@@ -336,28 +334,24 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 
     applySnapping(t, t->values_final);
   }
-  copy_v3_v3(values_final, t->values_final);
 
   if (t->con.mode & CON_APPLY) {
-    float pvec[3] = {0.0f, 0.0f, 0.0f};
-    t->con.applyVec(t, NULL, NULL, t->values_final, values_final, pvec);
-    headerTranslation(t, pvec, str);
-
-    /* only so we have re-usable value with redo, see T46741. */
-    mul_v3_m3v3(t->values_final, t->con.imtx, values_final);
+    float values_final[3];
+    copy_v3_v3(values_final, t->values_final);
+    t->con.applyVec(t, NULL, NULL, values_final, t->values_final);
+    headerTranslation(t, t->values_final, str);
   }
   else {
     headerTranslation(t, t->values_final, str);
-    copy_v3_v3(values_final, t->values_final);
   }
 
   /* don't use 't->values' now on */
 
-  applyTranslationValue(t, values_final);
+  applyTranslationValue(t, t->values_final);
 
   /* evil hack - redo translation if clipping needed */
-  if (t->flag & T_CLIP_UV && clipUVTransform(t, values_final, 0)) {
-    applyTranslationValue(t, values_final);
+  if (t->flag & T_CLIP_UV && clipUVTransform(t, t->values_final, 0)) {
+    applyTranslationValue(t, t->values_final);
 
     /* In proportional edit it can happen that */
     /* vertices in the radius of the brush end */

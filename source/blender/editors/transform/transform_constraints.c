@@ -121,10 +121,8 @@ void constraintNumInput(TransInfo *t, float vec[3])
   }
 }
 
-static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3])
+static void postConstraintChecks(TransInfo *t, float vec[3])
 {
-  int i = 0;
-
   mul_m3_v3(t->con.imtx, vec);
 
   snapGridIncrement(t, vec);
@@ -153,16 +151,6 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3])
     copy_v3_v3(vec, t->values);
     constraintValuesFinal(t, vec);
     /* inverse transformation at the end */
-  }
-
-  if (t->con.mode & CON_AXIS0) {
-    pvec[i++] = vec[0];
-  }
-  if (t->con.mode & CON_AXIS1) {
-    pvec[i++] = vec[1];
-  }
-  if (t->con.mode & CON_AXIS2) {
-    pvec[i++] = vec[2];
   }
 
   mul_m3_v3(t->con.mtx, vec);
@@ -346,12 +334,8 @@ static void planeProjection(const TransInfo *t, const float in[3], float out[3])
  * (in perspective mode, the view vector is relative to the position on screen)
  */
 
-static void applyAxisConstraintVec(TransInfo *t,
-                                   TransDataContainer *UNUSED(tc),
-                                   TransData *td,
-                                   const float in[3],
-                                   float out[3],
-                                   float pvec[3])
+static void applyAxisConstraintVec(
+    TransInfo *t, TransDataContainer *UNUSED(tc), TransData *td, const float in[3], float out[3])
 {
   copy_v3_v3(out, in);
   if (!td && t->con.mode & CON_APPLY) {
@@ -382,7 +366,7 @@ static void applyAxisConstraintVec(TransInfo *t,
         axisProjection(t, c, in, out);
       }
     }
-    postConstraintChecks(t, out, pvec);
+    postConstraintChecks(t, out);
   }
 }
 
@@ -397,12 +381,8 @@ static void applyAxisConstraintVec(TransInfo *t,
  * Further down, that vector is mapped to each data's space.
  */
 
-static void applyObjectConstraintVec(TransInfo *t,
-                                     TransDataContainer *tc,
-                                     TransData *td,
-                                     const float in[3],
-                                     float out[3],
-                                     float pvec[3])
+static void applyObjectConstraintVec(
+    TransInfo *t, TransDataContainer *tc, TransData *td, const float in[3], float out[3])
 {
   copy_v3_v3(out, in);
   if (t->con.mode & CON_APPLY) {
@@ -431,23 +411,9 @@ static void applyObjectConstraintVec(TransInfo *t,
         }
         axisProjection(t, c, in, out);
       }
-      postConstraintChecks(t, out, pvec);
-      copy_v3_v3(out, pvec);
+      postConstraintChecks(t, out);
     }
     else {
-      int i = 0;
-
-      out[0] = out[1] = out[2] = 0.0f;
-      if (t->con.mode & CON_AXIS0) {
-        out[0] = in[i++];
-      }
-      if (t->con.mode & CON_AXIS1) {
-        out[1] = in[i++];
-      }
-      if (t->con.mode & CON_AXIS2) {
-        out[2] = in[i++];
-      }
-
       mul_m3_v3(td->axismtx, out);
       if (t->flag & T_EDIT) {
         mul_m3_v3(tc->mat3_unit, out);
@@ -653,7 +619,7 @@ void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[])
   }
   else {
     BLI_strncpy(t->con.text + 1, text, sizeof(t->con.text) - 1);
-    copy_m3_m3(t->con.mtx, tc->data->axismtx);
+    unit_m3(t->con.mtx);
     t->con.mode = mode;
     getConstraintMatrix(t);
 
