@@ -1725,7 +1725,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
                            "resolution of the domain). For best meshing, it is recommended to "
                            "adjust the mesh particle radius alongside this value");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_domain_reset");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_meshcache_reset");
 
   prop = RNA_def_property(srna, "mesh_generator", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "mesh_generator");
