@@ -256,15 +256,15 @@ def world_to_camera_view(scene, obj, coord):
     z = -co_local.z
 
     camera = obj.data
-    frame = [-v for v in camera.view_frame(scene=scene)[:3]]
+    frame = [v for v in camera.view_frame(scene=scene)[:3]]
     if camera.type != 'ORTHO':
         if z == 0.0:
             return Vector((0.5, 0.5, 0.0))
         else:
-            frame = [(v / (v.z / z)) for v in frame]
+            frame = [-(v / (v.z / z)) for v in frame]
 
-    min_x, max_x = frame[1].x, frame[2].x
-    min_y, max_y = frame[0].y, frame[1].y
+    min_x, max_x = frame[2].x, frame[1].x
+    min_y, max_y = frame[1].y, frame[0].y
 
     x = (co_local.x - min_x) / (max_x - min_x)
     y = (co_local.y - min_y) / (max_y - min_y)
