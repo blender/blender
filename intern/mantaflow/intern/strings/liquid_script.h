@@ -349,7 +349,10 @@ def liquid_step_mesh_$ID$():\n\
         interpolateMACGrid(target=vel_sm$ID$, source=vel_s$ID$)\n\
         mVel_mesh$ID$.setSource(vel_sm$ID$, isMAC=True)\n\
     \n\
-    phi_sm$ID$.setBound(0.5,int(((upres_sm$ID$)*2)-2) )\n\
+    # Set 0.5 boundary at walls + account for extra wall thickness in fractions mode + account for grid scaling:\n\
+    # E.g. at upres=1 we expect 1 cell border (or 2 with fractions), at upres=2 we expect 2 cell border (or 4 with fractions), etc.\n\
+    # Use -1 since setBound() starts counting at 0 (and additional -1 for fractions to account for solid/fluid interface cells)\n\
+    phi_sm$ID$.setBound(value=0.5, boundaryWidth=(upres_sm$ID$*2)-2 if using_fractions_s$ID$ else upres_sm$ID$-1)\n\
     phi_sm$ID$.createMesh(mesh_sm$ID$)\n";
 
 const std::string liquid_step_particles =
