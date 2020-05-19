@@ -52,6 +52,7 @@ template<>
 inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology(
     TopologyRefiner &refiner, const TopologyRefinerData &cb_data)
 {
+  using blender::opensubdiv::FaceTopology;
   using blender::opensubdiv::MeshTopology;
 
   const OpenSubdiv_Converter *converter = cb_data.converter;
@@ -81,9 +82,11 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology
 
   // Faces and face-vertices.
   const int num_faces = converter->getNumFaces(converter);
+  base_mesh_topology->setNumFaces(num_faces);
   setNumBaseFaces(refiner, num_faces);
   for (int face_index = 0; face_index < num_faces; ++face_index) {
     const int num_face_vertices = converter->getNumFaceVertices(converter, face_index);
+    base_mesh_topology->setNumFaceVertices(face_index, num_face_vertices);
     setNumBaseFaceVertices(refiner, face_index, num_face_vertices);
   }
 
@@ -147,6 +150,8 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology
   for (int face_index = 0; face_index < num_faces; ++face_index) {
     IndexArray dst_face_verts = getBaseFaceVertices(refiner, face_index);
     converter->getFaceVertices(converter, face_index, &dst_face_verts[0]);
+
+    base_mesh_topology->setFaceVertexIndices(face_index, &dst_face_verts[0]);
   }
 
   // If converter does not provide full topology, we are done.

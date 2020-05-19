@@ -19,6 +19,8 @@
 #ifndef OPENSUBDIV_MESH_TOPOLOGY_H_
 #define OPENSUBDIV_MESH_TOPOLOGY_H_
 
+#include <cstring>
+
 #include "internal/base/memory.h"
 #include "internal/base/type.h"
 
@@ -41,6 +43,37 @@ class EdgeTopology {
 
   int v1 = -1;
   int v2 = -1;
+};
+
+class FaceTopology {
+ public:
+  void setNumVertices(int num_vertices)
+  {
+    vertex_indices.resize(num_vertices, -1);
+  }
+
+  void setVertexIndices(int *face_vertex_indices)
+  {
+    memcpy(vertex_indices.data(), face_vertex_indices, sizeof(int) * vertex_indices.size());
+  }
+
+  bool isValid() const
+  {
+    for (int vertex_index : vertex_indices) {
+      if (vertex_index < 0) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  int getNumVertices() const
+  {
+    return vertex_indices.size();
+  }
+
+  vector<int> vertex_indices;
 };
 
 class EdgeTopologyTag {
@@ -88,6 +121,19 @@ class MeshTopology {
   float getEdgeSharpness(int edge_index) const;
 
   //////////////////////////////////////////////////////////////////////////////
+  // Faces.
+
+  void setNumFaces(int num_faces);
+
+  int getNumFaces() const;
+
+  FaceTopology &getFace(int face_index);
+  const FaceTopology &getFace(int face_index) const;
+
+  void setNumFaceVertices(int face_index, int num_face_vertices);
+  void setFaceVertexIndices(int face_index, int *face_vertex_indices);
+
+  //////////////////////////////////////////////////////////////////////////////
   // Comparison.
 
   // Check whether this topology refiner defines same topology as the given
@@ -112,6 +158,9 @@ class MeshTopology {
   int num_edges_;
   vector<EdgeTopology> edges_;
   vector<EdgeTopologyTag> edge_tags_;
+
+  int num_faces_;
+  vector<FaceTopology> faces_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MeshTopology");
 };

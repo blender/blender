@@ -19,7 +19,10 @@
 #include "internal/topology/mesh_topology.h"
 
 #include <cassert>
+#include <cstring>
 #include <opensubdiv/sdc/crease.h>
+
+#include "internal/base/type.h"
 
 #include "opensubdiv_converter_capi.h"
 
@@ -42,7 +45,7 @@ int getEffectiveNumEdges(const OpenSubdiv_Converter *converter)
   return converter->getNumEdges(converter);
 }
 
-bool isEqualEdgeGeometry(const MeshTopology &mesh_topology, const OpenSubdiv_Converter *converter)
+bool isEqualGeometryEdge(const MeshTopology &mesh_topology, const OpenSubdiv_Converter *converter)
 {
   const int num_requested_edges = getEffectiveNumEdges(converter);
   if (num_requested_edges != mesh_topology.getNumEdges()) {
@@ -63,11 +66,43 @@ bool isEqualEdgeGeometry(const MeshTopology &mesh_topology, const OpenSubdiv_Con
   return true;
 }
 
+// Faces.
+
+bool isEqualGeometryFace(const MeshTopology &mesh_topology, const OpenSubdiv_Converter *converter)
+{
+  const int num_requested_faces = converter->getNumFaces(converter);
+  if (num_requested_faces != mesh_topology.getNumFaces()) {
+    return false;
+  }
+
+  vector<int> vertices_of_face;
+  for (int face_index = 0; face_index < num_requested_faces; ++face_index) {
+    const FaceTopology &current_face = mesh_topology.getFace(face_index);
+
+    int num_face_vertices = converter->getNumFaceVertices(converter, face_index);
+    if (current_face.getNumVertices() != num_face_vertices) {
+      return false;
+    }
+
+    vertices_of_face.resize(num_face_vertices);
+    converter->getFaceVertices(converter, face_index, vertices_of_face.data());
+
+    if (current_face.vertex_indices != vertices_of_face) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 // Geometry comparison entry point.
 
 bool isEqualGeometry(const MeshTopology &mesh_topology, const OpenSubdiv_Converter *converter)
 {
-  if (!isEqualEdgeGeometry(mesh_topology, converter)) {
+  if (!isEqualGeometryEdge(mesh_topology, converter)) {
+    return false;
+  }
+  if (!isEqualGeometryFace(mesh_topology, converter)) {
     return false;
   }
 

@@ -23,7 +23,7 @@
 namespace blender {
 namespace opensubdiv {
 
-MeshTopology::MeshTopology() : num_vertices_(0), num_edges_(0)
+MeshTopology::MeshTopology() : num_vertices_(0), num_edges_(0), num_faces_(0)
 {
 }
 
@@ -166,6 +166,46 @@ void MeshTopology::ensureEdgeTagsSize(int num_edges)
   if (edge_tags_.size() < num_edges) {
     edge_tags_.resize(num_edges);
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Faces.
+
+void MeshTopology::setNumFaces(int num_faces)
+{
+  num_faces_ = num_faces;
+
+  faces_.resize(num_faces);
+}
+
+int MeshTopology::getNumFaces() const
+{
+  return num_faces_;
+}
+
+FaceTopology &MeshTopology::getFace(int face_index)
+{
+  const MeshTopology *const_this = this;
+  return const_cast<FaceTopology &>(const_this->getFace(face_index));
+}
+const FaceTopology &MeshTopology::getFace(int face_index) const
+{
+  assert(face_index >= 0);
+  assert(face_index < getNumFaces());
+
+  return faces_[face_index];
+}
+
+void MeshTopology::setNumFaceVertices(int face_index, int num_face_vertices)
+{
+  FaceTopology &face = getFace(face_index);
+  face.setNumVertices(num_face_vertices);
+}
+
+void MeshTopology::setFaceVertexIndices(int face_index, int *face_vertex_indices)
+{
+  FaceTopology &face = getFace(face_index);
+  face.setVertexIndices(face_vertex_indices);
 }
 
 }  // namespace opensubdiv
