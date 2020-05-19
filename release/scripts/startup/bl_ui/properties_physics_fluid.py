@@ -237,7 +237,7 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             col = grid.column()
             col.prop(flow, "flow_behavior", expand=False)
             if flow.flow_behavior in {'INFLOW', 'OUTFLOW'}:
-                col.prop(flow, "use_inflow", text="Use Flow")
+                col.prop(flow, "use_inflow")
 
             col.prop(flow, "subframes", text="Sampling Substeps")
 
