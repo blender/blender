@@ -1034,7 +1034,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
   }
 
   if (DRW_vbo_requested(cache->ordered.loop_pos_nor) ||
-      DRW_vbo_requested(cache->ordered.loop_uv)) {
+      DRW_vbo_requested(cache->ordered.loop_uv) || DRW_vbo_requested(cache->ordered.loop_tan)) {
     DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(
         lb, cache->ordered.loop_pos_nor, cache->ordered.loop_uv, cache->ordered.loop_tan);
   }
