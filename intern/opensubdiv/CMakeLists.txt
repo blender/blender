@@ -78,6 +78,8 @@ if(WITH_OPENSUBDIV)
     internal/evaluator/evaluator_impl.h
 
     # Topology.
+    internal/topology/mesh_topology.cc
+    internal/topology/mesh_topology.h
     internal/topology/topology_refiner_capi.cc
     internal/topology/topology_refiner_factory.cc
     internal/topology/topology_refiner_impl.cc
