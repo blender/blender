@@ -232,7 +232,7 @@ def liquid_step_$ID$():\n\
     mantaMsg('Liquid step')\n\
     \n\
     mantaMsg('Advecting particles')\n\
-    pp_s$ID$.advectInGrid(flags=flags_s$ID$, vel=vel_s$ID$, integrationMode=IntRK4, deleteInObstacle=deleteInObstacle_s$ID$, stopInObstacle=False)\n\
+    pp_s$ID$.advectInGrid(flags=flags_s$ID$, vel=vel_s$ID$, integrationMode=IntRK4, deleteInObstacle=deleteInObstacle_s$ID$, stopInObstacle=False, skipNew=True)\n\
     \n\
     mantaMsg('Pushing particles out of obstacles')\n\
     pushOutofObs(parts=pp_s$ID$, flags=flags_s$ID$, phiObs=phiObs_s$ID$)\n\
