@@ -30,16 +30,18 @@
 namespace blender {
 namespace opensubdiv {
 
+using std::pair;
+using std::stack;
+using std::string;
+using std::unordered_map;
+using std::vector;
+
 using std::fill;
 using std::make_pair;
 using std::max;
 using std::min;
-using std::pair;
-using std::stack;
-using std::string;
+using std::move;
 using std::swap;
-using std::unordered_map;
-using std::vector;
 
 }  // namespace opensubdiv
 }  // namespace blender
