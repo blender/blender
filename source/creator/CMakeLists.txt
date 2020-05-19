@@ -687,6 +687,13 @@ elseif(WIN32)
     )
   endif()
 
+  if(WITH_FFTW3)
+    install(
+          FILES ${LIBDIR}/fftw3/lib/libfftw3-3.dll
+          DESTINATION "."
+    )
+  endif()
+
   if(WITH_WINDOWS_PDB)
     if(WITH_WINDOWS_STRIPPED_PDB)
       # Icky hack for older cmake from https://stackoverflow.com/a/21198501
