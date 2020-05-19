@@ -121,6 +121,8 @@ void BKE_pbvh_parallel_range(const int start,
 #ifdef WITH_TBB
   /* Multithreading. */
   if (settings->use_threading) {
+    BLI_threaded_malloc_begin();
+
     PBVHTask task(func, userdata, settings);
 
     if (settings->func_reduce) {
@@ -133,6 +135,7 @@ void BKE_pbvh_parallel_range(const int start,
       parallel_for(tbb::blocked_range<int>(start, stop), task);
     }
 
+    BLI_threaded_malloc_end();
     return;
   }
 #endif
