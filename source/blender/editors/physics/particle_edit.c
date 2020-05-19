@@ -5251,9 +5251,6 @@ static bool particle_edit_toggle_poll(bContext *C)
   if (!ob->data || ID_IS_LINKED(ob->data)) {
     return 0;
   }
-  if (CTX_data_edit_object(C)) {
-    return 0;
-  }
 
   return (ob->particlesystem.first || BKE_modifiers_findby_type(ob, eModifierType_Cloth) ||
           BKE_modifiers_findby_type(ob, eModifierType_Softbody));
