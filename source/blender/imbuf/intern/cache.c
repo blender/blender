@@ -427,8 +427,8 @@ void IMB_tiles_to_rect(ImBuf *ibuf)
 
     /* don't call imb_addrectImBuf, it frees all mipmaps */
     if (!mipbuf->rect) {
-      if ((mipbuf->rect = MEM_mapallocN(ibuf->x * ibuf->y * sizeof(unsigned int),
-                                        "imb_addrectImBuf"))) {
+      if ((mipbuf->rect = MEM_callocN(ibuf->x * ibuf->y * sizeof(unsigned int),
+                                      "imb_addrectImBuf"))) {
         mipbuf->mall |= IB_rect;
         mipbuf->flags |= IB_rect;
       }

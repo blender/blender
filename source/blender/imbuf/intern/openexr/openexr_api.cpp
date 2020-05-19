@@ -1598,8 +1598,8 @@ static ExrHandle *imb_exr_begin_read_mem(IStream &file_stream,
   for (lay = (ExrLayer *)data->layers.first; lay; lay = lay->next) {
     for (pass = (ExrPass *)lay->passes.first; pass; pass = pass->next) {
       if (pass->totchan) {
-        pass->rect = (float *)MEM_mapallocN(width * height * pass->totchan * sizeof(float),
-                                            "pass rect");
+        pass->rect = (float *)MEM_callocN(width * height * pass->totchan * sizeof(float),
+                                          "pass rect");
         if (pass->totchan == 1) {
           echan = pass->chan[0];
           echan->rect = pass->rect;

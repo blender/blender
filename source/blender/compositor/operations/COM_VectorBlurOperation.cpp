@@ -570,15 +570,15 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
   zspan.zofsy = 0.0f;
 
   /* the buffers */
-  rectz = (float *)MEM_mapallocN(sizeof(float) * xsize * ysize, "zbuf accum");
+  rectz = (float *)MEM_callocN(sizeof(float) * xsize * ysize, "zbuf accum");
   zspan.rectz = (int *)rectz;
 
-  rectmove = (char *)MEM_mapallocN(xsize * ysize, "rectmove");
-  rectdraw = (DrawBufPixel *)MEM_mapallocN(sizeof(DrawBufPixel) * xsize * ysize, "rect draw");
+  rectmove = (char *)MEM_callocN(xsize * ysize, "rectmove");
+  rectdraw = (DrawBufPixel *)MEM_callocN(sizeof(DrawBufPixel) * xsize * ysize, "rect draw");
   zspan.rectdraw = rectdraw;
 
-  rectweight = (float *)MEM_mapallocN(sizeof(float) * xsize * ysize, "rect weight");
-  rectmax = (float *)MEM_mapallocN(sizeof(float) * xsize * ysize, "rect max");
+  rectweight = (float *)MEM_callocN(sizeof(float) * xsize * ysize, "rect weight");
+  rectmax = (float *)MEM_callocN(sizeof(float) * xsize * ysize, "rect max");
 
   /* debug... check if PASS_VECTOR_MAX still is in buffers */
   dvec1 = vecbufrect;
@@ -597,7 +597,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
     float minspeed = (float)nbd->minspeed;
     float minspeedsq = minspeed * minspeed;
 
-    minvecbufrect = (float *)MEM_mapallocN(4 * sizeof(float) * xsize * ysize, "minspeed buf");
+    minvecbufrect = (float *)MEM_callocN(4 * sizeof(float) * xsize * ysize, "minspeed buf");
 
     dvec1 = vecbufrect;
     dvec2 = minvecbufrect;
@@ -623,7 +623,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
   }
 
   /* make vertex buffer with averaged speed and zvalues */
-  rectvz = (float *)MEM_mapallocN(4 * sizeof(float) * (xsize + 1) * (ysize + 1), "vertices");
+  rectvz = (float *)MEM_callocN(4 * sizeof(float) * (xsize + 1) * (ysize + 1), "vertices");
   dvz = rectvz;
   for (y = 0; y <= ysize; y++) {
 

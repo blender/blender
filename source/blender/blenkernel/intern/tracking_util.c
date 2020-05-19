@@ -713,7 +713,7 @@ static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
    */
   const size_t size = (size_t)grayscale->x * (size_t)grayscale->y * sizeof(float);
   grayscale->channels = 1;
-  if ((grayscale->rect_float = MEM_mapallocN(size, "tracking grayscale image")) != NULL) {
+  if ((grayscale->rect_float = MEM_callocN(size, "tracking grayscale image")) != NULL) {
     grayscale->mall |= IB_rectfloat;
     grayscale->flags |= IB_rectfloat;
 
@@ -741,7 +741,7 @@ static ImBuf *float_image_to_ibuf(libmv_FloatImage *float_image)
   ImBuf *ibuf = IMB_allocImBuf(float_image->width, float_image->height, 32, 0);
   size_t size = (size_t)ibuf->x * (size_t)ibuf->y * float_image->channels * sizeof(float);
   ibuf->channels = float_image->channels;
-  if ((ibuf->rect_float = MEM_mapallocN(size, "tracking grayscale image")) != NULL) {
+  if ((ibuf->rect_float = MEM_callocN(size, "tracking grayscale image")) != NULL) {
     ibuf->mall |= IB_rectfloat;
     ibuf->flags |= IB_rectfloat;
 

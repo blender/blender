@@ -788,7 +788,7 @@ void IMB_float_from_rect(ImBuf *ibuf)
     size = size * 4 * sizeof(float);
     ibuf->channels = 4;
 
-    rect_float = MEM_mapallocN(size, "IMB_float_from_rect");
+    rect_float = MEM_callocN(size, "IMB_float_from_rect");
 
     if (rect_float == NULL) {
       return;

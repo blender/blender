@@ -255,7 +255,7 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
     float *rect;
     int x;
 
-    rpass->rect = MEM_mapallocN(sizeof(float) * rectsize, name);
+    rpass->rect = MEM_callocN(sizeof(float) * rectsize, name);
     if (rpass->rect == NULL) {
       MEM_freeN(rpass);
       return NULL;

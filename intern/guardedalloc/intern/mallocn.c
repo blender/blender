@@ -48,7 +48,6 @@ void *(*MEM_malloc_arrayN)(size_t len, size_t size, const char *str) = MEM_lockf
 void *(*MEM_mallocN_aligned)(size_t len,
                              size_t alignment,
                              const char *str) = MEM_lockfree_mallocN_aligned;
-void *(*MEM_mapallocN)(size_t len, const char *str) = MEM_lockfree_mapallocN;
 void (*MEM_printmemlist_pydict)(void) = MEM_lockfree_printmemlist_pydict;
 void (*MEM_printmemlist)(void) = MEM_lockfree_printmemlist;
 void (*MEM_callbackmemlist)(void (*func)(void *)) = MEM_lockfree_callbackmemlist;
@@ -59,7 +58,6 @@ void (*MEM_set_lock_callback)(void (*lock)(void),
                               void (*unlock)(void)) = MEM_lockfree_set_lock_callback;
 void (*MEM_set_memory_debug)(void) = MEM_lockfree_set_memory_debug;
 size_t (*MEM_get_memory_in_use)(void) = MEM_lockfree_get_memory_in_use;
-size_t (*MEM_get_mapped_memory_in_use)(void) = MEM_lockfree_get_mapped_memory_in_use;
 unsigned int (*MEM_get_memory_blocks_in_use)(void) = MEM_lockfree_get_memory_blocks_in_use;
 void (*MEM_reset_peak_memory)(void) = MEM_lockfree_reset_peak_memory;
 size_t (*MEM_get_peak_memory)(void) = MEM_lockfree_get_peak_memory;
@@ -111,7 +109,6 @@ void MEM_use_guarded_allocator(void)
   MEM_mallocN = MEM_guarded_mallocN;
   MEM_malloc_arrayN = MEM_guarded_malloc_arrayN;
   MEM_mallocN_aligned = MEM_guarded_mallocN_aligned;
-  MEM_mapallocN = MEM_guarded_mapallocN;
   MEM_printmemlist_pydict = MEM_guarded_printmemlist_pydict;
   MEM_printmemlist = MEM_guarded_printmemlist;
   MEM_callbackmemlist = MEM_guarded_callbackmemlist;
@@ -121,7 +118,6 @@ void MEM_use_guarded_allocator(void)
   MEM_set_lock_callback = MEM_guarded_set_lock_callback;
   MEM_set_memory_debug = MEM_guarded_set_memory_debug;
   MEM_get_memory_in_use = MEM_guarded_get_memory_in_use;
-  MEM_get_mapped_memory_in_use = MEM_guarded_get_mapped_memory_in_use;
   MEM_get_memory_blocks_in_use = MEM_guarded_get_memory_blocks_in_use;
   MEM_reset_peak_memory = MEM_guarded_reset_peak_memory;
   MEM_get_peak_memory = MEM_guarded_get_peak_memory;

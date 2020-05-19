@@ -104,7 +104,7 @@ typedef struct MemHead {
   const char *name;
   const char *nextname;
   int tag2;
-  short mmap;      /* if true, memory was mmapped */
+  short pad1;
   short alignment; /* if non-zero aligned alloc was used
                     * and alignment is stored here.
                     */
@@ -187,7 +187,7 @@ static const char *check_memlist(MemHead *memh);
 /* --------------------------------------------------------------------- */
 
 static unsigned int totblock = 0;
-static size_t mem_in_use = 0, mmap_in_use = 0, peak_mem = 0;
+static size_t mem_in_use = 0, peak_mem = 0;
 
 static volatile struct localListBase _membase;
 static volatile struct localListBase *membase = &_membase;
@@ -320,10 +320,8 @@ void *MEM_guarded_dupallocN(const void *vmemh)
     memh--;
 
 #ifndef DEBUG_MEMDUPLINAME
-    if (UNLIKELY(memh->mmap))
-      newp = MEM_guarded_mapallocN(memh->len, "dupli_mapalloc");
-    else if (LIKELY(memh->alignment == 0))
-      newp = MEM_guarded_mapallocN(memh->len, "dupli_mapalloc");
+    if (LIKELY(memh->alignment == 0))
+      newp = MEM_guarded_mallocN(memh->len, "dupli_alloc");
     else
       newp = MEM_guarded_mallocN_aligned(memh->len, (size_t)memh->alignment, "dupli_alloc");
 
@@ -334,11 +332,7 @@ void *MEM_guarded_dupallocN(const void *vmemh)
       MemHead *nmemh;
       char *name = malloc(strlen(memh->name) + 24);
 
-      if (UNLIKELY(memh->mmap)) {
-        sprintf(name, "%s %s", "dupli_mapalloc", memh->name);
-        newp = MEM_guarded_mapallocN(memh->len, name);
-      }
-      else if (LIKELY(memh->alignment == 0)) {
+      if (LIKELY(memh->alignment == 0)) {
         sprintf(name, "%s %s", "dupli_alloc", memh->name);
         newp = MEM_guarded_mallocN(memh->len, name);
       }
@@ -478,7 +472,7 @@ static void make_memhead_header(MemHead *memh, size_t len, const char *str)
   memh->name = str;
   memh->nextname = NULL;
   memh->len = len;
-  memh->mmap = 0;
+  memh->pad1 = 0;
   memh->alignment = 0;
   memh->tag2 = MEMTAG2;
 
@@ -646,58 +640,6 @@ void *MEM_guarded_calloc_arrayN(size_t len, size_t size, const char *str)
   return MEM_guarded_callocN(total_size, str);
 }
 
-/* note; mmap returns zero'd memory */
-void *MEM_guarded_mapallocN(size_t len, const char *str)
-{
-  MemHead *memh;
-
-  /* on 64 bit, simply use calloc instead, as mmap does not support
-   * allocating > 4 GB on Windows. the only reason mapalloc exists
-   * is to get around address space limitations in 32 bit OSes. */
-  if (sizeof(void *) >= 8)
-    return MEM_guarded_callocN(len, str);
-
-  len = SIZET_ALIGN_4(len);
-
-#if defined(WIN32)
-  /* our windows mmap implementation is not thread safe */
-  mem_lock_thread();
-#endif
-  memh = mmap(NULL,
-              len + sizeof(MemHead) + sizeof(MemTail),
-              PROT_READ | PROT_WRITE,
-              MAP_SHARED | MAP_ANON,
-              -1,
-              0);
-#if defined(WIN32)
-  mem_unlock_thread();
-#endif
-
-  if (memh != (MemHead *)-1) {
-    make_memhead_header(memh, len, str);
-    memh->mmap = 1;
-    atomic_add_and_fetch_z(&mmap_in_use, len);
-    mem_lock_thread();
-    peak_mem = mmap_in_use > peak_mem ? mmap_in_use : peak_mem;
-    mem_unlock_thread();
-#ifdef DEBUG_MEMCOUNTER
-    if (_mallocn_count == DEBUG_MEMCOUNTER_ERROR_VAL)
-      memcount_raise(__func__);
-    memh->_count = _mallocn_count++;
-#endif
-    return (++memh);
-  }
-  else {
-    print_error(
-        "Mapalloc returns null, fallback to regular malloc: "
-        "len=" SIZET_FORMAT " in %s, total %u\n",
-        SIZET_ARG(len),
-        str,
-        (unsigned int)mmap_in_use);
-    return MEM_guarded_callocN(len, str);
-  }
-}
-
 /* Memory statistics print */
 typedef struct MemPrintBlock {
   const char *name;
@@ -765,7 +707,7 @@ void MEM_guarded_printmemlist_stats(void)
     pb++;
 
 #ifdef USE_MALLOC_USABLE_SIZE
-    if (!membl->mmap && membl->alignment == 0) {
+    if (membl->alignment == 0) {
       mem_in_use_slop += (sizeof(MemHead) + sizeof(MemTail) + malloc_usable_size((void *)membl)) -
                          membl->len;
     }
@@ -1098,27 +1040,13 @@ static void rem_memblock(MemHead *memh)
     free((char *)memh->name);
 #endif
 
-  if (memh->mmap) {
-    atomic_sub_and_fetch_z(&mmap_in_use, memh->len);
-#if defined(WIN32)
-    /* our windows mmap implementation is not thread safe */
-    mem_lock_thread();
-#endif
-    if (munmap(memh, memh->len + sizeof(MemHead) + sizeof(MemTail)))
-      printf("Couldn't unmap memory %s\n", memh->name);
-#if defined(WIN32)
-    mem_unlock_thread();
-#endif
+  if (UNLIKELY(malloc_debug_memset && memh->len))
+    memset(memh + 1, 255, memh->len);
+  if (LIKELY(memh->alignment == 0)) {
+    free(memh);
   }
   else {
-    if (UNLIKELY(malloc_debug_memset && memh->len))
-      memset(memh + 1, 255, memh->len);
-    if (LIKELY(memh->alignment == 0)) {
-      free(memh);
-    }
-    else {
-      aligned_free(MEMHEAD_REAL_PTR(memh));
-    }
+    aligned_free(MEMHEAD_REAL_PTR(memh));
   }
 }
 
@@ -1268,17 +1196,6 @@ size_t MEM_guarded_get_memory_in_use(void)
   mem_unlock_thread();
 
   return _mem_in_use;
-}
-
-size_t MEM_guarded_get_mapped_memory_in_use(void)
-{
-  size_t _mmap_in_use;
-
-  mem_lock_thread();
-  _mmap_in_use = mmap_in_use;
-  mem_unlock_thread();
-
-  return _mmap_in_use;
 }
 
 unsigned int MEM_guarded_get_memory_blocks_in_use(void)

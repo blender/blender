@@ -914,7 +914,7 @@ static void sculpt_undo_alloc_and_store_hidden(PBVH *pbvh, SculptUndoNode *unode
 
   BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, NULL, NULL, NULL);
 
-  unode->grid_hidden = MEM_mapallocN(sizeof(*unode->grid_hidden) * totgrid, "unode->grid_hidden");
+  unode->grid_hidden = MEM_callocN(sizeof(*unode->grid_hidden) * totgrid, "unode->grid_hidden");
 
   for (i = 0; i < totgrid; i++) {
     if (grid_hidden[grid_indices[i]]) {
@@ -975,13 +975,11 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     maxgrid = 0;
   }
 
-  /* We will use this while sculpting, is mapalloc slow to access then? */
-
   /* General TODO, fix count_alloc. */
   switch (type) {
     case SCULPT_UNDO_COORDS:
-      unode->co = MEM_mapallocN(sizeof(float[3]) * allvert, "SculptUndoNode.co");
-      unode->no = MEM_mapallocN(sizeof(short[3]) * allvert, "SculptUndoNode.no");
+      unode->co = MEM_callocN(sizeof(float[3]) * allvert, "SculptUndoNode.co");
+      unode->no = MEM_callocN(sizeof(short[3]) * allvert, "SculptUndoNode.no");
 
       usculpt->undo_size = (sizeof(float[3]) + sizeof(short[3]) + sizeof(int)) * allvert;
       break;
@@ -995,7 +993,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
 
       break;
     case SCULPT_UNDO_MASK:
-      unode->mask = MEM_mapallocN(sizeof(float) * allvert, "SculptUndoNode.mask");
+      unode->mask = MEM_callocN(sizeof(float) * allvert, "SculptUndoNode.mask");
 
       usculpt->undo_size += (sizeof(float) * sizeof(int)) * allvert;
 
@@ -1014,12 +1012,12 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     unode->maxgrid = maxgrid;
     unode->totgrid = totgrid;
     unode->gridsize = gridsize;
-    unode->grids = MEM_mapallocN(sizeof(int) * totgrid, "SculptUndoNode.grids");
+    unode->grids = MEM_callocN(sizeof(int) * totgrid, "SculptUndoNode.grids");
   }
   else {
     /* Regular mesh. */
     unode->maxvert = ss->totvert;
-    unode->index = MEM_mapallocN(sizeof(int) * allvert, "SculptUndoNode.index");
+    unode->index = MEM_callocN(sizeof(int) * allvert, "SculptUndoNode.index");
   }
 
   if (ss->deform_modifiers_active) {

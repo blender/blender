@@ -414,16 +414,10 @@ static const char *footer_string(ViewLayer *view_layer)
   size_t ofs = 0;
 
   uintptr_t mem_in_use = MEM_get_memory_in_use();
-  uintptr_t mmap_in_use = MEM_get_mapped_memory_in_use();
 
   /* get memory statistics */
-  BLI_str_format_byte_unit(formatted_mem, mem_in_use - mmap_in_use, false);
+  BLI_str_format_byte_unit(formatted_mem, mem_in_use, false);
   ofs = BLI_snprintf(memstr, MAX_INFO_MEM_LEN, TIP_("Mem: %s"), formatted_mem);
-
-  if (mmap_in_use) {
-    BLI_str_format_byte_unit(formatted_mem, mmap_in_use, false);
-    BLI_snprintf(memstr + ofs, MAX_INFO_MEM_LEN - ofs, TIP_(" (%s)"), formatted_mem);
-  }
 
   if (GPU_mem_stats_supported()) {
     int gpu_free_mem, gpu_tot_memory;

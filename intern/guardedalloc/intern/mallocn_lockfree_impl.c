@@ -44,22 +44,18 @@ typedef struct MemHeadAligned {
 } MemHeadAligned;
 
 static unsigned int totblock = 0;
-static size_t mem_in_use = 0, mmap_in_use = 0, peak_mem = 0;
+static size_t mem_in_use = 0, peak_mem = 0;
 static bool malloc_debug_memset = false;
 
 static void (*error_callback)(const char *) = NULL;
-static void (*thread_lock_callback)(void) = NULL;
-static void (*thread_unlock_callback)(void) = NULL;
 
 enum {
-  MEMHEAD_MMAP_FLAG = 1,
-  MEMHEAD_ALIGN_FLAG = 2,
+  MEMHEAD_ALIGN_FLAG = 1,
 };
 
 #define MEMHEAD_FROM_PTR(ptr) (((MemHead *)ptr) - 1)
 #define PTR_FROM_MEMHEAD(memhead) (memhead + 1)
 #define MEMHEAD_ALIGNED_FROM_PTR(ptr) (((MemHeadAligned *)ptr) - 1)
-#define MEMHEAD_IS_MMAP(memhead) ((memhead)->len & (size_t)MEMHEAD_MMAP_FLAG)
 #define MEMHEAD_IS_ALIGNED(memhead) ((memhead)->len & (size_t)MEMHEAD_ALIGN_FLAG)
 
 /* Uncomment this to have proper peak counter. */
@@ -93,24 +89,10 @@ print_error(const char *str, ...)
   }
 }
 
-#if defined(WIN32)
-static void mem_lock_thread(void)
-{
-  if (thread_lock_callback)
-    thread_lock_callback();
-}
-
-static void mem_unlock_thread(void)
-{
-  if (thread_unlock_callback)
-    thread_unlock_callback();
-}
-#endif
-
 size_t MEM_lockfree_allocN_len(const void *vmemh)
 {
   if (vmemh) {
-    return MEMHEAD_FROM_PTR(vmemh)->len & ~((size_t)(MEMHEAD_MMAP_FLAG | MEMHEAD_ALIGN_FLAG));
+    return MEMHEAD_FROM_PTR(vmemh)->len & ~((size_t)(MEMHEAD_ALIGN_FLAG));
   }
   else {
     return 0;
@@ -133,29 +115,15 @@ void MEM_lockfree_freeN(void *vmemh)
   atomic_sub_and_fetch_u(&totblock, 1);
   atomic_sub_and_fetch_z(&mem_in_use, len);
 
-  if (MEMHEAD_IS_MMAP(memh)) {
-    atomic_sub_and_fetch_z(&mmap_in_use, len);
-#if defined(WIN32)
-    /* our windows mmap implementation is not thread safe */
-    mem_lock_thread();
-#endif
-    if (munmap(memh, len + sizeof(MemHead)))
-      printf("Couldn't unmap memory\n");
-#if defined(WIN32)
-    mem_unlock_thread();
-#endif
+  if (UNLIKELY(malloc_debug_memset && len)) {
+    memset(memh + 1, 255, len);
+  }
+  if (UNLIKELY(MEMHEAD_IS_ALIGNED(memh))) {
+    MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
+    aligned_free(MEMHEAD_REAL_PTR(memh_aligned));
   }
   else {
-    if (UNLIKELY(malloc_debug_memset && len)) {
-      memset(memh + 1, 255, len);
-    }
-    if (UNLIKELY(MEMHEAD_IS_ALIGNED(memh))) {
-      MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
-      aligned_free(MEMHEAD_REAL_PTR(memh_aligned));
-    }
-    else {
-      free(memh);
-    }
+    free(memh);
   }
 }
 
@@ -165,10 +133,7 @@ void *MEM_lockfree_dupallocN(const void *vmemh)
   if (vmemh) {
     MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
     const size_t prev_size = MEM_lockfree_allocN_len(vmemh);
-    if (UNLIKELY(MEMHEAD_IS_MMAP(memh))) {
-      newp = MEM_lockfree_mapallocN(prev_size, "dupli_mapalloc");
-    }
-    else if (UNLIKELY(MEMHEAD_IS_ALIGNED(memh))) {
+    if (UNLIKELY(MEMHEAD_IS_ALIGNED(memh))) {
       MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
       newp = MEM_lockfree_mallocN_aligned(
           prev_size, (size_t)memh_aligned->alignment, "dupli_malloc");
@@ -397,47 +362,6 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
   return NULL;
 }
 
-void *MEM_lockfree_mapallocN(size_t len, const char *str)
-{
-  MemHead *memh;
-
-  /* on 64 bit, simply use calloc instead, as mmap does not support
-   * allocating > 4 GB on Windows. the only reason mapalloc exists
-   * is to get around address space limitations in 32 bit OSes. */
-  if (sizeof(void *) >= 8)
-    return MEM_lockfree_callocN(len, str);
-
-  len = SIZET_ALIGN_4(len);
-
-#if defined(WIN32)
-  /* our windows mmap implementation is not thread safe */
-  mem_lock_thread();
-#endif
-  memh = mmap(NULL, len + sizeof(MemHead), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
-#if defined(WIN32)
-  mem_unlock_thread();
-#endif
-
-  if (memh != (MemHead *)-1) {
-    memh->len = len | (size_t)MEMHEAD_MMAP_FLAG;
-    atomic_add_and_fetch_u(&totblock, 1);
-    atomic_add_and_fetch_z(&mem_in_use, len);
-    atomic_add_and_fetch_z(&mmap_in_use, len);
-
-    update_maximum(&peak_mem, mem_in_use);
-    update_maximum(&peak_mem, mmap_in_use);
-
-    return PTR_FROM_MEMHEAD(memh);
-  }
-  print_error(
-      "Mapalloc returns null, fallback to regular malloc: "
-      "len=" SIZET_FORMAT " in %s, total %u\n",
-      SIZET_ARG(len),
-      str,
-      (unsigned int)mmap_in_use);
-  return MEM_lockfree_callocN(len, str);
-}
-
 void MEM_lockfree_printmemlist_pydict(void)
 {
 }
@@ -478,8 +402,8 @@ bool MEM_lockfree_consistency_check(void)
 
 void MEM_lockfree_set_lock_callback(void (*lock)(void), void (*unlock)(void))
 {
-  thread_lock_callback = lock;
-  thread_unlock_callback = unlock;
+  (void)lock;
+  (void)unlock;
 }
 
 void MEM_lockfree_set_memory_debug(void)
@@ -490,11 +414,6 @@ void MEM_lockfree_set_memory_debug(void)
 size_t MEM_lockfree_get_memory_in_use(void)
 {
   return mem_in_use;
-}
-
-size_t MEM_lockfree_get_mapped_memory_in_use(void)
-{
-  return mmap_in_use;
 }
 
 unsigned int MEM_lockfree_get_memory_blocks_in_use(void)

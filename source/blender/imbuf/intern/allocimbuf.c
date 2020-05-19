@@ -380,7 +380,7 @@ void *imb_alloc_pixels(
   }
 
   size_t size = (size_t)x * (size_t)y * (size_t)channels * typesize;
-  return MEM_mapallocN(size, name);
+  return MEM_callocN(size, name);
 }
 
 bool imb_addrectfloatImBuf(ImBuf *ibuf)
