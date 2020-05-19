@@ -230,7 +230,7 @@ void assignFunctionPointers(OpenSubdiv_TopologyRefiner *topology_refiner)
 OpenSubdiv_TopologyRefiner *allocateTopologyRefiner()
 {
   OpenSubdiv_TopologyRefiner *topology_refiner = OBJECT_GUARDED_NEW(OpenSubdiv_TopologyRefiner);
-  topology_refiner->impl = OBJECT_GUARDED_NEW(OpenSubdiv_TopologyRefinerImpl);
+  topology_refiner->impl = new OpenSubdiv_TopologyRefinerImpl();
   assignFunctionPointers(topology_refiner);
   return topology_refiner;
 }
@@ -256,7 +256,7 @@ OpenSubdiv_TopologyRefiner *openSubdiv_createTopologyRefinerFromConverter(
 
 void openSubdiv_deleteTopologyRefiner(OpenSubdiv_TopologyRefiner *topology_refiner)
 {
-  OBJECT_GUARDED_DELETE(topology_refiner->impl, OpenSubdiv_TopologyRefinerImpl);
+  delete topology_refiner->impl;
   OBJECT_GUARDED_DELETE(topology_refiner, OpenSubdiv_TopologyRefiner);
 }
 

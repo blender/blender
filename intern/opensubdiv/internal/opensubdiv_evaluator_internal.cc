@@ -858,7 +858,7 @@ OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
   OpenSubdiv::Far::PatchMap *patch_map = new PatchMap(*patch_table);
   // Wrap everything we need into an object which we control from our side.
   OpenSubdiv_EvaluatorInternal *evaluator_descr;
-  evaluator_descr = OBJECT_GUARDED_NEW(OpenSubdiv_EvaluatorInternal);
+  evaluator_descr = new OpenSubdiv_EvaluatorInternal();
   evaluator_descr->eval_output = new blender::opensubdiv::CpuEvalOutputAPI(eval_output, patch_map);
   evaluator_descr->patch_map = patch_map;
   evaluator_descr->patch_table = patch_table;
@@ -873,5 +873,5 @@ OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
 
 void openSubdiv_deleteEvaluatorInternal(OpenSubdiv_EvaluatorInternal *evaluator)
 {
-  OBJECT_GUARDED_DELETE(evaluator, OpenSubdiv_EvaluatorInternal);
+  delete evaluator;
 }

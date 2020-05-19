@@ -26,6 +26,8 @@
 #include <opensubdiv/far/patchMap.h>
 #include <opensubdiv/far/patchTable.h>
 
+#include "internal/base/memory.h"
+
 struct OpenSubdiv_PatchCoord;
 struct OpenSubdiv_TopologyRefiner;
 
@@ -144,6 +146,8 @@ struct OpenSubdiv_EvaluatorInternal {
   blender::opensubdiv::CpuEvalOutputAPI *eval_output;
   const OpenSubdiv::Far::PatchMap *patch_map;
   const OpenSubdiv::Far::PatchTable *patch_table;
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("OpenSubdiv_EvaluatorInternal");
 };
 
 OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(

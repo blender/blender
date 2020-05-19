@@ -25,6 +25,7 @@
 
 #include <opensubdiv/far/topologyRefiner.h>
 
+#include "internal/base/memory.h"
 #include "opensubdiv_topology_refiner_capi.h"
 
 namespace blender {
@@ -45,6 +46,8 @@ class TopologyRefinerImpl {
   // Ideally, we would also support refining topology without re-importing it
   // from external world, but that is for later.
   OpenSubdiv_TopologyRefinerSettings settings;
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("TopologyRefinerImpl");
 };
 
 }  // namespace opensubdiv

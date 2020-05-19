@@ -50,6 +50,9 @@ if(WITH_OPENSUBDIV)
   )
 
   list(APPEND SRC
+    # Base.
+    internal/base/memory.h
+
     # Device.
     internal/device/device_context_cuda.cc
     internal/device/device_context_cuda.h
