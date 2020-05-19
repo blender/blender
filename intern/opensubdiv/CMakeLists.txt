@@ -66,6 +66,11 @@ if(WITH_OPENSUBDIV)
     internal/device/device_context_openmp.cc
     internal/device/device_context_openmp.h
 
+    # Evaluator.
+    internal/evaluator/evaluator_capi.cc
+    internal/evaluator/evaluator_impl.cc
+    internal/evaluator/evaluator_impl.h
+
     # Topology.
     internal/topology/topology_refiner_capi.cc
     internal/topology/topology_refiner_factory.cc
@@ -74,12 +79,9 @@ if(WITH_OPENSUBDIV)
 
     internal/opensubdiv.cc
     internal/opensubdiv_converter_internal.cc
-    internal/opensubdiv_evaluator.cc
-    internal/opensubdiv_evaluator_internal.cc
     internal/opensubdiv_util.cc
 
     internal/opensubdiv_converter_internal.h
-    internal/opensubdiv_evaluator_internal.h
     internal/opensubdiv_util.h
   )
 

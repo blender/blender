@@ -16,7 +16,7 @@
 //
 // Author: Sergey Sharybin
 
-#include "internal/opensubdiv_evaluator_internal.h"
+#include "internal/evaluator/evaluator_impl.h"
 
 #include <cassert>
 #include <cstdio>
@@ -735,19 +735,19 @@ void CpuEvalOutputAPI::evaluatePatchesLimit(const OpenSubdiv_PatchCoord *patch_c
 }  // namespace opensubdiv
 }  // namespace blender
 
-OpenSubdiv_EvaluatorInternal::OpenSubdiv_EvaluatorInternal()
+OpenSubdiv_EvaluatorImpl::OpenSubdiv_EvaluatorImpl()
     : eval_output(NULL), patch_map(NULL), patch_table(NULL)
 {
 }
 
-OpenSubdiv_EvaluatorInternal::~OpenSubdiv_EvaluatorInternal()
+OpenSubdiv_EvaluatorImpl::~OpenSubdiv_EvaluatorImpl()
 {
   delete eval_output;
   delete patch_map;
   delete patch_table;
 }
 
-OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
+OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
     OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   using blender::opensubdiv::vector;
@@ -857,8 +857,8 @@ OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
       vertex_stencils, varying_stencils, all_face_varying_stencils, 2, patch_table);
   OpenSubdiv::Far::PatchMap *patch_map = new PatchMap(*patch_table);
   // Wrap everything we need into an object which we control from our side.
-  OpenSubdiv_EvaluatorInternal *evaluator_descr;
-  evaluator_descr = new OpenSubdiv_EvaluatorInternal();
+  OpenSubdiv_EvaluatorImpl *evaluator_descr;
+  evaluator_descr = new OpenSubdiv_EvaluatorImpl();
   evaluator_descr->eval_output = new blender::opensubdiv::CpuEvalOutputAPI(eval_output, patch_map);
   evaluator_descr->patch_map = patch_map;
   evaluator_descr->patch_table = patch_table;
@@ -871,7 +871,7 @@ OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
   return evaluator_descr;
 }
 
-void openSubdiv_deleteEvaluatorInternal(OpenSubdiv_EvaluatorInternal *evaluator)
+void openSubdiv_deleteEvaluatorInternal(OpenSubdiv_EvaluatorImpl *evaluator)
 {
   delete evaluator;
 }

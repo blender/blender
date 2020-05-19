@@ -16,8 +16,8 @@
 //
 // Author: Sergey Sharybin
 
-#ifndef OPENSUBDIV_EVALUATOR_INTERNAL_H_
-#define OPENSUBDIV_EVALUATOR_INTERNAL_H_
+#ifndef OPENSUBDIV_EVALUATOR_IMPL_H_
+#define OPENSUBDIV_EVALUATOR_IMPL_H_
 
 #ifdef _MSC_VER
 #  include <iso646.h>
@@ -138,21 +138,21 @@ class CpuEvalOutputAPI {
 }  // namespace opensubdiv
 }  // namespace blender
 
-struct OpenSubdiv_EvaluatorInternal {
+struct OpenSubdiv_EvaluatorImpl {
  public:
-  OpenSubdiv_EvaluatorInternal();
-  ~OpenSubdiv_EvaluatorInternal();
+  OpenSubdiv_EvaluatorImpl();
+  ~OpenSubdiv_EvaluatorImpl();
 
   blender::opensubdiv::CpuEvalOutputAPI *eval_output;
   const OpenSubdiv::Far::PatchMap *patch_map;
   const OpenSubdiv::Far::PatchTable *patch_table;
 
-  MEM_CXX_CLASS_ALLOC_FUNCS("OpenSubdiv_EvaluatorInternal");
+  MEM_CXX_CLASS_ALLOC_FUNCS("OpenSubdiv_EvaluatorImpl");
 };
 
-OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
+OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
     struct OpenSubdiv_TopologyRefiner *topology_refiner);
 
-void openSubdiv_deleteEvaluatorInternal(OpenSubdiv_EvaluatorInternal *evaluator);
+void openSubdiv_deleteEvaluatorInternal(OpenSubdiv_EvaluatorImpl *evaluator);
 
-#endif  // OPENSUBDIV_EVALUATOR_INTERNAL_H_
+#endif  // OPENSUBDIV_EVALUATOR_IMPL_H_

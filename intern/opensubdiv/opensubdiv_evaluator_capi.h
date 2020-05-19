@@ -122,10 +122,8 @@ typedef struct OpenSubdiv_Evaluator {
                                float *dPdu,
                                float *dPdv);
 
-  // Internal storage for the use in this module only.
-  //
-  // This is where actual OpenSubdiv's evaluator is living.
-  struct OpenSubdiv_EvaluatorInternal *internal;
+  // Implementation of the evaluator.
+  struct OpenSubdiv_EvaluatorImpl *impl;
 } OpenSubdiv_Evaluator;
 
 OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(

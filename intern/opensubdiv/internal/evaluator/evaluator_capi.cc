@@ -21,7 +21,7 @@
 #include "MEM_guardedalloc.h"
 #include <new>
 
-#include "internal/opensubdiv_evaluator_internal.h"
+#include "internal/evaluator/evaluator_impl.h"
 
 namespace {
 
@@ -30,8 +30,7 @@ void setCoarsePositions(OpenSubdiv_Evaluator *evaluator,
                         const int start_vertex_index,
                         const int num_vertices)
 {
-  evaluator->internal->eval_output->setCoarsePositions(
-      positions, start_vertex_index, num_vertices);
+  evaluator->impl->eval_output->setCoarsePositions(positions, start_vertex_index, num_vertices);
 }
 
 void setVaryingData(OpenSubdiv_Evaluator *evaluator,
@@ -39,7 +38,7 @@ void setVaryingData(OpenSubdiv_Evaluator *evaluator,
                     const int start_vertex_index,
                     const int num_vertices)
 {
-  evaluator->internal->eval_output->setVaryingData(varying_data, start_vertex_index, num_vertices);
+  evaluator->impl->eval_output->setVaryingData(varying_data, start_vertex_index, num_vertices);
 }
 
 void setFaceVaryingData(OpenSubdiv_Evaluator *evaluator,
@@ -48,7 +47,7 @@ void setFaceVaryingData(OpenSubdiv_Evaluator *evaluator,
                         const int start_vertex_index,
                         const int num_vertices)
 {
-  evaluator->internal->eval_output->setFaceVaryingData(
+  evaluator->impl->eval_output->setFaceVaryingData(
       face_varying_channel, face_varying_data, start_vertex_index, num_vertices);
 }
 
@@ -59,7 +58,7 @@ void setCoarsePositionsFromBuffer(OpenSubdiv_Evaluator *evaluator,
                                   const int start_vertex_index,
                                   const int num_vertices)
 {
-  evaluator->internal->eval_output->setCoarsePositionsFromBuffer(
+  evaluator->impl->eval_output->setCoarsePositionsFromBuffer(
       buffer, start_offset, stride, start_vertex_index, num_vertices);
 }
 
@@ -70,7 +69,7 @@ void setVaryingDataFromBuffer(OpenSubdiv_Evaluator *evaluator,
                               const int start_vertex_index,
                               const int num_vertices)
 {
-  evaluator->internal->eval_output->setVaryingDataFromBuffer(
+  evaluator->impl->eval_output->setVaryingDataFromBuffer(
       buffer, start_offset, stride, start_vertex_index, num_vertices);
 }
 
@@ -82,13 +81,13 @@ void setFaceVaryingDataFromBuffer(OpenSubdiv_Evaluator *evaluator,
                                   const int start_vertex_index,
                                   const int num_vertices)
 {
-  evaluator->internal->eval_output->setFaceVaryingDataFromBuffer(
+  evaluator->impl->eval_output->setFaceVaryingDataFromBuffer(
       face_varying_channel, buffer, start_offset, stride, start_vertex_index, num_vertices);
 }
 
 void refine(OpenSubdiv_Evaluator *evaluator)
 {
-  evaluator->internal->eval_output->refine();
+  evaluator->impl->eval_output->refine();
 }
 
 void evaluateLimit(OpenSubdiv_Evaluator *evaluator,
@@ -99,7 +98,7 @@ void evaluateLimit(OpenSubdiv_Evaluator *evaluator,
                    float dPdu[3],
                    float dPdv[3])
 {
-  evaluator->internal->eval_output->evaluateLimit(ptex_face_index, face_u, face_v, P, dPdu, dPdv);
+  evaluator->impl->eval_output->evaluateLimit(ptex_face_index, face_u, face_v, P, dPdu, dPdv);
 }
 
 void evaluatePatchesLimit(OpenSubdiv_Evaluator *evaluator,
@@ -109,7 +108,7 @@ void evaluatePatchesLimit(OpenSubdiv_Evaluator *evaluator,
                           float *dPdu,
                           float *dPdv)
 {
-  evaluator->internal->eval_output->evaluatePatchesLimit(
+  evaluator->impl->eval_output->evaluatePatchesLimit(
       patch_coords, num_patch_coords, P, dPdu, dPdv);
 }
 
@@ -119,7 +118,7 @@ void evaluateVarying(OpenSubdiv_Evaluator *evaluator,
                      float face_v,
                      float varying[3])
 {
-  evaluator->internal->eval_output->evaluateVarying(ptex_face_index, face_u, face_v, varying);
+  evaluator->impl->eval_output->evaluateVarying(ptex_face_index, face_u, face_v, varying);
 }
 
 void evaluateFaceVarying(OpenSubdiv_Evaluator *evaluator,
@@ -129,7 +128,7 @@ void evaluateFaceVarying(OpenSubdiv_Evaluator *evaluator,
                          float face_v,
                          float face_varying[2])
 {
-  evaluator->internal->eval_output->evaluateFaceVarying(
+  evaluator->impl->eval_output->evaluateFaceVarying(
       face_varying_channel, ptex_face_index, face_u, face_v, face_varying);
 }
 
@@ -159,12 +158,12 @@ OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
 {
   OpenSubdiv_Evaluator *evaluator = OBJECT_GUARDED_NEW(OpenSubdiv_Evaluator);
   assignFunctionPointers(evaluator);
-  evaluator->internal = openSubdiv_createEvaluatorInternal(topology_refiner);
+  evaluator->impl = openSubdiv_createEvaluatorInternal(topology_refiner);
   return evaluator;
 }
 
 void openSubdiv_deleteEvaluator(OpenSubdiv_Evaluator *evaluator)
 {
-  openSubdiv_deleteEvaluatorInternal(evaluator->internal);
+  openSubdiv_deleteEvaluatorInternal(evaluator->impl);
   OBJECT_GUARDED_DELETE(evaluator, OpenSubdiv_Evaluator);
 }
