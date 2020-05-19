@@ -36,15 +36,17 @@ namespace opensubdiv {
 
 class TopologyRefinerImpl {
  public:
-  // NOTE: Will return nullptr if topology refiner can not be created (for example, when topology
-  // is detected to be corrupted or invalid).
+  // NOTE: Will return nullptr if topology refiner can not be created (for
+  // example, when topology is detected to be corrupted or invalid).
   static TopologyRefinerImpl *createFromConverter(
       OpenSubdiv_Converter *converter, const OpenSubdiv_TopologyRefinerSettings &settings);
 
   TopologyRefinerImpl();
   ~TopologyRefinerImpl();
 
-  // Check whether this topology refiner defines same topology as the given converter.
+  // Check whether this topology refiner defines same topology as the given
+  // converter.
+  // Covers options, geometry, and geometry tags.
   bool isEqualToConverter(const OpenSubdiv_Converter *converter) const;
 
   OpenSubdiv::Far::TopologyRefiner *topology_refiner;

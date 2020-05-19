@@ -22,6 +22,7 @@
 #include "internal/base/type_convert.h"
 #include "internal/topology/mesh_topology.h"
 #include "internal/topology/topology_refiner_impl.h"
+
 #include "opensubdiv_converter_capi.h"
 
 namespace blender {
@@ -234,67 +235,6 @@ bool checkGeometryMatches(const TopologyRefinerImpl *topology_refiner_impl,
 ////////////////////////////////////////////////////////////////////////////////
 // Compare attributes which affects on topology.
 
-// TODO(sergey): Make this function usable by factory as well.
-float getEffectiveEdgeSharpness(const OpenSubdiv_Converter *converter, const int edge_index)
-{
-  if (converter->getEdgeSharpness != nullptr) {
-    return converter->getEdgeSharpness(converter, edge_index);
-  }
-
-  return 0.0f;
-}
-
-bool checkEdgeTagsMatch(const TopologyRefinerImpl *topology_refiner_impl,
-                        const OpenSubdiv_Converter *converter)
-{
-  const MeshTopology &base_mesh_topology = topology_refiner_impl->base_mesh_topology;
-
-  const int num_edges = base_mesh_topology.getNumEdges();
-  for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
-    const float current_sharpness = base_mesh_topology.getEdgeSharpness(edge_index);
-    const float requested_sharpness = getEffectiveEdgeSharpness(converter, edge_index);
-
-    if (current_sharpness != requested_sharpness) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-// TODO(sergey): Make this function usable by factory as well.
-float getEffectiveVertexSharpness(const OpenSubdiv_Converter *converter, const int vertex_index)
-{
-  if (converter->isInfiniteSharpVertex != nullptr &&
-      converter->isInfiniteSharpVertex(converter, vertex_index)) {
-    return OpenSubdiv::Sdc::Crease::SHARPNESS_INFINITE;
-  }
-
-  if (converter->getVertexSharpness != nullptr) {
-    return converter->getVertexSharpness(converter, vertex_index);
-  }
-
-  return 0.0f;
-}
-
-bool checkVertexSharpnessMatch(const TopologyRefinerImpl *topology_refiner_impl,
-                               const OpenSubdiv_Converter *converter)
-{
-  const MeshTopology &base_mesh_topology = topology_refiner_impl->base_mesh_topology;
-
-  const int num_vertices = base_mesh_topology.getNumVertices();
-  for (int vertex_index = 0; vertex_index < num_vertices; ++vertex_index) {
-    const float current_sharpness = base_mesh_topology.getVertexSharpness(vertex_index);
-    const float requested_sharpness = getEffectiveVertexSharpness(converter, vertex_index);
-
-    if (current_sharpness != requested_sharpness) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 bool checkSingleUVLayerMatch(const OpenSubdiv::Far::TopologyLevel &base_level,
                              const OpenSubdiv_Converter *converter,
                              const int layer_index)
@@ -339,9 +279,10 @@ bool checkUVLayersMatch(const TopologyRefinerImpl *topology_refiner_impl,
 bool checkTopologyAttributesMatch(const TopologyRefinerImpl *topology_refiner_impl,
                                   const OpenSubdiv_Converter *converter)
 {
-  return checkEdgeTagsMatch(topology_refiner_impl, converter) &&
-         checkVertexSharpnessMatch(topology_refiner_impl, converter) &&
-         checkUVLayersMatch(topology_refiner_impl, converter);
+  if (!topology_refiner_impl->base_mesh_topology.isEqualToConverter(converter)) {
+    return false;
+  }
+  return checkUVLayersMatch(topology_refiner_impl, converter);
 }
 
 }  // namespace

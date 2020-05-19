@@ -71,6 +71,13 @@ class MeshTopology {
   void setEdgeSharpness(int edge_index, float sharpness);
   float getEdgeSharpness(int edge_index) const;
 
+  //////////////////////////////////////////////////////////////////////////////
+  // Comparison.
+
+  // Check whether this topology refiner defines same topology as the given
+  // converter.
+  bool isEqualToConverter(const OpenSubdiv_Converter *converter) const;
+
  protected:
   // Unless full topology was specified the number of edges is not know ahead
   // of a time.
