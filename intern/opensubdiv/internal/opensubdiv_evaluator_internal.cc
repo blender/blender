@@ -751,7 +751,7 @@ OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
     OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   using blender::opensubdiv::vector;
-  TopologyRefiner *refiner = topology_refiner->impl->osd_topology_refiner;
+  TopologyRefiner *refiner = topology_refiner->impl->topology_refiner;
   if (refiner == NULL) {
     // Happens on bad topology.
     return NULL;

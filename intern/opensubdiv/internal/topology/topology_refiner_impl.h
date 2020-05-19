@@ -28,15 +28,22 @@
 #include "internal/base/memory.h"
 #include "opensubdiv_topology_refiner_capi.h"
 
+struct OpenSubdiv_Converter;
+
 namespace blender {
 namespace opensubdiv {
 
 class TopologyRefinerImpl {
  public:
+  // NOTE: Will return nullptr if topology refiner can not be created (for example, when topology
+  // is detected to be corrupted or invalid).
+  static TopologyRefinerImpl *createFromConverter(
+      OpenSubdiv_Converter *converter, const OpenSubdiv_TopologyRefinerSettings &settings);
+
   TopologyRefinerImpl();
   ~TopologyRefinerImpl();
 
-  OpenSubdiv::Far::TopologyRefiner *osd_topology_refiner;
+  OpenSubdiv::Far::TopologyRefiner *topology_refiner;
 
   // Subdivision settingsa this refiner is created for.
   //

@@ -68,7 +68,6 @@ if(WITH_OPENSUBDIV)
     # Topology.
     internal/topology/topology_refiner_capi.cc
     internal/topology/topology_refiner_factory.cc
-    internal/topology/topology_refiner_factory.h
     internal/topology/topology_refiner_impl.cc
     internal/topology/topology_refiner_impl.h
 

@@ -23,7 +23,6 @@
 #include "internal/opensubdiv_edge_map.h"
 #include "internal/opensubdiv_internal.h"
 #include "internal/opensubdiv_util.h"
-#include "internal/topology/topology_refiner_factory.h"
 #include "internal/topology/topology_refiner_impl.h"
 
 using blender::opensubdiv::vector;
@@ -33,7 +32,7 @@ namespace {
 const OpenSubdiv::Far::TopologyRefiner *getOSDTopologyRefiner(
     const OpenSubdiv_TopologyRefiner *topology_refiner)
 {
-  return topology_refiner->impl->osd_topology_refiner;
+  return topology_refiner->impl->topology_refiner;
 }
 
 const OpenSubdiv::Far::TopologyLevel *getOSDTopologyBaseLevel(
@@ -230,7 +229,6 @@ void assignFunctionPointers(OpenSubdiv_TopologyRefiner *topology_refiner)
 OpenSubdiv_TopologyRefiner *allocateTopologyRefiner()
 {
   OpenSubdiv_TopologyRefiner *topology_refiner = OBJECT_GUARDED_NEW(OpenSubdiv_TopologyRefiner);
-  topology_refiner->impl = new OpenSubdiv_TopologyRefinerImpl();
   assignFunctionPointers(topology_refiner);
   return topology_refiner;
 }
@@ -240,17 +238,17 @@ OpenSubdiv_TopologyRefiner *allocateTopologyRefiner()
 OpenSubdiv_TopologyRefiner *openSubdiv_createTopologyRefinerFromConverter(
     OpenSubdiv_Converter *converter, const OpenSubdiv_TopologyRefinerSettings *settings)
 {
-  OpenSubdiv::Far::TopologyRefiner *osd_topology_refiner =
-      blender::opensubdiv::createOSDTopologyRefinerFromConverter(converter);
-  if (osd_topology_refiner == NULL) {
-    // Happens on empty or bad topology.
-    return NULL;
+  using blender::opensubdiv::TopologyRefinerImpl;
+
+  TopologyRefinerImpl *topology_refiner_impl = TopologyRefinerImpl::createFromConverter(converter,
+                                                                                        *settings);
+  if (topology_refiner_impl == nullptr) {
+    return nullptr;
   }
+
   OpenSubdiv_TopologyRefiner *topology_refiner = allocateTopologyRefiner();
-  topology_refiner->impl->osd_topology_refiner = osd_topology_refiner;
-  // Store setting which we want to keep track of and which can not be stored
-  // in OpenSubdiv's descriptor yet.
-  topology_refiner->impl->settings = *settings;
+  topology_refiner->impl = static_cast<OpenSubdiv_TopologyRefinerImpl *>(topology_refiner_impl);
+
   return topology_refiner;
 }
 

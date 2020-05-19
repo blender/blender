@@ -20,7 +20,7 @@
 #  include <iso646.h>
 #endif
 
-#include "internal/topology/topology_refiner_factory.h"
+#include "internal/topology/topology_refiner_impl.h"
 
 #include <cassert>
 #include <cstdio>
@@ -39,6 +39,8 @@ using blender::opensubdiv::vector;
 struct TopologyRefinerData {
   const OpenSubdiv_Converter *converter;
 };
+
+typedef OpenSubdiv::Far::TopologyRefinerFactory<TopologyRefinerData> TopologyRefinerFactoryType;
 
 namespace OpenSubdiv {
 namespace OPENSUBDIV_VERSION {
@@ -254,6 +256,7 @@ OpenSubdiv::Sdc::Options::VtxBoundaryInterpolation getVtxBoundaryInterpolationFr
     OpenSubdiv_VtxBoundaryInterpolation boundary_interpolation)
 {
   using OpenSubdiv::Sdc::Options;
+
   switch (boundary_interpolation) {
     case OSD_VTX_BOUNDARY_NONE:
       return Options::VTX_BOUNDARY_NONE;
@@ -266,30 +269,62 @@ OpenSubdiv::Sdc::Options::VtxBoundaryInterpolation getVtxBoundaryInterpolationFr
   return Options::VTX_BOUNDARY_EDGE_ONLY;
 }
 
-}  // namespace
-
-OpenSubdiv::Far::TopologyRefiner *createOSDTopologyRefinerFromConverter(
-    OpenSubdiv_Converter *converter)
+OpenSubdiv::Sdc::Options getSDCOptions(OpenSubdiv_Converter *converter)
 {
-  using OpenSubdiv::Far::TopologyRefinerFactory;
   using OpenSubdiv::Sdc::Options;
-  const OpenSubdiv::Sdc::SchemeType scheme_type = getSchemeTypeFromCAPI(
-      converter->getSchemeType(converter));
+
   const Options::FVarLinearInterpolation linear_interpolation = getFVarLinearInterpolationFromCAPI(
       converter->getFVarLinearInterpolation(converter));
+
   Options options;
   options.SetVtxBoundaryInterpolation(
       getVtxBoundaryInterpolationFromCAPI(converter->getVtxBoundaryInterpolation(converter)));
   options.SetCreasingMethod(Options::CREASE_UNIFORM);
   options.SetFVarLinearInterpolation(linear_interpolation);
 
-  TopologyRefinerFactory<TopologyRefinerData>::Options topology_options(scheme_type, options);
+  return options;
+}
+
+TopologyRefinerFactoryType::Options getTopologyRefinerOptions(OpenSubdiv_Converter *converter)
+{
+  using OpenSubdiv::Sdc::SchemeType;
+
+  OpenSubdiv::Sdc::Options sdc_options = getSDCOptions(converter);
+
+  const SchemeType scheme_type = getSchemeTypeFromCAPI(converter->getSchemeType(converter));
+  TopologyRefinerFactoryType::Options topology_options(scheme_type, sdc_options);
 #ifdef OPENSUBDIV_VALIDATE_TOPOLOGY
   topology_options.validateFullTopology = true;
 #endif
+
+  return topology_options;
+}
+
+}  // namespace
+
+TopologyRefinerImpl *TopologyRefinerImpl::createFromConverter(
+    OpenSubdiv_Converter *converter, const OpenSubdiv_TopologyRefinerSettings &settings)
+{
+  using OpenSubdiv::Far::TopologyRefiner;
+
   TopologyRefinerData cb_data;
   cb_data.converter = converter;
-  return TopologyRefinerFactory<TopologyRefinerData>::Create(cb_data, topology_options);
+
+  // Create OpenSubdiv descriptor for the topology refiner.
+  TopologyRefinerFactoryType::Options topology_refiner_options = getTopologyRefinerOptions(
+      converter);
+  TopologyRefiner *topology_refiner = TopologyRefinerFactoryType::Create(cb_data,
+                                                                         topology_refiner_options);
+  if (topology_refiner == nullptr) {
+    return nullptr;
+  }
+
+  // Create Blender-side object holding all necessary data for the topology refiner.
+  TopologyRefinerImpl *topology_refiner_impl = new TopologyRefinerImpl();
+  topology_refiner_impl->topology_refiner = topology_refiner;
+  topology_refiner_impl->settings = settings;
+
+  return topology_refiner_impl;
 }
 
 }  // namespace opensubdiv
