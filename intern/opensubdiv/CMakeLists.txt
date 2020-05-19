@@ -64,17 +64,17 @@ if(WITH_OPENSUBDIV)
 
     # Topology.
     internal/topology/topology_refiner_capi.cc
+    internal/topology/topology_refiner_factory.cc
+    internal/topology/topology_refiner_factory.h
     internal/topology/topology_refiner_impl.cc
     internal/topology/topology_refiner_impl.h
 
     internal/opensubdiv.cc
-    internal/opensubdiv_converter_factory.cc
     internal/opensubdiv_converter_internal.cc
     internal/opensubdiv_evaluator.cc
     internal/opensubdiv_evaluator_internal.cc
     internal/opensubdiv_util.cc
 
-    internal/opensubdiv_converter_factory.h
     internal/opensubdiv_converter_internal.h
     internal/opensubdiv_edge_map.h
     internal/opensubdiv_evaluator_internal.h

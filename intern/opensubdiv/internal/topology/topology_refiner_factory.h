@@ -16,8 +16,8 @@
 //
 // Author: Sergey Sharybin
 
-#ifndef OPENSUBDIV_CONVERTER_FACTORY_H_
-#define OPENSUBDIV_CONVERTER_FACTORY_H_
+#ifndef OPENSUBDIV_TOPOLOGY_REFINER_FACTORY_H_
+#define OPENSUBDIV_TOPOLOGY_REFINER_FACTORY_H_
 
 #ifdef _MSC_VER
 #  include <iso646.h>
@@ -36,4 +36,4 @@ OpenSubdiv::Far::TopologyRefiner *createOSDTopologyRefinerFromConverter(
 }  // namespace opensubdiv
 }  // namespace blender
 
-#endif  // OPENSUBDIV_CONVERTER_FACTORY_H_
+#endif  // OPENSUBDIV_TOPOLOGY_REFINER_FACTORY_H_

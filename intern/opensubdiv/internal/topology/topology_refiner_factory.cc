@@ -20,7 +20,7 @@
 #  include <iso646.h>
 #endif
 
-#include "internal/opensubdiv_converter_factory.h"
+#include "internal/topology/topology_refiner_factory.h"
 
 #include <cassert>
 #include <cstdio>
