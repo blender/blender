@@ -1480,6 +1480,7 @@ static void sculpt_update_object(
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
+  const bool use_face_sets = (ob->mode & OB_MODE_SCULPT) != 0;
 
   ss->deform_modifiers_active = sculpt_modifiers_active(scene, sd, ob);
   ss->show_mask = (sd->flags & SCULPT_HIDE_MASK) == 0;
@@ -1535,17 +1536,22 @@ static void sculpt_update_object(
   }
 
   /* Sculpt Face Sets. */
-  if (!CustomData_has_layer(&me->pdata, CD_SCULPT_FACE_SETS)) {
-    ss->face_sets = CustomData_add_layer(
-        &me->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, NULL, me->totpoly);
-    for (int i = 0; i < me->totpoly; i++) {
-      ss->face_sets[i] = 1;
-    }
+  if (use_face_sets) {
+    if (!CustomData_has_layer(&me->pdata, CD_SCULPT_FACE_SETS)) {
+      ss->face_sets = CustomData_add_layer(
+          &me->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, NULL, me->totpoly);
+      for (int i = 0; i < me->totpoly; i++) {
+        ss->face_sets[i] = 1;
+      }
 
-    /* Set the default face set color if the datalayer did not exist. */
-    me->face_sets_color_default = 1;
+      /* Set the default face set color if the datalayer did not exist. */
+      me->face_sets_color_default = 1;
+    }
+    ss->face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
   }
-  ss->face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
+  else {
+    ss->face_sets = NULL;
+  }
 
   ss->subdiv_ccg = me_eval->runtime.subdiv_ccg;
 
@@ -1805,11 +1811,12 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
   return pbvh;
 }
 
-static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
+static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool respect_hide)
 {
   Mesh *me = BKE_object_get_original_mesh(ob);
   const int looptris_num = poly_to_tri_count(me->totpoly, me->totloop);
   PBVH *pbvh = BKE_pbvh_new();
+  BKE_pbvh_respect_hide_set(pbvh, respect_hide);
 
   MLoopTri *looptri = MEM_malloc_arrayN(looptris_num, sizeof(*looptri), __func__);
 
@@ -1841,11 +1848,12 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
   return pbvh;
 }
 
-static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
+static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect_hide)
 {
   CCGKey key;
   BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
   PBVH *pbvh = BKE_pbvh_new();
+  BKE_pbvh_respect_hide_set(pbvh, respect_hide);
   BKE_pbvh_build_grids(pbvh,
                        subdiv_ccg->grids,
                        subdiv_ccg->num_grids,
@@ -1863,6 +1871,14 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
   if (ob == NULL || ob->sculpt == NULL) {
     return NULL;
   }
+
+  bool respect_hide = true;
+  if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
+    if (!(BKE_paint_select_vert_test(ob) || BKE_paint_select_face_test(ob))) {
+      respect_hide = false;
+    }
+  }
+
   PBVH *pbvh = ob->sculpt->pbvh;
   if (pbvh != NULL) {
     /* NOTE: It is possible that grids were re-allocated due to modifier
@@ -1886,11 +1902,11 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
     Mesh *mesh_eval = object_eval->data;
     if (mesh_eval->runtime.subdiv_ccg != NULL) {
-      pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime.subdiv_ccg);
+      pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime.subdiv_ccg, respect_hide);
     }
     else if (ob->type == OB_MESH) {
       Mesh *me_eval_deform = object_eval->runtime.mesh_deform_eval;
-      pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform);
+      pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform, respect_hide);
     }
   }
 

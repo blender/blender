@@ -366,6 +366,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   copy_masked_polys_to_new_mesh(
       *mesh, *result, vertex_map, edge_map, masked_poly_indices, new_loop_starts);
 
+  BKE_mesh_calc_edges_loose(result);
   /* Tag to recalculate normals later. */
   result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 

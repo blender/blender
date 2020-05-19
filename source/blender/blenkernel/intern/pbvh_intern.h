@@ -160,6 +160,7 @@ struct PBVH {
   bool deformed;
   bool show_mask;
   bool show_face_sets;
+  bool respect_hide;
 
   /* Dynamic topology */
   BMesh *bm;

@@ -90,7 +90,7 @@ void BKE_armature_bone_hash_free(struct bArmature *arm);
 
 bool BKE_armature_bone_flag_test_recursive(const struct Bone *bone, int flag);
 
-void BKE_armature_refresh_layer_used(struct bArmature *arm);
+void BKE_armature_refresh_layer_used(struct Depsgraph *depsgraph, struct bArmature *arm);
 
 float distfactor_to_bone(
     const float vec[3], const float b1[3], const float b2[3], float r1, float r2, float rdist);

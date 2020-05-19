@@ -301,8 +301,7 @@ static void rna_Bone_layer_set(PointerRNA *ptr, const bool *values)
   Bone *bone = (Bone *)ptr->data;
 
   rna_bone_layer_set(&bone->layer, values);
-
-  BKE_armature_refresh_layer_used(arm);
+  BKE_armature_refresh_layer_used(NULL, arm);
 }
 
 /* TODO: remove the deprecation stubs. */

@@ -67,6 +67,7 @@
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "BIK_api.h"
 
@@ -500,14 +501,21 @@ static void armature_refresh_layer_used_recursive(bArmature *arm, ListBase *bone
   }
 }
 
-/* Update the layers_used variable after bones are moved between layer
- * NOTE: Used to be done in drawing code in 2.7, but that won't work with
- *       Copy-on-Write, as drawing uses evaluated copies.
- */
-void BKE_armature_refresh_layer_used(bArmature *arm)
+void BKE_armature_refresh_layer_used(struct Depsgraph *depsgraph, struct bArmature *arm)
 {
+  if (arm->edbo != NULL) {
+    /* Don't perform this update when the armature is in edit mode. In that case it should be
+     * handled by ED_armature_edit_refresh_layer_used(). */
+    return;
+  }
+
   arm->layer_used = 0;
   armature_refresh_layer_used_recursive(arm, &arm->bonebase);
+
+  if (depsgraph == NULL || DEG_is_active(depsgraph)) {
+    bArmature *arm_orig = (bArmature *)DEG_get_original_id(&arm->id);
+    arm_orig->layer_used = arm->layer_used;
+  }
 }
 
 /* Finds the best possible extension to the name on a particular axis. (For renaming, check for

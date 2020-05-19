@@ -2516,7 +2516,7 @@ static void rna_def_fluid_flow_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_inflow", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", FLUID_FLOW_USE_INFLOW);
-  RNA_def_property_ui_text(prop, "Enabled", "Control when to apply inflow");
+  RNA_def_property_ui_text(prop, "Use Flow", "Control when to apply fluid flow");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_flow_reset");
 
   prop = RNA_def_property(srna, "subframes", PROP_INT, PROP_NONE);

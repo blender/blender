@@ -281,7 +281,7 @@ option(WITH_ALEMBIC             "Enable Alembic Support" ON)
 option(WITH_ALEMBIC_HDF5        "Enable Legacy Alembic Support (not officially supported)" OFF)
 
 # Universal Scene Description support
-option(WITH_USD                 "Enable Universal Scene Description (USD) Support" OFF)
+option(WITH_USD                 "Enable Universal Scene Description (USD) Support" ON)
 
 # 3D format support
 # Disable opencollada when we don't have precompiled libs

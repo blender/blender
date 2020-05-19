@@ -311,8 +311,7 @@ static void cmp_node_rlayer_create_outputs(bNodeTree *ntree,
 
         if ((scene->r.mode & R_EDGE_FRS) &&
             (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS)) {
-          ntreeCompositRegisterPass(
-              scene->nodetree, scene, view_layer, RE_PASSNAME_FREESTYLE, SOCK_RGBA);
+          ntreeCompositRegisterPass(ntree, scene, view_layer, RE_PASSNAME_FREESTYLE, SOCK_RGBA);
         }
 
         MEM_freeN(data);

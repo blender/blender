@@ -309,6 +309,8 @@ void BKE_pbvh_face_sets_set(PBVH *bvh, int *face_sets);
 
 void BKE_pbvh_face_sets_color_set(PBVH *bvh, int seed, int color_default);
 
+void BKE_pbvh_respect_hide_set(PBVH *bvh, bool respect_hide);
+
 /* vertex deformer */
 float (*BKE_pbvh_vert_coords_alloc(struct PBVH *pbvh))[3];
 void BKE_pbvh_vert_coords_apply(struct PBVH *pbvh, const float (*vertCos)[3], const int totvert);
@@ -334,6 +336,7 @@ typedef struct PBVHVertexIter {
   int gy;
   int i;
   int index;
+  bool respect_hide;
 
   /* grid */
   struct CCGKey key;
@@ -402,9 +405,15 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node, PBVHVertexIter *vi, int mo
         } \
         else if (vi.mverts) { \
           vi.mvert = &vi.mverts[vi.vert_indices[vi.gx]]; \
-          vi.visible = !(vi.mvert->flag & ME_HIDE); \
-          if (mode == PBVH_ITER_UNIQUE && !vi.visible) \
-            continue; \
+          if (vi.respect_hide) { \
+            vi.visible = !(vi.mvert->flag & ME_HIDE); \
+            if (mode == PBVH_ITER_UNIQUE && !vi.visible) { \
+              continue; \
+            } \
+          } \
+          else { \
+            BLI_assert(vi.visible); \
+          } \
           vi.co = vi.mvert->co; \
           vi.no = vi.mvert->no; \
           vi.index = vi.vert_indices[vi.i]; \
