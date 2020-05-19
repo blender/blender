@@ -77,6 +77,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology
 
   // Edges and edge-faces.
   const int num_edges = converter->getNumEdges(converter);
+  base_mesh_topology->setNumEdges(num_edges);
   setNumBaseEdges(refiner, num_edges);
   for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
     const int num_edge_faces = converter->getNumEdgeFaces(converter, edge_index);
@@ -161,9 +162,12 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
     const int num_edges = converter->getNumEdges(converter);
     for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
       const float sharpness = converter->getEdgeSharpness(converter, edge_index);
+      base_mesh_topology->setEdgeSharpness(edge_index, sharpness);
+
       if (sharpness < 1e-6f) {
         continue;
       }
+
       if (full_topology_specified) {
         setBaseEdgeSharpness(refiner, edge_index, sharpness);
       }

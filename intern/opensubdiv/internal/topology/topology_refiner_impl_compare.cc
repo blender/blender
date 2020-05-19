@@ -18,7 +18,6 @@
 
 #include "internal/topology/topology_refiner_impl.h"
 
-#include "internal/base/edge_map.h"
 #include "internal/base/type.h"
 #include "internal/base/type_convert.h"
 #include "internal/topology/mesh_topology.h"
@@ -233,102 +232,37 @@ bool checkGeometryMatches(const TopologyRefinerImpl *topology_refiner_impl,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Compare attributes which affects on topology
+// Compare attributes which affects on topology.
 
-inline bool checkSingleEdgeSharpnessMatch(const OpenSubdiv::Far::TopologyLevel &base_level,
-                                          int base_level_edge_index,
-                                          const OpenSubdiv_Converter *converter,
-                                          int converter_edge_index)
+// TODO(sergey): Make this function usable by factory as well.
+float getEffectiveEdgeSharpness(const OpenSubdiv_Converter *converter, const int edge_index)
 {
-  // NOTE: Boundary and non-manifold edges are internally forced to an infinite
-  // sharpness. So we can not reliably compare those.
-  //
-  // TODO(sergey): Watch for NON_MANIFOLD_SHARP option.
-  if (base_level.IsEdgeBoundary(base_level_edge_index) ||
-      base_level.IsEdgeNonManifold(base_level_edge_index)) {
-    return true;
+  if (converter->getEdgeSharpness != nullptr) {
+    return converter->getEdgeSharpness(converter, edge_index);
   }
-  const float sharpness = base_level.GetEdgeSharpness(base_level_edge_index);
-  const float converter_sharpness = converter->getEdgeSharpness(converter, converter_edge_index);
-  if (sharpness != converter_sharpness) {
-    return false;
-  }
-  return true;
-}
 
-inline bool checkSingleEdgeTagMatch(const OpenSubdiv::Far::TopologyLevel &base_level,
-                                    int base_level_edge_index,
-                                    const OpenSubdiv_Converter *converter,
-                                    int converter_edge_index)
-{
-  return checkSingleEdgeSharpnessMatch(
-      base_level, base_level_edge_index, converter, converter_edge_index);
-}
-
-// Compares edge tags between topology refiner and converter in a case when
-// converter specifies a full topology.
-// This is simplest loop, since we know that order of edges matches.
-bool checkEdgeTagsMatchFullTopology(const TopologyRefinerImpl *topology_refiner_impl,
-                                    const OpenSubdiv_Converter *converter)
-{
-  using OpenSubdiv::Far::ConstIndexArray;
-  using OpenSubdiv::Far::TopologyLevel;
-  const TopologyLevel &base_level = getOSDTopologyBaseLevel(topology_refiner_impl);
-  const int num_edges = base_level.GetNumEdges();
-  for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
-    if (!checkSingleEdgeTagMatch(base_level, edge_index, converter, edge_index)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-// Compares tags of edges in the case when orientation of edges is left up to
-// OpenSubdiv. In this case we do need to take care of mapping edges from the
-// converter to current topology refiner, since the order is not guaranteed.
-bool checkEdgeTagsMatchAutoOrient(const TopologyRefinerImpl *topology_refiner_impl,
-                                  const OpenSubdiv_Converter *converter)
-{
-  using OpenSubdiv::Far::ConstIndexArray;
-  using OpenSubdiv::Far::TopologyLevel;
-  const TopologyLevel &base_level = getOSDTopologyBaseLevel(topology_refiner_impl);
-  const int num_edges = base_level.GetNumEdges();
-  // Create mapping for quick lookup of edge index from its vertices indices.
-  //
-  // TODO(sergey): Consider caching it in some sort of wrapper around topology
-  // refiner.
-  EdgeTagMap<int> edge_map;
-  for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
-    ConstIndexArray edge_vertices = base_level.GetEdgeVertices(edge_index);
-    edge_map.insert(edge_vertices[0], edge_vertices[1], edge_index);
-  }
-  // Compare all edges.
-  for (int converter_edge_index = 0; converter_edge_index < num_edges; ++converter_edge_index) {
-    // Get edge vertices indices, and lookup corresponding edge index in the
-    // base topology level.
-    int edge_vertices[2];
-    converter->getEdgeVertices(converter, converter_edge_index, edge_vertices);
-    const int base_level_edge_index = edge_map.at(edge_vertices[0], edge_vertices[1]);
-    // Perform actual test.
-    if (!checkSingleEdgeTagMatch(
-            base_level, base_level_edge_index, converter, converter_edge_index)) {
-      return false;
-    }
-  }
-  return true;
+  return 0.0f;
 }
 
 bool checkEdgeTagsMatch(const TopologyRefinerImpl *topology_refiner_impl,
                         const OpenSubdiv_Converter *converter)
 {
-  if (converter->specifiesFullTopology(converter)) {
-    return checkEdgeTagsMatchFullTopology(topology_refiner_impl, converter);
+  const MeshTopology &base_mesh_topology = topology_refiner_impl->base_mesh_topology;
+
+  const int num_edges = base_mesh_topology.getNumEdges();
+  for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
+    const float current_sharpness = base_mesh_topology.getEdgeSharpness(edge_index);
+    const float requested_sharpness = getEffectiveEdgeSharpness(converter, edge_index);
+
+    if (current_sharpness != requested_sharpness) {
+      return false;
+    }
   }
-  else {
-    return checkEdgeTagsMatchAutoOrient(topology_refiner_impl, converter);
-  }
+
+  return true;
 }
 
+// TODO(sergey): Make this function usable by factory as well.
 float getEffectiveVertexSharpness(const OpenSubdiv_Converter *converter, const int vertex_index)
 {
   if (converter->isInfiniteSharpVertex != nullptr &&
@@ -350,13 +284,14 @@ bool checkVertexSharpnessMatch(const TopologyRefinerImpl *topology_refiner_impl,
 
   const int num_vertices = base_mesh_topology.getNumVertices();
   for (int vertex_index = 0; vertex_index < num_vertices; ++vertex_index) {
-    const float current_sharpness = base_mesh_topology.vertices[vertex_index].sharpness;
+    const float current_sharpness = base_mesh_topology.getVertexSharpness(vertex_index);
     const float requested_sharpness = getEffectiveVertexSharpness(converter, vertex_index);
 
     if (current_sharpness != requested_sharpness) {
       return false;
     }
   }
+
   return true;
 }
 
