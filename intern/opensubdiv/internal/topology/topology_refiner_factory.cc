@@ -28,7 +28,6 @@
 #include <opensubdiv/far/topologyRefinerFactory.h>
 
 #include "internal/opensubdiv_converter_internal.h"
-#include "internal/opensubdiv_internal.h"
 #include "internal/opensubdiv_util.h"
 #include "opensubdiv_converter_capi.h"
 
@@ -293,9 +292,11 @@ TopologyRefinerFactoryType::Options getTopologyRefinerOptions(OpenSubdiv_Convert
 
   const SchemeType scheme_type = getSchemeTypeFromCAPI(converter->getSchemeType(converter));
   TopologyRefinerFactoryType::Options topology_options(scheme_type, sdc_options);
-#ifdef OPENSUBDIV_VALIDATE_TOPOLOGY
-  topology_options.validateFullTopology = true;
-#endif
+
+  // NOTE: When debugging topology conversion related functionality it is helpful to set this
+  // to truth. In all other cases leave it at false. so debugging of other areas is not affected
+  // by performance penalty happening in this module.
+  topology_options.validateFullTopology = false;
 
   return topology_options;
 }

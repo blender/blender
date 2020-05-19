@@ -80,7 +80,6 @@ if(WITH_OPENSUBDIV)
 
     internal/opensubdiv_converter_internal.h
     internal/opensubdiv_evaluator_internal.h
-    internal/opensubdiv_internal.h
     internal/opensubdiv_util.h
   )
 
