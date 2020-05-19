@@ -4167,6 +4167,10 @@ static int tri_corner_test(BevelParams *bp, BevVert *bv)
   if (bv->vmesh->count != 3) {
     return 0;
   }
+
+  /* Only use the tri-corner special case if the offset is the same for every edge. */
+  float offset = bv->edges[0].offset_l;
+
   totang = 0.0f;
   for (i = 0; i < bv->edgecount; i++) {
     e = &bv->edges[i];
@@ -4178,6 +4182,11 @@ static int tri_corner_test(BevelParams *bp, BevVert *bv)
     else if (absang >= 3.0f * (float)M_PI_4) {
       return -1;
     }
+
+    if (e->is_bev && !compare_ff(e->offset_l, offset, BEVEL_EPSILON)) {
+      return -1;
+    }
+
     totang += ang;
   }
   if (in_plane_e != bv->edgecount - 3) {
