@@ -29,6 +29,52 @@ namespace opensubdiv {
 namespace {
 
 ////////////////////////////////////////////////////////////////////////////////
+// Geometry.
+
+// Edges.
+
+int getEffectiveNumEdges(const OpenSubdiv_Converter *converter)
+{
+  if (converter->getNumEdges == nullptr) {
+    return 0;
+  }
+
+  return converter->getNumEdges(converter);
+}
+
+bool isEqualEdgeGeometry(const MeshTopology &mesh_topology, const OpenSubdiv_Converter *converter)
+{
+  const int num_requested_edges = getEffectiveNumEdges(converter);
+  if (num_requested_edges != mesh_topology.getNumEdges()) {
+    return false;
+  }
+
+  for (int edge_index = 0; edge_index < num_requested_edges; ++edge_index) {
+    int requested_edge_vertices[2];
+    converter->getEdgeVertices(converter, edge_index, requested_edge_vertices);
+
+    const EdgeTopology &current_edge = mesh_topology.getEdge(edge_index);
+    if (current_edge.v1 != requested_edge_vertices[0] ||
+        current_edge.v2 != requested_edge_vertices[1]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+// Geometry comparison entry point.
+
+bool isEqualGeometry(const MeshTopology &mesh_topology, const OpenSubdiv_Converter *converter)
+{
+  if (!isEqualEdgeGeometry(mesh_topology, converter)) {
+    return false;
+  }
+
+  return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Geometry tags.
 
 // Vertices.
@@ -90,6 +136,20 @@ bool isEqualEdgeTags(const MeshTopology &mesh_topology, const OpenSubdiv_Convert
   return true;
 }
 
+// Tags comparison entry point.
+
+bool isEqualTags(const MeshTopology &mesh_topology, const OpenSubdiv_Converter *converter)
+{
+  if (!isEqualVertexTags(mesh_topology, converter)) {
+    return false;
+  }
+  if (!isEqualEdgeTags(mesh_topology, converter)) {
+    return false;
+  }
+
+  return true;
+}
+
 }  // namespace
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,10 +157,13 @@ bool isEqualEdgeTags(const MeshTopology &mesh_topology, const OpenSubdiv_Convert
 
 bool MeshTopology::isEqualToConverter(const OpenSubdiv_Converter *converter) const
 {
-  if (!isEqualVertexTags(*this, converter)) {
+  // Geometry.
+  if (!isEqualGeometry(*this, converter)) {
     return false;
   }
-  if (!isEqualEdgeTags(*this, converter)) {
+
+  // Tags.
+  if (!isEqualTags(*this, converter)) {
     return false;
   }
 

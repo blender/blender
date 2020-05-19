@@ -32,6 +32,17 @@ class VertexTopologyTag {
   float sharpness = 0.0f;
 };
 
+class EdgeTopology {
+ public:
+  bool isValid() const
+  {
+    return v1 >= 0 && v2 >= 0;
+  }
+
+  int v1 = -1;
+  int v2 = -1;
+};
+
 class EdgeTopologyTag {
  public:
   float sharpness = 0.0f;
@@ -68,6 +79,11 @@ class MeshTopology {
   // on last edge index for which topology tag was specified.
   int getNumEdges() const;
 
+  void setEdgevertexIndices(int edge_index, int v1, int v2);
+
+  EdgeTopology &getEdge(int edge_index);
+  const EdgeTopology &getEdge(int edge_index) const;
+
   void setEdgeSharpness(int edge_index, float sharpness);
   float getEdgeSharpness(int edge_index) const;
 
@@ -94,6 +110,7 @@ class MeshTopology {
   vector<VertexTopologyTag> vertex_tags_;
 
   int num_edges_;
+  vector<EdgeTopology> edges_;
   vector<EdgeTopologyTag> edge_tags_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MeshTopology");

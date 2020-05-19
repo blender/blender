@@ -80,6 +80,8 @@ void MeshTopology::ensureVertexTagsSize(int num_vertices)
 void MeshTopology::setNumEdges(int num_edges)
 {
   num_edges_ = num_edges;
+
+  edges_.resize(num_edges_);
 }
 
 int MeshTopology::getNumEdges() const
@@ -87,11 +89,48 @@ int MeshTopology::getNumEdges() const
   return num_edges_;
 }
 
+void MeshTopology::setEdgevertexIndices(int edge_index, int v1, int v2)
+{
+  assert(edge_index >= 0);
+  assert(edge_index < getNumEdges());
+
+  assert(v1 >= 0);
+  assert(v1 < getNumVertices());
+
+  assert(v2 >= 0);
+  assert(v2 < getNumVertices());
+
+  ensureNumEdgesAtLeast(edge_index + 1);
+
+  EdgeTopology &edge = getEdge(edge_index);
+
+  // Prevent attempts to override edges.
+  // This is currently not supposed to happen.
+  assert(!edge.isValid());
+
+  edge.v1 = v1;
+  edge.v2 = v2;
+}
+
+EdgeTopology &MeshTopology::getEdge(int edge_index)
+{
+  const MeshTopology *const_this = this;
+  return const_cast<EdgeTopology &>(const_this->getEdge(edge_index));
+}
+const EdgeTopology &MeshTopology::getEdge(int edge_index) const
+{
+  assert(edge_index >= 0);
+  assert(edge_index < getNumEdges());
+
+  return edges_[edge_index];
+}
+
 void MeshTopology::setEdgeSharpness(int edge_index, float sharpness)
 {
   assert(edge_index >= 0);
+  assert(edge_index < getNumEdges());
 
-  ensureNumEdgesAtLeast(edge_index + 1);
+  assert(getEdge(edge_index).isValid());
 
   if (sharpness < 1e-6f) {
     return;

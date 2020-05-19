@@ -57,6 +57,28 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology
   const OpenSubdiv_Converter *converter = cb_data.converter;
   MeshTopology *base_mesh_topology = cb_data.base_mesh_topology;
 
+  // Vertices.
+  const int num_vertices = converter->getNumVertices(converter);
+  base_mesh_topology->setNumVertices(num_vertices);
+  setNumBaseVertices(refiner, num_vertices);
+
+  // Edges.
+  //
+  // NOTE: Always store edges in the base mesh topology so then comparison can
+  // happen, but only provide edges to TopologyRefiner if full topology is
+  // specified (if full topology is not specified then topology refiner must
+  // not see any edges, which will indicate to it that winding and edges are to
+  // be reconstructed).
+  //
+  // NOTE: it is a possible usecase when user code does not need crease at all
+  // (which is the only real reason why converter would want to provide edges in
+  // the case of partial topology specification). So it might be so getNumEdges
+  // callback is nullptr.
+  if (converter->getNumEdges != nullptr) {
+    const int num_edges = converter->getNumEdges(converter);
+    base_mesh_topology->setNumEdges(num_edges);
+  }
+
   // Faces and face-vertices.
   const int num_faces = converter->getNumFaces(converter);
   setNumBaseFaces(refiner, num_faces);
@@ -65,19 +87,16 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology
     setNumBaseFaceVertices(refiner, face_index, num_face_vertices);
   }
 
-  // Vertices.
-  const int num_vertices = converter->getNumVertices(converter);
-  base_mesh_topology->setNumVertices(num_vertices);
-  setNumBaseVertices(refiner, num_vertices);
-
   // If converter does not provide full topology, we are done.
+  //
+  // The rest is needed to define relations between faces-of-edge and
+  // edges-of-vertex, which is not available for partially specified mesh.
   if (!converter->specifiesFullTopology(converter)) {
     return true;
   }
 
   // Edges and edge-faces.
   const int num_edges = converter->getNumEdges(converter);
-  base_mesh_topology->setNumEdges(num_edges);
   setNumBaseEdges(refiner, num_edges);
   for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
     const int num_edge_faces = converter->getNumEdgeFaces(converter, edge_index);
@@ -99,33 +118,45 @@ template<>
 inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology(
     TopologyRefiner &refiner, const TopologyRefinerData &cb_data)
 {
+  using blender::opensubdiv::EdgeTopology;
+  using blender::opensubdiv::MeshTopology;
   using Far::IndexArray;
+
   const OpenSubdiv_Converter *converter = cb_data.converter;
+  MeshTopology *base_mesh_topology = cb_data.base_mesh_topology;
+
   const bool full_topology_specified = converter->specifiesFullTopology(converter);
-  // Face relations.
+
+  // Vertices of an edge.
+  //
+  // NOTE: Only specify for base mesh topology on our side.
+  // They will be provided to the topology refiner only if the full topology is
+  // specified.
+  if (converter->getNumEdges != nullptr) {
+    const int num_edges = converter->getNumEdges(converter);
+    for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
+      int edge_vertices[2];
+      converter->getEdgeVertices(converter, edge_index, edge_vertices);
+
+      base_mesh_topology->setEdgevertexIndices(edge_index, edge_vertices[0], edge_vertices[1]);
+    }
+  }
+
+  // Vertices of face.
   const int num_faces = converter->getNumFaces(converter);
   for (int face_index = 0; face_index < num_faces; ++face_index) {
     IndexArray dst_face_verts = getBaseFaceVertices(refiner, face_index);
     converter->getFaceVertices(converter, face_index, &dst_face_verts[0]);
-    if (full_topology_specified) {
-      IndexArray dst_face_edges = getBaseFaceEdges(refiner, face_index);
-      converter->getFaceEdges(converter, face_index, &dst_face_edges[0]);
-    }
   }
+
   // If converter does not provide full topology, we are done.
+  //
+  // The rest is needed to define relations between faces-of-edge and
+  // edges-of-vertex, which is not available for partially specified mesh.
   if (!full_topology_specified) {
     return true;
   }
-  // Edge relations.
-  const int num_edges = converter->getNumEdges(converter);
-  for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
-    // Edge-vertices.
-    IndexArray dst_edge_vertices = getBaseEdgeVertices(refiner, edge_index);
-    converter->getEdgeVertices(converter, edge_index, &dst_edge_vertices[0]);
-    // Edge-faces.
-    IndexArray dst_edge_faces = getBaseEdgeFaces(refiner, edge_index);
-    converter->getEdgeFaces(converter, edge_index, &dst_edge_faces[0]);
-  }
+
   // Vertex relations.
   const int num_vertices = converter->getNumVertices(converter);
   vector<int> vertex_faces, vertex_edges;
@@ -135,6 +166,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology
     const int num_vertex_faces = converter->getNumVertexFaces(converter, vertex_index);
     vertex_faces.resize(num_vertex_faces);
     converter->getVertexFaces(converter, vertex_index, &vertex_faces[0]);
+
     // Vertex-edges.
     IndexArray dst_vertex_edges = getBaseVertexEdges(refiner, vertex_index);
     const int num_vertex_edges = converter->getNumVertexEdges(converter, vertex_index);
@@ -143,7 +175,29 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology
     memcpy(&dst_vertex_edges[0], &vertex_edges[0], sizeof(int) * num_vertex_edges);
     memcpy(&dst_vertex_faces[0], &vertex_faces[0], sizeof(int) * num_vertex_faces);
   }
+
+  // Edge relations.
+  const int num_edges = converter->getNumEdges(converter);
+  for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
+    // Vertices this edge connects.
+    const EdgeTopology &edge = base_mesh_topology->getEdge(edge_index);
+    IndexArray dst_edge_vertices = getBaseEdgeVertices(refiner, edge_index);
+    dst_edge_vertices[0] = edge.v1;
+    dst_edge_vertices[1] = edge.v2;
+
+    // Faces adjacent to this edge.
+    IndexArray dst_edge_faces = getBaseEdgeFaces(refiner, edge_index);
+    converter->getEdgeFaces(converter, edge_index, &dst_edge_faces[0]);
+  }
+
+  // Face relations.
+  for (int face_index = 0; face_index < num_faces; ++face_index) {
+    IndexArray dst_face_edges = getBaseFaceEdges(refiner, face_index);
+    converter->getFaceEdges(converter, face_index, &dst_face_edges[0]);
+  }
+
   populateBaseLocalIndices(refiner);
+
   return true;
 }
 

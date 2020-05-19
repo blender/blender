@@ -226,9 +226,6 @@ bool checkGeometryFacesMatch(const TopologyRefinerImpl *topology_refiner_impl,
 bool checkGeometryMatches(const TopologyRefinerImpl *topology_refiner_impl,
                           const OpenSubdiv_Converter *converter)
 {
-  // NOTE: Since OpenSubdiv's topology refiner doesn't contain loose edges, we
-  // are only checking for faces to be matched. Changes in edges we don't care
-  // here too much (they'll be checked for creases changes later).
   return checkGeometryFacesMatch(topology_refiner_impl, converter);
 }
 
@@ -279,9 +276,6 @@ bool checkUVLayersMatch(const TopologyRefinerImpl *topology_refiner_impl,
 bool checkTopologyAttributesMatch(const TopologyRefinerImpl *topology_refiner_impl,
                                   const OpenSubdiv_Converter *converter)
 {
-  if (!topology_refiner_impl->base_mesh_topology.isEqualToConverter(converter)) {
-    return false;
-  }
   return checkUVLayersMatch(topology_refiner_impl, converter);
 }
 
@@ -289,9 +283,21 @@ bool checkTopologyAttributesMatch(const TopologyRefinerImpl *topology_refiner_im
 
 bool TopologyRefinerImpl::isEqualToConverter(const OpenSubdiv_Converter *converter) const
 {
-  return (blender::opensubdiv::checkPreliminaryMatches(this, converter) &&
-          blender::opensubdiv::checkGeometryMatches(this, converter) &&
-          blender::opensubdiv::checkTopologyAttributesMatch(this, converter));
+  if (!blender::opensubdiv::checkPreliminaryMatches(this, converter)) {
+    return false;
+  }
+  if (!blender::opensubdiv::checkGeometryMatches(this, converter)) {
+    return false;
+  }
+  if (!blender::opensubdiv::checkTopologyAttributesMatch(this, converter)) {
+    return false;
+  }
+
+  if (!base_mesh_topology.isEqualToConverter(converter)) {
+    return false;
+  }
+
+  return true;
 }
 
 }  // namespace opensubdiv
