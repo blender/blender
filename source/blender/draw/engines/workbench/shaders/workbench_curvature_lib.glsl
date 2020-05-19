@@ -26,6 +26,10 @@ void curvature_compute(vec2 uv,
   if ((object_up != object_down) || (object_right != object_left)) {
     return;
   }
+  /* Avoid shading background pixels. */
+  if ((object_up == object_right) && (object_right == 0u)) {
+    return;
+  }
 
   float normal_up = workbench_normal_decode(texture(normalBuffer, uv + offset.zy)).g;
   float normal_down = workbench_normal_decode(texture(normalBuffer, uv - offset.zy)).g;
