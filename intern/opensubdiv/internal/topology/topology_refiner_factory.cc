@@ -29,6 +29,8 @@
 
 #include "internal/base/type.h"
 #include "internal/base/type_convert.h"
+#include "internal/topology/mesh_topology.h"
+
 #include "opensubdiv_converter_capi.h"
 
 using blender::opensubdiv::min;
@@ -37,6 +39,7 @@ using blender::opensubdiv::vector;
 
 struct TopologyRefinerData {
   const OpenSubdiv_Converter *converter;
+  blender::opensubdiv::MeshTopology *base_mesh_topology;
 };
 
 typedef OpenSubdiv::Far::TopologyRefinerFactory<TopologyRefinerData> TopologyRefinerFactoryType;
@@ -49,7 +52,11 @@ template<>
 inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology(
     TopologyRefiner &refiner, const TopologyRefinerData &cb_data)
 {
+  using blender::opensubdiv::MeshTopology;
+
   const OpenSubdiv_Converter *converter = cb_data.converter;
+  MeshTopology *base_mesh_topology = cb_data.base_mesh_topology;
+
   // Faces and face-vertices.
   const int num_faces = converter->getNumFaces(converter);
   setNumBaseFaces(refiner, num_faces);
@@ -57,13 +64,17 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology
     const int num_face_vertices = converter->getNumFaceVertices(converter, face_index);
     setNumBaseFaceVertices(refiner, face_index, num_face_vertices);
   }
+
   // Vertices.
   const int num_vertices = converter->getNumVertices(converter);
+  base_mesh_topology->setNumVertices(num_vertices);
   setNumBaseVertices(refiner, num_vertices);
+
   // If converter does not provide full topology, we are done.
   if (!converter->specifiesFullTopology(converter)) {
     return true;
   }
+
   // Edges and edge-faces.
   const int num_edges = converter->getNumEdges(converter);
   setNumBaseEdges(refiner, num_edges);
@@ -71,6 +82,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology
     const int num_edge_faces = converter->getNumEdgeFaces(converter, edge_index);
     setNumBaseEdgeFaces(refiner, edge_index, num_edge_faces);
   }
+
   // Vertex-faces and vertex-edges.
   for (int vertex_index = 0; vertex_index < num_vertices; ++vertex_index) {
     const int num_vert_edges = converter->getNumVertexEdges(converter, vertex_index);
@@ -78,6 +90,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology
     setNumBaseVertexEdges(refiner, vertex_index, num_vert_edges);
     setNumBaseVertexFaces(refiner, vertex_index, num_vert_faces);
   }
+
   return true;
 }
 
@@ -137,8 +150,12 @@ template<>
 inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
     TopologyRefiner &refiner, const TopologyRefinerData &cb_data)
 {
+  using blender::opensubdiv::MeshTopology;
   using OpenSubdiv::Sdc::Crease;
+
   const OpenSubdiv_Converter *converter = cb_data.converter;
+  MeshTopology *base_mesh_topology = cb_data.base_mesh_topology;
+
   const bool full_topology_specified = converter->specifiesFullTopology(converter);
   if (full_topology_specified || converter->getEdgeVertices != NULL) {
     const int num_edges = converter->getNumEdges(converter);
@@ -151,6 +168,8 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
         setBaseEdgeSharpness(refiner, edge_index, sharpness);
       }
       else {
+        // TODO(sergey): Should be a faster way to find reconstructed edge to
+        // specify sharpness for (assuming, findBaseEdge has linear complexity).
         int edge_vertices[2];
         converter->getEdgeVertices(converter, edge_index, edge_vertices);
         const int base_edge_index = findBaseEdge(refiner, edge_vertices[0], edge_vertices[1]);
@@ -162,6 +181,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
       }
     }
   }
+
   // OpenSubdiv expects non-manifold vertices to be sharp but at the time it
   // handles correct cases when vertex is a corner of plane. Currently mark
   // vertices which are adjacent to a loose edge as sharp, but this decision
@@ -170,6 +190,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
   for (int vertex_index = 0; vertex_index < num_vertices; ++vertex_index) {
     ConstIndexArray vertex_edges = getBaseVertexEdges(refiner, vertex_index);
     if (converter->isInfiniteSharpVertex(converter, vertex_index)) {
+      base_mesh_topology->setVertexSharpness(vertex_index, Crease::SHARPNESS_INFINITE);
       setBaseVertexSharpness(refiner, vertex_index, Crease::SHARPNESS_INFINITE);
       continue;
     }
@@ -178,6 +199,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
     float sharpness = 0.0f;
     if (converter->getVertexSharpness != NULL) {
       sharpness = converter->getVertexSharpness(converter, vertex_index);
+      base_mesh_topology->setVertexSharpness(vertex_index, sharpness);
     }
 
     // If it's vertex where 2 non-manifold edges meet adjust vertex sharpness to
@@ -291,8 +313,11 @@ TopologyRefinerImpl *TopologyRefinerImpl::createFromConverter(
 {
   using OpenSubdiv::Far::TopologyRefiner;
 
+  blender::opensubdiv::MeshTopology base_mesh_topology;
+
   TopologyRefinerData cb_data;
   cb_data.converter = converter;
+  cb_data.base_mesh_topology = &base_mesh_topology;
 
   // Create OpenSubdiv descriptor for the topology refiner.
   TopologyRefinerFactoryType::Options topology_refiner_options = getTopologyRefinerOptions(
@@ -307,6 +332,7 @@ TopologyRefinerImpl *TopologyRefinerImpl::createFromConverter(
   TopologyRefinerImpl *topology_refiner_impl = new TopologyRefinerImpl();
   topology_refiner_impl->topology_refiner = topology_refiner;
   topology_refiner_impl->settings = settings;
+  topology_refiner_impl->base_mesh_topology = move(base_mesh_topology);
 
   return topology_refiner_impl;
 }

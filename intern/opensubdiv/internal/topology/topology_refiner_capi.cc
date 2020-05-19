@@ -22,6 +22,7 @@
 #include "internal/base/edge_map.h"
 #include "internal/base/type.h"
 #include "internal/base/type_convert.h"
+#include "internal/topology/mesh_topology.h"
 #include "internal/topology/topology_refiner_impl.h"
 #include "opensubdiv_converter_capi.h"
 
@@ -553,55 +554,32 @@ bool checkEdgeTagsMatch(const OpenSubdiv_TopologyRefiner *topology_refiner,
   }
 }
 
-bool checkvertexSharpnessMatch(const OpenSubdiv_TopologyRefiner *topology_refiner,
+float getEffectiveVertexSharpness(const OpenSubdiv_Converter *converter, const int vertex_index)
+{
+  if (converter->isInfiniteSharpVertex != nullptr &&
+      converter->isInfiniteSharpVertex(converter, vertex_index)) {
+    return OpenSubdiv::Sdc::Crease::SHARPNESS_INFINITE;
+  }
+
+  if (converter->getVertexSharpness != nullptr) {
+    return converter->getVertexSharpness(converter, vertex_index);
+  }
+
+  return 0.0f;
+}
+
+bool checkVertexSharpnessMatch(const OpenSubdiv_TopologyRefiner *topology_refiner,
                                const OpenSubdiv_Converter *converter)
 {
-  using OpenSubdiv::Far::ConstIndexArray;
-  using OpenSubdiv::Far::TopologyLevel;
-  using OpenSubdiv::Sdc::Crease;
-  const TopologyLevel &base_level = getOSDTopologyRefiner(topology_refiner)->GetLevel(0);
-  // Create mapping for quick lookup of edge index from its vertices indices.
-  //
-  // TODO(sergey): Consider caching it in some sort of wrapper around topology
-  // refiner.
-  const int num_edges = base_level.GetNumEdges();
-  EdgeTagMap<int> edge_map;
-  for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
-    int edge_vertices[2];
-    converter->getEdgeVertices(converter, edge_index, edge_vertices);
-    edge_map.insert(edge_vertices[0], edge_vertices[1], edge_index);
-  }
-  const int num_vertices = base_level.GetNumVertices();
+  const MeshTopology &base_mesh_topology = topology_refiner->impl->base_mesh_topology;
+
+  const int num_vertices = base_mesh_topology.getNumVertices();
   for (int vertex_index = 0; vertex_index < num_vertices; ++vertex_index) {
-    const float current_sharpness = base_level.GetVertexSharpness(vertex_index);
-    if (converter->isInfiniteSharpVertex(converter, vertex_index)) {
-      if (current_sharpness != Crease::SHARPNESS_INFINITE) {
-        return false;
-      }
-    }
-    else {
-      ConstIndexArray vertex_edges = base_level.GetVertexEdges(vertex_index);
-      float sharpness = converter->getVertexSharpness(converter, vertex_index);
-      if (vertex_edges.size() == 2) {
-        const int edge0 = vertex_edges[0], edge1 = vertex_edges[1];
-        // Construct keys for lookup.
-        ConstIndexArray edge0_vertices = base_level.GetEdgeVertices(edge0);
-        ConstIndexArray edge1_vertices = base_level.GetEdgeVertices(edge1);
-        EdgeKey edge0_key(edge0_vertices[0], edge0_vertices[1]);
-        EdgeKey edge1_key(edge1_vertices[0], edge1_vertices[1]);
-        // Lookup edge indices in the converter.
-        const int edge0_converter_index = edge_map[edge0_key];
-        const int edge1_converter_index = edge_map[edge1_key];
-        // Lookup sharpness.
-        const float sharpness0 = converter->getEdgeSharpness(converter, edge0_converter_index);
-        const float sharpness1 = converter->getEdgeSharpness(converter, edge1_converter_index);
-        // TODO(sergey): Find a better mixing between edge and vertex sharpness.
-        sharpness += min(sharpness0, sharpness1);
-        sharpness = min(sharpness, 10.0f);
-      }
-      if (sharpness != current_sharpness) {
-        return false;
-      }
+    const float current_sharpness = base_mesh_topology.vertices[vertex_index].sharpness;
+    const float requested_sharpness = getEffectiveVertexSharpness(converter, vertex_index);
+
+    if (current_sharpness != requested_sharpness) {
+      return false;
     }
   }
   return true;
@@ -652,7 +630,7 @@ bool checkTopologyAttributesMatch(const OpenSubdiv_TopologyRefiner *topology_ref
                                   const OpenSubdiv_Converter *converter)
 {
   return checkEdgeTagsMatch(topology_refiner, converter) &&
-         checkvertexSharpnessMatch(topology_refiner, converter) &&
+         checkVertexSharpnessMatch(topology_refiner, converter) &&
          checkUVLayersMatch(topology_refiner, converter);
 }
 

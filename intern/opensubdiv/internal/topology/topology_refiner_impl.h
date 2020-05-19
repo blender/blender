@@ -26,6 +26,7 @@
 #include <opensubdiv/far/topologyRefiner.h>
 
 #include "internal/base/memory.h"
+#include "internal/topology/mesh_topology.h"
 #include "opensubdiv_topology_refiner_capi.h"
 
 struct OpenSubdiv_Converter;
@@ -46,13 +47,23 @@ class TopologyRefinerImpl {
   OpenSubdiv::Far::TopologyRefiner *topology_refiner;
 
   // Subdivision settingsa this refiner is created for.
-  //
-  // We store it here since OpenSubdiv's refiner will only know about level and
-  // "adaptivity" after performing actual "refine" step.
-  //
-  // Ideally, we would also support refining topology without re-importing it
-  // from external world, but that is for later.
   OpenSubdiv_TopologyRefinerSettings settings;
+
+  // Topology of the mesh which corresponds to the base level.
+  //
+  // All the indices and values are kept exactly the same as user-defined
+  // converter provided them. This allows to easily compare values which might
+  // be touched by the refinement process.
+  //
+  // On a more technical note this allows to easier/faster to compare following
+  // things:
+  //
+  //  - Face vertices, where OpenSubdiv could re-arrange them to keep winding
+  //    uniform.
+  //
+  //  - Vertex crease where OpenSubdiv will force crease for non-manifold or
+  //    corner vertices.
+  MeshTopology base_mesh_topology;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("TopologyRefinerImpl");
 };
