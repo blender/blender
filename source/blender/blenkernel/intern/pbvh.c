@@ -295,6 +295,10 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 
   node->face_vert_indices = (const int(*)[3])face_vert_indices;
 
+  if (bvh->respect_hide == false) {
+    has_visible = true;
+  }
+
   for (int i = 0; i < totface; i++) {
     const MLoopTri *lt = &bvh->looptri[node->prim_indices[i]];
     for (int j = 0; j < 3; j++) {
@@ -302,8 +306,10 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
           bvh, map, &node->face_verts, &node->uniq_verts, bvh->mloop[lt->tri[j]].v);
     }
 
-    if (!paint_is_face_hidden(lt, bvh->verts, bvh->mloop)) {
-      has_visible = true;
+    if (has_visible == false) {
+      if (!paint_is_face_hidden(lt, bvh->verts, bvh->mloop)) {
+        has_visible = true;
+      }
     }
   }
 
@@ -666,7 +672,7 @@ void BKE_pbvh_build_grids(PBVH *bvh,
 PBVH *BKE_pbvh_new(void)
 {
   PBVH *bvh = MEM_callocN(sizeof(PBVH), "pbvh");
-
+  bvh->respect_hide = true;
   return bvh;
 }
 
@@ -2117,7 +2123,7 @@ static bool pbvh_faces_node_raycast(PBVH *bvh,
     const MLoopTri *lt = &bvh->looptri[faces[i]];
     const int *face_verts = node->face_vert_indices[i];
 
-    if (paint_is_face_hidden(lt, vert, mloop)) {
+    if (bvh->respect_hide && paint_is_face_hidden(lt, vert, mloop)) {
       continue;
     }
 
@@ -2426,7 +2432,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH *bvh,
     const MLoopTri *lt = &bvh->looptri[faces[i]];
     const int *face_verts = node->face_vert_indices[i];
 
-    if (paint_is_face_hidden(lt, vert, mloop)) {
+    if (bvh->respect_hide && paint_is_face_hidden(lt, vert, mloop)) {
       continue;
     }
 
@@ -2900,6 +2906,12 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node, PBVHVertexIter *vi, int mo
   vi->fno = NULL;
   vi->mvert = NULL;
 
+  vi->respect_hide = bvh->respect_hide;
+  if (bvh->respect_hide == false) {
+    /* The same value for all vertices. */
+    vi->visible = true;
+  }
+
   BKE_pbvh_node_get_grids(bvh, node, &grid_indices, &totgrid, NULL, &gridsize, &grids);
   BKE_pbvh_node_num_verts(bvh, node, &uniq_verts, &totvert);
   BKE_pbvh_node_get_verts(bvh, node, &vert_indices, &verts);
@@ -3013,4 +3025,9 @@ void BKE_pbvh_subdiv_cgg_set(PBVH *bvh, SubdivCCG *subdiv_ccg)
 void BKE_pbvh_face_sets_set(PBVH *bvh, int *face_sets)
 {
   bvh->face_sets = face_sets;
+}
+
+void BKE_pbvh_respect_hide_set(PBVH *bvh, bool respect_hide)
+{
+  bvh->respect_hide = respect_hide;
 }
