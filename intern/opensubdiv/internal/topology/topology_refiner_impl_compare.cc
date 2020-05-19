@@ -76,6 +76,10 @@ bool checkPreliminaryMatches(const TopologyRefinerImpl *topology_refiner_impl,
 
 ////////////////////////////////////////////////////////////////////////////////
 // Compare attributes which affects on topology.
+//
+// TODO(sergey): Need to look into how auto-winding affects on face-varying
+// indexing and, possibly, move to mesh topology as well if winding affects
+// face-varyign as well.
 
 bool checkSingleUVLayerMatch(const OpenSubdiv::Far::TopologyLevel &base_level,
                              const OpenSubdiv_Converter *converter,
@@ -136,6 +140,8 @@ bool TopologyRefinerImpl::isEqualToConverter(const OpenSubdiv_Converter *convert
     return false;
   }
 
+  // NOTE: Do after geometry check, to be sure topology does match and all
+  // indexing will go fine.
   if (!blender::opensubdiv::checkTopologyAttributesMatch(this, converter)) {
     return false;
   }
