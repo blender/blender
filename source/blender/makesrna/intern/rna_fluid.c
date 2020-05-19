@@ -1754,7 +1754,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
                            "Caches velocities of mesh vertices. These will be used "
                            "(automatically) when rendering with motion blur enabled");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_domain_reset");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_meshcache_reset");
 
   prop = RNA_def_property(srna, "mesh_particle_radius", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0, 10.0);
