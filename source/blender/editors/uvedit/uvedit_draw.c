@@ -216,13 +216,14 @@ static void uvedit_get_batches(Object *ob,
   }
 }
 
-static void draw_uvs_shadow(SpaceImage *UNUSED(sima),
+static void draw_uvs_shadow(SpaceImage *sima,
                             const Scene *scene,
                             Object *obedit,
                             Depsgraph *depsgraph)
 {
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, obedit);
   Mesh *me = ob_eval->data;
+  const float overlay_alpha = sima->uv_opacity;
   float col[4];
   UI_GetThemeColor4fv(TH_UV_SHADOW, col);
 
@@ -231,9 +232,26 @@ static void draw_uvs_shadow(SpaceImage *UNUSED(sima),
   DRW_mesh_batch_cache_create_requested(ob_eval, me, scene, false, false);
 
   if (edges) {
+    if (sima->flag & SI_SMOOTH_UV) {
+      GPU_line_smooth(true);
+      GPU_blend(true);
+    }
+    else if (overlay_alpha < 1.0f) {
+      GPU_blend(true);
+    }
+
+    col[3] = overlay_alpha;
     GPU_batch_program_set_builtin(edges, GPU_SHADER_2D_UV_UNIFORM_COLOR);
     GPU_batch_uniform_4fv(edges, "color", col);
     GPU_batch_draw(edges);
+
+    if (sima->flag & SI_SMOOTH_UV) {
+      GPU_line_smooth(false);
+      GPU_blend(false);
+    }
+    else if (overlay_alpha < 1.0f) {
+      GPU_blend(false);
+    }
   }
 }
 
