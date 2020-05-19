@@ -40,6 +40,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "WM_api.h"
 
@@ -196,7 +197,19 @@ static void draw_parallel_lines(const ParallelLinesSet *lines,
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  if (U.pixelsize > 1.0f) {
+    float viewport[4];
+    GPU_viewport_size_get_f(viewport);
+
+    immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+    immUniform2fv("viewportSize", &viewport[2]);
+    /* 0.5f factor here  is because the line is too fat due to the builtin antialiasing.
+     * TODO make a variant or a uniform to toggle it off. */
+    immUniform1f("lineWidth", 0.5f * U.pixelsize);
+  }
+  else {
+    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  }
   immUniformColor3ubv(color);
   immBegin(GPU_PRIM_LINES, steps * 2);
 
