@@ -287,6 +287,9 @@ static void image_camera_background_matrix_get(const Camera *cam,
   translate[3][0] = bgpic->offset[0];
   translate[3][1] = bgpic->offset[1];
   translate[3][2] = cam_corners[0][2];
+  if (cam->type == CAM_ORTHO) {
+    mul_v2_fl(translate[3], cam->ortho_scale);
+  }
   /* These lines are for keeping 2.80 behavior and could be removed to keep 2.79 behavior. */
   translate[3][0] *= min_ff(1.0f, cam_aspect);
   translate[3][1] /= max_ff(1.0f, cam_aspect) * (image_aspect / cam_aspect);
