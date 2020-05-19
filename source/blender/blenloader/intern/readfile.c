@@ -8137,19 +8137,6 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
 
           v3d->camera = restore_pointer_by_name(id_map, (ID *)v3d->camera, USER_REAL);
           v3d->ob_center = restore_pointer_by_name(id_map, (ID *)v3d->ob_center, USER_REAL);
-
-          /* Free render engines for now. */
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
-          for (region = regionbase->first; region; region = region->next) {
-            if (region->regiontype == RGN_TYPE_WINDOW) {
-              RegionView3D *rv3d = region->regiondata;
-              if (rv3d && rv3d->render_engine) {
-                RE_engine_free(rv3d->render_engine);
-                rv3d->render_engine = NULL;
-              }
-            }
-          }
         }
         else if (sl->spacetype == SPACE_GRAPH) {
           SpaceGraph *sipo = (SpaceGraph *)sl;
