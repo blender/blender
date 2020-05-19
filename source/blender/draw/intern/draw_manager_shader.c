@@ -241,6 +241,9 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
   WM_jobs_timer(wm_job, 0.1, NC_MATERIAL | ND_SHADING_DRAW, 0);
   WM_jobs_delay_start(wm_job, 0.1);
   WM_jobs_callbacks(wm_job, drw_deferred_shader_compilation_exec, NULL, NULL, NULL);
+
+  G.is_break = false;
+
   WM_jobs_start(wm, wm_job);
 }
 

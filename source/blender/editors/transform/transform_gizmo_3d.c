@@ -2201,6 +2201,15 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgr
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
   }
   else {
+    ViewLayer *view_layer = CTX_data_view_layer(C);
+    Object *ob = OBACT(view_layer);
+    if (ob && ob->mode & OB_MODE_EDIT) {
+      copy_m4_m4(gz->matrix_space, ob->obmat);
+    }
+    else {
+      unit_m4(gz->matrix_space);
+    }
+
     gizmo_prepare_mat(C, rv3d, &tbounds);
 
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
@@ -2258,15 +2267,6 @@ static void WIDGETGROUP_xform_cage_message_subscribe(const bContext *C,
 static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
   struct XFormCageWidgetGroup *xgzgroup = gzgroup->customdata;
-  wmGizmo *gz = xgzgroup->gizmo;
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
-  if (ob && ob->mode & OB_MODE_EDIT) {
-    copy_m4_m4(gz->matrix_space, ob->obmat);
-  }
-  else {
-    unit_m4(gz->matrix_space);
-  }
 
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   {
