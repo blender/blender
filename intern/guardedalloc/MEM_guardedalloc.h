@@ -168,10 +168,6 @@ extern void (*MEM_set_error_callback)(void (*func)(const char *));
  * @retval true for correct memory, false for corrupted memory. */
 extern bool (*MEM_consistency_check)(void);
 
-/** Set thread locking functions for safe memory allocation from multiple
- * threads, pass NULL pointers to disable thread locking again. */
-extern void (*MEM_set_lock_callback)(void (*lock)(void), void (*unlock)(void));
-
 /** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
 extern void (*MEM_set_memory_debug)(void);
 

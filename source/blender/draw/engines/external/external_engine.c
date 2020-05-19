@@ -215,7 +215,7 @@ static void external_draw_scene_do(void *vedata)
       return;
     }
 
-    RenderEngine *engine = RE_engine_create_ex(engine_type, true);
+    RenderEngine *engine = RE_engine_create(engine_type);
     engine->tile_x = scene->r.tilex;
     engine->tile_y = scene->r.tiley;
     engine_type->view_update(engine, draw_ctx->evil_C, draw_ctx->depsgraph);

@@ -104,7 +104,6 @@ static void *thread_tls_data;
  *     BLI_threadpool_end(&lb);
  *
  ************************************************ */
-static SpinLock _malloc_lock;
 static pthread_mutex_t _image_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _image_draw_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _viewer_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -132,21 +131,9 @@ typedef struct ThreadSlot {
   int avail;
 } ThreadSlot;
 
-static void BLI_lock_malloc_thread(void)
-{
-  BLI_spin_lock(&_malloc_lock);
-}
-
-static void BLI_unlock_malloc_thread(void)
-{
-  BLI_spin_unlock(&_malloc_lock);
-}
-
 void BLI_threadapi_init(void)
 {
   mainid = pthread_self();
-
-  BLI_spin_init(&_malloc_lock);
   if (numaAPI_Initialize() == NUMAAPI_SUCCESS) {
     is_numa_available = true;
   }
@@ -154,7 +141,6 @@ void BLI_threadapi_init(void)
 
 void BLI_threadapi_exit(void)
 {
-  BLI_spin_end(&_malloc_lock);
 }
 
 /* tot = 0 only initializes malloc mutex in a safe way (see sequence.c)
@@ -185,8 +171,6 @@ void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int t
 
   unsigned int level = atomic_fetch_and_add_u(&thread_levels, 1);
   if (level == 0) {
-    MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
-
 #ifdef USE_APPLE_OMP_FIX
     /* workaround for Apple gcc 4.2.1 omp vs background thread bug,
      * we copy gomp thread local storage pointer to setting it again
@@ -312,11 +296,6 @@ void BLI_threadpool_end(ListBase *threadbase)
       }
     }
     BLI_freelistN(threadbase);
-  }
-
-  unsigned int level = atomic_sub_and_fetch_u(&thread_levels, 1);
-  if (level == 0) {
-    MEM_set_lock_callback(NULL, NULL);
   }
 }
 
@@ -809,24 +788,6 @@ void BLI_thread_queue_wait_finish(ThreadQueue *queue)
   }
 
   pthread_mutex_unlock(&queue->mutex);
-}
-
-/* ************************************************ */
-
-void BLI_threaded_malloc_begin(void)
-{
-  unsigned int level = atomic_fetch_and_add_u(&thread_levels, 1);
-  if (level == 0) {
-    MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
-  }
-}
-
-void BLI_threaded_malloc_end(void)
-{
-  unsigned int level = atomic_sub_and_fetch_u(&thread_levels, 1);
-  if (level == 0) {
-    MEM_set_lock_callback(NULL, NULL);
-  }
 }
 
 /* **** Special functions to help performance on crazy NUMA setups. **** */

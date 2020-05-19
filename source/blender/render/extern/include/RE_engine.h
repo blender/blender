@@ -68,7 +68,6 @@ struct bNodeTree;
 #define RE_ENGINE_DO_UPDATE 8
 #define RE_ENGINE_RENDERING 16
 #define RE_ENGINE_HIGHLIGHT_TILES 32
-#define RE_ENGINE_USED_FOR_VIEWPORT 64
 
 extern ListBase R_engines;
 
@@ -159,7 +158,6 @@ typedef struct RenderEngine {
 } RenderEngine;
 
 RenderEngine *RE_engine_create(RenderEngineType *type);
-RenderEngine *RE_engine_create_ex(RenderEngineType *type, bool use_for_viewport);
 void RE_engine_free(RenderEngine *engine);
 
 void RE_layer_load_from_file(

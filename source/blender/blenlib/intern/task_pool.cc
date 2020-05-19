@@ -364,14 +364,6 @@ static void background_task_pool_free(TaskPool *pool)
 
 static TaskPool *task_pool_create_ex(void *userdata, TaskPoolType type, TaskPriority priority)
 {
-  /* Ensure malloc will go fine from threads,
-   *
-   * This is needed because we could be in main thread here
-   * and malloc could be non-thread safe at this point because
-   * no other jobs are running.
-   */
-  BLI_threaded_malloc_begin();
-
   const bool use_threads = BLI_task_scheduler_num_threads() > 1 && type != TASK_POOL_NO_THREADS;
 
   /* Background task pool uses regular TBB scheduling if available. Only when
@@ -475,8 +467,6 @@ void BLI_task_pool_free(TaskPool *pool)
   BLI_mutex_end(&pool->user_mutex);
 
   MEM_freeN(pool);
-
-  BLI_threaded_malloc_end();
 }
 
 void BLI_task_pool_push(TaskPool *pool,

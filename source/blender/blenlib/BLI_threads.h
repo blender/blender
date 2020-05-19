@@ -58,9 +58,6 @@ void BLI_threadpool_clear(struct ListBase *threadbase);
 void BLI_threadpool_end(struct ListBase *threadbase);
 int BLI_thread_is_main(void);
 
-void BLI_threaded_malloc_begin(void);
-void BLI_threaded_malloc_end(void);
-
 /* System Information */
 
 int BLI_system_thread_count(void); /* gets the number of threads the system can make use of */

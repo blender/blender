@@ -1592,7 +1592,6 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
       }
 
       re = RE_NewSceneRender(scene);
-      BLI_threaded_malloc_begin();
       BKE_reports_init(&reports, RPT_STORE);
       RE_SetReports(re, &reports);
       for (int i = 0; i < frames_range_len; i++) {
@@ -1608,7 +1607,6 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
       }
       RE_SetReports(re, NULL);
       BKE_reports_clear(&reports);
-      BLI_threaded_malloc_end();
       MEM_freeN(frame_range_arr);
       return 1;
     }
@@ -1634,13 +1632,11 @@ static int arg_handle_render_animation(int UNUSED(argc), const char **UNUSED(arg
     Main *bmain = CTX_data_main(C);
     Render *re = RE_NewSceneRender(scene);
     ReportList reports;
-    BLI_threaded_malloc_begin();
     BKE_reports_init(&reports, RPT_STORE);
     RE_SetReports(re, &reports);
     RE_RenderAnim(re, bmain, scene, NULL, NULL, scene->r.sfra, scene->r.efra, scene->r.frame_step);
     RE_SetReports(re, NULL);
     BKE_reports_clear(&reports);
-    BLI_threaded_malloc_end();
   }
   else {
     printf("\nError: no blend loaded. cannot use '-a'.\n");

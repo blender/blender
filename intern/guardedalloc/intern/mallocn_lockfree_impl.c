@@ -400,12 +400,6 @@ bool MEM_lockfree_consistency_check(void)
   return true;
 }
 
-void MEM_lockfree_set_lock_callback(void (*lock)(void), void (*unlock)(void))
-{
-  (void)lock;
-  (void)unlock;
-}
-
 void MEM_lockfree_set_memory_debug(void)
 {
   malloc_debug_memset = true;

@@ -54,8 +54,6 @@ void (*MEM_callbackmemlist)(void (*func)(void *)) = MEM_lockfree_callbackmemlist
 void (*MEM_printmemlist_stats)(void) = MEM_lockfree_printmemlist_stats;
 void (*MEM_set_error_callback)(void (*func)(const char *)) = MEM_lockfree_set_error_callback;
 bool (*MEM_consistency_check)(void) = MEM_lockfree_consistency_check;
-void (*MEM_set_lock_callback)(void (*lock)(void),
-                              void (*unlock)(void)) = MEM_lockfree_set_lock_callback;
 void (*MEM_set_memory_debug)(void) = MEM_lockfree_set_memory_debug;
 size_t (*MEM_get_memory_in_use)(void) = MEM_lockfree_get_memory_in_use;
 unsigned int (*MEM_get_memory_blocks_in_use)(void) = MEM_lockfree_get_memory_blocks_in_use;
@@ -115,7 +113,6 @@ void MEM_use_guarded_allocator(void)
   MEM_printmemlist_stats = MEM_guarded_printmemlist_stats;
   MEM_set_error_callback = MEM_guarded_set_error_callback;
   MEM_consistency_check = MEM_guarded_consistency_check;
-  MEM_set_lock_callback = MEM_guarded_set_lock_callback;
   MEM_set_memory_debug = MEM_guarded_set_memory_debug;
   MEM_get_memory_in_use = MEM_guarded_get_memory_in_use;
   MEM_get_memory_blocks_in_use = MEM_guarded_get_memory_blocks_in_use;

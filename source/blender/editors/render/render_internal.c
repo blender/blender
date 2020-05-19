@@ -349,7 +349,6 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 
   RE_SetReports(re, op->reports);
 
-  BLI_threaded_malloc_begin();
   if (is_animation) {
     RE_RenderAnim(re,
                   mainp,
@@ -363,7 +362,6 @@ static int screen_render_exec(bContext *C, wmOperator *op)
   else {
     RE_RenderFrame(re, mainp, scene, single_layer, camera_override, scene->r.cfra, is_write_still);
   }
-  BLI_threaded_malloc_end();
 
   RE_SetReports(re, NULL);
 

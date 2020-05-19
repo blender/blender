@@ -28,6 +28,8 @@
 #include <string.h> /* memcpy */
 #include <sys/types.h>
 
+#include <pthread.h>
+
 #include "MEM_guardedalloc.h"
 
 /* to ensure strict conversions */
@@ -49,17 +51,6 @@
  * in situations where the leak is predictable */
 
 //#define DEBUG_MEMCOUNTER
-
-/* Only for debugging:
- * defining DEBUG_THREADS will enable check whether memory manager
- * is locked with a mutex when allocation is called from non-main
- * thread.
- *
- * This helps troubleshooting memory issues caused by the fact
- * guarded allocator is not thread-safe, however this check will
- * fail to check allocations from openmp threads.
- */
-//#define DEBUG_THREADS
 
 /* Only for debugging:
  * Defining DEBUG_BACKTRACE will store a backtrace from where
@@ -124,24 +115,6 @@ typedef struct MemHead {
 
 typedef MemHead MemHeadAligned;
 
-/* for openmp threading asserts, saves time troubleshooting
- * we may need to extend this if blender code starts using MEM_
- * functions inside OpenMP correctly with omp_set_lock() */
-
-#if 0 /* disable for now, only use to debug openmp code which doesn lock threads for malloc */
-#  if defined(_OPENMP) && defined(DEBUG)
-#    include <assert.h>
-#    include <omp.h>
-#    define DEBUG_OMP_MALLOC
-#  endif
-#endif
-
-#ifdef DEBUG_THREADS
-#  include <assert.h>
-#  include <pthread.h>
-static pthread_t mainid;
-#endif
-
 #ifdef DEBUG_BACKTRACE
 #  if defined(__linux__) || defined(__APPLE__)
 #    include <execinfo.h>
@@ -192,8 +165,6 @@ static size_t mem_in_use = 0, peak_mem = 0;
 static volatile struct localListBase _membase;
 static volatile struct localListBase *membase = &_membase;
 static void (*error_callback)(const char *) = NULL;
-static void (*thread_lock_callback)(void) = NULL;
-static void (*thread_unlock_callback)(void) = NULL;
 
 static bool malloc_debug_memset = false;
 
@@ -233,40 +204,16 @@ print_error(const char *str, ...)
     fputs(buf, stderr);
 }
 
+static pthread_mutex_t thread_lock = PTHREAD_MUTEX_INITIALIZER;
+
 static void mem_lock_thread(void)
 {
-#ifdef DEBUG_THREADS
-  static int initialized = 0;
-
-  if (initialized == 0) {
-    /* assume first allocation happens from main thread */
-    mainid = pthread_self();
-    initialized = 1;
-  }
-
-  if (!pthread_equal(pthread_self(), mainid) && thread_lock_callback == NULL) {
-    assert(!"Memory function is called from non-main thread without lock");
-  }
-#endif
-
-#ifdef DEBUG_OMP_MALLOC
-  assert(omp_in_parallel() == 0);
-#endif
-
-  if (thread_lock_callback)
-    thread_lock_callback();
+  pthread_mutex_lock(&thread_lock);
 }
 
 static void mem_unlock_thread(void)
 {
-#ifdef DEBUG_THREADS
-  if (!pthread_equal(pthread_self(), mainid) && thread_lock_callback == NULL) {
-    assert(!"Thread lock was removed while allocation from thread is in progress");
-  }
-#endif
-
-  if (thread_unlock_callback)
-    thread_unlock_callback();
+  pthread_mutex_unlock(&thread_lock);
 }
 
 bool MEM_guarded_consistency_check(void)
@@ -285,12 +232,6 @@ bool MEM_guarded_consistency_check(void)
 void MEM_guarded_set_error_callback(void (*func)(const char *))
 {
   error_callback = func;
-}
-
-void MEM_guarded_set_lock_callback(void (*lock)(void), void (*unlock)(void))
-{
-  thread_lock_callback = lock;
-  thread_unlock_callback = unlock;
 }
 
 void MEM_guarded_set_memory_debug(void)
