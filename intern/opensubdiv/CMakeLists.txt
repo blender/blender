@@ -51,6 +51,7 @@ if(WITH_OPENSUBDIV)
 
   list(APPEND SRC
     # Base.
+    internal/base/edge_map.h
     internal/base/memory.h
 
     # Device.
@@ -78,7 +79,6 @@ if(WITH_OPENSUBDIV)
     internal/opensubdiv_util.cc
 
     internal/opensubdiv_converter_internal.h
-    internal/opensubdiv_edge_map.h
     internal/opensubdiv_evaluator_internal.h
     internal/opensubdiv_internal.h
     internal/opensubdiv_util.h

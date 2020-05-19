@@ -16,8 +16,8 @@
 //
 // Author: Sergey Sharybin
 
-#ifndef OPENSUBDIV_EDGE_MAP_H_
-#define OPENSUBDIV_EDGE_MAP_H_
+#ifndef OPENSUBDIV_BASE_EDGE_MAP_H_
+#define OPENSUBDIV_BASE_EDGE_MAP_H_
 
 #include "internal/opensubdiv_util.h"
 
@@ -159,4 +159,4 @@ template<> struct hash<blender::opensubdiv::EdgeKey> {
 
 }  // namespace std
 
-#endif  // OPENSUBDIV_EDGE_MAP_H_
+#endif  // OPENSUBDIV_BASE_EDGE_MAP_H_

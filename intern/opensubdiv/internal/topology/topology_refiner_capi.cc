@@ -19,8 +19,8 @@
 #include "opensubdiv_topology_refiner_capi.h"
 
 #include "MEM_guardedalloc.h"
+#include "internal/base/edge_map.h"
 #include "internal/opensubdiv_converter_internal.h"
-#include "internal/opensubdiv_edge_map.h"
 #include "internal/opensubdiv_internal.h"
 #include "internal/opensubdiv_util.h"
 #include "internal/topology/topology_refiner_impl.h"
