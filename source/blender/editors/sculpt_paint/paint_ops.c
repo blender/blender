@@ -731,7 +731,14 @@ static bool brush_generic_tool_set(bContext *C,
     WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);
 
     /* Tool System
-     * This is needed for when there is a non-sculpt tool active (transform for e.g.) */
+     * This is needed for when there is a non-sculpt tool active (transform for e.g.).
+     * In case we are toogling (and the brush changed to the toggle_brush), we need to get the
+     * tool_name again. */
+    int tool_result = brush_tool(brush, paint->runtime.tool_offset);
+    ePaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
+    const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
+    RNA_enum_name_from_value(items, tool_result, &tool_name);
+
     char tool_id[MAX_NAME];
     SNPRINTF(tool_id, "builtin_brush.%s", tool_name);
     WM_toolsystem_ref_set_by_id(C, tool_id);
