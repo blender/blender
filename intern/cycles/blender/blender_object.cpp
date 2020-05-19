@@ -460,9 +460,12 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
     sync_objects(b_depsgraph, b_v3d, 0.0f);
   }
 
-  /* always sample these times for camera motion */
-  motion_times.insert(-1.0f);
-  motion_times.insert(1.0f);
+  /* Insert motion times from camera. Motion times from other objects
+   * have already been added in a sync_objects call. */
+  uint camera_motion_steps = object_motion_steps(b_cam, b_cam);
+  for (size_t step = 0; step < camera_motion_steps; step++) {
+    motion_times.insert(scene->camera->motion_time(step));
+  }
 
   /* note iteration over motion_times set happens in sorted order */
   foreach (float relative_time, motion_times) {
@@ -487,10 +490,8 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
     b_engine.frame_set(frame, subframe);
     python_thread_state_save(python_thread_state);
 
-    /* sync camera, only supports two times at the moment */
-    if (relative_time == -1.0f || relative_time == 1.0f) {
-      sync_camera_motion(b_render, b_cam, width, height, relative_time);
-    }
+    /* Syncs camera motion if relative_time is one of the camera's motion times. */
+    sync_camera_motion(b_render, b_cam, width, height, relative_time);
 
     /* sync object */
     sync_objects(b_depsgraph, b_v3d, relative_time);
