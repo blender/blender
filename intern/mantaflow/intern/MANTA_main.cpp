@@ -564,7 +564,7 @@ MANTA::~MANTA()
   result = runPythonString(pythonCommands);
 
   assert(result);
-  (void)result;  // not needed in release
+  UNUSED_VARS(result);
 }
 
 /**
@@ -2997,7 +2997,7 @@ bool MANTA::updateGridsFromUni(string filename, vector<GridItem> grids)
         return false;
       }
       assert(expectedBytes == readBytes);
-      (void)expectedBytes;
+      UNUSED_VARS(expectedBytes);
 
       if (with_debug)
         cout << "Fluid: Read successfully: " << filename << endl;
