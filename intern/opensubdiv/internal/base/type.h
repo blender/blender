@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <map>
 #include <stack>
 #include <string>
 #include <unordered_map>
@@ -30,6 +31,7 @@
 namespace blender {
 namespace opensubdiv {
 
+using std::map;
 using std::pair;
 using std::stack;
 using std::string;
