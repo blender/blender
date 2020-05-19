@@ -26,7 +26,7 @@
 #include <opensubdiv/sdc/options.h>
 #include <opensubdiv/sdc/types.h>
 
-#include "opensubdiv_converter_capi.h"
+#include "opensubdiv_capi_type.h"
 
 struct OpenSubdiv_Converter;
 
@@ -44,6 +44,9 @@ OpenSubdiv::Sdc::Options::FVarLinearInterpolation getFVarLinearInterpolationFrom
 // Similar to above, just other way around.
 OpenSubdiv_FVarLinearInterpolation getCAPIFVarLinearInterpolationFromOSD(
     OpenSubdiv::Sdc::Options::FVarLinearInterpolation linear_interpolation);
+
+OpenSubdiv::Sdc::Options::VtxBoundaryInterpolation getVtxBoundaryInterpolationFromCAPI(
+    OpenSubdiv_VtxBoundaryInterpolation boundary_interpolation);
 
 }  // namespace opensubdiv
 }  // namespace blender

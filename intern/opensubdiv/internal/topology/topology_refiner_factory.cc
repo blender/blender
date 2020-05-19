@@ -251,23 +251,6 @@ namespace opensubdiv {
 
 namespace {
 
-OpenSubdiv::Sdc::Options::VtxBoundaryInterpolation getVtxBoundaryInterpolationFromCAPI(
-    OpenSubdiv_VtxBoundaryInterpolation boundary_interpolation)
-{
-  using OpenSubdiv::Sdc::Options;
-
-  switch (boundary_interpolation) {
-    case OSD_VTX_BOUNDARY_NONE:
-      return Options::VTX_BOUNDARY_NONE;
-    case OSD_VTX_BOUNDARY_EDGE_ONLY:
-      return Options::VTX_BOUNDARY_EDGE_ONLY;
-    case OSD_VTX_BOUNDARY_EDGE_AND_CORNER:
-      return Options::VTX_BOUNDARY_EDGE_AND_CORNER;
-  }
-  assert(!"Unknown veretx boundary interpolation.");
-  return Options::VTX_BOUNDARY_EDGE_ONLY;
-}
-
 OpenSubdiv::Sdc::Options getSDCOptions(OpenSubdiv_Converter *converter)
 {
   using OpenSubdiv::Sdc::Options;
