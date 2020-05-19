@@ -49,7 +49,7 @@ struct PBVHTask {
   PBVHTask(const PBVHTask &other)
       : func(other.func), userdata(other.userdata), settings(other.settings)
   {
-    init_chunk(other.userdata_chunk);
+    init_chunk(settings->userdata_chunk);
   }
 
   /* Splitting constructor for parallel reduce. */
