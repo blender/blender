@@ -105,8 +105,8 @@ if(WITH_OPENSUBDIV)
   data_to_c_simple(shader/gpu_shader_opensubdiv_geometry.glsl SRC)
   data_to_c_simple(shader/gpu_shader_opensubdiv_fragment.glsl SRC)
 
-  add_definitions(-DGLEW_STATIC)
   add_definitions(-DOSD_USES_GLEW)
+  add_definitions(${GL_DEFINITIONS})
 
   if(WIN32)
     add_definitions(-DNOMINMAX)
