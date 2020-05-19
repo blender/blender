@@ -16,8 +16,8 @@
 //
 // Author: Sergey Sharybin
 
-#ifndef OPENSUBDIV_CONVERTER_INTERNAL_H_
-#define OPENSUBDIV_CONVERTER_INTERNAL_H_
+#ifndef OPENSUBDIV_BASE_TYPE_CONVERT_H_
+#define OPENSUBDIV_BASE_TYPE_CONVERT_H_
 
 #ifdef _MSC_VER
 #  include <iso646.h>
@@ -48,4 +48,4 @@ OpenSubdiv_FVarLinearInterpolation getCAPIFVarLinearInterpolationFromOSD(
 }  // namespace opensubdiv
 }  // namespace blender
 
-#endif  // OPENSUBDIV_CONVERTER_INTERNAL_H_
+#endif  // OPENSUBDIV_BASE_TYPE_CONVERT_H_

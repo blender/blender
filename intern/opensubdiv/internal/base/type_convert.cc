@@ -20,7 +20,7 @@
 #  include <iso646.h>
 #endif
 
-#include "internal/opensubdiv_converter_internal.h"
+#include "internal/base/type_convert.h"
 
 #include <cassert>
 #include <opensubdiv/sdc/crease.h>

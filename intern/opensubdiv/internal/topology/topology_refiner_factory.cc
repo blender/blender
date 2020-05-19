@@ -27,7 +27,7 @@
 
 #include <opensubdiv/far/topologyRefinerFactory.h>
 
-#include "internal/opensubdiv_converter_internal.h"
+#include "internal/base/type_convert.h"
 #include "internal/opensubdiv_util.h"
 #include "opensubdiv_converter_capi.h"
 

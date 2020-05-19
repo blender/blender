@@ -53,6 +53,8 @@ if(WITH_OPENSUBDIV)
     # Base.
     internal/base/edge_map.h
     internal/base/memory.h
+    internal/base/type_convert.cc
+    internal/base/type_convert.h
 
     # Device.
     internal/device/device_context_cuda.cc
@@ -78,10 +80,8 @@ if(WITH_OPENSUBDIV)
     internal/topology/topology_refiner_impl.h
 
     internal/opensubdiv.cc
-    internal/opensubdiv_converter_internal.cc
     internal/opensubdiv_util.cc
 
-    internal/opensubdiv_converter_internal.h
     internal/opensubdiv_util.h
   )
 

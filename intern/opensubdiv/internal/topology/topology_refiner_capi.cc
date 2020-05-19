@@ -20,7 +20,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "internal/base/edge_map.h"
-#include "internal/opensubdiv_converter_internal.h"
+#include "internal/base/type_convert.h"
 #include "internal/opensubdiv_util.h"
 #include "internal/topology/topology_refiner_impl.h"
 
