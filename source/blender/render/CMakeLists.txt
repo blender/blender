@@ -108,4 +108,6 @@ if(APPLE)
   endif()
 endif()
 
+add_definitions(${GL_DEFINITIONS})
+
 blender_add_lib_nolist(bf_render "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

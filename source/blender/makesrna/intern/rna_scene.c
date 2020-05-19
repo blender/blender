@@ -3374,14 +3374,15 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_keyframe_insert_auto", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "autokey_mode", AUTOKEY_ON);
   RNA_def_property_ui_text(
-      prop, "Auto Keying", "Automatic keyframe insertion for Objects and Bones");
+      prop, "Auto Keying", "Automatic keyframe insertion for Objects, Bones and Masks");
   RNA_def_property_ui_icon(prop, ICON_REC, 0);
 
   prop = RNA_def_property(srna, "auto_keying_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "autokey_mode");
   RNA_def_property_enum_items(prop, auto_key_items);
-  RNA_def_property_ui_text(
-      prop, "Auto-Keying Mode", "Mode of automatic keyframe insertion for Objects and Bones");
+  RNA_def_property_ui_text(prop,
+                           "Auto-Keying Mode",
+                           "Mode of automatic keyframe insertion for Objects, Bones and Masks");
 
   prop = RNA_def_property(srna, "use_record_with_nla", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", ANIMRECORD_FLAG_WITHNLA);

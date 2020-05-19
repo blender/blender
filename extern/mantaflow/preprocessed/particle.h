@@ -469,6 +469,7 @@ template<class S> class ParticleSystem : public ParticleBase {
                     const int integrationMode,
                     const bool deleteInObstacle = true,
                     const bool stopInObstacle = true,
+                    const bool skipNew = false,
                     const ParticleDataImpl<int> *ptype = NULL,
                     const int exclude = 0);
   static PyObject *_W_9(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
@@ -486,13 +487,20 @@ template<class S> class ParticleSystem : public ParticleBase {
         const int integrationMode = _args.get<int>("integrationMode", 2, &_lock);
         const bool deleteInObstacle = _args.getOpt<bool>("deleteInObstacle", 3, true, &_lock);
         const bool stopInObstacle = _args.getOpt<bool>("stopInObstacle", 4, true, &_lock);
+        const bool skipNew = _args.getOpt<bool>("skipNew", 5, false, &_lock);
         const ParticleDataImpl<int> *ptype = _args.getPtrOpt<ParticleDataImpl<int>>(
-            "ptype", 5, NULL, &_lock);
-        const int exclude = _args.getOpt<int>("exclude", 6, 0, &_lock);
+            "ptype", 6, NULL, &_lock);
+        const int exclude = _args.getOpt<int>("exclude", 7, 0, &_lock);
         pbo->_args.copy(_args);
         _retval = getPyNone();
-        pbo->advectInGrid(
-            flags, vel, integrationMode, deleteInObstacle, stopInObstacle, ptype, exclude);
+        pbo->advectInGrid(flags,
+                          vel,
+                          integrationMode,
+                          deleteInObstacle,
+                          stopInObstacle,
+                          skipNew,
+                          ptype,
+                          exclude);
         pbo->_args.check();
       }
       pbFinalizePlugin(pbo->getParent(), "ParticleSystem::advectInGrid", !noTiming);
@@ -1863,6 +1871,7 @@ template<class S> struct _GridAdvectKernel : public KernelBase {
                     const Real dt,
                     const bool deleteInObstacle,
                     const bool stopInObstacle,
+                    const bool skipNew,
                     const ParticleDataImpl<int> *ptype,
                     const int exclude,
                     std::vector<Vec3> &u)
@@ -1873,6 +1882,7 @@ template<class S> struct _GridAdvectKernel : public KernelBase {
         dt(dt),
         deleteInObstacle(deleteInObstacle),
         stopInObstacle(stopInObstacle),
+        skipNew(skipNew),
         ptype(ptype),
         exclude(exclude),
         u(u)
@@ -1885,11 +1895,13 @@ template<class S> struct _GridAdvectKernel : public KernelBase {
                  const Real dt,
                  const bool deleteInObstacle,
                  const bool stopInObstacle,
+                 const bool skipNew,
                  const ParticleDataImpl<int> *ptype,
                  const int exclude,
                  std::vector<Vec3> &u) const
   {
-    if ((p[idx].flag & ParticleBase::PDELETE) || (ptype && ((*ptype)[idx] & exclude))) {
+    if ((p[idx].flag & ParticleBase::PDELETE) || (ptype && ((*ptype)[idx] & exclude)) ||
+        (skipNew && (p[idx].flag & ParticleBase::PNEW))) {
       u[idx] = 0.;
       return;
     }
@@ -1910,7 +1922,7 @@ template<class S> struct _GridAdvectKernel : public KernelBase {
   void operator()(const tbb::blocked_range<IndexInt> &__r) const
   {
     for (IndexInt idx = __r.begin(); idx != (IndexInt)__r.end(); idx++)
-      op(idx, p, vel, flags, dt, deleteInObstacle, stopInObstacle, ptype, exclude, u);
+      op(idx, p, vel, flags, dt, deleteInObstacle, stopInObstacle, skipNew, ptype, exclude, u);
   }
   void run()
   {
@@ -1922,6 +1934,7 @@ template<class S> struct _GridAdvectKernel : public KernelBase {
   const Real dt;
   const bool deleteInObstacle;
   const bool stopInObstacle;
+  const bool skipNew;
   const ParticleDataImpl<int> *ptype;
   const int exclude;
   std::vector<Vec3> &u;
@@ -1933,6 +1946,7 @@ template<class S> struct GridAdvectKernel : public KernelBase {
                    const Real dt,
                    const bool deleteInObstacle,
                    const bool stopInObstacle,
+                   const bool skipNew,
                    const ParticleDataImpl<int> *ptype,
                    const int exclude)
       : KernelBase(p.size()),
@@ -1943,6 +1957,7 @@ template<class S> struct GridAdvectKernel : public KernelBase {
                dt,
                deleteInObstacle,
                stopInObstacle,
+               skipNew,
                ptype,
                exclude,
                u),
@@ -1952,6 +1967,7 @@ template<class S> struct GridAdvectKernel : public KernelBase {
         dt(dt),
         deleteInObstacle(deleteInObstacle),
         stopInObstacle(stopInObstacle),
+        skipNew(skipNew),
         ptype(ptype),
         exclude(exclude),
         u((size))
@@ -2001,16 +2017,21 @@ template<class S> struct GridAdvectKernel : public KernelBase {
     return stopInObstacle;
   }
   typedef bool type5;
-  inline const ParticleDataImpl<int> *getArg6()
+  inline const bool &getArg6()
+  {
+    return skipNew;
+  }
+  typedef bool type6;
+  inline const ParticleDataImpl<int> *getArg7()
   {
     return ptype;
   }
-  typedef ParticleDataImpl<int> type6;
-  inline const int &getArg7()
+  typedef ParticleDataImpl<int> type7;
+  inline const int &getArg8()
   {
     return exclude;
   }
-  typedef int type7;
+  typedef int type8;
   void runMessage()
   {
     debMsg("Executing kernel GridAdvectKernel ", 3);
@@ -2025,6 +2046,7 @@ template<class S> struct GridAdvectKernel : public KernelBase {
   const Real dt;
   const bool deleteInObstacle;
   const bool stopInObstacle;
+  const bool skipNew;
   const ParticleDataImpl<int> *ptype;
   const int exclude;
   std::vector<Vec3> u;
@@ -2195,6 +2217,7 @@ void ParticleSystem<S>::advectInGrid(const FlagGrid &flags,
                                      const int integrationMode,
                                      const bool deleteInObstacle,
                                      const bool stopInObstacle,
+                                     const bool skipNew,
                                      const ParticleDataImpl<int> *ptype,
                                      const int exclude)
 {
@@ -2208,8 +2231,15 @@ void ParticleSystem<S>::advectInGrid(const FlagGrid &flags,
   }
 
   // update positions
-  GridAdvectKernel<S> kernel(
-      mData, vel, flags, getParent()->getDt(), deleteInObstacle, stopInObstacle, ptype, exclude);
+  GridAdvectKernel<S> kernel(mData,
+                             vel,
+                             flags,
+                             getParent()->getDt(),
+                             deleteInObstacle,
+                             stopInObstacle,
+                             skipNew,
+                             ptype,
+                             exclude);
   integratePointSet(kernel, integrationMode);
 
   if (!deleteInObstacle) {
