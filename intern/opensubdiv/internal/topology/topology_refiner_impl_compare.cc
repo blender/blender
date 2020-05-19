@@ -67,22 +67,11 @@ bool checkOptionsMatches(const TopologyRefinerImpl *topology_refiner_impl,
   return true;
 }
 
-bool checkGeometryCountersMatches(const TopologyRefinerImpl *topology_refiner_impl,
-                                  const OpenSubdiv_Converter *converter)
-{
-  using OpenSubdiv::Far::TopologyLevel;
-  const TopologyLevel &base_level = getOSDTopologyBaseLevel(topology_refiner_impl);
-  return ((converter->getNumVertices(converter) == base_level.GetNumVertices()) &&
-          (converter->getNumEdges(converter) == base_level.GetNumEdges()) &&
-          (converter->getNumFaces(converter) == base_level.GetNumFaces()));
-}
-
 bool checkPreliminaryMatches(const TopologyRefinerImpl *topology_refiner_impl,
                              const OpenSubdiv_Converter *converter)
 {
   return checkSchemeTypeMatches(topology_refiner_impl, converter) &&
-         checkOptionsMatches(topology_refiner_impl, converter) &&
-         checkGeometryCountersMatches(topology_refiner_impl, converter);
+         checkOptionsMatches(topology_refiner_impl, converter);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -142,11 +131,12 @@ bool TopologyRefinerImpl::isEqualToConverter(const OpenSubdiv_Converter *convert
   if (!blender::opensubdiv::checkPreliminaryMatches(this, converter)) {
     return false;
   }
-  if (!blender::opensubdiv::checkTopologyAttributesMatch(this, converter)) {
+
+  if (!base_mesh_topology.isEqualToConverter(converter)) {
     return false;
   }
 
-  if (!base_mesh_topology.isEqualToConverter(converter)) {
+  if (!blender::opensubdiv::checkTopologyAttributesMatch(this, converter)) {
     return false;
   }
 

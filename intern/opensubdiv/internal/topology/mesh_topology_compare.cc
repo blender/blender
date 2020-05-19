@@ -32,9 +32,7 @@ namespace opensubdiv {
 namespace {
 
 ////////////////////////////////////////////////////////////////////////////////
-// Geometry.
-
-// Edges.
+// Quick preliminary checks.
 
 int getEffectiveNumEdges(const OpenSubdiv_Converter *converter)
 {
@@ -44,6 +42,27 @@ int getEffectiveNumEdges(const OpenSubdiv_Converter *converter)
 
   return converter->getNumEdges(converter);
 }
+
+bool isEqualGeometryCounters(const MeshTopology &mesh_topology,
+                             const OpenSubdiv_Converter *converter)
+{
+  if (converter->getNumVertices(converter) != mesh_topology.getNumVertices()) {
+    return false;
+  }
+  if (converter->getNumFaces(converter) != mesh_topology.getNumFaces()) {
+    return false;
+  }
+  if (getEffectiveNumEdges(converter) != mesh_topology.getNumEdges()) {
+    return false;
+  }
+
+  return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Geometry.
+
+// Edges.
 
 bool isEqualGeometryEdge(const MeshTopology &mesh_topology, const OpenSubdiv_Converter *converter)
 {
@@ -192,6 +211,11 @@ bool isEqualTags(const MeshTopology &mesh_topology, const OpenSubdiv_Converter *
 
 bool MeshTopology::isEqualToConverter(const OpenSubdiv_Converter *converter) const
 {
+  // Preliminary checks.
+  if (!isEqualGeometryCounters(*this, converter)) {
+    return false;
+  }
+
   // Geometry.
   if (!isEqualGeometry(*this, converter)) {
     return false;
