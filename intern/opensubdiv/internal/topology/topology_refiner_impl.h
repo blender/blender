@@ -44,6 +44,9 @@ class TopologyRefinerImpl {
   TopologyRefinerImpl();
   ~TopologyRefinerImpl();
 
+  // Check whether this topology refiner defines same topology as the given converter.
+  bool isEqualToConverter(const OpenSubdiv_Converter *converter) const;
+
   OpenSubdiv::Far::TopologyRefiner *topology_refiner;
 
   // Subdivision settingsa this refiner is created for.
