@@ -48,6 +48,69 @@
 
 /* Hair datablock */
 
+static void hair_random(Hair *hair);
+
+static void hair_init_data(ID *id)
+{
+  Hair *hair = (Hair *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(hair, id));
+
+  MEMCPY_STRUCT_AFTER(hair, DNA_struct_default_get(Hair), id);
+
+  CustomData_reset(&hair->pdata);
+  CustomData_reset(&hair->cdata);
+
+  CustomData_add_layer(&hair->pdata, CD_LOCATION, CD_CALLOC, NULL, hair->totpoint);
+  CustomData_add_layer(&hair->pdata, CD_RADIUS, CD_CALLOC, NULL, hair->totpoint);
+  CustomData_add_layer(&hair->cdata, CD_HAIRCURVE, CD_CALLOC, NULL, hair->totcurve);
+  BKE_hair_update_customdata_pointers(hair);
+
+  hair_random(hair);
+}
+
+static void hair_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
+{
+  Hair *hair_dst = (Hair *)id_dst;
+  const Hair *hair_src = (const Hair *)id_src;
+  hair_dst->mat = MEM_dupallocN(hair_dst->mat);
+
+  const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
+  CustomData_copy(&hair_src->pdata, &hair_dst->pdata, CD_MASK_ALL, alloc_type, hair_dst->totpoint);
+  CustomData_copy(&hair_src->cdata, &hair_dst->cdata, CD_MASK_ALL, alloc_type, hair_dst->totcurve);
+  BKE_hair_update_customdata_pointers(hair_dst);
+
+  hair_dst->batch_cache = NULL;
+}
+
+static void hair_free_data(ID *id)
+{
+  Hair *hair = (Hair *)id;
+  BKE_animdata_free(&hair->id, false);
+
+  BKE_hair_batch_cache_free(hair);
+
+  CustomData_free(&hair->pdata, hair->totpoint);
+  CustomData_free(&hair->cdata, hair->totcurve);
+
+  MEM_SAFE_FREE(hair->mat);
+}
+
+IDTypeInfo IDType_ID_HA = {
+    .id_code = ID_HA,
+    .id_filter = FILTER_ID_HA,
+    .main_listbase_index = INDEX_ID_HA,
+    .struct_size = sizeof(Hair),
+    .name = "Hair",
+    .name_plural = "hairs",
+    .translation_context = BLT_I18NCONTEXT_ID_HAIR,
+    .flags = 0,
+
+    .init_data = hair_init_data,
+    .copy_data = hair_copy_data,
+    .free_data = hair_free_data,
+    .make_local = NULL,
+};
+
 static void hair_random(Hair *hair)
 {
   const int numpoints = 8;
@@ -93,24 +156,6 @@ static void hair_random(Hair *hair)
   BLI_rng_free(rng);
 }
 
-static void hair_init_data(ID *id)
-{
-  Hair *hair = (Hair *)id;
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(hair, id));
-
-  MEMCPY_STRUCT_AFTER(hair, DNA_struct_default_get(Hair), id);
-
-  CustomData_reset(&hair->pdata);
-  CustomData_reset(&hair->cdata);
-
-  CustomData_add_layer(&hair->pdata, CD_LOCATION, CD_CALLOC, NULL, hair->totpoint);
-  CustomData_add_layer(&hair->pdata, CD_RADIUS, CD_CALLOC, NULL, hair->totpoint);
-  CustomData_add_layer(&hair->cdata, CD_HAIRCURVE, CD_CALLOC, NULL, hair->totcurve);
-  BKE_hair_update_customdata_pointers(hair);
-
-  hair_random(hair);
-}
-
 void *BKE_hair_add(Main *bmain, const char *name)
 {
   Hair *hair = BKE_libblock_alloc(bmain, ID_HA, name, 0);
@@ -120,60 +165,12 @@ void *BKE_hair_add(Main *bmain, const char *name)
   return hair;
 }
 
-static void hair_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
-{
-  Hair *hair_dst = (Hair *)id_dst;
-  const Hair *hair_src = (const Hair *)id_src;
-  hair_dst->mat = MEM_dupallocN(hair_dst->mat);
-
-  const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
-  CustomData_copy(&hair_src->pdata, &hair_dst->pdata, CD_MASK_ALL, alloc_type, hair_dst->totpoint);
-  CustomData_copy(&hair_src->cdata, &hair_dst->cdata, CD_MASK_ALL, alloc_type, hair_dst->totcurve);
-  BKE_hair_update_customdata_pointers(hair_dst);
-
-  hair_dst->batch_cache = NULL;
-}
-
 Hair *BKE_hair_copy(Main *bmain, const Hair *hair)
 {
   Hair *hair_copy;
   BKE_id_copy(bmain, &hair->id, (ID **)&hair_copy);
   return hair_copy;
 }
-
-static void hair_make_local(Main *bmain, ID *id, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, id, flags);
-}
-
-static void hair_free_data(ID *id)
-{
-  Hair *hair = (Hair *)id;
-  BKE_animdata_free(&hair->id, false);
-
-  BKE_hair_batch_cache_free(hair);
-
-  CustomData_free(&hair->pdata, hair->totpoint);
-  CustomData_free(&hair->cdata, hair->totcurve);
-
-  MEM_SAFE_FREE(hair->mat);
-}
-
-IDTypeInfo IDType_ID_HA = {
-    .id_code = ID_HA,
-    .id_filter = FILTER_ID_HA,
-    .main_listbase_index = INDEX_ID_HA,
-    .struct_size = sizeof(Hair),
-    .name = "Hair",
-    .name_plural = "hairs",
-    .translation_context = BLT_I18NCONTEXT_ID_HAIR,
-    .flags = 0,
-
-    .init_data = hair_init_data,
-    .copy_data = hair_copy_data,
-    .free_data = hair_free_data,
-    .make_local = hair_make_local,
-};
 
 BoundBox *BKE_hair_boundbox_get(Object *ob)
 {
