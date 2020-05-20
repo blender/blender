@@ -519,6 +519,7 @@ typedef struct TransInfo {
 
   /** orientation matrix of the current space. */
   float spacemtx[3][3];
+  float spacemtx_inv[3][3];
   /** name of the current space, MAX_NAME. */
   char spacename[64];
 

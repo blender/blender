@@ -1615,6 +1615,17 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
   int proportional = 0;
   PropertyRNA *prop;
 
+  if (!(t->con.mode & CON_APPLY) && (t->flag & T_MODAL) &&
+      ELEM(t->mode, TFM_TRANSLATION, TFM_RESIZE)) {
+    /* When redoing these modes the first time, it's more convenient to save
+     * the Global orientation. */
+    mul_m3_v3(t->spacemtx, t->values_final);
+    unit_m3(t->spacemtx);
+
+    BLI_assert(t->orientation.index == 0);
+    t->orientation.types[0] = V3D_ORIENT_GLOBAL;
+  }
+
   // Save back mode in case we're in the generic operator
   if ((prop = RNA_struct_find_property(op->ptr, "mode"))) {
     RNA_property_enum_set(op->ptr, prop, t->mode);

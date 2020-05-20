@@ -318,40 +318,39 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 {
   char str[UI_MAX_DRAW_STR];
+  float global_dir[3];
 
   if (t->flag & T_INPUT_IS_VALUES_FINAL) {
-    copy_v3_v3(t->values_final, t->values);
+    mul_v3_m3v3(global_dir, t->spacemtx, t->values);
   }
   else {
-    copy_v3_v3(t->values_final, t->values);
+    copy_v3_v3(global_dir, t->values);
     if ((t->con.mode & CON_APPLY) == 0) {
-      snapGridIncrement(t, t->values_final);
+      snapGridIncrement(t, global_dir);
     }
 
-    if (applyNumInput(&t->num, t->values_final)) {
-      removeAspectRatio(t, t->values_final);
+    if (applyNumInput(&t->num, global_dir)) {
+      removeAspectRatio(t, global_dir);
     }
 
-    applySnapping(t, t->values_final);
+    applySnapping(t, global_dir);
   }
 
   if (t->con.mode & CON_APPLY) {
-    float values_final[3];
-    copy_v3_v3(values_final, t->values_final);
-    t->con.applyVec(t, NULL, NULL, values_final, t->values_final);
-    headerTranslation(t, t->values_final, str);
+    float in[3];
+    copy_v3_v3(in, global_dir);
+    t->con.applyVec(t, NULL, NULL, in, global_dir);
+    headerTranslation(t, global_dir, str);
   }
   else {
-    headerTranslation(t, t->values_final, str);
+    headerTranslation(t, global_dir, str);
   }
 
-  /* don't use 't->values' now on */
-
-  applyTranslationValue(t, t->values_final);
+  applyTranslationValue(t, global_dir);
 
   /* evil hack - redo translation if clipping needed */
-  if (t->flag & T_CLIP_UV && clipUVTransform(t, t->values_final, 0)) {
-    applyTranslationValue(t, t->values_final);
+  if (t->flag & T_CLIP_UV && clipUVTransform(t, global_dir, 0)) {
+    applyTranslationValue(t, global_dir);
 
     /* In proportional edit it can happen that */
     /* vertices in the radius of the brush end */
@@ -362,8 +361,10 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
     }
   }
 
-  recalcData(t);
+  /* Set the redo value. */
+  mul_v3_m3v3(t->values_final, t->spacemtx_inv, global_dir);
 
+  recalcData(t);
   ED_area_status_text(t->area, str);
 }
 
