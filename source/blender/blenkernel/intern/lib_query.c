@@ -352,30 +352,6 @@ static void library_foreach_layer_collection(LibraryForeachIDData *data, ListBas
   FOREACH_FINALIZE_VOID;
 }
 
-/* Used by both real Collection data-blocks, and the fake horror of master collection from Scene.
- */
-static void library_foreach_collection(LibraryForeachIDData *data, Collection *collection)
-{
-  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    FOREACH_CALLBACK_INVOKE(data, cob->ob, IDWALK_CB_USER);
-  }
-  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    FOREACH_CALLBACK_INVOKE(data, child->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_USER);
-  }
-  LISTBASE_FOREACH (CollectionParent *, parent, &collection->parents) {
-    /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
-     * anyway... */
-    const int cb_flag = ((parent->collection != NULL &&
-                          (parent->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
-                             IDWALK_CB_EMBEDDED :
-                             IDWALK_CB_NOP);
-    FOREACH_CALLBACK_INVOKE(
-        data, parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK | cb_flag);
-  }
-
-  FOREACH_FINALIZE_VOID;
-}
-
 bool BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
 {
   /* Needed e.g. for callbacks handling relationships... This call shall be absolutely readonly. */
@@ -811,7 +787,23 @@ static void library_foreach_ID_link(Main *bmain,
 
       case ID_GR: {
         Collection *collection = (Collection *)id;
-        library_foreach_collection(&data, collection);
+
+        LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+          FOREACH_CALLBACK_INVOKE(&data, cob->ob, IDWALK_CB_USER);
+        }
+        LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
+          FOREACH_CALLBACK_INVOKE(&data, child->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_USER);
+        }
+        LISTBASE_FOREACH (CollectionParent *, parent, &collection->parents) {
+          /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
+           * anyway... */
+          const int cb_flag = ((parent->collection != NULL &&
+                                (parent->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
+                                   IDWALK_CB_EMBEDDED :
+                                   IDWALK_CB_NOP);
+          FOREACH_CALLBACK_INVOKE(
+              &data, parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK | cb_flag);
+        }
         break;
       }
 
