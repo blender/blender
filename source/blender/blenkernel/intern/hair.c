@@ -22,6 +22,7 @@
 
 #include "DNA_defaults.h"
 #include "DNA_hair_types.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_listbase.h"
@@ -95,6 +96,14 @@ static void hair_free_data(ID *id)
   MEM_SAFE_FREE(hair->mat);
 }
 
+static void hair_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  Hair *hair = (Hair *)id;
+  for (int i = 0; i < hair->totcol; i++) {
+    BKE_LIB_FOREACHID_PROCESS(data, hair->mat[i], IDWALK_CB_USER);
+  }
+}
+
 IDTypeInfo IDType_ID_HA = {
     .id_code = ID_HA,
     .id_filter = FILTER_ID_HA,
@@ -109,6 +118,7 @@ IDTypeInfo IDType_ID_HA = {
     .copy_data = hair_copy_data,
     .free_data = hair_free_data,
     .make_local = NULL,
+    .foreach_id = hair_foreach_id,
 };
 
 static void hair_random(Hair *hair)

@@ -865,10 +865,7 @@ static void library_foreach_ID_link(Main *bmain,
         break;
       }
       case ID_HA: {
-        Hair *hair = (Hair *)id;
-        for (i = 0; i < hair->totcol; i++) {
-          CALLBACK_INVOKE(hair->mat[i], IDWALK_CB_USER);
-        }
+        BLI_assert(0);
         break;
       }
       case ID_PT: {
