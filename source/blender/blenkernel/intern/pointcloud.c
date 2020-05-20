@@ -48,23 +48,7 @@
 
 /* PointCloud datablock */
 
-static void pointcloud_random(PointCloud *pointcloud)
-{
-  pointcloud->totpoint = 400;
-  CustomData_realloc(&pointcloud->pdata, pointcloud->totpoint);
-  BKE_pointcloud_update_customdata_pointers(pointcloud);
-
-  RNG *rng = BLI_rng_new(0);
-
-  for (int i = 0; i < pointcloud->totpoint; i++) {
-    pointcloud->co[i][0] = 2.0f * BLI_rng_get_float(rng) - 1.0f;
-    pointcloud->co[i][1] = 2.0f * BLI_rng_get_float(rng) - 1.0f;
-    pointcloud->co[i][2] = 2.0f * BLI_rng_get_float(rng) - 1.0f;
-    pointcloud->radius[i] = 0.05f * BLI_rng_get_float(rng);
-  }
-
-  BLI_rng_free(rng);
-}
+static void pointcloud_random(PointCloud *pointcloud);
 
 static void pointcloud_init_data(ID *id)
 {
@@ -81,15 +65,6 @@ static void pointcloud_init_data(ID *id)
   pointcloud_random(pointcloud);
 }
 
-void *BKE_pointcloud_add(Main *bmain, const char *name)
-{
-  PointCloud *pointcloud = BKE_libblock_alloc(bmain, ID_PT, name, 0);
-
-  pointcloud_init_data(&pointcloud->id);
-
-  return pointcloud;
-}
-
 static void pointcloud_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
 {
   PointCloud *pointcloud_dst = (PointCloud *)id_dst;
@@ -103,18 +78,6 @@ static void pointcloud_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_s
                   alloc_type,
                   pointcloud_dst->totpoint);
   BKE_pointcloud_update_customdata_pointers(pointcloud_dst);
-}
-
-PointCloud *BKE_pointcloud_copy(Main *bmain, const PointCloud *pointcloud)
-{
-  PointCloud *pointcloud_copy;
-  BKE_id_copy(bmain, &pointcloud->id, (ID **)&pointcloud_copy);
-  return pointcloud_copy;
-}
-
-static void pointcloud_make_local(Main *bmain, ID *id, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, id, flags);
 }
 
 static void pointcloud_free_data(ID *id)
@@ -139,8 +102,42 @@ IDTypeInfo IDType_ID_PT = {
     .init_data = pointcloud_init_data,
     .copy_data = pointcloud_copy_data,
     .free_data = pointcloud_free_data,
-    .make_local = pointcloud_make_local,
+    .make_local = NULL,
 };
+
+static void pointcloud_random(PointCloud *pointcloud)
+{
+  pointcloud->totpoint = 400;
+  CustomData_realloc(&pointcloud->pdata, pointcloud->totpoint);
+  BKE_pointcloud_update_customdata_pointers(pointcloud);
+
+  RNG *rng = BLI_rng_new(0);
+
+  for (int i = 0; i < pointcloud->totpoint; i++) {
+    pointcloud->co[i][0] = 2.0f * BLI_rng_get_float(rng) - 1.0f;
+    pointcloud->co[i][1] = 2.0f * BLI_rng_get_float(rng) - 1.0f;
+    pointcloud->co[i][2] = 2.0f * BLI_rng_get_float(rng) - 1.0f;
+    pointcloud->radius[i] = 0.05f * BLI_rng_get_float(rng);
+  }
+
+  BLI_rng_free(rng);
+}
+
+void *BKE_pointcloud_add(Main *bmain, const char *name)
+{
+  PointCloud *pointcloud = BKE_libblock_alloc(bmain, ID_PT, name, 0);
+
+  pointcloud_init_data(&pointcloud->id);
+
+  return pointcloud;
+}
+
+PointCloud *BKE_pointcloud_copy(Main *bmain, const PointCloud *pointcloud)
+{
+  PointCloud *pointcloud_copy;
+  BKE_id_copy(bmain, &pointcloud->id, (ID **)&pointcloud_copy);
+  return pointcloud_copy;
+}
 
 BoundBox *BKE_pointcloud_boundbox_get(Object *ob)
 {
