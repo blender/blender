@@ -1798,9 +1798,7 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
     }
   }
 
-  if (mesh_eval != NULL) {
-    mesh_runtime_check_normals_valid(mesh_eval);
-  }
+  mesh_runtime_check_normals_valid(mesh_eval);
   mesh_build_extra_data(depsgraph, ob, mesh_eval);
 }
 
