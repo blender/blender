@@ -55,6 +55,7 @@
 #include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_paint.h"
@@ -97,6 +98,19 @@ static void greasepencil_free_data(ID *id)
   BKE_gpencil_free((bGPdata *)id, true);
 }
 
+static void greasepencil_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  bGPdata *gpencil = (bGPdata *)id;
+  /* materials */
+  for (int i = 0; i < gpencil->totcol; i++) {
+    BKE_LIB_FOREACHID_PROCESS(data, gpencil->mat[i], IDWALK_CB_USER);
+  }
+
+  LISTBASE_FOREACH (bGPDlayer *, gplayer, &gpencil->layers) {
+    BKE_LIB_FOREACHID_PROCESS(data, gplayer->parent, IDWALK_CB_NOP);
+  }
+}
+
 IDTypeInfo IDType_ID_GD = {
     .id_code = ID_GD,
     .id_filter = FILTER_ID_GD,
@@ -111,6 +125,7 @@ IDTypeInfo IDType_ID_GD = {
     .copy_data = greasepencil_copy_data,
     .free_data = greasepencil_free_data,
     .make_local = NULL,
+    .foreach_id = greasepencil_foreach_id,
 };
 
 /* ************************************************** */

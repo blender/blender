@@ -861,16 +861,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_GD: {
-        bGPdata *gpencil = (bGPdata *)id;
-        /* materials */
-        for (i = 0; i < gpencil->totcol; i++) {
-          CALLBACK_INVOKE(gpencil->mat[i], IDWALK_CB_USER);
-        }
-
-        LISTBASE_FOREACH (bGPDlayer *, gplayer, &gpencil->layers) {
-          CALLBACK_INVOKE(gplayer->parent, IDWALK_CB_NOP);
-        }
-
+        BLI_assert(0);
         break;
       }
       case ID_HA: {
