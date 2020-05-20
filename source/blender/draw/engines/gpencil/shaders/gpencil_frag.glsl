@@ -99,8 +99,10 @@ void main()
     discard;
   }
 
+  vec2 fb_size = max(vec2(textureSize(gpSceneDepthTexture, 0).xy),
+                     vec2(textureSize(gpMaskTexture, 0).xy));
+  vec2 uvs = gl_FragCoord.xy / fb_size;
   /* Manual depth test */
-  vec2 uvs = gl_FragCoord.xy / vec2(textureSize(gpSceneDepthTexture, 0).xy);
   float scene_depth = texture(gpSceneDepthTexture, uvs).r;
   if (gl_FragCoord.z > scene_depth) {
     discard;
