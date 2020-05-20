@@ -606,7 +606,10 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   c->gop_size = context->ffmpeg_gop_size;
   c->max_b_frames = context->ffmpeg_max_b_frames;
 
-  if (context->ffmpeg_crf >= 0) {
+  if (context->ffmpeg_type == FFMPEG_WEBM && context->ffmpeg_crf == 0) {
+    ffmpeg_dict_set_int(&opts, "lossless", 1);
+  }
+  else if (context->ffmpeg_crf >= 0) {
     ffmpeg_dict_set_int(&opts, "crf", context->ffmpeg_crf);
   }
   else {
