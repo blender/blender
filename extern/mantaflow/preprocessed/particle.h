@@ -2468,14 +2468,14 @@ template<class S> void ParticleSystem<S>::compress()
 //! insert buffered positions as new particles, update additional particle data
 template<class S> void ParticleSystem<S>::insertBufferedParticles()
 {
+  // clear new flag everywhere
+  for (IndexInt i = 0; i < (IndexInt)mData.size(); ++i)
+    mData[i].flag &= ~PNEW;
+
   if (mNewBufferPos.size() == 0)
     return;
   IndexInt newCnt = mData.size();
   resizeAll(newCnt + mNewBufferPos.size());
-
-  // clear new flag everywhere
-  for (IndexInt i = 0; i < (IndexInt)mData.size(); ++i)
-    mData[i].flag &= ~PNEW;
 
   for (IndexInt i = 0; i < (IndexInt)mNewBufferPos.size(); ++i) {
     int flag = (mNewBufferFlag.size() > 0) ? mNewBufferFlag[i] : 0;
