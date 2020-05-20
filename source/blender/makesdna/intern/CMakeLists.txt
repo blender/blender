@@ -58,6 +58,10 @@ setup_platform_linker_flags()
 
 add_executable(makesdna ${SRC} ${SRC_DNA_INC})
 
+if(WIN32 AND NOT UNIX)
+  target_link_libraries(makesdna ${PTHREADS_LIBRARIES})
+endif()
+
 # Output dna.c
 add_custom_command(
   OUTPUT

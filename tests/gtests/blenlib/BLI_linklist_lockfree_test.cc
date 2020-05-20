@@ -87,9 +87,7 @@ TEST(LockfreeLinkList, InsertMultipleConcurrent)
     BLI_task_pool_push(pool, concurrent_insert, POINTER_FROM_INT(i), false, NULL);
   }
   /* Run all the tasks. */
-  BLI_threaded_malloc_begin();
   BLI_task_pool_work_and_wait(pool);
-  BLI_threaded_malloc_end();
   /* Verify we've got all the data properly inserted. */
   EXPECT_EQ(list.head, &list.dummy_node);
   bool *visited_nodes = (bool *)MEM_callocN(sizeof(bool) * num_nodes, "visited nodes");

@@ -53,6 +53,14 @@ if(WIN32 AND NOT UNIX)
 
     mmap_win.h
   )
+
+  list(APPEND INC_SYS
+    ${PTHREADS_INC}
+  )
+
+  list(APPEND LIB
+    ${PTHREADS_LIBRARIES}
+  )
 endif()
 
 # Jemalloc 5.0.0+ needs extra configuration.
