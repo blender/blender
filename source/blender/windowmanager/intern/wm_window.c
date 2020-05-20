@@ -286,14 +286,15 @@ static int find_free_winid(wmWindowManager *wm)
 }
 
 /* don't change context itself */
-wmWindow *wm_window_new(const Main *bmain, wmWindowManager *wm, wmWindow *parent)
+wmWindow *wm_window_new(const Main *bmain, wmWindowManager *wm, wmWindow *parent, bool dialog)
 {
   wmWindow *win = MEM_callocN(sizeof(wmWindow), "window");
 
   BLI_addtail(&wm->windows, win);
   win->winid = find_free_winid(wm);
 
-  win->parent = (parent && parent->parent) ? parent->parent : parent;
+  /* Dialogs may have a child window as parent. Otherwise, a child must not be a parent too. */
+  win->parent = (!dialog && parent && parent->parent) ? parent->parent : parent;
   win->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Stereo 3D Format (window)");
   win->workspace_hook = BKE_workspace_instance_hook_create(bmain);
 
@@ -307,8 +308,9 @@ wmWindow *wm_window_copy(Main *bmain,
                          const bool duplicate_layout,
                          const bool child)
 {
+  const bool is_dialog = GHOST_IsDialogWindow(win_src->ghostwin);
   wmWindow *win_parent = (child) ? win_src : win_src->parent;
-  wmWindow *win_dst = wm_window_new(bmain, wm, win_parent);
+  wmWindow *win_dst = wm_window_new(bmain, wm, win_parent, is_dialog);
   WorkSpace *workspace = WM_window_get_active_workspace(win_src);
   WorkSpaceLayout *layout_old = WM_window_get_active_layout(win_src);
   WorkSpaceLayout *layout_new;
@@ -417,7 +419,6 @@ void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
 void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
   wmWindow *win_other;
-  const bool is_dialog = (G.background == false) ? GHOST_IsDialogWindow(win->ghostwin) : false;
 
   /* First check if there is another main window remaining. */
   for (win_other = wm->windows.first; win_other; win_other = win_other->next) {
@@ -431,19 +432,10 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
     return;
   }
 
-  /* Close child windows and bring windows back to front that dialogs have pushed behind the main
-   * window. */
-  LISTBASE_FOREACH (wmWindow *, iter_win, &wm->windows) {
+  /* Close child windows */
+  LISTBASE_FOREACH_MUTABLE (wmWindow *, iter_win, &wm->windows) {
     if (iter_win->parent == win) {
       wm_window_close(C, wm, iter_win);
-    }
-    else {
-      if (G.background == false) {
-        if (is_dialog && iter_win != win && iter_win->parent &&
-            (GHOST_GetWindowState(iter_win->ghostwin) != GHOST_kWindowStateMinimized)) {
-          wm_window_raise(iter_win);
-        }
-      }
     }
   }
 
@@ -834,7 +826,7 @@ wmWindow *WM_window_open(bContext *C, const rcti *rect)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win_prev = CTX_wm_window(C);
-  wmWindow *win = wm_window_new(CTX_data_main(C), wm, win_prev);
+  wmWindow *win = wm_window_new(CTX_data_main(C), wm, win_prev, false);
 
   win->posx = rect->xmin;
   win->posy = rect->ymin;
@@ -905,7 +897,7 @@ wmWindow *WM_window_open_temp(bContext *C,
 
   /* add new window? */
   if (win == NULL) {
-    win = wm_window_new(bmain, wm, win_prev);
+    win = wm_window_new(bmain, wm, win_prev, dialog);
 
     win->posx = rect.xmin;
     win->posy = rect.ymin;

@@ -3442,19 +3442,13 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
   const bool is_temp_screen = WM_window_is_temp_screen(win);
-  const bool opens_window = (U.filebrowser_display_type == USER_TEMP_SPACE_DISPLAY_WINDOW);
-  /* Don't add the file handler to the temporary window if one is opened, or else it owns the
-   * handlers for itself, causing dangling pointers once it's destructed through a handler. It has
-   * a parent which should hold the handlers itself. */
-  ListBase *modalhandlers = (is_temp_screen && opens_window) ? &win->parent->modalhandlers :
-                                                               &win->modalhandlers;
 
   /* Close any popups, like when opening a file browser from the splash. */
-  UI_popup_handlers_remove_all(C, modalhandlers);
+  UI_popup_handlers_remove_all(C, &win->modalhandlers);
 
   if (!is_temp_screen) {
     /* only allow 1 file selector open per window */
-    LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, modalhandlers) {
+    LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, &win->modalhandlers) {
       if (handler_base->type == WM_HANDLER_TYPE_OP) {
         wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
         if (handler->is_fileselect == false) {
@@ -3495,7 +3489,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
   handler->context.area = CTX_wm_area(C);
   handler->context.region = CTX_wm_region(C);
 
-  BLI_addhead(modalhandlers, handler);
+  BLI_addhead(&win->modalhandlers, handler);
 
   /* check props once before invoking if check is available
    * ensures initial properties are valid */

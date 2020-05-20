@@ -384,7 +384,7 @@ void wm_add_default(Main *bmain, bContext *C)
   WorkSpaceLayout *layout = BKE_workspace_layout_find_global(bmain, screen, &workspace);
 
   CTX_wm_manager_set(C, wm);
-  win = wm_window_new(bmain, wm, NULL);
+  win = wm_window_new(bmain, wm, NULL, false);
   win->scene = CTX_data_scene(C);
   STRNCPY(win->view_layer_name, CTX_data_view_layer(C)->name);
   BKE_workspace_active_set(win->workspace_hook, workspace);
