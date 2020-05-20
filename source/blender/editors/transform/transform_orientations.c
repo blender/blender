@@ -486,7 +486,6 @@ void initTransformOrientation(bContext *C, TransInfo *t, short orientation)
       else {
         unit_m3(mat);
       }
-      negate_v3(mat[2]);
       copy_m3_m3(t->spacemtx, mat);
       break;
     }
@@ -511,6 +510,8 @@ void initTransformOrientation(bContext *C, TransInfo *t, short orientation)
       }
       break;
   }
+
+  invert_m3_m3(t->spacemtx_inv, t->spacemtx);
 }
 
 /**

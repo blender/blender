@@ -679,10 +679,7 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
       break;
     case V3D_ORIENT_VIEW:
       BLI_snprintf(text, sizeof(text), ftext, TIP_("view"));
-      float mtx[3][3];
-      copy_m3_m3(mtx, t->spacemtx);
-      negate_v3(mtx[2]);
-      setConstraint(t, mtx, mode, text);
+      setConstraint(t, t->spacemtx, mode, text);
       break;
     case V3D_ORIENT_CURSOR:
       BLI_snprintf(text, sizeof(text), ftext, TIP_("cursor"));
