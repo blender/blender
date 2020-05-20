@@ -156,9 +156,16 @@ const float *SCULPT_vertex_co_get(SculptSession *ss, int index)
 void SCULPT_vertex_normal_get(SculptSession *ss, int index, float no[3])
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      normal_short_to_float_v3(no, ss->mvert[index].no);
-      return;
+    case PBVH_FACES: {
+      if (ss->shapekey_active || ss->deform_modifiers_active) {
+        const MVert *mverts = BKE_pbvh_get_verts(ss->pbvh);
+        normal_short_to_float_v3(no, mverts[index].no);
+      }
+      else {
+        normal_short_to_float_v3(no, ss->mvert[index].no);
+      }
+      break;
+    }
     case PBVH_BMESH:
       copy_v3_v3(no, BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index)->no);
       break;
