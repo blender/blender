@@ -21,15 +21,18 @@
  */
 
 #include "DNA_mesh_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_volume_types.h"
 
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_particle.h"
 
 #include "BLI_hash.h"
 
@@ -95,16 +98,24 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
       DRW_shgroup_uniform_bool_copy(grp, "isObjectColor", is_object_color);
       DRW_shgroup_uniform_bool_copy(grp, "isRandomColor", is_random_color);
+      DRW_shgroup_uniform_bool_copy(grp, "isHair", false);
 
       pd->wires_all_grp[xray][use_coloring] = grp = DRW_shgroup_create(wires_sh, pass);
       DRW_shgroup_uniform_texture_ref(grp, "depthTex", depth_tx);
       DRW_shgroup_uniform_float_copy(grp, "wireStepParam", 1.0f);
+
+      pd->wires_hair_grp[xray][use_coloring] = grp = DRW_shgroup_create(wires_sh, pass);
+      /* TODO(fclem) texture ref persist */
+      DRW_shgroup_uniform_texture_ref(grp, "depthTex", depth_tx);
+      DRW_shgroup_uniform_bool_copy(grp, "isHair", true);
+      DRW_shgroup_uniform_float_copy(grp, "wireStepParam", 10.0f);
     }
 
     pd->wires_sculpt_grp[xray] = grp = DRW_shgroup_create(wires_sh, pass);
     DRW_shgroup_uniform_texture_ref(grp, "depthTex", depth_tx);
     DRW_shgroup_uniform_float_copy(grp, "wireStepParam", 10.0f);
     DRW_shgroup_uniform_bool_copy(grp, "useColoring", false);
+    DRW_shgroup_uniform_bool_copy(grp, "isHair", false);
   }
 
   if (is_material_shmode) {
@@ -112,10 +123,45 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
     for (int use_coloring = 0; use_coloring < 2; use_coloring++) {
       pd->wires_grp[1][use_coloring] = pd->wires_grp[0][use_coloring];
       pd->wires_all_grp[1][use_coloring] = pd->wires_all_grp[0][use_coloring];
+      pd->wires_hair_grp[1][use_coloring] = pd->wires_hair_grp[0][use_coloring];
     }
     pd->wires_sculpt_grp[1] = pd->wires_sculpt_grp[0];
     psl->wireframe_xray_ps = NULL;
   }
+}
+
+static void wireframe_hair_cache_populate(OVERLAY_Data *vedata, Object *ob, ParticleSystem *psys)
+{
+  OVERLAY_PrivateData *pd = vedata->stl->pd;
+  const bool is_xray = (ob->dtx & OB_DRAWXRAY) != 0;
+
+  Object *dupli_parent = DRW_object_get_dupli_parent(ob);
+  DupliObject *dupli_object = DRW_object_get_dupli(ob);
+
+  float dupli_mat[4][4];
+  if ((dupli_parent != NULL) && (dupli_object != NULL)) {
+    if (dupli_object->type & OB_DUPLICOLLECTION) {
+      copy_m4_m4(dupli_mat, dupli_parent->obmat);
+    }
+    else {
+      copy_m4_m4(dupli_mat, dupli_object->ob->obmat);
+      invert_m4(dupli_mat);
+      mul_m4_m4m4(dupli_mat, ob->obmat, dupli_mat);
+    }
+  }
+  else {
+    unit_m4(dupli_mat);
+  }
+
+  struct GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, NULL);
+
+  const bool use_coloring = true;
+  DRWShadingGroup *shgrp = DRW_shgroup_create_sub(pd->wires_hair_grp[is_xray][use_coloring]);
+  DRW_shgroup_uniform_vec4_copy(shgrp, "hairDupliMatrix[0]", dupli_mat[0]);
+  DRW_shgroup_uniform_vec4_copy(shgrp, "hairDupliMatrix[1]", dupli_mat[1]);
+  DRW_shgroup_uniform_vec4_copy(shgrp, "hairDupliMatrix[2]", dupli_mat[2]);
+  DRW_shgroup_uniform_vec4_copy(shgrp, "hairDupliMatrix[3]", dupli_mat[3]);
+  DRW_shgroup_call_no_cull(shgrp, hairs, ob);
 }
 
 void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
@@ -123,8 +169,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
                                       OVERLAY_DupliData *dupli,
                                       bool init_dupli)
 {
-  OVERLAY_Data *data = vedata;
-  OVERLAY_PrivateData *pd = data->stl->pd;
+  OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool all_wires = (ob->dtx & OB_DRAW_ALL_EDGES) != 0;
   const bool is_xray = (ob->dtx & OB_DRAWXRAY) != 0;
@@ -133,6 +178,19 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
                                               ((Mesh *)ob->data)->totvert > 0);
   const bool use_wire = !is_mesh_verts_only && ((pd->overlay.flag & V3D_OVERLAY_WIREFRAMES) ||
                                                 (ob->dtx & OB_DRAWWIRE) || (ob->dt == OB_WIRE));
+
+  if (use_wire && pd->wireframe_mode && ob->particlesystem.first) {
+    for (ParticleSystem *psys = ob->particlesystem.first; psys != NULL; psys = psys->next) {
+      if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
+        continue;
+      }
+      ParticleSettings *part = psys->part;
+      const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
+      if (draw_as == PART_DRAW_PATH) {
+        wireframe_hair_cache_populate(vedata, ob, psys);
+      }
+    }
+  }
 
   if (ELEM(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
     OVERLAY_ExtraCallBuffers *cb = OVERLAY_extra_call_buffer_get(vedata, ob);
