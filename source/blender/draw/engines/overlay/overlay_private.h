@@ -253,8 +253,9 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *particle_shapes_grp;
   DRWShadingGroup *pointcloud_dots_grp;
   DRWShadingGroup *sculpt_mask_grp;
-  DRWShadingGroup *wires_grp[2][2];     /* With and without coloring. */
-  DRWShadingGroup *wires_all_grp[2][2]; /* With and without coloring. */
+  DRWShadingGroup *wires_grp[2][2];      /* With and without coloring. */
+  DRWShadingGroup *wires_all_grp[2][2];  /* With and without coloring. */
+  DRWShadingGroup *wires_hair_grp[2][2]; /* With and without coloring. */
   DRWShadingGroup *wires_sculpt_grp[2];
 
   DRWView *view_default;

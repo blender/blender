@@ -3306,6 +3306,16 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *mds, Mesh *orgmesh, Obj
   /* Biggest dimension will be used for upscaling. */
   float max_size = MAX3(size[0], size[1], size[2]);
 
+  float co_scale[3];
+  co_scale[0] = max_size / ob->scale[0];
+  co_scale[1] = max_size / ob->scale[1];
+  co_scale[2] = max_size / ob->scale[2];
+
+  float co_offset[3];
+  co_offset[0] = (mds->p0[0] + mds->p1[0]) / 2.0f;
+  co_offset[1] = (mds->p0[1] + mds->p1[1]) / 2.0f;
+  co_offset[2] = (mds->p0[2] + mds->p1[2]) / 2.0f;
+
   /* Normals. */
   normals = MEM_callocN(sizeof(short) * num_normals * 3, "Fluidmesh_tmp_normals");
 
@@ -3329,9 +3339,9 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *mds, Mesh *orgmesh, Obj
       mverts->co[2] *= mds->dx / mds->mesh_scale;
     }
 
-    mverts->co[0] *= max_size / fabsf(ob->scale[0]);
-    mverts->co[1] *= max_size / fabsf(ob->scale[1]);
-    mverts->co[2] *= max_size / fabsf(ob->scale[2]);
+    mul_v3_v3(mverts->co, co_scale);
+    add_v3_v3(mverts->co, co_offset);
+
 #  ifdef DEBUG_PRINT
     /* Debugging: Print coordinates of vertices. */
     printf("mverts->co[0]: %f, mverts->co[1]: %f, mverts->co[2]: %f\n",

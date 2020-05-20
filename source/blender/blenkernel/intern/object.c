@@ -3887,6 +3887,10 @@ bool BKE_object_is_child_recursive(const Object *ob_parent, const Object *ob_chi
  * cases false positives are hard to avoid (shape keys for example) */
 int BKE_object_is_modified(Scene *scene, Object *ob)
 {
+  /* Always test on original object since evaluated object may no longer
+   * have shape keys or modifiers that were used to evaluate it. */
+  ob = DEG_get_original_object(ob);
+
   int flag = 0;
 
   if (BKE_key_from_object(ob)) {
@@ -4017,6 +4021,10 @@ static bool modifiers_has_animation_check(const Object *ob)
  * and we can still if there was actual deformation afterwards */
 int BKE_object_is_deform_modified(Scene *scene, Object *ob)
 {
+  /* Always test on original object since evaluated object may no longer
+   * have shape keys or modifiers that were used to evaluate it. */
+  ob = DEG_get_original_object(ob);
+
   ModifierData *md;
   VirtualModifierData virtualModifierData;
   int flag = 0;

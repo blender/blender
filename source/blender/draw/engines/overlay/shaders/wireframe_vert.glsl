@@ -4,6 +4,8 @@ uniform bool useColoring;
 uniform bool isTransform;
 uniform bool isObjectColor;
 uniform bool isRandomColor;
+uniform bool isHair;
+uniform vec4 hairDupliMatrix[4];
 
 in vec3 pos;
 in vec3 nor;
@@ -103,8 +105,15 @@ void main()
 {
   bool no_attr = all(equal(nor, vec3(0)));
   vec3 wnor = no_attr ? ViewMatrixInverse[2].xyz : normalize(normal_object_to_world(nor));
-
   vec3 wpos = point_object_to_world(pos);
+
+  if (isHair) {
+    mat4 obmat = mat4(
+        hairDupliMatrix[0], hairDupliMatrix[1], hairDupliMatrix[2], hairDupliMatrix[3]);
+
+    wpos = (obmat * vec4(pos, 1.0)).xyz;
+    wnor = -normalize(mat3(obmat) * nor);
+  }
 
   bool is_persp = (ProjectionMatrix[3][3] == 0.0);
   vec3 V = (is_persp) ? normalize(ViewMatrixInverse[3].xyz - wpos) : ViewMatrixInverse[2].xyz;

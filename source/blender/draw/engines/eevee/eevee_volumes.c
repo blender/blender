@@ -486,8 +486,7 @@ static bool eevee_volume_object_mesh_init(Scene *scene,
   ModifierData *md = NULL;
 
   /* Smoke Simulation */
-  if (((ob->base_flag & BASE_FROM_DUPLI) == 0) &&
-      (md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
+  if ((md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
       (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) &&
       ((FluidModifierData *)md)->domain != NULL) {
     FluidModifierData *mmd = (FluidModifierData *)md;

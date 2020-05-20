@@ -34,15 +34,13 @@ CCL_NAMESPACE_BEGIN
 /* TODO: verify this is not loading unnecessary attributes. */
 class BlenderSmokeLoader : public ImageLoader {
  public:
-  BlenderSmokeLoader(const BL::Object &b_ob, AttributeStandard attribute)
-      : b_ob(b_ob), attribute(attribute)
+  BlenderSmokeLoader(BL::Object &b_ob, AttributeStandard attribute)
+      : b_domain(object_fluid_gas_domain_find(b_ob)), b_mesh(b_ob.data()), attribute(attribute)
   {
   }
 
   bool load_metadata(ImageMetaData &metadata) override
   {
-    BL::FluidDomainSettings b_domain = object_fluid_gas_domain_find(b_ob);
-
     if (!b_domain) {
       return false;
     }
@@ -79,7 +77,6 @@ class BlenderSmokeLoader : public ImageLoader {
     /* Create a matrix to transform from object space to mesh texture space.
      * This does not work with deformations but that can probably only be done
      * well with a volume grid mapping of coordinates. */
-    BL::Mesh b_mesh(b_ob.data());
     float3 loc, size;
     mesh_texture_space(b_mesh, loc, size);
     metadata.transform_3d = transform_translate(-loc) * transform_scale(size);
@@ -90,9 +87,6 @@ class BlenderSmokeLoader : public ImageLoader {
 
   bool load_pixels(const ImageMetaData &, void *pixels, const size_t, const bool) override
   {
-    /* smoke volume data */
-    BL::FluidDomainSettings b_domain = object_fluid_gas_domain_find(b_ob);
-
     if (!b_domain) {
       return false;
     }
@@ -179,10 +173,11 @@ class BlenderSmokeLoader : public ImageLoader {
   bool equals(const ImageLoader &other) const override
   {
     const BlenderSmokeLoader &other_loader = (const BlenderSmokeLoader &)other;
-    return b_ob == other_loader.b_ob && attribute == other_loader.attribute;
+    return b_domain == other_loader.b_domain && attribute == other_loader.attribute;
   }
 
-  BL::Object b_ob;
+  BL::FluidDomainSettings b_domain;
+  BL::Mesh b_mesh;
   AttributeStandard attribute;
 };
 
