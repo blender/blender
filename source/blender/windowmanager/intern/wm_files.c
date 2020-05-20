@@ -1212,6 +1212,7 @@ static ImBuf *blend_file_thumb(const bContext *C,
   ImBuf *ibuf;
   BlendThumbnail *thumb;
   wmWindowManager *wm = CTX_wm_manager(C);
+  const float pixelsize_old = U.pixelsize;
   wmWindow *windrawable_old = wm->windrawable;
   char err_out[256] = "unknown";
 
@@ -1246,6 +1247,10 @@ static ImBuf *blend_file_thumb(const bContext *C,
   /* gets scaled to BLEN_THUMB_SIZE */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
+  /* Note that with scaling, this ends up being 0.5,
+   * as it's a thumbnail, we don't need object centers and friends to be 1:1 size. */
+  U.pixelsize = 1.0f;
+
   if (scene->camera) {
     ibuf = ED_view3d_draw_offscreen_imbuf_simple(depsgraph,
                                                  scene,
@@ -1275,6 +1280,8 @@ static ImBuf *blend_file_thumb(const bContext *C,
                                           NULL,
                                           err_out);
   }
+
+  U.pixelsize = pixelsize_old;
 
   /* Reset to old drawable. */
   if (windrawable_old) {
