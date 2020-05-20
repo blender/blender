@@ -140,7 +140,7 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
   VectorSet(const VectorSet &other) : m_array(other.m_array)
   {
     m_elements = this->allocate_elements_array(m_array.slots_usable());
-    copy_n(other.m_elements, m_array.slots_set(), m_elements);
+    uninitialized_copy_n(other.m_elements, m_array.slots_set(), m_elements);
   }
 
   VectorSet(VectorSet &&other) : m_array(std::move(other.m_array)), m_elements(other.m_elements)
