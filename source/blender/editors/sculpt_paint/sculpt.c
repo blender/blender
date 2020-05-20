@@ -7486,11 +7486,11 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
                 "merge_tolerance",
                 0.001f,
                 0.0f,
-                1.0f,
+                FLT_MAX,
                 "Merge Limit",
                 "Distance within which symmetrical vertices are merged",
                 0.0f,
-                FLT_MAX);
+                1.0f);
 }
 
 /**** Toggle operator for turning sculpt mode on or off ****/
