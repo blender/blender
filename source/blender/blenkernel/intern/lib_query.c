@@ -786,24 +786,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_GR: {
-        Collection *collection = (Collection *)id;
-
-        LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-          FOREACH_CALLBACK_INVOKE(&data, cob->ob, IDWALK_CB_USER);
-        }
-        LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-          FOREACH_CALLBACK_INVOKE(&data, child->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_USER);
-        }
-        LISTBASE_FOREACH (CollectionParent *, parent, &collection->parents) {
-          /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
-           * anyway... */
-          const int cb_flag = ((parent->collection != NULL &&
-                                (parent->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
-                                   IDWALK_CB_EMBEDDED :
-                                   IDWALK_CB_NOP);
-          FOREACH_CALLBACK_INVOKE(
-              &data, parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK | cb_flag);
-        }
+        BLI_assert(0);
         break;
       }
 

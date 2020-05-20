@@ -34,6 +34,7 @@
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -128,6 +129,28 @@ static void collection_free_data(ID *id)
   BKE_collection_object_cache_free(collection);
 }
 
+static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  Collection *collection = (Collection *)id;
+
+  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+    BKE_LIB_FOREACHID_PROCESS(data, cob->ob, IDWALK_CB_USER);
+  }
+  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
+    BKE_LIB_FOREACHID_PROCESS(data, child->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_USER);
+  }
+  LISTBASE_FOREACH (CollectionParent *, parent, &collection->parents) {
+    /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
+     * anyway... */
+    const int cb_flag = ((parent->collection != NULL &&
+                          (parent->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
+                             IDWALK_CB_EMBEDDED :
+                             IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS(
+        data, parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK | cb_flag);
+  }
+}
+
 IDTypeInfo IDType_ID_GR = {
     .id_code = ID_GR,
     .id_filter = FILTER_ID_GR,
@@ -142,6 +165,7 @@ IDTypeInfo IDType_ID_GR = {
     .copy_data = collection_copy_data,
     .free_data = collection_free_data,
     .make_local = NULL,
+    .foreach_id = collection_foreach_id,
 };
 
 /***************************** Add Collection *******************************/
