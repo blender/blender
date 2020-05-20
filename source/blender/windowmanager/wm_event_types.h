@@ -333,6 +333,7 @@ enum {
   EVT_BUT_OPEN = 0x5021,   /* 20513 */
   EVT_MODAL_MAP = 0x5022,  /* 20514 */
   EVT_DROP = 0x5023,       /* 20515 */
+  /* When value is 0, re-activate, when 1, don't re-activate the button under the cursor. */
   EVT_BUT_CANCEL = 0x5024, /* 20516 */
 
   /* could become gizmo callback */
