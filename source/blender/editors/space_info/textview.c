@@ -394,25 +394,26 @@ int textview_draw(TextViewContext *tvc,
 
       tvc->line_get(tvc, &ext_line, &ext_len);
 
-      if (!textview_draw_string(&tds,
-                                ext_line,
-                                ext_len,
-                                (data_flag & TVC_LINE_FG) ? fg : NULL,
-                                (data_flag & TVC_LINE_BG) ? bg : NULL,
-                                (data_flag & TVC_LINE_ICON) ? icon : 0,
-                                (data_flag & TVC_LINE_ICON_FG) ? icon_fg : NULL,
-                                (data_flag & TVC_LINE_ICON_BG) ? icon_bg : NULL,
-                                bg_sel)) {
-        /* When drawing, if we pass v2d->cur.ymax, then quit. */
-        if (do_draw) {
-          /* Past the y limits. */
-          break;
-        }
-      }
+      const bool is_out_of_view_y = !textview_draw_string(
+          &tds,
+          ext_line,
+          ext_len,
+          (data_flag & TVC_LINE_FG) ? fg : NULL,
+          (data_flag & TVC_LINE_BG) ? bg : NULL,
+          (data_flag & TVC_LINE_ICON) ? icon : 0,
+          (data_flag & TVC_LINE_ICON_FG) ? icon_fg : NULL,
+          (data_flag & TVC_LINE_ICON_BG) ? icon_bg : NULL,
+          bg_sel);
 
       if (do_draw) {
+        /* We always want the cursor to draw. */
         if (tvc->draw_cursor && iter_index == 0) {
           tvc->draw_cursor(tvc, tds.cwidth, tds.columns, tds.lofs);
+        }
+
+        /* When drawing, if we pass v2d->cur.ymax, then quit. */
+        if (is_out_of_view_y) {
+          break;
         }
       }
 
