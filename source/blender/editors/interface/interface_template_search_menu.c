@@ -41,6 +41,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -177,7 +178,19 @@ static bool menu_items_from_ui_create_item_from_button(struct MenuSearch_Data *d
                                                        struct MenuSearch_Context *wm_context)
 {
   struct MenuSearch_Item *item = NULL;
+
+  /* Use override if the name is empty, this can happen with popovers. */
+  const char *drawstr_override = NULL;
+  const char *drawstr_sep = (but->flag & UI_BUT_HAS_SEP_CHAR) ?
+                                strrchr(but->drawstr, UI_SEP_CHAR) :
+                                NULL;
+  const bool drawstr_is_empty = (drawstr_sep == but->drawstr) || (but->drawstr[0] == '\0');
+
   if (but->optype != NULL) {
+    if (drawstr_is_empty) {
+      drawstr_override = WM_operatortype_name(but->optype, but->opptr);
+    }
+
     item = BLI_memarena_calloc(memarena, sizeof(*item));
     item->type = MENU_SEARCH_TYPE_OP;
 
@@ -189,6 +202,25 @@ static bool menu_items_from_ui_create_item_from_button(struct MenuSearch_Data *d
   }
   else if (but->rnaprop != NULL) {
     const int prop_type = RNA_property_type(but->rnaprop);
+
+    if (drawstr_is_empty) {
+      if (prop_type == PROP_ENUM) {
+        const int value_enum = (int)but->hardmax;
+        EnumPropertyItem enum_item;
+        if (RNA_property_enum_item_from_value_gettexted(
+                but->block->evil_C, &but->rnapoin, but->rnaprop, value_enum, &enum_item)) {
+          drawstr_override = enum_item.name;
+        }
+        else {
+          /* Should never happen. */
+          drawstr_override = "Unknown";
+        }
+      }
+      else {
+        drawstr_override = RNA_property_ui_name(but->rnaprop);
+      }
+    }
+
     if (!ELEM(prop_type, PROP_BOOLEAN, PROP_ENUM)) {
       /* Note that these buttons are not prevented,
        * but aren't typically used in menus. */
@@ -213,7 +245,16 @@ static bool menu_items_from_ui_create_item_from_button(struct MenuSearch_Data *d
 
   if (item != NULL) {
     /* Handle shared settings. */
-    item->drawstr = strdup_memarena(memarena, but->drawstr);
+    if (drawstr_override != NULL) {
+      const char *drawstr_suffix = drawstr_sep ? drawstr_sep : "";
+      char *drawstr_alloc = BLI_string_joinN("(", drawstr_override, ")", drawstr_suffix);
+      item->drawstr = strdup_memarena(memarena, drawstr_alloc);
+      MEM_freeN(drawstr_alloc);
+    }
+    else {
+      item->drawstr = strdup_memarena(memarena, but->drawstr);
+    }
+
     item->icon = ui_but_icon(but);
     item->state = (but->flag &
                    (UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_BUT_REDALERT | UI_BUT_HAS_SEP_CHAR));
