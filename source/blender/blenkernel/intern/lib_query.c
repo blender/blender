@@ -564,7 +564,7 @@ static void library_foreach_ID_link(Main *bmain,
 
         /* This pointer can be NULL during old files reading, better be safe than sorry. */
         if (scene->master_collection != NULL) {
-          library_foreach_collection(&data, scene->master_collection);
+          BKE_library_foreach_ID_embedded(&data, (ID **)&scene->master_collection);
         }
 
         LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
