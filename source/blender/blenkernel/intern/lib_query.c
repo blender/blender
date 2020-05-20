@@ -882,11 +882,7 @@ static void library_foreach_ID_link(Main *bmain,
         break;
       }
       case ID_SIM: {
-        Simulation *simulation = (Simulation *)id;
-        if (simulation->nodetree) {
-          /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-          BKE_library_foreach_ID_embedded(&data, (ID **)&simulation->nodetree);
-        }
+        BLI_assert(0);
         break;
       }
 
