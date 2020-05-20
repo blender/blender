@@ -21,6 +21,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_defaults.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
@@ -474,6 +475,14 @@ static void volume_free_data(ID *id)
 #endif
 }
 
+static void volume_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  Volume *volume = (Volume *)id;
+  for (int i = 0; i < volume->totcol; i++) {
+    BKE_LIB_FOREACHID_PROCESS(data, volume->mat[i], IDWALK_CB_USER);
+  }
+}
+
 IDTypeInfo IDType_ID_VO = {
     /* id_code */ ID_VO,
     /* id_filter */ FILTER_ID_VO,
@@ -488,6 +497,7 @@ IDTypeInfo IDType_ID_VO = {
     /* copy_data */ volume_copy_data,
     /* free_data */ volume_free_data,
     /* make_local */ nullptr,
+    /* foreach_id */ volume_foreach_id,
 };
 
 void BKE_volume_init_grids(Volume *volume)

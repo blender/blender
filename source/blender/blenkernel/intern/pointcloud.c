@@ -21,6 +21,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_defaults.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
@@ -89,6 +90,14 @@ static void pointcloud_free_data(ID *id)
   MEM_SAFE_FREE(pointcloud->mat);
 }
 
+static void pointcloud_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  PointCloud *pointcloud = (PointCloud *)id;
+  for (int i = 0; i < pointcloud->totcol; i++) {
+    BKE_LIB_FOREACHID_PROCESS(data, pointcloud->mat[i], IDWALK_CB_USER);
+  }
+}
+
 IDTypeInfo IDType_ID_PT = {
     .id_code = ID_PT,
     .id_filter = FILTER_ID_PT,
@@ -103,6 +112,7 @@ IDTypeInfo IDType_ID_PT = {
     .copy_data = pointcloud_copy_data,
     .free_data = pointcloud_free_data,
     .make_local = NULL,
+    .foreach_id = pointcloud_foreach_id,
 };
 
 static void pointcloud_random(PointCloud *pointcloud)

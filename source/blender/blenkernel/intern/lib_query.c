@@ -869,17 +869,11 @@ static void library_foreach_ID_link(Main *bmain,
         break;
       }
       case ID_PT: {
-        PointCloud *pointcloud = (PointCloud *)id;
-        for (i = 0; i < pointcloud->totcol; i++) {
-          CALLBACK_INVOKE(pointcloud->mat[i], IDWALK_CB_USER);
-        }
+        BLI_assert(0);
         break;
       }
       case ID_VO: {
-        Volume *volume = (Volume *)id;
-        for (i = 0; i < volume->totcol; i++) {
-          CALLBACK_INVOKE(volume->mat[i], IDWALK_CB_USER);
-        }
+        BLI_assert(0);
         break;
       }
 
