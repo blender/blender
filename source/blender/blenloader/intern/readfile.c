@@ -9633,7 +9633,8 @@ static void read_libblock_undo_restore_identical(
   BLI_assert((fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0);
   BLI_assert(id_old != NULL);
 
-  id_old->tag = tag;
+  /* Some tags need to be preserved here. */
+  id_old->tag = tag | (id_old->tag & LIB_TAG_EXTRAUSER);
   id_old->lib = main->curlib;
   id_old->us = ID_FAKE_USERS(id_old);
   /* Do not reset id->icon_id here, memory allocated for it remains valid. */

@@ -141,7 +141,6 @@ static int report_textview_begin(TextViewContext *tvc)
 {
   const ReportList *reports = tvc->arg2;
 
-  tvc->lheight = 14 * UI_DPI_FAC;
   tvc->sel_start = 0;
   tvc->sel_end = 0;
 
