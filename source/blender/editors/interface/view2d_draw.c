@@ -203,9 +203,9 @@ static void draw_parallel_lines(const ParallelLinesSet *lines,
 
     immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
     immUniform2fv("viewportSize", &viewport[2]);
-    /* 0.5f factor here  is because the line is too fat due to the builtin antialiasing.
+    /* -1.0f offset here  is because the line is too fat due to the builtin antialiasing.
      * TODO make a variant or a uniform to toggle it off. */
-    immUniform1f("lineWidth", 0.5f * U.pixelsize);
+    immUniform1f("lineWidth", U.pixelsize - 1.0f);
   }
   else {
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
