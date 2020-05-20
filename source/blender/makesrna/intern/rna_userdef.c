@@ -5798,8 +5798,9 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "ndof_fly_helicopter", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_FLY_HELICOPTER);
-  RNA_def_property_ui_text(
-      prop, "Helicopter Mode", "Device up/down directly controls your Z position");
+  RNA_def_property_ui_text(prop,
+                           "Helicopter Mode",
+                           "Device up/down directly controls the Z position of the 3D viewport");
 
   /* let Python know whether NDOF is enabled */
   prop = RNA_def_boolean(srna, "use_ndof", true, "", "");
