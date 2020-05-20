@@ -149,6 +149,11 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file);
 void wm_event_do_refresh_wm_and_depsgraph(bContext *C);
 void wm_event_do_notifiers(bContext *C);
 
+void wm_event_handler_ui_cancel_ex(bContext *C,
+                                   wmWindow *win,
+                                   ARegion *region,
+                                   bool reactivate_button);
+
 /* wm_event_query.c */
 float wm_pressure_curve(float raw_pressure);
 void wm_tablet_data_from_ghost(const struct GHOST_TabletData *tablet_data, wmTabletData *wmtab);

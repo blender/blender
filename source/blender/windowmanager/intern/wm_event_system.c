@@ -640,11 +640,11 @@ static int wm_handler_ui_call(bContext *C,
   return WM_HANDLER_CONTINUE;
 }
 
-static void wm_handler_ui_cancel(bContext *C)
+void wm_event_handler_ui_cancel_ex(bContext *C,
+                                   wmWindow *win,
+                                   ARegion *region,
+                                   bool reactivate_button)
 {
-  wmWindow *win = CTX_wm_window(C);
-  ARegion *region = CTX_wm_region(C);
-
   if (!region) {
     return;
   }
@@ -656,9 +656,17 @@ static void wm_handler_ui_cancel(bContext *C)
       wmEvent event;
       wm_event_init_from_window(win, &event);
       event.type = EVT_BUT_CANCEL;
+      event.val = reactivate_button ? 0 : 1;
       handler->handle_fn(C, &event, handler->user_data);
     }
   }
+}
+
+static void wm_event_handler_ui_cancel(bContext *C)
+{
+  wmWindow *win = CTX_wm_window(C);
+  ARegion *region = CTX_wm_region(C);
+  wm_event_handler_ui_cancel_ex(C, win, region, true);
 }
 
 /** \} */
@@ -1365,7 +1373,7 @@ static int wm_operator_invoke(bContext *C,
        * while dragging the view or worse, that stay there permanently
        * after the modal operator has swallowed all events and passed
        * none to the UI handler */
-      wm_handler_ui_cancel(C);
+      wm_event_handler_ui_cancel(C);
     }
     else {
       WM_operator_free(op);
