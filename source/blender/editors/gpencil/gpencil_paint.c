@@ -2071,8 +2071,15 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
     return;
   }
 
-  /* Eraser mode: If no active strokes, just return. */
+  /* Eraser mode: If no active strokes, add one or just return. */
   if (paintmode == GP_PAINTMODE_ERASER) {
+    /* Eraser mode:
+     * 1) Add new frames to all frames that we might touch,
+     * 2) Ensure that p->gpf refers to the frame used for the active layer
+     *    (to avoid problems with other tools which expect it to exist)
+     *
+     * This is done only if additive drawing is enabled.
+     */
     bool has_layer_to_erase = false;
 
     LISTBASE_FOREACH (bGPDlayer *, gpl, &p->gpd->layers) {
@@ -2081,10 +2088,25 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
         continue;
       }
 
+      /* Add a new frame if needed (and based off the active frame,
+       * as we need some existing strokes to erase)
+       *
+       * Note: We don't add a new frame if there's nothing there now, so
+       *       -> If there are no frames at all, don't add one
+       *       -> If there are no strokes in that frame, don't add a new empty frame
+       */
       if (gpl->actframe && gpl->actframe->strokes.first) {
+        if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
+          gpl->actframe = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_ADD_COPY);
+        }
         has_layer_to_erase = true;
         break;
       }
+    }
+
+    /* Ensure this gets set. */
+    if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
+      p->gpf = p->gpl->actframe;
     }
 
     if (has_layer_to_erase == false) {
