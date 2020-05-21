@@ -260,6 +260,7 @@ float ED_object_new_primitive_matrix(struct bContext *C,
 #define OBJECT_ADD_SIZE_MAXF 1.0e12f
 
 void ED_object_add_unit_props_size(struct wmOperatorType *ot);
+void ED_object_add_unit_props_radius_ex(struct wmOperatorType *ot, float default_value);
 void ED_object_add_unit_props_radius(struct wmOperatorType *ot);
 void ED_object_add_generic_props(struct wmOperatorType *ot, bool do_editmode);
 void ED_object_add_mesh_props(struct wmOperatorType *ot);
