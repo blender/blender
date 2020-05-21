@@ -1679,7 +1679,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         }
         else {
           custom_orientation = BKE_scene_transform_orientation_find(
-              t->scene, orient_type_default - V3D_ORIENT_CUSTOM);
+              t->scene, orient_type_set - V3D_ORIENT_CUSTOM);
         }
       }
 
