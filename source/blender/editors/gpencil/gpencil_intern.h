@@ -699,16 +699,13 @@ struct GP_EditableStrokes_Iter {
     const bool is_multiedit_ = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd_); \
     LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd_->layers) { \
       if (BKE_gpencil_layer_is_editable(gpl)) { \
-        bGPDframe *init_gpf_ = gpl->actframe; \
-        if (is_multiedit_) { \
-          init_gpf_ = gpl->frames.first; \
-        } \
+        bGPDframe *init_gpf_ = (is_multiedit_) ? gpl->frames.first : gpl->actframe; \
         for (bGPDframe *gpf_ = init_gpf_; gpf_; gpf_ = gpf_->next) { \
           if ((gpf_ == gpl->actframe) || ((gpf_->flag & GP_FRAME_SELECT) && is_multiedit_)) { \
             BKE_gpencil_parent_matrix_get(depsgraph_, obact_, gpl, gpstroke_iter.diff_mat); \
             invert_m4_m4(gpstroke_iter.inverse_diff_mat, gpstroke_iter.diff_mat); \
             /* loop over strokes */ \
-            for (bGPDstroke *gps = gpf_->strokes.first; gps; gps = gps->next) { \
+            LISTBASE_FOREACH (bGPDstroke *, gps, &gpf_->strokes) { \
               /* skip strokes that are invalid for current view */ \
               if (ED_gpencil_stroke_can_use(C, gps) == false) \
                 continue; \
