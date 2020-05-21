@@ -85,59 +85,6 @@
 #include "BKE_texture.h"
 #include "BKE_workspace.h"
 
-#define FOREACH_FINALIZE _finalize
-#define FOREACH_FINALIZE_VOID \
-  if (0) { \
-    goto FOREACH_FINALIZE; \
-  } \
-  FOREACH_FINALIZE: \
-  ((void)0)
-
-#define FOREACH_CALLBACK_INVOKE_ID_PP(_data, id_pp, _cb_flag) \
-  CHECK_TYPE(id_pp, ID **); \
-  if (!((_data)->status & IDWALK_STOP)) { \
-    const int _flag = (_data)->flag; \
-    ID *old_id = *(id_pp); \
-    const int callback_return = (_data)->callback(&(struct LibraryIDLinkCallbackData){ \
-        .user_data = (_data)->user_data, \
-        .id_owner = (_data)->owner_id, \
-        .id_self = (_data)->self_id, \
-        .id_pointer = id_pp, \
-        .cb_flag = ((_cb_flag | (_data)->cb_flag) & ~(_data)->cb_flag_clear)}); \
-    if (_flag & IDWALK_READONLY) { \
-      BLI_assert(*(id_pp) == old_id); \
-    } \
-    if (old_id && (_flag & IDWALK_RECURSE)) { \
-      if (BLI_gset_add((_data)->ids_handled, old_id)) { \
-        if (!(callback_return & IDWALK_RET_STOP_RECURSION)) { \
-          BLI_LINKSTACK_PUSH((_data)->ids_todo, old_id); \
-        } \
-      } \
-    } \
-    if (callback_return & IDWALK_RET_STOP_ITER) { \
-      (_data)->status |= IDWALK_STOP; \
-      goto FOREACH_FINALIZE; \
-    } \
-  } \
-  else { \
-    goto FOREACH_FINALIZE; \
-  } \
-  ((void)0)
-
-#define FOREACH_CALLBACK_INVOKE_ID(_data, id, cb_flag) \
-  { \
-    CHECK_TYPE_ANY(id, ID *, void *); \
-    FOREACH_CALLBACK_INVOKE_ID_PP(_data, (ID **)&(id), cb_flag); \
-  } \
-  ((void)0)
-
-#define FOREACH_CALLBACK_INVOKE(_data, id_super, cb_flag) \
-  { \
-    CHECK_TYPE(&((id_super)->id), ID *); \
-    FOREACH_CALLBACK_INVOKE_ID_PP(_data, (ID **)&(id_super), cb_flag); \
-  } \
-  ((void)0)
-
 /* status */
 enum {
   IDWALK_STOP = 1 << 0,
@@ -237,13 +184,11 @@ void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void 
 
 static void library_foreach_nla_strip(LibraryForeachIDData *data, NlaStrip *strip)
 {
-  FOREACH_CALLBACK_INVOKE(data, strip->act, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS(data, strip->act, IDWALK_CB_USER);
 
   LISTBASE_FOREACH (NlaStrip *, substrip, &strip->strips) {
     library_foreach_nla_strip(data, substrip);
   }
-
-  FOREACH_FINALIZE_VOID;
 }
 
 static void library_foreach_animationData(LibraryForeachIDData *data, AnimData *adt)
@@ -254,22 +199,20 @@ static void library_foreach_animationData(LibraryForeachIDData *data, AnimData *
     LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
       /* only used targets */
       DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
-        FOREACH_CALLBACK_INVOKE_ID(data, dtar->id, IDWALK_CB_NOP);
+        BKE_LIB_FOREACHID_PROCESS_ID(data, dtar->id, IDWALK_CB_NOP);
       }
       DRIVER_TARGETS_LOOPER_END;
     }
   }
 
-  FOREACH_CALLBACK_INVOKE(data, adt->action, IDWALK_CB_USER);
-  FOREACH_CALLBACK_INVOKE(data, adt->tmpact, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS(data, adt->action, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS(data, adt->tmpact, IDWALK_CB_USER);
 
   LISTBASE_FOREACH (NlaTrack *, nla_track, &adt->nla_tracks) {
     LISTBASE_FOREACH (NlaStrip *, nla_strip, &nla_track->strips) {
       library_foreach_nla_strip(data, nla_strip);
     }
   }
-
-  FOREACH_FINALIZE_VOID;
 }
 
 bool BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
@@ -336,10 +279,11 @@ static void library_foreach_ID_link(Main *bmain,
   data.callback = callback;
   data.user_data = user_data;
 
-#define CALLBACK_INVOKE_ID(check_id, cb_flag) FOREACH_CALLBACK_INVOKE_ID(&data, check_id, cb_flag)
+#define CALLBACK_INVOKE_ID(check_id, cb_flag) \
+  BKE_LIB_FOREACHID_PROCESS_ID(&data, check_id, cb_flag)
 
 #define CALLBACK_INVOKE(check_id_super, cb_flag) \
-  FOREACH_CALLBACK_INVOKE(&data, check_id_super, cb_flag)
+  BKE_LIB_FOREACHID_PROCESS(&data, check_id_super, cb_flag)
 
   for (; id != NULL; id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : NULL) {
     data.self_id = id;
@@ -375,7 +319,7 @@ static void library_foreach_ID_link(Main *bmain,
        * especially if/when it starts modifying Main database). */
       MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->id_user_to_used, id);
       for (; entry != NULL; entry = entry->next) {
-        FOREACH_CALLBACK_INVOKE_ID_PP(&data, entry->id_pointer, entry->usage_flag);
+        BKE_lib_query_foreachid_process(&data, entry->id_pointer, entry->usage_flag);
       }
       continue;
     }
@@ -584,7 +528,6 @@ static void library_foreach_ID_link(Main *bmain,
     }
   }
 
-FOREACH_FINALIZE:
   if (data.ids_handled) {
     BLI_gset_free(data.ids_handled, NULL);
     BLI_LINKSTACK_FREE(data.ids_todo);
@@ -593,9 +536,6 @@ FOREACH_FINALIZE:
 #undef CALLBACK_INVOKE_ID
 #undef CALLBACK_INVOKE
 }
-
-#undef FOREACH_CALLBACK_INVOKE_ID
-#undef FOREACH_CALLBACK_INVOKE
 
 /**
  * Loop over all of the ID's this data-block links to.
