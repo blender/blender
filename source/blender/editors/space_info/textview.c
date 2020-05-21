@@ -429,6 +429,11 @@ int textview_draw(TextViewContext *tvc,
 
   tvc->end(tvc);
 
+  /* Sanity checks (bugs here can be tricky to track down). */
+  BLI_assert(tds.lheight == tvc->lheight);
+  BLI_assert(tds.row_vpadding == tvc->row_vpadding);
+  BLI_assert(tds.do_draw == do_draw);
+
   xy[1] += tvc->lheight * 2;
 
   return xy[1] - y_orig;
