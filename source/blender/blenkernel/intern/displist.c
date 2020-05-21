@@ -1134,17 +1134,18 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
 
   if (r_final) {
     if (force_mesh_conversion && !modified) {
-      /* XXX 2.8 : This is a workaround for by some deeper technical depts:
+      /* XXX 2.8 : This is a workaround for by some deeper technical debts:
        * - DRW Batch cache is stored inside the ob->data.
        * - Curve data is not COWed for instances that use different modifiers.
-       * This can causes the modifiers to be applied on all user of the same datablock (see T71055)
+       * This can causes the modifiers to be applied on all user of the same data-block
+       * (see T71055)
        *
        * The easy workaround is to force to generate a Mesh that will be used for display data
        * since a Mesh output is already used for generative modifiers.
        * However it does not fix problems with actual edit data still being shared.
        *
-       * The right solution would be to COW the Curve data block at the input of the modifer stack
-       * just like what the mesh modifier does.
+       * The right solution would be to COW the Curve data block at the input of the modifier
+       * stack just like what the mesh modifier does.
        * */
       modified = BKE_mesh_new_nomain_from_curve_displist(ob, dispbase);
     }

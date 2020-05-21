@@ -450,7 +450,7 @@ static const EnumPropertyItem operator_flag_items[] = {
      "UNDO_GROUPED",
      0,
      "Grouped Undo",
-     "Push a single undo event for repetead instances of this operator"},
+     "Push a single undo event for repeated instances of this operator"},
     {OPTYPE_BLOCKING, "BLOCKING", 0, "Blocking", "Block anything else from using the cursor"},
     {OPTYPE_MACRO, "MACRO", 0, "Macro", "Use to check if an operator is a macro"},
     {OPTYPE_GRAB_CURSOR_XY,
