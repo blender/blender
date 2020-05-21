@@ -732,7 +732,7 @@ static bool brush_generic_tool_set(bContext *C,
 
     /* Tool System
      * This is needed for when there is a non-sculpt tool active (transform for e.g.).
-     * In case we are toogling (and the brush changed to the toggle_brush), we need to get the
+     * In case we are toggling (and the brush changed to the toggle_brush), we need to get the
      * tool_name again. */
     int tool_result = brush_tool(brush, paint->runtime.tool_offset);
     ePaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
