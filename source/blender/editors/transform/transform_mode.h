@@ -41,6 +41,7 @@ typedef struct TransDataGenericSlideVert {
 
 /* transform_mode.c */
 bool transdata_check_local_center(TransInfo *t, short around);
+bool transform_mode_is_changeable(const int mode);
 void protectedTransBits(short protectflag, float vec[3]);
 void constraintTransLim(TransInfo *t, TransData *td);
 void postInputRotation(TransInfo *t, float values[3]);

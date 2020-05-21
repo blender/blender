@@ -61,6 +61,18 @@ bool transdata_check_local_center(TransInfo *t, short around)
            (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE))));
 }
 
+/* Informs if the mode can be switched during modal. */
+bool transform_mode_is_changeable(const int mode)
+{
+  return ELEM(mode,
+              TFM_ROTATION,
+              TFM_RESIZE,
+              TFM_TRACKBALL,
+              TFM_TRANSLATION,
+              TFM_EDGE_SLIDE,
+              TFM_VERT_SLIDE);
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Transform Locks
  * \{ */
