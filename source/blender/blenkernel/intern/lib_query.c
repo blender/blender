@@ -235,17 +235,6 @@ void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void 
   BKE_LIB_FOREACHID_PROCESS_ID(data, id_prop->data.pointer, IDWALK_CB_USER);
 }
 
-static void library_foreach_rigidbodyworldSceneLooper(struct RigidBodyWorld *UNUSED(rbw),
-                                                      ID **id_pointer,
-                                                      void *user_data,
-                                                      int cb_flag)
-{
-  LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
-  FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
-
-  FOREACH_FINALIZE_VOID;
-}
-
 static void library_foreach_nla_strip(LibraryForeachIDData *data, NlaStrip *strip)
 {
   FOREACH_CALLBACK_INVOKE(data, strip->act, IDWALK_CB_USER);
@@ -278,33 +267,6 @@ static void library_foreach_animationData(LibraryForeachIDData *data, AnimData *
     LISTBASE_FOREACH (NlaStrip *, nla_strip, &nla_track->strips) {
       library_foreach_nla_strip(data, nla_strip);
     }
-  }
-
-  FOREACH_FINALIZE_VOID;
-}
-
-static void library_foreach_paint(LibraryForeachIDData *data, Paint *paint)
-{
-  FOREACH_CALLBACK_INVOKE(data, paint->brush, IDWALK_CB_USER);
-  for (int i = 0; i < paint->tool_slots_len; i++) {
-    FOREACH_CALLBACK_INVOKE(data, paint->tool_slots[i].brush, IDWALK_CB_USER);
-  }
-  FOREACH_CALLBACK_INVOKE(data, paint->palette, IDWALK_CB_USER);
-
-  FOREACH_FINALIZE_VOID;
-}
-
-static void library_foreach_layer_collection(LibraryForeachIDData *data, ListBase *lb)
-{
-  LISTBASE_FOREACH (LayerCollection *, lc, lb) {
-    /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
-     * anyway... */
-    const int cb_flag = (lc->collection != NULL &&
-                         (lc->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
-                            IDWALK_CB_EMBEDDED :
-                            IDWALK_CB_NOP;
-    FOREACH_CALLBACK_INVOKE(data, lc->collection, cb_flag);
-    library_foreach_layer_collection(data, &lc->layer_collections);
   }
 
   FOREACH_FINALIZE_VOID;
@@ -458,122 +420,7 @@ static void library_foreach_ID_link(Main *bmain,
         break;
       }
       case ID_SCE: {
-        Scene *scene = (Scene *)id;
-        ToolSettings *toolsett = scene->toolsettings;
-
-        CALLBACK_INVOKE(scene->camera, IDWALK_CB_NOP);
-        CALLBACK_INVOKE(scene->world, IDWALK_CB_USER);
-        CALLBACK_INVOKE(scene->set, IDWALK_CB_NEVER_SELF);
-        CALLBACK_INVOKE(scene->clip, IDWALK_CB_USER);
-        CALLBACK_INVOKE(scene->gpd, IDWALK_CB_USER);
-        CALLBACK_INVOKE(scene->r.bake.cage_object, IDWALK_CB_NOP);
-        if (scene->nodetree) {
-          /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-          BKE_library_foreach_ID_embedded(&data, (ID **)&scene->nodetree);
-        }
-        if (scene->ed) {
-          Sequence *seq;
-          SEQP_BEGIN (scene->ed, seq) {
-            CALLBACK_INVOKE(seq->scene, IDWALK_CB_NEVER_SELF);
-            CALLBACK_INVOKE(seq->scene_camera, IDWALK_CB_NOP);
-            CALLBACK_INVOKE(seq->clip, IDWALK_CB_USER);
-            CALLBACK_INVOKE(seq->mask, IDWALK_CB_USER);
-            CALLBACK_INVOKE(seq->sound, IDWALK_CB_USER);
-            IDP_foreach_property(seq->prop,
-                                 IDP_TYPE_FILTER_ID,
-                                 BKE_lib_query_idpropertiesForeachIDLink_callback,
-                                 &data);
-            LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
-              CALLBACK_INVOKE(smd->mask_id, IDWALK_CB_USER);
-            }
-
-            if (seq->type == SEQ_TYPE_TEXT && seq->effectdata) {
-              TextVars *text_data = seq->effectdata;
-              CALLBACK_INVOKE(text_data->text_font, IDWALK_CB_USER);
-            }
-          }
-          SEQ_END;
-        }
-
-        /* This pointer can be NULL during old files reading, better be safe than sorry. */
-        if (scene->master_collection != NULL) {
-          BKE_library_foreach_ID_embedded(&data, (ID **)&scene->master_collection);
-        }
-
-        LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
-          CALLBACK_INVOKE(view_layer->mat_override, IDWALK_CB_USER);
-
-          LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
-            CALLBACK_INVOKE(base->object, IDWALK_CB_NOP);
-          }
-
-          library_foreach_layer_collection(&data, &view_layer->layer_collections);
-
-          LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
-            if (fmc->script) {
-              CALLBACK_INVOKE(fmc->script, IDWALK_CB_NOP);
-            }
-          }
-
-          LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
-            if (fls->group) {
-              CALLBACK_INVOKE(fls->group, IDWALK_CB_USER);
-            }
-
-            if (fls->linestyle) {
-              CALLBACK_INVOKE(fls->linestyle, IDWALK_CB_USER);
-            }
-          }
-        }
-
-        LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
-          CALLBACK_INVOKE(marker->camera, IDWALK_CB_NOP);
-        }
-
-        if (toolsett) {
-          CALLBACK_INVOKE(toolsett->particle.scene, IDWALK_CB_NOP);
-          CALLBACK_INVOKE(toolsett->particle.object, IDWALK_CB_NOP);
-          CALLBACK_INVOKE(toolsett->particle.shape_object, IDWALK_CB_NOP);
-
-          library_foreach_paint(&data, &toolsett->imapaint.paint);
-          CALLBACK_INVOKE(toolsett->imapaint.stencil, IDWALK_CB_USER);
-          CALLBACK_INVOKE(toolsett->imapaint.clone, IDWALK_CB_USER);
-          CALLBACK_INVOKE(toolsett->imapaint.canvas, IDWALK_CB_USER);
-
-          if (toolsett->vpaint) {
-            library_foreach_paint(&data, &toolsett->vpaint->paint);
-          }
-          if (toolsett->wpaint) {
-            library_foreach_paint(&data, &toolsett->wpaint->paint);
-          }
-          if (toolsett->sculpt) {
-            library_foreach_paint(&data, &toolsett->sculpt->paint);
-            CALLBACK_INVOKE(toolsett->sculpt->gravity_object, IDWALK_CB_NOP);
-          }
-          if (toolsett->uvsculpt) {
-            library_foreach_paint(&data, &toolsett->uvsculpt->paint);
-          }
-          if (toolsett->gp_paint) {
-            library_foreach_paint(&data, &toolsett->gp_paint->paint);
-          }
-          if (toolsett->gp_vertexpaint) {
-            library_foreach_paint(&data, &toolsett->gp_vertexpaint->paint);
-          }
-          if (toolsett->gp_sculptpaint) {
-            library_foreach_paint(&data, &toolsett->gp_sculptpaint->paint);
-          }
-          if (toolsett->gp_weightpaint) {
-            library_foreach_paint(&data, &toolsett->gp_weightpaint->paint);
-          }
-
-          CALLBACK_INVOKE(toolsett->gp_sculpt.guide.reference_object, IDWALK_CB_NOP);
-        }
-
-        if (scene->rigidbody_world) {
-          BKE_rigidbody_world_id_loop(
-              scene->rigidbody_world, library_foreach_rigidbodyworldSceneLooper, &data);
-        }
-
+        BLI_assert(0);
         break;
       }
 

@@ -33,6 +33,7 @@
 #include "DNA_defaults.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_linestyle_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -42,6 +43,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
+#include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
@@ -77,6 +79,7 @@
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
@@ -418,6 +421,155 @@ static void scene_free_data(ID *id)
   BLI_assert(scene->layer_properties == NULL);
 }
 
+static void library_foreach_rigidbodyworldSceneLooper(struct RigidBodyWorld *UNUSED(rbw),
+                                                      ID **id_pointer,
+                                                      void *user_data,
+                                                      int cb_flag)
+{
+  LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
+  BKE_lib_query_foreachid_process(data, id_pointer, cb_flag);
+}
+
+static void library_foreach_paint(LibraryForeachIDData *data, Paint *paint)
+{
+  BKE_LIB_FOREACHID_PROCESS(data, paint->brush, IDWALK_CB_USER);
+  for (int i = 0; i < paint->tool_slots_len; i++) {
+    BKE_LIB_FOREACHID_PROCESS(data, paint->tool_slots[i].brush, IDWALK_CB_USER);
+  }
+  BKE_LIB_FOREACHID_PROCESS(data, paint->palette, IDWALK_CB_USER);
+}
+
+static void library_foreach_layer_collection(LibraryForeachIDData *data, ListBase *lb)
+{
+  LISTBASE_FOREACH (LayerCollection *, lc, lb) {
+    /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
+     * anyway... */
+    const int cb_flag = (lc->collection != NULL &&
+                         (lc->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
+                            IDWALK_CB_EMBEDDED :
+                            IDWALK_CB_NOP;
+    BKE_LIB_FOREACHID_PROCESS(data, lc->collection, cb_flag);
+    library_foreach_layer_collection(data, &lc->layer_collections);
+  }
+}
+
+static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  Scene *scene = (Scene *)id;
+
+  BKE_LIB_FOREACHID_PROCESS(data, scene->camera, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS(data, scene->world, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS(data, scene->set, IDWALK_CB_NEVER_SELF);
+  BKE_LIB_FOREACHID_PROCESS(data, scene->clip, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS(data, scene->gpd, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS(data, scene->r.bake.cage_object, IDWALK_CB_NOP);
+  if (scene->nodetree) {
+    /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
+    BKE_library_foreach_ID_embedded(data, (ID **)&scene->nodetree);
+  }
+  if (scene->ed) {
+    Sequence *seq;
+    SEQP_BEGIN (scene->ed, seq) {
+      BKE_LIB_FOREACHID_PROCESS(data, seq->scene, IDWALK_CB_NEVER_SELF);
+      BKE_LIB_FOREACHID_PROCESS(data, seq->scene_camera, IDWALK_CB_NOP);
+      BKE_LIB_FOREACHID_PROCESS(data, seq->clip, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS(data, seq->mask, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS(data, seq->sound, IDWALK_CB_USER);
+      IDP_foreach_property(
+          seq->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
+      LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
+        BKE_LIB_FOREACHID_PROCESS(data, smd->mask_id, IDWALK_CB_USER);
+      }
+
+      if (seq->type == SEQ_TYPE_TEXT && seq->effectdata) {
+        TextVars *text_data = seq->effectdata;
+        BKE_LIB_FOREACHID_PROCESS(data, text_data->text_font, IDWALK_CB_USER);
+      }
+    }
+    SEQ_END;
+  }
+
+  /* This pointer can be NULL during old files reading, better be safe than sorry. */
+  if (scene->master_collection != NULL) {
+    BKE_library_foreach_ID_embedded(data, (ID **)&scene->master_collection);
+  }
+
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+    BKE_LIB_FOREACHID_PROCESS(data, view_layer->mat_override, IDWALK_CB_USER);
+
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+      BKE_LIB_FOREACHID_PROCESS(data, base->object, IDWALK_CB_NOP);
+    }
+
+    library_foreach_layer_collection(data, &view_layer->layer_collections);
+
+    LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
+      if (fmc->script) {
+        BKE_LIB_FOREACHID_PROCESS(data, fmc->script, IDWALK_CB_NOP);
+      }
+    }
+
+    LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
+      if (fls->group) {
+        BKE_LIB_FOREACHID_PROCESS(data, fls->group, IDWALK_CB_USER);
+      }
+
+      if (fls->linestyle) {
+        BKE_LIB_FOREACHID_PROCESS(data, fls->linestyle, IDWALK_CB_USER);
+      }
+    }
+  }
+
+  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
+    BKE_LIB_FOREACHID_PROCESS(data, marker->camera, IDWALK_CB_NOP);
+  }
+
+  ToolSettings *toolsett = scene->toolsettings;
+  if (toolsett) {
+    BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.scene, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.object, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.shape_object, IDWALK_CB_NOP);
+
+    library_foreach_paint(data, &toolsett->imapaint.paint);
+    BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.stencil, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.clone, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.canvas, IDWALK_CB_USER);
+
+    if (toolsett->vpaint) {
+      library_foreach_paint(data, &toolsett->vpaint->paint);
+    }
+    if (toolsett->wpaint) {
+      library_foreach_paint(data, &toolsett->wpaint->paint);
+    }
+    if (toolsett->sculpt) {
+      library_foreach_paint(data, &toolsett->sculpt->paint);
+      BKE_LIB_FOREACHID_PROCESS(data, toolsett->sculpt->gravity_object, IDWALK_CB_NOP);
+    }
+    if (toolsett->uvsculpt) {
+      library_foreach_paint(data, &toolsett->uvsculpt->paint);
+    }
+    if (toolsett->gp_paint) {
+      library_foreach_paint(data, &toolsett->gp_paint->paint);
+    }
+    if (toolsett->gp_vertexpaint) {
+      library_foreach_paint(data, &toolsett->gp_vertexpaint->paint);
+    }
+    if (toolsett->gp_sculptpaint) {
+      library_foreach_paint(data, &toolsett->gp_sculptpaint->paint);
+    }
+    if (toolsett->gp_weightpaint) {
+      library_foreach_paint(data, &toolsett->gp_weightpaint->paint);
+    }
+
+    BKE_LIB_FOREACHID_PROCESS(data, toolsett->gp_sculpt.guide.reference_object, IDWALK_CB_NOP);
+  }
+
+  if (scene->rigidbody_world) {
+    BKE_rigidbody_world_id_loop(
+        scene->rigidbody_world, library_foreach_rigidbodyworldSceneLooper, data);
+  }
+}
+
 IDTypeInfo IDType_ID_SCE = {
     .id_code = ID_SCE,
     .id_filter = FILTER_ID_SCE,
@@ -434,6 +586,7 @@ IDTypeInfo IDType_ID_SCE = {
     /* For now default `BKE_lib_id_make_local_generic()` should work, may need more work though to
      * support all possible corner cases. */
     .make_local = NULL,
+    .foreach_id = scene_foreach_id,
 };
 
 const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";
