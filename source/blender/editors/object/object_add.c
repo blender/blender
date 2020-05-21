@@ -303,10 +303,15 @@ void ED_object_add_unit_props_size(wmOperatorType *ot)
       ot->srna, "size", 2.0f, 0.0, OBJECT_ADD_SIZE_MAXF, "Size", "", 0.001, 100.00);
 }
 
-void ED_object_add_unit_props_radius(wmOperatorType *ot)
+void ED_object_add_unit_props_radius_ex(wmOperatorType *ot, float default_value)
 {
   RNA_def_float_distance(
-      ot->srna, "radius", 1.0f, 0.0, OBJECT_ADD_SIZE_MAXF, "Radius", "", 0.001, 100.00);
+      ot->srna, "radius", default_value, 0.0, OBJECT_ADD_SIZE_MAXF, "Radius", "", 0.001, 100.00);
+}
+
+void ED_object_add_unit_props_radius(wmOperatorType *ot)
+{
+  ED_object_add_unit_props_radius_ex(ot, 1.0f);
 }
 
 void ED_object_add_generic_props(wmOperatorType *ot, bool do_editmode)
@@ -814,7 +819,10 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
   }
 
   ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
-  dia = RNA_float_get(op->ptr, "radius");
+  /* Halving here is done to account for constant values from #BKE_mball_element_add.
+   * While the default radius of the resulting meta element is 2,
+   * we want to pass in 1 so other values such as resolution are scaled by 1.0. */
+  dia = RNA_float_get(op->ptr, "radius") / 2;
 
   ED_mball_add_primitive(C, obedit, mat, dia, RNA_enum_get(op->ptr, "type"));
 
@@ -845,7 +853,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 
   ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_metaelem_type_items, 0, "Primitive", "");
 
-  ED_object_add_unit_props_radius(ot);
+  ED_object_add_unit_props_radius_ex(ot, 2.0f);
   ED_object_add_generic_props(ot, true);
 }
 
