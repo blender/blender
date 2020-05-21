@@ -1102,7 +1102,7 @@ class PreferenceThemeSpacePanel:
         PreferenceThemeSpacePanel._theme_generic(layout, data, self.theme_area)
 
 
-class ThemeGenericClassGenerator():
+class ThemeGenericClassGenerator:
 
     @staticmethod
     def generate_panel_classes_for_wcols():
