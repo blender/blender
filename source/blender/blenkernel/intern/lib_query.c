@@ -205,6 +205,20 @@ int BKE_lib_query_foreachid_process_flags_get(LibraryForeachIDData *data)
   return data->flag;
 }
 
+int BKE_lib_query_foreachid_process_callback_flag_override(LibraryForeachIDData *data,
+                                                           const int cb_flag,
+                                                           const bool do_replace)
+{
+  const int cb_flag_backup = data->cb_flag;
+  if (do_replace) {
+    data->cb_flag = cb_flag;
+  }
+  else {
+    data->cb_flag |= cb_flag;
+  }
+  return cb_flag_backup;
+}
+
 static void library_foreach_ID_link(Main *bmain,
                                     ID *id_owner,
                                     ID *id,
@@ -225,62 +239,6 @@ static void library_foreach_rigidbodyworldSceneLooper(struct RigidBodyWorld *UNU
                                                       ID **id_pointer,
                                                       void *user_data,
                                                       int cb_flag)
-{
-  LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
-  FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
-
-  FOREACH_FINALIZE_VOID;
-}
-
-static void library_foreach_modifiersForeachIDLink(void *user_data,
-                                                   Object *UNUSED(object),
-                                                   ID **id_pointer,
-                                                   int cb_flag)
-{
-  LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
-  FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
-
-  FOREACH_FINALIZE_VOID;
-}
-
-static void library_foreach_gpencil_modifiersForeachIDLink(void *user_data,
-                                                           Object *UNUSED(object),
-                                                           ID **id_pointer,
-                                                           int cb_flag)
-{
-  LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
-  FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
-
-  FOREACH_FINALIZE_VOID;
-}
-
-static void library_foreach_shaderfxForeachIDLink(void *user_data,
-                                                  Object *UNUSED(object),
-                                                  ID **id_pointer,
-                                                  int cb_flag)
-{
-  LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
-  FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
-
-  FOREACH_FINALIZE_VOID;
-}
-
-static void library_foreach_constraintObjectLooper(bConstraint *UNUSED(con),
-                                                   ID **id_pointer,
-                                                   bool is_reference,
-                                                   void *user_data)
-{
-  LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
-  const int cb_flag = is_reference ? IDWALK_CB_USER : IDWALK_CB_NOP;
-  FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
-
-  FOREACH_FINALIZE_VOID;
-}
-
-static void library_foreach_particlesystemsObjectLooper(ParticleSystem *UNUSED(psys),
-                                                        ID **id_pointer,
-                                                        void *user_data,
-                                                        int cb_flag)
 {
   LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
   FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
@@ -396,7 +354,6 @@ static void library_foreach_ID_link(Main *bmain,
                                     LibraryForeachIDData *inherit_data)
 {
   LibraryForeachIDData data = {.bmain = bmain};
-  int i;
 
   BLI_assert(inherit_data == NULL || data.bmain == inherit_data->bmain);
 
@@ -621,104 +578,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_OB: {
-        Object *object = (Object *)id;
-
-        /* Object is special, proxies make things hard... */
-        const int data_cb_flag = data.cb_flag;
-        const int proxy_cb_flag = ((data.flag & IDWALK_NO_INDIRECT_PROXY_DATA_USAGE) == 0 &&
-                                   (object->proxy || object->proxy_group)) ?
-                                      IDWALK_CB_INDIRECT_USAGE :
-                                      0;
-
-        /* object data special case */
-        data.cb_flag |= proxy_cb_flag;
-        if (object->type == OB_EMPTY) {
-          /* empty can have NULL or Image */
-          CALLBACK_INVOKE_ID(object->data, IDWALK_CB_USER);
-        }
-        else {
-          /* when set, this can't be NULL */
-          if (object->data) {
-            CALLBACK_INVOKE_ID(object->data, IDWALK_CB_USER | IDWALK_CB_NEVER_NULL);
-          }
-        }
-        data.cb_flag = data_cb_flag;
-
-        CALLBACK_INVOKE(object->parent, IDWALK_CB_NEVER_SELF);
-        CALLBACK_INVOKE(object->track, IDWALK_CB_NEVER_SELF);
-        /* object->proxy is refcounted, but not object->proxy_group... *sigh* */
-        CALLBACK_INVOKE(object->proxy, IDWALK_CB_USER | IDWALK_CB_NEVER_SELF);
-        CALLBACK_INVOKE(object->proxy_group, IDWALK_CB_NOP);
-
-        /* Special case!
-         * Since this field is set/owned by 'user' of this ID (and not ID itself),
-         * it is only indirect usage if proxy object is linked... Twisted. */
-        if (object->proxy_from) {
-          data.cb_flag = ID_IS_LINKED(object->proxy_from) ? IDWALK_CB_INDIRECT_USAGE : 0;
-        }
-        CALLBACK_INVOKE(object->proxy_from, IDWALK_CB_LOOPBACK | IDWALK_CB_NEVER_SELF);
-        data.cb_flag = data_cb_flag;
-
-        CALLBACK_INVOKE(object->poselib, IDWALK_CB_USER);
-
-        data.cb_flag |= proxy_cb_flag;
-        for (i = 0; i < object->totcol; i++) {
-          CALLBACK_INVOKE(object->mat[i], IDWALK_CB_USER);
-        }
-        data.cb_flag = data_cb_flag;
-
-        /* Note that ob->gpd is deprecated, so no need to handle it here. */
-        CALLBACK_INVOKE(object->instance_collection, IDWALK_CB_USER);
-
-        if (object->pd) {
-          CALLBACK_INVOKE(object->pd->tex, IDWALK_CB_USER);
-          CALLBACK_INVOKE(object->pd->f_source, IDWALK_CB_NOP);
-        }
-        /* Note that ob->effect is deprecated, so no need to handle it here. */
-
-        if (object->pose) {
-          data.cb_flag |= proxy_cb_flag;
-          LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-            IDP_foreach_property(pchan->prop,
-                                 IDP_TYPE_FILTER_ID,
-                                 BKE_lib_query_idpropertiesForeachIDLink_callback,
-                                 &data);
-            CALLBACK_INVOKE(pchan->custom, IDWALK_CB_USER);
-            BKE_constraints_id_loop(
-                &pchan->constraints, library_foreach_constraintObjectLooper, &data);
-          }
-          data.cb_flag = data_cb_flag;
-        }
-
-        if (object->rigidbody_constraint) {
-          CALLBACK_INVOKE(object->rigidbody_constraint->ob1, IDWALK_CB_NEVER_SELF);
-          CALLBACK_INVOKE(object->rigidbody_constraint->ob2, IDWALK_CB_NEVER_SELF);
-        }
-
-        if (object->lodlevels.first) {
-          LISTBASE_FOREACH (LodLevel *, level, &object->lodlevels) {
-            CALLBACK_INVOKE(level->source, IDWALK_CB_NEVER_SELF);
-          }
-        }
-
-        BKE_modifiers_foreach_ID_link(object, library_foreach_modifiersForeachIDLink, &data);
-        BKE_gpencil_modifiers_foreach_ID_link(
-            object, library_foreach_gpencil_modifiersForeachIDLink, &data);
-        BKE_constraints_id_loop(
-            &object->constraints, library_foreach_constraintObjectLooper, &data);
-        BKE_shaderfx_foreach_ID_link(object, library_foreach_shaderfxForeachIDLink, &data);
-
-        LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
-          BKE_particlesystem_id_loop(psys, library_foreach_particlesystemsObjectLooper, &data);
-        }
-
-        if (object->soft) {
-          CALLBACK_INVOKE(object->soft->collision_group, IDWALK_CB_NOP);
-
-          if (object->soft->effector_weights) {
-            CALLBACK_INVOKE(object->soft->effector_weights->group, IDWALK_CB_NOP);
-          }
-        }
+        BLI_assert(0);
         break;
       }
 
