@@ -8,4 +8,3 @@ camera.pixel_aspect = 1
 camera.k1 = 0.0
 camera.k2 = 0.0
 camera.k3 = 0.0
-

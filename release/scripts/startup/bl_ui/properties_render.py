@@ -551,7 +551,6 @@ class RENDER_PT_gpencil(RenderButtonsPanel, Panel):
         col.prop(props, "antialias_threshold")
 
 
-
 class RENDER_PT_opengl_sampling(RenderButtonsPanel, Panel):
     bl_label = "Sampling"
     COMPAT_ENGINES = {'BLENDER_WORKBENCH'}
