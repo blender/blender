@@ -2669,6 +2669,12 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
   return action;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Handle Single Event (All Handler Types)
+ * \{ */
+
 static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers)
 {
   const bool do_debug_handler =
@@ -2970,6 +2976,14 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
   return action;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Event Queue Utilities
+ *
+ * Utilities used by #wm_event_do_handlers.
+ * \{ */
+
 static bool wm_event_inside_rect(const wmEvent *event, const rcti *rect)
 {
   if (wm_event_always_pass(event)) {
@@ -3133,6 +3147,14 @@ static void wm_event_free_and_remove_from_queue_if_valid(wmEvent *event)
     }
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Main Event Queue (Every Window)
+ *
+ * Handle events for all windows, run from the #WM_main event loop.
+ * \{ */
 
 /* called in main loop */
 /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
