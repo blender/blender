@@ -206,6 +206,7 @@ IDTypeInfo IDType_ID_TXT = {
     .copy_data = text_copy_data,
     .free_data = text_free_data,
     .make_local = NULL,
+    .foreach_id = NULL,
 };
 
 /***/

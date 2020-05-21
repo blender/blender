@@ -199,6 +199,7 @@ IDTypeInfo IDType_ID_IM = {
     .copy_data = image_copy_data,
     .free_data = image_free_data,
     .make_local = NULL,
+    .foreach_id = NULL,
 };
 
 /* prototypes */

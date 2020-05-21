@@ -116,6 +116,7 @@ IDTypeInfo IDType_ID_PAL = {
     .copy_data = palette_copy_data,
     .free_data = palette_free_data,
     .make_local = NULL,
+    .foreach_id = NULL,
 };
 
 static void paint_curve_copy_data(Main *UNUSED(bmain),
@@ -153,6 +154,7 @@ IDTypeInfo IDType_ID_PC = {
     .copy_data = paint_curve_copy_data,
     .free_data = paint_curve_free_data,
     .make_local = NULL,
+    .foreach_id = NULL,
 };
 
 const char PAINT_CURSOR_SCULPT[3] = {255, 100, 100};

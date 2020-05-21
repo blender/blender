@@ -123,6 +123,7 @@ IDTypeInfo IDType_ID_IP = {
     .copy_data = NULL,
     .free_data = ipo_free_data,
     .make_local = NULL,
+    .foreach_id = NULL,
 };
 
 /* *************************************************** */

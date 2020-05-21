@@ -134,6 +134,7 @@ IDTypeInfo IDType_ID_VF = {
     .copy_data = vfont_copy_data,
     .free_data = vfont_free_data,
     .make_local = NULL,
+    .foreach_id = NULL,
 };
 
 /***************************** VFont *******************************/

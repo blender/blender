@@ -97,6 +97,7 @@ IDTypeInfo IDType_ID_CF = {
     .copy_data = cache_file_copy_data,
     .free_data = cache_file_free_data,
     .make_local = NULL,
+    .foreach_id = NULL,
 };
 
 /* TODO: make this per cache file to avoid global locks. */
