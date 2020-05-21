@@ -505,7 +505,7 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
 
   BKE_modifiers_foreach_ID_link(object, library_foreach_modifiersForeachIDLink, data);
   BKE_gpencil_modifiers_foreach_ID_link(
-      object, library_foreach_gpencil_modifiersForeachIDLink, &data);
+      object, library_foreach_gpencil_modifiersForeachIDLink, data);
   BKE_constraints_id_loop(&object->constraints, library_foreach_constraintObjectLooper, data);
   BKE_shaderfx_foreach_ID_link(object, library_foreach_shaderfxForeachIDLink, data);
 
