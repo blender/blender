@@ -24,11 +24,17 @@ bool node_tex_tile_lookup(inout vec3 co, sampler2DArray ima, sampler1DArray map)
 
 vec4 workbench_sample_texture(sampler2D image, vec2 coord, bool nearest_sampling)
 {
-  vec2 tex_size = vec2(textureSize(image, 0).xy);
   /* TODO(fclem) We could do the same with sampler objects.
    * But this is a quick workaround instead of messing with the GPUTexture itself. */
-  vec2 uv = nearest_sampling ? (floor(coord * tex_size) + 0.5) / tex_size : coord;
-  return texture(image, uv);
+  if (nearest_sampling) {
+    /* Use texelFetch for nearest_sampling to reduce glitches. See: T73726 */
+    vec2 tex_size = vec2(textureSize(image, 0).xy);
+    ivec2 uv = ivec2(floor(coord * tex_size) + 0.5);
+    return texelFetch(image, uv, 0);
+  }
+  else {
+    return texture(image, coord);
+  }
 }
 
 vec4 workbench_sample_texture_array(sampler2DArray tile_array,
@@ -36,7 +42,6 @@ vec4 workbench_sample_texture_array(sampler2DArray tile_array,
                                     vec2 coord,
                                     bool nearest_sampling)
 {
-  vec2 tex_size = vec2(textureSize(tile_array, 0).xy);
 
   vec3 uv = vec3(coord, 0);
   if (!node_tex_tile_lookup(uv, tile_array, tile_data))
@@ -44,8 +49,15 @@ vec4 workbench_sample_texture_array(sampler2DArray tile_array,
 
   /* TODO(fclem) We could do the same with sampler objects.
    * But this is a quick workaround instead of messing with the GPUTexture itself. */
-  uv.xy = nearest_sampling ? (floor(uv.xy * tex_size) + 0.5) / tex_size : uv.xy;
-  return texture(tile_array, uv);
+  if (nearest_sampling) {
+    /* Use texelFetch for nearest_sampling to reduce glitches. See: T73726 */
+    vec3 tex_size = vec3(textureSize(tile_array, 0));
+    uv.xy = floor(uv.xy * tex_size.xy) + 0.5;
+    return texelFetch(tile_array, ivec3(uv), 0);
+  }
+  else {
+    return texture(tile_array, uv);
+  }
 }
 
 uniform sampler2DArray imageTileArray;
