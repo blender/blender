@@ -113,13 +113,8 @@ typedef struct TransSnap {
 } TransSnap;
 
 typedef struct TransCon {
-  short orientation;
   /** Description of the constraint for header_print. */
   char text[50];
-  /** Matrix of the constraint space. */
-  float mtx[3][3];
-  /** Inverse matrix of the constraint space. */
-  float imtx[3][3];
   /** Projection constraint matrix (same as #imtx with some axis == 0). */
   float pmtx[3][3];
   /** Initial mouse value for visual calculation
@@ -531,13 +526,11 @@ typedef struct TransInfo {
   bool is_launch_event_tweak;
 
   struct {
-    short index;
-    short types[3];
-    /* this gets used when orientation.type[x] is V3D_ORIENT_CUSTOM */
-    struct TransformOrientation *custom;
-    /* this gets used when orientation.type[0] is V3D_ORIENT_CUSTOM_MATRIX */
-    float custom_matrix[3][3];
-  } orientation;
+    short type;
+    float matrix[3][3];
+  } orient[3];
+  short orient_curr;
+
   /** backup from view3d, to restore on end. */
   short gizmo_flag;
 
@@ -911,8 +904,13 @@ void getViewVector(const TransInfo *t, const float coord[3], float vec[3]);
 void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot);
 
 /*********************** Transform Orientations ******************************/
-
-void initTransformOrientation(struct bContext *C, TransInfo *t, short orientation);
+short transform_orientation_matrix_get(struct bContext *C,
+                                       TransInfo *t,
+                                       const short orientation,
+                                       const float custom[3][3],
+                                       float r_spacemtx[3][3]);
+const char *transform_orientations_spacename_get(TransInfo *t, const short orient_type);
+void transform_orientations_current_set(struct TransInfo *t, const short orient_index);
 
 /* Those two fill in mat and return non-zero on success */
 bool createSpaceNormal(float mat[3][3], const float normal[3]);

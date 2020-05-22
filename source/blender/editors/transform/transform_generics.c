@@ -1650,25 +1650,16 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   {
     TransformOrientationSlot *orient_slot = &t->scene->orientation_slots[SCE_ORIENT_DEFAULT];
-    TransformOrientation *custom_orientation = NULL;
     short orient_type_set = -1;
     short orient_type_matrix_set = -1;
     short orient_type_scene = orient_slot->type;
     if (orient_type_scene == V3D_ORIENT_CUSTOM) {
       const int index_custom = orient_slot->index_custom;
-      custom_orientation = BKE_scene_transform_orientation_find(t->scene, index_custom);
       orient_type_scene += index_custom;
     }
 
-    short orient_type_default;
-    short orient_type_constraint[2];
-    if ((t->flag & T_MODAL) && transform_mode_is_changeable(t->mode)) {
-      /* During modal, rotation starts with the View orientation. */
-      orient_type_default = V3D_ORIENT_VIEW;
-    }
-    else {
-      orient_type_default = orient_type_scene;
-    }
+    short orient_types[3];
+    float custom_matrix[3][3];
 
     if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
       t->orient_axis = RNA_property_enum_get(op->ptr, prop);
@@ -1684,26 +1675,28 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         if (orient_type_set >= V3D_ORIENT_CUSTOM + BIF_countTransformOrientation(C)) {
           orient_type_set = V3D_ORIENT_GLOBAL;
         }
-        else {
-          custom_orientation = BKE_scene_transform_orientation_find(
-              t->scene, orient_type_set - V3D_ORIENT_CUSTOM);
-        }
       }
 
       /* Change the default orientation to be used when redoing. */
-      orient_type_default = orient_type_set;
-      orient_type_constraint[0] = orient_type_set;
-      orient_type_constraint[1] = orient_type_scene;
+      orient_types[0] = orient_type_set;
+      orient_types[1] = orient_type_set;
+      orient_types[2] = orient_type_scene;
     }
     else {
-      orient_type_constraint[0] = orient_type_scene;
-      orient_type_constraint[1] = orient_type_scene != V3D_ORIENT_GLOBAL ? V3D_ORIENT_GLOBAL :
-                                                                           V3D_ORIENT_LOCAL;
+      if ((t->flag & T_MODAL) && transform_mode_is_changeable(t->mode)) {
+        orient_types[0] = V3D_ORIENT_VIEW;
+      }
+      else {
+        orient_types[0] = orient_type_scene;
+      }
+      orient_types[1] = orient_type_scene;
+      orient_types[2] = orient_type_scene != V3D_ORIENT_GLOBAL ? V3D_ORIENT_GLOBAL :
+                                                                 V3D_ORIENT_LOCAL;
     }
 
     if (op && ((prop = RNA_struct_find_property(op->ptr, "orient_matrix")) &&
                RNA_property_is_set(op->ptr, prop))) {
-      RNA_property_float_get_array(op->ptr, prop, &t->orientation.custom_matrix[0][0]);
+      RNA_property_float_get_array(op->ptr, prop, &custom_matrix[0][0]);
 
       if ((prop = RNA_struct_find_property(op->ptr, "orient_matrix_type")) &&
           RNA_property_is_set(op->ptr, prop)) {
@@ -1718,18 +1711,30 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
       if (orient_type_matrix_set == orient_type_set) {
         /* Constraints are forced to use the custom matrix when redoing. */
-        orient_type_default = V3D_ORIENT_CUSTOM_MATRIX;
+        orient_types[0] = V3D_ORIENT_CUSTOM_MATRIX;
       }
     }
 
-    t->orientation.types[0] = orient_type_default;
-    t->orientation.types[1] = orient_type_constraint[0];
-    t->orientation.types[2] = orient_type_constraint[1];
-    t->orientation.custom = custom_orientation;
-
     if (t->con.mode & CON_APPLY) {
-      t->orientation.index = 1;
+      t->orient_curr = 1;
     }
+
+    /* For efficiency, avoid calculating the same orientation twice. */
+    for (int i = 1; i < 3; i++) {
+      t->orient[i].type = transform_orientation_matrix_get(
+          C, t, orient_types[i], custom_matrix, t->orient[i].matrix);
+    }
+
+    if (orient_types[0] != orient_types[1]) {
+      t->orient[0].type = transform_orientation_matrix_get(
+          C, t, orient_types[0], custom_matrix, t->orient[0].matrix);
+    }
+    else {
+      memcpy(&t->orient[0], &t->orient[1], sizeof(t->orient[0]));
+    }
+
+    const char *spacename = transform_orientations_spacename_get(t, orient_types[0]);
+    BLI_strncpy(t->spacename, spacename, sizeof(t->spacename));
   }
 
   if (op && ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) &&

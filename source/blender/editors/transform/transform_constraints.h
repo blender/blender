@@ -27,7 +27,7 @@
 struct TransInfo;
 
 void constraintNumInput(TransInfo *t, float vec[3]);
-void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]);
+void setConstraint(TransInfo *t, int mode, const char text[]);
 void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[]);
 void setLocalConstraint(TransInfo *t, int mode, const char text[]);
 void setUserConstraint(TransInfo *t, short orientation, int mode, const char text[]);
@@ -35,7 +35,6 @@ void drawConstraint(TransInfo *t);
 void drawPropCircle(const struct bContext *C, TransInfo *t);
 void startConstraint(TransInfo *t);
 void stopConstraint(TransInfo *t);
-void getConstraintMatrix(TransInfo *t);
 void initSelectConstraint(TransInfo *t, bool force_global);
 void selectConstraint(TransInfo *t);
 void postSelectConstraint(TransInfo *t);

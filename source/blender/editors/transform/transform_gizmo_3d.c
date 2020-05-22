@@ -1390,16 +1390,16 @@ void drawDial3d(const TransInfo *t)
     if (tc->mode & CON_APPLY) {
       if (tc->mode & CON_AXIS0) {
         axis_idx = MAN_AXIS_ROT_X;
-        negate_v3_v3(mat_basis[2], tc->mtx[0]);
+        negate_v3_v3(mat_basis[2], t->spacemtx[0]);
       }
       else if (tc->mode & CON_AXIS1) {
         axis_idx = MAN_AXIS_ROT_Y;
-        negate_v3_v3(mat_basis[2], tc->mtx[1]);
+        negate_v3_v3(mat_basis[2], t->spacemtx[1]);
       }
       else {
         BLI_assert((tc->mode & CON_AXIS2) != 0);
         axis_idx = MAN_AXIS_ROT_Z;
-        negate_v3_v3(mat_basis[2], tc->mtx[2]);
+        negate_v3_v3(mat_basis[2], t->spacemtx[2]);
       }
     }
     else {

@@ -438,79 +438,147 @@ static int armature_bone_transflags_update_recursive(bArmature *arm,
   return total;
 }
 
-void initTransformOrientation(bContext *C, TransInfo *t, short orientation)
+/* Sets the matrix of the specified space orientation.
+ * If the matrix cannot be obtained, an orientation different from the one
+ * informed is returned */
+short transform_orientation_matrix_get(bContext *C,
+                                       TransInfo *t,
+                                       const short orientation,
+                                       const float custom[3][3],
+                                       float r_spacemtx[3][3])
 {
   Object *ob = CTX_data_active_object(C);
   Object *obedit = CTX_data_active_object(C);
 
   switch (orientation) {
     case V3D_ORIENT_GLOBAL:
-      unit_m3(t->spacemtx);
-      BLI_strncpy(t->spacename, TIP_("global"), sizeof(t->spacename));
-      break;
+      unit_m3(r_spacemtx);
+      return V3D_ORIENT_GLOBAL;
 
     case V3D_ORIENT_GIMBAL:
-      unit_m3(t->spacemtx);
-      if (ob && gimbal_axis(ob, t->spacemtx)) {
-        BLI_strncpy(t->spacename, TIP_("gimbal"), sizeof(t->spacename));
-        break;
+      unit_m3(r_spacemtx);
+      if (ob && gimbal_axis(ob, r_spacemtx)) {
+        return V3D_ORIENT_GIMBAL;
       }
       ATTR_FALLTHROUGH; /* no gimbal fallthrough to normal */
+
     case V3D_ORIENT_NORMAL:
       if (obedit || (ob && ob->mode & OB_MODE_POSE)) {
-        BLI_strncpy(t->spacename, TIP_("normal"), sizeof(t->spacename));
-        ED_getTransformOrientationMatrix(C, t->spacemtx, t->around);
-        break;
+        ED_getTransformOrientationMatrix(C, r_spacemtx, t->around);
+        return V3D_ORIENT_NORMAL;
       }
       ATTR_FALLTHROUGH; /* we define 'normal' as 'local' in Object mode */
+
     case V3D_ORIENT_LOCAL:
-      BLI_strncpy(t->spacename, TIP_("local"), sizeof(t->spacename));
-
       if (ob) {
-        copy_m3_m4(t->spacemtx, ob->obmat);
-        normalize_m3(t->spacemtx);
+        copy_m3_m4(r_spacemtx, ob->obmat);
+        normalize_m3(r_spacemtx);
+        return V3D_ORIENT_LOCAL;
       }
-      else {
-        unit_m3(t->spacemtx);
-      }
-
-      break;
+      unit_m3(r_spacemtx);
+      return V3D_ORIENT_GLOBAL;
 
     case V3D_ORIENT_VIEW: {
       float mat[3][3];
       if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
-        BLI_strncpy(t->spacename, TIP_("view"), sizeof(t->spacename));
-        copy_m3_m4(mat, t->viewinv);
+        RegionView3D *rv3d = t->region->regiondata;
+        copy_m3_m4(mat, rv3d->viewinv);
         normalize_m3(mat);
       }
       else {
         unit_m3(mat);
       }
-      copy_m3_m3(t->spacemtx, mat);
-      break;
+      copy_m3_m3(r_spacemtx, mat);
+      return V3D_ORIENT_VIEW;
     }
-    case V3D_ORIENT_CURSOR: {
-      BLI_strncpy(t->spacename, TIP_("cursor"), sizeof(t->spacename));
-      BKE_scene_cursor_rot_to_mat3(&t->scene->cursor, t->spacemtx);
-      break;
-    }
+    case V3D_ORIENT_CURSOR:
+      BKE_scene_cursor_rot_to_mat3(&t->scene->cursor, r_spacemtx);
+      return V3D_ORIENT_CURSOR;
+
     case V3D_ORIENT_CUSTOM_MATRIX:
-      BLI_strncpy(t->spacename, TIP_("custom"), sizeof(t->spacename));
-      copy_m3_m3(t->spacemtx, t->orientation.custom_matrix);
-      break;
+      copy_m3_m3(r_spacemtx, custom);
+      return V3D_ORIENT_CUSTOM_MATRIX;
+
     case V3D_ORIENT_CUSTOM:
     default:
       BLI_assert(orientation >= V3D_ORIENT_CUSTOM);
-      BLI_strncpy(t->spacename, t->orientation.custom->name, sizeof(t->spacename));
-      if (applyTransformOrientation(t->orientation.custom, t->spacemtx, t->spacename)) {
+      TransformOrientation *ts = BKE_scene_transform_orientation_find(
+          t->scene, orientation - V3D_ORIENT_CUSTOM);
+      if (applyTransformOrientation(ts, r_spacemtx, t->spacename)) {
         /* pass */
       }
       else {
-        unit_m3(t->spacemtx);
+        unit_m3(r_spacemtx);
       }
       break;
   }
 
+  return orientation;
+}
+
+const char *transform_orientations_spacename_get(TransInfo *t, const short orient_type)
+{
+  switch (orient_type) {
+    case V3D_ORIENT_GLOBAL:
+      return TIP_("global");
+    case V3D_ORIENT_GIMBAL:
+      return TIP_("gimbal");
+    case V3D_ORIENT_NORMAL:
+      return TIP_("normal");
+    case V3D_ORIENT_LOCAL:
+      return TIP_("local");
+    case V3D_ORIENT_VIEW:
+      return TIP_("view");
+    case V3D_ORIENT_CURSOR:
+      return TIP_("cursor");
+    case V3D_ORIENT_CUSTOM_MATRIX:
+      return TIP_("custom");
+    case V3D_ORIENT_CUSTOM:
+    default:
+      BLI_assert(orient_type >= V3D_ORIENT_CUSTOM);
+      TransformOrientation *ts = BKE_scene_transform_orientation_find(
+          t->scene, orient_type - V3D_ORIENT_CUSTOM);
+      return ts->name;
+  }
+}
+
+void transform_orientations_current_set(TransInfo *t, const short orient_index)
+{
+  const short orientation = t->orient[orient_index].type;
+  const char *spacename;
+  switch (orientation) {
+    case V3D_ORIENT_GLOBAL:
+      spacename = TIP_("global");
+      break;
+    case V3D_ORIENT_GIMBAL:
+      spacename = TIP_("gimbal");
+      break;
+    case V3D_ORIENT_NORMAL:
+      spacename = TIP_("normal");
+      break;
+    case V3D_ORIENT_LOCAL:
+      spacename = TIP_("local");
+      break;
+    case V3D_ORIENT_VIEW:
+      spacename = TIP_("view");
+      break;
+    case V3D_ORIENT_CURSOR:
+      spacename = TIP_("cursor");
+      break;
+    case V3D_ORIENT_CUSTOM_MATRIX:
+      spacename = TIP_("custom");
+      break;
+    case V3D_ORIENT_CUSTOM:
+    default:
+      BLI_assert(orientation >= V3D_ORIENT_CUSTOM);
+      TransformOrientation *ts = BKE_scene_transform_orientation_find(
+          t->scene, orientation - V3D_ORIENT_CUSTOM);
+      spacename = ts->name;
+      break;
+  }
+
+  BLI_strncpy(t->spacename, spacename, sizeof(t->spacename));
+  copy_m3_m3(t->spacemtx, t->orient[orient_index].matrix);
   invert_m3_m3(t->spacemtx_inv, t->spacemtx);
 }
 

@@ -1749,8 +1749,8 @@ static void applyGridIncrement(
           float local_axis[3];
           float pos_on_axis[3];
 
-          copy_v3_v3(local_axis, t->con.mtx[i]);
-          copy_v3_v3(pos_on_axis, t->con.mtx[i]);
+          copy_v3_v3(local_axis, t->spacemtx[i]);
+          copy_v3_v3(pos_on_axis, t->spacemtx[i]);
 
           /* amount of movement on axis from initial pos */
           mul_v3_fl(pos_on_axis, val[i]);
