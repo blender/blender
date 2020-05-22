@@ -1147,24 +1147,24 @@ static int stencil_fit_image_aspect_exec(bContext *C, wmOperator *op)
       aspy *= tex->yrepeat;
     }
 
-    orig_area = aspx * aspy;
+    orig_area = fabsf(aspx * aspy);
 
     if (do_mask) {
-      stencil_area = br->mask_stencil_dimension[0] * br->mask_stencil_dimension[1];
+      stencil_area = fabsf(br->mask_stencil_dimension[0] * br->mask_stencil_dimension[1]);
     }
     else {
-      stencil_area = br->stencil_dimension[0] * br->stencil_dimension[1];
+      stencil_area = fabsf(br->stencil_dimension[0] * br->stencil_dimension[1]);
     }
 
     factor = sqrtf(stencil_area / orig_area);
 
     if (do_mask) {
-      br->mask_stencil_dimension[0] = factor * aspx;
-      br->mask_stencil_dimension[1] = factor * aspy;
+      br->mask_stencil_dimension[0] = fabsf(factor * aspx);
+      br->mask_stencil_dimension[1] = fabsf(factor * aspy);
     }
     else {
-      br->stencil_dimension[0] = factor * aspx;
-      br->stencil_dimension[1] = factor * aspy;
+      br->stencil_dimension[0] = fabsf(factor * aspx);
+      br->stencil_dimension[1] = fabsf(factor * aspy);
     }
   }
 
