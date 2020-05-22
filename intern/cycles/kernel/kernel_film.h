@@ -28,13 +28,13 @@ ccl_device float4 film_get_pass_result(KernelGlobals *kg,
   int display_pass_components = kernel_data.film.display_pass_components;
 
   if (display_pass_components == 4) {
-    ccl_global float4 *in = (ccl_global float4 *)(buffer + display_pass_stride +
-                                                  index * kernel_data.film.pass_stride);
+    float4 in = *(ccl_global float4 *)(buffer + display_pass_stride +
+                                       index * kernel_data.film.pass_stride);
     float alpha = use_display_sample_scale ?
-                      (kernel_data.film.use_display_pass_alpha ? in->w : 1.0f / sample_scale) :
+                      (kernel_data.film.use_display_pass_alpha ? in.w : 1.0f / sample_scale) :
                       1.0f;
 
-    pass_result = make_float4(in->x, in->y, in->z, alpha);
+    pass_result = make_float4(in.x, in.y, in.z, alpha);
 
     int display_divide_pass_stride = kernel_data.film.display_divide_pass_stride;
     if (display_divide_pass_stride != -1) {

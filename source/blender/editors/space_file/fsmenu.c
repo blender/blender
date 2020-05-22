@@ -848,6 +848,10 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
     CFRelease(volEnum);
 
+    /* kLSSharedFileListFavoriteItems is deprecated, but available till macOS 10.15.
+     * Will have to find a new method to sync the Finder Favorites with File Browser. */
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     /* Finally get user favorite places */
     if (read_bookmarks) {
       UInt32 seed;
@@ -891,6 +895,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
       CFRelease(pathesArray);
       CFRelease(list);
     }
+#    pragma GCC diagnostic pop
   }
 #  else
   /* unix */
