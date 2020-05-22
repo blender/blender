@@ -25,6 +25,7 @@
 #include "GHOST_EventDragnDrop.h"
 #include "GHOST_EventKey.h"
 #include "GHOST_EventWheel.h"
+#include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
 
 #include "GHOST_ContextEGL.h"
@@ -34,7 +35,6 @@
 
 #include <algorithm>
 #include <atomic>
-#include <exception>
 #include <stdexcept>
 #include <thread>
 #include <unordered_map>
@@ -92,6 +92,13 @@ struct data_source_t {
   char *buffer_out;
 };
 
+struct key_repeat_payload_t {
+  GHOST_SystemWayland *system;
+  GHOST_IWindow *window;
+  GHOST_TKey key;
+  GHOST_TEventKeyData key_data;
+};
+
 struct input_t {
   GHOST_SystemWayland *system;
 
@@ -110,6 +117,17 @@ struct input_t {
 
   struct xkb_context *xkb_context;
   struct xkb_state *xkb_state;
+  struct {
+    /* Key repetition in character per second. */
+    int32_t rate;
+    /* Time (milliseconds) after which to start repeating keys. */
+    int32_t delay;
+    /* Timer for key repeats. */
+    GHOST_ITimerTask *timer = nullptr;
+  } key_repeat;
+
+  struct wl_surface *focus_pointer = nullptr;
+  struct wl_surface *focus_keyboard = nullptr;
 
   struct wl_data_device *data_device = nullptr;
   struct data_offer_t *data_offer_dnd;        /* Drag & Drop. */
@@ -175,6 +193,11 @@ static void display_destroy(display_t *d)
       }
     }
     if (input->keyboard) {
+      if (input->key_repeat.timer) {
+        delete static_cast<key_repeat_payload_t *>(input->key_repeat.timer->getUserData());
+        input->system->removeTimer(input->key_repeat.timer);
+        input->key_repeat.timer = nullptr;
+      }
       wl_keyboard_destroy(input->keyboard);
     }
     if (input->xkb_state) {
@@ -421,22 +444,26 @@ static void relative_pointer_relative_motion(
   input->x += wl_fixed_to_int(dx);
   input->y += wl_fixed_to_int(dy);
 
-  input->system->pushEvent(
-      new GHOST_EventCursor(input->system->getMilliSeconds(),
-                            GHOST_kEventCursorMove,
-                            input->system->getWindowManager()->getActiveWindow(),
-                            input->x,
-                            input->y,
-                            GHOST_TABLET_DATA_NONE));
+  GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
+      wl_surface_get_user_data(input->focus_pointer));
+
+  input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
+                                                 GHOST_kEventCursorMove,
+                                                 win,
+                                                 input->x,
+                                                 input->y,
+                                                 GHOST_TABLET_DATA_NONE));
 }
 
 static const zwp_relative_pointer_v1_listener relative_pointer_listener = {
-    relative_pointer_relative_motion};
+    relative_pointer_relative_motion,
+};
 
 static void dnd_events(const input_t *const input, const GHOST_TEventType event)
 {
   const GHOST_TUns64 time = input->system->getMilliSeconds();
-  GHOST_IWindow *const window = input->system->getWindowManager()->getActiveWindow();
+  GHOST_IWindow *const window = static_cast<GHOST_WindowWayland *>(
+      wl_surface_get_user_data(input->focus_pointer));
   for (const std::string &type : mime_preference_order) {
     input->system->pushEvent(new GHOST_EventDragnDrop(time,
                                                       event,
@@ -642,7 +669,7 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
                                                        data_offer->types.begin(),
                                                        data_offer->types.end());
 
-  auto read_uris = [](GHOST_SystemWayland *const system,
+  auto read_uris = [](input_t *const input,
                       data_offer_t *data_offer,
                       const std::string mime_receive) {
     const int x = data_offer->dnd.x;
@@ -655,6 +682,8 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
 
     delete data_offer;
     data_offer = nullptr;
+
+    GHOST_SystemWayland *const system = input->system;
 
     if (mime_receive == mime_text_uri) {
       static constexpr const char *file_proto = "file://";
@@ -684,10 +713,12 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
             malloc((uris[i].size() + 1) * sizeof(GHOST_TUns8)));
         memcpy(flist->strings[i], uris[i].data(), uris[i].size() + 1);
       }
+      GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
+          wl_surface_get_user_data(input->focus_pointer));
       system->pushEvent(new GHOST_EventDragnDrop(system->getMilliSeconds(),
                                                  GHOST_kEventDraggingDropDone,
                                                  GHOST_kDragnDropTypeFilenames,
-                                                 system->getWindowManager()->getActiveWindow(),
+                                                 win,
                                                  x,
                                                  y,
                                                  flist));
@@ -699,7 +730,7 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
     wl_display_roundtrip(system->display());
   };
 
-  std::thread read_thread(read_uris, input->system, data_offer, mime_receive);
+  std::thread read_thread(read_uris, input, data_offer, mime_receive);
   read_thread.detach();
 }
 
@@ -779,17 +810,24 @@ static void pointer_enter(void *data,
   input->pointer_serial = serial;
   input->x = wl_fixed_to_int(surface_x);
   input->y = wl_fixed_to_int(surface_y);
+  input->focus_pointer = surface;
 
-  static_cast<GHOST_WindowWayland *>(wl_surface_get_user_data(surface))->activate();
+  input->system->pushEvent(
+      new GHOST_EventCursor(input->system->getMilliSeconds(),
+                            GHOST_kEventCursorMove,
+                            static_cast<GHOST_WindowWayland *>(wl_surface_get_user_data(surface)),
+                            input->x,
+                            input->y,
+                            GHOST_TABLET_DATA_NONE));
 }
 
-static void pointer_leave(void * /*data*/,
+static void pointer_leave(void *data,
                           struct wl_pointer * /*wl_pointer*/,
                           uint32_t /*serial*/,
                           struct wl_surface *surface)
 {
   if (surface != nullptr) {
-    static_cast<GHOST_WindowWayland *>(wl_surface_get_user_data(surface))->deactivate();
+    static_cast<input_t *>(data)->focus_pointer = nullptr;
   }
 }
 
@@ -801,16 +839,22 @@ static void pointer_motion(void *data,
 {
   input_t *input = static_cast<input_t *>(data);
 
+  GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
+      wl_surface_get_user_data(input->focus_pointer));
+
+  if (!win) {
+    return;
+  }
+
   input->x = wl_fixed_to_int(surface_x);
   input->y = wl_fixed_to_int(surface_y);
 
-  input->system->pushEvent(
-      new GHOST_EventCursor(input->system->getMilliSeconds(),
-                            GHOST_kEventCursorMove,
-                            input->system->getWindowManager()->getActiveWindow(),
-                            wl_fixed_to_int(surface_x),
-                            wl_fixed_to_int(surface_y),
-                            GHOST_TABLET_DATA_NONE));
+  input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
+                                                 GHOST_kEventCursorMove,
+                                                 win,
+                                                 wl_fixed_to_int(surface_x),
+                                                 wl_fixed_to_int(surface_y),
+                                                 GHOST_TABLET_DATA_NONE));
 }
 
 static void pointer_button(void *data,
@@ -844,14 +888,12 @@ static void pointer_button(void *data,
   }
 
   input_t *input = static_cast<input_t *>(data);
+  GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
+      wl_surface_get_user_data(input->focus_pointer));
   input->data_source->source_serial = serial;
   input->buttons.set(ebutton, state == WL_POINTER_BUTTON_STATE_PRESSED);
-  input->system->pushEvent(
-      new GHOST_EventButton(input->system->getMilliSeconds(),
-                            etype,
-                            input->system->getWindowManager()->getActiveWindow(),
-                            ebutton,
-                            GHOST_TABLET_DATA_NONE));
+  input->system->pushEvent(new GHOST_EventButton(
+      input->system->getMilliSeconds(), etype, win, ebutton, GHOST_TABLET_DATA_NONE));
 }
 
 static void pointer_axis(void *data,
@@ -864,10 +906,10 @@ static void pointer_axis(void *data,
     return;
   }
   input_t *input = static_cast<input_t *>(data);
+  GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
+      wl_surface_get_user_data(input->focus_pointer));
   input->system->pushEvent(
-      new GHOST_EventWheel(input->system->getMilliSeconds(),
-                           input->system->getWindowManager()->getActiveWindow(),
-                           std::signbit(value) ? +1 : -1));
+      new GHOST_EventWheel(input->system->getMilliSeconds(), win, std::signbit(value) ? +1 : -1));
 }
 
 static const struct wl_pointer_listener pointer_listener = {
@@ -914,13 +956,15 @@ static void keyboard_keymap(
  * Notification that this seat's keyboard focus is on a certain
  * surface.
  */
-static void keyboard_enter(void * /*data*/,
+static void keyboard_enter(void *data,
                            struct wl_keyboard * /*wl_keyboard*/,
                            uint32_t /*serial*/,
-                           struct wl_surface * /*surface*/,
+                           struct wl_surface *surface,
                            struct wl_array * /*keys*/)
 {
-  /* pass */
+  if (surface != nullptr) {
+    static_cast<input_t *>(data)->focus_keyboard = surface;
+  }
 }
 
 /**
@@ -929,12 +973,14 @@ static void keyboard_enter(void * /*data*/,
  * Notification that this seat's keyboard focus is no longer on a
  * certain surface.
  */
-static void keyboard_leave(void * /*data*/,
+static void keyboard_leave(void *data,
                            struct wl_keyboard * /*wl_keyboard*/,
                            uint32_t /*serial*/,
-                           struct wl_surface * /*surface*/)
+                           struct wl_surface *surface)
 {
-  /* pass */
+  if (surface != nullptr) {
+    static_cast<input_t *>(data)->focus_keyboard = nullptr;
+  }
 }
 
 /**
@@ -989,6 +1035,14 @@ static void keyboard_key(void *data,
   }
   const GHOST_TKey gkey = xkb_map_gkey(sym);
 
+  /* Delete previous timer. */
+  if (xkb_keymap_key_repeats(xkb_state_get_keymap(input->xkb_state), key + 8) &&
+      input->key_repeat.timer) {
+    delete static_cast<key_repeat_payload_t *>(input->key_repeat.timer->getUserData());
+    input->system->removeTimer(input->key_repeat.timer);
+    input->key_repeat.timer = nullptr;
+  }
+
   GHOST_TEventKeyData key_data;
 
   if (etype == GHOST_kEventKeyDown) {
@@ -1000,13 +1054,38 @@ static void keyboard_key(void *data,
   }
 
   input->data_source->source_serial = serial;
-  input->system->pushEvent(new GHOST_EventKey(input->system->getMilliSeconds(),
-                                              etype,
-                                              input->system->getWindowManager()->getActiveWindow(),
-                                              gkey,
-                                              '\0',
-                                              key_data.utf8_buf,
-                                              false));
+
+  GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
+      wl_surface_get_user_data(input->focus_keyboard));
+  input->system->pushEvent(new GHOST_EventKey(
+      input->system->getMilliSeconds(), etype, win, gkey, '\0', key_data.utf8_buf, false));
+
+  /* Start timer for repeating key, if applicable. */
+  if (input->key_repeat.rate > 0 &&
+      xkb_keymap_key_repeats(xkb_state_get_keymap(input->xkb_state), key + 8) &&
+      etype == GHOST_kEventKeyDown) {
+
+    key_repeat_payload_t *payload = new key_repeat_payload_t({
+        .system = input->system,
+        .window = win,
+        .key = gkey,
+        .key_data = key_data,
+    });
+
+    auto cb = [](GHOST_ITimerTask *task, GHOST_TUns64 /*time*/) {
+      struct key_repeat_payload_t *payload = static_cast<key_repeat_payload_t *>(
+          task->getUserData());
+      payload->system->pushEvent(new GHOST_EventKey(payload->system->getMilliSeconds(),
+                                                    GHOST_kEventKeyDown,
+                                                    payload->window,
+                                                    payload->key,
+                                                    '\0',
+                                                    payload->key_data.utf8_buf,
+                                                    true));
+    };
+    input->key_repeat.timer = input->system->installTimer(
+        input->key_repeat.delay, 1000 / input->key_repeat.rate, cb, payload);
+  }
 }
 
 static void keyboard_modifiers(void *data,
@@ -1026,12 +1105,24 @@ static void keyboard_modifiers(void *data,
                         group);
 }
 
+static void keyboard_repeat_info(void *data,
+                                 struct wl_keyboard * /*wl_keyboard*/,
+                                 int32_t rate,
+                                 int32_t delay)
+{
+  input_t *input = static_cast<input_t *>(data);
+
+  input->key_repeat.rate = rate;
+  input->key_repeat.delay = delay;
+}
+
 static const struct wl_keyboard_listener keyboard_listener = {
     keyboard_keymap,
     keyboard_enter,
     keyboard_leave,
     keyboard_key,
     keyboard_modifiers,
+    keyboard_repeat_info,
 };
 
 static void seat_capabilities(void *data, struct wl_seat *wl_seat, uint32_t capabilities)
@@ -1164,7 +1255,7 @@ static void global_add(void *data,
     input->relative_pointer = nullptr;
     input->locked_pointer = nullptr;
     input->seat = static_cast<wl_seat *>(
-        wl_registry_bind(wl_registry, name, &wl_seat_interface, 2));
+        wl_registry_bind(wl_registry, name, &wl_seat_interface, 4));
     display->inputs.push_back(input);
     wl_seat_add_listener(input->seat, &seat_listener, input);
   }
@@ -1261,10 +1352,18 @@ GHOST_SystemWayland::~GHOST_SystemWayland()
   display_destroy(d);
 }
 
-bool GHOST_SystemWayland::processEvents(bool /*waitForEvent*/)
+bool GHOST_SystemWayland::processEvents(bool waitForEvent)
 {
-  wl_display_dispatch(d->display);
-  return true;
+  const bool fired = getTimerManager()->fireTimers(getMilliSeconds());
+
+  if (waitForEvent) {
+    wl_display_dispatch(d->display);
+  }
+  else {
+    wl_display_roundtrip(d->display);
+  }
+
+  return fired || (getEventManager()->getNumEvents() > 0);
 }
 
 int GHOST_SystemWayland::toggleConsole(int /*action*/)
@@ -1353,7 +1452,7 @@ GHOST_TUns8 GHOST_SystemWayland::getNumDisplays() const
 
 GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(GHOST_TInt32 &x, GHOST_TInt32 &y) const
 {
-  if (getWindowManager()->getActiveWindow() != nullptr && !d->inputs.empty()) {
+  if (!d->inputs.empty() && (d->inputs[0]->focus_pointer != nullptr)) {
     x = d->inputs[0]->x;
     y = d->inputs[0]->y;
     return GHOST_kSuccess;
