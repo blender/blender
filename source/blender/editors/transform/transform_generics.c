@@ -1660,9 +1660,11 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
     short orient_types[3];
     float custom_matrix[3][3];
+    bool use_orient_axis = false;
 
     if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
       t->orient_axis = RNA_property_enum_get(op->ptr, prop);
+      use_orient_axis = true;
     }
     if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis_ortho"))) {
       t->orient_axis_ortho = RNA_property_enum_get(op->ptr, prop);
@@ -1683,7 +1685,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       orient_types[2] = orient_type_scene;
     }
     else {
-      if ((t->flag & T_MODAL) && transform_mode_is_changeable(t->mode)) {
+      if ((t->flag & T_MODAL) && (use_orient_axis || transform_mode_is_changeable(t->mode))) {
         orient_types[0] = V3D_ORIENT_VIEW;
       }
       else {
