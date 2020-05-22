@@ -521,10 +521,12 @@ void BKE_sequencer_prefetch_start(const SeqRenderData *context, float cfra, floa
     seq_prefetch_resume(scene);
     /* conditions to start:
      * prefetch enabled, prefetch not running, not scrubbing,
-     * not playing and rendering-expensive footage, cache storage enabled, has strips to render
+     * not playing and rendering-expensive footage, cache storage enabled, has strips to render,
+     * not rendering.
      */
     if ((ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) && !running && !scrubbing &&
-        !(playing && cost > 0.9) && ed->cache_flag & SEQ_CACHE_ALL_TYPES && has_strips) {
+        !(playing && cost > 0.9) && ed->cache_flag & SEQ_CACHE_ALL_TYPES && has_strips &&
+        !G.is_rendering) {
 
       seq_prefetch_start(context, cfra);
     }
