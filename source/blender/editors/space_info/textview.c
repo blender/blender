@@ -408,7 +408,7 @@ int textview_draw(TextViewContext *tvc,
       if (do_draw) {
         /* We always want the cursor to draw. */
         if (tvc->draw_cursor && iter_index == 0) {
-          tvc->draw_cursor(tvc, tds.cwidth, tds.columns, tds.lofs);
+          tvc->draw_cursor(tvc, tds.cwidth, tds.columns);
         }
 
         /* When drawing, if we pass v2d->cur.ymax, then quit. */
