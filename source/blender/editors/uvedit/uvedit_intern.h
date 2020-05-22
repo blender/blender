@@ -57,13 +57,11 @@ typedef struct UvNearestHit {
   }
 
 bool uv_find_nearest_vert(struct Scene *scene,
-                          struct Image *ima,
                           struct Object *obedit,
                           const float co[2],
                           const float penalty_dist,
                           struct UvNearestHit *hit_final);
 bool uv_find_nearest_vert_multi(struct Scene *scene,
-                                struct Image *ima,
                                 struct Object **objects,
                                 const uint objects_len,
                                 const float co[2],
@@ -71,24 +69,20 @@ bool uv_find_nearest_vert_multi(struct Scene *scene,
                                 struct UvNearestHit *hit_final);
 
 bool uv_find_nearest_edge(struct Scene *scene,
-                          struct Image *ima,
                           struct Object *obedit,
                           const float co[2],
                           struct UvNearestHit *hit_final);
 bool uv_find_nearest_edge_multi(struct Scene *scene,
-                                struct Image *ima,
                                 struct Object **objects,
                                 const uint objects_len,
                                 const float co[2],
                                 struct UvNearestHit *hit_final);
 
 bool uv_find_nearest_face(struct Scene *scene,
-                          struct Image *ima,
                           struct Object *obedit,
                           const float co[2],
                           struct UvNearestHit *hit_final);
 bool uv_find_nearest_face_multi(struct Scene *scene,
-                                struct Image *ima,
                                 struct Object **objects,
                                 const uint objects_len,
                                 const float co[2],

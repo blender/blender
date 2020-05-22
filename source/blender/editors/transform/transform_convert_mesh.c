@@ -1450,7 +1450,6 @@ static void UVsToTransData(const float aspect[2],
 void createTransUVs(bContext *C, TransInfo *t)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
-  Image *ima = CTX_data_edit_image(C);
   Scene *scene = t->scene;
   ToolSettings *ts = CTX_data_tool_settings(C);
 
@@ -1500,7 +1499,7 @@ void createTransUVs(bContext *C, TransInfo *t)
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
       BMLoop *l;
 
-      if (!uvedit_face_visible_test(scene, tc->obedit, ima, efa)) {
+      if (!uvedit_face_visible_test(scene, efa)) {
         BM_elem_flag_disable(efa, BM_ELEM_TAG);
         continue;
       }
