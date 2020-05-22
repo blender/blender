@@ -60,7 +60,7 @@ typedef struct TextViewContext {
                                               int *r_icon,
                                               uchar r_icon_fg[4],
                                               uchar r_icon_bg[4]);
-  void (*draw_cursor)(struct TextViewContext *tvc, int cwidth, int columns, int descender);
+  void (*draw_cursor)(struct TextViewContext *tvc, int cwidth, int columns);
   /* constant theme colors */
   void (*const_colors)(struct TextViewContext *tvc, unsigned char bg_sel[4]);
   const void *iter;

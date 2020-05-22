@@ -142,10 +142,7 @@ static void console_cursor_wrap_offset(
   return;
 }
 
-static void console_textview_draw_cursor(TextViewContext *tvc,
-                                         int cwidth,
-                                         int columns,
-                                         int descender)
+static void console_textview_draw_cursor(TextViewContext *tvc, int cwidth, int columns)
 {
   int pen[2];
   {
@@ -171,8 +168,7 @@ static void console_textview_draw_cursor(TextViewContext *tvc,
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   immUniformThemeColor(TH_CONSOLE_CURSOR);
 
-  immRectf(
-      pos, pen[0] - U.pixelsize, pen[1], pen[0] + U.pixelsize, pen[1] + tvc->lheight + descender);
+  immRectf(pos, pen[0] - U.pixelsize, pen[1], pen[0] + U.pixelsize, pen[1] + tvc->lheight);
 
   immUnbindProgram();
 }
