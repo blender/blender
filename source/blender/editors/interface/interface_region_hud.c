@@ -177,11 +177,13 @@ static void hud_region_layout(const bContext *C, ARegion *region)
     return;
   }
 
+  ScrArea *area = CTX_wm_area(C);
   int size_y = region->sizey;
 
   ED_region_panels_layout(C, region);
 
-  if (region->panels.first && (region->sizey != size_y)) {
+  if (region->panels.first &&
+      ((area->flag & AREA_FLAG_REGION_SIZE_UPDATE) || (region->sizey != size_y))) {
     int winx_new = UI_DPI_FAC * (region->sizex + 0.5f);
     int winy_new = UI_DPI_FAC * (region->sizey + 0.5f);
     View2D *v2d = &region->v2d;
@@ -339,6 +341,7 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
   }
   else {
     if (region->flag & RGN_FLAG_HIDDEN) {
+      /* Also forces recalculating HUD size in hud_region_layout(). */
       area->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
     }
     region->flag &= ~RGN_FLAG_HIDDEN;
