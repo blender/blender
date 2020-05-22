@@ -23,8 +23,8 @@
 
 #include "GHOST_System.h"
 
+#include <chrono>
 #include <stdio.h> /* just for printf */
-#include <time.h>
 
 #include "GHOST_DisplayManager.h"
 #include "GHOST_EventManager.h"
@@ -58,12 +58,9 @@ GHOST_System::~GHOST_System()
 
 GHOST_TUns64 GHOST_System::getMilliSeconds() const
 {
-  GHOST_TUns64 millis = ::clock();
-  if (CLOCKS_PER_SEC != 1000) {
-    millis *= 1000;
-    millis /= CLOCKS_PER_SEC;
-  }
-  return millis;
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
+             std::chrono::steady_clock::now().time_since_epoch())
+      .count();
 }
 
 GHOST_ITimerTask *GHOST_System::installTimer(GHOST_TUns64 delay,
