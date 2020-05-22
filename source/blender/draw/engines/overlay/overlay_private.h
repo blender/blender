@@ -54,7 +54,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *antialiasing_ps;
   DRWPass *armature_ps[2];
   DRWPass *armature_bone_select_ps;
-  DRWPass *armature_transp_ps;
+  DRWPass *armature_transp_ps[2];
   DRWPass *background_ps;
   DRWPass *clipping_frustum_ps;
   DRWPass *edit_curve_wire_ps[2];

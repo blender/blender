@@ -52,6 +52,7 @@
 
 #include "DEG_depsgraph.h"
 
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "PIL_time.h"
 
@@ -154,7 +155,7 @@ static bool fluid_initjob(
 {
   FluidModifierData *mmd = NULL;
   FluidDomainSettings *mds;
-  Object *ob = CTX_data_active_object(C);
+  Object *ob = ED_object_active_context(C);
 
   mmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
   if (!mmd) {
@@ -170,7 +171,7 @@ static bool fluid_initjob(
   job->bmain = CTX_data_main(C);
   job->scene = CTX_data_scene(C);
   job->depsgraph = CTX_data_depsgraph_pointer(C);
-  job->ob = CTX_data_active_object(C);
+  job->ob = ob;
   job->mmd = mmd;
   job->type = op->type->idname;
   job->name = op->type->name;
@@ -616,7 +617,7 @@ static int fluid_free_exec(struct bContext *C, struct wmOperator *op)
 {
   FluidModifierData *mmd = NULL;
   FluidDomainSettings *mds;
-  Object *ob = CTX_data_active_object(C);
+  Object *ob = ED_object_active_context(C);
   Scene *scene = CTX_data_scene(C);
 
   /*
@@ -679,7 +680,7 @@ static int fluid_pause_exec(struct bContext *C, struct wmOperator *op)
 {
   FluidModifierData *mmd = NULL;
   FluidDomainSettings *mds;
-  Object *ob = CTX_data_active_object(C);
+  Object *ob = ED_object_active_context(C);
 
   /*
    * Get modifier data
