@@ -654,40 +654,42 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[])
  */
 void setUserConstraint(TransInfo *t, short orientation, int mode, const char ftext[])
 {
+  char text[256];
   const char *spacename = transform_orientations_spacename_get(t, orientation);
+  BLI_snprintf(text, sizeof(text), ftext, spacename);
 
   switch (orientation) {
     case V3D_ORIENT_GLOBAL: {
-      setConstraint(t, mode, spacename);
+      setConstraint(t, mode, text);
       break;
     }
     case V3D_ORIENT_LOCAL:
-      setLocalConstraint(t, mode, spacename);
+      setLocalConstraint(t, mode, text);
       break;
     case V3D_ORIENT_NORMAL:
       if (checkUseAxisMatrix(t)) {
-        setAxisMatrixConstraint(t, mode, spacename);
+        setAxisMatrixConstraint(t, mode, text);
       }
       else {
-        setConstraint(t, mode, spacename);
+        setConstraint(t, mode, text);
       }
       break;
     case V3D_ORIENT_VIEW:
-      setConstraint(t, mode, spacename);
+      setConstraint(t, mode, text);
       break;
     case V3D_ORIENT_CURSOR:
-      setConstraint(t, mode, spacename);
+      setConstraint(t, mode, text);
       break;
     case V3D_ORIENT_GIMBAL:
-      setConstraint(t, mode, spacename);
+      setConstraint(t, mode, text);
       break;
     case V3D_ORIENT_CUSTOM_MATRIX:
-      setConstraint(t, mode, spacename);
+      setConstraint(t, mode, text);
       break;
     case V3D_ORIENT_CUSTOM:
     default: {
       BLI_assert(orientation >= V3D_ORIENT_CUSTOM);
-      setConstraint(t, mode, spacename);
+      setConstraint(t, mode, text);
       break;
     }
   }
