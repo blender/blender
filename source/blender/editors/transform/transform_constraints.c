@@ -348,39 +348,6 @@ static void planeProjection(const TransInfo *t, const float in[3], float out[3])
   add_v3_v3v3(out, in, vec);
 }
 
-static void applyAxisConstraintVec_impl(
-    TransInfo *t, float space_mat[3][3], float proj_mat[3][3], const float in[3], float out[3])
-{
-  mul_m3_v3(proj_mat, out);
-
-  // With snap, a projection is alright, no need to correct for view alignment
-  if (!validSnap(t)) {
-    const int dims = getConstraintSpaceDimension(t);
-    if (dims == 2) {
-      if (!is_zero_v3(out)) {
-        if (!isPlaneProjectionViewAligned(t)) {
-          planeProjection(t, in, out);
-        }
-      }
-    }
-    else if (dims == 1) {
-      float c[3];
-
-      if (t->con.mode & CON_AXIS0) {
-        copy_v3_v3(c, space_mat[0]);
-      }
-      else if (t->con.mode & CON_AXIS1) {
-        copy_v3_v3(c, space_mat[1]);
-      }
-      else if (t->con.mode & CON_AXIS2) {
-        copy_v3_v3(c, space_mat[2]);
-      }
-      axisProjection(t, c, in, out);
-    }
-  }
-  postConstraintChecks(t, out);
-}
-
 /*
  * Generic callback for constant spatial constraints applied to linear motion
  *
@@ -394,7 +361,34 @@ static void applyAxisConstraintVec(
 {
   copy_v3_v3(out, in);
   if (!td && t->con.mode & CON_APPLY) {
-    applyAxisConstraintVec_impl(t, t->spacemtx, t->con.pmtx, in, out);
+    mul_m3_v3(t->con.pmtx, out);
+
+    // With snap, a projection is alright, no need to correct for view alignment
+    if (!validSnap(t)) {
+      const int dims = getConstraintSpaceDimension(t);
+      if (dims == 2) {
+        if (!is_zero_v3(out)) {
+          if (!isPlaneProjectionViewAligned(t)) {
+            planeProjection(t, in, out);
+          }
+        }
+      }
+      else if (dims == 1) {
+        float c[3];
+
+        if (t->con.mode & CON_AXIS0) {
+          copy_v3_v3(c, t->spacemtx[0]);
+        }
+        else if (t->con.mode & CON_AXIS1) {
+          copy_v3_v3(c, t->spacemtx[1]);
+        }
+        else if (t->con.mode & CON_AXIS2) {
+          copy_v3_v3(c, t->spacemtx[2]);
+        }
+        axisProjection(t, c, in, out);
+      }
+    }
+    postConstraintChecks(t, out);
   }
 }
 
@@ -412,29 +406,16 @@ static void applyAxisConstraintVec(
 static void applyObjectConstraintVec(
     TransInfo *t, TransDataContainer *tc, TransData *td, const float in[3], float out[3])
 {
-  copy_v3_v3(out, in);
-  if (t->con.mode & CON_APPLY) {
-    if (!td) {
-      /* No specific orientation. */
-      float spacemtx[3][3], pmtx[3][3] = {{0.0f}};
-      unit_m3(spacemtx);
-      if (!(t->con.mode & CON_AXIS0)) {
-        pmtx[0][0] = 1.0f;
-      }
-      if (!(t->con.mode & CON_AXIS1)) {
-        pmtx[1][1] = 1.0f;
-      }
-      if (!(t->con.mode & CON_AXIS2)) {
-        pmtx[2][2] = 1.0f;
-      }
-      applyAxisConstraintVec_impl(t, spacemtx, pmtx, in, out);
-    }
-    else {
-      /* Specific TransData's space, use axismtx. */
-      mul_m3_v3(td->axismtx, out);
-      if (t->flag & T_EDIT) {
-        mul_m3_v3(tc->mat3_unit, out);
-      }
+  if (!td) {
+    applyAxisConstraintVec(t, tc, td, in, out);
+  }
+  else {
+    /* Specific TransData's space. */
+    copy_v3_v3(out, in);
+    mul_m3_v3(t->spacemtx_inv, out);
+    mul_m3_v3(td->axismtx, out);
+    if (t->flag & T_EDIT) {
+      mul_m3_v3(tc->mat3_unit, out);
     }
   }
 }
