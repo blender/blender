@@ -217,14 +217,12 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
   ScrArea *area = CTX_wm_area(C);
   bool changed = false;
   if (area->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = area->spacedata.first;
     Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    Image *ima = ED_space_image(sima);
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
         view_layer, NULL, &objects_len);
-    if (ED_uvedit_minmax_multi(scene, ima, objects, objects_len, r_min, r_max)) {
+    if (ED_uvedit_minmax_multi(scene, objects, objects_len, r_min, r_max)) {
       changed = true;
     }
     MEM_freeN(objects);

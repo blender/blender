@@ -1106,7 +1106,6 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
   }
   else if (t->spacetype == SPACE_IMAGE && t->obedit_type == OB_MESH) {
     if (t->tsnap.mode & SCE_SNAP_MODE_VERTEX) {
-      Image *ima = ED_space_image(t->area->spacedata.first);
       float co[2];
 
       UI_view2d_region_to_view(&t->region->v2d, t->mval[0], t->mval[1], &co[0], &co[1]);
@@ -1117,7 +1116,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 
       float dist_sq = FLT_MAX;
       if (ED_uvedit_nearest_uv_multi(
-              t->scene, ima, objects, objects_len, co, &dist_sq, t->tsnap.snapPoint)) {
+              t->scene, objects, objects_len, co, &dist_sq, t->tsnap.snapPoint)) {
         t->tsnap.snapPoint[0] *= t->aspect[0];
         t->tsnap.snapPoint[1] *= t->aspect[1];
 
