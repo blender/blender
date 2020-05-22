@@ -53,7 +53,7 @@ bool HierarchyContext::operator<(const HierarchyContext &other) const
   if (object != other.object) {
     return object < other.object;
   }
-  if (duplicator != NULL && duplicator == other.duplicator) {
+  if (duplicator != nullptr && duplicator == other.duplicator) {
     // Only resort to string comparisons when both objects are created by the same duplicator.
     return export_name < other.export_name;
   }

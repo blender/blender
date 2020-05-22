@@ -79,7 +79,7 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
   bool needsfree = false;
   Mesh *mesh = get_export_mesh(object_eval, needsfree);
 
-  if (mesh == NULL) {
+  if (mesh == nullptr) {
     return;
   }
 
@@ -100,7 +100,7 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
 
 void USDGenericMeshWriter::free_export_mesh(Mesh *mesh)
 {
-  BKE_id_free(NULL, mesh);
+  BKE_id_free(nullptr, mesh);
 }
 
 struct USDMeshData {

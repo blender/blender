@@ -185,7 +185,7 @@ bool USD_export(bContext *C,
     /* setup job */
     WM_jobs_customdata_set(wm_job, job, MEM_freeN);
     WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_FRAME, NC_SCENE | ND_FRAME);
-    WM_jobs_callbacks(wm_job, USD::export_startjob, NULL, NULL, USD::export_endjob);
+    WM_jobs_callbacks(wm_job, USD::export_startjob, nullptr, nullptr, USD::export_endjob);
 
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
