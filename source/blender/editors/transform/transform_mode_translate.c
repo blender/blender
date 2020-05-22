@@ -236,10 +236,6 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 
     TransData *td = tc->data;
     for (int i = 0; i < tc->data_len; i++, td++) {
-      if (td->flag & TD_NOACTION) {
-        break;
-      }
-
       if (td->flag & TD_SKIP) {
         continue;
       }

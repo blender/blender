@@ -52,10 +52,6 @@ static void applyAlign(TransInfo *t, const int UNUSED(mval[2]))
     for (i = 0; i < tc->data_len; i++, td++) {
       float mat[3][3], invmat[3][3];
 
-      if (td->flag & TD_NOACTION) {
-        break;
-      }
-
       if (td->flag & TD_SKIP) {
         continue;
       }

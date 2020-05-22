@@ -306,11 +306,6 @@ void applyProject(TransInfo *t)
       for (i = 0; i < tc->data_len; i++, td++) {
         float iloc[3], loc[3], no[3];
         float mval_fl[2];
-
-        if (td->flag & TD_NOACTION) {
-          break;
-        }
-
         if (td->flag & TD_SKIP) {
           continue;
         }
@@ -417,11 +412,6 @@ void applyGridAbsolute(TransInfo *t)
 
     for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
       float iloc[3], loc[3], tvec[3];
-
-      if (td->flag & TD_NOACTION) {
-        break;
-      }
-
       if (td->flag & TD_SKIP) {
         continue;
       }

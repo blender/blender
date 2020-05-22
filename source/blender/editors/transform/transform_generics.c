@@ -174,9 +174,6 @@ static void clipMirrorModifier(TransInfo *t)
               int clip;
               float loc[3], iloc[3];
 
-              if (td->flag & TD_NOACTION) {
-                break;
-              }
               if (td->loc == NULL) {
                 break;
               }
@@ -1068,11 +1065,6 @@ static void recalcData_objects(TransInfo *t)
 
       for (int i = 0; i < tc->data_len; i++, td++) {
         Object *ob = td->ob;
-
-        if (td->flag & TD_NOACTION) {
-          break;
-        }
-
         if (td->flag & TD_SKIP) {
           continue;
         }
@@ -2412,19 +2404,11 @@ void calculatePropRatio(TransInfo *t)
         }
         else if ((connected && (td->flag & TD_NOTCONNECTED || td->dist > t->prop_size)) ||
                  (connected == 0 && td->rdist > t->prop_size)) {
-          /*
-           * The elements are sorted according to their dist member in the array,
-           * that means we can stop when it finds one element outside of the propsize.
-           * do not set 'td->flag |= TD_NOACTION', the prop circle is being changed.
-           */
-
           td->factor = 0.0f;
           restoreElement(td);
         }
         else {
           /* Use rdist for falloff calculations, it is the real distance */
-          td->flag &= ~TD_NOACTION;
-
           if (connected) {
             dist = (t->prop_size - td->dist) / t->prop_size;
           }

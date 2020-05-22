@@ -73,11 +73,6 @@ static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
     for (i = 0; i < tc->data_len; i++, td++) {
       float tmat[3][3], smat[3][3];
       float fsize[3];
-
-      if (td->flag & TD_NOACTION) {
-        break;
-      }
-
       if (td->flag & TD_SKIP) {
         continue;
       }

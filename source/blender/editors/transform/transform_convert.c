@@ -827,10 +827,6 @@ void clipUVData(TransInfo *t)
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
     for (int a = 0; a < tc->data_len; a++, td++) {
-      if (td->flag & TD_NOACTION) {
-        break;
-      }
-
       if ((td->flag & TD_SKIP) || (!td->loc)) {
         continue;
       }
@@ -2389,10 +2385,6 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
       ListBase pidlist;
       PTCacheID *pid;
       ob = td->ob;
-
-      if (td->flag & TD_NOACTION) {
-        break;
-      }
 
       if (td->flag & TD_SKIP) {
         continue;

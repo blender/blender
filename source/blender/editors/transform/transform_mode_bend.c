@@ -186,10 +186,6 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
       float delta[3];
       float fac, fac_scaled;
 
-      if (td->flag & TD_NOACTION) {
-        break;
-      }
-
       if (td->flag & TD_SKIP) {
         continue;
       }
