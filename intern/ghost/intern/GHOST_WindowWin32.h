@@ -37,6 +37,7 @@
 #include <vector>
 
 #include <wintab.h>
+// PACKETDATA and PACKETMODE modify structs in pktdef.h, so make sure they come first
 #define PACKETDATA \
   (PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR | PK_X | PK_Y | PK_TIME)
 #define PACKETMODE 0
