@@ -319,6 +319,6 @@ set(MESA_VERSION 18.3.1)
 set(MESA_URI ftp://ftp.freedesktop.org/pub/mesa//mesa-${MESA_VERSION}.tar.xz)
 set(MESA_HASH d60828056d77bfdbae0970f9b15fb1be)
 
-set(XR_OPENXR_SDK_VERSION 1.0.6)
+set(XR_OPENXR_SDK_VERSION 1.0.8)
 set(XR_OPENXR_SDK_URI https://github.com/KhronosGroup/OpenXR-SDK/archive/release-${XR_OPENXR_SDK_VERSION}.tar.gz)
-set(XR_OPENXR_SDK_HASH 21daea7c3bfec365298d779a0e19caa1)
+set(XR_OPENXR_SDK_HASH c6de63d2e0f9029aa58dfa97cad8ce07)
