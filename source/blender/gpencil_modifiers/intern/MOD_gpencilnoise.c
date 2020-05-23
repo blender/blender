@@ -170,9 +170,12 @@ static void deformStroke(GpencilModifierData *md,
   float *noise_table_thickness = (mmd->factor_thickness > 0.0f) ? noise_table(len, seed) : NULL;
   float *noise_table_uvs = (mmd->factor_uvs > 0.0f) ? noise_table(len, seed + 4) : NULL;
 
-  /* calculate stroke normal*/
+  /* Calculate stroke normal. */
   if (gps->totpoints > 2) {
     BKE_gpencil_stroke_normal(gps, normal);
+    if (is_zero_v3(normal)) {
+    copy_v3_fl(normal, 1.0f);
+    }
   }
   else {
     copy_v3_fl(normal, 1.0f);
