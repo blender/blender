@@ -1041,11 +1041,19 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals *kg,
     }
   }
   else {
-    /* compute random point in triangle */
-    randu = sqrtf(randu);
+    /* compute random point in triangle. From Eric Heitz's "A Low-Distortion Map Between Triangle
+     * and Square" */
+    float u = randu;
+    float v = randv;
+    if (v > u) {
+      u *= 0.5f;
+      v -= u;
+    }
+    else {
+      v *= 0.5f;
+      u -= v;
+    }
 
-    const float u = 1.0f - randu;
-    const float v = randv * randu;
     const float t = 1.0f - u - v;
     ls->P = u * V[0] + v * V[1] + t * V[2];
     /* compute incoming direction, distance and pdf */
