@@ -4866,8 +4866,11 @@ static void SCREEN_OT_back_to_previous(struct wmOperatorType *ot)
 /** \name Show User Preferences Operator
  * \{ */
 
-static int userpref_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int userpref_show_exec(bContext *C, wmOperator *op)
 {
+  wmWindow *win_cur = CTX_wm_window(C);
+  /* Use eventstate, not event from _invoke, so this can be called through exec(). */
+  const wmEvent *event = win_cur->eventstate;
   int sizex = (500 + UI_NAVIGATION_REGION_WIDTH) * UI_DPI_FAC;
   int sizey = 520 * UI_DPI_FAC;
 
@@ -4904,7 +4907,7 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
   ot->idname = "SCREEN_OT_userpref_show";
 
   /* api callbacks */
-  ot->invoke = userpref_show_invoke;
+  ot->exec = userpref_show_exec;
   ot->poll = ED_operator_screenactive;
 }
 
@@ -4914,8 +4917,11 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 /** \name Show Drivers Editor Operator
  * \{ */
 
-static int drivers_editor_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int drivers_editor_show_exec(bContext *C, wmOperator *op)
 {
+  wmWindow *win_cur = CTX_wm_window(C);
+  /* Use eventstate, not event from _invoke, so this can be called through exec(). */
+  const wmEvent *event = win_cur->eventstate;
   PointerRNA ptr = {NULL};
   PropertyRNA *prop = NULL;
   int index = -1;
@@ -4979,7 +4985,7 @@ static void SCREEN_OT_drivers_editor_show(struct wmOperatorType *ot)
   ot->idname = "SCREEN_OT_drivers_editor_show";
 
   /* api callbacks */
-  ot->invoke = drivers_editor_show_invoke;
+  ot->exec = drivers_editor_show_exec;
   ot->poll = ED_operator_screenactive;
 }
 
@@ -4989,8 +4995,11 @@ static void SCREEN_OT_drivers_editor_show(struct wmOperatorType *ot)
 /** \name Show Info Log Operator
  * \{ */
 
-static int info_log_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int info_log_show_exec(bContext *C, wmOperator *op)
 {
+  wmWindow *win_cur = CTX_wm_window(C);
+  /* Use eventstate, not event from _invoke, so this can be called through exec(). */
+  const wmEvent *event = win_cur->eventstate;
   int sizex = 900 * UI_DPI_FAC;
   int sizey = 580 * UI_DPI_FAC;
   int shift_y = 480;
@@ -5020,7 +5029,7 @@ static void SCREEN_OT_info_log_show(struct wmOperatorType *ot)
   ot->idname = "SCREEN_OT_info_log_show";
 
   /* api callbacks */
-  ot->invoke = info_log_show_invoke;
+  ot->exec = info_log_show_exec;
   ot->poll = ED_operator_screenactive;
 }
 
