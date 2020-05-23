@@ -40,7 +40,7 @@
 // PACKETDATA and PACKETMODE modify structs in pktdef.h, so make sure they come first
 #define PACKETDATA \
   (PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR | PK_X | PK_Y | PK_TIME)
-#define PACKETMODE 0
+#define PACKETMODE PK_BUTTONS
 #include <pktdef.h>
 
 class GHOST_SystemWin32;
@@ -618,8 +618,6 @@ class GHOST_WindowWin32 : public GHOST_Window {
     UINT numDevices = 0;
     /** Number of cursors currently in contact mapped to system buttons */
     GHOST_TUns8 numSysButtons = 0;
-    /** Cursors currently in contact mapped to system buttons */
-    DWORD sysButtonsPressed = 0;
     LONG maxPressure = 0;
     LONG maxAzimuth = 0, maxAltitude = 0;
     /* Queue size doesn't change once set, so reuse the same buffer */
