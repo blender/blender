@@ -1252,10 +1252,10 @@ void GHOST_WindowWin32::processWintabInfoChangeEvent(LPARAM lParam)
 }
 
 GHOST_TSuccess GHOST_WindowWin32::wintabMouseToGhost(UINT cursor,
-                                                     DWORD physicalButton,
+                                                     WORD physicalButton,
                                                      GHOST_TButtonMask &ghostButton)
 {
-  const DWORD numButtons = 32;
+  const WORD numButtons = 32;
   BYTE logicalButtons[numButtons] = {0};
   BYTE systemButtons[numButtons] = {0};
 

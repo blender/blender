@@ -633,7 +633,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * Convert Wintab system mapped (mouse) buttons into Ghost button mask
    */
   GHOST_TSuccess wintabMouseToGhost(UINT cursor,
-                                    DWORD physicalButton,
+                                    WORD physicalButton,
                                     GHOST_TButtonMask &buttonMask);
 
   GHOST_TWindowState m_normal_state;
