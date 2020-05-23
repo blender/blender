@@ -176,6 +176,20 @@ static void rna_Armature_redraw_data(Main *UNUSED(bmain), Scene *UNUSED(scene), 
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
+/* Unselect bones when hidden */
+static void rna_Bone_hide_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+  bArmature *arm = (bArmature *)ptr->owner_id;
+  Bone *bone = (Bone *)ptr->data;
+
+  if (bone->flag & BONE_HIDDEN_P) {
+    bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+  }
+
+  WM_main_add_notifier(NC_OBJECT | ND_POSE, arm);
+  DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
+}
+
 /* called whenever a bone is renamed */
 static void rna_Bone_update_renamed(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
@@ -1143,7 +1157,8 @@ static void rna_def_bone(BlenderRNA *brna)
       prop,
       "Hide",
       "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)");
-  RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+  RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, -1);
+  RNA_def_property_update(prop, 0, "rna_Bone_hide_update");
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_SELECTED);

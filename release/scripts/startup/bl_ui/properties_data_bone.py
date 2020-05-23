@@ -267,7 +267,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
         if bone:
 
             col = layout.column()
-            col.prop(bone, "hide", text="Hide")
+            col.prop(bone, "hide", text="Hide", toggle=0)
 
 
 class BONE_PT_display_custom_shape(BoneButtonsPanel, Panel):
