@@ -1016,6 +1016,7 @@ void GHOST_WindowWin32::updateWintab(bool active)
       // window is active.
       m_tabletInRange = false;
       m_wintab.numSysButtons = 0;
+      m_wintab.sysButtonsPressed = 0;
     }
   }
 }
@@ -1042,9 +1043,6 @@ void GHOST_WindowWin32::initializeWintab()
     lc.lcPktData = PACKETDATA;
     lc.lcPktMode = PACKETMODE;
     lc.lcMoveMask = PACKETDATA;
-    // Mask all buttons, or button events won't occur for Wintab libaries that don't mask the
-    // system context buttons by default
-    lc.lcBtnUpMask = lc.lcBtnDnMask = ~0;
     // Wacom maps y origin to the tablet's bottom
     // Invert to match Windows y origin mapping to the screen top
     lc.lcOutExtY = -lc.lcOutExtY;
@@ -1356,24 +1354,30 @@ GHOST_TSuccess GHOST_WindowWin32::getWintabInfo(std::vector<GHOST_WintabInfoWin3
     outWintabInfo[i].x = pkt.pkX;
     outWintabInfo[i].y = pkt.pkY;
 
-    if (pkt.pkButtons &&
-        wintabMouseToGhost(pkt.pkCursor, LOWORD(pkt.pkButtons), outWintabInfo[i].button)) {
-      switch (HIWORD(pkt.pkButtons)) {
-        case TBN_DOWN:
-          outWintabInfo[i].type = GHOST_kEventButtonDown;
-          break;
-        case TBN_UP:
-          outWintabInfo[i].type = GHOST_kEventButtonUp;
-          break;
-        default:
-          printf("%x TBN_NONE, but why?", m_hWnd);
-          outWintabInfo[i].type = GHOST_kEventCursorMove;
-          break;
+    // Some Wintab libraries don't handle relative button input correctly, so we track button
+    // presses manually.
+    DWORD buttonsChanged = m_wintab.sysButtonsPressed ^ pkt.pkButtons;
+
+    // Find the index for the changed button from the button map.
+    DWORD physicalButton = 0;
+    for (DWORD diff = (unsigned)buttonsChanged >> 1; diff > 0; diff = (unsigned)diff >> 1) {
+      physicalButton++;
+    }
+
+    if (buttonsChanged &&
+        wintabMouseToGhost(pkt.pkCursor, physicalButton, outWintabInfo[i].button)) {
+      if (buttonsChanged & pkt.pkButtons) {
+        outWintabInfo[i].type = GHOST_kEventButtonDown;
+      }
+      else {
+        outWintabInfo[i].type = GHOST_kEventButtonUp;
       }
     }
     else {
       outWintabInfo[i].type = GHOST_kEventCursorMove;
     }
+
+    m_wintab.sysButtonsPressed = pkt.pkButtons;
 
     // Wintab does not support performance counters, so use low frequency counter instead
     outWintabInfo[i].time = system->tickCountToMillis(pkt.pkTime);
