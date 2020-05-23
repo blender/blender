@@ -52,7 +52,6 @@ if(BUILD_MODE STREQUAL Release)
     PREFIX ${BUILD_DIR}/openal
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openal ${DEFAULT_CMAKE_FLAGS} ${OPENAL_EXTRA_ARGS}
     INSTALL_DIR ${LIBDIR}/openal
-    PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openal/src/external_openal < ${PATCH_DIR}/openal.diff
   )
 
   if(WIN32)
