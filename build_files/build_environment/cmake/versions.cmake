@@ -66,9 +66,9 @@ else()
   set(OPENEXR_VERSION_POSTFIX)
 endif()
 
-set(FREETYPE_VERSION 2.10.1)
+set(FREETYPE_VERSION 2.10.2)
 set(FREETYPE_URI http://prdownloads.sourceforge.net/freetype/freetype-${FREETYPE_VERSION}.tar.gz)
-set(FREETYPE_HASH c50a3c9e5e62bdc938a6e1598a782947)
+set(FREETYPE_HASH b1cb620e4c875cd4d1bfa04945400945)
 
 set(GLEW_VERSION 1.13.0)
 set(GLEW_URI http://prdownloads.sourceforge.net/glew/glew/${GLEW_VERSION}/glew-${GLEW_VERSION}.tgz)
