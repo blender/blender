@@ -127,7 +127,6 @@ endif()
 add_dependencies(
   external_ffmpeg
   external_zlib
-  external_faad
   external_openjpeg
   external_xvidcore
   external_x264

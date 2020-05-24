@@ -168,9 +168,9 @@ set(LAME_VERSION 3.100)
 set(LAME_URI http://downloads.sourceforge.net/project/lame/lame/3.100/lame-${LAME_VERSION}.tar.gz)
 set(LAME_HASH 83e260acbe4389b54fe08e0bdbf7cddb)
 
-set(OGG_VERSION 1.3.3)
+set(OGG_VERSION 1.3.4)
 set(OGG_URI http://downloads.xiph.org/releases/ogg/libogg-${OGG_VERSION}.tar.gz)
-set(OGG_HASH c2e8a485110b97550f453226ec644ebac6cb29d1caef2902c007edab4308d985)
+set(OGG_HASH fe5670640bd49e828d64d2879c31cb4dde9758681bb664f9bdbf159a01b0c76e)
 
 set(VORBIS_VERSION 1.3.6)
 set(VORBIS_URI http://downloads.xiph.org/releases/vorbis/libvorbis-${VORBIS_VERSION}.tar.gz)
@@ -180,24 +180,24 @@ set(THEORA_VERSION 1.1.1)
 set(THEORA_URI http://downloads.xiph.org/releases/theora/libtheora-${THEORA_VERSION}.tar.bz2)
 set(THEORA_HASH b6ae1ee2fa3d42ac489287d3ec34c5885730b1296f0801ae577a35193d3affbc)
 
-set(FLAC_VERSION 1.3.2)
+set(FLAC_VERSION 1.3.3)
 set(FLAC_URI http://downloads.xiph.org/releases/flac/flac-${FLAC_VERSION}.tar.xz)
-set(FLAC_HASH 91cfc3ed61dc40f47f050a109b08610667d73477af6ef36dcad31c31a4a8d53f)
+set(FLAC_HASH 213e82bd716c9de6db2f98bcadbc4c24c7e2efe8c75939a1a84e28539c4e1748)
 
-set(VPX_VERSION 1.7.0)
+set(VPX_VERSION 1.8.2)
 set(VPX_URI https://github.com/webmproject/libvpx/archive/v${VPX_VERSION}/libvpx-v${VPX_VERSION}.tar.gz)
-set(VPX_HASH 1fec931eb5c94279ad219a5b6e0202358e94a93a90cfb1603578c326abfc1238)
+set(VPX_HASH 8735d9fcd1a781ae6917f28f239a8aa358ce4864ba113ea18af4bb2dc8b474ac)
 
 set(OPUS_VERSION 1.3.1)
 set(OPUS_URI https://archive.mozilla.org/pub/opus/opus-${OPUS_VERSION}.tar.gz)
 set(OPUS_HASH 65b58e1e25b2a114157014736a3d9dfeaad8d41be1c8179866f144a2fb44ff9d)
 
-set(X264_URI http://download.videolan.org/pub/videolan/x264/snapshots/x264-snapshot-20180811-2245-stable.tar.bz2)
-set(X264_HASH ae8a868a0e236a348b35d79f3ee80294b169d1195408b689f9851383661ed7aa)
+set(X264_URI https://code.videolan.org/videolan/x264/-/archive/master/x264-33f9e1474613f59392be5ab6a7e7abf60fa63622.tar.gz)
+set(X264_HASH 300dfb5b6c35722516f168868ce9419252a9e9eb77a05d82c9cede925b691bd6)
 
-set(XVIDCORE_VERSION 1.3.5)
-set(XVIDCORE_URI http://downloads.xvid.org/downloads/xvidcore-${XVIDCORE_VERSION}.tar.gz)
-set(XVIDCORE_HASH 165ba6a2a447a8375f7b06db5a3c91810181f2898166e7c8137401d7fc894cf0)
+set(XVIDCORE_VERSION 1.3.7)
+set(XVIDCORE_URI https://downloads.xvid.com/downloads/xvidcore-${XVIDCORE_VERSION}.tar.gz)
+set(XVIDCORE_HASH abbdcbd39555691dd1c9b4d08f0a031376a3b211652c0d8b3b8aa9be1303ce2d)
 
 # This has to be in sync with the version in blenders /extern folder.
 set(OPENJPEG_VERSION 2.3.0)
@@ -206,13 +206,9 @@ set(OPENJPEG_SHORT_VERSION 2.3)
 set(OPENJPEG_URI https://github.com/uclouvain/openjpeg/archive/66297f07a43.zip)
 set(OPENJPEG_HASH 8242b18d908c7c42174e4231a741cfa7ce7c26b6ed5c9644feb9df7b3054310b)
 
-set(FAAD_VERSION 2-2.8.8)
-set(FAAD_URI http://downloads.sourceforge.net/faac/faad${FAAD_VERSION}.tar.gz)
-set(FAAD_HASH 28f6116efdbe9378269f8a6221767d1f)
-
-set(FFMPEG_VERSION 4.0.2)
+set(FFMPEG_VERSION 4.2.3)
 set(FFMPEG_URI http://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2)
-set(FFMPEG_HASH 5576e8a22f80b6a336db39808f427cfb)
+set(FFMPEG_HASH 695fad11f3baf27784e24cb0e977b65a)
 
 set(FFTW_VERSION 3.3.8)
 set(FFTW_URI http://www.fftw.org/fftw-${FFTW_VERSION}.tar.gz)
