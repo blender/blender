@@ -126,7 +126,12 @@ void wm_xr_exit(wmWindowManager *wm)
 bool wm_xr_events_handle(wmWindowManager *wm)
 {
   if (wm->xr.runtime && wm->xr.runtime->context) {
-    return GHOST_XrEventsHandle(wm->xr.runtime->context);
+    GHOST_XrEventsHandle(wm->xr.runtime->context);
+
+    /* wm_window_process_events() uses the return value to determine if it can put the main thread
+     * to sleep for some milliseconds. We never want that to happen while the VR session runs on
+     * the main thread. So always return true. */
+    return true;
   }
   return false;
 }
