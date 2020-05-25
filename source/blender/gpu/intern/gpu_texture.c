@@ -94,6 +94,7 @@ struct GPUTexture {
 };
 
 static uint gpu_get_bytesize(eGPUTextureFormat data_type);
+static void gpu_texture_framebuffer_ensure(GPUTexture *tex);
 
 /* ------ Memory Management ------- */
 /* Records every texture allocation / free
@@ -1570,25 +1571,115 @@ void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat gpu_data_format, int mipl
 
 void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat gpu_data_format, const void *color)
 {
-  if (GLEW_ARB_clear_texture) {
-    GLenum data_format = gpu_get_gl_dataformat(tex->format, &tex->format_flag);
+  BLI_assert(color != NULL); /* Do not accept NULL as parameter. */
+  gpu_validate_data_format(tex->format, gpu_data_format);
+
+  if (false && GLEW_ARB_clear_texture) {
     GLenum data_type = gpu_get_gl_datatype(gpu_data_format);
+    GLenum data_format = gpu_get_gl_dataformat(tex->format, &tex->format_flag);
     glClearTexImage(tex->bindcode, 0, data_format, data_type, color);
-  }
-  else {
-    size_t buffer_len = gpu_texture_memory_footprint_compute(tex);
-    unsigned char *pixels = MEM_mallocN(buffer_len, __func__);
-    if (color) {
-      const size_t bytesize = (size_t)gpu_get_bytesize(tex->format);
-      for (size_t byte = 0; byte < buffer_len; byte += bytesize) {
-        memcpy(&pixels[byte], color, bytesize);
+
+    if (GPU_texture_stencil(tex) && GPU_texture_depth(tex)) {
+      /* TODO(clem) implement in fallback. */
+      BLI_assert(0);
+    }
+    else if (GPU_texture_depth(tex)) {
+      switch (gpu_data_format) {
+        case GPU_DATA_FLOAT:
+        case GPU_DATA_UNSIGNED_INT:
+          break;
+        default:
+          /* TODO(clem) implement in fallback. */
+          BLI_assert(0);
+          break;
       }
     }
     else {
-      memset(pixels, 0, buffer_len);
+      switch (gpu_data_format) {
+        case GPU_DATA_FLOAT:
+        case GPU_DATA_UNSIGNED_INT:
+        case GPU_DATA_UNSIGNED_BYTE:
+          break;
+        default:
+          /* TODO(clem) implement in fallback. */
+          BLI_assert(0);
+          break;
+      }
     }
-    GPU_texture_update(tex, gpu_data_format, pixels);
-    MEM_freeN(pixels);
+  }
+  else {
+    /* Fallback for older GL. */
+    GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
+
+    gpu_texture_framebuffer_ensure(tex);
+    /* This means that this function can only be used in one context for each texture. */
+    BLI_assert(tex->copy_fb_ctx == GPU_context_active_get());
+
+    glBindFramebuffer(GL_FRAMEBUFFER, tex->copy_fb);
+    glViewport(0, 0, tex->w, tex->h);
+
+    /* Watch: Write mask could prevent the clear.
+     * glClearTexImage does not change the state so we don't do it here either. */
+    if (GPU_texture_stencil(tex) && GPU_texture_depth(tex)) {
+      /* TODO(clem) implement. */
+      BLI_assert(0);
+    }
+    else if (GPU_texture_depth(tex)) {
+      float depth;
+      switch (gpu_data_format) {
+        case GPU_DATA_FLOAT: {
+          depth = *(float *)color;
+          break;
+        }
+        case GPU_DATA_UNSIGNED_INT: {
+          depth = *(uint *)color / (float)UINT_MAX;
+          break;
+        }
+        default:
+          BLI_assert(!"Unhandled data format");
+          break;
+      }
+      glClearDepth(depth);
+      glClear(GL_DEPTH_BUFFER_BIT);
+    }
+    else {
+      float r, g, b, a;
+      switch (gpu_data_format) {
+        case GPU_DATA_FLOAT: {
+          float *f_color = (float *)color;
+          r = f_color[0];
+          g = (tex->components > 1) ? f_color[1] : 0.0f;
+          b = (tex->components > 2) ? f_color[2] : 0.0f;
+          a = (tex->components > 3) ? f_color[3] : 0.0f;
+          break;
+        }
+        case GPU_DATA_UNSIGNED_INT: {
+          uint *u_color = (uint *)color;
+          r = u_color[0] / (float)UINT_MAX;
+          g = (tex->components > 1) ? u_color[1] / (float)UINT_MAX : 0.0f;
+          b = (tex->components > 2) ? u_color[2] / (float)UINT_MAX : 0.0f;
+          a = (tex->components > 3) ? u_color[3] / (float)UINT_MAX : 0.0f;
+          break;
+        }
+        case GPU_DATA_UNSIGNED_BYTE: {
+          uchar *ub_color = (uchar *)color;
+          r = ub_color[0] / 255.0f;
+          g = (tex->components > 1) ? ub_color[1] / 255.0f : 0.0f;
+          b = (tex->components > 2) ? ub_color[2] / 255.0f : 0.0f;
+          a = (tex->components > 3) ? ub_color[3] / 255.0f : 0.0f;
+          break;
+        }
+        default:
+          BLI_assert(!"Unhandled data format");
+          break;
+      }
+      glClearColor(r, g, b, a);
+      glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    if (prev_fb) {
+      GPU_framebuffer_bind(prev_fb);
+    }
   }
 }
 
