@@ -94,6 +94,8 @@ enum {
 
 typedef struct LibraryIDLinkCallbackData {
   void *user_data;
+  /** Main database used to call `BKE_library_foreach_ID_link()`. */
+  struct Main *bmain;
   /**
    * 'Real' ID, the one that might be in bmain, only differs from self_id when the later is an
    * embedded one.

@@ -216,7 +216,7 @@ static void memfile_undosys_step_decode(struct bContext *C,
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
       if (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED) {
         BKE_library_foreach_ID_link(
-            bmain, id, memfile_undosys_step_id_reused_cb, bmain, IDWALK_READONLY);
+            bmain, id, memfile_undosys_step_id_reused_cb, NULL, IDWALK_READONLY);
       }
 
       /* Tag depsgraph to update data-block for changes that happened between the

@@ -305,7 +305,7 @@ void BKE_id_clear_newpoin(ID *id)
 
 static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
 {
-  Main *bmain = cb_data->user_data;
+  Main *bmain = cb_data->bmain;
   ID *id_self = cb_data->id_self;
   ID **id_pointer = cb_data->id_pointer;
   int const cb_flag = cb_data->cb_flag;
@@ -343,7 +343,7 @@ static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
  */
 void BKE_lib_id_expand_local(Main *bmain, ID *id)
 {
-  BKE_library_foreach_ID_link(bmain, id, lib_id_expand_local_cb, bmain, IDWALK_READONLY);
+  BKE_library_foreach_ID_link(bmain, id, lib_id_expand_local_cb, NULL, IDWALK_READONLY);
 }
 
 /**

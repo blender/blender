@@ -122,6 +122,7 @@ bool BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int
     ID *old_id = *id_pp;
     const int callback_return = data->callback(&(struct LibraryIDLinkCallbackData){
         .user_data = data->user_data,
+        .bmain = data->bmain,
         .id_owner = data->owner_id,
         .id_self = data->self_id,
         .id_pointer = id_pp,
