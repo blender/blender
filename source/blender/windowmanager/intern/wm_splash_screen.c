@@ -99,42 +99,13 @@ static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, 
 static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
 {
   /* Version number. */
-  const char *version_cycle = NULL;
-  bool show_build_info = true;
-
-  if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha")) {
-    version_cycle = " Alpha";
-  }
-  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "beta")) {
-    version_cycle = " Beta";
-  }
-  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "rc")) {
-    version_cycle = " Release Candidate";
-    show_build_info = false;
-  }
-  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
-    version_cycle = STRINGIFY(BLENDER_VERSION_CHAR);
-    show_build_info = false;
-  }
-
-  const char *version_cycle_number = "";
-  if (strlen(STRINGIFY(BLENDER_VERSION_CYCLE_NUMBER))) {
-    version_cycle_number = " " STRINGIFY(BLENDER_VERSION_CYCLE_NUMBER);
-  }
-
   char version_buf[256] = "\0";
-  BLI_snprintf(version_buf,
-               sizeof(version_buf),
-               "v %d.%d%s%s",
-               BLENDER_VERSION / 100,
-               BLENDER_VERSION % 100,
-               version_cycle,
-               version_cycle_number);
+  BLI_snprintf(version_buf, sizeof(version_buf), "v%s", BKE_blender_version_string());
 
   wm_block_splash_add_label(block, version_buf, x, &y);
 
 #ifdef WITH_BUILDINFO
-  if (show_build_info) {
+  if (!STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
     extern unsigned long build_commit_timestamp;
     extern char build_hash[], build_commit_date[], build_commit_time[], build_branch[];
 
@@ -159,8 +130,6 @@ static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
       wm_block_splash_add_label(block, branch_buf, x, &y);
     }
   }
-#else
-  UNUSED_VARS(show_build_info);
 #endif /* WITH_BUILDINFO */
 }
 

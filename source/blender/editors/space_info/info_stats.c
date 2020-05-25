@@ -565,7 +565,7 @@ static void stats_string(ViewLayer *view_layer)
                         gpumemstr);
   }
 
-  ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, " | %s", versionstr);
+  ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, " | %s", BKE_blender_version_string());
 #undef MAX_INFO_MEM_LEN
 }
 

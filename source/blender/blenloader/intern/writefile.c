@@ -3956,12 +3956,12 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 
   fg.globalf = G.f;
   BLI_strncpy(fg.filename, mainvar->name, sizeof(fg.filename));
-  sprintf(subvstr, "%4d", BLENDER_SUBVERSION);
+  sprintf(subvstr, "%4d", BLENDER_FILE_SUBVERSION);
   memcpy(fg.subvstr, subvstr, 4);
 
-  fg.subversion = BLENDER_SUBVERSION;
-  fg.minversion = BLENDER_MINVERSION;
-  fg.minsubversion = BLENDER_MINSUBVERSION;
+  fg.subversion = BLENDER_FILE_SUBVERSION;
+  fg.minversion = BLENDER_FILE_MIN_VERSION;
+  fg.minsubversion = BLENDER_FILE_MIN_SUBVERSION;
 #ifdef WITH_BUILDINFO
   {
     extern unsigned long build_commit_timestamp;
@@ -4015,7 +4015,7 @@ static bool write_file_handle(Main *mainvar,
           "BLENDER%c%c%.3d",
           (sizeof(void *) == 8) ? '-' : '_',
           (ENDIAN_ORDER == B_ENDIAN) ? 'V' : 'v',
-          BLENDER_VERSION);
+          BLENDER_FILE_VERSION);
 
   mywrite(wd, buf, 12);
 
