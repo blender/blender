@@ -1766,10 +1766,13 @@ void DepsgraphNodeBuilder::build_simulation(Simulation *simulation)
   build_animdata(&simulation->id);
   build_parameters(&simulation->id);
 
+  Simulation *simulation_cow = get_cow_datablock(simulation);
+  Scene *scene_cow = get_cow_datablock(scene_);
+
   add_operation_node(&simulation->id,
                      NodeType::SIMULATION,
                      OperationCode::SIMULATION_EVAL,
-                     function_bind(BKE_simulation_data_update, _1, get_cow_datablock(scene_)));
+                     function_bind(BKE_simulation_data_update, _1, scene_cow, simulation_cow));
 }
 
 void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)

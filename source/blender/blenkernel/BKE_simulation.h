@@ -27,7 +27,9 @@ struct Depsgraph;
 
 void *BKE_simulation_add(struct Main *bmain, const char *name);
 
-void BKE_simulation_data_update(struct Depsgraph *depsgraph, struct Scene *scene);
+void BKE_simulation_data_update(struct Depsgraph *depsgraph,
+                                struct Scene *scene,
+                                struct Simulation *simulation);
 
 #ifdef __cplusplus
 }

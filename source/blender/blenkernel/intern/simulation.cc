@@ -18,6 +18,8 @@
  * \ingroup bke
  */
 
+#include <iostream>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
@@ -46,6 +48,7 @@
 #include "BLT_translation.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 static void simulation_init_data(ID *id)
 {
@@ -122,6 +125,8 @@ void *BKE_simulation_add(Main *bmain, const char *name)
   return simulation;
 }
 
-void BKE_simulation_data_update(Depsgraph *UNUSED(depsgraph), Scene *UNUSED(scene))
+void BKE_simulation_data_update(Depsgraph *UNUSED(depsgraph),
+                                Scene *UNUSED(scene),
+                                Simulation *UNUSED(simulation))
 {
 }
