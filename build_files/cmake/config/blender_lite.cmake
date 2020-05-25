@@ -52,6 +52,7 @@ set(WITH_OPENVDB             OFF CACHE BOOL "" FORCE)
 set(WITH_QUADRIFLOW          OFF CACHE BOOL "" FORCE)
 set(WITH_SDL                 OFF CACHE BOOL "" FORCE)
 set(WITH_TBB                 OFF CACHE BOOL "" FORCE)
+set(WITH_USD                 OFF CACHE BOOL "" FORCE)
 
 if(UNIX AND NOT APPLE)
   set(WITH_GHOST_XDND          OFF CACHE BOOL "" FORCE)
