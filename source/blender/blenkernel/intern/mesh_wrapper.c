@@ -162,4 +162,5 @@ bool BKE_mesh_wrapper_minmax(const Mesh *me, float min[3], float max[3])
       return BKE_mesh_minmax(me, min, max);
   }
   BLI_assert(0);
+  return false;
 }
