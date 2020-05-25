@@ -164,6 +164,7 @@ static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
 #endif /* WITH_BUILDINFO */
 }
 
+#ifndef WITH_HEADLESS
 static void wm_block_splash_image_roundcorners_add(ImBuf *ibuf)
 {
   uchar *rct = (uchar *)ibuf->rect;
@@ -214,6 +215,7 @@ static void wm_block_splash_image_roundcorners_add(ImBuf *ibuf)
     }
   }
 }
+#endif /* WITH_HEADLESS */
 
 static ImBuf *wm_block_splash_image(int width, int *r_height)
 {
@@ -254,6 +256,7 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
 
   return ibuf;
 #else
+  UNUSED_VARS(width, r_height);
   return NULL;
 #endif
 }
