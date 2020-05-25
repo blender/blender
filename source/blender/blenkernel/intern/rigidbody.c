@@ -2116,6 +2116,7 @@ void BKE_rigidbody_ensure_local_object(Main *bmain, Object *ob)
 
 bool BKE_rigidbody_add_object(Main *bmain, Scene *scene, Object *ob, int type, ReportList *reports)
 {
+  BKE_report(reports, RPT_ERROR, "Compiled without Bullet physics engine");
   return false;
 }
 
