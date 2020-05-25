@@ -24,6 +24,7 @@
 #include <stdlib.h>
 
 #include "DNA_node_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_lasso_2d.h"
 #include "BLI_listbase.h"
@@ -36,10 +37,12 @@
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_workspace.h"
 
 #include "ED_node.h" /* own include */
 #include "ED_screen.h"
 #include "ED_select_utils.h"
+#include "ED_view3d.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -56,6 +59,36 @@
 #include "MEM_guardedalloc.h"
 
 #include "node_intern.h" /* own include */
+
+/* Function to detect if there is a visible view3d that uses workbench in texture mode.
+ * This function is for fixing T76970 for Blender 2.83. The actual fix should add a mechanism in
+ * the depsgraph that can be used by the draw engines to check if they need to be redrawn.
+ *
+ * We don't want to add these risky changes this close before releasing 2.83 without good testing
+ * hence this workaround. There are still cases were too many updates happen. For example when you
+ * have both a Cycles and workbench with textures viewport.
+ * */
+static bool has_workbench_in_texture_color(const wmWindowManager *wm,
+                                           const Scene *scene,
+                                           const Object *ob)
+{
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    if (win->scene != scene) {
+      continue;
+    }
+    const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      if (area->spacetype == SPACE_VIEW3D) {
+        const View3D *v3d = area->spacedata.first;
+
+        if (ED_view3d_has_workbench_in_texture_color(scene, ob, v3d)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Public Node Selection API
@@ -415,6 +448,10 @@ void node_select_single(bContext *C, bNode *node)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
+  const Object *ob = CTX_data_active_object(C);
+  const Scene *scene = CTX_data_scene(C);
+  const wmWindowManager *wm = CTX_wm_manager(C);
+  bool active_texture_changed = false;
   bNode *tnode;
 
   for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next) {
@@ -424,10 +461,13 @@ void node_select_single(bContext *C, bNode *node)
   }
   nodeSetSelected(node, true);
 
-  ED_node_set_active(bmain, snode->edittree, node);
+  ED_node_set_active(bmain, snode->edittree, node, &active_texture_changed);
   ED_node_set_active_viewer_key(snode);
 
   ED_node_sort(snode->edittree);
+  if (active_texture_changed && has_workbench_in_texture_color(wm, scene, ob)) {
+    DEG_id_tag_update(&snode->edittree->id, ID_RECALC_COPY_ON_WRITE);
+  }
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 }
@@ -440,6 +480,9 @@ static int node_mouse_select(bContext *C,
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
+  const Object *ob = CTX_data_active_object(C);
+  const Scene *scene = CTX_data_scene(C);
+  const wmWindowManager *wm = CTX_wm_manager(C);
   bNode *node, *tnode;
   bNodeSocket *sock = NULL;
   bNodeSocket *tsock;
@@ -546,12 +589,15 @@ static int node_mouse_select(bContext *C,
 
   /* update node order */
   if (ret_value != OPERATOR_CANCELLED) {
+    bool active_texture_changed = false;
     if (node != NULL && ret_value != OPERATOR_RUNNING_MODAL) {
-      ED_node_set_active(bmain, snode->edittree, node);
+      ED_node_set_active(bmain, snode->edittree, node, &active_texture_changed);
     }
     ED_node_set_active_viewer_key(snode);
     ED_node_sort(snode->edittree);
-    DEG_id_tag_update(&snode->edittree->id, ID_RECALC_COPY_ON_WRITE);
+    if (active_texture_changed && has_workbench_in_texture_color(wm, scene, ob)) {
+      DEG_id_tag_update(&snode->edittree->id, ID_RECALC_COPY_ON_WRITE);
+    }
 
     WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
   }

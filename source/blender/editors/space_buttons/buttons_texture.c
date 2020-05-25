@@ -373,7 +373,7 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
 
   /* set user as active */
   if (user->node) {
-    ED_node_set_active(CTX_data_main(C), user->ntree, user->node);
+    ED_node_set_active(CTX_data_main(C), user->ntree, user->node, NULL);
     ct->texture = NULL;
   }
   else {
