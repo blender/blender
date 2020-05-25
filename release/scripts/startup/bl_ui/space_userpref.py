@@ -1455,16 +1455,7 @@ class USERPREF_PT_input_ndof(InputPanel, CenterAlignMixIn, Panel):
         prefs = context.preferences
         inputs = prefs.inputs
 
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
-
-        flow.prop(inputs, "ndof_sensitivity", text="Pan Sensitivity")
-        flow.prop(inputs, "ndof_orbit_sensitivity", text="Orbit Sensitivity")
-        flow.prop(inputs, "ndof_deadzone", text="Deadzone")
-
-        layout.separator()
-
-        flow.row().prop(inputs, "ndof_view_navigate_method", expand=True)
-        flow.row().prop(inputs, "ndof_view_rotate_method", expand=True)
+        USERPREF_PT_ndof_settings.draw_settings(layout, inputs)
 
 
 # -----------------------------------------------------------------------------
@@ -1598,6 +1589,64 @@ class USERPREF_PT_ndof_settings(Panel):
     bl_label = "3D Mouse Settings"
     bl_space_type = 'TOPBAR'  # dummy.
     bl_region_type = 'HEADER'
+    bl_ui_units_x = 10
+
+    @staticmethod
+    def draw_settings(layout, props, show_3dview_settings=True):
+        col = layout.column()
+        col.prop(props, "ndof_sensitivity", text="Pan Sensitivity")
+        col.prop(props, "ndof_orbit_sensitivity")
+        col.prop(props, "ndof_deadzone")
+
+        layout.separator()
+
+        if show_3dview_settings:
+            col = layout.column()
+            col.row().prop(props, "ndof_view_navigate_method", expand=True, text="Navigation")
+            col.row().prop(props, "ndof_view_rotate_method", expand=True, text="Rotation")
+
+            layout.separator()
+
+        col = layout.column()
+        if show_3dview_settings:
+            col.prop(props, "ndof_show_guide")
+        col.prop(props, "ndof_zoom_invert")
+        col.prop(props, "ndof_pan_yz_swap_axis", text="Swap Y and Z Pan Axes")
+
+        layout.separator()
+
+        split = layout.split()
+        col = split.column()
+        col.alignment = 'RIGHT'
+        col.label(text="Invert Axis Pan" if show_3dview_settings else "Invert Pan Axis")
+        col = split.column()
+        row = col.row(align=True)
+        for text, attr in (
+                ("X", "ndof_panx_invert_axis"),
+                ("Y", "ndof_pany_invert_axis"),
+                ("Z", "ndof_panz_invert_axis"),
+        ):
+            row.prop(props, attr, text=text, toggle=True)
+
+        if show_3dview_settings:
+            split = layout.split()
+            col = split.column()
+            col.alignment = 'RIGHT'
+            col.label(text="Invert Axis Orbit")
+            col = split.column()
+            row = col.row(align=True)
+            for text, attr in (
+                    ("X", "ndof_rotx_invert_axis"),
+                    ("Y", "ndof_roty_invert_axis"),
+                    ("Z", "ndof_rotz_invert_axis"),
+            ):
+                row.prop(props, attr, text=text, toggle=True)
+
+            layout.separator()
+
+            col = layout.column()
+            col.prop(props, "ndof_lock_horizon", text="Fly/Walk Lock Horizon")
+            col.prop(props, "ndof_fly_helicopter")
 
     def draw(self, context):
         layout = self.layout
@@ -1607,62 +1656,7 @@ class USERPREF_PT_ndof_settings(Panel):
         input_prefs = context.preferences.inputs
 
         is_view3d = context.space_data.type == 'VIEW_3D'
-
-        col = layout.column(align=True)
-        col.prop(input_prefs, "ndof_sensitivity")
-        col.prop(input_prefs, "ndof_orbit_sensitivity")
-        col.prop(input_prefs, "ndof_deadzone")
-
-        if is_view3d:
-            layout.separator()
-            layout.prop(input_prefs, "ndof_show_guide")
-
-            layout.separator()
-            layout.label(text="Orbit Style")
-            layout.row().prop(input_prefs, "ndof_view_navigate_method", text="Navigate")
-            layout.row().prop(input_prefs, "ndof_view_rotate_method", text="Orbit")
-            layout.separator()
-
-            layout.label(text="Orbit Options")
-            split = layout.split(factor=0.6)
-            row = split.row()
-            row.alignment = 'RIGHT'
-            row.label(text="Invert Axis")
-            row = split.row(align=True)
-            for text, attr in (
-                    ("X", "ndof_rotx_invert_axis"),
-                    ("Y", "ndof_roty_invert_axis"),
-                    ("Z", "ndof_rotz_invert_axis"),
-            ):
-                row.prop(input_prefs, attr, text=text, toggle=True)
-
-        # view2d use pan/zoom
-        layout.separator()
-        layout.label(text="Pan Options")
-
-        split = layout.split(factor=0.6)
-        row = split.row()
-        row.alignment = 'RIGHT'
-        row.label(text="Invert Axis")
-        row = split.row(align=True)
-        for text, attr in (
-                ("X", "ndof_panx_invert_axis"),
-                ("Y", "ndof_pany_invert_axis"),
-                ("Z", "ndof_panz_invert_axis"),
-        ):
-            row.prop(input_prefs, attr, text=text, toggle=True)
-
-        layout.prop(input_prefs, "ndof_pan_yz_swap_axis")
-
-        layout.label(text="Zoom Options")
-        layout.prop(input_prefs, "ndof_zoom_invert")
-
-        if is_view3d:
-            layout.separator()
-            layout.label(text="Fly/Walk Options")
-            layout.prop(input_prefs, "ndof_fly_helicopter")
-            layout.prop(input_prefs, "ndof_lock_horizon")
-
+        self.draw_settings(layout, input_prefs, is_view3d)
 
 # -----------------------------------------------------------------------------
 # Key-Map Editor Panels
