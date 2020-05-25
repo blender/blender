@@ -237,6 +237,82 @@ BLI_INLINE void BLI_parallel_range_settings_defaults(TaskParallelSettings *setti
  * Only here for code to be removed. */
 int BLI_task_parallel_thread_id(const TaskParallelTLS *tls);
 
+/* Task Graph Scheduling */
+/* Task Graphs can be used to create a forest of directional trees and schedule work to any tree.
+ * The nodes in the graph can be run in separate threads.
+ *
+ *     +---- [root] ----+
+ *     |                |
+ *     v                v
+ * [node_1]    +---- [node_2] ----+
+ *             |                  |
+ *             v                  v
+ *          [node_3]           [node_4]
+ *
+ *    TaskGraph *task_graph = BLI_task_graph_create();
+ *    TaskNode *root = BLI_task_graph_node_create(task_graph, root_exec, NULL, NULL);
+ *    TaskNode *node_1 = BLI_task_graph_node_create(task_graph, node_exec, NULL, NULL);
+ *    TaskNode *node_2 = BLI_task_graph_node_create(task_graph, node_exec, NULL, NULL);
+ *    TaskNode *node_3 = BLI_task_graph_node_create(task_graph, node_exec, NULL, NULL);
+ *    TaskNode *node_4 = BLI_task_graph_node_create(task_graph, node_exec, NULL, NULL);
+ *
+ *    BLI_task_graph_edge_create(root, node_1);
+ *    BLI_task_graph_edge_create(root, node_2);
+ *    BLI_task_graph_edge_create(node_2, node_3);
+ *    BLI_task_graph_edge_create(node_2, node_4);
+ *
+ * Any node can be triggered to start a chain of tasks. Normally you would trigger a root node but
+ * it is supported to start the chain of tasks anywhere in the forest or tree. When a node
+ * completes, the execution flow is forwarded via the created edges.
+ * When a child node has multiple parents the child node will be triggered once for each parent.
+ *
+ *    BLI_task_graph_node_push_work(root);
+ *
+ * In this example After `root` is finished, `node_1` and `node_2` will be started.
+ * Only after `node_2` is finished `node_3` and `node_4` will be started.
+ *
+ * After scheduling work we need to wait until all the tasks have been finished.
+ *
+ *    BLI_task_graph_work_and_wait();
+ *
+ * When finished you can clean up all the resources by freeing the task_graph. Nodes are owned by
+ * the graph and are freed task_data will only be freed if a free_func was given.
+ *
+ *    BLI_task_graph_free(task_graph);
+ *
+ * Work can enter a tree on any node. Normally this would be the root_node.
+ * A `task_graph` can be reused, but the caller needs to make sure the task_data is reset.
+ *
+ * ** Task-Data **
+ *
+ * Typically you want give a task data to work on.
+ * Task data can be shared with other nodes, but be carefull not to free the data multiple times.
+ * Task data is freed when calling `BLI_task_graph_free`.
+ *
+ *    MyData *task_data = MEM_callocN(sizeof(MyData), __func__);
+ *    TaskNode *root = BLI_task_graph_node_create(task_graph, root_exec, task_data, MEM_freeN);
+ *    TaskNode *node_1 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
+ *    TaskNode *node_2 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
+ *    TaskNode *node_3 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
+ *    TaskNode *node_4 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
+ *
+ */
+struct TaskGraph;
+struct TaskNode;
+
+typedef void (*TaskGraphNodeRunFunction)(void *__restrict task_data);
+typedef void (*TaskGraphNodeFreeFunction)(void *task_data);
+
+struct TaskGraph *BLI_task_graph_create(void);
+void BLI_task_graph_work_and_wait(struct TaskGraph *task_graph);
+void BLI_task_graph_free(struct TaskGraph *task_graph);
+struct TaskNode *BLI_task_graph_node_create(struct TaskGraph *task_graph,
+                                            TaskGraphNodeRunFunction run,
+                                            void *task_data,
+                                            TaskGraphNodeFreeFunction free_func);
+bool BLI_task_graph_node_push_work(struct TaskNode *task_node);
+void BLI_task_graph_edge_create(struct TaskNode *from_node, struct TaskNode *to_node);
+
 #ifdef __cplusplus
 }
 #endif
