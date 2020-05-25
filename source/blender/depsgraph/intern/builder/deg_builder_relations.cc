@@ -2245,14 +2245,20 @@ void DepsgraphRelationBuilder::build_light(Light *lamp)
   build_idproperties(lamp->id.properties);
   build_animdata(&lamp->id);
   build_parameters(&lamp->id);
+
+  ComponentKey lamp_parameters_key(&lamp->id, NodeType::PARAMETERS);
+
   /* light's nodetree */
   if (lamp->nodetree != nullptr) {
     build_nodetree(lamp->nodetree);
-    ComponentKey lamp_parameters_key(&lamp->id, NodeType::PARAMETERS);
     ComponentKey nodetree_key(&lamp->nodetree->id, NodeType::SHADING);
     add_relation(nodetree_key, lamp_parameters_key, "NTree->Light Parameters");
     build_nested_nodetree(&lamp->id, lamp->nodetree);
   }
+
+  /* For allowing drivers on lamp properties. */
+  ComponentKey shading_key(&lamp->id, NodeType::SHADING);
+  add_relation(lamp_parameters_key, shading_key, "Light Shading Parameters");
 }
 
 void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)

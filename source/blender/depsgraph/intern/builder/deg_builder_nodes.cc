@@ -83,6 +83,7 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
+#include "BKE_light.h"
 #include "BKE_mask.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
@@ -1441,6 +1442,12 @@ void DepsgraphNodeBuilder::build_light(Light *lamp)
   build_parameters(&lamp->id);
   /* light's nodetree */
   build_nodetree(lamp->nodetree);
+
+  Light *lamp_cow = get_cow_datablock(lamp);
+  add_operation_node(&lamp->id,
+                     NodeType::SHADING,
+                     OperationCode::LIGHT_UPDATE,
+                     function_bind(BKE_light_eval, _1, lamp_cow));
 }
 
 void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)

@@ -48,6 +48,8 @@
 
 #include "BLT_translation.h"
 
+#include "DEG_depsgraph.h"
+
 static void light_init_data(ID *id)
 {
   Light *la = (Light *)id;
@@ -177,4 +179,9 @@ Light *BKE_light_localize(Light *la)
   lan->id.tag |= LIB_TAG_LOCALIZED;
 
   return lan;
+}
+
+void BKE_light_eval(struct Depsgraph *depsgraph, Light *la)
+{
+  DEG_debug_print_eval(depsgraph, __func__, la->id.name, la);
 }
