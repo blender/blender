@@ -951,6 +951,10 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
   /* If requested, compute the inverse matrix from the computed parent matrix. */
   if (data->flag & CHILDOF_SET_INVERSE) {
     invert_m4_m4(data->invmat, parmat);
+    if (cob->pchan != NULL) {
+      mul_m4_series(data->invmat, data->invmat, cob->ob->obmat);
+    }
+
     copy_m4_m4(inverse_matrix, data->invmat);
 
     data->flag &= ~CHILDOF_SET_INVERSE;
