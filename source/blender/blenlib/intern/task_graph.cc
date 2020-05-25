@@ -76,6 +76,9 @@ struct TaskNode {
         task_data(task_data),
         free_func(free_func)
   {
+#ifndef WITH_TBB
+    UNUSED_VARS(task_graph);
+#endif
   }
 
   TaskNode(const TaskNode &other) = delete;
@@ -123,6 +126,8 @@ void BLI_task_graph_work_and_wait(TaskGraph *task_graph)
 {
 #ifdef WITH_TBB
   task_graph->tbb_graph.wait_for_all();
+#else
+  UNUSED_VARS(task_graph);
 #endif
 }
 
