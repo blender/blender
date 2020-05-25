@@ -690,8 +690,10 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
   ARegion *region_prev = screen->active_region;
 
   ED_screen_areas_iter (win, screen, area_iter) {
-    if (xy[0] > area_iter->totrct.xmin && xy[0] < area_iter->totrct.xmax) {
-      if (xy[1] > area_iter->totrct.ymin && xy[1] < area_iter->totrct.ymax) {
+    if (xy[0] > (area_iter->totrct.xmin + BORDERPADDING) &&
+        xy[0] < (area_iter->totrct.xmax - BORDERPADDING)) {
+      if (xy[1] > (area_iter->totrct.ymin + BORDERPADDING) &&
+          xy[1] < (area_iter->totrct.ymax - BORDERPADDING)) {
         if (ED_area_azones_update(area_iter, xy) == NULL) {
           area = area_iter;
           break;

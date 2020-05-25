@@ -35,6 +35,9 @@ struct bContextDataResult;
 #define AZONEFADEIN (5.0f * U.widget_unit)  /* when azone is totally visible */
 #define AZONEFADEOUT (6.5f * U.widget_unit) /* when we start seeing the azone */
 
+/* Expanded interaction influence of area borders. */
+#define BORDERPADDING (U.dpi_fac + U.pixelsize)
+
 /* area.c */
 void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, const bool do_free);
 void ED_area_data_swap(ScrArea *sa1, ScrArea *sa2);

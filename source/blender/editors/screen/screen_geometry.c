@@ -92,7 +92,7 @@ ScrEdge *screen_geom_area_map_find_active_scredge(const ScrAreaMap *area_map,
                                                   const int mx,
                                                   const int my)
 {
-  int safety = U.widget_unit / 10;
+  int safety = BORDERPADDING;
 
   CLAMP_MIN(safety, 2);
 
