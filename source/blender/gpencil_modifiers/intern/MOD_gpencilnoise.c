@@ -174,7 +174,7 @@ static void deformStroke(GpencilModifierData *md,
   if (gps->totpoints > 2) {
     BKE_gpencil_stroke_normal(gps, normal);
     if (is_zero_v3(normal)) {
-    copy_v3_fl(normal, 1.0f);
+      copy_v3_fl(normal, 1.0f);
     }
   }
   else {
