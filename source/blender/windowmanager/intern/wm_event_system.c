@@ -563,7 +563,7 @@ void wm_event_do_notifiers(bContext *C)
 static int wm_event_always_pass(const wmEvent *event)
 {
   /* some events we always pass on, to ensure proper communication */
-  return ISTIMER(event->type) || (event->type == WINDEACTIVATE) || (event->type == EVT_FILESELECT);
+  return ISTIMER(event->type) || (event->type == WINDEACTIVATE);
 }
 
 /** \} */
@@ -600,6 +600,12 @@ static int wm_handler_ui_call(bContext *C,
     else if (wm_event_always_pass(event) == 0) {
       do_wheel_ui = true;
     }
+  }
+
+  /* Don't block file-select events. Those are triggered by a separate file browser window.
+   * See T75292. */
+  if (event->type == EVT_FILESELECT) {
+    return WM_UI_HANDLER_CONTINUE;
   }
 
   /* we set context to where ui handler came from */
