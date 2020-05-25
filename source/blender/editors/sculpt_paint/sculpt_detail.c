@@ -259,8 +259,11 @@ static int sample_detail(bContext *C, int mx, int my, int mode)
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   Object *ob = vc.obact;
-  SculptSession *ss = ob->sculpt;
+  if (ob == NULL) {
+    return OPERATOR_CANCELLED;
+  }
 
+  SculptSession *ss = ob->sculpt;
   if (!ss->pbvh) {
     return OPERATOR_CANCELLED;
   }
