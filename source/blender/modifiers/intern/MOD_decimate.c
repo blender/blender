@@ -73,7 +73,7 @@ static DecimateModifierData *getOriginalModifierData(const DecimateModifierData 
                                                      const ModifierEvalContext *ctx)
 {
   Object *ob_orig = DEG_get_original_object(ctx->object);
-  return (DecimateModifierData *)BKE_modifiers_findny_name(ob_orig, dmd->modifier.name);
+  return (DecimateModifierData *)BKE_modifiers_findby_name(ob_orig, dmd->modifier.name);
 }
 
 static void updateFaceCount(const ModifierEvalContext *ctx,

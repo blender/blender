@@ -235,7 +235,7 @@ ModifierData *BKE_modifiers_findby_type(Object *ob, ModifierType type)
   return md;
 }
 
-ModifierData *BKE_modifiers_findny_name(Object *ob, const char *name)
+ModifierData *BKE_modifiers_findby_name(Object *ob, const char *name)
 {
   return BLI_findstring(&(ob->modifiers), name, offsetof(ModifierData, name));
 }
@@ -1030,5 +1030,5 @@ struct ModifierData *BKE_modifier_get_evaluated(Depsgraph *depsgraph,
   if (object_eval == object) {
     return md;
   }
-  return BKE_modifiers_findny_name(object_eval, md->name);
+  return BKE_modifiers_findby_name(object_eval, md->name);
 }

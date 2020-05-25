@@ -805,7 +805,7 @@ bool ED_object_modifier_apply(Main *bmain,
   /* Get evaluated modifier, so object links pointer to evaluated data,
    * but still use original object it is applied to the original mesh. */
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  ModifierData *md_eval = (ob_eval) ? BKE_modifiers_findny_name(ob_eval, md->name) : md;
+  ModifierData *md_eval = (ob_eval) ? BKE_modifiers_findby_name(ob_eval, md->name) : md;
 
   /* allow apply of a not-realtime modifier, by first re-enabling realtime. */
   prev_mode = md_eval->mode;
@@ -1020,7 +1020,7 @@ ModifierData *edit_modifier_property_get(wmOperator *op, Object *ob, int type)
   ModifierData *md;
   RNA_string_get(op->ptr, "modifier", modifier_name);
 
-  md = BKE_modifiers_findny_name(ob, modifier_name);
+  md = BKE_modifiers_findby_name(ob, modifier_name);
 
   if (md && type != 0 && md->type != type) {
     md = NULL;

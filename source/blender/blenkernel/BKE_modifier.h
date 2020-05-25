@@ -390,7 +390,7 @@ void BKE_modifiers_foreach_ID_link(struct Object *ob, IDWalkFunc walk, void *use
 void BKE_modifiers_foreach_tex_link(struct Object *ob, TexWalkFunc walk, void *userData);
 
 struct ModifierData *BKE_modifiers_findby_type(struct Object *ob, ModifierType type);
-struct ModifierData *BKE_modifiers_findny_name(struct Object *ob, const char *name);
+struct ModifierData *BKE_modifiers_findby_name(struct Object *ob, const char *name);
 void BKE_modifiers_clear_errors(struct Object *ob);
 int BKE_modifiers_get_cage_index(struct Scene *scene,
                                  struct Object *ob,

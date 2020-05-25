@@ -5127,7 +5127,7 @@ void PE_create_particle_edit(
   int totpoint;
 
   if (psmd != NULL) {
-    psmd_eval = (ParticleSystemModifierData *)BKE_modifiers_findny_name(ob_eval,
+    psmd_eval = (ParticleSystemModifierData *)BKE_modifiers_findby_name(ob_eval,
                                                                         psmd->modifier.name);
   }
 
@@ -5298,7 +5298,7 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
        * with possible changes applied when object was outside of the
        * edit mode. */
       Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
-      edit->psmd_eval = (ParticleSystemModifierData *)BKE_modifiers_findny_name(
+      edit->psmd_eval = (ParticleSystemModifierData *)BKE_modifiers_findby_name(
           object_eval, edit->psmd->modifier.name);
       recalc_emitter_field(depsgraph, ob, edit->psys);
     }

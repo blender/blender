@@ -216,7 +216,7 @@ static void deformVerts(ModifierData *md,
 
   if (DEG_is_active(ctx->depsgraph)) {
     Object *object_orig = DEG_get_original_object(ctx->object);
-    ModifierData *md_orig = BKE_modifiers_findny_name(object_orig, psmd->modifier.name);
+    ModifierData *md_orig = BKE_modifiers_findby_name(object_orig, psmd->modifier.name);
     BLI_assert(md_orig != NULL);
     ParticleSystemModifierData *psmd_orig = (ParticleSystemModifierData *)md_orig;
     psmd_orig->flag = psmd->flag;

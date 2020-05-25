@@ -224,7 +224,7 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   if (RNA_boolean_get(op->ptr, "add_solidify")) {
     ED_object_modifier_add(
         op->reports, bmain, scene, new_ob, "mask_extract_solidify", eModifierType_Solidify);
-    SolidifyModifierData *sfmd = (SolidifyModifierData *)BKE_modifiers_findny_name(
+    SolidifyModifierData *sfmd = (SolidifyModifierData *)BKE_modifiers_findby_name(
         new_ob, "mask_extract_solidify");
     if (sfmd) {
       sfmd->offset = -0.05f;
