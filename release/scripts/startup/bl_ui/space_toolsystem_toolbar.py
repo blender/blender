@@ -137,7 +137,6 @@ class _defs_view3d_generic:
             idname="builtin.measure",
             label="Measure",
             description=description,
-            cursor='CROSSHAIR',
             icon="ops.view3d.ruler",
             widget="VIEW3D_GGT_ruler",
             keymap="3D View Tool: Measure",
@@ -407,7 +406,6 @@ class _defs_view3d_select:
             label="Select Lasso",
             icon="ops.generic.select_lasso",
             widget=None,
-            cursor='DEFAULT',
             keymap="3D View Tool: Select Lasso",
             draw_settings=draw_settings,
         )
@@ -432,7 +430,6 @@ class _defs_view3d_select:
             label="Select Circle",
             icon="ops.generic.select_circle",
             widget=None,
-            cursor='DEFAULT',
             keymap="3D View Tool: Select Circle",
             draw_settings=draw_settings,
             draw_cursor=draw_cursor,

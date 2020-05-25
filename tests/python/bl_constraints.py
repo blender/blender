@@ -56,21 +56,37 @@ class AbstractConstraintTests(unittest.TestCase):
                     actual, expect, places=places, delta=delta,
                     msg=f'Matrix of object {object_name!r} failed: {actual} != {expect} at element [{row}][{col}]')
 
-    def matrix(self, object_name: str) -> Matrix:
-        """Return the evaluated world matrix."""
+    def _get_eval_object(self, object_name: str) -> bpy.types.Object:
+        """Return the evaluated object."""
         depsgraph = bpy.context.view_layer.depsgraph
         depsgraph.update()
         ob_orig = bpy.context.scene.objects[object_name]
         ob_eval = ob_orig.evaluated_get(depsgraph)
+        return ob_eval
+
+    def matrix(self, object_name: str) -> Matrix:
+        """Return the evaluated world matrix."""
+        ob_eval = self._get_eval_object(object_name)
         return ob_eval.matrix_world
+
+    def bone_matrix(self, object_name: str, bone_name: str) -> Matrix:
+        """Return the evaluated world matrix of the bone."""
+        ob_eval = self._get_eval_object(object_name)
+        bone = ob_eval.pose.bones[bone_name]
+        return ob_eval.matrix_world @ bone.matrix
 
     def matrix_test(self, object_name: str, expect: Matrix):
         """Assert that the object's world matrix is as expected."""
         actual = self.matrix(object_name)
         self.assert_matrix(actual, expect, object_name)
 
+    def bone_matrix_test(self, object_name: str, bone_name: str, expect: Matrix):
+        """Assert that the bone's world matrix is as expected."""
+        actual = self.bone_matrix(object_name, bone_name)
+        self.assert_matrix(actual, expect, object_name)
+
     def constraint_context(self, constraint_name: str, owner_name: str='') -> dict:
-        """Return a context suitable for calling constraint operators.
+        """Return a context suitable for calling object constraint operators.
 
         Assumes the owner is called "{constraint_name}.owner" if owner_name=''.
         """
@@ -81,6 +97,30 @@ class AbstractConstraintTests(unittest.TestCase):
             'object': owner,
             'active_object': owner,
             'constraint': constraint,
+        }
+        return context
+
+    def bone_constraint_context(self, constraint_name: str, owner_name: str='', bone_name: str='') -> dict:
+        """Return a context suitable for calling bone constraint operators.
+
+        Assumes the owner's object is called "{constraint_name}.owner" if owner_name=''.
+        Assumes the bone is called "{constraint_name}.bone" if bone_name=''.
+        """
+
+        owner_name = owner_name or f'{constraint_name}.owner'
+        bone_name = bone_name or f'{constraint_name}.bone'
+
+        owner = bpy.context.scene.objects[owner_name]
+        pose_bone = owner.pose.bones[bone_name]
+
+        constraint = pose_bone.constraints[constraint_name]
+        context = {
+            **bpy.context.copy(),
+            'object': owner,
+            'active_object': owner,
+            'active_pose_bone': pose_bone,
+            'constraint': constraint,
+            'owner': pose_bone,
         }
         return context
 
@@ -153,7 +193,7 @@ class ChildOfTest(AbstractConstraintTests):
         ))
         self.matrix_test('Child Of.object.owner', initial_matrix)
 
-        context = self.constraint_context('Child Of', owner_name='Child Of.object.owner')
+        context = self.constraint_context('Child Of', owner_name='Child Of.object.owner',)
         bpy.ops.constraint.childof_set_inverse(context, constraint='Child Of')
         self.matrix_test('Child Of.object.owner', Matrix((
             (0.9992386102676392, 0.019843991845846176, -0.03359176218509674, 0.10000000149011612),
@@ -187,6 +227,29 @@ class ChildOfTest(AbstractConstraintTests):
 
         bpy.ops.constraint.childof_clear_inverse(context, constraint='Child Of')
         self.matrix_test('Child Of.armature.owner', initial_matrix)
+
+    def test_bone_owner(self):
+        """Child Of: bone owns constraint, targeting object."""
+        initial_matrix = Matrix((
+            (0.9992387890815735, -0.03359174728393555, -0.019843988120555878, -2.999999523162842),
+            (-0.02588011883199215, -0.1900751143693924, -0.9814283847808838, 2.0),
+            (0.029196053743362427, 0.9811949133872986, -0.190799742937088, 0.9999999403953552),
+            (0.0, 0.0, 0.0, 1.0),
+        ))
+        self.bone_matrix_test('Child Of.bone.owner', 'Child Of.bone', initial_matrix)
+
+        context = self.bone_constraint_context('Child Of', owner_name='Child Of.bone.owner')
+        bpy.ops.constraint.childof_set_inverse(context, constraint='Child Of', owner='BONE')
+
+        self.bone_matrix_test('Child Of.bone.owner', 'Child Of.bone', Matrix((
+            (0.9659260511398315, 0.2588191032409668, 4.656613428188905e-10, -2.999999761581421),
+            (-3.725290742551124e-09, 1.4901162970204496e-08, -1.0, 0.9999999403953552),
+            (-0.2588191032409668, 0.965925931930542, 0.0, 0.9999999403953552),
+            (0.0, 0.0, 0.0, 1.0),
+        )))
+
+        bpy.ops.constraint.childof_clear_inverse(context, constraint='Child Of', owner='BONE')
+        self.bone_matrix_test('Child Of.bone.owner', 'Child Of.bone', initial_matrix)
 
     def test_vertexgroup_simple_parent(self):
         """Child Of: simple evaluation of vertex group parent."""
