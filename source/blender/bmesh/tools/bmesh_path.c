@@ -225,7 +225,7 @@ static void edgetag_add_adjacent(HeapSimple *heap,
 
   /* unlike vert/face, stepping faces disables scanning connected edges
    * and only steps over faces (selecting a ring of edges instead of a loop) */
-  if (params->use_step_face == false) {
+  if (params->use_step_face == false || e_a->l == NULL) {
     BMIter viter;
     BMVert *v;
 
