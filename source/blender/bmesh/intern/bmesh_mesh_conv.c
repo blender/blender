@@ -893,6 +893,10 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
 
       j = bm_to_mesh_shape_layer_index_from_kb(bm, currkey);
       cd_shape_offset = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, j);
+      if (cd_shape_offset < 0) {
+        /* The target Mesh has more shapekeys than the BMesh. */
+        continue;
+      }
 
       fp = newkey = MEM_callocN(me->key->elemsize * bm->totvert, "currkey->data");
       oldkey = currkey->data;
