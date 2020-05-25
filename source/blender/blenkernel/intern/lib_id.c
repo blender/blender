@@ -128,8 +128,6 @@ static void lib_id_library_local_paths(Main *bmain, Library *lib, ID *id)
  */
 static void lib_id_clear_library_data_ex(Main *bmain, ID *id)
 {
-  bNodeTree *ntree = NULL;
-  Key *key = NULL;
   const bool id_in_mainlist = (id->tag & LIB_TAG_NO_MAIN) == 0 &&
                               (id->flag & LIB_EMBEDDED_DATA) == 0;
 
@@ -146,14 +144,11 @@ static void lib_id_clear_library_data_ex(Main *bmain, ID *id)
     }
   }
 
-  /* Internal bNodeTree blocks inside data-blocks also stores id->lib,
-   * make sure this stays in sync. */
-  if ((ntree = ntreeFromID(id))) {
-    lib_id_clear_library_data_ex(bmain, &ntree->id);
-  }
-
-  /* Same goes for shapekeys. */
-  if ((key = BKE_key_from_id(id))) {
+  /* Internal shape key blocks inside data-blocks also stores id->lib,
+   * make sure this stays in sync (note that we do not need any explicit handling for real EMBEDDED
+   * IDs here, this is down automatically in `lib_id_expand_local_cb()`. */
+  Key *key = BKE_key_from_id(id);
+  if (key != NULL) {
     lib_id_clear_library_data_ex(bmain, &key->id);
   }
 }
@@ -310,10 +305,23 @@ void BKE_id_clear_newpoin(ID *id)
 
 static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
 {
+  Main *bmain = cb_data->user_data;
   ID *id_self = cb_data->id_self;
   ID **id_pointer = cb_data->id_pointer;
   int const cb_flag = cb_data->cb_flag;
+
+  if (cb_flag & IDWALK_CB_LOOPBACK) {
+    /* We should never have anything to do with loopback pointers here. */
+    return IDWALK_RET_NOP;
+  }
+
   if (cb_flag & IDWALK_CB_EMBEDDED) {
+    /* Embedded data-blocks need to be made fully local as well. */
+    if (*id_pointer != NULL) {
+      BLI_assert(*id_pointer != id_self);
+
+      lib_id_clear_library_data_ex(bmain, *id_pointer);
+    }
     return IDWALK_RET_NOP;
   }
 
@@ -335,7 +343,7 @@ static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
  */
 void BKE_lib_id_expand_local(Main *bmain, ID *id)
 {
-  BKE_library_foreach_ID_link(bmain, id, lib_id_expand_local_cb, NULL, IDWALK_READONLY);
+  BKE_library_foreach_ID_link(bmain, id, lib_id_expand_local_cb, bmain, IDWALK_READONLY);
 }
 
 /**
@@ -392,6 +400,13 @@ void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
         bNodeTree *ntree = ntreeFromID(id), *ntree_new = ntreeFromID(id_new);
         if (ntree && ntree_new) {
           ID_NEW_SET(ntree, ntree_new);
+        }
+        if (GS(id->name) == ID_SCE) {
+          Collection *master_collection = ((Scene *)id)->master_collection,
+                     *master_collection_new = ((Scene *)id_new)->master_collection;
+          if (master_collection && master_collection_new) {
+            ID_NEW_SET(master_collection, master_collection_new);
+          }
         }
 
         if (!lib_local) {
