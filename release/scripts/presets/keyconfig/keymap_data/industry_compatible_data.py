@@ -3768,6 +3768,8 @@ def km_object_non_modal(params):
     )
 
     items.extend([
+        ("object.mode_set",{"type": 'ONE', "value": 'PRESS'},
+         {"properties": [("mode", 'PAINT_GPENCIL')]}),
         ("object.mode_set",{"type": 'THREE', "value": 'PRESS'},
          {"properties": [("mode", 'POSE')]}),
         ("object.mode_set_with_submode",{"type": 'ONE', "value": 'PRESS'},
@@ -3790,11 +3792,11 @@ def km_object_non_modal(params):
          {"properties": [("mode", 'TEXTURE_PAINT')]}),
         ("object.mode_set",{"type": 'TWO', "value": 'PRESS'},
          {"properties": [("mode", 'EDIT_GPENCIL')]}),
-        ("object.mode_set",{"type": 'THREE', "value": 'PRESS'},
-         {"properties": [("mode", 'SCULPT_GPENCIL')]}),
-        ("object.mode_set",{"type": 'FOUR', "value": 'PRESS'},
-         {"properties": [("mode", 'PAINT_GPENCIL')]}),
         ("object.mode_set",{"type": 'FIVE', "value": 'PRESS'},
+         {"properties": [("mode", 'SCULPT_GPENCIL')]}),
+        ("object.mode_set",{"type": 'SIX', "value": 'PRESS'},
+         {"properties": [("mode", 'VERTEX_GPENCIL')]}),
+        ("object.mode_set",{"type": 'SEVEN', "value": 'PRESS'},
          {"properties": [("mode", 'WEIGHT_GPENCIL')]}),
 
     ])
