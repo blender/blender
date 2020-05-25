@@ -866,26 +866,6 @@ Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm,
   return mesh;
 }
 
-/**
- * TODO(campbell): support mesh with only an edit-mesh which is lazy initialized.
- */
-Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(BMEditMesh *em,
-                                                   const CustomData_MeshMasks *cd_mask_extra,
-                                                   float (*vertexCos)[3],
-                                                   const Mesh *me_settings)
-{
-  Mesh *me = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, cd_mask_extra, me_settings);
-  /* Use editmesh directly where possible. */
-  me->runtime.is_original = true;
-  if (vertexCos) {
-    /* We will own this array in the future. */
-    BKE_mesh_vert_coords_apply(me, vertexCos);
-    MEM_freeN(vertexCos);
-    me->runtime.is_original = false;
-  }
-  return me;
-}
-
 BoundBox *BKE_mesh_boundbox_get(Object *ob)
 {
   /* This is Object-level data access,
@@ -895,7 +875,7 @@ BoundBox *BKE_mesh_boundbox_get(Object *ob)
     float min[3], max[3];
 
     INIT_MINMAX(min, max);
-    if (!BKE_mesh_minmax(me, min, max)) {
+    if (!BKE_mesh_wrapper_minmax(me, min, max)) {
       min[0] = min[1] = min[2] = -1.0f;
       max[0] = max[1] = max[2] = 1.0f;
     }
@@ -916,7 +896,7 @@ void BKE_mesh_texspace_calc(Mesh *me)
     float min[3], max[3];
 
     INIT_MINMAX(min, max);
-    if (!BKE_mesh_minmax(me, min, max)) {
+    if (!BKE_mesh_wrapper_minmax(me, min, max)) {
       min[0] = min[1] = min[2] = -1.0f;
       max[0] = max[1] = max[2] = 1.0f;
     }

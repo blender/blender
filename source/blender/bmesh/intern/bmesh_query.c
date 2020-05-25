@@ -1568,6 +1568,41 @@ float BM_loop_calc_face_normal_safe_ex(const BMLoop *l, const float epsilon_sq, 
 }
 
 /**
+ * A version of BM_loop_calc_face_normal_safe_ex which takes vertex coordinates.
+ */
+float BM_loop_calc_face_normal_safe_vcos_ex(const BMLoop *l,
+                                            const float normal_fallback[3],
+                                            float const (*vertexCos)[3],
+                                            const float epsilon_sq,
+                                            float r_normal[3])
+{
+  const int i_prev = BM_elem_index_get(l->prev->v);
+  const int i_next = BM_elem_index_get(l->next->v);
+  const int i = BM_elem_index_get(l->v);
+
+  float v1[3], v2[3], v_tmp[3];
+  sub_v3_v3v3(v1, vertexCos[i_prev], vertexCos[i]);
+  sub_v3_v3v3(v2, vertexCos[i_next], vertexCos[i]);
+
+  const float fac = ((v2[0] == 0.0f) ?
+                         ((v2[1] == 0.0f) ? ((v2[2] == 0.0f) ? 0.0f : v1[2] / v2[2]) :
+                                            v1[1] / v2[1]) :
+                         v1[0] / v2[0]);
+
+  mul_v3_v3fl(v_tmp, v2, fac);
+  sub_v3_v3(v_tmp, v1);
+  if (fac != 0.0f && !is_zero_v3(v1) && len_squared_v3(v_tmp) > epsilon_sq) {
+    /* Not co-linear, we can compute cross-product and normalize it into normal. */
+    cross_v3_v3v3(r_normal, v1, v2);
+    return normalize_v3(r_normal);
+  }
+  else {
+    copy_v3_v3(r_normal, normal_fallback);
+    return 0.0f;
+  }
+}
+
+/**
  * #BM_loop_calc_face_normal_safe_ex with pre-defined sane epsilon.
  *
  * Since this doesn't scale based on triangle size, fixed value works well.
@@ -1575,6 +1610,15 @@ float BM_loop_calc_face_normal_safe_ex(const BMLoop *l, const float epsilon_sq, 
 float BM_loop_calc_face_normal_safe(const BMLoop *l, float r_normal[3])
 {
   return BM_loop_calc_face_normal_safe_ex(l, 1e-5f, r_normal);
+}
+
+float BM_loop_calc_face_normal_safe_vcos(const BMLoop *l,
+                                         const float normal_fallback[3],
+                                         float const (*vertexCos)[3],
+                                         float r_normal[3])
+
+{
+  return BM_loop_calc_face_normal_safe_vcos_ex(l, normal_fallback, vertexCos, 1e-5f, r_normal);
 }
 
 /**

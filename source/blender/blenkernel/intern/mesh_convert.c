@@ -1076,6 +1076,10 @@ static Mesh *mesh_new_from_mball_object(Object *object)
 
 static Mesh *mesh_new_from_mesh(Object *object, Mesh *mesh)
 {
+  /* While we could copy this into the new mesh,
+   * add the data to 'mesh' so future calls to this function don't need to re-convert the data. */
+  BKE_mesh_wrapper_ensure_mdata(mesh);
+
   Mesh *mesh_result = NULL;
   BKE_id_copy_ex(NULL,
                  &mesh->id,

@@ -96,11 +96,25 @@ static void mesh_cd_calc_edit_uv_layer(const Mesh *UNUSED(me), DRW_MeshCDMask *c
   cd_used->edit_uv = 1;
 }
 
+BLI_INLINE const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *me)
+{
+  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+    case ME_WRAPPER_TYPE_MDATA:
+      return &me->ldata;
+      break;
+    case ME_WRAPPER_TYPE_BMESH:
+      return &me->edit_mesh->bm->ldata;
+      break;
+  }
+
+  BLI_assert(0);
+  return &me->ldata;
+}
+
 static void mesh_cd_calc_active_uv_layer(const Mesh *me, DRW_MeshCDMask *cd_used)
 {
   const Mesh *me_final = (me->edit_mesh) ? me->edit_mesh->mesh_eval_final : me;
-  const CustomData *cd_ldata = &me_final->ldata;
-
+  const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
   int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
   if (layer != -1) {
     cd_used->uv |= (1 << layer);
@@ -110,8 +124,7 @@ static void mesh_cd_calc_active_uv_layer(const Mesh *me, DRW_MeshCDMask *cd_used
 static void mesh_cd_calc_active_mask_uv_layer(const Mesh *me, DRW_MeshCDMask *cd_used)
 {
   const Mesh *me_final = (me->edit_mesh) ? me->edit_mesh->mesh_eval_final : me;
-  const CustomData *cd_ldata = &me_final->ldata;
-
+  const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
   int layer = CustomData_get_stencil_layer(cd_ldata, CD_MLOOPUV);
   if (layer != -1) {
     cd_used->uv |= (1 << layer);
@@ -121,8 +134,7 @@ static void mesh_cd_calc_active_mask_uv_layer(const Mesh *me, DRW_MeshCDMask *cd
 static void mesh_cd_calc_active_vcol_layer(const Mesh *me, DRW_MeshCDMask *cd_used)
 {
   const Mesh *me_final = (me->edit_mesh) ? me->edit_mesh->mesh_eval_final : me;
-  const CustomData *cd_ldata = &me_final->ldata;
-
+  const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
   int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
   if (layer != -1) {
     cd_used->vcol |= (1 << layer);
@@ -134,7 +146,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
                                                    int gpumat_array_len)
 {
   const Mesh *me_final = (me->edit_mesh) ? me->edit_mesh->mesh_eval_final : me;
-  const CustomData *cd_ldata = &me_final->ldata;
+  const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
 
   /* See: DM_vertex_attributes_from_gpu for similar logic */
   DRW_MeshCDMask cd_used;

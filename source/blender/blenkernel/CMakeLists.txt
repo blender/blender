@@ -168,6 +168,7 @@ set(SRC
   intern/mesh_runtime.c
   intern/mesh_tangent.c
   intern/mesh_validate.c
+  intern/mesh_wrapper.c
   intern/modifier.c
   intern/movieclip.c
   intern/multires.c

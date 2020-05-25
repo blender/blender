@@ -50,6 +50,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_appdir.h"
 #include "BKE_editmesh.h"
+#include "BKE_editmesh_cache.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
@@ -934,6 +935,30 @@ void BKE_modifier_path_init(char *path, int path_maxlen, const char *name)
   BLI_join_dirfile(path, path_maxlen, G.relbase_valid ? "//" : BKE_tempdir_session(), name);
 }
 
+/**
+ * Call when #ModifierTypeInfo.dependsOnNormals callback requests normals.
+ */
+static void modwrap_dependsOnNormals(Mesh *me)
+{
+  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+    case ME_WRAPPER_TYPE_BMESH: {
+      EditMeshData *edit_data = me->runtime.edit_data;
+      if (edit_data->vertexCos) {
+        /* Note that 'ensure' is acceptable here since these values aren't modified in-place.
+         * If that changes we'll need to recalculate. */
+        BKE_editmesh_cache_ensure_vert_normals(me->edit_mesh, edit_data);
+      }
+      else {
+        BM_mesh_normals_update(me->edit_mesh->bm);
+      }
+      break;
+    }
+    case ME_WRAPPER_TYPE_MDATA:
+      BKE_mesh_calc_normals(me);
+      break;
+  }
+}
+
 /* wrapper around ModifierTypeInfo.modifyMesh that ensures valid normals */
 
 struct Mesh *BKE_modifier_modify_mesh(ModifierData *md,
@@ -943,8 +968,14 @@ struct Mesh *BKE_modifier_modify_mesh(ModifierData *md,
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   BLI_assert(CustomData_has_layer(&me->pdata, CD_NORMAL) == false);
 
+  if (me->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+    if ((mti->flags & eModifierTypeFlag_AcceptsBMesh) == 0) {
+      BKE_mesh_wrapper_ensure_mdata(me);
+    }
+  }
+
   if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
-    BKE_mesh_calc_normals(me);
+    modwrap_dependsOnNormals(me);
   }
   return mti->modifyMesh(md, ctx, me);
 }
@@ -959,7 +990,7 @@ void BKE_modifier_deform_verts(ModifierData *md,
   BLI_assert(!me || CustomData_has_layer(&me->pdata, CD_NORMAL) == false);
 
   if (me && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
-    BKE_mesh_calc_normals(me);
+    modwrap_dependsOnNormals(me);
   }
   mti->deformVerts(md, ctx, me, vertexCos, numVerts);
 }

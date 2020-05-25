@@ -112,7 +112,20 @@ typedef struct Mesh_Runtime {
    * In the future we may leave the mesh-data empty
    * since its not needed if we can use edit-mesh data. */
   char is_original;
-  char _pad[6];
+
+  /** #eMeshWrapperType and others. */
+  char wrapper_type;
+  /**
+   * A type mask from wrapper_type,
+   * in case there are differences in finalizing logic between types.
+   */
+  char wrapper_type_finalize;
+
+  char _pad[4];
+
+  /** Needed in case we need to lazily initialize the mesh. */
+  CustomData_MeshMasks cd_mask_extra;
+
 } Mesh_Runtime;
 
 typedef struct Mesh {
@@ -227,6 +240,15 @@ typedef struct TFace {
 #endif
 
 /* **************** MESH ********************* */
+
+/** #Mesh_Runtime.wrapper_type */
+typedef enum eMeshWrapperType {
+  /** Use mesh data (#Mesh.mvert,#Mesh.medge, #Mesh.mloop, #Mesh.mpoly). */
+  ME_WRAPPER_TYPE_MDATA = 0,
+  /** Use edit-mesh data (#Mesh.#edit_mesh, #Mesh_Runtime.edit_data). */
+  ME_WRAPPER_TYPE_BMESH = 1,
+  /* ME_WRAPPER_TYPE_SUBD = 2, */ /* TODO */
+} eMeshWrapperType;
 
 /* texflag */
 enum {

@@ -22,10 +22,16 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_vector.h"
+
 #include "DNA_mesh_types.h"
 
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h" /* own include */
+
+/* -------------------------------------------------------------------- */
+/** \name Ensure Data (derived from coords)
+ * \{ */
 
 void BKE_editmesh_cache_ensure_poly_normals(BMEditMesh *em, EditMeshData *emd)
 {
@@ -112,3 +118,41 @@ void BKE_editmesh_cache_ensure_poly_centers(BMEditMesh *em, EditMeshData *emd)
 
   emd->polyCos = (const float(*)[3])polyCos;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Calculate Min/Max
+ * \{ */
+
+bool BKE_editmesh_cache_calc_minmax(struct BMEditMesh *em,
+                                    struct EditMeshData *emd,
+                                    float min[3],
+                                    float max[3])
+{
+  BMesh *bm = em->bm;
+  BMVert *eve;
+  BMIter iter;
+  int i;
+
+  if (bm->totvert) {
+    if (emd->vertexCos) {
+      BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
+        minmax_v3v3_v3(min, max, emd->vertexCos[i]);
+      }
+    }
+    else {
+      BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+        minmax_v3v3_v3(min, max, eve->co);
+      }
+    }
+    return true;
+  }
+  else {
+    zero_v3(min);
+    zero_v3(max);
+    return false;
+  }
+}
+
+/** \} */

@@ -35,6 +35,7 @@
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_particle.h"
@@ -782,6 +783,11 @@ static void deformVertsEM(ModifierData *md,
 {
   Mesh *mesh_src = MOD_deform_mesh_eval_get(
       ctx->object, editData, mesh, NULL, numVerts, false, false);
+
+  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  if (mesh_src != NULL) {
+    BKE_mesh_wrapper_ensure_mdata(mesh_src);
+  }
 
   LaplacianDeformModifier_do(
       (LaplacianDeformModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);

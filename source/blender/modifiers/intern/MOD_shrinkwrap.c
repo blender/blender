@@ -142,6 +142,11 @@ static void deformVertsEM(ModifierData *md,
     mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
   }
 
+  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  if (mesh_src != NULL) {
+    BKE_mesh_wrapper_ensure_mdata(mesh_src);
+  }
+
   struct MDeformVert *dvert = NULL;
   int defgrp_index = -1;
   if (swmd->vgroup_name[0] != '\0') {

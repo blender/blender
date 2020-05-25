@@ -105,6 +105,14 @@ typedef struct MeshRenderData {
   BMEditMesh *edit_bmesh;
   BMesh *bm;
   EditMeshData *edit_data;
+
+  /* For deformed edit-mesh data. */
+  /* Use for #ME_WRAPPER_TYPE_BMESH. */
+  const float (*bm_vert_coords)[3];
+  const float (*bm_vert_normals)[3];
+  const float (*bm_poly_normals)[3];
+  const float (*bm_poly_centers)[3];
+
   int *v_origindex, *e_origindex, *p_origindex;
   int crease_ofs;
   int bweight_ofs;
@@ -151,9 +159,24 @@ static MeshRenderData *mesh_render_data_create(Mesh *me,
     BLI_assert(me->edit_mesh->mesh_eval_cage && me->edit_mesh->mesh_eval_final);
     mr->bm = me->edit_mesh->bm;
     mr->edit_bmesh = me->edit_mesh;
-    mr->edit_data = me->runtime.edit_data;
     mr->me = (do_final) ? me->edit_mesh->mesh_eval_final : me->edit_mesh->mesh_eval_cage;
-    bool use_mapped = !do_uvedit && mr->me && !mr->me->runtime.is_original;
+    mr->edit_data = mr->me->runtime.edit_data;
+
+    if (mr->edit_data) {
+      EditMeshData *emd = mr->edit_data;
+      if (emd->vertexCos) {
+        BKE_editmesh_cache_ensure_vert_normals(mr->edit_bmesh, emd);
+        BKE_editmesh_cache_ensure_poly_normals(mr->edit_bmesh, emd);
+      }
+
+      mr->bm_vert_coords = mr->edit_data->vertexCos;
+      mr->bm_vert_normals = mr->edit_data->vertexNos;
+      mr->bm_poly_normals = mr->edit_data->polyNos;
+      mr->bm_poly_centers = mr->edit_data->polyCos;
+    }
+
+    bool has_mdata = (mr->me->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA);
+    bool use_mapped = has_mdata && !do_uvedit && mr->me && !mr->me->runtime.is_original;
 
     int bm_ensure_types = BM_VERT | BM_EDGE | BM_LOOP | BM_FACE;
 
@@ -184,7 +207,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me,
 
     /* Seems like the mesh_eval_final do not have the right origin indices.
      * Force not mapped in this case. */
-    if (do_final && me->edit_mesh->mesh_eval_final != me->edit_mesh->mesh_eval_cage) {
+    if (has_mdata && do_final && me->edit_mesh->mesh_eval_final != me->edit_mesh->mesh_eval_cage) {
       // mr->edit_bmesh = NULL;
       mr->extract_type = MR_EXTRACT_MESH;
     }
@@ -311,12 +334,23 @@ static MeshRenderData *mesh_render_data_create(Mesh *me,
       /* Use bmface->no instead. */
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
+
+      const float(*vert_coords)[3] = NULL;
+      const float(*vert_normals)[3] = NULL;
+      const float(*poly_normals)[3] = NULL;
+
+      if (mr->edit_data && mr->edit_data->vertexCos) {
+        vert_coords = mr->bm_vert_coords;
+        vert_normals = mr->bm_vert_normals;
+        poly_normals = mr->bm_poly_normals;
+      }
+
       mr->loop_normals = MEM_mallocN(sizeof(*mr->loop_normals) * mr->loop_len, __func__);
       int clnors_offset = CustomData_get_offset(&mr->bm->ldata, CD_CUSTOMLOOPNORMAL);
       BM_loops_calc_normal_vcos(mr->bm,
-                                NULL,
-                                NULL,
-                                NULL,
+                                vert_coords,
+                                vert_normals,
+                                poly_normals,
                                 is_auto_smooth,
                                 split_angle,
                                 mr->loop_normals,
@@ -394,6 +428,42 @@ BLI_INLINE BMVert *bm_original_vert_get(const MeshRenderData *mr, int idx)
   return ((mr->v_origindex != NULL) && (mr->v_origindex[idx] != ORIGINDEX_NONE) && mr->bm) ?
              BM_vert_at_index(mr->bm, mr->v_origindex[idx]) :
              NULL;
+}
+
+BLI_INLINE const float *bm_vert_co_get(const MeshRenderData *mr, const BMVert *eve)
+{
+  const float(*vert_coords)[3] = mr->bm_vert_coords;
+  if (vert_coords != NULL) {
+    return vert_coords[BM_elem_index_get(eve)];
+  }
+  else {
+    UNUSED_VARS(mr);
+    return eve->co;
+  }
+}
+
+BLI_INLINE const float *bm_vert_no_get(const MeshRenderData *mr, const BMVert *eve)
+{
+  const float(*vert_normals)[3] = mr->bm_vert_normals;
+  if (vert_normals != NULL) {
+    return vert_normals[BM_elem_index_get(eve)];
+  }
+  else {
+    UNUSED_VARS(mr);
+    return eve->co;
+  }
+}
+
+BLI_INLINE const float *bm_face_no_get(const MeshRenderData *mr, const BMFace *efa)
+{
+  const float(*poly_normals)[3] = mr->bm_poly_normals;
+  if (poly_normals != NULL) {
+    return poly_normals[BM_elem_index_get(efa)];
+  }
+  else {
+    UNUSED_VARS(mr);
+    return efa->no;
+  }
 }
 
 /** \} */
@@ -1480,7 +1550,7 @@ static void *extract_pos_nor_init(const MeshRenderData *mr, void *buf)
     BMVert *eve;
     int v;
     BM_ITER_MESH_INDEX (eve, &iter, mr->bm, BM_VERTS_OF_MESH, v) {
-      data->packed_nor[v] = GPU_normal_convert_i10_v3(eve->no);
+      data->packed_nor[v] = GPU_normal_convert_i10_v3(bm_vert_no_get(mr, eve));
     }
   }
   else {
@@ -1492,14 +1562,11 @@ static void *extract_pos_nor_init(const MeshRenderData *mr, void *buf)
   return data;
 }
 
-static void extract_pos_nor_loop_bmesh(const MeshRenderData *UNUSED(mr),
-                                       int l,
-                                       BMLoop *loop,
-                                       void *_data)
+static void extract_pos_nor_loop_bmesh(const MeshRenderData *mr, int l, BMLoop *loop, void *_data)
 {
   MeshExtract_PosNor_Data *data = _data;
   PosNorLoop *vert = data->vbo_data + l;
-  copy_v3_v3(vert->pos, loop->v->co);
+  copy_v3_v3(vert->pos, bm_vert_co_get(mr, loop->v));
   vert->nor = data->packed_nor[BM_elem_index_get(loop->v)];
   BMFace *efa = loop->f;
   vert->nor.w = BM_elem_flag_test(efa, BM_ELEM_HIDDEN) ? -1 : 0;
@@ -1536,8 +1603,8 @@ static void extract_pos_nor_ledge_bmesh(const MeshRenderData *mr, int e, BMEdge 
   int l = mr->loop_len + e * 2;
   MeshExtract_PosNor_Data *data = _data;
   PosNorLoop *vert = data->vbo_data + l;
-  copy_v3_v3(vert[0].pos, eed->v1->co);
-  copy_v3_v3(vert[1].pos, eed->v2->co);
+  copy_v3_v3(vert[0].pos, bm_vert_co_get(mr, eed->v1));
+  copy_v3_v3(vert[1].pos, bm_vert_co_get(mr, eed->v2));
   vert[0].nor = data->packed_nor[BM_elem_index_get(eed->v1)];
   vert[1].nor = data->packed_nor[BM_elem_index_get(eed->v2)];
 }
@@ -1561,7 +1628,7 @@ static void extract_pos_nor_lvert_bmesh(const MeshRenderData *mr, int v, BMVert 
   int l = mr->loop_len + mr->edge_loose_len * 2 + v;
   MeshExtract_PosNor_Data *data = _data;
   PosNorLoop *vert = data->vbo_data + l;
-  copy_v3_v3(vert->pos, eve->co);
+  copy_v3_v3(vert->pos, bm_vert_co_get(mr, eve));
   vert->nor = data->packed_nor[BM_elem_index_get(eve)];
 }
 
@@ -1627,10 +1694,10 @@ static void extract_lnor_hq_loop_bmesh(const MeshRenderData *mr, int l, BMLoop *
     normal_float_to_short_v3(&((gpuHQNor *)data)[l].x, mr->loop_normals[l]);
   }
   else if (BM_elem_flag_test(loop->f, BM_ELEM_SMOOTH)) {
-    normal_float_to_short_v3(&((gpuHQNor *)data)[l].x, loop->v->no);
+    normal_float_to_short_v3(&((gpuHQNor *)data)[l].x, bm_vert_no_get(mr, loop->v));
   }
   else {
-    normal_float_to_short_v3(&((gpuHQNor *)data)[l].x, loop->f->no);
+    normal_float_to_short_v3(&((gpuHQNor *)data)[l].x, bm_face_no_get(mr, loop->f));
   }
 }
 
@@ -1704,10 +1771,10 @@ static void extract_lnor_loop_bmesh(const MeshRenderData *mr, int l, BMLoop *loo
     ((GPUPackedNormal *)data)[l] = GPU_normal_convert_i10_v3(mr->loop_normals[l]);
   }
   else if (BM_elem_flag_test(loop->f, BM_ELEM_SMOOTH)) {
-    ((GPUPackedNormal *)data)[l] = GPU_normal_convert_i10_v3(loop->v->no);
+    ((GPUPackedNormal *)data)[l] = GPU_normal_convert_i10_v3(bm_vert_no_get(mr, loop->v));
   }
   else {
-    ((GPUPackedNormal *)data)[l] = GPU_normal_convert_i10_v3(loop->f->no);
+    ((GPUPackedNormal *)data)[l] = GPU_normal_convert_i10_v3(bm_face_no_get(mr, loop->f));
   }
   BMFace *efa = loop->f;
   ((GPUPackedNormal *)data)[l].w = BM_elem_flag_test(efa, BM_ELEM_HIDDEN) ? -1 : 0;
@@ -1915,7 +1982,10 @@ static void extract_tan_ex(const MeshRenderData *mr, GPUVertBuf *vbo, const bool
     if (mr->extract_type == MR_EXTRACT_BMESH) {
       BMesh *bm = mr->bm;
       for (int v = 0; v < mr->vert_len; v++) {
-        copy_v3_v3(orco[v], BM_vert_at_index(bm, v)->co);
+        const BMVert *eve = BM_vert_at_index(bm, v);
+        /* Exceptional case where #bm_vert_co_get can be avoided, as we want the original coords.
+         * not the distorted ones. */
+        copy_v3_v3(orco[v], eve->co);
       }
     }
     else {
@@ -2301,14 +2371,14 @@ static void *extract_edge_fac_init(const MeshRenderData *mr, void *buf)
   return data;
 }
 
-static void extract_edge_fac_loop_bmesh(const MeshRenderData *UNUSED(mr),
-                                        int l,
-                                        BMLoop *loop,
-                                        void *_data)
+static void extract_edge_fac_loop_bmesh(const MeshRenderData *mr, int l, BMLoop *loop, void *_data)
 {
   MeshExtract_EdgeFac_Data *data = (MeshExtract_EdgeFac_Data *)_data;
   if (BM_edge_is_manifold(loop->e)) {
-    float ratio = loop_edge_factor_get(loop->f->no, loop->v->co, loop->v->no, loop->next->v->co);
+    float ratio = loop_edge_factor_get(bm_face_no_get(mr, loop->f),
+                                       bm_vert_co_get(mr, loop->v),
+                                       bm_vert_no_get(mr, loop->v),
+                                       bm_vert_co_get(mr, loop->next->v));
     data->vbo_data[l] = ratio * 253 + 1;
   }
   else {
@@ -3133,7 +3203,7 @@ static void *extract_stretch_angle_init(const MeshRenderData *mr, void *buf)
   return data;
 }
 
-static void extract_stretch_angle_loop_bmesh(const MeshRenderData *UNUSED(mr),
+static void extract_stretch_angle_loop_bmesh(const MeshRenderData *mr,
                                              int l,
                                              BMLoop *loop,
                                              void *_data)
@@ -3150,8 +3220,12 @@ static void extract_stretch_angle_loop_bmesh(const MeshRenderData *UNUSED(mr),
     BMLoop *l_next_tmp = loop;
     luv = BM_ELEM_CD_GET_VOID_P(l_tmp, data->cd_ofs);
     luv_next = BM_ELEM_CD_GET_VOID_P(l_next_tmp, data->cd_ofs);
-    compute_normalize_edge_vectors(
-        auv, av, luv->uv, luv_next->uv, l_tmp->v->co, l_next_tmp->v->co);
+    compute_normalize_edge_vectors(auv,
+                                   av,
+                                   luv->uv,
+                                   luv_next->uv,
+                                   bm_vert_co_get(mr, l_tmp->v),
+                                   bm_vert_co_get(mr, l_next_tmp->v));
     /* Save last edge. */
     copy_v2_v2(last_auv, auv[1]);
     copy_v3_v3(last_av, av[1]);
@@ -3167,7 +3241,12 @@ static void extract_stretch_angle_loop_bmesh(const MeshRenderData *UNUSED(mr),
   else {
     luv = BM_ELEM_CD_GET_VOID_P(loop, data->cd_ofs);
     luv_next = BM_ELEM_CD_GET_VOID_P(l_next, data->cd_ofs);
-    compute_normalize_edge_vectors(auv, av, luv->uv, luv_next->uv, loop->v->co, l_next->v->co);
+    compute_normalize_edge_vectors(auv,
+                                   av,
+                                   luv->uv,
+                                   luv_next->uv,
+                                   bm_vert_co_get(mr, loop->v),
+                                   bm_vert_co_get(mr, l_next->v));
   }
   edituv_get_stretch_angle(auv, av, data->vbo_data + l);
 }
@@ -3307,7 +3386,7 @@ static void statvis_calc_overhang(const MeshRenderData *mr, float *r_overhang)
   if (mr->extract_type == MR_EXTRACT_BMESH) {
     int l = 0;
     BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-      float fac = angle_normalized_v3v3(f->no, dir) / (float)M_PI;
+      float fac = angle_normalized_v3v3(bm_face_no_get(mr, f), dir) / (float)M_PI;
       fac = overhang_remap(fac, min, max, minmax_irange);
       for (int i = 0; i < f->len; i++, l++) {
         r_overhang[l] = fac;
@@ -3385,7 +3464,11 @@ static void statvis_calc_thickness(const MeshRenderData *mr, float *r_thickness)
     for (int i = 0; i < mr->tri_len; i++) {
       BMLoop **ltri = looptris[i];
       const int index = BM_elem_index_get(ltri[0]->f);
-      const float *cos[3] = {ltri[0]->v->co, ltri[1]->v->co, ltri[2]->v->co};
+      const float *cos[3] = {
+          bm_vert_co_get(mr, ltri[0]->v),
+          bm_vert_co_get(mr, ltri[1]->v),
+          bm_vert_co_get(mr, ltri[2]->v),
+      };
       float ray_co[3];
       float ray_no[3];
 
@@ -3398,7 +3481,8 @@ static void statvis_calc_thickness(const MeshRenderData *mr, float *r_thickness)
 
         BMFace *f_hit = BKE_bmbvh_ray_cast(bmtree, ray_co, ray_no, 0.0f, &dist, NULL, NULL);
         if (f_hit && dist < face_dists[index]) {
-          float angle_fac = fabsf(dot_v3v3(ltri[0]->f->no, f_hit->no));
+          float angle_fac = fabsf(
+              dot_v3v3(bm_face_no_get(mr, ltri[0]->f), bm_face_no_get(mr, f_hit)));
           angle_fac = 1.0f - angle_fac;
           angle_fac = angle_fac * angle_fac * angle_fac;
           angle_fac = 1.0f - angle_fac;
@@ -3603,8 +3687,17 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
     BMesh *bm = em->bm;
     BMFace *f;
 
+    if (mr->bm_vert_coords != NULL) {
+      BKE_editmesh_cache_ensure_poly_normals(em, mr->edit_data);
+
+      /* Most likely this is already valid, ensure just in case.
+       * Needed for #BM_loop_calc_face_normal_safe_vcos. */
+      BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+    }
+
     int l = 0;
-    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    int p = 0;
+    BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, p) {
       float fac = -1.0f;
 
       if (f->len > 3) {
@@ -3613,13 +3706,23 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
         fac = 0.0f;
         l_iter = l_first = BM_FACE_FIRST_LOOP(f);
         do {
+          const float *no_face;
           float no_corner[3];
-          BM_loop_calc_face_normal_safe(l_iter, no_corner);
+          if (mr->bm_vert_coords != NULL) {
+            no_face = mr->bm_poly_normals[p];
+            BM_loop_calc_face_normal_safe_vcos(l_iter, no_face, mr->bm_vert_coords, no_corner);
+          }
+          else {
+            no_face = f->no;
+            BM_loop_calc_face_normal_safe(l_iter, no_corner);
+          }
+
           /* simple way to detect (what is most likely) concave */
-          if (dot_v3v3(f->no, no_corner) < 0.0f) {
+          if (dot_v3v3(no_face, no_corner) < 0.0f) {
             negate_v3(no_corner);
           }
-          fac = max_ff(fac, angle_normalized_v3v3(f->no, no_corner));
+          fac = max_ff(fac, angle_normalized_v3v3(no_face, no_corner));
+
         } while ((l_iter = l_iter->next) != l_first);
         fac *= 2.0f;
       }
@@ -3842,14 +3945,14 @@ static void *extract_fdots_pos_init(const MeshRenderData *mr, void *buf)
   return vbo->data;
 }
 
-static void extract_fdots_pos_loop_bmesh(const MeshRenderData *UNUSED(mr),
+static void extract_fdots_pos_loop_bmesh(const MeshRenderData *mr,
                                          int UNUSED(l),
                                          BMLoop *loop,
                                          void *data)
 {
   float(*center)[3] = (float(*)[3])data;
   float w = 1.0f / (float)loop->f->len;
-  madd_v3_v3fl(center[BM_elem_index_get(loop->f)], loop->v->co, w);
+  madd_v3_v3fl(center[BM_elem_index_get(loop->f)], bm_vert_co_get(mr, loop->v), w);
 }
 
 static void extract_fdots_pos_loop_mesh(const MeshRenderData *mr,
@@ -3928,7 +4031,7 @@ static void extract_fdots_nor_finish(const MeshRenderData *mr, void *buf, void *
         nor[f].w = NOR_AND_FLAG_HIDDEN;
       }
       else {
-        nor[f] = GPU_normal_convert_i10_v3(efa->no);
+        nor[f] = GPU_normal_convert_i10_v3(bm_face_no_get(mr, efa));
         /* Select / Active Flag. */
         nor[f].w = (BM_elem_flag_test(efa, BM_ELEM_SELECT) ?
                         ((efa == mr->efa_act) ? NOR_AND_FLAG_ACTIVE : NOR_AND_FLAG_SELECT) :
@@ -3946,7 +4049,7 @@ static void extract_fdots_nor_finish(const MeshRenderData *mr, void *buf, void *
         nor[f].w = NOR_AND_FLAG_HIDDEN;
       }
       else {
-        nor[f] = GPU_normal_convert_i10_v3(efa->no);
+        nor[f] = GPU_normal_convert_i10_v3(bm_face_no_get(mr, efa));
         /* Select / Active Flag. */
         nor[f].w = (BM_elem_flag_test(efa, BM_ELEM_SELECT) ?
                         ((efa == mr->efa_act) ? NOR_AND_FLAG_ACTIVE : NOR_AND_FLAG_SELECT) :
@@ -4171,7 +4274,7 @@ static void *extract_skin_roots_init(const MeshRenderData *mr, void *buf)
     const MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, cd_ofs);
     if (vs->flag & MVERT_SKIN_ROOT) {
       vbo_data->size = (vs->radius[0] + vs->radius[1]) * 0.5f;
-      copy_v3_v3(vbo_data->local_pos, eve->co);
+      copy_v3_v3(vbo_data->local_pos, bm_vert_co_get(mr, eve));
       vbo_data++;
       root_len++;
     }

@@ -374,16 +374,19 @@ static bool walk_floor_distance_get(RegionView3D *rv3d,
   mul_v3_v3fl(dvec_tmp, dvec, walk->grid);
   add_v3_v3(ray_start, dvec_tmp);
 
-  ret = ED_transform_snap_object_project_ray(walk->snap_context,
-                                             walk->depsgraph,
-                                             &(const struct SnapObjectParams){
-                                                 .snap_select = SNAP_ALL,
-                                             },
-                                             ray_start,
-                                             ray_normal,
-                                             r_distance,
-                                             r_location,
-                                             r_normal_dummy);
+  ret = ED_transform_snap_object_project_ray(
+      walk->snap_context,
+      walk->depsgraph,
+      &(const struct SnapObjectParams){
+          .snap_select = SNAP_ALL,
+          /* Avoid having to convert the edit-mesh to a regular mesh. */
+          .use_object_edit_cage = true,
+      },
+      ray_start,
+      ray_normal,
+      r_distance,
+      r_location,
+      r_normal_dummy);
 
   /* artificially scale the distance to the scene size */
   *r_distance /= walk->grid;

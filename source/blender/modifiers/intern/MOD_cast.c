@@ -502,8 +502,13 @@ static void deformVertsEM(ModifierData *md,
     mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
   }
 
-  if (mesh_src) {
+  if (mesh && mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA) {
     BLI_assert(mesh_src->totvert == numVerts);
+  }
+
+  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  if (mesh_src != NULL) {
+    BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
 
   if (cmd->type == MOD_CAST_TYPE_CUBOID) {

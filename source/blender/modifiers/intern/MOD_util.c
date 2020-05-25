@@ -196,7 +196,7 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
   }
   else if (ob->type == OB_MESH) {
     if (em) {
-      mesh = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL, ob->data);
+      mesh = BKE_mesh_wrapper_from_editmesh_with_coords(em, NULL, vertexCos, ob->data);
     }
     else {
       /* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether
@@ -209,9 +209,12 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
       mesh->runtime.deformed_only = 1;
     }
 
+    if (em != NULL) {
+      /* pass */
+    }
     /* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether
      * we really need vertexCos here. */
-    if (vertexCos) {
+    else if (vertexCos) {
       BKE_mesh_vert_coords_apply(mesh, vertexCos);
       mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
     }
@@ -241,7 +244,9 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
     }
   }
 
-  BLI_assert(mesh == NULL || mesh->totvert == num_verts);
+  if (mesh && mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA) {
+    BLI_assert(mesh->totvert == num_verts);
+  }
 
   return mesh;
 }

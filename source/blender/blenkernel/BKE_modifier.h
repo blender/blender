@@ -101,6 +101,9 @@ typedef enum {
   /* For modifiers that use CD_PREVIEW_MCOL for preview. */
   eModifierTypeFlag_UsesPreview = (1 << 9),
   eModifierTypeFlag_AcceptsVertexCosOnly = (1 << 10),
+
+  /** Accepts #BMesh input (without conversion). */
+  eModifierTypeFlag_AcceptsBMesh = (1 << 11),
 } ModifierTypeFlag;
 
 /* IMPORTANT! Keep ObjectWalkFunc and IDWalkFunc signatures compatible. */

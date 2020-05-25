@@ -293,7 +293,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
         cd_mask_extra = datamasks->mask;
         BLI_linklist_free((LinkNode *)datamasks, NULL);
 
-        me = BKE_mesh_from_editmesh_with_coords_thin_wrap(em, &cd_mask_extra, NULL, me_input);
+        me = BKE_mesh_wrapper_from_editmesh_with_coords(em, &cd_mask_extra, NULL, me_input);
         deformedVerts = editbmesh_vert_coords_alloc(em, &numVerts);
         defmats = MEM_mallocN(sizeof(*defmats) * numVerts, "defmats");
 

@@ -90,6 +90,8 @@
 static ThreadRWMutex loops_cache_lock = PTHREAD_RWLOCK_INITIALIZER;
 
 static void mesh_init_origspace(Mesh *mesh);
+static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
+                                                  const CustomData_MeshMasks *final_datamask);
 
 /* -------------------------------------------------------------------- */
 
@@ -861,6 +863,16 @@ static void mesh_calc_finalize(const Mesh *mesh_input, Mesh *mesh_eval)
   mesh_eval->edit_mesh = mesh_input->edit_mesh;
 }
 
+void BKE_mesh_wrapper_deferred_finalize(Mesh *me_eval,
+                                        const CustomData_MeshMasks *cd_mask_finalize)
+{
+  if (me_eval->runtime.wrapper_type_finalize & (1 << ME_WRAPPER_TYPE_BMESH)) {
+    editbmesh_calc_modifier_final_normals(me_eval, cd_mask_finalize);
+    me_eval->runtime.wrapper_type_finalize &= ~(1 << ME_WRAPPER_TYPE_BMESH);
+  }
+  BLI_assert(me_eval->runtime.wrapper_type_finalize == 0);
+}
+
 static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
                                 Scene *scene,
                                 Object *ob,
@@ -1391,11 +1403,16 @@ bool editbmesh_modifier_is_enabled(Scene *scene, ModifierData *md, bool has_prev
   return true;
 }
 
-static void editbmesh_calc_modifier_final_normals(const Mesh *mesh_input,
-                                                  const CustomData_MeshMasks *final_datamask,
-                                                  Mesh *mesh_final)
+static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
+                                                  const CustomData_MeshMasks *final_datamask)
 {
-  const bool do_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
+  if (mesh_final->runtime.wrapper_type != ME_WRAPPER_TYPE_MDATA) {
+    /* Generated at draw time. */
+    mesh_final->runtime.wrapper_type_finalize = (1 << mesh_final->runtime.wrapper_type);
+    return;
+  }
+
+  const bool do_loop_normals = ((mesh_final->flag & ME_AUTOSMOOTH) != 0 ||
                                 (final_datamask->lmask & CD_MASK_NORMAL) != 0);
   /* Some modifiers may need this info from their target (other) object,
    * simpler to generate it here as well. */
@@ -1501,7 +1518,7 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
   /* Evaluate modifiers up to certain index to get the mesh cage. */
   int cageIndex = BKE_modifiers_get_cage_index(scene, ob, NULL, 1);
   if (r_cage && cageIndex == -1) {
-    mesh_cage = BKE_mesh_from_editmesh_with_coords_thin_wrap(
+    mesh_cage = BKE_mesh_wrapper_from_editmesh_with_coords(
         em_input, &final_datamask, NULL, mesh_input);
   }
 
@@ -1574,12 +1591,9 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
         }
       }
       else {
-        mesh_final = BKE_mesh_from_bmesh_for_eval_nomain(em_input->bm, NULL, mesh_input);
-        ASSERT_IS_VALID_MESH(mesh_final);
-
-        if (deformed_verts) {
-          BKE_mesh_vert_coords_apply(mesh_final, deformed_verts);
-        }
+        mesh_final = BKE_mesh_wrapper_from_editmesh_with_coords(
+            em_input, NULL, deformed_verts, mesh_input);
+        deformed_verts = NULL;
       }
 
       /* create an orco derivedmesh in parallel */
@@ -1657,7 +1671,7 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
           BKE_mesh_runtime_ensure_edit_data(me_orig);
           me_orig->runtime.edit_data->vertexCos = MEM_dupallocN(deformed_verts);
         }
-        mesh_cage = BKE_mesh_from_editmesh_with_coords_thin_wrap(
+        mesh_cage = BKE_mesh_wrapper_from_editmesh_with_coords(
             em_input,
             &final_datamask,
             deformed_verts ? MEM_dupallocN(deformed_verts) : NULL,
@@ -1689,7 +1703,7 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
   }
   else {
     /* this is just a copy of the editmesh, no need to calc normals */
-    mesh_final = BKE_mesh_from_editmesh_with_coords_thin_wrap(
+    mesh_final = BKE_mesh_wrapper_from_editmesh_with_coords(
         em_input, &final_datamask, deformed_verts, mesh_input);
     deformed_verts = NULL;
   }
@@ -1700,6 +1714,9 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
 
   /* Add orco coordinates to final and deformed mesh if requested. */
   if (final_datamask.vmask & CD_MASK_ORCO) {
+    /* FIXME(Campbell): avoid the need to convert to mesh data just to add an orco layer. */
+    BKE_mesh_wrapper_ensure_mdata(mesh_final);
+
     add_orco_mesh(ob, em_input, mesh_final, mesh_orco, CD_ORCO);
   }
 
@@ -1707,10 +1724,15 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
     BKE_id_free(NULL, mesh_orco);
   }
 
+  /* Ensure normals calculation below is correct. */
+  BLI_assert((mesh_input->flag & ME_AUTOSMOOTH) == (mesh_final->flag & ME_AUTOSMOOTH));
+  BLI_assert(mesh_input->smoothresh == mesh_final->smoothresh);
+  BLI_assert(mesh_input->smoothresh == mesh_cage->smoothresh);
+
   /* Compute normals. */
-  editbmesh_calc_modifier_final_normals(mesh_input, &final_datamask, mesh_final);
+  editbmesh_calc_modifier_final_normals(mesh_final, &final_datamask);
   if (mesh_cage && (mesh_cage != mesh_final)) {
-    editbmesh_calc_modifier_final_normals(mesh_input, &final_datamask, mesh_cage);
+    editbmesh_calc_modifier_final_normals(mesh_cage, &final_datamask);
   }
 
   /* Return final mesh. */

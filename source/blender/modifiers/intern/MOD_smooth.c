@@ -216,6 +216,9 @@ static void deformVertsEM(ModifierData *md,
   /* mesh_src is needed for vgroups, and taking edges into account. */
   mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
 
+  /* TODO(campbell): use edit-mode data only (remove this line). */
+  BKE_mesh_wrapper_ensure_mdata(mesh_src);
+
   smoothModifier_do(smd, ctx->object, mesh_src, vertexCos, numVerts);
 
   if (!ELEM(mesh_src, NULL, mesh)) {

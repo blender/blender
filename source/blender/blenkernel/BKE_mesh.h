@@ -85,12 +85,6 @@ struct Mesh *BKE_mesh_from_bmesh_for_eval_nomain(struct BMesh *bm,
                                                  const struct CustomData_MeshMasks *cd_mask_extra,
                                                  const struct Mesh *me_settings);
 
-struct Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(
-    struct BMEditMesh *em,
-    const struct CustomData_MeshMasks *cd_mask_extra,
-    float (*vertexCos)[3],
-    const struct Mesh *me_settings);
-
 int poly_find_loop_from_vert(const struct MPoly *poly, const struct MLoop *loopstart, uint vert);
 int poly_get_adj_loops_from_vert(const struct MPoly *poly,
                                  const struct MLoop *mloop,
@@ -672,6 +666,23 @@ void BKE_mesh_calc_edges_legacy(struct Mesh *me, const bool use_old);
 void BKE_mesh_calc_edges_loose(struct Mesh *mesh);
 void BKE_mesh_calc_edges(struct Mesh *mesh, bool update, const bool select);
 void BKE_mesh_calc_edges_tessface(struct Mesh *mesh);
+
+/* *** mesh_geomtype.c *** */
+struct Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(
+    struct BMEditMesh *em,
+    const struct CustomData_MeshMasks *cd_mask_extra,
+    float (*vertexCos)[3],
+    const struct Mesh *me_settings);
+struct Mesh *BKE_mesh_wrapper_from_editmesh(struct BMEditMesh *em,
+                                            const struct CustomData_MeshMasks *cd_mask_extra,
+                                            const struct Mesh *me_settings);
+void BKE_mesh_wrapper_ensure_mdata(struct Mesh *me);
+bool BKE_mesh_wrapper_minmax(const struct Mesh *me, float min[3], float max[3]);
+void BKE_mesh_wrapper_normals_update(struct Mesh *me);
+
+/* In DerivedMesh.c */
+void BKE_mesh_wrapper_deferred_finalize(struct Mesh *me_eval,
+                                        const CustomData_MeshMasks *final_datamask);
 
 /* **** Depsgraph evaluation **** */
 

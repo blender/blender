@@ -142,6 +142,16 @@ float BM_loop_calc_face_normal(const BMLoop *l, float r_normal[3]) ATTR_NONNULL(
 float BM_loop_calc_face_normal_safe(const BMLoop *l, float r_normal[3]) ATTR_NONNULL();
 float BM_loop_calc_face_normal_safe_ex(const BMLoop *l, const float epsilon, float r_normal[3])
     ATTR_NONNULL();
+float BM_loop_calc_face_normal_safe_vcos_ex(const BMLoop *l,
+                                            const float normal_fallback[3],
+                                            float const (*vertexCos)[3],
+                                            const float epsilon_sq,
+                                            float r_normal[3]) ATTR_NONNULL();
+float BM_loop_calc_face_normal_safe_vcos(const BMLoop *l,
+                                         const float normal_fallback[3],
+                                         float const (*vertexCos)[3],
+                                         float r_normal[3]) ATTR_NONNULL();
+
 void BM_loop_calc_face_direction(const BMLoop *l, float r_normal[3]);
 void BM_loop_calc_face_tangent(const BMLoop *l, float r_tangent[3]);
 

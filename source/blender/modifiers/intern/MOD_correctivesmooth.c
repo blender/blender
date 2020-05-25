@@ -756,6 +756,11 @@ static void deformVertsEM(ModifierData *md,
   Mesh *mesh_src = MOD_deform_mesh_eval_get(
       ctx->object, editData, mesh, NULL, numVerts, false, false);
 
+  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  if (mesh_src != NULL) {
+    BKE_mesh_wrapper_ensure_mdata(mesh_src);
+  }
+
   correctivesmooth_modifier_do(
       md, ctx->depsgraph, ctx->object, mesh_src, vertexCos, (uint)numVerts, editData);
 

@@ -81,6 +81,7 @@
 #include "BKE_displist.h"
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
+#include "BKE_editmesh_cache.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
@@ -3089,7 +3090,7 @@ void BKE_object_boundbox_calc_from_mesh(struct Object *ob, struct Mesh *me_eval)
 
   INIT_MINMAX(min, max);
 
-  if (!BKE_mesh_minmax(me_eval, min, max)) {
+  if (!BKE_mesh_wrapper_minmax(me_eval, min, max)) {
     zero_v3(min);
     zero_v3(max);
   }
