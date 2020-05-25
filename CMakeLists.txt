@@ -628,12 +628,6 @@ if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
   message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
 endif()
 
-
-# may as well build python module without a UI
-if(WITH_PYTHON_MODULE)
-  set(WITH_HEADLESS ON)
-endif()
-
 if(NOT WITH_PYTHON)
   set(WITH_CYCLES OFF)
   set(WITH_DRACO OFF)
