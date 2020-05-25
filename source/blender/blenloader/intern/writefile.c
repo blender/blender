@@ -3917,6 +3917,11 @@ static void write_libraries(WriteData *wd, Main *main)
     if (main->curlib && main->curlib->packedfile) {
       found_one = true;
     }
+    else if (wd->use_memfile) {
+      /* When writing undo step we always write all existing libraries, makes reading undo step
+       * much easier when dealing with purely indirectly used libraries. */
+      found_one = true;
+    }
     else {
       found_one = false;
       while (!found_one && tot--) {
