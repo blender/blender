@@ -1155,7 +1155,7 @@ static void template_ID_tabs(bContext *C,
 {
   const ARegion *region = CTX_wm_region(C);
   const PointerRNA active_ptr = RNA_property_pointer_get(&template->ptr, template->prop);
-  MenuType *mt = WM_menutype_find(menu, false);
+  MenuType *mt = menu ? WM_menutype_find(menu, false) : NULL;
 
   const int but_align = ui_but_align_opposite_to_area_align_get(region);
   const int but_height = UI_UNIT_Y * 1.1;
