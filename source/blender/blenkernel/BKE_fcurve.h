@@ -37,6 +37,7 @@ struct FModifier;
 
 struct AnimData;
 struct BezTriple;
+struct LibraryForeachIDData;
 struct PathResolvedRNA;
 struct PointerRNA;
 struct PropertyRNA;
@@ -184,6 +185,8 @@ struct FCurve *copy_fcurve(const struct FCurve *fcu);
 
 void free_fcurves(ListBase *list);
 void copy_fcurves(ListBase *dst, ListBase *src);
+
+void BKE_fcurve_foreach_id(struct FCurve *fcu, struct LibraryForeachIDData *data);
 
 /* find matching F-Curve in the given list of F-Curves */
 struct FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int array_index);

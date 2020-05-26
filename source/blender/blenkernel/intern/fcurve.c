@@ -31,6 +31,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
+#include "DNA_text_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_easing.h"
@@ -43,6 +44,8 @@
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
+#include "BKE_lib_query.h"
 #include "BKE_nla.h"
 
 #include "RNA_access.h"
@@ -155,6 +158,38 @@ void copy_fcurves(ListBase *dst, ListBase *src)
   for (sfcu = src->first; sfcu; sfcu = sfcu->next) {
     dfcu = copy_fcurve(sfcu);
     BLI_addtail(dst, dfcu);
+  }
+}
+
+/** Callback used by lib_query to walk over all ID usages (mimics `foreach_id` callback of
+ * `IDTypeInfo` structure). */
+void BKE_fcurve_foreach_id(FCurve *fcu, LibraryForeachIDData *data)
+{
+  ChannelDriver *driver = fcu->driver;
+
+  if (driver != NULL) {
+    LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+      /* only used targets */
+      DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
+        BKE_LIB_FOREACHID_PROCESS_ID(data, dtar->id, IDWALK_CB_NOP);
+      }
+      DRIVER_TARGETS_LOOPER_END;
+    }
+  }
+
+  LISTBASE_FOREACH (FModifier *, fcm, &fcu->modifiers) {
+    switch (fcm->type) {
+      case FMODIFIER_TYPE_PYTHON: {
+        FMod_Python *fcm_py = (FMod_Python *)fcm->data;
+        BKE_LIB_FOREACHID_PROCESS(data, fcm_py->script, IDWALK_CB_NOP);
+
+        IDP_foreach_property(fcm_py->prop,
+                             IDP_TYPE_FILTER_ID,
+                             BKE_lib_query_idpropertiesForeachIDLink_callback,
+                             data);
+        break;
+      }
+    }
   }
 }
 

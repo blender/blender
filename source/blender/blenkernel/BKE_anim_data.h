@@ -32,6 +32,7 @@ extern "C" {
 
 struct AnimData;
 struct ID;
+struct LibraryForeachIDData;
 struct Main;
 struct ReportList;
 struct bAction;
@@ -57,6 +58,8 @@ void BKE_animdata_free(struct ID *id, const bool do_id_user);
 
 /* Return true if the ID-block has non-empty AnimData. */
 bool BKE_animdata_id_is_animated(const struct ID *id);
+
+void BKE_animdata_foreach_id(struct AnimData *adt, struct LibraryForeachIDData *data);
 
 /* Copy AnimData */
 struct AnimData *BKE_animdata_copy(struct Main *bmain, struct AnimData *adt, const int flag);

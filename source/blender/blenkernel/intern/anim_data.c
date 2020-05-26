@@ -32,6 +32,7 @@
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_nla.h"
 #include "BKE_node.h"
@@ -287,6 +288,24 @@ bool BKE_animdata_id_is_animated(const struct ID *id)
 
   return !BLI_listbase_is_empty(&adt->drivers) || !BLI_listbase_is_empty(&adt->nla_tracks) ||
          !BLI_listbase_is_empty(&adt->overrides);
+}
+
+/** Callback used by lib_query to walk over all ID usages (mimics `foreach_id` callback of
+ * `IDTypeInfo` structure). */
+void BKE_animdata_foreach_id(AnimData *adt, LibraryForeachIDData *data)
+{
+  LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
+    BKE_fcurve_foreach_id(fcu, data);
+  }
+
+  BKE_LIB_FOREACHID_PROCESS(data, adt->action, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS(data, adt->tmpact, IDWALK_CB_USER);
+
+  LISTBASE_FOREACH (NlaTrack *, nla_track, &adt->nla_tracks) {
+    LISTBASE_FOREACH (NlaStrip *, nla_strip, &nla_track->strips) {
+      BKE_nla_strip_foreach_id(nla_strip, data);
+    }
+  }
 }
 
 /* Copying -------------------------------------------- */

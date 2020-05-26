@@ -159,6 +159,10 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   bAction *act = (bAction *)id;
 
+  LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
+    BKE_fcurve_foreach_id(fcu, data);
+  }
+
   LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
     BKE_LIB_FOREACHID_PROCESS(data, marker->camera, IDWALK_CB_NOP);
   }

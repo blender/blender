@@ -183,39 +183,6 @@ void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void 
   BKE_LIB_FOREACHID_PROCESS_ID(data, id_prop->data.pointer, IDWALK_CB_USER);
 }
 
-static void library_foreach_nla_strip(LibraryForeachIDData *data, NlaStrip *strip)
-{
-  BKE_LIB_FOREACHID_PROCESS(data, strip->act, IDWALK_CB_USER);
-
-  LISTBASE_FOREACH (NlaStrip *, substrip, &strip->strips) {
-    library_foreach_nla_strip(data, substrip);
-  }
-}
-
-static void library_foreach_animationData(LibraryForeachIDData *data, AnimData *adt)
-{
-  LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
-    ChannelDriver *driver = fcu->driver;
-
-    LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-      /* only used targets */
-      DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
-        BKE_LIB_FOREACHID_PROCESS_ID(data, dtar->id, IDWALK_CB_NOP);
-      }
-      DRIVER_TARGETS_LOOPER_END;
-    }
-  }
-
-  BKE_LIB_FOREACHID_PROCESS(data, adt->action, IDWALK_CB_USER);
-  BKE_LIB_FOREACHID_PROCESS(data, adt->tmpact, IDWALK_CB_USER);
-
-  LISTBASE_FOREACH (NlaTrack *, nla_track, &adt->nla_tracks) {
-    LISTBASE_FOREACH (NlaStrip *, nla_strip, &nla_track->strips) {
-      library_foreach_nla_strip(data, nla_strip);
-    }
-  }
-}
-
 bool BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
 {
   /* Needed e.g. for callbacks handling relationships... This call shall be absolutely readonly. */
@@ -342,7 +309,7 @@ static void library_foreach_ID_link(Main *bmain,
 
     AnimData *adt = BKE_animdata_from_id(id);
     if (adt) {
-      library_foreach_animationData(&data, adt);
+      BKE_animdata_foreach_id(adt, &data);
     }
 
     const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
