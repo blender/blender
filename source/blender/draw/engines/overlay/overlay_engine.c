@@ -243,7 +243,8 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   const bool renderable = DRW_object_is_renderable(ob);
   const bool in_pose_mode = ob->type == OB_ARMATURE && OVERLAY_armature_is_pose_mode(ob, draw_ctx);
   const bool in_edit_mode = overlay_object_is_edit_mode(pd, ob);
-  const bool in_particle_edit_mode = ob->mode == OB_MODE_PARTICLE_EDIT;
+  const bool in_particle_edit_mode = (ob->mode == OB_MODE_PARTICLE_EDIT) &&
+                                     (pd->ctx_mode == CTX_MODE_PARTICLE);
   const bool in_paint_mode = (ob == draw_ctx->obact) &&
                              (draw_ctx->object_mode & OB_MODE_ALL_PAINT);
   const bool in_sculpt_mode = (ob == draw_ctx->obact) && (ob->sculpt != NULL) &&
