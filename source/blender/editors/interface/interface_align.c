@@ -124,7 +124,11 @@ bool ui_but_can_align(const uiBut *but)
 
 int ui_but_align_opposite_to_area_align_get(const ARegion *region)
 {
-  switch (RGN_ALIGN_ENUM_FROM_MASK(region->alignment)) {
+  const ARegion *align_region = (region->alignment & RGN_SPLIT_PREV && region->prev) ?
+                                    region->prev :
+                                    region;
+
+  switch (RGN_ALIGN_ENUM_FROM_MASK(align_region->alignment)) {
     case RGN_ALIGN_TOP:
       return UI_BUT_ALIGN_DOWN;
     case RGN_ALIGN_BOTTOM:
