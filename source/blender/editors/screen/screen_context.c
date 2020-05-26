@@ -118,8 +118,8 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = WM_window_get_active_scene(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-  Object *obact = (view_layer && view_layer->basact) ? view_layer->basact->object : NULL;
-  Object *obedit = view_layer ? OBEDIT_FROM_VIEW_LAYER(view_layer) : NULL;
+  Object *obact = view_layer->basact ? view_layer->basact->object : NULL;
+  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
 
   if (CTX_data_dir(member)) {
     CTX_data_dir_set(result, screen_context_dir);
