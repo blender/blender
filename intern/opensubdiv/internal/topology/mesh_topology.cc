@@ -103,11 +103,6 @@ void MeshTopology::setEdgeVertexIndices(int edge_index, int v1, int v2)
   ensureNumEdgesAtLeast(edge_index + 1);
 
   Edge &edge = edges_[edge_index];
-
-  // Prevent attempts to override edges.
-  // This is currently not supposed to happen.
-  assert(!edge.isValid());
-
   edge.v1 = v1;
   edge.v2 = v2;
 }
@@ -135,10 +130,6 @@ void MeshTopology::setEdgeSharpness(int edge_index, float sharpness)
 {
   assert(edge_index >= 0);
   assert(edge_index < getNumEdges());
-
-  Edge &edge = edges_[edge_index];
-  assert(edge.isValid());
-  (void)edge;
 
   if (sharpness < 1e-6f) {
     return;

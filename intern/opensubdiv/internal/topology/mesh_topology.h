@@ -145,11 +145,6 @@ class MeshTopology {
   };
 
   struct Edge {
-    bool isValid() const
-    {
-      return v1 >= 0 && v2 >= 0;
-    }
-
     int v1 = -1;
     int v2 = -1;
   };
