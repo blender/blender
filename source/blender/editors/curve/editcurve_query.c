@@ -99,6 +99,8 @@ static void ED_curve_pick_vert__do_closest(void *userData,
     data->hpoint = bezt ? beztindex : 0;
     data->is_changed = true;
   }
+
+  UNUSED_VARS_NDEBUG(handles_visible);
 }
 
 bool ED_curve_pick_vert(ViewContext *vc,
