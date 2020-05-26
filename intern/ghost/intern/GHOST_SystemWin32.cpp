@@ -1044,7 +1044,8 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
   //
   // Wintab button up events may be handled during WM_MOUSEMOVE, before their corresponding
   // WM_*BUTTONUP event has fired, which results in two GHOST Button up events for a single Wintab
-  // associated button event. Because Wintab and their associated Windows mouse events are handled asynchronously, and there's no way to turn off 
+  // associated button event. Because Wintab and their associated Windows mouse events are handled
+  // asynchronously, and there's no way to turn off
   if (unhandledButton) {
     system->pushEvent(new GHOST_EventButton(
         system->getMilliSeconds(), type, window, mask, GHOST_TABLET_DATA_NONE));
@@ -1059,6 +1060,8 @@ void GHOST_SystemWin32::processPointerEvents(
   std::vector<GHOST_PointerInfoWin32> pointerInfo;
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
+  // Pointer events might fire when changing windows for a device which is set to use Wintab, even
+  // when when Wintab is left enabled but set to the bottom of Wintab overlap order.
   if (!window->useTabletAPI(GHOST_kTabletNative)) {
     return;
   }
