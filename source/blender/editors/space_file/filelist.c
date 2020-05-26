@@ -1015,6 +1015,7 @@ static int filelist_geticon_ex(FileDirEntry *file,
       /* If this path is in System list or path cache then use that icon. */
       struct FSMenu *fsmenu = ED_fsmenu_get();
       FSMenuCategory categories[] = {
+          FS_CATEGORY_SYSTEM,
           FS_CATEGORY_SYSTEM_BOOKMARKS,
           FS_CATEGORY_OTHER,
       };
@@ -1022,10 +1023,16 @@ static int filelist_geticon_ex(FileDirEntry *file,
       for (int i = 0; i < ARRAY_SIZE(categories); i++) {
         FSMenuEntry *tfsm = ED_fsmenu_get_category(fsmenu, categories[i]);
         char fullpath[FILE_MAX_LIBEXTRA];
-        BLI_join_dirfile(fullpath, sizeof(fullpath), root, file->relpath);
-        BLI_path_slash_ensure(fullpath);
+        char *target = fullpath;
+        if (file->redirection_path) {
+          target = file->redirection_path;
+        }
+        else {
+          BLI_join_dirfile(fullpath, sizeof(fullpath), root, file->relpath);
+          BLI_path_slash_ensure(fullpath);
+        }
         for (; tfsm; tfsm = tfsm->next) {
-          if (STREQ(tfsm->path, fullpath)) {
+          if (STREQ(tfsm->path, target)) {
             /* Never want a little folder inside a large one. */
             return (tfsm->icon == ICON_FILE_FOLDER) ? ICON_NONE : tfsm->icon;
           }
@@ -1033,10 +1040,7 @@ static int filelist_geticon_ex(FileDirEntry *file,
       }
     }
 
-    if (file->attributes & FILE_ATTR_ANY_LINK) {
-      return ICON_LOOP_FORWARDS;
-    }
-    else if (file->attributes & FILE_ATTR_OFFLINE) {
+    if (file->attributes & FILE_ATTR_OFFLINE) {
       return ICON_ERROR;
     }
     else if (file->attributes & FILE_ATTR_TEMPORARY) {
@@ -1375,8 +1379,15 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
       (entry->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT |
                           FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB))) {
     FileListEntryPreview *preview = MEM_mallocN(sizeof(*preview), __func__);
-    BLI_join_dirfile(
-        preview->path, sizeof(preview->path), filelist->filelist.root, entry->relpath);
+
+    if (entry->redirection_path) {
+      BLI_strncpy(preview->path, entry->redirection_path, FILE_MAXDIR);
+    }
+    else {
+      BLI_join_dirfile(
+          preview->path, sizeof(preview->path), filelist->filelist.root, entry->relpath);
+    }
+
     preview->index = index;
     preview->flags = entry->typeflag;
     preview->img = NULL;
@@ -2270,13 +2281,6 @@ int ED_path_extension_type(const char *path)
   return 0;
 }
 
-static int file_extension_type(const char *dir, const char *relpath)
-{
-  char path[FILE_MAX];
-  BLI_join_dirfile(path, sizeof(path), dir, relpath);
-  return ED_path_extension_type(path);
-}
-
 int ED_file_extension_icon(const char *path)
 {
   const int type = ED_path_extension_type(path);
@@ -2475,7 +2479,8 @@ static int filelist_readjob_list_dir(const char *root,
 {
   struct direntry *files;
   int nbr_files, nbr_entries = 0;
-  char path[FILE_MAX];
+  /* Full path of the item. */
+  char full_path[FILE_MAX];
 
   nbr_files = BLI_filelist_dir_contents(root, &files);
   if (files) {
@@ -2491,38 +2496,53 @@ static int filelist_readjob_list_dir(const char *root,
       entry->relpath = MEM_dupallocN(files[i].relname);
       entry->st = files[i].s;
 
-      BLI_join_dirfile(path, sizeof(path), root, entry->relpath);
+      BLI_join_dirfile(full_path, FILE_MAX, root, entry->relpath);
+      char *target = full_path;
 
-      /* Set file type. */
+      /* Set initial file type and attributes. */
+      entry->attributes = BLI_file_attributes(full_path);
       if (S_ISDIR(files[i].s.st_mode)) {
         entry->typeflag = FILE_TYPE_DIR;
       }
-      else if (do_lib && BLO_has_bfile_extension(entry->relpath)) {
-        /* If we are considering .blend files as libs, promote them to directory status. */
-        entry->typeflag = FILE_TYPE_BLENDER;
-        /* prevent current file being used as acceptable dir */
-        if (BLI_path_cmp(main_name, path) != 0) {
-          entry->typeflag |= FILE_TYPE_DIR;
+
+      /* Is this a file that points to another file? */
+      if (entry->attributes & FILE_ATTR_ALIAS) {
+        entry->redirection_path = MEM_callocN(FILE_MAXDIR, __func__);
+        if (BLI_file_alias_target(entry->redirection_path, full_path)) {
+          if (BLI_is_dir(entry->redirection_path)) {
+            entry->typeflag = FILE_TYPE_DIR;
+            BLI_path_slash_ensure(entry->redirection_path);
+          }
+          else {
+            entry->typeflag = ED_path_extension_type(entry->redirection_path);
+          }
+          target = entry->redirection_path;
+#ifdef WIN32
+          /* On Windows don't show ".lnk" extension for valid shortcuts. */
+          BLI_path_extension_replace(entry->relpath, FILE_MAXDIR, "");
+#endif
         }
-      }
-      /* Otherwise, do not check extensions for directories! */
-      else if (!(entry->typeflag & FILE_TYPE_DIR)) {
-        entry->typeflag = file_extension_type(root, entry->relpath);
-        if (filter_glob[0] && BLI_path_extension_check_glob(entry->relpath, filter_glob)) {
-          entry->typeflag |= FILE_TYPE_OPERATOR;
+        else {
+          MEM_freeN(entry->redirection_path);
+          entry->redirection_path = NULL;
+          entry->attributes |= FILE_ATTR_HIDDEN;
         }
       }
 
-      /* Set file attributes. */
-      entry->attributes = BLI_file_attributes(path);
-      if (entry->attributes & FILE_ATTR_ALIAS) {
-        entry->redirection_path = MEM_callocN(FILE_MAXDIR, __func__);
-        if (BLI_file_alias_target(entry->redirection_path, path)) {
-          if (BLI_is_dir(entry->redirection_path)) {
-            entry->typeflag = FILE_TYPE_DIR;
+      if (!(entry->typeflag & FILE_TYPE_DIR)) {
+        if (do_lib && BLO_has_bfile_extension(target)) {
+          /* If we are considering .blend files as libs, promote them to directory status. */
+          entry->typeflag = FILE_TYPE_BLENDER;
+          /* prevent current file being used as acceptable dir */
+          if (BLI_path_cmp(main_name, target) != 0) {
+            entry->typeflag |= FILE_TYPE_DIR;
           }
-          else
-            entry->typeflag = ED_path_extension_type(entry->redirection_path);
+        }
+        else {
+          entry->typeflag = ED_path_extension_type(target);
+          if (filter_glob[0] && BLI_path_extension_check_glob(target, filter_glob)) {
+            entry->typeflag |= FILE_TYPE_OPERATOR;
+          }
         }
       }
 

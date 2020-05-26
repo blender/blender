@@ -55,6 +55,7 @@
 #  include "utfconv.h"
 #  include <direct.h>
 #  include <io.h>
+#  include <shobjidl_core.h>
 #  include <stdbool.h>
 #else
 #  include <pwd.h>
@@ -226,12 +227,18 @@ size_t BLI_file_size(const char *path)
   return stats.st_size;
 }
 
+/* Return file attributes. Apple version of this function is defined in storage_apple.mm */
 #ifndef __APPLE__
 eFileAttributes BLI_file_attributes(const char *path)
 {
   int ret = 0;
 
 #  ifdef WIN32
+
+  if (BLI_path_extension_check(path, ".lnk")) {
+    return FILE_ATTR_ALIAS;
+  }
+
   WCHAR wline[FILE_MAXDIR];
   if (conv_utf_8_to_16(path, wline, ARRAY_SIZE(wline)) != 0) {
     return ret;
@@ -284,15 +291,52 @@ eFileAttributes BLI_file_attributes(const char *path)
 }
 #endif
 
-/**
- * Returns the target path of a file-based redirection, like Mac Alias or Win32 Shortcut file.
- */
+/* Return alias/shortcut file target. Apple version is defined in storage_apple.mm */
 #ifndef __APPLE__
-bool BLI_file_alias_target(char UNUSED(target[FILE_MAXDIR]), const char *UNUSED(filepath))
+bool BLI_file_alias_target(char target[FILE_MAXDIR], const char *filepath)
 {
-  /* TODO: Find target in Win32 Shortcut - Shell Link (.lnk) file.
-   * Format: https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-shllink/ */
+#  ifdef WIN32
+  if (!BLI_path_extension_check(filepath, ".lnk")) {
+    return false;
+  }
+
+  IShellLinkW *Shortcut = NULL;
+  bool success = false;
+  CoInitializeEx(NULL, COINIT_MULTITHREADED);
+
+  HRESULT hr = CoCreateInstance(
+      &CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, &IID_IShellLinkW, (LPVOID *)&Shortcut);
+  if (SUCCEEDED(hr)) {
+    IPersistFile *PersistFile;
+    hr = Shortcut->lpVtbl->QueryInterface(Shortcut, &IID_IPersistFile, (LPVOID *)&PersistFile);
+    if (SUCCEEDED(hr)) {
+      WCHAR path_utf16[FILE_MAXDIR] = {0};
+      if (conv_utf_8_to_16(filepath, path_utf16, ARRAY_SIZE(path_utf16)) == 0) {
+        hr = PersistFile->lpVtbl->Load(PersistFile, path_utf16, STGM_READ);
+        if (SUCCEEDED(hr)) {
+          hr = Shortcut->lpVtbl->Resolve(Shortcut, 0, SLR_NO_UI | SLR_UPDATE);
+          if (SUCCEEDED(hr)) {
+            wchar_t target_utf16[FILE_MAXDIR] = {0};
+            hr = Shortcut->lpVtbl->GetPath(Shortcut, target_utf16, FILE_MAXDIR, NULL, 0);
+            if (SUCCEEDED(hr)) {
+              success = (conv_utf_16_to_8(target_utf16, target, FILE_MAXDIR) == 0);
+            }
+          }
+          PersistFile->lpVtbl->Release(PersistFile);
+        }
+      }
+    }
+    Shortcut->lpVtbl->Release(Shortcut);
+  }
+
+  return (success && target[0]);
+#  endif
+
+#  ifdef __linux__
+  UNUSED_VARS(target, filepath);
+  /* File-based redirection not supported. */
   return false;
+#  endif
 }
 #endif
 

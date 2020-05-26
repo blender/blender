@@ -1469,9 +1469,12 @@ void file_sfile_to_operator_ex(bContext *C, wmOperator *op, SpaceFile *sfile, ch
       for (i = 0; i < numfiles; i++) {
         if (filelist_entry_select_index_get(sfile->files, i, CHECK_FILES)) {
           FileDirEntry *file = filelist_file(sfile->files, i);
-          RNA_property_collection_add(op->ptr, prop, &itemptr);
-          RNA_string_set(&itemptr, "name", file->relpath);
-          num_files++;
+          /* Cannot (currently) mix regular items and alias/shortcuts in multiple selection. */
+          if (!file->redirection_path) {
+            RNA_property_collection_add(op->ptr, prop, &itemptr);
+            RNA_string_set(&itemptr, "name", file->relpath);
+            num_files++;
+          }
         }
       }
       /* make sure the file specified in the filename button is added even if no
@@ -1617,8 +1620,22 @@ static int file_exec(bContext *C, wmOperator *exec_op)
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  const struct FileDirEntry *file = filelist_file(sfile->files, sfile->params->active_file);
+  struct FileDirEntry *file = filelist_file(sfile->files, sfile->params->active_file);
   char filepath[FILE_MAX];
+
+  if (file && file->redirection_path) {
+    /* redirection_path is an absolute path that takes precedence
+     * over using sfile->params->dir + sfile->params->file. */
+    BLI_split_dirfile(file->redirection_path,
+                      sfile->params->dir,
+                      sfile->params->file,
+                      sizeof(sfile->params->dir),
+                      sizeof(sfile->params->file));
+    /* Update relpath with redirected filename as well so that the alternative
+     * combination of sfile->params->dir + relpath remains valid as well. */
+    MEM_freeN(file->relpath);
+    file->relpath = BLI_strdup(sfile->params->file);
+  }
 
   /* directory change */
   if (file && (file->typeflag & FILE_TYPE_DIR)) {
@@ -1633,9 +1650,6 @@ static int file_exec(bContext *C, wmOperator *exec_op)
       BLI_path_normalize(BKE_main_blendfile_path(bmain), sfile->params->dir);
       BLI_path_append(sfile->params->dir, sizeof(sfile->params->dir) - 1, file->relpath);
       BLI_path_slash_ensure(sfile->params->dir);
-    }
-    if (file->redirection_path) {
-      STRNCPY(sfile->params->dir, file->redirection_path);
     }
     ED_file_change_dir(C);
   }
