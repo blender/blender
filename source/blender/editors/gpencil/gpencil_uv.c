@@ -59,8 +59,8 @@ typedef struct GpUvData {
   float ob_scale;
 
   float initial_length;
+  float initial_transform[2];
   float pixel_size; /* use when mouse input is interpreted as spatial distance */
-  bool is_modal;
 
   /* Arrays of original loc/rot/scale by stroke. */
   float (*array_loc)[2];
@@ -140,19 +140,12 @@ static void gpencil_stroke_center(bGPDstroke *gps, float r_center[3])
   }
 }
 
-static bool gpencil_uv_transform_init(bContext *C, wmOperator *op, const bool is_modal)
+static bool gpencil_uv_transform_init(bContext *C, wmOperator *op)
 {
   GpUvData *opdata;
-  if (is_modal) {
-    float zero[2] = {0.0f};
-    RNA_float_set_array(op->ptr, "location", zero);
-    RNA_float_set(op->ptr, "rotation", 0.0f);
-    RNA_float_set(op->ptr, "scale", 1.0f);
-  }
 
   op->customdata = opdata = MEM_mallocN(sizeof(GpUvData), __func__);
 
-  opdata->is_modal = is_modal;
   opdata->ob = CTX_data_active_object(C);
   opdata->gpd = (bGPdata *)opdata->ob->data;
   gp_point_conversion_init(C, &opdata->gsc);
@@ -164,12 +157,10 @@ static bool gpencil_uv_transform_init(bContext *C, wmOperator *op, const bool is
   opdata->vinit_rotation[0] = 1.0f;
   opdata->vinit_rotation[1] = 0.0f;
 
-  if (is_modal) {
-    ARegion *region = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
-    opdata->draw_handle_pixel = ED_region_draw_cb_activate(
-        region->type, ED_region_draw_mouse_line_cb, opdata->mcenter, REGION_DRAW_POST_PIXEL);
-  }
+  opdata->draw_handle_pixel = ED_region_draw_cb_activate(
+      region->type, ED_region_draw_mouse_line_cb, opdata->mcenter, REGION_DRAW_POST_PIXEL);
 
   /* Calc selected strokes center. */
   zero_v2(opdata->mcenter);
@@ -205,7 +196,7 @@ static bool gpencil_uv_transform_init(bContext *C, wmOperator *op, const bool is
     }
     GP_EDITABLE_STROKES_END(gpstroke_iter);
   }
-  /* convert to 2D */
+  /* Convert to 2D. */
   gp_point_3d_to_xy(&opdata->gsc, GP_STROKE_3DSPACE, center, opdata->mcenter);
 
   return true;
@@ -218,11 +209,9 @@ static void gpencil_uv_transform_exit(bContext *C, wmOperator *op)
 
   opdata = op->customdata;
 
-  if (opdata->is_modal) {
-    ARegion *region = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
-    ED_region_draw_cb_exit(region->type, opdata->draw_handle_pixel);
-  }
+  ED_region_draw_cb_exit(region->type, opdata->draw_handle_pixel);
 
   WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
 
@@ -253,51 +242,54 @@ static bool gpencil_uv_transform_calc(bContext *C, wmOperator *op)
   const int mode = RNA_enum_get(op->ptr, "mode");
   GpUvData *opdata = op->customdata;
   bGPdata *gpd = opdata->gpd;
+
   bool changed = false;
   /* Get actual vector. */
   float vr[2];
+  float mdiff[2];
+
   sub_v2_v2v2(vr, opdata->mouse, opdata->mcenter);
   normalize_v2(vr);
 
-  float location[2];
-  RNA_float_get_array(op->ptr, "location", location);
-
-  float uv_rotation = (opdata->is_modal) ? angle_signed_v2v2(opdata->vinit_rotation, vr) :
-                                           RNA_float_get(op->ptr, "rotation");
-  uv_rotation *= SMOOTH_FACTOR;
-
-  if (opdata->is_modal) {
-    RNA_float_set(op->ptr, "rotation", uv_rotation);
-  }
+  float uv_rotation = angle_signed_v2v2(opdata->vinit_rotation, vr);
 
   int i = 0;
 
-  /* Apply transformations to all strokes. */
-  if ((mode == GP_UV_TRANSLATE) || (!opdata->is_modal)) {
-    float mdiff[2];
-    mdiff[0] = opdata->mcenter[0] - opdata->mouse[0];
-    mdiff[1] = opdata->mcenter[1] - opdata->mouse[1];
+  /* Translate. */
+  if (mode == GP_UV_TRANSLATE) {
+
+    mdiff[0] = opdata->mouse[0] - opdata->initial_transform[0];
+    /* Y axis is inverted. */
+    mdiff[1] = (opdata->mouse[1] - opdata->initial_transform[1]) * -1.0f;
 
     /* Apply a big amount of smooth always for translate to get smooth result. */
-    mul_v2_fl(mdiff, 0.006f);
+    mul_v2_fl(mdiff, 0.002f);
+    RNA_float_set_array(op->ptr, "location", mdiff);
 
-    /* Apply angle in translation. */
-    mdiff[0] *= cos(uv_rotation);
-    mdiff[1] *= sin(uv_rotation);
-    if (opdata->is_modal) {
-      RNA_float_set_array(op->ptr, "location", mdiff);
+    GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
+      if (gps->flag & GP_STROKE_SELECT) {
+
+        sub_v2_v2v2(gps->uv_translation, opdata->array_loc[i], mdiff);
+        changed = true;
+
+        /* Calc geometry data. */
+        BKE_gpencil_stroke_geometry_update(gps);
+        i++;
+      }
     }
+    GP_EDITABLE_STROKES_END(gpstroke_iter);
+  }
 
-    changed = (bool)((mdiff[0] != 0.0f) || (mdiff[1] != 0.0f));
+  /* Rotate. */
+  if (mode == GP_UV_ROTATE) {
+    changed |= (bool)(uv_rotation != 0.0f);
+    RNA_float_set(op->ptr, "rotation", uv_rotation);
+
     if (changed) {
       GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
         if (gps->flag & GP_STROKE_SELECT) {
-          if (opdata->is_modal) {
-            add_v2_v2v2(gps->uv_translation, opdata->array_loc[i], mdiff);
-          }
-          else {
-            copy_v2_v2(gps->uv_translation, location);
-          }
+          gps->uv_rotation = opdata->array_rot[i] - uv_rotation;
+
           /* Calc geometry data. */
           BKE_gpencil_stroke_geometry_update(gps);
           i++;
@@ -307,40 +299,22 @@ static bool gpencil_uv_transform_calc(bContext *C, wmOperator *op)
     }
   }
 
-  if ((mode == GP_UV_ROTATE) || (!opdata->is_modal)) {
-    changed = (bool)(uv_rotation != 0.0f);
-    if (changed) {
-      GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
-        if (gps->flag & GP_STROKE_SELECT) {
-          gps->uv_rotation = (opdata->is_modal) ? opdata->array_rot[i] + uv_rotation : uv_rotation;
-          /* Calc geometry data. */
-          BKE_gpencil_stroke_geometry_update(gps);
-          i++;
-        }
-      }
-      GP_EDITABLE_STROKES_END(gpstroke_iter);
-    }
-  }
-
-  if ((mode == GP_UV_SCALE) || (!opdata->is_modal)) {
-    float mdiff[2];
+  /* Scale. */
+  if (mode == GP_UV_SCALE) {
     mdiff[0] = opdata->mcenter[0] - opdata->mouse[0];
     mdiff[1] = opdata->mcenter[1] - opdata->mouse[1];
-    float scale = (opdata->is_modal) ?
-                      ((len_v2(mdiff) - opdata->initial_length) * opdata->pixel_size) /
-                          opdata->ob_scale :
-                      RNA_float_get(op->ptr, "scale");
+    float scale = ((len_v2(mdiff) - opdata->initial_length) * opdata->pixel_size) /
+                  opdata->ob_scale;
+
     scale *= SMOOTH_FACTOR;
+    RNA_float_set(op->ptr, "scale", scale);
 
-    if (opdata->is_modal) {
-      RNA_float_set(op->ptr, "scale", scale);
-    }
+    changed |= (bool)(scale != 0.0f);
 
-    changed = (bool)(scale != 0.0f);
     if (changed) {
       GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
         if (gps->flag & GP_STROKE_SELECT) {
-          gps->uv_scale = (opdata->is_modal) ? opdata->array_scale[i] + scale : scale;
+          gps->uv_scale = opdata->array_scale[i] + scale;
           /* Calc geometry data. */
           BKE_gpencil_stroke_geometry_update(gps);
           i++;
@@ -350,7 +324,7 @@ static bool gpencil_uv_transform_calc(bContext *C, wmOperator *op)
     }
   }
 
-  if ((!opdata->is_modal) || (changed)) {
+  if (changed) {
     /* Update cursor line. */
     DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
@@ -358,21 +332,6 @@ static bool gpencil_uv_transform_calc(bContext *C, wmOperator *op)
   }
 
   return changed;
-}
-
-static int gpencil_transform_fill_exec(bContext *C, wmOperator *op)
-{
-  if (!gpencil_uv_transform_init(C, op, false)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  if (!gpencil_uv_transform_calc(C, op)) {
-    gpencil_uv_transform_exit(C, op);
-    return OPERATOR_CANCELLED;
-  }
-
-  gpencil_uv_transform_exit(C, op);
-  return OPERATOR_FINISHED;
 }
 
 static bool gpencil_transform_fill_poll(bContext *C)
@@ -404,7 +363,7 @@ static int gpencil_transform_fill_invoke(bContext *C, wmOperator *op, const wmEv
   float mlen[2];
   float center_3d[3];
 
-  if (!gpencil_uv_transform_init(C, op, true)) {
+  if (!gpencil_uv_transform_init(C, op)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -414,16 +373,22 @@ static int gpencil_transform_fill_invoke(bContext *C, wmOperator *op, const wmEv
   opdata->mouse[1] = event->mval[1];
 
   copy_v3_v3(center_3d, opdata->ob->loc);
-  mlen[0] = opdata->mcenter[0] - event->mval[0];
-  mlen[1] = opdata->mcenter[1] - event->mval[1];
+  mlen[0] = event->mval[0] - opdata->mcenter[0];
+  mlen[1] = event->mval[1] - opdata->mcenter[1];
   opdata->initial_length = len_v2(mlen);
 
-  opdata->pixel_size = rv3d ? ED_view3d_pixel_size(rv3d, center_3d) : 1.0f;
+  /* Consider initial offset as zero position. */
+  copy_v2fl_v2i(opdata->initial_transform, event->mval);
 
-  /* Calc init rotation vector. */
-  float mouse[2] = {event->mval[0], event->mval[1]};
-  sub_v2_v2v2(opdata->vinit_rotation, mouse, opdata->mcenter);
-  normalize_v2(opdata->vinit_rotation);
+  /* Consider initial position as the orientation vector. */
+  const int mode = RNA_enum_get(op->ptr, "mode");
+  if (mode == GP_UV_ROTATE) {
+    opdata->vinit_rotation[0] = mlen[0];
+    opdata->vinit_rotation[1] = mlen[1];
+    normalize_v2(opdata->vinit_rotation);
+  }
+
+  opdata->pixel_size = rv3d ? ED_view3d_pixel_size(rv3d, center_3d) : 1.0f;
 
   gpencil_uv_transform_calc(C, op);
 
@@ -492,7 +457,6 @@ void GPENCIL_OT_transform_fill(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = gpencil_transform_fill_invoke;
   ot->modal = gpencil_transform_fill_modal;
-  ot->exec = gpencil_transform_fill_exec;
   ot->cancel = gpencil_transform_fill_cancel;
   ot->poll = gpencil_transform_fill_poll;
 
