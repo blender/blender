@@ -173,7 +173,8 @@ void BKE_nurbList_handles_recalculate(struct ListBase *editnurb,
                                       const char flag);
 
 void BKE_nurbList_handles_autocalc(ListBase *editnurb, int flag);
-void BKE_nurbList_flag_set(ListBase *editnurb, short flag);
+void BKE_nurbList_flag_set(ListBase *editnurb, short flag, bool set);
+bool BKE_nurbList_flag_set_from_flag(ListBase *editnurb, short from_flag, short flag);
 
 void BKE_nurb_free(struct Nurb *nu);
 struct Nurb *BKE_nurb_duplicate(const struct Nurb *nu);

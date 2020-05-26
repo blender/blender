@@ -44,8 +44,13 @@
 /** \name Cursor Picking API
  * \{ */
 
-static void ED_curve_pick_vert__do_closest(
-    void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, const float screen_co[2])
+static void ED_curve_pick_vert__do_closest(void *userData,
+                                           Nurb *nu,
+                                           BPoint *bp,
+                                           BezTriple *bezt,
+                                           int beztindex,
+                                           bool handles_visible,
+                                           const float screen_co[2])
 {
   struct {
     BPoint *bp;
@@ -64,6 +69,8 @@ static void ED_curve_pick_vert__do_closest(
     flag = bp->f1;
   }
   else {
+    BLI_assert(handles_visible || beztindex == 1);
+
     if (beztindex == 0) {
       flag = bezt->f1;
     }

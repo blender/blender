@@ -246,6 +246,7 @@ void nurbs_foreachScreenVert(struct ViewContext *vc,
                                           struct BPoint *bp,
                                           struct BezTriple *bezt,
                                           int beztindex,
+                                          bool handle_visible,
                                           const float screen_co[2]),
                              void *userData,
                              const eV3DProjTest clip_flag);

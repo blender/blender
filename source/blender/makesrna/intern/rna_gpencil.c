@@ -121,7 +121,7 @@ static const EnumPropertyItem rna_enum_layer_blend_modes_items[] = {
     {eGplBlendMode_Divide, "DIVIDE", 0, "Divide", ""},
     {0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
+static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
     {GP_STROKE_CAP_ROUND, "ROUND", 0, "Rounded", ""},
     {GP_STROKE_CAP_FLAT, "FLAT", 0, "Flat", ""},
     {0, NULL, 0, NULL, NULL},

@@ -921,7 +921,7 @@ int getTransformOrientation_ex(const bContext *C,
         }
       }
       else {
-        const bool use_handle = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) != 0;
+        const bool use_handle = v3d->overlay.handle_display != CURVE_HANDLE_NONE;
 
         for (nu = nurbs->first; nu; nu = nu->next) {
           /* only bezier has a normal */

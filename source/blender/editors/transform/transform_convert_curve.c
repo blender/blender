@@ -93,9 +93,8 @@ void createTransCurveVerts(TransInfo *t)
     int count = 0, countsel = 0;
     const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
     View3D *v3d = t->view;
-    short hide_handles = (v3d != NULL) ?
-                             ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) :
-                             false;
+    short hide_handles = (v3d != NULL) ? (v3d->overlay.handle_display == CURVE_HANDLE_NONE) :
+                                         false;
 
     /* count total of vertices, check identical as in 2nd loop for making transdata! */
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
@@ -163,9 +162,8 @@ void createTransCurveVerts(TransInfo *t)
     int a;
     const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
     View3D *v3d = t->view;
-    short hide_handles = (v3d != NULL) ?
-                             ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) :
-                             false;
+    short hide_handles = (v3d != NULL) ? (v3d->overlay.handle_display == CURVE_HANDLE_NONE) :
+                                         false;
 
     bool use_around_origins_for_handles_test = ((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
                                                 transform_mode_use_local_origins(t));

@@ -406,6 +406,7 @@ void nurbs_foreachScreenVert(ViewContext *vc,
                                           BPoint *bp,
                                           BezTriple *bezt,
                                           int beztindex,
+                                          bool handles_visible,
                                           const float screen_co_b[2]),
                              void *userData,
                              const eV3DProjTest clip_flag)
@@ -414,6 +415,8 @@ void nurbs_foreachScreenVert(ViewContext *vc,
   Nurb *nu;
   int i;
   ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+  /* If no point in the triple is selected, the handles are invisible. */
+  const bool only_selected = (vc->v3d->overlay.handle_display == CURVE_HANDLE_SELECTED);
 
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
@@ -427,15 +430,17 @@ void nurbs_foreachScreenVert(ViewContext *vc,
         BezTriple *bezt = &nu->bezt[i];
 
         if (bezt->hide == 0) {
+          const bool handles_visible = (vc->v3d->overlay.handle_display != CURVE_HANDLE_NONE) &&
+                                       (!only_selected || BEZT_ISSEL_ANY(bezt));
           float screen_co[2];
 
-          if ((vc->v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) {
+          if (!handles_visible) {
             if (ED_view3d_project_float_object(vc->region,
                                                bezt->vec[1],
                                                screen_co,
                                                V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) ==
                 V3D_PROJ_RET_OK) {
-              func(userData, nu, NULL, bezt, 1, screen_co);
+              func(userData, nu, NULL, bezt, 1, false, screen_co);
             }
           }
           else {
@@ -444,21 +449,21 @@ void nurbs_foreachScreenVert(ViewContext *vc,
                                                screen_co,
                                                V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) ==
                 V3D_PROJ_RET_OK) {
-              func(userData, nu, NULL, bezt, 0, screen_co);
+              func(userData, nu, NULL, bezt, 0, true, screen_co);
             }
             if (ED_view3d_project_float_object(vc->region,
                                                bezt->vec[1],
                                                screen_co,
                                                V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) ==
                 V3D_PROJ_RET_OK) {
-              func(userData, nu, NULL, bezt, 1, screen_co);
+              func(userData, nu, NULL, bezt, 1, true, screen_co);
             }
             if (ED_view3d_project_float_object(vc->region,
                                                bezt->vec[2],
                                                screen_co,
                                                V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) ==
                 V3D_PROJ_RET_OK) {
-              func(userData, nu, NULL, bezt, 2, screen_co);
+              func(userData, nu, NULL, bezt, 2, true, screen_co);
             }
           }
         }
@@ -473,7 +478,7 @@ void nurbs_foreachScreenVert(ViewContext *vc,
           if (ED_view3d_project_float_object(
                   vc->region, bp->vec, screen_co, V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) ==
               V3D_PROJ_RET_OK) {
-            func(userData, nu, bp, NULL, -1, screen_co);
+            func(userData, nu, bp, NULL, -1, false, screen_co);
           }
         }
       }

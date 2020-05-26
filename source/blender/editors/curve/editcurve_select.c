@@ -590,8 +590,8 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
         changed = ED_curve_deselect_all(cu->editnurb);
         break;
       case SEL_INVERT:
-        changed = ED_curve_select_swap(
-            cu->editnurb, (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0);
+        changed = ED_curve_select_swap(cu->editnurb,
+                                       v3d->overlay.handle_display == CURVE_HANDLE_NONE);
         break;
     }
 
@@ -772,7 +772,7 @@ static int select_row_exec(bContext *C, wmOperator *UNUSED(op))
 
   if (last == bp) {
     direction = 1 - direction;
-    BKE_nurbList_flag_set(editnurb, 0);
+    BKE_nurbList_flag_set(editnurb, SELECT, false);
   }
   last = bp;
 
@@ -826,8 +826,10 @@ static int select_next_exec(bContext *C, wmOperator *UNUSED(op))
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
+
     ListBase *editnurb = object_editcurve_get(obedit);
     select_adjacent_cp(editnurb, 1, 0, SELECT);
+
     DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
@@ -861,8 +863,10 @@ static int select_previous_exec(bContext *C, wmOperator *UNUSED(op))
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
+
     ListBase *editnurb = object_editcurve_get(obedit);
     select_adjacent_cp(editnurb, -1, 0, SELECT);
+
     DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
@@ -1392,6 +1396,7 @@ static int select_nth_exec(bContext *C, wmOperator *op)
 
     if (ed_curve_select_nth(obedit->data, &op_params) == true) {
       changed = true;
+
       DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }

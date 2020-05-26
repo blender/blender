@@ -483,6 +483,13 @@ const EnumPropertyItem rna_enum_file_sort_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
+    {CURVE_HANDLE_NONE, "NONE", 0, "None", ""},
+    {CURVE_HANDLE_SELECTED, "SELECTED", 0, "Selected", ""},
+    {CURVE_HANDLE_ALL, "ALL", 0, "All", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "DNA_anim_types.h"
@@ -3817,9 +3824,11 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
       prop, "Indices", "Display the index numbers of selected vertices, edges, and faces");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "show_curve_handles", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_CU_HANDLES);
-  RNA_def_property_ui_text(prop, "Draw Handles", "Display Bezier handles in editmode");
+  prop = RNA_def_property(srna, "display_handle", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "overlay.handle_display");
+  RNA_def_property_enum_items(prop, rna_enum_curve_display_handle_items);
+  RNA_def_property_ui_text(
+      prop, "Display Handles", "Limit the display of curve handles in edit mode");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   prop = RNA_def_property(srna, "show_curve_normals", PROP_BOOLEAN, PROP_NONE);

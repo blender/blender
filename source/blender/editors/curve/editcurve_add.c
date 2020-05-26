@@ -138,7 +138,7 @@ Nurb *ED_curve_add_nurbs_primitive(
     copy_v3_v3(zvec, rv3d->viewinv[2]);
   }
 
-  BKE_nurbList_flag_set(editnurb, 0);
+  BKE_nurbList_flag_set(editnurb, SELECT, false);
 
   /* these types call this function to return a Nurb */
   if (stype != CU_PRIM_TUBE && stype != CU_PRIM_DONUT) {

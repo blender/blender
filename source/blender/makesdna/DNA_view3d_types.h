@@ -228,8 +228,19 @@ typedef struct View3DOverlay {
 
   /** Factor for mixing vertex paint with original color */
   float gpencil_vertex_paint_opacity;
-  char _pad4[4];
+  /** Handles display type for curves. */
+  int handle_display;
 } View3DOverlay;
+
+/* View3DOverlay->handle_display */
+typedef enum eHandleDisplay {
+  /* Display only selected points. */
+  CURVE_HANDLE_SELECTED = 0,
+  /* Display all handles. */
+  CURVE_HANDLE_ALL = 1,
+  /* No display handles. */
+  CURVE_HANDLE_NONE = 2,
+} eHandleDisplay;
 
 typedef struct View3D_Runtime {
   /** Nkey panel stores stuff here. */
@@ -522,7 +533,9 @@ enum {
   V3D_OVERLAY_EDIT_FACE_AREA = (1 << 18),
   V3D_OVERLAY_EDIT_INDICES = (1 << 19),
 
-  V3D_OVERLAY_EDIT_CU_HANDLES = (1 << 20),
+  /* Deprecated. */
+  /* V3D_OVERLAY_EDIT_CU_HANDLES = (1 << 20),  */
+
   V3D_OVERLAY_EDIT_CU_NORMALS = (1 << 21),
 };
 

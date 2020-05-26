@@ -685,14 +685,20 @@ static void curve_create_edit_curves_nor(CurveRenderData *rdata, GPUVertBuf *vbo
   BLI_assert(vbo_len_used == verts_len_capacity);
 }
 
-static char beztriple_vflag_get(
-    CurveRenderData *rdata, char flag, char col_id, int v_idx, int nu_id, bool handle_point)
+static char beztriple_vflag_get(CurveRenderData *rdata,
+                                char flag,
+                                char col_id,
+                                int v_idx,
+                                int nu_id,
+                                bool handle_point,
+                                const bool handle_selected)
 {
   char vflag = 0;
   SET_FLAG_FROM_TEST(vflag, (flag & SELECT), VFLAG_VERT_SELECTED);
   SET_FLAG_FROM_TEST(vflag, (v_idx == rdata->actvert && nu_id == rdata->actnu), VFLAG_VERT_ACTIVE);
   SET_FLAG_FROM_TEST(vflag, (nu_id == rdata->actnu), ACTIVE_NURB);
   SET_FLAG_FROM_TEST(vflag, handle_point, BEZIER_HANDLE);
+  SET_FLAG_FROM_TEST(vflag, handle_selected, VFLAG_HANDLE_SELECTED);
   /* handle color id */
   vflag |= col_id << COLOR_SHIFT;
   return vflag;
@@ -754,11 +760,13 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
   for (Nurb *nu = rdata->nurbs->first; nu; nu = nu->next, nu_id++) {
     const BezTriple *bezt = nu->bezt;
     const BPoint *bp = nu->bp;
+
     if (bezt) {
       for (int a = 0; a < nu->pntsu; a++, bezt++) {
         if (bezt->hide == true) {
           continue;
         }
+        const bool handle_selected = BEZT_ISSEL_ANY(bezt);
 
         if (elbp_verts) {
           GPU_indexbuf_add_point_vert(elbp_verts, vbo_len_used + 0);
@@ -771,9 +779,9 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
         }
         if (vbo_data) {
           const char vflag[3] = {
-              beztriple_vflag_get(rdata, bezt->f1, bezt->h1, a, nu_id, true),
-              beztriple_vflag_get(rdata, bezt->f2, bezt->h1, a, nu_id, false),
-              beztriple_vflag_get(rdata, bezt->f3, bezt->h2, a, nu_id, true),
+              beztriple_vflag_get(rdata, bezt->f1, bezt->h1, a, nu_id, true, handle_selected),
+              beztriple_vflag_get(rdata, bezt->f2, bezt->h1, a, nu_id, false, handle_selected),
+              beztriple_vflag_get(rdata, bezt->f3, bezt->h2, a, nu_id, true, handle_selected),
           };
           for (int j = 0; j < 3; j++) {
             GPU_vertbuf_attr_set(vbo_data, attr_id.data, vbo_len_used + j, &vflag[j]);

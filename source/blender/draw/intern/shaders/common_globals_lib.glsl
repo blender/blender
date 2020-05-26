@@ -140,3 +140,4 @@ layout(std140) uniform globalsBlock
 #define EDGE_SEAM (1 << 4)
 #define EDGE_SHARP (1 << 5)
 #define EDGE_FREESTYLE (1 << 6)
+#define HANDLE_SELECTED (1 << 7)

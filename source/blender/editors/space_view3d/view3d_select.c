@@ -411,6 +411,7 @@ typedef struct LassoSelectUserData {
   const int (*mcoords)[2];
   int mcoords_len;
   eSelectOp sel_op;
+  eBezTriple_Flag select_flag;
 
   /* runtime */
   int pass;
@@ -434,6 +435,8 @@ static void view3d_userdata_lassoselect_init(LassoSelectUserData *r_data,
   r_data->mcoords = mcoords;
   r_data->mcoords_len = mcoords_len;
   r_data->sel_op = sel_op;
+  /* SELECT by default, but can be changed if needed (only few cases use and respect this). */
+  r_data->select_flag = SELECT;
 
   /* runtime */
   r_data->pass = 0;
@@ -903,6 +906,7 @@ static void do_lasso_select_curve__doSelect(void *userData,
                                             BPoint *bp,
                                             BezTriple *bezt,
                                             int beztindex,
+                                            bool handles_visible,
                                             const float screen_co[2])
 {
   LassoSelectUserData *data = userData;
@@ -913,17 +917,17 @@ static void do_lasso_select_curve__doSelect(void *userData,
     const bool is_select = bp->f1 & SELECT;
     const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
     if (sel_op_result != -1) {
-      SET_FLAG_FROM_TEST(bp->f1, sel_op_result, SELECT);
+      SET_FLAG_FROM_TEST(bp->f1, sel_op_result, data->select_flag);
       data->is_changed = true;
     }
   }
   else {
-    if ((data->vc->v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) {
-      /* can only be (beztindex == 0) here since handles are hidden */
+    if (!handles_visible) {
+      /* can only be (beztindex == 1) here since handles are hidden */
       const bool is_select = bezt->f2 & SELECT;
       const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
       if (sel_op_result != -1) {
-        SET_FLAG_FROM_TEST(bezt->f2, sel_op_result, SELECT);
+        SET_FLAG_FROM_TEST(bezt->f2, sel_op_result, data->select_flag);
       }
       bezt->f1 = bezt->f3 = bezt->f2;
       data->is_changed = true;
@@ -933,7 +937,7 @@ static void do_lasso_select_curve__doSelect(void *userData,
       const bool is_select = *flag_p & SELECT;
       const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
       if (sel_op_result != -1) {
-        SET_FLAG_FROM_TEST(*flag_p, sel_op_result, SELECT);
+        SET_FLAG_FROM_TEST(*flag_p, sel_op_result, data->select_flag);
         data->is_changed = true;
       }
     }
@@ -945,6 +949,7 @@ static bool do_lasso_select_curve(ViewContext *vc,
                                   const int mcoords_len,
                                   const eSelectOp sel_op)
 {
+  const bool deselect_all = (sel_op == SEL_OP_SET);
   LassoSelectUserData data;
   rcti rect;
 
@@ -952,13 +957,23 @@ static bool do_lasso_select_curve(ViewContext *vc,
 
   view3d_userdata_lassoselect_init(&data, vc, &rect, mcoords, mcoords_len, sel_op);
 
-  if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    Curve *curve = (Curve *)vc->obedit->data;
-    data.is_changed |= ED_curve_deselect_all(curve->editnurb);
+  Curve *curve = (Curve *)vc->obedit->data;
+  ListBase *nurbs = BKE_curve_editNurbs_get(curve);
+
+  /* For deselect all, items to be selected are tagged with temp flag. Clear that first. */
+  if (deselect_all) {
+    BKE_nurbList_flag_set(nurbs, BEZT_FLAG_TEMP_TAG, false);
+    data.select_flag = BEZT_FLAG_TEMP_TAG;
   }
 
   ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
   nurbs_foreachScreenVert(vc, do_lasso_select_curve__doSelect, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+
+  /* Deselect items that were not added to selection (indicated by temp flag). */
+  if (deselect_all) {
+    BKE_nurbList_flag_set_from_flag(nurbs, BEZT_FLAG_TEMP_TAG, SELECT);
+  }
+
   if (data.is_changed) {
     BKE_curve_nurb_vert_active_validate(vc->obedit->data);
   }
@@ -2559,6 +2574,7 @@ typedef struct BoxSelectUserData {
   const rctf *rect_fl;
   rctf _rect_fl;
   eSelectOp sel_op;
+  eBezTriple_Flag select_flag;
 
   /* runtime */
   bool is_done;
@@ -2577,6 +2593,8 @@ static void view3d_userdata_boxselect_init(BoxSelectUserData *r_data,
   BLI_rctf_rcti_copy(&r_data->_rect_fl, rect);
 
   r_data->sel_op = sel_op;
+  /* SELECT by default, but can be changed if needed (only few cases use and respect this). */
+  r_data->select_flag = SELECT;
 
   /* runtime */
   r_data->is_done = false;
@@ -2707,6 +2725,7 @@ static void do_nurbs_box_select__doSelect(void *userData,
                                           BPoint *bp,
                                           BezTriple *bezt,
                                           int beztindex,
+                                          bool handles_visible,
                                           const float screen_co[2])
 {
   BoxSelectUserData *data = userData;
@@ -2716,17 +2735,17 @@ static void do_nurbs_box_select__doSelect(void *userData,
     const bool is_select = bp->f1 & SELECT;
     const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
     if (sel_op_result != -1) {
-      SET_FLAG_FROM_TEST(bp->f1, sel_op_result, SELECT);
+      SET_FLAG_FROM_TEST(bp->f1, sel_op_result, data->select_flag);
       data->is_changed = true;
     }
   }
   else {
-    if ((data->vc->v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) {
-      /* can only be (beztindex == 0) here since handles are hidden */
+    if (!handles_visible) {
+      /* can only be (beztindex == 1) here since handles are hidden */
       const bool is_select = bezt->f2 & SELECT;
       const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
       if (sel_op_result != -1) {
-        SET_FLAG_FROM_TEST(bezt->f2, sel_op_result, SELECT);
+        SET_FLAG_FROM_TEST(bezt->f2, sel_op_result, data->select_flag);
         data->is_changed = true;
       }
       bezt->f1 = bezt->f3 = bezt->f2;
@@ -2736,7 +2755,7 @@ static void do_nurbs_box_select__doSelect(void *userData,
       const bool is_select = *flag_p & SELECT;
       const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
       if (sel_op_result != -1) {
-        SET_FLAG_FROM_TEST(*flag_p, sel_op_result, SELECT);
+        SET_FLAG_FROM_TEST(*flag_p, sel_op_result, data->select_flag);
         data->is_changed = true;
       }
     }
@@ -2744,17 +2763,28 @@ static void do_nurbs_box_select__doSelect(void *userData,
 }
 static bool do_nurbs_box_select(ViewContext *vc, rcti *rect, const eSelectOp sel_op)
 {
+  const bool deselect_all = (sel_op == SEL_OP_SET);
   BoxSelectUserData data;
 
   view3d_userdata_boxselect_init(&data, vc, rect, sel_op);
 
-  if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    Curve *curve = (Curve *)vc->obedit->data;
-    data.is_changed |= ED_curve_deselect_all(curve->editnurb);
+  Curve *curve = (Curve *)vc->obedit->data;
+  ListBase *nurbs = BKE_curve_editNurbs_get(curve);
+
+  /* For deselect all, items to be selected are tagged with temp flag. Clear that first. */
+  if (deselect_all) {
+    BKE_nurbList_flag_set(nurbs, BEZT_FLAG_TEMP_TAG, false);
+    data.select_flag = BEZT_FLAG_TEMP_TAG;
   }
 
   ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
   nurbs_foreachScreenVert(vc, do_nurbs_box_select__doSelect, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+
+  /* Deselect items that were not added to selection (indicated by temp flag). */
+  if (deselect_all) {
+    BKE_nurbList_flag_set_from_flag(nurbs, BEZT_FLAG_TEMP_TAG, SELECT);
+  }
+
   BKE_curve_nurb_vert_active_validate(vc->obedit->data);
 
   return data.is_changed;
@@ -3393,6 +3423,7 @@ typedef struct CircleSelectUserData {
   float mval_fl[2];
   float radius;
   float radius_squared;
+  eBezTriple_Flag select_flag;
 
   /* runtime */
   bool is_changed;
@@ -3412,6 +3443,9 @@ static void view3d_userdata_circleselect_init(CircleSelectUserData *r_data,
 
   r_data->radius = rad;
   r_data->radius_squared = rad * rad;
+
+  /* SELECT by default, but can be changed if needed (only few cases use and respect this). */
+  r_data->select_flag = SELECT;
 
   /* runtime */
   r_data->is_changed = false;
@@ -3650,29 +3684,24 @@ static void nurbscurve_circle_doSelect(void *userData,
                                        BPoint *bp,
                                        BezTriple *bezt,
                                        int beztindex,
+                                       bool UNUSED(handles_visible),
                                        const float screen_co[2])
 {
   CircleSelectUserData *data = userData;
 
   if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
     if (bp) {
-      bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
+      SET_FLAG_FROM_TEST(bp->f1, data->select, data->select_flag);
     }
     else {
-      if ((data->vc->v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) {
-        /* can only be (beztindex == 0) here since handles are hidden */
-        bezt->f1 = bezt->f2 = bezt->f3 = data->select ? (bezt->f2 | SELECT) : (bezt->f2 & ~SELECT);
+      if (beztindex == 0) {
+        SET_FLAG_FROM_TEST(bezt->f1, data->select, data->select_flag);
+      }
+      else if (beztindex == 1) {
+        SET_FLAG_FROM_TEST(bezt->f2, data->select, data->select_flag);
       }
       else {
-        if (beztindex == 0) {
-          bezt->f1 = data->select ? (bezt->f1 | SELECT) : (bezt->f1 & ~SELECT);
-        }
-        else if (beztindex == 1) {
-          bezt->f2 = data->select ? (bezt->f2 | SELECT) : (bezt->f2 & ~SELECT);
-        }
-        else {
-          bezt->f3 = data->select ? (bezt->f3 | SELECT) : (bezt->f3 & ~SELECT);
-        }
+        SET_FLAG_FROM_TEST(bezt->f3, data->select, data->select_flag);
       }
     }
     data->is_changed = true;
@@ -3683,18 +3712,30 @@ static bool nurbscurve_circle_select(ViewContext *vc,
                                      const int mval[2],
                                      float rad)
 {
+  const bool select = (sel_op != SEL_OP_SUB);
+  const bool deselect_all = (sel_op == SEL_OP_SET);
   CircleSelectUserData data;
   bool changed = false;
-  if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    Curve *curve = vc->obedit->data;
-    changed |= ED_curve_deselect_all(curve->editnurb);
-  }
-  const bool select = (sel_op != SEL_OP_SUB);
 
   view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
 
+  Curve *curve = (Curve *)vc->obedit->data;
+  ListBase *nurbs = BKE_curve_editNurbs_get(curve);
+
+  /* For deselect all, items to be selected are tagged with temp flag. Clear that first. */
+  if (deselect_all) {
+    BKE_nurbList_flag_set(nurbs, BEZT_FLAG_TEMP_TAG, false);
+    data.select_flag = BEZT_FLAG_TEMP_TAG;
+  }
+
   ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
   nurbs_foreachScreenVert(vc, nurbscurve_circle_doSelect, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+
+  /* Deselect items that were not added to selection (indicated by temp flag). */
+  if (deselect_all) {
+    BKE_nurbList_flag_set_from_flag(nurbs, BEZT_FLAG_TEMP_TAG, SELECT);
+  }
+
   BKE_curve_nurb_vert_active_validate(vc->obedit->data);
 
   return changed || data.is_changed;

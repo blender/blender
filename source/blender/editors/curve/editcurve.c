@@ -4923,7 +4923,7 @@ bool ED_curve_editnurb_select_pick(
       }
     }
     else {
-      BKE_nurbList_flag_set(editnurb, 0);
+      BKE_nurbList_flag_set(editnurb, SELECT, false);
 
       if (bezt) {
 

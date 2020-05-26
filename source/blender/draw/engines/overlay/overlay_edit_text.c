@@ -38,7 +38,8 @@ void OVERLAY_edit_text_cache_init(OVERLAY_Data *vedata)
   GPUShader *sh;
   DRWState state;
 
-  pd->edit_curve.show_handles = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) != 0;
+  pd->edit_curve.show_handles = v3d->overlay.handle_display != CURVE_HANDLE_NONE;
+  pd->edit_curve.handle_display = v3d->overlay.handle_display;
   pd->shdata.edit_curve_normal_length = v3d->overlay.normals_length;
 
   /* Run Twice for in-front passes. */

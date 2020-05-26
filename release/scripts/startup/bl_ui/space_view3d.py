@@ -6379,7 +6379,7 @@ class VIEW3D_PT_overlay_edit_curve(Panel):
         col.active = display_all
 
         row = col.row()
-        row.prop(overlay, "show_curve_handles", text="Handles")
+        row.prop(overlay, "display_handle", text="Handles")
 
         row = col.row()
         row.prop(overlay, "show_curve_normals", text="")

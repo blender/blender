@@ -4485,7 +4485,7 @@ void BKE_nurbList_handles_recalculate(ListBase *editnurb, const bool calc_length
   }
 }
 
-void BKE_nurbList_flag_set(ListBase *editnurb, short flag)
+void BKE_nurbList_flag_set(ListBase *editnurb, short flag, bool set)
 {
   Nurb *nu;
   BezTriple *bezt;
@@ -4497,7 +4497,16 @@ void BKE_nurbList_flag_set(ListBase *editnurb, short flag)
       a = nu->pntsu;
       bezt = nu->bezt;
       while (a--) {
-        bezt->f1 = bezt->f2 = bezt->f3 = flag;
+        if (set) {
+          bezt->f1 |= flag;
+          bezt->f2 |= flag;
+          bezt->f3 |= flag;
+        }
+        else {
+          bezt->f1 &= ~flag;
+          bezt->f2 &= ~flag;
+          bezt->f3 &= ~flag;
+        }
         bezt++;
       }
     }
@@ -4505,11 +4514,45 @@ void BKE_nurbList_flag_set(ListBase *editnurb, short flag)
       a = nu->pntsu * nu->pntsv;
       bp = nu->bp;
       while (a--) {
-        bp->f1 = flag;
+        SET_FLAG_FROM_TEST(bp->f1, set, flag);
         bp++;
       }
     }
   }
+}
+
+/**
+ * Set \a flag for every point that already has \a from_flag set.
+ */
+bool BKE_nurbList_flag_set_from_flag(ListBase *editnurb, short from_flag, short flag)
+{
+  bool changed = false;
+
+  for (Nurb *nu = editnurb->first; nu; nu = nu->next) {
+    if (nu->type == CU_BEZIER) {
+      for (int i = 0; i < nu->pntsu; i++) {
+        BezTriple *bezt = &nu->bezt[i];
+        int old_f1 = bezt->f1, old_f2 = bezt->f2, old_f3 = bezt->f3;
+
+        SET_FLAG_FROM_TEST(bezt->f1, bezt->f1 & from_flag, flag);
+        SET_FLAG_FROM_TEST(bezt->f2, bezt->f2 & from_flag, flag);
+        SET_FLAG_FROM_TEST(bezt->f3, bezt->f3 & from_flag, flag);
+
+        changed |= (old_f1 != bezt->f1) || (old_f2 != bezt->f2) || (old_f3 != bezt->f3);
+      }
+    }
+    else {
+      for (int i = 0; i < nu->pntsu * nu->pntsv; i++) {
+        BPoint *bp = &nu->bp[i];
+        int old_f1 = bp->f1;
+
+        SET_FLAG_FROM_TEST(bp->f1, bp->f1 & from_flag, flag);
+        changed |= (old_f1 != bp->f1);
+      }
+    }
+  }
+
+  return changed;
 }
 
 void BKE_nurb_direction_switch(Nurb *nu)

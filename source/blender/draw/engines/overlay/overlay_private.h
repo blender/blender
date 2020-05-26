@@ -297,6 +297,7 @@ typedef struct OVERLAY_PrivateData {
   } antialiasing;
   struct {
     bool show_handles;
+    int handle_display;
   } edit_curve;
   struct {
     int ghost_ob;
