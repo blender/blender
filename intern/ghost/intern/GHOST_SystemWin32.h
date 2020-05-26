@@ -64,6 +64,8 @@ class GHOST_SystemWin32 : public GHOST_System {
    ** Time(r) functionality
    ***************************************************************************************/
 
+  GHOST_TUns64 millisSinceStart(__int64 ms) const;
+
   /**
    * This method converts performance counter measurements into milliseconds since the start of the
    * system process.

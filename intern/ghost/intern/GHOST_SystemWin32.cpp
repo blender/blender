@@ -234,6 +234,11 @@ GHOST_SystemWin32::~GHOST_SystemWin32()
   toggleConsole(1);
 }
 
+GHOST_TUns64 GHOST_SystemWin32::millisSinceStart(__int64 ms) const
+{
+  return (GHOST_TUns64)(ms - m_start * 1000 / m_freq);
+}
+
 GHOST_TUns64 GHOST_SystemWin32::performanceCounterToMillis(__int64 perf_ticks) const
 {
   // Calculate the time passed since system initialization.
@@ -1591,6 +1596,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           window->processWintabProximityEvent(inRange);
           break;
         }
+        case WT_PACKET:
+          window->updatePendingWintabEvents();
+          break;
         ////////////////////////////////////////////////////////////////////////
         // Pointer events, processed
         ////////////////////////////////////////////////////////////////////////

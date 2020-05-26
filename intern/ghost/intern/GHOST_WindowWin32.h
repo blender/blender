@@ -35,6 +35,7 @@
 #endif
 
 #include <vector>
+#include <queue>
 
 #include <wintab.h>
 // PACKETDATA and PACKETMODE modify structs in pktdef.h, so make sure they come first
@@ -482,6 +483,10 @@ class GHOST_WindowWin32 : public GHOST_Window {
    */
   GHOST_TSuccess getWintabInfo(std::vector<GHOST_WintabInfoWin32> &outWintabInfo);
 
+  /**
+   */
+  void updatePendingWintabEvents();
+
   GHOST_TSuccess beginFullScreen() const
   {
     return GHOST_kFailure;
@@ -625,6 +630,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
     LONG maxAzimuth = 0, maxAltitude = 0;
     /* Queue size doesn't change once set, so reuse the same buffer */
     std::vector<PACKET> pkts;
+    std::queue<PACKET> pendingEvents;
   } m_wintab;
 
   /**

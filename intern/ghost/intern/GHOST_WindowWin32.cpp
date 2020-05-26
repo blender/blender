@@ -1045,6 +1045,7 @@ void GHOST_WindowWin32::initializeWintab()
     lc.lcPktData = PACKETDATA;
     lc.lcPktMode = PACKETMODE;
     lc.lcMoveMask = PACKETDATA;
+    lc.lcOptions |= CXO_MESSAGES;
     // Wacom maps y origin to the tablet's bottom
     // Invert to match Windows y origin mapping to the screen top
     lc.lcOutExtY = -lc.lcOutExtY;
@@ -1298,12 +1299,16 @@ GHOST_TSuccess GHOST_WindowWin32::getWintabInfo(std::vector<GHOST_WintabInfoWin3
 
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)GHOST_System::getSystem();
 
-  const int numPackets = m_wintab.packetsGet(
-      m_wintab.context, m_wintab.pkts.size(), m_wintab.pkts.data());
-  outWintabInfo.resize(numPackets);
+  updatePendingWintabEvents();
 
-  for (int i = 0; i < numPackets; i++) {
-    PACKET pkt = m_wintab.pkts[i];
+  auto &pendingEvents = m_wintab.pendingEvents;
+  size_t pendingEventSize = pendingEvents.size();
+  outWintabInfo.resize(pendingEventSize);
+
+  for (int i = 0; i < pendingEventSize; i++) {
+    PACKET pkt = pendingEvents.front();
+    pendingEvents.pop();
+
     GHOST_TabletData tabletData = GHOST_TABLET_DATA_NONE;
     switch (pkt.pkCursor % 3) { /* % 3 for multiple devices ("DualTrack") */
       case 0:
@@ -1388,6 +1393,46 @@ GHOST_TSuccess GHOST_WindowWin32::getWintabInfo(std::vector<GHOST_WintabInfoWin3
   }
 
   return GHOST_kSuccess;
+}
+
+void GHOST_WindowWin32::updatePendingWintabEvents()
+{
+  if (!(m_wintab.packetsGet && m_wintab.context)) {
+    return;
+  }
+  GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)GHOST_System::getSystem();
+
+  auto &pendingEvents = m_wintab.pendingEvents;
+
+  // Clear outdated events from queue.
+  GHOST_TUns64 currTime = system->getMilliSeconds();
+  GHOST_TUns64 timeout = 300;
+  while (!pendingEvents.empty()) {
+    GHOST_TUns64 pktTime = system->millisSinceStart(pendingEvents.front().pkTime);
+    if (currTime - pktTime > timeout) {
+      pendingEvents.pop();
+    }
+    else {
+      break;
+    }
+  }
+
+  // Get new packets.
+  const int numPackets = m_wintab.packetsGet(
+      m_wintab.context, m_wintab.pkts.size(), m_wintab.pkts.data());
+
+  int i = 0;
+  // Don't queue outdated packets, such events can include packets that occurred before the current
+  // window lost and regained focus.
+  for (; i < numPackets; i++) {
+    GHOST_TUns64 pktTime = system->millisSinceStart(m_wintab.pkts[i].pkTime);
+    if (currTime - pktTime < timeout) {
+      break;
+    }
+  }
+  for (; i < numPackets; i++) {
+    pendingEvents.push(m_wintab.pkts[i]);
+  }
 }
 
 GHOST_TUns16 GHOST_WindowWin32::getDPIHint()
