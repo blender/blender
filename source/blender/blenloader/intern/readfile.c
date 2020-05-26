@@ -3897,23 +3897,23 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
   }
 
 #if 0
-	if (ntree->previews) {
-		bNodeInstanceHash* new_previews = BKE_node_instance_hash_new("node previews");
-		bNodeInstanceHashIterator iter;
+  if (ntree->previews) {
+    bNodeInstanceHash* new_previews = BKE_node_instance_hash_new("node previews");
+    bNodeInstanceHashIterator iter;
 
-		NODE_INSTANCE_HASH_ITER(iter, ntree->previews) {
-			bNodePreview* preview = BKE_node_instance_hash_iterator_get_value(&iter);
-			if (preview) {
-				bNodePreview* new_preview = newimaadr(fd, preview);
-				if (new_preview) {
-					bNodeInstanceKey key = BKE_node_instance_hash_iterator_get_key(&iter);
-					BKE_node_instance_hash_insert(new_previews, key, new_preview);
-				}
-			}
-		}
-		BKE_node_instance_hash_free(ntree->previews, NULL);
-		ntree->previews = new_previews;
-	}
+    NODE_INSTANCE_HASH_ITER(iter, ntree->previews) {
+      bNodePreview* preview = BKE_node_instance_hash_iterator_get_value(&iter);
+      if (preview) {
+        bNodePreview* new_preview = newimaadr(fd, preview);
+        if (new_preview) {
+          bNodeInstanceKey key = BKE_node_instance_hash_iterator_get_key(&iter);
+          BKE_node_instance_hash_insert(new_previews, key, new_preview);
+        }
+      }
+    }
+    BKE_node_instance_hash_free(ntree->previews, NULL);
+    ntree->previews = new_previews;
+  }
 #else
   /* XXX TODO */
   ntree->previews = NULL;
@@ -4363,10 +4363,10 @@ static void direct_link_text(FileData *fd, Text *text)
   text->compiled = NULL;
 
 #if 0
-	if (text->flags & TXT_ISEXT) {
-		BKE_text_reload(text);
-	}
-	/* else { */
+  if (text->flags & TXT_ISEXT) {
+    BKE_text_reload(text);
+  }
+  /* else { */
 #endif
 
   link_list(fd, &text->lines);
@@ -5354,7 +5354,7 @@ static void lib_link_object(FileData *fd, Main *bmain, Object *ob)
        * some leaked memory rather then crashing immediately
        * while bad this _is_ an exceptional case - campbell */
 #if 0
-			BKE_pose_free(ob->pose);
+      BKE_pose_free(ob->pose);
 #else
       MEM_freeN(ob->pose);
 #endif
@@ -5831,15 +5831,15 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
     else if (md->type == eModifierType_Collision) {
       CollisionModifierData *collmd = (CollisionModifierData *)md;
 #if 0
-			// TODO: CollisionModifier should use pointcache
-			// + have proper reset events before enabling this
-			collmd->x = newdataadr(fd, collmd->x);
-			collmd->xnew = newdataadr(fd, collmd->xnew);
-			collmd->mfaces = newdataadr(fd, collmd->mfaces);
+      // TODO: CollisionModifier should use pointcache
+      // + have proper reset events before enabling this
+      collmd->x = newdataadr(fd, collmd->x);
+      collmd->xnew = newdataadr(fd, collmd->xnew);
+      collmd->mfaces = newdataadr(fd, collmd->mfaces);
 
-			collmd->current_x = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_x");
-			collmd->current_xnew = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_xnew");
-			collmd->current_v = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_v");
+      collmd->current_x = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_x");
+      collmd->current_xnew = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_xnew");
+      collmd->current_v = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_v");
 #endif
 
       collmd->x = NULL;
@@ -7545,10 +7545,10 @@ static void direct_link_area(FileData *fd, ScrArea *area)
        * so sacrifice a few old files for now to avoid crashes with new files!
        * committed: r28002 */
 #if 0
-			sima->gpd = newdataadr(fd, sima->gpd);
-			if (sima->gpd) {
-				direct_link_gpencil(fd, sima->gpd);
-			}
+      sima->gpd = newdataadr(fd, sima->gpd);
+      if (sima->gpd) {
+        direct_link_gpencil(fd, sima->gpd);
+      }
 #endif
     }
     else if (sl->spacetype == SPACE_NODE) {
@@ -7579,10 +7579,10 @@ static void direct_link_area(FileData *fd, ScrArea *area)
        * simple return NULL here (sergey)
        */
 #if 0
-			if (sseq->gpd) {
-				sseq->gpd = newdataadr(fd, sseq->gpd);
-				direct_link_gpencil(fd, sseq->gpd);
-			}
+      if (sseq->gpd) {
+        sseq->gpd = newdataadr(fd, sseq->gpd);
+        direct_link_gpencil(fd, sseq->gpd);
+      }
 #endif
       sseq->scopes.reference_ibuf = NULL;
       sseq->scopes.zebra_ibuf = NULL;
@@ -8269,11 +8269,11 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
           sima->iuser.scene = NULL;
 
 #if 0
-					/* Those are allocated and freed by space code, no need to handle them here. */
-					MEM_SAFE_FREE(sima->scopes.waveform_1);
-					MEM_SAFE_FREE(sima->scopes.waveform_2);
-					MEM_SAFE_FREE(sima->scopes.waveform_3);
-					MEM_SAFE_FREE(sima->scopes.vecscope);
+          /* Those are allocated and freed by space code, no need to handle them here. */
+          MEM_SAFE_FREE(sima->scopes.waveform_1);
+          MEM_SAFE_FREE(sima->scopes.waveform_2);
+          MEM_SAFE_FREE(sima->scopes.waveform_3);
+          MEM_SAFE_FREE(sima->scopes.vecscope);
 #endif
           sima->scopes.ok = 0;
 
@@ -8646,8 +8646,8 @@ static void direct_link_speaker(FileData *fd, Speaker *spk)
   direct_link_animdata(fd, spk->adt);
 
 #if 0
-	spk->sound = newdataadr(fd, spk->sound);
-	direct_link_sound(fd, spk->sound);
+  spk->sound = newdataadr(fd, spk->sound);
+  direct_link_sound(fd, spk->sound);
 #endif
 }
 
@@ -9521,12 +9521,12 @@ static BHead *read_data_into_datamap(FileData *fd, BHead *bhead, const char *all
   while (bhead && bhead->code == DATA) {
     void *data;
 #if 0
-		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */
-		short* sp = fd->filesdna->structs[bhead->SDNAnr];
-		char* tmp = malloc(100);
-		allocname = fd->filesdna->types[sp[0]];
-		strcpy(tmp, allocname);
-		data = read_struct(fd, bhead, tmp);
+    /* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */
+    short* sp = fd->filesdna->structs[bhead->SDNAnr];
+    char* tmp = malloc(100);
+    allocname = fd->filesdna->types[sp[0]];
+    strcpy(tmp, allocname);
+    data = read_struct(fd, bhead, tmp);
 #else
     data = read_struct(fd, bhead, allocname);
 #endif
@@ -10053,6 +10053,7 @@ static void do_versions_after_linking(Main *main, ReportList *reports)
   do_versions_after_linking_260(main);
   do_versions_after_linking_270(main);
   do_versions_after_linking_280(main, reports);
+  do_versions_after_linking_290(main, reports);
   do_versions_after_linking_cycles(main);
 
   main->is_locked_for_linking = false;
@@ -10600,7 +10601,7 @@ static BHead *find_previous_lib(FileData *fd, BHead *bhead)
 static BHead *find_bhead(FileData *fd, void *old)
 {
 #if 0
-	BHead* bhead;
+  BHead* bhead;
 #endif
   struct BHeadSort *bhs, bhs_s;
 
@@ -10620,11 +10621,11 @@ static BHead *find_bhead(FileData *fd, void *old)
   }
 
 #if 0
-	for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
-		if (bhead->old == old) {
-			return bhead;
-		}
-	}
+  for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
+    if (bhead->old == old) {
+      return bhead;
+    }
+  }
 #endif
 
   return NULL;
@@ -10755,9 +10756,9 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 
       /* Commented because this can print way too much. */
 #if 0
-			if (G.debug & G_DEBUG) {
-				printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
-			}
+      if (G.debug & G_DEBUG) {
+        printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
+      }
 #endif
     }
 
@@ -12623,9 +12624,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
       /* Does this library have any more linked data-blocks we need to read? */
       if (has_linked_ids_to_read(mainptr)) {
 #if 0
-				printf("Reading linked data-blocks from %s (%s)\n",
-					mainptr->curlib->id.name,
-					mainptr->curlib->name);
+        printf("Reading linked data-blocks from %s (%s)\n",
+          mainptr->curlib->id.name,
+          mainptr->curlib->name);
 #endif
 
         /* Open file if it has not been done yet. */
