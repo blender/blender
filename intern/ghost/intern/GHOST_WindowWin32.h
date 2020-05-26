@@ -439,8 +439,9 @@ class GHOST_WindowWin32 : public GHOST_Window {
   /**
    * Handle setup and switch between Wintab and Pointer APIs
    * \param active    Whether the window is or will be in an active state
+   * \param visible   Whether the window is currently (or will be) visible)
    */
-  void updateWintab(bool active);
+  void updateWintab(bool active, bool visible);
 
   /**
    * Query whether given tablet API should be used.

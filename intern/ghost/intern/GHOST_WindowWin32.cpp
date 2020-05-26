@@ -310,7 +310,8 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       (m_wintab.overlap = (GHOST_WIN32_WTOverlap)::GetProcAddress(m_wintab.handle, "WTOverlap"))) {
     initializeWintab();
     // Determine which tablet API to use and enable it.
-    updateWintab(true);
+    bool enableWintab = state != GHOST_kWindowStateMinimized;
+    updateWintab(enableWintab, enableWintab);
   }
 
   CoCreateInstance(
@@ -326,6 +327,7 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
   }
 
   if (m_wintab.handle) {
+    updateWintab(false, false);
     if (m_wintab.close && m_wintab.context) {
       m_wintab.close(m_wintab.context);
     }
@@ -999,19 +1001,19 @@ GHOST_TSuccess GHOST_WindowWin32::hasCursorShape(GHOST_TStandardCursor cursorSha
   return (getStandardCursor(cursorShape)) ? GHOST_kSuccess : GHOST_kFailure;
 }
 
-void GHOST_WindowWin32::updateWintab(bool active)
+void GHOST_WindowWin32::updateWintab(bool active, bool visible)
 {
   if (m_wintab.enable && m_wintab.overlap && m_wintab.context) {
-    bool useWintab = useTabletAPI(GHOST_kTabletWintab);
-    bool enable = active && useWintab;
+    bool enable = useTabletAPI(GHOST_kTabletWintab) && visible;
+    bool overlap = enable && active;
 
     // Disabling context while the Window is not minimized can cause issues on receiving Wintab
     // input while changing a window for some drivers, so only disable if either Wintab had been
     // disabled or the window is minimized.
-    m_wintab.enable(m_wintab.context, useWintab && !::IsIconic(m_hWnd));
-    m_wintab.overlap(m_wintab.context, enable);
+    m_wintab.enable(m_wintab.context, enable);
+    m_wintab.overlap(m_wintab.context, overlap);
 
-    if (!enable) {
+    if (!overlap) {
       // WT_PROXIMITY event doesn't occur unless tablet's cursor leaves the proximity while the
       // window is active.
       m_tabletInRange = false;
@@ -1245,7 +1247,8 @@ void GHOST_WindowWin32::processWintabInfoChangeEvent(LPARAM lParam)
   // Update number of connected Wintab digitizers
   if (LOWORD(lParam) == WTI_INTERFACE && HIWORD(lParam) == IFC_NDEVICES) {
     m_wintab.info(WTI_INTERFACE, IFC_NDEVICES, &m_wintab.numDevices);
-    updateWintab((GHOST_WindowWin32 *)system->getWindowManager()->getActiveWindow() == this);
+    updateWintab((GHOST_WindowWin32 *)system->getWindowManager()->getActiveWindow() == this,
+                 !::IsIconic(m_hWnd));
   }
 }
 

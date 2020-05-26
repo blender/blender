@@ -1338,7 +1338,8 @@ void GHOST_SystemWin32::setTabletAPI(GHOST_TTabletAPI api)
 
   for (GHOST_IWindow *win : wm->getWindows()) {
     GHOST_WindowWin32 *windowsWindow = (GHOST_WindowWin32 *)win;
-    windowsWindow->updateWintab(windowsWindow == activeWindow);
+    windowsWindow->updateWintab(windowsWindow == activeWindow,
+                                !::IsIconic(windowsWindow->getHWND()));
   }
 }
 
@@ -1729,7 +1730,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
             if (LOWORD(wParam) == WA_INACTIVE)
               window->lostMouseCapture();
 
-            window->updateWintab(LOWORD(wParam) != WA_INACTIVE);
+            window->updateWintab(LOWORD(wParam) != WA_INACTIVE, !::IsIconic(window->getHWND()));
 
             lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
             break;
@@ -1789,8 +1790,11 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
             event = processWindowEvent(GHOST_kEventWindowSize, window);
           }
 
+          // Window might be minimized while inactive. When a window is inactive but not minimized,
+          // Wintab is left enabled (to catch the case where a pen is used to activate a window).
+          // When an inactive window is minimized, we need to disable Wintab.
           if (msg == WM_SIZE && wParam == SIZE_MINIMIZED) {
-            window->updateWintab(false);
+            window->updateWintab(false, false);
           }
 
           break;
