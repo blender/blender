@@ -1363,7 +1363,8 @@ GHOST_TSuccess GHOST_WindowWin32::getWintabInfo(std::vector<GHOST_WintabInfoWin3
     outWintabInfo[i].y = pkt.pkY;
 
     // Some Wintab libraries don't handle relative button input correctly, so we track button
-    // presses manually.
+    // presses manually. Examples include Wacom's Bamboo modifying button events in the queue when
+    // peeked, or missing events when entering the window when the context is not on top.
     DWORD buttonsChanged = m_wintab.sysButtonsPressed ^ pkt.pkButtons;
 
     // Find the index for the changed button from the button map.
