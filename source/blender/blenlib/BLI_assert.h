@@ -69,7 +69,13 @@ extern "C" {
 #  endif
 /* _BLI_ASSERT_ABORT */
 #  ifdef WITH_ASSERT_ABORT
-#    define _BLI_ASSERT_ABORT abort
+#    ifdef __GNUC__
+/* Cast to remove 'noreturn' attribute since this suppresses missing return statements,
+ * allowing changes to debug builds to accidentally to break release builds. */
+#      define _BLI_ASSERT_ABORT ((void (*)(void))(*(((void **)abort))))
+#    else
+#      define _BLI_ASSERT_ABORT abort
+#    endif
 #  else
 #    define _BLI_ASSERT_ABORT() (void)0
 #  endif
