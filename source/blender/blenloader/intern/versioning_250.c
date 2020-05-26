@@ -61,6 +61,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_anim_visualization.h"
 #include "BKE_armature.h"
 #include "BKE_colortools.h"
@@ -2351,5 +2352,33 @@ void do_versions_after_linking_250(Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 258, 0)) {
+    /* Some very old (original comments claim pre-2.57) versionning that was wrongly done in
+     * lib-linking code... Putting it here just to be sure (this is also checked at runtime anyway
+     * by `action_idcode_patch_check`). */
+    ID *id;
+    FOREACH_MAIN_ID_BEGIN (bmain, id) {
+      AnimData *adt = BKE_animdata_from_id(id);
+      if (adt != NULL) {
+        /* Fix actions' id-roots (i.e. if they come from a pre 2.57 .blend file). */
+        if ((adt->action) && (adt->action->idroot == 0)) {
+          adt->action->idroot = GS(id->name);
+        }
+        if ((adt->tmpact) && (adt->tmpact->idroot == 0)) {
+          adt->tmpact->idroot = GS(id->name);
+        }
+
+        LISTBASE_FOREACH (NlaTrack *, nla_track, &adt->nla_tracks) {
+          LISTBASE_FOREACH (NlaStrip *, nla_strip, &nla_track->strips) {
+            if ((nla_strip->act) && (nla_strip->act->idroot == 0)) {
+              nla_strip->act->idroot = GS(id->name);
+            }
+          }
+        }
+      }
+    }
+    FOREACH_MAIN_ID_END;
   }
 }
