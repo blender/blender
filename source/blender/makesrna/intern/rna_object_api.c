@@ -41,6 +41,8 @@
 
 #include "DEG_depsgraph.h"
 
+#include "ED_outliner.h"
+
 #include "rna_internal.h" /* own include */
 
 static const EnumPropertyItem space_items[] = {
@@ -114,6 +116,7 @@ static void rna_Object_select_set(
   Scene *scene = CTX_data_scene(C);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
+  ED_outliner_select_sync_from_object_tag(C);
 }
 
 static bool rna_Object_select_get(Object *ob, bContext *C, ViewLayer *view_layer)
