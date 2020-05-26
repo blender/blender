@@ -1049,6 +1049,16 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
   // associated button event. Because Wintab and their associated Windows mouse events are handled
   // asynchronously, and there's no way to turn off
   if (unhandledButton) {
+    if (!window->wintabSysButPressed()) {
+      GHOST_TInt32 x, y;
+      system->getCursorPosition(x, y);
+      system->pushEvent(new GHOST_EventCursor(system->getMilliSeconds(),
+                                              GHOST_kEventCursorMove,
+                                              window,
+                                              x,
+                                              y,
+                                              GHOST_TABLET_DATA_NONE));
+    }
     system->pushEvent(new GHOST_EventButton(
         system->getMilliSeconds(), type, window, mask, GHOST_TABLET_DATA_NONE));
   }
