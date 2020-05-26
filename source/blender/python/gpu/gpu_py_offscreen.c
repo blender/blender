@@ -40,6 +40,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
+#include "GPU_context.h"
 #include "GPU_framebuffer.h"
 #include "GPU_texture.h"
 
@@ -84,7 +85,7 @@ static PyObject *bpygpu_offscreen_new(PyTypeObject *UNUSED(self), PyObject *args
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
-  GPUOffScreen *ofs;
+  GPUOffScreen *ofs = NULL;
   int width, height, samples = 0;
   char err_out[256];
 
@@ -94,7 +95,12 @@ static PyObject *bpygpu_offscreen_new(PyTypeObject *UNUSED(self), PyObject *args
     return NULL;
   }
 
-  ofs = GPU_offscreen_create(width, height, samples, true, false, err_out);
+  if (GPU_context_active_get()) {
+    ofs = GPU_offscreen_create(width, height, samples, true, false, err_out);
+  }
+  else {
+    strncpy(err_out, "No active GPU context found", 256);
+  }
 
   if (ofs == NULL) {
     PyErr_Format(PyExc_RuntimeError,
