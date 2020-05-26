@@ -75,9 +75,9 @@ bool isEqualGeometryEdge(const MeshTopology &mesh_topology, const OpenSubdiv_Con
     int requested_edge_vertices[2];
     converter->getEdgeVertices(converter, edge_index, requested_edge_vertices);
 
-    const EdgeTopology &current_edge = mesh_topology.getEdge(edge_index);
-    if (current_edge.v1 != requested_edge_vertices[0] ||
-        current_edge.v2 != requested_edge_vertices[1]) {
+    if (!mesh_topology.isEdgeEqual(
+            edge_index, requested_edge_vertices[0], requested_edge_vertices[1])) {
+      printf("edge mismatch\n");
       return false;
     }
   }
@@ -96,17 +96,15 @@ bool isEqualGeometryFace(const MeshTopology &mesh_topology, const OpenSubdiv_Con
 
   vector<int> vertices_of_face;
   for (int face_index = 0; face_index < num_requested_faces; ++face_index) {
-    const FaceTopology &current_face = mesh_topology.getFace(face_index);
-
     int num_face_vertices = converter->getNumFaceVertices(converter, face_index);
-    if (current_face.getNumVertices() != num_face_vertices) {
+    if (mesh_topology.getNumFaceVertices(face_index) != num_face_vertices) {
       return false;
     }
 
     vertices_of_face.resize(num_face_vertices);
     converter->getFaceVertices(converter, face_index, vertices_of_face.data());
 
-    if (current_face.vertex_indices != vertices_of_face) {
+    if (!mesh_topology.isFaceVertexIndicesEqual(face_index, vertices_of_face)) {
       return false;
     }
   }

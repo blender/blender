@@ -29,58 +29,6 @@ struct OpenSubdiv_Converter;
 namespace blender {
 namespace opensubdiv {
 
-class VertexTopologyTag {
- public:
-  float sharpness = 0.0f;
-};
-
-class EdgeTopology {
- public:
-  bool isValid() const
-  {
-    return v1 >= 0 && v2 >= 0;
-  }
-
-  int v1 = -1;
-  int v2 = -1;
-};
-
-class FaceTopology {
- public:
-  void setNumVertices(int num_vertices)
-  {
-    vertex_indices.resize(num_vertices, -1);
-  }
-
-  void setVertexIndices(int *face_vertex_indices)
-  {
-    memcpy(vertex_indices.data(), face_vertex_indices, sizeof(int) * vertex_indices.size());
-  }
-
-  bool isValid() const
-  {
-    for (int vertex_index : vertex_indices) {
-      if (vertex_index < 0) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  int getNumVertices() const
-  {
-    return vertex_indices.size();
-  }
-
-  vector<int> vertex_indices;
-};
-
-class EdgeTopologyTag {
- public:
-  float sharpness = 0.0f;
-};
-
 // Simplified representation of mesh topology.
 // Only includes parts of actual mesh topology which is needed to perform
 // comparison between Application side and OpenSubddiv side.
@@ -112,10 +60,10 @@ class MeshTopology {
   // on last edge index for which topology tag was specified.
   int getNumEdges() const;
 
-  void setEdgevertexIndices(int edge_index, int v1, int v2);
+  void setEdgeVertexIndices(int edge_index, int v1, int v2);
+  void getEdgeVertexIndices(int edge_index, int *v1, int *v2) const;
 
-  EdgeTopology &getEdge(int edge_index);
-  const EdgeTopology &getEdge(int edge_index) const;
+  bool isEdgeEqual(int edge_index, int expected_v1, int expected_v2) const;
 
   void setEdgeSharpness(int edge_index, float sharpness);
   float getEdgeSharpness(int edge_index) const;
@@ -127,11 +75,13 @@ class MeshTopology {
 
   int getNumFaces() const;
 
-  FaceTopology &getFace(int face_index);
-  const FaceTopology &getFace(int face_index) const;
-
   void setNumFaceVertices(int face_index, int num_face_vertices);
+  int getNumFaceVertices(int face_index) const;
+
   void setFaceVertexIndices(int face_index, int *face_vertex_indices);
+
+  bool isFaceVertexIndicesEqual(int face_index,
+                                const vector<int> &expected_vertices_of_face) const;
 
   //////////////////////////////////////////////////////////////////////////////
   // Comparison.
@@ -152,15 +102,63 @@ class MeshTopology {
   void ensureVertexTagsSize(int num_vertices);
   void ensureEdgeTagsSize(int num_edges);
 
+  struct VertexTag {
+    float sharpness = 0.0f;
+  };
+
+  struct Edge {
+    bool isValid() const
+    {
+      return v1 >= 0 && v2 >= 0;
+    }
+
+    int v1 = -1;
+    int v2 = -1;
+  };
+
+  struct EdgeTag {
+    float sharpness = 0.0f;
+  };
+
+  struct Face {
+    void setNumVertices(int num_vertices)
+    {
+      vertex_indices.resize(num_vertices, -1);
+    }
+
+    void setVertexIndices(int *face_vertex_indices)
+    {
+      memcpy(vertex_indices.data(), face_vertex_indices, sizeof(int) * vertex_indices.size());
+    }
+
+    bool isValid() const
+    {
+      for (int vertex_index : vertex_indices) {
+        if (vertex_index < 0) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    int getNumVertices() const
+    {
+      return vertex_indices.size();
+    }
+
+    vector<int> vertex_indices;
+  };
+
   int num_vertices_;
-  vector<VertexTopologyTag> vertex_tags_;
+  vector<VertexTag> vertex_tags_;
 
   int num_edges_;
-  vector<EdgeTopology> edges_;
-  vector<EdgeTopologyTag> edge_tags_;
+  vector<Edge> edges_;
+  vector<EdgeTag> edge_tags_;
 
   int num_faces_;
-  vector<FaceTopology> faces_;
+  vector<Face> faces_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MeshTopology");
 };

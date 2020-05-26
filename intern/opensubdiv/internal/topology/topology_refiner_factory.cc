@@ -52,7 +52,6 @@ template<>
 inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology(
     TopologyRefiner &refiner, const TopologyRefinerData &cb_data)
 {
-  using blender::opensubdiv::FaceTopology;
   using blender::opensubdiv::MeshTopology;
 
   const OpenSubdiv_Converter *converter = cb_data.converter;
@@ -121,7 +120,6 @@ template<>
 inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology(
     TopologyRefiner &refiner, const TopologyRefinerData &cb_data)
 {
-  using blender::opensubdiv::EdgeTopology;
   using blender::opensubdiv::MeshTopology;
   using Far::IndexArray;
 
@@ -141,7 +139,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology
       int edge_vertices[2];
       converter->getEdgeVertices(converter, edge_index, edge_vertices);
 
-      base_mesh_topology->setEdgevertexIndices(edge_index, edge_vertices[0], edge_vertices[1]);
+      base_mesh_topology->setEdgeVertexIndices(edge_index, edge_vertices[0], edge_vertices[1]);
     }
   }
 
@@ -185,10 +183,12 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology
   const int num_edges = converter->getNumEdges(converter);
   for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
     // Vertices this edge connects.
-    const EdgeTopology &edge = base_mesh_topology->getEdge(edge_index);
+    int v1, v2;
+    base_mesh_topology->getEdgeVertexIndices(edge_index, &v1, &v2);
+
     IndexArray dst_edge_vertices = getBaseEdgeVertices(refiner, edge_index);
-    dst_edge_vertices[0] = edge.v1;
-    dst_edge_vertices[1] = edge.v2;
+    dst_edge_vertices[0] = v1;
+    dst_edge_vertices[1] = v2;
 
     // Faces adjacent to this edge.
     IndexArray dst_edge_faces = getBaseEdgeFaces(refiner, edge_index);

@@ -89,7 +89,7 @@ int MeshTopology::getNumEdges() const
   return num_edges_;
 }
 
-void MeshTopology::setEdgevertexIndices(int edge_index, int v1, int v2)
+void MeshTopology::setEdgeVertexIndices(int edge_index, int v1, int v2)
 {
   assert(edge_index >= 0);
   assert(edge_index < getNumEdges());
@@ -102,7 +102,7 @@ void MeshTopology::setEdgevertexIndices(int edge_index, int v1, int v2)
 
   ensureNumEdgesAtLeast(edge_index + 1);
 
-  EdgeTopology &edge = getEdge(edge_index);
+  Edge &edge = edges_[edge_index];
 
   // Prevent attempts to override edges.
   // This is currently not supposed to happen.
@@ -112,17 +112,23 @@ void MeshTopology::setEdgevertexIndices(int edge_index, int v1, int v2)
   edge.v2 = v2;
 }
 
-EdgeTopology &MeshTopology::getEdge(int edge_index)
-{
-  const MeshTopology *const_this = this;
-  return const_cast<EdgeTopology &>(const_this->getEdge(edge_index));
-}
-const EdgeTopology &MeshTopology::getEdge(int edge_index) const
+void MeshTopology::getEdgeVertexIndices(int edge_index, int *v1, int *v2) const
 {
   assert(edge_index >= 0);
   assert(edge_index < getNumEdges());
 
-  return edges_[edge_index];
+  const Edge &edge = edges_[edge_index];
+  *v1 = edge.v1;
+  *v2 = edge.v2;
+}
+
+bool MeshTopology::isEdgeEqual(int edge_index, int expected_v1, int expected_v2) const
+{
+  assert(edge_index >= 0);
+  assert(edge_index < getNumEdges());
+
+  const Edge &edge = edges_[edge_index];
+  return edge.v1 == expected_v1 && edge.v2 == expected_v2;
 }
 
 void MeshTopology::setEdgeSharpness(int edge_index, float sharpness)
@@ -130,7 +136,8 @@ void MeshTopology::setEdgeSharpness(int edge_index, float sharpness)
   assert(edge_index >= 0);
   assert(edge_index < getNumEdges());
 
-  assert(getEdge(edge_index).isValid());
+  Edge &edge = edges_[edge_index];
+  assert(edge.isValid());
 
   if (sharpness < 1e-6f) {
     return;
@@ -183,29 +190,41 @@ int MeshTopology::getNumFaces() const
   return num_faces_;
 }
 
-FaceTopology &MeshTopology::getFace(int face_index)
-{
-  const MeshTopology *const_this = this;
-  return const_cast<FaceTopology &>(const_this->getFace(face_index));
-}
-const FaceTopology &MeshTopology::getFace(int face_index) const
+void MeshTopology::setNumFaceVertices(int face_index, int num_face_vertices)
 {
   assert(face_index >= 0);
   assert(face_index < getNumFaces());
 
-  return faces_[face_index];
+  Face &face = faces_[face_index];
+  face.setNumVertices(num_face_vertices);
 }
 
-void MeshTopology::setNumFaceVertices(int face_index, int num_face_vertices)
+int MeshTopology::getNumFaceVertices(int face_index) const
 {
-  FaceTopology &face = getFace(face_index);
-  face.setNumVertices(num_face_vertices);
+  assert(face_index >= 0);
+  assert(face_index < getNumFaces());
+
+  const Face &face = faces_[face_index];
+  return face.getNumVertices();
 }
 
 void MeshTopology::setFaceVertexIndices(int face_index, int *face_vertex_indices)
 {
-  FaceTopology &face = getFace(face_index);
+  assert(face_index >= 0);
+  assert(face_index < getNumFaces());
+
+  Face &face = faces_[face_index];
   face.setVertexIndices(face_vertex_indices);
+}
+
+bool MeshTopology::isFaceVertexIndicesEqual(int face_index,
+                                            const vector<int> &expected_vertices_of_face) const
+{
+  assert(face_index >= 0);
+  assert(face_index < getNumFaces());
+
+  const Face &face = faces_[face_index];
+  return face.vertex_indices == expected_vertices_of_face;
 }
 
 }  // namespace opensubdiv
