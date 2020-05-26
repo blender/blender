@@ -1362,7 +1362,7 @@ GHOST_TSuccess GHOST_WindowWin32::getWintabInfo(std::vector<GHOST_WintabInfoWin3
     DWORD buttonsChanged = m_wintab.sysButtonsPressed ^ pkt.pkButtons;
 
     // Find the index for the changed button from the button map.
-    DWORD physicalButton = 0;
+    WORD physicalButton = 0;
     for (DWORD diff = (unsigned)buttonsChanged >> 1; diff > 0; diff = (unsigned)diff >> 1) {
       physicalButton++;
     }
