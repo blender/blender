@@ -212,8 +212,9 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
   const float *grab_delta = data->grab_delta;
   float(*imat)[4] = data->mat;
 
-  const bool use_falloff_plane = brush->cloth_force_falloff_type ==
-                                 BRUSH_CLOTH_FORCE_FALLOFF_PLANE;
+  const bool use_falloff_plane = !SCULPT_is_cloth_deform_brush(brush) &&
+                                 brush->cloth_force_falloff_type ==
+                                     BRUSH_CLOTH_FORCE_FALLOFF_PLANE;
 
   PBVHVertexIter vd;
   const float bstrength = ss->cache->bstrength;
@@ -246,14 +247,29 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
         gravity, ss->cache->gravity_direction, -ss->cache->radius * data->sd->gravity_factor);
   }
 
+  /* Original data for deform brushes. */
+  SculptOrigVertData orig_data;
+  if (SCULPT_is_cloth_deform_brush(brush)) {
+    SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+  }
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     float force[3];
     const float sim_factor = cloth_brush_simulation_falloff_get(
         brush, ss->cache->radius, ss->cache->initial_location, cloth_sim->init_pos[vd.index]);
 
+    float current_vertex_location[3];
+    if (SCULPT_is_cloth_deform_brush(brush)) {
+      SCULPT_orig_vert_data_update(&orig_data, &vd);
+      copy_v3_v3(current_vertex_location, orig_data.co);
+    }
+    else {
+      copy_v3_v3(current_vertex_location, vd.co);
+    }
+
     /* When using the plane falloff mode the falloff is not constrained by the brush radius. */
-    if (sculpt_brush_test_sq_fn(&test, vd.co) || use_falloff_plane) {
+    if (sculpt_brush_test_sq_fn(&test, current_vertex_location) || use_falloff_plane) {
 
       float dist = sqrtf(test.dist);
 
@@ -264,7 +280,7 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
       const float fade = sim_factor * bstrength *
                          SCULPT_brush_strength_factor(ss,
                                                       brush,
-                                                      vd.co,
+                                                      current_vertex_location,
                                                       dist,
                                                       vd.no,
                                                       vd.fno,
@@ -293,7 +309,10 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
           mul_v3_v3fl(force, offset, -fade);
           break;
         case BRUSH_CLOTH_DEFORM_GRAB:
-          mul_v3_v3fl(force, grab_delta, fade);
+          /* Grab writes the positions in the simulation directly without applying forces. */
+          madd_v3_v3v3fl(
+              cloth_sim->pos[vd.index], orig_data.co, ss->cache->grab_delta_symmetry, fade);
+          zero_v3(force);
           break;
         case BRUSH_CLOTH_DEFORM_PINCH_POINT:
           if (use_falloff_plane) {

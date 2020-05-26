@@ -120,7 +120,7 @@ void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
   SCULPT_vertex_neighbors_get(ss, v_index, false, &neighbor_iterator); \
   for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.size; \
        neighbor_iterator.i++) { \
-    neighbor_iterator.index = ni.neighbors[ni.i];
+    neighbor_iterator.index = neighbor_iterator.neighbors[neighbor_iterator.i];
 
 /* Iterate over neighboring and duplicate vertices (for PBVH_GRIDS). Duplicates come
  * first since they are nearest for floodfill. */
@@ -128,8 +128,8 @@ void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
   SCULPT_vertex_neighbors_get(ss, v_index, true, &neighbor_iterator); \
   for (neighbor_iterator.i = neighbor_iterator.size - 1; neighbor_iterator.i >= 0; \
        neighbor_iterator.i--) { \
-    neighbor_iterator.index = ni.neighbors[ni.i]; \
-    neighbor_iterator.is_duplicate = (ni.i >= \
+    neighbor_iterator.index = neighbor_iterator.neighbors[neighbor_iterator.i]; \
+    neighbor_iterator.is_duplicate = (neighbor_iterator.i >= \
                                       neighbor_iterator.size - neighbor_iterator.num_duplicates);
 
 #define SCULPT_VERTEX_NEIGHBORS_ITER_END(neighbor_iterator) \
@@ -333,6 +333,13 @@ void SCULPT_cloth_plane_falloff_preview_draw(const uint gpuattr,
                                              struct SculptSession *ss,
                                              const float outline_col[3],
                                              float outline_alpha);
+
+BLI_INLINE bool SCULPT_is_cloth_deform_brush(const Brush *brush)
+{
+  return brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
+         brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB;
+}
+
 /* Pose Brush. */
 void SCULPT_do_pose_brush(struct Sculpt *sd,
                           struct Object *ob,

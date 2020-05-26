@@ -230,8 +230,7 @@ static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
                SCULPT_TOOL_THUMB)) {
         return false;
       }
-      else if (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
-               brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
+      else if (SCULPT_is_cloth_deform_brush(brush)) {
         return false;
       }
       else {

@@ -156,9 +156,16 @@ const float *SCULPT_vertex_co_get(SculptSession *ss, int index)
 void SCULPT_vertex_normal_get(SculptSession *ss, int index, float no[3])
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      normal_short_to_float_v3(no, ss->mvert[index].no);
-      return;
+    case PBVH_FACES: {
+      if (ss->shapekey_active || ss->deform_modifiers_active) {
+        const MVert *mverts = BKE_pbvh_get_verts(ss->pbvh);
+        normal_short_to_float_v3(no, mverts[index].no);
+      }
+      else {
+        normal_short_to_float_v3(no, ss->mvert[index].no);
+      }
+      break;
+    }
     case PBVH_BMESH:
       copy_v3_v3(no, BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index)->no);
       break;
@@ -2084,9 +2091,13 @@ static float brush_strength(const Sculpt *sd,
     case SCULPT_TOOL_LAYER:
       return alpha * flip * pressure * overlap * feather;
     case SCULPT_TOOL_CLOTH:
-      /* Expand is more sensible to strength as it keeps expanding the cloth when sculpting over
-       * the same vertices. */
-      if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_EXPAND) {
+      if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
+        /* Grab deform uses the same falloff as a regular grab brush. */
+        return root_alpha * feather;
+      }
+      else if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_EXPAND) {
+        /* Expand is more sensible to strength as it keeps expanding the cloth when sculpting over
+         * the same vertices. */
         return 0.1f * alpha * flip * pressure * overlap * feather;
       }
       else {
@@ -6208,6 +6219,34 @@ static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, flo
   }
 }
 
+/* In these brushes the grab delta is calculated always from the initial stroke location, which is
+ * generally used to create grab deformations. */
+static bool sculpt_needs_delta_from_anchored_origin(Brush *brush)
+{
+  return ELEM(brush->sculpt_tool,
+              SCULPT_TOOL_GRAB,
+              SCULPT_TOOL_POSE,
+              SCULPT_TOOL_THUMB,
+              SCULPT_TOOL_ELASTIC_DEFORM) ||
+         SCULPT_is_cloth_deform_brush(brush);
+}
+
+/* In these brushes the grab delta is calculated from the previous stroke location, which is used
+ * to calculate to orientate the brush tip and deformation towards the stroke direction. */
+static bool sculpt_needs_delta_for_tip_orientation(Brush *brush)
+{
+  if (brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
+    return !SCULPT_is_cloth_deform_brush(brush);
+  }
+  return ELEM(brush->sculpt_tool,
+              SCULPT_TOOL_CLAY_STRIPS,
+              SCULPT_TOOL_PINCH,
+              SCULPT_TOOL_MULTIPLANE_SCRAPE,
+              SCULPT_TOOL_CLAY_THUMB,
+              SCULPT_TOOL_NUDGE,
+              SCULPT_TOOL_SNAKE_HOOK);
+}
+
 static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Brush *brush)
 {
   SculptSession *ss = ob->sculpt;
@@ -6251,38 +6290,27 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 
     /* Compute delta to move verts by. */
     if (!cache->first_time) {
-      switch (tool) {
-        case SCULPT_TOOL_GRAB:
-        case SCULPT_TOOL_POSE:
-        case SCULPT_TOOL_THUMB:
-        case SCULPT_TOOL_ELASTIC_DEFORM:
-          sub_v3_v3v3(delta, grab_location, cache->old_grab_location);
-          invert_m4_m4(imat, ob->obmat);
-          mul_mat3_m4_v3(imat, delta);
-          add_v3_v3(cache->grab_delta, delta);
-          break;
-        case SCULPT_TOOL_CLAY_STRIPS:
-        case SCULPT_TOOL_PINCH:
-        case SCULPT_TOOL_CLOTH:
-        case SCULPT_TOOL_MULTIPLANE_SCRAPE:
-        case SCULPT_TOOL_CLAY_THUMB:
-        case SCULPT_TOOL_NUDGE:
-        case SCULPT_TOOL_SNAKE_HOOK:
-          if (brush->flag & BRUSH_ANCHORED) {
-            float orig[3];
-            mul_v3_m4v3(orig, ob->obmat, cache->orig_grab_location);
-            sub_v3_v3v3(cache->grab_delta, grab_location, orig);
-          }
-          else {
-            sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
-          }
-          invert_m4_m4(imat, ob->obmat);
-          mul_mat3_m4_v3(imat, cache->grab_delta);
-          break;
-        default:
-          /* Use for 'Brush.topology_rake_factor'. */
+      if (sculpt_needs_delta_from_anchored_origin(brush)) {
+        sub_v3_v3v3(delta, grab_location, cache->old_grab_location);
+        invert_m4_m4(imat, ob->obmat);
+        mul_mat3_m4_v3(imat, delta);
+        add_v3_v3(cache->grab_delta, delta);
+      }
+      else if (sculpt_needs_delta_for_tip_orientation(brush)) {
+        if (brush->flag & BRUSH_ANCHORED) {
+          float orig[3];
+          mul_v3_m4v3(orig, ob->obmat, cache->orig_grab_location);
+          sub_v3_v3v3(cache->grab_delta, grab_location, orig);
+        }
+        else {
           sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
-          break;
+        }
+        invert_m4_m4(imat, ob->obmat);
+        mul_mat3_m4_v3(imat, cache->grab_delta);
+      }
+      else {
+        /* Use for 'Brush.topology_rake_factor'. */
+        sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
       }
     }
     else {
@@ -6303,18 +6331,14 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
         copy_v3_v3(cache->anchored_location, cache->true_location);
       }
     }
-    else if (tool == SCULPT_TOOL_ELASTIC_DEFORM) {
+    else if (tool == SCULPT_TOOL_ELASTIC_DEFORM || SCULPT_is_cloth_deform_brush(brush)) {
       copy_v3_v3(cache->anchored_location, cache->true_location);
     }
     else if (tool == SCULPT_TOOL_THUMB) {
       copy_v3_v3(cache->anchored_location, cache->orig_grab_location);
     }
 
-    if (ELEM(tool,
-             SCULPT_TOOL_GRAB,
-             SCULPT_TOOL_THUMB,
-             SCULPT_TOOL_ELASTIC_DEFORM,
-             SCULPT_TOOL_POSE)) {
+    if (sculpt_needs_delta_from_anchored_origin(brush)) {
       /* Location stays the same for finding vertices in brush radius. */
       copy_v3_v3(cache->true_location, cache->orig_grab_location);
 
@@ -6385,9 +6409,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
 
   if (cache->first_time ||
       !((brush->flag & BRUSH_ANCHORED) || (brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK) ||
-        (brush->sculpt_tool == SCULPT_TOOL_ROTATE) ||
-        (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
-         brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB))) {
+        (brush->sculpt_tool == SCULPT_TOOL_ROTATE) || SCULPT_is_cloth_deform_brush(brush))) {
     RNA_float_get_array(ptr, "location", cache->true_location);
   }
 
