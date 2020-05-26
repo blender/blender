@@ -26,6 +26,8 @@
 #include "DNA_brush_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_collection.h"
@@ -236,6 +238,18 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
               1, 0.0f, 0.0f, 1.0f, 1.0f);
           brush->gpencil_settings->curve_rand_value = BKE_curvemapping_add(
               1, 0.0f, 0.0f, 1.0f, 1.0f);
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 290, 4)) {
+    /* Clear old deprecated bitflag from edit weights modifiers, we now use it for something else.
+     */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_WeightVGEdit) {
+          md->flag &= ~MOD_WVG_EDIT_WEIGHTS_NORMALIZE;
         }
       }
     }

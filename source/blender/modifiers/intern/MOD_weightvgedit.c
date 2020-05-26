@@ -239,6 +239,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* Do mapping. */
   const bool do_invert_mapping = (wmd->edit_flags & MOD_WVG_INVERT_FALLOFF) != 0;
+  const bool do_normalize = (wmd->edit_flags & MOD_WVG_EDIT_WEIGHTS_NORMALIZE) != 0;
   if (do_invert_mapping || wmd->falloff_type != MOD_WVG_MAPPING_NONE) {
     RNG *rng = NULL;
 
@@ -283,7 +284,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                      do_add,
                      wmd->add_threshold,
                      do_rem,
-                     wmd->rem_threshold);
+                     wmd->rem_threshold,
+                     do_normalize);
 
   /* If weight preview enabled... */
 #if 0 /* XXX Currently done in mod stack :/ */

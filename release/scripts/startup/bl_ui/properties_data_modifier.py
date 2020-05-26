@@ -1437,6 +1437,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         if md.falloff_type == 'CURVE':
             layout.template_curve_mapping(md, "map_curve")
 
+        row = layout.row(align=True)
+        row.prop(md, "normalize")
+
         # Common mask options
         layout.separator()
         self.vertex_weight_mask(layout, ob, md)
@@ -1461,6 +1464,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col.label(text="Mix Set:")
         col.prop(md, "mix_set", text="")
+
+        row = layout.row(align=True)
+        row.prop(md, "normalize")
 
         # Common mask options
         layout.separator()
@@ -1494,6 +1500,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row = layout.row(align=True)
         row.prop(md, "falloff_type")
         row.prop(md, "invert_falloff", text="", icon='ARROW_LEFTRIGHT')
+
+        row = layout.row(align=True)
+        row.prop(md, "normalize")
 
         # Common mask options
         layout.separator()

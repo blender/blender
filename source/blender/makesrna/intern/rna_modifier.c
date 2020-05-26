@@ -4888,6 +4888,14 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Invert Falloff", "Invert the resulting falloff weight");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  prop = RNA_def_property(srna, "normalize", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_WEIGHTS_NORMALIZE);
+  RNA_def_property_ui_text(
+      prop,
+      "Normalize Weights",
+      "Normalize the resulting weights (otherwise they are only clamped within [0.0, 1.0] range)");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
   prop = RNA_def_property(srna, "map_curve", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "cmap_curve");
   RNA_def_property_ui_text(prop, "Mapping Curve", "Custom mapping curve");
@@ -5045,6 +5053,14 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WVG_MIX_INVERT_VGROUP_MASK);
   RNA_def_property_ui_text(prop, "Invert", "Invert vertex group mask influence");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "normalize", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WVG_MIX_WEIGHTS_NORMALIZE);
+  RNA_def_property_ui_text(
+      prop,
+      "Normalize Weights",
+      "Normalize the resulting weights (otherwise they are only clamped within [0.0, 1.0] range)");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
@@ -5149,6 +5165,15 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
   prop = RNA_def_property(srna, "invert_falloff", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "proximity_flags", MOD_WVG_PROXIMITY_INVERT_FALLOFF);
   RNA_def_property_ui_text(prop, "Invert Falloff", "Invert the resulting falloff weight");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "normalize", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, NULL, "proximity_flags", MOD_WVG_PROXIMITY_WEIGHTS_NORMALIZE);
+  RNA_def_property_ui_text(
+      prop,
+      "Normalize Weights",
+      "Normalize the resulting weights (otherwise they are only clamped within [0.0, 1.0] range)");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   /* Common masking properties. */

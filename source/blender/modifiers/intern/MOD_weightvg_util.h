@@ -86,6 +86,7 @@ void weightvg_update_vg(struct MDeformVert *dvert,
                         const bool do_add,
                         const float add_thresh,
                         const bool do_rem,
-                        const float rem_thresh);
+                        const float rem_thresh,
+                        const bool do_normalize);
 
 #endif /* __MOD_WEIGHTVG_UTIL_H__ */

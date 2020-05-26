@@ -224,6 +224,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   int numIdx = 0;
   int i;
   const bool invert_vgroup_mask = (wmd->flag & MOD_WVG_MIX_INVERT_VGROUP_MASK) != 0;
+  const bool do_normalize = (wmd->flag & MOD_WVG_MIX_WEIGHTS_NORMALIZE) != 0;
   /* Flags. */
 #if 0
   const bool do_prev = (wmd->modifier.mode & eModifierMode_DoWeightPreview) != 0;
@@ -408,7 +409,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
    * XXX Depending on the MOD_WVG_SET_xxx option chosen, we might have to add vertices to vgroup.
    */
   weightvg_update_vg(
-      dvert, defgrp_index, dw1, numIdx, indices, org_w, true, -FLT_MAX, false, 0.0f);
+      dvert, defgrp_index, dw1, numIdx, indices, org_w, true, -FLT_MAX, false, 0.0f, do_normalize);
 
   /* If weight preview enabled... */
 #if 0 /* XXX Currently done in mod stack :/ */

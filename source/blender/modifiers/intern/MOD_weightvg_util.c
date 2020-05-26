@@ -272,9 +272,35 @@ void weightvg_update_vg(MDeformVert *dvert,
                         const bool do_add,
                         const float add_thresh,
                         const bool do_rem,
-                        const float rem_thresh)
+                        const float rem_thresh,
+                        const bool do_normalize)
 {
   int i;
+
+  float min_w = weights[0];
+  float norm_fac = 1.0f;
+  if (do_normalize) {
+    float max_w = weights[0];
+    for (i = 1; i < num; i++) {
+      const float w = weights[i];
+
+      /* No need to clamp here, normalization will ensure we stay within [0.0, 1.0] range. */
+      if (w < min_w) {
+        min_w = w;
+      }
+      else if (w > max_w) {
+        max_w = w;
+      }
+    }
+
+    const float range = max_w - min_w;
+    if (fabsf(range) > FLT_EPSILON) {
+      norm_fac = 1.0f / range;
+    }
+    else {
+      min_w = 0.0f;
+    }
+  }
 
   for (i = 0; i < num; i++) {
     float w = weights[i];
@@ -282,6 +308,9 @@ void weightvg_update_vg(MDeformVert *dvert,
     MDeformWeight *dw = dws ? dws[i] :
                               ((defgrp_idx >= 0) ? BKE_defvert_find_index(dv, defgrp_idx) : NULL);
 
+    if (do_normalize) {
+      w = (w - min_w) * norm_fac;
+    }
     /* Never allow weights out of [0.0, 1.0] range. */
     CLAMP(w, 0.0f, 1.0f);
 
