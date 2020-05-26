@@ -32,6 +32,25 @@ namespace opensubdiv {
 // Simplified representation of mesh topology.
 // Only includes parts of actual mesh topology which is needed to perform
 // comparison between Application side and OpenSubddiv side.
+//
+// NOTE: It is an optimized storage which requires special order of topology
+// specification. Basically, counters is to be set prior to anything else, in
+// the following manner:
+//
+//   MeshTopology mesh_topology;
+//
+//   mesh_topology.setNumVertices(...);
+//   mesh_topology.setNumEdges(...);
+//   mesh_topology.setNumFaces(...);
+//
+//   for (...) {
+//     mesh_topology.setNumFaceVertices(...);
+//   }
+//
+//   mesh_topology.finishResizeTopology();
+//
+//   /* it is now possible to set vertices of edge, vertices of face, and
+//    * sharpness. */
 class MeshTopology {
  public:
   MeshTopology();
@@ -78,10 +97,25 @@ class MeshTopology {
   void setNumFaceVertices(int face_index, int num_face_vertices);
   int getNumFaceVertices(int face_index) const;
 
-  void setFaceVertexIndices(int face_index, int *face_vertex_indices);
+  void setFaceVertexIndices(int face_index,
+                            int num_face_vertex_indices,
+                            const int *face_vertex_indices);
 
   bool isFaceVertexIndicesEqual(int face_index,
-                                const vector<int> &expected_vertices_of_face) const;
+                                int num_expected_face_vertex_indices,
+                                const int *expected_face_vertex_indices) const;
+  bool isFaceVertexIndicesEqual(int face_index,
+                                const vector<int> &expected_face_vertex_indices) const;
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Pipeline related.
+
+  // This function is to be called when number of vertices, edges, faces, and
+  // face-verticies are known.
+  //
+  // Usually is called from the end of topology refiner factory's
+  // resizeComponentTopology().
+  void finishResizeTopology();
 
   //////////////////////////////////////////////////////////////////////////////
   // Comparison.
@@ -102,6 +136,10 @@ class MeshTopology {
   void ensureVertexTagsSize(int num_vertices);
   void ensureEdgeTagsSize(int num_edges);
 
+  // Get pointer to the memory where face vertex indices are stored.
+  int *getFaceVertexIndicesStorage(int face_index);
+  const int *getFaceVertexIndicesStorage(int face_index) const;
+
   struct VertexTag {
     float sharpness = 0.0f;
   };
@@ -120,36 +158,6 @@ class MeshTopology {
     float sharpness = 0.0f;
   };
 
-  struct Face {
-    void setNumVertices(int num_vertices)
-    {
-      vertex_indices.resize(num_vertices, -1);
-    }
-
-    void setVertexIndices(int *face_vertex_indices)
-    {
-      memcpy(vertex_indices.data(), face_vertex_indices, sizeof(int) * vertex_indices.size());
-    }
-
-    bool isValid() const
-    {
-      for (int vertex_index : vertex_indices) {
-        if (vertex_index < 0) {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    int getNumVertices() const
-    {
-      return vertex_indices.size();
-    }
-
-    vector<int> vertex_indices;
-  };
-
   int num_vertices_;
   vector<VertexTag> vertex_tags_;
 
@@ -158,7 +166,14 @@ class MeshTopology {
   vector<EdgeTag> edge_tags_;
 
   int num_faces_;
-  vector<Face> faces_;
+
+  // Continuous array of all verticies of all faces:
+  //  [vertex indices of face 0][vertex indices of face 1] .. [vertex indices of face n].
+  vector<int> face_vertex_indices_;
+
+  // Indexed by face contains index within face_vertex_indices_ which corresponds
+  // to the element which contains first vertex of the face.
+  vector<int> faces_first_vertex_index_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MeshTopology");
 };

@@ -183,7 +183,9 @@ void MeshTopology::setNumFaces(int num_faces)
 {
   num_faces_ = num_faces;
 
-  faces_.resize(num_faces);
+  // NOTE: Extra element to store fake face past the last real one to make it
+  // possible to calculate number of verticies in the last face.
+  faces_first_vertex_index_.resize(num_faces + 1, 0);
 }
 
 int MeshTopology::getNumFaces() const
@@ -196,8 +198,8 @@ void MeshTopology::setNumFaceVertices(int face_index, int num_face_vertices)
   assert(face_index >= 0);
   assert(face_index < getNumFaces());
 
-  Face &face = faces_[face_index];
-  face.setNumVertices(num_face_vertices);
+  faces_first_vertex_index_[face_index + 1] = faces_first_vertex_index_[face_index] +
+                                              num_face_vertices;
 }
 
 int MeshTopology::getNumFaceVertices(int face_index) const
@@ -205,27 +207,67 @@ int MeshTopology::getNumFaceVertices(int face_index) const
   assert(face_index >= 0);
   assert(face_index < getNumFaces());
 
-  const Face &face = faces_[face_index];
-  return face.getNumVertices();
+  return faces_first_vertex_index_[face_index + 1] - faces_first_vertex_index_[face_index];
 }
 
-void MeshTopology::setFaceVertexIndices(int face_index, int *face_vertex_indices)
+void MeshTopology::setFaceVertexIndices(int face_index,
+                                        int num_face_vertex_indices,
+                                        const int *face_vertex_indices)
 {
   assert(face_index >= 0);
   assert(face_index < getNumFaces());
+  assert(num_face_vertex_indices == getNumFaceVertices(face_index));
 
-  Face &face = faces_[face_index];
-  face.setVertexIndices(face_vertex_indices);
+  int *face_vertex_indices_storage = getFaceVertexIndicesStorage(face_index);
+  memcpy(face_vertex_indices_storage, face_vertex_indices, sizeof(int) * num_face_vertex_indices);
 }
 
 bool MeshTopology::isFaceVertexIndicesEqual(int face_index,
-                                            const vector<int> &expected_vertices_of_face) const
+                                            int num_expected_face_vertex_indices,
+                                            const int *expected_face_vertex_indices) const
 {
   assert(face_index >= 0);
   assert(face_index < getNumFaces());
 
-  const Face &face = faces_[face_index];
-  return face.vertex_indices == expected_vertices_of_face;
+  if (getNumFaceVertices(face_index) != num_expected_face_vertex_indices) {
+    return false;
+  }
+
+  const int *face_vertex_indices_storage = getFaceVertexIndicesStorage(face_index);
+  return memcmp(face_vertex_indices_storage,
+                expected_face_vertex_indices,
+                sizeof(int) * num_expected_face_vertex_indices) == 0;
+}
+
+bool MeshTopology::isFaceVertexIndicesEqual(int face_index,
+                                            const vector<int> &expected_face_vertex_indices) const
+{
+  return isFaceVertexIndicesEqual(
+      face_index, expected_face_vertex_indices.size(), expected_face_vertex_indices.data());
+}
+
+int *MeshTopology::getFaceVertexIndicesStorage(int face_index)
+{
+  const MeshTopology *const_this = this;
+  return const_cast<int *>(const_this->getFaceVertexIndicesStorage(face_index));
+}
+const int *MeshTopology::getFaceVertexIndicesStorage(int face_index) const
+{
+  assert(face_index >= 0);
+  assert(face_index < getNumFaces());
+
+  const int offset = faces_first_vertex_index_[face_index];
+  return face_vertex_indices_.data() + offset;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Pipeline related.
+
+void MeshTopology::finishResizeTopology()
+{
+  if (!faces_first_vertex_index_.empty()) {
+    face_vertex_indices_.resize(faces_first_vertex_index_.back());
+  }
 }
 
 }  // namespace opensubdiv

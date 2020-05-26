@@ -27,6 +27,7 @@ TEST(MeshTopology, TrivialVertexSharpness)
   MeshTopology mesh_topology;
 
   mesh_topology.setNumVertices(3);
+  mesh_topology.finishResizeTopology();
 
   mesh_topology.setVertexSharpness(0, 0.1f);
   mesh_topology.setVertexSharpness(1, 0.2f);
@@ -42,6 +43,7 @@ TEST(MeshTopology, TrivialEdgeSharpness)
 
   mesh_topology.setNumVertices(8);
   mesh_topology.setNumEdges(3);
+  mesh_topology.finishResizeTopology();
 
   mesh_topology.setEdgeVertexIndices(0, 0, 1);
   mesh_topology.setEdgeVertexIndices(1, 1, 2);
@@ -60,28 +62,29 @@ TEST(MeshTopology, TrivialFaceTopology)
   MeshTopology mesh_topology;
 
   mesh_topology.setNumFaces(3);
-
-  {
-    mesh_topology.setNumFaceVertices(0, 4);
-    int vertex_indices[] = {0, 1, 2, 3};
-    mesh_topology.setFaceVertexIndices(0, vertex_indices);
-  }
-
-  {
-    mesh_topology.setNumFaceVertices(1, 3);
-    int vertex_indices[] = {4, 5, 6};
-    mesh_topology.setFaceVertexIndices(1, vertex_indices);
-  }
-
-  {
-    mesh_topology.setNumFaceVertices(2, 5);
-    int vertex_indices[] = {7, 8, 9, 10, 11};
-    mesh_topology.setFaceVertexIndices(2, vertex_indices);
-  }
+  mesh_topology.setNumFaceVertices(0, 4);
+  mesh_topology.setNumFaceVertices(1, 3);
+  mesh_topology.setNumFaceVertices(2, 5);
+  mesh_topology.finishResizeTopology();
 
   EXPECT_EQ(mesh_topology.getNumFaceVertices(0), 4);
   EXPECT_EQ(mesh_topology.getNumFaceVertices(1), 3);
   EXPECT_EQ(mesh_topology.getNumFaceVertices(2), 5);
+
+  {
+    int vertex_indices[] = {0, 1, 2, 3};
+    mesh_topology.setFaceVertexIndices(0, 4, vertex_indices);
+  }
+
+  {
+    int vertex_indices[] = {4, 5, 6};
+    mesh_topology.setFaceVertexIndices(1, 3, vertex_indices);
+  }
+
+  {
+    int vertex_indices[] = {7, 8, 9, 10, 11};
+    mesh_topology.setFaceVertexIndices(2, 5, vertex_indices);
+  }
 
   EXPECT_TRUE(mesh_topology.isFaceVertexIndicesEqual(0, {{0, 1, 2, 3}}));
   EXPECT_FALSE(mesh_topology.isFaceVertexIndicesEqual(0, {{10, 1, 2, 3}}));

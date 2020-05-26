@@ -94,6 +94,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology
   // The rest is needed to define relations between faces-of-edge and
   // edges-of-vertex, which is not available for partially specified mesh.
   if (!converter->specifiesFullTopology(converter)) {
+    base_mesh_topology->finishResizeTopology();
     return true;
   }
 
@@ -113,6 +114,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology
     setNumBaseVertexFaces(refiner, vertex_index, num_vert_faces);
   }
 
+  base_mesh_topology->finishResizeTopology();
   return true;
 }
 
@@ -149,7 +151,8 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology
     IndexArray dst_face_verts = getBaseFaceVertices(refiner, face_index);
     converter->getFaceVertices(converter, face_index, &dst_face_verts[0]);
 
-    base_mesh_topology->setFaceVertexIndices(face_index, &dst_face_verts[0]);
+    base_mesh_topology->setFaceVertexIndices(
+        face_index, dst_face_verts.size(), &dst_face_verts[0]);
   }
 
   // If converter does not provide full topology, we are done.
