@@ -144,7 +144,7 @@ const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, Custom
  * - (optional due to its behavior) tag as UV using Alembic::AbcGeom::SetIsUV
  */
 static void write_uv(const OCompoundProperty &prop,
-                     const CDStreamConfig &config,
+                     CDStreamConfig &config,
                      void *data,
                      const char *name)
 {
@@ -157,13 +157,18 @@ static void write_uv(const OCompoundProperty &prop,
     return;
   }
 
-  OV2fGeomParam param(prop, name, true, kFacevaryingScope, 1);
+  std::string uv_map_name(name);
+  OV2fGeomParam param = config.abc_uv_maps[uv_map_name];
 
+  if (!param.valid()) {
+    param = OV2fGeomParam(prop, name, true, kFacevaryingScope, 1);
+  }
   OV2fGeomParam::Sample sample(V2fArraySample(&uvs.front(), uvs.size()),
                                UInt32ArraySample(&indices.front(), indices.size()),
                                kFacevaryingScope);
-
   param.set(sample);
+
+  config.abc_uv_maps[uv_map_name] = param;
 }
 
 /* Convention to write Vertex Colors:
@@ -217,7 +222,7 @@ static void write_mcol(const OCompoundProperty &prop,
 }
 
 void write_custom_data(const OCompoundProperty &prop,
-                       const CDStreamConfig &config,
+                       CDStreamConfig &config,
                        CustomData *data,
                        int data_type)
 {

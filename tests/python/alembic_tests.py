@@ -84,6 +84,7 @@ class AbstractAlembicTest(AbstractBlenderRunnerTest):
             'uint8_t': int,
             'int16_t': int,
             'int32_t': int,
+            'uint32_t': int,
             'uint64_t': int,
             'float64_t': float,
             'float32_t': float,
@@ -323,6 +324,60 @@ class HairParticlesExportTest(AbstractAlembicTest):
 
         abcprop = self.abcprop(abc, '/Suzanne/SuzanneShape/.geom')
         self.assertIn('.faceIndices', abcprop)
+
+
+class UVMapExportTest(AbstractAlembicTest):
+    @with_tempdir
+    def test_uvmap_export(self, tempdir: pathlib.Path):
+        """Minimal test for exporting multiple UV maps on an animated mesh.
+
+        This covers the issue reported in T77021.
+        """
+        basename = 'T77021-multiple-uvmaps-animated-mesh'
+        abc = tempdir / f'{basename}.abc'
+        script = f"import bpy; bpy.ops.wm.alembic_export(filepath='{abc.as_posix()}', start=1, end=1, " \
+                 f"renderable_only=True, visible_objects_only=True, flatten=False)"
+        self.run_blender(f'{basename}.blend', script)
+
+        self.maxDiff = 1000
+
+        # The main UV map should be written to .geom
+        abcprop = self.abcprop(abc, '/Cube/CubeShape/.geom/uv')
+        self.assertEqual(abcprop['.vals'], [
+            [0.625, 0.75],
+            [0.875, 0.75],
+            [0.875, 0.5],
+            [0.625, 0.5],
+            [0.375, 1.0],
+            [0.625, 1.0],
+            [0.375, 0.75],
+            [0.375, 0.25],
+            [0.625, 0.25],
+            [0.625, 0.0],
+            [0.375, 0.0],
+            [0.125, 0.75],
+            [0.375, 0.5],
+            [0.125, 0.5],
+        ])
+
+        # The second UV map should be written to .arbGeomParams
+        abcprop = self.abcprop(abc, '/Cube/CubeShape/.geom/.arbGeomParams/Secondary')
+        self.assertEqual(abcprop['.vals'], [
+            [0.75, 0.375],
+            [0.75, 0.125],
+            [0.5, 0.125],
+            [0.5, 0.375],
+            [1.0, 0.625],
+            [1.0, 0.375],
+            [0.75, 0.625],
+            [0.25, 0.625],
+            [0.25, 0.375],
+            [0.0, 0.375],
+            [0.0, 0.625],
+            [0.75, 0.875],
+            [0.5, 0.625],
+            [0.5, 0.875],
+        ])
 
 
 class LongNamesExportTest(AbstractAlembicTest):
