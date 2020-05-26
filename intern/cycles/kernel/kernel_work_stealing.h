@@ -99,7 +99,7 @@ ccl_device bool get_next_work(KernelGlobals *kg,
         ccl_global float *buffer = kernel_split_params.tile.buffer + buffer_offset;
         ccl_global float4 *aux = (ccl_global float4 *)(buffer +
                                                        kernel_data.film.pass_adaptive_aux_buffer);
-        if (aux->w == 0.0f) {
+        if ((*aux).w == 0.0f) {
           break;
         }
       }

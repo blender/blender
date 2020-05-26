@@ -1631,7 +1631,6 @@ class USERPREF_PT_ndof_settings(Panel):
         layout.use_property_decorate = False  # No animation.
 
         input_prefs = context.preferences.inputs
-
         is_view3d = context.space_data.type == 'VIEW_3D'
         self.draw_settings(layout, input_prefs, is_view3d)
 

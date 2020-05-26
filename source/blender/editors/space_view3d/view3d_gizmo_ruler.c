@@ -61,6 +61,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
+#include "GPU_matrix.h"
 #include "GPU_state.h"
 
 #include "BLF_api.h"
@@ -575,20 +576,30 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   const bool is_act = (ruler_info->item_active == ruler_item);
   float dir_ruler[2];
   float co_ss[3][2];
+  bool proj_ok[3];
   int j;
 
-  /* should these be checked? - ok for now not to */
+  /* Check if each corner is behind the near plane. If it is, we do not draw certain lines. */
   for (j = 0; j < 3; j++) {
-    ED_view3d_project_float_global(region, ruler_item->co[j], co_ss[j], V3D_PROJ_TEST_NOP);
+    eV3DProjStatus status = ED_view3d_project_float_global(
+        region, ruler_item->co[j], co_ss[j], V3D_PROJ_TEST_CLIP_NEAR);
+    proj_ok[j] = (status == V3D_PROJ_RET_OK);
   }
+
+  /* 3d drawing. */
+
+  GPU_matrix_push_projection();
+  GPU_matrix_push();
+  GPU_matrix_projection_set(rv3d->winmat);
+  GPU_matrix_set(rv3d->viewmat);
 
   GPU_blend(true);
 
-  const uint shdr_pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint shdr_pos_3d = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   if (ruler_item->flag & RULERITEM_USE_ANGLE) {
-    immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
     float viewport_size[4];
     GPU_viewport_size_get_f(viewport_size);
@@ -605,21 +616,20 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 
     immBegin(GPU_PRIM_LINE_STRIP, 3);
 
-    immVertex2fv(shdr_pos, co_ss[0]);
-    immVertex2fv(shdr_pos, co_ss[1]);
-    immVertex2fv(shdr_pos, co_ss[2]);
+    immVertex3fv(shdr_pos_3d, ruler_item->co[0]);
+    immVertex3fv(shdr_pos_3d, ruler_item->co[1]);
+    immVertex3fv(shdr_pos_3d, ruler_item->co[2]);
 
     immEnd();
 
     immUnbindProgram();
 
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* arc */
     {
       float dir_tmp[3];
-      float co_tmp[3];
-      float arc_ss_coord[2];
+      float ar_coord[3];
 
       float dir_a[3];
       float dir_b[3];
@@ -648,16 +658,53 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
       immBegin(GPU_PRIM_LINE_STRIP, arc_steps + 1);
 
       for (j = 0; j <= arc_steps; j++) {
-        madd_v3_v3v3fl(co_tmp, ruler_item->co[1], dir_tmp, px_scale);
-        ED_view3d_project_float_global(region, co_tmp, arc_ss_coord, V3D_PROJ_TEST_NOP);
+        madd_v3_v3v3fl(ar_coord, ruler_item->co[1], dir_tmp, px_scale);
         mul_qt_v3(quat, dir_tmp);
 
-        immVertex2fv(shdr_pos, arc_ss_coord);
+        immVertex3fv(shdr_pos_3d, ar_coord);
       }
 
       immEnd();
     }
 
+    immUnbindProgram();
+  }
+  else {
+    immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
+
+    float viewport_size[4];
+    GPU_viewport_size_get_f(viewport_size);
+    immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
+
+    immUniform1i("colors_len", 2); /* "advanced" mode */
+    const float *col = is_act ? color_act : color_base;
+    immUniformArray4fv(
+        "colors",
+        (float *)(float[][4]){{0.67f, 0.67f, 0.67f, 1.0f}, {col[0], col[1], col[2], col[3]}},
+        2);
+    immUniform1f("dash_width", 6.0f);
+    immUniform1f("dash_factor", 0.5f);
+
+    immBegin(GPU_PRIM_LINES, 2);
+
+    immVertex3fv(shdr_pos_3d, ruler_item->co[0]);
+    immVertex3fv(shdr_pos_3d, ruler_item->co[2]);
+
+    immEnd();
+
+    immUnbindProgram();
+  }
+
+  /* 2d drawing. */
+
+  GPU_matrix_pop();
+  GPU_matrix_pop_projection();
+
+  const uint shdr_pos_2d = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  if (ruler_item->flag & RULERITEM_USE_ANGLE) {
+    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
     /* capping */
     {
       float rot_90_vec_a[2];
@@ -676,15 +723,15 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 
       GPU_blend(true);
 
-      if (is_act && (ruler_item->flag & RULERITEM_USE_ANGLE_ACTIVE)) {
+      if (proj_ok[1] && is_act && (ruler_item->flag & RULERITEM_USE_ANGLE_ACTIVE)) {
         GPU_line_width(3.0f);
         immUniformColor3fv(color_act);
         immBegin(GPU_PRIM_LINES, 4);
         /* angle vertex */
-        immVertex2f(shdr_pos, co_ss[1][0] - cap_size, co_ss[1][1] - cap_size);
-        immVertex2f(shdr_pos, co_ss[1][0] + cap_size, co_ss[1][1] + cap_size);
-        immVertex2f(shdr_pos, co_ss[1][0] - cap_size, co_ss[1][1] + cap_size);
-        immVertex2f(shdr_pos, co_ss[1][0] + cap_size, co_ss[1][1] - cap_size);
+        immVertex2f(shdr_pos_2d, co_ss[1][0] - cap_size, co_ss[1][1] - cap_size);
+        immVertex2f(shdr_pos_2d, co_ss[1][0] + cap_size, co_ss[1][1] + cap_size);
+        immVertex2f(shdr_pos_2d, co_ss[1][0] - cap_size, co_ss[1][1] + cap_size);
+        immVertex2f(shdr_pos_2d, co_ss[1][0] + cap_size, co_ss[1][1] - cap_size);
 
         immEnd();
         GPU_line_width(1.0f);
@@ -692,25 +739,33 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 
       immUniformColor3ubv(color_wire);
 
-      immBegin(GPU_PRIM_LINES, 8);
+      if (proj_ok[0] || proj_ok[2] || proj_ok[1]) {
+        immBegin(GPU_PRIM_LINES, proj_ok[0] * 2 + proj_ok[2] * 2 + proj_ok[1] * 4);
 
-      madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec_a, cap_size);
-      immVertex2fv(shdr_pos, cap);
-      madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec_a, -cap_size);
-      immVertex2fv(shdr_pos, cap);
+        if (proj_ok[0]) {
+          madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec_a, cap_size);
+          immVertex2fv(shdr_pos_2d, cap);
+          madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec_a, -cap_size);
+          immVertex2fv(shdr_pos_2d, cap);
+        }
 
-      madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec_b, cap_size);
-      immVertex2fv(shdr_pos, cap);
-      madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec_b, -cap_size);
-      immVertex2fv(shdr_pos, cap);
+        if (proj_ok[2]) {
+          madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec_b, cap_size);
+          immVertex2fv(shdr_pos_2d, cap);
+          madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec_b, -cap_size);
+          immVertex2fv(shdr_pos_2d, cap);
+        }
 
-      /* angle vertex */
-      immVertex2f(shdr_pos, co_ss[1][0] - cap_size, co_ss[1][1] - cap_size);
-      immVertex2f(shdr_pos, co_ss[1][0] + cap_size, co_ss[1][1] + cap_size);
-      immVertex2f(shdr_pos, co_ss[1][0] - cap_size, co_ss[1][1] + cap_size);
-      immVertex2f(shdr_pos, co_ss[1][0] + cap_size, co_ss[1][1] - cap_size);
+        /* angle vertex */
+        if (proj_ok[1]) {
+          immVertex2f(shdr_pos_2d, co_ss[1][0] - cap_size, co_ss[1][1] - cap_size);
+          immVertex2f(shdr_pos_2d, co_ss[1][0] + cap_size, co_ss[1][1] + cap_size);
+          immVertex2f(shdr_pos_2d, co_ss[1][0] - cap_size, co_ss[1][1] + cap_size);
+          immVertex2f(shdr_pos_2d, co_ss[1][0] + cap_size, co_ss[1][1] - cap_size);
+        }
 
-      immEnd();
+        immEnd();
+      }
 
       GPU_blend(false);
     }
@@ -729,10 +784,10 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     posit[1] = co_ss[1][1] - (numstr_size[1] / 2.0f);
 
     /* draw text (bg) */
-    {
+    if (proj_ok[1]) {
       immUniformColor4fv(color_back);
       GPU_blend(true);
-      immRectf(shdr_pos,
+      immRectf(shdr_pos_2d,
                posit[0] - bg_margin,
                posit[1] - bg_margin,
                posit[0] + bg_margin + numstr_size[0],
@@ -743,7 +798,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     immUnbindProgram();
 
     /* draw text */
-    {
+    if (proj_ok[1]) {
       BLF_color3ubv(blf_mono_font, color_text);
       BLF_position(blf_mono_font, posit[0], posit[1], 0.0f);
       BLF_rotation(blf_mono_font, 0.0f);
@@ -751,30 +806,6 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     }
   }
   else {
-    immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
-
-    float viewport_size[4];
-    GPU_viewport_size_get_f(viewport_size);
-    immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
-
-    immUniform1i("colors_len", 2); /* "advanced" mode */
-    const float *col = is_act ? color_act : color_base;
-    immUniformArray4fv(
-        "colors",
-        (float *)(float[][4]){{0.67f, 0.67f, 0.67f, 1.0f}, {col[0], col[1], col[2], col[3]}},
-        2);
-    immUniform1f("dash_width", 6.0f);
-    immUniform1f("dash_factor", 0.5f);
-
-    immBegin(GPU_PRIM_LINES, 2);
-
-    immVertex2fv(shdr_pos, co_ss[0]);
-    immVertex2fv(shdr_pos, co_ss[2]);
-
-    immEnd();
-
-    immUnbindProgram();
-
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
     sub_v2_v2v2(dir_ruler, co_ss[0], co_ss[2]);
@@ -790,19 +821,25 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 
       immUniformColor3ubv(color_wire);
 
-      immBegin(GPU_PRIM_LINES, 4);
+      if (proj_ok[0] || proj_ok[2]) {
+        immBegin(GPU_PRIM_LINES, proj_ok[0] * 2 + proj_ok[2] * 2);
 
-      madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec, cap_size);
-      immVertex2fv(shdr_pos, cap);
-      madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec, -cap_size);
-      immVertex2fv(shdr_pos, cap);
+        if (proj_ok[0]) {
+          madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec, cap_size);
+          immVertex2fv(shdr_pos_2d, cap);
+          madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec, -cap_size);
+          immVertex2fv(shdr_pos_2d, cap);
+        }
 
-      madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec, cap_size);
-      immVertex2fv(shdr_pos, cap);
-      madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec, -cap_size);
-      immVertex2fv(shdr_pos, cap);
+        if (proj_ok[2]) {
+          madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec, cap_size);
+          immVertex2fv(shdr_pos_2d, cap);
+          madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec, -cap_size);
+          immVertex2fv(shdr_pos_2d, cap);
+        }
 
-      immEnd();
+        immEnd();
+      }
 
       GPU_blend(false);
     }
@@ -824,10 +861,10 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     posit[1] -= numstr_size[1] / 2.0f;
 
     /* draw text (bg) */
-    {
+    if (proj_ok[0] && proj_ok[2]) {
       immUniformColor4fv(color_back);
       GPU_blend(true);
-      immRectf(shdr_pos,
+      immRectf(shdr_pos_2d,
                posit[0] - bg_margin,
                posit[1] - bg_margin,
                posit[0] + bg_margin + numstr_size[0],
@@ -838,7 +875,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     immUnbindProgram();
 
     /* draw text */
-    {
+    if (proj_ok[0] && proj_ok[2]) {
       BLF_color3ubv(blf_mono_font, color_text);
       BLF_position(blf_mono_font, posit[0], posit[1], 0.0f);
       BLF_draw(blf_mono_font, numstr, sizeof(numstr));

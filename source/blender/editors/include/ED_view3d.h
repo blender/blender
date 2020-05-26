@@ -129,6 +129,9 @@ enum eV3DCursorOrient {
 void ED_view3d_background_color_get(const struct Scene *scene,
                                     const struct View3D *v3d,
                                     float r_color[3]);
+bool ED_view3d_has_workbench_in_texture_color(const struct Scene *scene,
+                                              const struct Object *ob,
+                                              const struct View3D *v3d);
 void ED_view3d_cursor3d_position(struct bContext *C,
                                  const int mval[2],
                                  const bool use_depth,

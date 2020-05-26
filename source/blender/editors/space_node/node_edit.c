@@ -648,9 +648,12 @@ void snode_update(SpaceNode *snode, bNode *node)
   }
 }
 
-void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
+void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node, bool *r_active_texture_changed)
 {
   const bool was_active_texture = (node->flag & NODE_ACTIVE_TEXTURE) != 0;
+  if (r_active_texture_changed) {
+    *r_active_texture_changed = false;
+  }
 
   nodeSetActive(ntree, node);
 
@@ -719,6 +722,9 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
           }
         }
 
+        if (r_active_texture_changed) {
+          *r_active_texture_changed = true;
+        }
         ED_node_tag_update_nodetree(bmain, ntree, node);
         WM_main_add_notifier(NC_IMAGE, NULL);
       }
@@ -1290,7 +1296,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
       newnode = node->new_node;
 
       nodeSetSelected(node, false);
-      node->flag &= ~NODE_ACTIVE;
+      node->flag &= ~(NODE_ACTIVE | NODE_ACTIVE_TEXTURE);
       nodeSetSelected(newnode, true);
 
       do_tag_update |= (do_tag_update || node_connected_to_output(bmain, ntree, newnode));

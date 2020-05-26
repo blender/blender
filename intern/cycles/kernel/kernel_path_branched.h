@@ -526,7 +526,7 @@ ccl_device void kernel_branched_path_trace(
   if (kernel_data.film.pass_adaptive_aux_buffer) {
     ccl_global float4 *aux = (ccl_global float4 *)(buffer +
                                                    kernel_data.film.pass_adaptive_aux_buffer);
-    if (aux->w > 0.0f) {
+    if ((*aux).w > 0.0f) {
       return;
     }
   }

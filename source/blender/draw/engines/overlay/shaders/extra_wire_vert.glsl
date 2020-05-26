@@ -17,6 +17,11 @@ void main()
   vec3 world_pos = point_object_to_world(pos);
   gl_Position = point_world_to_ndc(world_pos);
 
+  /* HACK: to avoid loosing sub pixel object in selections, we add a bit of randomness to the
+   * wire to at least create one fragment that will pass the occlusion query. */
+  /* TODO(fclem) Limit this workaround to selection. It's not very noticeable but still... */
+  gl_Position.xy += sizeViewportInv.xy * gl_Position.w * ((gl_VertexID % 2 == 0) ? -1.0 : 1.0);
+
   stipple_coord = stipple_start = screen_position(gl_Position);
 
 #ifdef OBJECT_WIRE

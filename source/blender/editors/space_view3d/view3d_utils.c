@@ -86,6 +86,26 @@ void ED_view3d_background_color_get(const Scene *scene, const View3D *v3d, float
   UI_GetThemeColor3fv(TH_BACK, r_color);
 }
 
+bool ED_view3d_has_workbench_in_texture_color(const Scene *scene,
+                                              const Object *ob,
+                                              const View3D *v3d)
+{
+  if (v3d->shading.type == OB_SOLID) {
+    if (v3d->shading.color_type == V3D_SHADING_TEXTURE_COLOR) {
+      return true;
+    }
+    if (ob->mode == OB_MODE_TEXTURE_PAINT) {
+      return true;
+    }
+  }
+  else if (v3d->shading.type == OB_RENDER) {
+    if (STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH)) {
+      return scene->display.shading.color_type == V3D_SHADING_TEXTURE_COLOR;
+    }
+  }
+  return false;
+}
+
 Camera *ED_view3d_camera_data_get(View3D *v3d, RegionView3D *rv3d)
 {
   /* establish the camera object,

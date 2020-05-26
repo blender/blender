@@ -107,7 +107,10 @@ void ED_node_texture_default(const struct bContext *C, struct Tex *tex);
 bool ED_node_select_check(ListBase *lb);
 void ED_node_select_all(ListBase *lb, int action);
 void ED_node_post_apply_transform(struct bContext *C, struct bNodeTree *ntree);
-void ED_node_set_active(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node);
+void ED_node_set_active(struct Main *bmain,
+                        struct bNodeTree *ntree,
+                        struct bNode *node,
+                        bool *r_active_texture_changed);
 
 void ED_node_composite_job(const struct bContext *C,
                            struct bNodeTree *nodetree,
