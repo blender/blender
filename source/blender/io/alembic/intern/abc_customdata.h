@@ -27,6 +27,8 @@
 #include <Alembic/Abc/All.h>
 #include <Alembic/AbcGeom/All.h>
 
+#include <map>
+
 struct CustomData;
 struct MLoop;
 struct MLoopUV;
@@ -70,6 +72,12 @@ struct CDStreamConfig {
 
   const char **modifier_error_message;
 
+  /* Alembic needs Blender to keep references to C++ objects (the destructors
+   * finalise the writing to ABC). This map stores OV2fGeomParam objects for the
+   * 2nd and subsequent UV maps; the primary UV map is kept alive by the Alembic
+   * mesh sample itself. */
+  std::map<std::string, Alembic::AbcGeom::OV2fGeomParam> abc_uv_maps;
+
   CDStreamConfig()
       : mloop(NULL),
         totloop(0),
@@ -95,7 +103,7 @@ struct CDStreamConfig {
 const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, CustomData *data);
 
 void write_custom_data(const OCompoundProperty &prop,
-                       const CDStreamConfig &config,
+                       CDStreamConfig &config,
                        CustomData *data,
                        int data_type);
 
