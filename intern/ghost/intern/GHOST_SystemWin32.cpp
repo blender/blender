@@ -990,7 +990,10 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
    * skip those and find the last button down mapped to mouse buttons.
    */
   if (!window->wintabSysButPressed()) {
-    for (auto it = wtiIter; it != wintabInfo.end(); it++) {
+    // Assume there may be no button down event currently in the queue.
+    wtiIter = wintabInfo.end();
+
+    for (auto it = wintabInfo.begin(); it != wintabInfo.end(); it++) {
       if (it->type == GHOST_kEventButtonDown) {
         wtiIter = it;
       }
