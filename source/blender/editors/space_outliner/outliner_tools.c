@@ -2488,6 +2488,7 @@ static int do_outliner_operation_event(
       /* Only redraw, don't rebuild here because TreeElement pointers will
        * become invalid and operations will crash. */
       ED_region_tag_redraw_no_rebuild(region);
+      ED_outliner_select_sync_from_outliner(C, soops);
     }
 
     set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
