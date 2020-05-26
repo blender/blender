@@ -506,7 +506,7 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
 
         butal->but->drawflag |= align;
         butal_other->but->drawflag |= align_opp;
-        if (butal->dists[side]) {
+        if (!IS_EQF(butal->dists[side], 0.0f)) {
           float *delta = &butal->dists[side];
 
           if (*butal->borders[side] < *butal_other->borders[side_opp]) {
@@ -517,7 +517,7 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
           }
           co = (*butal->borders[side] += *delta);
 
-          if (butal_other->dists[side_opp]) {
+          if (!IS_EQF(butal_other->dists[side_opp], 0.0f)) {
             BLI_assert(butal_other->dists[side_opp] * 0.5f == fabsf(*delta));
             *butal_other->borders[side_opp] = co;
             butal_other->dists[side_opp] = 0.0f;

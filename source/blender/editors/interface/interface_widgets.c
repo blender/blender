@@ -4265,7 +4265,7 @@ static void widget_box(
   copy_v3_v3_uchar(old_col, wcol->inner);
 
   /* abuse but->hsv - if it's non-zero, use this color as the box's background */
-  if (but->col[3]) {
+  if (but != NULL && but->col[3]) {
     wcol->inner[0] = but->col[0];
     wcol->inner[1] = but->col[1];
     wcol->inner[2] = but->col[2];
@@ -5018,6 +5018,30 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
   }
 
   ui_draw_clip_tri(block, rect, wt);
+}
+
+/**
+ * Uses the widget base drawing and colors from from the box widget, but ensures an opaque
+ * inner color.
+ */
+void ui_draw_box_opaque(rcti *rect, int roundboxalign)
+{
+  uiWidgetType *wt = widget_type(UI_WTYPE_BOX);
+
+  /* Alpha blend with the region's background color to force an opaque background. */
+  uiWidgetColors *wcol = &wt->wcol;
+  wt->state(wt, 0, 0);
+  float background[4];
+  UI_GetThemeColor4fv(TH_BACK, background);
+  float new_inner[4];
+  rgba_uchar_to_float(new_inner, wcol->inner);
+  new_inner[0] = (new_inner[0] * new_inner[3]) + (background[0] * (1.0f - new_inner[3]));
+  new_inner[1] = (new_inner[1] * new_inner[3]) + (background[1] * (1.0f - new_inner[3]));
+  new_inner[2] = (new_inner[2] * new_inner[3]) + (background[2] * (1.0f - new_inner[3]));
+  new_inner[3] = 1.0f;
+  rgba_float_to_uchar(wcol->inner, new_inner);
+
+  wt->custom(NULL, wcol, rect, 0, roundboxalign);
 }
 
 /**

@@ -239,6 +239,8 @@ enum {
 
 #define UI_PANEL_CATEGORY_MARGIN_WIDTH (U.widget_unit * 1.0f)
 
+#define UI_PANEL_BOX_STYLE_MARGIN (U.widget_unit * 0.2f)
+
 /* but->drawflag - these flags should only affect how the button is drawn. */
 /* Note: currently, these flags _are not passed_ to the widget's state() or draw() functions
  *       (except for the 'align' ones)!
@@ -1679,6 +1681,7 @@ void UI_panel_end(const struct ScrArea *area,
                   int width,
                   int height,
                   bool open);
+
 void UI_panels_scale(struct ARegion *region, float new_width);
 void UI_panel_label_offset(struct uiBlock *block, int *r_x, int *r_y);
 int UI_panel_size_y(const struct Panel *panel);
@@ -1701,6 +1704,24 @@ void UI_panel_category_clear_all(struct ARegion *region);
 void UI_panel_category_draw_all(struct ARegion *region, const char *category_id_active);
 
 struct PanelType *UI_paneltype_find(int space_id, int region_id, const char *idname);
+
+/* Polyinstantiated panels for representing a list of data. */
+struct Panel *UI_panel_add_instanced(struct ScrArea *area,
+                                     struct ARegion *region,
+                                     struct ListBase *panels,
+                                     char *panel_idname,
+                                     int list_index);
+void UI_panels_free_instanced(struct bContext *C, struct ARegion *region);
+
+#define LIST_PANEL_UNIQUE_STR_LEN 4
+void UI_list_panel_unique_str(struct Panel *panel, char *r_name);
+
+void UI_panel_set_expand_from_list_data(const struct bContext *C, struct Panel *panel);
+
+typedef void (*uiListPanelIDFromDataFunc)(void *data_link, char *r_idname);
+bool UI_panel_list_matches_data(struct ARegion *region,
+                                struct ListBase *data,
+                                uiListPanelIDFromDataFunc panel_idname_func);
 
 /* Handlers
  *

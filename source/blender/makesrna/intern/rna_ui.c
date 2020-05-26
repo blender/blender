@@ -1285,6 +1285,18 @@ static void rna_def_panel(BlenderRNA *brna)
        "Hide Header",
        "If set to False, the panel shows a header, which contains a clickable "
        "arrow to collapse the panel and the label (see bl_label)"},
+      {PNL_INSTANCED,
+       "INSTANCED",
+       0,
+       "Instanced Panel",
+       "Multiple panels with this type can be used as part of a list depending on data external "
+       "to the UI. Used to create panels for the modifiers and other stacks."},
+      {PNL_LAYOUT_HEADER_EXPAND,
+       "HEADER_LAYOUT_EXPAND",
+       0,
+       "Expand Header Layout",
+       "Allow buttons in the header to stretch and shrink to fill the entire layout width"},
+      {PNL_DRAW_BOX, "DRAW_BOX", 0, "Box Style", "Draw panel with the box widget theme"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -1331,6 +1343,11 @@ static void rna_def_panel(BlenderRNA *brna)
   prop = RNA_def_property(srna, "text", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "drawname");
   RNA_def_property_ui_text(prop, "Text", "XXX todo");
+
+  prop = RNA_def_int(
+      srna, "list_panel_index", 0, 0, INT_MAX, "Instanced Panel Data Index", "", 0, INT_MAX);
+  RNA_def_property_int_sdna(prop, NULL, "runtime.list_index");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   /* registration */
   prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
