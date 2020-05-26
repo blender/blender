@@ -339,6 +339,7 @@ typedef enum eBrushPoseDeformType {
 typedef enum eBrushPoseOriginType {
   BRUSH_POSE_ORIGIN_TOPOLOGY = 0,
   BRUSH_POSE_ORIGIN_FACE_SETS = 1,
+  BRUSH_POSE_ORIGIN_FACE_SETS_FK = 2,
 } eBrushPoseOriginType;
 
 /* Gpencilsettings.Vertex_mode */

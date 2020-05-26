@@ -401,6 +401,13 @@ typedef struct PoseFloodFillData {
    * that have the current face set. */
   float fallback_origin[3];
   int fallback_count;
+
+  /* Face Set FK mode. */
+  int *floodfill_it;
+  float *fk_weights;
+  int initial_face_set;
+  int masked_face_set_it;
+  int masked_face_set;
 } PoseFloodFillData;
 
 static bool pose_topology_floodfill_cb(
@@ -806,6 +813,92 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
   return ik_chain;
 }
 
+static bool pose_face_sets_fk_find_masked_floodfill_cb(
+    SculptSession *ss, int from_v, int to_v, bool is_duplicate, void *userdata)
+{
+  PoseFloodFillData *data = userdata;
+
+  if (!is_duplicate) {
+    data->floodfill_it[to_v] = data->floodfill_it[from_v] + 1;
+  }
+  else {
+    data->floodfill_it[to_v] = data->floodfill_it[from_v];
+  }
+
+  const int to_face_set = SCULPT_vertex_face_set_get(ss, to_v);
+  if (SCULPT_vertex_has_unique_face_set(ss, to_v) &&
+      !SCULPT_vertex_has_unique_face_set(ss, from_v) &&
+      SCULPT_vertex_has_face_set(ss, from_v, to_face_set)) {
+    if (data->floodfill_it[to_v] > data->masked_face_set_it) {
+      data->masked_face_set = to_face_set;
+      data->masked_face_set_it = data->floodfill_it[to_v];
+    }
+  }
+
+  return SCULPT_vertex_has_face_set(ss, to_v, data->initial_face_set);
+}
+
+static bool pose_face_sets_fk_set_weights_floodfill_cb(
+    SculptSession *ss, int UNUSED(from_v), int to_v, bool UNUSED(is_duplicate), void *userdata)
+{
+  PoseFloodFillData *data = userdata;
+  data->fk_weights[to_v] = 1.0f;
+  return !SCULPT_vertex_has_face_set(ss, to_v, data->masked_face_set);
+}
+
+static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
+    Sculpt *sd, Object *ob, SculptSession *ss, const float radius, const float *initial_location)
+{
+  const int totvert = SCULPT_vertex_count_get(ss);
+
+  SculptPoseIKChain *ik_chain = pose_ik_chain_new(1, totvert);
+
+  const int active_vertex = SCULPT_active_vertex_get(ss);
+  const int active_face_set = SCULPT_active_face_set_get(ss);
+
+  SculptFloodFill flood;
+  SCULPT_floodfill_init(ss, &flood);
+  SCULPT_floodfill_add_initial(&flood, active_vertex);
+  PoseFloodFillData fdata;
+  fdata.floodfill_it = MEM_calloc_arrayN(totvert, sizeof(int), "floodfill iteration");
+  fdata.floodfill_it[active_vertex] = 1;
+  fdata.initial_face_set = active_face_set;
+  fdata.masked_face_set = SCULPT_FACE_SET_NONE;
+  fdata.masked_face_set_it = 0;
+  SCULPT_floodfill_execute(ss, &flood, pose_face_sets_fk_find_masked_floodfill_cb, &fdata);
+  SCULPT_floodfill_free(&flood);
+
+  int count = 0;
+  float origin_acc[3] = {0.0f};
+  for (int i = 0; i < totvert; i++) {
+    if (fdata.floodfill_it[i] != 0 && SCULPT_vertex_has_face_set(ss, i, fdata.initial_face_set) &&
+        SCULPT_vertex_has_face_set(ss, i, fdata.masked_face_set)) {
+      add_v3_v3(origin_acc, SCULPT_vertex_co_get(ss, i));
+      count++;
+    }
+  }
+  MEM_freeN(fdata.floodfill_it);
+
+  if (count > 0) {
+    copy_v3_v3(ik_chain->segments[0].orig, origin_acc);
+    mul_v3_fl(ik_chain->segments[0].orig, 1.0f / count);
+  }
+  else {
+    zero_v3(ik_chain->segments[0].orig);
+  }
+
+  copy_v3_v3(ik_chain->segments[0].head, initial_location);
+
+  SCULPT_floodfill_init(ss, &flood);
+  SCULPT_floodfill_add_active(sd, ob, ss, &flood, radius);
+  fdata.fk_weights = ik_chain->segments[0].weights;
+  SCULPT_floodfill_execute(ss, &flood, pose_face_sets_fk_set_weights_floodfill_cb, &fdata);
+  SCULPT_floodfill_free(&flood);
+
+  pose_ik_chain_origin_heads_init(ik_chain, initial_location);
+  return ik_chain;
+}
+
 SculptPoseIKChain *SCULPT_pose_ik_chain_init(Sculpt *sd,
                                              Object *ob,
                                              SculptSession *ss,
@@ -819,6 +912,9 @@ SculptPoseIKChain *SCULPT_pose_ik_chain_init(Sculpt *sd,
       break;
     case BRUSH_POSE_ORIGIN_FACE_SETS:
       return pose_ik_chain_init_face_sets(sd, ob, ss, br, radius);
+      break;
+    case BRUSH_POSE_ORIGIN_FACE_SETS_FK:
+      return pose_ik_chain_init_face_sets_fk(sd, ob, ss, radius, initial_location);
       break;
   }
   return NULL;
