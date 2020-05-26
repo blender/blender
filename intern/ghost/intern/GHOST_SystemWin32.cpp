@@ -1015,6 +1015,8 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
          * don't duplicate the prior button down as it interrupts drawing immediately after
          * changing a window.
          */
+        system->pushEvent(new GHOST_EventCursor(
+            info.time, GHOST_kEventCursorMove, window, info.x, info.y, info.tabletData));
         if (type == GHOST_kEventButtonDown && mask == info.button) {
           system->pushEvent(
               new GHOST_EventButton(info.time, info.type, window, info.button, info.tabletData));
