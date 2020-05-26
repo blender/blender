@@ -251,8 +251,7 @@ static void blo_update_defaults_screen(bScreen *screen,
 
 void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_template)
 {
-  ListBase *layouts = BKE_workspace_layouts_get(workspace);
-  LISTBASE_FOREACH (WorkSpaceLayout *, layout, layouts) {
+  LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
     if (layout->screen) {
       blo_update_defaults_screen(layout->screen, app_template, workspace->id.name + 2);
     }
@@ -271,7 +270,7 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
 
     /* For Sculpting template. */
     if (STREQ(workspace->id.name + 2, "Sculpting")) {
-      LISTBASE_FOREACH (WorkSpaceLayout *, layout, layouts) {
+      LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
         bScreen *screen = layout->screen;
         if (screen) {
           LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -489,8 +488,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
-        WorkSpaceLayout *layout = BKE_workspace_hook_layout_for_workspace_get(win->workspace_hook,
-                                                                              workspace);
+        WorkSpaceLayout *layout = BKE_workspace_active_layout_for_workspace_get(
+            win->workspace_hook, workspace);
         /* Name all screens by their workspaces (avoids 'Default.###' names). */
         /* Default only has one window. */
         if (layout->screen) {

@@ -140,7 +140,7 @@ bool ED_workspace_layout_delete(WorkSpace *workspace, WorkSpaceLayout *layout_ol
   const bScreen *screen_old = BKE_workspace_layout_screen_get(layout_old);
   WorkSpaceLayout *layout_new;
 
-  BLI_assert(BLI_findindex(BKE_workspace_layouts_get(workspace), layout_old) != -1);
+  BLI_assert(BLI_findindex(&workspace->layouts, layout_old) != -1);
 
   /* don't allow deleting temp fullscreens for now */
   if (BKE_screen_is_fullscreen_area(screen_old)) {

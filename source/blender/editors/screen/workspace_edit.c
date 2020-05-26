@@ -109,9 +109,9 @@ static WorkSpaceLayout *workspace_change_get_new_layout(Main *bmain,
     layout_new = win->workspace_hook->temp_layout_store;
   }
   else {
-    layout_new = BKE_workspace_hook_layout_for_workspace_get(win->workspace_hook, workspace_new);
+    layout_new = BKE_workspace_active_layout_for_workspace_get(win->workspace_hook, workspace_new);
     if (!layout_new) {
-      layout_new = BKE_workspace_layouts_get(workspace_new)->first;
+      layout_new = workspace_new->layouts.first;
     }
   }
   screen_new = BKE_workspace_layout_screen_get(layout_new);
@@ -163,7 +163,7 @@ bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager 
     return false;
   }
 
-  BKE_workspace_hook_layout_for_workspace_set(win->workspace_hook, workspace_new, layout_new);
+  BKE_workspace_active_layout_set(win->workspace_hook, workspace_new, layout_new);
   BKE_workspace_active_set(win->workspace_hook, workspace_new);
 
   /* update screen *after* changing workspace - which also causes the
@@ -188,7 +188,6 @@ bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager 
 WorkSpace *ED_workspace_duplicate(WorkSpace *workspace_old, Main *bmain, wmWindow *win)
 {
   WorkSpaceLayout *layout_active_old = BKE_workspace_active_layout_get(win->workspace_hook);
-  ListBase *layouts_old = BKE_workspace_layouts_get(workspace_old);
   WorkSpace *workspace_new = ED_workspace_add(bmain, workspace_old->id.name + 2);
 
   workspace_new->flags = workspace_old->flags;
@@ -198,7 +197,7 @@ WorkSpace *ED_workspace_duplicate(WorkSpace *workspace_old, Main *bmain, wmWindo
 
   /* TODO(campbell): tools */
 
-  LISTBASE_FOREACH (WorkSpaceLayout *, layout_old, layouts_old) {
+  LISTBASE_FOREACH (WorkSpaceLayout *, layout_old, &workspace_old->layouts) {
     WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(
         bmain, workspace_new, layout_old, win);
 

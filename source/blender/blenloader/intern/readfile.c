@@ -3579,15 +3579,13 @@ static void direct_link_cachefile(FileData *fd, CacheFile *cache_file)
 
 static void lib_link_workspaces(FileData *fd, Main *bmain, WorkSpace *workspace)
 {
-  ListBase *layouts = BKE_workspace_layouts_get(workspace);
   ID *id = (ID *)workspace;
 
   id_us_ensure_real(id);
 
-  for (WorkSpaceLayout *layout = layouts->first, *layout_next; layout; layout = layout_next) {
+  LISTBASE_FOREACH_MUTABLE (WorkSpaceLayout *, layout, &workspace->layouts) {
     layout->screen = newlibadr(fd, id->lib, layout->screen);
 
-    layout_next = layout->next;
     if (layout->screen) {
       if (ID_IS_LINKED(id)) {
         layout->screen->winid = 0;
@@ -3607,16 +3605,14 @@ static void lib_link_workspaces(FileData *fd, Main *bmain, WorkSpace *workspace)
 
 static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main *main)
 {
-  link_list(fd, BKE_workspace_layouts_get(workspace));
+  link_list(fd, &workspace->layouts);
   link_list(fd, &workspace->hook_layout_relations);
   link_list(fd, &workspace->owner_ids);
   link_list(fd, &workspace->tools);
 
   LISTBASE_FOREACH (WorkSpaceDataRelation *, relation, &workspace->hook_layout_relations) {
-
     /* data from window - need to access through global oldnew-map */
     relation->parent = newglobadr(fd, relation->parent);
-
     relation->value = newdataadr(fd, relation->value);
   }
 
@@ -3624,11 +3620,7 @@ static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main
    * when reading windows, so have to update windows after/when reading workspaces. */
   for (wmWindowManager *wm = main->wm.first; wm; wm = wm->id.next) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      WorkSpaceLayout *act_layout = newdataadr(
-          fd, BKE_workspace_active_layout_get(win->workspace_hook));
-      if (act_layout) {
-        BKE_workspace_active_layout_set(win->workspace_hook, act_layout);
-      }
+      win->workspace_hook->act_layout = newdataadr(fd, win->workspace_hook->act_layout);
     }
   }
 
@@ -8411,9 +8403,7 @@ void blo_lib_link_restore(Main *oldmain,
 
   for (WorkSpace *workspace = newmain->workspaces.first; workspace;
        workspace = workspace->id.next) {
-    ListBase *layouts = BKE_workspace_layouts_get(workspace);
-
-    LISTBASE_FOREACH (WorkSpaceLayout *, layout, layouts) {
+    LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
       lib_link_workspace_layout_restore(id_map, newmain, layout);
     }
   }
@@ -11625,9 +11615,7 @@ static void expand_gpencil(FileData *fd, Main *mainvar, bGPdata *gpd)
 
 static void expand_workspace(FileData *fd, Main *mainvar, WorkSpace *workspace)
 {
-  ListBase *layouts = BKE_workspace_layouts_get(workspace);
-
-  LISTBASE_FOREACH (WorkSpaceLayout *, layout, layouts) {
+  LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
     expand_doit(fd, mainvar, BKE_workspace_layout_screen_get(layout));
   }
 }

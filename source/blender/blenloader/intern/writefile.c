@@ -3789,11 +3789,9 @@ static void write_cachefile(WriteData *wd, CacheFile *cache_file, const void *id
 
 static void write_workspace(WriteData *wd, WorkSpace *workspace, const void *id_address)
 {
-  ListBase *layouts = BKE_workspace_layouts_get(workspace);
-
   writestruct_at_address(wd, ID_WS, WorkSpace, 1, id_address, workspace);
   write_iddata(wd, &workspace->id);
-  writelist(wd, DATA, WorkSpaceLayout, layouts);
+  writelist(wd, DATA, WorkSpaceLayout, &workspace->layouts);
   writelist(wd, DATA, WorkSpaceDataRelation, &workspace->hook_layout_relations);
   writelist(wd, DATA, wmOwnerID, &workspace->owner_ids);
   writelist(wd, DATA, bToolRef, &workspace->tools);

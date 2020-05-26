@@ -326,7 +326,7 @@ wmWindow *wm_window_copy(Main *bmain,
   layout_new = duplicate_layout ?
                    ED_workspace_layout_duplicate(bmain, workspace, layout_old, win_dst) :
                    layout_old;
-  BKE_workspace_hook_layout_for_workspace_set(win_dst->workspace_hook, workspace, layout_new);
+  BKE_workspace_active_layout_set(win_dst->workspace_hook, workspace, layout_new);
 
   *win_dst->stereo3d_format = *win_src->stereo3d_format;
 
@@ -2359,7 +2359,7 @@ WorkSpaceLayout *WM_window_get_active_layout(const wmWindow *win)
 }
 void WM_window_set_active_layout(wmWindow *win, WorkSpace *workspace, WorkSpaceLayout *layout)
 {
-  BKE_workspace_hook_layout_for_workspace_set(win->workspace_hook, workspace, layout);
+  BKE_workspace_active_layout_set(win->workspace_hook, workspace, layout);
 }
 
 /**

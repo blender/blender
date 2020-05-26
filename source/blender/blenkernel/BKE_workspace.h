@@ -84,6 +84,7 @@ void BKE_workspace_active_set(struct WorkSpaceInstanceHook *hook,
 struct WorkSpaceLayout *BKE_workspace_active_layout_get(const struct WorkSpaceInstanceHook *hook)
     GETTER_ATTRS;
 void BKE_workspace_active_layout_set(struct WorkSpaceInstanceHook *hook,
+                                     struct WorkSpace *workspace,
                                      struct WorkSpaceLayout *layout) SETTER_ATTRS;
 struct bScreen *BKE_workspace_active_screen_get(const struct WorkSpaceInstanceHook *hook)
     GETTER_ATTRS;
@@ -91,21 +92,14 @@ void BKE_workspace_active_screen_set(struct WorkSpaceInstanceHook *hook,
                                      struct WorkSpace *workspace,
                                      struct bScreen *screen) SETTER_ATTRS;
 
-struct ListBase *BKE_workspace_layouts_get(struct WorkSpace *workspace) GETTER_ATTRS;
-
 const char *BKE_workspace_layout_name_get(const struct WorkSpaceLayout *layout) GETTER_ATTRS;
 void BKE_workspace_layout_name_set(struct WorkSpace *workspace,
                                    struct WorkSpaceLayout *layout,
                                    const char *new_name) ATTR_NONNULL();
 struct bScreen *BKE_workspace_layout_screen_get(const struct WorkSpaceLayout *layout) GETTER_ATTRS;
-void BKE_workspace_layout_screen_set(struct WorkSpaceLayout *layout,
-                                     struct bScreen *screen) SETTER_ATTRS;
 
-struct WorkSpaceLayout *BKE_workspace_hook_layout_for_workspace_get(
+struct WorkSpaceLayout *BKE_workspace_active_layout_for_workspace_get(
     const struct WorkSpaceInstanceHook *hook, const struct WorkSpace *workspace) GETTER_ATTRS;
-void BKE_workspace_hook_layout_for_workspace_set(struct WorkSpaceInstanceHook *hook,
-                                                 struct WorkSpace *workspace,
-                                                 struct WorkSpaceLayout *layout) ATTR_NONNULL();
 
 bool BKE_workspace_owner_id_check(const struct WorkSpace *workspace, const char *owner_id)
     ATTR_NONNULL();
