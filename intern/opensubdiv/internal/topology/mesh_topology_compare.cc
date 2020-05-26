@@ -71,16 +71,14 @@ bool isEqualGeometryEdge(const MeshTopology &mesh_topology, const OpenSubdiv_Con
     return false;
   }
 
-  for (int edge_index = 0; edge_index < num_requested_edges; ++edge_index) {
-    int requested_edge_vertices[2];
-    converter->getEdgeVertices(converter, edge_index, requested_edge_vertices);
-
-    if (!mesh_topology.isEdgeEqual(
-            edge_index, requested_edge_vertices[0], requested_edge_vertices[1])) {
-      printf("edge mismatch\n");
-      return false;
-    }
-  }
+  // NOTE: Ignoring the sharpness we don't really care of the content of the
+  // edges, they should be in the consistent state with faces and face-vertices.
+  // If that's not the case the mesh is invalid and comparison can not happen
+  // reliably.
+  //
+  // For sharpness it is important to know that edges are connecting same pair
+  // of vertices. But since sharpness is stored sparesly the connectivity will
+  // be checked when comparing edge sharpness.
 
   return true;
 }
@@ -181,6 +179,17 @@ bool isEqualEdgeTags(const MeshTopology &mesh_topology, const OpenSubdiv_Convert
     const float requested_sharpness = getEffectiveEdgeSharpness(converter, edge_index);
 
     if (current_sharpness != requested_sharpness) {
+      return false;
+    }
+
+    if (current_sharpness < 1e-6f) {
+      continue;
+    }
+
+    int requested_edge_vertices[2];
+    converter->getEdgeVertices(converter, edge_index, requested_edge_vertices);
+    if (!mesh_topology.isEdgeEqual(
+            edge_index, requested_edge_vertices[0], requested_edge_vertices[1])) {
       return false;
     }
   }

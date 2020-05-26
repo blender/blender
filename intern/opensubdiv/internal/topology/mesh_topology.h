@@ -125,8 +125,8 @@ class MeshTopology {
   bool isEqualToConverter(const OpenSubdiv_Converter *converter) const;
 
  protected:
-  // Unless full topology was specified the number of edges is not know ahead
-  // of a time.
+  // Edges are allowed to be stored sparsly, to save memory used by
+  // non-semi-sharp edges.
   void ensureNumEdgesAtLeast(int num_edges);
 
   // Geometry tags are stored sparsly.

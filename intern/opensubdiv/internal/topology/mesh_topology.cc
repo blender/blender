@@ -80,8 +80,6 @@ void MeshTopology::ensureVertexTagsSize(int num_vertices)
 void MeshTopology::setNumEdges(int num_edges)
 {
   num_edges_ = num_edges;
-
-  edges_.resize(num_edges_);
 }
 
 int MeshTopology::getNumEdges() const
@@ -112,6 +110,12 @@ void MeshTopology::getEdgeVertexIndices(int edge_index, int *v1, int *v2) const
   assert(edge_index >= 0);
   assert(edge_index < getNumEdges());
 
+  if (edge_index >= edges_.size()) {
+    *v1 = -1;
+    *v1 = -1;
+    return;
+  }
+
   const Edge &edge = edges_[edge_index];
   *v1 = edge.v1;
   *v2 = edge.v2;
@@ -121,6 +125,10 @@ bool MeshTopology::isEdgeEqual(int edge_index, int expected_v1, int expected_v2)
 {
   assert(edge_index >= 0);
   assert(edge_index < getNumEdges());
+
+  if (edge_index >= edges_.size()) {
+    return false;
+  }
 
   const Edge &edge = edges_[edge_index];
   return edge.v1 == expected_v1 && edge.v2 == expected_v2;
@@ -155,8 +163,8 @@ float MeshTopology::getEdgeSharpness(int edge_index) const
 
 void MeshTopology::ensureNumEdgesAtLeast(int num_edges)
 {
-  if (getNumEdges() < num_edges) {
-    setNumEdges(num_edges);
+  if (edges_.size() < num_edges) {
+    edges_.resize(num_edges);
   }
 }
 

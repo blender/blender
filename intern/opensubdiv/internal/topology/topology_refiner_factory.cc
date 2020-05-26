@@ -130,21 +130,6 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology
 
   const bool full_topology_specified = converter->specifiesFullTopology(converter);
 
-  // Vertices of an edge.
-  //
-  // NOTE: Only specify for base mesh topology on our side.
-  // They will be provided to the topology refiner only if the full topology is
-  // specified.
-  if (converter->getNumEdges != nullptr) {
-    const int num_edges = converter->getNumEdges(converter);
-    for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
-      int edge_vertices[2];
-      converter->getEdgeVertices(converter, edge_index, edge_vertices);
-
-      base_mesh_topology->setEdgeVertexIndices(edge_index, edge_vertices[0], edge_vertices[1]);
-    }
-  }
-
   // Vertices of face.
   const int num_faces = converter->getNumFaces(converter);
   for (int face_index = 0; face_index < num_faces; ++face_index) {
@@ -186,12 +171,8 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology
   const int num_edges = converter->getNumEdges(converter);
   for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
     // Vertices this edge connects.
-    int v1, v2;
-    base_mesh_topology->getEdgeVertexIndices(edge_index, &v1, &v2);
-
     IndexArray dst_edge_vertices = getBaseEdgeVertices(refiner, edge_index);
-    dst_edge_vertices[0] = v1;
-    dst_edge_vertices[1] = v2;
+    converter->getEdgeVertices(converter, edge_index, &dst_edge_vertices[0]);
 
     // Faces adjacent to this edge.
     IndexArray dst_edge_faces = getBaseEdgeFaces(refiner, edge_index);
@@ -224,11 +205,14 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
     const int num_edges = converter->getNumEdges(converter);
     for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
       const float sharpness = converter->getEdgeSharpness(converter, edge_index);
-      base_mesh_topology->setEdgeSharpness(edge_index, sharpness);
-
       if (sharpness < 1e-6f) {
         continue;
       }
+
+      int edge_vertices[2];
+      converter->getEdgeVertices(converter, edge_index, edge_vertices);
+      base_mesh_topology->setEdgeVertexIndices(edge_index, edge_vertices[0], edge_vertices[1]);
+      base_mesh_topology->setEdgeSharpness(edge_index, sharpness);
 
       if (full_topology_specified) {
         setBaseEdgeSharpness(refiner, edge_index, sharpness);
@@ -236,8 +220,6 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
       else {
         // TODO(sergey): Should be a faster way to find reconstructed edge to
         // specify sharpness for (assuming, findBaseEdge has linear complexity).
-        int edge_vertices[2];
-        converter->getEdgeVertices(converter, edge_index, edge_vertices);
         const int base_edge_index = findBaseEdge(refiner, edge_vertices[0], edge_vertices[1]);
         if (base_edge_index == OpenSubdiv::Far::INDEX_INVALID) {
           printf("OpenSubdiv Error: failed to find reconstructed edge\n");
