@@ -138,6 +138,7 @@ void MeshTopology::setEdgeSharpness(int edge_index, float sharpness)
 
   Edge &edge = edges_[edge_index];
   assert(edge.isValid());
+  (void)edge;
 
   if (sharpness < 1e-6f) {
     return;
