@@ -436,6 +436,24 @@ void DRW_shgroup_uniform_vec4_copy(DRWShadingGroup *shgroup, const char *name, c
   drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT_COPY, value, 4, 1);
 }
 
+void DRW_shgroup_uniform_vec4_array_copy(DRWShadingGroup *shgroup,
+                                         const char *name,
+                                         const float (*value)[4],
+                                         int arraysize)
+{
+  int location = GPU_shader_get_uniform_ensure(shgroup->shader, name);
+
+  if (location == -1) {
+    /* Nice to enable eventually, for now eevee uses uniforms that might not exist. */
+    // BLI_assert(0);
+    return;
+  }
+
+  for (int i = 0; i < arraysize; i++) {
+    drw_shgroup_uniform_create_ex(shgroup, location + i, DRW_UNIFORM_FLOAT_COPY, &value[i], 4, 1);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
