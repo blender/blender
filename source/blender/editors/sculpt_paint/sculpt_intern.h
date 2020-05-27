@@ -233,7 +233,7 @@ void SCULPT_flip_quat_by_symm_area(float quat[3],
 /* Flood Fill. */
 typedef struct {
   GSQueue *queue;
-  char *visited_vertices;
+  BLI_bitmap *visited_vertices;
 } SculptFloodFill;
 
 void SCULPT_floodfill_init(struct SculptSession *ss, SculptFloodFill *flood);

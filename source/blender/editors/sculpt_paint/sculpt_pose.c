@@ -389,7 +389,7 @@ typedef struct PoseFloodFillData {
   GSet *visited_face_sets;
 
   /* In face sets origin mode, each vertex can only be assigned to one face set. */
-  bool *is_weighted;
+  BLI_bitmap *is_weighted;
 
   bool is_first_iteration;
 
@@ -450,7 +450,7 @@ static bool pose_face_sets_floodfill_cb(
   if (data->current_face_set == SCULPT_FACE_SET_NONE) {
 
     data->pose_factor[index] = 1.0f;
-    data->is_weighted[index] = true;
+    BLI_BITMAP_ENABLE(data->is_weighted, index);
 
     if (sculpt_pose_brush_is_vertex_inside_brush_radius(
             co, data->pose_initial_co, data->radius, data->symm)) {
@@ -481,9 +481,9 @@ static bool pose_face_sets_floodfill_cb(
 
   if (is_vertex_valid) {
 
-    if (!data->is_weighted[index]) {
+    if (!BLI_BITMAP_TEST(data->is_weighted, index)) {
       data->pose_factor[index] = 1.0f;
-      data->is_weighted[index] = true;
+      BLI_BITMAP_ENABLE(data->is_weighted, index);
       visit_next = true;
     }
 
@@ -746,7 +746,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
 
   GSet *visited_face_sets = BLI_gset_int_new_ex("visited_face_sets", ik_chain->tot_segments);
 
-  bool *is_weighted = MEM_callocN(sizeof(bool) * totvert, "weighted");
+  BLI_bitmap *is_weighted = BLI_BITMAP_NEW(totvert, "weighted");
 
   int current_face_set = SCULPT_FACE_SET_NONE;
   int prev_face_set = SCULPT_FACE_SET_NONE;

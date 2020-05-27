@@ -858,7 +858,7 @@ void SCULPT_floodfill_init(SculptSession *ss, SculptFloodFill *flood)
   SCULPT_vertex_random_access_init(ss);
 
   flood->queue = BLI_gsqueue_new(sizeof(int));
-  flood->visited_vertices = MEM_callocN(vertex_count * sizeof(char), "visited vertices");
+  flood->visited_vertices = BLI_BITMAP_NEW(vertex_count, "visited vertices");
 }
 
 void SCULPT_floodfill_add_initial(SculptFloodFill *flood, int index)
@@ -926,8 +926,8 @@ void SCULPT_floodfill_execute(
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
       const int to_v = ni.index;
-      if (flood->visited_vertices[to_v] == 0 && SCULPT_vertex_visible_get(ss, to_v)) {
-        flood->visited_vertices[to_v] = 1;
+      if (!BLI_BITMAP_TEST(flood->visited_vertices, to_v) && SCULPT_vertex_visible_get(ss, to_v)) {
+        BLI_BITMAP_ENABLE(flood->visited_vertices, to_v);
 
         if (func(ss, from_v, to_v, ni.is_duplicate, userdata)) {
           BLI_gsqueue_push(flood->queue, &to_v);
@@ -7835,8 +7835,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
   float brush_co[3];
   copy_v3_v3(brush_co, SCULPT_active_vertex_co_get(ss));
 
-  char *visited_vertices = MEM_callocN(SCULPT_vertex_count_get(ss) * sizeof(char),
-                                       "visited vertices");
+  BLI_bitmap *visited_vertices = BLI_BITMAP_NEW(SCULPT_vertex_count_get(ss), "visited_vertices");
 
   /* Assuming an average of 6 edges per vertex in a triangulated mesh. */
   const int max_preview_vertices = SCULPT_vertex_count_get(ss) * 3 * 2;
@@ -7860,8 +7859,8 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
         totpoints++;
         ss->preview_vert_index_list[totpoints] = to_v;
         totpoints++;
-        if (visited_vertices[to_v] == 0) {
-          visited_vertices[to_v] = 1;
+        if (!BLI_BITMAP_TEST(visited_vertices, to_v)) {
+          BLI_BITMAP_ENABLE(visited_vertices, to_v);
           const float *co = SCULPT_vertex_co_get(ss, to_v);
           if (len_squared_v3v3(brush_co, co) < radius * radius) {
             BLI_gsqueue_push(not_visited_vertices, &to_v);

@@ -523,7 +523,7 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
                          .calc_face_normal = true,
                      }));
 
-  bool *visited_faces = MEM_callocN(sizeof(bool) * mesh->totpoly, "visited faces");
+  BLI_bitmap *visited_faces = BLI_BITMAP_NEW(mesh->totpoly, "visited faces");
   const int totfaces = mesh->totpoly;
 
   int *face_sets = ss->face_sets;
@@ -534,12 +534,12 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
   int next_face_set = 1;
 
   for (int i = 0; i < totfaces; i++) {
-    if (!visited_faces[i]) {
+    if (!BLI_BITMAP_TEST(visited_faces, i)) {
       GSQueue *queue;
       queue = BLI_gsqueue_new(sizeof(int));
 
       face_sets[i] = next_face_set;
-      visited_faces[i] = true;
+      BLI_BITMAP_ENABLE(visited_faces, i);
       BLI_gsqueue_push(queue, &i);
 
       while (!BLI_gsqueue_is_empty(queue)) {
@@ -556,10 +556,10 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
           BM_ITER_ELEM (f_neighbor, &iter_b, ed, BM_FACES_OF_EDGE) {
             if (f_neighbor != f) {
               int neighbor_face_index = BM_elem_index_get(f_neighbor);
-              if (!visited_faces[neighbor_face_index]) {
+              if (!BLI_BITMAP_TEST(visited_faces, neighbor_face_index)) {
                 if (test(bm, f, ed, f_neighbor, threshold)) {
                   face_sets[neighbor_face_index] = next_face_set;
-                  visited_faces[neighbor_face_index] = true;
+                  BLI_BITMAP_ENABLE(visited_faces, neighbor_face_index);
                   BLI_gsqueue_push(queue, &neighbor_face_index);
                 }
               }
