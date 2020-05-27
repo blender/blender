@@ -57,9 +57,9 @@ kernel_cuda_filter_convert_to_rgb(float *rgb, float *buf, int sw, int sh, int st
 		if (num_inputs > 0) {
 			float *in = buf + x * pass_stride + (y * stride + pass_offset.x) / sizeof(float);
 			float *out = rgb + (x + y * sw) * 3;
-			out[0] = clamp(in[0], 0.0f, 10000.0f);
-			out[1] = clamp(in[1], 0.0f, 10000.0f);
-			out[2] = clamp(in[2], 0.0f, 10000.0f);
+			out[0] = clamp(in[0] / num_samples, 0.0f, 10000.0f);
+			out[1] = clamp(in[1] / num_samples, 0.0f, 10000.0f);
+			out[2] = clamp(in[2] / num_samples, 0.0f, 10000.0f);
 		}
 		if (num_inputs > 1) {
 			float *in = buf + x * pass_stride + (y * stride + pass_offset.y) / sizeof(float);
@@ -80,16 +80,16 @@ kernel_cuda_filter_convert_to_rgb(float *rgb, float *buf, int sw, int sh, int st
 
 extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
-kernel_cuda_filter_convert_from_rgb(float *rgb, float *buf, int ix, int iy, int iw, int ih, int sx, int sy, int sw, int sh, int offset, int stride, int pass_stride)
+kernel_cuda_filter_convert_from_rgb(float *rgb, float *buf, int ix, int iy, int iw, int ih, int sx, int sy, int sw, int sh, int offset, int stride, int pass_stride, int num_samples)
 {
 	int x = blockDim.x*blockIdx.x + threadIdx.x;
 	int y = blockDim.y*blockIdx.y + threadIdx.y;
 	if(x < sw && y < sh) {
 		float *in = rgb + ((ix + x) + (iy + y) * iw) * 3;
 		float *out = buf + (offset + (sx + x) + (sy + y) * stride) * pass_stride;
-		out[0] = in[0];
-		out[1] = in[1];
-		out[2] = in[2];
+		out[0] = in[0] * num_samples;
+		out[1] = in[1] * num_samples;
+		out[2] = in[2] * num_samples;
 	}
 }
 

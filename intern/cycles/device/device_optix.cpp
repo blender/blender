@@ -924,7 +924,8 @@ class OptiXDevice : public CUDADevice {
                              &rtiles[9].h,
                              &rtiles[9].offset,
                              &rtiles[9].stride,
-                             &task.pass_stride};
+                             &task.pass_stride,
+                             &rtile.sample};
       launch_filter_kernel(
           "kernel_cuda_filter_convert_from_rgb", rtiles[9].w, rtiles[9].h, output_args);
 #  endif
