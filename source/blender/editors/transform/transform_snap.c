@@ -56,6 +56,7 @@
 
 #include "WM_types.h"
 
+#include "ED_gizmo_library.h"
 #include "ED_image.h"
 #include "ED_markers.h"
 #include "ED_node.h"
@@ -178,99 +179,53 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
                        (t->scene->toolsettings->snap_mode & SCE_SNAP_MODE_EDGE_PERPENDICULAR);
 
     if (draw_target || validSnap(t)) {
-      TransSnapPoint *p;
-      RegionView3D *rv3d = CTX_wm_region_view3d(C);
-      float imat[4][4];
-      float size;
+      const float *loc_cur = NULL;
+      const float *loc_prev = NULL;
+      const float *normal = NULL;
 
       GPU_depth_test(false);
 
-      size = 2.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
+      RegionView3D *rv3d = CTX_wm_region_view3d(C);
+      if (!BLI_listbase_is_empty(&t->tsnap.points)) {
+        /* Draw snap points. */
 
-      invert_m4_m4(imat, rv3d->viewmat);
+        float size = 2.0f * UI_GetThemeValuef(TH_VERTEX_SIZE);
+        float view_inv[4][4];
+        copy_m4_m4(view_inv, rv3d->viewinv);
 
-      uint pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+        uint pos = GPU_vertformat_attr_add(
+            immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-      for (p = t->tsnap.points.first; p; p = p->next) {
-        if (p == t->tsnap.selectedPoint) {
-          immUniformColor4ubv(selectedCol);
+        LISTBASE_FOREACH (TransSnapPoint *, p, &t->tsnap.points) {
+          if (p == t->tsnap.selectedPoint) {
+            immUniformColor4ubv(selectedCol);
+          }
+          else {
+            immUniformColor4ubv(col);
+          }
+          imm_drawcircball(p->co, ED_view3d_pixel_size(rv3d, p->co) * size, view_inv, pos);
         }
-        else {
-          immUniformColor4ubv(col);
-        }
 
-        imm_drawcircball(p->co, ED_view3d_pixel_size(rv3d, p->co) * size * 0.75f, imat, pos);
-      }
-
-      if (t->tsnap.status & POINT_INIT) {
-        immUniformColor4ubv(activeCol);
-
-        imm_drawcircball(
-            t->tsnap.snapPoint, ED_view3d_pixel_size(rv3d, t->tsnap.snapPoint) * size, imat, pos);
+        immUnbindProgram();
       }
 
       /* draw normal if needed */
       if (usingSnappingNormal(t) && validSnappingNormal(t)) {
-        immUniformColor4ubv(activeCol);
-
-        immBegin(GPU_PRIM_LINES, 2);
-        immVertex3f(pos, t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], t->tsnap.snapPoint[2]);
-        immVertex3f(pos,
-                    t->tsnap.snapPoint[0] + t->tsnap.snapNormal[0],
-                    t->tsnap.snapPoint[1] + t->tsnap.snapNormal[1],
-                    t->tsnap.snapPoint[2] + t->tsnap.snapNormal[2]);
-        immEnd();
+        normal = t->tsnap.snapNormal;
       }
 
       if (draw_target) {
-        /* Draw snapTarget */
-        float targ_co[3], vx[3], vy[3], v1[3], v2[3], v3[3], v4[4];
-        copy_v3_v3(targ_co, t->tsnap.snapTarget);
-        float px_size = 0.75f * size * ED_view3d_pixel_size(rv3d, targ_co);
-
-        mul_v3_v3fl(vx, imat[0], px_size);
-        mul_v3_v3fl(vy, imat[1], px_size);
-
-        add_v3_v3v3(v1, vx, vy);
-        sub_v3_v3v3(v2, vx, vy);
-        negate_v3_v3(v3, v1);
-        negate_v3_v3(v4, v2);
-
-        add_v3_v3(v1, targ_co);
-        add_v3_v3(v2, targ_co);
-        add_v3_v3(v3, targ_co);
-        add_v3_v3(v4, targ_co);
-
-        immUniformColor4ubv(col);
-        immBegin(GPU_PRIM_LINES, 4);
-        immVertex3fv(pos, v3);
-        immVertex3fv(pos, v1);
-        immVertex3fv(pos, v4);
-        immVertex3fv(pos, v2);
-        immEnd();
-
-        if (t->tsnap.snapElem & SCE_SNAP_MODE_EDGE_PERPENDICULAR) {
-          immUnbindProgram();
-
-          immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
-          float viewport_size[4];
-          GPU_viewport_size_get_f(viewport_size);
-          immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
-          immUniform1f("dash_width", 6.0f * U.pixelsize);
-          immUniform1f("dash_factor", 1.0f / 4.0f);
-          immUniformColor4ubv(col);
-
-          immBegin(GPU_PRIM_LINES, 2);
-          immVertex3fv(pos, targ_co);
-          immVertex3fv(pos, t->tsnap.snapPoint);
-          immEnd();
-        }
+        loc_prev = t->tsnap.snapTarget;
       }
 
-      immUnbindProgram();
+      if (validSnap(t)) {
+        loc_cur = t->tsnap.snapPoint;
+      }
+
+      ED_gizmotypes_snap_3d_draw_util(
+          rv3d, loc_prev, loc_cur, normal, col, activeCol, t->tsnap.snapElem);
 
       GPU_depth_test(true);
     }

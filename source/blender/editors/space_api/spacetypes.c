@@ -135,6 +135,7 @@ void ED_spacetypes_init(void)
   ED_gizmotypes_blank_3d();
   ED_gizmotypes_cage_2d();
   ED_gizmotypes_cage_3d();
+  ED_gizmotypes_snap_3d();
 
   /* register types for operators and gizmos */
   spacetypes = BKE_spacetypes_list();
