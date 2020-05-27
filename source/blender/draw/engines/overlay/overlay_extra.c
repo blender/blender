@@ -768,10 +768,7 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
         uint cell_count = prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z;
         DRWShadingGroup *grp = DRW_shgroup_create_sub(vedata->stl->pd->extra_grid_grp);
-        DRW_shgroup_uniform_vec4_copy(grp, "gridModelMatrix[0]", instdata.mat[0]);
-        DRW_shgroup_uniform_vec4_copy(grp, "gridModelMatrix[1]", instdata.mat[1]);
-        DRW_shgroup_uniform_vec4_copy(grp, "gridModelMatrix[2]", instdata.mat[2]);
-        DRW_shgroup_uniform_vec4_copy(grp, "gridModelMatrix[3]", instdata.mat[3]);
+        DRW_shgroup_uniform_vec4_array_copy(grp, "gridModelMatrix", instdata.mat, 4);
         DRW_shgroup_call_procedural_points(grp, NULL, cell_count);
       }
       break;
