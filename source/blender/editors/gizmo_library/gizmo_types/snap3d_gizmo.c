@@ -50,6 +50,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "wm.h"
 
 /* own includes */
 #include "../gizmo_geometry.h"
@@ -341,16 +342,14 @@ static void gizmo_snap_draw(const bContext *C, wmGizmo *gz)
     return;
   }
 
+  ARegion *region = CTX_wm_region(C);
+  RegionView3D *rv3d = region->regiondata;
+
   /* Ideally, we shouldn't assign values here.
    * But `test_select` is not called during navigation.
    * And `snap_elem` is not really useful in this case. */
-  if ((gz->state & WM_GIZMO_STATE_HIGHLIGHT) == 0) {
-    gizmo_snap->snap_elem = 0;
-    return;
-  }
-
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  if (rv3d->rflag & RV3D_NAVIGATING) {
+  if ((rv3d->rflag & RV3D_NAVIGATING) ||
+      (!(gz->state & WM_GIZMO_STATE_HIGHLIGHT) && !wm_gizmomap_modal_get(region->gizmo_map))) {
     gizmo_snap->snap_elem = 0;
     return;
   }

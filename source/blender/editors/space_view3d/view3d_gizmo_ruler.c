@@ -57,7 +57,6 @@
 #include "WM_api.h"
 #include "WM_toolsystem.h"
 #include "WM_types.h"
-#include "wm.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -394,9 +393,6 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
 
       if (snap_elem) {
         WM_gizmo_set_flag(snap_gizmo, WM_GIZMO_HIDDEN, false);
-
-        /* Highlight snap_gizmo so that it is drawn. */
-        wm_gizmomap_highlight_set(snap_gizmo->parent_gzgroup->parent_gzmap, NULL, snap_gizmo, 0);
       }
     }
     return true;
