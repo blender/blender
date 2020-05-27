@@ -78,11 +78,14 @@ static void OVERLAY_engine_init(void *vedata)
   if (v3d->shading.type == OB_WIRE) {
     pd->overlay.flag |= V3D_OVERLAY_WIREFRAMES;
   }
-  if (ts->sculpt->flags & SCULPT_HIDE_FACE_SETS) {
-    pd->overlay.sculpt_mode_face_sets_opacity = 0.0f;
-  }
-  if (ts->sculpt->flags & SCULPT_HIDE_MASK) {
-    pd->overlay.sculpt_mode_mask_opacity = 0.0f;
+
+  if (ts->sculpt) {
+    if (ts->sculpt->flags & SCULPT_HIDE_FACE_SETS) {
+      pd->overlay.sculpt_mode_face_sets_opacity = 0.0f;
+    }
+    if (ts->sculpt->flags & SCULPT_HIDE_MASK) {
+      pd->overlay.sculpt_mode_mask_opacity = 0.0f;
+    }
   }
 
   pd->use_in_front = (v3d->shading.type <= OB_SOLID) ||
