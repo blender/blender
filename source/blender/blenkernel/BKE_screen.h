@@ -34,6 +34,7 @@ extern "C" {
 struct ARegion;
 struct Header;
 struct ID;
+struct LibraryForeachIDData;
 struct ListBase;
 struct Menu;
 struct Panel;
@@ -48,7 +49,6 @@ struct WorkSpace;
 struct bContext;
 struct bContextDataResult;
 struct bScreen;
-struct LibraryForeachIDData;
 struct uiLayout;
 struct uiList;
 struct wmGizmoMap;

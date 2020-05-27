@@ -21,9 +21,9 @@
 extern "C" {
 #endif
 
+struct Depsgraph;
 struct Main;
 struct Simulation;
-struct Depsgraph;
 
 void *BKE_simulation_add(struct Main *bmain, const char *name);
 

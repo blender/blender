@@ -139,7 +139,6 @@ set(SRC
   intern/list_sort_impl.h
 
 
-  BLI_asan.h
   BLI_alloca.h
   BLI_allocator.hh
   BLI_args.h
@@ -149,6 +148,7 @@ set(SRC
   BLI_array_store.h
   BLI_array_store_utils.h
   BLI_array_utils.h
+  BLI_asan.h
   BLI_assert.h
   BLI_astar.h
   BLI_bitmap.h

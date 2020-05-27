@@ -34,13 +34,13 @@ struct PointerRNA;
 
 struct Brush;
 struct GP_SpaceConversion;
+struct GpRandomSettings;
 struct bGPDframe;
 struct bGPDlayer;
 struct bGPDspoint;
 struct bGPDstroke;
 struct bGPdata;
 struct tGPspoint;
-struct GpRandomSettings;
 
 struct ARegion;
 struct Depsgraph;
