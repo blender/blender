@@ -344,6 +344,10 @@ typedef struct MLoopCol {
   unsigned char r, g, b, a;
 } MLoopCol;
 
+typedef struct MPropCol {
+  float col[4];
+} MPropCol;
+
 /** Multi-Resolution loop data. */
 typedef struct MDisps {
   /* Strange bug in SDNA: if disps pointer comes first, it fails to see totdisp */

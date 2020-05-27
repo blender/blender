@@ -1339,6 +1339,132 @@ static void layerDefault_fmap(void *data, int count)
   }
 }
 
+static void layerCopyValue_propcol(const void *source,
+                                   void *dest,
+                                   const int mixmode,
+                                   const float mixfactor)
+{
+  const MPropCol *m1 = source;
+  MPropCol *m2 = dest;
+  float tmp_col[4];
+
+  if (ELEM(mixmode,
+           CDT_MIX_NOMIX,
+           CDT_MIX_REPLACE_ABOVE_THRESHOLD,
+           CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
+    /* Modes that do a full copy or nothing. */
+    if (ELEM(mixmode, CDT_MIX_REPLACE_ABOVE_THRESHOLD, CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
+      /* TODO: Check for a real valid way to get 'factor' value of our dest color? */
+      const float f = (m2->col[0] + m2->col[1] + m2->col[2]) / 3.0f;
+      if (mixmode == CDT_MIX_REPLACE_ABOVE_THRESHOLD && f < mixfactor) {
+        return; /* Do Nothing! */
+      }
+      else if (mixmode == CDT_MIX_REPLACE_BELOW_THRESHOLD && f > mixfactor) {
+        return; /* Do Nothing! */
+      }
+    }
+    copy_v3_v3(m2->col, m1->col);
+  }
+  else { /* Modes that support 'real' mix factor. */
+    if (mixmode == CDT_MIX_MIX) {
+      blend_color_mix_float(tmp_col, m2->col, m1->col);
+    }
+    else if (mixmode == CDT_MIX_ADD) {
+      blend_color_add_float(tmp_col, m2->col, m1->col);
+    }
+    else if (mixmode == CDT_MIX_SUB) {
+      blend_color_sub_float(tmp_col, m2->col, m1->col);
+    }
+    else if (mixmode == CDT_MIX_MUL) {
+      blend_color_mul_float(tmp_col, m2->col, m1->col);
+    }
+    else {
+      memcpy(tmp_col, m1->col, sizeof(tmp_col));
+    }
+    blend_color_interpolate_float(m2->col, m2->col, tmp_col, mixfactor);
+
+    copy_v3_v3(m2->col, m1->col);
+  }
+  m2->col[3] = m1->col[3];
+}
+
+static bool layerEqual_propcol(const void *data1, const void *data2)
+{
+  const MPropCol *m1 = data1, *m2 = data2;
+  float tot = 0;
+
+  for (int i = 0; i < 4; i++) {
+    float c = (m1->col[i] - m2->col[i]);
+    tot += c * c;
+  }
+
+  return tot < 0.001f;
+}
+
+static void layerMultiply_propcol(void *data, float fac)
+{
+  MPropCol *m = data;
+  mul_v4_fl(m->col, fac);
+}
+
+static void layerAdd_propcol(void *data1, const void *data2)
+{
+  MPropCol *m = data1;
+  const MPropCol *m2 = data2;
+  add_v4_v4(m->col, m2->col);
+}
+
+static void layerDoMinMax_propcol(const void *data, void *vmin, void *vmax)
+{
+  const MPropCol *m = data;
+  MPropCol *min = vmin, *max = vmax;
+  minmax_v4v4_v4(min->col, max->col, m->col);
+}
+
+static void layerInitMinMax_propcol(void *vmin, void *vmax)
+{
+  MPropCol *min = vmin, *max = vmax;
+
+  copy_v4_fl(min->col, FLT_MAX);
+  copy_v4_fl(max->col, FLT_MIN);
+}
+
+static void layerDefault_propcol(void *data, int count)
+{
+  /* Default to white, full alpha. */
+  MPropCol default_propcol = {1.0f, 1.0f, 1.0f, 1.0f};
+  MPropCol *pcol = (MPropCol *)data;
+  int i;
+  for (i = 0; i < count; i++) {
+    copy_v4_v4(pcol[i].col, default_propcol.col);
+  }
+}
+
+static void layerInterp_propcol(
+    const void **sources, const float *weights, const float *sub_weights, int count, void *dest)
+{
+  MPropCol *mc = dest;
+  float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  const float *sub_weight = sub_weights;
+  for (int i = 0; i < count; i++) {
+    float weight = weights ? weights[i] : 1.0f;
+    const MPropCol *src = sources[i];
+    if (sub_weights) {
+      madd_v4_v4fl(col, src->col, (*sub_weight) * weight);
+      sub_weight++;
+    }
+    else {
+      madd_v4_v4fl(col, src->col, weight);
+    }
+  }
+  copy_v4_v4(mc->col, col);
+}
+
+static int layerMaxNum_propcol(void)
+{
+  return MAX_MCOL;
+}
+
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 0: CD_MVERT */
     {sizeof(MVert), "MVert", 1, NULL, NULL, NULL, NULL, NULL, NULL},
@@ -1654,7 +1780,27 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     {sizeof(HairCurve), "HairCurve", 1, NULL, NULL, NULL, NULL, NULL, NULL},
     /* 46: CD_HAIR_MAPPING */
     {sizeof(HairMapping), "HairMapping", 1, NULL, NULL, NULL, NULL, NULL, NULL},
-};
+    /* 47: CD_PROP_COL */
+    {sizeof(MPropCol),
+     "PropCol",
+     1,
+     N_("Col"),
+     NULL,
+     NULL,
+     layerInterp_propcol,
+     NULL,
+     layerDefault_propcol,
+     NULL,
+     layerEqual_propcol,
+     layerMultiply_propcol,
+     layerInitMinMax_propcol,
+     layerAdd_propcol,
+     layerDoMinMax_propcol,
+     layerCopyValue_propcol,
+     NULL,
+     NULL,
+     NULL,
+     layerMaxNum_propcol}};
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     /*   0-4 */ "CDMVert",
@@ -1706,6 +1852,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     "CDHairCurve",
     "CDHairMapping",
     "CDPoint",
+    "CDPropCol",
 };
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {

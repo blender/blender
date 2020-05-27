@@ -436,6 +436,7 @@ MINLINE void normal_short_to_float_v3(float r[3], const short n[3]);
 MINLINE void normal_float_to_short_v3(short r[3], const float n[3]);
 MINLINE void normal_float_to_short_v4(short r[4], const float n[4]);
 
+void minmax_v4v4_v4(float min[4], float max[4], const float vec[4]);
 void minmax_v3v3_v3(float min[3], float max[3], const float vec[3]);
 void minmax_v2v2_v2(float min[2], float max[2], const float vec[2]);
 
