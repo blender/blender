@@ -565,8 +565,7 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   SCULPT_filter_cache_init(ob, sd);
 
   if (use_face_sets) {
-    ss->filter_cache->active_face_set = SCULPT_vertex_face_set_get(ss,
-                                                                   SCULPT_active_vertex_get(ss));
+    ss->filter_cache->active_face_set = SCULPT_active_face_set_get(ss);
   }
   else {
     ss->filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
