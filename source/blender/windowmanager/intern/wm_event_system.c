@@ -2590,7 +2590,7 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
 
     if (wm_gizmomap_highlight_set(gzmap, C, gz, part)) {
       if (gz != NULL) {
-        if (U.flag & USER_TOOLTIPS) {
+        if ((U.flag & USER_TOOLTIPS) && (gz->flag & WM_GIZMO_NO_TOOLTIP) == 0) {
           WM_tooltip_timer_init(C, CTX_wm_window(C), area, region, WM_gizmomap_tooltip_init);
         }
       }

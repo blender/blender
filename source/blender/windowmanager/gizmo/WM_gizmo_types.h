@@ -89,6 +89,9 @@ typedef enum eWM_GizmoFlag {
   /** Don't pass through events to other handlers
    * (allows click/drag not to have it's events stolen by press events in other keymaps). */
   WM_GIZMO_EVENT_HANDLE_ALL = (1 << 10),
+
+  /** Don't use tool-tips for this gizmo (can be distracting). */
+  WM_GIZMO_NO_TOOLTIP = (1 << 11),
 } eWM_GizmoFlag;
 
 /**
