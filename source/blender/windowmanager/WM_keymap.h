@@ -82,7 +82,7 @@ wmKeyMap *WM_keymap_find_all_spaceid_or_empty(struct wmWindowManager *wm,
                                               const char *idname,
                                               int spaceid,
                                               int regionid);
-wmKeyMap *WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap);
+wmKeyMap *WM_keymap_active(const struct wmWindowManager *wm, struct wmKeyMap *keymap);
 bool WM_keymap_remove(struct wmKeyConfig *keyconfig, struct wmKeyMap *keymap);
 bool WM_keymap_poll(struct bContext *C, struct wmKeyMap *keymap);
 

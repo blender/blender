@@ -1936,7 +1936,7 @@ void WM_keyconfig_update(wmWindowManager *wm)
  * During event handling this function is called to get the keymap from the final configuration.
  * \{ */
 
-wmKeyMap *WM_keymap_active(wmWindowManager *wm, wmKeyMap *keymap)
+wmKeyMap *WM_keymap_active(const wmWindowManager *wm, wmKeyMap *keymap)
 {
   wmKeyMap *km;
 
