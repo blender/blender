@@ -382,7 +382,7 @@ static int gizmo_move_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
       switch (area->spacetype) {
         case SPACE_VIEW3D: {
           inter->snap_context_v3d = ED_transform_snap_object_context_create_view3d(
-              CTX_data_main(C), CTX_data_scene(C), 0, CTX_wm_region(C), CTX_wm_view3d(C));
+              CTX_data_scene(C), 0, CTX_wm_region(C), CTX_wm_view3d(C));
           break;
         }
         default:

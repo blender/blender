@@ -5018,7 +5018,6 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
                                           float cursor_co[3],
                                           float cursor_quat[4])
 {
-  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
   ARegion *region = CTX_wm_region(C);
@@ -5052,7 +5051,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
     float ray_co[3];
 
     struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-        bmain, scene, 0, region, v3d);
+        scene, 0, region, v3d);
 
     float obmat[4][4];
     Object *ob_dummy = NULL;

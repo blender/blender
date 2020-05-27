@@ -110,7 +110,6 @@ typedef struct SnapObjectData {
 } SnapObjectData;
 
 struct SnapObjectContext {
-  Main *bmain;
   Scene *scene;
 
   int flag;
@@ -2851,13 +2850,12 @@ static short snapObjectsRay(SnapObjectContext *sctx,
 /** \name Public Object Snapping API
  * \{ */
 
-SnapObjectContext *ED_transform_snap_object_context_create(Main *bmain, Scene *scene, int flag)
+SnapObjectContext *ED_transform_snap_object_context_create(Scene *scene, int flag)
 {
   SnapObjectContext *sctx = MEM_callocN(sizeof(*sctx), __func__);
 
   sctx->flag = flag;
 
-  sctx->bmain = bmain;
   sctx->scene = scene;
 
   sctx->cache.object_map = BLI_ghash_ptr_new(__func__);
@@ -2868,14 +2866,13 @@ SnapObjectContext *ED_transform_snap_object_context_create(Main *bmain, Scene *s
   return sctx;
 }
 
-SnapObjectContext *ED_transform_snap_object_context_create_view3d(Main *bmain,
-                                                                  Scene *scene,
+SnapObjectContext *ED_transform_snap_object_context_create_view3d(Scene *scene,
                                                                   int flag,
                                                                   /* extra args for view3d */
                                                                   const ARegion *region,
                                                                   const View3D *v3d)
 {
-  SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, flag);
+  SnapObjectContext *sctx = ED_transform_snap_object_context_create(scene, flag);
 
   sctx->use_v3d = true;
   sctx->v3d_data.region = region;

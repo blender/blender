@@ -1647,14 +1647,13 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree,
 void EDBM_project_snap_verts(
     bContext *C, Depsgraph *depsgraph, ARegion *region, Object *obedit, BMEditMesh *em)
 {
-  Main *bmain = CTX_data_main(C);
   BMIter iter;
   BMVert *eve;
 
   ED_view3d_init_mats_rv3d(obedit, region->regiondata);
 
   struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-      bmain, CTX_data_scene(C), 0, region, CTX_wm_view3d(C));
+      CTX_data_scene(C), 0, region, CTX_wm_view3d(C));
 
   BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
     if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {

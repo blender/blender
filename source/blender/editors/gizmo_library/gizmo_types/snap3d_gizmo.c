@@ -205,7 +205,7 @@ SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(Scene *scene,
   SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
   if (gizmo_snap->snap_context_v3d == NULL) {
     gizmo_snap->snap_context_v3d = ED_transform_snap_object_context_create_view3d(
-        NULL, scene, 0, region, v3d);
+        scene, 0, region, v3d);
   }
   return gizmo_snap->snap_context_v3d;
 }

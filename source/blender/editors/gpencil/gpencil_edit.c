@@ -3663,7 +3663,7 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 
   int cfra_prv = INT_MIN;
   /* init snap context for geometry projection */
-  sctx = ED_transform_snap_object_context_create_view3d(bmain, scene, 0, region, CTX_wm_view3d(C));
+  sctx = ED_transform_snap_object_context_create_view3d(scene, 0, region, CTX_wm_view3d(C));
 
   /* Go through each editable + selected stroke, adjusting each of its points one by one... */
   GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {

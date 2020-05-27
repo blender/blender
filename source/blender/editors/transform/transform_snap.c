@@ -545,7 +545,6 @@ static bool bm_face_is_snap_target(BMFace *f, void *UNUSED(user_data))
 
 static void initSnappingMode(TransInfo *t)
 {
-  Main *bmain = CTX_data_main(t->context);
   ToolSettings *ts = t->settings;
   /* All obedit types will match. */
   const int obedit_type = t->data_container->obedit ? t->data_container->obedit->type : -1;
@@ -642,7 +641,7 @@ static void initSnappingMode(TransInfo *t)
   if (t->spacetype == SPACE_VIEW3D) {
     if (t->tsnap.object_context == NULL) {
       t->tsnap.object_context = ED_transform_snap_object_context_create_view3d(
-          bmain, t->scene, 0, t->region, t->view);
+          t->scene, 0, t->region, t->view);
 
       ED_transform_snap_object_context_set_editmesh_callbacks(
           t->tsnap.object_context,
