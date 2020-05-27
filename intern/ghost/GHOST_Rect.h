@@ -49,14 +49,6 @@ class GHOST_Rect {
   }
 
   /**
-   * Copy constructor.
-   * \param   r   rectangle to copy
-   */
-  GHOST_Rect(const GHOST_Rect &r) : m_l(r.m_l), m_t(r.m_t), m_r(r.m_r), m_b(r.m_b)
-  {
-  }
-
-  /**
    * Destructor.
    */
   virtual ~GHOST_Rect()
