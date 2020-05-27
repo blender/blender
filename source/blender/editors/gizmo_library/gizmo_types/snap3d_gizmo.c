@@ -197,9 +197,16 @@ void ED_gizmotypes_snap_3d_draw_util(RegionView3D *rv3d,
   immUnbindProgram();
 }
 
-SnapObjectContext *ED_gizmotypes_snap_3d_context_get(wmGizmo *gz)
+SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(Scene *scene,
+                                                        const ARegion *region,
+                                                        const View3D *v3d,
+                                                        wmGizmo *gz)
 {
   SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
+  if (gizmo_snap->snap_context_v3d == NULL) {
+    gizmo_snap->snap_context_v3d = ED_transform_snap_object_context_create_view3d(
+        NULL, scene, 0, region, v3d);
+  }
   return gizmo_snap->snap_context_v3d;
 }
 
@@ -252,6 +259,8 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
     }
 
     float dist_px = 12.0f * U.pixelsize;
+
+    ED_gizmotypes_snap_3d_context_ensure(scene, region, v3d, gz);
     snap_elem = ED_transform_snap_object_project_view3d_ex(gizmo_snap->snap_context_v3d,
                                                            depsgraph,
                                                            snap_elements,
@@ -388,19 +397,16 @@ static int gizmo_snap_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 #endif
   copy_v2_v2_int(gizmo_snap->mval, mval);
 
-  ARegion *region = CTX_wm_region(C);
-  View3D *v3d = CTX_wm_view3d(C);
-  if (gizmo_snap->snap_context_v3d == NULL) {
-    gizmo_snap->snap_context_v3d = ED_transform_snap_object_context_create_view3d(
-        NULL, CTX_data_scene(C), 0, region, v3d);
-
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
+  if (gizmo_snap->keymap == NULL) {
     gizmo_snap->keymap = WM_modalkeymap_find(wm->defaultconf, "Generic Gizmo Tweak Modal Map");
     gizmo_snap->snap_on = -1;
     RNA_enum_value_from_id(gizmo_snap->keymap->modal_items, "SNAP_ON", &gizmo_snap->snap_on);
-#endif
   }
+#endif
 
+  ARegion *region = CTX_wm_region(C);
+  View3D *v3d = CTX_wm_view3d(C);
   const float mval_fl[2] = {UNPACK2(mval)};
   short snap_elem = ED_gizmotypes_snap_3d_update(
       gz, CTX_data_ensure_evaluated_depsgraph(C), region, v3d, NULL, mval_fl, NULL, NULL);

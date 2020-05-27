@@ -59,6 +59,8 @@
 #include "WM_types.h"
 #include "wm.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "view3d_intern.h" /* own include */
 
 #include "GPU_immediate.h"
@@ -323,9 +325,10 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
     copy_v3_v3(co, inter->drag_start_co);
     view3d_ruler_item_project(ruler_info, co, mval);
     if (do_thickness && inter->co_index != 1) {
-      // Scene *scene = CTX_data_scene(C);
-      // View3D *v3d = ruler_info->area->spacedata.first;
-      SnapObjectContext *snap_context = ED_gizmotypes_snap_3d_context_get(snap_gizmo);
+      Scene *scene = DEG_get_input_scene(depsgraph);
+      View3D *v3d = ruler_info->area->spacedata.first;
+      SnapObjectContext *snap_context = ED_gizmotypes_snap_3d_context_ensure(
+          scene, ruler_info->region, v3d, snap_gizmo);
       const float mval_fl[2] = {UNPACK2(mval)};
       float ray_normal[3];
       float ray_start[3];

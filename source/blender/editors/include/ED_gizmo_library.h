@@ -257,7 +257,10 @@ void ED_gizmotypes_snap_3d_draw_util(struct RegionView3D *rv3d,
                                      const uchar color_line[4],
                                      const uchar color_point[4],
                                      const short snap_elem_type);
-struct SnapObjectContext *ED_gizmotypes_snap_3d_context_get(struct wmGizmo *gz);
+struct SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(struct Scene *scene,
+                                                               const struct ARegion *region,
+                                                               const struct View3D *v3d,
+                                                               struct wmGizmo *gz);
 short ED_gizmotypes_snap_3d_update(struct wmGizmo *gz,
                                    struct Depsgraph *depsgraph,
                                    const struct ARegion *region,
