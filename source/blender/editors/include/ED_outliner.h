@@ -29,6 +29,7 @@ extern "C" {
 
 struct Base;
 struct ListBase;
+struct SpaceOutliner;
 struct bContext;
 
 bool ED_outliner_collections_editor_poll(struct bContext *C);
