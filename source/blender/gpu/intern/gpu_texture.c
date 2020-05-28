@@ -1637,6 +1637,7 @@ void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat gpu_data_format, const vo
         }
         default:
           BLI_assert(!"Unhandled data format");
+          depth = 0.0f;
           break;
       }
       glClearDepth(depth);
