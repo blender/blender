@@ -1030,10 +1030,14 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
 
         if strip.input_count > 0:
             col = layout.column()
-            col.enabled = False
-            col.prop(strip, "input_1")
+            row = col.row()
+            row.prop(strip, "input_1")
+
             if strip.input_count > 1:
-                col.prop(strip, "input_2")
+                row.operator("sequencer.swap_inputs", text="", icon="SORT_ASC")
+                row = col.row()
+                row.prop(strip, "input_2")
+                row.operator("sequencer.swap_inputs", text="", icon="SORT_DESC")
 
         strip_type = strip.type
 
