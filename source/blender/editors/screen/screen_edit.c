@@ -305,35 +305,96 @@ int area_getorientation(ScrArea *area, ScrArea *sb)
   ScrVert *sbTR = sb->v3;
   ScrVert *sbBR = sb->v4;
 
-  int tolerance = U.pixelsize * 4;
-
   if (saBL->vec.x == sbBR->vec.x && saTL->vec.x == sbTR->vec.x) { /* area to right of sb = W */
-    if ((abs(saBL->vec.y - sbBR->vec.y) <= tolerance) &&
-        (abs(saTL->vec.y - sbTR->vec.y) <= tolerance)) {
+    if ((abs(saBL->vec.y - sbBR->vec.y) <= AREAJOINTOLERANCE) &&
+        (abs(saTL->vec.y - sbTR->vec.y) <= AREAJOINTOLERANCE)) {
       return 0;
     }
   }
   else if (saTL->vec.y == sbBL->vec.y &&
            saTR->vec.y == sbBR->vec.y) { /* area to bottom of sb = N */
-    if ((abs(saTL->vec.x - sbBL->vec.x) <= tolerance) &&
-        (abs(saTR->vec.x - sbBR->vec.x) <= tolerance)) {
+    if ((abs(saTL->vec.x - sbBL->vec.x) <= AREAJOINTOLERANCE) &&
+        (abs(saTR->vec.x - sbBR->vec.x) <= AREAJOINTOLERANCE)) {
       return 1;
     }
   }
   else if (saTR->vec.x == sbTL->vec.x && saBR->vec.x == sbBL->vec.x) { /* area to left of sb = E */
-    if ((abs(saTR->vec.y - sbTL->vec.y) <= tolerance) &&
-        (abs(saBR->vec.y - sbBL->vec.y) <= tolerance)) {
+    if ((abs(saTR->vec.y - sbTL->vec.y) <= AREAJOINTOLERANCE) &&
+        (abs(saBR->vec.y - sbBL->vec.y) <= AREAJOINTOLERANCE)) {
       return 2;
     }
   }
   else if (saBL->vec.y == sbTL->vec.y && saBR->vec.y == sbTR->vec.y) { /* area on top of sb = S*/
-    if ((abs(saBL->vec.x - sbTL->vec.x) <= tolerance) &&
-        (abs(saBR->vec.x - sbTR->vec.x) <= tolerance)) {
+    if ((abs(saBL->vec.x - sbTL->vec.x) <= AREAJOINTOLERANCE) &&
+        (abs(saBR->vec.x - sbTR->vec.x) <= AREAJOINTOLERANCE)) {
       return 3;
     }
   }
 
   return -1;
+}
+
+/* Screen verts with horizontal position equal to from_x are moved to to_x. */
+static void screen_verts_halign(const wmWindow *win,
+                                const bScreen *screen,
+                                const short from_x,
+                                const short to_x)
+{
+  ED_screen_verts_iter(win, screen, v1)
+  {
+    if (v1->vec.x == from_x) {
+      v1->vec.x = to_x;
+    }
+  }
+}
+
+/* Screen verts with vertical position equal to from_y are moved to to_y. */
+static void screen_verts_valign(const wmWindow *win,
+                                const bScreen *screen,
+                                const short from_y,
+                                const short to_y)
+{
+  ED_screen_verts_iter(win, screen, v1)
+  {
+    if (v1->vec.y == from_y) {
+      v1->vec.y = to_y;
+    }
+  }
+}
+
+/* Adjust all screen edges to allow joining two areas. 'dir' value is like area_getorientation().
+ */
+static void screen_areas_align(
+    bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2, const int dir)
+{
+  wmWindow *win = CTX_wm_window(C);
+
+  if (dir == 0 || dir == 2) {
+    /* horizontal join, use average for new top and bottom. */
+    int top = (sa1->v2->vec.y + sa2->v2->vec.y) / 2;
+    int bottom = (sa1->v4->vec.y + sa2->v4->vec.y) / 2;
+
+    /* Move edges exactly matching source top and bottom. */
+    screen_verts_valign(win, screen, sa1->v2->vec.y, top);
+    screen_verts_valign(win, screen, sa1->v4->vec.y, bottom);
+
+    /* Move edges exactly matching target top and bottom. */
+    screen_verts_valign(win, screen, sa2->v2->vec.y, top);
+    screen_verts_valign(win, screen, sa2->v4->vec.y, bottom);
+  }
+  else {
+    /* Vertical join, use averages for new left and right. */
+    int left = (sa1->v1->vec.x + sa2->v1->vec.x) / 2;
+    int right = (sa1->v3->vec.x + sa2->v3->vec.x) / 2;
+
+    /* Move edges exactly matching source left and right. */
+    screen_verts_halign(win, screen, sa1->v1->vec.x, left);
+    screen_verts_halign(win, screen, sa1->v3->vec.x, right);
+
+    /* Move edges exactly matching target left and right */
+    screen_verts_halign(win, screen, sa2->v1->vec.x, left);
+    screen_verts_halign(win, screen, sa2->v3->vec.x, right);
+  }
 }
 
 /* Helper function to join 2 areas, it has a return value, 0=failed 1=success
@@ -348,21 +409,7 @@ int screen_area_join(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
   }
 
   /* Align areas if they are not. Do sanity checking before getting here. */
-
-  if (dir == 0 || dir == 2) {
-    /* horizontal join, so vertically align source vert to target */
-    sa2->v1->vec.y = sa1->v1->vec.y; /* vertical align sa1 BL */
-    sa2->v2->vec.y = sa1->v2->vec.y; /* vertical align sa1 TL */
-    sa2->v3->vec.y = sa1->v3->vec.y; /* vertical align sa1 TR */
-    sa2->v4->vec.y = sa1->v4->vec.y; /* vertical align sa1 BR */
-  }
-  else {
-    /* vertical join, so horizontally align source verts to target */
-    sa2->v1->vec.x = sa1->v1->vec.x; /* vertical align sa1 BL */
-    sa2->v2->vec.x = sa1->v2->vec.x; /* vertical align sa1 TL */
-    sa2->v3->vec.x = sa1->v3->vec.x; /* vertical align sa1 TR */
-    sa2->v4->vec.x = sa1->v4->vec.x; /* vertical align sa1 BR */
-  }
+  screen_areas_align(C, screen, sa1, sa2, dir);
 
   if (dir == 0) {      /* sa1 to right of sa2 = W */
     sa1->v1 = sa2->v1; /* BL */

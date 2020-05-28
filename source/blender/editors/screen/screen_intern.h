@@ -35,6 +35,8 @@ struct bContextDataResult;
 #define AZONEFADEIN (5.0f * U.widget_unit)  /* when azone is totally visible */
 #define AZONEFADEOUT (6.5f * U.widget_unit) /* when we start seeing the azone */
 
+#define AREAJOINTOLERANCE (1.0f * U.widget_unit) /* Edges must be close to allow joining. */
+
 /* Expanded interaction influence of area borders. */
 #define BORDERPADDING (U.dpi_fac + U.pixelsize)
 
