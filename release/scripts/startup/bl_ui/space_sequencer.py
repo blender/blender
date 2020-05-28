@@ -307,12 +307,15 @@ class SEQUENCER_MT_view(Menu):
             layout.separator()
             layout.operator_context = 'INVOKE_DEFAULT'
 
-            layout.prop(st, "show_seconds")
             layout.prop(st, "show_locked_time")
+
+            layout.separator()
+            layout.prop(st, "show_seconds")
             layout.prop(st, "show_strip_offset")
             layout.prop(st, "show_fcurves")
-            layout.separator()
             layout.prop(st, "show_markers")
+            layout.menu("SEQUENCER_MT_view_cache", text="Show Cache")
+            layout.prop_menu_enum(st, "waveform_display_type", text="Show Waveforms")
 
         if is_preview:
             layout.separator()
@@ -323,12 +326,6 @@ class SEQUENCER_MT_view(Menu):
                 layout.prop(st, "show_annotation", text="Show Annotations")
             elif st.display_mode == 'WAVEFORM':
                 layout.prop(st, "show_separate_color", text="Show Separate Color Channels")
-
-        if is_sequencer_view:
-            layout.separator()
-
-            layout.menu("SEQUENCER_MT_view_cache")
-            layout.prop_menu_enum(st, "waveform_display_type")
 
         layout.separator()
 
