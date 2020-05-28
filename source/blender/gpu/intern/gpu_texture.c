@@ -1671,6 +1671,7 @@ void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat gpu_data_format, const vo
         }
         default:
           BLI_assert(!"Unhandled data format");
+          r = g = b = a = 0.0f;
           break;
       }
       glClearColor(r, g, b, a);
