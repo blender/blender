@@ -59,7 +59,7 @@ static Object *object_volume_add(bContext *C, wmOperator *op, const char *name)
   ushort local_view_bits;
   float loc[3], rot[3];
 
-  if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, NULL, &local_view_bits, NULL)) {
+  if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, NULL, NULL, &local_view_bits, NULL)) {
     return false;
   }
   return ED_object_add_type(C, OB_VOLUME, name, loc, rot, false, local_view_bits);

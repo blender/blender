@@ -269,6 +269,7 @@ bool ED_object_add_generic_get_opts(struct bContext *C,
                                     const char view_align_axis,
                                     float loc[3],
                                     float rot[3],
+                                    float scale[3],
                                     bool *enter_editmode,
                                     unsigned short *local_view_bits,
                                     bool *is_view_aligned);
