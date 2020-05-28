@@ -74,6 +74,7 @@ typedef struct SnapGizmo3D {
   int snap_on;
   bool invert_snap;
 #endif
+  int use_snap_override;
 } SnapGizmo3D;
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
@@ -211,6 +212,23 @@ SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(Scene *scene,
   return gizmo_snap->snap_context_v3d;
 }
 
+bool ED_gizmotypes_snap_3d_invert_snap_get(struct wmGizmo *gz)
+{
+  SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
+  return gizmo_snap->invert_snap;
+}
+void ED_gizmotypes_snap_3d_toggle_set(wmGizmo *gz, bool enable)
+{
+  SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
+  gizmo_snap->use_snap_override = (int)enable;
+}
+
+void ED_gizmotypes_snap_3d_toggle_clear(wmGizmo *gz)
+{
+  SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
+  gizmo_snap->use_snap_override = -1;
+}
+
 short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
                                    struct Depsgraph *depsgraph,
                                    const ARegion *region,
@@ -221,21 +239,30 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
                                    float r_nor[3])
 {
   SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
+  Scene *scene = DEG_get_input_scene(depsgraph);
   float co[3], no[3];
   short snap_elem = 0;
   int snap_elem_index[3] = {-1, -1, -1};
   int index = -1;
+
+  if (gizmo_snap->use_snap_override != -1) {
+    if (gizmo_snap->use_snap_override == false) {
+      gizmo_snap->snap_elem = 0;
+      return 0;
+    }
+  }
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   if (wm) {
     gizmo_snap->invert_snap = invert_snap(gz, wm, wm->winactive->eventstate);
   }
 
-  Scene *scene = DEG_get_input_scene(depsgraph);
-  const ToolSettings *ts = scene->toolsettings;
-  if (gizmo_snap->invert_snap != !(ts->snap_flag & SCE_SNAP)) {
-    gizmo_snap->snap_elem = 0;
-    return 0;
+  if (gizmo_snap->use_snap_override == -1) {
+    const ToolSettings *ts = scene->toolsettings;
+    if (gizmo_snap->invert_snap != !(ts->snap_flag & SCE_SNAP)) {
+      gizmo_snap->snap_elem = 0;
+      return 0;
+    }
   }
 #else
   UNUSED_VARS(wm);
@@ -328,6 +355,8 @@ static void gizmo_snap_setup(wmGizmo *gz)
   gizmo_snap->prop_elem_index = RNA_struct_find_property(gz->ptr, "snap_elem_index");
   gizmo_snap->prop_snap_force = RNA_struct_find_property(gz->ptr, "snap_elements_force");
 
+  gizmo_snap->use_snap_override = -1;
+
   /* Prop fallback. */
   WM_gizmo_target_property_def_rna(gz, "snap_elements", gz->ptr, "snap_elements_force", -1);
 
@@ -381,7 +410,7 @@ static int gizmo_snap_test_select(bContext *C, wmGizmo *gz, const int mval[2])
   SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   wmWindowManager *wm = CTX_wm_manager(C);
-  bool invert = invert_snap(gz, wm, wm->winactive->eventstate);
+  const bool invert = invert_snap(gz, wm, wm->winactive->eventstate);
   if (gizmo_snap->invert_snap == invert && gizmo_snap->mval[0] == mval[0] &&
       gizmo_snap->mval[1] == mval[1]) {
     /* Performance, do not update. */

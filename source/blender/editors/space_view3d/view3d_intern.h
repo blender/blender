@@ -213,6 +213,7 @@ void viewrotate_modal_keymap(struct wmKeyConfig *keyconf);
 void viewmove_modal_keymap(struct wmKeyConfig *keyconf);
 void viewzoom_modal_keymap(struct wmKeyConfig *keyconf);
 void viewdolly_modal_keymap(struct wmKeyConfig *keyconf);
+void viewplace_modal_keymap(struct wmKeyConfig *keyconf);
 
 /* view3d_buttons.c */
 void VIEW3D_OT_object_mode_pie_or_toggle(struct wmOperatorType *ot);
@@ -243,6 +244,9 @@ void VIEW3D_OT_snap_cursor_to_center(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_selected(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_active(struct wmOperatorType *ot);
 
+/* view3d_placement.c */
+void VIEW3D_OT_interactive_add(struct wmOperatorType *ot);
+
 /* space_view3d.c */
 extern const char *view3d_context_dir[]; /* doc access */
 
@@ -267,6 +271,8 @@ void VIEW3D_OT_ruler_add(struct wmOperatorType *ot);
 void VIEW3D_OT_ruler_remove(struct wmOperatorType *ot);
 
 void VIEW3D_GT_navigate_rotate(struct wmGizmoType *gzt);
+
+void VIEW3D_GGT_placement(struct wmGizmoGroupType *gzgt);
 
 /* workaround for trivial but noticeable camera bug caused by imprecision
  * between view border calculation in 2D/3D space, workaround for bug [#28037].

@@ -261,6 +261,11 @@ struct SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(struct Scene *sce
                                                                const struct ARegion *region,
                                                                const struct View3D *v3d,
                                                                struct wmGizmo *gz);
+
+bool ED_gizmotypes_snap_3d_invert_snap_get(struct wmGizmo *gz);
+void ED_gizmotypes_snap_3d_toggle_set(struct wmGizmo *gz, bool enable);
+void ED_gizmotypes_snap_3d_toggle_clear(struct wmGizmo *gz);
+
 short ED_gizmotypes_snap_3d_update(struct wmGizmo *gz,
                                    struct Depsgraph *depsgraph,
                                    const struct ARegion *region,

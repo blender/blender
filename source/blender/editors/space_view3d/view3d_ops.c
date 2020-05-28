@@ -211,6 +211,8 @@ void view3d_operatortypes(void)
   WM_operatortype_append(VIEW3D_OT_snap_cursor_to_selected);
   WM_operatortype_append(VIEW3D_OT_snap_cursor_to_active);
 
+  WM_operatortype_append(VIEW3D_OT_interactive_add);
+
   WM_operatortype_append(VIEW3D_OT_toggle_shading);
   WM_operatortype_append(VIEW3D_OT_toggle_xray);
   WM_operatortype_append(VIEW3D_OT_toggle_matcap_flip);
@@ -234,4 +236,5 @@ void view3d_keymap(wmKeyConfig *keyconf)
   viewmove_modal_keymap(keyconf);
   viewzoom_modal_keymap(keyconf);
   viewdolly_modal_keymap(keyconf);
+  viewplace_modal_keymap(keyconf);
 }
