@@ -2212,10 +2212,16 @@ classes = (
     SEQUENCER_MT_strip_input,
     SEQUENCER_MT_strip_lock_mute,
     SEQUENCER_MT_context_menu,
+
     SEQUENCER_PT_active_tool,
     SEQUENCER_PT_strip,
 
     SEQUENCER_PT_effect,
+    SEQUENCER_PT_scene,
+    SEQUENCER_PT_mask,
+    SEQUENCER_PT_effect_text_style,
+    SEQUENCER_PT_effect_text_layout,
+
     SEQUENCER_PT_adjust,
     SEQUENCER_PT_adjust_comp,
     SEQUENCER_PT_adjust_transform,
@@ -2224,11 +2230,6 @@ classes = (
     SEQUENCER_PT_adjust_video,
     SEQUENCER_PT_adjust_color,
     SEQUENCER_PT_adjust_sound,
-
-    SEQUENCER_PT_scene,
-    SEQUENCER_PT_mask,
-    SEQUENCER_PT_effect_text_style,
-    SEQUENCER_PT_effect_text_layout,
 
     SEQUENCER_PT_time,
     SEQUENCER_PT_source,
