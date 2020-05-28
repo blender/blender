@@ -203,13 +203,6 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
           megs_used_memory,
           megs_peak_memory);
 
-  if (rs->curfield) {
-    fprintf(stdout, TIP_("Field %d "), rs->curfield);
-  }
-  if (rs->curblur) {
-    fprintf(stdout, TIP_("Blur %d "), rs->curblur);
-  }
-
   BLI_timecode_string_from_time_simple(
       info_time_str, sizeof(info_time_str), PIL_check_seconds_timer() - rs->starttime);
   fprintf(stdout, TIP_("| Time:%s | "), info_time_str);
@@ -218,23 +211,12 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
     fprintf(stdout, "%s", rs->infostr);
   }
   else {
-    if (rs->tothalo) {
-      fprintf(stdout,
-              TIP_("Sce: %s Ve:%d Fa:%d Ha:%d La:%d"),
-              rs->scene_name,
-              rs->totvert,
-              rs->totface,
-              rs->tothalo,
-              rs->totlamp);
-    }
-    else {
-      fprintf(stdout,
-              TIP_("Sce: %s Ve:%d Fa:%d La:%d"),
-              rs->scene_name,
-              rs->totvert,
-              rs->totface,
-              rs->totlamp);
-    }
+    fprintf(stdout,
+            TIP_("Sce: %s Ve:%d Fa:%d La:%d"),
+            rs->scene_name,
+            rs->totvert,
+            rs->totface,
+            rs->totlamp);
   }
 
   /* Flush stdout to be sure python callbacks are printing stuff after blender. */

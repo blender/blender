@@ -674,7 +674,7 @@ bool RE_bake_engine(Render *re,
   /* set render info */
   re->i.cfra = re->scene->r.cfra;
   BLI_strncpy(re->i.scene_name, re->scene->id.name + 2, sizeof(re->i.scene_name) - 2);
-  re->i.totface = re->i.totvert = re->i.totstrand = re->i.totlamp = re->i.tothalo = 0;
+  re->i.totface = re->i.totvert = re->i.totlamp = 0;
 
   /* render */
   engine = re->engine;
@@ -812,7 +812,7 @@ int RE_engine_render(Render *re, int do_all)
   /* set render info */
   re->i.cfra = re->scene->r.cfra;
   BLI_strncpy(re->i.scene_name, re->scene->id.name + 2, sizeof(re->i.scene_name));
-  re->i.totface = re->i.totvert = re->i.totstrand = re->i.totlamp = re->i.tothalo = 0;
+  re->i.totface = re->i.totvert = re->i.totlamp = 0;
 
   /* render */
   engine = re->engine;

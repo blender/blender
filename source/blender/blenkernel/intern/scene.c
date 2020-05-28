@@ -1249,9 +1249,7 @@ bool BKE_scene_validate_setscene(Main *bmain, Scene *sce)
 }
 
 /**
- * This function is needed to cope with fractional frames - including two Blender rendering
- * features mblur (motion blur that renders 'sub-frames' and blurs them together),
- * and fields rendering.
+ * This function is needed to cope with fractional frames, needed for motion blur & physics.
  */
 float BKE_scene_frame_get(const Scene *scene)
 {
