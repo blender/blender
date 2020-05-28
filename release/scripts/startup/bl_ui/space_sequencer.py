@@ -1195,31 +1195,14 @@ class SEQUENCER_PT_effect_text_style(SequencerButtonsPanel, Panel):
         col.prop(strip, "font_size")
         col.prop(strip, "color")
 
-
-class SEQUENCER_PT_effect_text_style_shadow(SequencerButtonsPanel, Panel):
-    bl_label = "Shadow"
-    bl_parent_id = "SEQUENCER_PT_effect_text_style"
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Strip"
-
-    @classmethod
-    def poll(cls, context):
-        strip = act_strip(context)
-        return strip.type != 'SOUND'
-
-    def draw_header(self, context):
-        strip = act_strip(context)
-        self.layout.prop(strip, "use_shadow", text="")
-
-    def draw(self, context):
-        strip = act_strip(context)
-        layout = self.layout
-        layout.use_property_split = True
-
-        layout.active = strip.use_shadow and (not strip.mute)
-
-        col = layout.column(align=True)
-        col.prop(strip, "shadow_color", text="Color")
+        row = layout.row(align=True, heading="Shadow")
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(strip, "use_shadow", text="")
+        subsub = sub.row(align=True)
+        subsub.active = strip.use_shadow and (not strip.mute)
+        subsub.prop(strip, "shadow_color", text="")
+        row.prop_decorator(strip, "shadow_color")
 
 
 class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
@@ -2249,7 +2232,6 @@ classes = (
     SEQUENCER_PT_mask,
     SEQUENCER_PT_effect_text_style,
     SEQUENCER_PT_effect_text_layout,
-    SEQUENCER_PT_effect_text_style_shadow,
 
     SEQUENCER_PT_time,
     SEQUENCER_PT_source,
