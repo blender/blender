@@ -28,7 +28,7 @@
 namespace DEG {
 
 struct RootPChanMap {
-  /* ctor and dtor - Create and free the internal map respectively. */
+  /* Constructor and destructor - Create and free the internal map respectively. */
   RootPChanMap();
   ~RootPChanMap();
 

@@ -373,8 +373,8 @@ void UI_panels_free_instanced(bContext *C, ARegion *region)
  * don't match in any way.
  *
  * \param data: The list of data to check against the instanced panels.
- * \param panel_type_func: Function to find the panel type idname for each item in the data list.
- * For a readabilty and generality, this lookup happens separately for each type of panel list.
+ * \param panel_idname_func: Function to find the panel type idname for each item in the data list.
+ * For a readability and generality, this lookup happens separately for each type of panel list.
  */
 bool UI_panel_list_matches_data(ARegion *region,
                                 ListBase *data,
@@ -1143,8 +1143,8 @@ void ui_draw_aligned_panel(uiStyle *style,
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
     GPU_blend(true);
 
-    /* Draw panel backdrop if it wasn't aleady been drawn by the single opauque round box earlier.
-     * Note: Subpanels blend with panels, so they can't be opaque. */
+    /* Draw panel backdrop if it wasn't already been drawn by the single opaque round box earlier.
+     * Note: Sub-panels blend with panels, so they can't be opaque. */
     if (show_background && !(draw_box_style && !is_subpanel)) {
       /* Draw the bottom subpanels . */
       if (draw_box_style) {

@@ -360,7 +360,7 @@ MINLINE int divide_floor_i(int a, int b)
 }
 
 /**
- * Integer division that ceils the result, instead of flooring like normal C division.
+ * Integer division that returns the ceiling, instead of flooring like normal C division.
  */
 MINLINE uint divide_ceil_u(uint a, uint b)
 {

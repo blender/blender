@@ -875,8 +875,7 @@ bool ABC_import(bContext *C,
                 bool validate_meshes,
                 bool as_background_job)
 {
-  /* Using new here since MEM_* funcs do not call ctor to properly initialize
-   * data. */
+  /* Using new here since MEM_* functions do not call constructor to properly initialize data. */
   ImportJobData *job = new ImportJobData();
   job->bmain = CTX_data_main(C);
   job->scene = CTX_data_scene(C);

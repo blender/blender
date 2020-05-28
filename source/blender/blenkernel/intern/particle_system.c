@@ -2163,7 +2163,7 @@ static void psys_sph_flush_springs(SPHData *sphdata)
   BLI_buffer_field_free(&sphdata->new_springs);
 }
 
-void psys_sph_finalise(SPHData *sphdata)
+void psys_sph_finalize(SPHData *sphdata)
 {
   psys_sph_flush_springs(sphdata);
 
@@ -4046,7 +4046,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 
       BLI_spin_end(&task_data.spin);
 
-      psys_sph_finalise(&sphdata);
+      psys_sph_finalize(&sphdata);
       break;
     }
   }

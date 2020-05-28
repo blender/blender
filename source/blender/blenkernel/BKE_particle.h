@@ -430,7 +430,7 @@ void psys_apply_child_modifiers(struct ParticleThreadContext *ctx,
                                 const float parent_orco[3]);
 
 void psys_sph_init(struct ParticleSimulationData *sim, struct SPHData *sphdata);
-void psys_sph_finalise(struct SPHData *sphdata);
+void psys_sph_finalize(struct SPHData *sphdata);
 void psys_sph_density(struct BVHTree *tree, struct SPHData *data, float co[3], float vars[2]);
 
 /* for anim.c */

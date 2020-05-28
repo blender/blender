@@ -22,7 +22,7 @@
 
 /** \file
  * \ingroup bke
- * \brief Camera datablock and utility functions.
+ * \brief Camera data-block and utility functions.
  */
 #ifdef __cplusplus
 extern "C" {

@@ -1570,7 +1570,7 @@ static void sculpt_undo_push_all_grids(Object *object)
 
   /* It is possible that undo push is done from an object state where there is no PBVH. This
    * happens, for example, when an operation which tagged for geometry update was performed prior
-   * to the current operation without making any stroke inbetween.
+   * to the current operation without making any stroke in between.
    *
    * Skip pushing nodes based on the following logic: on redo SCULPT_UNDO_COORDS will ensure
    * PBVH for the new base geometry, which will have same coordinates as if we create PBVH here. */

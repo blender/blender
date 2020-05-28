@@ -1482,8 +1482,8 @@ static float fcurve_eval_keyframes_extrapolate(
     return endpoint_bezt->vec[1][1] - (fac * dx);
   }
 
-  /* Use the gradient of the second handle (later) of neighbour to calculate the gradient and thus
-   * the value of the curve at evaltime */
+  /* Use the gradient of the second handle (later) of neighbor to calculate the gradient and thus
+   * the value of the curve at evaluation time. */
   int handle = direction_to_neighbor > 0 ? 0 : 2;
   float dx = endpoint_bezt->vec[1][0] - evaltime;
   float fac = endpoint_bezt->vec[1][0] - endpoint_bezt->vec[handle][0];

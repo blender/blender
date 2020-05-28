@@ -55,7 +55,7 @@
 /* Surface refers to a simplified and lower-memory footprint representation of the limit surface.
  *
  * Used to store pre-calculated information which is expensive or impossible to evaluate when
- * travesing the final limit surface.  */
+ * traversing the final limit surface.  */
 
 typedef struct SurfacePoint {
   float P[3];

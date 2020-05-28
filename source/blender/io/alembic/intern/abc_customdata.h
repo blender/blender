@@ -73,7 +73,7 @@ struct CDStreamConfig {
   const char **modifier_error_message;
 
   /* Alembic needs Blender to keep references to C++ objects (the destructors
-   * finalise the writing to ABC). This map stores OV2fGeomParam objects for the
+   * finalize the writing to ABC). This map stores OV2fGeomParam objects for the
    * 2nd and subsequent UV maps; the primary UV map is kept alive by the Alembic
    * mesh sample itself. */
   std::map<std::string, Alembic::AbcGeom::OV2fGeomParam> abc_uv_maps;

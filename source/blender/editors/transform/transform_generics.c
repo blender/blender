@@ -1626,7 +1626,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
 
     if (t_values_set_is_array && t->flag & T_INPUT_IS_VALUES_FINAL) {
-      /* For operators whose `t->values` is array, set contrain so that the
+      /* For operators whose `t->values` is array, set constraint so that the
        * orientation is more intuitive in the Redo Panel. */
       for (int i = 3; i--;) {
         constraint_axis[i] |= t->values[i] != 0.0f;

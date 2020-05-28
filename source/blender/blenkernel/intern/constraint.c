@@ -4695,7 +4695,7 @@ static void followtrack_evaluate_using_3d_position_object(FollowTrackContext *co
   MovieTrackingTrack *track = context->track;
   MovieTrackingObject *tracking_object = context->tracking_object;
 
-  /* Matrix of the object which is being solved prior to this contraint. */
+  /* Matrix of the object which is being solved prior to this constraint. */
   float obmat[4][4];
   copy_m4_m4(obmat, cob->matrix);
 
@@ -4720,7 +4720,7 @@ static void followtrack_evaluate_using_3d_position_camera(FollowTrackContext *co
   Object *camera_object = context->camera_object;
   MovieTrackingTrack *track = context->track;
 
-  /* Matrix of the object which is being solved prior to this contraint. */
+  /* Matrix of the object which is being solved prior to this constraint. */
   float obmat[4][4];
   copy_m4_m4(obmat, cob->matrix);
 

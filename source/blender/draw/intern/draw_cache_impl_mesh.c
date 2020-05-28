@@ -314,7 +314,7 @@ static void drw_mesh_weight_state_extract(Object *ob,
   wstate->alert_mode = ts->weightuser;
 
   if (paint_mode && ts->multipaint) {
-    /* Multipaint needs to know all selected bones, not just the active group.
+    /* Multi-paint needs to know all selected bones, not just the active group.
      * This is actually a relatively expensive operation, but caching would be difficult. */
     wstate->defgroup_sel = BKE_object_defgroup_selected_get(
         ob, wstate->defgroup_len, &wstate->defgroup_sel_count);

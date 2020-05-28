@@ -2355,7 +2355,7 @@ void do_versions_after_linking_250(Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 258, 0)) {
-    /* Some very old (original comments claim pre-2.57) versionning that was wrongly done in
+    /* Some very old (original comments claim pre-2.57) versioning that was wrongly done in
      * lib-linking code... Putting it here just to be sure (this is also checked at runtime anyway
      * by `action_idcode_patch_check`). */
     ID *id;

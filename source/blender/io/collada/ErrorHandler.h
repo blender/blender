@@ -46,7 +46,7 @@ class ErrorHandler : public COLLADASaxFWL::IErrorHandler {
   }
 
  private:
-  /** Disable default copy ctor. */
+  /** Disable default copy constructor. */
   ErrorHandler(const ErrorHandler &pre);
   /** Disable default assignment operator. */
   const ErrorHandler &operator=(const ErrorHandler &pre);
