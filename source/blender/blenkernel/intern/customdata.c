@@ -1432,7 +1432,7 @@ static void layerInitMinMax_propcol(void *vmin, void *vmax)
 static void layerDefault_propcol(void *data, int count)
 {
   /* Default to white, full alpha. */
-  MPropCol default_propcol = {1.0f, 1.0f, 1.0f, 1.0f};
+  MPropCol default_propcol = {{1.0f, 1.0f, 1.0f, 1.0f}};
   MPropCol *pcol = (MPropCol *)data;
   int i;
   for (i = 0; i < count; i++) {
