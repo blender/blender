@@ -2602,7 +2602,7 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
 
   if (handle_keymap) {
     /* Handle highlight gizmo. */
-    if (gz != NULL) {
+    if ((gz != NULL) && (gz->flag & WM_GIZMO_HIDDEN_KEYMAP) == 0) {
       bool keymap_poll = false;
       wmGizmoGroup *gzgroup = gz->parent_gzgroup;
       wmKeyMap *keymap = WM_keymap_active(wm, gz->keymap ? gz->keymap : gzgroup->type->keymap);
