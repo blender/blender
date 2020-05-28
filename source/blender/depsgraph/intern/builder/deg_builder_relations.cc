@@ -2428,6 +2428,11 @@ void DepsgraphRelationBuilder::build_texture(Tex *texture)
     ComponentKey animation_key(&texture->id, NodeType::ANIMATION);
     add_relation(animation_key, texture_key, "Datablock Animation");
   }
+
+  if (BKE_image_user_id_has_animation(&texture->id)) {
+    ComponentKey image_animation_key(&texture->id, NodeType::IMAGE_ANIMATION);
+    add_relation(image_animation_key, texture_key, "Datablock Image Animation");
+  }
 }
 
 void DepsgraphRelationBuilder::build_image(Image *image)
