@@ -168,9 +168,13 @@ void BlenderSession::create_session()
 
 void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsgraph)
 {
+  /* Update data, scene and depsgraph pointers. These can change after undo. */
   this->b_data = b_data;
   this->b_depsgraph = b_depsgraph;
   this->b_scene = b_depsgraph.scene_eval();
+  if (sync) {
+    sync->reset(this->b_data, this->b_scene);
+  }
 
   if (preview_osl) {
     PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");

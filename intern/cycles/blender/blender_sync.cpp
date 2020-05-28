@@ -78,6 +78,14 @@ BlenderSync::~BlenderSync()
 {
 }
 
+void BlenderSync::reset(BL::BlendData &b_data, BL::Scene &b_scene)
+{
+  /* Update data and scene pointers in case they change in session reset,
+   * for example after undo. */
+  this->b_data = b_data;
+  this->b_scene = b_scene;
+}
+
 /* Sync */
 
 void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d)
