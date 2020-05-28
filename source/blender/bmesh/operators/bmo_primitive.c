@@ -1393,16 +1393,15 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
   BMVert *v1, *v2, *lastv1 = NULL, *lastv2 = NULL, *cent1, *cent2, *firstv1, *firstv2;
   BMFace *f;
   float vec[3], mat[4][4], phi, phid;
-  float dia1 = BMO_slot_float_get(op->slots_in, "diameter1");
-  float dia2 = BMO_slot_float_get(op->slots_in, "diameter2");
-  float depth = BMO_slot_float_get(op->slots_in, "depth");
+  const float dia1 = BMO_slot_float_get(op->slots_in, "diameter1");
+  const float dia2 = BMO_slot_float_get(op->slots_in, "diameter2");
+  const float depth_half = 0.5f * BMO_slot_float_get(op->slots_in, "depth");
   int segs = BMO_slot_int_get(op->slots_in, "segments");
   const bool cap_ends = BMO_slot_bool_get(op->slots_in, "cap_ends");
   const bool cap_tris = BMO_slot_bool_get(op->slots_in, "cap_tris");
 
   const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
   const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
-  int a;
 
   if (!segs) {
     return;
@@ -1413,16 +1412,15 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
   phid = 2.0f * (float)M_PI / segs;
   phi = 0;
 
-  depth *= 0.5f;
   if (cap_ends) {
     vec[0] = vec[1] = 0.0f;
-    vec[2] = -depth;
+    vec[2] = -depth_half;
     mul_m4_v3(mat, vec);
 
     cent1 = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);
 
     vec[0] = vec[1] = 0.0f;
-    vec[2] = depth;
+    vec[2] = depth_half;
     mul_m4_v3(mat, vec);
 
     cent2 = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);
@@ -1431,23 +1429,26 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
     BMO_vert_flag_enable(bm, cent2, VERT_MARK);
   }
 
-  for (a = 0; a < segs; a++, phi += phid) {
+  const int side_faces_len = segs - 1;
+  BMFace **side_faces = MEM_mallocN(sizeof(*side_faces) * side_faces_len, __func__);
+
+  for (int i = 0; i < segs; i++, phi += phid) {
     vec[0] = dia1 * sinf(phi);
     vec[1] = dia1 * cosf(phi);
-    vec[2] = -depth;
+    vec[2] = -depth_half;
     mul_m4_v3(mat, vec);
     v1 = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);
 
     vec[0] = dia2 * sinf(phi);
     vec[1] = dia2 * cosf(phi);
-    vec[2] = depth;
+    vec[2] = depth_half;
     mul_m4_v3(mat, vec);
     v2 = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);
 
     BMO_vert_flag_enable(bm, v1, VERT_MARK);
     BMO_vert_flag_enable(bm, v2, VERT_MARK);
 
-    if (a) {
+    if (i) {
       if (cap_ends) {
         f = BM_face_create_quad_tri(bm, cent1, lastv1, v1, NULL, NULL, BM_CREATE_NOP);
         if (calc_uvs) {
@@ -1466,6 +1467,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
       if (calc_uvs) {
         BMO_face_flag_enable(bm, f, FACE_MARK);
       }
+      side_faces[i - 1] = f;
     }
     else {
       firstv1 = v1;
@@ -1474,10 +1476,6 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 
     lastv1 = v1;
     lastv2 = v2;
-  }
-
-  if (!a) {
-    return;
   }
 
   if (cap_ends) {
@@ -1503,11 +1501,38 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
     BM_mesh_calc_uvs_cone(bm, mat, dia2, dia1, segs, cap_ends, FACE_MARK, cd_loop_uv_offset);
   }
 
+  /* Collapse vertices at the first end. */
+  if (dia1 == 0.0f) {
+    if (cap_ends) {
+      BM_vert_kill(bm, cent1);
+    }
+    for (int i = 0; i < side_faces_len; i++) {
+      f = side_faces[i];
+      BMLoop *l = BM_FACE_FIRST_LOOP(f);
+      BM_edge_collapse(bm, l->prev->e, l->prev->v, true, true);
+    }
+  }
+
+  /* Collapse vertices at the second end. */
+  if (dia2 == 0.0f) {
+    if (cap_ends) {
+      BM_vert_kill(bm, cent2);
+    }
+    for (int i = 0; i < side_faces_len; i++) {
+      f = side_faces[i];
+      BMLoop *l = BM_FACE_FIRST_LOOP(f);
+      BM_edge_collapse(bm, l->next->e, l->next->v, true, true);
+    }
+  }
+
   if (!cap_tris) {
     BMO_op_callf(bm, op->flag, "dissolve_faces faces=%ff", FACE_NEW);
   }
 
-  BMO_op_callf(bm, op->flag, "remove_doubles verts=%fv dist=%f", VERT_MARK, 0.0000005 * depth);
+  if (side_faces != NULL) {
+    MEM_freeN(side_faces);
+  }
+
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
 }
 
