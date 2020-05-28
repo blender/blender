@@ -1581,6 +1581,7 @@ void DepsgraphNodeBuilder::build_texture(Tex *texture)
     return;
   }
   /* Texture itself. */
+  add_id_node(&texture->id);
   build_idproperties(texture->id.properties);
   build_animdata(&texture->id);
   build_parameters(&texture->id);
