@@ -1449,7 +1449,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         col.label(text="Vertex Group A:")
-        col.prop_search(md, "vertex_group_a", ob, "vertex_groups", text="")
+        row = col.row(align=True)
+        row.prop_search(md, "vertex_group_a", ob, "vertex_groups", text="")
+        row.prop(md, "invert_vertex_group_a", text="", icon='ARROW_LEFTRIGHT')
         col.label(text="Default Weight A:")
         col.prop(md, "default_weight_a", text="")
 
@@ -1458,7 +1460,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         col.label(text="Vertex Group B:")
-        col.prop_search(md, "vertex_group_b", ob, "vertex_groups", text="")
+        row = col.row(align=True)
+        row.prop_search(md, "vertex_group_b", ob, "vertex_groups", text="")
+        row.prop(md, "invert_vertex_group_b", text="", icon='ARROW_LEFTRIGHT')
         col.label(text="Default Weight B:")
         col.prop(md, "default_weight_b", text="")
 
