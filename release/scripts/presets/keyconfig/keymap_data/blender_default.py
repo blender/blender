@@ -5886,7 +5886,6 @@ def km_3d_view_tool_interactive_add(params):
         "3D View Tool: Object, Add Primitive",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("view3d.cursor3d", {"type": params.tool_mouse, "value": 'CLICK'}, None),
             ("view3d.interactive_add", {"type": params.tool_tweak, "value": 'ANY', "any": True},
              {"properties": [("wait_for_input", False)]}),
         ]},
