@@ -1327,7 +1327,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
       prop,
       "Editbone Matrix",
       "Matrix combining loc/rot of the bone (head position, direction and roll), "
-      "in armature space (WARNING: does not include/support bone's length/size)");
+      "in armature space (does not include/support bone's length/size)");
   RNA_def_property_float_funcs(prop, "rna_EditBone_matrix_get", "rna_EditBone_matrix_set", NULL);
 
   RNA_api_armature_edit_bone(srna);
