@@ -78,27 +78,26 @@ class VersionInfo:
         blender_h = os.path.join(builder.blender_dir, "source", "blender", "blenkernel", "BKE_blender_version.h")
 
         version_number = int(self._parse_header_file(blender_h, 'BLENDER_VERSION'))
-        self.version = "%d.%d" % (version_number // 100, version_number % 100)
-        self.version_char = self._parse_header_file(blender_h, 'BLENDER_VERSION_CHAR')
+        version_number_patch = int(self._parse_header_file(blender_h, 'BLENDER_VERSION_PATCH'))
+        version_numbers = (version_number // 100, version_number % 100, version_number_patch)
+        self.short_version = "%d.%02d" % (version_numbers[0], version_numbers[1])
+        self.version = "%d.%02d.%d" % version_numbers
         self.version_cycle = self._parse_header_file(blender_h, 'BLENDER_VERSION_CYCLE')
         self.version_cycle_number = self._parse_header_file(blender_h, 'BLENDER_VERSION_CYCLE_NUMBER')
         self.hash = self._parse_header_file(buildinfo_h, 'BUILD_HASH')[1:-1]
 
         if self.version_cycle == "release":
             # Final release
-            self.full_version = self.version + self.version_char
+            self.full_version = self.version
             self.is_development_build = False
         elif self.version_cycle == "rc":
             # Release candidate
             version_cycle = self.version_cycle + self.version_cycle_number
-            if len(self.version_char) == 0:
-                self.full_version = self.version + version_cycle
-            else:
-                self.full_version = self.version + self.version_char + '-' + version_cycle
+            self.full_version = self.version + version_cycle
             self.is_development_build = False
         else:
             # Development build
-            self.full_version = self.version + self.version_char + '-' + self.hash
+            self.full_version = self.version + '-' + self.hash
             self.is_development_build = True
 
     def _parse_header_file(self, filename, define):

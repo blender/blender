@@ -327,7 +327,7 @@ typedef struct Library {
 
   /* Temp data needed by read/write code. */
   int temp_index;
-  /** See BLENDER_VERSION, BLENDER_SUBVERSION, needed for do_versions. */
+  /** See BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION, needed for do_versions. */
   short versionfile, subversionfile;
 } Library;
 

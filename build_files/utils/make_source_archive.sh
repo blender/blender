@@ -7,15 +7,14 @@ BASE_DIR="$PWD"
 
 blender_srcdir=$(dirname -- $0)/../..
 blender_version=$(grep "BLENDER_VERSION\s" "$blender_srcdir/source/blender/blenkernel/BKE_blender_version.h" | awk '{print $3}')
-blender_version_char=$(grep "BLENDER_VERSION_CHAR\s" "$blender_srcdir/source/blender/blenkernel/BKE_blender_version.h" | awk '{print $3}')
+blender_version_patch=$(grep "BLENDER_VERSION_PATCH\s" "$blender_srcdir/source/blender/blenkernel/BKE_blender_version.h" | awk '{print $3}')
 blender_version_cycle=$(grep "BLENDER_VERSION_CYCLE\s" "$blender_srcdir/source/blender/blenkernel/BKE_blender_version.h" | awk '{print $3}')
-blender_subversion=$(grep "BLENDER_SUBVERSION\s" "$blender_srcdir/source/blender/blenkernel/BKE_blender_version.h" | awk '{print $3}')
 
+VERSION=$(expr $blender_version / 100).$(expr $blender_version % 100).$blender_version_patch
 if [ "$blender_version_cycle" = "release" ] ; then
-  VERSION=$(expr $blender_version / 100).$(expr $blender_version % 100)$blender_version_char
   SUBMODULE_EXCLUDE="^\(release/scripts/addons_contrib\)$"
 else
-  VERSION=$(expr $blender_version / 100).$(expr $blender_version % 100)_$blender_subversion
+  VERSION=$VERSION-$blender_version_cycle
   SUBMODULE_EXCLUDE="^$"  # dummy regex
 fi
 

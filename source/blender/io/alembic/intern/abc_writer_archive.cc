@@ -52,7 +52,7 @@ static OArchive create_archive(std::ostream *ostream,
 
   abc_metadata.set(Alembic::Abc::kApplicationNameKey, "Blender");
   abc_metadata.set(Alembic::Abc::kUserDescriptionKey, scene_name);
-  abc_metadata.set("blender_version", versionstr);
+  abc_metadata.set("blender_version", std::string("v") + BKE_blender_version_string());
   abc_metadata.set("FramesPerTimeUnit", std::to_string(scene_fps));
 
   time_t raw_time;

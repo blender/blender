@@ -55,10 +55,8 @@ extern struct ApplicationState app_state; /* creator.c */
 
 /* for the callbacks: */
 #ifndef WITH_PYTHON_MODULE
-#  define BLEND_VERSION_FMT "Blender %d.%02d (sub %d)"
-#  define BLEND_VERSION_ARG BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION
-/* pass directly to printf */
-#  define BLEND_VERSION_STRING_FMT BLEND_VERSION_FMT "\n", BLEND_VERSION_ARG
+#  define BLEND_VERSION_FMT "Blender %d.%02d.%d"
+#  define BLEND_VERSION_ARG BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_VERSION_PATCH
 #endif
 
 #ifdef WITH_BUILDINFO_HEADER

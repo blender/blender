@@ -30,22 +30,26 @@ extern "C" {
  *
  * \note Use #STRINGIFY() rather than defining with quotes.
  */
+
+/* Blender major and minor version. */
 #define BLENDER_VERSION 290
-#define BLENDER_SUBVERSION 4
-/** Several breakages with 280, e.g. collections vs layers. */
-#define BLENDER_MINVERSION 280
-#define BLENDER_MINSUBVERSION 0
-
-/** Used by packaging tools. */
-/** Can be left blank, otherwise a,b,c... etc with no quotes. */
-#define BLENDER_VERSION_CHAR
-/** alpha/beta/rc/release, docs use this. */
+/* Blender patch version for bugfix releases. */
+#define BLENDER_VERSION_PATCH 0
+/** Blender release cycle stage: alpha/beta/rc/release. */
 #define BLENDER_VERSION_CYCLE alpha
-/** Optionally set to 1,2,... for example to get alpha1 or rc2. */
-#define BLENDER_VERSION_CYCLE_NUMBER
 
-/** Defined in from blender.c */
-extern char versionstr[];
+/* Blender file format version. */
+#define BLENDER_FILE_VERSION BLENDER_VERSION
+#define BLENDER_FILE_SUBVERSION 4
+
+/* Minimum Blender version that supports reading file written with the current
+ * version. Older Blender versions will test this and show a warning if the file
+ * was written with too new a version. */
+#define BLENDER_FILE_MIN_VERSION 280
+#define BLENDER_FILE_MIN_SUBVERSION 0
+
+/** User readable version string. */
+const char *BKE_blender_version_string(void);
 
 #ifdef __cplusplus
 }

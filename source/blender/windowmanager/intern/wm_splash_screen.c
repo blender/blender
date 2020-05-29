@@ -96,39 +96,6 @@ static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, 
   UI_block_emboss_set(block, UI_EMBOSS);
 }
 
-static void get_version_string(char *ver, const int max_length)
-{
-  /* Version number. */
-  const char *version_cycle = NULL;
-
-  if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha")) {
-    version_cycle = " Alpha";
-  }
-  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "beta")) {
-    version_cycle = " Beta";
-  }
-  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "rc")) {
-    version_cycle = " Release Candidate";
-  }
-  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
-    version_cycle = STRINGIFY(BLENDER_VERSION_CHAR);
-  }
-
-  const char *version_cycle_number = "";
-  if (strlen(STRINGIFY(BLENDER_VERSION_CYCLE_NUMBER))) {
-    version_cycle_number = " " STRINGIFY(BLENDER_VERSION_CYCLE_NUMBER);
-  }
-
-  BLI_snprintf(ver,
-               max_length,
-               "%d.%d.%d%s%s",
-               BLENDER_VERSION / 100,
-               BLENDER_VERSION % 100,
-               BLENDER_SUBVERSION,
-               version_cycle,
-               version_cycle_number);
-}
-
 #ifndef WITH_HEADLESS
 static void wm_block_splash_image_roundcorners_add(ImBuf *ibuf)
 {
@@ -252,9 +219,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
   UI_but_func_set(but, wm_block_close, block, NULL);
   UI_block_func_set(block, wm_block_splash_refreshmenu, block, NULL);
 
-  char version_buf[256] = "\0";
-  get_version_string(version_buf, sizeof(version_buf));
-  wm_block_splash_add_label(block, version_buf, splash_width, splash_height - 13.0 * U.dpi_fac);
+  wm_block_splash_add_label(
+      block, BKE_blender_version_string(), splash_width, splash_height - 13.0 * U.dpi_fac);
 
   const int layout_margin_x = U.dpi_fac * 26;
   uiLayout *layout = UI_block_layout(block,
@@ -332,9 +298,7 @@ static uiBlock *wm_block_create_about(bContext *C, ARegion *region, void *UNUSED
   uiItemL_ex(layout, "Blender", ICON_NONE, true, false);
 
   /* Version. */
-  char str_buf[256] = "\0";
-  get_version_string(str_buf, sizeof(str_buf));
-  uiItemL(layout, str_buf, ICON_NONE);
+  uiItemL(layout, BKE_blender_version_string(), ICON_NONE);
 
   uiItemS_ex(layout, 3.0f);
 
@@ -342,6 +306,7 @@ static uiBlock *wm_block_create_about(bContext *C, ARegion *region, void *UNUSED
 
   extern char build_hash[], build_commit_date[], build_commit_time[], build_branch[];
 
+  char str_buf[256] = "\0";
   BLI_snprintf(str_buf, sizeof(str_buf), "Date: %s %s", build_commit_date, build_commit_time);
   uiItemL(layout, str_buf, ICON_NONE);
 

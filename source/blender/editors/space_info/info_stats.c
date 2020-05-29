@@ -438,7 +438,7 @@ static const char *footer_string(ViewLayer *view_layer)
                "%s%s | %s",
                memstr,
                gpumemstr,
-               versionstr);
+               BKE_blender_version_string());
 
   return view_layer->footer_str;
 

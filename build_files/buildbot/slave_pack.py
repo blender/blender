@@ -167,7 +167,7 @@ def pack_linux(builder):
     buildbot_utils.call(builder.command_prefix + ['strip', '--strip-all', blender_executable])
 
     print("Stripping python...")
-    py_target = os.path.join(builder.install_dir, info.version)
+    py_target = os.path.join(builder.install_dir, info.short_version)
     buildbot_utils.call(builder.command_prefix + ['find', py_target, '-iname', '*.so', '-exec', 'strip', '-s', '{}', ';'])
 
     # Construct package name

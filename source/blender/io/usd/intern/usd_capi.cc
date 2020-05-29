@@ -91,7 +91,8 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
   usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, pxr::VtValue(pxr::UsdGeomTokens->z));
   usd_stage->SetMetadata(pxr::UsdGeomTokens->metersPerUnit,
                          pxr::VtValue(scene->unit.scale_length));
-  usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender ") + versionstr);
+  usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender v") +
+                                              BKE_blender_version_string());
 
   // Set up the stage for animated data.
   if (data->params.export_animation) {

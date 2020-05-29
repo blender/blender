@@ -243,20 +243,13 @@ int DocumentExporter::exportCurrentScene()
 #ifdef WITH_BUILDINFO
   BLI_snprintf(version_buf,
                sizeof(version_buf),
-               "Blender %d.%02d.%d commit date:%s, commit time:%s, hash:%s",
-               BLENDER_VERSION / 100,
-               BLENDER_VERSION % 100,
-               BLENDER_SUBVERSION,
+               "Blender %s commit date:%s, commit time:%s, hash:%s",
+               BKE_blender_version_string(),
                build_commit_date,
                build_commit_time,
                build_hash);
 #else
-  BLI_snprintf(version_buf,
-               sizeof(version_buf),
-               "Blender %d.%02d.%d",
-               BLENDER_VERSION / 100,
-               BLENDER_VERSION % 100,
-               BLENDER_SUBVERSION);
+  BLI_snprintf(version_buf, sizeof(version_buf), "Blender %s", BKE_blender_version_string());
 #endif
   asset.getContributor().mAuthoringTool = version_buf;
   asset.add();

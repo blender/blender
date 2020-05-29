@@ -403,32 +403,21 @@ MODULE_GROUPING = {
 
 # -------------------------------BLENDER----------------------------------------
 
-blender_version_strings = [str(v) for v in bpy.app.version]
-is_release = bpy.app.version_cycle in {"rc", "release"}
-
 # converting bytes to strings, due to T30154
 BLENDER_REVISION = str(bpy.app.build_hash, 'utf_8')
 
-if is_release:
-    # '2.62a'
-    BLENDER_VERSION_DOTS = ".".join(blender_version_strings[:2]) + bpy.app.version_char
-else:
-    # '2.62.1'
-    BLENDER_VERSION_DOTS = ".".join(blender_version_strings)
+# '2.83.0 Beta' or '2.83.0' or '2.83.1'
+BLENDER_VERSION_DOTS = bpy.app.version_string
 
 if BLENDER_REVISION != "Unknown":
-    # '2.62a SHA1' (release) or '2.62.1 SHA1' (non-release)
+    # SHA1 Git hash
     BLENDER_VERSION_HASH = BLENDER_REVISION
 else:
     # Fallback: Should not be used
     BLENDER_VERSION_HASH = "Hash Unknown"
 
-if is_release:
-    # '2_62a_release'
-    BLENDER_VERSION_PATH = "%s%s_release" % ("_".join(blender_version_strings[:2]), bpy.app.version_char)
-else:
-    # '2_62_1'
-    BLENDER_VERSION_PATH = "_".join(blender_version_strings)
+# '2_83'
+BLENDER_VERSION_PATH = "%d_%d" % (bpy.app.version[0], bpy.app.version[1])
 
 # --------------------------DOWNLOADABLE FILES----------------------------------
 

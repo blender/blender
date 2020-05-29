@@ -36,16 +36,10 @@ fi
 blender_srcdir=$(dirname -- $0)/../..
 blender_version_header="$blender_srcdir/source/blender/blenkernel/BKE_blender_version.h"
 blender_version=$(grep "BLENDER_VERSION\s" "$blender_version_header" | awk '{print $3}')
-blender_version_char=$(grep "BLENDER_VERSION_CHAR\s" "$blender_version_header" | awk '{print $3}')
 blender_version_cycle=$(grep "BLENDER_VERSION_CYCLE\s" "$blender_version_header" | awk '{print $3}')
-blender_subversion=$(grep "BLENDER_SUBVERSION\s" "$blender_version_header" | awk '{print $3}')
 unset blender_version_header
 
-if [ "$blender_version_cycle" = "release" ] ; then
-  BLENDER_VERSION=$(expr $blender_version / 100)_$(expr $blender_version % 100)$blender_version_char"_release"
-else
-  BLENDER_VERSION=$(expr $blender_version / 100)_$(expr $blender_version % 100)_$blender_subversion
-fi
+BLENDER_VERSION=$(expr $blender_version / 100)_$(expr $blender_version % 100)
 
 SSH_UPLOAD_FULL=$SSH_UPLOAD/"blender_python_api_"$BLENDER_VERSION
 

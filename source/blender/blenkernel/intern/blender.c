@@ -66,7 +66,7 @@
 Global G;
 UserDef U;
 
-char versionstr[48] = "";
+static char blender_version_string[48] = "";
 
 /* ********** free ********** */
 
@@ -102,26 +102,43 @@ void BKE_blender_free(void)
   free_nodesystem();
 }
 
-void BKE_blender_version_string(char *version_str,
-                                size_t maxncpy,
-                                short version,
-                                short subversion,
-                                bool v_prefix,
-                                bool include_subversion)
+static void blender_version_init()
 {
-  const char *prefix = v_prefix ? "v" : "";
-
-  if (include_subversion && subversion > 0) {
-    BLI_snprintf(
-        version_str, maxncpy, "%s%d.%02d.%d", prefix, version / 100, version % 100, subversion);
+  const char *version_cycle = "";
+  if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha")) {
+    version_cycle = " Alpha";
+  }
+  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "beta")) {
+    version_cycle = " Beta";
+  }
+  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "rc")) {
+    version_cycle = " Release Candidate";
+  }
+  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
+    version_cycle = "";
   }
   else {
-    BLI_snprintf(version_str, maxncpy, "%s%d.%02d", prefix, version / 100, version % 100);
+    BLI_assert(!"Invalid Blender version cycle");
   }
+
+  BLI_snprintf(blender_version_string,
+               ARRAY_SIZE(blender_version_string),
+               "%d.%02d.%d%s",
+               BLENDER_VERSION / 100,
+               BLENDER_VERSION % 100,
+               BLENDER_VERSION_PATCH,
+               version_cycle);
+}
+
+const char *BKE_blender_version_string()
+{
+  return blender_version_string;
 }
 
 void BKE_blender_globals_init(void)
 {
+  blender_version_init();
+
   memset(&G, 0, sizeof(Global));
 
   U.savetime = 1;
@@ -129,9 +146,6 @@ void BKE_blender_globals_init(void)
   G_MAIN = BKE_main_new();
 
   strcpy(G.ima, "//");
-
-  BKE_blender_version_string(
-      versionstr, sizeof(versionstr), BLENDER_VERSION, BLENDER_SUBVERSION, true, true);
 
 #ifndef WITH_PYTHON_SECURITY /* default */
   G.f |= G_FLAG_SCRIPT_AUTOEXEC;
