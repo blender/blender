@@ -2694,19 +2694,19 @@ void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
 /* Implementation notes:
  *
  * Operator->invoke()
- * - validate context (add mcol)
- * - create customdata storage
- * - call paint once (mouse click)
- * - add modal handler
+ * - Validate context (add #Mesh.mloopcol).
+ * - Create custom-data storage.
+ * - Call paint once (mouse click).
+ * - Add modal handler.
  *
  * Operator->modal()
- * - for every mousemove, apply vertex paint
- * - exit on mouse release, free customdata
+ * - For every mouse-move, apply vertex paint.
+ * - Exit on mouse release, free custom-data.
  *   (return OPERATOR_FINISHED also removes handler and operator)
  *
  * For future:
- * - implement a stroke event (or mousemove with past positions)
- * - revise whether op->customdata should be added in object, in set_vpaint
+ * - implement a stroke event (or mouse-move with past positions).
+ * - revise whether op->customdata should be added in object, in set_vpaint.
  */
 
 struct VPaintData {
@@ -2718,8 +2718,10 @@ struct VPaintData {
   struct VertProjHandle *vp_handle;
   struct CoNo *vertexcosnos;
 
-  /* modify 'me->mcol' directly, since the derived mesh is drawing from this
-   * array, otherwise we need to refresh the modifier stack */
+  /**
+   * Modify #Mesh.mloopcol directly, since the derived mesh is drawing from this
+   * array, otherwise we need to refresh the modifier stack.
+   */
   bool use_fast_update;
 
   /* loops tagged as having been painted, to apply shared vertex color

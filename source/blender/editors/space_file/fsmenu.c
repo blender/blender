@@ -418,7 +418,7 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu,
     else {
       /* if we're bookmarking this, file should come
        * before the last separator, only automatically added
-       * current dir go after the last sep. */
+       * current dir go after the last separator. */
       if (flag & FS_INSERT_SAVE) {
         break;
       }

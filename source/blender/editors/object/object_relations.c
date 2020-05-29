@@ -2072,7 +2072,7 @@ void ED_object_single_users(Main *bmain,
 
     /* Duplicating obdata and other IDs may require another update of the collections and objects
      * pointers, especially regarding drivers and custom props, see T66641.
-     * Note that this whole scene duplication code and 'make single user' functions have te be
+     * Note that this whole scene duplication code and 'make single user' functions have to be
      * rewritten at some point to make use of proper modern ID management code,
      * but that is no small task.
      * For now we are doomed to that kind of band-aid to try to cover most of remapping cases. */

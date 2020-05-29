@@ -198,7 +198,7 @@ class GHOST_SystemCocoa : public GHOST_System {
   GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys &keys) const;
 
   /**
-   * Returns the state of the mouse buttons (ouside the message queue).
+   * Returns the state of the mouse buttons (outside the message queue).
    * \param buttons   The state of the buttons.
    * \return          Indication of success.
    */

@@ -435,7 +435,7 @@ extern GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
  ***************************************************************************************/
 
 /**
- * Returns the state of a modifier key (ouside the message queue).
+ * Returns the state of a modifier key (outside the message queue).
  * \param systemhandle The handle to the system
  * \param mask The modifier key state to retrieve.
  * \param isDown Pointer to return modifier state in.
@@ -446,7 +446,7 @@ extern GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
                                                 int *isDown);
 
 /**
- * Returns the state of a mouse button (ouside the message queue).
+ * Returns the state of a mouse button (outside the message queue).
  * \param systemhandle The handle to the system
  * \param mask The button state to retrieve.
  * \param isDown Pointer to return button state in.

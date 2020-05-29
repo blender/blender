@@ -382,7 +382,7 @@ class GHOST_ISystem {
    ***************************************************************************************/
 
   /**
-   * Returns the state of a modifier key (ouside the message queue).
+   * Returns the state of a modifier key (outside the message queue).
    * \param mask      The modifier key state to retrieve.
    * \param isDown    The state of a modifier key (true == pressed).
    * \return          Indication of success.
@@ -390,7 +390,7 @@ class GHOST_ISystem {
   virtual GHOST_TSuccess getModifierKeyState(GHOST_TModifierKeyMask mask, bool &isDown) const = 0;
 
   /**
-   * Returns the state of a mouse button (ouside the message queue).
+   * Returns the state of a mouse button (outside the message queue).
    * \param mask      The button state to retrieve.
    * \param isDown    Button state.
    * \return          Indication of success.
