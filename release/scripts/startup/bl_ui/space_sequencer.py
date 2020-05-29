@@ -335,7 +335,7 @@ class SEQUENCER_MT_view(Menu):
         props.sequencer = True
 
         layout.separator()
-        layout.operator("sequencer.export_subtitles", text="Export Subtitles", icon="EXPORT")
+        layout.operator("sequencer.export_subtitles", text="Export Subtitles", icon='EXPORT')
 
         layout.separator()
 
@@ -1034,10 +1034,10 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             row.prop(strip, "input_1")
 
             if strip.input_count > 1:
-                row.operator("sequencer.swap_inputs", text="", icon="SORT_ASC")
+                row.operator("sequencer.swap_inputs", text="", icon='SORT_ASC')
                 row = col.row()
                 row.prop(strip, "input_2")
-                row.operator("sequencer.swap_inputs", text="", icon="SORT_DESC")
+                row.operator("sequencer.swap_inputs", text="", icon='SORT_DESC')
 
         strip_type = strip.type
 

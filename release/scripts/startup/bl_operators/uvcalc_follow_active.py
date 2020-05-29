@@ -18,9 +18,6 @@
 
 # <pep8 compliant>
 
-# for full docs see...
-# https://docs.blender.org/manual/en/latest/editors/uv_image/uv/editing/unwrapping/mapping_types.html#follow-active-quads
-
 import bpy
 from bpy.types import Operator
 
