@@ -19,7 +19,7 @@
 /** \file
  * \ingroup draw_engine
  *
- * Anti-aliasing:
+ * Anti-Aliasing:
  *
  * We use SMAA (Smart Morphological Anti-Aliasing) as a fast antialiasing solution.
  *
