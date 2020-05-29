@@ -253,7 +253,7 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
   }
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-  if (wm) {
+  if (wm && wm->winactive) {
     gizmo_snap->invert_snap = invert_snap(gz, wm, wm->winactive->eventstate);
   }
 
