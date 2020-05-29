@@ -1945,6 +1945,7 @@ wmKeyMap *WM_keymap_active(const wmWindowManager *wm, wmKeyMap *keymap)
   }
 
   /* first user defined keymaps */
+  int count = BLI_listbase_count(&wm->userconf->keymaps);
   km = WM_keymap_list_find(
       &wm->userconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
 

@@ -67,7 +67,6 @@ typedef struct SnapGizmo3D {
   /* We could have other snap contexts, for now only support 3D view. */
   SnapObjectContext *snap_context_v3d;
   int mval[2];
-  short snap_elem;
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   wmKeyMap *keymap;
@@ -75,6 +74,7 @@ typedef struct SnapGizmo3D {
   bool invert_snap;
 #endif
   int use_snap_override;
+  short snap_elem;
 } SnapGizmo3D;
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
@@ -82,11 +82,8 @@ static bool invert_snap(const wmGizmo *gz, const wmWindowManager *wm, const wmEv
 {
   SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
   wmKeyMap *keymap = WM_keymap_active(wm, gizmo_snap->keymap);
-  if (!keymap) {
-    return false;
-  }
 
-  int snap_on = gizmo_snap->snap_on;
+  const int snap_on = gizmo_snap->snap_on;
   for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
     if (kmi->flag & KMI_INACTIVE) {
       continue;
@@ -408,14 +405,21 @@ static void gizmo_snap_draw(const bContext *C, wmGizmo *gz)
 static int gizmo_snap_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 {
   SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
+
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   wmWindowManager *wm = CTX_wm_manager(C);
+  if (gizmo_snap->keymap == NULL) {
+    gizmo_snap->keymap = WM_modalkeymap_find(wm->defaultconf, "Generic Gizmo Tweak Modal Map");
+    RNA_enum_value_from_id(gizmo_snap->keymap->modal_items, "SNAP_ON", &gizmo_snap->snap_on);
+  }
+
   const bool invert = invert_snap(gz, wm, wm->winactive->eventstate);
   if (gizmo_snap->invert_snap == invert && gizmo_snap->mval[0] == mval[0] &&
       gizmo_snap->mval[1] == mval[1]) {
     /* Performance, do not update. */
     return gizmo_snap->snap_elem ? 0 : -1;
   }
+
   gizmo_snap->invert_snap = invert;
 #else
   if (gizmo_snap->mval[0] == mval[0] && gizmo_snap->mval[1] == mval[1]) {
@@ -424,14 +428,6 @@ static int gizmo_snap_test_select(bContext *C, wmGizmo *gz, const int mval[2])
   }
 #endif
   copy_v2_v2_int(gizmo_snap->mval, mval);
-
-#ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-  if (gizmo_snap->keymap == NULL) {
-    gizmo_snap->keymap = WM_modalkeymap_find(wm->defaultconf, "Generic Gizmo Tweak Modal Map");
-    gizmo_snap->snap_on = -1;
-    RNA_enum_value_from_id(gizmo_snap->keymap->modal_items, "SNAP_ON", &gizmo_snap->snap_on);
-  }
-#endif
 
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
