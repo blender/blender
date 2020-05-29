@@ -1782,7 +1782,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     {sizeof(HairMapping), "HairMapping", 1, NULL, NULL, NULL, NULL, NULL, NULL},
     /* 47: CD_PROP_COL */
     {sizeof(MPropCol),
-     "PropCol",
+     "MPropCol",
      1,
      N_("Col"),
      NULL,
