@@ -145,7 +145,7 @@ void EEVEE_subsurface_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     }
     else {
       GPU_FRAMEBUFFER_FREE_SAFE(fbl->sss_accum_fb);
-      txl->sss_accum = NULL;
+      DRW_TEXTURE_FREE_SAFE(txl->sss_accum);
     }
   }
   else {
@@ -154,11 +154,11 @@ void EEVEE_subsurface_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     GPU_FRAMEBUFFER_FREE_SAFE(fbl->sss_resolve_fb);
     GPU_FRAMEBUFFER_FREE_SAFE(fbl->sss_clear_fb);
     GPU_FRAMEBUFFER_FREE_SAFE(fbl->sss_accum_fb);
+    DRW_TEXTURE_FREE_SAFE(txl->sss_accum);
     effects->sss_stencil = NULL;
     effects->sss_blur = NULL;
     effects->sss_irradiance = NULL;
     effects->sss_radius = NULL;
-    txl->sss_accum = NULL;
   }
 }
 
