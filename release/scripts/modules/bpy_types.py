@@ -25,12 +25,7 @@ StructRNA = bpy_types.bpy_struct
 StructMetaPropGroup = bpy_types.bpy_struct_meta_idprop
 # StructRNA = bpy_types.Struct
 
-bpy_types.BlendDataLibraries.load = _bpy._library_load
-bpy_types.BlendDataLibraries.write = _bpy._library_write
-bpy_types.BlendData.user_map = _bpy._rna_id_collection_user_map
-bpy_types.BlendData.batch_remove = _bpy._rna_id_collection_batch_remove
-bpy_types.BlendData.orphans_purge = _bpy._rna_id_collection_orphans_purge
-
+# Note that methods extended in C are defined in: 'bpy_rna_types_capi.c'
 
 class Context(StructRNA):
     __slots__ = ()

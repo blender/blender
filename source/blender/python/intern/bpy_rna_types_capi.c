@@ -33,8 +33,10 @@
 
 #include "BLI_utildefines.h"
 
+#include "bpy_library.h"
 #include "bpy_rna.h"
 #include "bpy_rna_callback.h"
+#include "bpy_rna_id_collection.h"
 #include "bpy_rna_types_capi.h"
 
 #include "../generic/py_capi_utils.h"
@@ -44,6 +46,31 @@
 #include "MEM_guardedalloc.h"
 
 #include "WM_api.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Blend Data
+ * \{ */
+
+static struct PyMethodDef pyrna_blenddata_methods[] = {
+    {NULL, NULL, 0, NULL}, /* #BPY_rna_id_collection_user_map_method_def */
+    {NULL, NULL, 0, NULL}, /* #BPY_rna_id_collection_batch_remove_method_def */
+    {NULL, NULL, 0, NULL}, /* #BPY_rna_id_collection_orphans_purge_method_def */
+    {NULL, NULL, 0, NULL},
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Blend Data Libraries
+ * \{ */
+
+static struct PyMethodDef pyrna_blenddatalibraries_methods[] = {
+    {NULL, NULL, 0, NULL}, /* #BPY_library_load_method_def */
+    {NULL, NULL, 0, NULL}, /* #BPY_library_write_method_def */
+    {NULL, NULL, 0, NULL},
+};
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Window Manager Clipboard Property
@@ -164,7 +191,24 @@ static struct PyMethodDef pyrna_space_methods[] = {
 
 void BPY_rna_types_extend_capi(void)
 {
+  /* BlendData */
+  ARRAY_SET_ITEMS(pyrna_blenddata_methods,
+                  BPY_rna_id_collection_user_map_method_def,
+                  BPY_rna_id_collection_batch_remove_method_def,
+                  BPY_rna_id_collection_orphans_purge_method_def);
+  BLI_assert(ARRAY_SIZE(pyrna_blenddata_methods) == 4);
+  pyrna_struct_type_extend_capi(&RNA_BlendData, pyrna_blenddata_methods, NULL);
+
+  /* BlendDataLibraries */
+  ARRAY_SET_ITEMS(
+      pyrna_blenddatalibraries_methods, BPY_library_load_method_def, BPY_library_write_method_def);
+  BLI_assert(ARRAY_SIZE(pyrna_blenddatalibraries_methods) == 3);
+  pyrna_struct_type_extend_capi(&RNA_BlendDataLibraries, pyrna_blenddatalibraries_methods, NULL);
+
+  /* Space */
   pyrna_struct_type_extend_capi(&RNA_Space, pyrna_space_methods, NULL);
+
+  /* WindowManager */
   pyrna_struct_type_extend_capi(
       &RNA_WindowManager, pyrna_windowmanager_methods, pyrna_windowmanager_getset);
 }

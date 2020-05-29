@@ -385,32 +385,21 @@ static PyObject *bpy_orphans_purge(PyObject *UNUSED(self),
   return Py_None;
 }
 
-int BPY_rna_id_collection_module(PyObject *mod_par)
-{
-  static PyMethodDef user_map = {
-      "user_map", (PyCFunction)bpy_user_map, METH_VARARGS | METH_KEYWORDS, bpy_user_map_doc};
-
-  PyModule_AddObject(mod_par, "_rna_id_collection_user_map", PyCFunction_New(&user_map, NULL));
-
-  static PyMethodDef batch_remove = {
-      "batch_remove",
-      (PyCFunction)bpy_batch_remove,
-      METH_VARARGS | METH_KEYWORDS,
-      bpy_batch_remove_doc,
-  };
-
-  PyModule_AddObject(
-      mod_par, "_rna_id_collection_batch_remove", PyCFunction_New(&batch_remove, NULL));
-
-  static PyMethodDef orphans_purge = {
-      "orphans_purge",
-      (PyCFunction)bpy_orphans_purge,
-      METH_VARARGS | METH_KEYWORDS,
-      bpy_orphans_purge_doc,
-  };
-
-  PyModule_AddObject(
-      mod_par, "_rna_id_collection_orphans_purge", PyCFunction_New(&orphans_purge, NULL));
-
-  return 0;
-}
+PyMethodDef BPY_rna_id_collection_user_map_method_def = {
+    "user_map",
+    (PyCFunction)bpy_user_map,
+    METH_STATIC | METH_VARARGS | METH_KEYWORDS,
+    bpy_user_map_doc,
+};
+PyMethodDef BPY_rna_id_collection_batch_remove_method_def = {
+    "batch_remove",
+    (PyCFunction)bpy_batch_remove,
+    METH_STATIC | METH_VARARGS | METH_KEYWORDS,
+    bpy_batch_remove_doc,
+};
+PyMethodDef BPY_rna_id_collection_orphans_purge_method_def = {
+    "orphans_purge",
+    (PyCFunction)bpy_orphans_purge,
+    METH_STATIC | METH_VARARGS | METH_KEYWORDS,
+    bpy_orphans_purge_doc,
+};

@@ -459,15 +459,15 @@ static PyObject *bpy_lib_dir(BPy_Library *self)
   return PyDict_Keys(self->dict);
 }
 
-int BPY_library_load_module(PyObject *mod_par)
+PyMethodDef BPY_library_load_method_def = {
+    "load",
+    (PyCFunction)bpy_lib_load,
+    METH_STATIC | METH_VARARGS | METH_KEYWORDS,
+    bpy_lib_load_doc,
+};
+
+int BPY_library_load_type_ready(void)
 {
-  static PyMethodDef load_meth = {
-      "load",
-      (PyCFunction)bpy_lib_load,
-      METH_STATIC | METH_VARARGS | METH_KEYWORDS,
-      bpy_lib_load_doc,
-  };
-  PyModule_AddObject(mod_par, "_library_load", PyCFunction_New(&load_meth, NULL));
 
   /* some compilers don't like accessing this directly, delay assignment */
   bpy_lib_Type.tp_getattro = PyObject_GenericGetAttr;

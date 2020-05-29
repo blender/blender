@@ -380,10 +380,7 @@ void BPy_init_modules(void)
   PyModule_AddObject(mod, "types", BPY_rna_types());
 
   /* needs to be first so bpy_types can run */
-  BPY_library_load_module(mod);
-  BPY_library_write_module(mod);
-
-  BPY_rna_id_collection_module(mod);
+  BPY_library_load_type_ready();
 
   BPY_rna_gizmo_module(mod);
 

@@ -204,16 +204,9 @@ finally:
   return ret;
 }
 
-int BPY_library_write_module(PyObject *mod_par)
-{
-  static PyMethodDef write_meth = {
-      "write",
-      (PyCFunction)bpy_lib_write,
-      METH_STATIC | METH_VARARGS | METH_KEYWORDS,
-      bpy_lib_write_doc,
-  };
-
-  PyModule_AddObject(mod_par, "_library_write", PyCFunction_New(&write_meth, NULL));
-
-  return 0;
-}
+PyMethodDef BPY_library_write_method_def = {
+    "write",
+    (PyCFunction)bpy_lib_write,
+    METH_STATIC | METH_VARARGS | METH_KEYWORDS,
+    bpy_lib_write_doc,
+};
