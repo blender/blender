@@ -545,37 +545,7 @@ const char *transform_orientations_spacename_get(TransInfo *t, const short orien
 void transform_orientations_current_set(TransInfo *t, const short orient_index)
 {
   const short orientation = t->orient[orient_index].type;
-  const char *spacename;
-  switch (orientation) {
-    case V3D_ORIENT_GLOBAL:
-      spacename = TIP_("global");
-      break;
-    case V3D_ORIENT_GIMBAL:
-      spacename = TIP_("gimbal");
-      break;
-    case V3D_ORIENT_NORMAL:
-      spacename = TIP_("normal");
-      break;
-    case V3D_ORIENT_LOCAL:
-      spacename = TIP_("local");
-      break;
-    case V3D_ORIENT_VIEW:
-      spacename = TIP_("view");
-      break;
-    case V3D_ORIENT_CURSOR:
-      spacename = TIP_("cursor");
-      break;
-    case V3D_ORIENT_CUSTOM_MATRIX:
-      spacename = TIP_("custom");
-      break;
-    case V3D_ORIENT_CUSTOM:
-    default:
-      BLI_assert(orientation >= V3D_ORIENT_CUSTOM);
-      TransformOrientation *ts = BKE_scene_transform_orientation_find(
-          t->scene, orientation - V3D_ORIENT_CUSTOM);
-      spacename = ts->name;
-      break;
-  }
+  const char *spacename = transform_orientations_spacename_get(t, orientation);
 
   BLI_strncpy(t->spacename, spacename, sizeof(t->spacename));
   copy_m3_m3(t->spacemtx, t->orient[orient_index].matrix);
