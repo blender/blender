@@ -261,8 +261,15 @@ bool SCULPT_vertex_visible_get(SculptSession *ss, int index)
       return !(ss->mvert[index].flag & ME_HIDE);
     case PBVH_BMESH:
       return !BM_elem_flag_test(BM_vert_at_index(ss->bm, index), BM_ELEM_HIDDEN);
-    case PBVH_GRIDS:
-      return true;
+    case PBVH_GRIDS: {
+      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+      const int grid_index = index / key->grid_area;
+      const int vertex_index = index - grid_index * key->grid_area;
+      BLI_bitmap **grid_hidden = BKE_pbvh_get_grid_visibility(ss->pbvh);
+      if (grid_hidden && grid_hidden[grid_index]) {
+        return !BLI_BITMAP_TEST(grid_hidden[grid_index], vertex_index);
+      }
+    }
   }
   return true;
 }

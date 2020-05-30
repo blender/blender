@@ -1698,6 +1698,12 @@ struct CCGElem **BKE_pbvh_get_grids(const PBVH *pbvh)
   return pbvh->grids;
 }
 
+BLI_bitmap **BKE_pbvh_get_grid_visibility(const PBVH *pbvh)
+{
+  BLI_assert(pbvh->type == PBVH_GRIDS);
+  return pbvh->grid_hidden;
+}
+
 int BKE_pbvh_get_grid_num_vertices(const PBVH *pbvh)
 {
   BLI_assert(pbvh->type == PBVH_GRIDS);
