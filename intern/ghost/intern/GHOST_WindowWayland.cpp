@@ -39,6 +39,7 @@ struct window_t {
   bool is_maximised;
   bool is_fullscreen;
   bool is_active;
+  bool is_dialog;
   int32_t width, height;
 };
 
@@ -144,6 +145,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
                                          GHOST_TWindowState state,
                                          const GHOST_IWindow *parentWindow,
                                          GHOST_TDrawingContextType type,
+                                         const bool is_dialog,
                                          const bool stereoVisual,
                                          const bool exclusive)
     : GHOST_Window(width, height, state, stereoVisual, exclusive),
@@ -154,6 +156,8 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
   w->width = int32_t(width);
   w->height = int32_t(height);
+
+  w->is_dialog = is_dialog;
 
   /* Window surfaces. */
   w->surface = wl_compositor_create_surface(m_system->compositor());
@@ -374,6 +378,11 @@ GHOST_TSuccess GHOST_WindowWayland::endFullScreen() const
 {
   xdg_toplevel_unset_fullscreen(w->xdg_toplevel);
   return GHOST_kSuccess;
+}
+
+bool GHOST_WindowWayland::isDialog() const
+{
+  return w->is_dialog;
 }
 
 /**

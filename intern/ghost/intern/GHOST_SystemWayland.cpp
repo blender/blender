@@ -1527,7 +1527,7 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
                                                  GHOST_TDrawingContextType type,
                                                  GHOST_GLSettings glSettings,
                                                  const bool exclusive,
-                                                 const bool /*is_dialog*/,
+                                                 const bool is_dialog,
                                                  const GHOST_IWindow *parentWindow)
 {
   GHOST_WindowWayland *window = new GHOST_WindowWayland(
@@ -1540,6 +1540,7 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
       state,
       parentWindow,
       type,
+      is_dialog,
       ((glSettings.flags & GHOST_glStereoVisual) != 0),
       exclusive);
 
