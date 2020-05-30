@@ -829,11 +829,7 @@ static void drawObjectConstraint(TransInfo *t)
         }
       }
 
-      if (t->flag & T_OBJECT) {
-        copy_v3_v3(co, td->ob->obmat[3]);
-        axismtx = td->axismtx;
-      }
-      else if (t->flag & T_EDIT) {
+      if (t->flag & T_EDIT) {
         mul_v3_m4v3(co, tc->mat, td->center);
 
         mul_m3_m3m3(tmp_axismtx, tc->mat3_unit, td->axismtx);
