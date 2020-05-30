@@ -465,6 +465,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     /* Reset all grease pencil brushes. */
     Scene *scene = bmain->scenes.first;
     BKE_brush_gpencil_paint_presets(bmain, scene->toolsettings, true);
+    BKE_brush_gpencil_sculpt_presets(bmain, scene->toolsettings, true);
+    BKE_brush_gpencil_vertex_presets(bmain, scene->toolsettings, true);
+    BKE_brush_gpencil_weight_presets(bmain, scene->toolsettings, true);
 
     /* Ensure new Paint modes. */
     BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_VERTEX_GPENCIL);
