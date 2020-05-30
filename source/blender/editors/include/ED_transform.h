@@ -162,6 +162,19 @@ int BIF_countTransformOrientation(const struct bContext *C);
 
 void Transform_Properties(struct wmOperatorType *ot, int flags);
 
+/* *** transform_orientations.c *** */
+void ED_transform_calc_orientation_from_type(const struct bContext *C, float r_mat[3][3]);
+short ED_transform_calc_orientation_from_type_ex(const struct bContext *C,
+                                                 float r_mat[3][3],
+                                                 /* extra args */
+                                                 struct Scene *scene,
+                                                 struct RegionView3D *rv3d,
+                                                 struct Object *ob,
+                                                 struct Object *obedit,
+                                                 const short orientation_type,
+                                                 int orientation_index_custom,
+                                                 const int pivot_point);
+
 /* transform gizmos */
 
 void VIEW3D_GGT_xform_gizmo(struct wmGizmoGroupType *gzgt);
@@ -179,18 +192,6 @@ void ED_widgetgroup_gizmo2d_resize_callbacks_set(struct wmGizmoGroupType *gzgt);
 void ED_widgetgroup_gizmo2d_rotate_callbacks_set(struct wmGizmoGroupType *gzgt);
 
 #define SNAP_INCREMENTAL_ANGLE DEG2RAD(5.0)
-
-void ED_transform_calc_orientation_from_type(const struct bContext *C, float r_mat[3][3]);
-void ED_transform_calc_orientation_from_type_ex(const struct bContext *C,
-                                                float r_mat[3][3],
-                                                /* extra args */
-                                                struct Scene *scene,
-                                                struct RegionView3D *rv3d,
-                                                struct Object *ob,
-                                                struct Object *obedit,
-                                                const short orientation_type,
-                                                int orientation_index_custom,
-                                                const int pivot_point);
 
 struct TransformBounds {
   float center[3];      /* Center for transform widget. */
