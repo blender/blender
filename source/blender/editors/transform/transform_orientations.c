@@ -552,28 +552,30 @@ short transform_orientation_matrix_get(bContext *C,
     return V3D_ORIENT_CUSTOM_MATRIX;
   }
 
-  Object *ob = CTX_data_active_object(C);
-  Object *obedit = CTX_data_active_object(C);
-  RegionView3D *rv3d = NULL;
-  int orientation_index_custom = 0;
-
   if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
-    rv3d = t->region->regiondata;
-  }
-  if (orientation >= V3D_ORIENT_CUSTOM) {
-    orientation_index_custom = orientation - V3D_ORIENT_CUSTOM;
+    Object *ob = CTX_data_active_object(C);
+    Object *obedit = CTX_data_active_object(C);
+    RegionView3D *rv3d = t->region->regiondata;
+    int orientation_index_custom = 0;
+
+    if (orientation >= V3D_ORIENT_CUSTOM) {
+      orientation_index_custom = orientation - V3D_ORIENT_CUSTOM;
+    }
+
+    return ED_transform_calc_orientation_from_type_ex(C,
+                                                      r_spacemtx,
+                                                      /* extra args (can be accessed from context) */
+                                                      t->scene,
+                                                      rv3d,
+                                                      ob,
+                                                      obedit,
+                                                      orientation,
+                                                      orientation_index_custom,
+                                                      t->around);
   }
 
-  return ED_transform_calc_orientation_from_type_ex(C,
-                                                    r_spacemtx,
-                                                    /* extra args (can be accessed from context) */
-                                                    t->scene,
-                                                    rv3d,
-                                                    ob,
-                                                    obedit,
-                                                    orientation,
-                                                    orientation_index_custom,
-                                                    t->around);
+  unit_m3(r_spacemtx);
+  return V3D_ORIENT_GLOBAL;
 }
 
 const char *transform_orientations_spacename_get(TransInfo *t, const short orient_type)

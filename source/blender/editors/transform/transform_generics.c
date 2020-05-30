@@ -1649,13 +1649,17 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   {
-    TransformOrientationSlot *orient_slot = &t->scene->orientation_slots[SCE_ORIENT_DEFAULT];
     short orient_type_set = -1;
     short orient_type_matrix_set = -1;
-    short orient_type_scene = orient_slot->type;
-    if (orient_type_scene == V3D_ORIENT_CUSTOM) {
-      const int index_custom = orient_slot->index_custom;
-      orient_type_scene += index_custom;
+    short orient_type_scene = V3D_ORIENT_GLOBAL;
+
+    if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
+      TransformOrientationSlot *orient_slot = &t->scene->orientation_slots[SCE_ORIENT_DEFAULT];
+      orient_type_scene = orient_slot->type;
+      if (orient_type_scene == V3D_ORIENT_CUSTOM) {
+        const int index_custom = orient_slot->index_custom;
+        orient_type_scene += index_custom;
+      }
     }
 
     short orient_types[3];
