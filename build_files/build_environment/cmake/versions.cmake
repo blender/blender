@@ -214,9 +214,9 @@ set(FFTW_VERSION 3.3.8)
 set(FFTW_URI http://www.fftw.org/fftw-${FFTW_VERSION}.tar.gz)
 set(FFTW_HASH 8aac833c943d8e90d51b697b27d4384d)
 
-set(ICONV_VERSION 1.15)
+set(ICONV_VERSION 1.16)
 set(ICONV_URI http://ftp.gnu.org/pub/gnu/libiconv/libiconv-${ICONV_VERSION}.tar.gz)
-set(ICONV_HASH ace8b5f2db42f7b3b3057585e80d9808)
+set(ICONV_HASH 7d2a800b952942bb2880efb00cfd524c)
 
 set(LAPACK_VERSION 3.6.0)
 set(LAPACK_URI http://www.netlib.org/lapack/lapack-${LAPACK_VERSION}.tgz)
