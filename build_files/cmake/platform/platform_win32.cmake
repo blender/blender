@@ -478,7 +478,7 @@ if(WITH_OPENIMAGEIO)
   set(OPENIMAGEIO_DEFINITIONS "-DUSE_TBB=0")
   set(OPENCOLORIO_DEFINITIONS "-DOCIO_STATIC_BUILD")
   set(OPENIMAGEIO_IDIFF "${OPENIMAGEIO}/bin/idiff.exe")
-  add_definitions(-DOIIO_STATIC_BUILD)
+  add_definitions(-DOIIO_STATIC_DEFINE)
   add_definitions(-DOIIO_NO_SSE=1)
 endif()
 

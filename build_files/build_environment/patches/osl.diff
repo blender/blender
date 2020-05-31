@@ -48,3 +48,22 @@ diff -Naur OpenShadingLanguage-Release-1.9.9/src/liboslexec/llvm_util.cpp extern
  
  size_t
  LLVM_Util::total_jit_memory_held ()
+diff -Naur OpenShadingLanguage-Release-1.9.9/CMakeLists.txt external_osl/CMakeLists.txt
+ --- orig/CMakeLists.txt	2020-01-27 16:22:31 -0700
++++ external_osl/CMakeLists.txt	2020-05-13 18:04:52 -0600
+@@ -102,10 +102,11 @@
+ set (OPTIX_EXTRA_LIBS CACHE STRING "Extra lib targets needed for OptiX")
+ set (CUDA_TARGET_ARCH "sm_35" CACHE STRING "CUDA GPU architecture (e.g. sm_35)")
+ 
+-# set (USE_OIIO_STATIC ON CACHE BOOL "If OIIO is built static")
+-# if (USE_OIIO_STATIC)
+-#     add_definitions ("-DOIIO_STATIC_BUILD=1")
+-# endif ()
++set (USE_OIIO_STATIC ON CACHE BOOL "If OIIO is built static")
++if (USE_OIIO_STATIC)
++    add_definitions ("-DOIIO_STATIC_BUILD=1")
++    add_definitions ("-DOIIO_STATIC_DEFINE=1")
++endif ()
+ 
+ set (OSL_NO_DEFAULT_TEXTURESYSTEM OFF CACHE BOOL "Do not use create a raw OIIO::TextureSystem")
+ if (OSL_NO_DEFAULT_TEXTURESYSTEM)

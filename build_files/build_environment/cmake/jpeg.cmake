@@ -42,20 +42,17 @@ if(WIN32)
     set(JPEG_LIBRARY jpeg-staticd${LIBEXT})
   endif()
 else(WIN32)
-  # autoconf for unix
-  if(APPLE)
-    set(JPEG_EXTRA_ARGS --host x86_64-apple-darwin --with-jpeg8)
-  else()
-    set(JPEG_EXTRA_ARGS --with-jpeg8)
-  endif()
+  # cmake for unix
+  set(JPEG_EXTRA_ARGS
+    -DWITH_JPEG8=ON
+    -DENABLE_STATIC=ON
+    -DENABLE_SHARED=OFF
+    -DCMAKE_INSTALL_LIBDIR=${LIBDIR}/jpg/lib)
 
   ExternalProject_Add(external_jpeg
     URL ${JPEG_URI}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH MD5=${JPEG_HASH}
-    CONFIGURE_COMMAND ${CONFIGURE_ENV} && autoreconf -fiv && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/jpg NASM=yasm ${JPEG_EXTRA_ARGS}
-    BUILD_IN_SOURCE 1
-    BUILD_COMMAND ${CONFIGURE_ENV} && make install
     PREFIX ${BUILD_DIR}/jpg
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/jpg ${DEFAULT_CMAKE_FLAGS} ${JPEG_EXTRA_ARGS}
     INSTALL_DIR ${LIBDIR}/jpg

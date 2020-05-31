@@ -1,0 +1,36 @@
+diff -Naur orig/CMakeLists.txt external_openimageio/CMakeLists.txt
+--- orig/CMakeLists.txt	2020-05-10 21:43:52 -0600
++++ external_openimageio/CMakeLists.txt	2020-05-13 17:03:35 -0600
+@@ -170,7 +170,7 @@
+     add_subdirectory (src/iinfo)
+     add_subdirectory (src/maketx)
+     add_subdirectory (src/oiiotool)
+-    add_subdirectory (src/testtex)
++    #add_subdirectory (src/testtex)
+     add_subdirectory (src/iv)
+ endif ()
+ 
+diff -Naur orig/src/cmake/compiler.cmake external_openimageio/src/cmake/compiler.cmake
+--- orig/src/cmake/compiler.cmake	2020-05-10 21:43:52 -0600
++++ external_openimageio/src/cmake/compiler.cmake	2020-05-13 17:02:54 -0600
+@@ -172,6 +172,7 @@
+     add_definitions (-D_CRT_NONSTDC_NO_WARNINGS)
+     add_definitions (-D_SCL_SECURE_NO_WARNINGS)
+     add_definitions (-DJAS_WIN_MSVC_BUILD)
++    add_definitions (-DOPJ_STATIC)
+ endif (MSVC)
+ 
+ if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD"
+diff -Naur orig/src/include/OpenImageIO/platform.h external_openimageio/src/include/OpenImageIO/platform.h
+--- orig/src/include/OpenImageIO/platform.h	2020-05-10 21:43:52 -0600
++++ external_openimageio/src/include/OpenImageIO/platform.h	2020-05-13 17:04:36 -0600
+@@ -41,6 +41,9 @@
+ #    ifndef NOMINMAX
+ #        define NOMINMAX
+ #    endif
++#    ifndef NOGDI
++#        define NOGDI
++#    endif
+ #    include <windows.h>
+ #endif
+ 
