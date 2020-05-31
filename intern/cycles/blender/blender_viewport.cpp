@@ -61,17 +61,6 @@ const bool BlenderViewportParameters::custom_viewport_parameters() const
   return !(use_scene_world && use_scene_lights);
 }
 
-bool BlenderViewportParameters::get_viewport_display_denoising(BL::SpaceView3D &b_v3d,
-                                                               BL::Scene &b_scene)
-{
-  bool use_denoising = false;
-  if (b_v3d) {
-    PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
-    use_denoising = get_enum(cscene, "preview_denoising") != 0;
-  }
-  return use_denoising;
-}
-
 PassType BlenderViewportParameters::get_viewport_display_render_pass(BL::SpaceView3D &b_v3d)
 {
   PassType display_pass = PASS_NONE;
@@ -81,11 +70,6 @@ PassType BlenderViewportParameters::get_viewport_display_render_pass(BL::SpaceVi
     display_pass = (PassType)get_enum(cshading, "render_pass", -1, -1);
   }
   return display_pass;
-}
-
-bool update_viewport_display_denoising(BL::SpaceView3D &b_v3d, BL::Scene &b_scene)
-{
-  return BlenderViewportParameters::get_viewport_display_denoising(b_v3d, b_scene);
 }
 
 PassType update_viewport_display_passes(BL::SpaceView3D &b_v3d, vector<Pass> &passes)

@@ -182,10 +182,20 @@ enum_aov_types = (
     ('COLOR', "Color", "Write a Color pass", 1),
 )
 
-enum_viewport_denoising = (
-    ('NONE', "None", "Disable viewport denoising", 0),
-    ('OPTIX', "OptiX AI-Accelerated", "Use the OptiX denoiser running on the GPU (requires at least one compatible OptiX device)", 1),
-)
+def enum_optix_denoiser(self, context):
+    if not context or bool(context.preferences.addons[__package__].preferences.get_devices_for_type('OPTIX')):
+        return [('OPTIX', "OptiX", "Use the OptiX AI denoiser with GPU acceleration, only available on NVIDIA GPUs", 2)]
+    return []
+
+def enum_preview_denoiser(self, context):
+    items = [('AUTO', "Auto", "Use the fastest available denoiser for viewport rendering", 0)]
+    items += enum_optix_denoiser(self, context)
+    return items
+
+def enum_denoiser(self, context):
+    items = [('NLM', "NLM", "Cycles native non-local means denoiser, running on any compute device", 1)]
+    items += enum_optix_denoiser(self, context)
+    return items
 
 enum_denoising_optix_input_passes = (
     ('RGB', "Color", "Use only color as input", 1),
@@ -224,11 +234,29 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Pause all viewport preview renders",
         default=False,
     )
-    preview_denoising: EnumProperty(
-        name="Viewport Denoising",
-        description="Denoise the image after each preview update with the selected denoiser engine",
-        items=enum_viewport_denoising,
-        default='NONE',
+
+    use_denoising: BoolProperty(
+        name="Use Denoising",
+        description="Denoise the rendered image",
+        default=False,
+    )
+    use_preview_denoising: BoolProperty(
+        name="Use Viewport Denoising",
+        description="Denoise the image in the 3D viewport",
+        default=False,
+    )
+
+    denoiser: EnumProperty(
+        name="Denoiser",
+        description="Denoise the image with the selected denoiser",
+        items=enum_denoiser,
+        default=1,
+    )
+    preview_denoiser: EnumProperty(
+        name="Viewport Denoiser",
+        description="Denoise the image after each preview update with the selected denoiser",
+        items=enum_preview_denoiser,
+        default=0,
     )
 
     use_square_samples: BoolProperty(
@@ -244,7 +272,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default=128,
     )
     preview_samples: IntProperty(
-        name="Preview Samples",
+        name="Viewport Samples",
         description="Number of samples to render in the viewport, unlimited if 0",
         min=0, max=(1 << 24),
         default=32,
@@ -464,7 +492,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         subtype='PIXEL'
     )
     preview_dicing_rate: FloatProperty(
-        name="Preview Dicing Rate",
+        name="Viewport Dicing Rate",
         description="Size of a micropolygon in pixels during preview render",
         min=0.1, max=1000.0, soft_min=0.5,
         default=8.0,
@@ -1330,7 +1358,7 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
     use_denoising: BoolProperty(
         name="Use Denoising",
         description="Denoise the rendered image",
-        default=False,
+        default=True,
         update=update_render_passes,
     )
     denoising_diffuse_direct: BoolProperty(
@@ -1400,12 +1428,6 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         default=0,
     )
 
-    use_optix_denoising: BoolProperty(
-        name="OptiX AI-Accelerated",
-        description="Use the OptiX denoiser to denoise the rendered image",
-        default=False,
-        update=update_render_passes,
-    )
     denoising_optix_input_passes: EnumProperty(
         name="Input Passes",
         description="Passes handed over to the OptiX denoiser (this can have different effects on the denoised image)",

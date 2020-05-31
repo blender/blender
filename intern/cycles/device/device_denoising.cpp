@@ -56,8 +56,8 @@ DenoisingTask::DenoisingTask(Device *device, const DeviceTask &task)
     tile_info->frames[i] = task.denoising_frames[i - 1];
   }
 
-  write_passes = task.denoising_write_passes;
-  do_filter = task.denoising_do_filter;
+  do_prefilter = task.denoising.store_passes && task.denoising.type == DENOISER_NLM;
+  do_filter = task.denoising_do_filter && task.denoising.type == DENOISER_NLM;
 }
 
 DenoisingTask::~DenoisingTask()
@@ -91,7 +91,7 @@ void DenoisingTask::set_render_buffer(RenderTile *rtiles)
   target_buffer.stride = rtiles[9].stride;
   target_buffer.ptr = rtiles[9].buffer;
 
-  if (write_passes && rtiles[9].buffers) {
+  if (do_prefilter && rtiles[9].buffers) {
     target_buffer.denoising_output_offset =
         rtiles[9].buffers->params.get_denoising_prefiltered_offset();
   }
@@ -111,7 +111,7 @@ void DenoisingTask::setup_denoising_buffer()
   rect = rect_clip(rect,
                    make_int4(tile_info->x[0], tile_info->y[0], tile_info->x[3], tile_info->y[3]));
 
-  buffer.use_intensity = write_passes || (tile_info->num_frames > 1);
+  buffer.use_intensity = do_prefilter || (tile_info->num_frames > 1);
   buffer.passes = buffer.use_intensity ? 15 : 14;
   buffer.width = rect.z - rect.x;
   buffer.stride = align_up(buffer.width, 4);
@@ -343,7 +343,7 @@ void DenoisingTask::run_denoising(RenderTile *tile)
     reconstruct();
   }
 
-  if (write_passes) {
+  if (do_prefilter) {
     write_buffer();
   }
 

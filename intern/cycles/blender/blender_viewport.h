@@ -44,14 +44,10 @@ class BlenderViewportParameters {
   friend class BlenderSync;
 
  public:
-  /* Get whether to enable denoising data pass in viewport. */
-  static bool get_viewport_display_denoising(BL::SpaceView3D &b_v3d, BL::Scene &b_scene);
   /* Retrieve the render pass that needs to be displayed on the given `SpaceView3D`
    * When the `b_v3d` parameter is not given `PASS_NONE` will be returned. */
   static PassType get_viewport_display_render_pass(BL::SpaceView3D &b_v3d);
 };
-
-bool update_viewport_display_denoising(BL::SpaceView3D &b_v3d, BL::Scene &b_scene);
 
 PassType update_viewport_display_passes(BL::SpaceView3D &b_v3d, vector<Pass> &passes);
 

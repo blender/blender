@@ -62,10 +62,6 @@ class SessionParams {
 
   bool display_buffer_linear;
 
-  bool run_denoising;
-  bool write_denoising_passes;
-  bool full_denoising;
-  bool optix_denoising;
   DenoiseParams denoising;
 
   double cancel_timeout;
@@ -94,11 +90,6 @@ class SessionParams {
 
     use_profiling = false;
 
-    run_denoising = false;
-    write_denoising_passes = false;
-    full_denoising = false;
-    optix_denoising = false;
-
     display_buffer_linear = false;
 
     cancel_timeout = 0.1;
@@ -125,7 +116,8 @@ class SessionParams {
              cancel_timeout == params.cancel_timeout && reset_timeout == params.reset_timeout &&
              text_timeout == params.text_timeout &&
              progressive_update_timeout == params.progressive_update_timeout &&
-             tile_order == params.tile_order && shadingsystem == params.shadingsystem);
+             tile_order == params.tile_order && shadingsystem == params.shadingsystem &&
+             denoising.type == params.denoising.type);
   }
 };
 
@@ -161,7 +153,7 @@ class Session {
   void reset(BufferParams &params, int samples);
   void set_pause(bool pause);
   void set_samples(int samples);
-  void set_denoising(bool denoising, bool optix_denoising);
+  void set_denoising(const DenoiseParams &denoising);
   void set_denoising_start_sample(int sample);
 
   bool update_scene();

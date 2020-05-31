@@ -60,7 +60,7 @@ class DenoisingTask {
   int4 rect;
   int4 filter_area;
 
-  bool write_passes;
+  bool do_prefilter;
   bool do_filter;
 
   struct DeviceFunctions {

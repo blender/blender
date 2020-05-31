@@ -78,22 +78,45 @@ static IDProperty *cycles_properties_from_ID(ID *id)
   return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles", IDP_GROUP) : NULL;
 }
 
+static IDProperty *cycles_properties_from_view_layer(ViewLayer *view_layer)
+{
+  IDProperty *idprop = view_layer->id_properties;
+  return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles", IDP_GROUP) : NULL;
+}
+
 static float cycles_property_float(IDProperty *idprop, const char *name, float default_value)
 {
   IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_FLOAT);
   return (prop) ? IDP_Float(prop) : default_value;
 }
 
-static float cycles_property_int(IDProperty *idprop, const char *name, int default_value)
+static int cycles_property_int(IDProperty *idprop, const char *name, int default_value)
 {
   IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT);
   return (prop) ? IDP_Int(prop) : default_value;
 }
 
-static bool cycles_property_boolean(IDProperty *idprop, const char *name, bool default_value)
+static void cycles_property_int_set(IDProperty *idprop, const char *name, int value)
 {
   IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT);
-  return (prop) ? IDP_Int(prop) : default_value;
+  if (prop) {
+    IDP_Int(prop) = value;
+  }
+  else {
+    IDPropertyTemplate val = {0};
+    val.i = value;
+    IDP_AddToGroup(idprop, IDP_New(IDP_INT, &val, name));
+  }
+}
+
+static bool cycles_property_boolean(IDProperty *idprop, const char *name, bool default_value)
+{
+  return cycles_property_int(idprop, name, default_value);
+}
+
+static void cycles_property_boolean_set(IDProperty *idprop, const char *name, bool value)
+{
+  cycles_property_int_set(idprop, name, value);
 }
 
 static void displacement_node_insert(bNodeTree *ntree)
@@ -1523,5 +1546,53 @@ void do_versions_after_linking_cycles(Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 290, 5)) {
+    /* New denoiser settings. */
+    for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+      IDProperty *cscene = cycles_properties_from_ID(&scene->id);
+
+      /* Check if any view layers had (optix) denoising enabled. */
+      bool use_optix = false;
+      bool use_denoising = false;
+      for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
+           view_layer = view_layer->next) {
+        IDProperty *cview_layer = cycles_properties_from_view_layer(view_layer);
+        if (cview_layer) {
+          use_denoising = use_denoising ||
+                          cycles_property_boolean(cview_layer, "use_denoising", false);
+          use_optix = use_optix ||
+                      cycles_property_boolean(cview_layer, "use_optix_denoising", false);
+        }
+      }
+
+      if (cscene) {
+        const int DENOISER_NLM = 1;
+        const int DENOISER_OPTIX = 2;
+
+        /* Enable denoiser if it was enabled for one view layer before. */
+        cycles_property_int_set(cscene, "denoiser", (use_optix) ? DENOISER_OPTIX : DENOISER_NLM);
+        cycles_property_boolean_set(cscene, "use_denoising", use_denoising);
+
+        /* Migrate Optix denoiser to new settings. */
+        if (cycles_property_int(cscene, "preview_denoising", 0)) {
+          cycles_property_boolean_set(cscene, "use_preview_denoising", true);
+          cycles_property_boolean_set(cscene, "preview_denoiser", DENOISER_OPTIX);
+        }
+      }
+
+      /* Enable denoising in all view layer if there was no denoising before,
+       * so that enabling the scene settings auto enables it for all view layers. */
+      if (!use_denoising) {
+        for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
+             view_layer = view_layer->next) {
+          IDProperty *cview_layer = cycles_properties_from_view_layer(view_layer);
+          if (cview_layer) {
+            cycles_property_boolean_set(cview_layer, "use_denoising", true);
+          }
+        }
+      }
+    }
   }
 }

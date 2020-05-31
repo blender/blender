@@ -721,7 +721,7 @@ class OptiXDevice : public CUDADevice {
     const CUDAContextScope scope(cuContext);
 
     // Choose between OptiX and NLM denoising
-    if (task.denoising_use_optix) {
+    if (task.denoising.type == DENOISER_OPTIX) {
       // Map neighboring tiles onto this device, indices are as following:
       // Where index 4 is the center tile and index 9 is the target for the result.
       //   0 1 2
@@ -1561,6 +1561,7 @@ void device_optix_info(const vector<DeviceInfo> &cuda_devices, vector<DeviceInfo
 
     info.type = DEVICE_OPTIX;
     info.id += "_OptiX";
+    info.denoisers |= DENOISER_OPTIX;
 
     devices.push_back(info);
   }

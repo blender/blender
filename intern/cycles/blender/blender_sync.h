@@ -75,7 +75,8 @@ class BlenderSync {
   void sync_view_layer(BL::SpaceView3D &b_v3d, BL::ViewLayer &b_view_layer);
   vector<Pass> sync_render_passes(BL::RenderLayer &b_render_layer,
                                   BL::ViewLayer &b_view_layer,
-                                  bool adaptive_sampling);
+                                  bool adaptive_sampling,
+                                  const DenoiseParams &denoising);
   void sync_integrator();
   void sync_camera(BL::RenderSettings &b_render,
                    BL::Object &b_override,
@@ -94,10 +95,12 @@ class BlenderSync {
 
   /* get parameters */
   static SceneParams get_scene_params(BL::Scene &b_scene, bool background);
-  static SessionParams get_session_params(BL::RenderEngine &b_engine,
-                                          BL::Preferences &b_userpref,
-                                          BL::Scene &b_scene,
-                                          bool background);
+  static SessionParams get_session_params(
+      BL::RenderEngine &b_engine,
+      BL::Preferences &b_userpref,
+      BL::Scene &b_scene,
+      bool background,
+      BL::ViewLayer b_view_layer = BL::ViewLayer(PointerRNA_NULL));
   static bool get_session_pause(BL::Scene &b_scene, bool background);
   static BufferParams get_buffer_params(BL::Scene &b_scene,
                                         BL::RenderSettings &b_render,
@@ -105,12 +108,17 @@ class BlenderSync {
                                         BL::RegionView3D &b_rv3d,
                                         Camera *cam,
                                         int width,
-                                        int height);
+                                        int height,
+                                        const bool use_denoiser);
 
   static PassType get_pass_type(BL::RenderPass &b_pass);
   static int get_denoising_pass(BL::RenderPass &b_pass);
 
  private:
+  static DenoiseParams get_denoise_params(BL::Scene &b_scene,
+                                          BL::ViewLayer &b_view_layer,
+                                          bool background);
+
   /* sync */
   void sync_lights(BL::Depsgraph &b_depsgraph, bool update_all);
   void sync_materials(BL::Depsgraph &b_depsgraph, bool update_all);

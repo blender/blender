@@ -873,7 +873,8 @@ BufferParams BlenderSync::get_buffer_params(BL::Scene &b_scene,
                                             BL::RegionView3D &b_rv3d,
                                             Camera *cam,
                                             int width,
-                                            int height)
+                                            int height,
+                                            const bool use_denoiser)
 {
   BufferParams params;
   bool use_border = false;
@@ -907,8 +908,7 @@ BufferParams BlenderSync::get_buffer_params(BL::Scene &b_scene,
   PassType display_pass = update_viewport_display_passes(b_v3d, params.passes);
 
   /* Can only denoise the combined image pass */
-  params.denoising_data_pass = display_pass == PASS_COMBINED &&
-                               update_viewport_display_denoising(b_v3d, b_scene);
+  params.denoising_data_pass = display_pass == PASS_COMBINED && use_denoiser;
 
   return params;
 }

@@ -313,6 +313,7 @@ void device_network_info(vector<DeviceInfo> &devices)
   info.has_volume_decoupled = false;
   info.has_adaptive_stop_per_sample = false;
   info.has_osl = false;
+  info.denoisers = DENOISER_NONE;
 
   devices.push_back(info);
 }

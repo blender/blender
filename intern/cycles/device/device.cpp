@@ -603,6 +603,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
   info.has_osl = true;
   info.has_profiling = true;
   info.has_peer_memory = false;
+  info.denoisers = DENOISER_ALL;
 
   foreach (const DeviceInfo &device, subdevices) {
     /* Ensure CPU device does not slow down GPU. */
@@ -647,6 +648,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
     info.has_osl &= device.has_osl;
     info.has_profiling &= device.has_profiling;
     info.has_peer_memory |= device.has_peer_memory;
+    info.denoisers &= device.denoisers;
   }
 
   return info;
@@ -665,6 +667,45 @@ void Device::free_memory()
   opencl_devices.free_memory();
   cpu_devices.free_memory();
   network_devices.free_memory();
+}
+
+/* DeviceInfo */
+
+void DeviceInfo::add_denoising_devices(DenoiserType denoiser_type)
+{
+  assert(denoising_devices.empty());
+
+  if (denoiser_type == DENOISER_OPTIX && type != DEVICE_OPTIX) {
+    vector<DeviceInfo> optix_devices = Device::available_devices(DEVICE_MASK_OPTIX);
+    if (!optix_devices.empty()) {
+      /* Convert to a special multi device with separate denoising devices. */
+      if (multi_devices.empty()) {
+        multi_devices.push_back(*this);
+      }
+
+      /* Try to use the same physical devices for denoising. */
+      for (const DeviceInfo &cuda_device : multi_devices) {
+        if (cuda_device.type == DEVICE_CUDA) {
+          for (const DeviceInfo &optix_device : optix_devices) {
+            if (cuda_device.num == optix_device.num) {
+              id += optix_device.id;
+              denoising_devices.push_back(optix_device);
+              break;
+            }
+          }
+        }
+      }
+
+      if (denoising_devices.empty()) {
+        /* Simply use the first available OptiX device. */
+        const DeviceInfo optix_device = optix_devices.front();
+        id += optix_device.id; /* Uniquely identify this special multi device. */
+        denoising_devices.push_back(optix_device);
+      }
+
+      denoisers = denoiser_type;
+    }
+  }
 }
 
 CCL_NAMESPACE_END

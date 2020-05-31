@@ -943,7 +943,7 @@ class CPUDevice : public Device {
     }
   }
 
-  void denoise(DenoisingTask &denoising, RenderTile &tile)
+  void denoise_nlm(DenoisingTask &denoising, RenderTile &tile)
   {
     ProfilingHelper profiling(denoising.profiler, PROFILING_DENOISING);
 
@@ -1001,10 +1001,9 @@ class CPUDevice : public Device {
       }
     }
 
-    RenderTile tile;
-    DenoisingTask denoising(this, task);
-    denoising.profiler = &kg->profiler;
+    DenoisingTask *denoising = NULL;
 
+    RenderTile tile;
     while (task.acquire_tile(this, tile, task.tile_types)) {
       if (tile.task == RenderTile::PATH_TRACE) {
         if (use_split_kernel) {
@@ -1019,7 +1018,13 @@ class CPUDevice : public Device {
         render(task, tile, kg);
       }
       else if (tile.task == RenderTile::DENOISE) {
-        denoise(denoising, tile);
+        if (task.denoising.type == DENOISER_NLM) {
+          if (denoising == NULL) {
+            denoising = new DenoisingTask(this, task);
+            denoising->profiler = &kg->profiler;
+          }
+          denoise_nlm(*denoising, tile);
+        }
         task.update_progress(&tile, tile.w * tile.h);
       }
 
@@ -1037,6 +1042,7 @@ class CPUDevice : public Device {
     kg->~KernelGlobals();
     kgbuffer.free();
     delete split_kernel;
+    delete denoising;
   }
 
   void thread_denoise(DeviceTask &task)
@@ -1060,7 +1066,7 @@ class CPUDevice : public Device {
     profiler.add_state(&denoising_profiler_state);
     denoising.profiler = &denoising_profiler_state;
 
-    denoise(denoising, tile);
+    denoise_nlm(denoising, tile);
     task.update_progress(&tile, tile.w * tile.h);
 
     profiler.remove_state(&denoising_profiler_state);
@@ -1344,6 +1350,7 @@ void device_cpu_info(vector<DeviceInfo> &devices)
   info.has_osl = true;
   info.has_half_images = true;
   info.has_profiling = true;
+  info.denoisers = DENOISER_NLM;
 
   devices.insert(devices.begin(), info);
 }

@@ -83,6 +83,7 @@ class DeviceInfo {
   bool use_split_kernel;             /* Use split or mega kernel. */
   bool has_profiling;                /* Supports runtime collection of profiling info. */
   bool has_peer_memory;              /* GPU has P2P access to memory of another GPU. */
+  DenoiserTypeMask denoisers;        /* Supported denoiser types. */
   int cpu_threads;
   vector<DeviceInfo> multi_devices;
   vector<DeviceInfo> denoising_devices;
@@ -101,6 +102,7 @@ class DeviceInfo {
     use_split_kernel = false;
     has_profiling = false;
     has_peer_memory = false;
+    denoisers = DENOISER_NONE;
   }
 
   bool operator==(const DeviceInfo &info)
@@ -110,6 +112,9 @@ class DeviceInfo {
            (type == info.type && num == info.num && description == info.description));
     return id == info.id;
   }
+
+  /* Add additional devices needed for the specified denoiser. */
+  void add_denoising_devices(DenoiserType denoiser_type);
 };
 
 class DeviceRequestedFeatures {

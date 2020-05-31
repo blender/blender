@@ -112,10 +112,6 @@ def show_device_active(context):
         return True
     return context.preferences.addons[__package__].preferences.has_active_device()
 
-def show_optix_denoising(context):
-    # OptiX AI denoiser can be used when at least one device supports OptiX
-    return bool(context.preferences.addons[__package__].preferences.get_devices_for_type('OPTIX'))
-
 
 def draw_samples_info(layout, context):
     cscene = context.scene.cycles
@@ -190,11 +186,6 @@ class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
             col.prop(cscene, "aa_samples", text="Render")
             col.prop(cscene, "preview_aa_samples", text="Viewport")
 
-        # Viewport denoising is currently only supported with OptiX
-        if show_optix_denoising(context):
-            col = layout.column()
-            col.prop(cscene, "preview_denoising")
-
         if not use_branched_path(context):
             draw_samples_info(layout, context)
 
@@ -255,6 +246,39 @@ class CYCLES_RENDER_PT_sampling_adaptive(CyclesButtonsPanel, Panel):
         col = layout.column(align=True)
         col.prop(cscene, "adaptive_threshold", text="Noise Threshold")
         col.prop(cscene, "adaptive_min_samples", text="Min Samples")
+
+
+class CYCLES_RENDER_PT_sampling_denoising(CyclesButtonsPanel, Panel):
+    bl_label = "Denoising"
+    bl_parent_id = "CYCLES_RENDER_PT_sampling"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+        cscene = scene.cycles
+
+        heading = layout.column(align=True, heading="Render")
+        row = heading.row(align=True)
+        row.prop(cscene, "use_denoising", text="")
+        sub = row.row()
+        sub.active = cscene.use_denoising
+        sub.prop(cscene, "denoiser", text="")
+
+        heading = layout.column(align=True, heading="Viewport")
+        row = heading.row(align=True)
+        row.prop(cscene, "use_preview_denoising", text="")
+        sub = row.row()
+        sub.active = cscene.use_preview_denoising
+        sub.prop(cscene, "preview_denoiser", text="")
+
+        sub = heading.row(align=True)
+        sub.active = cscene.use_preview_denoising
+        sub.prop(cscene, "preview_denoising_start_sample", text="Start Sample")
+
 
 class CYCLES_RENDER_PT_sampling_advanced(CyclesButtonsPanel, Panel):
     bl_label = "Advanced"
@@ -730,11 +754,6 @@ class CYCLES_RENDER_PT_performance_viewport(CyclesButtonsPanel, Panel):
         col.prop(rd, "preview_pixel_size", text="Pixel Size")
         col.prop(cscene, "preview_start_resolution", text="Start Pixels")
 
-        if show_optix_denoising(context):
-            sub = col.row(align=True)
-            sub.active = cscene.preview_denoising != 'NONE'
-            sub.prop(cscene, "preview_denoising_start_sample", text="Denoising Start Sample")
-
 
 class CYCLES_RENDER_PT_filter(CyclesButtonsPanel, Panel):
     bl_label = "Filter"
@@ -957,12 +976,17 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
     bl_context = "view_layer"
     bl_options = {'DEFAULT_CLOSED'}
 
+    @classmethod
+    def poll(cls, context):
+        cscene = context.scene.cycles
+        return CyclesButtonsPanel.poll(context) and cscene.use_denoising
+
     def draw_header(self, context):
         scene = context.scene
         view_layer = context.view_layer
         cycles_view_layer = view_layer.cycles
-        layout = self.layout
 
+        layout = self.layout
         layout.prop(cycles_view_layer, "use_denoising", text="")
 
     def draw(self, context):
@@ -973,18 +997,15 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
         scene = context.scene
         view_layer = context.view_layer
         cycles_view_layer = view_layer.cycles
+        denoiser = scene.cycles.denoiser
 
-        layout.active = cycles_view_layer.use_denoising
+        layout.active = denoiser != 'NONE' and cycles_view_layer.use_denoising
 
         col = layout.column()
 
-        if show_optix_denoising(context):
-            col.prop(cycles_view_layer, "use_optix_denoising")
-            col.separator(factor=2.0)
-
-            if cycles_view_layer.use_optix_denoising:
-                col.prop(cycles_view_layer, "denoising_optix_input_passes")
-                return
+        if denoiser == 'OPTIX':
+            col.prop(cycles_view_layer, "denoising_optix_input_passes")
+            return
 
         col.prop(cycles_view_layer, "denoising_radius", text="Radius")
 
@@ -2237,6 +2258,7 @@ classes = (
     CYCLES_RENDER_PT_sampling,
     CYCLES_RENDER_PT_sampling_sub_samples,
     CYCLES_RENDER_PT_sampling_adaptive,
+    CYCLES_RENDER_PT_sampling_denoising,
     CYCLES_RENDER_PT_sampling_advanced,
     CYCLES_RENDER_PT_light_paths,
     CYCLES_RENDER_PT_light_paths_max_bounces,
