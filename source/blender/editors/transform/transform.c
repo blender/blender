@@ -1195,7 +1195,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
               stopConstraint(t);
             }
             else {
-              initSelectConstraint(t, event->shift);
+              initSelectConstraint(t);
               postSelectConstraint(t);
             }
           }

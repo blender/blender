@@ -35,7 +35,7 @@ void drawConstraint(TransInfo *t);
 void drawPropCircle(const struct bContext *C, TransInfo *t);
 void startConstraint(TransInfo *t);
 void stopConstraint(TransInfo *t);
-void initSelectConstraint(TransInfo *t, bool force_global);
+void initSelectConstraint(TransInfo *t);
 void selectConstraint(TransInfo *t);
 void postSelectConstraint(TransInfo *t);
 void setNearestAxis(TransInfo *t);

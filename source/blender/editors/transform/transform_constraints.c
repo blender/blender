@@ -876,21 +876,15 @@ void stopConstraint(TransInfo *t)
 
 /*------------------------- MMB Select -------------------------------*/
 
-void initSelectConstraint(TransInfo *t, bool force_global)
+void initSelectConstraint(TransInfo *t)
 {
-  short orientation;
-  if (force_global) {
-    orientation = V3D_ORIENT_GLOBAL;
-  }
-  else {
-    if (t->orient_curr == 0) {
-      t->orient_curr = 1;
-      transform_orientations_current_set(t, t->orient_curr);
-    }
-    orientation = t->orient[t->orient_curr].type;
+  if (t->orient_curr == 0) {
+    t->orient_curr = 1;
+    transform_orientations_current_set(t, t->orient_curr);
   }
 
-  setUserConstraint(t, orientation, CON_APPLY | CON_SELECT, "");
+  short orientation = t->orient[t->orient_curr].type;
+  setUserConstraint(t, orientation, CON_APPLY | CON_SELECT, "%s");
   setNearestAxis(t);
 }
 
