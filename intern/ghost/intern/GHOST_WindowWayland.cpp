@@ -192,6 +192,9 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   if (setDrawingContextType(type) == GHOST_kFailure) {
     GHOST_PRINT("Failed to create EGL context" << std::endl);
   }
+
+  /* set swap interval to 0 to prevent blocking */
+  setSwapInterval(0);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::close()
