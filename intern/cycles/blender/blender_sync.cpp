@@ -38,6 +38,7 @@
 #include "util/util_foreach.h"
 #include "util/util_hash.h"
 #include "util/util_opengl.h"
+#include "util/util_openimagedenoise.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -956,6 +957,9 @@ DenoiseParams BlenderSync::get_denoise_params(BL::Scene &b_scene,
     if (denoising.type == DENOISER_NONE) {
       if (!Device::available_devices(DEVICE_MASK_OPTIX).empty()) {
         denoising.type = DENOISER_OPTIX;
+      }
+      else if (openimagedenoise_supported()) {
+        denoising.type = DENOISER_OPENIMAGEDENOISE;
       }
       else {
         denoising.use = false;

@@ -1086,7 +1086,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
        */
       substatus += string_printf(", Sample %d/%d", progress.get_current_sample(), num_samples);
     }
-    if (params.denoising.use) {
+    if (params.denoising.use && params.denoising.type != DENOISER_OPENIMAGEDENOISE) {
       substatus += string_printf(", Denoised %d tiles", progress.get_denoised_tiles());
     }
     else if (params.denoising.store_passes && params.denoising.type == DENOISER_NLM) {

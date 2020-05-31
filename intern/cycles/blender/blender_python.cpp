@@ -31,6 +31,7 @@
 #include "util/util_logging.h"
 #include "util/util_md5.h"
 #include "util/util_opengl.h"
+#include "util/util_openimagedenoise.h"
 #include "util/util_path.h"
 #include "util/util_string.h"
 #include "util/util_task.h"
@@ -1075,6 +1076,15 @@ void *CCL_python_module_init()
   PyModule_AddObject(mod, "with_embree", Py_False);
   Py_INCREF(Py_False);
 #endif /* WITH_EMBREE */
+
+  if (ccl::openimagedenoise_supported()) {
+    PyModule_AddObject(mod, "with_openimagedenoise", Py_True);
+    Py_INCREF(Py_True);
+  }
+  else {
+    PyModule_AddObject(mod, "with_openimagedenoise", Py_False);
+    Py_INCREF(Py_False);
+  }
 
   return (void *)mod;
 }

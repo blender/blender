@@ -34,6 +34,7 @@ class Tile;
 enum DenoiserType {
   DENOISER_NLM = 1,
   DENOISER_OPTIX = 2,
+  DENOISER_OPENIMAGEDENOISE = 4,
   DENOISER_NUM,
 
   DENOISER_NONE = 0,

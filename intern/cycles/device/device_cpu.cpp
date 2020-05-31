@@ -51,6 +51,7 @@
 #include "util/util_function.h"
 #include "util/util_logging.h"
 #include "util/util_map.h"
+#include "util/util_openimagedenoise.h"
 #include "util/util_opengl.h"
 #include "util/util_optimization.h"
 #include "util/util_progress.h"
@@ -176,6 +177,10 @@ class CPUDevice : public Device {
 
 #ifdef WITH_OSL
   OSLGlobals osl_globals;
+#endif
+#ifdef WITH_OPENIMAGEDENOISE
+  oidn::DeviceRef oidn_device;
+  oidn::FilterRef oidn_filter;
 #endif
 
   bool use_split_kernel;
@@ -943,6 +948,70 @@ class CPUDevice : public Device {
     }
   }
 
+  void denoise_openimagedenoise(DeviceTask &task, RenderTile &rtile)
+  {
+#ifdef WITH_OPENIMAGEDENOISE
+    assert(openimagedenoise_supported());
+
+    /* Only one at a time, since OpenImageDenoise itself is multithreaded. */
+    static thread_mutex mutex;
+    thread_scoped_lock lock(mutex);
+
+    /* Create device and filter, cached for reuse. */
+    if (!oidn_device) {
+      oidn_device = oidn::newDevice();
+      oidn_device.commit();
+    }
+    if (!oidn_filter) {
+      oidn_filter = oidn_device.newFilter("RT");
+    }
+
+    /* Copy pixels from compute device to CPU (no-op for CPU device). */
+    rtile.buffers->buffer.copy_from_device();
+
+    /* Set images with appropriate stride for our interleaved pass storage. */
+    const struct {
+      const char *name;
+      int offset;
+    } passes[] = {{"color", task.pass_denoising_data + DENOISING_PASS_COLOR},
+                  {"normal", task.pass_denoising_data + DENOISING_PASS_NORMAL},
+                  {"albedo", task.pass_denoising_data + DENOISING_PASS_ALBEDO},
+                  {"output", 0},
+                  { NULL,
+                    0 }};
+
+    for (int i = 0; passes[i].name; i++) {
+      const int64_t offset = rtile.offset + rtile.x + rtile.y * rtile.stride;
+      const int64_t buffer_offset = (offset * task.pass_stride + passes[i].offset) * sizeof(float);
+      const int64_t pixel_stride = task.pass_stride * sizeof(float);
+      const int64_t row_stride = rtile.stride * pixel_stride;
+
+      oidn_filter.setImage(passes[i].name,
+                           (char *)rtile.buffer + buffer_offset,
+                           oidn::Format::Float3,
+                           rtile.w,
+                           rtile.h,
+                           0,
+                           pixel_stride,
+                           row_stride);
+    }
+
+    /* Execute filter. */
+    oidn_filter.set("hdr", true);
+    oidn_filter.set("srgb", false);
+    oidn_filter.commit();
+    oidn_filter.execute();
+
+    /* todo: it may be possible to avoid this copy, but we have to ensure that
+     * when other code copies data from the device it doesn't overwrite the
+     * denoiser buffers. */
+    rtile.buffers->buffer.copy_to_device();
+#else
+    (void)task;
+    (void)rtile;
+#endif
+  }
+
   void denoise_nlm(DenoisingTask &denoising, RenderTile &tile)
   {
     ProfilingHelper profiling(denoising.profiler, PROFILING_DENOISING);
@@ -1018,7 +1087,10 @@ class CPUDevice : public Device {
         render(task, tile, kg);
       }
       else if (tile.task == RenderTile::DENOISE) {
-        if (task.denoising.type == DENOISER_NLM) {
+        if (task.denoising.type == DENOISER_OPENIMAGEDENOISE) {
+          denoise_openimagedenoise(task, tile);
+        }
+        else if (task.denoising.type == DENOISER_NLM) {
           if (denoising == NULL) {
             denoising = new DenoisingTask(this, task);
             denoising->profiler = &kg->profiler;
@@ -1060,16 +1132,22 @@ class CPUDevice : public Device {
     tile.stride = task.stride;
     tile.buffers = task.buffers;
 
-    DenoisingTask denoising(this, task);
+    if (task.denoising.type == DENOISER_OPENIMAGEDENOISE) {
+      denoise_openimagedenoise(task, tile);
+    }
+    else {
+      DenoisingTask denoising(this, task);
 
-    ProfilingState denoising_profiler_state;
-    profiler.add_state(&denoising_profiler_state);
-    denoising.profiler = &denoising_profiler_state;
+      ProfilingState denoising_profiler_state;
+      profiler.add_state(&denoising_profiler_state);
+      denoising.profiler = &denoising_profiler_state;
 
-    denoise_nlm(denoising, tile);
+      denoise_nlm(denoising, tile);
+
+      profiler.remove_state(&denoising_profiler_state);
+    }
+
     task.update_progress(&tile, tile.w * tile.h);
-
-    profiler.remove_state(&denoising_profiler_state);
   }
 
   void thread_film_convert(DeviceTask &task)
@@ -1143,10 +1221,17 @@ class CPUDevice : public Device {
     /* split task into smaller ones */
     list<DeviceTask> tasks;
 
-    if (task.type == DeviceTask::SHADER)
+    if (task.type == DeviceTask::DENOISE_BUFFER &&
+        task.denoising.type == DENOISER_OPENIMAGEDENOISE) {
+      /* Denoise entire buffer at once with OIDN, it has own threading. */
+      tasks.push_back(task);
+    }
+    else if (task.type == DeviceTask::SHADER) {
       task.split(tasks, info.cpu_threads, 256);
-    else
+    }
+    else {
       task.split(tasks, info.cpu_threads);
+    }
 
     foreach (DeviceTask &task, tasks) {
       task_pool.push([=] {
@@ -1351,6 +1436,9 @@ void device_cpu_info(vector<DeviceInfo> &devices)
   info.has_half_images = true;
   info.has_profiling = true;
   info.denoisers = DENOISER_NLM;
+  if (openimagedenoise_supported()) {
+    info.denoisers |= DENOISER_OPENIMAGEDENOISE;
+  }
 
   devices.insert(devices.begin(), info);
 }

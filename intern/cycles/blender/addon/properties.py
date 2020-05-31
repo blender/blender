@@ -182,14 +182,30 @@ enum_aov_types = (
     ('COLOR', "Color", "Write a Color pass", 1),
 )
 
+def enum_openimagedenoise_denoiser(self, context):
+    if _cycles.with_openimagedenoise:
+        return [('OPENIMAGEDENOISE', "OpenImageDenoise", "Use Intel OpenImageDenoise AI denoiser running on the CPU", 4)]
+    return []
+
 def enum_optix_denoiser(self, context):
     if not context or bool(context.preferences.addons[__package__].preferences.get_devices_for_type('OPTIX')):
         return [('OPTIX', "OptiX", "Use the OptiX AI denoiser with GPU acceleration, only available on NVIDIA GPUs", 2)]
     return []
 
 def enum_preview_denoiser(self, context):
-    items = [('AUTO', "Auto", "Use the fastest available denoiser for viewport rendering", 0)]
-    items += enum_optix_denoiser(self, context)
+    optix_items = enum_optix_denoiser(self, context)
+    oidn_items = enum_openimagedenoise_denoiser(self, context)
+
+    if len(optix_items):
+        auto_label = "Fastest (Optix)"
+    elif len(oidn_items):
+        auto_label = "Fatest (OpenImageDenoise)"
+    else:
+        auto_label = "None"
+
+    items = [('AUTO', auto_label, "Use the fastest available denoiser for viewport rendering", 0)]
+    items += optix_items
+    items += oidn_items
     return items
 
 def enum_denoiser(self, context):

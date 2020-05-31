@@ -706,6 +706,18 @@ void DeviceInfo::add_denoising_devices(DenoiserType denoiser_type)
       denoisers = denoiser_type;
     }
   }
+  else if (denoiser_type == DENOISER_OPENIMAGEDENOISE && type != DEVICE_CPU) {
+    /* Convert to a special multi device with separate denoising devices. */
+    if (multi_devices.empty()) {
+      multi_devices.push_back(*this);
+    }
+
+    /* Add CPU denoising devices. */
+    DeviceInfo cpu_device = Device::available_devices(DEVICE_MASK_CPU).front();
+    denoising_devices.push_back(cpu_device);
+
+    denoisers = denoiser_type;
+  }
 }
 
 CCL_NAMESPACE_END

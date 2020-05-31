@@ -102,6 +102,13 @@ if(WITH_OPENVDB)
   )
 endif()
 
+if(WITH_OPENIMAGEDENOISE)
+  add_definitions(-DWITH_OPENIMAGEDENOISE)
+  list(APPEND INC_SYS
+    ${OPENIMAGEDENOISE_INCLUDE_DIRS}
+  )
+endif()
+
 blender_add_lib(bf_intern_cycles "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # avoid link failure with clang 3.4 debug
