@@ -128,7 +128,7 @@ def main():
             "    f.write('%d\\n' % is_beta)\n"
             "    f.write('%s\\n' % branch)\n"
             "    f.write('%d.%d\\n' % (bpy.app.version[0], bpy.app.version[1]))\n"
-            "    f.write('%d.%d\\n' % (bpy.app.version[0], bpy.app.version[1]))\n"
+            "    f.write('%d.%d\\n' % (bpy.app.version[0], bpy.app.version[1])\n"
             "            if (is_release or is_beta) else '%s\\n' % branch)\n"
             "    f.write('%d_%d' % (bpy.app.version[0], bpy.app.version[1]))\n"
         )
