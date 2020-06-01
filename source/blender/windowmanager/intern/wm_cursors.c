@@ -150,7 +150,7 @@ void WM_cursor_set(wmWindow *win, int curs)
   }
 
   if (win->cursor == curs) {
-      return; /* Cursor is already set */
+    return; /* Cursor is already set */
   }
 
   win->cursor = curs;

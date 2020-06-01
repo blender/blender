@@ -562,16 +562,17 @@ short transform_orientation_matrix_get(bContext *C,
       orientation_index_custom = orientation - V3D_ORIENT_CUSTOM;
     }
 
-    return ED_transform_calc_orientation_from_type_ex(C,
-                                                      r_spacemtx,
-                                                      /* extra args (can be accessed from context) */
-                                                      t->scene,
-                                                      rv3d,
-                                                      ob,
-                                                      obedit,
-                                                      orientation,
-                                                      orientation_index_custom,
-                                                      t->around);
+    return ED_transform_calc_orientation_from_type_ex(
+        C,
+        r_spacemtx,
+        /* extra args (can be accessed from context) */
+        t->scene,
+        rv3d,
+        ob,
+        obedit,
+        orientation,
+        orientation_index_custom,
+        t->around);
   }
 
   unit_m3(r_spacemtx);
