@@ -436,7 +436,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
       case SEQ_SELECT_LR_RIGHT:
         x = CFRA + 1.0f;
         break;
-      case SEQ_SELECT_LR_UNDER_PLAYHEAD:
+      case SEQ_SELECT_LR_OVERLAP:
       default:
         x = CFRA;
         break;
@@ -645,7 +645,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
       {SEQ_SELECT_LR_MOUSE, "MOUSE", 0, "Mouse", "Use mouse position for selection"},
       {SEQ_SELECT_LR_LEFT, "LEFT", 0, "Left", "Select to the left of the current frame"},
       {SEQ_SELECT_LR_RIGHT, "RIGHT", 0, "Right", "Select to the right of the current frame"},
-      {SEQ_SELECT_LR_UNDER_PLAYHEAD, "UNDER", 0, "Under", "Select under the current frame"},
+      {SEQ_SELECT_LR_OVERLAP, "OVERLAP", 0, "Overlap", "Select overlapping the current frame"},
       {0, NULL, 0, NULL, NULL},
   };
   PropertyRNA *prop;

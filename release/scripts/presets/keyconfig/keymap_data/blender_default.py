@@ -2522,13 +2522,13 @@ def km_sequencer(params):
         ("sequencer.select", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
          {"properties": [("left_right", 'RIGHT'), ("linked_time", True)]}),
         ("sequencer.select", {"type": 'EQUAL', "value": 'PRESS'},
-         {"properties": [("left_right", 'UNDER'), ("linked_time", True)]}),
+         {"properties": [("left_right", 'OVERLAP'), ("linked_time", True)]}),
         ("sequencer.select", {"type": 'LEFT_BRACKET', "value": 'PRESS', "shift": True},
          {"properties": [("left_right", 'LEFT'), ("linked_time", True), ("extend", True)]}),
         ("sequencer.select", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "shift": True},
          {"properties": [("left_right", 'RIGHT'), ("linked_time", True), ("extend", True)]}),
         ("sequencer.select", {"type": 'EQUAL', "value": 'PRESS', "shift": True},
-         {"properties": [("left_right", 'UNDER'), ("linked_time", True), ("extend", True)]}),
+         {"properties": [("left_right", 'OVERLAP'), ("linked_time", True), ("extend", True)]}),
 
         *_template_items_context_menu("SEQUENCER_MT_context_menu", params.context_menu_event),
     ])
