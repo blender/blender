@@ -188,7 +188,7 @@ class SequencerFadesAdd(Operator):
             ('CURSOR_TO', 'To Playhead', 'Fade from the start of sequences under the time cursor to the current frame'),
         ),
         name="Fade type",
-        description="Fade in, out, both in and out, to, or from the playhead. Default is both in and out",
+        description="Fade in, out, both in and out, to, or from the current frame. Default is both in and out",
         default='IN_OUT')
 
     @classmethod

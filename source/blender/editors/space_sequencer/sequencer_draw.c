@@ -2299,10 +2299,10 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
     cfra_flag |= DRAWCFRA_UNIT_SECONDS;
   }
 
-  /* Draw playhead. */
+  /* Draw the current frame indicator. */
   ANIM_draw_cfra(C, v2d, cfra_flag);
 
-  /* Draw overlap playhead. */
+  /* Draw overlap frame frame indicator. */
   if (scene->ed && scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) {
     int cfra_over = (scene->ed->over_flag & SEQ_EDIT_OVERLAY_ABS) ?
                         scene->ed->over_cfra :

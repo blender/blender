@@ -412,7 +412,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
 
     ret_value = OPERATOR_FINISHED;
   }
-  /* Select left, right or under playhead. */
+  /* Select left, right or overlapping the current frame. */
   else if (left_right != SEQ_SELECT_LR_NONE) {
     /* Use different logic for this. */
     float x;
@@ -422,7 +422,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
 
     switch (left_right) {
       case SEQ_SELECT_LR_MOUSE: {
-        /* 10px margin around playhead to select under playhead with mouse. */
+        /* 10px margin around current frame to select under the current frame with mouse. */
         float margin = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask) * 10;
         x = UI_view2d_region_to_view_x(v2d, mval[0]);
         if (x >= CFRA - margin && x <= CFRA + margin) {
@@ -443,7 +443,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
     }
 
     SEQP_BEGIN (ed, seq) {
-      /* Select under playhead. */
+      /* Select overlapping the current frame. */
       if ((x == CFRA) && (seq->startdisp <= CFRA) && (seq->enddisp >= CFRA)) {
         seq->flag = SELECT;
         recurs_sel_seq(seq);
@@ -643,9 +643,9 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
   static const EnumPropertyItem sequencer_select_left_right_types[] = {
       {SEQ_SELECT_LR_NONE, "NONE", 0, "None", "Don't do left-right selection"},
       {SEQ_SELECT_LR_MOUSE, "MOUSE", 0, "Mouse", "Use mouse position for selection"},
-      {SEQ_SELECT_LR_LEFT, "LEFT", 0, "Left", "Select to the left of the playhead"},
-      {SEQ_SELECT_LR_RIGHT, "RIGHT", 0, "Right", "Select to the right of the playhead"},
-      {SEQ_SELECT_LR_UNDER_PLAYHEAD, "UNDER", 0, "Under", "Select under the playhead"},
+      {SEQ_SELECT_LR_LEFT, "LEFT", 0, "Left", "Select to the left of the current frame"},
+      {SEQ_SELECT_LR_RIGHT, "RIGHT", 0, "Right", "Select to the right of the current frame"},
+      {SEQ_SELECT_LR_UNDER_PLAYHEAD, "UNDER", 0, "Under", "Select under the current frame"},
       {0, NULL, 0, NULL, NULL},
   };
   PropertyRNA *prop;

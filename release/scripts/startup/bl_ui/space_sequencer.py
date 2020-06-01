@@ -1585,10 +1585,10 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
         split.alignment = 'RIGHT'
         split.label(text="Playhead")
         split = split.split(factor=0.8 + max_factor, align=True)
-        playhead = frame_current - frame_final_start
-        split.label(text="{:>14}".format(smpte_from_frame(playhead)))
+        frame_display = frame_current - frame_final_start
+        split.label(text="{:>14}".format(smpte_from_frame(frame_display)))
         split.alignment = 'RIGHT'
-        split.label(text=str(playhead) + " ")
+        split.label(text=str(frame_display) + " ")
 
         if strip.type == 'SCENE':
             scene = strip.scene

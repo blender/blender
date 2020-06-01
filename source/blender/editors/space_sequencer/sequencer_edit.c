@@ -311,7 +311,7 @@ static int mouse_frame_side(View2D *v2d, short mouse_x, int frame)
   mval[0] = mouse_x;
   mval[1] = 0;
 
-  /* Choose the side based on which side of the playhead the mouse is on. */
+  /* Choose the side based on which side of the current frame the mouse is on. */
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouseloc[0], &mouseloc[1]);
 
   return mouseloc[0] > frame ? SEQ_SIDE_RIGHT : SEQ_SIDE_LEFT;
@@ -1376,7 +1376,7 @@ static int sequencer_snap_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
 void SEQUENCER_OT_snap(struct wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "Snap Strips to Playhead";
+  ot->name = "Snap Strips to the Current Frame";
   ot->idname = "SEQUENCER_OT_snap";
   ot->description = "Frame where selected strips will be snapped";
 
@@ -1727,7 +1727,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
           mouse_x = event->mval[0];
         }
 
-        /* Choose the side based on which side of the playhead the mouse is. */
+        /* Choose the side based on which side of the current frame the mouse is. */
         UI_view2d_region_to_view(v2d, mouse_x, 0, &mouseloc[0], &mouseloc[1]);
         offset = mouseloc[0] - data->init_mouseloc[0];
 
@@ -2374,7 +2374,7 @@ void SEQUENCER_OT_split(struct wmOperatorType *ot)
                   "use_cursor_position",
                   0,
                   "Use Cursor Position",
-                  "Split at position of the cursor instead of playhead");
+                  "Split at position of the cursor instead of current frame");
 
   prop = RNA_def_enum(ot->srna,
                       "side",
@@ -2976,7 +2976,7 @@ void SEQUENCER_OT_view_frame(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Go to Current Frame";
   ot->idname = "SEQUENCER_OT_view_frame";
-  ot->description = "Move the view to the playhead";
+  ot->description = "Move the view to the current frame";
 
   /* Api callbacks. */
   ot->exec = sequencer_view_frame_exec;

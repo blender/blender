@@ -490,7 +490,7 @@ void ACTION_OT_view_frame(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Go to Current Frame";
   ot->idname = "ACTION_OT_view_frame";
-  ot->description = "Move the view to the playhead";
+  ot->description = "Move the view to the current frame";
 
   /* api callbacks */
   ot->exec = actkeys_view_frame_exec;

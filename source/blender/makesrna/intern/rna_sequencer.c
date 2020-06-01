@@ -2016,7 +2016,7 @@ static void rna_def_editor(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Prefetch Frames",
-      "Render frames ahead of playhead in the background for faster playback");
+      "Render frames ahead of current frame in the background for faster playback");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
 
   prop = RNA_def_property(srna, "recycle_max_cost", PROP_FLOAT, PROP_NONE);
