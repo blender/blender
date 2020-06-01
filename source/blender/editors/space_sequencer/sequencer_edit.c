@@ -214,20 +214,41 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   }
 
   file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
+  bool selected = false; /* Check for no selected strips */
+
   SEQP_BEGIN (ed, seq) {
-    if ((seq->flag & SELECT)) {
-      bool success = BKE_sequencer_proxy_rebuild_context(
-          pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue);
-      if (!success) {
-        BKE_reportf(reports, RPT_ERROR, "Could not build proxy for strip %s", seq->name);
-      }
+    if (!ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE, SEQ_TYPE_META) ||
+        (seq->flag & SELECT) == 0) {
+      continue;
+    }
+
+    selected = true;
+    if (!(seq->flag & SEQ_USE_PROXY)) {
+      BKE_reportf(reports, RPT_WARNING, "Proxy is not enabled for %s, skipping.", seq->name);
+      continue;
+    }
+    else if (seq->strip->proxy->build_size_flags == 0) {
+      BKE_reportf(reports, RPT_WARNING, "Resolution is not selected for %s, skipping.", seq->name);
+      continue;
+    }
+
+    bool success = BKE_sequencer_proxy_rebuild_context(
+        pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue);
+
+    if (!success && (seq->strip->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) != 0) {
+      BKE_reportf(reports, RPT_WARNING, "Overwrite is not checked for %s, skipping.", seq->name);
     }
   }
   SEQ_END;
 
+  if (!selected) {
+    BKE_reportf(reports, RPT_WARNING, "Select movie or image strips.");
+    return;
+  }
+
   BLI_gset_free(file_list, MEM_freeN);
 
-  if (!WM_jobs_is_running(wm_job)) {
+  if (selected && !WM_jobs_is_running(wm_job)) {
     G.is_break = false;
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
@@ -3757,12 +3778,7 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 
   SEQP_BEGIN (ed, seq) {
     if ((seq->flag & SELECT)) {
-      if (ELEM(seq->type,
-               SEQ_TYPE_MOVIE,
-               SEQ_TYPE_IMAGE,
-               SEQ_TYPE_META,
-               SEQ_TYPE_SCENE,
-               SEQ_TYPE_MULTICAM)) {
+      if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE, SEQ_TYPE_META)) {
         BKE_sequencer_proxy_set(seq, turnon);
         if (seq->strip->proxy == NULL) {
           continue;
