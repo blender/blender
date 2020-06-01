@@ -2198,7 +2198,7 @@ static void rna_Scene_update_active_object_data(bContext *C, PointerRNA *UNUSED(
   }
 }
 
-static void rna_SceneCamera_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_SceneCamera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   Object *camera = scene->camera;
