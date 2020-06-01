@@ -191,6 +191,7 @@ enum {
   SEQ_SELECT_LR_MOUSE,
   SEQ_SELECT_LR_LEFT,
   SEQ_SELECT_LR_RIGHT,
+  SEQ_SELECT_LR_UNDER_PLAYHEAD,
 };
 
 /* Defines used internally. */

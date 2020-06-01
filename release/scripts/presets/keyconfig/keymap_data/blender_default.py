@@ -2463,7 +2463,7 @@ def km_sequencer(params):
          {"properties": [("all", False)]}),
         ("sequencer.gap_remove", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True},
          {"properties": [("all", True)]}),
-        ("sequencer.gap_insert", {"type": 'EQUAL', "value": 'PRESS', "shift": True}, None),
+        ("sequencer.gap_insert", {"type": 'BACK_SPACE', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.snap", {"type": 'S', "value": 'PRESS', "shift": True}, None),
         ("sequencer.swap_inputs", {"type": 'S', "value": 'PRESS', "alt": True}, None),
         *(
@@ -2521,6 +2521,15 @@ def km_sequencer(params):
          {"properties": [("left_right", 'LEFT'), ("linked_time", True)]}),
         ("sequencer.select", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
          {"properties": [("left_right", 'RIGHT'), ("linked_time", True)]}),
+        ("sequencer.select", {"type": 'EQUAL', "value": 'PRESS'},
+         {"properties": [("left_right", 'UNDER'), ("linked_time", True)]}),
+        ("sequencer.select", {"type": 'LEFT_BRACKET', "value": 'PRESS', "shift": True},
+         {"properties": [("left_right", 'LEFT'), ("linked_time", True), ("extend", True)]}),
+        ("sequencer.select", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "shift": True},
+         {"properties": [("left_right", 'RIGHT'), ("linked_time", True), ("extend", True)]}),
+        ("sequencer.select", {"type": 'EQUAL', "value": 'PRESS', "shift": True},
+         {"properties": [("left_right", 'UNDER'), ("linked_time", True), ("extend", True)]}),
+
         *_template_items_context_menu("SEQUENCER_MT_context_menu", params.context_menu_event),
     ])
 

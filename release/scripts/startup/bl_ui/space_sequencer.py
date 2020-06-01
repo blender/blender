@@ -382,6 +382,9 @@ class SEQUENCER_MT_select_playhead(Menu):
     def draw(self, _context):
         layout = self.layout
 
+        props = layout.operator("sequencer.select", text="Under")
+        props.left_right = 'UNDER'
+        props.linked_time = True
         props = layout.operator("sequencer.select", text="Left")
         props.left_right = 'LEFT'
         props.linked_time = True
