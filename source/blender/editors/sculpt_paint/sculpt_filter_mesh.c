@@ -121,6 +121,9 @@ void SCULPT_filter_cache_init(Object *ob, Sculpt *sd)
 
 void SCULPT_filter_cache_free(SculptSession *ss)
 {
+  if (ss->filter_cache->cloth_sim) {
+    SCULPT_cloth_simulation_free(ss->filter_cache->cloth_sim);
+  }
   MEM_SAFE_FREE(ss->filter_cache->nodes);
   MEM_SAFE_FREE(ss->filter_cache->mask_update_it);
   MEM_SAFE_FREE(ss->filter_cache->prev_mask);

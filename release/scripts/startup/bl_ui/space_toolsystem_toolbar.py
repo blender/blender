@@ -1228,6 +1228,25 @@ class _defs_sculpt:
             draw_settings=draw_settings,
         )
 
+    @ToolDef.from_fn
+    def cloth_filter():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sculpt.cloth_filter")
+            layout.prop(props, "type", expand=False)
+            layout.prop(props, "strength")
+            layout.prop(props, "cloth_mass")
+            layout.prop(props, "cloth_damping")
+            layout.prop(props, "use_face_sets")
+
+        return dict(
+            idname="builtin.cloth_filter",
+            label="Cloth Filter",
+            icon="ops.sculpt.cloth_filter",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
 
 class _defs_vertex_paint:
 
@@ -2402,6 +2421,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_sculpt.hide_border,
             None,
             _defs_sculpt.mesh_filter,
+            _defs_sculpt.cloth_filter,
             None,
             _defs_transform.translate,
             _defs_transform.rotate,

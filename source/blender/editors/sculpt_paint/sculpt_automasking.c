@@ -91,7 +91,7 @@ bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession *ss, co
 
 float SCULPT_automasking_factor_get(SculptSession *ss, int vert)
 {
-  if (ss->cache->automask) {
+  if (ss->cache && ss->cache->automask) {
     return ss->cache->automask[vert];
   }
   else {
