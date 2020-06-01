@@ -397,14 +397,12 @@ int BIF_countTransformOrientation(const bContext *C)
   return BLI_listbase_count(transform_orientations);
 }
 
-bool applyTransformOrientation(const TransformOrientation *ts, float r_mat[3][3], char *r_name)
+void applyTransformOrientation(const TransformOrientation *ts, float r_mat[3][3], char *r_name)
 {
   if (r_name) {
     BLI_strncpy(r_name, ts->name, MAX_NAME);
   }
   copy_m3_m3(r_mat, ts->mat);
-
-  return true;
 }
 
 /* Updates all `BONE_TRANSFORM` flags.
@@ -465,8 +463,6 @@ short ED_transform_calc_orientation_from_type_ex(const bContext *C,
                                                  int orientation_index_custom,
                                                  const int pivot_point)
 {
-  bool ok = false;
-
   switch (orientation_type) {
     case V3D_ORIENT_GLOBAL: {
       unit_m3(r_mat);
@@ -528,9 +524,7 @@ short ED_transform_calc_orientation_from_type_ex(const bContext *C,
       BLI_assert(orientation_type >= V3D_ORIENT_CUSTOM);
       TransformOrientation *custom_orientation = BKE_scene_transform_orientation_find(
           scene, orientation_index_custom);
-      if (applyTransformOrientation(custom_orientation, r_mat, NULL)) {
-        ok = true;
-      }
+      applyTransformOrientation(custom_orientation, r_mat, NULL);
       break;
     }
   }

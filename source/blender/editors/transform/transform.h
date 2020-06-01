@@ -920,7 +920,7 @@ struct TransformOrientation *addMatrixSpace(struct bContext *C,
                                             float mat[3][3],
                                             const char *name,
                                             const bool overwrite);
-bool applyTransformOrientation(const struct TransformOrientation *ts,
+void applyTransformOrientation(const struct TransformOrientation *ts,
                                float r_mat[3][3],
                                char r_name[64]);
 
