@@ -244,6 +244,20 @@ class SEQUENCER_MT_preview_zoom(Menu):
         layout.operator_context = 'INVOKE_DEFAULT'
 
 
+class SEQUENCER_MT_proxy(Menu):
+    bl_label = "Proxy"
+
+    def draw(self, context):
+        layout = self.layout
+
+        st = context.space_data
+        col = layout.column()
+        col.operator("sequencer.enable_proxies", text="Setup")
+        col.operator("sequencer.rebuild_proxy", text="Rebuild")
+        col.enabled = selected_sequences_len(context) >= 1
+        layout.prop(st, "proxy_render_size", text="")
+
+
 class SEQUENCER_MT_view(Menu):
     bl_label = "View"
 
@@ -290,6 +304,10 @@ class SEQUENCER_MT_view(Menu):
             else:
                 layout.operator("view2d.zoom_border", text="Zoom")
                 layout.menu("SEQUENCER_MT_preview_zoom")
+
+            layout.separator()
+
+            layout.menu("SEQUENCER_MT_proxy")
 
             layout.operator_context = 'INVOKE_DEFAULT'
 
@@ -772,9 +790,6 @@ class SEQUENCER_MT_strip(Menu):
 
         layout.separator()
         layout.menu("SEQUENCER_MT_strip_input")
-
-        layout.separator()
-        layout.operator("sequencer.rebuild_proxy")
 
 
 class SEQUENCER_MT_context_menu(Menu):
@@ -2202,6 +2217,7 @@ classes = (
     SEQUENCER_MT_view_cache,
     SEQUENCER_MT_view_toggle,
     SEQUENCER_MT_preview_zoom,
+    SEQUENCER_MT_proxy,
     SEQUENCER_MT_select_playhead,
     SEQUENCER_MT_select_handle,
     SEQUENCER_MT_select_channel,
