@@ -1403,7 +1403,6 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
   bool use_submode = STREQ(op->idname, "OBJECT_OT_mode_set_with_submode");
   Object *ob = CTX_data_active_object(C);
   eObjectMode mode = RNA_enum_get(op->ptr, "mode");
-  eObjectMode restore_mode = ob->mode;
   const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 
   /* by default the operator assume is a mesh, but if gp object change mode */
@@ -1417,33 +1416,49 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 
   if (toggle == false) {
     if (ob->mode != mode) {
-      if (mode != OB_MODE_OBJECT) {
-        /* Enter new mode. */
-        ED_object_mode_toggle(C, mode);
+      if (mode == OB_MODE_OBJECT) {
+        ED_object_mode_compat_set(C, ob, OB_MODE_OBJECT, op->reports);
       }
       else {
-        ED_object_mode_compat_set(C, ob, mode, op->reports);
+        /* Enter new mode. */
+        ED_object_mode_toggle(C, mode);
       }
     }
   }
   else {
-    /* Exit current mode if it's not the mode we're setting */
-    if (mode != OB_MODE_OBJECT) {
-      /* Enter new mode. */
-      ED_object_mode_toggle(C, mode);
-    }
-
+    const eObjectMode restore_mode = ob->mode;
     /* Special case for Object mode! */
-    if ((mode == OB_MODE_OBJECT) && (restore_mode == OB_MODE_OBJECT) &&
-        (ob->restore_mode != OB_MODE_OBJECT)) {
-      ED_object_mode_toggle(C, ob->restore_mode);
+    if (mode == OB_MODE_OBJECT) {
+      if (ob->mode != OB_MODE_OBJECT) {
+        /* Set object mode if the object is not already in object mode. */
+        if (ED_object_mode_compat_set(C, ob, OB_MODE_OBJECT, op->reports)) {
+          ob->restore_mode = restore_mode;
+        }
+      }
+      else {
+        if (ob->restore_mode != OB_MODE_OBJECT) {
+          ED_object_mode_toggle(C, ob->restore_mode);
+        }
+      }
     }
-    else if (ob->mode == mode) {
-      /* For toggling, store old mode so we know what to go back to */
-      ob->restore_mode = restore_mode;
-    }
-    else if ((ob->restore_mode != OB_MODE_OBJECT) && (ob->restore_mode != mode)) {
-      ED_object_mode_toggle(C, ob->restore_mode);
+    else {
+      if (ob->mode != mode) {
+        ED_object_mode_toggle(C, mode);
+        if (ob->mode == mode) {
+          /* For toggling, store old mode so we know what to go back to. */
+          ob->restore_mode = restore_mode;
+        }
+      }
+      else {
+        if (ob->restore_mode != OB_MODE_OBJECT) {
+          /* Toggle directly into the restore mode. */
+          ED_object_mode_toggle(C, ob->restore_mode);
+        }
+        else {
+          /* Enter new mode. */
+          ED_object_mode_toggle(C, mode);
+        }
+      }
     }
   }
 
