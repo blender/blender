@@ -1152,9 +1152,13 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
 
         elif strip_type == 'TEXT':
             layout = self.layout
-            layout.use_property_split = False
-            layout.prop(strip, "text", text="")
-            layout.use_property_split = True
+            col = layout.column()
+            col.scale_x = 1.3
+            col.scale_y = 1.3
+            col.use_property_split = False
+            col.prop(strip, "text", text="")
+            col.use_property_split = True
+            layout.prop(strip, "wrap_width", text="Wrap Width")
 
         col = layout.column(align=True)
         if strip_type == 'SPEED':
@@ -1191,9 +1195,8 @@ class SEQUENCER_PT_effect_text_layout(SequencerButtonsPanel, Panel):
         layout.use_property_split = True
         col = layout.column()
         col.prop(strip, "location", text="Location")
-        col.prop(strip, "align_x", text="Alignment X")
+        col.prop(strip, "align_x", text="Anchor X")
         col.prop(strip, "align_y", text="Y")
-        col.prop(strip, "wrap_width", text="Wrap Width")
 
 
 class SEQUENCER_PT_effect_text_style(SequencerButtonsPanel, Panel):
@@ -1683,7 +1686,7 @@ class SEQUENCER_PT_adjust_transform(SequencerButtonsPanel, Panel):
 
         return strip.type in {
             'MOVIE', 'IMAGE', 'SCENE', 'MOVIECLIP', 'MASK',
-            'META', 'ADD', 'SUBTRACT', 'ALPHA_OVER',
+            'META', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'TEXT',
             'ALPHA_UNDER', 'CROSS', 'GAMMA_CROSS', 'MULTIPLY',
             'OVER_DROP', 'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
             'MULTICAM', 'SPEED', 'ADJUSTMENT', 'COLORMIX'
