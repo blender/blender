@@ -1045,7 +1045,8 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         strip_type = strip.type
 
         if strip_type == 'COLOR':
-            layout.prop(strip, "color")
+            layout.template_color_picker(strip, "color", value_slider=True, cubic=True)
+            layout.prop(strip, "color", text="")
 
         elif strip_type == 'WIPE':
             col = layout.column()
