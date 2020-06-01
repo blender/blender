@@ -2998,6 +2998,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case MOUSEROTATE:
       case WHEELUPMOUSE:
       case WHEELDOWNMOUSE:
+      case NDOF_MOTION:
         return OPERATOR_PASS_THROUGH;
       case MOUSEMOVE: /* mouse moved somewhere to select another loop */
         if (kcd->mode != MODE_PANNING) {

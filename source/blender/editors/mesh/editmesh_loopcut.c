@@ -515,6 +515,10 @@ static int loopcut_finish(RingSelOpData *lcd, bContext *C, wmOperator *op)
 
 static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  if (event->type == NDOF_MOTION) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
   RingSelOpData *lcd = op->customdata;
   float cuts = lcd->cuts;
   float smoothness = lcd->smoothness;
@@ -606,7 +610,8 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
         handled = true;
         break;
-      case MOUSEMOVE: /* mouse moved somewhere to select another loop */
+      case MOUSEMOVE: {
+        /* mouse moved somewhere to select another loop */
 
         /* This is normally disabled for all modal operators.
          * This is an exception since mouse movement doesn't relate to numeric input.
@@ -615,14 +620,16 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 #if 0
         if (!has_numinput)
 #endif
-      {
-        lcd->vc.mval[0] = event->mval[0];
-        lcd->vc.mval[1] = event->mval[1];
-        loopcut_mouse_move(lcd, (int)lcd->cuts);
+        {
+          lcd->vc.mval[0] = event->mval[0];
+          lcd->vc.mval[1] = event->mval[1];
+          loopcut_mouse_move(lcd, (int)lcd->cuts);
 
-        ED_region_tag_redraw(lcd->region);
-        handled = true;
-      } break;
+          ED_region_tag_redraw(lcd->region);
+          handled = true;
+        }
+        break;
+      }
     }
 
     /* Modal numinput inactive, try to handle numeric inputs last... */
