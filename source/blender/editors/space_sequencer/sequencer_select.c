@@ -421,7 +421,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
     }
 
     switch (left_right) {
-      case SEQ_SELECT_LR_MOUSE:
+      case SEQ_SELECT_LR_MOUSE: {
         /* 10px margin around playhead to select under playhead with mouse. */
         float margin = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask) * 10;
         x = UI_view2d_region_to_view_x(v2d, mval[0]);
@@ -429,6 +429,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
           x = CFRA;
         }
         break;
+      }
       case SEQ_SELECT_LR_LEFT:
         x = CFRA - 1.0f;
         break;
