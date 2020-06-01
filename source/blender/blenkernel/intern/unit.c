@@ -713,6 +713,116 @@ static bool ch_is_op(char op)
   }
 }
 
+/**
+ * Helper function for #unit_distribute_negatives to find the next negative to distribute.
+ *
+ * \note This unecessarily skips the next space if it comes right after the "-" 
+ * just to make a more predictable output.
+ */
+static char *find_next_negative(const char *str, const char *remaining_str)
+{
+  char *str_found = strstr(remaining_str, "-");
+
+  if (str_found == NULL) {
+    return NULL;
+  }
+
+  /* Don't use the "-" from scientific notation, but make sure we can look backwards first. */
+  if ((str_found != str) && (*(str_found - 1) == 'e' || *(str_found - 1) == 'E')) {
+    return find_next_negative(str, str_found + 1);
+  }
+
+  if (*(str_found + 1) == ' ') {
+    str_found++;
+  }
+
+  return str_found + 1;
+}
+
+/**
+ * Helper function for #unit_distribute_negatives to find the next operation, including "-".
+ *
+ * \note This unecessarily skips the space before the operation character 
+ * just to make a more predictable output.
+ */
+static char *find_next_op(const char *str, char *remaining_str, int len_max)
+{
+  int i;
+  bool scientific_notation = false;
+  for (i = 0; i < len_max; i++) {
+    if (remaining_str[i] == '\0') {
+      return remaining_str + i;
+    }
+
+    if (ch_is_op(remaining_str[i])) {
+      if (scientific_notation) {
+        scientific_notation = false;
+        continue;
+      }
+
+      /* Make sure we don't look backwards before the start of the string. */
+      if (remaining_str != str && i != 0) {
+        /* Check for scientific notation. */
+        if (remaining_str[i - 1] == 'e' || remaining_str[i - 1] == 'E') {
+          scientific_notation = true;
+          continue;
+        }
+
+        /* Return position before a space character. */
+        if (remaining_str[i - 1] == ' ') {
+          i--;
+        }
+      }
+
+      return remaining_str + i;
+    }
+  }
+  BLI_assert(!"String should be NULL terminated");
+  return remaining_str + i;
+}
+
+/**
+ * Put parentheses around blocks of values after negative signs to get rid of an implied "+"
+ * between numbers without an operation between them. For example:
+ *
+ * "-1m50cm + 1 - 2m50cm"  ->  "-(1m50cm) + 1 - (2m50cm)"
+ */
+static bool unit_distribute_negatives(char *str, const int len_max)
+{
+  bool changed = false;
+
+  char *remaining_str = str;
+  int remaining_str_len = len_max;
+  int ofs = 0;
+  while ((remaining_str = find_next_negative(str, remaining_str)) != NULL) {
+    ofs = (int)(remaining_str - str);
+
+    /* Exit early in the unlikely situation that we've run out of length to add the parentheses. */
+    remaining_str_len = len_max - ofs;
+    if (remaining_str_len <= 2) {
+      return changed;
+    }
+
+    changed = true;
+
+    /* Add '(', shift the following characters to the right to make space. */
+    memmove(remaining_str + 1, remaining_str, remaining_str_len - 1);
+    *remaining_str = '(';
+
+    /* Add the ')' before the next operation or at the end. */
+    remaining_str = find_next_op(str, remaining_str + 1, remaining_str_len);
+    memmove(remaining_str + 1, remaining_str, remaining_str_len - 3);
+    *remaining_str = ')';
+
+    /* Only move forward by 1 even though we added two characters. Minus signs need to be able to
+     * apply to the next block of values too. */
+    remaining_str += 1;
+    remaining_str_len -= 1;
+  }
+
+  return changed;
+}
+
 static int unit_scale_str(char *str,
                           int len_max,
                           char *str_tmp,
@@ -895,6 +1005,9 @@ bool bUnit_ReplaceString(
   double scale_pref_base = scale_pref;
   char str_tmp[TEMP_STR_SIZE];
   bool changed = false;
+
+  /* Fix cases like "-1m50cm" which would evaluate to -0.5m without this. */
+  changed |= unit_distribute_negatives(str, len_max);
 
   /* Try to find a default unit from current or previous string. */
   default_unit = unit_detect_from_str(usys, str, str_prev);
