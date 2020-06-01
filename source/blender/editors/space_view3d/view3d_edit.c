@@ -3349,7 +3349,7 @@ void VIEW3D_OT_view_center_pick(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name View Camera Center Operator
+/** \name Frame Camera Bounds Operator
  * \{ */
 
 static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3386,8 +3386,8 @@ static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_view_center_camera(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "View Camera Center";
-  ot->description = "Center the camera view";
+  ot->name = "Frame Camera Bounds";
+  ot->description = "Center the camera view, resizing the view to fit its bounds";
   ot->idname = "VIEW3D_OT_view_center_camera";
 
   /* api callbacks */
