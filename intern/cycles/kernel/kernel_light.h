@@ -249,13 +249,13 @@ ccl_device float3 background_map_sample(KernelGlobals *kg, float randu, float ra
   float u = (index_u + du) / res_x;
 
   /* compute pdf */
-  float denom = cdf_last_u.x * cdf_last_v.x;
   float sin_theta = sinf(M_PI_F * v);
+  float denom = (M_2PI_F * M_PI_F * sin_theta) * cdf_last_u.x * cdf_last_v.x;
 
   if (sin_theta == 0.0f || denom == 0.0f)
     *pdf = 0.0f;
   else
-    *pdf = (cdf_u.x * cdf_v.x) / (M_2PI_F * M_PI_F * sin_theta * denom);
+    *pdf = (cdf_u.x * cdf_v.x) / denom;
 
   /* compute direction */
   return equirectangular_to_direction(u, v);
@@ -284,7 +284,7 @@ ccl_device float background_map_pdf(KernelGlobals *kg, float3 direction)
                                        index_v * cdf_width + res_x);
   float2 cdf_last_v = kernel_tex_fetch(__light_background_marginal_cdf, res_y);
 
-  float denom = cdf_last_u.x * cdf_last_v.x;
+  float denom = (M_2PI_F * M_PI_F * sin_theta) * cdf_last_u.x * cdf_last_v.x;
 
   if (denom == 0.0f)
     return 0.0f;
@@ -294,7 +294,7 @@ ccl_device float background_map_pdf(KernelGlobals *kg, float3 direction)
                                   index_v * cdf_width + index_u);
   float2 cdf_v = kernel_tex_fetch(__light_background_marginal_cdf, index_v);
 
-  return (cdf_u.x * cdf_v.x) / (M_2PI_F * M_PI_F * sin_theta * denom);
+  return (cdf_u.x * cdf_v.x) / denom;
 }
 
 ccl_device_inline bool background_portal_data_fetch_and_check_side(
