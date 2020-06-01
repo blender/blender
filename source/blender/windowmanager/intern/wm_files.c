@@ -516,9 +516,13 @@ static void wm_file_read_post(bContext *C,
           BPY_execute_string(
               C, (const char *[]){"bl_app_template_utils", NULL}, "bl_app_template_utils.reset()");
         }
+      }
+
+      if (use_userdef) {
         /* sync addons, these may have changed from the defaults */
         BPY_execute_string(C, (const char *[]){"addon_utils", NULL}, "addon_utils.reset_all()");
       }
+
       if (use_data) {
         BPY_python_reset(C);
       }
@@ -767,9 +771,9 @@ const char *WM_init_state_app_template_get(void)
 void wm_homefile_read(bContext *C,
                       ReportList *reports,
                       bool use_factory_settings,
-                      bool use_empty_data,
-                      bool use_data,
-                      bool use_userdef,
+                      const bool use_empty_data,
+                      const bool use_data,
+                      const bool use_userdef,
                       const char *filepath_startup_override,
                       const char *app_template_override,
                       bool *r_is_factory_startup)
@@ -807,6 +811,20 @@ void wm_homefile_read(bContext *C,
 
   if ((G.f & G_FLAG_SCRIPT_OVERRIDE_PREF) == 0) {
     SET_FLAG_FROM_TEST(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_FLAG_SCRIPT_AUTOEXEC);
+  }
+
+  if (use_userdef) {
+#ifdef WITH_PYTHON
+    /* This only runs once Blender has already started. */
+    if (CTX_py_init_get(C)) {
+      /* This is restored by 'wm_file_read_post', disable before loading any preferences
+       * so an add-on can read their own preferences when un-registering, see T67577.
+       *
+       * Note that this would fit into a matching 'wm_file_read_pre' function,
+       * but this gets complicated by blend files not always loading, call inline instead. */
+      BPY_execute_string(C, (const char *[]){"addon_utils", NULL}, "addon_utils.disable_all()");
+    }
+#endif /* WITH_PYTHON */
   }
 
   if (use_data) {

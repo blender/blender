@@ -33,9 +33,9 @@ void wm_history_file_read(void);
 void wm_homefile_read(struct bContext *C,
                       struct ReportList *reports,
                       bool use_factory_settings,
-                      bool use_empty_data,
-                      bool use_data,
-                      bool use_userdef,
+                      const bool use_empty_data,
+                      const bool use_data,
+                      const bool use_userdef,
                       const char *filepath_startup_override,
                       const char *app_template_override,
                       bool *r_is_factory_startup);
