@@ -395,7 +395,7 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
   }
   if (shaderface->enabled_tex_mask > 0) {
     printf("Samplers {\n");
-    for (int i = 0; i < shaderface->ubo_len; i++) {
+    for (int i = 0; i < shaderface->uniform_len; i++) {
       GPUShaderInput *input = shaderface->inputs + shaderface->attribute_len +
                               shaderface->ubo_len + i;
       if (input->binding != -1) {
