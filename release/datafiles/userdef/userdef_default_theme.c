@@ -496,9 +496,6 @@ const bTheme U_theme_default = {
     .info_property_text = RGBA(0xffffffff),
     .info_operator = RGBA(0x3ace87ff),
     .info_operator_text = RGBA(0xffffffff),
-    .info_report_error = RGBA(0x990000ff),
-    .info_report_warning = RGBA(0xb36a00ff),
-    .info_report_info = RGBA(0x1d4383ff),
   },
   .space_action = {
     .back = RGBA(0x42424200),
