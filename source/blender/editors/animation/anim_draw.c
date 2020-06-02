@@ -62,67 +62,6 @@
 /* *************************************************** */
 /* CURRENT FRAME DRAWING */
 
-/* Draw current frame number in a little green box beside the current frame indicator */
-void ANIM_draw_cfra_number(const bContext *C, View2D *v2d, short flag)
-{
-  Scene *scene = CTX_data_scene(C);
-  const float time = scene->r.cfra + scene->r.subframe;
-  const float cfra = (float)(time * scene->r.framelen);
-  const bool show_time = (flag & DRAWCFRA_UNIT_SECONDS) != 0;
-
-  const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  uchar col[4];
-  float color[4];
-  float xscale, x, y;
-  char numstr[32] = "  t  "; /* t is the character to start replacing from */
-  float hlen;
-  int slen;
-
-  /* because the frame number text is subject to the same scaling as the contents of the view */
-  UI_view2d_scale_get(v2d, &xscale, NULL);
-  GPU_matrix_push();
-  GPU_matrix_scale_2f(1.0f / xscale, 1.0f);
-
-  /* get timecode string
-   * - padding on str-buf passed so that it doesn't sit on the frame indicator
-   */
-  if (show_time) {
-    BLI_timecode_string_from_time(
-        &numstr[2], sizeof(numstr) - 2, 0, FRA2TIME(cfra), FPS, U.timecode_style);
-  }
-  else {
-    BLI_timecode_string_from_time_seconds(&numstr[2], sizeof(numstr) - 2, 1, cfra);
-  }
-
-  slen = UI_fontstyle_string_width(fstyle, numstr) - 1;
-  hlen = slen * 0.5f;
-
-  /* get starting coordinates for drawing */
-  x = cfra * xscale;
-  y = -0.1f * U.widget_unit;
-
-  /* draw green box around/behind text */
-  UI_GetThemeColor4fv(TH_CFRAME, color);
-  color[3] = 3.0f;
-
-  UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_aa(true,
-                      x - hlen - 0.1f * U.widget_unit,
-                      y + 3.0f,
-                      x + hlen + 0.1f * U.widget_unit,
-                      y - 3.0f + U.widget_unit,
-                      0.1f * U.widget_unit,
-                      color);
-
-  /* draw current frame number */
-  UI_GetThemeColor4ubv(TH_TEXT_HI, col);
-  UI_fontstyle_draw_simple(
-      fstyle, x - hlen - 0.15f * U.widget_unit, y + 0.28f * U.widget_unit, numstr, col);
-
-  /* restore view transform */
-  GPU_matrix_pop();
-}
-
 /* General call for drawing current frame indicator in animation editor */
 void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 {

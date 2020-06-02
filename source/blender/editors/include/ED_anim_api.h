@@ -652,9 +652,6 @@ enum eAnimEditDraw_CurrentFrame {
 /* main call to draw current-frame indicator in an Animation Editor */
 void ANIM_draw_cfra(const struct bContext *C, struct View2D *v2d, short flag);
 
-/* main call to draw "number box" in scrollbar for current frame indicator */
-void ANIM_draw_cfra_number(const struct bContext *C, struct View2D *v2d, short flag);
-
 /* ------------- Preview Range Drawing -------------- */
 
 /* main call to draw preview range curtains */
