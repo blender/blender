@@ -159,47 +159,6 @@ void EEVEE_shadows_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 }
 
-/* Add a shadow caster to the shadowpasses */
-void EEVEE_shadows_caster_add(EEVEE_ViewLayerData *UNUSED(sldata),
-                              EEVEE_StorageList *stl,
-                              struct GPUBatch *geom,
-                              Object *ob)
-{
-  DRW_shgroup_call(stl->g_data->shadow_shgrp, geom, ob);
-}
-
-void EEVEE_shadows_caster_material_add(EEVEE_ViewLayerData *sldata,
-                                       EEVEE_PassList *psl,
-                                       struct GPUMaterial *gpumat,
-                                       struct GPUBatch *geom,
-                                       struct Object *ob,
-                                       const float *alpha_threshold)
-{
-  /* TODO / PERF : reuse the same shading group for objects with the same material */
-  DRWShadingGroup *grp = DRW_shgroup_material_create(gpumat, psl->shadow_pass);
-
-  if (grp == NULL) {
-    return;
-  }
-
-  /* Unfortunately needed for correctness but not 99% of the time not needed.
-   * TODO detect when needed? */
-  DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
-  DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
-  DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
-  DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
-  DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
-  DRW_shgroup_uniform_block(
-      grp, "renderpass_block", EEVEE_material_default_render_pass_ubo_get(sldata));
-  DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-
-  if (alpha_threshold != NULL) {
-    DRW_shgroup_uniform_float(grp, "alphaThreshold", alpha_threshold, 1);
-  }
-
-  DRW_shgroup_call(grp, geom, ob);
-}
-
 /* Make that object update shadow casting lights inside its influence bounding box. */
 void EEVEE_shadows_caster_register(EEVEE_ViewLayerData *sldata, Object *ob)
 {
@@ -470,8 +429,7 @@ void EEVEE_shadow_output_init(EEVEE_ViewLayerData *sldata,
   DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
   DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
   DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-  DRW_shgroup_uniform_block(
-      grp, "renderpass_block", EEVEE_material_default_render_pass_ubo_get(sldata));
+  DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
   DRW_shgroup_uniform_texture_ref(grp, "shadowCubeTexture", &sldata->shadow_cube_pool);
   DRW_shgroup_uniform_texture_ref(grp, "shadowCascadeTexture", &sldata->shadow_cascade_pool);
 

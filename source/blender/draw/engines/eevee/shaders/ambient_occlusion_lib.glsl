@@ -6,13 +6,9 @@
 
 #if defined(MESH_SHADER)
 #  if !defined(USE_ALPHA_HASH)
-#    if !defined(USE_ALPHA_CLIP)
-#      if !defined(SHADOW_SHADER)
-#        if !defined(USE_MULTIPLY)
-#          if !defined(USE_ALPHA_BLEND)
-#            define ENABLE_DEFERED_AO
-#          endif
-#        endif
+#    if !defined(DEPTH_SHADER)
+#      if !defined(USE_ALPHA_BLEND)
+#        define ENABLE_DEFERED_AO
 #      endif
 #    endif
 #  endif

@@ -398,6 +398,7 @@ GPUMaterial *DRW_shader_find_from_material(Material *ma,
 
 GPUMaterial *DRW_shader_create_from_world(struct Scene *scene,
                                           World *wo,
+                                          struct bNodeTree *ntree,
                                           const void *engine_type,
                                           const int options,
                                           const bool is_volume_shader,
@@ -408,7 +409,7 @@ GPUMaterial *DRW_shader_create_from_world(struct Scene *scene,
                                           bool deferred)
 {
   GPUMaterial *mat = NULL;
-  if (DRW_state_is_image_render()) {
+  if (DRW_state_is_image_render() || !deferred) {
     mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine_type, options);
   }
 
@@ -416,7 +417,7 @@ GPUMaterial *DRW_shader_create_from_world(struct Scene *scene,
     scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
     mat = GPU_material_from_nodetree(scene,
                                      NULL,
-                                     wo->nodetree,
+                                     ntree,
                                      &wo->gpumaterial,
                                      engine_type,
                                      options,
@@ -437,6 +438,7 @@ GPUMaterial *DRW_shader_create_from_world(struct Scene *scene,
 
 GPUMaterial *DRW_shader_create_from_material(struct Scene *scene,
                                              Material *ma,
+                                             struct bNodeTree *ntree,
                                              const void *engine_type,
                                              const int options,
                                              const bool is_volume_shader,
@@ -447,7 +449,7 @@ GPUMaterial *DRW_shader_create_from_material(struct Scene *scene,
                                              bool deferred)
 {
   GPUMaterial *mat = NULL;
-  if (DRW_state_is_image_render()) {
+  if (DRW_state_is_image_render() || !deferred) {
     mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine_type, options);
   }
 
@@ -455,7 +457,7 @@ GPUMaterial *DRW_shader_create_from_material(struct Scene *scene,
     scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
     mat = GPU_material_from_nodetree(scene,
                                      ma,
-                                     ma->nodetree,
+                                     ntree,
                                      &ma->gpumaterial,
                                      engine_type,
                                      options,

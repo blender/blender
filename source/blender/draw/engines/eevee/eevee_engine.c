@@ -88,7 +88,7 @@ static void eevee_engine_init(void *ved)
    * `EEVEE_effects_init` needs to go second for TAA. */
   EEVEE_renderpasses_init(vedata);
   EEVEE_effects_init(sldata, vedata, camera, false);
-  EEVEE_materials_init(sldata, stl, fbl);
+  EEVEE_materials_init(sldata, vedata, stl, fbl);
   EEVEE_shadows_init(sldata);
   EEVEE_lightprobes_init(sldata, vedata);
 }
@@ -230,7 +230,7 @@ static void eevee_draw_scene(void *vedata)
       BLI_halton_3d(primes, offset, samp, r);
       EEVEE_update_noise(psl, fbl, r);
       EEVEE_volumes_set_jitter(sldata, samp - 1);
-      EEVEE_materials_init(sldata, stl, fbl);
+      EEVEE_materials_init(sldata, vedata, stl, fbl);
     }
     /* Copy previous persmat to UBO data */
     copy_m4_m4(sldata->common_data.prev_persmat, stl->effects->prev_persmat);
@@ -274,8 +274,7 @@ static void eevee_draw_scene(void *vedata)
 
     /* Depth prepass */
     DRW_stats_group_start("Prepass");
-    DRW_draw_pass(psl->depth_pass);
-    DRW_draw_pass(psl->depth_pass_cull);
+    DRW_draw_pass(psl->depth_ps);
     DRW_stats_group_end();
 
     /* Create minmax texture */
@@ -289,9 +288,9 @@ static void eevee_draw_scene(void *vedata)
     /* Shading pass */
     DRW_stats_group_start("Shading");
     if (DRW_state_draw_background()) {
-      DRW_draw_pass(psl->background_pass);
+      DRW_draw_pass(psl->background_ps);
     }
-    EEVEE_materials_draw_opaque(sldata, psl);
+    DRW_draw_pass(psl->material_ps);
     EEVEE_subsurface_data_render(sldata, vedata);
     DRW_stats_group_end();
 
@@ -306,9 +305,8 @@ static void eevee_draw_scene(void *vedata)
 
     /* Opaque refraction */
     DRW_stats_group_start("Opaque Refraction");
-    DRW_draw_pass(psl->refract_depth_pass);
-    DRW_draw_pass(psl->refract_depth_pass_cull);
-    DRW_draw_pass(psl->refract_pass);
+    DRW_draw_pass(psl->depth_refract_ps);
+    DRW_draw_pass(psl->material_refract_ps);
     DRW_stats_group_end();
 
     /* Volumetrics Resolve Opaque */

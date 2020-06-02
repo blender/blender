@@ -29,7 +29,9 @@
 #include "DEG_depsgraph_query.h"
 
 #include "GPU_extensions.h"
+#include "GPU_material.h"
 #include "GPU_texture.h"
+
 #include "eevee_private.h"
 
 static struct {
@@ -83,6 +85,7 @@ void EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
   effects->sss_sample_count = 1 + scene_eval->eevee.sss_samples * 2;
+  effects->sss_surface_count = 0;
   common_data->sss_jitter_threshold = scene_eval->eevee.sss_jitter_threshold;
 }
 
@@ -221,70 +224,77 @@ void EEVEE_subsurface_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 
 void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,
                                EEVEE_Data *vedata,
-                               uint sss_id,
-                               struct GPUUniformBuffer *sss_profile)
+                               Material *ma,
+                               DRWShadingGroup *shgrp,
+                               struct GPUMaterial *gpumat)
 {
-  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_EffectsInfo *effects = stl->effects;
-  struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
-  GPUTexture **depth_src = GPU_depth_blitting_workaround() ? &effects->sss_stencil : &dtxl->depth;
-
-  DRWShadingGroup *grp = DRW_shgroup_create(e_data.sss_sh[0], psl->sss_blur_ps);
-  DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-  DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", depth_src);
-  DRW_shgroup_uniform_texture_ref(grp, "sssIrradiance", &effects->sss_irradiance);
-  DRW_shgroup_uniform_texture_ref(grp, "sssRadius", &effects->sss_radius);
-  DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
-  DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-  DRW_shgroup_uniform_block(
-      grp, "renderpass_block", EEVEE_material_default_render_pass_ubo_get(sldata));
-  DRW_shgroup_stencil_mask(grp, sss_id);
-  DRW_shgroup_call(grp, quad, NULL);
-
-  grp = DRW_shgroup_create(e_data.sss_sh[1], psl->sss_resolve_ps);
-  DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-  DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", depth_src);
-  DRW_shgroup_uniform_texture_ref(grp, "sssIrradiance", &effects->sss_blur);
-  DRW_shgroup_uniform_texture_ref(grp, "sssAlbedo", &effects->sss_albedo);
-  DRW_shgroup_uniform_texture_ref(grp, "sssRadius", &effects->sss_radius);
-  DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
-  DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-  DRW_shgroup_uniform_block(
-      grp, "renderpass_block", EEVEE_material_default_render_pass_ubo_get(sldata));
-  DRW_shgroup_stencil_mask(grp, sss_id);
-  DRW_shgroup_call(grp, quad, NULL);
-}
-
-void EEVEE_subsurface_translucency_add_pass(EEVEE_ViewLayerData *sldata,
-                                            EEVEE_Data *vedata,
-                                            uint sss_id,
-                                            struct GPUUniformBuffer *sss_profile,
-                                            GPUTexture *sss_tex_profile)
-{
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  EEVEE_PassList *psl = vedata->psl;
-  EEVEE_StorageList *stl = vedata->stl;
-  EEVEE_EffectsInfo *effects = stl->effects;
-  struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
   GPUTexture **depth_src = GPU_depth_blitting_workaround() ? &effects->sss_stencil : &dtxl->depth;
 
-  DRWShadingGroup *grp = DRW_shgroup_create(e_data.sss_sh[2], psl->sss_translucency_ps);
-  DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-  DRW_shgroup_uniform_texture(grp, "sssTexProfile", sss_tex_profile);
-  DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", depth_src);
-  DRW_shgroup_uniform_texture_ref(grp, "sssRadius", &effects->sss_radius);
-  DRW_shgroup_uniform_texture_ref(grp, "sssShadowCubes", &sldata->shadow_cube_pool);
-  DRW_shgroup_uniform_texture_ref(grp, "sssShadowCascades", &sldata->shadow_cascade_pool);
-  DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
-  DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
-  DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
-  DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-  DRW_shgroup_uniform_block(
-      grp, "renderpass_block", EEVEE_material_default_render_pass_ubo_get(sldata));
-  DRW_shgroup_stencil_mask(grp, sss_id);
-  DRW_shgroup_call(grp, quad, NULL);
+  struct GPUTexture *sss_tex_profile = NULL;
+  struct GPUUniformBuffer *sss_profile = GPU_material_sss_profile_get(
+      gpumat, stl->effects->sss_sample_count, &sss_tex_profile);
+
+  if (!sss_profile) {
+    BLI_assert(0 && "SSS pass requested but no SSS data was found");
+    return;
+  }
+
+  /* Limit of 8 bit stencil buffer. ID 255 is refraction. */
+  if (effects->sss_surface_count >= 254) {
+    /* TODO : display message. */
+    printf("Error: Too many different Subsurface shader in the scene.\n");
+    return;
+  }
+
+  int sss_id = ++(effects->sss_surface_count);
+  /* Make main pass output stencil mask. */
+  DRW_shgroup_stencil_mask(shgrp, sss_id);
+
+  {
+    DRWShadingGroup *grp = DRW_shgroup_create(e_data.sss_sh[0], psl->sss_blur_ps);
+    DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
+    DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", depth_src);
+    DRW_shgroup_uniform_texture_ref(grp, "sssIrradiance", &effects->sss_irradiance);
+    DRW_shgroup_uniform_texture_ref(grp, "sssRadius", &effects->sss_radius);
+    DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
+    DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+    DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
+    DRW_shgroup_stencil_mask(grp, sss_id);
+    DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
+
+    grp = DRW_shgroup_create(e_data.sss_sh[1], psl->sss_resolve_ps);
+    DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
+    DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", depth_src);
+    DRW_shgroup_uniform_texture_ref(grp, "sssIrradiance", &effects->sss_blur);
+    DRW_shgroup_uniform_texture_ref(grp, "sssAlbedo", &effects->sss_albedo);
+    DRW_shgroup_uniform_texture_ref(grp, "sssRadius", &effects->sss_radius);
+    DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
+    DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+    DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
+    DRW_shgroup_stencil_mask(grp, sss_id);
+    DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
+  }
+
+  if (ma->blend_flag & MA_BL_TRANSLUCENCY) {
+    DRWShadingGroup *grp = DRW_shgroup_create(e_data.sss_sh[2], psl->sss_translucency_ps);
+    DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
+    DRW_shgroup_uniform_texture(grp, "sssTexProfile", sss_tex_profile);
+    DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", depth_src);
+    DRW_shgroup_uniform_texture_ref(grp, "sssRadius", &effects->sss_radius);
+    DRW_shgroup_uniform_texture_ref(grp, "sssShadowCubes", &sldata->shadow_cube_pool);
+    DRW_shgroup_uniform_texture_ref(grp, "sssShadowCascades", &sldata->shadow_cascade_pool);
+    DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
+    DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
+    DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
+    DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+    DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
+    DRW_shgroup_stencil_mask(grp, sss_id);
+    DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
+  }
 }
 
 void EEVEE_subsurface_data_render(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
@@ -310,8 +320,7 @@ void EEVEE_subsurface_data_render(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
                                    GPU_ATTACHMENT_TEXTURE(effects->sss_albedo)});
 
     GPU_framebuffer_bind(fbl->main_fb);
-    DRW_draw_pass(psl->sss_pass);
-    DRW_draw_pass(psl->sss_pass_cull);
+    DRW_draw_pass(psl->material_sss_ps);
 
     /* Restore */
     GPU_framebuffer_ensure_config(&fbl->main_fb,

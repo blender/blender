@@ -228,7 +228,11 @@ static void drw_shgroup_uniform(DRWShadingGroup *shgroup,
                                 int arraysize)
 {
   int location;
-  if (ELEM(type, DRW_UNIFORM_BLOCK, DRW_UNIFORM_BLOCK_PERSIST)) {
+  if (ELEM(type,
+           DRW_UNIFORM_BLOCK,
+           DRW_UNIFORM_BLOCK_PERSIST,
+           DRW_UNIFORM_BLOCK_REF,
+           DRW_UNIFORM_BLOCK_REF_PERSIST)) {
     location = GPU_shader_get_uniform_block(shgroup->shader, name);
   }
   else {
@@ -263,6 +267,22 @@ void DRW_shgroup_uniform_texture_persistent(DRWShadingGroup *shgroup,
   drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_TEXTURE_PERSIST, tex, 0, 1);
 }
 
+void DRW_shgroup_uniform_texture_ref(DRWShadingGroup *shgroup, const char *name, GPUTexture **tex)
+{
+  BLI_assert(tex != NULL);
+  drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_TEXTURE_REF, tex, 0, 1);
+}
+
+/* Same as DRW_shgroup_uniform_texture_ref but is guaranteed to be bound if shader does not change
+ * between shgrp. */
+void DRW_shgroup_uniform_texture_ref_persistent(DRWShadingGroup *shgroup,
+                                                const char *name,
+                                                GPUTexture **tex)
+{
+  BLI_assert(tex != NULL);
+  drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_TEXTURE_REF_PERSIST, tex, 0, 1);
+}
+
 void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup,
                                const char *name,
                                const GPUUniformBuffer *ubo)
@@ -281,9 +301,22 @@ void DRW_shgroup_uniform_block_persistent(DRWShadingGroup *shgroup,
   drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_BLOCK_PERSIST, ubo, 0, 1);
 }
 
-void DRW_shgroup_uniform_texture_ref(DRWShadingGroup *shgroup, const char *name, GPUTexture **tex)
+void DRW_shgroup_uniform_block_ref(DRWShadingGroup *shgroup,
+                                   const char *name,
+                                   GPUUniformBuffer **ubo)
 {
-  drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_TEXTURE_REF, tex, 0, 1);
+  BLI_assert(ubo != NULL);
+  drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_BLOCK_REF, ubo, 0, 1);
+}
+
+/* Same as DRW_shgroup_uniform_block_ref but is guaranteed to be bound if shader does not change
+ * between shgrp. */
+void DRW_shgroup_uniform_block_ref_persistent(DRWShadingGroup *shgroup,
+                                              const char *name,
+                                              GPUUniformBuffer **ubo)
+{
+  BLI_assert(ubo != NULL);
+  drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_BLOCK_REF_PERSIST, ubo, 0, 1);
 }
 
 void DRW_shgroup_uniform_bool(DRWShadingGroup *shgroup,
@@ -1290,15 +1323,14 @@ static void drw_shgroup_material_texture(DRWShadingGroup *grp,
                                          int textarget)
 {
   GPUTexture *gputex = GPU_texture_from_blender(tex->ima, tex->iuser, NULL, textarget);
-  DRW_shgroup_uniform_texture(grp, name, gputex);
+  DRW_shgroup_uniform_texture_persistent(grp, name, gputex);
 
   GPUTexture **gputex_ref = BLI_memblock_alloc(DST.vmempool->images);
   *gputex_ref = gputex;
   GPU_texture_ref(gputex);
 }
 
-static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp,
-                                                    struct GPUMaterial *material)
+void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, struct GPUMaterial *material)
 {
   ListBase textures = GPU_material_textures(material);
 
@@ -1316,7 +1348,7 @@ static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp,
     }
     else if (tex->colorband) {
       /* Color Ramp */
-      DRW_shgroup_uniform_texture(grp, tex->sampler_name, *tex->colorband);
+      DRW_shgroup_uniform_texture_persistent(grp, tex->sampler_name, *tex->colorband);
     }
   }
 
@@ -1324,8 +1356,6 @@ static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp,
   if (ubo != NULL) {
     DRW_shgroup_uniform_block(grp, GPU_UBO_BLOCK_NAME, ubo);
   }
-
-  return grp;
 }
 
 GPUVertFormat *DRW_shgroup_instance_format_array(const DRWInstanceAttrFormat attrs[],
@@ -1350,7 +1380,7 @@ DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPa
 
   if (shgroup) {
     drw_shgroup_init(shgroup, GPU_pass_shader_get(gpupass));
-    drw_shgroup_material_inputs(shgroup, material);
+    DRW_shgroup_add_material_resources(shgroup, material);
   }
   return shgroup;
 }
@@ -1901,7 +1931,26 @@ DRWPass *DRW_pass_create(const char *name, DRWState state)
   pass->handle = DST.pass_handle;
   DRW_handle_increment(&DST.pass_handle);
 
+  pass->original = NULL;
+  pass->next = NULL;
+
   return pass;
+}
+
+DRWPass *DRW_pass_create_instance(const char *name, DRWPass *original, DRWState state)
+{
+  DRWPass *pass = DRW_pass_create(name, state);
+  pass->original = original;
+
+  return pass;
+}
+
+/* Link two passes so that they are both rendered if the first one is being drawn. */
+void DRW_pass_link(DRWPass *first, DRWPass *second)
+{
+  BLI_assert(first != second);
+  BLI_assert(first->next == NULL);
+  first->next = second;
 }
 
 bool DRW_pass_is_empty(DRWPass *pass)

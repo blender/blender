@@ -151,7 +151,7 @@ bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
    * `EEVEE_effects_init` needs to go second for TAA. */
   EEVEE_renderpasses_init(vedata);
   EEVEE_effects_init(sldata, vedata, ob_camera_eval, false);
-  EEVEE_materials_init(sldata, stl, fbl);
+  EEVEE_materials_init(sldata, vedata, stl, fbl);
   EEVEE_shadows_init(sldata);
   EEVEE_lightprobes_init(sldata, vedata);
 
@@ -463,7 +463,7 @@ static void eevee_render_draw_background(EEVEE_Data *vedata)
                                  GPU_ATTACHMENT_NONE});
   GPU_framebuffer_bind(fbl->main_fb);
 
-  DRW_draw_pass(psl->background_pass);
+  DRW_draw_pass(psl->background_ps);
 
   GPU_framebuffer_ensure_config(&fbl->main_fb,
                                 {GPU_ATTACHMENT_LEAVE,
@@ -556,7 +556,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     EEVEE_update_noise(psl, fbl, r);
     EEVEE_temporal_sampling_matrices_calc(stl->effects, r);
     EEVEE_volumes_set_jitter(sldata, stl->effects->taa_current_sample - 1);
-    EEVEE_materials_init(sldata, stl, fbl);
+    EEVEE_materials_init(sldata, vedata, stl, fbl);
 
     /* Refresh Probes
      * Shadows needs to be updated for correct probes */
@@ -578,8 +578,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     GPU_framebuffer_bind(fbl->main_fb);
     GPU_framebuffer_clear_color_depth_stencil(fbl->main_fb, clear_col, clear_depth, clear_stencil);
     /* Depth prepass */
-    DRW_draw_pass(psl->depth_pass);
-    DRW_draw_pass(psl->depth_pass_cull);
+    DRW_draw_pass(psl->depth_ps);
     /* Create minmax texture */
     EEVEE_create_minmax_buffer(vedata, dtxl->depth, -1);
     EEVEE_occlusion_compute(sldata, vedata, dtxl->depth, -1);
@@ -587,16 +586,15 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     /* Shading pass */
     eevee_render_draw_background(vedata);
     GPU_framebuffer_bind(fbl->main_fb);
-    EEVEE_materials_draw_opaque(sldata, psl);
+    DRW_draw_pass(psl->material_ps);
     EEVEE_subsurface_data_render(sldata, vedata);
     /* Effects pre-transparency */
     EEVEE_subsurface_compute(sldata, vedata);
     EEVEE_reflection_compute(sldata, vedata);
     EEVEE_refraction_compute(sldata, vedata);
     /* Opaque refraction */
-    DRW_draw_pass(psl->refract_depth_pass);
-    DRW_draw_pass(psl->refract_depth_pass_cull);
-    DRW_draw_pass(psl->refract_pass);
+    DRW_draw_pass(psl->depth_refract_ps);
+    DRW_draw_pass(psl->material_refract_ps);
     /* Result NORMAL */
     eevee_render_result_normal(rl, viewname, rect, vedata, sldata);
     /* Volumetrics Resolve Opaque */

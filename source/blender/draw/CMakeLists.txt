@@ -34,6 +34,7 @@ set(INC
   ../imbuf
   ../makesdna
   ../makesrna
+  ../nodes
   ../render/extern/include
   ../render/intern/include
   ../windowmanager

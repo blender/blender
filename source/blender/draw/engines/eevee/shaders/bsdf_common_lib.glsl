@@ -928,7 +928,7 @@ Closure closure_emission(vec3 rgb)
 
 /* Breaking this across multiple lines causes issues for some older GLSL compilers. */
 /* clang-format off */
-#  if defined(MESH_SHADER) && !defined(USE_ALPHA_HASH) && !defined(USE_ALPHA_CLIP) && !defined(SHADOW_SHADER)
+#  if defined(MESH_SHADER) && !defined(DEPTH_SHADER)
 /* clang-format on */
 #    ifndef USE_ALPHA_BLEND
 layout(location = 0) out vec4 outRadiance;
@@ -1001,6 +1001,10 @@ void main()
   outRadiance.rgb += cl.sss_irradiance.rgb * cl.sss_albedo.rgb * fac;
 #    endif
 
+#    ifdef LOOKDEV
+  gl_FragDepth = 0.0;
+#    endif
+
 #    ifndef USE_ALPHA_BLEND
   float alpha_div = 1.0 / max(1e-8, alpha);
   outRadiance.rgb *= alpha_div;
@@ -1011,6 +1015,6 @@ void main()
 #    endif
 }
 
-#  endif /* MESH_SHADER && !SHADOW_SHADER */
+#  endif /* MESH_SHADER */
 
 #endif /* VOLUMETRICS */

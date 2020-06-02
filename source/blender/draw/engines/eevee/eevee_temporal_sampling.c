@@ -292,8 +292,7 @@ void EEVEE_temporal_sampling_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data 
     DRW_shgroup_uniform_texture_ref(grp, "colorHistoryBuffer", &txl->taa_history);
     DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &effects->source_buffer);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-    DRW_shgroup_uniform_block(
-        grp, "renderpass_block", EEVEE_material_default_render_pass_ubo_get(sldata));
+    DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
 
     if (effects->enabled_effects & EFFECT_TAA_REPROJECT) {
       // DefaultTextureList *dtxl = DRW_viewport_texture_list_get();

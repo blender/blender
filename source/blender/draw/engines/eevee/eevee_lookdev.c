@@ -34,6 +34,8 @@
 
 #include "ED_screen.h"
 
+#include "GPU_material.h"
+
 #include "UI_resources.h"
 
 #include "eevee_lightcache.h"
@@ -54,6 +56,43 @@ static void eevee_lookdev_lightcache_delete(EEVEE_Data *vedata)
   DRW_TEXTURE_FREE_SAFE(txl->lookdev_cube_tx);
   g_data->studiolight_index = -1;
   g_data->studiolight_rot_z = 0.0f;
+}
+
+static void eevee_lookdev_hdri_preview_init(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata)
+{
+  EEVEE_PassList *psl = vedata->psl;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  Scene *scene = draw_ctx->scene;
+  DRWShadingGroup *grp;
+
+  struct GPUBatch *sphere = DRW_cache_sphere_get();
+  int mat_options = VAR_MAT_MESH | VAR_MAT_LOOKDEV;
+
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS |
+                   DRW_STATE_CULL_BACK;
+
+  {
+    Material *ma = EEVEE_material_default_diffuse_get();
+    GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, ma, NULL, mat_options);
+    struct GPUShader *sh = GPU_material_get_shader(gpumat);
+
+    DRW_PASS_CREATE(psl->lookdev_diffuse_pass, state);
+    grp = DRW_shgroup_create(sh, psl->lookdev_diffuse_pass);
+    EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, false, false);
+    DRW_shgroup_add_material_resources(grp, gpumat);
+    DRW_shgroup_call(grp, sphere, NULL);
+  }
+  {
+    Material *ma = EEVEE_material_default_glossy_get();
+    GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, ma, NULL, mat_options);
+    struct GPUShader *sh = GPU_material_get_shader(gpumat);
+
+    DRW_PASS_CREATE(psl->lookdev_glossy_pass, state);
+    grp = DRW_shgroup_create(sh, psl->lookdev_glossy_pass);
+    EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, false, false);
+    DRW_shgroup_add_material_resources(grp, gpumat);
+    DRW_shgroup_call(grp, sphere, NULL);
+  }
 }
 
 void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
@@ -106,6 +145,8 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       effects->anchor[1] = rect->ymin;
       EEVEE_temporal_sampling_reset(vedata);
     }
+
+    eevee_lookdev_hdri_preview_init(vedata, sldata);
   }
 
   if (LOOK_DEV_STUDIO_LIGHT_ENABLED(v3d)) {
@@ -176,8 +217,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
         DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
         DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
         DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-        DRW_shgroup_uniform_block(
-            grp, "renderpass_block", EEVEE_material_default_render_pass_ubo_get(sldata));
+        DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
       }
 
       DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);

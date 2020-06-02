@@ -4,11 +4,12 @@ in vec3 pos;
 in vec3 nor;
 #endif
 
+#ifdef MESH_SHADER
 out vec3 worldPosition;
 out vec3 viewPosition;
-
 out vec3 worldNormal;
 out vec3 viewNormal;
+#endif
 
 #ifdef HAIR_SHADER
 out vec3 hairTangent;
@@ -41,22 +42,28 @@ void main()
                               hairThickness,
                               hairThickTime);
   worldNormal = cross(hairTangent, binor);
-  worldPosition = pos;
+  vec3 world_pos = pos;
 #else
-  worldPosition = point_object_to_world(pos);
-  worldNormal = normalize(normal_object_to_world(nor));
+  vec3 world_pos = point_object_to_world(pos);
 #endif
+
+  gl_Position = point_world_to_ndc(world_pos);
+
+  /* Used for planar reflections */
+  gl_ClipDistance[0] = dot(vec4(world_pos, 1.0), clipPlanes[0]);
+
+#ifdef MESH_SHADER
+  worldPosition = world_pos;
+  viewPosition = point_world_to_view(worldPosition);
+
+#  ifndef HAIR_SHADER
+  worldNormal = normalize(normal_object_to_world(nor));
+#  endif
 
   /* No need to normalize since this is just a rotation. */
   viewNormal = normal_world_to_view(worldNormal);
-
-  viewPosition = point_world_to_view(worldPosition);
-  gl_Position = point_world_to_ndc(worldPosition);
-
-  /* Used for planar reflections */
-  gl_ClipDistance[0] = dot(vec4(worldPosition, 1.0), clipPlanes[0]);
-
-#ifdef USE_ATTR
+#  ifdef USE_ATTR
   pass_attr(pos);
+#  endif
 #endif
 }

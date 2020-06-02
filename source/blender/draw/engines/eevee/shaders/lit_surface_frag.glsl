@@ -177,7 +177,7 @@ void CLOSURE_NAME(vec3 N
   out_refr = vec3(0.0);
 #endif
 
-#if defined(SHADOW_SHADER) || defined(WORLD_BACKGROUND)
+#if defined(DEPTH_SHADER) || defined(WORLD_BACKGROUND)
   /* This makes shader resources become unused and avoid issues with samplers. (see T59747) */
   return;
 #else
