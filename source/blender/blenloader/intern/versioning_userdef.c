@@ -216,6 +216,12 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->tui.transparent_checker_size = U_theme_default.tui.transparent_checker_size;
   }
 
+  if (!USER_VERSION_ATLEAST(283, 18)) {
+    FROM_DEFAULT_V4_UCHAR(space_info.info_report_error);
+    FROM_DEFAULT_V4_UCHAR(space_info.info_report_warning);
+    FROM_DEFAULT_V4_UCHAR(space_info.info_report_info);
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
