@@ -1603,8 +1603,8 @@ static void icon_draw_cache_texture_flush_ex(GLuint texture,
   GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR);
   GPU_shader_bind(shader);
 
-  int img_loc = GPU_shader_get_uniform_ensure(shader, "image");
-  int data_loc = GPU_shader_get_uniform_ensure(shader, "calls_data");
+  int img_loc = GPU_shader_get_uniform(shader, "image");
+  int data_loc = GPU_shader_get_uniform(shader, "calls_data");
 
   glUniform1i(img_loc, 0);
   glUniform4fv(data_loc, ICON_DRAW_CACHE_SIZE * 3, (float *)texture_draw_calls->drawcall_cache);
@@ -1750,9 +1750,9 @@ static void icon_draw_texture(float x,
         GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR), alpha, alpha, alpha, alpha);
   }
 
-  glUniform1i(GPU_shader_get_uniform_ensure(shader, "image"), 0);
-  glUniform4f(GPU_shader_get_uniform_ensure(shader, "rect_icon"), x1, y1, x2, y2);
-  glUniform4f(GPU_shader_get_uniform_ensure(shader, "rect_geom"), x, y, x + w, y + h);
+  glUniform1i(GPU_shader_get_uniform(shader, "image"), 0);
+  glUniform4f(GPU_shader_get_uniform(shader, "rect_icon"), x1, y1, x2, y2);
+  glUniform4f(GPU_shader_get_uniform(shader, "rect_geom"), x, y, x + w, y + h);
 
   GPU_draw_primitive(GPU_PRIM_TRI_STRIP, 4);
 

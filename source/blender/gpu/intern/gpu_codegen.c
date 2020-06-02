@@ -1160,7 +1160,7 @@ static int count_active_texture_sampler(GPUShader *shader, char *source)
       if (*code != '\0') {
         char sampler_name[64];
         code = gpu_str_skip_token(code, sampler_name, sizeof(sampler_name));
-        int id = GPU_shader_get_uniform_ensure(shader, sampler_name);
+        int id = GPU_shader_get_uniform(shader, sampler_name);
 
         if (id == -1) {
           continue;

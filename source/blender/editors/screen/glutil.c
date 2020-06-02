@@ -83,7 +83,7 @@ static void immDrawPixelsTexSetupAttributes(IMMDrawPixelsTexState *state)
 /* To be used before calling immDrawPixelsTex
  * Default shader is GPU_SHADER_2D_IMAGE_COLOR
  * You can still set uniforms with :
- * GPU_shader_uniform_int(shader, GPU_shader_get_uniform_ensure(shader, "name"), 0);
+ * GPU_shader_uniform_int(shader, GPU_shader_get_uniform(shader, "name"), 0);
  * */
 IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
 {
@@ -191,7 +191,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
   /* NOTE: Shader could be null for GLSL OCIO drawing, it is fine, since
    * it does not need color.
    */
-  if (state->shader != NULL && GPU_shader_get_uniform_ensure(state->shader, "color") != -1) {
+  if (state->shader != NULL && GPU_shader_get_uniform(state->shader, "color") != -1) {
     immUniformColor4fv((color) ? color : white);
   }
 

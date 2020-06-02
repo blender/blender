@@ -574,13 +574,13 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
     alpha = 1.0f;
   }
 
-  glUniform1i(GPU_shader_get_uniform_ensure(shader, "image"), 0);
-  glUniform4f(GPU_shader_get_uniform_ensure(shader, "rect_icon"),
+  glUniform1i(GPU_shader_get_uniform(shader, "image"), 0);
+  glUniform4f(GPU_shader_get_uniform(shader, "rect_icon"),
               rect_tex.xmin,
               rect_tex.ymin,
               rect_tex.xmax,
               rect_tex.ymax);
-  glUniform4f(GPU_shader_get_uniform_ensure(shader, "rect_geom"),
+  glUniform4f(GPU_shader_get_uniform(shader, "rect_geom"),
               rect_geo.xmin,
               rect_geo.ymin,
               rect_geo.xmax,

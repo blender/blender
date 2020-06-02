@@ -454,19 +454,6 @@ const GPUShaderInput *GPU_shaderinterface_uniform(const GPUShaderInterface *shad
   return input_lookup(shaderface, shaderface->inputs + ofs, shaderface->uniform_len, name);
 }
 
-const GPUShaderInput *GPU_shaderinterface_uniform_ensure(const GPUShaderInterface *shaderface,
-                                                         const char *name)
-{
-  const GPUShaderInput *input = GPU_shaderinterface_uniform(shaderface, name);
-  /* If input is not found add it so it's found next time. */
-  if (input == NULL) {
-    if ((G.debug & G_DEBUG_GPU) && (input->location == -1)) {
-      fprintf(stderr, "GPUShaderInterface: Warning: Uniform '%s' not found!\n", name);
-    }
-  }
-  return input;
-}
-
 const GPUShaderInput *GPU_shaderinterface_uniform_builtin(const GPUShaderInterface *shaderface,
                                                           GPUUniformBuiltin builtin)
 {

@@ -232,7 +232,7 @@ static void drw_shgroup_uniform(DRWShadingGroup *shgroup,
     location = GPU_shader_get_uniform_block(shgroup->shader, name);
   }
   else {
-    location = GPU_shader_get_uniform_ensure(shgroup->shader, name);
+    location = GPU_shader_get_uniform(shgroup->shader, name);
   }
 
   if (location == -1) {
@@ -420,7 +420,7 @@ void DRW_shgroup_uniform_vec4_array_copy(DRWShadingGroup *shgroup,
                                          const float (*value)[4],
                                          int arraysize)
 {
-  int location = GPU_shader_get_uniform_ensure(shgroup->shader, name);
+  int location = GPU_shader_get_uniform(shgroup->shader, name);
 
   if (location == -1) {
     /* Nice to enable eventually, for now eevee uses uniforms that might not exist. */

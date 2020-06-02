@@ -78,7 +78,7 @@ static int bpygpu_uniform_location_get(GPUShader *shader,
                                        const char *name,
                                        const char *error_prefix)
 {
-  int uniform = GPU_shader_get_uniform_ensure(shader, name);
+  int uniform = GPU_shader_get_uniform(shader, name);
 
   if (uniform == -1) {
     PyErr_Format(PyExc_ValueError, "%s: uniform %.32s not found", error_prefix, name);
