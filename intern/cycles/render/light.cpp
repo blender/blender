@@ -120,6 +120,7 @@ NODE_DEFINE(Light)
 
   SOCKET_VECTOR(dir, "Dir", make_float3(0.0f, 0.0f, 0.0f));
   SOCKET_FLOAT(size, "Size", 0.0f);
+  SOCKET_FLOAT(angle, "Angle", 0.0f);
 
   SOCKET_VECTOR(axisu, "Axis U", make_float3(0.0f, 0.0f, 0.0f));
   SOCKET_FLOAT(sizeu, "Size U", 1.0f);
