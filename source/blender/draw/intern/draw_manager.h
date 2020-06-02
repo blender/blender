@@ -277,13 +277,9 @@ typedef enum {
   DRW_UNIFORM_FLOAT,
   DRW_UNIFORM_FLOAT_COPY,
   DRW_UNIFORM_TEXTURE,
-  DRW_UNIFORM_TEXTURE_PERSIST,
   DRW_UNIFORM_TEXTURE_REF,
-  DRW_UNIFORM_TEXTURE_REF_PERSIST,
   DRW_UNIFORM_BLOCK,
-  DRW_UNIFORM_BLOCK_PERSIST,
   DRW_UNIFORM_BLOCK_REF,
-  DRW_UNIFORM_BLOCK_REF_PERSIST,
   DRW_UNIFORM_TFEEDBACK_TARGET,
   /** Per drawcall uniforms/UBO */
   DRW_UNIFORM_BLOCK_OBMATS,
@@ -303,11 +299,25 @@ struct DRWUniform {
   union {
     /* For reference or array/vector types. */
     const void *pvalue;
-    /* Single values. */
+    /* DRW_UNIFORM_TEXTURE */
+    struct {
+      union {
+        GPUTexture *texture;
+        GPUTexture **texture_ref;
+      };
+      eGPUSamplerState sampler_state;
+    };
+    /* DRW_UNIFORM_BLOCK */
+    union {
+      GPUUniformBuffer *block;
+      GPUUniformBuffer **block_ref;
+    };
+    /* DRW_UNIFORM_FLOAT_COPY */
     float fvalue[4];
+    /* DRW_UNIFORM_INT_COPY */
     int ivalue[4];
   };
-  int location;
+  int location;           /* Use as binding point for textures and ubos. */
   uint32_t type : 5;      /* DRWUniformType */
   uint32_t length : 5;    /* cannot be more than 16 */
   uint32_t arraysize : 5; /* cannot be more than 16 too */
@@ -548,20 +558,6 @@ typedef struct DRWManager {
   TicketMutex *gl_context_mutex;
 
   GPUDrawList *draw_list;
-
-  /** GPU Resource State: Memory storage between drawing. */
-  struct {
-    /* High end GPUs supports up to 32 binds per shader stage.
-     * We only use textures during the vertex and fragment stage,
-     * so 2 * 32 slots is a nice limit. */
-    GPUTexture *bound_texs[DST_MAX_SLOTS];
-    uint64_t bound_tex_slots;
-    uint64_t bound_tex_slots_persist;
-
-    GPUUniformBuffer *bound_ubos[DST_MAX_SLOTS];
-    uint64_t bound_ubo_slots;
-    uint64_t bound_ubo_slots_persist;
-  } RST;
 
   struct {
     /* TODO(fclem) optimize: use chunks. */

@@ -591,9 +591,6 @@ static void drw_viewport_var_init(void)
     ED_view3d_init_mats_rv3d(DST.draw_ctx.object_edit, rv3d);
   }
 
-  /* Alloc array of texture reference. */
-  memset(&DST.RST, 0x0, sizeof(DST.RST));
-
   if (G_draw.view_ubo == NULL) {
     G_draw.view_ubo = DRW_uniformbuffer_create(sizeof(DRWViewUboStorage), NULL);
   }

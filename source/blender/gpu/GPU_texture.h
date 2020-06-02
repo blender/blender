@@ -261,8 +261,9 @@ void GPU_texture_free(GPUTexture *tex);
 
 void GPU_texture_ref(GPUTexture *tex);
 void GPU_texture_bind(GPUTexture *tex, int number);
+void GPU_texture_bind_ex(GPUTexture *tex, int unit, const bool set_number);
 void GPU_texture_unbind(GPUTexture *tex);
-int GPU_texture_bound_number(GPUTexture *tex);
+void GPU_texture_unbind_all(void);
 
 void GPU_texture_copy(GPUTexture *dst, GPUTexture *src);
 

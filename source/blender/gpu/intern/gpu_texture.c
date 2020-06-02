@@ -1712,7 +1712,8 @@ void GPU_invalid_tex_free(void)
   }
 }
 
-void GPU_texture_bind(GPUTexture *tex, int unit)
+/* set_number is to save the the texture unit for setting texture parameters. */
+void GPU_texture_bind_ex(GPUTexture *tex, int unit, const bool set_number)
 {
   BLI_assert(unit >= 0);
 
@@ -1721,7 +1722,7 @@ void GPU_texture_bind(GPUTexture *tex, int unit)
     return;
   }
 
-  if ((G.debug & G_DEBUG)) {
+  if (G.debug & G_DEBUG) {
     for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; i++) {
       if (tex->fb[i] && GPU_framebuffer_bound(tex->fb[i])) {
         fprintf(stderr,
@@ -1733,7 +1734,10 @@ void GPU_texture_bind(GPUTexture *tex, int unit)
     }
   }
 
-  tex->number = unit;
+  if (set_number) {
+    tex->number = unit;
+  }
+
   glActiveTexture(GL_TEXTURE0 + unit);
 
   if (tex->bindcode != 0) {
@@ -1744,6 +1748,11 @@ void GPU_texture_bind(GPUTexture *tex, int unit)
     GPU_invalid_tex_bind(tex->target_base);
     glBindSampler(unit, 0);
   }
+}
+
+void GPU_texture_bind(GPUTexture *tex, int unit)
+{
+  GPU_texture_bind_ex(tex, unit, true);
 }
 
 void GPU_texture_unbind(GPUTexture *tex)
@@ -1758,10 +1767,25 @@ void GPU_texture_unbind(GPUTexture *tex)
   tex->number = -1;
 }
 
-int GPU_texture_bound_number(GPUTexture *tex)
+void GPU_texture_unbind_all(void)
 {
-  /* TODO remove. Makes no sense now. */
-  return tex->number;
+  /* Unbinding can be costly. Skip in normal condition. */
+  if (G.debug & G_DEBUG_GPU) {
+    for (int i = 0; i < GPU_max_textures(); i++) {
+      glActiveTexture(GL_TEXTURE0 + i);
+      glBindTexture(GL_TEXTURE_2D, 0);
+      glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+      glBindTexture(GL_TEXTURE_1D, 0);
+      glBindTexture(GL_TEXTURE_1D_ARRAY, 0);
+      glBindTexture(GL_TEXTURE_3D, 0);
+      glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+      glBindTexture(GL_TEXTURE_BUFFER, 0);
+      if (GPU_arb_texture_cube_map_array_is_supported()) {
+        glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY_ARB, 0);
+      }
+      glBindSampler(i, 0);
+    }
+  }
 }
 
 #define WARN_NOT_BOUND(_tex) \
@@ -1785,8 +1809,8 @@ void GPU_texture_generate_mipmap(GPUTexture *tex)
 
   if (GPU_texture_depth(tex)) {
     /* Some drivers have bugs when using glGenerateMipmap with depth textures (see T56789).
-     * In this case we just create a complete texture with mipmaps manually without down-sampling.
-     * You must initialize the texture levels using other methods like
+     * In this case we just create a complete texture with mipmaps manually without
+     * down-sampling. You must initialize the texture levels using other methods like
      * GPU_framebuffer_recursive_downsample(). */
     eGPUDataFormat data_format = gpu_get_data_format_from_tex_format(tex->format);
     for (int i = 1; i < levels; i++) {
