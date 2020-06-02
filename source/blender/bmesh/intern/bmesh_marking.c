@@ -1021,7 +1021,7 @@ void BM_select_history_validate(BMesh *bm)
 bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
 {
   BMEditSelection *ese_last = bm->selected.last;
-  BMFace *efa = BM_mesh_active_face_get(bm, false, false);
+  BMFace *efa = BM_mesh_active_face_get(bm, false, true);
 
   ese->next = ese->prev = NULL;
 
