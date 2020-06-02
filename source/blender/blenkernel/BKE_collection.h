@@ -50,6 +50,10 @@ typedef struct CollectionParent {
 struct Collection *BKE_collection_add(struct Main *bmain,
                                       struct Collection *parent,
                                       const char *name);
+void BKE_collection_add_from_object(struct Main *bmain,
+                                    struct Scene *scene,
+                                    const struct Object *ob_src,
+                                    struct Collection *collection_dst);
 void BKE_collection_free(struct Collection *collection);
 bool BKE_collection_delete(struct Main *bmain, struct Collection *collection, bool hierarchy);
 

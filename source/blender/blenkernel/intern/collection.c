@@ -210,6 +210,34 @@ Collection *BKE_collection_add(Main *bmain, Collection *collection_parent, const
   return collection;
 }
 
+/**
+ * Add \a collection_dst to all scene collections that reference object \a ob_src is in.
+ * Used to replace an instance object with a collection (library override operator).
+ *
+ * Logic is very similar to #BKE_collection_object_add_from().
+ */
+void BKE_collection_add_from_object(Main *bmain,
+                                    Scene *scene,
+                                    const Object *ob_src,
+                                    Collection *collection_dst)
+{
+  bool is_instantiated = false;
+
+  FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
+    if (!ID_IS_LINKED(collection) && BKE_collection_has_object(collection, ob_src)) {
+      collection_child_add(collection, collection_dst, 0, true);
+      is_instantiated = true;
+    }
+  }
+  FOREACH_SCENE_COLLECTION_END;
+
+  if (!is_instantiated) {
+    collection_child_add(scene->master_collection, collection_dst, 0, true);
+  }
+
+  BKE_main_collection_sync(bmain);
+}
+
 /*********************** Free and Delete Collection ****************************/
 
 /** Free (or release) any data used by this collection (does not free the collection itself). */
@@ -758,8 +786,10 @@ bool BKE_collection_object_add(Main *bmain, Collection *collection, Object *ob)
 }
 
 /**
- * Add object to all scene collections that reference object is in
- * (used to copy objects).
+ * Add \a ob_dst to all scene collections that reference object \a ob_src is in.
+ * Used for copying objects.
+ *
+ * Logic is very similar to #BKE_collection_add_from_object()
  */
 void BKE_collection_object_add_from(Main *bmain, Scene *scene, Object *ob_src, Object *ob_dst)
 {
