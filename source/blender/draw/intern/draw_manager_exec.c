@@ -931,13 +931,6 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
     for (int i = 0; i < unichunk->uniform_used; i++, uni++) {
       GPUTexture *tex;
       GPUUniformBuffer *ubo;
-      if (uni->location == -2) {
-        uni->location = GPU_shader_get_uniform_ensure(shgroup->shader,
-                                                      DST.uniform_names.buffer + uni->name_ofs);
-        if (uni->location == -1) {
-          continue;
-        }
-      }
       const void *data = uni->pvalue;
       if (ELEM(uni->type, DRW_UNIFORM_INT_COPY, DRW_UNIFORM_FLOAT_COPY)) {
         data = uni->fvalue;

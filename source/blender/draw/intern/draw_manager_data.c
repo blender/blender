@@ -232,7 +232,7 @@ static void drw_shgroup_uniform(DRWShadingGroup *shgroup,
     location = GPU_shader_get_uniform_block(shgroup->shader, name);
   }
   else {
-    location = GPU_shader_get_uniform(shgroup->shader, name);
+    location = GPU_shader_get_uniform_ensure(shgroup->shader, name);
   }
 
   if (location == -1) {
@@ -244,28 +244,7 @@ static void drw_shgroup_uniform(DRWShadingGroup *shgroup,
   BLI_assert(arraysize > 0 && arraysize <= 16);
   BLI_assert(length >= 0 && length <= 16);
 
-  DRWUniform *uni = drw_shgroup_uniform_create_ex(
-      shgroup, location, type, value, length, arraysize);
-
-  /* If location is -2, the uniform has not yet been queried.
-   * We save the name for query just before drawing. */
-  if (location == -2 || DRW_DEBUG_USE_UNIFORM_NAME) {
-    int ofs = DST.uniform_names.buffer_ofs;
-    int max_len = DST.uniform_names.buffer_len - ofs;
-    size_t len = strlen(name) + 1;
-
-    if (len >= max_len) {
-      DST.uniform_names.buffer_len += MAX2(DST.uniform_names.buffer_len, len);
-      DST.uniform_names.buffer = MEM_reallocN(DST.uniform_names.buffer,
-                                              DST.uniform_names.buffer_len);
-    }
-
-    char *dst = DST.uniform_names.buffer + ofs;
-    memcpy(dst, name, len); /* Copies NULL terminator. */
-
-    DST.uniform_names.buffer_ofs += len;
-    uni->name_ofs = ofs;
-  }
+  drw_shgroup_uniform_create_ex(shgroup, location, type, value, length, arraysize);
 }
 
 void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, const GPUTexture *tex)

@@ -308,7 +308,6 @@ struct DRWUniform {
   uint32_t type : 5;      /* DRWUniformType */
   uint32_t length : 5;    /* cannot be more than 16 */
   uint32_t arraysize : 5; /* cannot be more than 16 too */
-  uint32_t name_ofs : 17; /* name offset in name buffer. */
 };
 
 struct DRWShadingGroup {
@@ -559,12 +558,6 @@ typedef struct DRWManager {
     DRWDebugLine *lines;
     DRWDebugSphere *spheres;
   } debug;
-
-  struct {
-    char *buffer;
-    uint buffer_len;
-    uint buffer_ofs;
-  } uniform_names;
 } DRWManager;
 
 extern DRWManager DST; /* TODO: get rid of this and allow multi-threaded rendering. */
