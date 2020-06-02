@@ -696,6 +696,8 @@ typedef struct DRWContextState {
 
   struct Depsgraph *depsgraph;
 
+  struct TaskGraph *task_graph;
+
   eObjectMode object_mode;
 
   eGPUShaderConfig sh_cfg;

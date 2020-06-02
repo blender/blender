@@ -39,6 +39,7 @@
 #include "../../draw/intern/draw_cache_impl.h"
 
 #include "BLI_math.h"
+#include "BLI_task.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_deform.h"
@@ -206,8 +207,10 @@ static void uvedit_get_batches(Object *ob,
   else {
     batches->faces = NULL;
   }
-
-  DRW_mesh_batch_cache_create_requested(ob, ob->data, scene, false, false);
+  struct TaskGraph *task_graph = BLI_task_graph_create();
+  DRW_mesh_batch_cache_create_requested(task_graph, ob, ob->data, scene, false, false);
+  BLI_task_graph_work_and_wait(task_graph);
+  BLI_task_graph_free(task_graph);
 
   if (draw_stretch && (sima->dt_uvstretch == SI_UVDT_STRETCH_AREA)) {
     /* after create_requested we can load the actual areas */
@@ -229,7 +232,11 @@ static void draw_uvs_shadow(SpaceImage *sima,
 
   DRW_mesh_batch_cache_validate(me);
   GPUBatch *edges = DRW_mesh_batch_cache_get_uv_edges(me);
-  DRW_mesh_batch_cache_create_requested(ob_eval, me, scene, false, false);
+
+  struct TaskGraph *task_graph = BLI_task_graph_create();
+  DRW_mesh_batch_cache_create_requested(task_graph, ob_eval, me, scene, false, false);
+  BLI_task_graph_work_and_wait(task_graph);
+  BLI_task_graph_free(task_graph);
 
   if (edges) {
     if (sima->flag & SI_SMOOTH_UV) {
@@ -269,7 +276,10 @@ static void draw_uvs_texpaint(const Scene *scene, Object *ob, Depsgraph *depsgra
 
   DRW_mesh_batch_cache_validate(me);
   GPUBatch *geom = DRW_mesh_batch_cache_get_uv_edges(me);
-  DRW_mesh_batch_cache_create_requested(ob_eval, me, scene, false, false);
+  struct TaskGraph *task_graph = BLI_task_graph_create();
+  DRW_mesh_batch_cache_create_requested(task_graph, ob_eval, me, scene, false, false);
+  BLI_task_graph_work_and_wait(task_graph);
+  BLI_task_graph_free(task_graph);
 
   GPU_batch_program_set_builtin(geom, GPU_SHADER_2D_UV_UNIFORM_COLOR);
   GPU_batch_uniform_4fv(geom, "color", col);

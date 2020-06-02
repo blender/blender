@@ -31,6 +31,7 @@ struct ListBase;
 struct ModifierData;
 struct PTCacheEdit;
 struct ParticleSystem;
+struct TaskGraph;
 
 struct Curve;
 struct Hair;
@@ -150,7 +151,8 @@ int DRW_volume_material_count_get(struct Volume *volume);
 struct GPUBatch *DRW_volume_batch_cache_get_wireframes_face(struct Volume *volume);
 
 /* Mesh */
-void DRW_mesh_batch_cache_create_requested(struct Object *ob,
+void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
+                                           struct Object *ob,
                                            struct Mesh *me,
                                            const struct Scene *scene,
                                            const bool is_paint_mode,

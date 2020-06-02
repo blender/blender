@@ -31,6 +31,7 @@
 #include "BLI_assert.h"
 #include "BLI_linklist.h"
 #include "BLI_memblock.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 
 #include "GPU_batch.h"
@@ -524,6 +525,8 @@ typedef struct DRWManager {
 #ifdef USE_GPU_SELECT
   uint select_id;
 #endif
+
+  struct TaskGraph *task_graph;
 
   /* ---------- Nothing after this point is cleared after use ----------- */
 
