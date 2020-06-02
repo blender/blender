@@ -2382,7 +2382,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
       .obact = OBACT(view_layer),
       .depsgraph = depsgraph,
   };
-
+  drw_task_graph_init();
   drw_context_state_init();
 
   /* Setup viewport */
@@ -2417,6 +2417,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
     drw_resource_buffer_finish(DST.vmempool);
 #endif
   }
+  drw_task_graph_deinit();
 
   /* Start Drawing */
   DRW_state_reset();
