@@ -1013,6 +1013,15 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_INFO_OPERATOR_TEXT:
           cp = ts->info_operator_text;
           break;
+        case TH_INFO_REPORT_ERROR:
+          cp = ts->info_report_error;
+          break;
+        case TH_INFO_REPORT_WARNING:
+          cp = ts->info_report_warning;
+          break;
+        case TH_INFO_REPORT_INFO:
+          cp = ts->info_report_info;
+          break;
         case TH_V3D_CLIPPING_BORDER:
           cp = ts->clipping_border_3d;
           break;
