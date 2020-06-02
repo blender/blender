@@ -49,6 +49,7 @@
 #include "ED_space_api.h"
 
 #include "WM_api.h"
+#include "WM_message.h"
 #include "WM_types.h"
 
 #include "UI_interface_icons.h"
@@ -1672,11 +1673,14 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
   if (t->flag & T_MODAL) {
     /* do we check for parameter? */
     if (transformModeUseSnap(t)) {
-      if (t->modifiers & MOD_SNAP) {
-        ts->snap_flag |= SCE_SNAP;
-      }
-      else {
-        ts->snap_flag &= ~SCE_SNAP;
+      if (!(t->modifiers & MOD_SNAP) != !(ts->snap_flag & SCE_SNAP)) {
+        if (t->modifiers & MOD_SNAP) {
+          ts->snap_flag |= SCE_SNAP;
+        }
+        else {
+          ts->snap_flag &= ~SCE_SNAP;
+        }
+        WM_msg_publish_rna_prop(t->mbus, &t->scene->id, ts, ToolSettings, use_snap);
       }
     }
   }

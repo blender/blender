@@ -560,6 +560,7 @@ typedef struct TransInfo {
   void *view;
   /** Only valid (non null) during an operator called function. */
   struct bContext *context;
+  struct wmMsgBus *mbus;
   struct ScrArea *area;
   struct ARegion *region;
   struct Depsgraph *depsgraph;
