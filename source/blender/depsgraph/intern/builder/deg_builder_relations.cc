@@ -2867,6 +2867,9 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
   DriverGroupMap driver_groups;
 
   LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
+    if (fcu->rna_path == NULL) {
+      continue;
+    }
     // Get the RNA path except the part after the last dot.
     char *last_dot = strrchr(fcu->rna_path, '.');
     string rna_prefix;
@@ -2917,7 +2920,7 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
       }
     }
   }
-}
+}  // namespace DEG
 
 /* **** ID traversal callbacks functions **** */
 
