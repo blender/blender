@@ -33,6 +33,7 @@ extern "C" {
 #endif
 
 struct AnimData;
+struct BVHCache;
 struct Ipo;
 struct Key;
 struct LinkNode;
@@ -99,8 +100,8 @@ typedef struct Mesh_Runtime {
 
   struct MLoopTri_Store looptris;
 
-  /** 'BVHCache', for 'BKE_bvhutil.c' */
-  struct LinkNode *bvh_cache;
+  /** `BVHCache` defined in 'BKE_bvhutil.c' */
+  struct BVHCache *bvh_cache;
 
   /** Non-manifold boundary data for Shrinkwrap Target Project. */
   struct ShrinkwrapBoundaryData *shrinkwrap_data;

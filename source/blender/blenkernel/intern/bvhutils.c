@@ -41,8 +41,126 @@
 
 #include "MEM_guardedalloc.h"
 
-static ThreadRWMutex cache_rwlock = BLI_RWLOCK_INITIALIZER;
+/* -------------------------------------------------------------------- */
+/** \name BVHCache
+ * \{ */
 
+typedef struct BVHCacheItem {
+  bool is_filled;
+  BVHTree *tree;
+} BVHCacheItem;
+
+typedef struct BVHCache {
+  BVHCacheItem items[BVHTREE_MAX_ITEM];
+  ThreadMutex mutex;
+} BVHCache;
+
+/**
+ * Queries a bvhcache for the cache bvhtree of the request type
+ *
+ * When the `r_locked` is filled and the tree could not be found the caches mutex will be
+ * locked. This mutex can be unlocked by calling `bvhcache_unlock`.
+ *
+ * When `r_locked` is used the `mesh_eval_mutex` must contain the `Mesh_Runtime.eval_mutex`.
+ */
+static bool bvhcache_find(BVHCache **bvh_cache_p,
+                          BVHCacheType type,
+                          BVHTree **r_tree,
+                          bool *r_locked,
+                          ThreadMutex *mesh_eval_mutex)
+{
+  bool do_lock = r_locked;
+  if (r_locked) {
+    *r_locked = false;
+  }
+  if (*bvh_cache_p == NULL) {
+    if (!do_lock) {
+      /* Cache does not exist and no lock is requested. */
+      return false;
+    }
+    /* Lazy initialization of the bvh_cache using the `mesh_eval_mutex`. */
+    BLI_mutex_lock(mesh_eval_mutex);
+    if (*bvh_cache_p == NULL) {
+      *bvh_cache_p = bvhcache_init();
+    }
+    BLI_mutex_unlock(mesh_eval_mutex);
+  }
+  BVHCache *bvh_cache = *bvh_cache_p;
+
+  if (bvh_cache->items[type].is_filled) {
+    *r_tree = bvh_cache->items[type].tree;
+    return true;
+  }
+  if (do_lock) {
+    BLI_mutex_lock(&bvh_cache->mutex);
+    bool in_cache = bvhcache_find(bvh_cache_p, type, r_tree, NULL, NULL);
+    if (in_cache) {
+      BLI_mutex_unlock(&bvh_cache->mutex);
+      return in_cache;
+    }
+    *r_locked = true;
+  }
+  return false;
+}
+
+static void bvhcache_unlock(BVHCache *bvh_cache, bool lock_started)
+{
+  if (lock_started) {
+    BLI_mutex_unlock(&bvh_cache->mutex);
+  }
+}
+
+bool bvhcache_has_tree(const BVHCache *bvh_cache, const BVHTree *tree)
+{
+  if (bvh_cache == NULL) {
+    return false;
+  }
+
+  for (BVHCacheType i = 0; i < BVHTREE_MAX_ITEM; i++) {
+    if (bvh_cache->items[i].tree == tree) {
+      return true;
+    }
+  }
+  return false;
+}
+
+BVHCache *bvhcache_init(void)
+{
+  BVHCache *cache = MEM_callocN(sizeof(BVHCache), __func__);
+  BLI_mutex_init(&cache->mutex);
+  return cache;
+}
+/**
+ * Inserts a BVHTree of the given type under the cache
+ * After that the caller no longer needs to worry when to free the BVHTree
+ * as that will be done when the cache is freed.
+ *
+ * A call to this assumes that there was no previous cached tree of the given type
+ * \warning The #BVHTree can be NULL.
+ */
+static void bvhcache_insert(BVHCache *bvh_cache, BVHTree *tree, BVHCacheType type)
+{
+  BVHCacheItem *item = &bvh_cache->items[type];
+  BLI_assert(!item->is_filled);
+  item->tree = tree;
+  item->is_filled = true;
+}
+
+/**
+ * frees a bvhcache
+ */
+void bvhcache_free(BVHCache *bvh_cache)
+{
+  for (BVHCacheType index = 0; index < BVHTREE_MAX_ITEM; index++) {
+    BVHCacheItem *item = &bvh_cache->items[index];
+    BLI_bvhtree_free(item->tree);
+    item->tree = NULL;
+  }
+  BLI_mutex_end(&bvh_cache->mutex);
+  MEM_freeN(bvh_cache);
+}
+
+/** \} */
 /* -------------------------------------------------------------------- */
 /** \name Local Callbacks
  * \{ */
@@ -518,29 +636,26 @@ BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
                                         int tree_type,
                                         int axis,
                                         const BVHCacheType bvh_cache_type,
-                                        BVHCache **bvh_cache)
+                                        BVHCache **bvh_cache_p,
+                                        ThreadMutex *mesh_eval_mutex)
 {
   BVHTree *tree = NULL;
 
-  if (bvh_cache) {
-    BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
-    data->cached = bvhcache_find(*bvh_cache, bvh_cache_type, &data->tree);
-    BLI_rw_mutex_unlock(&cache_rwlock);
+  if (bvh_cache_p) {
+    bool lock_started = false;
+    data->cached = bvhcache_find(
+        bvh_cache_p, bvh_cache_type, &data->tree, &lock_started, mesh_eval_mutex);
 
     if (data->cached == false) {
-      BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
-      data->cached = bvhcache_find(*bvh_cache, bvh_cache_type, &data->tree);
-      if (data->cached == false) {
-        tree = bvhtree_from_editmesh_verts_create_tree(
-            epsilon, tree_type, axis, em, verts_mask, verts_num_active);
+      tree = bvhtree_from_editmesh_verts_create_tree(
+          epsilon, tree_type, axis, em, verts_mask, verts_num_active);
 
-        /* Save on cache for later use */
-        /* printf("BVHTree built and saved on cache\n"); */
-        bvhcache_insert(bvh_cache, tree, bvh_cache_type);
-        data->cached = true;
-      }
-      BLI_rw_mutex_unlock(&cache_rwlock);
+      /* Save on cache for later use */
+      /* printf("BVHTree built and saved on cache\n"); */
+      bvhcache_insert(*bvh_cache_p, tree, bvh_cache_type);
+      data->cached = true;
     }
+    bvhcache_unlock(*bvh_cache_p, lock_started);
   }
   else {
     tree = bvhtree_from_editmesh_verts_create_tree(
@@ -553,7 +668,7 @@ BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
     data->em = em;
     data->nearest_callback = NULL;
     data->raycast_callback = editmesh_verts_spherecast;
-    data->cached = bvh_cache != NULL;
+    data->cached = bvh_cache_p != NULL;
   }
 
   return tree;
@@ -562,7 +677,8 @@ BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
 BVHTree *bvhtree_from_editmesh_verts(
     BVHTreeFromEditMesh *data, BMEditMesh *em, float epsilon, int tree_type, int axis)
 {
-  return bvhtree_from_editmesh_verts_ex(data, em, NULL, -1, epsilon, tree_type, axis, 0, NULL);
+  return bvhtree_from_editmesh_verts_ex(
+      data, em, NULL, -1, epsilon, tree_type, axis, 0, NULL, NULL);
 }
 
 /**
@@ -582,32 +698,26 @@ BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
                                     int tree_type,
                                     int axis,
                                     const BVHCacheType bvh_cache_type,
-                                    BVHCache **bvh_cache)
+                                    BVHCache **bvh_cache_p,
+                                    ThreadMutex *mesh_eval_mutex)
 {
   bool in_cache = false;
+  bool lock_started = false;
   BVHTree *tree = NULL;
-  if (bvh_cache) {
-    BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
-    in_cache = bvhcache_find(*bvh_cache, bvh_cache_type, &tree);
-    BLI_rw_mutex_unlock(&cache_rwlock);
-    if (in_cache == false) {
-      BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
-      in_cache = bvhcache_find(*bvh_cache, bvh_cache_type, &tree);
-      if (in_cache) {
-        BLI_rw_mutex_unlock(&cache_rwlock);
-      }
-    }
+  if (bvh_cache_p) {
+    in_cache = bvhcache_find(bvh_cache_p, bvh_cache_type, &tree, &lock_started, mesh_eval_mutex);
   }
 
   if (in_cache == false) {
     tree = bvhtree_from_mesh_verts_create_tree(
         epsilon, tree_type, axis, vert, verts_num, verts_mask, verts_num_active);
 
-    if (bvh_cache) {
+    if (bvh_cache_p) {
       /* Save on cache for later use */
       /* printf("BVHTree built and saved on cache\n"); */
+      BVHCache *bvh_cache = *bvh_cache_p;
       bvhcache_insert(bvh_cache, tree, bvh_cache_type);
-      BLI_rw_mutex_unlock(&cache_rwlock);
+      bvhcache_unlock(bvh_cache, lock_started);
       in_cache = true;
     }
   }
@@ -735,29 +845,26 @@ BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
                                         int tree_type,
                                         int axis,
                                         const BVHCacheType bvh_cache_type,
-                                        BVHCache **bvh_cache)
+                                        BVHCache **bvh_cache_p,
+                                        ThreadMutex *mesh_eval_mutex)
 {
   BVHTree *tree = NULL;
 
-  if (bvh_cache) {
-    BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
-    data->cached = bvhcache_find(*bvh_cache, bvh_cache_type, &data->tree);
-    BLI_rw_mutex_unlock(&cache_rwlock);
-
+  if (bvh_cache_p) {
+    bool lock_started = false;
+    data->cached = bvhcache_find(
+        bvh_cache_p, bvh_cache_type, &data->tree, &lock_started, mesh_eval_mutex);
+    BVHCache *bvh_cache = *bvh_cache_p;
     if (data->cached == false) {
-      BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
-      data->cached = bvhcache_find(*bvh_cache, bvh_cache_type, &data->tree);
-      if (data->cached == false) {
-        tree = bvhtree_from_editmesh_edges_create_tree(
-            epsilon, tree_type, axis, em, edges_mask, edges_num_active);
+      tree = bvhtree_from_editmesh_edges_create_tree(
+          epsilon, tree_type, axis, em, edges_mask, edges_num_active);
 
-        /* Save on cache for later use */
-        /* printf("BVHTree built and saved on cache\n"); */
-        bvhcache_insert(bvh_cache, tree, bvh_cache_type);
-        data->cached = true;
-      }
-      BLI_rw_mutex_unlock(&cache_rwlock);
+      /* Save on cache for later use */
+      /* printf("BVHTree built and saved on cache\n"); */
+      bvhcache_insert(bvh_cache, tree, bvh_cache_type);
+      data->cached = true;
     }
+    bvhcache_unlock(bvh_cache, lock_started);
   }
   else {
     tree = bvhtree_from_editmesh_edges_create_tree(
@@ -770,7 +877,7 @@ BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
     data->em = em;
     data->nearest_callback = NULL; /* TODO */
     data->raycast_callback = NULL; /* TODO */
-    data->cached = bvh_cache != NULL;
+    data->cached = bvh_cache_p != NULL;
   }
 
   return tree;
@@ -779,7 +886,8 @@ BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
 BVHTree *bvhtree_from_editmesh_edges(
     BVHTreeFromEditMesh *data, BMEditMesh *em, float epsilon, int tree_type, int axis)
 {
-  return bvhtree_from_editmesh_edges_ex(data, em, NULL, -1, epsilon, tree_type, axis, 0, NULL);
+  return bvhtree_from_editmesh_edges_ex(
+      data, em, NULL, -1, epsilon, tree_type, axis, 0, NULL, NULL);
 }
 
 /**
@@ -802,32 +910,26 @@ BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
                                     int tree_type,
                                     int axis,
                                     const BVHCacheType bvh_cache_type,
-                                    BVHCache **bvh_cache)
+                                    BVHCache **bvh_cache_p,
+                                    ThreadMutex *mesh_eval_mutex)
 {
   bool in_cache = false;
+  bool lock_started = false;
   BVHTree *tree = NULL;
-  if (bvh_cache) {
-    BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
-    in_cache = bvhcache_find(*bvh_cache, bvh_cache_type, &tree);
-    BLI_rw_mutex_unlock(&cache_rwlock);
-    if (in_cache == false) {
-      BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
-      in_cache = bvhcache_find(*bvh_cache, bvh_cache_type, &tree);
-      if (in_cache) {
-        BLI_rw_mutex_unlock(&cache_rwlock);
-      }
-    }
+  if (bvh_cache_p) {
+    in_cache = bvhcache_find(bvh_cache_p, bvh_cache_type, &tree, &lock_started, mesh_eval_mutex);
   }
 
   if (in_cache == false) {
     tree = bvhtree_from_mesh_edges_create_tree(
         vert, edge, edges_num, edges_mask, edges_num_active, epsilon, tree_type, axis);
 
-    if (bvh_cache) {
+    if (bvh_cache_p) {
+      BVHCache *bvh_cache = *bvh_cache_p;
       /* Save on cache for later use */
       /* printf("BVHTree built and saved on cache\n"); */
       bvhcache_insert(bvh_cache, tree, bvh_cache_type);
-      BLI_rw_mutex_unlock(&cache_rwlock);
+      bvhcache_unlock(bvh_cache, lock_started);
       in_cache = true;
     }
   }
@@ -937,32 +1039,26 @@ BVHTree *bvhtree_from_mesh_faces_ex(BVHTreeFromMesh *data,
                                     int tree_type,
                                     int axis,
                                     const BVHCacheType bvh_cache_type,
-                                    BVHCache **bvh_cache)
+                                    BVHCache **bvh_cache_p,
+                                    ThreadMutex *mesh_eval_mutex)
 {
   bool in_cache = false;
+  bool lock_started = false;
   BVHTree *tree = NULL;
-  if (bvh_cache) {
-    BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
-    in_cache = bvhcache_find(*bvh_cache, bvh_cache_type, &tree);
-    BLI_rw_mutex_unlock(&cache_rwlock);
-    if (in_cache == false) {
-      BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
-      in_cache = bvhcache_find(*bvh_cache, bvh_cache_type, &tree);
-      if (in_cache) {
-        BLI_rw_mutex_unlock(&cache_rwlock);
-      }
-    }
+  if (bvh_cache_p) {
+    in_cache = bvhcache_find(bvh_cache_p, bvh_cache_type, &tree, &lock_started, mesh_eval_mutex);
   }
 
   if (in_cache == false) {
     tree = bvhtree_from_mesh_faces_create_tree(
         epsilon, tree_type, axis, vert, face, numFaces, faces_mask, faces_num_active);
 
-    if (bvh_cache) {
+    if (bvh_cache_p) {
       /* Save on cache for later use */
       /* printf("BVHTree built and saved on cache\n"); */
+      BVHCache *bvh_cache = *bvh_cache_p;
       bvhcache_insert(bvh_cache, tree, bvh_cache_type);
-      BLI_rw_mutex_unlock(&cache_rwlock);
+      bvhcache_unlock(bvh_cache, lock_started);
       in_cache = true;
     }
   }
@@ -1113,29 +1209,28 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
                                           int tree_type,
                                           int axis,
                                           const BVHCacheType bvh_cache_type,
-                                          BVHCache **bvh_cache)
+                                          BVHCache **bvh_cache_p,
+                                          ThreadMutex *mesh_eval_mutex)
 {
   /* BMESH specific check that we have tessfaces,
    * we _could_ tessellate here but rather not - campbell */
 
   BVHTree *tree = NULL;
-  if (bvh_cache) {
-    BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
-    bool in_cache = bvhcache_find(*bvh_cache, bvh_cache_type, &tree);
-    BLI_rw_mutex_unlock(&cache_rwlock);
-    if (in_cache == false) {
-      BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
-      in_cache = bvhcache_find(*bvh_cache, bvh_cache_type, &tree);
-      if (in_cache == false) {
-        tree = bvhtree_from_editmesh_looptri_create_tree(
-            epsilon, tree_type, axis, em, looptri_mask, looptri_num_active);
+  if (bvh_cache_p) {
+    bool lock_started = false;
+    bool in_cache = bvhcache_find(
+        bvh_cache_p, bvh_cache_type, &tree, &lock_started, mesh_eval_mutex);
+    BVHCache *bvh_cache = *bvh_cache_p;
 
-        /* Save on cache for later use */
-        /* printf("BVHTree built and saved on cache\n"); */
-        bvhcache_insert(bvh_cache, tree, bvh_cache_type);
-      }
-      BLI_rw_mutex_unlock(&cache_rwlock);
+    if (in_cache == false) {
+      tree = bvhtree_from_editmesh_looptri_create_tree(
+          epsilon, tree_type, axis, em, looptri_mask, looptri_num_active);
+
+      /* Save on cache for later use */
+      /* printf("BVHTree built and saved on cache\n"); */
+      bvhcache_insert(bvh_cache, tree, bvh_cache_type);
     }
+    bvhcache_unlock(bvh_cache, lock_started);
   }
   else {
     tree = bvhtree_from_editmesh_looptri_create_tree(
@@ -1147,7 +1242,7 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
     data->nearest_callback = editmesh_looptri_nearest_point;
     data->raycast_callback = editmesh_looptri_spherecast;
     data->em = em;
-    data->cached = bvh_cache != NULL;
+    data->cached = bvh_cache_p != NULL;
   }
   return tree;
 }
@@ -1155,7 +1250,8 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
 BVHTree *bvhtree_from_editmesh_looptri(
     BVHTreeFromEditMesh *data, BMEditMesh *em, float epsilon, int tree_type, int axis)
 {
-  return bvhtree_from_editmesh_looptri_ex(data, em, NULL, -1, epsilon, tree_type, axis, 0, NULL);
+  return bvhtree_from_editmesh_looptri_ex(
+      data, em, NULL, -1, epsilon, tree_type, axis, 0, NULL, NULL);
 }
 
 /**
@@ -1177,21 +1273,14 @@ BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
                                       int tree_type,
                                       int axis,
                                       const BVHCacheType bvh_cache_type,
-                                      BVHCache **bvh_cache)
+                                      BVHCache **bvh_cache_p,
+                                      ThreadMutex *mesh_eval_mutex)
 {
   bool in_cache = false;
+  bool lock_started = false;
   BVHTree *tree = NULL;
-  if (bvh_cache) {
-    BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
-    in_cache = bvhcache_find(*bvh_cache, bvh_cache_type, &tree);
-    BLI_rw_mutex_unlock(&cache_rwlock);
-    if (in_cache == false) {
-      BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
-      in_cache = bvhcache_find(*bvh_cache, bvh_cache_type, &tree);
-      if (in_cache) {
-        BLI_rw_mutex_unlock(&cache_rwlock);
-      }
-    }
+  if (bvh_cache_p) {
+    in_cache = bvhcache_find(bvh_cache_p, bvh_cache_type, &tree, &lock_started, mesh_eval_mutex);
   }
 
   if (in_cache == false) {
@@ -1206,9 +1295,10 @@ BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
                                                  looptri_mask,
                                                  looptri_num_active);
 
-    if (bvh_cache) {
+    if (bvh_cache_p) {
+      BVHCache *bvh_cache = *bvh_cache_p;
       bvhcache_insert(bvh_cache, tree, bvh_cache_type);
-      BLI_rw_mutex_unlock(&cache_rwlock);
+      bvhcache_unlock(bvh_cache, lock_started);
       in_cache = true;
     }
   }
@@ -1315,11 +1405,10 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
                                    const int tree_type)
 {
   BVHTree *tree = NULL;
-  BVHCache **bvh_cache = &mesh->runtime.bvh_cache;
+  BVHCache **bvh_cache_p = (BVHCache **)&mesh->runtime.bvh_cache;
+  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)mesh->runtime.eval_mutex;
 
-  BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
-  bool is_cached = bvhcache_find(*bvh_cache, bvh_cache_type, &tree);
-  BLI_rw_mutex_unlock(&cache_rwlock);
+  bool is_cached = bvhcache_find(bvh_cache_p, bvh_cache_type, &tree, NULL, NULL);
 
   if (is_cached && tree == NULL) {
     memset(data, 0, sizeof(*data));
@@ -1351,7 +1440,8 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
                                           tree_type,
                                           6,
                                           bvh_cache_type,
-                                          bvh_cache);
+                                          bvh_cache_p,
+                                          mesh_eval_mutex);
 
         if (loose_verts_mask != NULL) {
           MEM_freeN(loose_verts_mask);
@@ -1386,7 +1476,8 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
                                           tree_type,
                                           6,
                                           bvh_cache_type,
-                                          bvh_cache);
+                                          bvh_cache_p,
+                                          mesh_eval_mutex);
 
         if (loose_edges_mask != NULL) {
           MEM_freeN(loose_edges_mask);
@@ -1416,7 +1507,8 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
                                           tree_type,
                                           6,
                                           bvh_cache_type,
-                                          bvh_cache);
+                                          bvh_cache_p,
+                                          mesh_eval_mutex);
       }
       else {
         /* Setup BVHTreeFromMesh */
@@ -1452,7 +1544,8 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
                                             tree_type,
                                             6,
                                             bvh_cache_type,
-                                            bvh_cache);
+                                            bvh_cache_p,
+                                            mesh_eval_mutex);
       }
       else {
         /* Setup BVHTreeFromMesh */
@@ -1464,6 +1557,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
     case BVHTREE_FROM_EM_VERTS:
     case BVHTREE_FROM_EM_EDGES:
     case BVHTREE_FROM_EM_LOOPTRI:
+    case BVHTREE_MAX_ITEM:
       BLI_assert(false);
       break;
   }
@@ -1493,17 +1587,16 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
                                        struct BMEditMesh *em,
                                        const int tree_type,
                                        const BVHCacheType bvh_cache_type,
-                                       BVHCache **bvh_cache)
+                                       BVHCache **bvh_cache_p,
+                                       ThreadMutex *mesh_eval_mutex)
 {
   BVHTree *tree = NULL;
   bool is_cached = false;
 
   memset(data, 0, sizeof(*data));
 
-  if (bvh_cache) {
-    BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
-    is_cached = bvhcache_find(*bvh_cache, bvh_cache_type, &tree);
-    BLI_rw_mutex_unlock(&cache_rwlock);
+  if (bvh_cache_p) {
+    is_cached = bvhcache_find(bvh_cache_p, bvh_cache_type, &tree, NULL, NULL);
 
     if (is_cached && tree == NULL) {
       return tree;
@@ -1517,7 +1610,7 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
     case BVHTREE_FROM_EM_VERTS:
       if (is_cached == false) {
         tree = bvhtree_from_editmesh_verts_ex(
-            data, em, NULL, -1, 0.0f, tree_type, 6, bvh_cache_type, bvh_cache);
+            data, em, NULL, -1, 0.0f, tree_type, 6, bvh_cache_type, bvh_cache_p, mesh_eval_mutex);
       }
       else {
         data->nearest_callback = NULL;
@@ -1528,7 +1621,7 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
     case BVHTREE_FROM_EM_EDGES:
       if (is_cached == false) {
         tree = bvhtree_from_editmesh_edges_ex(
-            data, em, NULL, -1, 0.0f, tree_type, 6, bvh_cache_type, bvh_cache);
+            data, em, NULL, -1, 0.0f, tree_type, 6, bvh_cache_type, bvh_cache_p, mesh_eval_mutex);
       }
       else {
         /* Setup BVHTreeFromMesh */
@@ -1540,7 +1633,7 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
     case BVHTREE_FROM_EM_LOOPTRI:
       if (is_cached == false) {
         tree = bvhtree_from_editmesh_looptri_ex(
-            data, em, NULL, -1, 0.0f, tree_type, 6, bvh_cache_type, bvh_cache);
+            data, em, NULL, -1, 0.0f, tree_type, 6, bvh_cache_type, bvh_cache_p, mesh_eval_mutex);
       }
       else {
         /* Setup BVHTreeFromMesh */
@@ -1555,6 +1648,7 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
     case BVHTREE_FROM_LOOPTRI_NO_HIDDEN:
     case BVHTREE_FROM_LOOSEVERTS:
     case BVHTREE_FROM_LOOSEEDGES:
+    case BVHTREE_MAX_ITEM:
       BLI_assert(false);
       break;
   }
@@ -1615,82 +1709,3 @@ void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 
   memset(data, 0, sizeof(*data));
 }
-
-/* -------------------------------------------------------------------- */
-/** \name BVHCache
- * \{ */
-
-typedef struct BVHCacheItem {
-  BVHCacheType type;
-  BVHTree *tree;
-
-} BVHCacheItem;
-
-/**
- * Queries a bvhcache for the cache bvhtree of the request type
- */
-bool bvhcache_find(const BVHCache *cache, BVHCacheType type, BVHTree **r_tree)
-{
-  while (cache) {
-    const BVHCacheItem *item = cache->link;
-    if (item->type == type) {
-      *r_tree = item->tree;
-      return true;
-    }
-    cache = cache->next;
-  }
-  return false;
-}
-
-bool bvhcache_has_tree(const BVHCache *cache, const BVHTree *tree)
-{
-  while (cache) {
-    const BVHCacheItem *item = cache->link;
-    if (item->tree == tree) {
-      return true;
-    }
-    cache = cache->next;
-  }
-  return false;
-}
-
-/**
- * Inserts a BVHTree of the given type under the cache
- * After that the caller no longer needs to worry when to free the BVHTree
- * as that will be done when the cache is freed.
- *
- * A call to this assumes that there was no previous cached tree of the given type
- * \warning The #BVHTree can be NULL.
- */
-void bvhcache_insert(BVHCache **cache_p, BVHTree *tree, BVHCacheType type)
-{
-  BVHCacheItem *item = NULL;
-
-  BLI_assert(bvhcache_find(*cache_p, type, &(BVHTree *){0}) == false);
-
-  item = MEM_mallocN(sizeof(BVHCacheItem), "BVHCacheItem");
-
-  item->type = type;
-  item->tree = tree;
-
-  BLI_linklist_prepend(cache_p, item);
-}
-
-/**
- * frees a bvhcache
- */
-static void bvhcacheitem_free(void *_item)
-{
-  BVHCacheItem *item = (BVHCacheItem *)_item;
-
-  BLI_bvhtree_free(item->tree);
-  MEM_freeN(item);
-}
-
-void bvhcache_free(BVHCache **cache_p)
-{
-  BLI_linklist_free(*cache_p, (LinkNodeFreeFP)bvhcacheitem_free);
-  *cache_p = NULL;
-}
-
-/** \} */

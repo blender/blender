@@ -1555,6 +1555,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                      2,
                                      6,
                                      0,
+                                     NULL,
                                      NULL);
         }
 
@@ -1598,6 +1599,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                        2,
                                        6,
                                        0,
+                                       NULL,
                                        NULL);
         }
 

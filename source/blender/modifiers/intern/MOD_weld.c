@@ -1677,8 +1677,18 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
   /* Get overlap map. */
   /* TODO: For a better performanse use KD-Tree. */
   struct BVHTreeFromMesh treedata;
-  BVHTree *bvhtree = bvhtree_from_mesh_verts_ex(
-      &treedata, mvert, totvert, false, v_mask, v_mask_act, wmd->merge_dist / 2, 2, 6, 0, NULL);
+  BVHTree *bvhtree = bvhtree_from_mesh_verts_ex(&treedata,
+                                                mvert,
+                                                totvert,
+                                                false,
+                                                v_mask,
+                                                v_mask_act,
+                                                wmd->merge_dist / 2,
+                                                2,
+                                                6,
+                                                0,
+                                                NULL,
+                                                NULL);
 
   if (v_mask) {
     MEM_freeN(v_mask);
