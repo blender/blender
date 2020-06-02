@@ -382,12 +382,10 @@ GPUTexture *GPU_viewport_texture_pool_query(
   }
 
   tex = GPU_texture_create_2d(width, height, format, NULL, NULL);
-  GPU_texture_bind(tex, 0);
   /* Doing filtering for depth does not make sense when not doing shadow mapping,
    * and enabling texture filtering on integer texture make them unreadable. */
   bool do_filter = !GPU_texture_depth(tex) && !GPU_texture_integer(tex);
   GPU_texture_filter_mode(tex, do_filter);
-  GPU_texture_unbind(tex);
 
   ViewportTempTexture *tmp_tex = MEM_callocN(sizeof(ViewportTempTexture), "ViewportTempTexture");
   tmp_tex->texture = tex;
