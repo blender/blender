@@ -118,7 +118,12 @@ typedef struct BlenderDefRNA {
   ListBase structs;
   ListBase allocs;
   struct StructRNA *laststruct;
-  int error, silent, preprocess, verify, animate;
+  bool error;
+  bool silent;
+  bool preprocess;
+  bool verify;
+  bool animate;
+
   /* Keep last. */
 #ifndef RNA_RUNTIME
   struct {
