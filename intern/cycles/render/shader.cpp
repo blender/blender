@@ -318,11 +318,9 @@ void Shader::tag_update(Scene *scene)
    * has use_mis set to false. We are quite close to release now, so
    * better to be safe.
    */
-  if (this == scene->background->get_shader(scene)) {
-    scene->light_manager->need_update_background = true;
-    if (scene->light_manager->has_background_light(scene)) {
-      scene->light_manager->need_update = true;
-    }
+  if (this == scene->background->get_shader(scene) &&
+      scene->light_manager->has_background_light(scene)) {
+    scene->light_manager->need_update = true;
   }
 
   /* quick detection of which kind of shaders we have to avoid loading
