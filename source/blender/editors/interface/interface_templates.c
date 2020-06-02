@@ -799,7 +799,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
   return but;
 }
 
-static void template_ID(bContext *C,
+static void template_ID(const bContext *C,
                         uiLayout *layout,
                         TemplateID *template_ui,
                         StructRNA *type,
@@ -1140,7 +1140,7 @@ ID *UI_context_active_but_get_tab_ID(bContext *C)
   }
 }
 
-static void template_ID_tabs(bContext *C,
+static void template_ID_tabs(const bContext *C,
                              uiLayout *layout,
                              TemplateID *template,
                              StructRNA *type,
@@ -1214,7 +1214,7 @@ static void template_ID_tabs(bContext *C,
 }
 
 static void ui_template_id(uiLayout *layout,
-                           bContext *C,
+                           const bContext *C,
                            PointerRNA *ptr,
                            const char *propname,
                            const char *newop,
@@ -1298,7 +1298,7 @@ static void ui_template_id(uiLayout *layout,
 }
 
 void uiTemplateID(uiLayout *layout,
-                  bContext *C,
+                  const bContext *C,
                   PointerRNA *ptr,
                   const char *propname,
                   const char *newop,
@@ -7523,7 +7523,10 @@ void uiTemplateNodeSocket(uiLayout *layout, bContext *UNUSED(C), float *color)
 /** \name Cache File Template
  * \{ */
 
-void uiTemplateCacheFile(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname)
+void uiTemplateCacheFile(uiLayout *layout,
+                         const bContext *C,
+                         PointerRNA *ptr,
+                         const char *propname)
 {
   if (!ptr->data) {
     return;
