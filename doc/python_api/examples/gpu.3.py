@@ -1,45 +1,29 @@
 """
-Triangle with Custom Shader
----------------------------
+Wireframe Cube using Index Buffer
+---------------------------------
 """
 import bpy
 import gpu
 from gpu_extras.batch import batch_for_shader
 
-vertex_shader = '''
-    uniform mat4 viewProjectionMatrix;
+coords = (
+    (-1, -1, -1), (+1, -1, -1),
+    (-1, +1, -1), (+1, +1, -1),
+    (-1, -1, +1), (+1, -1, +1),
+    (-1, +1, +1), (+1, +1, +1))
 
-    in vec3 position;
-    out vec3 pos;
+indices = (
+    (0, 1), (0, 2), (1, 3), (2, 3),
+    (4, 5), (4, 6), (5, 7), (6, 7),
+    (0, 4), (1, 5), (2, 6), (3, 7))
 
-    void main()
-    {
-        pos = position;
-        gl_Position = viewProjectionMatrix * vec4(position, 1.0f);
-    }
-'''
-
-fragment_shader = '''
-    uniform float brightness;
-
-    in vec3 pos;
-
-    void main()
-    {
-        gl_FragColor = vec4(pos * brightness, 1.0);
-    }
-'''
-
-coords = [(1, 1, 1), (2, 0, 0), (-2, -1, 3)]
-shader = gpu.types.GPUShader(vertex_shader, fragment_shader)
-batch = batch_for_shader(shader, 'TRIS', {"position": coords})
+shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+batch = batch_for_shader(shader, 'LINES', {"pos": coords}, indices=indices)
 
 
 def draw():
     shader.bind()
-    matrix = bpy.context.region_data.perspective_matrix
-    shader.uniform_float("viewProjectionMatrix", matrix)
-    shader.uniform_float("brightness", 0.5)
+    shader.uniform_float("color", (1, 0, 0, 1))
     batch.draw(shader)
 
 

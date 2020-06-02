@@ -1,23 +1,28 @@
 """
-Generate a texture using Offscreen Rendering
---------------------------------------------
+Copy Offscreen Rendering result back to RAM
+-------------------------------------------
 
-#. Create an :class:`gpu.types.GPUOffScreen` object.
-#. Draw some circles into it.
-#. Make a new shader for drawing a planar texture in 3D.
-#. Draw the generated texture using the new shader.
+This will create a new image with the given name.
+If it already exists, it will override the existing one.
+
+Currently almost all of the execution time is spent in the last line.
+In the future this will hopefully be solved by implementing the Python buffer protocol
+for :class:`bgl.Buffer` and :class:`bpy.types.Image.pixels` (aka ``bpy_prop_array``).
 """
 import bpy
 import gpu
 import bgl
+import random
 from mathutils import Matrix
-from gpu_extras.batch import batch_for_shader
 from gpu_extras.presets import draw_circle_2d
 
-# Create and fill offscreen
-##########################################
+IMAGE_NAME = "Generated Image"
+WIDTH = 512
+HEIGHT = 512
+RING_AMOUNT = 10
 
-offscreen = gpu.types.GPUOffScreen(512, 512)
+
+offscreen = gpu.types.GPUOffScreen(WIDTH, HEIGHT)
 
 with offscreen.bind():
     bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
@@ -26,61 +31,20 @@ with offscreen.bind():
         gpu.matrix.load_matrix(Matrix.Identity(4))
         gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 
-        amount = 10
-        for i in range(-amount, amount + 1):
-            x_pos = i / amount
-            draw_circle_2d((x_pos, 0.0), (1, 1, 1, 1), 0.5, 200)
+        for i in range(RING_AMOUNT):
+            draw_circle_2d(
+                (random.uniform(-1, 1), random.uniform(-1, 1)),
+                (1, 1, 1, 1), random.uniform(0.1, 1), 20)
+
+    buffer = bgl.Buffer(bgl.GL_BYTE, WIDTH * HEIGHT * 4)
+    bgl.glReadBuffer(bgl.GL_BACK)
+    bgl.glReadPixels(0, 0, WIDTH, HEIGHT, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
+
+offscreen.free()
 
 
-# Drawing the generated texture in 3D space
-#############################################
-
-vertex_shader = '''
-    uniform mat4 modelMatrix;
-    uniform mat4 viewProjectionMatrix;
-
-    in vec2 position;
-    in vec2 uv;
-
-    out vec2 uvInterp;
-
-    void main()
-    {
-        uvInterp = uv;
-        gl_Position = viewProjectionMatrix * modelMatrix * vec4(position, 0.0, 1.0);
-    }
-'''
-
-fragment_shader = '''
-    uniform sampler2D image;
-
-    in vec2 uvInterp;
-
-    void main()
-    {
-        gl_FragColor = texture(image, uvInterp);
-    }
-'''
-
-shader = gpu.types.GPUShader(vertex_shader, fragment_shader)
-batch = batch_for_shader(
-    shader, 'TRI_FAN',
-    {
-        "position": ((-1, -1), (1, -1), (1, 1), (-1, 1)),
-        "uv": ((0, 0), (1, 0), (1, 1), (0, 1)),
-    },
-)
-
-
-def draw():
-    bgl.glActiveTexture(bgl.GL_TEXTURE0)
-    bgl.glBindTexture(bgl.GL_TEXTURE_2D, offscreen.color_texture)
-
-    shader.bind()
-    shader.uniform_float("modelMatrix", Matrix.Translation((1, 2, 3)) @ Matrix.Scale(3, 4))
-    shader.uniform_float("viewProjectionMatrix", bpy.context.region_data.perspective_matrix)
-    shader.uniform_float("image", 0)
-    batch.draw(shader)
-
-
-bpy.types.SpaceView3D.draw_handler_add(draw, (), 'WINDOW', 'POST_VIEW')
+if not IMAGE_NAME in bpy.data.images:
+    bpy.data.images.new(IMAGE_NAME, WIDTH, HEIGHT)
+image = bpy.data.images[IMAGE_NAME]
+image.scale(WIDTH, HEIGHT)
+image.pixels = [v / 255 for v in buffer]

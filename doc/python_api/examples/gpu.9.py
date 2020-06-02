@@ -1,50 +1,41 @@
 """
-Copy Offscreen Rendering result back to RAM
--------------------------------------------
+Rendering the 3D View into a Texture
+------------------------------------
 
-This will create a new image with the given name.
-If it already exists, it will override the existing one.
-
-Currently almost all of the execution time is spent in the last line.
-In the future this will hopefully be solved by implementing the Python buffer protocol
-for :class:`bgl.Buffer` and :class:`bpy.types.Image.pixels` (aka ``bpy_prop_array``).
+The scene has to have a camera for this example to work.
+You could also make this independent of a specific camera,
+but Blender does not expose good functions to create view and projection matrices yet.
 """
 import bpy
-import gpu
 import bgl
-import random
-from mathutils import Matrix
-from gpu_extras.presets import draw_circle_2d
+import gpu
+from gpu_extras.presets import draw_texture_2d
 
-IMAGE_NAME = "Generated Image"
 WIDTH = 512
-HEIGHT = 512
-RING_AMOUNT = 10
-
+HEIGHT = 256
 
 offscreen = gpu.types.GPUOffScreen(WIDTH, HEIGHT)
 
-with offscreen.bind():
-    bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
-    with gpu.matrix.push_pop():
-        # reset matrices -> use normalized device coordinates [-1, 1]
-        gpu.matrix.load_matrix(Matrix.Identity(4))
-        gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 
-        for i in range(RING_AMOUNT):
-            draw_circle_2d(
-                (random.uniform(-1, 1), random.uniform(-1, 1)),
-                (1, 1, 1, 1), random.uniform(0.1, 1), 20)
+def draw():
+    context = bpy.context
+    scene = context.scene
 
-    buffer = bgl.Buffer(bgl.GL_BYTE, WIDTH * HEIGHT * 4)
-    bgl.glReadBuffer(bgl.GL_BACK)
-    bgl.glReadPixels(0, 0, WIDTH, HEIGHT, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
+    view_matrix = scene.camera.matrix_world.inverted()
 
-offscreen.free()
+    projection_matrix = scene.camera.calc_matrix_camera(
+        context.evaluated_depsgraph_get(), x=WIDTH, y=HEIGHT)
+
+    offscreen.draw_view3d(
+        scene,
+        context.view_layer,
+        context.space_data,
+        context.region,
+        view_matrix,
+        projection_matrix)
+
+    bgl.glDisable(bgl.GL_DEPTH_TEST)
+    draw_texture_2d(offscreen.color_texture, (10, 10), WIDTH, HEIGHT)
 
 
-if not IMAGE_NAME in bpy.data.images:
-    bpy.data.images.new(IMAGE_NAME, WIDTH, HEIGHT)
-image = bpy.data.images[IMAGE_NAME]
-image.scale(WIDTH, HEIGHT)
-image.pixels = [v / 255 for v in buffer]
+bpy.types.SpaceView3D.draw_handler_add(draw, (), 'WINDOW', 'POST_PIXEL')
