@@ -220,6 +220,12 @@ static int sampler_binding(int32_t program,
 
 GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 {
+#ifndef NDEBUG
+  GLint curr_program;
+  glGetIntegerv(GL_CURRENT_PROGRAM, &curr_program);
+  BLI_assert(curr_program == program);
+#endif
+
   GLint max_attr_name_len = 0, attr_len = 0;
   glGetProgramiv(program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &max_attr_name_len);
   glGetProgramiv(program, GL_ACTIVE_ATTRIBUTES, &attr_len);

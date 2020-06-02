@@ -331,6 +331,8 @@ GPUShader *GPU_shader_load_from_binary(const char *binary,
   glGetProgramiv(program, GL_LINK_STATUS, &success);
 
   if (success) {
+    glUseProgram(program);
+
     GPUShader *shader = MEM_callocN(sizeof(*shader), __func__);
     shader->interface = GPU_shaderinterface_create(program);
     shader->program = program;
@@ -572,6 +574,7 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
     return NULL;
   }
 
+  glUseProgram(shader->program);
   shader->interface = GPU_shaderinterface_create(shader->program);
 
   return shader;
