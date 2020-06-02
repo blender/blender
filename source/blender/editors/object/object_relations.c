@@ -2546,9 +2546,9 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     }
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 
-    /* obcollection is no more duplicollection-ing,
-     * it merely parents whole collection of overriding instantiated objects. */
-    obcollection->instance_collection = NULL;
+    /* Remove the instance empty from this scene, the items now have an overriden collection
+     * instead. */
+    ED_object_base_free_and_unlink(bmain, scene, obcollection);
 
     /* Also, we'd likely want to lock by default things like
      * transformations of implicitly overridden objects? */
