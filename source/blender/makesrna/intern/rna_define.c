@@ -61,7 +61,17 @@ static CLG_LogRef LOG = {"rna.define"};
 
 /* Global used during defining */
 
-BlenderDefRNA DefRNA = {NULL, {NULL, NULL}, {NULL, NULL}, NULL, 0, 0, 0, 1, 1};
+BlenderDefRNA DefRNA = {
+    .sdna = NULL,
+    .structs = {NULL, NULL},
+    .allocs = {NULL, NULL},
+    .laststruct = NULL,
+    .error = 0,
+    .silent = false,
+    .preprocess = false,
+    .verify = true,
+    .animate = true,
+};
 
 #ifndef RNA_RUNTIME
 static struct {
