@@ -144,6 +144,17 @@ struct SnapObjectContext {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
+
+static bool editmesh_eval_final_is_bmesh(const BMEditMesh *em)
+{
+  return (em->mesh_eval_final->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Snap Object Data
  * \{ */
 
@@ -974,7 +985,7 @@ static void raycast_obj_fn(SnapObjectContext *sctx,
       Mesh *me = ob->data;
       bool use_hide = false;
       if (BKE_object_is_in_editmode(ob)) {
-        if (use_obedit) {
+        if (use_obedit || editmesh_eval_final_is_bmesh(me->edit_mesh)) {
           /* Operators only update the editmesh looptris of the original mesh. */
           BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
           retval = raycastEditMesh(sctx,
@@ -2641,7 +2652,7 @@ static void sanp_obj_fn(SnapObjectContext *sctx,
     case OB_MESH: {
       Mesh *me = ob->data;
       if (BKE_object_is_in_editmode(ob)) {
-        if (use_obedit) {
+        if (use_obedit || editmesh_eval_final_is_bmesh(me->edit_mesh)) {
           /* Operators only update the editmesh looptris of the original mesh. */
           BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
           retval = snapEditMesh(sctx,
