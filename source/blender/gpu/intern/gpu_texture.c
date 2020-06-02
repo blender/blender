@@ -56,8 +56,6 @@ static struct GPUTextureGlobal {
 
 /* Maximum number of FBOs a texture can be attached to. */
 #define GPU_TEX_MAX_FBO_ATTACHED 12
-/* Maximum number of texture unit a texture can be attached to. */
-#define GPU_TEX_MAX_BIND 4
 
 typedef enum eGPUTextureFormatFlag {
   GPU_FORMAT_DEPTH = (1 << 0),
@@ -74,14 +72,14 @@ typedef enum eGPUTextureFormatFlag {
 
 /* GPUTexture */
 struct GPUTexture {
-  int w, h, d;                  /* width/height/depth */
-  int orig_w, orig_h;           /* width/height (of source data), optional. */
-  int number[GPU_TEX_MAX_BIND]; /* Texture unit(s) to which this texture is bound. */
-  int refcount;                 /* reference count */
-  GLenum target;                /* GL_TEXTURE_* */
-  GLenum target_base;           /* same as target, (but no multisample)
-                                 * use it for unbinding */
-  GLuint bindcode;              /* opengl identifier for texture */
+  int w, h, d;        /* width/height/depth */
+  int orig_w, orig_h; /* width/height (of source data), optional. */
+  int number;         /* Texture unit to which this texture is bound. */
+  int refcount;       /* reference count */
+  GLenum target;      /* GL_TEXTURE_* */
+  GLenum target_base; /* same as target, (but no multisample)
+                       * use it for unbinding */
+  GLuint bindcode;    /* opengl identifier for texture */
 
   eGPUTextureFormat format;
   eGPUTextureFormatFlag format_flag;
@@ -837,9 +835,7 @@ GPUTexture *GPU_texture_create_nD(int w,
   tex->components = gpu_get_component_count(tex_format);
   tex->mipmaps = 0;
   tex->format_flag = 0;
-  for (int i = 0; i < GPU_TEX_MAX_BIND; i++) {
-    tex->number[i] = -1;
-  }
+  tex->number = -1;
 
   if (n == 2) {
     if (d == 0) {
@@ -1013,9 +1009,7 @@ GPUTexture *GPU_texture_cube_create(int w,
   tex->components = gpu_get_component_count(tex_format);
   tex->mipmaps = 0;
   tex->format_flag = GPU_FORMAT_CUBE;
-  for (int i = 0; i < GPU_TEX_MAX_BIND; i++) {
-    tex->number[i] = -1;
-  }
+  tex->number = -1;
 
   if (d == 0) {
     tex->target_base = tex->target = GL_TEXTURE_CUBE_MAP;
@@ -1136,10 +1130,7 @@ GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat tex_format, const GLuint
   tex->format_flag = 0;
   tex->target_base = tex->target = GL_TEXTURE_BUFFER;
   tex->mipmaps = 0;
-
-  for (int i = 0; i < GPU_TEX_MAX_BIND; i++) {
-    tex->number[i] = -1;
-  }
+  tex->number = -1;
 
   GLenum internalformat = gpu_format_to_gl_internalformat(tex_format);
 
@@ -1194,9 +1185,7 @@ GPUTexture *GPU_texture_from_bindcode(int textarget, int bindcode)
   if (GPU_get_mipmap()) {
     tex->sampler_state |= (GPU_SAMPLER_MIPMAP | GPU_SAMPLER_FILTER);
   }
-  for (int i = 0; i < GPU_TEX_MAX_BIND; i++) {
-    tex->number[i] = -1;
-  }
+  tex->number = -1;
 
   if (!glIsTexture(tex->bindcode)) {
     GPU_print_error_debug("Blender Texture Not Loaded");
@@ -1744,23 +1733,7 @@ void GPU_texture_bind(GPUTexture *tex, int unit)
     }
   }
 
-  for (int i = 0; i < GPU_TEX_MAX_BIND; i++) {
-    if (tex->number[i] == -1) {
-      tex->number[i] = unit;
-      break;
-    }
-    else if (tex->number[i] == unit) {
-      /* Already bound to this unit.
-       * But might be with another sampler object so we still rebind. */
-      break;
-    }
-    else if (i == GPU_TEX_MAX_BIND - 1) {
-      fprintf(stderr, "Texture is already bound to its maximum number of sampler units!\n");
-      BLI_assert(0); /* Should never happen! */
-      return;
-    }
-  }
-
+  tex->number = unit;
   glActiveTexture(GL_TEXTURE0 + unit);
 
   if (tex->bindcode != 0) {
@@ -1775,28 +1748,25 @@ void GPU_texture_bind(GPUTexture *tex, int unit)
 
 void GPU_texture_unbind(GPUTexture *tex)
 {
-  for (int i = 0; i < GPU_TEX_MAX_BIND; i++) {
-    if (tex->number[i] != -1) {
-      glActiveTexture(GL_TEXTURE0 + tex->number[i]);
-      glBindTexture(tex->target, 0);
-      glBindSampler(tex->number[i], 0);
-      tex->number[i] = -1;
-    }
-    else {
-      break;
-    }
+  if (tex->number == -1) {
+    return;
   }
+
+  glActiveTexture(GL_TEXTURE0 + tex->number);
+  glBindTexture(tex->target, 0);
+  glBindSampler(tex->number, 0);
+  tex->number = -1;
 }
 
 int GPU_texture_bound_number(GPUTexture *tex)
 {
   /* TODO remove. Makes no sense now. */
-  return tex->number[0];
+  return tex->number;
 }
 
 #define WARN_NOT_BOUND(_tex) \
   { \
-    if (_tex->number[0] == -1) { \
+    if (_tex->number == -1) { \
       fprintf(stderr, "Warning : Trying to set parameter on a texture not bound.\n"); \
       BLI_assert(0); \
       return; \
@@ -1811,7 +1781,7 @@ void GPU_texture_generate_mipmap(GPUTexture *tex)
   gpu_texture_memory_footprint_remove(tex);
   int levels = 1 + floor(log2(max_ii(tex->w, tex->h)));
 
-  glActiveTexture(GL_TEXTURE0 + tex->number[0]);
+  glActiveTexture(GL_TEXTURE0 + tex->number);
 
   if (GPU_texture_depth(tex)) {
     /* Some drivers have bugs when using glGenerateMipmap with depth textures (see T56789).
@@ -1957,7 +1927,7 @@ void GPU_texture_swizzle_channel_auto(GPUTexture *tex, int channels)
 {
   WARN_NOT_BOUND(tex);
 
-  glActiveTexture(GL_TEXTURE0 + tex->number[0]);
+  glActiveTexture(GL_TEXTURE0 + tex->number);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_R, GL_RED);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_G, (channels >= 2) ? GL_GREEN : GL_RED);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_B, (channels >= 3) ? GL_BLUE : GL_RED);
