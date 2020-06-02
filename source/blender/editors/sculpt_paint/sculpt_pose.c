@@ -1031,7 +1031,6 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
-  float grab_delta[3];
   const ePaintSymmetryFlags symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
   /* The pose brush applies all enabled symmetry axis in a single iteration, so the rest can be
@@ -1041,7 +1040,6 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   }
 
   SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
-  copy_v3_v3(grab_delta, ss->cache->grab_delta);
 
   switch (brush->pose_deform_type) {
     case BRUSH_POSE_DEFORM_ROTATE_TWIST:
@@ -1095,7 +1093,6 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
       .ob = ob,
       .brush = brush,
       .nodes = nodes,
-      .grab_delta = grab_delta,
   };
 
   TaskParallelSettings settings;
