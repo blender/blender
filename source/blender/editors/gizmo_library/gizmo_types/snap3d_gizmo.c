@@ -413,7 +413,7 @@ static int gizmo_snap_test_select(bContext *C, wmGizmo *gz, const int mval[2])
     RNA_enum_value_from_id(gizmo_snap->keymap->modal_items, "SNAP_ON", &gizmo_snap->snap_on);
   }
 
-  const bool invert = invert_snap(gz, wm, wm->winactive->eventstate);
+  const bool invert = wm->winactive ? invert_snap(gz, wm, wm->winactive->eventstate) : false;
   if (gizmo_snap->invert_snap == invert && gizmo_snap->mval[0] == mval[0] &&
       gizmo_snap->mval[1] == mval[1]) {
     /* Performance, do not update. */
