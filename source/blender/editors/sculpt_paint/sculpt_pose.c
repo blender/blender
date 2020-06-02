@@ -408,6 +408,7 @@ typedef struct PoseFloodFillData {
   int initial_face_set;
   int masked_face_set_it;
   int masked_face_set;
+  int target_face_set;
 } PoseFloodFillData;
 
 static bool pose_topology_floodfill_cb(
@@ -829,9 +830,14 @@ static bool pose_face_sets_fk_find_masked_floodfill_cb(
   if (SCULPT_vertex_has_unique_face_set(ss, to_v) &&
       !SCULPT_vertex_has_unique_face_set(ss, from_v) &&
       SCULPT_vertex_has_face_set(ss, from_v, to_face_set)) {
+
     if (data->floodfill_it[to_v] > data->masked_face_set_it) {
       data->masked_face_set = to_face_set;
       data->masked_face_set_it = data->floodfill_it[to_v];
+    }
+
+    if (data->target_face_set == SCULPT_FACE_SET_NONE) {
+      data->target_face_set = to_face_set;
     }
   }
 
@@ -864,30 +870,52 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
   fdata.floodfill_it[active_vertex] = 1;
   fdata.initial_face_set = active_face_set;
   fdata.masked_face_set = SCULPT_FACE_SET_NONE;
+  fdata.target_face_set = SCULPT_FACE_SET_NONE;
   fdata.masked_face_set_it = 0;
   SCULPT_floodfill_execute(ss, &flood, pose_face_sets_fk_find_masked_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
 
-  int count = 0;
+  int origin_count = 0;
   float origin_acc[3] = {0.0f};
   for (int i = 0; i < totvert; i++) {
     if (fdata.floodfill_it[i] != 0 && SCULPT_vertex_has_face_set(ss, i, fdata.initial_face_set) &&
         SCULPT_vertex_has_face_set(ss, i, fdata.masked_face_set)) {
       add_v3_v3(origin_acc, SCULPT_vertex_co_get(ss, i));
-      count++;
+      origin_count++;
     }
   }
+
+  int target_count = 0;
+  float target_acc[3] = {0.0f};
+  if (fdata.target_face_set != fdata.masked_face_set) {
+    for (int i = 0; i < totvert; i++) {
+      if (fdata.floodfill_it[i] != 0 &&
+          SCULPT_vertex_has_face_set(ss, i, fdata.initial_face_set) &&
+          SCULPT_vertex_has_face_set(ss, i, fdata.target_face_set)) {
+        add_v3_v3(target_acc, SCULPT_vertex_co_get(ss, i));
+        target_count++;
+      }
+    }
+  }
+
   MEM_freeN(fdata.floodfill_it);
 
-  if (count > 0) {
+  if (origin_count > 0) {
     copy_v3_v3(ik_chain->segments[0].orig, origin_acc);
-    mul_v3_fl(ik_chain->segments[0].orig, 1.0f / count);
+    mul_v3_fl(ik_chain->segments[0].orig, 1.0f / origin_count);
   }
   else {
     zero_v3(ik_chain->segments[0].orig);
   }
 
-  copy_v3_v3(ik_chain->segments[0].head, initial_location);
+  if (target_count > 0) {
+    copy_v3_v3(ik_chain->segments[0].head, target_acc);
+    mul_v3_fl(ik_chain->segments[0].head, 1.0f / target_count);
+    sub_v3_v3v3(ik_chain->grab_delta_offset, ik_chain->segments[0].head, initial_location);
+  }
+  else {
+    copy_v3_v3(ik_chain->segments[0].head, initial_location);
+  }
 
   SCULPT_floodfill_init(ss, &flood);
   SCULPT_floodfill_add_active(sd, ob, ss, &flood, radius);
@@ -895,7 +923,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
   SCULPT_floodfill_execute(ss, &flood, pose_face_sets_fk_set_weights_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
 
-  pose_ik_chain_origin_heads_init(ik_chain, initial_location);
+  pose_ik_chain_origin_heads_init(ik_chain, ik_chain->segments[0].head);
   return ik_chain;
 }
 
@@ -1001,6 +1029,7 @@ static void sculpt_pose_do_rotate_deform(SculptSession *ss, Brush *brush)
   /* Calculate the IK target. */
   copy_v3_v3(ik_target, ss->cache->true_location);
   add_v3_v3(ik_target, ss->cache->grab_delta);
+  add_v3_v3(ik_target, ik_chain->grab_delta_offset);
 
   /* Solve the IK positions. */
   pose_solve_ik_chain(ik_chain, ik_target, brush->flag2 & BRUSH_POSE_IK_ANCHORED);
