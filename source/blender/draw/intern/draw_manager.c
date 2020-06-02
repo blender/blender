@@ -2249,7 +2249,7 @@ static void drw_draw_depth_loop_imp(struct Depsgraph *depsgraph,
       .engine_type = engine_type,
       .depsgraph = depsgraph,
   };
-
+  drw_task_graph_init();
   drw_engines_data_validate();
 
   /* Setup framebuffer */
@@ -2293,6 +2293,7 @@ static void drw_draw_depth_loop_imp(struct Depsgraph *depsgraph,
 
     DRW_render_instance_buffer_finish();
   }
+  drw_task_graph_deinit();
 
   /* Start Drawing */
   DRW_state_reset();
