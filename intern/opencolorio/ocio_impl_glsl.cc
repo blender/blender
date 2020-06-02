@@ -264,13 +264,13 @@ static void updateGLSLShader(OCIO_GLSLShader *shader,
 
     glUseProgram(shader->program);
 
-    /* Set UBO binding location. */
-    GLuint index = glGetUniformBlockIndex(shader->program, "OCIO_GLSLCurveMappingParameters");
-    glUniformBlockBinding(shader->program, index, UBO_BIND_LOC);
-
     /* TODO(fclem) Remove this. Make caller always assume viewport space and
      * specify texco via vertex attribs. */
     shader->interface = GPU_shaderinterface_create(shader->program);
+
+    /* Set UBO binding location. */
+    GLuint index = glGetUniformBlockIndex(shader->program, "OCIO_GLSLCurveMappingParameters");
+    glUniformBlockBinding(shader->program, index, UBO_BIND_LOC);
 
     /* Set texture bind point uniform once. This is saved by the shader. */
     glUniform1i(glGetUniformLocation(shader->program, "image_texture"), 0);
