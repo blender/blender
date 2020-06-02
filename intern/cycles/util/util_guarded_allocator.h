@@ -18,6 +18,7 @@
 #define __UTIL_GUARDED_ALLOCATOR_H__
 
 #include <cstddef>
+#include <cstdlib>
 #include <memory>
 
 #ifdef WITH_BLENDER_GUARDEDALLOC
