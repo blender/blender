@@ -158,7 +158,7 @@ static GLenum gpu_get_mipmap_filter(bool mag)
 }
 
 /* Anisotropic filtering settings */
-void GPU_set_anisotropic(Main *bmain, float value)
+void GPU_set_anisotropic(float value)
 {
   if (GTS.anisotropic != value) {
     GPU_samplers_free();

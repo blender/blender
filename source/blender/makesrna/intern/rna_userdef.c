@@ -360,7 +360,7 @@ static void rna_userdef_load_ui_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 
 static void rna_userdef_anisotropic_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  GPU_set_anisotropic(bmain, U.anisotropic_filter);
+  GPU_set_anisotropic(U.anisotropic_filter);
   rna_userdef_update(bmain, scene, ptr);
 }
 

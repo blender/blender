@@ -50,7 +50,7 @@ void GPU_paint_set_mipmap(struct Main *bmain, bool mipmap);
 
 /* Anisotropic filtering settings
  * - these will free textures on changes */
-void GPU_set_anisotropic(struct Main *bmain, float value);
+void GPU_set_anisotropic(float value);
 float GPU_get_anisotropic(void);
 
 /* Image updates and free
