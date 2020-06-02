@@ -524,7 +524,7 @@ PyDoc_STRVAR(bpygpu_shader_calc_format_doc,
 static PyObject *bpygpu_shader_calc_format(BPyGPUShader *self, PyObject *UNUSED(arg))
 {
   BPyGPUVertFormat *ret = (BPyGPUVertFormat *)BPyGPUVertFormat_CreatePyObject(NULL);
-  GPU_vertformat_from_interface(&ret->fmt, GPU_shader_get_interface(self->shader));
+  GPU_vertformat_from_shader(&ret->fmt, self->shader);
   return (PyObject *)ret;
 }
 

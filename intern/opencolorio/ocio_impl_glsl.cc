@@ -263,11 +263,6 @@ static void updateGLSLShader(OCIO_GLSLShader *shader,
     shader->curve_mapping_loc = glGetUniformLocation(shader->program, "curve_mapping");
 
     glUseProgram(shader->program);
-    /* Set texture bind point uniform once. This is saved by the shader. */
-    glUniform1i(glGetUniformLocation(shader->program, "image_texture"), 0);
-    glUniform1i(glGetUniformLocation(shader->program, "lut3d_texture"), 2);
-    glUniform1i(glGetUniformLocation(shader->program, "lut3d_display_texture"), 3);
-    glUniform1i(glGetUniformLocation(shader->program, "curve_mapping_texture"), 4);
 
     /* Set UBO binding location. */
     GLuint index = glGetUniformBlockIndex(shader->program, "OCIO_GLSLCurveMappingParameters");
@@ -276,6 +271,12 @@ static void updateGLSLShader(OCIO_GLSLShader *shader,
     /* TODO(fclem) Remove this. Make caller always assume viewport space and
      * specify texco via vertex attribs. */
     shader->interface = GPU_shaderinterface_create(shader->program);
+
+    /* Set texture bind point uniform once. This is saved by the shader. */
+    glUniform1i(glGetUniformLocation(shader->program, "image_texture"), 0);
+    glUniform1i(glGetUniformLocation(shader->program, "lut3d_texture"), 2);
+    glUniform1i(glGetUniformLocation(shader->program, "lut3d_display_texture"), 3);
+    glUniform1i(glGetUniformLocation(shader->program, "curve_mapping_texture"), 4);
   }
 
   shader->cacheId = cache_id;

@@ -23,8 +23,6 @@
  * GPU vertex format
  */
 
-#include "GPU_shader_interface.h"
-
 #include "GPU_vertex_format.h"
 #include "gpu_vertex_format_private.h"
 #include <stddef.h>
@@ -33,6 +31,9 @@
 #include "BLI_ghash.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+
+#include "GPU_shader.h"
+#include "gpu_shader_private.h"
 
 #define PACK_DEBUG 0
 
@@ -391,38 +392,37 @@ void VertexFormat_pack(GPUVertFormat *format)
   format->packed = true;
 }
 
-static uint calc_input_component_size(const GPUShaderInput *input)
+static uint calc_component_size(const GLenum gl_type)
 {
-  int size = input->size;
-  switch (input->gl_type) {
+  switch (gl_type) {
     case GL_FLOAT_VEC2:
     case GL_INT_VEC2:
     case GL_UNSIGNED_INT_VEC2:
-      return size * 2;
+      return 2;
     case GL_FLOAT_VEC3:
     case GL_INT_VEC3:
     case GL_UNSIGNED_INT_VEC3:
-      return size * 3;
+      return 3;
     case GL_FLOAT_VEC4:
     case GL_FLOAT_MAT2:
     case GL_INT_VEC4:
     case GL_UNSIGNED_INT_VEC4:
-      return size * 4;
+      return 4;
     case GL_FLOAT_MAT3:
-      return size * 9;
+      return 9;
     case GL_FLOAT_MAT4:
-      return size * 16;
+      return 16;
     case GL_FLOAT_MAT2x3:
     case GL_FLOAT_MAT3x2:
-      return size * 6;
+      return 6;
     case GL_FLOAT_MAT2x4:
     case GL_FLOAT_MAT4x2:
-      return size * 8;
+      return 8;
     case GL_FLOAT_MAT3x4:
     case GL_FLOAT_MAT4x3:
-      return size * 12;
+      return 12;
     default:
-      return size;
+      return 1;
   }
 }
 
@@ -466,42 +466,39 @@ static void get_fetch_mode_and_comp_type(int gl_type,
   }
 }
 
-void GPU_vertformat_from_interface(GPUVertFormat *format, const GPUShaderInterface *shaderface)
+void GPU_vertformat_from_shader(GPUVertFormat *format, const GPUShader *shader)
 {
-  const char *name_buffer = shaderface->name_buffer;
+  GPU_vertformat_clear(format);
+  GPUVertAttr *attr = &format->attrs[0];
 
-  for (int i = 0; i < GPU_NUM_SHADERINTERFACE_BUCKETS; i++) {
-    const GPUShaderInput *input = shaderface->attr_buckets[i];
-    if (input == NULL) {
+  GLint attr_len;
+  glGetProgramiv(shader->program, GL_ACTIVE_ATTRIBUTES, &attr_len);
+
+  for (int i = 0; i < attr_len; i++) {
+    char name[256];
+    GLenum gl_type;
+    GLint size;
+    glGetActiveAttrib(shader->program, i, sizeof(name), NULL, &size, &gl_type, name);
+
+    /* Ignore OpenGL names like `gl_BaseInstanceARB`, `gl_InstanceID` and `gl_VertexID`. */
+    if (glGetAttribLocation(shader->program, name) == -1) {
       continue;
     }
 
-    const GPUShaderInput *next = input;
-    while (next != NULL) {
-      input = next;
-      next = input->next;
+    format->name_len++; /* multiname support */
+    format->attr_len++;
 
-      /* OpenGL attributes such as `gl_VertexID` have a location of -1. */
-      if (input->location < 0) {
-        continue;
-      }
+    GPUVertCompType comp_type;
+    GPUVertFetchMode fetch_mode;
+    get_fetch_mode_and_comp_type(gl_type, &comp_type, &fetch_mode);
 
-      format->name_len++; /* multiname support */
-      format->attr_len++;
-
-      GPUVertCompType comp_type;
-      GPUVertFetchMode fetch_mode;
-      get_fetch_mode_and_comp_type(input->gl_type, &comp_type, &fetch_mode);
-
-      GPUVertAttr *attr = &format->attrs[input->location];
-
-      attr->names[attr->name_len++] = copy_attr_name(format, name_buffer + input->name_offset);
-      attr->offset = 0; /* offsets & stride are calculated later (during pack) */
-      attr->comp_len = calc_input_component_size(input);
-      attr->sz = attr->comp_len * 4;
-      attr->fetch_mode = fetch_mode;
-      attr->comp_type = comp_type;
-      attr->gl_comp_type = convert_comp_type_to_gl(comp_type);
-    }
+    attr->names[attr->name_len++] = copy_attr_name(format, name);
+    attr->offset = 0; /* offsets & stride are calculated later (during pack) */
+    attr->comp_len = calc_component_size(gl_type) * size;
+    attr->sz = attr->comp_len * 4;
+    attr->fetch_mode = fetch_mode;
+    attr->comp_type = comp_type;
+    attr->gl_comp_type = convert_comp_type_to_gl(comp_type);
+    attr += 1;
   }
 }

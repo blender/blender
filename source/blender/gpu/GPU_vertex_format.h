@@ -101,12 +101,11 @@ typedef struct GPUVertFormat {
   char names[GPU_VERT_ATTR_NAMES_BUF_LEN];
 } GPUVertFormat;
 
-struct GPUShaderInterface;
+struct GPUShader;
 
 void GPU_vertformat_clear(GPUVertFormat *);
 void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat *src);
-void GPU_vertformat_from_interface(GPUVertFormat *format,
-                                   const struct GPUShaderInterface *shaderface);
+void GPU_vertformat_from_shader(GPUVertFormat *format, const struct GPUShader *shader);
 
 uint GPU_vertformat_attr_add(
     GPUVertFormat *, const char *name, GPUVertCompType, uint comp_len, GPUVertFetchMode);

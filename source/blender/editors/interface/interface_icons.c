@@ -1604,7 +1604,7 @@ static void icon_draw_cache_texture_flush_ex(GLuint texture,
   GPU_shader_bind(shader);
 
   int img_loc = GPU_shader_get_uniform_ensure(shader, "image");
-  int data_loc = GPU_shader_get_uniform_ensure(shader, "calls_data[0]");
+  int data_loc = GPU_shader_get_uniform_ensure(shader, "calls_data");
 
   glUniform1i(img_loc, 0);
   glUniform4fv(data_loc, ICON_DRAW_CACHE_SIZE * 3, (float *)texture_draw_calls->drawcall_cache);

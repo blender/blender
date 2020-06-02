@@ -375,7 +375,7 @@ void GPU_batch_program_set_no_use(GPUBatch *batch,
                                   const GPUShaderInterface *shaderface)
 {
 #if TRUST_NO_ONE
-  assert(glIsProgram(shaderface->program));
+  assert(glIsProgram(program));
   assert(batch->program_in_use == 0);
 #endif
   batch->interface = shaderface;

@@ -64,33 +64,34 @@ typedef enum {
 } GPUUniformBuiltin;
 
 typedef struct GPUShaderInput {
-  struct GPUShaderInput *next;
   uint32_t name_offset;
-  uint name_hash;
-  /** Only for uniform inputs. */
-  GPUUniformBuiltin builtin_type;
-  /** Only for attribute inputs. */
-  uint32_t gl_type;
-  /** Only for attribute inputs. */
-  int32_t size;
+  uint32_t name_hash;
   int32_t location;
+  /** Defined at interface creation or in shader. Only for Samplers, UBOs and Vertex Attribs. */
+  int32_t binding;
 } GPUShaderInput;
 
-#define GPU_NUM_SHADERINTERFACE_BUCKETS 257
 #define GPU_SHADERINTERFACE_REF_ALLOC_COUNT 16
 
 typedef struct GPUShaderInterface {
-  int32_t program;
-  uint32_t name_buffer_offset;
-  GPUShaderInput *attr_buckets[GPU_NUM_SHADERINTERFACE_BUCKETS];
-  GPUShaderInput *uniform_buckets[GPU_NUM_SHADERINTERFACE_BUCKETS];
-  GPUShaderInput *ubo_buckets[GPU_NUM_SHADERINTERFACE_BUCKETS];
-  GPUShaderInput *builtin_uniforms[GPU_NUM_UNIFORMS];
+  /** Buffer containing all inputs names separated by '\0'. */
   char *name_buffer;
-  struct GPUBatch **batches; /* references to batches using this interface */
+  /** Reference to GPUBatches using this interface */
+  struct GPUBatch **batches;
   uint batches_len;
-  /** All enabled attributes in this shader. Used to set default values for unbound attributes. */
+  /** Input counts. */
+  uint attribute_len;
+  uint ubo_len;
+  uint uniform_len;
+  /** Enabled bindpoints that needs to be fed with data. */
   uint16_t enabled_attr_mask;
+  uint16_t enabled_ubo_mask;
+  uint64_t enabled_tex_mask;
+  /** Opengl Location of builtin uniforms. Fast access, no lookup needed. */
+  /* TODO replace by location only array. */
+  GPUShaderInput builtins[GPU_NUM_UNIFORMS];
+  /** Flat array. In this order: Attributes, Ubos, Uniforms. */
+  GPUShaderInput inputs[0];
 } GPUShaderInterface;
 
 GPUShaderInterface *GPU_shaderinterface_create(int32_t program_id);
