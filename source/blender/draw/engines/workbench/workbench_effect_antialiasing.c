@@ -266,13 +266,8 @@ void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
                                                 false,
                                                 NULL);
 
-      GPU_texture_bind(txl->smaa_search_tx, 0);
       GPU_texture_filter_mode(txl->smaa_search_tx, true);
-      GPU_texture_unbind(txl->smaa_search_tx);
-
-      GPU_texture_bind(txl->smaa_area_tx, 0);
       GPU_texture_filter_mode(txl->smaa_area_tx, true);
-      GPU_texture_unbind(txl->smaa_area_tx);
     }
   }
   else {

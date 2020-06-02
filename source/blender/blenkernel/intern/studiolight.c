@@ -503,10 +503,8 @@ static void studiolight_create_equirect_radiance_gputexture(StudioLight *sl)
     sl->equirect_radiance_gputexture = GPU_texture_create_2d(
         ibuf->x, ibuf->y, GPU_RGBA16F, ibuf->rect_float, NULL);
     GPUTexture *tex = sl->equirect_radiance_gputexture;
-    GPU_texture_bind(tex, 0);
     GPU_texture_filter_mode(tex, true);
     GPU_texture_wrap_mode(tex, true, true);
-    GPU_texture_unbind(tex);
   }
   sl->flag |= STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE;
 }
@@ -567,10 +565,8 @@ static void studiolight_create_equirect_irradiance_gputexture(StudioLight *sl)
     sl->equirect_irradiance_gputexture = GPU_texture_create_2d(
         ibuf->x, ibuf->y, GPU_RGBA16F, ibuf->rect_float, NULL);
     GPUTexture *tex = sl->equirect_irradiance_gputexture;
-    GPU_texture_bind(tex, 0);
     GPU_texture_filter_mode(tex, true);
     GPU_texture_wrap_mode(tex, true, true);
-    GPU_texture_unbind(tex);
   }
   sl->flag |= STUDIOLIGHT_EQUIRECT_IRRADIANCE_GPUTEXTURE;
 }

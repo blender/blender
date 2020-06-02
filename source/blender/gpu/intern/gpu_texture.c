@@ -50,10 +50,14 @@ static struct GPUTextureGlobal {
   GPUTexture *invalid_tex_1D;
   GPUTexture *invalid_tex_2D;
   GPUTexture *invalid_tex_3D;
-} GG = {NULL, NULL, NULL};
+  /** Sampler objects used to replace internal texture parameters. */
+  GLuint samplers[GPU_SAMPLER_MAX];
+} GG = {NULL};
 
 /* Maximum number of FBOs a texture can be attached to. */
 #define GPU_TEX_MAX_FBO_ATTACHED 12
+/* Maximum number of texture unit a texture can be attached to. */
+#define GPU_TEX_MAX_BIND 4
 
 typedef enum eGPUTextureFormatFlag {
   GPU_FORMAT_DEPTH = (1 << 0),
@@ -70,17 +74,18 @@ typedef enum eGPUTextureFormatFlag {
 
 /* GPUTexture */
 struct GPUTexture {
-  int w, h, d;        /* width/height/depth */
-  int orig_w, orig_h; /* width/height (of source data), optional. */
-  int number;         /* number for multitexture binding */
-  int refcount;       /* reference count */
-  GLenum target;      /* GL_TEXTURE_* */
-  GLenum target_base; /* same as target, (but no multisample)
-                       * use it for unbinding */
-  GLuint bindcode;    /* opengl identifier for texture */
+  int w, h, d;                  /* width/height/depth */
+  int orig_w, orig_h;           /* width/height (of source data), optional. */
+  int number[GPU_TEX_MAX_BIND]; /* Texture unit(s) to which this texture is bound. */
+  int refcount;                 /* reference count */
+  GLenum target;                /* GL_TEXTURE_* */
+  GLenum target_base;           /* same as target, (but no multisample)
+                                 * use it for unbinding */
+  GLuint bindcode;              /* opengl identifier for texture */
 
   eGPUTextureFormat format;
   eGPUTextureFormatFlag format_flag;
+  eGPUSamplerState sampler_state; /* Internal Sampler state. */
 
   int mipmaps;    /* number of mipmaps */
   int components; /* number of color/alpha channels */
@@ -827,12 +832,14 @@ GPUTexture *GPU_texture_create_nD(int w,
   tex->h = h;
   tex->d = d;
   tex->samples = samples;
-  tex->number = -1;
   tex->refcount = 1;
   tex->format = tex_format;
   tex->components = gpu_get_component_count(tex_format);
   tex->mipmaps = 0;
   tex->format_flag = 0;
+  for (int i = 0; i < GPU_TEX_MAX_BIND; i++) {
+    tex->number[i] = -1;
+  }
 
   if (n == 2) {
     if (d == 0) {
@@ -976,26 +983,13 @@ GPUTexture *GPU_texture_create_nD(int w,
   if (GPU_texture_stencil(tex) || /* Does not support filtering */
       GPU_texture_integer(tex) || /* Does not support filtering */
       GPU_texture_depth(tex)) {
-    glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    tex->sampler_state = GPU_SAMPLER_DEFAULT & ~GPU_SAMPLER_FILTER;
   }
   else {
-    glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    tex->sampler_state = GPU_SAMPLER_DEFAULT;
   }
-
-  if (GPU_texture_depth(tex)) {
-    glTexParameteri(tex->target_base, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-    glTexParameteri(tex->target_base, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-  }
-
-  glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  if (n > 1) {
-    glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  }
-  if (n > 2) {
-    glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  }
+  /* Avoid issue with incomplete textures. */
+  glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
   glBindTexture(tex->target, 0);
 
@@ -1014,12 +1008,14 @@ GPUTexture *GPU_texture_cube_create(int w,
   tex->h = w;
   tex->d = d;
   tex->samples = 0;
-  tex->number = -1;
   tex->refcount = 1;
   tex->format = tex_format;
   tex->components = gpu_get_component_count(tex_format);
   tex->mipmaps = 0;
   tex->format_flag = GPU_FORMAT_CUBE;
+  for (int i = 0; i < GPU_TEX_MAX_BIND; i++) {
+    tex->number[i] = -1;
+  }
 
   if (d == 0) {
     tex->target_base = tex->target = GL_TEXTURE_CUBE_MAP;
@@ -1117,22 +1113,13 @@ GPUTexture *GPU_texture_cube_create(int w,
   if (GPU_texture_stencil(tex) || /* Does not support filtering */
       GPU_texture_integer(tex) || /* Does not support filtering */
       GPU_texture_depth(tex)) {
-    glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    tex->sampler_state = GPU_SAMPLER_DEFAULT & ~GPU_SAMPLER_FILTER;
   }
   else {
-    glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    tex->sampler_state = GPU_SAMPLER_DEFAULT;
   }
-
-  if (GPU_texture_depth(tex)) {
-    glTexParameteri(tex->target_base, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-    glTexParameteri(tex->target_base, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-  }
-
-  glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  /* Avoid issue with incomplete textures. */
+  glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
   glBindTexture(tex->target, 0);
 
@@ -1143,13 +1130,16 @@ GPUTexture *GPU_texture_cube_create(int w,
 GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat tex_format, const GLuint buffer)
 {
   GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
-  tex->number = -1;
   tex->refcount = 1;
   tex->format = tex_format;
   tex->components = gpu_get_component_count(tex_format);
   tex->format_flag = 0;
   tex->target_base = tex->target = GL_TEXTURE_BUFFER;
   tex->mipmaps = 0;
+
+  for (int i = 0; i < GPU_TEX_MAX_BIND; i++) {
+    tex->number[i] = -1;
+  }
 
   GLenum internalformat = gpu_format_to_gl_internalformat(tex_format);
 
@@ -1196,11 +1186,17 @@ GPUTexture *GPU_texture_from_bindcode(int textarget, int bindcode)
 {
   GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
   tex->bindcode = bindcode;
-  tex->number = -1;
   tex->refcount = 1;
   tex->target = textarget;
   tex->target_base = textarget;
   tex->samples = 0;
+  tex->sampler_state = GPU_SAMPLER_REPEAT | GPU_SAMPLER_ANISO;
+  if (GPU_get_mipmap()) {
+    tex->sampler_state |= (GPU_SAMPLER_MIPMAP | GPU_SAMPLER_FILTER);
+  }
+  for (int i = 0; i < GPU_TEX_MAX_BIND; i++) {
+    tex->number[i] = -1;
+  }
 
   if (!glIsTexture(tex->bindcode)) {
     GPU_print_error_debug("Blender Texture Not Loaded");
@@ -1727,11 +1723,11 @@ void GPU_invalid_tex_free(void)
   }
 }
 
-void GPU_texture_bind(GPUTexture *tex, int number)
+void GPU_texture_bind(GPUTexture *tex, int unit)
 {
-  BLI_assert(number >= 0);
+  BLI_assert(unit >= 0);
 
-  if (number >= GPU_max_textures()) {
+  if (unit >= GPU_max_textures()) {
     fprintf(stderr, "Not enough texture slots.\n");
     return;
   }
@@ -1748,38 +1744,59 @@ void GPU_texture_bind(GPUTexture *tex, int number)
     }
   }
 
-  glActiveTexture(GL_TEXTURE0 + number);
+  for (int i = 0; i < GPU_TEX_MAX_BIND; i++) {
+    if (tex->number[i] == -1) {
+      tex->number[i] = unit;
+      break;
+    }
+    else if (tex->number[i] == unit) {
+      /* Already bound to this unit.
+       * But might be with another sampler object so we still rebind. */
+      break;
+    }
+    else if (i == GPU_TEX_MAX_BIND - 1) {
+      fprintf(stderr, "Texture is already bound to its maximum number of sampler units!\n");
+      BLI_assert(0); /* Should never happen! */
+      return;
+    }
+  }
+
+  glActiveTexture(GL_TEXTURE0 + unit);
 
   if (tex->bindcode != 0) {
     glBindTexture(tex->target, tex->bindcode);
+    glBindSampler(unit, GG.samplers[tex->sampler_state]);
   }
   else {
     GPU_invalid_tex_bind(tex->target_base);
+    glBindSampler(unit, 0);
   }
-
-  tex->number = number;
 }
 
 void GPU_texture_unbind(GPUTexture *tex)
 {
-  if (tex->number == -1) {
-    return;
+  for (int i = 0; i < GPU_TEX_MAX_BIND; i++) {
+    if (tex->number[i] != -1) {
+      glActiveTexture(GL_TEXTURE0 + tex->number[i]);
+      glBindTexture(tex->target, 0);
+      glBindSampler(tex->number[i], 0);
+      tex->number[i] = -1;
+    }
+    else {
+      break;
+    }
   }
-
-  glActiveTexture(GL_TEXTURE0 + tex->number);
-  glBindTexture(tex->target, 0);
-
-  tex->number = -1;
 }
 
 int GPU_texture_bound_number(GPUTexture *tex)
 {
-  return tex->number;
+  /* TODO remove. Makes no sense now. */
+  return tex->number[0];
 }
 
 #define WARN_NOT_BOUND(_tex) \
   { \
-    if (_tex->number == -1) { \
+    if (_tex->number[0] == -1) { \
       fprintf(stderr, "Warning : Trying to set parameter on a texture not bound.\n"); \
       BLI_assert(0); \
       return; \
@@ -1794,7 +1811,7 @@ void GPU_texture_generate_mipmap(GPUTexture *tex)
   gpu_texture_memory_footprint_remove(tex);
   int levels = 1 + floor(log2(max_ii(tex->w, tex->h)));
 
-  glActiveTexture(GL_TEXTURE0 + tex->number);
+  glActiveTexture(GL_TEXTURE0 + tex->number[0]);
 
   if (GPU_texture_depth(tex)) {
     /* Some drivers have bugs when using glGenerateMipmap with depth textures (see T56789).
@@ -1905,108 +1922,46 @@ void GPU_texture_copy(GPUTexture *dst, GPUTexture *src)
 
 void GPU_texture_compare_mode(GPUTexture *tex, bool use_compare)
 {
-  WARN_NOT_BOUND(tex);
-
   /* Could become an assertion ? (fclem) */
   if (!GPU_texture_depth(tex)) {
     return;
   }
-
-  GLenum mode = (use_compare) ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE;
-
-  glActiveTexture(GL_TEXTURE0 + tex->number);
-  glTexParameteri(tex->target_base, GL_TEXTURE_COMPARE_MODE, mode);
+  SET_FLAG_FROM_TEST(tex->sampler_state, use_compare, GPU_SAMPLER_COMPARE);
 }
 
 void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter)
 {
-  WARN_NOT_BOUND(tex);
-
   /* Stencil and integer format does not support filtering. */
   BLI_assert(!use_filter || !(GPU_texture_stencil(tex) || GPU_texture_integer(tex)));
 
-  GLenum filter = (use_filter) ? GL_LINEAR : GL_NEAREST;
-
-  glActiveTexture(GL_TEXTURE0 + tex->number);
-  glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, filter);
-  glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, filter);
+  SET_FLAG_FROM_TEST(tex->sampler_state, use_filter, GPU_SAMPLER_FILTER);
 }
 
 void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter)
 {
-  WARN_NOT_BOUND(tex);
-
   /* Stencil and integer format does not support filtering. */
-  BLI_assert((!use_filter && !use_mipmap) ||
+  BLI_assert(!(use_filter || use_mipmap) ||
              !(GPU_texture_stencil(tex) || GPU_texture_integer(tex)));
 
-  GLenum filter = (use_filter) ? GL_LINEAR : GL_NEAREST;
-  GLenum mipmap = ((use_filter) ? (use_mipmap) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR :
-                                  (use_mipmap) ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST);
-
-  glActiveTexture(GL_TEXTURE0 + tex->number);
-  glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, mipmap);
-  glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, filter);
+  SET_FLAG_FROM_TEST(tex->sampler_state, use_mipmap, GPU_SAMPLER_MIPMAP);
+  SET_FLAG_FROM_TEST(tex->sampler_state, use_filter, GPU_SAMPLER_FILTER);
 }
 
 void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat, bool use_clamp)
 {
-  WARN_NOT_BOUND(tex);
-
-  GLenum repeat = (use_repeat) ? GL_REPEAT : (use_clamp) ? GL_CLAMP_TO_EDGE : GL_CLAMP_TO_BORDER;
-
-  glActiveTexture(GL_TEXTURE0 + tex->number);
-  glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_S, repeat);
-  if (tex->target_base != GL_TEXTURE_1D) {
-    glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_T, repeat);
-  }
-  if (tex->target_base == GL_TEXTURE_3D) {
-    glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_R, repeat);
-  }
-
-  if (repeat == GL_CLAMP_TO_BORDER) {
-    const float black[] = {0.0f, 0.0f, 0.0f, 0.0f};
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, black);
-  }
+  SET_FLAG_FROM_TEST(tex->sampler_state, use_repeat, GPU_SAMPLER_REPEAT);
+  SET_FLAG_FROM_TEST(tex->sampler_state, !use_clamp, GPU_SAMPLER_CLAMP_BORDER);
 }
 
 void GPU_texture_swizzle_channel_auto(GPUTexture *tex, int channels)
 {
   WARN_NOT_BOUND(tex);
 
-  glActiveTexture(GL_TEXTURE0 + tex->number);
+  glActiveTexture(GL_TEXTURE0 + tex->number[0]);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_R, GL_RED);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_G, (channels >= 2) ? GL_GREEN : GL_RED);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_B, (channels >= 3) ? GL_BLUE : GL_RED);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_A, (channels >= 4) ? GL_ALPHA : GL_ONE);
-}
-
-static GLenum gpu_get_gl_filterfunction(eGPUFilterFunction filter)
-{
-  switch (filter) {
-    case GPU_NEAREST:
-      return GL_NEAREST;
-    case GPU_LINEAR:
-      return GL_LINEAR;
-    default:
-      BLI_assert(!"Unhandled filter mode");
-      return GL_NEAREST;
-  }
-}
-
-void GPU_texture_filters(GPUTexture *tex,
-                         eGPUFilterFunction min_filter,
-                         eGPUFilterFunction mag_filter)
-{
-  WARN_NOT_BOUND(tex);
-
-  /* Stencil and integer format does not support filtering. */
-  BLI_assert(!(GPU_texture_stencil(tex) || GPU_texture_integer(tex)));
-  BLI_assert(mag_filter == GPU_NEAREST || mag_filter == GPU_LINEAR);
-
-  glActiveTexture(GL_TEXTURE0 + tex->number);
-  glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, gpu_get_gl_filterfunction(min_filter));
-  glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, gpu_get_gl_filterfunction(mag_filter));
 }
 
 void GPU_texture_free(GPUTexture *tex)
@@ -2169,3 +2124,55 @@ void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size)
     size[2] = max_ii(1, tex->d / div);
   }
 }
+
+/* -------------------------------------------------------------------- */
+/** \name GPU Sampler Objects
+ *
+ * Simple wrapper around opengl sampler objects.
+ * Override texture sampler state for one sampler unit only.
+ * \{ */
+
+void GPU_samplers_init(void)
+{
+  glGenSamplers(GPU_SAMPLER_MAX, GG.samplers);
+  for (int i = 0; i < GPU_SAMPLER_MAX; i++) {
+    eGPUSamplerState state = i;
+    GLenum clamp_type = (state & GPU_SAMPLER_CLAMP_BORDER) ? GL_CLAMP_TO_BORDER : GL_CLAMP_TO_EDGE;
+    GLenum wrap_s = (state & GPU_SAMPLER_REPEAT_R) ? GL_REPEAT : clamp_type;
+    GLenum wrap_t = (state & GPU_SAMPLER_REPEAT_S) ? GL_REPEAT : clamp_type;
+    GLenum wrap_r = (state & GPU_SAMPLER_REPEAT_T) ? GL_REPEAT : clamp_type;
+    GLenum mag_filter = (state & GPU_SAMPLER_FILTER) ? GL_LINEAR : GL_NEAREST;
+    GLenum min_filter = (state & GPU_SAMPLER_FILTER) ?
+                            ((state & GPU_SAMPLER_MIPMAP) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR) :
+                            ((state & GPU_SAMPLER_MIPMAP) ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST);
+    GLenum compare_mode = (state & GPU_SAMPLER_COMPARE) ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE;
+    float aniso_filter = ((state & GPU_SAMPLER_MIPMAP) && (state & GPU_SAMPLER_ANISO)) ?
+                             GPU_get_anisotropic() :
+                             1.0f;
+
+    glSamplerParameteri(GG.samplers[i], GL_TEXTURE_WRAP_S, wrap_s);
+    glSamplerParameteri(GG.samplers[i], GL_TEXTURE_WRAP_T, wrap_t);
+    glSamplerParameteri(GG.samplers[i], GL_TEXTURE_WRAP_R, wrap_r);
+    glSamplerParameteri(GG.samplers[i], GL_TEXTURE_MIN_FILTER, min_filter);
+    glSamplerParameteri(GG.samplers[i], GL_TEXTURE_MAG_FILTER, mag_filter);
+    glSamplerParameteri(GG.samplers[i], GL_TEXTURE_COMPARE_MODE, compare_mode);
+    glSamplerParameteri(GG.samplers[i], GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+    if (GLEW_EXT_texture_filter_anisotropic) {
+      glSamplerParameterf(GG.samplers[i], GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso_filter);
+    }
+
+    /** Other states are left to default:
+     * - GL_TEXTURE_BORDER_COLOR is {0, 0, 0, 0}.
+     * - GL_TEXTURE_MIN_LOD is -1000.
+     * - GL_TEXTURE_MAX_LOD is 1000.
+     * - GL_TEXTURE_LOD_BIAS is 0.0f.
+     **/
+  }
+}
+
+void GPU_samplers_free(void)
+{
+  glDeleteSamplers(GPU_SAMPLER_MAX, GG.samplers);
+}
+
+/** \} */
