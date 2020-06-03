@@ -37,8 +37,8 @@
 
 #define BASIC_ENGINE "BLENDER_BASIC"
 
-extern char datatoc_conservative_depth_frag_glsl[];
-extern char datatoc_conservative_depth_vert_glsl[];
+extern char datatoc_depth_frag_glsl[];
+extern char datatoc_depth_vert_glsl[];
 extern char datatoc_conservative_depth_geom_glsl[];
 
 extern char datatoc_common_view_lib_glsl[];
@@ -91,22 +91,28 @@ static void basic_engine_init(void *UNUSED(vedata))
 
   /* Depth prepass */
   if (!sh_data->depth) {
-    sh_data->depth = DRW_shader_create_3d_depth_only(draw_ctx->sh_cfg);
-
     const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
+
+    sh_data->depth = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){sh_cfg->lib,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_depth_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_depth_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg->def, NULL},
+    });
+
     sh_data->depth_conservative = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg->lib,
                                  datatoc_common_view_lib_glsl,
-                                 datatoc_conservative_depth_vert_glsl,
+                                 datatoc_depth_vert_glsl,
                                  NULL},
         .geom = (const char *[]){sh_cfg->lib,
                                  datatoc_common_view_lib_glsl,
                                  datatoc_conservative_depth_geom_glsl,
                                  NULL},
-        .frag = (const char *[]){datatoc_common_view_lib_glsl,
-                                 datatoc_conservative_depth_frag_glsl,
-                                 NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
+        .frag = (const char *[]){datatoc_depth_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg->def, "#define CONSERVATIVE_RASTER\n", NULL},
     });
   }
 }
@@ -233,6 +239,7 @@ static void basic_engine_free(void)
 {
   for (int i = 0; i < GPU_SHADER_CFG_LEN; i++) {
     BASIC_Shaders *sh_data = &e_data.sh_data[i];
+    DRW_SHADER_FREE_SAFE(sh_data->depth);
     DRW_SHADER_FREE_SAFE(sh_data->depth_conservative);
   }
 }
