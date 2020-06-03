@@ -46,6 +46,11 @@
 #include "RNA_types.h"
 
 #define OVERRIDE_AUTO_CHECK_DELAY 0.2 /* 200ms between auto-override checks. */
+//#define DEBUG_OVERRIDE_TIMEIT
+
+#ifdef DEBUG_OVERRIDE_TIMEIT
+#  include "PIL_time_utildefines.h"
+#endif
 
 static void lib_override_library_property_copy(IDOverrideLibraryProperty *op_dst,
                                                IDOverrideLibraryProperty *op_src);
@@ -1027,7 +1032,7 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
 
   ID *storage_id;
 #ifdef DEBUG_OVERRIDE_TIMEIT
-  TIMEIT_START_AVERAGED(BKE_override_operations_store_start);
+  TIMEIT_START_AVERAGED(BKE_lib_override_library_operations_store_start);
 #endif
 
   /* XXX TODO We may also want a specialized handling of things here too, to avoid copying heavy
@@ -1055,12 +1060,13 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
   local->override_library->storage = storage_id;
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
-  TIMEIT_END_AVERAGED(BKE_override_operations_store_start);
+  TIMEIT_END_AVERAGED(BKE_lib_override_library_operations_store_start);
 #endif
   return storage_id;
 }
 
-/** Restore given ID modified by \a BKE_override_operations_store_start, to its original state. */
+/** Restore given ID modified by \a BKE_lib_override_library_operations_store_start, to its
+ * original state. */
 void BKE_lib_override_library_operations_store_end(
     OverrideLibraryStorage *UNUSED(override_storage), ID *local)
 {
