@@ -486,6 +486,24 @@ void wm_file_read_report(bContext *C, Main *bmain)
 
 /**
  * Logic shared between #WM_file_read & #wm_homefile_read,
+ * call before loading a file.
+ * \note In the case of #WM_file_read the file may fail to load.
+ * Change here shouldn't cause user-visible changes in that case.
+ */
+static void wm_file_read_pre(bContext *C, bool use_data, bool UNUSED(use_userdef))
+{
+  if (use_data) {
+    BKE_callback_exec_null(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE);
+    BLI_timer_on_file_load();
+  }
+
+  /* Always do this as both startup and preferences may have loaded in many font's
+   * at a different zoom level to the file being loaded. */
+  UI_view2d_zoom_cache_reset();
+}
+
+/**
+ * Logic shared between #WM_file_read & #wm_homefile_read,
  * updates to make after reading a file.
  */
 static void wm_file_read_post(bContext *C,
@@ -611,15 +629,15 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   const bool do_history = (G.background == false) && (CTX_wm_manager(C)->op_undo_depth == 0);
   bool success = false;
 
+  const bool use_data = true;
+  const bool use_userdef = false;
+
   /* so we can get the error message */
   errno = 0;
 
   WM_cursor_wait(1);
 
-  BKE_callback_exec_null(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE);
-  BLI_timer_on_file_load();
-
-  UI_view2d_zoom_cache_reset();
+  wm_file_read_pre(C, use_data, use_userdef);
 
   /* first try to append data from exotic file formats... */
   /* it throws error box when file doesn't exist and returns -1 */
@@ -679,8 +697,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
       }
     }
 
-    const bool use_data = true;
-    const bool use_userdef = false;
     wm_file_read_post(C, false, false, use_data, use_userdef, false);
   }
 #if 0
@@ -830,17 +846,14 @@ void wm_homefile_read(bContext *C,
     SET_FLAG_FROM_TEST(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_FLAG_SCRIPT_AUTOEXEC);
   }
 
-  if (use_data) {
-    BKE_callback_exec_null(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE);
-    BLI_timer_on_file_load();
+  wm_file_read_pre(C, use_data, use_userdef);
 
+  if (use_data) {
     G.relbase_valid = 0;
 
     /* put aside screens to match with persistent windows later */
     wm_window_match_init(C, &wmbase);
   }
-
-  UI_view2d_zoom_cache_reset();
 
   filepath_startup[0] = '\0';
   filepath_userdef[0] = '\0';
