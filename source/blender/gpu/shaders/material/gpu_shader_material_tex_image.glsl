@@ -66,8 +66,7 @@ void cubic_bspline_coefs(vec2 f, out vec2 w0, out vec2 w1, out vec2 w2, out vec2
   w2 = 1.0 - w0 - w1 - w3;
 }
 
-void node_tex_image_cubic_ex(
-    vec3 co, sampler2D ima, float do_extend, out vec4 color, out float alpha)
+void node_tex_image_cubic(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
   vec2 tex_size = vec2(textureSize(ima, 0).xy);
 
@@ -88,9 +87,6 @@ void node_tex_image_cubic_ex(
   final_co.xy = tc - 1.0 + f0;
   final_co.zw = tc + 1.0 + f1;
 
-  if (do_extend == 1.0) {
-    final_co = clamp(final_co, vec4(0.5), tex_size.xyxy - 0.5);
-  }
   final_co /= tex_size.xyxy;
 
   color = safe_color(textureLod(ima, final_co.xy, 0.0)) * s0.x * s0.y;
@@ -123,22 +119,6 @@ void node_tex_image_cubic_ex(
   alpha = color.a;
 }
 
-void node_tex_image_cubic(vec3 co, sampler2D ima, out vec4 color, out float alpha)
-{
-  node_tex_image_cubic_ex(co, ima, 0.0, color, alpha);
-}
-
-void node_tex_image_cubic_extend(vec3 co, sampler2D ima, out vec4 color, out float alpha)
-{
-  node_tex_image_cubic_ex(co, ima, 1.0, color, alpha);
-}
-
-void node_tex_image_smart(vec3 co, sampler2D ima, out vec4 color, out float alpha)
-{
-  /* use cubic for now */
-  node_tex_image_cubic_ex(co, ima, 0.0, color, alpha);
-}
-
 void tex_box_sample_linear(
     vec3 texco, vec3 N, sampler2D ima, out vec4 color1, out vec4 color2, out vec4 color3)
 {
@@ -162,32 +142,6 @@ void tex_box_sample_linear(
   color3 = texture(ima, uv);
 }
 
-void tex_box_sample_nearest(
-    vec3 texco, vec3 N, sampler2D ima, out vec4 color1, out vec4 color2, out vec4 color3)
-{
-  /* X projection */
-  vec2 uv = texco.yz;
-  if (N.x < 0.0) {
-    uv.x = 1.0 - uv.x;
-  }
-  ivec2 pix = ivec2(fract(uv.xy) * textureSize(ima, 0).xy);
-  color1 = texelFetch(ima, pix, 0);
-  /* Y projection */
-  uv = texco.xz;
-  if (N.y > 0.0) {
-    uv.x = 1.0 - uv.x;
-  }
-  pix = ivec2(fract(uv.xy) * textureSize(ima, 0).xy);
-  color2 = texelFetch(ima, pix, 0);
-  /* Z projection */
-  uv = texco.yx;
-  if (N.z > 0.0) {
-    uv.x = 1.0 - uv.x;
-  }
-  pix = ivec2(fract(uv.xy) * textureSize(ima, 0).xy);
-  color3 = texelFetch(ima, pix, 0);
-}
-
 void tex_box_sample_cubic(
     vec3 texco, vec3 N, sampler2D ima, out vec4 color1, out vec4 color2, out vec4 color3)
 {
@@ -197,25 +151,19 @@ void tex_box_sample_cubic(
   if (N.x < 0.0) {
     uv.x = 1.0 - uv.x;
   }
-  node_tex_image_cubic_ex(uv.xyy, ima, 0.0, color1, alpha);
+  node_tex_image_cubic(uv.xyy, ima, color1, alpha);
   /* Y projection */
   uv = texco.xz;
   if (N.y > 0.0) {
     uv.x = 1.0 - uv.x;
   }
-  node_tex_image_cubic_ex(uv.xyy, ima, 0.0, color2, alpha);
+  node_tex_image_cubic(uv.xyy, ima, color2, alpha);
   /* Z projection */
   uv = texco.yx;
   if (N.z > 0.0) {
     uv.x = 1.0 - uv.x;
   }
-  node_tex_image_cubic_ex(uv.xyy, ima, 0.0, color3, alpha);
-}
-
-void tex_box_sample_smart(
-    vec3 texco, vec3 N, sampler2D ima, out vec4 color1, out vec4 color2, out vec4 color3)
-{
-  tex_box_sample_cubic(texco, N, ima, color1, color2, color3);
+  node_tex_image_cubic(uv.xyy, ima, color3, alpha);
 }
 
 void tex_box_blend(
@@ -305,20 +253,6 @@ void node_tex_tile_linear(
   alpha = color.a;
 }
 
-void node_tex_tile_nearest(
-    vec3 co, sampler2DArray ima, sampler1DArray map, out vec4 color, out float alpha)
-{
-  if (node_tex_tile_lookup(co, ima, map)) {
-    ivec3 pix = ivec3(fract(co.xy) * textureSize(ima, 0).xy, co.z);
-    color = safe_color(texelFetch(ima, pix, 0));
-  }
-  else {
-    color = vec4(1.0, 0.0, 1.0, 1.0);
-  }
-
-  alpha = color.a;
-}
-
 void node_tex_tile_cubic(
     vec3 co, sampler2DArray ima, sampler1DArray map, out vec4 color, out float alpha)
 {
@@ -352,10 +286,4 @@ void node_tex_tile_cubic(
   }
 
   alpha = color.a;
-}
-
-void node_tex_tile_smart(
-    vec3 co, sampler2DArray ima, sampler1DArray map, out vec4 color, out float alpha)
-{
-  node_tex_tile_cubic(co, ima, map, color, alpha);
 }
