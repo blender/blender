@@ -716,7 +716,7 @@ static bool ch_is_op(char op)
 /**
  * Helper function for #unit_distribute_negatives to find the next negative to distribute.
  *
- * \note This unecessarily skips the next space if it comes right after the "-" 
+ * \note This unecessarily skips the next space if it comes right after the "-"
  * just to make a more predictable output.
  */
 static char *find_next_negative(const char *str, const char *remaining_str)
@@ -742,7 +742,7 @@ static char *find_next_negative(const char *str, const char *remaining_str)
 /**
  * Helper function for #unit_distribute_negatives to find the next operation, including "-".
  *
- * \note This unecessarily skips the space before the operation character 
+ * \note This unecessarily skips the space before the operation character
  * just to make a more predictable output.
  */
 static char *find_next_op(const char *str, char *remaining_str, int len_max)
@@ -793,12 +793,9 @@ static bool unit_distribute_negatives(char *str, const int len_max)
 
   char *remaining_str = str;
   int remaining_str_len = len_max;
-  int ofs = 0;
   while ((remaining_str = find_next_negative(str, remaining_str)) != NULL) {
-    ofs = (int)(remaining_str - str);
-
     /* Exit early in the unlikely situation that we've run out of length to add the parentheses. */
-    remaining_str_len = len_max - ofs;
+    remaining_str_len = len_max - (int)(remaining_str - str);
     if (remaining_str_len <= 2) {
       return changed;
     }
@@ -811,13 +808,13 @@ static bool unit_distribute_negatives(char *str, const int len_max)
 
     /* Add the ')' before the next operation or at the end. */
     remaining_str = find_next_op(str, remaining_str + 1, remaining_str_len);
-    memmove(remaining_str + 1, remaining_str, remaining_str_len - 3);
+    remaining_str_len = len_max - (int)(remaining_str - str);
+    memmove(remaining_str + 1, remaining_str, remaining_str_len - 1);
     *remaining_str = ')';
 
     /* Only move forward by 1 even though we added two characters. Minus signs need to be able to
      * apply to the next block of values too. */
     remaining_str += 1;
-    remaining_str_len -= 1;
   }
 
   return changed;
