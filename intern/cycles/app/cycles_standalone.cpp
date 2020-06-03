@@ -26,6 +26,7 @@
 #include "util/util_args.h"
 #include "util/util_foreach.h"
 #include "util/util_function.h"
+#include "util/util_image.h"
 #include "util/util_logging.h"
 #include "util/util_path.h"
 #include "util/util_progress.h"
