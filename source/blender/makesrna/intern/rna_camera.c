@@ -193,6 +193,8 @@ static void rna_def_camera_background_image(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Background Image", "Image and settings for display in the 3D View background");
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "source");
   RNA_def_property_enum_items(prop, bgpic_source_items);
@@ -301,6 +303,8 @@ static void rna_def_camera_background_image(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, bgpic_camera_frame_items);
   RNA_def_property_ui_text(prop, "Frame Method", "How the image fits in the camera frame");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_camera_background_images(BlenderRNA *brna, PropertyRNA *cprop)
@@ -356,6 +360,8 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
   RNA_def_struct_nested(brna, srna, "Camera");
   RNA_def_struct_ui_text(srna, "Stereo", "Stereoscopy settings for a Camera data-block");
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "convergence_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, convergence_mode_items);
   RNA_def_property_ui_text(prop, "Mode", "");
@@ -409,6 +415,8 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Pole Merge End Angle", "Angle at which interocular distance is 0");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_camera_dof_settings_data(BlenderRNA *brna)
@@ -420,6 +428,8 @@ static void rna_def_camera_dof_settings_data(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "CameraDOFSettings");
   RNA_def_struct_path_func(srna, "rna_CameraDOFSettings_path");
   RNA_def_struct_ui_text(srna, "Depth of Field", "Depth of Field settings");
+
+  RNA_define_lib_overridable(true);
 
   prop = RNA_def_property(srna, "use_dof", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_DOF_ENABLED);
@@ -469,6 +479,8 @@ static void rna_def_camera_dof_settings_data(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.01f, FLT_MAX);
   RNA_def_property_ui_range(prop, 1.0f, 2.0f, 0.1, 3);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_dof_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 void RNA_def_camera(BlenderRNA *brna)
@@ -504,6 +516,8 @@ void RNA_def_camera(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "Camera", "ID");
   RNA_def_struct_ui_text(srna, "Camera", "Camera data-block for storing camera settings");
   RNA_def_struct_ui_icon(srna, ICON_CAMERA_DATA);
+
+  RNA_define_lib_overridable(true);
 
   /* Enums */
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -735,6 +749,8 @@ void RNA_def_camera(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "CameraBackgroundImage");
   RNA_def_property_ui_text(prop, "Background Images", "List of background images");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  RNA_define_lib_overridable(false);
 
   rna_def_animdata_common(srna);
 
