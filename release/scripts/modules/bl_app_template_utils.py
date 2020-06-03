@@ -68,13 +68,14 @@ def _enable(template_id, *, handle_error=None, ignore_not_found=False):
         # 1) try import
         try:
             mod = import_from_id(template_id, ignore_not_found=ignore_not_found)
-            if mod is None:
-                return None
-            mod.__template_enabled__ = False
-            _modules[template_id] = mod
         except Exception as ex:
             handle_error(ex)
             return None
+
+        _modules[template_id] = mod
+        if mod is None:
+            return None
+        mod.__template_enabled__ = False
 
         # 2) try run the modules register function
         try:
@@ -111,9 +112,12 @@ def _disable(template_id, *, handle_error=None):
             import traceback
             traceback.print_exc()
 
-    mod = _modules.get(template_id)
+    mod = _modules.get(template_id, False)
 
-    if mod and getattr(mod, "__template_enabled__", False) is not False:
+    if mod is None:
+        # Loaded but has no module, remove since there is no use in keeping it.
+        del _modules[template_id]
+    elif getattr(mod, "__template_enabled__", False) is not False:
         mod.__template_enabled__ = False
 
         try:
@@ -124,7 +128,7 @@ def _disable(template_id, *, handle_error=None):
             handle_error(ex)
     else:
         print("\tapp_template_utils.disable: %s not %s." %
-              (template_id, "disabled" if mod is None else "loaded"))
+              (template_id, "disabled" if mod is False else "loaded"))
 
     if _bpy.app.debug_python:
         print("\tapp_template_utils.disable", template_id)
