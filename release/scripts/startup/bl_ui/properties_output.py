@@ -367,11 +367,11 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
         # I-frames
         layout.prop(ffmpeg, "gopsize")
         # B-Frames
-        split = layout.split(factor=0.5)
-        split.prop(ffmpeg, "use_max_b_frames", text="Max B-frames")
-        pbox = split.column()
-        pbox.prop(ffmpeg, "max_b_frames", text="")
-        pbox.enabled = ffmpeg.use_max_b_frames
+        row = layout.row(align=True, heading="Max B-frames")
+        row.prop(ffmpeg, "use_max_b_frames", text="")
+        sub = row.row(align=True)
+        sub.active = ffmpeg.use_max_b_frames
+        sub.prop(ffmpeg, "max_b_frames", text="")
 
         if not use_crf or ffmpeg.constant_rate_factor == 'NONE':
             col = layout.column()
