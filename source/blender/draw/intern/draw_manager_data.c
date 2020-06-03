@@ -224,16 +224,6 @@ static DRWUniform *drw_shgroup_uniform_create_ex(DRWShadingGroup *shgroup,
   return uni;
 }
 
-static void drw_shgroup_builtin_uniform(
-    DRWShadingGroup *shgroup, int builtin, const void *value, int length, int arraysize)
-{
-  int loc = GPU_shader_get_builtin_uniform(shgroup->shader, builtin);
-
-  if (loc != -1) {
-    drw_shgroup_uniform_create_ex(shgroup, loc, DRW_UNIFORM_FLOAT, value, length, arraysize);
-  }
-}
-
 static void drw_shgroup_uniform(DRWShadingGroup *shgroup,
                                 const char *name,
                                 DRWUniformType type,
@@ -1239,23 +1229,18 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
     drw_shgroup_uniform_create_ex(
         shgroup, view_ubo_location, DRW_UNIFORM_BLOCK, G_draw.view_ubo, 0, 1);
   }
-  else {
-    /* Only here to support builtin shaders. This should not be used by engines. */
-    /* TODO remove. */
-    DRWViewUboStorage *storage = &DST.view_storage_cpy;
-    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_VIEW, storage->viewmat, 16, 1);
-    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_VIEW_INV, storage->viewinv, 16, 1);
-    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_VIEWPROJECTION, storage->persmat, 16, 1);
-    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_VIEWPROJECTION_INV, storage->persinv, 16, 1);
-    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_PROJECTION, storage->winmat, 16, 1);
-    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_PROJECTION_INV, storage->wininv, 16, 1);
-    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_CLIPPLANES, storage->clipplanes, 4, 6);
-  }
 
   /* Not supported. */
   BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODELVIEW_INV) == -1);
   BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODELVIEW) == -1);
   BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_NORMAL) == -1);
+  BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_VIEW) == -1);
+  BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_VIEW_INV) == -1);
+  BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_VIEWPROJECTION) == -1);
+  BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_VIEWPROJECTION_INV) == -1);
+  BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_PROJECTION) == -1);
+  BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_PROJECTION_INV) == -1);
+  BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_CLIPPLANES) == -1);
 }
 
 static DRWShadingGroup *drw_shgroup_create_ex(struct GPUShader *shader, DRWPass *pass)
