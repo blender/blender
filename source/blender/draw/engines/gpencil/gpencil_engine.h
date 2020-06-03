@@ -307,6 +307,8 @@ typedef struct GPENCIL_PrivateData {
   float dof_params[2];
   /* Used for DoF Setup. */
   Object *camera;
+  /* Copy of draw_ctx->view_layer for convenience. */
+  struct ViewLayer *view_layer;
   /* Copy of draw_ctx->scene for convenience. */
   struct Scene *scene;
   /* Copy of draw_ctx->vie3d for convenience. */

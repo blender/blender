@@ -91,6 +91,7 @@ void GPENCIL_engine_init(void *ved)
   stl->pd->gp_object_pool = vldata->gp_object_pool;
   stl->pd->gp_layer_pool = vldata->gp_layer_pool;
   stl->pd->gp_vfx_pool = vldata->gp_vfx_pool;
+  stl->pd->view_layer = ctx->view_layer;
   stl->pd->scene = ctx->scene;
   stl->pd->v3d = ctx->v3d;
   stl->pd->last_light_pool = NULL;
@@ -598,6 +599,7 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
   GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
   GPENCIL_PrivateData *pd = vedata->stl->pd;
   GPENCIL_TextureList *txl = vedata->txl;
+  const bool is_final_render = DRW_state_is_image_render();
 
   /* object must be visible */
   if (!(DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
@@ -617,7 +619,8 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
     bGPdata *gpd = (bGPdata *)ob->data;
     bool do_onion = (!pd->is_render) ? pd->do_onion : (gpd->onion_flag & GP_ONION_GHOST_ALWAYS);
 
-    BKE_gpencil_visible_stroke_iter(ob,
+    BKE_gpencil_visible_stroke_iter(is_final_render ? pd->view_layer : NULL,
+                                    ob,
                                     gpencil_layer_cache_populate,
                                     gpencil_stroke_cache_populate,
                                     &iter,

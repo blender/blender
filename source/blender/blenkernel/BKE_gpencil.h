@@ -41,6 +41,7 @@ struct Object;
 struct Scene;
 struct SpaceImage;
 struct ToolSettings;
+struct ViewLayer;
 struct bDeformGroup;
 struct bGPDframe;
 struct bGPDlayer;
@@ -253,7 +254,8 @@ typedef void (*gpIterCb)(struct bGPDlayer *layer,
                          struct bGPDstroke *stroke,
                          void *thunk);
 
-void BKE_gpencil_visible_stroke_iter(struct Object *ob,
+void BKE_gpencil_visible_stroke_iter(struct ViewLayer *view_layer,
+                                     struct Object *ob,
                                      gpIterCb layer_cb,
                                      gpIterCb stroke_cb,
                                      void *thunk,
