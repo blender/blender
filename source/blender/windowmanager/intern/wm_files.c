@@ -1844,10 +1844,6 @@ static void wm_userpref_update_when_changed(bContext *C,
 
   rna_struct_update_when_changed(C, bmain, &ptr_a, &ptr_b);
 
-#ifdef WITH_PYTHON
-  BPY_execute_string(C, (const char *[]){"addon_utils", NULL}, "addon_utils.reset_all()");
-#endif
-
   WM_reinit_gizmomap_all(bmain);
   WM_keyconfig_reload(C);
 
