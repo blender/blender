@@ -529,7 +529,7 @@ static void mywrite_id_begin(WriteData *wd, ID *id)
  *
  * Only does something when storing an undo step.
  */
-static void mywrite_id_end(WriteData *wd, ID *id)
+static void mywrite_id_end(WriteData *wd, ID *UNUSED(id))
 {
   if (wd->use_memfile) {
     /* Very important to do it after every ID write now, otherwise we cannot know whether a
