@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -4254,7 +4254,7 @@ static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *g
 /* imperfect but probably usable... draw/enable drags to other windows */
 static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *event)
 {
-  int mx = event->x, my = event->y;
+  int mval[2] = {event->x, event->y};
 
   if (wm->windows.first == wm->windows.last) {
     return NULL;
@@ -4263,7 +4263,8 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
   /* in order to use window size and mouse position (pixels), we have to use a WM function */
 
   /* check if outside, include top window bar... */
-  if (mx < 0 || my < 0 || mx > WM_window_pixels_x(win) || my > WM_window_pixels_y(win) + 30) {
+  if (mval[0] < 0 || mval[1] < 0 || mval[0] > WM_window_pixels_x(win) ||
+      mval[1] > WM_window_pixels_y(win) + 30) {
     wmWindow *owin;
     wmEventHandler *handler;
 
@@ -4276,25 +4277,10 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
       }
     }
 
-    /* to desktop space */
-    mx += (int)(U.pixelsize * win->posx);
-    my += (int)(U.pixelsize * win->posy);
-
-    /* check other windows to see if it has mouse inside */
-    for (owin = wm->windows.first; owin; owin = owin->next) {
-
-      if (owin != win) {
-        int posx = (int)(U.pixelsize * owin->posx);
-        int posy = (int)(U.pixelsize * owin->posy);
-
-        if (mx - posx >= 0 && owin->posy >= 0 && mx - posx <= WM_window_pixels_x(owin) &&
-            my - posy <= WM_window_pixels_y(owin)) {
-          event->x = mx - (int)(U.pixelsize * owin->posx);
-          event->y = my - (int)(U.pixelsize * owin->posy);
-
-          return owin;
-        }
-      }
+    if (WM_window_find_under_cursor(wm, win, win, mval, &owin, mval)) {
+      event->x = mval[0];
+      event->y = mval[1];
+      return owin;
     }
   }
   return NULL;
