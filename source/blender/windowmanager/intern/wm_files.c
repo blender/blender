@@ -510,12 +510,16 @@ static void wm_file_read_post(bContext *C,
   if (is_startup_file) {
     /* possible python hasn't been initialized */
     if (CTX_py_init_get(C)) {
-      if (reset_app_template) {
+      bool reset_all = use_userdef;
+      if (use_userdef || reset_app_template) {
         /* Only run when we have a template path found. */
         if (BKE_appdir_app_template_any()) {
           BPY_execute_string(
               C, (const char *[]){"bl_app_template_utils", NULL}, "bl_app_template_utils.reset()");
+          reset_all = true;
         }
+      }
+      if (reset_all) {
         /* sync addons, these may have changed from the defaults */
         BPY_execute_string(C, (const char *[]){"addon_utils", NULL}, "addon_utils.reset_all()");
       }
@@ -802,6 +806,23 @@ void wm_homefile_read(bContext *C,
    * or use app-template startup.blend which the user hasn't saved. */
   bool is_factory_startup = true;
 
+  const char *app_template = NULL;
+  bool update_defaults = false;
+
+  if (filepath_startup_override != NULL) {
+    /* pass */
+  }
+  else if (app_template_override) {
+    /* This may be clearing the current template by setting to an empty string. */
+    app_template = app_template_override;
+  }
+  else if (!use_factory_settings && U.app_template[0]) {
+    app_template = U.app_template;
+  }
+
+  const bool reset_app_template = ((!app_template && U.app_template[0]) ||
+                                   (app_template && !STREQ(app_template, U.app_template)));
+
   /* options exclude eachother */
   BLI_assert((use_factory_settings && filepath_startup_override) == 0);
 
@@ -859,28 +880,6 @@ void wm_homefile_read(bContext *C,
         printf("Read prefs: %s\n", filepath_userdef);
       }
     }
-  }
-
-  const char *app_template = NULL;
-  bool update_defaults = false;
-  bool reset_app_template = false;
-
-  if (filepath_startup_override != NULL) {
-    /* pass */
-  }
-  else if (app_template_override) {
-    /* This may be clearing the current template by setting to an empty string. */
-    app_template = app_template_override;
-  }
-  else if (!use_factory_settings && U.app_template[0]) {
-    app_template = U.app_template;
-  }
-
-  if ((!app_template && U.app_template[0]) ||
-      (app_template && !STREQ(app_template, U.app_template))) {
-    /* Always load UI when switching to another template. */
-    G.fileflags &= ~G_FILE_NO_UI;
-    reset_app_template = true;
   }
 
   if ((app_template != NULL) && (app_template[0] != '\0')) {
@@ -1028,6 +1027,11 @@ void wm_homefile_read(bContext *C,
      * Screws up autosaves otherwise can remove this eventually,
      * only in a 2.53 and older, now its not written. */
     G.fileflags &= ~G_FILE_RELATIVE_REMAP;
+
+    if (reset_app_template) {
+      /* Always load UI when switching to another template. */
+      G.fileflags &= ~G_FILE_NO_UI;
+    }
   }
 
   bmain = CTX_data_main(C);
@@ -1035,7 +1039,6 @@ void wm_homefile_read(bContext *C,
   if (use_userdef) {
     /* check userdef before open window, keymaps etc */
     wm_init_userdef(bmain);
-    reset_app_template = true;
   }
 
   if (use_data) {
