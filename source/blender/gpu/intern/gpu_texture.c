@@ -1771,22 +1771,19 @@ void GPU_texture_unbind(GPUTexture *tex)
 
 void GPU_texture_unbind_all(void)
 {
-  /* Unbinding can be costly. Skip in normal condition. */
-  if (G.debug & G_DEBUG_GPU) {
-    for (int i = 0; i < GPU_max_textures(); i++) {
-      glActiveTexture(GL_TEXTURE0 + i);
-      glBindTexture(GL_TEXTURE_2D, 0);
-      glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-      glBindTexture(GL_TEXTURE_1D, 0);
-      glBindTexture(GL_TEXTURE_1D_ARRAY, 0);
-      glBindTexture(GL_TEXTURE_3D, 0);
-      glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-      glBindTexture(GL_TEXTURE_BUFFER, 0);
-      if (GPU_arb_texture_cube_map_array_is_supported()) {
-        glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY_ARB, 0);
-      }
-      glBindSampler(i, 0);
+  for (int i = 0; i < GPU_max_textures(); i++) {
+    glActiveTexture(GL_TEXTURE0 + i);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+    glBindTexture(GL_TEXTURE_1D, 0);
+    glBindTexture(GL_TEXTURE_1D_ARRAY, 0);
+    glBindTexture(GL_TEXTURE_3D, 0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    glBindTexture(GL_TEXTURE_BUFFER, 0);
+    if (GPU_arb_texture_cube_map_array_is_supported()) {
+      glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY_ARB, 0);
     }
+    glBindSampler(i, 0);
   }
 }
 

@@ -1109,7 +1109,11 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
   if (shader_changed) {
     if (DST.shader) {
       GPU_shader_unbind();
-      GPU_texture_unbind_all();
+
+      /* Unbinding can be costly. Skip in normal condition. */
+      if (G.debug & G_DEBUG_GPU) {
+        GPU_texture_unbind_all();
+      }
     }
     GPU_shader_bind(shgroup->shader);
     DST.shader = shgroup->shader;
