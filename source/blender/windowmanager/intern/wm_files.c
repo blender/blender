@@ -846,6 +846,21 @@ void wm_homefile_read(bContext *C,
     SET_FLAG_FROM_TEST(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_FLAG_SCRIPT_AUTOEXEC);
   }
 
+  if (use_userdef || reset_app_template) {
+#ifdef WITH_PYTHON
+    /* This only runs once Blender has already started. */
+    if (CTX_py_init_get(C)) {
+      /* This is restored by 'wm_file_read_post', disable before loading any preferences
+       * so an add-on can read their own preferences when un-registering,
+       * and use new preferences if/when re-registering, see T67577.
+       *
+       * Note that this fits into 'wm_file_read_pre' function but gets messy
+       * since we need to know if 'reset_app_template' is true. */
+      BPY_execute_string(C, (const char *[]){"addon_utils", NULL}, "addon_utils.disable_all()");
+    }
+#endif /* WITH_PYTHON */
+  }
+
   wm_file_read_pre(C, use_data, use_userdef);
 
   if (use_data) {
