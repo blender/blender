@@ -1274,12 +1274,13 @@ static DRWShadingGroup *drw_shgroup_material_create_ex(GPUPass *gpupass, DRWPass
 static void drw_shgroup_material_texture(DRWShadingGroup *grp,
                                          GPUMaterialTexture *tex,
                                          const char *name,
+                                         eGPUSamplerState state,
                                          int textarget)
 {
   GPUTexture *gputex = GPU_texture_from_blender(tex->ima, tex->iuser, NULL, textarget);
 
   int loc = GPU_shader_get_texture_binding(grp->shader, name);
-  drw_shgroup_uniform_create_ex(grp, loc, DRW_UNIFORM_TEXTURE, gputex, GPU_SAMPLER_MAX, 0, 1);
+  drw_shgroup_uniform_create_ex(grp, loc, DRW_UNIFORM_TEXTURE, gputex, state, 0, 1);
 
   GPUTexture **gputex_ref = BLI_memblock_alloc(DST.vmempool->images);
   *gputex_ref = gputex;
@@ -1295,11 +1296,14 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, struct GPUMaterial
     if (tex->ima) {
       /* Image */
       if (tex->tiled_mapping_name[0]) {
-        drw_shgroup_material_texture(grp, tex, tex->sampler_name, GL_TEXTURE_2D_ARRAY);
-        drw_shgroup_material_texture(grp, tex, tex->tiled_mapping_name, GL_TEXTURE_1D_ARRAY);
+        drw_shgroup_material_texture(
+            grp, tex, tex->sampler_name, tex->sampler_state, GL_TEXTURE_2D_ARRAY);
+        drw_shgroup_material_texture(
+            grp, tex, tex->tiled_mapping_name, tex->sampler_state, GL_TEXTURE_1D_ARRAY);
       }
       else {
-        drw_shgroup_material_texture(grp, tex, tex->sampler_name, GL_TEXTURE_2D);
+        drw_shgroup_material_texture(
+            grp, tex, tex->sampler_name, tex->sampler_state, GL_TEXTURE_2D);
       }
     }
     else if (tex->colorband) {

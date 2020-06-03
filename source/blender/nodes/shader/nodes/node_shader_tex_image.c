@@ -118,6 +118,8 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
 
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
+  eGPUSamplerState sampler_state = GPU_SAMPLER_MAX;
+
   if (ima->source == IMA_SRC_TILED) {
     /* UDIM tiles needs a samper2DArray and sampler1DArray for tile mapping. */
     GPU_stack_link(mat,
@@ -125,7 +127,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
                    names_tiled[tex->interpolation],
                    in,
                    out,
-                   GPU_image_tiled(mat, ima, iuser),
+                   GPU_image_tiled(mat, ima, iuser, sampler_state),
                    GPU_image_tiled_mapping(mat, ima, iuser));
   }
   else {
@@ -141,16 +143,18 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
           GPU_link(mat, "set_rgb", *texco, &input_coords);
         }
         if (do_texco_extend) {
-          GPU_link(mat, "point_texco_clamp", *texco, GPU_image(mat, ima, iuser), texco);
+          GPU_link(
+              mat, "point_texco_clamp", *texco, GPU_image(mat, ima, iuser, sampler_state), texco);
         }
-        GPU_stack_link(mat, node, gpu_node_name, in, out, GPU_image(mat, ima, iuser));
+        GPU_stack_link(
+            mat, node, gpu_node_name, in, out, GPU_image(mat, ima, iuser, sampler_state));
         break;
 
       case SHD_PROJ_BOX:
         vnor = GPU_builtin(GPU_WORLD_NORMAL);
         ob_mat = GPU_builtin(GPU_OBJECT_MATRIX);
         blend = GPU_uniform(&tex->projection_blend);
-        gpu_image = GPU_image(mat, ima, iuser);
+        gpu_image = GPU_image(mat, ima, iuser, sampler_state);
 
         /* equivalent to normal_world_to_object */
         GPU_link(mat, "normal_transform_transposed_m4v3", vnor, ob_mat, &norm);
@@ -160,8 +164,14 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
           GPU_link(mat, "set_rgb", *texco, &input_coords);
           in[0].link = input_coords;
         }
-        GPU_link(
-            mat, gpu_node_name, *texco, norm, GPU_image(mat, ima, iuser), &col1, &col2, &col3);
+        GPU_link(mat,
+                 gpu_node_name,
+                 *texco,
+                 norm,
+                 GPU_image(mat, ima, iuser, sampler_state),
+                 &col1,
+                 &col2,
+                 &col3);
         GPU_stack_link(
             mat, node, "node_tex_image_box", in, out, norm, col1, col2, col3, gpu_image, blend);
         break;
@@ -175,9 +185,11 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
           GPU_link(mat, "set_rgb", *texco, &input_coords);
         }
         if (do_texco_extend) {
-          GPU_link(mat, "point_texco_clamp", *texco, GPU_image(mat, ima, iuser), texco);
+          GPU_link(
+              mat, "point_texco_clamp", *texco, GPU_image(mat, ima, iuser, sampler_state), texco);
         }
-        GPU_stack_link(mat, node, gpu_node_name, in, out, GPU_image(mat, ima, iuser));
+        GPU_stack_link(
+            mat, node, gpu_node_name, in, out, GPU_image(mat, ima, iuser, sampler_state));
         break;
 
       case SHD_PROJ_TUBE:
@@ -189,9 +201,11 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
           GPU_link(mat, "set_rgb", *texco, &input_coords);
         }
         if (do_texco_extend) {
-          GPU_link(mat, "point_texco_clamp", *texco, GPU_image(mat, ima, iuser), texco);
+          GPU_link(
+              mat, "point_texco_clamp", *texco, GPU_image(mat, ima, iuser, sampler_state), texco);
         }
-        GPU_stack_link(mat, node, gpu_node_name, in, out, GPU_image(mat, ima, iuser));
+        GPU_stack_link(
+            mat, node, gpu_node_name, in, out, GPU_image(mat, ima, iuser, sampler_state));
         break;
     }
 
@@ -199,7 +213,13 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
       if (do_texco_clip) {
         gpu_node_name = names_clip[tex->interpolation];
         in[0].link = input_coords;
-        GPU_stack_link(mat, node, gpu_node_name, in, out, GPU_image(mat, ima, iuser), out[0].link);
+        GPU_stack_link(mat,
+                       node,
+                       gpu_node_name,
+                       in,
+                       out,
+                       GPU_image(mat, ima, iuser, sampler_state),
+                       out[0].link);
       }
     }
   }
