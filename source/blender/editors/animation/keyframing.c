@@ -1827,7 +1827,7 @@ static int insert_key_exec(bContext *C, wmOperator *op)
    * updated since the last switching to the edit mode will be keyframed correctly
    */
   if (obedit && ANIM_keyingset_find_id(ks, (ID *)obedit->data)) {
-    ED_object_mode_toggle(C, OB_MODE_EDIT);
+    ED_object_mode_set(C, OB_MODE_OBJECT);
     ob_edit_mode = true;
   }
 
@@ -1843,7 +1843,7 @@ static int insert_key_exec(bContext *C, wmOperator *op)
 
   /* restore the edit mode if necessary */
   if (ob_edit_mode) {
-    ED_object_mode_toggle(C, OB_MODE_EDIT);
+    ED_object_mode_set(C, OB_MODE_EDIT);
   }
 
   /* report failure or do updates? */

@@ -958,7 +958,7 @@ static void image_undosys_step_decode(
   }
 
   if (us->paint_mode == PAINT_MODE_TEXTURE_3D) {
-    ED_object_mode_set(C, OB_MODE_TEXTURE_PAINT);
+    ED_object_mode_set_ex(C, OB_MODE_TEXTURE_PAINT, false, NULL);
   }
 
   /* Refresh texture slots. */

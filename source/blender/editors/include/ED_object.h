@@ -329,11 +329,12 @@ bool ED_object_mode_compat_set(struct bContext *C,
                                struct Object *ob,
                                eObjectMode mode,
                                struct ReportList *reports);
-void ED_object_mode_toggle(struct bContext *C, eObjectMode mode);
-void ED_object_mode_set(struct bContext *C, eObjectMode mode);
-void ED_object_mode_exit(struct bContext *C, struct Depsgraph *depsgraph);
+bool ED_object_mode_set_ex(struct bContext *C,
+                           eObjectMode mode,
+                           bool use_undo,
+                           struct ReportList *reports);
+bool ED_object_mode_set(struct bContext *C, eObjectMode mode);
 
-bool ED_object_mode_generic_enter(struct bContext *C, eObjectMode object_mode);
 void ED_object_mode_generic_exit(struct Main *bmain,
                                  struct Depsgraph *depsgraph,
                                  struct Scene *scene,

@@ -1495,10 +1495,6 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
    * Notes:
    * - Code below avoids calling mode switching functions more than once,
    *   as this causes unnecessary calculations and undo steps to be added.
-   * - Even though toggle is called (#ED_object_mode_toggle),
-   *   this is just used to enable/disable the mode based on checking the current mode.
-   * - Code would read better if we used #ED_object_mode_set,
-   *   this needs some refactoring as it handles undo differently (TODO).
    * - The previous mode (#Object.restore_mode) is object mode by default.
    *
    * Supported Cases:
@@ -1513,14 +1509,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
    */
   if (toggle == false) {
     if (ob->mode != mode) {
-      if (mode == OB_MODE_OBJECT) {
-        /* Exit the current mode into object mode. */
-        ED_object_mode_compat_set(C, ob, OB_MODE_OBJECT, op->reports);
-      }
-      else {
-        /* Enter 'mode'. */
-        ED_object_mode_toggle(C, mode);
-      }
+      ED_object_mode_set_ex(C, mode, true, op->reports);
     }
   }
   else {
@@ -1529,16 +1518,14 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
      * otherwise there is nothing to do. */
     if (mode == OB_MODE_OBJECT) {
       if (ob->mode != OB_MODE_OBJECT) {
-        /* Set object mode if the object is not already in object mode. */
-        if (ED_object_mode_compat_set(C, ob, OB_MODE_OBJECT, op->reports)) {
+        if (ED_object_mode_set_ex(C, OB_MODE_OBJECT, true, op->reports)) {
           /* Store old mode so we know what to go back to. */
           ob->restore_mode = mode_prev;
         }
       }
       else {
         if (ob->restore_mode != OB_MODE_OBJECT) {
-          /* Enter 'restore_mode'. */
-          ED_object_mode_toggle(C, ob->restore_mode);
+          ED_object_mode_set_ex(C, ob->restore_mode, true, op->reports);
         }
       }
     }
@@ -1546,20 +1533,17 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
       /* Non-object modes, enter the 'mode' unless it's already set,
        * in that case use restore mode. */
       if (ob->mode != mode) {
-        ED_object_mode_toggle(C, mode);
-        if (ob->mode == mode) {
+        if (ED_object_mode_set_ex(C, mode, true, op->reports)) {
           /* Store old mode so we know what to go back to. */
           ob->restore_mode = mode_prev;
         }
       }
       else {
         if (ob->restore_mode != OB_MODE_OBJECT) {
-          /* Enter 'restore_mode'. */
-          ED_object_mode_toggle(C, ob->restore_mode);
+          ED_object_mode_set_ex(C, ob->restore_mode, true, op->reports);
         }
         else {
-          /* Enter 'mode'. */
-          ED_object_mode_toggle(C, mode);
+          ED_object_mode_set_ex(C, OB_MODE_OBJECT, true, op->reports);
         }
       }
     }

@@ -1642,7 +1642,7 @@ static int view3d_object_mode_menu(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   else if (((ob->mode & OB_MODE_EDIT) == 0) && (ELEM(ob->type, OB_ARMATURE))) {
-    ED_object_mode_toggle(C, OB_MODE_POSE);
+    ED_object_mode_set(C, (ob->mode == OB_MODE_OBJECT) ? OB_MODE_POSE : OB_MODE_OBJECT);
     return OPERATOR_CANCELLED;
   }
   else {

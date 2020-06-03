@@ -167,41 +167,6 @@ bool ED_object_mode_compat_set(bContext *C, Object *ob, eObjectMode mode, Report
   return ok;
 }
 
-void ED_object_mode_toggle(bContext *C, eObjectMode mode)
-{
-  if (mode != OB_MODE_OBJECT) {
-    const char *opstring = object_mode_op_string(mode);
-
-    if (opstring) {
-      wmOperatorType *ot = WM_operatortype_find(opstring, false);
-      WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_REGION_WIN, NULL);
-    }
-  }
-}
-
-/* Wrapper for operator  */
-void ED_object_mode_set(bContext *C, eObjectMode mode)
-{
-  wmWindowManager *wm = CTX_wm_manager(C);
-  wm->op_undo_depth++;
-  /* needed so we don't do undo pushes. */
-  ED_object_mode_generic_enter(C, mode);
-  wm->op_undo_depth--;
-}
-
-void ED_object_mode_exit(bContext *C, Depsgraph *depsgraph)
-{
-  struct Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  FOREACH_OBJECT_BEGIN (view_layer, ob) {
-    if (ob->mode & OB_MODE_ALL_MODE_DATA) {
-      ED_object_mode_generic_exit(bmain, depsgraph, scene, ob);
-    }
-  }
-  FOREACH_OBJECT_END;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -212,23 +177,50 @@ void ED_object_mode_exit(bContext *C, Depsgraph *depsgraph)
  *
  * \{ */
 
-bool ED_object_mode_generic_enter(struct bContext *C, eObjectMode object_mode)
+bool ED_object_mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportList *reports)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
   if (ob == NULL) {
-    return (object_mode == OB_MODE_OBJECT);
+    return (mode == OB_MODE_OBJECT);
   }
-  if (ob->mode == object_mode) {
+
+  if ((ob->type == OB_GPENCIL) && (mode == OB_MODE_EDIT)) {
+    mode = OB_MODE_EDIT_GPENCIL;
+  }
+
+  if (ob->mode == mode) {
     return true;
   }
-  wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_mode_set", false);
-  PointerRNA ptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
-  RNA_enum_set(&ptr, "mode", object_mode);
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
-  WM_operator_properties_free(&ptr);
-  return (ob->mode == object_mode);
+
+  if (!ED_object_mode_compat_test(ob, mode)) {
+    return false;
+  }
+
+  const char *opstring = object_mode_op_string((mode == OB_MODE_OBJECT) ? ob->mode : mode);
+  wmOperatorType *ot = WM_operatortype_find(opstring, false);
+
+  if (!use_undo) {
+    wm->op_undo_depth++;
+  }
+  WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_REGION_WIN, NULL);
+  if (!use_undo) {
+    wm->op_undo_depth--;
+  }
+
+  if (ob->mode != mode) {
+    BKE_reportf(reports, RPT_ERROR, "Unable to execute '%s', error changing modes", ot->name);
+    return false;
+  }
+
+  return true;
+}
+
+bool ED_object_mode_set(bContext *C, eObjectMode mode)
+{
+  /* Don't do undo push by default, since this may be called by lower level code. */
+  return ED_object_mode_set_ex(C, mode, true, NULL);
 }
 
 /**

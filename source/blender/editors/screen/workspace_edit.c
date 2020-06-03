@@ -83,8 +83,7 @@ static void workspace_change_update(WorkSpace *workspace_new,
   eObjectMode mode_new = workspace_new->object_mode;
 
   if (mode_old != mode_new) {
-    ED_object_mode_compat_set(C, ob_act, mode_new, &wm->reports);
-    ED_object_mode_toggle(C, mode_new);
+    ED_object_mode_set(C, mode_new);
   }
 #endif
 }
@@ -175,7 +174,7 @@ bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager 
 
   /* Automatic mode switching. */
   if (workspace_new->object_mode != workspace_old->object_mode) {
-    ED_object_mode_generic_enter(C, workspace_new->object_mode);
+    ED_object_mode_set(C, workspace_new->object_mode);
   }
 
   return true;

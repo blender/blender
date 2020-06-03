@@ -253,7 +253,7 @@ static void particle_undosys_step_decode(struct bContext *C,
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   /* TODO(campbell): undo_system: use low-level API to set mode. */
-  ED_object_mode_set(C, OB_MODE_PARTICLE_EDIT);
+  ED_object_mode_set_ex(C, OB_MODE_PARTICLE_EDIT, false, NULL);
   BLI_assert(particle_undosys_poll(C));
 
   ParticleUndoStep *us = (ParticleUndoStep *)us_p;
