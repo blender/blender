@@ -2149,8 +2149,16 @@ static void *extract_vcol_init(const MeshRenderData *mr, void *buf)
   GPUVertFormat format = {0};
   GPU_vertformat_deinterleave(&format);
 
-  CustomData *cd_ldata = &mr->me->ldata;
+  CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
   uint32_t vcol_layers = mr->cache->cd_used.vcol;
+
+  /* HACK to fix T68857 */
+  if (mr->extract_type == MR_EXTRACT_BMESH && mr->cache->cd_used.edit_uv == 1) {
+    int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+    if (layer != -1) {
+      vcol_layers |= (1 << layer);
+    }
+  }
 
   for (int i = 0; i < 8; i++) {
     if (vcol_layers & (1 << i)) {
@@ -2186,12 +2194,30 @@ static void *extract_vcol_init(const MeshRenderData *mr, void *buf)
   gpuMeshVcol *vcol_data = (gpuMeshVcol *)vbo->data;
   for (int i = 0; i < 8; i++) {
     if (vcol_layers & (1 << i)) {
-      MLoopCol *mcol = (MLoopCol *)CustomData_get_layer_n(cd_ldata, CD_MLOOPCOL, i);
-      for (int l = 0; l < mr->loop_len; l++, mcol++, vcol_data++) {
-        vcol_data->r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->r]);
-        vcol_data->g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->g]);
-        vcol_data->b = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->b]);
-        vcol_data->a = unit_float_to_ushort_clamp(mcol->a * (1.0f / 255.0f));
+      if (mr->extract_type == MR_EXTRACT_BMESH) {
+        int cd_ofs = CustomData_get_n_offset(cd_ldata, CD_MLOOPCOL, i);
+        BMIter f_iter, l_iter;
+        BMFace *efa;
+        BMLoop *loop;
+        BM_ITER_MESH (efa, &f_iter, mr->bm, BM_FACES_OF_MESH) {
+          BM_ITER_ELEM (loop, &l_iter, efa, BM_LOOPS_OF_FACE) {
+            const MLoopCol *mloopcol = BM_ELEM_CD_GET_VOID_P(loop, cd_ofs);
+            vcol_data->r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->r]);
+            vcol_data->g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->g]);
+            vcol_data->b = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->b]);
+            vcol_data->a = unit_float_to_ushort_clamp(mloopcol->a * (1.0f / 255.0f));
+            vcol_data++;
+          }
+        }
+      }
+      else {
+        const MLoopCol *mloopcol = (MLoopCol *)CustomData_get_layer_n(cd_ldata, CD_MLOOPCOL, i);
+        for (int l = 0; l < mr->loop_len; l++, mloopcol++, vcol_data++) {
+          vcol_data->r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->r]);
+          vcol_data->g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->g]);
+          vcol_data->b = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->b]);
+          vcol_data->a = unit_float_to_ushort_clamp(mloopcol->a * (1.0f / 255.0f));
+        }
       }
     }
   }
