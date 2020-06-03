@@ -1565,14 +1565,6 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* if type is OB_GPENCIL, set cursor mode */
-  if (ob->type == OB_GPENCIL) {
-    if (ob->data) {
-      bGPdata *gpd = (bGPdata *)ob->data;
-      ED_gpencil_setup_modes(C, gpd, ob->mode);
-    }
-  }
-
   if (use_submode) {
     if (ob->type == OB_MESH) {
       if (ob->mode & OB_MODE_EDIT) {
