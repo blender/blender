@@ -1713,7 +1713,7 @@ void GPU_invalid_tex_free(void)
 }
 
 /* set_number is to save the the texture unit for setting texture parameters. */
-void GPU_texture_bind_ex(GPUTexture *tex, int unit, const bool set_number)
+void GPU_texture_bind_ex(GPUTexture *tex, eGPUSamplerState state, int unit, const bool set_number)
 {
   BLI_assert(unit >= 0);
 
@@ -1740,9 +1740,11 @@ void GPU_texture_bind_ex(GPUTexture *tex, int unit, const bool set_number)
 
   glActiveTexture(GL_TEXTURE0 + unit);
 
+  state = (state < GPU_SAMPLER_MAX) ? state : tex->sampler_state;
+
   if (tex->bindcode != 0) {
     glBindTexture(tex->target, tex->bindcode);
-    glBindSampler(unit, GG.samplers[tex->sampler_state]);
+    glBindSampler(unit, GG.samplers[state]);
   }
   else {
     GPU_invalid_tex_bind(tex->target_base);
@@ -1752,7 +1754,7 @@ void GPU_texture_bind_ex(GPUTexture *tex, int unit, const bool set_number)
 
 void GPU_texture_bind(GPUTexture *tex, int unit)
 {
-  GPU_texture_bind_ex(tex, unit, true);
+  GPU_texture_bind_ex(tex, GPU_SAMPLER_MAX, unit, true);
 }
 
 void GPU_texture_unbind(GPUTexture *tex)
