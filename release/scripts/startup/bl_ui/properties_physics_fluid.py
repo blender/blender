@@ -1174,7 +1174,7 @@ class PHYSICS_PT_cache(PhysicButtonsPanel, Panel):
 
             if domain.is_cache_baking_data and not domain.has_cache_baked_data:
                 split.enabled = False
-                split.operator("fluid.pause_bake", text="Baking All - ESC to pause")
+                split.operator("fluid.pause_bake", text="Baking All - ESC to cancel")
             elif not domain.has_cache_baked_data and not domain.is_cache_baking_data:
                 split.operator("fluid.bake_all", text="Bake All")
             else:
