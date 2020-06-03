@@ -361,7 +361,7 @@ static void OVERLAY_gpencil_color_names(Object *ob)
   int cfra = DEG_get_ctime(draw_ctx->depsgraph);
 
   BKE_gpencil_visible_stroke_iter(
-      ob, NULL, overlay_gpencil_draw_stroke_color_name, ob, false, cfra);
+      NULL, ob, NULL, overlay_gpencil_draw_stroke_color_name, ob, false, cfra);
 }
 
 void OVERLAY_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob)

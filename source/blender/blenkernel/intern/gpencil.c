@@ -1855,8 +1855,13 @@ bool BKE_gpencil_from_image(SpaceImage *sima, bGPDframe *gpf, const float size, 
  *
  * \{ */
 
-void BKE_gpencil_visible_stroke_iter(
-    Object *ob, gpIterCb layer_cb, gpIterCb stroke_cb, void *thunk, bool do_onion, int cfra)
+void BKE_gpencil_visible_stroke_iter(ViewLayer *view_layer,
+                                     Object *ob,
+                                     gpIterCb layer_cb,
+                                     gpIterCb stroke_cb,
+                                     void *thunk,
+                                     bool do_onion,
+                                     int cfra)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
   const bool is_multiedit = GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
@@ -1875,6 +1880,14 @@ void BKE_gpencil_visible_stroke_iter(
     bGPDframe *end_gpf = act_gpf ? act_gpf->next : NULL;
 
     if (gpl->flag & GP_LAYER_HIDE) {
+      continue;
+    }
+
+    /* Hide the layer if it's defined a view layer filter. This is used to
+     * generate renders, putting only selected GP layers for each View Layer.
+     * This is used only in final render and never in Viewport. */
+    if ((view_layer != NULL) && (gpl->viewlayername[0] != '\0') &&
+        (!STREQ(view_layer->name, gpl->viewlayername))) {
       continue;
     }
 
