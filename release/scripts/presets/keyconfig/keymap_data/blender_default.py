@@ -4318,6 +4318,10 @@ def km_sculpt(params):
          {"properties": [("mode", 'SHOW_ALL')]}),
         ("sculpt.mask_expand", {"type": 'W', "value": 'PRESS', "shift": True},
          {"properties": [("use_normals", False), ("keep_previous_mask", False), ("invert", False), ("smooth_iterations", 0), ("create_face_set", True)]}),
+        ("sculpt.face_set_edit", {"type": 'W', "value": 'PRESS', "ctrl": True},
+         {"properties": [("mode", "GROW")]}),
+        ("sculpt.face_set_edit", {"type": 'W', "value": 'PRESS', "ctrl": True, "alt": True},
+         {"properties": [("mode", "SHRINK")]}),
         # Subdivision levels
         *_template_items_object_subdivision_set(),
         ("object.subdivision_set", {"type": 'PAGE_UP', "value": 'PRESS'},

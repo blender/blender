@@ -7907,4 +7907,5 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_face_sets_randomize_colors);
   WM_operatortype_append(SCULPT_OT_face_sets_init);
   WM_operatortype_append(SCULPT_OT_cloth_filter);
+  WM_operatortype_append(SCULPT_OT_face_sets_edit);
 }

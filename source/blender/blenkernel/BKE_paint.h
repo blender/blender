@@ -315,6 +315,8 @@ typedef struct SculptSession {
   /* Mesh Face Sets */
   /* Total number of polys of the base mesh. */
   int totfaces;
+  /* Face sets store its visibility in the sign of the integer, using the absolute value as the
+   * Face Set ID. Positive IDs are visible, negative IDs are hidden. */
   int *face_sets;
 
   /* BMesh for dynamic topology sculpting */

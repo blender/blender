@@ -3126,6 +3126,14 @@ class VIEW3D_MT_face_sets(Menu):
 
         layout.separator()
 
+        op = layout.operator("sculpt.face_set_edit", text='Grow Face Set')
+        op.mode = 'GROW'
+
+        op = layout.operator("sculpt.face_set_edit", text='Shrink Face Set')
+        op.mode = 'SHRINK'
+
+        layout.separator()
+
         op = layout.operator("sculpt.face_set_change_visibility", text='Invert Visible Face Sets')
         op.mode = 'INVERT'
 
