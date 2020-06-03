@@ -26,6 +26,7 @@
  */
 
 struct Scene;
+struct GHash;
 
 typedef struct {
   void *next, *prev;
@@ -38,12 +39,26 @@ typedef struct {
    * detect unchanged IDs).
    * Defined when writing the next step (i.e. last undo step has those always false). */
   bool is_identical_future;
+  /** Session uuid of the ID being curently written (MAIN_ID_SESSION_UUID_UNSET when not writing
+   * ID-related data). Used to find matching chunks in previous memundo step. */
+  uint id_session_uuid;
 } MemFileChunk;
 
 typedef struct MemFile {
   ListBase chunks;
   size_t size;
 } MemFile;
+
+typedef struct MemFileWriteData {
+  MemFile *written_memfile;
+  MemFile *reference_memfile;
+
+  uint current_id_session_uuid;
+  MemFileChunk *reference_current_chunk;
+
+  /** Maps an ID session uuid to its first reference MemFileChunk, if existing. */
+  struct GHash *id_session_uuid_mapping;
+} MemFileWriteData;
 
 typedef struct MemFileUndoData {
   char filename[1024]; /* FILE_MAX */
@@ -52,10 +67,13 @@ typedef struct MemFileUndoData {
 } MemFileUndoData;
 
 /* actually only used writefile.c */
-extern void memfile_chunk_add(MemFile *memfile,
-                              const char *buf,
-                              unsigned int size,
-                              MemFileChunk **compchunk_step);
+
+void BLO_memfile_write_init(MemFileWriteData *mem_data,
+                            MemFile *written_memfile,
+                            MemFile *reference_memfile);
+void BLO_memfile_write_finalize(MemFileWriteData *mem_data);
+
+void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, unsigned int size);
 
 /* exports */
 extern void BLO_memfile_free(MemFile *memfile);

@@ -41,10 +41,12 @@
 #include "DNA_listBase.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
 
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 
 /* keep last */
@@ -100,8 +102,52 @@ void BLO_memfile_clear_future(MemFile *memfile)
   }
 }
 
-void memfile_chunk_add(MemFile *memfile, const char *buf, uint size, MemFileChunk **compchunk_step)
+void BLO_memfile_write_init(MemFileWriteData *mem_data,
+                            MemFile *written_memfile,
+                            MemFile *reference_memfile)
 {
+  mem_data->written_memfile = written_memfile;
+  mem_data->reference_memfile = reference_memfile;
+  mem_data->reference_current_chunk = reference_memfile ? reference_memfile->chunks.first : NULL;
+
+  /* If we have a reference memfile, we generate a mapping between the session_uuid's of the IDs
+   * stored in that previous undo step, and its first matching memchunk.
+   * This will allow us to easily find the existing undo memory storage of IDs even when some
+   * re-ordering in current Main data-base broke the order matching with the memchunks from
+   * previous step. */
+  if (reference_memfile != NULL) {
+    mem_data->id_session_uuid_mapping = BLI_ghash_new(
+        BLI_ghashutil_inthash_p_simple, BLI_ghashutil_intcmp, __func__);
+    uint current_session_uuid = MAIN_ID_SESSION_UUID_UNSET;
+    LISTBASE_FOREACH (MemFileChunk *, mem_chunk, &reference_memfile->chunks) {
+      if (!ELEM(mem_chunk->id_session_uuid, MAIN_ID_SESSION_UUID_UNSET, current_session_uuid)) {
+        current_session_uuid = mem_chunk->id_session_uuid;
+        void **entry;
+        if (!BLI_ghash_ensure_p(mem_data->id_session_uuid_mapping,
+                                POINTER_FROM_UINT(current_session_uuid),
+                                &entry)) {
+          *entry = mem_chunk;
+        }
+        else {
+          BLI_assert(0);
+        }
+      }
+    }
+  }
+}
+
+void BLO_memfile_write_finalize(MemFileWriteData *mem_data)
+{
+  if (mem_data->id_session_uuid_mapping != NULL) {
+    BLI_ghash_free(mem_data->id_session_uuid_mapping, NULL, NULL);
+  }
+}
+
+void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, uint size)
+{
+  MemFile *memfile = mem_data->written_memfile;
+  MemFileChunk **compchunk_step = &mem_data->reference_current_chunk;
+
   MemFileChunk *curchunk = MEM_mallocN(sizeof(MemFileChunk), "MemFileChunk");
   curchunk->size = size;
   curchunk->buf = NULL;
@@ -110,6 +156,7 @@ void memfile_chunk_add(MemFile *memfile, const char *buf, uint size, MemFileChun
    * perform an undo push may make changes after the last undo push that
    * will then not be undo. Though it's not entirely clear that is wrong behavior. */
   curchunk->is_identical_future = true;
+  curchunk->id_session_uuid = mem_data->current_id_session_uuid;
   BLI_addtail(&memfile->chunks, curchunk);
 
   /* we compare compchunk with buf */
