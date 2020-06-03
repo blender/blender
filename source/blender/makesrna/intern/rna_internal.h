@@ -123,6 +123,8 @@ typedef struct BlenderDefRNA {
   bool preprocess;
   bool verify;
   bool animate;
+  /** Whether RNA properties defined should be overridable or not by default. */
+  bool make_overridable;
 
   /* Keep last. */
 #ifndef RNA_RUNTIME

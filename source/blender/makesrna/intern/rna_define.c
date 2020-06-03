@@ -71,6 +71,7 @@ BlenderDefRNA DefRNA = {
     .preprocess = false,
     .verify = true,
     .animate = true,
+    .make_overridable = false,
 };
 
 #ifndef RNA_RUNTIME
@@ -755,6 +756,15 @@ void RNA_define_verify_sdna(bool verify)
   DefRNA.verify = verify;
 }
 
+/**
+ * Properties defined when this is enabled are lib-overridable by default (except for Pointer
+ * ones).
+ */
+void RNA_define_lib_overridable(const bool make_overridable)
+{
+  DefRNA.make_overridable = make_overridable;
+}
+
 #ifndef RNA_RUNTIME
 void RNA_define_animate_sdna(bool animate)
 {
@@ -1413,6 +1423,14 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
 #endif
     }
   }
+
+#ifndef RNA_RUNTIME
+  if (type != PROP_POINTER) {
+    if (DefRNA.make_overridable) {
+      prop->flag_override |= PROPOVERRIDE_OVERRIDABLE_LIBRARY;
+    }
+  }
+#endif
 
   if (type == PROP_STRING) {
     /* used so generated 'get/length/set' functions skip a NULL check
