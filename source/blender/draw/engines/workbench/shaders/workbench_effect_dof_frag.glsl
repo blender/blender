@@ -4,7 +4,6 @@
  * Converted and adapted from HLSL to GLSL by Clément Foucault
  */
 
-uniform mat4 ProjectionMatrix;
 uniform vec2 invertedViewportSize;
 uniform vec2 nearFar;
 uniform vec3 dofParams;

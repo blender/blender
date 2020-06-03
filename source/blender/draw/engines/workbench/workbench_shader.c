@@ -23,6 +23,7 @@
 #include "DRW_render.h"
 
 #include "BLI_dynstr.h"
+#include "BLI_string_utils.h"
 
 #include "workbench_engine.h"
 #include "workbench_private.h"
@@ -359,32 +360,24 @@ void workbench_shader_depth_of_field_get(GPUShader **prepare_sh,
                                          GPUShader **resolve_sh)
 {
   if (e_data.dof_prepare_sh == NULL) {
-    e_data.dof_prepare_sh = DRW_shader_create_fullscreen(datatoc_workbench_effect_dof_frag_glsl,
-                                                         "#define PREPARE\n");
-
-    e_data.dof_downsample_sh = DRW_shader_create_fullscreen(datatoc_workbench_effect_dof_frag_glsl,
-                                                            "#define DOWNSAMPLE\n");
+    char *frag = BLI_string_joinN(datatoc_common_view_lib_glsl,
+                                  datatoc_workbench_effect_dof_frag_glsl);
+    e_data.dof_prepare_sh = DRW_shader_create_fullscreen(frag, "#define PREPARE\n");
+    e_data.dof_downsample_sh = DRW_shader_create_fullscreen(frag, "#define DOWNSAMPLE\n");
 #if 0 /* TODO(fclem) finish COC min_max optimization */
-    e_data.dof_flatten_v_sh = DRW_shader_create_fullscreen(datatoc_workbench_effect_dof_frag_glsl,
+    e_data.dof_flatten_v_sh = DRW_shader_create_fullscreen(frag,
                                                            "#define FLATTEN_VERTICAL\n");
-
-    e_data.dof_flatten_h_sh = DRW_shader_create_fullscreen(datatoc_workbench_effect_dof_frag_glsl,
+    e_data.dof_flatten_h_sh = DRW_shader_create_fullscreen(frag,
                                                            "#define FLATTEN_HORIZONTAL\n");
-
-    e_data.dof_dilate_v_sh = DRW_shader_create_fullscreen(datatoc_workbench_effect_dof_frag_glsl,
+    e_data.dof_dilate_v_sh = DRW_shader_create_fullscreen(frag,
                                                           "#define DILATE_VERTICAL\n");
-
-    e_data.dof_dilate_h_sh = DRW_shader_create_fullscreen(datatoc_workbench_effect_dof_frag_glsl,
+    e_data.dof_dilate_h_sh = DRW_shader_create_fullscreen(frag,
                                                           "#define DILATE_HORIZONTAL\n");
 #endif
-    e_data.dof_blur1_sh = DRW_shader_create_fullscreen(datatoc_workbench_effect_dof_frag_glsl,
-                                                       "#define BLUR1\n");
-
-    e_data.dof_blur2_sh = DRW_shader_create_fullscreen(datatoc_workbench_effect_dof_frag_glsl,
-                                                       "#define BLUR2\n");
-
-    e_data.dof_resolve_sh = DRW_shader_create_fullscreen(datatoc_workbench_effect_dof_frag_glsl,
-                                                         "#define RESOLVE\n");
+    e_data.dof_blur1_sh = DRW_shader_create_fullscreen(frag, "#define BLUR1\n");
+    e_data.dof_blur2_sh = DRW_shader_create_fullscreen(frag, "#define BLUR2\n");
+    e_data.dof_resolve_sh = DRW_shader_create_fullscreen(frag, "#define RESOLVE\n");
+    MEM_freeN(frag);
   }
 
   *prepare_sh = e_data.dof_prepare_sh;

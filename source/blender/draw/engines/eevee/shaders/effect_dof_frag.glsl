@@ -1,6 +1,4 @@
 
-uniform mat4 ProjectionMatrix;
-
 uniform sampler2D colorBuffer;
 uniform sampler2D depthBuffer;
 

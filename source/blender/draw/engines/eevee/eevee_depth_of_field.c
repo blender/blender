@@ -31,6 +31,8 @@
 
 #include "BKE_camera.h"
 
+#include "BLI_string_utils.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
@@ -48,24 +50,28 @@ static struct {
 extern char datatoc_effect_dof_vert_glsl[];
 extern char datatoc_effect_dof_frag_glsl[];
 
+extern char datatoc_common_view_lib_glsl[];
+
 static void eevee_create_shader_depth_of_field(const bool use_alpha)
 {
+  char *frag = BLI_string_joinN(datatoc_common_view_lib_glsl, datatoc_effect_dof_frag_glsl);
   e_data.dof_downsample_sh[use_alpha] = DRW_shader_create_fullscreen(
-      datatoc_effect_dof_frag_glsl,
+      frag,
       use_alpha ? "#define USE_ALPHA_DOF\n"
                   "#define STEP_DOWNSAMPLE\n" :
                   "#define STEP_DOWNSAMPLE\n");
   e_data.dof_scatter_sh[use_alpha] = DRW_shader_create(datatoc_effect_dof_vert_glsl,
                                                        NULL,
-                                                       datatoc_effect_dof_frag_glsl,
+                                                       frag,
                                                        use_alpha ? "#define USE_ALPHA_DOF\n"
                                                                    "#define STEP_SCATTER\n" :
                                                                    "#define STEP_SCATTER\n");
-  e_data.dof_resolve_sh[use_alpha] = DRW_shader_create_fullscreen(datatoc_effect_dof_frag_glsl,
+  e_data.dof_resolve_sh[use_alpha] = DRW_shader_create_fullscreen(frag,
                                                                   use_alpha ?
                                                                       "#define USE_ALPHA_DOF\n"
                                                                       "#define STEP_RESOLVE\n" :
                                                                       "#define STEP_RESOLVE\n");
+  MEM_freeN(frag);
 }
 
 int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata),
