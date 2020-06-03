@@ -1198,19 +1198,16 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
         shgroup, model_ubo_location, DRW_UNIFORM_BLOCK_OBMATS, NULL, 0, 1);
   }
   else {
+    /* Note: This is only here to support old hardware fallback where uniform buffer is still
+     * too slow or buggy. */
     int model = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODEL);
     int modelinverse = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODEL_INV);
-    int modelviewprojection = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MVP);
     if (model != -1) {
       drw_shgroup_uniform_create_ex(shgroup, model, DRW_UNIFORM_MODEL_MATRIX, NULL, 0, 1);
     }
     if (modelinverse != -1) {
       drw_shgroup_uniform_create_ex(
           shgroup, modelinverse, DRW_UNIFORM_MODEL_MATRIX_INVERSE, NULL, 0, 1);
-    }
-    if (modelviewprojection != -1) {
-      drw_shgroup_uniform_create_ex(
-          shgroup, modelviewprojection, DRW_UNIFORM_MODELVIEWPROJECTION_MATRIX, NULL, 0, 1);
     }
   }
 
@@ -1241,6 +1238,7 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_PROJECTION) == -1);
   BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_PROJECTION_INV) == -1);
   BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_CLIPPLANES) == -1);
+  BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MVP) == -1);
 }
 
 static DRWShadingGroup *drw_shgroup_create_ex(struct GPUShader *shader, DRWPass *pass)

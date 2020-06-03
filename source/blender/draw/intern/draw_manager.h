@@ -290,7 +290,6 @@ typedef enum {
   DRW_UNIFORM_BASE_INSTANCE,
   DRW_UNIFORM_MODEL_MATRIX,
   DRW_UNIFORM_MODEL_MATRIX_INVERSE,
-  DRW_UNIFORM_MODELVIEWPROJECTION_MATRIX,
   /* WARNING: set DRWUniform->type
    * bit length accordingly. */
 } DRWUniformType;
