@@ -1371,9 +1371,9 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
     madd_v3fl_v3fl_v3fl_v3i(min, mds->p0, mds->cell_size, mds->res_min);
     float voxel_cubemat[4][4] = {{0.0f}};
     /* scale small cube to voxel size */
-    voxel_cubemat[0][0] = 1.0f / (float)mds->base_res[0];
-    voxel_cubemat[1][1] = 1.0f / (float)mds->base_res[1];
-    voxel_cubemat[2][2] = 1.0f / (float)mds->base_res[2];
+    voxel_cubemat[0][0] = mds->cell_size[0] / 2.0f;
+    voxel_cubemat[1][1] = mds->cell_size[1] / 2.0f;
+    voxel_cubemat[2][2] = mds->cell_size[2] / 2.0f;
     voxel_cubemat[3][3] = 1.0f;
     /* translate small cube to corner */
     copy_v3_v3(voxel_cubemat[3], min);
