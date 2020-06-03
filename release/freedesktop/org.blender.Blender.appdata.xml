@@ -40,6 +40,26 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="2.83" date="2020-06-03">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Volume object to import OpenVDB files</li>
+                    <li>VR support for scene inspection through OpenXR</li>
+                    <li>Cycles adaptive sampling and OptiX viewport denoising</li>
+                    <li>Sculpt face sets and cloth brush</li>
+                    <li>Video sequencer disk cache</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Grease Pencil closer integration and improved performance</li>
+                    <li>Eevee improved render passes, light cache and hair transparency</li>
+                    <li>Faster undo system</li>
+                    <li>Rewritten multiresolution modifier</li>
+                    <li>Improved hair physics collisions</li>
+                </ul>
+            </description>
+        </release>
         <release version="2.82" date="2020-02-13">
             <description>
                 <p>New features:</p>
