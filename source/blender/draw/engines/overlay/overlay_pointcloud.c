@@ -46,7 +46,7 @@ void OVERLAY_pointcloud_cache_init(OVERLAY_Data *vedata)
 
   sh = OVERLAY_shader_pointcloud_dot();
   pd->pointcloud_dots_grp = grp = DRW_shgroup_create(sh, psl->pointcloud_ps);
-  DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+  DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 }
 
 void OVERLAY_pointcloud_cache_populate(OVERLAY_Data *vedata, Object *ob)

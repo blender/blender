@@ -284,11 +284,11 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
 
   *grp_tex = grp = DRW_shgroup_create_sub(grp);
   if (tex_tile_data) {
-    DRW_shgroup_uniform_texture_persistent(grp, "imageTileArray", tex);
-    DRW_shgroup_uniform_texture_persistent(grp, "imageTileData", tex_tile_data);
+    DRW_shgroup_uniform_texture(grp, "imageTileArray", tex);
+    DRW_shgroup_uniform_texture(grp, "imageTileData", tex_tile_data);
   }
   else {
-    DRW_shgroup_uniform_texture_persistent(grp, "imageTexture", tex);
+    DRW_shgroup_uniform_texture(grp, "imageTexture", tex);
   }
   DRW_shgroup_uniform_bool_copy(grp, "imagePremult", (ima && ima->alpha_mode == IMA_ALPHA_PREMUL));
   DRW_shgroup_uniform_bool_copy(grp, "imageNearest", (interp == SHD_INTERP_CLOSEST));

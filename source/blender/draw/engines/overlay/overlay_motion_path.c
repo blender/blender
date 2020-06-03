@@ -49,11 +49,11 @@ void OVERLAY_motion_path_cache_init(OVERLAY_Data *vedata)
 
   sh = OVERLAY_shader_motion_path_line();
   pd->motion_path_lines_grp = grp = DRW_shgroup_create(sh, psl->motion_paths_ps);
-  DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+  DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
   sh = OVERLAY_shader_motion_path_vert();
   pd->motion_path_points_grp = grp = DRW_shgroup_create(sh, psl->motion_paths_ps);
-  DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+  DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 }
 
 /* Just convert the CPU cache to GPU cache. */

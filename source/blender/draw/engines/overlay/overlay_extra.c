@@ -81,8 +81,8 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
     struct GPUTexture *tex = DRW_state_is_fbo() ? dtxl->depth : txl->dummy_depth_tx;
 
     pd->extra_grid_grp = grp = DRW_shgroup_create(sh, psl->extra_grid_ps);
-    DRW_shgroup_uniform_texture_persistent(grp, "depthBuffer", tex);
-    DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+    DRW_shgroup_uniform_texture(grp, "depthBuffer", tex);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
   }
 
@@ -112,7 +112,7 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
       sh = OVERLAY_shader_extra(is_select);
 
       grp = DRW_shgroup_create(sh, extra_ps);
-      DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+      DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
       grp_sub = DRW_shgroup_create_sub(grp);
       cb->camera_distances = BUF_INSTANCE(grp_sub, format, DRW_cache_camera_distances_get());
@@ -157,7 +157,7 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
     {
       format = formats->instance_extra;
       grp = DRW_shgroup_create(sh, psl->extra_blend_ps); /* NOTE: not the same pass! */
-      DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+      DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
       grp_sub = DRW_shgroup_create_sub(grp);
       DRW_shgroup_state_enable(grp_sub, DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK);
@@ -174,7 +174,7 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
       sh = OVERLAY_shader_extra_groundline();
 
       grp = DRW_shgroup_create(sh, extra_ps);
-      DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+      DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_state_enable(grp, DRW_STATE_BLEND_ALPHA);
 
       cb->groundline = BUF_INSTANCE(grp, format, DRW_cache_groundline_get());
@@ -183,7 +183,7 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
       sh = OVERLAY_shader_extra_wire(false, is_select);
 
       grp = DRW_shgroup_create(sh, extra_ps);
-      DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+      DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
       cb->extra_dashed_lines = BUF_LINE(grp, formats->pos_color);
       cb->extra_lines = BUF_LINE(grp, formats->wire_extra);
@@ -192,20 +192,20 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
       sh = OVERLAY_shader_extra_wire(true, is_select);
 
       cb->extra_wire = grp = DRW_shgroup_create(sh, extra_ps);
-      DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+      DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     }
     {
       sh = OVERLAY_shader_extra_loose_point();
 
       cb->extra_loose_points = grp = DRW_shgroup_create(sh, extra_ps);
-      DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+      DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     }
     {
       format = formats->pos;
       sh = OVERLAY_shader_extra_point();
 
       grp = DRW_shgroup_create(sh, psl->extra_centers_ps); /* NOTE: not the same pass! */
-      DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+      DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
       grp_sub = DRW_shgroup_create_sub(grp);
       DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.colorActive);

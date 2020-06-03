@@ -127,48 +127,44 @@ void EEVEE_material_bind_resources(DRWShadingGroup *shgrp,
   EEVEE_EffectsInfo *effects = vedata->stl->effects;
   EEVEE_PrivateData *pd = vedata->stl->g_data;
 
-  DRW_shgroup_uniform_block_persistent(shgrp, "probe_block", sldata->probe_ubo);
-  DRW_shgroup_uniform_block_persistent(shgrp, "grid_block", sldata->grid_ubo);
-  DRW_shgroup_uniform_block_persistent(shgrp, "planar_block", sldata->planar_ubo);
-  DRW_shgroup_uniform_block_persistent(shgrp, "light_block", sldata->light_ubo);
-  DRW_shgroup_uniform_block_persistent(shgrp, "shadow_block", sldata->shadow_ubo);
-  DRW_shgroup_uniform_block_persistent(shgrp, "common_block", sldata->common_ubo);
-  DRW_shgroup_uniform_block_ref_persistent(shgrp, "renderpass_block", &pd->renderpass_ubo);
+  DRW_shgroup_uniform_block(shgrp, "probe_block", sldata->probe_ubo);
+  DRW_shgroup_uniform_block(shgrp, "grid_block", sldata->grid_ubo);
+  DRW_shgroup_uniform_block(shgrp, "planar_block", sldata->planar_ubo);
+  DRW_shgroup_uniform_block(shgrp, "light_block", sldata->light_ubo);
+  DRW_shgroup_uniform_block(shgrp, "shadow_block", sldata->shadow_ubo);
+  DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
+  DRW_shgroup_uniform_block_ref(shgrp, "renderpass_block", &pd->renderpass_ubo);
 
   DRW_shgroup_uniform_int_copy(shgrp, "outputSssId", 1);
-  DRW_shgroup_uniform_texture_persistent(shgrp, "utilTex", e_data.util_tex);
+  DRW_shgroup_uniform_texture(shgrp, "utilTex", e_data.util_tex);
   if (use_diffuse || use_glossy || use_refract) {
-    DRW_shgroup_uniform_texture_ref_persistent(
-        shgrp, "shadowCubeTexture", &sldata->shadow_cube_pool);
-    DRW_shgroup_uniform_texture_ref_persistent(
-        shgrp, "shadowCascadeTexture", &sldata->shadow_cascade_pool);
-    DRW_shgroup_uniform_texture_ref_persistent(shgrp, "maxzBuffer", &vedata->txl->maxzbuffer);
+    DRW_shgroup_uniform_texture_ref(shgrp, "shadowCubeTexture", &sldata->shadow_cube_pool);
+    DRW_shgroup_uniform_texture_ref(shgrp, "shadowCascadeTexture", &sldata->shadow_cascade_pool);
+    DRW_shgroup_uniform_texture_ref(shgrp, "maxzBuffer", &vedata->txl->maxzbuffer);
   }
   if ((use_diffuse || use_glossy) && !use_ssrefraction) {
-    DRW_shgroup_uniform_texture_ref_persistent(shgrp, "horizonBuffer", &effects->gtao_horizons);
+    DRW_shgroup_uniform_texture_ref(shgrp, "horizonBuffer", &effects->gtao_horizons);
   }
   if (use_diffuse) {
-    DRW_shgroup_uniform_texture_ref_persistent(shgrp, "irradianceGrid", &lcache->grid_tx.tex);
+    DRW_shgroup_uniform_texture_ref(shgrp, "irradianceGrid", &lcache->grid_tx.tex);
   }
   if (use_glossy || use_refract) {
-    DRW_shgroup_uniform_texture_ref_persistent(shgrp, "probeCubes", &lcache->cube_tx.tex);
+    DRW_shgroup_uniform_texture_ref(shgrp, "probeCubes", &lcache->cube_tx.tex);
   }
   if (use_glossy) {
-    DRW_shgroup_uniform_texture_ref_persistent(shgrp, "probePlanars", &vedata->txl->planar_pool);
+    DRW_shgroup_uniform_texture_ref(shgrp, "probePlanars", &vedata->txl->planar_pool);
     DRW_shgroup_uniform_int_copy(shgrp, "outputSsrId", ssr_id ? *ssr_id : 0);
   }
   if (use_refract) {
     DRW_shgroup_uniform_float_copy(
         shgrp, "refractionDepth", (refract_depth) ? *refract_depth : 0.0);
     if (use_ssrefraction) {
-      DRW_shgroup_uniform_texture_ref_persistent(
-          shgrp, "colorBuffer", &vedata->txl->refract_color);
+      DRW_shgroup_uniform_texture_ref(shgrp, "colorBuffer", &vedata->txl->refract_color);
     }
   }
   if (use_alpha_blend) {
-    DRW_shgroup_uniform_texture_ref_persistent(shgrp, "inScattering", &effects->volume_scatter);
-    DRW_shgroup_uniform_texture_ref_persistent(
-        shgrp, "inTransmittance", &effects->volume_transmit);
+    DRW_shgroup_uniform_texture_ref(shgrp, "inScattering", &effects->volume_scatter);
+    DRW_shgroup_uniform_texture_ref(shgrp, "inTransmittance", &effects->volume_transmit);
   }
 }
 

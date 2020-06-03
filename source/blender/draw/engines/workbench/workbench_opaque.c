@@ -95,21 +95,21 @@ void workbench_opaque_cache_init(WORKBENCH_Data *data)
         DRW_shgroup_uniform_bool_copy(grp, "useMatcap", use_matcap);
 
         wpd->prepass[opaque][infront][hair].vcol_shgrp = grp = DRW_shgroup_create(sh, pass);
-        DRW_shgroup_uniform_block_persistent(grp, "material_block", wpd->material_ubo_curr);
+        DRW_shgroup_uniform_block(grp, "material_block", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", 0); /* Default material. (uses vcol) */
         DRW_shgroup_uniform_bool_copy(grp, "useMatcap", use_matcap);
 
         sh = workbench_shader_opaque_image_get(wpd, hair, false);
 
         wpd->prepass[opaque][infront][hair].image_shgrp = grp = DRW_shgroup_create(sh, pass);
-        DRW_shgroup_uniform_block_persistent(grp, "material_block", wpd->material_ubo_curr);
+        DRW_shgroup_uniform_block(grp, "material_block", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", 0); /* Default material. */
         DRW_shgroup_uniform_bool_copy(grp, "useMatcap", use_matcap);
 
         sh = workbench_shader_opaque_image_get(wpd, hair, true);
 
         wpd->prepass[opaque][infront][hair].image_tiled_shgrp = grp = DRW_shgroup_create(sh, pass);
-        DRW_shgroup_uniform_block_persistent(grp, "material_block", wpd->material_ubo_curr);
+        DRW_shgroup_uniform_block(grp, "material_block", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", 0); /* Default material. */
         DRW_shgroup_uniform_bool_copy(grp, "useMatcap", use_matcap);
       }
@@ -123,9 +123,9 @@ void workbench_opaque_cache_init(WORKBENCH_Data *data)
     sh = workbench_shader_composite_get(wpd);
 
     grp = DRW_shgroup_create(sh, psl->composite_ps);
-    DRW_shgroup_uniform_block_persistent(grp, "world_block", wpd->world_ubo);
-    DRW_shgroup_uniform_texture_persistent(grp, "materialBuffer", wpd->material_buffer_tx);
-    DRW_shgroup_uniform_texture_persistent(grp, "normalBuffer", wpd->normal_buffer_tx);
+    DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
+    DRW_shgroup_uniform_texture(grp, "materialBuffer", wpd->material_buffer_tx);
+    DRW_shgroup_uniform_texture(grp, "normalBuffer", wpd->normal_buffer_tx);
     DRW_shgroup_uniform_bool_copy(grp, "forceShadowing", false);
     DRW_shgroup_stencil_mask(grp, 0x00);
 
@@ -137,8 +137,8 @@ void workbench_opaque_cache_init(WORKBENCH_Data *data)
       struct GPUTexture *spec_tx = wpd->studio_light->matcap_specular.gputexture;
       const bool use_spec = workbench_is_specular_highlight_enabled(wpd);
       spec_tx = (use_spec && spec_tx) ? spec_tx : diff_tx;
-      DRW_shgroup_uniform_texture_persistent(grp, "matcapDiffuseImage", diff_tx);
-      DRW_shgroup_uniform_texture_persistent(grp, "matcapSpecularImage", spec_tx);
+      DRW_shgroup_uniform_texture(grp, "matcapDiffuseImage", diff_tx);
+      DRW_shgroup_uniform_texture(grp, "matcapSpecularImage", spec_tx);
     }
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
 
