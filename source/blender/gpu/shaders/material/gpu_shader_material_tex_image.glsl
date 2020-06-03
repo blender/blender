@@ -54,19 +54,6 @@ void node_tex_image_linear(vec3 co, sampler2D ima, out vec4 color, out float alp
   alpha = color.a;
 }
 
-void node_tex_image_linear_no_mip(vec3 co, sampler2D ima, out vec4 color, out float alpha)
-{
-  color = safe_color(textureLod(ima, co.xy, 0.0));
-  alpha = color.a;
-}
-
-void node_tex_image_nearest(vec3 co, sampler2D ima, out vec4 color, out float alpha)
-{
-  ivec2 pix = ivec2(fract(co.xy) * textureSize(ima, 0).xy);
-  color = safe_color(texelFetch(ima, pix, 0));
-  alpha = color.a;
-}
-
 /** \param f: Signed distance to texel center. */
 void cubic_bspline_coefs(vec2 f, out vec2 w0, out vec2 w1, out vec2 w2, out vec2 w3)
 {

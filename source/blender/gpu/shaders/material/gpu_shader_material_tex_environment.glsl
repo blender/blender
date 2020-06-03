@@ -15,16 +15,11 @@ void node_tex_environment_texco(vec3 viewvec, out vec3 worldvec)
 #endif
 }
 
-void node_tex_environment_equirectangular(vec3 co, float clamp_size, sampler2D ima, out vec3 uv)
+void node_tex_environment_equirectangular(vec3 co, out vec3 uv)
 {
   vec3 nco = normalize(co);
   uv.x = -atan(nco.y, nco.x) / (2.0 * M_PI) + 0.5;
   uv.y = atan(nco.z, hypot(nco.x, nco.y)) / M_PI + 0.5;
-
-  /* Fix pole bleeding */
-  float half_height = clamp_size / float(textureSize(ima, 0).y);
-  uv.y = clamp(uv.y, half_height, 1.0 - half_height);
-  uv.z = 0.0;
 }
 
 void node_tex_environment_mirror_ball(vec3 co, out vec3 uv)
