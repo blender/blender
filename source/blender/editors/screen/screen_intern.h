@@ -79,6 +79,9 @@ short screen_geom_find_area_split_point(const ScrArea *area,
                                         char dir,
                                         float fac);
 void screen_geom_select_connected_edge(const wmWindow *win, ScrEdge *edge);
+void shortest_vec_to_line_p1p2_2s(vec2s *out, vec2s *p1, vec2s *p2, short x, short y);
+ScrArea *find_area_whith_common_edge(const wmWindow *win, ScrArea *sa, char dir);
+char area_dir_from_center(ScrArea *ar, short x, short y, bool t, bool r, bool b, bool l);
 
 /* screen_context.c */
 int ed_screen_context(const struct bContext *C,
