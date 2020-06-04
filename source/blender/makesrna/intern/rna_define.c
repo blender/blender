@@ -1425,10 +1425,8 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
   }
 
 #ifndef RNA_RUNTIME
-  if (type != PROP_POINTER) {
-    if (DefRNA.make_overridable) {
-      prop->flag_override |= PROPOVERRIDE_OVERRIDABLE_LIBRARY;
-    }
+  if (DefRNA.make_overridable) {
+    prop->flag_override |= PROPOVERRIDE_OVERRIDABLE_LIBRARY;
   }
 #endif
 
