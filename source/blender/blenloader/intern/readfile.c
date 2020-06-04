@@ -6941,7 +6941,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 
     direct_link_paint(fd, sce, &sce->toolsettings->imapaint.paint);
 
-    sce->toolsettings->imapaint.paintcursor = NULL;
     sce->toolsettings->particle.paintcursor = NULL;
     sce->toolsettings->particle.scene = NULL;
     sce->toolsettings->particle.object = NULL;

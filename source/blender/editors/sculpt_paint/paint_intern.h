@@ -90,8 +90,7 @@ void *paint_stroke_mode_data(struct PaintStroke *stroke);
 float paint_stroke_distance_get(struct PaintStroke *stroke);
 void paint_stroke_set_mode_data(struct PaintStroke *stroke, void *mode_data);
 bool paint_poll(struct bContext *C);
-void paint_cursor_start(struct bContext *C, bool (*poll)(struct bContext *C));
-void paint_cursor_start_explicit(struct Paint *p, bool (*poll)(struct bContext *C));
+void paint_cursor_start(struct Paint *p, bool (*poll)(struct bContext *C));
 void paint_cursor_delete_textures(void);
 
 /* paint_vertex.c */

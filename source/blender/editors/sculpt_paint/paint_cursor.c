@@ -1674,10 +1674,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 /* Public API */
 
-void paint_cursor_start(bContext *C, bool (*poll)(bContext *C))
+void paint_cursor_start(Paint *p, bool (*poll)(bContext *C))
 {
-  Paint *p = BKE_paint_get_active_from_context(C);
-
   if (p && !p->paint_cursor) {
     p->paint_cursor = WM_paint_cursor_activate(
         SPACE_TYPE_ANY, RGN_TYPE_ANY, poll, paint_draw_cursor, NULL);
@@ -1685,12 +1683,4 @@ void paint_cursor_start(bContext *C, bool (*poll)(bContext *C))
 
   /* Invalidate the paint cursors. */
   BKE_paint_invalidate_overlay_all();
-}
-
-void paint_cursor_start_explicit(Paint *p, bool (*poll)(bContext *C))
-{
-  if (p && !p->paint_cursor) {
-    p->paint_cursor = WM_paint_cursor_activate(
-        SPACE_TYPE_ANY, RGN_TYPE_ANY, poll, paint_draw_cursor, NULL);
-  }
 }

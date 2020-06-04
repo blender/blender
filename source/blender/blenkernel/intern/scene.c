@@ -668,7 +668,6 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
   }
 
   BKE_paint_copy(&ts->imapaint.paint, &ts->imapaint.paint, flag);
-  ts->imapaint.paintcursor = NULL;
   ts->particle.paintcursor = NULL;
   ts->particle.scene = NULL;
   ts->particle.object = NULL;

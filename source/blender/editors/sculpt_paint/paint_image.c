@@ -785,14 +785,15 @@ static void toggle_paint_cursor(bContext *C, int enable)
 {
   Scene *scene = CTX_data_scene(C);
   ToolSettings *settings = scene->toolsettings;
+  Paint *p = &settings->imapaint.paint;
 
-  if (settings->imapaint.paintcursor && !enable) {
-    WM_paint_cursor_end(settings->imapaint.paintcursor);
-    settings->imapaint.paintcursor = NULL;
+  if (p->paint_cursor && !enable) {
+    WM_paint_cursor_end(p->paint_cursor);
+    p->paint_cursor = NULL;
     paint_cursor_delete_textures();
   }
   else if (enable) {
-    paint_cursor_start(C, image_paint_poll);
+    paint_cursor_start(p, image_paint_poll);
   }
 }
 
@@ -822,7 +823,7 @@ void ED_space_image_paint_update(Main *bmain, wmWindowManager *wm, Scene *scene)
   if (enabled) {
     BKE_paint_init(bmain, scene, PAINT_MODE_TEXTURE_2D, PAINT_CURSOR_TEXTURE_PAINT);
 
-    paint_cursor_start_explicit(&imapaint->paint, image_paint_poll);
+    paint_cursor_start(&imapaint->paint, image_paint_poll);
   }
   else {
     paint_cursor_delete_textures();
