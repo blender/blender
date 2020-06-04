@@ -25,6 +25,7 @@
 
 #include "BKE_global.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_math_base.h"
 
 #include "MEM_guardedalloc.h"
@@ -39,7 +40,6 @@
 #include <string.h>
 
 #define DEBUG_SHADER_INTERFACE 0
-#define DEBUG_SHADER_UNIFORMS 0
 
 #if DEBUG_SHADER_INTERFACE
 #  include <stdio.h>
@@ -263,25 +263,26 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 
   /* GL_ACTIVE_UNIFORMS lied to us! Remove the UBO uniforms from the total before
    * allocating the uniform array. */
-  GLint *uniforms_block_index = MEM_mallocN(sizeof(GLint) * active_uniform_len, __func__);
-  if (uniform_len > 0) {
-    GLuint *indices = MEM_mallocN(sizeof(GLuint) * active_uniform_len, __func__);
-    for (uint i = 0; i < uniform_len; i++) {
-      indices[i] = i;
-    }
-
-    glGetActiveUniformsiv(
-        program, uniform_len, indices, GL_UNIFORM_BLOCK_INDEX, uniforms_block_index);
-
-    MEM_freeN(indices);
-
-    for (int i = 0; i < active_uniform_len; i++) {
-      /* If GL_UNIFORM_BLOCK_INDEX is not -1 it means the uniform belongs to a UBO. */
-      if (uniforms_block_index[i] != -1) {
-        uniform_len--;
-      }
+  GLint max_ubo_uni_len = 0;
+  for (int i = 0; i < ubo_len; i++) {
+    GLint ubo_uni_len;
+    glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &ubo_uni_len);
+    max_ubo_uni_len = max_ii(max_ubo_uni_len, ubo_uni_len);
+    uniform_len -= ubo_uni_len;
+  }
+  /* Bit set to true if uniform comes from a uniform block. */
+  BLI_bitmap *uniforms_from_blocks = BLI_BITMAP_NEW(active_uniform_len, __func__);
+  /* Set uniforms from block for exclusion. */
+  GLint *ubo_uni_ids = MEM_mallocN(sizeof(GLint) * max_ubo_uni_len, __func__);
+  for (int i = 0; i < ubo_len; i++) {
+    GLint ubo_uni_len;
+    glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &ubo_uni_len);
+    glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, ubo_uni_ids);
+    for (int u = 0; u < ubo_uni_len; u++) {
+      BLI_BITMAP_ENABLE(uniforms_from_blocks, ubo_uni_ids[u]);
     }
   }
+  MEM_freeN(ubo_uni_ids);
 
   uint32_t name_buffer_offset = 0;
   const uint32_t name_buffer_len = attr_len * max_attr_name_len + ubo_len * max_ubo_name_len +
@@ -346,8 +347,7 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 
   /* Uniforms */
   for (int i = 0, idx = 0, sampler = 0; i < active_uniform_len; i++) {
-    /* If GL_UNIFORM_BLOCK_INDEX is not -1 it means the uniform belongs to a UBO. */
-    if (uniforms_block_index[i] != -1) {
+    if (BLI_BITMAP_TEST(uniforms_from_blocks, i)) {
       continue;
     }
     char *name = shaderface->name_buffer + name_buffer_offset;
@@ -381,7 +381,7 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
   shaderface->batches = MEM_callocN(shaderface->batches_len * sizeof(GPUBatch *),
                                     "GPUShaderInterface batches");
 
-  MEM_freeN(uniforms_block_index);
+  MEM_freeN(uniforms_from_blocks);
   MEM_freeN(inputs_tmp);
 
   /* Resize name buffer to save some memory. */
