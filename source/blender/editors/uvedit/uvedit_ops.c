@@ -71,6 +71,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "intern/math_base_inline.c"
 #include "uvedit_intern.h"
 
 /* -------------------------------------------------------------------- */
@@ -1843,11 +1844,12 @@ static void UV_OT_cursor_set(wmOperatorType *ot)
 
 static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 {
+  Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  int ret = OPERATOR_CANCELLED;
   const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
   const bool mark_seams = RNA_boolean_get(op->ptr, "mark_seams");
   const bool mark_sharp = RNA_boolean_get(op->ptr, "mark_sharp");
+  bool changed_multi = false;
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
@@ -1858,111 +1860,76 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
     Mesh *me = (Mesh *)ob->data;
     BMEditMesh *em = me->edit_mesh;
     BMesh *bm = em->bm;
-
-    UvVertMap *vmap;
-    BMEdge *editedge;
     BMIter iter;
 
     if (!EDBM_uv_check(em)) {
       continue;
     }
-    ret = OPERATOR_FINISHED;
 
-    /* This code sets editvert->tmp.l to the index. This will be useful later on. */
-    BM_mesh_elem_table_ensure(bm, BM_FACE);
-    vmap = BM_uv_vert_map_create(bm, limit, false, false);
+    const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+    bool changed = false;
 
-    BM_ITER_MESH (editedge, &iter, bm, BM_EDGES_OF_MESH) {
-      /* flags to determine if we uv is separated from first editface match */
-      char separated1 = 0, separated2;
-      /* set to denote edge must be flagged as seam */
-      char faces_separated = 0;
-      /* flag to keep track if uv1 is disconnected from first editface match */
-      char v1coincident = 1;
-      /* For use with v1coincident. v1coincident will change only if we've had commonFaces */
-      int commonFaces = 0;
-
-      BMFace *efa1, *efa2;
-
-      UvMapVert *mv1, *mvinit1, *mv2, *mvinit2, *mviter;
-      /* mv2cache stores the first of the list of coincident uv's for later comparison
-       * mv2sep holds the last separator and is copied to mv2cache
-       * when a hit is first found */
-      UvMapVert *mv2cache = NULL, *mv2sep = NULL;
-
-      mvinit1 = vmap->vert[BM_elem_index_get(editedge->v1)];
-      if (mark_seams) {
-        BM_elem_flag_disable(editedge, BM_ELEM_SEAM);
+    BMFace *f;
+    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test(scene, f)) {
+        continue;
       }
 
-      for (mv1 = mvinit1; mv1 && !faces_separated; mv1 = mv1->next) {
-        if (mv1->separate && commonFaces) {
-          v1coincident = 0;
+      BMLoop *l_iter;
+      BMLoop *l_first;
+
+      l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+      do {
+        if (l_iter == l_iter->radial_next) {
+          continue;
+        }
+        if (!uvedit_edge_select_test(scene, l_iter, cd_loop_uv_offset)) {
+          continue;
         }
 
-        separated2 = 0;
-        efa1 = BM_face_at_index(bm, mv1->poly_index);
-        mvinit2 = vmap->vert[BM_elem_index_get(editedge->v2)];
+        const MLoopUV *luv_curr = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
+        const MLoopUV *luv_next = BM_ELEM_CD_GET_VOID_P(l_iter->next, cd_loop_uv_offset);
 
-        for (mv2 = mvinit2; mv2; mv2 = mv2->next) {
-          if (mv2->separate) {
-            mv2sep = mv2;
+        bool mark = false;
+        BMLoop *l_other = l_iter->radial_next;
+        do {
+          const MLoopUV *luv_other_curr = BM_ELEM_CD_GET_VOID_P(l_other, cd_loop_uv_offset);
+          const MLoopUV *luv_other_next = BM_ELEM_CD_GET_VOID_P(l_other->next, cd_loop_uv_offset);
+          if (l_iter->v != l_other->v) {
+            SWAP(const MLoopUV *, luv_other_curr, luv_other_next);
           }
 
-          efa2 = BM_face_at_index(bm, mv2->poly_index);
-          if (efa1 == efa2) {
-            /* if v1 is not coincident no point in comparing */
-            if (v1coincident) {
-              /* have we found previously anything? */
-              if (mv2cache) {
-                /* flag seam unless proved to be coincident with previous hit */
-                separated2 = 1;
-                for (mviter = mv2cache; mviter; mviter = mviter->next) {
-                  if (mviter->separate && mviter != mv2cache) {
-                    break;
-                  }
-                  /* coincident with previous hit, do not flag seam */
-                  if (mviter == mv2) {
-                    separated2 = 0;
-                  }
-                }
-              }
-              /* First hit case, store the hit in the cache */
-              else {
-                mv2cache = mv2sep;
-                commonFaces = 1;
-              }
-            }
-            else {
-              separated1 = 1;
-            }
+          if (!compare_ff(luv_curr->uv[0], luv_other_curr->uv[0], limit[0]) ||
+              !compare_ff(luv_curr->uv[1], luv_other_curr->uv[1], limit[1]) ||
 
-            if (separated1 || separated2) {
-              faces_separated = 1;
-              break;
-            }
+              !compare_ff(luv_next->uv[0], luv_other_next->uv[0], limit[0]) ||
+              !compare_ff(luv_next->uv[1], luv_other_next->uv[1], limit[1])) {
+            mark = true;
+            break;
           }
-        }
-      }
+        } while ((l_other = l_other->radial_next) != l_iter);
 
-      if (faces_separated) {
-        if (mark_seams) {
-          BM_elem_flag_enable(editedge, BM_ELEM_SEAM);
+        if (mark) {
+          if (mark_seams) {
+            BM_elem_flag_enable(l_iter->e, BM_ELEM_SEAM);
+          }
+          if (mark_sharp) {
+            BM_elem_flag_disable(l_iter->e, BM_ELEM_SMOOTH);
+          }
+          changed = true;
         }
-        if (mark_sharp) {
-          BM_elem_flag_disable(editedge, BM_ELEM_SMOOTH);
-        }
-      }
+      } while ((l_iter = l_iter->next) != l_first);
     }
 
-    BM_uv_vert_map_free(vmap);
-
-    DEG_id_tag_update(&me->id, 0);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+    if (changed) {
+      changed_multi = true;
+      DEG_id_tag_update(&me->id, 0);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+    }
   }
   MEM_freeN(objects);
 
-  return ret;
+  return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static void UV_OT_seams_from_islands(wmOperatorType *ot)
