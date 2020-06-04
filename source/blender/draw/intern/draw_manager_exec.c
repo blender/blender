@@ -454,6 +454,8 @@ void DRW_state_reset(void)
 {
   DRW_state_reset_ex(DRW_STATE_DEFAULT);
 
+  GPU_texture_unbind_all();
+
   /* Should stay constant during the whole rendering. */
   GPU_point_size(5);
   GPU_line_smooth(false);
@@ -1307,7 +1309,6 @@ static void drw_draw_pass_ex(DRWPass *pass,
 
   if (DST.shader) {
     GPU_shader_unbind();
-    GPU_texture_unbind_all();
     DST.shader = NULL;
   }
 
