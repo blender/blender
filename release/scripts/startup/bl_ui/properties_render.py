@@ -534,6 +534,7 @@ class RENDER_PT_eevee_performance(RenderButtonsPanel, Panel):
 class RENDER_PT_gpencil(RenderButtonsPanel, Panel):
     bl_label = "Grease Pencil"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_order = 10
 
     @classmethod
     def poll(cls, context):
