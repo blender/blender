@@ -274,6 +274,18 @@ static bool ed_object_mode_generic_exit_ex(struct Main *bmain,
       ED_object_posemode_exit_ex(bmain, ob);
     }
   }
+  else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
+    if (only_test) {
+      return true;
+    }
+    ED_object_texture_paint_mode_exit_ex(bmain, scene, ob);
+  }
+  else if (ob->mode & OB_MODE_PARTICLE_EDIT) {
+    if (only_test) {
+      return true;
+    }
+    ED_object_particle_edit_mode_exit_ex(scene, ob);
+  }
   else if (ob->type == OB_GPENCIL) {
     /* Accounted for above. */
     BLI_assert((ob->mode & OB_MODE_OBJECT) == 0);
