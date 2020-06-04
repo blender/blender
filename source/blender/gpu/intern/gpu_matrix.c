@@ -654,63 +654,59 @@ void GPU_matrix_bind(const GPUShaderInterface *shaderface)
    * call glUseProgram before this, as glUniform expects program to be bound
    */
 
-  const GPUShaderInput *MV = GPU_shaderinterface_uniform_builtin(shaderface,
-                                                                 GPU_UNIFORM_MODELVIEW);
-  const GPUShaderInput *P = GPU_shaderinterface_uniform_builtin(shaderface,
-                                                                GPU_UNIFORM_PROJECTION);
-  const GPUShaderInput *MVP = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_MVP);
+  int32_t MV = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_MODELVIEW);
+  int32_t P = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_PROJECTION);
+  int32_t MVP = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_MVP);
 
-  const GPUShaderInput *N = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_NORMAL);
-  const GPUShaderInput *MV_inv = GPU_shaderinterface_uniform_builtin(shaderface,
-                                                                     GPU_UNIFORM_MODELVIEW_INV);
-  const GPUShaderInput *P_inv = GPU_shaderinterface_uniform_builtin(shaderface,
-                                                                    GPU_UNIFORM_PROJECTION_INV);
+  int32_t N = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_NORMAL);
+  int32_t MV_inv = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_MODELVIEW_INV);
+  int32_t P_inv = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_PROJECTION_INV);
 
-  if (MV) {
+  if (MV != -1) {
 #if DEBUG_MATRIX_BIND
     puts("setting MV matrix");
 #endif
 
-    glUniformMatrix4fv(MV->location, 1, GL_FALSE, (const float *)GPU_matrix_model_view_get(NULL));
+    glUniformMatrix4fv(MV, 1, GL_FALSE, (const float *)GPU_matrix_model_view_get(NULL));
   }
 
-  if (P) {
+  if (P != -1) {
 #if DEBUG_MATRIX_BIND
     puts("setting P matrix");
 #endif
 
-    glUniformMatrix4fv(P->location, 1, GL_FALSE, (const float *)GPU_matrix_projection_get(NULL));
+    glUniformMatrix4fv(P, 1, GL_FALSE, (const float *)GPU_matrix_projection_get(NULL));
   }
 
-  if (MVP) {
+  if (MVP != -1) {
 #if DEBUG_MATRIX_BIND
     puts("setting MVP matrix");
 #endif
 
     glUniformMatrix4fv(
-        MVP->location, 1, GL_FALSE, (const float *)GPU_matrix_model_view_projection_get(NULL));
+        MVP, 1, GL_FALSE, (const float *)GPU_matrix_model_view_projection_get(NULL));
   }
 
-  if (N) {
+  if (N != -1) {
 #if DEBUG_MATRIX_BIND
     puts("setting normal matrix");
 #endif
 
-    glUniformMatrix3fv(N->location, 1, GL_FALSE, (const float *)GPU_matrix_normal_get(NULL));
+    glUniformMatrix3fv(N, 1, GL_FALSE, (const float *)GPU_matrix_normal_get(NULL));
   }
 
-  if (MV_inv) {
+  if (MV_inv != -1) {
     Mat4 m;
     GPU_matrix_model_view_get(m);
     invert_m4(m);
-    glUniformMatrix4fv(MV_inv->location, 1, GL_FALSE, (const float *)m);
+    glUniformMatrix4fv(MV_inv, 1, GL_FALSE, (const float *)m);
   }
 
-  if (P_inv) {
+  if (P_inv != -1) {
     Mat4 m;
     GPU_matrix_projection_get(m);
     invert_m4(m);
-    glUniformMatrix4fv(P_inv->location, 1, GL_FALSE, (const float *)m);
+    glUniformMatrix4fv(P_inv, 1, GL_FALSE, (const float *)m);
   }
 
   gpu_matrix_state_active_set_dirty(false);

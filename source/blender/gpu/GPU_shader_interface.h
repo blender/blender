@@ -92,9 +92,8 @@ typedef struct GPUShaderInterface {
   uint16_t enabled_ubo_mask;
   uint64_t enabled_tex_mask;
   /** Opengl Location of builtin uniforms. Fast access, no lookup needed. */
-  /* TODO replace by location only array. */
-  GPUShaderInput builtins[GPU_NUM_UNIFORMS];
-  GPUShaderInput builtin_blocks[GPU_NUM_UNIFORM_BLOCKS];
+  int32_t builtins[GPU_NUM_UNIFORMS];
+  int32_t builtin_blocks[GPU_NUM_UNIFORM_BLOCKS];
   /** Flat array. In this order: Attributes, Ubos, Uniforms. */
   GPUShaderInput inputs[0];
 } GPUShaderInterface;
@@ -103,10 +102,10 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program_id);
 void GPU_shaderinterface_discard(GPUShaderInterface *);
 
 const GPUShaderInput *GPU_shaderinterface_uniform(const GPUShaderInterface *, const char *name);
-const GPUShaderInput *GPU_shaderinterface_uniform_builtin(const GPUShaderInterface *shaderface,
-                                                          GPUUniformBuiltin builtin);
-const GPUShaderInput *GPU_shaderinterface_block_builtin(const GPUShaderInterface *shaderface,
-                                                        GPUUniformBlockBuiltin builtin);
+int32_t GPU_shaderinterface_uniform_builtin(const GPUShaderInterface *shaderface,
+                                            GPUUniformBuiltin builtin);
+int32_t GPU_shaderinterface_block_builtin(const GPUShaderInterface *shaderface,
+                                          GPUUniformBlockBuiltin builtin);
 const GPUShaderInput *GPU_shaderinterface_ubo(const GPUShaderInterface *, const char *name);
 const GPUShaderInput *GPU_shaderinterface_attr(const GPUShaderInterface *, const char *name);
 

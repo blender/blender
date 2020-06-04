@@ -857,12 +857,10 @@ void immUniform4iv(const char *name, const int data[4])
 
 void immUniformColor4f(float r, float g, float b, float a)
 {
-  const GPUShaderInput *uniform = GPU_shaderinterface_uniform_builtin(imm.shader_interface,
-                                                                      GPU_UNIFORM_COLOR);
-#if TRUST_NO_ONE
-  assert(uniform != NULL);
-#endif
-  glUniform4f(uniform->location, r, g, b, a);
+  int32_t uniform_loc = GPU_shaderinterface_uniform_builtin(imm.shader_interface,
+                                                            GPU_UNIFORM_COLOR);
+  BLI_assert(uniform_loc != -1);
+  glUniform4f(uniform_loc, r, g, b, a);
 }
 
 void immUniformColor4fv(const float rgba[4])

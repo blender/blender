@@ -367,15 +367,13 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 
   /* Builtin Uniforms */
   for (GPUUniformBuiltin u = 0; u < GPU_NUM_UNIFORMS; u++) {
-    shaderface->builtins[u].location = glGetUniformLocation(program, BuiltinUniform_name(u));
-    shaderface->builtins[u].binding = -1;
+    shaderface->builtins[u] = glGetUniformLocation(program, BuiltinUniform_name(u));
   }
 
   /* Builtin Uniforms Blocks */
   for (GPUUniformBlockBuiltin u = 0; u < GPU_NUM_UNIFORM_BLOCKS; u++) {
     const GPUShaderInput *block = GPU_shaderinterface_ubo(shaderface, BuiltinUniformBlock_name(u));
-    shaderface->builtin_blocks[u].location = -1;
-    shaderface->builtin_blocks[u].binding = (block != NULL) ? block->binding : -1;
+    shaderface->builtin_blocks[u] = (block != NULL) ? block->binding : -1;
   }
 
   /* Batches ref buffer */
@@ -477,18 +475,18 @@ const GPUShaderInput *GPU_shaderinterface_uniform(const GPUShaderInterface *shad
   return input_lookup(shaderface, shaderface->inputs + ofs, shaderface->uniform_len, name);
 }
 
-const GPUShaderInput *GPU_shaderinterface_uniform_builtin(const GPUShaderInterface *shaderface,
-                                                          GPUUniformBuiltin builtin)
+int32_t GPU_shaderinterface_uniform_builtin(const GPUShaderInterface *shaderface,
+                                            GPUUniformBuiltin builtin)
 {
   BLI_assert(builtin >= 0 && builtin < GPU_NUM_UNIFORMS);
-  return &shaderface->builtins[builtin];
+  return shaderface->builtins[builtin];
 }
 
-const GPUShaderInput *GPU_shaderinterface_block_builtin(const GPUShaderInterface *shaderface,
-                                                        GPUUniformBlockBuiltin builtin)
+int32_t GPU_shaderinterface_block_builtin(const GPUShaderInterface *shaderface,
+                                          GPUUniformBlockBuiltin builtin)
 {
   BLI_assert(builtin >= 0 && builtin < GPU_NUM_UNIFORM_BLOCKS);
-  return &shaderface->builtin_blocks[builtin];
+  return shaderface->builtin_blocks[builtin];
 }
 
 void GPU_shaderinterface_add_batch_ref(GPUShaderInterface *shaderface, GPUBatch *batch)
