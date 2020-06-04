@@ -688,11 +688,13 @@ def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
         doc = undocumented_message(module_name, type_name, identifier)
 
     if type(descr) == GetSetDescriptorType:
-        fw(ident + ".. attribute:: %s\n\n" % identifier)
+        fw(ident + ".. attribute:: %s\n" % identifier)
+        fw(ident + "   :noindex:\n\n")
         write_indented_lines(ident + "   ", fw, doc, False)
         fw("\n")
     elif type(descr) == MemberDescriptorType:  # same as above but use 'data'
-        fw(ident + ".. data:: %s\n\n" % identifier)
+        fw(ident + ".. data:: %s\n" % identifier)
+        fw(ident + "   :noindex:\n\n")
         write_indented_lines(ident + "   ", fw, doc, False)
         fw("\n")
     elif type(descr) in {MethodDescriptorType, ClassMethodDescriptorType}:
@@ -732,11 +734,14 @@ def pyprop2sphinx(ident, fw, identifier, py_prop):
     '''
     # readonly properties use "data" directive, variables use "attribute" directive
     if py_prop.fset is None:
-        fw(ident + ".. data:: %s\n\n" % identifier)
+        fw(ident + ".. data:: %s\n" % identifier)
+        fw(ident + "   :noindex:\n\n")
     else:
-        fw(ident + ".. attribute:: %s\n\n" % identifier)
+        fw(ident + ".. attribute:: %s\n" % identifier)
+        fw(ident + "   :noindex:\n\n")
     write_indented_lines(ident + "   ", fw, py_prop.__doc__)
     if py_prop.fset is None:
+        fw("\n")
         fw(ident + "   (readonly)\n\n")
     else:
         fw("\n")
@@ -902,7 +907,8 @@ def pymodule2sphinx(basepath, module_name, module, title):
         elif issubclass(value_type, (bool, int, float, str, tuple)):
             # constant, not much fun we can do here except to list it.
             # TODO, figure out some way to document these!
-            fw(".. data:: %s\n\n" % attribute)
+            fw(".. data:: %s\n" % attribute)
+            fw("   :noindex:\n\n")
             write_indented_lines("   ", fw, "constant value %s" % repr(value), False)
             fw("\n")
         else:
@@ -1110,7 +1116,8 @@ def pycontext2sphinx(basepath):
 
             type_descr = prop.get_type_description(
                 class_fmt=":class:`bpy.types.%s`", collection_id=_BPY_PROP_COLLECTION_ID)
-            fw(".. data:: %s\n\n" % prop.identifier)
+            fw(".. data:: %s\n" % prop.identifier)
+            fw("   :noindex:\n\n")
             if prop.description:
                 fw("   %s\n\n" % prop.description)
 
@@ -1155,7 +1162,8 @@ def pycontext2sphinx(basepath):
         i = 0
         while char_array[i] is not None:
             member = ctypes.string_at(char_array[i]).decode(encoding="ascii")
-            fw(".. data:: %s\n\n" % member)
+            fw(".. data:: %s\n" % member)
+            fw("   :noindex:\n\n")
             member_type, is_seq = context_type_map[member]
             fw("   :type: %s :class:`bpy.types.%s`\n\n" % ("sequence of " if is_seq else "", member_type))
             unique.add(member)
@@ -1299,7 +1307,7 @@ def pyrna2sphinx(basepath):
 
         fw(title_string(title, "="))
 
-        fw(".. module:: %s\n\n" % struct_module_name)
+        fw(".. module:: %s.%s\n\n" % (struct_module_name, struct_id))
 
         # docs first?, ok
         write_example_ref("", fw, "%s.%s" % (struct_module_name, struct_id))
@@ -1358,9 +1366,11 @@ def pyrna2sphinx(basepath):
             type_descr = prop.get_type_description(class_fmt=":class:`%s`", collection_id=_BPY_PROP_COLLECTION_ID)
             # readonly properties use "data" directive, variables properties use "attribute" directive
             if 'readonly' in type_descr:
-                fw("   .. data:: %s\n\n" % prop.identifier)
+                fw("   .. data:: %s\n" % prop.identifier)
+                fw("      :noindex:\n\n")
             else:
-                fw("   .. attribute:: %s\n\n" % prop.identifier)
+                fw("   .. attribute:: %s\n" % prop.identifier)
+                fw("      :noindex:\n\n")
             if prop.description:
                 fw("      %s\n\n" % prop.description)
 
@@ -1530,7 +1540,7 @@ def pyrna2sphinx(basepath):
 
             fw(title_string(class_name, "="))
 
-            fw(".. module:: %s\n" % class_module_name)
+            fw(".. module:: %s.%s\n" % (class_module_name, class_name))
             fw("\n")
 
             if use_subclasses:
