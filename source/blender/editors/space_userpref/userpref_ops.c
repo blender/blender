@@ -25,11 +25,15 @@
 
 #include "DNA_screen_types.h"
 
+#include "BLI_listbase.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
 #include "RNA_types.h"
 
 #include "UI_interface.h"
@@ -41,11 +45,13 @@
 
 #include "ED_userpref.h"
 
+#include "MEM_guardedalloc.h"
+
 /* -------------------------------------------------------------------- */
-/** \name Reset Default Theme
+/** \name Reset Default Theme Operator
  * \{ */
 
-static int reset_default_theme_exec(bContext *C, wmOperator *UNUSED(op))
+static int preferences_reset_default_theme_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
   UI_theme_init_default();
@@ -64,7 +70,7 @@ static void PREFERENCES_OT_reset_default_theme(wmOperatorType *ot)
   ot->description = "Reset to the default theme colors";
 
   /* callbacks */
-  ot->exec = reset_default_theme_exec;
+  ot->exec = preferences_reset_default_theme_exec;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER;
@@ -72,7 +78,64 @@ static void PREFERENCES_OT_reset_default_theme(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Add Auto-Execution Path Operator
+ * \{ */
+
+static int preferences_autoexec_add_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+{
+  bPathCompare *path_cmp = MEM_callocN(sizeof(bPathCompare), "bPathCompare");
+  BLI_addtail(&U.autoexec_paths, path_cmp);
+  U.runtime.is_dirty = true;
+  return OPERATOR_FINISHED;
+}
+
+static void PREFERENCES_OT_autoexec_path_add(wmOperatorType *ot)
+{
+  ot->name = "Add Autoexec Path";
+  ot->idname = "PREFERENCES_OT_autoexec_path_add";
+  ot->description = "Add path to exclude from auto-execution";
+
+  ot->exec = preferences_autoexec_add_exec;
+
+  ot->flag = OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remove Auto-Execution Path Operator
+ * \{ */
+
+static int preferences_autoexec_remove_exec(bContext *UNUSED(C), wmOperator *op)
+{
+  const int index = RNA_int_get(op->ptr, "index");
+  bPathCompare *path_cmp = BLI_findlink(&U.autoexec_paths, index);
+  if (path_cmp) {
+    BLI_freelinkN(&U.autoexec_paths, path_cmp);
+    U.runtime.is_dirty = true;
+  }
+  return OPERATOR_FINISHED;
+}
+
+static void PREFERENCES_OT_autoexec_path_remove(wmOperatorType *ot)
+{
+  ot->name = "Remove Autoexec Path";
+  ot->idname = "PREFERENCES_OT_autoexec_path_remove";
+  ot->description = "Remove path to exclude from auto-execution";
+
+  ot->exec = preferences_autoexec_remove_exec;
+
+  ot->flag = OPTYPE_INTERNAL;
+
+  RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
+}
+
+/** \} */
+
 void ED_operatortypes_userpref(void)
 {
   WM_operatortype_append(PREFERENCES_OT_reset_default_theme);
+  WM_operatortype_append(PREFERENCES_OT_autoexec_path_add);
+  WM_operatortype_append(PREFERENCES_OT_autoexec_path_remove);
 }

@@ -1782,61 +1782,6 @@ void WM_OT_save_homefile(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Add Auto-Execution Path Operator
- * \{ */
-
-static int wm_userpref_autoexec_add_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
-{
-  bPathCompare *path_cmp = MEM_callocN(sizeof(bPathCompare), "bPathCompare");
-  BLI_addtail(&U.autoexec_paths, path_cmp);
-  U.runtime.is_dirty = true;
-  return OPERATOR_FINISHED;
-}
-
-void WM_OT_userpref_autoexec_path_add(wmOperatorType *ot)
-{
-  ot->name = "Add Autoexec Path";
-  ot->idname = "WM_OT_userpref_autoexec_path_add";
-  ot->description = "Add path to exclude from autoexecution";
-
-  ot->exec = wm_userpref_autoexec_add_exec;
-
-  ot->flag = OPTYPE_INTERNAL;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Remove Auto-Execution Path Operator
- * \{ */
-
-static int wm_userpref_autoexec_remove_exec(bContext *UNUSED(C), wmOperator *op)
-{
-  const int index = RNA_int_get(op->ptr, "index");
-  bPathCompare *path_cmp = BLI_findlink(&U.autoexec_paths, index);
-  if (path_cmp) {
-    BLI_freelinkN(&U.autoexec_paths, path_cmp);
-    U.runtime.is_dirty = true;
-  }
-  return OPERATOR_FINISHED;
-}
-
-void WM_OT_userpref_autoexec_path_remove(wmOperatorType *ot)
-{
-  ot->name = "Remove Autoexec Path";
-  ot->idname = "WM_OT_userpref_autoexec_path_remove";
-  ot->description = "Remove path to exclude from autoexecution";
-
-  ot->exec = wm_userpref_autoexec_remove_exec;
-
-  ot->flag = OPTYPE_INTERNAL;
-
-  RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Write Preferences Operator
  * \{ */
 

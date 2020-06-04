@@ -1284,12 +1284,12 @@ class USERPREF_PT_saveload_autorun(FilePathsPanel, Panel):
         box = layout.box()
         row = box.row()
         row.label(text="Excluded Paths:")
-        row.operator("wm.userpref_autoexec_path_add", text="", icon='ADD', emboss=False)
+        row.operator("preferences.autoexec_path_add", text="", icon='ADD', emboss=False)
         for i, path_cmp in enumerate(prefs.autoexec_paths):
             row = box.row()
             row.prop(path_cmp, "path", text="")
             row.prop(path_cmp, "use_glob", text="", icon='FILTER')
-            row.operator("wm.userpref_autoexec_path_remove", text="", icon='X', emboss=False).index = i
+            row.operator("preferences.autoexec_path_remove", text="", icon='X', emboss=False).index = i
 
 
 # -----------------------------------------------------------------------------
