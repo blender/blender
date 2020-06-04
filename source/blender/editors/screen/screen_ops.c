@@ -5440,6 +5440,165 @@ static void SCREEN_OT_workspace_cycle(wmOperatorType *ot)
 
 /** \} */
 
+/* --------------------------------------------------------------------- */
+/** \name SCREEN_OT_area_fastjoin
+ * \{ */
+typedef struct AreaFJoinData {
+  ScrArea *pa[4];       // possible bounded areas ordered: top, right, bottom, left
+  char dir;             // 0, 1, 2, 3, 4 = none, t, r, b, l
+  ScrArea *active;      // first area to be considered
+  ScrArea *operand;     // second area to be considered
+  void *draw_callback;
+} AreaFJoinData;
+
+static void area_fjoin_draw_cb(const struct wmWindow *UNUSED(win), void *userdata)
+{
+  const wmOperator *op = userdata;
+  AreaFJoinData *ajd = op->customdata;
+
+  ED_screen_draw_join_shape(ajd->active, ajd->operand);
+}
+
+static bool area_fjoin_refresh(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  AreaFJoinData *ajd = (AreaFJoinData *)op->customdata;
+  wmWindow *win = CTX_wm_window(C);
+  bScreen *scr = CTX_wm_screen(C);
+
+  // active area
+  ScrArea *area = BKE_screen_find_area_xy(scr, SPACE_TYPE_ANY, event->x, event->y);
+  if (!area)
+    return 0;
+
+  // we just chek dir if active area is the same
+  // else update pa and mode
+  if (ajd->active != area) {
+    ajd->active = area;
+    for (int i = 1; i < 5; i++) {
+      ajd->pa[i - 1] = find_area_whith_common_edge(win, ajd->active, i);
+    }
+  }
+
+  ajd->dir = area_dir_from_center(
+      ajd->active, event->x, event->y, ajd->pa[0], ajd->pa[1], ajd->pa[2], ajd->pa[3]);
+
+  if (ajd->dir) {
+    ajd->operand = ajd->pa[ajd->dir - 1];
+  }
+  else {
+    ajd->operand = NULL;
+  }
+  return 1;
+}
+
+static int area_fjoin_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  bScreen *scr = CTX_wm_screen(C);
+  wmWindow *win = CTX_wm_window(C);
+  ScrArea *ar = BKE_screen_find_area_xy(scr, SPACE_TYPE_ANY, event->x, event->y);
+  if (!ar) {
+    return OPERATOR_CANCELLED;
+  }
+
+  AreaFJoinData *ajd = MEM_callocN(sizeof(AreaFJoinData), "AreaFJoinData");
+  op->customdata = ajd;
+  ajd->draw_callback = WM_draw_cb_activate(win, area_fjoin_draw_cb, op);
+
+  WM_event_add_modal_handler(C, op);
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static void area_fjoin_cancel(bContext *C, wmOperator *op)
+{
+  AreaFJoinData *ajd = (AreaFJoinData *)op->customdata;
+  WM_draw_cb_exit(CTX_wm_window(C), ajd->draw_callback);
+  op->customdata = NULL;
+  MEM_freeN(ajd);
+}
+
+static void area_fjoin_apply(bContext *C, AreaFJoinData *ajd)
+{
+  bScreen *screen = CTX_wm_screen(C);
+
+  ED_area_tag_redraw(ajd->active);
+  ED_area_tag_redraw(ajd->operand);
+
+  screen_area_join(C, screen, ajd->active, ajd->operand);
+
+  // this makes sure aligned edges will result in aligned grabbing
+  WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
+  BKE_screen_remove_double_scredges(screen);
+  BKE_screen_remove_unused_scredges(screen);
+  BKE_screen_remove_unused_scrverts(screen);
+}
+
+static int area_fjoin_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  AreaFJoinData *ajd = (AreaFJoinData *)op->customdata;
+  wmWindow *win = CTX_wm_window(C);
+
+  if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
+    if (ajd->operand) {
+      area_fjoin_apply(C, ajd);
+    }
+
+    WM_cursor_set(win, WM_CURSOR_DEFAULT);
+    area_fjoin_cancel(C, op);
+    return OPERATOR_FINISHED;
+  }
+  else if (event->type == RIGHTMOUSE || event->type == EVT_ESCKEY) {
+    area_fjoin_cancel(C, op);
+    WM_cursor_set(win, WM_CURSOR_DEFAULT);
+    WM_event_add_notifier(C, NC_WINDOW, NULL);
+    return OPERATOR_CANCELLED;
+  }
+  else {
+
+    if (area_fjoin_refresh(C, op, event)) {
+
+      WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+      if (!ajd->operand) {
+        WM_cursor_set(win, WM_CURSOR_STOP);
+      }
+      else if (ajd->dir == 1) {
+        WM_cursor_set(win, WM_CURSOR_N_ARROW);
+      }
+      else if (ajd->dir == 2) {
+        WM_cursor_set(win, WM_CURSOR_E_ARROW);
+      }
+      else if (ajd->dir == 3) {
+        WM_cursor_set(win, WM_CURSOR_S_ARROW);
+      }
+      else {
+        WM_cursor_set(win, WM_CURSOR_W_ARROW);
+      }
+    }
+    return OPERATOR_RUNNING_MODAL;
+  }
+}
+
+static void SCREEN_OT_area_fjoin(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Area_fjoin";
+  ot->description = "Area_fjoin";
+  ot->idname = "SCREEN_OT_area_fjoin";
+
+  /* api callbacks */
+  // ot->exec = area_fjoin_exec;
+  ot->invoke = area_fjoin_invoke;
+  ot->modal = area_fjoin_modal;
+  ot->poll = screen_active_editable;
+  ot->cancel = area_fjoin_cancel;
+
+  /* flags */
+  ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
+}
+/** \} */
+
+
 /* -------------------------------------------------------------------- */
 /** \name Assigning Operator Types
  * \{ */
@@ -5478,6 +5637,7 @@ void ED_operatortypes_screen(void)
   WM_operatortype_append(SCREEN_OT_space_type_set_or_cycle);
   WM_operatortype_append(SCREEN_OT_space_context_cycle);
   WM_operatortype_append(SCREEN_OT_workspace_cycle);
+  WM_operatortype_append(SCREEN_OT_area_fjoin);
 
   /*frame changes*/
   WM_operatortype_append(SCREEN_OT_frame_offset);
