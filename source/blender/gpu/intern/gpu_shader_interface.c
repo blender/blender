@@ -48,8 +48,6 @@
 static const char *BuiltinUniform_name(GPUUniformBuiltin u)
 {
   static const char *names[] = {
-      [GPU_UNIFORM_NONE] = NULL,
-
       [GPU_UNIFORM_MODEL] = "ModelMatrix",
       [GPU_UNIFORM_VIEW] = "ViewMatrix",
       [GPU_UNIFORM_MODELVIEW] = "ModelViewMatrix",
@@ -73,8 +71,20 @@ static const char *BuiltinUniform_name(GPUUniformBuiltin u)
       [GPU_UNIFORM_RESOURCE_ID] = "resourceId",
       [GPU_UNIFORM_SRGB_TRANSFORM] = "srgbTarget",
 
-      [GPU_UNIFORM_CUSTOM] = NULL,
       [GPU_NUM_UNIFORMS] = NULL,
+  };
+
+  return names[u];
+}
+
+static const char *BuiltinUniformBlock_name(GPUUniformBlockBuiltin u)
+{
+  static const char *names[] = {
+      [GPU_UNIFORM_BLOCK_VIEW] = "viewBlock",
+      [GPU_UNIFORM_BLOCK_MODEL] = "modelBlock",
+      [GPU_UNIFORM_BLOCK_INFO] = "infoBlock",
+
+      [GPU_NUM_UNIFORM_BLOCKS] = NULL,
   };
 
   return names[u];
@@ -356,9 +366,16 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
   sort_input_list(inputs, inputs_tmp, shaderface->uniform_len);
 
   /* Builtin Uniforms */
-  for (GPUUniformBuiltin u = GPU_UNIFORM_NONE + 1; u < GPU_UNIFORM_CUSTOM; u++) {
+  for (GPUUniformBuiltin u = 0; u < GPU_NUM_UNIFORMS; u++) {
     shaderface->builtins[u].location = glGetUniformLocation(program, BuiltinUniform_name(u));
     shaderface->builtins[u].binding = -1;
+  }
+
+  /* Builtin Uniforms Blocks */
+  for (GPUUniformBlockBuiltin u = 0; u < GPU_NUM_UNIFORM_BLOCKS; u++) {
+    const GPUShaderInput *block = GPU_shaderinterface_ubo(shaderface, BuiltinUniformBlock_name(u));
+    shaderface->builtin_blocks[u].location = -1;
+    shaderface->builtin_blocks[u].binding = (block != NULL) ? block->binding : -1;
   }
 
   /* Batches ref buffer */
@@ -463,12 +480,15 @@ const GPUShaderInput *GPU_shaderinterface_uniform(const GPUShaderInterface *shad
 const GPUShaderInput *GPU_shaderinterface_uniform_builtin(const GPUShaderInterface *shaderface,
                                                           GPUUniformBuiltin builtin)
 {
-#if TRUST_NO_ONE
-  assert(builtin != GPU_UNIFORM_NONE);
-  assert(builtin != GPU_UNIFORM_CUSTOM);
-  assert(builtin != GPU_NUM_UNIFORMS);
-#endif
+  BLI_assert(builtin >= 0 && builtin < GPU_NUM_UNIFORMS);
   return &shaderface->builtins[builtin];
+}
+
+const GPUShaderInput *GPU_shaderinterface_block_builtin(const GPUShaderInterface *shaderface,
+                                                        GPUUniformBlockBuiltin builtin)
+{
+  BLI_assert(builtin >= 0 && builtin < GPU_NUM_UNIFORM_BLOCKS);
+  return &shaderface->builtin_blocks[builtin];
 }
 
 void GPU_shaderinterface_add_batch_ref(GPUShaderInterface *shaderface, GPUBatch *batch)

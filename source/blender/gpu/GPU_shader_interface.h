@@ -33,9 +33,7 @@ extern "C" {
 #endif
 
 typedef enum {
-  GPU_UNIFORM_NONE = 0, /* uninitialized/unknown */
-
-  GPU_UNIFORM_MODEL,          /* mat4 ModelMatrix */
+  GPU_UNIFORM_MODEL = 0,      /* mat4 ModelMatrix */
   GPU_UNIFORM_VIEW,           /* mat4 ViewMatrix */
   GPU_UNIFORM_MODELVIEW,      /* mat4 ModelViewMatrix */
   GPU_UNIFORM_PROJECTION,     /* mat4 ProjectionMatrix */
@@ -58,10 +56,16 @@ typedef enum {
   GPU_UNIFORM_RESOURCE_ID,    /* int resourceId */
   GPU_UNIFORM_SRGB_TRANSFORM, /* bool srgbTarget */
 
-  GPU_UNIFORM_CUSTOM, /* custom uniform, not one of the above built-ins */
-
   GPU_NUM_UNIFORMS, /* Special value, denotes number of builtin uniforms. */
 } GPUUniformBuiltin;
+
+typedef enum {
+  GPU_UNIFORM_BLOCK_VIEW = 0, /* viewBlock */
+  GPU_UNIFORM_BLOCK_MODEL,    /* modelBlock */
+  GPU_UNIFORM_BLOCK_INFO,     /* infoBlock */
+
+  GPU_NUM_UNIFORM_BLOCKS, /* Special value, denotes number of builtin uniforms block. */
+} GPUUniformBlockBuiltin;
 
 typedef struct GPUShaderInput {
   uint32_t name_offset;
@@ -90,6 +94,7 @@ typedef struct GPUShaderInterface {
   /** Opengl Location of builtin uniforms. Fast access, no lookup needed. */
   /* TODO replace by location only array. */
   GPUShaderInput builtins[GPU_NUM_UNIFORMS];
+  GPUShaderInput builtin_blocks[GPU_NUM_UNIFORM_BLOCKS];
   /** Flat array. In this order: Attributes, Ubos, Uniforms. */
   GPUShaderInput inputs[0];
 } GPUShaderInterface;
@@ -98,8 +103,10 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program_id);
 void GPU_shaderinterface_discard(GPUShaderInterface *);
 
 const GPUShaderInput *GPU_shaderinterface_uniform(const GPUShaderInterface *, const char *name);
-const GPUShaderInput *GPU_shaderinterface_uniform_builtin(const GPUShaderInterface *,
-                                                          GPUUniformBuiltin);
+const GPUShaderInput *GPU_shaderinterface_uniform_builtin(const GPUShaderInterface *shaderface,
+                                                          GPUUniformBuiltin builtin);
+const GPUShaderInput *GPU_shaderinterface_block_builtin(const GPUShaderInterface *shaderface,
+                                                        GPUUniformBlockBuiltin builtin);
 const GPUShaderInput *GPU_shaderinterface_ubo(const GPUShaderInterface *, const char *name);
 const GPUShaderInput *GPU_shaderinterface_attr(const GPUShaderInterface *, const char *name);
 

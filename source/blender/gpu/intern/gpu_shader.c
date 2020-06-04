@@ -736,7 +736,14 @@ int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin)
 {
   BLI_assert(shader && shader->program);
   const GPUShaderInput *uniform = GPU_shaderinterface_uniform_builtin(shader->interface, builtin);
-  return uniform ? uniform->location : -1;
+  return uniform->location;
+}
+
+int GPU_shader_get_builtin_block(GPUShader *shader, int builtin)
+{
+  BLI_assert(shader && shader->program);
+  const GPUShaderInput *uniform = GPU_shaderinterface_block_builtin(shader->interface, builtin);
+  return uniform->binding;
 }
 
 int GPU_shader_get_uniform_block(GPUShader *shader, const char *name)
