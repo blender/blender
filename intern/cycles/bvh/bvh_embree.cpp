@@ -78,8 +78,7 @@ static void rtc_filter_func(const RTCFilterFunctionNArguments *args)
   KernelGlobals *kg = ctx->kg;
 
   /* Check if there is backfacing hair to ignore. */
-  if (IS_HAIR(hit->geomID) && (kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) &&
-      !(kernel_data.curve.curveflags & CURVE_KN_BACKFACING) &&
+  if (IS_HAIR(hit->geomID) && !(kernel_data.curve.curveflags & CURVE_KN_BACKFACING) &&
       !(kernel_data.curve.curveflags & CURVE_KN_RIBBONS)) {
     if (dot(make_float3(ray->dir_x, ray->dir_y, ray->dir_z),
             make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z)) > 0.0f) {
@@ -99,8 +98,7 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
   KernelGlobals *kg = ctx->kg;
 
   /* For all ray types: Check if there is backfacing hair to ignore */
-  if (IS_HAIR(hit->geomID) && (kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) &&
-      !(kernel_data.curve.curveflags & CURVE_KN_BACKFACING) &&
+  if (IS_HAIR(hit->geomID) && !(kernel_data.curve.curveflags & CURVE_KN_BACKFACING) &&
       !(kernel_data.curve.curveflags & CURVE_KN_RIBBONS)) {
     if (dot(make_float3(ray->dir_x, ray->dir_y, ray->dir_z),
             make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z)) > 0.0f) {
@@ -328,7 +326,6 @@ BVHEmbree::BVHEmbree(const BVHParams &params_,
       stats(NULL),
       curve_subdivisions(params.curve_subdivisions),
       build_quality(RTC_BUILD_QUALITY_REFIT),
-      use_curves(params_.curve_flags & CURVE_KN_INTERPOLATE),
       use_ribbons(params.curve_flags & CURVE_KN_RIBBONS),
       dynamic_scene(true)
 {
@@ -726,9 +723,7 @@ void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair
 
   /* Catmull-Rom splines need extra CVs at the beginning and end of each curve. */
   size_t num_keys_embree = num_keys;
-  if (use_curves) {
-    num_keys_embree += num_curves * 2;
-  }
+  num_keys_embree += num_curves * 2;
 
   /* Copy the CV data to Embree */
   const int t_mid = (num_motion_steps - 1) / 2;
@@ -748,45 +743,22 @@ void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair
 
     assert(rtc_verts);
     if (rtc_verts) {
-      if (use_curves) {
-        const size_t num_curves = hair->num_curves();
-        for (size_t j = 0; j < num_curves; ++j) {
-          Hair::Curve c = hair->get_curve(j);
-          int fk = c.first_key;
-          int k = 1;
-          for (; k < c.num_keys + 1; ++k, ++fk) {
-            rtc_verts[k] = float3_to_float4(verts[fk]);
-            rtc_verts[k].w = curve_radius[fk];
-          }
-          /* Duplicate Embree's Catmull-Rom spline CVs at the start and end of each curve. */
-          rtc_verts[0] = rtc_verts[1];
-          rtc_verts[k] = rtc_verts[k - 1];
-          rtc_verts += c.num_keys + 2;
+      const size_t num_curves = hair->num_curves();
+      for (size_t j = 0; j < num_curves; ++j) {
+        Hair::Curve c = hair->get_curve(j);
+        int fk = c.first_key;
+        int k = 1;
+        for (; k < c.num_keys + 1; ++k, ++fk) {
+          rtc_verts[k] = float3_to_float4(verts[fk]);
+          rtc_verts[k].w = curve_radius[fk];
         }
-      }
-      else {
-        for (size_t j = 0; j < num_keys_embree; ++j) {
-          rtc_verts[j] = float3_to_float4(verts[j]);
-          rtc_verts[j].w = curve_radius[j];
-        }
+        /* Duplicate Embree's Catmull-Rom spline CVs at the start and end of each curve. */
+        rtc_verts[0] = rtc_verts[1];
+        rtc_verts[k] = rtc_verts[k - 1];
+        rtc_verts += c.num_keys + 2;
       }
     }
   }
-#  if RTC_VERSION >= 30900
-  if (!use_curves) {
-    unsigned char *flags = (unsigned char *)rtcSetNewGeometryBuffer(geom_id,
-                                                                    RTC_BUFFER_TYPE_FLAGS,
-                                                                    0,
-                                                                    RTC_FORMAT_UCHAR,
-                                                                    sizeof(unsigned char),
-                                                                    num_keys_embree);
-    flags[0] = RTC_CURVE_FLAG_NEIGHBOR_RIGHT;
-    ::memset(flags + 1,
-             RTC_CURVE_FLAG_NEIGHBOR_RIGHT | RTC_CURVE_FLAG_NEIGHBOR_RIGHT,
-             num_keys_embree - 2);
-    flags[num_keys_embree - 1] = RTC_CURVE_FLAG_NEIGHBOR_LEFT;
-  }
-#  endif
 }
 
 void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
@@ -822,18 +794,8 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
   size_t prim_tri_index_size = pack.prim_index.size();
   pack.prim_tri_index.resize(prim_tri_index_size + num_segments);
 
-#  if RTC_VERSION >= 30900
-  enum RTCGeometryType type = (!use_curves) ?
-                                  (use_ribbons ? RTC_GEOMETRY_TYPE_FLAT_LINEAR_CURVE :
-                                                 RTC_GEOMETRY_TYPE_ROUND_LINEAR_CURVE) :
-                                  (use_ribbons ? RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE :
-                                                 RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE);
-#  else
-  enum RTCGeometryType type = (!use_curves) ?
-                                  RTC_GEOMETRY_TYPE_FLAT_LINEAR_CURVE :
-                                  (use_ribbons ? RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE :
-                                                 RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE);
-#  endif
+  enum RTCGeometryType type = (use_ribbons ? RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE :
+                                             RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE);
 
   RTCGeometry geom_id = rtcNewGeometry(rtc_shared_device, type);
   rtcSetGeometryTessellationRate(geom_id, curve_subdivisions);
@@ -844,10 +806,8 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
     Hair::Curve c = hair->get_curve(j);
     for (size_t k = 0; k < c.num_segments(); ++k) {
       rtc_indices[rtc_index] = c.first_key + k;
-      if (use_curves) {
-        /* Room for extra CVs at Catmull-Rom splines. */
-        rtc_indices[rtc_index] += j * 2;
-      }
+      /* Room for extra CVs at Catmull-Rom splines. */
+      rtc_indices[rtc_index] += j * 2;
       /* Cycles specific data. */
       pack.prim_object[prim_object_size + rtc_index] = i;
       pack.prim_type[prim_type_size + rtc_index] = (PRIMITIVE_PACK_SEGMENT(

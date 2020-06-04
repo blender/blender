@@ -320,15 +320,8 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
                 BVH_DEBUG_NEXT_INTERSECTION();
                 const uint curve_type = kernel_tex_fetch(__prim_type, prim_addr);
                 kernel_assert((curve_type & PRIMITIVE_ALL) == (type & PRIMITIVE_ALL));
-                bool hit;
-                if (kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) {
-                  hit = cardinal_curve_intersect(
-                      kg, isect, P, dir, visibility, object, prim_addr, ray->time, curve_type);
-                }
-                else {
-                  hit = curve_intersect(
-                      kg, isect, P, dir, visibility, object, prim_addr, ray->time, curve_type);
-                }
+                bool hit = curve_intersect(
+                    kg, isect, P, dir, visibility, object, prim_addr, ray->time, curve_type);
                 if (hit) {
                   tfar = ssef(isect->t);
                   /* Shadow ray early termination. */

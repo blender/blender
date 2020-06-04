@@ -1428,13 +1428,8 @@ static_assert_align(KernelBVH, 16);
 
 typedef enum CurveFlag {
   /* runtime flags */
-  CURVE_KN_BACKFACING = 1,           /* backside of cylinder? */
-  CURVE_KN_ENCLOSEFILTER = 2,        /* don't consider strands surrounding start point? */
-  CURVE_KN_INTERPOLATE = 4,          /* render as a curve? */
-  CURVE_KN_ACCURATE = 8,             /* use accurate intersections test? */
-  CURVE_KN_INTERSECTCORRECTION = 16, /* correct for width after determing closest midpoint? */
-  CURVE_KN_TRUETANGENTGNORMAL = 32,  /* use tangent normal for geometry? */
-  CURVE_KN_RIBBONS = 64,             /* use flat curve ribbons */
+  CURVE_KN_BACKFACING = 1, /* backside of cylinder? */
+  CURVE_KN_RIBBONS = 2,    /* use flat curve ribbons */
 } CurveFlag;
 
 typedef struct KernelCurves {

@@ -210,28 +210,8 @@ ccl_device_inline
               case PRIMITIVE_CURVE:
               case PRIMITIVE_MOTION_CURVE: {
                 const uint curve_type = kernel_tex_fetch(__prim_type, prim_addr);
-                if (kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) {
-                  hit = cardinal_curve_intersect(kg,
-                                                 isect_array,
-                                                 P,
-                                                 dir,
-                                                 visibility,
-                                                 object,
-                                                 prim_addr,
-                                                 ray->time,
-                                                 curve_type);
-                }
-                else {
-                  hit = curve_intersect(kg,
-                                        isect_array,
-                                        P,
-                                        dir,
-                                        visibility,
-                                        object,
-                                        prim_addr,
-                                        ray->time,
-                                        curve_type);
-                }
+                hit = curve_intersect(
+                    kg, isect_array, P, dir, visibility, object, prim_addr, ray->time, curve_type);
                 break;
               }
 #endif

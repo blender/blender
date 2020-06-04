@@ -78,20 +78,9 @@ enum_panorama_types = (
     ('MIRRORBALL', "Mirror Ball", "Uses the mirror ball mapping"),
 )
 
-enum_curve_primitives = (
-    ('TRIANGLES', "Triangles", "Create triangle geometry around strands"),
-    ('LINE_SEGMENTS', "Line Segments", "Use line segment primitives"),
-    ('CURVE_SEGMENTS', "Curve Segments", "Use segmented cardinal curve primitives"),
-)
-
-enum_triangle_curves = (
-    ('CAMERA_TRIANGLES', "Planes", "Create individual triangles forming planes that face camera"),
-    ('TESSELLATED_TRIANGLES', "Tessellated", "Create mesh surrounding each strand"),
-)
-
 enum_curve_shape = (
-    ('RIBBONS', "Ribbons", "Ignore thickness of each strand"),
-    ('THICK', "Thick", "Use thickness of strand when rendering"),
+    ('RIBBONS', "Ribbons", "Ignore thickness of each hair"),
+    ('THICK', "Thick", "Use thickness of hair when rendering"),
 )
 
 enum_tile_order = (
@@ -1241,12 +1230,6 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
 
 class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
 
-    primitive: EnumProperty(
-        name="Primitive",
-        description="Type of primitive used for hair rendering",
-        items=enum_curve_primitives,
-        default='LINE_SEGMENTS',
-    )
     shape: EnumProperty(
         name="Shape",
         description="Form of hair",
@@ -1255,19 +1238,13 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
     )
     cull_backfacing: BoolProperty(
         name="Cull Back-faces",
-        description="Do not test the back-face of each strand",
+        description="Do not test the back-face of each hair",
         default=True,
     )
     use_curves: BoolProperty(
         name="Use Cycles Hair Rendering",
         description="Activate Cycles hair rendering for particle system",
         default=True,
-    )
-    resolution: IntProperty(
-        name="Resolution",
-        description="Resolution of generated mesh",
-        min=3, max=64,
-        default=3,
     )
     subdivisions: IntProperty(
         name="Subdivisions",

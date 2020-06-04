@@ -406,14 +406,11 @@ class CYCLES_RENDER_PT_hair(CyclesButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(ccscene, "shape", text="Shape")
-        if not (ccscene.primitive in {'CURVE_SEGMENTS', 'LINE_SEGMENTS'} and ccscene.shape == 'RIBBONS'):
-            col.prop(ccscene, "cull_backfacing", text="Cull back-faces")
-        col.prop(ccscene, "primitive", text="Primitive")
-
-        if ccscene.primitive == 'TRIANGLES' and ccscene.shape == 'THICK':
-            col.prop(ccscene, "resolution", text="Resolution")
-        elif ccscene.primitive == 'CURVE_SEGMENTS':
+        if ccscene.shape == 'RIBBONS':
+            # TODO: use for embree
             col.prop(ccscene, "subdivisions", text="Curve subdivisions")
+        else:
+            col.prop(ccscene, "cull_backfacing", text="Cull back-faces")
 
 
 class CYCLES_RENDER_PT_volumes(CyclesButtonsPanel, Panel):

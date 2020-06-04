@@ -29,32 +29,12 @@ class Scene;
 
 void curvebounds(float *lower, float *upper, float3 *p, int dim);
 
-typedef enum CurvePrimitiveType {
-  CURVE_TRIANGLES = 0,
-  CURVE_LINE_SEGMENTS = 1,
-  CURVE_SEGMENTS = 2,
-  CURVE_RIBBONS = 3,
-
-  CURVE_NUM_PRIMITIVE_TYPES,
-} CurvePrimitiveType;
-
 typedef enum CurveShapeType {
   CURVE_RIBBON = 0,
   CURVE_THICK = 1,
 
   CURVE_NUM_SHAPE_TYPES,
 } CurveShapeType;
-
-typedef enum CurveTriangleMethod {
-  CURVE_CAMERA_TRIANGLES,
-  CURVE_TESSELATED_TRIANGLES
-} CurveTriangleMethod;
-
-typedef enum CurveLineMethod {
-  CURVE_ACCURATE,
-  CURVE_CORRECTED,
-  CURVE_UNCORRECTED
-} CurveLineMethod;
 
 class ParticleCurveData {
 
@@ -85,17 +65,11 @@ class ParticleCurveData {
 
 class CurveSystemManager {
  public:
-  CurvePrimitiveType primitive;
   CurveShapeType curve_shape;
-  CurveLineMethod line_method;
-  CurveTriangleMethod triangle_method;
-  int resolution;
   int subdivisions;
 
   bool use_curves;
-  bool use_encasing;
   bool use_backfacing;
-  bool use_tangent_normal_geometry;
 
   bool need_update;
   bool need_mesh_update;

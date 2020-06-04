@@ -41,15 +41,11 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   Shader *default_shader = (b_ob.type() == BL::Object::type_VOLUME) ? scene->default_volume :
                                                                       scene->default_surface;
 #ifdef WITH_NEW_OBJECT_TYPES
-  Geometry::Type geom_type = ((b_ob.type() == BL::Object::type_HAIR || use_particle_hair) &&
-                              (scene->curve_system_manager->primitive != CURVE_TRIANGLES)) ?
+  Geometry::Type geom_type = (b_ob.type() == BL::Object::type_HAIR || use_particle_hair) ?
                                  Geometry::HAIR :
                                  Geometry::MESH;
 #else
-  Geometry::Type geom_type = ((use_particle_hair) &&
-                              (scene->curve_system_manager->primitive != CURVE_TRIANGLES)) ?
-                                 Geometry::HAIR :
-                                 Geometry::MESH;
+  Geometry::Type geom_type = (use_particle_hair) ? Geometry::HAIR : Geometry::MESH;
 #endif
 
   /* Find shader indices. */
@@ -134,7 +130,8 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 #else
   if (use_particle_hair) {
 #endif
-    sync_hair(b_depsgraph, b_ob, geom, used_shaders);
+    Hair *hair = static_cast<Hair *>(geom);
+    sync_hair(b_depsgraph, b_ob, hair, used_shaders);
   }
   else if (b_ob.type() == BL::Object::type_VOLUME || object_fluid_gas_domain_find(b_ob)) {
     Mesh *mesh = static_cast<Mesh *>(geom);
@@ -178,7 +175,8 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
 #else
   if (use_particle_hair) {
 #endif
-    sync_hair_motion(b_depsgraph, b_ob, geom, motion_step);
+    Hair *hair = static_cast<Hair *>(geom);
+    sync_hair_motion(b_depsgraph, b_ob, hair, motion_step);
   }
   else if (b_ob.type() == BL::Object::type_VOLUME || object_fluid_gas_domain_find(b_ob)) {
     /* No volume motion blur support yet. */

@@ -105,7 +105,7 @@ ccl_device_inline void motion_curve_keys(
   keys[1] = (1.0f - t) * keys[1] + t * next_keys[1];
 }
 
-ccl_device_inline void motion_cardinal_curve_keys_for_step(KernelGlobals *kg,
+ccl_device_inline void motion_curve_keys_for_step(KernelGlobals *kg,
                                                            int offset,
                                                            int numkeys,
                                                            int numsteps,
@@ -138,7 +138,7 @@ ccl_device_inline void motion_cardinal_curve_keys_for_step(KernelGlobals *kg,
 }
 
 /* return 2 curve key locations */
-ccl_device_inline void motion_cardinal_curve_keys(KernelGlobals *kg,
+ccl_device_inline void motion_curve_keys(KernelGlobals *kg,
                                                   int object,
                                                   int prim,
                                                   float time,
@@ -165,8 +165,8 @@ ccl_device_inline void motion_cardinal_curve_keys(KernelGlobals *kg,
   /* fetch key coordinates */
   float4 next_keys[4];
 
-  motion_cardinal_curve_keys_for_step(kg, offset, numkeys, numsteps, step, k0, k1, k2, k3, keys);
-  motion_cardinal_curve_keys_for_step(
+  motion_curve_keys_for_step(kg, offset, numkeys, numsteps, step, k0, k1, k2, k3, keys);
+  motion_curve_keys_for_step(
       kg, offset, numkeys, numsteps, step + 1, k0, k1, k2, k3, next_keys);
 
   /* interpolate between steps */
@@ -180,7 +180,7 @@ ccl_device_inline void motion_cardinal_curve_keys(KernelGlobals *kg,
 /* Similar to above, but returns keys as pair of two AVX registers with each
  * holding two float4.
  */
-ccl_device_inline void motion_cardinal_curve_keys_avx(KernelGlobals *kg,
+ccl_device_inline void motion_curve_keys_avx(KernelGlobals *kg,
                                                       int object,
                                                       int prim,
                                                       float time,
@@ -208,8 +208,8 @@ ccl_device_inline void motion_cardinal_curve_keys_avx(KernelGlobals *kg,
   /* Fetch key coordinates. */
   float4 next_keys[4];
   float4 keys[4];
-  motion_cardinal_curve_keys_for_step(kg, offset, numkeys, numsteps, step, k0, k1, k2, k3, keys);
-  motion_cardinal_curve_keys_for_step(
+  motion_curve_keys_for_step(kg, offset, numkeys, numsteps, step, k0, k1, k2, k3, keys);
+  motion_curve_keys_for_step(
       kg, offset, numkeys, numsteps, step + 1, k0, k1, k2, k3, next_keys);
 
   const avxf keys_0_1 = avxf(keys[0].m128, keys[1].m128);

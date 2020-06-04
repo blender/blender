@@ -26,7 +26,7 @@ ccl_device_inline ssef transform_point_T3(const ssef t[3], const ssef &a)
 #  endif
 
 /* On CPU pass P and dir by reference to aligned vector. */
-ccl_device_forceinline bool cardinal_curve_intersect(KernelGlobals *kg,
+ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
                                                      Intersection *isect,
                                                      const float3 ccl_ref P,
                                                      const float3 ccl_ref dir,
@@ -82,7 +82,7 @@ ccl_device_forceinline bool cardinal_curve_intersect(KernelGlobals *kg,
     }
     else {
       int fobject = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, curveAddr) : object;
-      motion_cardinal_curve_keys_avx(
+      motion_curve_keys_avx(
           kg, fobject, prim, time, ka, k0, k1, kb, &P_curve_0_1, &P_curve_2_3);
     }
 #    else  /* __KERNEL_AVX2__ */
@@ -96,7 +96,7 @@ ccl_device_forceinline bool cardinal_curve_intersect(KernelGlobals *kg,
     }
     else {
       int fobject = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, curveAddr) : object;
-      motion_cardinal_curve_keys(kg, fobject, prim, time, ka, k0, k1, kb, (float4 *)&P_curve);
+      motion_curve_keys(kg, fobject, prim, time, ka, k0, k1, kb, (float4 *)&P_curve);
     }
 #    endif /* __KERNEL_AVX2__ */
 
@@ -197,7 +197,7 @@ ccl_device_forceinline bool cardinal_curve_intersect(KernelGlobals *kg,
     }
     else {
       int fobject = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, curveAddr) : object;
-      motion_cardinal_curve_keys(kg, fobject, prim, time, ka, k0, k1, kb, P_curve);
+      motion_curve_keys(kg, fobject, prim, time, ka, k0, k1, kb, P_curve);
     }
 
     float3 p0 = transform_point(&htfm, float4_to_float3(P_curve[0]) - P);
@@ -488,239 +488,11 @@ ccl_device_forceinline bool cardinal_curve_intersect(KernelGlobals *kg,
   return hit;
 }
 
-ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
-                                            Intersection *isect,
-                                            float3 P,
-                                            float3 direction,
-                                            uint visibility,
-                                            int object,
-                                            int curveAddr,
-                                            float time,
-                                            int type)
-{
-  /* define few macros to minimize code duplication for SSE */
-#  ifndef __KERNEL_SSE2__
-#    define len3_squared(x) len_squared(x)
-#    define len3(x) len(x)
-#    define dot3(x, y) dot(x, y)
-#  endif
-
-  const bool is_curve_primitive = (type & PRIMITIVE_CURVE);
-
-#  ifndef __KERNEL_OPTIX__ /* see OptiX motion flag OPTIX_MOTION_FLAG_[START|END]_VANISH */
-  if (!is_curve_primitive && kernel_data.bvh.use_bvh_steps) {
-    const float2 prim_time = kernel_tex_fetch(__prim_time, curveAddr);
-    if (time < prim_time.x || time > prim_time.y) {
-      return false;
-    }
-  }
-#  endif
-
-  int segment = PRIMITIVE_UNPACK_SEGMENT(type);
-  /* curve Intersection check */
-  int flags = kernel_data.curve.curveflags;
-
-  int prim = kernel_tex_fetch(__prim_index, curveAddr);
-  float4 v00 = kernel_tex_fetch(__curves, prim);
-
-  int cnum = __float_as_int(v00.x);
-  int k0 = cnum + segment;
-  int k1 = k0 + 1;
-
-#  ifndef __KERNEL_SSE2__
-  float4 P_curve[2];
-
-  if (is_curve_primitive) {
-    P_curve[0] = kernel_tex_fetch(__curve_keys, k0);
-    P_curve[1] = kernel_tex_fetch(__curve_keys, k1);
-  }
-  else {
-    int fobject = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, curveAddr) : object;
-    motion_curve_keys(kg, fobject, prim, time, k0, k1, P_curve);
-  }
-
-  float r1 = P_curve[0].w;
-  float r2 = P_curve[1].w;
-  float3 p1 = float4_to_float3(P_curve[0]);
-  float3 p2 = float4_to_float3(P_curve[1]);
-
-  /* minimum width extension */
-  float3 dif = P - p1;
-  float3 dif_second = P - p2;
-
-  float3 p21_diff = p2 - p1;
-  float3 sphere_dif1 = (dif + dif_second) * 0.5f;
-  float3 dir = direction;
-  float sphere_b_tmp = dot3(dir, sphere_dif1);
-  float3 sphere_dif2 = sphere_dif1 - sphere_b_tmp * dir;
-#  else
-  ssef P_curve[2];
-
-  if (is_curve_primitive) {
-    P_curve[0] = load4f(&kg->__curve_keys.data[k0].x);
-    P_curve[1] = load4f(&kg->__curve_keys.data[k1].x);
-  }
-  else {
-    int fobject = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, curveAddr) : object;
-    motion_curve_keys(kg, fobject, prim, time, k0, k1, (float4 *)&P_curve);
-  }
-
-  ssef r12 = shuffle<3, 3, 3, 3>(P_curve[0], P_curve[1]);
-  const ssef vP = load4f(P);
-  const ssef dif = vP - P_curve[0];
-  const ssef dif_second = vP - P_curve[1];
-  float r1 = extract<0>(r12), r2 = extract<0>(shuffle<2>(r12));
-
-  const ssef p21_diff = P_curve[1] - P_curve[0];
-  const ssef sphere_dif1 = (dif + dif_second) * 0.5f;
-  const ssef dir = load4f(direction);
-  const ssef sphere_b_tmp = dot3_splat(dir, sphere_dif1);
-  const ssef sphere_dif2 = nmadd(sphere_b_tmp, dir, sphere_dif1);
-#  endif
-
-  float mr = max(r1, r2);
-  float l = len3(p21_diff);
-  float invl = 1.0f / l;
-  float sp_r = mr + 0.5f * l;
-
-  float sphere_b = dot3(dir, sphere_dif2);
-  float sdisc = sphere_b * sphere_b - len3_squared(sphere_dif2) + sp_r * sp_r;
-
-  if (sdisc < 0.0f)
-    return false;
-
-    /* obtain parameters and test midpoint distance for suitable modes */
-#  ifndef __KERNEL_SSE2__
-  float3 tg = p21_diff * invl;
-#  else
-  const ssef tg = p21_diff * invl;
-#  endif
-  float gd = (r2 - r1) * invl;
-
-  float dirz = dot3(dir, tg);
-  float difz = dot3(dif, tg);
-
-  float a = 1.0f - (dirz * dirz * (1 + gd * gd));
-
-  float halfb = dot3(dir, dif) - dirz * (difz + gd * (difz * gd + r1));
-
-  float tcentre = -halfb / a;
-  float zcentre = difz + (dirz * tcentre);
-
-  if ((tcentre > isect->t) && !(flags & CURVE_KN_ACCURATE))
-    return false;
-  if ((zcentre < 0 || zcentre > l) && !(flags & CURVE_KN_ACCURATE) &&
-      !(flags & CURVE_KN_INTERSECTCORRECTION))
-    return false;
-
-    /* test minimum separation */
-#  ifndef __KERNEL_SSE2__
-  float3 cprod = cross(tg, dir);
-  float cprod2sq = len3_squared(cross(tg, dif));
-#  else
-  const ssef cprod = cross(tg, dir);
-  float cprod2sq = len3_squared(cross_zxy(tg, dif));
-#  endif
-  float cprodsq = len3_squared(cprod);
-  float distscaled = dot3(cprod, dif);
-
-  if (cprodsq == 0)
-    distscaled = cprod2sq;
-  else
-    distscaled = (distscaled * distscaled) / cprodsq;
-
-  if (distscaled > mr * mr)
-    return false;
-
-    /* calculate true intersection */
-#  ifndef __KERNEL_SSE2__
-  float3 tdif = dif + tcentre * dir;
-#  else
-  const ssef tdif = madd(ssef(tcentre), dir, dif);
-#  endif
-  float tdifz = dot3(tdif, tg);
-  float tdifma = tdifz * gd + r1;
-  float tb = 2 * (dot3(dir, tdif) - dirz * (tdifz + gd * tdifma));
-  float tc = dot3(tdif, tdif) - tdifz * tdifz - tdifma * tdifma;
-  float td = tb * tb - 4 * a * tc;
-
-  if (td < 0.0f)
-    return false;
-
-  float rootd = 0.0f;
-  float correction = 0.0f;
-  if (flags & CURVE_KN_ACCURATE) {
-    rootd = sqrtf(td);
-    correction = ((-tb - rootd) / (2 * a));
-  }
-
-  float t = tcentre + correction;
-
-  if (t < isect->t) {
-
-    if (flags & CURVE_KN_INTERSECTCORRECTION) {
-      rootd = sqrtf(td);
-      correction = ((-tb - rootd) / (2 * a));
-      t = tcentre + correction;
-    }
-
-    float z = zcentre + (dirz * correction);
-    // bool backface = false;
-
-    if (flags & CURVE_KN_BACKFACING && (t < 0.0f || z < 0 || z > l)) {
-      // backface = true;
-      correction = ((-tb + rootd) / (2 * a));
-      t = tcentre + correction;
-      z = zcentre + (dirz * correction);
-    }
-
-    if (t > 0.0f && t < isect->t && z >= 0 && z <= l) {
-
-      if (flags & CURVE_KN_ENCLOSEFILTER) {
-        float enc_ratio = 1.01f;
-        if ((difz > -r1 * enc_ratio) && (dot3(dif_second, tg) < r2 * enc_ratio)) {
-          float a2 = 1.0f - (dirz * dirz * (1 + gd * gd * enc_ratio * enc_ratio));
-          float c2 = dot3(dif, dif) - difz * difz * (1 + gd * gd * enc_ratio * enc_ratio) -
-                     r1 * r1 * enc_ratio * enc_ratio - 2 * r1 * difz * gd * enc_ratio;
-          if (a2 * c2 < 0.0f)
-            return false;
-        }
-      }
-
-#  ifdef __VISIBILITY_FLAG__
-      /* visibility flag test. we do it here under the assumption
-       * that most triangles are culled by node flags */
-      if (kernel_tex_fetch(__prim_visibility, curveAddr) & visibility)
-#  endif
-      {
-        /* record intersection */
-        isect->t = t;
-        isect->u = z * invl;
-        isect->v = gd;
-        isect->prim = curveAddr;
-        isect->object = object;
-        isect->type = type;
-
-        return true;
-      }
-    }
-  }
-
-  return false;
-
-#  ifndef __KERNEL_SSE2__
-#    undef len3_squared
-#    undef len3
-#    undef dot3
-#  endif
-}
-
 ccl_device_inline float3 curve_refine(KernelGlobals *kg,
                                       ShaderData *sd,
                                       const Intersection *isect,
                                       const Ray *ray)
 {
-  int flag = kernel_data.curve.curveflags;
   float t = isect->t;
   float3 P = ray->P;
   float3 D = ray->D;
@@ -743,113 +515,65 @@ ccl_device_inline float3 curve_refine(KernelGlobals *kg,
   int k0 = __float_as_int(v00.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
   int k1 = k0 + 1;
 
-  float3 tg;
+  int ka = max(k0 - 1, __float_as_int(v00.x));
+  int kb = min(k1 + 1, __float_as_int(v00.x) + __float_as_int(v00.y) - 1);
 
-  if (flag & CURVE_KN_INTERPOLATE) {
-    int ka = max(k0 - 1, __float_as_int(v00.x));
-    int kb = min(k1 + 1, __float_as_int(v00.x) + __float_as_int(v00.y) - 1);
+  float4 P_curve[4];
 
-    float4 P_curve[4];
-
-    if (sd->type & PRIMITIVE_CURVE) {
-      P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
-      P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
-      P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
-      P_curve[3] = kernel_tex_fetch(__curve_keys, kb);
-    }
-    else {
-      motion_cardinal_curve_keys(kg, sd->object, sd->prim, sd->time, ka, k0, k1, kb, P_curve);
-    }
-
-    float3 p[4];
-    p[0] = float4_to_float3(P_curve[0]);
-    p[1] = float4_to_float3(P_curve[1]);
-    p[2] = float4_to_float3(P_curve[2]);
-    p[3] = float4_to_float3(P_curve[3]);
-
-    P = P + D * t;
-
-#  ifdef __UV__
-    sd->u = isect->u;
-    sd->v = 0.0f;
-#  endif
-
-    tg = normalize(curvetangent(isect->u, p[0], p[1], p[2], p[3]));
-
-    if (kernel_data.curve.curveflags & CURVE_KN_RIBBONS) {
-      sd->Ng = normalize(-(D - tg * (dot(tg, D))));
-    }
-    else {
-#  ifdef __EMBREE__
-      if (kernel_data.bvh.scene) {
-        sd->Ng = normalize(isect->Ng);
-      }
-      else
-#  endif
-      {
-        /* direction from inside to surface of curve */
-        float3 p_curr = curvepoint(isect->u, p[0], p[1], p[2], p[3]);
-        sd->Ng = normalize(P - p_curr);
-
-        /* adjustment for changing radius */
-        float gd = isect->v;
-
-        if (gd != 0.0f) {
-          sd->Ng = sd->Ng - gd * tg;
-          sd->Ng = normalize(sd->Ng);
-        }
-      }
-    }
-
-    /* todo: sometimes the normal is still so that this is detected as
-     * backfacing even if cull backfaces is enabled */
-
-    sd->N = sd->Ng;
+  if (sd->type & PRIMITIVE_CURVE) {
+    P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
+    P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
+    P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
+    P_curve[3] = kernel_tex_fetch(__curve_keys, kb);
   }
   else {
-    float4 P_curve[2];
+    motion_curve_keys(kg, sd->object, sd->prim, sd->time, ka, k0, k1, kb, P_curve);
+  }
 
-    if (sd->type & PRIMITIVE_CURVE) {
-      P_curve[0] = kernel_tex_fetch(__curve_keys, k0);
-      P_curve[1] = kernel_tex_fetch(__curve_keys, k1);
-    }
-    else {
-      motion_curve_keys(kg, sd->object, sd->prim, sd->time, k0, k1, P_curve);
-    }
+  float3 p[4];
+  p[0] = float4_to_float3(P_curve[0]);
+  p[1] = float4_to_float3(P_curve[1]);
+  p[2] = float4_to_float3(P_curve[2]);
+  p[3] = float4_to_float3(P_curve[3]);
 
-    float l = 1.0f;
-    tg = normalize_len(float4_to_float3(P_curve[1] - P_curve[0]), &l);
-
-    P = P + D * t;
-
-    float3 dif = P - float4_to_float3(P_curve[0]);
+  P = P + D * t;
 
 #  ifdef __UV__
-    sd->u = dot(dif, tg) / l;
-    sd->v = 0.0f;
+  sd->u = isect->u;
+  sd->v = 0.0f;
 #  endif
 
-    if (flag & CURVE_KN_TRUETANGENTGNORMAL) {
-      sd->Ng = -(D - tg * dot(tg, D));
-      sd->Ng = normalize(sd->Ng);
-    }
-    else {
-      float gd = isect->v;
+  float3 tg = normalize(curvetangent(isect->u, p[0], p[1], p[2], p[3]));
 
+  if (kernel_data.curve.curveflags & CURVE_KN_RIBBONS) {
+    sd->Ng = normalize(-(D - tg * (dot(tg, D))));
+  }
+  else {
+#  ifdef __EMBREE__
+    if (kernel_data.bvh.scene) {
+      sd->Ng = normalize(isect->Ng);
+    }
+    else
+#  endif
+    {
       /* direction from inside to surface of curve */
-      float denom = fmaxf(P_curve[0].w + sd->u * l * gd, 1e-8f);
-      sd->Ng = (dif - tg * sd->u * l) / denom;
+      float3 p_curr = curvepoint(isect->u, p[0], p[1], p[2], p[3]);
+      sd->Ng = normalize(P - p_curr);
 
       /* adjustment for changing radius */
+      float gd = isect->v;
+
       if (gd != 0.0f) {
         sd->Ng = sd->Ng - gd * tg;
+        sd->Ng = normalize(sd->Ng);
       }
-
-      sd->Ng = normalize(sd->Ng);
     }
-
-    sd->N = sd->Ng;
   }
+
+  /* todo: sometimes the normal is still so that this is detected as
+   * backfacing even if cull backfaces is enabled */
+
+  sd->N = sd->Ng;
 
 #  ifdef __DPDU__
   /* dPdu/dPdv */

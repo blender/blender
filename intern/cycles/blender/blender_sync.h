@@ -153,15 +153,12 @@ class BlenderSync {
   /* Hair */
   void sync_hair(BL::Depsgraph b_depsgraph,
                  BL::Object b_ob,
-                 Geometry *geom,
+                 Hair *hair,
                  const vector<Shader *> &used_shaders);
-  void sync_hair_motion(BL::Depsgraph b_depsgraph,
-                        BL::Object b_ob,
-                        Geometry *geom,
-                        int motion_step);
+  void sync_hair_motion(BL::Depsgraph b_depsgraph, BL::Object b_ob, Hair *hair, int motion_step);
   void sync_hair(Hair *hair, BL::Object &b_ob, bool motion, int motion_step = 0);
   void sync_particle_hair(
-      Geometry *geom, BL::Mesh &b_mesh, BL::Object &b_ob, bool motion, int motion_step = 0);
+      Hair *hair, BL::Mesh &b_mesh, BL::Object &b_ob, bool motion, int motion_step = 0);
   void sync_curve_settings(BL::Depsgraph &b_depsgraph);
   bool object_has_particle_hair(BL::Object b_ob);
 

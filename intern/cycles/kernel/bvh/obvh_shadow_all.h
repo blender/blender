@@ -494,28 +494,15 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(OBVH)(KernelGlobals *kg,
                 case PRIMITIVE_CURVE:
                 case PRIMITIVE_MOTION_CURVE: {
                   const uint curve_type = kernel_tex_fetch(__prim_type, prim_addr);
-                  if (kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) {
-                    hit = cardinal_curve_intersect(kg,
-                                                   isect_array,
-                                                   P,
-                                                   dir,
-                                                   PATH_RAY_SHADOW,
-                                                   object,
-                                                   prim_addr,
-                                                   ray->time,
-                                                   curve_type);
-                  }
-                  else {
-                    hit = curve_intersect(kg,
-                                          isect_array,
-                                          P,
-                                          dir,
-                                          PATH_RAY_SHADOW,
-                                          object,
-                                          prim_addr,
-                                          ray->time,
-                                          curve_type);
-                  }
+                  hit = curve_intersect(kg,
+                                                 isect_array,
+                                                 P,
+                                                 dir,
+                                                 PATH_RAY_SHADOW,
+                                                 object,
+                                                 prim_addr,
+                                                 ray->time,
+                                                 curve_type);
                   break;
                 }
 #endif
