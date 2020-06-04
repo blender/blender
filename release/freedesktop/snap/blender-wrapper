@@ -16,4 +16,4 @@ if [ -n "$XDG_RUNTIME_DIR" ]; then
 fi
 
 # Run Blender
-$SNAP/blender
+$SNAP/blender "$@"
