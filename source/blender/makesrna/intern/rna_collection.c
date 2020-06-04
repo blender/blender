@@ -394,6 +394,8 @@ void RNA_def_collections(BlenderRNA *brna)
    * removed if no objects are in the collection and not in a scene. */
   RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "instance_offset", PROP_FLOAT, PROP_TRANSLATION);
   RNA_def_property_ui_text(
       prop, "Instance Offset", "Offset from the origin to use when instancing");
@@ -402,7 +404,6 @@ void RNA_def_collections(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "Object");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_override_funcs(prop, NULL, NULL, "rna_Collection_objects_override_apply");
   RNA_def_property_ui_text(prop, "Objects", "Objects that are directly in this collection");
   RNA_def_property_collection_funcs(prop,
@@ -421,6 +422,7 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "All Objects", "Objects that are in this collection and its child collections");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
+  RNA_def_property_override_clear_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_collection_funcs(prop,
                                     "rna_Collection_all_objects_begin",
                                     "rna_iterator_listbase_next",
@@ -433,7 +435,6 @@ void RNA_def_collections(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "children", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "Collection");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_override_funcs(prop, NULL, NULL, "rna_Collection_children_override_apply");
   RNA_def_property_ui_text(
       prop, "Children", "Collections that are immediate children of this collection");
@@ -452,7 +453,6 @@ void RNA_def_collections(BlenderRNA *brna)
   prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_SELECT);
   RNA_def_property_boolean_funcs(prop, NULL, "rna_Collection_hide_select_set");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, -1);
   RNA_def_property_ui_text(prop, "Disable Selection", "Disable selection in viewport");
@@ -461,7 +461,6 @@ void RNA_def_collections(BlenderRNA *brna)
   prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_VIEWPORT);
   RNA_def_property_boolean_funcs(prop, NULL, "rna_Collection_hide_viewport_set");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, -1);
   RNA_def_property_ui_text(prop, "Disable in Viewports", "Globally disable in viewports");
@@ -470,11 +469,12 @@ void RNA_def_collections(BlenderRNA *brna)
   prop = RNA_def_property(srna, "hide_render", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_RENDER);
   RNA_def_property_boolean_funcs(prop, NULL, "rna_Collection_hide_render_set");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, -1);
   RNA_def_property_ui_text(prop, "Disable in Renders", "Globally disable in renders");
   RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_flag_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 #endif
