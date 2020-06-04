@@ -4959,7 +4959,8 @@ static void draw_setting_widget(bAnimContext *ac,
             "Temporarily disable NLA stack evaluation (i.e. only the active action is evaluated)");
       }
       else if (ale->type == ANIMTYPE_GPLAYER) {
-        tooltip = TIP_("Lock current frame displayed by layer (i.e. disable animation playback)");
+        tooltip = TIP_(
+            "All keyframes contribute to the result (uncheck to use the current frame only)");
       }
       else {
         tooltip = TIP_("Do channels contribute to result (toggle channel muting)");
