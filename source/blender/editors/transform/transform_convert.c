@@ -111,8 +111,10 @@ void transform_around_single_fallback(TransInfo *t)
           }
           if (tc->data_len == 3) {
             const TransData *td = tc->data;
-            if ((td[0].loc == td[1].loc) && (td[1].loc == td[2].loc)) {
-              is_data_single = true;
+            if ((td[0].flag | td[1].flag | td[2].flag) & TD_BEZTRIPLE) {
+              if ((td[0].loc == td[1].loc) && (td[1].loc == td[2].loc)) {
+                is_data_single = true;
+              }
             }
           }
           break;
