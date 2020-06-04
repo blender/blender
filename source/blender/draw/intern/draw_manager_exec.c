@@ -953,7 +953,7 @@ static void draw_call_resource_bind(DRWCommandsState *state, const DRWResourceHa
     }
     if (state->obinfos_loc != -1) {
       GPU_uniformbuffer_unbind(DST.vmempool->obinfos_ubo[state->resource_chunk]);
-      GPU_uniformbuffer_bind(DST.vmempool->obinfos_ubo[chunk], 1);
+      GPU_uniformbuffer_bind(DST.vmempool->obinfos_ubo[chunk], state->obinfos_loc);
     }
     state->resource_chunk = chunk;
   }
