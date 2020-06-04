@@ -186,25 +186,45 @@ static void rna_def_light(BlenderRNA *brna)
   rna_def_animdata_common(srna);
 }
 
-static void rna_def_light_energy(StructRNA *srna, bool distant)
+static void rna_def_light_energy(StructRNA *srna, const short light_type)
 {
   PropertyRNA *prop;
 
-  if (distant) {
-    /* Distant light strength has no unit defined, it's proportional to
-     * Watt/m^2 and is not sensitive to scene unit scale. */
-    prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
-    RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
-    RNA_def_property_ui_text(prop, "Strength", "Amount of light emitted");
-    RNA_def_property_update(prop, 0, "rna_Light_draw_update");
-  }
-  else {
-    /* Lights with a location have power in Watt, which is sensitive to
-     * scene unit scale. */
-    prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_POWER);
-    RNA_def_property_ui_range(prop, 0.0f, 1000000.0f, 10, 5);
-    RNA_def_property_ui_text(prop, "Power", "Amount of light emitted");
-    RNA_def_property_update(prop, 0, "rna_Light_draw_update");
+  switch (light_type) {
+    case LA_SUN: {
+      /* Distant light strength has no unit defined,
+       * it's proportional to 'watt/m^2' and is not sensitive to scene unit scale. */
+      prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
+      RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+      RNA_def_property_ui_text(
+          prop, "Strength", "Sunlight strength in watts per meter squared (W/m^2)");
+      RNA_def_property_update(prop, 0, "rna_Light_draw_update");
+      break;
+    }
+    case LA_SPOT: {
+      /* Lights with a location have power in Watts,
+       * which is sensitive to scene unit scale. */
+      prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_POWER);
+      RNA_def_property_ui_range(prop, 0.0f, 1000000.0f, 10, 5);
+      RNA_def_property_ui_text(prop,
+                               "Power",
+                               "The energy this light would emit over its entire area "
+                               "if it wasn't limited by the spot angle");
+      RNA_def_property_update(prop, 0, "rna_Light_draw_update");
+      break;
+    }
+    default: {
+      /* Lights with a location have power in Watts,
+       * which is sensitive to scene unit scale. */
+      prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_POWER);
+      RNA_def_property_ui_range(prop, 0.0f, 1000000.0f, 10, 5);
+      RNA_def_property_ui_text(
+          prop,
+          "Power",
+          "Light energy emitted over the entire area of the light in all directions");
+      RNA_def_property_update(prop, 0, "rna_Light_draw_update");
+      break;
+    }
   }
 }
 
@@ -395,7 +415,7 @@ static void rna_def_point_light(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Point Light", "Omnidirectional point Light");
   RNA_def_struct_ui_icon(srna, ICON_LIGHT_POINT);
 
-  rna_def_light_energy(srna, false);
+  rna_def_light_energy(srna, LA_LOCAL);
   rna_def_light_falloff(srna);
   rna_def_light_shadow(srna, false);
 }
@@ -418,7 +438,7 @@ static void rna_def_area_light(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Area Light", "Directional area Light");
   RNA_def_struct_ui_icon(srna, ICON_LIGHT_AREA);
 
-  rna_def_light_energy(srna, false);
+  rna_def_light_energy(srna, LA_AREA);
   rna_def_light_shadow(srna, false);
   rna_def_light_falloff(srna);
 
@@ -457,7 +477,7 @@ static void rna_def_spot_light(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Spot Light", "Directional cone Light");
   RNA_def_struct_ui_icon(srna, ICON_LIGHT_SPOT);
 
-  rna_def_light_energy(srna, false);
+  rna_def_light_energy(srna, LA_SPOT);
   rna_def_light_falloff(srna);
   rna_def_light_shadow(srna, false);
 
@@ -503,7 +523,7 @@ static void rna_def_sun_light(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Angle", "Angular diameter of the Sun as seen from the Earth");
   RNA_def_property_update(prop, 0, "rna_Light_update");
 
-  rna_def_light_energy(srna, true);
+  rna_def_light_energy(srna, LA_SUN);
   rna_def_light_shadow(srna, true);
 }
 
