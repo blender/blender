@@ -2299,18 +2299,17 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 }
 
 /* Turn brush cursor in 3D view on/off */
-static void gpencil_draw_toggle_eraser_cursor(bContext *C, tGPsdata *p, short enable)
+static void gpencil_draw_toggle_eraser_cursor(tGPsdata *p, short enable)
 {
   if (p->erasercursor && !enable) {
     /* clear cursor */
-    WM_paint_cursor_end(CTX_wm_manager(C), p->erasercursor);
+    WM_paint_cursor_end(p->erasercursor);
     p->erasercursor = NULL;
   }
   else if (enable && !p->erasercursor) {
     ED_gpencil_toggle_brush_cursor(p->C, false, NULL);
     /* enable cursor */
-    p->erasercursor = WM_paint_cursor_activate(CTX_wm_manager(C),
-                                               SPACE_TYPE_ANY,
+    p->erasercursor = WM_paint_cursor_activate(SPACE_TYPE_ANY,
                                                RGN_TYPE_ANY,
                                                NULL, /* XXX */
                                                gpencil_draw_eraser,
@@ -2335,7 +2334,7 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
     /* check size of buffer before cleanup, to determine if anything happened here */
     if (p->paintmode == GP_PAINTMODE_ERASER) {
       /* turn off radial brush cursor */
-      gpencil_draw_toggle_eraser_cursor(C, p, false);
+      gpencil_draw_toggle_eraser_cursor(p, false);
     }
 
     /* always store the new eraser size to be used again next time
@@ -3154,7 +3153,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
   /* TODO: set any additional settings that we can take from the events?
    * if eraser is on, draw radial aid */
   if (p->paintmode == GP_PAINTMODE_ERASER) {
-    gpencil_draw_toggle_eraser_cursor(C, p, true);
+    gpencil_draw_toggle_eraser_cursor(p, true);
   }
   else {
     ED_gpencil_toggle_brush_cursor(C, true, NULL);
@@ -3700,7 +3699,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
           p->paintmode = RNA_enum_get(op->ptr, "mode");
         }
 
-        gpencil_draw_toggle_eraser_cursor(C, p, p->paintmode == GP_PAINTMODE_ERASER);
+        gpencil_draw_toggle_eraser_cursor(p, p->paintmode == GP_PAINTMODE_ERASER);
 
         /* not painting, so start stroke (this should be mouse-button down) */
         p = gpencil_stroke_begin(C, op);

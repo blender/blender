@@ -1729,17 +1729,16 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 }
 
 /* Turn brush cursor in 3D view on/off */
-static void gpencil_draw_toggle_eraser_cursor(bContext *C, tGPsdata *p, short enable)
+static void gpencil_draw_toggle_eraser_cursor(tGPsdata *p, short enable)
 {
   if (p->erasercursor && !enable) {
     /* clear cursor */
-    WM_paint_cursor_end(CTX_wm_manager(C), p->erasercursor);
+    WM_paint_cursor_end(p->erasercursor);
     p->erasercursor = NULL;
   }
   else if (enable && !p->erasercursor) {
     /* enable cursor */
-    p->erasercursor = WM_paint_cursor_activate(CTX_wm_manager(C),
-                                               SPACE_TYPE_ANY,
+    p->erasercursor = WM_paint_cursor_activate(SPACE_TYPE_ANY,
                                                RGN_TYPE_ANY,
                                                NULL, /* XXX */
                                                gpencil_draw_eraser,
@@ -1794,17 +1793,17 @@ static void gpencil_draw_stabilizer(bContext *C, int x, int y, void *p_ptr)
 }
 
 /* Turn *stabilizer* brush cursor in 3D view on/off */
-static void gpencil_draw_toggle_stabilizer_cursor(bContext *C, tGPsdata *p, short enable)
+static void gpencil_draw_toggle_stabilizer_cursor(tGPsdata *p, short enable)
 {
   if (p->stabilizer_cursor && !enable) {
     /* clear cursor */
-    WM_paint_cursor_end(CTX_wm_manager(C), p->stabilizer_cursor);
+    WM_paint_cursor_end(p->stabilizer_cursor);
     p->stabilizer_cursor = NULL;
   }
   else if (enable && !p->stabilizer_cursor) {
     /* enable cursor */
     p->stabilizer_cursor = WM_paint_cursor_activate(
-        CTX_wm_manager(C), SPACE_TYPE_ANY, RGN_TYPE_ANY, NULL, gpencil_draw_stabilizer, p);
+        SPACE_TYPE_ANY, RGN_TYPE_ANY, NULL, gpencil_draw_stabilizer, p);
   }
 }
 
@@ -1828,10 +1827,10 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
     /* check size of buffer before cleanup, to determine if anything happened here */
     if (p->paintmode == GP_PAINTMODE_ERASER) {
       /* turn off radial brush cursor */
-      gpencil_draw_toggle_eraser_cursor(C, p, false);
+      gpencil_draw_toggle_eraser_cursor(p, false);
     }
     else if (p->paintmode == GP_PAINTMODE_DRAW) {
-      gpencil_draw_toggle_stabilizer_cursor(C, p, false);
+      gpencil_draw_toggle_stabilizer_cursor(p, false);
     }
 
     /* always store the new eraser size to be used again next time
@@ -2039,7 +2038,7 @@ static void gpencil_draw_apply(wmOperator *op, tGPsdata *p, Depsgraph *depsgraph
 
 /* handle draw event */
 static void annotation_draw_apply_event(
-    bContext *C, wmOperator *op, const wmEvent *event, Depsgraph *depsgraph, float x, float y)
+    wmOperator *op, const wmEvent *event, Depsgraph *depsgraph, float x, float y)
 {
   tGPsdata *p = op->customdata;
   PointerRNA itemptr;
@@ -2056,14 +2055,14 @@ static void annotation_draw_apply_event(
     /* Using permanent stabilization, shift will deactivate the flag. */
     if (p->flags & (GP_PAINTFLAG_USE_STABILIZER)) {
       if (p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) {
-        gpencil_draw_toggle_stabilizer_cursor(C, p, false);
+        gpencil_draw_toggle_stabilizer_cursor(p, false);
         p->flags &= ~GP_PAINTFLAG_USE_STABILIZER_TEMP;
       }
     }
     /* Not using any stabilization flag. Activate temporal one. */
     else if ((p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) == 0) {
       p->flags |= GP_PAINTFLAG_USE_STABILIZER_TEMP;
-      gpencil_draw_toggle_stabilizer_cursor(C, p, true);
+      gpencil_draw_toggle_stabilizer_cursor(p, true);
     }
   }
   /* verify key status for straight lines */
@@ -2092,7 +2091,7 @@ static void annotation_draw_apply_event(
        so activate the temp flag back again. */
     if (p->flags & GP_PAINTFLAG_USE_STABILIZER) {
       if ((p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) == 0) {
-        gpencil_draw_toggle_stabilizer_cursor(C, p, true);
+        gpencil_draw_toggle_stabilizer_cursor(p, true);
         p->flags |= GP_PAINTFLAG_USE_STABILIZER_TEMP;
       }
     }
@@ -2102,7 +2101,7 @@ static void annotation_draw_apply_event(
     else if (p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) {
       /* Reset temporal stabilizer flag and remove cursor. */
       p->flags &= ~GP_PAINTFLAG_USE_STABILIZER_TEMP;
-      gpencil_draw_toggle_stabilizer_cursor(C, p, false);
+      gpencil_draw_toggle_stabilizer_cursor(p, false);
     }
   }
 
@@ -2296,7 +2295,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
   /* if eraser is on, draw radial aid */
   if (p->paintmode == GP_PAINTMODE_ERASER) {
-    gpencil_draw_toggle_eraser_cursor(C, p, true);
+    gpencil_draw_toggle_eraser_cursor(p, true);
   }
   else if (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT) {
     if (RNA_enum_get(op->ptr, "arrowstyle_start") != GP_STROKE_ARROWSTYLE_NONE) {
@@ -2313,11 +2312,11 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
     p->stabilizer_radius = RNA_int_get(op->ptr, "stabilizer_radius");
     if (RNA_boolean_get(op->ptr, "use_stabilizer")) {
       p->flags |= GP_PAINTFLAG_USE_STABILIZER | GP_PAINTFLAG_USE_STABILIZER_TEMP;
-      gpencil_draw_toggle_stabilizer_cursor(C, p, true);
+      gpencil_draw_toggle_stabilizer_cursor(p, true);
     }
     else if (event->shift > 0) {
       p->flags |= GP_PAINTFLAG_USE_STABILIZER_TEMP;
-      gpencil_draw_toggle_stabilizer_cursor(C, p, true);
+      gpencil_draw_toggle_stabilizer_cursor(p, true);
     }
   }
   /* set cursor
@@ -2333,7 +2332,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
     p->status = GP_STATUS_PAINTING;
 
     /* handle the initial drawing - i.e. for just doing a simple dot */
-    annotation_draw_apply_event(C, op, event, CTX_data_ensure_evaluated_depsgraph(C), 0.0f, 0.0f);
+    annotation_draw_apply_event(op, event, CTX_data_ensure_evaluated_depsgraph(C), 0.0f, 0.0f);
     op->flag |= OP_IS_MODAL_CURSOR_REGION;
   }
   else {
@@ -2425,7 +2424,7 @@ static void annotation_add_missing_events(bContext *C,
     interp_v2_v2v2(pt, a, b, 0.5f);
     sub_v2_v2v2(pt, b, pt);
     /* create fake event */
-    annotation_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1]);
+    annotation_draw_apply_event(op, event, depsgraph, pt[0], pt[1]);
   }
   else if (dist >= factor) {
     int slices = 2 + (int)((dist - 1.0) / factor);
@@ -2434,7 +2433,7 @@ static void annotation_add_missing_events(bContext *C,
       interp_v2_v2v2(pt, a, b, n * i);
       sub_v2_v2v2(pt, b, pt);
       /* create fake event */
-      annotation_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1]);
+      annotation_draw_apply_event(op, event, depsgraph, pt[0], pt[1]);
     }
   }
 }
@@ -2562,7 +2561,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
              *       Just hiding this makes it seem like
              *       you can paint again...
              */
-            gpencil_draw_toggle_eraser_cursor(C, p, false);
+            gpencil_draw_toggle_eraser_cursor(p, false);
           }
         }
 
@@ -2647,7 +2646,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
           p->paintmode = RNA_enum_get(op->ptr, "mode");
         }
 
-        gpencil_draw_toggle_eraser_cursor(C, p, p->paintmode == GP_PAINTMODE_ERASER);
+        gpencil_draw_toggle_eraser_cursor(p, p->paintmode == GP_PAINTMODE_ERASER);
 
         /* not painting, so start stroke (this should be mouse-button down) */
         p = gpencil_stroke_begin(C, op);
@@ -2681,8 +2680,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
 
       /* TODO(sergey): Possibly evaluating dependency graph from modal operator? */
-      annotation_draw_apply_event(
-          C, op, event, CTX_data_ensure_evaluated_depsgraph(C), 0.0f, 0.0f);
+      annotation_draw_apply_event(op, event, CTX_data_ensure_evaluated_depsgraph(C), 0.0f, 0.0f);
 
       /* finish painting operation if anything went wrong just now */
       if (p->status == GP_STATUS_ERROR) {

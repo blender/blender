@@ -1926,7 +1926,7 @@ void postTrans(bContext *C, TransInfo *t)
     ED_region_draw_cb_exit(t->region->type, t->draw_handle_pixel);
   }
   if (t->draw_handle_cursor) {
-    WM_paint_cursor_end(CTX_wm_manager(C), t->draw_handle_cursor);
+    WM_paint_cursor_end(t->draw_handle_cursor);
   }
 
   if (t->flag & T_MODAL_CURSOR_SET) {

@@ -511,12 +511,8 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
   }
 
   if ((brush->imagepaint_tool == PAINT_TOOL_FILL) && (brush->flag & BRUSH_USE_GRADIENT)) {
-    pop->cursor = WM_paint_cursor_activate(CTX_wm_manager(C),
-                                           SPACE_TYPE_ANY,
-                                           RGN_TYPE_ANY,
-                                           image_paint_poll,
-                                           gradient_draw_line,
-                                           pop);
+    pop->cursor = WM_paint_cursor_activate(
+        SPACE_TYPE_ANY, RGN_TYPE_ANY, image_paint_poll, gradient_draw_line, pop);
   }
 
   settings->imapaint.flag |= IMAGEPAINT_DRAWING;
@@ -655,7 +651,7 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
   }
 
   if (pop->cursor) {
-    WM_paint_cursor_end(CTX_wm_manager(C), pop->cursor);
+    WM_paint_cursor_end(pop->cursor);
   }
 
   ED_image_undo_push_end();
@@ -787,12 +783,11 @@ bool get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
 
 static void toggle_paint_cursor(bContext *C, int enable)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
   Scene *scene = CTX_data_scene(C);
   ToolSettings *settings = scene->toolsettings;
 
   if (settings->imapaint.paintcursor && !enable) {
-    WM_paint_cursor_end(wm, settings->imapaint.paintcursor);
+    WM_paint_cursor_end(settings->imapaint.paintcursor);
     settings->imapaint.paintcursor = NULL;
     paint_cursor_delete_textures();
   }
@@ -827,7 +822,7 @@ void ED_space_image_paint_update(Main *bmain, wmWindowManager *wm, Scene *scene)
   if (enabled) {
     BKE_paint_init(bmain, scene, PAINT_MODE_TEXTURE_2D, PAINT_CURSOR_TEXTURE_PAINT);
 
-    paint_cursor_start_explicit(&imapaint->paint, wm, image_paint_poll);
+    paint_cursor_start_explicit(&imapaint->paint, image_paint_poll);
   }
   else {
     paint_cursor_delete_textures();

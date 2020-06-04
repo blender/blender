@@ -212,13 +212,11 @@ bool ED_object_editmode_load(struct Main *bmain, struct Object *obedit);
 
 void ED_object_vpaintmode_enter_ex(struct Main *bmain,
                                    struct Depsgraph *depsgraph,
-                                   struct wmWindowManager *wm,
                                    struct Scene *scene,
                                    struct Object *ob);
 void ED_object_vpaintmode_enter(struct bContext *C, struct Depsgraph *depsgraph);
 void ED_object_wpaintmode_enter_ex(struct Main *bmain,
                                    struct Depsgraph *depsgraph,
-                                   struct wmWindowManager *wm,
                                    struct Scene *scene,
                                    struct Object *ob);
 void ED_object_wpaintmode_enter(struct bContext *C, struct Depsgraph *depsgraph);

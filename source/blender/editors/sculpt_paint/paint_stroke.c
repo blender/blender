@@ -962,7 +962,7 @@ void paint_stroke_free(bContext *C, wmOperator *op)
   }
 
   if (stroke->stroke_cursor) {
-    WM_paint_cursor_end(CTX_wm_manager(C), stroke->stroke_cursor);
+    WM_paint_cursor_end(stroke->stroke_cursor);
   }
 
   BLI_freelistN(&stroke->line);
@@ -1385,12 +1385,8 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
 
     if (paint_supports_smooth_stroke(br, mode)) {
-      stroke->stroke_cursor = WM_paint_cursor_activate(CTX_wm_manager(C),
-                                                       SPACE_TYPE_ANY,
-                                                       RGN_TYPE_ANY,
-                                                       paint_poll,
-                                                       paint_draw_smooth_cursor,
-                                                       stroke);
+      stroke->stroke_cursor = WM_paint_cursor_activate(
+          SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_poll, paint_draw_smooth_cursor, stroke);
     }
 
     stroke->stroke_init = true;
@@ -1416,12 +1412,8 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
 
       if (br->flag & BRUSH_LINE) {
-        stroke->stroke_cursor = WM_paint_cursor_activate(CTX_wm_manager(C),
-                                                         SPACE_TYPE_ANY,
-                                                         RGN_TYPE_ANY,
-                                                         paint_poll,
-                                                         paint_draw_line_cursor,
-                                                         stroke);
+        stroke->stroke_cursor = WM_paint_cursor_activate(
+            SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_poll, paint_draw_line_cursor, stroke);
       }
 
       first_dab = true;

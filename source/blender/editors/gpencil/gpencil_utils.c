@@ -1871,19 +1871,18 @@ void ED_gpencil_toggle_brush_cursor(bContext *C, bool enable, void *customdata)
 
   if (gset->paintcursor && !enable) {
     /* clear cursor */
-    WM_paint_cursor_end(CTX_wm_manager(C), gset->paintcursor);
+    WM_paint_cursor_end(gset->paintcursor);
     gset->paintcursor = NULL;
   }
   else if (enable) {
     /* in some situations cursor could be duplicated, so it is better disable first if exist */
     if (gset->paintcursor) {
       /* clear cursor */
-      WM_paint_cursor_end(CTX_wm_manager(C), gset->paintcursor);
+      WM_paint_cursor_end(gset->paintcursor);
       gset->paintcursor = NULL;
     }
     /* enable cursor */
-    gset->paintcursor = WM_paint_cursor_activate(CTX_wm_manager(C),
-                                                 SPACE_TYPE_ANY,
+    gset->paintcursor = WM_paint_cursor_activate(SPACE_TYPE_ANY,
                                                  RGN_TYPE_ANY,
                                                  gp_brush_cursor_poll,
                                                  gp_brush_cursor_draw,

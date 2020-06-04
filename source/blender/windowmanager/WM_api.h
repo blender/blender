@@ -209,14 +209,13 @@ void WM_cursor_grab_disable(struct wmWindow *win, const int mouse_ungrab_xy[2]);
 void WM_cursor_time(struct wmWindow *win, int nr);
 
 struct wmPaintCursor *WM_paint_cursor_activate(
-    struct wmWindowManager *wm,
     short space_type,
     short region_type,
     bool (*poll)(struct bContext *C),
     void (*draw)(struct bContext *C, int, int, void *customdata),
     void *customdata);
 
-bool WM_paint_cursor_end(struct wmWindowManager *wm, struct wmPaintCursor *handle);
+bool WM_paint_cursor_end(struct wmPaintCursor *handle);
 void WM_paint_cursor_tag_redraw(struct wmWindow *win, struct ARegion *region);
 
 void WM_cursor_warp(struct wmWindow *win, int x, int y);
