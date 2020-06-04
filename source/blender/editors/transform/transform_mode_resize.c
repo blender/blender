@@ -119,7 +119,7 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
       /* vertices in the radius of the brush end */
       /* outside the clipping area               */
       /* XXX HACK - dg */
-      if (t->flag & T_PROP_EDIT_ALL) {
+      if (t->flag & T_PROP_EDIT) {
         clipUVData(t);
       }
     }
