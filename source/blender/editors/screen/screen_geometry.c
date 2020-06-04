@@ -397,3 +397,125 @@ void screen_geom_select_connected_edge(const wmWindow *win, ScrEdge *edge)
     }
   }
 }
+
+/**
+ * calcs the shortest vector from x, y to line formed by points p1, p2
+ */
+void shortest_vec_to_line_p1p2_2s(vec2s *out, vec2s *p1, vec2s *p2, short x, short y)
+{
+  vec2s *pmin;
+  vec2s *pmax;
+  if (p1->x < p2->x) {
+    pmin = p1;
+    pmax = p2;
+  }
+  else {
+    pmin = p2;
+    pmax = p1;
+  }
+  float slope = (pmax->y - pmin->y) / (float)(pmax->x - pmin->x);
+  float ang = atan(slope);
+  float cosx = cos(ang);
+  float dist = (slope * (x - pmin->x) - (y - pmin->y)) * cosx;
+  out->y = dist * cosx;
+  out->x = -dist * sin(ang);
+}
+
+/**
+ *  dir numerated in clockwise direction starting from top
+ */
+ScrArea *find_area_whith_common_edge(const wmWindow *win, ScrArea *sa, char dir)
+{
+  bScreen *screen = WM_window_get_active_screen(win);
+  LISTBASE_FOREACH (ScrArea *, itersa, &screen->areabase) {
+
+    if (sa != itersa) {
+      if (dir == 1) {
+        if (sa->v2 == itersa->v1 && sa->v3 == itersa->v4) {
+          return itersa;
+        }
+      }
+      else if (dir == 3) {
+        if (sa->v1 == itersa->v2 && sa->v4 == itersa->v3) {
+          return itersa;
+        }
+      }
+      else if (dir == 4) {
+        if (sa->v1 == itersa->v4 && sa->v2 == itersa->v3) {
+          return itersa;
+        }
+      }
+      else {
+        if (sa->v4 == itersa->v1 && sa->v3 == itersa->v2) {
+          return itersa;
+        }
+      }
+    }
+  }
+  return NULL;
+}
+
+/**
+ *  dir numerated in clockwise direction starting from top
+    bools t, r, b, l are the areas to be considered
+ */
+ char area_dir_from_center(ScrArea *ar, short x, short y, bool t, bool r, bool b, bool l)
+{
+  bool p2p4 = false;  // above line p2p4
+  bool p1p3 = false;  // above line p1p3
+  bool vl = false;    // right of vertical line
+  bool hl = false;    // above horizontal line
+  char amount = (char)t + b + l + r;
+
+  if (!amount) {
+    return 0;
+  }
+  else if (amount == 1) {
+    if (l)
+      return 4;
+    else if (r)
+      return 2;
+    else if (t)
+      return 1;
+    else
+      return 3;
+  }
+  else {
+    vec2s v2s;
+    shortest_vec_to_line_p1p2_2s(&v2s, &ar->v2->vec, &ar->v4->vec, x, y);
+    p2p4 = v2s.y < 0;
+    shortest_vec_to_line_p1p2_2s(&v2s, &ar->v1->vec, &ar->v3->vec, x, y);
+    p1p3 = v2s.y < 0;
+    vl = x > ar->v1->vec.x + (ar->v4->vec.x - ar->v1->vec.x) / 2.0f;
+    hl = y > ar->v1->vec.y + (ar->v2->vec.y - ar->v1->vec.y) / 2.0f;
+
+    if (amount == 2) {
+      if (l && r) {
+        return vl ? 2 : 4;
+      }
+      else if (t && b) {
+        return hl ? 1 : 3;
+      }
+      else if (t && r) {
+        return p1p3 ? 1 : 2;
+      }
+      else if (r && b) {
+        return p2p4 ? 2 : 3;
+      }
+      else if (b && l) {
+        return p1p3 ? 4 : 3;
+      }
+      else {
+        return p2p4 ? 1 : 4;
+      }
+    }
+    else {
+      if (p1p3) {
+        return p2p4 ? 1 : 4;
+      }
+      else {
+        return p2p4 ? 2 : 3;
+      }
+    }
+  }
+}
