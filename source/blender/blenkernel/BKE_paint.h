@@ -239,7 +239,7 @@ typedef struct SculptPoseIKChainSegment {
   float initial_orig[3];
   float initial_head[3];
   float len;
-  float scale;
+  float scale[3];
   float rot[4];
   float *weights;
 

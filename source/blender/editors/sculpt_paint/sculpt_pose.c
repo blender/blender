@@ -146,14 +146,14 @@ static void pose_solve_translate_chain(SculptPoseIKChain *ik_chain, const float 
   }
 }
 
-static void pose_solve_scale_chain(SculptPoseIKChain *ik_chain, const float scale)
+static void pose_solve_scale_chain(SculptPoseIKChain *ik_chain, const float scale[3])
 {
   SculptPoseIKChainSegment *segments = ik_chain->segments;
   const int tot_segments = ik_chain->tot_segments;
 
   for (int i = 0; i < tot_segments; i++) {
     /* Assign the scale to each segment. */
-    segments[i].scale = scale;
+    copy_v3_v3(segments[i].scale, scale);
   }
 }
 
@@ -645,9 +645,10 @@ static void pose_ik_chain_origin_heads_init(SculptPoseIKChain *ik_chain,
     }
     copy_v3_v3(ik_chain->segments[i].orig, origin);
     copy_v3_v3(ik_chain->segments[i].initial_orig, origin);
+    copy_v3_v3(ik_chain->segments[i].head, head);
     copy_v3_v3(ik_chain->segments[i].initial_head, head);
     ik_chain->segments[i].len = len_v3v3(head, origin);
-    ik_chain->segments[i].scale = 1.0f;
+    copy_v3_fl(ik_chain->segments[i].scale, 1.0f);
   }
 }
 
@@ -656,7 +657,9 @@ static int pose_brush_num_effective_segments(const Brush *brush)
   /* Scaling multiple segments at the same time is not supported as the IK solver can't handle
    * changes in the segment's length. It will also required a better weight distribution to avoid
    * artifacts in the areas affected by multiple segments. */
-  if (brush->pose_deform_type == BRUSH_POSE_DEFORM_SCALE_TRASLATE) {
+  if (ELEM(brush->pose_deform_type,
+           BRUSH_POSE_DEFORM_SCALE_TRASLATE,
+           BRUSH_POSE_DEFORM_SQUASH_STRETCH)) {
     return 1;
   }
   return brush->pose_ik_segments;
@@ -987,6 +990,19 @@ static void sculpt_pose_do_translate_deform(SculptSession *ss, Brush *brush)
   pose_solve_translate_chain(ik_chain, ss->cache->grab_delta);
 }
 
+/* Calculate a scale factor based on the grab delta. */
+static float sculpt_pose_get_scale_from_grab_delta(SculptSession *ss, const float ik_target[3])
+{
+  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+  float plane[4];
+  float segment_dir[3];
+  sub_v3_v3v3(segment_dir, ik_chain->segments[0].initial_head, ik_chain->segments[0].initial_orig);
+  normalize_v3(segment_dir);
+  plane_from_point_normal_v3(plane, ik_chain->segments[0].initial_head, segment_dir);
+  const float segment_len = ik_chain->segments[0].len;
+  return segment_len / (segment_len - dist_signed_to_plane_v3(ik_target, plane));
+}
+
 static void sculpt_pose_do_scale_deform(SculptSession *ss, Brush *brush)
 {
   float ik_target[3];
@@ -998,14 +1014,8 @@ static void sculpt_pose_do_scale_deform(SculptSession *ss, Brush *brush)
   /* Solve the IK for the first segment to include rotation as part of scale. */
   pose_solve_ik_chain(ik_chain, ik_target, brush->flag2 & BRUSH_POSE_IK_ANCHORED);
 
-  /* Calculate a scale factor based on the grab delta. */
-  float plane[4];
-  float segment_dir[3];
-  sub_v3_v3v3(segment_dir, ik_chain->segments[0].initial_head, ik_chain->segments[0].initial_orig);
-  normalize_v3(segment_dir);
-  plane_from_point_normal_v3(plane, ik_chain->segments[0].initial_head, segment_dir);
-  const float segment_len = ik_chain->segments[0].len;
-  const float scale = segment_len / (segment_len - dist_signed_to_plane_v3(ik_target, plane));
+  float scale[3];
+  copy_v3_fl(scale, sculpt_pose_get_scale_from_grab_delta(ss, ik_target));
 
   /* Write the scale into the segments. */
   pose_solve_scale_chain(ik_chain, scale);
@@ -1055,6 +1065,45 @@ static void sculpt_pose_do_scale_translate_deform(SculptSession *ss, Brush *brus
   }
 }
 
+static void sculpt_pose_do_squash_stretch_deform(SculptSession *ss, Brush *UNUSED(brush))
+{
+  float ik_target[3];
+  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+
+  copy_v3_v3(ik_target, ss->cache->true_location);
+  add_v3_v3(ik_target, ss->cache->grab_delta);
+
+  float scale[3];
+  scale[2] = sculpt_pose_get_scale_from_grab_delta(ss, ik_target);
+  scale[0] = scale[1] = sqrtf(1.0f / scale[2]);
+
+  /* Write the scale into the segments. */
+  pose_solve_scale_chain(ik_chain, scale);
+}
+
+static void sculpt_pose_align_pivot_local_space(float r_mat[4][4],
+                                                ePaintSymmetryFlags symm,
+                                                ePaintSymmetryAreas symm_area,
+                                                SculptPoseIKChainSegment *segment,
+                                                const float grab_location[3])
+{
+  float segment_origin_head[3];
+  float symm_head[3];
+  float symm_orig[3];
+
+  copy_v3_v3(symm_head, segment->head);
+  copy_v3_v3(symm_orig, segment->orig);
+
+  SCULPT_flip_v3_by_symm_area(symm_head, symm, symm_area, grab_location);
+  SCULPT_flip_v3_by_symm_area(symm_orig, symm, symm_area, grab_location);
+
+  sub_v3_v3v3(segment_origin_head, symm_head, symm_orig);
+  normalize_v3(segment_origin_head);
+
+  copy_v3_v3(r_mat[2], segment_origin_head);
+  ortho_basis_v3v3_v3(r_mat[0], r_mat[1], r_mat[2]);
+}
+
 /* Main Brush Function. */
 void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
@@ -1076,6 +1125,9 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
       break;
     case BRUSH_POSE_DEFORM_SCALE_TRASLATE:
       sculpt_pose_do_scale_translate_deform(ss, brush);
+      break;
+    case BRUSH_POSE_DEFORM_SQUASH_STRETCH:
+      sculpt_pose_do_squash_stretch_deform(ss, brush);
       break;
   }
 
@@ -1101,17 +1153,38 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
       SCULPT_flip_v3_by_symm_area(
           symm_initial_orig, symm, symm_area, ss->cache->orig_grab_location);
 
-      /* Create the transform matrix and store it in the segment. */
-      unit_m4(ik_chain->segments[i].pivot_mat[symm_it]);
-      quat_to_mat4(ik_chain->segments[i].trans_mat[symm_it], symm_rot);
-      mul_m4_fl(ik_chain->segments[i].trans_mat[symm_it], ik_chain->segments[i].scale);
+      float pivot_local_space[4][4];
+      unit_m4(pivot_local_space);
+
+      /* Align the segment pivot local space to the Z axis. */
+      if (brush->pose_deform_type == BRUSH_POSE_DEFORM_SQUASH_STRETCH) {
+        sculpt_pose_align_pivot_local_space(pivot_local_space,
+                                            symm,
+                                            symm_area,
+                                            &ik_chain->segments[i],
+                                            ss->cache->orig_grab_location);
+        unit_m4(ik_chain->segments[i].trans_mat[symm_it]);
+      }
+      else {
+        quat_to_mat4(ik_chain->segments[i].trans_mat[symm_it], symm_rot);
+      }
+
+      /* Apply segement scale to the transform. */
+      for (int scale_i = 0; scale_i < 3; scale_i++) {
+        mul_v3_fl(ik_chain->segments[i].trans_mat[symm_it][scale_i],
+                  ik_chain->segments[i].scale[scale_i]);
+      }
 
       translate_m4(ik_chain->segments[i].trans_mat[symm_it],
                    symm_orig[0] - symm_initial_orig[0],
                    symm_orig[1] - symm_initial_orig[1],
                    symm_orig[2] - symm_initial_orig[2]);
+
+      unit_m4(ik_chain->segments[i].pivot_mat[symm_it]);
       translate_m4(
           ik_chain->segments[i].pivot_mat[symm_it], symm_orig[0], symm_orig[1], symm_orig[2]);
+      mul_m4_m4_post(ik_chain->segments[i].pivot_mat[symm_it], pivot_local_space);
+
       invert_m4_m4(ik_chain->segments[i].pivot_mat_inv[symm_it],
                    ik_chain->segments[i].pivot_mat[symm_it]);
     }
