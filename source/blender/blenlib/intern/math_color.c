@@ -91,6 +91,7 @@ void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv, int 
       break;
     case BLI_YUV_ITU_BT709:
     default:
+      BLI_assert(colorspace == BLI_YUV_ITU_BT709);
       y = 0.2126f * r + 0.7152f * g + 0.0722f * b;
       u = -0.09991f * r - 0.33609f * g + 0.436f * b;
       v = 0.615f * r - 0.55861f * g - 0.05639f * b;
@@ -113,6 +114,8 @@ void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb, int 
       b = y + 2.032f * u;
       break;
     case BLI_YUV_ITU_BT709:
+    default:
+      BLI_assert(colorspace == BLI_YUV_ITU_BT709);
       r = y + 1.28033f * v;
       g = y - 0.21482f * u - 0.38059f * v;
       b = y + 2.12798f * u;
