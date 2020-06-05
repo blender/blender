@@ -56,7 +56,7 @@ set(SRC
   operators/bmo_hull.c
   operators/bmo_inset.c
   operators/bmo_join_triangles.c
-  operators/bmo_mesh_conv.c
+  operators/bmo_mesh_convert.c
   operators/bmo_mirror.c
   operators/bmo_normals.c
   operators/bmo_offset_edgeloops.c
@@ -97,8 +97,8 @@ set(SRC
   intern/bmesh_marking.h
   intern/bmesh_mesh.c
   intern/bmesh_mesh.h
-  intern/bmesh_mesh_conv.c
-  intern/bmesh_mesh_conv.h
+  intern/bmesh_mesh_convert.c
+  intern/bmesh_mesh_convert.h
   intern/bmesh_mesh_duplicate.c
   intern/bmesh_mesh_duplicate.h
   intern/bmesh_mesh_validate.c
