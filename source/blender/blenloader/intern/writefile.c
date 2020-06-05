@@ -3312,22 +3312,22 @@ static void write_sound(BlendWriter *writer, bSound *sound, const void *id_addre
   }
 }
 
-static void write_probe(WriteData *wd, LightProbe *prb, const void *id_address)
+static void write_probe(BlendWriter *writer, LightProbe *prb, const void *id_address)
 {
-  if (prb->id.us > 0 || wd->use_memfile) {
+  if (prb->id.us > 0 || BLO_write_is_undo(writer)) {
     /* write LibData */
-    writestruct_at_address(wd, ID_LP, LightProbe, 1, id_address, prb);
-    write_iddata(wd, &prb->id);
+    BLO_write_id_struct(writer, LightProbe, id_address, &prb->id);
+    write_iddata(writer->wd, &prb->id);
 
     if (prb->adt) {
-      write_animdata(wd, prb->adt);
+      write_animdata(writer->wd, prb->adt);
     }
   }
 }
 
-static void write_nodetree(WriteData *wd, bNodeTree *ntree, const void *id_address)
+static void write_nodetree(BlendWriter *writer, bNodeTree *ntree, const void *id_address)
 {
-  if (ntree->id.us > 0 || wd->use_memfile) {
+  if (ntree->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     ntree->init = 0; /* to set callbacks and force setting types */
     ntree->is_updating = false;
@@ -3336,82 +3336,82 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree, const void *id_addre
     ntree->progress = NULL;
     ntree->execdata = NULL;
 
-    writestruct_at_address(wd, ID_NT, bNodeTree, 1, id_address, ntree);
+    BLO_write_id_struct(writer, bNodeTree, id_address, &ntree->id);
     /* Note that trees directly used by other IDs (materials etc.) are not 'real' ID, they cannot
      * be linked, etc., so we write actual id data here only, for 'real' ID trees. */
-    write_iddata(wd, &ntree->id);
+    write_iddata(writer->wd, &ntree->id);
 
-    write_nodetree_nolib(wd, ntree);
+    write_nodetree_nolib(writer->wd, ntree);
   }
 }
 
-static void write_brush(WriteData *wd, Brush *brush, const void *id_address)
+static void write_brush(BlendWriter *writer, Brush *brush, const void *id_address)
 {
-  if (brush->id.us > 0 || wd->use_memfile) {
-    writestruct_at_address(wd, ID_BR, Brush, 1, id_address, brush);
-    write_iddata(wd, &brush->id);
+  if (brush->id.us > 0 || BLO_write_is_undo(writer)) {
+    BLO_write_id_struct(writer, Brush, id_address, &brush->id);
+    write_iddata(writer->wd, &brush->id);
 
     if (brush->curve) {
-      write_curvemapping(wd, brush->curve);
+      write_curvemapping(writer->wd, brush->curve);
     }
 
     if (brush->gpencil_settings) {
-      writestruct(wd, DATA, BrushGpencilSettings, 1, brush->gpencil_settings);
+      BLO_write_struct(writer, BrushGpencilSettings, brush->gpencil_settings);
 
       if (brush->gpencil_settings->curve_sensitivity) {
-        write_curvemapping(wd, brush->gpencil_settings->curve_sensitivity);
+        write_curvemapping(writer->wd, brush->gpencil_settings->curve_sensitivity);
       }
       if (brush->gpencil_settings->curve_strength) {
-        write_curvemapping(wd, brush->gpencil_settings->curve_strength);
+        write_curvemapping(writer->wd, brush->gpencil_settings->curve_strength);
       }
       if (brush->gpencil_settings->curve_jitter) {
-        write_curvemapping(wd, brush->gpencil_settings->curve_jitter);
+        write_curvemapping(writer->wd, brush->gpencil_settings->curve_jitter);
       }
       if (brush->gpencil_settings->curve_rand_pressure) {
-        write_curvemapping(wd, brush->gpencil_settings->curve_rand_pressure);
+        write_curvemapping(writer->wd, brush->gpencil_settings->curve_rand_pressure);
       }
       if (brush->gpencil_settings->curve_rand_strength) {
-        write_curvemapping(wd, brush->gpencil_settings->curve_rand_strength);
+        write_curvemapping(writer->wd, brush->gpencil_settings->curve_rand_strength);
       }
       if (brush->gpencil_settings->curve_rand_uv) {
-        write_curvemapping(wd, brush->gpencil_settings->curve_rand_uv);
+        write_curvemapping(writer->wd, brush->gpencil_settings->curve_rand_uv);
       }
       if (brush->gpencil_settings->curve_rand_hue) {
-        write_curvemapping(wd, brush->gpencil_settings->curve_rand_hue);
+        write_curvemapping(writer->wd, brush->gpencil_settings->curve_rand_hue);
       }
       if (brush->gpencil_settings->curve_rand_saturation) {
-        write_curvemapping(wd, brush->gpencil_settings->curve_rand_saturation);
+        write_curvemapping(writer->wd, brush->gpencil_settings->curve_rand_saturation);
       }
       if (brush->gpencil_settings->curve_rand_value) {
-        write_curvemapping(wd, brush->gpencil_settings->curve_rand_value);
+        write_curvemapping(writer->wd, brush->gpencil_settings->curve_rand_value);
       }
     }
     if (brush->gradient) {
-      writestruct(wd, DATA, ColorBand, 1, brush->gradient);
+      BLO_write_struct(writer, ColorBand, brush->gradient);
     }
   }
 }
 
-static void write_palette(WriteData *wd, Palette *palette, const void *id_address)
+static void write_palette(BlendWriter *writer, Palette *palette, const void *id_address)
 {
-  if (palette->id.us > 0 || wd->use_memfile) {
+  if (palette->id.us > 0 || BLO_write_is_undo(writer)) {
     PaletteColor *color;
-    writestruct_at_address(wd, ID_PAL, Palette, 1, id_address, palette);
-    write_iddata(wd, &palette->id);
+    BLO_write_id_struct(writer, Palette, id_address, &palette->id);
+    write_iddata(writer->wd, &palette->id);
 
     for (color = palette->colors.first; color; color = color->next) {
-      writestruct(wd, DATA, PaletteColor, 1, color);
+      BLO_write_struct(writer, PaletteColor, color);
     }
   }
 }
 
-static void write_paintcurve(WriteData *wd, PaintCurve *pc, const void *id_address)
+static void write_paintcurve(BlendWriter *writer, PaintCurve *pc, const void *id_address)
 {
-  if (pc->id.us > 0 || wd->use_memfile) {
-    writestruct_at_address(wd, ID_PC, PaintCurve, 1, id_address, pc);
-    write_iddata(wd, &pc->id);
+  if (pc->id.us > 0 || BLO_write_is_undo(writer)) {
+    BLO_write_id_struct(writer, PaintCurve, id_address, &pc->id);
+    write_iddata(writer->wd, &pc->id);
 
-    writestruct(wd, DATA, PaintCurvePoint, pc->tot_points, pc->points);
+    BLO_write_struct_array(writer, PaintCurvePoint, pc->tot_points, pc->points);
   }
 }
 
@@ -3454,9 +3454,9 @@ static void write_movieReconstruction(WriteData *wd, MovieTrackingReconstruction
   }
 }
 
-static void write_movieclip(WriteData *wd, MovieClip *clip, const void *id_address)
+static void write_movieclip(BlendWriter *writer, MovieClip *clip, const void *id_address)
 {
-  if (clip->id.us > 0 || wd->use_memfile) {
+  if (clip->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     clip->anim = NULL;
     clip->tracking_context = NULL;
@@ -3465,47 +3465,47 @@ static void write_movieclip(WriteData *wd, MovieClip *clip, const void *id_addre
     MovieTracking *tracking = &clip->tracking;
     MovieTrackingObject *object;
 
-    writestruct_at_address(wd, ID_MC, MovieClip, 1, id_address, clip);
-    write_iddata(wd, &clip->id);
+    BLO_write_id_struct(writer, MovieClip, id_address, &clip->id);
+    write_iddata(writer->wd, &clip->id);
 
     if (clip->adt) {
-      write_animdata(wd, clip->adt);
+      write_animdata(writer->wd, clip->adt);
     }
 
-    write_movieTracks(wd, &tracking->tracks);
-    write_moviePlaneTracks(wd, &tracking->plane_tracks);
-    write_movieReconstruction(wd, &tracking->reconstruction);
+    write_movieTracks(writer->wd, &tracking->tracks);
+    write_moviePlaneTracks(writer->wd, &tracking->plane_tracks);
+    write_movieReconstruction(writer->wd, &tracking->reconstruction);
 
     object = tracking->objects.first;
     while (object) {
-      writestruct(wd, DATA, MovieTrackingObject, 1, object);
+      BLO_write_struct(writer, MovieTrackingObject, object);
 
-      write_movieTracks(wd, &object->tracks);
-      write_moviePlaneTracks(wd, &object->plane_tracks);
-      write_movieReconstruction(wd, &object->reconstruction);
+      write_movieTracks(writer->wd, &object->tracks);
+      write_moviePlaneTracks(writer->wd, &object->plane_tracks);
+      write_movieReconstruction(writer->wd, &object->reconstruction);
 
       object = object->next;
     }
   }
 }
 
-static void write_mask(WriteData *wd, Mask *mask, const void *id_address)
+static void write_mask(BlendWriter *writer, Mask *mask, const void *id_address)
 {
-  if (mask->id.us > 0 || wd->use_memfile) {
+  if (mask->id.us > 0 || BLO_write_is_undo(writer)) {
     MaskLayer *masklay;
 
-    writestruct_at_address(wd, ID_MSK, Mask, 1, id_address, mask);
-    write_iddata(wd, &mask->id);
+    BLO_write_id_struct(writer, Mask, id_address, &mask->id);
+    write_iddata(writer->wd, &mask->id);
 
     if (mask->adt) {
-      write_animdata(wd, mask->adt);
+      write_animdata(writer->wd, mask->adt);
     }
 
     for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
       MaskSpline *spline;
       MaskLayerShape *masklay_shape;
 
-      writestruct(wd, DATA, MaskLayer, 1, masklay);
+      BLO_write_struct(writer, MaskLayer, masklay);
 
       for (spline = masklay->splines.first; spline; spline = spline->next) {
         int i;
@@ -3513,8 +3513,8 @@ static void write_mask(WriteData *wd, Mask *mask, const void *id_address)
         void *points_deform = spline->points_deform;
         spline->points_deform = NULL;
 
-        writestruct(wd, DATA, MaskSpline, 1, spline);
-        writestruct(wd, DATA, MaskSplinePoint, spline->tot_point, spline->points);
+        BLO_write_struct(writer, MaskSpline, spline);
+        BLO_write_struct_array(writer, MaskSplinePoint, spline->tot_point, spline->points);
 
         spline->points_deform = points_deform;
 
@@ -3522,18 +3522,16 @@ static void write_mask(WriteData *wd, Mask *mask, const void *id_address)
           MaskSplinePoint *point = &spline->points[i];
 
           if (point->tot_uw) {
-            writestruct(wd, DATA, MaskSplinePointUW, point->tot_uw, point->uw);
+            BLO_write_struct_array(writer, MaskSplinePointUW, point->tot_uw, point->uw);
           }
         }
       }
 
       for (masklay_shape = masklay->splines_shapes.first; masklay_shape;
            masklay_shape = masklay_shape->next) {
-        writestruct(wd, DATA, MaskLayerShape, 1, masklay_shape);
-        writedata(wd,
-                  DATA,
-                  masklay_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE,
-                  masklay_shape->data);
+        BLO_write_struct(writer, MaskLayerShape, masklay_shape);
+        BLO_write_float_array(
+            writer, masklay_shape->tot_vert * MASK_OBJECT_SHAPE_ELEM_SIZE, masklay_shape->data);
       }
     }
   }
@@ -4214,10 +4212,10 @@ static bool write_file_handle(Main *mainvar,
             write_screen(&writer, (bScreen *)id_buffer, id);
             break;
           case ID_MC:
-            write_movieclip(wd, (MovieClip *)id_buffer, id);
+            write_movieclip(&writer, (MovieClip *)id_buffer, id);
             break;
           case ID_MSK:
-            write_mask(wd, (Mask *)id_buffer, id);
+            write_mask(&writer, (Mask *)id_buffer, id);
             break;
           case ID_SCE:
             write_scene(wd, (Scene *)id_buffer, id);
@@ -4256,7 +4254,7 @@ static bool write_file_handle(Main *mainvar,
             write_speaker(&writer, (Speaker *)id_buffer, id);
             break;
           case ID_LP:
-            write_probe(wd, (LightProbe *)id_buffer, id);
+            write_probe(&writer, (LightProbe *)id_buffer, id);
             break;
           case ID_SO:
             write_sound(&writer, (bSound *)id_buffer, id);
@@ -4286,16 +4284,16 @@ static bool write_file_handle(Main *mainvar,
             write_particlesettings(wd, (ParticleSettings *)id_buffer, id);
             break;
           case ID_NT:
-            write_nodetree(wd, (bNodeTree *)id_buffer, id);
+            write_nodetree(&writer, (bNodeTree *)id_buffer, id);
             break;
           case ID_BR:
-            write_brush(wd, (Brush *)id_buffer, id);
+            write_brush(&writer, (Brush *)id_buffer, id);
             break;
           case ID_PAL:
-            write_palette(wd, (Palette *)id_buffer, id);
+            write_palette(&writer, (Palette *)id_buffer, id);
             break;
           case ID_PC:
-            write_paintcurve(wd, (PaintCurve *)id_buffer, id);
+            write_paintcurve(&writer, (PaintCurve *)id_buffer, id);
             break;
           case ID_GD:
             write_gpencil(wd, (bGPdata *)id_buffer, id);
