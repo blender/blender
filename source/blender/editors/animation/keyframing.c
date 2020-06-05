@@ -184,7 +184,7 @@ FCurve *ED_action_fcurve_find(struct bAction *act, const char rna_path[], const 
   if (ELEM(NULL, act, rna_path)) {
     return NULL;
   }
-  return list_find_fcurve(&act->curves, rna_path, array_index);
+  return BKE_fcurve_find(&act->curves, rna_path, array_index);
 }
 
 /**
@@ -210,7 +210,7 @@ FCurve *ED_action_fcurve_ensure(struct Main *bmain,
    * - add if not found and allowed to add one
    *   TODO: add auto-grouping support? how this works will need to be resolved
    */
-  fcu = list_find_fcurve(&act->curves, rna_path, array_index);
+  fcu = BKE_fcurve_find(&act->curves, rna_path, array_index);
 
   if (fcu == NULL) {
     /* use default settings to make a F-Curve */
@@ -1120,7 +1120,7 @@ static bool insert_keyframe_value(ReportList *reports,
                                   eInsertKeyFlags flag)
 {
   /* F-Curve not editable? */
-  if (fcurve_is_keyframable(fcu) == 0) {
+  if (BKE_fcurve_is_keyframable(fcu) == 0) {
     BKE_reportf(
         reports,
         RPT_ERROR,
@@ -2400,7 +2400,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
        * not have any effect.
        */
       NlaStrip *strip = ptr.data;
-      FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
+      FCurve *fcu = BKE_fcurve_find(&strip->fcurves, RNA_property_identifier(prop), index);
 
       if (fcu) {
         changed = insert_keyframe_direct(
@@ -2417,7 +2417,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
       FCurve *fcu;
       bool driven, special;
 
-      fcu = rna_get_fcurve_context_ui(C, &ptr, prop, index, NULL, NULL, &driven, &special);
+      fcu = BKE_fcurve_find_by_rna_context_ui(C, &ptr, prop, index, NULL, NULL, &driven, &special);
 
       if (fcu && driven) {
         changed = insert_keyframe_direct(
@@ -2560,7 +2560,7 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
        */
       ID *id = ptr.owner_id;
       NlaStrip *strip = ptr.data;
-      FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), 0);
+      FCurve *fcu = BKE_fcurve_find(&strip->fcurves, RNA_property_identifier(prop), 0);
 
       if (fcu) {
         if (BKE_fcurve_is_protected(fcu)) {
@@ -3001,7 +3001,8 @@ bool ED_autokeyframe_property(
   bool special;
   bool changed = false;
 
-  fcu = rna_get_fcurve_context_ui(C, ptr, prop, rnaindex, NULL, &action, &driven, &special);
+  fcu = BKE_fcurve_find_by_rna_context_ui(
+      C, ptr, prop, rnaindex, NULL, &action, &driven, &special);
 
   if (fcu == NULL) {
     return changed;

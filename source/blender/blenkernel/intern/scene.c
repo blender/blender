@@ -621,7 +621,7 @@ static void remove_sequencer_fcurves(Scene *sce)
 
       if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
         action_groups_remove_channel(adt->action, fcu);
-        free_fcurve(fcu);
+        BKE_fcurve_free(fcu);
       }
     }
   }

@@ -89,7 +89,7 @@ void BCAnimationCurve::init_pointer_rna(Object *ob)
 
 void BCAnimationCurve::delete_fcurve(FCurve *fcu)
 {
-  free_fcurve(fcu);
+  BKE_fcurve_free(fcu);
 }
 
 FCurve *BCAnimationCurve::create_fcurve(int array_index, const char *rna_path)

@@ -931,7 +931,7 @@ static void cleardrivers_animdata_cb(int UNUSED(event),
   IdAdtTemplate *iat = (IdAdtTemplate *)tselem->id;
 
   /* just free drivers - stored as a list of F-Curves */
-  free_fcurves(&iat->adt->drivers);
+  BKE_fcurves_free(&iat->adt->drivers);
   DEG_id_tag_update(tselem->id, ID_RECALC_ANIMATION);
 }
 

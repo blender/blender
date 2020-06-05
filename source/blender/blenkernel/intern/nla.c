@@ -92,7 +92,7 @@ void BKE_nlastrip_free(ListBase *strips, NlaStrip *strip, bool do_id_user)
   //  BKE_animremap_free();
 
   /* free own F-Curves */
-  free_fcurves(&strip->fcurves);
+  BKE_fcurves_free(&strip->fcurves);
 
   /* free own F-Modifiers */
   free_fmodifiers(&strip->modifiers);
@@ -198,7 +198,7 @@ NlaStrip *BKE_nlastrip_copy(Main *bmain,
   }
 
   /* copy F-Curves and modifiers */
-  copy_fcurves(&strip_d->fcurves, &strip->fcurves);
+  BKE_fcurves_copy(&strip_d->fcurves, &strip->fcurves);
   copy_fmodifiers(&strip_d->modifiers, &strip->modifiers);
 
   /* make a copy of all the child-strips, one at a time */
@@ -1494,7 +1494,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
   /* if controlling influence... */
   if (strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) {
     /* try to get F-Curve */
-    fcu = list_find_fcurve(&strip->fcurves, "influence", 0);
+    fcu = BKE_fcurve_find(&strip->fcurves, "influence", 0);
 
     /* add one if not found */
     if (fcu == NULL) {
@@ -1525,7 +1525,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
   /* if controlling time... */
   if (strip->flag & NLASTRIP_FLAG_USR_TIME) {
     /* try to get F-Curve */
-    fcu = list_find_fcurve(&strip->fcurves, "strip_time", 0);
+    fcu = BKE_fcurve_find(&strip->fcurves, "strip_time", 0);
 
     /* add one if not found */
     if (fcu == NULL) {

@@ -1061,7 +1061,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
     Curve *cu = (Curve *)data->tar->data;
 
     if (ELEM(NULL, cu->adt, cu->adt->action) ||
-        (list_find_fcurve(&cu->adt->action->curves, "eval_time", 0) == NULL)) {
+        (BKE_fcurve_find(&cu->adt->action->curves, "eval_time", 0) == NULL)) {
       /* create F-Curve for path animation */
       act = ED_id_action_ensure(bmain, &cu->id);
       fcu = ED_action_fcurve_ensure(bmain, act, NULL, NULL, "eval_time", 0);

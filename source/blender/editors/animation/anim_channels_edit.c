@@ -671,7 +671,7 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *f
   }
 
   /* free the F-Curve itself */
-  free_fcurve(fcu);
+  BKE_fcurve_free(fcu);
 }
 
 /* If the action has no F-Curves, unlink it from AnimData if it did not
@@ -1806,7 +1806,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
           /* remove from group and action, then free */
           action_groups_remove_channel(adt->action, fcu);
-          free_fcurve(fcu);
+          BKE_fcurve_free(fcu);
         }
 
         /* free the group itself */
@@ -1860,7 +1860,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
         /* unlink and free the F-Curve */
         BLI_remlink(&strip->fcurves, fcu);
-        free_fcurve(fcu);
+        BKE_fcurve_free(fcu);
         tag_update_animation_element(ale);
         break;
       }

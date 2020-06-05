@@ -274,7 +274,7 @@ AnimationImporter::~AnimationImporter()
   /* free unused FCurves */
   for (std::vector<FCurve *>::iterator it = unused_curves.begin(); it != unused_curves.end();
        it++) {
-    free_fcurve(*it);
+    BKE_fcurve_free(*it);
   }
 
   if (unused_curves.size()) {
@@ -442,7 +442,7 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
       }
 
       action_groups_remove_channel(act, eulcu[i]);
-      free_fcurve(eulcu[i]);
+      BKE_fcurve_free(eulcu[i]);
     }
 
     chan->rotmode = ROT_MODE_QUAT;

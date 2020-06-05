@@ -256,7 +256,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
       BKE_nla_tracks_free(&adt->nla_tracks, do_id_user);
 
       /* free drivers - stored as a list of F-Curves */
-      free_fcurves(&adt->drivers);
+      BKE_fcurves_free(&adt->drivers);
 
       /* free driver array cache */
       MEM_SAFE_FREE(adt->driver_array);
@@ -345,7 +345,7 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
   BKE_nla_tracks_copy(bmain, &dadt->nla_tracks, &adt->nla_tracks, flag);
 
   /* duplicate drivers (F-Curves) */
-  copy_fcurves(&dadt->drivers, &adt->drivers);
+  BKE_fcurves_copy(&dadt->drivers, &adt->drivers);
   dadt->driver_array = NULL;
 
   /* don't copy overrides */
@@ -447,7 +447,7 @@ void BKE_animdata_merge_copy(
   if (src->drivers.first) {
     ListBase drivers = {NULL, NULL};
 
-    copy_fcurves(&drivers, &src->drivers);
+    BKE_fcurves_copy(&drivers, &src->drivers);
 
     /* Fix up all driver targets using the old target id
      * - This assumes that the src ID is being merged into the dst ID
@@ -1101,7 +1101,7 @@ static bool fcurves_path_remove_fix(const char *prefix, ListBase *curves)
     if (fcu->rna_path) {
       if (STRPREFIX(fcu->rna_path, prefix)) {
         BLI_remlink(curves, fcu);
-        free_fcurve(fcu);
+        BKE_fcurve_free(fcu);
         any_removed = true;
       }
     }

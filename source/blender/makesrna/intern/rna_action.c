@@ -147,7 +147,7 @@ static FCurve *rna_Action_fcurve_find(bAction *act,
   }
 
   /* Returns NULL if not found. */
-  return list_find_fcurve(&act->curves, data_path, index);
+  return BKE_fcurve_find(&act->curves, data_path, index);
 }
 
 static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerRNA *fcu_ptr)
@@ -164,7 +164,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerR
     }
 
     action_groups_remove_channel(act, fcu);
-    free_fcurve(fcu);
+    BKE_fcurve_free(fcu);
     RNA_POINTER_INVALIDATE(fcu_ptr);
   }
   else {
@@ -174,7 +174,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerR
     }
 
     BLI_remlink(&act->curves, fcu);
-    free_fcurve(fcu);
+    BKE_fcurve_free(fcu);
     RNA_POINTER_INVALIDATE(fcu_ptr);
   }
 

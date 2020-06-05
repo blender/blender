@@ -516,11 +516,11 @@ static void updateDuplicateActionConstraintSettings(EditBone *dup_bone,
   /* See if there is any channels that uses this bone */
   ListBase ani_curves;
   BLI_listbase_clear(&ani_curves);
-  if (list_find_data_fcurves(&ani_curves, &act->curves, "pose.bones[", orig_bone->name)) {
+  if (BKE_fcurves_filter(&ani_curves, &act->curves, "pose.bones[", orig_bone->name)) {
     /* Create a copy and mirror the animation */
     for (LinkData *ld = ani_curves.first; ld; ld = ld->next) {
       FCurve *old_curve = ld->data;
-      FCurve *new_curve = copy_fcurve(old_curve);
+      FCurve *new_curve = BKE_fcurve_copy(old_curve);
       bActionGroup *agrp;
 
       char *old_path = new_curve->rna_path;

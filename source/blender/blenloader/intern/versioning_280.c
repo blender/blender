@@ -759,7 +759,7 @@ static void do_version_bbone_scale_fcurve_fix(ListBase *curves, FCurve *fcu)
   /* Update F-Curve's path. */
   if (replace_bbone_scale_rnapath(&fcu->rna_path)) {
     /* If matched, duplicate the curve and tweak name. */
-    FCurve *second = copy_fcurve(fcu);
+    FCurve *second = BKE_fcurve_copy(fcu);
 
     second->rna_path[strlen(second->rna_path) - 1] = 'y';
 

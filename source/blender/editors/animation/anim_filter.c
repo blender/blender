@@ -988,7 +988,7 @@ static bAnimListElem *make_new_animlistelem(void *data,
              * then free the MEM_alloc'd string
              */
             if (rna_path) {
-              ale->key_data = (void *)list_find_fcurve(&act->curves, rna_path, 0);
+              ale->key_data = (void *)BKE_fcurve_find(&act->curves, rna_path, 0);
               MEM_freeN(rna_path);
             }
           }

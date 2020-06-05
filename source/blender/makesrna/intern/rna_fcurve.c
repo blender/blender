@@ -579,7 +579,7 @@ static void rna_FCurve_group_set(PointerRNA *ptr,
 /* calculate time extents of F-Curve */
 static void rna_FCurve_range(FCurve *fcu, float range[2])
 {
-  calc_fcurve_range(fcu, range, range + 1, false, false);
+  BKE_fcurve_calc_range(fcu, range, range + 1, false, false);
 }
 
 static bool rna_FCurve_is_empty_get(PointerRNA *ptr)

@@ -34,7 +34,7 @@ TEST(evaluate_fcurve, EmptyFCurve)
 {
   FCurve *fcu = BKE_fcurve_create();
   EXPECT_EQ(evaluate_fcurve(fcu, 47.0f), 0.0f);
-  free_fcurve(fcu);
+  BKE_fcurve_free(fcu);
 }
 
 TEST(evaluate_fcurve, OnKeys)
@@ -56,7 +56,7 @@ TEST(evaluate_fcurve, OnKeys)
   EXPECT_NEAR(evaluate_fcurve(fcu, 2.0f - time_epsilon), 13.0f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 2.0f + time_epsilon), 13.0f, EPSILON);
 
-  free_fcurve(fcu);
+  BKE_fcurve_free(fcu);
 }
 
 TEST(evaluate_fcurve, InterpolationConstant)
@@ -72,7 +72,7 @@ TEST(evaluate_fcurve, InterpolationConstant)
   EXPECT_NEAR(evaluate_fcurve(fcu, 1.25f), 7.0f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 1.50f), 7.0f, EPSILON);
 
-  free_fcurve(fcu);
+  BKE_fcurve_free(fcu);
 }
 
 TEST(evaluate_fcurve, InterpolationLinear)
@@ -89,7 +89,7 @@ TEST(evaluate_fcurve, InterpolationLinear)
   EXPECT_NEAR(evaluate_fcurve(fcu, 1.50f), 10.0f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 1.75f), 11.5f, EPSILON);
 
-  free_fcurve(fcu);
+  BKE_fcurve_free(fcu);
 }
 
 TEST(evaluate_fcurve, InterpolationBezier)
@@ -122,7 +122,7 @@ TEST(evaluate_fcurve, InterpolationBezier)
   EXPECT_NEAR(evaluate_fcurve(fcu, 1.50f), 9.3495407f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 1.75f), 11.088551f, EPSILON);
 
-  free_fcurve(fcu);
+  BKE_fcurve_free(fcu);
 }
 
 TEST(evaluate_fcurve, InterpolationBounce)
@@ -142,7 +142,7 @@ TEST(evaluate_fcurve, InterpolationBounce)
   EXPECT_NEAR(evaluate_fcurve(fcu, 1.5f), 8.4062500f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 1.8f), 11.184999f, EPSILON);
 
-  free_fcurve(fcu);
+  BKE_fcurve_free(fcu);
 }
 
 TEST(evaluate_fcurve, ExtrapolationLinearKeys)
@@ -171,7 +171,7 @@ TEST(evaluate_fcurve, ExtrapolationLinearKeys)
   EXPECT_NEAR(evaluate_fcurve(fcu, 2.75f), 13.0f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 3.50f), 13.0f, EPSILON);
 
-  free_fcurve(fcu);
+  BKE_fcurve_free(fcu);
 }
 
 TEST(evaluate_fcurve, ExtrapolationBezierKeys)
@@ -207,5 +207,5 @@ TEST(evaluate_fcurve, ExtrapolationBezierKeys)
   EXPECT_NEAR(evaluate_fcurve(fcu, 2.75f), 13.0f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 3.50f), 13.0f, EPSILON);
 
-  free_fcurve(fcu);
+  BKE_fcurve_free(fcu);
 }

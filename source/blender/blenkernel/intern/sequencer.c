@@ -5119,7 +5119,7 @@ void BKE_sequencer_dupe_animdata(Scene *scene, const char *name_src, const char 
 
   for (fcu = scene->adt->action->curves.first; fcu && fcu->prev != fcu_last; fcu = fcu->next) {
     if (STREQLEN(fcu->rna_path, str_from, str_from_len)) {
-      fcu_cpy = copy_fcurve(fcu);
+      fcu_cpy = BKE_fcurve_copy(fcu);
       BLI_addtail(&lb, fcu_cpy);
     }
   }
@@ -5152,7 +5152,7 @@ static void seq_free_animdata(Scene *scene, Sequence *seq)
       FCurve *next_fcu = fcu->next;
 
       BLI_remlink(&scene->adt->action->curves, fcu);
-      free_fcurve(fcu);
+      BKE_fcurve_free(fcu);
 
       fcu = next_fcu;
     }

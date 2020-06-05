@@ -145,7 +145,7 @@ static void graph_free(SpaceLink *sl)
   }
 
   if (si->runtime.ghost_curves.first) {
-    free_fcurves(&si->runtime.ghost_curves);
+    BKE_fcurves_free(&si->runtime.ghost_curves);
   }
 }
 

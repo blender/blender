@@ -354,7 +354,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 
     if (prop) {
       NlaStrip *strip = ptr.data;
-      FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
+      FCurve *fcu = BKE_fcurve_find(&strip->fcurves, RNA_property_identifier(prop), index);
 
       result = insert_keyframe_direct(&reports, ptr, prop, fcu, cfra, keytype, NULL, options);
     }
@@ -462,7 +462,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
     if (prop) {
       ID *id = ptr.owner_id;
       NlaStrip *strip = ptr.data;
-      FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
+      FCurve *fcu = BKE_fcurve_find(&strip->fcurves, RNA_property_identifier(prop), index);
 
       /* NOTE: This should be true, or else we wouldn't be able to get here. */
       BLI_assert(fcu != NULL);
@@ -577,13 +577,13 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
       if (index == -1) { /* all, use a list */
         int i = 0;
         ret = PyList_New(0);
-        while ((fcu = list_find_fcurve(&adt->drivers, path_full, i++))) {
+        while ((fcu = BKE_fcurve_find(&adt->drivers, path_full, i++))) {
           RNA_pointer_create(id, &RNA_FCurve, fcu, &tptr);
           PyList_APPEND(ret, pyrna_struct_CreatePyObject(&tptr));
         }
       }
       else {
-        fcu = list_find_fcurve(&adt->drivers, path_full, index);
+        fcu = BKE_fcurve_find(&adt->drivers, path_full, index);
         RNA_pointer_create(id, &RNA_FCurve, fcu, &tptr);
         ret = pyrna_struct_CreatePyObject(&tptr);
       }

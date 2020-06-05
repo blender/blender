@@ -648,7 +648,7 @@ static FCurve *rna_Driver_from_existing(AnimData *adt, bContext *C, FCurve *src_
   }
   else {
     /* just make a copy of the existing one and add to self */
-    FCurve *new_fcu = copy_fcurve(src_driver);
+    FCurve *new_fcu = BKE_fcurve_copy(src_driver);
 
     /* XXX: if we impose any ordering on these someday, this will be problematic */
     BLI_addtail(&adt->drivers, new_fcu);
@@ -664,7 +664,7 @@ static FCurve *rna_Driver_new(
     return NULL;
   }
 
-  if (list_find_fcurve(&adt->drivers, rna_path, array_index)) {
+  if (BKE_fcurve_find(&adt->drivers, rna_path, array_index)) {
     BKE_reportf(reports, RPT_ERROR, "Driver '%s[%d]' already exists", rna_path, array_index);
     return NULL;
   }
@@ -683,7 +683,7 @@ static void rna_Driver_remove(AnimData *adt, Main *bmain, ReportList *reports, F
     BKE_report(reports, RPT_ERROR, "Driver not found in this animation data");
     return;
   }
-  free_fcurve(fcu);
+  BKE_fcurve_free(fcu);
   DEG_relations_tag_update(bmain);
 }
 
@@ -698,7 +698,7 @@ static FCurve *rna_Driver_find(AnimData *adt,
   }
 
   /* Returns NULL if not found. */
-  return list_find_fcurve(&adt->drivers, data_path, index);
+  return BKE_fcurve_find(&adt->drivers, data_path, index);
 }
 
 bool rna_AnimaData_override_apply(Main *UNUSED(bmain),

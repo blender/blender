@@ -4952,7 +4952,7 @@ static int drivers_editor_show_exec(bContext *C, wmOperator *op)
       FCurve *fcu;
       bool driven, special;
 
-      fcu = rna_get_fcurve_context_ui(C, &ptr, prop, index, NULL, NULL, &driven, &special);
+      fcu = BKE_fcurve_find_by_rna_context_ui(C, &ptr, prop, index, NULL, NULL, &driven, &special);
       if (fcu) {
         /* Isolate this F-Curve... */
         bAnimContext ac;

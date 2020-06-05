@@ -61,7 +61,7 @@ static FCurve *ui_but_get_fcurve(
    * but works well enough in typical cases */
   int rnaindex = (but->rnaindex == -1) ? 0 : but->rnaindex;
 
-  return rna_get_fcurve_context_ui(
+  return BKE_fcurve_find_by_rna_context_ui(
       but->block->evil_C, &but->rnapoin, but->rnaprop, rnaindex, adt, action, r_driven, r_special);
 }
 

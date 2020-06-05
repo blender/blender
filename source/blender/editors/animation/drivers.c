@@ -92,7 +92,7 @@ FCurve *verify_driver_fcurve(ID *id,
    * - add if not found and allowed to add one
    * TODO: add auto-grouping support? how this works will need to be resolved
    */
-  fcu = list_find_fcurve(&adt->drivers, rna_path, array_index);
+  fcu = BKE_fcurve_find(&adt->drivers, rna_path, array_index);
 
   if (fcu == NULL && creation_mode != DRIVER_FCURVE_LOOKUP_ONLY) {
     /* use default settings to make a F-Curve */
@@ -570,13 +570,13 @@ bool ANIM_remove_driver(ReportList *UNUSED(reports),
       /* step through all drivers, removing all of those with the same base path */
       FCurve *fcu_iter = adt->drivers.first;
 
-      while ((fcu = iter_step_fcurve(fcu_iter, rna_path)) != NULL) {
+      while ((fcu = BKE_fcurve_iter_step(fcu_iter, rna_path)) != NULL) {
         /* store the next fcurve for looping  */
         fcu_iter = fcu->next;
 
         /* remove F-Curve from driver stack, then free it */
         BLI_remlink(&adt->drivers, fcu);
-        free_fcurve(fcu);
+        BKE_fcurve_free(fcu);
 
         /* done successfully */
         success = true;
@@ -590,7 +590,7 @@ bool ANIM_remove_driver(ReportList *UNUSED(reports),
       fcu = verify_driver_fcurve(id, rna_path, array_index, DRIVER_FCURVE_LOOKUP_ONLY);
       if (fcu) {
         BLI_remlink(&adt->drivers, fcu);
-        free_fcurve(fcu);
+        BKE_fcurve_free(fcu);
 
         success = true;
       }
@@ -611,7 +611,7 @@ void ANIM_drivers_copybuf_free(void)
 {
   /* free the buffer F-Curve if it exists, as if it were just another F-Curve */
   if (channeldriver_copypaste_buf) {
-    free_fcurve(channeldriver_copypaste_buf);
+    BKE_fcurve_free(channeldriver_copypaste_buf);
   }
   channeldriver_copypaste_buf = NULL;
 }
@@ -662,7 +662,7 @@ bool ANIM_copy_driver(
     fcu->rna_path = NULL;
 
     /* make a copy of the F-Curve with */
-    channeldriver_copypaste_buf = copy_fcurve(fcu);
+    channeldriver_copypaste_buf = BKE_fcurve_copy(fcu);
 
     /* restore the path */
     fcu->rna_path = tmp_path;
@@ -981,7 +981,8 @@ static bool add_driver_button_poll(bContext *C)
   }
 
   /* Don't do anything if there is an fcurve for animation without a driver. */
-  FCurve *fcu = rna_get_fcurve_context_ui(C, &ptr, prop, index, NULL, NULL, &driven, &special);
+  FCurve *fcu = BKE_fcurve_find_by_rna_context_ui(
+      C, &ptr, prop, index, NULL, NULL, &driven, &special);
   return (fcu == NULL || fcu->driver);
 }
 

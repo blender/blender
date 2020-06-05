@@ -2182,7 +2182,7 @@ bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
   }
 
   for (index = 0; index < len; index++) {
-    if (rna_get_fcurve(ptr, prop, index, NULL, NULL, &driven, &special)) {
+    if (BKE_fcurve_find_by_rna(ptr, prop, index, NULL, NULL, &driven, &special)) {
       return true;
     }
   }
