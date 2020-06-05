@@ -2150,60 +2150,60 @@ static void write_curve(BlendWriter *writer, Curve *cu, const void *id_address)
   }
 }
 
-static void write_dverts(WriteData *wd, int count, MDeformVert *dvlist)
+static void write_dverts(BlendWriter *writer, int count, MDeformVert *dvlist)
 {
   if (dvlist) {
 
     /* Write the dvert list */
-    writestruct(wd, DATA, MDeformVert, count, dvlist);
+    BLO_write_struct_array(writer, MDeformVert, count, dvlist);
 
     /* Write deformation data for each dvert */
     for (int i = 0; i < count; i++) {
       if (dvlist[i].dw) {
-        writestruct(wd, DATA, MDeformWeight, dvlist[i].totweight, dvlist[i].dw);
+        BLO_write_struct_array(writer, MDeformWeight, dvlist[i].totweight, dvlist[i].dw);
       }
     }
   }
 }
 
-static void write_mdisps(WriteData *wd, int count, MDisps *mdlist, int external)
+static void write_mdisps(BlendWriter *writer, int count, MDisps *mdlist, int external)
 {
   if (mdlist) {
     int i;
 
-    writestruct(wd, DATA, MDisps, count, mdlist);
+    BLO_write_struct_array(writer, MDisps, count, mdlist);
     for (i = 0; i < count; i++) {
       MDisps *md = &mdlist[i];
       if (md->disps) {
         if (!external) {
-          writedata(wd, DATA, sizeof(float) * 3 * md->totdisp, md->disps);
+          BLO_write_float3_array(writer, md->totdisp, md->disps);
         }
       }
 
       if (md->hidden) {
-        writedata(wd, DATA, BLI_BITMAP_SIZE(md->totdisp), md->hidden);
+        BLO_write_raw(writer, BLI_BITMAP_SIZE(md->totdisp), md->hidden);
       }
     }
   }
 }
 
-static void write_grid_paint_mask(WriteData *wd, int count, GridPaintMask *grid_paint_mask)
+static void write_grid_paint_mask(BlendWriter *writer, int count, GridPaintMask *grid_paint_mask)
 {
   if (grid_paint_mask) {
     int i;
 
-    writestruct(wd, DATA, GridPaintMask, count, grid_paint_mask);
+    BLO_write_struct_array(writer, GridPaintMask, count, grid_paint_mask);
     for (i = 0; i < count; i++) {
       GridPaintMask *gpm = &grid_paint_mask[i];
       if (gpm->data) {
         const int gridsize = BKE_ccg_gridsize(gpm->level);
-        writedata(wd, DATA, sizeof(*gpm->data) * gridsize * gridsize, gpm->data);
+        BLO_write_raw(writer, sizeof(*gpm->data) * gridsize * gridsize, gpm->data);
       }
     }
   }
 }
 
-static void write_customdata(WriteData *wd,
+static void write_customdata(BlendWriter *writer,
                              ID *id,
                              int count,
                              CustomData *data,
@@ -2213,11 +2213,11 @@ static void write_customdata(WriteData *wd,
   int i;
 
   /* write external customdata (not for undo) */
-  if (data->external && (wd->use_memfile == false)) {
+  if (data->external && !BLO_write_is_undo(writer)) {
     CustomData_external_write(data, id, cddata_mask, count, 0);
   }
 
-  writestruct_at_address(wd, DATA, CustomDataLayer, data->totlayer, data->layers, layers);
+  writestruct_at_address(writer->wd, DATA, CustomDataLayer, data->totlayer, data->layers, layers);
 
   for (i = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = &layers[i];
@@ -2226,33 +2226,33 @@ static void write_customdata(WriteData *wd,
 
     if (layer->type == CD_MDEFORMVERT) {
       /* layer types that allocate own memory need special handling */
-      write_dverts(wd, count, layer->data);
+      write_dverts(writer, count, layer->data);
     }
     else if (layer->type == CD_MDISPS) {
-      write_mdisps(wd, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
+      write_mdisps(writer, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
     }
     else if (layer->type == CD_PAINT_MASK) {
       const float *layer_data = layer->data;
-      writedata(wd, DATA, sizeof(*layer_data) * count, layer_data);
+      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
     }
     else if (layer->type == CD_SCULPT_FACE_SETS) {
       const float *layer_data = layer->data;
-      writedata(wd, DATA, sizeof(*layer_data) * count, layer_data);
+      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
     }
     else if (layer->type == CD_GRID_PAINT_MASK) {
-      write_grid_paint_mask(wd, count, layer->data);
+      write_grid_paint_mask(writer, count, layer->data);
     }
     else if (layer->type == CD_FACEMAP) {
       const int *layer_data = layer->data;
-      writedata(wd, DATA, sizeof(*layer_data) * count, layer_data);
+      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
     }
     else {
       CustomData_file_write_info(layer->type, &structname, &structnum);
       if (structnum) {
         datasize = structnum * count;
-        writestruct_id(wd, DATA, structname, datasize, layer->data);
+        BLO_write_struct_array_by_name(writer, structname, datasize, layer->data);
       }
-      else if (!wd->use_memfile) { /* Do not warn on undo. */
+      else if (!BLO_write_is_undo(writer)) { /* Do not warn on undo. */
         printf("%s error: layer '%s':%d - can't be written to file\n",
                __func__,
                structname,
@@ -2262,7 +2262,7 @@ static void write_customdata(WriteData *wd,
   }
 
   if (data->external) {
-    writestruct(wd, DATA, CustomDataExternal, 1, data->external);
+    BLO_write_struct(writer, CustomDataExternal, data->external);
   }
 }
 
@@ -2301,17 +2301,12 @@ static void write_mesh(BlendWriter *writer, Mesh *mesh, const void *id_address)
     BLO_write_pointer_array(writer, mesh->totcol, mesh->mat);
     BLO_write_raw(writer, sizeof(MSelect) * mesh->totselect, mesh->mselect);
 
-    write_customdata(
-        writer->wd, &mesh->id, mesh->totvert, &mesh->vdata, vlayers, CD_MASK_MESH.vmask);
-    write_customdata(
-        writer->wd, &mesh->id, mesh->totedge, &mesh->edata, elayers, CD_MASK_MESH.emask);
+    write_customdata(writer, &mesh->id, mesh->totvert, &mesh->vdata, vlayers, CD_MASK_MESH.vmask);
+    write_customdata(writer, &mesh->id, mesh->totedge, &mesh->edata, elayers, CD_MASK_MESH.emask);
     /* fdata is really a dummy - written so slots align */
-    write_customdata(
-        writer->wd, &mesh->id, mesh->totface, &mesh->fdata, flayers, CD_MASK_MESH.fmask);
-    write_customdata(
-        writer->wd, &mesh->id, mesh->totloop, &mesh->ldata, llayers, CD_MASK_MESH.lmask);
-    write_customdata(
-        writer->wd, &mesh->id, mesh->totpoly, &mesh->pdata, players, CD_MASK_MESH.pmask);
+    write_customdata(writer, &mesh->id, mesh->totface, &mesh->fdata, flayers, CD_MASK_MESH.fmask);
+    write_customdata(writer, &mesh->id, mesh->totloop, &mesh->ldata, llayers, CD_MASK_MESH.lmask);
+    write_customdata(writer, &mesh->id, mesh->totpoly, &mesh->pdata, players, CD_MASK_MESH.pmask);
 
     /* free temporary data */
     if (vlayers && vlayers != vlayers_buff) {
@@ -2351,7 +2346,7 @@ static void write_lattice(BlendWriter *writer, Lattice *lt, const void *id_addre
     /* direct data */
     BLO_write_struct_array(writer, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, lt->def);
 
-    write_dverts(writer->wd, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
+    write_dverts(writer, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
   }
 }
 
@@ -2903,7 +2898,7 @@ static void write_gpencil(BlendWriter *writer, bGPdata *gpd, const void *id_addr
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           BLO_write_struct_array(writer, bGPDspoint, gps->totpoints, gps->points);
           BLO_write_struct_array(writer, bGPDtriangle, gps->tot_triangles, gps->triangles);
-          write_dverts(writer->wd, gps->totpoints, gps->dvert);
+          write_dverts(writer, gps->totpoints, gps->dvert);
         }
       }
     }
@@ -3865,8 +3860,8 @@ static void write_hair(BlendWriter *writer, Hair *hair, const void *id_address)
     write_iddata(writer, &hair->id);
 
     /* Direct data */
-    write_customdata(writer->wd, &hair->id, hair->totpoint, &hair->pdata, players, CD_MASK_ALL);
-    write_customdata(writer->wd, &hair->id, hair->totcurve, &hair->cdata, clayers, CD_MASK_ALL);
+    write_customdata(writer, &hair->id, hair->totpoint, &hair->pdata, players, CD_MASK_ALL);
+    write_customdata(writer, &hair->id, hair->totcurve, &hair->cdata, clayers, CD_MASK_ALL);
     BLO_write_pointer_array(writer, hair->totcol, hair->mat);
     if (hair->adt) {
       write_animdata(writer, hair->adt);
@@ -3894,12 +3889,8 @@ static void write_pointcloud(BlendWriter *writer, PointCloud *pointcloud, const 
     write_iddata(writer, &pointcloud->id);
 
     /* Direct data */
-    write_customdata(writer->wd,
-                     &pointcloud->id,
-                     pointcloud->totpoint,
-                     &pointcloud->pdata,
-                     players,
-                     CD_MASK_ALL);
+    write_customdata(
+        writer, &pointcloud->id, pointcloud->totpoint, &pointcloud->pdata, players, CD_MASK_ALL);
     BLO_write_pointer_array(writer, pointcloud->totcol, pointcloud->mat);
     if (pointcloud->adt) {
       write_animdata(writer, pointcloud->adt);
