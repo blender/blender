@@ -3157,11 +3157,11 @@ static void write_area_map(WriteData *wd, ScrAreaMap *area_map)
   }
 }
 
-static void write_windowmanager(WriteData *wd, wmWindowManager *wm, const void *id_address)
+static void write_windowmanager(BlendWriter *writer, wmWindowManager *wm, const void *id_address)
 {
-  writestruct_at_address(wd, ID_WM, wmWindowManager, 1, id_address, wm);
-  write_iddata(wd, &wm->id);
-  write_wm_xr_data(wd, &wm->xr);
+  BLO_write_id_struct(writer, wmWindowManager, id_address, &wm->id);
+  write_iddata(writer->wd, &wm->id);
+  write_wm_xr_data(writer->wd, &wm->xr);
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
 #ifndef WITH_GLOBAL_AREA_WRITING
@@ -3173,12 +3173,12 @@ static void write_windowmanager(WriteData *wd, wmWindowManager *wm, const void *
     /* update deprecated screen member (for so loading in 2.7x uses the correct screen) */
     win->screen = BKE_workspace_active_screen_get(win->workspace_hook);
 
-    writestruct(wd, DATA, wmWindow, 1, win);
-    writestruct(wd, DATA, WorkSpaceInstanceHook, 1, win->workspace_hook);
-    writestruct(wd, DATA, Stereo3dFormat, 1, win->stereo3d_format);
+    BLO_write_struct(writer, wmWindow, win);
+    BLO_write_struct(writer, WorkSpaceInstanceHook, win->workspace_hook);
+    BLO_write_struct(writer, Stereo3dFormat, win->stereo3d_format);
 
 #ifdef WITH_GLOBAL_AREA_WRITING
-    write_area_map(wd, &win->global_areas);
+    write_area_map(writer->wd, &win->global_areas);
 #else
     win->global_areas = global_areas;
 #endif
@@ -4201,9 +4201,11 @@ static bool write_file_handle(Main *mainvar,
         ((ID *)id_buffer)->prev = NULL;
         ((ID *)id_buffer)->next = NULL;
 
+        BlendWriter writer = {wd};
+
         switch ((ID_Type)GS(id->name)) {
           case ID_WM:
-            write_windowmanager(wd, (wmWindowManager *)id_buffer, id);
+            write_windowmanager(&writer, (wmWindowManager *)id_buffer, id);
             break;
           case ID_WS:
             write_workspace(wd, (WorkSpace *)id_buffer, id);
