@@ -293,15 +293,29 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA ptr;
   PointerRNA ob_ptr;
   modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
-  MultiresModifierData *mmd = (MultiresModifierData *)ptr.data;
 
-  PointerRNA op_ptr;
+  /**
+   * Changing some of the properties can not be done once there is an
+   * actual displacement stored for this multires modifier. This check
+   * will disallow changes for those properties.
+   * This check is a bit stupif but it should be sufficient for the usual
+   * multires usage. It might become less strict and only disallow
+   * modifications if there is CD_MDISPS layer, or if there is actual
+   * non-zero displacement, but such checks will be too slow to be done
+   * on every redraw.
+   */
+  bool has_displacement = RNA_int_get(&ptr, "total_levels") != 0;
+  MultiresModifierData *mmd = (MultiresModifierData *)ptr.data;
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "subdivision_type", 0, NULL, ICON_NONE);
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetEnabled(col, !has_displacement);
+  uiItemR(col, &ptr, "subdivision_type", 0, NULL, ICON_NONE);
+
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, &ptr, "levels", 0, IFACE_("Levels Viewport"), ICON_NONE);
+  uiItemR(col, &ptr, "sculpt_levels", 0, IFACE_("Levels Sculpt"), ICON_NONE);
+  uiItemR(col, &ptr, "levels", 0, IFACE_("Viewport"), ICON_NONE);
   uiItemR(col, &ptr, "render_levels", 0, IFACE_("Render"), ICON_NONE);
   uiItemR(layout, &ptr, "show_only_control_edges", 0, NULL, ICON_NONE);
 
@@ -315,6 +329,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemO(col, IFACE_("Unsubdivide"), ICON_NONE, "OBJECT_OT_multires_unsubdivide");
 
   row = uiLayoutRow(col2, true);
+  PointerRNA op_ptr;
   uiItemFullO(row,
               "OBJECT_OT_multires_subdivide",
               IFACE_("Subdivide"),
@@ -324,6 +339,7 @@ static void panel_draw(const bContext *C, Panel *panel)
               0,
               &op_ptr);
   RNA_enum_set(&op_ptr, "mode", MULTIRES_SUBDIVIDE_CATMULL_CLARK);
+  RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
   uiItemFullO(row,
               "OBJECT_OT_multires_subdivide",
               IFACE_("Simple"),
@@ -333,6 +349,7 @@ static void panel_draw(const bContext *C, Panel *panel)
               0,
               &op_ptr);
   RNA_enum_set(&op_ptr, "mode", MULTIRES_SUBDIVIDE_SIMPLE);
+  RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
   uiItemFullO(row,
               "OBJECT_OT_multires_subdivide",
               IFACE_("Linear"),
@@ -342,6 +359,7 @@ static void panel_draw(const bContext *C, Panel *panel)
               0,
               &op_ptr);
   RNA_enum_set(&op_ptr, "mode", MULTIRES_SUBDIVIDE_LINEAR);
+  RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
 
   uiItemL(col, "", ICON_NONE);
   uiItemO(col2, IFACE_("Delete Higher"), ICON_NONE, "OBJECT_OT_multires_higher_levels_delete");
@@ -372,16 +390,25 @@ static void panel_draw(const bContext *C, Panel *panel)
 
 static void advanced_panel_draw(const bContext *C, Panel *panel)
 {
+  uiLayout *col;
   uiLayout *layout = panel->layout;
 
   PointerRNA ptr;
   modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
 
+  bool has_displacement = RNA_int_get(&ptr, "total_levels") != 0;
+
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "quality", 0, NULL, ICON_NONE);
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetEnabled(col, !has_displacement);
+  uiItemR(col, &ptr, "quality", 0, NULL, ICON_NONE);
+
   uiItemR(layout, &ptr, "uv_smooth", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "use_creases", 0, NULL, ICON_NONE);
+
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetEnabled(col, !has_displacement);
+  uiItemR(col, &ptr, "use_creases", 0, NULL, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)
