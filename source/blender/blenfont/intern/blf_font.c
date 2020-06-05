@@ -290,7 +290,6 @@ void blf_font_size(FontBLF *font, unsigned int size, unsigned int dpi)
 
   gc = blf_glyph_cache_find(font, size, dpi);
   if (gc) {
-    font->glyph_cache = gc;
     /* Optimization: do not call FT_Set_Char_Size if size did not change. */
     if (font->size == size && font->dpi == dpi) {
       blf_glyph_cache_release(font);
@@ -311,13 +310,7 @@ void blf_font_size(FontBLF *font, unsigned int size, unsigned int dpi)
   font->dpi = dpi;
 
   if (!gc) {
-    gc = blf_glyph_cache_new(font);
-    if (gc) {
-      font->glyph_cache = gc;
-    }
-    else {
-      font->glyph_cache = NULL;
-    }
+    blf_glyph_cache_new(font);
   }
   blf_glyph_cache_release(font);
 }
@@ -1309,7 +1302,6 @@ void blf_font_free(FontBLF *font)
   BLI_spin_lock(&blf_glyph_cache_mutex);
   GlyphCacheBLF *gc;
 
-  font->glyph_cache = NULL;
   while ((gc = BLI_pophead(&font->cache))) {
     blf_glyph_cache_free(gc);
   }
@@ -1356,7 +1348,6 @@ static void blf_font_fill(FontBLF *font)
   font->size = 0;
   BLI_listbase_clear(&font->cache);
   BLI_listbase_clear(&font->kerning_caches);
-  font->glyph_cache = NULL;
   font->kerning_cache = NULL;
 #if BLF_BLUR_ENABLE
   font->blur = 0;

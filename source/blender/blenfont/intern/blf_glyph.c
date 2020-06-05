@@ -119,7 +119,8 @@ GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, unsigned int size, unsigned i
 
   p = (GlyphCacheBLF *)font->cache.first;
   while (p) {
-    if (p->size == size && p->dpi == dpi) {
+    if (p->size == size && p->dpi == dpi && (p->bold == ((font->flags & BLF_BOLD) != 0)) &&
+        (p->italic == ((font->flags & BLF_ITALIC) != 0))) {
       return p;
     }
     p = p->next;
@@ -127,7 +128,7 @@ GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, unsigned int size, unsigned i
   return NULL;
 }
 
-/* Create a new glyph cache for the current size and dpi. */
+/* Create a new glyph cache for the current size, dpi, bold, italic. */
 GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 {
   GlyphCacheBLF *gc;
@@ -137,6 +138,8 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
   gc->prev = NULL;
   gc->size = font->size;
   gc->dpi = font->dpi;
+  gc->bold = ((font->flags & BLF_BOLD) != 0);
+  gc->italic = ((font->flags & BLF_ITALIC) != 0);
 
   memset(gc->glyph_ascii_table, 0, sizeof(gc->glyph_ascii_table));
   memset(gc->bucket, 0, sizeof(gc->bucket));
@@ -172,20 +175,13 @@ GlyphCacheBLF *blf_glyph_cache_acquire(FontBLF *font)
 {
   BLI_spin_lock(font->glyph_cache_mutex);
 
-  GlyphCacheBLF *gc;
+  GlyphCacheBLF *gc = blf_glyph_cache_find(font, font->size, font->dpi);
 
-  if (!font->glyph_cache) {
+  if (!gc) {
     gc = blf_glyph_cache_new(font);
-    if (gc) {
-      font->glyph_cache = gc;
-    }
-    else {
-      font->glyph_cache = NULL;
-      return NULL;
-    }
   }
 
-  return font->glyph_cache;
+  return gc;
 }
 
 void blf_glyph_cache_release(FontBLF *font)
@@ -202,7 +198,6 @@ void blf_glyph_cache_clear(FontBLF *font)
   while ((gc = BLI_pophead(&font->cache))) {
     blf_glyph_cache_free(gc);
   }
-  font->glyph_cache = NULL;
 
   BLI_spin_unlock(font->glyph_cache_mutex);
 }
@@ -269,28 +264,65 @@ GlyphBLF *blf_glyph_add(FontBLF *font, GlyphCacheBLF *gc, unsigned int index, un
     return g;
   }
 
+  int load_flags;
+  int render_mode;
+
   if (font->flags & BLF_MONOCHROME) {
-    err = FT_Load_Glyph(font->face, (FT_UInt)index, FT_LOAD_TARGET_MONO);
+    load_flags = FT_LOAD_TARGET_MONO;
+    render_mode = FT_RENDER_MODE_MONO;
   }
   else {
-    int flags = FT_LOAD_NO_BITMAP;
-
+    load_flags = FT_LOAD_NO_BITMAP;
+    render_mode = FT_RENDER_MODE_NORMAL;
     if (font->flags & BLF_HINTING_NONE) {
-      flags |= FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING;
+      load_flags |= FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING;
     }
     else if (font->flags & BLF_HINTING_SLIGHT) {
-      flags |= FT_LOAD_TARGET_LIGHT;
+      load_flags |= FT_LOAD_TARGET_LIGHT;
     }
     else if (font->flags & BLF_HINTING_FULL) {
-      flags |= FT_LOAD_TARGET_NORMAL;
+      load_flags |= FT_LOAD_TARGET_NORMAL;
     }
     else {
       /* Default, hinting disabled until FreeType has been upgraded
        * to give good results on all platforms. */
-      flags |= FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING;
+      load_flags |= FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING;
     }
+  }
 
-    err = FT_Load_Glyph(font->face, (FT_UInt)index, flags);
+  err = FT_Load_Glyph(font->face, (FT_UInt)index, load_flags);
+
+  /* Do not oblique a font that is designed to be italic! */
+  if (((font->flags & BLF_ITALIC) != 0) && !(font->face->style_flags & FT_STYLE_FLAG_ITALIC) &&
+      (font->face->glyph->format == FT_GLYPH_FORMAT_OUTLINE)) {
+    /* For (fake) italic: a shear transform with a 6 degree angle. */
+    FT_Matrix transform;
+    transform.xx = 0x10000L;
+    transform.yx = 0x00000L;
+    transform.xy = 0x03000L;
+    transform.yy = 0x10000L;
+    FT_Outline_Transform(&font->face->glyph->outline, &transform);
+  }
+
+  /* Do not embolden an already bold font! */
+  if (((font->flags & BLF_BOLD) != 0) &&
+      !(font->face->style_flags & FT_STYLE_FLAG_BOLD) &
+          (font->face->glyph->format == FT_GLYPH_FORMAT_OUTLINE)) {
+    /* Strengthen the width more than the height. */
+    const FT_Pos extra_x = FT_MulFix(font->face->units_per_EM, font->face->size->metrics.x_scale) /
+                           14;
+    const FT_Pos extra_y = FT_MulFix(font->face->units_per_EM, font->face->size->metrics.y_scale) /
+                           28;
+    FT_Outline_EmboldenXY(&font->face->glyph->outline, extra_x, extra_y);
+    if ((font->face->face_flags & FT_FACE_FLAG_FIXED_WIDTH) == 0) {
+      /* Need to increase advance, but not for fixed-width fonts. */
+      font->face->glyph->advance.x += (int) (extra_x * 1.05f);
+      font->face->glyph->advance.y += extra_y;
+    }
+    else {
+      /* Widened fixed-pitch font gets a nudge left. */
+      FT_Outline_Translate(&font->face->glyph->outline, (extra_x / -2), 0);
+    }
   }
 
   if (err) {
@@ -300,22 +332,17 @@ GlyphBLF *blf_glyph_add(FontBLF *font, GlyphCacheBLF *gc, unsigned int index, un
 
   /* get the glyph. */
   slot = font->face->glyph;
+  err = FT_Render_Glyph(slot, render_mode);
 
   if (font->flags & BLF_MONOCHROME) {
-    err = FT_Render_Glyph(slot, FT_RENDER_MODE_MONO);
-
     /* Convert result from 1 bit per pixel to 8 bit per pixel */
     /* Accum errors for later, fine if not interested beyond "ok vs any error" */
     FT_Bitmap_New(&tempbitmap);
 
     /* Does Blender use Pitch 1 always? It works so far */
     err += FT_Bitmap_Convert(font->ft_lib, &slot->bitmap, &tempbitmap, 1);
-
     err += FT_Bitmap_Copy(font->ft_lib, &tempbitmap, &slot->bitmap);
     err += FT_Bitmap_Done(font->ft_lib, &tempbitmap);
-  }
-  else {
-    err = FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL);
   }
 
   if (err || slot->format != FT_GLYPH_FORMAT_BITMAP) {

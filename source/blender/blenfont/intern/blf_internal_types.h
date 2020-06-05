@@ -65,6 +65,9 @@ typedef struct GlyphCacheBLF {
   /* and dpi. */
   unsigned int dpi;
 
+  bool bold;
+  bool italic;
+
   /* and the glyphs. */
   ListBase bucket[257];
 
@@ -218,13 +221,10 @@ typedef struct FontBLF {
   /* font options. */
   int flags;
 
-  /* list of glyph cache for this font. */
-  ListBase cache;
-
-  /* current glyph cache, size and dpi.
+  /* List of glyph caches (GlyphCacheBLF) for this font for size, dpi, bold, italic.
    * Use blf_glyph_cache_acquire(font) and blf_glyph_cache_release(font) to access cache!
    */
-  GlyphCacheBLF *glyph_cache;
+  ListBase cache;
 
   /* list of kerning cache for this font. */
   ListBase kerning_caches;

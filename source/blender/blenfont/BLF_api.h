@@ -279,6 +279,8 @@ void BLF_state_print(int fontid);
 #define BLF_HINTING_NONE (1 << 8)
 #define BLF_HINTING_SLIGHT (1 << 9)
 #define BLF_HINTING_FULL (1 << 10)
+#define BLF_BOLD (1 << 11)
+#define BLF_ITALIC (1 << 12)
 
 #define BLF_DRAW_STR_DUMMY_MAX 1024
 

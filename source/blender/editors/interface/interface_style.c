@@ -169,6 +169,12 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
   if (fs_params->word_wrap == 1) {
     font_flag |= BLF_WORD_WRAP;
   }
+  if (fs->bold) {
+    font_flag |= BLF_BOLD;
+  }
+  if (fs->italic) {
+    font_flag |= BLF_ITALIC;
+  }
 
   BLF_enable(fs->uifont_id, font_flag);
 
