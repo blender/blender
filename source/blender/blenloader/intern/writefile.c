@@ -2080,9 +2080,9 @@ static void write_camera(WriteData *wd, Camera *cam, const void *id_address)
   }
 }
 
-static void write_mball(WriteData *wd, MetaBall *mb, const void *id_address)
+static void write_mball(BlendWriter *writer, MetaBall *mb, const void *id_address)
 {
-  if (mb->id.us > 0 || wd->use_memfile) {
+  if (mb->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     BLI_listbase_clear(&mb->disp);
     mb->editelems = NULL;
@@ -2092,60 +2092,61 @@ static void write_mball(WriteData *wd, MetaBall *mb, const void *id_address)
     mb->batch_cache = NULL;
 
     /* write LibData */
-    writestruct_at_address(wd, ID_MB, MetaBall, 1, id_address, mb);
-    write_iddata(wd, &mb->id);
+    BLO_write_id_struct(writer, MetaBall, id_address, &mb->id);
+    write_iddata(writer->wd, &mb->id);
 
     /* direct data */
-    writedata(wd, DATA, sizeof(void *) * mb->totcol, mb->mat);
+    BLO_write_pointer_array(writer, mb->totcol, mb->mat);
     if (mb->adt) {
-      write_animdata(wd, mb->adt);
+      write_animdata(writer->wd, mb->adt);
     }
 
     LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
-      writestruct(wd, DATA, MetaElem, 1, ml);
+      BLO_write_struct(writer, MetaElem, ml);
     }
   }
 }
 
-static void write_curve(WriteData *wd, Curve *cu, const void *id_address)
+static void write_curve(BlendWriter *writer, Curve *cu, const void *id_address)
 {
-  if (cu->id.us > 0 || wd->use_memfile) {
+  if (cu->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     cu->editnurb = NULL;
     cu->editfont = NULL;
     cu->batch_cache = NULL;
 
     /* write LibData */
-    writestruct_at_address(wd, ID_CU, Curve, 1, id_address, cu);
-    write_iddata(wd, &cu->id);
+    BLO_write_id_struct(writer, Curve, id_address, &cu->id);
+    write_iddata(writer->wd, &cu->id);
 
     /* direct data */
-    writedata(wd, DATA, sizeof(void *) * cu->totcol, cu->mat);
+    BLO_write_pointer_array(writer, cu->totcol, cu->mat);
     if (cu->adt) {
-      write_animdata(wd, cu->adt);
+      write_animdata(writer->wd, cu->adt);
     }
 
     if (cu->vfont) {
-      writedata(wd, DATA, cu->len + 1, cu->str);
-      writestruct(wd, DATA, CharInfo, cu->len_wchar + 1, cu->strinfo);
-      writestruct(wd, DATA, TextBox, cu->totbox, cu->tb);
+      BLO_write_raw(writer, cu->len + 1, cu->str);
+      BLO_write_struct_array(writer, CharInfo, cu->len_wchar + 1, cu->strinfo);
+      BLO_write_struct_array(writer, TextBox, cu->totbox, cu->tb);
     }
     else {
       /* is also the order of reading */
       LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
-        writestruct(wd, DATA, Nurb, 1, nu);
+        BLO_write_struct(writer, Nurb, nu);
       }
       LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
         if (nu->type == CU_BEZIER) {
-          writestruct(wd, DATA, BezTriple, nu->pntsu, nu->bezt);
+          BLO_write_struct_array(writer, BezTriple, nu->pntsu, nu->bezt);
         }
         else {
-          writestruct(wd, DATA, BPoint, nu->pntsu * nu->pntsv, nu->bp);
+
+          BLO_write_struct_array(writer, BPoint, nu->pntsu * nu->pntsv, nu->bp);
           if (nu->knotsu) {
-            writedata(wd, DATA, KNOTSU(nu) * sizeof(float), nu->knotsu);
+            BLO_write_float_array(writer, KNOTSU(nu), nu->knotsu);
           }
           if (nu->knotsv) {
-            writedata(wd, DATA, KNOTSV(nu) * sizeof(float), nu->knotsv);
+            BLO_write_float_array(writer, KNOTSV(nu), nu->knotsv);
           }
         }
       }
@@ -2353,9 +2354,9 @@ static void write_lattice(WriteData *wd, Lattice *lt, const void *id_address)
   }
 }
 
-static void write_image(WriteData *wd, Image *ima, const void *id_address)
+static void write_image(BlendWriter *writer, Image *ima, const void *id_address)
 {
-  if (ima->id.us > 0 || wd->use_memfile) {
+  if (ima->id.us > 0 || BLO_write_is_undo(writer)) {
     ImagePackedFile *imapf;
 
     /* Some trickery to keep forward compatibility of packed images. */
@@ -2366,135 +2367,135 @@ static void write_image(WriteData *wd, Image *ima, const void *id_address)
     }
 
     /* write LibData */
-    writestruct_at_address(wd, ID_IM, Image, 1, id_address, ima);
-    write_iddata(wd, &ima->id);
+    BLO_write_id_struct(writer, Image, id_address, &ima->id);
+    write_iddata(writer->wd, &ima->id);
 
     for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
-      writestruct(wd, DATA, ImagePackedFile, 1, imapf);
+      BLO_write_struct(writer, ImagePackedFile, imapf);
       if (imapf->packedfile) {
         PackedFile *pf = imapf->packedfile;
-        writestruct(wd, DATA, PackedFile, 1, pf);
-        writedata(wd, DATA, pf->size, pf->data);
+        BLO_write_struct(writer, PackedFile, pf);
+        BLO_write_raw(writer, pf->size, pf->data);
       }
     }
 
-    write_previews(wd, ima->preview);
+    write_previews(writer->wd, ima->preview);
 
     LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
-      writestruct(wd, DATA, ImageView, 1, iv);
+      BLO_write_struct(writer, ImageView, iv);
     }
-    writestruct(wd, DATA, Stereo3dFormat, 1, ima->stereo3d_format);
+    BLO_write_struct(writer, Stereo3dFormat, ima->stereo3d_format);
 
-    writelist(wd, DATA, ImageTile, &ima->tiles);
+    BLO_write_struct_list(writer, ImageTile, &ima->tiles);
 
     ima->packedfile = NULL;
 
-    writelist(wd, DATA, RenderSlot, &ima->renderslots);
+    BLO_write_struct_list(writer, RenderSlot, &ima->renderslots);
   }
 }
 
-static void write_texture(WriteData *wd, Tex *tex, const void *id_address)
+static void write_texture(BlendWriter *writer, Tex *tex, const void *id_address)
 {
-  if (tex->id.us > 0 || wd->use_memfile) {
+  if (tex->id.us > 0 || BLO_write_is_undo(writer)) {
     /* write LibData */
-    writestruct_at_address(wd, ID_TE, Tex, 1, id_address, tex);
-    write_iddata(wd, &tex->id);
+    BLO_write_id_struct(writer, Tex, id_address, &tex->id);
+    write_iddata(writer->wd, &tex->id);
 
     if (tex->adt) {
-      write_animdata(wd, tex->adt);
+      write_animdata(writer->wd, tex->adt);
     }
 
     /* direct data */
     if (tex->coba) {
-      writestruct(wd, DATA, ColorBand, 1, tex->coba);
+      BLO_write_struct(writer, ColorBand, tex->coba);
     }
 
     /* nodetree is integral part of texture, no libdata */
     if (tex->nodetree) {
-      writestruct(wd, DATA, bNodeTree, 1, tex->nodetree);
-      write_nodetree_nolib(wd, tex->nodetree);
+      BLO_write_struct(writer, bNodeTree, tex->nodetree);
+      write_nodetree_nolib(writer->wd, tex->nodetree);
     }
 
-    write_previews(wd, tex->preview);
+    write_previews(writer->wd, tex->preview);
   }
 }
 
-static void write_material(WriteData *wd, Material *ma, const void *id_address)
+static void write_material(BlendWriter *writer, Material *ma, const void *id_address)
 {
-  if (ma->id.us > 0 || wd->use_memfile) {
+  if (ma->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     ma->texpaintslot = NULL;
     BLI_listbase_clear(&ma->gpumaterial);
 
     /* write LibData */
-    writestruct_at_address(wd, ID_MA, Material, 1, id_address, ma);
-    write_iddata(wd, &ma->id);
+    BLO_write_id_struct(writer, Material, id_address, &ma->id);
+    write_iddata(writer->wd, &ma->id);
 
     if (ma->adt) {
-      write_animdata(wd, ma->adt);
+      write_animdata(writer->wd, ma->adt);
     }
 
     /* nodetree is integral part of material, no libdata */
     if (ma->nodetree) {
-      writestruct(wd, DATA, bNodeTree, 1, ma->nodetree);
-      write_nodetree_nolib(wd, ma->nodetree);
+      BLO_write_struct(writer, bNodeTree, ma->nodetree);
+      write_nodetree_nolib(writer->wd, ma->nodetree);
     }
 
-    write_previews(wd, ma->preview);
+    write_previews(writer->wd, ma->preview);
 
     /* grease pencil settings */
     if (ma->gp_style) {
-      writestruct(wd, DATA, MaterialGPencilStyle, 1, ma->gp_style);
+      BLO_write_struct(writer, MaterialGPencilStyle, ma->gp_style);
     }
   }
 }
 
-static void write_world(WriteData *wd, World *wrld, const void *id_address)
+static void write_world(BlendWriter *writer, World *wrld, const void *id_address)
 {
-  if (wrld->id.us > 0 || wd->use_memfile) {
+  if (wrld->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     BLI_listbase_clear(&wrld->gpumaterial);
 
     /* write LibData */
-    writestruct_at_address(wd, ID_WO, World, 1, id_address, wrld);
-    write_iddata(wd, &wrld->id);
+    BLO_write_id_struct(writer, World, id_address, &wrld->id);
+    write_iddata(writer->wd, &wrld->id);
 
     if (wrld->adt) {
-      write_animdata(wd, wrld->adt);
+      write_animdata(writer->wd, wrld->adt);
     }
 
     /* nodetree is integral part of world, no libdata */
     if (wrld->nodetree) {
-      writestruct(wd, DATA, bNodeTree, 1, wrld->nodetree);
-      write_nodetree_nolib(wd, wrld->nodetree);
+      BLO_write_struct(writer, bNodeTree, wrld->nodetree);
+      write_nodetree_nolib(writer->wd, wrld->nodetree);
     }
 
-    write_previews(wd, wrld->preview);
+    write_previews(writer->wd, wrld->preview);
   }
 }
 
-static void write_light(WriteData *wd, Light *la, const void *id_address)
+static void write_light(BlendWriter *writer, Light *la, const void *id_address)
 {
-  if (la->id.us > 0 || wd->use_memfile) {
+  if (la->id.us > 0 || BLO_write_is_undo(writer)) {
     /* write LibData */
-    writestruct_at_address(wd, ID_LA, Light, 1, id_address, la);
-    write_iddata(wd, &la->id);
+    BLO_write_id_struct(writer, Light, id_address, &la->id);
+    write_iddata(writer->wd, &la->id);
 
     if (la->adt) {
-      write_animdata(wd, la->adt);
+      write_animdata(writer->wd, la->adt);
     }
 
     if (la->curfalloff) {
-      write_curvemapping(wd, la->curfalloff);
+      write_curvemapping(writer->wd, la->curfalloff);
     }
 
     /* Node-tree is integral part of lights, no libdata. */
     if (la->nodetree) {
-      writestruct(wd, DATA, bNodeTree, 1, la->nodetree);
-      write_nodetree_nolib(wd, la->nodetree);
+      BLO_write_struct(writer, bNodeTree, la->nodetree);
+      write_nodetree_nolib(writer->wd, la->nodetree);
     }
 
-    write_previews(wd, la->preview);
+    write_previews(writer->wd, la->preview);
   }
 }
 
@@ -4223,19 +4224,19 @@ static bool write_file_handle(Main *mainvar,
             write_scene(&writer, (Scene *)id_buffer, id);
             break;
           case ID_CU:
-            write_curve(wd, (Curve *)id_buffer, id);
+            write_curve(&writer, (Curve *)id_buffer, id);
             break;
           case ID_MB:
-            write_mball(wd, (MetaBall *)id_buffer, id);
+            write_mball(&writer, (MetaBall *)id_buffer, id);
             break;
           case ID_IM:
-            write_image(wd, (Image *)id_buffer, id);
+            write_image(&writer, (Image *)id_buffer, id);
             break;
           case ID_CA:
             write_camera(wd, (Camera *)id_buffer, id);
             break;
           case ID_LA:
-            write_light(wd, (Light *)id_buffer, id);
+            write_light(&writer, (Light *)id_buffer, id);
             break;
           case ID_LT:
             write_lattice(wd, (Lattice *)id_buffer, id);
@@ -4247,7 +4248,7 @@ static bool write_file_handle(Main *mainvar,
             write_key(wd, (Key *)id_buffer, id);
             break;
           case ID_WO:
-            write_world(wd, (World *)id_buffer, id);
+            write_world(&writer, (World *)id_buffer, id);
             break;
           case ID_TXT:
             write_text(&writer, (Text *)id_buffer, id);
@@ -4274,10 +4275,10 @@ static bool write_file_handle(Main *mainvar,
             write_object(wd, (Object *)id_buffer, id);
             break;
           case ID_MA:
-            write_material(wd, (Material *)id_buffer, id);
+            write_material(&writer, (Material *)id_buffer, id);
             break;
           case ID_TE:
-            write_texture(wd, (Tex *)id_buffer, id);
+            write_texture(&writer, (Tex *)id_buffer, id);
             break;
           case ID_ME:
             write_mesh(wd, (Mesh *)id_buffer, id);
