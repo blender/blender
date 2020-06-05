@@ -243,7 +243,7 @@ CUDADevice::CUDADevice(DeviceInfo &info, Stats &stats, Profiler &profiler, bool 
 
 CUDADevice::~CUDADevice()
 {
-  task_pool.stop();
+  task_pool.cancel();
 
   delete split_kernel;
 

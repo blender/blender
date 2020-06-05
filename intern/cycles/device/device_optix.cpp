@@ -246,7 +246,7 @@ class OptiXDevice : public CUDADevice {
   ~OptiXDevice()
   {
     // Stop processing any more tasks
-    task_pool.stop();
+    task_pool.cancel();
 
     // Make CUDA context current
     const CUDAContextScope scope(cuContext);

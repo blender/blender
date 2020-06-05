@@ -610,6 +610,7 @@ void OpenCLDevice::opencl_assert_err(cl_int err, const char *where)
 
 OpenCLDevice::OpenCLDevice(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background)
     : Device(info, stats, profiler, background),
+      load_kernel_num_compiling(0),
       kernel_programs(this),
       preview_programs(this),
       memory_manager(this),
@@ -684,9 +685,9 @@ OpenCLDevice::OpenCLDevice(DeviceInfo &info, Stats &stats, Profiler &profiler, b
 
 OpenCLDevice::~OpenCLDevice()
 {
-  task_pool.stop();
-  load_required_kernel_task_pool.stop();
-  load_kernel_task_pool.stop();
+  task_pool.cancel();
+  load_required_kernel_task_pool.cancel();
+  load_kernel_task_pool.cancel();
 
   memory_manager.free();
 
@@ -798,7 +799,11 @@ bool OpenCLDevice::load_kernels(const DeviceRequestedFeatures &requested_feature
    * internally within a single process. */
   foreach (OpenCLProgram *program, programs) {
     if (!program->load()) {
-      load_kernel_task_pool.push(function_bind(&OpenCLProgram::compile, program));
+      load_kernel_num_compiling++;
+      load_kernel_task_pool.push([&] {
+        program->compile();
+        load_kernel_num_compiling--;
+      });
     }
   }
   return true;
@@ -868,7 +873,7 @@ bool OpenCLDevice::wait_for_availability(const DeviceRequestedFeatures &requeste
      * Better to check on device level than per kernel as mixing preview and
      * non-preview kernels does not work due to different data types */
     if (use_preview_kernels) {
-      use_preview_kernels = !load_kernel_task_pool.finished();
+      use_preview_kernels = load_kernel_num_compiling.load() > 0;
     }
   }
   return split_kernel->load_kernels(requested_features);
@@ -895,7 +900,7 @@ DeviceKernelStatus OpenCLDevice::get_active_kernel_switch_state()
     return DEVICE_KERNEL_USING_FEATURE_KERNEL;
   }
 
-  bool other_kernels_finished = load_kernel_task_pool.finished();
+  bool other_kernels_finished = load_kernel_num_compiling.load() == 0;
   if (use_preview_kernels) {
     if (other_kernels_finished) {
       return DEVICE_KERNEL_FEATURE_KERNEL_AVAILABLE;

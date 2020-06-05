@@ -333,7 +333,7 @@ class CPUDevice : public Device {
 
   ~CPUDevice()
   {
-    task_pool.stop();
+    task_pool.cancel();
     texture_info.free();
   }
 

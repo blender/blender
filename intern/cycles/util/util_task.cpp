@@ -46,7 +46,7 @@ TaskPool::TaskPool()
 
 TaskPool::~TaskPool()
 {
-  stop();
+  cancel();
 }
 
 void TaskPool::push(TaskRunFunction &&task, bool front)
@@ -135,22 +135,9 @@ void TaskPool::cancel()
   do_cancel = false;
 }
 
-void TaskPool::stop()
-{
-  TaskScheduler::clear(this);
-
-  assert(num == 0);
-}
-
 bool TaskPool::canceled()
 {
   return do_cancel;
-}
-
-bool TaskPool::finished()
-{
-  thread_scoped_lock num_lock(num_mutex);
-  return num == 0;
 }
 
 void TaskPool::num_decrease(int done)
@@ -453,7 +440,11 @@ DedicatedTaskPool::DedicatedTaskPool()
 
 DedicatedTaskPool::~DedicatedTaskPool()
 {
-  stop();
+  wait();
+
+  do_exit = true;
+  queue_cond.notify_all();
+
   worker_thread->join();
   delete worker_thread;
 }
@@ -489,18 +480,6 @@ void DedicatedTaskPool::cancel()
   wait();
 
   do_cancel = false;
-}
-
-void DedicatedTaskPool::stop()
-{
-  clear();
-
-  do_exit = true;
-  queue_cond.notify_all();
-
-  wait();
-
-  assert(num == 0);
 }
 
 bool DedicatedTaskPool::canceled()

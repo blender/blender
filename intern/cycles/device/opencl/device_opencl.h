@@ -259,6 +259,8 @@ class OpenCLDevice : public Device {
   TaskPool load_required_kernel_task_pool;
   /* Task pool for optional kernels (feature kernels during foreground rendering) */
   TaskPool load_kernel_task_pool;
+  std::atomic<int> load_kernel_num_compiling;
+
   cl_context cxContext;
   cl_command_queue cqCommandQueue;
   cl_platform_id cpPlatform;
