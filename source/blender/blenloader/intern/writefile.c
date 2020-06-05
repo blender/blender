@@ -1687,7 +1687,7 @@ static void write_fmaps(WriteData *wd, ListBase *fbase)
   }
 }
 
-static void write_modifiers(WriteData *wd, ListBase *modbase)
+static void write_modifiers(BlendWriter *writer, ListBase *modbase)
 {
   ModifierData *md;
 
@@ -1701,86 +1701,86 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
       return;
     }
 
-    writestruct_id(wd, DATA, mti->structName, 1, md);
+    BLO_write_struct_by_name(writer, mti->structName, md);
 
     if (md->type == eModifierType_Hook) {
       HookModifierData *hmd = (HookModifierData *)md;
 
       if (hmd->curfalloff) {
-        write_curvemapping(wd, hmd->curfalloff);
+        write_curvemapping(writer->wd, hmd->curfalloff);
       }
 
-      writedata(wd, DATA, sizeof(int) * hmd->totindex, hmd->indexar);
+      BLO_write_int32_array(writer, hmd->totindex, hmd->indexar);
     }
     else if (md->type == eModifierType_Cloth) {
       ClothModifierData *clmd = (ClothModifierData *)md;
 
-      writestruct(wd, DATA, ClothSimSettings, 1, clmd->sim_parms);
-      writestruct(wd, DATA, ClothCollSettings, 1, clmd->coll_parms);
-      writestruct(wd, DATA, EffectorWeights, 1, clmd->sim_parms->effector_weights);
-      write_pointcaches(wd, &clmd->ptcaches);
+      BLO_write_struct(writer, ClothSimSettings, clmd->sim_parms);
+      BLO_write_struct(writer, ClothCollSettings, clmd->coll_parms);
+      BLO_write_struct(writer, EffectorWeights, clmd->sim_parms->effector_weights);
+      write_pointcaches(writer->wd, &clmd->ptcaches);
     }
     else if (md->type == eModifierType_Fluid) {
       FluidModifierData *mmd = (FluidModifierData *)md;
 
       if (mmd->type & MOD_FLUID_TYPE_DOMAIN) {
-        writestruct(wd, DATA, FluidDomainSettings, 1, mmd->domain);
+        BLO_write_struct(writer, FluidDomainSettings, mmd->domain);
 
         if (mmd->domain) {
-          write_pointcaches(wd, &(mmd->domain->ptcaches[0]));
+          write_pointcaches(writer->wd, &(mmd->domain->ptcaches[0]));
 
           /* create fake pointcache so that old blender versions can read it */
           mmd->domain->point_cache[1] = BKE_ptcache_add(&mmd->domain->ptcaches[1]);
           mmd->domain->point_cache[1]->flag |= PTCACHE_DISK_CACHE | PTCACHE_FAKE_SMOKE;
           mmd->domain->point_cache[1]->step = 1;
 
-          write_pointcaches(wd, &(mmd->domain->ptcaches[1]));
+          write_pointcaches(writer->wd, &(mmd->domain->ptcaches[1]));
 
           if (mmd->domain->coba) {
-            writestruct(wd, DATA, ColorBand, 1, mmd->domain->coba);
+            BLO_write_struct(writer, ColorBand, mmd->domain->coba);
           }
 
           /* cleanup the fake pointcache */
           BKE_ptcache_free_list(&mmd->domain->ptcaches[1]);
           mmd->domain->point_cache[1] = NULL;
 
-          writestruct(wd, DATA, EffectorWeights, 1, mmd->domain->effector_weights);
+          BLO_write_struct(writer, EffectorWeights, mmd->domain->effector_weights);
         }
       }
       else if (mmd->type & MOD_FLUID_TYPE_FLOW) {
-        writestruct(wd, DATA, FluidFlowSettings, 1, mmd->flow);
+        BLO_write_struct(writer, FluidFlowSettings, mmd->flow);
       }
       else if (mmd->type & MOD_FLUID_TYPE_EFFEC) {
-        writestruct(wd, DATA, FluidEffectorSettings, 1, mmd->effector);
+        BLO_write_struct(writer, FluidEffectorSettings, mmd->effector);
       }
     }
     else if (md->type == eModifierType_Fluidsim) {
       FluidsimModifierData *fluidmd = (FluidsimModifierData *)md;
 
-      writestruct(wd, DATA, FluidsimSettings, 1, fluidmd->fss);
+      BLO_write_struct(writer, FluidsimSettings, fluidmd->fss);
     }
     else if (md->type == eModifierType_DynamicPaint) {
       DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
       if (pmd->canvas) {
         DynamicPaintSurface *surface;
-        writestruct(wd, DATA, DynamicPaintCanvasSettings, 1, pmd->canvas);
+        BLO_write_struct(writer, DynamicPaintCanvasSettings, pmd->canvas);
 
         /* write surfaces */
         for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
-          writestruct(wd, DATA, DynamicPaintSurface, 1, surface);
+          BLO_write_struct(writer, DynamicPaintSurface, surface);
         }
         /* write caches and effector weights */
         for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
-          write_pointcaches(wd, &(surface->ptcaches));
+          write_pointcaches(writer->wd, &(surface->ptcaches));
 
-          writestruct(wd, DATA, EffectorWeights, 1, surface->effector_weights);
+          BLO_write_struct(writer, EffectorWeights, surface->effector_weights);
         }
       }
       if (pmd->brush) {
-        writestruct(wd, DATA, DynamicPaintBrushSettings, 1, pmd->brush);
-        writestruct(wd, DATA, ColorBand, 1, pmd->brush->paint_ramp);
-        writestruct(wd, DATA, ColorBand, 1, pmd->brush->vel_ramp);
+        BLO_write_struct(writer, DynamicPaintBrushSettings, pmd->brush);
+        BLO_write_struct(writer, ColorBand, pmd->brush->paint_ramp);
+        BLO_write_struct(writer, ColorBand, pmd->brush->vel_ramp);
       }
     }
     else if (md->type == eModifierType_Collision) {
@@ -1798,63 +1798,59 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
       MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
       int size = mmd->dyngridsize;
 
-      writestruct(wd, DATA, MDefInfluence, mmd->totinfluence, mmd->bindinfluences);
-      writedata(wd, DATA, sizeof(int) * (mmd->totvert + 1), mmd->bindoffsets);
-      writedata(wd, DATA, sizeof(float) * 3 * mmd->totcagevert, mmd->bindcagecos);
-      writestruct(wd, DATA, MDefCell, size * size * size, mmd->dyngrid);
-      writestruct(wd, DATA, MDefInfluence, mmd->totinfluence, mmd->dyninfluences);
-      writedata(wd, DATA, sizeof(int) * mmd->totvert, mmd->dynverts);
+      BLO_write_struct_array(writer, MDefInfluence, mmd->totinfluence, mmd->bindinfluences);
+      BLO_write_int32_array(writer, mmd->totvert + 1, mmd->bindoffsets);
+      BLO_write_float3_array(writer, mmd->totcagevert, mmd->bindcagecos);
+      BLO_write_struct_array(writer, MDefCell, size * size * size, mmd->dyngrid);
+      BLO_write_struct_array(writer, MDefInfluence, mmd->totinfluence, mmd->dyninfluences);
+      BLO_write_int32_array(writer, mmd->totvert, mmd->dynverts);
     }
     else if (md->type == eModifierType_Warp) {
       WarpModifierData *tmd = (WarpModifierData *)md;
       if (tmd->curfalloff) {
-        write_curvemapping(wd, tmd->curfalloff);
+        write_curvemapping(writer->wd, tmd->curfalloff);
       }
     }
     else if (md->type == eModifierType_WeightVGEdit) {
       WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
 
       if (wmd->cmap_curve) {
-        write_curvemapping(wd, wmd->cmap_curve);
+        write_curvemapping(writer->wd, wmd->cmap_curve);
       }
     }
     else if (md->type == eModifierType_LaplacianDeform) {
       LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
 
-      writedata(wd, DATA, sizeof(float) * lmd->total_verts * 3, lmd->vertexco);
+      BLO_write_float3_array(writer, lmd->total_verts, lmd->vertexco);
     }
     else if (md->type == eModifierType_CorrectiveSmooth) {
       CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
 
       if (csmd->bind_coords) {
-        writedata(wd, DATA, sizeof(float[3]) * csmd->bind_coords_num, csmd->bind_coords);
+        BLO_write_float3_array(writer, csmd->bind_coords_num, (float *)csmd->bind_coords);
       }
     }
     else if (md->type == eModifierType_SurfaceDeform) {
       SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 
-      writestruct(wd, DATA, SDefVert, smd->numverts, smd->verts);
+      BLO_write_struct_array(writer, SDefVert, smd->numverts, smd->verts);
 
       if (smd->verts) {
         for (int i = 0; i < smd->numverts; i++) {
-          writestruct(wd, DATA, SDefBind, smd->verts[i].numbinds, smd->verts[i].binds);
+          BLO_write_struct_array(writer, SDefBind, smd->verts[i].numbinds, smd->verts[i].binds);
 
           if (smd->verts[i].binds) {
             for (int j = 0; j < smd->verts[i].numbinds; j++) {
-              writedata(wd,
-                        DATA,
-                        sizeof(int) * smd->verts[i].binds[j].numverts,
-                        smd->verts[i].binds[j].vert_inds);
+              BLO_write_uint32_array(
+                  writer, smd->verts[i].binds[j].numverts, smd->verts[i].binds[j].vert_inds);
 
               if (smd->verts[i].binds[j].mode == MOD_SDEF_MODE_CENTROID ||
                   smd->verts[i].binds[j].mode == MOD_SDEF_MODE_LOOPTRI) {
-                writedata(wd, DATA, sizeof(float) * 3, smd->verts[i].binds[j].vert_weights);
+                BLO_write_float3_array(writer, 1, smd->verts[i].binds[j].vert_weights);
               }
               else {
-                writedata(wd,
-                          DATA,
-                          sizeof(float) * smd->verts[i].binds[j].numverts,
-                          smd->verts[i].binds[j].vert_weights);
+                BLO_write_float_array(
+                    writer, smd->verts[i].binds[j].numverts, smd->verts[i].binds[j].vert_weights);
               }
             }
           }
@@ -1864,13 +1860,13 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
     else if (md->type == eModifierType_Bevel) {
       BevelModifierData *bmd = (BevelModifierData *)md;
       if (bmd->custom_profile) {
-        write_CurveProfile(wd, bmd->custom_profile);
+        write_CurveProfile(writer->wd, bmd->custom_profile);
       }
     }
   }
 }
 
-static void write_gpencil_modifiers(WriteData *wd, ListBase *modbase)
+static void write_gpencil_modifiers(BlendWriter *writer, ListBase *modbase)
 {
   GpencilModifierData *md;
 
@@ -1884,54 +1880,54 @@ static void write_gpencil_modifiers(WriteData *wd, ListBase *modbase)
       return;
     }
 
-    writestruct_id(wd, DATA, mti->struct_name, 1, md);
+    BLO_write_struct_by_name(writer, mti->struct_name, md);
 
     if (md->type == eGpencilModifierType_Thick) {
       ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
 
       if (gpmd->curve_thickness) {
-        write_curvemapping(wd, gpmd->curve_thickness);
+        write_curvemapping(writer->wd, gpmd->curve_thickness);
       }
     }
     else if (md->type == eGpencilModifierType_Noise) {
       NoiseGpencilModifierData *gpmd = (NoiseGpencilModifierData *)md;
 
       if (gpmd->curve_intensity) {
-        write_curvemapping(wd, gpmd->curve_intensity);
+        write_curvemapping(writer->wd, gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Hook) {
       HookGpencilModifierData *gpmd = (HookGpencilModifierData *)md;
 
       if (gpmd->curfalloff) {
-        write_curvemapping(wd, gpmd->curfalloff);
+        write_curvemapping(writer->wd, gpmd->curfalloff);
       }
     }
     else if (md->type == eGpencilModifierType_Tint) {
       TintGpencilModifierData *gpmd = (TintGpencilModifierData *)md;
       if (gpmd->colorband) {
-        writestruct(wd, DATA, ColorBand, 1, gpmd->colorband);
+        BLO_write_struct(writer, ColorBand, gpmd->colorband);
       }
       if (gpmd->curve_intensity) {
-        write_curvemapping(wd, gpmd->curve_intensity);
+        write_curvemapping(writer->wd, gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Smooth) {
       SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
       if (gpmd->curve_intensity) {
-        write_curvemapping(wd, gpmd->curve_intensity);
+        write_curvemapping(writer->wd, gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Color) {
       ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
       if (gpmd->curve_intensity) {
-        write_curvemapping(wd, gpmd->curve_intensity);
+        write_curvemapping(writer->wd, gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Opacity) {
       OpacityGpencilModifierData *gpmd = (OpacityGpencilModifierData *)md;
       if (gpmd->curve_intensity) {
-        write_curvemapping(wd, gpmd->curve_intensity);
+        write_curvemapping(writer->wd, gpmd->curve_intensity);
       }
     }
   }
@@ -2011,8 +2007,8 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
     }
 
     write_particlesystems(writer->wd, &ob->particlesystem);
-    write_modifiers(writer->wd, &ob->modifiers);
-    write_gpencil_modifiers(writer->wd, &ob->greasepencil_modifiers);
+    write_modifiers(writer, &ob->modifiers);
+    write_gpencil_modifiers(writer, &ob->greasepencil_modifiers);
     write_shaderfxs(writer->wd, &ob->shader_fx);
 
     BLO_write_struct_list(writer, LinkData, &ob->pc_ids);
