@@ -904,20 +904,20 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
   }
 }
 
-static void write_action(WriteData *wd, bAction *act, const void *id_address)
+static void write_action(BlendWriter *writer, bAction *act, const void *id_address)
 {
-  if (act->id.us > 0 || wd->use_memfile) {
-    writestruct_at_address(wd, ID_AC, bAction, 1, id_address, act);
-    write_iddata(wd, &act->id);
+  if (act->id.us > 0 || BLO_write_is_undo(writer)) {
+    BLO_write_id_struct(writer, bAction, id_address, &act->id);
+    write_iddata(writer->wd, &act->id);
 
-    write_fcurves(wd, &act->curves);
+    write_fcurves(writer->wd, &act->curves);
 
     LISTBASE_FOREACH (bActionGroup *, grp, &act->groups) {
-      writestruct(wd, DATA, bActionGroup, 1, grp);
+      BLO_write_struct(writer, bActionGroup, grp);
     }
 
     LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
-      writestruct(wd, DATA, TimeMarker, 1, marker);
+      BLO_write_struct(writer, TimeMarker, marker);
     }
   }
 }
@@ -2512,9 +2512,9 @@ static void write_collection_nolib(WriteData *wd, Collection *collection)
   }
 }
 
-static void write_collection(WriteData *wd, Collection *collection, const void *id_address)
+static void write_collection(BlendWriter *writer, Collection *collection, const void *id_address)
 {
-  if (collection->id.us > 0 || wd->use_memfile) {
+  if (collection->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
     collection->tag = 0;
@@ -2522,10 +2522,10 @@ static void write_collection(WriteData *wd, Collection *collection, const void *
     BLI_listbase_clear(&collection->parents);
 
     /* write LibData */
-    writestruct_at_address(wd, ID_GR, Collection, 1, id_address, collection);
-    write_iddata(wd, &collection->id);
+    BLO_write_id_struct(writer, Collection, id_address, &collection->id);
+    write_iddata(writer->wd, &collection->id);
 
-    write_collection_nolib(wd, collection);
+    write_collection_nolib(writer->wd, collection);
   }
 }
 
@@ -2867,9 +2867,9 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   BLI_assert(sce->layer_properties == NULL);
 }
 
-static void write_gpencil(WriteData *wd, bGPdata *gpd, const void *id_address)
+static void write_gpencil(BlendWriter *writer, bGPdata *gpd, const void *id_address)
 {
-  if (gpd->id.us > 0 || wd->use_memfile) {
+  if (gpd->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
     /* XXX not sure why the whole run-time data is not cleared in reading code,
      * for now mimicking it here. */
@@ -2879,29 +2879,29 @@ static void write_gpencil(WriteData *wd, bGPdata *gpd, const void *id_address)
     gpd->runtime.tot_cp_points = 0;
 
     /* write gpd data block to file */
-    writestruct_at_address(wd, ID_GD, bGPdata, 1, id_address, gpd);
-    write_iddata(wd, &gpd->id);
+    BLO_write_id_struct(writer, bGPdata, id_address, &gpd->id);
+    write_iddata(writer->wd, &gpd->id);
 
     if (gpd->adt) {
-      write_animdata(wd, gpd->adt);
+      write_animdata(writer->wd, gpd->adt);
     }
 
-    writedata(wd, DATA, sizeof(void *) * gpd->totcol, gpd->mat);
+    BLO_write_pointer_array(writer, gpd->totcol, gpd->mat);
 
     /* write grease-pencil layers to file */
-    writelist(wd, DATA, bGPDlayer, &gpd->layers);
+    BLO_write_struct_list(writer, bGPDlayer, &gpd->layers);
     LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
       /* Write mask list. */
-      writelist(wd, DATA, bGPDlayer_Mask, &gpl->mask_layers);
+      BLO_write_struct_list(writer, bGPDlayer_Mask, &gpl->mask_layers);
       /* write this layer's frames to file */
-      writelist(wd, DATA, bGPDframe, &gpl->frames);
+      BLO_write_struct_list(writer, bGPDframe, &gpl->frames);
       LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
         /* write strokes */
-        writelist(wd, DATA, bGPDstroke, &gpf->strokes);
+        BLO_write_struct_list(writer, bGPDstroke, &gpf->strokes);
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-          writestruct(wd, DATA, bGPDspoint, gps->totpoints, gps->points);
-          writestruct(wd, DATA, bGPDtriangle, gps->tot_triangles, gps->triangles);
-          write_dverts(wd, gps->totpoints, gps->dvert);
+          BLO_write_struct_array(writer, bGPDspoint, gps->totpoints, gps->points);
+          BLO_write_struct_array(writer, bGPDtriangle, gps->tot_triangles, gps->triangles);
+          write_dverts(writer->wd, gps->totpoints, gps->dvert);
         }
       }
     }
@@ -4262,13 +4262,13 @@ static bool write_file_handle(Main *mainvar,
             write_sound(&writer, (bSound *)id_buffer, id);
             break;
           case ID_GR:
-            write_collection(wd, (Collection *)id_buffer, id);
+            write_collection(&writer, (Collection *)id_buffer, id);
             break;
           case ID_AR:
             write_armature(&writer, (bArmature *)id_buffer, id);
             break;
           case ID_AC:
-            write_action(wd, (bAction *)id_buffer, id);
+            write_action(&writer, (bAction *)id_buffer, id);
             break;
           case ID_OB:
             write_object(wd, (Object *)id_buffer, id);
@@ -4298,7 +4298,7 @@ static bool write_file_handle(Main *mainvar,
             write_paintcurve(&writer, (PaintCurve *)id_buffer, id);
             break;
           case ID_GD:
-            write_gpencil(wd, (bGPdata *)id_buffer, id);
+            write_gpencil(&writer, (bGPdata *)id_buffer, id);
             break;
           case ID_LS:
             write_linestyle(&writer, (FreestyleLineStyle *)id_buffer, id);
