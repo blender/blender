@@ -809,12 +809,12 @@ static void write_previews(WriteData *wd, const PreviewImage *prv_orig)
   }
 }
 
-static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
+static void write_fmodifiers(BlendWriter *writer, ListBase *fmodifiers)
 {
   FModifier *fcm;
 
   /* Write all modifiers first (for faster reloading) */
-  writelist(wd, DATA, FModifier, fmodifiers);
+  BLO_write_struct_list(writer, FModifier, fmodifiers);
 
   /* Modifiers */
   for (fcm = fmodifiers->first; fcm; fcm = fcm->next) {
@@ -823,7 +823,7 @@ static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
     /* Write the specific data */
     if (fmi && fcm->data) {
       /* firstly, just write the plain fmi->data struct */
-      writestruct_id(wd, DATA, fmi->structName, 1, fcm->data);
+      BLO_write_struct_by_name(writer, fmi->structName, fcm->data);
 
       /* do any modifier specific stuff */
       switch (fcm->type) {
@@ -832,7 +832,7 @@ static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
 
           /* write coefficients array */
           if (data->coefficients) {
-            writedata(wd, DATA, sizeof(float) * (data->arraysize), data->coefficients);
+            BLO_write_float_array(writer, data->arraysize, data->coefficients);
           }
 
           break;
@@ -842,7 +842,7 @@ static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
 
           /* write envelope data */
           if (data->data) {
-            writestruct(wd, DATA, FCM_EnvelopeData, data->totvert, data->data);
+            BLO_write_struct_array(writer, FCM_EnvelopeData, data->totvert, data->data);
           }
 
           break;
@@ -852,7 +852,7 @@ static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
 
           /* Write ID Properties -- and copy this comment EXACTLY for easy finding
            * of library blocks that implement this.*/
-          IDP_WriteProperty(data->prop, wd);
+          IDP_WriteProperty_new_api(data->prop, writer);
 
           break;
         }
@@ -861,22 +861,22 @@ static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
   }
 }
 
-static void write_fcurves(WriteData *wd, ListBase *fcurves)
+static void write_fcurves(BlendWriter *writer, ListBase *fcurves)
 {
   FCurve *fcu;
 
-  writelist(wd, DATA, FCurve, fcurves);
+  BLO_write_struct_list(writer, FCurve, fcurves);
   for (fcu = fcurves->first; fcu; fcu = fcu->next) {
     /* curve data */
     if (fcu->bezt) {
-      writestruct(wd, DATA, BezTriple, fcu->totvert, fcu->bezt);
+      BLO_write_struct_array(writer, BezTriple, fcu->totvert, fcu->bezt);
     }
     if (fcu->fpt) {
-      writestruct(wd, DATA, FPoint, fcu->totvert, fcu->fpt);
+      BLO_write_struct_array(writer, FPoint, fcu->totvert, fcu->fpt);
     }
 
     if (fcu->rna_path) {
-      writedata(wd, DATA, strlen(fcu->rna_path) + 1, fcu->rna_path);
+      BLO_write_string(writer, fcu->rna_path);
     }
 
     /* driver data */
@@ -884,14 +884,14 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
       ChannelDriver *driver = fcu->driver;
       DriverVar *dvar;
 
-      writestruct(wd, DATA, ChannelDriver, 1, driver);
+      BLO_write_struct(writer, ChannelDriver, driver);
 
       /* variables */
-      writelist(wd, DATA, DriverVar, &driver->variables);
+      BLO_write_struct_list(writer, DriverVar, &driver->variables);
       for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
         DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
           if (dtar->rna_path) {
-            writedata(wd, DATA, strlen(dtar->rna_path) + 1, dtar->rna_path);
+            BLO_write_string(writer, dtar->rna_path);
           }
         }
         DRIVER_TARGETS_LOOPER_END;
@@ -899,7 +899,7 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
     }
 
     /* write F-Modifiers */
-    write_fmodifiers(wd, &fcu->modifiers);
+    write_fmodifiers(writer, &fcu->modifiers);
   }
 }
 
@@ -909,7 +909,7 @@ static void write_action(BlendWriter *writer, bAction *act, const void *id_addre
     BLO_write_id_struct(writer, bAction, id_address, &act->id);
     write_iddata(writer, &act->id);
 
-    write_fcurves(writer->wd, &act->curves);
+    write_fcurves(writer, &act->curves);
 
     LISTBASE_FOREACH (bActionGroup *, grp, &act->groups) {
       BLO_write_struct(writer, bActionGroup, grp);
@@ -942,57 +942,57 @@ static void write_keyingsets(WriteData *wd, ListBase *list)
   }
 }
 
-static void write_nlastrips(WriteData *wd, ListBase *strips)
+static void write_nlastrips(BlendWriter *writer, ListBase *strips)
 {
   NlaStrip *strip;
 
-  writelist(wd, DATA, NlaStrip, strips);
+  BLO_write_struct_list(writer, NlaStrip, strips);
   for (strip = strips->first; strip; strip = strip->next) {
     /* write the strip's F-Curves and modifiers */
-    write_fcurves(wd, &strip->fcurves);
-    write_fmodifiers(wd, &strip->modifiers);
+    write_fcurves(writer, &strip->fcurves);
+    write_fmodifiers(writer, &strip->modifiers);
 
     /* write the strip's children */
-    write_nlastrips(wd, &strip->strips);
+    write_nlastrips(writer, &strip->strips);
   }
 }
 
-static void write_nladata(WriteData *wd, ListBase *nlabase)
+static void write_nladata(BlendWriter *writer, ListBase *nlabase)
 {
   NlaTrack *nlt;
 
   /* write all the tracks */
   for (nlt = nlabase->first; nlt; nlt = nlt->next) {
     /* write the track first */
-    writestruct(wd, DATA, NlaTrack, 1, nlt);
+    BLO_write_struct(writer, NlaTrack, nlt);
 
     /* write the track's strips */
-    write_nlastrips(wd, &nlt->strips);
+    write_nlastrips(writer, &nlt->strips);
   }
 }
 
-static void write_animdata(WriteData *wd, AnimData *adt)
+static void write_animdata(BlendWriter *writer, AnimData *adt)
 {
   AnimOverride *aor;
 
   /* firstly, just write the AnimData block */
-  writestruct(wd, DATA, AnimData, 1, adt);
+  BLO_write_struct(writer, AnimData, adt);
 
   /* write drivers */
-  write_fcurves(wd, &adt->drivers);
+  write_fcurves(writer, &adt->drivers);
 
   /* write overrides */
   // FIXME: are these needed?
   for (aor = adt->overrides.first; aor; aor = aor->next) {
     /* overrides consist of base data + rna_path */
-    writestruct(wd, DATA, AnimOverride, 1, aor);
-    writedata(wd, DATA, strlen(aor->rna_path) + 1, aor->rna_path);
+    BLO_write_struct(writer, AnimOverride, aor);
+    BLO_write_string(writer, aor->rna_path);
   }
 
   // TODO write the remaps (if they are needed)
 
   /* write NLA data */
-  write_nladata(wd, &adt->nla_tracks);
+  write_nladata(writer, &adt->nla_tracks);
 }
 
 static void write_curvemapping_curves(WriteData *wd, CurveMapping *cumap)
@@ -1090,7 +1090,8 @@ static void write_nodetree_nolib(WriteData *wd, bNodeTree *ntree)
   /* for link_list() speed, we write per list */
 
   if (ntree->adt) {
-    write_animdata(wd, ntree->adt);
+    BlendWriter writer = {wd};
+    write_animdata(&writer, ntree->adt);
   }
 
   for (node = ntree->nodes.first; node; node = node->next) {
@@ -1454,7 +1455,7 @@ static void write_particlesettings(BlendWriter *writer,
     write_iddata(writer, &part->id);
 
     if (part->adt) {
-      write_animdata(writer->wd, part->adt);
+      write_animdata(writer, part->adt);
     }
     BLO_write_struct(writer, PartDeflect, part->pd);
     BLO_write_struct(writer, PartDeflect, part->pd2);
@@ -1966,7 +1967,7 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
     write_iddata(writer, &ob->id);
 
     if (ob->adt) {
-      write_animdata(writer->wd, ob->adt);
+      write_animdata(writer, ob->adt);
     }
 
     /* direct data */
@@ -2050,7 +2051,7 @@ static void write_key(BlendWriter *writer, Key *key, const void *id_address)
     write_iddata(writer, &key->id);
 
     if (key->adt) {
-      write_animdata(writer->wd, key->adt);
+      write_animdata(writer, key->adt);
     }
 
     /* direct data */
@@ -2071,7 +2072,7 @@ static void write_camera(BlendWriter *writer, Camera *cam, const void *id_addres
     write_iddata(writer, &cam->id);
 
     if (cam->adt) {
-      write_animdata(writer->wd, cam->adt);
+      write_animdata(writer, cam->adt);
     }
 
     LISTBASE_FOREACH (CameraBGImage *, bgpic, &cam->bg_images) {
@@ -2098,7 +2099,7 @@ static void write_mball(BlendWriter *writer, MetaBall *mb, const void *id_addres
     /* direct data */
     BLO_write_pointer_array(writer, mb->totcol, mb->mat);
     if (mb->adt) {
-      write_animdata(writer->wd, mb->adt);
+      write_animdata(writer, mb->adt);
     }
 
     LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
@@ -2122,7 +2123,7 @@ static void write_curve(BlendWriter *writer, Curve *cu, const void *id_address)
     /* direct data */
     BLO_write_pointer_array(writer, cu->totcol, cu->mat);
     if (cu->adt) {
-      write_animdata(writer->wd, cu->adt);
+      write_animdata(writer, cu->adt);
     }
 
     if (cu->vfont) {
@@ -2299,7 +2300,7 @@ static void write_mesh(BlendWriter *writer, Mesh *mesh, const void *id_address)
 
     /* direct data */
     if (mesh->adt) {
-      write_animdata(writer->wd, mesh->adt);
+      write_animdata(writer, mesh->adt);
     }
 
     BLO_write_pointer_array(writer, mesh->totcol, mesh->mat);
@@ -2349,7 +2350,7 @@ static void write_lattice(BlendWriter *writer, Lattice *lt, const void *id_addre
 
     /* write animdata */
     if (lt->adt) {
-      write_animdata(writer->wd, lt->adt);
+      write_animdata(writer, lt->adt);
     }
 
     /* direct data */
@@ -2407,7 +2408,7 @@ static void write_texture(BlendWriter *writer, Tex *tex, const void *id_address)
     write_iddata(writer, &tex->id);
 
     if (tex->adt) {
-      write_animdata(writer->wd, tex->adt);
+      write_animdata(writer, tex->adt);
     }
 
     /* direct data */
@@ -2437,7 +2438,7 @@ static void write_material(BlendWriter *writer, Material *ma, const void *id_add
     write_iddata(writer, &ma->id);
 
     if (ma->adt) {
-      write_animdata(writer->wd, ma->adt);
+      write_animdata(writer, ma->adt);
     }
 
     /* nodetree is integral part of material, no libdata */
@@ -2466,7 +2467,7 @@ static void write_world(BlendWriter *writer, World *wrld, const void *id_address
     write_iddata(writer, &wrld->id);
 
     if (wrld->adt) {
-      write_animdata(writer->wd, wrld->adt);
+      write_animdata(writer, wrld->adt);
     }
 
     /* nodetree is integral part of world, no libdata */
@@ -2487,7 +2488,7 @@ static void write_light(BlendWriter *writer, Light *la, const void *id_address)
     write_iddata(writer, &la->id);
 
     if (la->adt) {
-      write_animdata(writer->wd, la->adt);
+      write_animdata(writer, la->adt);
     }
 
     if (la->curfalloff) {
@@ -2655,7 +2656,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   write_iddata(writer, &sce->id);
 
   if (sce->adt) {
-    write_animdata(writer->wd, sce->adt);
+    write_animdata(writer, sce->adt);
   }
   write_keyingsets(writer->wd, &sce->keyingsets);
 
@@ -2889,7 +2890,7 @@ static void write_gpencil(BlendWriter *writer, bGPdata *gpd, const void *id_addr
     write_iddata(writer, &gpd->id);
 
     if (gpd->adt) {
-      write_animdata(writer->wd, gpd->adt);
+      write_animdata(writer, gpd->adt);
     }
 
     BLO_write_pointer_array(writer, gpd->totcol, gpd->mat);
@@ -3240,7 +3241,7 @@ static void write_armature(BlendWriter *writer, bArmature *arm, const void *id_a
     write_iddata(writer, &arm->id);
 
     if (arm->adt) {
-      write_animdata(writer->wd, arm->adt);
+      write_animdata(writer, arm->adt);
     }
 
     /* Direct data */
@@ -3288,7 +3289,7 @@ static void write_speaker(BlendWriter *writer, Speaker *spk, const void *id_addr
     write_iddata(writer, &spk->id);
 
     if (spk->adt) {
-      write_animdata(writer->wd, spk->adt);
+      write_animdata(writer, spk->adt);
     }
   }
 }
@@ -3322,7 +3323,7 @@ static void write_probe(BlendWriter *writer, LightProbe *prb, const void *id_add
     write_iddata(writer, &prb->id);
 
     if (prb->adt) {
-      write_animdata(writer->wd, prb->adt);
+      write_animdata(writer, prb->adt);
     }
   }
 }
@@ -3471,7 +3472,7 @@ static void write_movieclip(BlendWriter *writer, MovieClip *clip, const void *id
     write_iddata(writer, &clip->id);
 
     if (clip->adt) {
-      write_animdata(writer->wd, clip->adt);
+      write_animdata(writer, clip->adt);
     }
 
     write_movieTracks(writer->wd, &tracking->tracks);
@@ -3500,7 +3501,7 @@ static void write_mask(BlendWriter *writer, Mask *mask, const void *id_address)
     write_iddata(writer, &mask->id);
 
     if (mask->adt) {
-      write_animdata(writer->wd, mask->adt);
+      write_animdata(writer, mask->adt);
     }
 
     for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
@@ -3805,7 +3806,7 @@ static void write_linestyle(BlendWriter *writer,
     write_iddata(writer, &linestyle->id);
 
     if (linestyle->adt) {
-      write_animdata(writer->wd, linestyle->adt);
+      write_animdata(writer, linestyle->adt);
     }
 
     write_linestyle_color_modifiers(writer->wd, &linestyle->color_modifiers);
@@ -3836,7 +3837,7 @@ static void write_cachefile(BlendWriter *writer, CacheFile *cache_file, const vo
     BLO_write_id_struct(writer, CacheFile, id_address, &cache_file->id);
 
     if (cache_file->adt) {
-      write_animdata(writer->wd, cache_file->adt);
+      write_animdata(writer, cache_file->adt);
     }
   }
 }
@@ -3873,7 +3874,7 @@ static void write_hair(BlendWriter *writer, Hair *hair, const void *id_address)
     write_customdata(writer->wd, &hair->id, hair->totcurve, &hair->cdata, clayers, CD_MASK_ALL);
     BLO_write_pointer_array(writer, hair->totcol, hair->mat);
     if (hair->adt) {
-      write_animdata(writer->wd, hair->adt);
+      write_animdata(writer, hair->adt);
     }
 
     /* Remove temporary data. */
@@ -3906,7 +3907,7 @@ static void write_pointcloud(BlendWriter *writer, PointCloud *pointcloud, const 
                      CD_MASK_ALL);
     BLO_write_pointer_array(writer, pointcloud->totcol, pointcloud->mat);
     if (pointcloud->adt) {
-      write_animdata(writer->wd, pointcloud->adt);
+      write_animdata(writer, pointcloud->adt);
     }
 
     /* Remove temporary data. */
@@ -3929,7 +3930,7 @@ static void write_volume(BlendWriter *writer, Volume *volume, const void *id_add
     /* direct data */
     BLO_write_pointer_array(writer, volume->totcol, volume->mat);
     if (volume->adt) {
-      write_animdata(writer->wd, volume->adt);
+      write_animdata(writer, volume->adt);
     }
 
     if (volume->packedfile) {
@@ -3947,7 +3948,7 @@ static void write_simulation(BlendWriter *writer, Simulation *simulation, const 
     write_iddata(writer, &simulation->id);
 
     if (simulation->adt) {
-      write_animdata(writer->wd, simulation->adt);
+      write_animdata(writer, simulation->adt);
     }
 
     /* nodetree is integral part of simulation, no libdata */
