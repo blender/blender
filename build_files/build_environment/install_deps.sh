@@ -1535,11 +1535,13 @@ _update_deps_tbb() {
   OSD_FORCE_REBUILD=true
   OPENVDB_FORCE_REBUILD=true
   USD_FORCE_REBUILD=true
+  EMBREE_FORCE_REBUILD=true
   OIDN_FORCE_REBUILD=true
   if [ "$_is_building" = true ]; then
     OSD_FORCE_BUILD=true
     OPENVDB_FORCE_BUILD=true
     USD_FORCE_BUILD=true
+    EMBREE_FORCE_BUILD=true
     OIDN_FORCE_BUILD=true
   fi
 }
@@ -2985,7 +2987,7 @@ compile_Embree() {
   fi
 
   # To be changed each time we make edits that would modify the compiled results!
-  embree_magic=9
+  embree_magic=10
   _init_embree
 
   # Clean install if needed!
@@ -3039,8 +3041,12 @@ compile_Embree() {
     cmake_d="$cmake_d -D EMBREE_RAY_MASK=ON"
     cmake_d="$cmake_d -D EMBREE_FILTER_FUNCTION=ON"
     cmake_d="$cmake_d -D EMBREE_BACKFACE_CULLING=OFF"
-    cmake_d="$cmake_d -D EMBREE_TASKING_SYSTEM=INTERNAL"
     cmake_d="$cmake_d -D EMBREE_MAX_ISA=AVX2"
+
+    cmake_d="$cmake_d -D EMBREE_TASKING_SYSTEM=TBB"
+    if [ -d $INST/tbb ]; then
+      make_d="$make_d EMBREE_TBB_ROOT=$INST/tbb"
+    fi
 
     cmake $cmake_d ../
 
