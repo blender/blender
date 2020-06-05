@@ -177,6 +177,7 @@
 
 #include "BLO_blend_defs.h"
 #include "BLO_blend_validate.h"
+#include "BLO_read_write.h"
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
 #include "BLO_writefile.h"
@@ -338,6 +339,10 @@ typedef struct {
    */
   WriteWrap *ww;
 } WriteData;
+
+typedef struct BlendWriter {
+  WriteData *wd;
+} BlendWriter;
 
 static WriteData *writedata_new(WriteWrap *ww)
 {
@@ -4534,6 +4539,100 @@ bool BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int w
   const bool err = write_file_handle(mainvar, NULL, compare, current, write_flags, NULL);
 
   return (err == 0);
+}
+
+void BLO_write_raw(BlendWriter *writer, int size_in_bytes, const void *data_ptr)
+{
+  writedata(writer->wd, DATA, size_in_bytes, data_ptr);
+}
+
+void BLO_write_struct_by_name(BlendWriter *writer, const char *struct_name, const void *data_ptr)
+{
+  int struct_id = BLO_get_struct_id_by_name(writer, struct_name);
+  BLO_write_struct_by_id(writer, struct_id, data_ptr);
+}
+
+void BLO_write_struct_array_by_name(BlendWriter *writer,
+                                    const char *struct_name,
+                                    int array_size,
+                                    const void *data_ptr)
+{
+  int struct_id = BLO_get_struct_id_by_name(writer, struct_name);
+  BLO_write_struct_array_by_id(writer, struct_id, array_size, data_ptr);
+}
+
+void BLO_write_struct_by_id(BlendWriter *writer, int struct_id, const void *data_ptr)
+{
+  writestruct_nr(writer->wd, DATA, struct_id, 1, data_ptr);
+}
+
+void BLO_write_struct_array_by_id(BlendWriter *writer,
+                                  int struct_id,
+                                  int array_size,
+                                  const void *data_ptr)
+{
+  writestruct_nr(writer->wd, DATA, struct_id, array_size, data_ptr);
+}
+
+void BLO_write_struct_list_by_id(BlendWriter *writer, int struct_id, ListBase *list)
+{
+  writelist_nr(writer->wd, DATA, struct_id, list);
+}
+
+void BLO_write_struct_list_by_name(BlendWriter *writer, const char *struct_name, ListBase *list)
+{
+  BLO_write_struct_list_by_id(writer, BLO_get_struct_id_by_name(writer, struct_name), list);
+}
+
+void blo_write_id_struct(BlendWriter *writer, int struct_id, const void *id_address, const ID *id)
+{
+  writestruct_at_address_nr(writer->wd, GS(id->name), struct_id, 1, id_address, id);
+}
+
+int BLO_get_struct_id_by_name(BlendWriter *writer, const char *struct_name)
+{
+  int struct_id = DNA_struct_find_nr(writer->wd->sdna, struct_name);
+  BLI_assert(struct_id >= 0);
+  return struct_id;
+}
+
+void BLO_write_int32_array(BlendWriter *writer, int size, const int32_t *data_ptr)
+{
+  BLO_write_raw(writer, sizeof(int32_t) * size, data_ptr);
+}
+
+void BLO_write_uint32_array(BlendWriter *writer, int size, const uint32_t *data_ptr)
+{
+  BLO_write_raw(writer, sizeof(uint32_t) * size, data_ptr);
+}
+
+void BLO_write_float_array(BlendWriter *writer, int size, const float *data_ptr)
+{
+  BLO_write_raw(writer, sizeof(float) * size, data_ptr);
+}
+
+void BLO_write_float3_array(BlendWriter *writer, int size, const float *data_ptr)
+{
+  BLO_write_raw(writer, sizeof(float) * 3 * size, data_ptr);
+}
+
+/**
+ * Write a null terminated string.
+ */
+void BLO_write_string(BlendWriter *writer, const char *str)
+{
+  if (str != NULL) {
+    BLO_write_raw(writer, strlen(str) + 1, str);
+  }
+}
+
+/**
+ * Sometimes different data is written depending on whether the file is saved to disk or used for
+ * undo. This function returns true when the current file-writing is done for undo.
+ */
+bool BLO_write_is_undo(BlendWriter *writer)
+{
+  return writer->wd->use_memfile;
 }
 
 /** \} */

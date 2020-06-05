@@ -160,6 +160,7 @@
 
 #include "BLO_blend_defs.h"
 #include "BLO_blend_validate.h"
+#include "BLO_read_write.h"
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
 
@@ -712,6 +713,20 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
 /* -------------------------------------------------------------------- */
 /** \name File Parsing
  * \{ */
+
+typedef struct BlendDataReader {
+  FileData *fd;
+} BlendDataReader;
+
+typedef struct BlendLibReader {
+  FileData *fd;
+  Main *main;
+} BlendLibReader;
+
+typedef struct BlendExpander {
+  FileData *fd;
+  Main *main;
+} BlendExpander;
 
 static void switch_endian_bh4(BHead4 *bhead)
 {
@@ -12663,6 +12678,166 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
     mainptr->curlib->filedata = NULL;
   }
   BKE_main_free(main_newid);
+}
+
+void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_address)
+{
+  return newdataadr(reader->fd, old_address);
+}
+
+ID *BLO_read_get_new_id_address(BlendLibReader *reader, Library *lib, ID *id)
+{
+  return newlibadr(reader->fd, lib, id);
+}
+
+bool BLO_read_requires_endian_switch(BlendDataReader *reader)
+{
+  return (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
+}
+
+/**
+ * Updates all ->prev and ->next pointers of the list elements.
+ * Updates the list->first and list->last pointers.
+ * When not NULL, calls the callback on every element.
+ */
+void BLO_read_list(BlendDataReader *reader, ListBase *list, BlendReadListFn callback)
+{
+  if (BLI_listbase_is_empty(list)) {
+    return;
+  }
+
+  BLO_read_data_address(reader, &list->first);
+  if (callback != NULL) {
+    callback(reader, list->first);
+  }
+  Link *ln = list->first;
+  Link *prev = NULL;
+  while (ln) {
+    BLO_read_data_address(reader, &ln->next);
+    if (ln->next != NULL && callback != NULL) {
+      callback(reader, ln->next);
+    }
+    ln->prev = prev;
+    prev = ln;
+    ln = ln->next;
+  }
+  list->last = prev;
+}
+
+void BLO_read_int32_array(BlendDataReader *reader, int array_size, int32_t **ptr_p)
+{
+  BLO_read_data_address(reader, ptr_p);
+  if (BLO_read_requires_endian_switch(reader)) {
+    BLI_endian_switch_int32_array(*ptr_p, array_size);
+  }
+}
+
+void BLO_read_uint32_array(BlendDataReader *reader, int array_size, uint32_t **ptr_p)
+{
+  BLO_read_data_address(reader, ptr_p);
+  if (BLO_read_requires_endian_switch(reader)) {
+    BLI_endian_switch_uint32_array(*ptr_p, array_size);
+  }
+}
+
+void BLO_read_float_array(BlendDataReader *reader, int array_size, float **ptr_p)
+{
+  BLO_read_data_address(reader, ptr_p);
+  if (BLO_read_requires_endian_switch(reader)) {
+    BLI_endian_switch_float_array(*ptr_p, array_size);
+  }
+}
+
+void BLO_read_float3_array(BlendDataReader *reader, int array_size, float **ptr_p)
+{
+  BLO_read_float_array(reader, array_size * 3, ptr_p);
+}
+
+void BLO_read_double_array(BlendDataReader *reader, int array_size, double **ptr_p)
+{
+  BLO_read_data_address(reader, ptr_p);
+  if (BLO_read_requires_endian_switch(reader)) {
+    BLI_endian_switch_double_array(*ptr_p, array_size);
+  }
+}
+
+static void convert_pointer_array_64_to_32(BlendDataReader *reader,
+                                           uint array_size,
+                                           const uint64_t *src,
+                                           uint32_t *dst)
+{
+  /* Match pointer conversion rules from bh4_from_bh8 and cast_pointer. */
+  if (BLO_read_requires_endian_switch(reader)) {
+    for (int i = 0; i < array_size; i++) {
+      uint64_t ptr = src[i];
+      BLI_endian_switch_uint64(&ptr);
+      dst[i] = (uint32_t)(ptr >> 3);
+    }
+  }
+  else {
+    for (int i = 0; i < array_size; i++) {
+      dst[i] = (uint32_t)(src[i] >> 3);
+    }
+  }
+}
+
+static void convert_pointer_array_32_to_64(BlendDataReader *UNUSED(reader),
+                                           uint array_size,
+                                           const uint32_t *src,
+                                           uint64_t *dst)
+{
+  /* Match pointer conversion rules from bh8_from_bh4 and cast_pointer. */
+  for (int i = 0; i < array_size; i++) {
+    dst[i] = src[i];
+  }
+}
+
+void BLO_read_pointer_array(BlendDataReader *reader, void **ptr_p)
+{
+  FileData *fd = reader->fd;
+
+  void *orig_array = newdataadr(fd, *ptr_p);
+  if (orig_array == NULL) {
+    *ptr_p = NULL;
+    return;
+  }
+
+  int file_pointer_size = fd->filesdna->pointer_size;
+  int current_pointer_size = fd->memsdna->pointer_size;
+
+  /* Overallocation is fine, but might be better to pass the length as parameter. */
+  int array_size = MEM_allocN_len(orig_array) / file_pointer_size;
+
+  void *final_array = NULL;
+
+  if (file_pointer_size == current_pointer_size) {
+    /* No pointer conversion necessary. */
+    final_array = orig_array;
+  }
+  else if (file_pointer_size == 8 && current_pointer_size == 4) {
+    /* Convert pointers from 64 to 32 bit. */
+    final_array = MEM_malloc_arrayN(array_size, 4, "new pointer array");
+    convert_pointer_array_64_to_32(
+        reader, array_size, (uint64_t *)orig_array, (uint32_t *)final_array);
+    MEM_freeN(orig_array);
+  }
+  else if (file_pointer_size == 4 && current_pointer_size == 8) {
+    /* Convert pointers from 32 to 64 bit. */
+    final_array = MEM_malloc_arrayN(array_size, 8, "new pointer array");
+    convert_pointer_array_32_to_64(
+        reader, array_size, (uint32_t *)orig_array, (uint64_t *)final_array);
+    MEM_freeN(orig_array);
+  }
+  else {
+    BLI_assert(false);
+  }
+
+  *ptr_p = final_array;
+}
+
+void BLO_expand_id(BlendExpander *expander, ID *id)
+{
+  expand_doit(expander->fd, expander->main, id);
 }
 
 /** \} */
