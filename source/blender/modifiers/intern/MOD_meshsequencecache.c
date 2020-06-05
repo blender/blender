@@ -23,21 +23,32 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_cachefile_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
 #include "BKE_cachefile.h"
+#include "BKE_context.h"
 #include "BKE_lib_query.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
 #include "MOD_modifiertypes.h"
+#include "MOD_ui_common.h"
 
 #ifdef WITH_ALEMBIC
 #  include "ABC_alembic.h"
@@ -185,8 +196,41 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *box;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  PointerRNA cache_file_ptr = RNA_pointer_get(&ptr, "cache_file");
+  bool has_cache_file = !RNA_pointer_is_null(&cache_file_ptr);
+
+  box = uiLayoutBox(layout);
+  uiTemplateCacheFile(box, C, &ptr, "cache_file");
+
+  uiLayoutSetPropSep(layout, true);
+
+  if (has_cache_file) {
+    uiItemPointerR(layout, &ptr, "object_path", &cache_file_ptr, "object_paths", NULL, ICON_NONE);
+  }
+
+  if (RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
+    uiItemR(layout, &ptr, "read_data", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  }
+
+  modifier_panel_end(layout, &ptr);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  modifier_panel_register(region_type, eModifierType_MeshSequenceCache, panel_draw);
+}
+
 ModifierTypeInfo modifierType_MeshSequenceCache = {
-    /* name */ "Mesh Sequence Cache",
+    /* name */ "MeshSequenceCache",
     /* structName */ "MeshSeqCacheModifierData",
     /* structSize */ sizeof(MeshSeqCacheModifierData),
     /* type */ eModifierTypeType_Constructive,
@@ -214,4 +258,5 @@ ModifierTypeInfo modifierType_MeshSequenceCache = {
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ panelRegister,
 };

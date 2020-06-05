@@ -27,17 +27,28 @@
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_screen_types.h"
 
+#include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
+#include "BKE_screen.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "DEG_depsgraph_query.h"
 
+#include "MOD_ui_common.h"
 #include "MOD_util.h"
 
 static void generate_vert_coordinates(Mesh *mesh,
@@ -689,8 +700,86 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return normalEditModifier_do((NormalEditModifierData *)md, ctx, ctx->object, mesh);
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  int mode = RNA_enum_get(&ptr, "mode");
+
+  uiItemR(layout, &ptr, "mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "target", 0, NULL, ICON_NONE);
+
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(col, mode == MOD_NORMALEDIT_MODE_DIRECTIONAL);
+  uiItemR(col, &ptr, "use_direction_parallel", 0, NULL, ICON_NONE);
+
+  modifier_panel_end(layout, &ptr);
+}
+
+/* This panel could be open by default, but it isn't currently. */
+static void mix_mode_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *row;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "mix_mode", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "mix_factor", 0, NULL, ICON_NONE);
+
+  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, &ptr, "mix_limit", 0, NULL, ICON_NONE);
+  uiItemR(row,
+          &ptr,
+          "no_polynors_fix",
+          0,
+          "",
+          (RNA_boolean_get(&ptr, "no_polynors_fix") ? ICON_LOCKED : ICON_UNLOCKED));
+}
+
+static void offset_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  int mode = RNA_enum_get(&ptr, "mode");
+  PointerRNA target_ptr = RNA_pointer_get(&ptr, "target");
+  bool needs_object_offset = (mode == MOD_NORMALEDIT_MODE_RADIAL &&
+                              RNA_pointer_is_null(&target_ptr)) ||
+                             (mode == MOD_NORMALEDIT_MODE_DIRECTIONAL &&
+                              RNA_boolean_get(&ptr, "use_direction_parallel"));
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiLayoutSetActive(layout, needs_object_offset);
+  uiItemR(layout, &ptr, "offset", 0, NULL, ICON_NONE);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  PanelType *panel_type = modifier_panel_register(
+      region_type, eModifierType_NormalEdit, panel_draw);
+  modifier_subpanel_register(region_type, "mix", "Mix", NULL, mix_mode_panel_draw, panel_type);
+  modifier_subpanel_register(region_type, "offset", "Offset", NULL, offset_panel_draw, panel_type);
+}
+
 ModifierTypeInfo modifierType_NormalEdit = {
-    /* name */ "Set Split Normals",
+    /* name */ "NormalEdit",
     /* structName */ "NormalEditModifierData",
     /* structSize */ sizeof(NormalEditModifierData),
     /* type */ eModifierTypeType_Constructive,
@@ -719,4 +808,5 @@ ModifierTypeInfo modifierType_NormalEdit = {
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ panelRegister,
 };

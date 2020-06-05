@@ -2002,7 +2002,7 @@ void uiTemplatePathBuilder(uiLayout *layout,
                            const char *propname,
                            struct PointerRNA *root_ptr,
                            const char *text);
-uiLayout *uiTemplateModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
+void uiTemplateModifiers(uiLayout *layout, struct bContext *C);
 uiLayout *uiTemplateGpencilModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
 void uiTemplateGpencilColorPreview(uiLayout *layout,
                                    struct bContext *C,

@@ -27,16 +27,28 @@
 
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_curveprofile_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
+#include "BKE_context.h"
+#include "BKE_curveprofile.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_screen.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
+
+#include "MOD_ui_common.h"
 #include "MOD_util.h"
 
 #include "BKE_curveprofile.h"
@@ -263,6 +275,149 @@ static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED
   return (bmd->value == 0.0f);
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  col = uiLayoutColumn(layout, false);
+  const char *offset_name = "";
+  if (RNA_enum_get(&ptr, "offset_type") == BEVEL_AMT_PERCENT) {
+    uiItemR(col, &ptr, "width_pct", 0, NULL, ICON_NONE);
+  }
+  else {
+    switch (RNA_enum_get(&ptr, "offset_type")) {
+      case BEVEL_AMT_DEPTH:
+        offset_name = "Depth";
+        break;
+      case BEVEL_AMT_WIDTH:
+        offset_name = "Width";
+        break;
+      case BEVEL_AMT_OFFSET:
+        offset_name = "Offset";
+        break;
+    }
+    uiItemR(col, &ptr, "width", 0, IFACE_(offset_name), ICON_NONE);
+  }
+  uiItemR(col, &ptr, "offset_type", 0, NULL, ICON_NONE);
+
+  uiItemR(layout, &ptr, "segments", 0, NULL, ICON_NONE);
+
+  uiItemS(layout);
+
+  uiItemR(layout, &ptr, "affect", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
+  uiItemS(layout);
+
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, &ptr, "limit_method", 0, NULL, ICON_NONE);
+  int limit_method = RNA_enum_get(&ptr, "limit_method");
+  if (limit_method == MOD_BEVEL_ANGLE) {
+    uiItemR(col, &ptr, "angle_limit", 0, NULL, ICON_NONE);
+  }
+  else if (limit_method == MOD_BEVEL_VGROUP) {
+    modifier_vgroup_ui(col, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  }
+
+  modifier_panel_end(layout, &ptr);
+}
+
+static void geometry_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "miter_inner", 0, IFACE_("Miter Inner"), ICON_NONE);
+  uiItemR(layout, &ptr, "miter_outer", 0, IFACE_("Outer"), ICON_NONE);
+  if (RNA_enum_get(&ptr, "miter_inner") == BEVEL_MITER_ARC) {
+    uiItemR(layout, &ptr, "spread", 0, NULL, ICON_NONE);
+  }
+  uiItemS(layout);
+
+  uiItemR(layout, &ptr, "vmesh_method", 0, IFACE_("Intersections"), ICON_NONE);
+  uiItemR(layout, &ptr, "use_clamp_overlap", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "loop_slide", 0, NULL, ICON_NONE);
+}
+
+static void shading_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "harden_normals", 0, NULL, ICON_NONE);
+
+  col = uiLayoutColumnWithHeading(layout, true, IFACE_("Mark"));
+  uiItemR(col, &ptr, "mark_seam", 0, IFACE_("Seam"), ICON_NONE);
+  uiItemR(col, &ptr, "mark_sharp", 0, IFACE_("Sharp"), ICON_NONE);
+
+  uiItemR(layout, &ptr, "material", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "face_strength_mode", 0, NULL, ICON_NONE);
+}
+
+static void profile_panel_draw(const bContext *C, Panel *panel)
+{
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  uiLayout *layout = panel->layout;
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "profile", UI_ITEM_R_SLIDER, IFACE_("Shape"), ICON_NONE);
+}
+
+static void custom_profile_panel_draw_header(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiItemR(layout, &ptr, "use_custom_profile", 0, NULL, ICON_NONE);
+}
+
+static void custom_profile_panel_draw(const bContext *C, Panel *panel)
+{
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  uiLayout *layout = panel->layout;
+
+  uiLayoutSetActive(layout, RNA_boolean_get(&ptr, "use_custom_profile"));
+
+  uiTemplateCurveProfile(layout, &ptr, "custom_profile");
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Bevel, panel_draw);
+  PanelType *bevel_profil_panel = modifier_subpanel_register(
+      region_type, "profile", "Profile", NULL, profile_panel_draw, panel_type);
+  modifier_subpanel_register(region_type,
+                             "custom",
+                             "",
+                             custom_profile_panel_draw_header,
+                             custom_profile_panel_draw,
+                             bevel_profil_panel);
+  modifier_subpanel_register(
+      region_type, "geometry", "Geometry", NULL, geometry_panel_draw, panel_type);
+  modifier_subpanel_register(
+      region_type, "shading", "Shading", NULL, shading_panel_draw, panel_type);
+}
+
 ModifierTypeInfo modifierType_Bevel = {
     /* name */ "Bevel",
     /* structName */ "BevelModifierData",
@@ -290,4 +445,5 @@ ModifierTypeInfo modifierType_Bevel = {
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
+    /* uiPanel */ panelRegister,
 };

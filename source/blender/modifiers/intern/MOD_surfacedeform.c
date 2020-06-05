@@ -24,25 +24,35 @@
 #include "BLI_math_geom.h"
 #include "BLI_task.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
 #include "BKE_bvhutils.h"
+#include "BKE_context.h"
+#include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
+#include "BKE_screen.h"
 
-#include "BKE_deform.h"
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
 #include "MEM_guardedalloc.h"
 
+#include "MOD_ui_common.h"
 #include "MOD_util.h"
 
 typedef struct SDefAdjacency {
@@ -1385,8 +1395,50 @@ static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED
          !(smd->verts != NULL && !(smd->flags & MOD_SDEF_BIND));
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  PointerRNA target_ptr = RNA_pointer_get(&ptr, "target");
+
+  bool is_bound = RNA_boolean_get(&ptr, "is_bound");
+
+  uiLayoutSetPropSep(layout, true);
+
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(col, !is_bound);
+  uiItemR(col, &ptr, "target", 0, NULL, ICON_NONE);
+
+  uiItemR(col, &ptr, "falloff", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "strength", 0, NULL, ICON_NONE);
+
+  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+
+  uiItemS(layout);
+
+  col = uiLayoutColumn(layout, false);
+  if (is_bound) {
+    uiItemO(col, IFACE_("Unbind"), ICON_NONE, "OBJECT_OT_surfacedeform_bind");
+  }
+  else {
+    uiLayoutSetActive(col, !RNA_pointer_is_null(&target_ptr));
+    uiItemO(col, IFACE_("Bind"), ICON_NONE, "OBJECT_OT_surfacedeform_bind");
+  }
+  modifier_panel_end(layout, &ptr);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  modifier_panel_register(region_type, eModifierType_SurfaceDeform, panel_draw);
+}
+
 ModifierTypeInfo modifierType_SurfaceDeform = {
-    /* name */ "Surface Deform",
+    /* name */ "SurfaceDeform",
     /* structName */ "SurfaceDeformModifierData",
     /* structSize */ sizeof(SurfaceDeformModifierData),
     /* type */ eModifierTypeType_OnlyDeform,
@@ -1414,4 +1466,5 @@ ModifierTypeInfo modifierType_SurfaceDeform = {
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ panelRegister,
 };

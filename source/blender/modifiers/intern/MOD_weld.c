@@ -35,19 +35,30 @@
 #include "BLI_kdopbvh.h"
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_screen_types.h"
 
 #include "BKE_bvhutils.h"
+#include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_screen.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "DEG_depsgraph.h"
 
 #include "MOD_modifiertypes.h"
+#include "MOD_ui_common.h"
 
 //#define USE_WELD_DEBUG
 //#define USE_WELD_NORMALS
@@ -1939,6 +1950,28 @@ static void requiredDataMask(Object *UNUSED(ob),
   }
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "merge_threshold", 0, IFACE_("Distance"), ICON_NONE);
+  uiItemR(layout, &ptr, "max_interactions", 0, NULL, ICON_NONE);
+  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+
+  modifier_panel_end(layout, &ptr);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  modifier_panel_register(region_type, eModifierType_Weld, panel_draw);
+}
+
 ModifierTypeInfo modifierType_Weld = {
     /* name */ "Weld",
     /* structName */ "WeldModifierData",
@@ -1970,6 +2003,7 @@ ModifierTypeInfo modifierType_Weld = {
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ panelRegister,
 };
 
 /** \} */

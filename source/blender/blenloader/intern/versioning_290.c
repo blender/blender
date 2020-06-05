@@ -266,5 +266,18 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    if (!DNA_struct_elem_find(fd->filesdna, "ModifierData", "short", "ui_expand_flag")) {
+      for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+        LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+          if (md->mode & eModifierMode_Expanded_DEPRECATED) {
+            md->ui_expand_flag = 1;
+          }
+          else {
+            md->ui_expand_flag = 0;
+          }
+        }
+      }
+    }
   }
 }

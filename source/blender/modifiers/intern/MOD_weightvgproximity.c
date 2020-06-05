@@ -29,12 +29,16 @@
 #include "BLI_rand.h"
 #include "BLI_task.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_screen_types.h"
 
 #include "BKE_bvhutils.h"
+#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
@@ -42,7 +46,13 @@
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_screen.h"
 #include "BKE_texture.h" /* Texture masking. */
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
@@ -50,6 +60,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "MOD_modifiertypes.h"
+#include "MOD_ui_common.h"
 #include "MOD_util.h"
 #include "MOD_weightvg_util.h"
 
@@ -630,6 +641,65 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return mesh;
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *row, *col, *sub;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemPointerR(layout, &ptr, "vertex_group", &ob_ptr, "vertex_groups", NULL, ICON_NONE);
+
+  uiItemR(layout, &ptr, "target", 0, NULL, ICON_NONE);
+
+  uiItemS(layout);
+
+  uiItemR(layout, &ptr, "proximity_mode", 0, NULL, ICON_NONE);
+  if (RNA_enum_get(&ptr, "proximity_mode") == MOD_WVG_PROXIMITY_GEOMETRY) {
+    uiItemR(layout, &ptr, "proximity_geometry", UI_ITEM_R_EXPAND, IFACE_("Geometry"), ICON_NONE);
+  }
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col, &ptr, "min_dist", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "max_dist", 0, NULL, ICON_NONE);
+
+  uiItemS(layout);
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, &ptr, "falloff_type", 0, NULL, ICON_NONE);
+  sub = uiLayoutRow(row, true);
+  uiLayoutSetPropSep(sub, false);
+  uiItemR(row, &ptr, "invert_falloff", 0, "", ICON_ARROW_LEFTRIGHT);
+  modifier_panel_end(layout, &ptr);
+
+  uiItemS(layout);
+
+  uiItemR(layout, &ptr, "normalize", 0, NULL, ICON_NONE);
+}
+
+static void influence_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  weightvg_ui_common(C, &ob_ptr, &ptr, layout);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  PanelType *panel_type = modifier_panel_register(
+      region_type, eModifierType_WeightVGProximity, panel_draw);
+  modifier_subpanel_register(
+      region_type, "influence", "Influence", NULL, influence_panel_draw, panel_type);
+}
+
 ModifierTypeInfo modifierType_WeightVGProximity = {
     /* name */ "VertexWeightProximity",
     /* structName */ "WeightVGProximityModifierData",
@@ -660,4 +730,5 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ foreachTexLink,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ panelRegister,
 };

@@ -430,7 +430,7 @@ void ED_object_modifier_clear(Main *bmain, Object *ob)
   DEG_relations_tag_update(bmain);
 }
 
-int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md)
+bool ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md)
 {
   if (md->prev) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
@@ -440,18 +440,22 @@ int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md
 
       if (nmti->flags & eModifierTypeFlag_RequiresOriginalData) {
         BKE_report(reports, RPT_WARNING, "Cannot move above a modifier requiring original data");
-        return 0;
+        return false;
       }
     }
 
     BLI_remlink(&ob->modifiers, md);
     BLI_insertlinkbefore(&ob->modifiers, md->prev, md);
   }
+  else {
+    BKE_report(reports, RPT_WARNING, "Cannot move modifier beyond the start of the list");
+    return false;
+  }
 
-  return 1;
+  return true;
 }
 
-int ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *md)
+bool ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *md)
 {
   if (md->next) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
@@ -461,15 +465,53 @@ int ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *
 
       if (nmti->type != eModifierTypeType_OnlyDeform) {
         BKE_report(reports, RPT_WARNING, "Cannot move beyond a non-deforming modifier");
-        return 0;
+        return false;
       }
     }
 
     BLI_remlink(&ob->modifiers, md);
     BLI_insertlinkafter(&ob->modifiers, md->next, md);
   }
+  else {
+    BKE_report(reports, RPT_WARNING, "Cannot move modifier beyond the end of the list");
+    return false;
+  }
 
-  return 1;
+  return true;
+}
+
+bool ED_object_modifier_move_to_index(ReportList *reports,
+                                      Object *ob,
+                                      ModifierData *md,
+                                      const int index)
+{
+  BLI_assert(md != NULL);
+  BLI_assert(index >= 0);
+  if (index >= BLI_listbase_count(&ob->modifiers)) {
+    BKE_report(reports, RPT_WARNING, "Cannot move modifier beyond the end of the stack");
+    return false;
+  }
+
+  int md_index = BLI_findindex(&ob->modifiers, md);
+  BLI_assert(md_index != -1);
+  if (md_index < index) {
+    /* Move modifier down in list. */
+    for (; md_index < index; md_index++) {
+      if (!ED_object_modifier_move_down(reports, ob, md)) {
+        break;
+      }
+    }
+  }
+  else {
+    /* Move modifier up in list. */
+    for (; md_index > index; md_index--) {
+      if (!ED_object_modifier_move_up(reports, ob, md)) {
+        break;
+      }
+    }
+  }
+
+  return true;
 }
 
 int ED_object_modifier_convert(ReportList *UNUSED(reports),
@@ -1175,6 +1217,60 @@ void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
   edit_modifier_properties(ot);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Move to Index Modifier Operator
+ * \{ */
+
+static bool modifier_move_to_index_poll(bContext *C)
+{
+  return edit_modifier_poll(C);
+}
+
+static int modifier_move_to_index_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_active_context(C);
+  ModifierData *md = edit_modifier_property_get(op, ob, 0);
+  int index = RNA_int_get(op->ptr, "index");
+
+  if (!ED_object_modifier_move_to_index(op->reports, ob, md, index)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+static int modifier_move_to_index_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  if (edit_modifier_invoke_properties(C, op)) {
+    return modifier_move_to_index_exec(C, op);
+  }
+  else {
+    return OPERATOR_CANCELLED;
+  }
+}
+
+void OBJECT_OT_modifier_move_to_index(wmOperatorType *ot)
+{
+  ot->name = "Move Active Modifier to Index";
+  ot->description = "Move the active modifier to an index in the stack";
+  ot->idname = "OBJECT_OT_modifier_move_to_index";
+
+  ot->invoke = modifier_move_to_index_invoke;
+  ot->exec = modifier_move_to_index_exec;
+  ot->poll = modifier_move_to_index_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  edit_modifier_properties(ot);
+  RNA_def_int(
+      ot->srna, "index", 0, 0, INT_MAX, "Index", "The index to move the modifier to", 0, INT_MAX);
 }
 
 /** \} */

@@ -25,19 +25,30 @@
 
 #include "BLI_utildefines.h"
 
-#include "DNA_object_types.h"
+#include "BLT_translation.h"
 
+#include "DNA_object_types.h"
+#include "DNA_screen_types.h"
+
+#include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_screen.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "DEG_depsgraph_query.h"
 
 #include "MEM_guardedalloc.h"
 
+#include "MOD_ui_common.h"
 #include "MOD_util.h"
 
 static void initData(ModifierData *md)
@@ -137,6 +148,30 @@ static void deformVertsEM(ModifierData *md,
   }
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "object", 0, NULL, ICON_NONE);
+
+  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+
+  uiItemR(layout, &ptr, "strength", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+
+  modifier_panel_end(layout, &ptr);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  modifier_panel_register(region_type, eModifierType_Lattice, panel_draw);
+}
+
 ModifierTypeInfo modifierType_Lattice = {
     /* name */ "Lattice",
     /* structName */ "LatticeModifierData",
@@ -167,4 +202,5 @@ ModifierTypeInfo modifierType_Lattice = {
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ panelRegister,
 };

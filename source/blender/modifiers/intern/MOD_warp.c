@@ -26,25 +26,36 @@
 
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_screen_types.h"
 
 #include "BKE_action.h" /* BKE_pose_channel_find_name */
 #include "BKE_colortools.h"
+#include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_screen.h"
 #include "BKE_texture.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
 #include "RE_shader_ext.h"
 
+#include "MOD_ui_common.h"
 #include "MOD_util.h"
 
 static void initData(ModifierData *md)
@@ -393,6 +404,111 @@ static void deformVertsEM(ModifierData *md,
   }
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col, &ptr, "object_from", 0, NULL, ICON_NONE);
+  PointerRNA from_obj_ptr = RNA_pointer_get(&ptr, "object_from");
+  if (!RNA_pointer_is_null(&from_obj_ptr) && RNA_enum_get(&from_obj_ptr, "type") == OB_ARMATURE) {
+
+    PointerRNA from_obj_data_ptr = RNA_pointer_get(&from_obj_ptr, "data");
+    uiItemPointerR(col, &ptr, "bone_from", &from_obj_data_ptr, "bones", IFACE_("Bone"), ICON_NONE);
+  }
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col, &ptr, "object_to", 0, NULL, ICON_NONE);
+  PointerRNA to_obj_ptr = RNA_pointer_get(&ptr, "object_to");
+  if (!RNA_pointer_is_null(&to_obj_ptr) && RNA_enum_get(&to_obj_ptr, "type") == OB_ARMATURE) {
+    PointerRNA to_obj_data_ptr = RNA_pointer_get(&to_obj_ptr, "data");
+    uiItemPointerR(col, &ptr, "bone_to", &to_obj_data_ptr, "bones", IFACE_("Bone"), ICON_NONE);
+  }
+
+  uiItemR(layout, &ptr, "use_volume_preserve", 0, NULL, ICON_NONE);
+
+  uiItemR(layout, &ptr, "strength", 0, NULL, ICON_NONE);
+
+  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+
+  modifier_panel_end(layout, &ptr);
+}
+
+static void falloff_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  bool use_falloff = (RNA_enum_get(&ptr, "falloff_type") != eWarp_Falloff_None);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "falloff_type", 0, NULL, ICON_NONE);
+
+  if (use_falloff) {
+    uiItemR(layout, &ptr, "falloff_radius", 0, NULL, ICON_NONE);
+  }
+
+  if (use_falloff && RNA_enum_get(&ptr, "falloff_type") == eWarp_Falloff_Curve) {
+    uiTemplateCurveMapping(layout, &ptr, "falloff_curve", 0, false, false, false, false);
+  }
+}
+
+static void texture_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  int texture_coords = RNA_enum_get(&ptr, "texture_coords");
+
+  uiTemplateID(layout, C, &ptr, "texture", "texture.new", NULL, NULL, 0, ICON_NONE, NULL);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "texture_coords", 0, IFACE_("Coordinates"), ICON_NONE);
+
+  if (texture_coords == MOD_DISP_MAP_OBJECT) {
+    uiItemR(layout, &ptr, "texture_coords_object", 0, "Object", ICON_NONE);
+    PointerRNA texture_coords_obj_ptr = RNA_pointer_get(&ptr, "texture_coords_object");
+    if (!RNA_pointer_is_null(&texture_coords_obj_ptr) &&
+        (RNA_enum_get(&texture_coords_obj_ptr, "type") == OB_ARMATURE)) {
+      PointerRNA texture_coords_obj_data_ptr = RNA_pointer_get(&texture_coords_obj_ptr, "data");
+      uiItemPointerR(layout,
+                     &ptr,
+                     "texture_coords_bone",
+                     &texture_coords_obj_data_ptr,
+                     "bones",
+                     IFACE_("Bone"),
+                     ICON_NONE);
+    }
+  }
+  else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
+    PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
+    uiItemPointerR(layout, &ptr, "uv_layer", &obj_data_ptr, "uv_layers", NULL, ICON_NONE);
+  }
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Warp, panel_draw);
+  modifier_subpanel_register(
+      region_type, "falloff", "Falloff", NULL, falloff_panel_draw, panel_type);
+  modifier_subpanel_register(
+      region_type, "texture", "Texture", NULL, texture_panel_draw, panel_type);
+}
+
 ModifierTypeInfo modifierType_Warp = {
     /* name */ "Warp",
     /* structName */ "WarpModifierData",
@@ -422,4 +538,5 @@ ModifierTypeInfo modifierType_Warp = {
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ foreachTexLink,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ panelRegister,
 };

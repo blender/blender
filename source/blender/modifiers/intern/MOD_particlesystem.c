@@ -25,17 +25,28 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_screen_types.h"
 
+#include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
+#include "BKE_screen.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "DEG_depsgraph_query.h"
 
+#include "MOD_ui_common.h"
 #include "MOD_util.h"
 
 static void initData(ModifierData *md)
@@ -247,6 +258,43 @@ static void deformVertsEM(ModifierData *md,
 }
 #endif
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  Object *ob = ob_ptr.data;
+  ModifierData *md = (ModifierData *)ptr.data;
+  ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
+
+  uiItemL(layout, IFACE_("Settings are in the particle tab"), ICON_NONE);
+
+  if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
+    if (ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB)) {
+      uiItemO(layout,
+              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"),
+              ICON_NONE,
+              "OBJECT_OT_duplicates_make_real");
+    }
+    else if (psys->part->ren_as == PART_DRAW_PATH) {
+      uiItemO(layout,
+              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"),
+              ICON_NONE,
+              "OBJECT_OT_modifier_convert");
+    }
+  }
+
+  modifier_panel_end(layout, &ptr);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  modifier_panel_register(region_type, eModifierType_ParticleSystem, panel_draw);
+}
+
 ModifierTypeInfo modifierType_ParticleSystem = {
     /* name */ "ParticleSystem",
     /* structName */ "ParticleSystemModifierData",
@@ -280,4 +328,5 @@ ModifierTypeInfo modifierType_ParticleSystem = {
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ panelRegister,
 };

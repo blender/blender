@@ -25,23 +25,34 @@
 
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
+#include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_texture.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 #include "RE_shader_ext.h"
 
 #include "MOD_modifiertypes.h"
+#include "MOD_ui_common.h"
 #include "MOD_util.h"
 
 #include "DEG_depsgraph.h"
@@ -365,6 +376,122 @@ static void deformVertsEM(ModifierData *md,
   }
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *sub, *row, *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  row = uiLayoutRowWithHeading(layout, true, "Motion");
+  uiItemR(row, &ptr, "use_x", UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE, NULL, ICON_NONE);
+  uiItemR(row, &ptr, "use_y", UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE, NULL, ICON_NONE);
+
+  uiItemR(layout, &ptr, "use_cyclic", 0, NULL, ICON_NONE);
+
+  row = uiLayoutRowWithHeading(layout, true, IFACE_("Along Normals"));
+  uiItemR(row, &ptr, "use_normal", 0, "", ICON_NONE);
+  sub = uiLayoutRow(row, true);
+  uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_normal"));
+  uiItemR(sub, &ptr, "use_normal_x", UI_ITEM_R_TOGGLE, "X", ICON_NONE);
+  uiItemR(sub, &ptr, "use_normal_y", UI_ITEM_R_TOGGLE, "Y", ICON_NONE);
+  uiItemR(sub, &ptr, "use_normal_z", UI_ITEM_R_TOGGLE, "Z", ICON_NONE);
+
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, &ptr, "falloff_radius", 0, "Falloff", ICON_NONE);
+  uiItemR(col, &ptr, "height", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "width", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "narrowness", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+
+  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+
+  modifier_panel_end(layout, &ptr);
+}
+
+static void position_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "start_position_object", 0, IFACE_("Object"), ICON_NONE);
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col, &ptr, "start_position_x", 0, "Start position X", ICON_NONE);
+  uiItemR(col, &ptr, "start_position_y", 0, "Y", ICON_NONE);
+}
+
+static void time_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, &ptr, "time_offset", 0, "Offset", ICON_NONE);
+  uiItemR(col, &ptr, "lifetime", 0, "Life", ICON_NONE);
+  uiItemR(col, &ptr, "damping_time", 0, "Damping", ICON_NONE);
+  uiItemR(col, &ptr, "speed", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+}
+
+static void texture_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  int texture_coords = RNA_enum_get(&ptr, "texture_coords");
+
+  uiTemplateID(layout, C, &ptr, "texture", "texture.new", NULL, NULL, 0, ICON_NONE, NULL);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "texture_coords", 0, IFACE_("Coordinates"), ICON_NONE);
+  if (texture_coords == MOD_DISP_MAP_OBJECT) {
+    uiItemR(layout, &ptr, "texture_coords_object", 0, NULL, ICON_NONE);
+    PointerRNA texture_coords_obj_ptr = RNA_pointer_get(&ptr, "texture_coords_object");
+    if (!RNA_pointer_is_null(&texture_coords_obj_ptr) &&
+        (RNA_enum_get(&texture_coords_obj_ptr, "type") == OB_ARMATURE)) {
+      PointerRNA texture_coords_obj_data_ptr = RNA_pointer_get(&texture_coords_obj_ptr, "data");
+      uiItemPointerR(layout,
+                     &ptr,
+                     "texture_coords_bone",
+                     &texture_coords_obj_data_ptr,
+                     "bones",
+                     IFACE_("Bone"),
+                     ICON_NONE);
+    }
+  }
+  else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
+    PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
+    uiItemPointerR(layout, &ptr, "uv_layer", &obj_data_ptr, "uv_layers", NULL, ICON_NONE);
+  }
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Wave, panel_draw);
+  modifier_subpanel_register(
+      region_type, "position", "Start Position", NULL, position_panel_draw, panel_type);
+  modifier_subpanel_register(region_type, "time", "Time", NULL, time_panel_draw, panel_type);
+  modifier_subpanel_register(
+      region_type, "texture", "Texture", NULL, texture_panel_draw, panel_type);
+}
+
 ModifierTypeInfo modifierType_Wave = {
     /* name */ "Wave",
     /* structName */ "WaveModifierData",
@@ -395,4 +522,5 @@ ModifierTypeInfo modifierType_Wave = {
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ foreachTexLink,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ panelRegister,
 };

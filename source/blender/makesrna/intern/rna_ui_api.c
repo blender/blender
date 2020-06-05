@@ -1209,13 +1209,9 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED | PARM_RNAPTR);
   api_ui_item_common_text(func);
 
-  func = RNA_def_function(srna, "template_modifier", "uiTemplateModifier");
+  func = RNA_def_function(srna, "template_modifiers", "uiTemplateModifiers");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-  RNA_def_function_ui_description(func, "Generates the UI layout for modifiers");
-  parm = RNA_def_pointer(func, "data", "Modifier", "", "Modifier data");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
-  parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
-  RNA_def_function_return(func, parm);
+  RNA_def_function_ui_description(func, "Generates the UI layout for the modifier stack");
 
   func = RNA_def_function(srna, "template_greasepencil_modifier", "uiTemplateGpencilModifier");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);

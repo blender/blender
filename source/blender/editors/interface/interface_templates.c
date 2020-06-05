@@ -1816,360 +1816,50 @@ void uiTemplatePathBuilder(uiLayout *layout,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Modifier Template
+/** \name Modifiers Template
+ *
+ *  Template for building the panel layout for the active object's modifiers.
  * \{ */
 
-#define ERROR_LIBDATA_MESSAGE TIP_("Can't edit external library data")
-
-static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
+static void modifier_panel_id(void *md_link, char *r_name)
 {
-  Object *ob = ob_v;
-  ModifierData *md = md_v;
-  ModifierData *nmd = BKE_modifier_new(md->type);
-
-  BKE_modifier_copydata(md, nmd);
-  nmd->mode &= ~eModifierMode_Virtual;
-
-  BLI_addhead(&ob->modifiers, nmd);
-
-  BKE_modifier_unique_name(&ob->modifiers, nmd);
-
-  ob->partype = PAROBJECT;
-
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-
-  ED_undo_push(C, "Modifier convert to real");
+  ModifierData *md = (ModifierData *)md_link;
+  BKE_modifier_type_panel_id(md->type, r_name);
 }
 
-static bool modifier_can_delete(ModifierData *md)
+void uiTemplateModifiers(uiLayout *UNUSED(layout), bContext *C)
 {
-  /* fluid particle modifier can't be deleted here */
-  if (md->type == eModifierType_ParticleSystem) {
-    short particle_type = ((ParticleSystemModifierData *)md)->psys->part->type;
-    if (ELEM(particle_type,
-             PART_FLUID,
-             PART_FLUID_FLIP,
-             PART_FLUID_FOAM,
-             PART_FLUID_SPRAY,
-             PART_FLUID_BUBBLE,
-             PART_FLUID_TRACER,
-             PART_FLUID_SPRAYFOAM,
-             PART_FLUID_SPRAYBUBBLE,
-             PART_FLUID_FOAMBUBBLE,
-             PART_FLUID_SPRAYFOAMBUBBLE)) {
-      return false;
-    }
-  }
-  return true;
-}
+  ScrArea *sa = CTX_wm_area(C);
+  ARegion *region = CTX_wm_region(C);
 
-/* Check whether Modifier is a simulation or not,
- * this is used for switching to the physics/particles context tab */
-static int modifier_is_simulation(ModifierData *md)
-{
-  /* Physic Tab */
-  if (ELEM(md->type,
-           eModifierType_Cloth,
-           eModifierType_Collision,
-           eModifierType_Fluidsim,
-           eModifierType_Fluid,
-           eModifierType_Softbody,
-           eModifierType_Surface,
-           eModifierType_DynamicPaint)) {
-    return 1;
-  }
-  /* Particle Tab */
-  else if (md->type == eModifierType_ParticleSystem) {
-    return 2;
-  }
-  else {
-    return 0;
-  }
-}
-
-static uiLayout *draw_modifier(uiLayout *layout,
-                               Scene *scene,
-                               Object *ob,
-                               ModifierData *md,
-                               int index,
-                               int cageIndex,
-                               int lastCageIndex)
-{
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
-  PointerRNA ptr;
-  uiBut *but;
-  uiBlock *block;
-  uiLayout *box, *column, *row, *sub;
-  uiLayout *result = NULL;
-  int isVirtual = (md->mode & eModifierMode_Virtual);
-  char str[128];
-
-  /* create RNA pointer */
-  RNA_pointer_create(&ob->id, &RNA_Modifier, md, &ptr);
-
-  column = uiLayoutColumn(layout, true);
-  uiLayoutSetContextPointer(column, "modifier", &ptr);
-
-  /* rounded header ------------------------------------------------------------------- */
-  box = uiLayoutBox(column);
-
-  if (isVirtual) {
-    row = uiLayoutRow(box, false);
-    uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
-    block = uiLayoutGetBlock(row);
-    /* VIRTUAL MODIFIER */
-    /* XXX this is not used now, since these cannot be accessed via RNA */
-    BLI_snprintf(str, sizeof(str), IFACE_("%s parent deform"), md->name);
-    uiDefBut(block,
-             UI_BTYPE_LABEL,
-             0,
-             str,
-             0,
-             0,
-             185,
-             UI_UNIT_Y,
-             NULL,
-             0.0,
-             0.0,
-             0.0,
-             0.0,
-             TIP_("Modifier name"));
-
-    but = uiDefBut(block,
-                   UI_BTYPE_BUT,
-                   0,
-                   IFACE_("Make Real"),
-                   0,
-                   0,
-                   80,
-                   16,
-                   NULL,
-                   0.0,
-                   0.0,
-                   0.0,
-                   0.0,
-                   TIP_("Convert virtual modifier to a real modifier"));
-    UI_but_func_set(but, modifiers_convertToReal, ob, md);
-  }
-  else {
-    /* REAL MODIFIER */
-    row = uiLayoutRow(box, false);
-    block = uiLayoutGetBlock(row);
-
-    UI_block_emboss_set(block, UI_EMBOSS_NONE);
-    /* Open/Close .................................  */
-    uiItemR(row, &ptr, "show_expanded", 0, "", ICON_NONE);
-
-    /* modifier-type icon */
-    uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
-    UI_block_emboss_set(block, UI_EMBOSS);
-
-    /* modifier name */
-    if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
-      uiLayoutSetRedAlert(row, true);
-    }
-    uiItemR(row, &ptr, "name", 0, "", ICON_NONE);
-    uiLayoutSetRedAlert(row, false);
-
-    /* mode enabling buttons */
-    UI_block_align_begin(block);
-    /* Collision and Surface are always enabled, hide buttons! */
-    if (((md->type != eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) &&
-        (md->type != eModifierType_Surface)) {
-      uiItemR(row, &ptr, "show_render", 0, "", ICON_NONE);
-      uiItemR(row, &ptr, "show_viewport", 0, "", ICON_NONE);
-
-      if (mti->flags & eModifierTypeFlag_SupportsEditmode) {
-        sub = uiLayoutRow(row, true);
-        if (!(md->mode & eModifierMode_Realtime)) {
-          uiLayoutSetActive(sub, false);
-        }
-        uiItemR(sub, &ptr, "show_in_editmode", 0, "", ICON_NONE);
-      }
-    }
-
-    if (ob->type == OB_MESH) {
-      if (BKE_modifier_supports_cage(scene, md) && (index <= lastCageIndex)) {
-        sub = uiLayoutRow(row, true);
-        if (index < cageIndex || !BKE_modifier_couldbe_cage(scene, md)) {
-          uiLayoutSetActive(sub, false);
-        }
-        uiItemR(sub, &ptr, "show_on_cage", 0, "", ICON_NONE);
-      }
-    } /* tessellation point for curve-typed objects */
-    else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-      /* some modifiers could work with pre-tessellated curves only */
-      if (ELEM(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
-        /* add disabled pre-tessellated button, so users could have
-         * message for this modifiers */
-        but = uiDefIconButBitI(block,
-                               UI_BTYPE_TOGGLE,
-                               eModifierMode_ApplyOnSpline,
-                               0,
-                               ICON_SURFACE_DATA,
-                               0,
-                               0,
-                               UI_UNIT_X - 2,
-                               UI_UNIT_Y,
-                               &md->mode,
-                               0.0,
-                               0.0,
-                               0.0,
-                               0.0,
-                               TIP_("This modifier can only be applied on splines' points"));
-        UI_but_flag_enable(but, UI_BUT_DISABLED);
-      }
-      else if (mti->type != eModifierTypeType_Constructive) {
-        /* constructive modifiers tessellates curve before applying */
-        uiItemR(row, &ptr, "use_apply_on_spline", 0, "", ICON_NONE);
-      }
-    }
-
-    UI_block_align_end(block);
-
-    /* Up/Down + Delete ........................... */
-    UI_block_align_begin(block);
-    uiItemO(row, "", ICON_TRIA_UP, "OBJECT_OT_modifier_move_up");
-    uiItemO(row, "", ICON_TRIA_DOWN, "OBJECT_OT_modifier_move_down");
-    UI_block_align_end(block);
-
-    UI_block_emboss_set(block, UI_EMBOSS_NONE);
-    /* When Modifier is a simulation,
-     * show button to switch to context rather than the delete button. */
-    if (modifier_can_delete(md) && !modifier_is_simulation(md)) {
-      uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
-    }
-    else if (modifier_is_simulation(md) == 1) {
-      uiItemStringO(
-          row, "", ICON_PROPERTIES, "WM_OT_properties_context_change", "context", "PHYSICS");
-    }
-    else if (modifier_is_simulation(md) == 2) {
-      uiItemStringO(
-          row, "", ICON_PROPERTIES, "WM_OT_properties_context_change", "context", "PARTICLES");
-    }
-    UI_block_emboss_set(block, UI_EMBOSS);
-  }
-
-  /* modifier settings (under the header) --------------------------------------------------- */
-  if (!isVirtual && (md->mode & eModifierMode_Expanded)) {
-    /* apply/convert/copy */
-    box = uiLayoutBox(column);
-    row = uiLayoutRow(box, false);
-
-    if (!ELEM(md->type, eModifierType_Collision, eModifierType_Surface)) {
-      /* only here obdata, the rest of modifiers is ob level */
-      UI_block_lock_set(block, BKE_object_obdata_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-
-      if (md->type == eModifierType_ParticleSystem) {
-        ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
-
-        if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
-          if (ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB)) {
-            uiItemO(row,
-                    CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"),
-                    ICON_NONE,
-                    "OBJECT_OT_duplicates_make_real");
-          }
-          else if (psys->part->ren_as == PART_DRAW_PATH) {
-            uiItemO(row,
-                    CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"),
-                    ICON_NONE,
-                    "OBJECT_OT_modifier_convert");
-          }
-        }
-      }
-      else {
-        uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
-        uiItemEnumO(row,
-                    "OBJECT_OT_modifier_apply",
-                    CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
-                    0,
-                    "apply_as",
-                    MODIFIER_APPLY_DATA);
-
-        if (BKE_modifier_is_same_topology(md) && !BKE_modifier_is_non_geometrical(md)) {
-          uiItemEnumO(row,
-                      "OBJECT_OT_modifier_apply",
-                      CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply as Shape Key"),
-                      0,
-                      "apply_as",
-                      MODIFIER_APPLY_SHAPE);
-        }
-      }
-
-      UI_block_lock_clear(block);
-      UI_block_lock_set(block, ob && ID_IS_LINKED(ob), ERROR_LIBDATA_MESSAGE);
-
-      if (!ELEM(md->type,
-                eModifierType_Fluidsim,
-                eModifierType_Softbody,
-                eModifierType_ParticleSystem,
-                eModifierType_Cloth,
-                eModifierType_Fluid)) {
-        uiItemO(row,
-                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy"),
-                ICON_NONE,
-                "OBJECT_OT_modifier_copy");
-      }
-    }
-
-    /* result is the layout block inside the box,
-     * that we return so that modifier settings can be drawn */
-    result = uiLayoutColumn(box, false);
-    block = uiLayoutAbsoluteBlock(box);
-  }
-
-  /* error messages */
-  if (md->error) {
-    box = uiLayoutBox(column);
-    row = uiLayoutRow(box, false);
-    uiItemL(row, md->error, ICON_ERROR);
-  }
-
-  return result;
-}
-
-uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-  Scene *scene = CTX_data_scene(C);
   Object *ob;
-  ModifierData *md, *vmd;
-  VirtualModifierData virtualModifierData;
-  int i, lastCageIndex, cageIndex;
-
-  /* verify we have valid data */
-  if (!RNA_struct_is_a(ptr->type, &RNA_Modifier)) {
-    RNA_warning("Expected modifier on object");
-    return NULL;
+  SpaceProperties *sbuts = CTX_wm_space_properties(C);
+  if (sbuts != NULL && (sbuts->pinid != NULL) && GS(sbuts->pinid->name) == ID_OB) {
+    ob = (Object *)sbuts->pinid;
   }
-
-  ob = (Object *)ptr->owner_id;
-  md = ptr->data;
-
-  if (!ob || !(GS(ob->id.name) == ID_OB)) {
-    RNA_warning("Expected modifier on object");
-    return NULL;
+  else {
+    ob = CTX_data_active_object(C);
   }
+  ListBase *modifiers = &ob->modifiers;
 
-  UI_block_lock_set(uiLayoutGetBlock(layout), (ob && ID_IS_LINKED(ob)), ERROR_LIBDATA_MESSAGE);
+  bool panels_match = UI_panel_list_matches_data(region, modifiers, modifier_panel_id);
 
-  /* find modifier and draw it */
-  cageIndex = BKE_modifiers_get_cage_index(scene, ob, &lastCageIndex, 0);
+  if (!panels_match) {
+    UI_panels_free_instanced(C, region);
+    ModifierData *md = modifiers->first;
+    for (int i = 0; md; i++, md = md->next) {
+      const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
+      if (mti->panelRegister) {
+        char panel_idname[MAX_NAME];
+        modifier_panel_id(md, panel_idname);
 
-  /* XXX virtual modifiers are not accessible for python */
-  vmd = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
-
-  for (i = 0; vmd; i++, vmd = vmd->next) {
-    if (md == vmd) {
-      return draw_modifier(layout, scene, ob, md, i, cageIndex, lastCageIndex);
-    }
-    else if (vmd->mode & eModifierMode_Virtual) {
-      i--;
+        Panel *new_panel = UI_panel_add_instanced(sa, region, &region->panels, panel_idname, i);
+        if (new_panel != NULL) {
+          UI_panel_set_expand_from_list_data(C, new_panel);
+        }
+      }
     }
   }
-
-  return NULL;
 }
 
 /** \} */
@@ -2177,6 +1867,8 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 /* -------------------------------------------------------------------- */
 /** \name Grease Pencil Modifier Template
  * \{ */
+
+#define ERROR_LIBDATA_MESSAGE TIP_("Can't edit external library data")
 
 static uiLayout *gpencil_draw_modifier(uiLayout *layout, Object *ob, GpencilModifierData *md)
 {

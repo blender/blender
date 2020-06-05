@@ -116,6 +116,17 @@ const ModifierTypeInfo *BKE_modifier_get_info(ModifierType type)
   }
 }
 
+/**
+ * Get the idname of the modifier type's panel, which was defined in the #panelRegister callback.
+ */
+void BKE_modifier_type_panel_id(ModifierType type, char *r_idname)
+{
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(type);
+
+  strcpy(r_idname, MODIFIER_TYPE_PANEL_PREFIX);
+  strcat(r_idname, mti->name);
+}
+
 /***/
 
 ModifierData *BKE_modifier_new(int type)
@@ -127,8 +138,9 @@ ModifierData *BKE_modifier_new(int type)
   BLI_strncpy(md->name, DATA_(mti->name), sizeof(md->name));
 
   md->type = type;
-  md->mode = eModifierMode_Realtime | eModifierMode_Render | eModifierMode_Expanded;
+  md->mode = eModifierMode_Realtime | eModifierMode_Render;
   md->flag = eModifierFlag_OverrideLibrary_Local;
+  md->ui_expand_flag = 1; /* Only open the main panel at the beginning, not the subpanels. */
 
   if (mti->flags & eModifierTypeFlag_EnableInEditmode) {
     md->mode |= eModifierMode_Editmode;
@@ -342,6 +354,7 @@ void BKE_modifier_copydata_ex(ModifierData *md, ModifierData *target, const int 
 
   target->mode = md->mode;
   target->flag = md->flag;
+  target->ui_expand_flag = md->ui_expand_flag;
 
   if (mti->copyData) {
     mti->copyData(md, target, flag);

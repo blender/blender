@@ -103,7 +103,8 @@ typedef enum ModifierMode {
   eModifierMode_Render = (1 << 1),
   eModifierMode_Editmode = (1 << 2),
   eModifierMode_OnCage = (1 << 3),
-  eModifierMode_Expanded = (1 << 4),
+  /* Old modifier box expansion, just for versioning. */
+  eModifierMode_Expanded_DEPRECATED = (1 << 4),
   eModifierMode_Virtual = (1 << 5),
   eModifierMode_ApplyOnSpline = (1 << 6),
   eModifierMode_DisableTemporary = (1u << 31),
@@ -115,7 +116,8 @@ typedef struct ModifierData {
   int type, mode;
   int stackindex;
   short flag;
-  char _pad[2];
+  /* An "expand" bit for each of the modifier's (sub)panels. */
+  short ui_expand_flag;
   /** MAX_NAME. */
   char name[64];
 

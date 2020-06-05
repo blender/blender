@@ -370,12 +370,17 @@ bool ED_object_modifier_remove(struct ReportList *reports,
                                struct Object *ob,
                                struct ModifierData *md);
 void ED_object_modifier_clear(struct Main *bmain, struct Object *ob);
-int ED_object_modifier_move_down(struct ReportList *reports,
-                                 struct Object *ob,
-                                 struct ModifierData *md);
-int ED_object_modifier_move_up(struct ReportList *reports,
-                               struct Object *ob,
-                               struct ModifierData *md);
+bool ED_object_modifier_move_down(struct ReportList *reports,
+                                  struct Object *ob,
+                                  struct ModifierData *md);
+bool ED_object_modifier_move_up(struct ReportList *reports,
+                                struct Object *ob,
+                                struct ModifierData *md);
+bool ED_object_modifier_move_to_index(struct ReportList *reports,
+                                      struct Object *ob,
+                                      struct ModifierData *md,
+                                      const int index);
+
 int ED_object_modifier_convert(struct ReportList *reports,
                                struct Main *bmain,
                                struct Depsgraph *depsgraph,

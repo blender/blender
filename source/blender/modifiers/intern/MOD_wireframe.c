@@ -18,15 +18,28 @@
  * \ingroup modifiers
  */
 
+#include <string.h>
+
 #include "BLI_utildefines.h"
+
+#include "BLT_translation.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_screen_types.h"
 
+#include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
+#include "BKE_screen.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "MOD_modifiertypes.h"
+#include "MOD_ui_common.h"
 
 #include "bmesh.h"
 #include "tools/bmesh_wireframe.h"
@@ -104,6 +117,67 @@ static Mesh *modifyMesh(ModifierData *md, const struct ModifierEvalContext *ctx,
   return WireframeModifier_do((WireframeModifierData *)md, ctx->object, mesh);
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col, *row, *sub;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "thickness", 0, IFACE_("Thickness"), ICON_NONE);
+  uiItemR(layout, &ptr, "offset", 0, NULL, ICON_NONE);
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col, &ptr, "use_boundary", 0, IFACE_("Boundary"), ICON_NONE);
+  uiItemR(col, &ptr, "use_replace", 0, IFACE_("Replace Original"), ICON_NONE);
+
+  col = uiLayoutColumnWithHeading(layout, true, IFACE_("Thickness"));
+  uiItemR(col, &ptr, "use_even_offset", 0, IFACE_("Even"), ICON_NONE);
+  uiItemR(col, &ptr, "use_relative_offset", 0, IFACE_("Relative"), ICON_NONE);
+
+  row = uiLayoutRowWithHeading(layout, true, IFACE_("Crease Edges"));
+  uiItemR(row, &ptr, "use_crease", 0, "", ICON_NONE);
+  sub = uiLayoutRow(row, true);
+  uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_crease"));
+  uiItemR(sub, &ptr, "crease_weight", UI_ITEM_R_SLIDER, "", ICON_NONE);
+
+  uiItemR(layout, &ptr, "material_offset", 0, IFACE_("Material Offset"), ICON_NONE);
+
+  modifier_panel_end(layout, &ptr);
+}
+
+static void vertex_group_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *row;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  bool has_vertex_group = RNA_string_length(&ptr, "vertex_group") != 0;
+
+  uiLayoutSetPropSep(layout, true);
+
+  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+
+  row = uiLayoutRow(layout, true);
+  uiLayoutSetActive(row, has_vertex_group);
+  uiItemR(row, &ptr, "thickness_vertex_group", 0, IFACE_("Factor"), ICON_NONE);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  PanelType *panel_type = modifier_panel_register(
+      region_type, eModifierType_Wireframe, panel_draw);
+  modifier_subpanel_register(
+      region_type, "vertex_group", "Vertex Group", NULL, vertex_group_panel_draw, panel_type);
+}
+
 ModifierTypeInfo modifierType_Wireframe = {
     /* name */ "Wireframe",
     /* structName */ "WireframeModifierData",
@@ -133,4 +207,5 @@ ModifierTypeInfo modifierType_Wireframe = {
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ panelRegister,
 };

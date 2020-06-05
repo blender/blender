@@ -27,21 +27,34 @@
 #include "BLI_math_inline.h"
 #include "BLI_task.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
+#include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_ocean.h"
+#include "BKE_screen.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
+
+#include "WM_types.h" /* For UI free bake operator. */
 
 #include "DEG_depsgraph_query.h"
 
 #include "MOD_modifiertypes.h"
+#include "MOD_ui_common.h"
 
 #ifdef WITH_OCEANSIM
 static void init_cache_data(Object *ob, struct OceanModifierData *omd)
@@ -494,6 +507,172 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   return result;
 }
+// #define WITH_OCEANSIM
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+#ifdef WITH_OCEANSIM
+  uiLayout *col;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "geometry_mode", 0, NULL, ICON_NONE);
+  if (RNA_enum_get(&ptr, "geometry_mode") == MOD_OCEAN_GEOM_GENERATE) {
+    col = uiLayoutColumn(layout, true);
+    uiItemR(col, &ptr, "repeat_x", 0, IFACE_("Repeat X"), ICON_NONE);
+    uiItemR(col, &ptr, "repeat_y", 0, IFACE_("Y"), ICON_NONE);
+  }
+  uiItemR(layout, &ptr, "random_seed", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "resolution", 0, NULL, ICON_NONE);
+
+  uiItemR(layout, &ptr, "time", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "depth", 0, NULL, ICON_NONE);
+
+  uiItemR(layout, &ptr, "size", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "spatial_size", 0, NULL, ICON_NONE);
+
+  uiItemR(layout, &ptr, "use_normals", 0, NULL, ICON_NONE);
+
+  modifier_panel_end(layout, &ptr);
+
+#else  /* WITH_OCEANSIM */
+  uiItemL(layout, IFACE_("Built without Ocean modifier"), ICON_NONE);
+  UNUSED_VARS(C);
+#endif /* WITH_OCEANSIM */
+}
+
+#ifdef WITH_OCEANSIM
+static void waves_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "wave_scale", 0, IFACE_("Scale"), ICON_NONE);
+  uiItemR(layout, &ptr, "wave_scale_min", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "choppiness", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "wind_velocity", 0, NULL, ICON_NONE);
+
+  uiItemR(layout, &ptr, "wave_alignment", 0, IFACE_("Alignment"), ICON_NONE);
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(col, RNA_float_get(&ptr, "wave_alignment") > 0.0f);
+  uiItemR(col, &ptr, "wave_direction", 0, IFACE_("Direction"), ICON_NONE);
+  uiItemR(col, &ptr, "damping", 0, NULL, ICON_NONE);
+}
+
+static void foam_panel_draw_header(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiItemR(layout, &ptr, "use_foam", 0, IFACE_("Foam"), ICON_NONE);
+}
+
+static void foam_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  bool use_foam = RNA_boolean_get(&ptr, "use_foam");
+
+  uiLayoutSetPropSep(layout, true);
+
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(col, use_foam);
+  uiItemR(col, &ptr, "foam_coverage", 0, IFACE_("Coverage"), ICON_NONE);
+
+  col = uiLayoutColumn(layout, true);
+  uiLayoutSetActive(col, use_foam);
+  uiItemR(col, &ptr, "foam_layer_name", 0, IFACE_("Data Layer"), ICON_NONE);
+}
+
+static void spectrum_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  int spectrum = RNA_enum_get(&ptr, "spectrum");
+
+  uiItemR(layout, &ptr, "spectrum", 0, NULL, ICON_NONE);
+  if (ELEM(spectrum, MOD_OCEAN_SPECTRUM_TEXEL_MARSEN_ARSLOE, MOD_OCEAN_SPECTRUM_JONSWAP)) {
+    uiItemR(layout, &ptr, "sharpen_peak_jonswap", 0, NULL, ICON_NONE);
+    uiItemR(layout, &ptr, "fetch_jonswap", 0, NULL, ICON_NONE);
+  }
+}
+
+static void bake_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  bool is_cached = RNA_boolean_get(&ptr, "is_cached");
+  bool use_foam = RNA_boolean_get(&ptr, "use_foam");
+
+  if (is_cached) {
+    PointerRNA op_ptr;
+    uiItemFullO(layout,
+                "OBJECT_OT_ocean_bake",
+                IFACE_("Delete Bake"),
+                ICON_NONE,
+                NULL,
+                WM_OP_EXEC_DEFAULT,
+                0,
+                &op_ptr);
+    RNA_boolean_set(&op_ptr, "free", true);
+  }
+  else {
+    uiItemO(layout, NULL, ICON_NONE, "OBJECT_OT_ocean_bake");
+  }
+
+  uiItemR(layout, &ptr, "filepath", 0, NULL, ICON_NONE);
+
+  col = uiLayoutColumn(layout, true);
+  uiLayoutSetEnabled(col, !is_cached);
+  uiItemR(col, &ptr, "frame_start", 0, IFACE_("Start"), ICON_NONE);
+  uiItemR(col, &ptr, "frame_end", 0, IFACE_("End"), ICON_NONE);
+
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(col, use_foam);
+  uiItemR(col, &ptr, "bake_foam_fade", 0, NULL, ICON_NONE);
+}
+#endif /* WITH_OCEANSIM */
+
+static void panelRegister(ARegionType *region_type)
+{
+  PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Ocean, panel_draw);
+#ifdef WITH_OCEANSIM
+  modifier_subpanel_register(region_type, "waves", "Waves", NULL, waves_panel_draw, panel_type);
+  modifier_subpanel_register(
+      region_type, "foam", "", foam_panel_draw_header, foam_panel_draw, panel_type);
+  modifier_subpanel_register(
+      region_type, "spectrum", "Spectrum", NULL, spectrum_panel_draw, panel_type);
+  modifier_subpanel_register(region_type, "bake", "Bake", NULL, bake_panel_draw, panel_type);
+#else
+  UNUSED_VARS(panel_type);
+#endif /* WITH_OCEANSIM */
+}
 
 ModifierTypeInfo modifierType_Ocean = {
     /* name */ "Ocean",
@@ -525,4 +704,5 @@ ModifierTypeInfo modifierType_Ocean = {
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ panelRegister,
 };

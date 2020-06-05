@@ -27,17 +27,27 @@
 #include "BLI_listbase.h"
 #include "BLI_rand.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_color_types.h" /* CurveMapping. */
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_screen_types.h"
 
 #include "BKE_colortools.h" /* CurveMapping. */
+#include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_lib_query.h"
 #include "BKE_modifier.h"
+#include "BKE_screen.h"
 #include "BKE_texture.h" /* Texture masking. */
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
@@ -45,6 +55,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "MOD_modifiertypes.h"
+#include "MOD_ui_common.h"
 #include "MOD_util.h"
 #include "MOD_weightvg_util.h"
 
@@ -303,6 +314,91 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return mesh;
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *sub, *col, *row;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  col = uiLayoutColumn(layout, true);
+  uiItemPointerR(col, &ptr, "vertex_group", &ob_ptr, "vertex_groups", NULL, ICON_NONE);
+
+  uiItemR(layout, &ptr, "default_weight", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+
+  col = uiLayoutColumnWithHeading(layout, false, IFACE_("Group Add"));
+  row = uiLayoutRow(col, true);
+  uiLayoutSetPropDecorate(row, false);
+  sub = uiLayoutRow(row, true);
+  uiItemR(sub, &ptr, "use_add", 0, "", ICON_NONE);
+  sub = uiLayoutRow(sub, true);
+  uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_add"));
+  uiLayoutSetPropSep(sub, false);
+  uiItemR(sub, &ptr, "add_threshold", UI_ITEM_R_SLIDER, "Threshold", ICON_NONE);
+  uiItemDecoratorR(row, &ptr, "add_threshold", 0);
+
+  col = uiLayoutColumnWithHeading(layout, false, IFACE_("Group Remove"));
+  row = uiLayoutRow(col, true);
+  uiLayoutSetPropDecorate(row, false);
+  sub = uiLayoutRow(row, true);
+  uiItemR(sub, &ptr, "use_remove", 0, "", ICON_NONE);
+  sub = uiLayoutRow(sub, true);
+  uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_remove"));
+  uiLayoutSetPropSep(sub, false);
+  uiItemR(sub, &ptr, "remove_threshold", UI_ITEM_R_SLIDER, "Threshold", ICON_NONE);
+  uiItemDecoratorR(row, &ptr, "remove_threshold", 0);
+
+  uiItemR(layout, &ptr, "normalize", 0, NULL, ICON_NONE);
+
+  modifier_panel_end(layout, &ptr);
+}
+
+static void falloff_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *row, *sub;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, &ptr, "falloff_type", 0, IFACE_("Type"), ICON_NONE);
+  sub = uiLayoutRow(row, true);
+  uiLayoutSetPropSep(sub, false);
+  uiItemR(row, &ptr, "invert_falloff", 0, "", ICON_ARROW_LEFTRIGHT);
+  if (RNA_enum_get(&ptr, "falloff_type") == MOD_WVG_MAPPING_CURVE) {
+    uiTemplateCurveMapping(layout, &ptr, "map_curve", 0, false, false, false, false);
+  }
+}
+
+static void influence_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  weightvg_ui_common(C, &ob_ptr, &ptr, layout);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  PanelType *panel_type = modifier_panel_register(
+      region_type, eModifierType_WeightVGEdit, panel_draw);
+  modifier_subpanel_register(
+      region_type, "falloff", "Falloff", NULL, falloff_panel_draw, panel_type);
+  modifier_subpanel_register(
+      region_type, "influence", "Influence", NULL, influence_panel_draw, panel_type);
+}
+
 ModifierTypeInfo modifierType_WeightVGEdit = {
     /* name */ "VertexWeightEdit",
     /* structName */ "WeightVGEditModifierData",
@@ -333,4 +429,5 @@ ModifierTypeInfo modifierType_WeightVGEdit = {
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ foreachTexLink,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ panelRegister,
 };

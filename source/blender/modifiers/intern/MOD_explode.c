@@ -28,11 +28,15 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
+#include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
@@ -40,12 +44,19 @@
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "DEG_depsgraph_query.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "MOD_modifiertypes.h"
+#include "MOD_ui_common.h"
 
 static void initData(ModifierData *md)
 {
@@ -1174,6 +1185,49 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return mesh;
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *row;
+  uiLayout *layout = panel->layout;
+  int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
+  bool has_vertex_group = RNA_string_length(&ptr, "vertex_group") != 0;
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemPointerR(layout, &ptr, "particle_uv", &obj_data_ptr, "uv_layers", NULL, ICON_NONE);
+
+  row = uiLayoutRowWithHeading(layout, true, IFACE_("Show"));
+  uiItemR(row, &ptr, "show_alive", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, &ptr, "show_dead", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, &ptr, "show_unborn", toggles_flag, NULL, ICON_NONE);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "use_edge_cut", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "use_size", 0, NULL, ICON_NONE);
+
+  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+
+  row = uiLayoutRow(layout, false);
+  uiLayoutSetActive(row, has_vertex_group);
+  uiItemR(row, &ptr, "protect", 0, NULL, ICON_NONE);
+
+  uiItemO(layout, IFACE_("Refresh"), ICON_NONE, "OBJECT_OT_explode_refresh");
+
+  modifier_panel_end(layout, &ptr);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  modifier_panel_register(region_type, eModifierType_Explode, panel_draw);
+}
+
 ModifierTypeInfo modifierType_Explode = {
     /* name */ "Explode",
     /* structName */ "ExplodeModifierData",
@@ -1202,4 +1256,5 @@ ModifierTypeInfo modifierType_Explode = {
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ panelRegister,
 };

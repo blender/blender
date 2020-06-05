@@ -26,11 +26,15 @@
 #include "BLI_math.h"
 #include "BLI_task.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
+#include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
@@ -39,12 +43,19 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
+#include "BKE_screen.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "MOD_ui_common.h"
 #include "MOD_util.h"
 
 #ifdef __SSE2__
@@ -558,6 +569,43 @@ void BKE_modifier_mdef_compact_influences(ModifierData *md)
   mmd->bindweights = NULL;
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  bool is_bound = RNA_boolean_get(&ptr, "is_bound");
+
+  uiLayoutSetPropSep(layout, true);
+
+  col = uiLayoutColumn(layout, true);
+  uiLayoutSetEnabled(col, !is_bound);
+  uiItemR(col, &ptr, "object", 0, NULL, ICON_NONE);
+
+  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetEnabled(col, !is_bound);
+  uiItemR(col, &ptr, "precision", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "use_dynamic_bind", 0, NULL, ICON_NONE);
+
+  uiItemO(layout,
+          is_bound ? IFACE_("Unbind") : IFACE_("Bind"),
+          ICON_NONE,
+          "OBJECT_OT_meshdeform_bind");
+
+  modifier_panel_end(layout, &ptr);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  modifier_panel_register(region_type, eModifierType_MeshDeform, panel_draw);
+}
+
 ModifierTypeInfo modifierType_MeshDeform = {
     /* name */ "MeshDeform",
     /* structName */ "MeshDeformModifierData",
@@ -588,4 +636,5 @@ ModifierTypeInfo modifierType_MeshDeform = {
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ panelRegister,
 };
