@@ -679,79 +679,86 @@ static void writelist_id(WriteData *wd, int filecode, const char *structname, co
  * These functions are used by blender's .blend system for file saving/loading.
  * \{ */
 
-void IDP_WriteProperty_OnlyData(const IDProperty *prop, void *wd);
-void IDP_WriteProperty(const IDProperty *prop, void *wd);
+void IDP_WriteProperty_OnlyData(const IDProperty *prop, BlendWriter *writer);
+void IDP_WriteProperty(const IDProperty *prop, WriteData *wd);
+void IDP_WriteProperty_new_api(const IDProperty *prop, BlendWriter *writer);
 
-static void IDP_WriteArray(const IDProperty *prop, void *wd)
+static void IDP_WriteArray(const IDProperty *prop, BlendWriter *writer)
 {
   /*REMEMBER to set totalen to len in the linking code!!*/
   if (prop->data.pointer) {
-    writedata(wd, DATA, MEM_allocN_len(prop->data.pointer), prop->data.pointer);
+    BLO_write_raw(writer, MEM_allocN_len(prop->data.pointer), prop->data.pointer);
 
     if (prop->subtype == IDP_GROUP) {
       IDProperty **array = prop->data.pointer;
       int a;
 
       for (a = 0; a < prop->len; a++) {
-        IDP_WriteProperty(array[a], wd);
+        IDP_WriteProperty_new_api(array[a], writer);
       }
     }
   }
 }
 
-static void IDP_WriteIDPArray(const IDProperty *prop, void *wd)
+static void IDP_WriteIDPArray(const IDProperty *prop, BlendWriter *writer)
 {
   /*REMEMBER to set totalen to len in the linking code!!*/
   if (prop->data.pointer) {
     const IDProperty *array = prop->data.pointer;
     int a;
 
-    writestruct(wd, DATA, IDProperty, prop->len, array);
+    BLO_write_struct_array(writer, IDProperty, prop->len, array);
 
     for (a = 0; a < prop->len; a++) {
-      IDP_WriteProperty_OnlyData(&array[a], wd);
+      IDP_WriteProperty_OnlyData(&array[a], writer);
     }
   }
 }
 
-static void IDP_WriteString(const IDProperty *prop, void *wd)
+static void IDP_WriteString(const IDProperty *prop, BlendWriter *writer)
 {
   /*REMEMBER to set totalen to len in the linking code!!*/
-  writedata(wd, DATA, prop->len, prop->data.pointer);
+  BLO_write_raw(writer, prop->len, prop->data.pointer);
 }
 
-static void IDP_WriteGroup(const IDProperty *prop, void *wd)
+static void IDP_WriteGroup(const IDProperty *prop, BlendWriter *writer)
 {
   IDProperty *loop;
 
   for (loop = prop->data.group.first; loop; loop = loop->next) {
-    IDP_WriteProperty(loop, wd);
+    IDP_WriteProperty_new_api(loop, writer);
   }
 }
 
 /* Functions to read/write ID Properties */
-void IDP_WriteProperty_OnlyData(const IDProperty *prop, void *wd)
+void IDP_WriteProperty_OnlyData(const IDProperty *prop, BlendWriter *writer)
 {
   switch (prop->type) {
     case IDP_GROUP:
-      IDP_WriteGroup(prop, wd);
+      IDP_WriteGroup(prop, writer);
       break;
     case IDP_STRING:
-      IDP_WriteString(prop, wd);
+      IDP_WriteString(prop, writer);
       break;
     case IDP_ARRAY:
-      IDP_WriteArray(prop, wd);
+      IDP_WriteArray(prop, writer);
       break;
     case IDP_IDPARRAY:
-      IDP_WriteIDPArray(prop, wd);
+      IDP_WriteIDPArray(prop, writer);
       break;
   }
 }
 
-void IDP_WriteProperty(const IDProperty *prop, void *wd)
+void IDP_WriteProperty_new_api(const IDProperty *prop, BlendWriter *writer)
 {
-  writestruct(wd, DATA, IDProperty, 1, prop);
-  IDP_WriteProperty_OnlyData(prop, wd);
+  BLO_write_struct(writer, IDProperty, prop);
+  IDP_WriteProperty_OnlyData(prop, writer);
+}
+
+void IDP_WriteProperty(const IDProperty *prop, WriteData *wd)
+{
+  BlendWriter writer = {wd};
+  IDP_WriteProperty_new_api(prop, &writer);
 }
 
 static void write_iddata(WriteData *wd, ID *id)
