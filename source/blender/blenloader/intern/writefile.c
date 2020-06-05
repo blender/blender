@@ -2176,7 +2176,7 @@ static void write_mdisps(BlendWriter *writer, int count, MDisps *mdlist, int ext
       MDisps *md = &mdlist[i];
       if (md->disps) {
         if (!external) {
-          BLO_write_float3_array(writer, md->totdisp, md->disps);
+          BLO_write_float3_array(writer, md->totdisp, &md->disps[0][0]);
         }
       }
 
