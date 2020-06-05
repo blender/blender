@@ -3188,19 +3188,19 @@ static void write_windowmanager(BlendWriter *writer, wmWindowManager *wm, const 
   }
 }
 
-static void write_screen(WriteData *wd, bScreen *screen, const void *id_address)
+static void write_screen(BlendWriter *writer, bScreen *screen, const void *id_address)
 {
   /* Screens are reference counted, only saved if used by a workspace. */
-  if (screen->id.us > 0 || wd->use_memfile) {
+  if (screen->id.us > 0 || BLO_write_is_undo(writer)) {
     /* write LibData */
     /* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
-    writestruct_at_address(wd, ID_SCRN, bScreen, 1, id_address, screen);
-    write_iddata(wd, &screen->id);
+    writestruct_at_address(writer->wd, ID_SCRN, bScreen, 1, id_address, screen);
+    write_iddata(writer->wd, &screen->id);
 
-    write_previews(wd, screen->preview);
+    write_previews(writer->wd, screen->preview);
 
     /* direct data */
-    write_area_map(wd, AREAMAP_FROM_SCREEN(screen));
+    write_area_map(writer->wd, AREAMAP_FROM_SCREEN(screen));
   }
 }
 
@@ -3224,9 +3224,9 @@ static void write_bone(WriteData *wd, Bone *bone)
   }
 }
 
-static void write_armature(WriteData *wd, bArmature *arm, const void *id_address)
+static void write_armature(BlendWriter *writer, bArmature *arm, const void *id_address)
 {
-  if (arm->id.us > 0 || wd->use_memfile) {
+  if (arm->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     arm->bonehash = NULL;
     arm->edbo = NULL;
@@ -3234,21 +3234,21 @@ static void write_armature(WriteData *wd, bArmature *arm, const void *id_address
     arm->needs_flush_to_id = 0;
     arm->act_edbone = NULL;
 
-    writestruct_at_address(wd, ID_AR, bArmature, 1, id_address, arm);
-    write_iddata(wd, &arm->id);
+    BLO_write_id_struct(writer, bArmature, id_address, &arm->id);
+    write_iddata(writer->wd, &arm->id);
 
     if (arm->adt) {
-      write_animdata(wd, arm->adt);
+      write_animdata(writer->wd, arm->adt);
     }
 
     /* Direct data */
     LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
-      write_bone(wd, bone);
+      write_bone(writer->wd, bone);
     }
   }
 }
 
-static void write_text(WriteData *wd, Text *text, const void *id_address)
+static void write_text(BlendWriter *writer, Text *text, const void *id_address)
 {
   /* Note: we are clearing local temp data here, *not* the flag in the actual 'real' ID. */
   if ((text->flags & TXT_ISMEM) && (text->flags & TXT_ISEXT)) {
@@ -3259,41 +3259,41 @@ static void write_text(WriteData *wd, Text *text, const void *id_address)
   text->compiled = NULL;
 
   /* write LibData */
-  writestruct_at_address(wd, ID_TXT, Text, 1, id_address, text);
-  write_iddata(wd, &text->id);
+  BLO_write_id_struct(writer, Text, id_address, &text->id);
+  write_iddata(writer->wd, &text->id);
 
   if (text->name) {
-    writedata(wd, DATA, strlen(text->name) + 1, text->name);
+    BLO_write_string(writer, text->name);
   }
 
   if (!(text->flags & TXT_ISEXT)) {
     /* now write the text data, in two steps for optimization in the readfunction */
     LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
-      writestruct(wd, DATA, TextLine, 1, tmp);
+      BLO_write_struct(writer, TextLine, tmp);
     }
 
     LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
-      writedata(wd, DATA, tmp->len + 1, tmp->line);
+      BLO_write_raw(writer, tmp->len + 1, tmp->line);
     }
   }
 }
 
-static void write_speaker(WriteData *wd, Speaker *spk, const void *id_address)
+static void write_speaker(BlendWriter *writer, Speaker *spk, const void *id_address)
 {
-  if (spk->id.us > 0 || wd->use_memfile) {
+  if (spk->id.us > 0 || BLO_write_is_undo(writer)) {
     /* write LibData */
-    writestruct_at_address(wd, ID_SPK, Speaker, 1, id_address, spk);
-    write_iddata(wd, &spk->id);
+    BLO_write_id_struct(writer, Speaker, id_address, &spk->id);
+    write_iddata(writer->wd, &spk->id);
 
     if (spk->adt) {
-      write_animdata(wd, spk->adt);
+      write_animdata(writer->wd, spk->adt);
     }
   }
 }
 
-static void write_sound(WriteData *wd, bSound *sound, const void *id_address)
+static void write_sound(BlendWriter *writer, bSound *sound, const void *id_address)
 {
-  if (sound->id.us > 0 || wd->use_memfile) {
+  if (sound->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     sound->tags = 0;
     sound->handle = NULL;
@@ -3301,13 +3301,13 @@ static void write_sound(WriteData *wd, bSound *sound, const void *id_address)
     sound->spinlock = NULL;
 
     /* write LibData */
-    writestruct_at_address(wd, ID_SO, bSound, 1, id_address, sound);
-    write_iddata(wd, &sound->id);
+    BLO_write_id_struct(writer, bSound, id_address, &sound->id);
+    write_iddata(writer->wd, &sound->id);
 
     if (sound->packedfile) {
       PackedFile *pf = sound->packedfile;
-      writestruct(wd, DATA, PackedFile, 1, pf);
-      writedata(wd, DATA, pf->size, pf->data);
+      BLO_write_struct(writer, PackedFile, pf);
+      BLO_write_raw(writer, pf->size, pf->data);
     }
   }
 }
@@ -4211,7 +4211,7 @@ static bool write_file_handle(Main *mainvar,
             write_workspace(&writer, (WorkSpace *)id_buffer, id);
             break;
           case ID_SCR:
-            write_screen(wd, (bScreen *)id_buffer, id);
+            write_screen(&writer, (bScreen *)id_buffer, id);
             break;
           case ID_MC:
             write_movieclip(wd, (MovieClip *)id_buffer, id);
@@ -4250,22 +4250,22 @@ static bool write_file_handle(Main *mainvar,
             write_world(wd, (World *)id_buffer, id);
             break;
           case ID_TXT:
-            write_text(wd, (Text *)id_buffer, id);
+            write_text(&writer, (Text *)id_buffer, id);
             break;
           case ID_SPK:
-            write_speaker(wd, (Speaker *)id_buffer, id);
+            write_speaker(&writer, (Speaker *)id_buffer, id);
             break;
           case ID_LP:
             write_probe(wd, (LightProbe *)id_buffer, id);
             break;
           case ID_SO:
-            write_sound(wd, (bSound *)id_buffer, id);
+            write_sound(&writer, (bSound *)id_buffer, id);
             break;
           case ID_GR:
             write_collection(wd, (Collection *)id_buffer, id);
             break;
           case ID_AR:
-            write_armature(wd, (bArmature *)id_buffer, id);
+            write_armature(&writer, (bArmature *)id_buffer, id);
             break;
           case ID_AC:
             write_action(wd, (bAction *)id_buffer, id);
