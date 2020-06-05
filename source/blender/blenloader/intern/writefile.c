@@ -4541,12 +4541,26 @@ void BLO_write_struct_by_id(BlendWriter *writer, int struct_id, const void *data
   writestruct_nr(writer->wd, DATA, struct_id, 1, data_ptr);
 }
 
+void BLO_write_struct_at_address_by_id(BlendWriter *writer,
+                                       int struct_id,
+                                       const void *address,
+                                       const void *data_ptr)
+{
+  writestruct_at_address_nr(writer->wd, DATA, struct_id, 1, address, data_ptr);
+}
+
 void BLO_write_struct_array_by_id(BlendWriter *writer,
                                   int struct_id,
                                   int array_size,
                                   const void *data_ptr)
 {
   writestruct_nr(writer->wd, DATA, struct_id, array_size, data_ptr);
+}
+
+void BLO_write_struct_array_at_address_by_id(
+    BlendWriter *writer, int struct_id, int array_size, const void *address, const void *data_ptr)
+{
+  writestruct_at_address_nr(writer->wd, DATA, struct_id, array_size, address, data_ptr);
 }
 
 void BLO_write_struct_list_by_id(BlendWriter *writer, int struct_id, ListBase *list)
