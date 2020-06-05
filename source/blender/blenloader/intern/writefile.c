@@ -1445,28 +1445,30 @@ static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
   }
 }
 
-static void write_particlesettings(WriteData *wd, ParticleSettings *part, const void *id_address)
+static void write_particlesettings(BlendWriter *writer,
+                                   ParticleSettings *part,
+                                   const void *id_address)
 {
-  if (part->id.us > 0 || wd->use_memfile) {
+  if (part->id.us > 0 || BLO_write_is_undo(writer)) {
     /* write LibData */
-    writestruct_at_address(wd, ID_PA, ParticleSettings, 1, id_address, part);
-    write_iddata(wd, &part->id);
+    BLO_write_id_struct(writer, ParticleSettings, id_address, &part->id);
+    write_iddata(writer->wd, &part->id);
 
     if (part->adt) {
-      write_animdata(wd, part->adt);
+      write_animdata(writer->wd, part->adt);
     }
-    writestruct(wd, DATA, PartDeflect, 1, part->pd);
-    writestruct(wd, DATA, PartDeflect, 1, part->pd2);
-    writestruct(wd, DATA, EffectorWeights, 1, part->effector_weights);
+    BLO_write_struct(writer, PartDeflect, part->pd);
+    BLO_write_struct(writer, PartDeflect, part->pd2);
+    BLO_write_struct(writer, EffectorWeights, part->effector_weights);
 
     if (part->clumpcurve) {
-      write_curvemapping(wd, part->clumpcurve);
+      write_curvemapping(writer->wd, part->clumpcurve);
     }
     if (part->roughcurve) {
-      write_curvemapping(wd, part->roughcurve);
+      write_curvemapping(writer->wd, part->roughcurve);
     }
     if (part->twistcurve) {
-      write_curvemapping(wd, part->twistcurve);
+      write_curvemapping(writer->wd, part->twistcurve);
     }
 
     LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
@@ -1483,23 +1485,23 @@ static void write_particlesettings(WriteData *wd, ParticleSettings *part, const 
           FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
         }
       }
-      writestruct(wd, DATA, ParticleDupliWeight, 1, dw);
+      BLO_write_struct(writer, ParticleDupliWeight, dw);
     }
 
     if (part->boids && part->phystype == PART_PHYS_BOIDS) {
-      writestruct(wd, DATA, BoidSettings, 1, part->boids);
+      BLO_write_struct(writer, BoidSettings, part->boids);
 
       LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
-        write_boid_state(wd, state);
+        write_boid_state(writer->wd, state);
       }
     }
     if (part->fluid && part->phystype == PART_PHYS_FLUID) {
-      writestruct(wd, DATA, SPHFluidSettings, 1, part->fluid);
+      BLO_write_struct(writer, SPHFluidSettings, part->fluid);
     }
 
     for (int a = 0; a < MAX_MTEX; a++) {
       if (part->mtex[a]) {
-        writestruct(wd, DATA, MTex, 1, part->mtex[a]);
+        BLO_write_struct(writer, MTex, part->mtex[a]);
       }
     }
   }
@@ -1954,24 +1956,23 @@ static void write_shaderfxs(WriteData *wd, ListBase *fxbase)
   }
 }
 
-static void write_object(WriteData *wd, Object *ob, const void *id_address)
+static void write_object(BlendWriter *writer, Object *ob, const void *id_address)
 {
-  if (ob->id.us > 0 || wd->use_memfile) {
+  if (ob->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     BKE_object_runtime_reset(ob);
 
     /* write LibData */
-    writestruct_at_address(wd, ID_OB, Object, 1, id_address, ob);
-    write_iddata(wd, &ob->id);
+    BLO_write_id_struct(writer, Object, id_address, &ob->id);
+    write_iddata(writer->wd, &ob->id);
 
     if (ob->adt) {
-      write_animdata(wd, ob->adt);
+      write_animdata(writer->wd, ob->adt);
     }
 
     /* direct data */
-    writedata(wd, DATA, sizeof(void *) * ob->totcol, ob->mat);
-    writedata(wd, DATA, sizeof(char) * ob->totcol, ob->matbits);
-    /* write_effects(wd, &ob->effect); */ /* not used anymore */
+    BLO_write_pointer_array(writer, ob->totcol, ob->mat);
+    BLO_write_raw(writer, sizeof(char) * ob->totcol, ob->matbits);
 
     if (ob->type == OB_ARMATURE) {
       bArmature *arm = ob->data;
@@ -1981,44 +1982,44 @@ static void write_object(WriteData *wd, Object *ob, const void *id_address)
       }
     }
 
-    write_pose(wd, ob->pose);
-    write_defgroups(wd, &ob->defbase);
-    write_fmaps(wd, &ob->fmaps);
-    write_constraints(wd, &ob->constraints);
-    write_motionpath(wd, ob->mpath);
+    write_pose(writer->wd, ob->pose);
+    write_defgroups(writer->wd, &ob->defbase);
+    write_fmaps(writer->wd, &ob->fmaps);
+    write_constraints(writer->wd, &ob->constraints);
+    write_motionpath(writer->wd, ob->mpath);
 
-    writestruct(wd, DATA, PartDeflect, 1, ob->pd);
+    BLO_write_struct(writer, PartDeflect, ob->pd);
     if (ob->soft) {
       /* Set deprecated pointers to prevent crashes of older Blenders */
       ob->soft->pointcache = ob->soft->shared->pointcache;
       ob->soft->ptcaches = ob->soft->shared->ptcaches;
-      writestruct(wd, DATA, SoftBody, 1, ob->soft);
-      writestruct(wd, DATA, SoftBody_Shared, 1, ob->soft->shared);
-      write_pointcaches(wd, &(ob->soft->shared->ptcaches));
-      writestruct(wd, DATA, EffectorWeights, 1, ob->soft->effector_weights);
+      BLO_write_struct(writer, SoftBody, ob->soft);
+      BLO_write_struct(writer, SoftBody_Shared, ob->soft->shared);
+      write_pointcaches(writer->wd, &(ob->soft->shared->ptcaches));
+      BLO_write_struct(writer, EffectorWeights, ob->soft->effector_weights);
     }
 
     if (ob->rigidbody_object) {
       /* TODO: if any extra data is added to handle duplis, will need separate function then */
-      writestruct(wd, DATA, RigidBodyOb, 1, ob->rigidbody_object);
+      BLO_write_struct(writer, RigidBodyOb, ob->rigidbody_object);
     }
     if (ob->rigidbody_constraint) {
-      writestruct(wd, DATA, RigidBodyCon, 1, ob->rigidbody_constraint);
+      BLO_write_struct(writer, RigidBodyCon, ob->rigidbody_constraint);
     }
 
     if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
-      writestruct(wd, DATA, ImageUser, 1, ob->iuser);
+      BLO_write_struct(writer, ImageUser, ob->iuser);
     }
 
-    write_particlesystems(wd, &ob->particlesystem);
-    write_modifiers(wd, &ob->modifiers);
-    write_gpencil_modifiers(wd, &ob->greasepencil_modifiers);
-    write_shaderfxs(wd, &ob->shader_fx);
+    write_particlesystems(writer->wd, &ob->particlesystem);
+    write_modifiers(writer->wd, &ob->modifiers);
+    write_gpencil_modifiers(writer->wd, &ob->greasepencil_modifiers);
+    write_shaderfxs(writer->wd, &ob->shader_fx);
 
-    writelist(wd, DATA, LinkData, &ob->pc_ids);
-    writelist(wd, DATA, LodLevel, &ob->lodlevels);
+    BLO_write_struct_list(writer, LinkData, &ob->pc_ids);
+    BLO_write_struct_list(writer, LodLevel, &ob->lodlevels);
 
-    write_previews(wd, ob->preview);
+    write_previews(writer->wd, ob->preview);
   }
 }
 
@@ -2270,9 +2271,9 @@ static void write_customdata(WriteData *wd,
   }
 }
 
-static void write_mesh(WriteData *wd, Mesh *mesh, const void *id_address)
+static void write_mesh(BlendWriter *writer, Mesh *mesh, const void *id_address)
 {
-  if (mesh->id.us > 0 || wd->use_memfile) {
+  if (mesh->id.us > 0 || BLO_write_is_undo(writer)) {
     /* cache only - don't write */
     mesh->mface = NULL;
     mesh->totface = 0;
@@ -2294,23 +2295,28 @@ static void write_mesh(WriteData *wd, Mesh *mesh, const void *id_address)
     CustomData_file_write_prepare(&mesh->ldata, &llayers, llayers_buff, ARRAY_SIZE(llayers_buff));
     CustomData_file_write_prepare(&mesh->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
 
-    writestruct_at_address(wd, ID_ME, Mesh, 1, id_address, mesh);
-    write_iddata(wd, &mesh->id);
+    BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
+    write_iddata(writer->wd, &mesh->id);
 
     /* direct data */
     if (mesh->adt) {
-      write_animdata(wd, mesh->adt);
+      write_animdata(writer->wd, mesh->adt);
     }
 
-    writedata(wd, DATA, sizeof(void *) * mesh->totcol, mesh->mat);
-    writedata(wd, DATA, sizeof(MSelect) * mesh->totselect, mesh->mselect);
+    BLO_write_pointer_array(writer, mesh->totcol, mesh->mat);
+    BLO_write_raw(writer, sizeof(MSelect) * mesh->totselect, mesh->mselect);
 
-    write_customdata(wd, &mesh->id, mesh->totvert, &mesh->vdata, vlayers, CD_MASK_MESH.vmask);
-    write_customdata(wd, &mesh->id, mesh->totedge, &mesh->edata, elayers, CD_MASK_MESH.emask);
+    write_customdata(
+        writer->wd, &mesh->id, mesh->totvert, &mesh->vdata, vlayers, CD_MASK_MESH.vmask);
+    write_customdata(
+        writer->wd, &mesh->id, mesh->totedge, &mesh->edata, elayers, CD_MASK_MESH.emask);
     /* fdata is really a dummy - written so slots align */
-    write_customdata(wd, &mesh->id, mesh->totface, &mesh->fdata, flayers, CD_MASK_MESH.fmask);
-    write_customdata(wd, &mesh->id, mesh->totloop, &mesh->ldata, llayers, CD_MASK_MESH.lmask);
-    write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, players, CD_MASK_MESH.pmask);
+    write_customdata(
+        writer->wd, &mesh->id, mesh->totface, &mesh->fdata, flayers, CD_MASK_MESH.fmask);
+    write_customdata(
+        writer->wd, &mesh->id, mesh->totloop, &mesh->ldata, llayers, CD_MASK_MESH.lmask);
+    write_customdata(
+        writer->wd, &mesh->id, mesh->totpoly, &mesh->pdata, players, CD_MASK_MESH.pmask);
 
     /* free temporary data */
     if (vlayers && vlayers != vlayers_buff) {
@@ -4272,7 +4278,7 @@ static bool write_file_handle(Main *mainvar,
             write_action(&writer, (bAction *)id_buffer, id);
             break;
           case ID_OB:
-            write_object(wd, (Object *)id_buffer, id);
+            write_object(&writer, (Object *)id_buffer, id);
             break;
           case ID_MA:
             write_material(&writer, (Material *)id_buffer, id);
@@ -4281,10 +4287,10 @@ static bool write_file_handle(Main *mainvar,
             write_texture(&writer, (Tex *)id_buffer, id);
             break;
           case ID_ME:
-            write_mesh(wd, (Mesh *)id_buffer, id);
+            write_mesh(&writer, (Mesh *)id_buffer, id);
             break;
           case ID_PA:
-            write_particlesettings(wd, (ParticleSettings *)id_buffer, id);
+            write_particlesettings(&writer, (ParticleSettings *)id_buffer, id);
             break;
           case ID_NT:
             write_nodetree(&writer, (bNodeTree *)id_buffer, id);
