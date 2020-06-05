@@ -995,18 +995,18 @@ static void write_animdata(BlendWriter *writer, AnimData *adt)
   write_nladata(writer, &adt->nla_tracks);
 }
 
-static void write_curvemapping_curves(WriteData *wd, CurveMapping *cumap)
+static void write_curvemapping_curves(BlendWriter *writer, CurveMapping *cumap)
 {
   for (int a = 0; a < CM_TOT; a++) {
-    writestruct(wd, DATA, CurveMapPoint, cumap->cm[a].totpoint, cumap->cm[a].curve);
+    BLO_write_struct_array(writer, CurveMapPoint, cumap->cm[a].totpoint, cumap->cm[a].curve);
   }
 }
 
-static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
+static void write_curvemapping(BlendWriter *writer, CurveMapping *cumap)
 {
-  writestruct(wd, DATA, CurveMapping, 1, cumap);
+  BLO_write_struct(writer, CurveMapping, cumap);
 
-  write_curvemapping_curves(wd, cumap);
+  write_curvemapping_curves(writer, cumap);
 }
 
 static void write_CurveProfile(WriteData *wd, CurveProfile *profile)
@@ -1115,7 +1115,7 @@ static void write_nodetree_nolib(BlendWriter *writer, bNodeTree *ntree)
       /* could be handlerized at some point, now only 1 exception still */
       if ((ntree->type == NTREE_SHADER) &&
           ELEM(node->type, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB)) {
-        write_curvemapping(writer->wd, node->storage);
+        write_curvemapping(writer, node->storage);
       }
       else if (ntree->type == NTREE_SHADER && (node->type == SH_NODE_SCRIPT)) {
         NodeShaderScript *nss = (NodeShaderScript *)node->storage;
@@ -1129,11 +1129,11 @@ static void write_nodetree_nolib(BlendWriter *writer, bNodeTree *ntree)
                                                        CMP_NODE_CURVE_VEC,
                                                        CMP_NODE_CURVE_RGB,
                                                        CMP_NODE_HUECORRECT)) {
-        write_curvemapping(writer->wd, node->storage);
+        write_curvemapping(writer, node->storage);
       }
       else if ((ntree->type == NTREE_TEXTURE) &&
                (node->type == TEX_NODE_CURVE_RGB || node->type == TEX_NODE_CURVE_TIME)) {
-        write_curvemapping(writer->wd, node->storage);
+        write_curvemapping(writer, node->storage);
       }
       else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_MOVIEDISTORTION)) {
         /* pass */
@@ -1463,13 +1463,13 @@ static void write_particlesettings(BlendWriter *writer,
     BLO_write_struct(writer, EffectorWeights, part->effector_weights);
 
     if (part->clumpcurve) {
-      write_curvemapping(writer->wd, part->clumpcurve);
+      write_curvemapping(writer, part->clumpcurve);
     }
     if (part->roughcurve) {
-      write_curvemapping(writer->wd, part->roughcurve);
+      write_curvemapping(writer, part->roughcurve);
     }
     if (part->twistcurve) {
-      write_curvemapping(writer->wd, part->twistcurve);
+      write_curvemapping(writer, part->twistcurve);
     }
 
     LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
@@ -1710,7 +1710,7 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
       HookModifierData *hmd = (HookModifierData *)md;
 
       if (hmd->curfalloff) {
-        write_curvemapping(writer->wd, hmd->curfalloff);
+        write_curvemapping(writer, hmd->curfalloff);
       }
 
       BLO_write_int32_array(writer, hmd->totindex, hmd->indexar);
@@ -1811,14 +1811,14 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
     else if (md->type == eModifierType_Warp) {
       WarpModifierData *tmd = (WarpModifierData *)md;
       if (tmd->curfalloff) {
-        write_curvemapping(writer->wd, tmd->curfalloff);
+        write_curvemapping(writer, tmd->curfalloff);
       }
     }
     else if (md->type == eModifierType_WeightVGEdit) {
       WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
 
       if (wmd->cmap_curve) {
-        write_curvemapping(writer->wd, wmd->cmap_curve);
+        write_curvemapping(writer, wmd->cmap_curve);
       }
     }
     else if (md->type == eModifierType_LaplacianDeform) {
@@ -1889,21 +1889,21 @@ static void write_gpencil_modifiers(BlendWriter *writer, ListBase *modbase)
       ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
 
       if (gpmd->curve_thickness) {
-        write_curvemapping(writer->wd, gpmd->curve_thickness);
+        write_curvemapping(writer, gpmd->curve_thickness);
       }
     }
     else if (md->type == eGpencilModifierType_Noise) {
       NoiseGpencilModifierData *gpmd = (NoiseGpencilModifierData *)md;
 
       if (gpmd->curve_intensity) {
-        write_curvemapping(writer->wd, gpmd->curve_intensity);
+        write_curvemapping(writer, gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Hook) {
       HookGpencilModifierData *gpmd = (HookGpencilModifierData *)md;
 
       if (gpmd->curfalloff) {
-        write_curvemapping(writer->wd, gpmd->curfalloff);
+        write_curvemapping(writer, gpmd->curfalloff);
       }
     }
     else if (md->type == eGpencilModifierType_Tint) {
@@ -1912,25 +1912,25 @@ static void write_gpencil_modifiers(BlendWriter *writer, ListBase *modbase)
         BLO_write_struct(writer, ColorBand, gpmd->colorband);
       }
       if (gpmd->curve_intensity) {
-        write_curvemapping(writer->wd, gpmd->curve_intensity);
+        write_curvemapping(writer, gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Smooth) {
       SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
       if (gpmd->curve_intensity) {
-        write_curvemapping(writer->wd, gpmd->curve_intensity);
+        write_curvemapping(writer, gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Color) {
       ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
       if (gpmd->curve_intensity) {
-        write_curvemapping(writer->wd, gpmd->curve_intensity);
+        write_curvemapping(writer, gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Opacity) {
       OpacityGpencilModifierData *gpmd = (OpacityGpencilModifierData *)md;
       if (gpmd->curve_intensity) {
-        write_curvemapping(writer->wd, gpmd->curve_intensity);
+        write_curvemapping(writer, gpmd->curve_intensity);
       }
     }
   }
@@ -2485,7 +2485,7 @@ static void write_light(BlendWriter *writer, Light *la, const void *id_address)
     }
 
     if (la->curfalloff) {
-      write_curvemapping(writer->wd, la->curfalloff);
+      write_curvemapping(writer, la->curfalloff);
     }
 
     /* Node-tree is integral part of lights, no libdata. */
@@ -2529,7 +2529,7 @@ static void write_collection(BlendWriter *writer, Collection *collection, const 
   }
 }
 
-static void write_sequence_modifiers(WriteData *wd, ListBase *modbase)
+static void write_sequence_modifiers(BlendWriter *writer, ListBase *modbase)
 {
   SequenceModifierData *smd;
 
@@ -2537,29 +2537,29 @@ static void write_sequence_modifiers(WriteData *wd, ListBase *modbase)
     const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
 
     if (smti) {
-      writestruct_id(wd, DATA, smti->struct_name, 1, smd);
+      BLO_write_struct_by_name(writer, smti->struct_name, smd);
 
       if (smd->type == seqModifierType_Curves) {
         CurvesModifierData *cmd = (CurvesModifierData *)smd;
 
-        write_curvemapping(wd, &cmd->curve_mapping);
+        write_curvemapping(writer, &cmd->curve_mapping);
       }
       else if (smd->type == seqModifierType_HueCorrect) {
         HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
 
-        write_curvemapping(wd, &hcmd->curve_mapping);
+        write_curvemapping(writer, &hcmd->curve_mapping);
       }
     }
     else {
-      writestruct(wd, DATA, SequenceModifierData, 1, smd);
+      BLO_write_struct(writer, SequenceModifierData, smd);
     }
   }
 }
 
-static void write_view_settings(WriteData *wd, ColorManagedViewSettings *view_settings)
+static void write_view_settings(BlendWriter *writer, ColorManagedViewSettings *view_settings)
 {
   if (view_settings->curve_mapping) {
-    write_curvemapping(wd, view_settings->curve_mapping);
+    write_curvemapping(writer, view_settings->curve_mapping);
   }
 }
 
@@ -2570,12 +2570,12 @@ static void write_view3dshading(BlendWriter *writer, View3DShading *shading)
   }
 }
 
-static void write_paint(WriteData *wd, Paint *p)
+static void write_paint(BlendWriter *writer, Paint *p)
 {
   if (p->cavity_curve) {
-    write_curvemapping(wd, p->cavity_curve);
+    write_curvemapping(writer, p->cavity_curve);
   }
-  writestruct(wd, DATA, PaintToolSlot, p->tool_slots_len, p->tool_slots);
+  BLO_write_struct_array(writer, PaintToolSlot, p->tool_slots_len, p->tool_slots);
 }
 
 static void write_layer_collections(WriteData *wd, ListBase *lb)
@@ -2658,54 +2658,54 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   BLO_write_struct(writer, ToolSettings, tos);
   if (tos->vpaint) {
     BLO_write_struct(writer, VPaint, tos->vpaint);
-    write_paint(writer->wd, &tos->vpaint->paint);
+    write_paint(writer, &tos->vpaint->paint);
   }
   if (tos->wpaint) {
     BLO_write_struct(writer, VPaint, tos->wpaint);
-    write_paint(writer->wd, &tos->wpaint->paint);
+    write_paint(writer, &tos->wpaint->paint);
   }
   if (tos->sculpt) {
     BLO_write_struct(writer, Sculpt, tos->sculpt);
-    write_paint(writer->wd, &tos->sculpt->paint);
+    write_paint(writer, &tos->sculpt->paint);
   }
   if (tos->uvsculpt) {
     BLO_write_struct(writer, UvSculpt, tos->uvsculpt);
-    write_paint(writer->wd, &tos->uvsculpt->paint);
+    write_paint(writer, &tos->uvsculpt->paint);
   }
   if (tos->gp_paint) {
     BLO_write_struct(writer, GpPaint, tos->gp_paint);
-    write_paint(writer->wd, &tos->gp_paint->paint);
+    write_paint(writer, &tos->gp_paint->paint);
   }
   if (tos->gp_vertexpaint) {
     BLO_write_struct(writer, GpVertexPaint, tos->gp_vertexpaint);
-    write_paint(writer->wd, &tos->gp_vertexpaint->paint);
+    write_paint(writer, &tos->gp_vertexpaint->paint);
   }
   if (tos->gp_sculptpaint) {
     BLO_write_struct(writer, GpSculptPaint, tos->gp_sculptpaint);
-    write_paint(writer->wd, &tos->gp_sculptpaint->paint);
+    write_paint(writer, &tos->gp_sculptpaint->paint);
   }
   if (tos->gp_weightpaint) {
     BLO_write_struct(writer, GpWeightPaint, tos->gp_weightpaint);
-    write_paint(writer->wd, &tos->gp_weightpaint->paint);
+    write_paint(writer, &tos->gp_weightpaint->paint);
   }
   /* write grease-pencil custom ipo curve to file */
   if (tos->gp_interpolate.custom_ipo) {
-    write_curvemapping(writer->wd, tos->gp_interpolate.custom_ipo);
+    write_curvemapping(writer, tos->gp_interpolate.custom_ipo);
   }
   /* write grease-pencil multiframe falloff curve to file */
   if (tos->gp_sculpt.cur_falloff) {
-    write_curvemapping(writer->wd, tos->gp_sculpt.cur_falloff);
+    write_curvemapping(writer, tos->gp_sculpt.cur_falloff);
   }
   /* write grease-pencil primitive curve to file */
   if (tos->gp_sculpt.cur_primitive) {
-    write_curvemapping(writer->wd, tos->gp_sculpt.cur_primitive);
+    write_curvemapping(writer, tos->gp_sculpt.cur_primitive);
   }
   /* Write the curve profile to the file. */
   if (tos->custom_bevel_profile_preset) {
     write_CurveProfile(writer->wd, tos->custom_bevel_profile_preset);
   }
 
-  write_paint(writer->wd, &tos->imapaint.paint);
+  write_paint(writer, &tos->imapaint.paint);
 
   Editing *ed = sce->ed;
   if (ed) {
@@ -2786,7 +2786,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
         IDP_WriteProperty_new_api(seq->prop, writer);
       }
 
-      write_sequence_modifiers(writer->wd, &seq->modifiers);
+      write_sequence_modifiers(writer, &seq->modifiers);
     }
     SEQ_END;
 
@@ -2829,7 +2829,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
     write_nodetree_nolib(writer, sce->nodetree);
   }
 
-  write_view_settings(writer->wd, &sce->view_settings);
+  write_view_settings(writer, &sce->view_settings);
 
   /* writing RigidBodyWorld data to the blend file */
   if (sce->rigidbody_world) {
@@ -2844,7 +2844,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   }
 
   write_previews(writer, sce->preview);
-  write_curvemapping_curves(writer->wd, &sce->r.mblur_shutter_curve);
+  write_curvemapping_curves(writer, &sce->r.mblur_shutter_curve);
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
     write_view_layer(writer->wd, view_layer);
@@ -3348,38 +3348,38 @@ static void write_brush(BlendWriter *writer, Brush *brush, const void *id_addres
     write_iddata(writer, &brush->id);
 
     if (brush->curve) {
-      write_curvemapping(writer->wd, brush->curve);
+      write_curvemapping(writer, brush->curve);
     }
 
     if (brush->gpencil_settings) {
       BLO_write_struct(writer, BrushGpencilSettings, brush->gpencil_settings);
 
       if (brush->gpencil_settings->curve_sensitivity) {
-        write_curvemapping(writer->wd, brush->gpencil_settings->curve_sensitivity);
+        write_curvemapping(writer, brush->gpencil_settings->curve_sensitivity);
       }
       if (brush->gpencil_settings->curve_strength) {
-        write_curvemapping(writer->wd, brush->gpencil_settings->curve_strength);
+        write_curvemapping(writer, brush->gpencil_settings->curve_strength);
       }
       if (brush->gpencil_settings->curve_jitter) {
-        write_curvemapping(writer->wd, brush->gpencil_settings->curve_jitter);
+        write_curvemapping(writer, brush->gpencil_settings->curve_jitter);
       }
       if (brush->gpencil_settings->curve_rand_pressure) {
-        write_curvemapping(writer->wd, brush->gpencil_settings->curve_rand_pressure);
+        write_curvemapping(writer, brush->gpencil_settings->curve_rand_pressure);
       }
       if (brush->gpencil_settings->curve_rand_strength) {
-        write_curvemapping(writer->wd, brush->gpencil_settings->curve_rand_strength);
+        write_curvemapping(writer, brush->gpencil_settings->curve_rand_strength);
       }
       if (brush->gpencil_settings->curve_rand_uv) {
-        write_curvemapping(writer->wd, brush->gpencil_settings->curve_rand_uv);
+        write_curvemapping(writer, brush->gpencil_settings->curve_rand_uv);
       }
       if (brush->gpencil_settings->curve_rand_hue) {
-        write_curvemapping(writer->wd, brush->gpencil_settings->curve_rand_hue);
+        write_curvemapping(writer, brush->gpencil_settings->curve_rand_hue);
       }
       if (brush->gpencil_settings->curve_rand_saturation) {
-        write_curvemapping(writer->wd, brush->gpencil_settings->curve_rand_saturation);
+        write_curvemapping(writer, brush->gpencil_settings->curve_rand_saturation);
       }
       if (brush->gpencil_settings->curve_rand_value) {
-        write_curvemapping(writer->wd, brush->gpencil_settings->curve_rand_value);
+        write_curvemapping(writer, brush->gpencil_settings->curve_rand_value);
       }
     }
     if (brush->gradient) {
@@ -3533,7 +3533,7 @@ static void write_mask(BlendWriter *writer, Mask *mask, const void *id_address)
   }
 }
 
-static void write_linestyle_color_modifiers(WriteData *wd, ListBase *modifiers)
+static void write_linestyle_color_modifiers(BlendWriter *writer, ListBase *modifiers)
 {
   LineStyleModifier *m;
 
@@ -3567,42 +3567,42 @@ static void write_linestyle_color_modifiers(WriteData *wd, ListBase *modifiers)
       default:
         struct_nr = SDNA_TYPE_FROM_STRUCT(LineStyleModifier); /* this should not happen */
     }
-    writestruct_nr(wd, DATA, struct_nr, 1, m);
+    BLO_write_struct_by_id(writer, struct_nr, m);
   }
   for (m = modifiers->first; m; m = m->next) {
     switch (m->type) {
       case LS_MODIFIER_ALONG_STROKE:
-        writestruct(wd, DATA, ColorBand, 1, ((LineStyleColorModifier_AlongStroke *)m)->color_ramp);
+        BLO_write_struct(writer, ColorBand, ((LineStyleColorModifier_AlongStroke *)m)->color_ramp);
         break;
       case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-        writestruct(
-            wd, DATA, ColorBand, 1, ((LineStyleColorModifier_DistanceFromCamera *)m)->color_ramp);
+        BLO_write_struct(
+            writer, ColorBand, ((LineStyleColorModifier_DistanceFromCamera *)m)->color_ramp);
         break;
       case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-        writestruct(
-            wd, DATA, ColorBand, 1, ((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp);
+        BLO_write_struct(
+            writer, ColorBand, ((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp);
         break;
       case LS_MODIFIER_MATERIAL:
-        writestruct(wd, DATA, ColorBand, 1, ((LineStyleColorModifier_Material *)m)->color_ramp);
+        BLO_write_struct(writer, ColorBand, ((LineStyleColorModifier_Material *)m)->color_ramp);
         break;
       case LS_MODIFIER_TANGENT:
-        writestruct(wd, DATA, ColorBand, 1, ((LineStyleColorModifier_Tangent *)m)->color_ramp);
+        BLO_write_struct(writer, ColorBand, ((LineStyleColorModifier_Tangent *)m)->color_ramp);
         break;
       case LS_MODIFIER_NOISE:
-        writestruct(wd, DATA, ColorBand, 1, ((LineStyleColorModifier_Noise *)m)->color_ramp);
+        BLO_write_struct(writer, ColorBand, ((LineStyleColorModifier_Noise *)m)->color_ramp);
         break;
       case LS_MODIFIER_CREASE_ANGLE:
-        writestruct(wd, DATA, ColorBand, 1, ((LineStyleColorModifier_CreaseAngle *)m)->color_ramp);
+        BLO_write_struct(writer, ColorBand, ((LineStyleColorModifier_CreaseAngle *)m)->color_ramp);
         break;
       case LS_MODIFIER_CURVATURE_3D:
-        writestruct(
-            wd, DATA, ColorBand, 1, ((LineStyleColorModifier_Curvature_3D *)m)->color_ramp);
+        BLO_write_struct(
+            writer, ColorBand, ((LineStyleColorModifier_Curvature_3D *)m)->color_ramp);
         break;
     }
   }
 }
 
-static void write_linestyle_alpha_modifiers(WriteData *wd, ListBase *modifiers)
+static void write_linestyle_alpha_modifiers(BlendWriter *writer, ListBase *modifiers)
 {
   LineStyleModifier *m;
 
@@ -3636,39 +3636,39 @@ static void write_linestyle_alpha_modifiers(WriteData *wd, ListBase *modifiers)
       default:
         struct_nr = SDNA_TYPE_FROM_STRUCT(LineStyleModifier); /* this should not happen */
     }
-    writestruct_nr(wd, DATA, struct_nr, 1, m);
+    BLO_write_struct_by_id(writer, struct_nr, m);
   }
   for (m = modifiers->first; m; m = m->next) {
     switch (m->type) {
       case LS_MODIFIER_ALONG_STROKE:
-        write_curvemapping(wd, ((LineStyleAlphaModifier_AlongStroke *)m)->curve);
+        write_curvemapping(writer, ((LineStyleAlphaModifier_AlongStroke *)m)->curve);
         break;
       case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-        write_curvemapping(wd, ((LineStyleAlphaModifier_DistanceFromCamera *)m)->curve);
+        write_curvemapping(writer, ((LineStyleAlphaModifier_DistanceFromCamera *)m)->curve);
         break;
       case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-        write_curvemapping(wd, ((LineStyleAlphaModifier_DistanceFromObject *)m)->curve);
+        write_curvemapping(writer, ((LineStyleAlphaModifier_DistanceFromObject *)m)->curve);
         break;
       case LS_MODIFIER_MATERIAL:
-        write_curvemapping(wd, ((LineStyleAlphaModifier_Material *)m)->curve);
+        write_curvemapping(writer, ((LineStyleAlphaModifier_Material *)m)->curve);
         break;
       case LS_MODIFIER_TANGENT:
-        write_curvemapping(wd, ((LineStyleAlphaModifier_Tangent *)m)->curve);
+        write_curvemapping(writer, ((LineStyleAlphaModifier_Tangent *)m)->curve);
         break;
       case LS_MODIFIER_NOISE:
-        write_curvemapping(wd, ((LineStyleAlphaModifier_Noise *)m)->curve);
+        write_curvemapping(writer, ((LineStyleAlphaModifier_Noise *)m)->curve);
         break;
       case LS_MODIFIER_CREASE_ANGLE:
-        write_curvemapping(wd, ((LineStyleAlphaModifier_CreaseAngle *)m)->curve);
+        write_curvemapping(writer, ((LineStyleAlphaModifier_CreaseAngle *)m)->curve);
         break;
       case LS_MODIFIER_CURVATURE_3D:
-        write_curvemapping(wd, ((LineStyleAlphaModifier_Curvature_3D *)m)->curve);
+        write_curvemapping(writer, ((LineStyleAlphaModifier_Curvature_3D *)m)->curve);
         break;
     }
   }
 }
 
-static void write_linestyle_thickness_modifiers(WriteData *wd, ListBase *modifiers)
+static void write_linestyle_thickness_modifiers(BlendWriter *writer, ListBase *modifiers)
 {
   LineStyleModifier *m;
 
@@ -3705,36 +3705,36 @@ static void write_linestyle_thickness_modifiers(WriteData *wd, ListBase *modifie
       default:
         struct_nr = SDNA_TYPE_FROM_STRUCT(LineStyleModifier); /* this should not happen */
     }
-    writestruct_nr(wd, DATA, struct_nr, 1, m);
+    BLO_write_struct_by_id(writer, struct_nr, m);
   }
   for (m = modifiers->first; m; m = m->next) {
     switch (m->type) {
       case LS_MODIFIER_ALONG_STROKE:
-        write_curvemapping(wd, ((LineStyleThicknessModifier_AlongStroke *)m)->curve);
+        write_curvemapping(writer, ((LineStyleThicknessModifier_AlongStroke *)m)->curve);
         break;
       case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-        write_curvemapping(wd, ((LineStyleThicknessModifier_DistanceFromCamera *)m)->curve);
+        write_curvemapping(writer, ((LineStyleThicknessModifier_DistanceFromCamera *)m)->curve);
         break;
       case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-        write_curvemapping(wd, ((LineStyleThicknessModifier_DistanceFromObject *)m)->curve);
+        write_curvemapping(writer, ((LineStyleThicknessModifier_DistanceFromObject *)m)->curve);
         break;
       case LS_MODIFIER_MATERIAL:
-        write_curvemapping(wd, ((LineStyleThicknessModifier_Material *)m)->curve);
+        write_curvemapping(writer, ((LineStyleThicknessModifier_Material *)m)->curve);
         break;
       case LS_MODIFIER_TANGENT:
-        write_curvemapping(wd, ((LineStyleThicknessModifier_Tangent *)m)->curve);
+        write_curvemapping(writer, ((LineStyleThicknessModifier_Tangent *)m)->curve);
         break;
       case LS_MODIFIER_CREASE_ANGLE:
-        write_curvemapping(wd, ((LineStyleThicknessModifier_CreaseAngle *)m)->curve);
+        write_curvemapping(writer, ((LineStyleThicknessModifier_CreaseAngle *)m)->curve);
         break;
       case LS_MODIFIER_CURVATURE_3D:
-        write_curvemapping(wd, ((LineStyleThicknessModifier_Curvature_3D *)m)->curve);
+        write_curvemapping(writer, ((LineStyleThicknessModifier_Curvature_3D *)m)->curve);
         break;
     }
   }
 }
 
-static void write_linestyle_geometry_modifiers(WriteData *wd, ListBase *modifiers)
+static void write_linestyle_geometry_modifiers(BlendWriter *writer, ListBase *modifiers)
 {
   LineStyleModifier *m;
 
@@ -3786,7 +3786,7 @@ static void write_linestyle_geometry_modifiers(WriteData *wd, ListBase *modifier
       default:
         struct_nr = SDNA_TYPE_FROM_STRUCT(LineStyleModifier); /* this should not happen */
     }
-    writestruct_nr(wd, DATA, struct_nr, 1, m);
+    BLO_write_struct_by_id(writer, struct_nr, m);
   }
 }
 
@@ -3802,10 +3802,10 @@ static void write_linestyle(BlendWriter *writer,
       write_animdata(writer, linestyle->adt);
     }
 
-    write_linestyle_color_modifiers(writer->wd, &linestyle->color_modifiers);
-    write_linestyle_alpha_modifiers(writer->wd, &linestyle->alpha_modifiers);
-    write_linestyle_thickness_modifiers(writer->wd, &linestyle->thickness_modifiers);
-    write_linestyle_geometry_modifiers(writer->wd, &linestyle->geometry_modifiers);
+    write_linestyle_color_modifiers(writer, &linestyle->color_modifiers);
+    write_linestyle_alpha_modifiers(writer, &linestyle->alpha_modifiers);
+    write_linestyle_thickness_modifiers(writer, &linestyle->thickness_modifiers);
+    write_linestyle_geometry_modifiers(writer, &linestyle->geometry_modifiers);
     for (int a = 0; a < MAX_MTEX; a++) {
       if (linestyle->mtex[a]) {
         BLO_write_struct(writer, MTex, linestyle->mtex[a]);
