@@ -120,12 +120,10 @@ typedef struct EditBone {
   } temp;
 } EditBone;
 
-#define BONESEL_ROOT (1 << 28)
-#define BONESEL_TIP (1 << 29)
-#define BONESEL_BONE (1 << 30)
+#define BONESEL_ROOT (2 << 29u)
+#define BONESEL_TIP (1 << 30u)
+#define BONESEL_BONE (1 << 31u)
 #define BONESEL_ANY (BONESEL_TIP | BONESEL_ROOT | BONESEL_BONE)
-
-#define BONESEL_NOSEL (1u << 31u)
 
 /* useful macros */
 #define EBONE_VISIBLE(arm, ebone) \

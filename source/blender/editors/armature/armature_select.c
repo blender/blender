@@ -184,7 +184,7 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(const bool is_editmode
   for (i = 0; i < hits; i++) {
     hitresult = buffer[3 + (i * 4)];
 
-    if (!(hitresult & BONESEL_NOSEL)) {
+    {
       if (hitresult & BONESEL_ANY) { /* to avoid including objects in selection */
         Base *base = NULL;
         bool sel;
@@ -659,8 +659,8 @@ static EditBone *get_nearest_editbonepoint(
     EditBone *ebone;
   } *result = NULL,
 
-    result_cycle = {.hitresult = BONESEL_NOSEL, .base = NULL, .ebone = NULL},
-    result_bias = {.hitresult = BONESEL_NOSEL, .base = NULL, .ebone = NULL};
+    result_cycle = {.hitresult = -1, .base = NULL, .ebone = NULL},
+    result_bias = {.hitresult = -1, .base = NULL, .ebone = NULL};
 
   /* find the bone after the current active bone, so as to bump up its chances in selection.
    * this way overlapping bones will cycle selection state as with objects. */
@@ -732,7 +732,7 @@ cache_end:
   /* See if there are any selected bones in this group */
   if (hits > 0) {
     if (hits == 1) {
-      if (!(buffer[3] & BONESEL_NOSEL)) {
+      {
         result_bias.hitresult = buffer[3];
         result_bias.base = ED_armature_base_and_ebone_from_select_buffer(
             bases, bases_len, result_bias.hitresult, &result_bias.ebone);
@@ -774,7 +774,7 @@ cache_end:
 
       for (int i = 0; i < hits; i++) {
         const uint hitresult = buffer[3 + (i * 4)];
-        if (!(hitresult & BONESEL_NOSEL)) {
+        {
           Base *base = NULL;
           EditBone *ebone;
           base = ED_armature_base_and_ebone_from_select_buffer(
@@ -859,7 +859,7 @@ cache_end:
 
     result = (use_cycle && result_cycle.ebone) ? &result_cycle : &result_bias;
 
-    if (!(result->hitresult & BONESEL_NOSEL)) {
+    if (result->hitresult != -1) {
       *r_base = result->base;
 
       *r_selmask = 0;
