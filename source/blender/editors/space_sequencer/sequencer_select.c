@@ -52,6 +52,10 @@
 /* Own include. */
 #include "sequencer_intern.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Selection Utilities
+ * \{ */
+
 static void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRING BACK */
 {
   Sequence *neighbor;
@@ -248,6 +252,12 @@ static void select_neighbor_from_last(Scene *scene, int lr)
 }
 #endif
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name (De)select All Operator
+ * \{ */
+
 static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
 {
   int action = RNA_enum_get(op->ptr, "action");
@@ -311,6 +321,12 @@ void SEQUENCER_OT_select_all(struct wmOperatorType *ot)
   WM_operator_properties_select_all(ot);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Inverse Operator
+ * \{ */
+
 static int sequencer_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
@@ -348,6 +364,12 @@ void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Operator
+ * \{ */
 
 static int sequencer_select_exec(bContext *C, wmOperator *op)
 {
@@ -641,6 +663,12 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select More Operator
+ * \{ */
+
 /* Run recursively to select linked. */
 static bool select_more_less_seq__internal(Scene *scene, bool sel, const bool linked)
 {
@@ -738,6 +766,12 @@ void SEQUENCER_OT_select_more(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Less Operator
+ * \{ */
+
 static int sequencer_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
@@ -767,6 +801,12 @@ void SEQUENCER_OT_select_less(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Pick Linked Operator
+ * \{ */
 
 static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -821,6 +861,12 @@ void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Linked Operator
+ * \{ */
+
 static int sequencer_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
@@ -852,6 +898,12 @@ void SEQUENCER_OT_select_linked(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Handles Operator
+ * \{ */
 
 static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 {
@@ -907,6 +959,12 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
                "Side",
                "The side of the handle that is selected");
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Side of Frame Operator
+ * \{ */
 
 static int sequencer_select_side_of_frame_exec(bContext *C, wmOperator *op)
 {
@@ -977,6 +1035,12 @@ void SEQUENCER_OT_select_side_of_frame(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "side", sequencer_select_left_right_types, 0, "Side", "");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Side Operator
+ * \{ */
+
 static int sequencer_select_side_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
@@ -1040,6 +1104,12 @@ void SEQUENCER_OT_select_side(wmOperatorType *ot)
                "Side",
                "The side to which the selection is applied");
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Box Select Operator
+ * \{ */
 
 static int sequencer_box_select_exec(bContext *C, wmOperator *op)
 {
@@ -1164,6 +1234,12 @@ void SEQUENCER_OT_select_box(wmOperatorType *ot)
       ot->srna, "include_handles", 0, "Select Handles", "Select the strips and their handles");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Grouped Operator
+ * \{ */
 
 enum {
   SEQ_SELECT_GROUP_TYPE,
@@ -1501,8 +1577,8 @@ void SEQUENCER_OT_select_grouped(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Select Grouped";
-  ot->description = "Select all strips grouped by various properties";
   ot->idname = "SEQUENCER_OT_select_grouped";
+  ot->description = "Select all strips grouped by various properties";
 
   /* Api callbacks. */
   ot->invoke = WM_menu_invoke;
@@ -1525,3 +1601,5 @@ void SEQUENCER_OT_select_grouped(wmOperatorType *ot)
                   "Same Channel",
                   "Only consider strips on the same channel as the active one");
 }
+
+/** \} */
