@@ -244,7 +244,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 290, 4)) {
-    /* Clear old deprecated bitflag from edit weights modifiers, we now use it for something else.
+    /* Clear old deprecated bit-flag from edit weights modifiers, we now use it for something else.
      */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {

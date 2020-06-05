@@ -2890,8 +2890,8 @@ static void direct_link_id_common(
   id->tag = tag;
 
   if (tag & LIB_TAG_ID_LINK_PLACEHOLDER) {
-    /* For placeholder we only need to set the tag and properly init generic ID fieds above, no
-     * further data to read. */
+    /* For placeholder we only need to set the tag and properly initialize generic ID fields above,
+     * no further data to read. */
     return;
   }
 

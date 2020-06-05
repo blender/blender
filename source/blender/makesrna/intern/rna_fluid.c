@@ -228,7 +228,7 @@ static void rna_Fluid_flip_parts_update(Main *bmain, Scene *scene, PointerRNA *p
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_FLIP);
 
   /* Only create a particle system in liquid domain mode.
-   * Remove any remainings of a liquid sim when switching to gas. */
+   * Remove any remaining data from a liquid sim when switching to gas. */
   if (mmd->domain->type != FLUID_DOMAIN_TYPE_LIQUID) {
     rna_Fluid_parts_delete(ptr, PART_FLUID_FLIP);
     mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_FLIP;

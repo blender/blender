@@ -39,7 +39,7 @@ typedef struct {
    * detect unchanged IDs).
    * Defined when writing the next step (i.e. last undo step has those always false). */
   bool is_identical_future;
-  /** Session uuid of the ID being curently written (MAIN_ID_SESSION_UUID_UNSET when not writing
+  /** Session UUID of the ID being currently written (MAIN_ID_SESSION_UUID_UNSET when not writing
    * ID-related data). Used to find matching chunks in previous memundo step. */
   uint id_session_uuid;
 } MemFileChunk;

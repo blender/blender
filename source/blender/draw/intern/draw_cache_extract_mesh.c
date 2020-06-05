@@ -5086,7 +5086,7 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   EXTRACT(ibo, edituv_points);
   EXTRACT(ibo, edituv_fdots);
 
-  /* Only create the edge when there are user datas that needs to be inited.
+  /* Only create the edge when there is user data that needs to be initialized.
    * The task is still part of the graph so the task_data will be freed when the graph is freed.
    */
   if (!BLI_listbase_is_empty(&user_data_init_task_data->task_datas)) {

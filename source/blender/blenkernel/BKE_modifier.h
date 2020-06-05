@@ -214,10 +214,10 @@ typedef struct ModifierTypeInfo {
 
   /********************* Non-deform modifier functions *********************/
 
-  /* For non-deform types: apply the modifier and return a mesh datablock.
+  /* For non-deform types: apply the modifier and return a mesh data-block.
    *
    * The mesh argument should always be non-NULL; the modifier should use the
-   * passed in mesh datablock rather than object->data, as it contains the mesh
+   * passed in mesh data-block rather than object->data, as it contains the mesh
    * with modifier applied up to this point.
    *
    * The modifier may modify and return the mesh argument, but must not free it

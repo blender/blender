@@ -563,9 +563,9 @@ static EeveeMaterialCache material_opaque(EEVEE_Data *vedata,
   const bool use_depth_shader = use_gpumat && ELEM(ma->blend_method, MA_BM_CLIP, MA_BM_HASHED);
 
   /* HACK: Assume the struct will never be smaller than our variations.
-   * This allow us to only keep one ghash and avoid bigger keys comparissons/hashing. */
+   * This allow us to only keep one ghash and avoid bigger keys comparisons/hashing. */
   void *key = (char *)ma + is_hair;
-  /* Search for other material instances (sharing the same Material datablock). */
+  /* Search for other material instances (sharing the same Material data-block). */
   EeveeMaterialCache **emc_p, *emc;
   if (BLI_ghash_ensure_p(pd->material_hash, key, (void ***)&emc_p)) {
     return **emc_p;
@@ -641,7 +641,7 @@ static EeveeMaterialCache material_opaque(EEVEE_Data *vedata,
 
     /* Search for the same shaders usage in the pass. */
     /* HACK: Assume the struct will never be smaller than our variations.
-     * This allow us to only keep one ghash and avoid bigger keys comparissons/hashing. */
+     * This allow us to only keep one ghash and avoid bigger keys comparisons/hashing. */
     BLI_assert(option <= 16);
     struct GPUShader *sh = GPU_material_get_shader(gpumat);
     void *cache_key = (char *)sh + option;

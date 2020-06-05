@@ -1592,15 +1592,15 @@ class SShape {
 
   /*! Splits an edge into several edges.
    *  The edge's vertices are passed rather than the edge itself. This way, all feature edges
-   * (SILHOUETTE, CREASE, BORDER) are splitted in the same time. The processed edges are flagged as
-   * done (using the userdata flag).One single new vertex is created whereas several splitted edges
+   * (SILHOUETTE, CREASE, BORDER) are split in the same time. The processed edges are flagged as
+   * done (using the user-data flag).One single new vertex is created whereas several split edges
    * might created for the different kinds of edges. These new elements are added to the lists
    *  maintained by the shape.
    *  New chains are also created.
    *    ioA
-   *      The first vertex for the edge that gets splitted
+   *      The first vertex for the edge that gets split.
    *    ioB
-   *      The second vertex for the edge that gets splitted
+   *      The second vertex for the edge that gets split.
    *    iParameters
    *      A vector containing 2D real vectors indicating the parameters giving the intersections
    * coordinates in 3D and in 2D. These intersections points must be sorted from B to A. Each

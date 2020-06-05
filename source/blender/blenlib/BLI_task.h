@@ -286,7 +286,7 @@ int BLI_task_parallel_thread_id(const TaskParallelTLS *tls);
  * ** Task-Data **
  *
  * Typically you want give a task data to work on.
- * Task data can be shared with other nodes, but be carefull not to free the data multiple times.
+ * Task data can be shared with other nodes, but be careful not to free the data multiple times.
  * Task data is freed when calling `BLI_task_graph_free`.
  *
  *    MyData *task_data = MEM_callocN(sizeof(MyData), __func__);

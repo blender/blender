@@ -719,10 +719,10 @@ static void non_recursive_bvh_div_nodes_task_cb(void *__restrict userdata,
   refit_kdop_hull(data->tree, parent, parent_leafs_begin, parent_leafs_end);
   split_axis = get_largest_axis(parent->bv);
 
-  /* Save split axis (this can be used on raytracing to speedup the query time) */
+  /* Save split axis (this can be used on ray-tracing to speedup the query time) */
   parent->main_axis = split_axis / 2;
 
-  /* Split the childs along the split_axis, note: its not needed to sort the whole leafs array
+  /* Split the children along the split_axis, note: its not needed to sort the whole leafs array
    * Only to assure that the elements are partitioned on a way that each child takes the elements
    * it would take in case the whole array was sorted.
    * Split_leafs takes care of that "sort" problem. */

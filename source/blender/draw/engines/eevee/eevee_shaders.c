@@ -738,7 +738,7 @@ struct GPUMaterial *EEVEE_material_get(
   }
 
   /* Meh, implicit option. World probe cannot be deferred because they need
-   * to be rendered immediatly. */
+   * to be rendered immediately. */
   const bool deferred = (options & VAR_WORLD_PROBE) == 0;
 
   GPUMaterial *mat = eevee_material_get_ex(scene, ma, wo, options, deferred);

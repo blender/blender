@@ -304,8 +304,8 @@ void gpu_extensions_init(void)
     GG.context_local_shaders_workaround = GLEW_ARB_get_program_binary;
   }
 
-  /* Special fix for theses specific GPUs. Without thoses workaround, blender crashes on strartup.
-   * (see T72098) */
+  /* Special fix for theses specific GPUs.
+   * Without this workaround, blender crashes on startup. (see T72098) */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
       (strstr(renderer, "HD Graphics 620") || strstr(renderer, "HD Graphics 630"))) {
     GG.mip_render_workaround = true;

@@ -215,7 +215,7 @@ void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
   }
 }
 
-/* Postprocess data to construct a specific renderpass
+/* Post-process data to construct a specific render-pass
  *
  * This method will create a shading group to perform the post-processing for the given
  * `renderpass_type`. The post-processing will be done and the result will be stored in the
@@ -223,7 +223,7 @@ void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
  *
  * Only invoke this function for passes that need post-processing.
  *
- * After invoking this function the active framebuffer is set to `vedata->fbl->renderpass_fb`. */
+ * After invoking this function the active frame-buffer is set to `vedata->fbl->renderpass_fb`. */
 void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *UNUSED(sldata),
                                     EEVEE_Data *vedata,
                                     eViewLayerEEVEEPassType renderpass_type)

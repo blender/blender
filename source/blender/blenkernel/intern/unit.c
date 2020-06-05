@@ -716,7 +716,7 @@ static bool ch_is_op(char op)
 /**
  * Helper function for #unit_distribute_negatives to find the next negative to distribute.
  *
- * \note This unecessarily skips the next space if it comes right after the "-"
+ * \note This unnecessarily skips the next space if it comes right after the "-"
  * just to make a more predictable output.
  */
 static char *find_next_negative(const char *str, const char *remaining_str)
@@ -742,7 +742,7 @@ static char *find_next_negative(const char *str, const char *remaining_str)
 /**
  * Helper function for #unit_distribute_negatives to find the next operation, including "-".
  *
- * \note This unecessarily skips the space before the operation character
+ * \note This unnecessarily skips the space before the operation character
  * just to make a more predictable output.
  */
 static char *find_next_op(const char *str, char *remaining_str, int len_max)

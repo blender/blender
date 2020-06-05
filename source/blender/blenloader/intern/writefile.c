@@ -4183,7 +4183,7 @@ static bool write_file_handle(Main *mainvar,
         memcpy(id_buffer, id, idtype_struct_size);
 
         ((ID *)id_buffer)->tag = 0;
-        /* Those listbase data change everytime we add/remove an ID, and also often when renaming
+        /* Those listbase data change every time we add/remove an ID, and also often when renaming
          * one (due to re-sorting). This avoids generating a lot of false 'is changed' detections
          * between undo steps. */
         ((ID *)id_buffer)->prev = NULL;

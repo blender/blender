@@ -655,7 +655,7 @@ static int sequencer_add_movie_strip_invoke(bContext *C,
   Scene *scene = CTX_data_scene(C);
   Editing *ed = BKE_sequencer_editing_get(scene, false);
 
-  /* Only enable "use_framerate" if there aren't any existing strips, unless overriden by user. */
+  /* Only enable "use_framerate" if there aren't any existing strips, unless overridden by user. */
   if (ed && ed->seqbasep && ed->seqbasep->first) {
     RNA_boolean_set(op->ptr, "use_framerate", false);
   }
