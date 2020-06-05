@@ -654,6 +654,7 @@ if(WITH_BOOST AND NOT (WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_INTERNATIONAL OR
   set(WITH_BOOST OFF)
 endif()
 
+set_and_warn_dependency(WITH_TBB WITH_CYCLES            OFF)
 set_and_warn_dependency(WITH_TBB WITH_USD               OFF)
 set_and_warn_dependency(WITH_TBB WITH_OPENIMAGEDENOISE  OFF)
 set_and_warn_dependency(WITH_TBB WITH_OPENVDB           OFF)

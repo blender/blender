@@ -78,7 +78,6 @@ struct UpdateObjectTransformState {
   Scene *scene;
 
   /* Some locks to keep everything thread-safe. */
-  thread_spin_lock queue_lock;
   thread_spin_lock surface_area_lock;
 
   /* First unused object index in the queue. */
@@ -551,41 +550,6 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   }
 }
 
-bool ObjectManager::device_update_object_transform_pop_work(UpdateObjectTransformState *state,
-                                                            int *start_index,
-                                                            int *num_objects)
-{
-  /* Tweakable parameter, number of objects per chunk.
-   * Too small value will cause some extra overhead due to spin lock,
-   * too big value might not use all threads nicely.
-   */
-  static const int OBJECTS_PER_TASK = 32;
-  bool have_work = false;
-  state->queue_lock.lock();
-  int num_scene_objects = state->scene->objects.size();
-  if (state->queue_start_object < num_scene_objects) {
-    int count = min(OBJECTS_PER_TASK, num_scene_objects - state->queue_start_object);
-    *start_index = state->queue_start_object;
-    *num_objects = count;
-    state->queue_start_object += count;
-    have_work = true;
-  }
-  state->queue_lock.unlock();
-  return have_work;
-}
-
-void ObjectManager::device_update_object_transform_task(UpdateObjectTransformState *state)
-{
-  int start_index, num_objects;
-  while (device_update_object_transform_pop_work(state, &start_index, &num_objects)) {
-    for (int i = 0; i < num_objects; ++i) {
-      const int object_index = start_index + i;
-      Object *ob = state->scene->objects[object_index];
-      device_update_object_transform(state, ob);
-    }
-  }
-}
-
 void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, Progress &progress)
 {
   UpdateObjectTransformState state;
@@ -631,29 +595,16 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
     numparticles += psys->particles.size();
   }
 
-  /* NOTE: If it's just a handful of objects we deal with them in a single
-   * thread to avoid threading overhead. However, this threshold is might
-   * need some tweaks to make mid-complex scenes optimal.
-   */
-  if (scene->objects.size() < 64) {
-    foreach (Object *ob, scene->objects) {
-      device_update_object_transform(&state, ob);
-      if (progress.get_cancel()) {
-        return;
-      }
-    }
-  }
-  else {
-    const int num_threads = TaskScheduler::num_threads();
-    TaskPool pool;
-    for (int i = 0; i < num_threads; ++i) {
-      pool.push(function_bind(&ObjectManager::device_update_object_transform_task, this, &state));
-    }
-    pool.wait_work();
-    if (progress.get_cancel()) {
-      return;
-    }
-  }
+  /* Parallel object update, with grain size to avoid too much threadng overhead
+   * for individual objects. */
+  static const int OBJECTS_PER_TASK = 32;
+  parallel_for(blocked_range<size_t>(0, scene->objects.size(), OBJECTS_PER_TASK),
+               [&](const blocked_range<size_t> &r) {
+                 for (size_t i = r.begin(); i != r.end(); i++) {
+                   Object *ob = state.scene->objects[i];
+                   device_update_object_transform(&state, ob);
+                 }
+               });
 
   dscene->objects.copy_to_device();
   if (state.need_motion == Scene::MOTION_PASS) {

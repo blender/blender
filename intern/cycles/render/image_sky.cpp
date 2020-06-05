@@ -20,6 +20,7 @@
 #include "util/util_logging.h"
 #include "util/util_path.h"
 #include "util/util_sky_model.h"
+#include "util/util_task.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -58,26 +59,21 @@ bool SkyLoader::load_pixels(const ImageMetaData &metadata,
   float altitude_f = (float)altitude;
 
   /* precompute sky texture */
-  const int num_chunks = TaskScheduler::num_threads();
-  const int chunk_size = height / num_chunks;
-  TaskPool pool;
-  for (int chunk = 0; chunk < num_chunks; chunk++) {
-    const int chunk_start = chunk * chunk_size;
-    const int chunk_end = (chunk + 1 < num_chunks) ? (chunk + 1) * chunk_size : height;
-    pool.push(function_bind(&nishita_skymodel_precompute_texture,
-                            pixel_data,
-                            metadata.channels,
-                            chunk_start,
-                            chunk_end,
-                            width,
-                            height,
-                            sun_elevation,
-                            altitude_f,
-                            air_density,
-                            dust_density,
-                            ozone_density));
-  }
-  pool.wait_work();
+  const int rows_per_task = divide_up(1024, width);
+  parallel_for(blocked_range<size_t>(0, height, rows_per_task),
+               [&](const blocked_range<size_t> &r) {
+                 nishita_skymodel_precompute_texture(pixel_data,
+                                                     metadata.channels,
+                                                     r.begin(),
+                                                     r.end(),
+                                                     width,
+                                                     height,
+                                                     sun_elevation,
+                                                     altitude_f,
+                                                     air_density,
+                                                     dust_density,
+                                                     ozone_density);
+               });
 
   return true;
 }

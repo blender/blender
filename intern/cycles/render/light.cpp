@@ -680,29 +680,13 @@ void LightManager::device_update_background(Device *device,
   float2 *cond_cdf = dscene->light_background_conditional_cdf.alloc(cdf_width * res.y);
 
   double time_start = time_dt();
-  if (max(res.x, res.y) < 512) {
-    /* Small enough resolution, faster to do single-threaded. */
-    background_cdf(0, res.y, res.x, res.y, &pixels, cond_cdf);
-  }
-  else {
-    /* Threaded evaluation for large resolution. */
-    const int num_blocks = TaskScheduler::num_threads();
-    const int chunk_size = res.y / num_blocks;
-    int start_row = 0;
-    TaskPool pool;
-    for (int i = 0; i < num_blocks; ++i) {
-      const int current_chunk_size = (i != num_blocks - 1) ? chunk_size : (res.y - i * chunk_size);
-      pool.push(function_bind(&background_cdf,
-                              start_row,
-                              start_row + current_chunk_size,
-                              res.x,
-                              res.y,
-                              &pixels,
-                              cond_cdf));
-      start_row += current_chunk_size;
-    }
-    pool.wait_work();
-  }
+
+  /* Create CDF in parallel. */
+  const int rows_per_task = divide_up(10240, res.x);
+  parallel_for(blocked_range<size_t>(0, res.y, rows_per_task),
+               [&](const blocked_range<size_t> &r) {
+                 background_cdf(r.begin(), r.end(), res.x, res.y, &pixels, cond_cdf);
+               });
 
   /* marginal CDFs (column, V direction, sum of rows) */
   marg_cdf[0].x = cond_cdf[res.x].x;

@@ -94,8 +94,7 @@ void SVMShaderManager::device_update(Device *device,
                                  scene,
                                  scene->shaders[i],
                                  &progress,
-                                 &shader_svm_nodes[i]),
-                   false);
+                                 &shader_svm_nodes[i]));
   }
   task_pool.wait_work();
 

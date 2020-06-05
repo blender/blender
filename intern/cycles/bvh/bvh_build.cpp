@@ -423,22 +423,6 @@ BVHNode *BVHBuild::run()
   }
 
   spatial_min_overlap = root.bounds().safe_area() * params.spatial_split_alpha;
-  if (params.use_spatial_split) {
-    /* NOTE: The API here tries to be as much ready for multi-threaded build
-     * as possible, but at the same time it tries not to introduce any
-     * changes in behavior for until all refactoring needed for threading is
-     * finished.
-     *
-     * So we currently allocate single storage for now, which is only used by
-     * the only thread working on the spatial BVH build.
-     */
-    spatial_storage.resize(TaskScheduler::num_threads() + 1);
-    size_t num_bins = max(root.size(), (int)BVHParams::NUM_SPATIAL_BINS) - 1;
-    foreach (BVHSpatialStorage &storage, spatial_storage) {
-      storage.right_bounds.clear();
-    }
-    spatial_storage[0].right_bounds.resize(num_bins);
-  }
   spatial_free_index = 0;
 
   need_prim_time = params.num_motion_curve_steps > 0 || params.num_motion_triangle_steps > 0;
@@ -474,6 +458,9 @@ BVHNode *BVHBuild::run()
     rootnode = build_node(rootbin, 0);
     task_pool.wait_work();
   }
+
+  /* clean up temporary memory usage by threads */
+  spatial_storage.clear();
 
   /* delete if we canceled */
   if (rootnode) {
@@ -551,19 +538,18 @@ void BVHBuild::thread_build_node(InnerNode *inner, int child, BVHObjectBinning *
   }
 }
 
-void BVHBuild::thread_build_spatial_split_node(InnerNode *inner,
-                                               int child,
-                                               BVHRange *range,
-                                               vector<BVHReference> *references,
-                                               int level,
-                                               int thread_id)
+void BVHBuild::thread_build_spatial_split_node(
+    InnerNode *inner, int child, BVHRange *range, vector<BVHReference> *references, int level)
 {
   if (progress.get_cancel()) {
     return;
   }
 
+  /* Get per-thread memory for spatial split. */
+  BVHSpatialStorage *local_storage = &spatial_storage.local();
+
   /* build nodes */
-  BVHNode *node = build_node(*range, references, level, thread_id);
+  BVHNode *node = build_node(*range, references, level, local_storage);
 
   /* set child in inner node */
   inner->children[child] = node;
@@ -690,7 +676,7 @@ BVHNode *BVHBuild::build_node(const BVHObjectBinning &range, int level)
 BVHNode *BVHBuild::build_node(const BVHRange &range,
                               vector<BVHReference> *references,
                               int level,
-                              int thread_id)
+                              BVHSpatialStorage *storage)
 {
   /* Update progress.
    *
@@ -712,7 +698,6 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
   }
 
   /* Perform splitting test. */
-  BVHSpatialStorage *storage = &spatial_storage[thread_id];
   BVHMixedSplit split(this, storage, range, references, level);
 
   if (!(range.size() > 0 && params.top_level && level == 0)) {

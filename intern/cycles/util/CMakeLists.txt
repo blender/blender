@@ -29,7 +29,7 @@ set(SRC
 )
 
 set(LIB
-
+  ${TBB_LIBRARIES}
 )
 
 if(WITH_CYCLES_STANDALONE)

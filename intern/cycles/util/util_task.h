@@ -22,7 +22,14 @@
 #include "util/util_thread.h"
 #include "util/util_vector.h"
 
+#define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
+#include <tbb/tbb.h>
+
 CCL_NAMESPACE_BEGIN
+
+using tbb::blocked_range;
+using tbb::enumerable_thread_specific;
+using tbb::parallel_for;
 
 class Task;
 class TaskPool;
