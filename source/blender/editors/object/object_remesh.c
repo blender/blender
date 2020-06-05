@@ -338,7 +338,7 @@ static void voxel_size_edit_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar),
   char str[VOXEL_SIZE_EDIT_MAX_STR_LEN];
   short strdrawlen = 0;
 
-  BLI_snprintf(str, VOXEL_SIZE_EDIT_MAX_STR_LEN, "%3.4f%%", cd->voxel_size);
+  BLI_snprintf(str, VOXEL_SIZE_EDIT_MAX_STR_LEN, "%.4f", cd->voxel_size);
   strdrawlen = BLI_strlen_utf8(str);
 
   immUnbindProgram();
