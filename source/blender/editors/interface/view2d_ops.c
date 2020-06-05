@@ -436,8 +436,8 @@ static float edge_pan_speed(v2dViewPanData *vpd,
   ARegion *region = vpd->region;
 
   /* Find the distance from the start of the drag zone. */
-  int min = x_dir ? region->winrct.xmin : region->winrct.ymin + EDGE_PAN_REGION_PAD;
-  int max = x_dir ? region->winrct.xmax : region->winrct.ymax - EDGE_PAN_REGION_PAD;
+  int min = (x_dir ? region->winrct.xmin : region->winrct.ymin) + EDGE_PAN_REGION_PAD;
+  int max = (x_dir ? region->winrct.xmax : region->winrct.ymax) - EDGE_PAN_REGION_PAD;
   int distance = 0.0;
   if (event_loc > max) {
     distance = event_loc - max;
