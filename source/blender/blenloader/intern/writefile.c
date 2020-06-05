@@ -655,8 +655,7 @@ static void writelist_id(WriteData *wd, int filecode, const char *structname, co
  * \{ */
 
 void IDP_WriteProperty_OnlyData(const IDProperty *prop, BlendWriter *writer);
-void IDP_WriteProperty(const IDProperty *prop, WriteData *wd);
-void IDP_WriteProperty_new_api(const IDProperty *prop, BlendWriter *writer);
+void IDP_WriteProperty(const IDProperty *prop, BlendWriter *writer);
 
 static void IDP_WriteArray(const IDProperty *prop, BlendWriter *writer)
 {
@@ -669,7 +668,7 @@ static void IDP_WriteArray(const IDProperty *prop, BlendWriter *writer)
       int a;
 
       for (a = 0; a < prop->len; a++) {
-        IDP_WriteProperty_new_api(array[a], writer);
+        IDP_WriteProperty(array[a], writer);
       }
     }
   }
@@ -701,7 +700,7 @@ static void IDP_WriteGroup(const IDProperty *prop, BlendWriter *writer)
   IDProperty *loop;
 
   for (loop = prop->data.group.first; loop; loop = loop->next) {
-    IDP_WriteProperty_new_api(loop, writer);
+    IDP_WriteProperty(loop, writer);
   }
 }
 
@@ -724,23 +723,17 @@ void IDP_WriteProperty_OnlyData(const IDProperty *prop, BlendWriter *writer)
   }
 }
 
-void IDP_WriteProperty_new_api(const IDProperty *prop, BlendWriter *writer)
+void IDP_WriteProperty(const IDProperty *prop, BlendWriter *writer)
 {
   BLO_write_struct(writer, IDProperty, prop);
   IDP_WriteProperty_OnlyData(prop, writer);
-}
-
-void IDP_WriteProperty(const IDProperty *prop, WriteData *wd)
-{
-  BlendWriter writer = {wd};
-  IDP_WriteProperty_new_api(prop, &writer);
 }
 
 static void write_iddata(BlendWriter *writer, ID *id)
 {
   /* ID_WM's id->properties are considered runtime only, and never written in .blend file. */
   if (id->properties && !ELEM(GS(id->name), ID_WM)) {
-    IDP_WriteProperty_new_api(id->properties, writer);
+    IDP_WriteProperty(id->properties, writer);
   }
 
   if (id->override_library) {
@@ -830,7 +823,7 @@ static void write_fmodifiers(BlendWriter *writer, ListBase *fmodifiers)
 
           /* Write ID Properties -- and copy this comment EXACTLY for easy finding
            * of library blocks that implement this.*/
-          IDP_WriteProperty_new_api(data->prop, writer);
+          IDP_WriteProperty(data->prop, writer);
 
           break;
         }
@@ -1042,7 +1035,7 @@ static void write_node_socket(BlendWriter *writer, bNodeSocket *sock)
   BLO_write_struct(writer, bNodeSocket, sock);
 
   if (sock->prop) {
-    IDP_WriteProperty_new_api(sock->prop, writer);
+    IDP_WriteProperty(sock->prop, writer);
   }
 
   write_node_socket_default_value(writer, sock);
@@ -1053,7 +1046,7 @@ static void write_node_socket_interface(BlendWriter *writer, bNodeSocket *sock)
   BLO_write_struct(writer, bNodeSocket, sock);
 
   if (sock->prop) {
-    IDP_WriteProperty_new_api(sock->prop, writer);
+    IDP_WriteProperty(sock->prop, writer);
   }
 
   write_node_socket_default_value(writer, sock);
@@ -1075,7 +1068,7 @@ static void write_nodetree_nolib(BlendWriter *writer, bNodeTree *ntree)
     BLO_write_struct(writer, bNode, node);
 
     if (node->prop) {
-      IDP_WriteProperty_new_api(node->prop, writer);
+      IDP_WriteProperty(node->prop, writer);
     }
 
     for (sock = node->inputs.first; sock; sock = sock->next) {
@@ -1254,7 +1247,7 @@ static void write_keymapitem(BlendWriter *writer, const wmKeyMapItem *kmi)
 {
   BLO_write_struct(writer, wmKeyMapItem, kmi);
   if (kmi->properties) {
-    IDP_WriteProperty_new_api(kmi->properties, writer);
+    IDP_WriteProperty(kmi->properties, writer);
   }
 }
 
@@ -1287,7 +1280,7 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
   LISTBASE_FOREACH (const wmKeyConfigPref *, kpt, &userdef->user_keyconfig_prefs) {
     BLO_write_struct(writer, wmKeyConfigPref, kpt);
     if (kpt->prop) {
-      IDP_WriteProperty_new_api(kpt->prop, writer);
+      IDP_WriteProperty(kpt->prop, writer);
     }
   }
 
@@ -1298,7 +1291,7 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
         const bUserMenuItem_Op *umi_op = (const bUserMenuItem_Op *)umi;
         BLO_write_struct(writer, bUserMenuItem_Op, umi_op);
         if (umi_op->prop) {
-          IDP_WriteProperty_new_api(umi_op->prop, writer);
+          IDP_WriteProperty(umi_op->prop, writer);
         }
       }
       else if (umi->type == USER_MENU_TYPE_MENU) {
@@ -1318,7 +1311,7 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
   LISTBASE_FOREACH (const bAddon *, bext, &userdef->addons) {
     BLO_write_struct(writer, bAddon, bext);
     if (bext->prop) {
-      IDP_WriteProperty_new_api(bext->prop, writer);
+      IDP_WriteProperty(bext->prop, writer);
     }
   }
 
@@ -1574,7 +1567,7 @@ static void write_constraints(BlendWriter *writer, ListBase *conlist)
 
           /* Write ID Properties -- and copy this comment EXACTLY for easy finding
            * of library blocks that implement this.*/
-          IDP_WriteProperty_new_api(data->prop, writer);
+          IDP_WriteProperty(data->prop, writer);
 
           break;
         }
@@ -1620,7 +1613,7 @@ static void write_pose(BlendWriter *writer, bPose *pose)
     /* Write ID Properties -- and copy this comment EXACTLY for easy finding
      * of library blocks that implement this.*/
     if (chan->prop) {
-      IDP_WriteProperty_new_api(chan->prop, writer);
+      IDP_WriteProperty(chan->prop, writer);
     }
 
     write_constraints(writer, &chan->constraints);
@@ -2544,7 +2537,7 @@ static void write_view_settings(BlendWriter *writer, ColorManagedViewSettings *v
 static void write_view3dshading(BlendWriter *writer, View3DShading *shading)
 {
   if (shading->prop) {
-    IDP_WriteProperty_new_api(shading->prop, writer);
+    IDP_WriteProperty(shading->prop, writer);
   }
 }
 
@@ -2556,32 +2549,32 @@ static void write_paint(BlendWriter *writer, Paint *p)
   BLO_write_struct_array(writer, PaintToolSlot, p->tool_slots_len, p->tool_slots);
 }
 
-static void write_layer_collections(WriteData *wd, ListBase *lb)
+static void write_layer_collections(BlendWriter *writer, ListBase *lb)
 {
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
-    writestruct(wd, DATA, LayerCollection, 1, lc);
+    BLO_write_struct(writer, LayerCollection, lc);
 
-    write_layer_collections(wd, &lc->layer_collections);
+    write_layer_collections(writer, &lc->layer_collections);
   }
 }
 
-static void write_view_layer(WriteData *wd, ViewLayer *view_layer)
+static void write_view_layer(BlendWriter *writer, ViewLayer *view_layer)
 {
-  writestruct(wd, DATA, ViewLayer, 1, view_layer);
-  writelist(wd, DATA, Base, &view_layer->object_bases);
+  BLO_write_struct(writer, ViewLayer, view_layer);
+  BLO_write_struct_list(writer, Base, &view_layer->object_bases);
 
   if (view_layer->id_properties) {
-    IDP_WriteProperty(view_layer->id_properties, wd);
+    IDP_WriteProperty(view_layer->id_properties, writer);
   }
 
   LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
-    writestruct(wd, DATA, FreestyleModuleConfig, 1, fmc);
+    BLO_write_struct(writer, FreestyleModuleConfig, fmc);
   }
 
   LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
-    writestruct(wd, DATA, FreestyleLineSet, 1, fls);
+    BLO_write_struct(writer, FreestyleLineSet, fls);
   }
-  write_layer_collections(wd, &view_layer->layer_collections);
+  write_layer_collections(writer, &view_layer->layer_collections);
 }
 
 static void write_lightcache_texture(WriteData *wd, LightCacheTexture *tex)
@@ -2761,7 +2754,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
       }
 
       if (seq->prop) {
-        IDP_WriteProperty_new_api(seq->prop, writer);
+        IDP_WriteProperty(seq->prop, writer);
       }
 
       write_sequence_modifiers(writer, &seq->modifiers);
@@ -2784,7 +2777,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
     }
   }
   if (sce->r.ffcodecdata.properties) {
-    IDP_WriteProperty_new_api(sce->r.ffcodecdata.properties, writer);
+    IDP_WriteProperty(sce->r.ffcodecdata.properties, writer);
   }
 
   /* writing dynamic list of TimeMarkers to the blend file */
@@ -2825,7 +2818,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   write_curvemapping_curves(writer, &sce->r.mblur_shutter_curve);
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
-    write_view_layer(writer->wd, view_layer);
+    write_view_layer(writer, view_layer);
   }
 
   if (sce->master_collection) {
@@ -2928,7 +2921,7 @@ static void write_uilist(BlendWriter *writer, uiList *ui_list)
   BLO_write_struct(writer, uiList, ui_list);
 
   if (ui_list->properties) {
-    IDP_WriteProperty_new_api(ui_list->properties, writer);
+    IDP_WriteProperty(ui_list->properties, writer);
   }
 }
 
@@ -3189,7 +3182,7 @@ static void write_bone(BlendWriter *writer, Bone *bone)
   /* Write ID Properties -- and copy this comment EXACTLY for easy finding
    * of library blocks that implement this.*/
   if (bone->prop) {
-    IDP_WriteProperty_new_api(bone->prop, writer);
+    IDP_WriteProperty(bone->prop, writer);
   }
 
   /* Write Children */
@@ -3823,7 +3816,7 @@ static void write_workspace(BlendWriter *writer, WorkSpace *workspace, const voi
   BLO_write_struct_list(writer, bToolRef, &workspace->tools);
   LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
     if (tref->properties) {
-      IDP_WriteProperty_new_api(tref->properties, writer);
+      IDP_WriteProperty(tref->properties, writer);
     }
   }
 }
