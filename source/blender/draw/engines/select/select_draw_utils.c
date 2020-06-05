@@ -92,10 +92,6 @@ static bool check_ob_drawface_dot(short select_mode, const View3D *v3d, eDrawTyp
     if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_DOT) {
       return true;
     }
-    if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGES) == 0) {
-      /* Since we can't deduce face selection when edges aren't visible - show dots. */
-      return true;
-    }
   }
   return false;
 }
