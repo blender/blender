@@ -74,7 +74,7 @@ class BVHBuild {
 
   /* Building. */
   BVHNode *build_node(const BVHRange &range,
-                      vector<BVHReference> *references,
+                      vector<BVHReference> &references,
                       int level,
                       BVHSpatialStorage *storage);
   BVHNode *build_node(const BVHObjectBinning &range, int level);
@@ -86,9 +86,12 @@ class BVHBuild {
 
   /* Threads. */
   enum { THREAD_TASK_SIZE = 4096 };
-  void thread_build_node(InnerNode *node, int child, BVHObjectBinning *range, int level);
-  void thread_build_spatial_split_node(
-      InnerNode *node, int child, BVHRange *range, vector<BVHReference> *references, int level);
+  void thread_build_node(InnerNode *node, int child, const BVHObjectBinning &range, int level);
+  void thread_build_spatial_split_node(InnerNode *node,
+                                       int child,
+                                       const BVHRange &range,
+                                       vector<BVHReference> &references,
+                                       int level);
   thread_mutex build_mutex;
 
   /* Progress. */

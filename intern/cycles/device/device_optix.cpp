@@ -1463,17 +1463,6 @@ class OptiXDevice : public CUDADevice {
 
   void task_add(DeviceTask &task) override
   {
-    struct OptiXDeviceTask : public Task {
-      OptiXDeviceTask(OptiXDevice *device, DeviceTask &task, int task_index) : task(task)
-      {
-        // Using task index parameter instead of thread index, since number of CUDA streams may
-        // differ from number of threads
-        run = function_bind(&OptiXDevice::thread_run, device, task, task_index);
-      }
-
-      DeviceTask task;
-    };
-
     // Upload texture information to device if it has changed since last launch
     load_texture_info();
 
@@ -1485,7 +1474,10 @@ class OptiXDevice : public CUDADevice {
 
     if (task.type == DeviceTask::DENOISE_BUFFER) {
       // Execute denoising in a single thread (e.g. to avoid race conditions during creation)
-      task_pool.push(new OptiXDeviceTask(this, task, 0));
+      task_pool.push([=] {
+        DeviceTask task_copy = task;
+        thread_run(task_copy, 0);
+      });
       return;
     }
 
@@ -1495,8 +1487,15 @@ class OptiXDevice : public CUDADevice {
 
     // Queue tasks in internal task pool
     int task_index = 0;
-    for (DeviceTask &task : tasks)
-      task_pool.push(new OptiXDeviceTask(this, task, task_index++));
+    for (DeviceTask &task : tasks) {
+      task_pool.push([=] {
+        // Using task index parameter instead of thread index, since number of CUDA streams may
+        // differ from number of threads
+        DeviceTask task_copy = task;
+        thread_run(task_copy, task_index);
+      });
+      task_index++;
+    }
   }
 
   void task_wait() override

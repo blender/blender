@@ -88,18 +88,6 @@ static void bvh_reference_sort_threaded(TaskPool *task_pool,
                                         const int job_end,
                                         const BVHReferenceCompare &compare);
 
-class BVHSortTask : public Task {
- public:
-  BVHSortTask(TaskPool *task_pool,
-              BVHReference *data,
-              const int job_start,
-              const int job_end,
-              const BVHReferenceCompare &compare)
-  {
-    run = function_bind(bvh_reference_sort_threaded, task_pool, data, job_start, job_end, compare);
-  }
-};
-
 /* Multi-threaded reference sort. */
 static void bvh_reference_sort_threaded(TaskPool *task_pool,
                                         BVHReference *data,
@@ -158,7 +146,8 @@ static void bvh_reference_sort_threaded(TaskPool *task_pool,
     have_work = false;
     if (left < end) {
       if (start < right) {
-        task_pool->push(new BVHSortTask(task_pool, data, left, end, compare), true);
+        task_pool->push(
+            function_bind(bvh_reference_sort_threaded, task_pool, data, left, end, compare), true);
       }
       else {
         start = left;

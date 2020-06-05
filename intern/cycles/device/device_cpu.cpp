@@ -540,16 +540,6 @@ class CPUDevice : public Device {
       thread_denoise(task);
   }
 
-  class CPUDeviceTask : public Task {
-   public:
-    CPUDeviceTask(CPUDevice *device, DeviceTask &task) : task(task)
-    {
-      run = function_bind(&CPUDevice::thread_run, device, task);
-    }
-
-    DeviceTask task;
-  };
-
   bool denoising_non_local_means(device_ptr image_ptr,
                                  device_ptr guide_ptr,
                                  device_ptr variance_ptr,
@@ -1163,8 +1153,12 @@ class CPUDevice : public Device {
     else
       task.split(tasks, info.cpu_threads);
 
-    foreach (DeviceTask &task, tasks)
-      task_pool.push(new CPUDeviceTask(this, task));
+    foreach (DeviceTask &task, tasks) {
+      task_pool.push([=] {
+        DeviceTask task_copy = task;
+        thread_run(task_copy);
+      });
+    }
   }
 
   void task_wait()

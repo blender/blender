@@ -33,7 +33,7 @@ CCL_NAMESPACE_BEGIN
 BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
                                BVHSpatialStorage *storage,
                                const BVHRange &range,
-                               vector<BVHReference> *references,
+                               vector<BVHReference> &references,
                                float nodeSAH,
                                const BVHUnaligned *unaligned_heuristic,
                                const Transform *aligned_space)
@@ -43,7 +43,7 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
       left_bounds(BoundBox::empty),
       right_bounds(BoundBox::empty),
       storage_(storage),
-      references_(references),
+      references_(&references),
       unaligned_heuristic_(unaligned_heuristic),
       aligned_space_(aligned_space)
 {
@@ -133,7 +133,7 @@ void BVHObjectSplit::split(BVHRange &left, BVHRange &right, const BVHRange &rang
 BVHSpatialSplit::BVHSpatialSplit(const BVHBuild &builder,
                                  BVHSpatialStorage *storage,
                                  const BVHRange &range,
-                                 vector<BVHReference> *references,
+                                 vector<BVHReference> &references,
                                  float nodeSAH,
                                  const BVHUnaligned *unaligned_heuristic,
                                  const Transform *aligned_space)
@@ -141,7 +141,7 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild &builder,
       dim(0),
       pos(0.0f),
       storage_(storage),
-      references_(references),
+      references_(&references),
       unaligned_heuristic_(unaligned_heuristic),
       aligned_space_(aligned_space)
 {
@@ -152,7 +152,7 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild &builder,
   }
   else {
     range_bounds = unaligned_heuristic->compute_aligned_boundbox(
-        range, &references->at(0), *aligned_space);
+        range, &references_->at(0), *aligned_space);
   }
 
   float3 origin = range_bounds.min;

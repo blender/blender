@@ -49,19 +49,14 @@ TaskPool::~TaskPool()
   stop();
 }
 
-void TaskPool::push(Task *task, bool front)
+void TaskPool::push(TaskRunFunction &&task, bool front)
 {
   TaskScheduler::Entry entry;
 
-  entry.task = task;
+  entry.task = new TaskRunFunction(std::move(task));
   entry.pool = this;
 
   TaskScheduler::push(entry, front);
-}
-
-void TaskPool::push(TaskRunFunction &&run, bool front)
-{
-  push(new Task(std::move(run)), front);
 }
 
 void TaskPool::wait_work(Summary *stats)
@@ -95,7 +90,7 @@ void TaskPool::wait_work(Summary *stats)
     /* if found task, do it, otherwise wait until other tasks are done */
     if (found_entry) {
       /* run task */
-      work_entry.task->run(0);
+      (*work_entry.task)();
 
       /* delete task */
       delete work_entry.task;
@@ -334,7 +329,7 @@ void TaskScheduler::init(int num_threads)
   /* Launch threads that will be waiting for work. */
   threads.resize(num_threads);
   for (int thread_index = 0; thread_index < num_threads; ++thread_index) {
-    threads[thread_index] = new thread(function_bind(&TaskScheduler::thread_run, thread_index + 1),
+    threads[thread_index] = new thread(function_bind(&TaskScheduler::thread_run),
                                        thread_nodes[thread_index]);
   }
 }
@@ -384,7 +379,7 @@ bool TaskScheduler::thread_wait_pop(Entry &entry)
   return true;
 }
 
-void TaskScheduler::thread_run(int thread_id)
+void TaskScheduler::thread_run()
 {
   Entry entry;
 
@@ -393,7 +388,7 @@ void TaskScheduler::thread_run(int thread_id)
   /* keep popping off tasks */
   while (thread_wait_pop(entry)) {
     /* run task */
-    entry.task->run(thread_id);
+    (*entry.task)();
 
     /* delete task */
     delete entry.task;
@@ -463,24 +458,19 @@ DedicatedTaskPool::~DedicatedTaskPool()
   delete worker_thread;
 }
 
-void DedicatedTaskPool::push(Task *task, bool front)
+void DedicatedTaskPool::push(TaskRunFunction &&task, bool front)
 {
   num_increase();
 
   /* add task to queue */
   queue_mutex.lock();
   if (front)
-    queue.push_front(task);
+    queue.emplace_front(std::move(task));
   else
-    queue.push_back(task);
+    queue.emplace_back(std::move(task));
 
   queue_cond.notify_one();
   queue_mutex.unlock();
-}
-
-void DedicatedTaskPool::push(TaskRunFunction &&run, bool front)
-{
-  push(new Task(std::move(run)), front);
 }
 
 void DedicatedTaskPool::wait()
@@ -535,7 +525,7 @@ void DedicatedTaskPool::num_increase()
   num_cond.notify_all();
 }
 
-bool DedicatedTaskPool::thread_wait_pop(Task *&task)
+bool DedicatedTaskPool::thread_wait_pop(TaskRunFunction &task)
 {
   thread_scoped_lock queue_lock(queue_mutex);
 
@@ -555,15 +545,15 @@ bool DedicatedTaskPool::thread_wait_pop(Task *&task)
 
 void DedicatedTaskPool::thread_run()
 {
-  Task *task;
+  TaskRunFunction task;
 
   /* keep popping off tasks */
   while (thread_wait_pop(task)) {
     /* run task */
-    task->run(0);
+    task();
 
     /* delete task */
-    delete task;
+    task = nullptr;
 
     /* notify task was done */
     num_decrease(1);
@@ -575,15 +565,8 @@ void DedicatedTaskPool::clear()
   thread_scoped_lock queue_lock(queue_mutex);
 
   /* erase all tasks from the queue */
-  list<Task *>::iterator it = queue.begin();
-  int done = 0;
-
-  while (it != queue.end()) {
-    done++;
-    delete *it;
-
-    it = queue.erase(it);
-  }
+  int done = queue.size();
+  queue.clear();
 
   queue_lock.unlock();
 

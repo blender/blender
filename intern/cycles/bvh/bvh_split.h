@@ -44,7 +44,7 @@ class BVHObjectSplit {
   BVHObjectSplit(BVHBuild *builder,
                  BVHSpatialStorage *storage,
                  const BVHRange &range,
-                 vector<BVHReference> *references,
+                 vector<BVHReference> &references,
                  float nodeSAH,
                  const BVHUnaligned *unaligned_heuristic = NULL,
                  const Transform *aligned_space = NULL);
@@ -82,7 +82,7 @@ class BVHSpatialSplit {
   BVHSpatialSplit(const BVHBuild &builder,
                   BVHSpatialStorage *storage,
                   const BVHRange &range,
-                  vector<BVHReference> *references,
+                  vector<BVHReference> &references,
                   float nodeSAH,
                   const BVHUnaligned *unaligned_heuristic = NULL,
                   const Transform *aligned_space = NULL);
@@ -187,7 +187,7 @@ class BVHMixedSplit {
   __forceinline BVHMixedSplit(BVHBuild *builder,
                               BVHSpatialStorage *storage,
                               const BVHRange &range,
-                              vector<BVHReference> *references,
+                              vector<BVHReference> &references,
                               int level,
                               const BVHUnaligned *unaligned_heuristic = NULL,
                               const Transform *aligned_space = NULL)
@@ -197,7 +197,7 @@ class BVHMixedSplit {
     }
     else {
       bounds = unaligned_heuristic->compute_aligned_boundbox(
-          range, &references->at(0), *aligned_space);
+          range, &references.at(0), *aligned_space);
     }
     /* find split candidates. */
     float area = bounds.safe_area();
@@ -220,7 +220,7 @@ class BVHMixedSplit {
 
     /* leaf SAH is the lowest => create leaf. */
     minSAH = min(min(leafSAH, object.sah), spatial.sah);
-    no_split = (minSAH == leafSAH && builder->range_within_max_leaf_size(range, *references));
+    no_split = (minSAH == leafSAH && builder->range_within_max_leaf_size(range, references));
   }
 
   __forceinline void split(BVHBuild *builder,

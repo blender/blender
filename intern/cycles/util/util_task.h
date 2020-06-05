@@ -31,43 +31,10 @@ using tbb::blocked_range;
 using tbb::enumerable_thread_specific;
 using tbb::parallel_for;
 
-class Task;
 class TaskPool;
 class TaskScheduler;
 
-/* Notes on Thread ID
- *
- * Thread ID argument reports the 0-based ID of a working thread from which
- * the run() callback is being invoked. Thread ID of 0 denotes the thread from
- * which wait_work() was called.
- *
- * DO NOT use this ID to control execution flaw, use it only for things like
- * emulating TLS which does not affect on scheduling. Don't use this ID to make
- * any decisions.
- *
- * It is to be noted here that dedicated task pool will always report thread ID
- * of 0.
- */
-
-typedef function<void(int thread_id)> TaskRunFunction;
-
-/* Task
- *
- * Base class for tasks to be executed in threads. */
-
-class Task {
- public:
-  Task(){};
-  explicit Task(TaskRunFunction &&run_) : run(run_)
-  {
-  }
-
-  virtual ~Task()
-  {
-  }
-
-  TaskRunFunction run;
-};
+typedef function<void(void)> TaskRunFunction;
 
 /* Task Pool
  *
@@ -75,8 +42,7 @@ class Task {
  * pool, we can wait for all tasks to be done, or cancel them before they are
  * done.
  *
- * The run callback that actually executes the task may be created like this:
- * function_bind(&MyClass::task_execute, this, _1, _2) */
+ * TaskRunFunction may be created with std::bind or lambda expressions. */
 
 class TaskPool {
  public:
@@ -96,8 +62,7 @@ class TaskPool {
   TaskPool();
   ~TaskPool();
 
-  void push(Task *task, bool front = false);
-  void push(TaskRunFunction &&run, bool front = false);
+  void push(TaskRunFunction &&task, bool front = false);
 
   void wait_work(Summary *stats = NULL); /* work and wait until all tasks are done */
   void cancel();                         /* cancel all tasks, keep worker threads running */
@@ -154,7 +119,7 @@ class TaskScheduler {
   friend class TaskPool;
 
   struct Entry {
-    Task *task;
+    TaskRunFunction *task;
     TaskPool *pool;
   };
 
@@ -167,7 +132,7 @@ class TaskScheduler {
   static thread_mutex queue_mutex;
   static thread_condition_variable queue_cond;
 
-  static void thread_run(int thread_id);
+  static void thread_run();
   static bool thread_wait_pop(Entry &entry);
 
   static void push(Entry &entry, bool front);
@@ -186,7 +151,6 @@ class DedicatedTaskPool {
   DedicatedTaskPool();
   ~DedicatedTaskPool();
 
-  void push(Task *task, bool front = false);
   void push(TaskRunFunction &&run, bool front = false);
 
   void wait();   /* wait until all tasks are done */
@@ -200,14 +164,14 @@ class DedicatedTaskPool {
   void num_increase();
 
   void thread_run();
-  bool thread_wait_pop(Task *&entry);
+  bool thread_wait_pop(TaskRunFunction &task);
 
   void clear();
 
   thread_mutex num_mutex;
   thread_condition_variable num_cond;
 
-  list<Task *> queue;
+  list<TaskRunFunction> queue;
   thread_mutex queue_mutex;
   thread_condition_variable queue_cond;
 

@@ -456,16 +456,6 @@ class OpenCLDevice : public Device {
 
   void denoise(RenderTile &tile, DenoisingTask &denoising);
 
-  class OpenCLDeviceTask : public Task {
-   public:
-    OpenCLDeviceTask(OpenCLDevice *device, DeviceTask &task) : task(task)
-    {
-      run = function_bind(&OpenCLDevice::thread_run, device, task);
-    }
-
-    DeviceTask task;
-  };
-
   int get_split_task_count(DeviceTask & /*task*/)
   {
     return 1;
@@ -473,7 +463,10 @@ class OpenCLDevice : public Device {
 
   void task_add(DeviceTask &task)
   {
-    task_pool.push(new OpenCLDeviceTask(this, task));
+    task_pool.push([=] {
+      DeviceTask task_copy = task;
+      thread_run(task_copy);
+    });
   }
 
   void task_wait()
