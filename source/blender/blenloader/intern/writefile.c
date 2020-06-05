@@ -3794,45 +3794,47 @@ static void write_linestyle_geometry_modifiers(WriteData *wd, ListBase *modifier
   }
 }
 
-static void write_linestyle(WriteData *wd, FreestyleLineStyle *linestyle, const void *id_address)
+static void write_linestyle(BlendWriter *writer,
+                            FreestyleLineStyle *linestyle,
+                            const void *id_address)
 {
-  if (linestyle->id.us > 0 || wd->use_memfile) {
-    writestruct_at_address(wd, ID_LS, FreestyleLineStyle, 1, id_address, linestyle);
-    write_iddata(wd, &linestyle->id);
+  if (linestyle->id.us > 0 || BLO_write_is_undo(writer)) {
+    BLO_write_id_struct(writer, FreestyleLineStyle, id_address, &linestyle->id);
+    write_iddata(writer->wd, &linestyle->id);
 
     if (linestyle->adt) {
-      write_animdata(wd, linestyle->adt);
+      write_animdata(writer->wd, linestyle->adt);
     }
 
-    write_linestyle_color_modifiers(wd, &linestyle->color_modifiers);
-    write_linestyle_alpha_modifiers(wd, &linestyle->alpha_modifiers);
-    write_linestyle_thickness_modifiers(wd, &linestyle->thickness_modifiers);
-    write_linestyle_geometry_modifiers(wd, &linestyle->geometry_modifiers);
+    write_linestyle_color_modifiers(writer->wd, &linestyle->color_modifiers);
+    write_linestyle_alpha_modifiers(writer->wd, &linestyle->alpha_modifiers);
+    write_linestyle_thickness_modifiers(writer->wd, &linestyle->thickness_modifiers);
+    write_linestyle_geometry_modifiers(writer->wd, &linestyle->geometry_modifiers);
     for (int a = 0; a < MAX_MTEX; a++) {
       if (linestyle->mtex[a]) {
-        writestruct(wd, DATA, MTex, 1, linestyle->mtex[a]);
+        BLO_write_struct(writer, MTex, linestyle->mtex[a]);
       }
     }
     if (linestyle->nodetree) {
-      writestruct(wd, DATA, bNodeTree, 1, linestyle->nodetree);
-      write_nodetree_nolib(wd, linestyle->nodetree);
+      BLO_write_struct(writer, bNodeTree, linestyle->nodetree);
+      write_nodetree_nolib(writer->wd, linestyle->nodetree);
     }
   }
 }
 
-static void write_cachefile(WriteData *wd, CacheFile *cache_file, const void *id_address)
+static void write_cachefile(BlendWriter *writer, CacheFile *cache_file, const void *id_address)
 {
-  if (cache_file->id.us > 0 || wd->use_memfile) {
+  if (cache_file->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     BLI_listbase_clear(&cache_file->object_paths);
     cache_file->handle = NULL;
     memset(cache_file->handle_filepath, 0, sizeof(cache_file->handle_filepath));
     cache_file->handle_readers = NULL;
 
-    writestruct_at_address(wd, ID_CF, CacheFile, 1, id_address, cache_file);
+    BLO_write_id_struct(writer, CacheFile, id_address, &cache_file->id);
 
     if (cache_file->adt) {
-      write_animdata(wd, cache_file->adt);
+      write_animdata(writer->wd, cache_file->adt);
     }
   }
 }
@@ -3852,24 +3854,24 @@ static void write_workspace(BlendWriter *writer, WorkSpace *workspace, const voi
   }
 }
 
-static void write_hair(WriteData *wd, Hair *hair, const void *id_address)
+static void write_hair(BlendWriter *writer, Hair *hair, const void *id_address)
 {
-  if (hair->id.us > 0 || wd->use_memfile) {
+  if (hair->id.us > 0 || BLO_write_is_undo(writer)) {
     CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
     CustomDataLayer *clayers = NULL, clayers_buff[CD_TEMP_CHUNK_SIZE];
     CustomData_file_write_prepare(&hair->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
     CustomData_file_write_prepare(&hair->cdata, &clayers, clayers_buff, ARRAY_SIZE(clayers_buff));
 
     /* Write LibData */
-    writestruct_at_address(wd, ID_HA, Hair, 1, id_address, hair);
-    write_iddata(wd, &hair->id);
+    BLO_write_id_struct(writer, Hair, id_address, &hair->id);
+    write_iddata(writer->wd, &hair->id);
 
     /* Direct data */
-    write_customdata(wd, &hair->id, hair->totpoint, &hair->pdata, players, CD_MASK_ALL);
-    write_customdata(wd, &hair->id, hair->totcurve, &hair->cdata, clayers, CD_MASK_ALL);
-    writedata(wd, DATA, sizeof(void *) * hair->totcol, hair->mat);
+    write_customdata(writer->wd, &hair->id, hair->totpoint, &hair->pdata, players, CD_MASK_ALL);
+    write_customdata(writer->wd, &hair->id, hair->totcurve, &hair->cdata, clayers, CD_MASK_ALL);
+    BLO_write_pointer_array(writer, hair->totcol, hair->mat);
     if (hair->adt) {
-      write_animdata(wd, hair->adt);
+      write_animdata(writer->wd, hair->adt);
     }
 
     /* Remove temporary data. */
@@ -3882,23 +3884,27 @@ static void write_hair(WriteData *wd, Hair *hair, const void *id_address)
   }
 }
 
-static void write_pointcloud(WriteData *wd, PointCloud *pointcloud, const void *id_address)
+static void write_pointcloud(BlendWriter *writer, PointCloud *pointcloud, const void *id_address)
 {
-  if (pointcloud->id.us > 0 || wd->use_memfile) {
+  if (pointcloud->id.us > 0 || BLO_write_is_undo(writer)) {
     CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
     CustomData_file_write_prepare(
         &pointcloud->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
 
     /* Write LibData */
-    writestruct_at_address(wd, ID_PT, PointCloud, 1, id_address, pointcloud);
-    write_iddata(wd, &pointcloud->id);
+    BLO_write_id_struct(writer, PointCloud, id_address, &pointcloud->id);
+    write_iddata(writer->wd, &pointcloud->id);
 
     /* Direct data */
-    write_customdata(
-        wd, &pointcloud->id, pointcloud->totpoint, &pointcloud->pdata, players, CD_MASK_ALL);
-    writedata(wd, DATA, sizeof(void *) * pointcloud->totcol, pointcloud->mat);
+    write_customdata(writer->wd,
+                     &pointcloud->id,
+                     pointcloud->totpoint,
+                     &pointcloud->pdata,
+                     players,
+                     CD_MASK_ALL);
+    BLO_write_pointer_array(writer, pointcloud->totcol, pointcloud->mat);
     if (pointcloud->adt) {
-      write_animdata(wd, pointcloud->adt);
+      write_animdata(writer->wd, pointcloud->adt);
     }
 
     /* Remove temporary data. */
@@ -3908,44 +3914,44 @@ static void write_pointcloud(WriteData *wd, PointCloud *pointcloud, const void *
   }
 }
 
-static void write_volume(WriteData *wd, Volume *volume, const void *id_address)
+static void write_volume(BlendWriter *writer, Volume *volume, const void *id_address)
 {
-  if (volume->id.us > 0 || wd->use_memfile) {
+  if (volume->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     volume->runtime.grids = 0;
 
     /* write LibData */
-    writestruct_at_address(wd, ID_VO, Volume, 1, id_address, volume);
-    write_iddata(wd, &volume->id);
+    BLO_write_id_struct(writer, Volume, id_address, &volume->id);
+    write_iddata(writer->wd, &volume->id);
 
     /* direct data */
-    writedata(wd, DATA, sizeof(void *) * volume->totcol, volume->mat);
+    BLO_write_pointer_array(writer, volume->totcol, volume->mat);
     if (volume->adt) {
-      write_animdata(wd, volume->adt);
+      write_animdata(writer->wd, volume->adt);
     }
 
     if (volume->packedfile) {
       PackedFile *pf = volume->packedfile;
-      writestruct(wd, DATA, PackedFile, 1, pf);
-      writedata(wd, DATA, pf->size, pf->data);
+      BLO_write_struct(writer, PackedFile, pf);
+      BLO_write_raw(writer, pf->size, pf->data);
     }
   }
 }
 
-static void write_simulation(WriteData *wd, Simulation *simulation)
+static void write_simulation(BlendWriter *writer, Simulation *simulation, const void *id_address)
 {
-  if (simulation->id.us > 0 || wd->use_memfile) {
-    writestruct(wd, ID_SIM, Simulation, 1, simulation);
-    write_iddata(wd, &simulation->id);
+  if (simulation->id.us > 0 || BLO_write_is_undo(writer)) {
+    BLO_write_id_struct(writer, Simulation, id_address, &simulation->id);
+    write_iddata(writer->wd, &simulation->id);
 
     if (simulation->adt) {
-      write_animdata(wd, simulation->adt);
+      write_animdata(writer->wd, simulation->adt);
     }
 
     /* nodetree is integral part of simulation, no libdata */
     if (simulation->nodetree) {
-      writestruct(wd, DATA, bNodeTree, 1, simulation->nodetree);
-      write_nodetree_nolib(wd, simulation->nodetree);
+      BLO_write_struct(writer, bNodeTree, simulation->nodetree);
+      write_nodetree_nolib(writer->wd, simulation->nodetree);
     }
   }
 }
@@ -4299,22 +4305,22 @@ static bool write_file_handle(Main *mainvar,
             write_gpencil(wd, (bGPdata *)id_buffer, id);
             break;
           case ID_LS:
-            write_linestyle(wd, (FreestyleLineStyle *)id_buffer, id);
+            write_linestyle(&writer, (FreestyleLineStyle *)id_buffer, id);
             break;
           case ID_CF:
-            write_cachefile(wd, (CacheFile *)id_buffer, id);
+            write_cachefile(&writer, (CacheFile *)id_buffer, id);
             break;
           case ID_HA:
-            write_hair(wd, (Hair *)id_buffer, id);
+            write_hair(&writer, (Hair *)id_buffer, id);
             break;
           case ID_PT:
-            write_pointcloud(wd, (PointCloud *)id_buffer, id);
+            write_pointcloud(&writer, (PointCloud *)id_buffer, id);
             break;
           case ID_VO:
-            write_volume(wd, (Volume *)id_buffer, id);
+            write_volume(&writer, (Volume *)id_buffer, id);
             break;
           case ID_SIM:
-            write_simulation(wd, (Simulation *)id);
+            write_simulation(&writer, (Simulation *)id_buffer, id);
             break;
           case ID_LI:
             /* Do nothing, handled below - and should never be reached. */
@@ -4616,6 +4622,11 @@ void BLO_write_uint32_array(BlendWriter *writer, int size, const uint32_t *data_
 void BLO_write_float_array(BlendWriter *writer, int size, const float *data_ptr)
 {
   BLO_write_raw(writer, sizeof(float) * size, data_ptr);
+}
+
+void BLO_write_pointer_array(BlendWriter *writer, int size, const void *data_ptr)
+{
+  BLO_write_raw(writer, sizeof(void *) * size, data_ptr);
 }
 
 void BLO_write_float3_array(BlendWriter *writer, int size, const float *data_ptr)
