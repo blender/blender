@@ -1,14 +1,3 @@
-diff -x .git -ur usd.orig/cmake/defaults/Options.cmake external_usd/cmake/defaults/Options.cmake
---- usd.orig/cmake/defaults/Options.cmake	2019-10-24 22:39:53.000000000 +0200
-+++ external_usd/cmake/defaults/Options.cmake	2019-11-28 13:00:33.197957712 +0100
-@@ -25,6 +25,7 @@
- option(PXR_VALIDATE_GENERATED_CODE "Validate script generated code" OFF)
- option(PXR_HEADLESS_TEST_MODE "Disallow GUI based tests, useful for running under headless CI systems." OFF)
- option(PXR_BUILD_TESTS "Build tests" ON)
-+option(PXR_BUILD_USD_TOOLS "Build commandline tools" ON)
- option(PXR_BUILD_IMAGING "Build imaging components" ON)
- option(PXR_BUILD_EMBREE_PLUGIN "Build embree imaging plugin" OFF)
- option(PXR_BUILD_OPENIMAGEIO_PLUGIN "Build OpenImageIO plugin" OFF)
 diff -x .git -ur usd.orig/cmake/defaults/Packages.cmake external_usd/cmake/defaults/Packages.cmake
 --- usd.orig/cmake/defaults/Packages.cmake	2019-10-24 22:39:53.000000000 +0200
 +++ external_usd/cmake/defaults/Packages.cmake	2019-11-28 13:00:33.185957483 +0100
@@ -21,9 +10,9 @@ diff -x .git -ur usd.orig/cmake/defaults/Packages.cmake external_usd/cmake/defau
  add_definitions(${TBB_DEFINITIONS})
  
  # --math
-diff -x .git -ur usd.orig/pxr/base/lib/plug/initConfig.cpp external_usd/pxr/base/lib/plug/initConfig.cpp
---- usd.orig/pxr/base/lib/plug/initConfig.cpp	2019-10-24 22:39:53.000000000 +0200
-+++ external_usd/pxr/base/lib/plug/initConfig.cpp	2019-12-11 11:00:37.643323127 +0100
+diff -x .git -ur usd.orig/pxr/base/plug/initConfig.cpp external_usd/pxr/base/plug/initConfig.cpp
+--- usd.orig/pxr/base/plug/initConfig.cpp	2019-10-24 22:39:53.000000000 +0200
++++ external_usd/pxr/base/plug/initConfig.cpp	2019-12-11 11:00:37.643323127 +0100
 @@ -69,8 +69,38 @@
  
  ARCH_CONSTRUCTOR(Plug_InitConfig, 2, void)
@@ -90,28 +79,9 @@ diff -x .git -ur usd.orig/pxr/base/lib/plug/initConfig.cpp external_usd/pxr/base
 +    PXR_NS::usd_initialise_plugin_path(datafiles_usd_path);
 +}
 +}
-diff -x .git -ur usd.orig/pxr/usd/CMakeLists.txt external_usd/pxr/usd/CMakeLists.txt
---- usd.orig/pxr/usd/CMakeLists.txt	2019-10-24 22:39:53.000000000 +0200
-+++ external_usd/pxr/usd/CMakeLists.txt	2019-11-28 13:00:33.197957712 +0100
-@@ -1,6 +1,5 @@
- set(DIRS
-     lib
--    bin
-     plugin
- )
- 
-@@ -8,3 +7,8 @@
-     add_subdirectory(${d})
- endforeach()
- 
-+if (PXR_BUILD_USD_TOOLS)
-+    add_subdirectory(bin)
-+else()
-+    message(STATUS "Skipping commandline tools because PXR_BUILD_USD_TOOLS=OFF")
-+endif()
-diff -Naur external_usd_orig/pxr/base/lib/tf/preprocessorUtils.h external_usd/pxr/base/lib/tf/preprocessorUtils.h
---- external_usd_orig/pxr/base/lib/tf/preprocessorUtils.h	2019-10-24 14:39:53 -0600
-+++ external_usd/pxr/base/lib/tf/preprocessorUtils.h	2020-01-14 09:30:18 -0700
+diff -Naur external_usd_orig/pxr/base/tf/preprocessorUtils.h external_usd/pxr/base/tf/preprocessorUtils.h
+--- external_usd_orig/pxr/base/tf/preprocessorUtils.h	2019-10-24 14:39:53 -0600
++++ external_usd/pxr/base/tf/preprocessorUtils.h	2020-01-14 09:30:18 -0700
 @@ -189,7 +189,7 @@
  /// Exapnds to 1 if the argument is a tuple, and 0 otherwise.
  /// \ingroup group_tf_Preprocessor

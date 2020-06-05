@@ -297,9 +297,9 @@ set(EMBREE_VERSION 3.10.0)
 set(EMBREE_URI https://github.com/embree/embree/archive/v${EMBREE_VERSION}.zip)
 set(EMBREE_HASH 4bbe29e7eaa46417efc75fc5f1e8eb87)
 
-set(USD_VERSION 19.11)
+set(USD_VERSION 20.02)
 set(USD_URI https://github.com/PixarAnimationStudios/USD/archive/v${USD_VERSION}.tar.gz)
-set(USD_HASH 79ff176167b3fe85f4953abd6cc5e0cc)
+set(USD_HASH 8901815f01469a7f4496bd60315a9d10)
 
 set(OIDN_VERSION 1.0.0)
 set(OIDN_URI https://github.com/OpenImageDenoise/oidn/releases/download/v${OIDN_VERSION}/oidn-${OIDN_VERSION}.src.zip)
