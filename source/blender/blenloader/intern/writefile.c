@@ -1557,7 +1557,7 @@ static void write_particlesystems(BlendWriter *writer, ListBase *particles)
   }
 }
 
-static void write_motionpath(WriteData *wd, bMotionPath *mpath)
+static void write_motionpath(BlendWriter *writer, bMotionPath *mpath)
 {
   /* sanity checks */
   if (mpath == NULL) {
@@ -1565,13 +1565,13 @@ static void write_motionpath(WriteData *wd, bMotionPath *mpath)
   }
 
   /* firstly, just write the motionpath struct */
-  writestruct(wd, DATA, bMotionPath, 1, mpath);
+  BLO_write_struct(writer, bMotionPath, mpath);
 
   /* now write the array of data */
-  writestruct(wd, DATA, bMotionPathVert, mpath->length, mpath->points);
+  BLO_write_struct_array(writer, bMotionPathVert, mpath->length, mpath->points);
 }
 
-static void write_constraints(WriteData *wd, ListBase *conlist)
+static void write_constraints(BlendWriter *writer, ListBase *conlist)
 {
   bConstraint *con;
 
@@ -1581,7 +1581,7 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
     /* Write the specific data */
     if (cti && con->data) {
       /* firstly, just write the plain con->data struct */
-      writestruct_id(wd, DATA, cti->structName, 1, con->data);
+      BLO_write_struct_by_name(writer, cti->structName, con->data);
 
       /* do any constraint specific stuff */
       switch (con->type) {
@@ -1591,12 +1591,12 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 
           /* write targets */
           for (ct = data->targets.first; ct; ct = ct->next) {
-            writestruct(wd, DATA, bConstraintTarget, 1, ct);
+            BLO_write_struct(writer, bConstraintTarget, ct);
           }
 
           /* Write ID Properties -- and copy this comment EXACTLY for easy finding
            * of library blocks that implement this.*/
-          IDP_WriteProperty(data->prop, wd);
+          IDP_WriteProperty_new_api(data->prop, writer);
 
           break;
         }
@@ -1606,7 +1606,7 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 
           /* write targets */
           for (ct = data->targets.first; ct; ct = ct->next) {
-            writestruct(wd, DATA, bConstraintTarget, 1, ct);
+            BLO_write_struct(writer, bConstraintTarget, ct);
           }
 
           break;
@@ -1615,7 +1615,7 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
           bSplineIKConstraint *data = con->data;
 
           /* write points array */
-          writedata(wd, DATA, sizeof(float) * (data->numpoints), data->points);
+          BLO_write_float_array(writer, data->numpoints, data->points);
 
           break;
         }
@@ -1623,11 +1623,11 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
     }
 
     /* Write the constraint */
-    writestruct(wd, DATA, bConstraint, 1, con);
+    BLO_write_struct(writer, bConstraint, con);
   }
 }
 
-static void write_pose(WriteData *wd, bPose *pose)
+static void write_pose(BlendWriter *writer, bPose *pose)
 {
   bPoseChannel *chan;
   bActionGroup *grp;
@@ -1642,12 +1642,12 @@ static void write_pose(WriteData *wd, bPose *pose)
     /* Write ID Properties -- and copy this comment EXACTLY for easy finding
      * of library blocks that implement this.*/
     if (chan->prop) {
-      IDP_WriteProperty(chan->prop, wd);
+      IDP_WriteProperty_new_api(chan->prop, writer);
     }
 
-    write_constraints(wd, &chan->constraints);
+    write_constraints(writer, &chan->constraints);
 
-    write_motionpath(wd, chan->mpath);
+    write_motionpath(writer, chan->mpath);
 
     /* prevent crashes with autosave,
      * when a bone duplicated in editmode has not yet been assigned to its posechannel */
@@ -1656,37 +1656,37 @@ static void write_pose(WriteData *wd, bPose *pose)
       chan->selectflag = chan->bone->flag & BONE_SELECTED;
     }
 
-    writestruct(wd, DATA, bPoseChannel, 1, chan);
+    BLO_write_struct(writer, bPoseChannel, chan);
   }
 
   /* Write groups */
   for (grp = pose->agroups.first; grp; grp = grp->next) {
-    writestruct(wd, DATA, bActionGroup, 1, grp);
+    BLO_write_struct(writer, bActionGroup, grp);
   }
 
   /* write IK param */
   if (pose->ikparam) {
     const char *structname = BKE_pose_ikparam_get_name(pose);
     if (structname) {
-      writestruct_id(wd, DATA, structname, 1, pose->ikparam);
+      BLO_write_struct_by_name(writer, structname, pose->ikparam);
     }
   }
 
   /* Write this pose */
-  writestruct(wd, DATA, bPose, 1, pose);
+  BLO_write_struct(writer, bPose, pose);
 }
 
-static void write_defgroups(WriteData *wd, ListBase *defbase)
+static void write_defgroups(BlendWriter *writer, ListBase *defbase)
 {
   LISTBASE_FOREACH (bDeformGroup *, defgroup, defbase) {
-    writestruct(wd, DATA, bDeformGroup, 1, defgroup);
+    BLO_write_struct(writer, bDeformGroup, defgroup);
   }
 }
 
-static void write_fmaps(WriteData *wd, ListBase *fbase)
+static void write_fmaps(BlendWriter *writer, ListBase *fbase)
 {
   LISTBASE_FOREACH (bFaceMap *, fmap, fbase) {
-    writestruct(wd, DATA, bFaceMap, 1, fmap);
+    BLO_write_struct(writer, bFaceMap, fmap);
   }
 }
 
@@ -1936,7 +1936,7 @@ static void write_gpencil_modifiers(BlendWriter *writer, ListBase *modbase)
   }
 }
 
-static void write_shaderfxs(WriteData *wd, ListBase *fxbase)
+static void write_shaderfxs(BlendWriter *writer, ListBase *fxbase)
 {
   ShaderFxData *fx;
 
@@ -1950,7 +1950,7 @@ static void write_shaderfxs(WriteData *wd, ListBase *fxbase)
       return;
     }
 
-    writestruct_id(wd, DATA, fxi->struct_name, 1, fx);
+    BLO_write_struct_by_name(writer, fxi->struct_name, fx);
   }
 }
 
@@ -1980,11 +1980,11 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
       }
     }
 
-    write_pose(writer->wd, ob->pose);
-    write_defgroups(writer->wd, &ob->defbase);
-    write_fmaps(writer->wd, &ob->fmaps);
-    write_constraints(writer->wd, &ob->constraints);
-    write_motionpath(writer->wd, ob->mpath);
+    write_pose(writer, ob->pose);
+    write_defgroups(writer, &ob->defbase);
+    write_fmaps(writer, &ob->fmaps);
+    write_constraints(writer, &ob->constraints);
+    write_motionpath(writer, ob->mpath);
 
     BLO_write_struct(writer, PartDeflect, ob->pd);
     if (ob->soft) {
@@ -2012,7 +2012,7 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
     write_particlesystems(writer, &ob->particlesystem);
     write_modifiers(writer, &ob->modifiers);
     write_gpencil_modifiers(writer, &ob->greasepencil_modifiers);
-    write_shaderfxs(writer->wd, &ob->shader_fx);
+    write_shaderfxs(writer, &ob->shader_fx);
 
     BLO_write_struct_list(writer, LinkData, &ob->pc_ids);
     BLO_write_struct_list(writer, LodLevel, &ob->lodlevels);
