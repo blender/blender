@@ -107,6 +107,7 @@ typedef struct uiHandlePanelData {
   int startx, starty;
   int startofsx, startofsy;
   int startsizex, startsizey;
+  float start_cur_xmin, start_cur_ymin;
 } uiHandlePanelData;
 
 typedef struct PanelSort {
@@ -1731,21 +1732,22 @@ static void check_panel_overlap(ARegion *region, Panel *panel)
 
 /************************ panel dragging ****************************/
 
+#define DRAG_REGION_PAD (PNL_HEADER * 0.5)
 static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
 {
   uiHandlePanelData *data = panel->activedata;
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  short align = panel_aligned(area, region), dx = 0, dy = 0;
+  short align = panel_aligned(area, region);
 
-  /* first clip for window, no dragging outside */
-  if (!BLI_rcti_isect_pt_v(&region->winrct, &event->x)) {
-    return;
-  }
+  /* Keep the drag position in the region with a small pad to keep the panel visible. */
+  int x = clamp_i(event->x, region->winrct.xmin, region->winrct.xmax + DRAG_REGION_PAD);
+  int y = clamp_i(event->y, region->winrct.ymin, region->winrct.ymax + DRAG_REGION_PAD);
 
-  dx = (event->x - data->startx);
-  dy = (event->y - data->starty);
+  float dx = (float)(x - data->startx);
+  float dy = (float)(y - data->starty);
 
+  /* Adjust for region zoom. */
   dx *= (float)BLI_rctf_size_x(&region->v2d.cur) / (float)BLI_rcti_size_x(&region->winrct);
   dy *= (float)BLI_rctf_size_y(&region->v2d.cur) / (float)BLI_rcti_size_y(&region->winrct);
 
@@ -1763,17 +1765,21 @@ static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
     /* reset the panel snapping, to allow dragging away from snapped edges */
     panel->snap = PNL_SNAP_NONE;
 
-    panel->ofsx = data->startofsx + dx;
-    panel->ofsy = data->startofsy + dy;
+    /* Add the movement of the view due to edge scrolling while dragging. */
+    dx += ((float)region->v2d.cur.xmin - data->start_cur_xmin);
+    dy += ((float)region->v2d.cur.ymin - data->start_cur_ymin);
+    panel->ofsx = data->startofsx + round_fl_to_int(dx);
+    panel->ofsy = data->startofsy + round_fl_to_int(dy);
     check_panel_overlap(region, panel);
 
     if (align) {
-      uiAlignPanelStep(area, region, 0.2, true);
+      uiAlignPanelStep(area, region, 0.2f, true);
     }
   }
 
   ED_region_tag_redraw(region);
 }
+#undef DRAG_REGION_PAD
 
 /******************* region level panel interaction *****************/
 
@@ -2967,6 +2973,12 @@ static void panel_activate_state(const bContext *C, Panel *panel, uiHandlePanelS
       data->animtimer = WM_event_add_timer(CTX_wm_manager(C), win, TIMER, ANIMATION_INTERVAL);
     }
 
+    /* Initiate edge panning during drags so we can move beyond the initial region view. */
+    if (state == PANEL_STATE_DRAG) {
+      wmOperatorType *ot = WM_operatortype_find("VIEW2D_OT_edge_pan", true);
+      ui_handle_afterfunc_add_operator(ot, WM_OP_INVOKE_DEFAULT, true);
+    }
+
     data->state = state;
     data->startx = win->eventstate->x;
     data->starty = win->eventstate->y;
@@ -2974,6 +2986,8 @@ static void panel_activate_state(const bContext *C, Panel *panel, uiHandlePanelS
     data->startofsy = panel->ofsy;
     data->startsizex = panel->sizex;
     data->startsizey = panel->sizey;
+    data->start_cur_xmin = region->v2d.cur.xmin;
+    data->start_cur_ymin = region->v2d.cur.ymin;
     data->starttime = PIL_check_seconds_timer();
 
     /* Remember drag drop state even when animating to the aligned position after dragging. */

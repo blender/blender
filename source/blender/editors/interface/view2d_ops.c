@@ -100,6 +100,10 @@ typedef struct v2dViewPanData {
 
   /** for MMB in scrollers (old feature in past, but now not that useful) */
   short in_scroller;
+
+  /* View2D Edge Panning */
+  double edge_pan_last_time;
+  double edge_pan_start_time_x, edge_pan_start_time_y;
 } v2dViewPanData;
 
 /* initialize panning customdata */
@@ -353,6 +357,186 @@ static void VIEW2D_OT_pan(wmOperatorType *ot)
   RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
   RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Edge Pan Operator (modal)
+ *
+ * Scroll the region if the mouse is dragged to an edge. "Invisible" operator that always
+ * passes through.
+ * \{ */
+
+/** Distance from the edge of the region within which to start panning. */
+#define EDGE_PAN_REGION_PAD (U.widget_unit)
+/** Speed factor in pixels per second per pixel of distance from edge pan zone beginning. */
+#define EDGE_PAN_SPEED_PER_PIXEL (25.0f * (float)U.dpi_fac)
+/** Delay before drag panning in seconds. */
+#define EDGE_PAN_DELAY 1.0f
+
+/* set up modal operator and relevant settings */
+static int view_edge_pan_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  /* Set up customdata. */
+  if (!view_pan_init(C, op)) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
+  v2dViewPanData *vpd = op->customdata;
+
+  vpd->edge_pan_start_time_x = 0.0;
+  vpd->edge_pan_start_time_y = 0.0;
+  vpd->edge_pan_last_time = PIL_check_seconds_timer();
+
+  WM_event_add_modal_handler(C, op);
+
+  return (OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH);
+}
+
+/**
+ * Reset the edge pan timers if the mouse isn't in the scroll zone and
+ * start the timers when the mouse enters a scroll zone.
+ */
+static void edge_pan_manage_delay_timers(v2dViewPanData *vpd,
+                                         int pan_dir_x,
+                                         int pan_dir_y,
+                                         const double current_time)
+{
+  if (pan_dir_x == 0) {
+    vpd->edge_pan_start_time_x = 0.0;
+  }
+  else if (vpd->edge_pan_start_time_x == 0.0) {
+    vpd->edge_pan_start_time_x = current_time;
+  }
+  if (pan_dir_y == 0) {
+    vpd->edge_pan_start_time_y = 0.0;
+  }
+  else if (vpd->edge_pan_start_time_y == 0.0) {
+    vpd->edge_pan_start_time_y = current_time;
+  }
+}
+
+/**
+ * Used to calculate a "fade in" factor for edge panning to make the interaction feel smooth
+ * and more purposeful.
+ *
+ * \note Assumes a domain_min of 0.0f.
+ */
+static float smootherstep(const float domain_max, float x)
+{
+  x = clamp_f(x / domain_max, 0.0, 1.0);
+  return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
+}
+
+static float edge_pan_speed(v2dViewPanData *vpd,
+                            int event_loc,
+                            bool x_dir,
+                            const double current_time)
+{
+  ARegion *region = vpd->region;
+
+  /* Find the distance from the start of the drag zone. */
+  int min = x_dir ? region->winrct.xmin : region->winrct.ymin + EDGE_PAN_REGION_PAD;
+  int max = x_dir ? region->winrct.xmax : region->winrct.ymax - EDGE_PAN_REGION_PAD;
+  int distance = 0.0;
+  if (event_loc > max) {
+    distance = event_loc - max;
+  }
+  else if (event_loc < min) {
+    distance = min - event_loc;
+  }
+  else {
+    BLI_assert(!"Calculating speed outside of pan zones");
+    return 0.0f;
+  }
+
+  /* Apply a fade in to the speed based on a start time delay. */
+  double start_time = x_dir ? vpd->edge_pan_start_time_x : vpd->edge_pan_start_time_y;
+  float delay_factor = smootherstep(EDGE_PAN_DELAY, (float)(current_time - start_time));
+
+  return distance * EDGE_PAN_SPEED_PER_PIXEL * delay_factor;
+}
+
+static int view_edge_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  v2dViewPanData *vpd = op->customdata;
+  ARegion *region = vpd->region;
+
+  if (event->val == KM_RELEASE || event->type == EVT_ESCKEY) {
+    view_pan_exit(op);
+    return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
+  }
+  /* Only mousemove events matter here, ignore others. */
+  if (event->type != MOUSEMOVE) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
+  /* This operator is supposed to run together with some drag action.
+   * On successful handling, always pass events on to other handlers. */
+  const int success_retval = OPERATOR_PASS_THROUGH;
+
+  /* Find whether the mouse is beyond X and Y edges. */
+  int pan_dir_x = 0;
+  int pan_dir_y = 0;
+  if (event->x > region->winrct.xmax - EDGE_PAN_REGION_PAD) {
+    pan_dir_x = 1;
+  }
+  else if (event->x < region->winrct.xmin + EDGE_PAN_REGION_PAD) {
+    pan_dir_x = -1;
+  }
+  if (event->y > region->winrct.ymax - EDGE_PAN_REGION_PAD) {
+    pan_dir_y = 1;
+  }
+  else if (event->y < region->winrct.ymin + EDGE_PAN_REGION_PAD) {
+    pan_dir_y = -1;
+  }
+
+  const double current_time = PIL_check_seconds_timer();
+  edge_pan_manage_delay_timers(vpd, pan_dir_x, pan_dir_y, current_time);
+
+  /* Calculate the delta since the last time the operator was called. */
+  float dtime = (float)(current_time - vpd->edge_pan_last_time);
+  float dx = 0.0f, dy = 0.0f;
+  if (pan_dir_x != 0) {
+    float speed = edge_pan_speed(vpd, event->x, true, current_time);
+    dx = dtime * speed * (float)pan_dir_x;
+  }
+  if (pan_dir_y != 0) {
+    float speed = edge_pan_speed(vpd, event->y, false, current_time);
+    dy = dtime * speed * (float)pan_dir_y;
+  }
+  vpd->edge_pan_last_time = current_time;
+
+  /* Pan, clamping inside the regions's total bounds. */
+  view_pan_apply_ex(C, vpd, dx, dy);
+
+  return success_retval;
+}
+
+static void view_edge_pan_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+  view_pan_exit(op);
+}
+
+static void VIEW2D_OT_edge_pan(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "View Edge Pan";
+  ot->description = "Pan the view when the mouse is held at an edge";
+  ot->idname = "VIEW2D_OT_edge_pan";
+
+  /* api callbacks */
+  ot->invoke = view_edge_pan_invoke;
+  ot->modal = view_edge_pan_modal;
+  ot->cancel = view_edge_pan_cancel;
+
+  /* operator is modal */
+  ot->flag = OPTYPE_INTERNAL;
+}
+
+#undef EDGE_PAN_REGION_PAD
+#undef EDGE_PAN_SPEED_PER_PIXEL
+#undef EDGE_PAN_DELAY
 
 /** \} */
 
@@ -2246,6 +2430,7 @@ static void VIEW2D_OT_reset(wmOperatorType *ot)
 void ED_operatortypes_view2d(void)
 {
   WM_operatortype_append(VIEW2D_OT_pan);
+  WM_operatortype_append(VIEW2D_OT_edge_pan);
 
   WM_operatortype_append(VIEW2D_OT_scroll_left);
   WM_operatortype_append(VIEW2D_OT_scroll_right);
