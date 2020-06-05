@@ -68,45 +68,6 @@
 /** \name Shared Utilities
  * \{ */
 
-/* Check if mouse inside stroke. */
-static bool gpencil_point_inside_stroke(bGPDstroke *gps,
-                                        GP_SpaceConversion *gsc,
-                                        int mouse[2],
-                                        const float diff_mat[4][4])
-{
-  bool hit = false;
-  if (gps->totpoints == 0) {
-    return hit;
-  }
-
-  int(*mcoords)[2] = NULL;
-  int len = gps->totpoints;
-  mcoords = MEM_mallocN(sizeof(int) * 2 * len, __func__);
-
-  /* Convert stroke to 2D array of points. */
-  bGPDspoint *pt;
-  int i;
-  for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-    bGPDspoint pt2;
-    gp_point_to_parent_space(pt, diff_mat, &pt2);
-    gp_point_to_xy(gsc, gps, &pt2, &mcoords[i][0], &mcoords[i][1]);
-  }
-
-  /* Compute boundbox of lasso (for faster testing later). */
-  rcti rect;
-  BLI_lasso_boundbox(&rect, mcoords, len);
-
-  /* Test if point inside stroke. */
-  hit = ((!ELEM(V2D_IS_CLIPPED, mouse[0], mouse[1])) &&
-         BLI_rcti_isect_pt(&rect, mouse[0], mouse[1]) &&
-         BLI_lasso_is_point_inside(mcoords, len, mouse[0], mouse[1], INT_MAX));
-
-  /* Free memory. */
-  MEM_SAFE_FREE(mcoords);
-
-  return hit;
-}
-
 /* Convert sculpt mask mode to Select mode */
 static int gpencil_select_mode_from_sculpt(eGP_Sculpt_SelectMaskFlag mode)
 {
@@ -1264,7 +1225,7 @@ static int gpencil_generic_select_exec(
       mval[0] = (box.xmax + box.xmin) / 2;
       mval[1] = (box.ymax + box.ymin) / 2;
 
-      whole = gpencil_point_inside_stroke(gps_active, &gsc, mval, gpstroke_iter.diff_mat);
+      whole = ED_gpencil_stroke_point_is_inside(gps_active, &gsc, mval, gpstroke_iter.diff_mat);
     }
 
     /* if stroke mode expand selection. */
@@ -1565,7 +1526,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
       if ((gp_style->flag & GP_MATERIAL_FILL_SHOW) == 0) {
         continue;
       }
-      bool hit_fill = gpencil_point_inside_stroke(gps, &gsc, mval, gpstroke_iter.diff_mat);
+      bool hit_fill = ED_gpencil_stroke_point_is_inside(gps, &gsc, mval, gpstroke_iter.diff_mat);
       if (hit_fill) {
         hit_stroke = gps_active;
         hit_point = &gps_active->points[0];

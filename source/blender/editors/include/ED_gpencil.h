@@ -317,6 +317,10 @@ bool ED_gpencil_stroke_check_collision(struct GP_SpaceConversion *gsc,
                                        float mouse[2],
                                        const int radius,
                                        const float diff_mat[4][4]);
+bool ED_gpencil_stroke_point_is_inside(struct bGPDstroke *gps,
+                                       struct GP_SpaceConversion *gsc,
+                                       int mouse[2],
+                                       const float diff_mat[4][4]);
 
 #ifdef __cplusplus
 }

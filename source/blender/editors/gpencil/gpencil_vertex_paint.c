@@ -36,6 +36,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
+#include "BKE_material.h"
 #include "BKE_report.h"
 
 #include "WM_api.h"
@@ -433,10 +434,9 @@ static bool brush_tint_apply(tGP_BrushVertexpaintData *gso,
   CLAMP(inf, 0.0f, 1.0f);
   CLAMP(inf_fill, 0.0f, 1.0f);
 
-  bGPDspoint *pt = &gps->points[pt_index];
-
   /* Apply color to Stroke point. */
-  if (GPENCIL_TINT_VERTEX_COLOR_STROKE(brush)) {
+  if (GPENCIL_TINT_VERTEX_COLOR_STROKE(brush) && (pt_index > -1)) {
+    bGPDspoint *pt = &gps->points[pt_index];
     if (brush_invert_check(gso)) {
       pt->vert_color[3] -= inf;
       CLAMP_MIN(pt->vert_color[3], 0.0f);
@@ -813,15 +813,18 @@ static void gp_save_selected_point(tGP_BrushVertexpaintData *gso,
   selected = &gso->pbuffer[gso->pbuffer_used];
   selected->gps = gps;
   selected->pt_index = index;
-  copy_v2_v2_int(selected->pc, pc);
-  copy_v4_v4(selected->color, pt->vert_color);
-
+  /* Check the index is not a special case for fill. */
+  if (index > -1) {
+    copy_v2_v2_int(selected->pc, pc);
+    copy_v4_v4(selected->color, pt->vert_color);
+  }
   gso->pbuffer_used++;
 }
 
 /* Select points in this stroke and add to an array to be used later. */
 static void gp_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
                                          bGPDstroke *gps,
+                                         const char tool,
                                          const float diff_mat[4][4])
 {
   GP_SpaceConversion *gsc = &gso->gsc;
@@ -869,6 +872,7 @@ static void gp_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
     /* Loop over the points in the stroke, checking for intersections
      * - an intersection means that we touched the stroke
      */
+    bool hit = false;
     for (i = 0; (i + 1) < gps->totpoints; i++) {
       /* Get points to work with */
       pt1 = gps->points + i;
@@ -904,6 +908,7 @@ static void gp_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
           pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
           index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i;
           if (pt_active != NULL) {
+            hit = true;
             gp_save_selected_point(gso, gps_active, index, pc1);
           }
 
@@ -920,6 +925,7 @@ static void gp_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
             pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
             index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i + 1;
             if (pt_active != NULL) {
+              hit = true;
               gp_save_selected_point(gso, gps_active, index, pc2);
               include_last = false;
             }
@@ -938,9 +944,28 @@ static void gp_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
           pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
           index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i;
           if (pt_active != NULL) {
+            hit = true;
             gp_save_selected_point(gso, gps_active, index, pc1);
 
             include_last = false;
+          }
+        }
+      }
+    }
+
+    /* If nothing hit, check if the mouse is inside any filled stroke. */
+    if ((!hit) && (ELEM(tool, GPAINT_TOOL_TINT, GPVERTEX_TOOL_DRAW))) {
+      MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(gso->object,
+                                                                     gps_active->mat_nr + 1);
+      if (gp_style->flag & GP_MATERIAL_FILL_SHOW) {
+        int mval[2];
+        round_v2i_v2fl(mval, gso->mval);
+        bool hit_fill = ED_gpencil_stroke_point_is_inside(gps_active, gsc, mval, diff_mat);
+        if (hit_fill) {
+          /* Need repeat the effect because if we don't do that the tint process
+           * is very slow. */
+          for (int repeat = 0; repeat < 50; repeat++) {
+            gp_save_selected_point(gso, gps_active, -1, NULL);
           }
         }
       }
@@ -956,8 +981,8 @@ static bool gp_vertexpaint_brush_do_frame(bContext *C,
                                           const float diff_mat[4][4])
 {
   Object *ob = CTX_data_active_object(C);
-  char tool = ob->mode == OB_MODE_VERTEX_GPENCIL ? gso->brush->gpencil_vertex_tool :
-                                                   gso->brush->gpencil_tool;
+  const char tool = ob->mode == OB_MODE_VERTEX_GPENCIL ? gso->brush->gpencil_vertex_tool :
+                                                         gso->brush->gpencil_tool;
   const int radius = (gso->brush->flag & GP_BRUSH_USE_PRESSURE) ?
                          gso->brush->size * gso->pressure :
                          gso->brush->size;
@@ -980,7 +1005,7 @@ static bool gp_vertexpaint_brush_do_frame(bContext *C,
     }
 
     /* Check points below the brush. */
-    gp_vertexpaint_select_stroke(gso, gps, diff_mat);
+    gp_vertexpaint_select_stroke(gso, gps, tool, diff_mat);
   }
 
   /* For Average tool, need calculate the average resulting color from all colors
