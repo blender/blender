@@ -770,7 +770,7 @@ static void write_previews(BlendWriter *writer, const PreviewImage *prv_orig)
       prv.h[1] = 0;
       prv.rect[1] = NULL;
     }
-    writestruct_at_address(writer->wd, DATA, PreviewImage, 1, prv_orig, &prv);
+    BLO_write_struct_at_address(writer, PreviewImage, prv_orig, &prv);
     if (prv.rect[0]) {
       BLO_write_uint32_array(writer, prv.w[0] * prv.h[0], prv.rect[0]);
     }
@@ -2191,7 +2191,7 @@ static void write_customdata(BlendWriter *writer,
     CustomData_external_write(data, id, cddata_mask, count, 0);
   }
 
-  writestruct_at_address(writer->wd, DATA, CustomDataLayer, data->totlayer, data->layers, layers);
+  BLO_write_struct_array_at_address(writer, CustomDataLayer, data->totlayer, data->layers, layers);
 
   for (i = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = &layers[i];
@@ -2953,14 +2953,14 @@ static void write_soops(BlendWriter *writer, SpaceOutliner *so)
 
       BLO_write_struct(writer, SpaceOutliner, so);
 
-      writestruct_at_address(writer->wd, DATA, TreeStore, 1, ts, &ts_flat);
-      writestruct_at_address(writer->wd, DATA, TreeStoreElem, elems, data_addr, data);
+      BLO_write_struct_at_address(writer, TreeStore, ts, &ts_flat);
+      BLO_write_struct_array_at_address(writer, TreeStoreElem, elems, data_addr, data);
 
       MEM_freeN(data);
     }
     else {
       so_flat.treestore = NULL;
-      writestruct_at_address(writer->wd, DATA, SpaceOutliner, 1, so, &so_flat);
+      BLO_write_struct_at_address(writer, SpaceOutliner, so, &so_flat);
     }
   }
   else {
