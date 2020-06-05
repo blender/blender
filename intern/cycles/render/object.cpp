@@ -31,6 +31,7 @@
 #include "util/util_murmurhash.h"
 #include "util/util_progress.h"
 #include "util/util_set.h"
+#include "util/util_task.h"
 #include "util/util_vector.h"
 
 #include "subd/subd_patch_table.h"

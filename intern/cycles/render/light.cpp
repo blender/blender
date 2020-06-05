@@ -31,6 +31,7 @@
 #include "util/util_logging.h"
 #include "util/util_path.h"
 #include "util/util_progress.h"
+#include "util/util_task.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -21,6 +21,7 @@
 #include "util/util_foreach.h"
 #include "util/util_map.h"
 #include "util/util_system.h"
+#include "util/util_task.h"
 #include "util/util_time.h"
 
 #include <OpenImageIO/filesystem.h>

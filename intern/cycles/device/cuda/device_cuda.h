@@ -21,6 +21,7 @@
 #  include "device/device_split_kernel.h"
 
 #  include "util/util_map.h"
+#  include "util/util_task.h"
 
 #  ifdef WITH_CUDA_DYNLOAD
 #    include "cuew.h"
@@ -254,7 +255,7 @@ class CUDADevice : public Device {
                    bool transparent,
                    const DeviceDrawParams &draw_params) override;
 
-  void thread_run(DeviceTask *task);
+  void thread_run(DeviceTask &task);
 
   virtual void task_add(DeviceTask &task) override;
 

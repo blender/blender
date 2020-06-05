@@ -16,10 +16,9 @@
 
 #include "bvh/bvh.h"
 #include "bvh/bvh_build.h"
+#include "bvh/bvh_embree.h"
 
-#ifdef WITH_EMBREE
-#  include "bvh/bvh_embree.h"
-#endif
+#include "device/device.h"
 
 #include "render/attribute.h"
 #include "render/camera.h"

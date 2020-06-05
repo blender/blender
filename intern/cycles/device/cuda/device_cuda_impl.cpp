@@ -105,7 +105,7 @@ class CUDASplitKernel : public DeviceSplitKernel {
   virtual SplitKernelFunction *get_split_kernel_function(const string &kernel_name,
                                                          const DeviceRequestedFeatures &);
   virtual int2 split_kernel_local_size();
-  virtual int2 split_kernel_global_size(device_memory &kg, device_memory &data, DeviceTask *task);
+  virtual int2 split_kernel_global_size(device_memory &kg, device_memory &data, DeviceTask &task);
 };
 
 /* Utility to push/pop CUDA context. */
@@ -2326,11 +2326,11 @@ void CUDADevice::draw_pixels(device_memory &mem,
   Device::draw_pixels(mem, y, w, h, width, height, dx, dy, dw, dh, transparent, draw_params);
 }
 
-void CUDADevice::thread_run(DeviceTask *task)
+void CUDADevice::thread_run(DeviceTask &task)
 {
   CUDAContextScope scope(this);
 
-  if (task->type == DeviceTask::RENDER) {
+  if (task.type == DeviceTask::RENDER) {
     DeviceRequestedFeatures requested_features;
     if (use_split_kernel()) {
       if (split_kernel == NULL) {
@@ -2343,70 +2343,72 @@ void CUDADevice::thread_run(DeviceTask *task)
 
     /* keep rendering tiles until done */
     RenderTile tile;
-    DenoisingTask denoising(this, *task);
+    DenoisingTask denoising(this, task);
 
-    while (task->acquire_tile(this, tile, task->tile_types)) {
+    while (task.acquire_tile(this, tile, task.tile_types)) {
       if (tile.task == RenderTile::PATH_TRACE) {
         if (use_split_kernel()) {
           device_only_memory<uchar> void_buffer(this, "void_buffer");
           split_kernel->path_trace(task, tile, void_buffer, void_buffer);
         }
         else {
-          render(*task, tile, work_tiles);
+          render(task, tile, work_tiles);
         }
       }
       else if (tile.task == RenderTile::BAKE) {
-        render(*task, tile, work_tiles);
+        render(task, tile, work_tiles);
       }
       else if (tile.task == RenderTile::DENOISE) {
         tile.sample = tile.start_sample + tile.num_samples;
 
         denoise(tile, denoising);
 
-        task->update_progress(&tile, tile.w * tile.h);
+        task.update_progress(&tile, tile.w * tile.h);
       }
 
-      task->release_tile(tile);
+      task.release_tile(tile);
 
-      if (task->get_cancel()) {
-        if (task->need_finish_queue == false)
+      if (task.get_cancel()) {
+        if (task.need_finish_queue == false)
           break;
       }
     }
 
     work_tiles.free();
   }
-  else if (task->type == DeviceTask::SHADER) {
-    shader(*task);
+  else if (task.type == DeviceTask::SHADER) {
+    shader(task);
 
     cuda_assert(cuCtxSynchronize());
   }
-  else if (task->type == DeviceTask::DENOISE_BUFFER) {
+  else if (task.type == DeviceTask::DENOISE_BUFFER) {
     RenderTile tile;
-    tile.x = task->x;
-    tile.y = task->y;
-    tile.w = task->w;
-    tile.h = task->h;
-    tile.buffer = task->buffer;
-    tile.sample = task->sample + task->num_samples;
-    tile.num_samples = task->num_samples;
-    tile.start_sample = task->sample;
-    tile.offset = task->offset;
-    tile.stride = task->stride;
-    tile.buffers = task->buffers;
+    tile.x = task.x;
+    tile.y = task.y;
+    tile.w = task.w;
+    tile.h = task.h;
+    tile.buffer = task.buffer;
+    tile.sample = task.sample + task.num_samples;
+    tile.num_samples = task.num_samples;
+    tile.start_sample = task.sample;
+    tile.offset = task.offset;
+    tile.stride = task.stride;
+    tile.buffers = task.buffers;
 
-    DenoisingTask denoising(this, *task);
+    DenoisingTask denoising(this, task);
     denoise(tile, denoising);
-    task->update_progress(&tile, tile.w * tile.h);
+    task.update_progress(&tile, tile.w * tile.h);
   }
 }
 
-class CUDADeviceTask : public DeviceTask {
+class CUDADeviceTask : public Task {
  public:
-  CUDADeviceTask(CUDADevice *device, DeviceTask &task) : DeviceTask(task)
+  CUDADeviceTask(CUDADevice *device, DeviceTask &task) : task(task)
   {
-    run = function_bind(&CUDADevice::thread_run, device, this);
+    run = function_bind(&CUDADevice::thread_run, device, task);
   }
+
+  DeviceTask task;
 };
 
 void CUDADevice::task_add(DeviceTask &task)
@@ -2652,7 +2654,7 @@ int2 CUDASplitKernel::split_kernel_local_size()
 
 int2 CUDASplitKernel::split_kernel_global_size(device_memory &kg,
                                                device_memory &data,
-                                               DeviceTask * /*task*/)
+                                               DeviceTask & /*task*/)
 {
   CUDAContextScope scope(device);
   size_t free;

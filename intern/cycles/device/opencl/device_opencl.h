@@ -23,6 +23,7 @@
 #  include "util/util_map.h"
 #  include "util/util_param.h"
 #  include "util/util_string.h"
+#  include "util/util_task.h"
 
 #  include "clew.h"
 
@@ -455,12 +456,14 @@ class OpenCLDevice : public Device {
 
   void denoise(RenderTile &tile, DenoisingTask &denoising);
 
-  class OpenCLDeviceTask : public DeviceTask {
+  class OpenCLDeviceTask : public Task {
    public:
-    OpenCLDeviceTask(OpenCLDevice *device, DeviceTask &task) : DeviceTask(task)
+    OpenCLDeviceTask(OpenCLDevice *device, DeviceTask &task) : task(task)
     {
-      run = function_bind(&OpenCLDevice::thread_run, device, this);
+      run = function_bind(&OpenCLDevice::thread_run, device, task);
     }
+
+    DeviceTask task;
   };
 
   int get_split_task_count(DeviceTask & /*task*/)
@@ -483,7 +486,7 @@ class OpenCLDevice : public Device {
     task_pool.cancel();
   }
 
-  void thread_run(DeviceTask *task);
+  void thread_run(DeviceTask &task);
 
   virtual BVHLayoutMask get_bvh_layout_mask() const
   {

@@ -109,7 +109,7 @@ class DeviceSplitKernel {
   virtual ~DeviceSplitKernel();
 
   bool load_kernels(const DeviceRequestedFeatures &requested_features);
-  bool path_trace(DeviceTask *task,
+  bool path_trace(DeviceTask &task,
                   RenderTile &rtile,
                   device_memory &kgbuffer,
                   device_memory &kernel_data);
@@ -137,7 +137,7 @@ class DeviceSplitKernel {
   virtual int2 split_kernel_local_size() = 0;
   virtual int2 split_kernel_global_size(device_memory &kg,
                                         device_memory &data,
-                                        DeviceTask *task) = 0;
+                                        DeviceTask &task) = 0;
 };
 
 CCL_NAMESPACE_END

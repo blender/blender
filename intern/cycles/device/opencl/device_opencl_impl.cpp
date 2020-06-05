@@ -542,7 +542,7 @@ class OpenCLSplitKernel : public DeviceSplitKernel {
 
   virtual int2 split_kernel_global_size(device_memory &kg,
                                         device_memory &data,
-                                        DeviceTask * /*task*/)
+                                        DeviceTask & /*task*/)
   {
     cl_device_type type = OpenCLInfo::get_device_type(device->cdDevice);
     /* Use small global size on CPU devices as it seems to be much faster. */
@@ -1336,20 +1336,20 @@ void OpenCLDevice::flush_texture_buffers()
   memory_manager.alloc("texture_info", texture_info);
 }
 
-void OpenCLDevice::thread_run(DeviceTask *task)
+void OpenCLDevice::thread_run(DeviceTask &task)
 {
   flush_texture_buffers();
 
-  if (task->type == DeviceTask::RENDER) {
+  if (task.type == DeviceTask::RENDER) {
     RenderTile tile;
-    DenoisingTask denoising(this, *task);
+    DenoisingTask denoising(this, task);
 
     /* Allocate buffer for kernel globals */
     device_only_memory<KernelGlobalsDummy> kgbuffer(this, "kernel_globals");
     kgbuffer.alloc_to_device(1);
 
     /* Keep rendering tiles until done. */
-    while (task->acquire_tile(this, tile, task->tile_types)) {
+    while (task.acquire_tile(this, tile, task.tile_types)) {
       if (tile.task == RenderTile::PATH_TRACE) {
         assert(tile.task == RenderTile::PATH_TRACE);
         scoped_timer timer(&tile.buffers->render_time);
@@ -1368,42 +1368,42 @@ void OpenCLDevice::thread_run(DeviceTask *task)
         clFinish(cqCommandQueue);
       }
       else if (tile.task == RenderTile::BAKE) {
-        bake(*task, tile);
+        bake(task, tile);
       }
       else if (tile.task == RenderTile::DENOISE) {
         tile.sample = tile.start_sample + tile.num_samples;
         denoise(tile, denoising);
-        task->update_progress(&tile, tile.w * tile.h);
+        task.update_progress(&tile, tile.w * tile.h);
       }
 
-      task->release_tile(tile);
+      task.release_tile(tile);
     }
 
     kgbuffer.free();
   }
-  else if (task->type == DeviceTask::SHADER) {
-    shader(*task);
+  else if (task.type == DeviceTask::SHADER) {
+    shader(task);
   }
-  else if (task->type == DeviceTask::FILM_CONVERT) {
-    film_convert(*task, task->buffer, task->rgba_byte, task->rgba_half);
+  else if (task.type == DeviceTask::FILM_CONVERT) {
+    film_convert(task, task.buffer, task.rgba_byte, task.rgba_half);
   }
-  else if (task->type == DeviceTask::DENOISE_BUFFER) {
+  else if (task.type == DeviceTask::DENOISE_BUFFER) {
     RenderTile tile;
-    tile.x = task->x;
-    tile.y = task->y;
-    tile.w = task->w;
-    tile.h = task->h;
-    tile.buffer = task->buffer;
-    tile.sample = task->sample + task->num_samples;
-    tile.num_samples = task->num_samples;
-    tile.start_sample = task->sample;
-    tile.offset = task->offset;
-    tile.stride = task->stride;
-    tile.buffers = task->buffers;
+    tile.x = task.x;
+    tile.y = task.y;
+    tile.w = task.w;
+    tile.h = task.h;
+    tile.buffer = task.buffer;
+    tile.sample = task.sample + task.num_samples;
+    tile.num_samples = task.num_samples;
+    tile.start_sample = task.sample;
+    tile.offset = task.offset;
+    tile.stride = task.stride;
+    tile.buffers = task.buffers;
 
-    DenoisingTask denoising(this, *task);
+    DenoisingTask denoising(this, task);
     denoise(tile, denoising);
-    task->update_progress(&tile, tile.w * tile.h);
+    task.update_progress(&tile, tile.w * tile.h);
   }
 }
 

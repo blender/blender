@@ -21,7 +21,6 @@
 
 #include "util/util_function.h"
 #include "util/util_list.h"
-#include "util/util_task.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -75,7 +74,7 @@ class AdaptiveSampling {
   int min_samples;
 };
 
-class DeviceTask : public Task {
+class DeviceTask {
  public:
   typedef enum { RENDER, FILM_CONVERT, SHADER, DENOISE_BUFFER } Type;
   Type type;
@@ -98,8 +97,8 @@ class DeviceTask : public Task {
 
   explicit DeviceTask(Type type = RENDER);
 
-  int get_subtask_count(int num, int max_size = 0);
-  void split(list<DeviceTask> &tasks, int num, int max_size = 0);
+  int get_subtask_count(int num, int max_size = 0) const;
+  void split(list<DeviceTask> &tasks, int num, int max_size = 0) const;
 
   void update_progress(RenderTile *rtile, int pixel_samples = -1);
 

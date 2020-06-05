@@ -25,14 +25,9 @@
 #include "bvh/bvh4.h"
 #include "bvh/bvh8.h"
 #include "bvh/bvh_build.h"
+#include "bvh/bvh_embree.h"
 #include "bvh/bvh_node.h"
-
-#ifdef WITH_OPTIX
-#  include "bvh/bvh_optix.h"
-#endif
-#ifdef WITH_EMBREE
-#  include "bvh/bvh_embree.h"
-#endif
+#include "bvh/bvh_optix.h"
 
 #include "util/util_foreach.h"
 #include "util/util_logging.h"

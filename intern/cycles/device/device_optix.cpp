@@ -1463,13 +1463,15 @@ class OptiXDevice : public CUDADevice {
 
   void task_add(DeviceTask &task) override
   {
-    struct OptiXDeviceTask : public DeviceTask {
-      OptiXDeviceTask(OptiXDevice *device, DeviceTask &task, int task_index) : DeviceTask(task)
+    struct OptiXDeviceTask : public Task {
+      OptiXDeviceTask(OptiXDevice *device, DeviceTask &task, int task_index) : task(task)
       {
         // Using task index parameter instead of thread index, since number of CUDA streams may
         // differ from number of threads
-        run = function_bind(&OptiXDevice::thread_run, device, *this, task_index);
+        run = function_bind(&OptiXDevice::thread_run, device, task, task_index);
       }
+
+      DeviceTask task;
     };
 
     // Upload texture information to device if it has changed since last launch

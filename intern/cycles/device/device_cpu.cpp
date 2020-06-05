@@ -55,6 +55,7 @@
 #include "util/util_optimization.h"
 #include "util/util_progress.h"
 #include "util/util_system.h"
+#include "util/util_task.h"
 #include "util/util_thread.h"
 
 CCL_NAMESPACE_BEGIN
@@ -161,7 +162,7 @@ class CPUSplitKernel : public DeviceSplitKernel {
   virtual SplitKernelFunction *get_split_kernel_function(const string &kernel_name,
                                                          const DeviceRequestedFeatures &);
   virtual int2 split_kernel_local_size();
-  virtual int2 split_kernel_global_size(device_memory &kg, device_memory &data, DeviceTask *task);
+  virtual int2 split_kernel_global_size(device_memory &kg, device_memory &data, DeviceTask &task);
   virtual uint64_t state_buffer_size(device_memory &kg, device_memory &data, size_t num_threads);
 };
 
@@ -527,24 +528,26 @@ class CPUDevice : public Device {
 #endif
   }
 
-  void thread_run(DeviceTask *task)
+  void thread_run(DeviceTask &task)
   {
-    if (task->type == DeviceTask::RENDER)
-      thread_render(*task);
-    else if (task->type == DeviceTask::SHADER)
-      thread_shader(*task);
-    else if (task->type == DeviceTask::FILM_CONVERT)
-      thread_film_convert(*task);
-    else if (task->type == DeviceTask::DENOISE_BUFFER)
-      thread_denoise(*task);
+    if (task.type == DeviceTask::RENDER)
+      thread_render(task);
+    else if (task.type == DeviceTask::SHADER)
+      thread_shader(task);
+    else if (task.type == DeviceTask::FILM_CONVERT)
+      thread_film_convert(task);
+    else if (task.type == DeviceTask::DENOISE_BUFFER)
+      thread_denoise(task);
   }
 
-  class CPUDeviceTask : public DeviceTask {
+  class CPUDeviceTask : public Task {
    public:
-    CPUDeviceTask(CPUDevice *device, DeviceTask &task) : DeviceTask(task)
+    CPUDeviceTask(CPUDevice *device, DeviceTask &task) : task(task)
     {
-      run = function_bind(&CPUDevice::thread_run, device, this);
+      run = function_bind(&CPUDevice::thread_run, device, task);
     }
+
+    DeviceTask task;
   };
 
   bool denoising_non_local_means(device_ptr image_ptr,
@@ -1027,7 +1030,7 @@ class CPUDevice : public Device {
       if (tile.task == RenderTile::PATH_TRACE) {
         if (use_split_kernel) {
           device_only_memory<uchar> void_buffer(this, "void_buffer");
-          split_kernel->path_trace(&task, tile, kgbuffer, void_buffer);
+          split_kernel->path_trace(task, tile, kgbuffer, void_buffer);
         }
         else {
           render(task, tile, kg);
@@ -1326,7 +1329,7 @@ int2 CPUSplitKernel::split_kernel_local_size()
 
 int2 CPUSplitKernel::split_kernel_global_size(device_memory & /*kg*/,
                                               device_memory & /*data*/,
-                                              DeviceTask * /*task*/)
+                                              DeviceTask & /*task*/)
 {
   return make_int2(1, 1);
 }

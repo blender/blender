@@ -18,10 +18,14 @@
 #ifdef WITH_OPTIX
 
 #  include "bvh/bvh_optix.h"
+
+#  include "device/device.h"
+
 #  include "render/geometry.h"
 #  include "render/hair.h"
 #  include "render/mesh.h"
 #  include "render/object.h"
+
 #  include "util/util_foreach.h"
 #  include "util/util_logging.h"
 #  include "util/util_progress.h"

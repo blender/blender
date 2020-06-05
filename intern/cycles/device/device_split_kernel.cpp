@@ -145,7 +145,7 @@ size_t DeviceSplitKernel::max_elements_for_max_buffer_size(device_memory &kg,
   return max_buffer_size / size_per_element;
 }
 
-bool DeviceSplitKernel::path_trace(DeviceTask *task,
+bool DeviceSplitKernel::path_trace(DeviceTask &task,
                                    RenderTile &tile,
                                    device_memory &kgbuffer,
                                    device_memory &kernel_data)
@@ -222,9 +222,9 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
     subtile.start_sample = tile.sample;
     subtile.num_samples = samples_per_second;
 
-    if (task->adaptive_sampling.use) {
-      subtile.num_samples = task->adaptive_sampling.align_dynamic_samples(subtile.start_sample,
-                                                                          subtile.num_samples);
+    if (task.adaptive_sampling.use) {
+      subtile.num_samples = task.adaptive_sampling.align_dynamic_samples(subtile.start_sample,
+                                                                         subtile.num_samples);
     }
 
     /* Don't go beyond requested number of samples. */
@@ -286,7 +286,7 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
         ENQUEUE_SPLIT_KERNEL(queue_enqueue, global_size, local_size);
         ENQUEUE_SPLIT_KERNEL(buffer_update, global_size, local_size);
 
-        if (task->get_cancel() && cancel_time == DBL_MAX) {
+        if (task.get_cancel() && cancel_time == DBL_MAX) {
           /* Wait up to twice as many seconds for current samples to finish
            * to avoid artifacts in render result from ending too soon.
            */
@@ -323,7 +323,7 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
     }
 
     int filter_sample = tile.sample + subtile.num_samples - 1;
-    if (task->adaptive_sampling.use && task->adaptive_sampling.need_filter(filter_sample)) {
+    if (task.adaptive_sampling.use && task.adaptive_sampling.need_filter(filter_sample)) {
       size_t buffer_size[2];
       buffer_size[0] = round_up(tile.w, local_size[0]);
       buffer_size[1] = round_up(tile.h, local_size[1]);
@@ -352,16 +352,16 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 #undef ENQUEUE_SPLIT_KERNEL
 
     tile.sample += subtile.num_samples;
-    task->update_progress(&tile, tile.w * tile.h * subtile.num_samples);
+    task.update_progress(&tile, tile.w * tile.h * subtile.num_samples);
 
     time_multiplier = min(time_multiplier << 1, 10);
 
-    if (task->get_cancel()) {
+    if (task.get_cancel()) {
       return true;
     }
   }
 
-  if (task->adaptive_sampling.use) {
+  if (task.adaptive_sampling.use) {
     /* Reset the start samples. */
     RenderTile subtile = tile;
     subtile.start_sample = tile.start_sample;

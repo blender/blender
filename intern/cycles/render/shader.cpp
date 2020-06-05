@@ -33,6 +33,7 @@
 
 #include "util/util_foreach.h"
 #include "util/util_murmurhash.h"
+#include "util/util_task.h"
 
 #ifdef WITH_OCIO
 #  include <OpenColorIO/OpenColorIO.h>
