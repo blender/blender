@@ -71,7 +71,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "intern/math_base_inline.c"
 #include "uvedit_intern.h"
 
 /* -------------------------------------------------------------------- */
