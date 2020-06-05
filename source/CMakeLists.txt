@@ -22,4 +22,14 @@ if(WITH_LEGACY_OPENGL)
   add_definitions(-DWITH_LEGACY_OPENGL)
 endif()
 
+if(WITH_CLANG_TIDY)
+  if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
+    message(FATAL_ERROR "Currently Clang-Tidy is only supported when using Clang compiler")
+  endif()
+
+  find_package(ClangTidy REQUIRED)
+  set(CMAKE_C_CLANG_TIDY ${CLANG_TIDY_EXECUTABLE})
+  set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY_EXECUTABLE})
+endif()
+
 add_subdirectory(blender)

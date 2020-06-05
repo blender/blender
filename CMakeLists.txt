@@ -415,6 +415,11 @@ mark_as_advanced(WITH_CXX_GUARDEDALLOC)
 option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_assert()" ON)
 mark_as_advanced(WITH_ASSERT_ABORT)
 
+if(UNIX AND NOT APPLE)
+  option(WITH_CLANG_TIDY "Use Clang Tidy to analyze the source code (only enable for development on Limux using Clang)" OFF)
+  mark_as_advanced(WITH_CLANG_TIDY)
+endif()
+
 option(WITH_BOOST "Enable features depending on boost" ON)
 option(WITH_TBB   "Enable features depending on TBB (OpenVDB, OpenImageDenoise, sculpt multithreading)" ON)
 
