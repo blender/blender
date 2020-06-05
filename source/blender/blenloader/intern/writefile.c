@@ -1015,7 +1015,7 @@ static void write_CurveProfile(WriteData *wd, CurveProfile *profile)
   writestruct(wd, DATA, CurveProfilePoint, profile->path_len, profile->path);
 }
 
-static void write_node_socket_default_value(WriteData *wd, bNodeSocket *sock)
+static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *sock)
 {
   if (sock->default_value == NULL) {
     return;
@@ -1023,28 +1023,28 @@ static void write_node_socket_default_value(WriteData *wd, bNodeSocket *sock)
 
   switch ((eNodeSocketDatatype)sock->type) {
     case SOCK_FLOAT:
-      writestruct(wd, DATA, bNodeSocketValueFloat, 1, sock->default_value);
+      BLO_write_struct(writer, bNodeSocketValueFloat, sock->default_value);
       break;
     case SOCK_VECTOR:
-      writestruct(wd, DATA, bNodeSocketValueVector, 1, sock->default_value);
+      BLO_write_struct(writer, bNodeSocketValueVector, sock->default_value);
       break;
     case SOCK_RGBA:
-      writestruct(wd, DATA, bNodeSocketValueRGBA, 1, sock->default_value);
+      BLO_write_struct(writer, bNodeSocketValueRGBA, sock->default_value);
       break;
     case SOCK_BOOLEAN:
-      writestruct(wd, DATA, bNodeSocketValueBoolean, 1, sock->default_value);
+      BLO_write_struct(writer, bNodeSocketValueBoolean, sock->default_value);
       break;
     case SOCK_INT:
-      writestruct(wd, DATA, bNodeSocketValueInt, 1, sock->default_value);
+      BLO_write_struct(writer, bNodeSocketValueInt, sock->default_value);
       break;
     case SOCK_STRING:
-      writestruct(wd, DATA, bNodeSocketValueString, 1, sock->default_value);
+      BLO_write_struct(writer, bNodeSocketValueString, sock->default_value);
       break;
     case SOCK_OBJECT:
-      writestruct(wd, DATA, bNodeSocketValueObject, 1, sock->default_value);
+      BLO_write_struct(writer, bNodeSocketValueObject, sock->default_value);
       break;
     case SOCK_IMAGE:
-      writestruct(wd, DATA, bNodeSocketValueImage, 1, sock->default_value);
+      BLO_write_struct(writer, bNodeSocketValueImage, sock->default_value);
       break;
     case __SOCK_MESH:
     case SOCK_CUSTOM:
@@ -1058,30 +1058,30 @@ static void write_node_socket_default_value(WriteData *wd, bNodeSocket *sock)
   }
 }
 
-static void write_node_socket(WriteData *wd, bNodeSocket *sock)
+static void write_node_socket(BlendWriter *writer, bNodeSocket *sock)
 {
   /* actual socket writing */
-  writestruct(wd, DATA, bNodeSocket, 1, sock);
+  BLO_write_struct(writer, bNodeSocket, sock);
 
   if (sock->prop) {
-    IDP_WriteProperty(sock->prop, wd);
+    IDP_WriteProperty_new_api(sock->prop, writer);
   }
 
-  write_node_socket_default_value(wd, sock);
+  write_node_socket_default_value(writer, sock);
 }
-static void write_node_socket_interface(WriteData *wd, bNodeSocket *sock)
+static void write_node_socket_interface(BlendWriter *writer, bNodeSocket *sock)
 {
   /* actual socket writing */
-  writestruct(wd, DATA, bNodeSocket, 1, sock);
+  BLO_write_struct(writer, bNodeSocket, sock);
 
   if (sock->prop) {
-    IDP_WriteProperty(sock->prop, wd);
+    IDP_WriteProperty_new_api(sock->prop, writer);
   }
 
-  write_node_socket_default_value(wd, sock);
+  write_node_socket_default_value(writer, sock);
 }
 /* this is only direct data, tree itself should have been written */
-static void write_nodetree_nolib(WriteData *wd, bNodeTree *ntree)
+static void write_nodetree_nolib(BlendWriter *writer, bNodeTree *ntree)
 {
   bNode *node;
   bNodeSocket *sock;
@@ -1090,51 +1090,50 @@ static void write_nodetree_nolib(WriteData *wd, bNodeTree *ntree)
   /* for link_list() speed, we write per list */
 
   if (ntree->adt) {
-    BlendWriter writer = {wd};
-    write_animdata(&writer, ntree->adt);
+    write_animdata(writer, ntree->adt);
   }
 
   for (node = ntree->nodes.first; node; node = node->next) {
-    writestruct(wd, DATA, bNode, 1, node);
+    BLO_write_struct(writer, bNode, node);
 
     if (node->prop) {
-      IDP_WriteProperty(node->prop, wd);
+      IDP_WriteProperty_new_api(node->prop, writer);
     }
 
     for (sock = node->inputs.first; sock; sock = sock->next) {
-      write_node_socket(wd, sock);
+      write_node_socket(writer, sock);
     }
     for (sock = node->outputs.first; sock; sock = sock->next) {
-      write_node_socket(wd, sock);
+      write_node_socket(writer, sock);
     }
 
     for (link = node->internal_links.first; link; link = link->next) {
-      writestruct(wd, DATA, bNodeLink, 1, link);
+      BLO_write_struct(writer, bNodeLink, link);
     }
 
     if (node->storage) {
       /* could be handlerized at some point, now only 1 exception still */
       if ((ntree->type == NTREE_SHADER) &&
           ELEM(node->type, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB)) {
-        write_curvemapping(wd, node->storage);
+        write_curvemapping(writer->wd, node->storage);
       }
       else if (ntree->type == NTREE_SHADER && (node->type == SH_NODE_SCRIPT)) {
         NodeShaderScript *nss = (NodeShaderScript *)node->storage;
         if (nss->bytecode) {
-          writedata(wd, DATA, strlen(nss->bytecode) + 1, nss->bytecode);
+          BLO_write_string(writer, nss->bytecode);
         }
-        writestruct_id(wd, DATA, node->typeinfo->storagename, 1, node->storage);
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
       }
       else if ((ntree->type == NTREE_COMPOSIT) && ELEM(node->type,
                                                        CMP_NODE_TIME,
                                                        CMP_NODE_CURVE_VEC,
                                                        CMP_NODE_CURVE_RGB,
                                                        CMP_NODE_HUECORRECT)) {
-        write_curvemapping(wd, node->storage);
+        write_curvemapping(writer->wd, node->storage);
       }
       else if ((ntree->type == NTREE_TEXTURE) &&
                (node->type == TEX_NODE_CURVE_RGB || node->type == TEX_NODE_CURVE_TIME)) {
-        write_curvemapping(wd, node->storage);
+        write_curvemapping(writer->wd, node->storage);
       }
       else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_MOVIEDISTORTION)) {
         /* pass */
@@ -1144,7 +1143,7 @@ static void write_nodetree_nolib(WriteData *wd, bNodeTree *ntree)
          * Not ideal (there is no ideal solution here), but should do for now. */
         NodeGlare *ndg = node->storage;
         /* Not in undo case. */
-        if (wd->use_memfile == false) {
+        if (!BLO_write_is_undo(writer)) {
           switch (ndg->type) {
             case 2: /* Grrrr! magic numbers :( */
               ndg->angle = ndg->streaks;
@@ -1156,43 +1155,43 @@ static void write_nodetree_nolib(WriteData *wd, bNodeTree *ntree)
               break;
           }
         }
-        writestruct_id(wd, DATA, node->typeinfo->storagename, 1, node->storage);
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
       }
       else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_CRYPTOMATTE)) {
         NodeCryptomatte *nc = (NodeCryptomatte *)node->storage;
         if (nc->matte_id) {
-          writedata(wd, DATA, strlen(nc->matte_id) + 1, nc->matte_id);
+          BLO_write_string(writer, nc->matte_id);
         }
-        writestruct_id(wd, DATA, node->typeinfo->storagename, 1, node->storage);
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
       }
       else {
-        writestruct_id(wd, DATA, node->typeinfo->storagename, 1, node->storage);
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
       }
     }
 
     if (node->type == CMP_NODE_OUTPUT_FILE) {
       /* inputs have own storage data */
       for (sock = node->inputs.first; sock; sock = sock->next) {
-        writestruct(wd, DATA, NodeImageMultiFileSocket, 1, sock->storage);
+        BLO_write_struct(writer, NodeImageMultiFileSocket, sock->storage);
       }
     }
     if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
       /* write extra socket info */
       for (sock = node->outputs.first; sock; sock = sock->next) {
-        writestruct(wd, DATA, NodeImageLayer, 1, sock->storage);
+        BLO_write_struct(writer, NodeImageLayer, sock->storage);
       }
     }
   }
 
   for (link = ntree->links.first; link; link = link->next) {
-    writestruct(wd, DATA, bNodeLink, 1, link);
+    BLO_write_struct(writer, bNodeLink, link);
   }
 
   for (sock = ntree->inputs.first; sock; sock = sock->next) {
-    write_node_socket_interface(wd, sock);
+    write_node_socket_interface(writer, sock);
   }
   for (sock = ntree->outputs.first; sock; sock = sock->next) {
-    write_node_socket_interface(wd, sock);
+    write_node_socket_interface(writer, sock);
   }
 }
 
@@ -2419,7 +2418,7 @@ static void write_texture(BlendWriter *writer, Tex *tex, const void *id_address)
     /* nodetree is integral part of texture, no libdata */
     if (tex->nodetree) {
       BLO_write_struct(writer, bNodeTree, tex->nodetree);
-      write_nodetree_nolib(writer->wd, tex->nodetree);
+      write_nodetree_nolib(writer, tex->nodetree);
     }
 
     write_previews(writer->wd, tex->preview);
@@ -2444,7 +2443,7 @@ static void write_material(BlendWriter *writer, Material *ma, const void *id_add
     /* nodetree is integral part of material, no libdata */
     if (ma->nodetree) {
       BLO_write_struct(writer, bNodeTree, ma->nodetree);
-      write_nodetree_nolib(writer->wd, ma->nodetree);
+      write_nodetree_nolib(writer, ma->nodetree);
     }
 
     write_previews(writer->wd, ma->preview);
@@ -2473,7 +2472,7 @@ static void write_world(BlendWriter *writer, World *wrld, const void *id_address
     /* nodetree is integral part of world, no libdata */
     if (wrld->nodetree) {
       BLO_write_struct(writer, bNodeTree, wrld->nodetree);
-      write_nodetree_nolib(writer->wd, wrld->nodetree);
+      write_nodetree_nolib(writer, wrld->nodetree);
     }
 
     write_previews(writer->wd, wrld->preview);
@@ -2498,7 +2497,7 @@ static void write_light(BlendWriter *writer, Light *la, const void *id_address)
     /* Node-tree is integral part of lights, no libdata. */
     if (la->nodetree) {
       BLO_write_struct(writer, bNodeTree, la->nodetree);
-      write_nodetree_nolib(writer->wd, la->nodetree);
+      write_nodetree_nolib(writer, la->nodetree);
     }
 
     write_previews(writer->wd, la->preview);
@@ -2833,7 +2832,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
 
   if (sce->nodetree) {
     BLO_write_struct(writer, bNodeTree, sce->nodetree);
-    write_nodetree_nolib(writer->wd, sce->nodetree);
+    write_nodetree_nolib(writer, sce->nodetree);
   }
 
   write_view_settings(writer->wd, &sce->view_settings);
@@ -3344,7 +3343,7 @@ static void write_nodetree(BlendWriter *writer, bNodeTree *ntree, const void *id
      * be linked, etc., so we write actual id data here only, for 'real' ID trees. */
     write_iddata(writer, &ntree->id);
 
-    write_nodetree_nolib(writer->wd, ntree);
+    write_nodetree_nolib(writer, ntree);
   }
 }
 
@@ -3820,7 +3819,7 @@ static void write_linestyle(BlendWriter *writer,
     }
     if (linestyle->nodetree) {
       BLO_write_struct(writer, bNodeTree, linestyle->nodetree);
-      write_nodetree_nolib(writer->wd, linestyle->nodetree);
+      write_nodetree_nolib(writer, linestyle->nodetree);
     }
   }
 }
@@ -3954,7 +3953,7 @@ static void write_simulation(BlendWriter *writer, Simulation *simulation, const 
     /* nodetree is integral part of simulation, no libdata */
     if (simulation->nodetree) {
       BLO_write_struct(writer, bNodeTree, simulation->nodetree);
-      write_nodetree_nolib(writer->wd, simulation->nodetree);
+      write_nodetree_nolib(writer, simulation->nodetree);
     }
   }
 }
