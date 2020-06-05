@@ -785,7 +785,7 @@ static void write_iddata(BlendWriter *writer, ID *id)
   }
 }
 
-static void write_previews(WriteData *wd, const PreviewImage *prv_orig)
+static void write_previews(BlendWriter *writer, const PreviewImage *prv_orig)
 {
   /* Note we write previews also for undo steps. It takes up some memory,
    * but not doing so would causes all previews to be re-rendered after
@@ -799,12 +799,12 @@ static void write_previews(WriteData *wd, const PreviewImage *prv_orig)
       prv.h[1] = 0;
       prv.rect[1] = NULL;
     }
-    writestruct_at_address(wd, DATA, PreviewImage, 1, prv_orig, &prv);
+    writestruct_at_address(writer->wd, DATA, PreviewImage, 1, prv_orig, &prv);
     if (prv.rect[0]) {
-      writedata(wd, DATA, prv.w[0] * prv.h[0] * sizeof(uint), prv.rect[0]);
+      BLO_write_uint32_array(writer, prv.w[0] * prv.h[0], prv.rect[0]);
     }
     if (prv.rect[1]) {
-      writedata(wd, DATA, prv.w[1] * prv.h[1] * sizeof(uint), prv.rect[1]);
+      BLO_write_uint32_array(writer, prv.w[1] * prv.h[1], prv.rect[1]);
     }
   }
 }
@@ -2014,7 +2014,7 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
     BLO_write_struct_list(writer, LinkData, &ob->pc_ids);
     BLO_write_struct_list(writer, LodLevel, &ob->lodlevels);
 
-    write_previews(writer->wd, ob->preview);
+    write_previews(writer, ob->preview);
   }
 }
 
@@ -2375,7 +2375,7 @@ static void write_image(BlendWriter *writer, Image *ima, const void *id_address)
       }
     }
 
-    write_previews(writer->wd, ima->preview);
+    write_previews(writer, ima->preview);
 
     LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
       BLO_write_struct(writer, ImageView, iv);
@@ -2412,7 +2412,7 @@ static void write_texture(BlendWriter *writer, Tex *tex, const void *id_address)
       write_nodetree_nolib(writer, tex->nodetree);
     }
 
-    write_previews(writer->wd, tex->preview);
+    write_previews(writer, tex->preview);
   }
 }
 
@@ -2437,7 +2437,7 @@ static void write_material(BlendWriter *writer, Material *ma, const void *id_add
       write_nodetree_nolib(writer, ma->nodetree);
     }
 
-    write_previews(writer->wd, ma->preview);
+    write_previews(writer, ma->preview);
 
     /* grease pencil settings */
     if (ma->gp_style) {
@@ -2466,7 +2466,7 @@ static void write_world(BlendWriter *writer, World *wrld, const void *id_address
       write_nodetree_nolib(writer, wrld->nodetree);
     }
 
-    write_previews(writer->wd, wrld->preview);
+    write_previews(writer, wrld->preview);
   }
 }
 
@@ -2491,21 +2491,21 @@ static void write_light(BlendWriter *writer, Light *la, const void *id_address)
       write_nodetree_nolib(writer, la->nodetree);
     }
 
-    write_previews(writer->wd, la->preview);
+    write_previews(writer, la->preview);
   }
 }
 
-static void write_collection_nolib(WriteData *wd, Collection *collection)
+static void write_collection_nolib(BlendWriter *writer, Collection *collection)
 {
   /* Shared function for collection data-blocks and scene master collection. */
-  write_previews(wd, collection->preview);
+  write_previews(writer, collection->preview);
 
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    writestruct(wd, DATA, CollectionObject, 1, cob);
+    BLO_write_struct(writer, CollectionObject, cob);
   }
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    writestruct(wd, DATA, CollectionChild, 1, child);
+    BLO_write_struct(writer, CollectionChild, child);
   }
 }
 
@@ -2522,7 +2522,7 @@ static void write_collection(BlendWriter *writer, Collection *collection, const 
     BLO_write_id_struct(writer, Collection, id_address, &collection->id);
     write_iddata(writer, &collection->id);
 
-    write_collection_nolib(writer->wd, collection);
+    write_collection_nolib(writer, collection);
   }
 }
 
@@ -2560,10 +2560,10 @@ static void write_view_settings(WriteData *wd, ColorManagedViewSettings *view_se
   }
 }
 
-static void write_view3dshading(WriteData *wd, View3DShading *shading)
+static void write_view3dshading(BlendWriter *writer, View3DShading *shading)
 {
   if (shading->prop) {
-    IDP_WriteProperty(shading->prop, wd);
+    IDP_WriteProperty_new_api(shading->prop, writer);
   }
 }
 
@@ -2840,7 +2840,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
     write_pointcaches(writer->wd, &(sce->rigidbody_world->shared->ptcaches));
   }
 
-  write_previews(writer->wd, sce->preview);
+  write_previews(writer, sce->preview);
   write_curvemapping_curves(writer->wd, &sce->r.mblur_shutter_curve);
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
@@ -2849,7 +2849,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
 
   if (sce->master_collection) {
     BLO_write_struct(writer, Collection, sce->master_collection);
-    write_collection_nolib(writer->wd, sce->master_collection);
+    write_collection_nolib(writer, sce->master_collection);
   }
 
   /* Eevee Lightcache */
@@ -2858,7 +2858,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
     write_lightcache(writer->wd, sce->eevee.light_cache_data);
   }
 
-  write_view3dshading(writer->wd, &sce->display.shading);
+  write_view3dshading(writer, &sce->display.shading);
 
   /* Freed on doversion. */
   BLI_assert(sce->layer_properties == NULL);
@@ -2905,14 +2905,14 @@ static void write_gpencil(BlendWriter *writer, bGPdata *gpd, const void *id_addr
   }
 }
 
-static void write_wm_xr_data(WriteData *wd, wmXrData *xr_data)
+static void write_wm_xr_data(BlendWriter *writer, wmXrData *xr_data)
 {
-  write_view3dshading(wd, &xr_data->session_settings.shading);
+  write_view3dshading(writer, &xr_data->session_settings.shading);
 }
 
-static void write_region(WriteData *wd, ARegion *region, int spacetype)
+static void write_region(BlendWriter *writer, ARegion *region, int spacetype)
 {
-  writestruct(wd, DATA, ARegion, 1, region);
+  BLO_write_struct(writer, ARegion, region);
 
   if (region->regiondata) {
     if (region->flag & RGN_FLAG_TEMP_REGIONDATA) {
@@ -2923,13 +2923,13 @@ static void write_region(WriteData *wd, ARegion *region, int spacetype)
       case SPACE_VIEW3D:
         if (region->regiontype == RGN_TYPE_WINDOW) {
           RegionView3D *rv3d = region->regiondata;
-          writestruct(wd, DATA, RegionView3D, 1, rv3d);
+          BLO_write_struct(writer, RegionView3D, rv3d);
 
           if (rv3d->localvd) {
-            writestruct(wd, DATA, RegionView3D, 1, rv3d->localvd);
+            BLO_write_struct(writer, RegionView3D, rv3d->localvd);
           }
           if (rv3d->clipbb) {
-            writestruct(wd, DATA, BoundBox, 1, rv3d->clipbb);
+            BLO_write_struct(writer, BoundBox, rv3d->clipbb);
           }
         }
         else {
@@ -2942,16 +2942,16 @@ static void write_region(WriteData *wd, ARegion *region, int spacetype)
   }
 }
 
-static void write_uilist(WriteData *wd, uiList *ui_list)
+static void write_uilist(BlendWriter *writer, uiList *ui_list)
 {
-  writestruct(wd, DATA, uiList, 1, ui_list);
+  BLO_write_struct(writer, uiList, ui_list);
 
   if (ui_list->properties) {
-    IDP_WriteProperty(ui_list->properties, wd);
+    IDP_WriteProperty_new_api(ui_list->properties, writer);
   }
 }
 
-static void write_soops(WriteData *wd, SpaceOutliner *so)
+static void write_soops(BlendWriter *writer, SpaceOutliner *so)
 {
   BLI_mempool *ts = so->treestore;
 
@@ -2977,64 +2977,64 @@ static void write_soops(WriteData *wd, SpaceOutliner *so)
       ts_flat.totelem = elems;
       ts_flat.data = data_addr;
 
-      writestruct(wd, DATA, SpaceOutliner, 1, so);
+      BLO_write_struct(writer, SpaceOutliner, so);
 
-      writestruct_at_address(wd, DATA, TreeStore, 1, ts, &ts_flat);
-      writestruct_at_address(wd, DATA, TreeStoreElem, elems, data_addr, data);
+      writestruct_at_address(writer->wd, DATA, TreeStore, 1, ts, &ts_flat);
+      writestruct_at_address(writer->wd, DATA, TreeStoreElem, elems, data_addr, data);
 
       MEM_freeN(data);
     }
     else {
       so_flat.treestore = NULL;
-      writestruct_at_address(wd, DATA, SpaceOutliner, 1, so, &so_flat);
+      writestruct_at_address(writer->wd, DATA, SpaceOutliner, 1, so, &so_flat);
     }
   }
   else {
-    writestruct(wd, DATA, SpaceOutliner, 1, so);
+    BLO_write_struct(writer, SpaceOutliner, so);
   }
 }
 
-static void write_panel_list(WriteData *wd, ListBase *lb)
+static void write_panel_list(BlendWriter *writer, ListBase *lb)
 {
   LISTBASE_FOREACH (Panel *, panel, lb) {
-    writestruct(wd, DATA, Panel, 1, panel);
-    write_panel_list(wd, &panel->children);
+    BLO_write_struct(writer, Panel, panel);
+    write_panel_list(writer, &panel->children);
   }
 }
 
-static void write_area_regions(WriteData *wd, ScrArea *area)
+static void write_area_regions(BlendWriter *writer, ScrArea *area)
 {
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    write_region(wd, region, area->spacetype);
-    write_panel_list(wd, &region->panels);
+    write_region(writer, region, area->spacetype);
+    write_panel_list(writer, &region->panels);
 
     LISTBASE_FOREACH (PanelCategoryStack *, pc_act, &region->panels_category_active) {
-      writestruct(wd, DATA, PanelCategoryStack, 1, pc_act);
+      BLO_write_struct(writer, PanelCategoryStack, pc_act);
     }
 
     LISTBASE_FOREACH (uiList *, ui_list, &region->ui_lists) {
-      write_uilist(wd, ui_list);
+      write_uilist(writer, ui_list);
     }
 
     LISTBASE_FOREACH (uiPreview *, ui_preview, &region->ui_previews) {
-      writestruct(wd, DATA, uiPreview, 1, ui_preview);
+      BLO_write_struct(writer, uiPreview, ui_preview);
     }
   }
 
   LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
     LISTBASE_FOREACH (ARegion *, region, &sl->regionbase) {
-      write_region(wd, region, sl->spacetype);
+      write_region(writer, region, sl->spacetype);
     }
 
     if (sl->spacetype == SPACE_VIEW3D) {
       View3D *v3d = (View3D *)sl;
-      writestruct(wd, DATA, View3D, 1, v3d);
+      BLO_write_struct(writer, View3D, v3d);
 
       if (v3d->localvd) {
-        writestruct(wd, DATA, View3D, 1, v3d->localvd);
+        BLO_write_struct(writer, View3D, v3d->localvd);
       }
 
-      write_view3dshading(wd, &v3d->shading);
+      write_view3dshading(writer, &v3d->shading);
     }
     else if (sl->spacetype == SPACE_GRAPH) {
       SpaceGraph *sipo = (SpaceGraph *)sl;
@@ -3043,61 +3043,61 @@ static void write_area_regions(WriteData *wd, ScrArea *area)
       /* temporarily disable ghost curves when saving */
       BLI_listbase_clear(&sipo->runtime.ghost_curves);
 
-      writestruct(wd, DATA, SpaceGraph, 1, sl);
+      BLO_write_struct(writer, SpaceGraph, sl);
       if (sipo->ads) {
-        writestruct(wd, DATA, bDopeSheet, 1, sipo->ads);
+        BLO_write_struct(writer, bDopeSheet, sipo->ads);
       }
 
       /* reenable ghost curves */
       sipo->runtime.ghost_curves = tmpGhosts;
     }
     else if (sl->spacetype == SPACE_PROPERTIES) {
-      writestruct(wd, DATA, SpaceProperties, 1, sl);
+      BLO_write_struct(writer, SpaceProperties, sl);
     }
     else if (sl->spacetype == SPACE_FILE) {
       SpaceFile *sfile = (SpaceFile *)sl;
 
-      writestruct(wd, DATA, SpaceFile, 1, sl);
+      BLO_write_struct(writer, SpaceFile, sl);
       if (sfile->params) {
-        writestruct(wd, DATA, FileSelectParams, 1, sfile->params);
+        BLO_write_struct(writer, FileSelectParams, sfile->params);
       }
     }
     else if (sl->spacetype == SPACE_SEQ) {
-      writestruct(wd, DATA, SpaceSeq, 1, sl);
+      BLO_write_struct(writer, SpaceSeq, sl);
     }
     else if (sl->spacetype == SPACE_OUTLINER) {
       SpaceOutliner *so = (SpaceOutliner *)sl;
-      write_soops(wd, so);
+      write_soops(writer, so);
     }
     else if (sl->spacetype == SPACE_IMAGE) {
-      writestruct(wd, DATA, SpaceImage, 1, sl);
+      BLO_write_struct(writer, SpaceImage, sl);
     }
     else if (sl->spacetype == SPACE_TEXT) {
-      writestruct(wd, DATA, SpaceText, 1, sl);
+      BLO_write_struct(writer, SpaceText, sl);
     }
     else if (sl->spacetype == SPACE_SCRIPT) {
       SpaceScript *scr = (SpaceScript *)sl;
       scr->but_refs = NULL;
-      writestruct(wd, DATA, SpaceScript, 1, sl);
+      BLO_write_struct(writer, SpaceScript, sl);
     }
     else if (sl->spacetype == SPACE_ACTION) {
-      writestruct(wd, DATA, SpaceAction, 1, sl);
+      BLO_write_struct(writer, SpaceAction, sl);
     }
     else if (sl->spacetype == SPACE_NLA) {
       SpaceNla *snla = (SpaceNla *)sl;
 
-      writestruct(wd, DATA, SpaceNla, 1, snla);
+      BLO_write_struct(writer, SpaceNla, snla);
       if (snla->ads) {
-        writestruct(wd, DATA, bDopeSheet, 1, snla->ads);
+        BLO_write_struct(writer, bDopeSheet, snla->ads);
       }
     }
     else if (sl->spacetype == SPACE_NODE) {
       SpaceNode *snode = (SpaceNode *)sl;
       bNodeTreePath *path;
-      writestruct(wd, DATA, SpaceNode, 1, snode);
+      BLO_write_struct(writer, SpaceNode, snode);
 
       for (path = snode->treepath.first; path; path = path->next) {
-        writestruct(wd, DATA, bNodeTreePath, 1, path);
+        BLO_write_struct(writer, bNodeTreePath, path);
       }
     }
     else if (sl->spacetype == SPACE_CONSOLE) {
@@ -3106,45 +3106,45 @@ static void write_area_regions(WriteData *wd, ScrArea *area)
 
       for (cl = con->history.first; cl; cl = cl->next) {
         /* 'len_alloc' is invalid on write, set from 'len' on read */
-        writestruct(wd, DATA, ConsoleLine, 1, cl);
-        writedata(wd, DATA, cl->len + 1, cl->line);
+        BLO_write_struct(writer, ConsoleLine, cl);
+        BLO_write_raw(writer, cl->len + 1, cl->line);
       }
-      writestruct(wd, DATA, SpaceConsole, 1, sl);
+      BLO_write_struct(writer, SpaceConsole, sl);
     }
 #ifdef WITH_GLOBAL_AREA_WRITING
     else if (sl->spacetype == SPACE_TOPBAR) {
-      writestruct(wd, DATA, SpaceTopBar, 1, sl);
+      BLO_write_struct(writer, SpaceTopBar, sl);
     }
     else if (sl->spacetype == SPACE_STATUSBAR) {
-      writestruct(wd, DATA, SpaceStatusBar, 1, sl);
+      BLO_write_struct(writer, SpaceStatusBar, sl);
     }
 #endif
     else if (sl->spacetype == SPACE_USERPREF) {
-      writestruct(wd, DATA, SpaceUserPref, 1, sl);
+      BLO_write_struct(writer, SpaceUserPref, sl);
     }
     else if (sl->spacetype == SPACE_CLIP) {
-      writestruct(wd, DATA, SpaceClip, 1, sl);
+      BLO_write_struct(writer, SpaceClip, sl);
     }
     else if (sl->spacetype == SPACE_INFO) {
-      writestruct(wd, DATA, SpaceInfo, 1, sl);
+      BLO_write_struct(writer, SpaceInfo, sl);
     }
   }
 }
 
-static void write_area_map(WriteData *wd, ScrAreaMap *area_map)
+static void write_area_map(BlendWriter *writer, ScrAreaMap *area_map)
 {
-  writelist(wd, DATA, ScrVert, &area_map->vertbase);
-  writelist(wd, DATA, ScrEdge, &area_map->edgebase);
+  BLO_write_struct_list(writer, ScrVert, &area_map->vertbase);
+  BLO_write_struct_list(writer, ScrEdge, &area_map->edgebase);
   LISTBASE_FOREACH (ScrArea *, area, &area_map->areabase) {
     area->butspacetype = area->spacetype; /* Just for compatibility, will be reset below. */
 
-    writestruct(wd, DATA, ScrArea, 1, area);
+    BLO_write_struct(writer, ScrArea, area);
 
 #ifdef WITH_GLOBAL_AREA_WRITING
-    writestruct(wd, DATA, ScrGlobalAreaData, 1, area->global);
+    BLO_write_struct(writer, ScrGlobalAreaData, area->global);
 #endif
 
-    write_area_regions(wd, area);
+    write_area_regions(writer, area);
 
     area->butspacetype = SPACE_EMPTY; /* Unset again, was changed above. */
   }
@@ -3154,7 +3154,7 @@ static void write_windowmanager(BlendWriter *writer, wmWindowManager *wm, const 
 {
   BLO_write_id_struct(writer, wmWindowManager, id_address, &wm->id);
   write_iddata(writer, &wm->id);
-  write_wm_xr_data(writer->wd, &wm->xr);
+  write_wm_xr_data(writer, &wm->xr);
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
 #ifndef WITH_GLOBAL_AREA_WRITING
@@ -3171,7 +3171,7 @@ static void write_windowmanager(BlendWriter *writer, wmWindowManager *wm, const 
     BLO_write_struct(writer, Stereo3dFormat, win->stereo3d_format);
 
 #ifdef WITH_GLOBAL_AREA_WRITING
-    write_area_map(writer->wd, &win->global_areas);
+    write_area_map(writer, &win->global_areas);
 #else
     win->global_areas = global_areas;
 #endif
@@ -3190,10 +3190,10 @@ static void write_screen(BlendWriter *writer, bScreen *screen, const void *id_ad
     writestruct_at_address(writer->wd, ID_SCRN, bScreen, 1, id_address, screen);
     write_iddata(writer, &screen->id);
 
-    write_previews(writer->wd, screen->preview);
+    write_previews(writer, screen->preview);
 
     /* direct data */
-    write_area_map(writer->wd, AREAMAP_FROM_SCREEN(screen));
+    write_area_map(writer, AREAMAP_FROM_SCREEN(screen));
   }
 }
 
