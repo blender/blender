@@ -31,7 +31,7 @@
 
 #include "BLI_strict_flags.h"
 
-void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
+void hsv_to_rgb(float h, float s, float v, float *r_r, float *r_g, float *r_b)
 {
   float nr, ng, nb;
 
@@ -43,12 +43,12 @@ void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
   CLAMP(nb, 0.0f, 1.0f);
   CLAMP(ng, 0.0f, 1.0f);
 
-  *r = ((nr - 1.0f) * s + 1.0f) * v;
-  *g = ((ng - 1.0f) * s + 1.0f) * v;
-  *b = ((nb - 1.0f) * s + 1.0f) * v;
+  *r_r = ((nr - 1.0f) * s + 1.0f) * v;
+  *r_g = ((ng - 1.0f) * s + 1.0f) * v;
+  *r_b = ((nb - 1.0f) * s + 1.0f) * v;
 }
 
-void hsl_to_rgb(float h, float s, float l, float *r, float *g, float *b)
+void hsl_to_rgb(float h, float s, float l, float *r_r, float *r_g, float *r_b)
 {
   float nr, ng, nb, chroma;
 
@@ -62,9 +62,9 @@ void hsl_to_rgb(float h, float s, float l, float *r, float *g, float *b)
 
   chroma = (1.0f - fabsf(2.0f * l - 1.0f)) * s;
 
-  *r = (nr - 0.5f) * chroma + l;
-  *g = (ng - 0.5f) * chroma + l;
-  *b = (nb - 0.5f) * chroma + l;
+  *r_r = (nr - 0.5f) * chroma + l;
+  *r_g = (ng - 0.5f) * chroma + l;
+  *r_b = (nb - 0.5f) * chroma + l;
 }
 
 /* convenience function for now */
@@ -79,7 +79,7 @@ void hsl_to_rgb_v(const float hsl[3], float r_rgb[3])
   hsl_to_rgb(hsl[0], hsl[1], hsl[2], &r_rgb[0], &r_rgb[1], &r_rgb[2]);
 }
 
-void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv, int colorspace)
+void rgb_to_yuv(float r, float g, float b, float *r_y, float *r_u, float *r_v, int colorspace)
 {
   float y, u, v;
 
@@ -98,12 +98,12 @@ void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv, int 
       break;
   }
 
-  *ly = y;
-  *lu = u;
-  *lv = v;
+  *r_y = y;
+  *r_u = u;
+  *r_v = v;
 }
 
-void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb, int colorspace)
+void yuv_to_rgb(float y, float u, float v, float *r_r, float *r_g, float *r_b, int colorspace)
 {
   float r, g, b;
 
@@ -122,15 +122,15 @@ void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb, int 
       break;
   }
 
-  *lr = r;
-  *lg = g;
-  *lb = b;
+  *r_r = r;
+  *r_g = g;
+  *r_b = b;
 }
 
 /* The RGB inputs are supposed gamma corrected and in the range 0 - 1.0f
  *
  * Output YCC have a range of 16-235 and 16-240 except with JFIF_0_255 where the range is 0-255 */
-void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, int colorspace)
+void rgb_to_ycc(float r, float g, float b, float *r_y, float *r_cb, float *r_cr, int colorspace)
 {
   float sr, sg, sb;
   float y = 128.0f, cr = 128.0f, cb = 128.0f;
@@ -160,16 +160,16 @@ void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, in
       break;
   }
 
-  *ly = y;
-  *lcb = cb;
-  *lcr = cr;
+  *r_y = y;
+  *r_cb = cb;
+  *r_cr = cr;
 }
 
 /* YCC input have a range of 16-235 and 16-240 except with JFIF_0_255 where the range is 0-255 */
 /* RGB outputs are in the range 0 - 1.0f */
 
 /* FIXME comment above must be wrong because BLI_YCC_ITU_BT601 y 16.0 cr 16.0 -> r -0.7009 */
-void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb, int colorspace)
+void ycc_to_rgb(float y, float cb, float cr, float *r_r, float *r_g, float *r_b, int colorspace)
 {
   float r = 128.0f, g = 128.0f, b = 128.0f;
 
@@ -193,12 +193,12 @@ void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb, in
       BLI_assert(0);
       break;
   }
-  *lr = r / 255.0f;
-  *lg = g / 255.0f;
-  *lb = b / 255.0f;
+  *r_r = r / 255.0f;
+  *r_g = g / 255.0f;
+  *r_b = b / 255.0f;
 }
 
-void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
+void hex_to_rgb(char *hexcol, float *r_r, float *r_g, float *r_b)
 {
   unsigned int ri, gi, bi;
 
@@ -217,19 +217,19 @@ void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
   }
   else {
     /* avoid using un-initialized vars */
-    *r = *g = *b = 0.0f;
+    *r_r = *r_g = *r_b = 0.0f;
     return;
   }
 
-  *r = (float)ri * (1.0f / 255.0f);
-  *g = (float)gi * (1.0f / 255.0f);
-  *b = (float)bi * (1.0f / 255.0f);
-  CLAMP(*r, 0.0f, 1.0f);
-  CLAMP(*g, 0.0f, 1.0f);
-  CLAMP(*b, 0.0f, 1.0f);
+  *r_r = (float)ri * (1.0f / 255.0f);
+  *r_g = (float)gi * (1.0f / 255.0f);
+  *r_b = (float)bi * (1.0f / 255.0f);
+  CLAMP(*r_r, 0.0f, 1.0f);
+  CLAMP(*r_g, 0.0f, 1.0f);
+  CLAMP(*r_b, 0.0f, 1.0f);
 }
 
-void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
+void rgb_to_hsv(float r, float g, float b, float *r_h, float *r_s, float *r_v)
 {
   float k = 0.0f;
   float chroma;
@@ -248,9 +248,9 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 
   chroma = r - min_gb;
 
-  *lh = fabsf(k + (g - b) / (6.0f * chroma + 1e-20f));
-  *ls = chroma / (r + 1e-20f);
-  *lv = r;
+  *r_h = fabsf(k + (g - b) / (6.0f * chroma + 1e-20f));
+  *r_s = chroma / (r + 1e-20f);
+  *r_v = r;
 }
 
 /* convenience function for now */
@@ -259,7 +259,7 @@ void rgb_to_hsv_v(const float rgb[3], float r_hsv[3])
   rgb_to_hsv(rgb[0], rgb[1], rgb[2], &r_hsv[0], &r_hsv[1], &r_hsv[2]);
 }
 
-void rgb_to_hsl(float r, float g, float b, float *lh, float *ls, float *ll)
+void rgb_to_hsl(float r, float g, float b, float *r_h, float *r_s, float *r_l)
 {
   const float cmax = max_fff(r, g, b);
   const float cmin = min_fff(r, g, b);
@@ -283,29 +283,29 @@ void rgb_to_hsl(float r, float g, float b, float *lh, float *ls, float *ll)
   }
   h /= 6.0f;
 
-  *lh = h;
-  *ls = s;
-  *ll = l;
+  *r_h = h;
+  *r_s = s;
+  *r_l = l;
 }
 
-void rgb_to_hsl_compat(float r, float g, float b, float *lh, float *ls, float *ll)
+void rgb_to_hsl_compat(float r, float g, float b, float *r_h, float *r_s, float *r_l)
 {
-  const float orig_s = *ls;
-  const float orig_h = *lh;
+  const float orig_s = *r_s;
+  const float orig_h = *r_h;
 
-  rgb_to_hsl(r, g, b, lh, ls, ll);
+  rgb_to_hsl(r, g, b, r_h, r_s, r_l);
 
-  if (*ll <= 0.0f) {
-    *lh = orig_h;
-    *ls = orig_s;
+  if (*r_l <= 0.0f) {
+    *r_h = orig_h;
+    *r_s = orig_s;
   }
-  else if (*ls <= 0.0f) {
-    *lh = orig_h;
-    *ls = orig_s;
+  else if (*r_s <= 0.0f) {
+    *r_h = orig_h;
+    *r_s = orig_s;
   }
 
-  if (*lh == 0.0f && orig_h >= 1.0f) {
-    *lh = 1.0f;
+  if (*r_h == 0.0f && orig_h >= 1.0f) {
+    *r_h = 1.0f;
   }
 }
 
@@ -320,24 +320,24 @@ void rgb_to_hsl_v(const float rgb[3], float r_hsl[3])
   rgb_to_hsl(rgb[0], rgb[1], rgb[2], &r_hsl[0], &r_hsl[1], &r_hsl[2]);
 }
 
-void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *lv)
+void rgb_to_hsv_compat(float r, float g, float b, float *r_h, float *r_s, float *r_v)
 {
-  const float orig_h = *lh;
-  const float orig_s = *ls;
+  const float orig_h = *r_h;
+  const float orig_s = *r_s;
 
-  rgb_to_hsv(r, g, b, lh, ls, lv);
+  rgb_to_hsv(r, g, b, r_h, r_s, r_v);
 
-  if (*lv <= 1e-8) {
+  if (*r_v <= 1e-8) {
     /* Very low v values will affect the hs values, correct them in post. */
-    *lh = orig_h;
-    *ls = orig_s;
+    *r_h = orig_h;
+    *r_s = orig_s;
   }
-  else if (*ls <= 1e-8) {
-    *lh = orig_h;
+  else if (*r_s <= 1e-8) {
+    *r_h = orig_h;
   }
 
-  if (*lh == 0.0f && orig_h >= 1.0f) {
-    *lh = 1.0f;
+  if (*r_h == 0.0f && orig_h >= 1.0f) {
+    *r_h = 1.0f;
   }
 }
 
@@ -400,11 +400,11 @@ unsigned int rgb_to_cpack(float r, float g, float b)
   return (ir + (ig * 256) + (ib * 256 * 256));
 }
 
-void cpack_to_rgb(unsigned int col, float *r, float *g, float *b)
+void cpack_to_rgb(unsigned int col, float *r_r, float *r_g, float *r_b)
 {
-  *r = ((float)(((col)) & 0xFF)) * (1.0f / 255.0f);
-  *g = ((float)(((col) >> 8) & 0xFF)) * (1.0f / 255.0f);
-  *b = ((float)(((col) >> 16) & 0xFF)) * (1.0f / 255.0f);
+  *r_r = ((float)(((col)) & 0xFF)) * (1.0f / 255.0f);
+  *r_g = ((float)(((col) >> 8) & 0xFF)) * (1.0f / 255.0f);
+  *r_b = ((float)(((col) >> 16) & 0xFF)) * (1.0f / 255.0f);
 }
 
 void rgb_uchar_to_float(float r_col[3], const unsigned char col_ub[3])
