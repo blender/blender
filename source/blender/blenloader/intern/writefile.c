@@ -577,32 +577,10 @@ static void writestruct_at_address_nr(
   mywrite(wd, data, bh.len);
 }
 
-static void writestruct_at_address_id(
-    WriteData *wd, int filecode, const char *structname, int nr, const void *adr, const void *data)
-{
-  if (adr == NULL || data == NULL || nr == 0) {
-    return;
-  }
-
-  const int SDNAnr = DNA_struct_find_nr(wd->sdna, structname);
-  if (UNLIKELY(SDNAnr == -1)) {
-    printf("error: can't find SDNA code <%s>\n", structname);
-    return;
-  }
-
-  writestruct_at_address_nr(wd, filecode, SDNAnr, nr, adr, data);
-}
-
 static void writestruct_nr(
     WriteData *wd, int filecode, const int struct_nr, int nr, const void *adr)
 {
   writestruct_at_address_nr(wd, filecode, struct_nr, nr, adr, adr);
-}
-
-static void writestruct_id(
-    WriteData *wd, int filecode, const char *structname, int nr, const void *adr)
-{
-  writestruct_at_address_id(wd, filecode, structname, nr, adr, adr);
 }
 
 /* do not use for structs */
