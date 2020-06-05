@@ -72,24 +72,35 @@ void BLO_memfile_free(MemFile *memfile)
 /* result is that 'first' is being freed */
 void BLO_memfile_merge(MemFile *first, MemFile *second)
 {
-  MemFileChunk *fc, *sc;
+  /* We use this mapping to store the memory buffers from second memfile chunks which are not owned
+   * by it (i.e. shared with some previous memory steps). */
+  GHash *buffer_to_second_memchunk = BLI_ghash_new(
+      BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
 
-  fc = first->chunks.first;
-  sc = second->chunks.first;
-  while (fc || sc) {
-    if (fc && sc) {
-      if (sc->is_identical) {
+  /* First, detect all memchunks in second memfile that are not owned by it. */
+  for (MemFileChunk *sc = second->chunks.first; sc != NULL; sc = sc->next) {
+    if (sc->is_identical) {
+      BLI_ghash_insert(buffer_to_second_memchunk, (void *)sc->buf, sc);
+    }
+  }
+
+  /* Now, check all chunks from first memfile (the one we are removing), and if a memchunk owned by
+   * it is also used by the second memfile, transfer the ownership. */
+  for (MemFileChunk *fc = first->chunks.first; fc != NULL; fc = fc->next) {
+    if (!fc->is_identical) {
+      MemFileChunk *sc = BLI_ghash_lookup(buffer_to_second_memchunk, fc->buf);
+      if (sc != NULL) {
+        BLI_assert(sc->is_identical);
         sc->is_identical = false;
         fc->is_identical = true;
       }
-    }
-    if (fc) {
-      fc = fc->next;
-    }
-    if (sc) {
-      sc = sc->next;
+      /* Note that if the second memfile does not use that chunk, we assume that the first one
+       * fully owns it without sharing it with any other memfile, and hence it should be freed with
+       * it. */
     }
   }
+
+  BLI_ghash_free(buffer_to_second_memchunk, NULL, NULL);
 
   BLO_memfile_free(first);
 }
@@ -110,11 +121,11 @@ void BLO_memfile_write_init(MemFileWriteData *mem_data,
   mem_data->reference_memfile = reference_memfile;
   mem_data->reference_current_chunk = reference_memfile ? reference_memfile->chunks.first : NULL;
 
-  /* If we have a reference memfile, we generate a mapping between the session_uuid's of the IDs
-   * stored in that previous undo step, and its first matching memchunk.
-   * This will allow us to easily find the existing undo memory storage of IDs even when some
-   * re-ordering in current Main data-base broke the order matching with the memchunks from
-   * previous step. */
+  /* If we have a reference memfile, we generate a mapping between the session_uuid's of the
+   * IDs stored in that previous undo step, and its first matching memchunk. This will allow
+   * us to easily find the existing undo memory storage of IDs even when some re-ordering in
+   * current Main data-base broke the order matching with the memchunks from previous step.
+   */
   if (reference_memfile != NULL) {
     mem_data->id_session_uuid_mapping = BLI_ghash_new(
         BLI_ghashutil_inthash_p_simple, BLI_ghashutil_intcmp, __func__);
