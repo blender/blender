@@ -4960,7 +4960,8 @@ static void draw_setting_widget(bAnimContext *ac,
       }
       else if (ale->type == ANIMTYPE_GPLAYER) {
         tooltip = TIP_(
-            "All keyframes contribute to the result (uncheck to use the current frame only)");
+            "Shows all keyframes during animation playback and enabled all frames for editing "
+            "(uncheck to use only the current keyframe during animation playback and editing)");
       }
       else {
         tooltip = TIP_("Do channels contribute to result (toggle channel muting)");
