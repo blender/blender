@@ -2022,60 +2022,60 @@ static void write_object(WriteData *wd, Object *ob, const void *id_address)
   }
 }
 
-static void write_vfont(WriteData *wd, VFont *vf, const void *id_address)
+static void write_vfont(BlendWriter *writer, VFont *vf, const void *id_address)
 {
-  if (vf->id.us > 0 || wd->use_memfile) {
+  if (vf->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     vf->data = NULL;
     vf->temp_pf = NULL;
 
     /* write LibData */
-    writestruct_at_address(wd, ID_VF, VFont, 1, id_address, vf);
-    write_iddata(wd, &vf->id);
+    BLO_write_id_struct(writer, VFont, id_address, &vf->id);
+    write_iddata(writer->wd, &vf->id);
 
     /* direct data */
     if (vf->packedfile) {
       PackedFile *pf = vf->packedfile;
-      writestruct(wd, DATA, PackedFile, 1, pf);
-      writedata(wd, DATA, pf->size, pf->data);
+      BLO_write_struct(writer, PackedFile, pf);
+      BLO_write_raw(writer, pf->size, pf->data);
     }
   }
 }
 
-static void write_key(WriteData *wd, Key *key, const void *id_address)
+static void write_key(BlendWriter *writer, Key *key, const void *id_address)
 {
-  if (key->id.us > 0 || wd->use_memfile) {
+  if (key->id.us > 0 || BLO_write_is_undo(writer)) {
     /* write LibData */
-    writestruct_at_address(wd, ID_KE, Key, 1, id_address, key);
-    write_iddata(wd, &key->id);
+    BLO_write_id_struct(writer, Key, id_address, &key->id);
+    write_iddata(writer->wd, &key->id);
 
     if (key->adt) {
-      write_animdata(wd, key->adt);
+      write_animdata(writer->wd, key->adt);
     }
 
     /* direct data */
     LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-      writestruct(wd, DATA, KeyBlock, 1, kb);
+      BLO_write_struct(writer, KeyBlock, kb);
       if (kb->data) {
-        writedata(wd, DATA, kb->totelem * key->elemsize, kb->data);
+        BLO_write_raw(writer, kb->totelem * key->elemsize, kb->data);
       }
     }
   }
 }
 
-static void write_camera(WriteData *wd, Camera *cam, const void *id_address)
+static void write_camera(BlendWriter *writer, Camera *cam, const void *id_address)
 {
-  if (cam->id.us > 0 || wd->use_memfile) {
+  if (cam->id.us > 0 || BLO_write_is_undo(writer)) {
     /* write LibData */
-    writestruct_at_address(wd, ID_CA, Camera, 1, id_address, cam);
-    write_iddata(wd, &cam->id);
+    BLO_write_id_struct(writer, Camera, id_address, &cam->id);
+    write_iddata(writer->wd, &cam->id);
 
     if (cam->adt) {
-      write_animdata(wd, cam->adt);
+      write_animdata(writer->wd, cam->adt);
     }
 
     LISTBASE_FOREACH (CameraBGImage *, bgpic, &cam->bg_images) {
-      writestruct(wd, DATA, CameraBGImage, 1, bgpic);
+      BLO_write_struct(writer, CameraBGImage, bgpic);
     }
   }
 }
@@ -2331,26 +2331,26 @@ static void write_mesh(WriteData *wd, Mesh *mesh, const void *id_address)
   }
 }
 
-static void write_lattice(WriteData *wd, Lattice *lt, const void *id_address)
+static void write_lattice(BlendWriter *writer, Lattice *lt, const void *id_address)
 {
-  if (lt->id.us > 0 || wd->use_memfile) {
+  if (lt->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     lt->editlatt = NULL;
     lt->batch_cache = NULL;
 
     /* write LibData */
-    writestruct_at_address(wd, ID_LT, Lattice, 1, id_address, lt);
-    write_iddata(wd, &lt->id);
+    BLO_write_id_struct(writer, Lattice, id_address, &lt->id);
+    write_iddata(writer->wd, &lt->id);
 
     /* write animdata */
     if (lt->adt) {
-      write_animdata(wd, lt->adt);
+      write_animdata(writer->wd, lt->adt);
     }
 
     /* direct data */
-    writestruct(wd, DATA, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, lt->def);
+    BLO_write_struct_array(writer, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, lt->def);
 
-    write_dverts(wd, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
+    write_dverts(writer->wd, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
   }
 }
 
@@ -4233,19 +4233,19 @@ static bool write_file_handle(Main *mainvar,
             write_image(&writer, (Image *)id_buffer, id);
             break;
           case ID_CA:
-            write_camera(wd, (Camera *)id_buffer, id);
+            write_camera(&writer, (Camera *)id_buffer, id);
             break;
           case ID_LA:
             write_light(&writer, (Light *)id_buffer, id);
             break;
           case ID_LT:
-            write_lattice(wd, (Lattice *)id_buffer, id);
+            write_lattice(&writer, (Lattice *)id_buffer, id);
             break;
           case ID_VF:
-            write_vfont(wd, (VFont *)id_buffer, id);
+            write_vfont(&writer, (VFont *)id_buffer, id);
             break;
           case ID_KE:
-            write_key(wd, (Key *)id_buffer, id);
+            write_key(&writer, (Key *)id_buffer, id);
             break;
           case ID_WO:
             write_world(&writer, (World *)id_buffer, id);
