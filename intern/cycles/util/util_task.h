@@ -51,7 +51,7 @@ typedef function<void(int thread_id)> TaskRunFunction;
 class Task {
  public:
   Task(){};
-  explicit Task(const TaskRunFunction &run_) : run(run_)
+  explicit Task(TaskRunFunction &&run_) : run(run_)
   {
   }
 
@@ -90,7 +90,7 @@ class TaskPool {
   ~TaskPool();
 
   void push(Task *task, bool front = false);
-  void push(const TaskRunFunction &run, bool front = false);
+  void push(TaskRunFunction &&run, bool front = false);
 
   void wait_work(Summary *stats = NULL); /* work and wait until all tasks are done */
   void cancel();                         /* cancel all tasks, keep worker threads running */
@@ -180,7 +180,7 @@ class DedicatedTaskPool {
   ~DedicatedTaskPool();
 
   void push(Task *task, bool front = false);
-  void push(const TaskRunFunction &run, bool front = false);
+  void push(TaskRunFunction &&run, bool front = false);
 
   void wait();   /* wait until all tasks are done */
   void cancel(); /* cancel all tasks, keep worker thread running */

@@ -59,9 +59,9 @@ void TaskPool::push(Task *task, bool front)
   TaskScheduler::push(entry, front);
 }
 
-void TaskPool::push(const TaskRunFunction &run, bool front)
+void TaskPool::push(TaskRunFunction &&run, bool front)
 {
-  push(new Task(run), front);
+  push(new Task(std::move(run)), front);
 }
 
 void TaskPool::wait_work(Summary *stats)
@@ -478,9 +478,9 @@ void DedicatedTaskPool::push(Task *task, bool front)
   queue_mutex.unlock();
 }
 
-void DedicatedTaskPool::push(const TaskRunFunction &run, bool front)
+void DedicatedTaskPool::push(TaskRunFunction &&run, bool front)
 {
-  push(new Task(run), front);
+  push(new Task(std::move(run)), front);
 }
 
 void DedicatedTaskPool::wait()
