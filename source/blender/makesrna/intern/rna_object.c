@@ -1471,7 +1471,7 @@ static void rna_Object_constraints_remove(Object *object,
   RNA_POINTER_INVALIDATE(con_ptr);
 
   ED_object_constraint_update(bmain, object);
-  ED_object_constraint_set_active(object, NULL);
+  ED_object_constraint_active_set(object, NULL);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, object);
 }
 
@@ -1480,7 +1480,7 @@ static void rna_Object_constraints_clear(Object *object, Main *bmain)
   BKE_constraints_free(&object->constraints);
 
   ED_object_constraint_update(bmain, object);
-  ED_object_constraint_set_active(object, NULL);
+  ED_object_constraint_active_set(object, NULL);
 
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, object);
 }

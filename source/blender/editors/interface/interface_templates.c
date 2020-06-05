@@ -2745,7 +2745,7 @@ void uiTemplateOperatorRedoProperties(uiLayout *layout, const bContext *C)
 
 static void constraint_active_func(bContext *UNUSED(C), void *ob_v, void *con_v)
 {
-  ED_object_constraint_set_active(ob_v, con_v);
+  ED_object_constraint_active_set(ob_v, con_v);
 }
 
 /* draw panel showing settings for a constraint */

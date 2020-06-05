@@ -81,7 +81,7 @@
  * \{ */
 
 /* if object in posemode, active bone constraints, else object constraints */
-ListBase *get_active_constraints(Object *ob)
+ListBase *ED_object_constraint_list_from_context(Object *ob)
 {
   if (ob == NULL) {
     return NULL;
@@ -104,7 +104,9 @@ ListBase *get_active_constraints(Object *ob)
 
 /* Find the list that a given constraint belongs to,
  * and/or also get the posechannel this is from (if applicable) */
-ListBase *get_constraint_lb(Object *ob, bConstraint *con, bPoseChannel **r_pchan)
+ListBase *ED_object_constraint_list_from_constraint(Object *ob,
+                                                    bConstraint *con,
+                                                    bPoseChannel **r_pchan)
 {
   if (r_pchan) {
     *r_pchan = NULL;
@@ -143,9 +145,9 @@ ListBase *get_constraint_lb(Object *ob, bConstraint *con, bPoseChannel **r_pchan
 }
 
 /* single constraint */
-bConstraint *get_active_constraint(Object *ob)
+bConstraint *ED_object_constraint_active_get(Object *ob)
 {
-  return BKE_constraints_active_get(get_active_constraints(ob));
+  return BKE_constraints_active_get(ED_object_constraint_list_from_context(ob));
 }
 
 /** \} */
@@ -721,7 +723,7 @@ static int edit_constraint_invoke_properties(bContext *C, wmOperator *op)
     con = ptr.data;
     RNA_string_set(op->ptr, "constraint", con->name);
 
-    list = get_constraint_lb(ob, con, NULL);
+    list = ED_object_constraint_list_from_constraint(ob, con, NULL);
 
     if (&ob->constraints == list) {
       RNA_enum_set(op->ptr, "owner", EDIT_CONSTRAINT_OWNER_OBJECT);
@@ -769,7 +771,7 @@ static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int
       printf("edit_constraint_property_get: defaulting to getting list in the standard way\n");
     }
 #endif
-    list = get_active_constraints(ob);
+    list = ED_object_constraint_list_from_context(ob);
   }
 
   con = BKE_constraints_find_name(list, constraint_name);
@@ -1305,9 +1307,9 @@ void CONSTRAINT_OT_objectsolver_clear_inverse(wmOperatorType *ot)
 /** \name Constraint Management Utilities
  * \{ */
 
-void ED_object_constraint_set_active(Object *ob, bConstraint *con)
+void ED_object_constraint_active_set(Object *ob, bConstraint *con)
 {
-  ListBase *lb = get_constraint_lb(ob, con, NULL);
+  ListBase *lb = ED_object_constraint_list_from_constraint(ob, con, NULL);
 
   /* lets be nice and escape if its active already */
   /* NOTE: this assumes that the stack doesn't have other active ones set... */
@@ -1409,7 +1411,7 @@ static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
   Object *ob = (Object *)ptr.owner_id;
   bConstraint *con = ptr.data;
-  ListBase *lb = get_constraint_lb(ob, con, NULL);
+  ListBase *lb = ED_object_constraint_list_from_constraint(ob, con, NULL);
 
   /* free the constraint */
   if (BKE_constraint_remove_ex(lb, ob, con, true)) {
@@ -1459,7 +1461,7 @@ static int constraint_move_down_exec(bContext *C, wmOperator *op)
   bConstraint *con = edit_constraint_property_get(op, ob, 0);
 
   if (con && con->next) {
-    ListBase *conlist = get_constraint_lb(ob, con, NULL);
+    ListBase *conlist = ED_object_constraint_list_from_constraint(ob, con, NULL);
     bConstraint *nextCon = con->next;
 
     /* insert the nominated constraint after the one that used to be after it */
@@ -1515,7 +1517,7 @@ static int constraint_move_up_exec(bContext *C, wmOperator *op)
   bConstraint *con = edit_constraint_property_get(op, ob, 0);
 
   if (con && con->prev) {
-    ListBase *conlist = get_constraint_lb(ob, con, NULL);
+    ListBase *conlist = ED_object_constraint_list_from_constraint(ob, con, NULL);
     bConstraint *prevCon = con->prev;
 
     /* insert the nominated constraint before the one that used to be before it */
@@ -2055,7 +2057,8 @@ static int pose_constraint_add_exec(bContext *C, wmOperator *op)
     with_targets = 1;
   }
 
-  return constraint_add_exec(C, op, ob, get_active_constraints(ob), type, with_targets);
+  return constraint_add_exec(
+      C, op, ob, ED_object_constraint_list_from_context(ob), type, with_targets);
 }
 
 /* ------------------ */
@@ -2256,8 +2259,12 @@ static int pose_ik_add_exec(bContext *C, wmOperator *op)
 
   /* add the constraint - all necessary checks should have
    * been done by the invoke() callback already... */
-  return constraint_add_exec(
-      C, op, ob, get_active_constraints(ob), CONSTRAINT_TYPE_KINEMATIC, with_targets);
+  return constraint_add_exec(C,
+                             op,
+                             ob,
+                             ED_object_constraint_list_from_context(ob),
+                             CONSTRAINT_TYPE_KINEMATIC,
+                             with_targets);
 }
 
 void POSE_OT_ik_add(wmOperatorType *ot)

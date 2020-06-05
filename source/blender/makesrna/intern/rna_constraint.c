@@ -389,7 +389,7 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
   /* make sure name is unique */
   if (ptr->owner_id) {
     Object *ob = (Object *)ptr->owner_id;
-    ListBase *list = get_constraint_lb(ob, con, NULL);
+    ListBase *list = ED_object_constraint_list_from_constraint(ob, con, NULL);
 
     /* if we have the list, check for unique name, otherwise give up */
     if (list) {
@@ -404,7 +404,7 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 static char *rna_Constraint_do_compute_path(Object *ob, bConstraint *con)
 {
   bPoseChannel *pchan;
-  ListBase *lb = get_constraint_lb(ob, con, &pchan);
+  ListBase *lb = ED_object_constraint_list_from_constraint(ob, con, &pchan);
 
   if (lb == NULL) {
     printf("%s: internal error, constraint '%s' not found in object '%s'\n",
