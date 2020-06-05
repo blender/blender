@@ -184,9 +184,6 @@
 
 #include "readfile.h"
 
-/* for SDNA_TYPE_FROM_STRUCT() macro */
-#include "dna_type_offsets.h"
-
 #include <errno.h>
 
 /* Make preferences read-only. */

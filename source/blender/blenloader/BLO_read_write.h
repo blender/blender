@@ -41,6 +41,9 @@
 #ifndef __BLO_READ_WRITE_H__
 #define __BLO_READ_WRITE_H__
 
+/* for SDNA_TYPE_FROM_STRUCT() macro */
+#include "dna_type_offsets.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -65,8 +68,7 @@ typedef struct BlendExpander BlendExpander;
  *
  * DNA struct types can be identified in different ways:
  *  - Run-time Name: The name is provided as const char *.
- *  - Compile-time Name: The name is provided at compile time. This can be more efficient. Note
- *      that this optimization is not implemented currently.
+ *  - Compile-time Name: The name is provided at compile time. This is more efficient.
  *  - Struct ID: Every DNA struct type has an integer ID that can be queried with
  *      BLO_get_struct_id_by_name. Providing this ID can be a useful optimization when many structs
  *      of the same type are stored AND if those structs are not in a continuous array.
@@ -88,7 +90,7 @@ typedef struct BlendExpander BlendExpander;
 
 /* Mapping between names and ids. */
 int BLO_get_struct_id_by_name(BlendWriter *writer, const char *struct_name);
-#define BLO_get_struct_id(writer, struct_name) BLO_get_struct_id_by_name(writer, #struct_name)
+#define BLO_get_struct_id(writer, struct_name) SDNA_TYPE_FROM_STRUCT(struct_name)
 
 /* Write single struct. */
 void BLO_write_struct_by_name(BlendWriter *writer, const char *struct_name, const void *data_ptr);
