@@ -1016,10 +1016,15 @@ def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
             else:
                 rna = "bpy.ops.%s.%s" % (class_name, class_prop)
         else:
-            # an RNA setting, common case
-            rna_class = getattr(bpy.types, class_name)
+            # An RNA setting, common case.
 
-            # detect if this is a inherited member and use that name instead
+            # Check the built-in RNA types.
+            rna_class = getattr(bpy.types, class_name, None)
+            if rna_class is None:
+                # Check class for dynamically registered types.
+                rna_class = bpy.types.PropertyGroup.bl_rna_get_subclass_py(class_name)
+
+            # Detect if this is a inherited member and use that name instead.
             rna_parent = rna_class.bl_rna
             rna_prop = rna_parent.properties.get(class_prop)
             if rna_prop:
