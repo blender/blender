@@ -52,11 +52,6 @@
 /* Own include. */
 #include "sequencer_intern.h"
 
-static void *find_nearest_marker(int UNUSED(d1), int UNUSED(d2))
-{
-  return NULL;
-}
-
 static void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRING BACK */
 {
   Sequence *neighbor;
@@ -373,7 +368,6 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
 
   Sequence *seq, *neighbor, *act_orig;
   int hand, sel_side;
-  TimeMarker *marker;
 
   if (ed == NULL) {
     return OPERATOR_CANCELLED;
@@ -383,8 +377,6 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
     wait_to_deselect_others = false;
   }
 
-  marker = find_nearest_marker(SCE_MARKERS, 1); /* XXX - dummy function for now */
-
   seq = find_nearest_seq(scene, v2d, &hand, mval);
 
   /* XXX - not nice, Ctrl+RMB needs to do side_of_frame only when not over a strip */
@@ -392,28 +384,8 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
     side_of_frame = false;
   }
 
-  if (marker) {
-    int oldflag;
-    /* Select timeline marker. */
-    if (extend) {
-      oldflag = marker->flag;
-      if (oldflag & SELECT) {
-        marker->flag &= ~SELECT;
-      }
-      else {
-        marker->flag |= SELECT;
-      }
-    }
-    else {
-      /* XXX, in 2.4x, seq selection used to deselect all, need to re-thnik this for 2.5 */
-      /* deselect_markers(0, 0); */
-      marker->flag |= SELECT;
-    }
-
-    ret_value = OPERATOR_FINISHED;
-  }
   /* Select left, right or overlapping the current frame. */
-  else if (side_of_frame) {
+  if (side_of_frame) {
     /* Use different logic for this. */
     float x;
     if (extend == false) {

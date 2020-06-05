@@ -182,13 +182,6 @@ enum {
   SEQ_SPLIT_SOFT,
   SEQ_SPLIT_HARD,
 };
-enum {
-  SEQ_SELECTED,
-  SEQ_UNSELECTED,
-};
-
-/* Defines used internally. */
-#define SCE_MARKERS 0 /* XXX - dummy */
 
 /* sequencer_ops.c */
 void sequencer_operatortypes(void);
