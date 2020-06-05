@@ -851,7 +851,6 @@ static void rna_def_constraint_target_common(StructRNA *srna)
   RNA_def_property_pointer_sdna(prop, NULL, "tar");
   RNA_def_property_ui_text(prop, "Target", "Target object");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
   prop = RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
@@ -878,7 +877,6 @@ static void rna_def_constrainttarget(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "tar");
   RNA_def_property_ui_text(prop, "Target", "Target object");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(
       prop, NC_OBJECT | ND_CONSTRAINT, "rna_ConstraintTarget_dependency_update");
 
@@ -912,7 +910,6 @@ static void rna_def_constrainttarget_bone(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, NULL, "rna_ConstraintTargetBone_target_set", NULL, "rna_Armature_object_poll");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(
       prop, NC_OBJECT | ND_CONSTRAINT, "rna_ConstraintTarget_dependency_update");
 
@@ -1095,7 +1092,6 @@ static void rna_def_constraint_armature_deform(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, NULL, "targets", NULL);
   RNA_def_property_struct_type(prop, "ConstraintTargetBone");
   RNA_def_property_ui_text(prop, "Targets", "Target Bones");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   rna_def_constraint_armature_deform_targets(brna, prop);
 
   prop = RNA_def_property(srna, "use_deform_preserve_volume", PROP_BOOLEAN, PROP_NONE);
@@ -1160,7 +1156,6 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "poletar");
   RNA_def_property_ui_text(prop, "Pole Target", "Object for pole rotation");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
   prop = RNA_def_property(srna, "pole_subtarget", PROP_STRING, PROP_NONE);
@@ -1759,7 +1754,6 @@ static void rna_def_constraint_action(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Action_id_poll");
   RNA_def_property_ui_text(prop, "Action", "The constraining action");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   prop = RNA_def_property(srna, "use_bone_object_action", PROP_BOOLEAN, PROP_NONE);
@@ -1875,7 +1869,6 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Curve_object_poll");
   RNA_def_property_ui_text(prop, "Target", "Target Curve object");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
   prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_TIME);
@@ -2047,7 +2040,6 @@ static void rna_def_constraint_clamp_to(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Curve_object_poll");
   RNA_def_property_ui_text(prop, "Target", "Target Object (Curves only)");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
   prop = RNA_def_property(srna, "main_axis", PROP_ENUM, PROP_NONE);
@@ -2756,7 +2748,6 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Mesh_object_poll");
   RNA_def_property_ui_text(prop, "Target", "Target Mesh object");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
   prop = RNA_def_property(srna, "shrinkwrap_type", PROP_ENUM, PROP_NONE);
@@ -2920,7 +2911,6 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Curve_object_poll");
   RNA_def_property_ui_text(prop, "Target", "Curve that controls this relationship");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
   prop = RNA_def_property(srna, "chain_count", PROP_INT, PROP_NONE);
@@ -3093,7 +3083,6 @@ static void rna_def_constraint_pivot(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Target", "Target Object, defining the position of the pivot when defined");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
   prop = RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
@@ -3154,7 +3143,6 @@ static void rna_def_constraint_follow_track(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "clip");
   RNA_def_property_ui_text(prop, "Movie Clip", "Movie Clip to get tracking data from");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
   /* track */
@@ -3188,7 +3176,6 @@ static void rna_def_constraint_follow_track(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Camera", "Camera to which motion is parented (if empty active scene camera is used)");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
   RNA_def_property_pointer_funcs(prop,
                                  NULL,
@@ -3204,7 +3191,6 @@ static void rna_def_constraint_follow_track(BlenderRNA *brna)
       "Depth Object",
       "Object used to define depth in camera space by projecting onto surface of this object");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
   RNA_def_property_pointer_funcs(prop,
                                  NULL,
@@ -3246,7 +3232,6 @@ static void rna_def_constraint_camera_solver(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "clip");
   RNA_def_property_ui_text(prop, "Movie Clip", "Movie Clip to get tracking data from");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
   /* use default clip */
@@ -3276,7 +3261,6 @@ static void rna_def_constraint_object_solver(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "clip");
   RNA_def_property_ui_text(prop, "Movie Clip", "Movie Clip to get tracking data from");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
   /* use default clip */
@@ -3303,7 +3287,6 @@ static void rna_def_constraint_object_solver(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Camera", "Camera to which motion is parented (if empty active scene camera is used)");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
   RNA_def_property_pointer_funcs(prop,
                                  NULL,
@@ -3332,7 +3315,6 @@ static void rna_def_constraint_transform_cache(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "CacheFile");
   RNA_def_property_ui_text(prop, "Cache File", "");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_Constraint_dependency_update");
 
   prop = RNA_def_property(srna, "object_path", PROP_STRING, PROP_NONE);
