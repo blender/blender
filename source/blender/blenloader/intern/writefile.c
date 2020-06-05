@@ -3197,23 +3197,23 @@ static void write_screen(BlendWriter *writer, bScreen *screen, const void *id_ad
   }
 }
 
-static void write_bone(WriteData *wd, Bone *bone)
+static void write_bone(BlendWriter *writer, Bone *bone)
 {
   /* PATCH for upward compatibility after 2.37+ armature recode */
   bone->size[0] = bone->size[1] = bone->size[2] = 1.0f;
 
   /* Write this bone */
-  writestruct(wd, DATA, Bone, 1, bone);
+  BLO_write_struct(writer, Bone, bone);
 
   /* Write ID Properties -- and copy this comment EXACTLY for easy finding
    * of library blocks that implement this.*/
   if (bone->prop) {
-    IDP_WriteProperty(bone->prop, wd);
+    IDP_WriteProperty_new_api(bone->prop, writer);
   }
 
   /* Write Children */
   LISTBASE_FOREACH (Bone *, cbone, &bone->childbase) {
-    write_bone(wd, cbone);
+    write_bone(writer, cbone);
   }
 }
 
@@ -3236,7 +3236,7 @@ static void write_armature(BlendWriter *writer, bArmature *arm, const void *id_a
 
     /* Direct data */
     LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
-      write_bone(writer->wd, bone);
+      write_bone(writer, bone);
     }
   }
 }
