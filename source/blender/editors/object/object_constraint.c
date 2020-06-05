@@ -668,11 +668,6 @@ static bool edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", rna_type);
   Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
 
-  if (!ptr.data) {
-    CTX_wm_operator_poll_msg_set(C, "Context missing 'constraint'");
-    return 0;
-  }
-
   if (!ob) {
     CTX_wm_operator_poll_msg_set(C, "Context missing active object");
     return 0;

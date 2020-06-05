@@ -296,11 +296,6 @@ static bool edit_shaderfx_poll_generic(bContext *C, StructRNA *rna_type, int obt
   PointerRNA ptr = CTX_data_pointer_get_type(C, "shaderfx", rna_type);
   Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
 
-  if (!ptr.data) {
-    CTX_wm_operator_poll_msg_set(C, "Context missing 'shaderfx'");
-    return 0;
-  }
-
   if (!ob || ID_IS_LINKED(ob)) {
     return 0;
   }
