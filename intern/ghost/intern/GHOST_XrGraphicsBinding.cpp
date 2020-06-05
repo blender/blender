@@ -181,7 +181,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
 
-  bool needsUpsideDownDrawing(GHOST_Context &ghost_ctx) const
+  bool needsUpsideDownDrawing(GHOST_Context &ghost_ctx) const override
   {
     return ghost_ctx.isUpsideDown();
   }
