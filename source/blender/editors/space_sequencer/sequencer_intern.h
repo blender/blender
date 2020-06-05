@@ -158,6 +158,7 @@ void SEQUENCER_OT_view_all_preview(struct wmOperatorType *ot);
 /* sequencer_select.c */
 void SEQUENCER_OT_select_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_select(struct wmOperatorType *ot);
+void SEQUENCER_OT_select_side_of_frame(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_more(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_less(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_linked(struct wmOperatorType *ot);
@@ -184,14 +185,6 @@ enum {
 enum {
   SEQ_SELECTED,
   SEQ_UNSELECTED,
-};
-
-enum {
-  SEQ_SELECT_LR_NONE = 0,
-  SEQ_SELECT_LR_MOUSE,
-  SEQ_SELECT_LR_LEFT,
-  SEQ_SELECT_LR_RIGHT,
-  SEQ_SELECT_LR_OVERLAP,
 };
 
 /* Defines used internally. */

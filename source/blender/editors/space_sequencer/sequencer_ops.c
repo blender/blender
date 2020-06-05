@@ -99,6 +99,7 @@ void sequencer_operatortypes(void)
   WM_operatortype_append(SEQUENCER_OT_select_linked);
   WM_operatortype_append(SEQUENCER_OT_select_handles);
   WM_operatortype_append(SEQUENCER_OT_select_side);
+  WM_operatortype_append(SEQUENCER_OT_select_side_of_frame);
   WM_operatortype_append(SEQUENCER_OT_select_box);
   WM_operatortype_append(SEQUENCER_OT_select_grouped);
 
