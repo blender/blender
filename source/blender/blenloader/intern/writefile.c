@@ -1250,84 +1250,84 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)
   }
 }
 
-static void write_keymapitem(WriteData *wd, const wmKeyMapItem *kmi)
+static void write_keymapitem(BlendWriter *writer, const wmKeyMapItem *kmi)
 {
-  writestruct(wd, DATA, wmKeyMapItem, 1, kmi);
+  BLO_write_struct(writer, wmKeyMapItem, kmi);
   if (kmi->properties) {
-    IDP_WriteProperty(kmi->properties, wd);
+    IDP_WriteProperty_new_api(kmi->properties, writer);
   }
 }
 
-static void write_userdef(WriteData *wd, const UserDef *userdef)
+static void write_userdef(BlendWriter *writer, const UserDef *userdef)
 {
-  writestruct(wd, USER, UserDef, 1, userdef);
+  writestruct(writer->wd, USER, UserDef, 1, userdef);
 
   LISTBASE_FOREACH (const bTheme *, btheme, &userdef->themes) {
-    writestruct(wd, DATA, bTheme, 1, btheme);
+    BLO_write_struct(writer, bTheme, btheme);
   }
 
   LISTBASE_FOREACH (const wmKeyMap *, keymap, &userdef->user_keymaps) {
-    writestruct(wd, DATA, wmKeyMap, 1, keymap);
+    BLO_write_struct(writer, wmKeyMap, keymap);
 
     LISTBASE_FOREACH (const wmKeyMapDiffItem *, kmdi, &keymap->diff_items) {
-      writestruct(wd, DATA, wmKeyMapDiffItem, 1, kmdi);
+      BLO_write_struct(writer, wmKeyMapDiffItem, kmdi);
       if (kmdi->remove_item) {
-        write_keymapitem(wd, kmdi->remove_item);
+        write_keymapitem(writer, kmdi->remove_item);
       }
       if (kmdi->add_item) {
-        write_keymapitem(wd, kmdi->add_item);
+        write_keymapitem(writer, kmdi->add_item);
       }
     }
 
     LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &keymap->items) {
-      write_keymapitem(wd, kmi);
+      write_keymapitem(writer, kmi);
     }
   }
 
   LISTBASE_FOREACH (const wmKeyConfigPref *, kpt, &userdef->user_keyconfig_prefs) {
-    writestruct(wd, DATA, wmKeyConfigPref, 1, kpt);
+    BLO_write_struct(writer, wmKeyConfigPref, kpt);
     if (kpt->prop) {
-      IDP_WriteProperty(kpt->prop, wd);
+      IDP_WriteProperty_new_api(kpt->prop, writer);
     }
   }
 
   LISTBASE_FOREACH (const bUserMenu *, um, &userdef->user_menus) {
-    writestruct(wd, DATA, bUserMenu, 1, um);
+    BLO_write_struct(writer, bUserMenu, um);
     LISTBASE_FOREACH (const bUserMenuItem *, umi, &um->items) {
       if (umi->type == USER_MENU_TYPE_OPERATOR) {
         const bUserMenuItem_Op *umi_op = (const bUserMenuItem_Op *)umi;
-        writestruct(wd, DATA, bUserMenuItem_Op, 1, umi_op);
+        BLO_write_struct(writer, bUserMenuItem_Op, umi_op);
         if (umi_op->prop) {
-          IDP_WriteProperty(umi_op->prop, wd);
+          IDP_WriteProperty_new_api(umi_op->prop, writer);
         }
       }
       else if (umi->type == USER_MENU_TYPE_MENU) {
         const bUserMenuItem_Menu *umi_mt = (const bUserMenuItem_Menu *)umi;
-        writestruct(wd, DATA, bUserMenuItem_Menu, 1, umi_mt);
+        BLO_write_struct(writer, bUserMenuItem_Menu, umi_mt);
       }
       else if (umi->type == USER_MENU_TYPE_PROP) {
         const bUserMenuItem_Prop *umi_pr = (const bUserMenuItem_Prop *)umi;
-        writestruct(wd, DATA, bUserMenuItem_Prop, 1, umi_pr);
+        BLO_write_struct(writer, bUserMenuItem_Prop, umi_pr);
       }
       else {
-        writestruct(wd, DATA, bUserMenuItem, 1, umi);
+        BLO_write_struct(writer, bUserMenuItem, umi);
       }
     }
   }
 
   LISTBASE_FOREACH (const bAddon *, bext, &userdef->addons) {
-    writestruct(wd, DATA, bAddon, 1, bext);
+    BLO_write_struct(writer, bAddon, bext);
     if (bext->prop) {
-      IDP_WriteProperty(bext->prop, wd);
+      IDP_WriteProperty_new_api(bext->prop, writer);
     }
   }
 
   LISTBASE_FOREACH (const bPathCompare *, path_cmp, &userdef->autoexec_paths) {
-    writestruct(wd, DATA, bPathCompare, 1, path_cmp);
+    BLO_write_struct(writer, bPathCompare, path_cmp);
   }
 
   LISTBASE_FOREACH (const uiStyle *, style, &userdef->uistyles) {
-    writestruct(wd, DATA, uiStyle, 1, style);
+    BLO_write_struct(writer, uiStyle, style);
   }
 }
 
@@ -4088,6 +4088,7 @@ static bool write_file_handle(Main *mainvar,
   blo_split_main(&mainlist, mainvar);
 
   wd = mywrite_begin(ww, compare, current);
+  BlendWriter writer = {wd};
 
   sprintf(buf,
           "BLENDER%c%c%.3d",
@@ -4175,8 +4176,6 @@ static bool write_file_handle(Main *mainvar,
          * between undo steps. */
         ((ID *)id_buffer)->prev = NULL;
         ((ID *)id_buffer)->next = NULL;
-
-        BlendWriter writer = {wd};
 
         switch ((ID_Type)GS(id->name)) {
           case ID_WM:
@@ -4333,7 +4332,7 @@ static bool write_file_handle(Main *mainvar,
   mywrite_flush(wd);
 
   if (write_flags & G_FILE_USERPREFS) {
-    write_userdef(wd, &U);
+    write_userdef(&writer, &U);
   }
 
   /* Write DNA last, because (to be implemented) test for which structs are written.
