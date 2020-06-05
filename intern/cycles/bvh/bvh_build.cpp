@@ -626,8 +626,8 @@ BVHNode *BVHBuild::build_node(const BVHObjectBinning &range, int level)
     /* Threaded build */
     inner = new InnerNode(bounds);
 
-    task_pool.push([=] { thread_build_node(inner, 0, left, level + 1); }, true);
-    task_pool.push([=] { thread_build_node(inner, 1, right, level + 1); }, true);
+    task_pool.push([=] { thread_build_node(inner, 0, left, level + 1); });
+    task_pool.push([=] { thread_build_node(inner, 1, right, level + 1); });
   }
 
   if (do_unalinged_split) {
@@ -742,16 +742,12 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
 
     /* Create tasks for left and right nodes, using copy for most arguments and
      * move for reference to avoid memory copies. */
-    task_pool.push(
-        [=, refs = std::move(left_references)]() mutable {
-          thread_build_spatial_split_node(inner, 0, left, refs, level + 1);
-        },
-        true);
-    task_pool.push(
-        [=, refs = std::move(right_references)]() mutable {
-          thread_build_spatial_split_node(inner, 1, right, refs, level + 1);
-        },
-        true);
+    task_pool.push([=, refs = std::move(left_references)]() mutable {
+      thread_build_spatial_split_node(inner, 0, left, refs, level + 1);
+    });
+    task_pool.push([=, refs = std::move(right_references)]() mutable {
+      thread_build_spatial_split_node(inner, 1, right, refs, level + 1);
+    });
   }
 
   if (do_unalinged_split) {

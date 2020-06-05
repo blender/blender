@@ -319,7 +319,8 @@ class Device {
   virtual void mem_free_sub_ptr(device_ptr /*ptr*/){};
 
  public:
-  virtual ~Device();
+  /* noexcept needed to silence TBB warning. */
+  virtual ~Device() noexcept(false);
 
   /* info */
   DeviceInfo info;

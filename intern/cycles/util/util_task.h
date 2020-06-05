@@ -25,6 +25,10 @@
 #define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
 #include <tbb/tbb.h>
 
+#if TBB_INTERFACE_VERSION_MAJOR >= 10
+#  define WITH_TBB_GLOBAL_CONTROL
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 using tbb::blocked_range;
@@ -62,24 +66,15 @@ class TaskPool {
   TaskPool();
   ~TaskPool();
 
-  void push(TaskRunFunction &&task, bool front = false);
+  void push(TaskRunFunction &&task);
 
   void wait_work(Summary *stats = NULL); /* work and wait until all tasks are done */
-  void cancel();                         /* cancel all tasks, keep worker threads running */
+  void cancel(); /* cancel all tasks and wait until they are no longer executing */
 
   bool canceled(); /* for worker threads, test if canceled */
 
  protected:
-  friend class TaskScheduler;
-
-  void num_decrease(int done);
-  void num_increase();
-
-  thread_mutex num_mutex;
-  thread_condition_variable num_cond;
-
-  int num;
-  bool do_cancel;
+  tbb::task_group tbb_group;
 
   /* ** Statistics ** */
 
@@ -101,40 +96,19 @@ class TaskScheduler {
   static void exit();
   static void free_memory();
 
-  /* number of threads that can work on task */
-  static int num_threads()
-  {
-    return threads.size();
-  }
-
-  /* test if any session is using the scheduler */
-  static bool active()
-  {
-    return users != 0;
-  }
+  /* Approximate number of threads that will work on task, which may be lower
+   * or higher than the actual number of threads. Use as little as possible and
+   * leave splitting up tasks to the scheduler.. */
+  static int num_threads();
 
  protected:
-  friend class TaskPool;
-
-  struct Entry {
-    TaskRunFunction *task;
-    TaskPool *pool;
-  };
-
   static thread_mutex mutex;
   static int users;
-  static vector<thread *> threads;
-  static bool do_exit;
+  static int active_num_threads;
 
-  static list<Entry> queue;
-  static thread_mutex queue_mutex;
-  static thread_condition_variable queue_cond;
-
-  static void thread_run();
-  static bool thread_wait_pop(Entry &entry);
-
-  static void push(Entry &entry, bool front);
-  static void clear(TaskPool *pool);
+#ifdef WITH_TBB_GLOBAL_CONTROL
+  static tbb::global_control *global_control;
+#endif
 };
 
 /* Dedicated Task Pool

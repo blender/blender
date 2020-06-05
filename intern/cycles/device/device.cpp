@@ -77,7 +77,7 @@ std::ostream &operator<<(std::ostream &os, const DeviceRequestedFeatures &reques
 
 /* Device */
 
-Device::~Device()
+Device::~Device() noexcept(false)
 {
   if (!background) {
     if (vertex_buffer != 0) {

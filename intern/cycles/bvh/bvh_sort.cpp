@@ -147,7 +147,7 @@ static void bvh_reference_sort_threaded(TaskPool *task_pool,
     if (left < end) {
       if (start < right) {
         task_pool->push(
-            function_bind(bvh_reference_sort_threaded, task_pool, data, left, end, compare), true);
+            function_bind(bvh_reference_sort_threaded, task_pool, data, left, end, compare));
       }
       else {
         start = left;
