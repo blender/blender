@@ -77,21 +77,21 @@ using_snd_pushout_sp$ID$ = $SNDPARTICLE_BOUNDARY_PUSHOUT$\n";
 const std::string liquid_alloc =
     "\n\
 mantaMsg('Liquid alloc')\n\
-phiParts_s$ID$   = s$ID$.create(LevelsetGrid)\n\
-phi_s$ID$        = s$ID$.create(LevelsetGrid)\n\
-phiTmp_s$ID$     = s$ID$.create(LevelsetGrid)\n\
-velOld_s$ID$     = s$ID$.create(MACGrid)\n\
-velParts_s$ID$   = s$ID$.create(MACGrid)\n\
-mapWeights_s$ID$ = s$ID$.create(MACGrid)\n\
+phiParts_s$ID$   = s$ID$.create(LevelsetGrid, name='$NAME_PHIPARTS$')\n\
+phi_s$ID$        = s$ID$.create(LevelsetGrid, name='$NAME_PHI$')\n\
+phiTmp_s$ID$     = s$ID$.create(LevelsetGrid, name='$NAME_PHITMP$')\n\
+velOld_s$ID$     = s$ID$.create(MACGrid, name='$NAME_VELOLD$')\n\
+velParts_s$ID$   = s$ID$.create(MACGrid, name='$NAME_VELPARTS$')\n\
+mapWeights_s$ID$ = s$ID$.create(MACGrid, name='$NAME_MAPWEIGHTS$')\n\
 fractions_s$ID$  = None # allocated dynamically\n\
 curvature_s$ID$  = None\n\
 \n\
-pp_s$ID$         = s$ID$.create(BasicParticleSystem)\n\
-pVel_pp$ID$      = pp_s$ID$.create(PdataVec3)\n\
+pp_s$ID$         = s$ID$.create(BasicParticleSystem, name='$NAME_PP$')\n\
+pVel_pp$ID$      = pp_s$ID$.create(PdataVec3, name='$NAME_PVEL$')\n\
 \n\
 # Acceleration data for particle nbs\n\
-pindex_s$ID$     = s$ID$.create(ParticleIndexSystem)\n\
-gpi_s$ID$        = s$ID$.create(IntGrid)\n\
+pindex_s$ID$     = s$ID$.create(ParticleIndexSystem, name='$NAME_PINDEX$')\n\
+gpi_s$ID$        = s$ID$.create(IntGrid, name='$NAME_GPI$')\n\
 \n\
 # Keep track of important objects in dict to load them later on\n\
 liquid_data_dict_final_s$ID$ = dict(pp=pp_s$ID$, pVel=pVel_pp$ID$)\n\
@@ -100,19 +100,19 @@ liquid_data_dict_resume_s$ID$ = dict(phiParts=phiParts_s$ID$, phi=phi_s$ID$, phi
 const std::string liquid_alloc_mesh =
     "\n\
 mantaMsg('Liquid alloc mesh')\n\
-phiParts_sm$ID$ = sm$ID$.create(LevelsetGrid)\n\
-phi_sm$ID$      = sm$ID$.create(LevelsetGrid)\n\
-pp_sm$ID$       = sm$ID$.create(BasicParticleSystem)\n\
-flags_sm$ID$    = sm$ID$.create(FlagGrid)\n\
-mesh_sm$ID$     = sm$ID$.create(Mesh)\n\
+phiParts_sm$ID$ = sm$ID$.create(LevelsetGrid, name='$NAME_PHIPARTS_MESH$')\n\
+phi_sm$ID$      = sm$ID$.create(LevelsetGrid, name='$NAME_PHI_MESH$')\n\
+pp_sm$ID$       = sm$ID$.create(BasicParticleSystem, name='$NAME_PP_MESH$')\n\
+flags_sm$ID$    = sm$ID$.create(FlagGrid, name='$NAME_FLAGS_MESH$')\n\
+mesh_sm$ID$     = sm$ID$.create(Mesh, name='$NAME_LMESH$')\n\
 \n\
 if using_speedvectors_s$ID$:\n\
-    mVel_mesh$ID$ = mesh_sm$ID$.create(MdataVec3)\n\
-    vel_sm$ID$    = sm$ID$.create(MACGrid)\n\
+    mVel_mesh$ID$ = mesh_sm$ID$.create(MdataVec3, name='$NAME_VELOCITYVEC_MESH$')\n\
+    vel_sm$ID$    = sm$ID$.create(MACGrid, name='$NAME_VELOCITY_MESH$')\n\
 \n\
 # Acceleration data for particle nbs\n\
-pindex_sm$ID$  = sm$ID$.create(ParticleIndexSystem)\n\
-gpi_sm$ID$     = sm$ID$.create(IntGrid)\n\
+pindex_sm$ID$  = sm$ID$.create(ParticleIndexSystem, name='$NAME_PINDEX_MESH$')\n\
+gpi_sm$ID$     = sm$ID$.create(IntGrid, name='$NAME_GPI_MESH$')\n\
 \n\
 # Set some initial values\n\
 phiParts_sm$ID$.setConst(9999)\n\
@@ -127,24 +127,24 @@ if using_speedvectors_s$ID$:\n\
 const std::string liquid_alloc_curvature =
     "\n\
 mantaMsg('Liquid alloc curvature')\n\
-curvature_s$ID$  = s$ID$.create(RealGrid)\n";
+curvature_s$ID$  = s$ID$.create(RealGrid, name='$NAME_CURVATURE$')\n";
 
 const std::string liquid_alloc_particles =
     "\n\
-ppSnd_sp$ID$         = sp$ID$.create(BasicParticleSystem)\n\
-pVelSnd_pp$ID$       = ppSnd_sp$ID$.create(PdataVec3)\n\
-pForceSnd_pp$ID$     = ppSnd_sp$ID$.create(PdataVec3)\n\
-pLifeSnd_pp$ID$      = ppSnd_sp$ID$.create(PdataReal)\n\
-vel_sp$ID$           = sp$ID$.create(MACGrid)\n\
-flags_sp$ID$         = sp$ID$.create(FlagGrid)\n\
-phi_sp$ID$           = sp$ID$.create(LevelsetGrid)\n\
-phiObs_sp$ID$        = sp$ID$.create(LevelsetGrid)\n\
-phiOut_sp$ID$        = sp$ID$.create(LevelsetGrid)\n\
-normal_sp$ID$        = sp$ID$.create(VecGrid)\n\
-neighborRatio_sp$ID$ = sp$ID$.create(RealGrid)\n\
-trappedAir_sp$ID$    = sp$ID$.create(RealGrid)\n\
-waveCrest_sp$ID$     = sp$ID$.create(RealGrid)\n\
-kineticEnergy_sp$ID$ = sp$ID$.create(RealGrid)\n\
+ppSnd_sp$ID$         = sp$ID$.create(BasicParticleSystem, name='$FLUID_NAME_PP_PARTICLES$')\n\
+pVelSnd_pp$ID$       = ppSnd_sp$ID$.create(PdataVec3, name='$FLUID_NAME_PVEL_PARTICLES$')\n\
+pForceSnd_pp$ID$     = ppSnd_sp$ID$.create(PdataVec3, name='$FLUID_NAME_PFORCE_PARTICLES$')\n\
+pLifeSnd_pp$ID$      = ppSnd_sp$ID$.create(PdataReal, name='$FLUID_NAME_PLIFE_PARTICLES$')\n\
+vel_sp$ID$           = sp$ID$.create(MACGrid, name='$FLUID_NAME_VELOCITY_PARTICLES$')\n\
+flags_sp$ID$         = sp$ID$.create(FlagGrid, name='$FLUID_NAME_FLAGS_PARTICLES$')\n\
+phi_sp$ID$           = sp$ID$.create(LevelsetGrid, name='$FLUID_NAME_PHI_PARTICLES$')\n\
+phiObs_sp$ID$        = sp$ID$.create(LevelsetGrid, name='$FLUID_NAME_PHIOBS_PARTICLES$')\n\
+phiOut_sp$ID$        = sp$ID$.create(LevelsetGrid, name='$FLUID_NAME_PHIOUT_PARTICLES$')\n\
+normal_sp$ID$        = sp$ID$.create(VecGrid, name='$FLUID_NAME_NORMAL_PARTICLES$')\n\
+neighborRatio_sp$ID$ = sp$ID$.create(RealGrid, name='$FLUID_NAME_NEIGHBORRATIO_PARTICLES$')\n\
+trappedAir_sp$ID$    = sp$ID$.create(RealGrid, name='$FLUID_NAME_TRAPPEDAIR_PARTICLES$')\n\
+waveCrest_sp$ID$     = sp$ID$.create(RealGrid, name='$FLUID_NAME_WAVECREST_PARTICLES$')\n\
+kineticEnergy_sp$ID$ = sp$ID$.create(RealGrid, name='$FLUID_NAME_KINETICENERGY_PARTICLES$')\n\
 \n\
 # Set some initial values\n\
 phi_sp$ID$.setConst(9999)\n\

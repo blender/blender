@@ -258,21 +258,21 @@ def fluid_adapt_time_step_$ID$():\n\
 const std::string fluid_alloc =
     "\n\
 mantaMsg('Fluid alloc data')\n\
-flags_s$ID$       = s$ID$.create(FlagGrid)\n\
+flags_s$ID$       = s$ID$.create(FlagGrid, name='$NAME_FLAGS$')\n\
 vel_s$ID$         = s$ID$.create(MACGrid, name='$NAME_VELOCITY$')\n\
-velTmp_s$ID$      = s$ID$.create(MACGrid)\n\
-x_vel_s$ID$       = s$ID$.create(RealGrid)\n\
-y_vel_s$ID$       = s$ID$.create(RealGrid)\n\
-z_vel_s$ID$       = s$ID$.create(RealGrid)\n\
-pressure_s$ID$    = s$ID$.create(RealGrid)\n\
-phiObs_s$ID$      = s$ID$.create(LevelsetGrid)\n\
-phiSIn_s$ID$      = s$ID$.create(LevelsetGrid) # helper for static flow objects\n\
-phiIn_s$ID$       = s$ID$.create(LevelsetGrid)\n\
-phiOut_s$ID$      = s$ID$.create(LevelsetGrid)\n\
-forces_s$ID$      = s$ID$.create(Vec3Grid)\n\
-x_force_s$ID$     = s$ID$.create(RealGrid)\n\
-y_force_s$ID$     = s$ID$.create(RealGrid)\n\
-z_force_s$ID$     = s$ID$.create(RealGrid)\n\
+velTmp_s$ID$      = s$ID$.create(MACGrid, name='$NAME_VELOCITYTMP$')\n\
+x_vel_s$ID$       = s$ID$.create(RealGrid, name='$NAME_VELOCITY_X$')\n\
+y_vel_s$ID$       = s$ID$.create(RealGrid, name='$NAME_VELOCITY_Y$')\n\
+z_vel_s$ID$       = s$ID$.create(RealGrid, name='$NAME_VELOCITY_Z$')\n\
+pressure_s$ID$    = s$ID$.create(RealGrid, name='$NAME_PRESSURE$')\n\
+phiObs_s$ID$      = s$ID$.create(LevelsetGrid, name='$NAME_PHIOBS$')\n\
+phiSIn_s$ID$      = s$ID$.create(LevelsetGrid, name='$NAME_PHISIN$') # helper for static flow objects\n\
+phiIn_s$ID$       = s$ID$.create(LevelsetGrid, name='$NAME_PHIIN$')\n\
+phiOut_s$ID$      = s$ID$.create(LevelsetGrid, name='$NAME_PHIOUT$')\n\
+forces_s$ID$      = s$ID$.create(Vec3Grid, name='$NAME_FORCES$')\n\
+x_force_s$ID$     = s$ID$.create(RealGrid, name='$NAME_FORCES_X$')\n\
+y_force_s$ID$     = s$ID$.create(RealGrid, name='$NAME_FORCES_Y$')\n\
+z_force_s$ID$     = s$ID$.create(RealGrid, name='$NAME_FORCES_Z$')\n\
 obvel_s$ID$       = None\n\
 \n\
 # Set some initial values\n\
@@ -288,14 +288,14 @@ fluid_data_dict_resume_s$ID$ = dict(phiObs=phiObs_s$ID$, phiIn=phiIn_s$ID$, phiO
 const std::string fluid_alloc_obstacle =
     "\n\
 mantaMsg('Allocating obstacle data')\n\
-numObs_s$ID$     = s$ID$.create(RealGrid)\n\
-phiObsSIn_s$ID$  = s$ID$.create(LevelsetGrid) # helper for static obstacle objects\n\
-phiObsIn_s$ID$   = s$ID$.create(LevelsetGrid)\n\
-obvel_s$ID$      = s$ID$.create(MACGrid)\n\
-obvelC_s$ID$     = s$ID$.create(Vec3Grid)\n\
-x_obvel_s$ID$    = s$ID$.create(RealGrid)\n\
-y_obvel_s$ID$    = s$ID$.create(RealGrid)\n\
-z_obvel_s$ID$    = s$ID$.create(RealGrid)\n\
+numObs_s$ID$     = s$ID$.create(RealGrid, name='$NAME_NUMOBS$')\n\
+phiObsSIn_s$ID$  = s$ID$.create(LevelsetGrid, name='$NAME_PHIOBSSIN$') # helper for static obstacle objects\n\
+phiObsIn_s$ID$   = s$ID$.create(LevelsetGrid, name='$NAME_PHIOBSIN$')\n\
+obvel_s$ID$      = s$ID$.create(MACGrid, name='$NAME_OBVEL$')\n\
+obvelC_s$ID$     = s$ID$.create(Vec3Grid, name='$NAME_OBVELC$')\n\
+x_obvel_s$ID$    = s$ID$.create(RealGrid, name='$NAME_OBVEL_X$')\n\
+y_obvel_s$ID$    = s$ID$.create(RealGrid, name='$NAME_OBVEL_Y$')\n\
+z_obvel_s$ID$    = s$ID$.create(RealGrid, name='$NAME_OBVEL_Z$')\n\
 \n\
 # Set some initial values\n\
 phiObsSIn_s$ID$.setConst(9999)\n\
@@ -307,40 +307,40 @@ if 'fluid_data_dict_resume_s$ID$' in globals():\n\
 const std::string fluid_alloc_guiding =
     "\n\
 mantaMsg('Allocating guiding data')\n\
-velT_s$ID$        = s$ID$.create(MACGrid)\n\
-weightGuide_s$ID$ = s$ID$.create(RealGrid)\n\
-numGuides_s$ID$   = s$ID$.create(RealGrid)\n\
-phiGuideIn_s$ID$  = s$ID$.create(LevelsetGrid)\n\
-guidevelC_s$ID$   = s$ID$.create(Vec3Grid)\n\
-x_guidevel_s$ID$  = s$ID$.create(RealGrid)\n\
-y_guidevel_s$ID$  = s$ID$.create(RealGrid)\n\
-z_guidevel_s$ID$  = s$ID$.create(RealGrid)\n\
+velT_s$ID$        = s$ID$.create(MACGrid, name='$NAME_VELT$')\n\
+weightGuide_s$ID$ = s$ID$.create(RealGrid, name='$NAME_WEIGHTGUIDE$')\n\
+numGuides_s$ID$   = s$ID$.create(RealGrid, name='$NAME_NUMGUIDES$')\n\
+phiGuideIn_s$ID$  = s$ID$.create(LevelsetGrid, name='$NAME_PHIGUIDEIN$')\n\
+guidevelC_s$ID$   = s$ID$.create(Vec3Grid, name='$NAME_GUIDEVELC$')\n\
+x_guidevel_s$ID$  = s$ID$.create(RealGrid, name='$NAME_GUIDEVEL_X$')\n\
+y_guidevel_s$ID$  = s$ID$.create(RealGrid, name='$NAME_GUIDEVEL_Y$')\n\
+z_guidevel_s$ID$  = s$ID$.create(RealGrid, name='$NAME_GUIDEVEL_Z$')\n\
 \n\
 # Final guide vel grid needs to have independent size\n\
-guidevel_sg$ID$   = sg$ID$.create(MACGrid)\n\
+guidevel_sg$ID$   = sg$ID$.create(MACGrid, name='$NAME_GUIDEVEL$')\n\
 \n\
 # Keep track of important objects in dict to load them later on\n\
-fluid_guiding_dict_s$ID$ = dict(guidevel=guidevel_sg$ID$)\n";
+fluid_guiding_dict_s$ID$ = { 'guidevel' : guidevel_sg$ID$ }\n";
 
 const std::string fluid_alloc_fractions =
     "\n\
 mantaMsg('Allocating fractions data')\n\
-fractions_s$ID$ = s$ID$.create(MACGrid)\n";
+fractions_s$ID$ = s$ID$.create(MACGrid, name='$NAME_FRACTIONS$')\n";
 
 const std::string fluid_alloc_invel =
     "\n\
 mantaMsg('Allocating initial velocity data')\n\
-invelC_s$ID$  = s$ID$.create(VecGrid)\n\
-invel_s$ID$   = s$ID$.create(MACGrid)\n\
-x_invel_s$ID$ = s$ID$.create(RealGrid)\n\
-y_invel_s$ID$ = s$ID$.create(RealGrid)\n\
-z_invel_s$ID$ = s$ID$.create(RealGrid)\n";
+invelC_s$ID$  = s$ID$.create(VecGrid, name='$NAME_INVELC$')\n\
+invel_s$ID$   = s$ID$.create(MACGrid, name='$NAME_INVEL$')\n\
+x_invel_s$ID$ = s$ID$.create(RealGrid, name='$NAME_INVEL_X$')\n\
+y_invel_s$ID$ = s$ID$.create(RealGrid, name='$NAME_INVEL_Y$')\n\
+z_invel_s$ID$ = s$ID$.create(RealGrid, name='$NAME_INVEL_Z$')\n";
 
 const std::string fluid_alloc_outflow =
     "\n\
 mantaMsg('Allocating outflow data')\n\
-phiOutSIn_s$ID$ = s$ID$.create(LevelsetGrid) # helper for static outflow objects\n\
-phiOutIn_s$ID$  = s$ID$.create(LevelsetGrid)\n\
+phiOutSIn_s$ID$ = s$ID$.create(LevelsetGrid, name='$NAME_PHIOUTSIN$') # helper for static outflow objects\n\
+phiOutIn_s$ID$  = s$ID$.create(LevelsetGrid, name='$NAME_PHIOUTIN$')\n\
 \n\
 # Set some initial values\n\
 phiOutSIn_s$ID$.setConst(9999)\n\

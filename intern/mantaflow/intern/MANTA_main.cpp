@@ -858,23 +858,144 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   mRNAMap["GRAVITY_Y"] = to_string(mds->gravity[1]);
   mRNAMap["GRAVITY_Z"] = to_string(mds->gravity[2]);
   mRNAMap["CACHE_DIR"] = cacheDirectory;
-  mRNAMap["NAME_DENSITY"] = FLUID_GRIDNAME_DENSITY;
-  mRNAMap["NAME_SHADOW"] = FLUID_GRIDNAME_SHADOW;
-  mRNAMap["NAME_HEAT"] = FLUID_GRIDNAME_HEAT;
-  mRNAMap["NAME_VELOCITY"] = FLUID_GRIDNAME_VELOCITY;
-  mRNAMap["NAME_COLORR"] = FLUID_GRIDNAME_COLORR;
-  mRNAMap["NAME_COLORG"] = FLUID_GRIDNAME_COLORG;
-  mRNAMap["NAME_COLORB"] = FLUID_GRIDNAME_COLORB;
-  mRNAMap["NAME_FLAME"] = FLUID_GRIDNAME_FLAME;
-  mRNAMap["NAME_FUEL"] = FLUID_GRIDNAME_FUEL;
-  mRNAMap["NAME_REACT"] = FLUID_GRIDNAME_REACT;
-  mRNAMap["NAME_DENSITYNOISE"] = FLUID_GRIDNAME_DENSITYNOISE;
-  mRNAMap["NAME_COLORRNOISE"] = FLUID_GRIDNAME_COLORRNOISE;
-  mRNAMap["NAME_COLORGNOISE"] = FLUID_GRIDNAME_COLORGNOISE;
-  mRNAMap["NAME_COLORBNOISE"] = FLUID_GRIDNAME_COLORBNOISE;
-  mRNAMap["NAME_FLAMENOISE"] = FLUID_GRIDNAME_FLAMENOISE;
-  mRNAMap["NAME_FUELNOISE"] = FLUID_GRIDNAME_FUELNOISE;
-  mRNAMap["NAME_REACTNOISE"] = FLUID_GRIDNAME_REACTNOISE;
+
+  /* Fluid object names. */
+  mRNAMap["NAME_FLAGS"] = FLUID_NAME_FLAGS;
+  mRNAMap["NAME_VELOCITY"] = FLUID_NAME_VELOCITY;
+  mRNAMap["NAME_VELOCITYTMP"] = FLUID_NAME_VELOCITYTMP;
+  mRNAMap["NAME_VELOCITY_X"] = FLUID_NAME_VELOCITYX;
+  mRNAMap["NAME_VELOCITY_Y"] = FLUID_NAME_VELOCITYY;
+  mRNAMap["NAME_VELOCITY_Z"] = FLUID_NAME_VELOCITYZ;
+  mRNAMap["NAME_PRESSURE"] = FLUID_NAME_PRESSURE;
+  mRNAMap["NAME_PHIOBS"] = FLUID_NAME_PHIOBS;
+  mRNAMap["NAME_PHISIN"] = FLUID_NAME_PHISIN;
+  mRNAMap["NAME_PHIIN"] = FLUID_NAME_PHIIN;
+  mRNAMap["NAME_PHIOUT"] = FLUID_NAME_PHIOUT;
+  mRNAMap["NAME_FORCES"] = FLUID_NAME_FORCES;
+  mRNAMap["NAME_FORCES_X"] = FLUID_NAME_FORCE_X;
+  mRNAMap["NAME_FORCES_Y"] = FLUID_NAME_FORCE_Y;
+  mRNAMap["NAME_FORCES_Z"] = FLUID_NAME_FORCE_Z;
+  mRNAMap["NAME_NUMOBS"] = FLUID_NAME_NUMOBS;
+  mRNAMap["NAME_PHIOBSSIN"] = FLUID_NAME_PHIOBSSIN;
+  mRNAMap["NAME_PHIOBSIN"] = FLUID_NAME_PHIOBSIN;
+  mRNAMap["NAME_OBVEL"] = FLUID_NAME_OBVEL;
+  mRNAMap["NAME_OBVELC"] = FLUID_NAME_OBVELC;
+  mRNAMap["NAME_OBVEL_X"] = FLUID_NAME_OBVEL_X;
+  mRNAMap["NAME_OBVEL_Y"] = FLUID_NAME_OBVEL_Y;
+  mRNAMap["NAME_OBVEL_Z"] = FLUID_NAME_OBVEL_Z;
+  mRNAMap["NAME_FRACTIONS"] = FLUID_NAME_FRACTIONS;
+  mRNAMap["NAME_INVELC"] = FLUID_NAME_INVELC;
+  mRNAMap["NAME_INVEL"] = FLUID_NAME_INVEL;
+  mRNAMap["NAME_INVEL_X"] = FLUID_NAME_INVEL_X;
+  mRNAMap["NAME_INVEL_Y"] = FLUID_NAME_INVEL_Y;
+  mRNAMap["NAME_INVEL_Z"] = FLUID_NAME_INVEL_Z;
+  mRNAMap["NAME_PHIOUTSIN"] = FLUID_NAME_PHIOUTSIN;
+  mRNAMap["NAME_PHIOUTIN"] = FLUID_NAME_PHIOUTIN;
+
+  /* Smoke object names. */
+  mRNAMap["NAME_SHADOW"] = FLUID_NAME_SHADOW;
+  mRNAMap["NAME_EMISSION"] = FLUID_NAME_EMISSION;
+  mRNAMap["NAME_EMISSIONIN"] = FLUID_NAME_EMISSIONIN;
+  mRNAMap["NAME_DENSITY"] = FLUID_NAME_DENSITY;
+  mRNAMap["NAME_DENSITYIN"] = FLUID_NAME_DENSITYIN;
+  mRNAMap["NAME_HEAT"] = FLUID_NAME_HEAT;
+  mRNAMap["NAME_HEATIN"] = FLUID_NAME_HEATIN;
+  mRNAMap["NAME_COLORR"] = FLUID_NAME_COLORR;
+  mRNAMap["NAME_COLORG"] = FLUID_NAME_COLORG;
+  mRNAMap["NAME_COLORB"] = FLUID_NAME_COLORB;
+  mRNAMap["NAME_COLORRIN"] = FLUID_NAME_COLORRIN;
+  mRNAMap["NAME_COLORGIN"] = FLUID_NAME_COLORGIN;
+  mRNAMap["NAME_COLORBIN"] = FLUID_NAME_COLORBIN;
+  mRNAMap["NAME_FLAME"] = FLUID_NAME_FLAME;
+  mRNAMap["NAME_FUEL"] = FLUID_NAME_FUEL;
+  mRNAMap["NAME_REACT"] = FLUID_NAME_REACT;
+  mRNAMap["NAME_FUELIN"] = FLUID_NAME_FUELIN;
+  mRNAMap["NAME_REACTIN"] = FLUID_NAME_REACTIN;
+
+  /* Liquid object names. */
+  mRNAMap["NAME_PHIPARTS"] = FLUID_NAME_PHIPARTS;
+  mRNAMap["NAME_PHI"] = FLUID_NAME_PHI;
+  mRNAMap["NAME_PHITMP"] = FLUID_NAME_PHITMP;
+  mRNAMap["NAME_VELOLD"] = FLUID_NAME_VELOCITYOLD;
+  mRNAMap["NAME_VELPARTS"] = FLUID_NAME_VELOCITYPARTS;
+  mRNAMap["NAME_MAPWEIGHTS"] = FLUID_NAME_MAPWEIGHTS;
+  mRNAMap["NAME_PP"] = FLUID_NAME_PP;
+  mRNAMap["NAME_PVEL"] = FLUID_NAME_PVEL;
+  mRNAMap["NAME_PINDEX"] = FLUID_NAME_PINDEX;
+  mRNAMap["NAME_GPI"] = FLUID_NAME_GPI;
+  mRNAMap["NAME_CURVATURE"] = FLUID_NAME_CURVATURE;
+
+  /* Noise object names. */
+  mRNAMap["NAME_VELOCITY_NOISE"] = FLUID_NAME_VELOCITY_NOISE;
+  mRNAMap["NAME_DENSITY_NOISE"] = FLUID_NAME_DENSITY_NOISE;
+  mRNAMap["NAME_PHIIN_NOISE"] = FLUID_NAME_PHIIN_NOISE;
+  mRNAMap["NAME_PHIOUT_NOISE"] = FLUID_NAME_PHIOUT_NOISE;
+  mRNAMap["NAME_PHIOBS_NOISE"] = FLUID_NAME_PHIOBS_NOISE;
+  mRNAMap["NAME_FLAGS_NOISE"] = FLUID_NAME_FLAGS_NOISE;
+  mRNAMap["NAME_TMPIN_NOISE"] = FLUID_NAME_TMPIN_NOISE;
+  mRNAMap["NAME_EMISSIONIN_NOISE"] = FLUID_NAME_EMISSIONIN_NOISE;
+  mRNAMap["NAME_ENERGY"] = FLUID_NAME_ENERGY;
+  mRNAMap["NAME_TMPFLAGS"] = FLUID_NAME_TMPFLAGS;
+  mRNAMap["NAME_TEXTURE_U"] = FLUID_NAME_TEXTURE_U;
+  mRNAMap["NAME_TEXTURE_V"] = FLUID_NAME_TEXTURE_V;
+  mRNAMap["NAME_TEXTURE_W"] = FLUID_NAME_TEXTURE_W;
+  mRNAMap["NAME_TEXTURE_U2"] = FLUID_NAME_TEXTURE_U2;
+  mRNAMap["NAME_TEXTURE_V2"] = FLUID_NAME_TEXTURE_V2;
+  mRNAMap["NAME_TEXTURE_W2"] = FLUID_NAME_TEXTURE_W2;
+  mRNAMap["NAME_UV0"] = FLUID_NAME_UV0;
+  mRNAMap["NAME_UV1"] = FLUID_NAME_UV1;
+  mRNAMap["NAME_COLORR_NOISE"] = FLUID_NAME_COLORR_NOISE;
+  mRNAMap["NAME_COLORG_NOISE"] = FLUID_NAME_COLORG_NOISE;
+  mRNAMap["NAME_COLORB_NOISE"] = FLUID_NAME_COLORB_NOISE;
+  mRNAMap["NAME_FLAME_NOISE"] = FLUID_NAME_FLAME_NOISE;
+  mRNAMap["NAME_FUEL_NOISE"] = FLUID_NAME_FUEL_NOISE;
+  mRNAMap["NAME_REACT_NOISE"] = FLUID_NAME_REACT_NOISE;
+
+  /* Mesh object names. */
+  mRNAMap["NAME_PHIPARTS_MESH"] = FLUID_NAME_PHIPARTS_MESH;
+  mRNAMap["NAME_PHI_MESH"] = FLUID_NAME_PHI_MESH;
+  mRNAMap["NAME_PP_MESH"] = FLUID_NAME_PP_MESH;
+  mRNAMap["NAME_FLAGS_MESH"] = FLUID_NAME_FLAGS_MESH;
+  mRNAMap["NAME_LMESH"] = FLUID_NAME_LMESH;
+  mRNAMap["NAME_VELOCITYVEC_MESH"] = FLUID_NAME_VELOCITYVEC_MESH;
+  mRNAMap["NAME_VELOCITY_MESH"] = FLUID_NAME_VELOCITY_MESH;
+  mRNAMap["NAME_PINDEX_MESH"] = FLUID_NAME_PINDEX_MESH;
+  mRNAMap["NAME_GPI_MESH"] = FLUID_NAME_GPI_MESH;
+
+  /* Particles object names. */
+  mRNAMap["NAME_PP_PARTICLES"] = FLUID_NAME_PP_PARTICLES;
+  mRNAMap["NAME_PVEL_PARTICLES"] = FLUID_NAME_PVEL_PARTICLES;
+  mRNAMap["NAME_PFORCE_PARTICLES"] = FLUID_NAME_PFORCE_PARTICLES;
+  mRNAMap["NAME_PLIFE_PARTICLES"] = FLUID_NAME_PLIFE_PARTICLES;
+  mRNAMap["NAME_VELOCITY_PARTICLES"] = FLUID_NAME_VELOCITY_PARTICLES;
+  mRNAMap["NAME_FLAGS_PARTICLES"] = FLUID_NAME_FLAGS_PARTICLES;
+  mRNAMap["NAME_PHI_PARTICLES"] = FLUID_NAME_PHI_PARTICLES;
+  mRNAMap["NAME_PHIOBS_PARTICLES"] = FLUID_NAME_PHIOBS_PARTICLES;
+  mRNAMap["NAME_PHIOUT_PARTICLES"] = FLUID_NAME_PHIOUT_PARTICLES;
+  mRNAMap["NAME_NORMAL_PARTICLES"] = FLUID_NAME_NORMAL_PARTICLES;
+  mRNAMap["NAME_NEIGHBORRATIO_PARTICLES"] = FLUID_NAME_NEIGHBORRATIO_PARTICLES;
+  mRNAMap["NAME_TRAPPEDAIR_PARTICLES"] = FLUID_NAME_TRAPPEDAIR_PARTICLES;
+  mRNAMap["NAME_WAVECREST_PARTICLES"] = FLUID_NAME_WAVECREST_PARTICLES;
+  mRNAMap["NAME_KINETICENERGY_PARTICLES"] = FLUID_NAME_KINETICENERGY_PARTICLES;
+
+  /* Guiding object names. */
+  mRNAMap["NAME_VELT"] = FLUID_NAME_VELT;
+  mRNAMap["NAME_WEIGHTGUIDE"] = FLUID_NAME_WEIGHTGUIDE;
+  mRNAMap["NAME_NUMGUIDES"] = FLUID_NAME_NUMGUIDES;
+  mRNAMap["NAME_PHIGUIDEIN"] = FLUID_NAME_PHIGUIDEIN;
+  mRNAMap["NAME_GUIDEVELC"] = FLUID_NAME_GUIDEVELC;
+  mRNAMap["NAME_GUIDEVEL_X"] = FLUID_NAME_GUIDEVEL_X;
+  mRNAMap["NAME_GUIDEVEL_Y"] = FLUID_NAME_GUIDEVEL_Y;
+  mRNAMap["NAME_GUIDEVEL_Z"] = FLUID_NAME_GUIDEVEL_Z;
+  mRNAMap["NAME_GUIDEVEL"] = FLUID_NAME_GUIDEVEL;
+
+  /* Cache file names. */
+  mRNAMap["NAME_CONFIG"] = FLUID_NAME_CONFIG;
+  mRNAMap["NAME_DATA"] = FLUID_NAME_DATA;
+  mRNAMap["NAME_NOISE"] = FLUID_NAME_NOISE;
+  mRNAMap["NAME_MESH"] = FLUID_NAME_MESH;
+  mRNAMap["NAME_PARTICLES"] = FLUID_NAME_PARTICLES;
+  mRNAMap["NAME_GUIDING"] = FLUID_NAME_GUIDING;
 }
 
 string MANTA::getRealValue(const string &varName)
@@ -965,7 +1086,7 @@ bool MANTA::updateFlipStructures(FluidModifierData *mmd, int framenr)
   mFlipParticleVelocity->clear();
 
   string pformat = getCacheFileEnding(mds->cache_particle_format);
-  string file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_PP, pformat, framenr);
+  string file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_PP, pformat, framenr);
 
   expected += 1;
   if (BLI_exists(file.c_str())) {
@@ -973,7 +1094,7 @@ bool MANTA::updateFlipStructures(FluidModifierData *mmd, int framenr)
     assert(result == expected);
   }
 
-  file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_PVEL, pformat, framenr);
+  file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_PVEL, pformat, framenr);
   expected += 1;
   if (BLI_exists(file.c_str())) {
     result += updateParticlesFromFile(file, false, true);
@@ -1011,7 +1132,7 @@ bool MANTA::updateMeshStructures(FluidModifierData *mmd, int framenr)
 
   string mformat = getCacheFileEnding(mds->cache_mesh_format);
   string dformat = getCacheFileEnding(mds->cache_data_format);
-  string file = getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_FILENAME_MESH, mformat, framenr);
+  string file = getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_NAME_LMESH, mformat, framenr);
 
   expected += 1;
   if (BLI_exists(file.c_str())) {
@@ -1020,7 +1141,7 @@ bool MANTA::updateMeshStructures(FluidModifierData *mmd, int framenr)
   }
 
   if (mUsingMVel) {
-    file = getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_FILENAME_MESHVEL, dformat, framenr);
+    file = getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_NAME_VELOCITYVEC_MESH, dformat, framenr);
     expected += 1;
     if (BLI_exists(file.c_str())) {
       result += updateMeshFromFile(file);
@@ -1056,7 +1177,8 @@ bool MANTA::updateParticleStructures(FluidModifierData *mmd, int framenr)
   mSndParticleLife->clear();
 
   string pformat = getCacheFileEnding(mds->cache_particle_format);
-  string file = getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_FILENAME_PPSND, pformat, framenr);
+  string file = getFile(
+      mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PP_PARTICLES, pformat, framenr);
 
   expected += 1;
   if (BLI_exists(file.c_str())) {
@@ -1064,14 +1186,14 @@ bool MANTA::updateParticleStructures(FluidModifierData *mmd, int framenr)
     assert(result == expected);
   }
 
-  file = getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_FILENAME_PVELSND, pformat, framenr);
+  file = getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PVEL_PARTICLES, pformat, framenr);
   expected += 1;
   if (BLI_exists(file.c_str())) {
     result += updateParticlesFromFile(file, true, true);
     assert(result == expected);
   }
 
-  file = getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_FILENAME_PLIFESND, pformat, framenr);
+  file = getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PLIFE_PARTICLES, pformat, framenr);
   expected += 1;
   if (BLI_exists(file.c_str())) {
     result += updateParticlesFromFile(file, true, false);
@@ -1135,29 +1257,29 @@ bool MANTA::updateSmokeStructures(FluidModifierData *mmd, int framenr)
   void *aReact[] = {mReact};
 
   /* File names for grids. */
-  string fDensity = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_DENSITY, dformat, framenr);
-  string fShadow = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_SHADOW, dformat, framenr);
-  string fVel = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_VELOCITY, dformat, framenr);
-  string fHeat = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_HEAT, dformat, framenr);
-  string fColorR = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_COLORR, dformat, framenr);
-  string fColorG = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_COLORG, dformat, framenr);
-  string fColorB = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_COLORB, dformat, framenr);
-  string fFlame = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_FLAME, dformat, framenr);
-  string fFuel = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_FUEL, dformat, framenr);
-  string fReact = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_REACT, dformat, framenr);
-  string fFluid = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_DATA, dformat, framenr);
+  string fDensity = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_DENSITY, dformat, framenr);
+  string fShadow = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_SHADOW, dformat, framenr);
+  string fVel = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_VELOCITY, dformat, framenr);
+  string fHeat = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_HEAT, dformat, framenr);
+  string fColorR = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_COLORR, dformat, framenr);
+  string fColorG = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_COLORG, dformat, framenr);
+  string fColorB = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_COLORB, dformat, framenr);
+  string fFlame = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_FLAME, dformat, framenr);
+  string fFuel = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_FUEL, dformat, framenr);
+  string fReact = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_REACT, dformat, framenr);
+  string fFluid = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_DATA, dformat, framenr);
 
   /* Prepare grid info containers. */
-  GridItem gDensity = {aDensity, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_DENSITY};
-  GridItem gShadow = {aShadow, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_SHADOW};
-  GridItem gVel = {aVelocities, FLUID_DOMAIN_GRID_VEC3F, res, FLUID_GRIDNAME_VELOCITY};
-  GridItem gHeat = {aHeat, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_HEAT};
-  GridItem gColorR = {aColorR, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_COLORR};
-  GridItem gColorG = {aColorG, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_COLORG};
-  GridItem gColorB = {aColorB, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_COLORB};
-  GridItem gFlame = {aFlame, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_FLAME};
-  GridItem gFuel = {aFuel, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_FUEL};
-  GridItem gReact = {aReact, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_GRIDNAME_REACT};
+  GridItem gDensity = {aDensity, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_DENSITY};
+  GridItem gShadow = {aShadow, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_SHADOW};
+  GridItem gVel = {aVelocities, FLUID_DOMAIN_GRID_VEC3F, res, FLUID_NAME_VELOCITY};
+  GridItem gHeat = {aHeat, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_HEAT};
+  GridItem gColorR = {aColorR, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_COLORR};
+  GridItem gColorG = {aColorG, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_COLORG};
+  GridItem gColorB = {aColorB, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_COLORB};
+  GridItem gFlame = {aFlame, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_FLAME};
+  GridItem gFuel = {aFuel, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_FUEL};
+  GridItem gReact = {aReact, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_REACT};
 
   /* TODO (sebbas): For now, only allow single file mode. Combined grid file export is todo. */
   const int fileMode = FLUID_DOMAIN_CACHE_FILES_SINGLE;
@@ -1252,36 +1374,31 @@ bool MANTA::updateNoiseStructures(FluidModifierData *mmd, int framenr)
   void *aReact[] = {mReactHigh};
 
   /* File names for grids. */
-  string fShadow = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_SHADOW, dformat, framenr);
-  string fVel = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_FILENAME_VELOCITY, dformat, framenr);
-  string fFluid = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_DATA, dformat, framenr);
+  string fShadow = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_SHADOW, dformat, framenr);
+  string fVel = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_VELOCITY, dformat, framenr);
+  string fFluid = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_DATA, dformat, framenr);
 
   string fDensity = getFile(
-      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_DENSITYNOISE, nformat, framenr);
-  string fColorR = getFile(
-      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_COLORRNOISE, nformat, framenr);
-  string fColorG = getFile(
-      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_COLORGNOISE, nformat, framenr);
-  string fColorB = getFile(
-      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_COLORBNOISE, nformat, framenr);
-  string fFlame = getFile(
-      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_FLAMENOISE, nformat, framenr);
-  string fFuel = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_FUELNOISE, nformat, framenr);
-  string fReact = getFile(
-      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_REACTNOISE, nformat, framenr);
-  string fNoise = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_NOISE, nformat, framenr);
+      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_DENSITY_NOISE, nformat, framenr);
+  string fColorR = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_COLORR_NOISE, nformat, framenr);
+  string fColorG = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_COLORG_NOISE, nformat, framenr);
+  string fColorB = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_COLORB_NOISE, nformat, framenr);
+  string fFlame = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_FLAME_NOISE, nformat, framenr);
+  string fFuel = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_FUEL_NOISE, nformat, framenr);
+  string fReact = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_REACT_NOISE, nformat, framenr);
+  string fNoise = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_NOISE, nformat, framenr);
 
   /* Prepare grid info containers. */
-  GridItem gShadow = {aShadow, FLUID_DOMAIN_GRID_FLOAT, resData, FLUID_GRIDNAME_SHADOW};
-  GridItem gVel = {aVelocities, FLUID_DOMAIN_GRID_VEC3F, resData, FLUID_GRIDNAME_VELOCITY};
+  GridItem gShadow = {aShadow, FLUID_DOMAIN_GRID_FLOAT, resData, FLUID_NAME_SHADOW};
+  GridItem gVel = {aVelocities, FLUID_DOMAIN_GRID_VEC3F, resData, FLUID_NAME_VELOCITY};
 
-  GridItem gDensity = {aDensity, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_GRIDNAME_DENSITYNOISE};
-  GridItem gColorR = {aColorR, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_GRIDNAME_COLORRNOISE};
-  GridItem gColorG = {aColorG, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_GRIDNAME_COLORGNOISE};
-  GridItem gColorB = {aColorB, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_GRIDNAME_COLORBNOISE};
-  GridItem gFlame = {aFlame, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_GRIDNAME_FLAMENOISE};
-  GridItem gFuel = {aFuel, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_GRIDNAME_FUELNOISE};
-  GridItem gReact = {aReact, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_GRIDNAME_REACTNOISE};
+  GridItem gDensity = {aDensity, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_NAME_DENSITY_NOISE};
+  GridItem gColorR = {aColorR, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_NAME_COLORR_NOISE};
+  GridItem gColorG = {aColorG, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_NAME_COLORG_NOISE};
+  GridItem gColorB = {aColorB, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_NAME_COLORB_NOISE};
+  GridItem gFlame = {aFlame, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_NAME_FLAME_NOISE};
+  GridItem gFuel = {aFuel, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_NAME_FUEL_NOISE};
+  GridItem gReact = {aReact, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_NAME_REACT_NOISE};
 
   /* TODO (sebbas): For now, only allow single file mode. Combined grid file export is todo. */
   const int fileMode = FLUID_DOMAIN_CACHE_FILES_SINGLE;
@@ -1371,7 +1488,7 @@ bool MANTA::writeConfiguration(FluidModifierData *mmd, int framenr)
 
   string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_CONFIG);
   string format = FLUID_DOMAIN_EXTENSION_UNI;
-  string file = getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_FILENAME_CONFIG, format, framenr);
+  string file = getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_NAME_CONFIG, format, framenr);
 
   /* Create 'config' subdir if it does not exist already. */
   BLI_dir_create_recursive(directory.c_str());
@@ -1471,7 +1588,7 @@ bool MANTA::readConfiguration(FluidModifierData *mmd, int framenr)
 
   string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_CONFIG);
   string format = FLUID_DOMAIN_EXTENSION_UNI;
-  string file = getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_FILENAME_CONFIG, format, framenr);
+  string file = getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_NAME_CONFIG, format, framenr);
 
   if (!hasConfig(mmd, framenr))
     return false;
@@ -3356,42 +3473,64 @@ bool MANTA::hasConfig(FluidModifierData *mmd, int framenr)
 {
   string extension = FLUID_DOMAIN_EXTENSION_UNI;
   return BLI_exists(
-      getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_FILENAME_CONFIG, extension, framenr).c_str());
+      getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_NAME_CONFIG, extension, framenr).c_str());
 }
 
 bool MANTA::hasData(FluidModifierData *mmd, int framenr)
 {
-  string filename = (mUsingSmoke) ? FLUID_FILENAME_DENSITY : FLUID_FILENAME_PP;
   string extension = getCacheFileEnding(mmd->domain->cache_data_format);
-  return BLI_exists(getFile(mmd, FLUID_DOMAIN_DIR_DATA, filename, extension, framenr).c_str());
+  bool exists = BLI_exists(
+      getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_DATA, extension, framenr).c_str());
+
+  /* Check single file naming. */
+  if (!exists) {
+    string filename = (mUsingSmoke) ? FLUID_NAME_DENSITY : FLUID_NAME_PP;
+    exists = BLI_exists(getFile(mmd, FLUID_DOMAIN_DIR_DATA, filename, extension, framenr).c_str());
+  }
+  return exists;
 }
 
 bool MANTA::hasNoise(FluidModifierData *mmd, int framenr)
 {
   string extension = getCacheFileEnding(mmd->domain->cache_noise_format);
-  return BLI_exists(
-      getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_FILENAME_DENSITYNOISE, extension, framenr)
-          .c_str());
+  bool exists = BLI_exists(
+      getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_NOISE, extension, framenr).c_str());
+
+  /* Check single file naming. */
+  if (!exists) {
+    exists = BLI_exists(
+        getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_DENSITY_NOISE, extension, framenr)
+            .c_str());
+  }
+  return exists;
 }
 
 bool MANTA::hasMesh(FluidModifierData *mmd, int framenr)
 {
   string extension = getCacheFileEnding(mmd->domain->cache_mesh_format);
   return BLI_exists(
-      getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_FILENAME_MESH, extension, framenr).c_str());
+      getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_NAME_LMESH, extension, framenr).c_str());
 }
 
 bool MANTA::hasParticles(FluidModifierData *mmd, int framenr)
 {
   string extension = getCacheFileEnding(mmd->domain->cache_particle_format);
-  return BLI_exists(
-      getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_FILENAME_PPSND, extension, framenr).c_str());
+  bool exists = BLI_exists(
+      getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PARTICLES, extension, framenr).c_str());
+
+  /* Check single file naming. */
+  if (!exists) {
+    exists = BLI_exists(
+        getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PP_PARTICLES, extension, framenr)
+            .c_str());
+  }
+  return exists;
 }
 
 bool MANTA::hasGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain)
 {
   string subdirectory = (sourceDomain) ? FLUID_DOMAIN_DIR_DATA : FLUID_DOMAIN_DIR_GUIDE;
-  string filename = (sourceDomain) ? FLUID_FILENAME_VELOCITY : FLUID_FILENAME_GUIDEVEL;
+  string filename = (sourceDomain) ? FLUID_NAME_VELOCITY : FLUID_NAME_GUIDEVEL;
   string extension = getCacheFileEnding(mmd->domain->cache_data_format);
   return BLI_exists(getFile(mmd, subdirectory, filename, extension, framenr).c_str());
 }
@@ -3410,7 +3549,7 @@ string MANTA::getFile(
 {
   char targetFile[FILE_MAX];
   string path = getDirectory(mmd, subdirectory);
-  string filename = fname + extension;
+  string filename = fname + "_####" + extension;
   BLI_join_dirfile(targetFile, sizeof(targetFile), path.c_str(), filename.c_str());
   BLI_path_frame(targetFile, framenr, 0);
   return targetFile;

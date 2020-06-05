@@ -82,10 +82,10 @@ const std::string smoke_alloc =
     "\n\
 mantaMsg('Smoke alloc')\n\
 shadow_s$ID$     = s$ID$.create(RealGrid, name='$NAME_SHADOW$')\n\
-emission_s$ID$   = s$ID$.create(RealGrid)\n\
-emissionIn_s$ID$ = s$ID$.create(RealGrid)\n\
+emission_s$ID$   = s$ID$.create(RealGrid, name='$NAME_EMISSION$')\n\
+emissionIn_s$ID$ = s$ID$.create(RealGrid, name='$NAME_EMISSIONIN$')\n\
 density_s$ID$    = s$ID$.create(RealGrid, name='$NAME_DENSITY$')\n\
-densityIn_s$ID$  = s$ID$.create(RealGrid)\n\
+densityIn_s$ID$  = s$ID$.create(RealGrid, name='$NAME_DENSITYIN$')\n\
 heat_s$ID$       = None # allocated dynamically\n\
 heatIn_s$ID$     = None\n\
 flame_s$ID$      = None\n\
@@ -107,22 +107,22 @@ smoke_data_dict_resume_s$ID$ = dict(densityIn=densityIn_s$ID$, emission=emission
 const std::string smoke_alloc_noise =
     "\n\
 mantaMsg('Smoke alloc noise')\n\
-vel_sn$ID$        = sn$ID$.create(MACGrid)\n\
-density_sn$ID$    = sn$ID$.create(RealGrid, name='$NAME_DENSITYNOISE$')\n\
-phiIn_sn$ID$      = sn$ID$.create(LevelsetGrid)\n\
-phiOut_sn$ID$     = sn$ID$.create(LevelsetGrid)\n\
-phiObs_sn$ID$     = sn$ID$.create(LevelsetGrid)\n\
-flags_sn$ID$      = sn$ID$.create(FlagGrid)\n\
-tmpIn_sn$ID$      = sn$ID$.create(RealGrid)\n\
-emissionIn_sn$ID$ = sn$ID$.create(RealGrid)\n\
-energy_s$ID$      = s$ID$.create(RealGrid)\n\
-tempFlag_s$ID$    = s$ID$.create(FlagGrid)\n\
-texture_u_s$ID$   = s$ID$.create(RealGrid)\n\
-texture_v_s$ID$   = s$ID$.create(RealGrid)\n\
-texture_w_s$ID$   = s$ID$.create(RealGrid)\n\
-texture_u2_s$ID$  = s$ID$.create(RealGrid)\n\
-texture_v2_s$ID$  = s$ID$.create(RealGrid)\n\
-texture_w2_s$ID$  = s$ID$.create(RealGrid)\n\
+vel_sn$ID$        = sn$ID$.create(MACGrid, name='$NAME_VELOCITY_NOISE$')\n\
+density_sn$ID$    = sn$ID$.create(RealGrid, name='$NAME_DENSITY_NOISE$')\n\
+phiIn_sn$ID$      = sn$ID$.create(LevelsetGrid, name='$NAME_PHIIN_NOISE$')\n\
+phiOut_sn$ID$     = sn$ID$.create(LevelsetGrid, name='$NAME_PHIOUT_NOISE$')\n\
+phiObs_sn$ID$     = sn$ID$.create(LevelsetGrid, name='$NAME_PHIOBS_NOISE$')\n\
+flags_sn$ID$      = sn$ID$.create(FlagGrid, name='$NAME_FLAGS_NOISE$')\n\
+tmpIn_sn$ID$      = sn$ID$.create(RealGrid, name='$NAME_TMPIN_NOISE$')\n\
+emissionIn_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_EMISSIONIN_NOISE$')\n\
+energy_s$ID$      = s$ID$.create(RealGrid, name='$NAME_ENERGY$')\n\
+tmpFlags_s$ID$    = s$ID$.create(FlagGrid, name='$NAME_TMPFLAGS$')\n\
+texture_u_s$ID$   = s$ID$.create(RealGrid, name='$NAME_TEXTURE_U$')\n\
+texture_v_s$ID$   = s$ID$.create(RealGrid, name='$NAME_TEXTURE_V$')\n\
+texture_w_s$ID$   = s$ID$.create(RealGrid, name='$NAME_TEXTURE_W$')\n\
+texture_u2_s$ID$  = s$ID$.create(RealGrid, name='$NAME_TEXTURE_U2$')\n\
+texture_v2_s$ID$  = s$ID$.create(RealGrid, name='$NAME_TEXTURE_V2$')\n\
+texture_w2_s$ID$  = s$ID$.create(RealGrid, name='$NAME_TEXTURE_W2$')\n\
 flame_sn$ID$      = None\n\
 fuel_sn$ID$       = None\n\
 react_sn$ID$      = None\n\
@@ -132,8 +132,8 @@ color_b_sn$ID$    = None\n\
 wltnoise_sn$ID$   = sn$ID$.create(NoiseField, fixedSeed=265, loadFromFile=True)\n\
 \n\
 mantaMsg('Initializing UV Grids')\n\
-uvGrid0_s$ID$ = s$ID$.create(VecGrid)\n\
-uvGrid1_s$ID$ = s$ID$.create(VecGrid)\n\
+uvGrid0_s$ID$ = s$ID$.create(VecGrid, name='$NAME_UV0$')\n\
+uvGrid1_s$ID$ = s$ID$.create(VecGrid, name='$NAME_UV1$')\n\
 resetUvGrid(target=uvGrid0_s$ID$, offset=uvs_offset_s$ID$)\n\
 resetUvGrid(target=uvGrid1_s$ID$, offset=uvs_offset_s$ID$)\n\
 \n\
@@ -160,9 +160,9 @@ mantaMsg('Allocating colors')\n\
 color_r_s$ID$    = s$ID$.create(RealGrid, name='$NAME_COLORR$')\n\
 color_g_s$ID$    = s$ID$.create(RealGrid, name='$NAME_COLORG$')\n\
 color_b_s$ID$    = s$ID$.create(RealGrid, name='$NAME_COLORB$')\n\
-color_r_in_s$ID$ = s$ID$.create(RealGrid)\n\
-color_g_in_s$ID$ = s$ID$.create(RealGrid)\n\
-color_b_in_s$ID$ = s$ID$.create(RealGrid)\n\
+color_r_in_s$ID$ = s$ID$.create(RealGrid, name='$NAME_COLORRIN$')\n\
+color_g_in_s$ID$ = s$ID$.create(RealGrid, name='$NAME_COLORGIN$')\n\
+color_b_in_s$ID$ = s$ID$.create(RealGrid, name='$NAME_COLORBIN$')\n\
 \n\
 # Add objects to dict to load them later on\n\
 if 'smoke_data_dict_final_s$ID$' in globals():\n\
@@ -178,9 +178,9 @@ if 'color_g_sn$ID$' in globals(): del color_g_sn$ID$\n\
 if 'color_b_sn$ID$' in globals(): del color_b_sn$ID$\n\
 \n\
 mantaMsg('Allocating colors noise')\n\
-color_r_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_COLORRNOISE$')\n\
-color_g_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_COLORGNOISE$')\n\
-color_b_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_COLORBNOISE$')\n\
+color_r_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_COLORR_NOISE$')\n\
+color_g_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_COLORG_NOISE$')\n\
+color_b_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_COLORB_NOISE$')\n\
 \n\
 # Add objects to dict to load them later on\n\
 if 'smoke_noise_dict_final_s$ID$' in globals():\n\
@@ -214,7 +214,7 @@ if 'heatIn_s$ID$' in globals(): del heatIn_s$ID$\n\
 \n\
 mantaMsg('Allocating heat')\n\
 heat_s$ID$   = s$ID$.create(RealGrid, name='$NAME_HEAT$')\n\
-heatIn_s$ID$ = s$ID$.create(RealGrid)\n\
+heatIn_s$ID$ = s$ID$.create(RealGrid, name='$NAME_HEATIN$')\n\
 \n\
 # Add objects to dict to load them later on\n\
 if 'smoke_data_dict_final_s$ID$' in globals():\n\
@@ -235,8 +235,8 @@ mantaMsg('Allocating fire')\n\
 flame_s$ID$   = s$ID$.create(RealGrid, name='$NAME_FLAME$')\n\
 fuel_s$ID$    = s$ID$.create(RealGrid, name='$NAME_FUEL$')\n\
 react_s$ID$   = s$ID$.create(RealGrid, name='$NAME_REACT$')\n\
-fuelIn_s$ID$  = s$ID$.create(RealGrid)\n\
-reactIn_s$ID$ = s$ID$.create(RealGrid)\n\
+fuelIn_s$ID$  = s$ID$.create(RealGrid, name='$NAME_FUELIN$')\n\
+reactIn_s$ID$ = s$ID$.create(RealGrid, name='$NAME_REACTIN$')\n\
 \n\
 # Add objects to dict to load them later on\n\
 if 'smoke_data_dict_final_s$ID$' in globals():\n\
@@ -252,9 +252,9 @@ if 'fuel_sn$ID$' in globals(): del fuel_sn$ID$\n\
 if 'react_sn$ID$' in globals(): del react_sn$ID$\n\
 \n\
 mantaMsg('Allocating fire noise')\n\
-flame_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_FLAMENOISE$')\n\
-fuel_sn$ID$  = sn$ID$.create(RealGrid, name='$NAME_FUELNOISE$')\n\
-react_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_REACTNOISE$')\n\
+flame_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_FLAME_NOISE$')\n\
+fuel_sn$ID$  = sn$ID$.create(RealGrid, name='$NAME_FUEL_NOISE$')\n\
+react_sn$ID$ = sn$ID$.create(RealGrid, name='$NAME_REACT_NOISE$')\n\
 \n\
 # Add objects to dict to load them later on\n\
 if 'smoke_noise_dict_final_s$ID$' in globals():\n\
@@ -493,9 +493,9 @@ def step_noise_$ID$():\n\
     mantaMsg('Energy')\n\
     computeEnergy(flags=flags_s$ID$, vel=vel_s$ID$, energy=energy_s$ID$)\n\
     \n\
-    tempFlag_s$ID$.copyFrom(flags_s$ID$)\n\
-    extrapolateSimpleFlags(flags=flags_s$ID$, val=tempFlag_s$ID$, distance=2, flagFrom=FlagObstacle, flagTo=FlagFluid)\n\
-    extrapolateSimpleFlags(flags=tempFlag_s$ID$, val=energy_s$ID$, distance=6, flagFrom=FlagFluid, flagTo=FlagObstacle)\n\
+    tmpFlags_s$ID$.copyFrom(flags_s$ID$)\n\
+    extrapolateSimpleFlags(flags=flags_s$ID$, val=tmpFlags_s$ID$, distance=2, flagFrom=FlagObstacle, flagTo=FlagFluid)\n\
+    extrapolateSimpleFlags(flags=tmpFlags_s$ID$, val=energy_s$ID$, distance=6, flagFrom=FlagFluid, flagTo=FlagObstacle)\n\
     computeWaveletCoeffs(energy_s$ID$)\n\
     \n\
     sStr_s$ID$ = 1.0 * wltStrength_s$ID$\n\
