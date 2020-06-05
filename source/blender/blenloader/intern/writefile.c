@@ -3839,17 +3839,17 @@ static void write_cachefile(WriteData *wd, CacheFile *cache_file, const void *id
   }
 }
 
-static void write_workspace(WriteData *wd, WorkSpace *workspace, const void *id_address)
+static void write_workspace(BlendWriter *writer, WorkSpace *workspace, const void *id_address)
 {
-  writestruct_at_address(wd, ID_WS, WorkSpace, 1, id_address, workspace);
-  write_iddata(wd, &workspace->id);
-  writelist(wd, DATA, WorkSpaceLayout, &workspace->layouts);
-  writelist(wd, DATA, WorkSpaceDataRelation, &workspace->hook_layout_relations);
-  writelist(wd, DATA, wmOwnerID, &workspace->owner_ids);
-  writelist(wd, DATA, bToolRef, &workspace->tools);
+  BLO_write_id_struct(writer, WorkSpace, id_address, &workspace->id);
+  write_iddata(writer->wd, &workspace->id);
+  BLO_write_struct_list(writer, WorkSpaceLayout, &workspace->layouts);
+  BLO_write_struct_list(writer, WorkSpaceDataRelation, &workspace->hook_layout_relations);
+  BLO_write_struct_list(writer, wmOwnerID, &workspace->owner_ids);
+  BLO_write_struct_list(writer, bToolRef, &workspace->tools);
   LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
     if (tref->properties) {
-      IDP_WriteProperty(tref->properties, wd);
+      IDP_WriteProperty_new_api(tref->properties, writer);
     }
   }
 }
@@ -4208,7 +4208,7 @@ static bool write_file_handle(Main *mainvar,
             write_windowmanager(&writer, (wmWindowManager *)id_buffer, id);
             break;
           case ID_WS:
-            write_workspace(wd, (WorkSpace *)id_buffer, id);
+            write_workspace(&writer, (WorkSpace *)id_buffer, id);
             break;
           case ID_SCR:
             write_screen(wd, (bScreen *)id_buffer, id);
