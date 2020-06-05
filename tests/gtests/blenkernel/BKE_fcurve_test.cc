@@ -32,14 +32,14 @@ static const float EPSILON = 1e-7f;
 
 TEST(evaluate_fcurve, EmptyFCurve)
 {
-  FCurve *fcu = static_cast<FCurve *>(MEM_callocN(sizeof(FCurve), "FCurve"));
+  FCurve *fcu = BKE_fcurve_create();
   EXPECT_EQ(evaluate_fcurve(fcu, 47.0f), 0.0f);
   free_fcurve(fcu);
 }
 
 TEST(evaluate_fcurve, OnKeys)
 {
-  FCurve *fcu = static_cast<FCurve *>(MEM_callocN(sizeof(FCurve), "FCurve"));
+  FCurve *fcu = BKE_fcurve_create();
 
   insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
   insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
@@ -61,7 +61,7 @@ TEST(evaluate_fcurve, OnKeys)
 
 TEST(evaluate_fcurve, InterpolationConstant)
 {
-  FCurve *fcu = static_cast<FCurve *>(MEM_callocN(sizeof(FCurve), "FCurve"));
+  FCurve *fcu = BKE_fcurve_create();
 
   EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
   EXPECT_EQ(insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
@@ -77,7 +77,7 @@ TEST(evaluate_fcurve, InterpolationConstant)
 
 TEST(evaluate_fcurve, InterpolationLinear)
 {
-  FCurve *fcu = static_cast<FCurve *>(MEM_callocN(sizeof(FCurve), "FCurve"));
+  FCurve *fcu = BKE_fcurve_create();
 
   EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
   EXPECT_EQ(insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
@@ -94,7 +94,7 @@ TEST(evaluate_fcurve, InterpolationLinear)
 
 TEST(evaluate_fcurve, InterpolationBezier)
 {
-  FCurve *fcu = static_cast<FCurve *>(MEM_callocN(sizeof(FCurve), "FCurve"));
+  FCurve *fcu = BKE_fcurve_create();
 
   EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
   EXPECT_EQ(insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
@@ -127,7 +127,7 @@ TEST(evaluate_fcurve, InterpolationBezier)
 
 TEST(evaluate_fcurve, InterpolationBounce)
 {
-  FCurve *fcu = static_cast<FCurve *>(MEM_callocN(sizeof(FCurve), "FCurve"));
+  FCurve *fcu = BKE_fcurve_create();
 
   EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
   EXPECT_EQ(insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
@@ -147,7 +147,7 @@ TEST(evaluate_fcurve, InterpolationBounce)
 
 TEST(evaluate_fcurve, ExtrapolationLinearKeys)
 {
-  FCurve *fcu = static_cast<FCurve *>(MEM_callocN(sizeof(FCurve), "FCurve"));
+  FCurve *fcu = BKE_fcurve_create();
 
   EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
   EXPECT_EQ(insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
@@ -176,7 +176,7 @@ TEST(evaluate_fcurve, ExtrapolationLinearKeys)
 
 TEST(evaluate_fcurve, ExtrapolationBezierKeys)
 {
-  FCurve *fcu = static_cast<FCurve *>(MEM_callocN(sizeof(FCurve), "FCurve"));
+  FCurve *fcu = BKE_fcurve_create();
 
   EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
   EXPECT_EQ(insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);

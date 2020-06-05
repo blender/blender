@@ -179,7 +179,7 @@ int BKE_fcm_envelope_find_index(struct FCM_EnvelopeData *array,
 #define BEZT_BINARYSEARCH_THRESH 0.01f /* was 0.00001, but giving errors */
 
 /* -------- Data Management  --------  */
-
+struct FCurve *BKE_fcurve_create(void);
 void free_fcurve(struct FCurve *fcu);
 struct FCurve *copy_fcurve(const struct FCurve *fcu);
 

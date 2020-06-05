@@ -425,7 +425,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
   /* loop through filtered data and add keys between selected keyframes on every frame  */
   for (ale = anim_data.first; ale; ale = ale->next) {
     FCurve *fcu = (FCurve *)ale->key_data;
-    FCurve *gcu = MEM_callocN(sizeof(FCurve), "Ghost FCurve");
+    FCurve *gcu = BKE_fcurve_create();
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
     ChannelDriver *driver = fcu->driver;
     FPoint *fpt;

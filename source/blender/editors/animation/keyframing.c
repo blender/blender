@@ -214,7 +214,7 @@ FCurve *ED_action_fcurve_ensure(struct Main *bmain,
 
   if (fcu == NULL) {
     /* use default settings to make a F-Curve */
-    fcu = MEM_callocN(sizeof(FCurve), "FCurve");
+    fcu = BKE_fcurve_create();
 
     fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
     fcu->auto_smoothing = U.auto_smoothing_new;

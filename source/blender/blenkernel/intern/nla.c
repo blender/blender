@@ -1499,7 +1499,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
     /* add one if not found */
     if (fcu == NULL) {
       /* make new F-Curve */
-      fcu = MEM_callocN(sizeof(FCurve), "NlaStrip FCurve");
+      fcu = BKE_fcurve_create();
       BLI_addtail(&strip->fcurves, fcu);
 
       /* set default flags */
@@ -1530,7 +1530,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
     /* add one if not found */
     if (fcu == NULL) {
       /* make new F-Curve */
-      fcu = MEM_callocN(sizeof(FCurve), "NlaStrip FCurve");
+      fcu = BKE_fcurve_create();
       BLI_addtail(&strip->fcurves, fcu);
 
       /* set default flags */

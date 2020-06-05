@@ -110,7 +110,7 @@ struct FCurve *alloc_driver_fcurve(const char rna_path[],
                                    const int array_index,
                                    eDriverFCurveCreationMode creation_mode)
 {
-  FCurve *fcu = MEM_callocN(sizeof(FCurve), "FCurve");
+  FCurve *fcu = BKE_fcurve_create();
 
   fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
   fcu->auto_smoothing = U.auto_smoothing_new;

@@ -1341,7 +1341,7 @@ static void icu_to_fcurves(ID *id,
   int totbits;
 
   /* allocate memory for a new F-Curve */
-  fcu = MEM_callocN(sizeof(FCurve), "FCurve");
+  fcu = BKE_fcurve_create();
 
   /* convert driver */
   if (icu->driver) {

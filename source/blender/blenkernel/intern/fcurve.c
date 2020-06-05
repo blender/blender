@@ -58,7 +58,11 @@
 static CLG_LogRef LOG = {"bke.fcurve"};
 
 /* ************************** Data-Level Functions ************************* */
-
+FCurve *BKE_fcurve_create(void)
+{
+  FCurve *fcu = MEM_callocN(sizeof(FCurve), __func__);
+  return fcu;
+}
 /* ---------------------- Freeing --------------------------- */
 
 /* Frees the F-Curve itself too, so make sure BLI_remlink is called before calling this... */
