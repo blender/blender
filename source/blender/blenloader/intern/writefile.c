@@ -2636,82 +2636,82 @@ static void write_lightcache(WriteData *wd, LightCache *cache)
   writestruct(wd, DATA, LightProbeCache, cache->cube_len, cache->cube_data);
 }
 
-static void write_scene(WriteData *wd, Scene *sce, const void *id_address)
+static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
 {
-  if (wd->use_memfile) {
+  if (BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     /* XXX This UI data should not be stored in Scene at all... */
     memset(&sce->cursor, 0, sizeof(sce->cursor));
   }
 
   /* write LibData */
-  writestruct_at_address(wd, ID_SCE, Scene, 1, id_address, sce);
-  write_iddata(wd, &sce->id);
+  BLO_write_id_struct(writer, Scene, id_address, &sce->id);
+  write_iddata(writer->wd, &sce->id);
 
   if (sce->adt) {
-    write_animdata(wd, sce->adt);
+    write_animdata(writer->wd, sce->adt);
   }
-  write_keyingsets(wd, &sce->keyingsets);
+  write_keyingsets(writer->wd, &sce->keyingsets);
 
   /* direct data */
   ToolSettings *tos = sce->toolsettings;
-  writestruct(wd, DATA, ToolSettings, 1, tos);
+  BLO_write_struct(writer, ToolSettings, tos);
   if (tos->vpaint) {
-    writestruct(wd, DATA, VPaint, 1, tos->vpaint);
-    write_paint(wd, &tos->vpaint->paint);
+    BLO_write_struct(writer, VPaint, tos->vpaint);
+    write_paint(writer->wd, &tos->vpaint->paint);
   }
   if (tos->wpaint) {
-    writestruct(wd, DATA, VPaint, 1, tos->wpaint);
-    write_paint(wd, &tos->wpaint->paint);
+    BLO_write_struct(writer, VPaint, tos->wpaint);
+    write_paint(writer->wd, &tos->wpaint->paint);
   }
   if (tos->sculpt) {
-    writestruct(wd, DATA, Sculpt, 1, tos->sculpt);
-    write_paint(wd, &tos->sculpt->paint);
+    BLO_write_struct(writer, Sculpt, tos->sculpt);
+    write_paint(writer->wd, &tos->sculpt->paint);
   }
   if (tos->uvsculpt) {
-    writestruct(wd, DATA, UvSculpt, 1, tos->uvsculpt);
-    write_paint(wd, &tos->uvsculpt->paint);
+    BLO_write_struct(writer, UvSculpt, tos->uvsculpt);
+    write_paint(writer->wd, &tos->uvsculpt->paint);
   }
   if (tos->gp_paint) {
-    writestruct(wd, DATA, GpPaint, 1, tos->gp_paint);
-    write_paint(wd, &tos->gp_paint->paint);
+    BLO_write_struct(writer, GpPaint, tos->gp_paint);
+    write_paint(writer->wd, &tos->gp_paint->paint);
   }
   if (tos->gp_vertexpaint) {
-    writestruct(wd, DATA, GpVertexPaint, 1, tos->gp_vertexpaint);
-    write_paint(wd, &tos->gp_vertexpaint->paint);
+    BLO_write_struct(writer, GpVertexPaint, tos->gp_vertexpaint);
+    write_paint(writer->wd, &tos->gp_vertexpaint->paint);
   }
   if (tos->gp_sculptpaint) {
-    writestruct(wd, DATA, GpSculptPaint, 1, tos->gp_sculptpaint);
-    write_paint(wd, &tos->gp_sculptpaint->paint);
+    BLO_write_struct(writer, GpSculptPaint, tos->gp_sculptpaint);
+    write_paint(writer->wd, &tos->gp_sculptpaint->paint);
   }
   if (tos->gp_weightpaint) {
-    writestruct(wd, DATA, GpWeightPaint, 1, tos->gp_weightpaint);
-    write_paint(wd, &tos->gp_weightpaint->paint);
+    BLO_write_struct(writer, GpWeightPaint, tos->gp_weightpaint);
+    write_paint(writer->wd, &tos->gp_weightpaint->paint);
   }
   /* write grease-pencil custom ipo curve to file */
   if (tos->gp_interpolate.custom_ipo) {
-    write_curvemapping(wd, tos->gp_interpolate.custom_ipo);
+    write_curvemapping(writer->wd, tos->gp_interpolate.custom_ipo);
   }
   /* write grease-pencil multiframe falloff curve to file */
   if (tos->gp_sculpt.cur_falloff) {
-    write_curvemapping(wd, tos->gp_sculpt.cur_falloff);
+    write_curvemapping(writer->wd, tos->gp_sculpt.cur_falloff);
   }
   /* write grease-pencil primitive curve to file */
   if (tos->gp_sculpt.cur_primitive) {
-    write_curvemapping(wd, tos->gp_sculpt.cur_primitive);
+    write_curvemapping(writer->wd, tos->gp_sculpt.cur_primitive);
   }
   /* Write the curve profile to the file. */
   if (tos->custom_bevel_profile_preset) {
-    write_CurveProfile(wd, tos->custom_bevel_profile_preset);
+    write_CurveProfile(writer->wd, tos->custom_bevel_profile_preset);
   }
 
-  write_paint(wd, &tos->imapaint.paint);
+  write_paint(writer->wd, &tos->imapaint.paint);
 
   Editing *ed = sce->ed;
   if (ed) {
     Sequence *seq;
 
-    writestruct(wd, DATA, Editing, 1, ed);
+    BLO_write_struct(writer, Editing, ed);
 
     /* reset write flags too */
 
@@ -2719,7 +2719,7 @@ static void write_scene(WriteData *wd, Scene *sce, const void *id_address)
       if (seq->strip) {
         seq->strip->done = false;
       }
-      writestruct(wd, DATA, Sequence, 1, seq);
+      BLO_write_struct(writer, Sequence, seq);
     }
     SEQ_END;
 
@@ -2730,139 +2730,138 @@ static void write_scene(WriteData *wd, Scene *sce, const void *id_address)
         if (seq->effectdata) {
           switch (seq->type) {
             case SEQ_TYPE_COLOR:
-              writestruct(wd, DATA, SolidColorVars, 1, seq->effectdata);
+              BLO_write_struct(writer, SolidColorVars, seq->effectdata);
               break;
             case SEQ_TYPE_SPEED:
-              writestruct(wd, DATA, SpeedControlVars, 1, seq->effectdata);
+              BLO_write_struct(writer, SpeedControlVars, seq->effectdata);
               break;
             case SEQ_TYPE_WIPE:
-              writestruct(wd, DATA, WipeVars, 1, seq->effectdata);
+              BLO_write_struct(writer, WipeVars, seq->effectdata);
               break;
             case SEQ_TYPE_GLOW:
-              writestruct(wd, DATA, GlowVars, 1, seq->effectdata);
+              BLO_write_struct(writer, GlowVars, seq->effectdata);
               break;
             case SEQ_TYPE_TRANSFORM:
-              writestruct(wd, DATA, TransformVars, 1, seq->effectdata);
+              BLO_write_struct(writer, TransformVars, seq->effectdata);
               break;
             case SEQ_TYPE_GAUSSIAN_BLUR:
-              writestruct(wd, DATA, GaussianBlurVars, 1, seq->effectdata);
+              BLO_write_struct(writer, GaussianBlurVars, seq->effectdata);
               break;
             case SEQ_TYPE_TEXT:
-              writestruct(wd, DATA, TextVars, 1, seq->effectdata);
+              BLO_write_struct(writer, TextVars, seq->effectdata);
               break;
             case SEQ_TYPE_COLORMIX:
-              writestruct(wd, DATA, ColorMixVars, 1, seq->effectdata);
+              BLO_write_struct(writer, ColorMixVars, seq->effectdata);
               break;
           }
         }
 
-        writestruct(wd, DATA, Stereo3dFormat, 1, seq->stereo3d_format);
+        BLO_write_struct(writer, Stereo3dFormat, seq->stereo3d_format);
 
         Strip *strip = seq->strip;
-        writestruct(wd, DATA, Strip, 1, strip);
+        BLO_write_struct(writer, Strip, strip);
         if (strip->crop) {
-          writestruct(wd, DATA, StripCrop, 1, strip->crop);
+          BLO_write_struct(writer, StripCrop, strip->crop);
         }
         if (strip->transform) {
-          writestruct(wd, DATA, StripTransform, 1, strip->transform);
+          BLO_write_struct(writer, StripTransform, strip->transform);
         }
         if (strip->proxy) {
-          writestruct(wd, DATA, StripProxy, 1, strip->proxy);
+          BLO_write_struct(writer, StripProxy, strip->proxy);
         }
         if (seq->type == SEQ_TYPE_IMAGE) {
-          writestruct(wd,
-                      DATA,
-                      StripElem,
-                      MEM_allocN_len(strip->stripdata) / sizeof(struct StripElem),
-                      strip->stripdata);
+          BLO_write_struct_array(writer,
+                                 StripElem,
+                                 MEM_allocN_len(strip->stripdata) / sizeof(struct StripElem),
+                                 strip->stripdata);
         }
         else if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
-          writestruct(wd, DATA, StripElem, 1, strip->stripdata);
+          BLO_write_struct(writer, StripElem, strip->stripdata);
         }
 
         strip->done = true;
       }
 
       if (seq->prop) {
-        IDP_WriteProperty(seq->prop, wd);
+        IDP_WriteProperty_new_api(seq->prop, writer);
       }
 
-      write_sequence_modifiers(wd, &seq->modifiers);
+      write_sequence_modifiers(writer->wd, &seq->modifiers);
     }
     SEQ_END;
 
     /* new; meta stack too, even when its nasty restore code */
     LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {
-      writestruct(wd, DATA, MetaStack, 1, ms);
+      BLO_write_struct(writer, MetaStack, ms);
     }
   }
 
   if (sce->r.avicodecdata) {
-    writestruct(wd, DATA, AviCodecData, 1, sce->r.avicodecdata);
+    BLO_write_struct(writer, AviCodecData, sce->r.avicodecdata);
     if (sce->r.avicodecdata->lpFormat) {
-      writedata(wd, DATA, sce->r.avicodecdata->cbFormat, sce->r.avicodecdata->lpFormat);
+      BLO_write_raw(writer, sce->r.avicodecdata->cbFormat, sce->r.avicodecdata->lpFormat);
     }
     if (sce->r.avicodecdata->lpParms) {
-      writedata(wd, DATA, sce->r.avicodecdata->cbParms, sce->r.avicodecdata->lpParms);
+      BLO_write_raw(writer, sce->r.avicodecdata->cbParms, sce->r.avicodecdata->lpParms);
     }
   }
   if (sce->r.ffcodecdata.properties) {
-    IDP_WriteProperty(sce->r.ffcodecdata.properties, wd);
+    IDP_WriteProperty_new_api(sce->r.ffcodecdata.properties, writer);
   }
 
   /* writing dynamic list of TimeMarkers to the blend file */
   LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
-    writestruct(wd, DATA, TimeMarker, 1, marker);
+    BLO_write_struct(writer, TimeMarker, marker);
   }
 
   /* writing dynamic list of TransformOrientations to the blend file */
   LISTBASE_FOREACH (TransformOrientation *, ts, &sce->transform_spaces) {
-    writestruct(wd, DATA, TransformOrientation, 1, ts);
+    BLO_write_struct(writer, TransformOrientation, ts);
   }
 
   /* writing MultiView to the blend file */
   LISTBASE_FOREACH (SceneRenderView *, srv, &sce->r.views) {
-    writestruct(wd, DATA, SceneRenderView, 1, srv);
+    BLO_write_struct(writer, SceneRenderView, srv);
   }
 
   if (sce->nodetree) {
-    writestruct(wd, DATA, bNodeTree, 1, sce->nodetree);
-    write_nodetree_nolib(wd, sce->nodetree);
+    BLO_write_struct(writer, bNodeTree, sce->nodetree);
+    write_nodetree_nolib(writer->wd, sce->nodetree);
   }
 
-  write_view_settings(wd, &sce->view_settings);
+  write_view_settings(writer->wd, &sce->view_settings);
 
   /* writing RigidBodyWorld data to the blend file */
   if (sce->rigidbody_world) {
     /* Set deprecated pointers to prevent crashes of older Blenders */
     sce->rigidbody_world->pointcache = sce->rigidbody_world->shared->pointcache;
     sce->rigidbody_world->ptcaches = sce->rigidbody_world->shared->ptcaches;
-    writestruct(wd, DATA, RigidBodyWorld, 1, sce->rigidbody_world);
+    BLO_write_struct(writer, RigidBodyWorld, sce->rigidbody_world);
 
-    writestruct(wd, DATA, RigidBodyWorld_Shared, 1, sce->rigidbody_world->shared);
-    writestruct(wd, DATA, EffectorWeights, 1, sce->rigidbody_world->effector_weights);
-    write_pointcaches(wd, &(sce->rigidbody_world->shared->ptcaches));
+    BLO_write_struct(writer, RigidBodyWorld_Shared, sce->rigidbody_world->shared);
+    BLO_write_struct(writer, EffectorWeights, sce->rigidbody_world->effector_weights);
+    write_pointcaches(writer->wd, &(sce->rigidbody_world->shared->ptcaches));
   }
 
-  write_previews(wd, sce->preview);
-  write_curvemapping_curves(wd, &sce->r.mblur_shutter_curve);
+  write_previews(writer->wd, sce->preview);
+  write_curvemapping_curves(writer->wd, &sce->r.mblur_shutter_curve);
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
-    write_view_layer(wd, view_layer);
+    write_view_layer(writer->wd, view_layer);
   }
 
   if (sce->master_collection) {
-    writestruct(wd, DATA, Collection, 1, sce->master_collection);
-    write_collection_nolib(wd, sce->master_collection);
+    BLO_write_struct(writer, Collection, sce->master_collection);
+    write_collection_nolib(writer->wd, sce->master_collection);
   }
 
   /* Eevee Lightcache */
-  if (sce->eevee.light_cache_data && !wd->use_memfile) {
-    writestruct(wd, DATA, LightCache, 1, sce->eevee.light_cache_data);
-    write_lightcache(wd, sce->eevee.light_cache_data);
+  if (sce->eevee.light_cache_data && !BLO_write_is_undo(writer)) {
+    BLO_write_struct(writer, LightCache, sce->eevee.light_cache_data);
+    write_lightcache(writer->wd, sce->eevee.light_cache_data);
   }
 
-  write_view3dshading(wd, &sce->display.shading);
+  write_view3dshading(writer->wd, &sce->display.shading);
 
   /* Freed on doversion. */
   BLI_assert(sce->layer_properties == NULL);
@@ -4221,7 +4220,7 @@ static bool write_file_handle(Main *mainvar,
             write_mask(&writer, (Mask *)id_buffer, id);
             break;
           case ID_SCE:
-            write_scene(wd, (Scene *)id_buffer, id);
+            write_scene(&writer, (Scene *)id_buffer, id);
             break;
           case ID_CU:
             write_curve(wd, (Curve *)id_buffer, id);
