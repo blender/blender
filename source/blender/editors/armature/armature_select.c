@@ -1205,8 +1205,8 @@ bool ED_armature_edit_select_op_from_tagged(bArmature *arm, const int sel_op)
       ebone->temp.i = ebone->flag;
 
       /* When there is a partial selection without both endpoints, only select an endpoint. */
-      if ((is_inside_flag & BONESEL_BONE) && (is_inside_flag & (BONESEL_ROOT | BONESEL_TIP)) &&
-          ((is_inside_flag & (BONESEL_ROOT | BONESEL_TIP)) != (BONESEL_ROOT | BONESEL_TIP))) {
+      if ((is_inside_flag & BONESEL_BONE) &&
+          ELEM(is_inside_flag & (BONESEL_ROOT | BONESEL_TIP), BONESEL_ROOT, BONESEL_TIP)) {
         is_inside_flag &= ~BONESEL_BONE;
       }
 
