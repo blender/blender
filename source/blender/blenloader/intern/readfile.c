@@ -2796,7 +2796,7 @@ static void direct_link_id_override_property_cb(FileData *fd, void *data)
 
 static void direct_link_id_common(
     FileData *fd, Library *current_library, ID *id, ID *id_old, const int tag);
-static void direct_link_nodetree(FileData *fd, bNodeTree *ntree);
+static void direct_link_nodetree(BlendDataReader *reader, bNodeTree *ntree);
 static void direct_link_collection(BlendDataReader *reader, Collection *collection);
 
 static void direct_link_id_embedded_id(FileData *fd, Library *current_library, ID *id, ID *id_old)
@@ -2812,7 +2812,7 @@ static void direct_link_id_embedded_id(FileData *fd, Library *current_library, I
                           (ID *)*nodetree,
                           id_old != NULL ? (ID *)ntreeFromID(id_old) : NULL,
                           0);
-    direct_link_nodetree(fd, *nodetree);
+    direct_link_nodetree(&reader, *nodetree);
   }
 
   if (GS(id->name) == ID_SCE) {
@@ -3020,78 +3020,70 @@ static void lib_link_brush(FileData *fd, Main *UNUSED(bmain), Brush *brush)
   }
 }
 
-static void direct_link_brush(FileData *fd, Brush *brush)
+static void direct_link_brush(BlendDataReader *reader, Brush *brush)
 {
   /* brush itself has been read */
 
   /* fallof curve */
-  brush->curve = newdataadr(fd, brush->curve);
+  BLO_read_data_address(reader, &brush->curve);
 
-  brush->gradient = newdataadr(fd, brush->gradient);
+  BLO_read_data_address(reader, &brush->gradient);
 
   if (brush->curve) {
-    direct_link_curvemapping(fd, brush->curve);
+    direct_link_curvemapping(reader->fd, brush->curve);
   }
   else {
     BKE_brush_curve_preset(brush, CURVE_PRESET_SHARP);
   }
 
   /* grease pencil */
-  brush->gpencil_settings = newdataadr(fd, brush->gpencil_settings);
+  BLO_read_data_address(reader, &brush->gpencil_settings);
   if (brush->gpencil_settings != NULL) {
-    brush->gpencil_settings->curve_sensitivity = newdataadr(
-        fd, brush->gpencil_settings->curve_sensitivity);
-    brush->gpencil_settings->curve_strength = newdataadr(fd,
-                                                         brush->gpencil_settings->curve_strength);
-    brush->gpencil_settings->curve_jitter = newdataadr(fd, brush->gpencil_settings->curve_jitter);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_sensitivity);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_strength);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_jitter);
 
-    brush->gpencil_settings->curve_rand_pressure = newdataadr(
-        fd, brush->gpencil_settings->curve_rand_pressure);
-    brush->gpencil_settings->curve_rand_strength = newdataadr(
-        fd, brush->gpencil_settings->curve_rand_strength);
-    brush->gpencil_settings->curve_rand_uv = newdataadr(fd,
-                                                        brush->gpencil_settings->curve_rand_uv);
-    brush->gpencil_settings->curve_rand_hue = newdataadr(fd,
-                                                         brush->gpencil_settings->curve_rand_hue);
-    brush->gpencil_settings->curve_rand_saturation = newdataadr(
-        fd, brush->gpencil_settings->curve_rand_saturation);
-    brush->gpencil_settings->curve_rand_value = newdataadr(
-        fd, brush->gpencil_settings->curve_rand_value);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_pressure);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_strength);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_uv);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_hue);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_saturation);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_value);
 
     if (brush->gpencil_settings->curve_sensitivity) {
-      direct_link_curvemapping(fd, brush->gpencil_settings->curve_sensitivity);
+      direct_link_curvemapping(reader->fd, brush->gpencil_settings->curve_sensitivity);
     }
 
     if (brush->gpencil_settings->curve_strength) {
-      direct_link_curvemapping(fd, brush->gpencil_settings->curve_strength);
+      direct_link_curvemapping(reader->fd, brush->gpencil_settings->curve_strength);
     }
 
     if (brush->gpencil_settings->curve_jitter) {
-      direct_link_curvemapping(fd, brush->gpencil_settings->curve_jitter);
+      direct_link_curvemapping(reader->fd, brush->gpencil_settings->curve_jitter);
     }
 
     if (brush->gpencil_settings->curve_rand_pressure) {
-      direct_link_curvemapping(fd, brush->gpencil_settings->curve_rand_pressure);
+      direct_link_curvemapping(reader->fd, brush->gpencil_settings->curve_rand_pressure);
     }
 
     if (brush->gpencil_settings->curve_rand_strength) {
-      direct_link_curvemapping(fd, brush->gpencil_settings->curve_rand_strength);
+      direct_link_curvemapping(reader->fd, brush->gpencil_settings->curve_rand_strength);
     }
 
     if (brush->gpencil_settings->curve_rand_uv) {
-      direct_link_curvemapping(fd, brush->gpencil_settings->curve_rand_uv);
+      direct_link_curvemapping(reader->fd, brush->gpencil_settings->curve_rand_uv);
     }
 
     if (brush->gpencil_settings->curve_rand_hue) {
-      direct_link_curvemapping(fd, brush->gpencil_settings->curve_rand_hue);
+      direct_link_curvemapping(reader->fd, brush->gpencil_settings->curve_rand_hue);
     }
 
     if (brush->gpencil_settings->curve_rand_saturation) {
-      direct_link_curvemapping(fd, brush->gpencil_settings->curve_rand_saturation);
+      direct_link_curvemapping(reader->fd, brush->gpencil_settings->curve_rand_saturation);
     }
 
     if (brush->gpencil_settings->curve_rand_value) {
-      direct_link_curvemapping(fd, brush->gpencil_settings->curve_rand_value);
+      direct_link_curvemapping(reader->fd, brush->gpencil_settings->curve_rand_value);
     }
   }
 
@@ -3393,29 +3385,29 @@ static void lib_link_action(FileData *fd, Main *UNUSED(bmain), bAction *act)
   }
 }
 
-static void direct_link_action(FileData *fd, bAction *act)
+static void direct_link_action(BlendDataReader *reader, bAction *act)
 {
   bActionChannel *achan;  // XXX deprecated - old animation system
   bActionGroup *agrp;
 
-  link_list(fd, &act->curves);
-  link_list(fd, &act->chanbase);  // XXX deprecated - old animation system
-  link_list(fd, &act->groups);
-  link_list(fd, &act->markers);
+  BLO_read_list(reader, &act->curves);
+  BLO_read_list(reader, &act->chanbase);  // XXX deprecated - old animation system
+  BLO_read_list(reader, &act->groups);
+  BLO_read_list(reader, &act->markers);
 
   // XXX deprecated - old animation system <<<
   for (achan = act->chanbase.first; achan; achan = achan->next) {
-    achan->grp = newdataadr(fd, achan->grp);
+    BLO_read_data_address(reader, &achan->grp);
 
-    link_list(fd, &achan->constraintChannels);
+    BLO_read_list(reader, &achan->constraintChannels);
   }
   // >>> XXX deprecated - old animation system
 
-  direct_link_fcurves(fd, &act->curves);
+  direct_link_fcurves(reader->fd, &act->curves);
 
   for (agrp = act->groups.first; agrp; agrp = agrp->next) {
-    agrp->channels.first = newdataadr(fd, agrp->channels.first);
-    agrp->channels.last = newdataadr(fd, agrp->channels.last);
+    BLO_read_data_address(reader, &agrp->channels.first);
+    BLO_read_data_address(reader, &agrp->channels.last);
   }
 }
 
@@ -3756,7 +3748,7 @@ static void direct_link_node_socket(FileData *fd, bNodeSocket *sock)
 }
 
 /* ntree itself has been read! */
-static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
+static void direct_link_nodetree(BlendDataReader *reader, bNodeTree *ntree)
 {
   /* note: writing and reading goes in sync, for speed */
   bNode *node;
@@ -3771,32 +3763,33 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
   ntree->progress = NULL;
   ntree->execdata = NULL;
 
-  ntree->adt = newdataadr(fd, ntree->adt);
-  direct_link_animdata(fd, ntree->adt);
+  BLO_read_data_address(reader, &ntree->adt);
+  direct_link_animdata(reader->fd, ntree->adt);
 
-  link_list(fd, &ntree->nodes);
+  BLO_read_list(reader, &ntree->nodes);
   for (node = ntree->nodes.first; node; node = node->next) {
     node->typeinfo = NULL;
 
-    link_list(fd, &node->inputs);
-    link_list(fd, &node->outputs);
+    BLO_read_list(reader, &node->inputs);
+    BLO_read_list(reader, &node->outputs);
 
-    node->prop = newdataadr(fd, node->prop);
-    IDP_DirectLinkGroup_OrFree(&node->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+    BLO_read_data_address(reader, &node->prop);
+    IDP_DirectLinkGroup_OrFree(
+        &node->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
 
-    link_list(fd, &node->internal_links);
+    BLO_read_list(reader, &node->internal_links);
     for (link = node->internal_links.first; link; link = link->next) {
-      link->fromnode = newdataadr(fd, link->fromnode);
-      link->fromsock = newdataadr(fd, link->fromsock);
-      link->tonode = newdataadr(fd, link->tonode);
-      link->tosock = newdataadr(fd, link->tosock);
+      BLO_read_data_address(reader, &link->fromnode);
+      BLO_read_data_address(reader, &link->fromsock);
+      BLO_read_data_address(reader, &link->tonode);
+      BLO_read_data_address(reader, &link->tosock);
     }
 
     if (node->type == CMP_NODE_MOVIEDISTORTION) {
-      node->storage = newmclipadr(fd, node->storage);
+      node->storage = newmclipadr(reader->fd, node->storage);
     }
     else {
-      node->storage = newdataadr(fd, node->storage);
+      BLO_read_data_address(reader, &node->storage);
     }
 
     if (node->storage) {
@@ -3810,12 +3803,12 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
         case CMP_NODE_HUECORRECT:
         case TEX_NODE_CURVE_RGB:
         case TEX_NODE_CURVE_TIME: {
-          direct_link_curvemapping(fd, node->storage);
+          direct_link_curvemapping(reader->fd, node->storage);
           break;
         }
         case SH_NODE_SCRIPT: {
           NodeShaderScript *nss = (NodeShaderScript *)node->storage;
-          nss->bytecode = newdataadr(fd, nss->bytecode);
+          BLO_read_data_address(reader, &nss->bytecode);
           break;
         }
         case SH_NODE_TEX_POINTDENSITY: {
@@ -3846,7 +3839,7 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
         }
         case CMP_NODE_CRYPTOMATTE: {
           NodeCryptomatte *nc = (NodeCryptomatte *)node->storage;
-          nc->matte_id = newdataadr(fd, nc->matte_id);
+          BLO_read_data_address(reader, &nc->matte_id);
           break;
         }
         case TEX_NODE_IMAGE: {
@@ -3860,36 +3853,36 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
       }
     }
   }
-  link_list(fd, &ntree->links);
+  BLO_read_list(reader, &ntree->links);
 
   /* and we connect the rest */
   for (node = ntree->nodes.first; node; node = node->next) {
-    node->parent = newdataadr(fd, node->parent);
+    BLO_read_data_address(reader, &node->parent);
     node->lasty = 0;
 
     for (sock = node->inputs.first; sock; sock = sock->next) {
-      direct_link_node_socket(fd, sock);
+      direct_link_node_socket(reader->fd, sock);
     }
     for (sock = node->outputs.first; sock; sock = sock->next) {
-      direct_link_node_socket(fd, sock);
+      direct_link_node_socket(reader->fd, sock);
     }
   }
 
   /* interface socket lists */
-  link_list(fd, &ntree->inputs);
-  link_list(fd, &ntree->outputs);
+  BLO_read_list(reader, &ntree->inputs);
+  BLO_read_list(reader, &ntree->outputs);
   for (sock = ntree->inputs.first; sock; sock = sock->next) {
-    direct_link_node_socket(fd, sock);
+    direct_link_node_socket(reader->fd, sock);
   }
   for (sock = ntree->outputs.first; sock; sock = sock->next) {
-    direct_link_node_socket(fd, sock);
+    direct_link_node_socket(reader->fd, sock);
   }
 
   for (link = ntree->links.first; link; link = link->next) {
-    link->fromnode = newdataadr(fd, link->fromnode);
-    link->tonode = newdataadr(fd, link->tonode);
-    link->fromsock = newdataadr(fd, link->fromsock);
-    link->tosock = newdataadr(fd, link->tosock);
+    BLO_read_data_address(reader, &link->fromnode);
+    BLO_read_data_address(reader, &link->tonode);
+    BLO_read_data_address(reader, &link->fromsock);
+    BLO_read_data_address(reader, &link->tosock);
   }
 
 #if 0
@@ -4117,24 +4110,24 @@ static void direct_link_bones(FileData *fd, Bone *bone)
   }
 }
 
-static void direct_link_armature(FileData *fd, bArmature *arm)
+static void direct_link_armature(BlendDataReader *reader, bArmature *arm)
 {
   Bone *bone;
 
-  link_list(fd, &arm->bonebase);
+  BLO_read_list(reader, &arm->bonebase);
   arm->bonehash = NULL;
   arm->edbo = NULL;
   /* Must always be cleared (armatures don't have their own edit-data). */
   arm->needs_flush_to_id = 0;
 
-  arm->adt = newdataadr(fd, arm->adt);
-  direct_link_animdata(fd, arm->adt);
+  BLO_read_data_address(reader, &arm->adt);
+  direct_link_animdata(reader->fd, arm->adt);
 
   for (bone = arm->bonebase.first; bone; bone = bone->next) {
-    direct_link_bones(fd, bone);
+    direct_link_bones(reader->fd, bone);
   }
 
-  arm->act_bone = newdataadr(fd, arm->act_bone);
+  BLO_read_data_address(reader, &arm->act_bone);
   arm->act_edbone = NULL;
 
   BKE_armature_bone_hash_make(arm);
@@ -9450,16 +9443,16 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       direct_link_collection(&reader, (Collection *)id);
       break;
     case ID_AR:
-      direct_link_armature(fd, (bArmature *)id);
+      direct_link_armature(&reader, (bArmature *)id);
       break;
     case ID_AC:
-      direct_link_action(fd, (bAction *)id);
+      direct_link_action(&reader, (bAction *)id);
       break;
     case ID_NT:
-      direct_link_nodetree(fd, (bNodeTree *)id);
+      direct_link_nodetree(&reader, (bNodeTree *)id);
       break;
     case ID_BR:
-      direct_link_brush(fd, (Brush *)id);
+      direct_link_brush(&reader, (Brush *)id);
       break;
     case ID_PA:
       direct_link_particlesettings(fd, (ParticleSettings *)id);
