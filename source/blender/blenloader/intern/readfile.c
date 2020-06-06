@@ -1239,6 +1239,10 @@ static int fd_read_from_memfile(FileData *filedata,
   static MemFileChunk *chunk = NULL;
   size_t chunkoffset, readsize, totread;
 
+  if (r_is_memchunck_identical != NULL) {
+    *r_is_memchunck_identical = true;
+  }
+
   if (size == 0) {
     return 0;
   }
@@ -1289,13 +1293,13 @@ static int fd_read_from_memfile(FileData *filedata,
       filedata->file_offset += readsize;
       seek += readsize;
       if (r_is_memchunck_identical != NULL) {
-        /* `is_identical` of current chunk represent whether it changed compared to previous undo
+        /* `is_identical` of current chunk represents whether it changed compared to previous undo
          * step. this is fine in redo case (filedata->undo_direction > 0), but not in undo case,
          * where we need an extra flag defined when saving the next (future) step after the one we
          * want to restore, as we are supposed to 'come from' that future undo step, and not the
          * one before current one. */
-        *r_is_memchunck_identical = filedata->undo_direction > 0 ? chunk->is_identical :
-                                                                   chunk->is_identical_future;
+        *r_is_memchunck_identical &= filedata->undo_direction > 0 ? chunk->is_identical :
+                                                                    chunk->is_identical_future;
       }
     } while (totread < size);
 
