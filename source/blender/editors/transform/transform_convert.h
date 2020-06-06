@@ -93,6 +93,7 @@ void flushTransParticles(TransInfo *t);
 
 /* transform_convert_sequencer.c */
 void flushTransSeq(TransInfo *t);
+int transform_convert_sequencer_get_snap_bound(TransInfo *t);
 
 /* transform_convert_tracking.c */
 void flushTransTracking(TransInfo *t);

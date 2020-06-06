@@ -229,16 +229,6 @@ typedef struct TransDataSeq {
 
 } TransDataSeq;
 
-/**
- * Sequencer transform customdata (stored in #TransCustomDataContainer).
- */
-typedef struct TransSeq {
-  TransDataSeq *tdseq;
-  int min;
-  int max;
-  bool snap_left;
-} TransSeq;
-
 /** Used for NLA transform (stored in #TransData.extra pointer). */
 typedef struct TransDataNla {
   /** ID-block NLA-data is attached to. */

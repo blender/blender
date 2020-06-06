@@ -36,6 +36,16 @@
 #include "transform.h"
 #include "transform_convert.h"
 
+/**
+ * Sequencer transform customdata (stored in #TransCustomDataContainer).
+ */
+typedef struct TransSeq {
+  TransDataSeq *tdseq;
+  int min;
+  int max;
+  bool snap_left;
+} TransSeq;
+
 /* -------------------------------------------------------------------- */
 /** \name Sequencer Transform Creation
  *
@@ -758,6 +768,12 @@ void flushTransSeq(TransInfo *t)
     }
     seq_prev = seq;
   }
+}
+
+int transform_convert_sequencer_get_snap_bound(TransInfo *t)
+{
+  TransSeq *ts = TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data;
+  return ts->snap_left ? ts->min : ts->max;
 }
 
 /** \} */

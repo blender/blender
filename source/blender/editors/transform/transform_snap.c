@@ -72,6 +72,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "transform.h"
+#include "transform_convert.h"
 #include "transform_snap.h"
 
 /* this should be passed as an arg for use in snap functions */
@@ -1615,26 +1616,22 @@ void snapGridIncrement(TransInfo *t, float *val)
 
 void snapSequenceBounds(TransInfo *t, const int mval[2])
 {
-  float xmouse, ymouse;
-  int frame;
-  int mframe;
-  TransSeq *ts = TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data;
-  /* reuse increment, strictly speaking could be another snap mode, but leave as is */
+  /* Reuse increment, strictly speaking could be another snap mode, but leave as is. */
   if (!(t->modifiers & MOD_SNAP_INVERT)) {
     return;
   }
 
-  /* convert to frame range */
+  /* Convert to frame range. */
+  float xmouse, ymouse;
   UI_view2d_region_to_view(&t->region->v2d, mval[0], mval[1], &xmouse, &ymouse);
-  mframe = round_fl_to_int(xmouse);
-  /* now find the closest sequence */
-  frame = BKE_sequencer_find_next_prev_edit(t->scene, mframe, SEQ_SIDE_BOTH, true, false, true);
+  const int frame_curr = round_fl_to_int(xmouse);
 
-  if (!ts->snap_left) {
-    frame = frame - (ts->max - ts->min);
-  }
+  /* Now find the closest sequence. */
+  const int frame_near = BKE_sequencer_find_next_prev_edit(
+      t->scene, frame_curr, SEQ_SIDE_BOTH, true, false, true);
 
-  t->values[0] = frame - ts->min;
+  const int frame_snap = transform_convert_sequencer_get_snap_bound(t);
+  t->values[0] = frame_near - frame_snap;
 }
 
 static void applyGridIncrement(
