@@ -1453,13 +1453,11 @@ void BKE_gpencil_vgroup_remove(Object *ob, bDeformGroup *defgroup)
               if (dw != NULL) {
                 BKE_defvert_remove_group(dvert, dw);
               }
-              else {
-                /* Reorganize weights for other groups after deleted one. */
-                for (int g = 0; g < totgrp; g++) {
-                  dw = BKE_defvert_find_index(dvert, g);
-                  if ((dw != NULL) && (dw->def_nr > def_nr)) {
-                    dw->def_nr--;
-                  }
+              /* Reorganize weights for other groups after deleted one. */
+              for (int g = 0; g < totgrp; g++) {
+                dw = BKE_defvert_find_index(dvert, g);
+                if ((dw != NULL) && (dw->def_nr > def_nr)) {
+                  dw->def_nr--;
                 }
               }
             }
