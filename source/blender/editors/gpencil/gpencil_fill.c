@@ -1274,11 +1274,12 @@ static tGPDfill *gp_session_init_fill(bContext *C, wmOperator *UNUSED(op))
   ToolSettings *ts = CTX_data_tool_settings(C);
   bGPdata *gpd = CTX_data_gpencil_data(C);
   Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
 
   /* set current scene and window info */
   tgpf->C = C;
   tgpf->bmain = CTX_data_main(C);
-  tgpf->scene = CTX_data_scene(C);
+  tgpf->scene = scene;
   tgpf->ob = CTX_data_active_object(C);
   tgpf->area = CTX_wm_area(C);
   tgpf->region = CTX_wm_region(C);
@@ -1286,6 +1287,7 @@ static tGPDfill *gp_session_init_fill(bContext *C, wmOperator *UNUSED(op))
   tgpf->v3d = tgpf->area->spacedata.first;
   tgpf->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   tgpf->win = CTX_wm_window(C);
+  tgpf->active_cfra = CFRA;
 
   /* set GP datablock */
   tgpf->gpd = gpd;
