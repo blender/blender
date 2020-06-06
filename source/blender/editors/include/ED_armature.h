@@ -120,7 +120,7 @@ typedef struct EditBone {
   } temp;
 } EditBone;
 
-#define BONESEL_ROOT (2 << 29u)
+#define BONESEL_ROOT (1 << 29u)
 #define BONESEL_TIP (1 << 30u)
 #define BONESEL_BONE (1 << 31u)
 #define BONESEL_ANY (BONESEL_TIP | BONESEL_ROOT | BONESEL_BONE)
