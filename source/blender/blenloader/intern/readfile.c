@@ -9150,19 +9150,18 @@ static void lib_link_hair(FileData *fd, Main *UNUSED(main), Hair *hair)
   }
 }
 
-static void direct_link_hair(FileData *fd, Hair *hair)
+static void direct_link_hair(BlendDataReader *reader, Hair *hair)
 {
-  hair->adt = newdataadr(fd, hair->adt);
-  direct_link_animdata(fd, hair->adt);
+  BLO_read_data_address(reader, &hair->adt);
+  direct_link_animdata(reader->fd, hair->adt);
 
   /* Geometry */
-  direct_link_customdata(fd, &hair->pdata, hair->totpoint);
-  direct_link_customdata(fd, &hair->cdata, hair->totcurve);
+  direct_link_customdata(reader->fd, &hair->pdata, hair->totpoint);
+  direct_link_customdata(reader->fd, &hair->cdata, hair->totcurve);
   BKE_hair_update_customdata_pointers(hair);
 
   /* Materials */
-  hair->mat = newdataadr(fd, hair->mat);
-  test_pointer_array(fd, (void **)&hair->mat);
+  BLO_read_pointer_array(reader, (void **)hair->mat);
 }
 
 /** \} */
@@ -9178,18 +9177,17 @@ static void lib_link_pointcloud(FileData *fd, Main *UNUSED(main), PointCloud *po
   }
 }
 
-static void direct_link_pointcloud(FileData *fd, PointCloud *pointcloud)
+static void direct_link_pointcloud(BlendDataReader *reader, PointCloud *pointcloud)
 {
-  pointcloud->adt = newdataadr(fd, pointcloud->adt);
-  direct_link_animdata(fd, pointcloud->adt);
+  BLO_read_data_address(reader, &pointcloud->adt);
+  direct_link_animdata(reader->fd, pointcloud->adt);
 
   /* Geometry */
-  direct_link_customdata(fd, &pointcloud->pdata, pointcloud->totpoint);
+  direct_link_customdata(reader->fd, &pointcloud->pdata, pointcloud->totpoint);
   BKE_pointcloud_update_customdata_pointers(pointcloud);
 
   /* Materials */
-  pointcloud->mat = newdataadr(fd, pointcloud->mat);
-  test_pointer_array(fd, (void **)&pointcloud->mat);
+  BLO_read_pointer_array(reader, (void **)&pointcloud->mat);
 }
 
 /** \} */
@@ -9205,19 +9203,20 @@ static void lib_link_volume(FileData *fd, Main *UNUSED(main), Volume *volume)
   }
 }
 
-static void direct_link_volume(FileData *fd, Volume *volume)
+static void direct_link_volume(BlendDataReader *reader, Volume *volume)
 {
-  volume->adt = newdataadr(fd, volume->adt);
-  direct_link_animdata(fd, volume->adt);
+  BLO_read_data_address(reader, &volume->adt);
+  direct_link_animdata(reader->fd, volume->adt);
 
-  volume->packedfile = direct_link_packedfile(fd, volume->packedfile);
-  volume->runtime.grids = (fd->volumemap) ? newvolumeadr(fd, volume->runtime.grids) : NULL;
+  volume->packedfile = direct_link_packedfile(reader->fd, volume->packedfile);
+  volume->runtime.grids = (reader->fd->volumemap) ?
+                              newvolumeadr(reader->fd, volume->runtime.grids) :
+                              NULL;
   volume->runtime.frame = 0;
   BKE_volume_init_grids(volume);
 
   /* materials */
-  volume->mat = newdataadr(fd, volume->mat);
-  test_pointer_array(fd, (void **)&volume->mat);
+  BLO_read_pointer_array(reader, (void **)&volume->mat);
 }
 
 /** \} */
@@ -9232,10 +9231,10 @@ static void lib_link_simulation(FileData *UNUSED(fd),
 {
 }
 
-static void direct_link_simulation(FileData *fd, Simulation *simulation)
+static void direct_link_simulation(BlendDataReader *reader, Simulation *simulation)
 {
-  simulation->adt = newdataadr(fd, simulation->adt);
-  direct_link_animdata(fd, simulation->adt);
+  BLO_read_data_address(reader, &simulation->adt);
+  direct_link_animdata(reader->fd, simulation->adt);
 }
 
 /** \} */
@@ -9491,16 +9490,16 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       direct_link_workspace(fd, (WorkSpace *)id, main);
       break;
     case ID_HA:
-      direct_link_hair(fd, (Hair *)id);
+      direct_link_hair(&reader, (Hair *)id);
       break;
     case ID_PT:
-      direct_link_pointcloud(fd, (PointCloud *)id);
+      direct_link_pointcloud(&reader, (PointCloud *)id);
       break;
     case ID_VO:
-      direct_link_volume(fd, (Volume *)id);
+      direct_link_volume(&reader, (Volume *)id);
       break;
     case ID_SIM:
-      direct_link_simulation(fd, (Simulation *)id);
+      direct_link_simulation(&reader, (Simulation *)id);
       break;
   }
 
