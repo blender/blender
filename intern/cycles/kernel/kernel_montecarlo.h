@@ -85,8 +85,9 @@ ccl_device_inline void sample_uniform_hemisphere(
 ccl_device_inline void sample_uniform_cone(
     const float3 N, float angle, float randu, float randv, float3 *omega_in, float *pdf)
 {
-  float z = cosf(angle * randu);
-  float r = sqrtf(max(0.0f, 1.0f - z * z));
+  float zMin = cosf(angle);
+  float z = lerp(zMin, 1.0f, randu);
+  float r = safe_sqrtf(1.0f - sqr(z));
   float phi = M_2PI_F * randv;
   float x = r * cosf(phi);
   float y = r * sinf(phi);
@@ -94,7 +95,7 @@ ccl_device_inline void sample_uniform_cone(
   float3 T, B;
   make_orthonormals(N, &T, &B);
   *omega_in = x * T + y * B + z * N;
-  *pdf = 0.5f * M_1_PI_F / (1.0f - cosf(angle));
+  *pdf = M_1_2PI_F / (1.0f - zMin);
 }
 
 /* sample uniform point on the surface of a sphere */
