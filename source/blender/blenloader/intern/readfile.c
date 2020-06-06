@@ -3101,11 +3101,11 @@ static void lib_link_palette(FileData *UNUSED(fd), Main *UNUSED(bmain), Palette 
 {
 }
 
-static void direct_link_palette(FileData *fd, Palette *palette)
+static void direct_link_palette(BlendDataReader *reader, Palette *palette)
 {
 
   /* palette itself has been read */
-  link_list(fd, &palette->colors);
+  BLO_read_list(reader, &palette->colors);
 }
 
 static void lib_link_paint_curve(FileData *UNUSED(fd), Main *UNUSED(bmain), PaintCurve *UNUSED(pc))
@@ -4780,53 +4780,53 @@ static void direct_link_partdeflect(PartDeflect *pd)
   }
 }
 
-static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
+static void direct_link_particlesettings(BlendDataReader *reader, ParticleSettings *part)
 {
   int a;
 
-  part->adt = newdataadr(fd, part->adt);
-  part->pd = newdataadr(fd, part->pd);
-  part->pd2 = newdataadr(fd, part->pd2);
+  BLO_read_data_address(reader, &part->adt);
+  BLO_read_data_address(reader, &part->pd);
+  BLO_read_data_address(reader, &part->pd2);
 
-  direct_link_animdata(fd, part->adt);
+  direct_link_animdata(reader->fd, part->adt);
   direct_link_partdeflect(part->pd);
   direct_link_partdeflect(part->pd2);
 
-  part->clumpcurve = newdataadr(fd, part->clumpcurve);
+  BLO_read_data_address(reader, &part->clumpcurve);
   if (part->clumpcurve) {
-    direct_link_curvemapping(fd, part->clumpcurve);
+    direct_link_curvemapping(reader->fd, part->clumpcurve);
   }
-  part->roughcurve = newdataadr(fd, part->roughcurve);
+  BLO_read_data_address(reader, &part->roughcurve);
   if (part->roughcurve) {
-    direct_link_curvemapping(fd, part->roughcurve);
+    direct_link_curvemapping(reader->fd, part->roughcurve);
   }
-  part->twistcurve = newdataadr(fd, part->twistcurve);
+  BLO_read_data_address(reader, &part->twistcurve);
   if (part->twistcurve) {
-    direct_link_curvemapping(fd, part->twistcurve);
+    direct_link_curvemapping(reader->fd, part->twistcurve);
   }
 
-  part->effector_weights = newdataadr(fd, part->effector_weights);
+  BLO_read_data_address(reader, &part->effector_weights);
   if (!part->effector_weights) {
     part->effector_weights = BKE_effector_add_weights(part->force_group);
   }
 
-  link_list(fd, &part->instance_weights);
+  BLO_read_list(reader, &part->instance_weights);
 
-  part->boids = newdataadr(fd, part->boids);
-  part->fluid = newdataadr(fd, part->fluid);
+  BLO_read_data_address(reader, &part->boids);
+  BLO_read_data_address(reader, &part->fluid);
 
   if (part->boids) {
     BoidState *state;
-    link_list(fd, &part->boids->states);
+    BLO_read_list(reader, &part->boids->states);
 
     for (state = part->boids->states.first; state; state = state->next) {
-      link_list(fd, &state->rules);
-      link_list(fd, &state->conditions);
-      link_list(fd, &state->actions);
+      BLO_read_list(reader, &state->rules);
+      BLO_read_list(reader, &state->conditions);
+      BLO_read_list(reader, &state->actions);
     }
   }
   for (a = 0; a < MAX_MTEX; a++) {
-    part->mtex[a] = newdataadr(fd, part->mtex[a]);
+    BLO_read_data_address(reader, &part->mtex[a]);
   }
 
   /* Protect against integer overflow vulnerability. */
@@ -8718,51 +8718,51 @@ static void direct_link_moviePlaneTracks(FileData *fd, ListBase *plane_tracks_ba
   }
 }
 
-static void direct_link_movieclip(FileData *fd, MovieClip *clip)
+static void direct_link_movieclip(BlendDataReader *reader, MovieClip *clip)
 {
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingObject *object;
 
-  clip->adt = newdataadr(fd, clip->adt);
+  BLO_read_data_address(reader, &clip->adt);
 
-  if (fd->movieclipmap) {
-    clip->cache = newmclipadr(fd, clip->cache);
+  if (reader->fd->movieclipmap) {
+    clip->cache = newmclipadr(reader->fd, clip->cache);
   }
   else {
     clip->cache = NULL;
   }
 
-  if (fd->movieclipmap) {
-    clip->tracking.camera.intrinsics = newmclipadr(fd, clip->tracking.camera.intrinsics);
+  if (reader->fd->movieclipmap) {
+    clip->tracking.camera.intrinsics = newmclipadr(reader->fd, clip->tracking.camera.intrinsics);
   }
   else {
     clip->tracking.camera.intrinsics = NULL;
   }
 
-  direct_link_movieTracks(fd, &tracking->tracks);
-  direct_link_moviePlaneTracks(fd, &tracking->plane_tracks);
-  direct_link_movieReconstruction(fd, &tracking->reconstruction);
+  direct_link_movieTracks(reader->fd, &tracking->tracks);
+  direct_link_moviePlaneTracks(reader->fd, &tracking->plane_tracks);
+  direct_link_movieReconstruction(reader->fd, &tracking->reconstruction);
 
-  clip->tracking.act_track = newdataadr(fd, clip->tracking.act_track);
-  clip->tracking.act_plane_track = newdataadr(fd, clip->tracking.act_plane_track);
+  BLO_read_data_address(reader, &clip->tracking.act_track);
+  BLO_read_data_address(reader, &clip->tracking.act_plane_track);
 
   clip->anim = NULL;
   clip->tracking_context = NULL;
   clip->tracking.stats = NULL;
 
   /* Needed for proper versioning, will be NULL for all newer files anyway. */
-  clip->tracking.stabilization.rot_track = newdataadr(fd, clip->tracking.stabilization.rot_track);
+  BLO_read_data_address(reader, &clip->tracking.stabilization.rot_track);
 
   clip->tracking.dopesheet.ok = 0;
   BLI_listbase_clear(&clip->tracking.dopesheet.channels);
   BLI_listbase_clear(&clip->tracking.dopesheet.coverage_segments);
 
-  link_list(fd, &tracking->objects);
+  BLO_read_list(reader, &tracking->objects);
 
   for (object = tracking->objects.first; object; object = object->next) {
-    direct_link_movieTracks(fd, &object->tracks);
-    direct_link_moviePlaneTracks(fd, &object->plane_tracks);
-    direct_link_movieReconstruction(fd, &object->reconstruction);
+    direct_link_movieTracks(reader->fd, &object->tracks);
+    direct_link_moviePlaneTracks(reader->fd, &object->plane_tracks);
+    direct_link_movieReconstruction(reader->fd, &object->reconstruction);
   }
 }
 
@@ -8805,13 +8805,13 @@ static void lib_link_movieclip(FileData *fd, Main *UNUSED(bmain), MovieClip *cli
 /** \name Read ID: Masks
  * \{ */
 
-static void direct_link_mask(FileData *fd, Mask *mask)
+static void direct_link_mask(BlendDataReader *reader, Mask *mask)
 {
   MaskLayer *masklay;
 
-  mask->adt = newdataadr(fd, mask->adt);
+  BLO_read_data_address(reader, &mask->adt);
 
-  link_list(fd, &mask->masklayers);
+  BLO_read_list(reader, &mask->masklayers);
 
   for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
     MaskSpline *spline;
@@ -8820,19 +8820,19 @@ static void direct_link_mask(FileData *fd, Mask *mask)
     /* can't use newdataadr since it's a pointer within an array */
     MaskSplinePoint *act_point_search = NULL;
 
-    link_list(fd, &masklay->splines);
+    BLO_read_list(reader, &masklay->splines);
 
     for (spline = masklay->splines.first; spline; spline = spline->next) {
       MaskSplinePoint *points_old = spline->points;
       int i;
 
-      spline->points = newdataadr(fd, spline->points);
+      BLO_read_data_address(reader, &spline->points);
 
       for (i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
         if (point->tot_uw) {
-          point->uw = newdataadr(fd, point->uw);
+          BLO_read_data_address(reader, &point->uw);
         }
       }
 
@@ -8843,14 +8843,14 @@ static void direct_link_mask(FileData *fd, Mask *mask)
       }
     }
 
-    link_list(fd, &masklay->splines_shapes);
+    BLO_read_list(reader, &masklay->splines_shapes);
 
     for (masklay_shape = masklay->splines_shapes.first; masklay_shape;
          masklay_shape = masklay_shape->next) {
-      masklay_shape->data = newdataadr(fd, masklay_shape->data);
+      BLO_read_data_address(reader, &masklay_shape->data);
 
       if (masklay_shape->tot_vert) {
-        if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+        if (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
           BLI_endian_switch_float_array(masklay_shape->data,
                                         masklay_shape->tot_vert * sizeof(float) *
                                             MASK_OBJECT_SHAPE_ELEM_SIZE);
@@ -8858,7 +8858,7 @@ static void direct_link_mask(FileData *fd, Mask *mask)
       }
     }
 
-    masklay->act_spline = newdataadr(fd, masklay->act_spline);
+    BLO_read_data_address(reader, &masklay->act_spline);
     masklay->act_point = act_point_search;
   }
 }
@@ -9101,31 +9101,31 @@ static void direct_link_linestyle_geometry_modifier(FileData *UNUSED(fd),
 {
 }
 
-static void direct_link_linestyle(FileData *fd, FreestyleLineStyle *linestyle)
+static void direct_link_linestyle(BlendDataReader *reader, FreestyleLineStyle *linestyle)
 {
   int a;
   LineStyleModifier *modifier;
 
-  linestyle->adt = newdataadr(fd, linestyle->adt);
-  direct_link_animdata(fd, linestyle->adt);
-  link_list(fd, &linestyle->color_modifiers);
+  BLO_read_data_address(reader, &linestyle->adt);
+  direct_link_animdata(reader->fd, linestyle->adt);
+  BLO_read_list(reader, &linestyle->color_modifiers);
   for (modifier = linestyle->color_modifiers.first; modifier; modifier = modifier->next) {
-    direct_link_linestyle_color_modifier(fd, modifier);
+    direct_link_linestyle_color_modifier(reader->fd, modifier);
   }
-  link_list(fd, &linestyle->alpha_modifiers);
+  BLO_read_list(reader, &linestyle->alpha_modifiers);
   for (modifier = linestyle->alpha_modifiers.first; modifier; modifier = modifier->next) {
-    direct_link_linestyle_alpha_modifier(fd, modifier);
+    direct_link_linestyle_alpha_modifier(reader->fd, modifier);
   }
-  link_list(fd, &linestyle->thickness_modifiers);
+  BLO_read_list(reader, &linestyle->thickness_modifiers);
   for (modifier = linestyle->thickness_modifiers.first; modifier; modifier = modifier->next) {
-    direct_link_linestyle_thickness_modifier(fd, modifier);
+    direct_link_linestyle_thickness_modifier(reader->fd, modifier);
   }
-  link_list(fd, &linestyle->geometry_modifiers);
+  BLO_read_list(reader, &linestyle->geometry_modifiers);
   for (modifier = linestyle->geometry_modifiers.first; modifier; modifier = modifier->next) {
-    direct_link_linestyle_geometry_modifier(fd, modifier);
+    direct_link_linestyle_geometry_modifier(reader->fd, modifier);
   }
   for (a = 0; a < MAX_MTEX; a++) {
-    linestyle->mtex[a] = newdataadr(fd, linestyle->mtex[a]);
+    BLO_read_data_address(reader, &linestyle->mtex[a]);
   }
 }
 
@@ -9455,22 +9455,22 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       direct_link_brush(&reader, (Brush *)id);
       break;
     case ID_PA:
-      direct_link_particlesettings(fd, (ParticleSettings *)id);
+      direct_link_particlesettings(&reader, (ParticleSettings *)id);
       break;
     case ID_GD:
       direct_link_gpencil(&reader, (bGPdata *)id);
       break;
     case ID_MC:
-      direct_link_movieclip(fd, (MovieClip *)id);
+      direct_link_movieclip(&reader, (MovieClip *)id);
       break;
     case ID_MSK:
-      direct_link_mask(fd, (Mask *)id);
+      direct_link_mask(&reader, (Mask *)id);
       break;
     case ID_LS:
-      direct_link_linestyle(fd, (FreestyleLineStyle *)id);
+      direct_link_linestyle(&reader, (FreestyleLineStyle *)id);
       break;
     case ID_PAL:
-      direct_link_palette(fd, (Palette *)id);
+      direct_link_palette(&reader, (Palette *)id);
       break;
     case ID_PC:
       direct_link_paint_curve(fd, (PaintCurve *)id);
