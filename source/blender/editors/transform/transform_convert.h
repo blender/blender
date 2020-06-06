@@ -74,9 +74,11 @@ void flushTransGraphData(TransInfo *t);
 void flushTransMasking(TransInfo *t);
 
 /* transform_convert_mesh.c */
-void flushTransUVs(TransInfo *t);
 void trans_mesh_customdata_correction_init(TransInfo *t);
 void trans_mesh_customdata_correction_apply(struct TransDataContainer *tc, bool is_final);
+
+/* transform_convert_mesh_uv.c */
+void flushTransUVs(TransInfo *t);
 
 /* transform_convert_node.c */
 void flushTransNodes(TransInfo *t);
@@ -141,7 +143,11 @@ void createTransMBallVerts(TransInfo *t);
 
 /* transform_convert_mesh.c */
 void createTransEditVerts(TransInfo *t);
+
+/* transform_convert_mesh_edge.c */
 void createTransEdge(TransInfo *t);
+
+/* transform_convert_mesh_uv.c */
 void createTransUVs(bContext *C, TransInfo *t);
 
 /* transform_convert_nla.c */
