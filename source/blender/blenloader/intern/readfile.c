@@ -2797,10 +2797,12 @@ static void direct_link_id_override_property_cb(FileData *fd, void *data)
 static void direct_link_id_common(
     FileData *fd, Library *current_library, ID *id, ID *id_old, const int tag);
 static void direct_link_nodetree(FileData *fd, bNodeTree *ntree);
-static void direct_link_collection(FileData *fd, Collection *collection);
+static void direct_link_collection(BlendDataReader *reader, Collection *collection);
 
 static void direct_link_id_embedded_id(FileData *fd, Library *current_library, ID *id, ID *id_old)
 {
+  BlendDataReader reader = {fd};
+
   /* Handle 'private IDs'. */
   bNodeTree **nodetree = BKE_ntree_ptr_from_id(id);
   if (nodetree != NULL && *nodetree != NULL) {
@@ -2822,7 +2824,7 @@ static void direct_link_id_embedded_id(FileData *fd, Library *current_library, I
                             &scene->master_collection->id,
                             id_old != NULL ? &((Scene *)id_old)->master_collection->id : NULL,
                             0);
-      direct_link_collection(fd, scene->master_collection);
+      direct_link_collection(&reader, scene->master_collection);
     }
   }
 }
@@ -4157,12 +4159,12 @@ static void lib_link_camera(FileData *fd, Main *UNUSED(bmain), Camera *ca)
   }
 }
 
-static void direct_link_camera(FileData *fd, Camera *ca)
+static void direct_link_camera(BlendDataReader *reader, Camera *ca)
 {
-  ca->adt = newdataadr(fd, ca->adt);
-  direct_link_animdata(fd, ca->adt);
+  BLO_read_data_address(reader, &ca->adt);
+  direct_link_animdata(reader->fd, ca->adt);
 
-  link_list(fd, &ca->bg_images);
+  BLO_read_list(reader, &ca->bg_images);
 
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
     bgpic->iuser.ok = 1;
@@ -4311,12 +4313,12 @@ static void lib_link_world(FileData *fd, Main *UNUSED(bmain), World *wrld)
   wrld->ipo = newlibadr(fd, wrld->id.lib, wrld->ipo);  // XXX deprecated - old animation system
 }
 
-static void direct_link_world(FileData *fd, World *wrld)
+static void direct_link_world(BlendDataReader *reader, World *wrld)
 {
-  wrld->adt = newdataadr(fd, wrld->adt);
-  direct_link_animdata(fd, wrld->adt);
+  BLO_read_data_address(reader, &wrld->adt);
+  direct_link_animdata(reader->fd, wrld->adt);
 
-  wrld->preview = direct_link_preview_image(fd, wrld->preview);
+  wrld->preview = direct_link_preview_image(reader->fd, wrld->preview);
   BLI_listbase_clear(&wrld->gpumaterial);
 }
 
@@ -5206,18 +5208,18 @@ static void lib_link_latt(FileData *fd, Main *UNUSED(bmain), Lattice *lt)
   lt->key = newlibadr(fd, lt->id.lib, lt->key);
 }
 
-static void direct_link_latt(FileData *fd, Lattice *lt)
+static void direct_link_latt(BlendDataReader *reader, Lattice *lt)
 {
-  lt->def = newdataadr(fd, lt->def);
+  BLO_read_data_address(reader, &lt->def);
 
-  lt->dvert = newdataadr(fd, lt->dvert);
-  direct_link_dverts(fd, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
+  BLO_read_data_address(reader, &lt->dvert);
+  direct_link_dverts(reader->fd, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
 
   lt->editlatt = NULL;
   lt->batch_cache = NULL;
 
-  lt->adt = newdataadr(fd, lt->adt);
-  direct_link_animdata(fd, lt->adt);
+  BLO_read_data_address(reader, &lt->adt);
+  direct_link_animdata(reader->fd, lt->adt);
 }
 
 /** \} */
@@ -6449,12 +6451,12 @@ static void lib_link_scene_collection(FileData *fd, Library *lib, SceneCollectio
 }
 #endif
 
-static void direct_link_collection(FileData *fd, Collection *collection)
+static void direct_link_collection(BlendDataReader *reader, Collection *collection)
 {
-  link_list(fd, &collection->gobject);
-  link_list(fd, &collection->children);
+  BLO_read_list(reader, &collection->gobject);
+  BLO_read_list(reader, &collection->children);
 
-  collection->preview = direct_link_preview_image(fd, collection->preview);
+  collection->preview = direct_link_preview_image(reader->fd, collection->preview);
 
   collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
   collection->tag = 0;
@@ -6463,14 +6465,14 @@ static void direct_link_collection(FileData *fd, Collection *collection)
 
 #ifdef USE_COLLECTION_COMPAT_28
   /* This runs before the very first doversion. */
-  collection->collection = newdataadr(fd, collection->collection);
+  BLO_read_data_address(reader, &collection->collection);
   if (collection->collection != NULL) {
-    direct_link_scene_collection(fd, collection->collection);
+    direct_link_scene_collection(reader->fd, collection->collection);
   }
 
-  collection->view_layer = newdataadr(fd, collection->view_layer);
+  BLO_read_data_address(reader, &collection->view_layer);
   if (collection->view_layer != NULL) {
-    direct_link_view_layer(fd, collection->view_layer);
+    direct_link_view_layer(reader->fd, collection->view_layer);
   }
 #endif
 }
@@ -8612,10 +8614,10 @@ static void lib_link_lightprobe(FileData *fd, Main *UNUSED(bmain), LightProbe *p
   prb->visibility_grp = newlibadr(fd, prb->id.lib, prb->visibility_grp);
 }
 
-static void direct_link_lightprobe(FileData *fd, LightProbe *prb)
+static void direct_link_lightprobe(BlendDataReader *reader, LightProbe *prb)
 {
-  prb->adt = newdataadr(fd, prb->adt);
-  direct_link_animdata(fd, prb->adt);
+  BLO_read_data_address(reader, &prb->adt);
+  direct_link_animdata(reader->fd, prb->adt);
 }
 
 /** \} */
@@ -8629,10 +8631,10 @@ static void lib_link_speaker(FileData *fd, Main *UNUSED(bmain), Speaker *spk)
   spk->sound = newlibadr(fd, spk->id.lib, spk->sound);
 }
 
-static void direct_link_speaker(FileData *fd, Speaker *spk)
+static void direct_link_speaker(BlendDataReader *reader, Speaker *spk)
 {
-  spk->adt = newdataadr(fd, spk->adt);
-  direct_link_animdata(fd, spk->adt);
+  BLO_read_data_address(reader, &spk->adt);
+  direct_link_animdata(reader->fd, spk->adt);
 
 #if 0
   spk->sound = newdataadr(fd, spk->sound);
@@ -8646,7 +8648,7 @@ static void direct_link_speaker(FileData *fd, Speaker *spk)
 /** \name Read ID: Sound
  * \{ */
 
-static void direct_link_sound(FileData *fd, bSound *sound)
+static void direct_link_sound(BlendDataReader *reader, bSound *sound)
 {
   sound->tags = 0;
   sound->handle = NULL;
@@ -8658,8 +8660,8 @@ static void direct_link_sound(FileData *fd, bSound *sound)
     sound->cache = NULL;
   }
 
-  if (fd->soundmap) {
-    sound->waveform = newsoundadr(fd, sound->waveform);
+  if (reader->fd->soundmap) {
+    sound->waveform = newsoundadr(reader->fd, sound->waveform);
     sound->tags |= SOUND_TAGS_WAVEFORM_NO_RELOAD;
   }
   else {
@@ -8672,8 +8674,8 @@ static void direct_link_sound(FileData *fd, bSound *sound)
   /* clear waveform loading flag */
   sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
 
-  sound->packedfile = direct_link_packedfile(fd, sound->packedfile);
-  sound->newpackedfile = direct_link_packedfile(fd, sound->newpackedfile);
+  sound->packedfile = direct_link_packedfile(reader->fd, sound->packedfile);
+  sound->newpackedfile = direct_link_packedfile(reader->fd, sound->newpackedfile);
 }
 
 static void lib_link_sound(FileData *fd, Main *UNUSED(bmain), bSound *sound)
@@ -9424,28 +9426,28 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       direct_link_key(&reader, (Key *)id);
       break;
     case ID_LT:
-      direct_link_latt(fd, (Lattice *)id);
+      direct_link_latt(&reader, (Lattice *)id);
       break;
     case ID_WO:
-      direct_link_world(fd, (World *)id);
+      direct_link_world(&reader, (World *)id);
       break;
     case ID_LI:
       direct_link_library(fd, (Library *)id, main);
       break;
     case ID_CA:
-      direct_link_camera(fd, (Camera *)id);
+      direct_link_camera(&reader, (Camera *)id);
       break;
     case ID_SPK:
-      direct_link_speaker(fd, (Speaker *)id);
+      direct_link_speaker(&reader, (Speaker *)id);
       break;
     case ID_SO:
-      direct_link_sound(fd, (bSound *)id);
+      direct_link_sound(&reader, (bSound *)id);
       break;
     case ID_LP:
-      direct_link_lightprobe(fd, (LightProbe *)id);
+      direct_link_lightprobe(&reader, (LightProbe *)id);
       break;
     case ID_GR:
-      direct_link_collection(fd, (Collection *)id);
+      direct_link_collection(&reader, (Collection *)id);
       break;
     case ID_AR:
       direct_link_armature(fd, (bArmature *)id);
