@@ -3112,9 +3112,9 @@ static void lib_link_paint_curve(FileData *UNUSED(fd), Main *UNUSED(bmain), Pain
 {
 }
 
-static void direct_link_paint_curve(FileData *fd, PaintCurve *pc)
+static void direct_link_paint_curve(BlendDataReader *reader, PaintCurve *pc)
 {
-  pc->points = newdataadr(fd, pc->points);
+  BLO_read_data_address(reader, &pc->points);
 }
 
 /** \} */
@@ -3568,7 +3568,7 @@ static void lib_link_cachefiles(FileData *UNUSED(fd),
 {
 }
 
-static void direct_link_cachefile(FileData *fd, CacheFile *cache_file)
+static void direct_link_cachefile(BlendDataReader *reader, CacheFile *cache_file)
 {
   BLI_listbase_clear(&cache_file->object_paths);
   cache_file->handle = NULL;
@@ -3576,8 +3576,8 @@ static void direct_link_cachefile(FileData *fd, CacheFile *cache_file)
   cache_file->handle_readers = NULL;
 
   /* relink animdata */
-  cache_file->adt = newdataadr(fd, cache_file->adt);
-  direct_link_animdata(fd, cache_file->adt);
+  BLO_read_data_address(reader, &cache_file->adt);
+  direct_link_animdata(reader->fd, cache_file->adt);
 }
 
 /** \} */
@@ -3610,31 +3610,32 @@ static void lib_link_workspaces(FileData *fd, Main *bmain, WorkSpace *workspace)
   }
 }
 
-static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main *main)
+static void direct_link_workspace(BlendDataReader *reader, WorkSpace *workspace, const Main *main)
 {
-  link_list(fd, &workspace->layouts);
-  link_list(fd, &workspace->hook_layout_relations);
-  link_list(fd, &workspace->owner_ids);
-  link_list(fd, &workspace->tools);
+  BLO_read_list(reader, &workspace->layouts);
+  BLO_read_list(reader, &workspace->hook_layout_relations);
+  BLO_read_list(reader, &workspace->owner_ids);
+  BLO_read_list(reader, &workspace->tools);
 
   LISTBASE_FOREACH (WorkSpaceDataRelation *, relation, &workspace->hook_layout_relations) {
     /* data from window - need to access through global oldnew-map */
-    relation->parent = newglobadr(fd, relation->parent);
-    relation->value = newdataadr(fd, relation->value);
+    relation->parent = newglobadr(reader->fd, relation->parent);
+    BLO_read_data_address(reader, &relation->value);
   }
 
   /* Same issue/fix as in direct_link_workspace_link_scene_data: Can't read workspace data
    * when reading windows, so have to update windows after/when reading workspaces. */
   for (wmWindowManager *wm = main->wm.first; wm; wm = wm->id.next) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      win->workspace_hook->act_layout = newdataadr(fd, win->workspace_hook->act_layout);
+      BLO_read_data_address(reader, &win->workspace_hook->act_layout);
     }
   }
 
   LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
     tref->runtime = NULL;
-    tref->properties = newdataadr(fd, tref->properties);
-    IDP_DirectLinkGroup_OrFree(&tref->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+    BLO_read_data_address(reader, &tref->properties);
+    IDP_DirectLinkGroup_OrFree(
+        &tref->properties, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
   }
 
   workspace->status_text = NULL;
@@ -9473,13 +9474,13 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       direct_link_palette(&reader, (Palette *)id);
       break;
     case ID_PC:
-      direct_link_paint_curve(fd, (PaintCurve *)id);
+      direct_link_paint_curve(&reader, (PaintCurve *)id);
       break;
     case ID_CF:
-      direct_link_cachefile(fd, (CacheFile *)id);
+      direct_link_cachefile(&reader, (CacheFile *)id);
       break;
     case ID_WS:
-      direct_link_workspace(fd, (WorkSpace *)id, main);
+      direct_link_workspace(&reader, (WorkSpace *)id, main);
       break;
     case ID_HA:
       direct_link_hair(&reader, (Hair *)id);
