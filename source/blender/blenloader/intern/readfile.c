@@ -3163,16 +3163,16 @@ static void lib_link_ipo(FileData *fd, Main *UNUSED(bmain), Ipo *ipo)
 }
 
 // XXX deprecated - old animation system
-static void direct_link_ipo(FileData *fd, Ipo *ipo)
+static void direct_link_ipo(BlendDataReader *reader, Ipo *ipo)
 {
   IpoCurve *icu;
 
-  link_list(fd, &(ipo->curve));
+  BLO_read_list(reader, &(ipo->curve));
 
   for (icu = ipo->curve.first; icu; icu = icu->next) {
-    icu->bezt = newdataadr(fd, icu->bezt);
-    icu->bp = newdataadr(fd, icu->bp);
-    icu->driver = newdataadr(fd, icu->driver);
+    BLO_read_data_address(reader, &icu->bezt);
+    BLO_read_data_address(reader, &icu->bp);
+    BLO_read_data_address(reader, &icu->driver);
   }
 }
 
@@ -4181,17 +4181,17 @@ static void lib_link_light(FileData *fd, Main *UNUSED(bmain), Light *la)
   la->ipo = newlibadr(fd, la->id.lib, la->ipo);  // XXX deprecated - old animation system
 }
 
-static void direct_link_light(FileData *fd, Light *la)
+static void direct_link_light(BlendDataReader *reader, Light *la)
 {
-  la->adt = newdataadr(fd, la->adt);
-  direct_link_animdata(fd, la->adt);
+  BLO_read_data_address(reader, &la->adt);
+  direct_link_animdata(reader->fd, la->adt);
 
-  la->curfalloff = newdataadr(fd, la->curfalloff);
+  BLO_read_data_address(reader, &la->curfalloff);
   if (la->curfalloff) {
-    direct_link_curvemapping(fd, la->curfalloff);
+    direct_link_curvemapping(reader->fd, la->curfalloff);
   }
 
-  la->preview = direct_link_preview_image(fd, la->preview);
+  la->preview = direct_link_preview_image(reader->fd, la->preview);
 }
 
 /** \} */
@@ -4247,21 +4247,21 @@ static void switch_endian_keyblock(Key *key, KeyBlock *kb)
   }
 }
 
-static void direct_link_key(FileData *fd, Key *key)
+static void direct_link_key(BlendDataReader *reader, Key *key)
 {
   KeyBlock *kb;
 
-  link_list(fd, &(key->block));
+  BLO_read_list(reader, &(key->block));
 
-  key->adt = newdataadr(fd, key->adt);
-  direct_link_animdata(fd, key->adt);
+  BLO_read_data_address(reader, &key->adt);
+  direct_link_animdata(reader->fd, key->adt);
 
-  key->refkey = newdataadr(fd, key->refkey);
+  BLO_read_data_address(reader, &key->refkey);
 
   for (kb = key->block.first; kb; kb = kb->next) {
-    kb->data = newdataadr(fd, kb->data);
+    BLO_read_data_address(reader, &kb->data);
 
-    if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+    if (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
       switch_endian_keyblock(key, kb);
     }
   }
@@ -4330,11 +4330,11 @@ static void lib_link_vfont(FileData *UNUSED(fd), Main *UNUSED(bmain), VFont *UNU
 {
 }
 
-static void direct_link_vfont(FileData *fd, VFont *vf)
+static void direct_link_vfont(BlendDataReader *reader, VFont *vf)
 {
   vf->data = NULL;
   vf->temp_pf = NULL;
-  vf->packedfile = direct_link_packedfile(fd, vf->packedfile);
+  vf->packedfile = direct_link_packedfile(reader->fd, vf->packedfile);
 }
 
 /** \} */
@@ -4347,11 +4347,11 @@ static void lib_link_text(FileData *UNUSED(fd), Main *UNUSED(bmain), Text *UNUSE
 {
 }
 
-static void direct_link_text(FileData *fd, Text *text)
+static void direct_link_text(BlendDataReader *reader, Text *text)
 {
   TextLine *ln;
 
-  text->name = newdataadr(fd, text->name);
+  BLO_read_data_address(reader, &text->name);
 
   text->compiled = NULL;
 
@@ -4362,13 +4362,13 @@ static void direct_link_text(FileData *fd, Text *text)
   /* else { */
 #endif
 
-  link_list(fd, &text->lines);
+  BLO_read_list(reader, &text->lines);
 
-  text->curl = newdataadr(fd, text->curl);
-  text->sell = newdataadr(fd, text->sell);
+  BLO_read_data_address(reader, &text->curl);
+  BLO_read_data_address(reader, &text->sell);
 
   for (ln = text->lines.first; ln; ln = ln->next) {
-    ln->line = newdataadr(fd, ln->line);
+    BLO_read_data_address(reader, &ln->line);
     ln->format = NULL;
 
     if (ln->len != (int)strlen(ln->line)) {
@@ -9409,19 +9409,19 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       direct_link_image(&reader, (Image *)id);
       break;
     case ID_LA:
-      direct_link_light(fd, (Light *)id);
+      direct_link_light(&reader, (Light *)id);
       break;
     case ID_VF:
-      direct_link_vfont(fd, (VFont *)id);
+      direct_link_vfont(&reader, (VFont *)id);
       break;
     case ID_TXT:
-      direct_link_text(fd, (Text *)id);
+      direct_link_text(&reader, (Text *)id);
       break;
     case ID_IP:
-      direct_link_ipo(fd, (Ipo *)id);
+      direct_link_ipo(&reader, (Ipo *)id);
       break;
     case ID_KE:
-      direct_link_key(fd, (Key *)id);
+      direct_link_key(&reader, (Key *)id);
       break;
     case ID_LT:
       direct_link_latt(fd, (Lattice *)id);
