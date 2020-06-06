@@ -171,7 +171,7 @@ bool BLO_write_is_undo(BlendWriter *writer);
  *   BLO_read_data_address(reader, &clmd->sim_parms);
  *
  *   BLO_write_struct_list(writer, TimeMarker, &action->markers);
- *   BLO_read_list(reader, &action->markers, NULL);
+ *   BLO_read_list(reader, &action->markers);
  *
  *   BLO_write_int32_array(writer, hmd->totindex, hmd->indexar);
  *   BLO_read_int32_array(reader, hmd->totindex, &hmd->indexar);
@@ -183,7 +183,8 @@ void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_add
   *(ptr_p) = BLO_read_get_new_data_address((reader), *(ptr_p))
 
 typedef void (*BlendReadListFn)(BlendDataReader *reader, void *data);
-void BLO_read_list(BlendDataReader *reader, struct ListBase *list, BlendReadListFn callback);
+void BLO_read_list_cb(BlendDataReader *reader, struct ListBase *list, BlendReadListFn callback);
+void BLO_read_list(BlendDataReader *reader, struct ListBase *list);
 
 /* Update data pointers and correct byte-order if necessary. */
 void BLO_read_int32_array(BlendDataReader *reader, int array_size, int32_t **ptr_p);

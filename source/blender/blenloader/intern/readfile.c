@@ -12724,6 +12724,11 @@ void BLO_read_list(BlendDataReader *reader, ListBase *list, BlendReadListFn call
   list->last = prev;
 }
 
+void BLO_read_list(BlendDataReader *reader, struct ListBase *list)
+{
+  BLO_read_list_cb(reader, list, NULL);
+}
+
 void BLO_read_int32_array(BlendDataReader *reader, int array_size, int32_t **ptr_p)
 {
   BLO_read_data_address(reader, ptr_p);
