@@ -6108,7 +6108,7 @@ static void direct_link_shaderfxs(FileData *fd, ListBase *lb)
   }
 }
 
-static void direct_link_object(FileData *fd, Object *ob)
+static void direct_link_object(BlendDataReader *reader, Object *ob)
 {
   PartEff *paf;
 
@@ -6122,41 +6122,40 @@ static void direct_link_object(FileData *fd, Object *ob)
    * Also when linking in a file don't allow edit and pose modes.
    * See [#34776, #42780] for more information.
    */
-  if (fd->memfile || (ob->id.tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT))) {
+  if (reader->fd->memfile || (ob->id.tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT))) {
     ob->mode &= ~(OB_MODE_EDIT | OB_MODE_PARTICLE_EDIT);
-    if (!fd->memfile) {
+    if (!reader->fd->memfile) {
       ob->mode &= ~OB_MODE_POSE;
     }
   }
 
-  ob->adt = newdataadr(fd, ob->adt);
-  direct_link_animdata(fd, ob->adt);
+  BLO_read_data_address(reader, &ob->adt);
+  direct_link_animdata(reader->fd, ob->adt);
 
-  ob->pose = newdataadr(fd, ob->pose);
-  direct_link_pose(fd, ob->pose);
+  BLO_read_data_address(reader, &ob->pose);
+  direct_link_pose(reader->fd, ob->pose);
 
-  ob->mpath = newdataadr(fd, ob->mpath);
+  BLO_read_data_address(reader, &ob->mpath);
   if (ob->mpath) {
-    direct_link_motionpath(fd, ob->mpath);
+    direct_link_motionpath(reader->fd, ob->mpath);
   }
 
-  link_list(fd, &ob->defbase);
-  link_list(fd, &ob->fmaps);
+  BLO_read_list(reader, &ob->defbase);
+  BLO_read_list(reader, &ob->fmaps);
   // XXX deprecated - old animation system <<<
-  direct_link_nlastrips(fd, &ob->nlastrips);
-  link_list(fd, &ob->constraintChannels);
+  direct_link_nlastrips(reader->fd, &ob->nlastrips);
+  BLO_read_list(reader, &ob->constraintChannels);
   // >>> XXX deprecated - old animation system
 
-  ob->mat = newdataadr(fd, ob->mat);
-  test_pointer_array(fd, (void **)&ob->mat);
-  ob->matbits = newdataadr(fd, ob->matbits);
+  BLO_read_pointer_array(reader, (void **)&ob->mat);
+  BLO_read_data_address(reader, &ob->matbits);
 
   /* do it here, below old data gets converted */
-  direct_link_modifiers(fd, &ob->modifiers, ob);
-  direct_link_gpencil_modifiers(fd, &ob->greasepencil_modifiers);
-  direct_link_shaderfxs(fd, &ob->shader_fx);
+  direct_link_modifiers(reader->fd, &ob->modifiers, ob);
+  direct_link_gpencil_modifiers(reader->fd, &ob->greasepencil_modifiers);
+  direct_link_shaderfxs(reader->fd, &ob->shader_fx);
 
-  link_list(fd, &ob->effect);
+  BLO_read_list(reader, &ob->effect);
   paf = ob->effect.first;
   while (paf) {
     if (paf->type == EFF_PARTICLE) {
@@ -6207,9 +6206,9 @@ static void direct_link_object(FileData *fd, Object *ob)
     paf = paf->next;
   }
 
-  ob->pd = newdataadr(fd, ob->pd);
+  BLO_read_data_address(reader, &ob->pd);
   direct_link_partdeflect(ob->pd);
-  ob->soft = newdataadr(fd, ob->soft);
+  BLO_read_data_address(reader, &ob->soft);
   if (ob->soft) {
     SoftBody *sb = ob->soft;
 
@@ -6218,60 +6217,57 @@ static void direct_link_object(FileData *fd, Object *ob)
     sb->scratch = NULL;
     /* although not used anymore */
     /* still have to be loaded to be compatible with old files */
-    sb->keys = newdataadr(fd, sb->keys);
-    test_pointer_array(fd, (void **)&sb->keys);
+    BLO_read_pointer_array(reader, (void **)&sb->keys);
     if (sb->keys) {
       int a;
       for (a = 0; a < sb->totkey; a++) {
-        sb->keys[a] = newdataadr(fd, sb->keys[a]);
+        BLO_read_data_address(reader, &sb->keys[a]);
       }
     }
 
-    sb->effector_weights = newdataadr(fd, sb->effector_weights);
+    BLO_read_data_address(reader, &sb->effector_weights);
     if (!sb->effector_weights) {
       sb->effector_weights = BKE_effector_add_weights(NULL);
     }
 
-    sb->shared = newdataadr(fd, sb->shared);
+    BLO_read_data_address(reader, &sb->shared);
     if (sb->shared == NULL) {
       /* Link deprecated caches if they exist, so we can use them for versioning.
        * We should only do this when sb->shared == NULL, because those pointers
        * are always set (for compatibility with older Blenders). We mustn't link
        * the same pointcache twice. */
-      direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache, false);
+      direct_link_pointcache_list(reader->fd, &sb->ptcaches, &sb->pointcache, false);
     }
     else {
       /* link caches */
-      direct_link_pointcache_list(fd, &sb->shared->ptcaches, &sb->shared->pointcache, false);
+      direct_link_pointcache_list(
+          reader->fd, &sb->shared->ptcaches, &sb->shared->pointcache, false);
     }
   }
-  ob->fluidsimSettings = newdataadr(fd, ob->fluidsimSettings); /* NT */
+  BLO_read_data_address(reader, &ob->fluidsimSettings); /* NT */
 
-  ob->rigidbody_object = newdataadr(fd, ob->rigidbody_object);
+  BLO_read_data_address(reader, &ob->rigidbody_object);
   if (ob->rigidbody_object) {
     RigidBodyOb *rbo = ob->rigidbody_object;
     /* Allocate runtime-only struct */
     rbo->shared = MEM_callocN(sizeof(*rbo->shared), "RigidBodyObShared");
   }
-  ob->rigidbody_constraint = newdataadr(fd, ob->rigidbody_constraint);
+  BLO_read_data_address(reader, &ob->rigidbody_constraint);
   if (ob->rigidbody_constraint) {
     ob->rigidbody_constraint->physics_constraint = NULL;
   }
 
-  link_list(fd, &ob->particlesystem);
-  direct_link_particlesystems(fd, &ob->particlesystem);
+  BLO_read_list(reader, &ob->particlesystem);
+  direct_link_particlesystems(reader->fd, &ob->particlesystem);
 
-  direct_link_constraints(fd, &ob->constraints);
+  direct_link_constraints(reader->fd, &ob->constraints);
 
-  link_list(fd, &ob->hooks);
+  BLO_read_list(reader, &ob->hooks);
   while (ob->hooks.first) {
     ObHook *hook = ob->hooks.first;
     HookModifierData *hmd = (HookModifierData *)BKE_modifier_new(eModifierType_Hook);
 
-    hook->indexar = newdataadr(fd, hook->indexar);
-    if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-      BLI_endian_switch_int32_array(hook->indexar, hook->totindex);
-    }
+    BLO_read_int32_array(reader, hook->totindex, &hook->indexar);
 
     /* Do conversion here because if we have loaded
      * a hook we need to make sure it gets converted
@@ -6293,13 +6289,13 @@ static void direct_link_object(FileData *fd, Object *ob)
     MEM_freeN(hook);
   }
 
-  ob->iuser = newdataadr(fd, ob->iuser);
+  BLO_read_data_address(reader, &ob->iuser);
   if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE && !ob->iuser) {
     BKE_object_empty_draw_type_set(ob, ob->empty_drawtype);
   }
 
   BKE_object_runtime_reset(ob);
-  link_list(fd, &ob->pc_ids);
+  BLO_read_list(reader, &ob->pc_ids);
 
   /* in case this value changes in future, clamp else we get undefined behavior */
   CLAMP(ob->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
@@ -6307,15 +6303,15 @@ static void direct_link_object(FileData *fd, Object *ob)
   if (ob->sculpt) {
     ob->sculpt = NULL;
     /* Only create data on undo, otherwise rely on editor mode switching. */
-    if (fd->memfile && (ob->mode & OB_MODE_ALL_SCULPT)) {
+    if (reader->fd->memfile && (ob->mode & OB_MODE_ALL_SCULPT)) {
       BKE_object_sculpt_data_create(ob);
     }
   }
 
-  link_list(fd, &ob->lodlevels);
+  BLO_read_list(reader, &ob->lodlevels);
   ob->currentlod = ob->lodlevels.first;
 
-  ob->preview = direct_link_preview_image(fd, ob->preview);
+  ob->preview = direct_link_preview_image(reader->fd, ob->preview);
 }
 
 static void direct_link_view_settings(FileData *fd, ColorManagedViewSettings *view_settings)
@@ -6846,21 +6842,21 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
   }
 }
 
-static void direct_link_paint(FileData *fd, const Scene *scene, Paint *p)
+static void direct_link_paint(BlendDataReader *reader, const Scene *scene, Paint *p)
 {
   if (p->num_input_samples < 1) {
     p->num_input_samples = 1;
   }
 
-  p->cavity_curve = newdataadr(fd, p->cavity_curve);
+  BLO_read_data_address(reader, &p->cavity_curve);
   if (p->cavity_curve) {
-    direct_link_curvemapping(fd, p->cavity_curve);
+    direct_link_curvemapping(reader->fd, p->cavity_curve);
   }
   else {
     BKE_paint_cavity_curve_preset(p, CURVE_PRESET_LINE);
   }
 
-  p->tool_slots = newdataadr(fd, p->tool_slots);
+  BLO_read_data_address(reader, &p->tool_slots);
 
   /* Workaround for invalid data written in older versions. */
   const size_t expected_size = sizeof(PaintToolSlot) * p->tool_slots_len;
@@ -6872,13 +6868,13 @@ static void direct_link_paint(FileData *fd, const Scene *scene, Paint *p)
   BKE_paint_runtime_init(scene->toolsettings, p);
 }
 
-static void direct_link_paint_helper(FileData *fd, const Scene *scene, Paint **paint)
+static void direct_link_paint_helper(BlendDataReader *reader, const Scene *scene, Paint **paint)
 {
   /* TODO. is this needed */
-  (*paint) = newdataadr(fd, (*paint));
+  BLO_read_data_address(reader, paint);
 
   if (*paint) {
-    direct_link_paint(fd, scene, *paint);
+    direct_link_paint(reader, scene, *paint);
   }
 }
 
@@ -6906,7 +6902,7 @@ static void direct_link_sequence_modifiers(FileData *fd, ListBase *lb)
   }
 }
 
-static void direct_link_scene(FileData *fd, Scene *sce)
+static void direct_link_scene(BlendDataReader *reader, Scene *sce)
 {
   Editing *ed;
   Sequence *seq;
@@ -6926,17 +6922,17 @@ static void direct_link_scene(FileData *fd, Scene *sce)
   /* set users to one by default, not in lib-link, this will increase it for compo nodes */
   id_us_ensure_real(&sce->id);
 
-  link_list(fd, &(sce->base));
+  BLO_read_list(reader, &(sce->base));
 
-  sce->adt = newdataadr(fd, sce->adt);
-  direct_link_animdata(fd, sce->adt);
+  BLO_read_data_address(reader, &sce->adt);
+  direct_link_animdata(reader->fd, sce->adt);
 
-  link_list(fd, &sce->keyingsets);
-  direct_link_keyingsets(fd, &sce->keyingsets);
+  BLO_read_list(reader, &sce->keyingsets);
+  direct_link_keyingsets(reader->fd, &sce->keyingsets);
 
-  sce->basact = newdataadr(fd, sce->basact);
+  BLO_read_data_address(reader, &sce->basact);
 
-  sce->toolsettings = newdataadr(fd, sce->toolsettings);
+  BLO_read_data_address(reader, &sce->toolsettings);
   if (sce->toolsettings) {
 
     /* Reset last_location and last_hit, so they are not remembered across sessions. In some files
@@ -6945,16 +6941,16 @@ static void direct_link_scene(FileData *fd, Scene *sce)
     zero_v3(ups->last_location);
     ups->last_hit = 0;
 
-    direct_link_paint_helper(fd, sce, (Paint **)&sce->toolsettings->sculpt);
-    direct_link_paint_helper(fd, sce, (Paint **)&sce->toolsettings->vpaint);
-    direct_link_paint_helper(fd, sce, (Paint **)&sce->toolsettings->wpaint);
-    direct_link_paint_helper(fd, sce, (Paint **)&sce->toolsettings->uvsculpt);
-    direct_link_paint_helper(fd, sce, (Paint **)&sce->toolsettings->gp_paint);
-    direct_link_paint_helper(fd, sce, (Paint **)&sce->toolsettings->gp_vertexpaint);
-    direct_link_paint_helper(fd, sce, (Paint **)&sce->toolsettings->gp_sculptpaint);
-    direct_link_paint_helper(fd, sce, (Paint **)&sce->toolsettings->gp_weightpaint);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->sculpt);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->vpaint);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->wpaint);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->uvsculpt);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_paint);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_vertexpaint);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_sculptpaint);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_weightpaint);
 
-    direct_link_paint(fd, sce, &sce->toolsettings->imapaint.paint);
+    direct_link_paint(reader, sce, &sce->toolsettings->imapaint.paint);
 
     sce->toolsettings->particle.paintcursor = NULL;
     sce->toolsettings->particle.scene = NULL;
@@ -6962,56 +6958,53 @@ static void direct_link_scene(FileData *fd, Scene *sce)
     sce->toolsettings->gp_sculpt.paintcursor = NULL;
 
     /* relink grease pencil interpolation curves */
-    sce->toolsettings->gp_interpolate.custom_ipo = newdataadr(
-        fd, sce->toolsettings->gp_interpolate.custom_ipo);
+    BLO_read_data_address(reader, &sce->toolsettings->gp_interpolate.custom_ipo);
     if (sce->toolsettings->gp_interpolate.custom_ipo) {
-      direct_link_curvemapping(fd, sce->toolsettings->gp_interpolate.custom_ipo);
+      direct_link_curvemapping(reader->fd, sce->toolsettings->gp_interpolate.custom_ipo);
     }
     /* relink grease pencil multiframe falloff curve */
-    sce->toolsettings->gp_sculpt.cur_falloff = newdataadr(
-        fd, sce->toolsettings->gp_sculpt.cur_falloff);
+    BLO_read_data_address(reader, &sce->toolsettings->gp_sculpt.cur_falloff);
     if (sce->toolsettings->gp_sculpt.cur_falloff) {
-      direct_link_curvemapping(fd, sce->toolsettings->gp_sculpt.cur_falloff);
+      direct_link_curvemapping(reader->fd, sce->toolsettings->gp_sculpt.cur_falloff);
     }
     /* relink grease pencil primitive curve */
-    sce->toolsettings->gp_sculpt.cur_primitive = newdataadr(
-        fd, sce->toolsettings->gp_sculpt.cur_primitive);
+    BLO_read_data_address(reader, &sce->toolsettings->gp_sculpt.cur_primitive);
     if (sce->toolsettings->gp_sculpt.cur_primitive) {
-      direct_link_curvemapping(fd, sce->toolsettings->gp_sculpt.cur_primitive);
+      direct_link_curvemapping(reader->fd, sce->toolsettings->gp_sculpt.cur_primitive);
     }
 
     /* Relink toolsettings curve profile */
-    sce->toolsettings->custom_bevel_profile_preset = newdataadr(
-        fd, sce->toolsettings->custom_bevel_profile_preset);
+    BLO_read_data_address(reader, &sce->toolsettings->custom_bevel_profile_preset);
     if (sce->toolsettings->custom_bevel_profile_preset) {
-      direct_link_curveprofile(fd, sce->toolsettings->custom_bevel_profile_preset);
+      direct_link_curveprofile(reader->fd, sce->toolsettings->custom_bevel_profile_preset);
     }
   }
 
   if (sce->ed) {
     ListBase *old_seqbasep = &sce->ed->seqbase;
 
-    ed = sce->ed = newdataadr(fd, sce->ed);
+    BLO_read_data_address(reader, &sce->ed);
+    ed = sce->ed;
 
-    ed->act_seq = newdataadr(fd, ed->act_seq);
+    BLO_read_data_address(reader, &ed->act_seq);
     ed->cache = NULL;
     ed->prefetch_job = NULL;
 
     /* recursive link sequences, lb will be correctly initialized */
-    link_recurs_seq(fd, &ed->seqbase);
+    link_recurs_seq(reader->fd, &ed->seqbase);
 
     SEQ_BEGIN (ed, seq) {
-      seq->seq1 = newdataadr(fd, seq->seq1);
-      seq->seq2 = newdataadr(fd, seq->seq2);
-      seq->seq3 = newdataadr(fd, seq->seq3);
+      BLO_read_data_address(reader, &seq->seq1);
+      BLO_read_data_address(reader, &seq->seq2);
+      BLO_read_data_address(reader, &seq->seq3);
 
       /* a patch: after introduction of effects with 3 input strips */
       if (seq->seq3 == NULL) {
         seq->seq3 = seq->seq2;
       }
 
-      seq->effectdata = newdataadr(fd, seq->effectdata);
-      seq->stereo3d_format = newdataadr(fd, seq->stereo3d_format);
+      BLO_read_data_address(reader, &seq->effectdata);
+      BLO_read_data_address(reader, &seq->stereo3d_format);
 
       if (seq->type & SEQ_TYPE_EFFECT) {
         seq->flag |= SEQ_EFFECT_NOT_LOADED;
@@ -7027,10 +7020,11 @@ static void direct_link_scene(FileData *fd, Scene *sce)
         t->text_blf_id = SEQ_FONT_NOT_LOADED;
       }
 
-      seq->prop = newdataadr(fd, seq->prop);
-      IDP_DirectLinkGroup_OrFree(&seq->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+      BLO_read_data_address(reader, &seq->prop);
+      IDP_DirectLinkGroup_OrFree(
+          &seq->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
 
-      seq->strip = newdataadr(fd, seq->strip);
+      BLO_read_data_address(reader, &seq->strip);
       if (seq->strip && seq->strip->done == 0) {
         seq->strip->done = true;
 
@@ -7039,14 +7033,14 @@ static void direct_link_scene(FileData *fd, Scene *sce)
                  SEQ_TYPE_MOVIE,
                  SEQ_TYPE_SOUND_RAM,
                  SEQ_TYPE_SOUND_HD)) {
-          seq->strip->stripdata = newdataadr(fd, seq->strip->stripdata);
+          BLO_read_data_address(reader, &seq->strip->stripdata);
         }
         else {
           seq->strip->stripdata = NULL;
         }
-        seq->strip->crop = newdataadr(fd, seq->strip->crop);
-        seq->strip->transform = newdataadr(fd, seq->strip->transform);
-        seq->strip->proxy = newdataadr(fd, seq->strip->proxy);
+        BLO_read_data_address(reader, &seq->strip->crop);
+        BLO_read_data_address(reader, &seq->strip->transform);
+        BLO_read_data_address(reader, &seq->strip->proxy);
         if (seq->strip->proxy) {
           seq->strip->proxy->anim = NULL;
         }
@@ -7055,10 +7049,10 @@ static void direct_link_scene(FileData *fd, Scene *sce)
         }
 
         /* need to load color balance to it could be converted to modifier */
-        seq->strip->color_balance = newdataadr(fd, seq->strip->color_balance);
+        BLO_read_data_address(reader, &seq->strip->color_balance);
       }
 
-      direct_link_sequence_modifiers(fd, &seq->modifiers);
+      direct_link_sequence_modifiers(reader->fd, &seq->modifiers);
     }
     SEQ_END;
 
@@ -7078,7 +7072,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
       else {
         poin = POINTER_OFFSET(ed->seqbasep, -offset);
 
-        poin = newdataadr(fd, poin);
+        poin = BLO_read_get_new_data_address(reader, poin);
+
         if (poin) {
           ed->seqbasep = (ListBase *)POINTER_OFFSET(poin, offset);
         }
@@ -7087,17 +7082,17 @@ static void direct_link_scene(FileData *fd, Scene *sce)
         }
       }
       /* stack */
-      link_list(fd, &(ed->metastack));
+      BLO_read_list(reader, &(ed->metastack));
 
       for (ms = ed->metastack.first; ms; ms = ms->next) {
-        ms->parseq = newdataadr(fd, ms->parseq);
+        BLO_read_data_address(reader, &ms->parseq);
 
         if (ms->oldbasep == old_seqbasep) {
           ms->oldbasep = &ed->seqbase;
         }
         else {
           poin = POINTER_OFFSET(ms->oldbasep, -offset);
-          poin = newdataadr(fd, poin);
+          poin = BLO_read_get_new_data_address(reader, poin);
           if (poin) {
             ms->oldbasep = (ListBase *)POINTER_OFFSET(poin, offset);
           }
@@ -7114,42 +7109,43 @@ static void direct_link_scene(FileData *fd, Scene *sce)
   sce->r.mode &= ~R_NO_CAMERA_SWITCH;
 #endif
 
-  sce->r.avicodecdata = newdataadr(fd, sce->r.avicodecdata);
+  BLO_read_data_address(reader, &sce->r.avicodecdata);
   if (sce->r.avicodecdata) {
-    sce->r.avicodecdata->lpFormat = newdataadr(fd, sce->r.avicodecdata->lpFormat);
-    sce->r.avicodecdata->lpParms = newdataadr(fd, sce->r.avicodecdata->lpParms);
+    BLO_read_data_address(reader, &sce->r.avicodecdata->lpFormat);
+    BLO_read_data_address(reader, &sce->r.avicodecdata->lpParms);
   }
   if (sce->r.ffcodecdata.properties) {
-    sce->r.ffcodecdata.properties = newdataadr(fd, sce->r.ffcodecdata.properties);
+    BLO_read_data_address(reader, &sce->r.ffcodecdata.properties);
     IDP_DirectLinkGroup_OrFree(
-        &sce->r.ffcodecdata.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+        &sce->r.ffcodecdata.properties, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
   }
 
-  link_list(fd, &(sce->markers));
-  link_list(fd, &(sce->transform_spaces));
-  link_list(fd, &(sce->r.layers));
-  link_list(fd, &(sce->r.views));
+  BLO_read_list(reader, &(sce->markers));
+  BLO_read_list(reader, &(sce->transform_spaces));
+  BLO_read_list(reader, &(sce->r.layers));
+  BLO_read_list(reader, &(sce->r.views));
 
   for (srl = sce->r.layers.first; srl; srl = srl->next) {
-    srl->prop = newdataadr(fd, srl->prop);
-    IDP_DirectLinkGroup_OrFree(&srl->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-    link_list(fd, &(srl->freestyleConfig.modules));
-    link_list(fd, &(srl->freestyleConfig.linesets));
+    BLO_read_data_address(reader, &srl->prop);
+    IDP_DirectLinkGroup_OrFree(
+        &srl->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+    BLO_read_list(reader, &(srl->freestyleConfig.modules));
+    BLO_read_list(reader, &(srl->freestyleConfig.linesets));
   }
 
-  direct_link_view_settings(fd, &sce->view_settings);
+  direct_link_view_settings(reader->fd, &sce->view_settings);
 
-  sce->rigidbody_world = newdataadr(fd, sce->rigidbody_world);
+  BLO_read_data_address(reader, &sce->rigidbody_world);
   rbw = sce->rigidbody_world;
   if (rbw) {
-    rbw->shared = newdataadr(fd, rbw->shared);
+    BLO_read_data_address(reader, &rbw->shared);
 
     if (rbw->shared == NULL) {
       /* Link deprecated caches if they exist, so we can use them for versioning.
        * We should only do this when rbw->shared == NULL, because those pointers
        * are always set (for compatibility with older Blenders). We mustn't link
        * the same pointcache twice. */
-      direct_link_pointcache_list(fd, &rbw->ptcaches, &rbw->pointcache, false);
+      direct_link_pointcache_list(reader->fd, &rbw->ptcaches, &rbw->pointcache, false);
 
       /* make sure simulation starts from the beginning after loading file */
       if (rbw->pointcache) {
@@ -7163,7 +7159,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
       rbw->shared->physics_world = NULL;
 
       /* link caches */
-      direct_link_pointcache_list(fd, &rbw->shared->ptcaches, &rbw->shared->pointcache, false);
+      direct_link_pointcache_list(
+          reader->fd, &rbw->shared->ptcaches, &rbw->shared->pointcache, false);
 
       /* make sure simulation starts from the beginning after loading file */
       if (rbw->shared->pointcache) {
@@ -7174,34 +7171,34 @@ static void direct_link_scene(FileData *fd, Scene *sce)
     rbw->numbodies = 0;
 
     /* set effector weights */
-    rbw->effector_weights = newdataadr(fd, rbw->effector_weights);
+    BLO_read_data_address(reader, &rbw->effector_weights);
     if (!rbw->effector_weights) {
       rbw->effector_weights = BKE_effector_add_weights(NULL);
     }
   }
 
-  sce->preview = direct_link_preview_image(fd, sce->preview);
+  sce->preview = direct_link_preview_image(reader->fd, sce->preview);
 
-  direct_link_curvemapping(fd, &sce->r.mblur_shutter_curve);
+  direct_link_curvemapping(reader->fd, &sce->r.mblur_shutter_curve);
 
 #ifdef USE_COLLECTION_COMPAT_28
   /* this runs before the very first doversion */
   if (sce->collection) {
-    sce->collection = newdataadr(fd, sce->collection);
-    direct_link_scene_collection(fd, sce->collection);
+    BLO_read_data_address(reader, &sce->collection);
+    direct_link_scene_collection(reader->fd, sce->collection);
   }
 #endif
 
   /* insert into global old-new map for reading without UI (link_global accesses it again) */
-  link_glob_list(fd, &sce->view_layers);
+  link_glob_list(reader->fd, &sce->view_layers);
   for (view_layer = sce->view_layers.first; view_layer; view_layer = view_layer->next) {
-    direct_link_view_layer(fd, view_layer);
+    direct_link_view_layer(reader->fd, view_layer);
   }
 
-  if (fd->memfile) {
+  if (reader->fd->memfile) {
     /* If it's undo try to recover the cache. */
-    if (fd->scenemap) {
-      sce->eevee.light_cache_data = newsceadr(fd, sce->eevee.light_cache_data);
+    if (reader->fd->scenemap) {
+      sce->eevee.light_cache_data = newsceadr(reader->fd, sce->eevee.light_cache_data);
     }
     else {
       sce->eevee.light_cache_data = NULL;
@@ -7209,17 +7206,18 @@ static void direct_link_scene(FileData *fd, Scene *sce)
   }
   else {
     /* else try to read the cache from file. */
-    sce->eevee.light_cache_data = newdataadr(fd, sce->eevee.light_cache_data);
+    BLO_read_data_address(reader, &sce->eevee.light_cache_data);
     if (sce->eevee.light_cache_data) {
-      direct_link_lightcache(fd, sce->eevee.light_cache_data);
+      direct_link_lightcache(reader->fd, sce->eevee.light_cache_data);
     }
   }
   EEVEE_lightcache_info_update(&sce->eevee);
 
-  direct_link_view3dshading(fd, &sce->display.shading);
+  direct_link_view3dshading(reader->fd, &sce->display.shading);
 
-  sce->layer_properties = newdataadr(fd, sce->layer_properties);
-  IDP_DirectLinkGroup_OrFree(&sce->layer_properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+  BLO_read_data_address(reader, &sce->layer_properties);
+  IDP_DirectLinkGroup_OrFree(
+      &sce->layer_properties, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
 }
 
 /** \} */
@@ -9388,10 +9386,10 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       success = direct_link_screen(&reader, (bScreen *)id);
       break;
     case ID_SCE:
-      direct_link_scene(fd, (Scene *)id);
+      direct_link_scene(&reader, (Scene *)id);
       break;
     case ID_OB:
-      direct_link_object(fd, (Object *)id);
+      direct_link_object(&reader, (Object *)id);
       break;
     case ID_ME:
       direct_link_mesh(fd, (Mesh *)id);
