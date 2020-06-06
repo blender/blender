@@ -4282,15 +4282,14 @@ static void lib_link_mball(FileData *fd, Main *UNUSED(bmain), MetaBall *mb)
   mb->ipo = newlibadr(fd, mb->id.lib, mb->ipo);  // XXX deprecated - old animation system
 }
 
-static void direct_link_mball(FileData *fd, MetaBall *mb)
+static void direct_link_mball(BlendDataReader *reader, MetaBall *mb)
 {
-  mb->adt = newdataadr(fd, mb->adt);
-  direct_link_animdata(fd, mb->adt);
+  BLO_read_data_address(reader, &mb->adt);
+  direct_link_animdata(reader->fd, mb->adt);
 
-  mb->mat = newdataadr(fd, mb->mat);
-  test_pointer_array(fd, (void **)&mb->mat);
+  BLO_read_pointer_array(reader, (void **)&mb->mat);
 
-  link_list(fd, &(mb->elems));
+  BLO_read_list(reader, &(mb->elems));
 
   BLI_listbase_clear(&mb->disp);
   mb->editelems = NULL;
@@ -4393,19 +4392,19 @@ static void lib_link_image(FileData *UNUSED(fd), Main *UNUSED(bmain), Image *UNU
 {
 }
 
-static void direct_link_image(FileData *fd, Image *ima)
+static void direct_link_image(BlendDataReader *reader, Image *ima)
 {
   ImagePackedFile *imapf;
 
   /* for undo system, pointers could be restored */
-  if (fd->imamap) {
-    ima->cache = newimaadr(fd, ima->cache);
+  if (reader->fd->imamap) {
+    ima->cache = newimaadr(reader->fd, ima->cache);
   }
   else {
     ima->cache = NULL;
   }
 
-  link_list(fd, &ima->tiles);
+  BLO_read_list(reader, &ima->tiles);
 
   /* if not restored, we keep the binded opengl index */
   if (!ima->cache) {
@@ -4421,17 +4420,17 @@ static void direct_link_image(FileData *fd, Image *ima)
   else {
     for (int eye = 0; eye < 2; eye++) {
       for (int i = 0; i < TEXTARGET_COUNT; i++) {
-        ima->gputexture[i][eye] = newimaadr(fd, ima->gputexture[i][eye]);
+        ima->gputexture[i][eye] = newimaadr(reader->fd, ima->gputexture[i][eye]);
       }
     }
-    ima->rr = newimaadr(fd, ima->rr);
+    ima->rr = newimaadr(reader->fd, ima->rr);
   }
 
   /* undo system, try to restore render buffers */
-  link_list(fd, &(ima->renderslots));
-  if (fd->imamap) {
+  BLO_read_list(reader, &(ima->renderslots));
+  if (reader->fd->imamap) {
     LISTBASE_FOREACH (RenderSlot *, slot, &ima->renderslots) {
-      slot->render = newimaadr(fd, slot->render);
+      slot->render = newimaadr(reader->fd, slot->render);
     }
   }
   else {
@@ -4441,22 +4440,22 @@ static void direct_link_image(FileData *fd, Image *ima)
     ima->last_render_slot = ima->render_slot;
   }
 
-  link_list(fd, &(ima->views));
-  link_list(fd, &(ima->packedfiles));
+  BLO_read_list(reader, &(ima->views));
+  BLO_read_list(reader, &(ima->packedfiles));
 
   if (ima->packedfiles.first) {
     for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
-      imapf->packedfile = direct_link_packedfile(fd, imapf->packedfile);
+      imapf->packedfile = direct_link_packedfile(reader->fd, imapf->packedfile);
     }
     ima->packedfile = NULL;
   }
   else {
-    ima->packedfile = direct_link_packedfile(fd, ima->packedfile);
+    ima->packedfile = direct_link_packedfile(reader->fd, ima->packedfile);
   }
 
   BLI_listbase_clear(&ima->anims);
-  ima->preview = direct_link_preview_image(fd, ima->preview);
-  ima->stereo3d_format = newdataadr(fd, ima->stereo3d_format);
+  ima->preview = direct_link_preview_image(reader->fd, ima->preview);
+  BLO_read_data_address(reader, &ima->stereo3d_format);
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
     tile->ok = 1;
   }
@@ -4568,14 +4567,14 @@ static void lib_link_texture(FileData *fd, Main *UNUSED(bmain), Tex *tex)
   tex->ipo = newlibadr(fd, tex->id.lib, tex->ipo);  // XXX deprecated - old animation system
 }
 
-static void direct_link_texture(FileData *fd, Tex *tex)
+static void direct_link_texture(BlendDataReader *reader, Tex *tex)
 {
-  tex->adt = newdataadr(fd, tex->adt);
-  direct_link_animdata(fd, tex->adt);
+  BLO_read_data_address(reader, &tex->adt);
+  direct_link_animdata(reader->fd, tex->adt);
 
-  tex->coba = newdataadr(fd, tex->coba);
+  BLO_read_data_address(reader, &tex->coba);
 
-  tex->preview = direct_link_preview_image(fd, tex->preview);
+  tex->preview = direct_link_preview_image(reader->fd, tex->preview);
 
   tex->iuser.ok = 1;
   tex->iuser.scene = NULL;
@@ -4603,17 +4602,17 @@ static void lib_link_material(FileData *fd, Main *UNUSED(bmain), Material *ma)
   }
 }
 
-static void direct_link_material(FileData *fd, Material *ma)
+static void direct_link_material(BlendDataReader *reader, Material *ma)
 {
-  ma->adt = newdataadr(fd, ma->adt);
-  direct_link_animdata(fd, ma->adt);
+  BLO_read_data_address(reader, &ma->adt);
+  direct_link_animdata(reader->fd, ma->adt);
 
   ma->texpaintslot = NULL;
 
-  ma->preview = direct_link_preview_image(fd, ma->preview);
+  ma->preview = direct_link_preview_image(reader->fd, ma->preview);
   BLI_listbase_clear(&ma->gpumaterial);
 
-  ma->gp_style = newdataadr(fd, ma->gp_style);
+  BLO_read_data_address(reader, &ma->gp_style);
 }
 
 /** \} */
@@ -9398,16 +9397,16 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       direct_link_curve(&reader, (Curve *)id);
       break;
     case ID_MB:
-      direct_link_mball(fd, (MetaBall *)id);
+      direct_link_mball(&reader, (MetaBall *)id);
       break;
     case ID_MA:
-      direct_link_material(fd, (Material *)id);
+      direct_link_material(&reader, (Material *)id);
       break;
     case ID_TE:
-      direct_link_texture(fd, (Tex *)id);
+      direct_link_texture(&reader, (Tex *)id);
       break;
     case ID_IM:
-      direct_link_image(fd, (Image *)id);
+      direct_link_image(&reader, (Image *)id);
       break;
     case ID_LA:
       direct_link_light(fd, (Light *)id);
