@@ -4496,25 +4496,25 @@ static void switch_endian_knots(Nurb *nu)
   }
 }
 
-static void direct_link_curve(FileData *fd, Curve *cu)
+static void direct_link_curve(BlendDataReader *reader, Curve *cu)
 {
   Nurb *nu;
   TextBox *tb;
 
-  cu->adt = newdataadr(fd, cu->adt);
-  direct_link_animdata(fd, cu->adt);
+  BLO_read_data_address(reader, &cu->adt);
+  direct_link_animdata(reader->fd, cu->adt);
 
   /* Protect against integer overflow vulnerability. */
   CLAMP(cu->len_wchar, 0, INT_MAX - 4);
 
-  cu->mat = newdataadr(fd, cu->mat);
-  test_pointer_array(fd, (void **)&cu->mat);
-  cu->str = newdataadr(fd, cu->str);
-  cu->strinfo = newdataadr(fd, cu->strinfo);
-  cu->tb = newdataadr(fd, cu->tb);
+  BLO_read_pointer_array(reader, (void **)&cu->mat);
+
+  BLO_read_data_address(reader, &cu->str);
+  BLO_read_data_address(reader, &cu->strinfo);
+  BLO_read_data_address(reader, &cu->tb);
 
   if (cu->vfont == NULL) {
-    link_list(fd, &(cu->nurb));
+    BLO_read_list(reader, &(cu->nurb));
   }
   else {
     cu->nurb.first = cu->nurb.last = NULL;
@@ -4541,15 +4541,15 @@ static void direct_link_curve(FileData *fd, Curve *cu)
   cu->batch_cache = NULL;
 
   for (nu = cu->nurb.first; nu; nu = nu->next) {
-    nu->bezt = newdataadr(fd, nu->bezt);
-    nu->bp = newdataadr(fd, nu->bp);
-    nu->knotsu = newdataadr(fd, nu->knotsu);
-    nu->knotsv = newdataadr(fd, nu->knotsv);
+    BLO_read_data_address(reader, &nu->bezt);
+    BLO_read_data_address(reader, &nu->bp);
+    BLO_read_data_address(reader, &nu->knotsu);
+    BLO_read_data_address(reader, &nu->knotsv);
     if (cu->vfont == NULL) {
       nu->charidx = 0;
     }
 
-    if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+    if (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
       switch_endian_knots(nu);
     }
   }
@@ -5099,37 +5099,36 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
   CustomData_update_typemap(data);
 }
 
-static void direct_link_mesh(FileData *fd, Mesh *mesh)
+static void direct_link_mesh(BlendDataReader *reader, Mesh *mesh)
 {
-  mesh->mat = newdataadr(fd, mesh->mat);
-  test_pointer_array(fd, (void **)&mesh->mat);
+  BLO_read_pointer_array(reader, (void **)&mesh->mat);
 
-  mesh->mvert = newdataadr(fd, mesh->mvert);
-  mesh->medge = newdataadr(fd, mesh->medge);
-  mesh->mface = newdataadr(fd, mesh->mface);
-  mesh->mloop = newdataadr(fd, mesh->mloop);
-  mesh->mpoly = newdataadr(fd, mesh->mpoly);
-  mesh->tface = newdataadr(fd, mesh->tface);
-  mesh->mtface = newdataadr(fd, mesh->mtface);
-  mesh->mcol = newdataadr(fd, mesh->mcol);
-  mesh->dvert = newdataadr(fd, mesh->dvert);
-  mesh->mloopcol = newdataadr(fd, mesh->mloopcol);
-  mesh->mloopuv = newdataadr(fd, mesh->mloopuv);
-  mesh->mselect = newdataadr(fd, mesh->mselect);
+  BLO_read_data_address(reader, &mesh->mvert);
+  BLO_read_data_address(reader, &mesh->medge);
+  BLO_read_data_address(reader, &mesh->mface);
+  BLO_read_data_address(reader, &mesh->mloop);
+  BLO_read_data_address(reader, &mesh->mpoly);
+  BLO_read_data_address(reader, &mesh->tface);
+  BLO_read_data_address(reader, &mesh->mtface);
+  BLO_read_data_address(reader, &mesh->mcol);
+  BLO_read_data_address(reader, &mesh->dvert);
+  BLO_read_data_address(reader, &mesh->mloopcol);
+  BLO_read_data_address(reader, &mesh->mloopuv);
+  BLO_read_data_address(reader, &mesh->mselect);
 
   /* animdata */
-  mesh->adt = newdataadr(fd, mesh->adt);
-  direct_link_animdata(fd, mesh->adt);
+  BLO_read_data_address(reader, &mesh->adt);
+  direct_link_animdata(reader->fd, mesh->adt);
 
   /* Normally direct_link_dverts should be called in direct_link_customdata,
    * but for backwards compatibility in do_versions to work we do it here. */
-  direct_link_dverts(fd, mesh->totvert, mesh->dvert);
+  direct_link_dverts(reader->fd, mesh->totvert, mesh->dvert);
 
-  direct_link_customdata(fd, &mesh->vdata, mesh->totvert);
-  direct_link_customdata(fd, &mesh->edata, mesh->totedge);
-  direct_link_customdata(fd, &mesh->fdata, mesh->totface);
-  direct_link_customdata(fd, &mesh->ldata, mesh->totloop);
-  direct_link_customdata(fd, &mesh->pdata, mesh->totpoly);
+  direct_link_customdata(reader->fd, &mesh->vdata, mesh->totvert);
+  direct_link_customdata(reader->fd, &mesh->edata, mesh->totedge);
+  direct_link_customdata(reader->fd, &mesh->fdata, mesh->totface);
+  direct_link_customdata(reader->fd, &mesh->ldata, mesh->totloop);
+  direct_link_customdata(reader->fd, &mesh->pdata, mesh->totpoly);
 
   mesh->texflag &= ~ME_AUTOSPACE_EVALUATED;
   mesh->edit_mesh = NULL;
@@ -5141,21 +5140,22 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
   }
 
   /* Multires data */
-  mesh->mr = newdataadr(fd, mesh->mr);
+  BLO_read_data_address(reader, &mesh->mr);
   if (mesh->mr) {
     MultiresLevel *lvl;
 
-    link_list(fd, &mesh->mr->levels);
+    BLO_read_list(reader, &mesh->mr->levels);
     lvl = mesh->mr->levels.first;
 
-    direct_link_customdata(fd, &mesh->mr->vdata, lvl->totvert);
-    direct_link_dverts(fd, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
-    direct_link_customdata(fd, &mesh->mr->fdata, lvl->totface);
+    direct_link_customdata(reader->fd, &mesh->mr->vdata, lvl->totvert);
+    direct_link_dverts(
+        reader->fd, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
+    direct_link_customdata(reader->fd, &mesh->mr->fdata, lvl->totface);
 
-    mesh->mr->edge_flags = newdataadr(fd, mesh->mr->edge_flags);
-    mesh->mr->edge_creases = newdataadr(fd, mesh->mr->edge_creases);
+    BLO_read_data_address(reader, &mesh->mr->edge_flags);
+    BLO_read_data_address(reader, &mesh->mr->edge_creases);
 
-    mesh->mr->verts = newdataadr(fd, mesh->mr->verts);
+    BLO_read_data_address(reader, &mesh->mr->verts);
 
     /* If mesh has the same number of vertices as the
      * highest multires level, load the current mesh verts
@@ -5171,10 +5171,10 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
     }
 
     for (; lvl; lvl = lvl->next) {
-      lvl->verts = newdataadr(fd, lvl->verts);
-      lvl->faces = newdataadr(fd, lvl->faces);
-      lvl->edges = newdataadr(fd, lvl->edges);
-      lvl->colfaces = newdataadr(fd, lvl->colfaces);
+      BLO_read_data_address(reader, &lvl->verts);
+      BLO_read_data_address(reader, &lvl->faces);
+      BLO_read_data_address(reader, &lvl->edges);
+      BLO_read_data_address(reader, &lvl->colfaces);
     }
   }
 
@@ -5185,7 +5185,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
     mesh->mr = NULL;
   }
 
-  if ((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
+  if ((reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
     TFace *tf = mesh->tface;
     int i;
 
@@ -9392,10 +9392,10 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       direct_link_object(&reader, (Object *)id);
       break;
     case ID_ME:
-      direct_link_mesh(fd, (Mesh *)id);
+      direct_link_mesh(&reader, (Mesh *)id);
       break;
     case ID_CU:
-      direct_link_curve(fd, (Curve *)id);
+      direct_link_curve(&reader, (Curve *)id);
       break;
     case ID_MB:
       direct_link_mball(fd, (MetaBall *)id);
