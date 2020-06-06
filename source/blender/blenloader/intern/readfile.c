@@ -7874,24 +7874,24 @@ static void lib_link_wm_xr_data(FileData *fd, ID *parent_id, wmXrData *xr_data)
 /** \name Read ID: Window Manager
  * \{ */
 
-static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
+static void direct_link_windowmanager(BlendDataReader *reader, wmWindowManager *wm)
 {
   wmWindow *win;
 
   id_us_ensure_real(&wm->id);
-  link_list(fd, &wm->windows);
+  BLO_read_list(reader, &wm->windows);
 
   for (win = wm->windows.first; win; win = win->next) {
-    win->parent = newdataadr(fd, win->parent);
+    BLO_read_data_address(reader, &win->parent);
 
     WorkSpaceInstanceHook *hook = win->workspace_hook;
-    win->workspace_hook = newdataadr(fd, hook);
+    BLO_read_data_address(reader, &win->workspace_hook);
 
     /* we need to restore a pointer to this later when reading workspaces,
      * so store in global oldnew-map. */
-    oldnewmap_insert(fd->globmap, hook, win->workspace_hook, 0);
+    oldnewmap_insert(reader->fd->globmap, hook, win->workspace_hook, 0);
 
-    direct_link_area_map(fd, &win->global_areas);
+    direct_link_area_map(reader->fd, &win->global_areas);
 
     win->ghostwin = NULL;
     win->gpuctx = NULL;
@@ -7914,7 +7914,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
     win->modalcursor = 0;
     win->grabcursor = 0;
     win->addmousemove = true;
-    win->stereo3d_format = newdataadr(fd, win->stereo3d_format);
+    BLO_read_data_address(reader, &win->stereo3d_format);
 
     /* Multi-view always fallback to anaglyph at file opening
      * otherwise quad-buffer saved files can break Blender. */
@@ -7923,7 +7923,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
     }
   }
 
-  direct_link_wm_xr_data(fd, &wm->xr);
+  direct_link_wm_xr_data(reader->fd, &wm->xr);
 
   BLI_listbase_clear(&wm->timers);
   BLI_listbase_clear(&wm->operators);
@@ -9375,13 +9375,15 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     return true;
   }
 
+  BlendDataReader reader = {fd};
+
   /* XXX Very weakly handled currently, see comment in read_libblock() before trying to
    * use it for anything new. */
   bool success = true;
 
   switch (GS(id->name)) {
     case ID_WM:
-      direct_link_windowmanager(fd, (wmWindowManager *)id);
+      direct_link_windowmanager(&reader, (wmWindowManager *)id);
       break;
     case ID_SCR:
       success = direct_link_screen(fd, (bScreen *)id);
@@ -12700,7 +12702,7 @@ bool BLO_read_requires_endian_switch(BlendDataReader *reader)
  * Updates the list->first and list->last pointers.
  * When not NULL, calls the callback on every element.
  */
-void BLO_read_list(BlendDataReader *reader, ListBase *list, BlendReadListFn callback)
+void BLO_read_list_cb(BlendDataReader *reader, ListBase *list, BlendReadListFn callback)
 {
   if (BLI_listbase_is_empty(list)) {
     return;
