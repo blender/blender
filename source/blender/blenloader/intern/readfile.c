@@ -7245,7 +7245,7 @@ static void lib_link_gpencil(FileData *fd, Main *UNUSED(bmain), bGPdata *gpd)
 }
 
 /* relinks grease-pencil data - used for direct_link and old file linkage */
-static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
+static void direct_link_gpencil(BlendDataReader *reader, bGPdata *gpd)
 {
   bGPDpalette *palette;
 
@@ -7255,8 +7255,8 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
   }
 
   /* relink animdata */
-  gpd->adt = newdataadr(fd, gpd->adt);
-  direct_link_animdata(fd, gpd->adt);
+  BLO_read_data_address(reader, &gpd->adt);
+  direct_link_animdata(reader->fd, gpd->adt);
 
   /* Ensure full objectmode for linked grease pencil. */
   if (gpd->id.lib != NULL) {
@@ -7274,45 +7274,44 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
   gpd->runtime.tot_cp_points = 0;
 
   /* relink palettes (old palettes deprecated, only to convert old files) */
-  link_list(fd, &gpd->palettes);
+  BLO_read_list(reader, &gpd->palettes);
   if (gpd->palettes.first != NULL) {
     for (palette = gpd->palettes.first; palette; palette = palette->next) {
-      link_list(fd, &palette->colors);
+      BLO_read_list(reader, &palette->colors);
     }
   }
 
   /* materials */
-  gpd->mat = newdataadr(fd, gpd->mat);
-  test_pointer_array(fd, (void **)&gpd->mat);
+  BLO_read_pointer_array(reader, (void **)&gpd->mat);
 
   /* relink layers */
-  link_list(fd, &gpd->layers);
+  BLO_read_list(reader, &gpd->layers);
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     /* relink frames */
-    link_list(fd, &gpl->frames);
+    BLO_read_list(reader, &gpl->frames);
 
-    gpl->actframe = newdataadr(fd, gpl->actframe);
+    BLO_read_data_address(reader, &gpl->actframe);
 
     gpl->runtime.icon_id = 0;
 
     /* Relink masks. */
-    link_list(fd, &gpl->mask_layers);
+    BLO_read_list(reader, &gpl->mask_layers);
 
     LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
       /* relink strokes (and their points) */
-      link_list(fd, &gpf->strokes);
+      BLO_read_list(reader, &gpf->strokes);
 
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
         /* relink stroke points array */
-        gps->points = newdataadr(fd, gps->points);
+        BLO_read_data_address(reader, &gps->points);
         /* Relink geometry*/
-        gps->triangles = newdataadr(fd, gps->triangles);
+        BLO_read_data_address(reader, &gps->triangles);
 
         /* relink weight data */
         if (gps->dvert) {
-          gps->dvert = newdataadr(fd, gps->dvert);
-          direct_link_dverts(fd, gps->totpoints, gps->dvert);
+          BLO_read_data_address(reader, &gps->dvert);
+          direct_link_dverts(reader->fd, gps->totpoints, gps->dvert);
         }
       }
     }
@@ -7325,36 +7324,37 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 /** \name Read Screen Area/Region (Screen Data)
  * \{ */
 
-static void direct_link_panel_list(FileData *fd, ListBase *lb)
+static void direct_link_panel_list(BlendDataReader *reader, ListBase *lb)
 {
-  link_list(fd, lb);
+  BLO_read_list(reader, lb);
 
   LISTBASE_FOREACH (Panel *, panel, lb) {
     panel->runtime_flag = 0;
     panel->activedata = NULL;
     panel->type = NULL;
-    direct_link_panel_list(fd, &panel->children);
+    direct_link_panel_list(reader, &panel->children);
   }
 }
 
-static void direct_link_region(FileData *fd, ARegion *region, int spacetype)
+static void direct_link_region(BlendDataReader *reader, ARegion *region, int spacetype)
 {
   uiList *ui_list;
 
-  direct_link_panel_list(fd, &region->panels);
+  direct_link_panel_list(reader, &region->panels);
 
-  link_list(fd, &region->panels_category_active);
+  BLO_read_list(reader, &region->panels_category_active);
 
-  link_list(fd, &region->ui_lists);
+  BLO_read_list(reader, &region->ui_lists);
 
   for (ui_list = region->ui_lists.first; ui_list; ui_list = ui_list->next) {
     ui_list->type = NULL;
     ui_list->dyn_data = NULL;
-    ui_list->properties = newdataadr(fd, ui_list->properties);
-    IDP_DirectLinkGroup_OrFree(&ui_list->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+    BLO_read_data_address(reader, &ui_list->properties);
+    IDP_DirectLinkGroup_OrFree(
+        &ui_list->properties, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
   }
 
-  link_list(fd, &region->ui_previews);
+  BLO_read_list(reader, &region->ui_previews);
 
   if (spacetype == SPACE_EMPTY) {
     /* unknown space type, don't leak regiondata */
@@ -7365,13 +7365,13 @@ static void direct_link_region(FileData *fd, ARegion *region, int spacetype)
     region->regiondata = NULL;
   }
   else {
-    region->regiondata = newdataadr(fd, region->regiondata);
+    BLO_read_data_address(reader, &region->regiondata);
     if (region->regiondata) {
       if (spacetype == SPACE_VIEW3D) {
         RegionView3D *rv3d = region->regiondata;
 
-        rv3d->localvd = newdataadr(fd, rv3d->localvd);
-        rv3d->clipbb = newdataadr(fd, rv3d->clipbb);
+        BLO_read_data_address(reader, &rv3d->localvd);
+        BLO_read_data_address(reader, &rv3d->clipbb);
 
         rv3d->depths = NULL;
         rv3d->render_engine = NULL;
@@ -7402,13 +7402,13 @@ static void direct_link_region(FileData *fd, ARegion *region, int spacetype)
   memset(&region->drawrct, 0, sizeof(region->drawrct));
 }
 
-static void direct_link_area(FileData *fd, ScrArea *area)
+static void direct_link_area(BlendDataReader *reader, ScrArea *area)
 {
   SpaceLink *sl;
   ARegion *region;
 
-  link_list(fd, &(area->spacedata));
-  link_list(fd, &(area->regionbase));
+  BLO_read_list(reader, &(area->spacedata));
+  BLO_read_list(reader, &(area->regionbase));
 
   BLI_listbase_clear(&area->handlers);
   area->type = NULL; /* spacetype callbacks */
@@ -7420,7 +7420,7 @@ static void direct_link_area(FileData *fd, ScrArea *area)
 
   area->flag &= ~AREA_FLAG_ACTIVE_TOOL_UPDATE;
 
-  area->global = newdataadr(fd, area->global);
+  BLO_read_data_address(reader, &area->global);
 
   /* if we do not have the spacetype registered we cannot
    * free it, so don't allocate any new memory for such spacetypes. */
@@ -7432,7 +7432,7 @@ static void direct_link_area(FileData *fd, ScrArea *area)
   }
 
   for (region = area->regionbase.first; region; region = region->next) {
-    direct_link_region(fd, region, area->spacetype);
+    direct_link_region(reader, region, area->spacetype);
   }
 
   /* accident can happen when read/save new file with older version */
@@ -7448,7 +7448,7 @@ static void direct_link_area(FileData *fd, ScrArea *area)
   }
 
   for (sl = area->spacedata.first; sl; sl = sl->next) {
-    link_list(fd, &(sl->regionbase));
+    BLO_read_list(reader, &(sl->regionbase));
 
     /* if we do not have the spacetype registered we cannot
      * free it, so don't allocate any new memory for such spacetypes. */
@@ -7457,7 +7457,7 @@ static void direct_link_area(FileData *fd, ScrArea *area)
     }
 
     for (region = sl->regionbase.first; region; region = region->next) {
-      direct_link_region(fd, region, sl->spacetype);
+      direct_link_region(reader, region, sl->spacetype);
     }
 
     if (sl->spacetype == SPACE_VIEW3D) {
@@ -7466,10 +7466,10 @@ static void direct_link_area(FileData *fd, ScrArea *area)
       v3d->flag |= V3D_INVALID_BACKBUF;
 
       if (v3d->gpd) {
-        v3d->gpd = newdataadr(fd, v3d->gpd);
-        direct_link_gpencil(fd, v3d->gpd);
+        BLO_read_data_address(reader, &v3d->gpd);
+        direct_link_gpencil(reader, v3d->gpd);
       }
-      v3d->localvd = newdataadr(fd, v3d->localvd);
+      BLO_read_data_address(reader, &v3d->localvd);
 
       /* Runtime data */
       v3d->runtime.properties_storage = NULL;
@@ -7481,20 +7481,20 @@ static void direct_link_area(FileData *fd, ScrArea *area)
       }
       v3d->shading.prev_type = OB_SOLID;
 
-      direct_link_view3dshading(fd, &v3d->shading);
+      direct_link_view3dshading(reader->fd, &v3d->shading);
 
       blo_do_versions_view3d_split_250(v3d, &sl->regionbase);
     }
     else if (sl->spacetype == SPACE_GRAPH) {
       SpaceGraph *sipo = (SpaceGraph *)sl;
 
-      sipo->ads = newdataadr(fd, sipo->ads);
+      BLO_read_data_address(reader, &sipo->ads);
       BLI_listbase_clear(&sipo->runtime.ghost_curves);
     }
     else if (sl->spacetype == SPACE_NLA) {
       SpaceNla *snla = (SpaceNla *)sl;
 
-      snla->ads = newdataadr(fd, snla->ads);
+      BLO_read_data_address(reader, &snla->ads);
     }
     else if (sl->spacetype == SPACE_OUTLINER) {
       SpaceOutliner *soops = (SpaceOutliner *)sl;
@@ -7503,10 +7503,10 @@ static void direct_link_area(FileData *fd, ScrArea *area)
        * frees and use of freed memory. this could happen because of a
        * bug fixed in revision 58959 where the treestore memory address
        * was not unique */
-      TreeStore *ts = newdataadr_no_us(fd, soops->treestore);
+      TreeStore *ts = newdataadr_no_us(reader->fd, soops->treestore);
       soops->treestore = NULL;
       if (ts) {
-        TreeStoreElem *elems = newdataadr_no_us(fd, ts->data);
+        TreeStoreElem *elems = newdataadr_no_us(reader->fd, ts->data);
 
         soops->treestore = BLI_mempool_create(
             sizeof(TreeStoreElem), ts->usedelem, 512, BLI_MEMPOOL_ALLOW_ITER);
@@ -7548,11 +7548,11 @@ static void direct_link_area(FileData *fd, ScrArea *area)
       SpaceNode *snode = (SpaceNode *)sl;
 
       if (snode->gpd) {
-        snode->gpd = newdataadr(fd, snode->gpd);
-        direct_link_gpencil(fd, snode->gpd);
+        BLO_read_data_address(reader, &snode->gpd);
+        direct_link_gpencil(reader, snode->gpd);
       }
 
-      link_list(fd, &snode->treepath);
+      BLO_read_list(reader, &snode->treepath);
       snode->edittree = NULL;
       snode->iofsd = NULL;
       BLI_listbase_clear(&snode->linkdrag);
@@ -7596,8 +7596,8 @@ static void direct_link_area(FileData *fd, ScrArea *area)
       SpaceConsole *sconsole = (SpaceConsole *)sl;
       ConsoleLine *cl, *cl_next;
 
-      link_list(fd, &sconsole->scrollback);
-      link_list(fd, &sconsole->history);
+      BLO_read_list(reader, &sconsole->scrollback);
+      BLO_read_list(reader, &sconsole->history);
 
       // for (cl= sconsole->scrollback.first; cl; cl= cl->next)
       //  cl->line= newdataadr(fd, cl->line);
@@ -7607,7 +7607,7 @@ static void direct_link_area(FileData *fd, ScrArea *area)
        * expression as a whole*/
       for (cl = sconsole->history.first; cl; cl = cl_next) {
         cl_next = cl->next;
-        cl->line = newdataadr(fd, cl->line);
+        BLO_read_data_address(reader, &cl->line);
         if (cl->line) {
           /* the allocted length is not written, so reset here */
           cl->len_alloc = cl->len + 1;
@@ -7629,7 +7629,7 @@ static void direct_link_area(FileData *fd, ScrArea *area)
       sfile->layout = NULL;
       sfile->op = NULL;
       sfile->previews_timer = NULL;
-      sfile->params = newdataadr(fd, sfile->params);
+      BLO_read_data_address(reader, &sfile->params);
     }
     else if (sl->spacetype == SPACE_CLIP) {
       SpaceClip *sclip = (SpaceClip *)sl;
@@ -7642,10 +7642,10 @@ static void direct_link_area(FileData *fd, ScrArea *area)
 
   BLI_listbase_clear(&area->actionzones);
 
-  area->v1 = newdataadr(fd, area->v1);
-  area->v2 = newdataadr(fd, area->v2);
-  area->v3 = newdataadr(fd, area->v3);
-  area->v4 = newdataadr(fd, area->v4);
+  BLO_read_data_address(reader, &area->v1);
+  BLO_read_data_address(reader, &area->v2);
+  BLO_read_data_address(reader, &area->v3);
+  BLO_read_data_address(reader, &area->v4);
 }
 
 static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
@@ -7826,19 +7826,19 @@ static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
 /**
  * \return false on error.
  */
-static bool direct_link_area_map(FileData *fd, ScrAreaMap *area_map)
+static bool direct_link_area_map(BlendDataReader *reader, ScrAreaMap *area_map)
 {
-  link_list(fd, &area_map->vertbase);
-  link_list(fd, &area_map->edgebase);
-  link_list(fd, &area_map->areabase);
+  BLO_read_list(reader, &area_map->vertbase);
+  BLO_read_list(reader, &area_map->edgebase);
+  BLO_read_list(reader, &area_map->areabase);
   LISTBASE_FOREACH (ScrArea *, area, &area_map->areabase) {
-    direct_link_area(fd, area);
+    direct_link_area(reader, area);
   }
 
   /* edges */
   LISTBASE_FOREACH (ScrEdge *, se, &area_map->edgebase) {
-    se->v1 = newdataadr(fd, se->v1);
-    se->v2 = newdataadr(fd, se->v2);
+    BLO_read_data_address(reader, &se->v1);
+    BLO_read_data_address(reader, &se->v2);
     BKE_screen_sort_scrvert(&se->v1, &se->v2);
 
     if (se->v1 == NULL) {
@@ -7891,7 +7891,7 @@ static void direct_link_windowmanager(BlendDataReader *reader, wmWindowManager *
      * so store in global oldnew-map. */
     oldnewmap_insert(reader->fd->globmap, hook, win->workspace_hook, 0);
 
-    direct_link_area_map(reader->fd, &win->global_areas);
+    direct_link_area_map(reader, &win->global_areas);
 
     win->ghostwin = NULL;
     win->gpuctx = NULL;
@@ -8492,7 +8492,7 @@ void blo_do_versions_view3d_split_250(View3D *v3d, ListBase *regions)
   }
 }
 
-static bool direct_link_screen(FileData *fd, bScreen *screen)
+static bool direct_link_screen(BlendDataReader *reader, bScreen *screen)
 {
   bool success = true;
 
@@ -8500,9 +8500,9 @@ static bool direct_link_screen(FileData *fd, bScreen *screen)
   screen->context = NULL;
   screen->active_region = NULL;
 
-  screen->preview = direct_link_preview_image(fd, screen->preview);
+  screen->preview = direct_link_preview_image(reader->fd, screen->preview);
 
-  if (!direct_link_area_map(fd, AREAMAP_FROM_SCREEN(screen))) {
+  if (!direct_link_area_map(reader, AREAMAP_FROM_SCREEN(screen))) {
     printf("Error reading Screen %s... removing it.\n", screen->id.name + 2);
     success = false;
   }
@@ -9386,7 +9386,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       direct_link_windowmanager(&reader, (wmWindowManager *)id);
       break;
     case ID_SCR:
-      success = direct_link_screen(fd, (bScreen *)id);
+      success = direct_link_screen(&reader, (bScreen *)id);
       break;
     case ID_SCE:
       direct_link_scene(fd, (Scene *)id);
@@ -9467,7 +9467,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       direct_link_particlesettings(fd, (ParticleSettings *)id);
       break;
     case ID_GD:
-      direct_link_gpencil(fd, (bGPdata *)id);
+      direct_link_gpencil(&reader, (bGPdata *)id);
       break;
     case ID_MC:
       direct_link_movieclip(fd, (MovieClip *)id);
