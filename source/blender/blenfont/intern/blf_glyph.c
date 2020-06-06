@@ -316,7 +316,7 @@ GlyphBLF *blf_glyph_add(FontBLF *font, GlyphCacheBLF *gc, unsigned int index, un
     FT_Outline_EmboldenXY(&font->face->glyph->outline, extra_x, extra_y);
     if ((font->face->face_flags & FT_FACE_FLAG_FIXED_WIDTH) == 0) {
       /* Need to increase advance, but not for fixed-width fonts. */
-      font->face->glyph->advance.x += (int) (extra_x * 1.05f);
+      font->face->glyph->advance.x += (FT_Pos)(((float)extra_x) * 1.05f);
       font->face->glyph->advance.y += extra_y;
     }
     else {
