@@ -8635,39 +8635,38 @@ static void lib_link_sound(FileData *fd, Main *UNUSED(bmain), bSound *sound)
 /** \name Read ID: Movie Clip
  * \{ */
 
-static void direct_link_movieReconstruction(FileData *fd,
+static void direct_link_movieReconstruction(BlendDataReader *reader,
                                             MovieTrackingReconstruction *reconstruction)
 {
-  reconstruction->cameras = newdataadr(fd, reconstruction->cameras);
+  BLO_read_data_address(reader, &reconstruction->cameras);
 }
 
-static void direct_link_movieTracks(FileData *fd, ListBase *tracksbase)
+static void direct_link_movieTracks(BlendDataReader *reader, ListBase *tracksbase)
 {
   MovieTrackingTrack *track;
 
-  link_list(fd, tracksbase);
+  BLO_read_list(reader, tracksbase);
 
   for (track = tracksbase->first; track; track = track->next) {
-    track->markers = newdataadr(fd, track->markers);
+    BLO_read_data_address(reader, &track->markers);
   }
 }
 
-static void direct_link_moviePlaneTracks(FileData *fd, ListBase *plane_tracks_base)
+static void direct_link_moviePlaneTracks(BlendDataReader *reader, ListBase *plane_tracks_base)
 {
   MovieTrackingPlaneTrack *plane_track;
 
-  link_list(fd, plane_tracks_base);
+  BLO_read_list(reader, plane_tracks_base);
 
   for (plane_track = plane_tracks_base->first; plane_track; plane_track = plane_track->next) {
     int i;
 
-    plane_track->point_tracks = newdataadr(fd, plane_track->point_tracks);
-    test_pointer_array(fd, (void **)&plane_track->point_tracks);
+    BLO_read_pointer_array(reader, (void **)&plane_track->point_tracks);
     for (i = 0; i < plane_track->point_tracksnr; i++) {
-      plane_track->point_tracks[i] = newdataadr(fd, plane_track->point_tracks[i]);
+      BLO_read_data_address(reader, &plane_track->point_tracks[i]);
     }
 
-    plane_track->markers = newdataadr(fd, plane_track->markers);
+    BLO_read_data_address(reader, &plane_track->markers);
   }
 }
 
@@ -8692,9 +8691,9 @@ static void direct_link_movieclip(BlendDataReader *reader, MovieClip *clip)
     clip->tracking.camera.intrinsics = NULL;
   }
 
-  direct_link_movieTracks(reader->fd, &tracking->tracks);
-  direct_link_moviePlaneTracks(reader->fd, &tracking->plane_tracks);
-  direct_link_movieReconstruction(reader->fd, &tracking->reconstruction);
+  direct_link_movieTracks(reader, &tracking->tracks);
+  direct_link_moviePlaneTracks(reader, &tracking->plane_tracks);
+  direct_link_movieReconstruction(reader, &tracking->reconstruction);
 
   BLO_read_data_address(reader, &clip->tracking.act_track);
   BLO_read_data_address(reader, &clip->tracking.act_plane_track);
@@ -8713,9 +8712,9 @@ static void direct_link_movieclip(BlendDataReader *reader, MovieClip *clip)
   BLO_read_list(reader, &tracking->objects);
 
   for (object = tracking->objects.first; object; object = object->next) {
-    direct_link_movieTracks(reader->fd, &object->tracks);
-    direct_link_moviePlaneTracks(reader->fd, &object->plane_tracks);
-    direct_link_movieReconstruction(reader->fd, &object->reconstruction);
+    direct_link_movieTracks(reader, &object->tracks);
+    direct_link_moviePlaneTracks(reader, &object->plane_tracks);
+    direct_link_movieReconstruction(reader, &object->reconstruction);
   }
 }
 
