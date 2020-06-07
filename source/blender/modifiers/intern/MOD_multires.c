@@ -322,7 +322,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemS(layout);
 
   split = uiLayoutSplit(layout, 0.5f, false);
-  uiLayoutSetEnabled(split, ELEM(RNA_enum_get(&ob_ptr, "mode"), OB_MODE_EDIT, OB_MODE_SCULPT));
+  uiLayoutSetEnabled(split, RNA_enum_get(&ob_ptr, "mode") != OB_MODE_EDIT);
   col = uiLayoutColumn(split, false);
   col2 = uiLayoutColumn(split, false);
 
