@@ -3079,12 +3079,12 @@ static void direct_link_paint_curve(BlendDataReader *reader, PaintCurve *pc)
 /** \name Read PackedFile
  * \{ */
 
-static PackedFile *direct_link_packedfile(FileData *fd, PackedFile *oldpf)
+static PackedFile *direct_link_packedfile(BlendDataReader *reader, PackedFile *oldpf)
 {
-  PackedFile *pf = newpackedadr(fd, oldpf);
+  PackedFile *pf = newpackedadr(reader->fd, oldpf);
 
   if (pf) {
-    pf->data = newpackedadr(fd, pf->data);
+    pf->data = newpackedadr(reader->fd, pf->data);
     if (pf->data == NULL) {
       /* We cannot allow a PackedFile with a NULL data field,
        * the whole code assumes this is not possible. See T70315. */
@@ -4278,7 +4278,7 @@ static void direct_link_vfont(BlendDataReader *reader, VFont *vf)
 {
   vf->data = NULL;
   vf->temp_pf = NULL;
-  vf->packedfile = direct_link_packedfile(reader->fd, vf->packedfile);
+  vf->packedfile = direct_link_packedfile(reader, vf->packedfile);
 }
 
 /** \} */
@@ -4389,12 +4389,12 @@ static void direct_link_image(BlendDataReader *reader, Image *ima)
 
   if (ima->packedfiles.first) {
     for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
-      imapf->packedfile = direct_link_packedfile(reader->fd, imapf->packedfile);
+      imapf->packedfile = direct_link_packedfile(reader, imapf->packedfile);
     }
     ima->packedfile = NULL;
   }
   else {
-    ima->packedfile = direct_link_packedfile(reader->fd, ima->packedfile);
+    ima->packedfile = direct_link_packedfile(reader, ima->packedfile);
   }
 
   BLI_listbase_clear(&ima->anims);
@@ -4933,7 +4933,7 @@ static void lib_link_mesh(FileData *fd, Main *UNUSED(bmain), Mesh *me)
   me->texcomesh = newlibadr(fd, me->id.lib, me->texcomesh);
 }
 
-static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
+static void direct_link_dverts(BlendDataReader *reader, int count, MDeformVert *mdverts)
 {
   int i;
 
@@ -4944,7 +4944,7 @@ static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
   for (i = count; i > 0; i--, mdverts++) {
     /*convert to vgroup allocation system*/
     MDeformWeight *dw;
-    if (mdverts->dw && (dw = newdataadr(fd, mdverts->dw))) {
+    if (mdverts->dw && (dw = BLO_read_get_new_data_address(reader, mdverts->dw))) {
       const ssize_t dw_len = mdverts->totweight * sizeof(MDeformWeight);
       void *dw_tmp = MEM_mallocN(dw_len, "direct_link_dverts");
       memcpy(dw_tmp, dw, dw_len);
@@ -5065,7 +5065,7 @@ static void direct_link_mesh(BlendDataReader *reader, Mesh *mesh)
 
   /* Normally direct_link_dverts should be called in direct_link_customdata,
    * but for backwards compatibility in do_versions to work we do it here. */
-  direct_link_dverts(reader->fd, mesh->totvert, mesh->dvert);
+  direct_link_dverts(reader, mesh->totvert, mesh->dvert);
 
   direct_link_customdata(reader->fd, &mesh->vdata, mesh->totvert);
   direct_link_customdata(reader->fd, &mesh->edata, mesh->totedge);
@@ -5091,8 +5091,7 @@ static void direct_link_mesh(BlendDataReader *reader, Mesh *mesh)
     lvl = mesh->mr->levels.first;
 
     direct_link_customdata(reader->fd, &mesh->mr->vdata, lvl->totvert);
-    direct_link_dverts(
-        reader->fd, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
+    direct_link_dverts(reader, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
     direct_link_customdata(reader->fd, &mesh->mr->fdata, lvl->totface);
 
     BLO_read_data_address(reader, &mesh->mr->edge_flags);
@@ -5155,7 +5154,7 @@ static void direct_link_latt(BlendDataReader *reader, Lattice *lt)
   BLO_read_data_address(reader, &lt->def);
 
   BLO_read_data_address(reader, &lt->dvert);
-  direct_link_dverts(reader->fd, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
+  direct_link_dverts(reader, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
 
   lt->editlatt = NULL;
   lt->batch_cache = NULL;
@@ -7213,7 +7212,7 @@ static void direct_link_gpencil(BlendDataReader *reader, bGPdata *gpd)
         /* relink weight data */
         if (gps->dvert) {
           BLO_read_data_address(reader, &gps->dvert);
-          direct_link_dverts(reader->fd, gps->totpoints, gps->dvert);
+          direct_link_dverts(reader, gps->totpoints, gps->dvert);
         }
       }
     }
@@ -8458,7 +8457,8 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
   //  printf("direct_link_library: name %s\n", lib->name);
   //  printf("direct_link_library: filepath %s\n", lib->filepath);
 
-  lib->packedfile = direct_link_packedfile(fd, lib->packedfile);
+  BlendDataReader reader = {fd};
+  lib->packedfile = direct_link_packedfile(&reader, lib->packedfile);
 
   /* new main */
   newmain = BKE_main_new();
@@ -8576,8 +8576,8 @@ static void direct_link_sound(BlendDataReader *reader, bSound *sound)
   /* clear waveform loading flag */
   sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
 
-  sound->packedfile = direct_link_packedfile(reader->fd, sound->packedfile);
-  sound->newpackedfile = direct_link_packedfile(reader->fd, sound->newpackedfile);
+  sound->packedfile = direct_link_packedfile(reader, sound->packedfile);
+  sound->newpackedfile = direct_link_packedfile(reader, sound->newpackedfile);
 }
 
 static void lib_link_sound(FileData *fd, Main *UNUSED(bmain), bSound *sound)
@@ -9110,7 +9110,7 @@ static void direct_link_volume(BlendDataReader *reader, Volume *volume)
   BLO_read_data_address(reader, &volume->adt);
   direct_link_animdata(reader, volume->adt);
 
-  volume->packedfile = direct_link_packedfile(reader->fd, volume->packedfile);
+  volume->packedfile = direct_link_packedfile(reader, volume->packedfile);
   volume->runtime.grids = (reader->fd->volumemap) ?
                               newvolumeadr(reader->fd, volume->runtime.grids) :
                               NULL;
