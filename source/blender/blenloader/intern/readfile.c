@@ -4205,7 +4205,7 @@ static void direct_link_key(BlendDataReader *reader, Key *key)
   for (kb = key->block.first; kb; kb = kb->next) {
     BLO_read_data_address(reader, &kb->data);
 
-    if (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+    if (BLO_read_requires_endian_switch(reader)) {
       switch_endian_keyblock(key, kb);
     }
   }
@@ -4492,7 +4492,7 @@ static void direct_link_curve(BlendDataReader *reader, Curve *cu)
       nu->charidx = 0;
     }
 
-    if (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+    if (BLO_read_requires_endian_switch(reader)) {
       switch_endian_knots(nu);
     }
   }
@@ -5128,7 +5128,7 @@ static void direct_link_mesh(BlendDataReader *reader, Mesh *mesh)
     mesh->mr = NULL;
   }
 
-  if ((reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
+  if ((BLO_read_requires_endian_switch(reader)) && mesh->tface) {
     TFace *tf = mesh->tface;
     int i;
 
@@ -8758,7 +8758,7 @@ static void direct_link_mask(BlendDataReader *reader, Mask *mask)
       BLO_read_data_address(reader, &masklay_shape->data);
 
       if (masklay_shape->tot_vert) {
-        if (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+        if (BLO_read_requires_endian_switch(reader)) {
           BLI_endian_switch_float_array(masklay_shape->data,
                                         masklay_shape->tot_vert * sizeof(float) *
                                             MASK_OBJECT_SHAPE_ELEM_SIZE);
