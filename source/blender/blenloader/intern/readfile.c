@@ -259,7 +259,7 @@ static BHead *find_bhead_from_idname(FileData *fd, const char *idname);
 #ifdef USE_COLLECTION_COMPAT_28
 static void expand_scene_collection(FileData *fd, Main *mainvar, SceneCollection *sc);
 #endif
-static void direct_link_animdata(FileData *fd, AnimData *adt);
+static void direct_link_animdata(BlendDataReader *reader, AnimData *adt);
 static void lib_link_animdata(FileData *fd, ID *id, AnimData *adt);
 
 typedef struct BHeadN {
@@ -3270,40 +3270,35 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 }
 
 /* NOTE: this assumes that link_list has already been called on the list */
-static void direct_link_fmodifiers(FileData *fd, ListBase *list, FCurve *curve)
+static void direct_link_fmodifiers(BlendDataReader *reader, ListBase *list, FCurve *curve)
 {
   FModifier *fcm;
 
   for (fcm = list->first; fcm; fcm = fcm->next) {
     /* relink general data */
-    fcm->data = newdataadr(fd, fcm->data);
+    BLO_read_data_address(reader, &fcm->data);
     fcm->curve = curve;
 
     /* do relinking of data for specific types */
     switch (fcm->type) {
       case FMODIFIER_TYPE_GENERATOR: {
         FMod_Generator *data = (FMod_Generator *)fcm->data;
-
-        data->coefficients = newdataadr(fd, data->coefficients);
-
-        if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-          BLI_endian_switch_float_array(data->coefficients, data->arraysize);
-        }
-
+        BLO_read_float_array(reader, data->arraysize, &data->coefficients);
         break;
       }
       case FMODIFIER_TYPE_ENVELOPE: {
         FMod_Envelope *data = (FMod_Envelope *)fcm->data;
 
-        data->data = newdataadr(fd, data->data);
+        BLO_read_data_address(reader, &data->data);
 
         break;
       }
       case FMODIFIER_TYPE_PYTHON: {
         FMod_Python *data = (FMod_Python *)fcm->data;
 
-        data->prop = newdataadr(fd, data->prop);
-        IDP_DirectLinkGroup_OrFree(&data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+        BLO_read_data_address(reader, &data->prop);
+        IDP_DirectLinkGroup_OrFree(
+            &data->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
 
         break;
       }
@@ -3312,21 +3307,21 @@ static void direct_link_fmodifiers(FileData *fd, ListBase *list, FCurve *curve)
 }
 
 /* NOTE: this assumes that link_list has already been called on the list */
-static void direct_link_fcurves(FileData *fd, ListBase *list)
+static void direct_link_fcurves(BlendDataReader *reader, ListBase *list)
 {
   FCurve *fcu;
 
   /* link F-Curve data to F-Curve again (non ID-libs) */
   for (fcu = list->first; fcu; fcu = fcu->next) {
     /* curve data */
-    fcu->bezt = newdataadr(fd, fcu->bezt);
-    fcu->fpt = newdataadr(fd, fcu->fpt);
+    BLO_read_data_address(reader, &fcu->bezt);
+    BLO_read_data_address(reader, &fcu->fpt);
 
     /* rna path */
-    fcu->rna_path = newdataadr(fd, fcu->rna_path);
+    BLO_read_data_address(reader, &fcu->rna_path);
 
     /* group */
-    fcu->grp = newdataadr(fd, fcu->grp);
+    BLO_read_data_address(reader, &fcu->grp);
 
     /* clear disabled flag - allows disabled drivers to be tried again ([#32155]),
      * but also means that another method for "reviving disabled F-Curves" exists
@@ -3334,7 +3329,7 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
     fcu->flag &= ~FCURVE_DISABLED;
 
     /* driver */
-    fcu->driver = newdataadr(fd, fcu->driver);
+    BLO_read_data_address(reader, &fcu->driver);
     if (fcu->driver) {
       ChannelDriver *driver = fcu->driver;
       DriverVar *dvar;
@@ -3350,12 +3345,12 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
       driver->flag &= ~DRIVER_FLAG_INVALID;
 
       /* relink variables, targets and their paths */
-      link_list(fd, &driver->variables);
+      BLO_read_list(reader, &driver->variables);
       for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
         DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
           /* only relink the targets being used */
           if (tarIndex < dvar->num_targets) {
-            dtar->rna_path = newdataadr(fd, dtar->rna_path);
+            BLO_read_data_address(reader, &dtar->rna_path);
           }
           else {
             dtar->rna_path = NULL;
@@ -3366,8 +3361,8 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
     }
 
     /* modifiers */
-    link_list(fd, &fcu->modifiers);
-    direct_link_fmodifiers(fd, &fcu->modifiers, fcu);
+    BLO_read_list(reader, &fcu->modifiers);
+    direct_link_fmodifiers(reader, &fcu->modifiers, fcu);
   }
 }
 
@@ -3407,7 +3402,7 @@ static void direct_link_action(BlendDataReader *reader, bAction *act)
   }
   // >>> XXX deprecated - old animation system
 
-  direct_link_fcurves(reader->fd, &act->curves);
+  direct_link_fcurves(reader, &act->curves);
 
   for (agrp = act->groups.first; agrp; agrp = agrp->next) {
     BLO_read_data_address(reader, &agrp->channels.first);
@@ -3444,36 +3439,36 @@ static void lib_link_nladata(FileData *fd, ID *id, ListBase *list)
 /* This handles Animato NLA-Strips linking
  * NOTE: this assumes that link_list has already been called on the list
  */
-static void direct_link_nladata_strips(FileData *fd, ListBase *list)
+static void direct_link_nladata_strips(BlendDataReader *reader, ListBase *list)
 {
   NlaStrip *strip;
 
   for (strip = list->first; strip; strip = strip->next) {
     /* strip's child strips */
-    link_list(fd, &strip->strips);
-    direct_link_nladata_strips(fd, &strip->strips);
+    BLO_read_list(reader, &strip->strips);
+    direct_link_nladata_strips(reader, &strip->strips);
 
     /* strip's F-Curves */
-    link_list(fd, &strip->fcurves);
-    direct_link_fcurves(fd, &strip->fcurves);
+    BLO_read_list(reader, &strip->fcurves);
+    direct_link_fcurves(reader, &strip->fcurves);
 
     /* strip's F-Modifiers */
-    link_list(fd, &strip->modifiers);
-    direct_link_fmodifiers(fd, &strip->modifiers, NULL);
+    BLO_read_list(reader, &strip->modifiers);
+    direct_link_fmodifiers(reader, &strip->modifiers, NULL);
   }
 }
 
-/* NOTE: this assumes that link_list has already been called on the list */
-static void direct_link_nladata(FileData *fd, ListBase *list)
+/* NOTE: this assumes that BLO_read_list has already been called on the list */
+static void direct_link_nladata(BlendDataReader *reader, ListBase *list)
 {
   NlaTrack *nlt;
 
   for (nlt = list->first; nlt; nlt = nlt->next) {
     /* relink list of strips */
-    link_list(fd, &nlt->strips);
+    BLO_read_list(reader, &nlt->strips);
 
     /* relink strip data */
-    direct_link_nladata_strips(fd, &nlt->strips);
+    direct_link_nladata_strips(reader, &nlt->strips);
   }
 }
 
@@ -3531,7 +3526,7 @@ static void lib_link_animdata(FileData *fd, ID *id, AnimData *adt)
   lib_link_nladata(fd, id, &adt->nla_tracks);
 }
 
-static void direct_link_animdata(FileData *fd, AnimData *adt)
+static void direct_link_animdata(BlendDataReader *reader, AnimData *adt)
 {
   /* NOTE: must have called newdataadr already before doing this... */
   if (adt == NULL) {
@@ -3539,16 +3534,16 @@ static void direct_link_animdata(FileData *fd, AnimData *adt)
   }
 
   /* link drivers */
-  link_list(fd, &adt->drivers);
-  direct_link_fcurves(fd, &adt->drivers);
+  BLO_read_list(reader, &adt->drivers);
+  direct_link_fcurves(reader, &adt->drivers);
   adt->driver_array = NULL;
 
   /* link overrides */
   // TODO...
 
   /* link NLA-data */
-  link_list(fd, &adt->nla_tracks);
-  direct_link_nladata(fd, &adt->nla_tracks);
+  BLO_read_list(reader, &adt->nla_tracks);
+  direct_link_nladata(reader, &adt->nla_tracks);
 
   /* relink active track/strip - even though strictly speaking this should only be used
    * if we're in 'tweaking mode', we need to be able to have this loaded back for
@@ -3556,8 +3551,8 @@ static void direct_link_animdata(FileData *fd, AnimData *adt)
    */
   // TODO: it's not really nice that anyone should be able to save the file in this
   //      state, but it's going to be too hard to enforce this single case...
-  adt->act_track = newdataadr(fd, adt->act_track);
-  adt->actstrip = newdataadr(fd, adt->actstrip);
+  BLO_read_data_address(reader, &adt->act_track);
+  BLO_read_data_address(reader, &adt->actstrip);
 }
 
 /** \} */
@@ -3581,7 +3576,7 @@ static void direct_link_cachefile(BlendDataReader *reader, CacheFile *cache_file
 
   /* relink animdata */
   BLO_read_data_address(reader, &cache_file->adt);
-  direct_link_animdata(reader->fd, cache_file->adt);
+  direct_link_animdata(reader, cache_file->adt);
 }
 
 /** \} */
@@ -3769,7 +3764,7 @@ static void direct_link_nodetree(BlendDataReader *reader, bNodeTree *ntree)
   ntree->execdata = NULL;
 
   BLO_read_data_address(reader, &ntree->adt);
-  direct_link_animdata(reader->fd, ntree->adt);
+  direct_link_animdata(reader, ntree->adt);
 
   BLO_read_list(reader, &ntree->nodes);
   for (node = ntree->nodes.first; node; node = node->next) {
@@ -4126,7 +4121,7 @@ static void direct_link_armature(BlendDataReader *reader, bArmature *arm)
   arm->needs_flush_to_id = 0;
 
   BLO_read_data_address(reader, &arm->adt);
-  direct_link_animdata(reader->fd, arm->adt);
+  direct_link_animdata(reader, arm->adt);
 
   for (bone = arm->bonebase.first; bone; bone = bone->next) {
     direct_link_bones(reader->fd, bone);
@@ -4160,7 +4155,7 @@ static void lib_link_camera(FileData *fd, Main *UNUSED(bmain), Camera *ca)
 static void direct_link_camera(BlendDataReader *reader, Camera *ca)
 {
   BLO_read_data_address(reader, &ca->adt);
-  direct_link_animdata(reader->fd, ca->adt);
+  direct_link_animdata(reader, ca->adt);
 
   BLO_read_list(reader, &ca->bg_images);
 
@@ -4184,7 +4179,7 @@ static void lib_link_light(FileData *fd, Main *UNUSED(bmain), Light *la)
 static void direct_link_light(BlendDataReader *reader, Light *la)
 {
   BLO_read_data_address(reader, &la->adt);
-  direct_link_animdata(reader->fd, la->adt);
+  direct_link_animdata(reader, la->adt);
 
   BLO_read_data_address(reader, &la->curfalloff);
   if (la->curfalloff) {
@@ -4254,7 +4249,7 @@ static void direct_link_key(BlendDataReader *reader, Key *key)
   BLO_read_list(reader, &(key->block));
 
   BLO_read_data_address(reader, &key->adt);
-  direct_link_animdata(reader->fd, key->adt);
+  direct_link_animdata(reader, key->adt);
 
   BLO_read_data_address(reader, &key->refkey);
 
@@ -4285,7 +4280,7 @@ static void lib_link_mball(FileData *fd, Main *UNUSED(bmain), MetaBall *mb)
 static void direct_link_mball(BlendDataReader *reader, MetaBall *mb)
 {
   BLO_read_data_address(reader, &mb->adt);
-  direct_link_animdata(reader->fd, mb->adt);
+  direct_link_animdata(reader, mb->adt);
 
   BLO_read_pointer_array(reader, (void **)&mb->mat);
 
@@ -4314,7 +4309,7 @@ static void lib_link_world(FileData *fd, Main *UNUSED(bmain), World *wrld)
 static void direct_link_world(BlendDataReader *reader, World *wrld)
 {
   BLO_read_data_address(reader, &wrld->adt);
-  direct_link_animdata(reader->fd, wrld->adt);
+  direct_link_animdata(reader, wrld->adt);
 
   wrld->preview = direct_link_preview_image(reader->fd, wrld->preview);
   BLI_listbase_clear(&wrld->gpumaterial);
@@ -4501,7 +4496,7 @@ static void direct_link_curve(BlendDataReader *reader, Curve *cu)
   TextBox *tb;
 
   BLO_read_data_address(reader, &cu->adt);
-  direct_link_animdata(reader->fd, cu->adt);
+  direct_link_animdata(reader, cu->adt);
 
   /* Protect against integer overflow vulnerability. */
   CLAMP(cu->len_wchar, 0, INT_MAX - 4);
@@ -4570,7 +4565,7 @@ static void lib_link_texture(FileData *fd, Main *UNUSED(bmain), Tex *tex)
 static void direct_link_texture(BlendDataReader *reader, Tex *tex)
 {
   BLO_read_data_address(reader, &tex->adt);
-  direct_link_animdata(reader->fd, tex->adt);
+  direct_link_animdata(reader, tex->adt);
 
   BLO_read_data_address(reader, &tex->coba);
 
@@ -4605,7 +4600,7 @@ static void lib_link_material(FileData *fd, Main *UNUSED(bmain), Material *ma)
 static void direct_link_material(BlendDataReader *reader, Material *ma)
 {
   BLO_read_data_address(reader, &ma->adt);
-  direct_link_animdata(reader->fd, ma->adt);
+  direct_link_animdata(reader, ma->adt);
 
   ma->texpaintslot = NULL;
 
@@ -4793,7 +4788,7 @@ static void direct_link_particlesettings(BlendDataReader *reader, ParticleSettin
   BLO_read_data_address(reader, &part->pd);
   BLO_read_data_address(reader, &part->pd2);
 
-  direct_link_animdata(reader->fd, part->adt);
+  direct_link_animdata(reader, part->adt);
   direct_link_partdeflect(part->pd);
   direct_link_partdeflect(part->pd2);
 
@@ -5117,7 +5112,7 @@ static void direct_link_mesh(BlendDataReader *reader, Mesh *mesh)
 
   /* animdata */
   BLO_read_data_address(reader, &mesh->adt);
-  direct_link_animdata(reader->fd, mesh->adt);
+  direct_link_animdata(reader, mesh->adt);
 
   /* Normally direct_link_dverts should be called in direct_link_customdata,
    * but for backwards compatibility in do_versions to work we do it here. */
@@ -5217,7 +5212,7 @@ static void direct_link_latt(BlendDataReader *reader, Lattice *lt)
   lt->batch_cache = NULL;
 
   BLO_read_data_address(reader, &lt->adt);
-  direct_link_animdata(reader->fd, lt->adt);
+  direct_link_animdata(reader, lt->adt);
 }
 
 /** \} */
@@ -6129,7 +6124,7 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
   }
 
   BLO_read_data_address(reader, &ob->adt);
-  direct_link_animdata(reader->fd, ob->adt);
+  direct_link_animdata(reader, ob->adt);
 
   BLO_read_data_address(reader, &ob->pose);
   direct_link_pose(reader->fd, ob->pose);
@@ -6924,7 +6919,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
   BLO_read_list(reader, &(sce->base));
 
   BLO_read_data_address(reader, &sce->adt);
-  direct_link_animdata(reader->fd, sce->adt);
+  direct_link_animdata(reader, sce->adt);
 
   BLO_read_list(reader, &sce->keyingsets);
   direct_link_keyingsets(reader->fd, &sce->keyingsets);
@@ -7253,7 +7248,7 @@ static void direct_link_gpencil(BlendDataReader *reader, bGPdata *gpd)
 
   /* relink animdata */
   BLO_read_data_address(reader, &gpd->adt);
-  direct_link_animdata(reader->fd, gpd->adt);
+  direct_link_animdata(reader, gpd->adt);
 
   /* Ensure full objectmode for linked grease pencil. */
   if (gpd->id.lib != NULL) {
@@ -8615,7 +8610,7 @@ static void lib_link_lightprobe(FileData *fd, Main *UNUSED(bmain), LightProbe *p
 static void direct_link_lightprobe(BlendDataReader *reader, LightProbe *prb)
 {
   BLO_read_data_address(reader, &prb->adt);
-  direct_link_animdata(reader->fd, prb->adt);
+  direct_link_animdata(reader, prb->adt);
 }
 
 /** \} */
@@ -8632,7 +8627,7 @@ static void lib_link_speaker(FileData *fd, Main *UNUSED(bmain), Speaker *spk)
 static void direct_link_speaker(BlendDataReader *reader, Speaker *spk)
 {
   BLO_read_data_address(reader, &spk->adt);
-  direct_link_animdata(reader->fd, spk->adt);
+  direct_link_animdata(reader, spk->adt);
 
 #if 0
   spk->sound = newdataadr(fd, spk->sound);
@@ -9112,7 +9107,7 @@ static void direct_link_linestyle(BlendDataReader *reader, FreestyleLineStyle *l
   LineStyleModifier *modifier;
 
   BLO_read_data_address(reader, &linestyle->adt);
-  direct_link_animdata(reader->fd, linestyle->adt);
+  direct_link_animdata(reader, linestyle->adt);
   BLO_read_list(reader, &linestyle->color_modifiers);
   for (modifier = linestyle->color_modifiers.first; modifier; modifier = modifier->next) {
     direct_link_linestyle_color_modifier(reader->fd, modifier);
@@ -9150,7 +9145,7 @@ static void lib_link_hair(FileData *fd, Main *UNUSED(main), Hair *hair)
 static void direct_link_hair(BlendDataReader *reader, Hair *hair)
 {
   BLO_read_data_address(reader, &hair->adt);
-  direct_link_animdata(reader->fd, hair->adt);
+  direct_link_animdata(reader, hair->adt);
 
   /* Geometry */
   direct_link_customdata(reader->fd, &hair->pdata, hair->totpoint);
@@ -9177,7 +9172,7 @@ static void lib_link_pointcloud(FileData *fd, Main *UNUSED(main), PointCloud *po
 static void direct_link_pointcloud(BlendDataReader *reader, PointCloud *pointcloud)
 {
   BLO_read_data_address(reader, &pointcloud->adt);
-  direct_link_animdata(reader->fd, pointcloud->adt);
+  direct_link_animdata(reader, pointcloud->adt);
 
   /* Geometry */
   direct_link_customdata(reader->fd, &pointcloud->pdata, pointcloud->totpoint);
@@ -9203,7 +9198,7 @@ static void lib_link_volume(FileData *fd, Main *UNUSED(main), Volume *volume)
 static void direct_link_volume(BlendDataReader *reader, Volume *volume)
 {
   BLO_read_data_address(reader, &volume->adt);
-  direct_link_animdata(reader->fd, volume->adt);
+  direct_link_animdata(reader, volume->adt);
 
   volume->packedfile = direct_link_packedfile(reader->fd, volume->packedfile);
   volume->runtime.grids = (reader->fd->volumemap) ?
@@ -9231,7 +9226,7 @@ static void lib_link_simulation(FileData *UNUSED(fd),
 static void direct_link_simulation(BlendDataReader *reader, Simulation *simulation)
 {
   BLO_read_data_address(reader, &simulation->adt);
-  direct_link_animdata(reader->fd, simulation->adt);
+  direct_link_animdata(reader, simulation->adt);
 }
 
 /** \} */
