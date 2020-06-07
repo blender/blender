@@ -389,7 +389,7 @@ static const EnumPropertyItem modifier_warp_falloff_items[] = {
 
 const EnumPropertyItem rna_enum_dt_method_vertex_items[] = {
     {MREMAP_MODE_TOPOLOGY, "TOPOLOGY", 0, "Topology", "Copy from identical topology meshes"},
-    {MREMAP_MODE_VERT_NEAREST, "NEAREST", 0, "Nearest vertex", "Copy from closest vertex"},
+    {MREMAP_MODE_VERT_NEAREST, "NEAREST", 0, "Nearest Vertex", "Copy from closest vertex"},
     {MREMAP_MODE_VERT_EDGE_NEAREST,
      "EDGE_NEAREST",
      0,
