@@ -4958,14 +4958,14 @@ static void direct_link_dverts(BlendDataReader *reader, int count, MDeformVert *
   }
 }
 
-static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int external)
+static void direct_link_mdisps(BlendDataReader *reader, int count, MDisps *mdisps, int external)
 {
   if (mdisps) {
     int i;
 
     for (i = 0; i < count; i++) {
-      mdisps[i].disps = newdataadr(fd, mdisps[i].disps);
-      mdisps[i].hidden = newdataadr(fd, mdisps[i].hidden);
+      BLO_read_data_address(reader, &mdisps[i].disps);
+      BLO_read_data_address(reader, &mdisps[i].hidden);
 
       if (mdisps[i].totdisp && !mdisps[i].level) {
         /* this calculation is only correct for loop mdisps;
@@ -4976,7 +4976,7 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
         mdisps[i].level = (int)(logf(gridsize - 1.0f) / (float)M_LN2) + 1;
       }
 
-      if ((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && (mdisps[i].disps)) {
+      if (BLO_read_requires_endian_switch(reader) && (mdisps[i].disps)) {
         /* DNA_struct_switch_endian doesn't do endian swap for (*disps)[] */
         /* this does swap for data written at write_mdisps() - readfile.c */
         BLI_endian_switch_float_array(*mdisps[i].disps, mdisps[i].totdisp * 3);
@@ -4988,7 +4988,9 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
   }
 }
 
-static void direct_link_grid_paint_mask(FileData *fd, int count, GridPaintMask *grid_paint_mask)
+static void direct_link_grid_paint_mask(BlendDataReader *reader,
+                                        int count,
+                                        GridPaintMask *grid_paint_mask)
 {
   if (grid_paint_mask) {
     int i;
@@ -4996,18 +4998,18 @@ static void direct_link_grid_paint_mask(FileData *fd, int count, GridPaintMask *
     for (i = 0; i < count; i++) {
       GridPaintMask *gpm = &grid_paint_mask[i];
       if (gpm->data) {
-        gpm->data = newdataadr(fd, gpm->data);
+        BLO_read_data_address(reader, &gpm->data);
       }
     }
   }
 }
 
 /*this isn't really a public api function, so prototyped here*/
-static void direct_link_customdata(FileData *fd, CustomData *data, int count)
+static void direct_link_customdata(BlendDataReader *reader, CustomData *data, int count)
 {
   int i = 0;
 
-  data->layers = newdataadr(fd, data->layers);
+  BLO_read_data_address(reader, &data->layers);
 
   /* annoying workaround for bug [#31079] loading legacy files with
    * no polygons _but_ have stale customdata */
@@ -5016,7 +5018,7 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
     return;
   }
 
-  data->external = newdataadr(fd, data->external);
+  BLO_read_data_address(reader, &data->external);
 
   while (i < data->totlayer) {
     CustomDataLayer *layer = &data->layers[i];
@@ -5028,12 +5030,12 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
     layer->flag &= ~CD_FLAG_NOFREE;
 
     if (CustomData_verify_versions(data, i)) {
-      layer->data = newdataadr(fd, layer->data);
+      BLO_read_data_address(reader, &layer->data);
       if (layer->type == CD_MDISPS) {
-        direct_link_mdisps(fd, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
+        direct_link_mdisps(reader, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
       }
       else if (layer->type == CD_GRID_PAINT_MASK) {
-        direct_link_grid_paint_mask(fd, count, layer->data);
+        direct_link_grid_paint_mask(reader, count, layer->data);
       }
       i++;
     }
@@ -5067,11 +5069,11 @@ static void direct_link_mesh(BlendDataReader *reader, Mesh *mesh)
    * but for backwards compatibility in do_versions to work we do it here. */
   direct_link_dverts(reader, mesh->totvert, mesh->dvert);
 
-  direct_link_customdata(reader->fd, &mesh->vdata, mesh->totvert);
-  direct_link_customdata(reader->fd, &mesh->edata, mesh->totedge);
-  direct_link_customdata(reader->fd, &mesh->fdata, mesh->totface);
-  direct_link_customdata(reader->fd, &mesh->ldata, mesh->totloop);
-  direct_link_customdata(reader->fd, &mesh->pdata, mesh->totpoly);
+  direct_link_customdata(reader, &mesh->vdata, mesh->totvert);
+  direct_link_customdata(reader, &mesh->edata, mesh->totedge);
+  direct_link_customdata(reader, &mesh->fdata, mesh->totface);
+  direct_link_customdata(reader, &mesh->ldata, mesh->totloop);
+  direct_link_customdata(reader, &mesh->pdata, mesh->totpoly);
 
   mesh->texflag &= ~ME_AUTOSPACE_EVALUATED;
   mesh->edit_mesh = NULL;
@@ -5090,9 +5092,9 @@ static void direct_link_mesh(BlendDataReader *reader, Mesh *mesh)
     BLO_read_list(reader, &mesh->mr->levels);
     lvl = mesh->mr->levels.first;
 
-    direct_link_customdata(reader->fd, &mesh->mr->vdata, lvl->totvert);
+    direct_link_customdata(reader, &mesh->mr->vdata, lvl->totvert);
     direct_link_dverts(reader, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
-    direct_link_customdata(reader->fd, &mesh->mr->fdata, lvl->totface);
+    direct_link_customdata(reader, &mesh->mr->fdata, lvl->totface);
 
     BLO_read_data_address(reader, &mesh->mr->edge_flags);
     BLO_read_data_address(reader, &mesh->mr->edge_creases);
@@ -9058,8 +9060,8 @@ static void direct_link_hair(BlendDataReader *reader, Hair *hair)
   direct_link_animdata(reader, hair->adt);
 
   /* Geometry */
-  direct_link_customdata(reader->fd, &hair->pdata, hair->totpoint);
-  direct_link_customdata(reader->fd, &hair->cdata, hair->totcurve);
+  direct_link_customdata(reader, &hair->pdata, hair->totpoint);
+  direct_link_customdata(reader, &hair->cdata, hair->totcurve);
   BKE_hair_update_customdata_pointers(hair);
 
   /* Materials */
@@ -9085,7 +9087,7 @@ static void direct_link_pointcloud(BlendDataReader *reader, PointCloud *pointclo
   direct_link_animdata(reader, pointcloud->adt);
 
   /* Geometry */
-  direct_link_customdata(reader->fd, &pointcloud->pdata, pointcloud->totpoint);
+  direct_link_customdata(reader, &pointcloud->pdata, pointcloud->totpoint);
   BKE_pointcloud_update_customdata_pointers(pointcloud);
 
   /* Materials */
