@@ -106,6 +106,7 @@ set(SRC
   transform.h
   transform_constraints.h
   transform_convert.h
+  transform_data.h
   transform_draw_cursors.h
   transform_mode.h
   transform_snap.h
