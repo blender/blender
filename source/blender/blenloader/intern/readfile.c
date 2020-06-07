@@ -5972,11 +5972,11 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
   }
 }
 
-static void direct_link_gpencil_modifiers(FileData *fd, ListBase *lb)
+static void direct_link_gpencil_modifiers(BlendDataReader *reader, ListBase *lb)
 {
   GpencilModifierData *md;
 
-  link_list(fd, lb);
+  BLO_read_list(reader, lb);
 
   for (md = lb->first; md; md = md->next) {
     md->error = NULL;
@@ -5993,17 +5993,17 @@ static void direct_link_gpencil_modifiers(FileData *fd, ListBase *lb)
     else if (md->type == eGpencilModifierType_Hook) {
       HookGpencilModifierData *hmd = (HookGpencilModifierData *)md;
 
-      hmd->curfalloff = newdataadr(fd, hmd->curfalloff);
+      BLO_read_data_address(reader, &hmd->curfalloff);
       if (hmd->curfalloff) {
-        direct_link_curvemapping(fd, hmd->curfalloff);
+        direct_link_curvemapping(reader->fd, hmd->curfalloff);
       }
     }
     else if (md->type == eGpencilModifierType_Noise) {
       NoiseGpencilModifierData *gpmd = (NoiseGpencilModifierData *)md;
 
-      gpmd->curve_intensity = newdataadr(fd, gpmd->curve_intensity);
+      BLO_read_data_address(reader, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
-        direct_link_curvemapping(fd, gpmd->curve_intensity);
+        direct_link_curvemapping(reader->fd, gpmd->curve_intensity);
         /* initialize the curve. Maybe this could be moved to modififer logic */
         BKE_curvemapping_initialize(gpmd->curve_intensity);
       }
@@ -6011,53 +6011,53 @@ static void direct_link_gpencil_modifiers(FileData *fd, ListBase *lb)
     else if (md->type == eGpencilModifierType_Thick) {
       ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
 
-      gpmd->curve_thickness = newdataadr(fd, gpmd->curve_thickness);
+      BLO_read_data_address(reader, &gpmd->curve_thickness);
       if (gpmd->curve_thickness) {
-        direct_link_curvemapping(fd, gpmd->curve_thickness);
+        direct_link_curvemapping(reader->fd, gpmd->curve_thickness);
         BKE_curvemapping_initialize(gpmd->curve_thickness);
       }
     }
     else if (md->type == eGpencilModifierType_Tint) {
       TintGpencilModifierData *gpmd = (TintGpencilModifierData *)md;
-      gpmd->colorband = newdataadr(fd, gpmd->colorband);
-      gpmd->curve_intensity = newdataadr(fd, gpmd->curve_intensity);
+      BLO_read_data_address(reader, &gpmd->colorband);
+      BLO_read_data_address(reader, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
-        direct_link_curvemapping(fd, gpmd->curve_intensity);
+        direct_link_curvemapping(reader->fd, gpmd->curve_intensity);
         BKE_curvemapping_initialize(gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Smooth) {
       SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
-      gpmd->curve_intensity = newdataadr(fd, gpmd->curve_intensity);
+      BLO_read_data_address(reader, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
-        direct_link_curvemapping(fd, gpmd->curve_intensity);
+        direct_link_curvemapping(reader->fd, gpmd->curve_intensity);
         BKE_curvemapping_initialize(gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Color) {
       ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
-      gpmd->curve_intensity = newdataadr(fd, gpmd->curve_intensity);
+      BLO_read_data_address(reader, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
-        direct_link_curvemapping(fd, gpmd->curve_intensity);
+        direct_link_curvemapping(reader->fd, gpmd->curve_intensity);
         BKE_curvemapping_initialize(gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Opacity) {
       OpacityGpencilModifierData *gpmd = (OpacityGpencilModifierData *)md;
-      gpmd->curve_intensity = newdataadr(fd, gpmd->curve_intensity);
+      BLO_read_data_address(reader, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
-        direct_link_curvemapping(fd, gpmd->curve_intensity);
+        direct_link_curvemapping(reader->fd, gpmd->curve_intensity);
         BKE_curvemapping_initialize(gpmd->curve_intensity);
       }
     }
   }
 }
 
-static void direct_link_shaderfxs(FileData *fd, ListBase *lb)
+static void direct_link_shaderfxs(BlendDataReader *reader, ListBase *lb)
 {
   ShaderFxData *fx;
 
-  link_list(fd, lb);
+  BLO_read_list(reader, lb);
 
   for (fx = lb->first; fx; fx = fx->next) {
     fx->error = NULL;
@@ -6113,8 +6113,8 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
 
   /* do it here, below old data gets converted */
   direct_link_modifiers(reader, &ob->modifiers, ob);
-  direct_link_gpencil_modifiers(reader->fd, &ob->greasepencil_modifiers);
-  direct_link_shaderfxs(reader->fd, &ob->shader_fx);
+  direct_link_gpencil_modifiers(reader, &ob->greasepencil_modifiers);
+  direct_link_shaderfxs(reader, &ob->shader_fx);
 
   BLO_read_list(reader, &ob->effect);
   paf = ob->effect.first;
