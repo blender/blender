@@ -2647,8 +2647,8 @@ static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData
   }
 }
 
-#define IDP_DirectLinkGroup_OrFree(prop, switch_endian, fd) \
-  _IDP_DirectLinkGroup_OrFree(prop, switch_endian, fd, __func__)
+#define IDP_DirectLinkGroup_OrFree(prop, reader) \
+  _IDP_DirectLinkGroup_OrFree(prop, BLO_read_requires_endian_switch(reader), reader->fd, __func__)
 
 static void _IDP_DirectLinkGroup_OrFree(IDProperty **prop,
                                         int switch_endian,
@@ -2921,8 +2921,7 @@ static void direct_link_id_common(
   if (id->properties) {
     BLO_read_data_address(reader, &id->properties);
     /* this case means the data was written incorrectly, it should not happen */
-    IDP_DirectLinkGroup_OrFree(
-        &id->properties, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+    IDP_DirectLinkGroup_OrFree(&id->properties, reader);
   }
 
   id->flag &= ~LIB_INDIRECT_WEAK_LINK;
@@ -3300,8 +3299,7 @@ static void direct_link_fmodifiers(BlendDataReader *reader, ListBase *list, FCur
         FMod_Python *data = (FMod_Python *)fcm->data;
 
         BLO_read_data_address(reader, &data->prop);
-        IDP_DirectLinkGroup_OrFree(
-            &data->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+        IDP_DirectLinkGroup_OrFree(&data->prop, reader);
 
         break;
       }
@@ -3636,8 +3634,7 @@ static void direct_link_workspace(BlendDataReader *reader, WorkSpace *workspace,
   LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
     tref->runtime = NULL;
     BLO_read_data_address(reader, &tref->properties);
-    IDP_DirectLinkGroup_OrFree(
-        &tref->properties, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+    IDP_DirectLinkGroup_OrFree(&tref->properties, reader);
   }
 
   workspace->status_text = NULL;
@@ -3741,8 +3738,7 @@ static void lib_link_nodetree(FileData *fd, Main *UNUSED(bmain), bNodeTree *ntre
 static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
 {
   BLO_read_data_address(reader, &sock->prop);
-  IDP_DirectLinkGroup_OrFree(
-      &sock->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+  IDP_DirectLinkGroup_OrFree(&sock->prop, reader);
 
   BLO_read_data_address(reader, &sock->link);
   sock->typeinfo = NULL;
@@ -3778,8 +3774,7 @@ static void direct_link_nodetree(BlendDataReader *reader, bNodeTree *ntree)
     BLO_read_list(reader, &node->outputs);
 
     BLO_read_data_address(reader, &node->prop);
-    IDP_DirectLinkGroup_OrFree(
-        &node->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+    IDP_DirectLinkGroup_OrFree(&node->prop, reader);
 
     BLO_read_list(reader, &node->internal_links);
     for (link = node->internal_links.first; link; link = link->next) {
@@ -3979,8 +3974,7 @@ static void direct_link_constraints(BlendDataReader *reader, ListBase *lb)
         BLO_read_list(reader, &data->targets);
 
         BLO_read_data_address(reader, &data->prop);
-        IDP_DirectLinkGroup_OrFree(
-            &data->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+        IDP_DirectLinkGroup_OrFree(&data->prop, reader);
         break;
       }
       case CONSTRAINT_TYPE_ARMATURE: {
@@ -4101,8 +4095,7 @@ static void direct_link_bones(BlendDataReader *reader, Bone *bone)
 
   BLO_read_data_address(reader, &bone->parent);
   BLO_read_data_address(reader, &bone->prop);
-  IDP_DirectLinkGroup_OrFree(
-      &bone->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+  IDP_DirectLinkGroup_OrFree(&bone->prop, reader);
 
   BLO_read_data_address(reader, &bone->bbone_next);
   BLO_read_data_address(reader, &bone->bbone_prev);
@@ -5496,8 +5489,7 @@ static void direct_link_pose(BlendDataReader *reader, bPose *pose)
     direct_link_constraints(reader, &pchan->constraints);
 
     BLO_read_data_address(reader, &pchan->prop);
-    IDP_DirectLinkGroup_OrFree(
-        &pchan->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+    IDP_DirectLinkGroup_OrFree(&pchan->prop, reader);
 
     BLO_read_data_address(reader, &pchan->mpath);
     if (pchan->mpath) {
@@ -6322,8 +6314,7 @@ static void direct_link_view_layer(BlendDataReader *reader, ViewLayer *view_laye
   BLO_read_data_address(reader, &view_layer->active_collection);
 
   BLO_read_data_address(reader, &view_layer->id_properties);
-  IDP_DirectLinkGroup_OrFree(
-      &view_layer->id_properties, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+  IDP_DirectLinkGroup_OrFree(&view_layer->id_properties, reader);
 
   BLO_read_list(reader, &(view_layer->freestyle_config.modules));
   BLO_read_list(reader, &(view_layer->freestyle_config.linesets));
@@ -6561,8 +6552,7 @@ static void direct_link_view3dshading(BlendDataReader *reader, View3DShading *sh
 {
   if (shading->prop) {
     BLO_read_data_address(reader, &shading->prop);
-    IDP_DirectLinkGroup_OrFree(
-        &shading->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+    IDP_DirectLinkGroup_OrFree(&shading->prop, reader);
   }
 }
 
@@ -6989,8 +6979,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
       }
 
       BLO_read_data_address(reader, &seq->prop);
-      IDP_DirectLinkGroup_OrFree(
-          &seq->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+      IDP_DirectLinkGroup_OrFree(&seq->prop, reader);
 
       BLO_read_data_address(reader, &seq->strip);
       if (seq->strip && seq->strip->done == 0) {
@@ -7084,8 +7073,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
   }
   if (sce->r.ffcodecdata.properties) {
     BLO_read_data_address(reader, &sce->r.ffcodecdata.properties);
-    IDP_DirectLinkGroup_OrFree(
-        &sce->r.ffcodecdata.properties, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+    IDP_DirectLinkGroup_OrFree(&sce->r.ffcodecdata.properties, reader);
   }
 
   BLO_read_list(reader, &(sce->markers));
@@ -7095,8 +7083,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
 
   for (srl = sce->r.layers.first; srl; srl = srl->next) {
     BLO_read_data_address(reader, &srl->prop);
-    IDP_DirectLinkGroup_OrFree(
-        &srl->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+    IDP_DirectLinkGroup_OrFree(&srl->prop, reader);
     BLO_read_list(reader, &(srl->freestyleConfig.modules));
     BLO_read_list(reader, &(srl->freestyleConfig.linesets));
   }
@@ -7184,8 +7171,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
   direct_link_view3dshading(reader, &sce->display.shading);
 
   BLO_read_data_address(reader, &sce->layer_properties);
-  IDP_DirectLinkGroup_OrFree(
-      &sce->layer_properties, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+  IDP_DirectLinkGroup_OrFree(&sce->layer_properties, reader);
 }
 
 /** \} */
@@ -7316,8 +7302,7 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
     ui_list->type = NULL;
     ui_list->dyn_data = NULL;
     BLO_read_data_address(reader, &ui_list->properties);
-    IDP_DirectLinkGroup_OrFree(
-        &ui_list->properties, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+    IDP_DirectLinkGroup_OrFree(&ui_list->properties, reader);
   }
 
   BLO_read_list(reader, &region->ui_previews);
@@ -10227,8 +10212,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
 static void direct_link_keymapitem(BlendDataReader *reader, wmKeyMapItem *kmi)
 {
   BLO_read_data_address(reader, &kmi->properties);
-  IDP_DirectLinkGroup_OrFree(
-      &kmi->properties, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+  IDP_DirectLinkGroup_OrFree(&kmi->properties, reader);
   kmi->ptr = NULL;
   kmi->flag &= ~KMI_UPDATE;
 }
@@ -10287,8 +10271,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
   LISTBASE_FOREACH (wmKeyConfigPref *, kpt, &user->user_keyconfig_prefs) {
     BLO_read_data_address(reader, &kpt->prop);
-    IDP_DirectLinkGroup_OrFree(
-        &kpt->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+    IDP_DirectLinkGroup_OrFree(&kpt->prop, reader);
   }
 
   LISTBASE_FOREACH (bUserMenu *, um, &user->user_menus) {
@@ -10297,16 +10280,14 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
       if (umi->type == USER_MENU_TYPE_OPERATOR) {
         bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
         BLO_read_data_address(reader, &umi_op->prop);
-        IDP_DirectLinkGroup_OrFree(
-            &umi_op->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+        IDP_DirectLinkGroup_OrFree(&umi_op->prop, reader);
       }
     }
   }
 
   for (addon = user->addons.first; addon; addon = addon->next) {
     BLO_read_data_address(reader, &addon->prop);
-    IDP_DirectLinkGroup_OrFree(
-        &addon->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
+    IDP_DirectLinkGroup_OrFree(&addon->prop, reader);
   }
 
   // XXX
