@@ -3487,8 +3487,8 @@ static void lib_link_keyingsets(FileData *fd, ID *id, ListBase *list)
   }
 }
 
-/* NOTE: this assumes that link_list has already been called on the list */
-static void direct_link_keyingsets(FileData *fd, ListBase *list)
+/* NOTE: this assumes that BLO_read_list has already been called on the list */
+static void direct_link_keyingsets(BlendDataReader *reader, ListBase *list)
 {
   KeyingSet *ks;
   KS_Path *ksp;
@@ -3496,11 +3496,11 @@ static void direct_link_keyingsets(FileData *fd, ListBase *list)
   /* link KeyingSet data to KeyingSet again (non ID-libs) */
   for (ks = list->first; ks; ks = ks->next) {
     /* paths */
-    link_list(fd, &ks->paths);
+    BLO_read_list(reader, &ks->paths);
 
     for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
       /* rna path */
-      ksp->rna_path = newdataadr(fd, ksp->rna_path);
+      BLO_read_data_address(reader, &ksp->rna_path);
     }
   }
 }
@@ -3735,15 +3735,16 @@ static void lib_link_nodetree(FileData *fd, Main *UNUSED(bmain), bNodeTree *ntre
   lib_link_ntree(fd, ntree->id.lib, ntree);
 }
 
-static void direct_link_node_socket(FileData *fd, bNodeSocket *sock)
+static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
 {
-  sock->prop = newdataadr(fd, sock->prop);
-  IDP_DirectLinkGroup_OrFree(&sock->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+  BLO_read_data_address(reader, &sock->prop);
+  IDP_DirectLinkGroup_OrFree(
+      &sock->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
 
-  sock->link = newdataadr(fd, sock->link);
+  BLO_read_data_address(reader, &sock->link);
   sock->typeinfo = NULL;
-  sock->storage = newdataadr(fd, sock->storage);
-  sock->default_value = newdataadr(fd, sock->default_value);
+  BLO_read_data_address(reader, &sock->storage);
+  BLO_read_data_address(reader, &sock->default_value);
   sock->cache = NULL;
 }
 
@@ -3861,10 +3862,10 @@ static void direct_link_nodetree(BlendDataReader *reader, bNodeTree *ntree)
     node->lasty = 0;
 
     for (sock = node->inputs.first; sock; sock = sock->next) {
-      direct_link_node_socket(reader->fd, sock);
+      direct_link_node_socket(reader, sock);
     }
     for (sock = node->outputs.first; sock; sock = sock->next) {
-      direct_link_node_socket(reader->fd, sock);
+      direct_link_node_socket(reader, sock);
     }
   }
 
@@ -3872,10 +3873,10 @@ static void direct_link_nodetree(BlendDataReader *reader, bNodeTree *ntree)
   BLO_read_list(reader, &ntree->inputs);
   BLO_read_list(reader, &ntree->outputs);
   for (sock = ntree->inputs.first; sock; sock = sock->next) {
-    direct_link_node_socket(reader->fd, sock);
+    direct_link_node_socket(reader, sock);
   }
   for (sock = ntree->outputs.first; sock; sock = sock->next) {
-    direct_link_node_socket(reader->fd, sock);
+    direct_link_node_socket(reader, sock);
   }
 
   for (link = ntree->links.first; link; link = link->next) {
@@ -3960,35 +3961,36 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
   BKE_constraints_id_loop(conlist, lib_link_constraint_cb, &cld);
 }
 
-static void direct_link_constraints(FileData *fd, ListBase *lb)
+static void direct_link_constraints(BlendDataReader *reader, ListBase *lb)
 {
   bConstraint *con;
 
-  link_list(fd, lb);
+  BLO_read_list(reader, lb);
   for (con = lb->first; con; con = con->next) {
-    con->data = newdataadr(fd, con->data);
+    BLO_read_data_address(reader, &con->data);
 
     switch (con->type) {
       case CONSTRAINT_TYPE_PYTHON: {
         bPythonConstraint *data = con->data;
 
-        link_list(fd, &data->targets);
+        BLO_read_list(reader, &data->targets);
 
-        data->prop = newdataadr(fd, data->prop);
-        IDP_DirectLinkGroup_OrFree(&data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+        BLO_read_data_address(reader, &data->prop);
+        IDP_DirectLinkGroup_OrFree(
+            &data->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
         break;
       }
       case CONSTRAINT_TYPE_ARMATURE: {
         bArmatureConstraint *data = con->data;
 
-        link_list(fd, &data->targets);
+        BLO_read_list(reader, &data->targets);
 
         break;
       }
       case CONSTRAINT_TYPE_SPLINEIK: {
         bSplineIKConstraint *data = con->data;
 
-        data->points = newdataadr(fd, data->points);
+        BLO_read_data_address(reader, &data->points);
         break;
       }
       case CONSTRAINT_TYPE_KINEMATIC: {
@@ -5449,7 +5451,7 @@ static void lib_link_object(FileData *fd, Main *bmain, Object *ob)
 }
 
 /* direct data for cache */
-static void direct_link_motionpath(FileData *fd, bMotionPath *mpath)
+static void direct_link_motionpath(BlendDataReader *reader, bMotionPath *mpath)
 {
   /* sanity check */
   if (mpath == NULL) {
@@ -5457,14 +5459,14 @@ static void direct_link_motionpath(FileData *fd, bMotionPath *mpath)
   }
 
   /* relink points cache */
-  mpath->points = newdataadr(fd, mpath->points);
+  BLO_read_data_address(reader, &mpath->points);
 
   mpath->points_vbo = NULL;
   mpath->batch_line = NULL;
   mpath->batch_points = NULL;
 }
 
-static void direct_link_pose(FileData *fd, bPose *pose)
+static void direct_link_pose(BlendDataReader *reader, bPose *pose)
 {
   bPoseChannel *pchan;
 
@@ -5472,29 +5474,30 @@ static void direct_link_pose(FileData *fd, bPose *pose)
     return;
   }
 
-  link_list(fd, &pose->chanbase);
-  link_list(fd, &pose->agroups);
+  BLO_read_list(reader, &pose->chanbase);
+  BLO_read_list(reader, &pose->agroups);
 
   pose->chanhash = NULL;
   pose->chan_array = NULL;
 
   for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
     pchan->bone = NULL;
-    pchan->parent = newdataadr(fd, pchan->parent);
-    pchan->child = newdataadr(fd, pchan->child);
-    pchan->custom_tx = newdataadr(fd, pchan->custom_tx);
+    BLO_read_data_address(reader, &pchan->parent);
+    BLO_read_data_address(reader, &pchan->child);
+    BLO_read_data_address(reader, &pchan->custom_tx);
 
-    pchan->bbone_prev = newdataadr(fd, pchan->bbone_prev);
-    pchan->bbone_next = newdataadr(fd, pchan->bbone_next);
+    BLO_read_data_address(reader, &pchan->bbone_prev);
+    BLO_read_data_address(reader, &pchan->bbone_next);
 
-    direct_link_constraints(fd, &pchan->constraints);
+    direct_link_constraints(reader, &pchan->constraints);
 
-    pchan->prop = newdataadr(fd, pchan->prop);
-    IDP_DirectLinkGroup_OrFree(&pchan->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+    BLO_read_data_address(reader, &pchan->prop);
+    IDP_DirectLinkGroup_OrFree(
+        &pchan->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
 
-    pchan->mpath = newdataadr(fd, pchan->mpath);
+    BLO_read_data_address(reader, &pchan->mpath);
     if (pchan->mpath) {
-      direct_link_motionpath(fd, pchan->mpath);
+      direct_link_motionpath(reader, pchan->mpath);
     }
 
     BLI_listbase_clear(&pchan->iktree);
@@ -5508,7 +5511,7 @@ static void direct_link_pose(FileData *fd, bPose *pose)
   }
   pose->ikdata = NULL;
   if (pose->ikparam != NULL) {
-    pose->ikparam = newdataadr(fd, pose->ikparam);
+    BLO_read_data_address(reader, &pose->ikparam);
   }
 }
 
@@ -6127,11 +6130,11 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
   direct_link_animdata(reader, ob->adt);
 
   BLO_read_data_address(reader, &ob->pose);
-  direct_link_pose(reader->fd, ob->pose);
+  direct_link_pose(reader, ob->pose);
 
   BLO_read_data_address(reader, &ob->mpath);
   if (ob->mpath) {
-    direct_link_motionpath(reader->fd, ob->mpath);
+    direct_link_motionpath(reader, ob->mpath);
   }
 
   BLO_read_list(reader, &ob->defbase);
@@ -6254,7 +6257,7 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
   BLO_read_list(reader, &ob->particlesystem);
   direct_link_particlesystems(reader->fd, &ob->particlesystem);
 
-  direct_link_constraints(reader->fd, &ob->constraints);
+  direct_link_constraints(reader, &ob->constraints);
 
   BLO_read_list(reader, &ob->hooks);
   while (ob->hooks.first) {
@@ -6922,7 +6925,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
   direct_link_animdata(reader, sce->adt);
 
   BLO_read_list(reader, &sce->keyingsets);
-  direct_link_keyingsets(reader->fd, &sce->keyingsets);
+  direct_link_keyingsets(reader, &sce->keyingsets);
 
   BLO_read_data_address(reader, &sce->basact);
 
