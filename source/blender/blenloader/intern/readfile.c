@@ -2711,15 +2711,15 @@ static void IDP_LibLinkProperty(IDProperty *prop, FileData *fd)
 /** \name Read Image Preview
  * \{ */
 
-static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_prv)
+static PreviewImage *direct_link_preview_image(BlendDataReader *reader, PreviewImage *old_prv)
 {
-  PreviewImage *prv = newdataadr(fd, old_prv);
+  PreviewImage *prv = BLO_read_get_new_data_address(reader, old_prv);
 
   if (prv) {
     int i;
     for (i = 0; i < NUM_ICON_SIZES; i++) {
       if (prv->rect[i]) {
-        prv->rect[i] = newdataadr(fd, prv->rect[i]);
+        BLO_read_data_address(reader, &prv->rect[i]);
       }
       prv->gputexture[i] = NULL;
     }
@@ -4188,7 +4188,7 @@ static void direct_link_light(BlendDataReader *reader, Light *la)
     direct_link_curvemapping(reader, la->curfalloff);
   }
 
-  la->preview = direct_link_preview_image(reader->fd, la->preview);
+  la->preview = direct_link_preview_image(reader, la->preview);
 }
 
 /** \} */
@@ -4313,7 +4313,7 @@ static void direct_link_world(BlendDataReader *reader, World *wrld)
   BLO_read_data_address(reader, &wrld->adt);
   direct_link_animdata(reader, wrld->adt);
 
-  wrld->preview = direct_link_preview_image(reader->fd, wrld->preview);
+  wrld->preview = direct_link_preview_image(reader, wrld->preview);
   BLI_listbase_clear(&wrld->gpumaterial);
 }
 
@@ -4451,7 +4451,7 @@ static void direct_link_image(BlendDataReader *reader, Image *ima)
   }
 
   BLI_listbase_clear(&ima->anims);
-  ima->preview = direct_link_preview_image(reader->fd, ima->preview);
+  ima->preview = direct_link_preview_image(reader, ima->preview);
   BLO_read_data_address(reader, &ima->stereo3d_format);
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
     tile->ok = 1;
@@ -4571,7 +4571,7 @@ static void direct_link_texture(BlendDataReader *reader, Tex *tex)
 
   BLO_read_data_address(reader, &tex->coba);
 
-  tex->preview = direct_link_preview_image(reader->fd, tex->preview);
+  tex->preview = direct_link_preview_image(reader, tex->preview);
 
   tex->iuser.ok = 1;
   tex->iuser.scene = NULL;
@@ -4606,7 +4606,7 @@ static void direct_link_material(BlendDataReader *reader, Material *ma)
 
   ma->texpaintslot = NULL;
 
-  ma->preview = direct_link_preview_image(reader->fd, ma->preview);
+  ma->preview = direct_link_preview_image(reader, ma->preview);
   BLI_listbase_clear(&ma->gpumaterial);
 
   BLO_read_data_address(reader, &ma->gp_style);
@@ -6272,7 +6272,7 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
   BLO_read_list(reader, &ob->lodlevels);
   ob->currentlod = ob->lodlevels.first;
 
-  ob->preview = direct_link_preview_image(reader->fd, ob->preview);
+  ob->preview = direct_link_preview_image(reader, ob->preview);
 }
 
 static void direct_link_view_settings(BlendDataReader *reader,
@@ -6417,7 +6417,7 @@ static void direct_link_collection(BlendDataReader *reader, Collection *collecti
   BLO_read_list(reader, &collection->gobject);
   BLO_read_list(reader, &collection->children);
 
-  collection->preview = direct_link_preview_image(reader->fd, collection->preview);
+  collection->preview = direct_link_preview_image(reader, collection->preview);
 
   collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
   collection->tag = 0;
@@ -7139,7 +7139,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
     }
   }
 
-  sce->preview = direct_link_preview_image(reader->fd, sce->preview);
+  sce->preview = direct_link_preview_image(reader, sce->preview);
 
   direct_link_curvemapping(reader, &sce->r.mblur_shutter_curve);
 
@@ -8460,7 +8460,7 @@ static bool direct_link_screen(BlendDataReader *reader, bScreen *screen)
   screen->context = NULL;
   screen->active_region = NULL;
 
-  screen->preview = direct_link_preview_image(reader->fd, screen->preview);
+  screen->preview = direct_link_preview_image(reader, screen->preview);
 
   if (!direct_link_area_map(reader, AREAMAP_FROM_SCREEN(screen))) {
     printf("Error reading Screen %s... removing it.\n", screen->id.name + 2);
