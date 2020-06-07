@@ -252,7 +252,7 @@
 /* local prototypes */
 static void read_libraries(FileData *basefd, ListBase *mainlist);
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
-static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob);
+static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object *ob);
 static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const char *name);
 static BHead *find_bhead_from_idname(FileData *fd, const char *idname);
 
@@ -5629,11 +5629,11 @@ static ModifierData *modifier_replace_with_fluid(FileData *fd,
   return new_modifier_data;
 }
 
-static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
+static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object *ob)
 {
   ModifierData *md;
 
-  link_list(fd, lb);
+  BLO_read_list(reader, lb);
 
   for (md = lb->first; md; md = md->next) {
     md->error = NULL;
@@ -5645,22 +5645,22 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
 
     if (md->type == eModifierType_Fluidsim) {
       blo_reportf_wrap(
-          fd->reports,
+          reader->fd->reports,
           RPT_WARNING,
           TIP_("Possible data loss when saving this file! %s modifier is deprecated (Object: %s)"),
           md->name,
           ob->id.name + 2);
-      md = modifier_replace_with_fluid(fd, ob, lb, md);
+      md = modifier_replace_with_fluid(reader->fd, ob, lb, md);
       is_allocated = true;
     }
     else if (md->type == eModifierType_Smoke) {
       blo_reportf_wrap(
-          fd->reports,
+          reader->fd->reports,
           RPT_WARNING,
           TIP_("Possible data loss when saving this file! %s modifier is deprecated (Object: %s)"),
           md->name,
           ob->id.name + 2);
-      md = modifier_replace_with_fluid(fd, ob, lb, md);
+      md = modifier_replace_with_fluid(reader->fd, ob, lb, md);
       is_allocated = true;
     }
     /* if modifiers disappear, or for upward compatibility */
@@ -5687,10 +5687,10 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
       clmd->clothObject = NULL;
       clmd->hairdata = NULL;
 
-      clmd->sim_parms = newdataadr(fd, clmd->sim_parms);
-      clmd->coll_parms = newdataadr(fd, clmd->coll_parms);
+      BLO_read_data_address(reader, &clmd->sim_parms);
+      BLO_read_data_address(reader, &clmd->coll_parms);
 
-      direct_link_pointcache_list(fd, &clmd->ptcaches, &clmd->point_cache, 0);
+      direct_link_pointcache_list(reader->fd, &clmd->ptcaches, &clmd->point_cache, 0);
 
       if (clmd->sim_parms) {
         if (clmd->sim_parms->presets > 10) {
@@ -5699,7 +5699,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
 
         clmd->sim_parms->reset = 0;
 
-        clmd->sim_parms->effector_weights = newdataadr(fd, clmd->sim_parms->effector_weights);
+        BLO_read_data_address(reader, &clmd->sim_parms->effector_weights);
 
         if (!clmd->sim_parms->effector_weights) {
           clmd->sim_parms->effector_weights = BKE_effector_add_weights(NULL);
@@ -5715,7 +5715,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
       if (mmd->type == MOD_FLUID_TYPE_DOMAIN) {
         mmd->flow = NULL;
         mmd->effector = NULL;
-        mmd->domain = newdataadr(fd, mmd->domain);
+        BLO_read_data_address(reader, &mmd->domain);
         mmd->domain->mmd = mmd;
 
         mmd->domain->fluid = NULL;
@@ -5732,20 +5732,20 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
         mmd->domain->tex_velocity_z = NULL;
         mmd->domain->tex_wt = NULL;
         mmd->domain->mesh_velocities = NULL;
-        mmd->domain->coba = newdataadr(fd, mmd->domain->coba);
+        BLO_read_data_address(reader, &mmd->domain->coba);
 
-        mmd->domain->effector_weights = newdataadr(fd, mmd->domain->effector_weights);
+        BLO_read_data_address(reader, &mmd->domain->effector_weights);
         if (!mmd->domain->effector_weights) {
           mmd->domain->effector_weights = BKE_effector_add_weights(NULL);
         }
 
         direct_link_pointcache_list(
-            fd, &(mmd->domain->ptcaches[0]), &(mmd->domain->point_cache[0]), 1);
+            reader->fd, &(mmd->domain->ptcaches[0]), &(mmd->domain->point_cache[0]), 1);
 
         /* Manta sim uses only one cache from now on, so store pointer convert */
         if (mmd->domain->ptcaches[1].first || mmd->domain->point_cache[1]) {
           if (mmd->domain->point_cache[1]) {
-            PointCache *cache = newdataadr(fd, mmd->domain->point_cache[1]);
+            PointCache *cache = BLO_read_get_new_data_address(reader, mmd->domain->point_cache[1]);
             if (cache->flag & PTCACHE_FAKE_SMOKE) {
               /* Manta-sim/smoke was already saved in "new format" and this cache is a fake one. */
             }
@@ -5763,17 +5763,17 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
       else if (mmd->type == MOD_FLUID_TYPE_FLOW) {
         mmd->domain = NULL;
         mmd->effector = NULL;
-        mmd->flow = newdataadr(fd, mmd->flow);
+        BLO_read_data_address(reader, &mmd->flow);
         mmd->flow->mmd = mmd;
         mmd->flow->mesh = NULL;
         mmd->flow->verts_old = NULL;
         mmd->flow->numverts = 0;
-        mmd->flow->psys = newdataadr(fd, mmd->flow->psys);
+        BLO_read_data_address(reader, &mmd->flow->psys);
       }
       else if (mmd->type == MOD_FLUID_TYPE_EFFEC) {
         mmd->flow = NULL;
         mmd->domain = NULL;
-        mmd->effector = newdataadr(fd, mmd->effector);
+        BLO_read_data_address(reader, &mmd->effector);
         if (mmd->effector) {
           mmd->effector->mmd = mmd;
           mmd->effector->verts_old = NULL;
@@ -5792,31 +5792,33 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
       DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
       if (pmd->canvas) {
-        pmd->canvas = newdataadr(fd, pmd->canvas);
+        BLO_read_data_address(reader, &pmd->canvas);
         pmd->canvas->pmd = pmd;
         pmd->canvas->flags &= ~MOD_DPAINT_BAKING; /* just in case */
 
         if (pmd->canvas->surfaces.first) {
           DynamicPaintSurface *surface;
-          link_list(fd, &pmd->canvas->surfaces);
+          BLO_read_list(reader, &pmd->canvas->surfaces);
 
           for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
             surface->canvas = pmd->canvas;
             surface->data = NULL;
-            direct_link_pointcache_list(fd, &(surface->ptcaches), &(surface->pointcache), 1);
+            direct_link_pointcache_list(
+                reader->fd, &(surface->ptcaches), &(surface->pointcache), 1);
 
-            if (!(surface->effector_weights = newdataadr(fd, surface->effector_weights))) {
+            BLO_read_data_address(reader, &surface->effector_weights);
+            if (surface->effector_weights == NULL) {
               surface->effector_weights = BKE_effector_add_weights(NULL);
             }
           }
         }
       }
       if (pmd->brush) {
-        pmd->brush = newdataadr(fd, pmd->brush);
+        BLO_read_data_address(reader, &pmd->brush);
         pmd->brush->pmd = pmd;
-        pmd->brush->psys = newdataadr(fd, pmd->brush->psys);
-        pmd->brush->paint_ramp = newdataadr(fd, pmd->brush->paint_ramp);
-        pmd->brush->vel_ramp = newdataadr(fd, pmd->brush->vel_ramp);
+        BLO_read_data_address(reader, &pmd->brush->psys);
+        BLO_read_data_address(reader, &pmd->brush->paint_ramp);
+        BLO_read_data_address(reader, &pmd->brush->vel_ramp);
       }
     }
     else if (md->type == eModifierType_Collision) {
@@ -5856,15 +5858,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
     }
     else if (md->type == eModifierType_Hook) {
       HookModifierData *hmd = (HookModifierData *)md;
+      BLO_read_int32_array(reader, hmd->totindex, &hmd->indexar);
 
-      hmd->indexar = newdataadr(fd, hmd->indexar);
-      if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-        BLI_endian_switch_int32_array(hmd->indexar, hmd->totindex);
-      }
-
-      hmd->curfalloff = newdataadr(fd, hmd->curfalloff);
+      BLO_read_data_address(reader, &hmd->curfalloff);
       if (hmd->curfalloff) {
-        direct_link_curvemapping(fd, hmd->curfalloff);
+        direct_link_curvemapping(reader->fd, hmd->curfalloff);
       }
     }
     else if (md->type == eModifierType_ParticleSystem) {
@@ -5872,7 +5870,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
 
       psmd->mesh_final = NULL;
       psmd->mesh_original = NULL;
-      psmd->psys = newdataadr(fd, psmd->psys);
+      BLO_read_data_address(reader, &psmd->psys);
       psmd->flag &= ~eParticleSystemFlag_psys_updated;
       psmd->flag |= eParticleSystemFlag_file_loaded;
     }
@@ -5884,33 +5882,15 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
     else if (md->type == eModifierType_MeshDeform) {
       MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 
-      mmd->bindinfluences = newdataadr(fd, mmd->bindinfluences);
-      mmd->bindoffsets = newdataadr(fd, mmd->bindoffsets);
-      mmd->bindcagecos = newdataadr(fd, mmd->bindcagecos);
-      mmd->dyngrid = newdataadr(fd, mmd->dyngrid);
-      mmd->dyninfluences = newdataadr(fd, mmd->dyninfluences);
-      mmd->dynverts = newdataadr(fd, mmd->dynverts);
+      BLO_read_data_address(reader, &mmd->bindinfluences);
+      BLO_read_int32_array(reader, mmd->totvert + 1, &mmd->bindoffsets);
+      BLO_read_float3_array(reader, mmd->totcagevert, &mmd->bindcagecos);
+      BLO_read_data_address(reader, &mmd->dyngrid);
+      BLO_read_data_address(reader, &mmd->dyninfluences);
+      BLO_read_int32_array(reader, mmd->totvert, &mmd->dynverts);
 
-      mmd->bindweights = newdataadr(fd, mmd->bindweights);
-      mmd->bindcos = newdataadr(fd, mmd->bindcos);
-
-      if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-        if (mmd->bindoffsets) {
-          BLI_endian_switch_int32_array(mmd->bindoffsets, mmd->totvert + 1);
-        }
-        if (mmd->bindcagecos) {
-          BLI_endian_switch_float_array(mmd->bindcagecos, mmd->totcagevert * 3);
-        }
-        if (mmd->dynverts) {
-          BLI_endian_switch_int32_array(mmd->dynverts, mmd->totvert);
-        }
-        if (mmd->bindweights) {
-          BLI_endian_switch_float_array(mmd->bindweights, mmd->totvert);
-        }
-        if (mmd->bindcos) {
-          BLI_endian_switch_float_array(mmd->bindcos, mmd->totcagevert * 3);
-        }
-      }
+      BLO_read_float_array(reader, mmd->totvert, &mmd->bindweights);
+      BLO_read_float3_array(reader, mmd->totcagevert, &mmd->bindcos);
     }
     else if (md->type == eModifierType_Ocean) {
       OceanModifierData *omd = (OceanModifierData *)md;
@@ -5920,36 +5900,30 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
     else if (md->type == eModifierType_Warp) {
       WarpModifierData *tmd = (WarpModifierData *)md;
 
-      tmd->curfalloff = newdataadr(fd, tmd->curfalloff);
+      BLO_read_data_address(reader, &tmd->curfalloff);
       if (tmd->curfalloff) {
-        direct_link_curvemapping(fd, tmd->curfalloff);
+        direct_link_curvemapping(reader->fd, tmd->curfalloff);
       }
     }
     else if (md->type == eModifierType_WeightVGEdit) {
       WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
 
-      wmd->cmap_curve = newdataadr(fd, wmd->cmap_curve);
+      BLO_read_data_address(reader, &wmd->cmap_curve);
       if (wmd->cmap_curve) {
-        direct_link_curvemapping(fd, wmd->cmap_curve);
+        direct_link_curvemapping(reader->fd, wmd->cmap_curve);
       }
     }
     else if (md->type == eModifierType_LaplacianDeform) {
       LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
 
-      lmd->vertexco = newdataadr(fd, lmd->vertexco);
-      if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-        BLI_endian_switch_float_array(lmd->vertexco, lmd->total_verts * 3);
-      }
+      BLO_read_float3_array(reader, lmd->total_verts, &lmd->vertexco);
       lmd->cache_system = NULL;
     }
     else if (md->type == eModifierType_CorrectiveSmooth) {
       CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
 
       if (csmd->bind_coords) {
-        csmd->bind_coords = newdataadr(fd, csmd->bind_coords);
-        if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-          BLI_endian_switch_float_array((float *)csmd->bind_coords, csmd->bind_coords_num * 3);
-        }
+        BLO_read_float3_array(reader, csmd->bind_coords_num, (float **)&csmd->bind_coords);
       }
 
       /* runtime only */
@@ -5964,34 +5938,24 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
     else if (md->type == eModifierType_SurfaceDeform) {
       SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 
-      smd->verts = newdataadr(fd, smd->verts);
+      BLO_read_data_address(reader, &smd->verts);
 
       if (smd->verts) {
         for (int i = 0; i < smd->numverts; i++) {
-          smd->verts[i].binds = newdataadr(fd, smd->verts[i].binds);
+          BLO_read_data_address(reader, &smd->verts[i].binds);
 
           if (smd->verts[i].binds) {
             for (int j = 0; j < smd->verts[i].numbinds; j++) {
-              smd->verts[i].binds[j].vert_inds = newdataadr(fd, smd->verts[i].binds[j].vert_inds);
-              smd->verts[i].binds[j].vert_weights = newdataadr(
-                  fd, smd->verts[i].binds[j].vert_weights);
+              BLO_read_uint32_array(
+                  reader, smd->verts[i].binds[j].numverts, &smd->verts[i].binds[j].vert_inds);
 
-              if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-                if (smd->verts[i].binds[j].vert_inds) {
-                  BLI_endian_switch_uint32_array(smd->verts[i].binds[j].vert_inds,
-                                                 smd->verts[i].binds[j].numverts);
-                }
-
-                if (smd->verts[i].binds[j].vert_weights) {
-                  if (smd->verts[i].binds[j].mode == MOD_SDEF_MODE_CENTROID ||
-                      smd->verts[i].binds[j].mode == MOD_SDEF_MODE_LOOPTRI) {
-                    BLI_endian_switch_float_array(smd->verts[i].binds[j].vert_weights, 3);
-                  }
-                  else {
-                    BLI_endian_switch_float_array(smd->verts[i].binds[j].vert_weights,
-                                                  smd->verts[i].binds[j].numverts);
-                  }
-                }
+              if (smd->verts[i].binds[j].mode == MOD_SDEF_MODE_CENTROID ||
+                  smd->verts[i].binds[j].mode == MOD_SDEF_MODE_LOOPTRI) {
+                BLO_read_float3_array(reader, 1, &smd->verts[i].binds[j].vert_weights);
+              }
+              else {
+                BLO_read_float_array(
+                    reader, smd->verts[i].binds[j].numverts, &smd->verts[i].binds[j].vert_weights);
               }
             }
           }
@@ -6000,9 +5964,9 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
     }
     else if (md->type == eModifierType_Bevel) {
       BevelModifierData *bmd = (BevelModifierData *)md;
-      bmd->custom_profile = newdataadr(fd, bmd->custom_profile);
+      BLO_read_data_address(reader, &bmd->custom_profile);
       if (bmd->custom_profile) {
-        direct_link_curveprofile(fd, bmd->custom_profile);
+        direct_link_curveprofile(reader->fd, bmd->custom_profile);
       }
     }
   }
@@ -6148,7 +6112,7 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
   BLO_read_data_address(reader, &ob->matbits);
 
   /* do it here, below old data gets converted */
-  direct_link_modifiers(reader->fd, &ob->modifiers, ob);
+  direct_link_modifiers(reader, &ob->modifiers, ob);
   direct_link_gpencil_modifiers(reader->fd, &ob->greasepencil_modifiers);
   direct_link_shaderfxs(reader->fd, &ob->shader_fx);
 
