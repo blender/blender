@@ -2937,9 +2937,9 @@ static void direct_link_curvemapping(BlendDataReader *reader, CurveMapping *cuma
 /** \name Read CurveProfile
  * \{ */
 
-static void direct_link_curveprofile(FileData *fd, CurveProfile *profile)
+static void direct_link_curveprofile(BlendDataReader *reader, CurveProfile *profile)
 {
-  profile->path = newdataadr(fd, profile->path);
+  BLO_read_data_address(reader, &profile->path);
   profile->table = NULL;
   profile->segments = NULL;
 }
@@ -3143,14 +3143,14 @@ static void lib_link_nlastrips(FileData *fd, ID *id, ListBase *striplist)
 }
 
 // XXX deprecated - old animation system
-static void direct_link_nlastrips(FileData *fd, ListBase *strips)
+static void direct_link_nlastrips(BlendDataReader *reader, ListBase *strips)
 {
   bActionStrip *strip;
 
-  link_list(fd, strips);
+  BLO_read_list(reader, strips);
 
   for (strip = strips->first; strip; strip = strip->next) {
-    link_list(fd, &strip->modifiers);
+    BLO_read_list(reader, &strip->modifiers);
   }
 }
 
@@ -5913,7 +5913,7 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
       BevelModifierData *bmd = (BevelModifierData *)md;
       BLO_read_data_address(reader, &bmd->custom_profile);
       if (bmd->custom_profile) {
-        direct_link_curveprofile(reader->fd, bmd->custom_profile);
+        direct_link_curveprofile(reader, bmd->custom_profile);
       }
     }
   }
@@ -6051,7 +6051,7 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
   BLO_read_list(reader, &ob->defbase);
   BLO_read_list(reader, &ob->fmaps);
   // XXX deprecated - old animation system <<<
-  direct_link_nlastrips(reader->fd, &ob->nlastrips);
+  direct_link_nlastrips(reader, &ob->nlastrips);
   BLO_read_list(reader, &ob->constraintChannels);
   // >>> XXX deprecated - old animation system
 
@@ -6335,13 +6335,13 @@ static void lib_link_view_layer(FileData *fd, Library *lib, ViewLayer *view_laye
  * \{ */
 
 #ifdef USE_COLLECTION_COMPAT_28
-static void direct_link_scene_collection(FileData *fd, SceneCollection *sc)
+static void direct_link_scene_collection(BlendDataReader *reader, SceneCollection *sc)
 {
-  link_list(fd, &sc->objects);
-  link_list(fd, &sc->scene_collections);
+  BLO_read_list(reader, &sc->objects);
+  BLO_read_list(reader, &sc->scene_collections);
 
   LISTBASE_FOREACH (SceneCollection *, nsc, &sc->scene_collections) {
-    direct_link_scene_collection(fd, nsc);
+    direct_link_scene_collection(reader, nsc);
   }
 }
 
@@ -6374,7 +6374,7 @@ static void direct_link_collection(BlendDataReader *reader, Collection *collecti
   /* This runs before the very first doversion. */
   BLO_read_data_address(reader, &collection->collection);
   if (collection->collection != NULL) {
-    direct_link_scene_collection(reader->fd, collection->collection);
+    direct_link_scene_collection(reader, collection->collection);
   }
 
   BLO_read_data_address(reader, &collection->view_layer);
@@ -6462,13 +6462,13 @@ static void lib_link_sequence_modifiers(FileData *fd, Scene *scene, ListBase *lb
   }
 }
 
-static void direct_link_lightcache_texture(FileData *fd, LightCacheTexture *lctex)
+static void direct_link_lightcache_texture(BlendDataReader *reader, LightCacheTexture *lctex)
 {
   lctex->tex = NULL;
 
   if (lctex->data) {
-    lctex->data = newdataadr(fd, lctex->data);
-    if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+    BLO_read_data_address(reader, &lctex->data);
+    if (BLO_read_requires_endian_switch(reader)) {
       int data_size = lctex->components * lctex->tex_size[0] * lctex->tex_size[1] *
                       lctex->tex_size[2];
 
@@ -6482,20 +6482,20 @@ static void direct_link_lightcache_texture(FileData *fd, LightCacheTexture *lcte
   }
 }
 
-static void direct_link_lightcache(FileData *fd, LightCache *cache)
+static void direct_link_lightcache(BlendDataReader *reader, LightCache *cache)
 {
-  direct_link_lightcache_texture(fd, &cache->cube_tx);
-  direct_link_lightcache_texture(fd, &cache->grid_tx);
+  direct_link_lightcache_texture(reader, &cache->cube_tx);
+  direct_link_lightcache_texture(reader, &cache->grid_tx);
 
   if (cache->cube_mips) {
-    cache->cube_mips = newdataadr(fd, cache->cube_mips);
+    BLO_read_data_address(reader, &cache->cube_mips);
     for (int i = 0; i < cache->mips_len; i++) {
-      direct_link_lightcache_texture(fd, &cache->cube_mips[i]);
+      direct_link_lightcache_texture(reader, &cache->cube_mips[i]);
     }
   }
 
-  cache->cube_data = newdataadr(fd, cache->cube_data);
-  cache->grid_data = newdataadr(fd, cache->grid_data);
+  BLO_read_data_address(reader, &cache->cube_data);
+  BLO_read_data_address(reader, &cache->grid_data);
 }
 
 static void direct_link_view3dshading(BlendDataReader *reader, View3DShading *shading)
@@ -6737,15 +6737,15 @@ static void lib_link_scenes_check_set(Main *bmain)
 
 #undef USE_SETSCENE_CHECK
 
-static void link_recurs_seq(FileData *fd, ListBase *lb)
+static void link_recurs_seq(BlendDataReader *reader, ListBase *lb)
 {
   Sequence *seq;
 
-  link_list(fd, lb);
+  BLO_read_list(reader, lb);
 
   for (seq = lb->first; seq; seq = seq->next) {
     if (seq->seqbase.first) {
-      link_recurs_seq(fd, &seq->seqbase);
+      link_recurs_seq(reader, &seq->seqbase);
     }
   }
 }
@@ -6884,7 +6884,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
     /* Relink toolsettings curve profile */
     BLO_read_data_address(reader, &sce->toolsettings->custom_bevel_profile_preset);
     if (sce->toolsettings->custom_bevel_profile_preset) {
-      direct_link_curveprofile(reader->fd, sce->toolsettings->custom_bevel_profile_preset);
+      direct_link_curveprofile(reader, sce->toolsettings->custom_bevel_profile_preset);
     }
   }
 
@@ -6899,7 +6899,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
     ed->prefetch_job = NULL;
 
     /* recursive link sequences, lb will be correctly initialized */
-    link_recurs_seq(reader->fd, &ed->seqbase);
+    link_recurs_seq(reader, &ed->seqbase);
 
     SEQ_BEGIN (ed, seq) {
       BLO_read_data_address(reader, &seq->seq1);
@@ -7089,7 +7089,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
   /* this runs before the very first doversion */
   if (sce->collection) {
     BLO_read_data_address(reader, &sce->collection);
-    direct_link_scene_collection(reader->fd, sce->collection);
+    direct_link_scene_collection(reader, sce->collection);
   }
 #endif
 
@@ -7112,7 +7112,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
     /* else try to read the cache from file. */
     BLO_read_data_address(reader, &sce->eevee.light_cache_data);
     if (sce->eevee.light_cache_data) {
-      direct_link_lightcache(reader->fd, sce->eevee.light_cache_data);
+      direct_link_lightcache(reader, sce->eevee.light_cache_data);
     }
   }
   EEVEE_lightcache_info_update(&sce->eevee);
@@ -8847,49 +8847,50 @@ static void lib_link_linestyle(FileData *fd, Main *UNUSED(bmain), FreestyleLineS
   }
 }
 
-static void direct_link_linestyle_color_modifier(FileData *fd, LineStyleModifier *modifier)
+static void direct_link_linestyle_color_modifier(BlendDataReader *reader,
+                                                 LineStyleModifier *modifier)
 {
   switch (modifier->type) {
     case LS_MODIFIER_ALONG_STROKE: {
       LineStyleColorModifier_AlongStroke *m = (LineStyleColorModifier_AlongStroke *)modifier;
-      m->color_ramp = newdataadr(fd, m->color_ramp);
+      BLO_read_data_address(reader, &m->color_ramp);
       break;
     }
     case LS_MODIFIER_DISTANCE_FROM_CAMERA: {
       LineStyleColorModifier_DistanceFromCamera *m = (LineStyleColorModifier_DistanceFromCamera *)
           modifier;
-      m->color_ramp = newdataadr(fd, m->color_ramp);
+      BLO_read_data_address(reader, &m->color_ramp);
       break;
     }
     case LS_MODIFIER_DISTANCE_FROM_OBJECT: {
       LineStyleColorModifier_DistanceFromObject *m = (LineStyleColorModifier_DistanceFromObject *)
           modifier;
-      m->color_ramp = newdataadr(fd, m->color_ramp);
+      BLO_read_data_address(reader, &m->color_ramp);
       break;
     }
     case LS_MODIFIER_MATERIAL: {
       LineStyleColorModifier_Material *m = (LineStyleColorModifier_Material *)modifier;
-      m->color_ramp = newdataadr(fd, m->color_ramp);
+      BLO_read_data_address(reader, &m->color_ramp);
       break;
     }
     case LS_MODIFIER_TANGENT: {
       LineStyleColorModifier_Tangent *m = (LineStyleColorModifier_Tangent *)modifier;
-      m->color_ramp = newdataadr(fd, m->color_ramp);
+      BLO_read_data_address(reader, &m->color_ramp);
       break;
     }
     case LS_MODIFIER_NOISE: {
       LineStyleColorModifier_Noise *m = (LineStyleColorModifier_Noise *)modifier;
-      m->color_ramp = newdataadr(fd, m->color_ramp);
+      BLO_read_data_address(reader, &m->color_ramp);
       break;
     }
     case LS_MODIFIER_CREASE_ANGLE: {
       LineStyleColorModifier_CreaseAngle *m = (LineStyleColorModifier_CreaseAngle *)modifier;
-      m->color_ramp = newdataadr(fd, m->color_ramp);
+      BLO_read_data_address(reader, &m->color_ramp);
       break;
     }
     case LS_MODIFIER_CURVATURE_3D: {
       LineStyleColorModifier_Curvature_3D *m = (LineStyleColorModifier_Curvature_3D *)modifier;
-      m->color_ramp = newdataadr(fd, m->color_ramp);
+      BLO_read_data_address(reader, &m->color_ramp);
       break;
     }
   }
@@ -9006,7 +9007,7 @@ static void direct_link_linestyle_thickness_modifier(BlendDataReader *reader,
   }
 }
 
-static void direct_link_linestyle_geometry_modifier(FileData *UNUSED(fd),
+static void direct_link_linestyle_geometry_modifier(BlendDataReader *UNUSED(reader),
                                                     LineStyleModifier *UNUSED(modifier))
 {
 }
@@ -9020,7 +9021,7 @@ static void direct_link_linestyle(BlendDataReader *reader, FreestyleLineStyle *l
   direct_link_animdata(reader, linestyle->adt);
   BLO_read_list(reader, &linestyle->color_modifiers);
   for (modifier = linestyle->color_modifiers.first; modifier; modifier = modifier->next) {
-    direct_link_linestyle_color_modifier(reader->fd, modifier);
+    direct_link_linestyle_color_modifier(reader, modifier);
   }
   BLO_read_list(reader, &linestyle->alpha_modifiers);
   for (modifier = linestyle->alpha_modifiers.first; modifier; modifier = modifier->next) {
@@ -9032,7 +9033,7 @@ static void direct_link_linestyle(BlendDataReader *reader, FreestyleLineStyle *l
   }
   BLO_read_list(reader, &linestyle->geometry_modifiers);
   for (modifier = linestyle->geometry_modifiers.first; modifier; modifier = modifier->next) {
-    direct_link_linestyle_geometry_modifier(reader->fd, modifier);
+    direct_link_linestyle_geometry_modifier(reader, modifier);
   }
   for (a = 0; a < MAX_MTEX; a++) {
     BLO_read_data_address(reader, &linestyle->mtex[a]);
