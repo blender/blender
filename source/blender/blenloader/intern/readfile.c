@@ -2526,17 +2526,17 @@ static void test_pointer_array(FileData *fd, void **mat)
 /** \name Read ID Properties
  * \{ */
 
-static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
+static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader);
 static void IDP_LibLinkProperty(IDProperty *prop, FileData *fd);
 
-static void IDP_DirectLinkIDPArray(IDProperty *prop, int switch_endian, FileData *fd)
+static void IDP_DirectLinkIDPArray(IDProperty *prop, BlendDataReader *reader)
 {
   IDProperty *array;
   int i;
 
   /* since we didn't save the extra buffer, set totallen to len */
   prop->totallen = prop->len;
-  prop->data.pointer = newdataadr(fd, prop->data.pointer);
+  BLO_read_data_address(reader, &prop->data.pointer);
 
   array = (IDProperty *)prop->data.pointer;
 
@@ -2548,74 +2548,69 @@ static void IDP_DirectLinkIDPArray(IDProperty *prop, int switch_endian, FileData
   }
 
   for (i = 0; i < prop->len; i++) {
-    IDP_DirectLinkProperty(&array[i], switch_endian, fd);
+    IDP_DirectLinkProperty(&array[i], reader);
   }
 }
 
-static void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, FileData *fd)
+static void IDP_DirectLinkArray(IDProperty *prop, BlendDataReader *reader)
 {
   IDProperty **array;
   int i;
 
   /* since we didn't save the extra buffer, set totallen to len */
   prop->totallen = prop->len;
-  prop->data.pointer = newdataadr(fd, prop->data.pointer);
 
   if (prop->subtype == IDP_GROUP) {
-    test_pointer_array(fd, prop->data.pointer);
+    BLO_read_pointer_array(reader, &prop->data.pointer);
     array = prop->data.pointer;
 
     for (i = 0; i < prop->len; i++) {
-      IDP_DirectLinkProperty(array[i], switch_endian, fd);
+      IDP_DirectLinkProperty(array[i], reader);
     }
   }
   else if (prop->subtype == IDP_DOUBLE) {
-    if (switch_endian) {
-      BLI_endian_switch_double_array(prop->data.pointer, prop->len);
-    }
+    BLO_read_double_array(reader, prop->len, (double **)&prop->data.pointer);
   }
   else {
-    if (switch_endian) {
-      /* also used for floats */
-      BLI_endian_switch_int32_array(prop->data.pointer, prop->len);
-    }
+    /* also used for floats */
+    BLO_read_int32_array(reader, prop->len, (int **)&prop->data.pointer);
   }
 }
 
-static void IDP_DirectLinkString(IDProperty *prop, FileData *fd)
+static void IDP_DirectLinkString(IDProperty *prop, BlendDataReader *reader)
 {
   /*since we didn't save the extra string buffer, set totallen to len.*/
   prop->totallen = prop->len;
-  prop->data.pointer = newdataadr(fd, prop->data.pointer);
+  BLO_read_data_address(reader, &prop->data.pointer);
 }
 
-static void IDP_DirectLinkGroup(IDProperty *prop, int switch_endian, FileData *fd)
+static void IDP_DirectLinkGroup(IDProperty *prop, BlendDataReader *reader)
 {
   ListBase *lb = &prop->data.group;
   IDProperty *loop;
 
-  link_list(fd, lb);
+  BLO_read_list(reader, lb);
 
   /*Link child id properties now*/
   for (loop = prop->data.group.first; loop; loop = loop->next) {
-    IDP_DirectLinkProperty(loop, switch_endian, fd);
+    IDP_DirectLinkProperty(loop, reader);
   }
 }
 
-static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd)
+static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader)
 {
   switch (prop->type) {
     case IDP_GROUP:
-      IDP_DirectLinkGroup(prop, switch_endian, fd);
+      IDP_DirectLinkGroup(prop, reader);
       break;
     case IDP_STRING:
-      IDP_DirectLinkString(prop, fd);
+      IDP_DirectLinkString(prop, reader);
       break;
     case IDP_ARRAY:
-      IDP_DirectLinkArray(prop, switch_endian, fd);
+      IDP_DirectLinkArray(prop, reader);
       break;
     case IDP_IDPARRAY:
-      IDP_DirectLinkIDPArray(prop, switch_endian, fd);
+      IDP_DirectLinkIDPArray(prop, reader);
       break;
     case IDP_DOUBLE:
       /* Workaround for doubles.
@@ -2625,7 +2620,7 @@ static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData
        * In theory, val and val2 would've already been swapped
        * if switch_endian is true, so we have to first unswap
        * them then re-swap them as a single 64-bit entity. */
-      if (switch_endian) {
+      if (BLO_read_requires_endian_switch(reader)) {
         BLI_endian_switch_int32(&prop->data.val);
         BLI_endian_switch_int32(&prop->data.val2);
         BLI_endian_switch_int64((int64_t *)&prop->data.val);
@@ -2648,16 +2643,15 @@ static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData
 }
 
 #define IDP_DirectLinkGroup_OrFree(prop, reader) \
-  _IDP_DirectLinkGroup_OrFree(prop, BLO_read_requires_endian_switch(reader), reader->fd, __func__)
+  _IDP_DirectLinkGroup_OrFree(prop, reader, __func__)
 
 static void _IDP_DirectLinkGroup_OrFree(IDProperty **prop,
-                                        int switch_endian,
-                                        FileData *fd,
+                                        BlendDataReader *reader,
                                         const char *caller_func_id)
 {
   if (*prop) {
     if ((*prop)->type == IDP_GROUP) {
-      IDP_DirectLinkGroup(*prop, switch_endian, fd);
+      IDP_DirectLinkGroup(*prop, reader);
     }
     else {
       /* corrupt file! */
