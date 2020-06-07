@@ -2476,50 +2476,6 @@ static void link_glob_list(FileData *fd, ListBase *lb) /* for glob data */
   lb->last = prev;
 }
 
-static void test_pointer_array(FileData *fd, void **mat)
-{
-  int64_t *lpoin, *lmat;
-  int *ipoin, *imat;
-  size_t len;
-
-  /* manually convert the pointer array in
-   * the old dna format to a pointer array in
-   * the new dna format.
-   */
-  if (*mat) {
-    len = MEM_allocN_len(*mat) / fd->filesdna->pointer_size;
-
-    if (fd->filesdna->pointer_size == 8 && fd->memsdna->pointer_size == 4) {
-      ipoin = imat = MEM_malloc_arrayN(len, 4, "newmatar");
-      lpoin = *mat;
-
-      while (len-- > 0) {
-        if ((fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
-          BLI_endian_switch_int64(lpoin);
-        }
-        *ipoin = (int)((*lpoin) >> 3);
-        ipoin++;
-        lpoin++;
-      }
-      MEM_freeN(*mat);
-      *mat = imat;
-    }
-
-    if (fd->filesdna->pointer_size == 4 && fd->memsdna->pointer_size == 8) {
-      lpoin = lmat = MEM_malloc_arrayN(len, 8, "newmatar");
-      ipoin = *mat;
-
-      while (len-- > 0) {
-        *lpoin = *ipoin;
-        ipoin++;
-        lpoin++;
-      }
-      MEM_freeN(*mat);
-      *mat = lmat;
-    }
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
