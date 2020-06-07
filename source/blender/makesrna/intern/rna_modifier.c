@@ -4250,7 +4250,7 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0, 6, 1, -1);
   RNA_def_property_ui_text(
       prop,
-      "Subsurf Levels",
+      "Subdivision Levels",
       "Number of subdivisions that must be performed before extracting vertices' "
       "positions and normals");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
