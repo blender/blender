@@ -32,6 +32,9 @@
 #include "BKE_curve.h"
 
 #include "transform.h"
+#include "transform_snap.h"
+
+/* Own include. */
 #include "transform_convert.h"
 
 /* -------------------------------------------------------------------- */
@@ -417,6 +420,38 @@ void createTransCurveVerts(TransInfo *t)
 #undef SEL_F1
 #undef SEL_F2
 #undef SEL_F3
+}
+
+void recalcData_curve(TransInfo *t)
+{
+  if (t->state != TRANS_CANCEL) {
+    clipMirrorModifier(t);
+    applyProject(t);
+  }
+
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    Curve *cu = tc->obedit->data;
+    ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+    Nurb *nu = nurbs->first;
+
+    DEG_id_tag_update(tc->obedit->data, 0); /* sets recalc flags */
+
+    if (t->state == TRANS_CANCEL) {
+      while (nu) {
+        /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
+        BKE_nurb_handles_calc(nu);
+        nu = nu->next;
+      }
+    }
+    else {
+      /* Normal updating */
+      while (nu) {
+        BKE_nurb_test_2d(nu);
+        BKE_nurb_handles_calc(nu);
+        nu = nu->next;
+      }
+    }
+  }
 }
 
 /** \} */

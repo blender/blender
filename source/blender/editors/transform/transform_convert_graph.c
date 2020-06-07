@@ -634,10 +634,28 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
  *
  * \{ */
 
+static bool fcu_test_selected(FCurve *fcu)
+{
+  BezTriple *bezt = fcu->bezt;
+  uint i;
+
+  if (bezt == NULL) { /* ignore baked */
+    return 0;
+  }
+
+  for (i = 0; i < fcu->totvert; i++, bezt++) {
+    if (BEZT_ISSEL_ANY(bezt)) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 /* this function is called on recalcData to apply the transforms applied
  * to the transdata on to the actual keyframe data
  */
-void flushTransGraphData(TransInfo *t)
+static void flushTransGraphData(TransInfo *t)
 {
   SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
   TransData *td;
@@ -731,6 +749,74 @@ void flushTransGraphData(TransInfo *t)
       td2d->h2[1] = td2d->ih2[1] + (td->loc[1] - td->iloc[1]) * inv_unit_scale;
     }
   }
+}
+
+/* helper for recalcData() - for Graph Editor transforms */
+void recalcData_graphedit(TransInfo *t)
+{
+  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
+  ViewLayer *view_layer = t->view_layer;
+
+  ListBase anim_data = {NULL, NULL};
+  bAnimContext ac = {NULL};
+  int filter;
+
+  bAnimListElem *ale;
+  int dosort = 0;
+
+  /* initialize relevant anim-context 'context' data from TransInfo data */
+  /* NOTE: sync this with the code in ANIM_animdata_get_context() */
+  ac.bmain = CTX_data_main(t->context);
+  ac.scene = t->scene;
+  ac.view_layer = t->view_layer;
+  ac.obact = OBACT(view_layer);
+  ac.area = t->area;
+  ac.region = t->region;
+  ac.sl = (t->area) ? t->area->spacedata.first : NULL;
+  ac.spacetype = (t->area) ? t->area->spacetype : 0;
+  ac.regiontype = (t->region) ? t->region->regiontype : 0;
+
+  ANIM_animdata_context_getdata(&ac);
+
+  /* do the flush first */
+  flushTransGraphData(t);
+
+  /* get curves to check if a re-sort is needed */
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+  /* now test if there is a need to re-sort */
+  for (ale = anim_data.first; ale; ale = ale->next) {
+    FCurve *fcu = (FCurve *)ale->key_data;
+
+    /* ignore FC-Curves without any selected verts */
+    if (!fcu_test_selected(fcu)) {
+      continue;
+    }
+
+    /* watch it: if the time is wrong: do not correct handles yet */
+    if (test_time_fcurve(fcu)) {
+      dosort++;
+    }
+    else {
+      calchandles_fcurve_ex(fcu, BEZT_FLAG_TEMP_TAG);
+    }
+
+    /* set refresh tags for objects using this animation,
+     * BUT only if realtime updates are enabled
+     */
+    if ((sipo->flag & SIPO_NOREALTIMEUPDATES) == 0) {
+      ANIM_list_elem_update(CTX_data_main(t->context), t->scene, ale);
+    }
+  }
+
+  /* do resort and other updates? */
+  if (dosort) {
+    remake_graph_transdata(t, &anim_data);
+  }
+
+  /* now free temp channels */
+  ANIM_animdata_freelist(&anim_data);
 }
 
 /** \} */

@@ -608,11 +608,11 @@ void cancelTransTracking(TransInfo *t)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Clip Editor Motion Tracking Transform Creation
+/** \name recalc Motion Tracking TransData
  *
  * \{ */
 
-void flushTransTracking(TransInfo *t)
+static void flushTransTracking(TransInfo *t)
 {
   TransData *td;
   TransData2D *td2d;
@@ -686,6 +686,54 @@ void flushTransTracking(TransInfo *t)
       td2d->loc2d[0] = td2d->loc[0] / t->aspect[0];
       td2d->loc2d[1] = td2d->loc[1] / t->aspect[1];
     }
+  }
+}
+
+/* helper for recalcData() - for Movie Clip transforms */
+void recalcData_tracking(TransInfo *t)
+{
+  SpaceClip *sc = t->area->spacedata.first;
+
+  if (ED_space_clip_check_show_trackedit(sc)) {
+    MovieClip *clip = ED_space_clip_get_clip(sc);
+    ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
+    MovieTrackingTrack *track;
+    int framenr = ED_space_clip_get_clip_frame_number(sc);
+
+    flushTransTracking(t);
+
+    track = tracksbase->first;
+    while (track) {
+      if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
+        MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+
+        if (t->mode == TFM_TRANSLATION) {
+          if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT)) {
+            BKE_tracking_marker_clamp(marker, CLAMP_PAT_POS);
+          }
+          if (TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH)) {
+            BKE_tracking_marker_clamp(marker, CLAMP_SEARCH_POS);
+          }
+        }
+        else if (t->mode == TFM_RESIZE) {
+          if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT)) {
+            BKE_tracking_marker_clamp(marker, CLAMP_PAT_DIM);
+          }
+          if (TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH)) {
+            BKE_tracking_marker_clamp(marker, CLAMP_SEARCH_DIM);
+          }
+        }
+        else if (t->mode == TFM_ROTATION) {
+          if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT)) {
+            BKE_tracking_marker_clamp(marker, CLAMP_PAT_POS);
+          }
+        }
+      }
+
+      track = track->next;
+    }
+
+    DEG_id_tag_update(&clip->id, 0);
   }
 }
 

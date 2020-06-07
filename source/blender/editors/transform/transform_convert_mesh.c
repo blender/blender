@@ -44,8 +44,11 @@
 #include "DEG_depsgraph_query.h"
 
 #include "transform.h"
-#include "transform_convert.h"
+#include "transform_mode.h"
 #include "transform_snap.h"
+
+/* Own include. */
+#include "transform_convert.h"
 
 /* Used for both mirror epsilon and TD_MIRROR_EDGE_ */
 #define TRANSFORM_MAXDIST_MIRROR 0.00002f
@@ -1301,4 +1304,67 @@ void trans_mesh_customdata_correction_apply(struct TransDataContainer *tc, bool 
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Recalc Mesh Data
+ *
+ * \{ */
+
+static void transform_apply_to_mirror(TransInfo *t)
+{
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    if (tc->mirror.use_mirror_any) {
+      int i;
+      TransData *td;
+      for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
+        if (td->flag & (TD_MIRROR_EDGE_X | TD_MIRROR_EDGE_Y | TD_MIRROR_EDGE_Z)) {
+          if (td->flag & TD_MIRROR_EDGE_X) {
+            td->loc[0] = 0.0f;
+          }
+          if (td->flag & TD_MIRROR_EDGE_Y) {
+            td->loc[1] = 0.0f;
+          }
+          if (td->flag & TD_MIRROR_EDGE_Z) {
+            td->loc[2] = 0.0f;
+          }
+        }
+      }
+
+      TransDataMirror *tdm;
+      for (i = 0, tdm = tc->mirror.data; i < tc->mirror.data_len; i++, tdm++) {
+        tdm->loc_dst[0] = tdm->loc_src[0] * tdm->sign_x;
+        tdm->loc_dst[1] = tdm->loc_src[1] * tdm->sign_y;
+        tdm->loc_dst[2] = tdm->loc_src[2] * tdm->sign_z;
+      }
+    }
+  }
+}
+
+void recalcData_mesh(TransInfo *t)
+{
+  /* mirror modifier clipping? */
+  if (t->state != TRANS_CANCEL) {
+    /* apply clipping after so we never project past the clip plane [#25423] */
+    applyProject(t);
+    clipMirrorModifier(t);
+  }
+  if ((t->flag & T_NO_MIRROR) == 0 && (t->options & CTX_NO_MIRROR) == 0) {
+    transform_apply_to_mirror(t);
+  }
+
+  if (t->mode == TFM_EDGE_SLIDE) {
+    projectEdgeSlideData(t, false);
+  }
+  else if (t->mode == TFM_VERT_SLIDE) {
+    projectVertSlideData(t, false);
+  }
+
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    DEG_id_tag_update(tc->obedit->data, 0); /* sets recalc flags */
+    BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+    EDBM_mesh_normals_update(em);
+    BKE_editmesh_looptri_calc(em);
+  }
+}
 /** \} */

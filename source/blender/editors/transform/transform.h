@@ -427,6 +427,11 @@ typedef struct TransDataContainer {
 typedef struct TransInfo {
   TransDataContainer *data_container;
   int data_container_len;
+
+  /** eTransConvertType
+   * TODO: It should be a member of TransDataContainer. */
+  int data_type;
+
   /** Combine length of all #TransDataContainer.data_len
    * Use to check if nothing is selected or if we have a single selection. */
   int data_len_all;

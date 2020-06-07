@@ -29,8 +29,12 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
+#include "BKE_lattice.h"
 
 #include "transform.h"
+#include "transform_snap.h"
+
+/* Own include. */
 #include "transform_convert.h"
 
 /* -------------------------------------------------------------------- */
@@ -105,6 +109,21 @@ void createTransLatticeVerts(TransInfo *t)
         }
       }
       bp++;
+    }
+  }
+}
+
+void recalcData_lattice(TransInfo *t)
+{
+  if (t->state != TRANS_CANCEL) {
+    applyProject(t);
+  }
+
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    Lattice *la = tc->obedit->data;
+    DEG_id_tag_update(tc->obedit->data, 0); /* sets recalc flags */
+    if (la->editlatt->latt->flag & LT_OUTSIDE) {
+      outside_lattice(la->editlatt->latt);
     }
   }
 }

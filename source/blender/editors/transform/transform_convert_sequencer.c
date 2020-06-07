@@ -635,7 +635,7 @@ BLI_INLINE void trans_update_seq(Scene *sce, Sequence *seq, int old_start, int s
   }
 }
 
-void flushTransSeq(TransInfo *t)
+static void flushTransSeq(TransInfo *t)
 {
   /* Editing null check already done */
   ListBase *seqbasep = BKE_sequencer_editing_get(t->scene, false)->seqbasep;
@@ -768,6 +768,31 @@ void flushTransSeq(TransInfo *t)
     }
     seq_prev = seq;
   }
+}
+
+/* helper for recalcData() - for sequencer transforms */
+void recalcData_sequencer(TransInfo *t)
+{
+  TransData *td;
+  int a;
+  Sequence *seq_prev = NULL;
+
+  TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
+
+  for (a = 0, td = tc->data; a < tc->data_len; a++, td++) {
+    TransDataSeq *tdsq = (TransDataSeq *)td->extra;
+    Sequence *seq = tdsq->seq;
+
+    if (seq != seq_prev) {
+      BKE_sequence_invalidate_cache_composite(t->scene, seq);
+    }
+
+    seq_prev = seq;
+  }
+
+  DEG_id_tag_update(&t->scene->id, ID_RECALC_SEQUENCER_STRIPS);
+
+  flushTransSeq(t);
 }
 
 int transform_convert_sequencer_get_snap_bound(TransInfo *t)

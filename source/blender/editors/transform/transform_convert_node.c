@@ -104,7 +104,7 @@ static bool is_node_parent_select(bNode *node)
   return false;
 }
 
-void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
+void createTransNodeData(TransInfo *t)
 {
   const float dpi_fac = UI_DPI_FAC;
   TransData *td;

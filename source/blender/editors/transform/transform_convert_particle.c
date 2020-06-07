@@ -35,6 +35,9 @@
 #include "ED_particle.h"
 
 #include "transform.h"
+#include "transform_snap.h"
+
+/* Own include. */
 #include "transform_convert.h"
 
 /* -------------------------------------------------------------------- */
@@ -193,7 +196,7 @@ void createTransParticleVerts(bContext *C, TransInfo *t)
  *
  * \{ */
 
-void flushTransParticles(TransInfo *t)
+static void flushTransParticles(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     Scene *scene = t->scene;
@@ -242,6 +245,21 @@ void flushTransParticles(TransInfo *t)
     BKE_particle_batch_cache_dirty_tag(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
     DEG_id_tag_update(&ob->id, ID_RECALC_PSYS_REDO);
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Recalc Trasform Particles Data
+ *
+ * \{ */
+
+void recalcData_particles(TransInfo *t)
+{
+  if (t->state != TRANS_CANCEL) {
+    applyProject(t);
+  }
+  flushTransParticles(t);
 }
 
 /** \} */

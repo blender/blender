@@ -38,11 +38,15 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 
+#include "ED_keyframing.h"
 #include "ED_object.h"
 
 #include "DEG_depsgraph_query.h"
 
 #include "transform.h"
+#include "transform_snap.h"
+
+/* Own include. */
 #include "transform_convert.h"
 
 /* -------------------------------------------------------------------- */
@@ -96,7 +100,7 @@ static void freeTransObjectCustomData(TransInfo *t,
  * Nearly all of the logic here is in the 'ED_object_data_xform_container_*' API.
  * \{ */
 
-void trans_obdata_in_obmode_update_all(TransInfo *t)
+static void trans_obdata_in_obmode_update_all(TransInfo *t)
 {
   TransDataObject *tdo = t->custom.type.data;
   if (tdo->xds == NULL) {
@@ -119,7 +123,7 @@ void trans_obdata_in_obmode_update_all(TransInfo *t)
  *
  * \{ */
 
-void trans_obchild_in_obmode_update_all(TransInfo *t)
+static void trans_obchild_in_obmode_update_all(TransInfo *t)
 {
   TransDataObject *tdo = t->custom.type.data;
   if (tdo->xcs == NULL) {
@@ -759,6 +763,69 @@ void createTransTexspace(TransInfo *t)
 
   copy_v3_v3(td->iloc, td->loc);
   copy_v3_v3(td->ext->isize, td->ext->size);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Recalc Data object
+ *
+ * \{ */
+
+/* helper for recalcData() - for object transforms, typically in the 3D view */
+void recalcData_objects(TransInfo *t)
+{
+  bool motionpath_update = false;
+
+  if (t->state != TRANS_CANCEL) {
+    applyProject(t);
+  }
+
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    TransData *td = tc->data;
+
+    for (int i = 0; i < tc->data_len; i++, td++) {
+      Object *ob = td->ob;
+      if (td->flag & TD_SKIP) {
+        continue;
+      }
+
+      /* if animtimer is running, and the object already has animation data,
+       * check if the auto-record feature means that we should record 'samples'
+       * (i.e. uneditable animation values)
+       */
+      /* TODO: autokeyframe calls need some setting to specify to add samples
+       * (FPoints) instead of keyframes? */
+      if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+        animrecord_check_state(t, ob);
+        autokeyframe_object(t->context, t->scene, t->view_layer, ob, t->mode);
+      }
+
+      motionpath_update |= motionpath_need_update_object(t->scene, ob);
+
+      /* sets recalc flags fully, instead of flushing existing ones
+       * otherwise proxies don't function correctly
+       */
+      DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+
+      if (t->flag & T_TEXTURE) {
+        DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+      }
+    }
+  }
+
+  if (motionpath_update) {
+    /* Update motion paths once for all transformed objects. */
+    ED_objects_recalculate_paths(t->context, t->scene, OBJECT_PATH_CALC_RANGE_CURRENT_FRAME);
+  }
+
+  if (t->options & CTX_OBMODE_XFORM_SKIP_CHILDREN) {
+    trans_obchild_in_obmode_update_all(t);
+  }
+
+  if (t->options & CTX_OBMODE_XFORM_OBDATA) {
+    trans_obdata_in_obmode_update_all(t);
+  }
 }
 
 /** \} */

@@ -26,6 +26,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
@@ -39,11 +40,15 @@
 #include "BIK_api.h"
 
 #include "ED_armature.h"
+#include "ED_keyframing.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
 #include "transform.h"
+#include "transform_snap.h"
+
+/* Own include. */
 #include "transform_convert.h"
 
 typedef struct BoneInitData {
@@ -545,97 +550,6 @@ static void pose_mirror_info_restore(const PoseInitData_Mirror *pid)
   }
 }
 
-/**
- * if pose bone (partial) selected, copy data.
- * context; posemode armature, with mirror editing enabled.
- */
-void pose_transform_mirror_update(TransInfo *t, TransDataContainer *tc, Object *ob)
-{
-  float flip_mtx[4][4];
-  unit_m4(flip_mtx);
-  flip_mtx[0][0] = -1;
-
-  LISTBASE_FOREACH (bPoseChannel *, pchan_orig, &ob->pose->chanbase) {
-    /* Clear the MIRROR flag from previous runs. */
-    pchan_orig->bone->flag &= ~BONE_TRANSFORM_MIRROR;
-  }
-
-  bPose *pose = ob->pose;
-  PoseInitData_Mirror *pid = NULL;
-  if ((t->mode != TFM_BONESIZE) && (pose->flag & POSE_MIRROR_RELATIVE)) {
-    pid = tc->custom.type.data;
-  }
-
-  TransData *td = tc->data;
-  for (int i = tc->data_len; i--; td++) {
-    bPoseChannel *pchan_orig = td->extra;
-    BLI_assert(pchan_orig->bone->flag & BONE_TRANSFORM);
-    /* No layer check, correct mirror is more important. */
-    bPoseChannel *pchan = BKE_pose_channel_get_mirrored(pose, pchan_orig->name);
-    if (pchan == NULL) {
-      continue;
-    }
-
-    /* Also do bbone scaling. */
-    pchan->bone->xwidth = pchan_orig->bone->xwidth;
-    pchan->bone->zwidth = pchan_orig->bone->zwidth;
-
-    /* We assume X-axis flipping for now. */
-    pchan->curve_in_x = pchan_orig->curve_in_x * -1;
-    pchan->curve_out_x = pchan_orig->curve_out_x * -1;
-    pchan->roll1 = pchan_orig->roll1 * -1;  // XXX?
-    pchan->roll2 = pchan_orig->roll2 * -1;  // XXX?
-
-    float pchan_mtx_final[4][4];
-    BKE_pchan_to_mat4(pchan_orig, pchan_mtx_final);
-    mul_m4_m4m4(pchan_mtx_final, pchan_mtx_final, flip_mtx);
-    mul_m4_m4m4(pchan_mtx_final, flip_mtx, pchan_mtx_final);
-    if (pid) {
-      mul_m4_m4m4(pchan_mtx_final, pid->offset_mtx, pchan_mtx_final);
-    }
-    BKE_pchan_apply_mat4(pchan, pchan_mtx_final, false);
-
-    /* Set flag to let autokeyframe know to keyframe the mirrred bone. */
-    pchan->bone->flag |= BONE_TRANSFORM_MIRROR;
-
-    /* In this case we can do target-less IK grabbing. */
-    if (t->mode == TFM_TRANSLATION) {
-      bKinematicConstraint *data = has_targetless_ik(pchan);
-      if (data == NULL) {
-        continue;
-      }
-      mul_v3_m4v3(data->grabtarget, flip_mtx, td->loc);
-      if (pid) {
-        /* TODO(germano): Realitve Mirror support */
-      }
-      data->flag |= CONSTRAINT_IK_AUTO;
-      /* Add a temporary auto IK constraint here, as we will only temporarily active this
-       * target-less bone during transform. (Target-less IK constraints are treated as if they are
-       * disabled unless they are transformed) */
-      add_temporary_ik_constraint(pchan, data);
-      Main *bmain = CTX_data_main(t->context);
-      update_deg_with_temporary_ik(bmain, ob);
-    }
-
-    if (pid) {
-      pid++;
-    }
-  }
-}
-
-void restoreMirrorPoseBones(TransDataContainer *tc)
-{
-  bPose *pose = tc->poseobj->pose;
-
-  if (!(pose->flag & POSE_MIRROR_EDIT)) {
-    return;
-  }
-
-  for (PoseInitData_Mirror *pid = tc->custom.type.data; pid->pchan; pid++) {
-    pose_mirror_info_restore(pid);
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -791,55 +705,6 @@ void createTransPose(TransInfo *t)
   t->flag |= T_POSE;
   /* disable PET, its not usable in pose mode yet [#32444] */
   t->flag &= ~T_PROP_EDIT_ALL;
-}
-
-void restoreBones(TransDataContainer *tc)
-{
-  bArmature *arm;
-  BoneInitData *bid = tc->custom.type.data;
-  EditBone *ebo;
-
-  if (tc->obedit) {
-    arm = tc->obedit->data;
-  }
-  else {
-    BLI_assert(tc->poseobj != NULL);
-    arm = tc->poseobj->data;
-  }
-
-  while (bid->bone) {
-    ebo = bid->bone;
-
-    ebo->dist = bid->dist;
-    ebo->rad_head = bid->rad_head;
-    ebo->rad_tail = bid->rad_tail;
-    ebo->roll = bid->roll;
-    ebo->xwidth = bid->xwidth;
-    ebo->zwidth = bid->zwidth;
-    copy_v3_v3(ebo->head, bid->head);
-    copy_v3_v3(ebo->tail, bid->tail);
-
-    if (arm->flag & ARM_MIRROR_EDIT) {
-      EditBone *ebo_child;
-
-      /* Also move connected ebo_child, in case ebo_child's name aren't mirrored properly */
-      for (ebo_child = arm->edbo->first; ebo_child; ebo_child = ebo_child->next) {
-        if ((ebo_child->flag & BONE_CONNECTED) && (ebo_child->parent == ebo)) {
-          copy_v3_v3(ebo_child->head, ebo->tail);
-          ebo_child->rad_head = ebo->rad_tail;
-        }
-      }
-
-      /* Also move connected parent, in case parent's name isn't mirrored properly */
-      if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
-        EditBone *parent = ebo->parent;
-        copy_v3_v3(parent->tail, ebo->head);
-        parent->rad_tail = ebo->rad_head;
-      }
-    }
-
-    bid++;
-  }
 }
 
 void createTransArmatureVerts(TransInfo *t)
@@ -1093,6 +958,340 @@ void createTransArmatureVerts(TransInfo *t)
       BLI_assert(i + 1 == (MEM_allocN_len(bid) / sizeof(*bid)));
       bid[i].bone = NULL;
     }
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Recalc Data Edit Armature
+ * \{ */
+
+static void restoreBones(TransDataContainer *tc)
+{
+  bArmature *arm;
+  BoneInitData *bid = tc->custom.type.data;
+  EditBone *ebo;
+
+  if (tc->obedit) {
+    arm = tc->obedit->data;
+  }
+  else {
+    BLI_assert(tc->poseobj != NULL);
+    arm = tc->poseobj->data;
+  }
+
+  while (bid->bone) {
+    ebo = bid->bone;
+
+    ebo->dist = bid->dist;
+    ebo->rad_head = bid->rad_head;
+    ebo->rad_tail = bid->rad_tail;
+    ebo->roll = bid->roll;
+    ebo->xwidth = bid->xwidth;
+    ebo->zwidth = bid->zwidth;
+    copy_v3_v3(ebo->head, bid->head);
+    copy_v3_v3(ebo->tail, bid->tail);
+
+    if (arm->flag & ARM_MIRROR_EDIT) {
+      EditBone *ebo_child;
+
+      /* Also move connected ebo_child, in case ebo_child's name aren't mirrored properly */
+      for (ebo_child = arm->edbo->first; ebo_child; ebo_child = ebo_child->next) {
+        if ((ebo_child->flag & BONE_CONNECTED) && (ebo_child->parent == ebo)) {
+          copy_v3_v3(ebo_child->head, ebo->tail);
+          ebo_child->rad_head = ebo->rad_tail;
+        }
+      }
+
+      /* Also move connected parent, in case parent's name isn't mirrored properly */
+      if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
+        EditBone *parent = ebo->parent;
+        copy_v3_v3(parent->tail, ebo->head);
+        parent->rad_tail = ebo->rad_head;
+      }
+    }
+
+    bid++;
+  }
+}
+
+void recalcData_edit_armature(TransInfo *t)
+{
+  if (t->state != TRANS_CANCEL) {
+    applyProject(t);
+  }
+
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    bArmature *arm = tc->obedit->data;
+    ListBase *edbo = arm->edbo;
+    EditBone *ebo, *ebo_parent;
+    TransData *td = tc->data;
+    int i;
+
+    /* Ensure all bones are correctly adjusted */
+    for (ebo = edbo->first; ebo; ebo = ebo->next) {
+      ebo_parent = (ebo->flag & BONE_CONNECTED) ? ebo->parent : NULL;
+
+      if (ebo_parent) {
+        /* If this bone has a parent tip that has been moved */
+        if (ebo_parent->flag & BONE_TIPSEL) {
+          copy_v3_v3(ebo->head, ebo_parent->tail);
+          if (t->mode == TFM_BONE_ENVELOPE) {
+            ebo->rad_head = ebo_parent->rad_tail;
+          }
+        }
+        /* If this bone has a parent tip that has NOT been moved */
+        else {
+          copy_v3_v3(ebo_parent->tail, ebo->head);
+          if (t->mode == TFM_BONE_ENVELOPE) {
+            ebo_parent->rad_tail = ebo->rad_head;
+          }
+        }
+      }
+
+      /* on extrude bones, oldlength==0.0f, so we scale radius of points */
+      ebo->length = len_v3v3(ebo->head, ebo->tail);
+      if (ebo->oldlength == 0.0f) {
+        ebo->rad_head = 0.25f * ebo->length;
+        ebo->rad_tail = 0.10f * ebo->length;
+        ebo->dist = 0.25f * ebo->length;
+        if (ebo->parent) {
+          if (ebo->rad_head > ebo->parent->rad_tail) {
+            ebo->rad_head = ebo->parent->rad_tail;
+          }
+        }
+      }
+      else if (t->mode != TFM_BONE_ENVELOPE) {
+        /* if bones change length, lets do that for the deform distance as well */
+        ebo->dist *= ebo->length / ebo->oldlength;
+        ebo->rad_head *= ebo->length / ebo->oldlength;
+        ebo->rad_tail *= ebo->length / ebo->oldlength;
+        ebo->oldlength = ebo->length;
+
+        if (ebo_parent) {
+          ebo_parent->rad_tail = ebo->rad_head;
+        }
+      }
+    }
+
+    if (!ELEM(t->mode, TFM_BONE_ROLL, TFM_BONE_ENVELOPE, TFM_BONE_ENVELOPE_DIST, TFM_BONESIZE)) {
+      /* fix roll */
+      for (i = 0; i < tc->data_len; i++, td++) {
+        if (td->extra) {
+          float vec[3], up_axis[3];
+          float qrot[4];
+          float roll;
+
+          ebo = td->extra;
+
+          if (t->state == TRANS_CANCEL) {
+            /* restore roll */
+            ebo->roll = td->ival;
+          }
+          else {
+            copy_v3_v3(up_axis, td->axismtx[2]);
+
+            sub_v3_v3v3(vec, ebo->tail, ebo->head);
+            normalize_v3(vec);
+            rotation_between_vecs_to_quat(qrot, td->axismtx[1], vec);
+            mul_qt_v3(qrot, up_axis);
+
+            /* roll has a tendency to flip in certain orientations - [#34283], [#33974] */
+            roll = ED_armature_ebone_roll_to_vector(ebo, up_axis, false);
+            ebo->roll = angle_compat_rad(roll, td->ival);
+          }
+        }
+      }
+    }
+
+    if (arm->flag & ARM_MIRROR_EDIT) {
+      if (t->state != TRANS_CANCEL) {
+        ED_armature_edit_transform_mirror_update(tc->obedit);
+      }
+      else {
+        restoreBones(tc);
+      }
+    }
+
+    /* Tag for redraw/invalidate overlay cache. */
+    DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Recalc Data Pose
+ * \{ */
+
+/**
+ * if pose bone (partial) selected, copy data.
+ * context; posemode armature, with mirror editing enabled.
+ */
+static void pose_transform_mirror_update(TransInfo *t, TransDataContainer *tc, Object *ob)
+{
+  float flip_mtx[4][4];
+  unit_m4(flip_mtx);
+  flip_mtx[0][0] = -1;
+
+  LISTBASE_FOREACH (bPoseChannel *, pchan_orig, &ob->pose->chanbase) {
+    /* Clear the MIRROR flag from previous runs. */
+    pchan_orig->bone->flag &= ~BONE_TRANSFORM_MIRROR;
+  }
+
+  bPose *pose = ob->pose;
+  PoseInitData_Mirror *pid = NULL;
+  if ((t->mode != TFM_BONESIZE) && (pose->flag & POSE_MIRROR_RELATIVE)) {
+    pid = tc->custom.type.data;
+  }
+
+  TransData *td = tc->data;
+  for (int i = tc->data_len; i--; td++) {
+    bPoseChannel *pchan_orig = td->extra;
+    BLI_assert(pchan_orig->bone->flag & BONE_TRANSFORM);
+    /* No layer check, correct mirror is more important. */
+    bPoseChannel *pchan = BKE_pose_channel_get_mirrored(pose, pchan_orig->name);
+    if (pchan == NULL) {
+      continue;
+    }
+
+    /* Also do bbone scaling. */
+    pchan->bone->xwidth = pchan_orig->bone->xwidth;
+    pchan->bone->zwidth = pchan_orig->bone->zwidth;
+
+    /* We assume X-axis flipping for now. */
+    pchan->curve_in_x = pchan_orig->curve_in_x * -1;
+    pchan->curve_out_x = pchan_orig->curve_out_x * -1;
+    pchan->roll1 = pchan_orig->roll1 * -1;  // XXX?
+    pchan->roll2 = pchan_orig->roll2 * -1;  // XXX?
+
+    float pchan_mtx_final[4][4];
+    BKE_pchan_to_mat4(pchan_orig, pchan_mtx_final);
+    mul_m4_m4m4(pchan_mtx_final, pchan_mtx_final, flip_mtx);
+    mul_m4_m4m4(pchan_mtx_final, flip_mtx, pchan_mtx_final);
+    if (pid) {
+      mul_m4_m4m4(pchan_mtx_final, pid->offset_mtx, pchan_mtx_final);
+    }
+    BKE_pchan_apply_mat4(pchan, pchan_mtx_final, false);
+
+    /* Set flag to let autokeyframe know to keyframe the mirrred bone. */
+    pchan->bone->flag |= BONE_TRANSFORM_MIRROR;
+
+    /* In this case we can do target-less IK grabbing. */
+    if (t->mode == TFM_TRANSLATION) {
+      bKinematicConstraint *data = has_targetless_ik(pchan);
+      if (data == NULL) {
+        continue;
+      }
+      mul_v3_m4v3(data->grabtarget, flip_mtx, td->loc);
+      if (pid) {
+        /* TODO(germano): Realitve Mirror support */
+      }
+      data->flag |= CONSTRAINT_IK_AUTO;
+      /* Add a temporary auto IK constraint here, as we will only temporarily active this
+       * target-less bone during transform. (Target-less IK constraints are treated as if they are
+       * disabled unless they are transformed) */
+      add_temporary_ik_constraint(pchan, data);
+      Main *bmain = CTX_data_main(t->context);
+      update_deg_with_temporary_ik(bmain, ob);
+    }
+
+    if (pid) {
+      pid++;
+    }
+  }
+}
+
+static void restoreMirrorPoseBones(TransDataContainer *tc)
+{
+  bPose *pose = tc->poseobj->pose;
+
+  if (!(pose->flag & POSE_MIRROR_EDIT)) {
+    return;
+  }
+
+  for (PoseInitData_Mirror *pid = tc->custom.type.data; pid->pchan; pid++) {
+    pose_mirror_info_restore(pid);
+  }
+}
+
+void recalcData_pose(TransInfo *t)
+{
+  if (t->mode == TFM_BONESIZE) {
+    /* Handle the exception where for TFM_BONESIZE in edit mode we pretend to be
+     * in pose mode (to use bone orientation matrix),
+     * in that case we have to do mirroring as well. */
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+      Object *ob = tc->poseobj;
+      bArmature *arm = ob->data;
+      if (ob->mode == OB_MODE_EDIT) {
+        if (arm->flag & ARM_MIRROR_EDIT) {
+          if (t->state != TRANS_CANCEL) {
+            ED_armature_edit_transform_mirror_update(ob);
+          }
+          else {
+            restoreBones(tc);
+          }
+        }
+      }
+      else if (ob->mode == OB_MODE_POSE) {
+        /* actually support TFM_BONESIZE in posemode as well */
+        DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+        bPose *pose = ob->pose;
+        if (arm->flag & ARM_MIRROR_EDIT || pose->flag & POSE_MIRROR_EDIT) {
+          pose_transform_mirror_update(t, tc, ob);
+        }
+      }
+    }
+  }
+  else {
+    GSet *motionpath_updates = BLI_gset_ptr_new("motionpath updates");
+
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+      Object *ob = tc->poseobj;
+      bPose *pose = ob->pose;
+
+      if (pose->flag & POSE_MIRROR_EDIT) {
+        if (t->state != TRANS_CANCEL) {
+          pose_transform_mirror_update(t, tc, ob);
+        }
+        else {
+          restoreMirrorPoseBones(tc);
+        }
+      }
+
+      /* if animtimer is running, and the object already has animation data,
+       * check if the auto-record feature means that we should record 'samples'
+       * (i.e. un-editable animation values)
+       *
+       * context is needed for keying set poll() functions.
+       */
+
+      /* TODO: autokeyframe calls need some setting to specify to add samples
+       * (FPoints) instead of keyframes? */
+      if ((t->animtimer) && (t->context) && IS_AUTOKEY_ON(t->scene)) {
+        int targetless_ik =
+            (t->flag & T_AUTOIK);  // XXX this currently doesn't work, since flags aren't set yet!
+
+        animrecord_check_state(t, ob);
+        autokeyframe_pose(t->context, t->scene, ob, t->mode, targetless_ik);
+      }
+
+      if (motionpath_need_update_pose(t->scene, ob)) {
+        BLI_gset_insert(motionpath_updates, ob);
+      }
+
+      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    }
+
+    /* Update motion paths once for all transformed bones in an object. */
+    GSetIterator gs_iter;
+    GSET_ITER (gs_iter, motionpath_updates) {
+      Object *ob = BLI_gsetIterator_getKey(&gs_iter);
+      ED_pose_recalculate_paths(t->context, t->scene, ob, POSE_PATH_CALC_RANGE_CURRENT_FRAME);
+    }
+    BLI_gset_free(motionpath_updates, NULL);
   }
 }
 

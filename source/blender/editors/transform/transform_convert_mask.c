@@ -396,11 +396,11 @@ void createTransMaskingData(bContext *C, TransInfo *t)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Masking Transform Flush
+/** \name Recalc TransData Masking
  *
  * \{ */
 
-void flushTransMasking(TransInfo *t)
+static void flushTransMasking(TransInfo *t)
 {
   TransData2D *td;
   TransDataMasking *tdm;
@@ -437,6 +437,15 @@ void flushTransMasking(TransInfo *t)
       }
     }
   }
+}
+
+void recalcData_mask_common(TransInfo *t)
+{
+  Mask *mask = CTX_data_edit_mask(t->context);
+
+  flushTransMasking(t);
+
+  DEG_id_tag_update(&mask->id, 0);
 }
 
 /** \} */

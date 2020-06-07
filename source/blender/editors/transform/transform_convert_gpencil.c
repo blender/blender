@@ -25,11 +25,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_ghash.h"
 #include "BLI_math.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_geom.h"
 
 #include "ED_gpencil.h"
 
@@ -374,6 +376,25 @@ void createTransGPencil(bContext *C, TransInfo *t)
       }
     }
   }
+}
+
+/* force recalculation of triangles during transformation */
+void recalcData_gpencil_strokes(TransInfo *t)
+{
+  TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
+  GHash *strokes = BLI_ghash_ptr_new(__func__);
+
+  TransData *td = tc->data;
+  for (int i = 0; i < tc->data_len; i++, td++) {
+    bGPDstroke *gps = td->extra;
+
+    if ((gps != NULL) && (!BLI_ghash_haskey(strokes, gps))) {
+      BLI_ghash_insert(strokes, gps, gps);
+      /* Calc geometry data. */
+      BKE_gpencil_stroke_geometry_update(gps);
+    }
+  }
+  BLI_ghash_free(strokes, NULL, NULL);
 }
 
 /** \} */

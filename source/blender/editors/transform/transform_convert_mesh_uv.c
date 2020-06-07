@@ -266,7 +266,7 @@ void createTransUVs(bContext *C, TransInfo *t)
  *
  * \{ */
 
-void flushTransUVs(TransInfo *t)
+static void flushTransUVs(TransInfo *t)
 {
   SpaceImage *sima = t->area->spacedata.first;
   const bool use_pixel_snap = ((sima->pixel_snap_mode != SI_PIXEL_SNAP_DISABLED) &&
@@ -310,6 +310,23 @@ void flushTransUVs(TransInfo *t)
         td->loc2d[0] /= size[0];
         td->loc2d[1] /= size[1];
       }
+    }
+  }
+}
+
+/* helper for recalcData() - for Image Editor transforms */
+void recalcData_uv(TransInfo *t)
+{
+  SpaceImage *sima = t->area->spacedata.first;
+
+  flushTransUVs(t);
+  if (sima->flag & SI_LIVE_UNWRAP) {
+    ED_uvedit_live_unwrap_re_solve();
+  }
+
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    if (tc->data_len) {
+      DEG_id_tag_update(tc->obedit->data, 0);
     }
   }
 }

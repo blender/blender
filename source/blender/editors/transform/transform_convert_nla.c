@@ -34,6 +34,9 @@
 #include "BKE_report.h"
 
 #include "ED_anim_api.h"
+#include "ED_markers.h"
+
+#include "RNA_access.h"
 
 #include "transform.h"
 #include "transform_convert.h"
@@ -254,6 +257,234 @@ void createTransNlaData(bContext *C, TransInfo *t)
 
   /* cleanup temp list */
   ANIM_animdata_freelist(&anim_data);
+}
+
+/* helper for recalcData() - for NLA Editor transforms */
+void recalcData_nla(TransInfo *t)
+{
+  SpaceNla *snla = (SpaceNla *)t->area->spacedata.first;
+  Scene *scene = t->scene;
+  double secf = FPS;
+  int i;
+
+  TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
+  TransDataNla *tdn = tc->custom.type.data;
+
+  /* For each strip we've got, perform some additional validation of the values
+   * that got set before using RNA to set the value (which does some special
+   * operations when setting these values to make sure that everything works ok).
+   */
+  for (i = 0; i < tc->data_len; i++, tdn++) {
+    NlaStrip *strip = tdn->strip;
+    PointerRNA strip_ptr;
+    short pExceeded, nExceeded, iter;
+    int delta_y1, delta_y2;
+
+    /* if this tdn has no handles, that means it is just a dummy that should be skipped */
+    if (tdn->handle == 0) {
+      continue;
+    }
+
+    /* set refresh tags for objects using this animation,
+     * BUT only if realtime updates are enabled
+     */
+    if ((snla->flag & SNLA_NOREALTIMEUPDATES) == 0) {
+      ANIM_id_update(CTX_data_main(t->context), tdn->id);
+    }
+
+    /* if canceling transform, just write the values without validating, then move on */
+    if (t->state == TRANS_CANCEL) {
+      /* clear the values by directly overwriting the originals, but also need to restore
+       * endpoints of neighboring transition-strips
+       */
+
+      /* start */
+      strip->start = tdn->h1[0];
+
+      if ((strip->prev) && (strip->prev->type == NLASTRIP_TYPE_TRANSITION)) {
+        strip->prev->end = tdn->h1[0];
+      }
+
+      /* end */
+      strip->end = tdn->h2[0];
+
+      if ((strip->next) && (strip->next->type == NLASTRIP_TYPE_TRANSITION)) {
+        strip->next->start = tdn->h2[0];
+      }
+
+      /* flush transforms to child strips (since this should be a meta) */
+      BKE_nlameta_flush_transforms(strip);
+
+      /* restore to original track (if needed) */
+      if (tdn->oldTrack != tdn->nlt) {
+        /* Just append to end of list for now,
+         * since strips get sorted in special_aftertrans_update(). */
+        BLI_remlink(&tdn->nlt->strips, strip);
+        BLI_addtail(&tdn->oldTrack->strips, strip);
+      }
+
+      continue;
+    }
+
+    /* firstly, check if the proposed transform locations would overlap with any neighboring strips
+     * (barring transitions) which are absolute barriers since they are not being moved
+     *
+     * this is done as a iterative procedure (done 5 times max for now)
+     */
+    for (iter = 0; iter < 5; iter++) {
+      pExceeded = ((strip->prev) && (strip->prev->type != NLASTRIP_TYPE_TRANSITION) &&
+                   (tdn->h1[0] < strip->prev->end));
+      nExceeded = ((strip->next) && (strip->next->type != NLASTRIP_TYPE_TRANSITION) &&
+                   (tdn->h2[0] > strip->next->start));
+
+      if ((pExceeded && nExceeded) || (iter == 4)) {
+        /* both endpoints exceeded (or iteration ping-pong'd meaning that we need a compromise)
+         * - Simply crop strip to fit within the bounds of the strips bounding it
+         * - If there were no neighbors, clear the transforms
+         *   (make it default to the strip's current values).
+         */
+        if (strip->prev && strip->next) {
+          tdn->h1[0] = strip->prev->end;
+          tdn->h2[0] = strip->next->start;
+        }
+        else {
+          tdn->h1[0] = strip->start;
+          tdn->h2[0] = strip->end;
+        }
+      }
+      else if (nExceeded) {
+        /* move backwards */
+        float offset = tdn->h2[0] - strip->next->start;
+
+        tdn->h1[0] -= offset;
+        tdn->h2[0] -= offset;
+      }
+      else if (pExceeded) {
+        /* more forwards */
+        float offset = strip->prev->end - tdn->h1[0];
+
+        tdn->h1[0] += offset;
+        tdn->h2[0] += offset;
+      }
+      else { /* all is fine and well */
+        break;
+      }
+    }
+
+    /* handle auto-snapping
+     * NOTE: only do this when transform is still running, or we can't restore
+     */
+    if (t->state != TRANS_CANCEL) {
+      switch (snla->autosnap) {
+        case SACTSNAP_FRAME: /* snap to nearest frame */
+        case SACTSNAP_STEP:  /* frame step - this is basically the same,
+                              * since we don't have any remapping going on */
+        {
+          tdn->h1[0] = floorf(tdn->h1[0] + 0.5f);
+          tdn->h2[0] = floorf(tdn->h2[0] + 0.5f);
+          break;
+        }
+
+        case SACTSNAP_SECOND: /* snap to nearest second */
+        case SACTSNAP_TSTEP:  /* second step - this is basically the same,
+                               * since we don't have any remapping going on */
+        {
+          /* This case behaves differently from the rest, since lengths of strips
+           * may not be multiples of a second. If we just naively resize adjust
+           * the handles, things may not work correctly. Instead, we only snap
+           * the first handle, and move the other to fit.
+           *
+           * FIXME: we do run into problems here when user attempts to negatively
+           *        scale the strip, as it then just compresses down and refuses
+           *        to expand out the other end.
+           */
+          float h1_new = (float)(floor(((double)tdn->h1[0] / secf) + 0.5) * secf);
+          float delta = h1_new - tdn->h1[0];
+
+          tdn->h1[0] = h1_new;
+          tdn->h2[0] += delta;
+          break;
+        }
+
+        case SACTSNAP_MARKER: /* snap to nearest marker */
+        {
+          tdn->h1[0] = (float)ED_markers_find_nearest_marker_time(&t->scene->markers, tdn->h1[0]);
+          tdn->h2[0] = (float)ED_markers_find_nearest_marker_time(&t->scene->markers, tdn->h2[0]);
+          break;
+        }
+      }
+    }
+
+    /* Use RNA to write the values to ensure that constraints on these are obeyed
+     * (e.g. for transition strips, the values are taken from the neighbors)
+     *
+     * NOTE: we write these twice to avoid truncation errors which can arise when
+     * moving the strips a large distance using numeric input [#33852]
+     */
+    RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
+
+    RNA_float_set(&strip_ptr, "frame_start", tdn->h1[0]);
+    RNA_float_set(&strip_ptr, "frame_end", tdn->h2[0]);
+
+    RNA_float_set(&strip_ptr, "frame_start", tdn->h1[0]);
+    RNA_float_set(&strip_ptr, "frame_end", tdn->h2[0]);
+
+    /* flush transforms to child strips (since this should be a meta) */
+    BKE_nlameta_flush_transforms(strip);
+
+    /* Now, check if we need to try and move track:
+     * - we need to calculate both,
+     *   as only one may have been altered by transform if only 1 handle moved.
+     */
+    delta_y1 = ((int)tdn->h1[1] / NLACHANNEL_STEP(snla) - tdn->trackIndex);
+    delta_y2 = ((int)tdn->h2[1] / NLACHANNEL_STEP(snla) - tdn->trackIndex);
+
+    if (delta_y1 || delta_y2) {
+      NlaTrack *track;
+      int delta = (delta_y2) ? delta_y2 : delta_y1;
+      int n;
+
+      /* Move in the requested direction,
+       * checking at each layer if there's space for strip to pass through,
+       * stopping on the last track available or that we're able to fit in.
+       */
+      if (delta > 0) {
+        for (track = tdn->nlt->next, n = 0; (track) && (n < delta); track = track->next, n++) {
+          /* check if space in this track for the strip */
+          if (BKE_nlatrack_has_space(track, strip->start, strip->end)) {
+            /* move strip to this track */
+            BLI_remlink(&tdn->nlt->strips, strip);
+            BKE_nlatrack_add_strip(track, strip);
+
+            tdn->nlt = track;
+            tdn->trackIndex++;
+          }
+          else { /* can't move any further */
+            break;
+          }
+        }
+      }
+      else {
+        /* make delta 'positive' before using it, since we now know to go backwards */
+        delta = -delta;
+
+        for (track = tdn->nlt->prev, n = 0; (track) && (n < delta); track = track->prev, n++) {
+          /* check if space in this track for the strip */
+          if (BKE_nlatrack_has_space(track, strip->start, strip->end)) {
+            /* move strip to this track */
+            BLI_remlink(&tdn->nlt->strips, strip);
+            BKE_nlatrack_add_strip(track, strip);
+
+            tdn->nlt = track;
+            tdn->trackIndex--;
+          }
+          else { /* can't move any further */
+            break;
+          }
+        }
+      }
+    }
+  }
 }
 
 /** \} */

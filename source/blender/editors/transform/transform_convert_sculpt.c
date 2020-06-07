@@ -29,6 +29,8 @@
 #include "BKE_paint.h"
 #include "BKE_report.h"
 
+#include "ED_sculpt.h"
+
 #include "transform.h"
 #include "transform_convert.h"
 
@@ -97,6 +99,18 @@ void createTransSculpt(TransInfo *t)
   copy_m3_m3(td->smtx, obmat_inv);
   copy_m3_m4(td->mtx, ob->obmat);
   copy_m3_m4(td->axismtx, ob->obmat);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Recalc Data object
+ *
+ * \{ */
+
+void recalcData_sculpt(TransInfo *t)
+{
+  ED_sculpt_update_modal_transform(t->context);
 }
 
 /** \} */

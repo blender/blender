@@ -555,7 +555,7 @@ void createTransActionData(bContext *C, TransInfo *t)
  * \{ */
 
 /* This function helps flush transdata written to tempdata into the gp-frames  */
-void flushTransIntFrameActionData(TransInfo *t)
+static void flushTransIntFrameActionData(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   tGPFtransdata *tfd = tc->custom.type.data;
@@ -563,6 +563,58 @@ void flushTransIntFrameActionData(TransInfo *t)
   /* flush data! */
   for (int i = 0; i < tc->data_len; i++, tfd++) {
     *(tfd->sdata) = round_fl_to_int(tfd->val);
+  }
+}
+
+/* helper for recalcData() - for Action Editor transforms */
+void recalcData_actedit(TransInfo *t)
+{
+  ViewLayer *view_layer = t->view_layer;
+  SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
+
+  bAnimContext ac = {NULL};
+  ListBase anim_data = {NULL, NULL};
+  bAnimListElem *ale;
+  int filter;
+
+  /* initialize relevant anim-context 'context' data from TransInfo data */
+  /* NOTE: sync this with the code in ANIM_animdata_get_context() */
+  ac.bmain = CTX_data_main(t->context);
+  ac.scene = t->scene;
+  ac.view_layer = t->view_layer;
+  ac.obact = OBACT(view_layer);
+  ac.area = t->area;
+  ac.region = t->region;
+  ac.sl = (t->area) ? t->area->spacedata.first : NULL;
+  ac.spacetype = (t->area) ? t->area->spacetype : 0;
+  ac.regiontype = (t->region) ? t->region->regiontype : 0;
+
+  ANIM_animdata_context_getdata(&ac);
+
+  /* perform flush */
+  if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
+    /* flush transform values back to actual coordinates */
+    flushTransIntFrameActionData(t);
+  }
+
+  if (ac.datatype != ANIMCONT_MASK) {
+    /* Get animdata blocks visible in editor,
+     * assuming that these will be the ones where things changed. */
+    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ANIMDATA);
+    ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+    /* just tag these animdata-blocks to recalc, assuming that some data there changed
+     * BUT only do this if realtime updates are enabled
+     */
+    if ((saction->flag & SACTION_NOREALTIMEUPDATES) == 0) {
+      for (ale = anim_data.first; ale; ale = ale->next) {
+        /* set refresh tags for objects using this animation */
+        ANIM_list_elem_update(CTX_data_main(t->context), t->scene, ale);
+      }
+    }
+
+    /* now free temp channels */
+    ANIM_animdata_freelist(&anim_data);
   }
 }
 
