@@ -2414,39 +2414,6 @@ static const void *peek_struct_undo(FileData *fd, BHead *bhead)
   return (bhead->len) ? (const void *)(bhead + 1) : NULL;
 }
 
-typedef void (*link_list_cb)(FileData *fd, void *data);
-
-static void link_list_ex(FileData *fd, ListBase *lb, link_list_cb callback) /* only direct data */
-{
-  Link *ln, *prev;
-
-  if (BLI_listbase_is_empty(lb)) {
-    return;
-  }
-
-  lb->first = newdataadr(fd, lb->first);
-  if (callback != NULL) {
-    callback(fd, lb->first);
-  }
-  ln = lb->first;
-  prev = NULL;
-  while (ln) {
-    ln->next = newdataadr(fd, ln->next);
-    if (ln->next != NULL && callback != NULL) {
-      callback(fd, ln->next);
-    }
-    ln->prev = prev;
-    prev = ln;
-    ln = ln->next;
-  }
-  lb->last = prev;
-}
-
-static void link_list(FileData *fd, ListBase *lb) /* only direct data */
-{
-  link_list_ex(fd, lb, NULL);
-}
-
 static void link_glob_list(FileData *fd, ListBase *lb) /* for glob data */
 {
   Link *ln, *prev;
