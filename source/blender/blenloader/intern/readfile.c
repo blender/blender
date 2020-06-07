@@ -4577,16 +4577,17 @@ static const char *ptcache_data_struct[] = {
     "BoidData",  // case BPHYS_DATA_BOIDS:
 };
 
-static void direct_link_pointcache_cb(FileData *fd, void *data)
+static void direct_link_pointcache_cb(BlendDataReader *reader, void *data)
 {
   PTCacheMem *pm = data;
   PTCacheExtra *extra;
   int i;
   for (i = 0; i < BPHYS_TOT_DATA; i++) {
-    pm->data[i] = newdataadr(fd, pm->data[i]);
+    BLO_read_data_address(reader, &pm->data[i]);
 
     /* the cache saves non-struct data without DNA */
-    if (pm->data[i] && ptcache_data_struct[i][0] == '\0' && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
+    if (pm->data[i] && ptcache_data_struct[i][0] == '\0' &&
+        BLO_read_requires_endian_switch(reader)) {
       /* data_size returns bytes. */
       int tot = (BKE_ptcache_data_size(i) * pm->totpoint) / sizeof(int);
 
@@ -4596,17 +4597,17 @@ static void direct_link_pointcache_cb(FileData *fd, void *data)
     }
   }
 
-  link_list(fd, &pm->extradata);
+  BLO_read_list(reader, &pm->extradata);
 
   for (extra = pm->extradata.first; extra; extra = extra->next) {
-    extra->data = newdataadr(fd, extra->data);
+    BLO_read_data_address(reader, &extra->data);
   }
 }
 
-static void direct_link_pointcache(FileData *fd, PointCache *cache)
+static void direct_link_pointcache(BlendDataReader *reader, PointCache *cache)
 {
   if ((cache->flag & PTCACHE_DISK_CACHE) == 0) {
-    link_list_ex(fd, &cache->mem_cache, direct_link_pointcache_cb);
+    BLO_read_list_cb(reader, &cache->mem_cache, direct_link_pointcache_cb);
   }
   else {
     BLI_listbase_clear(&cache->mem_cache);
@@ -4620,28 +4621,28 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
   cache->cached_frames_len = 0;
 }
 
-static void direct_link_pointcache_list(FileData *fd,
+static void direct_link_pointcache_list(BlendDataReader *reader,
                                         ListBase *ptcaches,
                                         PointCache **ocache,
                                         int force_disk)
 {
   if (ptcaches->first) {
     PointCache *cache = NULL;
-    link_list(fd, ptcaches);
+    BLO_read_list(reader, ptcaches);
     for (cache = ptcaches->first; cache; cache = cache->next) {
-      direct_link_pointcache(fd, cache);
+      direct_link_pointcache(reader, cache);
       if (force_disk) {
         cache->flag |= PTCACHE_DISK_CACHE;
         cache->step = 1;
       }
     }
 
-    *ocache = newdataadr(fd, *ocache);
+    BLO_read_data_address(reader, ocache);
   }
   else if (*ocache) {
     /* old "single" caches need to be linked too */
-    *ocache = newdataadr(fd, *ocache);
-    direct_link_pointcache(fd, *ocache);
+    BLO_read_data_address(reader, ocache);
+    direct_link_pointcache(reader, *ocache);
     if (force_disk) {
       (*ocache)->flag |= PTCACHE_DISK_CACHE;
       (*ocache)->step = 1;
@@ -4820,18 +4821,18 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
     }
   }
 }
-static void direct_link_particlesystems(FileData *fd, ListBase *particles)
+static void direct_link_particlesystems(BlendDataReader *reader, ListBase *particles)
 {
   ParticleSystem *psys;
   ParticleData *pa;
   int a;
 
   for (psys = particles->first; psys; psys = psys->next) {
-    psys->particles = newdataadr(fd, psys->particles);
+    BLO_read_data_address(reader, &psys->particles);
 
     if (psys->particles && psys->particles->hair) {
       for (a = 0, pa = psys->particles; a < psys->totpart; a++, pa++) {
-        pa->hair = newdataadr(fd, pa->hair);
+        BLO_read_data_address(reader, &pa->hair);
       }
     }
 
@@ -4846,7 +4847,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 
     if (psys->particles && psys->particles->boid) {
       pa = psys->particles;
-      pa->boid = newdataadr(fd, pa->boid);
+      BLO_read_data_address(reader, &pa->boid);
 
       /* This is purely runtime data, but still can be an issue if left dangling. */
       pa->boid->ground = NULL;
@@ -4862,12 +4863,12 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
       }
     }
 
-    psys->fluid_springs = newdataadr(fd, psys->fluid_springs);
+    BLO_read_data_address(reader, &psys->fluid_springs);
 
-    psys->child = newdataadr(fd, psys->child);
+    BLO_read_data_address(reader, &psys->child);
     psys->effectors = NULL;
 
-    link_list(fd, &psys->targets);
+    BLO_read_list(reader, &psys->targets);
 
     psys->edit = NULL;
     psys->free_edit = NULL;
@@ -4878,12 +4879,12 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
     psys->pdd = NULL;
 
     if (psys->clmd) {
-      psys->clmd = newdataadr(fd, psys->clmd);
+      BLO_read_data_address(reader, &psys->clmd);
       psys->clmd->clothObject = NULL;
       psys->clmd->hairdata = NULL;
 
-      psys->clmd->sim_parms = newdataadr(fd, psys->clmd->sim_parms);
-      psys->clmd->coll_parms = newdataadr(fd, psys->clmd->coll_parms);
+      BLO_read_data_address(reader, &psys->clmd->sim_parms);
+      BLO_read_data_address(reader, &psys->clmd->coll_parms);
 
       if (psys->clmd->sim_parms) {
         psys->clmd->sim_parms->effector_weights = NULL;
@@ -4896,7 +4897,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
       psys->clmd->solver_result = NULL;
     }
 
-    direct_link_pointcache_list(fd, &psys->ptcaches, &psys->pointcache, 0);
+    direct_link_pointcache_list(reader, &psys->ptcaches, &psys->pointcache, 0);
     if (psys->clmd) {
       psys->clmd->point_cache = psys->pointcache;
     }
@@ -5637,7 +5638,7 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
       BLO_read_data_address(reader, &clmd->sim_parms);
       BLO_read_data_address(reader, &clmd->coll_parms);
 
-      direct_link_pointcache_list(reader->fd, &clmd->ptcaches, &clmd->point_cache, 0);
+      direct_link_pointcache_list(reader, &clmd->ptcaches, &clmd->point_cache, 0);
 
       if (clmd->sim_parms) {
         if (clmd->sim_parms->presets > 10) {
@@ -5687,7 +5688,7 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
         }
 
         direct_link_pointcache_list(
-            reader->fd, &(mmd->domain->ptcaches[0]), &(mmd->domain->point_cache[0]), 1);
+            reader, &(mmd->domain->ptcaches[0]), &(mmd->domain->point_cache[0]), 1);
 
         /* Manta sim uses only one cache from now on, so store pointer convert */
         if (mmd->domain->ptcaches[1].first || mmd->domain->point_cache[1]) {
@@ -5750,8 +5751,7 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
           for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
             surface->canvas = pmd->canvas;
             surface->data = NULL;
-            direct_link_pointcache_list(
-                reader->fd, &(surface->ptcaches), &(surface->pointcache), 1);
+            direct_link_pointcache_list(reader, &(surface->ptcaches), &(surface->pointcache), 1);
 
             BLO_read_data_address(reader, &surface->effector_weights);
             if (surface->effector_weights == NULL) {
@@ -6144,12 +6144,11 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
        * We should only do this when sb->shared == NULL, because those pointers
        * are always set (for compatibility with older Blenders). We mustn't link
        * the same pointcache twice. */
-      direct_link_pointcache_list(reader->fd, &sb->ptcaches, &sb->pointcache, false);
+      direct_link_pointcache_list(reader, &sb->ptcaches, &sb->pointcache, false);
     }
     else {
       /* link caches */
-      direct_link_pointcache_list(
-          reader->fd, &sb->shared->ptcaches, &sb->shared->pointcache, false);
+      direct_link_pointcache_list(reader, &sb->shared->ptcaches, &sb->shared->pointcache, false);
     }
   }
   BLO_read_data_address(reader, &ob->fluidsimSettings); /* NT */
@@ -6166,7 +6165,7 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
   }
 
   BLO_read_list(reader, &ob->particlesystem);
-  direct_link_particlesystems(reader->fd, &ob->particlesystem);
+  direct_link_particlesystems(reader, &ob->particlesystem);
 
   direct_link_constraints(reader, &ob->constraints);
 
@@ -7051,7 +7050,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
        * We should only do this when rbw->shared == NULL, because those pointers
        * are always set (for compatibility with older Blenders). We mustn't link
        * the same pointcache twice. */
-      direct_link_pointcache_list(reader->fd, &rbw->ptcaches, &rbw->pointcache, false);
+      direct_link_pointcache_list(reader, &rbw->ptcaches, &rbw->pointcache, false);
 
       /* make sure simulation starts from the beginning after loading file */
       if (rbw->pointcache) {
@@ -7065,8 +7064,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
       rbw->shared->physics_world = NULL;
 
       /* link caches */
-      direct_link_pointcache_list(
-          reader->fd, &rbw->shared->ptcaches, &rbw->shared->pointcache, false);
+      direct_link_pointcache_list(reader, &rbw->shared->ptcaches, &rbw->shared->pointcache, false);
 
       /* make sure simulation starts from the beginning after loading file */
       if (rbw->shared->pointcache) {
