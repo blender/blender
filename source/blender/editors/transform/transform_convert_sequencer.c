@@ -36,6 +36,19 @@
 #include "transform.h"
 #include "transform_convert.h"
 
+/** Used for sequencer transform. */
+typedef struct TransDataSeq {
+  struct Sequence *seq;
+  /** A copy of #Sequence.flag that may be modified for nested strips. */
+  int flag;
+  /** Use this so we can have transform data at the strips start,
+   * but apply correctly to the start frame. */
+  int start_offset;
+  /** one of #SELECT, #SEQ_LEFTSEL and #SEQ_RIGHTSEL. */
+  short sel_flag;
+
+} TransDataSeq;
+
 /**
  * Sequencer transform customdata (stored in #TransCustomDataContainer).
  */
