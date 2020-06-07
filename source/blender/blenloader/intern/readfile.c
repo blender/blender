@@ -2777,58 +2777,59 @@ static void lib_link_id(FileData *fd, Main *bmain, ID *id)
   lib_link_id_embedded_id(fd, bmain, id);
 }
 
-static void direct_link_id_override_property_operation_cb(FileData *fd, void *data)
+static void direct_link_id_override_property_operation_cb(BlendDataReader *reader, void *data)
 {
   IDOverrideLibraryPropertyOperation *opop = data;
 
-  opop->subitem_reference_name = newdataadr(fd, opop->subitem_reference_name);
-  opop->subitem_local_name = newdataadr(fd, opop->subitem_local_name);
+  BLO_read_data_address(reader, &opop->subitem_reference_name);
+  BLO_read_data_address(reader, &opop->subitem_local_name);
 
   opop->tag = 0; /* Runtime only. */
 }
 
-static void direct_link_id_override_property_cb(FileData *fd, void *data)
+static void direct_link_id_override_property_cb(BlendDataReader *reader, void *data)
 {
   IDOverrideLibraryProperty *op = data;
 
-  op->rna_path = newdataadr(fd, op->rna_path);
+  BLO_read_data_address(reader, &op->rna_path);
 
   op->tag = 0; /* Runtime only. */
 
-  link_list_ex(fd, &op->operations, direct_link_id_override_property_operation_cb);
+  BLO_read_list_cb(reader, &op->operations, direct_link_id_override_property_operation_cb);
 }
 
 static void direct_link_id_common(
-    FileData *fd, Library *current_library, ID *id, ID *id_old, const int tag);
+    BlendDataReader *reader, Library *current_library, ID *id, ID *id_old, const int tag);
 static void direct_link_nodetree(BlendDataReader *reader, bNodeTree *ntree);
 static void direct_link_collection(BlendDataReader *reader, Collection *collection);
 
-static void direct_link_id_embedded_id(FileData *fd, Library *current_library, ID *id, ID *id_old)
+static void direct_link_id_embedded_id(BlendDataReader *reader,
+                                       Library *current_library,
+                                       ID *id,
+                                       ID *id_old)
 {
-  BlendDataReader reader = {fd};
-
   /* Handle 'private IDs'. */
   bNodeTree **nodetree = BKE_ntree_ptr_from_id(id);
   if (nodetree != NULL && *nodetree != NULL) {
-    *nodetree = newdataadr(fd, *nodetree);
-    direct_link_id_common(fd,
+    BLO_read_data_address(reader, nodetree);
+    direct_link_id_common(reader,
                           current_library,
                           (ID *)*nodetree,
                           id_old != NULL ? (ID *)ntreeFromID(id_old) : NULL,
                           0);
-    direct_link_nodetree(&reader, *nodetree);
+    direct_link_nodetree(reader, *nodetree);
   }
 
   if (GS(id->name) == ID_SCE) {
     Scene *scene = (Scene *)id;
     if (scene->master_collection != NULL) {
-      scene->master_collection = newdataadr(fd, scene->master_collection);
-      direct_link_id_common(fd,
+      BLO_read_data_address(reader, &scene->master_collection);
+      direct_link_id_common(reader,
                             current_library,
                             &scene->master_collection->id,
                             id_old != NULL ? &((Scene *)id_old)->master_collection->id : NULL,
                             0);
-      direct_link_collection(&reader, scene->master_collection);
+      direct_link_collection(reader, scene->master_collection);
     }
   }
 }
@@ -2890,9 +2891,9 @@ static int direct_link_id_restore_recalc(const FileData *fd,
 }
 
 static void direct_link_id_common(
-    FileData *fd, Library *current_library, ID *id, ID *id_old, const int tag)
+    BlendDataReader *reader, Library *current_library, ID *id, ID *id_old, const int tag)
 {
-  if (fd->memfile == NULL) {
+  if (reader->fd->memfile == NULL) {
     /* When actually reading a file , we do want to reset/re-generate session uuids.
      * In undo case, we want to re-use existing ones. */
     id->session_uuid = MAIN_ID_SESSION_UUID_UNSET;
@@ -2918,9 +2919,10 @@ static void direct_link_id_common(
 
   /*link direct data of ID properties*/
   if (id->properties) {
-    id->properties = newdataadr(fd, id->properties);
+    BLO_read_data_address(reader, &id->properties);
     /* this case means the data was written incorrectly, it should not happen */
-    IDP_DirectLinkGroup_OrFree(&id->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+    IDP_DirectLinkGroup_OrFree(
+        &id->properties, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
   }
 
   id->flag &= ~LIB_INDIRECT_WEAK_LINK;
@@ -2933,19 +2935,20 @@ static void direct_link_id_common(
    *
    * But for regular file load we clear the flag, since the flags might have been changed since
    * the version the file has been saved with. */
-  if (fd->memfile == NULL) {
+  if (reader->fd->memfile == NULL) {
     id->recalc = 0;
     id->recalc_after_undo_push = 0;
   }
-  else if ((fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0) {
-    id->recalc = direct_link_id_restore_recalc(fd, id, id_old, false);
+  else if ((reader->fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0) {
+    id->recalc = direct_link_id_restore_recalc(reader->fd, id, id_old, false);
     id->recalc_after_undo_push = 0;
   }
 
   /* Link direct data of overrides. */
   if (id->override_library) {
-    id->override_library = newdataadr(fd, id->override_library);
-    link_list_ex(fd, &id->override_library->properties, direct_link_id_override_property_cb);
+    BLO_read_data_address(reader, &id->override_library);
+    BLO_read_list_cb(
+        reader, &id->override_library->properties, direct_link_id_override_property_cb);
     id->override_library->runtime = NULL;
   }
 
@@ -2955,7 +2958,7 @@ static void direct_link_id_common(
   }
 
   /* Handle 'private IDs'. */
-  direct_link_id_embedded_id(fd, current_library, id, id_old);
+  direct_link_id_embedded_id(reader, current_library, id, id_old);
 }
 
 /** \} */
@@ -9327,16 +9330,16 @@ static const char *dataname(short id_code)
 
 static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *id_old)
 {
+  BlendDataReader reader = {fd};
+
   /* Read part of datablock that is common between real and embedded datablocks. */
-  direct_link_id_common(fd, main->curlib, id, id_old, tag);
+  direct_link_id_common(&reader, main->curlib, id, id_old, tag);
 
   if (tag & LIB_TAG_ID_LINK_PLACEHOLDER) {
     /* For placeholder we only need to set the tag, no further data to read. */
     id->tag = tag;
     return true;
   }
-
-  BlendDataReader reader = {fd};
 
   /* XXX Very weakly handled currently, see comment in read_libblock() before trying to
    * use it for anything new. */
