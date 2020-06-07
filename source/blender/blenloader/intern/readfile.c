@@ -4095,23 +4095,24 @@ static void lib_link_armature(FileData *fd, Main *UNUSED(bmain), bArmature *arm)
   }
 }
 
-static void direct_link_bones(FileData *fd, Bone *bone)
+static void direct_link_bones(BlendDataReader *reader, Bone *bone)
 {
   Bone *child;
 
-  bone->parent = newdataadr(fd, bone->parent);
-  bone->prop = newdataadr(fd, bone->prop);
-  IDP_DirectLinkGroup_OrFree(&bone->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+  BLO_read_data_address(reader, &bone->parent);
+  BLO_read_data_address(reader, &bone->prop);
+  IDP_DirectLinkGroup_OrFree(
+      &bone->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
 
-  bone->bbone_next = newdataadr(fd, bone->bbone_next);
-  bone->bbone_prev = newdataadr(fd, bone->bbone_prev);
+  BLO_read_data_address(reader, &bone->bbone_next);
+  BLO_read_data_address(reader, &bone->bbone_prev);
 
   bone->flag &= ~(BONE_DRAW_ACTIVE | BONE_DRAW_LOCKED_WEIGHT);
 
-  link_list(fd, &bone->childbase);
+  BLO_read_list(reader, &bone->childbase);
 
   for (child = bone->childbase.first; child; child = child->next) {
-    direct_link_bones(fd, child);
+    direct_link_bones(reader, child);
   }
 }
 
@@ -4129,7 +4130,7 @@ static void direct_link_armature(BlendDataReader *reader, bArmature *arm)
   direct_link_animdata(reader, arm->adt);
 
   for (bone = arm->bonebase.first; bone; bone = bone->next) {
-    direct_link_bones(reader->fd, bone);
+    direct_link_bones(reader, bone);
   }
 
   BLO_read_data_address(reader, &arm->act_bone);
@@ -6294,37 +6295,38 @@ static void direct_link_view_settings(BlendDataReader *reader,
 /** \name Read View Layer (Collection Data)
  * \{ */
 
-static void direct_link_layer_collections(FileData *fd, ListBase *lb, bool master)
+static void direct_link_layer_collections(BlendDataReader *reader, ListBase *lb, bool master)
 {
-  link_list(fd, lb);
+  BLO_read_list(reader, lb);
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
 #ifdef USE_COLLECTION_COMPAT_28
-    lc->scene_collection = newdataadr(fd, lc->scene_collection);
+    BLO_read_data_address(reader, &lc->scene_collection);
 #endif
 
     /* Master collection is not a real data-lock. */
     if (master) {
-      lc->collection = newdataadr(fd, lc->collection);
+      BLO_read_data_address(reader, &lc->collection);
     }
 
-    direct_link_layer_collections(fd, &lc->layer_collections, false);
+    direct_link_layer_collections(reader, &lc->layer_collections, false);
   }
 }
 
-static void direct_link_view_layer(FileData *fd, ViewLayer *view_layer)
+static void direct_link_view_layer(BlendDataReader *reader, ViewLayer *view_layer)
 {
   view_layer->stats = NULL;
-  link_list(fd, &view_layer->object_bases);
-  view_layer->basact = newdataadr(fd, view_layer->basact);
+  BLO_read_list(reader, &view_layer->object_bases);
+  BLO_read_data_address(reader, &view_layer->basact);
 
-  direct_link_layer_collections(fd, &view_layer->layer_collections, true);
-  view_layer->active_collection = newdataadr(fd, view_layer->active_collection);
+  direct_link_layer_collections(reader, &view_layer->layer_collections, true);
+  BLO_read_data_address(reader, &view_layer->active_collection);
 
-  view_layer->id_properties = newdataadr(fd, view_layer->id_properties);
-  IDP_DirectLinkGroup_OrFree(&view_layer->id_properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+  BLO_read_data_address(reader, &view_layer->id_properties);
+  IDP_DirectLinkGroup_OrFree(
+      &view_layer->id_properties, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
 
-  link_list(fd, &(view_layer->freestyle_config.modules));
-  link_list(fd, &(view_layer->freestyle_config.linesets));
+  BLO_read_list(reader, &(view_layer->freestyle_config.modules));
+  BLO_read_list(reader, &(view_layer->freestyle_config.linesets));
 
   BLI_listbase_clear(&view_layer->drawdata);
   view_layer->object_bases_array = NULL;
@@ -6436,7 +6438,7 @@ static void direct_link_collection(BlendDataReader *reader, Collection *collecti
 
   BLO_read_data_address(reader, &collection->view_layer);
   if (collection->view_layer != NULL) {
-    direct_link_view_layer(reader->fd, collection->view_layer);
+    direct_link_view_layer(reader, collection->view_layer);
   }
 #endif
 }
@@ -6555,11 +6557,12 @@ static void direct_link_lightcache(FileData *fd, LightCache *cache)
   cache->grid_data = newdataadr(fd, cache->grid_data);
 }
 
-static void direct_link_view3dshading(FileData *fd, View3DShading *shading)
+static void direct_link_view3dshading(BlendDataReader *reader, View3DShading *shading)
 {
   if (shading->prop) {
-    shading->prop = newdataadr(fd, shading->prop);
-    IDP_DirectLinkGroup_OrFree(&shading->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+    BLO_read_data_address(reader, &shading->prop);
+    IDP_DirectLinkGroup_OrFree(
+        &shading->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
   }
 }
 
@@ -7157,7 +7160,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
   /* insert into global old-new map for reading without UI (link_global accesses it again) */
   link_glob_list(reader->fd, &sce->view_layers);
   for (view_layer = sce->view_layers.first; view_layer; view_layer = view_layer->next) {
-    direct_link_view_layer(reader->fd, view_layer);
+    direct_link_view_layer(reader, view_layer);
   }
 
   if (reader->fd->memfile) {
@@ -7178,7 +7181,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
   }
   EEVEE_lightcache_info_update(&sce->eevee);
 
-  direct_link_view3dshading(reader->fd, &sce->display.shading);
+  direct_link_view3dshading(reader, &sce->display.shading);
 
   BLO_read_data_address(reader, &sce->layer_properties);
   IDP_DirectLinkGroup_OrFree(
@@ -7444,7 +7447,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       }
       v3d->shading.prev_type = OB_SOLID;
 
-      direct_link_view3dshading(reader->fd, &v3d->shading);
+      direct_link_view3dshading(reader, &v3d->shading);
 
       blo_do_versions_view3d_split_250(v3d, &sl->regionbase);
     }
@@ -7820,9 +7823,9 @@ static bool direct_link_area_map(BlendDataReader *reader, ScrAreaMap *area_map)
 /** \name XR-data
  * \{ */
 
-static void direct_link_wm_xr_data(FileData *fd, wmXrData *xr_data)
+static void direct_link_wm_xr_data(BlendDataReader *reader, wmXrData *xr_data)
 {
-  direct_link_view3dshading(fd, &xr_data->session_settings.shading);
+  direct_link_view3dshading(reader, &xr_data->session_settings.shading);
 }
 
 static void lib_link_wm_xr_data(FileData *fd, ID *parent_id, wmXrData *xr_data)
@@ -7886,7 +7889,7 @@ static void direct_link_windowmanager(BlendDataReader *reader, wmWindowManager *
     }
   }
 
-  direct_link_wm_xr_data(reader->fd, &wm->xr);
+  direct_link_wm_xr_data(reader, &wm->xr);
 
   BLI_listbase_clear(&wm->timers);
   BLI_listbase_clear(&wm->operators);
@@ -10221,10 +10224,11 @@ static void lib_link_all(FileData *fd, Main *bmain)
 /** \name Read User Preferences
  * \{ */
 
-static void direct_link_keymapitem(FileData *fd, wmKeyMapItem *kmi)
+static void direct_link_keymapitem(BlendDataReader *reader, wmKeyMapItem *kmi)
 {
-  kmi->properties = newdataadr(fd, kmi->properties);
-  IDP_DirectLinkGroup_OrFree(&kmi->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+  BLO_read_data_address(reader, &kmi->properties);
+  IDP_DirectLinkGroup_OrFree(
+      &kmi->properties, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
   kmi->ptr = NULL;
   kmi->flag &= ~KMI_UPDATE;
 }
@@ -10246,63 +10250,69 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
   /* read all data into fd->datamap */
   bhead = read_data_into_datamap(fd, bhead, "user def");
 
-  link_list(fd, &user->themes);
-  link_list(fd, &user->user_keymaps);
-  link_list(fd, &user->user_keyconfig_prefs);
-  link_list(fd, &user->user_menus);
-  link_list(fd, &user->addons);
-  link_list(fd, &user->autoexec_paths);
+  BlendDataReader reader_ = {fd};
+  BlendDataReader *reader = &reader_;
+
+  BLO_read_list(reader, &user->themes);
+  BLO_read_list(reader, &user->user_keymaps);
+  BLO_read_list(reader, &user->user_keyconfig_prefs);
+  BLO_read_list(reader, &user->user_menus);
+  BLO_read_list(reader, &user->addons);
+  BLO_read_list(reader, &user->autoexec_paths);
 
   for (keymap = user->user_keymaps.first; keymap; keymap = keymap->next) {
     keymap->modal_items = NULL;
     keymap->poll = NULL;
     keymap->flag &= ~KEYMAP_UPDATE;
 
-    link_list(fd, &keymap->diff_items);
-    link_list(fd, &keymap->items);
+    BLO_read_list(reader, &keymap->diff_items);
+    BLO_read_list(reader, &keymap->items);
 
     for (kmdi = keymap->diff_items.first; kmdi; kmdi = kmdi->next) {
-      kmdi->remove_item = newdataadr(fd, kmdi->remove_item);
-      kmdi->add_item = newdataadr(fd, kmdi->add_item);
+      BLO_read_data_address(reader, &kmdi->remove_item);
+      BLO_read_data_address(reader, &kmdi->add_item);
 
       if (kmdi->remove_item) {
-        direct_link_keymapitem(fd, kmdi->remove_item);
+        direct_link_keymapitem(reader, kmdi->remove_item);
       }
       if (kmdi->add_item) {
-        direct_link_keymapitem(fd, kmdi->add_item);
+        direct_link_keymapitem(reader, kmdi->add_item);
       }
     }
 
     for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
-      direct_link_keymapitem(fd, kmi);
+      direct_link_keymapitem(reader, kmi);
     }
   }
 
   LISTBASE_FOREACH (wmKeyConfigPref *, kpt, &user->user_keyconfig_prefs) {
-    kpt->prop = newdataadr(fd, kpt->prop);
-    IDP_DirectLinkGroup_OrFree(&kpt->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+    BLO_read_data_address(reader, &kpt->prop);
+    IDP_DirectLinkGroup_OrFree(
+        &kpt->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
   }
 
   LISTBASE_FOREACH (bUserMenu *, um, &user->user_menus) {
-    link_list(fd, &um->items);
+    BLO_read_list(reader, &um->items);
     LISTBASE_FOREACH (bUserMenuItem *, umi, &um->items) {
       if (umi->type == USER_MENU_TYPE_OPERATOR) {
         bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
-        umi_op->prop = newdataadr(fd, umi_op->prop);
-        IDP_DirectLinkGroup_OrFree(&umi_op->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+        BLO_read_data_address(reader, &umi_op->prop);
+        IDP_DirectLinkGroup_OrFree(
+            &umi_op->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
       }
     }
   }
 
   for (addon = user->addons.first; addon; addon = addon->next) {
-    addon->prop = newdataadr(fd, addon->prop);
-    IDP_DirectLinkGroup_OrFree(&addon->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+    BLO_read_data_address(reader, &addon->prop);
+    IDP_DirectLinkGroup_OrFree(
+        &addon->prop, (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN), reader->fd);
   }
 
   // XXX
   user->uifonts.first = user->uifonts.last = NULL;
 
-  link_list(fd, &user->uistyles);
+  BLO_read_list(reader, &user->uistyles);
 
   /* Don't read the active app template, use the default one. */
   user->app_template[0] = '\0';
