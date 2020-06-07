@@ -1840,6 +1840,25 @@ bool BKE_gpencil_from_image(SpaceImage *sima, bGPDframe *gpf, const float size, 
   return done;
 }
 
+/**
+ * Helper to check if a layers is used as mask
+ * \param gpd Grease pencil datablock
+ * \param gpl_mask Actual Layer
+ * \return True if the layer is a mask
+ */
+static bool gpencil_is_layer_mask(bGPdata *gpd, bGPDlayer *gpl_mask)
+{
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl->mask_layers) {
+      if (STREQ(gpl_mask->info, mask->name)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Iterators
  *
@@ -1881,7 +1900,11 @@ void BKE_gpencil_visible_stroke_iter(ViewLayer *view_layer,
      * This is used only in final render and never in Viewport. */
     if ((view_layer != NULL) && (gpl->viewlayername[0] != '\0') &&
         (!STREQ(view_layer->name, gpl->viewlayername))) {
-      continue;
+      /* If the layer is used as mask, cannot be filtered or the masking system
+       * will crash because needs the mask layer in the draw pipeline. */
+      if (!gpencil_is_layer_mask(gpd, gpl)) {
+        continue;
+      }
     }
 
     if (is_multiedit) {
