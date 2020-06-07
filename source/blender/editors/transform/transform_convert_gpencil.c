@@ -317,10 +317,12 @@ void createTransGPencil(bContext *C, TransInfo *t)
                   /* for other transform modes (e.g. shrink-fatten), need to additional data
                    * but never for mirror
                    */
-                  if ((t->mode != TFM_MIRROR) && (is_scale_thickness)) {
+                  if (t->mode != TFM_MIRROR) {
                     if (t->mode != TFM_GPENCIL_OPACITY) {
-                      td->val = &pt->pressure;
-                      td->ival = pt->pressure;
+                      if (is_scale_thickness) {
+                        td->val = &pt->pressure;
+                        td->ival = pt->pressure;
+                      }
                     }
                     else {
                       td->val = &pt->strength;
