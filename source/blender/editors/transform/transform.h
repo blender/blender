@@ -229,31 +229,6 @@ typedef struct TransDataSeq {
 
 } TransDataSeq;
 
-/** Used for NLA transform (stored in #TransData.extra pointer). */
-typedef struct TransDataNla {
-  /** ID-block NLA-data is attached to. */
-  ID *id;
-
-  /** Original NLA-Track that the strip belongs to. */
-  struct NlaTrack *oldTrack;
-  /** Current NLA-Track that the strip belongs to. */
-  struct NlaTrack *nlt;
-
-  /** NLA-strip this data represents. */
-  struct NlaStrip *strip;
-
-  /* dummy values for transform to write in - must have 3 elements... */
-  /** start handle. */
-  float h1[3];
-  /** end handle. */
-  float h2[3];
-
-  /** index of track that strip is currently in. */
-  int trackIndex;
-  /** handle-index: 0 for dummy entry, -1 for start, 1 for end, 2 for both ends. */
-  int handle;
-} TransDataNla;
-
 typedef struct TransData {
   /** Distance needed to affect element (for Proportionnal Editing). */
   float dist;
