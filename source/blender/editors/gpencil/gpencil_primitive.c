@@ -1308,7 +1308,12 @@ static void gpencil_primitive_interaction_end(bContext *C,
     add_frame_mode = GP_GETFRAME_ADD_NEW;
   }
 
+  bool need_tag = tgpi->gpl->actframe == NULL;
   gpf = BKE_gpencil_layer_frame_get(tgpi->gpl, tgpi->cframe, add_frame_mode);
+  /* Only if there wasn't an active frame, need update. */
+  if (need_tag) {
+    DEG_id_tag_update(&tgpi->gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+  }
 
   /* prepare stroke to get transferred */
   gps = tgpi->gpf->strokes.first;

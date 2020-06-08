@@ -2127,7 +2127,12 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
       add_frame_mode = GP_GETFRAME_ADD_NEW;
     }
 
+    bool need_tag = p->gpl->actframe == NULL;
     p->gpf = BKE_gpencil_layer_frame_get(p->gpl, CFRA, add_frame_mode);
+    /* Only if there wasn't an active frame, need update. */
+    if (need_tag) {
+      DEG_id_tag_update(&p->gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+    }
 
     if (p->gpf == NULL) {
       p->status = GP_STATUS_ERROR;
