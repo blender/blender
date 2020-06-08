@@ -319,7 +319,9 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
   else {
     struct NearestVertUserData data = {{0}};
     const struct NearestVertUserData_Hit *hit = NULL;
-    const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_DEFAULT;
+    const eV3DProjTest clip_flag = RV3D_CLIPPING_ENABLED(vc->v3d, vc->rv3d) ?
+                                       V3D_PROJ_TEST_CLIP_DEFAULT :
+                                       V3D_PROJ_TEST_CLIP_DEFAULT & ~V3D_PROJ_TEST_CLIP_BB;
     BMesh *prev_select_bm = NULL;
 
     static struct {
