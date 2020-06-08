@@ -204,29 +204,22 @@ typedef struct TransCustomDataContainer {
 #define TRANS_CUSTOM_DATA_ELEM_MAX (sizeof(TransCustomDataContainer) / sizeof(TransCustomData))
 
 typedef struct TransDataContainer {
-  /**
-   * Use for cases we care about the active, eg: active vert of active mesh.
-   * if set this will _always_ be the first item in the array.
-   */
-  bool is_active;
-
   /** Transformed data (array). */
   TransData *data;
-  /** Total number of transformed data. */
-  int data_len;
-
   /** Transformed data extension (array). */
   TransDataExtension *data_ext;
   /** Transformed data for 2d (array). */
   TransData2D *data_2d;
+  /** Transformed data for mirror elements (array). */
+  TransDataMirror *data_mirror;
+
+  /** Total number of transformed data, data_ext, data_2d. */
+  int data_len;
+  /** Total number of transformed data_mirror. */
+  int data_mirror_len;
 
   struct Object *obedit;
 
-  /**
-   * Store matrix, this avoids having to have duplicate check all over
-   * Typically: 'obedit->obmat' or 'poseobj->obmat', but may be used elsewhere too.
-   */
-  bool use_local_mat;
   float mat[4][4];
   float imat[4][4];
   /** 3x3 copies of matrices above. */
@@ -243,22 +236,27 @@ typedef struct TransDataContainer {
   float center_local[3];
 
   /**
-   * Mirror option
+   * Use for cases we care about the active, eg: active vert of active mesh.
+   * if set this will _always_ be the first item in the array.
    */
-  struct {
-    union {
-      struct {
-        uint axis_x : 1;
-        uint axis_y : 1;
-        uint axis_z : 1;
-      };
-      /* For easy checking. */
-      char use_mirror_any;
+  bool is_active;
+
+  /**
+   * Store matrix, this avoids having to have duplicate check all over
+   * Typically: 'obedit->obmat' or 'poseobj->obmat', but may be used elsewhere too.
+   */
+  bool use_local_mat;
+
+  /**  Mirror option. */
+  union {
+    struct {
+      uint use_mirror_axis_x : 1;
+      uint use_mirror_axis_y : 1;
+      uint use_mirror_axis_z : 1;
     };
-    /** Mirror data array. */
-    TransDataMirror *data;
-    int data_len;
-  } mirror;
+    /* For easy checking. */
+    char use_mirror_axis_any;
+  };
 
   TransCustomDataContainer custom;
 } TransDataContainer;

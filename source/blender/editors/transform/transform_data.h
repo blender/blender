@@ -27,16 +27,28 @@
 struct bConstraint;
 struct Object;
 
+#define TRANSDATABASIC \
+  /** Extra data (mirrored element pointer, in editmode mesh to BMVert) \
+   * (editbone for roll fixing) (...). */ \
+  void *extra; \
+  /** Location of the data to transform. */ \
+  float *loc; \
+  /** Initial location. */ \
+  float iloc[3]; \
+  /** Individual data center. */ \
+  float center[3]; \
+  /** Various flags. */ \
+  int flag
+
+typedef struct TransDataBasic {
+  TRANSDATABASIC;
+} TransDataBasic;
+
 typedef struct TransDataMirror {
-  /** location of mirrored reference data. */
-  const float *loc_src;
+  TRANSDATABASIC;
+  // int pad;
   /** Location of the data to transform. */
-  float *loc_dst;
-  void *extra;
-  /* `sign` can be -2, -1, 0 or 1. */
-  int sign_x : 2;
-  int sign_y : 2;
-  int sign_z : 2;
+  float *loc_src;
 } TransDataMirror;
 
 typedef struct TransDataExtension {
@@ -108,22 +120,17 @@ typedef struct TransDataCurveHandleFlags {
 } TransDataCurveHandleFlags;
 
 typedef struct TransData {
+  TRANSDATABASIC;
   /** Distance needed to affect element (for Proportionnal Editing). */
   float dist;
   /** Distance to the nearest element (for Proportionnal Editing). */
   float rdist;
   /** Factor of the transformation (for Proportionnal Editing). */
   float factor;
-  /** Location of the data to transform. */
-  float *loc;
-  /** Initial location. */
-  float iloc[3];
   /** Value pointer for special transforms. */
   float *val;
   /** Old value. */
   float ival;
-  /** Individual data center. */
-  float center[3];
   /** Transformation matrix from data space to global space. */
   float mtx[3][3];
   /** Transformation matrix from global space to data space. */
@@ -137,11 +144,6 @@ typedef struct TransData {
   TransDataExtension *ext;
   /** for curves, stores handle flags for modification/cancel. */
   TransDataCurveHandleFlags *hdata;
-  /** Extra data (mirrored element pointer, in editmode mesh to BMVert)
-   * (editbone for roll fixing) (...). */
-  void *extra;
-  /** Various flags. */
-  int flag;
   /** If set, copy of Object or PoseChannel protection. */
   short protectflag;
 } TransData;

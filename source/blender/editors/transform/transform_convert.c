@@ -1894,16 +1894,14 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
       char hflag;
       bool has_face_sel = (bm->totfacesel != 0);
 
-      if (tc->mirror.use_mirror_any) {
-        TransDataMirror *tdm;
-        int i;
-
+      if (tc->use_mirror_axis_any) {
         /* Rather then adjusting the selection (which the user would notice)
          * tag all mirrored verts, then auto-merge those. */
         BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 
-        for (i = tc->mirror.data_len, tdm = tc->mirror.data; i--; tdm++) {
-          BM_elem_flag_enable((BMVert *)tdm->extra, BM_ELEM_TAG);
+        TransDataMirror *td_mirror = tc->data_mirror;
+        for (int i = tc->data_mirror_len; i--; td_mirror++) {
+          BM_elem_flag_enable((BMVert *)td_mirror->extra, BM_ELEM_TAG);
         }
 
         hflag = BM_ELEM_SELECT | BM_ELEM_TAG;

@@ -180,9 +180,9 @@ void initTransDataContainers_FromObjectData(TransInfo *t,
       TransDataContainer *tc = &t->data_container[i];
       if (((t->flag & T_NO_MIRROR) == 0) && ((t->options & CTX_NO_MIRROR) == 0) &&
           (objects[i]->type == OB_MESH)) {
-        tc->mirror.axis_x = (((Mesh *)objects[i]->data)->editflag & ME_EDIT_MIRROR_X) != 0;
-        tc->mirror.axis_y = (((Mesh *)objects[i]->data)->editflag & ME_EDIT_MIRROR_Y) != 0;
-        tc->mirror.axis_z = (((Mesh *)objects[i]->data)->editflag & ME_EDIT_MIRROR_Z) != 0;
+        tc->use_mirror_axis_x = (((Mesh *)objects[i]->data)->editflag & ME_EDIT_MIRROR_X) != 0;
+        tc->use_mirror_axis_y = (((Mesh *)objects[i]->data)->editflag & ME_EDIT_MIRROR_Y) != 0;
+        tc->use_mirror_axis_z = (((Mesh *)objects[i]->data)->editflag & ME_EDIT_MIRROR_Z) != 0;
       }
 
       if (object_mode & OB_MODE_EDIT) {
@@ -821,9 +821,9 @@ void postTrans(bContext *C, TransInfo *t)
       }
       MEM_freeN(tc->data);
 
+      MEM_SAFE_FREE(tc->data_mirror);
       MEM_SAFE_FREE(tc->data_ext);
       MEM_SAFE_FREE(tc->data_2d);
-      MEM_SAFE_FREE(tc->mirror.data);
     }
   }
 
@@ -880,12 +880,18 @@ void applyTransObjects(TransInfo *t)
   recalcData(t);
 }
 
-static void restoreElement(TransData *td)
+static void transdata_restore_basic(TransDataBasic *td_basic)
 {
   /* TransData for crease has no loc */
-  if (td->loc) {
-    copy_v3_v3(td->loc, td->iloc);
+  if (td_basic->loc) {
+    copy_v3_v3(td_basic->loc, td_basic->iloc);
   }
+}
+
+static void restoreElement(TransData *td)
+{
+  transdata_restore_basic((TransDataBasic *)td);
+
   if (td->val) {
     *td->val = td->ival;
   }
@@ -921,9 +927,14 @@ void restoreTransObjects(TransInfo *t)
 
     TransData *td;
     TransData2D *td2d;
+    TransDataMirror *tdm;
 
     for (td = tc->data; td < tc->data + tc->data_len; td++) {
       restoreElement(td);
+    }
+
+    for (tdm = tc->data_mirror; tdm < tc->data_mirror + tc->data_mirror_len; tdm++) {
+      transdata_restore_basic((TransDataBasic *)tdm);
     }
 
     for (td2d = tc->data_2d; tc->data_2d && td2d < tc->data_2d + tc->data_len; td2d++) {
@@ -1040,25 +1051,41 @@ void calculateCenterCursorGraph2D(TransInfo *t, float r_center[2])
   }
 }
 
+static bool transdata_center_global_get(const TransDataContainer *tc,
+                                        const TransDataBasic *td_basic,
+                                        float r_vec[3])
+{
+  if (td_basic->flag & TD_SELECTED) {
+    if (!(td_basic->flag & TD_NOCENTER)) {
+      if (tc->use_local_mat) {
+        mul_v3_m4v3(r_vec, tc->mat, td_basic->center);
+      }
+      else {
+        copy_v3_v3(r_vec, td_basic->center);
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
 void calculateCenterMedian(TransInfo *t, float r_center[3])
 {
   float partial[3] = {0.0f, 0.0f, 0.0f};
   int total = 0;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    float center[3];
     for (int i = 0; i < tc->data_len; i++) {
-      if (tc->data[i].flag & TD_SELECTED) {
-        if (!(tc->data[i].flag & TD_NOCENTER)) {
-          if (tc->use_local_mat) {
-            float v[3];
-            mul_v3_m4v3(v, tc->mat, tc->data[i].center);
-            add_v3_v3(partial, v);
-          }
-          else {
-            add_v3_v3(partial, tc->data[i].center);
-          }
-          total++;
-        }
+      if (transdata_center_global_get(tc, (TransDataBasic *)&tc->data[i], center)) {
+        add_v3_v3(partial, center);
+        total++;
+      }
+    }
+    for (int i = 0; i < tc->data_mirror_len; i++) {
+      if (transdata_center_global_get(tc, (TransDataBasic *)&tc->data_mirror[i], center)) {
+        add_v3_v3(partial, center);
+        total++;
       }
     }
   }
@@ -1074,19 +1101,17 @@ void calculateCenterBound(TransInfo *t, float r_center[3])
   bool changed = false;
   INIT_MINMAX(min, max);
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    float center[3];
     for (int i = 0; i < tc->data_len; i++) {
-      if (tc->data[i].flag & TD_SELECTED) {
-        if (!(tc->data[i].flag & TD_NOCENTER)) {
-          if (tc->use_local_mat) {
-            float v[3];
-            mul_v3_m4v3(v, tc->mat, tc->data[i].center);
-            minmax_v3v3_v3(min, max, v);
-          }
-          else {
-            minmax_v3v3_v3(min, max, tc->data[i].center);
-          }
-          changed = true;
-        }
+      if (transdata_center_global_get(tc, (TransDataBasic *)&tc->data[i], center)) {
+        minmax_v3v3_v3(min, max, center);
+        changed = true;
+      }
+    }
+    for (int i = 0; i < tc->data_mirror_len; i++) {
+      if (transdata_center_global_get(tc, (TransDataBasic *)&tc->data_mirror[i], center)) {
+        minmax_v3v3_v3(min, max, center);
+        changed = true;
       }
     }
   }
