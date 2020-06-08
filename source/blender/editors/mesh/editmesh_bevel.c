@@ -938,6 +938,9 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
 
   RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
 
+  col = uiLayoutRow(layout, true);
+  uiItemR(col, &ptr, "offset_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
   if (RNA_enum_get(&ptr, "offset_type") == BEVEL_AMT_PERCENT) {
     uiItemR(layout, &ptr, "offset_pct", 0, NULL, ICON_NONE);
   }
@@ -958,8 +961,6 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
         C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &offset_name);
     uiItemR(layout, &ptr, "offset", 0, offset_name, ICON_NONE);
   }
-  row = uiLayoutRow(layout, true);
-  uiItemR(row, &ptr, "offset_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
   split = uiLayoutSplit(layout, 0.5f, true);
   col = uiLayoutColumn(split, true);
