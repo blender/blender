@@ -584,6 +584,11 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   return OPERATOR_RUNNING_MODAL;
 }
 
+static bool voxel_size_edit_poll(bContext *C)
+{
+  return CTX_wm_region_view3d(C) && object_remesh_poll(C);
+}
+
 void OBJECT_OT_voxel_size_edit(wmOperatorType *ot)
 {
   /* identifiers */
@@ -592,7 +597,7 @@ void OBJECT_OT_voxel_size_edit(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_voxel_size_edit";
 
   /* api callbacks */
-  ot->poll = object_remesh_poll;
+  ot->poll = voxel_size_edit_poll;
   ot->invoke = voxel_size_edit_invoke;
   ot->modal = voxel_size_edit_modal;
   ot->cancel = voxel_size_edit_cancel;
