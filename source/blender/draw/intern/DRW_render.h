@@ -458,6 +458,10 @@ void DRW_shgroup_clear_framebuffer(DRWShadingGroup *shgroup,
                                    float depth,
                                    uchar stencil);
 
+void DRW_shgroup_uniform_texture_ex(DRWShadingGroup *shgroup,
+                                    const char *name,
+                                    const struct GPUTexture *tex,
+                                    eGPUSamplerState sampler_state);
 void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup,
                                  const char *name,
                                  const struct GPUTexture *tex);

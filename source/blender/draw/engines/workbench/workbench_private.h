@@ -462,7 +462,7 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
                                           int mat_nr,
                                           Image *ima,
                                           ImageUser *iuser,
-                                          int interp,
+                                          eGPUSamplerState sampler,
                                           bool hair);
 
 #define workbench_material_setup(wpd, ob, mat_nr, color_type, r_transp) \

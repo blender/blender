@@ -101,30 +101,33 @@ BLI_INLINE Material *workbench_object_material_get(Object *ob, int mat_nr)
 }
 
 BLI_INLINE void workbench_material_get_image(
-    Object *ob, int mat_nr, Image **r_image, ImageUser **r_iuser, int *r_interp)
+    Object *ob, int mat_nr, Image **r_image, ImageUser **r_iuser, eGPUSamplerState *r_sampler)
 {
   bNode *node;
+  *r_sampler = 0;
 
   ED_object_get_active_image(ob, mat_nr, r_image, r_iuser, &node, NULL);
   if (node && *r_image) {
     switch (node->type) {
       case SH_NODE_TEX_IMAGE: {
         NodeTexImage *storage = node->storage;
-        *r_interp = storage->interpolation;
+        const bool use_filter = (storage->interpolation != SHD_INTERP_CLOSEST);
+        const bool use_repeat = (storage->extension == SHD_IMAGE_EXTENSION_REPEAT);
+        const bool use_clip = (storage->extension == SHD_IMAGE_EXTENSION_CLIP);
+        SET_FLAG_FROM_TEST(*r_sampler, use_filter, GPU_SAMPLER_FILTER);
+        SET_FLAG_FROM_TEST(*r_sampler, use_repeat, GPU_SAMPLER_REPEAT);
+        SET_FLAG_FROM_TEST(*r_sampler, use_clip, GPU_SAMPLER_CLAMP_BORDER);
         break;
       }
       case SH_NODE_TEX_ENVIRONMENT: {
         NodeTexEnvironment *storage = node->storage;
-        *r_interp = storage->interpolation;
+        const bool use_filter = (storage->interpolation != SHD_INTERP_CLOSEST);
+        SET_FLAG_FROM_TEST(*r_sampler, use_filter, GPU_SAMPLER_FILTER);
         break;
       }
       default:
         BLI_assert(!"Node type not supported by workbench");
-        *r_interp = 0;
     }
-  }
-  else {
-    *r_interp = 0;
   }
 }
 
@@ -164,11 +167,11 @@ DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
 {
   Image *ima = NULL;
   ImageUser *iuser = NULL;
-  int interp;
+  eGPUSamplerState sampler;
   const bool infront = (ob->dtx & OB_DRAWXRAY) != 0;
 
   if (color_type == V3D_SHADING_TEXTURE_COLOR) {
-    workbench_material_get_image(ob, mat_nr, &ima, &iuser, &interp);
+    workbench_material_get_image(ob, mat_nr, &ima, &iuser, &sampler);
     if (ima == NULL) {
       /* Fallback to material color. */
       color_type = V3D_SHADING_MATERIAL_COLOR;
@@ -177,7 +180,7 @@ DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
 
   switch (color_type) {
     case V3D_SHADING_TEXTURE_COLOR: {
-      return workbench_image_setup_ex(wpd, ob, mat_nr, ima, iuser, interp, hair);
+      return workbench_image_setup_ex(wpd, ob, mat_nr, ima, iuser, sampler, hair);
     }
     case V3D_SHADING_MATERIAL_COLOR: {
       /* For now, we use the same ubo for material and object coloring but with different indices.
@@ -247,13 +250,13 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
                                           int mat_nr,
                                           Image *ima,
                                           ImageUser *iuser,
-                                          int interp,
+                                          eGPUSamplerState sampler,
                                           bool hair)
 {
   GPUTexture *tex = NULL, *tex_tile_data = NULL;
 
   if (ima == NULL) {
-    workbench_material_get_image(ob, mat_nr, &ima, &iuser, &interp);
+    workbench_material_get_image(ob, mat_nr, &ima, &iuser, &sampler);
   }
 
   if (ima) {
@@ -284,13 +287,12 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
 
   *grp_tex = grp = DRW_shgroup_create_sub(grp);
   if (tex_tile_data) {
-    DRW_shgroup_uniform_texture(grp, "imageTileArray", tex);
+    DRW_shgroup_uniform_texture_ex(grp, "imageTileArray", tex, sampler);
     DRW_shgroup_uniform_texture(grp, "imageTileData", tex_tile_data);
   }
   else {
-    DRW_shgroup_uniform_texture(grp, "imageTexture", tex);
+    DRW_shgroup_uniform_texture_ex(grp, "imageTexture", tex, sampler);
   }
   DRW_shgroup_uniform_bool_copy(grp, "imagePremult", (ima && ima->alpha_mode == IMA_ALPHA_PREMUL));
-  DRW_shgroup_uniform_bool_copy(grp, "imageNearest", (interp == SHD_INTERP_CLOSEST));
   return grp;
 }
