@@ -6778,7 +6778,7 @@ static void rna_def_modifier_weightednormal(BlenderRNA *brna)
   RNA_define_lib_overridable(false);
 }
 
-static void rna_def_modifier_simulation_access(BlenderRNA *brna)
+static void rna_def_modifier_simulation(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
@@ -6930,7 +6930,7 @@ void RNA_def_modifier(BlenderRNA *brna)
   rna_def_modifier_meshseqcache(brna);
   rna_def_modifier_surfacedeform(brna);
   rna_def_modifier_weightednormal(brna);
-  rna_def_modifier_simulation_access(brna);
+  rna_def_modifier_simulation(brna);
 }
 
 #endif
