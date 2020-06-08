@@ -82,6 +82,7 @@ class DeviceInfo {
   bool has_osl;                      /* Support Open Shading Language. */
   bool use_split_kernel;             /* Use split or mega kernel. */
   bool has_profiling;                /* Supports runtime collection of profiling info. */
+  bool has_peer_memory;              /* GPU has P2P access to memory of another GPU. */
   int cpu_threads;
   vector<DeviceInfo> multi_devices;
   vector<DeviceInfo> denoising_devices;
@@ -99,6 +100,7 @@ class DeviceInfo {
     has_osl = false;
     use_split_kernel = false;
     has_profiling = false;
+    has_peer_memory = false;
   }
 
   bool operator==(const DeviceInfo &info)
@@ -433,6 +435,17 @@ class Device {
   }
   virtual void unmap_neighbor_tiles(Device * /*sub_device*/, RenderTile * /*tiles*/)
   {
+  }
+
+  virtual bool is_resident(device_ptr /*key*/, Device *sub_device)
+  {
+    /* Memory is always resident if this is not a multi device, regardless of whether the pointer
+     * is valid or not (since it may not have been allocated yet). */
+    return sub_device == this;
+  }
+  virtual bool check_peer_access(Device * /*peer_device*/)
+  {
+    return false;
   }
 
   /* static */

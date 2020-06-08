@@ -113,6 +113,10 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scen
         device = Device::get_multi_device(used_devices, threads, background);
       }
       /* Else keep using the CPU device that was set before. */
+
+      if (!get_boolean(cpreferences, "peer_memory")) {
+        device.has_peer_memory = false;
+      }
     }
   }
 

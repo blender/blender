@@ -125,6 +125,11 @@ void device_memory::restore_device()
   device_pointer = original_device_ptr;
 }
 
+bool device_memory::is_resident(Device *sub_device) const
+{
+  return device->is_resident(device_pointer, sub_device);
+}
+
 /* Device Sub Ptr */
 
 device_sub_ptr::device_sub_ptr(device_memory &mem, int offset, int size) : device(mem.device)

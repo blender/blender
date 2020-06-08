@@ -1535,6 +1535,12 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     devices: bpy.props.CollectionProperty(type=CyclesDeviceSettings)
 
+    peer_memory: BoolProperty(
+        name="Distribute memory across devices",
+        description="Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it",
+        default=False,
+    )
+
     def find_existing_device_entry(self, device):
         for device_entry in self.devices:
             if device_entry.id == device[2] and device_entry.type == device[1]:
@@ -1632,14 +1638,21 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         row = layout.row()
         row.prop(self, "compute_device_type", expand=True)
 
-        devices = self.get_devices_for_type(self.compute_device_type)
+        if self.compute_device_type == 'NONE':
+            return
         row = layout.row()
-        if self.compute_device_type == 'CUDA':
-            self._draw_devices(row, 'CUDA', devices)
-        elif self.compute_device_type == 'OPTIX':
-            self._draw_devices(row, 'OPTIX', devices)
-        elif self.compute_device_type == 'OPENCL':
-            self._draw_devices(row, 'OPENCL', devices)
+        devices = self.get_devices_for_type(self.compute_device_type)
+        self._draw_devices(row, self.compute_device_type, devices)
+
+        import _cycles
+        has_peer_memory = 0
+        for device in _cycles.available_devices(self.compute_device_type):
+            if device[3] and self.find_existing_device_entry(device).use:
+                has_peer_memory += 1
+        if has_peer_memory > 1:
+            row = layout.row()
+            row.use_property_split = True
+            row.prop(self, "peer_memory")
 
     def draw(self, context):
         self.draw_impl(self.layout, context)

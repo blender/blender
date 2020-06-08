@@ -207,6 +207,7 @@ CUDADevice::CUDADevice(DeviceInfo &info, Stats &stats, Profiler &profiler, bool 
   map_host_limit = 0;
   map_host_used = 0;
   can_map_host = 0;
+  pitch_alignment = 0;
 
   functions.loaded = false;
 
@@ -223,6 +224,9 @@ CUDADevice::CUDADevice(DeviceInfo &info, Stats &stats, Profiler &profiler, bool 
    * so we can predict which memory to map to host. */
   cuda_assert(
       cuDeviceGetAttribute(&can_map_host, CU_DEVICE_ATTRIBUTE_CAN_MAP_HOST_MEMORY, cuDevice));
+
+  cuda_assert(cuDeviceGetAttribute(
+      &pitch_alignment, CU_DEVICE_ATTRIBUTE_TEXTURE_PITCH_ALIGNMENT, cuDevice));
 
   unsigned int ctx_flags = CU_CTX_LMEM_RESIZE_TO_MAX;
   if (can_map_host) {
@@ -281,6 +285,49 @@ bool CUDADevice::support_device(const DeviceRequestedFeatures & /*requested_feat
                       major,
                       minor));
     return false;
+  }
+
+  return true;
+}
+
+bool CUDADevice::check_peer_access(Device *peer_device)
+{
+  if (peer_device == this) {
+    return false;
+  }
+  if (peer_device->info.type != DEVICE_CUDA && peer_device->info.type != DEVICE_OPTIX) {
+    return false;
+  }
+
+  CUDADevice *const peer_device_cuda = static_cast<CUDADevice *>(peer_device);
+
+  int can_access = 0;
+  cuda_assert(cuDeviceCanAccessPeer(&can_access, cuDevice, peer_device_cuda->cuDevice));
+  if (can_access == 0) {
+    return false;
+  }
+
+  // Ensure array access over the link is possible as well (for 3D textures)
+  cuda_assert(cuDeviceGetP2PAttribute(&can_access,
+                                      CU_DEVICE_P2P_ATTRIBUTE_ARRAY_ACCESS_ACCESS_SUPPORTED,
+                                      cuDevice,
+                                      peer_device_cuda->cuDevice));
+  if (can_access == 0) {
+    return false;
+  }
+
+  // Enable peer access in both directions
+  {
+    const CUDAContextScope scope(this);
+    if (cuda_error(cuCtxEnablePeerAccess(peer_device_cuda->cuContext, 0))) {
+      return false;
+    }
+  }
+  {
+    const CUDAContextScope scope(peer_device_cuda);
+    if (cuda_error(cuCtxEnablePeerAccess(cuContext, 0))) {
+      return false;
+    }
   }
 
   return true;
@@ -674,6 +721,12 @@ void CUDADevice::load_texture_info()
 
 void CUDADevice::move_textures_to_host(size_t size, bool for_texture)
 {
+  /* Break out of recursive call, which can happen when moving memory on a multi device. */
+  static bool any_device_moving_textures_to_host = false;
+  if (any_device_moving_textures_to_host) {
+    return;
+  }
+
   /* Signal to reallocate textures in host memory only. */
   move_texture_to_host = true;
 
@@ -687,17 +740,18 @@ void CUDADevice::move_textures_to_host(size_t size, bool for_texture)
       device_memory &mem = *pair.first;
       CUDAMem *cmem = &pair.second;
 
+      /* Can only move textures allocated on this device (and not those from peer devices).
+       * And need to ignore memory that is already on the host. */
+      if (!mem.is_resident(this) || cmem->use_mapped_host) {
+        continue;
+      }
+
       bool is_texture = (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) &&
                         (&mem != &texture_info);
       bool is_image = is_texture && (mem.data_height > 1);
 
       /* Can't move this type of memory. */
       if (!is_texture || cmem->array) {
-        continue;
-      }
-
-      /* Already in host memory. */
-      if (cmem->use_mapped_host) {
         continue;
       }
 
@@ -723,26 +777,30 @@ void CUDADevice::move_textures_to_host(size_t size, bool for_texture)
       static thread_mutex move_mutex;
       thread_scoped_lock lock(move_mutex);
 
-      /* Preserve the original device pointer, in case of multi device
-       * we can't change it because the pointer mapping would break. */
-      device_ptr prev_pointer = max_mem->device_pointer;
-      size_t prev_size = max_mem->device_size;
+      any_device_moving_textures_to_host = true;
 
-      mem_copy_to(*max_mem);
+      /* Potentially need to call back into multi device, so pointer mapping
+       * and peer devices are updated. This is also necessary since the device
+       * pointer may just be a key here, so cannot be accessed and freed directly.
+       * Unfortunately it does mean that memory is reallocated on all other
+       * devices as well, which is potentially dangerous when still in use (since
+       * a thread rendering on another devices would only be caught in this mutex
+       * if it so happens to do an allocation at the same time as well. */
+      max_mem->device_copy_to();
       size = (max_size >= size) ? 0 : size - max_size;
 
-      max_mem->device_pointer = prev_pointer;
-      max_mem->device_size = prev_size;
+      any_device_moving_textures_to_host = false;
     }
     else {
       break;
     }
   }
 
+  /* Unset flag before texture info is reloaded, since it should stay in device memory. */
+  move_texture_to_host = false;
+
   /* Update texture info array with new pointers. */
   load_texture_info();
-
-  move_texture_to_host = false;
 }
 
 CUDADevice::CUDAMem *CUDADevice::generic_alloc(device_memory &mem, size_t pitch_padding)
@@ -807,9 +865,6 @@ CUDADevice::CUDAMem *CUDADevice::generic_alloc(device_memory &mem, size_t pitch_
       cuda_assert(cuMemHostGetDevicePointer_v2(&device_pointer, shared_pointer, 0));
       map_host_used += size;
       status = " in host memory";
-    }
-    else {
-      status = " failed, out of host memory";
     }
   }
 
@@ -906,7 +961,7 @@ void CUDADevice::generic_free(device_memory &mem)
     }
     else {
       /* Free device memory. */
-      cuMemFree(mem.device_pointer);
+      cuda_assert(cuMemFree(mem.device_pointer));
     }
 
     stats.mem_free(mem.device_size);
@@ -1032,18 +1087,17 @@ void CUDADevice::const_copy_to(const char *name, void *host, size_t size)
 
 void CUDADevice::global_alloc(device_memory &mem)
 {
-  CUDAContextScope scope(this);
-
-  generic_alloc(mem);
-  generic_copy_to(mem);
+  if (mem.is_resident(this)) {
+    generic_alloc(mem);
+    generic_copy_to(mem);
+  }
 
   const_copy_to(mem.name, &mem.device_pointer, sizeof(mem.device_pointer));
 }
 
 void CUDADevice::global_free(device_memory &mem)
 {
-  if (mem.device_pointer) {
-    CUDAContextScope scope(this);
+  if (mem.is_resident(this) && mem.device_pointer) {
     generic_free(mem);
   }
 }
@@ -1112,7 +1166,19 @@ void CUDADevice::tex_alloc(device_texture &mem)
   size_t src_pitch = mem.data_width * dsize * mem.data_elements;
   size_t dst_pitch = src_pitch;
 
-  if (mem.data_depth > 1) {
+  if (!mem.is_resident(this)) {
+    cmem = &cuda_mem_map[&mem];
+    cmem->texobject = 0;
+
+    if (mem.data_depth > 1) {
+      array_3d = (CUarray)mem.device_pointer;
+      cmem->array = array_3d;
+    }
+    else if (mem.data_height > 0) {
+      dst_pitch = align_up(src_pitch, pitch_alignment);
+    }
+  }
+  else if (mem.data_depth > 1) {
     /* 3D texture using array, there is no API for linear memory. */
     CUDA_ARRAY3D_DESCRIPTOR desc;
 
@@ -1156,10 +1222,7 @@ void CUDADevice::tex_alloc(device_texture &mem)
   }
   else if (mem.data_height > 0) {
     /* 2D texture, using pitch aligned linear memory. */
-    int alignment = 0;
-    cuda_assert(
-        cuDeviceGetAttribute(&alignment, CU_DEVICE_ATTRIBUTE_TEXTURE_PITCH_ALIGNMENT, cuDevice));
-    dst_pitch = align_up(src_pitch, alignment);
+    dst_pitch = align_up(src_pitch, pitch_alignment);
     size_t dst_size = dst_pitch * mem.data_height;
 
     cmem = generic_alloc(mem, dst_size - mem.memory_size());
@@ -1251,7 +1314,11 @@ void CUDADevice::tex_free(device_texture &mem)
       cuTexObjectDestroy(cmem.texobject);
     }
 
-    if (cmem.array) {
+    if (!mem.is_resident(this)) {
+      /* Do not free memory here, since it was allocated on a different device. */
+      cuda_mem_map.erase(cuda_mem_map.find(&mem));
+    }
+    else if (cmem.array) {
       /* Free array. */
       cuArrayDestroy(cmem.array);
       stats.mem_free(mem.device_size);

@@ -34,37 +34,66 @@ CCL_NAMESPACE_BEGIN
 class MultiDevice : public Device {
  public:
   struct SubDevice {
-    explicit SubDevice(Device *device_) : device(device_)
-    {
-    }
-
+    Stats stats;
     Device *device;
     map<device_ptr, device_ptr> ptr_map;
+    int peer_island_index = -1;
   };
 
   list<SubDevice> devices, denoising_devices;
   device_ptr unique_key;
+  vector<vector<SubDevice *>> peer_islands;
 
   MultiDevice(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background_)
       : Device(info, stats, profiler, background_), unique_key(1)
   {
     foreach (DeviceInfo &subinfo, info.multi_devices) {
-      Device *device = Device::create(subinfo, sub_stats_, profiler, background);
-
       /* Always add CPU devices at the back since GPU devices can change
        * host memory pointers, which CPU uses as device pointer. */
+      SubDevice *sub;
       if (subinfo.type == DEVICE_CPU) {
-        devices.push_back(SubDevice(device));
+        devices.emplace_back();
+        sub = &devices.back();
       }
       else {
-        devices.push_front(SubDevice(device));
+        devices.emplace_front();
+        sub = &devices.front();
       }
+
+      /* The pointer to 'sub->stats' will stay valid even after new devices
+       * are added, since 'devices' is a linked list. */
+      sub->device = Device::create(subinfo, sub->stats, profiler, background);
     }
 
     foreach (DeviceInfo &subinfo, info.denoising_devices) {
-      Device *device = Device::create(subinfo, sub_stats_, profiler, background);
+      denoising_devices.emplace_back();
+      SubDevice *sub = &denoising_devices.back();
 
-      denoising_devices.push_back(SubDevice(device));
+      sub->device = Device::create(subinfo, sub->stats, profiler, background);
+    }
+
+    /* Build a list of peer islands for the available render devices */
+    foreach (SubDevice &sub, devices) {
+      /* First ensure that every device is in at least once peer island */
+      if (sub.peer_island_index < 0) {
+        peer_islands.emplace_back();
+        sub.peer_island_index = (int)peer_islands.size() - 1;
+        peer_islands[sub.peer_island_index].push_back(&sub);
+      }
+
+      if (!info.has_peer_memory) {
+        continue;
+      }
+
+      /* Second check peer access between devices and fill up the islands accordingly */
+      foreach (SubDevice &peer_sub, devices) {
+        if (peer_sub.peer_island_index < 0 &&
+            peer_sub.device->info.type == sub.device->info.type &&
+            peer_sub.device->check_peer_access(sub.device)) {
+          peer_sub.peer_island_index = sub.peer_island_index;
+          peer_islands[sub.peer_island_index].push_back(&peer_sub);
+        }
+      }
     }
 
 #ifdef WITH_NETWORK
@@ -175,11 +204,11 @@ class MultiDevice : public Device {
 
   bool build_optix_bvh(BVH *bvh)
   {
-    // Broadcast acceleration structure build to all render devices
-    foreach (SubDevice &sub, devices)
+    /* Broadcast acceleration structure build to all render devices */
+    foreach (SubDevice &sub, devices) {
       if (!sub.device->build_optix_bvh(bvh))
         return false;
-
+    }
     return true;
   }
 
@@ -191,17 +220,82 @@ class MultiDevice : public Device {
     return devices.front().device->osl_memory();
   }
 
+  bool is_resident(device_ptr key, Device *sub_device) override
+  {
+    foreach (SubDevice &sub, devices) {
+      if (sub.device == sub_device) {
+        return find_matching_mem_device(key, sub)->device == sub_device;
+      }
+    }
+    return false;
+  }
+
+  SubDevice *find_matching_mem_device(device_ptr key, SubDevice &sub)
+  {
+    assert(sub.peer_island_index >= 0 && key != 0);
+
+    /* Get the memory owner of this key (first try current device, then peer devices) */
+    SubDevice *owner_sub = &sub;
+    if (owner_sub->ptr_map.find(key) == owner_sub->ptr_map.end()) {
+      foreach (SubDevice *island_sub, peer_islands[sub.peer_island_index]) {
+        if (island_sub != owner_sub &&
+            island_sub->ptr_map.find(key) != island_sub->ptr_map.end()) {
+          owner_sub = island_sub;
+        }
+      }
+    }
+    return owner_sub;
+  }
+
+  SubDevice *find_suitable_mem_device(device_ptr key, const vector<SubDevice *> &island)
+  {
+    assert(!island.empty());
+
+    /* Get the memory owner of this key or the device with the lowest memory usage when new */
+    SubDevice *owner_sub = island.front();
+    foreach (SubDevice *island_sub, island) {
+      if (key ? (island_sub->ptr_map.find(key) != island_sub->ptr_map.end()) :
+                (island_sub->device->stats.mem_used < owner_sub->device->stats.mem_used)) {
+        owner_sub = island_sub;
+      }
+    }
+    return owner_sub;
+  }
+
+  inline device_ptr find_matching_mem(device_ptr key, SubDevice &sub)
+  {
+    return find_matching_mem_device(key, sub)->ptr_map[key];
+  }
+
   void mem_alloc(device_memory &mem)
   {
     device_ptr key = unique_key++;
 
-    foreach (SubDevice &sub, devices) {
-      mem.device = sub.device;
-      mem.device_pointer = 0;
-      mem.device_size = 0;
+    if (mem.type == MEM_PIXELS) {
+      /* Always allocate pixels memory on all devices
+       * This is necessary to ensure PBOs are registered everywhere, which FILM_CONVERT uses */
+      foreach (SubDevice &sub, devices) {
+        mem.device = sub.device;
+        mem.device_pointer = 0;
+        mem.device_size = 0;
 
-      sub.device->mem_alloc(mem);
-      sub.ptr_map[key] = mem.device_pointer;
+        sub.device->mem_alloc(mem);
+        sub.ptr_map[key] = mem.device_pointer;
+      }
+    }
+    else {
+      assert(mem.type == MEM_READ_ONLY || mem.type == MEM_READ_WRITE ||
+             mem.type == MEM_DEVICE_ONLY);
+      /* The remaining memory types can be distributed across devices */
+      foreach (const vector<SubDevice *> &island, peer_islands) {
+        SubDevice *owner_sub = find_suitable_mem_device(key, island);
+        mem.device = owner_sub->device;
+        mem.device_pointer = 0;
+        mem.device_size = 0;
+
+        owner_sub->device->mem_alloc(mem);
+        owner_sub->ptr_map[key] = mem.device_pointer;
+      }
     }
 
     mem.device = this;
@@ -215,13 +309,36 @@ class MultiDevice : public Device {
     device_ptr key = (existing_key) ? existing_key : unique_key++;
     size_t existing_size = mem.device_size;
 
-    foreach (SubDevice &sub, devices) {
-      mem.device = sub.device;
-      mem.device_pointer = (existing_key) ? sub.ptr_map[existing_key] : 0;
-      mem.device_size = existing_size;
+    /* The tile buffers are allocated on each device (see below), so copy to all of them */
+    if (strcmp(mem.name, "RenderBuffers") == 0) {
+      foreach (SubDevice &sub, devices) {
+        mem.device = sub.device;
+        mem.device_pointer = (existing_key) ? sub.ptr_map[existing_key] : 0;
+        mem.device_size = existing_size;
 
-      sub.device->mem_copy_to(mem);
-      sub.ptr_map[key] = mem.device_pointer;
+        sub.device->mem_copy_to(mem);
+        sub.ptr_map[key] = mem.device_pointer;
+      }
+    }
+    else {
+      foreach (const vector<SubDevice *> &island, peer_islands) {
+        SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
+        mem.device = owner_sub->device;
+        mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
+        mem.device_size = existing_size;
+
+        owner_sub->device->mem_copy_to(mem);
+        owner_sub->ptr_map[key] = mem.device_pointer;
+
+        if (mem.type == MEM_GLOBAL || mem.type == MEM_TEXTURE) {
+          /* Need to create texture objects and update pointer in kernel globals on all devices */
+          foreach (SubDevice *island_sub, island) {
+            if (island_sub != owner_sub) {
+              island_sub->device->mem_copy_to(mem);
+            }
+          }
+        }
+      }
     }
 
     mem.device = this;
@@ -238,10 +355,11 @@ class MultiDevice : public Device {
       int sy = y + i * sub_h;
       int sh = (i == (int)devices.size() - 1) ? h - sub_h * i : sub_h;
 
-      mem.device = sub.device;
-      mem.device_pointer = sub.ptr_map[key];
+      SubDevice *owner_sub = find_matching_mem_device(key, sub);
+      mem.device = owner_sub->device;
+      mem.device_pointer = owner_sub->ptr_map[key];
 
-      sub.device->mem_copy_from(mem, sy, w, sh, elem);
+      owner_sub->device->mem_copy_from(mem, sy, w, sh, elem);
       i++;
     }
 
@@ -255,16 +373,18 @@ class MultiDevice : public Device {
     device_ptr key = (existing_key) ? existing_key : unique_key++;
     size_t existing_size = mem.device_size;
 
-    foreach (SubDevice &sub, devices) {
-      mem.device = sub.device;
-      mem.device_pointer = (existing_key) ? sub.ptr_map[existing_key] : 0;
-      mem.device_size = existing_size;
-
-      sub.device->mem_zero(mem);
-      sub.ptr_map[key] = mem.device_pointer;
-    }
-
+    /* This is a hack to only allocate the tile buffers on denoising devices
+     * Similarily the tile buffers also need to be allocated separately on all devices so any
+     * overlap rendered for denoising does not interfer with each other */
     if (strcmp(mem.name, "RenderBuffers") == 0) {
+      foreach (SubDevice &sub, devices) {
+        mem.device = sub.device;
+        mem.device_pointer = (existing_key) ? sub.ptr_map[existing_key] : 0;
+        mem.device_size = existing_size;
+
+        sub.device->mem_zero(mem);
+        sub.ptr_map[key] = mem.device_pointer;
+      }
       foreach (SubDevice &sub, denoising_devices) {
         mem.device = sub.device;
         mem.device_pointer = (existing_key) ? sub.ptr_map[existing_key] : 0;
@@ -272,6 +392,17 @@ class MultiDevice : public Device {
 
         sub.device->mem_zero(mem);
         sub.ptr_map[key] = mem.device_pointer;
+      }
+    }
+    else {
+      foreach (const vector<SubDevice *> &island, peer_islands) {
+        SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
+        mem.device = owner_sub->device;
+        mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
+        mem.device_size = existing_size;
+
+        owner_sub->device->mem_zero(mem);
+        owner_sub->ptr_map[key] = mem.device_pointer;
       }
     }
 
@@ -285,16 +416,16 @@ class MultiDevice : public Device {
     device_ptr key = mem.device_pointer;
     size_t existing_size = mem.device_size;
 
-    foreach (SubDevice &sub, devices) {
-      mem.device = sub.device;
-      mem.device_pointer = sub.ptr_map[key];
-      mem.device_size = existing_size;
+    /* Free memory that was allocated for all devices (see above) on each device */
+    if (strcmp(mem.name, "RenderBuffers") == 0 || mem.type == MEM_PIXELS) {
+      foreach (SubDevice &sub, devices) {
+        mem.device = sub.device;
+        mem.device_pointer = sub.ptr_map[key];
+        mem.device_size = existing_size;
 
-      sub.device->mem_free(mem);
-      sub.ptr_map.erase(sub.ptr_map.find(key));
-    }
-
-    if (strcmp(mem.name, "RenderBuffers") == 0) {
+        sub.device->mem_free(mem);
+        sub.ptr_map.erase(sub.ptr_map.find(key));
+      }
       foreach (SubDevice &sub, denoising_devices) {
         mem.device = sub.device;
         mem.device_pointer = sub.ptr_map[key];
@@ -302,6 +433,26 @@ class MultiDevice : public Device {
 
         sub.device->mem_free(mem);
         sub.ptr_map.erase(sub.ptr_map.find(key));
+      }
+    }
+    else {
+      foreach (const vector<SubDevice *> &island, peer_islands) {
+        SubDevice *owner_sub = find_matching_mem_device(key, *island.front());
+        mem.device = owner_sub->device;
+        mem.device_pointer = owner_sub->ptr_map[key];
+        mem.device_size = existing_size;
+
+        owner_sub->device->mem_free(mem);
+        owner_sub->ptr_map.erase(owner_sub->ptr_map.find(key));
+
+        if (mem.type == MEM_TEXTURE) {
+          /* Free texture objects on all devices */
+          foreach (SubDevice *island_sub, island) {
+            if (island_sub != owner_sub) {
+              island_sub->device->mem_free(mem);
+            }
+          }
+        }
       }
     }
 
@@ -330,6 +481,8 @@ class MultiDevice : public Device {
                    bool transparent,
                    const DeviceDrawParams &draw_params)
   {
+    assert(rgba.type == MEM_PIXELS);
+
     device_ptr key = rgba.device_pointer;
     int i = 0, sub_h = h / devices.size();
     int sub_height = height / devices.size();
@@ -358,7 +511,7 @@ class MultiDevice : public Device {
 
     foreach (SubDevice &sub, devices) {
       if (sub.device == sub_device) {
-        tile.buffer = sub.ptr_map[tile.buffer];
+        tile.buffer = find_matching_mem(tile.buffer, sub);
         return;
       }
     }
@@ -517,16 +670,21 @@ class MultiDevice : public Device {
         DeviceTask subtask = tasks.front();
         tasks.pop_front();
 
-        if (task.buffer)
+        if (task.type == DeviceTask::DENOISE_BUFFER && !denoising_devices.empty()) {
           subtask.buffer = sub.ptr_map[task.buffer];
-        if (task.rgba_byte)
-          subtask.rgba_byte = sub.ptr_map[task.rgba_byte];
-        if (task.rgba_half)
-          subtask.rgba_half = sub.ptr_map[task.rgba_half];
-        if (task.shader_input)
-          subtask.shader_input = sub.ptr_map[task.shader_input];
-        if (task.shader_output)
-          subtask.shader_output = sub.ptr_map[task.shader_output];
+        }
+        else {
+          if (task.buffer)
+            subtask.buffer = find_matching_mem(task.buffer, sub);
+          if (task.rgba_byte)
+            subtask.rgba_byte = sub.ptr_map[task.rgba_byte];
+          if (task.rgba_half)
+            subtask.rgba_half = sub.ptr_map[task.rgba_half];
+          if (task.shader_input)
+            subtask.shader_input = find_matching_mem(task.shader_input, sub);
+          if (task.shader_output)
+            subtask.shader_output = find_matching_mem(task.shader_output, sub);
+        }
 
         sub.device->task_add(subtask);
       }
@@ -548,9 +706,6 @@ class MultiDevice : public Device {
     foreach (SubDevice &sub, denoising_devices)
       sub.device->task_cancel();
   }
-
- protected:
-  Stats sub_stats_;
 };
 
 Device *device_multi_create(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background)

@@ -51,6 +51,7 @@ class CUDADevice : public Device {
   size_t map_host_used;
   size_t map_host_limit;
   int can_map_host;
+  int pitch_alignment;
   int cuDevId;
   int cuDevArchitecture;
   bool first_error;
@@ -110,6 +111,8 @@ class CUDADevice : public Device {
   virtual ~CUDADevice();
 
   bool support_device(const DeviceRequestedFeatures & /*requested_features*/);
+
+  bool check_peer_access(Device *peer_device);
 
   bool use_adaptive_compilation();
 

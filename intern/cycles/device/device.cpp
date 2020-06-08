@@ -602,6 +602,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
   info.has_adaptive_stop_per_sample = true;
   info.has_osl = true;
   info.has_profiling = true;
+  info.has_peer_memory = false;
 
   foreach (const DeviceInfo &device, subdevices) {
     /* Ensure CPU device does not slow down GPU. */
@@ -645,6 +646,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
     info.has_adaptive_stop_per_sample &= device.has_adaptive_stop_per_sample;
     info.has_osl &= device.has_osl;
     info.has_profiling &= device.has_profiling;
+    info.has_peer_memory |= device.has_peer_memory;
   }
 
   return info;

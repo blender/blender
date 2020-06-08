@@ -131,6 +131,15 @@ void device_cuda_info(vector<DeviceInfo> &devices)
     info.has_volume_decoupled = false;
     info.has_adaptive_stop_per_sample = false;
 
+    /* Check if the device has P2P access to any other device in the system. */
+    for (int peer_num = 0; peer_num < count && !info.has_peer_memory; peer_num++) {
+      if (num != peer_num) {
+        int can_access = 0;
+        cuDeviceCanAccessPeer(&can_access, num, peer_num);
+        info.has_peer_memory = (can_access != 0);
+      }
+    }
+
     int pci_location[3] = {0, 0, 0};
     cuDeviceGetAttribute(&pci_location[0], CU_DEVICE_ATTRIBUTE_PCI_DOMAIN_ID, num);
     cuDeviceGetAttribute(&pci_location[1], CU_DEVICE_ATTRIBUTE_PCI_BUS_ID, num);

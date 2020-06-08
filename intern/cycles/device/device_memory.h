@@ -230,6 +230,8 @@ class device_memory {
   void swap_device(Device *new_device, size_t new_device_size, device_ptr new_device_ptr);
   void restore_device();
 
+  bool is_resident(Device *sub_device) const;
+
  protected:
   friend class CUDADevice;
   friend class OptiXDevice;
