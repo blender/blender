@@ -96,6 +96,9 @@ static struct GPUGlobal {
   /* Some crappy Intel drivers don't work well with shaders created in different
    * rendering contexts. */
   bool context_local_shaders_workaround;
+  /* Intel drivers exhibit artifacts when using glCopyImageSubData & workbench antialiasing.
+   * (see T76273) */
+  bool texture_copy_workaround;
 } GG = {1, 0};
 
 static void gpu_detect_mip_render_workaround(void)
@@ -224,6 +227,11 @@ bool GPU_context_local_shaders_workaround(void)
   return GG.context_local_shaders_workaround;
 }
 
+bool GPU_texture_copy_workaround(void)
+{
+  return GG.texture_copy_workaround;
+}
+
 bool GPU_crappy_amd_driver(void)
 {
   /* Currently are the same drivers with the `unused_fb_slot` problem. */
@@ -287,6 +295,15 @@ void gpu_extensions_init(void)
     }
   }
 
+  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
+    /* Limit this fix to older hardware with GL < 4.5. This means Broadwell GPUs are
+     * covered since they only support GL 4.4 on windows.
+     * This fixes some issues with workbench antialiasing on Win + Intel GPU. (see T76273) */
+    if (!GLEW_VERSION_4_5) {
+      GG.texture_copy_workaround = true;
+    }
+  }
+
   GG.glew_arb_base_instance_is_supported = GLEW_ARB_base_instance;
   GG.glew_arb_texture_cube_map_array_is_supported = GLEW_ARB_texture_cube_map_array;
   gpu_detect_mip_render_workaround();
@@ -301,6 +318,7 @@ void gpu_extensions_init(void)
     GG.mip_render_workaround = true;
     GG.depth_blitting_workaround = true;
     GG.unused_fb_slot_workaround = true;
+    GG.texture_copy_workaround = true;
     GG.context_local_shaders_workaround = GLEW_ARB_get_program_binary;
   }
 

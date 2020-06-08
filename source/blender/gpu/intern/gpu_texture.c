@@ -1870,7 +1870,7 @@ void GPU_texture_copy(GPUTexture *dst, GPUTexture *src)
   BLI_assert(dst->d == 0);
   BLI_assert(dst->format == src->format);
 
-  if (GLEW_ARB_copy_image) {
+  if (GLEW_ARB_copy_image && !GPU_texture_copy_workaround()) {
     /* Opengl 4.3 */
     glCopyImageSubData(src->bindcode,
                        src->target,
