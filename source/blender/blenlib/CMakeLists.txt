@@ -189,6 +189,7 @@ set(SRC
   BLI_hash_mm3.h
   BLI_heap.h
   BLI_heap_simple.h
+  BLI_index_mask.hh
   BLI_index_range.hh
   BLI_iterator.h
   BLI_jitter_2d.h
