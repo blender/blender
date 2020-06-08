@@ -378,6 +378,7 @@ CLANG_FORMAT_VERSION_MIN="6.0"
 
 PYTHON_VERSION="3.7.4"
 PYTHON_VERSION_MIN="3.7"
+PYTHON_VERSION_INSTALLED=$PYTHON_VERSION_MIN
 PYTHON_FORCE_BUILD=false
 PYTHON_FORCE_REBUILD=false
 PYTHON_SKIP=false
@@ -3427,7 +3428,7 @@ compile_XR_OpenXR_SDK() {
 # Install on DEB-like
 
 get_package_version_DEB() {
-    dpkg-query -W -f '${Version}' $1 | sed -r 's/([0-9]+:)?(([0-9]+\.?)+([0-9]+)).*/\2/'
+    dpkg-query -W -f '${Version}' $1 | sed -r 's/([0-9]+:)?(([0-9]+\.?){$2}([0-9]+)).*/\2/'
 }
 
 check_package_DEB() {
@@ -3630,7 +3631,7 @@ install_DEB() {
   # Check cmake/glew versions and disable features for older distros.
   # This is so Blender can at least compile.
   PRINT ""
-  _cmake=`get_package_version_DEB cmake`
+  _cmake=`get_package_version_DEB cmake 3`
   version_ge $_cmake "2.8.10"
   if [ $? -eq 1 ]; then
     version_ge $_cmake "2.8.8"
@@ -3645,7 +3646,7 @@ install_DEB() {
   fi
 
   PRINT ""
-  _glew=`get_package_version_DEB libglew-dev`
+  _glew=`get_package_version_DEB libglew-dev 3`
   if [ -z $_glew ]; then
     # Stupid virtual package in Ubuntu 12.04 doesn't show version number...
     _glew=`apt-cache showpkg libglew-dev|tail -n1|awk '{print $2}'|sed 's/-.*//'`
@@ -3674,9 +3675,12 @@ install_DEB() {
     INFO "Forced Python/NumPy building, as requested..."
     _do_compile_python=true
   else
-    check_package_DEB python$PYTHON_VERSION_MIN-dev
+    check_package_version_ge_DEB python3-dev $PYTHON_VERSION_MIN
     if [ $? -eq 0 ]; then
-      install_packages_DEB python$PYTHON_VERSION_MIN-dev
+      PYTHON_VERSION_INSTALLED=$(echo `get_package_version_DEB python3-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
+      PRINT $(echo `get_package_version_DEB python3-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
+      
+      install_packages_DEB python3-dev
       clean_Python
       PRINT ""
       if [ "$NUMPY_SKIP" = true ]; then
@@ -4296,8 +4300,11 @@ install_RPM() {
     INFO "Forced Python/NumPy building, as requested..."
     _do_compile_python=true
   else
-    check_package_version_match_RPM python3-devel $PYTHON_VERSION_MIN
+    check_package_version_ge_RPM python3-devel $PYTHON_VERSION_MIN
     if [ $? -eq 0 ]; then
+      get_package_version_RPM python3-devel
+      PYTHON_VERSION_INSTALLED=`echo $? | sed -r 's/([0-9]+:)?(([0-9]+\.?)?([0-9]+)).*/\2/'`
+
       install_packages_RPM python3-devel
       clean_Python
       PRINT ""
@@ -4821,6 +4828,9 @@ install_ARCH() {
   else
     check_package_version_ge_ARCH python $PYTHON_VERSION_MIN
     if [ $? -eq 0 ]; then
+      get_package_version_ARCH python
+      PYTHON_VERSION_INSTALLED=`echo $? | sed -r 's/([0-9]+:)?(([0-9]+\.?)?([0-9]+)).*/\2/'`
+
       install_packages_ARCH python
       clean_Python
       PRINT ""
@@ -5411,11 +5421,11 @@ print_info() {
   PRINT "  $_1"
   _buildargs="$_buildargs $_1"
 
-  _1="-D PYTHON_VERSION=$PYTHON_VERSION_MIN"
+  _1="-D PYTHON_VERSION=$PYTHON_VERSION_INSTALLED"
   PRINT "  $_1"
   _buildargs="$_buildargs $_1"
-  if [ -d "$INST/python-$PYTHON_VERSION_MIN" ]; then
-    _1="-D PYTHON_ROOT_DIR=$INST/python-$PYTHON_VERSION_MIN"
+  if [ -d "$INST/python-$PYTHON_VERSION_INSTALLED" ]; then
+    _1="-D PYTHON_ROOT_DIR=$INST/python-$PYTHON_VERSION_INSTALLED"
     PRINT "  $_1"
     _buildargs="$_buildargs $_1"
   fi
