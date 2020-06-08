@@ -84,7 +84,7 @@ def update_script_node(node, report):
         if script.is_in_memory or script.is_dirty or script.is_modified or not os.path.exists(osl_path):
             # write text datablock contents to temporary file
             osl_file = tempfile.NamedTemporaryFile(mode='w', suffix=".osl", delete=False)
-            osl_file.write(script.as_string())
+            osl_file.write(script.as_string() + "\n")
             osl_file.close()
 
             ok, oso_path = osl_compile(osl_file.name, report)
