@@ -643,7 +643,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *row, *col, *sub;
+  uiLayout *col;
   uiLayout *layout = panel->layout;
 
   PointerRNA ptr;
@@ -667,18 +667,26 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, &ptr, "min_dist", 0, NULL, ICON_NONE);
   uiItemR(col, &ptr, "max_dist", 0, NULL, ICON_NONE);
 
-  uiItemS(layout);
+  uiItemR(layout, &ptr, "normalize", 0, NULL, ICON_NONE);
+}
+
+static void falloff_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *row, *sub;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
 
   row = uiLayoutRow(layout, true);
-  uiItemR(row, &ptr, "falloff_type", 0, NULL, ICON_NONE);
+  uiItemR(row, &ptr, "falloff_type", 0, IFACE_("Type"), ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiLayoutSetPropSep(sub, false);
   uiItemR(row, &ptr, "invert_falloff", 0, "", ICON_ARROW_LEFTRIGHT);
   modifier_panel_end(layout, &ptr);
-
-  uiItemS(layout);
-
-  uiItemR(layout, &ptr, "normalize", 0, NULL, ICON_NONE);
 }
 
 static void influence_panel_draw(const bContext *C, Panel *panel)
@@ -696,6 +704,8 @@ static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(
       region_type, eModifierType_WeightVGProximity, panel_draw);
+  modifier_subpanel_register(
+      region_type, "falloff", "Falloff", NULL, falloff_panel_draw, panel_type);
   modifier_subpanel_register(
       region_type, "influence", "Influence", NULL, influence_panel_draw, panel_type);
 }
