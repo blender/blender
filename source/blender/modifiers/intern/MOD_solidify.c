@@ -114,7 +114,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(layout, &ptr, "solidify_mode", 0, NULL, ICON_NONE);
 
   if (solidify_mode == MOD_SOLIDIFY_MODE_NONMANIFOLD) {
-    uiItemR(layout, &ptr, "nonmanifold_thickness_mode", 0, IFACE_("Thickness"), ICON_NONE);
+    uiItemR(layout, &ptr, "nonmanifold_thickness_mode", 0, IFACE_("Thickness Mode"), ICON_NONE);
     uiItemR(layout, &ptr, "nonmanifold_boundary_mode", 0, IFACE_("Boundary"), ICON_NONE);
   }
 
