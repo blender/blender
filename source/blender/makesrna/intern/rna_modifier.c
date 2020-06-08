@@ -2193,7 +2193,7 @@ static void rna_def_modifier_mirror(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, FLT_MAX);
   RNA_def_property_ui_range(prop, 0, 1, 0.01, 6);
   RNA_def_property_ui_text(
-      prop, "Merge Limit", "Distance within which mirrored vertices are merged");
+      prop, "Merge Distance", "Distance within which mirrored vertices are merged");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "mirror_object", PROP_POINTER, PROP_NONE);

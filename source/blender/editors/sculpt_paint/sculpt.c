@@ -7533,7 +7533,7 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
                 0.001f,
                 0.0f,
                 FLT_MAX,
-                "Merge Limit",
+                "Merge Distance",
                 "Distance within which symmetrical vertices are merged",
                 0.0f,
                 1.0f);
