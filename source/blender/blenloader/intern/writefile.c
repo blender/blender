@@ -3915,6 +3915,30 @@ static void write_simulation(BlendWriter *writer, Simulation *simulation, const 
       BLO_write_struct(writer, bNodeTree, simulation->nodetree);
       write_nodetree_nolib(writer, simulation->nodetree);
     }
+
+    LISTBASE_FOREACH (SimulationState *, state, &simulation->states) {
+      switch ((eSimulationStateType)state->type) {
+        case SIM_STATE_TYPE_PARTICLES: {
+          ParticleSimulationState *particle_state = (ParticleSimulationState *)state;
+          BLO_write_struct(writer, ParticleSimulationState, particle_state);
+
+          CustomDataLayer *layers = NULL;
+          CustomDataLayer layers_buff[CD_TEMP_CHUNK_SIZE];
+          CustomData_file_write_prepare(
+              &particle_state->attributes, &layers, layers_buff, ARRAY_SIZE(layers_buff));
+
+          write_customdata(writer,
+                           &simulation->id,
+                           particle_state->tot_particles,
+                           &particle_state->attributes,
+                           layers,
+                           CD_MASK_ALL);
+
+          write_pointcaches(writer, &particle_state->ptcaches);
+          break;
+        }
+      }
+    }
   }
 }
 

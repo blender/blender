@@ -21,11 +21,14 @@
  * \ingroup modifiers
  */
 
+#include <cstring>
 #include <iostream>
 #include <string>
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_float3.hh"
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
@@ -41,6 +44,8 @@
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_pointcloud.h"
+#include "BKE_simulation.h"
 
 /* SpaceType struct has a member called 'new' which obviously conflicts with C++
  * so temporarily redefining the new keyword to make it compile. */
@@ -58,6 +63,8 @@
 
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
+
+using BLI::float3;
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
@@ -81,12 +88,42 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return smd->simulation == nullptr;
 }
 
+static const ParticleSimulationState *find_particle_state(SimulationModifierData *smd)
+{
+  if (smd->simulation == nullptr) {
+    return nullptr;
+  }
+  LISTBASE_FOREACH (const SimulationState *, state, &smd->simulation->states) {
+    if (state->type == SIM_STATE_TYPE_PARTICLES) {
+      return (ParticleSimulationState *)state;
+    }
+  }
+  return nullptr;
+}
+
 static PointCloud *modifyPointCloud(ModifierData *md,
                                     const ModifierEvalContext *UNUSED(ctx),
-                                    PointCloud *pointcloud)
+                                    PointCloud *input_pointcloud)
 {
   SimulationModifierData *smd = (SimulationModifierData *)md;
-  UNUSED_VARS(smd);
+  const ParticleSimulationState *state = find_particle_state(smd);
+  if (state == nullptr) {
+    return input_pointcloud;
+  }
+
+  PointCloud *pointcloud = BKE_pointcloud_new_for_eval(input_pointcloud, state->tot_particles);
+  if (state->tot_particles == 0) {
+    return pointcloud;
+  }
+
+  const float3 *positions = (const float3 *)CustomData_get_layer_named(
+      &state->attributes, CD_LOCATION, "Position");
+  memcpy(pointcloud->co, positions, sizeof(float3) * state->tot_particles);
+
+  for (int i = 0; i < state->tot_particles; i++) {
+    pointcloud->radius[i] = 0.05f;
+  }
+
   return pointcloud;
 }
 

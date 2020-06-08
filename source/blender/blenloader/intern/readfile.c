@@ -9105,6 +9105,19 @@ static void direct_link_simulation(BlendDataReader *reader, Simulation *simulati
 {
   BLO_read_data_address(reader, &simulation->adt);
   direct_link_animdata(reader, simulation->adt);
+
+  BLO_read_list(reader, &simulation->states);
+  LISTBASE_FOREACH (SimulationState *, state, &simulation->states) {
+    switch ((eSimulationStateType)state->type) {
+      case SIM_STATE_TYPE_PARTICLES: {
+        ParticleSimulationState *particle_state = (ParticleSimulationState *)state;
+        direct_link_customdata(reader, &particle_state->attributes, particle_state->tot_particles);
+        direct_link_pointcache_list(
+            reader, &particle_state->ptcaches, &particle_state->point_cache, 0);
+        break;
+      };
+    }
+  }
 }
 
 /** \} */

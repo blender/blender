@@ -29,6 +29,7 @@
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_simulation_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -1630,6 +1631,17 @@ static void rna_ParticleInstanceModifier_particle_system_set(PointerRNA *ptr,
   psmd->psys = BLI_findindex(&psmd->ob->particlesystem, value.data) + 1;
   CLAMP_MIN(psmd->psys, 1);
 }
+
+#  ifdef WITH_NEW_SIMULATION_TYPE
+static void rna_SimulationModifier_simulation_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  SimulationModifierData *smd = ptr->data;
+  if (smd->simulation != NULL) {
+    DEG_id_tag_update(&smd->simulation->id, ID_RECALC_ALL);
+  }
+  rna_Modifier_dependency_update(bmain, scene, ptr);
+}
+#  endif
 
 #else
 
@@ -6794,7 +6806,7 @@ static void rna_def_modifier_simulation(BlenderRNA *brna)
   prop = RNA_def_property(srna, "simulation", PROP_POINTER, PROP_NONE);
   RNA_def_property_ui_text(prop, "Simulation", "Simulation to access");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+  RNA_def_property_update(prop, 0, "rna_SimulationModifier_simulation_update");
 #  endif
 
   prop = RNA_def_property(srna, "data_path", PROP_STRING, PROP_NONE);
