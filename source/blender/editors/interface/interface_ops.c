@@ -737,6 +737,8 @@ bool UI_context_copy_to_selected_list(bContext *C,
   *r_path = NULL;
   /* special case for bone constraints */
   char *path_from_bone = NULL;
+  /* Remove links from the collection list which don't contain 'prop'. */
+  bool ensure_list_items_contain_prop = false;
 
   /* PropertyGroup objects don't have a reference to the struct that actually owns
    * them, so it is normally necessary to do a brute force search to find it. This
@@ -803,6 +805,8 @@ bool UI_context_copy_to_selected_list(bContext *C,
     else {
       *r_lb = CTX_data_collection_get(C, "selected_editable_sequences");
     }
+    /* Account for properties only being available for some sequence types. */
+    ensure_list_items_contain_prop = true;
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_FCurve)) {
     *r_lb = CTX_data_collection_get(C, "selected_editable_fcurves");
@@ -921,12 +925,25 @@ bool UI_context_copy_to_selected_list(bContext *C,
         else {
           *r_lb = CTX_data_collection_get(C, "selected_editable_sequences");
         }
+        /* Account for properties only being available for some sequence types. */
+        ensure_list_items_contain_prop = true;
       }
     }
     return (*r_path != NULL);
   }
   else {
     return false;
+  }
+
+  if (ensure_list_items_contain_prop) {
+    const char *prop_id = RNA_property_identifier(prop);
+    LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, r_lb) {
+      if ((ptr->type != link->ptr.type) &&
+          (RNA_struct_type_find_property(link->ptr.type, prop_id) != prop)) {
+        BLI_remlink(r_lb, link);
+        MEM_freeN(link);
+      }
+    }
   }
 
   return true;
