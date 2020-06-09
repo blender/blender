@@ -1046,8 +1046,15 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
   //
   // Wintab button up events may be handled during WM_MOUSEMOVE, before their corresponding
   // WM_*BUTTONUP event has fired, which results in two GHOST Button up events for a single Wintab
-  // associated button event. Because Wintab and their associated Windows mouse events are handled
-  // asynchronously, and there's no way to turn off
+  // associated button event. Alternatively this Windows button up event may have been generated
+  // from a non-stylus device such as a button on the tablet pad and needs to be handled for some
+  // workflows.
+  //
+  // The ambiguity introduced by Windows and Wintab buttons being asynchronous and having no
+  // definitive way to associate each, and that the Wintab API does not provide enough information
+  // to differentiate whether the stylus down is or is not modified by another button to a
+  // non-mouse mapping, means that we must pessimistically generate mouse up events when we are
+  // unsure of an association to prevent the mouse locking into a down state.
   if (unhandledButton) {
     if (!window->wintabSysButPressed()) {
       GHOST_TInt32 x, y;
