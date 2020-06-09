@@ -38,6 +38,15 @@ void ColorCorrectionOperation::initExecution()
   this->m_inputMask = this->getInputSocketReader(1);
 }
 
+/* Calculate x^y if the function is defined. Otherwise return the given fallback value. */
+BLI_INLINE float color_correct_powf_safe(const float x, const float y, const float fallback_value)
+{
+  if (x < 0) {
+    return fallback_value;
+  }
+  return powf(x, y);
+}
+
 void ColorCorrectionOperation::executePixelSampled(float output[4],
                                                    float x,
                                                    float y,
@@ -116,9 +125,9 @@ void ColorCorrectionOperation::executePixelSampled(float output[4],
   b = 0.5f + ((b - 0.5f) * contrast);
 
   /* Check for negative values to avoid nan. */
-  r = (r > 0.0f) ? powf(r * gain + lift, invgamma) : r;
-  g = (g > 0.0f) ? powf(g * gain + lift, invgamma) : g;
-  b = (b > 0.0f) ? powf(b * gain + lift, invgamma) : b;
+  r = color_correct_powf_safe(r * gain + lift, invgamma, r);
+  g = color_correct_powf_safe(g * gain + lift, invgamma, g);
+  b = color_correct_powf_safe(b * gain + lift, invgamma, b);
 
   // mix with mask
   r = mvalue * inputImageColor[0] + value * r;
