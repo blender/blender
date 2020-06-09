@@ -1778,9 +1778,9 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     {sizeof(float), "MFloatProperty", 1, NULL, NULL, NULL, NULL, NULL, NULL},
     /* 45: CD_HAIRCURVE */
     {sizeof(HairCurve), "HairCurve", 1, NULL, NULL, NULL, NULL, NULL, NULL},
-    /* 46: CD_HAIR_MAPPING */
+    /* 46: CD_HAIRMAPPING */
     {sizeof(HairMapping), "HairMapping", 1, NULL, NULL, NULL, NULL, NULL, NULL},
-    /* 47: CD_PROP_COL */
+    /* 47: CD_PROP_COLOR */
     {sizeof(MPropCol),
      "MPropCol",
      1,
