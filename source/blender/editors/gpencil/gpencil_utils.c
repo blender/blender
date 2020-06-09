@@ -1118,6 +1118,137 @@ void ED_gp_project_stroke_to_plane(const Scene *scene,
   }
 }
 
+/* Reproject selected strokes */
+void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
+                                 const GP_SpaceConversion *gsc,
+                                 SnapObjectContext *sctx,
+                                 bGPDlayer *gpl,
+                                 bGPDframe *gpf,
+                                 bGPDstroke *gps,
+                                 const eGP_ReprojectModes mode,
+                                 const bool keep_original)
+{
+  ToolSettings *ts = gsc->scene->toolsettings;
+  ARegion *region = gsc->region;
+  RegionView3D *rv3d = region->regiondata;
+
+  float diff_mat[4][4], inverse_diff_mat[4][4];
+  BKE_gpencil_parent_matrix_get(depsgraph, gsc->ob, gpl, diff_mat);
+  invert_m4_m4(inverse_diff_mat, diff_mat);
+
+  float origin[3];
+  if (mode != GP_REPROJECT_CURSOR) {
+    ED_gpencil_drawing_reference_get(gsc->scene, gsc->ob, ts->gpencil_v3d_align, origin);
+  }
+  else {
+    copy_v3_v3(origin, gsc->scene->cursor.location);
+  }
+
+  bGPDspoint *pt;
+  int i;
+
+  /* If keep original, do a copy. */
+  bGPDstroke *gps_active = gps;
+  /* if duplicate, deselect all points. */
+  if (keep_original) {
+    gps_active = BKE_gpencil_stroke_duplicate(gps, true);
+    gps_active->flag &= ~GP_STROKE_SELECT;
+    for (i = 0, pt = gps_active->points; i < gps_active->totpoints; i++, pt++) {
+      pt->flag &= ~GP_SPOINT_SELECT;
+    }
+    /* Add to frame. */
+    BLI_addtail(&gpf->strokes, gps_active);
+  }
+
+  /* Adjust each point */
+  for (i = 0, pt = gps_active->points; i < gps_active->totpoints; i++, pt++) {
+    float xy[2];
+
+    /* 3D to Screen-space */
+    /* Note: We can't use gp_point_to_xy() here because that uses ints for the screen-space
+     * coordinates, resulting in lost precision, which in turn causes stair-stepping
+     * artifacts in the final points. */
+
+    bGPDspoint pt2;
+    gp_point_to_parent_space(pt, diff_mat, &pt2);
+    gp_point_to_xy_fl(gsc, gps_active, &pt2, &xy[0], &xy[1]);
+
+    /* Project stroke in one axis */
+    if (ELEM(mode, GP_REPROJECT_FRONT, GP_REPROJECT_SIDE, GP_REPROJECT_TOP, GP_REPROJECT_CURSOR)) {
+      int axis = 0;
+      switch (mode) {
+        case GP_REPROJECT_FRONT: {
+          axis = 1;
+          break;
+        }
+        case GP_REPROJECT_SIDE: {
+          axis = 0;
+          break;
+        }
+        case GP_REPROJECT_TOP: {
+          axis = 2;
+          break;
+        }
+        case GP_REPROJECT_CURSOR: {
+          axis = 3;
+          break;
+        }
+        default: {
+          axis = 1;
+          break;
+        }
+      }
+
+      ED_gp_project_point_to_plane(gsc->scene, gsc->ob, rv3d, origin, axis, &pt2);
+
+      copy_v3_v3(&pt->x, &pt2.x);
+
+      /* apply parent again */
+      gp_apply_parent_point(depsgraph, gsc->ob, gpl, pt);
+    }
+    /* Project screen-space back to 3D space (from current perspective)
+     * so that all points have been treated the same way. */
+    else if (mode == GP_REPROJECT_VIEW) {
+      /* Planar - All on same plane parallel to the view-plane. */
+      gp_point_xy_to_3d(gsc, gsc->scene, xy, &pt->x);
+    }
+    else {
+      /* Geometry - Snap to surfaces of visible geometry */
+      float ray_start[3];
+      float ray_normal[3];
+      /* magic value for initial depth copied from the default
+       * value of Python's Scene.ray_cast function
+       */
+      float depth = 1.70141e+38f;
+      float location[3] = {0.0f, 0.0f, 0.0f};
+      float normal[3] = {0.0f, 0.0f, 0.0f};
+
+      ED_view3d_win_to_ray(region, xy, &ray_start[0], &ray_normal[0]);
+      if (ED_transform_snap_object_project_ray(sctx,
+                                               depsgraph,
+                                               &(const struct SnapObjectParams){
+                                                   .snap_select = SNAP_ALL,
+                                               },
+                                               &ray_start[0],
+                                               &ray_normal[0],
+                                               &depth,
+                                               &location[0],
+                                               &normal[0])) {
+        copy_v3_v3(&pt->x, location);
+      }
+      else {
+        /* Default to planar */
+        gp_point_xy_to_3d(gsc, gsc->scene, xy, &pt->x);
+      }
+    }
+
+    /* Unapply parent corrections */
+    if (!ELEM(mode, GP_REPROJECT_FRONT, GP_REPROJECT_SIDE, GP_REPROJECT_TOP)) {
+      mul_m4_v3(inverse_diff_mat, &pt->x);
+    }
+  }
+}
+
 /**
  * Reproject given point to a plane locked to axis to avoid stroke offset
  * \param[in,out] pt: Point to affect
