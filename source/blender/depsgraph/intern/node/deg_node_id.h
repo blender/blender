@@ -50,6 +50,7 @@ const char *linkedStateAsString(eDepsNode_LinkedState_Type linked_state);
 struct IDNode : public Node {
   struct ComponentIDKey {
     ComponentIDKey(NodeType type, const char *name = "");
+    uint32_t hash() const;
     bool operator==(const ComponentIDKey &other) const;
 
     NodeType type;
@@ -115,16 +116,3 @@ struct IDNode : public Node {
 };
 
 }  // namespace DEG
-
-namespace BLI {
-
-template<> struct DefaultHash<DEG::IDNode::ComponentIDKey> {
-  uint32_t operator()(const DEG::IDNode::ComponentIDKey &key) const
-  {
-    const int type_as_int = static_cast<int>(key.type);
-    return BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(type_as_int),
-                                      BLI_ghashutil_strhash_p(key.name));
-  }
-};
-
-}  // namespace BLI

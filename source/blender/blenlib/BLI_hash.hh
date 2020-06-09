@@ -20,8 +20,58 @@
 /** \file
  * \ingroup bli
  *
- * This file provides default hash functions for some primitive types. The hash functions can be
- * used by containers such as Map and Set.
+ * A specialization of `BLI::DefaultHash<T>` provides a hash function for values of type T. This
+ * hash function is used by default in hash table implementations in blenlib.
+ *
+ * The actual hash function is in the `operator()` method of DefaultHash<T>. The following code
+ * computes the hash of some value using DefaultHash.
+ *
+ *   T value = ...;
+ *   DefaultHash<T> hash_function;
+ *   uint32_t hash = hash_function(value);
+ *
+ * Hash table implementations like BLI::Set support heterogeneous key lookups. That means that one
+ * can do a lookup with a key of type A in a hash table that stores keys of type B. This is
+ * commonly done when B is std::string, because the conversion from e.g. a StringRef to std::string
+ * can be costly and is unnecessary. To make this work, values of type A and B that compare equal
+ * have to have the same hash value. This is achieved by defining potentially multiple `operator()`
+ * in a specialization of DefaultHash. All those methods have to compute the same hash for values
+ * that compare equal.
+ *
+ * The computed hash is an unsigned 32 bit integer. Ideally, the hash function would generate
+ * uniformly random hash values for a set of keys. However, in many cases trivial hash functions
+ * are faster and produce a good enough distribution. In general it is better when more information
+ * is in the lower bits of the hash. By choosing a good probing strategy, the effects of a bad hash
+ * function are less noticable though. In this context a good probing strategy is one that takes
+ * all bits of the hash into account eventually. One has to check on a case by case basis to see if
+ * a better but more expensive or trivial hash function works better.
+ *
+ * There are three main ways to provide a hash table implementation with a custom hash function.
+ *
+ * - When you want to provide a default hash function for your own custom type: Add a `hash`
+ *   member function to it. The function should return `uint32_t` and take no arguments. This
+ *   method will be called by the default implementation of DefaultHash. It will automatically be
+ *   used by hash table implementations.
+ *
+ * - When you want to provide a default hash function for a type that you cannot modify: Add a new
+ *   specialization to the DefaultHash struct. This can be done by writing code like below in
+ *   either global or BLI namespace.
+ *
+ *     template<> struct BLI::DefaultHash<TheType> {
+ *       uint32_t operator()(const TheType &value) const {
+ *         return ...;
+ *       }
+ *     };
+ *
+ * - When you want to provide a different hash function for a type that already has a default hash
+ *   function: Implement a struct like the one below and pass it as template parameter to the hash
+ *   table explicitely.
+ *
+ *     struct MyCustomHash {
+ *       uint32_t operator()(const TheType &value) const {
+ *         return ...;
+ *       }
+ *     };
  */
 
 #include <functional>
@@ -35,7 +85,16 @@
 
 namespace BLI {
 
+/**
+ * If there is no other specialization of DefaultHash for a given type, try to call `hash()` on the
+ * value. If there is no such method, this will result in a compiler error. Usually that means that
+ * you have to implement a hash function using one of three strategies listed above.
+ */
 template<typename T> struct DefaultHash {
+  uint32_t operator()(const T &value) const
+  {
+    return value.hash();
+  }
 };
 
 #define TRIVIAL_DEFAULT_INT_HASH(TYPE) \
@@ -47,9 +106,9 @@ template<typename T> struct DefaultHash {
   }
 
 /**
- * Cannot make any assumptions about the distribution of keys, so use a trivial hash function by
- * default. The hash table implementations are designed to take all bits of the hash into account
- * to avoid really bad behavior when the lower bits are all zero. Special hash functions can be
+ * We cannot make any assumptions about the distribution of keys, so use a trivial hash function by
+ * default. The default probing strategy is designed to take all bits of the hash into account
+ * to avoid worst case behavior when the lower bits are all zero. Special hash functions can be
  * implemented when more knowledge about a specific key distribution is available.
  */
 TRIVIAL_DEFAULT_INT_HASH(int8_t);
@@ -58,9 +117,26 @@ TRIVIAL_DEFAULT_INT_HASH(int16_t);
 TRIVIAL_DEFAULT_INT_HASH(uint16_t);
 TRIVIAL_DEFAULT_INT_HASH(int32_t);
 TRIVIAL_DEFAULT_INT_HASH(uint32_t);
-TRIVIAL_DEFAULT_INT_HASH(int64_t);
-TRIVIAL_DEFAULT_INT_HASH(uint64_t);
 
+template<> struct DefaultHash<uint64_t> {
+  uint32_t operator()(uint64_t value) const
+  {
+    uint32_t low = (uint32_t)value;
+    uint32_t high = (uint32_t)(value >> 32);
+    return low ^ (high * 0x45d9f3b);
+  }
+};
+
+template<> struct DefaultHash<int64_t> {
+  uint32_t operator()(uint64_t value) const
+  {
+    return DefaultHash<uint64_t>{}((uint64_t)value);
+  }
+};
+
+/**
+ * One should try to avoid using floats as keys in hash tables, but sometimes it is convenient.
+ */
 template<> struct DefaultHash<float> {
   uint32_t operator()(float value) const
   {
@@ -78,35 +154,38 @@ inline uint32_t hash_string(StringRef str)
 }
 
 template<> struct DefaultHash<std::string> {
-  uint32_t operator()(const std::string &value) const
+  /**
+   * Take a StringRef as parameter to support heterogeneous lookups in hash table implementations
+   * when std::string is used as key.
+   */
+  uint32_t operator()(StringRef value) const
   {
     return hash_string(value);
   }
 };
 
 template<> struct DefaultHash<StringRef> {
-  uint32_t operator()(const StringRef &value) const
+  uint32_t operator()(StringRef value) const
   {
     return hash_string(value);
   }
 };
 
 template<> struct DefaultHash<StringRefNull> {
-  uint32_t operator()(const StringRefNull &value) const
+  uint32_t operator()(StringRef value) const
   {
     return hash_string(value);
   }
 };
 
 /**
- * While we cannot guarantee that the lower 3 bits or a pointer are zero, it is safe to assume
- * this in the general case. MEM_malloc only returns 8 byte aligned addresses on 64-bit systems.
+ * While we cannot guarantee that the lower 4 bits of a pointer are zero, it is often the case.
  */
 template<typename T> struct DefaultHash<T *> {
   uint32_t operator()(const T *value) const
   {
-    uintptr_t ptr = POINTER_AS_UINT(value);
-    uint32_t hash = (uint32_t)(ptr >> 3);
+    uintptr_t ptr = (uintptr_t)value;
+    uint32_t hash = (uint32_t)(ptr >> 4);
     return hash;
   }
 };

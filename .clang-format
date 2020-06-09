@@ -257,6 +257,10 @@ ForEachMacros:
   - SURFACE_QUAD_ITER_BEGIN
   - foreach
   - ED_screen_areas_iter
+  - SLOT_PROBING_BEGIN
+  - SET_SLOT_PROBING_BEGIN
+  - MAP_SLOT_PROBING_BEGIN
+  - VECTOR_SET_SLOT_PROBING_BEGIN
 
 # Use once we bump the minimum version to version 8.
 # # Without this string literals that in-line 'STRINGIFY' behave strangely (a bug?).

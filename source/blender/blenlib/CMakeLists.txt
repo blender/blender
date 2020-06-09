@@ -187,6 +187,7 @@ set(SRC
   BLI_hash_md5.h
   BLI_hash_mm2a.h
   BLI_hash_mm3.h
+  BLI_hash_tables.hh
   BLI_heap.h
   BLI_heap_simple.h
   BLI_index_mask.hh
@@ -204,6 +205,7 @@ set(SRC
   BLI_listbase.h
   BLI_listbase_wrapper.hh
   BLI_map.hh
+  BLI_map_slots.hh
   BLI_math.h
   BLI_math_base.h
   BLI_math_bits.h
@@ -224,16 +226,17 @@ set(SRC
   BLI_memory_utils.hh
   BLI_mempool.h
   BLI_noise.h
-  BLI_open_addressing.hh
   BLI_optional.hh
   BLI_path_util.h
   BLI_polyfill_2d.h
   BLI_polyfill_2d_beautify.h
+  BLI_probing_strategies.hh
   BLI_quadric.h
   BLI_rand.h
   BLI_rect.h
   BLI_scanfill.h
   BLI_set.hh
+  BLI_set_slots.hh
   BLI_smallhash.h
   BLI_sort.h
   BLI_sort_utils.h
@@ -242,7 +245,6 @@ set(SRC
   BLI_strict_flags.h
   BLI_string.h
   BLI_string_cursor_utf8.h
-  BLI_string_map.hh
   BLI_string_ref.hh
   BLI_string_utf8.h
   BLI_string_utils.h
@@ -261,6 +263,7 @@ set(SRC
   BLI_uvproject.h
   BLI_vector.hh
   BLI_vector_set.hh
+  BLI_vector_set_slots.hh
   BLI_vfontdata.h
   BLI_voronoi_2d.h
   BLI_voxel.h

@@ -50,7 +50,7 @@ ArrayRef<uint> IndexRange::as_array_ref() const
   }
   arrays.append(std::move(new_array));
 
-  current_array = arrays.last().begin();
+  current_array = arrays.last().data();
   std::atomic_thread_fence(std::memory_order_seq_cst);
   current_array_size = new_size;
 

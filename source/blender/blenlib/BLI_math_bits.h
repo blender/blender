@@ -23,6 +23,7 @@
  */
 
 #include "BLI_math_inline.h"
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {

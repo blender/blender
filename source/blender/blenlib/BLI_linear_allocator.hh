@@ -130,7 +130,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
   template<typename T> MutableArrayRef<T> construct_array_copy(ArrayRef<T> src)
   {
     MutableArrayRef<T> dst = this->allocate_array<T>(src.size());
-    uninitialized_copy_n(src.begin(), src.size(), dst.begin());
+    uninitialized_copy_n(src.data(), src.size(), dst.data());
     return dst;
   }
 
@@ -186,7 +186,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     m_unused_borrowed_buffers.append(ArrayRef<char>((char *)buffer, size));
   }
 
-  template<uint Size, uint Alignment>
+  template<size_t Size, size_t Alignment>
   void provide_buffer(AlignedBuffer<Size, Alignment> &aligned_buffer)
   {
     this->provide_buffer(aligned_buffer.ptr(), Size);
@@ -208,7 +208,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     uint size_in_bytes = power_of_2_min_u(std::max(min_allocation_size, m_next_min_alloc_size));
     m_next_min_alloc_size = size_in_bytes * 2;
 
-    void *buffer = m_allocator.allocate(size_in_bytes, __func__);
+    void *buffer = m_allocator.allocate(size_in_bytes, 8, AT);
     m_owned_buffers.append(buffer);
     m_current_begin = (uintptr_t)buffer;
     m_current_end = m_current_begin + size_in_bytes;

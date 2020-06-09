@@ -23,6 +23,9 @@
 
 namespace BLI {
 
+/**
+ * A type that inherits from NonCopyable cannot be copied anymore.
+ */
 class NonCopyable {
  public:
   /* Disable copy construction and assignment. */
@@ -35,6 +38,9 @@ class NonCopyable {
   NonCopyable &operator=(NonCopyable &&other) = default;
 };
 
+/**
+ * A type that inherits from NonMovable cannot be moved anymore.
+ */
 class NonMovable {
  public:
   /* Disable move construction and assignment. */

@@ -27,7 +27,6 @@
 #include "BLI_map.hh"
 #include "BLI_optional.hh"
 #include "BLI_set.hh"
-#include "BLI_string_map.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
@@ -57,7 +56,7 @@ class AttributeList {
 
   void set(StringRef key, StringRef value)
   {
-    m_attributes.add_override(key, value);
+    m_attributes.add_overwrite(key, value);
   }
 };
 

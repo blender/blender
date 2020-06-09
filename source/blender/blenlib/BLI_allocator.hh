@@ -19,14 +19,23 @@
 /** \file
  * \ingroup bli
  *
- * This file offers a couple of memory allocators that can be used with containers such as Vector
- * and Map. Note that these allocators are not designed to work with standard containers like
+ * An `Allocator` can allocate and deallocate memory. It is used by containers such as BLI::Vector.
+ * The allocators defined in this file do not work with standard library containers such as
  * std::vector.
  *
- * Also see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2271.html for why the standard
- * allocators are not a good fit applications like Blender. The current implementations in this
- * file are fairly simple still, more complexity can be added when necessary. For now they do their
- * job good enough.
+ * Every allocator has to implement two methods:
+ *   void *allocate(size_t size, size_t alignment, const char *name);
+ *   void deallocate(void *ptr);
+ *
+ * We don't use the std::allocator interface, because it does more than is really necessary for an
+ * allocator and has some other quirks. It mixes the concepts of allocation and construction. It is
+ * essentially forced to be a template, even though the allocator should not care about the type.
+ * Also see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2271.html#std_allocator. Some
+ * of these aspects have been improved in new versions of C++, so we might have to reevaluate the
+ * strategy later on.
+ *
+ * The allocator interface dictated by this file is very simplistic, but for now that is all we
+ * need. More complexity can be added when it seems necessary.
  */
 
 #include <algorithm>
@@ -40,18 +49,14 @@
 namespace BLI {
 
 /**
- * Use Blenders guarded allocator (aka MEM_malloc). This should always be used except there is a
+ * Use Blender's guarded allocator (aka MEM_*). This should always be used except there is a
  * good reason not to use it.
  */
 class GuardedAllocator {
  public:
-  void *allocate(uint size, const char *name)
+  void *allocate(size_t size, size_t alignment, const char *name)
   {
-    return MEM_mallocN(size, name);
-  }
-
-  void *allocate_aligned(uint size, uint alignment, const char *name)
-  {
+    /* Should we use MEM_mallocN, when alignment is small? If yes, how small must alignment be? */
     return MEM_mallocN_aligned(size, alignment, name);
   }
 
@@ -62,8 +67,9 @@ class GuardedAllocator {
 };
 
 /**
- * This is a simple wrapper around malloc/free. Only use this when the GuardedAllocator cannot be
- * used. This can be the case when the allocated element might live longer than Blenders Allocator.
+ * This is a wrapper around malloc/free. Only use this when the GuardedAllocator cannot be
+ * used. This can be the case when the allocated memory might live longer than Blender's
+ * allocator. For example, when the memory is owned by a static variable.
  */
 class RawAllocator {
  private:
@@ -72,14 +78,7 @@ class RawAllocator {
   };
 
  public:
-  void *allocate(uint size, const char *UNUSED(name))
-  {
-    void *ptr = malloc(size + sizeof(MemHead));
-    ((MemHead *)ptr)->offset = sizeof(MemHead);
-    return POINTER_OFFSET(ptr, sizeof(MemHead));
-  }
-
-  void *allocate_aligned(uint size, uint alignment, const char *UNUSED(name))
+  void *allocate(size_t size, size_t alignment, const char *UNUSED(name))
   {
     BLI_assert(is_power_of_2_i((int)alignment));
     void *ptr = malloc(size + alignment + sizeof(MemHead));

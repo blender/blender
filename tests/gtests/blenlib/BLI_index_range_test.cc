@@ -1,18 +1,17 @@
 #include "BLI_index_range.hh"
+#include "BLI_strict_flags.h"
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-using BLI::ArrayRef;
-using BLI::IndexRange;
-using IntVector = BLI::Vector<int>;
+using namespace BLI;
 
 TEST(index_range, DefaultConstructor)
 {
   IndexRange range;
   EXPECT_EQ(range.size(), 0);
 
-  IntVector vector;
-  for (int value : range) {
+  Vector<uint> vector;
+  for (uint value : range) {
     vector.append(value);
   }
   EXPECT_EQ(vector.size(), 0);
@@ -24,8 +23,8 @@ TEST(index_range, SingleElementRange)
   EXPECT_EQ(range.size(), 1);
   EXPECT_EQ(*range.begin(), 4);
 
-  IntVector vector;
-  for (int value : range) {
+  Vector<uint> vector;
+  for (uint value : range) {
     vector.append(value);
   }
 
@@ -38,8 +37,8 @@ TEST(index_range, MultipleElementRange)
   IndexRange range(6, 4);
   EXPECT_EQ(range.size(), 4);
 
-  IntVector vector;
-  for (int value : range) {
+  Vector<uint> vector;
+  for (uint value : range) {
     vector.append(value);
   }
 

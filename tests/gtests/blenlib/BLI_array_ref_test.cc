@@ -1,4 +1,5 @@
 #include "BLI_array_ref.hh"
+#include "BLI_strict_flags.h"
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
@@ -136,14 +137,6 @@ TEST(array_ref, Count)
   EXPECT_EQ(a_ref.count(5), 0);
 }
 
-TEST(array_ref, ToSmallVector)
-{
-  IntVector a = {1, 2, 3, 4};
-  IntArrayRef a_ref = a;
-  IntVector b = a_ref;
-  IntVector::all_equal(a, b);
-}
-
 static void test_ref_from_initializer_list(IntArrayRef ref)
 {
   EXPECT_EQ(ref.size(), 4);
@@ -202,37 +195,12 @@ TEST(array_ref, FillIndices)
   EXPECT_EQ(a[4], 0);
 }
 
-TEST(array_ref, CopyFrom)
-{
-  std::array<int, 3> a = {3, 4, 5};
-  MutableIntArrayRef a_ref(a);
-  EXPECT_EQ(a[0], 3);
-  EXPECT_EQ(a[1], 4);
-  EXPECT_EQ(a[2], 5);
-  a_ref.copy_from({1, 2, 3});
-  EXPECT_EQ(a[0], 1);
-  EXPECT_EQ(a[1], 2);
-  EXPECT_EQ(a[2], 3);
-}
-
-TEST(array_ref, ByteSize)
+TEST(array_ref, SizeInBytes)
 {
   std::array<int, 10> a;
   IntArrayRef a_ref(a);
-  EXPECT_EQ(a_ref.byte_size(), sizeof(a));
-  EXPECT_EQ(a_ref.byte_size(), 40);
-}
-
-TEST(array_ref, CopyTo)
-{
-  std::array<int, 3> a = {5, 6, 7};
-  int b[3] = {0};
-  IntArrayRef a_ref(a);
-  a_ref.copy_to(b);
-
-  EXPECT_EQ(b[0], 5);
-  EXPECT_EQ(b[1], 6);
-  EXPECT_EQ(b[2], 7);
+  EXPECT_EQ(a_ref.size_in_bytes(), sizeof(a));
+  EXPECT_EQ(a_ref.size_in_bytes(), 40);
 }
 
 TEST(array_ref, FirstLast)

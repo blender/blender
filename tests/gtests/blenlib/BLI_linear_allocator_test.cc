@@ -1,11 +1,12 @@
 #include "BLI_linear_allocator.hh"
+#include "BLI_strict_flags.h"
 #include "testing/testing.h"
 
 using namespace BLI;
 
 static bool is_aligned(void *ptr, uint alignment)
 {
-  BLI_assert(is_power_of_2_i(alignment));
+  BLI_assert(is_power_of_2_i((int)alignment));
   return (POINTER_AS_UINT(ptr) & (alignment - 1)) == 0;
 }
 
@@ -105,7 +106,7 @@ TEST(linear_allocator, ConstructArrayCopy)
   Vector<int> values = {1, 2, 3};
   MutableArrayRef<int> array1 = allocator.construct_array_copy(values.as_ref());
   MutableArrayRef<int> array2 = allocator.construct_array_copy(values.as_ref());
-  EXPECT_NE(array1.begin(), array2.begin());
+  EXPECT_NE(array1.data(), array2.data());
   EXPECT_EQ(array1.size(), 3);
   EXPECT_EQ(array2.size(), 3);
   EXPECT_EQ(array1[1], 2);

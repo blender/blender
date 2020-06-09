@@ -66,6 +66,13 @@ bool IDNode::ComponentIDKey::operator==(const ComponentIDKey &other) const
   return type == other.type && STREQ(name, other.name);
 }
 
+uint32_t IDNode::ComponentIDKey::hash() const
+{
+  const int type_as_int = static_cast<int>(type);
+  return BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(type_as_int),
+                                    BLI_ghashutil_strhash_p(name));
+}
+
 /* Initialize 'id' node - from pointer data given. */
 void IDNode::init(const ID *id, const char *UNUSED(subdata))
 {

@@ -1,9 +1,9 @@
-#include "BLI_type_construct_mock.hh"
+#include "BLI_strict_flags.h"
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 #include <forward_list>
 
-using BLI::Vector;
+using namespace BLI;
 
 TEST(vector, DefaultConstructor)
 {
@@ -15,9 +15,26 @@ TEST(vector, SizeConstructor)
 {
   Vector<int> vec(3);
   EXPECT_EQ(vec.size(), 3);
-  EXPECT_EQ(vec[0], 0);
-  EXPECT_EQ(vec[1], 0);
-  EXPECT_EQ(vec[2], 0);
+}
+
+/**
+ * Tests that the trivially constructible types are not zero-initialized. We do not want that for
+ * performance reasons.
+ */
+TEST(vector, TrivialTypeSizeConstructor)
+{
+  Vector<char, 1> *vec = new Vector<char, 1>(1);
+  char *ptr = &(*vec)[0];
+  vec->~Vector();
+
+  const char magic = 42;
+  *ptr = magic;
+  EXPECT_EQ(*ptr, magic);
+
+  new (vec) Vector<char, 1>(1);
+  EXPECT_EQ((*vec)[0], magic);
+  EXPECT_EQ(*ptr, magic);
+  delete vec;
 }
 
 TEST(vector, SizeValueConstructor)
@@ -102,7 +119,7 @@ TEST(vector, CopyConstructor2)
 
   EXPECT_EQ(vec1.size(), 4);
   EXPECT_EQ(vec2.size(), 4);
-  EXPECT_NE(vec1.begin(), vec2.begin());
+  EXPECT_NE(vec1.data(), vec2.data());
   EXPECT_EQ(vec2[0], 1);
   EXPECT_EQ(vec2[1], 2);
   EXPECT_EQ(vec2[2], 3);
@@ -116,7 +133,7 @@ TEST(vector, CopyConstructor3)
 
   EXPECT_EQ(vec1.size(), 4);
   EXPECT_EQ(vec2.size(), 4);
-  EXPECT_NE(vec1.begin(), vec2.begin());
+  EXPECT_NE(vec1.data(), vec2.data());
   EXPECT_EQ(vec2[2], 3);
 }
 
@@ -127,7 +144,7 @@ TEST(vector, CopyConstructor4)
 
   EXPECT_EQ(vec1.size(), 4);
   EXPECT_EQ(vec2.size(), 4);
-  EXPECT_NE(vec1.begin(), vec2.begin());
+  EXPECT_NE(vec1.data(), vec2.data());
   EXPECT_EQ(vec2[3], 4);
 }
 
@@ -288,7 +305,7 @@ TEST(vector, BecomeLarge)
     vec.append(i * 5);
   }
   EXPECT_EQ(vec.size(), 100);
-  for (int i = 0; i < 100; i++) {
+  for (uint i = 0; i < 100; i++) {
     EXPECT_EQ(vec[i], i * 5);
   }
 }
@@ -387,20 +404,21 @@ TEST(vector, RemoveFirstOccurrenceAndReorder)
   EXPECT_EQ(vec.size(), 0);
 }
 
-TEST(vector, AllEqual_False)
+TEST(vector, Remove)
 {
-  Vector<int> a = {1, 2, 3};
-  Vector<int> b = {1, 2, 4};
-  bool result = Vector<int>::all_equal(a, b);
-  EXPECT_FALSE(result);
-}
-
-TEST(vector, AllEqual_True)
-{
-  Vector<int> a = {4, 5, 6};
-  Vector<int> b = {4, 5, 6};
-  bool result = Vector<int>::all_equal(a, b);
-  EXPECT_TRUE(result);
+  Vector<int> vec = {1, 2, 3, 4, 5, 6};
+  vec.remove(3);
+  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), ArrayRef<int>({1, 2, 3, 5, 6}).begin()));
+  vec.remove(0);
+  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), ArrayRef<int>({2, 3, 5, 6}).begin()));
+  vec.remove(3);
+  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), ArrayRef<int>({2, 3, 5}).begin()));
+  vec.remove(1);
+  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), ArrayRef<int>({2, 5}).begin()));
+  vec.remove(1);
+  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), ArrayRef<int>({2}).begin()));
+  vec.remove(0);
+  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), ArrayRef<int>({}).begin()));
 }
 
 TEST(vector, ExtendSmallVector)
@@ -453,13 +471,58 @@ TEST(vector, UniquePtrValue)
   vec.append(std::unique_ptr<int>(new int()));
   vec.append(std::unique_ptr<int>(new int()));
   vec.append(std::unique_ptr<int>(new int()));
+  vec.append(std::unique_ptr<int>(new int()));
+  EXPECT_EQ(vec.size(), 4);
 
   std::unique_ptr<int> &a = vec.last();
   std::unique_ptr<int> b = vec.pop_last();
   vec.remove_and_reorder(0);
+  vec.remove(0);
+  EXPECT_EQ(vec.size(), 1);
 
   UNUSED_VARS(a, b);
 }
+
+class TypeConstructMock {
+ public:
+  bool default_constructed = false;
+  bool copy_constructed = false;
+  bool move_constructed = false;
+  bool copy_assigned = false;
+  bool move_assigned = false;
+
+  TypeConstructMock() : default_constructed(true)
+  {
+  }
+
+  TypeConstructMock(const TypeConstructMock &other) : copy_constructed(true)
+  {
+  }
+
+  TypeConstructMock(TypeConstructMock &&other) : move_constructed(true)
+  {
+  }
+
+  TypeConstructMock &operator=(const TypeConstructMock &other)
+  {
+    if (this == &other) {
+      return *this;
+    }
+
+    copy_assigned = true;
+    return *this;
+  }
+
+  TypeConstructMock &operator=(TypeConstructMock &&other)
+  {
+    if (this == &other) {
+      return *this;
+    }
+
+    move_assigned = true;
+    return *this;
+  }
+};
 
 TEST(vector, SizeConstructorCallsDefaultConstructor)
 {
@@ -524,4 +587,52 @@ TEST(vector, LargeVectorMoveCallsNoConstructor)
   EXPECT_TRUE(dst[0].default_constructed);
   EXPECT_FALSE(dst[0].move_constructed);
   EXPECT_FALSE(dst[0].copy_constructed);
+}
+
+TEST(vector, Resize)
+{
+  std::string long_string = "012345678901234567890123456789";
+  Vector<std::string> vec;
+  EXPECT_EQ(vec.size(), 0);
+  vec.resize(2);
+  EXPECT_EQ(vec.size(), 2);
+  EXPECT_EQ(vec[0], "");
+  EXPECT_EQ(vec[1], "");
+  vec.resize(5, long_string);
+  EXPECT_EQ(vec.size(), 5);
+  EXPECT_EQ(vec[0], "");
+  EXPECT_EQ(vec[1], "");
+  EXPECT_EQ(vec[2], long_string);
+  EXPECT_EQ(vec[3], long_string);
+  EXPECT_EQ(vec[4], long_string);
+  vec.resize(1);
+  EXPECT_EQ(vec.size(), 1);
+  EXPECT_EQ(vec[0], "");
+}
+
+TEST(vector, FirstIndexOf)
+{
+  Vector<int> vec = {2, 3, 5, 7, 5, 9};
+  EXPECT_EQ(vec.first_index_of(2), 0);
+  EXPECT_EQ(vec.first_index_of(5), 2);
+  EXPECT_EQ(vec.first_index_of(9), 5);
+}
+
+TEST(vector, FirstIndexTryOf)
+{
+  Vector<int> vec = {2, 3, 5, 7, 5, 9};
+  EXPECT_EQ(vec.first_index_of_try(2), 0);
+  EXPECT_EQ(vec.first_index_of_try(4), -1);
+  EXPECT_EQ(vec.first_index_of_try(5), 2);
+  EXPECT_EQ(vec.first_index_of_try(9), 5);
+  EXPECT_EQ(vec.first_index_of_try(1), -1);
+}
+
+TEST(vector, OveralignedValues)
+{
+  Vector<AlignedBuffer<1, 512>, 2> vec;
+  for (int i = 0; i < 100; i++) {
+    vec.append({});
+    EXPECT_EQ((uintptr_t)&vec.last() % 512, 0);
+  }
 }

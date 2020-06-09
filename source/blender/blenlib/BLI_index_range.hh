@@ -20,9 +20,37 @@
 /** \file
  * \ingroup bli
  *
- * Allows passing iterators over ranges of integers without actually allocating an array or passing
- * separate values. A range always has a step of one. If other step sizes are required in some
- * cases, a separate data structure should be used.
+ * A `BLI::IndexRange` wraps an interval of non-negative integers. It can be used to reference
+ * consecutive elements in an array. Furthermore, it can make for loops more convenient and less
+ * error prone, especially when using nested loops.
+ *
+ * I'd argue that the second loop is more readable and less error prone than the first one. That is
+ * not necessarily always the case, but often it is.
+ *
+ *  for (uint i = 0; i < 10; i++) {
+ *    for (uint j = 0; j < 20; j++) {
+ *       for (uint k = 0; k < 30; k++) {
+ *
+ *  for (uint i : IndexRange(10)) {
+ *    for (uint j : IndexRange(20)) {
+ *      for (uint k : IndexRange(30)) {
+ *
+ * Some containers like BLI::Vector have an index_range() method. This will return the IndexRange
+ * that contains all indices that can be used to access the container. This is particularly useful
+ * when you want to iterate over the indices and the elements (much like Python's enumerate(), just
+ * worse). Again, I think the second example here is better:
+ *
+ *  for (uint i = 0; i < my_vector_with_a_long_name.size(); i++) {
+ *    do_something(i, my_vector_with_a_long_name[i]);
+ *
+ *  for (uint i : my_vector_with_a_long_name.index_range()) {
+ *    do_something(i, my_vector_with_a_long_name[i]);
+ *
+ * Ideally this could be could be even closer to Python's enumerate(). We might get that in the
+ * future with newer C++ versions.
+ *
+ * One other important feature is the as_array_ref method. This method returns an ArrayRef<uint>
+ * that contains the interval as individual numbers.
  */
 
 #include <algorithm>
@@ -182,13 +210,15 @@ class IndexRange {
     return value >= m_start && value < m_start + m_size;
   }
 
+  /**
+   * Returns a new range, that contains a subinterval of the current one.
+   */
   IndexRange slice(uint start, uint size) const
   {
     uint new_start = m_start + start;
     BLI_assert(new_start + size <= m_start + m_size || size == 0);
     return IndexRange(new_start, size);
   }
-
   IndexRange slice(IndexRange range) const
   {
     return this->slice(range.start(), range.size());

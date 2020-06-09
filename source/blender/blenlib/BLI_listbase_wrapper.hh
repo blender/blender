@@ -20,8 +20,10 @@
 /** \file
  * \ingroup bli
  *
- * The purpose of this wrapper is just to make it more comfortable to iterate of ListBase
- * instances, that are used in many places in Blender.
+ * `BLI::ListBaseWrapper` is a typed wrapper for the ListBase struct. That makes it safer and more
+ * convenient to use in C++ in some cases. However, if you find yourself iterating over a linked
+ * list a lot, consider to convert it into a vector for further processing. This improves
+ * performance and debugability.
  */
 
 #include "BLI_listbase.h"
