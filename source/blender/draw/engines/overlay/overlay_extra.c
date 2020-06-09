@@ -46,7 +46,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_force_types.h"
+#include "DNA_pointcache_types.h"
 #include "DNA_rigidbody_types.h"
 
 #include "DEG_depsgraph_query.h"

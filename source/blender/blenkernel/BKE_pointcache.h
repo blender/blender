@@ -28,6 +28,7 @@
 #include "DNA_boid_types.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_pointcache_types.h"
 #include <stdio.h> /* for FILE */
 
 #ifdef __cplusplus
