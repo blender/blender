@@ -27,11 +27,11 @@
 #include "DNA_scene_types.h"
 #include "DNA_simulation_types.h"
 
-#include "BLI_array_ref.hh"
 #include "BLI_compiler_compat.h"
 #include "BLI_float3.hh"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -54,9 +54,9 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-using blender::ArrayRef;
 using blender::float3;
-using blender::MutableArrayRef;
+using blender::MutableSpan;
+using blender::Span;
 
 static void simulation_init_data(ID *id)
 {
@@ -168,9 +168,9 @@ void *BKE_simulation_add(Main *bmain, const char *name)
   return simulation;
 }
 
-static MutableArrayRef<float3> get_particle_positions(ParticleSimulationState *state)
+static MutableSpan<float3> get_particle_positions(ParticleSimulationState *state)
 {
-  return MutableArrayRef<float3>(
+  return MutableSpan<float3>(
       (float3 *)CustomData_get_layer_named(&state->attributes, CD_LOCATION, "Position"),
       state->tot_particles);
 }
@@ -239,7 +239,7 @@ void BKE_simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulation *
     CustomData_realloc(&state_orig->attributes, state_orig->tot_particles);
     ensure_attributes_exist(state_orig);
 
-    MutableArrayRef<float3> positions = get_particle_positions(state_orig);
+    MutableSpan<float3> positions = get_particle_positions(state_orig);
     for (uint i : positions.index_range()) {
       positions[i] = {i / 10.0f, 0, 0};
     }
@@ -250,7 +250,7 @@ void BKE_simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulation *
   else if (current_frame == state_orig->current_frame + 1) {
     state_orig->current_frame = current_frame;
     ensure_attributes_exist(state_orig);
-    MutableArrayRef<float3> positions = get_particle_positions(state_orig);
+    MutableSpan<float3> positions = get_particle_positions(state_orig);
     for (float3 &position : positions) {
       position.z += 0.1f;
     }

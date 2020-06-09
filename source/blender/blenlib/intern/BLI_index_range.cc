@@ -18,8 +18,8 @@
 #include <mutex>
 
 #include "BLI_array.hh"
-#include "BLI_array_ref.hh"
 #include "BLI_index_range.hh"
+#include "BLI_span.hh"
 #include "BLI_vector.hh"
 
 namespace blender {
@@ -29,18 +29,18 @@ static uint current_array_size = 0;
 static uint *current_array = nullptr;
 static std::mutex current_array_mutex;
 
-ArrayRef<uint> IndexRange::as_array_ref() const
+Span<uint> IndexRange::as_span() const
 {
   uint min_required_size = m_start + m_size;
 
   if (min_required_size <= current_array_size) {
-    return ArrayRef<uint>(current_array + m_start, m_size);
+    return Span<uint>(current_array + m_start, m_size);
   }
 
   std::lock_guard<std::mutex> lock(current_array_mutex);
 
   if (min_required_size <= current_array_size) {
-    return ArrayRef<uint>(current_array + m_start, m_size);
+    return Span<uint>(current_array + m_start, m_size);
   }
 
   uint new_size = std::max<uint>(1000, power_of_2_max_u(min_required_size));
@@ -54,7 +54,7 @@ ArrayRef<uint> IndexRange::as_array_ref() const
   std::atomic_thread_fence(std::memory_order_seq_cst);
   current_array_size = new_size;
 
-  return ArrayRef<uint>(current_array + m_start, m_size);
+  return Span<uint>(current_array + m_start, m_size);
 }
 
 }  // namespace blender

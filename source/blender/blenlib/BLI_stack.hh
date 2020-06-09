@@ -41,8 +41,8 @@
  */
 
 #include "BLI_allocator.hh"
-#include "BLI_array_ref.hh"
 #include "BLI_memory_utils.hh"
+#include "BLI_span.hh"
 
 namespace blender {
 
@@ -139,7 +139,7 @@ class Stack {
    * Create a new stack that contains the given elements. The values are pushed to the stack in
    * the order they are in the array.
    */
-  Stack(ArrayRef<T> values) : Stack()
+  Stack(Span<T> values) : Stack()
   {
     this->push_multiple(values);
   }
@@ -153,7 +153,7 @@ class Stack {
    *  assert(stack.pop() == 6);
    *  assert(stack.pop() == 5);
    */
-  Stack(const std::initializer_list<T> &values) : Stack(ArrayRef<T>(values))
+  Stack(const std::initializer_list<T> &values) : Stack(Span<T>(values))
   {
   }
 
@@ -162,7 +162,7 @@ class Stack {
     for (const Chunk *chunk = &other.m_inline_chunk; chunk; chunk = chunk->above) {
       const T *begin = chunk->begin;
       const T *end = (chunk == other.m_top_chunk) ? other.m_top : chunk->capacity_end;
-      this->push_multiple(ArrayRef<T>(begin, end - begin));
+      this->push_multiple(Span<T>(begin, end - begin));
     }
   }
 
@@ -289,9 +289,9 @@ class Stack {
    * This method is more efficient than pushing multiple elements individually and might cause less
    * heap allocations.
    */
-  void push_multiple(ArrayRef<T> values)
+  void push_multiple(Span<T> values)
   {
-    ArrayRef<T> remaining_values = values;
+    Span<T> remaining_values = values;
     while (!remaining_values.is_empty()) {
       if (m_top == m_top_chunk->capacity_end) {
         this->activate_next_chunk(remaining_values.size());

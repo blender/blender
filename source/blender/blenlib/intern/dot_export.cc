@@ -250,8 +250,8 @@ std::string color_attr_from_hsv(float h, float s, float v)
 
 NodeWithSocketsRef::NodeWithSocketsRef(Node &node,
                                        StringRef name,
-                                       ArrayRef<std::string> input_names,
-                                       ArrayRef<std::string> output_names)
+                                       Span<std::string> input_names,
+                                       Span<std::string> output_names)
     : m_node(&node)
 {
   std::stringstream ss;

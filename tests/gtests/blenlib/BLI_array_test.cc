@@ -39,11 +39,11 @@ TEST(array, InitializerListConstructor)
   EXPECT_EQ(array[3], 7);
 }
 
-TEST(array, ArrayRefConstructor)
+TEST(array, SpanConstructor)
 {
   int stackarray[4] = {6, 7, 8, 9};
-  ArrayRef<int> array_ref(stackarray, ARRAY_SIZE(stackarray));
-  Array<int> array(array_ref);
+  Span<int> span(stackarray, ARRAY_SIZE(stackarray));
+  Array<int> array(span);
   EXPECT_EQ(array.size(), 4);
   EXPECT_EQ(array[0], 6);
   EXPECT_EQ(array[1], 7);

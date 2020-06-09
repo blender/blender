@@ -49,7 +49,7 @@ void unregister_graph(Depsgraph *depsgraph)
   }
 }
 
-ArrayRef<Depsgraph *> get_all_registered_graphs(Main *bmain)
+Span<Depsgraph *> get_all_registered_graphs(Main *bmain)
 {
   VectorSet<Depsgraph *> *graphs = g_graph_registry.lookup_ptr(bmain);
   if (graphs != nullptr) {

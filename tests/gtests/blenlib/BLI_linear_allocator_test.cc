@@ -67,8 +67,8 @@ TEST(linear_allocator, AllocateArray)
 {
   LinearAllocator<> allocator;
 
-  MutableArrayRef<int> array = allocator.allocate_array<int>(5);
-  EXPECT_EQ(array.size(), 5);
+  MutableSpan<int> span = allocator.allocate_array<int>(5);
+  EXPECT_EQ(span.size(), 5);
 }
 
 TEST(linear_allocator, Construct)
@@ -87,7 +87,7 @@ TEST(linear_allocator, ConstructElementsAndPointerArray)
   LinearAllocator<> allocator;
 
   std::array<int, 7> values = {1, 2, 3, 4, 5, 6, 7};
-  ArrayRef<Vector<int> *> vectors = allocator.construct_elements_and_pointer_array<Vector<int>>(
+  Span<Vector<int> *> vectors = allocator.construct_elements_and_pointer_array<Vector<int>>(
       5, values);
 
   EXPECT_EQ(vectors.size(), 5);
@@ -104,11 +104,11 @@ TEST(linear_allocator, ConstructArrayCopy)
   LinearAllocator<> allocator;
 
   Vector<int> values = {1, 2, 3};
-  MutableArrayRef<int> array1 = allocator.construct_array_copy(values.as_ref());
-  MutableArrayRef<int> array2 = allocator.construct_array_copy(values.as_ref());
-  EXPECT_NE(array1.data(), array2.data());
-  EXPECT_EQ(array1.size(), 3);
-  EXPECT_EQ(array2.size(), 3);
-  EXPECT_EQ(array1[1], 2);
-  EXPECT_EQ(array2[2], 3);
+  MutableSpan<int> span1 = allocator.construct_array_copy(values.as_span());
+  MutableSpan<int> span2 = allocator.construct_array_copy(values.as_span());
+  EXPECT_NE(span1.data(), span2.data());
+  EXPECT_EQ(span1.size(), 3);
+  EXPECT_EQ(span2.size(), 3);
+  EXPECT_EQ(span1[1], 2);
+  EXPECT_EQ(span2[2], 3);
 }

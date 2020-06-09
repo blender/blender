@@ -53,9 +53,9 @@ struct CustomData_MeshMasks;
 namespace DEG {
 
 /* Commonly used types. */
-using blender::ArrayRef;
 using blender::Map;
 using blender::Set;
+using blender::Span;
 using blender::StringRef;
 using blender::StringRefNull;
 using blender::Vector;

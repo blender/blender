@@ -32,7 +32,7 @@
  * - The insertion order is important.
  * - Iteration over all keys has to be fast.
  * - The keys in the set are supposed to be passed to a function that does not have to know that
- *   the keys are stored in a set. With a VectorSet, one can get an ArrayRef containing all keys
+ *   the keys are stored in a set. With a VectorSet, one can get a Span containing all keys
  *   without additional copies.
  *
  * blender::VectorSet is implemented using open addressing in a slot array with a power-of-two
@@ -279,7 +279,7 @@ class VectorSet {
    * We might be able to make this faster than sequentially adding all keys, but that is not
    * implemented yet.
    */
-  void add_multiple(ArrayRef<Key> keys)
+  void add_multiple(Span<Key> keys)
   {
     for (const Key &key : keys) {
       this->add(key);
@@ -411,18 +411,18 @@ class VectorSet {
     return m_keys[index];
   }
 
-  operator ArrayRef<Key>() const
+  operator Span<Key>() const
   {
-    return ArrayRef<Key>(m_keys, this->size());
+    return Span<Key>(m_keys, this->size());
   }
 
   /**
-   * Get an ArrayRef referencing the keys vector. The referenced memory buffer is only valid as
+   * Get an Span referencing the keys vector. The referenced memory buffer is only valid as
    * long as the vector set is not changed.
    *
    * The keys must not be changed, because this would change their hash value.
    */
-  ArrayRef<Key> as_ref() const
+  Span<Key> as_span() const
   {
     return *this;
   }
@@ -432,7 +432,7 @@ class VectorSet {
    */
   void print_stats(StringRef name = "") const
   {
-    HashTableStats stats(*this, this->as_ref());
+    HashTableStats stats(*this, this->as_span());
     stats.print();
   }
 

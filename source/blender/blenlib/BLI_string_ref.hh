@@ -46,7 +46,7 @@
 #include <sstream>
 #include <string>
 
-#include "BLI_array_ref.hh"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 namespace blender {
@@ -83,9 +83,9 @@ class StringRefBase {
     return m_data;
   }
 
-  operator ArrayRef<char>() const
+  operator Span<char>() const
   {
-    return ArrayRef<char>(m_data, m_size);
+    return Span<char>(m_data, m_size);
   }
 
   /**

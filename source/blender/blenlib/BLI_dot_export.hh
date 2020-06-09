@@ -267,8 +267,8 @@ class NodeWithSocketsRef {
  public:
   NodeWithSocketsRef(Node &node,
                      StringRef name,
-                     ArrayRef<std::string> input_names,
-                     ArrayRef<std::string> output_names);
+                     Span<std::string> input_names,
+                     Span<std::string> output_names);
 
   NodePort input(uint index) const
   {

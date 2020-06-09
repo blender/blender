@@ -276,7 +276,7 @@ class Set {
    * We might be able to make this faster than sequentially adding all keys, but that is not
    * implemented yet.
    */
-  void add_multiple(ArrayRef<Key> keys)
+  void add_multiple(Span<Key> keys)
   {
     for (const Key &key : keys) {
       this->add(key);
@@ -287,7 +287,7 @@ class Set {
    * Convenience function to add many new keys to the set at once. The keys must not exist in the
    * set before and there must not be duplicates in the array.
    */
-  void add_multiple_new(ArrayRef<Key> keys)
+  void add_multiple_new(Span<Key> keys)
   {
     for (const Key &key : keys) {
       this->add_new(key);
@@ -726,7 +726,7 @@ template<typename Key> class StdUnorderedSetWrapper {
     return m_set.insert(std::move(key)).second;
   }
 
-  void add_multiple(ArrayRef<Key> keys)
+  void add_multiple(Span<Key> keys)
   {
     for (const Key &key : keys) {
       m_set.insert(key);

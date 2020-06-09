@@ -35,7 +35,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
  private:
   Allocator m_allocator;
   Vector<void *> m_owned_buffers;
-  Vector<ArrayRef<char>> m_unused_borrowed_buffers;
+  Vector<Span<char>> m_unused_borrowed_buffers;
 
   uintptr_t m_current_begin;
   uintptr_t m_current_end;
@@ -104,9 +104,9 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
    *
    * This method only allocates memory and does not construct the instance.
    */
-  template<typename T> MutableArrayRef<T> allocate_array(uint size)
+  template<typename T> MutableSpan<T> allocate_array(uint size)
   {
-    return MutableArrayRef<T>((T *)this->allocate(sizeof(T) * size, alignof(T)), size);
+    return MutableSpan<T>((T *)this->allocate(sizeof(T) * size, alignof(T)), size);
   }
 
   /**
@@ -127,9 +127,9 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
   /**
    * Copy the given array into a memory buffer provided by this allocator.
    */
-  template<typename T> MutableArrayRef<T> construct_array_copy(ArrayRef<T> src)
+  template<typename T> MutableSpan<T> construct_array_copy(Span<T> src)
   {
-    MutableArrayRef<T> dst = this->allocate_array<T>(src.size());
+    MutableSpan<T> dst = this->allocate_array<T>(src.size());
     uninitialized_copy_n(src.data(), src.size(), dst.data());
     return dst;
   }
@@ -146,14 +146,14 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     return StringRefNull((const char *)buffer);
   }
 
-  MutableArrayRef<void *> allocate_elements_and_pointer_array(uint element_amount,
-                                                              uint element_size,
-                                                              uint element_alignment)
+  MutableSpan<void *> allocate_elements_and_pointer_array(uint element_amount,
+                                                          uint element_size,
+                                                          uint element_alignment)
   {
     void *pointer_buffer = this->allocate(element_amount * sizeof(void *), alignof(void *));
     void *elements_buffer = this->allocate(element_amount * element_size, element_alignment);
 
-    MutableArrayRef<void *> pointers((void **)pointer_buffer, element_amount);
+    MutableSpan<void *> pointers((void **)pointer_buffer, element_amount);
     void *next_element_buffer = elements_buffer;
     for (uint i : IndexRange(element_amount)) {
       pointers[i] = next_element_buffer;
@@ -164,11 +164,11 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
   }
 
   template<typename T, typename... Args>
-  ArrayRef<T *> construct_elements_and_pointer_array(uint n, Args &&... args)
+  Span<T *> construct_elements_and_pointer_array(uint n, Args &&... args)
   {
-    MutableArrayRef<void *> void_pointers = this->allocate_elements_and_pointer_array(
+    MutableSpan<void *> void_pointers = this->allocate_elements_and_pointer_array(
         n, sizeof(T), alignof(T));
-    MutableArrayRef<T *> pointers = void_pointers.cast<T *>();
+    MutableSpan<T *> pointers = void_pointers.cast<T *>();
 
     for (uint i : IndexRange(n)) {
       new (pointers[i]) T(std::forward<Args>(args)...);
@@ -183,7 +183,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
    */
   void provide_buffer(void *buffer, uint size)
   {
-    m_unused_borrowed_buffers.append(ArrayRef<char>((char *)buffer, size));
+    m_unused_borrowed_buffers.append(Span<char>((char *)buffer, size));
   }
 
   template<size_t Size, size_t Alignment>
@@ -196,7 +196,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
   void allocate_new_buffer(uint min_allocation_size)
   {
     for (uint i : m_unused_borrowed_buffers.index_range()) {
-      ArrayRef<char> buffer = m_unused_borrowed_buffers[i];
+      Span<char> buffer = m_unused_borrowed_buffers[i];
       if (buffer.size() >= min_allocation_size) {
         m_unused_borrowed_buffers.remove_and_reorder(i);
         m_current_begin = (uintptr_t)buffer.begin();

@@ -49,7 +49,7 @@
  * Ideally this could be could be even closer to Python's enumerate(). We might get that in the
  * future with newer C++ versions.
  *
- * One other important feature is the as_array_ref method. This method returns an ArrayRef<uint>
+ * One other important feature is the as_span method. This method returns an Span<uint>
  * that contains the interval as individual numbers.
  */
 
@@ -66,7 +66,7 @@ template<typename Value> class blocked_range;
 
 namespace blender {
 
-template<typename T> class ArrayRef;
+template<typename T> class Span;
 
 class IndexRange {
  private:
@@ -227,7 +227,7 @@ class IndexRange {
   /**
    * Get read-only access to a memory buffer that contains the range as actual numbers.
    */
-  ArrayRef<uint> as_array_ref() const;
+  Span<uint> as_span() const;
 
   friend std::ostream &operator<<(std::ostream &stream, IndexRange range)
   {

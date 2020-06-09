@@ -38,15 +38,15 @@
  * same time.
  */
 
-#include "BLI_array_ref.hh"
 #include "BLI_index_range.hh"
+#include "BLI_span.hh"
 
 namespace blender {
 
 class IndexMask {
  private:
   /* The underlying reference to sorted integers. */
-  ArrayRef<uint> m_indices;
+  Span<uint> m_indices;
 
  public:
   /* Creates an IndexMask that contains no indices. */
@@ -57,7 +57,7 @@ class IndexMask {
    * This constructor asserts that the given integers are in ascending order and that there are no
    * duplicates.
    */
-  IndexMask(ArrayRef<uint> indices) : m_indices(indices)
+  IndexMask(Span<uint> indices) : m_indices(indices)
   {
 #ifdef DEBUG
     for (uint i = 1; i < indices.size(); i++) {
@@ -70,7 +70,7 @@ class IndexMask {
    * Use this method when you know that no indices are skipped. It is more efficient than preparing
    * an integer array all the time.
    */
-  IndexMask(IndexRange range) : m_indices(range.as_array_ref())
+  IndexMask(IndexRange range) : m_indices(range.as_span())
   {
   }
 
@@ -84,7 +84,7 @@ class IndexMask {
    * Do this:
    *   do_something_with_an_index_mask({3, 4, 5});
    */
-  IndexMask(const std::initializer_list<uint> &indices) : IndexMask(ArrayRef<uint>(indices))
+  IndexMask(const std::initializer_list<uint> &indices) : IndexMask(Span<uint>(indices))
   {
   }
 
@@ -95,7 +95,7 @@ class IndexMask {
   {
   }
 
-  operator ArrayRef<uint>() const
+  operator Span<uint>() const
   {
     return m_indices;
   }
@@ -133,7 +133,7 @@ class IndexMask {
     }
   }
 
-  ArrayRef<uint> indices() const
+  Span<uint> indices() const
   {
     return m_indices;
   }

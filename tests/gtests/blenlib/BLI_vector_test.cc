@@ -408,17 +408,17 @@ TEST(vector, Remove)
 {
   Vector<int> vec = {1, 2, 3, 4, 5, 6};
   vec.remove(3);
-  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), ArrayRef<int>({1, 2, 3, 5, 6}).begin()));
+  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), Span<int>({1, 2, 3, 5, 6}).begin()));
   vec.remove(0);
-  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), ArrayRef<int>({2, 3, 5, 6}).begin()));
+  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), Span<int>({2, 3, 5, 6}).begin()));
   vec.remove(3);
-  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), ArrayRef<int>({2, 3, 5}).begin()));
+  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), Span<int>({2, 3, 5}).begin()));
   vec.remove(1);
-  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), ArrayRef<int>({2, 5}).begin()));
+  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), Span<int>({2, 5}).begin()));
   vec.remove(1);
-  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), ArrayRef<int>({2}).begin()));
+  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), Span<int>({2}).begin()));
   vec.remove(0);
-  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), ArrayRef<int>({}).begin()));
+  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), Span<int>({}).begin()));
 }
 
 TEST(vector, ExtendSmallVector)

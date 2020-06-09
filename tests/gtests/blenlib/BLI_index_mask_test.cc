@@ -32,7 +32,7 @@ TEST(index_mask, RangeConstructor)
   EXPECT_TRUE(mask.is_range());
   EXPECT_EQ(mask.as_range().first(), 3);
   EXPECT_EQ(mask.as_range().last(), 7);
-  ArrayRef<uint> indices = mask.indices();
+  Span<uint> indices = mask.indices();
   EXPECT_EQ(indices[0], 3);
   EXPECT_EQ(indices[1], 4);
   EXPECT_EQ(indices[2], 5);

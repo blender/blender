@@ -39,9 +39,9 @@
  */
 
 #include "BLI_allocator.hh"
-#include "BLI_array_ref.hh"
 #include "BLI_index_range.hh"
 #include "BLI_memory_utils.hh"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 namespace blender {
@@ -90,7 +90,7 @@ class Array {
   /**
    * Create a new array that contains copies of all values.
    */
-  Array(ArrayRef<T> values)
+  Array(Span<T> values)
   {
     m_size = values.size();
     m_data = this->get_buffer_for_size(values.size());
@@ -100,7 +100,7 @@ class Array {
   /**
    * Create a new array that contains copies of all values.
    */
-  Array(const std::initializer_list<T> &values) : Array(ArrayRef<T>(values))
+  Array(const std::initializer_list<T> &values) : Array(Span<T>(values))
   {
   }
 
@@ -184,22 +184,22 @@ class Array {
     return *this;
   }
 
-  operator ArrayRef<T>() const
+  operator Span<T>() const
   {
-    return ArrayRef<T>(m_data, m_size);
+    return Span<T>(m_data, m_size);
   }
 
-  operator MutableArrayRef<T>()
+  operator MutableSpan<T>()
   {
-    return MutableArrayRef<T>(m_data, m_size);
+    return MutableSpan<T>(m_data, m_size);
   }
 
-  ArrayRef<T> as_ref() const
+  Span<T> as_span() const
   {
     return *this;
   }
 
-  MutableArrayRef<T> as_mutable_ref()
+  MutableSpan<T> as_mutable_span()
   {
     return *this;
   }
@@ -243,9 +243,9 @@ class Array {
   /**
    * Copies the value to the given indices in the array.
    */
-  void fill_indices(ArrayRef<uint> indices, const T &value)
+  void fill_indices(Span<uint> indices, const T &value)
   {
-    MutableArrayRef<T>(*this).fill_indices(indices, value);
+    MutableSpan<T>(*this).fill_indices(indices, value);
   }
 
   /**

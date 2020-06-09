@@ -127,13 +127,13 @@ TEST(index_range, SliceRange)
   EXPECT_EQ(slice.last(), 12);
 }
 
-TEST(index_range, AsArrayRef)
+TEST(index_range, AsSpan)
 {
   IndexRange range = IndexRange(4, 6);
-  ArrayRef<uint> ref = range.as_array_ref();
-  EXPECT_EQ(ref.size(), 6);
-  EXPECT_EQ(ref[0], 4);
-  EXPECT_EQ(ref[1], 5);
-  EXPECT_EQ(ref[2], 6);
-  EXPECT_EQ(ref[3], 7);
+  Span<uint> span = range.as_span();
+  EXPECT_EQ(span.size(), 6);
+  EXPECT_EQ(span[0], 4);
+  EXPECT_EQ(span[1], 5);
+  EXPECT_EQ(span[2], 6);
+  EXPECT_EQ(span[3], 7);
 }

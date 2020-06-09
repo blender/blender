@@ -44,11 +44,11 @@
 #include <memory>
 
 #include "BLI_allocator.hh"
-#include "BLI_array_ref.hh"
 #include "BLI_index_range.hh"
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_math_base.h"
 #include "BLI_memory_utils.hh"
+#include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
@@ -152,14 +152,14 @@ class Vector {
    * This allows you to write code like:
    * Vector<int> vec = {3, 4, 5};
    */
-  Vector(const std::initializer_list<T> &values) : Vector(ArrayRef<T>(values))
+  Vector(const std::initializer_list<T> &values) : Vector(Span<T>(values))
   {
   }
 
   /**
    * Create a vector from an array ref. The values in the vector are copy constructed.
    */
-  Vector(ArrayRef<T> values) : Vector()
+  Vector(Span<T> values) : Vector()
   {
     uint size = values.size();
     this->reserve(size);
@@ -263,22 +263,22 @@ class Vector {
     }
   }
 
-  operator ArrayRef<T>() const
+  operator Span<T>() const
   {
-    return ArrayRef<T>(m_begin, this->size());
+    return Span<T>(m_begin, this->size());
   }
 
-  operator MutableArrayRef<T>()
+  operator MutableSpan<T>()
   {
-    return MutableArrayRef<T>(m_begin, this->size());
+    return MutableSpan<T>(m_begin, this->size());
   }
 
-  ArrayRef<T> as_ref() const
+  Span<T> as_span() const
   {
     return *this;
   }
 
-  MutableArrayRef<T> as_mutable_ref()
+  MutableSpan<T> as_mutable_span()
   {
     return *this;
   }
@@ -478,7 +478,7 @@ class Vector {
    *
    * This can be used to emulate parts of std::vector::insert.
    */
-  void extend(ArrayRef<T> array)
+  void extend(Span<T> array)
   {
     this->extend(array.data(), array.size());
   }
@@ -493,7 +493,7 @@ class Vector {
    * operation when the vector is large, but can be very cheap when it is known that the vector is
    * small.
    */
-  void extend_non_duplicates(ArrayRef<T> array)
+  void extend_non_duplicates(Span<T> array)
   {
     for (const T &value : array) {
       this->append_non_duplicates(value);
@@ -504,7 +504,7 @@ class Vector {
    * Extend the vector without bounds checking. It is assumed that enough memory has been reserved
    * beforehand. Only use this in performance critical code.
    */
-  void extend_unchecked(ArrayRef<T> array)
+  void extend_unchecked(Span<T> array)
   {
     this->extend_unchecked(array.data(), array.size());
   }
@@ -542,9 +542,9 @@ class Vector {
   /**
    * Copy the value to all positions specified by the indices array.
    */
-  void fill_indices(ArrayRef<uint> indices, const T &value)
+  void fill_indices(Span<uint> indices, const T &value)
   {
-    MutableArrayRef<T>(*this).fill_indices(indices, value);
+    MutableSpan<T>(*this).fill_indices(indices, value);
   }
 
   /**

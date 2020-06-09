@@ -67,10 +67,10 @@
 #include "BLI_vector.hh"
 
 using blender::Array;
-using blender::ArrayRef;
 using blender::IndexRange;
 using blender::ListBaseWrapper;
-using blender::MutableArrayRef;
+using blender::MutableSpan;
+using blender::Span;
 using blender::Vector;
 
 static void requiredDataMask(Object *UNUSED(ob),
@@ -104,7 +104,7 @@ static void compute_vertex_mask__armature_mode(MDeformVert *dvert,
                                                Object *ob,
                                                Object *armature_ob,
                                                float threshold,
-                                               MutableArrayRef<bool> r_vertex_mask)
+                                               MutableSpan<bool> r_vertex_mask)
 {
   /* Element i is true if there is a selected bone that uses vertex group i. */
   Vector<bool> selected_bone_uses_group;
@@ -115,10 +115,10 @@ static void compute_vertex_mask__armature_mode(MDeformVert *dvert,
     selected_bone_uses_group.append(bone_for_group_exists);
   }
 
-  ArrayRef<bool> use_vertex_group = selected_bone_uses_group;
+  Span<bool> use_vertex_group = selected_bone_uses_group;
 
   for (int i : r_vertex_mask.index_range()) {
-    ArrayRef<MDeformWeight> weights(dvert[i].dw, dvert[i].totweight);
+    Span<MDeformWeight> weights(dvert[i].dw, dvert[i].totweight);
     r_vertex_mask[i] = false;
 
     /* check the groups that vertex is assigned to, and see if it was any use */
@@ -137,7 +137,7 @@ static void compute_vertex_mask__armature_mode(MDeformVert *dvert,
 static void compute_vertex_mask__vertex_group_mode(MDeformVert *dvert,
                                                    int defgrp_index,
                                                    float threshold,
-                                                   MutableArrayRef<bool> r_vertex_mask)
+                                                   MutableSpan<bool> r_vertex_mask)
 {
   for (int i : r_vertex_mask.index_range()) {
     const bool found = BKE_defvert_find_weight(&dvert[i], defgrp_index) > threshold;
@@ -145,15 +145,15 @@ static void compute_vertex_mask__vertex_group_mode(MDeformVert *dvert,
   }
 }
 
-static void invert_boolean_array(MutableArrayRef<bool> array)
+static void invert_boolean_array(MutableSpan<bool> array)
 {
   for (bool &value : array) {
     value = !value;
   }
 }
 
-static void compute_masked_vertices(ArrayRef<bool> vertex_mask,
-                                    MutableArrayRef<int> r_vertex_map,
+static void compute_masked_vertices(Span<bool> vertex_mask,
+                                    MutableSpan<int> r_vertex_map,
                                     uint *r_num_masked_vertices)
 {
   BLI_assert(vertex_mask.size() == r_vertex_map.size());
@@ -173,8 +173,8 @@ static void compute_masked_vertices(ArrayRef<bool> vertex_mask,
 }
 
 static void computed_masked_edges(const Mesh *mesh,
-                                  ArrayRef<bool> vertex_mask,
-                                  MutableArrayRef<int> r_edge_map,
+                                  Span<bool> vertex_mask,
+                                  MutableSpan<int> r_edge_map,
                                   uint *r_num_masked_edges)
 {
   BLI_assert(mesh->totedge == r_edge_map.size());
@@ -197,7 +197,7 @@ static void computed_masked_edges(const Mesh *mesh,
 }
 
 static void computed_masked_polygons(const Mesh *mesh,
-                                     ArrayRef<bool> vertex_mask,
+                                     Span<bool> vertex_mask,
                                      Vector<int> &r_masked_poly_indices,
                                      Vector<int> &r_loop_starts,
                                      uint *r_num_masked_polys,
@@ -213,7 +213,7 @@ static void computed_masked_polygons(const Mesh *mesh,
     const MPoly &poly_src = mesh->mpoly[i];
 
     bool all_verts_in_mask = true;
-    ArrayRef<MLoop> loops_src(&mesh->mloop[poly_src.loopstart], poly_src.totloop);
+    Span<MLoop> loops_src(&mesh->mloop[poly_src.loopstart], poly_src.totloop);
     for (const MLoop &loop : loops_src) {
       if (!vertex_mask[loop.v]) {
         all_verts_in_mask = false;
@@ -234,7 +234,7 @@ static void computed_masked_polygons(const Mesh *mesh,
 
 static void copy_masked_vertices_to_new_mesh(const Mesh &src_mesh,
                                              Mesh &dst_mesh,
-                                             ArrayRef<int> vertex_map)
+                                             Span<int> vertex_map)
 {
   BLI_assert(src_mesh.totvert == vertex_map.size());
   for (const int i_src : vertex_map.index_range()) {
@@ -253,8 +253,8 @@ static void copy_masked_vertices_to_new_mesh(const Mesh &src_mesh,
 
 static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
                                           Mesh &dst_mesh,
-                                          ArrayRef<int> vertex_map,
-                                          ArrayRef<int> edge_map)
+                                          Span<int> vertex_map,
+                                          Span<int> edge_map)
 {
   BLI_assert(src_mesh.totvert == vertex_map.size());
   BLI_assert(src_mesh.totedge == edge_map.size());
@@ -276,10 +276,10 @@ static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
 
 static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
                                           Mesh &dst_mesh,
-                                          ArrayRef<int> vertex_map,
-                                          ArrayRef<int> edge_map,
-                                          ArrayRef<int> masked_poly_indices,
-                                          ArrayRef<int> new_loop_starts)
+                                          Span<int> vertex_map,
+                                          Span<int> edge_map,
+                                          Span<int> masked_poly_indices,
+                                          Span<int> new_loop_starts)
 {
   for (const int i_dst : masked_poly_indices.index_range()) {
     const int i_src = masked_poly_indices[i_dst];

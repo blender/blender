@@ -14,44 +14,59 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_ARRAY_REF_HH__
-#define __BLI_ARRAY_REF_HH__
+#ifndef __BLI_SPAN_HH__
+#define __BLI_SPAN_HH__
 
 /** \file
  * \ingroup bli
  *
- * An `blender::ArrayRef<T>` references an array that is owned by someone else. It is just a
- * pointer and a size. Since the memory is not owned, ArrayRef should not be used to transfer
- * ownership. The array cannot be modified through the ArrayRef. However, if T is a non-const
+ * An `blender::Span<T>` references an array that is owned by someone else. It is just a
+ * pointer and a size. Since the memory is not owned, Span should not be used to transfer
+ * ownership. The array cannot be modified through the Span. However, if T is a non-const
  * pointer, the pointed-to elements can be modified.
  *
- * There is also `blender::MutableArrayRef<T>`. It is mostly the same as ArrayRef, but allows the
+ * There is also `blender::MutableSpan<T>`. It is mostly the same as Span, but allows the
  * array to be modified.
  *
- * An (Mutable)ArrayRef can refer to data owned by many different data structures including
+ * A (Mutable)Span can refer to data owned by many different data structures including
  * blender::Vector, blender::Array, blender::VectorSet, std::vector, std::array, std::string,
  * std::initializer_list and c-style array.
  *
- * `blender::ArrayRef<T>` should be your default choice when you have to pass a read-only array
+ * `blender::Span` is very similar to `std::span` (C++20). However, there are a few differences:
+ * - `blender::Span` is const by default. This is to avoid making things mutable when they don't
+ *   have to be. To get a non-const span, you need to use `blender::MutableSpan`. Below is a list
+ *   of const-behavior-equivalent pairs of data structures:
+ *   - std::span<int>                <==>  blender::MutableSpan<int>
+ *   - std::span<const int>          <==>  blender::Span<int>
+ *   - std::span<int *>              <==>  blender::MutableSpan<int *>
+ *   - std::span<const int *>        <==>  blender::MutableSpan<const int *>
+ *   - std::span<int * const>        <==>  blender::Span<int *>
+ *   - std::span<const int * const>  <==>  blender::Span<const int *>
+ * - `blender::Span` always has a dynamic extent, while `std::span` can have a size that is
+ *   determined at compile time. I did not have a use case for that yet. If we need it, we can
+ *   decide to add this functionality to `blender::Span` or introduce a new type like
+ *   `blender::FixedSpan<T, N>`.
+ *
+ * `blender::Span<T>` should be your default choice when you have to pass a read-only array
  * into a function. It is better than passing a `const Vector &`, because then the function only
- * works for vectors and not for e.g. arrays. Using ArrayRef as function parameter makes it usable
+ * works for vectors and not for e.g. arrays. Using Span as function parameter makes it usable
  * in more contexts, better expresses the intent and does not sacrifice performance. It is also
  * better than passing a raw pointer and size separately, because it is more convenient and safe.
  *
- * `blender::MutableArrayRef<T>` can be used when a function is supposed to return an array, the
+ * `blender::MutableSpan<T>` can be used when a function is supposed to return an array, the
  * size of which is known before the function is called. One advantage of this approach is that the
  * caller is responsible for allocation and deallocation. Furthermore, the function can focus on
  * its task, without having to worry about memory allocation. Alternatively, a function could
  * return an Array or Vector.
  *
- * Note: When a function has a MutableArrayRef<T> output parameter and T is not a trivial type,
+ * Note: When a function has a MutableSpan<T> output parameter and T is not a trivial type,
  * then the function has to specify whether the referenced array is expected to be initialized or
  * not.
  *
- * Since the arrays are only referenced, it is generally unsafe to store an ArrayRef. When you
+ * Since the arrays are only referenced, it is generally unsafe to store an Span. When you
  * store one, you should know who owns the memory.
  *
- * Instances of ArrayRef and MutableArrayRef are small and should be passed by value.
+ * Instances of Span and MutableSpan are small and should be passed by value.
  */
 
 #include <algorithm>
@@ -70,7 +85,7 @@ namespace blender {
  * References an array of type T that is owned by someone else. The data in the array cannot be
  * modified.
  */
-template<typename T> class ArrayRef {
+template<typename T> class Span {
  private:
   const T *m_start = nullptr;
   uint m_size = 0;
@@ -79,9 +94,9 @@ template<typename T> class ArrayRef {
   /**
    * Create a reference to an empty array.
    */
-  ArrayRef() = default;
+  Span() = default;
 
-  ArrayRef(const T *start, uint size) : m_start(start), m_size(size)
+  Span(const T *start, uint size) : m_start(start), m_size(size)
   {
   }
 
@@ -93,29 +108,29 @@ template<typename T> class ArrayRef {
    *  call_function_with_array({1, 2, 3, 4});
    *
    * Don't:
-   *  ArrayRef<int> ref = {1, 2, 3, 4};
-   *  call_function_with_array(ref);
+   *  Span<int> span = {1, 2, 3, 4};
+   *  call_function_with_array(span);
    */
-  ArrayRef(const std::initializer_list<T> &list) : ArrayRef(list.begin(), (uint)list.size())
+  Span(const std::initializer_list<T> &list) : Span(list.begin(), (uint)list.size())
   {
   }
 
-  ArrayRef(const std::vector<T> &vector) : ArrayRef(vector.data(), (uint)vector.size())
+  Span(const std::vector<T> &vector) : Span(vector.data(), (uint)vector.size())
   {
   }
 
-  template<std::size_t N> ArrayRef(const std::array<T, N> &array) : ArrayRef(array.data(), N)
+  template<std::size_t N> Span(const std::array<T, N> &array) : Span(array.data(), N)
   {
   }
 
   /**
    * Support implicit conversions like the ones below:
-   *   ArrayRef<T *> -> ArrayRef<const T *>
-   *   ArrayRef<Derived *> -> ArrayRef<Base *>
+   *   Span<T *> -> Span<const T *>
+   *   Span<Derived *> -> Span<Base *>
    */
   template<typename U,
            typename std::enable_if<std::is_convertible<U *, T>::value>::type * = nullptr>
-  ArrayRef(ArrayRef<U *> array) : ArrayRef((T *)array.data(), array.size())
+  Span(Span<U *> array) : Span((T *)array.data(), array.size())
   {
   }
 
@@ -123,52 +138,52 @@ template<typename T> class ArrayRef {
    * Returns a contiguous part of the array. This invokes undefined behavior when the slice does
    * not stay within the bounds of the array.
    */
-  ArrayRef slice(uint start, uint size) const
+  Span slice(uint start, uint size) const
   {
     BLI_assert(start + size <= this->size() || size == 0);
-    return ArrayRef(m_start + start, size);
+    return Span(m_start + start, size);
   }
 
-  ArrayRef slice(IndexRange range) const
+  Span slice(IndexRange range) const
   {
     return this->slice(range.start(), range.size());
   }
 
   /**
-   * Returns a new ArrayRef with n elements removed from the beginning. This invokes undefined
+   * Returns a new Span with n elements removed from the beginning. This invokes undefined
    * behavior when the array is too small.
    */
-  ArrayRef drop_front(uint n) const
+  Span drop_front(uint n) const
   {
     BLI_assert(n <= this->size());
     return this->slice(n, this->size() - n);
   }
 
   /**
-   * Returns a new ArrayRef with n elements removed from the beginning. This invokes undefined
+   * Returns a new Span with n elements removed from the beginning. This invokes undefined
    * behavior when the array is too small.
    */
-  ArrayRef drop_back(uint n) const
+  Span drop_back(uint n) const
   {
     BLI_assert(n <= this->size());
     return this->slice(0, this->size() - n);
   }
 
   /**
-   * Returns a new ArrayRef that only contains the first n elements. This invokes undefined
+   * Returns a new Span that only contains the first n elements. This invokes undefined
    * behavior when the array is too small.
    */
-  ArrayRef take_front(uint n) const
+  Span take_front(uint n) const
   {
     BLI_assert(n <= this->size());
     return this->slice(0, n);
   }
 
   /**
-   * Returns a new ArrayRef that only contains the last n elements. This invokes undefined
+   * Returns a new Span that only contains the last n elements. This invokes undefined
    * behavior when the array is too small.
    */
-  ArrayRef take_back(uint n) const
+  Span take_back(uint n) const
   {
     BLI_assert(n <= this->size());
     return this->slice(this->size() - n, n);
@@ -220,7 +235,7 @@ template<typename T> class ArrayRef {
   }
 
   /**
-   * Returns the number of bytes referenced by this ArrayRef.
+   * Returns the number of bytes referenced by this Span.
    */
   uint size_in_bytes() const
   {
@@ -323,7 +338,7 @@ template<typename T> class ArrayRef {
    * called on small arrays, because it has a running time of O(n*m) where n and m are the sizes of
    * the arrays.
    */
-  bool intersects__linear_search(ArrayRef other) const
+  bool intersects__linear_search(Span other) const
   {
     /* The size should really be smaller than that. If it is not, the calling code should be
      * changed. */
@@ -372,22 +387,22 @@ template<typename T> class ArrayRef {
   }
 
   /**
-   * Returns a new ArrayRef to the same underlying memory buffer. No conversions are done.
+   * Returns a new Span to the same underlying memory buffer. No conversions are done.
    */
-  template<typename NewT> ArrayRef<NewT> cast() const
+  template<typename NewT> Span<NewT> cast() const
   {
     BLI_assert((m_size * sizeof(T)) % sizeof(NewT) == 0);
     uint new_size = m_size * sizeof(T) / sizeof(NewT);
-    return ArrayRef<NewT>(reinterpret_cast<const NewT *>(m_start), new_size);
+    return Span<NewT>(reinterpret_cast<const NewT *>(m_start), new_size);
   }
 
   /**
-   * A debug utility to print the content of the ArrayRef. Every element will be printed on a
+   * A debug utility to print the content of the Span. Every element will be printed on a
    * separate line using the given callback.
    */
   template<typename PrintLineF> void print_as_lines(std::string name, PrintLineF print_line) const
   {
-    std::cout << "ArrayRef: " << name << " \tSize:" << m_size << '\n';
+    std::cout << "Span: " << name << " \tSize:" << m_size << '\n';
     for (const T &value : *this) {
       std::cout << "  ";
       print_line(value);
@@ -396,7 +411,7 @@ template<typename T> class ArrayRef {
   }
 
   /**
-   * A debug utility to print the content of the array ref. Every element be printed on a separate
+   * A debug utility to print the content of the span. Every element be printed on a separate
    * line.
    */
   void print_as_lines(std::string name) const
@@ -406,18 +421,18 @@ template<typename T> class ArrayRef {
 };
 
 /**
- * Mostly the same as ArrayRef, except that one can change the array elements through a
- * MutableArrayRef.
+ * Mostly the same as Span, except that one can change the array elements through a
+ * MutableSpan.
  */
-template<typename T> class MutableArrayRef {
+template<typename T> class MutableSpan {
  private:
   T *m_start;
   uint m_size;
 
  public:
-  MutableArrayRef() = default;
+  MutableSpan() = default;
 
-  MutableArrayRef(T *start, uint size) : m_start(start), m_size(size)
+  MutableSpan(T *start, uint size) : m_start(start), m_size(size)
   {
   }
 
@@ -429,25 +444,24 @@ template<typename T> class MutableArrayRef {
    *  call_function_with_array({1, 2, 3, 4});
    *
    * Don't:
-   *  MutableArrayRef<int> ref = {1, 2, 3, 4};
-   *  call_function_with_array(ref);
+   *  MutableSpan<int> span = {1, 2, 3, 4};
+   *  call_function_with_array(span);
    */
-  MutableArrayRef(std::initializer_list<T> &list) : MutableArrayRef(list.begin(), list.size())
+  MutableSpan(std::initializer_list<T> &list) : MutableSpan(list.begin(), list.size())
   {
   }
 
-  MutableArrayRef(std::vector<T> &vector) : MutableArrayRef(vector.data(), vector.size())
+  MutableSpan(std::vector<T> &vector) : MutableSpan(vector.data(), vector.size())
   {
   }
 
-  template<std::size_t N>
-  MutableArrayRef(std::array<T, N> &array) : MutableArrayRef(array.data(), N)
+  template<std::size_t N> MutableSpan(std::array<T, N> &array) : MutableSpan(array.data(), N)
   {
   }
 
-  operator ArrayRef<T>() const
+  operator Span<T>() const
   {
-    return ArrayRef<T>(m_start, m_size);
+    return Span<T>(m_start, m_size);
   }
 
   /**
@@ -470,7 +484,7 @@ template<typename T> class MutableArrayRef {
    * Replace a subset of all elements with the given value. This invokes undefined behavior when
    * one of the indices is out of bounds.
    */
-  void fill_indices(ArrayRef<uint> indices, const T &value)
+  void fill_indices(Span<uint> indices, const T &value)
   {
     for (uint i : indices) {
       BLI_assert(i < m_size);
@@ -507,59 +521,59 @@ template<typename T> class MutableArrayRef {
    * Returns a contiguous part of the array. This invokes undefined behavior when the slice would
    * go out of bounds.
    */
-  MutableArrayRef slice(uint start, uint length) const
+  MutableSpan slice(uint start, uint length) const
   {
     BLI_assert(start + length <= this->size());
-    return MutableArrayRef(m_start + start, length);
+    return MutableSpan(m_start + start, length);
   }
 
   /**
-   * Returns a new MutableArrayRef with n elements removed from the beginning. This invokes
+   * Returns a new MutableSpan with n elements removed from the beginning. This invokes
    * undefined behavior when the array is too small.
    */
-  MutableArrayRef drop_front(uint n) const
+  MutableSpan drop_front(uint n) const
   {
     BLI_assert(n <= this->size());
     return this->slice(n, this->size() - n);
   }
 
   /**
-   * Returns a new MutableArrayRef with n elements removed from the end. This invokes undefined
+   * Returns a new MutableSpan with n elements removed from the end. This invokes undefined
    * behavior when the array is too small.
    */
-  MutableArrayRef drop_back(uint n) const
+  MutableSpan drop_back(uint n) const
   {
     BLI_assert(n <= this->size());
     return this->slice(0, this->size() - n);
   }
 
   /**
-   * Returns a new MutableArrayRef that only contains the first n elements. This invokes undefined
+   * Returns a new MutableSpan that only contains the first n elements. This invokes undefined
    * behavior when the array is too small.
    */
-  MutableArrayRef take_front(uint n) const
+  MutableSpan take_front(uint n) const
   {
     BLI_assert(n <= this->size());
     return this->slice(0, n);
   }
 
   /**
-   * Return a new MutableArrayRef that only contains the last n elements. This invokes undefined
+   * Return a new MutableSpan that only contains the last n elements. This invokes undefined
    * behavior when the array is too small.
    */
-  MutableArrayRef take_back(uint n) const
+  MutableSpan take_back(uint n) const
   {
     BLI_assert(n <= this->size());
     return this->slice(this->size() - n, n);
   }
 
   /**
-   * Returns an (immutable) ArrayRef that references the same array. This is usually not needed,
+   * Returns an (immutable) Span that references the same array. This is usually not needed,
    * due to implicit conversions. However, sometimes automatic type deduction needs some help.
    */
-  ArrayRef<T> as_ref() const
+  Span<T> as_span() const
   {
-    return ArrayRef<T>(m_start, m_size);
+    return Span<T>(m_start, m_size);
   }
 
   /**
@@ -582,22 +596,22 @@ template<typename T> class MutableArrayRef {
   }
 
   /**
-   * Returns a new array ref to the same underlying memory buffer. No conversions are done.
+   * Returns a new span to the same underlying memory buffer. No conversions are done.
    */
-  template<typename NewT> MutableArrayRef<NewT> cast() const
+  template<typename NewT> MutableSpan<NewT> cast() const
   {
     BLI_assert((m_size * sizeof(T)) % sizeof(NewT) == 0);
     uint new_size = m_size * sizeof(T) / sizeof(NewT);
-    return MutableArrayRef<NewT>(reinterpret_cast<NewT *>(m_start), new_size);
+    return MutableSpan<NewT>(reinterpret_cast<NewT *>(m_start), new_size);
   }
 };
 
 /**
  * Shorthand to make use of automatic template parameter deduction.
  */
-template<typename T> ArrayRef<T> ref_c_array(const T *array, uint size)
+template<typename T> Span<T> ref_c_array(const T *array, uint size)
 {
-  return ArrayRef<T>(array, size);
+  return Span<T>(array, size);
 }
 
 /**
@@ -627,4 +641,4 @@ void assert_same_size(const T1 &v1, const T2 &v2, const T3 &v3)
 
 } /* namespace blender */
 
-#endif /* __BLI_ARRAY_REF_HH__ */
+#endif /* __BLI_SPAN_HH__ */

@@ -144,7 +144,6 @@ set(SRC
   BLI_args.h
   BLI_array.h
   BLI_array.hh
-  BLI_array_ref.hh
   BLI_array_store.h
   BLI_array_store_utils.h
   BLI_array_utils.h
@@ -240,6 +239,7 @@ set(SRC
   BLI_smallhash.h
   BLI_sort.h
   BLI_sort_utils.h
+  BLI_span.hh
   BLI_stack.h
   BLI_stack.hh
   BLI_strict_flags.h

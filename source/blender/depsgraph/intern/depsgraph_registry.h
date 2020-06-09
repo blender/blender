@@ -33,6 +33,6 @@ struct Depsgraph;
 
 void register_graph(Depsgraph *depsgraph);
 void unregister_graph(Depsgraph *depsgraph);
-ArrayRef<Depsgraph *> get_all_registered_graphs(Main *bmain);
+Span<Depsgraph *> get_all_registered_graphs(Main *bmain);
 
 }  // namespace DEG

@@ -12,7 +12,7 @@ TEST(stack, DefaultConstructor)
   EXPECT_TRUE(stack.is_empty());
 }
 
-TEST(stack, ArrayRefConstructor)
+TEST(stack, SpanConstructor)
 {
   std::array<int, 3> array = {4, 7, 2};
   Stack<int> stack(array);
