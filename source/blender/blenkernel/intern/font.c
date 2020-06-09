@@ -1514,7 +1514,7 @@ static bool vfont_to_curve(Object *ob,
       }
       else if (tb_scale.h == 0.0f) {
         /* This is a horizontal overflow. */
-        if (longest_line_length > 0.0f) {
+        if (longest_line_length > tb_scale.w) {
           /* We make sure longest line before it broke can fit here. */
           float scale_to_fit = tb_scale.w / longest_line_length;
           scale_to_fit -= FLT_EPSILON;
