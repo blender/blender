@@ -279,7 +279,7 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
     const char *name = data->items.names[data->active];
     const char *name_sep = data->use_sep ? strrchr(name, UI_SEP_CHAR) : NULL;
 
-    BLI_strncpy(but->editstr, name, name_sep ? (name_sep - name) : data->items.maxstrlen);
+    BLI_strncpy(but->editstr, name, name_sep ? (name_sep - name) + 1 : data->items.maxstrlen);
 
     but->func_arg2 = data->items.pointers[data->active];
 
