@@ -673,6 +673,16 @@ struct TempLineInfo {
   int wspace_nr; /* number of whitespaces of line */
 };
 
+/* -------------------------------------------------------------------- */
+/** \name VFont Scale Overflow
+ *
+ * Scale the font to fit inside #TextBox bounds.
+ *
+ * - Scale horizontally when #TextBox.h is zero,
+ *   otherwise scale vertically, allowing the text to wrap horizontally.
+ * - Never increase scale to fit, only ever scale on overflow.
+ * \{ */
+
 typedef struct VFontToCurveIter {
   int iteraction;
   float scale_to_fit;
@@ -693,6 +703,8 @@ enum {
 
 #define FONT_TO_CURVE_SCALE_ITERATIONS 20
 #define FONT_TO_CURVE_SCALE_THRESHOLD 0.0001f
+
+/** \} */
 
 /**
  * Font metric values explained:
