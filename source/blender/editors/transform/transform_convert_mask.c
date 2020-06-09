@@ -33,7 +33,12 @@
 #include "BKE_report.h"
 
 #include "ED_clip.h"
+#include "ED_image.h"
+#include "ED_keyframing.h"
 #include "ED_mask.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 #include "transform.h"
 #include "transform_convert.h"
@@ -446,6 +451,48 @@ void recalcData_mask_common(TransInfo *t)
   flushTransMasking(t);
 
   DEG_id_tag_update(&mask->id, 0);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Special After Transform Mask
+ * \{ */
+
+void special_aftertrans_update__mask(bContext *C, TransInfo *t)
+{
+  Mask *mask = NULL;
+
+  if (t->spacetype == SPACE_CLIP) {
+    SpaceClip *sc = t->area->spacedata.first;
+    mask = ED_space_clip_get_mask(sc);
+  }
+  else if (t->spacetype == SPACE_IMAGE) {
+    SpaceImage *sima = t->area->spacedata.first;
+    mask = ED_space_image_get_mask(sima);
+  }
+  else {
+    BLI_assert(0);
+  }
+
+  if (t->scene->nodetree) {
+    /* tracks can be used for stabilization nodes,
+     * flush update for such nodes */
+    // if (nodeUpdateID(t->scene->nodetree, &mask->id))
+    {
+      WM_event_add_notifier(C, NC_MASK | ND_DATA, &mask->id);
+    }
+  }
+
+  /* TODO - dont key all masks... */
+  if (IS_AUTOKEY_ON(t->scene)) {
+    Scene *scene = t->scene;
+
+    if (ED_mask_layer_shape_auto_key_select(mask, CFRA)) {
+      WM_event_add_notifier(C, NC_MASK | ND_DATA, &mask->id);
+      DEG_id_tag_update(&mask->id, 0);
+    }
+  }
 }
 
 /** \} */

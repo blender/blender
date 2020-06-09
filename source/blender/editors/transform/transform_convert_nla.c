@@ -36,6 +36,8 @@
 #include "ED_anim_api.h"
 #include "ED_markers.h"
 
+#include "WM_api.h"
+
 #include "RNA_access.h"
 
 #include "transform.h"
@@ -509,6 +511,47 @@ void recalcData_nla(TransInfo *t)
         }
       }
     }
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Special After Transform NLA
+ * \{ */
+
+void special_aftertrans_update__nla(bContext *C, TransInfo *UNUSED(t))
+{
+  bAnimContext ac;
+
+  /* initialize relevant anim-context 'context' data */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return;
+  }
+
+  if (ac.datatype) {
+    ListBase anim_data = {NULL, NULL};
+    bAnimListElem *ale;
+    short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
+
+    /* get channels to work on */
+    ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+    for (ale = anim_data.first; ale; ale = ale->next) {
+      NlaTrack *nlt = (NlaTrack *)ale->data;
+
+      /* make sure strips are in order again */
+      BKE_nlatrack_sort_strips(nlt);
+
+      /* remove the temp metas */
+      BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+    }
+
+    /* free temp memory */
+    ANIM_animdata_freelist(&anim_data);
+
+    /* perform after-transfrom validation */
+    ED_nla_postop_refresh(&ac);
   }
 }
 

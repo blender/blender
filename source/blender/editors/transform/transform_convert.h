@@ -26,6 +26,7 @@
 #define __TRANSFORM_CONVERT_H__
 
 struct BezTriple;
+struct FCurve;
 struct ListBase;
 struct Object;
 struct TransData;
@@ -37,20 +38,7 @@ struct bKinematicConstraint;
 struct bPoseChannel;
 
 /* transform_convert.c */
-int transform_convert_pose_transflags_update(Object *ob,
-                                             const int mode,
-                                             const short around,
-                                             bool has_translate_rotate[2]);
 void transform_autoik_update(TransInfo *t, short mode);
-void autokeyframe_object(struct bContext *C,
-                         struct Scene *scene,
-                         struct ViewLayer *view_layer,
-                         struct Object *ob,
-                         int tmode);
-void autokeyframe_pose(
-    struct bContext *C, struct Scene *scene, struct Object *ob, int tmode, short targetless_ik);
-bool motionpath_need_update_object(struct Scene *scene, struct Object *ob);
-bool motionpath_need_update_pose(struct Scene *scene, struct Object *ob);
 int special_transform_moving(TransInfo *t);
 void special_aftertrans_update(struct bContext *C, TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
@@ -97,7 +85,7 @@ typedef enum eTransConvertType {
 /* transform_convert.c */
 bool transform_mode_use_local_origins(const TransInfo *t);
 void transform_around_single_fallback(TransInfo *t);
-void remake_graph_transdata(TransInfo *t, struct ListBase *anim_data);
+void posttrans_fcurve_clean(struct FCurve *fcu, const int sel_flag, const bool use_handle);
 bool constraints_list_needinv(TransInfo *t, ListBase *list);
 void calc_distanceCurveVerts(TransData *head, TransData *tail);
 struct TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTriple *bezt);
@@ -109,13 +97,18 @@ void animrecord_check_state(TransInfo *t, struct Object *ob);
 /* transform_convert_action.c */
 void createTransActionData(bContext *C, TransInfo *t);
 void recalcData_actedit(TransInfo *t);
+void special_aftertrans_update__actedit(bContext *C, TransInfo *t);
 
 /* transform_convert_armature.c */
-struct bKinematicConstraint *has_targetless_ik(struct bPoseChannel *pchan);
+int transform_convert_pose_transflags_update(Object *ob,
+                                             const int mode,
+                                             const short around,
+                                             bool has_translate_rotate[2]);
 void createTransPose(TransInfo *t);
 void createTransArmatureVerts(TransInfo *t);
 void recalcData_edit_armature(TransInfo *t);
 void recalcData_pose(TransInfo *t);
+void special_aftertrans_update__pose(bContext *C, TransInfo *t);
 
 /* transform_convert_cursor.c */
 void createTransCursor_image(TransInfo *t);
@@ -128,6 +121,7 @@ void recalcData_curve(TransInfo *t);
 /* transform_convert_graph.c */
 void createTransGraphEditData(bContext *C, TransInfo *t);
 void recalcData_graphedit(TransInfo *t);
+void special_aftertrans_update__graph(bContext *C, TransInfo *t);
 
 /* transform_convert_gpencil.c */
 void createTransGPencil(bContext *C, TransInfo *t);
@@ -140,6 +134,7 @@ void recalcData_lattice(TransInfo *t);
 /* transform_convert_mask.c */
 void createTransMaskingData(bContext *C, TransInfo *t);
 void recalcData_mask_common(TransInfo *t);
+void special_aftertrans_update__mask(bContext *C, TransInfo *t);
 
 /* transform_convert_mball.c */
 void createTransMBallVerts(TransInfo *t);
@@ -147,6 +142,7 @@ void createTransMBallVerts(TransInfo *t);
 /* transform_convert_mesh.c */
 void createTransEditVerts(TransInfo *t);
 void recalcData_mesh(TransInfo *t);
+void special_aftertrans_update__mesh(bContext *C, TransInfo *t);
 
 /* transform_convert_mesh_edge.c */
 void createTransEdge(TransInfo *t);
@@ -158,16 +154,18 @@ void recalcData_uv(TransInfo *t);
 /* transform_convert_nla.c */
 void createTransNlaData(bContext *C, TransInfo *t);
 void recalcData_nla(TransInfo *t);
+void special_aftertrans_update__nla(bContext *C, TransInfo *t);
 
 /* transform_convert_node.c */
 void createTransNodeData(TransInfo *t);
 void flushTransNodes(TransInfo *t);
+void special_aftertrans_update__node(bContext *C, TransInfo *t);
 
 /* transform_convert_object.c */
-void clear_trans_object_base_flags(TransInfo *t);
 void createTransObject(bContext *C, TransInfo *t);
 void createTransTexspace(TransInfo *t);
 void recalcData_objects(TransInfo *t);
+void special_aftertrans_update__object(bContext *C, TransInfo *t);
 
 /* transform_convert_paintcurve.c */
 void createTransPaintCurveVerts(bContext *C, TransInfo *t);
@@ -184,9 +182,10 @@ void recalcData_sculpt(TransInfo *t);
 /* transform_convert_sequencer.c */
 void createTransSeqData(TransInfo *t);
 void recalcData_sequencer(TransInfo *t);
+void special_aftertrans_update__sequencer(bContext *C, TransInfo *t);
 
 /* transform_convert_tracking.c */
 void createTransTrackingData(bContext *C, TransInfo *t);
-void cancelTransTracking(TransInfo *t);
 void recalcData_tracking(TransInfo *t);
+void special_aftertrans_update__movieclip(bContext *C, TransInfo *t);
 #endif

@@ -25,14 +25,19 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_movieclip.h"
+#include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_tracking.h"
 
 #include "ED_clip.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 #include "transform.h"
 #include "transform_convert.h"
@@ -546,7 +551,14 @@ void createTransTrackingData(bContext *C, TransInfo *t)
   }
 }
 
-void cancelTransTracking(TransInfo *t)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name recalc Motion Tracking TransData
+ *
+ * \{ */
+
+static void cancelTransTracking(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   SpaceClip *sc = t->area->spacedata.first;
@@ -604,13 +616,6 @@ void cancelTransTracking(TransInfo *t)
     i++;
   }
 }
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name recalc Motion Tracking TransData
- *
- * \{ */
 
 static void flushTransTracking(TransInfo *t)
 {
@@ -734,6 +739,50 @@ void recalcData_tracking(TransInfo *t)
     }
 
     DEG_id_tag_update(&clip->id, 0);
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Special After Transform Tracking
+ * \{ */
+
+void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
+{
+  SpaceClip *sc = t->area->spacedata.first;
+  MovieClip *clip = ED_space_clip_get_clip(sc);
+  ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
+  const int framenr = ED_space_clip_get_clip_frame_number(sc);
+  /* Update coordinates of modified plane tracks. */
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
+    bool do_update = false;
+    if (plane_track->flag & PLANE_TRACK_HIDDEN) {
+      continue;
+    }
+    do_update |= PLANE_TRACK_VIEW_SELECTED(plane_track) != 0;
+    if (do_update == false) {
+      if ((plane_track->flag & PLANE_TRACK_AUTOKEY) == 0) {
+        int i;
+        for (i = 0; i < plane_track->point_tracksnr; i++) {
+          MovieTrackingTrack *track = plane_track->point_tracks[i];
+          if (TRACK_VIEW_SELECTED(sc, track)) {
+            do_update = true;
+            break;
+          }
+        }
+      }
+    }
+    if (do_update) {
+      BKE_tracking_track_plane_from_existing_motion(plane_track, framenr);
+    }
+  }
+  if (t->scene->nodetree != NULL) {
+    /* Tracks can be used for stabilization nodes,
+     * flush update for such nodes.
+     */
+    nodeUpdateID(t->scene->nodetree, &clip->id);
+    WM_event_add_notifier(C, NC_SCENE | ND_NODES, NULL);
   }
 }
 

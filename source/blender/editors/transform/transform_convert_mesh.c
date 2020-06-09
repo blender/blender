@@ -1402,3 +1402,71 @@ void recalcData_mesh(TransInfo *t)
   }
 }
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Special After Transform Mesh
+ * \{ */
+
+void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
+{
+  const bool canceled = (t->state == TRANS_CANCEL);
+  if (t->mode == TFM_EDGE_SLIDE) {
+    /* handle multires re-projection, done
+     * on transform completion since it's
+     * really slow -joeedh */
+    projectEdgeSlideData(t, !canceled);
+  }
+  else if (t->mode == TFM_VERT_SLIDE) {
+    /* as above */
+    projectVertSlideData(t, !canceled);
+  }
+
+  bool use_automerge = !canceled && (t->flag & (T_AUTOMERGE | T_AUTOSPLIT)) != 0;
+  if (use_automerge) {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+
+      BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+      BMesh *bm = em->bm;
+      char hflag;
+      bool has_face_sel = (bm->totfacesel != 0);
+
+      if (tc->use_mirror_axis_any) {
+        /* Rather then adjusting the selection (which the user would notice)
+         * tag all mirrored verts, then auto-merge those. */
+        BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
+
+        TransDataMirror *td_mirror = tc->data_mirror;
+        for (int i = tc->data_mirror_len; i--; td_mirror++) {
+          BM_elem_flag_enable((BMVert *)td_mirror->extra, BM_ELEM_TAG);
+        }
+
+        hflag = BM_ELEM_SELECT | BM_ELEM_TAG;
+      }
+      else {
+        hflag = BM_ELEM_SELECT;
+      }
+
+      if (t->flag & T_AUTOSPLIT) {
+        EDBM_automerge_and_split(
+            tc->obedit, true, true, true, hflag, t->scene->toolsettings->doublimit);
+      }
+      else {
+        EDBM_automerge(tc->obedit, true, hflag, t->scene->toolsettings->doublimit);
+      }
+
+      /* Special case, this is needed or faces won't re-select.
+       * Flush selected edges to faces. */
+      if (has_face_sel && (em->selectmode == SCE_SELECT_FACE)) {
+        EDBM_selectmode_flush_ex(em, SCE_SELECT_EDGE);
+      }
+    }
+  }
+
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    /* table needs to be created for each edit command, since vertices can move etc */
+    ED_mesh_mirror_spatial_table_end(tc->obedit);
+    /* TODO(campbell): xform: We need support for many mirror objects at once! */
+    break;
+  }
+}
+/** \} */

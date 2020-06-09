@@ -27,14 +27,23 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
 #include "BKE_context.h"
+#include "BKE_gpencil.h"
+#include "BKE_key.h"
+#include "BKE_mask.h"
 #include "BKE_nla.h"
 #include "BKE_report.h"
 
 #include "ED_anim_api.h"
+#include "ED_keyframes_edit.h"
+#include "ED_markers.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 #include "transform.h"
 #include "transform_convert.h"
@@ -616,6 +625,300 @@ void recalcData_actedit(TransInfo *t)
     /* now free temp channels */
     ANIM_animdata_freelist(&anim_data);
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Special After Transform Action
+ * \{ */
+
+static int masklay_shape_cmp_frame(void *thunk, const void *a, const void *b)
+{
+  const MaskLayerShape *frame_a = a;
+  const MaskLayerShape *frame_b = b;
+
+  if (frame_a->frame < frame_b->frame) {
+    return -1;
+  }
+  if (frame_a->frame > frame_b->frame) {
+    return 1;
+  }
+  *((bool *)thunk) = true;
+  /* selected last */
+  if ((frame_a->flag & MASK_SHAPE_SELECT) && ((frame_b->flag & MASK_SHAPE_SELECT) == 0)) {
+    return 1;
+  }
+  return 0;
+}
+
+static void posttrans_mask_clean(Mask *mask)
+{
+  MaskLayer *masklay;
+
+  for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+    MaskLayerShape *masklay_shape, *masklay_shape_next;
+    bool is_double = false;
+
+    BLI_listbase_sort_r(&masklay->splines_shapes, masklay_shape_cmp_frame, &is_double);
+
+    if (is_double) {
+      for (masklay_shape = masklay->splines_shapes.first; masklay_shape;
+           masklay_shape = masklay_shape_next) {
+        masklay_shape_next = masklay_shape->next;
+        if (masklay_shape_next && masklay_shape->frame == masklay_shape_next->frame) {
+          BKE_mask_layer_shape_unlink(masklay, masklay_shape);
+        }
+      }
+    }
+
+#ifdef DEBUG
+    for (masklay_shape = masklay->splines_shapes.first; masklay_shape;
+         masklay_shape = masklay_shape->next) {
+      BLI_assert(!masklay_shape->next || masklay_shape->frame < masklay_shape->next->frame);
+    }
+#endif
+  }
+
+  WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
+}
+
+/* Called by special_aftertrans_update to make sure selected gp-frames replace
+ * any other gp-frames which may reside on that frame (that are not selected).
+ * It also makes sure gp-frames are still stored in chronological order after
+ * transform.
+ */
+static void posttrans_gpd_clean(bGPdata *gpd)
+{
+  bGPDlayer *gpl;
+
+  for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    bGPDframe *gpf, *gpfn;
+    bool is_double = false;
+
+    BKE_gpencil_layer_frames_sort(gpl, &is_double);
+
+    if (is_double) {
+      for (gpf = gpl->frames.first; gpf; gpf = gpfn) {
+        gpfn = gpf->next;
+        if (gpfn && gpf->framenum == gpfn->framenum) {
+          BKE_gpencil_layer_frame_delete(gpl, gpf);
+        }
+      }
+    }
+
+#ifdef DEBUG
+    for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+      BLI_assert(!gpf->next || gpf->framenum < gpf->next->framenum);
+    }
+#endif
+  }
+  /* set cache flag to dirty */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, gpd);
+}
+
+/* Called by special_aftertrans_update to make sure selected keyframes replace
+ * any other keyframes which may reside on that frame (that is not selected).
+ * remake_action_ipos should have already been called
+ */
+static void posttrans_action_clean(bAnimContext *ac, bAction *act)
+{
+  ListBase anim_data = {NULL, NULL};
+  bAnimListElem *ale;
+  int filter;
+
+  /* filter data */
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/);
+  ANIM_animdata_filter(ac, &anim_data, filter, act, ANIMCONT_ACTION);
+
+  /* loop through relevant data, removing keyframes as appropriate
+   *      - all keyframes are converted in/out of global time
+   */
+  for (ale = anim_data.first; ale; ale = ale->next) {
+    AnimData *adt = ANIM_nla_mapping_get(ac, ale);
+
+    if (adt) {
+      ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0);
+      posttrans_fcurve_clean(ale->key_data, SELECT, false); /* only use handles in graph editor */
+      ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
+    }
+    else {
+      posttrans_fcurve_clean(ale->key_data, SELECT, false); /* only use handles in graph editor */
+    }
+  }
+
+  /* free temp data */
+  ANIM_animdata_freelist(&anim_data);
+}
+
+void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
+{
+  SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
+  bAnimContext ac;
+
+  const bool canceled = (t->state == TRANS_CANCEL);
+  const bool duplicate = (t->mode == TFM_TIME_DUPLICATE);
+
+  /* initialize relevant anim-context 'context' data */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return;
+  }
+
+  Object *ob = ac.obact;
+
+  if (ELEM(ac.datatype, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY, ANIMCONT_TIMELINE)) {
+    ListBase anim_data = {NULL, NULL};
+    bAnimListElem *ale;
+    short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/);
+
+    /* get channels to work on */
+    ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+    /* these should all be F-Curves */
+    for (ale = anim_data.first; ale; ale = ale->next) {
+      AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
+      FCurve *fcu = (FCurve *)ale->key_data;
+
+      /* 3 cases here for curve cleanups:
+       * 1) NOTRANSKEYCULL on    -> cleanup of duplicates shouldn't be done
+       * 2) canceled == 0        -> user confirmed the transform,
+       *                            so duplicates should be removed
+       * 3) canceled + duplicate -> user canceled the transform,
+       *                            but we made duplicates, so get rid of these
+       */
+      if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
+        if (adt) {
+          ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
+          posttrans_fcurve_clean(fcu, SELECT, false); /* only use handles in graph editor */
+          ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 0);
+        }
+        else {
+          posttrans_fcurve_clean(fcu, SELECT, false); /* only use handles in graph editor */
+        }
+      }
+    }
+
+    /* free temp memory */
+    ANIM_animdata_freelist(&anim_data);
+  }
+  else if (ac.datatype == ANIMCONT_ACTION) {  // TODO: just integrate into the above...
+    /* Depending on the lock status, draw necessary views */
+    // fixme... some of this stuff is not good
+    if (ob) {
+      if (ob->pose || BKE_key_from_object(ob)) {
+        DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+      }
+      else {
+        DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+      }
+    }
+
+    /* 3 cases here for curve cleanups:
+     * 1) NOTRANSKEYCULL on    -> cleanup of duplicates shouldn't be done
+     * 2) canceled == 0        -> user confirmed the transform,
+     *                            so duplicates should be removed.
+     * 3) canceled + duplicate -> user canceled the transform,
+     *                            but we made duplicates, so get rid of these.
+     */
+    if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
+      posttrans_action_clean(&ac, (bAction *)ac.data);
+    }
+  }
+  else if (ac.datatype == ANIMCONT_GPENCIL) {
+    /* remove duplicate frames and also make sure points are in order! */
+    /* 3 cases here for curve cleanups:
+     * 1) NOTRANSKEYCULL on    -> cleanup of duplicates shouldn't be done
+     * 2) canceled == 0        -> user confirmed the transform,
+     *                            so duplicates should be removed
+     * 3) canceled + duplicate -> user canceled the transform,
+     *                            but we made duplicates, so get rid of these
+     */
+    if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
+      ListBase anim_data = {NULL, NULL};
+      const int filter = ANIMFILTER_DATA_VISIBLE;
+      ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+        if (ale->datatype == ALE_GPFRAME) {
+          ale->id->tag |= LIB_TAG_DOIT;
+        }
+      }
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+        if (ale->datatype == ALE_GPFRAME) {
+          if (ale->id->tag & LIB_TAG_DOIT) {
+            ale->id->tag &= ~LIB_TAG_DOIT;
+            posttrans_gpd_clean((bGPdata *)ale->id);
+          }
+        }
+      }
+      ANIM_animdata_freelist(&anim_data);
+    }
+  }
+  else if (ac.datatype == ANIMCONT_MASK) {
+    /* remove duplicate frames and also make sure points are in order! */
+    /* 3 cases here for curve cleanups:
+     * 1) NOTRANSKEYCULL on:
+     *    Cleanup of duplicates shouldn't be done.
+     * 2) canceled == 0:
+     *    User confirmed the transform, so duplicates should be removed.
+     * 3) Canceled + duplicate:
+     *    User canceled the transform, but we made duplicates, so get rid of these.
+     */
+    if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
+      ListBase anim_data = {NULL, NULL};
+      const int filter = ANIMFILTER_DATA_VISIBLE;
+      ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+        if (ale->datatype == ALE_MASKLAY) {
+          ale->id->tag |= LIB_TAG_DOIT;
+        }
+      }
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+        if (ale->datatype == ALE_MASKLAY) {
+          if (ale->id->tag & LIB_TAG_DOIT) {
+            ale->id->tag &= ~LIB_TAG_DOIT;
+            posttrans_mask_clean((Mask *)ale->id);
+          }
+        }
+      }
+      ANIM_animdata_freelist(&anim_data);
+    }
+  }
+
+  /* marker transform, not especially nice but we may want to move markers
+   * at the same time as keyframes in the dope sheet.
+   */
+  if ((saction->flag & SACTION_MARKERS_MOVE) && (canceled == 0)) {
+    if (t->mode == TFM_TIME_TRANSLATE) {
+#if 0
+        if (ELEM(t->frame_side, 'L', 'R')) { /* TFM_TIME_EXTEND */
+          /* same as below */
+          ED_markers_post_apply_transform(
+              ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
+        }
+        else /* TFM_TIME_TRANSLATE */
+#endif
+      {
+        ED_markers_post_apply_transform(
+            ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
+      }
+    }
+    else if (t->mode == TFM_TIME_SCALE) {
+      ED_markers_post_apply_transform(
+          ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
+    }
+  }
+
+  /* make sure all F-Curves are set correctly */
+  if (!ELEM(ac.datatype, ANIMCONT_GPENCIL)) {
+    ANIM_editkeyframes_refresh(&ac);
+  }
+
+  /* clear flag that was set for time-slide drawing */
+  saction->flag &= ~SACTION_MOVING;
 }
 
 /** \} */

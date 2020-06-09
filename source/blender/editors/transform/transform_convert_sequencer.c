@@ -31,6 +31,8 @@
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
 
+#include "ED_markers.h"
+
 #include "UI_view2d.h"
 
 #include "transform.h"
@@ -806,6 +808,41 @@ void recalcData_sequencer(TransInfo *t)
   DEG_id_tag_update(&t->scene->id, ID_RECALC_SEQUENCER_STRIPS);
 
   flushTransSeq(t);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Special After Transform Sequencer
+ * \{ */
+
+void special_aftertrans_update__sequencer(bContext *UNUSED(C), TransInfo *t)
+{
+  if (t->state == TRANS_CANCEL) {
+    return;
+  }
+  /* freeSeqData in transform_conversions.c does this
+   * keep here so the else at the end wont run... */
+
+  SpaceSeq *sseq = (SpaceSeq *)t->area->spacedata.first;
+
+  /* Marker transform, not especially nice but we may want to move markers
+   * at the same time as strips in the Video Sequencer. */
+  if (sseq->flag & SEQ_MARKER_TRANS) {
+    /* cant use TFM_TIME_EXTEND
+     * for some reason EXTEND is changed into TRANSLATE, so use frame_side instead */
+
+    if (t->mode == TFM_SEQ_SLIDE) {
+      if (t->frame_side == 'B') {
+        ED_markers_post_apply_transform(
+            &t->scene->markers, t->scene, TFM_TIME_TRANSLATE, t->values[0], t->frame_side);
+      }
+    }
+    else if (ELEM(t->frame_side, 'L', 'R')) {
+      ED_markers_post_apply_transform(
+          &t->scene->markers, t->scene, TFM_TIME_EXTEND, t->values[0], t->frame_side);
+    }
+  }
 }
 
 int transform_convert_sequencer_get_snap_bound(TransInfo *t)
