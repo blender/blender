@@ -2651,6 +2651,13 @@ static void ptcache_extra_free(PTCacheMem *pm)
     BLI_freelistN(&pm->extradata);
   }
 }
+
+static void ptcache_mem_clear(PTCacheMem *pm)
+{
+  ptcache_data_free(pm);
+  ptcache_extra_free(pm);
+}
+
 static int ptcache_old_elemsize(PTCacheID *pid)
 {
   if (pid->type == PTCACHE_TYPE_SOFTBODY) {
@@ -2801,8 +2808,7 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
   }
 
   if (error && pm) {
-    ptcache_data_free(pm);
-    ptcache_extra_free(pm);
+    ptcache_mem_clear(pm);
     MEM_freeN(pm);
     pm = NULL;
   }
@@ -3037,8 +3043,7 @@ static int ptcache_read(PTCacheID *pid, int cfra)
 
     /* clean up temporary memory cache */
     if (pid->cache->flag & PTCACHE_DISK_CACHE) {
-      ptcache_data_free(pm);
-      ptcache_extra_free(pm);
+      ptcache_mem_clear(pm);
       MEM_freeN(pm);
     }
   }
@@ -3094,8 +3099,7 @@ static int ptcache_interpolate(PTCacheID *pid, float cfra, int cfra1, int cfra2)
 
     /* clean up temporary memory cache */
     if (pid->cache->flag & PTCACHE_DISK_CACHE) {
-      ptcache_data_free(pm);
-      ptcache_extra_free(pm);
+      ptcache_mem_clear(pm);
       MEM_freeN(pm);
     }
   }
@@ -3323,15 +3327,13 @@ static int ptcache_write(PTCacheID *pid, int cfra, int overwrite)
 
     // if (pm) /* pm is always set */
     {
-      ptcache_data_free(pm);
-      ptcache_extra_free(pm);
+      ptcache_mem_clear(pm);
       MEM_freeN(pm);
     }
 
     if (pm2) {
       error += !ptcache_mem_frame_to_disk(pid, pm2);
-      ptcache_data_free(pm2);
-      ptcache_extra_free(pm2);
+      ptcache_mem_clear(pm2);
       MEM_freeN(pm2);
     }
   }
@@ -3543,8 +3545,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
           /*we want startframe if the cache starts before zero*/
           pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
           for (; pm; pm = pm->next) {
-            ptcache_data_free(pm);
-            ptcache_extra_free(pm);
+            ptcache_mem_clear(pm);
           }
           BLI_freelistN(&pid->cache->mem_cache);
 
@@ -3560,8 +3561,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
               if (pid->cache->cached_frames && pm->frame >= sta && pm->frame <= end) {
                 pid->cache->cached_frames[pm->frame - sta] = 0;
               }
-              ptcache_data_free(pm);
-              ptcache_extra_free(pm);
+              ptcache_mem_clear(pm);
               pm = pm->next;
               BLI_freelinkN(&pid->cache->mem_cache, link);
             }
@@ -3585,8 +3585,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 
         for (; pm; pm = pm->next) {
           if (pm->frame == cfra) {
-            ptcache_data_free(pm);
-            ptcache_extra_free(pm);
+            ptcache_mem_clear(pm);
             BLI_freelinkN(&pid->cache->mem_cache, pm);
             break;
           }
@@ -3940,8 +3939,7 @@ void BKE_ptcache_free_mem(ListBase *mem_cache)
 
   if (pm) {
     for (; pm; pm = pm->next) {
-      ptcache_data_free(pm);
-      ptcache_extra_free(pm);
+      ptcache_mem_clear(pm);
     }
 
     BLI_freelistN(mem_cache);
