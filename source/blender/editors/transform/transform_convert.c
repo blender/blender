@@ -182,10 +182,10 @@ static void sort_trans_data_dist_container(const TransInfo *t, TransDataContaine
 
   if (i < tc->data_len) {
     if (t->flag & T_PROP_CONNECTED) {
-      qsort(start, tc->data_len - i, sizeof(TransData), trans_data_compare_dist);
+      qsort(start, (size_t)tc->data_len - i, sizeof(TransData), trans_data_compare_dist);
     }
     else {
-      qsort(start, tc->data_len - i, sizeof(TransData), trans_data_compare_rdist);
+      qsort(start, (size_t)tc->data_len - i, sizeof(TransData), trans_data_compare_rdist);
     }
   }
 }
@@ -204,8 +204,7 @@ static void sort_trans_data_selected_first_container(TransDataContainer *tc)
   TransData *sel, *unsel;
   TransData temp;
   unsel = tc->data;
-  sel = tc->data;
-  sel += tc->data_len - 1;
+  sel = &tc->data[tc->data_len - 1];
   while (sel > unsel) {
     while (unsel->flag & TD_SELECTED) {
       unsel++;
@@ -2479,9 +2478,9 @@ static int countAndCleanTransDataContainer(TransInfo *t)
 {
   BLI_assert(ELEM(t->data_len_all, 0, -1));
   t->data_len_all = 0;
-  uint data_container_len_orig = t->data_container_len;
+  int data_container_len_orig = t->data_container_len;
   for (TransDataContainer *th_end = t->data_container - 1,
-                          *tc = t->data_container + (t->data_container_len - 1);
+                          *tc = &t->data_container[t->data_container_len - 1];
        tc != th_end;
        tc--) {
     if (tc->data_len == 0) {
