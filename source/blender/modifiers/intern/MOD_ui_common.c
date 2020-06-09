@@ -172,9 +172,6 @@ void modifier_vgroup_ui(uiLayout *layout,
     uiLayoutSetPropDecorate(sub, false);
     uiItemR(sub, ptr, invert_vgroup_prop, 0, "", ICON_ARROW_LEFTRIGHT);
   }
-  if (uiLayoutGetPropDecorate(layout)) {
-    uiItemL(row, "", ICON_BLANK1);
-  }
 }
 
 /**

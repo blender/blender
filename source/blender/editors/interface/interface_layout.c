@@ -1054,7 +1054,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
 
 #ifdef UI_PROP_DECORATE
   /* Only for alignment. */
-  if (layout->item.flag & UI_ITEM_PROP_SEP) {
+  if (use_prop_sep) { /* Flag may have been unset meanwhile. */
     if ((layout->item.flag & UI_ITEM_PROP_DECORATE) &&
         (layout->item.flag & UI_ITEM_PROP_DECORATE_NO_PAD) == 0) {
       uiItemL(layout_prop_decorate ? layout_prop_decorate : sub, NULL, ICON_BLANK1);
