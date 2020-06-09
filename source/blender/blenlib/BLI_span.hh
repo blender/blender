@@ -589,7 +589,7 @@ template<typename T> class MutableSpan {
    * Returns a reference to the last element. This invokes undefined behavior when the array is
    * empty.
    */
-  const T &last() const
+  T &last() const
   {
     BLI_assert(m_size > 0);
     return m_start[m_size - 1];
