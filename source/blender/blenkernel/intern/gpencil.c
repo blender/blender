@@ -1852,9 +1852,13 @@ bool BKE_gpencil_from_image(SpaceImage *sima, bGPDframe *gpf, const float size, 
  * \param gpl_mask Actual Layer
  * \return True if the layer is a mask
  */
-static bool gpencil_is_layer_mask(bGPdata *gpd, bGPDlayer *gpl_mask)
+static bool gpencil_is_layer_mask(ViewLayer *view_layer, bGPdata *gpd, bGPDlayer *gpl_mask)
 {
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    if ((gpl->viewlayername[0] != '\0') && (!STREQ(view_layer->name, gpl->viewlayername))) {
+      continue;
+    }
+
     LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl->mask_layers) {
       if (STREQ(gpl_mask->info, mask->name)) {
         return true;
@@ -1911,7 +1915,7 @@ void BKE_gpencil_visible_stroke_iter(ViewLayer *view_layer,
         (!STREQ(view_layer->name, gpl->viewlayername))) {
       /* If the layer is used as mask, cannot be filtered or the masking system
        * will crash because needs the mask layer in the draw pipeline. */
-      if (!gpencil_is_layer_mask(gpd, gpl)) {
+      if (!gpencil_is_layer_mask(view_layer, gpd, gpl)) {
         continue;
       }
     }
