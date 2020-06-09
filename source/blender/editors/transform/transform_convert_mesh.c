@@ -535,7 +535,7 @@ static TransDataMirror *editmesh_mirror_data_calc(BMEditMesh *em,
   TransDataMirror *td_mirror_iter, *td_mirror = NULL;
   if (mirror_elem_len != 0) {
     td_mirror = MEM_mallocN(mirror_elem_len * sizeof(*td_mirror), __func__);
-    td_mirror_iter = &td_mirror_iter[0];
+    td_mirror_iter = &td_mirror[0];
 
     *r_mirror_bitmap = BLI_BITMAP_NEW(bm->totvert, __func__);
 

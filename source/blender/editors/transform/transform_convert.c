@@ -3094,8 +3094,10 @@ void recalcData(TransInfo *t)
       recalcData_tracking(t);
       break;
     case TC_MBALL_VERTS:
-    case TC_LATTICE_VERTS:
       recalcData_obedit(t);
+      break;
+    case TC_LATTICE_VERTS:
+      recalcData_lattice(t);
       break;
     case TC_PARTICLE_VERTS:
       recalcData_particles(t);

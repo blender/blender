@@ -57,7 +57,6 @@ void sort_trans_data_dist(TransInfo *t);
 void createTransData(struct bContext *C, TransInfo *t);
 bool clipUVTransform(TransInfo *t, float vec[2], const bool resize);
 void clipUVData(TransInfo *t);
-void recalcData(TransInfo *t);
 
 /* transform_convert_mesh.c */
 void trans_mesh_customdata_correction_init(TransInfo *t);
@@ -136,6 +135,7 @@ void recalcData_gpencil_strokes(TransInfo *t);
 
 /* transform_convert_lattice.c */
 void createTransLatticeVerts(TransInfo *t);
+void recalcData_lattice(TransInfo *t);
 
 /* transform_convert_mask.c */
 void createTransMaskingData(bContext *C, TransInfo *t);
