@@ -26,6 +26,8 @@
 #include <cstring> /* required for STREQ later on. */
 #include <stdio.h>
 
+#include "BLI_ghash.h"
+#include "BLI_hash.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_object_types.h"
@@ -67,6 +69,15 @@ string ComponentNode::OperationIDKey::identifier() const
 bool ComponentNode::OperationIDKey::operator==(const OperationIDKey &other) const
 {
   return (opcode == other.opcode) && (STREQ(name, other.name)) && (name_tag == other.name_tag);
+}
+
+uint32_t ComponentNode::OperationIDKey::hash() const
+{
+  const int opcode_as_int = static_cast<int>(opcode);
+  return BLI_ghashutil_combine_hash(
+      name_tag,
+      BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(opcode_as_int),
+                                 BLI_ghashutil_strhash_p(name)));
 }
 
 ComponentNode::ComponentNode()

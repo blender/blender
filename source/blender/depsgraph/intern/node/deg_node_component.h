@@ -26,8 +26,6 @@
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_operation.h"
 
-#include "BLI_ghash.h"
-#include "BLI_hash.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -55,6 +53,7 @@ struct ComponentNode : public Node {
 
     string identifier() const;
     bool operator==(const OperationIDKey &other) const;
+    uint32_t hash() const;
   };
 
   /* Typedef for container of operations */
@@ -205,18 +204,3 @@ struct BoneComponentNode : public ComponentNode {
 void deg_register_component_depsnodes();
 
 }  // namespace DEG
-
-namespace blender {
-
-template<> struct DefaultHash<DEG::ComponentNode::OperationIDKey> {
-  uint32_t operator()(const DEG::ComponentNode::OperationIDKey &key) const
-  {
-    const int opcode_as_int = static_cast<int>(key.opcode);
-    return BLI_ghashutil_combine_hash(
-        key.name_tag,
-        BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(opcode_as_int),
-                                   BLI_ghashutil_strhash_p(key.name)));
-  }
-};
-
-}  // namespace blender
