@@ -66,12 +66,12 @@
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_vector.hh"
 
-using BLI::Array;
-using BLI::ArrayRef;
-using BLI::IndexRange;
-using BLI::ListBaseWrapper;
-using BLI::MutableArrayRef;
-using BLI::Vector;
+using blender::Array;
+using blender::ArrayRef;
+using blender::IndexRange;
+using blender::ListBaseWrapper;
+using blender::MutableArrayRef;
+using blender::Vector;
 
 static void requiredDataMask(Object *UNUSED(ob),
                              ModifierData *UNUSED(md),

@@ -21,7 +21,7 @@
 #ifndef __BLI_UTILITY_MIXINS_HH__
 #define __BLI_UTILITY_MIXINS_HH__
 
-namespace BLI {
+namespace blender {
 
 /**
  * A type that inherits from NonCopyable cannot be copied anymore.
@@ -53,6 +53,6 @@ class NonMovable {
   NonMovable &operator=(const NonMovable &other) = default;
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_UTILITY_MIXINS_HH__ */

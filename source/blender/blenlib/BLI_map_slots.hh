@@ -20,7 +20,7 @@
 /** \file
  * \ingroup bli
  *
- * This file contains slot types that are supposed to be used with BLI::Map.
+ * This file contains slot types that are supposed to be used with blender::Map.
  *
  * Every slot type has to be able to hold a value of type Key, a value of type Value and state
  * information. A map slot has three possible states: empty, occupied and removed.
@@ -37,7 +37,7 @@
 
 #include "BLI_memory_utils.hh"
 
-namespace BLI {
+namespace blender {
 
 /**
  * The simplest possible map slot. It stores the slot state and the optional key and value
@@ -356,6 +356,6 @@ template<typename Key, typename Value> struct DefaultMapSlot<Key *, Value> {
   using type = IntrusiveMapSlot<Key *, Value, PointerKeyInfo<Key *>>;
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_MAP_SLOTS_HH__ */

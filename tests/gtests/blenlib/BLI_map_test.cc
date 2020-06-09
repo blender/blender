@@ -6,7 +6,7 @@
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-using namespace BLI;
+using namespace blender;
 
 TEST(map, DefaultConstructor)
 {
@@ -103,7 +103,7 @@ TEST(map, ValueIterator)
   map.add(1, 2.0f);
   map.add(7, -2.0f);
 
-  BLI::Set<float> values;
+  blender::Set<float> values;
 
   uint iterations = 0;
   for (float value : map.values()) {
@@ -124,7 +124,7 @@ TEST(map, KeyIterator)
   map.add(2, 4.0f);
   map.add(1, 3.0f);
 
-  BLI::Set<int> keys;
+  blender::Set<int> keys;
 
   uint iterations = 0;
   for (int key : map.keys()) {
@@ -145,8 +145,8 @@ TEST(map, ItemIterator)
   map.add(2, 9.0f);
   map.add(1, 0.0f);
 
-  BLI::Set<int> keys;
-  BLI::Set<float> values;
+  blender::Set<int> keys;
+  blender::Set<float> values;
 
   uint iterations = 0;
   for (auto item : map.items()) {
@@ -423,63 +423,63 @@ BLI_NOINLINE void benchmark_random_ints(StringRef name, uint amount, uint factor
 TEST(map, Benchmark)
 {
   for (uint i = 0; i < 3; i++) {
-    benchmark_random_ints<BLI::Map<int, int>>("BLI::Map          ", 1000000, 1);
-    benchmark_random_ints<BLI::StdUnorderedMapWrapper<int, int>>("std::unordered_map", 1000000, 1);
+    benchmark_random_ints<blender::Map<int, int>>("blender::Map          ", 1000000, 1);
+    benchmark_random_ints<blender::StdUnorderedMapWrapper<int, int>>("std::unordered_map", 1000000, 1);
   }
   std::cout << "\n";
   for (uint i = 0; i < 3; i++) {
     uint32_t factor = (3 << 10);
-    benchmark_random_ints<BLI::Map<int, int>>("BLI::Map          ", 1000000, factor);
-    benchmark_random_ints<BLI::StdUnorderedMapWrapper<int, int>>(
+    benchmark_random_ints<blender::Map<int, int>>("blender::Map          ", 1000000, factor);
+    benchmark_random_ints<blender::StdUnorderedMapWrapper<int, int>>(
         "std::unordered_map", 1000000, factor);
   }
 }
 
 /**
- * Timer 'BLI::Map           Add' took 61.7616 ms
- * Timer 'BLI::Map           Contains' took 18.4989 ms
- * Timer 'BLI::Map           Remove' took 20.5864 ms
+ * Timer 'blender::Map           Add' took 61.7616 ms
+ * Timer 'blender::Map           Contains' took 18.4989 ms
+ * Timer 'blender::Map           Remove' took 20.5864 ms
  * Count: 1999755
  * Timer 'std::unordered_map Add' took 188.674 ms
  * Timer 'std::unordered_map Contains' took 44.3741 ms
  * Timer 'std::unordered_map Remove' took 169.52 ms
  * Count: 1999755
- * Timer 'BLI::Map           Add' took 37.9196 ms
- * Timer 'BLI::Map           Contains' took 16.7361 ms
- * Timer 'BLI::Map           Remove' took 20.9568 ms
+ * Timer 'blender::Map           Add' took 37.9196 ms
+ * Timer 'blender::Map           Contains' took 16.7361 ms
+ * Timer 'blender::Map           Remove' took 20.9568 ms
  * Count: 1999755
  * Timer 'std::unordered_map Add' took 166.09 ms
  * Timer 'std::unordered_map Contains' took 40.6133 ms
  * Timer 'std::unordered_map Remove' took 142.85 ms
  * Count: 1999755
- * Timer 'BLI::Map           Add' took 37.3053 ms
- * Timer 'BLI::Map           Contains' took 16.6731 ms
- * Timer 'BLI::Map           Remove' took 18.8304 ms
+ * Timer 'blender::Map           Add' took 37.3053 ms
+ * Timer 'blender::Map           Contains' took 16.6731 ms
+ * Timer 'blender::Map           Remove' took 18.8304 ms
  * Count: 1999755
  * Timer 'std::unordered_map Add' took 170.964 ms
  * Timer 'std::unordered_map Contains' took 38.1824 ms
  * Timer 'std::unordered_map Remove' took 140.263 ms
  * Count: 1999755
  *
- * Timer 'BLI::Map           Add' took 50.1131 ms
- * Timer 'BLI::Map           Contains' took 25.0491 ms
- * Timer 'BLI::Map           Remove' took 32.4225 ms
+ * Timer 'blender::Map           Add' took 50.1131 ms
+ * Timer 'blender::Map           Contains' took 25.0491 ms
+ * Timer 'blender::Map           Remove' took 32.4225 ms
  * Count: 1889920
  * Timer 'std::unordered_map Add' took 150.129 ms
  * Timer 'std::unordered_map Contains' took 34.6999 ms
  * Timer 'std::unordered_map Remove' took 120.907 ms
  * Count: 1889920
- * Timer 'BLI::Map           Add' took 50.4438 ms
- * Timer 'BLI::Map           Contains' took 25.2677 ms
- * Timer 'BLI::Map           Remove' took 32.3047 ms
+ * Timer 'blender::Map           Add' took 50.4438 ms
+ * Timer 'blender::Map           Contains' took 25.2677 ms
+ * Timer 'blender::Map           Remove' took 32.3047 ms
  * Count: 1889920
  * Timer 'std::unordered_map Add' took 144.015 ms
  * Timer 'std::unordered_map Contains' took 36.3387 ms
  * Timer 'std::unordered_map Remove' took 119.109 ms
  * Count: 1889920
- * Timer 'BLI::Map           Add' took 48.6995 ms
- * Timer 'BLI::Map           Contains' took 25.1846 ms
- * Timer 'BLI::Map           Remove' took 33.0283 ms
+ * Timer 'blender::Map           Add' took 48.6995 ms
+ * Timer 'blender::Map           Contains' took 25.1846 ms
+ * Timer 'blender::Map           Remove' took 33.0283 ms
  * Count: 1889920
  * Timer 'std::unordered_map Add' took 143.494 ms
  * Timer 'std::unordered_map Contains' took 34.8905 ms

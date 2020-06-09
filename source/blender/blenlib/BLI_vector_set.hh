@@ -20,8 +20,8 @@
 /** \file
  * \ingroup bli
  *
- * A `BLI::VectorSet<Key>` is an ordered container for elements of type `Key`. It has the same
- * interface as `BLI::Set` with the following extensions:
+ * A `blender::VectorSet<Key>` is an ordered container for elements of type `Key`. It has the same
+ * interface as `blender::Set` with the following extensions:
  * - The insertion order of keys is maintained as long as no elements are removed.
  * - The keys are stored in a contiguous array.
  *
@@ -35,9 +35,9 @@
  *   the keys are stored in a set. With a VectorSet, one can get an ArrayRef containing all keys
  *   without additional copies.
  *
- * BLI::VectorSet is implemented using open addressing in a slot array with a power-of-two size.
- * Other than in BLI::Set, a slot does not contain the key though. Instead it only contains an
- * index into an array of keys that is stored separately.
+ * blender::VectorSet is implemented using open addressing in a slot array with a power-of-two
+ * size. Other than in blender::Set, a slot does not contain the key though. Instead it only
+ * contains an index into an array of keys that is stored separately.
  *
  * Some noteworthy information:
  * - Key must be a movable type.
@@ -66,7 +66,7 @@
 #include "BLI_probing_strategies.hh"
 #include "BLI_vector_set_slots.hh"
 
-namespace BLI {
+namespace blender {
 
 template<
     /**
@@ -752,6 +752,6 @@ class VectorSet {
   }
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_VECTOR_SET_HH__ */

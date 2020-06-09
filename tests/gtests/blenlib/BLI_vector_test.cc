@@ -3,7 +3,7 @@
 #include "testing/testing.h"
 #include <forward_list>
 
-using namespace BLI;
+using namespace blender;
 
 TEST(vector, DefaultConstructor)
 {

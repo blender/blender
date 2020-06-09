@@ -72,9 +72,9 @@
 
 namespace FN {
 
-using BLI::IndexMask;
-using BLI::StringRef;
-using BLI::StringRefNull;
+using blender::IndexMask;
+using blender::StringRef;
+using blender::StringRefNull;
 
 class CPPType {
  public:
@@ -538,7 +538,7 @@ template<typename T> void construct_default_cb(void *ptr)
 }
 template<typename T> void construct_default_n_cb(void *ptr, uint n)
 {
-  BLI::default_construct_n((T *)ptr, n);
+  blender::default_construct_n((T *)ptr, n);
 }
 template<typename T> void construct_default_indices_cb(void *ptr, IndexMask index_mask)
 {
@@ -551,7 +551,7 @@ template<typename T> void destruct_cb(void *ptr)
 }
 template<typename T> void destruct_n_cb(void *ptr, uint n)
 {
-  BLI::destruct_n((T *)ptr, n);
+  blender::destruct_n((T *)ptr, n);
 }
 template<typename T> void destruct_indices_cb(void *ptr, IndexMask index_mask)
 {
@@ -583,11 +583,11 @@ void copy_to_initialized_indices_cb(const void *src, void *dst, IndexMask index_
 
 template<typename T> void copy_to_uninitialized_cb(const void *src, void *dst)
 {
-  BLI::uninitialized_copy_n((T *)src, 1, (T *)dst);
+  blender::uninitialized_copy_n((T *)src, 1, (T *)dst);
 }
 template<typename T> void copy_to_uninitialized_n_cb(const void *src, void *dst, uint n)
 {
-  BLI::uninitialized_copy_n((T *)src, n, (T *)dst);
+  blender::uninitialized_copy_n((T *)src, n, (T *)dst);
 }
 template<typename T>
 void copy_to_uninitialized_indices_cb(const void *src, void *dst, IndexMask index_mask)
@@ -608,7 +608,7 @@ template<typename T> void relocate_to_initialized_cb(void *src, void *dst)
 }
 template<typename T> void relocate_to_initialized_n_cb(void *src, void *dst, uint n)
 {
-  BLI::initialized_relocate_n((T *)src, n, (T *)dst);
+  blender::initialized_relocate_n((T *)src, n, (T *)dst);
 }
 template<typename T>
 void relocate_to_initialized_indices_cb(void *src, void *dst, IndexMask index_mask)
@@ -632,7 +632,7 @@ template<typename T> void relocate_to_uninitialized_cb(void *src, void *dst)
 }
 template<typename T> void relocate_to_uninitialized_n_cb(void *src, void *dst, uint n)
 {
-  BLI::uninitialized_relocate_n((T *)src, n, (T *)dst);
+  blender::uninitialized_relocate_n((T *)src, n, (T *)dst);
 }
 template<typename T>
 void relocate_to_uninitialized_indices_cb(void *src, void *dst, IndexMask index_mask)

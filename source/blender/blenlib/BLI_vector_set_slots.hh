@@ -20,7 +20,7 @@
 /** \file
  * \ingroup bli
  *
- * This file contains slot types that are supposed to be used with BLI::VectorSet.
+ * This file contains slot types that are supposed to be used with blender::VectorSet.
  *
  * Every slot type has to be able to hold an integer index and state information.
  * A vector set slot has three possible states: empty, occupied and removed.
@@ -39,7 +39,7 @@
 
 #include "BLI_sys_types.h"
 
-namespace BLI {
+namespace blender {
 
 /**
  * The simplest possible vector set slot. It stores the index and state in a signed integer. If the
@@ -166,6 +166,6 @@ template<typename Key> struct DefaultVectorSetSlot {
   using type = SimpleVectorSetSlot<Key>;
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_VECTOR_SET_SLOTS_HH__ */

@@ -20,16 +20,16 @@
 /** \file
  * \ingroup bli
  *
- * A `BLI::Map<Key, Value>` is an unordered associative container that stores key-value pairs. The
- * keys have to be unique. It is designed to be a more convenient and efficient replacement for
+ * A `blender::Map<Key, Value>` is an unordered associative container that stores key-value pairs.
+ * The keys have to be unique. It is designed to be a more convenient and efficient replacement for
  * `std::unordered_map`. All core operations (add, lookup, remove and contains) can be done in O(1)
  * amortized expected time.
  *
- * Your default choice for a hash map in Blender should be `BLI::Map`.
+ * Your default choice for a hash map in Blender should be `blender::Map`.
  *
- * BLI::Map is implemented using open addressing in a slot array with a power-of-two size. Every
- * slot is in one of three states: empty, occupied or removed. If a slot is occupied, it contains
- * a Key and Value instance.
+ * blender::Map is implemented using open addressing in a slot array with a power-of-two size.
+ * Every slot is in one of three states: empty, occupied or removed. If a slot is occupied, it
+ * contains a Key and Value instance.
  *
  * Benchmarking and comparing hash tables is hard, because many factors influence the result. The
  * performance of a hash table depends on the combination of the hash function, probing strategy,
@@ -38,7 +38,7 @@
  * that allow it to be optimized for a specific use case.
  *
  * A rudimentary benchmark can be found in BLI_map_test.cc. The results of that benchmark are there
- * as well. The numbers show that in this specific case BLI::Map outperforms std::unordered_map
+ * as well. The numbers show that in this specific case blender::Map outperforms std::unordered_map
  * consistently by a good amount.
  *
  * Some noteworthy information:
@@ -64,7 +64,7 @@
  * - The method names don't follow the std::unordered_map names in many cases. Searching for such
  *   names in this file will usually let you discover the new name.
  * - There is a StdUnorderedMapWrapper class, that wraps std::unordered_map and gives it the same
- *   interface as BLI::Map. This is useful for benchmarking.
+ *   interface as blender::Map. This is useful for benchmarking.
  */
 
 #include <unordered_map>
@@ -75,7 +75,7 @@
 #include "BLI_map_slots.hh"
 #include "BLI_probing_strategies.hh"
 
-namespace BLI {
+namespace blender {
 
 template<
     /**
@@ -1097,11 +1097,12 @@ class Map {
 };
 
 /**
- * A wrapper for std::unordered_map with the API of BLI::Map. This can be used for benchmarking.
+ * A wrapper for std::unordered_map with the API of blender::Map. This can be used for
+ * benchmarking.
  */
 template<typename Key, typename Value> class StdUnorderedMapWrapper {
  private:
-  using MapType = std::unordered_map<Key, Value, BLI::DefaultHash<Key>>;
+  using MapType = std::unordered_map<Key, Value, blender::DefaultHash<Key>>;
   MapType m_map;
 
  public:
@@ -1162,6 +1163,6 @@ template<typename Key, typename Value> class StdUnorderedMapWrapper {
   }
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_MAP_HH__ */

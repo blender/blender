@@ -3,7 +3,7 @@
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-using namespace BLI;
+using namespace blender;
 
 TEST(index_range, DefaultConstructor)
 {

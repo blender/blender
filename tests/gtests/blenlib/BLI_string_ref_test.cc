@@ -3,9 +3,9 @@
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-using BLI::StringRef;
-using BLI::StringRefNull;
-using BLI::Vector;
+using blender::StringRef;
+using blender::StringRefNull;
+using blender::Vector;
 
 TEST(string_ref_null, DefaultConstructor)
 {

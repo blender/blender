@@ -21,7 +21,7 @@
 
 #include "BLI_math_color.h"
 
-namespace BLI {
+namespace blender {
 
 struct Color4f {
   float r, g, b, a;
@@ -87,6 +87,6 @@ struct Color4b {
   }
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_COLOR_HH__ */

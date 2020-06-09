@@ -20,7 +20,7 @@
 #include "BLI_float3.hh"
 #include "BLI_math_matrix.h"
 
-namespace BLI {
+namespace blender {
 
 struct float4x4 {
   float values[4][4];
@@ -110,6 +110,6 @@ struct float4x4 {
   }
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_FLOAT4X4_HH__ */

@@ -33,7 +33,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-namespace BLI {
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Constexpr Utility Functions
@@ -345,6 +345,6 @@ struct DefaultEquality {
   }
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_OPEN_ADDRESSING_HH__ */

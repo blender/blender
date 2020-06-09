@@ -2,7 +2,7 @@
 #include "BLI_strict_flags.h"
 #include "testing/testing.h"
 
-using namespace BLI;
+using namespace blender;
 
 TEST(array, DefaultConstructor)
 {

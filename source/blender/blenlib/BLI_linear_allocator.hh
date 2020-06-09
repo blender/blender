@@ -29,7 +29,7 @@
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
-namespace BLI {
+namespace blender {
 
 template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopyable, NonMovable {
  private:
@@ -215,6 +215,6 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
   }
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_LINEAR_ALLOCATOR_HH__ */

@@ -53,13 +53,13 @@ struct CustomData_MeshMasks;
 namespace DEG {
 
 /* Commonly used types. */
-using BLI::ArrayRef;
-using BLI::Map;
-using BLI::Set;
-using BLI::StringRef;
-using BLI::StringRefNull;
-using BLI::Vector;
-using BLI::VectorSet;
+using blender::ArrayRef;
+using blender::Map;
+using blender::Set;
+using blender::StringRef;
+using blender::StringRefNull;
+using blender::Vector;
+using blender::VectorSet;
 using std::deque;
 using std::map;
 using std::pair;

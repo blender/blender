@@ -3,7 +3,7 @@
 #include "testing/testing.h"
 #include <string>
 
-using namespace BLI;
+using namespace blender;
 
 TEST(optional, DefaultConstructor)
 {

@@ -20,13 +20,13 @@
 /** \file
  * \ingroup bli
  *
- * A `BLI::StringRef` references a const char array owned by someone else. It is just a pointer and
- * a size. Since the memory is not owned, StringRef should not be used to transfer ownership of the
- * string. The data referenced by a StringRef cannot be mutated through it.
+ * A `blender::StringRef` references a const char array owned by someone else. It is just a pointer
+ * and a size. Since the memory is not owned, StringRef should not be used to transfer ownership of
+ * the string. The data referenced by a StringRef cannot be mutated through it.
  *
  * A StringRef is NOT null-terminated. This makes it much more powerful within C++, because we can
  * also cut off parts of the end without creating a copy. When interfacing with C code that expects
- * null-terminated strings, `BLI::StringRefNull` can be used. It is essentially the same as
+ * null-terminated strings, `blender::StringRefNull` can be used. It is essentially the same as
  * StringRef, but with the restriction that the string has to be null-terminated.
  *
  * Whenever possible, string parameters should be of type StringRef and the string return type
@@ -34,7 +34,7 @@
  * return it when the string exists only in the scope of the function. This convention makes
  * functions usable in the most contexts.
  *
- * BLI::StringRef vs. std::string_view:
+ * blender::StringRef vs. std::string_view:
  *   Both types are certainly very similar. The main benefit of using StringRef in Blender is that
  *   this allows us to add convenience methods at any time. Especially, when doing a lot of string
  *   manipulation, this helps to keep the code clean. Furthermore, we need StringRefNull anyway,
@@ -49,7 +49,7 @@
 #include "BLI_array_ref.hh"
 #include "BLI_utildefines.h"
 
-namespace BLI {
+namespace blender {
 
 class StringRef;
 
@@ -345,6 +345,6 @@ inline StringRef StringRefBase::substr(uint start, uint size) const
   return StringRef(m_data + start, size);
 }
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_STRING_REF_HH__ */

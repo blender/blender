@@ -29,7 +29,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace BLI {
+namespace blender {
 
 template<typename T> class Optional {
  private:
@@ -184,6 +184,6 @@ template<typename T> class Optional {
   }
 };
 
-} /* namespace BLI */
+} /* namespace blender */
 
 #endif /* __BLI_OPTIONAL_HH__ */

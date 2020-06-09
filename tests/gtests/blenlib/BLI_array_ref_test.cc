@@ -3,11 +3,11 @@
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-using namespace BLI;
+using namespace blender;
 
-using IntVector = BLI::Vector<int>;
-using IntArrayRef = BLI::ArrayRef<int>;
-using MutableIntArrayRef = BLI::MutableArrayRef<int>;
+using IntVector = blender::Vector<int>;
+using IntArrayRef = blender::ArrayRef<int>;
+using MutableIntArrayRef = blender::MutableArrayRef<int>;
 
 TEST(array_ref, FromSmallVector)
 {

@@ -20,7 +20,7 @@
 /** \file
  * \ingroup bli
  *
- * A `BLI::Stack<T>` is a dynamically growing FILO (first-in, last-out) data structure. It is
+ * A `blender::Stack<T>` is a dynamically growing FILO (first-in, last-out) data structure. It is
  * designed to be a more convenient and efficient replacement for `std::stack`.
  *
  * The improved efficiency is mainly achieved by supporting small buffer optimization. As long as
@@ -34,8 +34,8 @@
  * when it grows. This stack implementation does not have to copy all previously pushed elements
  * when it grows.
  *
- * BLI::Stack is implemented using a double linked list of chunks. Each chunk contains an array of
- * elements. The chunk size increases exponentially with every new chunk that is required. The
+ * blender::Stack is implemented using a double linked list of chunks. Each chunk contains an array
+ * of elements. The chunk size increases exponentially with every new chunk that is required. The
  * lowest chunk, i.e. the one that is used for the first few pushed elements, is embedded into the
  * stack.
  */
@@ -44,7 +44,7 @@
 #include "BLI_array_ref.hh"
 #include "BLI_memory_utils.hh"
 
-namespace BLI {
+namespace blender {
 
 /**
  * A StackChunk references a contiguous memory buffer. Multiple StackChunk instances are linked in
@@ -385,6 +385,6 @@ class Stack {
   }
 };
 
-} /* namespace BLI */
+} /* namespace blender */
 
 #endif /* __BLI_STACK_HH__ */

@@ -20,15 +20,15 @@
 /** \file
  * \ingroup bli
  *
- * A `BLI::Set<Key>` is an unordered container for unique elements of type `Key`. It is designed to
- * be a more convenient and efficient replacement for `std::unordered_set`. All core operations
- * (add, remove and contains) can be done in O(1) amortized expected time.
+ * A `blender::Set<Key>` is an unordered container for unique elements of type `Key`. It is
+ * designed to be a more convenient and efficient replacement for `std::unordered_set`. All core
+ * operations (add, remove and contains) can be done in O(1) amortized expected time.
  *
- * In most cases, your default choice for a hash set in Blender should be `BLI::Set`.
+ * In most cases, your default choice for a hash set in Blender should be `blender::Set`.
  *
- * BLI::Set is implemented using open addressing in a slot array with a power-of-two size. Every
- * slot is in one of three states: empty, occupied or removed. If a slot is occupied, it contains
- * an instance of the key type.
+ * blender::Set is implemented using open addressing in a slot array with a power-of-two size.
+ * Every slot is in one of three states: empty, occupied or removed. If a slot is occupied, it
+ * contains an instance of the key type.
  *
  * Benchmarking and comparing hash tables is hard, because many factors influence the result. The
  * performance of a hash table depends on the combination of the hash function, probing strategy,
@@ -37,7 +37,7 @@
  * points that allow it to be optimized for a specific use case.
  *
  * A rudimentary benchmark can be found in BLI_set_test.cc. The results of that benchmark are
- * there as well. The numbers show that in this specific case BLI::Set outperforms
+ * there as well. The numbers show that in this specific case blender::Set outperforms
  * std::unordered_set consistently by a good amount.
  *
  * Some noteworthy information:
@@ -59,7 +59,7 @@
  * - The method names don't follow the std::unordered_set names in many cases. Searching for such
  *   names in this file will usually let you discover the new name.
  * - There is a StdUnorderedSetWrapper class, that wraps std::unordered_set and gives it the same
- *   interface as BLI::Set. This is useful for benchmarking.
+ *   interface as blender::Set. This is useful for benchmarking.
  *
  * Possible Improvements:
  * - Use a branchless loop over slots in grow function (measured ~10% performance improvement when
@@ -78,7 +78,7 @@
 #include "BLI_probing_strategies.hh"
 #include "BLI_set_slots.hh"
 
-namespace BLI {
+namespace blender {
 
 template<
     /** Type of the elements that are stored in this set. It has to be movable. Furthermore, the
@@ -684,11 +684,12 @@ class Set {
 };
 
 /**
- * A wrapper for std::unordered_set with the API of BLI::Set. This can be used for benchmarking.
+ * A wrapper for std::unordered_set with the API of blender::Set. This can be used for
+ * benchmarking.
  */
 template<typename Key> class StdUnorderedSetWrapper {
  private:
-  using SetType = std::unordered_set<Key, BLI::DefaultHash<Key>>;
+  using SetType = std::unordered_set<Key, blender::DefaultHash<Key>>;
   SetType m_set;
 
  public:
@@ -763,6 +764,6 @@ template<typename Key> class StdUnorderedSetWrapper {
   }
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_SET_HH__ */

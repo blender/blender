@@ -1,7 +1,7 @@
 #include "BLI_index_mask.hh"
 #include "testing/testing.h"
 
-using namespace BLI;
+using namespace blender;
 
 TEST(index_mask, DefaultConstructor)
 {

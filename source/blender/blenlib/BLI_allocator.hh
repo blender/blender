@@ -19,9 +19,9 @@
 /** \file
  * \ingroup bli
  *
- * An `Allocator` can allocate and deallocate memory. It is used by containers such as BLI::Vector.
- * The allocators defined in this file do not work with standard library containers such as
- * std::vector.
+ * An `Allocator` can allocate and deallocate memory. It is used by containers such as
+ * blender::Vector. The allocators defined in this file do not work with standard library
+ * containers such as std::vector.
  *
  * Every allocator has to implement two methods:
  *   void *allocate(size_t size, size_t alignment, const char *name);
@@ -46,7 +46,7 @@
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
-namespace BLI {
+namespace blender {
 
 /**
  * Use Blender's guarded allocator (aka MEM_*). This should always be used except there is a
@@ -99,6 +99,6 @@ class RawAllocator {
   }
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_ALLOCATOR_HH__ */

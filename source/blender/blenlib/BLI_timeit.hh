@@ -23,7 +23,7 @@
 
 #include "BLI_sys_types.h"
 
-namespace BLI {
+namespace blender {
 namespace Timeit {
 
 using Clock = std::chrono::steady_clock;
@@ -55,8 +55,8 @@ class ScopedTimer {
 };
 
 }  // namespace Timeit
-}  // namespace BLI
+}  // namespace blender
 
-#define SCOPED_TIMER(name) BLI::Timeit::ScopedTimer scoped_timer(name)
+#define SCOPED_TIMER(name) blender::Timeit::ScopedTimer scoped_timer(name)
 
 #endif /* __BLI_TIMEIT_HH__ */

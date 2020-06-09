@@ -21,8 +21,8 @@
  * \ingroup bli
  *
  * This file implements different probing strategies. Those can be used by different hash table
- * implementations like BLI::Set and BLI::Map. A probing strategy produces a sequence of values
- * based on an initial hash value.
+ * implementations like blender::Set and blender::Map. A probing strategy produces a sequence of
+ * values based on an initial hash value.
  *
  * A probing strategy has to implement the following methods:
  * - Constructor(uint32_t hash): Start a new probing sequence based on the given hash.
@@ -56,7 +56,7 @@
 
 #include "BLI_sys_types.h"
 
-namespace BLI {
+namespace blender {
 
 /**
  * The simplest probing strategy. It's bad in most cases, because it produces clusters in the hash
@@ -245,6 +245,6 @@ using DefaultProbingStrategy = PythonProbingStrategy<>;
 
 // clang-format on
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_PROBING_STRATEGIES_HH__ */

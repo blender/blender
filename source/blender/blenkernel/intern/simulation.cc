@@ -54,9 +54,9 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-using BLI::ArrayRef;
-using BLI::float3;
-using BLI::MutableArrayRef;
+using blender::ArrayRef;
+using blender::float3;
+using blender::MutableArrayRef;
 
 static void simulation_init_data(ID *id)
 {

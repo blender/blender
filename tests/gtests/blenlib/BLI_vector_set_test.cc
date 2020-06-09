@@ -2,7 +2,7 @@
 #include "BLI_vector_set.hh"
 #include "testing/testing.h"
 
-using BLI::VectorSet;
+using blender::VectorSet;
 
 TEST(vector_set, DefaultConstructor)
 {

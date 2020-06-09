@@ -41,7 +41,7 @@
 #include "BLI_array_ref.hh"
 #include "BLI_index_range.hh"
 
-namespace BLI {
+namespace blender {
 
 class IndexMask {
  private:
@@ -207,6 +207,6 @@ class IndexMask {
   }
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_INDEX_MASK_HH__ */

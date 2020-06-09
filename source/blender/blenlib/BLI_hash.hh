@@ -20,8 +20,8 @@
 /** \file
  * \ingroup bli
  *
- * A specialization of `BLI::DefaultHash<T>` provides a hash function for values of type T. This
- * hash function is used by default in hash table implementations in blenlib.
+ * A specialization of `blender::DefaultHash<T>` provides a hash function for values of type T.
+ * This hash function is used by default in hash table implementations in blenlib.
  *
  * The actual hash function is in the `operator()` method of DefaultHash<T>. The following code
  * computes the hash of some value using DefaultHash.
@@ -30,8 +30,8 @@
  *   DefaultHash<T> hash_function;
  *   uint32_t hash = hash_function(value);
  *
- * Hash table implementations like BLI::Set support heterogeneous key lookups. That means that one
- * can do a lookup with a key of type A in a hash table that stores keys of type B. This is
+ * Hash table implementations like blender::Set support heterogeneous key lookups. That means that
+ * one can do a lookup with a key of type A in a hash table that stores keys of type B. This is
  * commonly done when B is std::string, because the conversion from e.g. a StringRef to std::string
  * can be costly and is unnecessary. To make this work, values of type A and B that compare equal
  * have to have the same hash value. This is achieved by defining potentially multiple `operator()`
@@ -57,7 +57,7 @@
  *   specialization to the DefaultHash struct. This can be done by writing code like below in
  *   either global or BLI namespace.
  *
- *     template<> struct BLI::DefaultHash<TheType> {
+ *     template<> struct blender::DefaultHash<TheType> {
  *       uint32_t operator()(const TheType &value) const {
  *         return ...;
  *       }
@@ -83,7 +83,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
-namespace BLI {
+namespace blender {
 
 /**
  * If there is no other specialization of DefaultHash for a given type, try to call `hash()` on the
@@ -206,6 +206,6 @@ template<typename T1, typename T2> struct DefaultHash<std::pair<T1, T2>> {
   }
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_HASH_HH__ */

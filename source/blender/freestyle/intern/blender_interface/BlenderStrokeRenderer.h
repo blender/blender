@@ -56,7 +56,7 @@ class BlenderStrokeRenderer : public StrokeRenderer {
     {
     }
     vector<StrokeRep *> strokes;
-    BLI::Map<Material *, int> materials;
+    blender::Map<Material *, int> materials;
     int totvert;
     int totedge;
     int totpoly;

@@ -22,7 +22,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_vector.hh"
 
-namespace BLI {
+namespace blender {
 
 static Vector<Array<uint, 0, RawAllocator>, 1, RawAllocator> arrays;
 static uint current_array_size = 0;
@@ -57,4 +57,4 @@ ArrayRef<uint> IndexRange::as_array_ref() const
   return ArrayRef<uint>(current_array + m_start, m_size);
 }
 
-}  // namespace BLI
+}  // namespace blender

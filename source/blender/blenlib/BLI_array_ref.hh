@@ -20,26 +20,26 @@
 /** \file
  * \ingroup bli
  *
- * A `BLI::ArrayRef<T>` references an array that is owned by someone else. It is just a pointer and
- * a size. Since the memory is not owned, ArrayRef should not be used to transfer ownership. The
- * array cannot be modified through the ArrayRef. However, if T is a non-const pointer, the
- * pointed-to elements can be modified.
+ * An `blender::ArrayRef<T>` references an array that is owned by someone else. It is just a
+ * pointer and a size. Since the memory is not owned, ArrayRef should not be used to transfer
+ * ownership. The array cannot be modified through the ArrayRef. However, if T is a non-const
+ * pointer, the pointed-to elements can be modified.
  *
- * There is also `BLI::MutableArrayRef<T>`. It is mostly the same as ArrayRef, but allows the array
- * to be modified.
+ * There is also `blender::MutableArrayRef<T>`. It is mostly the same as ArrayRef, but allows the
+ * array to be modified.
  *
  * An (Mutable)ArrayRef can refer to data owned by many different data structures including
- * BLI::Vector, BLI::Array, BLI::VectorSet, std::vector, std::array, std::string,
+ * blender::Vector, blender::Array, blender::VectorSet, std::vector, std::array, std::string,
  * std::initializer_list and c-style array.
  *
- * `BLI::ArrayRef<T>` should be your default choice when you have to pass a read-only array into a
- * function. It is better than passing a `const Vector &`, because then the function only works for
- * vectors and not for e.g. arrays. Using ArrayRef as function parameter makes it usable in more
- * contexts, better expresses the intent and does not sacrifice performance. It is also better than
- * passing a raw pointer and size separately, because it is more convenient and safe.
+ * `blender::ArrayRef<T>` should be your default choice when you have to pass a read-only array
+ * into a function. It is better than passing a `const Vector &`, because then the function only
+ * works for vectors and not for e.g. arrays. Using ArrayRef as function parameter makes it usable
+ * in more contexts, better expresses the intent and does not sacrifice performance. It is also
+ * better than passing a raw pointer and size separately, because it is more convenient and safe.
  *
- * `BLI::MutableArrayRef<T>` can be used when a function is supposed to return an array, the size
- * of which is known before the function is called. One advantage of this approach is that the
+ * `blender::MutableArrayRef<T>` can be used when a function is supposed to return an array, the
+ * size of which is known before the function is called. One advantage of this approach is that the
  * caller is responsible for allocation and deallocation. Furthermore, the function can focus on
  * its task, without having to worry about memory allocation. Alternatively, a function could
  * return an Array or Vector.
@@ -64,7 +64,7 @@
 #include "BLI_memory_utils.hh"
 #include "BLI_utildefines.h"
 
-namespace BLI {
+namespace blender {
 
 /**
  * References an array of type T that is owned by someone else. The data in the array cannot be
@@ -625,6 +625,6 @@ void assert_same_size(const T1 &v1, const T2 &v2, const T3 &v3)
 #endif
 }
 
-} /* namespace BLI */
+} /* namespace blender */
 
 #endif /* __BLI_ARRAY_REF_HH__ */

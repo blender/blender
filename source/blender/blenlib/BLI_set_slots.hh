@@ -20,7 +20,7 @@
 /** \file
  * \ingroup bli
  *
- * This file contains different slot types that are supposed to be used with BLI::Set.
+ * This file contains different slot types that are supposed to be used with blender::Set.
  *
  * Every slot type has to be able to hold a value of the Key type and state information.
  * A set slot has three possible states: empty, occupied and removed.
@@ -35,7 +35,7 @@
 #include "BLI_memory_utils.hh"
 #include "BLI_string_ref.hh"
 
-namespace BLI {
+namespace blender {
 
 /**
  * The simplest possible set slot. It stores the slot state and the optional key instance in
@@ -410,6 +410,6 @@ template<typename Key> struct DefaultSetSlot<Key *> {
   using type = IntrusiveSetSlot<Key *, PointerKeyInfo<Key *>>;
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_SET_SLOTS_HH__ */

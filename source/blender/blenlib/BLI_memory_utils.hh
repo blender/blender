@@ -25,7 +25,7 @@
 
 #include "BLI_utildefines.h"
 
-namespace BLI {
+namespace blender {
 
 /**
  * Call the default constructor on n consecutive elements. For trivially constructible types, this
@@ -249,6 +249,6 @@ template<size_t Size, size_t Alignment> class alignas(Alignment) AlignedBuffer {
   }
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_MEMORY_UTILS_HH__ */

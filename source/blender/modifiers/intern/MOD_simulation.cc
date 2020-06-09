@@ -64,7 +64,7 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
 
-using BLI::float3;
+using blender::float3;
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {

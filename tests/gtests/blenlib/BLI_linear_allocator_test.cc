@@ -2,7 +2,7 @@
 #include "BLI_strict_flags.h"
 #include "testing/testing.h"
 
-using namespace BLI;
+using namespace blender;
 
 static bool is_aligned(void *ptr, uint alignment)
 {
@@ -30,7 +30,7 @@ TEST(linear_allocator, AllocationAlignment)
 TEST(linear_allocator, PackedAllocation)
 {
   LinearAllocator<> allocator;
-  BLI::AlignedBuffer<256, 32> buffer;
+  blender::AlignedBuffer<256, 32> buffer;
   allocator.provide_buffer(buffer);
 
   uintptr_t ptr1 = (uintptr_t)allocator.allocate(10, 4); /*  0 - 10 */
@@ -52,7 +52,7 @@ TEST(linear_allocator, PackedAllocation)
 TEST(linear_allocator, CopyString)
 {
   LinearAllocator<> allocator;
-  BLI::AlignedBuffer<256, 1> buffer;
+  blender::AlignedBuffer<256, 1> buffer;
   allocator.provide_buffer(buffer);
 
   StringRefNull ref1 = allocator.copy_string("Hello");

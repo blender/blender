@@ -34,7 +34,7 @@
 
 #include <sstream>
 
-namespace BLI {
+namespace blender {
 namespace DotExport {
 
 class Graph;
@@ -208,7 +208,7 @@ class NodePort {
   void to_dot_string(std::stringstream &ss) const;
 };
 
-class Edge : BLI::NonCopyable, BLI::NonMovable {
+class Edge : blender::NonCopyable, blender::NonMovable {
  protected:
   AttributeList m_attributes;
   NodePort m_a;
@@ -284,6 +284,6 @@ class NodeWithSocketsRef {
 };
 
 }  // namespace DotExport
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_DOT_EXPORT_HH__ */

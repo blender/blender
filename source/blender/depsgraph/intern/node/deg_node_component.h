@@ -206,7 +206,7 @@ void deg_register_component_depsnodes();
 
 }  // namespace DEG
 
-namespace BLI {
+namespace blender {
 
 template<> struct DefaultHash<DEG::ComponentNode::OperationIDKey> {
   uint32_t operator()(const DEG::ComponentNode::OperationIDKey &key) const
@@ -219,4 +219,4 @@ template<> struct DefaultHash<DEG::ComponentNode::OperationIDKey> {
   }
 };
 
-}  // namespace BLI
+}  // namespace blender

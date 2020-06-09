@@ -19,23 +19,23 @@
 /** \file
  * \ingroup bli
  *
- * A `BLI::Array<T>` is a container for a fixed size array the size of which is NOT known at
+ * A `blender::Array<T>` is a container for a fixed size array the size of which is NOT known at
  * compile time.
  *
  * If the size is known at compile time, `std::array<T, N>` should be used instead.
  *
- * BLI::Array should usually be used instead of BLI::Vector whenever the number of elements is
- * known at construction time. Note however, that BLI::Array will default construct all elements
- * when initialized with the size-constructor. For trivial types, this does nothing. In all other
- * cases, this adds overhead. If this becomes a problem, a different constructor which does not do
- * default construction can be added.
+ * blender::Array should usually be used instead of blender::Vector whenever the number of elements
+ * is known at construction time. Note however, that blender::Array will default construct all
+ * elements when initialized with the size-constructor. For trivial types, this does nothing. In
+ * all other cases, this adds overhead. If this becomes a problem, a different constructor which
+ * does not do default construction can be added.
  *
  * A main benefit of using Array over Vector is that it expresses the intent of the developer
  * better. It indicates that the size of the data structure is not expected to change. Furthermore,
  * you can be more certain that an array does not overallocate.
  *
- * BLI::Array supports small object optimization to improve performance when the size turns out to
- * be small at run-time.
+ * blender::Array supports small object optimization to improve performance when the size turns out
+ * to be small at run-time.
  */
 
 #include "BLI_allocator.hh"
@@ -44,7 +44,7 @@
 #include "BLI_memory_utils.hh"
 #include "BLI_utildefines.h"
 
-namespace BLI {
+namespace blender {
 
 template<
     /**
@@ -341,6 +341,6 @@ class Array {
   }
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_ARRAY_HH__ */

@@ -20,7 +20,7 @@
 /** \file
  * \ingroup bli
  *
- * A `BLI::Vector<T>` is a dynamically growing contiguous array for values of type T. It is
+ * A `blender::Vector<T>` is a dynamically growing contiguous array for values of type T. It is
  * designed to be a more convenient and efficient replacement for `std::vector`. Note that the term
  * "vector" has nothing to do with a vector from computer graphics here.
  *
@@ -31,10 +31,10 @@
  *
  * The improved efficiency is mainly achieved by supporting small buffer optimization. As long as
  * the number of elements in the vector does not become larger than InlineBufferCapacity, no memory
- * allocation is done. As a consequence, iterators are invalidated when a BLI::Vector is moved
+ * allocation is done. As a consequence, iterators are invalidated when a blender::Vector is moved
  * (iterators of std::vector remain valid when the vector is moved).
  *
- * `BLI::Vector` should be your default choice for a vector data structure in Blender.
+ * `blender::Vector` should be your default choice for a vector data structure in Blender.
  */
 
 #include <algorithm>
@@ -55,7 +55,7 @@
 
 #include "MEM_guardedalloc.h"
 
-namespace BLI {
+namespace blender {
 
 template<
     /**
@@ -143,7 +143,7 @@ class Vector {
   {
     this->reserve(size);
     this->increase_size_by_unchecked(size);
-    BLI::uninitialized_fill_n(m_begin, size, value);
+    blender::uninitialized_fill_n(m_begin, size, value);
   }
 
   /**
@@ -164,7 +164,7 @@ class Vector {
     uint size = values.size();
     this->reserve(size);
     this->increase_size_by_unchecked(size);
-    BLI::uninitialized_copy_n(values.data(), size, m_begin);
+    blender::uninitialized_copy_n(values.data(), size, m_begin);
   }
 
   /**
@@ -456,7 +456,7 @@ class Vector {
   void append_n_times(const T &value, uint n)
   {
     this->reserve(this->size() + n);
-    BLI::uninitialized_fill_n(m_end, n, value);
+    blender::uninitialized_fill_n(m_end, n, value);
     this->increase_size_by_unchecked(n);
   }
 
@@ -511,7 +511,7 @@ class Vector {
   void extend_unchecked(const T *start, uint amount)
   {
     BLI_assert(m_begin + amount <= m_capacity_end);
-    BLI::uninitialized_copy_n(start, amount, m_end);
+    blender::uninitialized_copy_n(start, amount, m_end);
     m_end += amount;
     UPDATE_VECTOR_SIZE(this);
   }
@@ -844,6 +844,6 @@ class Vector {
 template<typename T, uint InlineBufferCapacity = 20>
 using ScopedVector = Vector<T, InlineBufferCapacity, GuardedAllocator>;
 
-} /* namespace BLI */
+} /* namespace blender */
 
 #endif /* __BLI_VECTOR_HH__ */

@@ -20,7 +20,7 @@
 /** \file
  * \ingroup bli
  *
- * A `BLI::IndexRange` wraps an interval of non-negative integers. It can be used to reference
+ * A `blender::IndexRange` wraps an interval of non-negative integers. It can be used to reference
  * consecutive elements in an array. Furthermore, it can make for loops more convenient and less
  * error prone, especially when using nested loops.
  *
@@ -35,10 +35,10 @@
  *    for (uint j : IndexRange(20)) {
  *      for (uint k : IndexRange(30)) {
  *
- * Some containers like BLI::Vector have an index_range() method. This will return the IndexRange
- * that contains all indices that can be used to access the container. This is particularly useful
- * when you want to iterate over the indices and the elements (much like Python's enumerate(), just
- * worse). Again, I think the second example here is better:
+ * Some containers like blender::Vector have an index_range() method. This will return the
+ * IndexRange that contains all indices that can be used to access the container. This is
+ * particularly useful when you want to iterate over the indices and the elements (much like
+ * Python's enumerate(), just worse). Again, I think the second example here is better:
  *
  *  for (uint i = 0; i < my_vector_with_a_long_name.size(); i++) {
  *    do_something(i, my_vector_with_a_long_name[i]);
@@ -64,7 +64,7 @@ namespace tbb {
 template<typename Value> class blocked_range;
 }
 
-namespace BLI {
+namespace blender {
 
 template<typename T> class ArrayRef;
 
@@ -236,6 +236,6 @@ class IndexRange {
   }
 };
 
-}  // namespace BLI
+}  // namespace blender
 
 #endif /* __BLI_INDEX_RANGE_HH__ */

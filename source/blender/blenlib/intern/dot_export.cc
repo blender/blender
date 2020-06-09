@@ -18,7 +18,7 @@
 
 #include "BLI_dot_export.hh"
 
-namespace BLI {
+namespace blender {
 namespace DotExport {
 
 /* Graph Building
@@ -302,4 +302,4 @@ NodeWithSocketsRef::NodeWithSocketsRef(Node &node,
 }
 
 }  // namespace DotExport
-}  // namespace BLI
+}  // namespace blender
