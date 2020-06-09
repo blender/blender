@@ -7963,7 +7963,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
   }
 
   /* redraw */
-  ED_region_tag_redraw(data->region);
+  ED_region_tag_redraw_no_rebuild(data->region);
 }
 
 static void button_activate_init(bContext *C,
@@ -8174,7 +8174,7 @@ static void button_activate_exit(
   }
 
   /* redraw and refresh (for popups) */
-  ED_region_tag_redraw(data->region);
+  ED_region_tag_redraw_no_rebuild(data->region);
   ED_region_tag_refresh_ui(data->region);
 
   /* clean up button */
@@ -8767,14 +8767,14 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
           if (!(but->flag & UI_SELECT)) {
             but->flag |= (UI_SELECT | UI_ACTIVE);
             data->cancel = false;
-            ED_region_tag_redraw(data->region);
+            ED_region_tag_redraw_no_rebuild(data->region);
           }
         }
         else {
           if (but->flag & UI_SELECT) {
             but->flag &= ~(UI_SELECT | UI_ACTIVE);
             data->cancel = true;
-            ED_region_tag_redraw(data->region);
+            ED_region_tag_redraw_no_rebuild(data->region);
           }
         }
         break;
