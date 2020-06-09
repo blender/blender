@@ -339,7 +339,6 @@ def bake_action_iter(
                     obj.rotation_quaternion = quat
                     quat_prev = quat
                     del quat
-                    print ("quat_prev", quat_prev)
                 else:
                     quat_prev = obj.rotation_quaternion.copy()
                 obj.keyframe_insert("rotation_quaternion", index=-1, frame=f, group=name)
