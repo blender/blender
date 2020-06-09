@@ -636,6 +636,10 @@ bool RNA_struct_override_matches(Main *bmain,
       continue;
     }
 
+    if (RNA_property_override_flag(prop_local) & PROPOVERRIDE_IGNORE) {
+      continue;
+    }
+
 #if 0 /* This actually makes things slower, since it has to check for animation paths etc! */
     if (RNA_property_animated(ptr_local, prop_local)) {
       /* We cannot do anything here really, animation is some kind of dynamic overrides that has

@@ -1476,6 +1476,7 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_string_maxlength(prop, MAX_ID_NAME - 2);
   RNA_def_property_editable_func(prop, "rna_ID_name_editable");
   RNA_def_property_update(prop, NC_ID | NA_RENAME, NULL);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_struct_name_property(srna, prop);
 
   prop = RNA_def_property(srna, "name_full", PROP_STRING, PROP_NONE);

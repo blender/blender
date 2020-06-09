@@ -937,6 +937,12 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
     return;
   }
 
+  /* This ID name is problematic, since it is an 'rna name property' it should not be editable or
+   * different from reference linked ID. But local ID names need to be unique in a given type list
+   * of Main, so we cannot always keep it identical, which is why we need this special manual
+   * handling here. */
+  BLI_strncpy(tmp_id->name, local->name, sizeof(tmp_id->name));
+
   PointerRNA rnaptr_src, rnaptr_dst, rnaptr_storage_stack, *rnaptr_storage = NULL;
   RNA_id_pointer_create(local, &rnaptr_src);
   RNA_id_pointer_create(tmp_id, &rnaptr_dst);
