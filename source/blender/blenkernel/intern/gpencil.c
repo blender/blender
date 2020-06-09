@@ -1848,9 +1848,10 @@ bool BKE_gpencil_from_image(SpaceImage *sima, bGPDframe *gpf, const float size, 
 
 /**
  * Helper to check if a layers is used as mask
+ * \param view_layer Actual view layer
  * \param gpd Grease pencil datablock
  * \param gpl_mask Actual Layer
- * \return True if the layer is a mask
+ * \return True if the layer is used as mask
  */
 static bool gpencil_is_layer_mask(ViewLayer *view_layer, bGPdata *gpd, bGPDlayer *gpl_mask)
 {
