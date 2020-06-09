@@ -59,7 +59,7 @@ inline constexpr uint32_t log2_ceil_u_constexpr(uint32_t x)
 
 inline constexpr uint32_t power_of_2_max_u_constexpr(uint32_t x)
 {
-  return 1 << log2_ceil_u_constexpr(x);
+  return 1u << log2_ceil_u_constexpr(x);
 }
 
 template<typename IntT> inline constexpr IntT ceil_division(IntT x, IntT y)
