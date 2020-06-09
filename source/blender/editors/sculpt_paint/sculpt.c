@@ -5322,7 +5322,14 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
    * and the number of nodes under the brush influence. */
   if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS && ss->cache->first_time &&
       ss->cache->mirror_symmetry_pass == 0 && !ss->cache->alt_smooth) {
-    SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_FACE_SETS);
+
+    /* Dyntopo does not support Face Sets data, so it can't store/restore it from undo. */
+    /* TODO (pablodp606): This check should be done in the undo code and not here, but the rest of
+     * the sculpt code is not checking for unsupported undo types that may return a null node. */
+    if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+      SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_FACE_SETS);
+    }
+
     if (ss->cache->invert) {
       /* When inverting the brush, pick the paint face mask ID from the mesh. */
       ss->cache->paint_face_set = SCULPT_active_face_set_get(ss);
