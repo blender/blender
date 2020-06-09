@@ -422,8 +422,19 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
     }
 
     SEQP_BEGIN (ed, seq) {
-      /* Select left or right. */
-      if ((x < CFRA && seq->enddisp <= CFRA) || (x > CFRA && seq->startdisp >= CFRA)) {
+      bool test = false;
+      /* FIXME(campbell): this functionality is only in the sequencer,
+       * either we should support this for all timeline views or remove it. */
+      if ((x == CFRA) && (seq->startdisp <= CFRA) && (seq->enddisp >= CFRA)) {
+        /* Select overlapping the current frame. */
+        test = true;
+      }
+      else if ((x < CFRA && seq->enddisp <= CFRA) || (x > CFRA && seq->startdisp >= CFRA)) {
+        /* Select left or right. */
+        test = true;
+      }
+
+      if (test) {
         seq->flag |= SELECT;
         recurs_sel_seq(seq);
       }
