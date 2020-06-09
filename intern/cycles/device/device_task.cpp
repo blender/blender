@@ -44,7 +44,8 @@ DeviceTask::DeviceTask(Type type_)
       shader_eval_type(0),
       shader_filter(0),
       shader_x(0),
-      shader_w(0)
+      shader_w(0),
+      buffers(nullptr)
 {
   last_update_time = time_dt();
 }

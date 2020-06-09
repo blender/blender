@@ -436,6 +436,12 @@ bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_typ
     /* Reset copy state, since buffer contents change after the tile was acquired */
     buffers->map_neighbor_copied = false;
 
+    /* This hack ensures that the copy in 'MultiDevice::map_neighbor_tiles' accounts
+     * for the buffer resolution divider. */
+    buffers->buffer.data_width = (buffers->params.width * buffers->params.get_passes_size()) /
+                                 tile_manager.state.resolution_divider;
+    buffers->buffer.data_height = buffers->params.height / tile_manager.state.resolution_divider;
+
     return true;
   }
 
@@ -1122,13 +1128,6 @@ bool Session::render_need_denoise(bool &delayed)
 
   /* Do not denoise until the sample at which denoising should start is reached. */
   if (tile_manager.state.sample < params.denoising_start_sample) {
-    return false;
-  }
-
-  /* Cannot denoise with resolution divider and separate denoising devices.
-   * It breaks the copy in 'MultiDevice::map_neighbor_tiles' (which operates on
-   * the full buffer dimensions and not the scaled ones). */
-  if (!params.device.denoising_devices.empty() && tile_manager.state.resolution_divider > 1) {
     return false;
   }
 

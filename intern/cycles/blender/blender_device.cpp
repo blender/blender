@@ -141,10 +141,25 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scen
         device.multi_devices.push_back(device);
       }
 
-      /* Simply use the first available OptiX device. */
-      const DeviceInfo optix_device = optix_devices.front();
-      device.id += optix_device.id; /* Uniquely identify this special multi device. */
-      device.denoising_devices.push_back(optix_device);
+      /* Try to use the same physical devices for denoising. */
+      for (const DeviceInfo &cuda_device : device.multi_devices) {
+        if (cuda_device.type == DEVICE_CUDA) {
+          for (const DeviceInfo &optix_device : optix_devices) {
+            if (cuda_device.num == optix_device.num) {
+              device.id += optix_device.id;
+              device.denoising_devices.push_back(optix_device);
+              break;
+            }
+          }
+        }
+      }
+
+      if (device.denoising_devices.empty()) {
+        /* Simply use the first available OptiX device. */
+        const DeviceInfo optix_device = optix_devices.front();
+        device.id += optix_device.id; /* Uniquely identify this special multi device. */
+        device.denoising_devices.push_back(optix_device);
+      }
     }
   }
 
