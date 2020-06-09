@@ -595,7 +595,9 @@ bool gimbal_axis(Object *ob, float gmat[3][3])
       if (pchan->parent) {
         float parent_mat[3][3];
 
-        copy_m3_m4(parent_mat, pchan->parent->pose_mat);
+        copy_m3_m4(parent_mat,
+                   (pchan->bone->flag & BONE_HINGE) ? pchan->parent->bone->arm_mat :
+                                                      pchan->parent->pose_mat);
         mul_m3_m3m3(mat, parent_mat, tmat);
 
         /* needed if object transformation isn't identity */
