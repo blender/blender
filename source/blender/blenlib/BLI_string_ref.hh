@@ -230,6 +230,16 @@ class StringRef : public StringRefBase {
   }
 
   /**
+   * Create a StringRef from a start and end pointer. This invokes undefined behavior when the
+   * second point points to a smaller address than the first one.
+   */
+  StringRef(const char *begin, const char *one_after_end)
+      : StringRefBase(begin, (uint)(one_after_end - begin))
+  {
+    BLI_assert(begin <= one_after_end);
+  }
+
+  /**
    * Reference a std::string. Remember that when the std::string is destructed, the StringRef
    * will point to uninitialized memory.
    */

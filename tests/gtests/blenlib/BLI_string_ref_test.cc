@@ -36,6 +36,30 @@ TEST(string_ref, DefaultConstructor)
   EXPECT_EQ(ref.size(), 0);
 }
 
+TEST(string_ref, StartEndConstructor)
+{
+  const char *text = "hello world";
+  StringRef ref(text, text + 5);
+  EXPECT_EQ(ref.size(), 5);
+  EXPECT_TRUE(ref == "hello");
+  EXPECT_FALSE(ref == "hello ");
+}
+
+TEST(string_ref, StartEndConstructorNullptr)
+{
+  StringRef ref(nullptr, nullptr);
+  EXPECT_EQ(ref.size(), 0);
+  EXPECT_TRUE(ref == "");
+}
+
+TEST(string_ref, StartEndConstructorSame)
+{
+  const char *text = "hello world";
+  StringRef ref(text, text);
+  EXPECT_EQ(ref.size(), 0);
+  EXPECT_TRUE(ref == "");
+}
+
 TEST(string_ref, CStringConstructor)
 {
   const char *str = "Test";
