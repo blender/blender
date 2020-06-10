@@ -34,44 +34,22 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_defaults.h"
-#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_bitmap.h"
-#include "BLI_edgehash.h"
 #include "BLI_ghash.h"
-#include "BLI_hash.h"
-#include "BLI_linklist.h"
 #include "BLI_math.h"
-#include "BLI_memarena.h"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
-
-#include "BKE_animsys.h"
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
-#include "BKE_global.h"
-#include "BKE_idtype.h"
-#include "BKE_key.h"
 #include "BKE_lib_id.h"
-#include "BKE_main.h"
-#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
-#include "BKE_modifier.h"
-#include "BKE_multires.h"
-#include "BKE_object.h"
-
-#include "PIL_time.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
 
 Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
                                                  const CustomData_MeshMasks *cd_mask_extra,
