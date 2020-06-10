@@ -99,6 +99,25 @@ TEST(map, PopTry)
   EXPECT_EQ(map.size(), 0);
 }
 
+TEST(map, PopDefault)
+{
+  Map<int, int> map;
+  map.add(1, 4);
+  map.add(2, 7);
+  map.add(3, 8);
+  EXPECT_EQ(map.size(), 3);
+  EXPECT_EQ(map.pop_default(4, 10), 10);
+  EXPECT_EQ(map.size(), 3);
+  EXPECT_EQ(map.pop_default(1, 10), 4);
+  EXPECT_EQ(map.size(), 2);
+  EXPECT_EQ(map.pop_default(2, 20), 7);
+  EXPECT_EQ(map.size(), 1);
+  EXPECT_EQ(map.pop_default(2, 20), 20);
+  EXPECT_EQ(map.size(), 1);
+  EXPECT_EQ(map.pop_default(3, 0), 8);
+  EXPECT_EQ(map.size(), 0);
+}
+
 TEST(map, PopItemMany)
 {
   Map<int, int> map;
@@ -373,6 +392,7 @@ TEST(map, UniquePtrValue)
   map.add(6, std::unique_ptr<int>(new int()));
   map.add_overwrite(7, std::unique_ptr<int>(new int()));
   map.lookup_or_add(8, std::unique_ptr<int>(new int()));
+  map.pop_default(9, std::unique_ptr<int>(new int()));
 
   EXPECT_EQ(map.lookup(1).get(), value1_ptr);
   EXPECT_EQ(map.lookup_ptr(100), nullptr);

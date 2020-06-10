@@ -406,6 +406,28 @@ class Map {
   }
 
   /**
+   * Get the value that corresponds to the given key and remove it from the map. If the key is not
+   * in the map, return the given default value instead.
+   */
+  Value pop_default(const Key &key, const Value &default_value)
+  {
+    return this->pop_default_as(key, default_value);
+  }
+  Value pop_default(const Key &key, Value &&default_value)
+  {
+    return this->pop_default_as(key, std::move(default_value));
+  }
+
+  /**
+   * Same as `pop_default`, but accepts other key types that are supported by the hash function.
+   */
+  template<typename ForwardKey, typename ForwardValue>
+  Value pop_default_as(const ForwardKey &key, ForwardValue &&default_value)
+  {
+    return this->pop_default__impl(key, std::forward<ForwardValue>(default_value), m_hash(key));
+  }
+
+  /**
    * This method can be used to implement more complex custom behavior without having to do
    * multiple lookups
    *
@@ -1039,7 +1061,7 @@ class Map {
 
     MAP_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, m_is_equal, hash)) {
-        Value value = *slot.value();
+        Value value = std::move(*slot.value());
         slot.remove();
         return value;
       }
@@ -1051,13 +1073,30 @@ class Map {
   {
     MAP_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, m_is_equal, hash)) {
-        Optional<Value> value = *slot.value();
+        Optional<Value> value = std::move(*slot.value());
         slot.remove();
         m_removed_slots++;
         return value;
       }
       if (slot.is_empty()) {
         return {};
+      }
+    }
+    MAP_SLOT_PROBING_END();
+  }
+
+  template<typename ForwardKey, typename ForwardValue>
+  Value pop_default__impl(const ForwardKey &key, ForwardValue &&default_value, uint32_t hash)
+  {
+    MAP_SLOT_PROBING_BEGIN (hash, slot) {
+      if (slot.contains(key, m_is_equal, hash)) {
+        Value value = std::move(*slot.value());
+        slot.remove();
+        m_removed_slots++;
+        return value;
+      }
+      if (slot.is_empty()) {
+        return std::forward<ForwardValue>(default_value);
       }
     }
     MAP_SLOT_PROBING_END();
