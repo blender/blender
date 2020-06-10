@@ -164,13 +164,15 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
             }
 #endif /* BVH_FEATURE(BVH_MOTION) */
 #if BVH_FEATURE(BVH_HAIR)
-            case PRIMITIVE_CURVE:
-            case PRIMITIVE_MOTION_CURVE: {
+            case PRIMITIVE_CURVE_THICK:
+            case PRIMITIVE_MOTION_CURVE_THICK:
+            case PRIMITIVE_CURVE_RIBBON:
+            case PRIMITIVE_MOTION_CURVE_RIBBON: {
               for (; prim_addr < prim_addr2; prim_addr++) {
                 BVH_DEBUG_NEXT_INTERSECTION();
                 const uint curve_type = kernel_tex_fetch(__prim_type, prim_addr);
                 kernel_assert((curve_type & PRIMITIVE_ALL) == (type & PRIMITIVE_ALL));
-                bool hit = curve_intersect(
+                const bool hit = curve_intersect(
                     kg, isect, P, dir, visibility, object, prim_addr, ray->time, curve_type);
                 if (hit) {
                   /* shadow ray early termination */

@@ -158,8 +158,10 @@ ccl_device_inline
               }
 #endif
 #if BVH_FEATURE(BVH_HAIR)
-              case PRIMITIVE_CURVE:
-              case PRIMITIVE_MOTION_CURVE: {
+              case PRIMITIVE_CURVE_THICK:
+              case PRIMITIVE_MOTION_CURVE_THICK:
+              case PRIMITIVE_CURVE_RIBBON:
+              case PRIMITIVE_MOTION_CURVE_RIBBON: {
                 const uint curve_type = kernel_tex_fetch(__prim_type, prim_addr);
                 hit = curve_intersect(
                     kg, isect_array, P, dir, visibility, object, prim_addr, ray->time, curve_type);

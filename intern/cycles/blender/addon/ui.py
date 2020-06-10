@@ -387,13 +387,6 @@ class CYCLES_RENDER_PT_hair(CyclesButtonsPanel, Panel):
     bl_label = "Hair"
     bl_options = {'DEFAULT_CLOSED'}
 
-    def draw_header(self, context):
-        layout = self.layout
-        scene = context.scene
-        ccscene = scene.cycles_curves
-
-        layout.prop(ccscene, "use_curves", text="")
-
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -401,8 +394,6 @@ class CYCLES_RENDER_PT_hair(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         ccscene = scene.cycles_curves
-
-        layout.active = ccscene.use_curves
 
         col = layout.column()
         col.prop(ccscene, "shape", text="Shape")

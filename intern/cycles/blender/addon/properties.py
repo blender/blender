@@ -1225,11 +1225,6 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
         items=enum_curve_shape,
         default='RIBBONS',
     )
-    use_curves: BoolProperty(
-        name="Use Cycles Hair Rendering",
-        description="Activate Cycles hair rendering for particle system",
-        default=True,
-    )
     subdivisions: IntProperty(
         name="Subdivisions",
         description="Number of subdivisions used in Cardinal curve intersection (power of 2)",

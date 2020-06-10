@@ -159,6 +159,13 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
   if (hair->has_motion_blur()) {
     curve_attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   }
+
+  const PrimitiveType primitive_type =
+      (curve_attr_mP != NULL) ?
+          ((hair->curve_shape == CURVE_RIBBON) ? PRIMITIVE_MOTION_CURVE_RIBBON :
+                                                 PRIMITIVE_MOTION_CURVE_THICK) :
+          ((hair->curve_shape == CURVE_RIBBON) ? PRIMITIVE_CURVE_RIBBON : PRIMITIVE_CURVE_THICK);
+
   const size_t num_curves = hair->num_curves();
   for (uint j = 0; j < num_curves; j++) {
     const Hair::Curve curve = hair->get_curve(j);
@@ -169,7 +176,7 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
         BoundBox bounds = BoundBox::empty;
         curve.bounds_grow(k, &hair->curve_keys[0], curve_radius, bounds);
         if (bounds.valid()) {
-          int packed_type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_CURVE, k);
+          int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
           references.push_back(BVHReference(bounds, j, i, packed_type));
           root.grow(bounds);
           center.grow(bounds.center2());
@@ -190,7 +197,7 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
           curve.bounds_grow(k, key_steps + step * num_keys, curve_radius, bounds);
         }
         if (bounds.valid()) {
-          int packed_type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_MOTION_CURVE, k);
+          int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
           references.push_back(BVHReference(bounds, j, i, packed_type));
           root.grow(bounds);
           center.grow(bounds.center2());
@@ -246,7 +253,7 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
           bounds.grow(curr_bounds);
           if (bounds.valid()) {
             const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
-            int packed_type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_MOTION_CURVE, k);
+            int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
             references.push_back(BVHReference(bounds, j, i, packed_type, prev_time, curr_time));
             root.grow(bounds);
             center.grow(bounds.center2());
@@ -537,14 +544,22 @@ bool BVHBuild::range_within_max_leaf_size(const BVHRange &range,
   for (int i = 0; i < size; i++) {
     const BVHReference &ref = references[range.start() + i];
 
-    if (ref.prim_type() & PRIMITIVE_CURVE)
-      num_curves++;
-    if (ref.prim_type() & PRIMITIVE_MOTION_CURVE)
-      num_motion_curves++;
-    else if (ref.prim_type() & PRIMITIVE_TRIANGLE)
-      num_triangles++;
-    else if (ref.prim_type() & PRIMITIVE_MOTION_TRIANGLE)
-      num_motion_triangles++;
+    if (ref.prim_type() & PRIMITIVE_ALL_CURVE) {
+      if (ref.prim_type() & PRIMITIVE_ALL_MOTION) {
+        num_motion_curves++;
+      }
+      else {
+        num_curves++;
+      }
+    }
+    else if (ref.prim_type() & PRIMITIVE_ALL_TRIANGLE) {
+      if (ref.prim_type() & PRIMITIVE_ALL_MOTION) {
+        num_motion_triangles++;
+      }
+      else {
+        num_triangles++;
+      }
+    }
   }
 
   return (num_triangles <= params.max_triangle_leaf_size) &&

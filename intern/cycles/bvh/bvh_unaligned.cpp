@@ -68,7 +68,8 @@ bool BVHUnaligned::compute_aligned_space(const BVHReference &ref, Transform *ali
   const Object *object = objects_[ref.prim_object()];
   const int packed_type = ref.prim_type();
   const int type = (packed_type & PRIMITIVE_ALL);
-  if (type & PRIMITIVE_CURVE) {
+  /* No motion blur curves here, we can't fit them to aligned boxes well. */
+  if (type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_CURVE_THICK)) {
     const int curve_index = ref.prim_index();
     const int segment = PRIMITIVE_UNPACK_SEGMENT(packed_type);
     const Hair *hair = static_cast<const Hair *>(object->geometry);
@@ -93,7 +94,8 @@ BoundBox BVHUnaligned::compute_aligned_prim_boundbox(const BVHReference &prim,
   const Object *object = objects_[prim.prim_object()];
   const int packed_type = prim.prim_type();
   const int type = (packed_type & PRIMITIVE_ALL);
-  if (type & PRIMITIVE_CURVE) {
+  /* No motion blur curves here, we can't fit them to aligned boxes well. */
+  if (type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_CURVE_THICK)) {
     const int curve_index = prim.prim_index();
     const int segment = PRIMITIVE_UNPACK_SEGMENT(packed_type);
     const Hair *hair = static_cast<const Hair *>(object->geometry);

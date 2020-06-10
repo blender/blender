@@ -219,7 +219,6 @@ void Object::tag_update(Scene *scene)
   }
 
   scene->camera->need_flags_update = true;
-  scene->curve_system_manager->need_update = true;
   scene->geometry_manager->need_update = true;
   scene->object_manager->need_update = true;
 }
@@ -844,7 +843,6 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
 void ObjectManager::tag_update(Scene *scene)
 {
   need_update = true;
-  scene->curve_system_manager->need_update = true;
   scene->geometry_manager->need_update = true;
   scene->light_manager->need_update = true;
 }

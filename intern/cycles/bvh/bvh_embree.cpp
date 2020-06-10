@@ -324,7 +324,6 @@ BVHEmbree::BVHEmbree(const BVHParams &params_,
       stats(NULL),
       curve_subdivisions(params.curve_subdivisions),
       build_quality(RTC_BUILD_QUALITY_REFIT),
-      use_ribbons(params.curve_flags & CURVE_KN_RIBBONS),
       dynamic_scene(true)
 {
   _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
@@ -771,6 +770,12 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
   }
 
   const size_t num_motion_steps = min(num_geometry_motion_steps, RTC_MAX_TIME_STEP_COUNT);
+  const PrimitiveType primitive_type =
+      (num_motion_steps > 1) ?
+          ((hair->curve_shape == CURVE_RIBBON) ? PRIMITIVE_MOTION_CURVE_RIBBON :
+                                                 PRIMITIVE_MOTION_CURVE_THICK) :
+          ((hair->curve_shape == CURVE_RIBBON) ? PRIMITIVE_CURVE_RIBBON : PRIMITIVE_CURVE_THICK);
+
   assert(num_geometry_motion_steps <= RTC_MAX_TIME_STEP_COUNT);
 
   const size_t num_curves = hair->num_curves();
@@ -791,11 +796,12 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
   size_t prim_tri_index_size = pack.prim_index.size();
   pack.prim_tri_index.resize(prim_tri_index_size + num_segments);
 
-  enum RTCGeometryType type = (use_ribbons ? RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE :
-                                             RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE);
+  enum RTCGeometryType type = (hair->curve_shape == CURVE_RIBBON ?
+                                   RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE :
+                                   RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE);
 
   RTCGeometry geom_id = rtcNewGeometry(rtc_shared_device, type);
-  rtcSetGeometryTessellationRate(geom_id, curve_subdivisions);
+  rtcSetGeometryTessellationRate(geom_id, curve_subdivisions + 1);
   unsigned *rtc_indices = (unsigned *)rtcSetNewGeometryBuffer(
       geom_id, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT, sizeof(int), num_segments);
   size_t rtc_index = 0;
@@ -807,8 +813,7 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
       rtc_indices[rtc_index] += j * 2;
       /* Cycles specific data. */
       pack.prim_object[prim_object_size + rtc_index] = i;
-      pack.prim_type[prim_type_size + rtc_index] = (PRIMITIVE_PACK_SEGMENT(
-          num_motion_steps > 1 ? PRIMITIVE_MOTION_CURVE : PRIMITIVE_CURVE, k));
+      pack.prim_type[prim_type_size + rtc_index] = (PRIMITIVE_PACK_SEGMENT(primitive_type, k));
       pack.prim_index[prim_index_size + rtc_index] = j;
       pack.prim_tri_index[prim_tri_index_size + rtc_index] = rtc_index;
 
@@ -822,7 +827,7 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
   update_curve_vertex_buffer(geom_id, hair);
 
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
-  if (use_ribbons) {
+  if (hair->curve_shape == CURVE_RIBBON) {
     rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func);
   }
   else {

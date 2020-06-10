@@ -159,7 +159,6 @@ class BlenderSync {
   void sync_hair(Hair *hair, BL::Object &b_ob, bool motion, int motion_step = 0);
   void sync_particle_hair(
       Hair *hair, BL::Mesh &b_mesh, BL::Object &b_ob, bool motion, int motion_step = 0);
-  void sync_curve_settings(BL::Depsgraph &b_depsgraph);
   bool object_has_particle_hair(BL::Object b_ob);
 
   /* Camera */

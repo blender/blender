@@ -96,6 +96,7 @@ class Hair : public Geometry {
 
   /* BVH */
   size_t curvekey_offset;
+  CurveShapeType curve_shape;
 
   /* Constructor/Destructor */
   Hair();

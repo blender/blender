@@ -211,7 +211,7 @@ ccl_device float curve_thickness(KernelGlobals *kg, ShaderData *sd)
 
     float4 P_curve[2];
 
-    if (sd->type & PRIMITIVE_CURVE) {
+    if (!(sd->type & PRIMITIVE_ALL_MOTION)) {
       P_curve[0] = kernel_tex_fetch(__curve_keys, k0);
       P_curve[1] = kernel_tex_fetch(__curve_keys, k1);
     }

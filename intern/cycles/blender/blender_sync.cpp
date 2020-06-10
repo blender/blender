@@ -212,7 +212,6 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
   sync_film(b_v3d);
   sync_shaders(b_depsgraph, b_v3d);
   sync_images();
-  sync_curve_settings(b_depsgraph);
 
   geometry_synced.clear(); /* use for objects and motion sync */
 
@@ -731,6 +730,11 @@ SceneParams BlenderSync::get_scene_params(BL::Scene &b_scene, bool background)
   params.use_bvh_spatial_split = RNA_boolean_get(&cscene, "debug_use_spatial_splits");
   params.use_bvh_unaligned_nodes = RNA_boolean_get(&cscene, "debug_use_hair_bvh");
   params.num_bvh_time_steps = RNA_int_get(&cscene, "debug_bvh_time_steps");
+
+  PointerRNA csscene = RNA_pointer_get(&b_scene.ptr, "cycles_curves");
+  params.hair_subdivisions = get_int(csscene, "subdivisions");
+  params.hair_shape = (CurveShapeType)get_enum(
+      csscene, "shape", CURVE_NUM_SHAPE_TYPES, CURVE_THICK);
 
   if (background && params.shadingsystem != SHADINGSYSTEM_OSL)
     params.persistent_data = r.use_persistent_data();

@@ -211,8 +211,7 @@ void Geometry::compute_bvh(
       bparams.num_motion_triangle_steps = params->num_bvh_time_steps;
       bparams.num_motion_curve_steps = params->num_bvh_time_steps;
       bparams.bvh_type = params->bvh_type;
-      bparams.curve_flags = dscene->data.curve.curveflags;
-      bparams.curve_subdivisions = dscene->data.curve.subdivisions;
+      bparams.curve_subdivisions = params->curve_subdivisions();
 
       delete bvh;
       bvh = BVH::create(bparams, geometry, objects);
@@ -1026,8 +1025,7 @@ void GeometryManager::device_update_bvh(Device *device,
   bparams.num_motion_triangle_steps = scene->params.num_bvh_time_steps;
   bparams.num_motion_curve_steps = scene->params.num_bvh_time_steps;
   bparams.bvh_type = scene->params.bvh_type;
-  bparams.curve_flags = dscene->data.curve.curveflags;
-  bparams.curve_subdivisions = dscene->data.curve.subdivisions;
+  bparams.curve_subdivisions = scene->params.curve_subdivisions();
 
   VLOG(1) << "Using " << bvh_layout_name(bparams.bvh_layout) << " layout.";
 
@@ -1103,6 +1101,7 @@ void GeometryManager::device_update_bvh(Device *device,
   dscene->data.bvh.root = pack.root_index;
   dscene->data.bvh.bvh_layout = bparams.bvh_layout;
   dscene->data.bvh.use_bvh_steps = (scene->params.num_bvh_time_steps != 0);
+  dscene->data.bvh.curve_subdivisions = scene->params.curve_subdivisions();
 
   bvh->copy_to_device(progress, dscene);
 
@@ -1144,6 +1143,12 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
         Mesh *mesh = static_cast<Mesh *>(geom);
         create_volume_mesh(mesh, progress);
       }
+    }
+
+    if (geom->type == Geometry::HAIR) {
+      /* Set curve shape, still a global scene setting for now. */
+      Hair *hair = static_cast<Hair *>(geom);
+      hair->curve_shape = scene->params.hair_shape;
     }
   }
 

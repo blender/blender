@@ -507,42 +507,6 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, int 
 
 /* Hair Curve Sync */
 
-void BlenderSync::sync_curve_settings(BL::Depsgraph &b_depsgraph)
-{
-  PointerRNA csscene = RNA_pointer_get(&b_scene.ptr, "cycles_curves");
-
-  CurveSystemManager *curve_system_manager = scene->curve_system_manager;
-  CurveSystemManager prev_curve_system_manager = *curve_system_manager;
-
-  curve_system_manager->use_curves = get_boolean(csscene, "use_curves");
-
-  curve_system_manager->curve_shape = (CurveShapeType)get_enum(
-      csscene, "shape", CURVE_NUM_SHAPE_TYPES, CURVE_THICK);
-  curve_system_manager->subdivisions = get_int(csscene, "subdivisions");
-
-  if (curve_system_manager->modified_mesh(prev_curve_system_manager)) {
-    BL::Depsgraph::objects_iterator b_ob;
-
-    for (b_depsgraph.objects.begin(b_ob); b_ob != b_data.objects.end(); ++b_ob) {
-      if (object_is_mesh(*b_ob)) {
-        BL::Object::particle_systems_iterator b_psys;
-        for (b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end();
-             ++b_psys) {
-          if ((b_psys->settings().render_type() == BL::ParticleSettings::render_type_PATH) &&
-              (b_psys->settings().type() == BL::ParticleSettings::type_HAIR)) {
-            BL::ID key = BKE_object_is_modified(*b_ob) ? *b_ob : b_ob->data();
-            geometry_map.set_recalc(key);
-            object_map.set_recalc(*b_ob);
-          }
-        }
-      }
-    }
-  }
-
-  if (curve_system_manager->modified(prev_curve_system_manager))
-    curve_system_manager->tag_update(scene);
-}
-
 bool BlenderSync::object_has_particle_hair(BL::Object b_ob)
 {
   /* Test if the object has a particle modifier with hair. */
@@ -867,7 +831,7 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph,
   hair->clear();
   hair->used_shaders = used_shaders;
 
-  if (view_layer.use_hair && scene->curve_system_manager->use_curves) {
+  if (view_layer.use_hair) {
 #ifdef WITH_NEW_OBJECT_TYPES
     if (b_ob.type() == BL::Object::type_HAIR) {
       /* Hair object. */

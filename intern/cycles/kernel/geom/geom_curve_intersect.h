@@ -627,10 +627,10 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
                                             float time,
                                             int type)
 {
-  const bool is_curve_primitive = (type & PRIMITIVE_CURVE);
+  const bool is_motion = (type & PRIMITIVE_ALL_MOTION);
 
 #  ifndef __KERNEL_OPTIX__ /* See OptiX motion flag OPTIX_MOTION_FLAG_[START|END]_VANISH */
-  if (!is_curve_primitive && kernel_data.bvh.use_bvh_steps) {
+  if (is_motion && kernel_data.bvh.use_bvh_steps) {
     const float2 prim_time = kernel_tex_fetch(__prim_time, curveAddr);
     if (time < prim_time.x || time > prim_time.y) {
       return false;
@@ -650,7 +650,7 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
   int kb = min(k1 + 1, __float_as_int(v00.x) + __float_as_int(v00.y) - 1);
 
   float4 curve[4];
-  if (is_curve_primitive) {
+  if (!is_motion) {
     curve[0] = kernel_tex_fetch(__curve_keys, ka);
     curve[1] = kernel_tex_fetch(__curve_keys, k0);
     curve[2] = kernel_tex_fetch(__curve_keys, k1);
@@ -667,10 +667,9 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
   }
 #  endif
 
-  const bool use_ribbon = (kernel_data.curve.curveflags & CURVE_KN_RIBBONS) != 0;
-  if (use_ribbon) {
+  if (type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) {
     /* todo: adaptive number of subdivisions could help performance here. */
-    const int subdivisions = kernel_data.curve.subdivisions;
+    const int subdivisions = kernel_data.bvh.curve_subdivisions;
     if (ribbon_intersect(P, dir, isect->t, subdivisions, curve, isect)) {
       isect->prim = curveAddr;
       isect->object = object;
@@ -724,7 +723,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals *kg,
 
   float4 P_curve[4];
 
-  if (sd->type & PRIMITIVE_CURVE) {
+  if (!(sd->type & PRIMITIVE_ALL_MOTION)) {
     P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
     P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
     P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
@@ -742,7 +741,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals *kg,
   const float4 dPdu4 = catmull_rom_basis_derivative(P_curve, isect->u);
   const float3 dPdu = float4_to_float3(dPdu4);
 
-  if (kernel_data.curve.curveflags & CURVE_KN_RIBBONS) {
+  if (sd->type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) {
     /* Rounded smooth normals for ribbons, to approximate thick curve shape. */
     const float3 tangent = normalize(dPdu);
     const float3 bitangent = normalize(cross(tangent, -D));

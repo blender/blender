@@ -691,26 +691,37 @@ typedef enum PrimitiveType {
   PRIMITIVE_NONE = 0,
   PRIMITIVE_TRIANGLE = (1 << 0),
   PRIMITIVE_MOTION_TRIANGLE = (1 << 1),
-  PRIMITIVE_CURVE = (1 << 2),
-  PRIMITIVE_MOTION_CURVE = (1 << 3),
+  PRIMITIVE_CURVE_THICK = (1 << 2),
+  PRIMITIVE_MOTION_CURVE_THICK = (1 << 3),
+  PRIMITIVE_CURVE_RIBBON = (1 << 4),
+  PRIMITIVE_MOTION_CURVE_RIBBON = (1 << 5),
   /* Lamp primitive is not included below on purpose,
    * since it is no real traceable primitive.
    */
-  PRIMITIVE_LAMP = (1 << 4),
+  PRIMITIVE_LAMP = (1 << 6),
 
   PRIMITIVE_ALL_TRIANGLE = (PRIMITIVE_TRIANGLE | PRIMITIVE_MOTION_TRIANGLE),
-  PRIMITIVE_ALL_CURVE = (PRIMITIVE_CURVE | PRIMITIVE_MOTION_CURVE),
-  PRIMITIVE_ALL_MOTION = (PRIMITIVE_MOTION_TRIANGLE | PRIMITIVE_MOTION_CURVE),
+  PRIMITIVE_ALL_CURVE = (PRIMITIVE_CURVE_THICK | PRIMITIVE_MOTION_CURVE_THICK |
+                         PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON),
+  PRIMITIVE_ALL_MOTION = (PRIMITIVE_MOTION_TRIANGLE | PRIMITIVE_MOTION_CURVE_THICK |
+                          PRIMITIVE_MOTION_CURVE_RIBBON),
   PRIMITIVE_ALL = (PRIMITIVE_ALL_TRIANGLE | PRIMITIVE_ALL_CURVE),
 
   /* Total number of different traceable primitives.
    * NOTE: This is an actual value, not a bitflag.
    */
-  PRIMITIVE_NUM_TOTAL = 4,
+  PRIMITIVE_NUM_TOTAL = 6,
 } PrimitiveType;
 
 #define PRIMITIVE_PACK_SEGMENT(type, segment) ((segment << PRIMITIVE_NUM_TOTAL) | (type))
 #define PRIMITIVE_UNPACK_SEGMENT(type) (type >> PRIMITIVE_NUM_TOTAL)
+
+typedef enum CurveShapeType {
+  CURVE_RIBBON = 0,
+  CURVE_THICK = 1,
+
+  CURVE_NUM_SHAPE_TYPES,
+} CurveShapeType;
 
 /* Attributes */
 
@@ -1400,7 +1411,7 @@ typedef struct KernelBVH {
   int have_curves;
   int bvh_layout;
   int use_bvh_steps;
-  int pad;
+  int curve_subdivisions;
 
   /* Custom BVH */
 #ifdef __KERNEL_OPTIX__
@@ -1417,19 +1428,6 @@ typedef struct KernelBVH {
 #endif
 } KernelBVH;
 static_assert_align(KernelBVH, 16);
-
-typedef enum CurveFlag {
-  /* runtime flags */
-  CURVE_KN_RIBBONS = 1, /* use flat curve ribbons */
-} CurveFlag;
-
-typedef struct KernelCurves {
-  int curveflags;
-  int subdivisions;
-
-  int pad1, pad2;
-} KernelCurves;
-static_assert_align(KernelCurves, 16);
 
 typedef struct KernelTables {
   int beckmann_offset;
@@ -1451,7 +1449,6 @@ typedef struct KernelData {
   KernelBackground background;
   KernelIntegrator integrator;
   KernelBVH bvh;
-  KernelCurves curve;
   KernelTables tables;
   KernelBake bake;
 } KernelData;

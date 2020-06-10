@@ -21,7 +21,6 @@
 #include "render/bake.h"
 #include "render/buffers.h"
 #include "render/camera.h"
-#include "render/curves.h"
 #include "render/graph.h"
 #include "render/integrator.h"
 #include "render/light.h"
@@ -774,7 +773,7 @@ DeviceRequestedFeatures Session::get_requested_device_features()
    */
   bool use_motion = scene->need_motion() == Scene::MotionType::MOTION_BLUR;
   requested_features.use_hair = false;
-  requested_features.use_hair_thick = (scene->curve_system_manager->curve_shape == CURVE_THICK);
+  requested_features.use_hair_thick = (scene->params.hair_shape == CURVE_THICK);
   requested_features.use_object_motion = false;
   requested_features.use_camera_motion = use_motion && scene->camera->use_motion();
   foreach (Object *object, scene->objects) {

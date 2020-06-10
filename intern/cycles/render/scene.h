@@ -168,6 +168,8 @@ class SceneParams {
   bool use_bvh_spatial_split;
   bool use_bvh_unaligned_nodes;
   int num_bvh_time_steps;
+  int hair_subdivisions;
+  CurveShapeType hair_shape;
   bool persistent_data;
   int texture_limit;
 
@@ -181,6 +183,8 @@ class SceneParams {
     use_bvh_spatial_split = false;
     use_bvh_unaligned_nodes = true;
     num_bvh_time_steps = 0;
+    hair_subdivisions = 3;
+    hair_shape = CURVE_RIBBON;
     persistent_data = false;
     texture_limit = 0;
     background = true;
@@ -193,7 +197,14 @@ class SceneParams {
              use_bvh_spatial_split == params.use_bvh_spatial_split &&
              use_bvh_unaligned_nodes == params.use_bvh_unaligned_nodes &&
              num_bvh_time_steps == params.num_bvh_time_steps &&
+             hair_subdivisions == params.hair_subdivisions && hair_shape == params.hair_shape &&
              persistent_data == params.persistent_data && texture_limit == params.texture_limit);
+  }
+
+  int curve_subdivisions()
+  {
+    /* Matching the tesselation rate limit in Embree. */
+    return clamp(1 << hair_subdivisions, 1, 16);
   }
 };
 
@@ -226,7 +237,6 @@ class Scene {
   GeometryManager *geometry_manager;
   ObjectManager *object_manager;
   ParticleSystemManager *particle_system_manager;
-  CurveSystemManager *curve_system_manager;
   BakeManager *bake_manager;
 
   /* default shaders */
