@@ -678,7 +678,19 @@ struct Mesh *BKE_mesh_wrapper_from_editmesh(struct BMEditMesh *em,
                                             const struct Mesh *me_settings);
 void BKE_mesh_wrapper_ensure_mdata(struct Mesh *me);
 bool BKE_mesh_wrapper_minmax(const struct Mesh *me, float min[3], float max[3]);
-void BKE_mesh_wrapper_normals_update(struct Mesh *me);
+
+int BKE_mesh_wrapper_vert_len(const struct Mesh *me);
+int BKE_mesh_wrapper_edge_len(const struct Mesh *me);
+int BKE_mesh_wrapper_loop_len(const struct Mesh *me);
+int BKE_mesh_wrapper_poly_len(const struct Mesh *me);
+
+void BKE_mesh_wrapper_vert_coords_copy(const struct Mesh *me,
+                                       float (*vert_coords)[3],
+                                       int vert_coords_len);
+void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const struct Mesh *me,
+                                                 float (*vert_coords)[3],
+                                                 int vert_coords_len,
+                                                 const float mat[4][4]);
 
 /* In DerivedMesh.c */
 void BKE_mesh_wrapper_deferred_finalize(struct Mesh *me_eval,
