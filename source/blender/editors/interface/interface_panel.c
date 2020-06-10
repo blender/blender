@@ -563,7 +563,8 @@ static void set_panels_list_data_expand_flag(const bContext *C, ARegion *region)
       continue;
     }
 
-    if (panel->type->flag & PNL_INSTANCED) {
+    /* Check for #PNL_ACTIVE so we only set the expand flag for active panels. */
+    if (panel_type->flag & PNL_INSTANCED && panel->runtime_flag & PNL_ACTIVE) {
       short expand_flag = 0; /* Initialize to quite complaining compiler, value not used. */
       short flag_index = 0;
       get_panel_expand_flag(panel, &expand_flag, &flag_index);
