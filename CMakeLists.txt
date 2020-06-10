@@ -209,6 +209,11 @@ option(WITH_NANOVDB       "Enable usage of NanoVDB data structure for accelerate
 option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)
 mark_as_advanced(WITH_GHOST_DEBUG)
 
+if(WIN32)
+  option(WITH_WINTAB_DEBUG    "Enable debugging output for Wintab" OFF)
+  mark_as_advanced(WITH_WINTAB_DEBUG)
+endif()
+
 option(WITH_GHOST_SDL    "Enable building Blender against SDL for windowing rather than the native APIs" OFF)
 mark_as_advanced(WITH_GHOST_SDL)
 

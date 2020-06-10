@@ -97,6 +97,10 @@ if(WITH_GHOST_DEBUG)
   add_definitions(-DWITH_GHOST_DEBUG)
 endif()
 
+if(WITH_WINTAB_DEBUG)
+  add_definitions(-DWITH_WINTAB_DEBUG)
+endif()
+
 if(WITH_INPUT_NDOF)
   add_definitions(-DWITH_INPUT_NDOF)
 
