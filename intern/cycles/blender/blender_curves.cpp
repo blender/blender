@@ -519,7 +519,6 @@ void BlenderSync::sync_curve_settings(BL::Depsgraph &b_depsgraph)
   curve_system_manager->curve_shape = (CurveShapeType)get_enum(
       csscene, "shape", CURVE_NUM_SHAPE_TYPES, CURVE_THICK);
   curve_system_manager->subdivisions = get_int(csscene, "subdivisions");
-  curve_system_manager->use_backfacing = !get_boolean(csscene, "cull_backfacing");
 
   if (curve_system_manager->modified_mesh(prev_curve_system_manager)) {
     BL::Depsgraph::objects_iterator b_ob;

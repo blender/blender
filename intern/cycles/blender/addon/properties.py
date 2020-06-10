@@ -1236,11 +1236,6 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
         items=enum_curve_shape,
         default='THICK',
     )
-    cull_backfacing: BoolProperty(
-        name="Cull Back-faces",
-        description="Do not test the back-face of each hair",
-        default=True,
-    )
     use_curves: BoolProperty(
         name="Use Cycles Hair Rendering",
         description="Activate Cycles hair rendering for particle system",

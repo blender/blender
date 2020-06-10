@@ -85,7 +85,6 @@ CurveSystemManager::CurveSystemManager()
   subdivisions = 3;
 
   use_curves = true;
-  use_backfacing = false;
 
   need_update = true;
   need_mesh_update = false;
@@ -115,9 +114,6 @@ void CurveSystemManager::device_update(Device *device,
     if (curve_shape == CURVE_RIBBON) {
       kcurve->curveflags |= CURVE_KN_RIBBONS;
     }
-    else if (use_backfacing) {
-      kcurve->curveflags |= CURVE_KN_BACKFACING;
-    }
 
     kcurve->subdivisions = subdivisions;
   }
@@ -134,8 +130,7 @@ void CurveSystemManager::device_free(Device * /*device*/, DeviceScene * /*dscene
 
 bool CurveSystemManager::modified(const CurveSystemManager &CurveSystemManager)
 {
-  return !(use_backfacing == CurveSystemManager.use_backfacing &&
-           use_curves == CurveSystemManager.use_curves &&
+  return !(use_curves == CurveSystemManager.use_curves &&
            subdivisions == CurveSystemManager.subdivisions);
 }
 

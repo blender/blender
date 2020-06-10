@@ -1428,8 +1428,7 @@ static_assert_align(KernelBVH, 16);
 
 typedef enum CurveFlag {
   /* runtime flags */
-  CURVE_KN_BACKFACING = 1, /* backside of cylinder? */
-  CURVE_KN_RIBBONS = 2,    /* use flat curve ribbons */
+  CURVE_KN_RIBBONS = 1, /* use flat curve ribbons */
 } CurveFlag;
 
 typedef struct KernelCurves {

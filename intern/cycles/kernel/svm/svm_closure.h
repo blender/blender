@@ -847,39 +847,29 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
     case CLOSURE_BSDF_HAIR_TRANSMISSION_ID: {
       float3 weight = sd->svm_closure_weight * mix_weight;
 
-      if (sd->flag & SD_BACKFACING && sd->type & PRIMITIVE_ALL_CURVE) {
-        /* todo: giving a fixed weight here will cause issues when
-         * mixing multiple BSDFS. energy will not be conserved and
-         * the throughput can blow up after multiple bounces. we
-         * better figure out a way to skip backfaces from rays
-         * spawned by transmission from the front */
-        bsdf_transparent_setup(sd, make_float3(1.0f, 1.0f, 1.0f), path_flag);
-      }
-      else {
-        HairBsdf *bsdf = (HairBsdf *)bsdf_alloc(sd, sizeof(HairBsdf), weight);
+      HairBsdf *bsdf = (HairBsdf *)bsdf_alloc(sd, sizeof(HairBsdf), weight);
 
-        if (bsdf) {
-          bsdf->N = N;
-          bsdf->roughness1 = param1;
-          bsdf->roughness2 = param2;
-          bsdf->offset = -stack_load_float(stack, data_node.z);
+      if (bsdf) {
+        bsdf->N = N;
+        bsdf->roughness1 = param1;
+        bsdf->roughness2 = param2;
+        bsdf->offset = -stack_load_float(stack, data_node.z);
 
-          if (stack_valid(data_node.y)) {
-            bsdf->T = normalize(stack_load_float3(stack, data_node.y));
-          }
-          else if (!(sd->type & PRIMITIVE_ALL_CURVE)) {
-            bsdf->T = normalize(sd->dPdv);
-            bsdf->offset = 0.0f;
-          }
-          else
-            bsdf->T = normalize(sd->dPdu);
+        if (stack_valid(data_node.y)) {
+          bsdf->T = normalize(stack_load_float3(stack, data_node.y));
+        }
+        else if (!(sd->type & PRIMITIVE_ALL_CURVE)) {
+          bsdf->T = normalize(sd->dPdv);
+          bsdf->offset = 0.0f;
+        }
+        else
+          bsdf->T = normalize(sd->dPdu);
 
-          if (type == CLOSURE_BSDF_HAIR_REFLECTION_ID) {
-            sd->flag |= bsdf_hair_reflection_setup(bsdf);
-          }
-          else {
-            sd->flag |= bsdf_hair_transmission_setup(bsdf);
-          }
+        if (type == CLOSURE_BSDF_HAIR_REFLECTION_ID) {
+          sd->flag |= bsdf_hair_reflection_setup(bsdf);
+        }
+        else {
+          sd->flag |= bsdf_hair_transmission_setup(bsdf);
         }
       }
 

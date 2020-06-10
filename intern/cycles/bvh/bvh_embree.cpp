@@ -67,45 +67,15 @@ static_assert(Object::MAX_MOTION_STEPS == Geometry::MAX_MOTION_STEPS,
  * as well as filtering for volume objects happen here.
  * Cycles' own BVH does that directly inside the traversal calls.
  */
-static void rtc_filter_func(const RTCFilterFunctionNArguments *args)
-{
-  /* Current implementation in Cycles assumes only single-ray intersection queries. */
-  assert(args->N == 1);
-
-  const RTCRay *ray = (RTCRay *)args->ray;
-  const RTCHit *hit = (RTCHit *)args->hit;
-  CCLIntersectContext *ctx = ((IntersectContext *)args->context)->userRayExt;
-  KernelGlobals *kg = ctx->kg;
-
-  /* Check if there is backfacing hair to ignore. */
-  if (IS_HAIR(hit->geomID) && !(kernel_data.curve.curveflags & CURVE_KN_BACKFACING) &&
-      !(kernel_data.curve.curveflags & CURVE_KN_RIBBONS)) {
-    if (dot(make_float3(ray->dir_x, ray->dir_y, ray->dir_z),
-            make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z)) > 0.0f) {
-      *args->valid = 0;
-      return;
-    }
-  }
-}
-
 static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
 {
+  /* Current implementation in Cycles assumes only single-ray intersection queries. */
   assert(args->N == 1);
 
   const RTCRay *ray = (RTCRay *)args->ray;
   RTCHit *hit = (RTCHit *)args->hit;
   CCLIntersectContext *ctx = ((IntersectContext *)args->context)->userRayExt;
   KernelGlobals *kg = ctx->kg;
-
-  /* For all ray types: Check if there is backfacing hair to ignore */
-  if (IS_HAIR(hit->geomID) && !(kernel_data.curve.curveflags & CURVE_KN_BACKFACING) &&
-      !(kernel_data.curve.curveflags & CURVE_KN_RIBBONS)) {
-    if (dot(make_float3(ray->dir_x, ray->dir_y, ray->dir_z),
-            make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z)) > 0.0f) {
-      *args->valid = 0;
-      return;
-    }
-  }
 
   switch (ctx->type) {
     case CCLIntersectContext::RAY_SHADOW_ALL: {
@@ -168,7 +138,7 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       }
 
       /* Ignore curves. */
-      if (hit->geomID & 1) {
+      if (IS_HAIR(hit->geomID)) {
         /* This tells Embree to continue tracing. */
         *args->valid = 0;
         break;
@@ -247,6 +217,34 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       /* Nothing to do here. */
       break;
   }
+}
+
+static void rtc_filter_func_thick_curve(const RTCFilterFunctionNArguments *args)
+{
+  const RTCRay *ray = (RTCRay *)args->ray;
+  RTCHit *hit = (RTCHit *)args->hit;
+
+  /* Always ignore backfacing intersections. */
+  if (dot(make_float3(ray->dir_x, ray->dir_y, ray->dir_z),
+          make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z)) > 0.0f) {
+    *args->valid = 0;
+    return;
+  }
+}
+
+static void rtc_filter_occluded_func_thick_curve(const RTCFilterFunctionNArguments *args)
+{
+  const RTCRay *ray = (RTCRay *)args->ray;
+  RTCHit *hit = (RTCHit *)args->hit;
+
+  /* Always ignore backfacing intersections. */
+  if (dot(make_float3(ray->dir_x, ray->dir_y, ray->dir_z),
+          make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z)) > 0.0f) {
+    *args->valid = 0;
+    return;
+  }
+
+  rtc_filter_occluded_func(args);
 }
 
 static size_t unaccounted_mem = 0;
@@ -652,7 +650,6 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
   }
 
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
-  rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_func);
   rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func);
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
 
@@ -825,8 +822,13 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
   update_curve_vertex_buffer(geom_id, hair);
 
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
-  rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_func);
-  rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func);
+  if (use_ribbons) {
+    rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func);
+  }
+  else {
+    rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_func_thick_curve);
+    rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func_thick_curve);
+  }
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
 
   rtcCommitGeometry(geom_id);

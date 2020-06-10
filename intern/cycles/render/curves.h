@@ -69,7 +69,6 @@ class CurveSystemManager {
   int subdivisions;
 
   bool use_curves;
-  bool use_backfacing;
 
   bool need_update;
   bool need_mesh_update;

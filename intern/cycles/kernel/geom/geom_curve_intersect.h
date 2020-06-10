@@ -27,14 +27,14 @@ ccl_device_inline ssef transform_point_T3(const ssef t[3], const ssef &a)
 
 /* On CPU pass P and dir by reference to aligned vector. */
 ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
-                                                     Intersection *isect,
-                                                     const float3 ccl_ref P,
-                                                     const float3 ccl_ref dir,
-                                                     uint visibility,
-                                                     int object,
-                                                     int curveAddr,
-                                                     float time,
-                                                     int type)
+                                            Intersection *isect,
+                                            const float3 ccl_ref P,
+                                            const float3 ccl_ref dir,
+                                            uint visibility,
+                                            int object,
+                                            int curveAddr,
+                                            float time,
+                                            int type)
 {
   const bool is_curve_primitive = (type & PRIMITIVE_CURVE);
 
@@ -82,8 +82,7 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
     }
     else {
       int fobject = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, curveAddr) : object;
-      motion_curve_keys_avx(
-          kg, fobject, prim, time, ka, k0, k1, kb, &P_curve_0_1, &P_curve_2_3);
+      motion_curve_keys_avx(kg, fobject, prim, time, ka, k0, k1, kb, &P_curve_0_1, &P_curve_2_3);
     }
 #    else  /* __KERNEL_AVX2__ */
     ssef P_curve[4];
@@ -217,8 +216,7 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
 
   float r_curr = max(r_st, r_en);
 
-  if ((flags & CURVE_KN_RIBBONS) || !(flags & CURVE_KN_BACKFACING))
-    epsilon = 2 * r_curr;
+  epsilon = 2 * r_curr;
 
   /* find bounds - this is slow for cubic curves */
   float upper, lower;
@@ -438,13 +436,6 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
         float3 dp_en = (3 * curve_coef[3] * i_en + 2 * curve_coef[2]) * i_en + curve_coef[1];
         if (dot(tg, dp_en) < 0)
           dp_en *= -1;
-
-        if (flags & CURVE_KN_BACKFACING &&
-            (dot(dp_st, -p_st) + t * dp_st.z < 0 || dot(dp_en, p_en) - t * dp_en.z < 0 ||
-             isect->t < t || t <= 0.0f)) {
-          correction = (-tb + rootd) * 0.5f * invcyla;
-          t = tcentre + correction;
-        }
 
         if (dot(dp_st, -p_st) + t * dp_st.z < 0 || dot(dp_en, p_en) - t * dp_en.z < 0 ||
             isect->t < t || t <= 0.0f) {

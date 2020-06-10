@@ -409,8 +409,6 @@ class CYCLES_RENDER_PT_hair(CyclesButtonsPanel, Panel):
         if ccscene.shape == 'RIBBONS':
             # TODO: use for embree
             col.prop(ccscene, "subdivisions", text="Curve subdivisions")
-        else:
-            col.prop(ccscene, "cull_backfacing", text="Cull back-faces")
 
 
 class CYCLES_RENDER_PT_volumes(CyclesButtonsPanel, Panel):
