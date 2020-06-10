@@ -1294,19 +1294,23 @@ static int rna_property_override_diff_propptr(Main *bmain,
             override, rna_path, &created);
 
         /* If not yet overridden, or if we are handling sub-items (inside a collection)... */
-        if (op != NULL && (created || rna_itemname_a != NULL || rna_itemname_b != NULL ||
-                           rna_itemindex_a != -1 || rna_itemindex_b != -1)) {
-          BKE_lib_override_library_property_operation_get(op,
-                                                          IDOVERRIDE_LIBRARY_OP_REPLACE,
-                                                          rna_itemname_b,
-                                                          rna_itemname_a,
-                                                          rna_itemindex_b,
-                                                          rna_itemindex_a,
-                                                          true,
-                                                          NULL,
-                                                          &created);
-          if (r_override_changed) {
-            *r_override_changed = created;
+        if (op != NULL) {
+          BKE_lib_override_library_operations_tag(op, IDOVERRIDE_LIBRARY_TAG_UNUSED, false);
+
+          if (created || rna_itemname_a != NULL || rna_itemname_b != NULL ||
+              rna_itemindex_a != -1 || rna_itemindex_b != -1) {
+            BKE_lib_override_library_property_operation_get(op,
+                                                            IDOVERRIDE_LIBRARY_OP_REPLACE,
+                                                            rna_itemname_b,
+                                                            rna_itemname_a,
+                                                            rna_itemindex_b,
+                                                            rna_itemindex_a,
+                                                            true,
+                                                            NULL,
+                                                            &created);
+            if (r_override_changed) {
+              *r_override_changed = created;
+            }
           }
         }
       }
