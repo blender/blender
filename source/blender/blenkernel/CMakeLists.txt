@@ -347,6 +347,7 @@ set(SRC
   BKE_mesh_remesh_voxel.h
   BKE_mesh_runtime.h
   BKE_mesh_tangent.h
+  BKE_mesh_wrapper.h
   BKE_modifier.h
   BKE_movieclip.h
   BKE_multires.h
