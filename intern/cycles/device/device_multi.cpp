@@ -242,7 +242,7 @@ class MultiDevice : public Device {
     return devices.front().device->osl_memory();
   }
 
-  bool is_resident(device_ptr key, Device *sub_device) override
+  bool is_resident(device_ptr key, Device *sub_device)
   {
     foreach (SubDevice &sub, devices) {
       if (sub.device == sub_device) {
