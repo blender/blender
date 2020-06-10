@@ -1136,7 +1136,7 @@ static void write_nodetree_nolib(BlendWriter *writer, bNodeTree *ntree)
         }
         BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
       }
-      else {
+      else if (node->typeinfo != &NodeTypeUndefined) {
         BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
       }
     }
