@@ -441,7 +441,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
         name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), NULL);
       }
       else {
-        BKE_id_full_name_ui_prefix_get(name_buf, itemptr.data);
+        BKE_id_full_name_ui_prefix_get(name_buf, itemptr.data, UI_SEP_CHAR);
         BLI_STATIC_ASSERT(sizeof(name_buf) >= MAX_ID_FULL_NAME_UI,
                           "Name string buffer should be big enough to hold full UI ID name");
         name = name_buf;
@@ -473,7 +473,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
 
   /* add search items from temporary list */
   for (cis = items_list->first; cis; cis = cis->next) {
-    if (!UI_search_item_add(items, cis->name, cis->data, cis->iconid, 0)) {
+    if (!UI_search_item_add(items, cis->name, cis->data, cis->iconid, UI_BUT_HAS_SEP_CHAR)) {
       break;
     }
   }

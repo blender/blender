@@ -2068,9 +2068,11 @@ void BKE_libblock_rename(Main *bmain, ID *id, const char *name)
  * \note Result is unique to a given ID type in a given Main database.
  *
  * \param name: An allocated string of minimal length #MAX_ID_FULL_NAME,
- * will be filled with generated string.
+ *              will be filled with generated string.
+ * \param separator_char: Character to use for separating name and library name. Can be 0 to use
+ *                        default (' ').
  */
-void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const ID *id)
+void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const ID *id, char separator_char)
 {
   strcpy(name, id->name + 2);
 
@@ -2078,7 +2080,7 @@ void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const ID *id)
     const size_t idname_len = strlen(id->name + 2);
     const size_t libname_len = strlen(id->lib->id.name + 2);
 
-    name[idname_len] = ' ';
+    name[idname_len] = separator_char ? separator_char : ' ';
     name[idname_len + 1] = '[';
     strcpy(name + idname_len + 2, id->lib->id.name + 2);
     name[idname_len + 2 + libname_len] = ']';
@@ -2094,15 +2096,19 @@ void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const ID *id)
  * \note Result is unique to a given ID type in a given Main database.
  *
  * \param name: An allocated string of minimal length #MAX_ID_FULL_NAME_UI,
- * will be filled with generated string.
+ *              will be filled with generated string.
+ * \param separator_char: Character to use for separating name and library name. Can be 0 to use
+ *                        default (' ').
  */
-void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI], const ID *id)
+void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI],
+                                    const ID *id,
+                                    char separator_char)
 {
   name[0] = id->lib ? (ID_MISSING(id) ? 'M' : 'L') : ID_IS_OVERRIDE_LIBRARY(id) ? 'O' : ' ';
   name[1] = (id->flag & LIB_FAKEUSER) ? 'F' : ((id->us == 0) ? '0' : ' ');
   name[2] = ' ';
 
-  BKE_id_full_name_get(name + 3, id);
+  BKE_id_full_name_get(name + 3, id, separator_char);
 }
 
 /**

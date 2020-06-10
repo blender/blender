@@ -250,8 +250,10 @@ void BKE_main_id_repair_duplicate_names_listbase(struct ListBase *lb);
 
 #define MAX_ID_FULL_NAME (64 + 64 + 3 + 1)         /* 64 is MAX_ID_NAME - 2 */
 #define MAX_ID_FULL_NAME_UI (MAX_ID_FULL_NAME + 3) /* Adds 'keycode' two letters at beginning. */
-void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const struct ID *id);
-void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI], const struct ID *id);
+void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const struct ID *id, char separator_str);
+void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI],
+                                    const struct ID *id,
+                                    char separator_char);
 
 char *BKE_id_to_unique_string_key(const struct ID *id);
 
