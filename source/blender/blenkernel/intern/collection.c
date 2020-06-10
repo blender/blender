@@ -314,6 +314,7 @@ static Collection *collection_duplicate_recursive(Main *bmain,
   Collection *collection_new;
   bool do_full_process = false;
   const int object_dupflag = (do_obdata) ? U.dupflag : 0;
+  const bool is_collection_liboverride = ID_IS_OVERRIDE_LIBRARY(collection_old);
 
   if (!do_hierarchy || collection_old->id.newid == NULL) {
     BKE_id_copy(bmain, &collection_old->id, (ID **)&collection_new);
@@ -358,6 +359,12 @@ static Collection *collection_duplicate_recursive(Main *bmain,
     LISTBASE_FOREACH (CollectionObject *, cob, &collection_old->gobject) {
       Object *ob_old = cob->ob;
       Object *ob_new = (Object *)ob_old->id.newid;
+
+      /* If collection is an override, we do not want to duplicate any linked data-block, as that
+       * would generate a purely local data. */
+      if (is_collection_liboverride && ID_IS_LINKED(ob_old)) {
+        continue;
+      }
 
       if (ob_new == NULL) {
         ob_new = BKE_object_duplicate(bmain, ob_old, object_dupflag);
@@ -430,7 +437,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
   Collection *collection_new = collection_duplicate_recursive(
       bmain, parent, collection, do_hierarchy, do_objects, do_obdata);
 
-  /* This code will follows into all ID links using an ID tagged with LIB_TAG_NEW.*/
+  /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW.*/
   BKE_libblock_relink_to_newid(&collection_new->id);
 
   if (do_hierarchy) {

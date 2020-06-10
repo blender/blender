@@ -64,6 +64,7 @@
 #include "BKE_idtype.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_override.h"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
@@ -1153,14 +1154,13 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
     new_id->properties = IDP_CopyProperty_ex(id->properties, copy_data_flag);
   }
 
-  /* XXX Again... We need a way to control what we copy in a much more refined way.
-   * We cannot always copy this, some internal copying will die on it! */
-  /* For now, upper level code will have to do that itself when required. */
-#if 0
-  if (id->override != NULL) {
-    BKE_override_copy(new_id, id);
+  /* We may need our own flag to control that at some point, but for now 'no main' one should be
+   * good enough. */
+  if ((orig_flag & LIB_ID_CREATE_NO_MAIN) == 0 && id->override_library != NULL) {
+    /* We do not want to copy existing override rules here, as they would break the proper
+     * remapping between IDs. Proper overrides rules will be re-generated anyway. */
+    BKE_lib_override_library_copy(new_id, id, false);
   }
-#endif
 
   if (id_can_have_animdata(new_id)) {
     IdAdtTemplate *iat = (IdAdtTemplate *)new_id;

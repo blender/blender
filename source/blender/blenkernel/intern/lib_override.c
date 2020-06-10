@@ -92,7 +92,7 @@ IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
 
   if (ancestor_id != NULL && ancestor_id->override_library != NULL) {
     /* Original ID has a template, use it! */
-    BKE_lib_override_library_copy(local_id, ancestor_id);
+    BKE_lib_override_library_copy(local_id, ancestor_id, true);
     if (local_id->override_library->reference != reference_id) {
       id_us_min(local_id->override_library->reference);
       local_id->override_library->reference = reference_id;
@@ -110,8 +110,8 @@ IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
   return local_id->override_library;
 }
 
-/** Deep copy of a whole override from \a src_id to \a dst_id. */
-void BKE_lib_override_library_copy(ID *dst_id, const ID *src_id)
+/** Shalow or deep copy of a whole override from \a src_id to \a dst_id. */
+void BKE_lib_override_library_copy(ID *dst_id, const ID *src_id, const bool do_full_copy)
 {
   BLI_assert(src_id->override_library != NULL);
 
@@ -138,12 +138,15 @@ void BKE_lib_override_library_copy(ID *dst_id, const ID *src_id)
                                             (ID *)src_id;
   id_us_plus(dst_id->override_library->reference);
 
-  BLI_duplicatelist(&dst_id->override_library->properties, &src_id->override_library->properties);
-  for (IDOverrideLibraryProperty *op_dst = dst_id->override_library->properties.first,
-                                 *op_src = src_id->override_library->properties.first;
-       op_dst;
-       op_dst = op_dst->next, op_src = op_src->next) {
-    lib_override_library_property_copy(op_dst, op_src);
+  if (do_full_copy) {
+    BLI_duplicatelist(&dst_id->override_library->properties,
+                      &src_id->override_library->properties);
+    for (IDOverrideLibraryProperty *op_dst = dst_id->override_library->properties.first,
+                                   *op_src = src_id->override_library->properties.first;
+         op_dst;
+         op_dst = op_dst->next, op_src = op_src->next) {
+      lib_override_library_property_copy(op_dst, op_src);
+    }
   }
 
   dst_id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_REFOK;

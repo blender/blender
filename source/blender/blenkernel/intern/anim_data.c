@@ -381,14 +381,15 @@ bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const int flag)
 
 void BKE_animdata_copy_id_action(Main *bmain, ID *id, const bool set_newid)
 {
+  const bool is_id_liboverride = ID_IS_OVERRIDE_LIBRARY(id);
   AnimData *adt = BKE_animdata_from_id(id);
   if (adt) {
-    if (adt->action) {
+    if (adt->action && (!is_id_liboverride || !ID_IS_LINKED(adt->action))) {
       id_us_min((ID *)adt->action);
       adt->action = set_newid ? ID_NEW_SET(adt->action, BKE_action_copy(bmain, adt->action)) :
                                 BKE_action_copy(bmain, adt->action);
     }
-    if (adt->tmpact) {
+    if (adt->tmpact && (!is_id_liboverride || !ID_IS_LINKED(adt->tmpact))) {
       id_us_min((ID *)adt->tmpact);
       adt->tmpact = set_newid ? ID_NEW_SET(adt->tmpact, BKE_action_copy(bmain, adt->tmpact)) :
                                 BKE_action_copy(bmain, adt->tmpact);
