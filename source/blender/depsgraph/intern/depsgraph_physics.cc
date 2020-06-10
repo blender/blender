@@ -167,7 +167,7 @@ ListBase *build_effector_relations(Depsgraph *graph, Collection *collection)
     graph->physics_relations[DEG_PHYSICS_EFFECTOR] = new Map<const ID *, ListBase *>();
     hash = graph->physics_relations[DEG_PHYSICS_EFFECTOR];
   }
-  return hash->lookup_or_add(&collection->id, [&]() {
+  return hash->lookup_or_add_cb(&collection->id, [&]() {
     ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(graph);
     return BKE_effector_relations_create(depsgraph, graph->view_layer, collection);
   });
@@ -183,7 +183,7 @@ ListBase *build_collision_relations(Depsgraph *graph,
     graph->physics_relations[type] = new Map<const ID *, ListBase *>();
     hash = graph->physics_relations[type];
   }
-  return hash->lookup_or_add(&collection->id, [&]() {
+  return hash->lookup_or_add_cb(&collection->id, [&]() {
     ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(graph);
     return BKE_collision_relations_create(depsgraph, collection, modifier_type);
   });

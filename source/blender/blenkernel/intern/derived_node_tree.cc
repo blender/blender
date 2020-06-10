@@ -24,8 +24,8 @@ namespace BKE {
 
 static const NodeTreeRef &get_tree_ref(NodeTreeRefMap &node_tree_refs, bNodeTree *btree)
 {
-  return *node_tree_refs.lookup_or_add(btree,
-                                       [&]() { return blender::make_unique<NodeTreeRef>(btree); });
+  return *node_tree_refs.lookup_or_add_cb(
+      btree, [&]() { return blender::make_unique<NodeTreeRef>(btree); });
 }
 
 DerivedNodeTree::DerivedNodeTree(bNodeTree *btree, NodeTreeRefMap &node_tree_refs) : m_btree(btree)
@@ -365,7 +365,7 @@ static Dot::Cluster *get_cluster_for_parent(Dot::DirectedGraph &graph,
   if (parent == nullptr) {
     return nullptr;
   }
-  return clusters.lookup_or_add(parent, [&]() {
+  return clusters.lookup_or_add_cb(parent, [&]() {
     Dot::Cluster *parent_cluster = get_cluster_for_parent(graph, clusters, parent->parent());
     bNodeTree *btree = (bNodeTree *)parent->node_ref().bnode()->id;
     Dot::Cluster *new_cluster = &graph.new_cluster(parent->node_ref().name() + " / " +

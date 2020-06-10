@@ -364,7 +364,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
 
 RNANodeQueryIDData *RNANodeQuery::ensure_id_data(const ID *id)
 {
-  unique_ptr<RNANodeQueryIDData> &id_data = id_data_map_.lookup_or_add(
+  unique_ptr<RNANodeQueryIDData> &id_data = id_data_map_.lookup_or_add_cb(
       id, [&]() { return blender::make_unique<RNANodeQueryIDData>(id); });
   return id_data.get();
 }
