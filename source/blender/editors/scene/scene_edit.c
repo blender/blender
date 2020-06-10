@@ -67,7 +67,7 @@ Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod me
       ED_editors_flush_edits(bmain);
     }
 
-    scene_new = BKE_scene_copy(bmain, scene_old, method);
+    scene_new = BKE_scene_duplicate(bmain, scene_old, method);
   }
 
   WM_window_set_active_scene(bmain, C, win, scene_new);

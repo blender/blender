@@ -749,7 +749,7 @@ void BKE_scene_copy_data_eevee(Scene *sce_dst, const Scene *sce_src)
   /* TODO Copy the cache. */
 }
 
-Scene *BKE_scene_copy(Main *bmain, Scene *sce, eSceneCopyMethod type)
+Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
 {
   Scene *sce_copy;
 
