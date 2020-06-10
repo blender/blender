@@ -86,7 +86,7 @@ ccl_device_inline void sample_uniform_cone(
     const float3 N, float angle, float randu, float randv, float3 *omega_in, float *pdf)
 {
   float zMin = cosf(angle);
-  float z = lerp(zMin, 1.0f, randu);
+  float z = zMin - zMin * randu + randu;
   float r = safe_sqrtf(1.0f - sqr(z));
   float phi = M_2PI_F * randv;
   float x = r * cosf(phi);
