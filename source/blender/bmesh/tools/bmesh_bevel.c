@@ -2220,14 +2220,15 @@ static void bevel_set_weighted_normal_face_strength(BMesh *bm, BevelParams *bp)
   int mode = bp->face_strength_mode;
   bool do_set_strength;
   const char *wn_layer_id = MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID;
-  int cd_prop_int_idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_INT, wn_layer_id);
+  int cd_prop_int_idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_INT32, wn_layer_id);
 
   if (cd_prop_int_idx == -1) {
-    BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT, wn_layer_id);
-    cd_prop_int_idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_INT, wn_layer_id);
+    BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT32, wn_layer_id);
+    cd_prop_int_idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_INT32, wn_layer_id);
   }
-  cd_prop_int_idx -= CustomData_get_layer_index(&bm->pdata, CD_PROP_INT);
-  const int cd_prop_int_offset = CustomData_get_n_offset(&bm->pdata, CD_PROP_INT, cd_prop_int_idx);
+  cd_prop_int_idx -= CustomData_get_layer_index(&bm->pdata, CD_PROP_INT32);
+  const int cd_prop_int_offset = CustomData_get_n_offset(
+      &bm->pdata, CD_PROP_INT32, cd_prop_int_idx);
 
   BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
     fkind = get_face_kind(bp, f);

@@ -15,7 +15,7 @@ TEST(bmesh_core, BMVertCreate)
   bm = BM_mesh_create(&bm_mesh_allocsize_default, &bm_params);
   EXPECT_EQ(bm->totvert, 0);
   /* make a custom layer so we can see if it is copied properly */
-  BM_data_layer_add(bm, &bm->vdata, CD_PROP_FLT);
+  BM_data_layer_add(bm, &bm->vdata, CD_PROP_FLOAT);
   bv1 = BM_vert_create(bm, co1, NULL, BM_CREATE_NOP);
   ASSERT_TRUE(bv1 != NULL);
   EXPECT_EQ(bv1->co[0], 1.0f);
@@ -30,11 +30,11 @@ TEST(bmesh_core, BMVertCreate)
   EXPECT_TRUE(is_zero_v3(bv2->co));
   /* create with example should copy custom data but not select flag */
   BM_vert_select_set(bm, bv2, true);
-  BM_elem_float_data_set(&bm->vdata, bv2, CD_PROP_FLT, 1.5f);
+  BM_elem_float_data_set(&bm->vdata, bv2, CD_PROP_FLOAT, 1.5f);
   bv3 = BM_vert_create(bm, co1, bv2, BM_CREATE_NOP);
   ASSERT_TRUE(bv3 != NULL);
   EXPECT_FALSE(BM_elem_flag_test((BMElem *)bv3, BM_ELEM_SELECT));
-  EXPECT_EQ(BM_elem_float_data_get(&bm->vdata, bv3, CD_PROP_FLT), 1.5f);
+  EXPECT_EQ(BM_elem_float_data_get(&bm->vdata, bv3, CD_PROP_FLOAT), 1.5f);
   EXPECT_EQ(BM_mesh_elem_count(bm, BM_VERT), 3);
   BM_mesh_free(bm);
 }

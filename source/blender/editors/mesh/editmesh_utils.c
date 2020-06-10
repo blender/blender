@@ -1089,16 +1089,16 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
 
   if (r_index == NULL) {
     const char *layer_id = BM_CD_LAYER_ID;
-    em->mirror_cdlayer = CustomData_get_named_layer_index(&bm->vdata, CD_PROP_INT, layer_id);
+    em->mirror_cdlayer = CustomData_get_named_layer_index(&bm->vdata, CD_PROP_INT32, layer_id);
     if (em->mirror_cdlayer == -1) {
-      BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_INT, layer_id);
-      em->mirror_cdlayer = CustomData_get_named_layer_index(&bm->vdata, CD_PROP_INT, layer_id);
+      BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_INT32, layer_id);
+      em->mirror_cdlayer = CustomData_get_named_layer_index(&bm->vdata, CD_PROP_INT32, layer_id);
     }
 
     cd_vmirr_offset = CustomData_get_n_offset(
         &bm->vdata,
-        CD_PROP_INT,
-        em->mirror_cdlayer - CustomData_get_layer_index(&bm->vdata, CD_PROP_INT));
+        CD_PROP_INT32,
+        em->mirror_cdlayer - CustomData_get_layer_index(&bm->vdata, CD_PROP_INT32));
 
     bm->vdata.layers[em->mirror_cdlayer].flag |= CD_FLAG_TEMPORARY;
   }

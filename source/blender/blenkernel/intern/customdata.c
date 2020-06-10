@@ -1549,7 +1549,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      layerCopyValue_normal},
     /* 9: CD_FACEMAP */
     {sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, layerDefault_fmap, NULL},
-    /* 10: CD_PROP_FLT */
+    /* 10: CD_PROP_FLOAT */
     {sizeof(MFloatProperty),
      "MFloatProperty",
      1,
@@ -1560,9 +1560,9 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      NULL,
      NULL,
      layerValidate_propFloat},
-    /* 11: CD_PROP_INT */
+    /* 11: CD_PROP_INT32 */
     {sizeof(MIntProperty), "MIntProperty", 1, N_("Int"), layerCopy_propInt, NULL, NULL, NULL},
-    /* 12: CD_PROP_STR */
+    /* 12: CD_PROP_STRING */
     {sizeof(MStringProperty),
      "MStringProperty",
      1,
@@ -4289,7 +4289,7 @@ int CustomData_layertype_layers_max(const int type)
 
 static bool CustomData_is_property_layer(int type)
 {
-  if ((type == CD_PROP_FLT) || (type == CD_PROP_INT) || (type == CD_PROP_STR)) {
+  if ((type == CD_PROP_FLOAT) || (type == CD_PROP_INT32) || (type == CD_PROP_STRING)) {
     return true;
   }
   return false;
