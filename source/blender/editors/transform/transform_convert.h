@@ -176,8 +176,9 @@ void createTransParticleVerts(bContext *C, TransInfo *t);
 void recalcData_particles(TransInfo *t);
 
 /* transform_convert_sculpt.c */
-void createTransSculpt(TransInfo *t);
+void createTransSculpt(bContext *C, TransInfo *t);
 void recalcData_sculpt(TransInfo *t);
+void special_aftertrans_update__sculpt(bContext *C, TransInfo *t);
 
 /* transform_convert_sequencer.c */
 void createTransSeqData(TransInfo *t);

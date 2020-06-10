@@ -916,6 +916,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     case TC_OBJECT_TEXSPACE:
       special_aftertrans_update__object(C, t);
       break;
+    case TC_SCULPT:
+      special_aftertrans_update__sculpt(C, t);
+      break;
     case TC_SEQ_DATA:
       special_aftertrans_update__sequencer(C, t);
       break;
@@ -932,7 +935,6 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     case TC_MESH_UV:
     case TC_PAINT_CURVE_VERTS:
     case TC_PARTICLE_VERTS:
-    case TC_SCULPT:
     case TC_NONE:
     default:
       break;
@@ -1013,7 +1015,8 @@ void createTransData(bContext *C, TransInfo *t)
       convert_type = TC_CURSOR_VIEW3D;
     }
   }
-  else if ((t->options & CTX_SCULPT) && !(t->options & CTX_PAINT_CURVE)) {
+  else if (!(t->options & CTX_PAINT_CURVE) && (t->spacetype == SPACE_VIEW3D) && ob &&
+           (ob->mode == OB_MODE_SCULPT) && ob->sculpt) {
     convert_type = TC_SCULPT;
   }
   else if (t->options & CTX_TEXTURE) {
@@ -1255,7 +1258,7 @@ void createTransData(bContext *C, TransInfo *t)
       createTransParticleVerts(C, t);
       break;
     case TC_SCULPT:
-      createTransSculpt(t);
+      createTransSculpt(C, t);
       init_prop_edit = false;
       break;
     case TC_SEQ_DATA:

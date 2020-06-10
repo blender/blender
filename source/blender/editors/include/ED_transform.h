@@ -97,7 +97,6 @@ enum TfmMode {
 #define CTX_OBMODE_XFORM_OBDATA (1 << 11)
 /** Transform object parents without moving their children. */
 #define CTX_OBMODE_XFORM_SKIP_CHILDREN (1 << 12)
-#define CTX_SCULPT (1 << 13)
 
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)
