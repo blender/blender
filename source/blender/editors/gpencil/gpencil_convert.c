@@ -231,6 +231,10 @@ typedef struct tGpTimingData {
 
   /* Only used during creation of dists & times lists. */
   float offset_time;
+
+  /* Curve bevel. */
+  float bevel_depth;
+  int bevel_resolution;
 } tGpTimingData;
 
 /* Init point buffers for timing data.
@@ -1302,6 +1306,8 @@ static void gp_layer_to_curve(bContext *C,
   DEG_relations_tag_update(bmain); /* added object */
 
   cu->flag |= CU_3D;
+  cu->bevresol = gtd->bevel_resolution;
+  cu->ext2 = gtd->bevel_depth;
 
   gtd->inittime = ((bGPDstroke *)gpf->strokes.first)->inittime;
 
@@ -1518,6 +1524,8 @@ static int gp_convert_layer_exec(bContext *C, wmOperator *op)
   /* grab all relevant settings */
   gtd.frame_range = RNA_int_get(op->ptr, "frame_range");
   gtd.start_frame = RNA_int_get(op->ptr, "start_frame");
+  gtd.bevel_depth = RNA_float_get(op->ptr, "bevel_depth");
+  gtd.bevel_resolution = RNA_int_get(op->ptr, "bevel_resolution");
   gtd.realtime = valid_timing ? RNA_boolean_get(op->ptr, "use_realtime") : false;
   gtd.end_frame = RNA_int_get(op->ptr, "end_frame");
   gtd.gap_duration = RNA_float_get(op->ptr, "gap_duration");
@@ -1567,7 +1575,8 @@ static bool gp_convert_poll_property(const bContext *UNUSED(C),
 
   /* Always show those props */
   if (STREQ(prop_id, "type") || STREQ(prop_id, "use_normalize_weights") ||
-      STREQ(prop_id, "radius_multiplier") || STREQ(prop_id, "use_link_strokes")) {
+      STREQ(prop_id, "radius_multiplier") || STREQ(prop_id, "use_link_strokes") ||
+      STREQ(prop_id, "bevel_depth") || STREQ(prop_id, "bevel_resolution")) {
     return true;
   }
 
@@ -1642,6 +1651,18 @@ void GPENCIL_OT_convert(wmOperatorType *ot)
   /* properties */
   ot->prop = RNA_def_enum(
       ot->srna, "type", prop_gpencil_convertmodes, 0, "Type", "Which type of curve to convert to");
+
+  RNA_def_float_distance(
+      ot->srna, "bevel_depth", 0.0f, 0.0f, 1000.0f, "Bevel Depth", "", 0.0f, 10.0f);
+  RNA_def_int(ot->srna,
+              "bevel_resolution",
+              0,
+              0,
+              32,
+              "Bevel_Resolution",
+              "Bevel resolution when depth is non-zero",
+              0,
+              32);
 
   RNA_def_boolean(ot->srna,
                   "use_normalize_weights",
