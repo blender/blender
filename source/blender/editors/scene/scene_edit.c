@@ -61,13 +61,13 @@ Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod me
   else { /* different kinds of copying */
     Scene *scene_old = WM_window_get_active_scene(win);
 
-    scene_new = BKE_scene_copy(bmain, scene_old, method);
-
-    /* these can't be handled in blenkernel currently, so do them here */
+    /* We are going to deep-copy collections, objects and various object data, we need to have
+     * up-to-date obdata for that. */
     if (method == SCE_COPY_FULL) {
       ED_editors_flush_edits(bmain);
-      ED_object_single_users(bmain, scene_new, true, true);
     }
+
+    scene_new = BKE_scene_copy(bmain, scene_old, method);
   }
 
   WM_window_set_active_scene(bmain, C, win, scene_new);

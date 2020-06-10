@@ -851,6 +851,10 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, eSceneCopyMethod type)
         id_us_min(&sce_copy->gpd->id);
         BKE_id_copy_ex(bmain, (ID *)sce_copy->gpd, (ID **)&sce_copy->gpd, LIB_ID_COPY_ACTIONS);
       }
+
+      /* Deep-duplicate collections and objects (using preferences' settings for which sub-data to
+       * duplicate along the object itself). */
+      BKE_collection_duplicate(bmain, NULL, sce_copy->master_collection, true, true, true);
     }
     else {
       /* Remove sequencer if not full copy */
@@ -858,9 +862,6 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, eSceneCopyMethod type)
       remove_sequencer_fcurves(sce_copy);
       BKE_sequencer_editing_free(sce_copy, true);
     }
-
-    /* NOTE: part of SCE_COPY_FULL operations
-     * are done outside of blenkernel with ED_object_single_users! */
 
     return sce_copy;
   }
