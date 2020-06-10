@@ -66,15 +66,16 @@ AnimatedPropertyID::AnimatedPropertyID(ID * /*id*/,
   property_rna = RNA_struct_type_find_property(type, property_name);
 }
 
-bool AnimatedPropertyID::operator<(const AnimatedPropertyID &other) const
+bool operator==(const AnimatedPropertyID &a, const AnimatedPropertyID &b)
 {
-  if (data < other.data) {
-    return true;
-  }
-  else if (data == other.data) {
-    return property_rna < other.property_rna;
-  }
-  return false;
+  return a.data == b.data && a.property_rna == b.property_rna;
+}
+
+uint32_t AnimatedPropertyID::hash() const
+{
+  uintptr_t ptr1 = (uintptr_t)data;
+  uintptr_t ptr2 = (uintptr_t)property_rna;
+  return (uint32_t)(((ptr1 >> 4) * 33) ^ (ptr2 >> 4));
 }
 
 namespace {
@@ -126,7 +127,7 @@ void AnimatedPropertyStorage::initializeFromID(DepsgraphBuilderCache *builder_ca
 
 void AnimatedPropertyStorage::tagPropertyAsAnimated(const AnimatedPropertyID &property_id)
 {
-  animated_properties_set.insert(property_id);
+  animated_properties_set.add(property_id);
 }
 
 void AnimatedPropertyStorage::tagPropertyAsAnimated(const PointerRNA *pointer_rna,
@@ -137,7 +138,7 @@ void AnimatedPropertyStorage::tagPropertyAsAnimated(const PointerRNA *pointer_rn
 
 bool AnimatedPropertyStorage::isPropertyAnimated(const AnimatedPropertyID &property_id)
 {
-  return animated_properties_set.find(property_id) != animated_properties_set.end();
+  return animated_properties_set.contains(property_id);
 }
 
 bool AnimatedPropertyStorage::isPropertyAnimated(const PointerRNA *pointer_rna,
