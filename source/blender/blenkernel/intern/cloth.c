@@ -146,6 +146,7 @@ void cloth_init(ClothModifierData *clmd)
   clmd->sim_parms->uniform_pressure_force = 0.0f;
   clmd->sim_parms->target_volume = 0.0f;
   clmd->sim_parms->pressure_factor = 1.0f;
+  clmd->sim_parms->fluid_density = 0.0f;
   clmd->sim_parms->vgroup_pressure = 0;
 
   // also from softbodies

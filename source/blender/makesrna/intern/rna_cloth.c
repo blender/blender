@@ -975,8 +975,10 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_pressure_volume", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_SIMSETTINGS_FLAG_PRESSURE_VOL);
-  RNA_def_property_ui_text(
-      prop, "Use Custom Volume", "Use the Volume parameter as the initial volume");
+  RNA_def_property_ui_text(prop,
+                           "Use Custom Volume",
+                           "Use the Target Volume parameter as the initial volume, instead "
+                           "of calculating it from the mesh itself");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, 0, "rna_cloth_update");
 
@@ -984,10 +986,10 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "uniform_pressure_force");
   RNA_def_property_range(prop, -10000.0f, 10000.0f);
   RNA_def_property_float_default(prop, 0.0f);
-  RNA_def_property_ui_text(
-      prop,
-      "Pressure",
-      "The uniform pressure that is constantly applied to the mesh. Can be negative");
+  RNA_def_property_ui_text(prop,
+                           "Pressure",
+                           "The uniform pressure that is constantly applied to the mesh, in units "
+                           "of Pressure Scale. Can be negative");
   RNA_def_property_update(prop, 0, "rna_cloth_update");
 
   prop = RNA_def_property(srna, "target_volume", PROP_FLOAT, PROP_NONE);
@@ -997,14 +999,28 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Target Volume",
                            "The mesh volume where the inner/outer pressure will be the same. If "
-                           "set to zero the volume will not contribute to the total pressure");
+                           "set to zero the change in volume will not affect pressure");
   RNA_def_property_update(prop, 0, "rna_cloth_update");
 
   prop = RNA_def_property(srna, "pressure_factor", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "pressure_factor");
   RNA_def_property_range(prop, 0.0f, 10000.0f);
   RNA_def_property_float_default(prop, 1.0f);
-  RNA_def_property_ui_text(prop, "Pressure Scale", "Air pressure scaling factor");
+  RNA_def_property_ui_text(prop,
+                           "Pressure Scale",
+                           "Ambient pressure (kPa) that balances out between the inside and "
+                           "outside of the object when it has the target volume");
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+  prop = RNA_def_property(srna, "fluid_density", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "fluid_density");
+  RNA_def_property_ui_range(prop, -2.0f, 2.0f, 0.05f, 4);
+  RNA_def_property_ui_text(
+      prop,
+      "Fluid Density",
+      "Density (kg/l) of the fluid contained inside the object, used to create "
+      "a hydrostatic pressure gradient simulating the weight of the internal fluid, "
+      "or buoyancy from the surrounding fluid if negative");
   RNA_def_property_update(prop, 0, "rna_cloth_update");
 
   prop = RNA_def_property(srna, "vertex_group_pressure", PROP_STRING, PROP_NONE);

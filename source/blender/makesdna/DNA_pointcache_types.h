@@ -50,6 +50,7 @@ extern "C" {
 #define BPHYS_TOT_DATA 8
 
 #define BPHYS_EXTRA_FLUID_SPRINGS 1
+#define BPHYS_EXTRA_CLOTH_ACCELERATION 2
 
 typedef struct PTCacheExtra {
   struct PTCacheExtra *next, *prev;

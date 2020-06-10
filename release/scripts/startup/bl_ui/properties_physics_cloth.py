@@ -237,7 +237,10 @@ class PHYSICS_PT_cloth_pressure(PhysicButtonsPanel, Panel):
         col.prop(cloth, "target_volume")
 
         col = flow.column()
-        col.prop(cloth, "pressure_factor", text="Factor")
+        col.prop(cloth, "pressure_factor")
+
+        col = flow.column()
+        col.prop(cloth, "fluid_density")
 
         col = flow.column()
         col.prop_search(cloth, "vertex_group_pressure", ob, "vertex_groups", text="Vertex Group")

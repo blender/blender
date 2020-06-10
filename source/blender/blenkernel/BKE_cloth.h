@@ -93,9 +93,10 @@ typedef struct Cloth {
   struct Implicit_Data *implicit; /* our implicit solver connects to this pointer */
   struct EdgeSet *edgeset;        /* used for selfcollisions */
   int last_frame;
-  float initial_mesh_volume;    /* Initial volume of the mesh. Used for pressure */
-  struct MEdge *edges;          /* Used for hair collisions. */
-  struct GHash *sew_edge_graph; /* Sewing edges represented using a GHash */
+  float initial_mesh_volume;     /* Initial volume of the mesh. Used for pressure */
+  float average_acceleration[3]; /* Moving average of overall acceleration. */
+  struct MEdge *edges;           /* Used for hair collisions. */
+  struct GHash *sew_edge_graph;  /* Sewing edges represented using a GHash */
 } Cloth;
 
 /**

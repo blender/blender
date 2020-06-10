@@ -138,6 +138,7 @@ static int ptcache_data_size[] = {
 static int ptcache_extra_datasize[] = {
     0,
     sizeof(ParticleSpring),
+    sizeof(float) * 3,
 };
 
 /* forward declarations */
@@ -175,6 +176,23 @@ static int ptcache_basic_header_write(PTCacheFile *pf)
   }
 
   return 1;
+}
+static void ptcache_add_extra_data(PTCacheMem *pm,
+                                   unsigned int type,
+                                   unsigned int count,
+                                   void *data)
+{
+  PTCacheExtra *extra = MEM_callocN(sizeof(PTCacheExtra), "Point cache: extra data descriptor");
+
+  extra->type = type;
+  extra->totdata = count;
+
+  size_t size = extra->totdata * ptcache_extra_datasize[extra->type];
+
+  extra->data = MEM_mallocN(size, "Point cache: extra data");
+  memcpy(extra->data, data, size);
+
+  BLI_addtail(&pm->extradata, extra);
 }
 /* Softbody functions */
 static int ptcache_softbody_write(int index, void *soft_v, void **data, int UNUSED(cfra))
@@ -467,21 +485,12 @@ static int ptcache_particle_totwrite(void *psys_v, int cfra)
 static void ptcache_particle_extra_write(void *psys_v, PTCacheMem *pm, int UNUSED(cfra))
 {
   ParticleSystem *psys = psys_v;
-  PTCacheExtra *extra = NULL;
 
   if (psys->part->phystype == PART_PHYS_FLUID && psys->part->fluid &&
       psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS && psys->tot_fluidsprings &&
       psys->fluid_springs) {
-    extra = MEM_callocN(sizeof(PTCacheExtra), "Point cache: fluid extra data");
-
-    extra->type = BPHYS_EXTRA_FLUID_SPRINGS;
-    extra->totdata = psys->tot_fluidsprings;
-
-    extra->data = MEM_callocN(extra->totdata * ptcache_extra_datasize[extra->type],
-                              "Point cache: extra data");
-    memcpy(extra->data, psys->fluid_springs, extra->totdata * ptcache_extra_datasize[extra->type]);
-
-    BLI_addtail(&pm->extradata, extra);
+    ptcache_add_extra_data(
+        pm, BPHYS_EXTRA_FLUID_SPRINGS, psys->tot_fluidsprings, psys->fluid_springs);
   }
 }
 
@@ -573,6 +582,33 @@ static void ptcache_cloth_interpolate(
   copy_v3_v3(vert->v, keys->vel);
 
   /* should vert->xconst be interpolated somehow too? - jahka */
+}
+
+static void ptcache_cloth_extra_write(void *cloth_v, PTCacheMem *pm, int UNUSED(cfra))
+{
+  ClothModifierData *clmd = cloth_v;
+  Cloth *cloth = clmd->clothObject;
+
+  if (!is_zero_v3(cloth->average_acceleration)) {
+    ptcache_add_extra_data(pm, BPHYS_EXTRA_CLOTH_ACCELERATION, 1, cloth->average_acceleration);
+  }
+}
+static void ptcache_cloth_extra_read(void *cloth_v, PTCacheMem *pm, float UNUSED(cfra))
+{
+  ClothModifierData *clmd = cloth_v;
+  Cloth *cloth = clmd->clothObject;
+  PTCacheExtra *extra = pm->extradata.first;
+
+  zero_v3(cloth->average_acceleration);
+
+  for (; extra; extra = extra->next) {
+    switch (extra->type) {
+      case BPHYS_EXTRA_CLOTH_ACCELERATION: {
+        copy_v3_v3(cloth->average_acceleration, extra->data);
+        break;
+      }
+    }
+  }
 }
 
 static int ptcache_cloth_totpoint(void *cloth_v, int UNUSED(cfra))
@@ -1681,8 +1717,8 @@ void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *cl
   pid->write_stream = NULL;
   pid->read_stream = NULL;
 
-  pid->write_extra_data = NULL;
-  pid->read_extra_data = NULL;
+  pid->write_extra_data = ptcache_cloth_extra_write;
+  pid->read_extra_data = ptcache_cloth_extra_read;
   pid->interpolate_extra_data = NULL;
 
   pid->write_header = ptcache_basic_header_write;

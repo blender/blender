@@ -109,8 +109,10 @@ typedef struct ClothSimSettings {
      pressure=( (current_volume/target_volume) - 1 + uniform_pressure_force) *
      pressure_factor */
   float pressure_factor;
+  /* Density of the fluid inside or outside the object for use in the hydrostatic pressure gradient. */
+  float fluid_density;
   short vgroup_pressure;
-  char _pad7[2];
+  char _pad7[6];
 
   /* XXX various hair stuff
    * should really be separate, this struct is a horrible mess already

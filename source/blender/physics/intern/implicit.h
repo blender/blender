@@ -79,6 +79,7 @@ void BPH_mass_spring_get_motion_state(struct Implicit_Data *data,
                                       float x[3],
                                       float v[3]);
 void BPH_mass_spring_get_position(struct Implicit_Data *data, int index, float x[3]);
+void BPH_mass_spring_get_velocity(struct Implicit_Data *data, int index, float v[3]);
 
 /* access to modified motion state during solver step */
 void BPH_mass_spring_get_new_position(struct Implicit_Data *data, int index, float x[3]);
@@ -183,13 +184,15 @@ bool BPH_mass_spring_force_spring_goal(struct Implicit_Data *data,
                                        float damping);
 
 float BPH_tri_tetra_volume_signed_6x(struct Implicit_Data *data, int v1, int v2, int v3);
+float BPH_tri_area(struct Implicit_Data *data, int v1, int v2, int v3);
 
 void BPH_mass_spring_force_pressure(struct Implicit_Data *data,
                                     int v1,
                                     int v2,
                                     int v3,
-                                    float pressure_difference,
-                                    float weights[3]);
+                                    float common_pressure,
+                                    const float *vertex_pressure,
+                                    const float weights[3]);
 
 /* ======== Hair Volumetric Forces ======== */
 

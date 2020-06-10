@@ -1376,6 +1376,7 @@ static const char *ptcache_data_struct[] = {
 static const char *ptcache_extra_struct[] = {
     "",
     "ParticleSpring",
+    "vec3f",
 };
 static void write_pointcaches(BlendWriter *writer, ListBase *ptcaches)
 {
