@@ -1053,6 +1053,8 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
      * useful selection for grabbing.
      */
 
+    BM_custom_loop_normals_to_vector_layer(bm);
+
     /* BM_ELEM_SELECT --> BM_ELEM_TAG */
     BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
       BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
@@ -1069,6 +1071,8 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     if (ret != OPERATOR_FINISHED) {
       continue;
     }
+
+    BM_custom_loop_normals_from_vector_layer(bm, false);
 
     BLI_assert(singlesel ? (bm->totvertsel > 0) : (bm->totedgesel > 0));
 

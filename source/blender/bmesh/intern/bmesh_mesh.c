@@ -34,6 +34,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_editmesh.h"
+#include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 
@@ -1005,6 +1006,268 @@ static void bm_mesh_loops_calc_normals(BMesh *bm,
   }
 }
 
+/* This threshold is a bit touchy (usual float precision issue), this value seems OK. */
+#define LNOR_SPACE_TRIGO_THRESHOLD (1.0f - 1e-4f)
+
+/**
+ * Check each current smooth fan (one lnor space per smooth fan!), and if all its
+ * matching custom lnors are not (enough) equal, add sharp edges as needed.
+ */
+static bool bm_mesh_loops_split_lnor_fans(BMesh *bm,
+                                          MLoopNorSpaceArray *lnors_spacearr,
+                                          const float (*new_lnors)[3])
+{
+  BLI_bitmap *done_loops = BLI_BITMAP_NEW((size_t)bm->totloop, __func__);
+  bool changed = false;
+
+  BLI_assert(lnors_spacearr->data_type == MLNOR_SPACEARR_BMLOOP_PTR);
+
+  for (int i = 0; i < bm->totloop; i++) {
+    if (!lnors_spacearr->lspacearr[i]) {
+      /* This should not happen in theory, but in some rare case (probably ugly geometry)
+       * we can get some NULL loopspacearr at this point. :/
+       * Maybe we should set those loops' edges as sharp?
+       */
+      BLI_BITMAP_ENABLE(done_loops, i);
+      if (G.debug & G_DEBUG) {
+        printf("WARNING! Getting invalid NULL loop space for loop %d!\n", i);
+      }
+      continue;
+    }
+
+    if (!BLI_BITMAP_TEST(done_loops, i)) {
+      /* Notes:
+       * * In case of mono-loop smooth fan, we have nothing to do.
+       * * Loops in this linklist are ordered (in reversed order compared to how they were
+       *   discovered by BKE_mesh_normals_loop_split(), but this is not a problem).
+       *   Which means if we find a mismatching clnor,
+       *   we know all remaining loops will have to be in a new, different smooth fan/lnor space.
+       * * In smooth fan case, we compare each clnor against a ref one,
+       *   to avoid small differences adding up into a real big one in the end!
+       */
+      if (lnors_spacearr->lspacearr[i]->flags & MLNOR_SPACE_IS_SINGLE) {
+        BLI_BITMAP_ENABLE(done_loops, i);
+        continue;
+      }
+
+      LinkNode *loops = lnors_spacearr->lspacearr[i]->loops;
+      BMLoop *prev_ml = NULL;
+      const float *org_nor = NULL;
+
+      while (loops) {
+        BMLoop *ml = loops->link;
+        const int lidx = BM_elem_index_get(ml);
+        const float *nor = new_lnors[lidx];
+
+        if (!org_nor) {
+          org_nor = nor;
+        }
+        else if (dot_v3v3(org_nor, nor) < LNOR_SPACE_TRIGO_THRESHOLD) {
+          /* Current normal differs too much from org one, we have to tag the edge between
+           * previous loop's face and current's one as sharp.
+           * We know those two loops do not point to the same edge,
+           * since we do not allow reversed winding in a same smooth fan.
+           */
+          BMEdge *e = (prev_ml->e == ml->prev->e) ? prev_ml->e : ml->e;
+
+          BM_elem_flag_disable(e, BM_ELEM_TAG | BM_ELEM_SMOOTH);
+          changed = true;
+
+          org_nor = nor;
+        }
+
+        prev_ml = ml;
+        loops = loops->next;
+        BLI_BITMAP_ENABLE(done_loops, lidx);
+      }
+
+      /* We also have to check between last and first loops,
+       * otherwise we may miss some sharp edges here!
+       * This is just a simplified version of above while loop.
+       * See T45984. */
+      loops = lnors_spacearr->lspacearr[i]->loops;
+      if (loops && org_nor) {
+        BMLoop *ml = loops->link;
+        const int lidx = BM_elem_index_get(ml);
+        const float *nor = new_lnors[lidx];
+
+        if (dot_v3v3(org_nor, nor) < LNOR_SPACE_TRIGO_THRESHOLD) {
+          BMEdge *e = (prev_ml->e == ml->prev->e) ? prev_ml->e : ml->e;
+
+          BM_elem_flag_disable(e, BM_ELEM_TAG | BM_ELEM_SMOOTH);
+          changed = true;
+        }
+      }
+    }
+  }
+
+  MEM_freeN(done_loops);
+  return changed;
+}
+
+/**
+ * Assign custom normal data from given normal vectors, averaging normals
+ * from one smooth fan as necessary.
+ */
+static void bm_mesh_loops_assign_normal_data(BMesh *bm,
+                                             MLoopNorSpaceArray *lnors_spacearr,
+                                             short (*r_clnors_data)[2],
+                                             const int cd_loop_clnors_offset,
+                                             const float (*new_lnors)[3])
+{
+  BLI_bitmap *done_loops = BLI_BITMAP_NEW((size_t)bm->totloop, __func__);
+
+  BLI_SMALLSTACK_DECLARE(clnors_data, short *);
+
+  BLI_assert(lnors_spacearr->data_type == MLNOR_SPACEARR_BMLOOP_PTR);
+
+  for (int i = 0; i < bm->totloop; i++) {
+    if (!lnors_spacearr->lspacearr[i]) {
+      BLI_BITMAP_ENABLE(done_loops, i);
+      if (G.debug & G_DEBUG) {
+        printf("WARNING! Still getting invalid NULL loop space in second loop for loop %d!\n", i);
+      }
+      continue;
+    }
+
+    if (!BLI_BITMAP_TEST(done_loops, i)) {
+      /* Note we accumulate and average all custom normals in current smooth fan,
+       * to avoid getting different clnors data (tiny differences in plain custom normals can
+       * give rather huge differences in computed 2D factors).
+       */
+      LinkNode *loops = lnors_spacearr->lspacearr[i]->loops;
+
+      if (lnors_spacearr->lspacearr[i]->flags & MLNOR_SPACE_IS_SINGLE) {
+        BMLoop *ml = (BMLoop *)loops;
+        const int lidx = BM_elem_index_get(ml);
+
+        BLI_assert(lidx == i);
+
+        const float *nor = new_lnors[lidx];
+        short *clnor = r_clnors_data ? &r_clnors_data[lidx] :
+                                       BM_ELEM_CD_GET_VOID_P(ml, cd_loop_clnors_offset);
+
+        BKE_lnor_space_custom_normal_to_data(lnors_spacearr->lspacearr[i], nor, clnor);
+        BLI_BITMAP_ENABLE(done_loops, i);
+      }
+      else {
+        int nbr_nors = 0;
+        float avg_nor[3];
+        short clnor_data_tmp[2], *clnor_data;
+
+        zero_v3(avg_nor);
+
+        while (loops) {
+          BMLoop *ml = loops->link;
+          const int lidx = BM_elem_index_get(ml);
+          const float *nor = new_lnors[lidx];
+          short *clnor = r_clnors_data ? &r_clnors_data[lidx] :
+                                         BM_ELEM_CD_GET_VOID_P(ml, cd_loop_clnors_offset);
+
+          nbr_nors++;
+          add_v3_v3(avg_nor, nor);
+          BLI_SMALLSTACK_PUSH(clnors_data, clnor);
+
+          loops = loops->next;
+          BLI_BITMAP_ENABLE(done_loops, lidx);
+        }
+
+        mul_v3_fl(avg_nor, 1.0f / (float)nbr_nors);
+        BKE_lnor_space_custom_normal_to_data(
+            lnors_spacearr->lspacearr[i], avg_nor, clnor_data_tmp);
+
+        while ((clnor_data = BLI_SMALLSTACK_POP(clnors_data))) {
+          clnor_data[0] = clnor_data_tmp[0];
+          clnor_data[1] = clnor_data_tmp[1];
+        }
+      }
+    }
+  }
+
+  MEM_freeN(done_loops);
+}
+
+/**
+ * Compute internal representation of given custom normals (as an array of float[2] or data layer).
+ *
+ * It also makes sure the mesh matches those custom normals, by marking new sharp edges to split
+ * the smooth fans when loop normals for the same vertex are different, or averaging the normals
+ * instead, depending on the do_split_fans parameter.
+ */
+static void bm_mesh_loops_custom_normals_set(BMesh *bm,
+                                             const float (*vcos)[3],
+                                             const float (*vnos)[3],
+                                             const float (*fnos)[3],
+                                             MLoopNorSpaceArray *r_lnors_spacearr,
+                                             short (*r_clnors_data)[2],
+                                             const int cd_loop_clnors_offset,
+                                             float (*new_lnors)[3],
+                                             const int cd_new_lnors_offset,
+                                             bool do_split_fans)
+{
+  BMFace *f;
+  BMLoop *l;
+  BMIter liter, fiter;
+  float(*cur_lnors)[3] = MEM_mallocN(sizeof(*cur_lnors) * bm->totloop, __func__);
+
+  BKE_lnor_spacearr_clear(r_lnors_spacearr);
+
+  /* Tag smooth edges and set lnos from vnos when they might be completely smooth...
+   * When using custom loop normals, disable the angle feature! */
+  bm_mesh_edges_sharp_tag(bm, vnos, fnos, cur_lnors, (float)M_PI, false);
+
+  /* Finish computing lnos by accumulating face normals
+   * in each fan of faces defined by sharp edges. */
+  bm_mesh_loops_calc_normals(
+      bm, vcos, fnos, cur_lnors, r_lnors_spacearr, r_clnors_data, cd_loop_clnors_offset, false);
+
+  /* Extract new normals from the data layer if necessary. */
+  float(*custom_lnors)[3] = new_lnors;
+
+  if (new_lnors == NULL) {
+    custom_lnors = MEM_mallocN(sizeof(*new_lnors) * bm->totloop, __func__);
+
+    BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+      BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+        const float *normal = BM_ELEM_CD_GET_VOID_P(l, cd_new_lnors_offset);
+        copy_v3_v3(custom_lnors[BM_elem_index_get(l)], normal);
+      }
+    }
+  }
+
+  /* Validate the new normals. */
+  for (int i = 0; i < bm->totloop; i++) {
+    if (is_zero_v3(custom_lnors[i])) {
+      copy_v3_v3(custom_lnors[i], cur_lnors[i]);
+    }
+    else {
+      normalize_v3(custom_lnors[i]);
+    }
+  }
+
+  /* Now, check each current smooth fan (one lnor space per smooth fan!),
+   * and if all its matching custom lnors are not equal, add sharp edges as needed. */
+  if (do_split_fans && bm_mesh_loops_split_lnor_fans(bm, r_lnors_spacearr, custom_lnors)) {
+    /* If any sharp edges were added, run bm_mesh_loops_calc_normals() again to get lnor
+     * spacearr/smooth fans matching the given custom lnors. */
+    BKE_lnor_spacearr_clear(r_lnors_spacearr);
+
+    bm_mesh_loops_calc_normals(
+        bm, vcos, fnos, cur_lnors, r_lnors_spacearr, r_clnors_data, cd_loop_clnors_offset, false);
+  }
+
+  /* And we just have to convert plain object-space custom normals to our
+   * lnor space-encoded ones. */
+  bm_mesh_loops_assign_normal_data(
+      bm, r_lnors_spacearr, r_clnors_data, cd_loop_clnors_offset, custom_lnors);
+
+  MEM_freeN(cur_lnors);
+
+  if (custom_lnors != new_lnors) {
+    MEM_freeN(custom_lnors);
+  }
+}
+
 static void bm_mesh_loops_calc_normals_no_autosmooth(BMesh *bm,
                                                      const float (*vnos)[3],
                                                      const float (*fnos)[3],
@@ -1626,6 +1889,71 @@ void BM_loop_normal_editdata_array_free(BMLoopNorEditDataArray *lnors_ed_arr)
   MEM_SAFE_FREE(lnors_ed_arr->lnor_editdata);
   MEM_SAFE_FREE(lnors_ed_arr->lidx_to_lnor_editdata);
   MEM_freeN(lnors_ed_arr);
+}
+
+bool BM_custom_loop_normals_to_vector_layer(BMesh *bm)
+{
+  BMFace *f;
+  BMLoop *l;
+  BMIter liter, fiter;
+
+  if (!CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL)) {
+    return false;
+  }
+
+  BM_lnorspace_update(bm);
+  BM_mesh_elem_index_ensure(bm, BM_LOOP);
+
+  /* Create a loop normal layer. */
+  if (!CustomData_has_layer(&bm->ldata, CD_NORMAL)) {
+    BM_data_layer_add(bm, &bm->ldata, CD_NORMAL);
+
+    CustomData_set_layer_flag(&bm->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+  }
+
+  const int cd_custom_normal_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+  const int cd_normal_offset = CustomData_get_offset(&bm->ldata, CD_NORMAL);
+
+  BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+    BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+      const int l_index = BM_elem_index_get(l);
+      const short *clnors_data = BM_ELEM_CD_GET_VOID_P(l, cd_custom_normal_offset);
+      float *normal = BM_ELEM_CD_GET_VOID_P(l, cd_normal_offset);
+
+      BKE_lnor_space_custom_data_to_normal(
+          bm->lnor_spacearr->lspacearr[l_index], clnors_data, normal);
+    }
+  }
+
+  return true;
+}
+
+void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges)
+{
+  if (!CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL) ||
+      !CustomData_has_layer(&bm->ldata, CD_NORMAL)) {
+    return;
+  }
+
+  const int cd_custom_normal_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+  const int cd_normal_offset = CustomData_get_offset(&bm->ldata, CD_NORMAL);
+
+  if (bm->lnor_spacearr == NULL) {
+    bm->lnor_spacearr = MEM_callocN(sizeof(*bm->lnor_spacearr), __func__);
+  }
+
+  bm_mesh_loops_custom_normals_set(bm,
+                                   NULL,
+                                   NULL,
+                                   NULL,
+                                   bm->lnor_spacearr,
+                                   NULL,
+                                   cd_custom_normal_offset,
+                                   NULL,
+                                   cd_normal_offset,
+                                   add_sharp_edges);
+
+  bm->spacearr_dirty &= ~(BM_SPACEARR_DIRTY | BM_SPACEARR_DIRTY_ALL);
 }
 
 /**

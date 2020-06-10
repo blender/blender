@@ -451,6 +451,8 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     const int type = RNA_enum_get(op->ptr, "type");
 
+    BM_custom_loop_normals_to_vector_layer(em->bm);
+
     switch (type) {
       case MESH_DELETE_VERT: /* Erase Vertices */
         if (!(em->bm->totvertsel &&
@@ -494,6 +496,8 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
     changed_multi = true;
 
     EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
+    BM_custom_loop_normals_from_vector_layer(em->bm, false);
 
     EDBM_update_generic(obedit->data, true, true);
 
@@ -1216,6 +1220,8 @@ static bool edbm_connect_vert_pair(BMEditMesh *em, struct Mesh *me, wmOperator *
     }
   }
   if (checks_succeded) {
+    BM_custom_loop_normals_to_vector_layer(bm);
+
     BMO_op_exec(bm, &bmop);
     len = BMO_slot_get(bmop.slots_out, "edges.out")->len;
 
@@ -1231,6 +1237,8 @@ static bool edbm_connect_vert_pair(BMEditMesh *em, struct Mesh *me, wmOperator *
     else {
       /* so newly created edges get the selection state from the vertex */
       EDBM_selectmode_flush(em);
+
+      BM_custom_loop_normals_from_vector_layer(bm, false);
 
       EDBM_update_generic(me, true, true);
     }
@@ -1524,8 +1532,13 @@ static int edbm_vert_connect_path_exec(bContext *C, wmOperator *op)
       }
     }
 
+    BM_custom_loop_normals_to_vector_layer(bm);
+
     if (bm_vert_connect_select_history(bm)) {
       EDBM_selectmode_flush(em);
+
+      BM_custom_loop_normals_from_vector_layer(bm, false);
+
       EDBM_update_generic(obedit->data, true, true);
     }
     else {
@@ -3183,6 +3196,8 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
       continue;
     }
 
+    BM_custom_loop_normals_to_vector_layer(em->bm);
+
     bool ok = false;
     switch (type) {
       case MESH_MERGE_CENTER:
@@ -3208,6 +3223,8 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
     if (!ok) {
       continue;
     }
+
+    BM_custom_loop_normals_from_vector_layer(em->bm, false);
 
     EDBM_update_generic(obedit->data, true, true);
 
@@ -3353,6 +3370,8 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
       htype_select = BM_FACE;
     }
 
+    BM_custom_loop_normals_to_vector_layer(em->bm);
+
     /* store selection as tags */
     BM_mesh_elem_hflag_enable_test(em->bm, htype_select, BM_ELEM_TAG, true, true, BM_ELEM_SELECT);
 
@@ -3379,6 +3398,8 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
     /* restore selection from tags */
     BM_mesh_elem_hflag_enable_test(em->bm, htype_select, BM_ELEM_SELECT, true, true, BM_ELEM_TAG);
     EDBM_selectmode_flush(em);
+
+    BM_custom_loop_normals_from_vector_layer(em->bm, true);
 
     if (count) {
       count_multi += count;
@@ -4047,6 +4068,8 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
   MEM_freeN(screen_vert_coords);
   MEM_freeN(mouse_path);
 
+  BM_custom_loop_normals_to_vector_layer(bm);
+
   BMO_slot_buffer_from_enabled_flag(bm, &bmop, bmop.slots_in, "edges", BM_EDGE, ELE_EDGE_CUT);
 
   if (mode == KNIFE_MIDPOINT) {
@@ -4064,6 +4087,8 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
   if (!EDBM_op_finish(em, &bmop, op, true)) {
     return OPERATOR_CANCELLED;
   }
+
+  BM_custom_loop_normals_from_vector_layer(bm, false);
 
   EDBM_update_generic(obedit->data, true, true);
 
@@ -5344,6 +5369,8 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
     do_vcols = RNA_boolean_get(op->ptr, "vcols");
     do_materials = RNA_boolean_get(op->ptr, "materials");
 
+    BM_custom_loop_normals_to_vector_layer(em->bm);
+
     if (!EDBM_op_call_and_selectf(
             em,
             op,
@@ -5361,6 +5388,8 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
             do_materials)) {
       continue;
     }
+
+    BM_custom_loop_normals_from_vector_layer(em->bm, false);
 
     EDBM_update_generic(obedit->data, true, true);
   }
@@ -5674,6 +5703,8 @@ static int edbm_dissolve_verts_exec(bContext *C, wmOperator *op)
       continue;
     }
 
+    BM_custom_loop_normals_to_vector_layer(em->bm);
+
     if (!EDBM_op_callf(em,
                        op,
                        "dissolve_verts verts=%hv use_face_split=%b use_boundary_tear=%b",
@@ -5682,6 +5713,9 @@ static int edbm_dissolve_verts_exec(bContext *C, wmOperator *op)
                        use_boundary_tear)) {
       continue;
     }
+
+    BM_custom_loop_normals_from_vector_layer(em->bm, false);
+
     EDBM_update_generic(obedit->data, true, true);
   }
 
@@ -5730,6 +5764,8 @@ static int edbm_dissolve_edges_exec(bContext *C, wmOperator *op)
       continue;
     }
 
+    BM_custom_loop_normals_to_vector_layer(em->bm);
+
     if (!EDBM_op_callf(em,
                        op,
                        "dissolve_edges edges=%he use_verts=%b use_face_split=%b",
@@ -5738,6 +5774,8 @@ static int edbm_dissolve_edges_exec(bContext *C, wmOperator *op)
                        use_face_split)) {
       continue;
     }
+
+    BM_custom_loop_normals_from_vector_layer(em->bm, false);
 
     EDBM_update_generic(obedit->data, true, true);
   }
@@ -5786,6 +5824,8 @@ static int edbm_dissolve_faces_exec(bContext *C, wmOperator *op)
       continue;
     }
 
+    BM_custom_loop_normals_to_vector_layer(em->bm);
+
     if (!EDBM_op_call_and_selectf(em,
                                   op,
                                   "region.out",
@@ -5795,6 +5835,8 @@ static int edbm_dissolve_faces_exec(bContext *C, wmOperator *op)
                                   use_verts)) {
       continue;
     }
+
+    BM_custom_loop_normals_from_vector_layer(em->bm, false);
 
     EDBM_update_generic(obedit->data, true, true);
   }
