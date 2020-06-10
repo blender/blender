@@ -35,14 +35,6 @@ CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_OPTIX__
 
-/* Common QBVH functions. */
-#  ifdef __QBVH__
-#    include "kernel/bvh/qbvh_nodes.h"
-#    ifdef __KERNEL_AVX2__
-#      include "kernel/bvh/obvh_nodes.h"
-#    endif
-#  endif
-
 /* Regular BVH traversal */
 
 #  include "kernel/bvh/bvh_nodes.h"

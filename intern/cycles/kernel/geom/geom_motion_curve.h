@@ -106,15 +106,15 @@ ccl_device_inline void motion_curve_keys(
 }
 
 ccl_device_inline void motion_curve_keys_for_step(KernelGlobals *kg,
-                                                           int offset,
-                                                           int numkeys,
-                                                           int numsteps,
-                                                           int step,
-                                                           int k0,
-                                                           int k1,
-                                                           int k2,
-                                                           int k3,
-                                                           float4 keys[4])
+                                                  int offset,
+                                                  int numkeys,
+                                                  int numsteps,
+                                                  int step,
+                                                  int k0,
+                                                  int k1,
+                                                  int k2,
+                                                  int k3,
+                                                  float4 keys[4])
 {
   if (step == numsteps) {
     /* center step: regular key location */
@@ -139,14 +139,14 @@ ccl_device_inline void motion_curve_keys_for_step(KernelGlobals *kg,
 
 /* return 2 curve key locations */
 ccl_device_inline void motion_curve_keys(KernelGlobals *kg,
-                                                  int object,
-                                                  int prim,
-                                                  float time,
-                                                  int k0,
-                                                  int k1,
-                                                  int k2,
-                                                  int k3,
-                                                  float4 keys[4])
+                                         int object,
+                                         int prim,
+                                         float time,
+                                         int k0,
+                                         int k1,
+                                         int k2,
+                                         int k3,
+                                         float4 keys[4])
 {
   /* get motion info */
   int numsteps, numkeys;
@@ -166,8 +166,7 @@ ccl_device_inline void motion_curve_keys(KernelGlobals *kg,
   float4 next_keys[4];
 
   motion_curve_keys_for_step(kg, offset, numkeys, numsteps, step, k0, k1, k2, k3, keys);
-  motion_curve_keys_for_step(
-      kg, offset, numkeys, numsteps, step + 1, k0, k1, k2, k3, next_keys);
+  motion_curve_keys_for_step(kg, offset, numkeys, numsteps, step + 1, k0, k1, k2, k3, next_keys);
 
   /* interpolate between steps */
   keys[0] = (1.0f - t) * keys[0] + t * next_keys[0];
@@ -175,53 +174,6 @@ ccl_device_inline void motion_curve_keys(KernelGlobals *kg,
   keys[2] = (1.0f - t) * keys[2] + t * next_keys[2];
   keys[3] = (1.0f - t) * keys[3] + t * next_keys[3];
 }
-
-#  if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
-/* Similar to above, but returns keys as pair of two AVX registers with each
- * holding two float4.
- */
-ccl_device_inline void motion_curve_keys_avx(KernelGlobals *kg,
-                                                      int object,
-                                                      int prim,
-                                                      float time,
-                                                      int k0,
-                                                      int k1,
-                                                      int k2,
-                                                      int k3,
-                                                      avxf *out_keys_0_1,
-                                                      avxf *out_keys_2_3)
-{
-  /* Get motion info. */
-  int numsteps, numkeys;
-  object_motion_info(kg, object, &numsteps, NULL, &numkeys);
-
-  /* Figure out which steps we need to fetch and their interpolation factor. */
-  int maxstep = numsteps * 2;
-  int step = min((int)(time * maxstep), maxstep - 1);
-  float t = time * maxstep - step;
-
-  /* Find attribute. */
-  AttributeElement elem;
-  int offset = find_attribute_curve_motion(kg, object, ATTR_STD_MOTION_VERTEX_POSITION, &elem);
-  kernel_assert(offset != ATTR_STD_NOT_FOUND);
-
-  /* Fetch key coordinates. */
-  float4 next_keys[4];
-  float4 keys[4];
-  motion_curve_keys_for_step(kg, offset, numkeys, numsteps, step, k0, k1, k2, k3, keys);
-  motion_curve_keys_for_step(
-      kg, offset, numkeys, numsteps, step + 1, k0, k1, k2, k3, next_keys);
-
-  const avxf keys_0_1 = avxf(keys[0].m128, keys[1].m128);
-  const avxf keys_2_3 = avxf(keys[2].m128, keys[3].m128);
-  const avxf next_keys_0_1 = avxf(next_keys[0].m128, next_keys[1].m128);
-  const avxf next_keys_2_3 = avxf(next_keys[2].m128, next_keys[3].m128);
-
-  /* Interpolate between steps. */
-  *out_keys_0_1 = (1.0f - t) * keys_0_1 + t * next_keys_0_1;
-  *out_keys_2_3 = (1.0f - t) * keys_2_3 + t * next_keys_2_3;
-}
-#  endif
 
 #endif
 

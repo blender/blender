@@ -123,9 +123,6 @@ CCL_NAMESPACE_BEGIN
 
 /* Device specific features */
 #ifdef __KERNEL_CPU__
-#  ifdef __KERNEL_SSE2__
-#    define __QBVH__
-#  endif
 #  ifdef WITH_OSL
 #    define __OSL__
 #  endif
@@ -1389,13 +1386,10 @@ typedef enum KernelBVHLayout {
   BVH_LAYOUT_NONE = 0,
 
   BVH_LAYOUT_BVH2 = (1 << 0),
-  BVH_LAYOUT_BVH4 = (1 << 1),
-  BVH_LAYOUT_BVH8 = (1 << 2),
+  BVH_LAYOUT_EMBREE = (1 << 1),
+  BVH_LAYOUT_OPTIX = (1 << 2),
 
-  BVH_LAYOUT_EMBREE = (1 << 3),
-  BVH_LAYOUT_OPTIX = (1 << 4),
-
-  BVH_LAYOUT_DEFAULT = BVH_LAYOUT_BVH8,
+  BVH_LAYOUT_AUTO = BVH_LAYOUT_BVH2,
   BVH_LAYOUT_ALL = (unsigned int)(~0u),
 } KernelBVHLayout;
 

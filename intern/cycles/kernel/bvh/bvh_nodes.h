@@ -28,7 +28,6 @@ ccl_device_forceinline Transform bvh_unaligned_node_fetch_space(KernelGlobals *k
   return space;
 }
 
-#if !defined(__KERNEL_SSE2__)
 ccl_device_forceinline int bvh_aligned_node_intersect(KernelGlobals *kg,
                                                       const float3 P,
                                                       const float3 idir,
@@ -39,9 +38,9 @@ ccl_device_forceinline int bvh_aligned_node_intersect(KernelGlobals *kg,
 {
 
   /* fetch node data */
-#  ifdef __VISIBILITY_FLAG__
+#ifdef __VISIBILITY_FLAG__
   float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr + 0);
-#  endif
+#endif
   float4 node0 = kernel_tex_fetch(__bvh_nodes, node_addr + 1);
   float4 node1 = kernel_tex_fetch(__bvh_nodes, node_addr + 2);
   float4 node2 = kernel_tex_fetch(__bvh_nodes, node_addr + 3);
@@ -68,13 +67,13 @@ ccl_device_forceinline int bvh_aligned_node_intersect(KernelGlobals *kg,
   dist[0] = c0min;
   dist[1] = c1min;
 
-#  ifdef __VISIBILITY_FLAG__
+#ifdef __VISIBILITY_FLAG__
   /* this visibility test gives a 5% performance hit, how to solve? */
   return (((c0max >= c0min) && (__float_as_uint(cnodes.x) & visibility)) ? 1 : 0) |
          (((c1max >= c1min) && (__float_as_uint(cnodes.y) & visibility)) ? 2 : 0);
-#  else
+#else
   return ((c0max >= c0min) ? 1 : 0) | ((c1max >= c1min) ? 2 : 0);
-#  endif
+#endif
 }
 
 ccl_device_forceinline bool bvh_unaligned_node_intersect_child(KernelGlobals *kg,
@@ -113,21 +112,21 @@ ccl_device_forceinline int bvh_unaligned_node_intersect(KernelGlobals *kg,
                                                         float dist[2])
 {
   int mask = 0;
-#  ifdef __VISIBILITY_FLAG__
+#ifdef __VISIBILITY_FLAG__
   float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr + 0);
-#  endif
+#endif
   if (bvh_unaligned_node_intersect_child(kg, P, dir, t, node_addr, 0, &dist[0])) {
-#  ifdef __VISIBILITY_FLAG__
+#ifdef __VISIBILITY_FLAG__
     if ((__float_as_uint(cnodes.x) & visibility))
-#  endif
+#endif
     {
       mask |= 1;
     }
   }
   if (bvh_unaligned_node_intersect_child(kg, P, dir, t, node_addr, 1, &dist[1])) {
-#  ifdef __VISIBILITY_FLAG__
+#ifdef __VISIBILITY_FLAG__
     if ((__float_as_uint(cnodes.y) & visibility))
-#  endif
+#endif
     {
       mask |= 2;
     }
@@ -152,125 +151,3 @@ ccl_device_forceinline int bvh_node_intersect(KernelGlobals *kg,
     return bvh_aligned_node_intersect(kg, P, idir, t, node_addr, visibility, dist);
   }
 }
-
-#else /* !defined(__KERNEL_SSE2__) */
-
-int ccl_device_forceinline bvh_aligned_node_intersect(KernelGlobals *kg,
-                                                      const float3 &P,
-                                                      const float3 &dir,
-                                                      const ssef &tsplat,
-                                                      const ssef Psplat[3],
-                                                      const ssef idirsplat[3],
-                                                      const shuffle_swap_t shufflexyz[3],
-                                                      const int node_addr,
-                                                      const uint visibility,
-                                                      float dist[2])
-{
-  /* Intersect two child bounding boxes, SSE3 version adapted from Embree */
-  const ssef pn = cast(ssei(0, 0, 0x80000000, 0x80000000));
-
-  /* fetch node data */
-  const ssef *bvh_nodes = (ssef *)kg->__bvh_nodes.data + node_addr;
-
-  /* intersect ray against child nodes */
-  const ssef tminmaxx = (shuffle_swap(bvh_nodes[1], shufflexyz[0]) - Psplat[0]) * idirsplat[0];
-  const ssef tminmaxy = (shuffle_swap(bvh_nodes[2], shufflexyz[1]) - Psplat[1]) * idirsplat[1];
-  const ssef tminmaxz = (shuffle_swap(bvh_nodes[3], shufflexyz[2]) - Psplat[2]) * idirsplat[2];
-
-  /* calculate { c0min, c1min, -c0max, -c1max} */
-  ssef minmax = max(max(tminmaxx, tminmaxy), max(tminmaxz, tsplat));
-  const ssef tminmax = minmax ^ pn;
-  const sseb lrhit = tminmax <= shuffle<2, 3, 0, 1>(tminmax);
-
-  dist[0] = tminmax[0];
-  dist[1] = tminmax[1];
-
-  int mask = movemask(lrhit);
-
-#  ifdef __VISIBILITY_FLAG__
-  /* this visibility test gives a 5% performance hit, how to solve? */
-  float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr + 0);
-  int cmask = (((mask & 1) && (__float_as_uint(cnodes.x) & visibility)) ? 1 : 0) |
-              (((mask & 2) && (__float_as_uint(cnodes.y) & visibility)) ? 2 : 0);
-  return cmask;
-#  else
-  return mask & 3;
-#  endif
-}
-
-ccl_device_forceinline int bvh_unaligned_node_intersect(KernelGlobals *kg,
-                                                        const float3 P,
-                                                        const float3 dir,
-                                                        const ssef &isect_near,
-                                                        const ssef &isect_far,
-                                                        const int node_addr,
-                                                        const uint visibility,
-                                                        float dist[2])
-{
-  Transform space0 = bvh_unaligned_node_fetch_space(kg, node_addr, 0);
-  Transform space1 = bvh_unaligned_node_fetch_space(kg, node_addr, 1);
-
-  float3 aligned_dir0 = transform_direction(&space0, dir),
-         aligned_dir1 = transform_direction(&space1, dir);
-  float3 aligned_P0 = transform_point(&space0, P), aligned_P1 = transform_point(&space1, P);
-  float3 nrdir0 = -bvh_inverse_direction(aligned_dir0),
-         nrdir1 = -bvh_inverse_direction(aligned_dir1);
-
-  ssef lower_x = ssef(aligned_P0.x * nrdir0.x, aligned_P1.x * nrdir1.x, 0.0f, 0.0f),
-       lower_y = ssef(aligned_P0.y * nrdir0.y, aligned_P1.y * nrdir1.y, 0.0f, 0.0f),
-       lower_z = ssef(aligned_P0.z * nrdir0.z, aligned_P1.z * nrdir1.z, 0.0f, 0.0f);
-
-  ssef upper_x = lower_x - ssef(nrdir0.x, nrdir1.x, 0.0f, 0.0f),
-       upper_y = lower_y - ssef(nrdir0.y, nrdir1.y, 0.0f, 0.0f),
-       upper_z = lower_z - ssef(nrdir0.z, nrdir1.z, 0.0f, 0.0f);
-
-  ssef tnear_x = min(lower_x, upper_x);
-  ssef tnear_y = min(lower_y, upper_y);
-  ssef tnear_z = min(lower_z, upper_z);
-  ssef tfar_x = max(lower_x, upper_x);
-  ssef tfar_y = max(lower_y, upper_y);
-  ssef tfar_z = max(lower_z, upper_z);
-
-  const ssef tnear = max4(isect_near, tnear_x, tnear_y, tnear_z);
-  const ssef tfar = min4(isect_far, tfar_x, tfar_y, tfar_z);
-  sseb vmask = tnear <= tfar;
-  dist[0] = tnear.f[0];
-  dist[1] = tnear.f[1];
-
-  int mask = (int)movemask(vmask);
-
-#  ifdef __VISIBILITY_FLAG__
-  /* this visibility test gives a 5% performance hit, how to solve? */
-  float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr + 0);
-  int cmask = (((mask & 1) && (__float_as_uint(cnodes.x) & visibility)) ? 1 : 0) |
-              (((mask & 2) && (__float_as_uint(cnodes.y) & visibility)) ? 2 : 0);
-  return cmask;
-#  else
-  return mask & 3;
-#  endif
-}
-
-ccl_device_forceinline int bvh_node_intersect(KernelGlobals *kg,
-                                              const float3 &P,
-                                              const float3 &dir,
-                                              const ssef &isect_near,
-                                              const ssef &isect_far,
-                                              const ssef &tsplat,
-                                              const ssef Psplat[3],
-                                              const ssef idirsplat[3],
-                                              const shuffle_swap_t shufflexyz[3],
-                                              const int node_addr,
-                                              const uint visibility,
-                                              float dist[2])
-{
-  float4 node = kernel_tex_fetch(__bvh_nodes, node_addr);
-  if (__float_as_uint(node.x) & PATH_RAY_NODE_UNALIGNED) {
-    return bvh_unaligned_node_intersect(
-        kg, P, dir, isect_near, isect_far, node_addr, visibility, dist);
-  }
-  else {
-    return bvh_aligned_node_intersect(
-        kg, P, dir, tsplat, Psplat, idirsplat, shufflexyz, node_addr, visibility, dist);
-  }
-}
-#endif /* !defined(__KERNEL_SSE2__) */

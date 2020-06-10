@@ -31,8 +31,6 @@ CCL_NAMESPACE_BEGIN
 
 /* 64 object BVH + 64 mesh BVH + 64 object node splitting */
 #define BVH_STACK_SIZE 192
-#define BVH_QSTACK_SIZE 384
-#define BVH_OSTACK_SIZE 768
 /* BVH intersection function variations */
 
 #define BVH_MOTION 1

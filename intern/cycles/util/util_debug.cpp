@@ -31,7 +31,7 @@ DebugFlags::CPU::CPU()
       sse41(true),
       sse3(true),
       sse2(true),
-      bvh_layout(BVH_LAYOUT_DEFAULT),
+      bvh_layout(BVH_LAYOUT_AUTO),
       split_kernel(false)
 {
   reset();
@@ -57,18 +57,7 @@ void DebugFlags::CPU::reset()
 #undef STRINGIFY
 #undef CHECK_CPU_FLAGS
 
-  if (getenv("CYCLES_BVH2") != NULL) {
-    bvh_layout = BVH_LAYOUT_BVH2;
-  }
-  else if (getenv("CYCLES_BVH4") != NULL) {
-    bvh_layout = BVH_LAYOUT_BVH4;
-  }
-  else if (getenv("CYCLES_BVH8") != NULL) {
-    bvh_layout = BVH_LAYOUT_BVH8;
-  }
-  else {
-    bvh_layout = BVH_LAYOUT_DEFAULT;
-  }
+  bvh_layout = BVH_LAYOUT_AUTO;
 
   split_kernel = false;
 }

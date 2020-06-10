@@ -76,7 +76,7 @@ struct PackedBVH {
   }
 };
 
-enum BVH_TYPE { bvh2, bvh4, bvh8 };
+enum BVH_TYPE { bvh2 };
 
 /* BVH */
 

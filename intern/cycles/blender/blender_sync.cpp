@@ -751,15 +751,7 @@ SceneParams BlenderSync::get_scene_params(BL::Scene &b_scene, bool background)
     params.texture_limit = 0;
   }
 
-  /* TODO(sergey): Once OSL supports per-microarchitecture optimization get
-   * rid of this.
-   */
-  if (params.shadingsystem == SHADINGSYSTEM_OSL) {
-    params.bvh_layout = BVH_LAYOUT_BVH4;
-  }
-  else {
-    params.bvh_layout = DebugFlags().cpu.bvh_layout;
-  }
+  params.bvh_layout = DebugFlags().cpu.bvh_layout;
 
 #ifdef WITH_EMBREE
   params.bvh_layout = RNA_boolean_get(&cscene, "use_bvh_embree") ? BVH_LAYOUT_EMBREE :

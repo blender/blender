@@ -22,8 +22,6 @@
 #include "render/object.h"
 
 #include "bvh/bvh2.h"
-#include "bvh/bvh4.h"
-#include "bvh/bvh8.h"
 #include "bvh/bvh_build.h"
 #include "bvh/bvh_embree.h"
 #include "bvh/bvh_node.h"
@@ -42,10 +40,6 @@ const char *bvh_layout_name(BVHLayout layout)
   switch (layout) {
     case BVH_LAYOUT_BVH2:
       return "BVH2";
-    case BVH_LAYOUT_BVH4:
-      return "BVH4";
-    case BVH_LAYOUT_BVH8:
-      return "BVH8";
     case BVH_LAYOUT_NONE:
       return "NONE";
     case BVH_LAYOUT_EMBREE:
@@ -109,10 +103,6 @@ BVH *BVH::create(const BVHParams &params,
   switch (params.bvh_layout) {
     case BVH_LAYOUT_BVH2:
       return new BVH2(params, geometry, objects);
-    case BVH_LAYOUT_BVH4:
-      return new BVH4(params, geometry, objects);
-    case BVH_LAYOUT_BVH8:
-      return new BVH8(params, geometry, objects);
     case BVH_LAYOUT_EMBREE:
 #ifdef WITH_EMBREE
       return new BVHEmbree(params, geometry, objects);
@@ -332,13 +322,6 @@ void BVH::pack_primitives()
 
 void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 {
-  /* The BVH's for instances are built separately, but for traversal all
-   * BVH's are stored in global arrays. This function merges them into the
-   * top level BVH, adjusting indexes and offsets where appropriate.
-   */
-  const bool use_qbvh = (params.bvh_layout == BVH_LAYOUT_BVH4);
-  const bool use_obvh = (params.bvh_layout == BVH_LAYOUT_BVH8);
-
   /* Adjust primitive index to point to the triangle in the global array, for
    * geometry with transform applied and already in the top level BVH.
    */
@@ -501,53 +484,21 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
       for (size_t i = 0, j = 0; i < bvh_nodes_size; j++) {
         size_t nsize, nsize_bbox;
         if (bvh_nodes[i].x & PATH_RAY_NODE_UNALIGNED) {
-          if (use_obvh) {
-            nsize = BVH_UNALIGNED_ONODE_SIZE;
-            nsize_bbox = BVH_UNALIGNED_ONODE_SIZE - 1;
-          }
-          else {
-            nsize = use_qbvh ? BVH_UNALIGNED_QNODE_SIZE : BVH_UNALIGNED_NODE_SIZE;
-            nsize_bbox = (use_qbvh) ? BVH_UNALIGNED_QNODE_SIZE - 1 : 0;
-          }
+          nsize = BVH_UNALIGNED_NODE_SIZE;
+          nsize_bbox = 0;
         }
         else {
-          if (use_obvh) {
-            nsize = BVH_ONODE_SIZE;
-            nsize_bbox = BVH_ONODE_SIZE - 1;
-          }
-          else {
-            nsize = (use_qbvh) ? BVH_QNODE_SIZE : BVH_NODE_SIZE;
-            nsize_bbox = (use_qbvh) ? BVH_QNODE_SIZE - 1 : 0;
-          }
+          nsize = BVH_NODE_SIZE;
+          nsize_bbox = 0;
         }
 
         memcpy(pack_nodes + pack_nodes_offset, bvh_nodes + i, nsize_bbox * sizeof(int4));
 
         /* Modify offsets into arrays */
         int4 data = bvh_nodes[i + nsize_bbox];
-
-        if (use_obvh) {
-          int4 data1 = bvh_nodes[i + nsize_bbox - 1];
-          data.z += (data.z < 0) ? -noffset_leaf : noffset;
-          data.w += (data.w < 0) ? -noffset_leaf : noffset;
-          data.x += (data.x < 0) ? -noffset_leaf : noffset;
-          data.y += (data.y < 0) ? -noffset_leaf : noffset;
-          data1.z += (data1.z < 0) ? -noffset_leaf : noffset;
-          data1.w += (data1.w < 0) ? -noffset_leaf : noffset;
-          data1.x += (data1.x < 0) ? -noffset_leaf : noffset;
-          data1.y += (data1.y < 0) ? -noffset_leaf : noffset;
-          pack_nodes[pack_nodes_offset + nsize_bbox] = data;
-          pack_nodes[pack_nodes_offset + nsize_bbox - 1] = data1;
-        }
-        else {
-          data.z += (data.z < 0) ? -noffset_leaf : noffset;
-          data.w += (data.w < 0) ? -noffset_leaf : noffset;
-          if (use_qbvh) {
-            data.x += (data.x < 0) ? -noffset_leaf : noffset;
-            data.y += (data.y < 0) ? -noffset_leaf : noffset;
-          }
-          pack_nodes[pack_nodes_offset + nsize_bbox] = data;
-        }
+        data.z += (data.z < 0) ? -noffset_leaf : noffset;
+        data.w += (data.w < 0) ? -noffset_leaf : noffset;
+        pack_nodes[pack_nodes_offset + nsize_bbox] = data;
 
         /* Usually this copies nothing, but we better
          * be prepared for possible node size extension.

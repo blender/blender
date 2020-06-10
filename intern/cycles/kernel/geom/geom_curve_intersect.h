@@ -18,13 +18,6 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __HAIR__
 
-#  ifdef __KERNEL_SSE2__
-ccl_device_inline ssef transform_point_T3(const ssef t[3], const ssef &a)
-{
-  return madd(shuffle<0>(a), t[0], madd(shuffle<1>(a), t[1], shuffle<2>(a) * t[2]));
-}
-#  endif
-
 /* On CPU pass P and dir by reference to aligned vector. */
 ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
                                             Intersection *isect,
@@ -55,108 +48,6 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
   int flags = kernel_data.curve.curveflags;
   int prim = kernel_tex_fetch(__prim_index, curveAddr);
 
-#  ifdef __KERNEL_SSE2__
-  ssef vdir = load4f(dir);
-  ssef vcurve_coef[4];
-  const float3 *curve_coef = (float3 *)vcurve_coef;
-
-  {
-    ssef dtmp = vdir * vdir;
-    ssef d_ss = mm_sqrt(dtmp + shuffle<2>(dtmp));
-    ssef rd_ss = load1f_first(1.0f) / d_ss;
-
-    ssei v00vec = load4i((ssei *)&kg->__curves.data[prim]);
-    int2 &v00 = (int2 &)v00vec;
-
-    int k0 = v00.x + segment;
-    int k1 = k0 + 1;
-    int ka = max(k0 - 1, v00.x);
-    int kb = min(k1 + 1, v00.x + v00.y - 1);
-
-#    if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__) && \
-        (!defined(_MSC_VER) || _MSC_VER > 1800)
-    avxf P_curve_0_1, P_curve_2_3;
-    if (is_curve_primitive) {
-      P_curve_0_1 = _mm256_loadu2_m128(&kg->__curve_keys.data[k0].x, &kg->__curve_keys.data[ka].x);
-      P_curve_2_3 = _mm256_loadu2_m128(&kg->__curve_keys.data[kb].x, &kg->__curve_keys.data[k1].x);
-    }
-    else {
-      int fobject = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, curveAddr) : object;
-      motion_curve_keys_avx(kg, fobject, prim, time, ka, k0, k1, kb, &P_curve_0_1, &P_curve_2_3);
-    }
-#    else  /* __KERNEL_AVX2__ */
-    ssef P_curve[4];
-
-    if (is_curve_primitive) {
-      P_curve[0] = load4f(&kg->__curve_keys.data[ka].x);
-      P_curve[1] = load4f(&kg->__curve_keys.data[k0].x);
-      P_curve[2] = load4f(&kg->__curve_keys.data[k1].x);
-      P_curve[3] = load4f(&kg->__curve_keys.data[kb].x);
-    }
-    else {
-      int fobject = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, curveAddr) : object;
-      motion_curve_keys(kg, fobject, prim, time, ka, k0, k1, kb, (float4 *)&P_curve);
-    }
-#    endif /* __KERNEL_AVX2__ */
-
-    ssef rd_sgn = set_sign_bit<0, 1, 1, 1>(shuffle<0>(rd_ss));
-    ssef mul_zxxy = shuffle<2, 0, 0, 1>(vdir) * rd_sgn;
-    ssef mul_yz = shuffle<1, 2, 1, 2>(vdir) * mul_zxxy;
-    ssef mul_shuf = shuffle<0, 1, 2, 3>(mul_zxxy, mul_yz);
-    ssef vdir0 = vdir & cast(ssei(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0));
-
-    ssef htfm0 = shuffle<0, 2, 0, 3>(mul_shuf, vdir0);
-    ssef htfm1 = shuffle<1, 0, 1, 3>(load1f_first(extract<0>(d_ss)), vdir0);
-    ssef htfm2 = shuffle<1, 3, 2, 3>(mul_shuf, vdir0);
-
-#    if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__) && \
-        (!defined(_MSC_VER) || _MSC_VER > 1800)
-    const avxf vPP = _mm256_broadcast_ps(&P.m128);
-    const avxf htfm00 = avxf(htfm0.m128, htfm0.m128);
-    const avxf htfm11 = avxf(htfm1.m128, htfm1.m128);
-    const avxf htfm22 = avxf(htfm2.m128, htfm2.m128);
-
-    const avxf p01 = madd(
-        shuffle<0>(P_curve_0_1 - vPP),
-        htfm00,
-        madd(shuffle<1>(P_curve_0_1 - vPP), htfm11, shuffle<2>(P_curve_0_1 - vPP) * htfm22));
-    const avxf p23 = madd(
-        shuffle<0>(P_curve_2_3 - vPP),
-        htfm00,
-        madd(shuffle<1>(P_curve_2_3 - vPP), htfm11, shuffle<2>(P_curve_2_3 - vPP) * htfm22));
-
-    const ssef p0 = _mm256_castps256_ps128(p01);
-    const ssef p1 = _mm256_extractf128_ps(p01, 1);
-    const ssef p2 = _mm256_castps256_ps128(p23);
-    const ssef p3 = _mm256_extractf128_ps(p23, 1);
-
-    const ssef P_curve_1 = _mm256_extractf128_ps(P_curve_0_1, 1);
-    r_st = ((float4 &)P_curve_1).w;
-    const ssef P_curve_2 = _mm256_castps256_ps128(P_curve_2_3);
-    r_en = ((float4 &)P_curve_2).w;
-#    else  /* __KERNEL_AVX2__ */
-    ssef htfm[] = {htfm0, htfm1, htfm2};
-    ssef vP = load4f(P);
-    ssef p0 = transform_point_T3(htfm, P_curve[0] - vP);
-    ssef p1 = transform_point_T3(htfm, P_curve[1] - vP);
-    ssef p2 = transform_point_T3(htfm, P_curve[2] - vP);
-    ssef p3 = transform_point_T3(htfm, P_curve[3] - vP);
-
-    r_st = ((float4 &)P_curve[1]).w;
-    r_en = ((float4 &)P_curve[2]).w;
-#    endif /* __KERNEL_AVX2__ */
-
-    float fc = 0.71f;
-    ssef vfc = ssef(fc);
-    ssef vfcxp3 = vfc * p3;
-
-    vcurve_coef[0] = p1;
-    vcurve_coef[1] = vfc * (p2 - p0);
-    vcurve_coef[2] = madd(
-        ssef(fc * 2.0f), p0, madd(ssef(fc - 3.0f), p1, msub(ssef(3.0f - 2.0f * fc), p2, vfcxp3)));
-    vcurve_coef[3] = msub(ssef(fc - 2.0f), p2 - p1, msub(vfc, p0, vfcxp3));
-  }
-#  else
   float3 curve_coef[4];
 
   /* curve Intersection check */
@@ -212,7 +103,6 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
     r_st = P_curve[1].w;
     r_en = P_curve[2].w;
   }
-#  endif
 
   float r_curr = max(r_st, r_en);
 
@@ -275,23 +165,6 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
     const float i_st = tree * resol;
     const float i_en = i_st + (level * resol);
 
-#  ifdef __KERNEL_SSE2__
-    ssef vi_st = ssef(i_st), vi_en = ssef(i_en);
-    ssef vp_st = madd(madd(madd(vcurve_coef[3], vi_st, vcurve_coef[2]), vi_st, vcurve_coef[1]),
-                      vi_st,
-                      vcurve_coef[0]);
-    ssef vp_en = madd(madd(madd(vcurve_coef[3], vi_en, vcurve_coef[2]), vi_en, vcurve_coef[1]),
-                      vi_en,
-                      vcurve_coef[0]);
-
-    ssef vbmin = min(vp_st, vp_en);
-    ssef vbmax = max(vp_st, vp_en);
-
-    float3 &bmin = (float3 &)vbmin, &bmax = (float3 &)vbmax;
-    float &bminx = bmin.x, &bminy = bmin.y, &bminz = bmin.z;
-    float &bmaxx = bmax.x, &bmaxy = bmax.y, &bmaxz = bmax.z;
-    float3 &p_st = (float3 &)vp_st, &p_en = (float3 &)vp_en;
-#  else
     float3 p_st = ((curve_coef[3] * i_st + curve_coef[2]) * i_st + curve_coef[1]) * i_st +
                   curve_coef[0];
     float3 p_en = ((curve_coef[3] * i_en + curve_coef[2]) * i_en + curve_coef[1]) * i_en +
@@ -303,7 +176,6 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
     float bmaxy = max(p_st.y, p_en.y);
     float bminz = min(p_st.z, p_en.z);
     float bmaxz = max(p_st.z, p_en.z);
-#  endif
 
     if (xextrem[0] >= i_st && xextrem[0] <= i_en) {
       bminx = min(bminx, xextrem[1]);
@@ -351,23 +223,13 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
 
       if (flags & CURVE_KN_RIBBONS) {
         float3 tg = (p_en - p_st);
-#  ifdef __KERNEL_SSE__
-        const float3 tg_sq = tg * tg;
-        float w = tg_sq.x + tg_sq.y;
-#  else
         float w = tg.x * tg.x + tg.y * tg.y;
-#  endif
         if (w == 0) {
           tree++;
           level = tree & -tree;
           continue;
         }
-#  ifdef __KERNEL_SSE__
-        const float3 p_sttg = p_st * tg;
-        w = -(p_sttg.x + p_sttg.y) / w;
-#  else
         w = -(p_st.x * tg.x + p_st.y * tg.y) / w;
-#  endif
         w = saturate(w);
 
         /* compute u on the curve segment */
