@@ -678,6 +678,8 @@ static EditBone *get_nearest_editbonepoint(
 
   /* matching logic from 'mixed_bones_object_selectbuffer' */
   int hits = 0;
+  /* Don't use hits with this ID, (armature drawing uses this). */
+  const int select_id_ignore = -1;
 
   /* we _must_ end cache before return, use 'goto cache_end' */
   view3d_opengl_select_cache_begin();
@@ -688,8 +690,9 @@ static EditBone *get_nearest_editbonepoint(
 
     rcti rect;
     BLI_rcti_init_pt_radius(&rect, vc->mval, 12);
-    const int hits12 = view3d_opengl_select(
-        vc, buffer, MAXPICKBUF, &rect, select_mode, select_filter);
+    const int hits12 = view3d_opengl_select_with_id_filter(
+        vc, buffer, MAXPICKBUF, &rect, select_mode, select_filter, select_id_ignore);
+
     if (hits12 == 1) {
       hits = selectbuffer_ret_hits_12(buffer, hits12);
       goto cache_end;
@@ -699,8 +702,13 @@ static EditBone *get_nearest_editbonepoint(
 
       offs = 4 * hits12;
       BLI_rcti_init_pt_radius(&rect, vc->mval, 5);
-      const int hits5 = view3d_opengl_select(
-          vc, buffer + offs, MAXPICKBUF - offs, &rect, select_mode, select_filter);
+      const int hits5 = view3d_opengl_select_with_id_filter(vc,
+                                                            buffer + offs,
+                                                            MAXPICKBUF - offs,
+                                                            &rect,
+                                                            select_mode,
+                                                            select_filter,
+                                                            select_id_ignore);
 
       if (hits5 == 1) {
         hits = selectbuffer_ret_hits_5(buffer, hits12, hits5);

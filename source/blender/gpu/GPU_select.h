@@ -57,6 +57,7 @@ void GPU_select_cache_end(void);
 
 /* utilities */
 const uint *GPU_select_buffer_near(const uint *buffer, int hits);
+uint GPU_select_buffer_remove_by_id(uint *buffer, int hits, uint select_id);
 void GPU_select_buffer_stride_realign(const struct rcti *src, const struct rcti *dst, uint *r_buf);
 
 #ifdef __cplusplus

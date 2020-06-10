@@ -1192,6 +1192,24 @@ finally:
   return hits;
 }
 
+int view3d_opengl_select_with_id_filter(ViewContext *vc,
+                                        uint *buffer,
+                                        uint bufsize,
+                                        const rcti *input,
+                                        eV3DSelectMode select_mode,
+                                        eV3DSelectObjectFilter select_filter,
+                                        uint select_id)
+{
+  int hits = view3d_opengl_select(vc, buffer, bufsize, input, select_mode, select_filter);
+
+  /* Selection sometimes uses -1 for an invalid selection ID, remove these as they
+   * interfere with detection of actual number of hits in the selection. */
+  if (hits > 0) {
+    hits = GPU_select_buffer_remove_by_id(buffer, hits, select_id);
+  }
+  return hits;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

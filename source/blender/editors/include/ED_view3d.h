@@ -544,6 +544,13 @@ int view3d_opengl_select(struct ViewContext *vc,
                          const struct rcti *input,
                          eV3DSelectMode select_mode,
                          eV3DSelectObjectFilter select_filter);
+int view3d_opengl_select_with_id_filter(struct ViewContext *vc,
+                                        unsigned int *buffer,
+                                        unsigned int bufsize,
+                                        const struct rcti *input,
+                                        eV3DSelectMode select_mode,
+                                        eV3DSelectObjectFilter select_filter,
+                                        uint select_id);
 
 /* view3d_select.c */
 float ED_view3d_select_dist_px(void);

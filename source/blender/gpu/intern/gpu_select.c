@@ -213,6 +213,24 @@ const uint *GPU_select_buffer_near(const uint *buffer, int hits)
   return buffer_near;
 }
 
+uint GPU_select_buffer_remove_by_id(uint *buffer, int hits, uint select_id)
+{
+  uint *buffer_src = buffer;
+  uint *buffer_dst = buffer;
+  int hits_final = 0;
+  for (int i = 0; i < hits; i++) {
+    if (buffer_src[3] != select_id) {
+      if (buffer_dst != buffer_src) {
+        memcpy(buffer_dst, buffer_src, sizeof(int[4]));
+      }
+      buffer_dst += 4;
+      hits_final += 1;
+    }
+    buffer_src += 4;
+  }
+  return hits_final;
+}
+
 /* Part of the solution copied from `rect_subregion_stride_calc`. */
 void GPU_select_buffer_stride_realign(const rcti *src, const rcti *dst, uint *r_buf)
 {
