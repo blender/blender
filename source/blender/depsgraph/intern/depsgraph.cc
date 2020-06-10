@@ -120,7 +120,7 @@ IDNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
      * NOTE: We address ID nodes by the original ID pointer they are
      * referencing to. */
     id_hash.add_new(id, id_node);
-    id_nodes.push_back(id_node);
+    id_nodes.append(id_node);
 
     id_type_exist[BKE_idtype_idcode_to_index(GS(id->name))] = 1;
   }

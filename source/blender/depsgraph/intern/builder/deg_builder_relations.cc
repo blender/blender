@@ -2887,7 +2887,7 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
   }
 
   // Mapping from RNA prefix -> set of driver evaluation nodes:
-  typedef vector<Node *> DriverGroup;
+  typedef Vector<Node *> DriverGroup;
   typedef map<string, DriverGroup> DriverGroupMap;
   DriverGroupMap driver_groups;
 
@@ -2906,7 +2906,7 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
     OperationKey driver_key(
         id_orig, NodeType::PARAMETERS, OperationCode::DRIVER, fcu->rna_path, fcu->array_index);
     Node *node_driver = get_node(driver_key);
-    driver_groups[rna_prefix].push_back(node_driver);
+    driver_groups[rna_prefix].append(node_driver);
   }
 
   for (pair<string, DriverGroup> prefix_group : driver_groups) {

@@ -442,7 +442,7 @@ static void deg_debug_graphviz_node(const DebugContext &ctx, const Node *node)
     case NodeType::GENERIC_DATABLOCK:
     case NodeType::SIMULATION: {
       ComponentNode *comp_node = (ComponentNode *)node;
-      if (!comp_node->operations.empty()) {
+      if (!comp_node->operations.is_empty()) {
         deg_debug_graphviz_node_cluster_begin(ctx, node);
         for (Node *op_node : comp_node->operations) {
           deg_debug_graphviz_node(ctx, op_node);
@@ -480,7 +480,7 @@ static bool deg_debug_graphviz_is_cluster(const Node *node)
     case NodeType::EVAL_POSE:
     case NodeType::BONE: {
       ComponentNode *comp_node = (ComponentNode *)node;
-      return !comp_node->operations.empty();
+      return !comp_node->operations.is_empty();
     }
     default:
       return false;

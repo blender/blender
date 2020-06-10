@@ -293,7 +293,7 @@ void ComponentNode::finalize_build(Depsgraph * /*graph*/)
 {
   operations.reserve(operations_map->size());
   for (OperationNode *op_node : operations_map->values()) {
-    operations.push_back(op_node);
+    operations.append(op_node);
   }
   delete operations_map;
   operations_map = nullptr;

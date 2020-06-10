@@ -57,9 +57,8 @@ struct TimeSourceNode;
 
 /* Dependency Graph object */
 struct Depsgraph {
-  // TODO(sergey): Go away from C++ container and use some native BLI.
-  typedef vector<OperationNode *> OperationNodes;
-  typedef vector<IDNode *> IDDepsNodes;
+  typedef Vector<OperationNode *> OperationNodes;
+  typedef Vector<IDNode *> IDDepsNodes;
 
   Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode);
   ~Depsgraph();

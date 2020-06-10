@@ -251,7 +251,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
     string name;
     int name_tag;
   };
-  vector<SavedEntryTag> saved_entry_tags_;
+  Vector<SavedEntryTag> saved_entry_tags_;
 
   struct BuilderWalkUserData {
     DepsgraphNodeBuilder *builder;

@@ -119,7 +119,7 @@ struct ComponentNode : public Node {
 
   /* This is a "normal" list of operations, used by evaluation
    * and other routines after construction. */
-  vector<OperationNode *> operations;
+  Vector<OperationNode *> operations;
 
   OperationNode *entry_operation;
   OperationNode *exit_operation;

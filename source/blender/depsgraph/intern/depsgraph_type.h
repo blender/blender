@@ -66,7 +66,6 @@ using std::pair;
 using std::set;
 using std::string;
 using std::unique_ptr;
-using std::vector;
 
 /* Commonly used functions. */
 using std::make_pair;

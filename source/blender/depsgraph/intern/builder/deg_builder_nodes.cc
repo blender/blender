@@ -179,7 +179,7 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
         OperationCode::COPY_ON_WRITE,
         "",
         -1);
-    graph_->operations.push_back(op_cow);
+    graph_->operations.append(op_cow);
   }
   return id_node;
 }
@@ -213,7 +213,7 @@ OperationNode *DepsgraphNodeBuilder::add_operation_node(ComponentNode *comp_node
   OperationNode *op_node = comp_node->find_operation(opcode, name, name_tag);
   if (op_node == nullptr) {
     op_node = comp_node->add_operation(op, opcode, name, name_tag);
-    graph_->operations.push_back(op_node);
+    graph_->operations.append(op_node);
   }
   else {
     fprintf(stderr,
@@ -347,7 +347,7 @@ void DepsgraphNodeBuilder::begin_build()
     entry_tag.opcode = op_node->opcode;
     entry_tag.name = op_node->name;
     entry_tag.name_tag = op_node->name_tag;
-    saved_entry_tags_.push_back(entry_tag);
+    saved_entry_tags_.append(entry_tag);
   }
 
   /* Make sure graph has no nodes left from previous state. */
