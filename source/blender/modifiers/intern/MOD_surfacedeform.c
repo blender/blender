@@ -38,6 +38,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
@@ -1247,8 +1248,8 @@ static void surfacedeformModifier_do(ModifierData *md,
     return;
   }
 
-  tnumverts = target->totvert;
-  tnumpoly = target->totpoly;
+  tnumverts = BKE_mesh_wrapper_vert_len(target);
+  tnumpoly = BKE_mesh_wrapper_poly_len(target);
 
   /* If not bound, execute bind. */
   if (smd->verts == NULL) {
@@ -1263,6 +1264,9 @@ static void surfacedeformModifier_do(ModifierData *md,
 
     invert_m4_m4(tmp_mat, ob->obmat);
     mul_m4_m4m4(smd_orig->mat, tmp_mat, ob_target->obmat);
+
+    /* Avoid converting edit-mesh data, binding is an exception. */
+    BKE_mesh_wrapper_ensure_mdata(target);
 
     if (!surfacedeformBind(smd_orig, smd, vertexCos, numverts, tnumpoly, tnumverts, target)) {
       smd->flags &= ~MOD_SDEF_BIND;
@@ -1322,11 +1326,7 @@ static void surfacedeformModifier_do(ModifierData *md,
   };
 
   if (data.targetCos != NULL) {
-    const MVert *const mvert = target->mvert;
-
-    for (int i = 0; i < tnumverts; i++) {
-      mul_v3_m4v3(data.targetCos[i], smd->mat, mvert[i].co);
-    }
+    BKE_mesh_wrapper_vert_coords_copy_with_mat4(target, data.targetCos, tnumverts, smd->mat);
 
     TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
