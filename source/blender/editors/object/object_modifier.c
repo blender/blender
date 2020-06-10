@@ -1259,7 +1259,8 @@ static int modifier_move_to_index_invoke(bContext *C, wmOperator *op, const wmEv
 void OBJECT_OT_modifier_move_to_index(wmOperatorType *ot)
 {
   ot->name = "Move Active Modifier to Index";
-  ot->description = "Move the active modifier to an index in the stack";
+  ot->description =
+      "Change the modifier's index in the stack so it evaluates after the set number of others";
   ot->idname = "OBJECT_OT_modifier_move_to_index";
 
   ot->invoke = modifier_move_to_index_invoke;
