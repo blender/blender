@@ -44,7 +44,10 @@ class AnimatedPropertyID {
   AnimatedPropertyID(ID *id, StructRNA *type, const char *property_name);
   AnimatedPropertyID(ID *id, StructRNA *type, void *data, const char *property_name);
 
+  uint32_t hash() const;
+
   bool operator<(const AnimatedPropertyID &other) const;
+  friend bool operator==(const AnimatedPropertyID &a, const AnimatedPropertyID &b);
 
   /* Corresponds to PointerRNA.data. */
   void *data;
@@ -67,7 +70,7 @@ class AnimatedPropertyStorage {
   bool is_fully_initialized;
 
   /* indexed by PointerRNA.data. */
-  set<AnimatedPropertyID> animated_properties_set;
+  Set<AnimatedPropertyID> animated_properties_set;
 };
 
 typedef map<ID *, AnimatedPropertyStorage *> AnimatedPropertyStorageMap;

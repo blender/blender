@@ -357,17 +357,17 @@ class DepsgraphFromIDsFilter {
   DepsgraphFromIDsFilter(ID **ids, const int num_ids)
   {
     for (int i = 0; i < num_ids; ++i) {
-      ids_.insert(ids[i]);
+      ids_.add(ids[i]);
     }
   }
 
   bool contains(ID *id)
   {
-    return ids_.find(id) != ids_.end();
+    return ids_.contains(id);
   }
 
  protected:
-  set<ID *> ids_;
+  Set<ID *> ids_;
 };
 
 class DepsgraphFromIDsNodeBuilder : public DepsgraphNodeBuilder {
