@@ -897,7 +897,7 @@ static void ExportCurveTriangleVcol(ParticleCurveData *CData, int resol, uchar4 
 
 /* Hair Curve Sync */
 
-void BlenderSync::sync_curve_settings()
+void BlenderSync::sync_curve_settings(BL::Depsgraph &b_depsgraph)
 {
   PointerRNA csscene = RNA_pointer_get(&b_scene.ptr, "cycles_curves");
 
@@ -949,9 +949,9 @@ void BlenderSync::sync_curve_settings()
   }
 
   if (curve_system_manager->modified_mesh(prev_curve_system_manager)) {
-    BL::BlendData::objects_iterator b_ob;
+    BL::Depsgraph::objects_iterator b_ob;
 
-    for (b_data.objects.begin(b_ob); b_ob != b_data.objects.end(); ++b_ob) {
+    for (b_depsgraph.objects.begin(b_ob); b_ob != b_data.objects.end(); ++b_ob) {
       if (object_is_mesh(*b_ob)) {
         BL::Object::particle_systems_iterator b_psys;
         for (b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end();

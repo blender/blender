@@ -212,7 +212,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
   sync_film(b_v3d);
   sync_shaders(b_depsgraph, b_v3d);
   sync_images();
-  sync_curve_settings();
+  sync_curve_settings(b_depsgraph);
 
   geometry_synced.clear(); /* use for objects and motion sync */
 
