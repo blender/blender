@@ -389,6 +389,10 @@ static Collection *collection_duplicate_recursive(Main *bmain,
   LISTBASE_FOREACH_MUTABLE (CollectionChild *, child, &collection_old->children) {
     Collection *child_collection_old = child->collection;
 
+    if (is_collection_liboverride && ID_IS_LINKED(child_collection_old)) {
+      continue;
+    }
+
     collection_duplicate_recursive(
         bmain, collection_new, child_collection_old, do_hierarchy, do_objects, do_obdata);
     collection_child_remove(collection_new, child_collection_old);

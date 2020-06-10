@@ -751,6 +751,7 @@ void BKE_scene_copy_data_eevee(Scene *sce_dst, const Scene *sce_src)
 
 Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
 {
+  const bool is_scene_liboverride = ID_IS_OVERRIDE_LIBRARY(sce);
   Scene *sce_copy;
 
   /* TODO this should/could most likely be replaced by call to more generic code at some point...
@@ -833,6 +834,9 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
         LISTBASE_FOREACH (
             FreestyleLineSet *, lineset, &view_layer_dst->freestyle_config.linesets) {
           if (lineset->linestyle) {
+            if (is_scene_liboverride && ID_IS_LINKED(lineset->linestyle)) {
+              continue;
+            }
             id_us_min(&lineset->linestyle->id);
             BKE_id_copy_ex(
                 bmain, (ID *)lineset->linestyle, (ID **)&lineset->linestyle, LIB_ID_COPY_ACTIONS);
@@ -842,14 +846,19 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
 
       /* Full copy of world (included animations) */
       if (sce_copy->world) {
-        id_us_min(&sce_copy->world->id);
-        BKE_id_copy_ex(bmain, (ID *)sce_copy->world, (ID **)&sce_copy->world, LIB_ID_COPY_ACTIONS);
+        if (!is_scene_liboverride || !ID_IS_LINKED(sce_copy->world)) {
+          id_us_min(&sce_copy->world->id);
+          BKE_id_copy_ex(
+              bmain, (ID *)sce_copy->world, (ID **)&sce_copy->world, LIB_ID_COPY_ACTIONS);
+        }
       }
 
       /* Full copy of GreasePencil. */
       if (sce_copy->gpd) {
-        id_us_min(&sce_copy->gpd->id);
-        BKE_id_copy_ex(bmain, (ID *)sce_copy->gpd, (ID **)&sce_copy->gpd, LIB_ID_COPY_ACTIONS);
+        if (!is_scene_liboverride || !ID_IS_LINKED(sce_copy->gpd)) {
+          id_us_min(&sce_copy->gpd->id);
+          BKE_id_copy_ex(bmain, (ID *)sce_copy->gpd, (ID **)&sce_copy->gpd, LIB_ID_COPY_ACTIONS);
+        }
       }
 
       /* Deep-duplicate collections and objects (using preferences' settings for which sub-data to
