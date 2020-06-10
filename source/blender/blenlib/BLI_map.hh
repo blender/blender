@@ -73,6 +73,7 @@
 #include "BLI_hash.hh"
 #include "BLI_hash_tables.hh"
 #include "BLI_map_slots.hh"
+#include "BLI_optional.hh"
 #include "BLI_probing_strategies.hh"
 
 namespace blender {
@@ -385,6 +386,23 @@ class Map {
   template<typename ForwardKey> Value pop_as(const ForwardKey &key)
   {
     return this->pop__impl(key, m_hash(key));
+  }
+
+  /**
+   * Get the value that is stored for the given key and remove it from the map. If the key is not
+   * in the map, a value-less optional is returned.
+   */
+  Optional<Value> pop_try(const Key &key)
+  {
+    return this->pop_try_as(key);
+  }
+
+  /**
+   * Same as `pop_try`, but accepts other key types that are supported by the hash function.
+   */
+  template<typename ForwardKey> Optional<Value> pop_try_as(const ForwardKey &key)
+  {
+    return this->pop_try__impl(key, m_hash(key));
   }
 
   /**
@@ -1024,6 +1042,22 @@ class Map {
         Value value = *slot.value();
         slot.remove();
         return value;
+      }
+    }
+    MAP_SLOT_PROBING_END();
+  }
+
+  template<typename ForwardKey> Optional<Value> pop_try__impl(const ForwardKey &key, uint32_t hash)
+  {
+    MAP_SLOT_PROBING_BEGIN (hash, slot) {
+      if (slot.contains(key, m_is_equal, hash)) {
+        Optional<Value> value = *slot.value();
+        slot.remove();
+        m_removed_slots++;
+        return value;
+      }
+      if (slot.is_empty()) {
+        return {};
       }
     }
     MAP_SLOT_PROBING_END();

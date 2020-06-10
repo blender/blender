@@ -82,6 +82,23 @@ TEST(map, PopItem)
   EXPECT_FALSE(map.contains(1));
 }
 
+TEST(map, PopTry)
+{
+  Map<int, int> map;
+  map.add(1, 5);
+  map.add(2, 7);
+  EXPECT_EQ(map.size(), 2);
+  Optional<int> value = map.pop_try(4);
+  EXPECT_EQ(map.size(), 2);
+  EXPECT_FALSE(value.has_value());
+  value = map.pop_try(2);
+  EXPECT_EQ(map.size(), 1);
+  EXPECT_TRUE(value.has_value());
+  EXPECT_EQ(value.value(), 7);
+  EXPECT_EQ(*map.pop_try(1), 5);
+  EXPECT_EQ(map.size(), 0);
+}
+
 TEST(map, PopItemMany)
 {
   Map<int, int> map;
