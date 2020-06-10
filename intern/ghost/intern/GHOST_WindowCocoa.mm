@@ -411,16 +411,16 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
                                                               NSTIFFPboardType,
                                                               nil]];
 
-  if (state != GHOST_kWindowStateFullScreen) {
+  if (is_dialog && parentWindow) {
+    [parentWindow->getCocoaWindow() addChildWindow:m_window ordered:NSWindowAbove];
+    [m_window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
+  }
+  else if (state != GHOST_kWindowStateFullScreen) {
     [m_window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
   }
 
   if (state == GHOST_kWindowStateFullScreen)
     setState(GHOST_kWindowStateFullScreen);
-
-  if (is_dialog && parentWindow) {
-    [parentWindow->getCocoaWindow() addChildWindow:m_window ordered:NSWindowAbove];
-  }
 
   setNativePixelSize();
 
