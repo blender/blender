@@ -734,9 +734,6 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
           if (hitresult == -1) {
             continue;
           }
-          else if (hitresult & MBALL_NOSEL) {
-            continue;
-          }
 
           const uint hit_object = hitresult & 0xFFFF;
           if (vc.obedit->runtime.select_id != hit_object) {
