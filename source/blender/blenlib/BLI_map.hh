@@ -610,7 +610,7 @@ class Map {
    */
   template<typename ForwardKey> Value &lookup_or_add_default_as(ForwardKey &&key)
   {
-    return this->lookup_or_add_cb(std::forward<ForwardKey>(key), []() { return Value(); });
+    return this->lookup_or_add_cb_as(std::forward<ForwardKey>(key), []() { return Value(); });
   }
 
   /**
