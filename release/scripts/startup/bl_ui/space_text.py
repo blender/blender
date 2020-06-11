@@ -400,7 +400,7 @@ class TEXT_MT_edit(Menu):
         layout.separator()
 
         layout.operator("text.start_find", text="Find & Replace...")
-        layout.operator("text.find_set_selected", text="Find Next")
+        layout.operator("text.find_set_selected")
         layout.operator("text.jump", text="Jump To...")
 
         layout.separator()

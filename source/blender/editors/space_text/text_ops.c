@@ -3667,7 +3667,7 @@ static int text_find_set_selected_exec(bContext *C, wmOperator *op)
 void TEXT_OT_find_set_selected(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Find Set Selected";
+  ot->name = "Find & Set Selection";
   ot->idname = "TEXT_OT_find_set_selected";
   ot->description = "Find specified text and set as selected";
 
@@ -3698,7 +3698,7 @@ static int text_replace_set_selected_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_replace_set_selected(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Replace Set Selected";
+  ot->name = "Replace & Set Selection";
   ot->idname = "TEXT_OT_replace_set_selected";
   ot->description = "Replace text with specified text and set as selected";
 
