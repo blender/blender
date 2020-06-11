@@ -131,13 +131,6 @@ void SEQUENCER_OT_swap(struct wmOperatorType *ot);
 void SEQUENCER_OT_swap_data(struct wmOperatorType *ot);
 void SEQUENCER_OT_rendersize(struct wmOperatorType *ot);
 
-void SEQUENCER_OT_view_toggle(struct wmOperatorType *ot);
-void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
-void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
-void SEQUENCER_OT_view_frame(struct wmOperatorType *ot);
-void SEQUENCER_OT_view_zoom_ratio(struct wmOperatorType *ot);
-void SEQUENCER_OT_view_ghost_border(struct wmOperatorType *ot);
-
 void SEQUENCER_OT_change_effect_input(struct wmOperatorType *ot);
 void SEQUENCER_OT_change_effect_type(struct wmOperatorType *ot);
 void SEQUENCER_OT_change_path(struct wmOperatorType *ot);
@@ -151,9 +144,6 @@ void SEQUENCER_OT_enable_proxies(struct wmOperatorType *ot);
 void SEQUENCER_OT_export_subtitles(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_set_range_to_strips(struct wmOperatorType *ot);
-
-/* Preview specific operators. */
-void SEQUENCER_OT_view_all_preview(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
 void SEQUENCER_OT_select_all(struct wmOperatorType *ot);
@@ -169,7 +159,7 @@ void SEQUENCER_OT_select_box(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_grouped(struct wmOperatorType *ot);
 
-/* sequencer_select.c */
+/* sequencer_add.c */
 void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot);
@@ -177,11 +167,6 @@ void SEQUENCER_OT_mask_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot);
-
-enum {
-  SEQ_SPLIT_SOFT,
-  SEQ_SPLIT_HARD,
-};
 
 /* sequencer_ops.c */
 void sequencer_operatortypes(void);
@@ -205,6 +190,13 @@ void SEQUENCER_OT_strip_modifier_copy(struct wmOperatorType *ot);
 
 /* sequencer_view.c */
 void SEQUENCER_OT_sample(struct wmOperatorType *ot);
+void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
+void SEQUENCER_OT_view_frame(struct wmOperatorType *ot);
+void SEQUENCER_OT_view_all_preview(struct wmOperatorType *ot);
+void SEQUENCER_OT_view_zoom_ratio(struct wmOperatorType *ot);
+void SEQUENCER_OT_view_toggle(struct wmOperatorType *ot);
+void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
+void SEQUENCER_OT_view_ghost_border(struct wmOperatorType *ot);
 
 /* sequencer_preview.c */
 void sequencer_preview_add_sound(const struct bContext *C, struct Sequence *seq);
