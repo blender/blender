@@ -1417,12 +1417,15 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     if (seq->type & SEQ_TYPE_EFFECT) {
       if (seq->seq1 && (seq->seq1->flag & SELECT)) {
+        BKE_sequencer_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
         BKE_sequence_calc(scene, seq);
       }
       else if (seq->seq2 && (seq->seq2->flag & SELECT)) {
+        BKE_sequencer_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
         BKE_sequence_calc(scene, seq);
       }
       else if (seq->seq3 && (seq->seq3->flag & SELECT)) {
+        BKE_sequencer_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
         BKE_sequence_calc(scene, seq);
       }
     }
