@@ -390,7 +390,8 @@ static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
   }
 
   if (ibuf->ppm[0] > 0.0) {
-    addXDensity(*header, ibuf->ppm[0] / 39.3700787); /* 1 meter = 39.3700787 inches */
+    /* Convert meters to inches. */
+    addXDensity(*header, ibuf->ppm[0] * 0.0254);
   }
 }
 
@@ -1920,7 +1921,8 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
       ibuf->flags |= exr_is_half_float(*file) ? IB_halffloat : 0;
 
       if (hasXDensity(file->header(0))) {
-        ibuf->ppm[0] = xDensity(file->header(0)) * 39.3700787f;
+        /* Convert inches to meters. */
+        ibuf->ppm[0] = (double)xDensity(file->header(0)) / 0.0254;
         ibuf->ppm[1] = ibuf->ppm[0] * (double)file->header(0).pixelAspectRatio();
       }
 

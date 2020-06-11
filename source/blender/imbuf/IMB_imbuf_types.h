@@ -209,7 +209,7 @@ typedef struct ImBuf {
    */
   float *rect_float;
 
-  /* resolution - pixels per meter */
+  /** Resolution in pixels per meter. Multiply by `0.0254` for DPI. */
   double ppm[2];
 
   /* tiled pixel storage */
