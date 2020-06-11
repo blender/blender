@@ -283,11 +283,11 @@ typedef struct SculptClothSimulation {
 
 } SculptClothSimulation;
 
-typedef struct SculptLayerPersistentBase {
+typedef struct SculptPersistentBase {
   float co[3];
   float no[3];
   float disp;
-} SculptLayerPersistentBase;
+} SculptPersistentBase;
 
 typedef struct SculptVertexInfo {
   /* Idexed by vertex, stores and ID of its topologycally connected component. */
@@ -392,9 +392,9 @@ typedef struct SculptSession {
   float pose_origin[3];
   SculptPoseIKChain *pose_ik_chain_preview;
 
-  /* Layer brush persistence between strokes */
+  /* Mesh State Persistence */
   /* This is freed with the PBVH, so it is always in sync with the mesh. */
-  SculptLayerPersistentBase *layer_base;
+  SculptPersistentBase *persistent_base;
 
   SculptVertexInfo vertex_info;
   SculptFakeNeighbors fake_neighbors;

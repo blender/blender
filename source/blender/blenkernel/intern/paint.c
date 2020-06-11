@@ -1310,7 +1310,7 @@ static void sculptsession_free_pbvh(Object *object)
   MEM_SAFE_FREE(ss->pmap);
   MEM_SAFE_FREE(ss->pmap_mem);
 
-  MEM_SAFE_FREE(ss->layer_base);
+  MEM_SAFE_FREE(ss->persistent_base);
 
   MEM_SAFE_FREE(ss->preview_vert_index_list);
   ss->preview_vert_index_count = 0;
