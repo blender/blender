@@ -30,6 +30,7 @@
 #include "BLI_math_base.h"
 #include "BLI_memory_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 

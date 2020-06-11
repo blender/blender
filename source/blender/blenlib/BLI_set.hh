@@ -410,7 +410,7 @@ class Set {
   void print_stats(StringRef name = "") const
   {
     HashTableStats stats(*this, *this);
-    stats.print();
+    stats.print(name);
   }
 
   /**

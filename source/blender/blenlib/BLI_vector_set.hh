@@ -433,7 +433,7 @@ class VectorSet {
   void print_stats(StringRef name = "") const
   {
     HashTableStats stats(*this, this->as_span());
-    stats.print();
+    stats.print(name);
   }
 
   /**
@@ -482,7 +482,7 @@ class VectorSet {
    */
   uint32_t size_in_bytes() const
   {
-    return sizeof(Slot) * m_slots.size() + sizeof(Key) * m_usable_slots;
+    return (uint32_t)(sizeof(Slot) * m_slots.size() + sizeof(Key) * m_usable_slots);
   }
 
   /**

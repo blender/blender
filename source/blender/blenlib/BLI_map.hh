@@ -843,7 +843,7 @@ class Map {
   void print_stats(StringRef name = "") const
   {
     HashTableStats stats(*this, this->keys());
-    stats.print();
+    stats.print(name);
   }
 
   /**
@@ -894,7 +894,7 @@ class Map {
    */
   uint32_t size_in_bytes() const
   {
-    return sizeof(Slot) * m_slots.size();
+    return (uint32_t)(sizeof(Slot) * m_slots.size());
   }
 
   /**
