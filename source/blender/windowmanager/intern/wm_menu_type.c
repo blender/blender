@@ -57,6 +57,11 @@ MenuType *WM_menutype_find(const char *idname, bool quiet)
   return NULL;
 }
 
+void WM_menutype_iter(GHashIterator *ghi)
+{
+  BLI_ghashIterator_init(ghi, menutypes_hash);
+}
+
 bool WM_menutype_add(MenuType *mt)
 {
   BLI_assert((mt->description == NULL) || (mt->description[0]));

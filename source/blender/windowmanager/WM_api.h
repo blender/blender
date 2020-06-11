@@ -593,6 +593,7 @@ void WM_uilisttype_free(void);
 /* wm_menu_type.c */
 void WM_menutype_init(void);
 struct MenuType *WM_menutype_find(const char *idname, bool quiet);
+void WM_menutype_iter(struct GHashIterator *ghi);
 bool WM_menutype_add(struct MenuType *mt);
 void WM_menutype_freelink(struct MenuType *mt);
 void WM_menutype_free(void);
