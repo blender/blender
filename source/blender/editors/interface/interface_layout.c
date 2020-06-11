@@ -1069,7 +1069,8 @@ static uiBut *ui_item_with_label(uiLayout *layout,
 void UI_context_active_but_prop_get_filebrowser(const bContext *C,
                                                 PointerRNA *r_ptr,
                                                 PropertyRNA **r_prop,
-                                                bool *r_is_undo)
+                                                bool *r_is_undo,
+                                                bool *r_is_userdef)
 {
   ARegion *region = CTX_wm_menu(C) ? CTX_wm_menu(C) : CTX_wm_region(C);
   uiBlock *block;
@@ -1078,6 +1079,7 @@ void UI_context_active_but_prop_get_filebrowser(const bContext *C,
   memset(r_ptr, 0, sizeof(*r_ptr));
   *r_prop = NULL;
   *r_is_undo = false;
+  *r_is_userdef = false;
 
   if (!region) {
     return;
@@ -1096,6 +1098,7 @@ void UI_context_active_but_prop_get_filebrowser(const bContext *C,
         *r_ptr = prevbut->rnapoin;
         *r_prop = prevbut->rnaprop;
         *r_is_undo = (prevbut->flag & UI_BUT_UNDO) != 0;
+        *r_is_userdef = UI_but_is_userdef(prevbut);
         return;
       }
     }

@@ -83,6 +83,7 @@ typedef struct FileBrowseOp {
   PointerRNA ptr;
   PropertyRNA *prop;
   bool is_undo;
+  bool is_userdef;
 } FileBrowseOp;
 
 static int file_browse_exec(bContext *C, wmOperator *op)
@@ -148,6 +149,11 @@ static int file_browse_exec(bContext *C, wmOperator *op)
     }
   }
 
+  /* Tag user preferences as dirty. */
+  if (fbo->is_userdef) {
+    U.runtime.is_dirty = true;
+  }
+
   MEM_freeN(op->customdata);
 
   return OPERATOR_FINISHED;
@@ -164,6 +170,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   PointerRNA ptr;
   PropertyRNA *prop;
   bool is_undo;
+  bool is_userdef;
   FileBrowseOp *fbo;
   char *str;
 
@@ -172,7 +179,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  UI_context_active_but_prop_get_filebrowser(C, &ptr, &prop, &is_undo);
+  UI_context_active_but_prop_get_filebrowser(C, &ptr, &prop, &is_undo, &is_userdef);
 
   if (!prop) {
     return OPERATOR_CANCELLED;
@@ -209,6 +216,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     fbo->ptr = ptr;
     fbo->prop = prop;
     fbo->is_undo = is_undo;
+    fbo->is_userdef = is_userdef;
     op->customdata = fbo;
 
     /* normally ED_fileselect_get_params would handle this but we need to because of stupid
