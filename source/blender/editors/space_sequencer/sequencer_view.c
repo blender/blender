@@ -257,54 +257,6 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name View Toggle Operator
- * \{ */
-
-#if 0
-static const EnumPropertyItem view_type_items[] = {
-    {SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
-    {SEQ_VIEW_PREVIEW, "PREVIEW", ICON_SEQ_PREVIEW, "Image Preview", ""},
-    {SEQ_VIEW_SEQUENCE_PREVIEW,
-     "SEQUENCER_PREVIEW",
-     ICON_SEQ_SEQUENCER,
-     "Sequencer and Image Preview",
-     ""},
-    {0, NULL, 0, NULL, NULL},
-};
-#endif
-
-static int sequencer_view_toggle_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  SpaceSeq *sseq = (SpaceSeq *)CTX_wm_space_data(C);
-
-  sseq->view++;
-  if (sseq->view > SEQ_VIEW_SEQUENCE_PREVIEW) {
-    sseq->view = SEQ_VIEW_SEQUENCE;
-  }
-
-  ED_area_tag_refresh(CTX_wm_area(C));
-
-  return OPERATOR_FINISHED;
-}
-
-void SEQUENCER_OT_view_toggle(wmOperatorType *ot)
-{
-  /* Identifiers. */
-  ot->name = "View Toggle";
-  ot->idname = "SEQUENCER_OT_view_toggle";
-  ot->description = "Toggle between sequencer views (sequence, preview, both)";
-
-  /* Api callbacks. */
-  ot->exec = sequencer_view_toggle_exec;
-  ot->poll = ED_operator_sequencer_active;
-
-  /* Flags. */
-  ot->flag = OPTYPE_REGISTER;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Frame Selected Operator
  * \{ */
 

@@ -194,7 +194,6 @@ void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_frame(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_all_preview(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_zoom_ratio(struct wmOperatorType *ot);
-void SEQUENCER_OT_view_toggle(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_ghost_border(struct wmOperatorType *ot);
 

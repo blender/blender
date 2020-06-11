@@ -116,7 +116,6 @@ void sequencer_operatortypes(void)
   WM_operatortype_append(SEQUENCER_OT_view_frame);
   WM_operatortype_append(SEQUENCER_OT_view_all_preview);
   WM_operatortype_append(SEQUENCER_OT_view_zoom_ratio);
-  WM_operatortype_append(SEQUENCER_OT_view_toggle);
   WM_operatortype_append(SEQUENCER_OT_view_selected);
   WM_operatortype_append(SEQUENCER_OT_view_ghost_border);
 }
