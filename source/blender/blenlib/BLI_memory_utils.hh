@@ -22,6 +22,7 @@
  */
 
 #include <memory>
+#include <new>
 
 #include "BLI_utildefines.h"
 
