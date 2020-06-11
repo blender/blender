@@ -469,6 +469,34 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
     }
   }
 
+  {
+    /* Exclude context menus because:
+     * - The menu items are available elsewhere (and will show up multiple times).
+     * - Menu items depend on exact context, making search results unpredictable
+     *   (exact number of items selected for example). See design doc T74158.
+     * There is one exception,
+     * as the outliner only exposes functionality via the context menu. */
+    GHashIterator iter;
+
+    for (WM_menutype_iter(&iter); (!BLI_ghashIterator_done(&iter));
+         (BLI_ghashIterator_step(&iter))) {
+      MenuType *mt = BLI_ghashIterator_getValue(&iter);
+      if (BLI_str_endswith(mt->idname, "_context_menu")) {
+        BLI_gset_add(menu_tagged, mt);
+      }
+    }
+    const char *idname_array[] = {
+        /* Add back some context menus. */
+        "OUTLINER_MT_context_menu",
+    };
+    for (int i = 0; i < ARRAY_SIZE(idname_array); i++) {
+      MenuType *mt = WM_menutype_find(idname_array[i], false);
+      if (mt != NULL) {
+        BLI_gset_remove(menu_tagged, mt, NULL);
+      }
+    }
+  }
+
   /* Collect contexts, one for each 'ui_type'. */
   struct MenuSearch_Context *wm_contexts = NULL;
 
