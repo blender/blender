@@ -304,7 +304,14 @@ void gpu_extensions_init(void)
     }
   }
 
-  GG.glew_arb_base_instance_is_supported = GLEW_ARB_base_instance;
+  /* Limit support for GLEW_ARB_base_instance to OpenGL 4.0 and higher. NVIDIA Quadro FX 4800
+   * (TeraScale) report that they support GLEW_ARB_base_instance, but the driver does not support
+   * GLEW_ARB_draw_indirect as it has an OpenGL3 context what also matches the minimum needed
+   * requirements.
+   *
+   * We use it as a target for glMapBuffer(Range) what is part of the OpenGL 4 API. So better
+   * disable it when we don't have an OpenGL4 context (See T77657) */
+  GG.glew_arb_base_instance_is_supported = GLEW_ARB_base_instance && GLEW_VERSION_4_0;
   GG.glew_arb_texture_cube_map_array_is_supported = GLEW_ARB_texture_cube_map_array;
   gpu_detect_mip_render_workaround();
 
