@@ -185,7 +185,8 @@ TEST(map, ItemIterator)
   blender::Set<float> values;
 
   uint iterations = 0;
-  for (auto item : map.items()) {
+  const Map<int, float> &const_map = map;
+  for (auto item : const_map.items()) {
     keys.add(item.key);
     values.add(item.value);
     iterations++;
@@ -226,6 +227,26 @@ TEST(map, MutableItemIterator)
 
   EXPECT_EQ(map.lookup(3), 9.0f);
   EXPECT_EQ(map.lookup(2), 3.0f);
+}
+
+TEST(map, MutableItemToItemConversion)
+{
+  Map<int, int> map;
+  map.add(3, 6);
+  map.add(2, 1);
+
+  Vector<int> keys, values;
+  for (Map<int, int>::Item item : map.items()) {
+    keys.append(item.key);
+    values.append(item.value);
+  }
+
+  EXPECT_EQ(keys.size(), 2);
+  EXPECT_EQ(values.size(), 2);
+  EXPECT_TRUE(keys.contains(3));
+  EXPECT_TRUE(keys.contains(2));
+  EXPECT_TRUE(values.contains(6));
+  EXPECT_TRUE(values.contains(1));
 }
 
 static float return_42()

@@ -745,17 +745,27 @@ class Map {
     }
   };
 
+  struct Item {
+    const Key &key;
+    const Value &value;
+  };
+
+  struct MutableItem {
+    const Key &key;
+    Value &value;
+
+    operator Item() const
+    {
+      return Item{key, value};
+    }
+  };
+
   class ItemIterator final : public BaseIterator<ItemIterator> {
    public:
     ItemIterator(const Slot *slots, uint32_t total_slots, uint32_t current_slot)
         : BaseIterator<ItemIterator>(slots, total_slots, current_slot)
     {
     }
-
-    struct Item {
-      const Key &key;
-      const Value &value;
-    };
 
     Item operator*() const
     {
@@ -771,12 +781,7 @@ class Map {
     {
     }
 
-    struct Item {
-      const Key &key;
-      Value &value;
-    };
-
-    Item operator*() const
+    MutableItem operator*() const
     {
       Slot &slot = this->current_slot();
       return {*slot.key(), *slot.value()};
