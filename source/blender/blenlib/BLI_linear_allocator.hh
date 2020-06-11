@@ -171,7 +171,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     MutableSpan<T *> pointers = void_pointers.cast<T *>();
 
     for (uint i : IndexRange(n)) {
-      new (pointers[i]) T(std::forward<Args>(args)...);
+      new ((void *)pointers[i]) T(std::forward<Args>(args)...);
     }
 
     return pointers;

@@ -1175,7 +1175,7 @@ class Map {
   bool add_overwrite__impl(ForwardKey &&key, ForwardValue &&value, uint32_t hash)
   {
     auto create_func = [&](Value *ptr) {
-      new (ptr) Value(std::forward<ForwardValue>(value));
+      new ((void *)ptr) Value(std::forward<ForwardValue>(value));
       return true;
     };
     auto modify_func = [&](Value *ptr) {

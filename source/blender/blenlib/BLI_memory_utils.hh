@@ -46,7 +46,7 @@ template<typename T> void default_construct_n(T *ptr, uint n)
   }
 
   for (uint i = 0; i < n; i++) {
-    new (ptr + i) T;
+    new ((void *)(ptr + i)) T;
   }
 }
 
@@ -102,7 +102,7 @@ template<typename T> void initialized_copy_n(const T *src, uint n, T *dst)
 template<typename T> void uninitialized_copy_n(const T *src, uint n, T *dst)
 {
   for (uint i = 0; i < n; i++) {
-    new (dst + i) T(src[i]);
+    new ((void *)(dst + i)) T(src[i]);
   }
 }
 
@@ -136,7 +136,7 @@ template<typename T> void initialized_move_n(T *src, uint n, T *dst)
 template<typename T> void uninitialized_move_n(T *src, uint n, T *dst)
 {
   for (uint i = 0; i < n; i++) {
-    new (dst + i) T(std::move(src[i]));
+    new ((void *)(dst + i)) T(std::move(src[i]));
   }
 }
 
@@ -200,7 +200,7 @@ template<typename T> void initialized_fill_n(T *dst, uint n, const T &value)
 template<typename T> void uninitialized_fill_n(T *dst, uint n, const T &value)
 {
   for (uint i = 0; i < n; i++) {
-    new (dst + i) T(value);
+    new ((void *)(dst + i)) T(value);
   }
 }
 

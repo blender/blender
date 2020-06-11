@@ -80,7 +80,7 @@ template<typename Key> class SimpleSetSlot {
   {
     m_state = other.m_state;
     if (other.m_state == Occupied) {
-      new (this->key()) Key(*other.key());
+      new ((void *)this->key()) Key(*other.key());
     }
   }
 
@@ -93,7 +93,7 @@ template<typename Key> class SimpleSetSlot {
   {
     m_state = other.m_state;
     if (other.m_state == Occupied) {
-      new (this->key()) Key(std::move(*other.key()));
+      new ((void *)this->key()) Key(std::move(*other.key()));
     }
   }
 
@@ -148,7 +148,7 @@ template<typename Key> class SimpleSetSlot {
     BLI_assert(!this->is_occupied());
     BLI_assert(other.is_occupied());
     m_state = Occupied;
-    new (this->key()) Key(std::move(*other.key()));
+    new ((void *)this->key()) Key(std::move(*other.key()));
     other.key()->~Key();
   }
 
@@ -173,7 +173,7 @@ template<typename Key> class SimpleSetSlot {
   {
     BLI_assert(!this->is_occupied());
     m_state = Occupied;
-    new (this->key()) Key(std::forward<ForwardKey>(key));
+    new ((void *)this->key()) Key(std::forward<ForwardKey>(key));
   }
 
   /**
@@ -221,7 +221,7 @@ template<typename Key> class HashedSetSlot {
     m_state = other.m_state;
     if (other.m_state == Occupied) {
       m_hash = other.m_hash;
-      new (this->key()) Key(*other.key());
+      new ((void *)this->key()) Key(*other.key());
     }
   }
 
@@ -230,7 +230,7 @@ template<typename Key> class HashedSetSlot {
     m_state = other.m_state;
     if (other.m_state == Occupied) {
       m_hash = other.m_hash;
-      new (this->key()) Key(std::move(*other.key()));
+      new ((void *)this->key()) Key(std::move(*other.key()));
     }
   }
 
@@ -266,7 +266,7 @@ template<typename Key> class HashedSetSlot {
     BLI_assert(other.is_occupied());
     m_state = Occupied;
     m_hash = hash;
-    new (this->key()) Key(std::move(*other.key()));
+    new ((void *)this->key()) Key(std::move(*other.key()));
     other.key()->~Key();
   }
 
@@ -287,7 +287,7 @@ template<typename Key> class HashedSetSlot {
     BLI_assert(!this->is_occupied());
     m_state = Occupied;
     m_hash = hash;
-    new (this->key()) Key(std::forward<ForwardKey>(key));
+    new ((void *)this->key()) Key(std::forward<ForwardKey>(key));
   }
 
   void remove()
