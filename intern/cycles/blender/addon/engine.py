@@ -179,7 +179,8 @@ def reset(engine, data, depsgraph):
     import _cycles
     import bpy
 
-    if bpy.app.debug_value == 256:
+    prefs = bpy.context.preferences
+    if prefs.experimental.use_cycles_debug and prefs.view.show_developer_ui:
         _cycles.debug_flags_update(depsgraph.scene.as_pointer())
     else:
         _cycles.debug_flags_reset()

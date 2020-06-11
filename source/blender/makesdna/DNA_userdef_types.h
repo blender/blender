@@ -621,8 +621,9 @@ typedef struct UserDef_Experimental {
   char use_undo_legacy;
   char use_new_particle_system;
   char use_new_hair_type;
+  char use_cycles_debug;
   /** `makesdna` does not allow empty structs. */
-  char _pad0[5];
+  char _pad0[4];
 } UserDef_Experimental;
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) \
