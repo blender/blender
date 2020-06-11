@@ -97,6 +97,16 @@ template<typename T> struct DefaultHash {
   }
 };
 
+/**
+ * Use the same hash function for const and non const variants of a type.
+ */
+template<typename T> struct DefaultHash<const T> {
+  uint32_t operator()(const T &value) const
+  {
+    return DefaultHash<T>{}(value);
+  }
+};
+
 #define TRIVIAL_DEFAULT_INT_HASH(TYPE) \
   template<> struct DefaultHash<TYPE> { \
     uint32_t operator()(TYPE value) const \

@@ -449,6 +449,15 @@ TEST(map, PointerKeys)
   EXPECT_TRUE(map.is_empty());
 }
 
+TEST(map, ConstKeysAndValues)
+{
+  Map<const std::string, const std::string> map;
+  map.reserve(10);
+  map.add("45", "643");
+  EXPECT_TRUE(map.contains("45"));
+  EXPECT_FALSE(map.contains("54"));
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */
