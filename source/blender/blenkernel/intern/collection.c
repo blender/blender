@@ -716,6 +716,31 @@ static void collection_tag_update_parent_recursive(Main *bmain,
   }
 }
 
+static Collection *collection_parent_editable_find_recursive(Collection *collection)
+{
+  if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection)) {
+    return collection;
+  }
+
+  if (collection->flag & COLLECTION_IS_MASTER) {
+    return NULL;
+  }
+
+  LISTBASE_FOREACH (CollectionParent *, collection_parent, &collection->parents) {
+    if (!ID_IS_LINKED(collection_parent->collection) &&
+        !ID_IS_OVERRIDE_LIBRARY(collection_parent->collection)) {
+      return collection_parent->collection;
+    }
+    Collection *editable_collection = collection_parent_editable_find_recursive(
+        collection_parent->collection);
+    if (editable_collection != NULL) {
+      return editable_collection;
+    }
+  }
+
+  return NULL;
+}
+
 static bool collection_object_add(
     Main *bmain, Collection *collection, Object *ob, int flag, const bool add_us)
 {
@@ -786,6 +811,15 @@ bool BKE_collection_object_add(Main *bmain, Collection *collection, Object *ob)
     return false;
   }
 
+  collection = collection_parent_editable_find_recursive(collection);
+
+  /* Only case where this pointer can be NULL is when scene itself is linked, this case should
+   * never be reached. */
+  BLI_assert(collection != NULL);
+  if (collection == NULL) {
+    return false;
+  }
+
   if (!collection_object_add(bmain, collection, ob, 0, true)) {
     return false;
   }
@@ -808,7 +842,8 @@ void BKE_collection_object_add_from(Main *bmain, Scene *scene, Object *ob_src, O
   bool is_instantiated = false;
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
-    if (!ID_IS_LINKED(collection) && BKE_collection_has_object(collection, ob_src)) {
+    if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection) &&
+        BKE_collection_has_object(collection, ob_src)) {
       collection_object_add(bmain, collection, ob_dst, 0, true);
       is_instantiated = true;
     }
