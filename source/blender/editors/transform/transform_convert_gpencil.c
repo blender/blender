@@ -26,6 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "BKE_colortools.h"
@@ -76,7 +77,6 @@ void createTransGPencil(bContext *C, TransInfo *t)
   bool use_multiframe_falloff = (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_FRAME_FALLOFF) != 0;
 
   Object *obact = CTX_data_active_object(C);
-  bGPDlayer *gpl;
   TransData *td = NULL;
   float mtx[3][3], smtx[3][3];
 
@@ -110,15 +110,12 @@ void createTransGPencil(bContext *C, TransInfo *t)
   /* First Pass: Count the number of data-points required for the strokes,
    * (and additional info about the configuration - e.g. 2D/3D?).
    */
-  for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-    /* only editable and visible layers are considered */
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    /* Only editable and visible layers are considered. */
     if (BKE_gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
       bGPDframe *gpf;
       bGPDstroke *gps;
-      bGPDframe *init_gpf = gpl->actframe;
-      if (is_multiedit) {
-        init_gpf = gpl->frames.first;
-      }
+      bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
 
       for (gpf = init_gpf; gpf; gpf = gpf->next) {
         if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
@@ -127,7 +124,7 @@ void createTransGPencil(bContext *C, TransInfo *t)
             if (ED_gpencil_stroke_can_use(C, gps) == false) {
               continue;
             }
-            /* check if the color is editable */
+            /* Check if the color is editable. */
             if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
               continue;
             }
@@ -135,23 +132,22 @@ void createTransGPencil(bContext *C, TransInfo *t)
             if (is_prop_edit) {
               /* Proportional Editing... */
               if (is_prop_edit_connected) {
-                /* connected only - so only if selected */
+                /* Connected only - so only if selected. */
                 if (gps->flag & GP_STROKE_SELECT) {
                   tc->data_len += gps->totpoints;
                 }
               }
               else {
-                /* everything goes - connection status doesn't matter */
+                /* Everything goes - connection status doesn't matter. */
                 tc->data_len += gps->totpoints;
               }
             }
             else {
-              /* only selected stroke points are considered */
+              /* Only selected stroke points are considered. */
               if (gps->flag & GP_STROKE_SELECT) {
                 bGPDspoint *pt;
                 int i;
 
-                // TODO: 2D vs 3D?
                 for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
                   if (pt->flag & GP_SPOINT_SELECT) {
                     tc->data_len++;
@@ -161,7 +157,7 @@ void createTransGPencil(bContext *C, TransInfo *t)
             }
           }
         }
-        /* if not multiedit out of loop */
+        /* If not multiedit out of loop. */
         if (!is_multiedit) {
           break;
         }
@@ -169,7 +165,7 @@ void createTransGPencil(bContext *C, TransInfo *t)
     }
   }
 
-  /* Stop trying if nothing selected */
+  /* Stop trying if nothing selected. */
   if (tc->data_len == 0) {
     return;
   }
@@ -181,21 +177,17 @@ void createTransGPencil(bContext *C, TransInfo *t)
   unit_m3(smtx);
   unit_m3(mtx);
 
-  /* Second Pass: Build transdata array */
-  for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+  /* Second Pass: Build transdata array. */
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     /* only editable and visible layers are considered */
     if (BKE_gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
       const int cfra = (gpl->flag & GP_LAYER_FRAMELOCK) ? gpl->actframe->framenum : cfra_scene;
       bGPDframe *gpf = gpl->actframe;
-      bGPDstroke *gps;
       float diff_mat[4][4];
       float inverse_diff_mat[4][4];
 
-      bGPDframe *init_gpf = gpl->actframe;
-      if (is_multiedit) {
-        init_gpf = gpl->frames.first;
-      }
-      /* init multiframe falloff options */
+      bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
+      /* Init multiframe falloff options. */
       int f_init = 0;
       int f_end = 0;
 
@@ -203,9 +195,9 @@ void createTransGPencil(bContext *C, TransInfo *t)
         BKE_gpencil_frame_range_selected(gpl, &f_init, &f_end);
       }
 
-      /* calculate difference matrix */
+      /* Calculate difference matrix. */
       BKE_gpencil_parent_matrix_get(depsgraph, obact, gpl, diff_mat);
-      /* undo matrix */
+      /* Undo matrix. */
       invert_m4_m4(inverse_diff_mat, diff_mat);
 
       /* Make a new frame to work on if the layer's frame
@@ -214,7 +206,6 @@ void createTransGPencil(bContext *C, TransInfo *t)
        * - This is useful when animating as it saves that "uh-oh" moment when you realize you've
        *   spent too much time editing the wrong frame...
        */
-      // XXX: should this be allowed when framelock is enabled?
       if ((gpf->framenum != cfra) && (!is_multiedit)) {
         gpf = BKE_gpencil_frame_addcopy(gpl, cfra);
         /* in some weird situations (framelock enabled) return NULL */
@@ -239,7 +230,7 @@ void createTransGPencil(bContext *C, TransInfo *t)
                 gpf, gpl->actframe->framenum, f_init, f_end, ts->gp_sculpt.cur_falloff);
           }
 
-          for (gps = gpf->strokes.first; gps; gps = gps->next) {
+          LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
             TransData *head = td;
             TransData *tail = td;
             bool stroke_ok;
@@ -286,20 +277,20 @@ void createTransGPencil(bContext *C, TransInfo *t)
 
                 /* include point? */
                 if (is_prop_edit) {
-                  /* Always all points in strokes that get included */
+                  /* Always all points in strokes that get included. */
                   point_ok = true;
                 }
                 else {
-                  /* Only selected points in selected strokes */
+                  /* Only selected points in selected strokes. */
                   point_ok = (pt->flag & GP_SPOINT_SELECT) != 0;
                 }
 
                 /* do point... */
                 if (point_ok) {
                   copy_v3_v3(td->iloc, &pt->x);
-                  /* only copy center in local origins.
+                  /* Only copy center in local origins.
                    * This allows get interesting effects also when move
-                   * using proportional editing */
+                   * using proportional editing. */
                   if ((gps->flag & GP_STROKE_SELECT) &&
                       (ts->transform_pivot_point == V3D_AROUND_LOCAL_ORIGINS)) {
                     copy_v3_v3(td->center, center);
@@ -316,8 +307,8 @@ void createTransGPencil(bContext *C, TransInfo *t)
                     td->flag |= TD_SELECTED;
                   }
 
-                  /* for other transform modes (e.g. shrink-fatten), need to additional data
-                   * but never for mirror
+                  /* For other transform modes (e.g. shrink-fatten), need to additional data
+                   * but never for mirror.
                    */
                   if (t->mode != TFM_MIRROR) {
                     if (t->mode != TFM_GPENCIL_OPACITY) {
@@ -363,7 +354,6 @@ void createTransGPencil(bContext *C, TransInfo *t)
 
               /* March over these points, and calculate the proportional editing distances */
               if (is_prop_edit && (head != tail)) {
-                /* XXX: for now, we are similar enough that this works... */
                 calc_distanceCurveVerts(head, tail - 1);
               }
             }
