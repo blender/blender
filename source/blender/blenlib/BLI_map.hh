@@ -470,7 +470,7 @@ class Map {
                         const ModifyValueF &modify_value) -> decltype(create_value(nullptr))
   {
     return this->add_or_modify__impl(
-        std::forward<Key>(key), create_value, modify_value, m_hash(key));
+        std::forward<ForwardKey>(key), create_value, modify_value, m_hash(key));
   }
 
   /**
