@@ -46,8 +46,8 @@ def physics_add(layout, md, name, type, typeicon, toggles):
             icon='X',
         )
         if toggles:
-            row.prop(md, "show_render", text="")
             row.prop(md, "show_viewport", text="")
+            row.prop(md, "show_render", text="")
     else:
         row.operator(
             "object.modifier_add",
