@@ -70,6 +70,7 @@
 #include "BLI_math_base.h"
 #include "BLI_string_ref.hh"
 
+namespace blender {
 namespace FN {
 
 using blender::IndexMask;
@@ -719,13 +720,14 @@ static std::unique_ptr<const CPPType> create_cpp_type(StringRef name, const T &d
 }
 
 }  // namespace FN
+}  // namespace blender
 
 #define MAKE_CPP_TYPE(IDENTIFIER, TYPE_NAME) \
   static TYPE_NAME default_value_##IDENTIFIER; \
-  static std::unique_ptr<const FN::CPPType> CPPTYPE_##IDENTIFIER##_owner = \
-      FN::create_cpp_type<TYPE_NAME>(STRINGIFY(IDENTIFIER), default_value_##IDENTIFIER); \
-  const FN::CPPType &CPPType_##IDENTIFIER = *CPPTYPE_##IDENTIFIER##_owner; \
-  template<> const FN::CPPType &FN::CPPType::get<TYPE_NAME>() \
+  static std::unique_ptr<const blender::FN::CPPType> CPPTYPE_##IDENTIFIER##_owner = \
+      blender::FN::create_cpp_type<TYPE_NAME>(STRINGIFY(IDENTIFIER), default_value_##IDENTIFIER); \
+  const blender::FN::CPPType &CPPType_##IDENTIFIER = *CPPTYPE_##IDENTIFIER##_owner; \
+  template<> const blender::FN::CPPType &blender::FN::CPPType::get<TYPE_NAME>() \
   { \
     return CPPType_##IDENTIFIER; \
   }

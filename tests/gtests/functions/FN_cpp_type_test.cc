@@ -19,6 +19,9 @@
 
 #include "FN_cpp_type.hh"
 
+namespace blender {
+namespace FN {
+
 static const int default_constructed_value = 1;
 static const int copy_constructed_value = 2;
 static const int move_constructed_value = 3;
@@ -297,3 +300,6 @@ TEST(cpp_type, FillUninitialized)
   EXPECT_EQ(buffer2[8], copy_constructed_value);
   EXPECT_EQ(buffer2[9], 0);
 }
+
+}  // namespace FN
+}  // namespace blender
