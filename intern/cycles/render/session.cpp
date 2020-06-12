@@ -833,7 +833,7 @@ bool Session::load_kernels(bool lock_scene)
         message = "Failed loading render kernel, see console for errors";
 
       progress.set_error(message);
-      progress.set_status("Error", message);
+      progress.set_status(message);
       progress.set_update();
       return false;
     }
@@ -872,7 +872,7 @@ void Session::run()
 
   /* progress update */
   if (progress.get_cancel())
-    progress.set_status("Cancel", progress.get_cancel_message());
+    progress.set_status(progress.get_cancel_message());
   else
     progress.set_update();
 }

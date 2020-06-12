@@ -135,8 +135,10 @@ BVHLayoutMask CUDADevice::get_bvh_layout_mask() const
   return BVH_LAYOUT_BVH2;
 }
 
-void CUDADevice::cuda_error_documentation()
+void CUDADevice::set_error(const string &error)
 {
+  Device::set_error(error);
+
   if (first_error) {
     fprintf(stderr, "\nRefer to the Cycles GPU rendering documentation for possible solutions:\n");
     fprintf(stderr,
@@ -148,41 +150,12 @@ void CUDADevice::cuda_error_documentation()
 #  define cuda_assert(stmt) \
     { \
       CUresult result = stmt; \
-\
       if (result != CUDA_SUCCESS) { \
-        string message = string_printf( \
-            "CUDA error: %s in %s, line %d", cuewErrorString(result), #stmt, __LINE__); \
-        if (error_msg == "") \
-          error_msg = message; \
-        fprintf(stderr, "%s\n", message.c_str()); \
-        /*cuda_abort();*/ \
-        cuda_error_documentation(); \
+        const char *name = cuewErrorString(result); \
+        set_error(string_printf("%s in %s (device_cuda_impl.cpp:%d)", name, #stmt, __LINE__)); \
       } \
     } \
     (void)0
-
-bool CUDADevice::cuda_error_(CUresult result, const string &stmt)
-{
-  if (result == CUDA_SUCCESS)
-    return false;
-
-  string message = string_printf("CUDA error at %s: %s", stmt.c_str(), cuewErrorString(result));
-  if (error_msg == "")
-    error_msg = message;
-  fprintf(stderr, "%s\n", message.c_str());
-  cuda_error_documentation();
-  return true;
-}
-
-#  define cuda_error(stmt) cuda_error_(stmt, #  stmt)
-
-void CUDADevice::cuda_error_message(const string &message)
-{
-  if (error_msg == "")
-    error_msg = message;
-  fprintf(stderr, "%s\n", message.c_str());
-  cuda_error_documentation();
-}
 
 CUDADevice::CUDADevice(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background_)
     : Device(info, stats, profiler, background_), texture_info(this, "__texture_info", MEM_GLOBAL)
@@ -212,12 +185,19 @@ CUDADevice::CUDADevice(DeviceInfo &info, Stats &stats, Profiler &profiler, bool 
   functions.loaded = false;
 
   /* Intialize CUDA. */
-  if (cuda_error(cuInit(0)))
+  CUresult result = cuInit(0);
+  if (result != CUDA_SUCCESS) {
+    set_error(string_printf("Failed to initialize CUDA runtime (%s)", cuewErrorString(result)));
     return;
+  }
 
   /* Setup device and context. */
-  if (cuda_error(cuDeviceGet(&cuDevice, cuDevId)))
+  result = cuDeviceGet(&cuDevice, cuDevId);
+  if (result != CUDA_SUCCESS) {
+    set_error(string_printf("Failed to get CUDA device handle from ordinal (%s)",
+                            cuewErrorString(result)));
     return;
+  }
 
   /* CU_CTX_MAP_HOST for mapping host memory when out of device memory.
    * CU_CTX_LMEM_RESIZE_TO_MAX for reserving local memory ahead of render,
@@ -235,8 +215,6 @@ CUDADevice::CUDADevice(DeviceInfo &info, Stats &stats, Profiler &profiler, bool 
   }
 
   /* Create context. */
-  CUresult result;
-
   if (background) {
     result = cuCtxCreate(&cuContext, ctx_flags, cuDevice);
   }
@@ -249,8 +227,10 @@ CUDADevice::CUDADevice(DeviceInfo &info, Stats &stats, Profiler &profiler, bool 
     }
   }
 
-  if (cuda_error_(result, "cuCtxCreate"))
+  if (result != CUDA_SUCCESS) {
+    set_error(string_printf("Failed to create CUDA context (%s)", cuewErrorString(result)));
     return;
+  }
 
   int major, minor;
   cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevId);
@@ -280,10 +260,8 @@ bool CUDADevice::support_device(const DeviceRequestedFeatures & /*requested_feat
 
   /* We only support sm_30 and above */
   if (major < 3) {
-    cuda_error_message(
-        string_printf("CUDA device supported only with compute capability 3.0 or up, found %d.%d.",
-                      major,
-                      minor));
+    set_error(string_printf(
+        "CUDA backend requires compute capability 3.0 or up, but found %d.%d.", major, minor));
     return false;
   }
 
@@ -319,13 +297,19 @@ bool CUDADevice::check_peer_access(Device *peer_device)
   // Enable peer access in both directions
   {
     const CUDAContextScope scope(this);
-    if (cuda_error(cuCtxEnablePeerAccess(peer_device_cuda->cuContext, 0))) {
+    CUresult result = cuCtxEnablePeerAccess(peer_device_cuda->cuContext, 0);
+    if (result != CUDA_SUCCESS) {
+      set_error(string_printf("Failed to enable peer access on CUDA context (%s)",
+                              cuewErrorString(result)));
       return false;
     }
   }
   {
     const CUDAContextScope scope(peer_device_cuda);
-    if (cuda_error(cuCtxEnablePeerAccess(cuContext, 0))) {
+    CUresult result = cuCtxEnablePeerAccess(cuContext, 0);
+    if (result != CUDA_SUCCESS) {
+      set_error(string_printf("Failed to enable peer access on CUDA context (%s)",
+                              cuewErrorString(result)));
       return false;
     }
   }
@@ -432,14 +416,14 @@ string CUDADevice::compile_kernel(const DeviceRequestedFeatures &requested_featu
 #  ifdef _WIN32
   if (!use_adaptive_compilation() && have_precompiled_kernels()) {
     if (major < 3) {
-      cuda_error_message(
-          string_printf("CUDA device requires compute capability 3.0 or up, "
-                        "found %d.%d. Your GPU is not supported.",
+      set_error(
+          string_printf("CUDA backend requires compute capability 3.0 or up, but found %d.%d. "
+                        "Your GPU is not supported.",
                         major,
                         minor));
     }
     else {
-      cuda_error_message(
+      set_error(
           string_printf("CUDA binary kernel for this graphics card compute "
                         "capability (%d.%d) not found.",
                         major,
@@ -452,7 +436,7 @@ string CUDADevice::compile_kernel(const DeviceRequestedFeatures &requested_featu
   /* Compile. */
   const char *const nvcc = cuewCompilerPath();
   if (nvcc == NULL) {
-    cuda_error_message(
+    set_error(
         "CUDA nvcc compiler not found. "
         "Install CUDA toolkit in default location.");
     return string();
@@ -504,7 +488,7 @@ string CUDADevice::compile_kernel(const DeviceRequestedFeatures &requested_featu
   command = "call " + command;
 #  endif
   if (system(command.c_str()) != 0) {
-    cuda_error_message(
+    set_error(
         "Failed to execute compilation command, "
         "see console for details.");
     return string();
@@ -512,7 +496,7 @@ string CUDADevice::compile_kernel(const DeviceRequestedFeatures &requested_featu
 
   /* Verify if compilation succeeded */
   if (!path_exists(cubin)) {
-    cuda_error_message(
+    set_error(
         "CUDA kernel compilation failed, "
         "see console for details.");
     return string();
@@ -565,16 +549,19 @@ bool CUDADevice::load_kernels(const DeviceRequestedFeatures &requested_features)
   else
     result = CUDA_ERROR_FILE_NOT_FOUND;
 
-  if (cuda_error_(result, "cuModuleLoad"))
-    cuda_error_message(string_printf("Failed loading CUDA kernel %s.", cubin.c_str()));
+  if (result != CUDA_SUCCESS)
+    set_error(string_printf(
+        "Failed to load CUDA kernel from '%s' (%s)", cubin.c_str(), cuewErrorString(result)));
 
   if (path_read_text(filter_cubin, cubin_data))
     result = cuModuleLoadData(&cuFilterModule, cubin_data.c_str());
   else
     result = CUDA_ERROR_FILE_NOT_FOUND;
 
-  if (cuda_error_(result, "cuModuleLoad"))
-    cuda_error_message(string_printf("Failed loading CUDA kernel %s.", filter_cubin.c_str()));
+  if (result != CUDA_SUCCESS)
+    set_error(string_printf("Failed to load CUDA kernel from '%s' (%s)",
+                            filter_cubin.c_str(),
+                            cuewErrorString(result)));
 
   if (result == CUDA_SUCCESS) {
     reserve_local_memory(requested_features);
@@ -870,7 +857,7 @@ CUDADevice::CUDAMem *CUDADevice::generic_alloc(device_memory &mem, size_t pitch_
 
   if (mem_alloc_result != CUDA_SUCCESS) {
     status = " failed, out of device and host memory";
-    cuda_assert(mem_alloc_result);
+    set_error("System is out of GPU and shared host memory");
   }
 
   if (mem.name) {
@@ -2458,14 +2445,10 @@ void CUDADevice::task_cancel()
 #  define cuda_assert(stmt) \
     { \
       CUresult result = stmt; \
-\
       if (result != CUDA_SUCCESS) { \
-        string message = string_printf("CUDA error: %s in %s", cuewErrorString(result), #stmt); \
-        if (device->error_msg == "") \
-          device->error_msg = message; \
-        fprintf(stderr, "%s\n", message.c_str()); \
-        /*cuda_abort();*/ \
-        device->cuda_error_documentation(); \
+        const char *name = cuewErrorString(result); \
+        device->set_error( \
+            string_printf("%s in %s (device_cuda_impl.cpp:%d)", name, #stmt, __LINE__)); \
       } \
     } \
     (void)0
@@ -2647,14 +2630,15 @@ bool CUDASplitKernel::enqueue_split_kernel_data_init(const KernelDimensions &dim
 SplitKernelFunction *CUDASplitKernel::get_split_kernel_function(const string &kernel_name,
                                                                 const DeviceRequestedFeatures &)
 {
-  CUDAContextScope scope(device);
-  CUfunction func;
+  const CUDAContextScope scope(device);
 
-  cuda_assert(
-      cuModuleGetFunction(&func, device->cuModule, (string("kernel_cuda_") + kernel_name).data()));
-  if (device->have_error()) {
-    device->cuda_error_message(
-        string_printf("kernel \"kernel_cuda_%s\" not found in module", kernel_name.data()));
+  CUfunction func;
+  const CUresult result = cuModuleGetFunction(
+      &func, device->cuModule, (string("kernel_cuda_") + kernel_name).data());
+  if (result != CUDA_SUCCESS) {
+    device->set_error(string_printf("Could not find kernel \"kernel_cuda_%s\" in module (%s)",
+                                    kernel_name.data(),
+                                    cuewErrorString(result)));
     return NULL;
   }
 

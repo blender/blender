@@ -100,11 +100,7 @@ class CUDADevice : public Device {
 
   virtual BVHLayoutMask get_bvh_layout_mask() const;
 
-  void cuda_error_documentation();
-
-  bool cuda_error_(CUresult result, const string &stmt);
-
-  void cuda_error_message(const string &message);
+  void set_error(const string &error) override;
 
   CUDADevice(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background_);
 

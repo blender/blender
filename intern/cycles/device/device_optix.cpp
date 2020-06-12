@@ -70,7 +70,7 @@ struct KernelParams {
       if (res != CUDA_SUCCESS) { \
         const char *name; \
         cuGetErrorName(res, &name); \
-        set_error(string_printf("OptiX CUDA error %s in %s, line %d", name, #stmt, __LINE__)); \
+        set_error(string_printf("%s in %s (device_optix.cpp:%d)", name, #stmt, __LINE__)); \
         return; \
       } \
     } \
@@ -81,7 +81,7 @@ struct KernelParams {
       if (res != CUDA_SUCCESS) { \
         const char *name; \
         cuGetErrorName(res, &name); \
-        set_error(string_printf("OptiX CUDA error %s in %s, line %d", name, #stmt, __LINE__)); \
+        set_error(string_printf("%s in %s (device_optix.cpp:%d)", name, #stmt, __LINE__)); \
         return false; \
       } \
     } \
@@ -92,7 +92,7 @@ struct KernelParams {
       enum OptixResult res = stmt; \
       if (res != OPTIX_SUCCESS) { \
         const char *name = optixGetErrorName(res); \
-        set_error(string_printf("OptiX error %s in %s, line %d", name, #stmt, __LINE__)); \
+        set_error(string_printf("%s in %s (device_optix.cpp:%d)", name, #stmt, __LINE__)); \
         return; \
       } \
     } \
@@ -102,7 +102,7 @@ struct KernelParams {
       enum OptixResult res = stmt; \
       if (res != OPTIX_SUCCESS) { \
         const char *name = optixGetErrorName(res); \
-        set_error(string_printf("OptiX error %s in %s, line %d", name, #stmt, __LINE__)); \
+        set_error(string_printf("%s in %s (device_optix.cpp:%d)", name, #stmt, __LINE__)); \
         return false; \
       } \
     } \
@@ -322,12 +322,12 @@ class OptiXDevice : public CUDADevice {
 
     // Disable baking for now, since its kernel is not well-suited for inlining and is very slow
     if (requested_features.use_baking) {
-      set_error("OptiX implementation does not support baking yet");
+      set_error("OptiX backend does not support baking yet");
       return false;
     }
     // Disable shader raytracing support for now, since continuation callables are slow
     if (requested_features.use_shader_raytrace) {
-      set_error("OptiX implementation does not support shader raytracing yet");
+      set_error("OptiX backend does not support 'Ambient Occlusion' and 'Bevel' shader nodes yet");
       return false;
     }
 
@@ -386,14 +386,14 @@ class OptiXDevice : public CUDADevice {
       if (use_adaptive_compilation() || path_file_size(ptx_filename) == -1) {
         if (!getenv("OPTIX_ROOT_DIR")) {
           set_error(
-              "OPTIX_ROOT_DIR environment variable not set, must be set with the path to the "
-              "Optix SDK in order to compile the Optix kernel on demand.");
+              "Missing OPTIX_ROOT_DIR environment variable (which must be set with the path to "
+              "the Optix SDK to be able to compile Optix kernels on demand).");
           return false;
         }
         ptx_filename = compile_kernel(requested_features, "kernel_optix", "optix", true);
       }
       if (ptx_filename.empty() || !path_read_text(ptx_filename, ptx_data)) {
-        set_error("Failed loading OptiX kernel " + ptx_filename + ".");
+        set_error("Failed to load OptiX kernel from '" + ptx_filename + "'");
         return false;
       }
 
