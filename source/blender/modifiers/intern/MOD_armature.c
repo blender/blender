@@ -34,9 +34,9 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
-#include "BKE_lattice.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"

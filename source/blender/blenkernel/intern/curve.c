@@ -29,7 +29,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -43,7 +42,6 @@
 /* for dereferencing pointers */
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
 
 #include "BKE_curve.h"
@@ -54,7 +52,6 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
-#include "BKE_material.h"
 #include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
