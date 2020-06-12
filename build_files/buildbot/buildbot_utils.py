@@ -51,7 +51,7 @@ class Builder:
         elif name.startswith('linux'):
             self.platform = 'linux'
             if is_tool('scl'):
-                self.command_prefix =  ['scl', 'enable', 'devtoolset-6', '--']
+                self.command_prefix =  ['scl', 'enable', 'devtoolset-9', '--']
             else:
                 self.command_prefix =  []
         elif name.startswith('win'):
