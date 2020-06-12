@@ -126,6 +126,7 @@ void GHOST_XrContext::storeInstanceProperties()
   const std::map<std::string, GHOST_TXrOpenXRRuntimeID> runtime_map = {
       {"Monado(XRT) by Collabora et al", OPENXR_RUNTIME_MONADO},
       {"Oculus", OPENXR_RUNTIME_OCULUS},
+      {"SteamVR/OpenXR", OPENXR_RUNTIME_STEAMVR},
       {"Windows Mixed Reality Runtime", OPENXR_RUNTIME_WMR}};
   decltype(runtime_map)::const_iterator runtime_map_iter;
 
