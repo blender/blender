@@ -77,7 +77,9 @@
 
 static CLG_LogRef LOG = {"bke.armature"};
 
-/*************************** Prototypes ***************************/
+/* -------------------------------------------------------------------- */
+/** \name Prototypes
+ * \{ */
 
 static void copy_bonechildren(Bone *bone_dst,
                               const Bone *bone_src,
@@ -87,7 +89,11 @@ static void copy_bonechildren(Bone *bone_dst,
 
 static void copy_bonechildren_custom_handles(Bone *bone_dst, bArmature *arm_dst);
 
-/*********************** Armature Datablock ***********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Armature Data-block
+ * \{ */
 
 /**
  * Only copy internal data of Armature ID from source
@@ -187,7 +193,11 @@ IDTypeInfo IDType_ID_AR = {
     .foreach_id = armature_foreach_id,
 };
 
-/* **************** Generic Functions, data level *************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic Data-Level Functions
+ * \{ */
 
 bArmature *BKE_armature_add(Main *bmain, const char *name)
 {
@@ -284,6 +294,12 @@ bArmature *BKE_armature_copy(Main *bmain, const bArmature *arm)
   return arm_copy;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Armature Transform Copy
+ * \{ */
+
 static void copy_bone_transform(Bone *bone_dst, const Bone *bone_src)
 {
   bone_dst->roll = bone_src->roll;
@@ -312,6 +328,14 @@ void BKE_armature_copy_bone_transforms(bArmature *armature_dst, const bArmature 
     bone_src = bone_src->next;
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Armature Transform by 4x4 Matrix
+ *
+ * \see #ED_armature_edit_transform for the edit-mode version of this function.
+ * \{ */
 
 /** Helper for #ED_armature_transform */
 static void armature_transform_recurse(ListBase *bonebase,
@@ -408,6 +432,14 @@ void BKE_armature_transform(bArmature *arm, const float mat[4][4], const bool do
   armature_transform_recurse(&arm->bonebase, mat, do_props, mat3, scale, NULL, NULL);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Armature Bone Find by Name
+ *
+ * Using fast #GHash look-ups when available.
+ * \{ */
+
 static Bone *get_named_bone_bonechildren(ListBase *lb, const char *name)
 {
   Bone *curBone, *rbone;
@@ -480,6 +512,12 @@ void BKE_armature_bone_hash_free(bArmature *arm)
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Armature Bone Flags
+ * \{ */
+
 bool BKE_armature_bone_flag_test_recursive(const Bone *bone, int flag)
 {
   if (bone->flag & flag) {
@@ -492,6 +530,12 @@ bool BKE_armature_bone_flag_test_recursive(const Bone *bone, int flag)
     return false;
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Armature Layer Refresh Used
+ * \{ */
 
 static void armature_refresh_layer_used_recursive(bArmature *arm, ListBase *bones)
 {
@@ -517,6 +561,12 @@ void BKE_armature_refresh_layer_used(struct Depsgraph *depsgraph, struct bArmatu
     arm_orig->layer_used = arm->layer_used;
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Armature Layer Refresh Used
+ * \{ */
 
 /* Finds the best possible extension to the name on a particular axis. (For renaming, check for
  * unique names afterwards) strip_number: removes number extensions  (TODO: not used)
@@ -654,7 +704,11 @@ int bone_autoside_name(
   }
 }
 
-/* ************* B-Bone support ******************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Armature B-Bone Support
+ * \{ */
 
 /* Compute a set of bezier parameter values that produce approximately equally spaced points. */
 static void equalize_cubic_bezier(const float control[4][3],
@@ -1209,8 +1263,6 @@ int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param,
   return param->segments;
 }
 
-/* ************ Armature Deform ******************* */
-
 static void allocate_bbone_cache(bPoseChannel *pchan, int segments)
 {
   bPoseChannel_Runtime *runtime = &pchan->runtime;
@@ -1330,6 +1382,8 @@ void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan,
   *r_index = index;
   *r_blend_next = blend;
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Armature Deform Internal Utilities
@@ -1882,6 +1936,10 @@ void BKE_armature_deform_coords_with_mesh(Object *ob_arm,
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Bone Space to Space Conversion API
+ * \{ */
+
 void get_objectspace_bone_matrix(struct Bone *bone,
                                  float M_accumulatedMatrix[4][4],
                                  int UNUSED(root),
@@ -1889,8 +1947,6 @@ void get_objectspace_bone_matrix(struct Bone *bone,
 {
   copy_m4_m4(M_accumulatedMatrix, bone->arm_mat);
 }
-
-/* **************** Space to Space API ****************** */
 
 /* Convert World-Space Matrix to Pose-Space Matrix */
 void BKE_armature_mat_world_to_pose(Object *ob, float inmat[4][4], float outmat[4][4])
@@ -1925,6 +1981,12 @@ void BKE_armature_loc_world_to_pose(Object *ob, const float inloc[3], float outl
   BKE_armature_mat_world_to_pose(ob, xLocMat, nLocMat);
   copy_v3_v3(outloc, nLocMat[3]);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Bone Matrix Calculation API
+ * \{ */
 
 /* Simple helper, computes the offset bone matrix.
  *     offs_bone = yoffs(b-1) + root(b) + bonemat(b). */
@@ -2214,6 +2276,14 @@ void BKE_armature_loc_pose_to_bone(bPoseChannel *pchan, const float inloc[3], fl
   copy_v3_v3(outloc, nLocMat[3]);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Bone Matrix Read/Write API
+ *
+ * High level functions for transforming bones and reading the transform values.
+ * \{ */
+
 void BKE_armature_mat_pose_to_bone_ex(struct Depsgraph *depsgraph,
                                       Object *ob,
                                       bPoseChannel *pchan,
@@ -2313,8 +2383,13 @@ void BKE_armature_mat_pose_to_delta(float delta_mat[4][4],
   mul_m4_m4m4(delta_mat, imat, pose_mat);
 }
 
-/* **************** Rotation Mode Conversions ****************************** */
-/* Used for Objects and Pose Channels, since both can have multiple rotation representations */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rotation Mode Conversions
+ *
+ * Used for Objects and Pose Channels, since both can have multiple rotation representations.
+ * \{ */
 
 /* Called from RNA when rotation mode changes
  * - the result should be that the rotations given in the provided pointers have had conversions
@@ -2366,9 +2441,15 @@ void BKE_rotMode_change_values(
   }
 }
 
-/* **************** The new & simple (but OK!) armature evaluation ********* */
+/** \} */
 
-/* ****************** And how it works! ****************************************
+/* -------------------------------------------------------------------- */
+/** \name Bone Vector, Roll Conversion
+ *
+ * Used for Objects and Pose Channels, since both can have multiple rotation representations.
+ *
+ * How it Works
+ * ============
  *
  * This is the bone transformation trick; they're hierarchical so each bone(b)
  * is in the coord system of bone(b-1):
@@ -2384,7 +2465,7 @@ void BKE_rotMode_change_values(
  *
  * pose_mat(b)= arm_mat(b) * chan_mat(b)
  *
- * *************************************************************************** */
+ * \{ */
 
 /* Computes vector and roll based on a rotation.
  * "mat" must contain only a rotation, and no scaling. */
@@ -2552,6 +2633,12 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3])
   vec_roll_to_mat3_normalized(nor, roll, mat);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Armature Bone Matrix Calculation (Recursive)
+ * \{ */
+
 /**
  * Recursive part, calculates rest-position of entire tree of children.
  * \note Used when exiting edit-mode too.
@@ -2605,6 +2692,12 @@ void BKE_armature_where_is(bArmature *arm)
     BKE_armature_where_is_bone(bone, NULL, true);
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pose Rebuild
+ * \{ */
 
 /* if bone layer is protected, copy the data from from->pose
  * when used with linked libraries this copies from the linked pose into the local pose */
@@ -2886,7 +2979,11 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
   }
 }
 
-/* ********************** THE POSE SOLVER ******************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pose Solver
+ * \{ */
 
 /* loc/rot/size to given mat4 */
 void BKE_pchan_to_mat4(const bPoseChannel *pchan, float chan_mat[4][4])
@@ -3082,7 +3179,12 @@ void BKE_pose_where_is(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
   }
 }
 
-/************** Bounding box ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Calculate Bounding Box (Armature & Pose)
+ * \{ */
+
 static int minmax_armature(Object *ob, float r_min[3], float r_max[3])
 {
   bPoseChannel *pchan;
@@ -3164,7 +3266,11 @@ bool BKE_pose_minmax(Object *ob, float r_min[3], float r_max[3], bool use_hidden
   return changed;
 }
 
-/************** Graph evaluation ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Graph Evaluation
+ * \{ */
 
 bPoseChannel *BKE_armature_ik_solver_find_root(bPoseChannel *pchan, bKinematicConstraint *data)
 {
@@ -3203,3 +3309,5 @@ bPoseChannel *BKE_armature_splineik_solver_find_root(bPoseChannel *pchan,
   }
   return rootchan;
 }
+
+/** \} */
