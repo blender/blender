@@ -1174,6 +1174,22 @@ void RNA_def_main_libraries(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(srna, "tag", "rna_Main_libraries_tag");
   parm = RNA_def_boolean(func, "value", 0, "Value", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(func, "Remove a camera from the current blendfile");
+  parm = RNA_def_pointer(func, "library", "Library", "", "Library to remove");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+  RNA_def_boolean(
+      func, "do_unlink", true, "", "Unlink all usages of this library before deleting it");
+  RNA_def_boolean(func,
+                  "do_id_user",
+                  true,
+                  "",
+                  "Decrement user counter of all datablocks used by this object");
+  RNA_def_boolean(
+      func, "do_ui_user", true, "", "Make sure interface does not reference this object");
 }
 
 void RNA_def_main_screens(BlenderRNA *brna, PropertyRNA *cprop)
