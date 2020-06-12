@@ -24,6 +24,7 @@
  * \ingroup bke
  */
 
+#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 #include "DNA_object_enums.h"
 
@@ -268,6 +269,7 @@ typedef struct SculptClothLengthConstraint {
 typedef struct SculptClothSimulation {
   SculptClothLengthConstraint *length_constraints;
   int tot_length_constraints;
+  GSet *created_length_constraints;
   int capacity_length_constraints;
   float *length_constraint_tweak;
 
