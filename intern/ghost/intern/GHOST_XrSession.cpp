@@ -380,7 +380,8 @@ static bool ghost_xr_draw_view_expects_srgb_buffer(const GHOST_XrContext *contex
   /* Monado seems to be faulty and doesn't do OETF transform correctly. So expect a SRGB buffer to
    * compensate. You get way too dark rendering without this, it's pretty obvious (even in the
    * default startup scene). */
-  return (context->getOpenXRRuntimeID() == OPENXR_RUNTIME_MONADO);
+  GHOST_TXrOpenXRRuntimeID runtime_id = context->getOpenXRRuntimeID();
+  return (runtime_id == OPENXR_RUNTIME_MONADO) || (runtime_id == OPENXR_RUNTIME_STEAMVR);
 }
 
 void GHOST_XrSession::drawView(GHOST_XrSwapchain &swapchain,
