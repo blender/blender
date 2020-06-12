@@ -40,12 +40,12 @@ void MOD_get_texture_coords(struct MappingInfoModifierData *dmd,
                             float (*cos)[3],
                             float (*r_texco)[3]);
 
-void MOD_previous_vcos_store(struct ModifierData *md, float (*vertexCos)[3]);
+void MOD_previous_vcos_store(struct ModifierData *md, const float (*vertexCos)[3]);
 
 struct Mesh *MOD_deform_mesh_eval_get(struct Object *ob,
                                       struct BMEditMesh *em,
                                       struct Mesh *mesh,
-                                      float (*vertexCos)[3],
+                                      const float (*vertexCos)[3],
                                       const int num_verts,
                                       const bool use_normals,
                                       const bool use_orco);

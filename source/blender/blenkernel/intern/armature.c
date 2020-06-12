@@ -1566,7 +1566,7 @@ static void armature_vert_task(void *__restrict userdata,
     dq = &sumdq;
   }
   else {
-    sumvec[0] = sumvec[1] = sumvec[2] = 0.0f;
+    zero_v3(sumvec);
     vec = sumvec;
 
     if (vert_deform_mats) {
@@ -1622,7 +1622,7 @@ static void armature_vert_task(void *__restrict userdata,
   mul_m4_v3(data->premat, co);
 
   if (use_dverts && dvert && dvert->totweight) { /* use weight groups ? */
-    MDeformWeight *dw = dvert->dw;
+    const MDeformWeight *dw = dvert->dw;
     int deformed = 0;
     unsigned int j;
     for (j = dvert->totweight; j != 0; j--, dw++) {

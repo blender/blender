@@ -693,12 +693,12 @@ enum {
 typedef struct ArmatureModifierData {
   ModifierData modifier;
 
-  /** Deformflag replaces armature->deformflag. */
+  /** #eArmature_DeformFlag use instead of #bArmature.deformflag. */
   short deformflag, multi;
   char _pad2[4];
   struct Object *object;
-  /** Stored input of previous modifier, for vertexgroup blending. */
-  float *prevCos;
+  /** Stored input of previous modifier, for vertex-group blending. */
+  float (*vert_coords_prev)[3];
   /** MAX_VGROUP_NAME. */
   char defgrp_name[64];
 } ArmatureModifierData;

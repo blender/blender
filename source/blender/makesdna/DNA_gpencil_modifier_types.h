@@ -655,12 +655,12 @@ typedef enum eSmoothGpencil_Flag {
 
 typedef struct ArmatureGpencilModifierData {
   GpencilModifierData modifier;
-  /** Deformflag replaces armature->deformflag. */
+  /** #eArmature_DeformFlag use instead of #bArmature.deformflag. */
   short deformflag, multi;
   int _pad;
   struct Object *object;
-  /** Stored input of previous modifier, for vertexgroup blending. */
-  float *prevCos;
+  /** Stored input of previous modifier, for vertex-group blending. */
+  float (*vert_coords_prev)[3];
   /** MAX_VGROUP_NAME. */
   char vgname[64];
 

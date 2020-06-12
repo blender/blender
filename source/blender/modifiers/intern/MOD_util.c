@@ -169,12 +169,12 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
   }
 }
 
-void MOD_previous_vcos_store(ModifierData *md, float (*vertexCos)[3])
+void MOD_previous_vcos_store(ModifierData *md, const float (*vert_coords)[3])
 {
   while ((md = md->next) && md->type == eModifierType_Armature) {
     ArmatureModifierData *amd = (ArmatureModifierData *)md;
-    if (amd->multi && amd->prevCos == NULL) {
-      amd->prevCos = MEM_dupallocN(vertexCos);
+    if (amd->multi && amd->vert_coords_prev == NULL) {
+      amd->vert_coords_prev = MEM_dupallocN(vert_coords);
     }
     else {
       break;
@@ -187,7 +187,7 @@ void MOD_previous_vcos_store(ModifierData *md, float (*vertexCos)[3])
 Mesh *MOD_deform_mesh_eval_get(Object *ob,
                                struct BMEditMesh *em,
                                Mesh *mesh,
-                               float (*vertexCos)[3],
+                               const float (*vertexCos)[3],
                                const int num_verts,
                                const bool use_normals,
                                const bool use_orco)

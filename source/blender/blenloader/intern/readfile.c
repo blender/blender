@@ -5595,7 +5595,7 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
     else if (md->type == eModifierType_Armature) {
       ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
-      amd->prevCos = NULL;
+      amd->vert_coords_prev = NULL;
     }
     else if (md->type == eModifierType_Cloth) {
       ClothModifierData *clmd = (ClothModifierData *)md;

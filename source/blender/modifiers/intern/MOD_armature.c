@@ -74,7 +74,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   ArmatureModifierData *tamd = (ArmatureModifierData *)target;
 
   BKE_modifier_copydata_generic(md, target, flag);
-  tamd->prevCos = NULL;
+  tamd->vert_coords_prev = NULL;
 }
 
 static void requiredDataMask(Object *UNUSED(ob),
@@ -152,15 +152,12 @@ static void deformVerts(ModifierData *md,
                                        NULL,
                                        numVerts,
                                        amd->deformflag,
-                                       (float(*)[3])amd->prevCos,
+                                       amd->vert_coords_prev,
                                        amd->defgrp_name,
                                        mesh);
 
   /* free cache */
-  if (amd->prevCos) {
-    MEM_freeN(amd->prevCos);
-    amd->prevCos = NULL;
-  }
+  MEM_SAFE_FREE(amd->vert_coords_prev);
 }
 
 static void deformVertsEM(ModifierData *md,
@@ -186,15 +183,12 @@ static void deformVertsEM(ModifierData *md,
                                        NULL,
                                        numVerts,
                                        amd->deformflag,
-                                       (float(*)[3])amd->prevCos,
+                                       amd->vert_coords_prev,
                                        amd->defgrp_name,
                                        mesh_src);
 
   /* free cache */
-  if (amd->prevCos) {
-    MEM_freeN(amd->prevCos);
-    amd->prevCos = NULL;
-  }
+  MEM_SAFE_FREE(amd->vert_coords_prev);
 
   if (mesh_src != mesh) {
     BKE_id_free(NULL, mesh_src);

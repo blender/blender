@@ -53,7 +53,7 @@
 
 Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
                                                  const CustomData_MeshMasks *cd_mask_extra,
-                                                 float (*vertexCos)[3],
+                                                 const float (*vert_coords)[3],
                                                  const Mesh *me_settings)
 {
   Mesh *me = BKE_id_new_nomain(ID_ME, NULL);
@@ -83,7 +83,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
 #endif
 
   EditMeshData *edit_data = me->runtime.edit_data;
-  edit_data->vertexCos = vertexCos;
+  edit_data->vertexCos = vert_coords;
   return me;
 }
 

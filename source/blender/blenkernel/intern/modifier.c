@@ -878,10 +878,7 @@ void BKE_modifier_free_temporary_data(ModifierData *md)
   if (md->type == eModifierType_Armature) {
     ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
-    if (amd->prevCos) {
-      MEM_freeN(amd->prevCos);
-      amd->prevCos = NULL;
-    }
+    MEM_SAFE_FREE(amd->vert_coords_prev);
   }
 }
 

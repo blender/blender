@@ -31,7 +31,7 @@ extern "C" {
 struct Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(
     struct BMEditMesh *em,
     const struct CustomData_MeshMasks *cd_mask_extra,
-    float (*vertexCos)[3],
+    const float (*vert_coords)[3],
     const struct Mesh *me_settings);
 struct Mesh *BKE_mesh_wrapper_from_editmesh(struct BMEditMesh *em,
                                             const struct CustomData_MeshMasks *cd_mask_extra,
