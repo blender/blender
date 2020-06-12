@@ -299,7 +299,7 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 
     copy_m4_m4(mat, ltOb->obmat);
     unit_m4(ltOb->obmat);
-    lattice_deform_verts(ltOb, NULL, NULL, vert_coords, uNew * vNew * wNew, 0, NULL, 1.0f);
+    BKE_lattice_deform_coords(ltOb, NULL, NULL, vert_coords, uNew * vNew * wNew, 0, NULL, 1.0f);
     copy_m4_m4(ltOb->obmat, mat);
 
     lt->typeu = typeu;
@@ -759,14 +759,14 @@ static bool calc_curve_deform(
   return false;
 }
 
-void curve_deform_verts(Object *cuOb,
-                        Object *target,
-                        float (*vert_coords)[3],
-                        int numVerts,
-                        MDeformVert *dvert,
-                        const int defgrp_index,
-                        short flag,
-                        short defaxis)
+void BKE_curve_deform_coords(Object *cuOb,
+                             Object *target,
+                             float (*vert_coords)[3],
+                             int numVerts,
+                             MDeformVert *dvert,
+                             const int defgrp_index,
+                             short flag,
+                             short defaxis)
 {
   Curve *cu;
   int a;
@@ -870,7 +870,7 @@ void curve_deform_verts(Object *cuOb,
 /* input vec and orco = local coord in armature space */
 /* orco is original not-animated or deformed reference point */
 /* result written in vec and mat */
-void curve_deform_vector(
+void BKE_curve_deform_co(
     Object *cuOb, Object *target, float orco[3], float vec[3], float mat[3][3], int no_rot_axis)
 {
   CurveDeform cd;
@@ -931,14 +931,14 @@ static void lattice_deform_vert_task(void *__restrict userdata,
   }
 }
 
-void lattice_deform_verts(Object *laOb,
-                          Object *target,
-                          Mesh *mesh,
-                          float (*vert_coords)[3],
-                          int numVerts,
-                          short flag,
-                          const char *vgroup,
-                          float fac)
+void BKE_lattice_deform_coords(Object *laOb,
+                               Object *target,
+                               Mesh *mesh,
+                               float (*vert_coords)[3],
+                               int numVerts,
+                               short flag,
+                               const char *vgroup,
+                               float fac)
 {
   LatticeDeformData *lattice_deform_data;
   MDeformVert *dvert = NULL;
@@ -993,7 +993,8 @@ bool object_deform_mball(Object *ob, ListBase *dispbase)
     DispList *dl;
 
     for (dl = dispbase->first; dl; dl = dl->next) {
-      lattice_deform_verts(ob->parent, ob, NULL, (float(*)[3])dl->verts, dl->nr, 0, NULL, 1.0f);
+      BKE_lattice_deform_coords(
+          ob->parent, ob, NULL, (float(*)[3])dl->verts, dl->nr, 0, NULL, 1.0f);
     }
 
     return true;

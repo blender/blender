@@ -1697,16 +1697,16 @@ static void armature_vert_task(void *__restrict userdata,
   }
 }
 
-void armature_deform_verts(Object *armOb,
-                           Object *target,
-                           const Mesh *mesh,
-                           float (*vertexCos)[3],
-                           float (*defMats)[3][3],
-                           int numVerts,
-                           int deformflag,
-                           float (*prevCos)[3],
-                           const char *defgrp_name,
-                           bGPDstroke *gps)
+void BKE_armature_deform_coords(Object *armOb,
+                                Object *target,
+                                const Mesh *mesh,
+                                float (*vertexCos)[3],
+                                float (*defMats)[3][3],
+                                int numVerts,
+                                int deformflag,
+                                float (*prevCos)[3],
+                                const char *defgrp_name,
+                                bGPDstroke *gps)
 {
   bArmature *arm = armOb->data;
   bPoseChannel **defnrToPC = NULL;

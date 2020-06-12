@@ -129,16 +129,16 @@ static void deformVerts(ModifierData *md,
   int defgrp_index = -1;
   MOD_get_vgroup(ctx->object, mesh_src, cmd->name, &dvert, &defgrp_index);
 
-  /* silly that defaxis and curve_deform_verts are off by 1
+  /* silly that defaxis and BKE_curve_deform_coords are off by 1
    * but leave for now to save having to call do_versions */
-  curve_deform_verts(cmd->object,
-                     ctx->object,
-                     vertexCos,
-                     numVerts,
-                     dvert,
-                     defgrp_index,
-                     cmd->flag,
-                     cmd->defaxis - 1);
+  BKE_curve_deform_coords(cmd->object,
+                          ctx->object,
+                          vertexCos,
+                          numVerts,
+                          dvert,
+                          defgrp_index,
+                          cmd->flag,
+                          cmd->defaxis - 1);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);
