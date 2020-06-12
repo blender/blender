@@ -225,9 +225,6 @@ typedef struct IDOverrideLibrary {
   /** List of IDOverrideProperty structs. */
   ListBase properties;
 
-  short flag;
-  char _pad[6];
-
   /* Read/write data. */
   /* Temp ID storing extra override data (used for differential operations only currently).
    * Always NULL outside of read/write context. */
@@ -235,10 +232,6 @@ typedef struct IDOverrideLibrary {
 
   IDOverrideLibraryRuntime *runtime;
 } IDOverrideLibrary;
-
-enum eOverrideLibrary_Flag {
-  OVERRIDE_LIBRARY_AUTO = 1 << 0, /* Allow automatic generation of overriding rules. */
-};
 
 /* watch it: Sequence has identical beginning. */
 /**
@@ -481,10 +474,6 @@ typedef enum ID_Type {
 
 #define ID_IS_OVERRIDE_LIBRARY_TEMPLATE(_id) \
   (((ID *)(_id))->override_library != NULL && ((ID *)(_id))->override_library->reference == NULL)
-
-#define ID_IS_OVERRIDE_LIBRARY_AUTO(_id) \
-  (!ID_IS_LINKED((_id)) && ID_IS_OVERRIDE_LIBRARY((_id)) && \
-   (((ID *)(_id))->override_library->flag & OVERRIDE_LIBRARY_AUTO))
 
 /* Check whether datablock type is covered by copy-on-write. */
 #define ID_TYPE_IS_COW(_id_type) (!ELEM(_id_type, ID_BR, ID_PAL, ID_IM))

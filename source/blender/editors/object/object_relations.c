@@ -2400,10 +2400,6 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
           /* TODO: is setting active needed? */
           BKE_view_layer_base_select_and_set_active(view_layer, base);
         }
-        else {
-          /* Disable auto-override tags for non-active objects, will help with performaces... */
-          new_ob->id.override_library->flag &= ~OVERRIDE_LIBRARY_AUTO;
-        }
         /* We still want to store all objects' current override status (i.e. change of parent). */
         BKE_lib_override_library_operations_create(bmain, &new_ob->id, true);
       }
