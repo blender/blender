@@ -59,40 +59,60 @@ void outside_lattice(struct Lattice *lt);
  * Used by modifiers (odd location for this API, for now keep these related functions together).
  * \{ */
 
-void BKE_curve_deform_coords(struct Object *cuOb,
-                             struct Object *target,
+void BKE_curve_deform_coords(struct Object *ob_curve,
+                             struct Object *ob_target,
                              float (*vert_coords)[3],
-                             int numVerts,
-                             struct MDeformVert *dvert,
+                             const int vert_coords_len,
+                             const struct MDeformVert *dvert,
                              const int defgrp_index,
-                             short flag,
-                             short defaxis);
-void BKE_curve_deform_co(struct Object *cuOb,
-                         struct Object *target,
-                         float orco[3],
+                             const short flag,
+                             const short defaxis);
+void BKE_curve_deform_co(struct Object *ob_curve,
+                         struct Object *ob_target,
+                         const float orco[3],
                          float vec[3],
                          float mat[3][3],
-                         int no_rot_axis);
+                         const int no_rot_axis);
 
-void BKE_lattice_deform_coords(struct Object *laOb,
-                               struct Object *target,
-                               struct Mesh *mesh,
+void BKE_lattice_deform_coords(struct Object *ob_lattice,
+                               struct Object *ob_target,
                                float (*vert_coords)[3],
-                               int numVerts,
-                               short flag,
-                               const char *vgroup,
+                               const int vert_coords_len,
+                               const short flag,
+                               const char *defgrp_name,
                                float influence);
 
-void BKE_armature_deform_coords(struct Object *armOb,
-                                struct Object *target,
-                                const struct Mesh *mesh,
-                                float (*vert_coords)[3],
-                                float (*defMats)[3][3],
-                                int numVerts,
-                                int deformflag,
-                                float (*prevCos)[3],
-                                const char *defgrp_name,
-                                struct bGPDstroke *gps);
+void BKE_lattice_deform_coords_with_mesh(struct Object *ob_lattice,
+                                         struct Object *ob_target,
+                                         float (*vert_coords)[3],
+                                         const int vert_coords_len,
+                                         const short flag,
+                                         const char *defgrp_name,
+                                         const float influence,
+                                         const struct Mesh *me_target);
+
+/* Note that we could have a 'BKE_armature_deform_coords' that doesn't take object data
+ * currently there are no callers for this though. */
+
+void BKE_armature_deform_coords_with_gpencil_stroke(struct Object *ob_arm,
+                                                    struct Object *ob_target,
+                                                    float (*vert_coords)[3],
+                                                    float (*vert_deform_mats)[3][3],
+                                                    int vert_coords_len,
+                                                    int deformflag,
+                                                    float (*vert_coords_prev)[3],
+                                                    const char *defgrp_name,
+                                                    struct bGPDstroke *gps_target);
+
+void BKE_armature_deform_coords_with_mesh(struct Object *ob_arm,
+                                          struct Object *ob_target,
+                                          float (*vert_coords)[3],
+                                          float (*vert_deform_mats)[3][3],
+                                          int vert_coords_len,
+                                          int deformflag,
+                                          float (*vert_coords_prev)[3],
+                                          const char *defgrp_name,
+                                          const struct Mesh *me_target);
 
 /** \} */
 

@@ -146,16 +146,15 @@ static void deformVerts(ModifierData *md,
 
   MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
-  BKE_armature_deform_coords(amd->object,
-                             ctx->object,
-                             mesh,
-                             vertexCos,
-                             NULL,
-                             numVerts,
-                             amd->deformflag,
-                             (float(*)[3])amd->prevCos,
-                             amd->defgrp_name,
-                             NULL);
+  BKE_armature_deform_coords_with_mesh(amd->object,
+                                       ctx->object,
+                                       vertexCos,
+                                       NULL,
+                                       numVerts,
+                                       amd->deformflag,
+                                       (float(*)[3])amd->prevCos,
+                                       amd->defgrp_name,
+                                       mesh);
 
   /* free cache */
   if (amd->prevCos) {
@@ -181,16 +180,15 @@ static void deformVertsEM(ModifierData *md,
 
   MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
-  BKE_armature_deform_coords(amd->object,
-                             ctx->object,
-                             mesh_src,
-                             vertexCos,
-                             NULL,
-                             numVerts,
-                             amd->deformflag,
-                             (float(*)[3])amd->prevCos,
-                             amd->defgrp_name,
-                             NULL);
+  BKE_armature_deform_coords_with_mesh(amd->object,
+                                       ctx->object,
+                                       vertexCos,
+                                       NULL,
+                                       numVerts,
+                                       amd->deformflag,
+                                       (float(*)[3])amd->prevCos,
+                                       amd->defgrp_name,
+                                       mesh_src);
 
   /* free cache */
   if (amd->prevCos) {
@@ -214,16 +212,15 @@ static void deformMatricesEM(ModifierData *md,
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
   Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, numVerts, false, false);
 
-  BKE_armature_deform_coords(amd->object,
-                             ctx->object,
-                             mesh_src,
-                             vertexCos,
-                             defMats,
-                             numVerts,
-                             amd->deformflag,
-                             NULL,
-                             amd->defgrp_name,
-                             NULL);
+  BKE_armature_deform_coords_with_mesh(amd->object,
+                                       ctx->object,
+                                       vertexCos,
+                                       defMats,
+                                       numVerts,
+                                       amd->deformflag,
+                                       NULL,
+                                       amd->defgrp_name,
+                                       mesh_src);
 
   if (mesh_src != mesh) {
     BKE_id_free(NULL, mesh_src);
@@ -240,16 +237,15 @@ static void deformMatrices(ModifierData *md,
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
   Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
 
-  BKE_armature_deform_coords(amd->object,
-                             ctx->object,
-                             mesh_src,
-                             vertexCos,
-                             defMats,
-                             numVerts,
-                             amd->deformflag,
-                             NULL,
-                             amd->defgrp_name,
-                             NULL);
+  BKE_armature_deform_coords_with_mesh(amd->object,
+                                       ctx->object,
+                                       vertexCos,
+                                       defMats,
+                                       numVerts,
+                                       amd->deformflag,
+                                       NULL,
+                                       amd->defgrp_name,
+                                       mesh_src);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);

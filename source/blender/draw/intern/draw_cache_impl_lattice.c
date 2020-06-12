@@ -127,7 +127,7 @@ typedef struct LatticeRenderData {
 
   int actbp;
 
-  struct MDeformVert *dvert;
+  const struct MDeformVert *dvert;
 } LatticeRenderData;
 
 enum {

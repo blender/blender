@@ -83,16 +83,15 @@ static void gpencil_deform_verts(ArmatureGpencilModifierData *mmd, Object *targe
   }
 
   /* deform verts */
-  BKE_armature_deform_coords(mmd->object,
-                             target,
-                             NULL,
-                             (float(*)[3])all_vert_coords,
-                             NULL,
-                             gps->totpoints,
-                             mmd->deformflag,
-                             (float(*)[3])mmd->prevCos,
-                             mmd->vgname,
-                             gps);
+  BKE_armature_deform_coords_with_gpencil_stroke(mmd->object,
+                                                 target,
+                                                 (float(*)[3])all_vert_coords,
+                                                 NULL,
+                                                 gps->totpoints,
+                                                 mmd->deformflag,
+                                                 (float(*)[3])mmd->prevCos,
+                                                 mmd->vgname,
+                                                 gps);
 
   /* Apply deformed coordinates */
   pt = gps->points;

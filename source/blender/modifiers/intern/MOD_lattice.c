@@ -113,14 +113,14 @@ static void deformVerts(ModifierData *md,
 
   MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
-  BKE_lattice_deform_coords(lmd->object,
-                            ctx->object,
-                            mesh_src,
-                            vertexCos,
-                            numVerts,
-                            lmd->flag,
-                            lmd->name,
-                            lmd->strength);
+  BKE_lattice_deform_coords_with_mesh(lmd->object,
+                                      ctx->object,
+                                      vertexCos,
+                                      numVerts,
+                                      lmd->flag,
+                                      lmd->name,
+                                      lmd->strength,
+                                      mesh_src);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);

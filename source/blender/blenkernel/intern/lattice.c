@@ -299,7 +299,7 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 
     copy_m4_m4(mat, ltOb->obmat);
     unit_m4(ltOb->obmat);
-    BKE_lattice_deform_coords(ltOb, NULL, NULL, vert_coords, uNew * vNew * wNew, 0, NULL, 1.0f);
+    BKE_lattice_deform_coords(ltOb, NULL, vert_coords, uNew * vNew * wNew, 0, NULL, 1.0f);
     copy_m4_m4(ltOb->obmat, mat);
 
     lt->typeu = typeu;
@@ -565,6 +565,10 @@ void end_latt_deform(LatticeDeformData *lattice_deform_data)
   MEM_freeN(lattice_deform_data);
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Curve Deform Internal Utilities
+ * \{ */
+
 /* calculations is in local space of deformed object
  * so we store in latmat transform from path coord inside object
  */
@@ -759,14 +763,22 @@ static bool calc_curve_deform(
   return false;
 }
 
-void BKE_curve_deform_coords(Object *cuOb,
-                             Object *target,
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Curve Deform #BKE_curve_deform_coords API
+ *
+ * #BKE_curve_deform and related functions.
+ * \{ */
+
+void BKE_curve_deform_coords(Object *ob_curve,
+                             Object *ob_target,
                              float (*vert_coords)[3],
-                             int numVerts,
-                             MDeformVert *dvert,
+                             const int vert_coords_len,
+                             const MDeformVert *dvert,
                              const int defgrp_index,
-                             short flag,
-                             short defaxis)
+                             const short flag,
+                             const short defaxis)
 {
   Curve *cu;
   int a;
@@ -774,13 +786,13 @@ void BKE_curve_deform_coords(Object *cuOb,
   const bool is_neg_axis = (defaxis > 2);
   const bool invert_vgroup = (flag & MOD_CURVE_INVERT_VGROUP) != 0;
 
-  if (cuOb->type != OB_CURVE) {
+  if (ob_curve->type != OB_CURVE) {
     return;
   }
 
-  cu = cuOb->data;
+  cu = ob_curve->data;
 
-  init_curve_deform(cuOb, target, &cd);
+  init_curve_deform(ob_curve, ob_target, &cd);
 
   /* dummy bounds, keep if CU_DEFORM_BOUNDS_OFF is set */
   if (is_neg_axis == false) {
@@ -794,11 +806,11 @@ void BKE_curve_deform_coords(Object *cuOb,
   }
 
   if (dvert) {
-    MDeformVert *dvert_iter;
+    const MDeformVert *dvert_iter;
     float vec[3];
 
     if (cu->flag & CU_DEFORM_BOUNDS_OFF) {
-      for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
+      for (a = 0, dvert_iter = dvert; a < vert_coords_len; a++, dvert_iter++) {
         const float weight = invert_vgroup ?
                                  1.0f - BKE_defvert_find_weight(dvert_iter, defgrp_index) :
                                  BKE_defvert_find_weight(dvert_iter, defgrp_index);
@@ -806,7 +818,7 @@ void BKE_curve_deform_coords(Object *cuOb,
         if (weight > 0.0f) {
           mul_m4_v3(cd.curvespace, vert_coords[a]);
           copy_v3_v3(vec, vert_coords[a]);
-          calc_curve_deform(cuOb, vec, defaxis, &cd, NULL);
+          calc_curve_deform(ob_curve, vec, defaxis, &cd, NULL);
           interp_v3_v3v3(vert_coords[a], vert_coords[a], vec, weight);
           mul_m4_v3(cd.objectspace, vert_coords[a]);
         }
@@ -816,7 +828,7 @@ void BKE_curve_deform_coords(Object *cuOb,
       /* set mesh min/max bounds */
       INIT_MINMAX(cd.dmin, cd.dmax);
 
-      for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
+      for (a = 0, dvert_iter = dvert; a < vert_coords_len; a++, dvert_iter++) {
         const float weight = invert_vgroup ?
                                  1.0f - BKE_defvert_find_weight(dvert_iter, defgrp_index) :
                                  BKE_defvert_find_weight(dvert_iter, defgrp_index);
@@ -826,7 +838,7 @@ void BKE_curve_deform_coords(Object *cuOb,
         }
       }
 
-      for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
+      for (a = 0, dvert_iter = dvert; a < vert_coords_len; a++, dvert_iter++) {
         const float weight = invert_vgroup ?
                                  1.0f - BKE_defvert_find_weight(dvert_iter, defgrp_index) :
                                  BKE_defvert_find_weight(dvert_iter, defgrp_index);
@@ -834,7 +846,7 @@ void BKE_curve_deform_coords(Object *cuOb,
         if (weight > 0.0f) {
           /* already in 'cd.curvespace', prev for loop */
           copy_v3_v3(vec, vert_coords[a]);
-          calc_curve_deform(cuOb, vec, defaxis, &cd, NULL);
+          calc_curve_deform(ob_curve, vec, defaxis, &cd, NULL);
           interp_v3_v3v3(vert_coords[a], vert_coords[a], vec, weight);
           mul_m4_v3(cd.objectspace, vert_coords[a]);
         }
@@ -843,9 +855,9 @@ void BKE_curve_deform_coords(Object *cuOb,
   }
   else {
     if (cu->flag & CU_DEFORM_BOUNDS_OFF) {
-      for (a = 0; a < numVerts; a++) {
+      for (a = 0; a < vert_coords_len; a++) {
         mul_m4_v3(cd.curvespace, vert_coords[a]);
-        calc_curve_deform(cuOb, vert_coords[a], defaxis, &cd, NULL);
+        calc_curve_deform(ob_curve, vert_coords[a], defaxis, &cd, NULL);
         mul_m4_v3(cd.objectspace, vert_coords[a]);
       }
     }
@@ -853,14 +865,14 @@ void BKE_curve_deform_coords(Object *cuOb,
       /* set mesh min max bounds */
       INIT_MINMAX(cd.dmin, cd.dmax);
 
-      for (a = 0; a < numVerts; a++) {
+      for (a = 0; a < vert_coords_len; a++) {
         mul_m4_v3(cd.curvespace, vert_coords[a]);
         minmax_v3v3_v3(cd.dmin, cd.dmax, vert_coords[a]);
       }
 
-      for (a = 0; a < numVerts; a++) {
+      for (a = 0; a < vert_coords_len; a++) {
         /* already in 'cd.curvespace', prev for loop */
-        calc_curve_deform(cuOb, vert_coords[a], defaxis, &cd, NULL);
+        calc_curve_deform(ob_curve, vert_coords[a], defaxis, &cd, NULL);
         mul_m4_v3(cd.objectspace, vert_coords[a]);
       }
     }
@@ -870,18 +882,22 @@ void BKE_curve_deform_coords(Object *cuOb,
 /* input vec and orco = local coord in armature space */
 /* orco is original not-animated or deformed reference point */
 /* result written in vec and mat */
-void BKE_curve_deform_co(
-    Object *cuOb, Object *target, float orco[3], float vec[3], float mat[3][3], int no_rot_axis)
+void BKE_curve_deform_co(Object *ob_curve,
+                         Object *ob_target,
+                         const float orco[3],
+                         float vec[3],
+                         float mat[3][3],
+                         const int no_rot_axis)
 {
   CurveDeform cd;
   float quat[4];
 
-  if (cuOb->type != OB_CURVE) {
+  if (ob_curve->type != OB_CURVE) {
     unit_m3(mat);
     return;
   }
 
-  init_curve_deform(cuOb, target, &cd);
+  init_curve_deform(ob_curve, ob_target, &cd);
   cd.no_rot_axis = no_rot_axis; /* option to only rotate for XY, for example */
 
   copy_v3_v3(cd.dmin, orco);
@@ -889,7 +905,7 @@ void BKE_curve_deform_co(
 
   mul_m4_v3(cd.curvespace, vec);
 
-  if (calc_curve_deform(cuOb, vec, target->trackflag, &cd, quat)) {
+  if (calc_curve_deform(ob_curve, vec, ob_target->trackflag, &cd, quat)) {
     float qmat[3][3];
 
     quat_to_mat3(qmat, quat);
@@ -902,10 +918,18 @@ void BKE_curve_deform_co(
   mul_m4_v3(cd.objectspace, vec);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Lattice Deform #BKE_lattice_deform_coords API
+ *
+ * #BKE_lattice_deform_coords and related functions.
+ * \{ */
+
 typedef struct LatticeDeformUserdata {
   LatticeDeformData *lattice_deform_data;
   float (*vert_coords)[3];
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   int defgrp_index;
   float fac;
   bool invert_vgroup;
@@ -931,41 +955,41 @@ static void lattice_deform_vert_task(void *__restrict userdata,
   }
 }
 
-void BKE_lattice_deform_coords(Object *laOb,
-                               Object *target,
-                               Mesh *mesh,
-                               float (*vert_coords)[3],
-                               int numVerts,
-                               short flag,
-                               const char *vgroup,
-                               float fac)
+static void lattice_deform_coords_impl(Object *ob_lattice,
+                                       Object *ob_target,
+                                       float (*vert_coords)[3],
+                                       const int vert_coords_len,
+                                       const short flag,
+                                       const char *defgrp_name,
+                                       const float fac,
+                                       const Mesh *me_target)
 {
   LatticeDeformData *lattice_deform_data;
-  MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = NULL;
   int defgrp_index = -1;
 
-  if (laOb->type != OB_LATTICE) {
+  if (ob_lattice->type != OB_LATTICE) {
     return;
   }
 
-  lattice_deform_data = init_latt_deform(laOb, target);
+  lattice_deform_data = init_latt_deform(ob_lattice, ob_target);
 
-  /* Check whether to use vertex groups (only possible if target is a Mesh or Lattice).
+  /* Check whether to use vertex groups (only possible if ob_target is a Mesh or Lattice).
    * We want either a Mesh/Lattice with no derived data, or derived data with deformverts.
    */
-  if (vgroup && vgroup[0] && target && ELEM(target->type, OB_MESH, OB_LATTICE)) {
-    defgrp_index = BKE_object_defgroup_name_index(target, vgroup);
+  if (defgrp_name && defgrp_name[0] && ob_target && ELEM(ob_target->type, OB_MESH, OB_LATTICE)) {
+    defgrp_index = BKE_object_defgroup_name_index(ob_target, defgrp_name);
 
     if (defgrp_index != -1) {
       /* if there's derived data without deformverts, don't use vgroups */
-      if (mesh) {
-        dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
+      if (me_target) {
+        dvert = CustomData_get_layer(&me_target->vdata, CD_MDEFORMVERT);
       }
-      else if (target->type == OB_LATTICE) {
-        dvert = ((Lattice *)target->data)->dvert;
+      else if (ob_target->type == OB_LATTICE) {
+        dvert = ((Lattice *)ob_target->data)->dvert;
       }
       else {
-        dvert = ((Mesh *)target->data)->dvert;
+        dvert = ((Mesh *)ob_target->data)->dvert;
       }
     }
   }
@@ -982,10 +1006,37 @@ void BKE_lattice_deform_coords(Object *laOb,
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.min_iter_per_thread = 32;
-  BLI_task_parallel_range(0, numVerts, &data, lattice_deform_vert_task, &settings);
+  BLI_task_parallel_range(0, vert_coords_len, &data, lattice_deform_vert_task, &settings);
 
   end_latt_deform(lattice_deform_data);
 }
+
+void BKE_lattice_deform_coords(Object *ob_lattice,
+                               Object *ob_target,
+                               float (*vert_coords)[3],
+                               int vert_coords_len,
+                               short flag,
+                               const char *defgrp_name,
+                               float fac)
+{
+  lattice_deform_coords_impl(
+      ob_lattice, ob_target, vert_coords, vert_coords_len, flag, defgrp_name, fac, NULL);
+}
+
+void BKE_lattice_deform_coords_with_mesh(Object *ob_lattice,
+                                         Object *ob_target,
+                                         float (*vert_coords)[3],
+                                         const int vert_coords_len,
+                                         const short flag,
+                                         const char *defgrp_name,
+                                         const float fac,
+                                         const Mesh *me_target)
+{
+  lattice_deform_coords_impl(
+      ob_lattice, ob_target, vert_coords, vert_coords_len, flag, defgrp_name, fac, me_target);
+}
+
+/** \} */
 
 bool object_deform_mball(Object *ob, ListBase *dispbase)
 {
@@ -993,8 +1044,7 @@ bool object_deform_mball(Object *ob, ListBase *dispbase)
     DispList *dl;
 
     for (dl = dispbase->first; dl; dl = dl->next) {
-      BKE_lattice_deform_coords(
-          ob->parent, ob, NULL, (float(*)[3])dl->verts, dl->nr, 0, NULL, 1.0f);
+      BKE_lattice_deform_coords(ob->parent, ob, (float(*)[3])dl->verts, dl->nr, 0, NULL, 1.0f);
     }
 
     return true;
