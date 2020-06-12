@@ -108,7 +108,8 @@ PartDeflect *BKE_partdeflect_new(int type)
       break;
     case PFIELD_WIND:
       pd->shape = PFIELD_SHAPE_PLANE;
-      pd->f_flow = 1.0f; /* realistic wind behavior */
+      pd->f_flow = 1.0f;        /* realistic wind behavior */
+      pd->f_wind_factor = 1.0f; /* only act perpendicularly to a surface */
       break;
     case PFIELD_TEXTURE:
       pd->f_size = 1.0f;
@@ -1072,7 +1073,8 @@ static void do_physical_effector(EffectorCache *eff,
  * scene       = scene where it runs in, for time and stuff
  * lb           = listbase with objects that take part in effecting
  * opco     = global coord, as input
- * force        = force accumulator
+ * force        = accumulator for force
+ * wind_force   = accumulator for force only acting perpendicular to a surface
  * speed        = actual current speed which can be altered
  * cur_time = "external" time in frames, is constant for static particles
  * loc_time = "local" time in frames, range <0-1> for the lifetime of particle
@@ -1085,6 +1087,7 @@ void BKE_effectors_apply(ListBase *effectors,
                          EffectorWeights *weights,
                          EffectedPoint *point,
                          float *force,
+                         float *wind_force,
                          float *impulse)
 {
   /*
@@ -1120,22 +1123,27 @@ void BKE_effectors_apply(ListBase *effectors,
           if (efd.falloff > 0.0f) {
             efd.falloff *= eff_calc_visibility(colliders, eff, &efd, point);
           }
-          if (efd.falloff <= 0.0f) {
-            /* don't do anything */
-          }
-          else if (eff->pd->forcefield == PFIELD_TEXTURE) {
-            do_texture_effector(eff, &efd, point, force);
-          }
-          else {
-            float temp1[3] = {0, 0, 0}, temp2[3];
-            copy_v3_v3(temp1, force);
+          if (efd.falloff > 0.0f) {
+            float out_force[3] = {0, 0, 0};
 
-            do_physical_effector(eff, &efd, point, force);
+            if (eff->pd->forcefield == PFIELD_TEXTURE) {
+              do_texture_effector(eff, &efd, point, out_force);
+            }
+            else {
+              do_physical_effector(eff, &efd, point, out_force);
 
-            /* for softbody backward compatibility */
-            if (point->flag & PE_WIND_AS_SPEED && impulse) {
-              sub_v3_v3v3(temp2, force, temp1);
-              sub_v3_v3v3(impulse, impulse, temp2);
+              /* for softbody backward compatibility */
+              if (point->flag & PE_WIND_AS_SPEED && impulse) {
+                sub_v3_v3v3(impulse, impulse, out_force);
+              }
+            }
+
+            if (wind_force) {
+              madd_v3_v3fl(force, out_force, 1.0f - eff->pd->f_wind_factor);
+              madd_v3_v3fl(wind_force, out_force, eff->pd->f_wind_factor);
+            }
+            else {
+              add_v3_v3(force, out_force);
             }
           }
         }

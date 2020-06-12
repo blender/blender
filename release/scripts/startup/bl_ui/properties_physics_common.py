@@ -330,6 +330,7 @@ def basic_force_field_settings_ui(self, field):
         col.prop(field, "use_gravity_falloff", text="Gravitation")
 
     col.prop(field, "use_absorption")
+    col.prop(field, "wind_factor")
 
 
 def basic_force_field_falloff_ui(self, field):

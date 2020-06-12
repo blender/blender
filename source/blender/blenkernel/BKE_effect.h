@@ -130,6 +130,7 @@ void BKE_effectors_apply(struct ListBase *effectors,
                          struct EffectorWeights *weights,
                          struct EffectedPoint *point,
                          float *force,
+                         float *wind_force,
                          float *impulse);
 void BKE_effectors_free(struct ListBase *lb);
 

@@ -1647,7 +1647,7 @@ static void rigidbody_update_sim_ob(
       /* Calculate net force of effectors, and apply to sim object:
        * - we use 'central force' since apply force requires a "relative position"
        *   which we don't have... */
-      BKE_effectors_apply(effectors, NULL, effector_weights, &epoint, eff_force, NULL);
+      BKE_effectors_apply(effectors, NULL, effector_weights, &epoint, eff_force, NULL, NULL);
       if (G.f & G_DEBUG) {
         printf("\tapplying force (%f,%f,%f) to '%s'\n",
                eff_force[0],

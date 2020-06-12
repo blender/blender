@@ -683,23 +683,42 @@ static void cloth_calc_force(
 
   /* handle external forces like wind */
   if (effectors) {
+    bool is_not_hair = (clmd->hairdata == NULL) && (cloth->primitive_num > 0);
+    bool has_wind = false, has_force = false;
+
     /* cache per-vertex forces to avoid redundant calculation */
-    float(*winvec)[3] = (float(*)[3])MEM_callocN(sizeof(float[3]) * mvert_num, "effector forces");
+    float(*winvec)[3] = (float(*)[3])MEM_callocN(sizeof(float[3]) * mvert_num * 2,
+                                                 "effector forces");
+    float(*forcevec)[3] = is_not_hair ? winvec + mvert_num : winvec;
+
     for (i = 0; i < cloth->mvert_num; i++) {
       float x[3], v[3];
       EffectedPoint epoint;
 
       BPH_mass_spring_get_motion_state(data, i, x, v);
       pd_point_from_loc(scene, x, v, i, &epoint);
-      BKE_effectors_apply(
-          effectors, NULL, clmd->sim_parms->effector_weights, &epoint, winvec[i], NULL);
+      BKE_effectors_apply(effectors,
+                          NULL,
+                          clmd->sim_parms->effector_weights,
+                          &epoint,
+                          forcevec[i],
+                          winvec[i],
+                          NULL);
+
+      has_wind = has_wind || !is_zero_v3(winvec[i]);
+      has_force = has_force || !is_zero_v3(forcevec[i]);
     }
 
     /* Hair has only edges. */
-    if ((clmd->hairdata == NULL) && (cloth->primitive_num > 0)) {
+    if (is_not_hair) {
       for (i = 0; i < cloth->primitive_num; i++) {
         const MVertTri *vt = &tri[i];
-        BPH_mass_spring_force_face_wind(data, vt->tri[0], vt->tri[1], vt->tri[2], winvec);
+        if (has_wind) {
+          BPH_mass_spring_force_face_wind(data, vt->tri[0], vt->tri[1], vt->tri[2], winvec);
+        }
+        if (has_force) {
+          BPH_mass_spring_force_face_extern(data, vt->tri[0], vt->tri[1], vt->tri[2], forcevec);
+        }
       }
     }
     else {

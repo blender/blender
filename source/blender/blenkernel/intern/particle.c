@@ -2262,6 +2262,7 @@ static void do_path_effectors(ParticleSimulationData *sim,
                       sim->psys->part->effector_weights,
                       &epoint,
                       force,
+                      NULL,
                       NULL);
 
   mul_v3_fl(force,

@@ -1388,6 +1388,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
                       bbd->part->effector_weights,
                       &epoint,
                       force,
+                      NULL,
                       NULL);
 
   if (ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing)) {

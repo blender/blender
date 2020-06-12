@@ -1469,22 +1469,71 @@ void BPH_mass_spring_force_face_wind(
     Implicit_Data *data, int v1, int v2, int v3, const float (*winvec)[3])
 {
   const float effector_scale = 0.02f;
+  int vs[3] = {v1, v2, v3};
   float win[3], nor[3], area;
-  float factor;
+  float factor, base_force;
+  float force[3];
 
   /* calculate face normal and area */
   area = calc_nor_area_tri(nor, data->X[v1], data->X[v2], data->X[v3]);
   /* The force is calculated and split up evenly for each of the three face verts */
   factor = effector_scale * area / 3.0f;
 
-  world_to_root_v3(data, v1, win, winvec[v1]);
-  madd_v3_v3fl(data->F[v1], nor, factor * dot_v3v3(win, nor));
+  /* Calculate wind pressure at each vertex by projecting the wind field on the normal. */
+  for (int i = 0; i < 3; i++) {
+    world_to_root_v3(data, vs[i], win, winvec[vs[i]]);
 
-  world_to_root_v3(data, v2, win, winvec[v2]);
-  madd_v3_v3fl(data->F[v2], nor, factor * dot_v3v3(win, nor));
+    force[i] = dot_v3v3(win, nor);
+  }
 
-  world_to_root_v3(data, v3, win, winvec[v3]);
-  madd_v3_v3fl(data->F[v3], nor, factor * dot_v3v3(win, nor));
+  /* Compute per-vertex force values from local pressures.
+   * From integrating the pressure over the triangle and deriving
+   * equivalent vertex forces, it follows that:
+   *
+   * force[idx] = (sum(pressure) + pressure[idx]) * area / 12
+   *
+   * Effectively, 1/4 of the pressure acts just on its vertex,
+   * while 3/4 is split evenly over all three.
+   */
+  mul_v3_fl(force, factor / 4.0f);
+
+  base_force = force[0] + force[1] + force[2];
+
+  /* add pressure to each of the face verts */
+  madd_v3_v3fl(data->F[v1], nor, base_force + force[0]);
+  madd_v3_v3fl(data->F[v2], nor, base_force + force[1]);
+  madd_v3_v3fl(data->F[v3], nor, base_force + force[2]);
+}
+
+void BPH_mass_spring_force_face_extern(
+    Implicit_Data *data, int v1, int v2, int v3, const float (*forcevec)[3])
+{
+  const float effector_scale = 0.02f;
+  int vs[3] = {v1, v2, v3};
+  float nor[3], area;
+  float factor, base_force[3];
+  float force[3][3];
+
+  /* calculate face normal and area */
+  area = calc_nor_area_tri(nor, data->X[v1], data->X[v2], data->X[v3]);
+  /* The force is calculated and split up evenly for each of the three face verts */
+  factor = effector_scale * area / 3.0f;
+
+  /* Compute common and per-vertex force vectors from the original inputs. */
+  zero_v3(base_force);
+
+  for (int i = 0; i < 3; i++) {
+    world_to_root_v3(data, vs[i], force[i], forcevec[vs[i]]);
+
+    mul_v3_fl(force[i], factor / 4.0f);
+    add_v3_v3(base_force, force[i]);
+  }
+
+  /* Apply the common and vertex components to all vertices. */
+  for (int i = 0; i < 3; i++) {
+    add_v3_v3(force[i], base_force);
+    add_v3_v3(data->F[vs[i]], force[i]);
+  }
 }
 
 float BPH_tri_tetra_volume_signed_6x(Implicit_Data *data, int v1, int v2, int v3)

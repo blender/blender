@@ -5112,7 +5112,7 @@ static void dynamic_paint_prepare_effect_cb(void *__restrict userdata,
     EffectedPoint epoint;
     pd_point_from_loc(scene, realCoord[bData->s_pos[index]].v, vel, index, &epoint);
     epoint.vel_to_sec = 1.0f;
-    BKE_effectors_apply(effectors, NULL, surface->effector_weights, &epoint, forc, NULL);
+    BKE_effectors_apply(effectors, NULL, surface->effector_weights, &epoint, forc, NULL, NULL);
   }
 
   /* if global gravity is enabled, add it too */
