@@ -9,7 +9,7 @@
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-using namespace blender;
+namespace blender {
 
 TEST(set, DefaultConstructor)
 {
@@ -290,7 +290,7 @@ bool operator==(const Type2 &a, const Type1 &b)
   return a.value == b.value;
 }
 
-template<> struct blender::DefaultHash<Type1> {
+template<> struct DefaultHash<Type1> {
   uint32_t operator()(const Type1 &value) const
   {
     return value.value;
@@ -511,3 +511,5 @@ TEST(set, Benchmark)
  */
 
 #endif /* Benchmark */
+
+}  // namespace blender
