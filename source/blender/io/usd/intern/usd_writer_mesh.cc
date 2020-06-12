@@ -335,6 +335,7 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
    * which is why we always bind the first material to the entire mesh. See
    * https://github.com/PixarAnimationStudios/USD/issues/542 for more info. */
   bool mesh_material_bound = false;
+  pxr::UsdShadeMaterialBindingAPI material_binding_api(usd_mesh.GetPrim());
   for (short mat_num = 0; mat_num < context.object->totcol; mat_num++) {
     Material *material = BKE_object_material_get(context.object, mat_num + 1);
     if (material == nullptr) {
@@ -342,7 +343,7 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
     }
 
     pxr::UsdShadeMaterial usd_material = ensure_usd_material(material);
-    usd_material.Bind(usd_mesh.GetPrim());
+    material_binding_api.Bind(usd_material);
 
     /* USD seems to support neither per-material nor per-face-group double-sidedness, so we just
      * use the flag from the first non-empty material slot. */
@@ -378,9 +379,9 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
     pxr::UsdShadeMaterial usd_material = ensure_usd_material(material);
     pxr::TfToken material_name = usd_material.GetPath().GetNameToken();
 
-    pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(usd_mesh);
-    pxr::UsdGeomSubset usd_face_subset = api.CreateMaterialBindSubset(material_name, face_indices);
-    usd_material.Bind(usd_face_subset.GetPrim());
+    pxr::UsdGeomSubset usd_face_subset = material_binding_api.CreateMaterialBindSubset(
+        material_name, face_indices);
+    pxr::UsdShadeMaterialBindingAPI(usd_face_subset.GetPrim()).Bind(usd_material);
   }
 }
 
