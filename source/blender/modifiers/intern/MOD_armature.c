@@ -163,62 +163,47 @@ static void deformVerts(ModifierData *md,
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
                           struct BMEditMesh *em,
-                          Mesh *mesh,
+                          Mesh *UNUSED(mesh),
                           float (*vertexCos)[3],
                           int numVerts)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, numVerts, false, false);
-
-  /* TODO(Campbell): use edit-mode data only (remove this line). */
-  if (mesh_src != NULL) {
-    BKE_mesh_wrapper_ensure_mdata(mesh_src);
-  }
 
   MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
-  BKE_armature_deform_coords_with_mesh(amd->object,
-                                       ctx->object,
-                                       vertexCos,
-                                       NULL,
-                                       numVerts,
-                                       amd->deformflag,
-                                       amd->vert_coords_prev,
-                                       amd->defgrp_name,
-                                       mesh_src);
+  BKE_armature_deform_coords_with_editmesh(amd->object,
+                                           ctx->object,
+                                           vertexCos,
+                                           NULL,
+                                           numVerts,
+                                           amd->deformflag,
+                                           amd->vert_coords_prev,
+                                           amd->defgrp_name,
+                                           em);
 
   /* free cache */
   MEM_SAFE_FREE(amd->vert_coords_prev);
-
-  if (mesh_src != mesh) {
-    BKE_id_free(NULL, mesh_src);
-  }
 }
 
 static void deformMatricesEM(ModifierData *md,
                              const ModifierEvalContext *ctx,
                              struct BMEditMesh *em,
-                             Mesh *mesh,
+                             Mesh *UNUSED(mesh),
                              float (*vertexCos)[3],
                              float (*defMats)[3][3],
                              int numVerts)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, numVerts, false, false);
 
-  BKE_armature_deform_coords_with_mesh(amd->object,
-                                       ctx->object,
-                                       vertexCos,
-                                       defMats,
-                                       numVerts,
-                                       amd->deformflag,
-                                       NULL,
-                                       amd->defgrp_name,
-                                       mesh_src);
-
-  if (mesh_src != mesh) {
-    BKE_id_free(NULL, mesh_src);
-  }
+  BKE_armature_deform_coords_with_editmesh(amd->object,
+                                           ctx->object,
+                                           vertexCos,
+                                           defMats,
+                                           numVerts,
+                                           amd->deformflag,
+                                           NULL,
+                                           amd->defgrp_name,
+                                           em);
 }
 
 static void deformMatrices(ModifierData *md,

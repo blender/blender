@@ -28,6 +28,7 @@
 extern "C" {
 #endif
 
+struct BMEditMesh;
 struct Bone;
 struct Depsgraph;
 struct ListBase;
@@ -370,6 +371,16 @@ void BKE_armature_deform_coords_with_mesh(struct Object *ob_arm,
                                           float (*vert_coords_prev)[3],
                                           const char *defgrp_name,
                                           const struct Mesh *me_target);
+
+void BKE_armature_deform_coords_with_editmesh(struct Object *ob_arm,
+                                              struct Object *ob_target,
+                                              float (*vert_coords)[3],
+                                              float (*vert_deform_mats)[3][3],
+                                              int vert_coords_len,
+                                              int deformflag,
+                                              float (*vert_coords_prev)[3],
+                                              const char *defgrp_name,
+                                              struct BMEditMesh *em_target);
 
 /** \} */
 

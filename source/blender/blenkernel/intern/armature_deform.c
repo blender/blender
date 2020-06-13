@@ -48,6 +48,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_deform.h"
+#include "BKE_editmesh.h"
 #include "BKE_lattice.h"
 
 #include "DEG_depsgraph_build.h"
@@ -261,13 +262,17 @@ typedef struct ArmatureUserdata {
 
   float premat[4][4];
   float postmat[4][4];
+
+  /** Specific data types. */
+  struct {
+    int cd_dvert_offset;
+  } bmesh;
 } ArmatureUserdata;
 
-static void armature_vert_task(void *__restrict userdata,
-                               const int i,
-                               const TaskParallelTLS *__restrict UNUSED(tls))
+static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
+                                          const int i,
+                                          const MDeformVert *dvert)
 {
-  const ArmatureUserdata *data = userdata;
   float(*const vert_coords)[3] = data->vert_coords;
   float(*const vert_deform_mats)[3][3] = data->vert_deform_mats;
   float(*const vert_coords_prev)[3] = data->vert_coords_prev;
@@ -276,7 +281,6 @@ static void armature_vert_task(void *__restrict userdata,
   const bool use_dverts = data->use_dverts;
   const int armature_def_nr = data->armature_def_nr;
 
-  const MDeformVert *dvert;
   DualQuat sumdq, *dq = NULL;
   bPoseChannel *pchan;
   float *co, dco[3];
@@ -298,27 +302,6 @@ static void armature_vert_task(void *__restrict userdata,
       zero_m3(summat);
       smat = summat;
     }
-  }
-
-  if (use_dverts || armature_def_nr != -1) {
-    if (data->me_target) {
-      BLI_assert(i < data->me_target->totvert);
-      if (data->me_target->dvert != NULL) {
-        dvert = data->me_target->dvert + i;
-      }
-      else {
-        dvert = NULL;
-      }
-    }
-    else if (data->dverts && i < data->dverts_len) {
-      dvert = data->dverts + i;
-    }
-    else {
-      dvert = NULL;
-    }
-  }
-  else {
-    dvert = NULL;
   }
 
   if (armature_def_nr != -1 && dvert) {
@@ -434,6 +417,51 @@ static void armature_vert_task(void *__restrict userdata,
   }
 }
 
+static void armature_vert_task(void *__restrict userdata,
+                               const int i,
+                               const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  const ArmatureUserdata *data = userdata;
+  const MDeformVert *dvert;
+  if (data->use_dverts || data->armature_def_nr != -1) {
+    if (data->me_target) {
+      BLI_assert(i < data->me_target->totvert);
+      if (data->me_target->dvert != NULL) {
+        dvert = data->me_target->dvert + i;
+      }
+      else {
+        dvert = NULL;
+      }
+    }
+    else if (data->dverts && i < data->dverts_len) {
+      dvert = data->dverts + i;
+    }
+    else {
+      dvert = NULL;
+    }
+  }
+  else {
+    dvert = NULL;
+  }
+
+  armature_vert_task_with_dvert(data, i, dvert);
+}
+
+static void armature_vert_task_editmesh(void *__restrict userdata, MempoolIterData *iter)
+{
+  const ArmatureUserdata *data = userdata;
+  BMVert *v = (BMVert *)iter;
+  MDeformVert *dvert = BM_ELEM_CD_GET_VOID_P(v, data->bmesh.cd_dvert_offset);
+  armature_vert_task_with_dvert(data, BM_elem_index_get(v), dvert);
+}
+
+static void armature_vert_task_editmesh_no_dvert(void *__restrict userdata, MempoolIterData *iter)
+{
+  const ArmatureUserdata *data = userdata;
+  BMVert *v = (BMVert *)iter;
+  armature_vert_task_with_dvert(data, BM_elem_index_get(v), NULL);
+}
+
 static void armature_deform_coords_impl(Object *ob_arm,
                                         Object *ob_target,
                                         float (*vert_coords)[3],
@@ -443,6 +471,7 @@ static void armature_deform_coords_impl(Object *ob_arm,
                                         float (*vert_coords_prev)[3],
                                         const char *defgrp_name,
                                         const Mesh *me_target,
+                                        BMEditMesh *em_target,
                                         bGPDstroke *gps_target)
 {
   bArmature *arm = ob_arm->data;
@@ -456,6 +485,7 @@ static void armature_deform_coords_impl(Object *ob_arm,
   int i, dverts_len = 0; /* safety for vertexgroup overflow */
   bool use_dverts = false;
   int armature_def_nr;
+  int cd_dvert_offset = -1;
 
   /* in editmode, or not an armature */
   if (arm->edbo || (ob_arm->pose == NULL)) {
@@ -476,10 +506,12 @@ static void armature_deform_coords_impl(Object *ob_arm,
     defbase_len = BLI_listbase_count(&ob_target->defbase);
 
     if (ob_target->type == OB_MESH) {
-      Mesh *me = ob_target->data;
-      dverts = me->dvert;
-      if (dverts) {
-        dverts_len = me->totvert;
+      if (em_target == NULL) {
+        Mesh *me = ob_target->data;
+        dverts = me->dvert;
+        if (dverts) {
+          dverts_len = me->totvert;
+        }
       }
     }
     else if (ob_target->type == OB_LATTICE) {
@@ -501,7 +533,11 @@ static void armature_deform_coords_impl(Object *ob_arm,
   if (deformflag & ARM_DEF_VGROUP) {
     if (ELEM(ob_target->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
       /* if we have a Mesh, only use dverts if it has them */
-      if (me_target) {
+      if (em_target) {
+        cd_dvert_offset = CustomData_get_offset(&em_target->bm->vdata, CD_MDEFORMVERT);
+        use_dverts = (cd_dvert_offset != -1);
+      }
+      else if (me_target) {
         use_dverts = (me_target->dvert != NULL);
       }
       else if (dverts) {
@@ -543,6 +579,10 @@ static void armature_deform_coords_impl(Object *ob_arm,
       .dverts_len = dverts_len,
       .pchan_from_defbase = pchan_from_defbase,
       .defbase_len = defbase_len,
+      .bmesh =
+          {
+              .cd_dvert_offset = cd_dvert_offset,
+          },
   };
 
   float obinv[4][4];
@@ -551,10 +591,25 @@ static void armature_deform_coords_impl(Object *ob_arm,
   mul_m4_m4m4(data.postmat, obinv, ob_arm->obmat);
   invert_m4_m4(data.premat, data.postmat);
 
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-  settings.min_iter_per_thread = 32;
-  BLI_task_parallel_range(0, vert_coords_len, &data, armature_vert_task, &settings);
+  if (em_target != NULL) {
+    /* While this could cause an extra loop over mesh data, in most cases this will
+     * have already been properly set. */
+    BM_mesh_elem_index_ensure(em_target->bm, BM_VERT);
+
+    if (use_dverts) {
+      BLI_task_parallel_mempool(em_target->bm->vpool, &data, armature_vert_task_editmesh, true);
+    }
+    else {
+      BLI_task_parallel_mempool(
+          em_target->bm->vpool, &data, armature_vert_task_editmesh_no_dvert, true);
+    }
+  }
+  else {
+    TaskParallelSettings settings;
+    BLI_parallel_range_settings_defaults(&settings);
+    settings.min_iter_per_thread = 32;
+    BLI_task_parallel_range(0, vert_coords_len, &data, armature_vert_task, &settings);
+  }
 
   if (pchan_from_defbase) {
     MEM_freeN(pchan_from_defbase);
@@ -580,6 +635,7 @@ void BKE_armature_deform_coords_with_gpencil_stroke(Object *ob_arm,
                               vert_coords_prev,
                               defgrp_name,
                               NULL,
+                              NULL,
                               gps_target);
 }
 
@@ -602,6 +658,30 @@ void BKE_armature_deform_coords_with_mesh(Object *ob_arm,
                               vert_coords_prev,
                               defgrp_name,
                               me_target,
+                              NULL,
+                              NULL);
+}
+
+void BKE_armature_deform_coords_with_editmesh(Object *ob_arm,
+                                              Object *ob_target,
+                                              float (*vert_coords)[3],
+                                              float (*vert_deform_mats)[3][3],
+                                              int vert_coords_len,
+                                              int deformflag,
+                                              float (*vert_coords_prev)[3],
+                                              const char *defgrp_name,
+                                              BMEditMesh *em_target)
+{
+  armature_deform_coords_impl(ob_arm,
+                              ob_target,
+                              vert_coords,
+                              vert_deform_mats,
+                              vert_coords_len,
+                              deformflag,
+                              vert_coords_prev,
+                              defgrp_name,
+                              NULL,
+                              em_target,
                               NULL);
 }
 

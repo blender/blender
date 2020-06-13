@@ -37,6 +37,7 @@
 
 #include "BKE_anim_path.h"
 #include "BKE_curve.h"
+#include "BKE_editmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_modifier.h"
 
@@ -248,20 +249,23 @@ static bool calc_curve_deform(
  * #BKE_curve_deform and related functions.
  * \{ */
 
-void BKE_curve_deform_coords(Object *ob_curve,
-                             Object *ob_target,
-                             float (*vert_coords)[3],
-                             const int vert_coords_len,
-                             const MDeformVert *dvert,
-                             const int defgrp_index,
-                             const short flag,
-                             const short defaxis)
+static void curve_deform_coords_impl(Object *ob_curve,
+                                     Object *ob_target,
+                                     float (*vert_coords)[3],
+                                     const int vert_coords_len,
+                                     const MDeformVert *dvert,
+                                     const int defgrp_index,
+                                     const short flag,
+                                     const short defaxis,
+                                     BMEditMesh *em_target)
 {
   Curve *cu;
   int a;
   CurveDeform cd;
   const bool is_neg_axis = (defaxis > 2);
   const bool invert_vgroup = (flag & MOD_CURVE_INVERT_VGROUP) != 0;
+  bool use_dverts = false;
+  int cd_dvert_offset;
 
   if (ob_curve->type != OB_CURVE) {
     return;
@@ -271,64 +275,124 @@ void BKE_curve_deform_coords(Object *ob_curve,
 
   init_curve_deform(ob_curve, ob_target, &cd);
 
-  /* dummy bounds, keep if CU_DEFORM_BOUNDS_OFF is set */
-  if (is_neg_axis == false) {
-    cd.dmin[0] = cd.dmin[1] = cd.dmin[2] = 0.0f;
-    cd.dmax[0] = cd.dmax[1] = cd.dmax[2] = 1.0f;
-  }
-  else {
-    /* negative, these bounds give a good rest position */
-    cd.dmin[0] = cd.dmin[1] = cd.dmin[2] = -1.0f;
-    cd.dmax[0] = cd.dmax[1] = cd.dmax[2] = 0.0f;
-  }
-
-  if (dvert) {
-    const MDeformVert *dvert_iter;
-    float vec[3];
-
-    if (cu->flag & CU_DEFORM_BOUNDS_OFF) {
-      for (a = 0, dvert_iter = dvert; a < vert_coords_len; a++, dvert_iter++) {
-        const float weight = invert_vgroup ?
-                                 1.0f - BKE_defvert_find_weight(dvert_iter, defgrp_index) :
-                                 BKE_defvert_find_weight(dvert_iter, defgrp_index);
-
-        if (weight > 0.0f) {
-          mul_m4_v3(cd.curvespace, vert_coords[a]);
-          copy_v3_v3(vec, vert_coords[a]);
-          calc_curve_deform(ob_curve, vec, defaxis, &cd, NULL);
-          interp_v3_v3v3(vert_coords[a], vert_coords[a], vec, weight);
-          mul_m4_v3(cd.objectspace, vert_coords[a]);
-        }
-      }
+  if (cu->flag & CU_DEFORM_BOUNDS_OFF) {
+    /* Dummy bounds. */
+    if (is_neg_axis == false) {
+      cd.dmin[0] = cd.dmin[1] = cd.dmin[2] = 0.0f;
+      cd.dmax[0] = cd.dmax[1] = cd.dmax[2] = 1.0f;
     }
     else {
-      /* set mesh min/max bounds */
-      INIT_MINMAX(cd.dmin, cd.dmax);
+      /* Negative, these bounds give a good rest position. */
+      cd.dmin[0] = cd.dmin[1] = cd.dmin[2] = -1.0f;
+      cd.dmax[0] = cd.dmax[1] = cd.dmax[2] = 0.0f;
+    }
+  }
+  else {
+    /* Set mesh min/max bounds. */
+    INIT_MINMAX(cd.dmin, cd.dmax);
+  }
 
-      for (a = 0, dvert_iter = dvert; a < vert_coords_len; a++, dvert_iter++) {
-        const float weight = invert_vgroup ?
-                                 1.0f - BKE_defvert_find_weight(dvert_iter, defgrp_index) :
-                                 BKE_defvert_find_weight(dvert_iter, defgrp_index);
-        if (weight > 0.0f) {
-          mul_m4_v3(cd.curvespace, vert_coords[a]);
-          minmax_v3v3_v3(cd.dmin, cd.dmax, vert_coords[a]);
+  if (em_target != NULL) {
+    cd_dvert_offset = CustomData_get_offset(&em_target->bm->vdata, CD_MDEFORMVERT);
+    if (cd_dvert_offset != -1) {
+      use_dverts = true;
+    }
+  }
+  else {
+    if (dvert != NULL) {
+      use_dverts = true;
+    }
+  }
+
+  if (use_dverts) {
+    if (cu->flag & CU_DEFORM_BOUNDS_OFF) {
+
+#define DEFORM_OP(dvert) \
+  { \
+    const float weight = invert_vgroup ? 1.0f - BKE_defvert_find_weight(dvert, defgrp_index) : \
+                                         BKE_defvert_find_weight(dvert, defgrp_index); \
+    if (weight > 0.0f) { \
+      float vec[3]; \
+      mul_m4_v3(cd.curvespace, vert_coords[a]); \
+      copy_v3_v3(vec, vert_coords[a]); \
+      calc_curve_deform(ob_curve, vec, defaxis, &cd, NULL); \
+      interp_v3_v3v3(vert_coords[a], vert_coords[a], vec, weight); \
+      mul_m4_v3(cd.objectspace, vert_coords[a]); \
+    } \
+  } \
+  ((void)0)
+
+      if (em_target != NULL) {
+        BMIter iter;
+        BMVert *v;
+        BM_ITER_MESH_INDEX (v, &iter, em_target->bm, BM_VERTS_OF_MESH, a) {
+          dvert = BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset);
+          DEFORM_OP(dvert);
+        }
+      }
+      else {
+        for (a = 0; a < vert_coords_len; a++) {
+          DEFORM_OP(&dvert[a]);
         }
       }
 
-      for (a = 0, dvert_iter = dvert; a < vert_coords_len; a++, dvert_iter++) {
-        const float weight = invert_vgroup ?
-                                 1.0f - BKE_defvert_find_weight(dvert_iter, defgrp_index) :
-                                 BKE_defvert_find_weight(dvert_iter, defgrp_index);
+#undef DEFORM_OP
+    }
+    else {
 
-        if (weight > 0.0f) {
-          /* already in 'cd.curvespace', prev for loop */
-          copy_v3_v3(vec, vert_coords[a]);
-          calc_curve_deform(ob_curve, vec, defaxis, &cd, NULL);
-          interp_v3_v3v3(vert_coords[a], vert_coords[a], vec, weight);
-          mul_m4_v3(cd.objectspace, vert_coords[a]);
+#define DEFORM_OP_MINMAX(dvert) \
+  { \
+    const float weight = invert_vgroup ? 1.0f - BKE_defvert_find_weight(dvert, defgrp_index) : \
+                                         BKE_defvert_find_weight(dvert, defgrp_index); \
+    if (weight > 0.0f) { \
+      mul_m4_v3(cd.curvespace, vert_coords[a]); \
+      minmax_v3v3_v3(cd.dmin, cd.dmax, vert_coords[a]); \
+    } \
+  } \
+  ((void)0)
+
+      /* already in 'cd.curvespace', prev for loop */
+#define DEFORM_OP_CLAMPED(dvert) \
+  { \
+    const float weight = invert_vgroup ? 1.0f - BKE_defvert_find_weight(dvert, defgrp_index) : \
+                                         BKE_defvert_find_weight(dvert, defgrp_index); \
+    if (weight > 0.0f) { \
+      float vec[3]; \
+      copy_v3_v3(vec, vert_coords[a]); \
+      calc_curve_deform(ob_curve, vec, defaxis, &cd, NULL); \
+      interp_v3_v3v3(vert_coords[a], vert_coords[a], vec, weight); \
+      mul_m4_v3(cd.objectspace, vert_coords[a]); \
+    } \
+  } \
+  ((void)0)
+
+      if (em_target != NULL) {
+        BMIter iter;
+        BMVert *v;
+        BM_ITER_MESH_INDEX (v, &iter, em_target->bm, BM_VERTS_OF_MESH, a) {
+          dvert = BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset);
+          DEFORM_OP_MINMAX(dvert);
+        }
+
+        BM_ITER_MESH_INDEX (v, &iter, em_target->bm, BM_VERTS_OF_MESH, a) {
+          dvert = BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset);
+          DEFORM_OP_CLAMPED(dvert);
+        }
+      }
+      else {
+
+        for (a = 0; a < vert_coords_len; a++) {
+          DEFORM_OP_MINMAX(&dvert[a]);
+        }
+
+        for (a = 0; a < vert_coords_len; a++) {
+          DEFORM_OP_CLAMPED(&dvert[a]);
         }
       }
     }
+
+#undef DEFORM_OP_MINMAX
+#undef DEFORM_OP_CLAMPED
   }
   else {
     if (cu->flag & CU_DEFORM_BOUNDS_OFF) {
@@ -339,9 +403,6 @@ void BKE_curve_deform_coords(Object *ob_curve,
       }
     }
     else {
-      /* set mesh min max bounds */
-      INIT_MINMAX(cd.dmin, cd.dmax);
-
       for (a = 0; a < vert_coords_len; a++) {
         mul_m4_v3(cd.curvespace, vert_coords[a]);
         minmax_v3v3_v3(cd.dmin, cd.dmax, vert_coords[a]);
@@ -354,6 +415,39 @@ void BKE_curve_deform_coords(Object *ob_curve,
       }
     }
   }
+}
+
+void BKE_curve_deform_coords(Object *ob_curve,
+                             Object *ob_target,
+                             float (*vert_coords)[3],
+                             const int vert_coords_len,
+                             const MDeformVert *dvert,
+                             const int defgrp_index,
+                             const short flag,
+                             const short defaxis)
+{
+  curve_deform_coords_impl(
+      ob_curve, ob_target, vert_coords, vert_coords_len, dvert, defgrp_index, flag, defaxis, NULL);
+}
+
+void BKE_curve_deform_coords_with_editmesh(Object *ob_curve,
+                                           Object *ob_target,
+                                           float (*vert_coords)[3],
+                                           const int vert_coords_len,
+                                           const int defgrp_index,
+                                           const short flag,
+                                           const short defaxis,
+                                           BMEditMesh *em_target)
+{
+  curve_deform_coords_impl(ob_curve,
+                           ob_target,
+                           vert_coords,
+                           vert_coords_len,
+                           NULL,
+                           defgrp_index,
+                           flag,
+                           defaxis,
+                           em_target);
 }
 
 /* input vec and orco = local coord in armature space */

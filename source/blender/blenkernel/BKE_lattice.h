@@ -30,6 +30,7 @@
 extern "C" {
 #endif
 
+struct BMEditMesh;
 struct BPoint;
 struct Depsgraph;
 struct Lattice;
@@ -123,6 +124,15 @@ void BKE_lattice_deform_coords_with_mesh(struct Object *ob_lattice,
                                          const char *defgrp_name,
                                          const float influence,
                                          const struct Mesh *me_target);
+
+void BKE_lattice_deform_coords_with_editmesh(struct Object *ob_lattice,
+                                             struct Object *ob_target,
+                                             float (*vert_coords)[3],
+                                             const int vert_coords_len,
+                                             const short flag,
+                                             const char *defgrp_name,
+                                             const float influence,
+                                             struct BMEditMesh *em_target);
 /** \} */
 
 #ifdef __cplusplus

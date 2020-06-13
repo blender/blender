@@ -42,6 +42,7 @@
 
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_editmesh.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_modifier.h"
@@ -283,19 +284,21 @@ typedef struct LatticeDeformUserdata {
   int defgrp_index;
   float fac;
   bool invert_vgroup;
+
+  /** Specific data types. */
+  struct {
+    int cd_dvert_offset;
+  } bmesh;
 } LatticeDeformUserdata;
 
-static void lattice_deform_vert_task(void *__restrict userdata,
-                                     const int index,
-                                     const TaskParallelTLS *__restrict UNUSED(tls))
+static void lattice_deform_vert_with_dvert(const LatticeDeformUserdata *data,
+                                           const int index,
+                                           const MDeformVert *dvert)
 {
-  const LatticeDeformUserdata *data = userdata;
-
-  if (data->dvert != NULL) {
+  if (dvert != NULL) {
     const float weight = data->invert_vgroup ?
-                             1.0f -
-                                 BKE_defvert_find_weight(data->dvert + index, data->defgrp_index) :
-                             BKE_defvert_find_weight(data->dvert + index, data->defgrp_index);
+                             1.0f - BKE_defvert_find_weight(dvert, data->defgrp_index) :
+                             BKE_defvert_find_weight(dvert, data->defgrp_index);
     if (weight > 0.0f) {
       calc_latt_deform(data->lattice_deform_data, data->vert_coords[index], weight * data->fac);
     }
@@ -305,6 +308,29 @@ static void lattice_deform_vert_task(void *__restrict userdata,
   }
 }
 
+static void lattice_deform_vert_task(void *__restrict userdata,
+                                     const int index,
+                                     const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  const LatticeDeformUserdata *data = userdata;
+  lattice_deform_vert_with_dvert(data, index, data->dvert ? &data->dvert[index] : NULL);
+}
+
+static void lattice_vert_task_editmesh(void *__restrict userdata, MempoolIterData *iter)
+{
+  const LatticeDeformUserdata *data = userdata;
+  BMVert *v = (BMVert *)iter;
+  MDeformVert *dvert = BM_ELEM_CD_GET_VOID_P(v, data->bmesh.cd_dvert_offset);
+  lattice_deform_vert_with_dvert(data, BM_elem_index_get(v), dvert);
+}
+
+static void lattice_vert_task_editmesh_no_dvert(void *__restrict userdata, MempoolIterData *iter)
+{
+  const LatticeDeformUserdata *data = userdata;
+  BMVert *v = (BMVert *)iter;
+  lattice_deform_vert_with_dvert(data, BM_elem_index_get(v), NULL);
+}
+
 static void lattice_deform_coords_impl(Object *ob_lattice,
                                        Object *ob_target,
                                        float (*vert_coords)[3],
@@ -312,11 +338,13 @@ static void lattice_deform_coords_impl(Object *ob_lattice,
                                        const short flag,
                                        const char *defgrp_name,
                                        const float fac,
-                                       const Mesh *me_target)
+                                       const Mesh *me_target,
+                                       BMEditMesh *em_target)
 {
   LatticeDeformData *lattice_deform_data;
   const MDeformVert *dvert = NULL;
   int defgrp_index = -1;
+  int cd_dvert_offset = -1;
 
   if (ob_lattice->type != OB_LATTICE) {
     return;
@@ -332,7 +360,10 @@ static void lattice_deform_coords_impl(Object *ob_lattice,
 
     if (defgrp_index != -1) {
       /* if there's derived data without deformverts, don't use vgroups */
-      if (me_target) {
+      if (em_target) {
+        cd_dvert_offset = CustomData_get_offset(&em_target->bm->vdata, CD_MDEFORMVERT);
+      }
+      else if (me_target) {
         dvert = CustomData_get_layer(&me_target->vdata, CD_MDEFORMVERT);
       }
       else if (ob_target->type == OB_LATTICE) {
@@ -351,12 +382,31 @@ static void lattice_deform_coords_impl(Object *ob_lattice,
       .defgrp_index = defgrp_index,
       .fac = fac,
       .invert_vgroup = (flag & MOD_LATTICE_INVERT_VGROUP) != 0,
+      .bmesh =
+          {
+              .cd_dvert_offset = cd_dvert_offset,
+          },
   };
 
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-  settings.min_iter_per_thread = 32;
-  BLI_task_parallel_range(0, vert_coords_len, &data, lattice_deform_vert_task, &settings);
+  if (em_target != NULL) {
+    /* While this could cause an extra loop over mesh data, in most cases this will
+     * have already been properly set. */
+    BM_mesh_elem_index_ensure(em_target->bm, BM_VERT);
+
+    if (cd_dvert_offset != -1) {
+      BLI_task_parallel_mempool(em_target->bm->vpool, &data, lattice_vert_task_editmesh, true);
+    }
+    else {
+      BLI_task_parallel_mempool(
+          em_target->bm->vpool, &data, lattice_vert_task_editmesh_no_dvert, true);
+    }
+  }
+  else {
+    TaskParallelSettings settings;
+    BLI_parallel_range_settings_defaults(&settings);
+    settings.min_iter_per_thread = 32;
+    BLI_task_parallel_range(0, vert_coords_len, &data, lattice_deform_vert_task, &settings);
+  }
 
   end_latt_deform(lattice_deform_data);
 }
@@ -370,7 +420,7 @@ void BKE_lattice_deform_coords(Object *ob_lattice,
                                float fac)
 {
   lattice_deform_coords_impl(
-      ob_lattice, ob_target, vert_coords, vert_coords_len, flag, defgrp_name, fac, NULL);
+      ob_lattice, ob_target, vert_coords, vert_coords_len, flag, defgrp_name, fac, NULL, NULL);
 }
 
 void BKE_lattice_deform_coords_with_mesh(Object *ob_lattice,
@@ -382,8 +432,35 @@ void BKE_lattice_deform_coords_with_mesh(Object *ob_lattice,
                                          const float fac,
                                          const Mesh *me_target)
 {
-  lattice_deform_coords_impl(
-      ob_lattice, ob_target, vert_coords, vert_coords_len, flag, defgrp_name, fac, me_target);
+  lattice_deform_coords_impl(ob_lattice,
+                             ob_target,
+                             vert_coords,
+                             vert_coords_len,
+                             flag,
+                             defgrp_name,
+                             fac,
+                             me_target,
+                             NULL);
+}
+
+void BKE_lattice_deform_coords_with_editmesh(struct Object *ob_lattice,
+                                             struct Object *ob_target,
+                                             float (*vert_coords)[3],
+                                             const int vert_coords_len,
+                                             const short flag,
+                                             const char *defgrp_name,
+                                             const float influence,
+                                             struct BMEditMesh *em_target)
+{
+  lattice_deform_coords_impl(ob_lattice,
+                             ob_target,
+                             vert_coords,
+                             vert_coords_len,
+                             flag,
+                             defgrp_name,
+                             influence,
+                             NULL,
+                             em_target);
 }
 
 /** \} */

@@ -29,6 +29,7 @@
 extern "C" {
 #endif
 
+struct BMEditMesh;
 struct BezTriple;
 struct Curve;
 struct Depsgraph;
@@ -316,6 +317,16 @@ void BKE_curve_deform_coords(struct Object *ob_curve,
                              const int defgrp_index,
                              const short flag,
                              const short defaxis);
+
+void BKE_curve_deform_coords_with_editmesh(Object *ob_curve,
+                                           Object *ob_target,
+                                           float (*vert_coords)[3],
+                                           const int vert_coords_len,
+                                           const int defgrp_index,
+                                           const short flag,
+                                           const short defaxis,
+                                           struct BMEditMesh *em_target);
+
 void BKE_curve_deform_co(struct Object *ob_curve,
                          struct Object *ob_target,
                          const float orco[3],
