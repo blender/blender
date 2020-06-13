@@ -38,11 +38,11 @@ void free_path(struct Path *path);
 void calc_curvepath(struct Object *ob, struct ListBase *nurbs);
 bool where_on_path(struct Object *ob,
                    float ctime,
-                   float vec[4],
-                   float dir[3],
-                   float quat[4],
-                   float *radius,
-                   float *weight);
+                   float r_vec[4],
+                   float r_dir[3],
+                   float r_quat[4],
+                   float *r_radius,
+                   float *r_weight);
 
 #ifdef __cplusplus
 }

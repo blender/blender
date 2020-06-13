@@ -71,8 +71,12 @@ static void init_curve_deform(Object *ob_curve, Object *ob_target, CurveDeform *
  *
  * \return Success.
  */
-static bool where_on_path_deform(
-    Object *ob_curve, float ctime, float vec[4], float dir[3], float quat[4], float *radius)
+static bool where_on_path_deform(Object *ob_curve,
+                                 float ctime,
+                                 float r_vec[4],
+                                 float r_dir[3],
+                                 float r_quat[4],
+                                 float *r_radius)
 {
   BevList *bl;
   float ctime1;
@@ -95,7 +99,7 @@ static bool where_on_path_deform(
   }
 
   /* vec needs 4 items */
-  if (where_on_path(ob_curve, ctime1, vec, dir, quat, radius, NULL)) {
+  if (where_on_path(ob_curve, ctime1, r_vec, r_dir, r_quat, r_radius, NULL)) {
 
     if (cycl == 0) {
       Path *path = ob_curve->runtime.curve_cache->path;
@@ -104,23 +108,23 @@ static bool where_on_path_deform(
       if (ctime < 0.0f) {
         sub_v3_v3v3(dvec, path->data[1].vec, path->data[0].vec);
         mul_v3_fl(dvec, ctime * (float)path->len);
-        add_v3_v3(vec, dvec);
-        if (quat) {
-          copy_qt_qt(quat, path->data[0].quat);
+        add_v3_v3(r_vec, dvec);
+        if (r_quat) {
+          copy_qt_qt(r_quat, path->data[0].quat);
         }
-        if (radius) {
-          *radius = path->data[0].radius;
+        if (r_radius) {
+          *r_radius = path->data[0].radius;
         }
       }
       else if (ctime > 1.0f) {
         sub_v3_v3v3(dvec, path->data[path->len - 1].vec, path->data[path->len - 2].vec);
         mul_v3_fl(dvec, (ctime - 1.0f) * (float)path->len);
-        add_v3_v3(vec, dvec);
-        if (quat) {
-          copy_qt_qt(quat, path->data[path->len - 1].quat);
+        add_v3_v3(r_vec, dvec);
+        if (r_quat) {
+          copy_qt_qt(r_quat, path->data[path->len - 1].quat);
         }
-        if (radius) {
-          *radius = path->data[path->len - 1].radius;
+        if (r_radius) {
+          *r_radius = path->data[path->len - 1].radius;
         }
         /* weight - not used but could be added */
       }
