@@ -57,10 +57,11 @@ typedef struct {
   int no_rot_axis;
 } CurveDeform;
 
-static void init_curve_deform(Object *ob_curve, Object *ob_target, CurveDeform *cd)
+static void init_curve_deform(const Object *ob_curve, const Object *ob_target, CurveDeform *cd)
 {
-  invert_m4_m4(ob_target->imat, ob_target->obmat);
-  mul_m4_m4m4(cd->objectspace, ob_target->imat, ob_curve->obmat);
+  float imat[4][4];
+  invert_m4_m4(imat, ob_target->obmat);
+  mul_m4_m4m4(cd->objectspace, imat, ob_curve->obmat);
   invert_m4_m4(cd->curvespace, cd->objectspace);
   copy_m3_m4(cd->objectspace3, cd->objectspace);
   cd->no_rot_axis = 0;
@@ -71,7 +72,7 @@ static void init_curve_deform(Object *ob_curve, Object *ob_target, CurveDeform *
  *
  * \return Success.
  */
-static bool where_on_path_deform(Object *ob_curve,
+static bool where_on_path_deform(const Object *ob_curve,
                                  float ctime,
                                  float r_vec[4],
                                  float r_dir[3],
@@ -142,7 +143,7 @@ static bool where_on_path_deform(Object *ob_curve,
  * using #CurveDeform.no_rot_axis axis is using another define.
  */
 static bool calc_curve_deform(
-    Object *ob_curve, float co[3], const short axis, CurveDeform *cd, float r_quat[4])
+    const Object *ob_curve, float co[3], const short axis, const CurveDeform *cd, float r_quat[4])
 {
   Curve *cu = ob_curve->data;
   float fac, loc[4], dir[3], new_quat[4], radius;
@@ -257,8 +258,8 @@ static bool calc_curve_deform(
  * #BKE_curve_deform and related functions.
  * \{ */
 
-static void curve_deform_coords_impl(Object *ob_curve,
-                                     Object *ob_target,
+static void curve_deform_coords_impl(const Object *ob_curve,
+                                     const Object *ob_target,
                                      float (*vert_coords)[3],
                                      const int vert_coords_len,
                                      const MDeformVert *dvert,
@@ -425,8 +426,8 @@ static void curve_deform_coords_impl(Object *ob_curve,
   }
 }
 
-void BKE_curve_deform_coords(Object *ob_curve,
-                             Object *ob_target,
+void BKE_curve_deform_coords(const Object *ob_curve,
+                             const Object *ob_target,
                              float (*vert_coords)[3],
                              const int vert_coords_len,
                              const MDeformVert *dvert,
@@ -438,8 +439,8 @@ void BKE_curve_deform_coords(Object *ob_curve,
       ob_curve, ob_target, vert_coords, vert_coords_len, dvert, defgrp_index, flag, defaxis, NULL);
 }
 
-void BKE_curve_deform_coords_with_editmesh(Object *ob_curve,
-                                           Object *ob_target,
+void BKE_curve_deform_coords_with_editmesh(const Object *ob_curve,
+                                           const Object *ob_target,
                                            float (*vert_coords)[3],
                                            const int vert_coords_len,
                                            const int defgrp_index,
@@ -464,8 +465,8 @@ void BKE_curve_deform_coords_with_editmesh(Object *ob_curve,
  *
  * The result written in vec and r_mat.
  */
-void BKE_curve_deform_co(Object *ob_curve,
-                         Object *ob_target,
+void BKE_curve_deform_co(const Object *ob_curve,
+                         const Object *ob_target,
                          const float orco[3],
                          float vec[3],
                          const int no_rot_axis,

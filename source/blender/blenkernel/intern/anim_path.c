@@ -203,7 +203,7 @@ static int interval_test(const int min, const int max, int p1, const int cycl)
  *
  * \return success.
  */
-bool where_on_path(Object *ob,
+bool where_on_path(const Object *ob,
                    float ctime,
                    float r_vec[4],
                    float r_dir[3],
@@ -212,14 +212,14 @@ bool where_on_path(Object *ob,
                    float *r_weight)
 {
   Curve *cu;
-  Nurb *nu;
-  BevList *bl;
-  Path *path;
-  PathPoint *pp, *p0, *p1, *p2, *p3;
+  const Nurb *nu;
+  const BevList *bl;
+  const Path *path;
+  const PathPoint *pp, *p0, *p1, *p2, *p3;
   float fac;
   float data[4];
   int cycl = 0, s0, s1, s2, s3;
-  ListBase *nurbs;
+  const ListBase *nurbs;
 
   if (ob == NULL || ob->type != OB_CURVE) {
     return false;

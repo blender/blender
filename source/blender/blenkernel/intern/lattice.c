@@ -552,7 +552,7 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
   }
 }
 
-struct MDeformVert *BKE_lattice_deform_verts_get(struct Object *oblatt)
+struct MDeformVert *BKE_lattice_deform_verts_get(const struct Object *oblatt)
 {
   Lattice *lt = (Lattice *)oblatt->data;
   BLI_assert(oblatt->type == OB_LATTICE);

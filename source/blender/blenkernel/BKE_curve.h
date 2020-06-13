@@ -309,8 +309,8 @@ void BKE_curve_decimate_nurb(struct Nurb *nu,
 /** \name Deform 3D Coordinates by Curve (curve_deform.c)
  * \{ */
 
-void BKE_curve_deform_coords(struct Object *ob_curve,
-                             struct Object *ob_target,
+void BKE_curve_deform_coords(const struct Object *ob_curve,
+                             const struct Object *ob_target,
                              float (*vert_coords)[3],
                              const int vert_coords_len,
                              const struct MDeformVert *dvert,
@@ -318,8 +318,8 @@ void BKE_curve_deform_coords(struct Object *ob_curve,
                              const short flag,
                              const short defaxis);
 
-void BKE_curve_deform_coords_with_editmesh(Object *ob_curve,
-                                           Object *ob_target,
+void BKE_curve_deform_coords_with_editmesh(const Object *ob_curve,
+                                           const Object *ob_target,
                                            float (*vert_coords)[3],
                                            const int vert_coords_len,
                                            const int defgrp_index,
@@ -327,8 +327,8 @@ void BKE_curve_deform_coords_with_editmesh(Object *ob_curve,
                                            const short defaxis,
                                            struct BMEditMesh *em_target);
 
-void BKE_curve_deform_co(struct Object *ob_curve,
-                         struct Object *ob_target,
+void BKE_curve_deform_co(const struct Object *ob_curve,
+                         const struct Object *ob_target,
                          const float orco[3],
                          float vec[3],
                          const int no_rot_axis,

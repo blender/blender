@@ -240,8 +240,8 @@ static void pchan_bone_deform(bPoseChannel *pchan,
  * \{ */
 
 typedef struct ArmatureUserdata {
-  Object *ob_arm;
-  Object *ob_target;
+  const Object *ob_arm;
+  const Object *ob_target;
   const Mesh *me_target;
   float (*vert_coords)[3];
   float (*vert_deform_mats)[3][3];
@@ -462,8 +462,8 @@ static void armature_vert_task_editmesh_no_dvert(void *__restrict userdata, Memp
   armature_vert_task_with_dvert(data, BM_elem_index_get(v), NULL);
 }
 
-static void armature_deform_coords_impl(Object *ob_arm,
-                                        Object *ob_target,
+static void armature_deform_coords_impl(const Object *ob_arm,
+                                        const Object *ob_target,
                                         float (*vert_coords)[3],
                                         float (*vert_deform_mats)[3][3],
                                         const int vert_coords_len,
@@ -616,8 +616,8 @@ static void armature_deform_coords_impl(Object *ob_arm,
   }
 }
 
-void BKE_armature_deform_coords_with_gpencil_stroke(Object *ob_arm,
-                                                    Object *ob_target,
+void BKE_armature_deform_coords_with_gpencil_stroke(const Object *ob_arm,
+                                                    const Object *ob_target,
                                                     float (*vert_coords)[3],
                                                     float (*vert_deform_mats)[3][3],
                                                     int vert_coords_len,
@@ -639,8 +639,8 @@ void BKE_armature_deform_coords_with_gpencil_stroke(Object *ob_arm,
                               gps_target);
 }
 
-void BKE_armature_deform_coords_with_mesh(Object *ob_arm,
-                                          Object *ob_target,
+void BKE_armature_deform_coords_with_mesh(const Object *ob_arm,
+                                          const Object *ob_target,
                                           float (*vert_coords)[3],
                                           float (*vert_deform_mats)[3][3],
                                           int vert_coords_len,
@@ -662,8 +662,8 @@ void BKE_armature_deform_coords_with_mesh(Object *ob_arm,
                               NULL);
 }
 
-void BKE_armature_deform_coords_with_editmesh(Object *ob_arm,
-                                              Object *ob_target,
+void BKE_armature_deform_coords_with_editmesh(const Object *ob_arm,
+                                              const Object *ob_target,
                                               float (*vert_coords)[3],
                                               float (*vert_deform_mats)[3][3],
                                               int vert_coords_len,

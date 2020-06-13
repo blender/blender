@@ -36,7 +36,7 @@ struct Path;
 
 void free_path(struct Path *path);
 void calc_curvepath(struct Object *ob, struct ListBase *nurbs);
-bool where_on_path(struct Object *ob,
+bool where_on_path(const struct Object *ob,
                    float ctime,
                    float r_vec[4],
                    float r_dir[3],

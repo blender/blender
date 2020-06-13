@@ -40,14 +40,16 @@ struct bDeformGroup;
 struct bDeformGroup *BKE_object_defgroup_new(struct Object *ob, const char *name);
 void BKE_defgroup_copy_list(struct ListBase *lb1, const struct ListBase *lb2);
 struct bDeformGroup *BKE_defgroup_duplicate(const struct bDeformGroup *ingroup);
-struct bDeformGroup *BKE_object_defgroup_find_name(struct Object *ob, const char *name);
-int *BKE_object_defgroup_flip_map(struct Object *ob, int *flip_map_len, const bool use_default);
-int *BKE_object_defgroup_flip_map_single(struct Object *ob,
+struct bDeformGroup *BKE_object_defgroup_find_name(const struct Object *ob, const char *name);
+int *BKE_object_defgroup_flip_map(const struct Object *ob,
+                                  int *flip_map_len,
+                                  const bool use_default);
+int *BKE_object_defgroup_flip_map_single(const struct Object *ob,
                                          int *flip_map_len,
                                          const bool use_default,
                                          int defgroup);
-int BKE_object_defgroup_flip_index(struct Object *ob, int index, const bool use_default);
-int BKE_object_defgroup_name_index(struct Object *ob, const char *name);
+int BKE_object_defgroup_flip_index(const struct Object *ob, int index, const bool use_default);
+int BKE_object_defgroup_name_index(const struct Object *ob, const char *name);
 void BKE_object_defgroup_unique_name(struct bDeformGroup *dg, struct Object *ob);
 
 struct MDeformWeight *BKE_defvert_find_index(const struct MDeformVert *dv, const int defgroup);
