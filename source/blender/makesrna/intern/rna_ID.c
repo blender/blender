@@ -1421,7 +1421,6 @@ static void rna_def_ID_override_library_property(BlenderRNA *brna)
 static void rna_def_ID_override_library(BlenderRNA *brna)
 {
   StructRNA *srna;
-  PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "IDOverrideLibrary", NULL);
   RNA_def_struct_ui_text(
