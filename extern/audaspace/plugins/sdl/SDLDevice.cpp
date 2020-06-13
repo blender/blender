@@ -52,7 +52,7 @@ SDLDevice::SDLDevice(DeviceSpecs specs, int buffersize) :
 	if(specs.channels == CHANNELS_INVALID)
 		specs.channels = CHANNELS_STEREO;
 	if(specs.format == FORMAT_INVALID)
-		specs.format = FORMAT_S16;
+		specs.format = FORMAT_FLOAT32;
 	if(specs.rate == RATE_INVALID)
 		specs.rate = RATE_48000;
 
@@ -61,10 +61,25 @@ SDLDevice::SDLDevice(DeviceSpecs specs, int buffersize) :
 	SDL_AudioSpec format, obtained;
 
 	format.freq = m_specs.rate;
-	if(m_specs.format == FORMAT_U8)
+	switch(m_specs.format)
+	{
+	case FORMAT_U8:
 		format.format = AUDIO_U8;
-	else
+		break;
+	case FORMAT_S16:
 		format.format = AUDIO_S16SYS;
+		break;
+	case FORMAT_S32:
+		format.format = AUDIO_S32SYS;
+		break;
+	case FORMAT_FLOAT32:
+		format.format = AUDIO_F32SYS;
+		break;
+	default:
+		format.format = AUDIO_F32SYS;
+		break;
+	}
+
 	format.channels = m_specs.channels;
 	format.samples = buffersize;
 	format.callback = SDLDevice::SDL_mix;
@@ -75,14 +90,25 @@ SDLDevice::SDLDevice(DeviceSpecs specs, int buffersize) :
 
 	m_specs.rate = (SampleRate)obtained.freq;
 	m_specs.channels = (Channels)obtained.channels;
-	if(obtained.format == AUDIO_U8)
-		m_specs.format = FORMAT_U8;
-	else if(obtained.format == AUDIO_S16LSB || obtained.format == AUDIO_S16MSB)
-		m_specs.format = FORMAT_S16;
-	else
+
+	switch(obtained.format)
 	{
+	case AUDIO_U8:
+		m_specs.format = FORMAT_U8;
+		break;
+	case AUDIO_S16SYS:
+		m_specs.format = FORMAT_S16;
+		break;
+	case AUDIO_S32SYS:
+		m_specs.format = FORMAT_S32;
+		break;
+	case AUDIO_F32SYS:
+		m_specs.format = FORMAT_FLOAT32;
+		break;
+	default:
 		SDL_CloseAudio();
 		AUD_THROW(DeviceException, "The sample format obtained from SDL is not supported.");
+		break;
 	}
 
 	create();
