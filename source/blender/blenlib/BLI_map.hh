@@ -94,7 +94,7 @@ template<
      * that (unlike vector) initializing a map has a O(n) cost in the number of slots.
      *
      * When Key or Value are large, the small buffer optimization is disabled by default to avoid
-     * large unexpected allocations on the stack. It can still be enabled explicitely though.
+     * large unexpected allocations on the stack. It can still be enabled explicitly though.
      */
     uint32_t InlineBufferCapacity = (sizeof(Key) + sizeof(Value) < 100) ? 4 : 0,
     /**

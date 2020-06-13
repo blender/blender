@@ -68,7 +68,7 @@ template<
      * not initialized when it is not needed.
      *
      * When T is large, the small buffer optimization is disabled by default to avoid large
-     * unexpected allocations on the stack. It can still be enabled explicitely though.
+     * unexpected allocations on the stack. It can still be enabled explicitly though.
      */
     uint InlineBufferCapacity = (sizeof(T) < 100) ? 4 : 0,
     /**
@@ -79,7 +79,7 @@ template<
 class Vector {
  private:
   /**
-   * Use pointers instead of storing the size explicitely. This reduces the number of instructions
+   * Use pointers instead of storing the size explicitly. This reduces the number of instructions
    * in `append`.
    *
    * The pointers might point to the memory in the inline buffer.
@@ -95,7 +95,7 @@ class Vector {
   AlignedBuffer<(uint)sizeof(T) * InlineBufferCapacity, (uint)alignof(T)> m_inline_buffer;
 
   /**
-   * Store the size of the vector explicitely in debug builds. Otherwise you'd always have to call
+   * Store the size of the vector explicitly in debug builds. Otherwise you'd always have to call
    * the `size` function or do the math to compute it from the pointers manually. This is rather
    * annoying. Knowing the size of a vector is often quite essential when debugging some code.
    */

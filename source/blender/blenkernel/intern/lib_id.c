@@ -1694,7 +1694,7 @@ static void library_make_local_copying_check(ID *id,
       continue;
     }
 
-    /* Shapekeys are considered 'private' to their owner ID here, and never tagged
+    /* Shape-keys are considered 'private' to their owner ID here, and never tagged
      * (since they cannot be linked), so we have to switch effective parent to their owner.
      */
     if (GS(par_id->name) == ID_KE) {

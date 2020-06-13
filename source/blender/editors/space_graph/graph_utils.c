@@ -52,7 +52,7 @@
 /* Set Up Drivers Editor */
 
 /* Set up UI configuration for Drivers Editor */
-/* NOTE: Currently called from windowmanager
+/* NOTE: Currently called from window-manager
  * (new drivers editor window) and RNA (mode switching) */
 void ED_drivers_editor_init(bContext *C, ScrArea *area)
 {

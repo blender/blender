@@ -265,7 +265,7 @@ typedef struct wmWindow {
   short modalcursor;
   /** Cursor grab mode. */
   short grabcursor;
-  /** Internal: tag this for extra mousemove event,
+  /** Internal: tag this for extra mouse-move event,
    * makes cursors/buttons active on UI switching. */
   char addmousemove;
   char tag_cursor_refresh;

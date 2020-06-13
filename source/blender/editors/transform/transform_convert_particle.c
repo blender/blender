@@ -250,7 +250,7 @@ static void flushTransParticles(TransInfo *t)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Recalc Trasform Particles Data
+/** \name Recalc Transform Particles Data
  *
  * \{ */
 

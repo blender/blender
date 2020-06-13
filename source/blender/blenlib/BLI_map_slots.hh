@@ -90,7 +90,7 @@ template<typename Key, typename Value> class SimpleMapSlot {
   }
 
   /**
-   * The move construtor has to copy the state. If the other slot was occupied, the key and value
+   * The move constructor has to copy the state. If the other slot was occupied, the key and value
    * from the other have to moved as well. The other slot stays in the state it was in before. Its
    * optionally stored key and value remain in a moved-from state.
    */

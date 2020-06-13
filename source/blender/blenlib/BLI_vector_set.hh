@@ -27,7 +27,7 @@
  *
  * All core operations (add, remove and contains) can be done in O(1) amortized expected time.
  *
- * Using a VectorSet instead of a normal Set can be benefitial in any of the following
+ * Using a VectorSet instead of a normal Set can be beneficial in any of the following
  * circumstances:
  * - The insertion order is important.
  * - Iteration over all keys has to be fast.

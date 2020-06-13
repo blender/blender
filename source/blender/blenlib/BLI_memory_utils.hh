@@ -40,7 +40,7 @@ namespace blender {
 template<typename T> void default_construct_n(T *ptr, uint n)
 {
   /* This is not strictly necessary, because the loop below will be optimized away anyway. It is
-   * nice to make behavior this explicitely, though. */
+   * nice to make behavior this explicitly, though. */
   if (std::is_trivially_constructible<T>::value) {
     return;
   }
@@ -62,7 +62,7 @@ template<typename T> void default_construct_n(T *ptr, uint n)
 template<typename T> void destruct_n(T *ptr, uint n)
 {
   /* This is not strictly necessary, because the loop below will be optimized away anyway. It is
-   * nice to make behavior this explicitely, though. */
+   * nice to make behavior this explicitly, though. */
   if (std::is_trivially_destructible<T>::value) {
     return;
   }
@@ -163,7 +163,7 @@ template<typename T> void initialized_relocate_n(T *src, uint n, T *dst)
  *
  * Before:
  *  src: initialized
- *  dst: uinitialized
+ *  dst: uninitialized
  * After:
  *  src: uninitialized
  *  dst: initialized

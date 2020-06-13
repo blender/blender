@@ -75,7 +75,7 @@ template<
      * not initialized when it is not needed.
      *
      * When T is large, the small buffer optimization is disabled by default to avoid large
-     * unexpected allocations on the stack. It can still be enabled explicitely though.
+     * unexpected allocations on the stack. It can still be enabled explicitly though.
      */
     uint InlineBufferCapacity = (sizeof(T) < 100) ? 4 : 0,
     /**

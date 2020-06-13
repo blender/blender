@@ -91,7 +91,7 @@ template<
      * that (unlike vector) initializing a set has a O(n) cost in the number of slots.
      *
      * When Key is large, the small buffer optimization is disabled by default to avoid large
-     * unexpected allocations on the stack. It can still be enabled explicitely though.
+     * unexpected allocations on the stack. It can still be enabled explicitly though.
      */
     uint32_t InlineBufferCapacity = (sizeof(Key) < 100) ? 4 : 0,
     /**

@@ -292,8 +292,8 @@ inline std::ostream &operator<<(std::ostream &stream, StringRefNull ref)
 }
 
 /**
- * Adding two StringRefs will allocate an std::string. This is not efficient, but convenient in
- * most cases.
+ * Adding two #StringRefs will allocate an std::string.
+ * This is not efficient, but convenient in most cases.
  */
 inline std::string operator+(StringRef a, StringRef b)
 {
@@ -347,7 +347,7 @@ inline bool StringRefBase::endswith(StringRef suffix) const
 }
 
 /**
- * Return a new StringRef containing only a substring of the original string.
+ * Return a new #StringRef containing only a sub-string of the original string.
  */
 inline StringRef StringRefBase::substr(uint start, uint size) const
 {

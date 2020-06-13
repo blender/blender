@@ -212,7 +212,7 @@ class CPPType {
   }
 
   /**
-   * Returns true, when the given pointer fullfills the alignment requirement of this type.
+   * Returns true, when the given pointer fulfills the alignment requirement of this type.
    */
   bool pointer_has_valid_alignment(const void *ptr) const
   {
