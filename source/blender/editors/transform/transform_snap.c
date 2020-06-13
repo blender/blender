@@ -634,12 +634,15 @@ static void initSnappingMode(TransInfo *t)
       t->tsnap.object_context = ED_transform_snap_object_context_create_view3d(
           t->scene, 0, t->region, t->view);
 
-      ED_transform_snap_object_context_set_editmesh_callbacks(
-          t->tsnap.object_context,
-          (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
-          bm_edge_is_snap_target,
-          bm_face_is_snap_target,
-          POINTER_FROM_UINT((BM_ELEM_SELECT | BM_ELEM_HIDDEN)));
+      if (t->data_type == TC_MESH_VERTS) {
+        /* Ignore elements being transformed. */
+        ED_transform_snap_object_context_set_editmesh_callbacks(
+            t->tsnap.object_context,
+            (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
+            bm_edge_is_snap_target,
+            bm_face_is_snap_target,
+            POINTER_FROM_UINT((BM_ELEM_SELECT | BM_ELEM_HIDDEN)));
+      }
     }
   }
 }
