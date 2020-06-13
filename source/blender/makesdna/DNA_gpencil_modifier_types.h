@@ -24,6 +24,8 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+struct LatticeDeformData;
+
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
  * (ONLY ADD NEW ITEMS AT THE END)
  */
@@ -445,8 +447,8 @@ typedef struct LatticeGpencilModifierData {
   float strength;
   /** Custom index for passes. */
   int layer_pass;
-  /** Runtime only (LatticeDeformData). */
-  void *cache_data;
+  /** Runtime only. */
+  struct LatticeDeformData *cache_data;
 } LatticeGpencilModifierData;
 
 typedef enum eLatticeGpencil_Flag {
