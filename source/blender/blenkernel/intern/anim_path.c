@@ -42,9 +42,11 @@ static CLG_LogRef LOG = {"bke.anim"};
 /* ******************************************************************** */
 /* Curve Paths - for curve deforms and/or curve following */
 
-/* free curve path data
- * NOTE: frees the path itself!
- * NOTE: this is increasingly inaccurate with non-uniform BevPoint subdivisions [#24633]
+/**
+ * Free curve path data
+ *
+ * \note Frees the path itself!
+ * \note This is increasingly inaccurate with non-uniform #BevPoint subdivisions T24633.
  */
 void free_path(Path *path)
 {
@@ -54,8 +56,9 @@ void free_path(Path *path)
   MEM_freeN(path);
 }
 
-/* calculate a curve-deform path for a curve
- * - only called from displist.c -> do_makeDispListCurveTypes
+/**
+ * Calculate a curve-deform path for a curve
+ * - Only called from displist.c -> #do_makeDispListCurveTypes
  */
 void calc_curvepath(Object *ob, ListBase *nurbs)
 {
@@ -192,20 +195,21 @@ static int interval_test(const int min, const int max, int p1, const int cycl)
   return p1;
 }
 
-/* calculate the deformation implied by the curve path at a given parametric position,
+/**
+ * Calculate the deformation implied by the curve path at a given parametric position,
  * and returns whether this operation succeeded.
  *
- * note: ctime is normalized range <0-1>
+ * \param ctime: Time is normalized range <0-1>.
  *
- * returns OK: 1/0
+ * \return success.
  */
-int where_on_path(Object *ob,
-                  float ctime,
-                  float vec[4],
-                  float dir[3],
-                  float quat[4],
-                  float *radius,
-                  float *weight)
+bool where_on_path(Object *ob,
+                   float ctime,
+                   float vec[4],
+                   float dir[3],
+                   float quat[4],
+                   float *radius,
+                   float *weight)
 {
   Curve *cu;
   Nurb *nu;
@@ -218,13 +222,13 @@ int where_on_path(Object *ob,
   ListBase *nurbs;
 
   if (ob == NULL || ob->type != OB_CURVE) {
-    return 0;
+    return false;
   }
   cu = ob->data;
   if (ob->runtime.curve_cache == NULL || ob->runtime.curve_cache->path == NULL ||
       ob->runtime.curve_cache->path->data == NULL) {
     CLOG_WARN(&LOG, "no path!");
-    return 0;
+    return false;
   }
   path = ob->runtime.curve_cache->path;
   pp = path->data;
@@ -232,10 +236,10 @@ int where_on_path(Object *ob,
   /* test for cyclic */
   bl = ob->runtime.curve_cache->bev.first;
   if (!bl) {
-    return 0;
+    return false;
   }
   if (!bl->nr) {
-    return 0;
+    return false;
   }
   if (bl->poly > -1) {
     cycl = 1;
@@ -343,5 +347,5 @@ int where_on_path(Object *ob,
               data[3] * p3->weight;
   }
 
-  return 1;
+  return true;
 }

@@ -66,9 +66,10 @@ static void init_curve_deform(Object *ob_curve, Object *ob_target, CurveDeform *
   cd->no_rot_axis = 0;
 }
 
-/* this makes sure we can extend for non-cyclic.
+/**
+ * This makes sure we can extend for non-cyclic.
  *
- * returns OK: 1/0
+ * \return Success.
  */
 static bool where_on_path_deform(
     Object *ob_curve, float ctime, float vec[4], float dir[3], float quat[4], float *radius)
@@ -129,11 +130,13 @@ static bool where_on_path_deform(
   return false;
 }
 
-/* for each point, rotate & translate to curve */
-/* use path, since it has constant distances */
-/* co: local coord, result local too */
-/* returns quaternion for rotation, using cd->no_rot_axis */
-/* axis is using another define!!! */
+/**
+ * For each point, rotate & translate to curve use path, since it has constant distances.
+ *
+ * \param co: local coord, result local too.
+ * \param r_quat: returns quaternion for rotation,
+ * using #CurveDeform.no_rot_axis axis is using another define.
+ */
 static bool calc_curve_deform(
     Object *ob_curve, float co[3], const short axis, CurveDeform *cd, float r_quat[4])
 {
@@ -451,21 +454,24 @@ void BKE_curve_deform_coords_with_editmesh(Object *ob_curve,
                            em_target);
 }
 
-/* input vec and orco = local coord in armature space */
-/* orco is original not-animated or deformed reference point */
-/* result written in vec and mat */
+/**
+ * \param orco: Input vec and orco = local coord in curve space
+ * orco is original not-animated or deformed reference point.
+ *
+ * The result written in vec and r_mat.
+ */
 void BKE_curve_deform_co(Object *ob_curve,
                          Object *ob_target,
                          const float orco[3],
                          float vec[3],
-                         float mat[3][3],
-                         const int no_rot_axis)
+                         const int no_rot_axis,
+                         float r_mat[3][3])
 {
   CurveDeform cd;
   float quat[4];
 
   if (ob_curve->type != OB_CURVE) {
-    unit_m3(mat);
+    unit_m3(r_mat);
     return;
   }
 
@@ -481,10 +487,10 @@ void BKE_curve_deform_co(Object *ob_curve,
     float qmat[3][3];
 
     quat_to_mat3(qmat, quat);
-    mul_m3_m3m3(mat, qmat, cd.objectspace3);
+    mul_m3_m3m3(r_mat, qmat, cd.objectspace3);
   }
   else {
-    unit_m3(mat);
+    unit_m3(r_mat);
   }
 
   mul_m4_v3(cd.objectspace, vec);

@@ -331,8 +331,8 @@ void BKE_curve_deform_co(struct Object *ob_curve,
                          struct Object *ob_target,
                          const float orco[3],
                          float vec[3],
-                         float mat[3][3],
-                         const int no_rot_axis);
+                         const int no_rot_axis,
+                         float r_mat[3][3]);
 
 /** \} */
 
