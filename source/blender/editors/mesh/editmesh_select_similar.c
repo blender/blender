@@ -23,6 +23,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_kdtree.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -1007,7 +1008,9 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
     BMEditMesh *em = BKE_editmesh_from_object(ob);
     BMesh *bm = em->bm;
     int cd_dvert_offset = -1;
-    int dvert_selected = 0;
+    BLI_bitmap *defbase_selected = NULL;
+    int defbase_len = 0;
+
     invert_m4_m4(ob->imat, ob->obmat);
 
     if (bm->totvertsel == 0) {
@@ -1019,6 +1022,11 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
       if (cd_dvert_offset == -1) {
         continue;
       }
+      defbase_len = BLI_listbase_count(&ob->defbase);
+      if (defbase_len == 0) {
+        continue;
+      }
+      defbase_selected = BLI_BITMAP_NEW(defbase_len, __func__);
     }
 
     BMVert *vert; /* Mesh vertex. */
@@ -1048,7 +1056,9 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
             for (int i = 0; i < dvert->totweight; i++, dw++) {
               if (dw->weight > 0.0f) {
-                dvert_selected |= (1 << dw->def_nr);
+                if (LIKELY(dw->def_nr < defbase_len)) {
+                  BLI_BITMAP_ENABLE(defbase_selected, dw->def_nr);
+                }
               }
             }
             break;
@@ -1060,13 +1070,15 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
     if (type == SIMVERT_VGROUP) {
       /* We store the names of the vertex groups, so we can select
        * vertex groups with the same name in different objects. */
-      const int dvert_tot = BLI_listbase_count(&ob->defbase);
-      for (int i = 0; i < dvert_tot; i++) {
-        if (dvert_selected & (1 << i)) {
-          bDeformGroup *dg = BLI_findlink(&ob->defbase, i);
+
+      int i = 0;
+      LISTBASE_FOREACH (bDeformGroup *, dg, &ob->defbase) {
+        if (BLI_BITMAP_TEST(defbase_selected, i)) {
           BLI_gset_add(gset, dg->name);
         }
+        i += 1;
       }
+      MEM_freeN(defbase_selected);
     }
   }
 
@@ -1082,32 +1094,42 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
     BLI_kdtree_3d_balance(tree_3d);
   }
 
-  /* Run .the BM operators. */
+  /* Run the matching operations. */
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(ob);
     BMesh *bm = em->bm;
     bool changed = false;
     int cd_dvert_offset = -1;
-    int dvert_selected = 0;
+    BLI_bitmap *defbase_selected = NULL;
+    int defbase_len = 0;
 
     if (type == SIMVERT_VGROUP) {
       cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
       if (cd_dvert_offset == -1) {
         continue;
       }
+      defbase_len = BLI_listbase_count(&ob->defbase);
+      if (defbase_len == 0) {
+        continue;
+      }
 
       /* We map back the names of the vertex groups to their corresponding indices
        * for this object. This is fast, and keep the logic for each vertex very simple. */
+
+      defbase_selected = BLI_BITMAP_NEW(defbase_len, __func__);
+      bool found_any = false;
       GSetIterator gs_iter;
       GSET_ITER (gs_iter, gset) {
         const char *name = BLI_gsetIterator_getKey(&gs_iter);
         int vgroup_id = BLI_findstringindex(&ob->defbase, name, offsetof(bDeformGroup, name));
         if (vgroup_id != -1) {
-          dvert_selected |= (1 << vgroup_id);
+          BLI_BITMAP_ENABLE(defbase_selected, vgroup_id);
+          found_any = true;
         }
       }
-      if (dvert_selected == 0) {
+      if (found_any == false) {
+        MEM_freeN(defbase_selected);
         continue;
       }
     }
@@ -1167,9 +1189,11 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
             for (int i = 0; i < dvert->totweight; i++, dw++) {
               if (dw->weight > 0.0f) {
-                if (dvert_selected & (1 << dw->def_nr)) {
-                  select = true;
-                  break;
+                if (LIKELY(dw->def_nr < defbase_len)) {
+                  if (BLI_BITMAP_TEST(defbase_selected, dw->def_nr)) {
+                    select = true;
+                    break;
+                  }
                 }
               }
             }
@@ -1182,6 +1206,10 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
           changed = true;
         }
       }
+    }
+
+    if (type == SIMVERT_VGROUP) {
+      MEM_freeN(defbase_selected);
     }
 
     if (changed) {
