@@ -47,8 +47,9 @@
 /** \name Curve Deform Internal Utilities
  * \{ */
 
-/* calculations is in local space of deformed object
- * so we store in latmat transform from path coord inside object
+/**
+ * Calculations is in local space of deformed object
+ * so we store matrices to transform points to/from local-space.
  */
 typedef struct {
   float dmin[3], dmax[3];
@@ -56,10 +57,10 @@ typedef struct {
   int no_rot_axis;
 } CurveDeform;
 
-static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd)
+static void init_curve_deform(Object *ob_curve, Object *ob_target, CurveDeform *cd)
 {
-  invert_m4_m4(ob->imat, ob->obmat);
-  mul_m4_m4m4(cd->objectspace, ob->imat, par->obmat);
+  invert_m4_m4(ob_target->imat, ob_target->obmat);
+  mul_m4_m4m4(cd->objectspace, ob_target->imat, ob_curve->obmat);
   invert_m4_m4(cd->curvespace, cd->objectspace);
   copy_m3_m4(cd->objectspace3, cd->objectspace);
   cd->no_rot_axis = 0;
@@ -70,14 +71,14 @@ static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd)
  * returns OK: 1/0
  */
 static bool where_on_path_deform(
-    Object *ob, float ctime, float vec[4], float dir[3], float quat[4], float *radius)
+    Object *ob_curve, float ctime, float vec[4], float dir[3], float quat[4], float *radius)
 {
   BevList *bl;
   float ctime1;
   int cycl = 0;
 
   /* test for cyclic */
-  bl = ob->runtime.curve_cache->bev.first;
+  bl = ob_curve->runtime.curve_cache->bev.first;
   if (!bl->nr) {
     return false;
   }
@@ -93,10 +94,10 @@ static bool where_on_path_deform(
   }
 
   /* vec needs 4 items */
-  if (where_on_path(ob, ctime1, vec, dir, quat, radius, NULL)) {
+  if (where_on_path(ob_curve, ctime1, vec, dir, quat, radius, NULL)) {
 
     if (cycl == 0) {
-      Path *path = ob->runtime.curve_cache->path;
+      Path *path = ob_curve->runtime.curve_cache->path;
       float dvec[3];
 
       if (ctime < 0.0f) {
@@ -134,19 +135,19 @@ static bool where_on_path_deform(
 /* returns quaternion for rotation, using cd->no_rot_axis */
 /* axis is using another define!!! */
 static bool calc_curve_deform(
-    Object *par, float co[3], const short axis, CurveDeform *cd, float r_quat[4])
+    Object *ob_curve, float co[3], const short axis, CurveDeform *cd, float r_quat[4])
 {
-  Curve *cu = par->data;
+  Curve *cu = ob_curve->data;
   float fac, loc[4], dir[3], new_quat[4], radius;
   short index;
   const bool is_neg_axis = (axis > 2);
 
-  if (par->runtime.curve_cache == NULL) {
+  if (ob_curve->runtime.curve_cache == NULL) {
     /* Happens with a cyclic dependencies. */
     return false;
   }
 
-  if (par->runtime.curve_cache->path == NULL) {
+  if (ob_curve->runtime.curve_cache->path == NULL) {
     return false; /* happens on append, cyclic dependencies and empty curves */
   }
 
@@ -157,7 +158,7 @@ static bool calc_curve_deform(
       fac = -(co[index] - cd->dmax[index]) / (cd->dmax[index] - cd->dmin[index]);
     }
     else {
-      fac = -(co[index] - cd->dmax[index]) / (par->runtime.curve_cache->path->totdist);
+      fac = -(co[index] - cd->dmax[index]) / (ob_curve->runtime.curve_cache->path->totdist);
     }
   }
   else {
@@ -166,8 +167,8 @@ static bool calc_curve_deform(
       fac = (co[index] - cd->dmin[index]) / (cd->dmax[index] - cd->dmin[index]);
     }
     else {
-      if (LIKELY(par->runtime.curve_cache->path->totdist > FLT_EPSILON)) {
-        fac = +(co[index] - cd->dmin[index]) / (par->runtime.curve_cache->path->totdist);
+      if (LIKELY(ob_curve->runtime.curve_cache->path->totdist > FLT_EPSILON)) {
+        fac = +(co[index] - cd->dmin[index]) / (ob_curve->runtime.curve_cache->path->totdist);
       }
       else {
         fac = 0.0f;
@@ -175,7 +176,7 @@ static bool calc_curve_deform(
     }
   }
 
-  if (where_on_path_deform(par, fac, loc, dir, new_quat, &radius)) { /* returns OK */
+  if (where_on_path_deform(ob_curve, fac, loc, dir, new_quat, &radius)) { /* returns OK */
     float quat[4], cent[3];
 
     if (cd->no_rot_axis) { /* set by caller */
