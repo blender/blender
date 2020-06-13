@@ -286,11 +286,11 @@ void BKE_gpencil_lattice_init(Object *ob)
         return;
       }
       if (mmd->cache_data) {
-        end_latt_deform((struct LatticeDeformData *)mmd->cache_data);
+        BKE_lattice_deform_data_destroy((struct LatticeDeformData *)mmd->cache_data);
       }
 
       /* init deform data */
-      mmd->cache_data = (struct LatticeDeformData *)init_latt_deform(latob, ob);
+      mmd->cache_data = (struct LatticeDeformData *)BKE_lattice_deform_data_create(latob, ob);
     }
   }
 }
@@ -303,7 +303,7 @@ void BKE_gpencil_lattice_clear(Object *ob)
     if (md->type == eGpencilModifierType_Lattice) {
       LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
       if ((mmd) && (mmd->cache_data)) {
-        end_latt_deform((struct LatticeDeformData *)mmd->cache_data);
+        BKE_lattice_deform_data_destroy((struct LatticeDeformData *)mmd->cache_data);
         mmd->cache_data = NULL;
       }
     }

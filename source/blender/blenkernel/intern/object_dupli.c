@@ -1053,7 +1053,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
   }
 
   if (psys->lattice_deform_data) {
-    end_latt_deform(psys->lattice_deform_data);
+    BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
     psys->lattice_deform_data = NULL;
   }
 }

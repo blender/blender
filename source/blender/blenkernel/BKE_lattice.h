@@ -103,10 +103,12 @@ extern void (*BKE_lattice_batch_cache_free_cb)(struct Lattice *lt);
 /** \name Deform 3D Coordinates by Lattice (lattice_deform.c)
  * \{ */
 
-struct LatticeDeformData *init_latt_deform(struct Object *oblatt,
-                                           struct Object *ob) ATTR_WARN_UNUSED_RESULT;
-void calc_latt_deform(struct LatticeDeformData *lattice_deform_data, float co[3], float weight);
-void end_latt_deform(struct LatticeDeformData *lattice_deform_data);
+struct LatticeDeformData *BKE_lattice_deform_data_create(struct Object *oblatt, struct Object *ob)
+    ATTR_WARN_UNUSED_RESULT;
+void BKE_lattice_deform_data_eval_co(struct LatticeDeformData *lattice_deform_data,
+                                     float co[3],
+                                     float weight);
+void BKE_lattice_deform_data_destroy(struct LatticeDeformData *lattice_deform_data);
 
 void BKE_lattice_deform_coords(struct Object *ob_lattice,
                                struct Object *ob_target,

@@ -105,7 +105,8 @@ static void deformStroke(GpencilModifierData *md,
     if (weight < 0.0f) {
       continue;
     }
-    calc_latt_deform((struct LatticeDeformData *)mmd->cache_data, &pt->x, mmd->strength * weight);
+    BKE_lattice_deform_data_eval_co(
+        (struct LatticeDeformData *)mmd->cache_data, &pt->x, mmd->strength * weight);
   }
   /* Calc geometry data. */
   BKE_gpencil_stroke_geometry_update(gps);
@@ -147,7 +148,7 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
   /* free lingering data */
   ldata = (struct LatticeDeformData *)mmd->cache_data;
   if (ldata) {
-    end_latt_deform(ldata);
+    BKE_lattice_deform_data_destroy(ldata);
     mmd->cache_data = NULL;
   }
 
@@ -162,7 +163,7 @@ static void freeData(GpencilModifierData *md)
   struct LatticeDeformData *ldata = (struct LatticeDeformData *)mmd->cache_data;
   /* free deform data */
   if (ldata) {
-    end_latt_deform(ldata);
+    BKE_lattice_deform_data_destroy(ldata);
   }
 }
 

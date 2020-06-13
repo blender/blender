@@ -59,7 +59,7 @@ typedef struct LatticeDeformData {
   float latmat[4][4];
 } LatticeDeformData;
 
-LatticeDeformData *init_latt_deform(Object *oblatt, Object *ob)
+LatticeDeformData *BKE_lattice_deform_data_create(Object *oblatt, Object *ob)
 {
   /* we make an array with all differences */
   Lattice *lt = oblatt->data;
@@ -127,7 +127,9 @@ LatticeDeformData *init_latt_deform(Object *oblatt, Object *ob)
   return lattice_deform_data;
 }
 
-void calc_latt_deform(LatticeDeformData *lattice_deform_data, float co[3], float weight)
+void BKE_lattice_deform_data_eval_co(LatticeDeformData *lattice_deform_data,
+                                     float co[3],
+                                     float weight)
 {
   Object *ob = lattice_deform_data->object;
   Lattice *lt = ob->data;
@@ -260,7 +262,7 @@ void calc_latt_deform(LatticeDeformData *lattice_deform_data, float co[3], float
   }
 }
 
-void end_latt_deform(LatticeDeformData *lattice_deform_data)
+void BKE_lattice_deform_data_destroy(LatticeDeformData *lattice_deform_data)
 {
   if (lattice_deform_data->latticedata) {
     MEM_freeN(lattice_deform_data->latticedata);
@@ -300,11 +302,13 @@ static void lattice_deform_vert_with_dvert(const LatticeDeformUserdata *data,
                              1.0f - BKE_defvert_find_weight(dvert, data->defgrp_index) :
                              BKE_defvert_find_weight(dvert, data->defgrp_index);
     if (weight > 0.0f) {
-      calc_latt_deform(data->lattice_deform_data, data->vert_coords[index], weight * data->fac);
+      BKE_lattice_deform_data_eval_co(
+          data->lattice_deform_data, data->vert_coords[index], weight * data->fac);
     }
   }
   else {
-    calc_latt_deform(data->lattice_deform_data, data->vert_coords[index], data->fac);
+    BKE_lattice_deform_data_eval_co(
+        data->lattice_deform_data, data->vert_coords[index], data->fac);
   }
 }
 
@@ -350,7 +354,7 @@ static void lattice_deform_coords_impl(Object *ob_lattice,
     return;
   }
 
-  lattice_deform_data = init_latt_deform(ob_lattice, ob_target);
+  lattice_deform_data = BKE_lattice_deform_data_create(ob_lattice, ob_target);
 
   /* Check whether to use vertex groups (only possible if ob_target is a Mesh or Lattice).
    * We want either a Mesh/Lattice with no derived data, or derived data with deformverts.
@@ -408,7 +412,7 @@ static void lattice_deform_coords_impl(Object *ob_lattice,
     BLI_task_parallel_range(0, vert_coords_len, &data, lattice_deform_vert_task, &settings);
   }
 
-  end_latt_deform(lattice_deform_data);
+  BKE_lattice_deform_data_destroy(lattice_deform_data);
 }
 
 void BKE_lattice_deform_coords(Object *ob_lattice,

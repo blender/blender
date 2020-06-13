@@ -1115,7 +1115,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   explode->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 
   if (psmd->psys->lattice_deform_data) {
-    end_latt_deform(psmd->psys->lattice_deform_data);
+    BKE_lattice_deform_data_destroy(psmd->psys->lattice_deform_data);
     psmd->psys->lattice_deform_data = NULL;
   }
 

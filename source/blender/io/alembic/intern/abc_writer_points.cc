@@ -104,7 +104,7 @@ void AbcPointsWriter::do_write()
   }
 
   if (m_psys->lattice_deform_data) {
-    end_latt_deform(m_psys->lattice_deform_data);
+    BKE_lattice_deform_data_destroy(m_psys->lattice_deform_data);
     m_psys->lattice_deform_data = NULL;
   }
 

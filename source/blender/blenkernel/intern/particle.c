@@ -410,7 +410,7 @@ struct LatticeDeformData *psys_create_lattice_deform_data(ParticleSimulationData
       }
     }
     if (lattice) {
-      lattice_deform_data = init_latt_deform(lattice, NULL);
+      lattice_deform_data = BKE_lattice_deform_data_create(lattice, NULL);
     }
   }
 
@@ -3150,7 +3150,8 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
       /* lattices have to be calculated separately to avoid mixups between effector calculations */
       if (psys->lattice_deform_data) {
         for (k = 0, ca = cache[p]; k <= segments; k++, ca++) {
-          calc_latt_deform(psys->lattice_deform_data, ca->co, psys->lattice_strength);
+          BKE_lattice_deform_data_eval_co(
+              psys->lattice_deform_data, ca->co, psys->lattice_strength);
         }
       }
     }
@@ -3185,7 +3186,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
   psys->totcached = totpart;
 
   if (psys->lattice_deform_data) {
-    end_latt_deform(psys->lattice_deform_data);
+    BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
     psys->lattice_deform_data = NULL;
   }
 
@@ -4413,7 +4414,8 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
           }
 
           if (psys->lattice_deform_data && edit == 0) {
-            calc_latt_deform(psys->lattice_deform_data, state->co, psys->lattice_strength);
+            BKE_lattice_deform_data_eval_co(
+                psys->lattice_deform_data, state->co, psys->lattice_strength);
           }
         }
       }
@@ -4696,7 +4698,8 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
       do_child_modifiers(&modifier_ctx, mat, state, t);
 
       if (psys->lattice_deform_data) {
-        calc_latt_deform(psys->lattice_deform_data, state->co, psys->lattice_strength);
+        BKE_lattice_deform_data_eval_co(
+            psys->lattice_deform_data, state->co, psys->lattice_strength);
       }
     }
     else {
@@ -4760,7 +4763,8 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
       }
 
       if (sim->psys->lattice_deform_data) {
-        calc_latt_deform(sim->psys->lattice_deform_data, state->co, psys->lattice_strength);
+        BKE_lattice_deform_data_eval_co(
+            sim->psys->lattice_deform_data, state->co, psys->lattice_strength);
       }
     }
 
@@ -4970,12 +4974,13 @@ void psys_apply_hair_lattice(Depsgraph *depsgraph, Scene *scene, Object *ob, Par
       hkey = pa->hair;
       for (h = 0; h < pa->totkey; h++, hkey++) {
         mul_m4_v3(hairmat, hkey->co);
-        calc_latt_deform(psys->lattice_deform_data, hkey->co, psys->lattice_strength);
+        BKE_lattice_deform_data_eval_co(
+            psys->lattice_deform_data, hkey->co, psys->lattice_strength);
         mul_m4_v3(imat, hkey->co);
       }
     }
 
-    end_latt_deform(psys->lattice_deform_data);
+    BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
     psys->lattice_deform_data = NULL;
 
     /* protect the applied shape */
