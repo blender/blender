@@ -87,6 +87,10 @@ void createTransCurveVerts(TransInfo *t)
 
   t->data_len_all = 0;
 
+  /* Count control points (one per bez-triple) if any number of handles are selected.
+   * Needed for #transform_around_single_fallback_ex. */
+  int data_len_all_pt = 0;
+
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     Curve *cu = tc->obedit->data;
     BLI_assert(cu->editnurb != NULL);
@@ -94,6 +98,7 @@ void createTransCurveVerts(TransInfo *t)
     BPoint *bp;
     int a;
     int count = 0, countsel = 0;
+    int count_pt = 0, countsel_pt = 0;
     const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
     View3D *v3d = t->view;
     short hide_handles = (v3d != NULL) ? (v3d->overlay.handle_display == CURVE_HANDLE_NONE) :
@@ -106,17 +111,21 @@ void createTransCurveVerts(TransInfo *t)
         for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
           if (bezt->hide == 0) {
             const int bezt_tx = bezt_select_to_transform_triple_flag(bezt, hide_handles);
-            if (bezt_tx & SEL_F1) {
-              countsel++;
-            }
-            if (bezt_tx & SEL_F2) {
-              countsel++;
-            }
-            if (bezt_tx & SEL_F3) {
-              countsel++;
+            if (bezt_tx & (SEL_F1 | SEL_F2 | SEL_F3)) {
+              if (bezt_tx & SEL_F1) {
+                countsel++;
+              }
+              if (bezt_tx & SEL_F2) {
+                countsel++;
+              }
+              if (bezt_tx & SEL_F3) {
+                countsel++;
+              }
+              countsel_pt++;
             }
             if (is_prop_edit) {
               count += 3;
+              count_pt++;
             }
           }
         }
@@ -124,11 +133,13 @@ void createTransCurveVerts(TransInfo *t)
       else {
         for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a > 0; a--, bp++) {
           if (bp->hide == 0) {
-            if (is_prop_edit) {
-              count++;
-            }
             if (bp->f1 & SELECT) {
               countsel++;
+              countsel_pt++;
+            }
+            if (is_prop_edit) {
+              count++;
+              count_pt++;
             }
           }
         }
@@ -140,18 +151,23 @@ void createTransCurveVerts(TransInfo *t)
       continue;
     }
 
+    int data_len_pt = 0;
+
     if (is_prop_edit) {
       tc->data_len = count;
+      data_len_pt = count_pt;
     }
     else {
       tc->data_len = countsel;
+      data_len_pt = countsel_pt;
     }
     tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(Curve EditMode)");
 
     t->data_len_all += tc->data_len;
+    data_len_all_pt += data_len_pt;
   }
 
-  transform_around_single_fallback(t);
+  transform_around_single_fallback_ex(t, data_len_all_pt);
   t->data_len_all = -1;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {

@@ -70,39 +70,19 @@ bool transform_mode_use_local_origins(const TransInfo *t)
  * Transforming around ourselves is no use, fallback to individual origins,
  * useful for curve/armatures.
  */
-void transform_around_single_fallback(TransInfo *t)
+void transform_around_single_fallback_ex(TransInfo *t, int data_len_all)
 {
   if ((ELEM(t->around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEDIAN, V3D_AROUND_ACTIVE)) &&
       transform_mode_use_local_origins(t)) {
-
-    bool is_data_single = false;
-    if (t->data_len_all == 1) {
-      is_data_single = true;
-    }
-    else if (t->data_len_all == 3) {
-      if (t->obedit_type == OB_CURVE) {
-        /* Special case check for curve, if we have a single curve bezier triple selected
-         * treat */
-        FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-          if (!tc->data_len) {
-            continue;
-          }
-          if (tc->data_len == 3) {
-            const TransData *td = tc->data;
-            if ((td[0].flag | td[1].flag | td[2].flag) & TD_BEZTRIPLE) {
-              if ((td[0].loc == td[1].loc) && (td[1].loc == td[2].loc)) {
-                is_data_single = true;
-              }
-            }
-          }
-          break;
-        }
-      }
-    }
-    if (is_data_single) {
+    if (data_len_all == 1) {
       t->around = V3D_AROUND_LOCAL_ORIGINS;
     }
   }
+}
+
+void transform_around_single_fallback(TransInfo *t)
+{
+  transform_around_single_fallback_ex(t, t->data_len_all);
 }
 
 /* -------------------------------------------------------------------- */

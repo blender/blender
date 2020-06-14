@@ -84,6 +84,7 @@ typedef enum eTransConvertType {
 
 /* transform_convert.c */
 bool transform_mode_use_local_origins(const TransInfo *t);
+void transform_around_single_fallback_ex(TransInfo *t, int data_len_all);
 void transform_around_single_fallback(TransInfo *t);
 void posttrans_fcurve_clean(struct FCurve *fcu, const int sel_flag, const bool use_handle);
 bool constraints_list_needinv(TransInfo *t, ListBase *list);
