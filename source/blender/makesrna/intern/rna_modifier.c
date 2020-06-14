@@ -1742,7 +1742,7 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "SubsurfModifier", "Modifier");
-  RNA_def_struct_ui_text(srna, "Subsurf Modifier", "Subdivision surface modifier");
+  RNA_def_struct_ui_text(srna, "Subdivision Surface Modifier", "Subdivision surface modifier");
   RNA_def_struct_sdna(srna, "SubsurfModifierData");
   RNA_def_struct_ui_icon(srna, ICON_MOD_SUBSURF);
 

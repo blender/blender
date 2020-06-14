@@ -237,7 +237,7 @@ class SubdivisionSet(Operator):
     )
     relative: BoolProperty(
         name="Relative",
-        description=("Apply the subsurf level as an offset "
+        description=("Apply the subdivision surface level as an offset "
                      "relative to the current level"),
         default=False,
     )

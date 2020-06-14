@@ -569,7 +569,7 @@ class SpellChecker:
         "shrinkwrap",
         "softbody",
         "stucci",
-        "subsurf",
+        "subdiv",
         "subtype",
         "sunsky",
         "tessface", "tessfaces",

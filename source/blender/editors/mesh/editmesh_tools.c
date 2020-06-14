@@ -7241,7 +7241,7 @@ void MESH_OT_wireframe(wmOperatorType *ot)
   RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
   RNA_def_float_distance(ot->srna, "offset", 0.01f, 0.0f, 1e4f, "Offset", "", 0.0f, 10.0f);
   RNA_def_boolean(
-      ot->srna, "use_crease", false, "Crease", "Crease hub edges for improved subsurf");
+      ot->srna, "use_crease", false, "Crease", "Crease hub edges for an improved subdivision surface");
   prop = RNA_def_float(
       ot->srna, "crease_weight", 0.01f, 0.0f, 1e3f, "Crease weight", "", 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 2);

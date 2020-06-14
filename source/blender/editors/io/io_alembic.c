@@ -421,7 +421,7 @@ void WM_OT_alembic_export(wmOperatorType *ot)
                   "Export meshes using Alembic's subdivision schema");
 
   RNA_def_boolean(
-      ot->srna, "apply_subdiv", 0, "Apply Subsurf", "Export subdivision surfaces as meshes");
+      ot->srna, "apply_subdiv", 0, "Apply Subdivision Surface", "Export subdivision surfaces as meshes");
 
   RNA_def_boolean(ot->srna,
                   "curves_as_mesh",
