@@ -1,0 +1,14 @@
+diff -Naur orig/common/sys/platform.h external_embree/common/sys/platform.h
+--- orig/common/sys/platform.h	2020-05-13 23:08:53 -0600
++++ external_embree/common/sys/platform.h	2020-06-13 17:40:26 -0600
+@@ -84,8 +84,8 @@
+ ////////////////////////////////////////////////////////////////////////////////
+ 
+ #ifdef __WIN32__
+-#define dll_export __declspec(dllexport)
+-#define dll_import __declspec(dllimport)
++#define dll_export 
++#define dll_import 
+ #else
+ #define dll_export __attribute__ ((visibility ("default")))
+ #define dll_import 

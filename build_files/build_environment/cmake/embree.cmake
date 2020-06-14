@@ -51,6 +51,7 @@ ExternalProject_Add(external_embree
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH MD5=${EMBREE_HASH}
   PREFIX ${BUILD_DIR}/embree
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/embree/src/external_embree < ${PATCH_DIR}/embree.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree ${DEFAULT_CMAKE_FLAGS} ${EMBREE_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/embree
 )
