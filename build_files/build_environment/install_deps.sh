@@ -1574,7 +1574,7 @@ compile_TBB() {
   if [ ! -d $_inst ]; then
     INFO "Building TBB-$TBB_VERSION$TBB_VERSION_UPDATE"
     _is_building=true
-    
+
     # Rebuild dependencies as well!
     _update_deps_tbb
 
@@ -1691,7 +1691,7 @@ compile_OCIO() {
   if [ ! -d $_inst ]; then
     INFO "Building OpenColorIO-$OCIO_VERSION"
     _is_building=true
-    
+
     # Rebuild dependencies as well!
     _update_deps_ocio
 
@@ -3678,7 +3678,7 @@ install_DEB() {
     check_package_version_ge_DEB python3-dev $PYTHON_VERSION_MIN
     if [ $? -eq 0 ]; then
       PYTHON_VERSION_INSTALLED=$(echo `get_package_version_DEB python3-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
-      
+
       install_packages_DEB python3-dev
       clean_Python
       PRINT ""
