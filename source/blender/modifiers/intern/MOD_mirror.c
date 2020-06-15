@@ -245,4 +245,6 @@ ModifierTypeInfo modifierType_Mirror = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

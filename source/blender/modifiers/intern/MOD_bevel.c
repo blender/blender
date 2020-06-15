@@ -446,4 +446,6 @@ ModifierTypeInfo modifierType_Bevel = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* uiPanel */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

@@ -540,4 +540,6 @@ ModifierTypeInfo modifierType_Warp = {
     /* foreachTexLink */ foreachTexLink,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

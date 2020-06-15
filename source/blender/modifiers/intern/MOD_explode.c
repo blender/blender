@@ -1257,4 +1257,6 @@ ModifierTypeInfo modifierType_Explode = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

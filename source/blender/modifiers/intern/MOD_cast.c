@@ -607,4 +607,6 @@ ModifierTypeInfo modifierType_Cast = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

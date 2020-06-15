@@ -1277,4 +1277,6 @@ ModifierTypeInfo modifierType_Screw = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

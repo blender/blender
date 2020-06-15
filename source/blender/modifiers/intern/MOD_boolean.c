@@ -413,4 +413,6 @@ ModifierTypeInfo modifierType_Boolean = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

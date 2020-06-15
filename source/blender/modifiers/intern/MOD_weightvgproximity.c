@@ -741,4 +741,6 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
     /* foreachTexLink */ foreachTexLink,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

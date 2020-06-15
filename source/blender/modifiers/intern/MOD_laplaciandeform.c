@@ -884,4 +884,6 @@ ModifierTypeInfo modifierType_LaplacianDeform = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

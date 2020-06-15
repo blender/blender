@@ -2004,6 +2004,8 @@ ModifierTypeInfo modifierType_Weld = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };
 
 /** \} */

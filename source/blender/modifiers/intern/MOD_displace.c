@@ -528,4 +528,6 @@ ModifierTypeInfo modifierType_Displace = {
     /* foreachTexLink */ foreachTexLink,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

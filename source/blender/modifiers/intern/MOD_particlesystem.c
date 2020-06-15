@@ -329,4 +329,6 @@ ModifierTypeInfo modifierType_ParticleSystem = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

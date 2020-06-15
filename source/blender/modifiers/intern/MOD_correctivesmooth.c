@@ -847,4 +847,6 @@ ModifierTypeInfo modifierType_CorrectiveSmooth = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

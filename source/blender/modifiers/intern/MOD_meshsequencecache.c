@@ -259,4 +259,6 @@ ModifierTypeInfo modifierType_MeshSequenceCache = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

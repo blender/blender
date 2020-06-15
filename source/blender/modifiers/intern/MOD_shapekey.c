@@ -148,4 +148,6 @@ ModifierTypeInfo modifierType_ShapeKey = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ NULL,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

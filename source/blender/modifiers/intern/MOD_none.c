@@ -67,4 +67,7 @@ ModifierTypeInfo modifierType_None = {
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
+    /* panelRegister */ NULL,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };

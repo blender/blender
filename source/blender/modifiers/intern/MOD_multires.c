@@ -449,4 +449,6 @@ ModifierTypeInfo modifierType_Multires = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ freeRuntimeData,
     /* panelRegister */ panelRegister,
+    /* blendWrite */ NULL,
+    /* blendRead */ NULL,
 };
