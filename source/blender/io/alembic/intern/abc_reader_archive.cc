@@ -40,11 +40,8 @@ using Alembic::Abc::IArchive;
 using Alembic::Abc::kWrapExisting;
 
 static IArchive open_archive(const std::string &filename,
-                             const std::vector<std::istream *> &input_streams,
-                             bool &is_hdf5)
+                             const std::vector<std::istream *> &input_streams)
 {
-  is_hdf5 = false;
-
   try {
     Alembic::AbcCoreOgawa::ReadArchive archive_reader(input_streams);
 
@@ -53,22 +50,7 @@ static IArchive open_archive(const std::string &filename,
   catch (const Exception &e) {
     std::cerr << e.what() << '\n';
 
-#ifdef WITH_ALEMBIC_HDF5
-    try {
-      is_hdf5 = true;
-      Alembic::AbcCoreAbstract::ReadArraySampleCachePtr cache_ptr;
-
-      return IArchive(Alembic::AbcCoreHDF5::ReadArchive(),
-                      filename.c_str(),
-                      ErrorHandler::kThrowPolicy,
-                      cache_ptr);
-    }
-    catch (const Exception &) {
-      std::cerr << e.what() << '\n';
-      return IArchive();
-    }
-#else
-    /* Inspect the file to see whether it's really a HDF5 file. */
+    /* Inspect the file to see whether it's actually a HDF5 file. */
     char header[4]; /* char(0x89) + "HDF" */
     std::ifstream the_file(filename.c_str(), std::ios::in | std::ios::binary);
     if (!the_file) {
@@ -81,16 +63,12 @@ static IArchive open_archive(const std::string &filename,
       std::cerr << filename << " has an unknown file format, unable to read." << std::endl;
     }
     else {
-      is_hdf5 = true;
       std::cerr << filename << " is in the obsolete HDF5 format, unable to read." << std::endl;
     }
 
     if (the_file.is_open()) {
       the_file.close();
     }
-
-    return IArchive();
-#endif
   }
 
   return IArchive();
@@ -113,18 +91,7 @@ ArchiveReader::ArchiveReader(struct Main *bmain, const char *filename)
 
   m_streams.push_back(&m_infile);
 
-  m_archive = open_archive(abs_filename, m_streams, m_is_hdf5);
-
-  /* We can't open an HDF5 file from a stream, so close it. */
-  if (m_is_hdf5) {
-    m_infile.close();
-    m_streams.clear();
-  }
-}
-
-bool ArchiveReader::is_hdf5() const
-{
-  return m_is_hdf5;
+  m_archive = open_archive(abs_filename, m_streams);
 }
 
 bool ArchiveReader::valid() const

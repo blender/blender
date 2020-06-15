@@ -93,7 +93,6 @@ ExportSettings::ExportSettings()
       apply_subdiv(false),
       use_subdiv_schema(false),
       export_child_hairs(true),
-      export_ogawa(true),
       pack_uv(false),
       triangulate(false),
       quad_method(0),
@@ -276,8 +275,7 @@ void AbcExporter::operator()(short *do_update, float *progress, bool *was_cancel
     abc_scene_name = "untitled";
   }
 
-  m_writer = new ArchiveWriter(
-      m_filename, abc_scene_name, m_settings.scene, m_settings.export_ogawa);
+  m_writer = new ArchiveWriter(m_filename, abc_scene_name, m_settings.scene);
 
   /* Create time samplings for transforms and shapes. */
 

@@ -225,7 +225,6 @@ extern const EnumPropertyItem rna_enum_dt_mix_mode_items[];
 extern const EnumPropertyItem rna_enum_dt_layers_select_src_items[];
 extern const EnumPropertyItem rna_enum_dt_layers_select_dst_items[];
 
-extern const EnumPropertyItem rna_enum_abc_compression_items[];
 extern const EnumPropertyItem rna_enum_context_mode_items[];
 
 extern const EnumPropertyItem rna_enum_curveprofile_preset_items[];

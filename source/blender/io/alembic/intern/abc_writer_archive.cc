@@ -43,10 +43,8 @@ using Alembic::Abc::OArchive;
 /* This kinda duplicates CreateArchiveWithInfo, but Alembic does not seem to
  * have a version supporting streams. */
 static OArchive create_archive(std::ostream *ostream,
-                               const std::string &filename,
                                const std::string &scene_name,
-                               double scene_fps,
-                               bool ogawa)
+                               double scene_fps)
 {
   Alembic::Abc::MetaData abc_metadata;
 
@@ -73,38 +71,25 @@ static OArchive create_archive(std::ostream *ostream,
   abc_metadata.set(Alembic::Abc::kDateWrittenKey, buffer);
 
   ErrorHandler::Policy policy = ErrorHandler::kThrowPolicy;
-
-#ifdef WITH_ALEMBIC_HDF5
-  if (!ogawa) {
-    return OArchive(Alembic::AbcCoreHDF5::WriteArchive(), filename, abc_metadata, policy);
-  }
-#else
-  static_cast<void>(filename);
-  static_cast<void>(ogawa);
-#endif
-
   Alembic::AbcCoreOgawa::WriteArchive archive_writer;
   return OArchive(archive_writer(ostream, abc_metadata), kWrapExisting, policy);
 }
 
 ArchiveWriter::ArchiveWriter(const char *filename,
                              const std::string &abc_scene_name,
-                             const Scene *scene,
-                             bool do_ogawa)
+                             const Scene *scene)
 {
   /* Use stream to support unicode character paths on Windows. */
-  if (do_ogawa) {
 #ifdef WIN32
-    UTF16_ENCODE(filename);
-    std::wstring wstr(filename_16);
-    m_outfile.open(wstr.c_str(), std::ios::out | std::ios::binary);
-    UTF16_UN_ENCODE(filename);
+  UTF16_ENCODE(filename);
+  std::wstring wstr(filename_16);
+  m_outfile.open(wstr.c_str(), std::ios::out | std::ios::binary);
+  UTF16_UN_ENCODE(filename);
 #else
-    m_outfile.open(filename, std::ios::out | std::ios::binary);
+  m_outfile.open(filename, std::ios::out | std::ios::binary);
 #endif
-  }
 
-  m_archive = create_archive(&m_outfile, filename, abc_scene_name, FPS, do_ogawa);
+  m_archive = create_archive(&m_outfile, abc_scene_name, FPS);
 }
 
 OArchive &ArchiveWriter::archive()

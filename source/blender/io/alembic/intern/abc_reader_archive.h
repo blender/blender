@@ -25,11 +25,6 @@
 #define __ABC_READER_ARCHIVE_H__
 
 #include <Alembic/Abc/All.h>
-
-#ifdef WITH_ALEMBIC_HDF5
-#  include <Alembic/AbcCoreHDF5/All.h>
-#endif
-
 #include <Alembic/AbcCoreOgawa/All.h>
 
 #include <fstream>
@@ -46,20 +41,11 @@ class ArchiveReader {
   Alembic::Abc::IArchive m_archive;
   std::ifstream m_infile;
   std::vector<std::istream *> m_streams;
-  bool m_is_hdf5;
 
  public:
   ArchiveReader(struct Main *bmain, const char *filename);
 
   bool valid() const;
-
-  /**
-   * Returns true when either Blender is compiled with HDF5 support and
-   * the archive was successfully opened (valid() will also return true),
-   * or when Blender was built without HDF5 support but a HDF5 file was
-   * detected (valid() will return false).
-   */
-  bool is_hdf5() const;
 
   Alembic::Abc::IObject getTop();
 };

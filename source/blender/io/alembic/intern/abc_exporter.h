@@ -73,7 +73,6 @@ struct ExportSettings {
   bool curves_as_mesh;
   bool use_subdiv_schema;
   bool export_child_hairs;
-  bool export_ogawa;
   bool pack_uv;
   bool triangulate;
 

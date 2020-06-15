@@ -35,11 +35,6 @@ struct bContext;
 
 typedef struct AbcArchiveHandle AbcArchiveHandle;
 
-enum {
-  ABC_ARCHIVE_OGAWA = 0,
-  ABC_ARCHIVE_HDF5 = 1,
-};
-
 int ABC_get_version(void);
 
 struct AlembicExportParams {
@@ -67,8 +62,6 @@ struct AlembicExportParams {
   bool triangulate;
   bool export_hair;
   bool export_particles;
-
-  unsigned int compression_type : 1;
 
   /* See MOD_TRIANGULATE_NGON_xxx and MOD_TRIANGULATE_QUAD_xxx
    * in DNA_modifier_types.h */

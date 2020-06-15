@@ -133,7 +133,6 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
       .use_subdiv_schema = RNA_boolean_get(op->ptr, "subdiv_schema"),
       .export_hair = RNA_boolean_get(op->ptr, "export_hair"),
       .export_particles = RNA_boolean_get(op->ptr, "export_particles"),
-      .compression_type = RNA_enum_get(op->ptr, "compression_type"),
       .packuv = RNA_boolean_get(op->ptr, "packuv"),
       .triangulate = RNA_boolean_get(op->ptr, "triangulate"),
       .quad_method = RNA_enum_get(op->ptr, "quad_method"),
@@ -162,15 +161,6 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiLayout *box;
   uiLayout *row;
   uiLayout *col;
-
-#  ifdef WITH_ALEMBIC_HDF5
-  box = uiLayoutBox(layout);
-  row = uiLayoutRow(box, false);
-  uiItemL(row, IFACE_("Archive Options:"), ICON_NONE);
-
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "compression_type", 0, NULL, ICON_NONE);
-#  endif
 
   box = uiLayoutBox(layout);
   row = uiLayoutRow(box, false);
@@ -428,13 +418,6 @@ void WM_OT_alembic_export(wmOperatorType *ot)
                   false,
                   "Curves as Mesh",
                   "Export curves and NURBS surfaces as meshes");
-
-  RNA_def_enum(ot->srna,
-               "compression_type",
-               rna_enum_abc_compression_items,
-               ABC_ARCHIVE_OGAWA,
-               "Compression",
-               "");
 
   RNA_def_float(
       ot->srna,

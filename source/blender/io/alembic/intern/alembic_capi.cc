@@ -373,7 +373,6 @@ bool ABC_export(Scene *scene,
   job->settings.renderable_only = params->renderable_only;
 
   job->settings.use_subdiv_schema = params->use_subdiv_schema;
-  job->settings.export_ogawa = (params->compression_type == ABC_ARCHIVE_OGAWA);
   job->settings.pack_uv = params->packuv;
   job->settings.global_scale = params->global_scale;
   job->settings.triangulate = params->triangulate;
@@ -620,7 +619,6 @@ static std::pair<bool, AbcObjectReader *> visit_object(
 enum {
   ABC_NO_ERROR = 0,
   ABC_ARCHIVE_FAIL,
-  ABC_UNSUPPORTED_HDF5,
 };
 
 struct ImportJobData {
@@ -659,11 +657,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
   ArchiveReader *archive = new ArchiveReader(data->bmain, data->filename);
 
   if (!archive->valid()) {
-#ifndef WITH_ALEMBIC_HDF5
-    data->error_code = archive->is_hdf5() ? ABC_UNSUPPORTED_HDF5 : ABC_ARCHIVE_FAIL;
-#else
     data->error_code = ABC_ARCHIVE_FAIL;
-#endif
     delete archive;
     return;
   }
@@ -849,9 +843,6 @@ static void import_endjob(void *user_data)
       break;
     case ABC_ARCHIVE_FAIL:
       WM_report(RPT_ERROR, "Could not open Alembic archive for reading! See console for detail.");
-      break;
-    case ABC_UNSUPPORTED_HDF5:
-      WM_report(RPT_ERROR, "Alembic archive in obsolete HDF5 format is not supported.");
       break;
   }
 

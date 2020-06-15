@@ -25,11 +25,6 @@
 #define __ABC_WRITER_ARCHIVE_H__
 
 #include <Alembic/Abc/All.h>
-
-#ifdef WITH_ALEMBIC_HDF5
-#  include <Alembic/AbcCoreHDF5/All.h>
-#endif
-
 #include <Alembic/AbcCoreOgawa/All.h>
 
 #include <fstream>
@@ -47,10 +42,7 @@ class ArchiveWriter {
   Alembic::Abc::OArchive m_archive;
 
  public:
-  ArchiveWriter(const char *filename,
-                const std::string &abc_scene_name,
-                const Scene *scene,
-                bool do_ogawa);
+  ArchiveWriter(const char *filename, const std::string &abc_scene_name, const Scene *scene);
 
   Alembic::Abc::OArchive &archive();
 };
