@@ -188,8 +188,8 @@ set(OPUS_VERSION 1.3.1)
 set(OPUS_URI https://archive.mozilla.org/pub/opus/opus-${OPUS_VERSION}.tar.gz)
 set(OPUS_HASH 65b58e1e25b2a114157014736a3d9dfeaad8d41be1c8179866f144a2fb44ff9d)
 
-set(X264_URI https://code.videolan.org/videolan/x264/-/archive/master/x264-33f9e1474613f59392be5ab6a7e7abf60fa63622.tar.gz)
-set(X264_HASH 300dfb5b6c35722516f168868ce9419252a9e9eb77a05d82c9cede925b691bd6)
+set(X264_URI https://code.videolan.org/videolan/x264/-/archive/33f9e1474613f59392be5ab6a7e7abf60fa63622/x264-33f9e1474613f59392be5ab6a7e7abf60fa63622.tar.gz)
+set(X264_HASH 5456450ee1ae02cd2328be3157367a232a0ab73315e8c8f80dab80469524f525)
 
 set(XVIDCORE_VERSION 1.3.7)
 set(XVIDCORE_URI https://downloads.xvid.com/downloads/xvidcore-${XVIDCORE_VERSION}.tar.gz)
