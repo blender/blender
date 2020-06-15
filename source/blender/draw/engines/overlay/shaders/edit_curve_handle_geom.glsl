@@ -52,7 +52,7 @@ void main()
 
   bool edge_selected = (((vertFlag[1] | vertFlag[0]) & VERT_SELECTED) != 0);
   bool handle_selected = (showCurveHandles &&
-                          (((vertFlag[1] | vertFlag[0]) & HANDLE_SELECTED) != 0));
+                          (((vertFlag[1] | vertFlag[0]) & VERT_SELECTED_BEZT_HANDLE) != 0));
 
   /* If handle type is only selected and the edge is not selected, don't show. */
   if ((curveHandleDisplay != CURVE_HANDLE_ALL) && (!handle_selected)) {

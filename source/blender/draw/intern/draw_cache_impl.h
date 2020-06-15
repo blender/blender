@@ -201,18 +201,19 @@ struct GPUBatch *DRW_mesh_batch_cache_get_edit_mesh_analysis(struct Mesh *me);
 
 int DRW_mesh_material_count_get(struct Mesh *me);
 
+/* See 'common_globals_lib.glsl' for duplicate defines. */
+
 /* Edit mesh bitflags (is this the right place?) */
 enum {
   VFLAG_VERT_ACTIVE = 1 << 0,
   VFLAG_VERT_SELECTED = 1 << 1,
-  VFLAG_EDGE_ACTIVE = 1 << 2,
-  VFLAG_EDGE_SELECTED = 1 << 3,
-  VFLAG_EDGE_SEAM = 1 << 4,
-  VFLAG_EDGE_SHARP = 1 << 5,
-  VFLAG_EDGE_FREESTYLE = 1 << 6,
-  VFLAG_HANDLE_SELECTED = 1 << 7,
-  /* Beware to not go over 1 << 7 (it's a byte flag)
-   * (see gpu_shader_edit_mesh_overlay_geom.glsl) */
+  VFLAG_VERT_SELECTED_BEZT_HANDLE = 1 << 2,
+  VFLAG_EDGE_ACTIVE = 1 << 3,
+  VFLAG_EDGE_SELECTED = 1 << 4,
+  VFLAG_EDGE_SEAM = 1 << 5,
+  VFLAG_EDGE_SHARP = 1 << 6,
+  VFLAG_EDGE_FREESTYLE = 1 << 7,
+  /* Beware to not go over 1 << 7 (it's a byte flag). */
 };
 
 enum {
@@ -224,8 +225,7 @@ enum {
   VFLAG_EDGE_UV_SELECT = 1 << 5,
   VFLAG_FACE_UV_ACTIVE = 1 << 6,
   VFLAG_FACE_UV_SELECT = 1 << 7,
-  /* Beware to not go over 1 << 7 (it's a byte flag)
-   * (see gpu_shader_edit_mesh_overlay_geom.glsl) */
+  /* Beware to not go over 1 << 7 (it's a byte flag). */
 };
 
 /* Particles */

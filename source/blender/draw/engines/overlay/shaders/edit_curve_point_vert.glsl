@@ -37,7 +37,7 @@ void main()
 #endif
 
   bool show_handle = showCurveHandles;
-  if ((curveHandleDisplay == CURVE_HANDLE_SELECTED) && ((data & HANDLE_SELECTED) == 0)) {
+  if ((curveHandleDisplay == CURVE_HANDLE_SELECTED) && ((data & VERT_SELECTED_BEZT_HANDLE) == 0)) {
     show_handle = false;
   }
 
