@@ -364,8 +364,10 @@ static bool id_search_add(const bContext *C,
       BKE_id_full_name_ui_prefix_get(name_ui, id, UI_SEP_CHAR);
 
       int iconid = ui_id_icon_get(C, id, template_ui->preview);
+      bool has_sep_char = (id->lib != NULL);
 
-      if (!UI_search_item_add(items, name_ui, id, iconid, UI_BUT_HAS_SEP_CHAR)) {
+      if (!UI_search_item_add(
+              items, name_ui, id, iconid, has_sep_char ? UI_BUT_HAS_SEP_CHAR : 0)) {
         return false;
       }
     }

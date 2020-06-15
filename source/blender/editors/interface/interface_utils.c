@@ -384,6 +384,7 @@ typedef struct CollItemSearch {
   char *name;
   int index;
   int iconid;
+  uint has_sep_char : 1;
 } CollItemSearch;
 
 static int sort_search_items_list(const void *a, const void *b)
@@ -405,7 +406,8 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
                                         uiSearchItems *items)
 {
   uiRNACollectionSearch *data = arg;
-  int i = 0, iconid = 0, flag = RNA_property_flag(data->target_prop);
+  const int flag = RNA_property_flag(data->target_prop);
+  int i = 0;
   ListBase *items_list = MEM_callocN(sizeof(ListBase), "items_list");
   CollItemSearch *cis;
   const bool is_ptr_target = (RNA_property_type(data->target_prop) == PROP_POINTER);
@@ -433,7 +435,9 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
       }
     }
 
-    iconid = 0;
+    int iconid = ICON_NONE;
+    bool has_sep_char = false;
+
     if (itemptr.type && RNA_struct_is_ID(itemptr.type)) {
       iconid = ui_id_icon_get(C, itemptr.data, false);
 
@@ -441,10 +445,12 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
         name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), NULL);
       }
       else {
-        BKE_id_full_name_ui_prefix_get(name_buf, itemptr.data, UI_SEP_CHAR);
+        const ID *id = itemptr.data;
+        BKE_id_full_name_ui_prefix_get(name_buf, id, UI_SEP_CHAR);
         BLI_STATIC_ASSERT(sizeof(name_buf) >= MAX_ID_FULL_NAME_UI,
                           "Name string buffer should be big enough to hold full UI ID name");
         name = name_buf;
+        has_sep_char = (id->lib != NULL);
       }
     }
     else {
@@ -458,6 +464,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
         cis->name = BLI_strdup(name);
         cis->index = i;
         cis->iconid = iconid;
+        cis->has_sep_char = has_sep_char;
         BLI_addtail(items_list, cis);
       }
       if (name != name_buf) {
@@ -473,7 +480,11 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
 
   /* add search items from temporary list */
   for (cis = items_list->first; cis; cis = cis->next) {
-    if (!UI_search_item_add(items, cis->name, cis->data, cis->iconid, UI_BUT_HAS_SEP_CHAR)) {
+    if (!UI_search_item_add(items,
+                            cis->name,
+                            cis->data,
+                            cis->iconid,
+                            cis->has_sep_char ? UI_BUT_HAS_SEP_CHAR : 0)) {
       break;
     }
   }
