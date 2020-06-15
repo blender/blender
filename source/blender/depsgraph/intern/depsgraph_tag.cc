@@ -237,6 +237,8 @@ void depsgraph_tag_to_component_opcode(const ID *id,
     case ID_RECALC_PSYS_ALL:
       BLI_assert(!"Should not happen");
       break;
+    case ID_RECALC_TAG_FOR_UNDO:
+      break; /* Must be ignored by depsgraph. */
   }
 }
 
@@ -737,6 +739,8 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "SOURCE";
     case ID_RECALC_ALL:
       return "ALL";
+    case ID_RECALC_TAG_FOR_UNDO:
+      return "TAG_FOR_UNDO";
   }
   return nullptr;
 }
