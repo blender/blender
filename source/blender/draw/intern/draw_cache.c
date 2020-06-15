@@ -3552,6 +3552,11 @@ void drw_batch_cache_generate_requested(Object *ob)
   }
 }
 
+void drw_batch_cache_generate_requested_delayed(Object *ob)
+{
+  BLI_gset_add(DST.delayed_extraction, ob);
+}
+
 void DRW_batch_cache_free_old(Object *ob, int ctime)
 {
   struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
