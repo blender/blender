@@ -1261,7 +1261,11 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
   /* Scene's master collections will be 'root' parent of most of our collections, so start with
    * them. */
   for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
-    collection_parents_rebuild_recursive(scene->master_collection);
+    /* This function can be called from readfile.c, when this pointer is not guaranteed to be NULL.
+     */
+    if (scene->master_collection != NULL) {
+      collection_parents_rebuild_recursive(scene->master_collection);
+    }
   }
 
   /* We may have parent chains outside of scene's master_collection context? At least, readfile's
