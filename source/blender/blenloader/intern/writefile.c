@@ -1839,6 +1839,10 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
         write_CurveProfile(writer, bmd->custom_profile);
       }
     }
+
+    if (mti->blendWrite != NULL) {
+      mti->blendWrite(writer, md);
+    }
   }
 }
 

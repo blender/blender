@@ -5579,8 +5579,11 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
       md = modifier_replace_with_fluid(reader->fd, ob, lb, md);
       is_allocated = true;
     }
+
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
+
     /* if modifiers disappear, or for upward compatibility */
-    if (NULL == BKE_modifier_get_info(md->type)) {
+    if (mti == NULL) {
       md->type = eModifierType_None;
     }
 
@@ -5883,6 +5886,10 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
       if (bmd->custom_profile) {
         direct_link_curveprofile(reader, bmd->custom_profile);
       }
+    }
+
+    if (mti->blendRead != NULL) {
+      mti->blendRead(reader, md);
     }
   }
 }
