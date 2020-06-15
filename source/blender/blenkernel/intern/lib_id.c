@@ -123,6 +123,16 @@ static void lib_id_library_local_paths(Main *bmain, Library *lib, ID *id)
                         (void *)bpath_user_data);
 }
 
+static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *cb_data)
+{
+  ID *id = cb_data->user_data;
+  if (*cb_data->id_pointer == id) {
+    DEG_id_tag_update_ex(cb_data->bmain, cb_data->id_owner, ID_RECALC_TAG_FOR_UNDO);
+    return IDWALK_RET_STOP_ITER;
+  }
+  return IDWALK_RET_NOP;
+}
+
 /**
  * Pull an ID out of a library (make it local). Only call this for IDs that
  * don't have other library users.
@@ -144,6 +154,21 @@ static void lib_id_clear_library_data_ex(Main *bmain, ID *id)
       bmain->is_memfile_undo_written = false;
     }
   }
+
+  /* Conceptually, an ID made local is not the same as the linked one anymore. Reflect that by
+   * regenerating its session UUID. */
+  BKE_lib_libblock_session_uuid_renew(id);
+
+  /* We need to tag this IDs and all of its users, conceptually new local ID and original linked
+   * ones are two completely different data-blocks that were virtually remaped, even though in
+   * reality they remain the same data. For undo this info is critical now. */
+  DEG_id_tag_update_ex(bmain, id, ID_RECALC_COPY_ON_WRITE);
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    BKE_library_foreach_ID_link(
+        bmain, id_iter, lib_id_clear_library_data_users_update_cb, id, IDWALK_READONLY);
+  }
+  FOREACH_MAIN_ID_END;
 
   /* Internal shape key blocks inside data-blocks also stores id->lib,
    * make sure this stays in sync (note that we do not need any explicit handling for real EMBEDDED
@@ -1047,8 +1072,10 @@ void BKE_lib_libblock_session_uuid_ensure(ID *id)
 /**
  * Re-generate a new session-wise uuid for the given \a id.
  *
- * \warning This has a very specific use-case (to handle UI-related data-blocks that are kept
- * across new file reading, when we do keep existing UI). No other usage is expected currently.
+ * \warning This has a few very specific use-cases, no other usage is expected currently:
+ *   - To handle UI-related data-blocks that are kept across new file reading, when we do keep
+ * existing UI.
+ *   - For IDs that are made local without needing any copying.
  */
 void BKE_lib_libblock_session_uuid_renew(ID *id)
 {
