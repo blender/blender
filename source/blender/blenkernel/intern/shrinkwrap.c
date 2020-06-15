@@ -51,6 +51,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h" /* for OMP limits. */
 #include "BKE_mesh_runtime.h"
+#include "BKE_mesh_wrapper.h"
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph_query.h"
@@ -115,7 +116,16 @@ bool BKE_shrinkwrap_init_tree(
 {
   memset(data, 0, sizeof(*data));
 
-  if (!mesh || mesh->totvert <= 0) {
+  if (mesh == NULL) {
+    return false;
+  }
+
+  /* We could create a BVH tree from the edit mesh,
+   * however accessing normals from the face/loop normals gets more involved.
+   * Convert mesh data since this isn't typically used in edit-mode. */
+  BKE_mesh_wrapper_ensure_mdata(mesh);
+
+  if (mesh->totvert <= 0) {
     return false;
   }
 
