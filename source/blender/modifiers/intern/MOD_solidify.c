@@ -124,6 +124,9 @@ static void panel_draw(const bContext *C, Panel *panel)
   if (solidify_mode == MOD_SOLIDIFY_MODE_NONMANIFOLD) {
     uiItemR(layout, &ptr, "nonmanifold_merge_threshold", 0, NULL, ICON_NONE);
   }
+  else {
+    uiItemR(layout, &ptr, "use_even_offset", 0, NULL, ICON_NONE);
+  }
 
   col = uiLayoutColumnWithHeading(layout, false, "Rim");
   uiItemR(col, &ptr, "use_rim", 0, IFACE_("Fill"), ICON_NONE);
@@ -162,7 +165,6 @@ static void normals_panel_draw(const bContext *C, Panel *panel)
   uiItemR(layout, &ptr, "use_flip_normals", 0, NULL, ICON_NONE);
   if (solidify_mode == MOD_SOLIDIFY_MODE_EXTRUDE) {
     uiItemR(layout, &ptr, "use_quality_normals", 0, IFACE_("High Quality"), ICON_NONE);
-    uiItemR(layout, &ptr, "use_even_offset", 0, NULL, ICON_NONE);
   }
 }
 
