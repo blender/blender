@@ -880,7 +880,7 @@ static void gp_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
 
       /* Skip if neither one is selected
        * (and we are only allowed to edit/consider selected points) */
-      if ((GPENCIL_ANY_VERTEX_MASK(gso->mask)) && (GPENCIL_VERTEX_MODE(gso->gpd))) {
+      if (GPENCIL_ANY_VERTEX_MASK(gso->mask)) {
         if (!(pt1->flag & GP_SPOINT_SELECT) && !(pt2->flag & GP_SPOINT_SELECT)) {
           include_last = false;
           continue;
@@ -908,6 +908,11 @@ static void gp_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
           pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
           index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i;
           if (pt_active != NULL) {
+            /* If masked and the point is not selected, skip it. */
+            if ((GPENCIL_ANY_VERTEX_MASK(gso->mask)) &&
+                ((pt_active->flag & GP_SPOINT_SELECT) == 0)) {
+              continue;
+            }
             hit = true;
             gp_save_selected_point(gso, gps_active, index, pc1);
           }

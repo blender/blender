@@ -1506,6 +1506,11 @@ static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso,
             continue;
           }
           pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
+          /* If masked and the point is not selected, skip it. */
+          if ((GPENCIL_ANY_SCULPT_MASK(gso->mask)) &&
+              ((pt_active->flag & GP_SPOINT_SELECT) == 0)) {
+            continue;
+          }
           index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i;
           if ((pt_active != NULL) && (index < gps_active->totpoints)) {
             rot_eval = gpsculpt_rotation_eval_get(gso, gps, pt, i);
