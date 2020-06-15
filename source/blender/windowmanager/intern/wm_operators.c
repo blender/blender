@@ -2730,7 +2730,7 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   rc->num_input.idx_max = 0;
   rc->num_input.val_flag[0] |= NUM_NO_NEGATIVE;
   rc->num_input.unit_sys = USER_UNIT_NONE;
-  rc->num_input.unit_type[0] = B_UNIT_LENGTH;
+  rc->num_input.unit_type[0] = RNA_SUBTYPE_UNIT_VALUE(RNA_property_unit(rc->prop));
 
   /* get subtype of property */
   rc->subtype = RNA_property_subtype(rc->prop);
@@ -2829,7 +2829,6 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
     applyNumInput(&rc->num_input, &numValue);
 
     if (rc->subtype == PROP_ANGLE) {
-      numValue = DEG2RADF(numValue);
       numValue = fmod(numValue, 2.0f * (float)M_PI);
       if (numValue < 0.0f) {
         numValue += 2.0f * (float)M_PI;
@@ -2994,7 +2993,6 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
       applyNumInput(&rc->num_input, &numValue);
 
       if (rc->subtype == PROP_ANGLE) {
-        numValue = DEG2RADF(numValue);
         numValue = fmod(numValue, 2.0f * (float)M_PI);
         if (numValue < 0.0f) {
           numValue += 2.0f * (float)M_PI;
