@@ -778,8 +778,6 @@ class Vector {
     if (UNLIKELY(m_end >= m_capacity_end)) {
       this->realloc_to_at_least(this->size() + 1);
     }
-    std::vector<int> a;
-    a.push_back(4);
   }
 
   BLI_NOINLINE void realloc_to_at_least(uint min_capacity)
