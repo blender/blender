@@ -95,7 +95,6 @@ static void draw_current_frame(const Scene *scene,
                                int current_frame)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  const uchar color[] = {255, 255, 255, 255};
   int frame_x = UI_view2d_view_to_region_x(v2d, current_frame);
 
   char frame_str[64];
@@ -127,11 +126,13 @@ static void draw_current_frame(const Scene *scene,
                       4 * UI_DPI_FAC,
                       bg_color);
 
+  uchar text_color[4];
+  UI_GetThemeColor4ubv(TH_HEADER_TEXT_HI, text_color);
   UI_fontstyle_draw_simple(fstyle,
                            frame_x - text_width / 2 + U.pixelsize / 2,
                            get_centered_text_y(scrub_region_rect),
                            frame_str,
-                           color);
+                           text_color);
 }
 
 void ED_time_scrub_draw(const ARegion *region,
