@@ -78,10 +78,6 @@ set(FREEGLUT_VERSION 3.0.0)
 set(FREEGLUT_URI http://pilotfiber.dl.sourceforge.net/project/freeglut/freeglut/${FREEGLUT_VERSION}/freeglut-${FREEGLUT_VERSION}.tar.gz)
 set(FREEGLUT_HASH 90c3ca4dd9d51cf32276bc5344ec9754)
 
-set(HDF5_VERSION 1.8.17)
-set(HDF5_URI https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz)
-set(HDF5_HASH 7d572f8f3b798a628b8245af0391a0ca)
-
 set(ALEMBIC_VERSION 1.7.12)
 set(ALEMBIC_URI https://github.com/alembic/alembic/archive/${ALEMBIC_VERSION}.tar.gz)
 set(ALEMBIC_MD5 e2b3777f23c5c09481a008cc6f0f8a40)

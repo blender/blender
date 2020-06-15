@@ -265,14 +265,8 @@ endif()
 if(WITH_ALEMBIC)
   find_package_wrapper(Alembic)
 
-  if(WITH_ALEMBIC_HDF5)
-    set(HDF5_ROOT_DIR ${LIBDIR}/hdf5)
-    find_package_wrapper(HDF5)
-  endif()
-
-  if(NOT ALEMBIC_FOUND OR (WITH_ALEMBIC_HDF5 AND NOT HDF5_FOUND))
+  if(NOT ALEMBIC_FOUND)
     set(WITH_ALEMBIC OFF)
-    set(WITH_ALEMBIC_HDF5 OFF)
   endif()
 endif()
 

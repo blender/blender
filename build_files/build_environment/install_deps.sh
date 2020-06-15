@@ -3892,7 +3892,6 @@ install_DEB() {
     INFO "Forced Alembic building, as requested..."
     compile_ALEMBIC
   else
-    # No package currently, only HDF5!
     compile_ALEMBIC
   fi
 

@@ -278,7 +278,6 @@ option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd
 
 # Alembic support
 option(WITH_ALEMBIC             "Enable Alembic Support" ON)
-option(WITH_ALEMBIC_HDF5        "Enable Legacy Alembic Support (not officially supported)" OFF)
 
 # Universal Scene Description support
 option(WITH_USD                 "Enable Universal Scene Description (USD) Support" ON)

@@ -437,7 +437,6 @@ function(SETUP_LIBDIRS)
 
     if(WITH_ALEMBIC)
       link_directories(${ALEMBIC_LIBPATH})
-      link_directories(${HDF5_LIBPATH})
     endif()
 
     if(WITH_GHOST_WAYLAND)

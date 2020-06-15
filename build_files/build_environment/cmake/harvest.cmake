@@ -49,15 +49,6 @@ if(BUILD_MODE STREQUAL Release)
   )
 endif()
 
-if(BUILD_MODE STREQUAL Debug)
-  add_custom_target(Harvest_Debug_Results
-    COMMAND
-        # hdf5
-        ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/hdf5/lib ${HARVEST_TARGET}/hdf5/lib &&
-    DEPENDS Package_Python
-  )
-endif()
-
 else(WIN32)
 
 function(harvest from to)
