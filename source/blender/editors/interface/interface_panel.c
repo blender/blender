@@ -354,13 +354,19 @@ static void panel_delete(ARegion *region, ListBase *panels, Panel *panel)
   MEM_freeN(panel);
 }
 
+/**
+ * Remove instanced panels from the region's panel list.
+ *
+ * \note Can be called with NULL \a C, but it should be avoided because
+ * handlers might not be removed.
+ */
 void UI_panels_free_instanced(bContext *C, ARegion *region)
 {
   /* Delete panels with the instanced flag. */
   LISTBASE_FOREACH_MUTABLE (Panel *, panel, &region->panels) {
     if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED)) {
       /* Make sure the panel's handler is removed before deleting it. */
-      if (panel->activedata != NULL) {
+      if (C != NULL && panel->activedata != NULL) {
         panel_activate_state(C, panel, PANEL_STATE_EXIT);
       }
       panel_delete(region, &region->panels, panel);

@@ -227,6 +227,9 @@ static void rna_Panel_unregister(Main *bmain, StructRNA *type)
                 }
               }
             }
+            /* The unregistered panel might have had a template that added instanced panels,
+             * so remove them just in case. They can be re-added on redraw anyway. */
+            UI_panels_free_instanced(NULL, region);
           }
         }
       }
