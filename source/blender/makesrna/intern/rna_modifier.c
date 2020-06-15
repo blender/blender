@@ -5454,6 +5454,7 @@ static void rna_def_modifier_remesh(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "voxel_size", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "voxel_size");
+  RNA_def_property_range(prop, 0.0001f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0001, 2, 0.1, 3);
   RNA_def_property_ui_text(prop,
                            "Voxel Size",
