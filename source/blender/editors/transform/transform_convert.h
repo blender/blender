@@ -47,8 +47,7 @@ bool clipUVTransform(TransInfo *t, float vec[2], const bool resize);
 void clipUVData(TransInfo *t);
 
 /* transform_convert_mesh.c */
-void trans_mesh_customdata_correction_init(TransInfo *t);
-void trans_mesh_customdata_correction_apply(struct TransDataContainer *tc, bool is_final);
+void trans_mesh_customdata_correction_init(TransInfo *t, struct TransDataContainer *tc);
 
 /* transform_convert_sequencer.c */
 int transform_convert_sequencer_get_snap_bound(TransInfo *t);

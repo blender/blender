@@ -197,7 +197,7 @@ static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2]
   }
 }
 
-static bool createVertSlideVerts(TransInfo *t, TransDataContainer *tc)
+static VertSlideData *createVertSlideVerts(TransInfo *t, const TransDataContainer *tc)
 {
   BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
   BMesh *bm = em->bm;
@@ -234,7 +234,7 @@ static bool createVertSlideVerts(TransInfo *t, TransDataContainer *tc)
 
   if (!j) {
     MEM_freeN(sld);
-    return false;
+    return NULL;
   }
 
   sv_array = MEM_callocN(sizeof(TransDataVertSlideVert) * j, "sv_array");
@@ -272,8 +272,6 @@ static bool createVertSlideVerts(TransInfo *t, TransDataContainer *tc)
   sld->sv = sv_array;
   sld->totsv = j;
 
-  tc->custom.mode.data = sld;
-
   /* most likely will be set below */
   unit_m4(sld->proj_mat);
 
@@ -288,13 +286,7 @@ static bool createVertSlideVerts(TransInfo *t, TransDataContainer *tc)
     }
   }
 
-  /* XXX, calc vert slide across all objects */
-  if (tc == t->data_container) {
-    calcVertSlideMouseActiveVert(t, t->mval);
-    calcVertSlideMouseActiveEdges(t, t->mval);
-  }
-
-  return true;
+  return sld;
 }
 
 static void freeVertSlideVerts(TransInfo *UNUSED(t),
@@ -379,13 +371,6 @@ static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEven
     }
   }
   return TREDRAW_NOTHING;
-}
-
-void projectVertSlideData(TransInfo *t, bool is_final)
-{
-  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    trans_mesh_customdata_correction_apply(tc, is_final);
-  }
 }
 
 void drawVertSlide(TransInfo *t)
@@ -628,10 +613,12 @@ void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp)
 
   bool ok = false;
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    ok |= createVertSlideVerts(t, tc);
-    VertSlideData *sld = tc->custom.mode.data;
+    VertSlideData *sld = createVertSlideVerts(t, tc);
     if (sld) {
+      tc->custom.mode.data = sld;
       tc->custom.mode.free_cb = freeVertSlideVerts;
+      trans_mesh_customdata_correction_init(t, tc);
+      ok = true;
     }
   }
 
@@ -640,7 +627,8 @@ void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp)
     return;
   }
 
-  trans_mesh_customdata_correction_init(t);
+  calcVertSlideMouseActiveVert(t, t->mval);
+  calcVertSlideMouseActiveEdges(t, t->mval);
 
   /* set custom point first if you want value to be initialized by init */
   calcVertSlideCustomPoints(t);

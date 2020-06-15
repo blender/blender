@@ -94,7 +94,6 @@ void initNormalRotation(TransInfo *t);
 void initSeqSlide(TransInfo *t);
 
 /* transform_mode_edge_slide.c */
-void projectEdgeSlideData(TransInfo *t, bool is_final);
 void drawEdgeSlide(TransInfo *t);
 void doEdgeSlide(TransInfo *t, float perc);
 void initEdgeSlide_ex(
@@ -153,7 +152,6 @@ void initTrackball(TransInfo *t);
 void initTranslation(TransInfo *t);
 
 /* transform_mode_vert_slide.c */
-void projectVertSlideData(TransInfo *t, bool is_final);
 void drawVertSlide(TransInfo *t);
 void doVertSlide(TransInfo *t, float perc);
 void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp);
