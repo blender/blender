@@ -4558,10 +4558,16 @@ typedef struct ExtractUserData {
   void *user_data;
 } ExtractUserData;
 
+typedef enum ExtractTaskDataType {
+  EXTRACT_MESH_EXTRACT,
+  EXTRACT_LINES_LOOSE,
+} ExtractTaskDataType;
+
 typedef struct ExtractTaskData {
   void *next, *prev;
   const MeshRenderData *mr;
   const MeshExtract *extract;
+  ExtractTaskDataType tasktype;
   eMRIterType iter_type;
   int start, end;
   /** Decremented each time a task is finished. */
@@ -4569,6 +4575,41 @@ typedef struct ExtractTaskData {
   void *buf;
   ExtractUserData *user_data;
 } ExtractTaskData;
+
+static ExtractTaskData *extract_task_data_create_mesh_extract(const MeshRenderData *mr,
+                                                              const MeshExtract *extract,
+                                                              void *buf,
+                                                              int32_t *task_counter)
+{
+  ExtractTaskData *taskdata = MEM_mallocN(sizeof(*taskdata), __func__);
+  taskdata->next = NULL;
+  taskdata->prev = NULL;
+  taskdata->tasktype = EXTRACT_MESH_EXTRACT;
+  taskdata->mr = mr;
+  taskdata->extract = extract;
+  taskdata->buf = buf;
+
+  /* ExtractUserData is shared between the iterations as it holds counters to detect if the
+   * extraction is finished. To make sure the duplication of the userdata does not create a new
+   * instance of the counters we allocate the userdata in its own container.
+   *
+   * This structure makes sure that when extract_init is called, that the user data of all
+   * iterations are updated. */
+  taskdata->user_data = MEM_callocN(sizeof(ExtractUserData), __func__);
+  taskdata->iter_type = mesh_extract_iter_type(extract);
+  taskdata->task_counter = task_counter;
+  taskdata->start = 0;
+  taskdata->end = INT_MAX;
+  return taskdata;
+}
+
+static ExtractTaskData *extract_task_data_create_lines_loose(const MeshRenderData *mr)
+{
+  ExtractTaskData *taskdata = MEM_callocN(sizeof(*taskdata), __func__);
+  taskdata->tasktype = EXTRACT_LINES_LOOSE;
+  taskdata->mr = mr;
+  return taskdata;
+}
 
 static void extract_task_data_free(void *data)
 {
@@ -4655,23 +4696,30 @@ BLI_INLINE void mesh_extract_iter(const MeshRenderData *mr,
 
 static void extract_init(ExtractTaskData *data)
 {
-  data->user_data->user_data = data->extract->init(data->mr, data->buf);
+  if (data->tasktype == EXTRACT_MESH_EXTRACT) {
+    data->user_data->user_data = data->extract->init(data->mr, data->buf);
+  }
 }
 
 static void extract_run(void *__restrict taskdata)
 {
   ExtractTaskData *data = (ExtractTaskData *)taskdata;
-  mesh_extract_iter(data->mr,
-                    data->iter_type,
-                    data->start,
-                    data->end,
-                    data->extract,
-                    data->user_data->user_data);
+  if (data->tasktype == EXTRACT_MESH_EXTRACT) {
+    mesh_extract_iter(data->mr,
+                      data->iter_type,
+                      data->start,
+                      data->end,
+                      data->extract,
+                      data->user_data->user_data);
 
-  /* If this is the last task, we do the finish function. */
-  int remainin_tasks = atomic_sub_and_fetch_int32(data->task_counter, 1);
-  if (remainin_tasks == 0 && data->extract->finish != NULL) {
-    data->extract->finish(data->mr, data->buf, data->user_data->user_data);
+    /* If this is the last task, we do the finish function. */
+    int remainin_tasks = atomic_sub_and_fetch_int32(data->task_counter, 1);
+    if (remainin_tasks == 0 && data->extract->finish != NULL) {
+      data->extract->finish(data->mr, data->buf, data->user_data->user_data);
+    }
+  }
+  else if (data->tasktype == EXTRACT_LINES_LOOSE) {
+    extract_lines_loose_subbuffer(data->mr);
   }
 }
 
@@ -4695,7 +4743,8 @@ typedef struct MeshRenderDataUpdateTaskData {
 static void mesh_render_data_update_task_data_free(MeshRenderDataUpdateTaskData *taskdata)
 {
   BLI_assert(taskdata);
-  mesh_render_data_free(taskdata->mr);
+  MeshRenderData *mr = taskdata->mr;
+  mesh_render_data_free(mr);
   MEM_freeN(taskdata);
 }
 
@@ -4851,24 +4900,8 @@ static void extract_task_create(struct TaskGraph *task_graph,
   }
 
   /* Divide extraction of the VBO/IBO into sensible chunks of works. */
-  ExtractTaskData *taskdata = MEM_mallocN(sizeof(*taskdata), "ExtractTaskData");
-  taskdata->next = NULL;
-  taskdata->prev = NULL;
-  taskdata->mr = mr;
-  taskdata->extract = extract;
-  taskdata->buf = buf;
-
-  /* ExtractUserData is shared between the iterations as it holds counters to detect if the
-   * extraction is finished. To make sure the duplication of the userdata does not create a new
-   * instance of the counters we allocate the userdata in its own container.
-   *
-   * This structure makes sure that when extract_init is called, that the user data of all
-   * iterations are updated. */
-  taskdata->user_data = MEM_callocN(sizeof(ExtractUserData), __func__);
-  taskdata->iter_type = mesh_extract_iter_type(extract);
-  taskdata->task_counter = task_counter;
-  taskdata->start = 0;
-  taskdata->end = INT_MAX;
+  ExtractTaskData *taskdata = extract_task_data_create_mesh_extract(
+      mr, extract, buf, task_counter);
 
   /* Simple heuristic. */
   const int chunk_size = 8192;
@@ -5009,6 +5042,10 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   TEST_ASSIGN(IBO, ibo, edituv_points);
   TEST_ASSIGN(IBO, ibo, edituv_fdots);
 
+  if (do_lines_loose_subbuffer) {
+    iter_flag |= MR_ITER_LEDGE;
+  }
+
 #undef TEST_ASSIGN
 
 #ifdef DEBUG_TIME
@@ -5106,12 +5143,8 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   }
   else {
     if (do_lines_loose_subbuffer) {
-      /* When `lines_loose` is requested without `lines` we can create the sub-buffer on the fly as
-       * the `lines` buffer should then already be up-to-date.
-       * (see `DRW_batch_requested(cache->batch.loose_edges, GPU_PRIM_LINES)` in
-       * `DRW_mesh_batch_cache_create_requested`).
-       */
-      extract_lines_loose_subbuffer(mr);
+      ExtractTaskData *taskdata = extract_task_data_create_lines_loose(mr);
+      BLI_addtail(&single_threaded_task_data->task_datas, taskdata);
     }
   }
   EXTRACT(ibo, points);
