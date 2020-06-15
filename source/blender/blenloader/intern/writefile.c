@@ -1794,11 +1794,6 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
         write_curvemapping(writer, wmd->cmap_curve);
       }
     }
-    else if (md->type == eModifierType_LaplacianDeform) {
-      LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
-
-      BLO_write_float3_array(writer, lmd->total_verts, lmd->vertexco);
-    }
     else if (md->type == eModifierType_CorrectiveSmooth) {
       CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
 

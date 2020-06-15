@@ -49,6 +49,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "BLO_read_write.h"
+
 #include "RNA_access.h"
 
 #include "MOD_ui_common.h"
@@ -855,6 +857,21 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_LaplacianDeform, panel_draw);
 }
 
+static void blendWrite(BlendWriter *writer, const ModifierData *md)
+{
+  LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
+
+  BLO_write_float3_array(writer, lmd->total_verts, lmd->vertexco);
+}
+
+static void blendRead(BlendDataReader *reader, ModifierData *md)
+{
+  LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
+
+  BLO_read_float3_array(reader, lmd->total_verts, &lmd->vertexco);
+  lmd->cache_system = NULL;
+}
+
 ModifierTypeInfo modifierType_LaplacianDeform = {
     /* name */ "LaplacianDeform",
     /* structName */ "LaplacianDeformModifierData",
@@ -884,6 +901,6 @@ ModifierTypeInfo modifierType_LaplacianDeform = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ blendWrite,
+    /* blendRead */ blendRead,
 };

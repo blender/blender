@@ -5831,12 +5831,6 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
         direct_link_curvemapping(reader, wmd->cmap_curve);
       }
     }
-    else if (md->type == eModifierType_LaplacianDeform) {
-      LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
-
-      BLO_read_float3_array(reader, lmd->total_verts, &lmd->vertexco);
-      lmd->cache_system = NULL;
-    }
     else if (md->type == eModifierType_CorrectiveSmooth) {
       CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
 
