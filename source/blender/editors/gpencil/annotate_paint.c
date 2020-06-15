@@ -2850,7 +2850,7 @@ void GPENCIL_OT_annotate(wmOperatorType *ot)
                      0,
                      200,
                      "Stabilizer Stroke Radius",
-                     "Minimun distance from last point before stroke continues",
+                     "Minimum distance from last point before stroke continues",
                      1,
                      100);
   RNA_def_property_subtype(prop, PROP_PIXEL);

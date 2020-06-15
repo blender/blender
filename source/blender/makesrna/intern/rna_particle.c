@@ -3360,7 +3360,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
       prop,
       "Use Modifier Stack",
       "Emit particles from mesh with modifiers applied "
-      "(must use same subsurf level for viewport and render for correct results)");
+      "(must use same subdivision surface level for viewport and render for correct results)");
   RNA_def_property_update(prop, 0, "rna_Particle_change_type");
 
   /* draw objects & collections */

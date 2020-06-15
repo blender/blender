@@ -224,11 +224,11 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
 
     selected = true;
     if (!(seq->flag & SEQ_USE_PROXY)) {
-      BKE_reportf(reports, RPT_WARNING, "Proxy is not enabled for %s, skipping.", seq->name);
+      BKE_reportf(reports, RPT_WARNING, "Proxy is not enabled for %s, skipping", seq->name);
       continue;
     }
     else if (seq->strip->proxy->build_size_flags == 0) {
-      BKE_reportf(reports, RPT_WARNING, "Resolution is not selected for %s, skipping.", seq->name);
+      BKE_reportf(reports, RPT_WARNING, "Resolution is not selected for %s, skipping", seq->name);
       continue;
     }
 
@@ -236,13 +236,13 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
         pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue);
 
     if (!success && (seq->strip->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) != 0) {
-      BKE_reportf(reports, RPT_WARNING, "Overwrite is not checked for %s, skipping.", seq->name);
+      BKE_reportf(reports, RPT_WARNING, "Overwrite is not checked for %s, skipping", seq->name);
     }
   }
   SEQ_END;
 
   if (!selected) {
-    BKE_reportf(reports, RPT_WARNING, "Select movie or image strips.");
+    BKE_reportf(reports, RPT_WARNING, "Select movie or image strips");
     return;
   }
 

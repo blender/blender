@@ -69,6 +69,7 @@ class SpellChecker:
         "spacings",
         "teleport", "teleporting",
         "vertices",
+        "wasn",  # wasn't
 
         # Merged words
         "antialiasing",
@@ -178,7 +179,7 @@ class SpellChecker:
         "reinject", "reinjected",
         "rekey",
         "remesh",
-        "reprojection", "reproject",
+        "reprojection", "reproject", "reprojecting",
         "resize",
         "restpose",
         "retarget", "retargets", "retargeting", "retargeted",
@@ -654,6 +655,7 @@ class SpellChecker:
         "dx",
         "eo",
         "fh",
+        "fk",
         "fov",
         "fft",
         "futura",

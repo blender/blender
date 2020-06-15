@@ -1290,7 +1290,7 @@ static void rna_def_panel(BlenderRNA *brna)
        0,
        "Instanced Panel",
        "Multiple panels with this type can be used as part of a list depending on data external "
-       "to the UI. Used to create panels for the modifiers and other stacks."},
+       "to the UI. Used to create panels for the modifiers and other stacks"},
       {PNL_LAYOUT_HEADER_EXPAND,
        "HEADER_LAYOUT_EXPAND",
        0,

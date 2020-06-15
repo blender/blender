@@ -7236,7 +7236,7 @@ static void rna_def_scene_gpencil(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0f, 2.0f, 1, 3);
   RNA_def_property_ui_text(prop,
                            "Anti-Aliasing Threshold",
-                           "Threshold for edge detection algorithm (higher values might overblur "
+                           "Threshold for edge detection algorithm (higher values might over-blur "
                            "some part of the image)");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);

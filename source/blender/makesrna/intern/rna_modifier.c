@@ -6158,7 +6158,8 @@ static void rna_def_modifier_wireframe(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_crease", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WIREFRAME_CREASE);
-  RNA_def_property_ui_text(prop, "Offset Relative", "Crease hub edges for improved subsurf");
+  RNA_def_property_ui_text(
+      prop, "Offset Relative", "Crease hub edges for improved subdivision surface");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "crease_weight", PROP_FLOAT, PROP_NONE);
