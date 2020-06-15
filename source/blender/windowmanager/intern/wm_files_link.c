@@ -759,6 +759,10 @@ static void lib_relocate_do(Main *bmain,
     BLI_addtail(which_libbase(bmain, GS(old_id->name)), old_id);
   }
 
+  /* Since our (old) reloaded IDs were removed from main, the user count done for them in linking
+   * code is wrong, we need to redo it here after adding them back to main. */
+  BKE_main_id_refcount_recompute(bmain, false);
+
   /* Note that in reload case, we also want to replace indirect usages. */
   const short remap_flags = ID_REMAP_SKIP_NEVER_NULL_USAGE |
                             ID_REMAP_NO_INDIRECT_PROXY_DATA_USAGE |
