@@ -4277,7 +4277,7 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
 
   /* Create a new object. */
   /* Take into account user preferences for duplicating actions. */
-  short dupflag = (U.dupflag & USER_DUP_ACT);
+  const eDupli_ID_Flags dupflag = (U.dupflag & USER_DUP_ACT);
 
   base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_prev, dupflag);
   ob_dst = base_new->object;

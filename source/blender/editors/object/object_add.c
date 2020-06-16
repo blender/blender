@@ -2798,7 +2798,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 /* leaves selection of base/object unaltered */
 /* Does set ID->newid pointers. */
 static Base *object_add_duplicate_internal(
-    Main *bmain, Scene *scene, ViewLayer *view_layer, Object *ob, int dupflag)
+    Main *bmain, Scene *scene, ViewLayer *view_layer, Object *ob, const eDupli_ID_Flags dupflag)
 {
   Base *base, *basen = NULL;
   Object *obn;
@@ -2846,7 +2846,7 @@ static Base *object_add_duplicate_internal(
  * note: caller must do DAG_relations_tag_update(bmain);
  *       this is not done automatic since we may duplicate many objects in a batch */
 Base *ED_object_add_duplicate(
-    Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base, int dupflag)
+    Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base, const eDupli_ID_Flags dupflag)
 {
   Base *basen;
   Object *ob;
@@ -2879,7 +2879,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const bool linked = RNA_boolean_get(op->ptr, "linked");
-  int dupflag = (linked) ? 0 : U.dupflag;
+  const eDupli_ID_Flags dupflag = (linked) ? 0 : (eDupli_ID_Flags)U.dupflag;
 
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
     Base *basen = object_add_duplicate_internal(bmain, scene, view_layer, base->object, dupflag);
@@ -2963,7 +2963,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
   Base *basen;
   Object *ob;
   const bool linked = RNA_boolean_get(op->ptr, "linked");
-  int dupflag = (linked) ? 0 : U.dupflag;
+  const eDupli_ID_Flags dupflag = (linked) ? 0 : (eDupli_ID_Flags)U.dupflag;
   char name[MAX_ID_NAME - 2];
 
   /* find object, create fake base */

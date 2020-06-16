@@ -391,7 +391,7 @@ static Collection *collection_duplicate_recursive(Main *bmain,
       }
 
       if (ob_new == NULL) {
-        ob_new = BKE_object_duplicate(bmain, ob_old, object_dupflag);
+        ob_new = BKE_object_duplicate(bmain, ob_old, (eDupli_ID_Flags)object_dupflag);
         ID_NEW_SET(ob_old, ob_new);
       }
 

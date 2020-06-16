@@ -4161,7 +4161,7 @@ static Base *mesh_separate_tagged(
   CustomData_bmesh_init_pool(&bm_new->pdata, bm_mesh_allocsize_default.totface, BM_FACE);
 
   /* Take into account user preferences for duplicating actions. */
-  short dupflag = USER_DUP_MESH | (U.dupflag & USER_DUP_ACT);
+  const eDupli_ID_Flags dupflag = USER_DUP_MESH | (U.dupflag & USER_DUP_ACT);
   base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, dupflag);
 
   /* normally would call directly after but in this case delay recalc */
@@ -4233,7 +4233,7 @@ static Base *mesh_separate_arrays(Main *bmain,
   CustomData_bmesh_init_pool(&bm_new->pdata, faces_len, BM_FACE);
 
   /* Take into account user preferences for duplicating actions. */
-  short dupflag = USER_DUP_MESH | (U.dupflag & USER_DUP_ACT);
+  const eDupli_ID_Flags dupflag = USER_DUP_MESH | (U.dupflag & USER_DUP_ACT);
   base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, dupflag);
 
   /* normally would call directly after but in this case delay recalc */
@@ -7240,8 +7240,11 @@ void MESH_OT_wireframe(wmOperatorType *ot)
   /* use 1 rather then 10 for max else dragging the button moves too far */
   RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
   RNA_def_float_distance(ot->srna, "offset", 0.01f, 0.0f, 1e4f, "Offset", "", 0.0f, 10.0f);
-  RNA_def_boolean(
-      ot->srna, "use_crease", false, "Crease", "Crease hub edges for an improved subdivision surface");
+  RNA_def_boolean(ot->srna,
+                  "use_crease",
+                  false,
+                  "Crease",
+                  "Crease hub edges for an improved subdivision surface");
   prop = RNA_def_float(
       ot->srna, "crease_weight", 0.01f, 0.0f, 1e3f, "Crease weight", "", 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 2);

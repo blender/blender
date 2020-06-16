@@ -1758,7 +1758,7 @@ Object *BKE_object_copy(Main *bmain, const Object *ob)
  * \note Caller MUST free \a newid pointers itself (#BKE_main_id_clear_newpoins()) and call updates
  * of DEG too (#DAG_relations_tag_update()).
  */
-Object *BKE_object_duplicate(Main *bmain, const Object *ob, const int dupflag)
+Object *BKE_object_duplicate(Main *bmain, const Object *ob, const uint dupflag)
 {
   Material ***matarar;
   ID *id;

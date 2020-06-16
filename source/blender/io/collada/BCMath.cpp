@@ -17,6 +17,8 @@
  * All rights reserved.
  */
 
+#include "BLI_utildefines.h"
+
 #include "BCMath.h"
 #include "BlenderContext.h"
 
