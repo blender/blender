@@ -49,6 +49,7 @@ _modules = [
     "uvcalc_smart_project",
     "vertexpaint_dirt",
     "view3d",
+    "gpencil_mesh_bake",
     "wm",
 ]
 

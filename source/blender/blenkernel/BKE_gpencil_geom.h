@@ -98,6 +98,19 @@ bool BKE_gpencil_stroke_shrink(struct bGPDstroke *gps, const float dist);
 
 float BKE_gpencil_stroke_length(const struct bGPDstroke *gps, bool use_3d);
 
+void BKE_gpencil_convert_mesh(struct Main *bmain,
+                              struct Depsgraph *depsgraph,
+                              struct Scene *scene,
+                              struct Object *ob_gp,
+                              struct Object *ob_mesh,
+                              const float angle,
+                              const int thickness,
+                              const float offset,
+                              const float matrix[4][4],
+                              const int frame_offset,
+                              const bool use_seams,
+                              const bool use_faces);
+
 #ifdef __cplusplus
 }
 #endif

@@ -49,6 +49,7 @@ set(SRC
   gpencil_fill.c
   gpencil_interpolate.c
   gpencil_merge.c
+  gpencil_mesh.c
   gpencil_ops.c
   gpencil_ops_versioning.c
   gpencil_paint.c
