@@ -641,7 +641,7 @@ class Map {
    */
   template<typename FuncT> void foreach_item(const FuncT &func) const
   {
-    uint32_t size = this->size();
+    uint32_t size = m_slots.size();
     for (uint32_t i = 0; i < size; i++) {
       const Slot &slot = m_slots[i];
       if (slot.is_occupied()) {

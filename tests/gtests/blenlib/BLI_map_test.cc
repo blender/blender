@@ -458,6 +458,25 @@ TEST(map, ConstKeysAndValues)
   EXPECT_FALSE(map.contains("54"));
 }
 
+TEST(map, ForeachItem)
+{
+  Map<int, int> map;
+  map.add(3, 4);
+  map.add(1, 8);
+
+  Vector<int> keys;
+  Vector<int> values;
+  map.foreach_item([&](int key, int value) {
+    keys.append(key);
+    values.append(value);
+  });
+
+  EXPECT_EQ(keys.size(), 2);
+  EXPECT_EQ(values.size(), 2);
+  EXPECT_EQ(keys.first_index_of(3), values.first_index_of(4));
+  EXPECT_EQ(keys.first_index_of(1), values.first_index_of(8));
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */
