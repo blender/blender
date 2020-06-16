@@ -23,6 +23,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
 
 #include "DNA_object_enums.h"
 
