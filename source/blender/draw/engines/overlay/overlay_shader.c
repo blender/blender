@@ -130,7 +130,8 @@ extern char datatoc_common_view_lib_glsl[];
 
 typedef struct OVERLAY_Shaders {
   GPUShader *antialiasing;
-  GPUShader *armature_dof;
+  GPUShader *armature_dof_wire;
+  GPUShader *armature_dof_solid;
   GPUShader *armature_envelope_outline;
   GPUShader *armature_envelope_solid;
   GPUShader *armature_shape_outline;
@@ -473,13 +474,13 @@ GPUShader *OVERLAY_shader_armature_stick(void)
   return sh_data->armature_stick;
 }
 
-GPUShader *OVERLAY_shader_armature_degrees_of_freedom(void)
+GPUShader *OVERLAY_shader_armature_degrees_of_freedom_wire(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
-  if (!sh_data->armature_dof) {
-    sh_data->armature_dof = GPU_shader_create_from_arrays({
+  if (!sh_data->armature_dof_wire) {
+    sh_data->armature_dof_wire = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg->lib,
                                  datatoc_common_globals_lib_glsl,
                                  datatoc_common_view_lib_glsl,
@@ -487,10 +488,31 @@ GPUShader *OVERLAY_shader_armature_degrees_of_freedom(void)
                                  NULL},
         .frag =
             (const char *[]){datatoc_common_view_lib_glsl, datatoc_armature_wire_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg->def, "#define EDGE\n", NULL},
+    });
+  }
+  return sh_data->armature_dof_wire;
+}
+
+GPUShader *OVERLAY_shader_armature_degrees_of_freedom_solid(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->armature_dof_solid) {
+    sh_data->armature_dof_solid = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){sh_cfg->lib,
+                                 datatoc_common_globals_lib_glsl,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_armature_dof_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_common_view_lib_glsl,
+                                 datatoc_gpu_shader_flat_color_frag_glsl,
+                                 NULL},
         .defs = (const char *[]){sh_cfg->def, NULL},
     });
   }
-  return sh_data->armature_dof;
+  return sh_data->armature_dof_solid;
 }
 
 GPUShader *OVERLAY_shader_armature_wire(void)

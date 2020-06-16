@@ -8,8 +8,10 @@ in vec4 color;
 in mat4 inst_obmat;
 
 flat out vec4 finalColor;
+#ifdef EDGE
 flat out vec2 edgeStart;
 noperspective out vec2 edgePos;
+#endif
 
 vec3 sphere_project(float ax, float az)
 {
@@ -35,7 +37,9 @@ void main()
   gl_Position = point_world_to_ndc(world_pos);
   finalColor = color;
 
+#ifdef EDGE
   edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
+#endif
 
 #ifdef USE_WORLD_CLIP_PLANES
   world_clip_planes_calc_clip_distance(world_pos);
