@@ -2887,16 +2887,7 @@ static void direct_link_id_common(
 /* cuma itself has been read! */
 static void direct_link_curvemapping(BlendDataReader *reader, CurveMapping *cumap)
 {
-  int a;
-
-  /* flag seems to be able to hang? Maybe old files... not bad to clear anyway */
-  cumap->flag &= ~CUMA_PREMULLED;
-
-  for (a = 0; a < CM_TOT; a++) {
-    BLO_read_data_address(reader, &cumap->cm[a].curve);
-    cumap->cm[a].table = NULL;
-    cumap->cm[a].premultable = NULL;
-  }
+  BKE_curvemapping_blend_read(reader, cumap);
 }
 
 /** \} */

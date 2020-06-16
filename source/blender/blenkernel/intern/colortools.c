@@ -44,6 +44,8 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 
+#include "BLO_read_write.h"
+
 /* ********************************* color curve ********************* */
 
 /* ***************** operations on full struct ************* */
@@ -1235,6 +1237,32 @@ void BKE_curvemapping_table_RGBA(const CurveMapping *cumap, float **array, int *
     if (cumap->cm[3].table) {
       (*array)[a * 4 + 3] = cumap->cm[3].table[a].y;
     }
+  }
+}
+
+void BKE_curvemapping_blend_write(BlendWriter *writer, const CurveMapping *cumap)
+{
+  BLO_write_struct(writer, CurveMapping, cumap);
+  BKE_curvemapping_curves_blend_write(writer, cumap);
+}
+
+void BKE_curvemapping_curves_blend_write(BlendWriter *writer, const CurveMapping *cumap)
+{
+  for (int a = 0; a < CM_TOT; a++) {
+    BLO_write_struct_array(writer, CurveMapPoint, cumap->cm[a].totpoint, cumap->cm[a].curve);
+  }
+}
+
+/* cumap itself has been read already. */
+void BKE_curvemapping_blend_read(BlendDataReader *reader, CurveMapping *cumap)
+{
+  /* flag seems to be able to hang? Maybe old files... not bad to clear anyway */
+  cumap->flag &= ~CUMA_PREMULLED;
+
+  for (int a = 0; a < CM_TOT; a++) {
+    BLO_read_data_address(reader, &cumap->cm[a].curve);
+    cumap->cm[a].table = NULL;
+    cumap->cm[a].premultable = NULL;
   }
 }
 

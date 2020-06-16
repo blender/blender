@@ -155,6 +155,7 @@
 #include "BKE_blender_version.h"
 #include "BKE_bpath.h"
 #include "BKE_collection.h"
+#include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
@@ -969,16 +970,12 @@ static void write_animdata(BlendWriter *writer, AnimData *adt)
 
 static void write_curvemapping_curves(BlendWriter *writer, CurveMapping *cumap)
 {
-  for (int a = 0; a < CM_TOT; a++) {
-    BLO_write_struct_array(writer, CurveMapPoint, cumap->cm[a].totpoint, cumap->cm[a].curve);
-  }
+  BKE_curvemapping_curves_blend_write(writer, cumap);
 }
 
 static void write_curvemapping(BlendWriter *writer, CurveMapping *cumap)
 {
-  BLO_write_struct(writer, CurveMapping, cumap);
-
-  write_curvemapping_curves(writer, cumap);
+  BKE_curvemapping_blend_write(writer, cumap);
 }
 
 static void write_CurveProfile(BlendWriter *writer, CurveProfile *profile)
