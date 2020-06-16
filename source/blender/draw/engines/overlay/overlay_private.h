@@ -563,7 +563,8 @@ void OVERLAY_wireframe_draw(OVERLAY_Data *vedata);
 void OVERLAY_wireframe_in_front_draw(OVERLAY_Data *vedata);
 
 GPUShader *OVERLAY_shader_antialiasing(void);
-GPUShader *OVERLAY_shader_armature_degrees_of_freedom(void);
+GPUShader *OVERLAY_shader_armature_degrees_of_freedom_wire(void);
+GPUShader *OVERLAY_shader_armature_degrees_of_freedom_solid(void);
 GPUShader *OVERLAY_shader_armature_envelope(bool use_outline);
 GPUShader *OVERLAY_shader_armature_shape(bool use_outline);
 GPUShader *OVERLAY_shader_armature_shape_wire(void);

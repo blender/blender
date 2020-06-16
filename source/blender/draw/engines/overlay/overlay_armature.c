@@ -228,11 +228,12 @@ void OVERLAY_armature_cache_init(OVERLAY_Data *vedata)
     {
       format = formats->instance_extra;
 
-      sh = OVERLAY_shader_armature_degrees_of_freedom();
+      sh = OVERLAY_shader_armature_degrees_of_freedom_wire();
       grp = DRW_shgroup_create(sh, armature_ps);
       DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
       cb->dof_lines = BUF_INSTANCE(grp, format, DRW_cache_bone_dof_lines_get());
 
+      sh = OVERLAY_shader_armature_degrees_of_freedom_solid();
       grp = DRW_shgroup_create(sh, armature_transp_ps);
       DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
       cb->dof_sphere = BUF_INSTANCE(grp, format, DRW_cache_bone_dof_sphere_get());
