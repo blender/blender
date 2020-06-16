@@ -1611,16 +1611,14 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
 
   WM_event_remove_timer(wm, NULL, wm->autosavetimer);
 
-  /* if a modal operator is running, don't autosave, but try again in 10 seconds */
+  /* If a modal operator is running, don't autosave because we might not be in
+   * a valid state to save. But try again in 10ms. */
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
       if (handler_base->type == WM_HANDLER_TYPE_OP) {
         wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
         if (handler->op) {
-          wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, 10.0);
-          if (G.debug) {
-            printf("Skipping auto-save, modal operator running, retrying in ten seconds...\n");
-          }
+          wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, 0.01);
           return;
         }
       }
