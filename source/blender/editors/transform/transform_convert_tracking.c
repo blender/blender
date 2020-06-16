@@ -31,7 +31,6 @@
 #include "BKE_context.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
-#include "BKE_report.h"
 #include "BKE_tracking.h"
 
 #include "ED_clip.h"

@@ -26,14 +26,12 @@
 
 #include "BLI_math.h"
 
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_context.h"
-#include "BKE_editmesh.h"
 #include "BKE_layer.h"
 
 #include "RNA_access.h"
@@ -44,7 +42,6 @@
 #include "WM_api.h"
 #include "WM_message.h"
 #include "WM_types.h"
-#include "wm.h" /* XXX */
 
 #include "ED_gizmo_library.h"
 #include "ED_gizmo_utils.h"

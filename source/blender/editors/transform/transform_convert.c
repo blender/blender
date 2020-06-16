@@ -55,7 +55,6 @@
 #include "DEG_depsgraph_build.h"
 
 #include "transform.h"
-#include "transform_mode.h"
 #include "transform_snap.h"
 
 /* Own include. */

@@ -30,7 +30,6 @@
 
 #include "BKE_context.h"
 #include "BKE_mask.h"
-#include "BKE_report.h"
 
 #include "ED_clip.h"
 #include "ED_image.h"

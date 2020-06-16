@@ -42,7 +42,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_scene.h"
 
 #include "ED_view3d.h"
 

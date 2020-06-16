@@ -29,7 +29,6 @@
 #include "BLI_string.h"
 
 #include "BKE_context.h"
-#include "BKE_nla.h"
 #include "BKE_unit.h"
 
 #include "ED_screen.h"

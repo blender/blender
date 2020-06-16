@@ -44,7 +44,6 @@
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
-#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
@@ -55,8 +54,6 @@
 #include "ED_armature.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_view3d.h"
-
-#include "ED_transform.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Data Types

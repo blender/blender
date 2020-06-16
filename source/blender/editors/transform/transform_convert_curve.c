@@ -64,7 +64,7 @@ static int bezt_select_to_transform_triple_flag(const BezTriple *bezt, const boo
    * When a center point is being moved without the handles,
    * leaving the handles stationary makes no sense and only causes strange behavior,
    * where one handle is arbitrarily anchored, the other one is aligned and lengthened
-   * based on where the center point is moved. Also a bug when cancelling, see: T52007.
+   * based on where the center point is moved. Also a bug when canceling, see: T52007.
    *
    * A more 'correct' solution could be to store handle locations in 'TransDataCurveHandleFlags'.
    * However that doesn't resolve odd behavior, so best transform the handles in this case.

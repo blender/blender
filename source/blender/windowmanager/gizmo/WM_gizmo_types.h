@@ -371,7 +371,7 @@ typedef struct wmGizmoType {
   /** Activate a gizmo state when the user clicks on it. */
   wmGizmoFnInvoke invoke;
 
-  /** Called when gizmo tweaking is done - used to free data and reset property when cancelling. */
+  /** Called when gizmo tweaking is done - used to free data and reset property when canceling. */
   wmGizmoFnExit exit;
 
   wmGizmoFnCursorGet cursor_get;
