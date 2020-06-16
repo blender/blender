@@ -57,10 +57,6 @@ void BKE_collection_add_from_object(struct Main *bmain,
 void BKE_collection_free(struct Collection *collection);
 bool BKE_collection_delete(struct Main *bmain, struct Collection *collection, bool hierarchy);
 
-struct Collection *BKE_collection_copy(struct Main *bmain,
-                                       struct Collection *parent,
-                                       struct Collection *collection);
-
 struct Collection *BKE_collection_duplicate(struct Main *bmain,
                                             struct Collection *parent,
                                             struct Collection *collection,

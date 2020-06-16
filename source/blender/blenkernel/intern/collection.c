@@ -421,17 +421,6 @@ static Collection *collection_duplicate_recursive(Main *bmain,
 }
 
 /**
- * Makes a standard (aka shallow) ID copy of a Collection.
- *
- * Add a new collection in the same level as the old one, link any nested collections
- * and finally link the objects to the new collection (as opposed to copying them).
- */
-Collection *BKE_collection_copy(Main *bmain, Collection *parent, Collection *collection)
-{
-  return BKE_collection_duplicate(bmain, parent, collection, false, false, false);
-}
-
-/**
  * Make either a shallow copy, or deeper duplicate of given collection.
  *
  * If \a do_hierarchy and \a do_deep_copy are false, this is a regular (shallow) ID copy.
