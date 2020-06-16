@@ -968,16 +968,6 @@ static void write_animdata(BlendWriter *writer, AnimData *adt)
   write_nladata(writer, &adt->nla_tracks);
 }
 
-static void write_curvemapping_curves(BlendWriter *writer, CurveMapping *cumap)
-{
-  BKE_curvemapping_curves_blend_write(writer, cumap);
-}
-
-static void write_curvemapping(BlendWriter *writer, CurveMapping *cumap)
-{
-  BKE_curvemapping_blend_write(writer, cumap);
-}
-
 static void write_CurveProfile(BlendWriter *writer, CurveProfile *profile)
 {
   BLO_write_struct(writer, CurveProfile, profile);
@@ -1084,7 +1074,7 @@ static void write_nodetree_nolib(BlendWriter *writer, bNodeTree *ntree)
       /* could be handlerized at some point, now only 1 exception still */
       if ((ntree->type == NTREE_SHADER) &&
           ELEM(node->type, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB)) {
-        write_curvemapping(writer, node->storage);
+        BKE_curvemapping_blend_write(writer, node->storage);
       }
       else if (ntree->type == NTREE_SHADER && (node->type == SH_NODE_SCRIPT)) {
         NodeShaderScript *nss = (NodeShaderScript *)node->storage;
@@ -1098,11 +1088,11 @@ static void write_nodetree_nolib(BlendWriter *writer, bNodeTree *ntree)
                                                        CMP_NODE_CURVE_VEC,
                                                        CMP_NODE_CURVE_RGB,
                                                        CMP_NODE_HUECORRECT)) {
-        write_curvemapping(writer, node->storage);
+        BKE_curvemapping_blend_write(writer, node->storage);
       }
       else if ((ntree->type == NTREE_TEXTURE) &&
                (node->type == TEX_NODE_CURVE_RGB || node->type == TEX_NODE_CURVE_TIME)) {
-        write_curvemapping(writer, node->storage);
+        BKE_curvemapping_blend_write(writer, node->storage);
       }
       else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_MOVIEDISTORTION)) {
         /* pass */
@@ -1433,13 +1423,13 @@ static void write_particlesettings(BlendWriter *writer,
     BLO_write_struct(writer, EffectorWeights, part->effector_weights);
 
     if (part->clumpcurve) {
-      write_curvemapping(writer, part->clumpcurve);
+      BKE_curvemapping_blend_write(writer, part->clumpcurve);
     }
     if (part->roughcurve) {
-      write_curvemapping(writer, part->roughcurve);
+      BKE_curvemapping_blend_write(writer, part->roughcurve);
     }
     if (part->twistcurve) {
-      write_curvemapping(writer, part->twistcurve);
+      BKE_curvemapping_blend_write(writer, part->twistcurve);
     }
 
     LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
@@ -1680,7 +1670,7 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
       HookModifierData *hmd = (HookModifierData *)md;
 
       if (hmd->curfalloff) {
-        write_curvemapping(writer, hmd->curfalloff);
+        BKE_curvemapping_blend_write(writer, hmd->curfalloff);
       }
 
       BLO_write_int32_array(writer, hmd->totindex, hmd->indexar);
@@ -1781,14 +1771,14 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
     else if (md->type == eModifierType_Warp) {
       WarpModifierData *tmd = (WarpModifierData *)md;
       if (tmd->curfalloff) {
-        write_curvemapping(writer, tmd->curfalloff);
+        BKE_curvemapping_blend_write(writer, tmd->curfalloff);
       }
     }
     else if (md->type == eModifierType_WeightVGEdit) {
       WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
 
       if (wmd->cmap_curve) {
-        write_curvemapping(writer, wmd->cmap_curve);
+        BKE_curvemapping_blend_write(writer, wmd->cmap_curve);
       }
     }
     else if (md->type == eModifierType_CorrectiveSmooth) {
@@ -1858,21 +1848,21 @@ static void write_gpencil_modifiers(BlendWriter *writer, ListBase *modbase)
       ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
 
       if (gpmd->curve_thickness) {
-        write_curvemapping(writer, gpmd->curve_thickness);
+        BKE_curvemapping_blend_write(writer, gpmd->curve_thickness);
       }
     }
     else if (md->type == eGpencilModifierType_Noise) {
       NoiseGpencilModifierData *gpmd = (NoiseGpencilModifierData *)md;
 
       if (gpmd->curve_intensity) {
-        write_curvemapping(writer, gpmd->curve_intensity);
+        BKE_curvemapping_blend_write(writer, gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Hook) {
       HookGpencilModifierData *gpmd = (HookGpencilModifierData *)md;
 
       if (gpmd->curfalloff) {
-        write_curvemapping(writer, gpmd->curfalloff);
+        BKE_curvemapping_blend_write(writer, gpmd->curfalloff);
       }
     }
     else if (md->type == eGpencilModifierType_Tint) {
@@ -1881,25 +1871,25 @@ static void write_gpencil_modifiers(BlendWriter *writer, ListBase *modbase)
         BLO_write_struct(writer, ColorBand, gpmd->colorband);
       }
       if (gpmd->curve_intensity) {
-        write_curvemapping(writer, gpmd->curve_intensity);
+        BKE_curvemapping_blend_write(writer, gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Smooth) {
       SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
       if (gpmd->curve_intensity) {
-        write_curvemapping(writer, gpmd->curve_intensity);
+        BKE_curvemapping_blend_write(writer, gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Color) {
       ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
       if (gpmd->curve_intensity) {
-        write_curvemapping(writer, gpmd->curve_intensity);
+        BKE_curvemapping_blend_write(writer, gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Opacity) {
       OpacityGpencilModifierData *gpmd = (OpacityGpencilModifierData *)md;
       if (gpmd->curve_intensity) {
-        write_curvemapping(writer, gpmd->curve_intensity);
+        BKE_curvemapping_blend_write(writer, gpmd->curve_intensity);
       }
     }
   }
@@ -2454,7 +2444,7 @@ static void write_light(BlendWriter *writer, Light *la, const void *id_address)
     }
 
     if (la->curfalloff) {
-      write_curvemapping(writer, la->curfalloff);
+      BKE_curvemapping_blend_write(writer, la->curfalloff);
     }
 
     /* Node-tree is integral part of lights, no libdata. */
@@ -2511,12 +2501,12 @@ static void write_sequence_modifiers(BlendWriter *writer, ListBase *modbase)
       if (smd->type == seqModifierType_Curves) {
         CurvesModifierData *cmd = (CurvesModifierData *)smd;
 
-        write_curvemapping(writer, &cmd->curve_mapping);
+        BKE_curvemapping_blend_write(writer, &cmd->curve_mapping);
       }
       else if (smd->type == seqModifierType_HueCorrect) {
         HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
 
-        write_curvemapping(writer, &hcmd->curve_mapping);
+        BKE_curvemapping_blend_write(writer, &hcmd->curve_mapping);
       }
     }
     else {
@@ -2528,7 +2518,7 @@ static void write_sequence_modifiers(BlendWriter *writer, ListBase *modbase)
 static void write_view_settings(BlendWriter *writer, ColorManagedViewSettings *view_settings)
 {
   if (view_settings->curve_mapping) {
-    write_curvemapping(writer, view_settings->curve_mapping);
+    BKE_curvemapping_blend_write(writer, view_settings->curve_mapping);
   }
 }
 
@@ -2542,7 +2532,7 @@ static void write_view3dshading(BlendWriter *writer, View3DShading *shading)
 static void write_paint(BlendWriter *writer, Paint *p)
 {
   if (p->cavity_curve) {
-    write_curvemapping(writer, p->cavity_curve);
+    BKE_curvemapping_blend_write(writer, p->cavity_curve);
   }
   BLO_write_struct_array(writer, PaintToolSlot, p->tool_slots_len, p->tool_slots);
 }
@@ -2659,15 +2649,15 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   }
   /* write grease-pencil custom ipo curve to file */
   if (tos->gp_interpolate.custom_ipo) {
-    write_curvemapping(writer, tos->gp_interpolate.custom_ipo);
+    BKE_curvemapping_blend_write(writer, tos->gp_interpolate.custom_ipo);
   }
   /* write grease-pencil multiframe falloff curve to file */
   if (tos->gp_sculpt.cur_falloff) {
-    write_curvemapping(writer, tos->gp_sculpt.cur_falloff);
+    BKE_curvemapping_blend_write(writer, tos->gp_sculpt.cur_falloff);
   }
   /* write grease-pencil primitive curve to file */
   if (tos->gp_sculpt.cur_primitive) {
-    write_curvemapping(writer, tos->gp_sculpt.cur_primitive);
+    BKE_curvemapping_blend_write(writer, tos->gp_sculpt.cur_primitive);
   }
   /* Write the curve profile to the file. */
   if (tos->custom_bevel_profile_preset) {
@@ -2813,7 +2803,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   }
 
   write_previews(writer, sce->preview);
-  write_curvemapping_curves(writer, &sce->r.mblur_shutter_curve);
+  BKE_curvemapping_curves_blend_write(writer, &sce->r.mblur_shutter_curve);
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
     write_view_layer(writer, view_layer);
@@ -3317,38 +3307,38 @@ static void write_brush(BlendWriter *writer, Brush *brush, const void *id_addres
     write_iddata(writer, &brush->id);
 
     if (brush->curve) {
-      write_curvemapping(writer, brush->curve);
+      BKE_curvemapping_blend_write(writer, brush->curve);
     }
 
     if (brush->gpencil_settings) {
       BLO_write_struct(writer, BrushGpencilSettings, brush->gpencil_settings);
 
       if (brush->gpencil_settings->curve_sensitivity) {
-        write_curvemapping(writer, brush->gpencil_settings->curve_sensitivity);
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_sensitivity);
       }
       if (brush->gpencil_settings->curve_strength) {
-        write_curvemapping(writer, brush->gpencil_settings->curve_strength);
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_strength);
       }
       if (brush->gpencil_settings->curve_jitter) {
-        write_curvemapping(writer, brush->gpencil_settings->curve_jitter);
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_jitter);
       }
       if (brush->gpencil_settings->curve_rand_pressure) {
-        write_curvemapping(writer, brush->gpencil_settings->curve_rand_pressure);
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_pressure);
       }
       if (brush->gpencil_settings->curve_rand_strength) {
-        write_curvemapping(writer, brush->gpencil_settings->curve_rand_strength);
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_strength);
       }
       if (brush->gpencil_settings->curve_rand_uv) {
-        write_curvemapping(writer, brush->gpencil_settings->curve_rand_uv);
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_uv);
       }
       if (brush->gpencil_settings->curve_rand_hue) {
-        write_curvemapping(writer, brush->gpencil_settings->curve_rand_hue);
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_hue);
       }
       if (brush->gpencil_settings->curve_rand_saturation) {
-        write_curvemapping(writer, brush->gpencil_settings->curve_rand_saturation);
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_saturation);
       }
       if (brush->gpencil_settings->curve_rand_value) {
-        write_curvemapping(writer, brush->gpencil_settings->curve_rand_value);
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_value);
       }
     }
     if (brush->gradient) {
@@ -3609,28 +3599,30 @@ static void write_linestyle_alpha_modifiers(BlendWriter *writer, ListBase *modif
   for (m = modifiers->first; m; m = m->next) {
     switch (m->type) {
       case LS_MODIFIER_ALONG_STROKE:
-        write_curvemapping(writer, ((LineStyleAlphaModifier_AlongStroke *)m)->curve);
+        BKE_curvemapping_blend_write(writer, ((LineStyleAlphaModifier_AlongStroke *)m)->curve);
         break;
       case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-        write_curvemapping(writer, ((LineStyleAlphaModifier_DistanceFromCamera *)m)->curve);
+        BKE_curvemapping_blend_write(writer,
+                                     ((LineStyleAlphaModifier_DistanceFromCamera *)m)->curve);
         break;
       case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-        write_curvemapping(writer, ((LineStyleAlphaModifier_DistanceFromObject *)m)->curve);
+        BKE_curvemapping_blend_write(writer,
+                                     ((LineStyleAlphaModifier_DistanceFromObject *)m)->curve);
         break;
       case LS_MODIFIER_MATERIAL:
-        write_curvemapping(writer, ((LineStyleAlphaModifier_Material *)m)->curve);
+        BKE_curvemapping_blend_write(writer, ((LineStyleAlphaModifier_Material *)m)->curve);
         break;
       case LS_MODIFIER_TANGENT:
-        write_curvemapping(writer, ((LineStyleAlphaModifier_Tangent *)m)->curve);
+        BKE_curvemapping_blend_write(writer, ((LineStyleAlphaModifier_Tangent *)m)->curve);
         break;
       case LS_MODIFIER_NOISE:
-        write_curvemapping(writer, ((LineStyleAlphaModifier_Noise *)m)->curve);
+        BKE_curvemapping_blend_write(writer, ((LineStyleAlphaModifier_Noise *)m)->curve);
         break;
       case LS_MODIFIER_CREASE_ANGLE:
-        write_curvemapping(writer, ((LineStyleAlphaModifier_CreaseAngle *)m)->curve);
+        BKE_curvemapping_blend_write(writer, ((LineStyleAlphaModifier_CreaseAngle *)m)->curve);
         break;
       case LS_MODIFIER_CURVATURE_3D:
-        write_curvemapping(writer, ((LineStyleAlphaModifier_Curvature_3D *)m)->curve);
+        BKE_curvemapping_blend_write(writer, ((LineStyleAlphaModifier_Curvature_3D *)m)->curve);
         break;
     }
   }
@@ -3678,25 +3670,28 @@ static void write_linestyle_thickness_modifiers(BlendWriter *writer, ListBase *m
   for (m = modifiers->first; m; m = m->next) {
     switch (m->type) {
       case LS_MODIFIER_ALONG_STROKE:
-        write_curvemapping(writer, ((LineStyleThicknessModifier_AlongStroke *)m)->curve);
+        BKE_curvemapping_blend_write(writer, ((LineStyleThicknessModifier_AlongStroke *)m)->curve);
         break;
       case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-        write_curvemapping(writer, ((LineStyleThicknessModifier_DistanceFromCamera *)m)->curve);
+        BKE_curvemapping_blend_write(writer,
+                                     ((LineStyleThicknessModifier_DistanceFromCamera *)m)->curve);
         break;
       case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-        write_curvemapping(writer, ((LineStyleThicknessModifier_DistanceFromObject *)m)->curve);
+        BKE_curvemapping_blend_write(writer,
+                                     ((LineStyleThicknessModifier_DistanceFromObject *)m)->curve);
         break;
       case LS_MODIFIER_MATERIAL:
-        write_curvemapping(writer, ((LineStyleThicknessModifier_Material *)m)->curve);
+        BKE_curvemapping_blend_write(writer, ((LineStyleThicknessModifier_Material *)m)->curve);
         break;
       case LS_MODIFIER_TANGENT:
-        write_curvemapping(writer, ((LineStyleThicknessModifier_Tangent *)m)->curve);
+        BKE_curvemapping_blend_write(writer, ((LineStyleThicknessModifier_Tangent *)m)->curve);
         break;
       case LS_MODIFIER_CREASE_ANGLE:
-        write_curvemapping(writer, ((LineStyleThicknessModifier_CreaseAngle *)m)->curve);
+        BKE_curvemapping_blend_write(writer, ((LineStyleThicknessModifier_CreaseAngle *)m)->curve);
         break;
       case LS_MODIFIER_CURVATURE_3D:
-        write_curvemapping(writer, ((LineStyleThicknessModifier_Curvature_3D *)m)->curve);
+        BKE_curvemapping_blend_write(writer,
+                                     ((LineStyleThicknessModifier_Curvature_3D *)m)->curve);
         break;
     }
   }
