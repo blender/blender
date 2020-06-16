@@ -48,6 +48,7 @@ import shutil
 import subprocess
 import time
 import tarfile
+import uuid
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -121,20 +122,9 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
     # Consider this an input of the code signing server.
     unsigned_storage_dir: Path
 
-    # Information about archive which contains files which are to be signed.
-    #
-    # This archive is created by the buildbot worked and acts as an input for
-    # the code signing server.
-    unsigned_archive_info: ArchiveWithIndicator
-
     # Storage where signed files are stored.
     # Consider this an output of the code signer server.
     signed_storage_dir: Path
-
-    # Information about archive which contains signed files.
-    #
-    # This archive is created by the code signing server.
-    signed_archive_info: ArchiveWithIndicator
 
     # Platform the code is currently executing on.
     platform: util.Platform
@@ -146,50 +136,44 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
 
         # Unsigned (signing server input) configuration.
         self.unsigned_storage_dir = absolute_shared_storage_dir / 'unsigned'
-        self.unsigned_archive_info = ArchiveWithIndicator(
-            self.unsigned_storage_dir, 'unsigned_files.tar', 'ready.stamp')
 
         # Signed (signing server output) configuration.
         self.signed_storage_dir = absolute_shared_storage_dir / 'signed'
-        self.signed_archive_info = ArchiveWithIndicator(
-            self.signed_storage_dir, 'signed_files.tar', 'ready.stamp')
 
         self.platform = util.get_current_platform()
 
-    """
-    General note on cleanup environment functions.
-
-    It is expected that there is only one instance of the code signer server
-    running for a given input/output directory, and that it serves a single
-    buildbot worker.
-    By its nature, a buildbot worker only produces one build at a time and
-    never performs concurrent builds.
-    This leads to a conclusion that when starting in a clean environment
-    there shouldn't be any archives remaining from a previous build.
-
-    However, it is possible to have various failure scenarios which might
-    leave the environment in a non-clean state:
-
-        - Network hiccup which makes buildbot worker to stop current build
-          and re-start it after connection to server is re-established.
-
-          Note, this could also happen during buildbot server maintenance.
-
-        - Signing server might get restarted due to updates or other reasons.
-
-    Requiring manual interaction in such cases is not something good to
-    require, so here we simply assume that the system is used the way it is
-    intended to and restore environment to a prestine clean state.
-    """
-
     def cleanup_environment_for_builder(self) -> None:
-        self.unsigned_archive_info.clean()
-        self.signed_archive_info.clean()
+        # TODO(sergey): Revisit need of cleaning up the existing files.
+        # In practice it wasn't so helpful, and with multiple clients
+        # talking to the same server it becomes even mor etricky.
+        pass
 
     def cleanup_environment_for_signing_server(self) -> None:
-        # Don't clear the requested to-be-signed archive since we might be
-        # restarting signing machine while the buildbot is busy.
-        self.signed_archive_info.clean()
+        # TODO(sergey): Revisit need of cleaning up the existing files.
+        # In practice it wasn't so helpful, and with multiple clients
+        # talking to the same server it becomes even mor etricky.
+        pass
+
+    def generate_request_id(self) -> str:
+        """
+        Generate an unique identifier for code signing request.
+        """
+        return str(uuid.uuid4())
+
+    def archive_info_for_request_id(
+            self, path: Path, request_id: str) -> ArchiveWithIndicator:
+        return ArchiveWithIndicator(
+            path, f'{request_id}.tar', f'{request_id}.ready')
+
+    def signed_archive_info_for_request_id(
+            self, request_id: str) -> ArchiveWithIndicator:
+        return self.archive_info_for_request_id(
+            self.signed_storage_dir, request_id);
+
+    def unsigned_archive_info_for_request_id(
+            self, request_id: str) -> ArchiveWithIndicator:
+        return self.archive_info_for_request_id(
+            self.unsigned_storage_dir, request_id);
 
     ############################################################################
     # Buildbot worker side helpers.
@@ -232,7 +216,7 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
                               if self.check_file_is_to_be_signed(file)]
         return files_to_be_signed
 
-    def wait_for_signed_archive_or_die(self) -> None:
+    def wait_for_signed_archive_or_die(self, request_id) -> None:
         """
         Wait until archive with signed files is available.
 
@@ -240,13 +224,19 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
         is still no responce from the signing server the application will exit
         with a non-zero exit code.
         """
+
+        signed_archive_info = self.signed_archive_info_for_request_id(
+            request_id)
+        unsigned_archive_info = self.unsigned_archive_info_for_request_id(
+            request_id)
+
         timeout_in_seconds = self.config.TIMEOUT_IN_SECONDS
         time_start = time.monotonic()
-        while not self.signed_archive_info.is_ready():
+        while not signed_archive_info.is_ready():
             time.sleep(1)
             time_slept_in_seconds = time.monotonic() - time_start
             if time_slept_in_seconds > timeout_in_seconds:
-                self.unsigned_archive_info.clean()
+                unsigned_archive_info.clean()
                 raise SystemExit("Signing server didn't finish signing in "
                                  f"{timeout_in_seconds} seconds, dying :(")
 
@@ -303,13 +293,19 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
             return
         logger_builder.info('Found %d files to sign.', len(files))
 
+        request_id = self.generate_request_id()
+        signed_archive_info = self.signed_archive_info_for_request_id(
+            request_id)
+        unsigned_archive_info = self.unsigned_archive_info_for_request_id(
+            request_id)
+
         pack_files(files=files,
-                   archive_filepath=self.unsigned_archive_info.archive_filepath)
-        self.unsigned_archive_info.tag_ready()
+                   archive_filepath=unsigned_archive_info.archive_filepath)
+        unsigned_archive_info.tag_ready()
 
         # Wait for the signing server to finish signing.
         logger_builder.info('Waiting signing server to sign the files...')
-        self.wait_for_signed_archive_or_die()
+        self.wait_for_signed_archive_or_die(request_id)
 
         # Extract signed files from archive and move files to final location.
         with TemporaryDirectory(prefix='blender-buildbot-') as temp_dir_str:
@@ -317,7 +313,7 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
 
             logger_builder.info('Extracting signed files from archive...')
             extract_files(
-                archive_filepath=self.signed_archive_info.archive_filepath,
+                archive_filepath=signed_archive_info.archive_filepath,
                 extraction_dir=unpacked_signed_files_dir)
 
             destination_dir = path
@@ -327,18 +323,38 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
                 unpacked_signed_files_dir, destination_dir)
 
         logger_builder.info('Removing archive with signed files...')
-        self.signed_archive_info.clean()
+        signed_archive_info.clean()
 
     ############################################################################
     # Signing server side helpers.
 
-    def wait_for_sign_request(self) -> None:
+    def wait_for_sign_request(self) -> str:
         """
         Wait for the buildbot to request signing of an archive.
+
+        Returns an identifier of signing request.
         """
+
         # TOOD(sergey): Support graceful shutdown on Ctrl-C.
-        while not self.unsigned_archive_info.is_ready():
+
+        logger_server.info(
+            'Waiting for a READY indicator of any signign request.')
+        request_id = None
+        while request_id is None:
+            for file in self.unsigned_storage_dir.iterdir():
+                if file.suffix != '.ready':
+                    continue
+                request_id = file.stem
+                logger_server.info(f'Found READY for request ID {request_id}.')
+            if request_id is None:
+                time.sleep(1)
+
+        unsigned_archive_info = self.unsigned_archive_info_for_request_id(
+            request_id)
+        while not unsigned_archive_info.is_ready():
             time.sleep(1)
+
+        return request_id
 
     @abc.abstractmethod
     def sign_all_files(self, files: List[AbsoluteAndRelativeFileName]) -> None:
@@ -348,7 +364,7 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
         NOTE: Signing should happen in-place.
         """
 
-    def run_signing_pipeline(self):
+    def run_signing_pipeline(self, request_id: str):
         """
         Run the full signing pipeline starting from the point when buildbot
         worker have requested signing.
@@ -360,9 +376,14 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
         with TemporaryDirectory(prefix='blender-codesign-') as temp_dir_str:
             temp_dir = Path(temp_dir_str)
 
+            signed_archive_info = self.signed_archive_info_for_request_id(
+                request_id)
+            unsigned_archive_info = self.unsigned_archive_info_for_request_id(
+                request_id)
+
             logger_server.info('Extracting unsigned files from archive...')
             extract_files(
-                archive_filepath=self.unsigned_archive_info.archive_filepath,
+                archive_filepath=unsigned_archive_info.archive_filepath,
                 extraction_dir=temp_dir)
 
             logger_server.info('Collecting all files which needs signing...')
@@ -374,11 +395,11 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
 
             logger_server.info('Packing signed files...')
             pack_files(files=files,
-                       archive_filepath=self.signed_archive_info.archive_filepath)
-            self.signed_archive_info.tag_ready()
+                       archive_filepath=signed_archive_info.archive_filepath)
+            signed_archive_info.tag_ready()
 
             logger_server.info('Removing signing request...')
-            self.unsigned_archive_info.clean()
+            unsigned_archive_info.clean()
 
             logger_server.info('Signing is complete.')
 
@@ -389,11 +410,11 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
         while True:
             logger_server.info('Waiting for the signing request in %s...',
                                self.unsigned_storage_dir)
-            self.wait_for_sign_request()
+            request_id = self.wait_for_sign_request()
 
             logger_server.info(
-                'Got signing request, beging signign procedure.')
-            self.run_signing_pipeline()
+                f'Beging signign procedure for request ID {request_id}.')
+            self.run_signing_pipeline(request_id)
 
     ############################################################################
     # Command executing.
