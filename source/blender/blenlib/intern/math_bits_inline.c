@@ -63,7 +63,7 @@ MINLINE unsigned int bitscan_reverse_uint(unsigned int a)
 #ifdef _MSC_VER
   unsigned long clz;
   _BitScanReverse(&clz, a);
-  return clz;
+  return 31 - clz;
 #else
   return (unsigned int)__builtin_clz(a);
 #endif
