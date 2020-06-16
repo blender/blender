@@ -14,37 +14,36 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FN_CPP_TYPES_HH__
-#define __FN_CPP_TYPES_HH__
+#ifndef __FN_MULTI_FUNCTION_CONTEXT_HH__
+#define __FN_MULTI_FUNCTION_CONTEXT_HH__
 
 /** \file
- * \ingroup functions
+ * \ingroup fn
  *
- * This header provides convenient access to CPPType instances for some core types like integer
- * types.
+ * An MFContext is passed along with every call to a multi-function. Right now it does nothing, but
+ * it can be used for the following purposes:
+ * - Pass debug information up and down the function call stack.
+ * - Pass reusable memory buffers to subfunctions to increase performance.
+ * - Pass cached data to called functions.
  */
-
-#include "FN_cpp_type.hh"
 
 namespace blender {
 namespace fn {
 
-extern const CPPType &CPPType_bool;
+class MFContextBuilder {
+};
 
-extern const CPPType &CPPType_float;
-extern const CPPType &CPPType_float3;
-extern const CPPType &CPPType_float4x4;
+class MFContext {
+ private:
+  MFContextBuilder *m_builder;
 
-extern const CPPType &CPPType_int32;
-extern const CPPType &CPPType_uint32;
-extern const CPPType &CPPType_uint8;
-
-extern const CPPType &CPPType_Color4f;
-extern const CPPType &CPPType_Color4b;
-
-extern const CPPType &CPPType_string;
+ public:
+  MFContext(MFContextBuilder &builder) : m_builder(&builder)
+  {
+  }
+};
 
 }  // namespace fn
 }  // namespace blender
 
-#endif /* __FN_CPP_TYPES_HH__ */
+#endif /* __FN_MULTI_FUNCTION_CONTEXT_HH__ */

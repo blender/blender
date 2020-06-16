@@ -36,4 +36,8 @@ if(WITH_BUILDINFO)
   set(BUILDINFO buildinfoobj)
 endif()
 
+BLENDER_TEST(FN_array_spans "bf_blenlib;bf_functions;${BUILDINFO}")
 BLENDER_TEST(FN_cpp_type "bf_blenlib;bf_functions;${BUILDINFO}")
+BLENDER_TEST(FN_generic_vector_array "bf_blenlib;bf_functions;${BUILDINFO}")
+BLENDER_TEST(FN_multi_function "bf_blenlib;bf_functions;${BUILDINFO}")
+BLENDER_TEST(FN_spans "bf_blenlib;bf_functions;${BUILDINFO}")
