@@ -60,7 +60,6 @@ bool BKE_collection_delete(struct Main *bmain, struct Collection *collection, bo
 struct Collection *BKE_collection_duplicate(struct Main *bmain,
                                             struct Collection *parent,
                                             struct Collection *collection,
-                                            const bool do_hierarchy,
                                             const bool do_objects,
                                             const bool do_obdata);
 

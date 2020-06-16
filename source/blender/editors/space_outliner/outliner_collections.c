@@ -581,7 +581,7 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
                "it won't be linked to any view layer");
   }
 
-  BKE_collection_duplicate(bmain, parent, collection, true, true, !linked);
+  BKE_collection_duplicate(bmain, parent, collection, true, !linked);
 
   DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_SCENE | ND_LAYER, CTX_data_scene(C));

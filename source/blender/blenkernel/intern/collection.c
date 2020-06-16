@@ -326,7 +326,6 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
 static Collection *collection_duplicate_recursive(Main *bmain,
                                                   Collection *parent,
                                                   Collection *collection_old,
-                                                  const bool do_hierarchy,
                                                   const bool do_objects,
                                                   const bool do_obdata)
 {
@@ -343,15 +342,13 @@ static Collection *collection_duplicate_recursive(Main *bmain,
     collection_new = collection_old;
     do_full_process = true;
   }
-  else if (!do_hierarchy || collection_old->id.newid == NULL) {
+  else if (collection_old->id.newid == NULL) {
     BKE_id_copy(bmain, &collection_old->id, (ID **)&collection_new);
 
     /* Copying add one user by default, need to get rid of that one. */
     id_us_min(&collection_new->id);
 
-    if (do_hierarchy) {
-      ID_NEW_SET(collection_old, collection_new);
-    }
+    ID_NEW_SET(collection_old, collection_new);
     do_full_process = true;
   }
   else {
@@ -376,7 +373,7 @@ static Collection *collection_duplicate_recursive(Main *bmain,
   /* If we are not doing any kind of deep-copy, we can return immediately.
    * False do_full_process means collection_old had already been duplicated,
    * no need to redo some deep-copy on it. */
-  if (!do_hierarchy || !do_full_process) {
+  if (!do_full_process) {
     return collection_new;
   }
 
@@ -413,7 +410,7 @@ static Collection *collection_duplicate_recursive(Main *bmain,
     }
 
     collection_duplicate_recursive(
-        bmain, collection_new, child_collection_old, do_hierarchy, do_objects, do_obdata);
+        bmain, collection_new, child_collection_old, do_objects, do_obdata);
     collection_child_remove(collection_new, child_collection_old);
   }
 
@@ -421,43 +418,33 @@ static Collection *collection_duplicate_recursive(Main *bmain,
 }
 
 /**
- * Make either a shallow copy, or deeper duplicate of given collection.
+ * Make a deep copy (aka duplicate) of the given collection and all of its children, recusrsively.
  *
- * If \a do_hierarchy and \a do_deep_copy are false, this is a regular (shallow) ID copy.
+ * \warning This functions will clear all \a bmain id.idnew pointers.
  *
- * \warning If any 'deep copy' behavior is enabled,
- * this functions will clear all \a bmain id.idnew pointers.
- *
- * \param do_hierarchy: If true, it will recursively make shallow copies of children collections.
- * \param do_objects: If true, it will also make duplicates of objects.
- * This one does nothing if \a do_hierarchy is not set.
- * \param do_obdata: If true, it will also make deep duplicates of objects,
+ * \param do_objects: If true, it will also make copies of objects.
+ * \param do_obdata: If true, it will also make duplicates of objects,
  * using behavior defined in user settings (#U.dupflag).
- * This one does nothing if \a do_hierarchy and \a do_objects are not set.
+ * This one does nothing if \a do_objects is not set.
  */
 Collection *BKE_collection_duplicate(Main *bmain,
                                      Collection *parent,
                                      Collection *collection,
-                                     const bool do_hierarchy,
                                      const bool do_objects,
                                      const bool do_obdata)
 {
-  if (do_hierarchy) {
-    BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
-    BKE_main_id_clear_newpoins(bmain);
-  }
+  BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
+  BKE_main_id_clear_newpoins(bmain);
 
   Collection *collection_new = collection_duplicate_recursive(
-      bmain, parent, collection, do_hierarchy, do_objects, do_obdata);
+      bmain, parent, collection, do_objects, do_obdata);
 
   /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW.*/
   BKE_libblock_relink_to_newid(&collection_new->id);
 
-  if (do_hierarchy) {
-    /* Cleanup. */
-    BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
-    BKE_main_id_clear_newpoins(bmain);
-  }
+  /* Cleanup. */
+  BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
+  BKE_main_id_clear_newpoins(bmain);
 
   BKE_main_collection_sync(bmain);
 

@@ -863,7 +863,7 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
 
       /* Deep-duplicate collections and objects (using preferences' settings for which sub-data to
        * duplicate along the object itself). */
-      BKE_collection_duplicate(bmain, NULL, sce_copy->master_collection, true, true, true);
+      BKE_collection_duplicate(bmain, NULL, sce_copy->master_collection, true, true);
     }
     else {
       /* Remove sequencer if not full copy */
