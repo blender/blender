@@ -48,7 +48,9 @@
 static SequenceModifierTypeInfo *modifiersTypes[NUM_SEQUENCE_MODIFIER_TYPES];
 static bool modifierTypesInit = false;
 
-/*********************** Modifiers *************************/
+/* -------------------------------------------------------------------- */
+/** \name Modifier Multi-Threading Utilities
+ * \{ */
 
 typedef void (*modifier_apply_threaded_cb)(int width,
                                            int height,
@@ -163,7 +165,11 @@ static void modifier_apply_threaded(ImBuf *ibuf,
       ibuf->y, sizeof(ModifierThread), &init_data, modifier_init_handle, modifier_do_thread);
 }
 
-/* **** Color Balance Modifier **** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Color Balance Modifier
+ * \{ */
 
 static void colorBalance_init_data(SequenceModifierData *smd)
 {
@@ -196,7 +202,11 @@ static SequenceModifierTypeInfo seqModifier_ColorBalance = {
     colorBalance_apply,                                   /* apply */
 };
 
-/* **** White Balance Modifier **** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name White Balance Modifier
+ * \{ */
 
 static void whiteBalance_init_data(SequenceModifierData *smd)
 {
@@ -288,7 +298,11 @@ static SequenceModifierTypeInfo seqModifier_WhiteBalance = {
     whiteBalance_apply,                                   /* apply */
 };
 
-/* **** Curves Modifier **** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Curves Modifier
+ * \{ */
 
 static void curves_init_data(SequenceModifierData *smd)
 {
@@ -402,7 +416,11 @@ static SequenceModifierTypeInfo seqModifier_Curves = {
     curves_apply,                                  /* apply */
 };
 
-/* **** Hue Correct Modifier **** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hue Correct Modifier
+ * \{ */
 
 static void hue_correct_init_data(SequenceModifierData *smd)
 {
@@ -522,7 +540,11 @@ static SequenceModifierTypeInfo seqModifier_HueCorrect = {
     hue_correct_apply,                                  /* apply */
 };
 
-/* **** Bright/Contrast Modifier **** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Bright/Contrast Modifier
+ * \{ */
 
 typedef struct BrightContrastThreadData {
   float bright;
@@ -625,7 +647,11 @@ static SequenceModifierTypeInfo seqModifier_BrightContrast = {
     brightcontrast_apply,                                   /* apply */
 };
 
-/* **** Mask Modifier **** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mask Modifier
+ * \{ */
 
 static void maskmodifier_apply_threaded(int width,
                                         int height,
@@ -694,7 +720,11 @@ static SequenceModifierTypeInfo seqModifier_Mask = {
     maskmodifier_apply,                          /* apply */
 };
 
-/* **** Tonemap Modifier **** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tonemap Modifier
+ * \{ */
 
 typedef struct AvgLogLum {
   SequencerTonemapModifierData *tmmd;
@@ -906,7 +936,11 @@ static SequenceModifierTypeInfo seqModifier_Tonemap = {
     tonemapmodifier_apply,                          /* apply */
 };
 
-/*********************** Modifier functions *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public Modifier Functions
+ * \{ */
 
 static void sequence_modifier_type_info_init(void)
 {

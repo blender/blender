@@ -53,7 +53,9 @@
 
 #include "MEM_guardedalloc.h"
 
-/******************************** Prototypes ********************************/
+/* -------------------------------------------------------------------- */
+/** \name Prototypes
+ * \{ */
 
 static bool collection_child_add(Collection *parent,
                                  Collection *collection,
@@ -72,7 +74,11 @@ static CollectionParent *collection_find_parent(Collection *child, Collection *c
 
 static bool collection_find_child_recursive(Collection *parent, Collection *collection);
 
-/****************************** Collection Datablock ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection Data-Block
+ * \{ */
 
 /**
  * Only copy internal data of Collection ID from source
@@ -168,7 +174,11 @@ IDTypeInfo IDType_ID_GR = {
     .foreach_id = collection_foreach_id,
 };
 
-/***************************** Add Collection *******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Collection
+ * \{ */
 
 /* Add new collection, without view layer syncing. */
 static Collection *collection_add(Main *bmain,
@@ -238,7 +248,11 @@ void BKE_collection_add_from_object(Main *bmain,
   BKE_main_collection_sync(bmain);
 }
 
-/*********************** Free and Delete Collection ****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free and Delete Collection
+ * \{ */
 
 /** Free (or release) any data used by this collection (does not free the collection itself). */
 void BKE_collection_free(Collection *collection)
@@ -303,7 +317,12 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
   return true;
 }
 
-/***************************** Collection Copy *******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection Copy
+ * \{ */
+
 static Collection *collection_duplicate_recursive(Main *bmain,
                                                   Collection *parent,
                                                   Collection *collection_old,
@@ -456,7 +475,11 @@ Collection *BKE_collection_duplicate(Main *bmain,
   return collection_new;
 }
 
-/********************************* Naming *******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection Naming
+ * \{ */
 
 /**
  * The automatic/fallback name of a new collection.
@@ -496,7 +519,11 @@ const char *BKE_collection_ui_name_get(struct Collection *collection)
   }
 }
 
-/* **************** Object List Cache *******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object List Cache
+ * \{ */
 
 static void collection_object_cache_fill(ListBase *lb, Collection *collection, int parent_restrict)
 {
@@ -569,7 +596,11 @@ Base *BKE_collection_or_layer_objects(const ViewLayer *view_layer, Collection *c
   }
 }
 
-/*********************** Scene Master Collection ***************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scene Master Collection
+ * \{ */
 
 Collection *BKE_collection_master_add()
 {
@@ -594,7 +625,11 @@ Scene *BKE_collection_master_scene_search(const Main *bmain, const Collection *m
   return NULL;
 }
 
-/*********************** Cyclic Checks ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cyclic Checks
+ * \{ */
 
 static bool collection_object_cyclic_check_internal(Object *object, Collection *collection)
 {
@@ -634,7 +669,11 @@ bool BKE_collection_object_cyclic_check(Main *bmain, Object *object, Collection 
   return collection_object_cyclic_check_internal(object, collection);
 }
 
-/******************* Collection Object Membership *******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection Object Membership
+ * \{ */
 
 bool BKE_collection_has_object(Collection *collection, const Object *ob)
 {
@@ -695,7 +734,11 @@ bool BKE_collection_is_empty(Collection *collection)
          BLI_listbase_is_empty(&collection->children);
 }
 
-/********************** Collection Objects *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection Objects
+ * \{ */
 
 static void collection_tag_update_parent_recursive(Main *bmain,
                                                    Collection *collection,
@@ -1043,7 +1086,11 @@ void BKE_collection_object_move(
   }
 }
 
-/***************** Collection Scene Membership ****************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection Scene Membership
+ * \{ */
 
 bool BKE_collection_is_in_scene(Collection *collection)
 {
@@ -1068,7 +1115,11 @@ void BKE_collections_after_lib_link(Main *bmain)
   BKE_main_collection_sync(bmain);
 }
 
-/********************** Collection Children *******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection Children
+ * \{ */
 
 static bool collection_find_instance_recursive(Collection *collection,
                                                Collection *instance_collection)
@@ -1281,7 +1332,11 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
   }
 }
 
-/********************** Collection index *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection Index
+ * \{ */
 
 static Collection *collection_from_index_recursive(Collection *collection,
                                                    const int index,
@@ -1367,7 +1422,11 @@ bool BKE_collection_objects_select(ViewLayer *view_layer, Collection *collection
   }
 }
 
-/***************** Collection move (outliner drag & drop) *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection move (outliner drag & drop)
+ * \{ */
 
 bool BKE_collection_move(Main *bmain,
                          Collection *to_parent,
@@ -1460,7 +1519,11 @@ bool BKE_collection_move(Main *bmain,
   return true;
 }
 
-/**************************** Iterators ******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Iterators
+ * \{ */
 
 /* scene collection iteractor */
 
@@ -1646,3 +1709,5 @@ void BKE_scene_objects_iterator_end(BLI_Iterator *iter)
     MEM_freeN(data);
   }
 }
+
+/** \} */

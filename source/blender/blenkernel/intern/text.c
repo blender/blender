@@ -87,9 +87,9 @@
  * be popped ... other st's retain their own top location.
  */
 
-/***/
-
-/****************************** Prototypes ************************/
+/* -------------------------------------------------------------------- */
+/** \name Prototypes
+ * \{ */
 
 static void txt_pop_first(Text *text);
 static void txt_pop_last(Text *text);
@@ -97,7 +97,11 @@ static void txt_delete_line(Text *text, TextLine *line);
 static void txt_delete_sel(Text *text);
 static void txt_make_dirty(Text *text);
 
-/****************************** Text Datablock ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Text Data-Block
+ * \{ */
 
 static void text_init_data(ID *id)
 {
@@ -209,7 +213,11 @@ IDTypeInfo IDType_ID_TXT = {
     .foreach_id = NULL,
 };
 
-/***/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Text Add, Free, Validation
+ * \{ */
 
 /**
  * \note caller must handle `compiled` member.
@@ -549,9 +557,11 @@ void BKE_text_file_modified_ignore(Text *text)
   text->mtime = st.st_mtime;
 }
 
-/*****************************/
-/* Editing utility functions */
-/*****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Editing Utility Functions
+ * \{ */
 
 static void make_new_line(TextLine *line, char *newline)
 {
@@ -696,9 +706,11 @@ static void txt_make_dirty(Text *text)
 #endif
 }
 
-/****************************/
-/* Cursor utility functions */
-/****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cursor Utility Functions
+ * \{ */
 
 static void txt_curs_cur(Text *text, TextLine ***linep, int **charp)
 {
@@ -722,9 +734,11 @@ bool txt_cursor_is_line_end(Text *text)
   return (text->selc == text->sell->len);
 }
 
-/*****************************/
-/* Cursor movement functions */
-/*****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cursor Movement Functions
+ * \{ */
 
 void txt_move_up(Text *text, const bool sel)
 {
@@ -1095,9 +1109,11 @@ void txt_move_to(Text *text, unsigned int line, unsigned int ch, const bool sel)
   }
 }
 
-/****************************/
-/* Text selection functions */
-/****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Text Selection Functions
+ * \{ */
 
 static void txt_curs_swap(Text *text)
 {
@@ -1393,9 +1409,9 @@ void txt_from_buf_for_undo(Text *text, const char *buf, int buf_len)
 
 /** \} */
 
-/***************************/
-/* Cut and paste functions */
-/***************************/
+/* -------------------------------------------------------------------- */
+/** \name Cut and Paste Functions
+ * \{ */
 
 char *txt_to_buf(Text *text, int *r_buf_strlen)
 {
@@ -1472,59 +1488,6 @@ char *txt_to_buf(Text *text, int *r_buf_strlen)
   }
 
   return buf;
-}
-
-int txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
-{
-  TextLine *tl, *startl;
-  const char *s = NULL;
-
-  if (!text->curl || !text->sell) {
-    return 0;
-  }
-
-  txt_order_cursors(text, false);
-
-  tl = startl = text->sell;
-
-  if (match_case) {
-    s = strstr(&tl->line[text->selc], findstr);
-  }
-  else {
-    s = BLI_strcasestr(&tl->line[text->selc], findstr);
-  }
-  while (!s) {
-    tl = tl->next;
-    if (!tl) {
-      if (wrap) {
-        tl = text->lines.first;
-      }
-      else {
-        break;
-      }
-    }
-
-    if (match_case) {
-      s = strstr(tl->line, findstr);
-    }
-    else {
-      s = BLI_strcasestr(tl->line, findstr);
-    }
-    if (tl == startl) {
-      break;
-    }
-  }
-
-  if (s) {
-    int newl = txt_get_span(text->lines.first, tl);
-    int newc = (int)(s - tl->line);
-    txt_move_to(text, newl, newc, 0);
-    txt_move_to(text, newl, newc + strlen(findstr), 1);
-    return 1;
-  }
-  else {
-    return 0;
-  }
 }
 
 char *txt_sel_to_buf(Text *text, int *r_buf_strlen)
@@ -1670,9 +1633,70 @@ void txt_insert_buf(Text *text, const char *in_buffer)
   MEM_freeN(buffer);
 }
 
-/**************************/
-/* Line editing functions */
-/**************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Find String in Text
+ * \{ */
+
+int txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
+{
+  TextLine *tl, *startl;
+  const char *s = NULL;
+
+  if (!text->curl || !text->sell) {
+    return 0;
+  }
+
+  txt_order_cursors(text, false);
+
+  tl = startl = text->sell;
+
+  if (match_case) {
+    s = strstr(&tl->line[text->selc], findstr);
+  }
+  else {
+    s = BLI_strcasestr(&tl->line[text->selc], findstr);
+  }
+  while (!s) {
+    tl = tl->next;
+    if (!tl) {
+      if (wrap) {
+        tl = text->lines.first;
+      }
+      else {
+        break;
+      }
+    }
+
+    if (match_case) {
+      s = strstr(tl->line, findstr);
+    }
+    else {
+      s = BLI_strcasestr(tl->line, findstr);
+    }
+    if (tl == startl) {
+      break;
+    }
+  }
+
+  if (s) {
+    int newl = txt_get_span(text->lines.first, tl);
+    int newc = (int)(s - tl->line);
+    txt_move_to(text, newl, newc, 0);
+    txt_move_to(text, newl, newc + strlen(findstr), 1);
+    return 1;
+  }
+  else {
+    return 0;
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Line Editing Functions
+ * \{ */
 
 void txt_split_curline(Text *text)
 {
@@ -2294,9 +2318,11 @@ int txt_setcurr_tab_spaces(Text *text, int space)
   return i;
 }
 
-/*******************************/
-/* Character utility functions */
-/*******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Character Queries
+ * \{ */
 
 int text_check_bracket(const char ch)
 {
@@ -2418,3 +2444,5 @@ int text_find_identifier_start(const char *str, int i)
   i++;
   return i;
 }
+
+/** \} */
