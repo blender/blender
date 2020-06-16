@@ -96,6 +96,7 @@ set(SRC
   ${CMAKE_CURRENT_BINARY_DIR}/dna_verify.c
   ${SRC_DNA_INC}
 
+  ${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
   dna_rename_defs.h
   dna_utils.h
 )

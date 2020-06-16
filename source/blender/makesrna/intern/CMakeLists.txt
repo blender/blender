@@ -443,3 +443,6 @@ set(LIB
 add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# Needed so we can use dna_type_offsets.h for defaults initialization.
+add_dependencies(bf_blenkernel bf_dna)
