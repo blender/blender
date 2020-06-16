@@ -49,6 +49,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "BLO_read_write.h"
+
 #include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
@@ -607,6 +609,35 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_MeshDeform, panel_draw);
 }
 
+static void blendWrite(BlendWriter *writer, const ModifierData *md)
+{
+  MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
+  int size = mmd->dyngridsize;
+
+  BLO_write_struct_array(writer, MDefInfluence, mmd->totinfluence, mmd->bindinfluences);
+  BLO_write_int32_array(writer, mmd->totvert + 1, mmd->bindoffsets);
+  BLO_write_float3_array(writer, mmd->totcagevert, mmd->bindcagecos);
+  BLO_write_struct_array(writer, MDefCell, size * size * size, mmd->dyngrid);
+  BLO_write_struct_array(writer, MDefInfluence, mmd->totinfluence, mmd->dyninfluences);
+  BLO_write_int32_array(writer, mmd->totvert, mmd->dynverts);
+}
+
+static void blendRead(BlendDataReader *reader, ModifierData *md)
+{
+  MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
+
+  BLO_read_data_address(reader, &mmd->bindinfluences);
+  BLO_read_int32_array(reader, mmd->totvert + 1, &mmd->bindoffsets);
+  BLO_read_float3_array(reader, mmd->totcagevert, &mmd->bindcagecos);
+  BLO_read_data_address(reader, &mmd->dyngrid);
+  BLO_read_data_address(reader, &mmd->dyninfluences);
+  BLO_read_int32_array(reader, mmd->totvert, &mmd->dynverts);
+
+  /* Deprecated storage. */
+  BLO_read_float_array(reader, mmd->totvert, &mmd->bindweights);
+  BLO_read_float3_array(reader, mmd->totcagevert, &mmd->bindcos);
+}
+
 ModifierTypeInfo modifierType_MeshDeform = {
     /* name */ "MeshDeform",
     /* structName */ "MeshDeformModifierData",
@@ -638,6 +669,6 @@ ModifierTypeInfo modifierType_MeshDeform = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ blendWrite,
+    /* blendRead */ blendRead,
 };

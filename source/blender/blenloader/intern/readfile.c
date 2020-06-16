@@ -5776,19 +5776,6 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
 
       psmd->facepa = NULL;
     }
-    else if (md->type == eModifierType_MeshDeform) {
-      MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
-
-      BLO_read_data_address(reader, &mmd->bindinfluences);
-      BLO_read_int32_array(reader, mmd->totvert + 1, &mmd->bindoffsets);
-      BLO_read_float3_array(reader, mmd->totcagevert, &mmd->bindcagecos);
-      BLO_read_data_address(reader, &mmd->dyngrid);
-      BLO_read_data_address(reader, &mmd->dyninfluences);
-      BLO_read_int32_array(reader, mmd->totvert, &mmd->dynverts);
-
-      BLO_read_float_array(reader, mmd->totvert, &mmd->bindweights);
-      BLO_read_float3_array(reader, mmd->totcagevert, &mmd->bindcos);
-    }
     else if (md->type == eModifierType_Ocean) {
       OceanModifierData *omd = (OceanModifierData *)md;
       omd->oceancache = NULL;
