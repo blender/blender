@@ -171,8 +171,8 @@ void createTransUVs(bContext *C, TransInfo *t)
       }
     }
 
-    /* note: in prop mode we need at least 1 selected */
-    if (countsel == 0) {
+    /* Support other objects using PET to adjust these, unless connected is enabled. */
+    if (((is_prop_edit && !is_prop_connected) ? count : countsel) == 0) {
       goto finally;
     }
 

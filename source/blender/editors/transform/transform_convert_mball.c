@@ -47,6 +47,7 @@ void createTransMBallVerts(TransInfo *t)
     float mtx[3][3], smtx[3][3];
     int count = 0, countsel = 0;
     const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
+    const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
 
     /* count totals */
     for (ml = mb->editelems->first; ml; ml = ml->next) {
@@ -58,8 +59,9 @@ void createTransMBallVerts(TransInfo *t)
       }
     }
 
-    /* note: in prop mode we need at least 1 selected */
-    if (countsel == 0) {
+    /* Support other objects using PET to adjust these, unless connected is enabled. */
+    if (((is_prop_edit && !is_prop_connected) ? count : countsel) == 0) {
+      tc->data_len = 0;
       continue;
     }
 

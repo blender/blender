@@ -707,9 +707,10 @@ void createTransEditVerts(TransInfo *t)
      *
      * \note ignore modes here, even in edge/face modes,
      * transform data is created by selected vertices.
-     * \note in prop mode we need at least 1 selected.
      */
-    if (bm->totvertsel == 0) {
+
+    /* Support other objects using PET to adjust these, unless connected is enabled. */
+    if ((!prop_mode || (prop_mode & T_PROP_CONNECTED)) && (bm->totvertsel == 0)) {
       goto cleanup;
     }
 
@@ -732,6 +733,10 @@ void createTransEditVerts(TransInfo *t)
         if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
           data_len++;
         }
+      }
+
+      if (data_len == 0) {
+        goto cleanup;
       }
 
       /* allocating scratch arrays */

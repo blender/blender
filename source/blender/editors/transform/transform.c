@@ -1917,6 +1917,27 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     return 0;
   }
 
+  /* When proportional editing is enabled, data_len_all can be non zero when
+   * nothing is selected, if this is the case we can end the transform early.
+   *
+   * By definition transform-data has selected items in beginning,
+   * so only the first item in each container needs to be checked
+   * when looking  for the presence of selected data. */
+  if (t->flag & T_PROP_EDIT) {
+    bool has_selected_any = false;
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+      if (tc->data->flag & TD_SELECTED) {
+        has_selected_any = true;
+        break;
+      }
+    }
+
+    if (!has_selected_any) {
+      postTrans(C, t);
+      return 0;
+    }
+  }
+
   if (event) {
     /* keymap for shortcut header prints */
     t->keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);

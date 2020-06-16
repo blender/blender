@@ -50,6 +50,7 @@ void createTransEdge(TransInfo *t)
     float mtx[3][3], smtx[3][3];
     int count = 0, countsel = 0;
     const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
+    const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
     int cd_edge_float_offset;
 
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
@@ -63,7 +64,7 @@ void createTransEdge(TransInfo *t)
       }
     }
 
-    if (countsel == 0) {
+    if (((is_prop_edit && !is_prop_connected) ? count : countsel) == 0) {
       tc->data_len = 0;
       continue;
     }
