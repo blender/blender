@@ -251,7 +251,7 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     {EVT_RETKEY, "RET", 0, "Return", "Enter"},
     {EVT_SPACEKEY, "SPACE", 0, "Spacebar", "Space"},
     {EVT_LINEFEEDKEY, "LINE_FEED", 0, "Line Feed", ""},
-    {EVT_BACKSPACEKEY, "BACK_SPACE", 0, "Back Space", "BkSpace"},
+    {EVT_BACKSPACEKEY, "BACK_SPACE", 0, "Backspace", "BkSpace"},
     {EVT_DELKEY, "DEL", 0, "Delete", "Del"},
     {EVT_SEMICOLONKEY, "SEMI_COLON", 0, ";", ""},
     {EVT_PERIODKEY, "PERIOD", 0, ".", ""},
