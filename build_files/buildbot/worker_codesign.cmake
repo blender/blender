@@ -33,7 +33,7 @@ else()
 endif()
 
 execute_process(
-  COMMAND ${PYTHON_EXECUTABLE} "${CMAKE_CURRENT_LIST_DIR}/slave_codesign.py"
+  COMMAND ${PYTHON_EXECUTABLE} "${CMAKE_CURRENT_LIST_DIR}/worker_codesign.py"
           "${CMAKE_INSTALL_PREFIX}"
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
   RESULT_VARIABLE exit_code

@@ -25,7 +25,7 @@ import buildbot_utils
 
 def get_cmake_options(builder):
     post_install_script = os.path.join(
-        builder.blender_dir, 'build_files', 'buildbot', 'slave_codesign.cmake')
+        builder.blender_dir, 'build_files', 'buildbot', 'worker_codesign.cmake')
 
     config_file = "build_files/cmake/config/blender_release.cmake"
     options = ['-DCMAKE_BUILD_TYPE:STRING=Release',

@@ -8,7 +8,7 @@ Code signing is done as part of INSTALL target, which makes it possible to sign
 files which are aimed into a bundle and coming from a non-signed source (such as
 libraries SVN).
 
-This is achieved by specifying `slave_codesign.cmake` as a post-install script
+This is achieved by specifying `worker_codesign.cmake` as a post-install script
 run by CMake. This CMake script simply involves an utility script written in
 Python which takes care of an actual signing.
 
