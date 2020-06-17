@@ -6895,7 +6895,7 @@ void CURVE_OT_shade_flat(wmOperatorType *ot)
  * This is used externally, by #OBJECT_OT_join.
  * TODO: shape keys - as with meshes.
  */
-int join_curve_exec(bContext *C, wmOperator *op)
+int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
