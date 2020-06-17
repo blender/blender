@@ -666,9 +666,10 @@ static int id_relink_to_newid_looper(LibraryIDLinkCallbackData *cb_data)
     /* See: NEW_ID macro */
     if (id->newid) {
       BKE_library_update_ID_link_user(id->newid, id, cb_flag);
-      *id_pointer = id->newid;
+      id = id->newid;
+      *id_pointer = id;
     }
-    else if (id->tag & LIB_TAG_NEW) {
+    if (id->tag & LIB_TAG_NEW) {
       id->tag &= ~LIB_TAG_NEW;
       BKE_libblock_relink_to_newid(id);
     }
