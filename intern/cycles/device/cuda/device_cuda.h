@@ -96,9 +96,9 @@ class CUDADevice : public Device {
 
   static bool have_precompiled_kernels();
 
-  virtual bool show_samples() const;
+  virtual bool show_samples() const override;
 
-  virtual BVHLayoutMask get_bvh_layout_mask() const;
+  virtual BVHLayoutMask get_bvh_layout_mask() const override;
 
   void set_error(const string &error) override;
 
@@ -108,7 +108,7 @@ class CUDADevice : public Device {
 
   bool support_device(const DeviceRequestedFeatures & /*requested_features*/);
 
-  bool check_peer_access(Device *peer_device);
+  bool check_peer_access(Device *peer_device) override;
 
   bool use_adaptive_compilation();
 
@@ -122,7 +122,7 @@ class CUDADevice : public Device {
                         const char *base = "cuda",
                         bool force_ptx = false);
 
-  virtual bool load_kernels(const DeviceRequestedFeatures &requested_features);
+  virtual bool load_kernels(const DeviceRequestedFeatures &requested_features) override;
 
   void load_functions();
 
@@ -140,19 +140,19 @@ class CUDADevice : public Device {
 
   void generic_free(device_memory &mem);
 
-  void mem_alloc(device_memory &mem);
+  void mem_alloc(device_memory &mem) override;
 
-  void mem_copy_to(device_memory &mem);
+  void mem_copy_to(device_memory &mem) override;
 
-  void mem_copy_from(device_memory &mem, int y, int w, int h, int elem);
+  void mem_copy_from(device_memory &mem, int y, int w, int h, int elem) override;
 
-  void mem_zero(device_memory &mem);
+  void mem_zero(device_memory &mem) override;
 
-  void mem_free(device_memory &mem);
+  void mem_free(device_memory &mem) override;
 
-  device_ptr mem_alloc_sub_ptr(device_memory &mem, int offset, int /*size*/);
+  device_ptr mem_alloc_sub_ptr(device_memory &mem, int offset, int /*size*/) override;
 
-  virtual void const_copy_to(const char *name, void *host, size_t size);
+  virtual void const_copy_to(const char *name, void *host, size_t size) override;
 
   void global_alloc(device_memory &mem);
 
@@ -252,15 +252,15 @@ class CUDADevice : public Device {
                    int dw,
                    int dh,
                    bool transparent,
-                   const DeviceDrawParams &draw_params);
+                   const DeviceDrawParams &draw_params) override;
 
   void thread_run(DeviceTask *task);
 
-  virtual void task_add(DeviceTask &task);
+  virtual void task_add(DeviceTask &task) override;
 
-  virtual void task_wait();
+  virtual void task_wait() override;
 
-  virtual void task_cancel();
+  virtual void task_cancel() override;
 };
 
 CCL_NAMESPACE_END
