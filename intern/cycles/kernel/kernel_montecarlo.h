@@ -98,6 +98,16 @@ ccl_device_inline void sample_uniform_cone(
   *pdf = M_1_2PI_F / (1.0f - zMin);
 }
 
+ccl_device_inline float pdf_uniform_cone(const float3 N, float3 D, float angle)
+{
+  float zMin = cosf(angle);
+  float z = dot(N, D);
+  if (z > zMin) {
+    return M_1_2PI_F / (1.0f - zMin);
+  }
+  return 0.0f;
+}
+
 /* sample uniform point on the surface of a sphere */
 ccl_device float3 sample_uniform_sphere(float u1, float u2)
 {

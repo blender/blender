@@ -24,6 +24,7 @@ set(SRC
   hair.cpp
   image.cpp
   image_oiio.cpp
+  image_sky.cpp
   image_vdb.cpp
   integrator.cpp
   jitter.cpp
@@ -64,6 +65,7 @@ set(SRC_HEADERS
   hair.h
   image.h
   image_oiio.h
+  image_sky.h
   image_vdb.h
   integrator.h
   light.h

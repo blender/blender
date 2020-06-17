@@ -326,9 +326,7 @@ ccl_device_noinline_cpu float3 indirect_background(KernelGlobals *kg,
   /* Background MIS weights. */
 #  ifdef __BACKGROUND_MIS__
   /* Check if background light exists or if we should skip pdf. */
-  int res_x = kernel_data.integrator.pdf_background_res_x;
-
-  if (!(state->flag & PATH_RAY_MIS_SKIP) && res_x) {
+  if (!(state->flag & PATH_RAY_MIS_SKIP) && kernel_data.background.use_mis) {
     /* multiple importance sampling, get background light pdf for ray
      * direction, and compute weight with respect to BSDF pdf */
     float pdf = background_light_pdf(kg, ray->P, ray->D);

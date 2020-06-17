@@ -4405,8 +4405,9 @@ static void def_sh_tex(StructRNA *srna)
 static void def_sh_tex_sky(StructRNA *srna)
 {
   static const EnumPropertyItem prop_sky_type[] = {
-      {SHD_SKY_OLD, "PREETHAM", 0, "Preetham", ""},
-      {SHD_SKY_NEW, "HOSEK_WILKIE", 0, "Hosek / Wilkie", ""},
+      {SHD_SKY_PREETHAM, "PREETHAM", 0, "Preetham", "Preetham 1999"},
+      {SHD_SKY_HOSEK, "HOSEK_WILKIE", 0, "Hosek / Wilkie", "Hosek / Wilkie 2012"},
+      {SHD_SKY_NISHITA, "NISHITA", 0, "Nishita", "Nishita 1993 improved"},
       {0, NULL, 0, NULL, NULL},
   };
   static float default_dir[3] = {0.0f, 0.0f, 1.0f};
@@ -4419,7 +4420,7 @@ static void def_sh_tex_sky(StructRNA *srna)
   prop = RNA_def_property(srna, "sky_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "sky_model");
   RNA_def_property_enum_items(prop, prop_sky_type);
-  RNA_def_property_ui_text(prop, "Sky Type", "");
+  RNA_def_property_ui_text(prop, "Sky Type", "Which sky model should be used");
   RNA_def_property_update(prop, 0, "rna_Node_update");
 
   prop = RNA_def_property(srna, "sun_direction", PROP_FLOAT, PROP_DIRECTION);
@@ -4438,6 +4439,54 @@ static void def_sh_tex_sky(StructRNA *srna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(
       prop, "Ground Albedo", "Ground color that is subtly reflected in the sky");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "sun_disc", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Sun Disc", "Include the sun itself in the output");
+  RNA_def_property_boolean_sdna(prop, NULL, "sun_disc", 1);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "sun_size", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_ui_text(prop, "Sun Size", "Size of sun disc (angular diameter)");
+  RNA_def_property_range(prop, 0.0f, M_PI_2);
+  RNA_def_property_float_default(prop, DEG2RADF(0.545));
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "sun_elevation", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_ui_text(prop, "Sun Elevation", "Angle between sun and horizon");
+  RNA_def_property_range(prop, -M_PI_2, M_PI_2);
+  RNA_def_property_float_default(prop, M_PI_2);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "sun_rotation", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_ui_text(prop, "Sun Rotation", "Rotation of sun around zenith");
+  RNA_def_property_range(prop, 0.0f, 2.0f * M_PI);
+  RNA_def_property_float_default(prop, 0.0f);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "altitude", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Altitude", "Altitude height from sea level in meters");
+  RNA_def_property_range(prop, 0, 60000);
+  RNA_def_property_int_default(prop, 0);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "air_density", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_ui_text(prop, "Air", "Density of air molecules (Rayleigh scattering)");
+  RNA_def_property_range(prop, 0.0f, 10.0f);
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "dust_density", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_ui_text(prop, "Dust", "Density of dust and water molecules (Mie scattering)");
+  RNA_def_property_range(prop, 0.0f, 10.0f);
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "ozone_density", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_ui_text(prop, "Ozone", "Density of Ozone layer (Ozone absorption)");
+  RNA_def_property_range(prop, 0.0f, 10.0f);
+  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

@@ -41,8 +41,15 @@ static void node_shader_init_tex_sky(bNodeTree *UNUSED(ntree), bNode *node)
   tex->sun_direction[2] = 1.0f;
   tex->turbidity = 2.2f;
   tex->ground_albedo = 0.3f;
-  tex->sky_model = SHD_SKY_NEW;
-
+  tex->sun_disc = true;
+  tex->sun_size = DEG2RADF(0.545);
+  tex->sun_elevation = M_PI_2;
+  tex->sun_rotation = 0.0f;
+  tex->altitude = 0;
+  tex->air_density = 1.0f;
+  tex->dust_density = 1.0f;
+  tex->ozone_density = 1.0f;
+  tex->sky_model = SHD_SKY_NISHITA;
   node->storage = tex;
 }
 

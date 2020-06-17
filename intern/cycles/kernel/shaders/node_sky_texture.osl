@@ -44,13 +44,13 @@ float sky_perez_function(float lam[9], float theta, float gamma)
          (1.0 + lam[2] * exp(lam[3] * gamma) + lam[4] * cgamma * cgamma);
 }
 
-color sky_radiance_old(normal dir,
-                       float sunphi,
-                       float suntheta,
-                       color radiance,
-                       float config_x[9],
-                       float config_y[9],
-                       float config_z[9])
+color sky_radiance_preetham(normal dir,
+                            float sunphi,
+                            float suntheta,
+                            color radiance,
+                            float config_x[9],
+                            float config_y[9],
+                            float config_z[9])
 {
   /* convert vector to spherical coordinates */
   vector spherical = sky_spherical_coordinates(dir);
@@ -88,13 +88,13 @@ float sky_radiance_internal(float config[9], float theta, float gamma)
          (config[2] + config[3] * expM + config[5] * rayM + config[6] * mieM + config[7] * zenith);
 }
 
-color sky_radiance_new(normal dir,
-                       float sunphi,
-                       float suntheta,
-                       color radiance,
-                       float config_x[9],
-                       float config_y[9],
-                       float config_z[9])
+color sky_radiance_hosek(normal dir,
+                         float sunphi,
+                         float suntheta,
+                         color radiance,
+                         float config_x[9],
+                         float config_y[9],
+                         float config_z[9])
 {
   /* convert vector to spherical coordinates */
   vector spherical = sky_spherical_coordinates(dir);
@@ -116,16 +116,103 @@ color sky_radiance_new(normal dir,
   return xyz_to_rgb(x, y, z) * (M_2PI / 683);
 }
 
+/* Nishita improved */
+vector geographical_to_direction(float lat, float lon)
+{
+  return vector(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
+}
+
+color sky_radiance_nishita(vector dir, float nishita_data[9], string filename)
+{
+  /* definitions */
+  float sun_elevation = nishita_data[6];
+  float sun_rotation = nishita_data[7];
+  float angular_diameter = nishita_data[8];
+  int sun_disc = angular_diameter > 0;
+  float alpha = 1.0;
+  color xyz;
+  /* convert dir to spherical coordinates */
+  vector direction = sky_spherical_coordinates(dir);
+
+  /* render above the horizon */
+  if (dir[2] >= 0.0) {
+    /* definitions */
+    vector sun_dir = geographical_to_direction(sun_elevation, sun_rotation + M_PI_2);
+    float sun_dir_angle = acos(dot(dir, sun_dir));
+    float half_angular = angular_diameter / 2.0;
+    float dir_elevation = M_PI_2 - direction[0];
+
+    /* if ray inside sun disc render it, otherwise render sky */
+    if (sun_dir_angle < half_angular && sun_disc == 1) {
+      /* get 3 pixels data */
+      color pixel_bottom = color(nishita_data[0], nishita_data[1], nishita_data[2]);
+      color pixel_top = color(nishita_data[3], nishita_data[4], nishita_data[5]);
+      float y;
+
+      /* sun interpolation */
+      if (sun_elevation - half_angular > 0.0) {
+        if ((sun_elevation + half_angular) > 0.0) {
+          y = ((dir_elevation - sun_elevation) / angular_diameter) + 0.5;
+          xyz = mix(pixel_bottom, pixel_top, y);
+        }
+      }
+      else {
+        if (sun_elevation + half_angular > 0.0) {
+          y = dir_elevation / (sun_elevation + half_angular);
+          xyz = mix(pixel_bottom, pixel_top, y);
+        }
+      }
+      /* limb darkening, coefficient is 0.6f */
+      float angle_fraction = sun_dir_angle / half_angular;
+      float limb_darkening = (1.0 - 0.6 * (1.0 - sqrt(1.0 - angle_fraction * angle_fraction)));
+      xyz *= limb_darkening;
+    }
+    /* sky */
+    else {
+      /* sky interpolation */
+      float x = (direction[1] + M_PI + sun_rotation) / M_2PI;
+      float y = 1.0 - (dir_elevation / M_PI_2);
+      if (x > 1.0) {
+        x = x - 1.0;
+      }
+      xyz = (color)texture(filename, x, y, "wrap", "clamp", "interp", "linear", "alpha", alpha);
+    }
+  }
+  /* ground */
+  else {
+    if (dir[2] < -0.4) {
+      xyz = color(0, 0, 0);
+    }
+    else {
+      /* black ground fade */
+      float mul = pow(1.0 + dir[2] * 2.5, 3.0);
+      /* interpolation */
+      float x = (direction[1] + M_PI + sun_rotation) / M_2PI;
+      float y = 1.5;
+      if (x > 1.0) {
+        x = x - 1.0;
+      }
+      xyz = (color)texture(
+                filename, x, y, "wrap", "periodic", "interp", "linear", "alpha", alpha) *
+            mul;
+    }
+  }
+  /* convert to RGB and adjust strength */
+  return xyz_to_rgb(xyz[0], xyz[1], xyz[2]) * 120000.0;
+}
+
 shader node_sky_texture(int use_mapping = 0,
                         matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                         vector Vector = P,
                         string type = "hosek_wilkie",
                         float theta = 0.0,
                         float phi = 0.0,
+                        string filename = "",
                         color radiance = color(0.0, 0.0, 0.0),
                         float config_x[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
                         float config_y[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
                         float config_z[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+                        float nishita_data[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
                         output color Color = color(0.0, 0.0, 0.0))
 {
   vector p = Vector;
@@ -133,8 +220,10 @@ shader node_sky_texture(int use_mapping = 0,
   if (use_mapping)
     p = transform(mapping, p);
 
+  if (type == "nishita_improved")
+    Color = sky_radiance_nishita(p, nishita_data, filename);
   if (type == "hosek_wilkie")
-    Color = sky_radiance_new(p, phi, theta, radiance, config_x, config_y, config_z);
-  else
-    Color = sky_radiance_old(p, phi, theta, radiance, config_x, config_y, config_z);
+    Color = sky_radiance_hosek(p, phi, theta, radiance, config_x, config_y, config_z);
+  if (type == "preetham")
+    Color = sky_radiance_preetham(p, phi, theta, radiance, config_x, config_y, config_z);
 }

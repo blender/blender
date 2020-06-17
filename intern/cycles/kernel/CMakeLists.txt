@@ -113,6 +113,8 @@ set(SRC_HEADERS
   kernel_id_passes.h
   kernel_jitter.h
   kernel_light.h
+  kernel_light_background.h
+  kernel_light_common.h
   kernel_math.h
   kernel_montecarlo.h
   kernel_passes.h

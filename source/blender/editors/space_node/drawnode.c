@@ -849,11 +849,34 @@ static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, P
 static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "sky_type", DEFAULT_FLAGS, "", ICON_NONE);
-  uiItemR(layout, ptr, "sun_direction", DEFAULT_FLAGS, "", ICON_NONE);
-  uiItemR(layout, ptr, "turbidity", DEFAULT_FLAGS, NULL, ICON_NONE);
 
-  if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_NEW) {
+  if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_PREETHAM) {
+    uiItemR(layout, ptr, "sun_direction", DEFAULT_FLAGS, "", ICON_NONE);
+    uiItemR(layout, ptr, "turbidity", DEFAULT_FLAGS, NULL, ICON_NONE);
+  }
+  if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_HOSEK) {
+    uiItemR(layout, ptr, "sun_direction", DEFAULT_FLAGS, "", ICON_NONE);
+    uiItemR(layout, ptr, "turbidity", DEFAULT_FLAGS, NULL, ICON_NONE);
     uiItemR(layout, ptr, "ground_albedo", DEFAULT_FLAGS, NULL, ICON_NONE);
+  }
+  if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_NISHITA) {
+    uiItemR(layout, ptr, "sun_disc", DEFAULT_FLAGS, NULL, 0);
+
+    if (RNA_boolean_get(ptr, "sun_disc")) {
+      uiItemR(layout, ptr, "sun_size", DEFAULT_FLAGS, NULL, ICON_NONE);
+    }
+
+    uiLayout *col;
+    col = uiLayoutColumn(layout, true);
+    uiItemR(col, ptr, "sun_elevation", DEFAULT_FLAGS, NULL, ICON_NONE);
+    uiItemR(col, ptr, "sun_rotation", DEFAULT_FLAGS, NULL, ICON_NONE);
+
+    uiItemR(layout, ptr, "altitude", DEFAULT_FLAGS, NULL, ICON_NONE);
+
+    col = uiLayoutColumn(layout, true);
+    uiItemR(col, ptr, "air_density", DEFAULT_FLAGS, NULL, ICON_NONE);
+    uiItemR(col, ptr, "dust_density", DEFAULT_FLAGS, NULL, ICON_NONE);
+    uiItemR(col, ptr, "ozone_density", DEFAULT_FLAGS, NULL, ICON_NONE);
   }
 }
 

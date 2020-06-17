@@ -813,6 +813,14 @@ static ShaderNode *add_node(Scene *scene,
     sky->sun_direction = normalize(get_float3(b_sky_node.sun_direction()));
     sky->turbidity = b_sky_node.turbidity();
     sky->ground_albedo = b_sky_node.ground_albedo();
+    sky->sun_disc = b_sky_node.sun_disc();
+    sky->sun_size = b_sky_node.sun_size();
+    sky->sun_elevation = b_sky_node.sun_elevation();
+    sky->sun_rotation = b_sky_node.sun_rotation();
+    sky->altitude = b_sky_node.altitude();
+    sky->air_density = b_sky_node.air_density();
+    sky->dust_density = b_sky_node.dust_density();
+    sky->ozone_density = b_sky_node.ozone_density();
     BL::TexMapping b_texture_mapping(b_sky_node.texture_mapping());
     get_tex_mapping(&sky->tex_mapping, b_texture_mapping);
     node = sky;

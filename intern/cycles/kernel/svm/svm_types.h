@@ -414,7 +414,7 @@ typedef enum NodeWaveProfile {
   NODE_WAVE_PROFILE_TRI,
 } NodeWaveProfile;
 
-typedef enum NodeSkyType { NODE_SKY_OLD, NODE_SKY_NEW } NodeSkyType;
+typedef enum NodeSkyType { NODE_SKY_PREETHAM, NODE_SKY_HOSEK, NODE_SKY_NISHITA } NodeSkyType;
 
 typedef enum NodeGradientType {
   NODE_BLEND_LINEAR,

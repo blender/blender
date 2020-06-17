@@ -298,6 +298,8 @@ HINT #1:   if you want to model the sky of an earth-like planet that orbits
            previous paragraph.
 */
 
+#include "util/util_types.h"
+
 CCL_NAMESPACE_BEGIN
 
 #ifndef _SKY_MODEL_H_
@@ -425,5 +427,27 @@ double arhosekskymodel_solar_radiance(ArHosekSkyModelState *state,
                                       double wavelength);
 
 #endif  // _SKY_MODEL_H_
+
+/* Nishita improved sky model */
+
+void nishita_skymodel_precompute_texture(float *pixels,
+                                         int stride,
+                                         int start_y,
+                                         int end_y,
+                                         int width,
+                                         int height,
+                                         float sun_elevation,
+                                         float altitude,
+                                         float air_density,
+                                         float dust_density,
+                                         float ozone_density);
+
+void nishita_skymodel_precompute_sun(float sun_elevation,
+                                     float angular_diameter,
+                                     float altitude,
+                                     float air_density,
+                                     float dust_density,
+                                     float *pixel_bottom,
+                                     float *pixel_top);
 
 CCL_NAMESPACE_END

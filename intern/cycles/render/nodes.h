@@ -168,7 +168,16 @@ class SkyTextureNode : public TextureNode {
   float3 sun_direction;
   float turbidity;
   float ground_albedo;
+  bool sun_disc;
+  float sun_size;
+  float sun_elevation;
+  float sun_rotation;
+  int altitude;
+  float air_density;
+  float dust_density;
+  float ozone_density;
   float3 vector;
+  ImageHandle handle;
 };
 
 class OutputNode : public ShaderNode {
