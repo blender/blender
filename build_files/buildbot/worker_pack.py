@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 
-# Runs on buildbot slave, creating a release package using the build
+# Runs on buildbot worker, creating a release package using the build
 # system and zipping it into buildbot_upload.zip. This is then uploaded
 # to the master in the next buildbot step.
 
@@ -110,7 +110,7 @@ def pack_mac(builder):
 
     release_dir = os.path.join(builder.blender_dir, 'release', 'darwin')
     buildbot_dir = os.path.join(builder.blender_dir, 'build_files', 'buildbot')
-    bundle_script = os.path.join(buildbot_dir, 'slave_bundle_dmg.py')
+    bundle_script = os.path.join(buildbot_dir, 'worker_bundle_dmg.py')
 
     command = [bundle_script]
     command += ['--dmg', package_filepath]

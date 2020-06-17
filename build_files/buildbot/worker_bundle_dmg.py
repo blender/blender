@@ -30,7 +30,7 @@ from tempfile import TemporaryDirectory, NamedTemporaryFile
 from typing import List
 
 BUILDBOT_DIRECTORY = Path(__file__).absolute().parent
-CODESIGN_SCRIPT = BUILDBOT_DIRECTORY / 'slave_codesign.py'
+CODESIGN_SCRIPT = BUILDBOT_DIRECTORY / 'worker_codesign.py'
 BLENDER_GIT_ROOT_DIRECTORY = BUILDBOT_DIRECTORY.parent.parent
 DARWIN_DIRECTORY = BLENDER_GIT_ROOT_DIRECTORY / 'release' / 'darwin'
 
