@@ -282,8 +282,10 @@ void ED_gplayer_frames_duplicate(bGPDlayer *gpl)
   }
 }
 
-/* Set keyframe type for selected frames from given gp-layer
- * \param type: The type of keyframe (eBezTriple_KeyframeType) to set selected frames to
+/**
+ * Set keyframe type for selected frames from given gp-layer
+ *
+ * \param type: The type of keyframe (#eBezTriple_KeyframeType) to set selected frames to.
  */
 void ED_gplayer_frames_keytype_set(bGPDlayer *gpl, short type)
 {

@@ -386,7 +386,8 @@ static void gpencil_convert_spline(Main *bmain,
   BKE_gpencil_stroke_geometry_update(gps);
 }
 
-/* Convert a curve object to grease pencil stroke.
+/**
+ * Convert a curve object to grease pencil stroke.
  *
  * \param bmain: Main thread pointer
  * \param scene: Original scene.

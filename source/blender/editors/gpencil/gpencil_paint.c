@@ -551,10 +551,11 @@ static void gp_brush_angle(bGPdata *gpd, Brush *brush, tGPspoint *pt, const floa
   }
 }
 
-/* Apply smooth to buffer while drawing
+/**
+ * Apply smooth to buffer while drawing
  * to smooth point C, use 2 before (A, B) and current point (D):
  *
- *   A----B-----C------D
+ * `A----B-----C------D`
  *
  * \param p: Temp data
  * \param inf: Influence factor

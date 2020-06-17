@@ -1348,9 +1348,10 @@ void BKE_rigidbody_main_collection_object_add(Main *bmain, Collection *collectio
 /* ************************************** */
 /* Utilities API */
 
-/* Get RigidBody world for the given scene, creating one if needed
+/**
+ * Get RigidBody world for the given scene, creating one if needed
  *
- * \param scene: Scene to find active Rigid Body world for
+ * \param scene: Scene to find active Rigid Body world for.
  */
 RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene)
 {

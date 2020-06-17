@@ -381,10 +381,11 @@ static void gp_stroke_convertcoords(tGPsdata *p, const float mval[2], float out[
   }
 }
 
-/* Apply smooth to buffer while drawing
+/**
+ * Apply smooth to buffer while drawing
  * to smooth point C, use 2 before (A, B) and current point (D):
  *
- *   A----B-----C------D
+ * `A----B-----C------D`
  *
  * \param p: Temp data
  * \param inf: Influence factor

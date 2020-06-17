@@ -1242,7 +1242,8 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
                                            uint *r_edge_net_new_len)
 {
   /* -------------------------------------------------------------------- */
-  /* This function has 2 main parts.
+  /**
+   * This function has 2 main parts.
    *
    * - Check if there are any holes.
    * - Connect the holes with edges (if any are found).

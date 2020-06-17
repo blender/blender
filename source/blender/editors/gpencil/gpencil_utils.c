@@ -285,7 +285,8 @@ bGPdata *ED_gpencil_data_get_active(const bContext *C)
   return ob->data;
 }
 
-/* Get the active Grease Pencil datablock
+/**
+ * Get the active Grease Pencil datablock
  * \note This is the original (bmain) copy of the datablock, stored in files.
  * Do not use for reading evaluated copies of GP Objects data
  */

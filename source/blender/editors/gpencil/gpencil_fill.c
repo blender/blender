@@ -472,15 +472,16 @@ static void set_pixel(ImBuf *ibuf, int idx, const float col[4])
   }
 }
 
-/* check if the size of the leak is narrow to determine if the stroke is closed
+/**
+ * Check if the size of the leak is narrow to determine if the stroke is closed
  * this is used for strokes with small gaps between them to get a full fill
  * and do not get a full screen fill.
  *
- * \param ibuf: Image pixel data
- * \param maxpixel: Maximum index
- * \param limit: Limit of pixels to analyze
- * \param index: Index of current pixel
- * \param type: 0-Horizontal 1-Vertical
+ * \param ibuf: Image pixel data.
+ * \param maxpixel: Maximum index.
+ * \param limit: Limit of pixels to analyze.
+ * \param index: Index of current pixel.
+ * \param type: 0-Horizontal 1-Vertical.
  */
 static bool is_leak_narrow(ImBuf *ibuf, const int maxpixel, int limit, int index, int type)
 {
@@ -576,11 +577,12 @@ static bool is_leak_narrow(ImBuf *ibuf, const int maxpixel, int limit, int index
   return (bool)(t_a && t_b);
 }
 
-/* Boundary fill inside strokes
+/**
+ * Boundary fill inside strokes
  * Fills the space created by a set of strokes using the stroke color as the boundary
  * of the shape to fill.
  *
- * \param tgpf: Temporary fill data
+ * \param tgpf: Temporary fill data.
  */
 static void gpencil_boundaryfill_area(tGPDfill *tgpf)
 {

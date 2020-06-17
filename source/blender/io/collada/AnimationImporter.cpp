@@ -344,9 +344,11 @@ bool AnimationImporter::write_animation_list(const COLLADAFW::AnimationList *ani
   return true;
 }
 
-/* \todo refactor read_node_transform to not automatically apply anything,
+/**
+ * \todo refactor read_node_transform to not automatically apply anything,
  * but rather return the transform matrix, so caller can do with it what is
- * necessary. Same for \ref get_node_mat */
+ * necessary. Same for \ref get_node_mat
+ */
 void AnimationImporter::read_node_transform(COLLADAFW::Node *node, Object *ob)
 {
   float mat[4][4];
