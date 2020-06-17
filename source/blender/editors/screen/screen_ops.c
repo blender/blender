@@ -1761,7 +1761,7 @@ static void area_move_apply_do(const bContext *C,
           screen->do_refresh = true;
           redraw_all = true;
         }
-        ED_area_tag_redraw(area);
+        ED_area_tag_redraw_no_rebuild(area);
       }
     }
     if (redraw_all) {

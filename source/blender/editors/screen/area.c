@@ -1556,7 +1556,14 @@ static void region_rect_recursive(
 
   /* Tag for redraw if size changes. */
   if (region->winx != prev_winx || region->winy != prev_winy) {
-    ED_region_tag_redraw(region);
+    /* 3D View needs a full rebuild in case a progressive render runs. Rest can live with
+     * no-rebuild (e.g. Outliner) */
+    if (area->spacetype == SPACE_VIEW3D) {
+      ED_region_tag_redraw(region);
+    }
+    else {
+      ED_region_tag_redraw_no_rebuild(region);
+    }
   }
 
   /* Clear, initialize on demand. */
