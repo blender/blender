@@ -837,7 +837,6 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     if (type == SCE_COPY_FULL) {
       /* Scene duplication is always root of duplication currently. */
       const bool is_subprocess = false;
-      ID *id, *id_new;
 
       if (!is_subprocess) {
         BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
@@ -848,46 +847,16 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
       LISTBASE_FOREACH (ViewLayer *, view_layer_dst, &sce_copy->view_layers) {
         LISTBASE_FOREACH (
             FreestyleLineSet *, lineset, &view_layer_dst->freestyle_config.linesets) {
-          id = &lineset->linestyle->id;
-          if (id && id->newid == NULL) {
-            if (is_scene_liboverride && ID_IS_LINKED(id)) {
-              continue;
-            }
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            if (duplicate_flags & USER_DUP_ACT) {
-              BKE_animdata_copy_id_action(bmain, id_new, true);
-            }
-          }
+          BKE_id_copy_for_duplicate(
+              bmain, &lineset->linestyle->id, is_scene_liboverride, duplicate_flags);
         }
       }
 
       /* Full copy of world (included animations) */
-      id = &sce->world->id;
-      if (id && id->newid == NULL) {
-        if (!is_scene_liboverride || !ID_IS_LINKED(id)) {
-          BKE_id_copy(bmain, id, &id_new);
-          id_us_min(id_new);
-          ID_NEW_SET(id, id_new);
-          if (duplicate_flags & USER_DUP_ACT) {
-            BKE_animdata_copy_id_action(bmain, id_new, true);
-          }
-        }
-      }
+      BKE_id_copy_for_duplicate(bmain, &sce->world->id, is_scene_liboverride, duplicate_flags);
 
       /* Full copy of GreasePencil. */
-      id = &sce->gpd->id;
-      if (id && id->newid == NULL) {
-        if (!is_scene_liboverride || !ID_IS_LINKED(id)) {
-          BKE_id_copy(bmain, id, &id_new);
-          id_us_min(id_new);
-          ID_NEW_SET(id, id_new);
-          if (duplicate_flags & USER_DUP_ACT) {
-            BKE_animdata_copy_id_action(bmain, id_new, true);
-          }
-        }
-      }
+      BKE_id_copy_for_duplicate(bmain, &sce->gpd->id, is_scene_liboverride, duplicate_flags);
 
       /* Deep-duplicate collections and objects (using preferences' settings for which sub-data to
        * duplicate along the object itself). */

@@ -608,6 +608,49 @@ bool BKE_id_copy(Main *bmain, const ID *id, ID **newid)
 }
 
 /**
+ * Invokes the appropriate copy method for the block and returns the result in
+ * newid, unless test. Returns true if the block can be copied.
+ */
+ID *BKE_id_copy_for_duplicate(Main *bmain,
+                              ID *id,
+                              const bool is_owner_id_liboverride,
+                              const eDupli_ID_Flags duplicate_flags)
+{
+  if (id == NULL) {
+    return NULL;
+  }
+  if (id->newid == NULL) {
+    if (!is_owner_id_liboverride || !ID_IS_LINKED(id)) {
+      ID *id_new;
+      BKE_id_copy(bmain, id, &id_new);
+      /* Copying add one user by default, need to get rid of that one. */
+      id_us_min(id_new);
+      ID_NEW_SET(id, id_new);
+
+      /* Shape keys are always copied with their owner ID, by default. */
+      ID *key_new = (ID *)BKE_key_from_id(id_new);
+      ID *key = (ID *)BKE_key_from_id(id);
+      if (key != NULL) {
+        ID_NEW_SET(key, key_new);
+      }
+
+      /* Note: embedded data (root nodetrees and master collections) should never be referenced by
+       * anything else, so we do not need to set their newid pointer and flag. */
+
+      if (duplicate_flags & USER_DUP_ACT) {
+        BKE_animdata_copy_id_action(bmain, id_new, true);
+        if (key_new != NULL) {
+          BKE_animdata_copy_id_action(bmain, key_new, true);
+        }
+        /* Note that actions of embedded data (root nodetrees and master collections) are handled
+         * by `BKE_animdata_copy_id_action` as well. */
+      }
+    }
+  }
+  return id->newid;
+}
+
+/**
  * Does a mere memory swap over the whole IDs data (including type-specific memory).
  * \note Most internal ID data itself is not swapped (only IDProperties are).
  */

@@ -1771,8 +1771,6 @@ Object *BKE_object_duplicate(Main *bmain,
   }
 
   Material ***matarar;
-  ID *id, *id_new = NULL;
-  int a;
   const bool is_object_liboverride = ID_IS_OVERRIDE_LIBRARY(ob);
 
   Object *obn;
@@ -1793,203 +1791,106 @@ Object *BKE_object_duplicate(Main *bmain,
   }
 
   if (dupflag & USER_DUP_MAT) {
-    for (a = 0; a < obn->totcol; a++) {
-      id = (ID *)obn->mat[a];
-      if (id && id->newid == NULL) {
-        if (is_object_liboverride && ID_IS_LINKED(id)) {
-          continue;
-        }
-        BKE_id_copy_ex(bmain, id, &id_new, 0);
-        id_us_min(id_new);
-        ID_NEW_SET(id, id_new);
-        if (dupflag & USER_DUP_ACT) {
-          BKE_animdata_copy_id_action(bmain, id_new, true);
-        }
-      }
+    for (int i = 0; i < obn->totcol; i++) {
+      BKE_id_copy_for_duplicate(bmain, (ID *)obn->mat[i], is_object_liboverride, dupflag);
     }
   }
   if (dupflag & USER_DUP_PSYS) {
     ParticleSystem *psys;
     for (psys = obn->particlesystem.first; psys; psys = psys->next) {
-      id = (ID *)psys->part;
-      if (id && id->newid == NULL) {
-        if (is_object_liboverride && ID_IS_LINKED(id)) {
-          continue;
-        }
-        BKE_id_copy_ex(bmain, id, &id_new, 0);
-        id_us_min(id_new);
-        ID_NEW_SET(id, id_new);
-        if (dupflag & USER_DUP_ACT) {
-          BKE_animdata_copy_id_action(bmain, id_new, true);
-        }
-      }
+      BKE_id_copy_for_duplicate(bmain, (ID *)psys->part, is_object_liboverride, dupflag);
     }
   }
 
-  id = obn->data;
-  bool duplicated_obdata = false;
+  ID *id = obn->data;
+  ID *id_new = NULL;
+  const bool need_to_duplicate_obdata = (id->newid == NULL);
 
-  if (id && id->newid == NULL) {
-    if (!is_object_liboverride || !ID_IS_LINKED(id)) {
-      switch (obn->type) {
-        case OB_MESH:
-          if (dupflag & USER_DUP_MESH) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
-        case OB_CURVE:
-          if (dupflag & USER_DUP_CURVE) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
-        case OB_SURF:
-          if (dupflag & USER_DUP_SURF) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
-        case OB_FONT:
-          if (dupflag & USER_DUP_FONT) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
-        case OB_MBALL:
-          if (dupflag & USER_DUP_MBALL) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
-        case OB_LAMP:
-          if (dupflag & USER_DUP_LAMP) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
-        case OB_ARMATURE:
-          if (dupflag & USER_DUP_ARM) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
-        case OB_LATTICE:
-          if (dupflag != 0) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
-        case OB_CAMERA:
-          if (dupflag != 0) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
-        case OB_LIGHTPROBE:
-          if (dupflag & USER_DUP_LIGHTPROBE) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
-        case OB_SPEAKER:
-          if (dupflag != 0) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
-        case OB_GPENCIL:
-          if (dupflag & USER_DUP_GPENCIL) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
-        case OB_HAIR:
-          if (dupflag & USER_DUP_HAIR) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
-        case OB_POINTCLOUD:
-          if (dupflag & USER_DUP_POINTCLOUD) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
-        case OB_VOLUME:
-          if (dupflag & USER_DUP_VOLUME) {
-            BKE_id_copy(bmain, id, &id_new);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            duplicated_obdata = true;
-          }
-          break;
+  switch (obn->type) {
+    case OB_MESH:
+      if (dupflag & USER_DUP_MESH) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
       }
-    }
+      break;
+    case OB_CURVE:
+      if (dupflag & USER_DUP_CURVE) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
+      }
+      break;
+    case OB_SURF:
+      if (dupflag & USER_DUP_SURF) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
+      }
+      break;
+    case OB_FONT:
+      if (dupflag & USER_DUP_FONT) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
+      }
+      break;
+    case OB_MBALL:
+      if (dupflag & USER_DUP_MBALL) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
+      }
+      break;
+    case OB_LAMP:
+      if (dupflag & USER_DUP_LAMP) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
+      }
+      break;
+    case OB_ARMATURE:
+      if (dupflag & USER_DUP_ARM) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
+      }
+      break;
+    case OB_LATTICE:
+      if (dupflag != 0) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
+      }
+      break;
+    case OB_CAMERA:
+      if (dupflag != 0) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
+      }
+      break;
+    case OB_LIGHTPROBE:
+      if (dupflag & USER_DUP_LIGHTPROBE) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
+      }
+      break;
+    case OB_SPEAKER:
+      if (dupflag != 0) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
+      }
+      break;
+    case OB_GPENCIL:
+      if (dupflag & USER_DUP_GPENCIL) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
+      }
+      break;
+    case OB_HAIR:
+      if (dupflag & USER_DUP_HAIR) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
+      }
+      break;
+    case OB_POINTCLOUD:
+      if (dupflag & USER_DUP_POINTCLOUD) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
+      }
+      break;
+    case OB_VOLUME:
+      if (dupflag & USER_DUP_VOLUME) {
+        id_new = BKE_id_copy_for_duplicate(bmain, id, is_object_liboverride, dupflag);
+      }
+      break;
   }
 
-  /* Check if obdata is copied. */
-  if (duplicated_obdata) {
-    BLI_assert(id_new != NULL);
-
-    Key *key = BKE_key_from_object(obn);
-
-    Key *oldkey = BKE_key_from_object(ob);
-    if (oldkey != NULL) {
-      ID_NEW_SET(oldkey, key);
-    }
-
-    if (dupflag & USER_DUP_ACT) {
-      BKE_animdata_copy_id_action(bmain, id_new, true);
-      if (key) {
-        BKE_animdata_copy_id_action(bmain, (ID *)key, true);
-      }
-    }
-
+  /* If obdata has been copied, we may also have to duplicate the materials assigned to it. */
+  if (need_to_duplicate_obdata && id_new != NULL) {
     if (dupflag & USER_DUP_MAT) {
       matarar = BKE_object_material_array_p(obn);
       if (matarar) {
-        for (a = 0; a < obn->totcol; a++) {
-          id = (ID *)(*matarar)[a];
-          if (id && id->newid == NULL) {
-            if (is_object_liboverride && ID_IS_LINKED(id)) {
-              continue;
-            }
-            BKE_id_copy_ex(bmain, id, &id_new, 0);
-            id_us_min(id_new);
-            ID_NEW_SET(id, id_new);
-            if (dupflag & USER_DUP_ACT) {
-              BKE_animdata_copy_id_action(bmain, id_new, true);
-            }
-          }
+        for (int i = 0; i < obn->totcol; i++) {
+          BKE_id_copy_for_duplicate(bmain, (ID *)(*matarar)[i], is_object_liboverride, dupflag);
         }
       }
     }

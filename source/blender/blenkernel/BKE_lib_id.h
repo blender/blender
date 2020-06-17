@@ -227,6 +227,10 @@ bool id_single_user(struct bContext *C,
 bool BKE_id_copy_is_allowed(const struct ID *id);
 bool BKE_id_copy(struct Main *bmain, const struct ID *id, struct ID **newid);
 bool BKE_id_copy_ex(struct Main *bmain, const struct ID *id, struct ID **r_newid, const int flag);
+struct ID *BKE_id_copy_for_duplicate(struct Main *bmain,
+                                     struct ID *id,
+                                     const bool is_owner_id_liboverride,
+                                     const uint duplicate_flags);
 
 void BKE_lib_id_swap(struct Main *bmain, struct ID *id_a, struct ID *id_b);
 void BKE_lib_id_swap_full(struct Main *bmain, struct ID *id_a, struct ID *id_b);

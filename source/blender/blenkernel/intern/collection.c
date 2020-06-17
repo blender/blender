@@ -345,17 +345,8 @@ static Collection *collection_duplicate_recursive(Main *bmain,
     do_full_process = true;
   }
   else if (collection_old->id.newid == NULL) {
-    BKE_id_copy(bmain, &collection_old->id, (ID **)&collection_new);
-
-    /* Copying add one user by default, need to get rid of that one. */
-    id_us_min(&collection_new->id);
-
-    ID_NEW_SET(collection_old, collection_new);
-
-    if (duplicate_flags & USER_DUP_ACT) {
-      BKE_animdata_copy_id_action(bmain, &collection_new->id, true);
-    }
-
+    collection_new = (Collection *)BKE_id_copy_for_duplicate(
+        bmain, (ID *)collection_old, is_collection_liboverride, duplicate_flags);
     do_full_process = true;
   }
   else {
