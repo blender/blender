@@ -276,7 +276,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
               IFACE_("Move to First"),
               ICON_TRIA_UP,
               NULL,
-              WM_OP_EXEC_DEFAULT,
+              WM_OP_INVOKE_DEFAULT,
               0,
               &op_ptr);
   RNA_int_set(&op_ptr, "index", 0);
@@ -291,7 +291,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
               IFACE_("Move to Last"),
               ICON_TRIA_DOWN,
               NULL,
-              WM_OP_EXEC_DEFAULT,
+              WM_OP_INVOKE_DEFAULT,
               0,
               &op_ptr);
   RNA_int_set(&op_ptr, "index", BLI_listbase_count(&ob->modifiers) - 1);
