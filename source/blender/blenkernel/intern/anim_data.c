@@ -399,6 +399,8 @@ void BKE_animdata_copy_id_action(Main *bmain, ID *id, const bool set_newid)
   if (ntree) {
     BKE_animdata_copy_id_action(bmain, &ntree->id, set_newid);
   }
+  /* Note that collections are not animatable currently, so no need to handle scenes' master
+   * collection here. */
 }
 
 /* Merge copies of the data from the src AnimData into the destination AnimData */

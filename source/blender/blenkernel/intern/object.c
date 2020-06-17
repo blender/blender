@@ -1771,7 +1771,7 @@ Object *BKE_object_duplicate(Main *bmain,
   }
 
   Material ***matarar;
-  ID *id, *id_new;
+  ID *id, *id_new = NULL;
   int a;
   const bool is_object_liboverride = ID_IS_OVERRIDE_LIBRARY(ob);
 
@@ -1958,6 +1958,8 @@ Object *BKE_object_duplicate(Main *bmain,
 
   /* Check if obdata is copied. */
   if (duplicated_obdata) {
+    BLI_assert(id_new != NULL);
+
     Key *key = BKE_key_from_object(obn);
 
     Key *oldkey = BKE_key_from_object(ob);

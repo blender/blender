@@ -822,9 +822,15 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     return sce_copy;
   }
   else {
-    BKE_id_copy_ex(bmain, (ID *)sce, (ID **)&sce_copy, LIB_ID_COPY_ACTIONS);
+    const eDupli_ID_Flags duplicate_flags = U.dupflag | USER_DUP_OBJECT;
+
+    BKE_id_copy(bmain, (ID *)sce, (ID **)&sce_copy);
     id_us_min(&sce_copy->id);
     id_us_ensure_real(&sce_copy->id);
+
+    if (duplicate_flags & USER_DUP_ACT) {
+      BKE_animdata_copy_id_action(bmain, &sce_copy->id, true);
+    }
 
     /* Extra actions, most notably SCE_FULL_COPY also duplicates several 'children' datablocks. */
 
@@ -847,9 +853,12 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
             if (is_scene_liboverride && ID_IS_LINKED(id)) {
               continue;
             }
-            BKE_id_copy_ex(bmain, id, &id_new, LIB_ID_COPY_ACTIONS);
+            BKE_id_copy(bmain, id, &id_new);
             id_us_min(id_new);
             ID_NEW_SET(id, id_new);
+            if (duplicate_flags & USER_DUP_ACT) {
+              BKE_animdata_copy_id_action(bmain, id_new, true);
+            }
           }
         }
       }
@@ -858,9 +867,12 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
       id = &sce->world->id;
       if (id && id->newid == NULL) {
         if (!is_scene_liboverride || !ID_IS_LINKED(id)) {
-          BKE_id_copy_ex(bmain, id, &id_new, LIB_ID_COPY_ACTIONS);
+          BKE_id_copy(bmain, id, &id_new);
           id_us_min(id_new);
           ID_NEW_SET(id, id_new);
+          if (duplicate_flags & USER_DUP_ACT) {
+            BKE_animdata_copy_id_action(bmain, id_new, true);
+          }
         }
       }
 
@@ -868,9 +880,12 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
       id = &sce->gpd->id;
       if (id && id->newid == NULL) {
         if (!is_scene_liboverride || !ID_IS_LINKED(id)) {
-          BKE_id_copy_ex(bmain, id, &id_new, LIB_ID_COPY_ACTIONS);
+          BKE_id_copy(bmain, id, &id_new);
           id_us_min(id_new);
           ID_NEW_SET(id, id_new);
+          if (duplicate_flags & USER_DUP_ACT) {
+            BKE_animdata_copy_id_action(bmain, id_new, true);
+          }
         }
       }
 
@@ -879,7 +894,7 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
       BKE_collection_duplicate(bmain,
                                NULL,
                                sce_copy->master_collection,
-                               USER_DUP_OBJECT | U.dupflag,
+                               duplicate_flags,
                                LIB_ID_DUPLICATE_IS_SUBPROCESS);
 
       if (!is_subprocess) {
