@@ -2374,6 +2374,17 @@ void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
 
 void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, const rcti *rect)
 {
+  SELECTID_Context *sel_ctx = DRW_select_engine_context_get();
+  GPUViewport *viewport = WM_draw_region_get_viewport(region);
+  if (!viewport) {
+    /* Selection engine requires a viewport.
+     * TODO (germano): This should be done internally in the engine. */
+    sel_ctx->is_dirty = true;
+    sel_ctx->objects_drawn_len = 0;
+    sel_ctx->index_drawn_len = 1;
+    return;
+  }
+
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 
@@ -2394,14 +2405,13 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
   drw_context_state_init();
 
   /* Setup viewport */
-  DST.viewport = WM_draw_region_get_viewport(region);
+  DST.viewport = viewport;
   drw_viewport_var_init();
 
   /* Update ubos */
   DRW_globals_update();
 
   /* Init Select Engine */
-  struct SELECTID_Context *sel_ctx = DRW_select_engine_context_get();
   sel_ctx->last_rect = *rect;
 
   use_drw_engine(&draw_engine_select_type);
