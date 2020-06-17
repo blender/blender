@@ -1811,7 +1811,7 @@ static void gpencil_generate_edgeloops(Object *ob,
 /* Helper: Add gpencil material using material as base. */
 static Material *gpencil_add_material(Main *bmain,
                                       Object *ob_gp,
-                                      char *name,
+                                      const char *name,
                                       const float color[4],
                                       const bool use_stroke,
                                       const bool use_fill,

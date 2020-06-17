@@ -2710,7 +2710,7 @@ static int convert_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void convert_ui(bContext *C, wmOperator *op)
+static void convert_ui(bContext *UNUSED(C), wmOperator *op)
 {
   uiLayout *layout = op->layout;
   PointerRNA ptr;
