@@ -829,41 +829,79 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     /* Extra actions, most notably SCE_FULL_COPY also duplicates several 'children' datablocks. */
 
     if (type == SCE_COPY_FULL) {
+      /* Scene duplication is always root of duplication currently. */
+      const bool is_subprocess = false;
+      ID *id, *id_new;
+
+      if (!is_subprocess) {
+        BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
+        BKE_main_id_clear_newpoins(bmain);
+      }
+
       /* Copy Freestyle LineStyle datablocks. */
       LISTBASE_FOREACH (ViewLayer *, view_layer_dst, &sce_copy->view_layers) {
         LISTBASE_FOREACH (
             FreestyleLineSet *, lineset, &view_layer_dst->freestyle_config.linesets) {
-          if (lineset->linestyle) {
-            if (is_scene_liboverride && ID_IS_LINKED(lineset->linestyle)) {
+          id = &lineset->linestyle->id;
+          if (id && id->newid == NULL) {
+            if (is_scene_liboverride && ID_IS_LINKED(id)) {
               continue;
             }
-            id_us_min(&lineset->linestyle->id);
-            BKE_id_copy_ex(
-                bmain, (ID *)lineset->linestyle, (ID **)&lineset->linestyle, LIB_ID_COPY_ACTIONS);
+            BKE_id_copy_ex(bmain, id, &id_new, LIB_ID_COPY_ACTIONS);
+            id_us_min(id_new);
+            ID_NEW_SET(id, id_new);
           }
         }
       }
 
       /* Full copy of world (included animations) */
-      if (sce_copy->world) {
-        if (!is_scene_liboverride || !ID_IS_LINKED(sce_copy->world)) {
-          id_us_min(&sce_copy->world->id);
-          BKE_id_copy_ex(
-              bmain, (ID *)sce_copy->world, (ID **)&sce_copy->world, LIB_ID_COPY_ACTIONS);
+      id = &sce->world->id;
+      if (id && id->newid == NULL) {
+        if (!is_scene_liboverride || !ID_IS_LINKED(id)) {
+          BKE_id_copy_ex(bmain, id, &id_new, LIB_ID_COPY_ACTIONS);
+          id_us_min(id_new);
+          ID_NEW_SET(id, id_new);
         }
       }
 
       /* Full copy of GreasePencil. */
-      if (sce_copy->gpd) {
-        if (!is_scene_liboverride || !ID_IS_LINKED(sce_copy->gpd)) {
-          id_us_min(&sce_copy->gpd->id);
-          BKE_id_copy_ex(bmain, (ID *)sce_copy->gpd, (ID **)&sce_copy->gpd, LIB_ID_COPY_ACTIONS);
+      id = &sce->gpd->id;
+      if (id && id->newid == NULL) {
+        if (!is_scene_liboverride || !ID_IS_LINKED(id)) {
+          BKE_id_copy_ex(bmain, id, &id_new, LIB_ID_COPY_ACTIONS);
+          id_us_min(id_new);
+          ID_NEW_SET(id, id_new);
         }
       }
 
       /* Deep-duplicate collections and objects (using preferences' settings for which sub-data to
        * duplicate along the object itself). */
-      BKE_collection_duplicate(bmain, NULL, sce_copy->master_collection, true, true);
+      BKE_collection_duplicate(bmain,
+                               NULL,
+                               sce_copy->master_collection,
+                               USER_DUP_OBJECT | U.dupflag,
+                               LIB_ID_DUPLICATE_IS_SUBPROCESS);
+
+      if (!is_subprocess) {
+        /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW.*/
+        BKE_libblock_relink_to_newid(&sce_copy->id);
+
+#ifndef NDEBUG
+        /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those
+         * flags. */
+        ID *id_iter;
+        FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+          BLI_assert((id_iter->tag & LIB_TAG_NEW) == 0);
+        }
+        FOREACH_MAIN_ID_END;
+#endif
+
+        /* Cleanup. */
+        BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
+        BKE_main_id_clear_newpoins(bmain);
+
+        BKE_main_collection_sync(bmain);
+      }
     }
     else {
       /* Remove sequencer if not full copy */

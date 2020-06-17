@@ -326,14 +326,15 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
 static Collection *collection_duplicate_recursive(Main *bmain,
                                                   Collection *parent,
                                                   Collection *collection_old,
-                                                  const bool do_objects,
-                                                  const bool do_obdata)
+                                                  const eDupli_ID_Flags duplicate_flags,
+                                                  const eLibIDDuplicateFlags duplicate_options)
 {
   Collection *collection_new;
   bool do_full_process = false;
-  const int object_dupflag = (do_obdata) ? U.dupflag : 0;
   const bool is_collection_master = (collection_old->flag & COLLECTION_IS_MASTER) != 0;
   const bool is_collection_liboverride = ID_IS_OVERRIDE_LIBRARY(collection_old);
+
+  const bool do_objects = (duplicate_flags & USER_DUP_OBJECT) != 0;
 
   if (is_collection_master) {
     /* We never duplicate master collections here, but we can still deep-copy their objects and
@@ -391,8 +392,8 @@ static Collection *collection_duplicate_recursive(Main *bmain,
       }
 
       if (ob_new == NULL) {
-        ob_new = BKE_object_duplicate(bmain, ob_old, (eDupli_ID_Flags)object_dupflag);
-        ID_NEW_SET(ob_old, ob_new);
+        ob_new = BKE_object_duplicate(
+            bmain, ob_old, duplicate_flags, duplicate_options | LIB_ID_DUPLICATE_IS_SUBPROCESS);
       }
 
       collection_object_add(bmain, collection_new, ob_new, 0, true);
@@ -410,7 +411,7 @@ static Collection *collection_duplicate_recursive(Main *bmain,
     }
 
     collection_duplicate_recursive(
-        bmain, collection_new, child_collection_old, do_objects, do_obdata);
+        bmain, collection_new, child_collection_old, duplicate_flags, duplicate_options);
     collection_child_remove(collection_new, child_collection_old);
   }
 
@@ -420,7 +421,9 @@ static Collection *collection_duplicate_recursive(Main *bmain,
 /**
  * Make a deep copy (aka duplicate) of the given collection and all of its children, recusrsively.
  *
- * \warning This functions will clear all \a bmain id.idnew pointers.
+ * \warning This functions will clear all \a bmain #ID.idnew pointers, unless \a
+ * LIB_ID_DUPLICATE_IS_SUBPROCESS duplicate option is passed on, in which case caller is reponsible
+ * to reconstruct collection dependencies informations (i.e. call #BKE_main_collection_sync).
  *
  * \param do_objects: If true, it will also make copies of objects.
  * \param do_obdata: If true, it will also make duplicates of objects,
@@ -430,23 +433,44 @@ static Collection *collection_duplicate_recursive(Main *bmain,
 Collection *BKE_collection_duplicate(Main *bmain,
                                      Collection *parent,
                                      Collection *collection,
-                                     const bool do_objects,
-                                     const bool do_obdata)
+                                     eDupli_ID_Flags duplicate_flags,
+                                     eLibIDDuplicateFlags duplicate_options)
 {
-  BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
-  BKE_main_id_clear_newpoins(bmain);
+  const bool is_subprocess = (duplicate_options & LIB_ID_DUPLICATE_IS_SUBPROCESS) != 0;
+
+  if (!is_subprocess) {
+    BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
+    BKE_main_id_clear_newpoins(bmain);
+  }
 
   Collection *collection_new = collection_duplicate_recursive(
-      bmain, parent, collection, do_objects, do_obdata);
+      bmain, parent, collection, duplicate_flags, duplicate_options);
 
-  /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW.*/
-  BKE_libblock_relink_to_newid(&collection_new->id);
+  if (!is_subprocess) {
+    /* `collection_duplicate_recursive` will also tag our 'root' collection, whic is not required
+     * unless its duplication is a subprocess of another one. */
+    collection_new->id.tag &= ~LIB_TAG_NEW;
 
-  /* Cleanup. */
-  BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
-  BKE_main_id_clear_newpoins(bmain);
+    /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW.*/
+    BKE_libblock_relink_to_newid(&collection_new->id);
 
-  BKE_main_collection_sync(bmain);
+#ifndef NDEBUG
+    /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those flags. */
+    ID *id_iter;
+    FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+      if (id_iter->tag & LIB_TAG_NEW) {
+        BLI_assert((id_iter->tag & LIB_TAG_NEW) == 0);
+      }
+    }
+    FOREACH_MAIN_ID_END;
+#endif
+
+    /* Cleanup. */
+    BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
+    BKE_main_id_clear_newpoins(bmain);
+
+    BKE_main_collection_sync(bmain);
+  }
 
   return collection_new;
 }

@@ -157,10 +157,10 @@ def check_linked_scene_copying():
     extern_sce = get_scene("lib.blend", "Scene_lib")
 
     # check node's props
-    # we made full copy from linked scene, so pointers must equal each other
+    # must point to own scene camera
     abort_if_false(intern_sce.node_tree.nodes['Render Layers']["prop"] and
-                   intern_sce.node_tree.nodes['Render Layers']["prop"] ==
-                   extern_sce.node_tree.nodes['Render Layers']["prop"])
+                   not (intern_sce.node_tree.nodes['Render Layers']["prop"] ==
+                        extern_sce.node_tree.nodes['Render Layers']["prop"]))
 
 
 def check_scene_copying():

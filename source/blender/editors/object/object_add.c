@@ -2797,8 +2797,12 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 /* used below, assumes id.new is correct */
 /* leaves selection of base/object unaltered */
 /* Does set ID->newid pointers. */
-static Base *object_add_duplicate_internal(
-    Main *bmain, Scene *scene, ViewLayer *view_layer, Object *ob, const eDupli_ID_Flags dupflag)
+static Base *object_add_duplicate_internal(Main *bmain,
+                                           Scene *scene,
+                                           ViewLayer *view_layer,
+                                           Object *ob,
+                                           const eDupli_ID_Flags dupflag,
+                                           const eLibIDDuplicateFlags duplicate_options)
 {
   Base *base, *basen = NULL;
   Object *obn;
@@ -2807,7 +2811,7 @@ static Base *object_add_duplicate_internal(
     /* nothing? */
   }
   else {
-    obn = ID_NEW_SET(ob, BKE_object_duplicate(bmain, ob, dupflag));
+    obn = ID_NEW_SET(ob, BKE_object_duplicate(bmain, ob, dupflag, duplicate_options));
     DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
     base = BKE_view_layer_base_find(view_layer, ob);
@@ -2851,7 +2855,8 @@ Base *ED_object_add_duplicate(
   Base *basen;
   Object *ob;
 
-  basen = object_add_duplicate_internal(bmain, scene, view_layer, base->object, dupflag);
+  basen = object_add_duplicate_internal(
+      bmain, scene, view_layer, base->object, dupflag, LIB_ID_DUPLICATE_IS_SUBPROCESS);
   if (basen == NULL) {
     return NULL;
   }
@@ -2882,7 +2887,8 @@ static int duplicate_exec(bContext *C, wmOperator *op)
   const eDupli_ID_Flags dupflag = (linked) ? 0 : (eDupli_ID_Flags)U.dupflag;
 
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
-    Base *basen = object_add_duplicate_internal(bmain, scene, view_layer, base->object, dupflag);
+    Base *basen = object_add_duplicate_internal(
+        bmain, scene, view_layer, base->object, dupflag, 0);
 
     /* note that this is safe to do with this context iterator,
      * the list is made in advance */
@@ -2976,7 +2982,7 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   }
 
   /* prepare dupli */
-  basen = object_add_duplicate_internal(bmain, scene, view_layer, ob, dupflag);
+  basen = object_add_duplicate_internal(bmain, scene, view_layer, ob, dupflag, 0);
 
   if (basen == NULL) {
     BKE_report(op->reports, RPT_ERROR, "Object could not be duplicated");

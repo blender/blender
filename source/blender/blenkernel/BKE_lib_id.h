@@ -144,6 +144,16 @@ struct ID *BKE_libblock_find_name(struct Main *bmain,
                                   const short type,
                                   const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
+/**
+ * Duplicate (a.k.a. deep copy) common processing options.
+ * See also eDupli_ID_Flags for options controlling what kind of IDs to duplicate.
+ */
+typedef enum eLibIDDuplicateFlags {
+  /** This call to a duplicate function is part of another call for some parent ID.
+   * Therefore, this sub-process should not clear `newid` pointers, nor handle remapping itself. */
+  LIB_ID_DUPLICATE_IS_SUBPROCESS = 1 << 0,
+} eLibIDDuplicateFlags;
+
 /* lib_remap.c (keep here since they're general functions) */
 /**
  * New freeing logic options.
