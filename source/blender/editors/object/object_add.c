@@ -860,7 +860,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
    * we want to pass in 1 so other values such as resolution are scaled by 1.0. */
   dia = RNA_float_get(op->ptr, "radius") / 2;
 
-  ED_mball_add_primitive(C, obedit, mat, dia, RNA_enum_get(op->ptr, "type"));
+  ED_mball_add_primitive(C, obedit, newob, mat, dia, RNA_enum_get(op->ptr, "type"));
 
   /* userdef */
   if (newob && !enter_editmode) {

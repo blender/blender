@@ -93,9 +93,11 @@ void ED_mball_editmball_load(Object *UNUSED(obedit))
 {
 }
 
-/* Add metaelem primitive to metaball object (which is in edit mode) */
+/**
+ * Add meta-element primitive to meta-ball object (which is in edit mode).
+ */
 MetaElem *ED_mball_add_primitive(
-    bContext *UNUSED(C), Object *obedit, float mat[4][4], float dia, int type)
+    bContext *UNUSED(C), Object *obedit, bool obedit_is_new, float mat[4][4], float dia, int type)
 {
   MetaBall *mball = (MetaBall *)obedit->data;
   MetaElem *ml;
@@ -109,9 +111,17 @@ MetaElem *ED_mball_add_primitive(
 
   ml = BKE_mball_element_add(mball, type);
   ml->rad *= dia;
-  mball->wiresize *= dia;
-  mball->rendersize *= dia;
+
+  if (obedit_is_new) {
+    mball->wiresize *= dia;
+    mball->rendersize *= dia;
+  }
   copy_v3_v3(&ml->x, mat[3]);
+  /* MB_ELIPSOID works differently (intentional?). Whatever the case,
+   * on testing this needs to be skipped otherwise it doesn't behave like other types. */
+  if (type != MB_ELIPSOID) {
+    mul_v3_fl(&ml->expx, dia);
+  }
 
   ml->flag |= SELECT;
   mball->lastelem = ml;
