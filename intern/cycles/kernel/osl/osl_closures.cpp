@@ -362,6 +362,9 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
                    id++,
                    closure_bsdf_transparent_params(),
                    closure_bsdf_transparent_prepare);
+
+  register_closure(
+      ss, "microfacet", id++, closure_bsdf_microfacet_params(), closure_bsdf_microfacet_prepare);
   register_closure(ss,
                    "microfacet_ggx",
                    id++,
@@ -507,6 +510,82 @@ bool CBSDFClosure::skip(const ShaderData *sd, int path_flag, int scattering)
 
   return false;
 }
+
+/* Standard Microfacet Closure */
+
+class MicrofacetClosure : public CBSDFClosure {
+ public:
+  MicrofacetBsdf params;
+  ustring distribution;
+  int refract;
+
+  void setup(ShaderData *sd, int path_flag, float3 weight)
+  {
+    static ustring u_ggx("ggx");
+    static ustring u_default("default");
+
+    const int label = (refract) ? LABEL_TRANSMIT : LABEL_REFLECT;
+    if (skip(sd, path_flag, LABEL_GLOSSY | label)) {
+      return;
+    }
+
+    MicrofacetBsdf *bsdf = (MicrofacetBsdf *)bsdf_alloc_osl(
+        sd, sizeof(MicrofacetBsdf), weight, &params);
+
+    if (!bsdf) {
+      return;
+    }
+
+    /* GGX */
+    if (distribution == u_ggx || distribution == u_default) {
+      if (!refract) {
+        if (params.alpha_x == params.alpha_y) {
+          /* Isotropic */
+          sd->flag |= bsdf_microfacet_ggx_isotropic_setup(bsdf);
+        }
+        else {
+          /* Anisotropic */
+          sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+        }
+      }
+      else {
+        sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
+      }
+    }
+    /* Beckmann */
+    else {
+      if (!refract) {
+        if (params.alpha_x == params.alpha_y) {
+          /* Isotropic */
+          sd->flag |= bsdf_microfacet_beckmann_isotropic_setup(bsdf);
+        }
+        else {
+          /* Anisotropic */
+          sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
+        }
+      }
+      else {
+        sd->flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
+      }
+    }
+  }
+};
+
+ClosureParam *closure_bsdf_microfacet_params()
+{
+  static ClosureParam params[] = {CLOSURE_STRING_PARAM(MicrofacetClosure, distribution),
+                                  CLOSURE_FLOAT3_PARAM(MicrofacetClosure, params.N),
+                                  CLOSURE_FLOAT3_PARAM(MicrofacetClosure, params.T),
+                                  CLOSURE_FLOAT_PARAM(MicrofacetClosure, params.alpha_x),
+                                  CLOSURE_FLOAT_PARAM(MicrofacetClosure, params.alpha_y),
+                                  CLOSURE_FLOAT_PARAM(MicrofacetClosure, params.ior),
+                                  CLOSURE_INT_PARAM(MicrofacetClosure, refract),
+                                  CLOSURE_STRING_KEYPARAM(MicrofacetClosure, label, "label"),
+                                  CLOSURE_FINISH_PARAM(MicrofacetClosure)};
+
+  return params;
+}
+CCLOSURE_PREPARE(closure_bsdf_microfacet_prepare, MicrofacetClosure)
 
 /* GGX closures with Fresnel */
 
