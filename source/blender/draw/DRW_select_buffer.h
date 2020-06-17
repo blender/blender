@@ -56,16 +56,16 @@ struct ObjectOffsets {
   uint vert;
 };
 
-struct SELECTID_Context {
+typedef struct SELECTID_Context {
   /* All context objects */
   struct Object **objects;
-  uint objects_len;
 
   /* Array with only drawn objects. When a new object is found within the rect,
    * it is added to the end of the list.
    * The list is reset to any viewport or context update. */
-  struct ObjectOffsets *index_offsets;
   struct Object **objects_drawn;
+  struct ObjectOffsets *index_offsets;
+  uint objects_len;
   uint objects_drawn_len;
 
   /** Total number of element indices `index_offsets[object_drawn_len - 1].vert`. */
@@ -73,13 +73,13 @@ struct SELECTID_Context {
 
   short select_mode;
 
+  /* rect is used to check which objects whose indexes need to be drawn. */
+  rcti last_rect;
+
   /* To check for updates. */
   float persmat[4][4];
   bool is_dirty;
-
-  /* rect is used to check which objects whose indexes need to be drawn. */
-  rcti last_rect;
-};
+} SELECTID_Context;
 
 /* draw_select_buffer.c */
 bool DRW_select_buffer_elem_get(const uint sel_id,
