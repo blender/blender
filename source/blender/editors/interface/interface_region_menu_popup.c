@@ -184,7 +184,12 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
     pup->block->handle = NULL;
   }
 
-  if (pup->but) {
+  /* Find block minimum width. */
+  if (uiLayoutGetUnitsX(pup->layout) != 0.0f) {
+    /* Use the minimum width from the layout if it's set. */
+    minwidth = uiLayoutGetUnitsX(pup->layout) * UI_UNIT_X;
+  }
+  else if (pup->but) {
     /* minimum width to enforece */
     if (pup->but->drawstr[0]) {
       minwidth = BLI_rctf_size_x(&pup->but->rect);
@@ -193,7 +198,13 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
       /* For buttons with no text, use the minimum (typically icon only). */
       minwidth = UI_MENU_WIDTH_MIN;
     }
+  }
+  else {
+    minwidth = UI_MENU_WIDTH_MIN;
+  }
 
+  /* Find block direction. */
+  if (pup->but) {
     if (pup->block->direction != 0) {
       /* allow overriding the direction from menu_func */
       direction = pup->block->direction;
@@ -203,7 +214,6 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
     }
   }
   else {
-    minwidth = UI_MENU_WIDTH_MIN;
     direction = UI_DIR_DOWN;
   }
 

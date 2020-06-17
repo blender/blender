@@ -222,19 +222,29 @@ static bool modifier_can_delete(ModifierData *md)
   return true;
 }
 
-static void modifier_ops_extra_draw(bContext *UNUSED(C), uiLayout *layout, void *md_v)
+static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
 {
+  PointerRNA op_ptr;
+  uiLayout *row;
   ModifierData *md = (ModifierData *)md_v;
 
+  PointerRNA ptr;
+  Object *ob = get_modifier_object(C);
+  RNA_pointer_create(&ob->id, &RNA_Modifier, md, &ptr);
+  uiLayoutSetContextPointer(layout, "modifier", &ptr);
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
+  uiLayoutSetUnitsX(layout, 4.0f);
+
+  /* Apply. */
   uiItemEnumO(layout,
               "OBJECT_OT_modifier_apply",
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
-              0,
+              ICON_CHECKMARK,
               "apply_as",
               MODIFIER_APPLY_DATA);
 
+  /* Apply as shapekey. */
   if (BKE_modifier_is_same_topology(md) && !BKE_modifier_is_non_geometrical(md)) {
     uiItemEnumO(layout,
                 "OBJECT_OT_modifier_apply",
@@ -244,6 +254,7 @@ static void modifier_ops_extra_draw(bContext *UNUSED(C), uiLayout *layout, void 
                 MODIFIER_APPLY_SHAPE);
   }
 
+  /* Duplicate. */
   if (!ELEM(md->type,
             eModifierType_Fluidsim,
             eModifierType_Softbody,
@@ -254,6 +265,38 @@ static void modifier_ops_extra_draw(bContext *UNUSED(C), uiLayout *layout, void 
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate"),
             ICON_DUPLICATE,
             "OBJECT_OT_modifier_copy");
+  }
+
+  uiItemS(layout);
+
+  /* Move to first. */
+  row = uiLayoutColumn(layout, false);
+  uiItemFullO(row,
+              "OBJECT_OT_modifier_move_to_index",
+              IFACE_("Move to First"),
+              ICON_TRIA_UP,
+              NULL,
+              WM_OP_EXEC_DEFAULT,
+              0,
+              &op_ptr);
+  RNA_int_set(&op_ptr, "index", 0);
+  if (!md->prev) {
+    uiLayoutSetEnabled(row, false);
+  }
+
+  /* Move to last. */
+  row = uiLayoutColumn(layout, false);
+  uiItemFullO(row,
+              "OBJECT_OT_modifier_move_to_index",
+              IFACE_("Move to Last"),
+              ICON_TRIA_DOWN,
+              NULL,
+              WM_OP_EXEC_DEFAULT,
+              0,
+              &op_ptr);
+  RNA_int_set(&op_ptr, "index", BLI_listbase_count(&ob->modifiers) - 1);
+  if (!md->next) {
+    uiLayoutSetEnabled(row, false);
   }
 }
 
