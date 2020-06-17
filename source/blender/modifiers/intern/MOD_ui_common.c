@@ -255,18 +255,11 @@ static void modifier_ops_extra_draw(bContext *UNUSED(C), uiLayout *layout, void 
             ICON_DUPLICATE,
             "OBJECT_OT_modifier_copy");
   }
-
-  if (modifier_can_delete(md) && !modifier_is_simulation(md)) {
-    uiItemO(layout,
-            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Delete"),
-            ICON_X,
-            "OBJECT_OT_modifier_remove");
-  }
 }
 
 static void modifier_panel_header(const bContext *C, Panel *panel)
 {
-  uiLayout *row, *sub;
+  uiLayout *row, *sub, *name_row;
   uiLayout *layout = panel->layout;
 
   PointerRNA ptr;
@@ -280,32 +273,22 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   Scene *scene = CTX_data_scene(C);
   int index = panel->runtime.list_index;
-  bool narrow_panel = (panel->sizex < UI_UNIT_X * 8 && panel->sizex != 0);
 
   /* Modifier Icon. */
-  row = uiLayoutRow(layout, false);
+  sub = uiLayoutRow(layout, true);
   if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
-    uiLayoutSetRedAlert(row, true);
+    uiLayoutSetRedAlert(sub, true);
   }
-  uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
+  uiItemL(sub, "", RNA_struct_ui_icon(ptr.type));
 
-  /* Modifier Name. */
-  if (!narrow_panel) {
-    uiItemR(layout, &ptr, "name", 0, "", ICON_NONE);
-  }
-
-  /* Switch context buttons. */
-  if (modifier_is_simulation(md) == 1) {
-    uiItemStringO(
-        layout, "", ICON_PROPERTIES, "WM_OT_properties_context_change", "context", "PHYSICS");
-  }
-  else if (modifier_is_simulation(md) == 2) {
-    uiItemStringO(
-        layout, "", ICON_PROPERTIES, "WM_OT_properties_context_change", "context", "PARTICLES");
-  }
-
-  /* Mode switching buttons. */
   row = uiLayoutRow(layout, true);
+
+  /* Modifier Name.
+   * Count how many buttons are added to the header to check if there is enough space. */
+  int buttons_number = 0;
+  name_row = uiLayoutRow(row, true);
+
+  /* Display mode switching buttons. */
   if (ob->type == OB_MESH) {
     int last_cage_index;
     int cage_index = BKE_modifiers_get_cage_index(scene, ob, &last_cage_index, 0);
@@ -315,12 +298,14 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
         uiLayoutSetActive(sub, false);
       }
       uiItemR(sub, &ptr, "show_on_cage", 0, "", ICON_NONE);
+      buttons_number++;
     }
   } /* Tessellation point for curve-typed objects. */
   else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
     if (mti->type != eModifierTypeType_Constructive) {
       /* Constructive modifiers tessellates curve before applying. */
-      uiItemR(layout, &ptr, "use_apply_on_spline", 0, "", ICON_NONE);
+      uiItemR(row, &ptr, "use_apply_on_spline", 0, "", ICON_NONE);
+      buttons_number++;
     }
   }
   /* Collision and Surface are always enabled, hide buttons. */
@@ -330,15 +315,45 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       sub = uiLayoutRow(row, true);
       uiLayoutSetActive(sub, (md->mode & eModifierMode_Realtime));
       uiItemR(sub, &ptr, "show_in_editmode", 0, "", ICON_NONE);
+      buttons_number++;
     }
     uiItemR(row, &ptr, "show_viewport", 0, "", ICON_NONE);
     uiItemR(row, &ptr, "show_render", 0, "", ICON_NONE);
+    buttons_number += 2;
   }
 
-  row = uiLayoutRow(layout, false);
+  /* Extra operators menu. */
   uiItemMenuF(row, "", ICON_DOWNARROW_HLT, modifier_ops_extra_draw, md);
 
-  /* Some padding at the end, so the buttons aren't too close to the drag button. */
+  /* Delete button. */
+  if (modifier_can_delete(md) && !modifier_is_simulation(md)) {
+    sub = uiLayoutRow(row, false);
+    uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
+    uiItemO(sub, "", ICON_X, "OBJECT_OT_modifier_remove");
+    buttons_number++;
+  }
+
+  /* Switch context buttons. */
+  if (modifier_is_simulation(md) == 1) {
+    uiItemStringO(
+        row, "", ICON_PROPERTIES, "WM_OT_properties_context_change", "context", "PHYSICS");
+    buttons_number++;
+  }
+  else if (modifier_is_simulation(md) == 2) {
+    uiItemStringO(
+        row, "", ICON_PROPERTIES, "WM_OT_properties_context_change", "context", "PARTICLES");
+    buttons_number++;
+  }
+
+  bool display_name = (panel->sizex / UI_UNIT_X - buttons_number > 5) || (panel->sizex == 0);
+  if (display_name) {
+    uiItemR(name_row, &ptr, "name", 0, "", ICON_NONE);
+  }
+  else {
+    uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
+  }
+
+  /* Extra padding for delete button. */
   uiItemS(layout);
 }
 
