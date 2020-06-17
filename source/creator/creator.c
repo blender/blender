@@ -248,8 +248,12 @@ int main(int argc,
 
   /* Unbuffered stdout makes stdout and stderr better synchronized, and helps
    * when stepping through code in a debugger (prints are immediately
-   * visible). */
+   * visible). However disabling buffering causes lock contention on windows
+   * see T76767 for detais, since this is a debugging aid, we do not enable
+   * the unbuffered behavior for release builds. */
+#ifndef NDEBUG
   setvbuf(stdout, NULL, _IONBF, 0);
+#endif
 
 #ifdef WIN32
   /* We delay loading of openmp so we can set the policy here. */
