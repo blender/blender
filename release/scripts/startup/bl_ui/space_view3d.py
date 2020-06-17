@@ -6787,7 +6787,10 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
 
         if context.object.mode in {'PAINT_GPENCIL', 'VERTEX_GPENCIL'}:
             layout.label(text="Vertex Paint")
-            layout.prop(overlay, "gpencil_vertex_paint_opacity", text="Opacity", slider=True)
+            row = layout.row()
+            shading = VIEW3D_PT_shading.get_shading(context)
+            row.enabled = shading.type not in {'WIREFRAME', 'RENDERED'}
+            row.prop(overlay, "gpencil_vertex_paint_opacity", text="Opacity", slider=True)
 
 
 class VIEW3D_PT_quad_view(Panel):

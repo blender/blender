@@ -265,8 +265,10 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
                                 GPENCIL_VERTEX_MODE(gpd) || pd->is_render;
   bool is_masked = (gpl->flag & GP_LAYER_USE_MASK) && !BLI_listbase_is_empty(&gpl->mask_layers);
 
-  float vert_col_opacity = (overide_vertcol) ? (is_vert_col_mode ? 1.0f : 0.0f) :
-                                               gpl->vertex_paint_opacity;
+  float vert_col_opacity = (overide_vertcol) ?
+                               (is_vert_col_mode ? pd->vertex_paint_opacity : 0.0f) :
+                               pd->is_render ? gpl->vertex_paint_opacity :
+                                               pd->vertex_paint_opacity;
   /* Negate thickness sign to tag that strokes are in screen space.
    * Convert to world units (by default, 1 meter = 2000 px). */
   float thickness_scale = (is_screenspace) ? -1.0f : (gpd->pixfactor / GPENCIL_PIXEL_FACTOR);
