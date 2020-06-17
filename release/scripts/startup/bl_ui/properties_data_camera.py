@@ -84,7 +84,6 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
         col.separator()
 
         if cam.type == 'PERSP':
-            col = layout.column()
             if cam.lens_unit == 'MILLIMETERS':
                 col.prop(cam, "lens")
             elif cam.lens_unit == 'FOV':
