@@ -213,7 +213,7 @@ class OUTLINER_MT_collection(Menu):
         layout.separator()
 
         layout.operator("outliner.delete", text="Delete", icon='X')
-        layout.operator("outliner.collection_hierarchy_delete")
+        layout.operator("outliner.delete", text="Delete Hierarchy").hierarchy = True
 
         layout.separator()
 
@@ -279,9 +279,7 @@ class OUTLINER_MT_object(Menu):
         layout.separator()
 
         layout.operator("outliner.delete", text="Delete", icon='X')
-
-        if space.display_mode == 'VIEW_LAYER' and not space.use_filter_collection:
-            layout.operator("outliner.object_operation", text="Delete Hierarchy").type = 'DELETE_HIERARCHY'
+        layout.operator("outliner.delete", text="Delete Hierarchy").hierarchy = True
 
         layout.separator()
 
