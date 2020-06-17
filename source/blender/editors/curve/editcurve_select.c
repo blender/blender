@@ -988,7 +988,7 @@ void CURVE_OT_select_more(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Select More";
   ot->idname = "CURVE_OT_select_more";
-  ot->description = "Select control points directly linked to already selected ones";
+  ot->description = "Select control points at the boundary of each selection region";
 
   /* api callbacks */
   ot->exec = curve_select_more_exec;
@@ -1203,7 +1203,7 @@ void CURVE_OT_select_less(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Select Less";
   ot->idname = "CURVE_OT_select_less";
-  ot->description = "Reduce current selection by deselecting boundary elements";
+  ot->description = "Deselect control points at the boundary of each selection region";
 
   /* api callbacks */
   ot->exec = curve_select_less_exec;
