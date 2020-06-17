@@ -50,6 +50,7 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
   BMLoop *l_tag_prev = NULL, *l_tag_first = NULL;
   BMLoop *l_iter, *l_first;
   uint i;
+  int result = 1;
 
   STACK_INIT(loops_split, pair_split_max);
   STACK_INIT(verts_pair, pair_split_max);
@@ -109,30 +110,60 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
     v_pair[1] = loops_split[i][1]->v;
   }
 
+  /* Clear and re-use to store duplicate faces, to remove after splitting is finished. */
+  STACK_CLEAR(loops_split);
+
   for (i = 0; i < STACK_SIZE(verts_pair); i++) {
     BMFace *f_new;
     BMLoop *l_new;
-    BMLoop *l_a, *l_b;
+    BMLoop *l_pair[2];
 
-    if ((l_a = BM_face_vert_share_loop(f, verts_pair[i][0])) &&
-        (l_b = BM_face_vert_share_loop(f, verts_pair[i][1]))) {
-      f_new = BM_face_split(bm, f, l_a, l_b, &l_new, NULL, false);
+    /* Note that duplicate edges in this case is very unlikely but it can happen, see T70287. */
+    bool edge_exists = (BM_edge_exists(verts_pair[i][0], verts_pair[i][1]) != NULL);
+    if ((l_pair[0] = BM_face_vert_share_loop(f, verts_pair[i][0])) &&
+        (l_pair[1] = BM_face_vert_share_loop(f, verts_pair[i][1]))) {
+      f_new = BM_face_split(bm, f, l_pair[0], l_pair[1], &l_new, NULL, edge_exists);
+
+      /* Check if duplicate faces have been created, store the loops for removal in this case.
+       * Note that this matches how triangulate works (newly created duplicates get removed). */
+      if (UNLIKELY(edge_exists)) {
+        BMLoop **l_pair_deferred_remove = NULL;
+        for (int j = 0; j < 2; j++) {
+          if (BM_face_find_double(l_pair[j]->f)) {
+            if (l_pair_deferred_remove == NULL) {
+              l_pair_deferred_remove = STACK_PUSH_RET(loops_split);
+              l_pair_deferred_remove[0] = NULL;
+              l_pair_deferred_remove[1] = NULL;
+            }
+            l_pair_deferred_remove[j] = l_pair[j];
+          }
+        }
+      }
     }
     else {
       f_new = NULL;
       l_new = NULL;
     }
 
-    f = f_new;
-
     if (!l_new || !f_new) {
-      return -1;
+      result = -1;
+      break;
     }
+
+    f = f_new;
     // BMO_face_flag_enable(bm, f_new, FACE_NEW);
     BMO_edge_flag_enable(bm, l_new->e, EDGE_OUT);
   }
 
-  return 1;
+  for (i = 0; i < STACK_SIZE(loops_split); i++) {
+    for (int j = 0; j < 2; j++) {
+      if (loops_split[i][j] != NULL) {
+        BM_face_kill(bm, loops_split[i][j]->f);
+      }
+    }
+  }
+
+  return result;
 }
 
 void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
