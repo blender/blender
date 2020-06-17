@@ -98,7 +98,8 @@ PyDoc_STRVAR(
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__bevel_weight_doc,
              "Bevel weight float in [0 - 1].\n\n:type: :class:`BMLayerCollection`");
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__crease_doc,
-             "Edge crease for subdivision surface - float in [0 - 1].\n\n:type: :class:`BMLayerCollection`");
+             "Edge crease for subdivision surface - float in [0 - 1].\n\n:type: "
+             ":class:`BMLayerCollection`");
 PyDoc_STRVAR(
     bpy_bmlayeraccess_collection__uv_doc,
     "Accessor for :class:`BMLoopUV` UV (as a 2D Vector).\n\ntype: :class:`BMLayerCollection`");

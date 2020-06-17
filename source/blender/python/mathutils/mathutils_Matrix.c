@@ -1634,16 +1634,17 @@ static PyObject *Matrix_inverted_noargs(MatrixObject *self)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Matrix_invert_safe_doc,
-             ".. method:: invert_safe()\n"
-             "\n"
-             "   Set the matrix to its inverse, will never error.\n"
-             "   If degenerated (e.g. zero scale on an axis), add some epsilon to its diagonal, "
-             "to get an invertible one.\n"
-             "   If tweaked matrix is still degenerated, set to the identity matrix instead.\n"
-             "\n"
-             "   .. seealso:: `Inverse Matrix <https://en.wikipedia.org/wiki/Inverse_matrix>`__ on "
-             "Wikipedia.\n");
+PyDoc_STRVAR(
+    Matrix_invert_safe_doc,
+    ".. method:: invert_safe()\n"
+    "\n"
+    "   Set the matrix to its inverse, will never error.\n"
+    "   If degenerated (e.g. zero scale on an axis), add some epsilon to its diagonal, "
+    "to get an invertible one.\n"
+    "   If tweaked matrix is still degenerated, set to the identity matrix instead.\n"
+    "\n"
+    "   .. seealso:: `Inverse Matrix <https://en.wikipedia.org/wiki/Inverse_matrix>`__ on "
+    "Wikipedia.\n");
 static PyObject *Matrix_invert_safe(MatrixObject *self)
 {
   if (BaseMath_ReadCallback_ForWrite(self) == -1) {
