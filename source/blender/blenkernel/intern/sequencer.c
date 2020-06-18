@@ -1783,6 +1783,38 @@ static void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   }
 }
 
+static bool seq_proxy_get_custom_file_fname(Editing *ed,
+                                            Sequence *seq,
+                                            int cfra,
+                                            eSpaceSeq_Proxy_RenderSize render_size,
+                                            char *name,
+                                            const int view_id)
+{
+  char fname[FILE_MAXFILE];
+  char suffix[24];
+  StripProxy *proxy = seq->strip->proxy;
+
+  if (proxy == NULL) {
+    return false;
+  }
+
+  BLI_join_dirfile(fname, PROXY_MAXFILE, proxy->dir, proxy->file);
+  BLI_path_abs(fname, BKE_main_blendfile_path_from_global());
+
+  if (view_id > 0) {
+    BLI_snprintf(suffix, sizeof(suffix), "_%d", view_id);
+    /* TODO(sergey): This will actually append suffix after extension
+     * which is weird but how was originally coded in multiview branch.
+     */
+    BLI_snprintf(name, PROXY_MAXFILE, "%s_%s", fname, suffix);
+  }
+  else {
+    BLI_strncpy(name, fname, PROXY_MAXFILE);
+  }
+
+  return true;
+}
+
 static bool seq_proxy_get_fname(Editing *ed,
                                 Sequence *seq,
                                 int cfra,
@@ -1790,118 +1822,58 @@ static bool seq_proxy_get_fname(Editing *ed,
                                 char *name,
                                 const int view_id)
 {
-  int frameno;
   char dir[PROXY_MAXFILE];
-  StripAnim *sanim;
   char suffix[24] = {'\0'};
-
   StripProxy *proxy = seq->strip->proxy;
-  if (!proxy) {
+
+  if (proxy == NULL) {
     return false;
   }
 
-  /* MOVIE tracks (only exception: custom files) are now handled
-   * internally by ImBuf module for various reasons: proper time code
-   * support, quicker index build, using one file instead
-   * of a full directory of jpeg files, etc. Trying to support old
-   * and new method at once could lead to funny effects, if people
-   * have both, a directory full of jpeg files and proxy avis, so
-   * sorry folks, please rebuild your proxies... */
-
-  sanim = BLI_findlink(&seq->anims, view_id);
-
-  if (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE) {
-    char fname[FILE_MAXFILE];
-    if (ed->proxy_dir[0] == 0) {
-      BLI_strncpy(dir, "//BL_proxy", sizeof(dir));
-    }
-    else {
-      BLI_strncpy(dir, ed->proxy_dir, sizeof(dir));
-    }
-
-    if (sanim && sanim->anim) {
-      IMB_anim_get_fname(sanim->anim, fname, FILE_MAXFILE);
-    }
-    else if (seq->type == SEQ_TYPE_IMAGE) {
-      fname[0] = 0;
-    }
-    else {
-      /* We could make a name here, except non-movie's don't generate proxies,
-       * cancel until other types of sequence strips are supported. */
-      return false;
-    }
-    BLI_path_append(dir, sizeof(dir), fname);
-    BLI_path_abs(name, BKE_main_blendfile_path_from_global());
-  }
-  else if ((proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) &&
-           (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE)) {
-    BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
-  }
-  else if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
-    BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
-  }
-  else if (sanim && sanim->anim && (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR)) {
-    char fname[FILE_MAXFILE];
-    BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
-    IMB_anim_get_fname(sanim->anim, fname, FILE_MAXFILE);
-    BLI_path_append(dir, sizeof(dir), fname);
-  }
-  else if (seq->type == SEQ_TYPE_IMAGE) {
-    if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) {
-      BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
-    }
-    else {
-      BLI_snprintf(dir, PROXY_MAXFILE, "%s/BL_proxy", seq->strip->dir);
-    }
-  }
-  else {
-    return false;
-  }
-
+  /* Multiview suffix. */
   if (view_id > 0) {
     BLI_snprintf(suffix, sizeof(suffix), "_%d", view_id);
   }
 
+  /* Per strip with Custom file situation is handled separately. */
   if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE &&
       ed->proxy_storage != SEQ_EDIT_PROXY_DIR_STORAGE) {
-    char fname[FILE_MAXFILE];
-    BLI_join_dirfile(fname, PROXY_MAXFILE, dir, proxy->file);
-    BLI_path_abs(fname, BKE_main_blendfile_path_from_global());
-    if (suffix[0] != '\0') {
-      /* TODO(sergey): This will actually append suffix after extension
-       * which is weird but how was originally coded in multiview branch.
-       */
-      BLI_snprintf(name, PROXY_MAXFILE, "%s_%s", fname, suffix);
+    if (seq_proxy_get_custom_file_fname(ed, seq, cfra, render_size, name, view_id)) {
+      return true;
     }
-    else {
-      BLI_strncpy(name, fname, PROXY_MAXFILE);
-    }
-
-    return true;
   }
 
-  /* generate a separate proxy directory for each preview size */
-
-  int proxy_size_number = BKE_sequencer_rendersize_to_scale_factor(render_size) * 100;
-
-  if (seq->type == SEQ_TYPE_IMAGE) {
-    BLI_snprintf(name,
-                 PROXY_MAXFILE,
-                 "%s/images/%d/%s_proxy%s",
-                 dir,
-                 proxy_size_number,
-                 BKE_sequencer_give_stripelem(seq, cfra)->name,
-                 suffix);
-    frameno = 1;
+  if (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE) {
+    /* Per project default. */
+    if (ed->proxy_dir[0] == 0) {
+      BLI_strncpy(dir, "//BL_proxy", sizeof(dir));
+    }
+    else { /* Per project with custom dir. */
+      BLI_strncpy(dir, ed->proxy_dir, sizeof(dir));
+    }
+    BLI_path_abs(name, BKE_main_blendfile_path_from_global());
   }
   else {
-    frameno = (int)BKE_sequencer_give_stripelem_index(seq, cfra) + seq->anim_startofs;
-    BLI_snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####%s", dir, proxy_size_number, suffix);
+    /* Pre strip with custom dir. */
+    if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) {
+      BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
+    }
+    else { /* Per strip default. */
+      BLI_snprintf(dir, PROXY_MAXFILE, "%s/BL_proxy", seq->strip->dir);
+    }
   }
 
-  BLI_path_abs(name, BKE_main_blendfile_path_from_global());
-  BLI_path_frame(name, frameno, 0);
+  /* Proxy size number to be used in path. */
+  int proxy_size_number = BKE_sequencer_rendersize_to_scale_factor(render_size) * 100;
 
+  BLI_snprintf(name,
+               PROXY_MAXFILE,
+               "%s/images/%d/%s_proxy%s",
+               dir,
+               proxy_size_number,
+               BKE_sequencer_give_stripelem(seq, cfra)->name,
+               suffix);
+  BLI_path_abs(name, BKE_main_blendfile_path_from_global());
   strcat(name, ".jpg");
 
   return true;
