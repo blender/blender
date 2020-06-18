@@ -30,7 +30,17 @@ AbcObjectWriter::AbcObjectWriter(Object *ob,
                                  AbcObjectWriter *parent)
     : m_object(ob), m_settings(settings), m_time_sampling(time_sampling), m_first_frame(true)
 {
-  m_name = get_id_name(m_object) + "Shape";
+  /* This class is used as superclass for objects themselves (i.e. transforms) and for object
+   * data (meshes, curves, cameras, etc.). However, when writing transforms, the m_name field is
+   * ignored. This is a temporary tweak to get the exporter to write object data with the data
+   * name instead of the object name in a safe way. */
+  if (m_object->data == nullptr) {
+    m_name = get_id_name(m_object);
+  }
+  else {
+    ID *ob_data = static_cast<ID *>(m_object->data);
+    m_name = get_id_name(ob_data);
+  }
 
   if (parent) {
     parent->addChild(this);
