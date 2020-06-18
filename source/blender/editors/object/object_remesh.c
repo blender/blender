@@ -526,7 +526,9 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   /* Project the selected face in the previous step of the Bounding Box. */
   for (int i = 0; i < 4; i++) {
-    ED_view3d_project(ar, cd->preview_plane[i], preview_plane_proj[i]);
+    float preview_plane_world_space[3];
+    mul_v3_m4v3(preview_plane_world_space, active_object->obmat, cd->preview_plane[i]);
+    ED_view3d_project(ar, preview_plane_world_space, preview_plane_proj[i]);
   }
 
   /* Get the initial X and Y axis of the basis from the edges of the Bounding Box face. */
@@ -574,7 +576,9 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   copy_v3_v3(cd->text_mat[3], text_pos);
 
   /* Scale the text.  */
-  const float pixelsize = ED_view3d_pixel_size(rv3d, text_pos);
+  float text_pos_word_space[3];
+  mul_v3_m4v3(text_pos_word_space, active_object->obmat, text_pos);
+  const float pixelsize = ED_view3d_pixel_size(rv3d, text_pos_word_space);
   scale_m4_fl(scale_mat, pixelsize * 0.5f);
   mul_m4_m4_post(cd->text_mat, scale_mat);
 
