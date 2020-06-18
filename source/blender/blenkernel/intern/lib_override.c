@@ -649,6 +649,7 @@ bool BKE_lib_override_library_status_check_local(Main *bmain, ID *local)
                                    &rnaptr_local,
                                    &rnaptr_reference,
                                    NULL,
+                                   0,
                                    local->override_library,
                                    RNA_OVERRIDE_COMPARE_IGNORE_NON_OVERRIDABLE |
                                        RNA_OVERRIDE_COMPARE_IGNORE_OVERRIDDEN,
@@ -712,6 +713,7 @@ bool BKE_lib_override_library_status_check_reference(Main *bmain, ID *local)
                                    &rnaptr_local,
                                    &rnaptr_reference,
                                    NULL,
+                                   0,
                                    local->override_library,
                                    RNA_OVERRIDE_COMPARE_IGNORE_OVERRIDDEN,
                                    NULL)) {
@@ -771,6 +773,7 @@ bool BKE_lib_override_library_operations_create(Main *bmain,
                                 &rnaptr_local,
                                 &rnaptr_reference,
                                 NULL,
+                                0,
                                 local->override_library,
                                 RNA_OVERRIDE_COMPARE_CREATE | RNA_OVERRIDE_COMPARE_RESTORE,
                                 &report_flags);

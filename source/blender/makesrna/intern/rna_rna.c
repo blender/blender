@@ -1248,6 +1248,7 @@ static int rna_property_override_diff_propptr(Main *bmain,
                                               const bool no_prop_name,
                                               IDOverrideLibrary *override,
                                               const char *rna_path,
+                                              size_t rna_path_len,
                                               const char *rna_itemname_a,
                                               const char *rna_itemname_b,
                                               const int rna_itemindex_a,
@@ -1324,16 +1325,7 @@ static int rna_property_override_diff_propptr(Main *bmain,
 
       char extended_rna_path_buffer[RNA_PATH_BUFFSIZE];
       char *extended_rna_path = extended_rna_path_buffer;
-
-#  define RNA_PATH_PRINTF(_str, ...) \
-    if (BLI_snprintf(extended_rna_path_buffer, RNA_PATH_BUFFSIZE, (_str), __VA_ARGS__) >= \
-        RNA_PATH_BUFFSIZE - 1) { \
-      extended_rna_path = BLI_sprintfN((_str), __VA_ARGS__); \
-    } \
-    (void)0
-#  define RNA_PATH_FREE() \
-    if (extended_rna_path != extended_rna_path_buffer && extended_rna_path != rna_path) \
-    MEM_freeN(extended_rna_path)
+      size_t extended_rna_path_len = 0;
 
       /* There may be a propname defined in some cases, while no actual name set
        * (e.g. happens with point cache), in that case too we want to fall back to index.
@@ -1342,31 +1334,82 @@ static int rna_property_override_diff_propptr(Main *bmain,
         if ((rna_itemname_a != NULL && rna_itemname_a[0] != '\0') &&
             (rna_itemname_b != NULL && rna_itemname_b[0] != '\0')) {
           BLI_assert(STREQ(rna_itemname_a, rna_itemname_b));
+
           char esc_item_name[RNA_PATH_BUFFSIZE];
-          BLI_strescape(esc_item_name, rna_itemname_a, RNA_PATH_BUFFSIZE);
-          RNA_PATH_PRINTF("%s[\"%s\"]", rna_path, esc_item_name);
+          const size_t esc_item_name_len = BLI_strescape(
+              esc_item_name, rna_itemname_a, RNA_PATH_BUFFSIZE);
+          extended_rna_path_len = rna_path_len + 2 + esc_item_name_len + 2;
+          if (extended_rna_path_len >= RNA_PATH_BUFFSIZE) {
+            extended_rna_path = MEM_mallocN(extended_rna_path_len + 1, __func__);
+          }
+
+          memcpy(extended_rna_path, rna_path, rna_path_len);
+          extended_rna_path[rna_path_len] = '[';
+          extended_rna_path[rna_path_len + 1] = '"';
+          memcpy(extended_rna_path + rna_path_len + 2, esc_item_name, esc_item_name_len);
+          extended_rna_path[rna_path_len + 2 + esc_item_name_len] = '"';
+          extended_rna_path[rna_path_len + 2 + esc_item_name_len + 1] = ']';
+          extended_rna_path[extended_rna_path_len] = '\0';
         }
         else if (rna_itemindex_a != -1) { /* Based on index... */
           BLI_assert(rna_itemindex_a == rna_itemindex_b);
-          RNA_PATH_PRINTF("%s[%d]", rna_path, rna_itemindex_a);
+
+          /* low-level specific highly-efficient conversion of positive integer to string. */
+          char item_index_buff[32];
+          size_t item_index_buff_len = 0;
+          if (rna_itemindex_a == 0) {
+            item_index_buff[0] = '0';
+            item_index_buff_len = 1;
+          }
+          else {
+            uint index;
+            for (index = rna_itemindex_a;
+                 index > 0 && item_index_buff_len < sizeof(item_index_buff);
+                 index /= 10) {
+              item_index_buff[item_index_buff_len++] = '0' + (char)(index % 10);
+            }
+            BLI_assert(index == 0);
+          }
+
+          extended_rna_path_len = rna_path_len + item_index_buff_len + 2;
+          if (extended_rna_path_len >= RNA_PATH_BUFFSIZE) {
+            extended_rna_path = MEM_mallocN(extended_rna_path_len + 1, __func__);
+          }
+
+          memcpy(extended_rna_path, rna_path, rna_path_len);
+          extended_rna_path[rna_path_len] = '[';
+          for (size_t i = 1; i <= item_index_buff_len; i++) {
+            /* The first loop above generated inverted string representation of our index number.
+             */
+            extended_rna_path[rna_path_len + i] = item_index_buff[item_index_buff_len - i];
+          }
+          extended_rna_path[rna_path_len + 1 + item_index_buff_len] = ']';
+          extended_rna_path[extended_rna_path_len] = '\0';
         }
         else {
           extended_rna_path = (char *)rna_path;
+          extended_rna_path_len = rna_path_len;
         }
       }
 
       eRNAOverrideMatchResult report_flags = 0;
-      const bool match = RNA_struct_override_matches(
-          bmain, propptr_a, propptr_b, extended_rna_path, override, flags, &report_flags);
+      const bool match = RNA_struct_override_matches(bmain,
+                                                     propptr_a,
+                                                     propptr_b,
+                                                     extended_rna_path,
+                                                     extended_rna_path_len,
+                                                     override,
+                                                     flags,
+                                                     &report_flags);
       if (r_override_changed && (report_flags & RNA_OVERRIDE_MATCH_RESULT_CREATED) != 0) {
         *r_override_changed = true;
       }
 
-      RNA_PATH_FREE();
+      if (extended_rna_path != extended_rna_path_buffer && extended_rna_path != rna_path) {
+        MEM_freeN(extended_rna_path);
+      }
 
 #  undef RNA_PATH_BUFFSIZE
-#  undef RNA_PATH_PRINTF
-#  undef RNA_PATH_FREE
 
       return !match;
     }
@@ -1395,6 +1438,7 @@ int rna_property_override_diff_default(Main *bmain,
                                        const int mode,
                                        IDOverrideLibrary *override,
                                        const char *rna_path,
+                                       const size_t rna_path_len,
                                        const int flags,
                                        bool *r_override_changed)
 {
@@ -1684,6 +1728,7 @@ int rna_property_override_diff_default(Main *bmain,
                                                   no_prop_name,
                                                   override,
                                                   rna_path,
+                                                  rna_path_len,
                                                   NULL,
                                                   NULL,
                                                   -1,
@@ -1844,6 +1889,7 @@ int rna_property_override_diff_default(Main *bmain,
                                                                 no_prop_name,
                                                                 override,
                                                                 rna_path,
+                                                                rna_path_len,
                                                                 propname_a,
                                                                 propname_b,
                                                                 idx_a,

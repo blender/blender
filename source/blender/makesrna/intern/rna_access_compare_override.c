@@ -18,6 +18,8 @@
  * \ingroup RNA
  */
 
+#include <string.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
@@ -28,7 +30,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-// #define DEBUG_OVERRIDE_TIMEIT
+//#define DEBUG_OVERRIDE_TIMEIT
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
 #  include "PIL_time_utildefines.h"
@@ -180,6 +182,7 @@ static int rna_property_override_diff(Main *bmain,
                                       PropertyRNA *prop_a,
                                       PropertyRNA *prop_b,
                                       const char *rna_path,
+                                      const size_t rna_path_len,
                                       eRNACompareMode mode,
                                       IDOverrideLibrary *override,
                                       const int flags,
@@ -191,7 +194,7 @@ bool RNA_property_equals(
   BLI_assert(ELEM(mode, RNA_EQ_STRICT, RNA_EQ_UNSET_MATCH_ANY, RNA_EQ_UNSET_MATCH_NONE));
 
   return (rna_property_override_diff(
-              bmain, ptr_a, ptr_b, prop, NULL, NULL, NULL, mode, NULL, 0, NULL) == 0);
+              bmain, ptr_a, ptr_b, prop, NULL, NULL, NULL, 0, mode, NULL, 0, NULL) == 0);
 }
 
 bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mode)
@@ -249,6 +252,7 @@ static int rna_property_override_diff(Main *bmain,
                                       PropertyRNA *prop_a,
                                       PropertyRNA *prop_b,
                                       const char *rna_path,
+                                      const size_t rna_path_len,
                                       eRNACompareMode mode,
                                       IDOverrideLibrary *override,
                                       const int flags,
@@ -363,6 +367,7 @@ static int rna_property_override_diff(Main *bmain,
                                  mode,
                                  override,
                                  rna_path,
+                                 rna_path_len,
                                  diff_flags,
                                  &override_changed);
   if (override_changed && r_report_flags) {
@@ -568,6 +573,7 @@ bool RNA_struct_override_matches(Main *bmain,
                                  PointerRNA *ptr_local,
                                  PointerRNA *ptr_reference,
                                  const char *root_path,
+                                 const size_t root_path_len,
                                  IDOverrideLibrary *override,
                                  const eRNAOverrideMatch flags,
                                  eRNAOverrideMatchResult *r_report_flags)
@@ -649,31 +655,51 @@ bool RNA_struct_override_matches(Main *bmain,
 #endif
 
 #define RNA_PATH_BUFFSIZE 8192
-#define RNA_PATH_PRINTF(_str, ...) \
-  if (BLI_snprintf(rna_path, RNA_PATH_BUFFSIZE, (_str), __VA_ARGS__) >= RNA_PATH_BUFFSIZE) { \
-    rna_path = BLI_sprintfN((_str), __VA_ARGS__); \
-  } \
-  (void)0
-#define RNA_PATH_FREE \
-  if (rna_path != rna_path_buffer) \
-  MEM_freeN(rna_path)
 
     char rna_path_buffer[RNA_PATH_BUFFSIZE];
     char *rna_path = rna_path_buffer;
+    size_t rna_path_len = 0;
 
     /* XXX TODO this will have to be refined to handle collections insertions, and array items */
     if (root_path) {
+      BLI_assert(strlen(root_path) == root_path_len);
+
+      const char *prop_name = RNA_property_identifier(prop_local);
+      const size_t prop_name_len = strlen(prop_name);
+
       /* Inlined building, much much more efficient. */
       if (prop_local->magic == RNA_MAGIC) {
-        RNA_PATH_PRINTF("%s.%s", root_path, RNA_property_identifier(prop_local));
+        rna_path_len = root_path_len + 1 + prop_name_len;
+        if (rna_path_len >= RNA_PATH_BUFFSIZE) {
+          rna_path = MEM_mallocN(rna_path_len + 1, __func__);
+        }
+
+        memcpy(rna_path, root_path, root_path_len);
+        rna_path[root_path_len] = '.';
+        memcpy(rna_path + root_path_len + 1, prop_name, prop_name_len);
+        rna_path[rna_path_len] = '\0';
       }
       else {
-        RNA_PATH_PRINTF("%s[\"%s\"]", root_path, RNA_property_identifier(prop_local));
+        rna_path_len = root_path_len + 2 + prop_name_len + 2;
+        if (rna_path_len >= RNA_PATH_BUFFSIZE) {
+          rna_path = MEM_mallocN(rna_path_len + 1, __func__);
+        }
+
+        memcpy(rna_path, root_path, root_path_len);
+        rna_path[root_path_len] = '[';
+        rna_path[root_path_len + 1] = '"';
+        memcpy(rna_path + root_path_len + 2, prop_name, prop_name_len);
+        rna_path[root_path_len + 2 + prop_name_len] = '"';
+        rna_path[root_path_len + 2 + prop_name_len + 1] = ']';
+        rna_path[rna_path_len] = '\0';
       }
     }
     else {
       /* This is rather slow, but is not much called, so not really worth optimizing. */
       rna_path = RNA_path_from_ID_to_property(ptr_local, prop_local);
+      if (rna_path != NULL) {
+        rna_path_len = strlen(rna_path);
+      }
     }
     if (rna_path == NULL) {
       continue;
@@ -684,7 +710,10 @@ bool RNA_struct_override_matches(Main *bmain,
     IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(override, rna_path);
     if (ignore_overridden && op != NULL) {
       BKE_lib_override_library_operations_tag(op, IDOVERRIDE_LIBRARY_TAG_UNUSED, false);
-      RNA_PATH_FREE;
+
+      if (rna_path != rna_path_buffer) {
+        MEM_freeN(rna_path);
+      }
       continue;
     }
 
@@ -702,6 +731,7 @@ bool RNA_struct_override_matches(Main *bmain,
                                                 prop_local,
                                                 prop_reference,
                                                 rna_path,
+                                                rna_path_len,
                                                 RNA_EQ_STRICT,
                                                 override,
                                                 flags,
@@ -769,17 +799,18 @@ bool RNA_struct_override_matches(Main *bmain,
         matching = false;
         if (!(do_create || do_restore)) {
           /* Since we have no 'changing' action allowed, we can break here. */
-          MEM_SAFE_FREE(rna_path);
+          if (rna_path != rna_path_buffer) {
+            MEM_freeN(rna_path);
+          }
           break;
         }
       }
     }
 
-    RNA_PATH_FREE;
-
+    if (rna_path != rna_path_buffer) {
+      MEM_freeN(rna_path);
+    }
 #undef RNA_PATH_BUFFSIZE
-#undef RNA_PATH_PRINTF
-#undef RNA_PATH_FREE
   }
   RNA_property_collection_end(&iter);
 
