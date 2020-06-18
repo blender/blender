@@ -49,7 +49,7 @@ struct ObjVertex {
   }
 };
 
-struct ObjVertexHash : std::unary_function<ObjVertex, size_t> {
+struct ObjVertexHash {
   std::size_t operator()(const ObjVertex &v) const
   {
     size_t hash = std::hash<uint32_t>()(v.p);
