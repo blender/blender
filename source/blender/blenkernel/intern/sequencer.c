@@ -2315,7 +2315,9 @@ MINLINE float color_balance_fl(
     x = 0.f;
   }
 
-  return powf(x, gamma) * mul;
+  x = powf(x, gamma) * mul;
+  CLAMP(x, FLT_MIN, FLT_MAX);
+  return x;
 }
 
 static void make_cb_table_float(float lift, float gain, float gamma, float *table, float mul)
