@@ -42,8 +42,7 @@ class SequencerBackup {
 
   const Depsgraph *depsgraph;
 
-  typedef map<Sequence *, SequenceBackup> SequencesBackupMap;
-  SequencesBackupMap sequences_backup;
+  Map<Sequence *, SequenceBackup> sequences_backup;
 };
 
 }  // namespace DEG

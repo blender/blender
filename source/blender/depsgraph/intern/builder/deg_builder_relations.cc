@@ -2887,9 +2887,7 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
   }
 
   // Mapping from RNA prefix -> set of driver evaluation nodes:
-  typedef Vector<Node *> DriverGroup;
-  typedef map<string, DriverGroup> DriverGroupMap;
-  DriverGroupMap driver_groups;
+  Map<string, Vector<Node *>> driver_groups;
 
   LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
     if (fcu->rna_path == nullptr) {
@@ -2897,33 +2895,33 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
     }
     // Get the RNA path except the part after the last dot.
     char *last_dot = strrchr(fcu->rna_path, '.');
-    string rna_prefix;
+    StringRef rna_prefix;
     if (last_dot != nullptr) {
-      rna_prefix = string(fcu->rna_path, last_dot);
+      rna_prefix = StringRef(fcu->rna_path, last_dot);
     }
 
     // Insert this driver node into the group belonging to the RNA prefix.
     OperationKey driver_key(
         id_orig, NodeType::PARAMETERS, OperationCode::DRIVER, fcu->rna_path, fcu->array_index);
     Node *node_driver = get_node(driver_key);
-    driver_groups[rna_prefix].append(node_driver);
+    driver_groups.lookup_or_add_default_as(rna_prefix).append(node_driver);
   }
 
-  for (pair<string, DriverGroup> prefix_group : driver_groups) {
+  for (Span<Node *> prefix_group : driver_groups.values()) {
     // For each node in the driver group, try to connect it to another node
     // in the same group without creating any cycles.
-    int num_drivers = prefix_group.second.size();
+    int num_drivers = prefix_group.size();
     if (num_drivers < 2) {
       // A relation requires two drivers.
       continue;
     }
     for (int from_index = 0; from_index < num_drivers; ++from_index) {
-      Node *op_from = prefix_group.second[from_index];
+      Node *op_from = prefix_group[from_index];
 
       // Start by trying the next node in the group.
       for (int to_offset = 1; to_offset < num_drivers; ++to_offset) {
         int to_index = (from_index + to_offset) % num_drivers;
-        Node *op_to = prefix_group.second[to_index];
+        Node *op_to = prefix_group[to_index];
 
         // Investigate whether this relation would create a dependency cycle.
         // Example graph:

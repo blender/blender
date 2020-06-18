@@ -75,7 +75,7 @@ void ObjectRuntimeBackup::backup_modifier_runtime_data(Object *object)
     }
     BLI_assert(modifier_data->orig_modifier_data != nullptr);
     ModifierDataBackupID modifier_data_id = create_modifier_data_id(modifier_data);
-    modifier_runtime_data.insert(make_pair(modifier_data_id, modifier_data->runtime));
+    modifier_runtime_data.add(modifier_data_id, modifier_data->runtime);
     modifier_data->runtime = nullptr;
   }
 }
@@ -86,7 +86,7 @@ void ObjectRuntimeBackup::backup_pose_channel_runtime_data(Object *object)
     LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
       /* This is nullptr in Edit mode. */
       if (pchan->orig_pchan != nullptr) {
-        pose_channel_runtime_data[pchan->orig_pchan] = pchan->runtime;
+        pose_channel_runtime_data.add(pchan->orig_pchan, pchan->runtime);
         BKE_pose_channel_runtime_reset(&pchan->runtime);
       }
     }
@@ -153,22 +153,16 @@ void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object)
   LISTBASE_FOREACH (ModifierData *, modifier_data, &object->modifiers) {
     BLI_assert(modifier_data->orig_modifier_data != nullptr);
     ModifierDataBackupID modifier_data_id = create_modifier_data_id(modifier_data);
-    ModifierRuntimeDataBackup::iterator runtime_data_iterator = modifier_runtime_data.find(
-        modifier_data_id);
-    if (runtime_data_iterator != modifier_runtime_data.end()) {
-      modifier_data->runtime = runtime_data_iterator->second;
-      runtime_data_iterator->second = nullptr;
+    void *runtime = modifier_runtime_data.pop_default(modifier_data_id, nullptr);
+    if (runtime != nullptr) {
+      modifier_data->runtime = runtime;
     }
   }
-  for (ModifierRuntimeDataBackup::value_type value : modifier_runtime_data) {
-    const ModifierDataBackupID modifier_data_id = value.first;
-    void *runtime = value.second;
-    if (value.second == nullptr) {
-      continue;
-    }
-    const ModifierTypeInfo *modifier_type_info = BKE_modifier_get_info(modifier_data_id.type);
+
+  for (ModifierRuntimeDataBackup::Item item : modifier_runtime_data.items()) {
+    const ModifierTypeInfo *modifier_type_info = BKE_modifier_get_info(item.key.type);
     BLI_assert(modifier_type_info != nullptr);
-    modifier_type_info->freeRuntimeData(runtime);
+    modifier_type_info->freeRuntimeData(item.value);
   }
 }
 
@@ -178,17 +172,16 @@ void ObjectRuntimeBackup::restore_pose_channel_runtime_data(Object *object)
     LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
       /* This is nullptr in Edit mode. */
       if (pchan->orig_pchan != nullptr) {
-        PoseChannelRuntimeDataBackup::iterator runtime_data_iterator =
-            pose_channel_runtime_data.find(pchan->orig_pchan);
-        if (runtime_data_iterator != pose_channel_runtime_data.end()) {
-          pchan->runtime = runtime_data_iterator->second;
-          pose_channel_runtime_data.erase(runtime_data_iterator);
+        Optional<bPoseChannel_Runtime> runtime = pose_channel_runtime_data.pop_try(
+            pchan->orig_pchan);
+        if (runtime.has_value()) {
+          pchan->runtime = runtime.extract();
         }
       }
     }
   }
-  for (PoseChannelRuntimeDataBackup::value_type &value : pose_channel_runtime_data) {
-    BKE_pose_channel_runtime_free(&value.second);
+  for (bPoseChannel_Runtime &runtime : pose_channel_runtime_data.values()) {
+    BKE_pose_channel_runtime_free(&runtime);
   }
 }
 

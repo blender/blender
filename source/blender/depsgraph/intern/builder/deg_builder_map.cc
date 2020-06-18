@@ -42,33 +42,20 @@ bool BuilderMap::checkIsBuilt(ID *id, int tag) const
 
 void BuilderMap::tagBuild(ID *id, int tag)
 {
-  IDTagMap::iterator it = id_tags_.find(id);
-  if (it == id_tags_.end()) {
-    id_tags_.insert(make_pair(id, tag));
-    return;
-  }
-  it->second |= tag;
+  id_tags_.lookup_or_add(id, 0) |= tag;
 }
 
 bool BuilderMap::checkIsBuiltAndTag(ID *id, int tag)
 {
-  IDTagMap::iterator it = id_tags_.find(id);
-  if (it == id_tags_.end()) {
-    id_tags_.insert(make_pair(id, tag));
-    return false;
-  }
-  const bool result = (it->second & tag) == tag;
-  it->second |= tag;
+  int &id_tag = id_tags_.lookup_or_add(id, 0);
+  const bool result = (id_tag & tag) == tag;
+  id_tag |= tag;
   return result;
 }
 
 int BuilderMap::getIDTag(ID *id) const
 {
-  IDTagMap::const_iterator it = id_tags_.find(id);
-  if (it == id_tags_.end()) {
-    return 0;
-  }
-  return it->second;
+  return id_tags_.lookup_default(id, 0);
 }
 
 }  // namespace DEG

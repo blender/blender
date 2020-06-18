@@ -27,11 +27,6 @@
 
 #include "DNA_action_types.h"
 
-struct bPoseChannel;
-
 namespace DEG {
-
-/* Storage for backed up pose channel runtime data. */
-typedef map<bPoseChannel *, bPoseChannel_Runtime> PoseChannelRuntimeDataBackup;
 
 }  // namespace DEG
