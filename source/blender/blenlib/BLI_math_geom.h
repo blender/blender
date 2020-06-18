@@ -190,6 +190,10 @@ float dist_squared_to_projected_aabb_simple(const float projmat[4][4],
                                             const float bbmin[3],
                                             const float bbmax[3]);
 
+float closest_to_ray_v3(float r_close[3],
+                        const float p[3],
+                        const float ray_orig[3],
+                        const float ray_dir[3]);
 float closest_to_line_v2(float r_close[2], const float p[2], const float l1[2], const float l2[2]);
 double closest_to_line_v2_db(double r_close[2],
                              const double p[2],

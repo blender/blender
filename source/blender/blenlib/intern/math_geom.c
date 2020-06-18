@@ -3248,19 +3248,27 @@ bool isect_ray_aabb_v3_simple(const float orig[3],
   }
 }
 
-/* find closest point to p on line through (l1, l2) and return lambda,
- * where (0 <= lambda <= 1) when cp is in the line segment (l1, l2)
+float closest_to_ray_v3(float r_close[3],
+                        const float p[3],
+                        const float ray_orig[3],
+                        const float ray_dir[3])
+{
+  float h[3], lambda;
+  sub_v3_v3v3(h, p, ray_orig);
+  lambda = dot_v3v3(ray_dir, h) / dot_v3v3(ray_dir, ray_dir);
+  madd_v3_v3v3fl(r_close, ray_orig, ray_dir, lambda);
+  return lambda;
+}
+
+/**
+ * Find closest point to p on line through (l1, l2) and return lambda,
+ * where (0 <= lambda <= 1) when cp is in the line segment (l1, l2).
  */
 float closest_to_line_v3(float r_close[3], const float p[3], const float l1[3], const float l2[3])
 {
-  float h[3], u[3], lambda;
+  float u[3];
   sub_v3_v3v3(u, l2, l1);
-  sub_v3_v3v3(h, p, l1);
-  lambda = dot_v3v3(u, h) / dot_v3v3(u, u);
-  r_close[0] = l1[0] + u[0] * lambda;
-  r_close[1] = l1[1] + u[1] * lambda;
-  r_close[2] = l1[2] + u[2] * lambda;
-  return lambda;
+  return closest_to_ray_v3(r_close, p, l1, u);
 }
 
 float closest_to_line_v2(float r_close[2], const float p[2], const float l1[2], const float l2[2])

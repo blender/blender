@@ -79,6 +79,27 @@ static void projection_matrix_calc(const TransInfo *t, float r_pmtx[3][3])
 }
 
 /* ************************** CONSTRAINTS ************************* */
+#define CONSTRAIN_EPSILON 0.0001f
+
+static void constraint_plane_calc(TransInfo *t, float r_plane[4])
+{
+  const float *constraint_vector[2];
+  int n = 0;
+  for (int i = 0; i < 3; i++) {
+    if (t->con.mode & (CON_AXIS0 << i)) {
+      constraint_vector[n++] = t->spacemtx[i];
+      if (n == 2) {
+        break;
+      }
+    }
+  }
+  BLI_assert(n == 2);
+
+  cross_v3_v3v3(r_plane, constraint_vector[0], constraint_vector[1]);
+  normalize_v3(r_plane);
+  r_plane[3] = -dot_v3v3(r_plane, t->center_global);
+}
+
 static void constraintValuesFinal(TransInfo *t, float vec[3])
 {
   int mode = t->con.mode;
@@ -297,32 +318,79 @@ static void axisProjection(const TransInfo *t,
 }
 
 /**
+ * Snap to the intersection between the edge direction and the constraint plane.
+ */
+static void constraint_plane_to_edge(const TransInfo *t, const float plane[4], float r_out[3])
+{
+  float lambda;
+  const float *edge_snap_point = t->tsnap.snapPoint;
+  const float *edge_dir = t->tsnap.snapNormal;
+  bool is_aligned = fabsf(dot_v3v3(edge_dir, plane)) < CONSTRAIN_EPSILON;
+  if (!is_aligned && isect_ray_plane_v3(edge_snap_point, edge_dir, plane, &lambda, false)) {
+    madd_v3_v3v3fl(r_out, edge_snap_point, edge_dir, lambda);
+    sub_v3_v3(r_out, t->tsnap.snapTarget);
+  }
+}
+
+/**
+ * Snap to the nearest point between the snap point and the line that
+ * intersects the face plane with the constraint plane.
+ */
+static void constraint_plane_to_face(const TransInfo *t, const float plane[4], float r_out[3])
+{
+  float face_plane[4], isect_orig[3], isect_dir[3];
+  const float *face_snap_point = t->tsnap.snapPoint;
+  const float *face_normal = t->tsnap.snapNormal;
+  plane_from_point_normal_v3(face_plane, face_snap_point, face_normal);
+  bool is_aligned = fabsf(dot_v3v3(plane, face_plane)) > (1.0f - CONSTRAIN_EPSILON);
+  if (!is_aligned && isect_plane_plane_v3(plane, face_plane, isect_orig, isect_dir)) {
+    closest_to_ray_v3(r_out, face_snap_point, isect_orig, isect_dir);
+    sub_v3_v3(r_out, t->tsnap.snapTarget);
+  }
+}
+
+/**
+ * Snap to the nearest point on the axis to the edge/line element.
+ */
+static void constraint_axis_to_edge(const TransInfo *t, const float axis[3], float r_out[3])
+{
+  float lambda;
+  const float *edge_snap_point = t->tsnap.snapPoint;
+  const float *edge_dir = t->tsnap.snapNormal;
+  bool is_aligned = fabsf(dot_v3v3(axis, edge_dir)) > (1.0f - CONSTRAIN_EPSILON);
+  if (!is_aligned &&
+      isect_ray_ray_v3(t->tsnap.snapTarget, axis, edge_snap_point, edge_dir, &lambda, NULL)) {
+    mul_v3_v3fl(r_out, axis, lambda);
+  }
+}
+
+/**
+ * Snap to the intersection of the axis and the plane defined by the face.
+ */
+static void constraint_axis_to_face(const TransInfo *t, const float axis[3], float r_out[3])
+{
+  float lambda;
+  float face_plane[4];
+  const float *face_snap_point = t->tsnap.snapPoint;
+  const float *face_normal = t->tsnap.snapNormal;
+  plane_from_point_normal_v3(face_plane, face_snap_point, face_normal);
+  bool is_aligned = fabsf(dot_v3v3(face_normal, face_plane)) < CONSTRAIN_EPSILON;
+  if (!is_aligned && isect_ray_plane_v3(t->tsnap.snapTarget, axis, face_plane, &lambda, false)) {
+    mul_v3_v3fl(r_out, axis, lambda);
+  }
+}
+
+/**
  * Return true if the 2x axis are both aligned when projected into the view.
  * In this case, we can't usefully project the cursor onto the plane.
  */
-static bool isPlaneProjectionViewAligned(const TransInfo *t)
+static bool isPlaneProjectionViewAligned(const TransInfo *t, float plane[4])
 {
   const float eps = 0.001f;
-  const float *constraint_vector[2];
-  int n = 0;
-  for (int i = 0; i < 3; i++) {
-    if (t->con.mode & (CON_AXIS0 << i)) {
-      constraint_vector[n++] = t->spacemtx[i];
-      if (n == 2) {
-        break;
-      }
-    }
-  }
-  BLI_assert(n == 2);
-
-  float view_to_plane[3], plane_normal[3];
-
+  float view_to_plane[3];
   getViewVector(t, t->center_global, view_to_plane);
 
-  cross_v3_v3v3(plane_normal, constraint_vector[0], constraint_vector[1]);
-  normalize_v3(plane_normal);
-
-  float factor = dot_v3v3(plane_normal, view_to_plane);
+  float factor = dot_v3v3(plane, view_to_plane);
   return fabsf(factor) < eps;
 }
 
@@ -361,14 +429,31 @@ static void applyAxisConstraintVec(
   copy_v3_v3(out, in);
   if (!td && t->con.mode & CON_APPLY) {
     mul_m3_v3(t->con.pmtx, out);
+    bool is_snap_to_edge = false, is_snap_to_face = false;
+    if (activeSnap(t)) {
+      is_snap_to_edge = (t->tsnap.snapElem & SCE_SNAP_MODE_EDGE) != 0;
+      is_snap_to_face = (t->tsnap.snapElem & SCE_SNAP_MODE_FACE) != 0;
+    }
 
-    // With snap, a projection is alright, no need to correct for view alignment
-    if (!validSnap(t)) {
+    /* With snap points, a projection is alright, no adjustments needed. */
+    if (!validSnap(t) || is_snap_to_edge || is_snap_to_face) {
       const int dims = getConstraintSpaceDimension(t);
       if (dims == 2) {
         if (!is_zero_v3(out)) {
-          if (!isPlaneProjectionViewAligned(t)) {
-            planeProjection(t, in, out);
+          float plane[4];
+          constraint_plane_calc(t, plane);
+
+          if (is_snap_to_edge) {
+            constraint_plane_to_edge(t, plane, out);
+          }
+          else if (is_snap_to_face) {
+            constraint_plane_to_face(t, plane, out);
+          }
+          else {
+            /* View alignment correction. */
+            if (!isPlaneProjectionViewAligned(t, plane)) {
+              planeProjection(t, in, out);
+            }
           }
         }
       }
@@ -384,7 +469,17 @@ static void applyAxisConstraintVec(
         else if (t->con.mode & CON_AXIS2) {
           copy_v3_v3(c, t->spacemtx[2]);
         }
-        axisProjection(t, c, in, out);
+
+        if (is_snap_to_edge) {
+          constraint_axis_to_edge(t, c, out);
+        }
+        else if (is_snap_to_face) {
+          constraint_axis_to_face(t, c, out);
+        }
+        else {
+          /* View alignment correction. */
+          axisProjection(t, c, in, out);
+        }
       }
     }
     postConstraintChecks(t, out);
