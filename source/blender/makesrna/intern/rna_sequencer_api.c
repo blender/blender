@@ -504,7 +504,8 @@ void RNA_api_sequence_strip(StructRNA *srna)
 
   func = RNA_def_function(srna, "invalidate_cache", "rna_Sequence_invalidate_cache_rnafunc");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-  RNA_def_function_ui_description(func, "Invalidate Cached images for strip and all dependant strips. ");
+  RNA_def_function_ui_description(func,
+                                  "Invalidate Cached images for strip and all dependant strips. ");
   parm = RNA_def_enum(func, "type", seq_cahce_type_items, 0, "Type", "Cache Type");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 }

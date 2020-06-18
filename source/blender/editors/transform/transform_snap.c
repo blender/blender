@@ -21,7 +21,6 @@
  * \ingroup edtransform
  */
 
-/* clang-format off */
 #include <float.h>
 
 #include "PIL_time.h"
@@ -691,15 +690,13 @@ static void setSnappingCallback(TransInfo *t)
       t->tsnap.targetSnap = TargetSnapClosest;
       break;
     case SCE_SNAP_TARGET_CENTER:
-      if (ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
-        /* Can't do TARGET_CENTER with these modes,
-         * use TARGET_MEDIAN instead. */
-        ATTR_FALLTHROUGH;
-      }
-      else {
+      if (!ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
         t->tsnap.targetSnap = TargetSnapCenter;
         break;
       }
+      /* Can't do TARGET_CENTER with these modes,
+       * use TARGET_MEDIAN instead. */
+      ATTR_FALLTHROUGH;
     case SCE_SNAP_TARGET_MEDIAN:
       t->tsnap.targetSnap = TargetSnapMedian;
       break;
