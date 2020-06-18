@@ -1403,7 +1403,11 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
         BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
       }
     }
-    else if (seq->type & SEQ_TYPE_EFFECT) {
+  }
+
+  /* Recalculate bounds of effect strips. */
+  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+    if (seq->type & SEQ_TYPE_EFFECT) {
       if (seq->seq1 && (seq->seq1->flag & SELECT)) {
         BKE_sequence_calc(scene, seq);
       }
