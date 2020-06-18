@@ -188,8 +188,12 @@ enum {
   /* #define G_FILE_GLSL_NO_ENV_LIGHTING (1 << 28) */ /* deprecated */
 };
 
-/** Don't overwrite these flags when reading a file. */
-#define G_FILE_FLAG_ALL_RUNTIME (G_FILE_NO_UI | G_FILE_RELATIVE_REMAP | G_FILE_SAVE_COPY)
+/**
+ * Run-time only #G.fileflags which are never read or written to/from Blend files.
+ * This means we can change the values without worrying about do-versions.
+ */
+#define G_FILE_FLAG_ALL_RUNTIME \
+  (G_FILE_NO_UI | G_FILE_RELATIVE_REMAP | G_FILE_HISTORY | G_FILE_SAVE_COPY)
 
 /** ENDIAN_ORDER: indicates what endianness the platform where the file was written had. */
 #if !defined(__BIG_ENDIAN__) && !defined(__LITTLE_ENDIAN__)
