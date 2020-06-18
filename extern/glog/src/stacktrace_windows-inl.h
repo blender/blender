@@ -1,4 +1,4 @@
-// Copyright 2015, Google Inc.
+// Copyright (c) 2000 - 2007, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,24 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Injection point for custom user configurations. See README for details
+// Author: Andrew Schwartzmeyer
 //
-// ** Custom implementation starts here **
+// Windows implementation - just use CaptureStackBackTrace
 
-// GOOGLETEST_CM0002 DO NOT DELETE
+#include "config.h"
+#include "port.h"
+#include "stacktrace.h"
+#include <DbgHelp.h>
 
-#ifndef GMOCK_INCLUDE_GMOCK_INTERNAL_CUSTOM_GMOCK_PORT_H_
-#define GMOCK_INCLUDE_GMOCK_INTERNAL_CUSTOM_GMOCK_PORT_H_
+_START_GOOGLE_NAMESPACE_
 
-#endif  // GMOCK_INCLUDE_GMOCK_INTERNAL_CUSTOM_GMOCK_PORT_H_
+int GetStackTrace(void** result, int max_depth, int skip_count) {
+  if (max_depth > 64) {
+    max_depth = 64;
+  }
+  skip_count++;  // we want to skip the current frame as well
+  // This API is thread-safe (moreover it walks only the current thread).
+  return CaptureStackBackTrace(skip_count, max_depth, result, NULL);
+}
+
+_END_GOOGLE_NAMESPACE_

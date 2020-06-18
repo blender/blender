@@ -68,17 +68,6 @@
 
 _START_GOOGLE_NAMESPACE_
 
-// Data for RawLog__ below. We simply pick up the latest
-// time data created by a normal log message to avoid calling
-// localtime_r which can allocate memory.
-static struct ::tm last_tm_time_for_raw_log;
-static int last_usecs_for_raw_log;
-
-void RawLog__SetLastTime(const struct ::tm& t, int usecs) {
-  memcpy(&last_tm_time_for_raw_log, &t, sizeof(last_tm_time_for_raw_log));
-  last_usecs_for_raw_log = usecs;
-}
-
 // CAVEAT: vsnprintf called from *DoRawLog below has some (exotic) code paths
 // that invoke malloc() and getenv() that might acquire some locks.
 // If this becomes a problem we should reimplement a subset of vsnprintf
@@ -120,16 +109,13 @@ void RawLog__(LogSeverity severity, const char* file, int line,
     return;  // this stderr log message is suppressed
   }
   // can't call localtime_r here: it can allocate
-  struct ::tm& t = last_tm_time_for_raw_log;
   char buffer[kLogBufSize];
   char* buf = buffer;
   int size = sizeof(buffer);
 
   // NOTE: this format should match the specification in base/logging.h
-  DoRawLog(&buf, &size, "%c%02d%02d %02d:%02d:%02d.%06d %5u %s:%d] RAW: ",
+  DoRawLog(&buf, &size, "%c0000 00:00:00.000000 %5u %s:%d] RAW: ",
            LogSeverityNames[severity][0],
-           1 + t.tm_mon, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec,
-           last_usecs_for_raw_log,
            static_cast<unsigned int>(GetTID()),
            const_basename(const_cast<char *>(file)), line);
 

@@ -70,8 +70,11 @@
  * 4715: for some reason VC++ stopped realizing you can't return after abort()
  * 4800: we know we're casting ints/char*'s to bools, and we're ok with that
  * 4996: Yes, we're ok using "unsafe" functions like fopen() and strerror()
+ * 4312: Converting uint32_t to a pointer when testing %p
+ * 4267: also subtracting two size_t to int
+ * 4722: Destructor never returns due to abort()
  */
-#pragma warning(disable:4244 4251 4355 4715 4800 4996)
+#pragma warning(disable:4244 4251 4355 4715 4800 4996 4267 4312 4722)
 
 /* file I/O */
 #define PATH_MAX 1024
@@ -86,6 +89,11 @@
 #define pclose  _pclose
 #define R_OK    04           /* read-only (for access()) */
 #define S_ISDIR(m)  (((m) & _S_IFMT) == _S_IFDIR)
+
+#define O_WRONLY _O_WRONLY
+#define O_CREAT _O_CREAT
+#define O_EXCL _O_EXCL
+
 #ifndef __MINGW32__
 enum { STDIN_FILENO = 0, STDOUT_FILENO = 1, STDERR_FILENO = 2 };
 #endif
@@ -136,19 +144,20 @@ typedef int pid_t;
 #endif  // _MSC_VER
 
 // ----------------------------------- THREADS
-#ifndef __MINGW32__
+#if defined(HAVE_PTHREAD)
+# include <pthread.h>
+#else // no PTHREAD
 typedef DWORD pthread_t;
 typedef DWORD pthread_key_t;
 typedef LONG pthread_once_t;
 enum { PTHREAD_ONCE_INIT = 0 };   // important that this be 0! for SpinLock
 #define pthread_self  GetCurrentThreadId
 #define pthread_equal(pthread_t_1, pthread_t_2)  ((pthread_t_1)==(pthread_t_2))
+#endif // HAVE_PTHREAD
 
-inline struct tm* localtime_r(const time_t* timep, struct tm* result) {
-  localtime_s(result, timep);
-  return result;
-}
-#endif
+#ifndef HAVE_LOCALTIME_R
+extern GOOGLE_GLOG_DLL_DECL struct tm* localtime_r(const time_t* timep, struct tm* result);
+#endif // not HAVE_LOCALTIME_R
 
 inline char* strerror_r(int errnum, char* buf, size_t buflen) {
   strerror_s(buf, buflen, errnum);

@@ -1,7 +1,5 @@
 Project: Google C++ Testing Framework
 URL: https://github.com/google/googletest
 License: New BSD
-Upstream version: 1.8.0 (ec44c6c1675)
-Local modifications:
-
-None.
+Upstream version: 1.10.0 (703bd9caab5)
+Local modifications: None

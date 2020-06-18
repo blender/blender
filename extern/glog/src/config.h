@@ -1,7 +1,3 @@
-/* src/config.h.  Generated from config.h.in by configure.  */
-/* src/config.h.in.  Generated from configure.ac by autoheader.  */
-
-/* Namespace for Google classes */
 #if defined(__APPLE__)
  #include "config_mac.h"
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)

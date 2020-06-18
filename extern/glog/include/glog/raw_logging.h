@@ -173,12 +173,7 @@ GOOGLE_GLOG_DLL_DECL void RawLog__(LogSeverity severity,
                                    const char* file,
                                    int line,
                                    const char* format, ...)
-   __attribute__((__format__ (__printf__, 4, 5)));
-
-// Hack to propagate time information into this module so that
-// this module does not have to directly call localtime_r(),
-// which could allocate memory.
-GOOGLE_GLOG_DLL_DECL void RawLog__SetLastTime(const struct tm& t, int usecs);
+   ;
 
 }
 

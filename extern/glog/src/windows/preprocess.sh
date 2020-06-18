@@ -95,7 +95,7 @@ DLLDEF_DEFINES="\
          -e "s!@ac_cv_have_libgflags@!0!g" \
          -e "s!@ac_cv_have___builtin_expect@!0!g" \
          -e "s!@ac_cv_cxx_using_operator@!1!g" \
-         -e "s!@ac_cv___attribute___noreturn@!!g" \
+         -e "s!@ac_cv___attribute___noreturn@!__declspec(noreturn)!g" \
          -e "s!@ac_cv___attribute___noinline@!!g" \
          -e "s!@ac_cv___attribute___printf_4_5@!!g" \
          -e "s!@ac_google_attribute@!${HAVE___ATTRIBUTE__:-0}!g" \

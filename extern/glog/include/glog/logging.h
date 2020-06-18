@@ -431,9 +431,15 @@ DECLARE_bool(stop_logging_if_full_disk);
 #define LOG_TO_STRING_FATAL(message) google::NullStreamFatal()
 #endif
 
+#if defined(NDEBUG) && !defined(DCHECK_ALWAYS_ON)
+#define DCHECK_IS_ON() 0
+#else
+#define DCHECK_IS_ON() 1
+#endif
+
 // For DFATAL, we want to use LogMessage (as opposed to
 // LogMessageFatal), to be consistent with the original behavior.
-#ifdef NDEBUG
+#if !DCHECK_IS_ON()
 #define COMPACT_GOOGLE_LOG_DFATAL COMPACT_GOOGLE_LOG_ERROR
 #elif GOOGLE_STRIP_LOG <= 3
 #define COMPACT_GOOGLE_LOG_DFATAL google::LogMessage( \
@@ -562,8 +568,10 @@ class LogSink;  // defined below
   LOG_TO_STRING_##severity(static_cast<std::vector<std::string>*>(outvec)).stream()
 
 #define LOG_IF(severity, condition) \
+  static_cast<void>(0),             \
   !(condition) ? (void) 0 : google::LogMessageVoidify() & LOG(severity)
 #define SYSLOG_IF(severity, condition) \
+  static_cast<void>(0),                \
   !(condition) ? (void) 0 : google::LogMessageVoidify() & SYSLOG(severity)
 
 #define LOG_ASSERT(condition)  \
@@ -572,7 +580,7 @@ class LogSink;  // defined below
   SYSLOG_IF(FATAL, !(condition)) << "Assert failed: " #condition
 
 // CHECK dies with a fatal error if condition is not true.  It is *not*
-// controlled by NDEBUG, so the check will be executed regardless of
+// controlled by DCHECK_IS_ON(), so the check will be executed regardless of
 // compilation mode.  Therefore, it is safe to do things like:
 //    CHECK(fp->Write(x) == 4)
 #define CHECK(condition)  \
@@ -644,7 +652,7 @@ void MakeCheckOpValueString(std::ostream* os, const unsigned char& v);
 // Build the error message string. Specify no inlining for code size.
 template <typename T1, typename T2>
 std::string* MakeCheckOpString(const T1& v1, const T2& v2, const char* exprtext)
-    __attribute__ ((noinline));
+    __attribute__((noinline));
 
 namespace base {
 namespace internal {
@@ -722,7 +730,7 @@ DEFINE_CHECK_OP_IMPL(Check_GT, > )
 #if defined(STATIC_ANALYSIS)
 // Only for static analysis tool to know that it is equivalent to assert
 #define CHECK_OP_LOG(name, op, val1, val2, log) CHECK((val1) op (val2))
-#elif !defined(NDEBUG)
+#elif DCHECK_IS_ON()
 // In debug mode, avoid constructing CheckOpStrings if possible,
 // to reduce the overhead of CHECK statments by 2x.
 // Real DCHECK-heavy tests have seen 1.5x speedups.
@@ -751,7 +759,7 @@ typedef std::string _Check_string;
              google::GetReferenceableValue(val2),        \
              #val1 " " #op " " #val2))                                  \
     log(__FILE__, __LINE__, _result).stream()
-#endif  // STATIC_ANALYSIS, !NDEBUG
+#endif  // STATIC_ANALYSIS, DCHECK_IS_ON()
 
 #if GOOGLE_STRIP_LOG <= 3
 #define CHECK_OP(name, op, val1, val2) \
@@ -853,6 +861,7 @@ DECLARE_CHECK_STROP_IMPL(strcasecmp, false)
       &google::LogMessage::SendToLog)
 
 #define PLOG_IF(severity, condition) \
+  static_cast<void>(0),              \
   !(condition) ? (void) 0 : google::LogMessageVoidify() & PLOG(severity)
 
 // A CHECK() macro that postpends errno if the condition is false. E.g.
@@ -925,16 +934,11 @@ struct CompileAssert {
 struct CrashReason;
 
 // Returns true if FailureSignalHandler is installed.
-bool IsFailureSignalHandlerInstalled();
+// Needs to be exported since it's used by the signalhandler_unittest.
+GOOGLE_GLOG_DLL_DECL bool IsFailureSignalHandlerInstalled();
 }  // namespace glog_internal_namespace_
 
-#define GOOGLE_GLOG_COMPILE_ASSERT(expr, msg) \
-  typedef google::glog_internal_namespace_::CompileAssert<(bool(expr))> msg[bool(expr) ? 1 : -1]
-
 #define LOG_EVERY_N(severity, n)                                        \
-  GOOGLE_GLOG_COMPILE_ASSERT(google::GLOG_ ## severity < \
-                             google::NUM_SEVERITIES,     \
-                             INVALID_REQUESTED_LOG_SEVERITY);           \
   SOME_KIND_OF_LOG_EVERY_N(severity, (n), google::LogMessage::SendToLog)
 
 #define SYSLOG_EVERY_N(severity, n) \
@@ -976,7 +980,7 @@ const LogSeverity GLOG_0 = GLOG_ERROR;
 
 // Plus some debug-logging macros that get compiled to nothing for production
 
-#ifndef NDEBUG
+#if DCHECK_IS_ON()
 
 #define DLOG(severity) LOG(severity)
 #define DVLOG(verboselevel) VLOG(verboselevel)
@@ -986,7 +990,7 @@ const LogSeverity GLOG_0 = GLOG_ERROR;
   LOG_IF_EVERY_N(severity, condition, n)
 #define DLOG_ASSERT(condition) LOG_ASSERT(condition)
 
-// debug-only checking.  not executed in NDEBUG mode.
+// debug-only checking.  executed if DCHECK_IS_ON().
 #define DCHECK(condition) CHECK(condition)
 #define DCHECK_EQ(val1, val2) CHECK_EQ(val1, val2)
 #define DCHECK_NE(val1, val2) CHECK_NE(val1, val2)
@@ -1000,25 +1004,31 @@ const LogSeverity GLOG_0 = GLOG_ERROR;
 #define DCHECK_STRNE(str1, str2) CHECK_STRNE(str1, str2)
 #define DCHECK_STRCASENE(str1, str2) CHECK_STRCASENE(str1, str2)
 
-#else  // NDEBUG
+#else  // !DCHECK_IS_ON()
 
-#define DLOG(severity) \
+#define DLOG(severity)  \
+  static_cast<void>(0), \
   true ? (void) 0 : google::LogMessageVoidify() & LOG(severity)
 
-#define DVLOG(verboselevel) \
-  (true || !VLOG_IS_ON(verboselevel)) ?\
-    (void) 0 : google::LogMessageVoidify() & LOG(INFO)
+#define DVLOG(verboselevel)             \
+  static_cast<void>(0),                 \
+  (true || !VLOG_IS_ON(verboselevel)) ? \
+      (void) 0 : google::LogMessageVoidify() & LOG(INFO)
 
 #define DLOG_IF(severity, condition) \
+  static_cast<void>(0),              \
   (true || !(condition)) ? (void) 0 : google::LogMessageVoidify() & LOG(severity)
 
 #define DLOG_EVERY_N(severity, n) \
+  static_cast<void>(0),           \
   true ? (void) 0 : google::LogMessageVoidify() & LOG(severity)
 
 #define DLOG_IF_EVERY_N(severity, condition, n) \
+  static_cast<void>(0),                         \
   (true || !(condition))? (void) 0 : google::LogMessageVoidify() & LOG(severity)
 
 #define DLOG_ASSERT(condition) \
+  static_cast<void>(0),        \
   true ? (void) 0 : LOG_ASSERT(condition)
 
 // MSVC warning C4127: conditional expression is constant
@@ -1081,7 +1091,7 @@ const LogSeverity GLOG_0 = GLOG_ERROR;
   while (false) \
     GLOG_MSVC_POP_WARNING() CHECK_STRCASENE(str1, str2)
 
-#endif  // NDEBUG
+#endif  // DCHECK_IS_ON()
 
 // Log only in verbose mode.
 
@@ -1103,10 +1113,11 @@ namespace base_logging {
 // buffer to allow for a '\n' and '\0'.
 class GOOGLE_GLOG_DLL_DECL LogStreamBuf : public std::streambuf {
  public:
-  // REQUIREMENTS: "len" must be >= 2 to account for the '\n' and '\n'.
+  // REQUIREMENTS: "len" must be >= 2 to account for the '\n' and '\0'.
   LogStreamBuf(char *buf, int len) {
     setp(buf, buf + len - 2);
   }
+
   // This effectively ignores overflow.
   virtual int_type overflow(int_type ch) {
     return ch;
@@ -1145,13 +1156,9 @@ public:
   // 2005 if you are deriving from a type in the Standard C++ Library"
   // http://msdn.microsoft.com/en-us/library/3tdb471s(VS.80).aspx
   // Let's just ignore the warning.
-#ifdef _MSC_VER
-# pragma warning(disable: 4275)
-#endif
+GLOG_MSVC_PUSH_DISABLE_WARNING(4275)
   class GOOGLE_GLOG_DLL_DECL LogStream : public std::ostream {
-#ifdef _MSC_VER
-# pragma warning(default: 4275)
-#endif
+GLOG_MSVC_POP_WARNING()
   public:
     LogStream(char *buf, int len, int ctr)
         : std::ostream(NULL),
@@ -1240,7 +1247,7 @@ public:
   void SendToSyslogAndLog();  // Actually dispatch to syslog and the logs
 
   // Call abort() or similar to perform LOG(FATAL) crash.
-  static void __attribute__ ((noreturn)) Fail();
+  static void __attribute__((noreturn)) Fail();
 
   std::ostream& stream();
 
@@ -1288,7 +1295,7 @@ class GOOGLE_GLOG_DLL_DECL LogMessageFatal : public LogMessage {
  public:
   LogMessageFatal(const char* file, int line);
   LogMessageFatal(const char* file, int line, const CheckOpString& result);
-  __attribute__ ((noreturn)) ~LogMessageFatal();
+  __attribute__((noreturn)) ~LogMessageFatal();
 };
 
 // A non-macro interface to the log facility; (useful
@@ -1303,6 +1310,35 @@ inline void LogAtLevel(int const severity, std::string const &msg) {
 // LOG macros, 2. this macro can be used as C++ stream.
 #define LOG_AT_LEVEL(severity) google::LogMessage(__FILE__, __LINE__, severity).stream()
 
+// Check if it's compiled in C++11 mode.
+//
+// GXX_EXPERIMENTAL_CXX0X is defined by gcc and clang up to at least
+// gcc-4.7 and clang-3.1 (2011-12-13).  __cplusplus was defined to 1
+// in gcc before 4.7 (Crosstool 16) and clang before 3.1, but is
+// defined according to the language version in effect thereafter.
+// Microsoft Visual Studio 14 (2015) sets __cplusplus==199711 despite
+// reasonably good C++11 support, so we set LANG_CXX for it and
+// newer versions (_MSC_VER >= 1900).
+#if (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L || \
+     (defined(_MSC_VER) && _MSC_VER >= 1900))
+// Helper for CHECK_NOTNULL().
+//
+// In C++11, all cases can be handled by a single function. Since the value
+// category of the argument is preserved (also for rvalue references),
+// member initializer lists like the one below will compile correctly:
+//
+//   Foo()
+//     : x_(CHECK_NOTNULL(MethodReturningUniquePtr())) {}
+template <typename T>
+T CheckNotNull(const char* file, int line, const char* names, T&& t) {
+ if (t == nullptr) {
+   LogMessageFatal(file, line, new std::string(names));
+ }
+ return std::forward<T>(t);
+}
+
+#else
+
 // A small helper for CHECK_NOTNULL().
 template <typename T>
 T* CheckNotNull(const char *file, int line, const char *names, T* t) {
@@ -1311,6 +1347,7 @@ T* CheckNotNull(const char *file, int line, const char *names, T* t) {
   }
   return t;
 }
+#endif
 
 // Allow folks to put a counter in the LOG_EVERY_X()'ed messages. This
 // only works if ostream is a LogStream. If the ostream is not a
@@ -1592,7 +1629,7 @@ class GOOGLE_GLOG_DLL_DECL NullStreamFatal : public NullStream {
   NullStreamFatal() { }
   NullStreamFatal(const char* file, int line, const CheckOpString& result) :
       NullStream(file, line, result) { }
-  __attribute__ ((noreturn)) ~NullStreamFatal() throw () { _exit(1); }
+  __attribute__((noreturn)) ~NullStreamFatal() throw () { _exit(1); }
 };
 
 // Install a signal handler that will dump signal information and a stack

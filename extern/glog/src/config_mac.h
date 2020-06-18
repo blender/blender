@@ -5,7 +5,7 @@
 #define GOOGLE_NAMESPACE google
 
 /* Define if you have the `dladdr' function */
-/* #undef HAVE_DLADDR */
+#define HAVE_DLADDR
 
 /* Define if you have the `snprintf' function */
 #define HAVE_SNPRINTF
@@ -65,7 +65,7 @@
 #define HAVE_PWRITE
 
 /* define if the compiler implements pthread_rwlock_* */
-/* #undef HAVE_RWLOCK */
+#define HAVE_RWLOCK
 
 /* Define if you have the 'sigaction' function */
 #define HAVE_SIGACTION
@@ -104,7 +104,7 @@
 #define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <sys/ucontext.h> header file. */
-#define HAVE_SYS_UCONTEXT_H 1
+/* #undef HAVE_SYS_UCONTEXT_H */
 
 /* Define to 1 if you have the <sys/utsname.h> header file. */
 #define HAVE_SYS_UTSNAME_H

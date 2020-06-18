@@ -27,11 +27,16 @@ set(INC_SYS
 )
 
 set(SRC
+  src/demangle.cc
   src/logging.cc
   src/raw_logging.cc
+  src/signalhandler.cc
+  src/symbolize.cc
   src/utilities.cc
   src/vlog_is_on.cc
 
+  src/demangle.h
+  src/symbolize.h
   src/utilities.h
 
   src/config.h
@@ -51,6 +56,7 @@ set(SRC
   src/stacktrace_powerpc-inl.h
   src/stacktrace_x86_64-inl.h
   src/stacktrace_x86-inl.h
+  src/stacktrace_windows-inl.h
 )
 
 set(LIB
@@ -87,13 +93,6 @@ else()
     include
   )
   list(APPEND SRC
-    src/demangle.cc
-    src/signalhandler.cc
-    src/symbolize.cc
-
-    src/demangle.h
-    src/symbolize.h
-
     include/glog/logging.h
     include/glog/log_severity.h
     include/glog/raw_logging.h
