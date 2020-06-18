@@ -2467,7 +2467,7 @@ def km_sequencer(params):
          {"properties": [("all", False)]}),
         ("sequencer.gap_remove", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True},
          {"properties": [("all", True)]}),
-        ("sequencer.gap_insert", {"type": 'BACK_SPACE', "value": 'PRESS', "ctrl": True}, None),
+        ("sequencer.gap_insert", {"type": 'EQUAL', "value": 'PRESS', "shift": True}, None),
         ("sequencer.snap", {"type": 'S', "value": 'PRESS', "shift": True}, None),
         ("sequencer.swap_inputs", {"type": 'S', "value": 'PRESS', "alt": True}, None),
         *(
@@ -2523,14 +2523,6 @@ def km_sequencer(params):
          {"properties": [("side", 'LEFT')]}),
         ("sequencer.select_side_of_frame", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
          {"properties": [("side", 'RIGHT')]}),
-        ("sequencer.select_side_of_frame", {"type": 'EQUAL', "value": 'PRESS'},
-         {"properties": [("side", 'OVERLAP')]}),
-        ("sequencer.select_side_of_frame", {"type": 'LEFT_BRACKET', "value": 'PRESS', "shift": True},
-         {"properties": [("side", 'LEFT'), ("extend", True)]}),
-        ("sequencer.select_side_of_frame", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "shift": True},
-         {"properties": [("side", 'RIGHT'), ("extend", True)]}),
-        ("sequencer.select_side_of_frame", {"type": 'EQUAL', "value": 'PRESS', "shift": True},
-         {"properties": [("side", 'OVERLAP'), ("extend", True)]}),
 
         *_template_items_context_menu("SEQUENCER_MT_context_menu", params.context_menu_event),
     ])

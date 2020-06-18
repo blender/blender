@@ -409,32 +409,15 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
   /* Select left, right or overlapping the current frame. */
   if (side_of_frame) {
     /* Use different logic for this. */
-    float x;
     if (extend == false) {
       ED_sequencer_deselect_all(scene);
     }
 
-    /* 10px margin around current frame to select under the current frame with mouse. */
-    float margin = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask) * 10;
-    x = UI_view2d_region_to_view_x(v2d, mval[0]);
-    if (x >= CFRA - margin && x <= CFRA + margin) {
-      x = CFRA;
-    }
+    const float x = UI_view2d_region_to_view_x(v2d, mval[0]);
 
     SEQP_BEGIN (ed, seq) {
-      bool test = false;
-      /* FIXME(campbell): this functionality is only in the sequencer,
-       * either we should support this for all timeline views or remove it. */
-      if ((x == CFRA) && (seq->startdisp <= CFRA) && (seq->enddisp >= CFRA)) {
-        /* Select overlapping the current frame. */
-        test = true;
-      }
-      else if ((x < CFRA && seq->enddisp <= CFRA) || (x > CFRA && seq->startdisp >= CFRA)) {
+      if (((x < CFRA) && (seq->enddisp <= CFRA)) || ((x >= CFRA) && (seq->startdisp >= CFRA))) {
         /* Select left or right. */
-        test = true;
-      }
-
-      if (test) {
         seq->flag |= SELECT;
         recurs_sel_seq(seq);
       }
@@ -1023,7 +1006,6 @@ static int sequencer_select_side_of_frame_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_select_side_of_frame(wmOperatorType *ot)
 {
   static const EnumPropertyItem sequencer_select_left_right_types[] = {
-      {0, "OVERLAP", 0, "Overlap", "Select overlapping the current frame"},
       {-1, "LEFT", 0, "Left", "Select to the left of the current frame"},
       {1, "RIGHT", 0, "Right", "Select to the right of the current frame"},
       {0, NULL, 0, NULL, NULL},
