@@ -74,6 +74,7 @@ void BKE_blendfile_write_partial_begin(struct Main *bmain_src);
 bool BKE_blendfile_write_partial(struct Main *bmain_src,
                                  const char *filepath,
                                  const int write_flags,
+                                 const int remap_mode,
                                  struct ReportList *reports);
 void BKE_blendfile_write_partial_end(struct Main *bmain_src);
 

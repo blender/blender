@@ -500,7 +500,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
 
         has_edited = ED_editors_flush_edits(bmain);
 
-        if ((has_edited && BLO_write_file(bmain, filename, fileflags, NULL, NULL)) ||
+        if ((has_edited && BLO_write_file(bmain, filename, fileflags, NULL)) ||
             (undo_memfile && BLO_memfile_write_file(undo_memfile, filename))) {
           printf("Saved session recovery to '%s'\n", filename);
         }

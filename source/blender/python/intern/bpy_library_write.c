@@ -35,6 +35,8 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
+#include "BLO_writefile.h"
+
 #include "RNA_types.h"
 
 #include "bpy_capi_utils.h"
@@ -45,8 +47,7 @@
 
 PyDoc_STRVAR(
     bpy_lib_write_doc,
-    ".. method:: write(filepath, datablocks, relative_remap=False, fake_user=False, "
-    "compress=False)\n"
+    ".. method:: write(filepath, datablocks, path_remap=False, fake_user=False, compress=False)\n"
     "\n"
     "   Write data-blocks into a blend file.\n"
     "\n"
@@ -58,8 +59,14 @@ PyDoc_STRVAR(
     "   :type filepath: string\n"
     "   :arg datablocks: set of data-blocks (:class:`bpy.types.ID` instances).\n"
     "   :type datablocks: set\n"
-    "   :arg relative_remap: When True, make paths relative to the current blend-file.\n"
-    "   :type relative_remap: bool\n"
+    "   :arg path_remap: Optionally remap paths when writing the file:\n"
+    "\n"
+    "      - ``NONE`` No path manipulation (default).\n"
+    "      - ``RELATIVE`` Remap paths that are already relative to the new location.\n"
+    "      - ``RELATIVE_ALL`` Remap all paths to be relative to the new location.\n"
+    "      - ``ABSOLUTE`` Make all paths absolute on writing.\n"
+    "\n"
+    "   :type path_remap: string\n"
     "   :arg fake_user: When True, data-blocks will be written with fake-user flag enabled.\n"
     "   :type fake_user: bool\n"
     "   :arg compress: When True, write a compressed blend file.\n"
@@ -70,13 +77,23 @@ static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject 
   const char *filepath;
   char filepath_abs[FILE_MAX];
   PyObject *datablocks = NULL;
-  bool use_relative_remap = false, use_fake_user = false, use_compress = false;
+
+  const struct PyC_StringEnumItems path_remap_items[] = {
+      {BLO_WRITE_PATH_REMAP_NONE, "NONE"},
+      {BLO_WRITE_PATH_REMAP_RELATIVE, "RELATIVE"},
+      {BLO_WRITE_PATH_REMAP_RELATIVE_ALL, "RELATIVE_ALL"},
+      {BLO_WRITE_PATH_REMAP_ABSOLUTE, "ABSOLUTE"},
+      {0, NULL},
+  };
+  struct PyC_StringEnum path_remap = {path_remap_items, BLO_WRITE_PATH_REMAP_NONE};
+
+  bool use_fake_user = false, use_compress = false;
 
   static const char *_keywords[] = {
       "filepath",
       "datablocks",
       /* optional */
-      "relative_remap",
+      "path_remap",
       "fake_user",
       "compress",
       NULL,
@@ -88,8 +105,8 @@ static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject 
                                         &filepath,
                                         &PySet_Type,
                                         &datablocks,
-                                        PyC_ParseBool,
-                                        &use_relative_remap,
+                                        PyC_ParseStringEnum,
+                                        &path_remap,
                                         PyC_ParseBool,
                                         &use_fake_user,
                                         PyC_ParseBool,
@@ -99,10 +116,6 @@ static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject 
 
   Main *bmain_src = G_MAIN;
   int write_flags = 0;
-
-  if (use_relative_remap) {
-    write_flags |= G_FILE_RELATIVE_REMAP;
-  }
 
   if (use_compress) {
     write_flags |= G_FILE_COMPRESS;
@@ -162,8 +175,8 @@ static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject 
   ReportList reports;
 
   BKE_reports_init(&reports, RPT_STORE);
-
-  retval = BKE_blendfile_write_partial(bmain_src, filepath_abs, write_flags, &reports);
+  retval = BKE_blendfile_write_partial(
+      bmain_src, filepath_abs, write_flags, path_remap.value_found, &reports);
 
   /* cleanup state */
   BKE_blendfile_write_partial_end(bmain_src);
