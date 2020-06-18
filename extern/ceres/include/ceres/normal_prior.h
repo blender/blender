@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2019 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,8 @@
 #define CERES_PUBLIC_NORMAL_PRIOR_H_
 
 #include "ceres/cost_function.h"
-#include "ceres/internal/eigen.h"
 #include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/eigen.h"
 
 namespace ceres {
 
@@ -57,15 +57,15 @@ namespace ceres {
 // which would be the case if the covariance matrix S is rank
 // deficient.
 
-class CERES_EXPORT NormalPrior: public CostFunction {
+class CERES_EXPORT NormalPrior : public CostFunction {
  public:
   // Check that the number of rows in the vector b are the same as the
   // number of columns in the matrix A, crash otherwise.
   NormalPrior(const Matrix& A, const Vector& b);
+  bool Evaluate(double const* const* parameters,
+                double* residuals,
+                double** jacobians) const override;
 
-  virtual bool Evaluate(double const* const* parameters,
-                        double* residuals,
-                        double** jacobians) const;
  private:
   Matrix A_;
   Vector b_;

@@ -56,7 +56,7 @@ namespace internal {
 // The parameter max_consecutive_nonmonotonic_steps controls the
 // window size used by the step selection algorithm to accept
 // non-monotonic steps. Setting this parameter to zero, recovers the
-// classic montonic descent algorithm.
+// classic monotonic descent algorithm.
 //
 // Based on algorithm 10.1.2 (page 357) of "Trust Region
 // Methods" by Conn Gould & Toint, or equations 33-40 of
@@ -82,7 +82,7 @@ class TrustRegionStepEvaluator {
   // max_consecutive_nonmonotonic_steps controls the window size used
   // by the step selection algorithm to accept non-monotonic
   // steps. Setting this parameter to zero, recovers the classic
-  // montonic descent algorithm.
+  // monotonic descent algorithm.
   TrustRegionStepEvaluator(double initial_cost,
                            int max_consecutive_nonmonotonic_steps);
 

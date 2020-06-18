@@ -1,0 +1,13 @@
+diff --git a/extern/ceres/include/ceres/internal/autodiff.h b/extern/ceres/include/ceres/internal/autodiff.h
+index 71b7bae4757..cb7b1aca5b9 100644
+--- a/include/ceres/internal/autodiff.h
++++ b/include/ceres/internal/autodiff.h
+@@ -198,7 +198,7 @@ struct Make1stOrderPerturbation {
+ template <int N, int Offset, typename T, typename JetT>
+ struct Make1stOrderPerturbation<N, N, Offset, T, JetT> {
+  public:
+-  static void Apply(const T* src, JetT* dst) {}
++  static void Apply(const T* /*src*/, JetT* /*dst*/) {}
+ };
+ 
+ // Calls Make1stOrderPerturbation for every parameter block.

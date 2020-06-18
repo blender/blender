@@ -32,12 +32,12 @@
 #ifndef CERES_INTERNAL_GRADIENT_CHECKING_COST_FUNCTION_H_
 #define CERES_INTERNAL_GRADIENT_CHECKING_COST_FUNCTION_H_
 
+#include <mutex>
 #include <string>
 
 #include "ceres/cost_function.h"
 #include "ceres/iteration_callback.h"
 #include "ceres/local_parameterization.h"
-#include "ceres/mutex.h"
 
 namespace ceres {
 namespace internal {
@@ -52,7 +52,7 @@ class GradientCheckingIterationCallback : public IterationCallback {
 
   // Will return SOLVER_CONTINUE until a gradient error has been detected,
   // then return SOLVER_ABORT.
-  virtual CallbackReturnType operator()(const IterationSummary& summary);
+  CallbackReturnType operator()(const IterationSummary& summary) final;
 
   // Notify this that a gradient error has occurred (thread safe).
   void SetGradientErrorDetected(std::string& error_log);
@@ -63,8 +63,7 @@ class GradientCheckingIterationCallback : public IterationCallback {
  private:
   bool gradient_error_detected_;
   std::string error_log_;
-  // Mutex protecting member variables.
-  ceres::internal::Mutex mutex_;
+  std::mutex mutex_;
 };
 
 // Creates a CostFunction that checks the Jacobians that cost_function computes

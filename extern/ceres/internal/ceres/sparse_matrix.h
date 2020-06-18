@@ -90,7 +90,7 @@ class SparseMatrix : public LinearOperator {
   virtual void ToTextFile(FILE* file) const = 0;
 
   // Accessors for the values array that stores the entries of the
-  // sparse matrix. The exact interpreptation of the values of this
+  // sparse matrix. The exact interpretation of the values of this
   // array depends on the particular kind of SparseMatrix being
   // accessed.
   virtual double* mutable_values() = 0;

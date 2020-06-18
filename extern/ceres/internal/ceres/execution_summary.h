@@ -32,47 +32,45 @@
 #define CERES_INTERNAL_EXECUTION_SUMMARY_H_
 
 #include <map>
+#include <mutex>
 #include <string>
 
 #include "ceres/internal/port.h"
 #include "ceres/wall_time.h"
-#include "ceres/mutex.h"
 
 namespace ceres {
 namespace internal {
 
-// Struct used by various objects to report statistics and other
-// information about their execution. e.g., ExecutionSummary::times
-// can be used for reporting times associated with various activities.
+struct CallStatistics {
+  CallStatistics() : time(0.), calls(0) {}
+  double time;
+  int calls;
+};
+
+// Struct used by various objects to report statistics about their
+// execution.
 class ExecutionSummary {
  public:
   void IncrementTimeBy(const std::string& name, const double value) {
-    CeresMutexLock l(&times_mutex_);
-    times_[name] += value;
+    std::lock_guard<std::mutex> l(mutex_);
+    CallStatistics& call_stats = statistics_[name];
+    call_stats.time += value;
+    ++call_stats.calls;
   }
 
-  void IncrementCall(const std::string& name) {
-    CeresMutexLock l(&calls_mutex_);
-    calls_[name] += 1;
+  const std::map<std::string, CallStatistics>& statistics() const {
+    return statistics_;
   }
-
-  const std::map<std::string, double>& times() const { return times_; }
-  const std::map<std::string, int>& calls() const { return calls_; }
 
  private:
-  Mutex times_mutex_;
-  std::map<std::string, double> times_;
-
-  Mutex calls_mutex_;
-  std::map<std::string, int> calls_;
+  std::mutex mutex_;
+  std::map<std::string, CallStatistics> statistics_;
 };
 
 class ScopedExecutionTimer {
  public:
   ScopedExecutionTimer(const std::string& name, ExecutionSummary* summary)
-      : start_time_(WallTimeInSeconds()),
-        name_(name),
-        summary_(summary) {}
+      : start_time_(WallTimeInSeconds()), name_(name), summary_(summary) {}
 
   ~ScopedExecutionTimer() {
     summary_->IncrementTimeBy(name_, WallTimeInSeconds() - start_time_);

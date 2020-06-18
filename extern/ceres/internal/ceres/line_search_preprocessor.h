@@ -39,9 +39,9 @@ namespace internal {
 class LineSearchPreprocessor : public Preprocessor {
  public:
   virtual ~LineSearchPreprocessor();
-  virtual bool Preprocess(const Solver::Options& options,
-                          ProblemImpl* problem,
-                          PreprocessedProblem* preprocessed_problem);
+  bool Preprocess(const Solver::Options& options,
+                  ProblemImpl* problem,
+                  PreprocessedProblem* preprocessed_problem) final;
 };
 
 }  // namespace internal

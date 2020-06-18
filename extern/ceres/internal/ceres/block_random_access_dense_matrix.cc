@@ -32,7 +32,6 @@
 
 #include <vector>
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "glog/logging.h"
 
 namespace ceres {

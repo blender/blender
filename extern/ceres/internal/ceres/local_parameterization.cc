@@ -31,10 +31,11 @@
 #include "ceres/local_parameterization.h"
 
 #include <algorithm>
+
 #include "Eigen/Geometry"
-#include "ceres/householder_vector.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/fixed_array.h"
+#include "ceres/internal/householder_vector.h"
 #include "ceres/rotation.h"
 #include "glog/logging.h"
 
@@ -42,13 +43,16 @@ namespace ceres {
 
 using std::vector;
 
-LocalParameterization::~LocalParameterization() {
-}
+LocalParameterization::~LocalParameterization() {}
 
 bool LocalParameterization::MultiplyByJacobian(const double* x,
                                                const int num_rows,
                                                const double* global_matrix,
                                                double* local_matrix) const {
+  if (LocalSize() == 0) {
+    return true;
+  }
+
   Matrix jacobian(GlobalSize(), LocalSize());
   if (!ComputeJacobian(x, jacobian.data())) {
     return false;
@@ -74,7 +78,7 @@ bool IdentityParameterization::Plus(const double* x,
 
 bool IdentityParameterization::ComputeJacobian(const double* x,
                                                double* jacobian) const {
-  MatrixRef(jacobian, size_, size_) = Matrix::Identity(size_, size_);
+  MatrixRef(jacobian, size_, size_).setIdentity();
   return true;
 }
 
@@ -82,9 +86,8 @@ bool IdentityParameterization::MultiplyByJacobian(const double* x,
                                                   const int num_cols,
                                                   const double* global_matrix,
                                                   double* local_matrix) const {
-  std::copy(global_matrix,
-            global_matrix + num_cols * GlobalSize(),
-            local_matrix);
+  std::copy(
+      global_matrix, global_matrix + num_cols * GlobalSize(), local_matrix);
   return true;
 }
 
@@ -93,8 +96,8 @@ SubsetParameterization::SubsetParameterization(
     : local_size_(size - constant_parameters.size()), constancy_mask_(size, 0) {
   vector<int> constant = constant_parameters;
   std::sort(constant.begin(), constant.end());
-  CHECK_GE(constant.front(), 0)
-      << "Indices indicating constant parameter must be greater than zero.";
+  CHECK_GE(constant.front(), 0) << "Indices indicating constant parameter must "
+                                   "be greater than equal to zero.";
   CHECK_LT(constant.back(), size)
       << "Indices indicating constant parameter must be less than the size "
       << "of the parameter block.";
@@ -108,7 +111,8 @@ SubsetParameterization::SubsetParameterization(
 bool SubsetParameterization::Plus(const double* x,
                                   const double* delta,
                                   double* x_plus_delta) const {
-  for (int i = 0, j = 0; i < constancy_mask_.size(); ++i) {
+  const int global_size = GlobalSize();
+  for (int i = 0, j = 0; i < global_size; ++i) {
     if (constancy_mask_[i]) {
       x_plus_delta[i] = x[i];
     } else {
@@ -124,9 +128,10 @@ bool SubsetParameterization::ComputeJacobian(const double* x,
     return true;
   }
 
-  MatrixRef m(jacobian, constancy_mask_.size(), local_size_);
+  const int global_size = GlobalSize();
+  MatrixRef m(jacobian, global_size, local_size_);
   m.setZero();
-  for (int i = 0, j = 0; i < constancy_mask_.size(); ++i) {
+  for (int i = 0, j = 0; i < global_size; ++i) {
     if (!constancy_mask_[i]) {
       m(i, j++) = 1.0;
     }
@@ -135,18 +140,19 @@ bool SubsetParameterization::ComputeJacobian(const double* x,
 }
 
 bool SubsetParameterization::MultiplyByJacobian(const double* x,
-                                               const int num_rows,
-                                               const double* global_matrix,
-                                               double* local_matrix) const {
+                                                const int num_cols,
+                                                const double* global_matrix,
+                                                double* local_matrix) const {
   if (local_size_ == 0) {
     return true;
   }
 
-  for (int row = 0; row < num_rows; ++row) {
-    for (int col = 0, j = 0; col < constancy_mask_.size(); ++col) {
-      if (!constancy_mask_[col]) {
-        local_matrix[row * LocalSize() + j++] =
-            global_matrix[row * GlobalSize() + col];
+  const int global_size = GlobalSize();
+  for (int col = 0; col < num_cols; ++col) {
+    for (int i = 0, j = 0; i < global_size; ++i) {
+      if (!constancy_mask_[i]) {
+        local_matrix[col * local_size_ + j++] =
+            global_matrix[col * global_size + i];
       }
     }
   }
@@ -176,10 +182,12 @@ bool QuaternionParameterization::Plus(const double* x,
 
 bool QuaternionParameterization::ComputeJacobian(const double* x,
                                                  double* jacobian) const {
-  jacobian[0] = -x[1]; jacobian[1]  = -x[2]; jacobian[2]  = -x[3];  // NOLINT
-  jacobian[3] =  x[0]; jacobian[4]  =  x[3]; jacobian[5]  = -x[2];  // NOLINT
-  jacobian[6] = -x[3]; jacobian[7]  =  x[0]; jacobian[8]  =  x[1];  // NOLINT
-  jacobian[9] =  x[2]; jacobian[10] = -x[1]; jacobian[11] =  x[0];  // NOLINT
+  // clang-format off
+  jacobian[0] = -x[1];  jacobian[1]  = -x[2];   jacobian[2]  = -x[3];
+  jacobian[3] =  x[0];  jacobian[4]  =  x[3];   jacobian[5]  = -x[2];
+  jacobian[6] = -x[3];  jacobian[7]  =  x[0];   jacobian[8]  =  x[1];
+  jacobian[9] =  x[2];  jacobian[10] = -x[1];   jacobian[11] =  x[0];
+  // clang-format on
   return true;
 }
 
@@ -209,10 +217,12 @@ bool EigenQuaternionParameterization::Plus(const double* x_ptr,
 
 bool EigenQuaternionParameterization::ComputeJacobian(const double* x,
                                                       double* jacobian) const {
-  jacobian[0] =  x[3]; jacobian[1]  =  x[2]; jacobian[2]  = -x[1];  // NOLINT
-  jacobian[3] = -x[2]; jacobian[4]  =  x[3]; jacobian[5]  =  x[0];  // NOLINT
-  jacobian[6] =  x[1]; jacobian[7]  = -x[0]; jacobian[8]  =  x[3];  // NOLINT
-  jacobian[9] = -x[0]; jacobian[10] = -x[1]; jacobian[11] = -x[2];  // NOLINT
+  // clang-format off
+  jacobian[0] =  x[3];  jacobian[1]  =  x[2];  jacobian[2]  = -x[1];
+  jacobian[3] = -x[2];  jacobian[4]  =  x[3];  jacobian[5]  =  x[0];
+  jacobian[6] =  x[1];  jacobian[7]  = -x[0];  jacobian[8]  =  x[3];
+  jacobian[9] = -x[0];  jacobian[10] = -x[1];  jacobian[11] = -x[2];
+  // clang-format on
   return true;
 }
 
@@ -241,21 +251,26 @@ bool HomogeneousVectorParameterization::Plus(const double* x_ptr,
   // (2nd Edition) for a detailed description.  Note there is a typo on Page
   // 625, line 4 so check the book errata.
   const double norm_delta_div_2 = 0.5 * norm_delta;
-  const double sin_delta_by_delta = sin(norm_delta_div_2) /
-      norm_delta_div_2;
+  const double sin_delta_by_delta =
+      std::sin(norm_delta_div_2) / norm_delta_div_2;
 
   Vector y(size_);
   y.head(size_ - 1) = 0.5 * sin_delta_by_delta * delta;
-  y(size_ - 1) = cos(norm_delta_div_2);
+  y(size_ - 1) = std::cos(norm_delta_div_2);
 
   Vector v(size_);
   double beta;
-  internal::ComputeHouseholderVector<double>(x, &v, &beta);
+
+  // NOTE: The explicit template arguments are needed here because
+  // ComputeHouseholderVector is templated and some versions of MSVC
+  // have trouble deducing the type of v automatically.
+  internal::ComputeHouseholderVector<ConstVectorRef, double, Eigen::Dynamic>(
+      x, &v, &beta);
 
   // Apply the delta update to remain on the unit sphere. See section A6.9.3
   // on page 625 of Hartley & Zisserman (2nd Edition) for a detailed
   // description.
-  x_plus_delta = x.norm() * (y -  v * (beta * (v.transpose() * y)));
+  x_plus_delta = x.norm() * (y - v * (beta * (v.transpose() * y)));
 
   return true;
 }
@@ -267,7 +282,12 @@ bool HomogeneousVectorParameterization::ComputeJacobian(
 
   Vector v(size_);
   double beta;
-  internal::ComputeHouseholderVector<double>(x, &v, &beta);
+
+  // NOTE: The explicit template arguments are needed here because
+  // ComputeHouseholderVector is templated and some versions of MSVC
+  // have trouble deducing the type of v automatically.
+  internal::ComputeHouseholderVector<ConstVectorRef, double, Eigen::Dynamic>(
+      x, &v, &beta);
 
   // The Jacobian is equal to J = 0.5 * H.leftCols(size_ - 1) where H is the
   // Householder matrix (H = I - beta * v * v').
@@ -280,65 +300,14 @@ bool HomogeneousVectorParameterization::ComputeJacobian(
   return true;
 }
 
-ProductParameterization::ProductParameterization(
-    LocalParameterization* local_param1,
-    LocalParameterization* local_param2) {
-  local_params_.push_back(local_param1);
-  local_params_.push_back(local_param2);
-  Init();
-}
-
-ProductParameterization::ProductParameterization(
-    LocalParameterization* local_param1,
-    LocalParameterization* local_param2,
-    LocalParameterization* local_param3) {
-  local_params_.push_back(local_param1);
-  local_params_.push_back(local_param2);
-  local_params_.push_back(local_param3);
-  Init();
-}
-
-ProductParameterization::ProductParameterization(
-    LocalParameterization* local_param1,
-    LocalParameterization* local_param2,
-    LocalParameterization* local_param3,
-    LocalParameterization* local_param4) {
-  local_params_.push_back(local_param1);
-  local_params_.push_back(local_param2);
-  local_params_.push_back(local_param3);
-  local_params_.push_back(local_param4);
-  Init();
-}
-
-ProductParameterization::~ProductParameterization() {
-  for (int i = 0; i < local_params_.size(); ++i) {
-    delete local_params_[i];
-  }
-}
-
-void ProductParameterization::Init() {
-  global_size_ = 0;
-  local_size_ = 0;
-  buffer_size_ = 0;
-  for (int i = 0; i < local_params_.size(); ++i) {
-    const LocalParameterization* param = local_params_[i];
-    buffer_size_ = std::max(buffer_size_,
-                            param->LocalSize() * param->GlobalSize());
-    global_size_ += param->GlobalSize();
-    local_size_ += param->LocalSize();
-  }
-}
-
 bool ProductParameterization::Plus(const double* x,
                                    const double* delta,
                                    double* x_plus_delta) const {
   int x_cursor = 0;
   int delta_cursor = 0;
-  for (int i = 0; i < local_params_.size(); ++i) {
-    const LocalParameterization* param = local_params_[i];
-    if (!param->Plus(x + x_cursor,
-                     delta + delta_cursor,
-                     x_plus_delta + x_cursor)) {
+  for (const auto& param : local_params_) {
+    if (!param->Plus(
+            x + x_cursor, delta + delta_cursor, x_plus_delta + x_cursor)) {
       return false;
     }
     delta_cursor += param->LocalSize();
@@ -356,16 +325,15 @@ bool ProductParameterization::ComputeJacobian(const double* x,
 
   int x_cursor = 0;
   int delta_cursor = 0;
-  for (int i = 0; i < local_params_.size(); ++i) {
-    const LocalParameterization* param = local_params_[i];
+  for (const auto& param : local_params_) {
     const int local_size = param->LocalSize();
     const int global_size = param->GlobalSize();
 
-    if (!param->ComputeJacobian(x + x_cursor, buffer.get())) {
+    if (!param->ComputeJacobian(x + x_cursor, buffer.data())) {
       return false;
     }
-    jacobian.block(x_cursor, delta_cursor, global_size, local_size)
-        = MatrixRef(buffer.get(), global_size, local_size);
+    jacobian.block(x_cursor, delta_cursor, global_size, local_size) =
+        MatrixRef(buffer.data(), global_size, local_size);
 
     delta_cursor += local_size;
     x_cursor += global_size;

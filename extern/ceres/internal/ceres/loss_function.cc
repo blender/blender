@@ -32,6 +32,7 @@
 
 #include "ceres/loss_function.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <limits>
@@ -101,7 +102,9 @@ void TolerantLoss::Evaluate(double s, double rho[3]) const {
   // large, it will overflow.  Since numerically 1 + e^x == e^x when the
   // x is greater than about ln(2^53) for doubles, beyond this threshold
   // we substitute x for ln(1 + e^x) as a numerically equivalent approximation.
-  static const double kLog2Pow53 = 36.7;  // ln(MathLimits<double>::kEpsilon).
+
+  // ln(MathLimits<double>::kEpsilon).
+  static constexpr double kLog2Pow53 = 36.7;
   if (x > kLog2Pow53) {
     rho[0] = s - a_ - c_;
     rho[1] = 1.0;
@@ -119,12 +122,12 @@ void TukeyLoss::Evaluate(double s, double* rho) const {
     // Inlier region.
     const double value = 1.0 - s / a_squared_;
     const double value_sq = value * value;
-    rho[0] = a_squared_ / 6.0 * (1.0 - value_sq * value);
-    rho[1] = 0.5 * value_sq;
-    rho[2] = -1.0 / a_squared_ * value;
+    rho[0] = a_squared_ / 3.0 * (1.0 - value_sq * value);
+    rho[1] = value_sq;
+    rho[2] = -2.0 / a_squared_ * value;
   } else {
     // Outlier region.
-    rho[0] = a_squared_ / 6.0;
+    rho[0] = a_squared_ / 3.0;
     rho[1] = 0.0;
     rho[2] = 0.0;
   }
@@ -132,10 +135,12 @@ void TukeyLoss::Evaluate(double s, double* rho) const {
 
 ComposedLoss::ComposedLoss(const LossFunction* f, Ownership ownership_f,
                            const LossFunction* g, Ownership ownership_g)
-    : f_(CHECK_NOTNULL(f)),
-      g_(CHECK_NOTNULL(g)),
+    : f_(f),
+      g_(g),
       ownership_f_(ownership_f),
       ownership_g_(ownership_g) {
+  CHECK(f_ != nullptr);
+  CHECK(g_ != nullptr);
 }
 
 ComposedLoss::~ComposedLoss() {

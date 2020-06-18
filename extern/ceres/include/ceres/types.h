@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2019 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -39,14 +39,10 @@
 
 #include <string>
 
-#include "ceres/internal/port.h"
 #include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/port.h"
 
 namespace ceres {
-
-// Basic integer types. These typedefs are in the Ceres namespace to avoid
-// conflicts with other packages having similar typedefs.
-typedef int   int32;
 
 // Argument type used in interfaces that can optionally take ownership
 // of a passed in argument. If TAKE_OWNERSHIP is passed, the called
@@ -116,10 +112,29 @@ enum PreconditionerType {
   // the scene to determine the sparsity structure of the
   // preconditioner. This is done using a clustering algorithm. The
   // available visibility clustering algorithms are described below.
-  //
-  // Note: Requires SuiteSparse.
   CLUSTER_JACOBI,
-  CLUSTER_TRIDIAGONAL
+  CLUSTER_TRIDIAGONAL,
+
+  // Subset preconditioner is a general purpose preconditioner
+  // linear least squares problems. Given a set of residual blocks,
+  // it uses the corresponding subset of the rows of the Jacobian to
+  // construct a preconditioner.
+  //
+  // Suppose the Jacobian J has been horizontally partitioned as
+  //
+  // J = [P]
+  //     [Q]
+  //
+  // Where, Q is the set of rows corresponding to the residual
+  // blocks in residual_blocks_for_subset_preconditioner.
+  //
+  // The preconditioner is the inverse of the matrix Q'Q.
+  //
+  // Obviously, the efficacy of the preconditioner depends on how
+  // well the matrix Q approximates J'J, or how well the chosen
+  // residual blocks approximate the non-linear least squares
+  // problem.
+  SUBSET,
 };
 
 enum VisibilityClusteringType {
@@ -150,7 +165,7 @@ enum SparseLinearAlgebraLibraryType {
   // minimum degree ordering.
   SUITE_SPARSE,
 
-  // A lightweight replacment for SuiteSparse, which does not require
+  // A lightweight replacement for SuiteSparse, which does not require
   // a LAPACK/BLAS implementation. Consequently, its performance is
   // also a bit lower than SuiteSparse.
   CX_SPARSE,
@@ -158,6 +173,9 @@ enum SparseLinearAlgebraLibraryType {
   // Eigen's sparse linear algebra routines. In particular Ceres uses
   // the Simplicial LDLT routines.
   EIGEN_SPARSE,
+
+  // Apple's Accelerate framework sparse linear algebra routines.
+  ACCELERATE_SPARSE,
 
   // No sparse linear solver should be used.  This does not necessarily
   // imply that Ceres was built without any sparse library, although that
@@ -202,7 +220,7 @@ enum LineSearchDirectionType {
   // symmetric matrix but only N conditions are specified by the Secant
   // equation. The requirement that the Hessian approximation be positive
   // definite imposes another N additional constraints, but that still leaves
-  // remaining degrees-of-freedom.  (L)BFGS methods uniquely deteremine the
+  // remaining degrees-of-freedom.  (L)BFGS methods uniquely determine the
   // approximate Hessian by imposing the additional constraints that the
   // approximation at the next iteration must be the 'closest' to the current
   // approximation (the nature of how this proximity is measured is actually
@@ -222,26 +240,26 @@ enum LineSearchDirectionType {
   // For more details on BFGS see:
   //
   // Broyden, C.G., "The Convergence of a Class of Double-rank Minimization
-  // Algorithms,"; J. Inst. Maths. Applics., Vol. 6, pp 76–90, 1970.
+  // Algorithms,"; J. Inst. Maths. Applics., Vol. 6, pp 76-90, 1970.
   //
   // Fletcher, R., "A New Approach to Variable Metric Algorithms,"
-  // Computer Journal, Vol. 13, pp 317–322, 1970.
+  // Computer Journal, Vol. 13, pp 317-322, 1970.
   //
   // Goldfarb, D., "A Family of Variable Metric Updates Derived by Variational
-  // Means," Mathematics of Computing, Vol. 24, pp 23–26, 1970.
+  // Means," Mathematics of Computing, Vol. 24, pp 23-26, 1970.
   //
   // Shanno, D.F., "Conditioning of Quasi-Newton Methods for Function
-  // Minimization," Mathematics of Computing, Vol. 24, pp 647–656, 1970.
+  // Minimization," Mathematics of Computing, Vol. 24, pp 647-656, 1970.
   //
   // For more details on L-BFGS see:
   //
   // Nocedal, J. (1980). "Updating Quasi-Newton Matrices with Limited
-  // Storage". Mathematics of Computation 35 (151): 773–782.
+  // Storage". Mathematics of Computation 35 (151): 773-782.
   //
   // Byrd, R. H.; Nocedal, J.; Schnabel, R. B. (1994).
   // "Representations of Quasi-Newton Matrices and their use in
   // Limited Memory Methods". Mathematical Programming 63 (4):
-  // 129–156.
+  // 129-156.
   //
   // A general reference for both methods:
   //
@@ -250,7 +268,7 @@ enum LineSearchDirectionType {
   BFGS,
 };
 
-// Nonliner conjugate gradient methods are a generalization of the
+// Nonlinear conjugate gradient methods are a generalization of the
 // method of Conjugate Gradients for linear systems. The
 // generalization can be carried out in a number of different ways
 // leading to number of different rules for computing the search
@@ -420,9 +438,15 @@ enum LineSearchInterpolationType {
 
 enum CovarianceAlgorithmType {
   DENSE_SVD,
-  SUITE_SPARSE_QR,
-  EIGEN_SPARSE_QR
+  SPARSE_QR,
 };
+
+// It is a near impossibility that user code generates this exact
+// value in normal operation, thus we will use it to fill arrays
+// before passing them to user code. If on return an element of the
+// array still contains this value, we will assume that the user code
+// did not write to that memory location.
+const double kImpossibleValue = 1e302;
 
 CERES_EXPORT const char* LinearSolverTypeToString(
     LinearSolverType type);
@@ -492,6 +516,13 @@ CERES_EXPORT const char* NumericDiffMethodTypeToString(
 CERES_EXPORT bool StringToNumericDiffMethodType(
     std::string value,
     NumericDiffMethodType* type);
+
+CERES_EXPORT const char* LoggingTypeToString(LoggingType type);
+CERES_EXPORT bool StringtoLoggingType(std::string value, LoggingType* type);
+
+CERES_EXPORT const char* DumpFormatTypeToString(DumpFormatType type);
+CERES_EXPORT bool StringtoDumpFormatType(std::string value, DumpFormatType* type);
+CERES_EXPORT bool StringtoDumpFormatType(std::string value, LoggingType* type);
 
 CERES_EXPORT const char* TerminationTypeToString(TerminationType type);
 

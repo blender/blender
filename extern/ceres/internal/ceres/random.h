@@ -43,7 +43,11 @@ inline void SetRandomState(int state) {
 }
 
 inline int Uniform(int n) {
-  return rand() % n;
+  if (n) {
+    return rand() % n;
+  } else {
+    return 0;
+  }
 }
 
 inline double RandDouble() {

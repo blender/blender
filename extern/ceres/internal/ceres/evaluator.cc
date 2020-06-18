@@ -51,6 +51,8 @@ Evaluator::~Evaluator() {}
 Evaluator* Evaluator::Create(const Evaluator::Options& options,
                              Program* program,
                              std::string* error) {
+  CHECK(options.context != NULL);
+
   switch (options.linear_solver_type) {
     case DENSE_QR:
     case DENSE_NORMAL_CHOLESKY:
@@ -71,9 +73,9 @@ Evaluator* Evaluator::Create(const Evaluator::Options& options,
                                     DynamicCompressedRowJacobianFinalizer>(
                                         options, program);
       } else {
-        return new ProgramEvaluator<ScratchEvaluatePreparer,
-                                    CompressedRowJacobianWriter>(options,
-                                                                 program);
+        return new ProgramEvaluator<BlockEvaluatePreparer,
+                                    BlockJacobianWriter>(options,
+                                                         program);
       }
 
     default:

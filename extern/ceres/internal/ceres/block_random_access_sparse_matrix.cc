@@ -31,12 +31,12 @@
 #include "ceres/block_random_access_sparse_matrix.h"
 
 #include <algorithm>
+#include <memory>
 #include <set>
 #include <utility>
 #include <vector>
+
 #include "ceres/internal/port.h"
-#include "ceres/internal/scoped_ptr.h"
-#include "ceres/mutex.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
 #include "glog/logging.h"
@@ -51,7 +51,7 @@ using std::vector;
 
 BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
     const vector<int>& blocks,
-    const set<pair<int, int> >& block_pairs)
+    const set<pair<int, int>>& block_pairs)
     : kMaxRowBlocks(10 * 1000 * 1000),
       blocks_(blocks) {
   CHECK_LT(blocks.size(), kMaxRowBlocks);
@@ -69,11 +69,9 @@ BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
   // object for looking into the values array of the
   // TripletSparseMatrix.
   int num_nonzeros = 0;
-  for (set<pair<int, int> >::const_iterator it = block_pairs.begin();
-       it != block_pairs.end();
-       ++it) {
-    const int row_block_size = blocks_[it->first];
-    const int col_block_size = blocks_[it->second];
+  for (const auto& block_pair : block_pairs) {
+    const int row_block_size = blocks_[block_pair.first];
+    const int col_block_size = blocks_[block_pair.second];
     num_nonzeros += row_block_size * col_block_size;
   }
 
@@ -88,24 +86,19 @@ BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
   double* values = tsm_->mutable_values();
 
   int pos = 0;
-  for (set<pair<int, int> >::const_iterator it = block_pairs.begin();
-       it != block_pairs.end();
-       ++it) {
-    const int row_block_size = blocks_[it->first];
-    const int col_block_size = blocks_[it->second];
-    cell_values_.push_back(make_pair(make_pair(it->first, it->second),
-                                     values + pos));
-    layout_[IntPairToLong(it->first, it->second)] =
+  for (const auto& block_pair : block_pairs) {
+    const int row_block_size = blocks_[block_pair.first];
+    const int col_block_size = blocks_[block_pair.second];
+    cell_values_.push_back(make_pair(block_pair, values + pos));
+    layout_[IntPairToLong(block_pair.first, block_pair.second)] =
         new CellInfo(values + pos);
     pos += row_block_size * col_block_size;
   }
 
   // Fill the sparsity pattern of the underlying matrix.
-  for (set<pair<int, int> >::const_iterator it = block_pairs.begin();
-       it != block_pairs.end();
-       ++it) {
-    const int row_block_id = it->first;
-    const int col_block_id = it->second;
+  for (const auto& block_pair : block_pairs) {
+    const int row_block_id = block_pair.first;
+    const int col_block_id = block_pair.second;
     const int row_block_size = blocks_[row_block_id];
     const int col_block_size = blocks_[col_block_id];
     int pos =
@@ -125,10 +118,8 @@ BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
 // Assume that the user does not hold any locks on any cell blocks
 // when they are calling SetZero.
 BlockRandomAccessSparseMatrix::~BlockRandomAccessSparseMatrix() {
-  for (LayoutType::iterator it = layout_.begin();
-       it != layout_.end();
-       ++it) {
-    delete it->second;
+  for (const auto& entry : layout_) {
+    delete entry.second;
   }
 }
 
@@ -163,19 +154,17 @@ void BlockRandomAccessSparseMatrix::SetZero() {
 
 void BlockRandomAccessSparseMatrix::SymmetricRightMultiply(const double* x,
                                                            double* y) const {
-  vector< pair<pair<int, int>, double*> >::const_iterator it =
-      cell_values_.begin();
-  for (; it != cell_values_.end(); ++it) {
-    const int row = it->first.first;
+  for (const auto& cell_position_and_data : cell_values_) {
+    const int row = cell_position_and_data.first.first;
     const int row_block_size = blocks_[row];
     const int row_block_pos = block_positions_[row];
 
-    const int col = it->first.second;
+    const int col = cell_position_and_data.first.second;
     const int col_block_size = blocks_[col];
     const int col_block_pos = block_positions_[col];
 
     MatrixVectorMultiply<Eigen::Dynamic, Eigen::Dynamic, 1>(
-        it->second, row_block_size, col_block_size,
+        cell_position_and_data.second, row_block_size, col_block_size,
         x + col_block_pos,
         y + row_block_pos);
 
@@ -185,7 +174,7 @@ void BlockRandomAccessSparseMatrix::SymmetricRightMultiply(const double* x,
     // triangular multiply also.
     if (row != col) {
       MatrixTransposeVectorMultiply<Eigen::Dynamic, Eigen::Dynamic, 1>(
-          it->second, row_block_size, col_block_size,
+          cell_position_and_data.second, row_block_size, col_block_size,
           x + row_block_pos,
           y + col_block_pos);
     }

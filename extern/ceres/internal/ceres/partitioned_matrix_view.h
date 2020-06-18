@@ -119,20 +119,20 @@ class PartitionedMatrixView : public PartitionedMatrixViewBase {
   PartitionedMatrixView(const BlockSparseMatrix& matrix, int num_col_blocks_e);
 
   virtual ~PartitionedMatrixView();
-  virtual void LeftMultiplyE(const double* x, double* y) const;
-  virtual void LeftMultiplyF(const double* x, double* y) const;
-  virtual void RightMultiplyE(const double* x, double* y) const;
-  virtual void RightMultiplyF(const double* x, double* y) const;
-  virtual BlockSparseMatrix* CreateBlockDiagonalEtE() const;
-  virtual BlockSparseMatrix* CreateBlockDiagonalFtF() const;
-  virtual void UpdateBlockDiagonalEtE(BlockSparseMatrix* block_diagonal) const;
-  virtual void UpdateBlockDiagonalFtF(BlockSparseMatrix* block_diagonal) const;
-  virtual int num_col_blocks_e() const { return num_col_blocks_e_;  }
-  virtual int num_col_blocks_f() const { return num_col_blocks_f_;  }
-  virtual int num_cols_e()       const { return num_cols_e_;        }
-  virtual int num_cols_f()       const { return num_cols_f_;        }
-  virtual int num_rows()         const { return matrix_.num_rows(); }
-  virtual int num_cols()         const { return matrix_.num_cols(); }
+  void LeftMultiplyE(const double* x, double* y) const final;
+  void LeftMultiplyF(const double* x, double* y) const final;
+  void RightMultiplyE(const double* x, double* y) const final;
+  void RightMultiplyF(const double* x, double* y) const final;
+  BlockSparseMatrix* CreateBlockDiagonalEtE() const final;
+  BlockSparseMatrix* CreateBlockDiagonalFtF() const final;
+  void UpdateBlockDiagonalEtE(BlockSparseMatrix* block_diagonal) const final;
+  void UpdateBlockDiagonalFtF(BlockSparseMatrix* block_diagonal) const final;
+  int num_col_blocks_e() const final { return num_col_blocks_e_;  }
+  int num_col_blocks_f() const final { return num_col_blocks_f_;  }
+  int num_cols_e()       const final { return num_cols_e_;        }
+  int num_cols_f()       const final { return num_cols_f_;        }
+  int num_rows()         const final { return matrix_.num_rows(); }
+  int num_cols()         const final { return matrix_.num_cols(); }
 
  private:
   BlockSparseMatrix* CreateBlockDiagonalMatrixLayout(int start_col_block,

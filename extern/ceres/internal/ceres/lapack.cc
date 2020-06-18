@@ -34,6 +34,7 @@
 #include "ceres/linear_solver.h"
 #include "glog/logging.h"
 
+#ifndef CERES_NO_LAPACK
 // C interface to the LAPACK Cholesky factorization and triangular solve.
 extern "C" void dpotrf_(char* uplo,
                        int* n,
@@ -61,7 +62,7 @@ extern "C" void dgels_(char* uplo,
                        double* work,
                        int* lwork,
                        int* info);
-
+#endif
 
 namespace ceres {
 namespace internal {

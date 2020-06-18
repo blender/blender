@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2019 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -52,16 +52,16 @@
 // The actual cost added to the total problem is e^2, or (k - x'k)^2; however,
 // the squaring is implicitly done by the optimization framework.
 //
-// To write an numerically-differentiable cost function for the above model, first
-// define the object
+// To write an numerically-differentiable cost function for the above model,
+// first define the object
 //
 //   class MyScalarCostFunctor {
-//     MyScalarCostFunctor(double k): k_(k) {}
+//     explicit MyScalarCostFunctor(double k): k_(k) {}
 //
 //     bool operator()(const double* const x,
 //                     const double* const y,
 //                     double* residuals) const {
-//       residuals[0] = k_ - x[0] * y[0] + x[1] * y[1];
+//       residuals[0] = k_ - x[0] * y[0] - x[1] * y[1];
 //       return true;
 //     }
 //
@@ -98,6 +98,8 @@
 // NumericDiffCostFunction also supports cost functions with a
 // runtime-determined number of residuals. For example:
 //
+// clang-format off
+//
 //   CostFunction* cost_function
 //       = new NumericDiffCostFunction<MyScalarCostFunctor, CENTRAL, DYNAMIC, 2, 2>(
 //           new CostFunctorWithDynamicNumResiduals(1.0),               ^     ^  ^
@@ -109,10 +111,8 @@
 //             Indicate dynamic number of residuals --------------------+     |  |
 //             Dimension of x ------------------------------------------------+  |
 //             Dimension of y ---------------------------------------------------+
+// clang-format on
 //
-// The framework can currently accommodate cost functions of up to 10
-// independent variables, and there is no limit on the dimensionality
-// of each of them.
 //
 // The central difference method is considerably more accurate at the cost of
 // twice as many function evaluations than forward difference. Consider using
@@ -161,10 +161,13 @@
 #ifndef CERES_PUBLIC_NUMERIC_DIFF_COST_FUNCTION_H_
 #define CERES_PUBLIC_NUMERIC_DIFF_COST_FUNCTION_H_
 
+#include <array>
+#include <memory>
+
 #include "Eigen/Dense"
 #include "ceres/cost_function.h"
 #include "ceres/internal/numeric_diff.h"
-#include "ceres/internal/scoped_ptr.h"
+#include "ceres/internal/parameter_dims.h"
 #include "ceres/numeric_diff_options.h"
 #include "ceres/sized_cost_function.h"
 #include "ceres/types.h"
@@ -175,34 +178,17 @@ namespace ceres {
 template <typename CostFunctor,
           NumericDiffMethodType method = CENTRAL,
           int kNumResiduals = 0,  // Number of residuals, or ceres::DYNAMIC
-          int N0 = 0,   // Number of parameters in block 0.
-          int N1 = 0,   // Number of parameters in block 1.
-          int N2 = 0,   // Number of parameters in block 2.
-          int N3 = 0,   // Number of parameters in block 3.
-          int N4 = 0,   // Number of parameters in block 4.
-          int N5 = 0,   // Number of parameters in block 5.
-          int N6 = 0,   // Number of parameters in block 6.
-          int N7 = 0,   // Number of parameters in block 7.
-          int N8 = 0,   // Number of parameters in block 8.
-          int N9 = 0>   // Number of parameters in block 9.
-class NumericDiffCostFunction
-    : public SizedCostFunction<kNumResiduals,
-                               N0, N1, N2, N3, N4,
-                               N5, N6, N7, N8, N9> {
+          int... Ns>              // Parameters dimensions for each block.
+class NumericDiffCostFunction : public SizedCostFunction<kNumResiduals, Ns...> {
  public:
   NumericDiffCostFunction(
       CostFunctor* functor,
       Ownership ownership = TAKE_OWNERSHIP,
       int num_residuals = kNumResiduals,
       const NumericDiffOptions& options = NumericDiffOptions())
-      : functor_(functor),
-        ownership_(ownership),
-        options_(options) {
+      : functor_(functor), ownership_(ownership), options_(options) {
     if (kNumResiduals == DYNAMIC) {
-      SizedCostFunction<kNumResiduals,
-                        N0, N1, N2, N3, N4,
-                        N5, N6, N7, N8, N9>
-          ::set_num_residuals(num_residuals);
+      SizedCostFunction<kNumResiduals, Ns...>::set_num_residuals(num_residuals);
     }
   }
 
@@ -212,24 +198,21 @@ class NumericDiffCostFunction
     }
   }
 
-  virtual bool Evaluate(double const* const* parameters,
-                        double* residuals,
-                        double** jacobians) const {
+  bool Evaluate(double const* const* parameters,
+                double* residuals,
+                double** jacobians) const override {
     using internal::FixedArray;
     using internal::NumericDiff;
 
-    const int kNumParameters = N0 + N1 + N2 + N3 + N4 + N5 + N6 + N7 + N8 + N9;
-    const int kNumParameterBlocks =
-        (N0 > 0) + (N1 > 0) + (N2 > 0) + (N3 > 0) + (N4 > 0) +
-        (N5 > 0) + (N6 > 0) + (N7 > 0) + (N8 > 0) + (N9 > 0);
+    using ParameterDims =
+        typename SizedCostFunction<kNumResiduals, Ns...>::ParameterDims;
+
+    constexpr int kNumParameters = ParameterDims::kNumParameters;
+    constexpr int kNumParameterBlocks = ParameterDims::kNumParameterBlocks;
 
     // Get the function value (residuals) at the the point to evaluate.
-    if (!internal::EvaluateImpl<CostFunctor,
-                                N0, N1, N2, N3, N4, N5, N6, N7, N8, N9>(
-                                    functor_.get(),
-                                    parameters,
-                                    residuals,
-                                    functor_.get())) {
+    if (!internal::VariadicEvaluate<ParameterDims>(
+            *functor_, parameters, residuals)) {
       return false;
     }
 
@@ -239,77 +222,29 @@ class NumericDiffCostFunction
 
     // Create a copy of the parameters which will get mutated.
     FixedArray<double> parameters_copy(kNumParameters);
-    FixedArray<double*> parameters_reference_copy(kNumParameterBlocks);
+    std::array<double*, kNumParameterBlocks> parameters_reference_copy =
+        ParameterDims::GetUnpackedParameters(parameters_copy.data());
 
-    parameters_reference_copy[0] = parameters_copy.get();
-    if (N1) parameters_reference_copy[1] = parameters_reference_copy[0] + N0;
-    if (N2) parameters_reference_copy[2] = parameters_reference_copy[1] + N1;
-    if (N3) parameters_reference_copy[3] = parameters_reference_copy[2] + N2;
-    if (N4) parameters_reference_copy[4] = parameters_reference_copy[3] + N3;
-    if (N5) parameters_reference_copy[5] = parameters_reference_copy[4] + N4;
-    if (N6) parameters_reference_copy[6] = parameters_reference_copy[5] + N5;
-    if (N7) parameters_reference_copy[7] = parameters_reference_copy[6] + N6;
-    if (N8) parameters_reference_copy[8] = parameters_reference_copy[7] + N7;
-    if (N9) parameters_reference_copy[9] = parameters_reference_copy[8] + N8;
-
-#define CERES_COPY_PARAMETER_BLOCK(block)                               \
-  if (N ## block) memcpy(parameters_reference_copy[block],              \
-                         parameters[block],                             \
-                         sizeof(double) * N ## block);  // NOLINT
-
-    CERES_COPY_PARAMETER_BLOCK(0);
-    CERES_COPY_PARAMETER_BLOCK(1);
-    CERES_COPY_PARAMETER_BLOCK(2);
-    CERES_COPY_PARAMETER_BLOCK(3);
-    CERES_COPY_PARAMETER_BLOCK(4);
-    CERES_COPY_PARAMETER_BLOCK(5);
-    CERES_COPY_PARAMETER_BLOCK(6);
-    CERES_COPY_PARAMETER_BLOCK(7);
-    CERES_COPY_PARAMETER_BLOCK(8);
-    CERES_COPY_PARAMETER_BLOCK(9);
-
-#undef CERES_COPY_PARAMETER_BLOCK
-
-#define CERES_EVALUATE_JACOBIAN_FOR_BLOCK(block)                        \
-    if (N ## block && jacobians[block] != NULL) {                       \
-      if (!NumericDiff<CostFunctor,                                     \
-                       method,                                          \
-                       kNumResiduals,                                   \
-                       N0, N1, N2, N3, N4, N5, N6, N7, N8, N9,          \
-                       block,                                           \
-                       N ## block >::EvaluateJacobianForParameterBlock( \
-                           functor_.get(),                              \
-                           residuals,                                   \
-                           options_,                                    \
-                          SizedCostFunction<kNumResiduals,              \
-                           N0, N1, N2, N3, N4,                          \
-                           N5, N6, N7, N8, N9>::num_residuals(),        \
-                           block,                                       \
-                           N ## block,                                  \
-                           parameters_reference_copy.get(),             \
-                           jacobians[block])) {                         \
-        return false;                                                   \
-      }                                                                 \
+    for (int block = 0; block < kNumParameterBlocks; ++block) {
+      memcpy(parameters_reference_copy[block],
+             parameters[block],
+             sizeof(double) * ParameterDims::GetDim(block));
     }
 
-    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(0);
-    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(1);
-    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(2);
-    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(3);
-    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(4);
-    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(5);
-    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(6);
-    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(7);
-    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(8);
-    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(9);
-
-#undef CERES_EVALUATE_JACOBIAN_FOR_BLOCK
+    internal::EvaluateJacobianForParameterBlocks<ParameterDims>::
+        template Apply<method, kNumResiduals>(
+            functor_.get(),
+            residuals,
+            options_,
+            SizedCostFunction<kNumResiduals, Ns...>::num_residuals(),
+            parameters_reference_copy.data(),
+            jacobians);
 
     return true;
   }
 
  private:
-  internal::scoped_ptr<CostFunctor> functor_;
+  std::unique_ptr<CostFunctor> functor_;
   Ownership ownership_;
   NumericDiffOptions options_;
 };

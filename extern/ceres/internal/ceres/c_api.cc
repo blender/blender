@@ -80,9 +80,9 @@ class CallbackCostFunction : public ceres::CostFunction {
 
   virtual ~CallbackCostFunction() {}
 
-  virtual bool Evaluate(double const* const* parameters,
+  bool Evaluate(double const* const* parameters,
                         double* residuals,
-                        double** jacobians) const {
+                        double** jacobians) const final {
     return (*cost_function_)(user_data_,
                              const_cast<double**>(parameters),
                              residuals,
@@ -101,7 +101,7 @@ class CallbackLossFunction : public ceres::LossFunction {
   explicit CallbackLossFunction(ceres_loss_function_t loss_function,
                                 void* user_data)
     : loss_function_(loss_function), user_data_(user_data) {}
-  virtual void Evaluate(double sq_norm, double* rho) const {
+  void Evaluate(double sq_norm, double* rho) const final {
     (*loss_function_)(user_data_, sq_norm, rho);
   }
 

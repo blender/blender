@@ -33,13 +33,13 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <numeric>
 #include <string>
 #include <vector>
 
 #include "ceres/gradient_checker.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/parameter_block.h"
 #include "ceres/problem.h"
 #include "ceres/problem_impl.h"
@@ -74,8 +74,8 @@ class GradientCheckingCostFunction : public CostFunction {
         relative_precision_(relative_precision),
         extra_info_(extra_info),
         callback_(callback) {
-    CHECK_NOTNULL(callback_);
-    const vector<int32>& parameter_block_sizes =
+    CHECK(callback_ != nullptr);
+    const vector<int32_t>& parameter_block_sizes =
         function->parameter_block_sizes();
     *mutable_parameter_block_sizes() = parameter_block_sizes;
     set_num_residuals(function->num_residuals());
@@ -83,9 +83,9 @@ class GradientCheckingCostFunction : public CostFunction {
 
   virtual ~GradientCheckingCostFunction() { }
 
-  virtual bool Evaluate(double const* const* parameters,
-                        double* residuals,
-                        double** jacobians) const {
+  bool Evaluate(double const* const* parameters,
+                double* residuals,
+                double** jacobians) const final {
     if (!jacobians) {
       // Nothing to check in this case; just forward.
       return function_->Evaluate(parameters, residuals, NULL);
@@ -107,7 +107,7 @@ class GradientCheckingCostFunction : public CostFunction {
     MatrixRef(residuals, num_residuals, 1) = results.residuals;
 
     // Copy the original jacobian blocks into the jacobians array.
-    const vector<int32>& block_sizes = function_->parameter_block_sizes();
+    const vector<int32_t>& block_sizes = function_->parameter_block_sizes();
     for (int k = 0; k < block_sizes.size(); k++) {
       if (jacobians[k] != NULL) {
         MatrixRef(jacobians[k],
@@ -148,10 +148,9 @@ CallbackReturnType GradientCheckingIterationCallback::operator()(
 }
 void GradientCheckingIterationCallback::SetGradientErrorDetected(
     std::string& error_log) {
-  mutex_.Lock();
+  std::lock_guard<std::mutex> l(mutex_);
   gradient_error_detected_ = true;
   error_log_ += "\n" + error_log;
-  mutex_.Unlock();
 }
 
 CostFunction* CreateGradientCheckingCostFunction(
@@ -176,7 +175,7 @@ ProblemImpl* CreateGradientCheckingProblemImpl(
     double relative_step_size,
     double relative_precision,
     GradientCheckingIterationCallback* callback) {
-  CHECK_NOTNULL(callback);
+  CHECK(callback != nullptr);
   // We create new CostFunctions by wrapping the original CostFunction
   // in a gradient checking CostFunction. So its okay for the
   // ProblemImpl to take ownership of it and destroy it. The
@@ -189,6 +188,7 @@ ProblemImpl* CreateGradientCheckingProblemImpl(
       DO_NOT_TAKE_OWNERSHIP;
   gradient_checking_problem_options.local_parameterization_ownership =
       DO_NOT_TAKE_OWNERSHIP;
+  gradient_checking_problem_options.context = problem_impl->context();
 
   NumericDiffOptions numeric_diff_options;
   numeric_diff_options.relative_step_size = relative_step_size;
@@ -211,6 +211,17 @@ ProblemImpl* CreateGradientCheckingProblemImpl(
     if (parameter_block->IsConstant()) {
       gradient_checking_problem_impl->SetParameterBlockConstant(
           parameter_block->mutable_user_state());
+    }
+
+    for (int i = 0; i <  parameter_block->Size(); ++i) {
+      gradient_checking_problem_impl->SetParameterUpperBound(
+          parameter_block->mutable_user_state(),
+          i,
+          parameter_block->UpperBound(i));
+      gradient_checking_problem_impl->SetParameterLowerBound(
+          parameter_block->mutable_user_state(),
+          i,
+          parameter_block->LowerBound(i));
     }
   }
 
@@ -255,7 +266,8 @@ ProblemImpl* CreateGradientCheckingProblemImpl(
     gradient_checking_problem_impl->AddResidualBlock(
         gradient_checking_cost_function,
         const_cast<LossFunction*>(residual_block->loss_function()),
-        parameter_blocks);
+        parameter_blocks.data(),
+        static_cast<int>(parameter_blocks.size()));
   }
 
   // Normally, when a problem is given to the solver, we guarantee

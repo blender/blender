@@ -30,6 +30,8 @@
 
 #include <string>
 
+#include "ceres/internal/config.h"
+
 #include "Eigen/Core"
 #include "ceres/internal/port.h"
 #include "ceres/solver_utils.h"
@@ -59,6 +61,10 @@ std::string VersionString() {
 
 #ifndef CERES_NO_CXSPARSE
   value += "-cxsparse-(" + std::string(CERES_CXSPARSE_VERSION) + ")";
+#endif
+
+#ifndef CERES_NO_ACCELERATE_SPARSE
+  value += "-acceleratesparse";
 #endif
 
 #ifdef CERES_USE_EIGEN_SPARSE

@@ -38,6 +38,7 @@
 #include "ceres/internal/port.h"
 #include "ceres/internal/eigen.h"
 #include "glog/logging.h"
+#include "small_blas_generic.h"
 
 namespace ceres {
 namespace internal {
@@ -89,6 +90,26 @@ namespace internal {
       B, num_row_b, num_col_b,                                          \
       C, start_row_c, start_col_c, row_stride_c, col_stride_c);
 
+#define CERES_GEMM_STORE_SINGLE(p, index, value)                        \
+  if (kOperation > 0) {                                                 \
+    p[index] += value;                                                  \
+  } else if (kOperation < 0) {                                          \
+    p[index] -= value;                                                  \
+  } else {                                                              \
+    p[index] = value;                                                   \
+  }
+
+#define CERES_GEMM_STORE_PAIR(p, index, v1, v2)                         \
+  if (kOperation > 0) {                                                 \
+    p[index] += v1;                                                     \
+    p[index + 1] += v2;                                                 \
+  } else if (kOperation < 0) {                                          \
+    p[index] -= v1;                                                     \
+    p[index + 1] -= v2;                                                 \
+  } else {                                                              \
+    p[index] = v1;                                                      \
+    p[index + 1] = v2;                                                  \
+  }
 
 // For the matrix-matrix functions below, there are three variants for
 // each functionality. Foo, FooNaive and FooEigen. Foo is the one to
@@ -160,24 +181,64 @@ CERES_GEMM_BEGIN(MatrixMatrixMultiplyNaive) {
   const int NUM_COL_C = NUM_COL_B;
   DCHECK_LE(start_row_c + NUM_ROW_C, row_stride_c);
   DCHECK_LE(start_col_c + NUM_COL_C, col_stride_c);
+  const int span = 4;
 
-  for (int row = 0; row < NUM_ROW_C; ++row) {
-    for (int col = 0; col < NUM_COL_C; ++col) {
+  // Calculate the remainder part first.
+
+  // Process the last odd column if present.
+  if (NUM_COL_C & 1) {
+    int col = NUM_COL_C - 1;
+    const double* pa = &A[0];
+    for (int row = 0; row < NUM_ROW_C; ++row, pa += NUM_COL_A) {
+      const double* pb = &B[col];
       double tmp = 0.0;
-      for (int k = 0; k < NUM_COL_A; ++k) {
-        tmp += A[row * NUM_COL_A + k] * B[k * NUM_COL_B + col];
+      for (int k = 0; k < NUM_COL_A; ++k, pb += NUM_COL_B) {
+        tmp += pa[k] * pb[0];
       }
 
       const int index = (row + start_row_c) * col_stride_c + start_col_c + col;
-      if (kOperation > 0) {
-        C[index] += tmp;
-      } else if (kOperation < 0) {
-        C[index] -= tmp;
-      } else {
-        C[index] = tmp;
-      }
+      CERES_GEMM_STORE_SINGLE(C, index, tmp);
+    }
+
+    // Return directly for efficiency of extremely small matrix multiply.
+    if (NUM_COL_C == 1) {
+      return;
     }
   }
+
+  // Process the couple columns in remainder if present.
+  if (NUM_COL_C & 2) {
+    int col = NUM_COL_C & (int)(~(span - 1)) ;
+    const double* pa = &A[0];
+    for (int row = 0; row < NUM_ROW_C; ++row, pa += NUM_COL_A) {
+      const double* pb = &B[col];
+      double tmp1 = 0.0, tmp2 = 0.0;
+      for (int k = 0; k < NUM_COL_A; ++k, pb += NUM_COL_B) {
+        double av = pa[k];
+        tmp1 += av * pb[0];
+        tmp2 += av * pb[1];
+      }
+
+      const int index = (row + start_row_c) * col_stride_c + start_col_c + col;
+      CERES_GEMM_STORE_PAIR(C, index, tmp1, tmp2);
+    }
+
+    // Return directly for efficiency of extremely small matrix multiply.
+    if (NUM_COL_C < span) {
+      return;
+    }
+  }
+
+  // Calculate the main part with multiples of 4.
+  int col_m = NUM_COL_C & (int)(~(span - 1));
+  for (int col = 0; col < col_m; col += span) {
+    for (int row = 0; row < NUM_ROW_C; ++row) {
+      const int index = (row + start_row_c) * col_stride_c + start_col_c + col;
+      MMM_mat1x4(NUM_COL_A, &A[row * NUM_COL_A],
+                 &B[col], NUM_COL_B, &C[index], kOperation);
+    }
+  }
+
 }
 
 CERES_GEMM_BEGIN(MatrixMatrixMultiply) {
@@ -220,24 +281,68 @@ CERES_GEMM_BEGIN(MatrixTransposeMatrixMultiplyNaive) {
   const int NUM_COL_C = NUM_COL_B;
   DCHECK_LE(start_row_c + NUM_ROW_C, row_stride_c);
   DCHECK_LE(start_col_c + NUM_COL_C, col_stride_c);
+  const int span = 4;
 
-  for (int row = 0; row < NUM_ROW_C; ++row) {
-    for (int col = 0; col < NUM_COL_C; ++col) {
+  // Process the remainder part first.
+
+  // Process the last odd column if present.
+  if (NUM_COL_C & 1) {
+    int col = NUM_COL_C - 1;
+    for (int row = 0; row < NUM_ROW_C; ++row) {
+      const double* pa = &A[row];
+      const double* pb = &B[col];
       double tmp = 0.0;
       for (int k = 0; k < NUM_ROW_A; ++k) {
-        tmp += A[k * NUM_COL_A + row] * B[k * NUM_COL_B + col];
+        tmp += pa[0] * pb[0];
+        pa += NUM_COL_A;
+        pb += NUM_COL_B;
       }
 
       const int index = (row + start_row_c) * col_stride_c + start_col_c + col;
-      if (kOperation > 0) {
-        C[index]+= tmp;
-      } else if (kOperation < 0) {
-        C[index]-= tmp;
-      } else {
-        C[index]= tmp;
-      }
+      CERES_GEMM_STORE_SINGLE(C, index, tmp);
+    }
+
+    // Return directly for efficiency of extremely small matrix multiply.
+    if (NUM_COL_C == 1) {
+      return;
     }
   }
+
+  // Process the couple columns in remainder if present.
+  if (NUM_COL_C & 2) {
+    int col = NUM_COL_C & (int)(~(span - 1)) ;
+    for (int row = 0; row < NUM_ROW_C; ++row) {
+      const double* pa = &A[row];
+      const double* pb = &B[col];
+      double tmp1 = 0.0, tmp2 = 0.0;
+      for (int k = 0; k < NUM_ROW_A; ++k) {
+        double av = *pa;
+        tmp1 += av * pb[0];
+        tmp2 += av * pb[1];
+        pa += NUM_COL_A;
+        pb += NUM_COL_B;
+      }
+
+      const int index = (row + start_row_c) * col_stride_c + start_col_c + col;
+      CERES_GEMM_STORE_PAIR(C, index, tmp1, tmp2);
+    }
+
+    // Return directly for efficiency of extremely small matrix multiply.
+    if (NUM_COL_C < span) {
+      return;
+    }
+  }
+
+  // Process the main part with multiples of 4.
+  int col_m = NUM_COL_C & (int)(~(span - 1));
+  for (int col = 0; col < col_m; col += span) {
+    for (int row = 0; row < NUM_ROW_C; ++row) {
+      const int index = (row + start_row_c) * col_stride_c + start_col_c + col;
+      MTM_mat1x4(NUM_ROW_A, &A[row], NUM_COL_A,
+                 &B[col], NUM_COL_B, &C[index], kOperation);
+    }
+  }
+
 }
 
 CERES_GEMM_BEGIN(MatrixTransposeMatrixMultiply) {
@@ -301,21 +406,54 @@ inline void MatrixVectorMultiply(const double* A,
 
   const int NUM_ROW_A = (kRowA != Eigen::Dynamic ? kRowA : num_row_a);
   const int NUM_COL_A = (kColA != Eigen::Dynamic ? kColA : num_col_a);
+  const int span = 4;
 
-  for (int row = 0; row < NUM_ROW_A; ++row) {
+  // Calculate the remainder part first.
+
+  // Process the last odd row if present.
+  if (NUM_ROW_A & 1) {
+    int row  = NUM_ROW_A - 1;
+    const double* pa = &A[row * NUM_COL_A];
+    const double* pb = &b[0];
     double tmp = 0.0;
     for (int col = 0; col < NUM_COL_A; ++col) {
-      tmp += A[row * NUM_COL_A + col] * b[col];
+      tmp += (*pa++) * (*pb++);
     }
+    CERES_GEMM_STORE_SINGLE(c, row, tmp);
 
-    if (kOperation > 0) {
-      c[row] += tmp;
-    } else if (kOperation < 0) {
-      c[row] -= tmp;
-    } else {
-      c[row] = tmp;
+    // Return directly for efficiency of extremely small matrix multiply.
+    if (NUM_ROW_A == 1) {
+      return;
     }
   }
+
+  // Process the couple rows in remainder if present.
+  if (NUM_ROW_A & 2) {
+    int row = NUM_ROW_A & (int)(~(span - 1));
+    const double* pa1 = &A[row * NUM_COL_A];
+    const double* pa2 = pa1 + NUM_COL_A;
+    const double* pb = &b[0];
+    double tmp1 = 0.0, tmp2 = 0.0;
+    for (int col = 0; col < NUM_COL_A; ++col) {
+      double bv = *pb++;
+      tmp1 += *(pa1++) * bv;
+      tmp2 += *(pa2++) * bv;
+    }
+    CERES_GEMM_STORE_PAIR(c, row, tmp1, tmp2);
+
+    // Return directly for efficiency of extremely small matrix multiply.
+    if (NUM_ROW_A < span) {
+      return;
+    }
+  }
+
+  // Calculate the main part with multiples of 4.
+  int row_m = NUM_ROW_A & (int)(~(span - 1));
+  for (int row = 0; row < row_m; row += span) {
+    MVM_mat4x1(NUM_COL_A, &A[row * NUM_COL_A], NUM_COL_A,
+               &b[0], &c[row], kOperation);
+  }
+
 #endif  // CERES_NO_CUSTOM_BLAS
 }
 
@@ -352,21 +490,55 @@ inline void MatrixTransposeVectorMultiply(const double* A,
 
   const int NUM_ROW_A = (kRowA != Eigen::Dynamic ? kRowA : num_row_a);
   const int NUM_COL_A = (kColA != Eigen::Dynamic ? kColA : num_col_a);
+  const int span = 4;
 
-  for (int row = 0; row < NUM_COL_A; ++row) {
+  // Calculate the remainder part first.
+
+  // Process the last odd column if present.
+  if (NUM_COL_A & 1) {
+    int row  = NUM_COL_A - 1;
+    const double* pa = &A[row];
+    const double* pb = &b[0];
     double tmp = 0.0;
     for (int col = 0; col < NUM_ROW_A; ++col) {
-      tmp += A[col * NUM_COL_A + row] * b[col];
+      tmp += *pa * (*pb++);
+      pa += NUM_COL_A;
     }
+    CERES_GEMM_STORE_SINGLE(c, row, tmp);
 
-    if (kOperation > 0) {
-      c[row] += tmp;
-    } else if (kOperation < 0) {
-      c[row] -= tmp;
-    } else {
-      c[row] = tmp;
+    // Return directly for efficiency of extremely small matrix multiply.
+    if (NUM_COL_A == 1) {
+      return;
     }
   }
+
+  // Process the couple columns in remainder if present.
+  if (NUM_COL_A & 2) {
+    int row = NUM_COL_A & (int)(~(span - 1));
+    const double* pa = &A[row];
+    const double* pb = &b[0];
+    double tmp1 = 0.0, tmp2 = 0.0;
+    for (int col = 0; col < NUM_ROW_A; ++col) {
+      double bv = *pb++;
+      tmp1 += *(pa    ) * bv;
+      tmp2 += *(pa + 1) * bv;
+      pa += NUM_COL_A;
+    }
+    CERES_GEMM_STORE_PAIR(c, row, tmp1, tmp2);
+
+    // Return directly for efficiency of extremely small matrix multiply.
+    if (NUM_COL_A < span) {
+      return;
+    }
+  }
+
+  // Calculate the main part with multiples of 4.
+  int row_m = NUM_COL_A & (int)(~(span - 1));
+  for (int row = 0; row < row_m; row += span) {
+    MTV_mat4x1(NUM_ROW_A, &A[row], NUM_COL_A,
+               &b[0], &c[row], kOperation);
+  }
+
 #endif  // CERES_NO_CUSTOM_BLAS
 }
 
@@ -374,6 +546,8 @@ inline void MatrixTransposeVectorMultiply(const double* A,
 #undef CERES_GEMM_EIGEN_HEADER
 #undef CERES_GEMM_NAIVE_HEADER
 #undef CERES_CALL_GEMM
+#undef CERES_GEMM_STORE_SINGLE
+#undef CERES_GEMM_STORE_PAIR
 
 }  // namespace internal
 }  // namespace ceres

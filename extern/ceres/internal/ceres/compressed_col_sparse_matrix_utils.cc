@@ -47,8 +47,10 @@ void CompressedColumnScalarMatrixToBlockMatrix(
     const vector<int>& col_blocks,
     vector<int>* block_rows,
     vector<int>* block_cols) {
-  CHECK_NOTNULL(block_rows)->clear();
-  CHECK_NOTNULL(block_cols)->clear();
+  CHECK(block_rows != nullptr);
+  CHECK(block_cols != nullptr);
+  block_rows->clear();
+  block_cols->clear();
   const int num_row_blocks = row_blocks.size();
   const int num_col_blocks = col_blocks.size();
 

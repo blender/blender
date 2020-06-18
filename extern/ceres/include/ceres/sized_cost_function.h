@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2019 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,55 +38,30 @@
 #ifndef CERES_PUBLIC_SIZED_COST_FUNCTION_H_
 #define CERES_PUBLIC_SIZED_COST_FUNCTION_H_
 
-#include "ceres/types.h"
 #include "ceres/cost_function.h"
+#include "ceres/types.h"
 #include "glog/logging.h"
+#include "internal/parameter_dims.h"
 
 namespace ceres {
 
-template<int kNumResiduals,
-         int N0 = 0, int N1 = 0, int N2 = 0, int N3 = 0, int N4 = 0,
-         int N5 = 0, int N6 = 0, int N7 = 0, int N8 = 0, int N9 = 0>
+template <int kNumResiduals, int... Ns>
 class SizedCostFunction : public CostFunction {
  public:
+  static_assert(kNumResiduals > 0 || kNumResiduals == DYNAMIC,
+                "Cost functions must have at least one residual block.");
+  static_assert(internal::StaticParameterDims<Ns...>::kIsValid,
+                "Invalid parameter block dimension detected. Each parameter "
+                "block dimension must be bigger than zero.");
+
+  using ParameterDims = internal::StaticParameterDims<Ns...>;
+
   SizedCostFunction() {
-    CHECK(kNumResiduals > 0 || kNumResiduals == DYNAMIC)
-        << "Cost functions must have at least one residual block.";
-
-    // This block breaks the 80 column rule to keep it somewhat readable.
-    CHECK((!N1 && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
-          ((N1 > 0) && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
-          ((N1 > 0) && (N2 > 0) && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||                                   // NOLINT
-          ((N1 > 0) && (N2 > 0) && (N3 > 0) && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||                              // NOLINT
-          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && !N5 && !N6 && !N7 && !N8 && !N9) ||                         // NOLINT
-          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && !N6 && !N7 && !N8 && !N9) ||                    // NOLINT
-          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && !N7 && !N8 && !N9) ||               // NOLINT
-          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && !N8 && !N9) ||          // NOLINT
-          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && (N8 > 0) && !N9) ||     // NOLINT
-          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && (N8 > 0) && (N9 > 0)))  // NOLINT
-        << "Zero block cannot precede a non-zero block. Block sizes are "
-        << "(ignore trailing 0s): " << N0 << ", " << N1 << ", " << N2 << ", "
-        << N3 << ", " << N4 << ", " << N5 << ", " << N6 << ", " << N7 << ", "
-        << N8 << ", " << N9;
-
     set_num_residuals(kNumResiduals);
-
-#define CERES_ADD_PARAMETER_BLOCK(N) \
-    if (N) mutable_parameter_block_sizes()->push_back(N);
-    CERES_ADD_PARAMETER_BLOCK(N0);
-    CERES_ADD_PARAMETER_BLOCK(N1);
-    CERES_ADD_PARAMETER_BLOCK(N2);
-    CERES_ADD_PARAMETER_BLOCK(N3);
-    CERES_ADD_PARAMETER_BLOCK(N4);
-    CERES_ADD_PARAMETER_BLOCK(N5);
-    CERES_ADD_PARAMETER_BLOCK(N6);
-    CERES_ADD_PARAMETER_BLOCK(N7);
-    CERES_ADD_PARAMETER_BLOCK(N8);
-    CERES_ADD_PARAMETER_BLOCK(N9);
-#undef CERES_ADD_PARAMETER_BLOCK
+    *mutable_parameter_block_sizes() = std::vector<int32_t>{Ns...};
   }
 
-  virtual ~SizedCostFunction() { }
+  virtual ~SizedCostFunction() {}
 
   // Subclasses must implement Evaluate().
 };

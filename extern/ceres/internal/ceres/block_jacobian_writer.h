@@ -49,6 +49,7 @@ class BlockEvaluatePreparer;
 class Program;
 class SparseMatrix;
 
+// TODO(sameeragarwal): This class needs documemtation.
 class BlockJacobianWriter {
  public:
   BlockJacobianWriter(const Evaluator::Options& options,

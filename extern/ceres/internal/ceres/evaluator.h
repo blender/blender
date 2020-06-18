@@ -36,6 +36,7 @@
 #include <string>
 #include <vector>
 
+#include "ceres/context_impl.h"
 #include "ceres/execution_summary.h"
 #include "ceres/internal/port.h"
 #include "ceres/types.h"
@@ -43,6 +44,7 @@
 namespace ceres {
 
 struct CRSMatrix;
+class EvaluationCallback;
 
 namespace internal {
 
@@ -58,46 +60,17 @@ class Evaluator {
   virtual ~Evaluator();
 
   struct Options {
-    Options()
-        : num_threads(1),
-          num_eliminate_blocks(-1),
-          linear_solver_type(DENSE_QR),
-          dynamic_sparsity(false) {}
-
-    int num_threads;
-    int num_eliminate_blocks;
-    LinearSolverType linear_solver_type;
-    bool dynamic_sparsity;
+    int num_threads = 1;
+    int num_eliminate_blocks = -1;
+    LinearSolverType linear_solver_type = DENSE_QR;
+    bool dynamic_sparsity = false;
+    ContextImpl* context = nullptr;
+    EvaluationCallback* evaluation_callback = nullptr;
   };
 
   static Evaluator* Create(const Options& options,
                            Program* program,
                            std::string* error);
-
-  // This is used for computing the cost, residual and Jacobian for
-  // returning to the user. For actually solving the optimization
-  // problem, the optimization algorithm uses the ProgramEvaluator
-  // objects directly.
-  //
-  // The residual, gradients and jacobian pointers can be NULL, in
-  // which case they will not be evaluated. cost cannot be NULL.
-  //
-  // The parallelism of the evaluator is controlled by num_threads; it
-  // should be at least 1.
-  //
-  // Note: That this function does not take a parameter vector as
-  // input. The parameter blocks are evaluated on the values contained
-  // in the arrays pointed to by their user_state pointers.
-  //
-  // Also worth noting is that this function mutates program by
-  // calling Program::SetParameterOffsetsAndIndex() on it so that an
-  // evaluator object can be constructed.
-  static bool Evaluate(Program* program,
-                       int num_threads,
-                       double* cost,
-                       std::vector<double>* residuals,
-                       std::vector<double>* gradient,
-                       CRSMatrix* jacobian);
 
   // Build and return a sparse matrix for storing and working with the Jacobian
   // of the objective function. The jacobian has dimensions
@@ -117,16 +90,14 @@ class Evaluator {
   // Schur complement based methods.
   virtual SparseMatrix* CreateJacobian() const = 0;
 
-
   // Options struct to control Evaluator::Evaluate;
   struct EvaluateOptions {
-    EvaluateOptions()
-        : apply_loss_function(true) {
-    }
-
     // If false, the loss function correction is not applied to the
     // residual blocks.
-    bool apply_loss_function;
+    bool apply_loss_function = true;
+
+    // If false, this evaluation point is the same as the last one.
+    bool new_evaluation_point = true;
   };
 
   // Evaluate the cost function for the given state. Returns the cost,
@@ -190,12 +161,8 @@ class Evaluator {
   // that the base class implementation does not have to worry about
   // life time issues. Further, these calls are not expected to be
   // frequent or performance sensitive.
-  virtual std::map<std::string, int> CallStatistics() const {
-    return std::map<std::string, int>();
-  }
-
-  virtual std::map<std::string, double> TimeStatistics() const {
-    return std::map<std::string, double>();
+  virtual std::map<std::string, CallStatistics> Statistics() const {
+    return std::map<std::string, CallStatistics>();
   }
 };
 

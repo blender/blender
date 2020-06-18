@@ -31,13 +31,14 @@
 #include "ceres/linear_least_squares_problems.h"
 
 #include <cstdio>
+#include <memory>
 #include <string>
 #include <vector>
+
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
 #include "ceres/casts.h"
 #include "ceres/file.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/stringprintf.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
@@ -297,7 +298,7 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem2() {
   problem->num_eliminate_blocks = 2;
 
   CompressedRowBlockStructure* bs = new CompressedRowBlockStructure;
-  scoped_array<double> values(new double[num_rows * num_cols]);
+  std::unique_ptr<double[]> values(new double[num_rows * num_cols]);
 
   for (int c = 0; c < num_cols; ++c) {
     bs->cols.push_back(Block());
@@ -431,7 +432,7 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem3() {
   problem->num_eliminate_blocks = 2;
 
   CompressedRowBlockStructure* bs = new CompressedRowBlockStructure;
-  scoped_array<double> values(new double[num_rows * num_cols]);
+  std::unique_ptr<double[]> values(new double[num_rows * num_cols]);
 
   for (int c = 0; c < num_cols; ++c) {
     bs->cols.push_back(Block());
@@ -538,7 +539,7 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem4() {
   problem->num_eliminate_blocks = 1;
 
   CompressedRowBlockStructure* bs = new CompressedRowBlockStructure;
-  scoped_array<double> values(new double[num_rows * num_cols]);
+  std::unique_ptr<double[]> values(new double[num_rows * num_cols]);
 
   // Column block structure
   bs->cols.push_back(Block());
@@ -613,7 +614,7 @@ bool DumpLinearLeastSquaresProblemToConsole(const SparseMatrix* A,
                                             const double* b,
                                             const double* x,
                                             int num_eliminate_blocks) {
-  CHECK_NOTNULL(A);
+  CHECK(A != nullptr);
   Matrix AA;
   A->ToDenseMatrix(&AA);
   LOG(INFO) << "A^T: \n" << AA.transpose();
@@ -636,10 +637,10 @@ bool DumpLinearLeastSquaresProblemToConsole(const SparseMatrix* A,
 void WriteArrayToFileOrDie(const string& filename,
                            const double* x,
                            const int size) {
-  CHECK_NOTNULL(x);
+  CHECK(x != nullptr);
   VLOG(2) << "Writing array to: " << filename;
   FILE* fptr = fopen(filename.c_str(), "w");
-  CHECK_NOTNULL(fptr);
+  CHECK(fptr != nullptr);
   for (int i = 0; i < size; ++i) {
     fprintf(fptr, "%17f\n", x[i]);
   }
@@ -652,7 +653,7 @@ bool DumpLinearLeastSquaresProblemToTextFile(const string& filename_base,
                                              const double* b,
                                              const double* x,
                                              int num_eliminate_blocks) {
-  CHECK_NOTNULL(A);
+  CHECK(A != nullptr);
   LOG(INFO) << "writing to: " << filename_base << "*";
 
   string matlab_script;
@@ -666,7 +667,7 @@ bool DumpLinearLeastSquaresProblemToTextFile(const string& filename_base,
   {
     string filename = filename_base + "_A.txt";
     FILE* fptr = fopen(filename.c_str(), "w");
-    CHECK_NOTNULL(fptr);
+    CHECK(fptr != nullptr);
     A->ToTextFile(fptr);
     fclose(fptr);
     StringAppendF(&matlab_script,

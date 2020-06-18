@@ -35,6 +35,7 @@
 #include "ceres/dense_qr_solver.h"
 #include "ceres/iterative_schur_complement_solver.h"
 #include "ceres/schur_complement_solver.h"
+#include "ceres/dynamic_sparse_normal_cholesky_solver.h"
 #include "ceres/sparse_normal_cholesky_solver.h"
 #include "ceres/types.h"
 #include "glog/logging.h"
@@ -70,23 +71,25 @@ LinearSolverType LinearSolver::LinearSolverForZeroEBlocks(
 }
 
 LinearSolver* LinearSolver::Create(const LinearSolver::Options& options) {
+  CHECK(options.context != NULL);
+
   switch (options.type) {
     case CGNR:
       return new CgnrSolver(options);
 
     case SPARSE_NORMAL_CHOLESKY:
-#if defined(CERES_NO_SUITESPARSE) &&              \
-    defined(CERES_NO_CXSPARSE) &&                 \
-   !defined(CERES_USE_EIGEN_SPARSE)
+#if defined(CERES_NO_SPARSE)
       return NULL;
 #else
+      if (options.dynamic_sparsity) {
+        return new DynamicSparseNormalCholeskySolver(options);
+      }
+
       return new SparseNormalCholeskySolver(options);
 #endif
 
     case SPARSE_SCHUR:
-#if defined(CERES_NO_SUITESPARSE) &&                 \
-    defined(CERES_NO_CXSPARSE) &&                    \
-   !defined(CERES_USE_EIGEN_SPARSE)
+#if defined(CERES_NO_SPARSE)
       return NULL;
 #else
       return new SparseSchurComplementSolver(options);

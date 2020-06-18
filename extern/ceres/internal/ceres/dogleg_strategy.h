@@ -58,15 +58,14 @@ class DoglegStrategy : public TrustRegionStrategy {
   virtual ~DoglegStrategy() {}
 
   // TrustRegionStrategy interface
-  virtual Summary ComputeStep(const PerSolveOptions& per_solve_options,
+  Summary ComputeStep(const PerSolveOptions& per_solve_options,
                               SparseMatrix* jacobian,
                               const double* residuals,
-                              double* step);
-  virtual void StepAccepted(double step_quality);
-  virtual void StepRejected(double step_quality);
-  virtual void StepIsInvalid();
-
-  virtual double Radius() const;
+                              double* step) final;
+  void StepAccepted(double step_quality) final;
+  void StepRejected(double step_quality) final;
+  void StepIsInvalid();
+  double Radius() const final;
 
   // These functions are predominantly for testing.
   Vector gradient() const { return gradient_; }
@@ -103,7 +102,7 @@ class DoglegStrategy : public TrustRegionStrategy {
 
   // mu is used to scale the diagonal matrix used to make the
   // Gauss-Newton solve full rank. In each solve, the strategy starts
-  // out with mu = min_mu, and tries values upto max_mu. If the user
+  // out with mu = min_mu, and tries values up to max_mu. If the user
   // reports an invalid step, the value of mu_ is increased so that
   // the next solve starts with a stronger regularization.
   //

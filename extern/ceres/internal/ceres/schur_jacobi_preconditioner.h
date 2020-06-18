@@ -38,12 +38,11 @@
 #ifndef CERES_INTERNAL_SCHUR_JACOBI_PRECONDITIONER_H_
 #define CERES_INTERNAL_SCHUR_JACOBI_PRECONDITIONER_H_
 
+#include <memory>
 #include <set>
-#include <vector>
 #include <utility>
-#include "ceres/collections_port.h"
-#include "ceres/internal/macros.h"
-#include "ceres/internal/scoped_ptr.h"
+#include <vector>
+
 #include "ceres/preconditioner.h"
 
 namespace ceres {
@@ -83,21 +82,23 @@ class SchurJacobiPreconditioner : public BlockSparseMatrixPreconditioner {
   // based solvers. Please see schur_eliminator.h for more details.
   SchurJacobiPreconditioner(const CompressedRowBlockStructure& bs,
                             const Preconditioner::Options& options);
+  SchurJacobiPreconditioner(const SchurJacobiPreconditioner&) = delete;
+  void operator=(const SchurJacobiPreconditioner&) = delete;
+
   virtual ~SchurJacobiPreconditioner();
 
   // Preconditioner interface.
-  virtual void RightMultiply(const double* x, double* y) const;
-  virtual int num_rows() const;
+  void RightMultiply(const double* x, double* y) const final;
+  int num_rows() const final;
 
  private:
   void InitEliminator(const CompressedRowBlockStructure& bs);
-  virtual bool UpdateImpl(const BlockSparseMatrix& A, const double* D);
+  bool UpdateImpl(const BlockSparseMatrix& A, const double* D) final;
 
   Preconditioner::Options options_;
-  scoped_ptr<SchurEliminatorBase> eliminator_;
+  std::unique_ptr<SchurEliminatorBase> eliminator_;
   // Preconditioner matrix.
-  scoped_ptr<BlockRandomAccessDiagonalMatrix> m_;
-  CERES_DISALLOW_COPY_AND_ASSIGN(SchurJacobiPreconditioner);
+  std::unique_ptr<BlockRandomAccessDiagonalMatrix> m_;
 };
 
 }  // namespace internal

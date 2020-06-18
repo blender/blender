@@ -34,9 +34,10 @@
 #define CERES_INTERNAL_GRAPH_ALGORITHMS_H_
 
 #include <algorithm>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <utility>
-#include "ceres/collections_port.h"
 #include "ceres/graph.h"
 #include "ceres/wall_time.h"
 #include "glog/logging.h"
@@ -96,10 +97,10 @@ class VertexDegreeLessThan {
 template <typename Vertex>
 int IndependentSetOrdering(const Graph<Vertex>& graph,
                            std::vector<Vertex>* ordering) {
-  const HashSet<Vertex>& vertices = graph.vertices();
+  const std::unordered_set<Vertex>& vertices = graph.vertices();
   const int num_vertices = vertices.size();
 
-  CHECK_NOTNULL(ordering);
+  CHECK(ordering != nullptr);
   ordering->clear();
   ordering->reserve(num_vertices);
 
@@ -109,34 +110,29 @@ int IndependentSetOrdering(const Graph<Vertex>& graph,
   const char kBlack = 2;
 
   // Mark all vertices white.
-  HashMap<Vertex, char> vertex_color;
+  std::unordered_map<Vertex, char> vertex_color;
   std::vector<Vertex> vertex_queue;
-  for (typename HashSet<Vertex>::const_iterator it = vertices.begin();
-       it != vertices.end();
-       ++it) {
-    vertex_color[*it] = kWhite;
-    vertex_queue.push_back(*it);
+  for (const Vertex& vertex : vertices) {
+    vertex_color[vertex] = kWhite;
+    vertex_queue.push_back(vertex);
   }
 
-
-  std::sort(vertex_queue.begin(), vertex_queue.end(),
+  std::sort(vertex_queue.begin(),
+            vertex_queue.end(),
             VertexTotalOrdering<Vertex>(graph));
 
   // Iterate over vertex_queue. Pick the first white vertex, add it
   // to the independent set. Mark it black and its neighbors grey.
-  for (int i = 0; i < vertex_queue.size(); ++i) {
-    const Vertex& vertex = vertex_queue[i];
+  for (const Vertex& vertex : vertex_queue) {
     if (vertex_color[vertex] != kWhite) {
       continue;
     }
 
     ordering->push_back(vertex);
     vertex_color[vertex] = kBlack;
-    const HashSet<Vertex>& neighbors = graph.Neighbors(vertex);
-    for (typename HashSet<Vertex>::const_iterator it = neighbors.begin();
-         it != neighbors.end();
-         ++it) {
-      vertex_color[*it] = kGrey;
+    const std::unordered_set<Vertex>& neighbors = graph.Neighbors(vertex);
+    for (const Vertex& neighbor : neighbors) {
+      vertex_color[neighbor] = kGrey;
     }
   }
 
@@ -145,10 +141,7 @@ int IndependentSetOrdering(const Graph<Vertex>& graph,
   // Iterate over the vertices and add all the grey vertices to the
   // ordering. At this stage there should only be black or grey
   // vertices in the graph.
-  for (typename std::vector<Vertex>::const_iterator it = vertex_queue.begin();
-       it != vertex_queue.end();
-       ++it) {
-    const Vertex vertex = *it;
+  for (const Vertex& vertex : vertex_queue) {
     DCHECK(vertex_color[vertex] != kWhite);
     if (vertex_color[vertex] != kBlack) {
       ordering->push_back(vertex);
@@ -172,8 +165,8 @@ int IndependentSetOrdering(const Graph<Vertex>& graph,
 template <typename Vertex>
 int StableIndependentSetOrdering(const Graph<Vertex>& graph,
                                  std::vector<Vertex>* ordering) {
-  CHECK_NOTNULL(ordering);
-  const HashSet<Vertex>& vertices = graph.vertices();
+  CHECK(ordering != nullptr);
+  const std::unordered_set<Vertex>& vertices = graph.vertices();
   const int num_vertices = vertices.size();
   CHECK_EQ(vertices.size(), ordering->size());
 
@@ -188,11 +181,9 @@ int StableIndependentSetOrdering(const Graph<Vertex>& graph,
                   VertexDegreeLessThan<Vertex>(graph));
 
   // Mark all vertices white.
-  HashMap<Vertex, char> vertex_color;
-  for (typename HashSet<Vertex>::const_iterator it = vertices.begin();
-       it != vertices.end();
-       ++it) {
-    vertex_color[*it] = kWhite;
+  std::unordered_map<Vertex, char> vertex_color;
+  for (const Vertex& vertex : vertices) {
+    vertex_color[vertex] = kWhite;
   }
 
   ordering->clear();
@@ -207,11 +198,9 @@ int StableIndependentSetOrdering(const Graph<Vertex>& graph,
 
     ordering->push_back(vertex);
     vertex_color[vertex] = kBlack;
-    const HashSet<Vertex>& neighbors = graph.Neighbors(vertex);
-    for (typename HashSet<Vertex>::const_iterator it = neighbors.begin();
-         it != neighbors.end();
-         ++it) {
-      vertex_color[*it] = kGrey;
+    const std::unordered_set<Vertex>& neighbors = graph.Neighbors(vertex);
+    for (const Vertex& neighbor : neighbors) {
+      vertex_color[neighbor] = kGrey;
     }
   }
 
@@ -220,10 +209,7 @@ int StableIndependentSetOrdering(const Graph<Vertex>& graph,
   // Iterate over the vertices and add all the grey vertices to the
   // ordering. At this stage there should only be black or grey
   // vertices in the graph.
-  for (typename std::vector<Vertex>::const_iterator it = vertex_queue.begin();
-       it != vertex_queue.end();
-       ++it) {
-    const Vertex vertex = *it;
+  for (const Vertex& vertex : vertex_queue) {
     DCHECK(vertex_color[vertex] != kWhite);
     if (vertex_color[vertex] != kBlack) {
       ordering->push_back(vertex);
@@ -242,8 +228,8 @@ int StableIndependentSetOrdering(const Graph<Vertex>& graph,
 // is what gives this data structure its efficiency.
 template <typename Vertex>
 Vertex FindConnectedComponent(const Vertex& vertex,
-                              HashMap<Vertex, Vertex>* union_find) {
-  typename HashMap<Vertex, Vertex>::iterator it = union_find->find(vertex);
+                              std::unordered_map<Vertex, Vertex>* union_find) {
+  auto it = union_find->find(vertex);
   DCHECK(it != union_find->end());
   if (it->second != vertex) {
     it->second = FindConnectedComponent(it->second, union_find);
@@ -274,30 +260,24 @@ template <typename Vertex>
 WeightedGraph<Vertex>*
 Degree2MaximumSpanningForest(const WeightedGraph<Vertex>& graph) {
   // Array of edges sorted in decreasing order of their weights.
-  std::vector<std::pair<double, std::pair<Vertex, Vertex> > > weighted_edges;
+  std::vector<std::pair<double, std::pair<Vertex, Vertex>>> weighted_edges;
   WeightedGraph<Vertex>* forest = new WeightedGraph<Vertex>();
 
   // Disjoint-set to keep track of the connected components in the
   // maximum spanning tree.
-  HashMap<Vertex, Vertex> disjoint_set;
+  std::unordered_map<Vertex, Vertex> disjoint_set;
 
   // Sort of the edges in the graph in decreasing order of their
   // weight. Also add the vertices of the graph to the Maximum
   // Spanning Tree graph and set each vertex to be its own connected
   // component in the disjoint_set structure.
-  const HashSet<Vertex>& vertices = graph.vertices();
-  for (typename HashSet<Vertex>::const_iterator it = vertices.begin();
-       it != vertices.end();
-       ++it) {
-    const Vertex vertex1 = *it;
+  const std::unordered_set<Vertex>& vertices = graph.vertices();
+  for (const Vertex& vertex1 : vertices) {
     forest->AddVertex(vertex1, graph.VertexWeight(vertex1));
     disjoint_set[vertex1] = vertex1;
 
-    const HashSet<Vertex>& neighbors = graph.Neighbors(vertex1);
-    for (typename HashSet<Vertex>::const_iterator it2 = neighbors.begin();
-         it2 != neighbors.end();
-         ++it2) {
-      const Vertex vertex2 = *it2;
+    const std::unordered_set<Vertex>& neighbors = graph.Neighbors(vertex1);
+    for (const Vertex& vertex2 : neighbors) {
       if (vertex1 >= vertex2) {
         continue;
       }

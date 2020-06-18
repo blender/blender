@@ -166,7 +166,7 @@ ColMajorMatrixRef DenseSparseMatrix::mutable_matrix() {
 
 
 void DenseSparseMatrix::ToTextFile(FILE* file) const {
-  CHECK_NOTNULL(file);
+  CHECK(file != nullptr);
   const int active_rows =
       (has_diagonal_reserved_ && !has_diagonal_appended_)
       ? (m_.rows() - m_.cols())

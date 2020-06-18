@@ -30,14 +30,12 @@
 
 #include "ceres/covariance_impl.h"
 
-#ifdef CERES_USE_OPENMP
-#include <omp.h>
-#endif
-
 #include <algorithm>
 #include <cstdlib>
+#include <memory>
 #include <numeric>
 #include <sstream>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -45,13 +43,14 @@
 #include "Eigen/SparseQR"
 #include "Eigen/SVD"
 
-#include "ceres/collections_port.h"
 #include "ceres/compressed_col_sparse_matrix_utils.h"
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/covariance.h"
 #include "ceres/crs_matrix.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/map_util.h"
+#include "ceres/parallel_for.h"
+#include "ceres/parallel_utils.h"
 #include "ceres/parameter_block.h"
 #include "ceres/problem_impl.h"
 #include "ceres/residual_block.h"
@@ -69,21 +68,22 @@ using std::sort;
 using std::swap;
 using std::vector;
 
-typedef vector<pair<const double*, const double*> > CovarianceBlocks;
+typedef vector<pair<const double*, const double*>> CovarianceBlocks;
 
 CovarianceImpl::CovarianceImpl(const Covariance::Options& options)
     : options_(options),
       is_computed_(false),
       is_valid_(false) {
-#ifndef CERES_USE_OPENMP
+#ifdef CERES_NO_THREADS
   if (options_.num_threads > 1) {
     LOG(WARNING)
-        << "OpenMP support is not compiled into this binary; "
+        << "No threading support is compiled into this binary; "
         << "only options.num_threads = 1 is supported. Switching "
         << "to single threaded mode.";
     options_.num_threads = 1;
   }
 #endif
+
   evaluate_options_.num_threads = options_.num_threads;
   evaluate_options_.apply_loss_function = options_.apply_loss_function;
 }
@@ -97,7 +97,7 @@ template <typename T> void CheckForDuplicates(vector<T> blocks) {
       std::adjacent_find(blocks.begin(), blocks.end());
   if (it != blocks.end()) {
     // In case there are duplicates, we search for their location.
-    map<T, vector<int> > blocks_map;
+    map<T, vector<int>> blocks_map;
     for (int i = 0; i < blocks.size(); ++i) {
       blocks_map[blocks[i]].push_back(i);
     }
@@ -122,7 +122,7 @@ template <typename T> void CheckForDuplicates(vector<T> blocks) {
 
 bool CovarianceImpl::Compute(const CovarianceBlocks& covariance_blocks,
                              ProblemImpl* problem) {
-  CheckForDuplicates<pair<const double*, const double*> >(covariance_blocks);
+  CheckForDuplicates<pair<const double*, const double*>>(covariance_blocks);
   problem_ = problem;
   parameter_block_to_row_index_.clear();
   covariance_matrix_.reset(NULL);
@@ -333,55 +333,47 @@ bool CovarianceImpl::GetCovarianceMatrixInTangentOrAmbientSpace(
   // Assemble the blocks in the covariance matrix.
   MatrixRef covariance(covariance_matrix, covariance_size, covariance_size);
   const int num_threads = options_.num_threads;
-  scoped_array<double> workspace(
+  std::unique_ptr<double[]> workspace(
       new double[num_threads * max_covariance_block_size *
                  max_covariance_block_size]);
 
   bool success = true;
 
-// The collapse() directive is only supported in OpenMP 3.0 and higher. OpenMP
-// 3.0 was released in May 2008 (hence the version number).
-#if _OPENMP >= 200805
-#  pragma omp parallel for num_threads(num_threads) schedule(dynamic) collapse(2)
-#else
-#  pragma omp parallel for num_threads(num_threads) schedule(dynamic)
-#endif
-  for (int i = 0; i < num_parameters; ++i) {
-    for (int j = 0; j < num_parameters; ++j) {
-      // The second loop can't start from j = i for compatibility with OpenMP
-      // collapse command. The conditional serves as a workaround
-      if (j >= i) {
+  // Technically the following code is a double nested loop where
+  // i = 1:n, j = i:n.
+  int iteration_count = (num_parameters * (num_parameters + 1)) / 2;
+  problem_->context()->EnsureMinimumThreads(num_threads);
+  ParallelFor(
+      problem_->context(),
+      0,
+      iteration_count,
+      num_threads,
+      [&](int thread_id, int k) {
+        int i, j;
+        LinearIndexToUpperTriangularIndex(k, num_parameters, &i, &j);
+
         int covariance_row_idx = cum_parameter_size[i];
         int covariance_col_idx = cum_parameter_size[j];
         int size_i = parameter_sizes[i];
         int size_j = parameter_sizes[j];
-#ifdef CERES_USE_OPENMP
-        int thread_id = omp_get_thread_num();
-#else
-        int thread_id = 0;
-#endif
         double* covariance_block =
-            workspace.get() +
-            thread_id * max_covariance_block_size * max_covariance_block_size;
+            workspace.get() + thread_id * max_covariance_block_size *
+            max_covariance_block_size;
         if (!GetCovarianceBlockInTangentOrAmbientSpace(
-                parameters[i], parameters[j], lift_covariance_to_ambient_space,
-                covariance_block)) {
+                parameters[i], parameters[j],
+                lift_covariance_to_ambient_space, covariance_block)) {
           success = false;
         }
 
-        covariance.block(covariance_row_idx, covariance_col_idx,
-                         size_i, size_j) =
-            MatrixRef(covariance_block, size_i, size_j);
+        covariance.block(covariance_row_idx, covariance_col_idx, size_i,
+                         size_j) = MatrixRef(covariance_block, size_i, size_j);
 
         if (i != j) {
           covariance.block(covariance_col_idx, covariance_row_idx,
                            size_j, size_i) =
               MatrixRef(covariance_block, size_i, size_j).transpose();
-
         }
-      }
-    }
-  }
+      });
   return success;
 }
 
@@ -397,7 +389,7 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
   vector<double*> all_parameter_blocks;
   problem->GetParameterBlocks(&all_parameter_blocks);
   const ProblemImpl::ParameterMap& parameter_map = problem->parameter_map();
-  HashSet<ParameterBlock*> parameter_blocks_in_use;
+  std::unordered_set<ParameterBlock*> parameter_blocks_in_use;
   vector<ResidualBlock*> residual_blocks;
   problem->GetResidualBlocks(&residual_blocks);
 
@@ -496,13 +488,10 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
   // rows of the covariance matrix in order.
   int i = 0;  // index into covariance_blocks.
   int cursor = 0;  // index into the covariance matrix.
-  for (map<const double*, int>::const_iterator it =
-           parameter_block_to_row_index_.begin();
-       it != parameter_block_to_row_index_.end();
-       ++it) {
-    const double* row_block =  it->first;
+  for (const auto& entry : parameter_block_to_row_index_) {
+    const double* row_block =  entry.first;
     const int row_block_size = problem->ParameterBlockLocalSize(row_block);
-    int row_begin = it->second;
+    int row_begin = entry.second;
 
     // Iterate over the covariance blocks contained in this row block
     // and count the number of columns in this row block.
@@ -538,24 +527,37 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
 }
 
 bool CovarianceImpl::ComputeCovarianceValues() {
-  switch (options_.algorithm_type) {
-    case DENSE_SVD:
-      return ComputeCovarianceValuesUsingDenseSVD();
-    case SUITE_SPARSE_QR:
-#ifndef CERES_NO_SUITESPARSE
+  if (options_.algorithm_type == DENSE_SVD) {
+    return ComputeCovarianceValuesUsingDenseSVD();
+  }
+
+  if (options_.algorithm_type == SPARSE_QR) {
+    if (options_.sparse_linear_algebra_library_type == EIGEN_SPARSE) {
+      return ComputeCovarianceValuesUsingEigenSparseQR();
+    }
+
+    if (options_.sparse_linear_algebra_library_type == SUITE_SPARSE) {
+#if !defined(CERES_NO_SUITESPARSE)
       return ComputeCovarianceValuesUsingSuiteSparseQR();
 #else
-      LOG(ERROR) << "SuiteSparse is required to use the "
-                 << "SUITE_SPARSE_QR algorithm.";
+      LOG(ERROR) << "SuiteSparse is required to use the SPARSE_QR algorithm "
+                 << "with "
+                 << "Covariance::Options::sparse_linear_algebra_library_type "
+                 << "= SUITE_SPARSE.";
       return false;
 #endif
-    case EIGEN_SPARSE_QR:
-      return ComputeCovarianceValuesUsingEigenSparseQR();
-    default:
-      LOG(ERROR) << "Unsupported covariance estimation algorithm type: "
-                 << CovarianceAlgorithmTypeToString(options_.algorithm_type);
-      return false;
+    }
+
+    LOG(ERROR) << "Unsupported "
+               << "Covariance::Options::sparse_linear_algebra_library_type "
+               << "= "
+               << SparseLinearAlgebraLibraryTypeToString(
+                      options_.sparse_linear_algebra_library_type);
+    return false;
   }
+
+  LOG(ERROR) << "Unsupported Covariance::Options::algorithm_type = "
+             << CovarianceAlgorithmTypeToString(options_.algorithm_type);
   return false;
 }
 
@@ -649,8 +651,12 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingSuiteSparseQR() {
                             &permutation,
                             &cc);
   event_logger.AddEvent("Numeric Factorization");
-  CHECK_NOTNULL(permutation);
-  CHECK_NOTNULL(R);
+  if (R == nullptr) {
+    LOG(ERROR) << "Something is wrong. SuiteSparseQR returned R = nullptr.";
+    free(permutation);
+    cholmod_l_finish(&cc);
+    return false;
+  }
 
   if (rank < cholmod_jacobian.ncol) {
     LOG(ERROR) << "Jacobian matrix is rank deficient. "
@@ -663,8 +669,14 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingSuiteSparseQR() {
   }
 
   vector<int> inverse_permutation(num_cols);
-  for (SuiteSparse_long i = 0; i < num_cols; ++i) {
-    inverse_permutation[permutation[i]] = i;
+  if (permutation) {
+    for (SuiteSparse_long i = 0; i < num_cols; ++i) {
+      inverse_permutation[permutation[i]] = i;
+    }
+  } else {
+    for (SuiteSparse_long i = 0; i < num_cols; ++i) {
+      inverse_permutation[i] = i;
+    }
   }
 
   const int* rows = covariance_matrix_->rows();
@@ -681,35 +693,29 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingSuiteSparseQR() {
   // Since the covariance matrix is symmetric, the i^th row and column
   // are equal.
   const int num_threads = options_.num_threads;
-  scoped_array<double> workspace(new double[num_threads * num_cols]);
+  std::unique_ptr<double[]> workspace(new double[num_threads * num_cols]);
 
-#pragma omp parallel for num_threads(num_threads) schedule(dynamic)
-  for (int r = 0; r < num_cols; ++r) {
-    const int row_begin = rows[r];
-    const int row_end = rows[r + 1];
-    if (row_end == row_begin) {
-      continue;
-    }
-
-#  ifdef CERES_USE_OPENMP
-    int thread_id = omp_get_thread_num();
-#  else
-    int thread_id = 0;
-#  endif
-
-    double* solution = workspace.get() + thread_id * num_cols;
-    SolveRTRWithSparseRHS<SuiteSparse_long>(
-        num_cols,
-        static_cast<SuiteSparse_long*>(R->i),
-        static_cast<SuiteSparse_long*>(R->p),
-        static_cast<double*>(R->x),
-        inverse_permutation[r],
-        solution);
-    for (int idx = row_begin; idx < row_end; ++idx) {
-     const int c = cols[idx];
-     values[idx] = solution[inverse_permutation[c]];
-    }
-  }
+  problem_->context()->EnsureMinimumThreads(num_threads);
+  ParallelFor(
+      problem_->context(),
+      0,
+      num_cols,
+      num_threads,
+      [&](int thread_id, int r) {
+        const int row_begin = rows[r];
+        const int row_end = rows[r + 1];
+        if (row_end != row_begin) {
+          double* solution = workspace.get() + thread_id * num_cols;
+          SolveRTRWithSparseRHS<SuiteSparse_long>(
+              num_cols, static_cast<SuiteSparse_long*>(R->i),
+              static_cast<SuiteSparse_long*>(R->p), static_cast<double*>(R->x),
+              inverse_permutation[r], solution);
+          for (int idx = row_begin; idx < row_end; ++idx) {
+            const int c = cols[idx];
+            values[idx] = solution[inverse_permutation[c]];
+          }
+        }
+      });
 
   free(permutation);
   cholmod_l_free_sparse(&R, &cc);
@@ -746,8 +752,8 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingDenseSVD() {
   }
   event_logger.AddEvent("ConvertToDenseMatrix");
 
-  Eigen::JacobiSVD<Matrix> svd(dense_jacobian,
-                               Eigen::ComputeThinU | Eigen::ComputeThinV);
+  Eigen::BDCSVD<Matrix> svd(dense_jacobian,
+                            Eigen::ComputeThinU | Eigen::ComputeThinV);
 
   event_logger.AddEvent("SingularValueDecomposition");
 
@@ -838,7 +844,7 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingEigenSparseQR() {
           jacobian.rows.data(), jacobian.cols.data(), jacobian.values.data());
   event_logger.AddEvent("ConvertToSparseMatrix");
 
-  Eigen::SparseQR<EigenSparseMatrix, Eigen::COLAMDOrdering<int> >
+  Eigen::SparseQR<EigenSparseMatrix, Eigen::COLAMDOrdering<int>>
       qr_solver(sparse_jacobian);
   event_logger.AddEvent("QRDecomposition");
 
@@ -873,38 +879,35 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingEigenSparseQR() {
   // are equal.
   const int num_cols = jacobian.num_cols;
   const int num_threads = options_.num_threads;
-  scoped_array<double> workspace(new double[num_threads * num_cols]);
+  std::unique_ptr<double[]> workspace(new double[num_threads * num_cols]);
 
-#pragma omp parallel for num_threads(num_threads) schedule(dynamic)
-  for (int r = 0; r < num_cols; ++r) {
-    const int row_begin = rows[r];
-    const int row_end = rows[r + 1];
-    if (row_end == row_begin) {
-      continue;
-    }
+  problem_->context()->EnsureMinimumThreads(num_threads);
+  ParallelFor(
+      problem_->context(),
+      0,
+      num_cols,
+      num_threads,
+      [&](int thread_id, int r) {
+        const int row_begin = rows[r];
+        const int row_end = rows[r + 1];
+        if (row_end != row_begin) {
+          double* solution = workspace.get() + thread_id * num_cols;
+          SolveRTRWithSparseRHS<int>(
+              num_cols,
+              qr_solver.matrixR().innerIndexPtr(),
+              qr_solver.matrixR().outerIndexPtr(),
+              &qr_solver.matrixR().data().value(0),
+              inverse_permutation.indices().coeff(r),
+              solution);
 
-#  ifdef CERES_USE_OPENMP
-    int thread_id = omp_get_thread_num();
-#  else
-    int thread_id = 0;
-#  endif
-
-    double* solution = workspace.get() + thread_id * num_cols;
-    SolveRTRWithSparseRHS<int>(
-        num_cols,
-        qr_solver.matrixR().innerIndexPtr(),
-        qr_solver.matrixR().outerIndexPtr(),
-        &qr_solver.matrixR().data().value(0),
-        inverse_permutation.indices().coeff(r),
-        solution);
-
-    // Assign the values of the computed covariance using the
-    // inverse permutation used in the QR factorization.
-    for (int idx = row_begin; idx < row_end; ++idx) {
-     const int c = cols[idx];
-     values[idx] = solution[inverse_permutation.indices().coeff(c)];
-    }
-  }
+          // Assign the values of the computed covariance using the
+          // inverse permutation used in the QR factorization.
+          for (int idx = row_begin; idx < row_end; ++idx) {
+            const int c = cols[idx];
+            values[idx] = solution[inverse_permutation.indices().coeff(c)];
+          }
+        }
+      });
 
   event_logger.AddEvent("Inverse");
 

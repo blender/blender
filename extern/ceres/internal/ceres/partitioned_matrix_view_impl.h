@@ -50,7 +50,7 @@ PartitionedMatrixView(
     : matrix_(matrix),
       num_col_blocks_e_(num_col_blocks_e) {
   const CompressedRowBlockStructure* bs = matrix_.block_structure();
-  CHECK_NOTNULL(bs);
+  CHECK(bs != nullptr);
 
   num_col_blocks_f_ = bs->cols.size() - num_col_blocks_e_;
 

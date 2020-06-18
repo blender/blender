@@ -35,7 +35,7 @@
 #ifndef CERES_INTERNAL_SCRATCH_EVALUATE_PREPARER_H_
 #define CERES_INTERNAL_SCRATCH_EVALUATE_PREPARER_H_
 
-#include "ceres/internal/scoped_ptr.h"
+#include <memory>
 
 namespace ceres {
 namespace internal {
@@ -60,7 +60,7 @@ class ScratchEvaluatePreparer {
  private:
   // Scratch space for the jacobians; each jacobian is packed one after another.
   // There is enough scratch to hold all the jacobians for the largest residual.
-  scoped_array<double> jacobian_scratch_;
+  std::unique_ptr<double[]> jacobian_scratch_;
 };
 
 }  // namespace internal

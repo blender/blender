@@ -47,9 +47,29 @@ StateUpdatingCallback::~StateUpdatingCallback() {}
 
 CallbackReturnType StateUpdatingCallback::operator()(
     const IterationSummary& summary) {
+  program_->StateVectorToParameterBlocks(parameters_);
+  program_->CopyParameterBlockStateToUserState();
+  return SOLVER_CONTINUE;
+}
+
+GradientProblemSolverStateUpdatingCallback::
+    GradientProblemSolverStateUpdatingCallback(
+        int num_parameters,
+        const double* internal_parameters,
+        double* user_parameters)
+    : num_parameters_(num_parameters),
+      internal_parameters_(internal_parameters),
+      user_parameters_(user_parameters) {}
+
+GradientProblemSolverStateUpdatingCallback::
+    ~GradientProblemSolverStateUpdatingCallback() {}
+
+CallbackReturnType GradientProblemSolverStateUpdatingCallback::operator()(
+    const IterationSummary& summary) {
   if (summary.step_is_successful) {
-    program_->StateVectorToParameterBlocks(parameters_);
-    program_->CopyParameterBlockStateToUserState();
+    std::copy(internal_parameters_,
+              internal_parameters_ + num_parameters_,
+              user_parameters_);
   }
   return SOLVER_CONTINUE;
 }

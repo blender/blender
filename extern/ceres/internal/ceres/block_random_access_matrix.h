@@ -33,7 +33,7 @@
 #ifndef CERES_INTERNAL_BLOCK_RANDOM_ACCESS_MATRIX_H_
 #define CERES_INTERNAL_BLOCK_RANDOM_ACCESS_MATRIX_H_
 
-#include "ceres/mutex.h"
+#include <mutex>
 
 namespace ceres {
 namespace internal {
@@ -77,23 +77,18 @@ namespace internal {
 //
 //  if (cell != NULL) {
 //     MatrixRef m(cell->values, row_stride, col_stride);
-//     CeresMutexLock l(&cell->m);
+//     std::lock_guard<std::mutex> l(&cell->m);
 //     m.block(row, col, row_block_size, col_block_size) = ...
 //  }
 
 // Structure to carry a pointer to the array containing a cell and the
-// Mutex guarding it.
+// mutex guarding it.
 struct CellInfo {
-  CellInfo()
-      : values(NULL) {
-  }
-
-  explicit CellInfo(double* ptr)
-      : values(ptr) {
-  }
+  CellInfo() : values(nullptr) {}
+  explicit CellInfo(double* values) : values(values) {}
 
   double* values;
-  Mutex m;
+  std::mutex m;
 };
 
 class BlockRandomAccessMatrix {

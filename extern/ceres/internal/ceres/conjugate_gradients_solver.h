@@ -35,7 +35,6 @@
 #define CERES_INTERNAL_CONJUGATE_GRADIENTS_SOLVER_H_
 
 #include "ceres/linear_solver.h"
-#include "ceres/internal/macros.h"
 
 namespace ceres {
 namespace internal {
@@ -58,14 +57,13 @@ class LinearOperator;
 class ConjugateGradientsSolver : public LinearSolver {
  public:
   explicit ConjugateGradientsSolver(const LinearSolver::Options& options);
-  virtual Summary Solve(LinearOperator* A,
-                        const double* b,
-                        const LinearSolver::PerSolveOptions& per_solve_options,
-                        double* x);
+  Summary Solve(LinearOperator* A,
+                const double* b,
+                const LinearSolver::PerSolveOptions& per_solve_options,
+                double* x) final;
 
  private:
   const LinearSolver::Options options_;
-  CERES_DISALLOW_COPY_AND_ASSIGN(ConjugateGradientsSolver);
 };
 
 }  // namespace internal

@@ -175,12 +175,10 @@ void LowRankInverseHessian::RightMultiply(const double* x_ptr,
             << "approximation.";
   }
 
-  for (list<int>::const_iterator it = indices_.begin();
-       it != indices_.end();
-       ++it) {
-    const double beta = delta_gradient_history_.col(*it).dot(search_direction) /
-        delta_x_dot_delta_gradient_(*it);
-    search_direction += delta_x_history_.col(*it) * (alpha(*it) - beta);
+  for (const int i : indices_) {
+    const double beta = delta_gradient_history_.col(i).dot(search_direction) /
+        delta_x_dot_delta_gradient_(i);
+    search_direction += delta_x_history_.col(i) * (alpha(i) - beta);
   }
 }
 

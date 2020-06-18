@@ -31,11 +31,11 @@
 #ifndef CERES_INTERNAL_LINEAR_LEAST_SQUARES_PROBLEMS_H_
 #define CERES_INTERNAL_LINEAR_LEAST_SQUARES_PROBLEMS_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 #include "ceres/sparse_matrix.h"
 #include "ceres/internal/port.h"
-#include "ceres/internal/scoped_ptr.h"
 
 namespace ceres {
 namespace internal {
@@ -44,21 +44,20 @@ namespace internal {
 // ground truth solutions. To be used by various LinearSolver tests.
 struct LinearLeastSquaresProblem {
   LinearLeastSquaresProblem()
-      : A(NULL), b(NULL), D(NULL), num_eliminate_blocks(0),
-        x(NULL), x_D(NULL) {
+      : num_eliminate_blocks(0) {
   }
 
-  scoped_ptr<SparseMatrix> A;
-  scoped_array<double> b;
-  scoped_array<double> D;
+  std::unique_ptr<SparseMatrix> A;
+  std::unique_ptr<double[]> b;
+  std::unique_ptr<double[]> D;
   // If using the schur eliminator then how many of the variable
   // blocks are e_type blocks.
   int num_eliminate_blocks;
 
   // Solution to min_x |Ax - b|^2
-  scoped_array<double> x;
+  std::unique_ptr<double[]> x;
   // Solution to min_x |Ax - b|^2 + |Dx|^2
-  scoped_array<double> x_D;
+  std::unique_ptr<double[]> x_D;
 };
 
 // Factories for linear least squares problem.

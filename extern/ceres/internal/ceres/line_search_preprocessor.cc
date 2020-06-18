@@ -32,6 +32,8 @@
 
 #include <numeric>
 #include <string>
+#include "ceres/casts.h"
+#include "ceres/context_impl.h"
 #include "ceres/evaluator.h"
 #include "ceres/minimizer.h"
 #include "ceres/problem_impl.h"
@@ -57,6 +59,9 @@ bool SetupEvaluator(PreprocessedProblem* pp) {
   pp->evaluator_options.linear_solver_type = CGNR;
   pp->evaluator_options.num_eliminate_blocks = 0;
   pp->evaluator_options.num_threads = pp->options.num_threads;
+  pp->evaluator_options.context = pp->problem->context();
+  pp->evaluator_options.evaluation_callback =
+      pp->reduced_program->mutable_evaluation_callback();
   pp->evaluator.reset(Evaluator::Create(pp->evaluator_options,
                                         pp->reduced_program.get(),
                                         &pp->error));
@@ -71,7 +76,7 @@ LineSearchPreprocessor::~LineSearchPreprocessor() {
 bool LineSearchPreprocessor::Preprocess(const Solver::Options& options,
                                         ProblemImpl* problem,
                                         PreprocessedProblem* pp) {
-  CHECK_NOTNULL(pp);
+  CHECK(pp != nullptr);
   pp->options = options;
   ChangeNumThreadsIfNeeded(&pp->options);
 

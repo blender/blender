@@ -30,6 +30,7 @@
 
 #include "ceres/compressed_row_jacobian_writer.h"
 
+#include <iterator>
 #include <utility>
 #include <vector>
 
@@ -70,7 +71,7 @@ void CompressedRowJacobianWriter::PopulateJacobianRowAndColumnBlockVectors(
 void CompressedRowJacobianWriter::GetOrderedParameterBlocks(
       const Program* program,
       int residual_id,
-      vector<pair<int, int> >* evaluated_jacobian_blocks) {
+      vector<pair<int, int>>* evaluated_jacobian_blocks) {
   const ResidualBlock* residual_block =
       program->residual_blocks()[residual_id];
   const int num_parameter_blocks = residual_block->NumParameterBlocks();
@@ -121,6 +122,7 @@ SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
   // seems to be the only way to construct it without doing a memory copy.
   int* rows = jacobian->mutable_rows();
   int* cols = jacobian->mutable_cols();
+
   int row_pos = 0;
   rows[0] = 0;
   for (int i = 0; i < residual_blocks.size(); ++i) {
@@ -206,7 +208,7 @@ void CompressedRowJacobianWriter::Write(int residual_id,
       program_->residual_blocks()[residual_id];
   const int num_residuals = residual_block->NumResiduals();
 
-  vector<pair<int, int> > evaluated_jacobian_blocks;
+  vector<pair<int, int>> evaluated_jacobian_blocks;
   GetOrderedParameterBlocks(program_, residual_id, &evaluated_jacobian_blocks);
 
   // Where in the current row does the jacobian for a parameter block begin.

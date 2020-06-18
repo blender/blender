@@ -68,7 +68,7 @@ ConditionedCostFunction::ConditionedCostFunction(
 
 ConditionedCostFunction::~ConditionedCostFunction() {
   if (ownership_ == TAKE_OWNERSHIP) {
-    STLDeleteElements(&conditioners_);
+    STLDeleteUniqueContainerPointers(conditioners_.begin(), conditioners_.end());
   } else {
     wrapped_cost_function_.release();
   }

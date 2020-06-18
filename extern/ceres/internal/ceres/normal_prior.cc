@@ -33,7 +33,6 @@
 #include <cstddef>
 #include <vector>
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/types.h"
 #include "glog/logging.h"
 

@@ -77,7 +77,7 @@ class EventLogger {
   void AddEvent(const std::string& event_name);
 
  private:
-  const double start_time_;
+  double start_time_;
   double last_event_time_;
   std::string events_;
 };

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2018 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,45 +26,42 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: keir@google.com (Keir Mierle)
-//
-// Portable floating point classification. The names are picked such that they
-// do not collide with macros. For example, "isnan" in C99 is a macro and hence
-// does not respect namespaces.
-//
-// TODO(keir): Finish porting!
+// Author: wjr@google.com (William Rucklidge)
 
-#ifndef CERES_PUBLIC_FPCLASSIFY_H_
-#define CERES_PUBLIC_FPCLASSIFY_H_
-
-#if defined(_MSC_VER)
-#include <float.h>
-#endif
-
-#include <limits>
+#ifndef CERES_INTERNAL_PARALLEL_UTILS_H_
+#define CERES_INTERNAL_PARALLEL_UTILS_H_
 
 namespace ceres {
+namespace internal {
 
-#if defined(_MSC_VER)
+// Converts a linear iteration order into a triangular iteration order.
+// Suppose you have nested loops that look like
+// for (int i = 0; i < n; i++) {
+//   for (int j = i; j < n; j++) {
+//     ... use i and j
+//   }
+// }
+// Naively using ParallelFor to parallelise those loops might look like
+// ParallelFor(..., 0, n * n, num_threads,
+//   [](int thread_id, int k) {
+//     int i = k / n, j = k % n;
+//     if (j < i) return;
+//     ...
+//    });
+// but these empty work items can lead to very unbalanced threading. Instead,
+// do this:
+// int actual_work_items = (n * (n + 1)) / 2;
+// ParallelFor(..., 0, actual_work_items, num_threads,
+//   [](int thread_id, int k) {
+//     int i, j;
+//     UnfoldIteration(k, n, &i, &j);
+//     ...
+//    });
+// which in each iteration will produce i and j satisfying
+// 0 <= i <= j < n
+void LinearIndexToUpperTriangularIndex(int k, int n, int* i, int* j);
 
-inline bool IsFinite  (double x) { return _finite(x) != 0;                   }
-inline bool IsInfinite(double x) { return _finite(x) == 0 && _isnan(x) == 0; }
-inline bool IsNaN     (double x) { return _isnan(x) != 0;                    }
-inline bool IsNormal  (double x) {  // NOLINT
-  const int classification = _fpclass(x);
-  return (classification == _FPCLASS_NN || classification == _FPCLASS_PN);
-}
-
-# else
-
-// These definitions are for the normal Unix suspects.
-inline bool IsFinite  (double x) { return std::isfinite(x); }
-inline bool IsInfinite(double x) { return std::isinf(x);    }
-inline bool IsNaN     (double x) { return std::isnan(x);    }
-inline bool IsNormal  (double x) { return std::isnormal(x); }
-
-#endif
-
+}  // namespace internal
 }  // namespace ceres
 
-#endif  // CERES_PUBLIC_FPCLASSIFY_H_
+#endif  // CERES_INTERNAL_PARALLEL_UTILS_H_

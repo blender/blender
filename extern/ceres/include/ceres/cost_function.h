@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2019 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -44,18 +44,18 @@
 #ifndef CERES_PUBLIC_COST_FUNCTION_H_
 #define CERES_PUBLIC_COST_FUNCTION_H_
 
+#include <cstdint>
 #include <vector>
-#include "ceres/internal/macros.h"
-#include "ceres/internal/port.h"
-#include "ceres/types.h"
+
 #include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/port.h"
 
 namespace ceres {
 
 // This class implements the computation of the cost (a.k.a. residual) terms as
 // a function of the input (control) variables, and is the interface for users
 // to describe their least squares problem to Ceres. In other words, this is the
-// modelling layer between users and the Ceres optimizer. The signature of the
+// modeling layer between users and the Ceres optimizer. The signature of the
 // function (number and sizes of input parameter blocks and number of outputs)
 // is stored in parameter_block_sizes_ and num_residuals_ respectively. User
 // code inheriting from this class is expected to set these two members with the
@@ -64,6 +64,8 @@ namespace ceres {
 class CERES_EXPORT CostFunction {
  public:
   CostFunction() : num_residuals_(0) {}
+  CostFunction(const CostFunction&) = delete;
+  void operator=(const CostFunction&) = delete;
 
   virtual ~CostFunction() {}
 
@@ -115,29 +117,24 @@ class CERES_EXPORT CostFunction {
                         double* residuals,
                         double** jacobians) const = 0;
 
-  const std::vector<int32>& parameter_block_sizes() const {
+  const std::vector<int32_t>& parameter_block_sizes() const {
     return parameter_block_sizes_;
   }
 
-  int num_residuals() const {
-    return num_residuals_;
-  }
+  int num_residuals() const { return num_residuals_; }
 
  protected:
-  std::vector<int32>* mutable_parameter_block_sizes() {
+  std::vector<int32_t>* mutable_parameter_block_sizes() {
     return &parameter_block_sizes_;
   }
 
-  void set_num_residuals(int num_residuals) {
-    num_residuals_ = num_residuals;
-  }
+  void set_num_residuals(int num_residuals) { num_residuals_ = num_residuals; }
 
  private:
   // Cost function signature metadata: number of inputs & their sizes,
   // number of outputs (residuals).
-  std::vector<int32> parameter_block_sizes_;
+  std::vector<int32_t> parameter_block_sizes_;
   int num_residuals_;
-  CERES_DISALLOW_COPY_AND_ASSIGN(CostFunction);
 };
 
 }  // namespace ceres

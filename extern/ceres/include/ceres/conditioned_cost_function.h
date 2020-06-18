@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2019 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,12 @@
 #ifndef CERES_PUBLIC_CONDITIONED_COST_FUNCTION_H_
 #define CERES_PUBLIC_CONDITIONED_COST_FUNCTION_H_
 
+#include <memory>
 #include <vector>
 
 #include "ceres/cost_function.h"
-#include "ceres/internal/scoped_ptr.h"
-#include "ceres/types.h"
 #include "ceres/internal/disable_warnings.h"
+#include "ceres/types.h"
 
 namespace ceres {
 
@@ -77,17 +77,19 @@ class CERES_EXPORT ConditionedCostFunction : public CostFunction {
   // per-residual conditioner. Takes ownership of all of the wrapped cost
   // functions, or not, depending on the ownership parameter. Conditioners
   // may be NULL, in which case the corresponding residual is not modified.
+  //
+  // The conditioners can repeat.
   ConditionedCostFunction(CostFunction* wrapped_cost_function,
                           const std::vector<CostFunction*>& conditioners,
                           Ownership ownership);
   virtual ~ConditionedCostFunction();
 
-  virtual bool Evaluate(double const* const* parameters,
-                        double* residuals,
-                        double** jacobians) const;
+  bool Evaluate(double const* const* parameters,
+                double* residuals,
+                double** jacobians) const override;
 
  private:
-  internal::scoped_ptr<CostFunction> wrapped_cost_function_;
+  std::unique_ptr<CostFunction> wrapped_cost_function_;
   std::vector<CostFunction*> conditioners_;
   Ownership ownership_;
 };

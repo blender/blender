@@ -68,8 +68,8 @@ string EvaluationToString(const ResidualBlock& block,
                           double* cost,
                           double* residuals,
                           double** jacobians) {
-  CHECK_NOTNULL(cost);
-  CHECK_NOTNULL(residuals);
+  CHECK(cost != nullptr);
+  CHECK(residuals != nullptr);
 
   const int num_parameter_blocks = block.NumParameterBlocks();
   const int num_residuals = block.NumResiduals();

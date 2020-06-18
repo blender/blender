@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2019 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,24 @@
 //         sameeragarwal@google.com (Sameer Agarwal)
 //         thadh@gmail.com (Thad Hughes)
 //         tbennun@gmail.com (Tal Ben-Nun)
-//
+
+#ifndef CERES_PUBLIC_DYNAMIC_NUMERIC_DIFF_COST_FUNCTION_H_
+#define CERES_PUBLIC_DYNAMIC_NUMERIC_DIFF_COST_FUNCTION_H_
+
+#include <cmath>
+#include <memory>
+#include <numeric>
+#include <vector>
+
+#include "ceres/dynamic_cost_function.h"
+#include "ceres/internal/eigen.h"
+#include "ceres/internal/numeric_diff.h"
+#include "ceres/internal/parameter_dims.h"
+#include "ceres/numeric_diff_options.h"
+#include "glog/logging.h"
+
+namespace ceres {
+
 // This numeric diff implementation differs from the one found in
 // numeric_diff_cost_function.h by supporting numericdiff on cost
 // functions with variable numbers of parameters with variable
@@ -42,7 +59,9 @@
 // numeric diff; the expected interface for the cost functors is:
 //
 //   struct MyCostFunctor {
-//     bool operator()(double const* const* parameters, double* residuals) const {
+//     bool operator()(double const*
+//                     const* parameters,
+//                     double* residuals) const {
 //       // Use parameters[i] to access the i'th parameter block.
 //     }
 //   }
@@ -56,34 +75,14 @@
 //   cost_function.AddParameterBlock(5);
 //   cost_function.AddParameterBlock(10);
 //   cost_function.SetNumResiduals(21);
-
-#ifndef CERES_PUBLIC_DYNAMIC_NUMERIC_DIFF_COST_FUNCTION_H_
-#define CERES_PUBLIC_DYNAMIC_NUMERIC_DIFF_COST_FUNCTION_H_
-
-#include <cmath>
-#include <numeric>
-#include <vector>
-
-#include "ceres/cost_function.h"
-#include "ceres/internal/scoped_ptr.h"
-#include "ceres/internal/eigen.h"
-#include "ceres/internal/numeric_diff.h"
-#include "ceres/numeric_diff_options.h"
-#include "glog/logging.h"
-
-namespace ceres {
-
 template <typename CostFunctor, NumericDiffMethodType method = CENTRAL>
-class DynamicNumericDiffCostFunction : public CostFunction {
+class DynamicNumericDiffCostFunction : public DynamicCostFunction {
  public:
   explicit DynamicNumericDiffCostFunction(
       const CostFunctor* functor,
       Ownership ownership = TAKE_OWNERSHIP,
       const NumericDiffOptions& options = NumericDiffOptions())
-      : functor_(functor),
-        ownership_(ownership),
-        options_(options) {
-  }
+      : functor_(functor), ownership_(ownership), options_(options) {}
 
   virtual ~DynamicNumericDiffCostFunction() {
     if (ownership_ != TAKE_OWNERSHIP) {
@@ -91,28 +90,22 @@ class DynamicNumericDiffCostFunction : public CostFunction {
     }
   }
 
-  void AddParameterBlock(int size) {
-    mutable_parameter_block_sizes()->push_back(size);
-  }
-
-  void SetNumResiduals(int num_residuals) {
-    set_num_residuals(num_residuals);
-  }
-
-  virtual bool Evaluate(double const* const* parameters,
-                        double* residuals,
-                        double** jacobians) const {
+  bool Evaluate(double const* const* parameters,
+                double* residuals,
+                double** jacobians) const override {
     using internal::NumericDiff;
     CHECK_GT(num_residuals(), 0)
         << "You must call DynamicNumericDiffCostFunction::SetNumResiduals() "
         << "before DynamicNumericDiffCostFunction::Evaluate().";
 
-    const std::vector<int32>& block_sizes = parameter_block_sizes();
+    const std::vector<int32_t>& block_sizes = parameter_block_sizes();
     CHECK(!block_sizes.empty())
         << "You must call DynamicNumericDiffCostFunction::AddParameterBlock() "
         << "before DynamicNumericDiffCostFunction::Evaluate().";
 
-    const bool status = EvaluateCostFunctor(parameters, residuals);
+    const bool status =
+        internal::VariadicEvaluate<internal::DynamicParameterDims>(
+            *functor_.get(), parameters, residuals);
     if (jacobians == NULL || !status) {
       return status;
     }
@@ -123,8 +116,8 @@ class DynamicNumericDiffCostFunction : public CostFunction {
     std::vector<double*> parameters_references_copy(block_sizes.size());
     parameters_references_copy[0] = &parameters_copy[0];
     for (size_t block = 1; block < block_sizes.size(); ++block) {
-      parameters_references_copy[block] = parameters_references_copy[block - 1]
-          + block_sizes[block - 1];
+      parameters_references_copy[block] =
+          parameters_references_copy[block - 1] + block_sizes[block - 1];
     }
 
     // Copy the parameters into the local temp space.
@@ -136,18 +129,20 @@ class DynamicNumericDiffCostFunction : public CostFunction {
 
     for (size_t block = 0; block < block_sizes.size(); ++block) {
       if (jacobians[block] != NULL &&
-          !NumericDiff<CostFunctor, method, DYNAMIC,
-                       DYNAMIC, DYNAMIC, DYNAMIC, DYNAMIC, DYNAMIC,
-                       DYNAMIC, DYNAMIC, DYNAMIC, DYNAMIC, DYNAMIC,
-                       DYNAMIC, DYNAMIC>::EvaluateJacobianForParameterBlock(
-                                             functor_.get(),
-                                             residuals,
-                                             options_,
-                                             this->num_residuals(),
-                                             block,
-                                             block_sizes[block],
-                                             &parameters_references_copy[0],
-                                             jacobians[block])) {
+          !NumericDiff<CostFunctor,
+                       method,
+                       ceres::DYNAMIC,
+                       internal::DynamicParameterDims,
+                       ceres::DYNAMIC,
+                       ceres::DYNAMIC>::
+              EvaluateJacobianForParameterBlock(functor_.get(),
+                                                residuals,
+                                                options_,
+                                                this->num_residuals(),
+                                                block,
+                                                block_sizes[block],
+                                                &parameters_references_copy[0],
+                                                jacobians[block])) {
         return false;
       }
     }
@@ -155,31 +150,7 @@ class DynamicNumericDiffCostFunction : public CostFunction {
   }
 
  private:
-  bool EvaluateCostFunctor(double const* const* parameters,
-                           double* residuals) const {
-    return EvaluateCostFunctorImpl(functor_.get(),
-                                   parameters,
-                                   residuals,
-                                   functor_.get());
-  }
-
-  // Helper templates to allow evaluation of a functor or a
-  // CostFunction.
-  bool EvaluateCostFunctorImpl(const CostFunctor* functor,
-                               double const* const* parameters,
-                               double* residuals,
-                               const void* /* NOT USED */) const {
-    return (*functor)(parameters, residuals);
-  }
-
-  bool EvaluateCostFunctorImpl(const CostFunctor* functor,
-                               double const* const* parameters,
-                               double* residuals,
-                               const CostFunction* /* NOT USED */) const {
-    return functor->Evaluate(parameters, residuals, NULL);
-  }
-
-  internal::scoped_ptr<const CostFunctor> functor_;
+  std::unique_ptr<const CostFunctor> functor_;
   Ownership ownership_;
   NumericDiffOptions options_;
 };

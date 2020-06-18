@@ -37,7 +37,6 @@
 #include "ceres/residual_block.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/port.h"
-#include "ceres/internal/scoped_ptr.h"
 
 namespace ceres {
 namespace internal {
@@ -206,7 +205,7 @@ SparseMatrix* BlockJacobianWriter::CreateJacobian() const {
   }
 
   BlockSparseMatrix* jacobian = new BlockSparseMatrix(bs);
-  CHECK_NOTNULL(jacobian);
+  CHECK(jacobian != nullptr);
   return jacobian;
 }
 

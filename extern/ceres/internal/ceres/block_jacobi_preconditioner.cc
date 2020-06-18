@@ -34,7 +34,6 @@
 #include "ceres/block_structure.h"
 #include "ceres/block_random_access_diagonal_matrix.h"
 #include "ceres/casts.h"
-#include "ceres/integral_types.h"
 #include "ceres/internal/eigen.h"
 
 namespace ceres {

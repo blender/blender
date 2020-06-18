@@ -30,7 +30,9 @@
 
 #include "ceres/dogleg_strategy.h"
 
+#include <algorithm>
 #include <cmath>
+
 #include "Eigen/Dense"
 #include "ceres/array_utils.h"
 #include "ceres/internal/eigen.h"
@@ -64,7 +66,7 @@ DoglegStrategy::DoglegStrategy(const TrustRegionStrategy::Options& options)
       dogleg_step_norm_(0.0),
       reuse_(false),
       dogleg_type_(options.dogleg_type) {
-  CHECK_NOTNULL(linear_solver_);
+  CHECK(linear_solver_ != nullptr);
   CHECK_GT(min_diagonal_, 0.0);
   CHECK_LE(min_diagonal_, max_diagonal_);
   CHECK_GT(max_radius_, 0.0);
@@ -79,9 +81,9 @@ TrustRegionStrategy::Summary DoglegStrategy::ComputeStep(
     SparseMatrix* jacobian,
     const double* residuals,
     double* step) {
-  CHECK_NOTNULL(jacobian);
-  CHECK_NOTNULL(residuals);
-  CHECK_NOTNULL(step);
+  CHECK(jacobian != nullptr);
+  CHECK(residuals != nullptr);
+  CHECK(step != nullptr);
 
   const int n = jacobian->num_cols();
   if (reuse_) {
@@ -469,7 +471,7 @@ double DoglegStrategy::EvaluateSubspaceModel(const Vector2d& x) const {
 // In the failure case, another step should be taken, such as the traditional
 // dogleg step.
 bool DoglegStrategy::FindMinimumOnTrustRegionBoundary(Vector2d* minimum) const {
-  CHECK_NOTNULL(minimum);
+  CHECK(minimum != nullptr);
 
   // Return (0, 0) in all error cases.
   minimum->setZero();

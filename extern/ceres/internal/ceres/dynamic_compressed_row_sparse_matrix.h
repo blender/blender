@@ -91,8 +91,8 @@ class DynamicCompressedRowSparseMatrix : public CompressedRowSparseMatrix {
   void Finalize(int num_additional_elements);
 
  private:
-  std::vector<std::vector<int> > dynamic_cols_;
-  std::vector<std::vector<double> > dynamic_values_;
+  std::vector<std::vector<int>> dynamic_cols_;
+  std::vector<std::vector<double>> dynamic_values_;
 };
 
 }  // namespace internal

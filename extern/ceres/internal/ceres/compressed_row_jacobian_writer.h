@@ -83,7 +83,7 @@ class CompressedRowJacobianWriter {
   static void GetOrderedParameterBlocks(
       const Program* program,
       int residual_id,
-      std::vector<std::pair<int, int> >* evaluated_jacobian_blocks);
+      std::vector<std::pair<int, int>>* evaluated_jacobian_blocks);
 
   // JacobianWriter interface.
 

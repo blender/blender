@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2017 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,11 @@
 #include <cstring>
 #include <string>
 #include <vector>
-
+#include "SuiteSparseQR.hpp"
 #include "ceres/linear_solver.h"
+#include "ceres/sparse_cholesky.h"
 #include "cholmod.h"
 #include "glog/logging.h"
-#include "SuiteSparseQR.hpp"
 
 // Before SuiteSparse version 4.2.0, cholmod_camd was only enabled
 // if SuiteSparse was compiled with Metis support. This makes
@@ -98,6 +98,11 @@ class SuiteSparse {
   // a shallow object, which refers to the contents of A and does not
   // use the SuiteSparse machinery to allocate memory.
   cholmod_sparse CreateSparseMatrixTransposeView(CompressedRowSparseMatrix* A);
+
+  // Create a cholmod_dense vector around the contents of the array x.
+  // This is a shallow object, which refers to the contents of x and
+  // does not use the SuiteSparse machinery to allocate memory.
+  cholmod_dense CreateDenseVectorView(const double* x, int size);
 
   // Given a vector x, build a cholmod_dense vector of size out_size
   // with the first in_size entries copied from x. If x is NULL, then
@@ -197,12 +202,12 @@ class SuiteSparse {
   // doing sparse direct factorization of these matrices the
   // fill-reducing ordering algorithms (in particular AMD) can either
   // be run on the block or the scalar form of these matrices. The two
-  // SuiteSparse::AnalyzeCholesky methods allows the the client to
+  // SuiteSparse::AnalyzeCholesky methods allows the client to
   // compute the symbolic factorization of a matrix by either using
   // AMD on the matrix or a user provided ordering of the rows.
   //
   // But since the underlying matrices are block oriented, it is worth
-  // running AMD on just the block structre of these matrices and then
+  // running AMD on just the block structure of these matrices and then
   // lifting these block orderings to a full scalar ordering. This
   // preserves the block structure of the permuted matrix, and exposes
   // more of the super-nodal structure of the matrix to the numerical
@@ -278,12 +283,36 @@ class SuiteSparse {
   cholmod_common cc_;
 };
 
+class SuiteSparseCholesky : public SparseCholesky {
+ public:
+  static std::unique_ptr<SparseCholesky> Create(
+      OrderingType ordering_type);
+
+  // SparseCholesky interface.
+  virtual ~SuiteSparseCholesky();
+  CompressedRowSparseMatrix::StorageType StorageType() const final;
+  LinearSolverTerminationType Factorize(
+      CompressedRowSparseMatrix* lhs, std::string* message) final;
+  LinearSolverTerminationType Solve(const double* rhs,
+                                    double* solution,
+                                    std::string* message) final;
+ private:
+  SuiteSparseCholesky(const OrderingType ordering_type);
+
+  const OrderingType ordering_type_;
+  SuiteSparse ss_;
+  cholmod_factor* factor_;
+};
+
 }  // namespace internal
 }  // namespace ceres
 
 #else  // CERES_NO_SUITESPARSE
 
 typedef void cholmod_factor;
+
+namespace ceres {
+namespace internal {
 
 class SuiteSparse {
  public:
@@ -292,7 +321,7 @@ class SuiteSparse {
   // without checking for the absence of the CERES_NO_CAMD symbol.
   //
   // This is safer because the symbol maybe missing due to a user
-  // accidently not including suitesparse.h in their code when
+  // accidentally not including suitesparse.h in their code when
   // checking for the symbol.
   static bool IsConstrainedApproximateMinimumDegreeOrderingAvailable() {
     return false;
@@ -300,6 +329,9 @@ class SuiteSparse {
 
   void Free(void* arg) {}
 };
+
+}  // namespace internal
+}  // namespace ceres
 
 #endif  // CERES_NO_SUITESPARSE
 

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2019 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,42 +35,22 @@
 #ifndef CERES_PUBLIC_ITERATION_CALLBACK_H_
 #define CERES_PUBLIC_ITERATION_CALLBACK_H_
 
-#include "ceres/types.h"
 #include "ceres/internal/disable_warnings.h"
+#include "ceres/types.h"
 
 namespace ceres {
 
 // This struct describes the state of the optimizer after each
 // iteration of the minimization.
 struct CERES_EXPORT IterationSummary {
-  IterationSummary()
-      : iteration(0),
-        step_is_valid(false),
-        step_is_nonmonotonic(false),
-        step_is_successful(false),
-        cost(0.0),
-        cost_change(0.0),
-        gradient_max_norm(0.0),
-        gradient_norm(0.0),
-        step_norm(0.0),
-        eta(0.0),
-        step_size(0.0),
-        line_search_function_evaluations(0),
-        line_search_gradient_evaluations(0),
-        line_search_iterations(0),
-        linear_solver_iterations(0),
-        iteration_time_in_seconds(0.0),
-        step_solver_time_in_seconds(0.0),
-        cumulative_time_in_seconds(0.0) {}
-
   // Current iteration number.
-  int32 iteration;
+  int iteration = 0;
 
   // Step was numerically valid, i.e., all values are finite and the
   // step reduces the value of the linearized model.
   //
   // Note: step_is_valid is always true when iteration = 0.
-  bool step_is_valid;
+  bool step_is_valid = false;
 
   // Step did not reduce the value of the objective function
   // sufficiently, but it was accepted because of the relaxed
@@ -78,7 +58,7 @@ struct CERES_EXPORT IterationSummary {
   // algorithm.
   //
   // Note: step_is_nonmonotonic is always false when iteration = 0;
-  bool step_is_nonmonotonic;
+  bool step_is_nonmonotonic = false;
 
   // Whether or not the minimizer accepted this step or not. If the
   // ordinary trust region algorithm is used, this means that the
@@ -90,68 +70,68 @@ struct CERES_EXPORT IterationSummary {
   // step and the step is declared successful.
   //
   // Note: step_is_successful is always true when iteration = 0.
-  bool step_is_successful;
+  bool step_is_successful = false;
 
   // Value of the objective function.
-  double cost;
+  double cost = 0.90;
 
   // Change in the value of the objective function in this
   // iteration. This can be positive or negative.
-  double cost_change;
+  double cost_change = 0.0;
 
   // Infinity norm of the gradient vector.
-  double gradient_max_norm;
+  double gradient_max_norm = 0.0;
 
   // 2-norm of the gradient vector.
-  double gradient_norm;
+  double gradient_norm = 0.0;
 
   // 2-norm of the size of the step computed by the optimization
   // algorithm.
-  double step_norm;
+  double step_norm = 0.0;
 
   // For trust region algorithms, the ratio of the actual change in
   // cost and the change in the cost of the linearized approximation.
-  double relative_decrease;
+  double relative_decrease = 0.0;
 
   // Size of the trust region at the end of the current iteration. For
   // the Levenberg-Marquardt algorithm, the regularization parameter
   // mu = 1.0 / trust_region_radius.
-  double trust_region_radius;
+  double trust_region_radius = 0.0;
 
   // For the inexact step Levenberg-Marquardt algorithm, this is the
   // relative accuracy with which the Newton(LM) step is solved. This
   // number affects only the iterative solvers capable of solving
   // linear systems inexactly. Factorization-based exact solvers
   // ignore it.
-  double eta;
+  double eta = 0.0;
 
   // Step sized computed by the line search algorithm.
-  double step_size;
+  double step_size = 0.0;
 
   // Number of function value evaluations used by the line search algorithm.
-  int line_search_function_evaluations;
+  int line_search_function_evaluations = 0;
 
   // Number of function gradient evaluations used by the line search algorithm.
-  int line_search_gradient_evaluations;
+  int line_search_gradient_evaluations = 0;
 
   // Number of iterations taken by the line search algorithm.
-  int line_search_iterations;
+  int line_search_iterations = 0;
 
   // Number of iterations taken by the linear solver to solve for the
   // Newton step.
-  int linear_solver_iterations;
+  int linear_solver_iterations = 0;
 
   // All times reported below are wall times.
 
   // Time (in seconds) spent inside the minimizer loop in the current
   // iteration.
-  double iteration_time_in_seconds;
+  double iteration_time_in_seconds = 0.0;
 
   // Time (in seconds) spent inside the trust region step solver.
-  double step_solver_time_in_seconds;
+  double step_solver_time_in_seconds = 0.0;
 
   // Time (in seconds) since the user called Solve().
-  double cumulative_time_in_seconds;
+  double cumulative_time_in_seconds = 0.0;
 };
 
 // Interface for specifying callbacks that are executed at the end of

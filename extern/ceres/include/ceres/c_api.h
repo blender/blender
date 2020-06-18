@@ -1,5 +1,5 @@
 /* Ceres Solver - A fast non-linear least squares minimizer
- * Copyright 2015 Google Inc. All rights reserved.
+ * Copyright 2019 Google Inc. All rights reserved.
  * http://ceres-solver.org/
  *
  * Redistribution and use in source and binary forms, with or without
@@ -143,4 +143,4 @@ CERES_EXPORT void ceres_solve(ceres_problem_t* problem);
 
 #include "ceres/internal/reenable_warnings.h"
 
-#endif  /* CERES_PUBLIC_C_API_H_ */
+#endif /* CERES_PUBLIC_C_API_H_ */

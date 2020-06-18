@@ -30,17 +30,19 @@
 
 #include "ceres/line_search.h"
 
+#include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <iostream>  // NOLINT
 
-#include "glog/logging.h"
 #include "ceres/evaluator.h"
+#include "ceres/function_sample.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/fpclassify.h"
 #include "ceres/map_util.h"
 #include "ceres/polynomial.h"
 #include "ceres/stringprintf.h"
 #include "ceres/wall_time.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -53,29 +55,7 @@ using std::vector;
 namespace {
 // Precision used for floating point values in error message output.
 const int kErrorMessageNumericPrecision = 8;
-
-FunctionSample ValueSample(const double x, const double value) {
-  FunctionSample sample;
-  sample.x = x;
-  sample.value = value;
-  sample.value_is_valid = true;
-  return sample;
-}
-
-FunctionSample ValueAndGradientSample(const double x,
-                                      const double value,
-                                      const double gradient) {
-  FunctionSample sample;
-  sample.x = x;
-  sample.value = value;
-  sample.gradient = gradient;
-  sample.value_is_valid = true;
-  sample.gradient_is_valid = true;
-  return sample;
-}
-
 }  // namespace
-
 
 ostream& operator<<(ostream &os, const FunctionSample& sample);
 
@@ -112,9 +92,7 @@ LineSearchFunction::LineSearchFunction(Evaluator* evaluator)
     : evaluator_(evaluator),
       position_(evaluator->NumParameters()),
       direction_(evaluator->NumEffectiveParameters()),
-      evaluation_point_(evaluator->NumParameters()),
       scaled_direction_(evaluator->NumEffectiveParameters()),
-      gradient_(evaluator->NumEffectiveParameters()),
       initial_evaluator_residual_time_in_seconds(0.0),
       initial_evaluator_jacobian_time_in_seconds(0.0) {}
 
@@ -124,27 +102,48 @@ void LineSearchFunction::Init(const Vector& position,
   direction_ = direction;
 }
 
-bool LineSearchFunction::Evaluate(double x, double* f, double* g) {
-  scaled_direction_ = x * direction_;
+void LineSearchFunction::Evaluate(const double x,
+                                  const bool evaluate_gradient,
+                                  FunctionSample* output) {
+  output->x = x;
+  output->vector_x_is_valid = false;
+  output->value_is_valid = false;
+  output->gradient_is_valid = false;
+  output->vector_gradient_is_valid = false;
+
+  scaled_direction_ = output->x * direction_;
+  output->vector_x.resize(position_.rows(), 1);
   if (!evaluator_->Plus(position_.data(),
                         scaled_direction_.data(),
-                        evaluation_point_.data())) {
-    return false;
+                        output->vector_x.data())) {
+    return;
+  }
+  output->vector_x_is_valid = true;
+
+  double* gradient = NULL;
+  if (evaluate_gradient) {
+    output->vector_gradient.resize(direction_.rows(), 1);
+    gradient = output->vector_gradient.data();
+  }
+  const bool eval_status = evaluator_->Evaluate(
+      output->vector_x.data(), &(output->value), NULL, gradient, NULL);
+
+  if (!eval_status || !std::isfinite(output->value)) {
+    return;
   }
 
-  if (g == NULL) {
-    return (evaluator_->Evaluate(evaluation_point_.data(),
-                                 f, NULL, NULL, NULL) &&
-            IsFinite(*f));
+  output->value_is_valid = true;
+  if (!evaluate_gradient) {
+    return;
   }
 
-  if (!evaluator_->Evaluate(evaluation_point_.data(),
-                            f, NULL, gradient_.data(), NULL)) {
-    return false;
+  output->gradient = direction_.dot(output->vector_gradient);
+  if (!std::isfinite(output->gradient)) {
+    return;
   }
 
-  *g = direction_.dot(gradient_);
-  return IsFinite(*f) && IsFinite(*g);
+  output->gradient_is_valid = true;
+  output->vector_gradient_is_valid = true;
 }
 
 double LineSearchFunction::DirectionInfinityNorm() const {
@@ -152,21 +151,28 @@ double LineSearchFunction::DirectionInfinityNorm() const {
 }
 
 void LineSearchFunction::ResetTimeStatistics() {
-  const map<string, double> evaluator_time_statistics =
-      evaluator_->TimeStatistics();
+  const map<string, CallStatistics> evaluator_statistics =
+      evaluator_->Statistics();
+
   initial_evaluator_residual_time_in_seconds =
-      FindWithDefault(evaluator_time_statistics, "Evaluator::Residual", 0.0);
+      FindWithDefault(
+          evaluator_statistics, "Evaluator::Residual", CallStatistics())
+          .time;
   initial_evaluator_jacobian_time_in_seconds =
-      FindWithDefault(evaluator_time_statistics, "Evaluator::Jacobian", 0.0);
+      FindWithDefault(
+          evaluator_statistics, "Evaluator::Jacobian", CallStatistics())
+          .time;
 }
 
 void LineSearchFunction::TimeStatistics(
     double* cost_evaluation_time_in_seconds,
     double* gradient_evaluation_time_in_seconds) const {
-  const map<string, double> evaluator_time_statistics =
-      evaluator_->TimeStatistics();
+  const map<string, CallStatistics> evaluator_time_statistics =
+      evaluator_->Statistics();
   *cost_evaluation_time_in_seconds =
-      FindWithDefault(evaluator_time_statistics, "Evaluator::Residual", 0.0) -
+      FindWithDefault(
+          evaluator_time_statistics, "Evaluator::Residual", CallStatistics())
+          .time -
       initial_evaluator_residual_time_in_seconds;
   // Strictly speaking this will slightly underestimate the time spent
   // evaluating the gradient of the line search univariate cost function as it
@@ -175,7 +181,9 @@ void LineSearchFunction::TimeStatistics(
   // allows direct subtraction of the timing information from the totals for
   // the evaluator returned in the solver summary.
   *gradient_evaluation_time_in_seconds =
-      FindWithDefault(evaluator_time_statistics, "Evaluator::Jacobian", 0.0) -
+      FindWithDefault(
+          evaluator_time_statistics, "Evaluator::Jacobian", CallStatistics())
+          .time -
       initial_evaluator_jacobian_time_in_seconds;
 }
 
@@ -184,12 +192,12 @@ void LineSearch::Search(double step_size_estimate,
                         double initial_gradient,
                         Summary* summary) const {
   const double start_time = WallTimeInSeconds();
-  *CHECK_NOTNULL(summary) = LineSearch::Summary();
+  CHECK(summary != nullptr);
+  *summary = LineSearch::Summary();
 
   summary->cost_evaluation_time_in_seconds = 0.0;
   summary->gradient_evaluation_time_in_seconds = 0.0;
   summary->polynomial_minimization_time_in_seconds = 0.0;
-
   options().function->ResetTimeStatistics();
   this->DoSearch(step_size_estimate, initial_cost, initial_gradient, summary);
   options().function->
@@ -243,12 +251,12 @@ double LineSearch::InterpolatingPolynomialMinimizingStepSize(
   if (interpolation_type == QUADRATIC) {
     // Two point interpolation using function values and the
     // gradient at the lower bound.
-    samples.push_back(ValueSample(current.x, current.value));
+    samples.push_back(FunctionSample(current.x, current.value));
 
     if (previous.value_is_valid) {
       // Three point interpolation, using function values and the
       // gradient at the lower bound.
-      samples.push_back(ValueSample(previous.x, previous.value));
+      samples.push_back(FunctionSample(previous.x, previous.value));
     }
   } else if (interpolation_type == CUBIC) {
     // Two point interpolation using the function values and the gradients.
@@ -286,34 +294,26 @@ void ArmijoLineSearch::DoSearch(const double step_size_estimate,
 
   // Note initial_cost & initial_gradient are evaluated at step_size = 0,
   // not step_size_estimate, which is our starting guess.
-  const FunctionSample initial_position =
-      ValueAndGradientSample(0.0, initial_cost, initial_gradient);
+  FunctionSample initial_position(0.0, initial_cost, initial_gradient);
+  initial_position.vector_x = function->position();
+  initial_position.vector_x_is_valid = true;
 
-  FunctionSample previous = ValueAndGradientSample(0.0, 0.0, 0.0);
-  previous.value_is_valid = false;
-
-  FunctionSample current = ValueAndGradientSample(step_size_estimate, 0.0, 0.0);
-  current.value_is_valid = false;
+  const double descent_direction_max_norm = function->DirectionInfinityNorm();
+  FunctionSample previous;
+  FunctionSample current;
 
   // As the Armijo line search algorithm always uses the initial point, for
   // which both the function value and derivative are known, when fitting a
   // minimizing polynomial, we can fit up to a quadratic without requiring the
   // gradient at the current query point.
-  const bool interpolation_uses_gradient_at_current_sample =
-      options().interpolation_type == CUBIC;
-  const double descent_direction_max_norm = function->DirectionInfinityNorm();
+  const bool kEvaluateGradient = options().interpolation_type == CUBIC;
 
   ++summary->num_function_evaluations;
-  if (interpolation_uses_gradient_at_current_sample) {
+  if (kEvaluateGradient) {
     ++summary->num_gradient_evaluations;
   }
-  current.value_is_valid =
-      function->Evaluate(current.x,
-                         &current.value,
-                         interpolation_uses_gradient_at_current_sample
-                         ? &current.gradient : NULL);
-  current.gradient_is_valid =
-      interpolation_uses_gradient_at_current_sample && current.value_is_valid;
+
+  function->Evaluate(step_size_estimate, kEvaluateGradient, &current);
   while (!current.value_is_valid ||
          current.value > (initial_cost
                           + options().sufficient_decrease
@@ -354,22 +354,16 @@ void ArmijoLineSearch::DoSearch(const double step_size_estimate,
     }
 
     previous = current;
-    current.x = step_size;
 
     ++summary->num_function_evaluations;
-    if (interpolation_uses_gradient_at_current_sample) {
+    if (kEvaluateGradient) {
       ++summary->num_gradient_evaluations;
     }
-    current.value_is_valid =
-      function->Evaluate(current.x,
-                         &current.value,
-                         interpolation_uses_gradient_at_current_sample
-                         ? &current.gradient : NULL);
-    current.gradient_is_valid =
-        interpolation_uses_gradient_at_current_sample && current.value_is_valid;
+
+    function->Evaluate(step_size, kEvaluateGradient, &current);
   }
 
-  summary->optimal_step_size = current.x;
+  summary->optimal_point = current;
   summary->success = true;
 }
 
@@ -391,9 +385,9 @@ void WolfeLineSearch::DoSearch(const double step_size_estimate,
 
   // Note initial_cost & initial_gradient are evaluated at step_size = 0,
   // not step_size_estimate, which is our starting guess.
-  const FunctionSample initial_position =
-      ValueAndGradientSample(0.0, initial_cost, initial_gradient);
-
+  FunctionSample initial_position(0.0, initial_cost, initial_gradient);
+  initial_position.vector_x = options().function->position();
+  initial_position.vector_x_is_valid = true;
   bool do_zoom_search = false;
   // Important: The high/low in bracket_high & bracket_low refer to their
   // _function_ values, not their step sizes i.e. it is _not_ required that
@@ -435,7 +429,7 @@ void WolfeLineSearch::DoSearch(const double step_size_estimate,
     // produce a valid point when ArmijoLineSearch would succeed, we return the
     // point with the lowest cost found thus far which satsifies the Armijo
     // condition (but not the Wolfe conditions).
-    summary->optimal_step_size = bracket_low.x;
+    summary->optimal_point = bracket_low;
     summary->success = true;
     return;
   }
@@ -481,11 +475,13 @@ void WolfeLineSearch::DoSearch(const double step_size_estimate,
   // satisfies the strong Wolfe curvature condition, that we return the point
   // amongst those found thus far, which minimizes f() and satisfies the Armijo
   // condition.
-  solution =
-      solution.value_is_valid && solution.value <= bracket_low.value
-      ? solution : bracket_low;
 
-  summary->optimal_step_size = solution.x;
+  if (!solution.value_is_valid || solution.value > bracket_low.value) {
+    summary->optimal_point = bracket_low;
+  } else {
+    summary->optimal_point = solution;
+  }
+
   summary->success = true;
 }
 
@@ -515,8 +511,7 @@ bool WolfeLineSearch::BracketingPhase(
   LineSearchFunction* function = options().function;
 
   FunctionSample previous = initial_position;
-  FunctionSample current = ValueAndGradientSample(step_size_estimate, 0.0, 0.0);
-  current.value_is_valid = false;
+  FunctionSample current;
 
   const double descent_direction_max_norm =
       function->DirectionInfinityNorm();
@@ -535,12 +530,8 @@ bool WolfeLineSearch::BracketingPhase(
   // issues).
   ++summary->num_function_evaluations;
   ++summary->num_gradient_evaluations;
-  current.value_is_valid =
-      function->Evaluate(current.x,
-                         &current.value,
-                         &current.gradient);
-  current.gradient_is_valid = current.value_is_valid;
-
+  const bool kEvaluateGradient = true;
+  function->Evaluate(step_size_estimate, kEvaluateGradient, &current);
   while (true) {
     ++summary->num_iterations;
 
@@ -637,7 +628,18 @@ bool WolfeLineSearch::BracketingPhase(
     // being a boundary of a bracket.
 
     // If f(current) is valid, (but meets no criteria) expand the search by
-    // increasing the step size.
+    // increasing the step size.  If f(current) is invalid, contract the step
+    // size.
+    //
+    // In Nocedal & Wright [1] (p60), the step-size can only increase in the
+    // bracketing phase: step_size_{k+1} \in [step_size_k, step_size_k * factor].
+    // However this does not account for the function returning invalid values
+    // which we support, in which case we need to contract the step size whilst
+    // ensuring that we do not invert the bracket, i.e, we require that:
+    // step_size_{k-1} <= step_size_{k+1} < step_size_k.
+    const double min_step_size =
+        current.value_is_valid
+        ? current.x : previous.x;
     const double max_step_size =
         current.value_is_valid
         ? (current.x * options().max_step_expansion) : current.x;
@@ -656,7 +658,7 @@ bool WolfeLineSearch::BracketingPhase(
             previous,
             unused_previous,
             current,
-            previous.x,
+            min_step_size,
             max_step_size);
     summary->polynomial_minimization_time_in_seconds +=
         (WallTimeInSeconds() - polynomial_minimization_start_time);
@@ -669,16 +671,14 @@ bool WolfeLineSearch::BracketingPhase(
       return false;
     }
 
+    // Only advance the lower boundary (in x) of the bracket if f(current)
+    // is valid such that we can support contracting the step size when
+    // f(current) is invalid without risking inverting the bracket in x, i.e.
+    // prevent previous.x > current.x.
     previous = current.value_is_valid ? current : previous;
-    current.x = step_size;
-
     ++summary->num_function_evaluations;
     ++summary->num_gradient_evaluations;
-    current.value_is_valid =
-        function->Evaluate(current.x,
-                           &current.value,
-                           &current.gradient);
-    current.gradient_is_valid = current.value_is_valid;
+    function->Evaluate(step_size, kEvaluateGradient, &current);
   }
 
   // Ensure that even if a valid bracket was found, we will only mark a zoom
@@ -799,7 +799,7 @@ bool WolfeLineSearch::ZoomPhase(const FunctionSample& initial_position,
     const FunctionSample unused_previous;
     DCHECK(!unused_previous.value_is_valid);
     const double polynomial_minimization_start_time = WallTimeInSeconds();
-    solution->x =
+    const double step_size =
         this->InterpolatingPolynomialMinimizingStepSize(
             options().interpolation_type,
             lower_bound_step,
@@ -823,12 +823,9 @@ bool WolfeLineSearch::ZoomPhase(const FunctionSample& initial_position,
     // to numerical issues).
     ++summary->num_function_evaluations;
     ++summary->num_gradient_evaluations;
-    solution->value_is_valid =
-        function->Evaluate(solution->x,
-                           &solution->value,
-                           &solution->gradient);
-    solution->gradient_is_valid = solution->value_is_valid;
-    if (!solution->value_is_valid) {
+    const bool kEvaluateGradient = true;
+    function->Evaluate(step_size, kEvaluateGradient, solution);
+    if (!solution->value_is_valid || !solution->gradient_is_valid) {
       summary->error =
           StringPrintf("Line search failed: Wolfe Zoom phase found "
                        "step_size: %.5e, for which function is invalid, "

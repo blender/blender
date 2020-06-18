@@ -31,6 +31,7 @@
 #ifndef CERES_INTERNAL_MINIMIZER_H_
 #define CERES_INTERNAL_MINIMIZER_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 #include "ceres/internal/port.h"
@@ -167,19 +168,19 @@ class Minimizer {
 
     // Object responsible for evaluating the cost, residuals and
     // Jacobian matrix.
-    shared_ptr<Evaluator> evaluator;
+    std::shared_ptr<Evaluator> evaluator;
 
     // Object responsible for actually computing the trust region
     // step, and sizing the trust region radius.
-    shared_ptr<TrustRegionStrategy> trust_region_strategy;
+    std::shared_ptr<TrustRegionStrategy> trust_region_strategy;
 
     // Object holding the Jacobian matrix. It is assumed that the
     // sparsity structure of the matrix has already been initialized
     // and will remain constant for the life time of the
     // optimization.
-    shared_ptr<SparseMatrix> jacobian;
+    std::shared_ptr<SparseMatrix> jacobian;
 
-    shared_ptr<CoordinateDescentMinimizer> inner_iteration_minimizer;
+    std::shared_ptr<CoordinateDescentMinimizer> inner_iteration_minimizer;
   };
 
   static Minimizer* Create(MinimizerType minimizer_type);

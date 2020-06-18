@@ -43,28 +43,6 @@ namespace internal {
 
 using std::string;
 
-// va_copy() was defined in the C99 standard.  However, it did not appear in the
-// C++ standard until C++11.  This means that if Ceres is being compiled with a
-// strict pre-C++11 standard (e.g. -std=c++03), va_copy() will NOT be defined,
-// as we are using the C++ compiler (it would however be defined if we were
-// using the C compiler).  Note however that both GCC & Clang will in fact
-// define va_copy() when compiling for C++ if the C++ standard is not explicitly
-// specified (i.e. no -std=c++<XX> arg), even though it should not strictly be
-// defined unless -std=c++11 (or greater) was passed.
-#if !defined(va_copy)
-#if defined (__GNUC__)
-// On GCC/Clang, if va_copy() is not defined (C++ standard < C++11 explicitly
-// specified), use the internal __va_copy() version, which should be present
-// in even very old GCC versions.
-#define va_copy(d, s) __va_copy(d, s)
-#else
-// Some older versions of MSVC do not have va_copy(), in which case define it.
-// Although this is required for older MSVC versions, it should also work for
-// other non-GCC/Clang compilers which also do not defined va_copy().
-#define va_copy(d, s) ((d) = (s))
-#endif  // defined (__GNUC__)
-#endif  // !defined(va_copy)
-
 void StringAppendV(string* dst, const char* format, va_list ap) {
   // First try with a small fixed size buffer
   char space[1024];

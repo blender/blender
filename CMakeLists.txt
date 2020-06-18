@@ -1245,7 +1245,7 @@ endif()
 
 if(WITH_LIBMV)
   # We always have C++11 which includes unordered_map.
-  set(CERES_DEFINES -DCERES_STD_UNORDERED_MAP)
+  set(CERES_DEFINES "-DCERES_STD_UNORDERED_MAP;-DCERES_USE_CXX_THREADS")
 endif()
 
 #-----------------------------------------------------------------------------

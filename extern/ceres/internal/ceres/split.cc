@@ -115,7 +115,7 @@ void SplitStringUsing(const string& full,
                       const char* delim,
                       vector<string>* result) {
   result->reserve(result->size() + CalculateReserveForVector(full, delim));
-  std::back_insert_iterator<vector<string> > it(*result);
+  std::back_insert_iterator<vector<string>> it(*result);
   SplitStringToIteratorUsing(full, delim, it);
 }
 

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2017 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -34,91 +34,40 @@
 #ifndef CERES_INTERNAL_SPARSE_NORMAL_CHOLESKY_SOLVER_H_
 #define CERES_INTERNAL_SPARSE_NORMAL_CHOLESKY_SOLVER_H_
 
-#include <vector>
-
 // This include must come before any #ifndef check on Ceres compile options.
 #include "ceres/internal/port.h"
 
-#include "ceres/internal/macros.h"
+#include <vector>
 #include "ceres/linear_solver.h"
-#include "ceres/suitesparse.h"
-#include "ceres/cxsparse.h"
-
-#ifdef CERES_USE_EIGEN_SPARSE
-#include "Eigen/SparseCholesky"
-#endif
 
 namespace ceres {
 namespace internal {
 
 class CompressedRowSparseMatrix;
+class InnerProductComputer;
+class SparseCholesky;
 
-// Solves the normal equations (A'A + D'D) x = A'b, using the CHOLMOD sparse
-// cholesky solver.
-class SparseNormalCholeskySolver : public CompressedRowSparseMatrixSolver {
+// Solves the normal equations (A'A + D'D) x = A'b, using the sparse
+// linear algebra library of the user's choice.
+class SparseNormalCholeskySolver : public BlockSparseMatrixSolver {
  public:
   explicit SparseNormalCholeskySolver(const LinearSolver::Options& options);
+  SparseNormalCholeskySolver(const SparseNormalCholeskySolver&) = delete;
+  void operator=(const SparseNormalCholeskySolver&) = delete;
+
   virtual ~SparseNormalCholeskySolver();
 
  private:
-  virtual LinearSolver::Summary SolveImpl(
-      CompressedRowSparseMatrix* A,
+  LinearSolver::Summary SolveImpl(
+      BlockSparseMatrix* A,
       const double* b,
       const LinearSolver::PerSolveOptions& options,
-      double* x);
+      double* x) final;
 
-  LinearSolver::Summary SolveImplUsingSuiteSparse(
-      CompressedRowSparseMatrix* A,
-      double* rhs_and_solution);
-
-
-  LinearSolver::Summary SolveImplUsingCXSparse(
-      CompressedRowSparseMatrix* A,
-      double* rhs_and_solution);
-
-  LinearSolver::Summary SolveImplUsingEigen(
-      CompressedRowSparseMatrix* A,
-      double* rhs_and_solution);
-
-  void FreeFactorization();
-
-  SuiteSparse ss_;
-  // Cached factorization
-  cholmod_factor* factor_;
-
-  CXSparse cxsparse_;
-  // Cached factorization
-  cs_dis* cxsparse_factor_;
-
-#ifdef CERES_USE_EIGEN_SPARSE
-
-  // The preprocessor gymnastics here are dealing with the fact that
-  // before version 3.2.2, Eigen did not support a third template
-  // parameter to specify the ordering.
-#if EIGEN_VERSION_AT_LEAST(3,2,2)
-  typedef Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>, Eigen::Upper,
-                                Eigen::NaturalOrdering<int> >
-  SimplicialLDLTWithNaturalOrdering;
-  scoped_ptr<SimplicialLDLTWithNaturalOrdering> natural_ldlt_;
-
-  typedef Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>, Eigen::Upper,
-                                Eigen::AMDOrdering<int> >
-  SimplicialLDLTWithAMDOrdering;
-  scoped_ptr<SimplicialLDLTWithAMDOrdering> amd_ldlt_;
-
-#else
-  typedef Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>, Eigen::Upper>
-  SimplicialLDLTWithAMDOrdering;
-
-  scoped_ptr<SimplicialLDLTWithAMDOrdering> amd_ldlt_;
-#endif
-
-#endif
-
-  scoped_ptr<CompressedRowSparseMatrix> outer_product_;
-  std::vector<int> pattern_;
   const LinearSolver::Options options_;
-  CERES_DISALLOW_COPY_AND_ASSIGN(SparseNormalCholeskySolver);
+  Vector rhs_;
+  std::unique_ptr<SparseCholesky> sparse_cholesky_;
+  std::unique_ptr<InnerProductComputer> inner_product_computer_;
 };
 
 }  // namespace internal

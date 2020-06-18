@@ -41,7 +41,6 @@
 #include "ceres/detect_structure.h"
 #include "ceres/implicit_schur_complement.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_solver.h"
 #include "ceres/preconditioner.h"
 #include "ceres/schur_jacobi_preconditioner.h"
@@ -59,8 +58,7 @@ IterativeSchurComplementSolver::IterativeSchurComplementSolver(
     : options_(options) {
 }
 
-IterativeSchurComplementSolver::~IterativeSchurComplementSolver() {
-}
+IterativeSchurComplementSolver::~IterativeSchurComplementSolver() {}
 
 LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
     BlockSparseMatrix* A,
@@ -69,7 +67,7 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
     double* x) {
   EventLogger event_logger("IterativeSchurComplementSolver::Solve");
 
-  CHECK_NOTNULL(A->block_structure());
+  CHECK(A->block_structure() != nullptr);
   const int num_eliminate_blocks = options_.elimination_groups[0];
   // Initialize a ImplicitSchurComplement object.
   if (schur_complement_ == NULL) {
@@ -86,28 +84,60 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
       A->block_structure()->cols.size() - num_eliminate_blocks;
   if (num_schur_complement_blocks == 0) {
     VLOG(2) << "No parameter blocks left in the schur complement.";
-    LinearSolver::Summary cg_summary;
-    cg_summary.num_iterations = 0;
-    cg_summary.termination_type = LINEAR_SOLVER_SUCCESS;
+    LinearSolver::Summary summary;
+    summary.num_iterations = 0;
+    summary.termination_type = LINEAR_SOLVER_SUCCESS;
     schur_complement_->BackSubstitute(NULL, x);
-    return cg_summary;
+    return summary;
   }
 
   // Initialize the solution to the Schur complement system to zero.
   reduced_linear_system_solution_.resize(schur_complement_->num_rows());
   reduced_linear_system_solution_.setZero();
 
-  // Instantiate a conjugate gradient solver that runs on the Schur
-  // complement matrix with the block diagonal of the matrix F'F as
-  // the preconditioner.
   LinearSolver::Options cg_options;
   cg_options.min_num_iterations = options_.min_num_iterations;
   cg_options.max_num_iterations = options_.max_num_iterations;
   ConjugateGradientsSolver cg_solver(cg_options);
-  LinearSolver::PerSolveOptions cg_per_solve_options;
 
+  LinearSolver::PerSolveOptions cg_per_solve_options;
   cg_per_solve_options.r_tolerance = per_solve_options.r_tolerance;
   cg_per_solve_options.q_tolerance = per_solve_options.q_tolerance;
+
+  CreatePreconditioner(A);
+  if (preconditioner_.get() != NULL) {
+    if (!preconditioner_->Update(*A, per_solve_options.D)) {
+      LinearSolver::Summary summary;
+      summary.num_iterations = 0;
+      summary.termination_type = LINEAR_SOLVER_FAILURE;
+      summary.message = "Preconditioner update failed.";
+      return summary;
+    }
+
+    cg_per_solve_options.preconditioner = preconditioner_.get();
+  }
+
+  event_logger.AddEvent("Setup");
+  LinearSolver::Summary summary =
+      cg_solver.Solve(schur_complement_.get(),
+                      schur_complement_->rhs().data(),
+                      cg_per_solve_options,
+                      reduced_linear_system_solution_.data());
+  if (summary.termination_type != LINEAR_SOLVER_FAILURE &&
+      summary.termination_type != LINEAR_SOLVER_FATAL_ERROR) {
+    schur_complement_->BackSubstitute(reduced_linear_system_solution_.data(),
+                                      x);
+  }
+  event_logger.AddEvent("Solve");
+  return summary;
+}
+
+void IterativeSchurComplementSolver::CreatePreconditioner(
+    BlockSparseMatrix* A) {
+  if (options_.preconditioner_type == IDENTITY ||
+      preconditioner_.get() != NULL) {
+    return;
+  }
 
   Preconditioner::Options preconditioner_options;
   preconditioner_options.type = options_.preconditioner_type;
@@ -120,63 +150,27 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
   preconditioner_options.e_block_size = options_.e_block_size;
   preconditioner_options.f_block_size = options_.f_block_size;
   preconditioner_options.elimination_groups = options_.elimination_groups;
+  CHECK(options_.context != NULL);
+  preconditioner_options.context = options_.context;
 
   switch (options_.preconditioner_type) {
-    case IDENTITY:
-      break;
     case JACOBI:
-      preconditioner_.reset(
-          new SparseMatrixPreconditionerWrapper(
-              schur_complement_->block_diagonal_FtF_inverse()));
+      preconditioner_.reset(new SparseMatrixPreconditionerWrapper(
+          schur_complement_->block_diagonal_FtF_inverse()));
       break;
     case SCHUR_JACOBI:
-      if (preconditioner_.get() == NULL) {
-        preconditioner_.reset(
-            new SchurJacobiPreconditioner(*A->block_structure(),
-                                          preconditioner_options));
-      }
+      preconditioner_.reset(new SchurJacobiPreconditioner(
+          *A->block_structure(), preconditioner_options));
       break;
     case CLUSTER_JACOBI:
     case CLUSTER_TRIDIAGONAL:
-      if (preconditioner_.get() == NULL) {
-        preconditioner_.reset(
-            new VisibilityBasedPreconditioner(*A->block_structure(),
-                                              preconditioner_options));
-      }
+      preconditioner_.reset(new VisibilityBasedPreconditioner(
+          *A->block_structure(), preconditioner_options));
       break;
     default:
       LOG(FATAL) << "Unknown Preconditioner Type";
   }
-
-  bool preconditioner_update_was_successful = true;
-  if (preconditioner_.get() != NULL) {
-    preconditioner_update_was_successful =
-        preconditioner_->Update(*A, per_solve_options.D);
-    cg_per_solve_options.preconditioner = preconditioner_.get();
-  }
-  event_logger.AddEvent("Setup");
-
-  LinearSolver::Summary cg_summary;
-  cg_summary.num_iterations = 0;
-  cg_summary.termination_type = LINEAR_SOLVER_FAILURE;
-
-  // TODO(sameeragarwal): Refactor preconditioners to return a more
-  // sane message.
-  cg_summary.message = "Preconditioner update failed.";
-  if (preconditioner_update_was_successful) {
-    cg_summary = cg_solver.Solve(schur_complement_.get(),
-                                 schur_complement_->rhs().data(),
-                                 cg_per_solve_options,
-                                 reduced_linear_system_solution_.data());
-    if (cg_summary.termination_type != LINEAR_SOLVER_FAILURE &&
-        cg_summary.termination_type != LINEAR_SOLVER_FATAL_ERROR) {
-      schur_complement_->BackSubstitute(
-          reduced_linear_system_solution_.data(), x);
-    }
-  }
-  event_logger.AddEvent("Solve");
-  return cg_summary;
-}
+};
 
 }  // namespace internal
 }  // namespace ceres

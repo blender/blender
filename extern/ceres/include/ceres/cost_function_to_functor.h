@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2019 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 //
 // CostFunctionToFunctor is an adapter class that allows users to use
 // SizedCostFunction objects in templated functors which are to be used for
-// automatic differentiation.  This allows the user to seamlessly mix
+// automatic differentiation. This allows the user to seamlessly mix
 // analytic, numeric and automatic differentiation.
 //
 // For example, let us assume that
@@ -38,16 +38,15 @@
 //  class IntrinsicProjection : public SizedCostFunction<2, 5, 3> {
 //    public:
 //      IntrinsicProjection(const double* observation);
-//      virtual bool Evaluate(double const* const* parameters,
-//                            double* residuals,
-//                            double** jacobians) const;
+//      bool Evaluate(double const* const* parameters,
+//                    double* residuals,
+//                    double** jacobians) const override;
 //  };
 //
 // is a cost function that implements the projection of a point in its
 // local coordinate system onto its image plane and subtracts it from
 // the observed point projection. It can compute its residual and
-// either via analytic or numerical differentiation can compute its
-// jacobians.
+// jacobians either via analytic or numerical differentiation.
 //
 // Now we would like to compose the action of this CostFunction with
 // the action of camera extrinsics, i.e., rotation and
@@ -87,594 +86,83 @@
 #ifndef CERES_PUBLIC_COST_FUNCTION_TO_FUNCTOR_H_
 #define CERES_PUBLIC_COST_FUNCTION_TO_FUNCTOR_H_
 
+#include <cstdint>
 #include <numeric>
+#include <tuple>
+#include <utility>
 #include <vector>
 
 #include "ceres/cost_function.h"
 #include "ceres/dynamic_cost_function_to_functor.h"
 #include "ceres/internal/fixed_array.h"
+#include "ceres/internal/parameter_dims.h"
 #include "ceres/internal/port.h"
-#include "ceres/internal/scoped_ptr.h"
+#include "ceres/types.h"
 
 namespace ceres {
 
-template <int kNumResiduals,
-          int N0, int N1 = 0, int N2 = 0, int N3 = 0, int N4 = 0,
-          int N5 = 0, int N6 = 0, int N7 = 0, int N8 = 0, int N9 = 0>
+template <int kNumResiduals, int... Ns>
 class CostFunctionToFunctor {
  public:
   // Takes ownership of cost_function.
   explicit CostFunctionToFunctor(CostFunction* cost_function)
       : cost_functor_(cost_function) {
-    CHECK_NOTNULL(cost_function);
+    CHECK(cost_function != nullptr);
     CHECK(kNumResiduals > 0 || kNumResiduals == DYNAMIC);
 
-    // This block breaks the 80 column rule to keep it somewhat readable.
-    CHECK((!N1 && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
-          ((N1 > 0) && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
-          ((N1 > 0) && (N2 > 0) && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||                                    // NOLINT
-          ((N1 > 0) && (N2 > 0) && (N3 > 0) && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||                               // NOLINT
-          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && !N5 && !N6 && !N7 && !N8 && !N9) ||                          // NOLINT
-          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && !N6 && !N7 && !N8 && !N9) ||                     // NOLINT
-          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && !N7 && !N8 && !N9) ||                // NOLINT
-          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && !N8 && !N9) ||           // NOLINT
-          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && (N8 > 0) && !N9) ||      // NOLINT
-          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && (N8 > 0) && (N9 > 0)))   // NOLINT
-        << "Zero block cannot precede a non-zero block. Block sizes are "
-        << "(ignore trailing 0s): " << N0 << ", " << N1 << ", " << N2 << ", "
-        << N3 << ", " << N4 << ", " << N5 << ", " << N6 << ", " << N7 << ", "
-        << N8 << ", " << N9;
-
-    const std::vector<int32>& parameter_block_sizes =
+    const std::vector<int32_t>& parameter_block_sizes =
         cost_function->parameter_block_sizes();
-    const int num_parameter_blocks =
-        (N0 > 0) + (N1 > 0) + (N2 > 0) + (N3 > 0) + (N4 > 0) +
-        (N5 > 0) + (N6 > 0) + (N7 > 0) + (N8 > 0) + (N9 > 0);
+    const int num_parameter_blocks = ParameterDims::kNumParameterBlocks;
     CHECK_EQ(static_cast<int>(parameter_block_sizes.size()),
              num_parameter_blocks);
 
-    CHECK_EQ(N0, parameter_block_sizes[0]);
-    if (parameter_block_sizes.size() > 1) CHECK_EQ(N1, parameter_block_sizes[1]);  // NOLINT
-    if (parameter_block_sizes.size() > 2) CHECK_EQ(N2, parameter_block_sizes[2]);  // NOLINT
-    if (parameter_block_sizes.size() > 3) CHECK_EQ(N3, parameter_block_sizes[3]);  // NOLINT
-    if (parameter_block_sizes.size() > 4) CHECK_EQ(N4, parameter_block_sizes[4]);  // NOLINT
-    if (parameter_block_sizes.size() > 5) CHECK_EQ(N5, parameter_block_sizes[5]);  // NOLINT
-    if (parameter_block_sizes.size() > 6) CHECK_EQ(N6, parameter_block_sizes[6]);  // NOLINT
-    if (parameter_block_sizes.size() > 7) CHECK_EQ(N7, parameter_block_sizes[7]);  // NOLINT
-    if (parameter_block_sizes.size() > 8) CHECK_EQ(N8, parameter_block_sizes[8]);  // NOLINT
-    if (parameter_block_sizes.size() > 9) CHECK_EQ(N9, parameter_block_sizes[9]);  // NOLINT
+    if (parameter_block_sizes.size() == num_parameter_blocks) {
+      for (int block = 0; block < num_parameter_blocks; ++block) {
+        CHECK_EQ(ParameterDims::GetDim(block), parameter_block_sizes[block])
+            << "Parameter block size missmatch. The specified static parameter "
+               "block dimension does not match the one from the cost function.";
+      }
+    }
 
-    CHECK_EQ(accumulate(parameter_block_sizes.begin(),
-                        parameter_block_sizes.end(), 0),
-             N0 + N1 + N2 + N3 + N4 + N5 + N6 + N7 + N8 + N9);
+    CHECK_EQ(accumulate(
+                 parameter_block_sizes.begin(), parameter_block_sizes.end(), 0),
+             ParameterDims::kNumParameters);
   }
 
-  bool operator()(const double* x0, double* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_EQ(N1, 0);
-    CHECK_EQ(N2, 0);
-    CHECK_EQ(N3, 0);
-    CHECK_EQ(N4, 0);
-    CHECK_EQ(N5, 0);
-    CHECK_EQ(N6, 0);
-    CHECK_EQ(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
+  template <typename T, typename... Ts>
+  bool operator()(const T* p1, Ts*... ps) const {
+    // Add one because of residual block.
+    static_assert(sizeof...(Ts) + 1 == ParameterDims::kNumParameterBlocks + 1,
+                  "Invalid number of parameter blocks specified.");
 
-    return cost_functor_(&x0, residuals);
-  }
+    auto params = std::make_tuple(p1, ps...);
 
-  bool operator()(const double* x0,
-                  const double* x1,
-                  double* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_EQ(N2, 0);
-    CHECK_EQ(N3, 0);
-    CHECK_EQ(N4, 0);
-    CHECK_EQ(N5, 0);
-    CHECK_EQ(N6, 0);
-    CHECK_EQ(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const double*> parameter_blocks(2);
-    parameter_blocks[0] = x0;
-    parameter_blocks[1] = x1;
-    return cost_functor_(parameter_blocks.get(), residuals);
-  }
+    // Extract residual pointer from params. The residual pointer is the
+    // last pointer.
+    constexpr int kResidualIndex = ParameterDims::kNumParameterBlocks;
+    T* residuals = std::get<kResidualIndex>(params);
 
-  bool operator()(const double* x0,
-                  const double* x1,
-                  const double* x2,
-                  double* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_EQ(N3, 0);
-    CHECK_EQ(N4, 0);
-    CHECK_EQ(N5, 0);
-    CHECK_EQ(N6, 0);
-    CHECK_EQ(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const double*> parameter_blocks(3);
-    parameter_blocks[0] = x0;
-    parameter_blocks[1] = x1;
-    parameter_blocks[2] = x2;
-    return cost_functor_(parameter_blocks.get(), residuals);
-  }
+    // Extract parameter block pointers from params.
+    using Indices =
+        std::make_integer_sequence<int,
+                                   ParameterDims::kNumParameterBlocks>;
+    std::array<const T*, ParameterDims::kNumParameterBlocks> parameter_blocks =
+        GetParameterPointers<T>(params, Indices());
 
-  bool operator()(const double* x0,
-                  const double* x1,
-                  const double* x2,
-                  const double* x3,
-                  double* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_NE(N3, 0);
-    CHECK_EQ(N4, 0);
-    CHECK_EQ(N5, 0);
-    CHECK_EQ(N6, 0);
-    CHECK_EQ(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const double*> parameter_blocks(4);
-    parameter_blocks[0] = x0;
-    parameter_blocks[1] = x1;
-    parameter_blocks[2] = x2;
-    parameter_blocks[3] = x3;
-    return cost_functor_(parameter_blocks.get(), residuals);
-  }
-
-  bool operator()(const double* x0,
-                  const double* x1,
-                  const double* x2,
-                  const double* x3,
-                  const double* x4,
-                  double* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_NE(N3, 0);
-    CHECK_NE(N4, 0);
-    CHECK_EQ(N5, 0);
-    CHECK_EQ(N6, 0);
-    CHECK_EQ(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const double*> parameter_blocks(5);
-    parameter_blocks[0] = x0;
-    parameter_blocks[1] = x1;
-    parameter_blocks[2] = x2;
-    parameter_blocks[3] = x3;
-    parameter_blocks[4] = x4;
-    return cost_functor_(parameter_blocks.get(), residuals);
-  }
-
-  bool operator()(const double* x0,
-                  const double* x1,
-                  const double* x2,
-                  const double* x3,
-                  const double* x4,
-                  const double* x5,
-                  double* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_NE(N3, 0);
-    CHECK_NE(N4, 0);
-    CHECK_NE(N5, 0);
-    CHECK_EQ(N6, 0);
-    CHECK_EQ(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const double*> parameter_blocks(6);
-    parameter_blocks[0] = x0;
-    parameter_blocks[1] = x1;
-    parameter_blocks[2] = x2;
-    parameter_blocks[3] = x3;
-    parameter_blocks[4] = x4;
-    parameter_blocks[5] = x5;
-    return cost_functor_(parameter_blocks.get(), residuals);
-  }
-
-  bool operator()(const double* x0,
-                  const double* x1,
-                  const double* x2,
-                  const double* x3,
-                  const double* x4,
-                  const double* x5,
-                  const double* x6,
-                  double* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_NE(N3, 0);
-    CHECK_NE(N4, 0);
-    CHECK_NE(N5, 0);
-    CHECK_NE(N6, 0);
-    CHECK_EQ(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const double*> parameter_blocks(7);
-    parameter_blocks[0] = x0;
-    parameter_blocks[1] = x1;
-    parameter_blocks[2] = x2;
-    parameter_blocks[3] = x3;
-    parameter_blocks[4] = x4;
-    parameter_blocks[5] = x5;
-    parameter_blocks[6] = x6;
-    return cost_functor_(parameter_blocks.get(), residuals);
-  }
-
-  bool operator()(const double* x0,
-                  const double* x1,
-                  const double* x2,
-                  const double* x3,
-                  const double* x4,
-                  const double* x5,
-                  const double* x6,
-                  const double* x7,
-                  double* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_NE(N3, 0);
-    CHECK_NE(N4, 0);
-    CHECK_NE(N5, 0);
-    CHECK_NE(N6, 0);
-    CHECK_NE(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const double*> parameter_blocks(8);
-    parameter_blocks[0] = x0;
-    parameter_blocks[1] = x1;
-    parameter_blocks[2] = x2;
-    parameter_blocks[3] = x3;
-    parameter_blocks[4] = x4;
-    parameter_blocks[5] = x5;
-    parameter_blocks[6] = x6;
-    parameter_blocks[7] = x7;
-    return cost_functor_(parameter_blocks.get(), residuals);
-  }
-
-  bool operator()(const double* x0,
-                  const double* x1,
-                  const double* x2,
-                  const double* x3,
-                  const double* x4,
-                  const double* x5,
-                  const double* x6,
-                  const double* x7,
-                  const double* x8,
-                  double* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_NE(N3, 0);
-    CHECK_NE(N4, 0);
-    CHECK_NE(N5, 0);
-    CHECK_NE(N6, 0);
-    CHECK_NE(N7, 0);
-    CHECK_NE(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const double*> parameter_blocks(9);
-    parameter_blocks[0] = x0;
-    parameter_blocks[1] = x1;
-    parameter_blocks[2] = x2;
-    parameter_blocks[3] = x3;
-    parameter_blocks[4] = x4;
-    parameter_blocks[5] = x5;
-    parameter_blocks[6] = x6;
-    parameter_blocks[7] = x7;
-    parameter_blocks[8] = x8;
-    return cost_functor_(parameter_blocks.get(), residuals);
-  }
-
-  bool operator()(const double* x0,
-                  const double* x1,
-                  const double* x2,
-                  const double* x3,
-                  const double* x4,
-                  const double* x5,
-                  const double* x6,
-                  const double* x7,
-                  const double* x8,
-                  const double* x9,
-                  double* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_NE(N3, 0);
-    CHECK_NE(N4, 0);
-    CHECK_NE(N5, 0);
-    CHECK_NE(N6, 0);
-    CHECK_NE(N7, 0);
-    CHECK_NE(N8, 0);
-    CHECK_NE(N9, 0);
-    internal::FixedArray<const double*> parameter_blocks(10);
-    parameter_blocks[0] = x0;
-    parameter_blocks[1] = x1;
-    parameter_blocks[2] = x2;
-    parameter_blocks[3] = x3;
-    parameter_blocks[4] = x4;
-    parameter_blocks[5] = x5;
-    parameter_blocks[6] = x6;
-    parameter_blocks[7] = x7;
-    parameter_blocks[8] = x8;
-    parameter_blocks[9] = x9;
-    return cost_functor_(parameter_blocks.get(), residuals);
-  }
-
-  template <typename JetT>
-  bool operator()(const JetT* x0, JetT* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_EQ(N1, 0);
-    CHECK_EQ(N2, 0);
-    CHECK_EQ(N3, 0);
-    CHECK_EQ(N4, 0);
-    CHECK_EQ(N5, 0);
-    CHECK_EQ(N6, 0);
-    CHECK_EQ(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    return cost_functor_(&x0, residuals);
-  }
-
-  template <typename JetT>
-  bool operator()(const JetT* x0,
-                  const JetT* x1,
-                  JetT* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_EQ(N2, 0);
-    CHECK_EQ(N3, 0);
-    CHECK_EQ(N4, 0);
-    CHECK_EQ(N5, 0);
-    CHECK_EQ(N6, 0);
-    CHECK_EQ(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const JetT*> jets(2);
-    jets[0] = x0;
-    jets[1] = x1;
-    return cost_functor_(jets.get(), residuals);
-  }
-
-  template <typename JetT>
-  bool operator()(const JetT* x0,
-                  const JetT* x1,
-                  const JetT* x2,
-                  JetT* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_EQ(N3, 0);
-    CHECK_EQ(N4, 0);
-    CHECK_EQ(N5, 0);
-    CHECK_EQ(N6, 0);
-    CHECK_EQ(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const JetT*> jets(3);
-    jets[0] = x0;
-    jets[1] = x1;
-    jets[2] = x2;
-    return cost_functor_(jets.get(), residuals);
-  }
-
-  template <typename JetT>
-  bool operator()(const JetT* x0,
-                  const JetT* x1,
-                  const JetT* x2,
-                  const JetT* x3,
-                  JetT* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_NE(N3, 0);
-    CHECK_EQ(N4, 0);
-    CHECK_EQ(N5, 0);
-    CHECK_EQ(N6, 0);
-    CHECK_EQ(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const JetT*> jets(4);
-    jets[0] = x0;
-    jets[1] = x1;
-    jets[2] = x2;
-    jets[3] = x3;
-    return cost_functor_(jets.get(), residuals);
-  }
-
-  template <typename JetT>
-  bool operator()(const JetT* x0,
-                  const JetT* x1,
-                  const JetT* x2,
-                  const JetT* x3,
-                  const JetT* x4,
-                  JetT* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_NE(N3, 0);
-    CHECK_NE(N4, 0);
-    CHECK_EQ(N5, 0);
-    CHECK_EQ(N6, 0);
-    CHECK_EQ(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const JetT*> jets(5);
-    jets[0] = x0;
-    jets[1] = x1;
-    jets[2] = x2;
-    jets[3] = x3;
-    jets[4] = x4;
-    return cost_functor_(jets.get(), residuals);
-  }
-
-  template <typename JetT>
-  bool operator()(const JetT* x0,
-                  const JetT* x1,
-                  const JetT* x2,
-                  const JetT* x3,
-                  const JetT* x4,
-                  const JetT* x5,
-                  JetT* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_NE(N3, 0);
-    CHECK_NE(N4, 0);
-    CHECK_NE(N5, 0);
-    CHECK_EQ(N6, 0);
-    CHECK_EQ(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const JetT*> jets(6);
-    jets[0] = x0;
-    jets[1] = x1;
-    jets[2] = x2;
-    jets[3] = x3;
-    jets[4] = x4;
-    jets[5] = x5;
-    return cost_functor_(jets.get(), residuals);
-  }
-
-  template <typename JetT>
-  bool operator()(const JetT* x0,
-                  const JetT* x1,
-                  const JetT* x2,
-                  const JetT* x3,
-                  const JetT* x4,
-                  const JetT* x5,
-                  const JetT* x6,
-                  JetT* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_NE(N3, 0);
-    CHECK_NE(N4, 0);
-    CHECK_NE(N5, 0);
-    CHECK_NE(N6, 0);
-    CHECK_EQ(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const JetT*> jets(7);
-    jets[0] = x0;
-    jets[1] = x1;
-    jets[2] = x2;
-    jets[3] = x3;
-    jets[4] = x4;
-    jets[5] = x5;
-    jets[6] = x6;
-    return cost_functor_(jets.get(), residuals);
-  }
-
-  template <typename JetT>
-  bool operator()(const JetT* x0,
-                  const JetT* x1,
-                  const JetT* x2,
-                  const JetT* x3,
-                  const JetT* x4,
-                  const JetT* x5,
-                  const JetT* x6,
-                  const JetT* x7,
-                  JetT* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_NE(N3, 0);
-    CHECK_NE(N4, 0);
-    CHECK_NE(N5, 0);
-    CHECK_NE(N6, 0);
-    CHECK_NE(N7, 0);
-    CHECK_EQ(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const JetT*> jets(8);
-    jets[0] = x0;
-    jets[1] = x1;
-    jets[2] = x2;
-    jets[3] = x3;
-    jets[4] = x4;
-    jets[5] = x5;
-    jets[6] = x6;
-    jets[7] = x7;
-    return cost_functor_(jets.get(), residuals);
-  }
-
-  template <typename JetT>
-  bool operator()(const JetT* x0,
-                  const JetT* x1,
-                  const JetT* x2,
-                  const JetT* x3,
-                  const JetT* x4,
-                  const JetT* x5,
-                  const JetT* x6,
-                  const JetT* x7,
-                  const JetT* x8,
-                  JetT* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_NE(N3, 0);
-    CHECK_NE(N4, 0);
-    CHECK_NE(N5, 0);
-    CHECK_NE(N6, 0);
-    CHECK_NE(N7, 0);
-    CHECK_NE(N8, 0);
-    CHECK_EQ(N9, 0);
-    internal::FixedArray<const JetT*> jets(9);
-    jets[0] = x0;
-    jets[1] = x1;
-    jets[2] = x2;
-    jets[3] = x3;
-    jets[4] = x4;
-    jets[5] = x5;
-    jets[6] = x6;
-    jets[7] = x7;
-    jets[8] = x8;
-    return cost_functor_(jets.get(), residuals);
-  }
-
-  template <typename JetT>
-  bool operator()(const JetT* x0,
-                  const JetT* x1,
-                  const JetT* x2,
-                  const JetT* x3,
-                  const JetT* x4,
-                  const JetT* x5,
-                  const JetT* x6,
-                  const JetT* x7,
-                  const JetT* x8,
-                  const JetT* x9,
-                  JetT* residuals) const {
-    CHECK_NE(N0, 0);
-    CHECK_NE(N1, 0);
-    CHECK_NE(N2, 0);
-    CHECK_NE(N3, 0);
-    CHECK_NE(N4, 0);
-    CHECK_NE(N5, 0);
-    CHECK_NE(N6, 0);
-    CHECK_NE(N7, 0);
-    CHECK_NE(N8, 0);
-    CHECK_NE(N9, 0);
-    internal::FixedArray<const JetT*> jets(10);
-    jets[0] = x0;
-    jets[1] = x1;
-    jets[2] = x2;
-    jets[3] = x3;
-    jets[4] = x4;
-    jets[5] = x5;
-    jets[6] = x6;
-    jets[7] = x7;
-    jets[8] = x8;
-    jets[9] = x9;
-    return cost_functor_(jets.get(), residuals);
+    return cost_functor_(parameter_blocks.data(), residuals);
   }
 
  private:
+  using ParameterDims = internal::StaticParameterDims<Ns...>;
+
+  template <typename T, typename Tuple, int... Indices>
+  static std::array<const T*, ParameterDims::kNumParameterBlocks>
+  GetParameterPointers(const Tuple& paramPointers,
+                       std::integer_sequence<int, Indices...>) {
+    return std::array<const T*, ParameterDims::kNumParameterBlocks>{
+        {std::get<Indices>(paramPointers)...}};
+  }
+
   DynamicCostFunctionToFunctor cost_functor_;
 };
 

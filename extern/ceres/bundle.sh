@@ -9,7 +9,6 @@ fi
 
 repo="https://ceres-solver.googlesource.com/ceres-solver"
 branch="master"
-#tag="1.4.0"
 tag=""
 tmp=`mktemp -d`
 checkout="$tmp/ceres"
@@ -157,14 +156,10 @@ add_definitions(
   -DCERES_NO_SUITESPARSE
   -DCERES_NO_CXSPARSE
   -DCERES_NO_LAPACK
+  -DCERES_NO_ACCELERATE_SPARSE
   -DCERES_HAVE_RWLOCK
+  -DCERES_USE_CXX_THREADS
 )
-
-if(WITH_OPENMP)
-  add_definitions(
-    -DCERES_USE_OPENMP
-  )
-endif()
 
 blender_add_lib(extern_ceres "\${SRC}" "\${INC}" "\${INC_SYS}" "\${LIB}")
 EOF

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2018 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,66 +26,22 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: keir@google.com (Keir Mierle)
-//
-// Portable typedefs for various fixed-size integers. Uses template
-// metaprogramming instead of fragile compiler defines.
+// Author: sameeragarwal@google.com (Sameer Agarwal)
 
-#ifndef CERES_INTERNAL_INTEGRAL_TYPES_H_
-#define CERES_INTERNAL_INTEGRAL_TYPES_H_
+#include "ceres/float_suitesparse.h"
+
+#if !defined(CERES_NO_SUITESPARSE)
 
 namespace ceres {
 namespace internal {
 
-// Compile time ternary on types.
-template<bool kCondition, typename kTrueType, typename kFalseType>
-struct Ternary {
-  typedef kTrueType type;
-};
-template<typename kTrueType, typename kFalseType>
-struct Ternary<false, kTrueType, kFalseType> {
-  typedef kFalseType type;
-};
-
-#define CERES_INTSIZE(TYPE) \
-    typename Ternary<sizeof(TYPE) * 8 == kBits, TYPE,
-
-template<int kBits>
-struct Integer {
-  typedef
-      CERES_INTSIZE(char)
-      CERES_INTSIZE(short)
-      CERES_INTSIZE(int)
-      CERES_INTSIZE(long int)
-      CERES_INTSIZE(long long)
-      void>::type >::type >::type >::type >::type
-      type;
-};
-
-template<int kBits>
-struct UnsignedInteger {
-  typedef
-      CERES_INTSIZE(unsigned char)
-      CERES_INTSIZE(unsigned short)
-      CERES_INTSIZE(unsigned int)
-      CERES_INTSIZE(unsigned long int)
-      CERES_INTSIZE(unsigned long long)
-      void>::type >::type >::type >::type >::type
-      type;
-};
-
-#undef CERES_INTSIZE
-
-typedef Integer< 8>::type int8;
-typedef Integer<32>::type int32;
-typedef Integer<64>::type int64;
-
-typedef UnsignedInteger< 8>::type uint8;
-typedef UnsignedInteger<16>::type uint16;
-typedef UnsignedInteger<32>::type uint32;
-typedef UnsignedInteger<64>::type uint64;
+std::unique_ptr<SparseCholesky> FloatSuiteSparseCholesky::Create(
+    OrderingType ordering_type) {
+  LOG(FATAL) << "FloatSuiteSparseCholesky is not available.";
+  return std::unique_ptr<SparseCholesky>();
+}
 
 }  // namespace internal
 }  // namespace ceres
 
-#endif  // CERES_INTERNAL_INTEGRAL_TYPES_H_
+#endif  // !defined(CERES_NO_SUITESPARSE)

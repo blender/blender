@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2019 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,22 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 //         mierle@gmail.com (Keir Mierle)
-//
+
+#ifndef CERES_PUBLIC_DYNAMIC_AUTODIFF_COST_FUNCTION_H_
+#define CERES_PUBLIC_DYNAMIC_AUTODIFF_COST_FUNCTION_H_
+
+#include <cmath>
+#include <memory>
+#include <numeric>
+#include <vector>
+
+#include "ceres/dynamic_cost_function.h"
+#include "ceres/internal/fixed_array.h"
+#include "ceres/jet.h"
+#include "glog/logging.h"
+
+namespace ceres {
+
 // This autodiff implementation differs from the one found in
 // autodiff_cost_function.h by supporting autodiff on cost functions
 // with variable numbers of parameters with variable sizes. With the
@@ -43,7 +58,7 @@
 //     bool operator()(T const* const* parameters, T* residuals) const {
 //       // Use parameters[i] to access the i'th parameter block.
 //     }
-//   }
+//   };
 //
 // Since the sizing of the parameters is done at runtime, you must
 // also specify the sizes after creating the dynamic autodiff cost
@@ -60,40 +75,17 @@
 // default, controlled by the Stride template parameter) with each
 // pass. There is a tradeoff with the size of the passes; you may want
 // to experiment with the stride.
-
-#ifndef CERES_PUBLIC_DYNAMIC_AUTODIFF_COST_FUNCTION_H_
-#define CERES_PUBLIC_DYNAMIC_AUTODIFF_COST_FUNCTION_H_
-
-#include <cmath>
-#include <numeric>
-#include <vector>
-
-#include "ceres/cost_function.h"
-#include "ceres/internal/scoped_ptr.h"
-#include "ceres/jet.h"
-#include "glog/logging.h"
-
-namespace ceres {
-
 template <typename CostFunctor, int Stride = 4>
-class DynamicAutoDiffCostFunction : public CostFunction {
+class DynamicAutoDiffCostFunction : public DynamicCostFunction {
  public:
   explicit DynamicAutoDiffCostFunction(CostFunctor* functor)
-    : functor_(functor) {}
+      : functor_(functor) {}
 
   virtual ~DynamicAutoDiffCostFunction() {}
 
-  void AddParameterBlock(int size) {
-    mutable_parameter_block_sizes()->push_back(size);
-  }
-
-  void SetNumResiduals(int num_residuals) {
-    set_num_residuals(num_residuals);
-  }
-
-  virtual bool Evaluate(double const* const* parameters,
-                        double* residuals,
-                        double** jacobians) const {
+  bool Evaluate(double const* const* parameters,
+                double* residuals,
+                double** jacobians) const override {
     CHECK_GT(num_residuals(), 0)
         << "You must call DynamicAutoDiffCostFunction::SetNumResiduals() "
         << "before DynamicAutoDiffCostFunction::Evaluate().";
@@ -112,20 +104,23 @@ class DynamicAutoDiffCostFunction : public CostFunction {
     // depends on.
     //
     // To work around this issue, the solution here is to evaluate the
-    // jacobians in a series of passes, each one computing Stripe *
+    // jacobians in a series of passes, each one computing Stride *
     // num_residuals() derivatives. This is done with small, fixed-size jets.
-    const int num_parameter_blocks = parameter_block_sizes().size();
-    const int num_parameters = std::accumulate(parameter_block_sizes().begin(),
-                                               parameter_block_sizes().end(),
-                                               0);
+    const int num_parameter_blocks =
+        static_cast<int>(parameter_block_sizes().size());
+    const int num_parameters = std::accumulate(
+        parameter_block_sizes().begin(), parameter_block_sizes().end(), 0);
 
     // Allocate scratch space for the strided evaluation.
-    std::vector<Jet<double, Stride> > input_jets(num_parameters);
-    std::vector<Jet<double, Stride> > output_jets(num_residuals());
+    using JetT = Jet<double, Stride>;
+    internal::FixedArray<JetT, (256 * 7) / sizeof(JetT)> input_jets(
+        num_parameters);
+    internal::FixedArray<JetT, (256 * 7) / sizeof(JetT)> output_jets(
+        num_residuals());
 
     // Make the parameter pack that is sent to the functor (reused).
-    std::vector<Jet<double, Stride>* > jet_parameters(num_parameter_blocks,
-        static_cast<Jet<double, Stride>* >(NULL));
+    internal::FixedArray<Jet<double, Stride>*> jet_parameters(
+        num_parameter_blocks, nullptr);
     int num_active_parameters = 0;
 
     // To handle constant parameters between non-constant parameter blocks, the
@@ -172,8 +167,8 @@ class DynamicAutoDiffCostFunction : public CostFunction {
     // Evaluate all of the strides. Each stride is a chunk of the derivative to
     // evaluate, typically some size proportional to the size of the SIMD
     // registers of the CPU.
-    int num_strides = static_cast<int>(ceil(num_active_parameters /
-                                            static_cast<float>(Stride)));
+    int num_strides = static_cast<int>(
+        ceil(num_active_parameters / static_cast<float>(Stride)));
 
     int current_derivative_section = 0;
     int current_derivative_section_cursor = 0;
@@ -183,7 +178,7 @@ class DynamicAutoDiffCostFunction : public CostFunction {
       // non-constant #Stride parameters.
       const int initial_derivative_section = current_derivative_section;
       const int initial_derivative_section_cursor =
-        current_derivative_section_cursor;
+          current_derivative_section_cursor;
 
       int active_parameter_count = 0;
       parameter_cursor = 0;
@@ -193,9 +188,9 @@ class DynamicAutoDiffCostFunction : public CostFunction {
              ++j, parameter_cursor++) {
           input_jets[parameter_cursor].v.setZero();
           if (active_parameter_count < Stride &&
-              parameter_cursor >= (
-                start_derivative_section[current_derivative_section] +
-                current_derivative_section_cursor)) {
+              parameter_cursor >=
+                  (start_derivative_section[current_derivative_section] +
+                   current_derivative_section_cursor)) {
             if (jacobians[i] != NULL) {
               input_jets[parameter_cursor].v[active_parameter_count] = 1.0;
               ++active_parameter_count;
@@ -222,9 +217,9 @@ class DynamicAutoDiffCostFunction : public CostFunction {
         for (int j = 0; j < parameter_block_sizes()[i];
              ++j, parameter_cursor++) {
           if (active_parameter_count < Stride &&
-              parameter_cursor >= (
-                start_derivative_section[current_derivative_section] +
-                current_derivative_section_cursor)) {
+              parameter_cursor >=
+                  (start_derivative_section[current_derivative_section] +
+                   current_derivative_section_cursor)) {
             if (jacobians[i] != NULL) {
               for (int k = 0; k < num_residuals(); ++k) {
                 jacobians[i][k * parameter_block_sizes()[i] + j] =
@@ -252,7 +247,7 @@ class DynamicAutoDiffCostFunction : public CostFunction {
   }
 
  private:
-  internal::scoped_ptr<CostFunctor> functor_;
+  std::unique_ptr<CostFunctor> functor_;
 };
 
 }  // namespace ceres

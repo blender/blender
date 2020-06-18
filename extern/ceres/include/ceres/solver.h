@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2019 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,19 +32,20 @@
 #define CERES_PUBLIC_SOLVER_H_
 
 #include <cmath>
+#include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
+
 #include "ceres/crs_matrix.h"
-#include "ceres/internal/macros.h"
+#include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/port.h"
 #include "ceres/iteration_callback.h"
 #include "ceres/ordered_groups.h"
+#include "ceres/problem.h"
 #include "ceres/types.h"
-#include "ceres/internal/disable_warnings.h"
 
 namespace ceres {
-
-class Problem;
 
 // Interface for non-linear least squares solvers.
 class CERES_EXPORT Solver {
@@ -57,87 +58,6 @@ class CERES_EXPORT Solver {
   //
   // The constants are defined inside types.h
   struct CERES_EXPORT Options {
-    // Default constructor that sets up a generic sparse problem.
-    Options() {
-      minimizer_type = TRUST_REGION;
-      line_search_direction_type = LBFGS;
-      line_search_type = WOLFE;
-      nonlinear_conjugate_gradient_type = FLETCHER_REEVES;
-      max_lbfgs_rank = 20;
-      use_approximate_eigenvalue_bfgs_scaling = false;
-      line_search_interpolation_type = CUBIC;
-      min_line_search_step_size = 1e-9;
-      line_search_sufficient_function_decrease = 1e-4;
-      max_line_search_step_contraction = 1e-3;
-      min_line_search_step_contraction = 0.6;
-      max_num_line_search_step_size_iterations = 20;
-      max_num_line_search_direction_restarts = 5;
-      line_search_sufficient_curvature_decrease = 0.9;
-      max_line_search_step_expansion = 10.0;
-      trust_region_strategy_type = LEVENBERG_MARQUARDT;
-      dogleg_type = TRADITIONAL_DOGLEG;
-      use_nonmonotonic_steps = false;
-      max_consecutive_nonmonotonic_steps = 5;
-      max_num_iterations = 50;
-      max_solver_time_in_seconds = 1e9;
-      num_threads = 1;
-      initial_trust_region_radius = 1e4;
-      max_trust_region_radius = 1e16;
-      min_trust_region_radius = 1e-32;
-      min_relative_decrease = 1e-3;
-      min_lm_diagonal = 1e-6;
-      max_lm_diagonal = 1e32;
-      max_num_consecutive_invalid_steps = 5;
-      function_tolerance = 1e-6;
-      gradient_tolerance = 1e-10;
-      parameter_tolerance = 1e-8;
-
-#if defined(CERES_NO_SUITESPARSE) && defined(CERES_NO_CXSPARSE) && !defined(CERES_ENABLE_LGPL_CODE)  // NOLINT
-      linear_solver_type = DENSE_QR;
-#else
-      linear_solver_type = SPARSE_NORMAL_CHOLESKY;
-#endif
-
-      preconditioner_type = JACOBI;
-      visibility_clustering_type = CANONICAL_VIEWS;
-      dense_linear_algebra_library_type = EIGEN;
-
-      // Choose a default sparse linear algebra library in the order:
-      //
-      //   SUITE_SPARSE > CX_SPARSE > EIGEN_SPARSE > NO_SPARSE
-      sparse_linear_algebra_library_type = NO_SPARSE;
-#if !defined(CERES_NO_SUITESPARSE)
-      sparse_linear_algebra_library_type = SUITE_SPARSE;
-#else
-  #if !defined(CERES_NO_CXSPARSE)
-      sparse_linear_algebra_library_type = CX_SPARSE;
-  #else
-    #if defined(CERES_USE_EIGEN_SPARSE)
-      sparse_linear_algebra_library_type = EIGEN_SPARSE;
-    #endif
-  #endif
-#endif
-
-      num_linear_solver_threads = 1;
-      use_explicit_schur_complement = false;
-      use_postordering = false;
-      dynamic_sparsity = false;
-      min_linear_solver_iterations = 0;
-      max_linear_solver_iterations = 500;
-      eta = 1e-1;
-      jacobi_scaling = true;
-      use_inner_iterations = false;
-      inner_iteration_tolerance = 1e-3;
-      logging_type = PER_MINIMIZER_ITERATION;
-      minimizer_progress_to_stdout = false;
-      trust_region_problem_dump_directory = "/tmp";
-      trust_region_problem_dump_format_type = TEXTFILE;
-      check_gradients = false;
-      gradient_check_relative_precision = 1e-8;
-      gradient_check_numeric_derivative_relative_step_size = 1e-6;
-      update_state_every_iteration = false;
-    }
-
     // Returns true if the options struct has a valid
     // configuration. Returns false otherwise, and fills in *error
     // with a message describing the problem.
@@ -157,7 +77,7 @@ class CERES_EXPORT Solver {
     // exactly or inexactly.
     //
     // 2. The trust region approach approximates the objective
-    // function using using a model function (often a quadratic) over
+    // function using a model function (often a quadratic) over
     // a subset of the search space known as the trust region. If the
     // model function succeeds in minimizing the true objective
     // function the trust region is expanded; conversely, otherwise it
@@ -168,11 +88,12 @@ class CERES_EXPORT Solver {
     // trust region methods first choose a step size (the size of the
     // trust region) and then a step direction while line search methods
     // first choose a step direction and then a step size.
-    MinimizerType minimizer_type;
+    MinimizerType minimizer_type = TRUST_REGION;
 
-    LineSearchDirectionType line_search_direction_type;
-    LineSearchType line_search_type;
-    NonlinearConjugateGradientType nonlinear_conjugate_gradient_type;
+    LineSearchDirectionType line_search_direction_type = LBFGS;
+    LineSearchType line_search_type = WOLFE;
+    NonlinearConjugateGradientType nonlinear_conjugate_gradient_type =
+        FLETCHER_REEVES;
 
     // The LBFGS hessian approximation is a low rank approximation to
     // the inverse of the Hessian matrix. The rank of the
@@ -197,8 +118,8 @@ class CERES_EXPORT Solver {
     // method, please see:
     //
     // Nocedal, J. (1980). "Updating Quasi-Newton Matrices with
-    // Limited Storage". Mathematics of Computation 35 (151): 773–782.
-    int max_lbfgs_rank;
+    // Limited Storage". Mathematics of Computation 35 (151): 773-782.
+    int max_lbfgs_rank = 20;
 
     // As part of the (L)BFGS update step (BFGS) / right-multiply step (L-BFGS),
     // the initial inverse Hessian approximation is taken to be the Identity.
@@ -220,18 +141,18 @@ class CERES_EXPORT Solver {
     // Oren S.S., Self-scaling variable metric (SSVM) algorithms
     // Part II: Implementation and experiments, Management Science,
     // 20(5), 863-874, 1974.
-    bool use_approximate_eigenvalue_bfgs_scaling;
+    bool use_approximate_eigenvalue_bfgs_scaling = false;
 
     // Degree of the polynomial used to approximate the objective
     // function. Valid values are BISECTION, QUADRATIC and CUBIC.
     //
     // BISECTION corresponds to pure backtracking search with no
     // interpolation.
-    LineSearchInterpolationType line_search_interpolation_type;
+    LineSearchInterpolationType line_search_interpolation_type = CUBIC;
 
     // If during the line search, the step_size falls below this
     // value, it is truncated to zero.
-    double min_line_search_step_size;
+    double min_line_search_step_size = 1e-9;
 
     // Line search parameters.
 
@@ -245,7 +166,7 @@ class CERES_EXPORT Solver {
     //
     //   f(step_size) <= f(0) + sufficient_decrease * f'(0) * step_size
     //
-    double line_search_sufficient_function_decrease;
+    double line_search_sufficient_function_decrease = 1e-4;
 
     // In each iteration of the line search,
     //
@@ -255,7 +176,7 @@ class CERES_EXPORT Solver {
     //
     //  0 < max_step_contraction < min_step_contraction < 1
     //
-    double max_line_search_step_contraction;
+    double max_line_search_step_contraction = 1e-3;
 
     // In each iteration of the line search,
     //
@@ -265,19 +186,25 @@ class CERES_EXPORT Solver {
     //
     //  0 < max_step_contraction < min_step_contraction < 1
     //
-    double min_line_search_step_contraction;
+    double min_line_search_step_contraction = 0.6;
 
-    // Maximum number of trial step size iterations during each line search,
-    // if a step size satisfying the search conditions cannot be found within
-    // this number of trials, the line search will terminate.
-    int max_num_line_search_step_size_iterations;
+    // Maximum number of trial step size iterations during each line
+    // search, if a step size satisfying the search conditions cannot
+    // be found within this number of trials, the line search will
+    // terminate.
+
+    // The minimum allowed value is 0 for trust region minimizer and 1
+    // otherwise. If 0 is specified for the trust region minimizer,
+    // then line search will not be used when solving constrained
+    // optimization problems.
+    int max_num_line_search_step_size_iterations = 20;
 
     // Maximum number of restarts of the line search direction algorithm before
     // terminating the optimization. Restarts of the line search direction
     // algorithm occur when the current algorithm fails to produce a new descent
     // direction. This typically indicates a numerical failure, or a breakdown
     // in the validity of the approximations used.
-    int max_num_line_search_direction_restarts;
+    int max_num_line_search_direction_restarts = 5;
 
     // The strong Wolfe conditions consist of the Armijo sufficient
     // decrease condition, and an additional requirement that the
@@ -290,7 +217,7 @@ class CERES_EXPORT Solver {
     //
     // Where f() is the line search objective and f'() is the derivative
     // of f w.r.t step_size (d f / d step_size).
-    double line_search_sufficient_curvature_decrease;
+    double line_search_sufficient_curvature_decrease = 0.9;
 
     // During the bracketing phase of the Wolfe search, the step size is
     // increased until either a point satisfying the Wolfe conditions is
@@ -301,12 +228,12 @@ class CERES_EXPORT Solver {
     //   new_step_size <= max_step_expansion * step_size.
     //
     // By definition for expansion, max_step_expansion > 1.0.
-    double max_line_search_step_expansion;
+    double max_line_search_step_expansion = 10.0;
 
-    TrustRegionStrategyType trust_region_strategy_type;
+    TrustRegionStrategyType trust_region_strategy_type = LEVENBERG_MARQUARDT;
 
     // Type of dogleg strategy to use.
-    DoglegType dogleg_type;
+    DoglegType dogleg_type = TRADITIONAL_DOGLEG;
 
     // The classical trust region methods are descent methods, in that
     // they only accept a point if it strictly reduces the value of
@@ -317,7 +244,7 @@ class CERES_EXPORT Solver {
     // in the value of the objective function.
     //
     // This is because allowing for non-decreasing objective function
-    // values in a princpled manner allows the algorithm to "jump over
+    // values in a principled manner allows the algorithm to "jump over
     // boulders" as the method is not restricted to move into narrow
     // valleys while preserving its convergence properties.
     //
@@ -333,30 +260,30 @@ class CERES_EXPORT Solver {
     // than the minimum value encountered over the course of the
     // optimization, the final parameters returned to the user are the
     // ones corresponding to the minimum cost over all iterations.
-    bool use_nonmonotonic_steps;
-    int max_consecutive_nonmonotonic_steps;
+    bool use_nonmonotonic_steps = false;
+    int max_consecutive_nonmonotonic_steps = 5;
 
     // Maximum number of iterations for the minimizer to run for.
-    int max_num_iterations;
+    int max_num_iterations = 50;
 
     // Maximum time for which the minimizer should run for.
-    double max_solver_time_in_seconds;
+    double max_solver_time_in_seconds = 1e9;
 
     // Number of threads used by Ceres for evaluating the cost and
     // jacobians.
-    int num_threads;
+    int num_threads = 1;
 
     // Trust region minimizer settings.
-    double initial_trust_region_radius;
-    double max_trust_region_radius;
+    double initial_trust_region_radius = 1e4;
+    double max_trust_region_radius = 1e16;
 
     // Minimizer terminates when the trust region radius becomes
     // smaller than this value.
-    double min_trust_region_radius;
+    double min_trust_region_radius = 1e-32;
 
     // Lower bound for the relative decrease before a step is
     // accepted.
-    double min_relative_decrease;
+    double min_relative_decrease = 1e-3;
 
     // For the Levenberg-Marquadt algorithm, the scaled diagonal of
     // the normal equations J'J is used to control the size of the
@@ -365,46 +292,75 @@ class CERES_EXPORT Solver {
     // fail. max_lm_diagonal and min_lm_diagonal, clamp the values of
     // diag(J'J) from above and below. In the normal course of
     // operation, the user should not have to modify these parameters.
-    double min_lm_diagonal;
-    double max_lm_diagonal;
+    double min_lm_diagonal = 1e-6;
+    double max_lm_diagonal = 1e32;
 
     // Sometimes due to numerical conditioning problems or linear
     // solver flakiness, the trust region strategy may return a
     // numerically invalid step that can be fixed by reducing the
     // trust region size. So the TrustRegionMinimizer allows for a few
     // successive invalid steps before it declares NUMERICAL_FAILURE.
-    int max_num_consecutive_invalid_steps;
+    int max_num_consecutive_invalid_steps = 5;
 
     // Minimizer terminates when
     //
     //   (new_cost - old_cost) < function_tolerance * old_cost;
     //
-    double function_tolerance;
+    double function_tolerance = 1e-6;
 
     // Minimizer terminates when
     //
     //   max_i |x - Project(Plus(x, -g(x))| < gradient_tolerance
     //
     // This value should typically be 1e-4 * function_tolerance.
-    double gradient_tolerance;
+    double gradient_tolerance = 1e-10;
 
     // Minimizer terminates when
     //
     //   |step|_2 <= parameter_tolerance * ( |x|_2 +  parameter_tolerance)
     //
-    double parameter_tolerance;
+    double parameter_tolerance = 1e-8;
 
     // Linear least squares solver options -------------------------------------
 
-    LinearSolverType linear_solver_type;
+    LinearSolverType linear_solver_type =
+#if defined(CERES_NO_SPARSE)
+        DENSE_QR;
+#else
+        SPARSE_NORMAL_CHOLESKY;
+#endif
 
     // Type of preconditioner to use with the iterative linear solvers.
-    PreconditionerType preconditioner_type;
+    PreconditionerType preconditioner_type = JACOBI;
 
     // Type of clustering algorithm to use for visibility based
     // preconditioning. This option is used only when the
     // preconditioner_type is CLUSTER_JACOBI or CLUSTER_TRIDIAGONAL.
-    VisibilityClusteringType visibility_clustering_type;
+    VisibilityClusteringType visibility_clustering_type = CANONICAL_VIEWS;
+
+    // Subset preconditioner is a preconditioner for problems with
+    // general sparsity. Given a subset of residual blocks of a
+    // problem, it uses the corresponding subset of the rows of the
+    // Jacobian to construct a preconditioner.
+    //
+    // Suppose the Jacobian J has been horizontally partitioned as
+    //
+    // J = [P]
+    //     [Q]
+    //
+    // Where, Q is the set of rows corresponding to the residual
+    // blocks in residual_blocks_for_subset_preconditioner.
+    //
+    // The preconditioner is the inverse of the matrix Q'Q.
+    //
+    // Obviously, the efficacy of the preconditioner depends on how
+    // well the matrix Q approximates J'J, or how well the chosen
+    // residual blocks approximate the non-linear least squares
+    // problem.
+    //
+    // If Solver::Options::preconditioner_type == SUBSET, then
+    // residual_blocks_for_subset_preconditioner must be non-empty.
+    std::unordered_set<ResidualBlockId> residual_blocks_for_subset_preconditioner;
 
     // Ceres supports using multiple dense linear algebra libraries
     // for dense matrix factorizations. Currently EIGEN and LAPACK are
@@ -413,22 +369,28 @@ class CERES_EXPORT Solver {
     // available.
     //
     // This setting affects the DENSE_QR, DENSE_NORMAL_CHOLESKY and
-    // DENSE_SCHUR solvers. For small to moderate sized probem EIGEN
+    // DENSE_SCHUR solvers. For small to moderate sized problem EIGEN
     // is a fine choice but for large problems, an optimized LAPACK +
     // BLAS implementation can make a substantial difference in
     // performance.
-    DenseLinearAlgebraLibraryType dense_linear_algebra_library_type;
+    DenseLinearAlgebraLibraryType dense_linear_algebra_library_type = EIGEN;
 
     // Ceres supports using multiple sparse linear algebra libraries
     // for sparse matrix ordering and factorizations. Currently,
     // SUITE_SPARSE and CX_SPARSE are the valid choices, depending on
     // whether they are linked into Ceres at build time.
-    SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type;
-
-    // Number of threads used by Ceres to solve the Newton
-    // step. Currently only the SPARSE_SCHUR solver is capable of
-    // using this setting.
-    int num_linear_solver_threads;
+    SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type =
+#if !defined(CERES_NO_SUITESPARSE)
+        SUITE_SPARSE;
+#elif defined(CERES_USE_EIGEN_SPARSE)
+        EIGEN_SPARSE;
+#elif !defined(CERES_NO_CXSPARSE)
+        CX_SPARSE;
+#elif !defined(CERES_NO_ACCELERATE_SPARSE)
+        ACCELERATE_SPARSE;
+#else
+        NO_SPARSE;
+#endif
 
     // The order in which variables are eliminated in a linear solver
     // can have a significant of impact on the efficiency and accuracy
@@ -456,7 +418,7 @@ class CERES_EXPORT Solver {
     //
     // Given such an ordering, Ceres ensures that the parameter blocks in
     // the lowest numbered group are eliminated first, and then the
-    // parmeter blocks in the next lowest numbered group and so on. Within
+    // parameter blocks in the next lowest numbered group and so on. Within
     // each group, Ceres is free to order the parameter blocks as it
     // chooses.
     //
@@ -496,13 +458,13 @@ class CERES_EXPORT Solver {
     // the parameter blocks into two groups, one for the points and one
     // for the cameras, where the group containing the points has an id
     // smaller than the group containing cameras.
-    shared_ptr<ParameterBlockOrdering> linear_solver_ordering;
+    std::shared_ptr<ParameterBlockOrdering> linear_solver_ordering;
 
     // Use an explicitly computed Schur complement matrix with
     // ITERATIVE_SCHUR.
     //
     // By default this option is disabled and ITERATIVE_SCHUR
-    // evaluates evaluates matrix-vector products between the Schur
+    // evaluates matrix-vector products between the Schur
     // complement and a vector implicitly by exploiting the algebraic
     // expression for the Schur complement.
     //
@@ -519,7 +481,7 @@ class CERES_EXPORT Solver {
     //
     // NOTE: This option can only be used with the SCHUR_JACOBI
     // preconditioner.
-    bool use_explicit_schur_complement;
+    bool use_explicit_schur_complement = false;
 
     // Sparse Cholesky factorization algorithms use a fill-reducing
     // ordering to permute the columns of the Jacobian matrix. There
@@ -540,7 +502,7 @@ class CERES_EXPORT Solver {
     // reordering algorithm which has slightly better runtime
     // performance at the expense of an extra copy of the Jacobian
     // matrix. Setting use_postordering to true enables this tradeoff.
-    bool use_postordering;
+    bool use_postordering = false;
 
     // Some non-linear least squares problems are symbolically dense but
     // numerically sparse. i.e. at any given state only a small number
@@ -554,8 +516,32 @@ class CERES_EXPORT Solver {
     // then it is probably best to keep this false, otherwise it will
     // likely lead to worse performance.
 
-    // This settings affects the SPARSE_NORMAL_CHOLESKY solver.
-    bool dynamic_sparsity;
+    // This settings only affects the SPARSE_NORMAL_CHOLESKY solver.
+    bool dynamic_sparsity = false;
+
+    // TODO(sameeragarwal): Further expand the documentation for the
+    // following two options.
+
+    // NOTE1: EXPERIMENTAL FEATURE, UNDER DEVELOPMENT, USE AT YOUR OWN RISK.
+    //
+    // If use_mixed_precision_solves is true, the Gauss-Newton matrix
+    // is computed in double precision, but its factorization is
+    // computed in single precision. This can result in significant
+    // time and memory savings at the cost of some accuracy in the
+    // Gauss-Newton step. Iterative refinement is used to recover some
+    // of this accuracy back.
+    //
+    // If use_mixed_precision_solves is true, we recommend setting
+    // max_num_refinement_iterations to 2-3.
+    //
+    // NOTE2: The following two options are currently only applicable
+    // if sparse_linear_algebra_library_type is EIGEN_SPARSE and
+    // linear_solver_type is SPARSE_NORMAL_CHOLESKY, or SPARSE_SCHUR.
+    bool use_mixed_precision_solves = false;
+
+    // Number steps of the iterative refinement process to run when
+    // computing the Gauss-Newton step.
+    int max_num_refinement_iterations = 0;
 
     // Some non-linear least squares problems have additional
     // structure in the way the parameter blocks interact that it is
@@ -583,7 +569,7 @@ class CERES_EXPORT Solver {
     // known as Wiberg's algorithm.
     //
     // Ruhe & Wedin (Algorithms for Separable Nonlinear Least Squares
-    // Problems, SIAM Reviews, 22(3), 1980) present an analyis of
+    // Problems, SIAM Reviews, 22(3), 1980) present an analysis of
     // various algorithms for solving separable non-linear least
     // squares problems and refer to "Variable Projection" as
     // Algorithm I in their paper.
@@ -615,7 +601,7 @@ class CERES_EXPORT Solver {
     // displays better convergence behaviour per iteration. Setting
     // Solver::Options::num_threads to the maximum number possible is
     // highly recommended.
-    bool use_inner_iterations;
+    bool use_inner_iterations = false;
 
     // If inner_iterations is true, then the user has two choices.
     //
@@ -627,7 +613,7 @@ class CERES_EXPORT Solver {
     //    the lower numbered groups are optimized before the higher
     //    number groups. Each group must be an independent set. Not
     //    all parameter blocks need to be present in the ordering.
-    shared_ptr<ParameterBlockOrdering> inner_iteration_ordering;
+    std::shared_ptr<ParameterBlockOrdering> inner_iteration_ordering;
 
     // Generally speaking, inner iterations make significant progress
     // in the early stages of the solve and then their contribution
@@ -638,17 +624,17 @@ class CERES_EXPORT Solver {
     // inner iterations drops below inner_iteration_tolerance, the use
     // of inner iterations in subsequent trust region minimizer
     // iterations is disabled.
-    double inner_iteration_tolerance;
+    double inner_iteration_tolerance = 1e-3;
 
     // Minimum number of iterations for which the linear solver should
     // run, even if the convergence criterion is satisfied.
-    int min_linear_solver_iterations;
+    int min_linear_solver_iterations = 0;
 
     // Maximum number of iterations for which the linear solver should
     // run. If the solver does not converge in less than
     // max_linear_solver_iterations, then it returns MAX_ITERATIONS,
     // as its termination type.
-    int max_linear_solver_iterations;
+    int max_linear_solver_iterations = 500;
 
     // Forcing sequence parameter. The truncated Newton solver uses
     // this number to control the relative accuracy with which the
@@ -658,21 +644,21 @@ class CERES_EXPORT Solver {
     // it to terminate the iterations when
     //
     //  (Q_i - Q_{i-1})/Q_i < eta/i
-    double eta;
+    double eta = 1e-1;
 
     // Normalize the jacobian using Jacobi scaling before calling
     // the linear least squares solver.
-    bool jacobi_scaling;
+    bool jacobi_scaling = true;
 
     // Logging options ---------------------------------------------------------
 
-    LoggingType logging_type;
+    LoggingType logging_type = PER_MINIMIZER_ITERATION;
 
     // By default the Minimizer progress is logged to VLOG(1), which
     // is sent to STDERR depending on the vlog level. If this flag is
     // set to true, and logging_type is not SILENT, the logging output
     // is sent to STDOUT.
-    bool minimizer_progress_to_stdout;
+    bool minimizer_progress_to_stdout = false;
 
     // List of iterations at which the minimizer should dump the trust
     // region problem. Useful for testing and benchmarking. If empty
@@ -683,8 +669,8 @@ class CERES_EXPORT Solver {
     // non-empty if trust_region_minimizer_iterations_to_dump is
     // non-empty and trust_region_problem_dump_format_type is not
     // CONSOLE.
-    std::string trust_region_problem_dump_directory;
-    DumpFormatType trust_region_problem_dump_format_type;
+    std::string trust_region_problem_dump_directory = "/tmp";
+    DumpFormatType trust_region_problem_dump_format_type = TEXTFILE;
 
     // Finite differences options ----------------------------------------------
 
@@ -694,12 +680,12 @@ class CERES_EXPORT Solver {
     // etc), then also computing it using finite differences. The
     // results are compared, and if they differ substantially, details
     // are printed to the log.
-    bool check_gradients;
+    bool check_gradients = false;
 
     // Relative precision to check for in the gradient checker. If the
     // relative difference between an element in a jacobian exceeds
     // this number, then the jacobian for that cost term is dumped.
-    double gradient_check_relative_precision;
+    double gradient_check_relative_precision = 1e-8;
 
     // WARNING: This option only applies to the to the numeric
     // differentiation used for checking the user provided derivatives
@@ -723,7 +709,7 @@ class CERES_EXPORT Solver {
     //
     // The finite differencing is done along each dimension. The
     // reason to use a relative (rather than absolute) step size is
-    // that this way, numeric differentation works for functions where
+    // that this way, numeric differentiation works for functions where
     // the arguments are typically large (e.g. 1e9) and when the
     // values are small (e.g. 1e-5). It is possible to construct
     // "torture cases" which break this finite difference heuristic,
@@ -733,14 +719,21 @@ class CERES_EXPORT Solver {
     // theory a good choice is sqrt(eps) * x, which for doubles means
     // about 1e-8 * x. However, I have found this number too
     // optimistic. This number should be exposed for users to change.
-    double gradient_check_numeric_derivative_relative_step_size;
+    double gradient_check_numeric_derivative_relative_step_size = 1e-6;
 
-    // If true, the user's parameter blocks are updated at the end of
-    // every Minimizer iteration, otherwise they are updated when the
-    // Minimizer terminates. This is useful if, for example, the user
-    // wishes to visualize the state of the optimization every
-    // iteration.
-    bool update_state_every_iteration;
+    // If update_state_every_iteration is true, then Ceres Solver will
+    // guarantee that at the end of every iteration and before any
+    // user provided IterationCallback is called, the parameter blocks
+    // are updated to the current best solution found by the
+    // solver. Thus the IterationCallback can inspect the values of
+    // the parameter blocks for purposes of computation, visualization
+    // or termination.
+
+    // If update_state_every_iteration is false then there is no such
+    // guarantee, and user provided IterationCallbacks should not
+    // expect to look at the parameter blocks and interpret their
+    // values.
+    bool update_state_every_iteration = false;
 
     // Callbacks that are executed at the end of each iteration of the
     // Minimizer. An iteration may terminate midway, either due to
@@ -749,20 +742,18 @@ class CERES_EXPORT Solver {
     // executed.
 
     // Callbacks are executed in the order that they are specified in
-    // this vector. By default, parameter blocks are updated only at
-    // the end of the optimization, i.e when the Minimizer
-    // terminates. This behaviour is controlled by
-    // update_state_every_variable. If the user wishes to have access
-    // to the update parameter blocks when his/her callbacks are
-    // executed, then set update_state_every_iteration to true.
+    // this vector. By default, parameter blocks are updated only at the
+    // end of the optimization, i.e when the Minimizer terminates. This
+    // behaviour is controlled by update_state_every_iteration. If the
+    // user wishes to have access to the updated parameter blocks when
+    // his/her callbacks are executed, then set
+    // update_state_every_iteration to true.
     //
     // The solver does NOT take ownership of these pointers.
     std::vector<IterationCallback*> callbacks;
   };
 
   struct CERES_EXPORT Summary {
-    Summary();
-
     // A brief one line description of the state of the solver after
     // termination.
     std::string BriefReport() const;
@@ -774,25 +765,25 @@ class CERES_EXPORT Solver {
     bool IsSolutionUsable() const;
 
     // Minimizer summary -------------------------------------------------
-    MinimizerType minimizer_type;
+    MinimizerType minimizer_type = TRUST_REGION;
 
-    TerminationType termination_type;
+    TerminationType termination_type = FAILURE;
 
     // Reason why the solver terminated.
-    std::string message;
+    std::string message = "ceres::Solve was not called.";
 
     // Cost of the problem (value of the objective function) before
     // the optimization.
-    double initial_cost;
+    double initial_cost = -1.0;
 
     // Cost of the problem (value of the objective function) after the
     // optimization.
-    double final_cost;
+    double final_cost = -1.0;
 
     // The part of the total cost that comes from residual blocks that
     // were held fixed by the preprocessor because all the parameter
     // blocks that they depend on were fixed.
-    double fixed_cost;
+    double fixed_cost = -1.0;
 
     // IterationSummary for each minimizer iteration in order.
     std::vector<IterationSummary> iterations;
@@ -801,22 +792,22 @@ class CERES_EXPORT Solver {
     // accepted. Unless use_non_monotonic_steps is true this is also
     // the number of steps in which the objective function value/cost
     // went down.
-    int num_successful_steps;
+    int num_successful_steps = -1;
 
     // Number of minimizer iterations in which the step was rejected
     // either because it did not reduce the cost enough or the step
     // was not numerically valid.
-    int num_unsuccessful_steps;
+    int num_unsuccessful_steps = -1;
 
     // Number of times inner iterations were performed.
-    int num_inner_iteration_steps;
+    int num_inner_iteration_steps = -1;
 
     // Total number of iterations inside the line search algorithm
     // across all invocations. We call these iterations "steps" to
     // distinguish them from the outer iterations of the line search
     // and trust region minimizer algorithms which call the line
     // search algorithm as a subroutine.
-    int num_line_search_steps;
+    int num_line_search_steps = -1;
 
     // All times reported below are wall times.
 
@@ -824,31 +815,42 @@ class CERES_EXPORT Solver {
     // occurs, Ceres performs a number of preprocessing steps. These
     // include error checks, memory allocations, and reorderings. This
     // time is accounted for as preprocessing time.
-    double preprocessor_time_in_seconds;
+    double preprocessor_time_in_seconds = -1.0;
 
     // Time spent in the TrustRegionMinimizer.
-    double minimizer_time_in_seconds;
+    double minimizer_time_in_seconds = -1.0;
 
     // After the Minimizer is finished, some time is spent in
     // re-evaluating residuals etc. This time is accounted for in the
     // postprocessor time.
-    double postprocessor_time_in_seconds;
+    double postprocessor_time_in_seconds = -1.0;
 
     // Some total of all time spent inside Ceres when Solve is called.
-    double total_time_in_seconds;
+    double total_time_in_seconds = -1.0;
 
     // Time (in seconds) spent in the linear solver computing the
     // trust region step.
-    double linear_solver_time_in_seconds;
+    double linear_solver_time_in_seconds = -1.0;
+
+    // Number of times the Newton step was computed by solving a
+    // linear system. This does not include linear solves used by
+    // inner iterations.
+    int num_linear_solves = -1;
 
     // Time (in seconds) spent evaluating the residual vector.
-    double residual_evaluation_time_in_seconds;
+    double residual_evaluation_time_in_seconds = 1.0;
+
+    // Number of residual only evaluations.
+    int num_residual_evaluations = -1;
 
     // Time (in seconds) spent evaluating the jacobian matrix.
-    double jacobian_evaluation_time_in_seconds;
+    double jacobian_evaluation_time_in_seconds = -1.0;
+
+    // Number of Jacobian (and residual) evaluations.
+    int num_jacobian_evaluations = -1;
 
     // Time (in seconds) spent doing inner iterations.
-    double inner_iteration_time_in_seconds;
+    double inner_iteration_time_in_seconds = -1.0;
 
     // Cumulative timing information for line searches performed as part of the
     // solve.  Note that in addition to the case when the Line Search minimizer
@@ -857,89 +859,89 @@ class CERES_EXPORT Solver {
 
     // Time (in seconds) spent evaluating the univariate cost function as part
     // of a line search.
-    double line_search_cost_evaluation_time_in_seconds;
+    double line_search_cost_evaluation_time_in_seconds = -1.0;
 
     // Time (in seconds) spent evaluating the gradient of the univariate cost
     // function as part of a line search.
-    double line_search_gradient_evaluation_time_in_seconds;
+    double line_search_gradient_evaluation_time_in_seconds = -1.0;
 
     // Time (in seconds) spent minimizing the interpolating polynomial
     // to compute the next candidate step size as part of a line search.
-    double line_search_polynomial_minimization_time_in_seconds;
+    double line_search_polynomial_minimization_time_in_seconds = -1.0;
 
     // Total time (in seconds) spent performing line searches.
-    double line_search_total_time_in_seconds;
+    double line_search_total_time_in_seconds = -1.0;
 
     // Number of parameter blocks in the problem.
-    int num_parameter_blocks;
+    int num_parameter_blocks = -1;
 
-    // Number of parameters in the probem.
-    int num_parameters;
+    // Number of parameters in the problem.
+    int num_parameters = -1;
 
     // Dimension of the tangent space of the problem (or the number of
     // columns in the Jacobian for the problem). This is different
     // from num_parameters if a parameter block is associated with a
     // LocalParameterization
-    int num_effective_parameters;
+    int num_effective_parameters = -1;
 
     // Number of residual blocks in the problem.
-    int num_residual_blocks;
+    int num_residual_blocks = -1;
 
     // Number of residuals in the problem.
-    int num_residuals;
+    int num_residuals = -1;
 
     // Number of parameter blocks in the problem after the inactive
     // and constant parameter blocks have been removed. A parameter
     // block is inactive if no residual block refers to it.
-    int num_parameter_blocks_reduced;
+    int num_parameter_blocks_reduced = -1;
 
     // Number of parameters in the reduced problem.
-    int num_parameters_reduced;
+    int num_parameters_reduced = -1;
 
     // Dimension of the tangent space of the reduced problem (or the
     // number of columns in the Jacobian for the reduced
     // problem). This is different from num_parameters_reduced if a
     // parameter block in the reduced problem is associated with a
     // LocalParameterization.
-    int num_effective_parameters_reduced;
+    int num_effective_parameters_reduced = -1;
 
     // Number of residual blocks in the reduced problem.
-    int num_residual_blocks_reduced;
+    int num_residual_blocks_reduced = -1;
 
     //  Number of residuals in the reduced problem.
-    int num_residuals_reduced;
+    int num_residuals_reduced = -1;
 
     // Is the reduced problem bounds constrained.
-    bool is_constrained;
+    bool is_constrained = false;
 
     //  Number of threads specified by the user for Jacobian and
     //  residual evaluation.
-    int num_threads_given;
+    int num_threads_given = -1;
 
     // Number of threads actually used by the solver for Jacobian and
     // residual evaluation. This number is not equal to
     // num_threads_given if OpenMP is not available.
-    int num_threads_used;
-
-    //  Number of threads specified by the user for solving the trust
-    // region problem.
-    int num_linear_solver_threads_given;
-
-    // Number of threads actually used by the solver for solving the
-    // trust region problem. This number is not equal to
-    // num_threads_given if OpenMP is not available.
-    int num_linear_solver_threads_used;
+    int num_threads_used = -1;
 
     // Type of the linear solver requested by the user.
-    LinearSolverType linear_solver_type_given;
-
+    LinearSolverType linear_solver_type_given =
+#if defined(CERES_NO_SPARSE)
+        DENSE_QR;
+#else
+        SPARSE_NORMAL_CHOLESKY;
+#endif
     // Type of the linear solver actually used. This may be different
     // from linear_solver_type_given if Ceres determines that the
     // problem structure is not compatible with the linear solver
     // requested or if the linear solver requested by the user is not
     // available, e.g. The user requested SPARSE_NORMAL_CHOLESKY but
     // no sparse linear algebra library was available.
-    LinearSolverType linear_solver_type_used;
+    LinearSolverType linear_solver_type_used =
+#if defined(CERES_NO_SPARSE)
+        DENSE_QR;
+#else
+        SPARSE_NORMAL_CHOLESKY;
+#endif
 
     // Size of the elimination groups given by the user as hints to
     // the linear solver.
@@ -953,15 +955,29 @@ class CERES_EXPORT Solver {
     // parameter blocks.
     std::vector<int> linear_solver_ordering_used;
 
+    // For Schur type linear solvers, this string describes the
+    // template specialization which was detected in the problem and
+    // should be used.
+    std::string schur_structure_given;
+
+    // This is the Schur template specialization that was actually
+    // instantiated and used. The reason this will be different from
+    // schur_structure_given is because the corresponding template
+    // specialization does not exist.
+    //
+    // Template specializations can be added to ceres by editing
+    // internal/ceres/generate_template_specializations.py
+    std::string schur_structure_used;
+
     // True if the user asked for inner iterations to be used as part
     // of the optimization.
-    bool inner_iterations_given;
+    bool inner_iterations_given = false;
 
     // True if the user asked for inner iterations to be used as part
     // of the optimization and the problem structure was such that
     // they were actually performed. e.g., in a problem with just one
     // parameter block, inner iterations are not performed.
-    bool inner_iterations_used;
+    bool inner_iterations_used = false;
 
     // Size of the parameter groups given by the user for performing
     // inner iterations.
@@ -976,57 +992,59 @@ class CERES_EXPORT Solver {
     std::vector<int> inner_iteration_ordering_used;
 
     // Type of the preconditioner requested by the user.
-    PreconditionerType preconditioner_type_given;
+    PreconditionerType preconditioner_type_given = IDENTITY;
 
     // Type of the preconditioner actually used. This may be different
     // from linear_solver_type_given if Ceres determines that the
     // problem structure is not compatible with the linear solver
     // requested or if the linear solver requested by the user is not
     // available.
-    PreconditionerType preconditioner_type_used;
+    PreconditionerType preconditioner_type_used = IDENTITY;
 
     // Type of clustering algorithm used for visibility based
     // preconditioning. Only meaningful when the preconditioner_type
     // is CLUSTER_JACOBI or CLUSTER_TRIDIAGONAL.
-    VisibilityClusteringType visibility_clustering_type;
+    VisibilityClusteringType visibility_clustering_type = CANONICAL_VIEWS;
 
     //  Type of trust region strategy.
-    TrustRegionStrategyType trust_region_strategy_type;
+    TrustRegionStrategyType trust_region_strategy_type = LEVENBERG_MARQUARDT;
 
     //  Type of dogleg strategy used for solving the trust region
     //  problem.
-    DoglegType dogleg_type;
+    DoglegType dogleg_type = TRADITIONAL_DOGLEG;
 
     //  Type of the dense linear algebra library used.
-    DenseLinearAlgebraLibraryType dense_linear_algebra_library_type;
+    DenseLinearAlgebraLibraryType dense_linear_algebra_library_type = EIGEN;
 
     // Type of the sparse linear algebra library used.
-    SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type;
+    SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type =
+        NO_SPARSE;
 
     // Type of line search direction used.
-    LineSearchDirectionType line_search_direction_type;
+    LineSearchDirectionType line_search_direction_type = LBFGS;
 
     // Type of the line search algorithm used.
-    LineSearchType line_search_type;
+    LineSearchType line_search_type = WOLFE;
 
     //  When performing line search, the degree of the polynomial used
     //  to approximate the objective function.
-    LineSearchInterpolationType line_search_interpolation_type;
+    LineSearchInterpolationType line_search_interpolation_type = CUBIC;
 
     // If the line search direction is NONLINEAR_CONJUGATE_GRADIENT,
     // then this indicates the particular variant of non-linear
     // conjugate gradient used.
-    NonlinearConjugateGradientType nonlinear_conjugate_gradient_type;
+    NonlinearConjugateGradientType nonlinear_conjugate_gradient_type =
+        FLETCHER_REEVES;
 
     // If the type of the line search direction is LBFGS, then this
     // indicates the rank of the Hessian approximation.
-    int max_lbfgs_rank;
+    int max_lbfgs_rank = -1;
   };
 
   // Once a least squares problem has been built, this function takes
   // the problem and optimizes it based on the values of the options
   // parameters. Upon return, a detailed summary of the work performed
-  // by the preprocessor, the non-linear minmizer and the linear
+  // by the preprocessor, the non-linear minimizer and the linear
   // solver are reported in the summary object.
   virtual void Solve(const Options& options,
                      Problem* problem,
@@ -1035,8 +1053,8 @@ class CERES_EXPORT Solver {
 
 // Helper function which avoids going through the interface.
 CERES_EXPORT void Solve(const Solver::Options& options,
-           Problem* problem,
-           Solver::Summary* summary);
+                        Problem* problem,
+                        Solver::Summary* summary);
 
 }  // namespace ceres
 

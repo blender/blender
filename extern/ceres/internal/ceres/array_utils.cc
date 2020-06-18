@@ -35,25 +35,17 @@
 #include <cstddef>
 #include <string>
 #include <vector>
-#include "ceres/fpclassify.h"
 #include "ceres/stringprintf.h"
-
+#include "ceres/types.h"
 namespace ceres {
 namespace internal {
 
 using std::string;
 
-// It is a near impossibility that user code generates this exact
-// value in normal operation, thus we will use it to fill arrays
-// before passing them to user code. If on return an element of the
-// array still contains this value, we will assume that the user code
-// did not write to that memory location.
-const double kImpossibleValue = 1e302;
-
 bool IsArrayValid(const int size, const double* x) {
   if (x != NULL) {
     for (int i = 0; i < size; ++i) {
-      if (!IsFinite(x[i]) || (x[i] == kImpossibleValue))  {
+      if (!std::isfinite(x[i]) || (x[i] == kImpossibleValue))  {
         return false;
       }
     }
@@ -67,7 +59,7 @@ int FindInvalidValue(const int size, const double* x) {
   }
 
   for (int i = 0; i < size; ++i) {
-    if (!IsFinite(x[i]) || (x[i] == kImpossibleValue))  {
+    if (!std::isfinite(x[i]) || (x[i] == kImpossibleValue))  {
       return i;
     }
   }

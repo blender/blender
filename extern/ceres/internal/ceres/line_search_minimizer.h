@@ -66,9 +66,9 @@ class LineSearchMinimizer : public Minimizer {
   };
 
   ~LineSearchMinimizer() {}
-  virtual void Minimize(const Minimizer::Options& options,
-                        double* parameters,
-                        Solver::Summary* summary);
+  void Minimize(const Minimizer::Options& options,
+                double* parameters,
+                Solver::Summary* summary) final;
 };
 
 }  // namespace internal

@@ -30,7 +30,9 @@
 
 #include "ceres/levenberg_marquardt_strategy.h"
 
+#include <algorithm>
 #include <cmath>
+
 #include "Eigen/Core"
 #include "ceres/array_utils.h"
 #include "ceres/internal/eigen.h"
@@ -53,7 +55,7 @@ LevenbergMarquardtStrategy::LevenbergMarquardtStrategy(
       max_diagonal_(options.max_lm_diagonal),
       decrease_factor_(2.0),
       reuse_diagonal_(false) {
-  CHECK_NOTNULL(linear_solver_);
+  CHECK(linear_solver_ != nullptr);
   CHECK_GT(min_diagonal_, 0.0);
   CHECK_LE(min_diagonal_, max_diagonal_);
   CHECK_GT(max_radius_, 0.0);
@@ -67,9 +69,9 @@ TrustRegionStrategy::Summary LevenbergMarquardtStrategy::ComputeStep(
     SparseMatrix* jacobian,
     const double* residuals,
     double* step) {
-  CHECK_NOTNULL(jacobian);
-  CHECK_NOTNULL(residuals);
-  CHECK_NOTNULL(step);
+  CHECK(jacobian != nullptr);
+  CHECK(residuals != nullptr);
+  CHECK(step != nullptr);
 
   const int num_parameters = jacobian->num_cols();
   if (!reuse_diagonal_) {
@@ -98,7 +100,7 @@ TrustRegionStrategy::Summary LevenbergMarquardtStrategy::ComputeStep(
   // Invalidate the output array lm_step, so that we can detect if
   // the linear solver generated numerical garbage.  This is known
   // to happen for the DENSE_QR and then DENSE_SCHUR solver when
-  // the Jacobin is severly rank deficient and mu is too small.
+  // the Jacobin is severely rank deficient and mu is too small.
   InvalidateArray(num_parameters, step);
 
   // Instead of solving Jx = -r, solve Jy = r.

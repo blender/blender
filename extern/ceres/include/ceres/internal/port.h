@@ -32,45 +32,41 @@
 #define CERES_PUBLIC_INTERNAL_PORT_H_
 
 // This file needs to compile as c code.
-#ifdef __cplusplus
-#include <cstddef>
 #include "ceres/internal/config.h"
-#if defined(CERES_TR1_MEMORY_HEADER)
-#include <tr1/memory>
+
+#if defined(CERES_USE_OPENMP)
+#  if defined(CERES_USE_CXX_THREADS) || defined(CERES_NO_THREADS)
+#    error CERES_USE_OPENMP is mutually exclusive to CERES_USE_CXX_THREADS and CERES_NO_THREADS
+#  endif
+#elif defined(CERES_USE_CXX_THREADS)
+#  if defined(CERES_USE_OPENMP) || defined(CERES_NO_THREADS)
+#    error CERES_USE_CXX_THREADS is mutually exclusive to CERES_USE_OPENMP, CERES_USE_CXX_THREADS and CERES_NO_THREADS
+#  endif
+#elif defined(CERES_NO_THREADS)
+#  if defined(CERES_USE_OPENMP) || defined(CERES_USE_CXX_THREADS)
+#    error CERES_NO_THREADS is mutually exclusive to CERES_USE_OPENMP and CERES_USE_CXX_THREADS
+#  endif
 #else
-#include <memory>
+#  error One of CERES_USE_OPENMP, CERES_USE_CXX_THREADS or CERES_NO_THREADS must be defined.
 #endif
 
-namespace ceres {
-
-#if defined(CERES_TR1_SHARED_PTR)
-using std::tr1::shared_ptr;
-#else
-using std::shared_ptr;
+// CERES_NO_SPARSE should be automatically defined by config.h if Ceres was
+// compiled without any sparse back-end.  Verify that it has not subsequently
+// been inconsistently redefined.
+#if defined(CERES_NO_SPARSE)
+#  if !defined(CERES_NO_SUITESPARSE)
+#    error CERES_NO_SPARSE requires CERES_NO_SUITESPARSE.
+#  endif
+#  if !defined(CERES_NO_CXSPARSE)
+#    error CERES_NO_SPARSE requires CERES_NO_CXSPARSE
+#  endif
+#  if !defined(CERES_NO_ACCELERATE_SPARSE)
+#    error CERES_NO_SPARSE requires CERES_NO_ACCELERATE_SPARSE
+#  endif
+#  if defined(CERES_USE_EIGEN_SPARSE)
+#    error CERES_NO_SPARSE requires !CERES_USE_EIGEN_SPARSE
+#  endif
 #endif
-
-// We allocate some Eigen objects on the stack and other places they
-// might not be aligned to 16-byte boundaries.  If we have C++11, we
-// can specify their alignment anyway, and thus can safely enable
-// vectorization on those matrices; in C++99, we are out of luck.  Figure out
-// what case we're in and write macros that do the right thing.
-#ifdef CERES_USE_CXX11
-namespace port_constants {
-static constexpr size_t kMaxAlignBytes =
-    // Work around a GCC 4.8 bug
-    // (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56019) where
-    // std::max_align_t is misplaced.
-#if defined (__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ == 8
-    alignof(::max_align_t);
-#else
-    alignof(std::max_align_t);
-#endif
-}  // namespace port_constants
-#endif
-
-}  // namespace ceres
-
-#endif  // __cplusplus
 
 // A macro to signal which functions and classes are exported when
 // building a DLL with MSVC.

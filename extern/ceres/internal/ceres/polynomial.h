@@ -32,13 +32,14 @@
 #ifndef CERES_INTERNAL_POLYNOMIAL_SOLVER_H_
 #define CERES_INTERNAL_POLYNOMIAL_SOLVER_H_
 
-#include <string>
 #include <vector>
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/port.h"
 
 namespace ceres {
 namespace internal {
+
+struct FunctionSample;
 
 // All polynomials are assumed to be the form
 //
@@ -83,27 +84,6 @@ void MinimizePolynomial(const Vector& polynomial,
                         double x_max,
                         double* optimal_x,
                         double* optimal_value);
-
-// Structure for storing sample values of a function.
-//
-// Clients can use this struct to communicate the value of the
-// function and or its gradient at a given point x.
-struct FunctionSample {
-  FunctionSample()
-      : x(0.0),
-        value(0.0),
-        value_is_valid(false),
-        gradient(0.0),
-        gradient_is_valid(false) {
-  }
-  std::string ToDebugString() const;
-
-  double x;
-  double value;      // value = f(x)
-  bool value_is_valid;
-  double gradient;   // gradient = f'(x)
-  bool gradient_is_valid;
-};
 
 // Given a set of function value and/or gradient samples, find a
 // polynomial whose value and gradients are exactly equal to the ones
