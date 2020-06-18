@@ -83,6 +83,8 @@ import inspect
 import shutil
 import logging
 
+from textwrap import indent
+
 from platform import platform
 PLATFORM = platform().split('-')[0].lower()  # 'linux', 'darwin', 'windows'
 
@@ -1196,12 +1198,15 @@ def pyrna_enum2sphinx(prop, use_empty_descriptions=False):
                 break
 
     if ok:
-        return "".join(["* ``%s`` %s.\n" %
-                        (identifier,
-                         ", ".join(escape_rst(val) for val in (name, description) if val),
-                         )
-                        for identifier, name, description in prop.enum_items
-                        ])
+        return "".join([
+            "* ``%s``\n"
+            "%s.\n" % (
+                identifier,
+                # Account for multi-line enum descriptions, allowing this to be a block of text.
+                indent(", ".join(escape_rst(val) for val in (name, description) if val) or "Undocumented", "  "),
+             )
+            for identifier, name, description in prop.enum_items
+        ])
     else:
         return ""
 
@@ -1268,7 +1273,7 @@ def pyrna2sphinx(basepath):
             fw(ident + ":%s%s:\n\n" % (id_name, identifier))
 
             if prop.name or prop.description:
-                fw(ident + "   " + ", ".join(val for val in (prop.name, prop.description) if val) + "\n\n")
+                fw(indent(", ".join(val for val in (prop.name, prop.description) if val), ident + "   ") + "\n\n")
 
             # special exception, can't use generic code here for enums
             if enum_text:
