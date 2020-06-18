@@ -842,30 +842,22 @@ void BKE_sequence_calc(Scene *scene, Sequence *seq)
   }
 
   /* effects and meta: automatic start and end */
-
   if (seq->type & SEQ_TYPE_EFFECT) {
-    /* pointers */
-    if (seq->seq2 == NULL) {
-      seq->seq2 = seq->seq1;
-    }
-    if (seq->seq3 == NULL) {
-      seq->seq3 = seq->seq1;
-    }
-
-    /* effecten go from seq1 -> seq2: test */
-
-    /* we take the largest start and smallest end */
-
-    // seq->start = seq->startdisp = MAX2(seq->seq1->startdisp, seq->seq2->startdisp);
-    // seq->enddisp = MIN2(seq->seq1->enddisp, seq->seq2->enddisp);
-
     if (seq->seq1) {
-      /* XXX These resets should not be necessary, but users used to be able to
-       *     edit effect's length, leading to strange results. See [#29190] */
       seq->startofs = seq->endofs = seq->startstill = seq->endstill = 0;
-      seq->start = seq->startdisp = max_iii(
-          seq->seq1->startdisp, seq->seq2->startdisp, seq->seq3->startdisp);
-      seq->enddisp = min_iii(seq->seq1->enddisp, seq->seq2->enddisp, seq->seq3->enddisp);
+      if (seq->seq3) {
+        seq->start = seq->startdisp = max_iii(
+            seq->seq1->startdisp, seq->seq2->startdisp, seq->seq3->startdisp);
+        seq->enddisp = min_iii(seq->seq1->enddisp, seq->seq2->enddisp, seq->seq3->enddisp);
+      }
+      else if (seq->seq2) {
+        seq->start = seq->startdisp = max_ii(seq->seq1->startdisp, seq->seq2->startdisp);
+        seq->enddisp = min_ii(seq->seq1->enddisp, seq->seq2->enddisp);
+      }
+      else {
+        seq->start = seq->startdisp = seq->seq1->startdisp;
+        seq->enddisp = seq->seq1->enddisp;
+      }
       /* we cant help if strips don't overlap, it wont give useful results.
        * but at least ensure 'len' is never negative which causes bad bugs elsewhere. */
       if (seq->enddisp < seq->startdisp) {
@@ -2949,9 +2941,9 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
     case EARLY_DO_EFFECT:
       for (i = 0; i < 3; i++) {
         /* Speed effect requires time remapping of cfra for input(s). */
-        if (input[1] && seq->type == SEQ_TYPE_SPEED) {
+        if (input[0] && seq->type == SEQ_TYPE_SPEED) {
           float target_frame = BKE_sequencer_speed_effect_target_frame_get(context, seq, cfra, i);
-          ibuf[i] = seq_render_strip(context, state, input[i], target_frame);
+          ibuf[i] = seq_render_strip(context, state, input[0], target_frame);
         }
         else { /* Other effects. */
           if (input[i]) {
@@ -2960,7 +2952,7 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
         }
       }
 
-      if (ibuf[0] && ibuf[1]) {
+      if (ibuf[0] && (ibuf[1] || BKE_sequence_effect_get_num_inputs(seq->type) == 1)) {
         if (sh.multithreaded) {
           out = BKE_sequencer_effect_execute_threaded(
               &sh, context, seq, cfra, fac, facf, ibuf[0], ibuf[1], ibuf[2]);

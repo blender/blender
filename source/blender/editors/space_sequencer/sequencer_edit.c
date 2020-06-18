@@ -673,6 +673,14 @@ int seq_effect_find_selected(Scene *scene,
   *r_selseq2 = seq2;
   *r_selseq3 = seq3;
 
+  /* TODO(Richard): This function needs some refactoring, this is just quick hack for T73828. */
+  if (BKE_sequence_effect_get_num_inputs(type) < 3) {
+    *r_selseq3 = NULL;
+  }
+  if (BKE_sequence_effect_get_num_inputs(type) < 2) {
+    *r_selseq2 = NULL;
+  }
+
   return 1;
 }
 
@@ -2221,6 +2229,11 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Sequence *seq1, *seq2, *seq3, *last_seq = BKE_sequencer_active_get(scene);
   const char *error_msg;
+
+  if (BKE_sequence_effect_get_num_inputs(last_seq->type) != 0) {
+    BKE_report(op->reports, RPT_ERROR, "Cannot reassign inputs: strip has no inputs");
+    return OPERATOR_CANCELLED;
+  }
 
   if (!seq_effect_find_selected(
           scene, last_seq, last_seq->type, &seq1, &seq2, &seq3, &error_msg)) {
