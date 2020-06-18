@@ -256,7 +256,7 @@ TreeElement *outliner_find_editbone(ListBase *lb, const EditBone *ebone)
   return NULL;
 }
 
-ID *outliner_search_back(TreeElement *te, short idcode)
+TreeElement *outliner_search_back_te(TreeElement *te, short idcode)
 {
   TreeStoreElem *tselem;
   te = te->parent;
@@ -264,9 +264,22 @@ ID *outliner_search_back(TreeElement *te, short idcode)
   while (te) {
     tselem = TREESTORE(te);
     if (tselem->type == 0 && te->idcode == idcode) {
-      return tselem->id;
+      return te;
     }
     te = te->parent;
+  }
+  return NULL;
+}
+
+ID *outliner_search_back(TreeElement *te, short idcode)
+{
+  TreeElement *search_te;
+  TreeStoreElem *tselem;
+
+  search_te = outliner_search_back_te(te, idcode);
+  if (search_te) {
+    tselem = TREESTORE(search_te);
+    return tselem->id;
   }
   return NULL;
 }

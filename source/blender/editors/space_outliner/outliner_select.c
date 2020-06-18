@@ -302,28 +302,32 @@ static void do_outliner_ebone_select_recursive(bArmature *arm, EditBone *ebone_p
 static eOLDrawState tree_element_set_active_object(bContext *C,
                                                    Scene *scene,
                                                    ViewLayer *view_layer,
-                                                   SpaceOutliner *soops,
+                                                   SpaceOutliner *UNUSED(soops),
                                                    TreeElement *te,
                                                    const eOLSetState set,
                                                    bool recursive)
 {
   TreeStoreElem *tselem = TREESTORE(te);
   TreeStoreElem *parent_tselem = NULL;
+  TreeElement *parent_te = NULL;
   Scene *sce;
   Base *base;
   Object *ob = NULL;
-  TreeElement *te_ob = NULL;
 
   /* if id is not object, we search back */
-  if (te->idcode == ID_OB) {
+  if (tselem->type == 0 && te->idcode == ID_OB) {
     ob = (Object *)tselem->id;
   }
   else {
-    ob = (Object *)outliner_search_back(te, ID_OB);
+    parent_te = outliner_search_back_te(te, ID_OB);
+    if (parent_te) {
+      parent_tselem = TREESTORE(parent_te);
+      ob = (Object *)parent_tselem->id;
 
-    /* Don't return when activating children of the previous active object. */
-    if (ob == OBACT(view_layer) && set == OL_SETSEL_NONE) {
-      return OL_DRAWSEL_NONE;
+      /* Don't return when activating children of the previous active object. */
+      if (ob == OBACT(view_layer) && set == OL_SETSEL_NONE) {
+        return OL_DRAWSEL_NONE;
+      }
     }
   }
   if (ob == NULL) {
@@ -354,11 +358,6 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
         }
       }
     }
-  }
-
-  te_ob = outliner_find_id(soops, &soops->tree, (ID *)ob);
-  if (te_ob != NULL && te_ob != te) {
-    parent_tselem = TREESTORE(te_ob);
   }
 
   if (base) {

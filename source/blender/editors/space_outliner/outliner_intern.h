@@ -495,6 +495,7 @@ TreeElement *outliner_find_parent_element(ListBase *lb,
 TreeElement *outliner_find_id(struct SpaceOutliner *soops, ListBase *lb, const struct ID *id);
 TreeElement *outliner_find_posechannel(ListBase *lb, const struct bPoseChannel *pchan);
 TreeElement *outliner_find_editbone(ListBase *lb, const struct EditBone *ebone);
+TreeElement *outliner_search_back_te(TreeElement *te, short idcode);
 struct ID *outliner_search_back(TreeElement *te, short idcode);
 bool outliner_tree_traverse(const SpaceOutliner *soops,
                             ListBase *tree,
