@@ -1775,12 +1775,7 @@ static void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   }
 }
 
-static bool seq_proxy_get_custom_file_fname(Editing *ed,
-                                            Sequence *seq,
-                                            int cfra,
-                                            eSpaceSeq_Proxy_RenderSize render_size,
-                                            char *name,
-                                            const int view_id)
+static bool seq_proxy_get_custom_file_fname(Sequence *seq, char *name, const int view_id)
 {
   char fname[FILE_MAXFILE];
   char suffix[24];
@@ -1830,7 +1825,7 @@ static bool seq_proxy_get_fname(Editing *ed,
   /* Per strip with Custom file situation is handled separately. */
   if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE &&
       ed->proxy_storage != SEQ_EDIT_PROXY_DIR_STORAGE) {
-    if (seq_proxy_get_custom_file_fname(ed, seq, cfra, render_size, name, view_id)) {
+    if (seq_proxy_get_custom_file_fname(seq, name, view_id)) {
       return true;
     }
   }
@@ -2999,7 +2994,6 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
 /* Render individual view for multiview or single (default view) for monoview. */
 static ImBuf *seq_render_image_strip_view(const SeqRenderData *context,
                                           Sequence *seq,
-                                          float cfra,
                                           char *name,
                                           char *prefix,
                                           const char *ext,
@@ -3080,8 +3074,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
     ImBuf **ibufs_arr = MEM_callocN(sizeof(ImBuf *) * totviews, "Sequence Image Views Imbufs");
 
     for (int view_id = 0; view_id < totfiles; view_id++) {
-      ibufs_arr[view_id] = seq_render_image_strip_view(
-          context, seq, cfra, name, prefix, ext, view_id);
+      ibufs_arr[view_id] = seq_render_image_strip_view(context, seq, name, prefix, ext, view_id);
     }
 
     if (ibufs_arr[0] == NULL) {
@@ -3115,7 +3108,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
     MEM_freeN(ibufs_arr);
   }
   else {
-    ibuf = seq_render_image_strip_view(context, seq, cfra, name, prefix, ext, context->view_id);
+    ibuf = seq_render_image_strip_view(context, seq, name, prefix, ext, context->view_id);
   }
 
   if (ibuf == NULL) {
@@ -3128,9 +3121,13 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
   return ibuf;
 }
 
-/* Render individual view for multiview or single (default view) for monoview. */
-static ImBuf *seq_render_movie_strip_view(
-    const SeqRenderData *context, Sequence *seq, float nr, float cfra, StripAnim *sanim)
+/**
+ * Render individual view for multi-view or single (default view) for mono-view.
+ */
+static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
+                                          Sequence *seq,
+                                          float nr,
+                                          StripAnim *sanim)
 {
   ImBuf *ibuf = NULL;
   IMB_Proxy_Size psize = seq_rendersize_to_proxysize(context->preview_render_size);
@@ -3188,7 +3185,7 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
 
     for (ibuf_view_id = 0, sanim = seq->anims.first; sanim; sanim = sanim->next, ibuf_view_id++) {
       if (sanim->anim) {
-        ibuf_arr[ibuf_view_id] = seq_render_movie_strip_view(context, seq, nr, cfra, sanim);
+        ibuf_arr[ibuf_view_id] = seq_render_movie_strip_view(context, seq, nr, sanim);
       }
     }
 
@@ -3225,7 +3222,7 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
     MEM_freeN(ibuf_arr);
   }
   else {
-    ibuf = seq_render_movie_strip_view(context, seq, nr, cfra, sanim);
+    ibuf = seq_render_movie_strip_view(context, seq, nr, sanim);
   }
 
   if (ibuf == NULL) {
