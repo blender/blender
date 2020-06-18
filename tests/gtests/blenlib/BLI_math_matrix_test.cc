@@ -62,16 +62,38 @@ TEST(math_matrix, interp_m3_m3m3_singularity)
   transpose_m3(matrix_a);
   EXPECT_NEAR(-1.0f, determinant_m3_array(matrix_a), 1e-6);
 
-  float matrix_i[3][3];
-  unit_m3(matrix_i);
+  /* This matrix represents R=(0, 0, 0), S=(-1, 0, 0) */
+  float matrix_b[3][3] = {
+      {-1.0f, 0.0f, 0.0f},
+      {0.0f, 1.0f, 0.0f},
+      {0.0f, 0.0f, 1.0f},
+  };
+  transpose_m3(matrix_b);
 
   float result[3][3];
-  const float epsilon = 1e-6;
-  interp_m3_m3m3(result, matrix_i, matrix_a, 0.0f);
-  EXPECT_M3_NEAR(result, matrix_i, epsilon);
+  interp_m3_m3m3(result, matrix_a, matrix_b, 0.0f);
+  EXPECT_M3_NEAR(result, matrix_a, 1e-5);
 
-  /* This fails for matrices with a negative determinant, i.e. with an axis mirror in the rotation
-   * component. See T77154. */
-  // interp_m3_m3m3(result, matrix_i, matrix_a, 1.0f);
-  // EXPECT_M3_NEAR(result, matrix_a, epsilon);
+  interp_m3_m3m3(result, matrix_a, matrix_b, 1.0f);
+  EXPECT_M3_NEAR(result, matrix_b, 1e-5);
+
+  interp_m3_m3m3(result, matrix_a, matrix_b, 0.5f);
+  float expect[3][3] = {
+      {-0.997681f, -0.049995f, 0.046186f},
+      {-0.051473f, 0.998181f, -0.031385f},
+      {0.044533f, 0.033689f, 0.998440f},
+  };
+  transpose_m3(expect);
+  EXPECT_M3_NEAR(result, expect, 1e-5);
+
+  /* Interpolating between a matrix with and without axis flip can cause it to go through a zero
+   * point. The determinant det(A) of a matrix represents the change in volume; interpolating
+   * between matrices with det(A)=-1 and det(B)=1 will have to go through a point where
+   * det(result)=0, so where the volume becomes zero. */
+  float matrix_i[3][3];
+  unit_m3(matrix_i);
+  zero_m3(expect);
+  interp_m3_m3m3(result, matrix_a, matrix_i, 0.5f);
+  EXPECT_NEAR(0.0f, determinant_m3_array(result), 1e-5);
+  EXPECT_M3_NEAR(result, expect, 1e-5);
 }
