@@ -131,20 +131,20 @@ curvature_s$ID$  = s$ID$.create(RealGrid, name='$NAME_CURVATURE$')\n";
 
 const std::string liquid_alloc_particles =
     "\n\
-ppSnd_sp$ID$         = sp$ID$.create(BasicParticleSystem, name='$FLUID_NAME_PP_PARTICLES$')\n\
-pVelSnd_pp$ID$       = ppSnd_sp$ID$.create(PdataVec3, name='$FLUID_NAME_PVEL_PARTICLES$')\n\
-pForceSnd_pp$ID$     = ppSnd_sp$ID$.create(PdataVec3, name='$FLUID_NAME_PFORCE_PARTICLES$')\n\
-pLifeSnd_pp$ID$      = ppSnd_sp$ID$.create(PdataReal, name='$FLUID_NAME_PLIFE_PARTICLES$')\n\
-vel_sp$ID$           = sp$ID$.create(MACGrid, name='$FLUID_NAME_VELOCITY_PARTICLES$')\n\
-flags_sp$ID$         = sp$ID$.create(FlagGrid, name='$FLUID_NAME_FLAGS_PARTICLES$')\n\
-phi_sp$ID$           = sp$ID$.create(LevelsetGrid, name='$FLUID_NAME_PHI_PARTICLES$')\n\
-phiObs_sp$ID$        = sp$ID$.create(LevelsetGrid, name='$FLUID_NAME_PHIOBS_PARTICLES$')\n\
-phiOut_sp$ID$        = sp$ID$.create(LevelsetGrid, name='$FLUID_NAME_PHIOUT_PARTICLES$')\n\
-normal_sp$ID$        = sp$ID$.create(VecGrid, name='$FLUID_NAME_NORMAL_PARTICLES$')\n\
-neighborRatio_sp$ID$ = sp$ID$.create(RealGrid, name='$FLUID_NAME_NEIGHBORRATIO_PARTICLES$')\n\
-trappedAir_sp$ID$    = sp$ID$.create(RealGrid, name='$FLUID_NAME_TRAPPEDAIR_PARTICLES$')\n\
-waveCrest_sp$ID$     = sp$ID$.create(RealGrid, name='$FLUID_NAME_WAVECREST_PARTICLES$')\n\
-kineticEnergy_sp$ID$ = sp$ID$.create(RealGrid, name='$FLUID_NAME_KINETICENERGY_PARTICLES$')\n\
+ppSnd_sp$ID$         = sp$ID$.create(BasicParticleSystem, name='$NAME_PP_PARTICLES$')\n\
+pVelSnd_pp$ID$       = ppSnd_sp$ID$.create(PdataVec3, name='$NAME_PVEL_PARTICLES$')\n\
+pForceSnd_pp$ID$     = ppSnd_sp$ID$.create(PdataVec3, name='$NAME_PFORCE_PARTICLES$')\n\
+pLifeSnd_pp$ID$      = ppSnd_sp$ID$.create(PdataReal, name='$NAME_PLIFE_PARTICLES$')\n\
+vel_sp$ID$           = sp$ID$.create(MACGrid, name='$NAME_VELOCITY_PARTICLES$')\n\
+flags_sp$ID$         = sp$ID$.create(FlagGrid, name='$NAME_FLAGS_PARTICLES$')\n\
+phi_sp$ID$           = sp$ID$.create(LevelsetGrid, name='$NAME_PHI_PARTICLES$')\n\
+phiObs_sp$ID$        = sp$ID$.create(LevelsetGrid, name='$NAME_PHIOBS_PARTICLES$')\n\
+phiOut_sp$ID$        = sp$ID$.create(LevelsetGrid, name='$NAME_PHIOUT_PARTICLES$')\n\
+normal_sp$ID$        = sp$ID$.create(VecGrid, name='$NAME_NORMAL_PARTICLES$')\n\
+neighborRatio_sp$ID$ = sp$ID$.create(RealGrid, name='$NAME_NEIGHBORRATIO_PARTICLES$')\n\
+trappedAir_sp$ID$    = sp$ID$.create(RealGrid, name='$NAME_TRAPPEDAIR_PARTICLES$')\n\
+waveCrest_sp$ID$     = sp$ID$.create(RealGrid, name='$NAME_WAVECREST_PARTICLES$')\n\
+kineticEnergy_sp$ID$ = sp$ID$.create(RealGrid, name='$NAME_KINETICENERGY_PARTICLES$')\n\
 \n\
 # Set some initial values\n\
 phi_sp$ID$.setConst(9999)\n\
