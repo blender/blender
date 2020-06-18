@@ -1324,7 +1324,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
   switch (type) {
     case PROP_BOOLEAN:
       if (DefRNA.preprocess) {
-        if ((subtype & ~(PROP_LAYER_MEMBER)) != PROP_NONE) {
+        if ((subtype & ~PROP_LAYER_MEMBER) != PROP_NONE) {
           CLOG_ERROR(&LOG,
                      "subtype does not apply to 'PROP_BOOLEAN' \"%s.%s\"",
                      CONTAINER_RNA_ID(cont),

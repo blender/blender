@@ -2054,7 +2054,7 @@ static void annotation_draw_apply_event(
   /* Key to toggle stabilization. */
   if (event->shift > 0 && p->paintmode == GP_PAINTMODE_DRAW) {
     /* Using permanent stabilization, shift will deactivate the flag. */
-    if (p->flags & (GP_PAINTFLAG_USE_STABILIZER)) {
+    if (p->flags & GP_PAINTFLAG_USE_STABILIZER) {
       if (p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) {
         gpencil_draw_toggle_stabilizer_cursor(p, false);
         p->flags &= ~GP_PAINTFLAG_USE_STABILIZER_TEMP;

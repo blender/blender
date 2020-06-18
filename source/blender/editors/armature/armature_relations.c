@@ -754,7 +754,7 @@ static void bone_connect_to_new_parent(ListBase *edbo,
   float offset[3];
 
   if ((selbone->parent) && (selbone->flag & BONE_CONNECTED)) {
-    selbone->parent->flag &= ~(BONE_TIPSEL);
+    selbone->parent->flag &= ~BONE_TIPSEL;
   }
 
   /* make actbone the parent of selbone */
@@ -956,7 +956,7 @@ static void editbone_clear_parent(EditBone *ebone, int mode)
 {
   if (ebone->parent) {
     /* for nice selection */
-    ebone->parent->flag &= ~(BONE_TIPSEL);
+    ebone->parent->flag &= ~BONE_TIPSEL;
   }
 
   if (mode == 1) {

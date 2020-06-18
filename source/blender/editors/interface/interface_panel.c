@@ -1000,7 +1000,7 @@ void ui_draw_aligned_panel(uiStyle *style,
                            * can't be dragged. This may be changed in future. */
                           show_background);
   const int panel_col = is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK;
-  const bool draw_box_style = (panel->type && panel->type->flag & (PNL_DRAW_BOX));
+  const bool draw_box_style = (panel->type && panel->type->flag & PNL_DRAW_BOX);
 
   /* Use the theme for box widgets for box-style panels. */
   uiWidgetColors *box_wcol = NULL;

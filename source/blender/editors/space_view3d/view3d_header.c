@@ -209,7 +209,7 @@ static void uiTemplatePaintModeSelection(uiLayout *layout, struct bContext *C)
     PointerRNA meshptr;
 
     RNA_pointer_create(ob->data, &RNA_Mesh, ob->data, &meshptr);
-    if (ob->mode & (OB_MODE_TEXTURE_PAINT)) {
+    if (ob->mode & OB_MODE_TEXTURE_PAINT) {
       uiItemR(layout, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
     }
     else {

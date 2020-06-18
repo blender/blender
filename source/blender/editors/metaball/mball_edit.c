@@ -810,7 +810,7 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
             continue;
           }
 
-          if (metaelem_id != (hitresult & 0xFFFF0000 & ~(MBALLSEL_ANY))) {
+          if (metaelem_id != (hitresult & 0xFFFF0000 & ~MBALLSEL_ANY)) {
             continue;
           }
 

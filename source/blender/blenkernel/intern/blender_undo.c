@@ -109,7 +109,8 @@ MemFileUndoData *BKE_memfile_undo_encode(Main *bmain, MemFileUndoData *mfu_prev)
     static int counter = 0;
     char filename[FILE_MAX];
     char numstr[32];
-    int fileflags = G.fileflags & ~(G_FILE_HISTORY); /* don't do file history on undo */
+    /* Don't do file history on undo. */
+    const int fileflags = G.fileflags & ~G_FILE_HISTORY;
 
     /* Calculate current filename. */
     counter++;

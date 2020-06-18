@@ -1408,7 +1408,9 @@ static ImBuf *blend_file_thumb(const bContext *C,
 bool write_crash_blend(void)
 {
   char path[FILE_MAX];
-  int fileflags = G.fileflags & ~(G_FILE_HISTORY); /* don't do file history on crash file */
+
+  /* Don't do file history on crash file. */
+  const int fileflags = G.fileflags & ~G_FILE_HISTORY;
 
   BLI_strncpy(path, BKE_main_blendfile_path_from_global(), sizeof(path));
   BLI_path_extension_replace(path, sizeof(path), "_crash.blend");

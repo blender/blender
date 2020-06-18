@@ -3007,7 +3007,7 @@ static bool do_meta_box_select(ViewContext *vc, const rcti *rect, const eSelectO
         continue;
       }
 
-      if (metaelem_id != (hitresult & 0xFFFF0000 & ~(MBALLSEL_ANY))) {
+      if (metaelem_id != (hitresult & 0xFFFF0000 & ~MBALLSEL_ANY)) {
         continue;
       }
 

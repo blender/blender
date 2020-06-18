@@ -191,7 +191,7 @@ int ED_space_image_get_display_channel_mask(ImBuf *ibuf)
     result &= ~(SI_USE_ALPHA | SI_SHOW_ALPHA);
   }
   if (!zbuf) {
-    result &= ~(SI_SHOW_ZBUF);
+    result &= ~SI_SHOW_ZBUF;
   }
   if (!color) {
     result &= ~(SI_SHOW_R | SI_SHOW_G | SI_SHOW_B);

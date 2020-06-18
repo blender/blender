@@ -428,7 +428,7 @@ static float eff_calc_visibility(ListBase *colliders,
                                  EffectorData *efd,
                                  EffectedPoint *point)
 {
-  const int raycast_flag = BVH_RAYCAST_DEFAULT & ~(BVH_RAYCAST_WATERTIGHT);
+  const int raycast_flag = BVH_RAYCAST_DEFAULT & ~BVH_RAYCAST_WATERTIGHT;
   ListBase *colls = colliders;
   ColliderCache *col;
   float norm[3], len = 0.0;

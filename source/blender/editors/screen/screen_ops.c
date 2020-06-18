@@ -4311,7 +4311,7 @@ static int match_region_with_redraws(int spacetype,
         }
         break;
       case SPACE_NODE:
-        if (redraws & (TIME_NODES)) {
+        if (redraws & TIME_NODES) {
           return 1;
         }
         break;

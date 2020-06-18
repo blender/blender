@@ -1145,7 +1145,7 @@ static void region_overlap_fix(ScrArea *area, ARegion *region)
 
   /* find overlapping previous region on same place */
   for (ar1 = region->prev; ar1; ar1 = ar1->prev) {
-    if (ar1->flag & (RGN_FLAG_HIDDEN)) {
+    if (ar1->flag & RGN_FLAG_HIDDEN) {
       continue;
     }
 
@@ -1194,7 +1194,7 @@ static void region_overlap_fix(ScrArea *area, ARegion *region)
   /* At this point, 'region' is in its final position and still open.
    * Make a final check it does not overlap any previous 'other side' region. */
   for (ar1 = region->prev; ar1; ar1 = ar1->prev) {
-    if (ar1->flag & (RGN_FLAG_HIDDEN)) {
+    if (ar1->flag & RGN_FLAG_HIDDEN) {
       continue;
     }
     if (ELEM(ar1->alignment, RGN_ALIGN_FLOAT)) {
@@ -2566,16 +2566,16 @@ void ED_region_panels_layout_ex(const bContext *C,
     /* only allow scrolling in vertical direction */
     v2d->keepofs |= V2D_LOCKOFS_X | V2D_KEEPOFS_Y;
     v2d->keepofs &= ~(V2D_LOCKOFS_Y | V2D_KEEPOFS_X);
-    v2d->scroll &= ~(V2D_SCROLL_BOTTOM);
-    v2d->scroll |= (V2D_SCROLL_RIGHT);
+    v2d->scroll &= ~V2D_SCROLL_BOTTOM;
+    v2d->scroll |= V2D_SCROLL_RIGHT;
   }
   else {
     /* for now, allow scrolling in both directions (since layouts are optimized for vertical,
      * they often don't fit in horizontal layout)
      */
     v2d->keepofs &= ~(V2D_LOCKOFS_X | V2D_LOCKOFS_Y | V2D_KEEPOFS_X | V2D_KEEPOFS_Y);
-    v2d->scroll |= (V2D_SCROLL_BOTTOM);
-    v2d->scroll &= ~(V2D_SCROLL_RIGHT);
+    v2d->scroll |= V2D_SCROLL_BOTTOM;
+    v2d->scroll &= ~V2D_SCROLL_RIGHT;
   }
 
   /* collect categories */

@@ -308,7 +308,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
         region->v2d.tot.ymax = 0.0f;
 
         region->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
-        region->v2d.scroll |= (V2D_SCROLL_RIGHT);
+        region->v2d.scroll |= V2D_SCROLL_RIGHT;
         region->v2d.align = V2D_ALIGN_NO_POS_Y;
         region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
         break;
@@ -334,7 +334,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
         region->v2d.minzoom = 0.01f;
         region->v2d.maxzoom = 50;
         region->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
-        region->v2d.scroll |= (V2D_SCROLL_RIGHT);
+        region->v2d.scroll |= V2D_SCROLL_RIGHT;
         region->v2d.keepzoom = V2D_LOCKZOOM_Y;
         region->v2d.align = V2D_ALIGN_NO_POS_Y;
         region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;

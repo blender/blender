@@ -218,7 +218,7 @@ static int rule_avoid_collision(BoidRule *rule,
                                 BoidValues *val,
                                 ParticleData *pa)
 {
-  const int raycast_flag = BVH_RAYCAST_DEFAULT & ~(BVH_RAYCAST_WATERTIGHT);
+  const int raycast_flag = BVH_RAYCAST_DEFAULT & ~BVH_RAYCAST_WATERTIGHT;
   BoidRuleAvoidCollision *acbr = (BoidRuleAvoidCollision *)rule;
   KDTreeNearest_3d *ptn = NULL;
   ParticleTarget *pt;
@@ -854,7 +854,7 @@ static Object *boid_find_ground(BoidBrainData *bbd,
                                 float ground_co[3],
                                 float ground_nor[3])
 {
-  const int raycast_flag = BVH_RAYCAST_DEFAULT & ~(BVH_RAYCAST_WATERTIGHT);
+  const int raycast_flag = BVH_RAYCAST_DEFAULT & ~BVH_RAYCAST_WATERTIGHT;
   BoidParticle *bpa = pa->boid;
 
   if (bpa->data.mode == eBoidMode_Climbing) {

@@ -188,7 +188,7 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(const bool is_editmode
       Base *base = NULL;
       bool sel;
 
-      hitresult &= ~(BONESEL_ANY);
+      hitresult &= ~BONESEL_ANY;
       /* Determine what the current bone is */
       if (is_editmode == false) {
         base = ED_armature_base_and_pchan_from_select_buffer(bases, bases_len, hitresult, &pchan);
@@ -1302,7 +1302,7 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
         if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
           ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
           if (ebone->parent) {
-            ebone->parent->flag |= (BONE_TIPSEL);
+            ebone->parent->flag |= BONE_TIPSEL;
           }
         }
         break;
@@ -1317,7 +1317,7 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
           if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
             ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
             if (ebone->parent) {
-              ebone->parent->flag |= (BONE_TIPSEL);
+              ebone->parent->flag |= BONE_TIPSEL;
             }
           }
         }

@@ -1384,7 +1384,7 @@ static void gpu_free_image_immediate(Image *ima)
     }
   }
 
-  ima->gpuflag &= ~(IMA_GPU_MIPMAP_COMPLETE);
+  ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
 }
 
 void GPU_free_image(Image *ima)

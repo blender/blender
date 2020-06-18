@@ -1322,7 +1322,7 @@ static int multitex_nodes_intern(Tex *tex,
                         texnode_preview,
                         use_nodes);
 
-      if (mtex->mapto & (MAP_COL)) {
+      if (mtex->mapto & MAP_COL) {
         ImBuf *ibuf = BKE_image_pool_acquire_ibuf(tex->ima, &tex->iuser, pool);
 
         /* don't linearize float buffers, assumed to be linear */

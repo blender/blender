@@ -113,10 +113,10 @@ BLI_INLINE void clamp_rctf_to_rcti(rcti *dst, const rctf *src)
 static int view2d_scroll_mapped(int scroll)
 {
   if (scroll & V2D_SCROLL_HORIZONTAL_FULLR) {
-    scroll &= ~(V2D_SCROLL_HORIZONTAL);
+    scroll &= ~V2D_SCROLL_HORIZONTAL;
   }
   if (scroll & V2D_SCROLL_VERTICAL_FULLR) {
-    scroll &= ~(V2D_SCROLL_VERTICAL);
+    scroll &= ~V2D_SCROLL_VERTICAL;
   }
   return scroll;
 }
@@ -198,7 +198,7 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
     }
 
     /* horizontal scroller */
-    if (scroll & (V2D_SCROLL_BOTTOM)) {
+    if (scroll & V2D_SCROLL_BOTTOM) {
       /* on bottom edge of region */
       v2d->hor = *mask_scroll;
       v2d->hor.ymax = scroll_height;
@@ -211,7 +211,7 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
 
     /* adjust vertical scroller if there's a horizontal scroller, to leave corner free */
     if (scroll & V2D_SCROLL_VERTICAL) {
-      if (scroll & (V2D_SCROLL_BOTTOM)) {
+      if (scroll & V2D_SCROLL_BOTTOM) {
         /* on bottom edge of region */
         v2d->vert.ymin = v2d->hor.ymax;
       }

@@ -1844,7 +1844,7 @@ static void validate_render_settings(Render *re)
 {
   if (RE_engine_is_external(re)) {
     /* not supported yet */
-    re->r.scemode &= ~(R_FULL_SAMPLE);
+    re->r.scemode &= ~R_FULL_SAMPLE;
   }
 }
 
