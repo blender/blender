@@ -1126,3 +1126,5 @@ int BKE_sequence_supports_modifiers(Sequence *seq)
 {
   return !ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD);
 }
+
+/** \} */

@@ -65,6 +65,10 @@
 /* ensure the target position is one we can reach, see: T45771 */
 #define USE_PIXELSIZE_NATIVE_SUPPORT
 
+/* -------------------------------------------------------------------- */
+/** \name Modal Key-map
+ * \{ */
+
 /* NOTE: these defines are saved in keymap files,
  * do not change values but just add new ones */
 enum {
@@ -172,6 +176,12 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
   /* assign map to operators */
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_walk");
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Walk Structs
+ * \{ */
 
 typedef struct WalkTeleport {
   eWalkTeleportState state;
@@ -283,6 +293,12 @@ typedef struct WalkInfo {
 
 } WalkInfo;
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Walk Drawing
+ * \{ */
+
 /* prototypes */
 #ifdef WITH_INPUT_NDOF
 static void walkApply_ndof(bContext *C, WalkInfo *walk, bool is_confirm);
@@ -339,6 +355,12 @@ static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *region, voi
   immEnd();
   immUnbindProgram();
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Walk Logic
+ * \{ */
 
 static void walk_navigation_mode_set(WalkInfo *walk, eWalkMethod mode)
 {
@@ -1343,7 +1365,12 @@ static void walkApply_ndof(bContext *C, WalkInfo *walk, bool is_confirm)
 }
 #endif /* WITH_INPUT_NDOF */
 
-/****** walk operator ******/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Walk Operator
+ * \{ */
+
 static int walk_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -1438,3 +1465,5 @@ void VIEW3D_OT_walk(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_BLOCKING;
 }
+
+/** \} */

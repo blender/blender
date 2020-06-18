@@ -55,6 +55,10 @@
 
 #include "view3d_intern.h" /* own include */
 
+/* -------------------------------------------------------------------- */
+/** \name Modal Key-map
+ * \{ */
+
 /* NOTE: these defines are saved in keymap files,
  * do not change values but just add new ones */
 enum {
@@ -138,6 +142,12 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_fly");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Fly Structs
+ * \{ */
+
 typedef struct FlyInfo {
   /* context stuff */
   RegionView3D *rv3d;
@@ -204,6 +214,12 @@ typedef struct FlyInfo {
   struct View3DCameraControl *v3d_camera_control;
 
 } FlyInfo;
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Fly Drawing
+ * \{ */
 
 /* prototypes */
 #ifdef WITH_INPUT_NDOF
@@ -277,6 +293,12 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(regio
   immEnd();
   immUnbindProgram();
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Fly Logic
+ * \{ */
 
 /* FlyInfo->state */
 enum {
@@ -1034,6 +1056,12 @@ static void flyApply_ndof(bContext *C, FlyInfo *fly, bool is_confirm)
 }
 #endif /* WITH_INPUT_NDOF */
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Fly Operator
+ * \{ */
+
 static int fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -1128,3 +1156,5 @@ void VIEW3D_OT_fly(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_BLOCKING;
 }
+
+/** \} */
