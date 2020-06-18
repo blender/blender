@@ -1771,15 +1771,8 @@ static void move_to_collection_menu_create(bContext *UNUSED(C), uiLayout *layout
   const char *name = BKE_collection_ui_name_get(menu->collection);
 
   UI_block_flag_enable(uiLayoutGetBlock(layout), UI_BLOCK_IS_FLIP);
-  uiItemIntO(layout, name, ICON_NONE, menu->ot->idname, "collection_index", menu->index);
-  uiItemS(layout);
 
-  for (MoveToCollectionData *submenu = menu->submenus.first; submenu != NULL;
-       submenu = submenu->next) {
-    move_to_collection_menus_items(layout, submenu);
-  }
-
-  uiItemS(layout);
+  // uiItemS(layout);
 
   WM_operator_properties_create_ptr(&menu->ptr, menu->ot);
   RNA_int_set(&menu->ptr, "collection_index", menu->index);
@@ -1787,6 +1780,15 @@ static void move_to_collection_menu_create(bContext *UNUSED(C), uiLayout *layout
 
   uiItemFullO_ptr(
       layout, menu->ot, "New Collection", ICON_ADD, menu->ptr.data, WM_OP_INVOKE_DEFAULT, 0, NULL);
+
+  uiItemS(layout);
+
+  uiItemIntO(layout, name, ICON_SCENE_DATA, menu->ot->idname, "collection_index", menu->index);
+
+  for (MoveToCollectionData *submenu = menu->submenus.first; submenu != NULL;
+       submenu = submenu->next) {
+    move_to_collection_menus_items(layout, submenu);
+  }
 }
 
 static void move_to_collection_menus_items(uiLayout *layout, MoveToCollectionData *menu)
