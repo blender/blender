@@ -14,7 +14,7 @@ namespace blender {
 TEST(set, DefaultConstructor)
 {
   Set<int> set;
-  EXPECT_EQ(set.size(), 0);
+  EXPECT_EQ(set.size(), 0u);
   EXPECT_TRUE(set.is_empty());
 }
 
@@ -52,7 +52,7 @@ TEST(set, AddMany)
 TEST(set, InitializerListConstructor)
 {
   Set<int> set = {4, 5, 6};
-  EXPECT_EQ(set.size(), 3);
+  EXPECT_EQ(set.size(), 3u);
   EXPECT_TRUE(set.contains(4));
   EXPECT_TRUE(set.contains(5));
   EXPECT_TRUE(set.contains(6));
@@ -77,10 +77,10 @@ TEST(set, CopyConstructor)
 TEST(set, MoveConstructor)
 {
   Set<int> set = {1, 2, 3};
-  EXPECT_EQ(set.size(), 3);
+  EXPECT_EQ(set.size(), 3u);
   Set<int> set2(std::move(set));
-  EXPECT_EQ(set.size(), 0);
-  EXPECT_EQ(set2.size(), 3);
+  EXPECT_EQ(set.size(), 0u);
+  EXPECT_EQ(set2.size(), 3u);
 }
 
 TEST(set, CopyAssignment)
@@ -101,11 +101,11 @@ TEST(set, CopyAssignment)
 TEST(set, MoveAssignment)
 {
   Set<int> set = {1, 2, 3};
-  EXPECT_EQ(set.size(), 3);
+  EXPECT_EQ(set.size(), 3u);
   Set<int> set2;
   set2 = std::move(set);
-  EXPECT_EQ(set.size(), 0);
-  EXPECT_EQ(set2.size(), 3);
+  EXPECT_EQ(set.size(), 0u);
+  EXPECT_EQ(set2.size(), 3u);
 }
 
 TEST(set, RemoveContained)
@@ -177,7 +177,7 @@ TEST(set, AddMultiple)
   a.add_multiple({2, 4, 7});
   EXPECT_TRUE(a.contains(4));
   EXPECT_TRUE(a.contains(2));
-  EXPECT_EQ(a.size(), 4);
+  EXPECT_EQ(a.size(), 4u);
 }
 
 TEST(set, AddMultipleNew)
@@ -195,7 +195,7 @@ TEST(set, Iterator)
   for (int value : set) {
     vec.append(value);
   }
-  EXPECT_EQ(vec.size(), 5);
+  EXPECT_EQ(vec.size(), 5u);
   EXPECT_TRUE(vec.contains(1));
   EXPECT_TRUE(vec.contains(3));
   EXPECT_TRUE(vec.contains(2));
@@ -208,9 +208,9 @@ TEST(set, OftenAddRemoveContained)
   Set<int> set;
   for (int i = 0; i < 100; i++) {
     set.add(42);
-    EXPECT_EQ(set.size(), 1);
+    EXPECT_EQ(set.size(), 1u);
     set.remove_contained(42);
-    EXPECT_EQ(set.size(), 0);
+    EXPECT_EQ(set.size(), 0u);
   }
 }
 
@@ -222,15 +222,15 @@ TEST(set, UniquePtrValues)
   set.add_new(std::move(value1));
   set.add(std::unique_ptr<int>(new int()));
 
-  EXPECT_EQ(set.size(), 3);
+  EXPECT_EQ(set.size(), 3u);
 }
 
 TEST(set, Clear)
 {
   Set<int> set = {3, 4, 6, 7};
-  EXPECT_EQ(set.size(), 4);
+  EXPECT_EQ(set.size(), 4u);
   set.clear();
-  EXPECT_EQ(set.size(), 0);
+  EXPECT_EQ(set.size(), 0u);
 }
 
 TEST(set, StringSet)
@@ -238,7 +238,7 @@ TEST(set, StringSet)
   Set<std::string> set;
   set.add("hello");
   set.add("world");
-  EXPECT_EQ(set.size(), 2);
+  EXPECT_EQ(set.size(), 2u);
   EXPECT_TRUE(set.contains("hello"));
   EXPECT_TRUE(set.contains("world"));
   EXPECT_FALSE(set.contains("world2"));
@@ -250,7 +250,7 @@ TEST(set, PointerSet)
   Set<int *> set;
   set.add(&a);
   set.add(&b);
-  EXPECT_EQ(set.size(), 2);
+  EXPECT_EQ(set.size(), 2u);
   EXPECT_TRUE(set.contains(&a));
   EXPECT_TRUE(set.contains(&b));
   EXPECT_FALSE(set.contains(&c));
@@ -259,14 +259,14 @@ TEST(set, PointerSet)
 TEST(set, Remove)
 {
   Set<int> set = {1, 2, 3, 4, 5, 6};
-  EXPECT_EQ(set.size(), 6);
+  EXPECT_EQ(set.size(), 6u);
   EXPECT_TRUE(set.remove(2));
-  EXPECT_EQ(set.size(), 5);
+  EXPECT_EQ(set.size(), 5u);
   EXPECT_FALSE(set.contains(2));
   EXPECT_FALSE(set.remove(2));
-  EXPECT_EQ(set.size(), 5);
+  EXPECT_EQ(set.size(), 5u);
   EXPECT_TRUE(set.remove(5));
-  EXPECT_EQ(set.size(), 4);
+  EXPECT_EQ(set.size(), 4u);
 }
 
 struct Type1 {

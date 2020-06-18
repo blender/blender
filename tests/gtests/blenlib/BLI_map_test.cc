@@ -11,20 +11,20 @@ using namespace blender;
 TEST(map, DefaultConstructor)
 {
   Map<int, float> map;
-  EXPECT_EQ(map.size(), 0);
+  EXPECT_EQ(map.size(), 0u);
   EXPECT_TRUE(map.is_empty());
 }
 
 TEST(map, AddIncreasesSize)
 {
   Map<int, float> map;
-  EXPECT_EQ(map.size(), 0);
+  EXPECT_EQ(map.size(), 0u);
   EXPECT_TRUE(map.is_empty());
   map.add(2, 5.0f);
-  EXPECT_EQ(map.size(), 1);
+  EXPECT_EQ(map.size(), 1u);
   EXPECT_FALSE(map.is_empty());
   map.add(6, 2.0f);
-  EXPECT_EQ(map.size(), 2);
+  EXPECT_EQ(map.size(), 2u);
   EXPECT_FALSE(map.is_empty());
 }
 
@@ -87,16 +87,16 @@ TEST(map, PopTry)
   Map<int, int> map;
   map.add(1, 5);
   map.add(2, 7);
-  EXPECT_EQ(map.size(), 2);
+  EXPECT_EQ(map.size(), 2u);
   Optional<int> value = map.pop_try(4);
-  EXPECT_EQ(map.size(), 2);
+  EXPECT_EQ(map.size(), 2u);
   EXPECT_FALSE(value.has_value());
   value = map.pop_try(2);
-  EXPECT_EQ(map.size(), 1);
+  EXPECT_EQ(map.size(), 1u);
   EXPECT_TRUE(value.has_value());
   EXPECT_EQ(value.value(), 7);
   EXPECT_EQ(*map.pop_try(1), 5);
-  EXPECT_EQ(map.size(), 0);
+  EXPECT_EQ(map.size(), 0u);
 }
 
 TEST(map, PopDefault)
@@ -105,17 +105,17 @@ TEST(map, PopDefault)
   map.add(1, 4);
   map.add(2, 7);
   map.add(3, 8);
-  EXPECT_EQ(map.size(), 3);
+  EXPECT_EQ(map.size(), 3u);
   EXPECT_EQ(map.pop_default(4, 10), 10);
-  EXPECT_EQ(map.size(), 3);
+  EXPECT_EQ(map.size(), 3u);
   EXPECT_EQ(map.pop_default(1, 10), 4);
-  EXPECT_EQ(map.size(), 2);
+  EXPECT_EQ(map.size(), 2u);
   EXPECT_EQ(map.pop_default(2, 20), 7);
-  EXPECT_EQ(map.size(), 1);
+  EXPECT_EQ(map.size(), 1u);
   EXPECT_EQ(map.pop_default(2, 20), 20);
-  EXPECT_EQ(map.size(), 1);
+  EXPECT_EQ(map.size(), 1u);
   EXPECT_EQ(map.pop_default(3, 0), 8);
-  EXPECT_EQ(map.size(), 0);
+  EXPECT_EQ(map.size(), 0u);
 }
 
 TEST(map, PopItemMany)
@@ -147,7 +147,7 @@ TEST(map, ValueIterator)
     iterations++;
   }
 
-  EXPECT_EQ(iterations, 3);
+  EXPECT_EQ(iterations, 3u);
   EXPECT_TRUE(values.contains(5.0f));
   EXPECT_TRUE(values.contains(-2.0f));
   EXPECT_TRUE(values.contains(2.0f));
@@ -168,7 +168,7 @@ TEST(map, KeyIterator)
     iterations++;
   }
 
-  EXPECT_EQ(iterations, 3);
+  EXPECT_EQ(iterations, 3u);
   EXPECT_TRUE(keys.contains(1));
   EXPECT_TRUE(keys.contains(2));
   EXPECT_TRUE(keys.contains(6));
@@ -192,7 +192,7 @@ TEST(map, ItemIterator)
     iterations++;
   }
 
-  EXPECT_EQ(iterations, 3);
+  EXPECT_EQ(iterations, 3u);
   EXPECT_TRUE(keys.contains(5));
   EXPECT_TRUE(keys.contains(2));
   EXPECT_TRUE(keys.contains(1));
@@ -241,8 +241,8 @@ TEST(map, MutableItemToItemConversion)
     values.append(item.value);
   }
 
-  EXPECT_EQ(keys.size(), 2);
-  EXPECT_EQ(values.size(), 2);
+  EXPECT_EQ(keys.size(), 2u);
+  EXPECT_EQ(values.size(), 2u);
   EXPECT_TRUE(keys.contains(3));
   EXPECT_TRUE(keys.contains(2));
   EXPECT_TRUE(values.contains(6));
@@ -330,10 +330,10 @@ TEST(map, MoveConstructorSmall)
   map1.add(1, 2.0f);
   map1.add(4, 1.0f);
   Map<int, float> map2(std::move(map1));
-  EXPECT_EQ(map2.size(), 2);
+  EXPECT_EQ(map2.size(), 2u);
   EXPECT_EQ(map2.lookup(1), 2.0f);
   EXPECT_EQ(map2.lookup(4), 1.0f);
-  EXPECT_EQ(map1.size(), 0);
+  EXPECT_EQ(map1.size(), 0u);
   EXPECT_EQ(map1.lookup_ptr(4), nullptr);
 }
 
@@ -344,10 +344,10 @@ TEST(map, MoveConstructorLarge)
     map1.add_new(i, i);
   }
   Map<int, int> map2(std::move(map1));
-  EXPECT_EQ(map2.size(), 100);
+  EXPECT_EQ(map2.size(), 100u);
   EXPECT_EQ(map2.lookup(1), 1);
   EXPECT_EQ(map2.lookup(4), 4);
-  EXPECT_EQ(map1.size(), 0);
+  EXPECT_EQ(map1.size(), 0u);
   EXPECT_EQ(map1.lookup_ptr(4), nullptr);
 }
 
@@ -358,10 +358,10 @@ TEST(map, MoveAssignment)
   map1.add(4, 1.0f);
   Map<int, float> map2;
   map2 = std::move(map1);
-  EXPECT_EQ(map2.size(), 2);
+  EXPECT_EQ(map2.size(), 2u);
   EXPECT_EQ(map2.lookup(1), 2.0f);
   EXPECT_EQ(map2.lookup(4), 1.0f);
-  EXPECT_EQ(map1.size(), 0);
+  EXPECT_EQ(map1.size(), 0u);
   EXPECT_EQ(map1.lookup_ptr(4), nullptr);
 }
 
@@ -372,10 +372,10 @@ TEST(map, CopyAssignment)
   map1.add(4, 1.0f);
   Map<int, float> map2;
   map2 = map1;
-  EXPECT_EQ(map2.size(), 2);
+  EXPECT_EQ(map2.size(), 2u);
   EXPECT_EQ(map2.lookup(1), 2.0f);
   EXPECT_EQ(map2.lookup(4), 1.0f);
-  EXPECT_EQ(map1.size(), 2);
+  EXPECT_EQ(map1.size(), 2u);
   EXPECT_EQ(*map1.lookup_ptr(4), 1.0f);
 }
 
@@ -385,13 +385,13 @@ TEST(map, Clear)
   map.add(1, 1.0f);
   map.add(2, 5.0f);
 
-  EXPECT_EQ(map.size(), 2);
+  EXPECT_EQ(map.size(), 2u);
   EXPECT_TRUE(map.contains(1));
   EXPECT_TRUE(map.contains(2));
 
   map.clear();
 
-  EXPECT_EQ(map.size(), 0);
+  EXPECT_EQ(map.size(), 0u);
   EXPECT_FALSE(map.contains(1));
   EXPECT_FALSE(map.contains(2));
 }
@@ -423,11 +423,11 @@ TEST(map, Remove)
 {
   Map<int, int> map;
   map.add(2, 4);
-  EXPECT_EQ(map.size(), 1);
+  EXPECT_EQ(map.size(), 1u);
   EXPECT_FALSE(map.remove(3));
-  EXPECT_EQ(map.size(), 1);
+  EXPECT_EQ(map.size(), 1u);
   EXPECT_TRUE(map.remove(2));
-  EXPECT_EQ(map.size(), 0);
+  EXPECT_EQ(map.size(), 0u);
 }
 
 TEST(map, PointerKeys)
@@ -439,7 +439,7 @@ TEST(map, PointerKeys)
   EXPECT_FALSE(map.add(&a, 4));
   map.add_new(&b, 1);
   map.add_new(&c, 1);
-  EXPECT_EQ(map.size(), 3);
+  EXPECT_EQ(map.size(), 3u);
   EXPECT_TRUE(map.remove(&b));
   EXPECT_TRUE(map.add(&b, 8));
   EXPECT_FALSE(map.remove(&d));
@@ -471,8 +471,8 @@ TEST(map, ForeachItem)
     values.append(value);
   });
 
-  EXPECT_EQ(keys.size(), 2);
-  EXPECT_EQ(values.size(), 2);
+  EXPECT_EQ(keys.size(), 2u);
+  EXPECT_EQ(values.size(), 2u);
   EXPECT_EQ(keys.first_index_of(3), values.first_index_of(4));
   EXPECT_EQ(keys.first_index_of(1), values.first_index_of(8));
 }

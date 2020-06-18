@@ -9,7 +9,7 @@ TEST(span, FromSmallVector)
 {
   Vector<int> a = {1, 2, 3};
   Span<int> a_span = a;
-  EXPECT_EQ(a_span.size(), 3);
+  EXPECT_EQ(a_span.size(), 3u);
   EXPECT_EQ(a_span[0], 1);
   EXPECT_EQ(a_span[1], 2);
   EXPECT_EQ(a_span[2], 3);
@@ -21,14 +21,14 @@ TEST(span, AddConstToPointer)
   std::vector<int *> vec = {&a};
   Span<int *> span = vec;
   Span<const int *> const_span = span;
-  EXPECT_EQ(const_span.size(), 1);
+  EXPECT_EQ(const_span.size(), 1u);
 }
 
 TEST(span, IsReferencing)
 {
   int array[] = {3, 5, 8};
   MutableSpan<int> span(array, ARRAY_SIZE(array));
-  EXPECT_EQ(span.size(), 3);
+  EXPECT_EQ(span.size(), 3u);
   EXPECT_EQ(span[1], 5);
   array[1] = 10;
   EXPECT_EQ(span[1], 10);
@@ -38,7 +38,7 @@ TEST(span, DropBack)
 {
   Vector<int> a = {4, 5, 6, 7};
   auto slice = Span<int>(a).drop_back(2);
-  EXPECT_EQ(slice.size(), 2);
+  EXPECT_EQ(slice.size(), 2u);
   EXPECT_EQ(slice[0], 4);
   EXPECT_EQ(slice[1], 5);
 }
@@ -47,14 +47,14 @@ TEST(span, DropBackAll)
 {
   Vector<int> a = {4, 5, 6, 7};
   auto slice = Span<int>(a).drop_back(a.size());
-  EXPECT_EQ(slice.size(), 0);
+  EXPECT_EQ(slice.size(), 0u);
 }
 
 TEST(span, DropFront)
 {
   Vector<int> a = {4, 5, 6, 7};
   auto slice = Span<int>(a).drop_front(1);
-  EXPECT_EQ(slice.size(), 3);
+  EXPECT_EQ(slice.size(), 3u);
   EXPECT_EQ(slice[0], 5);
   EXPECT_EQ(slice[1], 6);
   EXPECT_EQ(slice[2], 7);
@@ -64,14 +64,14 @@ TEST(span, DropFrontAll)
 {
   Vector<int> a = {4, 5, 6, 7};
   auto slice = Span<int>(a).drop_front(a.size());
-  EXPECT_EQ(slice.size(), 0);
+  EXPECT_EQ(slice.size(), 0u);
 }
 
 TEST(span, TakeFront)
 {
   Vector<int> a = {4, 5, 6, 7};
   auto slice = Span<int>(a).take_front(2);
-  EXPECT_EQ(slice.size(), 2);
+  EXPECT_EQ(slice.size(), 2u);
   EXPECT_EQ(slice[0], 4);
   EXPECT_EQ(slice[1], 5);
 }
@@ -80,7 +80,7 @@ TEST(span, TakeBack)
 {
   Vector<int> a = {5, 6, 7, 8};
   auto slice = Span<int>(a).take_back(2);
-  EXPECT_EQ(slice.size(), 2);
+  EXPECT_EQ(slice.size(), 2u);
   EXPECT_EQ(slice[0], 7);
   EXPECT_EQ(slice[1], 8);
 }
@@ -89,7 +89,7 @@ TEST(span, Slice)
 {
   Vector<int> a = {4, 5, 6, 7};
   auto slice = Span<int>(a).slice(1, 2);
-  EXPECT_EQ(slice.size(), 2);
+  EXPECT_EQ(slice.size(), 2u);
   EXPECT_EQ(slice[0], 5);
   EXPECT_EQ(slice[1], 6);
 }
@@ -98,14 +98,14 @@ TEST(span, SliceEmpty)
 {
   Vector<int> a = {4, 5, 6, 7};
   auto slice = Span<int>(a).slice(2, 0);
-  EXPECT_EQ(slice.size(), 0);
+  EXPECT_EQ(slice.size(), 0u);
 }
 
 TEST(span, SliceRange)
 {
   Vector<int> a = {1, 2, 3, 4, 5};
   auto slice = Span<int>(a).slice(IndexRange(2, 2));
-  EXPECT_EQ(slice.size(), 2);
+  EXPECT_EQ(slice.size(), 2u);
   EXPECT_EQ(slice[0], 3);
   EXPECT_EQ(slice[1], 4);
 }
@@ -126,16 +126,16 @@ TEST(span, Count)
 {
   Vector<int> a = {2, 3, 4, 3, 3, 2, 2, 2, 2};
   Span<int> a_span = a;
-  EXPECT_EQ(a_span.count(1), 0);
-  EXPECT_EQ(a_span.count(2), 5);
-  EXPECT_EQ(a_span.count(3), 3);
-  EXPECT_EQ(a_span.count(4), 1);
-  EXPECT_EQ(a_span.count(5), 0);
+  EXPECT_EQ(a_span.count(1), 0u);
+  EXPECT_EQ(a_span.count(2), 5u);
+  EXPECT_EQ(a_span.count(3), 3u);
+  EXPECT_EQ(a_span.count(4), 1u);
+  EXPECT_EQ(a_span.count(5), 0u);
 }
 
 static void test_ref_from_initializer_list(Span<int> span)
 {
-  EXPECT_EQ(span.size(), 4);
+  EXPECT_EQ(span.size(), 4u);
   EXPECT_EQ(span[0], 3);
   EXPECT_EQ(span[1], 6);
   EXPECT_EQ(span[2], 8);
@@ -151,7 +151,7 @@ TEST(span, FromVector)
 {
   std::vector<int> a = {1, 2, 3, 4};
   Span<int> a_span(a);
-  EXPECT_EQ(a_span.size(), 4);
+  EXPECT_EQ(a_span.size(), 4u);
   EXPECT_EQ(a_span[0], 1);
   EXPECT_EQ(a_span[1], 2);
   EXPECT_EQ(a_span[2], 3);
@@ -162,7 +162,7 @@ TEST(span, FromArray)
 {
   std::array<int, 2> a = {5, 6};
   Span<int> a_span(a);
-  EXPECT_EQ(a_span.size(), 2);
+  EXPECT_EQ(a_span.size(), 2u);
   EXPECT_EQ(a_span[0], 5);
   EXPECT_EQ(a_span[1], 6);
 }
@@ -196,7 +196,7 @@ TEST(span, SizeInBytes)
   std::array<int, 10> a;
   Span<int> a_span(a);
   EXPECT_EQ(a_span.size_in_bytes(), sizeof(a));
-  EXPECT_EQ(a_span.size_in_bytes(), 40);
+  EXPECT_EQ(a_span.size_in_bytes(), 40u);
 }
 
 TEST(span, FirstLast)
@@ -244,9 +244,9 @@ TEST(span, FirstIndex)
   std::array<int, 5> a = {4, 5, 4, 2, 5};
   Span<int> a_span(a);
 
-  EXPECT_EQ(a_span.first_index(4), 0);
-  EXPECT_EQ(a_span.first_index(5), 1);
-  EXPECT_EQ(a_span.first_index(2), 3);
+  EXPECT_EQ(a_span.first_index(4), 0u);
+  EXPECT_EQ(a_span.first_index(5), 1u);
+  EXPECT_EQ(a_span.first_index(2), 3u);
 }
 
 TEST(span, CastSameSize)
@@ -256,8 +256,8 @@ TEST(span, CastSameSize)
   Span<int *> a_span = a;
   Span<float *> new_a_span = a_span.cast<float *>();
 
-  EXPECT_EQ(a_span.size(), 4);
-  EXPECT_EQ(new_a_span.size(), 4);
+  EXPECT_EQ(a_span.size(), 4u);
+  EXPECT_EQ(new_a_span.size(), 4u);
 
   EXPECT_EQ(a_span[0], &value);
   EXPECT_EQ(new_a_span[0], (float *)&value);
@@ -269,8 +269,8 @@ TEST(span, CastSmallerSize)
   Span<uint32_t> a_span = a;
   Span<uint16_t> new_a_span = a_span.cast<uint16_t>();
 
-  EXPECT_EQ(a_span.size(), 4);
-  EXPECT_EQ(new_a_span.size(), 8);
+  EXPECT_EQ(a_span.size(), 4u);
+  EXPECT_EQ(new_a_span.size(), 8u);
 }
 
 TEST(span, CastLargerSize)
@@ -279,6 +279,6 @@ TEST(span, CastLargerSize)
   Span<uint16_t> a_span = a;
   Span<uint32_t> new_a_span = a_span.cast<uint32_t>();
 
-  EXPECT_EQ(a_span.size(), 4);
-  EXPECT_EQ(new_a_span.size(), 2);
+  EXPECT_EQ(a_span.size(), 4u);
+  EXPECT_EQ(new_a_span.size(), 2u);
 }

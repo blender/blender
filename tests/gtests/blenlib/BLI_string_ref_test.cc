@@ -10,7 +10,7 @@ using blender::Vector;
 TEST(string_ref_null, DefaultConstructor)
 {
   StringRefNull ref;
-  EXPECT_EQ(ref.size(), 0);
+  EXPECT_EQ(ref.size(), 0u);
   EXPECT_EQ(ref[0], '\0');
 }
 
@@ -18,7 +18,7 @@ TEST(string_ref_null, CStringConstructor)
 {
   const char *str = "Hello";
   StringRefNull ref(str);
-  EXPECT_EQ(ref.size(), 5);
+  EXPECT_EQ(ref.size(), 5u);
   EXPECT_EQ(ref.data(), str);
 }
 
@@ -26,21 +26,21 @@ TEST(string_ref_null, CStringLengthConstructor)
 {
   const char *str = "Hello";
   StringRefNull ref(str, 5);
-  EXPECT_EQ(ref.size(), 5);
+  EXPECT_EQ(ref.size(), 5u);
   EXPECT_EQ(ref.data(), str);
 }
 
 TEST(string_ref, DefaultConstructor)
 {
   StringRef ref;
-  EXPECT_EQ(ref.size(), 0);
+  EXPECT_EQ(ref.size(), 0u);
 }
 
 TEST(string_ref, StartEndConstructor)
 {
   const char *text = "hello world";
   StringRef ref(text, text + 5);
-  EXPECT_EQ(ref.size(), 5);
+  EXPECT_EQ(ref.size(), 5u);
   EXPECT_TRUE(ref == "hello");
   EXPECT_FALSE(ref == "hello ");
 }
@@ -48,7 +48,7 @@ TEST(string_ref, StartEndConstructor)
 TEST(string_ref, StartEndConstructorNullptr)
 {
   StringRef ref(nullptr, nullptr);
-  EXPECT_EQ(ref.size(), 0);
+  EXPECT_EQ(ref.size(), 0u);
   EXPECT_TRUE(ref == "");
 }
 
@@ -56,7 +56,7 @@ TEST(string_ref, StartEndConstructorSame)
 {
   const char *text = "hello world";
   StringRef ref(text, text);
-  EXPECT_EQ(ref.size(), 0);
+  EXPECT_EQ(ref.size(), 0u);
   EXPECT_TRUE(ref == "");
 }
 
@@ -64,7 +64,7 @@ TEST(string_ref, CStringConstructor)
 {
   const char *str = "Test";
   StringRef ref(str);
-  EXPECT_EQ(ref.size(), 4);
+  EXPECT_EQ(ref.size(), 4u);
   EXPECT_EQ(ref.data(), str);
 }
 
@@ -72,7 +72,7 @@ TEST(string_ref, PointerWithLengthConstructor)
 {
   const char *str = "Test";
   StringRef ref(str, 2);
-  EXPECT_EQ(ref.size(), 2);
+  EXPECT_EQ(ref.size(), 2u);
   EXPECT_EQ(ref.data(), str);
 }
 
@@ -80,14 +80,14 @@ TEST(string_ref, StdStringConstructor)
 {
   std::string str = "Test";
   StringRef ref(str);
-  EXPECT_EQ(ref.size(), 4);
+  EXPECT_EQ(ref.size(), 4u);
   EXPECT_EQ(ref.data(), str.data());
 }
 
 TEST(string_ref, SubscriptOperator)
 {
   StringRef ref("hello");
-  EXPECT_EQ(ref.size(), 5);
+  EXPECT_EQ(ref.size(), 5u);
   EXPECT_EQ(ref[0], 'h');
   EXPECT_EQ(ref[1], 'e');
   EXPECT_EQ(ref[2], 'l');
@@ -99,7 +99,7 @@ TEST(string_ref, ToStdString)
 {
   StringRef ref("test");
   std::string str = ref;
-  EXPECT_EQ(str.size(), 4);
+  EXPECT_EQ(str.size(), 4u);
   EXPECT_EQ(str, "test");
 }
 
@@ -204,7 +204,7 @@ TEST(string_ref, Iterate)
   for (char c : ref) {
     chars.append(c);
   }
-  EXPECT_EQ(chars.size(), 4);
+  EXPECT_EQ(chars.size(), 4u);
   EXPECT_EQ(chars[0], 't');
   EXPECT_EQ(chars[1], 'e');
   EXPECT_EQ(chars[2], 's');
@@ -240,8 +240,8 @@ TEST(string_ref, DropPrefixN)
   StringRef ref("test");
   StringRef ref2 = ref.drop_prefix(2);
   StringRef ref3 = ref2.drop_prefix(2);
-  EXPECT_EQ(ref2.size(), 2);
-  EXPECT_EQ(ref3.size(), 0);
+  EXPECT_EQ(ref2.size(), 2u);
+  EXPECT_EQ(ref3.size(), 0u);
   EXPECT_EQ(ref2, "st");
   EXPECT_EQ(ref3, "");
 }
@@ -250,7 +250,7 @@ TEST(string_ref, DropPrefix)
 {
   StringRef ref("test");
   StringRef ref2 = ref.drop_prefix("tes");
-  EXPECT_EQ(ref2.size(), 1);
+  EXPECT_EQ(ref2.size(), 1u);
   EXPECT_EQ(ref2, "t");
 }
 
