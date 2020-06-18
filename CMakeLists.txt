@@ -1561,13 +1561,13 @@ if(WITH_PYTHON)
 endif()
 
 if(MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
 elseif(
   CMAKE_COMPILER_IS_GNUCC OR
   CMAKE_C_COMPILER_ID MATCHES "Clang" OR
   CMAKE_C_COMPILER_ID MATCHES "Intel"
 )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 else()
   message(FATAL_ERROR "Unknown compiler ${CMAKE_C_COMPILER_ID}, can't enable C++14 build")
 endif()
