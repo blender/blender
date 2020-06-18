@@ -1804,7 +1804,7 @@ Object *BKE_object_duplicate(Main *bmain,
 
   ID *id = obn->data;
   ID *id_new = NULL;
-  const bool need_to_duplicate_obdata = (id->newid == NULL);
+  const bool need_to_duplicate_obdata = (id != NULL) && (id->newid == NULL);
 
   switch (obn->type) {
     case OB_MESH:
