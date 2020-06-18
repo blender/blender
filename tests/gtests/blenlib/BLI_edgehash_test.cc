@@ -2,6 +2,7 @@
 
 #include "testing/testing.h"
 #include <algorithm>
+#include <random>
 #include <vector>
 
 extern "C" {
@@ -320,7 +321,7 @@ TEST(edgehash, StressTest)
   }
 
   std::vector<Edge> shuffled = edges;
-  std::random_shuffle(shuffled.begin(), shuffled.end());
+  std::shuffle(shuffled.begin(), shuffled.end(), std::default_random_engine());
 
   /* then remove half of them */
   int remove_until = shuffled.size() / 2;
