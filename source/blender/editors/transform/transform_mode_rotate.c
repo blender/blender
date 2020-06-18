@@ -42,6 +42,67 @@
 /** \name Transform Rotation
  * \{ */
 
+static float RotationBetween(TransInfo *t, const float p1[3], const float p2[3])
+{
+  float angle, start[3], end[3];
+
+  sub_v3_v3v3(start, p1, t->center_global);
+  sub_v3_v3v3(end, p2, t->center_global);
+
+  // Angle around a constraint axis (error prone, will need debug)
+  if (t->con.applyRot != NULL && (t->con.mode & CON_APPLY)) {
+    float axis[3], tmp[3];
+
+    t->con.applyRot(t, NULL, NULL, axis, NULL);
+
+    project_v3_v3v3(tmp, end, axis);
+    sub_v3_v3v3(end, end, tmp);
+
+    project_v3_v3v3(tmp, start, axis);
+    sub_v3_v3v3(start, start, tmp);
+
+    normalize_v3(end);
+    normalize_v3(start);
+
+    cross_v3_v3v3(tmp, start, end);
+
+    if (dot_v3v3(tmp, axis) < 0.0f) {
+      angle = -acosf(dot_v3v3(start, end));
+    }
+    else {
+      angle = acosf(dot_v3v3(start, end));
+    }
+  }
+  else {
+    float mtx[3][3];
+
+    copy_m3_m4(mtx, t->viewmat);
+
+    mul_m3_v3(mtx, end);
+    mul_m3_v3(mtx, start);
+
+    angle = atan2f(start[1], start[0]) - atan2f(end[1], end[0]);
+  }
+
+  if (angle > (float)M_PI) {
+    angle = angle - 2 * (float)M_PI;
+  }
+  else if (angle < -((float)M_PI)) {
+    angle = 2.0f * (float)M_PI + angle;
+  }
+
+  return angle;
+}
+
+static void ApplySnapRotation(TransInfo *t, float *value)
+{
+  float point[3];
+  getSnapPoint(t, point);
+
+  float dist = RotationBetween(t, t->tsnap.snapTarget, point);
+  *value = dist;
+}
+
 static float large_rotation_limit(float angle)
 {
   /* Limit rotation to 1001 turns max
@@ -173,6 +234,8 @@ void initRotation(TransInfo *t)
 {
   t->mode = TFM_ROTATION;
   t->transform = applyRotation;
+  t->tsnap.applySnap = ApplySnapRotation;
+  t->tsnap.distance = RotationBetween;
 
   setInputPostFct(&t->mouse, postInputRotation);
   initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
