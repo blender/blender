@@ -2386,10 +2386,10 @@ float BKE_mesh_calc_poly_uv_area(const MPoly *mpoly, const MLoopUV *uv_array)
  * - The resulting volume will only be correct if the mesh is manifold and has consistent
  *   face winding (non-contiguous face normals or holes in the mesh surface).
  */
-static float mesh_calc_poly_volume_centroid(const MPoly *mpoly,
-                                            const MLoop *loopstart,
-                                            const MVert *mvarray,
-                                            float r_cent[3])
+static float UNUSED_FUNCTION(mesh_calc_poly_volume_centroid)(const MPoly *mpoly,
+                                                             const MLoop *loopstart,
+                                                             const MVert *mvarray,
+                                                             float r_cent[3])
 {
   const float *v_pivot, *v_step1;
   float total_volume = 0.0f;
@@ -2420,6 +2420,36 @@ static float mesh_calc_poly_volume_centroid(const MPoly *mpoly,
     v_step1 = v_step2;
   }
 
+  return total_volume;
+}
+
+/**
+ * A version of mesh_calc_poly_volume_centroid that takes an initial reference center,
+ * use this to increase numeric stability as the quality of the result becomes
+ * very low quality as the value moves away from 0.0, see: T65986.
+ */
+static float mesh_calc_poly_volume_centroid_with_reference_center(const MPoly *mpoly,
+                                                                  const MLoop *loopstart,
+                                                                  const MVert *mvarray,
+                                                                  const float reference_center[3],
+                                                                  float r_cent[3])
+{
+  /* See: mesh_calc_poly_volume_centroid for comments. */
+  float v_pivot[3], v_step1[3];
+  float total_volume = 0.0f;
+  zero_v3(r_cent);
+  sub_v3_v3v3(v_pivot, mvarray[loopstart[0].v].co, reference_center);
+  sub_v3_v3v3(v_step1, mvarray[loopstart[1].v].co, reference_center);
+  for (int i = 2; i < mpoly->totloop; i++) {
+    float v_step2[3];
+    sub_v3_v3v3(v_step2, mvarray[loopstart[i].v].co, reference_center);
+    const float tetra_volume = volume_tri_tetrahedron_signed_v3_6x(v_pivot, v_step1, v_step2);
+    total_volume += tetra_volume;
+    for (uint j = 0; j < 3; j++) {
+      r_cent[j] += tetra_volume * (v_pivot[j] + v_step1[j] + v_step2[j]);
+    }
+    copy_v3_v3(v_step1, v_step2);
+  }
   return total_volume;
 }
 
@@ -2536,8 +2566,33 @@ bool BKE_mesh_center_median(const Mesh *me, float r_cent[3])
   if (me->totvert) {
     mul_v3_fl(r_cent, 1.0f / (float)me->totvert);
   }
-
   return (me->totvert != 0);
+}
+
+/**
+ * Calculate the center from polygons,
+ * use when we want to ignore vertex locations that don't have connected faces.
+ */
+bool BKE_mesh_center_median_from_polys(const Mesh *me, float r_cent[3])
+{
+  int i = me->totpoly;
+  int tot = 0;
+  const MPoly *mpoly = me->mpoly;
+  const MLoop *mloop = me->mloop;
+  const MVert *mvert = me->mvert;
+  zero_v3(r_cent);
+  for (mpoly = me->mpoly; i--; mpoly++) {
+    int loopend = mpoly->loopstart + mpoly->totloop;
+    for (int j = mpoly->loopstart; j < loopend; j++) {
+      add_v3_v3(r_cent, mvert[mloop[j].v].co);
+    }
+    tot += mpoly->totloop;
+  }
+  /* otherwise we get NAN for 0 verts */
+  if (me->totpoly) {
+    mul_v3_fl(r_cent, 1.0f / (float)tot);
+  }
+  return (me->totpoly != 0);
 }
 
 bool BKE_mesh_center_bounds(const Mesh *me, float r_cent[3])
@@ -2595,12 +2650,16 @@ bool BKE_mesh_center_of_volume(const Mesh *me, float r_cent[3])
   float total_volume = 0.0f;
   float poly_cent[3];
 
+  /* Use an initial center to avoid numeric instability of geometry far away from the center. */
+  float init_cent[3];
+  const bool init_cent_result = BKE_mesh_center_median_from_polys(me, init_cent);
+
   zero_v3(r_cent);
 
   /* calculate a weighted average of polyhedron centroids */
   for (mpoly = me->mpoly; i--; mpoly++) {
-    poly_volume = mesh_calc_poly_volume_centroid(
-        mpoly, me->mloop + mpoly->loopstart, me->mvert, poly_cent);
+    poly_volume = mesh_calc_poly_volume_centroid_with_reference_center(
+        mpoly, me->mloop + mpoly->loopstart, me->mvert, init_cent, poly_cent);
 
     /* poly_cent is already volume-weighted, so no need to multiply by the volume */
     add_v3_v3(r_cent, poly_cent);
@@ -2616,9 +2675,10 @@ bool BKE_mesh_center_of_volume(const Mesh *me, float r_cent[3])
 
   /* this can happen for non-manifold objects, fallback to median */
   if (UNLIKELY(!is_finite_v3(r_cent))) {
-    return BKE_mesh_center_median(me, r_cent);
+    copy_v3_v3(r_cent, init_cent);
+    return init_cent_result;
   }
-
+  add_v3_v3(r_cent, init_cent);
   return (me->totpoly != 0);
 }
 
