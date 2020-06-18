@@ -1110,11 +1110,6 @@ void wm_homefile_read(bContext *C,
   }
 
   if (use_data) {
-    /* Prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake.
-     * Screws up autosaves otherwise can remove this eventually,
-     * only in a 2.53 and older, now its not written. */
-    G.fileflags &= ~G_FILE_RELATIVE_REMAP;
-
     if (reset_app_template) {
       /* Always load UI when switching to another template. */
       G.fileflags &= ~G_FILE_NO_UI;
