@@ -1545,6 +1545,7 @@ static void rna_def_ID(BlenderRNA *brna)
       "Preview",
       "Preview image and icon of this data-block (None if not supported for this type of data)");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_pointer_funcs(prop, "rna_IDPreview_get", NULL, NULL, NULL);
 
   /* functions */
