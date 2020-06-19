@@ -228,6 +228,8 @@ void outliner_build_tree(struct Main *mainvar,
                          struct SpaceOutliner *soops,
                          struct ARegion *region);
 
+bool outliner_element_needs_rebuild_on_open_change(const TreeStoreElem *tselem);
+
 typedef struct IDsSelectedData {
   struct ListBase selected_array;
 } IDsSelectedData;
