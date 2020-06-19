@@ -463,6 +463,7 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 
     BLI_assert(BKE_workspace_layout_screen_get(layout) == screen);
     BKE_workspace_layout_remove(bmain, workspace, layout);
+    WM_event_add_notifier(C, NC_SCREEN | ND_LAYOUTDELETE, NULL);
   }
 }
 
