@@ -289,6 +289,16 @@ void BKE_gpencil_eval_delete(bGPdata *gpd_eval)
   MEM_freeN(gpd_eval);
 }
 
+/**
+ * Tag datablock for depsgraph update.
+ * Wrapper to avoid include Depsgraph tag functions in other modules.
+ * \param gpd Grease pencil datablock
+ */
+void BKE_gpencil_tag(bGPdata *gpd)
+{
+  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+}
+
 /* ************************************************** */
 /* Container Creation */
 

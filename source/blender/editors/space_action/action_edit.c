@@ -800,10 +800,17 @@ static void insert_gpencil_keys(bAnimContext *ac, short mode)
     add_frame_mode = GP_GETFRAME_ADD_NEW;
   }
 
-  /* insert gp frames */
+  /* Insert gp frames. */
+  bGPdata *gpd_old = NULL;
   for (ale = anim_data.first; ale; ale = ale->next) {
+    bGPdata *gpd = (bGPdata *)ale->id;
     bGPDlayer *gpl = (bGPDlayer *)ale->data;
     BKE_gpencil_layer_frame_get(gpl, CFRA, add_frame_mode);
+    /* Check if the gpd changes to tag only once. */
+    if (gpd != gpd_old) {
+      BKE_gpencil_tag(gpd);
+      gpd_old = gpd;
+    }
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -839,6 +846,9 @@ static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
   }
 
   /* set notifier that keyframes have changed */
+  if (ac.datatype == ANIMCONT_GPENCIL) {
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  }
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, NULL);
 
   return OPERATOR_FINISHED;

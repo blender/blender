@@ -96,6 +96,7 @@ void BKE_gpencil_free_layers(struct ListBase *list);
 void BKE_gpencil_free(struct bGPdata *gpd, bool free_all);
 void BKE_gpencil_eval_delete(struct bGPdata *gpd_eval);
 void BKE_gpencil_free_layer_masks(struct bGPDlayer *gpl);
+void BKE_gpencil_tag(struct bGPdata *gpd);
 
 void BKE_gpencil_batch_cache_dirty_tag(struct bGPdata *gpd);
 void BKE_gpencil_batch_cache_free(struct bGPdata *gpd);
