@@ -108,9 +108,7 @@ bool BKE_lib_override_library_property_operation_operands_validate(
 bool BKE_lib_override_library_status_check_local(struct Main *bmain, struct ID *local);
 bool BKE_lib_override_library_status_check_reference(struct Main *bmain, struct ID *local);
 
-bool BKE_lib_override_library_operations_create(struct Main *bmain,
-                                                struct ID *local,
-                                                const bool force_auto);
+bool BKE_lib_override_library_operations_create(struct Main *bmain, struct ID *local);
 void BKE_lib_override_library_main_operations_create(struct Main *bmain, const bool force_auto);
 
 void BKE_lib_override_library_operations_tag(struct IDOverrideLibraryProperty *override_property,

@@ -2404,7 +2404,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
           BKE_view_layer_base_select_and_set_active(view_layer, base);
         }
         /* We still want to store all objects' current override status (i.e. change of parent). */
-        BKE_lib_override_library_operations_create(bmain, &new_ob->id, true);
+        BKE_lib_override_library_operations_create(bmain, &new_ob->id);
       }
     }
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;

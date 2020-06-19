@@ -739,9 +739,7 @@ bool BKE_lib_override_library_status_check_reference(Main *bmain, ID *local)
  * Generating diff values and applying overrides are much cheaper.
  *
  * \return true if new overriding op was created, or some local data was reset. */
-bool BKE_lib_override_library_operations_create(Main *bmain,
-                                                ID *local,
-                                                const bool UNUSED(force_auto))
+bool BKE_lib_override_library_operations_create(Main *bmain, ID *local)
 {
   BLI_assert(local->override_library != NULL);
   const bool is_template = (local->override_library->reference == NULL);
@@ -802,7 +800,7 @@ static void lib_override_library_operations_create_cb(TaskPool *__restrict pool,
   Main *bmain = BLI_task_pool_user_data(pool);
   ID *id = taskdata;
 
-  BKE_lib_override_library_operations_create(bmain, id, false);
+  BKE_lib_override_library_operations_create(bmain, id);
 }
 
 /** Check all overrides from given \a bmain and create/update overriding operations as needed. */
@@ -1065,7 +1063,7 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
   }
 
   /* Forcefully ensure we know about all needed override operations. */
-  BKE_lib_override_library_operations_create(bmain, local, false);
+  BKE_lib_override_library_operations_create(bmain, local);
 
   ID *storage_id;
 #ifdef DEBUG_OVERRIDE_TIMEIT
