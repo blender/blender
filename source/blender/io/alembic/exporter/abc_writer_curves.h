@@ -16,13 +16,11 @@
  * The Original Code is Copyright (C) 2016 Kévin Dietrich.
  * All rights reserved.
  */
+#pragma once
 
 /** \file
  * \ingroup balembic
  */
-
-#ifndef __ABC_WRITER_CURVES_H__
-#define __ABC_WRITER_CURVES_H__
 
 #include "abc_writer_mesh.h"
 #include "abc_writer_object.h"
@@ -59,5 +57,3 @@ class AbcCurveMeshWriter : public AbcGenericMeshWriter {
 }  // namespace alembic
 }  // namespace io
 }  // namespace blender
-
-#endif /* __ABC_WRITER_CURVES_H__ */

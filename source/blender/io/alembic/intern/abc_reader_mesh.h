@@ -13,13 +13,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+#pragma once
 
 /** \file
  * \ingroup balembic
  */
-
-#ifndef __ABC_READER_MESH_H__
-#define __ABC_READER_MESH_H__
 
 #include "abc_customdata.h"
 #include "abc_reader_object.h"
@@ -90,5 +88,3 @@ CDStreamConfig get_config(struct Mesh *mesh);
 }  // namespace alembic
 }  // namespace io
 }  // namespace blender
-
-#endif /* __ABC_READER_MESH_H__ */

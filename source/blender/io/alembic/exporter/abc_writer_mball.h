@@ -13,13 +13,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+#pragma once
 
 /** \file
  * \ingroup balembic
  */
-
-#ifndef __ABC_WRITER_MBALL_H__
-#define __ABC_WRITER_MBALL_H__
 
 #include "abc_writer_mesh.h"
 #include "abc_writer_object.h"
@@ -60,5 +58,3 @@ class AbcMBallWriter : public AbcGenericMeshWriter {
 }  // namespace alembic
 }  // namespace io
 }  // namespace blender
-
-#endif /* __ABC_WRITER_MBALL_H__ */

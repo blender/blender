@@ -13,13 +13,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+#pragma once
 
 /** \file
  * \ingroup balembic
  */
-
-#ifndef __ABC_READER_OBJECT_H__
-#define __ABC_READER_OBJECT_H__
 
 #include <Alembic/Abc/All.h>
 #include <Alembic/AbcGeom/All.h>
@@ -173,5 +171,3 @@ Imath::M44d get_matrix(const Alembic::AbcGeom::IXformSchema &schema, const float
 }  // namespace alembic
 }  // namespace io
 }  // namespace blender
-
-#endif /* __ABC_READER_OBJECT_H__ */

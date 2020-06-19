@@ -16,13 +16,11 @@
  * The Original Code is Copyright (C) 2016 Kévin Dietrich.
  * All rights reserved.
  */
+#pragma once
 
 /** \file
  * \ingroup balembic
  */
-
-#ifndef __ABC_WRITER_POINTS_H__
-#define __ABC_WRITER_POINTS_H__
 
 #include "abc_writer_object.h"
 #include "intern/abc_customdata.h"
@@ -53,5 +51,3 @@ class AbcPointsWriter : public AbcObjectWriter {
 }  // namespace alembic
 }  // namespace io
 }  // namespace blender
-
-#endif /* __ABC_WRITER_POINTS_H__ */
