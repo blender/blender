@@ -11,10 +11,10 @@ diff -x .git -ur usd.orig/cmake/defaults/Packages.cmake external_usd/cmake/defau
  
  # --math
 diff -x .git -ur usd.orig/pxr/base/plug/initConfig.cpp external_usd/pxr/base/plug/initConfig.cpp
---- usd.orig/pxr/base/plug/initConfig.cpp	2019-10-24 22:39:53.000000000 +0200
-+++ external_usd/pxr/base/plug/initConfig.cpp	2019-12-11 11:00:37.643323127 +0100
-@@ -69,8 +69,38 @@
- 
+--- usd.orig/pxr/base/plug/initConfig.cpp.orig	2020-06-12 17:20:07.478199779 +0200
++++ external_usd/pxr/base/plug/initConfig.cpp	2020-06-12 17:25:28.648588552 +0200
+@@ -69,10 +69,40 @@
+
  ARCH_CONSTRUCTOR(Plug_InitConfig, 2, void)
  {
 +    /* The contents of this constructor have been moved to usd_initialise_plugin_path(...) */
@@ -39,7 +39,9 @@ diff -x .git -ur usd.orig/pxr/base/plug/initConfig.cpp external_usd/pxr/base/plu
 +usd_initialise_plugin_path(const char *datafiles_usd_path)
 +{
      std::vector<std::string> result;
- 
+
+     std::vector<std::string> debugMessages;
+
 +    // Add Blender-specific paths. They MUST end in a slash, or symlinks will not be treated as directory.
 +    if (datafiles_usd_path != NULL && datafiles_usd_path[0] != '\0') {
 +        std::string datafiles_usd_path_str(datafiles_usd_path);
@@ -49,14 +51,14 @@ diff -x .git -ur usd.orig/pxr/base/plug/initConfig.cpp external_usd/pxr/base/plu
 +        result.push_back(datafiles_usd_path_str);
 +    }
 +
-     // Determine the absolute path to the Plug shared library.
-     // Any relative paths specified in the plugin search path will be
-     // anchored to this directory, to allow for relocatability.
-@@ -94,9 +124,24 @@
-     _AppendPathList(&result, installLocation, sharedLibPath);
+     // Determine the absolute path to the Plug shared library.  Any relative
+     // paths specified in the plugin search path will be anchored to this
+     // directory, to allow for relocatability.  Note that this can fail when pxr
+@@ -114,9 +144,24 @@
+     _AppendPathList(&result, installLocation, binaryPath);
  #endif // PXR_INSTALL_LOCATION
- 
--    Plug_SetPaths(result);
+
+-    Plug_SetPaths(result, debugMessages);
 -}
 +    if (!TfGetenv("PXR_PATH_DEBUG").empty()) {
 +        printf("USD Plugin paths: (%zu in total):\n", result.size());
@@ -64,10 +66,10 @@ diff -x .git -ur usd.orig/pxr/base/plug/initConfig.cpp external_usd/pxr/base/plu
 +            printf("    %s\n", path.c_str());
 +        }
 +    }
- 
-+    Plug_SetPaths(result);
+
++    Plug_SetPaths(result, debugMessages);
  }
- 
+
  PXR_NAMESPACE_CLOSE_SCOPE
 +
 +/* Workaround to make it possible to pass a path at runtime to USD. */
@@ -79,18 +81,6 @@ diff -x .git -ur usd.orig/pxr/base/plug/initConfig.cpp external_usd/pxr/base/plu
 +    PXR_NS::usd_initialise_plugin_path(datafiles_usd_path);
 +}
 +}
-diff -Naur external_usd_orig/pxr/base/tf/preprocessorUtils.h external_usd/pxr/base/tf/preprocessorUtils.h
---- external_usd_orig/pxr/base/tf/preprocessorUtils.h	2019-10-24 14:39:53 -0600
-+++ external_usd/pxr/base/tf/preprocessorUtils.h	2020-01-14 09:30:18 -0700
-@@ -189,7 +189,7 @@
- /// Exapnds to 1 if the argument is a tuple, and 0 otherwise.
- /// \ingroup group_tf_Preprocessor
- /// \hideinitializer
--#if defined(ARCH_OS_WINDOWS)
-+#if defined(ARCH_COMPILER_MSVC)
-     #define TF_PP_IS_TUPLE(sequence) \
-         BOOST_VMD_IS_TUPLE(sequence)
- #else
 diff -Naur external_usd_base/cmake/macros/Public.cmake external_usd/cmake/macros/Public.cmake
 --- external_usd_base/cmake/macros/Public.cmake	2019-10-24 14:39:53 -0600
 +++ external_usd/cmake/macros/Public.cmake	2020-01-11 13:33:29 -0700
