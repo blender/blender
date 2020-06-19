@@ -138,7 +138,9 @@ static void gp_interpolate_free_temp_strokes(bGPDframe *gpf)
 /* Helper: Untag all strokes. */
 static void gp_interpolate_untag_strokes(bGPDframe *gpf)
 {
-  BLI_assert(gpf != NULL);
+  if (gpf == NULL) {
+    return;
+  }
 
   LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
     if (gps->flag & GP_STROKE_TAG) {
@@ -262,6 +264,12 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     tGPDinterpolate_layer *tgpil;
 
+    /* Untag strokes to be sure nothing is pending. This must be done for
+     * all layer because it could be anything tagged and it would be removed
+     * at the end of the process when all tagged strokes are removed. */
+    gp_interpolate_untag_strokes(gpl->actframe);
+    gp_interpolate_untag_strokes(gpl->actframe->next);
+
     /* all layers or only active */
     if (!(tgpi->flag & GP_TOOLFLAG_INTERPOLATE_ALL_LAYERS) && (gpl != active_gpl)) {
       continue;
@@ -277,10 +285,6 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
     tgpil->gpl = gpl;
     tgpil->prevFrame = gpl->actframe;
     tgpil->nextFrame = gpl->actframe->next;
-
-    /* Untag interpolated strokes to be sure nothing is pending. */
-    gp_interpolate_untag_strokes(tgpil->prevFrame);
-    gp_interpolate_untag_strokes(tgpil->nextFrame);
 
     BLI_addtail(&tgpi->ilayers, tgpil);
 
