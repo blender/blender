@@ -888,6 +888,32 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
   }
 }
 
+/* Returns the vertbuf used by shaded surface batch. */
+GPUVertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
+{
+  Mesh *me = BKE_object_get_evaluated_mesh(ob);
+  short type = (me != NULL) ? OB_MESH : ob->type;
+
+  switch (type) {
+    case OB_MESH:
+      return DRW_mesh_batch_cache_pos_vertbuf_get((me != NULL) ? me : ob->data);
+    case OB_CURVE:
+    case OB_SURF:
+    case OB_FONT:
+      return DRW_curve_batch_cache_pos_vertbuf_get(ob->data);
+    case OB_MBALL:
+      return DRW_mball_batch_cache_pos_vertbuf_get(ob);
+    case OB_HAIR:
+      return NULL;
+    case OB_POINTCLOUD:
+      return NULL;
+    case OB_VOLUME:
+      return NULL;
+    default:
+      return NULL;
+  }
+}
+
 int DRW_cache_object_material_count_get(struct Object *ob)
 {
   Mesh *me = BKE_object_get_evaluated_mesh(ob);

@@ -903,6 +903,16 @@ GPUBatch **DRW_curve_batch_cache_get_surface_shaded(struct Curve *cu,
   return cache->surf_per_mat;
 }
 
+GPUVertBuf *DRW_curve_batch_cache_pos_vertbuf_get(struct Curve *cu)
+{
+  CurveBatchCache *cache = curve_batch_cache_get(cu);
+  /* Request surface to trigger the vbo filling. Otherwise it may do nothing. */
+  DRW_batch_request(&cache->batch.surfaces);
+
+  DRW_vbo_request(NULL, &cache->ordered.loop_pos_nor);
+  return cache->ordered.loop_pos_nor;
+}
+
 GPUBatch *DRW_curve_batch_cache_get_wireframes_face(Curve *cu)
 {
   CurveBatchCache *cache = curve_batch_cache_get(cu);

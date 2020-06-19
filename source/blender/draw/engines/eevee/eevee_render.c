@@ -46,6 +46,12 @@
 
 #include "eevee_private.h"
 
+bool EEVEE_render_do_motion_blur(const struct Depsgraph *depsgraph)
+{
+  Scene *scene = DEG_get_evaluated_scene(depsgraph);
+  return (scene->eevee.flag & SCE_EEVEE_MOTION_BLUR_ENABLED) != 0;
+}
+
 /* Return true if init properly. */
 bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *depsgraph)
 {
@@ -144,6 +150,7 @@ bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 
   DRWView *view = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
   DRW_view_camtexco_set(view, camtexcofac);
+  DRW_view_reset();
   DRW_view_default_set(view);
   DRW_view_set_active(view);
 

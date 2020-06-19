@@ -274,6 +274,18 @@ struct GPUBatch *DRW_metaball_batch_cache_get_edge_detection(struct Object *ob,
   return cache->edge_detection;
 }
 
+struct GPUVertBuf *DRW_mball_batch_cache_pos_vertbuf_get(Object *ob)
+{
+  if (!BKE_mball_is_basis(ob)) {
+    return NULL;
+  }
+
+  MetaBall *mb = ob->data;
+  MetaBallBatchCache *cache = metaball_batch_cache_get(mb);
+
+  return mball_batch_cache_get_pos_and_normals(ob, cache);
+}
+
 int DRW_metaball_material_count_get(MetaBall *mb)
 {
   return max_ii(1, mb->totcol);

@@ -1628,8 +1628,10 @@ typedef struct SceneEEVEE {
   float bloom_radius;
   float bloom_clamp;
 
-  int motion_blur_samples;
+  int motion_blur_samples DNA_DEPRECATED;
+  int motion_blur_max;
   float motion_blur_shutter;
+  float motion_blur_depth_scale;
 
   int shadow_method DNA_DEPRECATED;
   int shadow_cube_size;

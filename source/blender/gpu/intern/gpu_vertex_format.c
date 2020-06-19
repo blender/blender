@@ -262,6 +262,20 @@ int GPU_vertformat_attr_id_get(const GPUVertFormat *format, const char *name)
   return -1;
 }
 
+void GPU_vertformat_attr_rename(GPUVertFormat *format, int attr_id, const char *new_name)
+{
+  BLI_assert(attr_id > -1 && attr_id < format->attr_len);
+  GPUVertAttr *attr = &format->attrs[attr_id];
+  char *attr_name = (char *)GPU_vertformat_attr_name_get(format, attr, 0);
+  BLI_assert(strlen(attr_name) == strlen(new_name));
+  int i = 0;
+  while (attr_name[i] != '\0') {
+    attr_name[i] = new_name[i];
+    i++;
+  }
+  attr->name_len = 1;
+}
+
 /* Encode 8 original bytes into 11 safe bytes. */
 static void safe_bytes(char out[11], const char data[8])
 {

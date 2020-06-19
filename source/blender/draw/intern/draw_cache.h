@@ -63,6 +63,8 @@ struct GPUBatch **DRW_cache_object_surface_material_get(struct Object *ob,
 struct GPUBatch *DRW_cache_object_face_wireframe_get(struct Object *ob);
 int DRW_cache_object_material_count_get(struct Object *ob);
 
+struct GPUVertBuf *DRW_cache_object_pos_vertbuf_get(struct Object *ob);
+
 /* Empties */
 struct GPUBatch *DRW_cache_plain_axes_get(void);
 struct GPUBatch *DRW_cache_single_arrow_get(void);

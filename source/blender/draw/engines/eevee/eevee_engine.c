@@ -421,18 +421,76 @@ static void eevee_render_to_image(void *vedata,
                                   struct RenderLayer *render_layer,
                                   const rcti *rect)
 {
+  EEVEE_Data *ved = (EEVEE_Data *)vedata;
   const DRWContextState *draw_ctx = DRW_context_state_get();
+
+  if (EEVEE_render_do_motion_blur(draw_ctx->depsgraph)) {
+    Scene *scene = DEG_get_evaluated_scene(draw_ctx->depsgraph);
+
+    float shutter = scene->eevee.motion_blur_shutter * 0.5f;
+    float time = CFRA;
+    /* Centered on frame for now. */
+    float start_time = time - shutter;
+    float end_time = time + shutter;
+
+    {
+      EEVEE_motion_blur_step_set(ved, MB_PREV);
+      RE_engine_frame_set(engine, floorf(start_time), fractf(start_time));
+
+      if (!EEVEE_render_init(vedata, engine, draw_ctx->depsgraph)) {
+        return;
+      }
+
+      if (RE_engine_test_break(engine)) {
+        return;
+      }
+
+      DRW_render_object_iter(vedata, engine, draw_ctx->depsgraph, EEVEE_render_cache);
+      EEVEE_motion_blur_cache_finish(vedata);
+      /* Reset passlist. This is safe as they are stored into managed memory chunks. */
+      memset(ved->psl, 0, sizeof(*ved->psl));
+      /* Fix memleak */
+      BLI_ghash_free(ved->stl->g_data->material_hash, NULL, NULL);
+      ved->stl->g_data->material_hash = NULL;
+    }
+
+    {
+      EEVEE_motion_blur_step_set(ved, MB_NEXT);
+      RE_engine_frame_set(engine, floorf(end_time), fractf(end_time));
+
+      EEVEE_render_init(vedata, engine, draw_ctx->depsgraph);
+
+      DRW_render_object_iter(vedata, engine, draw_ctx->depsgraph, EEVEE_render_cache);
+      EEVEE_motion_blur_cache_finish(vedata);
+      /* Reset passlist. This is safe as they are stored into managed memory chunks. */
+      memset(ved->psl, 0, sizeof(*ved->psl));
+      /* Fix memleak */
+      BLI_ghash_free(ved->stl->g_data->material_hash, NULL, NULL);
+      ved->stl->g_data->material_hash = NULL;
+    }
+
+    /* Current frame. */
+    EEVEE_motion_blur_step_set(ved, MB_CURR);
+    RE_engine_frame_set(engine, time, 0.0f);
+  }
 
   if (!EEVEE_render_init(vedata, engine, draw_ctx->depsgraph)) {
     return;
   }
 
+  if (RE_engine_test_break(engine)) {
+    return;
+  }
+
   DRW_render_object_iter(vedata, engine, draw_ctx->depsgraph, EEVEE_render_cache);
+
+  EEVEE_motion_blur_cache_finish(vedata);
 
   /* Actually do the rendering. */
   EEVEE_render_draw(vedata, engine, render_layer, rect);
 
   EEVEE_volumes_free_smoke_textures();
+  EEVEE_motion_blur_data_free(&ved->stl->effects->motion_blur);
 }
 
 static void eevee_engine_free(void)

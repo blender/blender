@@ -1,6 +1,6 @@
 
 uniform sampler2D colorHistoryBuffer;
-uniform sampler2D velocityBuffer;
+uniform mat4 prevViewProjectionMatrix;
 
 out vec4 FragColor;
 
@@ -38,16 +38,19 @@ vec3 clip_to_aabb(vec3 color, vec3 minimum, vec3 maximum, vec3 average)
  */
 void main()
 {
-  ivec2 texel = ivec2(gl_FragCoord.xy);
-  vec2 motion = texelFetch(velocityBuffer, texel, 0).rg;
-
-  /* Decode from unsigned normalized 16bit texture. */
-  motion = motion * 2.0 - 1.0;
-
-  /* Compute pixel position in previous frame. */
   vec2 screen_res = vec2(textureSize(colorBuffer, 0).xy);
   vec2 uv = gl_FragCoord.xy / screen_res;
-  vec2 uv_history = uv - motion;
+  ivec2 texel = ivec2(gl_FragCoord.xy);
+
+  /* Compute pixel position in previous frame. */
+  float depth = textureLod(depthBuffer, uv, 0.0).r;
+  vec3 pos = get_world_space_from_depth(uv, depth);
+  vec2 uv_history = project_point(prevViewProjectionMatrix, pos).xy * 0.5 + 0.5;
+
+  /* HACK: Reject lookdev spheres from TAA reprojection. */
+  if (depth == 0.0) {
+    uv_history = uv;
+  }
 
   ivec2 texel_history = ivec2(uv_history * screen_res);
   vec4 color_history = textureLod(colorHistoryBuffer, uv_history, 0.0);

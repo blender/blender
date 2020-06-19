@@ -225,10 +225,13 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
    */
   if ((effects->enabled_effects & EFFECT_VELOCITY_BUFFER) != 0) {
     effects->velocity_tx = DRW_texture_pool_query_2d(
-        size_fs[0], size_fs[1], GPU_RG16, &draw_engine_eevee_type);
+        size_fs[0], size_fs[1], GPU_RGBA16, &draw_engine_eevee_type);
 
-    /* TODO output objects velocity during the mainpass. */
-    // GPU_framebuffer_texture_attach(fbl->main_fb, effects->velocity_tx, 1, 0);
+    GPU_framebuffer_ensure_config(&fbl->velocity_fb,
+                                  {
+                                      GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+                                      GPU_ATTACHMENT_TEXTURE(effects->velocity_tx),
+                                  });
 
     GPU_framebuffer_ensure_config(
         &fbl->velocity_resolve_fb,
@@ -328,14 +331,18 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 
   if ((effects->enabled_effects & EFFECT_VELOCITY_BUFFER) != 0) {
+    EEVEE_MotionBlurData *mb_data = &effects->motion_blur;
+
     /* This pass compute camera motions to the non moving objects. */
     DRW_PASS_CREATE(psl->velocity_resolve, DRW_STATE_WRITE_COLOR);
     grp = DRW_shgroup_create(EEVEE_shaders_velocity_resolve_sh_get(), psl->velocity_resolve);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
-    DRW_shgroup_uniform_mat4(grp, "currPersinv", effects->velocity_curr_persinv);
-    DRW_shgroup_uniform_mat4(grp, "pastPersmat", effects->velocity_past_persmat);
+
+    DRW_shgroup_uniform_mat4(grp, "prevViewProjMatrix", mb_data->camera[MB_PREV].persmat);
+    DRW_shgroup_uniform_mat4(grp, "currViewProjMatrixInv", mb_data->camera[MB_CURR].persinv);
+    DRW_shgroup_uniform_mat4(grp, "nextViewProjMatrix", mb_data->camera[MB_NEXT].persmat);
     DRW_shgroup_call(grp, quad, NULL);
   }
 }
@@ -501,17 +508,19 @@ static void EEVEE_velocity_resolve(EEVEE_Data *vedata)
   EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_EffectsInfo *effects = stl->effects;
-  struct DRWView *view = effects->taa_view;
 
   if ((effects->enabled_effects & EFFECT_VELOCITY_BUFFER) != 0) {
     DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
     e_data.depth_src = dtxl->depth;
-    DRW_view_persmat_get(view, effects->velocity_curr_persinv, true);
 
     GPU_framebuffer_bind(fbl->velocity_resolve_fb);
     DRW_draw_pass(psl->velocity_resolve);
+
+    if (psl->velocity_object) {
+      GPU_framebuffer_bind(fbl->velocity_fb);
+      DRW_draw_pass(psl->velocity_object);
+    }
   }
-  DRW_view_persmat_get(view, effects->velocity_past_persmat, false);
 }
 
 void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
@@ -529,6 +538,7 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   effects->target_buffer = fbl->effect_color_fb; /* next target to render to */
 
   /* Post process stack (order matters) */
+  EEVEE_velocity_resolve(vedata);
   EEVEE_motion_blur_draw(vedata);
   EEVEE_depth_of_field_draw(vedata);
 
@@ -537,7 +547,6 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
    * Velocity resolve use a hack to exclude lookdev
    * spheres from creating shimmering re-projection vectors. */
   EEVEE_lookdev_draw(vedata);
-  EEVEE_velocity_resolve(vedata);
 
   EEVEE_temporal_sampling_draw(vedata);
   EEVEE_bloom_draw(vedata);

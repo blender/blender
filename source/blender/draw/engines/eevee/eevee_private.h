@@ -29,6 +29,8 @@
 
 #include "DNA_lightprobe_types.h"
 
+#include "BKE_camera.h"
+
 struct EEVEE_ShadowCasterBuffer;
 struct GPUFrameBuffer;
 struct Object;
@@ -256,7 +258,11 @@ typedef struct EEVEE_PassList {
   struct DRWPass *sss_translucency_ps;
   struct DRWPass *color_downsample_ps;
   struct DRWPass *color_downsample_cube_ps;
+  struct DRWPass *velocity_object;
   struct DRWPass *velocity_resolve;
+  struct DRWPass *velocity_tiles_x;
+  struct DRWPass *velocity_tiles;
+  struct DRWPass *velocity_tiles_expand[2];
   struct DRWPass *taa_resolve;
   struct DRWPass *alpha_checker;
 
@@ -327,6 +333,8 @@ typedef struct EEVEE_FramebufferList {
   struct GPUFrameBuffer *renderpass_fb;
   struct GPUFrameBuffer *ao_accum_fb;
   struct GPUFrameBuffer *velocity_resolve_fb;
+  struct GPUFrameBuffer *velocity_fb;
+  struct GPUFrameBuffer *velocity_tiles_fb[2];
 
   struct GPUFrameBuffer *update_noise_fb;
 
@@ -556,6 +564,41 @@ enum {
   PROBE_UPDATE_ALL = 0xFFFFFF,
 };
 
+/* ************** MOTION BLUR ************ */
+
+#define MB_PREV 0
+#define MB_NEXT 1
+#define MB_CURR 2
+
+typedef struct EEVEE_MotionBlurData {
+  struct GHash *object;
+  struct GHash *geom;
+  struct {
+    float viewmat[4][4];
+    float persmat[4][4];
+    float persinv[4][4];
+  } camera[3];
+} EEVEE_MotionBlurData;
+
+typedef struct EEVEE_ObjectKey {
+  /** Object or source object for duplis */
+  struct Object *ob;
+  /** Parent object for duplis */
+  struct Object *parent;
+  /** Dupli objects recursive unique identifier */
+  int id[16]; /* 2*MAX_DUPLI_RECUR */
+} EEVEE_ObjectKey;
+
+typedef struct EEVEE_ObjectMotionData {
+  float obmat[3][4][4];
+} EEVEE_ObjectMotionData;
+
+typedef struct EEVEE_GeometryMotionData {
+  struct GPUBatch *batch;    /* Batch for time = t. */
+  struct GPUVertBuf *vbo[2]; /* Vbo for time = t +/- step. */
+  int use_deform;            /* To disable deform mb if vertcount mismatch. */
+} EEVEE_GeometryMotionData;
+
 /* ************ EFFECTS DATA ************* */
 
 typedef enum EEVEE_EffectsFlag {
@@ -609,7 +652,7 @@ typedef struct EEVEE_EffectsInfo {
   float taa_alpha;
   bool prev_drw_support;
   bool prev_is_navigating;
-  float prev_drw_persmat[4][4];
+  float prev_drw_persmat[4][4]; /* Used for checking view validity and reprojection. */
   struct DRWView *taa_view;
   /* Ambient Occlusion */
   int ao_depth_layer;
@@ -617,15 +660,25 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *gtao_horizons; /* Textures from pool */
   struct GPUTexture *gtao_horizons_debug;
   /* Motion Blur */
-  float current_world_to_ndc[4][4];
   float current_ndc_to_world[4][4];
+  float current_world_to_ndc[4][4];
+  float current_world_to_view[4][4];
   float past_world_to_ndc[4][4];
-  int motion_blur_samples;
-  bool motion_blur_mat_cached;
+  float past_world_to_view[4][4];
+  CameraParams past_cam_params;
+  CameraParams current_cam_params;
+  float motion_blur_sample_offset;
+  char motion_blur_step;         /* Which step we are evaluating. */
+  int motion_blur_max;           /* Maximum distance in pixels a motion blured pixel can cover. */
+  float motion_blur_near_far[2]; /* Camera near/far clip distances (positive). */
+  bool cam_params_init;
+  /* TODO(fclem) Only used in render mode for now.
+   * This is because we are missing a per scene persistent place to hold this. */
+  struct EEVEE_MotionBlurData motion_blur;
   /* Velocity Pass */
-  float velocity_curr_persinv[4][4];
-  float velocity_past_persmat[4][4];
   struct GPUTexture *velocity_tx; /* Texture from pool */
+  struct GPUTexture *velocity_tiles_x_tx;
+  struct GPUTexture *velocity_tiles_tx;
   /* Depth Of Field */
   float dof_near_far[2];
   float dof_params[2];
@@ -883,12 +936,17 @@ typedef struct EEVEE_PrivateData {
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_data.c */
+void EEVEE_motion_blur_data_init(EEVEE_MotionBlurData *mb);
+void EEVEE_motion_blur_data_free(EEVEE_MotionBlurData *mb);
 void EEVEE_view_layer_data_free(void *sldata);
 EEVEE_ViewLayerData *EEVEE_view_layer_data_get(void);
 EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure_ex(struct ViewLayer *view_layer);
 EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure(void);
 EEVEE_ObjectEngineData *EEVEE_object_data_get(Object *ob);
 EEVEE_ObjectEngineData *EEVEE_object_data_ensure(Object *ob);
+EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *mb, Object *ob);
+EEVEE_GeometryMotionData *EEVEE_motion_blur_geometry_data_get(EEVEE_MotionBlurData *mb,
+                                                              Object *ob);
 EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_get(Object *ob);
 EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_ensure(Object *ob);
 EEVEE_LightEngineData *EEVEE_light_data_get(Object *ob);
@@ -1113,7 +1171,10 @@ void EEVEE_subsurface_free(void);
 
 /* eevee_motion_blur.c */
 int EEVEE_motion_blur_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object *camera);
+void EEVEE_motion_blur_step_set(EEVEE_Data *vedata, int step);
 void EEVEE_motion_blur_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object *ob);
+void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata);
 void EEVEE_motion_blur_draw(EEVEE_Data *vedata);
 void EEVEE_motion_blur_free(void);
 
@@ -1194,6 +1255,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata,
 void EEVEE_render_update_passes(struct RenderEngine *engine,
                                 struct Scene *scene,
                                 struct ViewLayer *view_layer);
+bool EEVEE_render_do_motion_blur(const struct Depsgraph *depsgraph);
 
 /** eevee_lookdev.c */
 void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,

@@ -901,6 +901,9 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
           }
         }
       }
+
+      /* Motion Blur Vectors. */
+      EEVEE_motion_blur_cache_populate(sldata, vedata, ob);
     }
 
     /* Volumetrics */

@@ -85,6 +85,35 @@ void GPU_vertbuf_init_with_format_ex(GPUVertBuf *verts,
   }
 }
 
+GPUVertBuf *GPU_vertbuf_duplicate(GPUVertBuf *verts)
+{
+  GPUVertBuf *verts_dst = GPU_vertbuf_create(GPU_USAGE_STATIC);
+  /* Full copy. */
+  *verts_dst = *verts;
+  GPU_vertformat_copy(&verts_dst->format, &verts->format);
+
+  if (verts->vbo_id) {
+    uint buffer_sz = GPU_vertbuf_size_get(verts);
+
+    verts_dst->vbo_id = GPU_buf_alloc();
+
+    glBindBuffer(GL_COPY_READ_BUFFER, verts->vbo_id);
+    glBindBuffer(GL_COPY_WRITE_BUFFER, verts_dst->vbo_id);
+
+    glBufferData(GL_COPY_WRITE_BUFFER, buffer_sz, NULL, convert_usage_type_to_gl(verts->usage));
+
+    glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, buffer_sz);
+#if VRAM_USAGE
+    vbo_memory_usage += GPU_vertbuf_size_get(verts);
+#endif
+  }
+
+  if (verts->data) {
+    verts_dst->data = MEM_dupallocN(verts->data);
+  }
+  return verts_dst;
+}
+
 /** Same as discard but does not free. */
 void GPU_vertbuf_clear(GPUVertBuf *verts)
 {

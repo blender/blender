@@ -124,6 +124,10 @@ BLI_INLINE const char *GPU_vertformat_attr_name_get(const GPUVertFormat *format,
   return format->names + attr->names[n_idx];
 }
 
+/* WARNING: Can only rename using a string with same character count.
+ * WARNING: This removes all other aliases of this attrib */
+void GPU_vertformat_attr_rename(GPUVertFormat *format, int attr, const char *new_name);
+
 void GPU_vertformat_safe_attr_name(const char *attr_name, char *r_safe_name, uint max_len);
 
 /* format conversion */

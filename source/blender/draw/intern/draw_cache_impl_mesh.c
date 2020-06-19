@@ -810,6 +810,23 @@ int DRW_mesh_material_count_get(Mesh *me)
 /** \name Edit Mode API
  * \{ */
 
+GPUVertBuf *DRW_mesh_batch_cache_pos_vertbuf_get(Mesh *me)
+{
+  MeshBatchCache *cache = mesh_batch_cache_get(me);
+  /* Request surface to trigger the vbo filling. Otherwise it may do nothing. */
+  mesh_batch_cache_add_request(cache, MBC_SURFACE);
+  DRW_batch_request(&cache->batch.surface);
+
+  DRW_vbo_request(NULL, &cache->final.vbo.pos_nor);
+  return cache->final.vbo.pos_nor;
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Edit Mode API
+ * \{ */
+
 GPUBatch *DRW_mesh_batch_cache_get_edit_triangles(Mesh *me)
 {
   MeshBatchCache *cache = mesh_batch_cache_get(me);

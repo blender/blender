@@ -80,6 +80,8 @@ void GPU_vertbuf_init_with_format_ex(GPUVertBuf *, const GPUVertFormat *, GPUUsa
 #define GPU_vertbuf_init_with_format(verts, format) \
   GPU_vertbuf_init_with_format_ex(verts, format, GPU_USAGE_STATIC)
 
+GPUVertBuf *GPU_vertbuf_duplicate(GPUVertBuf *verts);
+
 uint GPU_vertbuf_size_get(const GPUVertBuf *);
 void GPU_vertbuf_data_alloc(GPUVertBuf *, uint v_len);
 void GPU_vertbuf_data_resize(GPUVertBuf *, uint v_len);

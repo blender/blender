@@ -199,6 +199,11 @@ struct GPUBatch *DRW_mesh_batch_cache_get_edituv_facedots(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_uv_edges(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_mesh_analysis(struct Mesh *me);
 
+/* For direct data access. */
+struct GPUVertBuf *DRW_mesh_batch_cache_pos_vertbuf_get(struct Mesh *me);
+struct GPUVertBuf *DRW_curve_batch_cache_pos_vertbuf_get(struct Curve *cu);
+struct GPUVertBuf *DRW_mball_batch_cache_pos_vertbuf_get(struct Object *ob);
+
 int DRW_mesh_material_count_get(struct Mesh *me);
 
 /* See 'common_globals_lib.glsl' for duplicate defines. */

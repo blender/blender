@@ -220,6 +220,8 @@
  \
     .motion_blur_samples = 8, \
     .motion_blur_shutter = 0.5f, \
+    .motion_blur_depth_scale = 100.0f, \
+    .motion_blur_max = 32, \
  \
     .shadow_cube_size = 512, \
     .shadow_cascade_size = 1024, \
