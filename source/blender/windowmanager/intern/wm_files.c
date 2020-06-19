@@ -905,6 +905,13 @@ void wm_homefile_read(bContext *C,
     SET_FLAG_FROM_TEST(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_FLAG_SCRIPT_AUTOEXEC);
   }
 
+  if (use_data) {
+    if (reset_app_template) {
+      /* Always load UI when switching to another template. */
+      G.fileflags &= ~G_FILE_NO_UI;
+    }
+  }
+
   if (use_userdef || reset_app_template) {
 #ifdef WITH_PYTHON
     /* This only runs once Blender has already started. */
@@ -1107,13 +1114,6 @@ void wm_homefile_read(bContext *C,
 
   if (app_template_override) {
     BLI_strncpy(U.app_template, app_template_override, sizeof(U.app_template));
-  }
-
-  if (use_data) {
-    if (reset_app_template) {
-      /* Always load UI when switching to another template. */
-      G.fileflags &= ~G_FILE_NO_UI;
-    }
   }
 
   bmain = CTX_data_main(C);
