@@ -550,7 +550,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       orient_types[2] = orient_type_scene;
     }
     else {
-      if ((t->flag & T_MODAL) && (use_orient_axis || transform_mode_is_changeable(t->mode))) {
+      if ((t->flag & T_MODAL) && (use_orient_axis || transform_mode_is_changeable(t->mode)) &&
+          (t->mode != TFM_ALIGN)) {
         orient_types[0] = V3D_ORIENT_VIEW;
       }
       else {
