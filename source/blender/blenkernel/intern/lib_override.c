@@ -801,6 +801,10 @@ void BKE_lib_override_library_main_operations_create(Main *bmain, const bool for
 {
   ID *id;
 
+#ifdef DEBUG_OVERRIDE_TIMEIT
+  TIMEIT_START_AVERAGED(BKE_lib_override_library_main_operations_create);
+#endif
+
   /* When force-auto is set, we also remove all unused existing override properties & operations.
    */
   if (force_auto) {
@@ -819,6 +823,10 @@ void BKE_lib_override_library_main_operations_create(Main *bmain, const bool for
   if (force_auto) {
     BKE_lib_override_library_main_unused_cleanup(bmain);
   }
+
+#ifdef DEBUG_OVERRIDE_TIMEIT
+  TIMEIT_END_AVERAGED(BKE_lib_override_library_main_operations_create);
+#endif
 }
 
 /** Set or clear given tag in all operations as unused in that override property data. */
