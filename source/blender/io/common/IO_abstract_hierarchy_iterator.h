@@ -239,7 +239,6 @@ class AbstractHierarchyIterator {
                           Object *duplicator,
                           const std::set<Object *> &dupli_set);
 
-  ExportChildren &graph_children(const HierarchyContext *parent_context);
   void context_update_for_graph_index(HierarchyContext *context,
                                       const ExportGraph::key_type &graph_index) const;
 
@@ -259,8 +258,6 @@ class AbstractHierarchyIterator {
   /* Convenience wrappers around get_id_name(). */
   std::string get_object_name(const Object *object) const;
   std::string get_object_data_name(const Object *object) const;
-
-  AbstractHierarchyWriter *get_writer(const std::string &export_path) const;
 
   typedef AbstractHierarchyWriter *(AbstractHierarchyIterator::*create_writer_func)(
       const HierarchyContext *);
@@ -313,6 +310,9 @@ class AbstractHierarchyIterator {
 
   /* Called by release_writers() to free what the create_XXX_writer() functions allocated. */
   virtual void delete_object_writer(AbstractHierarchyWriter *writer) = 0;
+
+  AbstractHierarchyWriter *get_writer(const std::string &export_path) const;
+  ExportChildren &graph_children(const HierarchyContext *parent_context);
 };
 
 }  // namespace io
