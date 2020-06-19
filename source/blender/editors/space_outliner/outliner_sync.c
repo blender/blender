@@ -403,7 +403,8 @@ static void outliner_select_sync_from_object(ViewLayer *view_layer,
   const bool is_selected = (base != NULL) && ((base->flag & BASE_SELECTED) != 0);
 
   if (base && (ob == obact)) {
-    outliner_element_activate(soops, tselem);
+    tselem->flag |= TSE_ACTIVE;
+    outliner_set_walk_element(soops, tselem);
   }
   else {
     tselem->flag &= ~TSE_ACTIVE;
@@ -425,7 +426,8 @@ static void outliner_select_sync_from_edit_bone(SpaceOutliner *soops,
   EditBone *ebone = (EditBone *)te->directdata;
 
   if (ebone == ebone_active) {
-    outliner_element_activate(soops, tselem);
+    tselem->flag |= TSE_ACTIVE;
+    outliner_set_walk_element(soops, tselem);
   }
   else {
     tselem->flag &= ~TSE_ACTIVE;
@@ -448,7 +450,8 @@ static void outliner_select_sync_from_pose_bone(SpaceOutliner *soops,
   Bone *bone = pchan->bone;
 
   if (pchan == pchan_active) {
-    outliner_element_activate(soops, tselem);
+    tselem->flag |= TSE_ACTIVE;
+    outliner_set_walk_element(soops, tselem);
   }
   else {
     tselem->flag &= ~TSE_ACTIVE;
@@ -469,7 +472,8 @@ static void outliner_select_sync_from_sequence(SpaceOutliner *soops,
   Sequence *seq = (Sequence *)tselem->id;
 
   if (seq == sequence_active) {
-    outliner_element_activate(soops, tselem);
+    tselem->flag |= TSE_ACTIVE;
+    outliner_set_walk_element(soops, tselem);
   }
   else {
     tselem->flag &= ~TSE_ACTIVE;
@@ -525,7 +529,7 @@ static void outliner_sync_selection_to_outliner(ViewLayer *view_layer,
       }
     }
     else {
-      tselem->flag &= ~TSE_SELECTED;
+      tselem->flag &= ~(TSE_SELECTED | TSE_ACTIVE);
     }
 
     /* Sync subtree elements */

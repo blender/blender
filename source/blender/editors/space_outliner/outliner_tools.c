@@ -574,8 +574,7 @@ static void merged_element_search_exec_fn(struct bContext *C, void *UNUSED(arg1)
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   TreeElement *te = (TreeElement *)element;
 
-  outliner_item_select(soops, te, false, false);
-  outliner_item_do_activate_from_tree_element(C, te, te->store_elem, false, false);
+  outliner_item_select(C, soops, te, OL_ITEM_SELECT | OL_ITEM_ACTIVATE);
 
   ED_outliner_select_sync_from_outliner(C, soops);
 }
@@ -665,12 +664,13 @@ static void object_select_hierarchy_cb(bContext *C,
                                        Scene *UNUSED(scene),
                                        TreeElement *te,
                                        TreeStoreElem *UNUSED(tsep),
-                                       TreeStoreElem *tselem,
+                                       TreeStoreElem *UNUSED(tselem),
                                        void *UNUSED(user_data))
 {
   /* Don't extend because this toggles, which is nice for Ctrl-Click but not for a menu item.
    * it's especially confusing when multiple items are selected since some toggle on/off. */
-  outliner_item_do_activate_from_tree_element(C, te, tselem, false, true);
+  SpaceOutliner *soops = CTX_wm_space_outliner(C);
+  outliner_item_select(C, soops, te, OL_ITEM_SELECT | OL_ITEM_ACTIVATE | OL_ITEM_RECURSIVE);
 }
 
 static void object_deselect_cb(bContext *C,

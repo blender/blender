@@ -216,6 +216,16 @@ typedef struct TreeViewContext {
   Object *ob_pose;
 } TreeViewContext;
 
+typedef enum TreeItemSelectAction {
+  OL_ITEM_DESELECT = 0,           /* Deselect the item */
+  OL_ITEM_SELECT = (1 << 0),      /* Select the item */
+  OL_ITEM_SELECT_DATA = (1 << 1), /* Select object data */
+  OL_ITEM_ACTIVATE = (1 << 2),    /* Activate the item */
+  OL_ITEM_EXTEND = (1 << 3),      /* Extend the current selection */
+  OL_ITEM_RECURSIVE = (1 << 4),   /* Select recursively */
+  OL_ITEM_TOGGLE_MODE = (1 << 5)  /* Temporary */
+} TreeItemSelectAction;
+
 /* outliner_tree.c ----------------------------------------------- */
 
 void outliner_free_tree(ListBase *tree);
@@ -268,20 +278,17 @@ eOLDrawState tree_element_active(struct bContext *C,
                                  const eOLSetState set,
                                  const bool handle_all_types);
 
-void outliner_item_do_activate_from_tree_element(
-    struct bContext *C, TreeElement *te, TreeStoreElem *tselem, bool extend, bool recursive);
-
-void outliner_item_select(struct SpaceOutliner *soops,
-                          const struct TreeElement *te,
-                          const bool extend,
-                          const bool toggle);
+void outliner_item_select(struct bContext *C,
+                          struct SpaceOutliner *soops,
+                          struct TreeElement *te,
+                          const short select_flag);
 
 void outliner_object_mode_toggle(struct bContext *C,
                                  Scene *scene,
                                  ViewLayer *view_layer,
                                  Base *base);
 
-void outliner_element_activate(struct SpaceOutliner *soops, struct TreeStoreElem *tselem);
+void outliner_set_walk_element(struct SpaceOutliner *soops, struct TreeStoreElem *tselem);
 
 bool outliner_item_is_co_over_name_icons(const TreeElement *te, float view_co_x);
 bool outliner_item_is_co_within_close_toggle(const TreeElement *te, float view_co_x);
