@@ -3948,6 +3948,11 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
        0,
        "Percent",
        "Amount is percent of adjacent edge length"},
+      {MOD_BEVEL_AMT_ABSOLUTE,
+       "ABSOLUTE",
+       0,
+       "Absolute",
+       "Amount is absolute distance along adjacent edge"},
       {0, NULL, 0, NULL, NULL},
   };
 

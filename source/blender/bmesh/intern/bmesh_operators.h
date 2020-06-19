@@ -109,6 +109,7 @@ enum {
   BEVEL_AMT_WIDTH,
   BEVEL_AMT_DEPTH,
   BEVEL_AMT_PERCENT,
+  BEVEL_AMT_ABSOLUTE,
 };
 
 /* Bevel face_strength_mode values: should match face_str mode enum in DNA_modifer_types.h */

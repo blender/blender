@@ -1724,6 +1724,7 @@ static BMO_FlagSet bmo_enum_bevel_offset_type[] = {
   {BEVEL_AMT_WIDTH, "WIDTH"},
   {BEVEL_AMT_DEPTH, "DEPTH"},
   {BEVEL_AMT_PERCENT, "PERCENT"},
+  {BEVEL_AMT_ABSOLUTE, "ABSOLUTE"},
   {0, NULL},
 };
 

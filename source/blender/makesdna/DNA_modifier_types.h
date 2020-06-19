@@ -446,6 +446,7 @@ enum {
   MOD_BEVEL_AMT_WIDTH = 1,
   MOD_BEVEL_AMT_DEPTH = 2,
   MOD_BEVEL_AMT_PERCENT = 3,
+  MOD_BEVEL_AMT_ABSOLUTE = 4,
 };
 
 /* BevelModifierData->edge_flags */

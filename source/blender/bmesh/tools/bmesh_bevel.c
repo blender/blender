@@ -5949,12 +5949,23 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
           z = sinf(angle_v3v3v3(v1->co, v->co, v2->co));
           e->offset_r_spec = BM_edge_calc_length(e->next->e) * bp->offset * z / 100.0f;
           break;
+        case BEVEL_AMT_ABSOLUTE:
+          /* Like Percent, but the amount gives the absolute distance along adjacent edges. */
+          v1 = BM_edge_other_vert(e->prev->e, v);
+          v2 = BM_edge_other_vert(e->e, v);
+          z = sinf(angle_v3v3v3(v1->co, v->co, v2->co));
+          e->offset_l_spec = bp->offset * z;
+          v1 = BM_edge_other_vert(e->e, v);
+          v2 = BM_edge_other_vert(e->next->e, v);
+          z = sinf(angle_v3v3v3(v1->co, v->co, v2->co));
+          e->offset_r_spec = bp->offset * z;
+          break;
         default:
           BLI_assert(!"bad bevel offset kind");
           e->offset_l_spec = bp->offset;
           break;
       }
-      if (bp->offset_type != BEVEL_AMT_PERCENT) {
+      if (bp->offset_type != BEVEL_AMT_PERCENT && bp->offset_type != BEVEL_AMT_ABSOLUTE) {
         e->offset_r_spec = e->offset_l_spec;
       }
       if (bp->use_weights) {
@@ -5998,6 +6009,10 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
         }
         case BEVEL_AMT_PERCENT: {
           e->offset_l_spec = BM_edge_calc_length(e->e) * bv->offset / 100.0f;
+          break;
+        }
+        case BEVEL_AMT_ABSOLUTE: {
+          e->offset_l_spec = bv->offset;
           break;
         }
       }
@@ -7282,7 +7297,8 @@ void BM_mesh_bevel(BMesh *bm,
     }
 
     /* Perhaps do a pass to try to even out widths. */
-    if (!bp.vertex_only && bp.offset_adjust && bp.offset_type != BEVEL_AMT_PERCENT) {
+    if (!bp.vertex_only && bp.offset_adjust && bp.offset_type != BEVEL_AMT_PERCENT &&
+        bp.offset_type != BEVEL_AMT_ABSOLUTE) {
       adjust_offsets(&bp, bm);
     }
 

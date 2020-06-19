@@ -1012,6 +1012,11 @@ void MESH_OT_bevel(wmOperatorType *ot)
        "Depth",
        "Amount is perpendicular distance from original edge to bevel face"},
       {BEVEL_AMT_PERCENT, "PERCENT", 0, "Percent", "Amount is percent of adjacent edge length"},
+      {BEVEL_AMT_ABSOLUTE,
+       "ABSOLUTE",
+       0,
+       "Absolute",
+       "Amount is absolute distance along adjacent edge"},
       {0, NULL, 0, NULL, NULL},
   };
 

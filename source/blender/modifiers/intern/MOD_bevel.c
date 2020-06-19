@@ -302,6 +302,9 @@ static void panel_draw(const bContext *C, Panel *panel)
       case BEVEL_AMT_OFFSET:
         offset_name = "Offset";
         break;
+      case BEVEL_AMT_ABSOLUTE:
+        offset_name = "Absolute";
+        break;
     }
     uiItemR(col, &ptr, "width", 0, IFACE_(offset_name), ICON_NONE);
   }
