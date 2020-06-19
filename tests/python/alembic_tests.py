@@ -194,7 +194,7 @@ class HierarchicalAndFlatExportTest(AbstractAlembicTest):
 
         # Now check the resulting Alembic file.
         xform = self.abcprop(abc, '/Cube_012/.xform')
-        self.assertEqual(0, xform['.inherits'])
+        self.assertEqual(1, xform['.inherits'], "Blender transforms always inherit")
 
         self.assertAlmostEqualFloatArray(
             xform['.vals'],
@@ -233,7 +233,7 @@ class DupliGroupExportTest(AbstractAlembicTest):
 
         # Now check the resulting Alembic file.
         xform = self.abcprop(abc, '/Suzanne/.xform')
-        self.assertEqual(0, xform['.inherits'])
+        self.assertEqual(1, xform['.inherits'])
 
         self.assertAlmostEqualFloatArray(
             xform['.vals'],

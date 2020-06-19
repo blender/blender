@@ -97,7 +97,12 @@ void AbcTransformWriter::do_write()
 
   m_matrix = convert_matrix_datatype(yup_mat);
   m_sample.setMatrix(m_matrix);
-  m_sample.setInheritsXforms(m_inherits_xform);
+
+  /* Always export as "inherits transform", as this is the only way in which Blender works. The
+   * above code has already taken care of writing the correct matrix so that this option is not
+   * necessary. However, certain packages (for example the USD Alembic exporter) are incompatible
+   * with non-inheriting transforms and will completely ignore the transform if that is used. */
+  m_sample.setInheritsXforms(true);
   m_schema.set(m_sample);
 }
 
