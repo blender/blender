@@ -2288,6 +2288,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         data.icon = ICON_MATERIAL_DATA;
         break;
       case TSE_POSEGRP_BASE:
+      case TSE_POSEGRP:
         data.icon = ICON_GROUP_BONE;
         break;
       case TSE_SEQUENCE:
