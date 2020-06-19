@@ -387,9 +387,19 @@ bool UI_panel_list_matches_data(ARegion *region,
                                 ListBase *data,
                                 uiListPanelIDFromDataFunc panel_idname_func)
 {
-  int data_len = BLI_listbase_count(data);
+  /* Check for NULL data. */
+  int data_len = 0;
+  Link *data_link = NULL;
+  if (data == NULL) {
+    data_len = 0;
+    data_link = NULL;
+  }
+  else {
+    data_len = BLI_listbase_count(data);
+    data_link = data->first;
+  }
+
   int i = 0;
-  Link *data_link = data->first;
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
     if (panel->type != NULL && panel->type->flag & PNL_INSTANCED) {
       /* The panels were reordered by drag and drop. */

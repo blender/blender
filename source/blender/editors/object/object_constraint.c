@@ -1557,6 +1557,77 @@ void CONSTRAINT_OT_move_up(wmOperatorType *ot)
 /** \} */
 
 /* ------------------------------------------------------------------- */
+/** \name Move Constraint To Index Operator
+ * \{ */
+
+static int constraint_move_to_index_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_active_context(C);
+  bConstraint *con = edit_constraint_property_get(op, ob, 0);
+
+  int new_index = RNA_int_get(op->ptr, "index");
+  if (new_index < 0) {
+    new_index = 0;
+  }
+
+  if (con) {
+    ListBase *conlist = ED_object_constraint_list_from_constraint(ob, con, NULL);
+    int current_index = BLI_findindex(conlist, con);
+    BLI_assert(current_index >= 0);
+
+    BLI_listbase_link_move(conlist, con, new_index - current_index);
+
+    WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
+
+    return OPERATOR_FINISHED;
+  }
+
+  return OPERATOR_CANCELLED;
+}
+
+static int constraint_move_to_index_invoke(bContext *C,
+                                           wmOperator *op,
+                                           const wmEvent *UNUSED(event))
+{
+  if (edit_constraint_invoke_properties(C, op)) {
+    return constraint_move_to_index_exec(C, op);
+  }
+  else {
+    return OPERATOR_CANCELLED;
+  }
+}
+
+void CONSTRAINT_OT_move_to_index(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Move Constraint To Index";
+  ot->idname = "CONSTRAINT_OT_move_to_index";
+  ot->description =
+      "Change the constraint's position in the list so it evaluates after the set number of "
+      "others";
+
+  /* callbacks */
+  ot->exec = constraint_move_to_index_exec;
+  ot->invoke = constraint_move_to_index_invoke;
+  ot->poll = edit_constraint_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  edit_constraint_properties(ot);
+  RNA_def_int(ot->srna,
+              "index",
+              0,
+              0,
+              INT_MAX,
+              "Index",
+              "The index to move the constraint to",
+              0,
+              INT_MAX);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------- */
 /** \name Clear Pose Constraints Operator
  * \{ */
 

@@ -20,894 +20,753 @@
 from bpy.types import Panel
 
 
-class ConstraintButtonsPanel:
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+class ObjectConstraintPanel(Panel):
     bl_context = "constraint"
 
-    def draw_constraint(self, context, con):
+    @classmethod
+    def poll(cls, context):
+        return (context.object)
+
+
+class BoneConstraintPanel(Panel):
+    bl_context = "bone_constraint"
+
+    @classmethod
+    def poll(cls, context):
+        return (context.pose_bone)
+
+
+class OBJECT_PT_constraints(ObjectConstraintPanel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_label = "Object Constraints"
+    bl_options = {'HIDE_HEADER'}
+
+    def draw(self, context):
         layout = self.layout
 
-        box = layout.template_constraint(con)
+        layout.operator_menu_enum("object.constraint_add", "type", text="Add Object Constraint")
 
-        if box:
-            # match enum type to our functions, avoids a lookup table.
-            getattr(self, con.type)(context, box, con)
+        layout.template_constraints(use_bone_constraints=False)
 
-            if con.type in {'RIGID_BODY_JOINT', 'NULL'}:
-                return
 
-            if con.type in {'IK', 'SPLINE_IK'}:
-                # constraint.disable_keep_transform doesn't work well
-                # for these constraints.
-                box.prop(con, "influence")
-            else:
-                row = box.row(align=True)
-                row.prop(con, "influence")
-                row.operator("constraint.disable_keep_transform", text="", icon='CANCEL')
+class BONE_PT_constraints(BoneConstraintPanel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_label = "Bone Constraints"
+    bl_options = {'HIDE_HEADER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_menu_enum("pose.constraint_add", "type", text="Add Bone Constraint")
+
+        layout.template_constraints(use_bone_constraints=True)
+
+
+# Parent class for constraint panels, with templates and drawing methods
+# shared between the bone and object constraint panels
+class ConstraintButtonsPanel(Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_label = ""
+    bl_options = {'INSTANCED', 'HEADER_LAYOUT_EXPAND', 'DRAW_BOX'}
+
+    @staticmethod
+    def draw_influence(layout, con):
+        layout.separator()
+        if con.type in {'IK', 'SPLINE_IK'}:
+            # constraint.disable_keep_transform doesn't work well
+            # for these constraints.
+            layout.prop(con, "influence")
+        else:
+            row = layout.row(align=True)
+            row.prop(con, "influence")
+            row.operator("constraint.disable_keep_transform", text="", icon='CANCEL')
 
     @staticmethod
     def space_template(layout, con, target=True, owner=True):
         if target or owner:
-
-            split = layout.split(factor=0.2)
-
-            split.label(text="Space:")
-            row = split.row()
-
+            layout.separator()
             if target:
-                row.prop(con, "target_space", text="")
-
-            if target and owner:
-                row.label(icon='ARROW_LEFTRIGHT')
-
+                layout.prop(con, "target_space", text="Target")
             if owner:
-                row.prop(con, "owner_space", text="")
+                layout.prop(con, "owner_space", text="Owner")
 
     @staticmethod
     def target_template(layout, con, subtargets=True):
-        layout.prop(con, "target")  # XXX limiting settings for only 'curves' or some type of object
+        col = layout.column()
+        col.prop(con, "target")  # XXX limiting settings for only 'curves' or some type of object
 
         if con.target and subtargets:
             if con.target.type == 'ARMATURE':
-                layout.prop_search(con, "subtarget", con.target.data, "bones", text="Bone")
+                col.prop_search(con, "subtarget", con.target.data, "bones", text="Bone")
 
                 if hasattr(con, "head_tail"):
-                    row = layout.row(align=True)
-                    row.label(text="Head/Tail:")
+                    row = col.row(align=True, heading="Head/Tail")
+                    row.use_property_decorate = False
                     row.prop(con, "head_tail", text="")
                     # XXX icon, and only when bone has segments?
                     row.prop(con, "use_bbone_shape", text="", icon='IPO_BEZIER')
             elif con.target.type in {'MESH', 'LATTICE'}:
-                layout.prop_search(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
+                col.prop_search(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 
-    @staticmethod
-    def ik_template(layout, con):
-        # only used for iTaSC
-        layout.prop(con, "pole_target")
+    def get_constraint(self, context):
+        con = None
+        if context.pose_bone:
+            con = context.pose_bone.constraints[self.list_panel_index]
+        else:
+            con = context.object.constraints[self.list_panel_index]
+        self.layout.context_pointer_set("constraint", con)
+        return con
 
-        if con.pole_target and con.pole_target.type == 'ARMATURE':
-            layout.prop_search(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
+    def draw_header(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
 
-        if con.pole_target:
-            row = layout.row()
-            row.label()
-            row.prop(con, "pole_angle")
+        layout.template_constraint_header(con)
 
-        split = layout.split(factor=0.33)
-        col = split.column()
-        col.prop(con, "use_tail")
-        col.prop(con, "use_stretch")
+    # Drawing methods for specific constraints. (Shared by object and bone constraint panels)
 
-        col = split.column()
-        col.prop(con, "chain_count")
+    def draw_childof(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
 
-    def CHILD_OF(self, _context, layout, con):
         self.target_template(layout, con)
 
-        split = layout.split()
+        row = layout.row(heading="Location")
+        row.use_property_decorate = False
+        row.prop(con, "use_location_x", text="X", toggle=True)
+        row.prop(con, "use_location_y", text="Y", toggle=True)
+        row.prop(con, "use_location_z", text="Z", toggle=True)
+        row.label(icon='BLANK1')
 
-        col = split.column()
-        col.label(text="Location:")
-        col.prop(con, "use_location_x", text="X")
-        col.prop(con, "use_location_y", text="Y")
-        col.prop(con, "use_location_z", text="Z")
+        row = layout.row(heading="Rotation")
+        row.use_property_decorate = False
+        row.prop(con, "use_rotation_x", text="X", toggle=True)
+        row.prop(con, "use_rotation_y", text="Y", toggle=True)
+        row.prop(con, "use_rotation_z", text="Z", toggle=True)
+        row.label(icon='BLANK1')
 
-        col = split.column()
-        col.label(text="Rotation:")
-        col.prop(con, "use_rotation_x", text="X")
-        col.prop(con, "use_rotation_y", text="Y")
-        col.prop(con, "use_rotation_z", text="Z")
-
-        col = split.column()
-        col.label(text="Scale:")
-        col.prop(con, "use_scale_x", text="X")
-        col.prop(con, "use_scale_y", text="Y")
-        col.prop(con, "use_scale_z", text="Z")
+        row = layout.row(heading="Scale")
+        row.use_property_decorate = False
+        row.prop(con, "use_scale_x", text="X", toggle=True)
+        row.prop(con, "use_scale_y", text="Y", toggle=True)
+        row.prop(con, "use_scale_z", text="Z", toggle=True)
+        row.label(icon='BLANK1')
 
         row = layout.row()
         row.operator("constraint.childof_set_inverse")
         row.operator("constraint.childof_clear_inverse")
 
-    def TRACK_TO(self, _context, layout, con):
+        self.draw_influence(layout, con)
+
+    def draw_trackto(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
         self.target_template(layout, con)
 
-        row = layout.row()
-        row.label(text="To:")
-        row.prop(con, "track_axis", expand=True)
-
-        row = layout.row()
-        row.prop(con, "up_axis", text="Up")
-        row.prop(con, "use_target_z")
+        layout.prop(con, "track_axis", expand=True)
+        layout.prop(con, "up_axis", text="Up", expand=True)
+        layout.prop(con, "use_target_z")
 
         self.space_template(layout, con)
 
-    def IK(self, context, layout, con):
-        if context.object.pose.ik_solver == 'ITASC':
-            layout.prop(con, "ik_type")
-            getattr(self, 'IK_' + con.ik_type)(context, layout, con)
+        self.draw_influence(layout, con)
+
+    def draw_follow_path(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
+        self.target_template(layout, con)
+
+        if con.use_fixed_location:
+            layout.prop(con, "offset_factor", text="Offset Factor")
         else:
-            # Standard IK constraint
-            self.target_template(layout, con)
-            layout.prop(con, "pole_target")
+            layout.prop(con, "offset")
 
-            if con.pole_target and con.pole_target.type == 'ARMATURE':
-                layout.prop_search(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
+        layout.prop(con, "forward_axis", expand=True)
+        layout.prop(con, "up_axis", expand=True)
 
-            if con.pole_target:
-                row = layout.row()
-                row.prop(con, "pole_angle")
-                row.label()
+        col = layout.column()
+        col.prop(con, "use_fixed_location")
+        col.prop(con, "use_curve_radius")
+        col.prop(con, "use_curve_follow")
 
-            split = layout.split()
-            col = split.column()
-            col.prop(con, "iterations")
-            col.prop(con, "chain_count")
-
-            col = split.column()
-            col.prop(con, "use_tail")
-            col.prop(con, "use_stretch")
-
-            layout.label(text="Weight:")
-
-            split = layout.split()
-            col = split.column()
-            row = col.row(align=True)
-            row.prop(con, "use_location", text="")
-            sub = row.row(align=True)
-            sub.active = con.use_location
-            sub.prop(con, "weight", text="Position", slider=True)
-
-            col = split.column()
-            row = col.row(align=True)
-            row.prop(con, "use_rotation", text="")
-            sub = row.row(align=True)
-            sub.active = con.use_rotation
-            sub.prop(con, "orient_weight", text="Rotation", slider=True)
-
-    def IK_COPY_POSE(self, _context, layout, con):
-        self.target_template(layout, con)
-        self.ik_template(layout, con)
-
-        row = layout.row()
-        row.label(text="Axis Ref:")
-        row.prop(con, "reference_axis", expand=True)
-        split = layout.split(factor=0.33)
-        split.row().prop(con, "use_location")
-        row = split.row()
-        row.prop(con, "weight", text="Weight", slider=True)
-        row.active = con.use_location
-        split = layout.split(factor=0.33)
-        row = split.row()
-        row.label(text="Lock:")
-        row = split.row()
-        row.prop(con, "lock_location_x", text="X")
-        row.prop(con, "lock_location_y", text="Y")
-        row.prop(con, "lock_location_z", text="Z")
-        split.active = con.use_location
-
-        split = layout.split(factor=0.33)
-        split.row().prop(con, "use_rotation")
-        row = split.row()
-        row.prop(con, "orient_weight", text="Weight", slider=True)
-        row.active = con.use_rotation
-        split = layout.split(factor=0.33)
-        row = split.row()
-        row.label(text="Lock:")
-        row = split.row()
-        row.prop(con, "lock_rotation_x", text="X")
-        row.prop(con, "lock_rotation_y", text="Y")
-        row.prop(con, "lock_rotation_z", text="Z")
-        split.active = con.use_rotation
-
-    def IK_DISTANCE(self, _context, layout, con):
-        self.target_template(layout, con)
-        self.ik_template(layout, con)
-
-        layout.prop(con, "limit_mode")
-
-        row = layout.row()
-        row.prop(con, "weight", text="Weight", slider=True)
-        row.prop(con, "distance", text="Distance", slider=True)
-
-    def FOLLOW_PATH(self, _context, layout, con):
-        self.target_template(layout, con)
         layout.operator("constraint.followpath_path_animate", text="Animate Path", icon='ANIM_DATA')
 
-        split = layout.split()
+        self.draw_influence(layout, con)
 
-        col = split.column()
-        col.prop(con, "use_curve_follow")
-        col.prop(con, "use_curve_radius")
+    def draw_rot_limit(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
 
-        col = split.column()
-        col.prop(con, "use_fixed_location")
-        if con.use_fixed_location:
-            col.prop(con, "offset_factor", text="Offset")
-        else:
-            col.prop(con, "offset")
-
-        row = layout.row()
-        row.label(text="Forward:")
-        row.prop(con, "forward_axis", expand=True)
-
-        row = layout.row()
-        row.prop(con, "up_axis", text="Up")
-        row.label()
-
-    def LIMIT_ROTATION(self, _context, layout, con):
-        split = layout.split()
-
-        col = split.column(align=True)
-        col.prop(con, "use_limit_x")
-        sub = col.column(align=True)
+        # Decorators and property split are really buggy with these properties
+        row = layout.row(heading="Limit X", align=True)
+        row.use_property_decorate = False
+        row.prop(con, "use_limit_x", text="")
+        sub = row.column(align=True)
         sub.active = con.use_limit_x
         sub.prop(con, "min_x", text="Min")
         sub.prop(con, "max_x", text="Max")
+        row.label(icon="BLANK1")
 
-        col = split.column(align=True)
-        col.prop(con, "use_limit_y")
-        sub = col.column(align=True)
+        row = layout.row(heading="Y", align=True)
+        row.use_property_decorate = False
+        row.prop(con, "use_limit_y", text="")
+        sub = row.column(align=True)
         sub.active = con.use_limit_y
         sub.prop(con, "min_y", text="Min")
         sub.prop(con, "max_y", text="Max")
+        row.label(icon="BLANK1")
 
-        col = split.column(align=True)
-        col.prop(con, "use_limit_z")
-        sub = col.column(align=True)
+        row = layout.row(heading="Z", align=True)
+        row.use_property_decorate = False
+        row.prop(con, "use_limit_z", text="")
+        sub = row.column(align=True)
         sub.active = con.use_limit_z
         sub.prop(con, "min_z", text="Min")
         sub.prop(con, "max_z", text="Max")
+        row.label(icon="BLANK1")
 
         layout.prop(con, "use_transform_limit")
+        layout.prop(con, "owner_space")
 
-        row = layout.row()
-        row.label(text="Convert:")
-        row.prop(con, "owner_space", text="")
+        self.draw_influence(layout, con)
 
-    def LIMIT_LOCATION(self, _context, layout, con):
-        split = layout.split()
+    def draw_loc_limit(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
 
-        col = split.column()
-        col.prop(con, "use_min_x")
-        sub = col.column()
-        sub.active = con.use_min_x
-        sub.prop(con, "min_x", text="")
-        col.prop(con, "use_max_x")
-        sub = col.column()
-        sub.active = con.use_max_x
-        sub.prop(con, "max_x", text="")
+        col = layout.column()
 
-        col = split.column()
-        col.prop(con, "use_min_y")
-        sub = col.column()
-        sub.active = con.use_min_y
-        sub.prop(con, "min_y", text="")
-        col.prop(con, "use_max_y")
-        sub = col.column()
-        sub.active = con.use_max_y
-        sub.prop(con, "max_y", text="")
+        row = col.row(heading="Minimum X", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_min_x", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_min_x
+        subsub.prop(con, "min_x", text="")
+        row.prop_decorator(con, "min_x")
 
-        col = split.column()
-        col.prop(con, "use_min_z")
-        sub = col.column()
-        sub.active = con.use_min_z
-        sub.prop(con, "min_z", text="")
-        col.prop(con, "use_max_z")
-        sub = col.column()
-        sub.active = con.use_max_z
-        sub.prop(con, "max_z", text="")
+        row = col.row(heading="Y", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_min_y", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_min_y
+        subsub.prop(con, "min_y", text="")
+        row.prop_decorator(con, "min_y")
 
-        row = layout.row()
-        row.prop(con, "use_transform_limit")
-        row.label()
+        row = col.row(heading="Z", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_min_z", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_min_z
+        subsub.prop(con, "min_z", text="")
+        row.prop_decorator(con, "min_z")
 
-        row = layout.row()
-        row.label(text="Convert:")
-        row.prop(con, "owner_space", text="")
+        col.separator()
 
-    def LIMIT_SCALE(self, _context, layout, con):
-        split = layout.split()
+        row = col.row(heading="Maximum X", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_max_x", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_max_x
+        subsub.prop(con, "max_x", text="")
+        row.prop_decorator(con, "max_x")
 
-        col = split.column()
-        col.prop(con, "use_min_x")
-        sub = col.column()
-        sub.active = con.use_min_x
-        sub.prop(con, "min_x", text="")
-        col.prop(con, "use_max_x")
-        sub = col.column()
-        sub.active = con.use_max_x
-        sub.prop(con, "max_x", text="")
+        row = col.row(heading="Y", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_max_y", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_max_y
+        subsub.prop(con, "max_y", text="")
+        row.prop_decorator(con, "max_y")
 
-        col = split.column()
-        col.prop(con, "use_min_y")
-        sub = col.column()
-        sub.active = con.use_min_y
-        sub.prop(con, "min_y", text="")
-        col.prop(con, "use_max_y")
-        sub = col.column()
-        sub.active = con.use_max_y
-        sub.prop(con, "max_y", text="")
+        row = col.row(heading="Z", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_max_z", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_max_z
+        subsub.prop(con, "max_z", text="")
+        row.prop_decorator(con, "max_z")
 
-        col = split.column()
-        col.prop(con, "use_min_z")
-        sub = col.column()
-        sub.active = con.use_min_z
-        sub.prop(con, "min_z", text="")
-        col.prop(con, "use_max_z")
-        sub = col.column()
-        sub.active = con.use_max_z
-        sub.prop(con, "max_z", text="")
+        layout.prop(con, "use_transform_limit")
+        layout.prop(con, "owner_space")
 
-        row = layout.row()
-        row.prop(con, "use_transform_limit")
-        row.label()
+        self.draw_influence(layout, con)
 
-        row = layout.row()
-        row.label(text="Convert:")
-        row.prop(con, "owner_space", text="")
+    def draw_size_limit(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
 
-    def COPY_ROTATION(self, _context, layout, con):
+        col = layout.column()
+
+        row = col.row(heading="Minimum X", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_min_x", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_min_x
+        subsub.prop(con, "min_x", text="")
+        row.prop_decorator(con, "min_x")
+
+        row = col.row(heading="Y", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_min_y", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_min_y
+        subsub.prop(con, "min_y", text="")
+        row.prop_decorator(con, "min_y")
+
+        row = col.row(heading="Z", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_min_z", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_min_z
+        subsub.prop(con, "min_z", text="")
+        row.prop_decorator(con, "min_z")
+
+        col.separator()
+
+        row = col.row(heading="Maximum X", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_max_x", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_max_x
+        subsub.prop(con, "max_x", text="")
+        row.prop_decorator(con, "max_x")
+
+        row = col.row(heading="Y", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_max_y", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_max_y
+        subsub.prop(con, "max_y", text="")
+        row.prop_decorator(con, "max_y")
+
+        row = col.row(heading="Z", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_max_z", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_max_z
+        subsub.prop(con, "max_z", text="")
+        row.prop_decorator(con, "max_z")
+
+
+        layout.prop(con, "use_transform_limit")
+        layout.prop(con, "owner_space")
+
+        self.draw_influence(layout, con)
+
+    def draw_rotate_like(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
         self.target_template(layout, con)
 
         layout.prop(con, "euler_order", text="Order")
 
-        split = layout.split()
+        row = layout.row(heading="Axis")
+        row.use_property_decorate = False
+        row.prop(con, "use_x", text="X", toggle=True)
+        row.prop(con, "use_y", text="Y", toggle=True)
+        row.prop(con, "use_z", text="Z", toggle=True)
+        row.label(icon='BLANK1')
 
-        col = split.column()
-        col.prop(con, "use_x", text="X")
-        sub = col.column()
-        sub.active = con.use_x
-        sub.prop(con, "invert_x", text="Invert")
-
-        col = split.column()
-        col.prop(con, "use_y", text="Y")
-        sub = col.column()
-        sub.active = con.use_y
-        sub.prop(con, "invert_y", text="Invert")
-
-        col = split.column()
-        col.prop(con, "use_z", text="Z")
-        sub = col.column()
-        sub.active = con.use_z
-        sub.prop(con, "invert_z", text="Invert")
+        row = layout.row(heading="Invert")
+        row.use_property_decorate = False
+        row.prop(con, "invert_x", text="X", toggle=True)
+        row.prop(con, "invert_y", text="Y", toggle=True)
+        row.prop(con, "invert_z", text="Z", toggle=True)
+        row.label(icon='BLANK1')
 
         layout.prop(con, "mix_mode", text="Mix")
 
         self.space_template(layout, con)
 
-    def COPY_LOCATION(self, _context, layout, con):
+        self.draw_influence(layout, con)
+
+    def draw_locate_like(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
         self.target_template(layout, con)
 
-        split = layout.split()
+        row = layout.row(heading="Axis")
+        row.use_property_decorate = False
+        row.prop(con, "use_x", text="X", toggle=True)
+        row.prop(con, "use_y", text="Y", toggle=True)
+        row.prop(con, "use_z", text="Z", toggle=True)
+        row.label(icon='BLANK1')
 
-        col = split.column()
-        col.prop(con, "use_x", text="X")
-        sub = col.column()
-        sub.active = con.use_x
-        sub.prop(con, "invert_x", text="Invert")
-
-        col = split.column()
-        col.prop(con, "use_y", text="Y")
-        sub = col.column()
-        sub.active = con.use_y
-        sub.prop(con, "invert_y", text="Invert")
-
-        col = split.column()
-        col.prop(con, "use_z", text="Z")
-        sub = col.column()
-        sub.active = con.use_z
-        sub.prop(con, "invert_z", text="Invert")
+        row = layout.row(heading="Invert")
+        row.use_property_decorate = False
+        row.prop(con, "invert_x", text="X", toggle=True)
+        row.prop(con, "invert_y", text="Y", toggle=True)
+        row.prop(con, "invert_z", text="Z", toggle=True)
+        row.label(icon='BLANK1')
 
         layout.prop(con, "use_offset")
 
         self.space_template(layout, con)
 
-    def COPY_SCALE(self, _context, layout, con):
+        self.draw_influence(layout, con)
+
+    def draw_size_like(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
         self.target_template(layout, con)
 
-        row = layout.row(align=True)
-        row.prop(con, "use_x", text="X")
-        row.prop(con, "use_y", text="Y")
-        row.prop(con, "use_z", text="Z")
+        row = layout.row(heading="Axis")
+        row.prop(con, "use_x", text="X", toggle=True)
+        row.prop(con, "use_y", text="Y", toggle=True)
+        row.prop(con, "use_z", text="Z", toggle=True)
 
-        layout.prop(con, "power")
-        layout.prop(con, "use_make_uniform")
+        col = layout.column()
+        col.prop(con, "power")
+        col.prop(con, "use_make_uniform")
 
-        row = layout.row()
-        row.prop(con, "use_offset")
-        row = row.row()
+        col.prop(con, "use_offset")
+        row = col.row()
         row.active = con.use_offset
         row.prop(con, "use_add")
 
         self.space_template(layout, con)
 
-    def MAINTAIN_VOLUME(self, _context, layout, con):
+        self.draw_influence(layout, con)
+
+    def draw_same_volume(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
 
         layout.prop(con, "mode")
 
-        row = layout.row()
-        row.label(text="Free:")
+        row = layout.row(heading="Free Axis")
         row.prop(con, "free_axis", expand=True)
 
         layout.prop(con, "volume")
 
-        row = layout.row()
-        row.label(text="Convert:")
-        row.prop(con, "owner_space", text="")
+        layout.prop(con, "owner_space")
 
-    def COPY_TRANSFORMS(self, _context, layout, con):
+        self.draw_influence(layout, con)
+
+    def draw_trans_like(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
         self.target_template(layout, con)
 
         layout.prop(con, "mix_mode", text="Mix")
 
         self.space_template(layout, con)
 
-    # def SCRIPT(self, context, layout, con):
+        self.draw_influence(layout, con)
 
-    def ACTION(self, _context, layout, con):
+    def draw_action(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
         self.target_template(layout, con)
-
-        split = layout.split()
-
-        col = split.column()
-        col.label(text="From Target:")
-        col.prop(con, "transform_channel", text="")
-        col.prop(con, "target_space", text="")
-
-        col = split.column()
-        col.label(text="To Action:")
-        col.prop(con, "action", text="")
-        col.prop(con, "use_bone_object_action")
-
-        split = layout.split()
-
-        col = split.column(align=True)
-        col.label(text="Target Range:")
-        col.prop(con, "min", text="Min")
-        col.prop(con, "max", text="Max")
-
-        col = split.column(align=True)
-        col.label(text="Action Range:")
-        col.prop(con, "frame_start", text="Start")
-        col.prop(con, "frame_end", text="End")
 
         layout.prop(con, "mix_mode", text="Mix")
 
-    def LOCKED_TRACK(self, _context, layout, con):
+        self.draw_influence(layout, con)
+
+    def draw_lock_track(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
+        self.target_template(layout, con)
+
+        layout.prop(con, "track_axis", expand=True)
+        layout.prop(con, "lock_axis", expand=True)
+
+        self.draw_influence(layout, con)
+
+    def draw_dist_limit(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
         self.target_template(layout, con)
 
         row = layout.row()
-        row.label(text="To:")
-        row.prop(con, "track_axis", expand=True)
+        row.prop(con, "distance")
+        row.operator("constraint.limitdistance_reset", text="", icon="X")
 
-        row = layout.row()
-        row.label(text="Lock:")
-        row.prop(con, "lock_axis", expand=True)
+        layout.prop(con, "limit_mode", text="Clamp Region")
 
-    def LIMIT_DISTANCE(self, _context, layout, con):
-        self.target_template(layout, con)
-
-        col = layout.column(align=True)
-        col.prop(con, "distance")
-        col.operator("constraint.limitdistance_reset")
-
-        row = layout.row()
-        row.label(text="Clamp Region:")
-        row.prop(con, "limit_mode", text="")
-
-        row = layout.row()
-        row.prop(con, "use_transform_limit")
-        row.label()
+        layout.prop(con, "use_transform_limit")
 
         self.space_template(layout, con)
 
-    def STRETCH_TO(self, _context, layout, con):
+        self.draw_influence(layout, con)
+
+    def draw_stretch_to(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
         self.target_template(layout, con)
 
         row = layout.row()
-        row.prop(con, "rest_length", text="Rest Length")
-        row.operator("constraint.stretchto_reset", text="Reset")
+        row.prop(con, "rest_length")
+        row.operator("constraint.stretchto_reset", text="", icon="X")
 
-        layout.prop(con, "bulge", text="Volume Variation")
-        split = layout.split()
-        col = split.column(align=True)
-        col.prop(con, "use_bulge_min", text="Volume Min")
-        sub = col.column()
-        sub.active = con.use_bulge_min
-        sub.prop(con, "bulge_min", text="")
-        col = split.column(align=True)
-        col.prop(con, "use_bulge_max", text="Volume Max")
-        sub = col.column()
-        sub.active = con.use_bulge_max
-        sub.prop(con, "bulge_max", text="")
+        layout.separator()
+
         col = layout.column()
-        col.active = con.use_bulge_min or con.use_bulge_max
-        col.prop(con, "bulge_smooth", text="Smooth")
+        col.prop(con, "bulge", text="Volume Variation")
 
-        split = layout.split(factor=0.3)
-        split.label(text="Volume:")
-        row = split.row()
-        row.prop(con, "volume", expand=True)
+        row = col.row(heading="Volume Min", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_bulge_min", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_bulge_min
+        subsub.prop(con, "bulge_min", text="")
+        row.prop_decorator(con, "bulge_min")
 
-        split = layout.split(factor=0.3)
-        split.label(text="Rotation:")
-        row = split.row()
-        row.prop(con, "keep_axis", expand=True)
+        row = col.row(heading="Max", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_bulge_max", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_bulge_max
+        subsub.prop(con, "bulge_max", text="")
+        row.prop_decorator(con, "bulge_max")
 
-    def FLOOR(self, _context, layout, con):
+        row = col.row()
+        row.active = con.use_bulge_min or con.use_bulge_max
+        row.prop(con, "bulge_smooth", text="Smooth")
+
+        layout.prop(con, "volume", expand=True)
+        layout.prop(con, "keep_axis", text="Rotation", expand=True)
+
+        self.draw_influence(layout, con)
+
+    def draw_min_max(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
         self.target_template(layout, con)
 
-        layout.prop(con, "use_rotation")
         layout.prop(con, "offset")
-
-        row = layout.row()
-        row.label(text="Min/Max:")
-        row.prop(con, "floor_location", expand=True)
+        layout.prop(con, "floor_location", expand=True, text="Min/Max")
+        layout.prop(con, "use_rotation")
 
         self.space_template(layout, con)
 
-    def RIGID_BODY_JOINT(self, _context, layout, con):
-        self.target_template(layout, con, subtargets=False)
+        self.draw_influence(layout, con)
 
-        layout.prop(con, "pivot_type")
-        layout.prop(con, "child")
+    def draw_clamp_to(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
 
-        row = layout.row()
-        row.prop(con, "use_linked_collision", text="Linked Collision")
-        row.prop(con, "show_pivot", text="Display Pivot")
-
-        split = layout.split()
-
-        col = split.column(align=True)
-        col.label(text="Pivot:")
-        col.prop(con, "pivot_x", text="X")
-        col.prop(con, "pivot_y", text="Y")
-        col.prop(con, "pivot_z", text="Z")
-
-        col = split.column(align=True)
-        col.label(text="Axis:")
-        col.prop(con, "axis_x", text="X")
-        col.prop(con, "axis_y", text="Y")
-        col.prop(con, "axis_z", text="Z")
-
-        if con.pivot_type == 'CONE_TWIST':
-            layout.label(text="Limits:")
-            split = layout.split()
-
-            col = split.column()
-            col.prop(con, "use_angular_limit_x", text="Angle X")
-            sub = col.column()
-            sub.active = con.use_angular_limit_x
-            sub.prop(con, "limit_angle_max_x", text="")
-
-            col = split.column()
-            col.prop(con, "use_angular_limit_y", text="Angle Y")
-            sub = col.column()
-            sub.active = con.use_angular_limit_y
-            sub.prop(con, "limit_angle_max_y", text="")
-
-            col = split.column()
-            col.prop(con, "use_angular_limit_z", text="Angle Z")
-            sub = col.column()
-            sub.active = con.use_angular_limit_z
-            sub.prop(con, "limit_angle_max_z", text="")
-
-        elif con.pivot_type == 'GENERIC_6_DOF':
-            layout.label(text="Limits:")
-            split = layout.split()
-
-            col = split.column(align=True)
-            col.prop(con, "use_limit_x", text="X")
-            sub = col.column(align=True)
-            sub.active = con.use_limit_x
-            sub.prop(con, "limit_min_x", text="Min")
-            sub.prop(con, "limit_max_x", text="Max")
-
-            col = split.column(align=True)
-            col.prop(con, "use_limit_y", text="Y")
-            sub = col.column(align=True)
-            sub.active = con.use_limit_y
-            sub.prop(con, "limit_min_y", text="Min")
-            sub.prop(con, "limit_max_y", text="Max")
-
-            col = split.column(align=True)
-            col.prop(con, "use_limit_z", text="Z")
-            sub = col.column(align=True)
-            sub.active = con.use_limit_z
-            sub.prop(con, "limit_min_z", text="Min")
-            sub.prop(con, "limit_max_z", text="Max")
-
-            split = layout.split()
-
-            col = split.column(align=True)
-            col.prop(con, "use_angular_limit_x", text="Angle X")
-            sub = col.column(align=True)
-            sub.active = con.use_angular_limit_x
-            sub.prop(con, "limit_angle_min_x", text="Min")
-            sub.prop(con, "limit_angle_max_x", text="Max")
-
-            col = split.column(align=True)
-            col.prop(con, "use_angular_limit_y", text="Angle Y")
-            sub = col.column(align=True)
-            sub.active = con.use_angular_limit_y
-            sub.prop(con, "limit_angle_min_y", text="Min")
-            sub.prop(con, "limit_angle_max_y", text="Max")
-
-            col = split.column(align=True)
-            col.prop(con, "use_angular_limit_z", text="Angle Z")
-            sub = col.column(align=True)
-            sub.active = con.use_angular_limit_z
-            sub.prop(con, "limit_angle_min_z", text="Min")
-            sub.prop(con, "limit_angle_max_z", text="Max")
-
-        elif con.pivot_type == 'HINGE':
-            layout.label(text="Limits:")
-            split = layout.split()
-
-            row = split.row(align=True)
-            col = row.column()
-            col.prop(con, "use_angular_limit_x", text="Angle X")
-
-            col = row.column()
-            col.active = con.use_angular_limit_x
-            col.prop(con, "limit_angle_min_x", text="Min")
-            col = row.column()
-            col.active = con.use_angular_limit_x
-            col.prop(con, "limit_angle_max_x", text="Max")
-
-    def CLAMP_TO(self, _context, layout, con):
         self.target_template(layout, con)
 
-        row = layout.row()
-        row.label(text="Main Axis:")
-        row.prop(con, "main_axis", expand=True)
+        layout.prop(con, "main_axis", expand=True)
 
         layout.prop(con, "use_cyclic")
 
-    def TRANSFORM(self, _context, layout, con):
+        self.draw_influence(layout, con)
+
+    def draw_transform(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
         self.target_template(layout, con)
 
         layout.prop(con, "use_motion_extrapolate", text="Extrapolate")
 
-        col = layout.column()
-        col.row().label(text="Source:")
-        col.row().prop(con, "map_from", expand=True)
-
-        if con.map_from == 'ROTATION':
-            layout.prop(con, "from_rotation_mode", text="Mode")
-
-        split = layout.split()
-        ext = "" if con.map_from == 'LOCATION' else "_rot" if con.map_from == 'ROTATION' else "_scale"
-
-        sub = split.column(align=True)
-        sub.label(text="X:")
-        sub.prop(con, "from_min_x" + ext, text="Min")
-        sub.prop(con, "from_max_x" + ext, text="Max")
-
-        sub = split.column(align=True)
-        sub.label(text="Y:")
-        sub.prop(con, "from_min_y" + ext, text="Min")
-        sub.prop(con, "from_max_y" + ext, text="Max")
-
-        sub = split.column(align=True)
-        sub.label(text="Z:")
-        sub.prop(con, "from_min_z" + ext, text="Min")
-        sub.prop(con, "from_max_z" + ext, text="Max")
-
-        col = layout.column()
-        row = col.row()
-        row.label(text="Source to Destination Mapping:")
-
-        # note: chr(187) is the ASCII arrow ( >> ). Blender Text Editor can't
-        # open it. Thus we are using the hard-coded value instead.
-        row = col.row()
-        row.prop(con, "map_to_x_from", expand=False, text="")
-        row.label(text=" %s    X" % chr(187))
-
-        row = col.row()
-        row.prop(con, "map_to_y_from", expand=False, text="")
-        row.label(text=" %s    Y" % chr(187))
-
-        row = col.row()
-        row.prop(con, "map_to_z_from", expand=False, text="")
-        row.label(text=" %s    Z" % chr(187))
-
-        split = layout.split()
-
-        col = split.column()
-        col.label(text="Destination:")
-        col.row().prop(con, "map_to", expand=True)
-
-        if con.map_to == 'ROTATION':
-            layout.prop(con, "to_euler_order", text="Order")
-
-        split = layout.split()
-        ext = "" if con.map_to == 'LOCATION' else "_rot" if con.map_to == 'ROTATION' else "_scale"
-
-        col = split.column()
-        col.label(text="X:")
-
-        sub = col.column(align=True)
-        sub.prop(con, "to_min_x" + ext, text="Min")
-        sub.prop(con, "to_max_x" + ext, text="Max")
-
-        col = split.column()
-        col.label(text="Y:")
-
-        sub = col.column(align=True)
-        sub.prop(con, "to_min_y" + ext, text="Min")
-        sub.prop(con, "to_max_y" + ext, text="Max")
-
-        col = split.column()
-        col.label(text="Z:")
-
-        sub = col.column(align=True)
-        sub.prop(con, "to_min_z" + ext, text="Min")
-        sub.prop(con, "to_max_z" + ext, text="Max")
-
-        layout.prop(con, "mix_mode" + ext, text="Mix")
-
         self.space_template(layout, con)
 
-    def SHRINKWRAP(self, _context, layout, con):
+        self.draw_influence(layout, con)
+
+    def draw_shrinkwrap(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
         self.target_template(layout, con, False)
 
         layout.prop(con, "distance")
-        layout.prop(con, "shrinkwrap_type")
+        layout.prop(con, "shrinkwrap_type", text="Mode")
+
+        layout.separator()
+
+        if con.shrinkwrap_type == 'PROJECT':
+            layout.prop(con, "project_axis", expand=True, text="Project Axis")
+            layout.prop(con, "project_axis_space", text="Space")
+            layout.prop(con, "project_limit", text="Distance")
+            layout.prop(con, "use_project_opposite")
+
+            layout.separator()
+
+            col = layout.column()
+            row = col.row()
+            row.prop(con, "cull_face", expand=True)
+            row = col.row()
+            row.active = con.use_project_opposite and con.cull_face != 'OFF'
+            row.prop(con, "use_invert_cull")
+
+            layout.separator()
 
         if con.shrinkwrap_type in {'PROJECT', 'NEAREST_SURFACE', 'TARGET_PROJECT'}:
             layout.prop(con, "wrap_mode", text="Snap Mode")
+            row = layout.row(heading="Align to Normal", align=True)
+            row.use_property_decorate = False
+            sub = row.row(align=True)
+            sub.prop(con, "use_track_normal", text="")
+            subsub = sub.row(align=True)
+            subsub.active = con.use_track_normal
+            subsub.prop(con, "track_axis", text="")
+            row.prop_decorator(con, "track_axis")
 
-        if con.shrinkwrap_type == 'PROJECT':
-            row = layout.row(align=True)
-            row.prop(con, "project_axis", expand=True)
-            split = layout.split(factor=0.4)
-            split.label(text="Axis Space:")
-            rowsub = split.row()
-            rowsub.prop(con, "project_axis_space", text="")
-            split = layout.split(factor=0.4)
-            split.label(text="Face Culling:")
-            rowsub = split.row()
-            rowsub.prop(con, "cull_face", expand=True)
-            row = layout.row()
-            row.prop(con, "use_project_opposite")
-            rowsub = row.row()
-            rowsub.active = con.use_project_opposite and con.cull_face != 'OFF'
-            rowsub.prop(con, "use_invert_cull")
-            layout.prop(con, "project_limit")
+        self.draw_influence(layout, con)
 
-        if con.shrinkwrap_type in {'PROJECT', 'NEAREST_SURFACE', 'TARGET_PROJECT'}:
-            layout.prop(con, "use_track_normal")
+    def draw_damp_track(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
 
-            row = layout.row(align=True)
-            row.active = con.use_track_normal
-            row.prop(con, "track_axis", expand=True)
-
-    def DAMPED_TRACK(self, _context, layout, con):
         self.target_template(layout, con)
 
-        row = layout.row()
-        row.label(text="To:")
-        row.prop(con, "track_axis", expand=True)
+        layout.prop(con, "track_axis", expand=True)
 
-    def SPLINE_IK(self, _context, layout, con):
+        self.draw_influence(layout, con)
+
+    def draw_spline_ik(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
         self.target_template(layout, con)
 
-        col = layout.column()
-        col.label(text="Spline Fitting:")
-        col.prop(con, "chain_count")
-        col.prop(con, "use_even_divisions")
-        col.prop(con, "use_chain_offset")
+        self.draw_influence(layout, con)
 
-        col = layout.column()
-        col.label(text="Chain Scaling:")
-        col.prop(con, "use_curve_radius")
+    def draw_pivot(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
 
-        layout.prop(con, "y_scale_mode")
-        layout.prop(con, "xz_scale_mode")
-
-        if con.xz_scale_mode in {'INVERSE_PRESERVE', 'VOLUME_PRESERVE'}:
-            layout.prop(con, "use_original_scale")
-
-        if con.xz_scale_mode == 'VOLUME_PRESERVE':
-            layout.prop(con, "bulge", text="Volume Variation")
-            split = layout.split()
-            col = split.column(align=True)
-            col.prop(con, "use_bulge_min", text="Volume Min")
-            sub = col.column()
-            sub.active = con.use_bulge_min
-            sub.prop(con, "bulge_min", text="")
-            col = split.column(align=True)
-            col.prop(con, "use_bulge_max", text="Volume Max")
-            sub = col.column()
-            sub.active = con.use_bulge_max
-            sub.prop(con, "bulge_max", text="")
-            col = layout.column()
-            col.active = con.use_bulge_min or con.use_bulge_max
-            col.prop(con, "bulge_smooth", text="Smooth")
-
-    def PIVOT(self, _context, layout, con):
         self.target_template(layout, con)
 
         if con.target:
-            col = layout.column()
-            col.prop(con, "offset", text="Pivot Offset")
+            layout.prop(con, "offset", text="Pivot Offset")
         else:
-            col = layout.column()
-            col.prop(con, "use_relative_location")
+            layout.prop(con, "use_relative_location")
             if con.use_relative_location:
-                col.prop(con, "offset", text="Relative Pivot Point")
+                layout.prop(con, "offset", text="Pivot Point")
             else:
-                col.prop(con, "offset", text="Absolute Pivot Point")
+                layout.prop(con, "offset", text="Pivot Point")
 
         col = layout.column()
-        col.prop(con, "rotation_range", text="Pivot When")
+        col.prop(con, "rotation_range", text="Rotation Range")
 
-    @staticmethod
-    def _getConstraintClip(context, con):
-        if not con.use_active_clip:
-            return con.clip
+        self.draw_influence(layout, con)
+
+    def draw_follow_track(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
+        clip = None
+        if con.use_active_clip:
+            clip = context.scene.active_clip
         else:
-            return context.scene.active_clip
+            clip = con.clip
 
-    def FOLLOW_TRACK(self, context, layout, con):
-        clip = self._getConstraintClip(context, con)
+        layout.prop(con, "use_active_clip")
+        layout.prop(con, "use_3d_position")
 
         row = layout.row()
-        row.prop(con, "use_active_clip")
-        row.prop(con, "use_3d_position")
+        row.active = not con.use_3d_position
+        row.prop(con, "use_undistorted_position")
 
-        sub = row.column()
-        sub.active = not con.use_3d_position
-        sub.prop(con, "use_undistorted_position")
-
-        col = layout.column()
 
         if not con.use_active_clip:
-            col.prop(con, "clip")
+            layout.prop(con, "clip")
 
-        row = col.row()
-        row.prop(con, "frame_method", expand=True)
+        layout.prop(con, "frame_method")
 
         if clip:
             tracking = clip.tracking
 
-            col.prop_search(con, "object", tracking, "objects", icon='OBJECT_DATA')
+            layout.prop_search(con, "object", tracking, "objects", icon='OBJECT_DATA')
 
             tracking_object = tracking.objects.get(con.object, tracking.objects[0])
 
-            col.prop_search(con, "track", tracking_object, "tracks", icon='ANIM_DATA')
+            layout.prop_search(con, "track", tracking_object, "tracks", icon='ANIM_DATA')
 
-        col.prop(con, "camera")
+        layout.prop(con, "camera")
 
-        row = col.row()
+        row = layout.row()
         row.active = not con.use_3d_position
         row.prop(con, "depth_object")
 
         layout.operator("clip.constraint_to_fcurve")
 
-    def CAMERA_SOLVER(self, _context, layout, con):
+        self.draw_influence(layout, con)
+
+    def draw_camera_solver(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
         layout.prop(con, "use_active_clip")
 
         if not con.use_active_clip:
@@ -915,8 +774,19 @@ class ConstraintButtonsPanel:
 
         layout.operator("clip.constraint_to_fcurve")
 
-    def OBJECT_SOLVER(self, context, layout, con):
-        clip = self._getConstraintClip(context, con)
+        self.draw_influence(layout, con)
+
+    def draw_object_solver(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
+        clip = None
+        if con.use_active_clip:
+            clip = context.scene.active_clip
+        else:
+            clip = con.clip
 
         layout.prop(con, "use_active_clip")
 
@@ -934,36 +804,236 @@ class ConstraintButtonsPanel:
 
         layout.operator("clip.constraint_to_fcurve")
 
-    def TRANSFORM_CACHE(self, _context, layout, con):
-        layout.label(text="Cache File Properties:")
-        box = layout.box()
-        box.template_cache_file(con, "cache_file")
+        self.draw_influence(layout, con)
+
+    def draw_transform_cache(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
+        layout.template_cache_file(con, "cache_file")
 
         cache_file = con.cache_file
 
-        layout.label(text="Constraint Properties:")
-        box = layout.box()
-
         if cache_file is not None:
-            box.prop_search(con, "object_path", cache_file, "object_paths")
+            layout.prop_search(con, "object_path", cache_file, "object_paths")
 
-    def SCRIPT(self, _context, layout, _con):
+        self.draw_influence(layout, con)
+
+    def draw_python_constraint(self, context):
+        layout = self.layout
         layout.label(text="Blender 2.6 doesn't support python constraints yet")
 
-    def ARMATURE(self, context, layout, con):
-        topcol = layout.column()
-        topcol.use_property_split = True
-        topcol.operator("constraint.add_target", text="Add Target Bone")
+    def draw_armature(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
+        col = layout.column()
+        col.prop(con, "use_deform_preserve_volume")
+        col.prop(con, "use_bone_envelopes")
+
+        if context.pose_bone:
+            col.prop(con, "use_current_location")
+
+        layout.operator("constraint.add_target", text="Add Target Bone")
+
+        layout.operator("constraint.normalize_target_weights")
+
+        self.draw_influence(layout, con)
 
         if not con.targets:
-            box = topcol.box()
-            box.label(text="No target bones were added", icon='ERROR')
+            layout.label(text="No target bones added", icon='ERROR')
+
+    def draw_kinematic(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
+        self.target_template(layout, con)
+
+        if context.object.pose.ik_solver == 'ITASC':
+            layout.prop(con, "ik_type")
+
+            layout.prop(con, "pole_target")
+
+            if con.pole_target and con.pole_target.type == 'ARMATURE':
+                layout.prop_search(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
+
+            if con.pole_target:
+                row = layout.row()
+                row.label()
+                row.prop(con, "pole_angle")
+
+            col = layout.column()
+            col.prop(con, "use_tail")
+            col.prop(con, "use_stretch")
+            col.prop(con, "chain_count")
+
+            if con.ik_type == 'COPY_POSE':
+                layout.prop(con, "reference_axis", expand=True)
+
+                col = layout.column()
+                col.prop(con, "use_location")
+
+                sub = col.column()
+                sub.active = con.use_location
+                sub.prop(con, "weight", text="Weight", slider=True)
+                row = sub.row(heading="Lock")
+                row.use_property_decorate = False
+                row.prop(con, "lock_location_x", text="X", toggle=True)
+                row.prop(con, "lock_location_y", text="Y", toggle=True)
+                row.prop(con, "lock_location_z", text="Z", toggle=True)
+                row.label(icon='BLANK1')
+
+                col = layout.column()
+                col.prop(con, "use_rotation")
+
+                sub = col.column()
+                sub.active = con.use_rotation
+                sub.prop(con, "orient_weight", text="Weight", slider=True)
+                row = sub.row(heading="Lock")
+                row.use_property_decorate = False
+                row.prop(con, "lock_rotation_x", text="X", toggle=True)
+                row.prop(con, "lock_rotation_y", text="Y", toggle=True)
+                row.prop(con, "lock_rotation_z", text="Z", toggle=True)
+                row.label(icon='BLANK1')
+
+            elif con.ik_type == 'DISTANCE':
+                layout.prop(con, "limit_mode")
+
+                col = layout.column()
+                col.prop(con, "weight", text="Weight", slider=True)
+                col.prop(con, "distance", text="Distance", slider=True)
+        else:
+            # Standard IK constraint
+            layout.prop(con, "pole_target")
+
+            if con.pole_target and con.pole_target.type == 'ARMATURE':
+                layout.prop_search(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
+
+            if con.pole_target:
+                row = layout.row()
+                row.prop(con, "pole_angle")
+                row.label()
+
+            col = layout.column()
+            col.prop(con, "iterations")
+            col.prop(con, "chain_count")
+            col.prop(con, "use_tail")
+            col.prop(con, "use_stretch")
+
+            col = layout.column()
+            row = col.row(align=True, heading="Weight Position")
+            row.prop(con, "use_location", text="")
+            sub = row.row(align=True)
+            sub.active = con.use_location
+            sub.prop(con, "weight", text="", slider=True)
+
+            row = col.row(align=True, heading="Rotation")
+            row.prop(con, "use_rotation", text="")
+            sub = row.row(align=True)
+            sub.active = con.use_rotation
+            sub.prop(con, "orient_weight", text="", slider=True)
+
+        self.draw_influence(layout, con)
+
+
+# Parent class for constraint subpanels
+class ConstraintButtonsSubPanel(Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_label = ""
+    bl_options = {'DRAW_BOX'}
+
+    def get_constraint(self, context):
+        con = None
+        if context.pose_bone:
+            con = context.pose_bone.constraints[self.list_panel_index]
+        else:
+            con = context.active.constraints[self.list_panel_index]
+        self.layout.context_pointer_set("constraint", con)
+        return con
+
+    def draw_transform_source(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+
+        layout.prop(con, "map_from", expand=True)
+
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
+        if con.map_from == 'ROTATION':
+            layout.prop(con, "from_rotation_mode", text="Mode")
+
+        ext = "" if con.map_from == 'LOCATION' else "_rot" if con.map_from == 'ROTATION' else "_scale"
+
+        col = layout.column(align=True)
+        col.prop(con, "from_min_x" + ext, text="X Min")
+        col.prop(con, "from_max_x" + ext, text="Max")
+
+        col = layout.column(align=True)
+        col.prop(con, "from_min_y" + ext, text="Y Min")
+        col.prop(con, "from_max_y" + ext, text="Max")
+
+        col = layout.column(align=True)
+        col.prop(con, "from_min_z" + ext, text="Z Min")
+        col.prop(con, "from_max_z" + ext, text="Max")
+
+    def draw_transform_mapping(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+        
+        layout.prop(con, "map_to_x_from", expand=False, text="Source Axis X")
+
+        layout.prop(con, "map_to_y_from", expand=False, text="Y")
+
+        layout.prop(con, "map_to_z_from", expand=False, text="Z")
+
+    def draw_transform_destination(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+
+        layout.prop(con, "map_to", expand=True)
+
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
+        if con.map_to == 'ROTATION':
+            layout.prop(con, "to_euler_order", text="Order")
+
+        ext = "" if con.map_to == 'LOCATION' else "_rot" if con.map_to == 'ROTATION' else "_scale"
+
+        col = layout.column(align=True)
+        col.prop(con, "to_min_x" + ext, text="X Min")
+        col.prop(con, "to_max_x" + ext, text="Max")
+
+        col = layout.column(align=True)
+        col.prop(con, "to_min_y" + ext, text="Y Min")
+        col.prop(con, "to_max_y" + ext, text="Max")
+
+        col = layout.column(align=True)
+        col.prop(con, "to_min_z" + ext, text="Z Min")
+        col.prop(con, "to_max_z" + ext, text="Max")      
+
+        layout.prop(con, "mix_mode" + ext, text="Mix")
+
+    def draw_armature_bones(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
 
         for i, tgt in enumerate(con.targets):
-            box = topcol.box()
-
             has_target = tgt.target is not None
 
+            box = layout.box()
             header = box.row()
             header.use_property_split = False
 
@@ -977,61 +1047,615 @@ class ConstraintButtonsPanel:
             else:
                 row.prop(tgt, "subtarget", text="", icon='BONE_DATA')
 
-            header.operator("constraint.remove_target", text="", icon='REMOVE').index = i
+            header.operator("constraint.remove_target", text="", icon='X').index = i
 
-            col = box.column()
-            col.active = has_target and tgt.subtarget != ""
-            col.prop(tgt, "weight", slider=True)
+            row = box.row()
+            row.active = has_target and tgt.subtarget != ""
+            row.prop(tgt, "weight", slider=True, text="Weight")
 
-        topcol.operator("constraint.normalize_target_weights")
-        topcol.prop(con, "use_deform_preserve_volume")
-        topcol.prop(con, "use_bone_envelopes")
+    def draw_spline_ik_fitting(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
 
-        if context.pose_bone:
-            topcol.prop(con, "use_current_location")
+        col = layout.column()
+        col.prop(con, "chain_count")
+        col.prop(con, "use_even_divisions")
+        col.prop(con, "use_chain_offset")
+
+    def draw_spline_ik_chain_scaling(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
+        layout.prop(con, "use_curve_radius")
+
+        layout.prop(con, "y_scale_mode")
+        layout.prop(con, "xz_scale_mode")
+
+        if con.xz_scale_mode in {'INVERSE_PRESERVE', 'VOLUME_PRESERVE'}:
+            layout.prop(con, "use_original_scale")
+
+        if con.xz_scale_mode == 'VOLUME_PRESERVE':
+            col = layout.column()
+            col.prop(con, "bulge", text="Volume Variation")
+
+            row = col.row(heading="Volume Min")
+            row.prop(con, "use_bulge_min", text="")
+            sub = row.row()
+            sub.active = con.use_bulge_min
+            sub.prop(con, "bulge_min", text="")
+
+            row = col.row(heading="Max")
+            row.prop(con, "use_bulge_max", text="")
+            sub = row.row()
+            sub.active = con.use_bulge_max
+            sub.prop(con, "bulge_max", text="")
+
+            row = layout.row()
+            row.active = con.use_bulge_min or con.use_bulge_max
+            row.prop(con, "bulge_smooth", text="Smooth")
+
+    def draw_action_target(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
+        layout.prop(con, "transform_channel", text="Channel")
+        layout.prop(con, "target_space")
+
+        col = layout.column(align=True)
+        col.prop(con, "min", text="Range Min")
+        col.prop(con, "max", text="Max")
 
 
-class OBJECT_PT_constraints(ConstraintButtonsPanel, Panel):
-    bl_label = "Object Constraints"
-    bl_context = "constraint"
-    bl_options = {'HIDE_HEADER'}
+    def draw_action_action(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
 
-    @classmethod
-    def poll(cls, context):
-        return (context.object)
+        layout.prop(con, "action")
+        layout.prop(con, "use_bone_object_action")
+
+        col = layout.column(align=True)
+        col.prop(con, "frame_start", text="Frame Start")
+        col.prop(con, "frame_end", text="End")
+
+
+# Child Of Constraint
+
+class OBJECT_PT_bChildOfConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_childof(context)
+
+
+class BONE_PT_bChildOfConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_childof(context)
+
+# Track To Constraint
+
+class OBJECT_PT_bTrackToConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_trackto(context)
+
+
+class BONE_PT_bTrackToConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_trackto(context)
+
+# Follow Path Constraint
+
+class OBJECT_PT_bFollowPathConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_follow_path(context)
+
+
+class BONE_PT_bFollowPathConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_follow_path(context)
+
+
+# Roation Limit Constraint
+
+class OBJECT_PT_bRotLimitConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_rot_limit(context)
+
+
+class BONE_PT_bRotLimitConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_rot_limit(context)
+
+
+# Location Limit Constraint
+
+class OBJECT_PT_bLocLimitConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_loc_limit(context)
+
+
+class BONE_PT_bLocLimitConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_loc_limit(context)
+
+
+# Size Limit Constraint
+
+class OBJECT_PT_bSizeLimitConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_size_limit(context)
+
+
+class BONE_PT_bSizeLimitConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_size_limit(context)
+
+
+# Rotate Like Constraint
+
+class OBJECT_PT_bRotateLikeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_rotate_like(context)
+
+
+class BONE_PT_bRotateLikeConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_rotate_like(context)
+
+
+# Locate Like Constraint
+
+class OBJECT_PT_bLocateLikeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_locate_like(context)
+
+
+class BONE_PT_bLocateLikeConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_locate_like(context)
+
+
+# Size Like Constraint
+
+class OBJECT_PT_bSizeLikeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_size_like(context)
+
+
+class BONE_PT_bSizeLikeConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_size_like(context)
+
+
+# Same Volume Constraint
+
+class OBJECT_PT_bSameVolumeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_same_volume(context)
+
+
+class BONE_PT_bSameVolumeConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_same_volume(context)
+
+
+# Trans Like Constraint
+
+class OBJECT_PT_bTransLikeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_trans_like(context)
+
+
+class BONE_PT_bTransLikeConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_trans_like(context)
+
+
+# Action Constraint
+
+class OBJECT_PT_bActionConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_action(context)
+
+
+class BONE_PT_bActionConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_action(context)
+
+
+class OBJECT_PT_bActionConstraint_target(ObjectConstraintPanel, ConstraintButtonsSubPanel):
+    bl_parent_id = "OBJECT_PT_bActionConstraint"
+    bl_label = "Target"
 
     def draw(self, context):
-        layout = self.layout
-
-        obj = context.object
-
-        layout.operator_menu_enum("object.constraint_add", "type", text="Add Object Constraint")
-
-        for con in obj.constraints:
-            self.draw_constraint(context, con)
+        self.draw_action_target(context)
 
 
-class BONE_PT_constraints(ConstraintButtonsPanel, Panel):
-    bl_label = "Bone Constraints"
-    bl_context = "bone_constraint"
-    bl_options = {'HIDE_HEADER'}
-
-    @classmethod
-    def poll(cls, context):
-        return (context.pose_bone)
+class BONE_PT_bActionConstraint_target(BoneConstraintPanel, ConstraintButtonsSubPanel):
+    bl_parent_id = "BONE_PT_bActionConstraint"
+    bl_label = "Target"
 
     def draw(self, context):
-        layout = self.layout
+        self.draw_action_target(context)
 
-        layout.operator_menu_enum("pose.constraint_add", "type", text="Add Bone Constraint")
 
-        for con in context.pose_bone.constraints:
-            self.draw_constraint(context, con)
+class OBJECT_PT_bActionConstraint_action(ObjectConstraintPanel, ConstraintButtonsSubPanel):
+    bl_parent_id = "OBJECT_PT_bActionConstraint"
+    bl_label = "Action"
+
+    def draw(self, context):
+        self.draw_action_action(context)
+
+
+class BONE_PT_bActionConstraint_action(BoneConstraintPanel, ConstraintButtonsSubPanel):
+    bl_parent_id = "BONE_PT_bActionConstraint"
+    bl_label = "Action"
+
+    def draw(self, context):
+        self.draw_action_action(context)
+
+
+# Lock Track Constraint
+
+class OBJECT_PT_bLockTrackConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_lock_track(context)
+
+
+class BONE_PT_bLockTrackConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_lock_track(context)
+
+
+# Disance Limit Constraint
+
+class OBJECT_PT_bDistLimitConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_dist_limit(context)
+
+
+class BONE_PT_bDistLimitConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_dist_limit(context)
+
+
+# Stretch To Constraint
+
+class OBJECT_PT_bStretchToConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_stretch_to(context)
+
+
+class BONE_PT_bStretchToConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_stretch_to(context)
+
+
+# Min Max Constraint
+
+class OBJECT_PT_bMinMaxConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_min_max(context)
+
+
+class BONE_PT_bMinMaxConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_min_max(context)
+
+
+# Clamp To Constraint
+
+class OBJECT_PT_bClampToConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_clamp_to(context)
+
+
+class BONE_PT_bClampToConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_clamp_to(context)
+
+
+# Transform Constraint
+
+class OBJECT_PT_bTransformConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_transform(context)
+
+
+class BONE_PT_bTransformConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_transform(context)
+
+
+class OBJECT_PT_bTransformConstraint_source(ObjectConstraintPanel, ConstraintButtonsSubPanel):
+    bl_parent_id = "OBJECT_PT_bTransformConstraint"
+    bl_label = "Source"
+
+    def draw(self, context):
+        self.draw_transform_source(context)
+
+
+class BONE_PT_bTransformConstraint_source(BoneConstraintPanel, ConstraintButtonsSubPanel):
+    bl_parent_id = "BONE_PT_bTransformConstraint"
+    bl_label = "Source"
+
+    def draw(self, context):
+        self.draw_transform_source(context)
+
+
+class OBJECT_PT_bTransformConstraint_mapping(ObjectConstraintPanel, ConstraintButtonsSubPanel):
+    bl_parent_id = "OBJECT_PT_bTransformConstraint"
+    bl_label = "Mapping"
+
+    def draw(self, context):
+        self.draw_transform_mapping(context)
+
+
+class BONE_PT_bTransformConstraint_mapping(BoneConstraintPanel, ConstraintButtonsSubPanel):
+    bl_parent_id = "BONE_PT_bTransformConstraint"
+    bl_label = "Mapping"
+    
+    def draw(self, context):
+        self.draw_transform_mapping(context)
+
+  
+class OBJECT_PT_bTransformConstraint_destination(ObjectConstraintPanel, ConstraintButtonsSubPanel):
+    bl_parent_id = "OBJECT_PT_bTransformConstraint"
+    bl_label = "Destination"
+
+    def draw(self, context):
+        self.draw_transform_destination(context)
+
+
+class BONE_PT_bTransformConstraint_destination(BoneConstraintPanel, ConstraintButtonsSubPanel):
+    bl_parent_id = "BONE_PT_bTransformConstraint"
+    bl_label = "Destination"
+
+    def draw(self, context):
+        self.draw_transform_destination(context)
+
+
+# Shrinkwrap Constraint
+
+class OBJECT_PT_bShrinkwrapConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_shrinkwrap(context)
+
+
+class BONE_PT_bShrinkwrapConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_shrinkwrap(context)
+
+
+# Damp Track Constraint
+
+class OBJECT_PT_bDampTrackConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_damp_track(context)
+
+
+class BONE_PT_bDampTrackConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_damp_track(context)
+
+
+# Spline IK Constraint
+
+class BONE_PT_bSplineIKConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_spline_ik(context)
+
+
+class BONE_PT_bSplineIKConstraint_fitting(BoneConstraintPanel, ConstraintButtonsSubPanel):
+    bl_parent_id = "BONE_PT_bSplineIKConstraint"
+    bl_label = "Fitting"
+
+    def draw(self, context):
+        self.draw_spline_ik_fitting(context)
+
+
+class BONE_PT_bSplineIKConstraint_chain_scaling(BoneConstraintPanel, ConstraintButtonsSubPanel):
+    bl_parent_id = "BONE_PT_bSplineIKConstraint"
+    bl_label = "Chain Scaling"
+
+    def draw(self, context):
+        self.draw_spline_ik_chain_scaling(context)
+
+
+# Pivot Constraint
+
+class OBJECT_PT_bPivotConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_pivot(context)
+
+
+class BONE_PT_bPivotConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_pivot(context)
+
+
+# Follow Track Constraint
+
+class OBJECT_PT_bFollowTrackConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_follow_track(context)
+
+
+class BONE_PT_bFollowTrackConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_follow_track(context)
+
+
+# Camera Solver Constraint
+
+class OBJECT_PT_bCameraSolverConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_camera_solver(context)
+
+
+class BONE_PT_bCameraSolverConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_camera_solver(context)
+
+
+# Object Solver Constraint
+
+class OBJECT_PT_bObjectSolverConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_object_solver(context)
+
+
+class BONE_PT_bObjectSolverConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_object_solver(context)
+
+
+# Transform Cache Constraint
+
+class OBJECT_PT_bTransformCacheConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_transform_cache(context)
+
+
+class BONE_PT_bTransformCacheConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_transform_cache(context)
+
+
+# Python Constraint
+
+class OBJECT_PT_bPythonConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_python_constraint(context)
+
+class BONE_PT_bPythonConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_python_constraint(context)
+
+
+
+# Armature Constraint
+
+class OBJECT_PT_bArmatureConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_armature(context)
+
+
+class BONE_PT_bArmatureConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_armature(context)
+
+
+class OBJECT_PT_bArmatureConstraint_bones(ObjectConstraintPanel, ConstraintButtonsSubPanel):
+    bl_parent_id = "OBJECT_PT_bArmatureConstraint"
+    bl_label = "Bones"
+
+    def draw(self, context):
+        self.draw_armature_bones(context)
+
+
+class BONE_PT_bArmatureConstraint_bones(BoneConstraintPanel, ConstraintButtonsSubPanel):
+    bl_parent_id = "BONE_PT_bArmatureConstraint"
+    bl_label = "Bones"
+
+    def draw(self, context):
+        self.draw_armature_bones(context)
+
+
+# Inverse Kinematic Constraint
+
+class OBJECT_PT_bKinematicConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_kinematic(context)
+
+
+class BONE_PT_bKinematicConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+    def draw(self, context):
+        self.draw_kinematic(context)
+
 
 
 classes = (
+    # Object Panels
     OBJECT_PT_constraints,
     BONE_PT_constraints,
+    OBJECT_PT_bChildOfConstraint,
+    OBJECT_PT_bTrackToConstraint,
+    OBJECT_PT_bKinematicConstraint,
+    OBJECT_PT_bFollowPathConstraint,
+    OBJECT_PT_bRotLimitConstraint,
+    OBJECT_PT_bLocLimitConstraint,
+    OBJECT_PT_bSizeLimitConstraint,
+    OBJECT_PT_bRotateLikeConstraint,
+    OBJECT_PT_bLocateLikeConstraint,
+    OBJECT_PT_bSizeLikeConstraint,
+    OBJECT_PT_bSameVolumeConstraint,
+    OBJECT_PT_bTransLikeConstraint,
+    OBJECT_PT_bActionConstraint,
+    OBJECT_PT_bActionConstraint_target,
+    OBJECT_PT_bActionConstraint_action,
+    OBJECT_PT_bLockTrackConstraint,
+    OBJECT_PT_bDistLimitConstraint,
+    OBJECT_PT_bStretchToConstraint,
+    OBJECT_PT_bMinMaxConstraint,
+    OBJECT_PT_bClampToConstraint,
+    OBJECT_PT_bTransformConstraint,
+    OBJECT_PT_bTransformConstraint_source,
+    OBJECT_PT_bTransformConstraint_mapping,
+    OBJECT_PT_bTransformConstraint_destination,
+    OBJECT_PT_bShrinkwrapConstraint,
+    OBJECT_PT_bDampTrackConstraint,
+    OBJECT_PT_bPivotConstraint,
+    OBJECT_PT_bFollowTrackConstraint,
+    OBJECT_PT_bCameraSolverConstraint,
+    OBJECT_PT_bObjectSolverConstraint,
+    OBJECT_PT_bTransformCacheConstraint,
+    OBJECT_PT_bPythonConstraint,
+    OBJECT_PT_bArmatureConstraint,
+    OBJECT_PT_bArmatureConstraint_bones,
+    # Bone panels
+    BONE_PT_bChildOfConstraint,
+    BONE_PT_bTrackToConstraint,
+    BONE_PT_bKinematicConstraint,
+    BONE_PT_bFollowPathConstraint,
+    BONE_PT_bRotLimitConstraint,
+    BONE_PT_bLocLimitConstraint,
+    BONE_PT_bSizeLimitConstraint,
+    BONE_PT_bRotateLikeConstraint,
+    BONE_PT_bLocateLikeConstraint,
+    BONE_PT_bSizeLikeConstraint,
+    BONE_PT_bSameVolumeConstraint,
+    BONE_PT_bTransLikeConstraint,
+    BONE_PT_bActionConstraint,
+    BONE_PT_bActionConstraint_target,
+    BONE_PT_bActionConstraint_action,
+    BONE_PT_bLockTrackConstraint,
+    BONE_PT_bDistLimitConstraint,
+    BONE_PT_bStretchToConstraint,
+    BONE_PT_bMinMaxConstraint,
+    BONE_PT_bClampToConstraint,
+    BONE_PT_bTransformConstraint,
+    BONE_PT_bTransformConstraint_source,
+    BONE_PT_bTransformConstraint_mapping,
+    BONE_PT_bTransformConstraint_destination,
+    BONE_PT_bShrinkwrapConstraint,
+    BONE_PT_bDampTrackConstraint,
+    BONE_PT_bSplineIKConstraint,
+    BONE_PT_bSplineIKConstraint_fitting,
+    BONE_PT_bSplineIKConstraint_chain_scaling,
+    BONE_PT_bPivotConstraint,
+    BONE_PT_bFollowTrackConstraint,
+    BONE_PT_bCameraSolverConstraint,
+    BONE_PT_bObjectSolverConstraint,
+    BONE_PT_bTransformCacheConstraint,
+    BONE_PT_bPythonConstraint,
+    BONE_PT_bArmatureConstraint,
+    BONE_PT_bArmatureConstraint_bones,
 )
 
 if __name__ == "__main__":  # only for live edit.

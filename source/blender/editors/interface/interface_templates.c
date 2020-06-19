@@ -1823,6 +1823,20 @@ void uiTemplatePathBuilder(uiLayout *layout,
  *  Template for building the panel layout for the active object's modifiers.
  * \{ */
 
+/**
+ * Get the active object or the property region's pinned object.
+ */
+static Object *get_context_object(const bContext *C)
+{
+  SpaceProperties *sbuts = CTX_wm_space_properties(C);
+  if (sbuts != NULL && (sbuts->pinid != NULL) && GS(sbuts->pinid->name) == ID_OB) {
+    return (Object *)sbuts->pinid;
+  }
+  else {
+    return CTX_data_active_object(C);
+  }
+}
+
 static void modifier_panel_id(void *md_link, char *r_name)
 {
   ModifierData *md = (ModifierData *)md_link;
@@ -1834,14 +1848,7 @@ void uiTemplateModifiers(uiLayout *UNUSED(layout), bContext *C)
   ScrArea *sa = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
-  Object *ob;
-  SpaceProperties *sbuts = CTX_wm_space_properties(C);
-  if (sbuts != NULL && (sbuts->pinid != NULL) && GS(sbuts->pinid->name) == ID_OB) {
-    ob = (Object *)sbuts->pinid;
-  }
-  else {
-    ob = CTX_data_active_object(C);
-  }
+  Object *ob = get_context_object(C);
   ListBase *modifiers = &ob->modifiers;
 
   bool panels_match = UI_panel_list_matches_data(region, modifiers, modifier_panel_id);
@@ -1870,6 +1877,162 @@ void uiTemplateModifiers(uiLayout *UNUSED(layout), bContext *C)
     }
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Constraints Template
+ *
+ *  Template for building the panel layout for the active object or bone's constraints.
+ * \{ */
+
+/** For building the panel UI for constraints. */
+#define CONSTRAINT_TYPE_PANEL_PREFIX "OBJECT_PT_"
+#define CONSTRAINT_BONE_TYPE_PANEL_PREFIX "BONE_PT_"
+
+/**
+ * Check if the panel's ID starts with 'BONE', meaning it is a bone constraint.
+ */
+static bool constraint_panel_is_bone(Panel *panel)
+{
+  return (panel->panelname[0] == 'B') && (panel->panelname[1] == 'O') &&
+         (panel->panelname[2] == 'N') && (panel->panelname[3] == 'E');
+}
+
+/**
+ * Get the constraints for the active pose bone or the active / pinned object.
+ */
+static ListBase *get_constraints(const bContext *C, bool use_bone_constraints)
+{
+  ListBase *constraints = {NULL};
+  if (use_bone_constraints) {
+    bPoseChannel *pose_bone = CTX_data_pointer_get(C, "pose_bone").data;
+    if (pose_bone != NULL) {
+      constraints = &pose_bone->constraints;
+    }
+  }
+  else {
+    Object *ob = get_context_object(C);
+    if (ob != NULL) {
+      constraints = &ob->constraints;
+    }
+  }
+  return constraints;
+}
+
+/**
+ * Move a constraint to the index it's moved to after a drag and drop.
+ */
+static void constraint_reorder(bContext *C, Panel *panel, int new_index)
+{
+  bool constraint_from_bone = constraint_panel_is_bone(panel);
+  ListBase *lb = get_constraints(C, constraint_from_bone);
+
+  bConstraint *con = BLI_findlink(lb, panel->runtime.list_index);
+  PointerRNA props_ptr;
+  wmOperatorType *ot = WM_operatortype_find("CONSTRAINT_OT_move_to_index", false);
+  WM_operator_properties_create_ptr(&props_ptr, ot);
+  RNA_string_set(&props_ptr, "constraint", con->name);
+  RNA_int_set(&props_ptr, "index", new_index);
+  /* Set owner to #EDIT_CONSTRAINT_OWNER_OBJECT or #EDIT_CONSTRAINT_OWNER_BONE. */
+  RNA_enum_set(&props_ptr, "owner", constraint_from_bone ? 1 : 0);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+  WM_operator_properties_free(&props_ptr);
+}
+
+/**
+ * Get the expand flag from the active constraint to use for the panel.
+ */
+static short get_constraint_expand_flag(const bContext *C, Panel *panel)
+{
+  bool constraint_from_bone = constraint_panel_is_bone(panel);
+  ListBase *lb = get_constraints(C, constraint_from_bone);
+
+  bConstraint *con = BLI_findlink(lb, panel->runtime.list_index);
+  return con->ui_expand_flag;
+}
+
+/**
+ * Save the expand flag for the panel and subpanels to the constraint.
+ */
+static void set_constraint_expand_flag(const bContext *C, Panel *panel, short expand_flag)
+{
+  bool constraint_from_bone = constraint_panel_is_bone(panel);
+  ListBase *lb = get_constraints(C, constraint_from_bone);
+
+  bConstraint *con = BLI_findlink(lb, panel->runtime.list_index);
+  con->ui_expand_flag = expand_flag;
+}
+
+/**
+ * Function with void * argument for #uiListPanelIDFromDataFunc.
+ *
+ * \note: Constraint panel types are assumed to be named with the struct name field
+ * concatenated to the defined prefix.
+ */
+static void object_constraint_panel_id(void *md_link, char *r_name)
+{
+  bConstraint *con = (bConstraint *)md_link;
+  const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(con->type);
+
+  strcpy(r_name, CONSTRAINT_TYPE_PANEL_PREFIX);
+  strcat(r_name, cti->structName);
+}
+
+static void bone_constraint_panel_id(void *md_link, char *r_name)
+{
+  bConstraint *con = (bConstraint *)md_link;
+  const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(con->type);
+
+  strcpy(r_name, CONSTRAINT_BONE_TYPE_PANEL_PREFIX);
+  strcat(r_name, cti->structName);
+}
+
+/**
+ * Check if the constraint panels don't match the data and rebuild the panels if so.
+ */
+void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_constraints)
+{
+  ScrArea *sa = CTX_wm_area(C);
+  ARegion *region = CTX_wm_region(C);
+
+  ListBase *constraints = get_constraints(C, use_bone_constraints);
+
+  /* Switch between the bone panel ID function and the object panel ID function. */
+  uiListPanelIDFromDataFunc panel_id_func = use_bone_constraints ? bone_constraint_panel_id :
+                                                                   object_constraint_panel_id;
+
+  bool panels_match = UI_panel_list_matches_data(region, constraints, panel_id_func);
+
+  if (!panels_match) {
+    UI_panels_free_instanced(C, region);
+    bConstraint *con = (constraints == NULL) ? NULL : constraints->first;
+    for (int i = 0; con; i++, con = con->next) {
+      char panel_idname[MAX_NAME];
+      panel_id_func(con, panel_idname);
+
+      Panel *new_panel = UI_panel_add_instanced(sa, region, &region->panels, panel_idname, i);
+      if (new_panel) {
+        /* Set the list panel functionality function pointers since we don't do it with python. */
+        new_panel->type->set_list_data_expand_flag = set_constraint_expand_flag;
+        new_panel->type->get_list_data_expand_flag = get_constraint_expand_flag;
+        new_panel->type->reorder = constraint_reorder;
+
+        UI_panel_set_expand_from_list_data(C, new_panel);
+      }
+    }
+  }
+  else {
+    /* The expansion might have been changed elsewhere, so we still need to set it. */
+    LISTBASE_FOREACH (Panel *, panel, &region->panels) {
+      if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED))
+        UI_panel_set_expand_from_list_data(C, panel);
+    }
+  }
+}
+
+#undef CONSTRAINT_TYPE_PANEL_PREFIX
+#undef CONSTRAINT_BONE_TYPE_PANEL_PREFIX
 
 /** \} */
 
@@ -2441,7 +2604,7 @@ void uiTemplateOperatorRedoProperties(uiLayout *layout, const bContext *C)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Constraint Template
+/** \name Constraint Header Template
  * \{ */
 
 static void constraint_active_func(bContext *UNUSED(C), void *ob_v, void *con_v)
@@ -2449,29 +2612,14 @@ static void constraint_active_func(bContext *UNUSED(C), void *ob_v, void *con_v)
   ED_object_constraint_active_set(ob_v, con_v);
 }
 
-/* draw panel showing settings for a constraint */
-static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
+static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *con)
 {
   bPoseChannel *pchan = BKE_pose_channel_active(ob);
-  const bConstraintTypeInfo *cti;
   uiBlock *block;
-  uiLayout *result = NULL, *col, *box, *row;
+  uiLayout *sub;
   PointerRNA ptr;
-  char typestr[32];
   short proxy_protected, xco = 0, yco = 0;
   // int rb_col; // UNUSED
-
-  /* get constraint typeinfo */
-  cti = BKE_constraint_typeinfo_get(con);
-  if (cti == NULL) {
-    /* exception for 'Null' constraint - it doesn't have constraint typeinfo! */
-    BLI_strncpy(typestr,
-                (con->type == CONSTRAINT_TYPE_NULL) ? IFACE_("Null") : IFACE_("Unknown"),
-                sizeof(typestr));
-  }
-  else {
-    BLI_strncpy(typestr, IFACE_(cti->name), sizeof(typestr));
-  }
 
   /* determine whether constraint is proxy protected or not */
   if (BKE_constraints_proxylocked_owner(ob, pchan)) {
@@ -2487,35 +2635,22 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 
   RNA_pointer_create(&ob->id, &RNA_Constraint, con, &ptr);
 
-  col = uiLayoutColumn(layout, true);
-  uiLayoutSetContextPointer(col, "constraint", &ptr);
+  uiLayoutSetContextPointer(layout, "constraint", &ptr);
 
-  box = uiLayoutBox(col);
-  row = uiLayoutRow(box, false);
-  block = uiLayoutGetBlock(box);
+  /* Constraint type icon. */
+  sub = uiLayoutRow(layout, false);
+  uiLayoutSetEmboss(sub, false);
+  uiLayoutSetRedAlert(sub, (con->flag & CONSTRAINT_DISABLE));
+  uiItemL(sub, "", RNA_struct_ui_icon(ptr.type));
 
-  /* Draw constraint header */
-
-  /* open/close */
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
-  uiItemR(row, &ptr, "show_expanded", 0, "", ICON_NONE);
-
-  /* constraint-type icon */
-  uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
   UI_block_emboss_set(block, UI_EMBOSS);
 
-  if (con->flag & CONSTRAINT_DISABLE) {
-    uiLayoutSetRedAlert(row, true);
-  }
-
   if (proxy_protected == 0) {
-    uiItemR(row, &ptr, "name", 0, "", ICON_NONE);
+    uiItemR(layout, &ptr, "name", 0, "", ICON_NONE);
   }
   else {
-    uiItemL(row, con->name, ICON_NONE);
+    uiItemL(layout, con->name, ICON_NONE);
   }
-
-  uiLayoutSetRedAlert(row, false);
 
   /* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
   if (proxy_protected) {
@@ -2555,54 +2690,20 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
     UI_block_emboss_set(block, UI_EMBOSS);
   }
   else {
-    short prev_proxylock, show_upbut, show_downbut;
-
-    /* Up/Down buttons:
-     * Proxy-constraints are not allowed to occur after local (non-proxy) constraints
-     * as that poses problems when restoring them, so disable the "up" button where
-     * it may cause this situation.
-     *
-     * Up/Down buttons should only be shown (or not grayed - todo) if they serve some purpose.
-     */
-    if (BKE_constraints_proxylocked_owner(ob, pchan)) {
-      if (con->prev) {
-        prev_proxylock = (con->prev->flag & CONSTRAINT_PROXY_LOCAL) ? 0 : 1;
-      }
-      else {
-        prev_proxylock = 0;
-      }
-    }
-    else {
-      prev_proxylock = 0;
-    }
-
-    show_upbut = ((prev_proxylock == 0) && (con->prev));
-    show_downbut = (con->next) ? 1 : 0;
-
     /* enabled */
     UI_block_emboss_set(block, UI_EMBOSS_NONE);
-    uiItemR(row, &ptr, "mute", 0, "", 0);
+    uiItemR(layout, &ptr, "mute", 0, "", 0);
     UI_block_emboss_set(block, UI_EMBOSS);
 
-    uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
-
-    /* up/down */
-    if (show_upbut || show_downbut) {
-      UI_block_align_begin(block);
-      if (show_upbut) {
-        uiItemO(row, "", ICON_TRIA_UP, "CONSTRAINT_OT_move_up");
-      }
-
-      if (show_downbut) {
-        uiItemO(row, "", ICON_TRIA_DOWN, "CONSTRAINT_OT_move_down");
-      }
-      UI_block_align_end(block);
-    }
+    uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
     /* Close 'button' - emboss calls here disable drawing of 'button' behind X */
     UI_block_emboss_set(block, UI_EMBOSS_NONE);
-    uiItemO(row, "", ICON_X, "CONSTRAINT_OT_delete");
+    uiItemO(layout, "", ICON_X, "CONSTRAINT_OT_delete");
     UI_block_emboss_set(block, UI_EMBOSS);
+
+    /* Some extra padding at the end, so the 'x' icon isn't too close to drag button. */
+    uiItemS(layout);
   }
 
   /* Set but-locks for protected settings (magic numbers are used here!) */
@@ -2610,23 +2711,11 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
     UI_block_lock_set(block, true, TIP_("Cannot edit Proxy-Protected Constraint"));
   }
 
-  /* Draw constraint data */
-  if ((con->flag & CONSTRAINT_EXPAND) == 0) {
-    (yco) -= 10.5f * UI_UNIT_Y;
-  }
-  else {
-    box = uiLayoutBox(col);
-    block = uiLayoutAbsoluteBlock(box);
-    result = box;
-  }
-
   /* clear any locks set up for proxies/lib-linking */
   UI_block_lock_clear(block);
-
-  return result;
 }
 
-uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
+void uiTemplateConstraintHeader(uiLayout *layout, PointerRNA *ptr)
 {
   Object *ob;
   bConstraint *con;
@@ -2634,7 +2723,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
   /* verify we have valid data */
   if (!RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
     RNA_warning("Expected constraint on object");
-    return NULL;
+    return;
   }
 
   ob = (Object *)ptr->owner_id;
@@ -2642,7 +2731,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
 
   if (!ob || !(GS(ob->id.name) == ID_OB)) {
     RNA_warning("Expected constraint on object");
-    return NULL;
+    return;
   }
 
   UI_block_lock_set(uiLayoutGetBlock(layout), (ob && ID_IS_LINKED(ob)), ERROR_LIBDATA_MESSAGE);
@@ -2651,11 +2740,11 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
   if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
     bKinematicConstraint *data = con->data;
     if (data->flag & CONSTRAINT_IK_TEMP) {
-      return NULL;
+      return;
     }
   }
 
-  return draw_constraint(layout, ob, con);
+  draw_constraint_header(layout, ob, con);
 }
 
 /** \} */

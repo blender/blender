@@ -5412,8 +5412,15 @@ static bConstraint *add_new_constraint_internal(const char *name, short type)
 
   /* Set up a generic constraint data-block. */
   con->type = type;
-  con->flag |= CONSTRAINT_EXPAND | CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
+  con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
   con->enforce = 1.0f;
+
+  /* Only open the main panel when constraints are created, not the subpanels. */
+  con->ui_expand_flag = (1 << 0);
+  if (type == CONSTRAINT_TYPE_ACTION || CONSTRAINT_TYPE_SPLINEIK) {
+    /* Expand the two subpanels in the cases where the main panel barely has any properties. */
+    con->ui_expand_flag |= (1 << 1) | (1 << 2);
+  }
 
   /* Determine a basic name, and info */
   if (cti) {
