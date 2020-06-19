@@ -22,12 +22,6 @@
 #include <Alembic/Abc/All.h>
 #include <Alembic/AbcGeom/All.h>
 
-#ifdef _MSC_VER
-#  define ABC_INLINE static __forceinline
-#else
-#  define ABC_INLINE static inline
-#endif
-
 /**
  * \brief The CacheReader struct is only used for anonymous pointers,
  * to interface between C and C++ code. This library only creates

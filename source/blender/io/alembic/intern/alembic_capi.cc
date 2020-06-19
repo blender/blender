@@ -57,6 +57,7 @@
 #include "BKE_screen.h"
 #undef new
 
+#include "BLI_compiler_compat.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
@@ -105,12 +106,12 @@ struct AbcArchiveHandle {
   int unused;
 };
 
-ABC_INLINE ArchiveReader *archive_from_handle(AbcArchiveHandle *handle)
+BLI_INLINE ArchiveReader *archive_from_handle(AbcArchiveHandle *handle)
 {
   return reinterpret_cast<ArchiveReader *>(handle);
 }
 
-ABC_INLINE AbcArchiveHandle *handle_from_archive(ArchiveReader *archive)
+BLI_INLINE AbcArchiveHandle *handle_from_archive(ArchiveReader *archive)
 {
   return reinterpret_cast<AbcArchiveHandle *>(archive);
 }

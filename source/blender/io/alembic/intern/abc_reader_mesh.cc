@@ -32,6 +32,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_compiler_compat.h"
 #include "BLI_math_geom.h"
 
 #include "BKE_main.h"
@@ -343,7 +344,7 @@ static void process_normals(CDStreamConfig &config,
   }
 }
 
-ABC_INLINE void read_uvs_params(CDStreamConfig &config,
+BLI_INLINE void read_uvs_params(CDStreamConfig &config,
                                 AbcMeshData &abc_data,
                                 const IV2fGeomParam &uv,
                                 const ISampleSelector &selector)
@@ -718,7 +719,7 @@ void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const ISampleSel
 
 /* ************************************************************************** */
 
-ABC_INLINE MEdge *find_edge(MEdge *edges, int totedge, int v1, int v2)
+BLI_INLINE MEdge *find_edge(MEdge *edges, int totedge, int v1, int v2)
 {
   for (int i = 0, e = totedge; i < e; i++) {
     MEdge &edge = edges[i];
