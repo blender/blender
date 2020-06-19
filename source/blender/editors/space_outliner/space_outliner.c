@@ -215,7 +215,7 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
       }
       break;
     case NC_SCREEN:
-      if (ELEM(wmn->data, ND_LAYER)) {
+      if (ELEM(wmn->data, ND_LAYOUTDELETE, ND_LAYER)) {
         ED_region_tag_redraw(region);
       }
       break;
