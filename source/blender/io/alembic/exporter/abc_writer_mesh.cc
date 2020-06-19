@@ -19,8 +19,8 @@
  */
 
 #include "abc_writer_mesh.h"
-#include "abc_axis_conversion.h"
 #include "abc_writer_transform.h"
+#include "intern/abc_axis_conversion.h"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"

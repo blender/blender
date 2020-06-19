@@ -1,7 +1,7 @@
 #include "testing/testing.h"
 
 // Keep first since utildefines defines AT which conflicts with STL
-#include "intern/abc_exporter.h"
+#include "exporter/abc_exporter.h"
 #include "intern/abc_util.h"
 
 extern "C" {

@@ -21,8 +21,8 @@
 #ifndef __ABC_WRITER_MESH_H__
 #define __ABC_WRITER_MESH_H__
 
-#include "abc_customdata.h"
 #include "abc_writer_object.h"
+#include "intern/abc_customdata.h"
 
 struct Mesh;
 struct ModifierData;

@@ -22,7 +22,6 @@
 
 #include <cmath>
 
-#include "abc_util.h"
 #include "abc_writer_archive.h"
 #include "abc_writer_camera.h"
 #include "abc_writer_curves.h"
@@ -32,6 +31,7 @@
 #include "abc_writer_nurbs.h"
 #include "abc_writer_points.h"
 #include "abc_writer_transform.h"
+#include "intern/abc_util.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"

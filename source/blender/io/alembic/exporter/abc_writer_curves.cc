@@ -22,9 +22,9 @@
  */
 
 #include "abc_writer_curves.h"
-#include "abc_axis_conversion.h"
-#include "abc_reader_curves.h"
 #include "abc_writer_transform.h"
+#include "intern/abc_axis_conversion.h"
+#include "intern/abc_reader_curves.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"

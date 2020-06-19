@@ -19,8 +19,8 @@
  */
 
 #include "abc_writer_nurbs.h"
-#include "abc_axis_conversion.h"
 #include "abc_writer_transform.h"
+#include "intern/abc_axis_conversion.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"

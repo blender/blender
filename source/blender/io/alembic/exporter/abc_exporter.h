@@ -26,7 +26,7 @@
 #include <set>
 #include <vector>
 
-#include "abc_util.h"
+#include "intern/abc_util.h"
 
 class AbcObjectWriter;
 class AbcTransformWriter;

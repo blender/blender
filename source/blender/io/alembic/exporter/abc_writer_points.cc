@@ -22,9 +22,9 @@
  */
 
 #include "abc_writer_points.h"
-#include "abc_util.h"
 #include "abc_writer_mesh.h"
 #include "abc_writer_transform.h"
+#include "intern/abc_util.h"
 
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"

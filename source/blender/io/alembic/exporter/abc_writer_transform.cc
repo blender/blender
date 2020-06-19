@@ -19,7 +19,7 @@
  */
 
 #include "abc_writer_transform.h"
-#include "abc_axis_conversion.h"
+#include "intern/abc_axis_conversion.h"
 
 #include <OpenEXR/ImathBoxAlgo.h>
 
