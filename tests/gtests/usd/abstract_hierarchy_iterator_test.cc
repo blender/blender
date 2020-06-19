@@ -276,10 +276,12 @@ TEST_F(USDHierarchyIteratorTest, ExportSubsetTest)
 
   // Even when only asking an export of transforms, on the first frame everything should be
   // exported.
-  iterator->set_export_subset({
-      .transforms = true,
-      .shapes = false,
-  });
+  {
+    ExportSubset export_subset = {0};
+    export_subset.transforms = true;
+    export_subset.shapes = false;
+    iterator->set_export_subset(export_subset);
+  }
   iterator->iterate_and_write();
   EXPECT_EQ(expected_transforms, iterator->transform_writers);
   EXPECT_EQ(expected_data, iterator->data_writers);
@@ -298,10 +300,12 @@ TEST_F(USDHierarchyIteratorTest, ExportSubsetTest)
   iterator->data_writers.clear();
 
   // Third iteration, should only write data now.
-  iterator->set_export_subset({
-      .transforms = false,
-      .shapes = true,
-  });
+  {
+    ExportSubset export_subset = {0};
+    export_subset.transforms = false;
+    export_subset.shapes = true;
+    iterator->set_export_subset(export_subset);
+  }
   iterator->iterate_and_write();
   EXPECT_EQ(0, iterator->transform_writers.size());
   EXPECT_EQ(expected_data, iterator->data_writers);
@@ -311,10 +315,12 @@ TEST_F(USDHierarchyIteratorTest, ExportSubsetTest)
   iterator->data_writers.clear();
 
   // Fourth iteration, should export everything now.
-  iterator->set_export_subset({
-      .transforms = true,
-      .shapes = true,
-  });
+  {
+    ExportSubset export_subset = {0};
+    export_subset.transforms = true;
+    export_subset.shapes = true;
+    iterator->set_export_subset(export_subset);
+  }
   iterator->iterate_and_write();
   EXPECT_EQ(expected_transforms, iterator->transform_writers);
   EXPECT_EQ(expected_data, iterator->data_writers);
