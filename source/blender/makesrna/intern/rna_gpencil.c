@@ -1011,6 +1011,12 @@ static void rna_def_gpencil_stroke_point(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "UV Rotation", "Internal UV factor for dot mode");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
+  prop = RNA_def_property(srna, "uv_fill", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_float_sdna(prop, NULL, "uv_fill");
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_ui_text(prop, "UV Fill", "Internal UV factor for filling");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SPOINT_SELECT);
   RNA_def_property_boolean_funcs(prop, NULL, "rna_GPencil_stroke_point_select_set");
