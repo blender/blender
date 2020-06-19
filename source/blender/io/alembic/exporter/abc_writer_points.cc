@@ -22,9 +22,6 @@
  */
 
 #include "abc_writer_points.h"
-#include "abc_writer_mesh.h"
-#include "abc_writer_transform.h"
-#include "intern/abc_util.h"
 
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
@@ -36,81 +33,102 @@
 
 #include "DEG_depsgraph_query.h"
 
-using Alembic::AbcGeom::kVertexScope;
-using Alembic::AbcGeom::OPoints;
-using Alembic::AbcGeom::OPointsSchema;
-
-/* ************************************************************************** */
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.alembic"};
 
 namespace blender {
 namespace io {
 namespace alembic {
 
-AbcPointsWriter::AbcPointsWriter(Object *ob,
-                                 AbcTransformWriter *parent,
-                                 uint32_t time_sampling,
-                                 ExportSettings &settings,
-                                 ParticleSystem *psys)
-    : AbcObjectWriter(ob, time_sampling, settings, parent)
-{
-  m_psys = psys;
+using Alembic::AbcGeom::kVertexScope;
+using Alembic::AbcGeom::OPoints;
+using Alembic::AbcGeom::OPointsSchema;
 
-  std::string psys_name = get_valid_abc_name(psys->name);
-  OPoints points(parent->alembicXform(), psys_name, m_time_sampling);
-  m_schema = points.getSchema();
+ABCPointsWriter::ABCPointsWriter(const ABCWriterConstructorArgs &args) : ABCAbstractWriter(args)
+{
 }
 
-void AbcPointsWriter::do_write()
+void ABCPointsWriter::create_alembic_objects(const HierarchyContext * /*context*/)
 {
-  if (!m_psys) {
-    return;
-  }
+  CLOG_INFO(&LOG, 2, "exporting OPoints %s", args_.abc_path.c_str());
+  abc_points_ = OPoints(args_.abc_parent, args_.abc_name, timesample_index_);
+  abc_points_schema_ = abc_points_.getSchema();
+}
+
+const Alembic::Abc::OObject ABCPointsWriter::get_alembic_object() const
+{
+  return abc_points_;
+}
+
+bool ABCPointsWriter::is_supported(const HierarchyContext *context) const
+{
+  return ELEM(context->particle_system->part->type,
+              PART_EMITTER,
+              PART_FLUID_FLIP,
+              PART_FLUID_SPRAY,
+              PART_FLUID_BUBBLE,
+              PART_FLUID_FOAM,
+              PART_FLUID_TRACER,
+              PART_FLUID_SPRAYFOAM,
+              PART_FLUID_SPRAYBUBBLE,
+              PART_FLUID_FOAMBUBBLE,
+              PART_FLUID_SPRAYFOAMBUBBLE);
+}
+
+bool ABCPointsWriter::check_is_animated(const HierarchyContext & /*context*/) const
+{
+  /* We assume that particles are always animated. */
+  return true;
+}
+
+void ABCPointsWriter::do_write(HierarchyContext &context)
+{
+  BLI_assert(context.particle_system != nullptr);
 
   std::vector<Imath::V3f> points;
   std::vector<Imath::V3f> velocities;
   std::vector<float> widths;
   std::vector<uint64_t> ids;
 
+  ParticleSystem *psys = context.particle_system;
   ParticleKey state;
-
   ParticleSimulationData sim;
-  sim.depsgraph = m_settings.depsgraph;
-  sim.scene = m_settings.scene;
-  sim.ob = m_object;
-  sim.psys = m_psys;
+  sim.depsgraph = args_.depsgraph;
+  sim.scene = DEG_get_evaluated_scene(args_.depsgraph);
+  sim.ob = context.object;
+  sim.psys = psys;
 
-  m_psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
+  psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
   uint64_t index = 0;
-  for (int p = 0; p < m_psys->totpart; p++) {
+  for (int p = 0; p < psys->totpart; p++) {
     float pos[3], vel[3];
 
-    if (m_psys->particles[p].flag & (PARS_NO_DISP | PARS_UNEXIST)) {
+    if (psys->particles[p].flag & (PARS_NO_DISP | PARS_UNEXIST)) {
       continue;
     }
 
-    state.time = DEG_get_ctime(m_settings.depsgraph);
-
+    state.time = DEG_get_ctime(args_.depsgraph);
     if (psys_get_particle_state(&sim, p, &state, 0) == 0) {
       continue;
     }
 
     /* location */
-    mul_v3_m4v3(pos, m_object->imat, state.co);
+    mul_v3_m4v3(pos, context.object->imat, state.co);
 
     /* velocity */
-    sub_v3_v3v3(vel, state.co, m_psys->particles[p].prev_state.co);
+    sub_v3_v3v3(vel, state.co, psys->particles[p].prev_state.co);
 
     /* Convert Z-up to Y-up. */
     points.push_back(Imath::V3f(pos[0], pos[2], -pos[1]));
     velocities.push_back(Imath::V3f(vel[0], vel[2], -vel[1]));
-    widths.push_back(m_psys->particles[p].size);
+    widths.push_back(psys->particles[p].size);
     ids.push_back(index++);
   }
 
-  if (m_psys->lattice_deform_data) {
-    BKE_lattice_deform_data_destroy(m_psys->lattice_deform_data);
-    m_psys->lattice_deform_data = NULL;
+  if (psys->lattice_deform_data) {
+    BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
+    psys->lattice_deform_data = NULL;
   }
 
   Alembic::Abc::P3fArraySample psample(points);
@@ -119,10 +137,10 @@ void AbcPointsWriter::do_write()
   Alembic::Abc::FloatArraySample wsample_array(widths);
   Alembic::AbcGeom::OFloatGeomParam::Sample wsample(wsample_array, kVertexScope);
 
-  m_sample = OPointsSchema::Sample(psample, idsample, vsample, wsample);
-  m_sample.setSelfBounds(bounds());
-
-  m_schema.set(m_sample);
+  OPointsSchema::Sample sample(psample, idsample, vsample, wsample);
+  update_bounding_box(context.object);
+  sample.setSelfBounds(bounding_box_);
+  abc_points_schema_.set(sample);
 }
 
 }  // namespace alembic

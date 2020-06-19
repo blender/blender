@@ -214,7 +214,7 @@ class DupliGroupExportTest(AbstractAlembicTest):
         self.run_blender('dupligroup-scene.blend', script)
 
         # Now check the resulting Alembic file.
-        xform = self.abcprop(abc, '/Real_Cube/Linked_Suzanne/Cylinder/Suzanne/.xform')
+        xform = self.abcprop(abc, '/Real_Cube/Linked_Suzanne/Cylinder-0/Suzanne-1/.xform')
         self.assertEqual(1, xform['.inherits'])
         self.assertAlmostEqualFloatArray(
             xform['.vals'],
@@ -232,7 +232,7 @@ class DupliGroupExportTest(AbstractAlembicTest):
         self.run_blender('dupligroup-scene.blend', script)
 
         # Now check the resulting Alembic file.
-        xform = self.abcprop(abc, '/Suzanne/.xform')
+        xform = self.abcprop(abc, '/Suzanne-1/.xform')
         self.assertEqual(1, xform['.inherits'])
 
         self.assertAlmostEqualFloatArray(

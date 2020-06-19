@@ -19,29 +19,32 @@
  * \ingroup balembic
  */
 
-#include "abc_writer_object.h"
+#include "abc_writer_abstract.h"
 
-/* ************************************************************************** */
+#include <Alembic/AbcGeom/OCamera.h>
 
 namespace blender {
 namespace io {
 namespace alembic {
 
-class AbcCameraWriter : public AbcObjectWriter {
-  Alembic::AbcGeom::OCameraSchema m_camera_schema;
-  Alembic::AbcGeom::CameraSample m_camera_sample;
-  Alembic::AbcGeom::OCompoundProperty m_custom_data_container;
-  Alembic::AbcGeom::OFloatProperty m_stereo_distance;
-  Alembic::AbcGeom::OFloatProperty m_eye_separation;
+class ABCCameraWriter : public ABCAbstractWriter {
+ private:
+  Alembic::AbcGeom::OCamera abc_camera_;
+  Alembic::AbcGeom::OCameraSchema abc_camera_schema_;
+
+  Alembic::AbcGeom::OCompoundProperty abc_custom_data_container_;
+  Alembic::AbcGeom::OFloatProperty abc_stereo_distance_;
+  Alembic::AbcGeom::OFloatProperty abc_eye_separation_;
 
  public:
-  AbcCameraWriter(Object *ob,
-                  AbcTransformWriter *parent,
-                  uint32_t time_sampling,
-                  ExportSettings &settings);
+  explicit ABCCameraWriter(const ABCWriterConstructorArgs &args);
 
- private:
-  virtual void do_write();
+  virtual void create_alembic_objects(const HierarchyContext *context) override;
+  virtual const Alembic::Abc::OObject get_alembic_object() const override;
+
+ protected:
+  virtual bool is_supported(const HierarchyContext *context) const override;
+  virtual void do_write(HierarchyContext &context) override;
 };
 
 }  // namespace alembic

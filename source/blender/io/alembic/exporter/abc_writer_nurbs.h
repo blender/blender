@@ -19,26 +19,37 @@
  * \ingroup balembic
  */
 
-#include "abc_writer_object.h"
+#include "abc_writer_abstract.h"
+#include "abc_writer_mesh.h"
+#include <vector>
 
 namespace blender {
 namespace io {
 namespace alembic {
 
-class AbcNurbsWriter : public AbcObjectWriter {
-  std::vector<Alembic::AbcGeom::ONuPatchSchema> m_nurbs_schema;
-  bool m_is_animated;
+class ABCNurbsWriter : public ABCAbstractWriter {
+ private:
+  std::vector<Alembic::AbcGeom::ONuPatch> abc_nurbs_;
+  std::vector<Alembic::AbcGeom::ONuPatchSchema> abc_nurbs_schemas_;
 
  public:
-  AbcNurbsWriter(Object *ob,
-                 AbcTransformWriter *parent,
-                 uint32_t time_sampling,
-                 ExportSettings &settings);
+  explicit ABCNurbsWriter(const ABCWriterConstructorArgs &args);
 
- private:
-  virtual void do_write();
+  virtual void create_alembic_objects(const HierarchyContext *context) override;
+  virtual const Alembic::Abc::OObject get_alembic_object() const override;
 
-  bool isAnimated() const;
+ protected:
+  virtual bool is_supported(const HierarchyContext *context) const override;
+  virtual void do_write(HierarchyContext &context) override;
+  virtual bool check_is_animated(const HierarchyContext &context) const override;
+};
+
+class ABCNurbsMeshWriter : public ABCGenericMeshWriter {
+ public:
+  explicit ABCNurbsMeshWriter(const ABCWriterConstructorArgs &args);
+
+ protected:
+  virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
 };
 
 }  // namespace alembic

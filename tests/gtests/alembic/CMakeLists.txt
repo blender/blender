@@ -24,6 +24,8 @@ set(INC
   ../../../source/blender/blenlib
   ../../../source/blender/blenkernel
   ../../../source/blender/io/alembic
+  ../../../source/blender/io/common
+  ../../../source/blender/io/usd/intern
   ../../../source/blender/makesdna
   ../../../source/blender/depsgraph
   ${ALEMBIC_INCLUDE_DIRS}

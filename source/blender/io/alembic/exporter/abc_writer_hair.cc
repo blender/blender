@@ -19,7 +19,6 @@
  */
 
 #include "abc_writer_hair.h"
-#include "abc_writer_transform.h"
 #include "intern/abc_axis_conversion.h"
 
 #include <cstdio>
@@ -35,40 +34,46 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_particle.h"
 
-using Alembic::Abc::P3fArraySamplePtr;
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.alembic"};
 
+using Alembic::Abc::P3fArraySamplePtr;
 using Alembic::AbcGeom::OCurves;
 using Alembic::AbcGeom::OCurvesSchema;
 using Alembic::AbcGeom::ON3fGeomParam;
 using Alembic::AbcGeom::OV2fGeomParam;
 
-/* ************************************************************************** */
-
 namespace blender {
 namespace io {
 namespace alembic {
 
-AbcHairWriter::AbcHairWriter(Object *ob,
-                             AbcTransformWriter *parent,
-                             uint32_t time_sampling,
-                             ExportSettings &settings,
-                             ParticleSystem *psys)
-    : AbcObjectWriter(ob, time_sampling, settings, parent), m_uv_warning_shown(false)
+ABCHairWriter::ABCHairWriter(const ABCWriterConstructorArgs &args)
+    : ABCAbstractWriter(args), uv_warning_shown_(false)
 {
-  m_psys = psys;
-
-  std::string psys_name = get_valid_abc_name(psys->name);
-  OCurves curves(parent->alembicXform(), psys_name, m_time_sampling);
-  m_schema = curves.getSchema();
 }
 
-void AbcHairWriter::do_write()
+void ABCHairWriter::create_alembic_objects(const HierarchyContext * /*context*/)
 {
-  if (!m_psys) {
-    return;
-  }
-  Mesh *mesh = mesh_get_eval_final(
-      m_settings.depsgraph, m_settings.scene, m_object, &CD_MASK_MESH);
+  CLOG_INFO(&LOG, 2, "exporting %s", args_.abc_path.c_str());
+  abc_curves_ = OCurves(args_.abc_parent, args_.abc_name, timesample_index_);
+  abc_curves_schema_ = abc_curves_.getSchema();
+}
+
+const Alembic::Abc::OObject ABCHairWriter::get_alembic_object() const
+{
+  return abc_curves_;
+}
+
+bool ABCHairWriter::check_is_animated(const HierarchyContext & /*context*/) const
+{
+  /* We assume that hair particles are always animated. */
+  return true;
+}
+
+void ABCHairWriter::do_write(HierarchyContext &context)
+{
+  Scene *scene_eval = DEG_get_evaluated_scene(args_.depsgraph);
+  Mesh *mesh = mesh_get_eval_final(args_.depsgraph, scene_eval, context.object, &CD_MASK_MESH);
   BKE_mesh_tessface_ensure(mesh);
 
   std::vector<Imath::V3f> verts;
@@ -76,44 +81,45 @@ void AbcHairWriter::do_write()
   std::vector<Imath::V2f> uv_values;
   std::vector<Imath::V3f> norm_values;
 
-  if (m_psys->pathcache) {
-    ParticleSettings *part = m_psys->part;
-    bool export_children = m_settings.export_child_hairs && m_psys->childcache &&
-                           part->childtype != 0;
+  ParticleSystem *psys = context.particle_system;
+  if (psys->pathcache) {
+    ParticleSettings *part = psys->part;
+    bool export_children = psys->childcache && part->childtype != 0;
 
     if (!export_children || part->draw & PART_DRAW_PARENT) {
-      write_hair_sample(mesh, part, verts, norm_values, uv_values, hvertices);
+      write_hair_sample(context, mesh, verts, norm_values, uv_values, hvertices);
     }
 
     if (export_children) {
-      write_hair_child_sample(mesh, part, verts, norm_values, uv_values, hvertices);
+      write_hair_child_sample(context, mesh, verts, norm_values, uv_values, hvertices);
     }
   }
 
   Alembic::Abc::P3fArraySample iPos(verts);
-  m_sample = OCurvesSchema::Sample(iPos, hvertices);
-  m_sample.setBasis(Alembic::AbcGeom::kNoBasis);
-  m_sample.setType(Alembic::AbcGeom::kLinear);
-  m_sample.setWrap(Alembic::AbcGeom::kNonPeriodic);
+  OCurvesSchema::Sample sample(iPos, hvertices);
+  sample.setBasis(Alembic::AbcGeom::kNoBasis);
+  sample.setType(Alembic::AbcGeom::kLinear);
+  sample.setWrap(Alembic::AbcGeom::kNonPeriodic);
 
   if (!uv_values.empty()) {
     OV2fGeomParam::Sample uv_smp;
     uv_smp.setVals(uv_values);
-    m_sample.setUVs(uv_smp);
+    sample.setUVs(uv_smp);
   }
 
   if (!norm_values.empty()) {
     ON3fGeomParam::Sample norm_smp;
     norm_smp.setVals(norm_values);
-    m_sample.setNormals(norm_smp);
+    sample.setNormals(norm_smp);
   }
 
-  m_sample.setSelfBounds(bounds());
-  m_schema.set(m_sample);
+  update_bounding_box(context.object);
+  sample.setSelfBounds(bounding_box_);
+  abc_curves_schema_.set(sample);
 }
 
-void AbcHairWriter::write_hair_sample(Mesh *mesh,
-                                      ParticleSettings *part,
+void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
+                                      Mesh *mesh,
                                       std::vector<Imath::V3f> &verts,
                                       std::vector<Imath::V3f> &norm_values,
                                       std::vector<Imath::V2f> &uv_values,
@@ -121,28 +127,30 @@ void AbcHairWriter::write_hair_sample(Mesh *mesh,
 {
   /* Get untransformed vertices, there's a xform under the hair. */
   float inv_mat[4][4];
-  invert_m4_m4_safe(inv_mat, m_object->obmat);
+  invert_m4_m4_safe(inv_mat, context.object->obmat);
 
   MTFace *mtface = mesh->mtface;
   MFace *mface = mesh->mface;
   MVert *mverts = mesh->mvert;
 
-  if ((!mtface || !mface) && !m_uv_warning_shown) {
+  if ((!mtface || !mface) && !uv_warning_shown_) {
     std::fprintf(stderr,
                  "Warning, no UV set found for underlying geometry of %s.\n",
-                 m_object->id.name + 2);
-    m_uv_warning_shown = true;
+                 context.object->id.name + 2);
+    uv_warning_shown_ = true;
   }
 
-  ParticleData *pa = m_psys->particles;
+  ParticleSystem *psys = context.particle_system;
+  ParticleSettings *part = psys->part;
+  ParticleData *pa = psys->particles;
   int k;
 
-  ParticleCacheKey **cache = m_psys->pathcache;
+  ParticleCacheKey **cache = psys->pathcache;
   ParticleCacheKey *path;
   float normal[3];
   Imath::V3f tmp_nor;
 
-  for (int p = 0; p < m_psys->totpart; p++, pa++) {
+  for (int p = 0; p < psys->totpart; p++, pa++) {
     /* underlying info for faces-only emission */
     path = cache[p];
 
@@ -224,8 +232,8 @@ void AbcHairWriter::write_hair_sample(Mesh *mesh,
   }
 }
 
-void AbcHairWriter::write_hair_child_sample(Mesh *mesh,
-                                            ParticleSettings *part,
+void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
+                                            Mesh *mesh,
                                             std::vector<Imath::V3f> &verts,
                                             std::vector<Imath::V3f> &norm_values,
                                             std::vector<Imath::V2f> &uv_values,
@@ -233,26 +241,30 @@ void AbcHairWriter::write_hair_child_sample(Mesh *mesh,
 {
   /* Get untransformed vertices, there's a xform under the hair. */
   float inv_mat[4][4];
-  invert_m4_m4_safe(inv_mat, m_object->obmat);
+  invert_m4_m4_safe(inv_mat, context.object->obmat);
 
   MTFace *mtface = mesh->mtface;
   MVert *mverts = mesh->mvert;
 
-  ParticleCacheKey **cache = m_psys->childcache;
+  ParticleSystem *psys = context.particle_system;
+  ParticleSettings *part = psys->part;
+  ParticleCacheKey **cache = psys->childcache;
   ParticleCacheKey *path;
 
-  ChildParticle *pc = m_psys->child;
+  ChildParticle *pc = psys->child;
 
-  for (int p = 0; p < m_psys->totchild; p++, pc++) {
+  for (int p = 0; p < psys->totchild; p++, pc++) {
     path = cache[p];
 
     if (part->from == PART_FROM_FACE && part->childtype != PART_CHILD_PARTICLES && mtface) {
       const int num = pc->num;
       if (num < 0) {
-        ABC_LOG(m_settings.logger)
-            << "Warning, child particle of hair system " << m_psys->name
-            << " has unknown face index of geometry of " << (m_object->id.name + 2)
-            << ", skipping child hair." << std::endl;
+        CLOG_WARN(
+            &LOG,
+            "Child particle of hair system %s has unknown face index of geometry of %s, skipping "
+            "child hair.",
+            psys->name,
+            context.object->id.name + 2);
         continue;
       }
 

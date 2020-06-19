@@ -22,36 +22,38 @@
  * \ingroup balembic
  */
 
+#include "abc_writer_abstract.h"
 #include "abc_writer_mesh.h"
-#include "abc_writer_object.h"
+
+#include <Alembic/AbcGeom/OCurves.h>
 
 namespace blender {
 namespace io {
 namespace alembic {
 
-class AbcCurveWriter : public AbcObjectWriter {
-  Alembic::AbcGeom::OCurvesSchema m_schema;
-  Alembic::AbcGeom::OCurvesSchema::Sample m_sample;
+extern const std::string ABC_CURVE_RESOLUTION_U_PROPNAME;
+
+class ABCCurveWriter : public ABCAbstractWriter {
+ private:
+  Alembic::AbcGeom::OCurves abc_curve_;
+  Alembic::AbcGeom::OCurvesSchema abc_curve_schema_;
 
  public:
-  AbcCurveWriter(Object *ob,
-                 AbcTransformWriter *parent,
-                 uint32_t time_sampling,
-                 ExportSettings &settings);
+  explicit ABCCurveWriter(const ABCWriterConstructorArgs &args);
+
+  virtual void create_alembic_objects(const HierarchyContext *context) override;
+  virtual const Alembic::Abc::OObject get_alembic_object() const override;
 
  protected:
-  void do_write();
+  virtual void do_write(HierarchyContext &context) override;
 };
 
-class AbcCurveMeshWriter : public AbcGenericMeshWriter {
+class ABCCurveMeshWriter : public ABCGenericMeshWriter {
  public:
-  AbcCurveMeshWriter(Object *ob,
-                     AbcTransformWriter *parent,
-                     uint32_t time_sampling,
-                     ExportSettings &settings);
+  ABCCurveMeshWriter(const ABCWriterConstructorArgs &args);
 
  protected:
-  Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree);
+  virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
 };
 
 }  // namespace alembic

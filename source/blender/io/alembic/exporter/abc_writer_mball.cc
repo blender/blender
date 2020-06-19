@@ -19,11 +19,9 @@
  */
 
 #include "abc_writer_mball.h"
-#include "abc_writer_mesh.h"
+#include "abc_hierarchy_iterator.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_object_types.h"
+#include "BLI_assert.h"
 
 #include "BKE_displist.h"
 #include "BKE_lib_id.h"
@@ -31,68 +29,57 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 
-#include "BLI_utildefines.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
 
 namespace blender {
 namespace io {
 namespace alembic {
 
-AbcMBallWriter::AbcMBallWriter(Main *bmain,
-                               Object *ob,
-                               AbcTransformWriter *parent,
-                               uint32_t time_sampling,
-                               ExportSettings &settings)
-    : AbcGenericMeshWriter(ob, parent, time_sampling, settings), m_bmain(bmain)
-{
-  m_is_animated = isAnimated();
-}
-
-AbcMBallWriter::~AbcMBallWriter()
+ABCMetaballWriter::ABCMetaballWriter(const ABCWriterConstructorArgs &args)
+    : ABCGenericMeshWriter(args)
 {
 }
 
-bool AbcMBallWriter::isAnimated() const
+bool ABCMetaballWriter::is_supported(const HierarchyContext *context) const
 {
+  Scene *scene = DEG_get_input_scene(args_.depsgraph);
+  bool supported = is_basis_ball(scene, context->object) &&
+                   ABCGenericMeshWriter::is_supported(context);
+  return supported;
+}
+
+bool ABCMetaballWriter::check_is_animated(const HierarchyContext & /*context*/) const
+{
+  /* We assume that metaballs are always animated, as the current object may
+   * not be animated but another ball in the same group may be. */
   return true;
 }
 
-Mesh *AbcMBallWriter::getEvaluatedMesh(Scene * /*scene_eval*/, Object *ob_eval, bool &r_needsfree)
+bool ABCMetaballWriter::export_as_subdivision_surface(Object * /*ob_eval*/) const
 {
-  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
-  if (mesh_eval != NULL) {
+  /* Metaballs should be exported to subdivision surfaces, if the export options allow. */
+  return true;
+}
+
+Mesh *ABCMetaballWriter::get_export_mesh(Object *object_eval, bool &r_needsfree)
+{
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(object_eval);
+  if (mesh_eval != nullptr) {
     /* Mesh_eval only exists when generative modifiers are in use. */
     r_needsfree = false;
     return mesh_eval;
   }
   r_needsfree = true;
-
-  /* The approach below is copied from BKE_mesh_new_from_object() */
-  Mesh *tmpmesh = BKE_mesh_add(m_bmain, ((ID *)m_object->data)->name + 2);
-  BLI_assert(tmpmesh != NULL);
-
-  /* BKE_mesh_add gives us a user count we don't need */
-  id_us_min(&tmpmesh->id);
-
-  ListBase disp = {NULL, NULL};
-  /* TODO(sergey): This is gonna to work for until Depsgraph
-   *               only contains for_render flag. As soon as CoW is
-   *               implemented, this is to be rethought.
-   */
-  BKE_displist_make_mball_forRender(m_settings.depsgraph, m_settings.scene, m_object, &disp);
-  BKE_mesh_from_metaball(&disp, tmpmesh);
-  BKE_displist_free(&disp);
-
-  BKE_mesh_texspace_copy_from_object(tmpmesh, m_object);
-
-  return tmpmesh;
+  return BKE_mesh_new_from_object(args_.depsgraph, object_eval, false);
 }
 
-void AbcMBallWriter::freeEvaluatedMesh(struct Mesh *mesh)
+void ABCMetaballWriter::free_export_mesh(Mesh *mesh)
 {
-  BKE_id_free(m_bmain, mesh);
+  BKE_id_free(nullptr, mesh);
 }
 
-bool AbcMBallWriter::isBasisBall(Scene *scene, Object *ob)
+bool ABCMetaballWriter::is_basis_ball(Scene *scene, Object *ob) const
 {
   Object *basis_ob = BKE_mball_basis_find(scene, ob);
   return ob == basis_ob;

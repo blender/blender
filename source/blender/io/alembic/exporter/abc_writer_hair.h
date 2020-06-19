@@ -19,9 +19,10 @@
  * \ingroup balembic
  */
 
-#include "abc_writer_object.h"
+#include "abc_writer_abstract.h"
+#include <Alembic/AbcGeom/OCurves.h>
+#include <vector>
 
-struct Mesh;
 struct ParticleSettings;
 struct ParticleSystem;
 
@@ -29,33 +30,33 @@ namespace blender {
 namespace io {
 namespace alembic {
 
-class AbcHairWriter : public AbcObjectWriter {
-  ParticleSystem *m_psys;
+class ABCHairWriter : public ABCAbstractWriter {
+ private:
+  Alembic::AbcGeom::OCurves abc_curves_;
+  Alembic::AbcGeom::OCurvesSchema abc_curves_schema_;
 
-  Alembic::AbcGeom::OCurvesSchema m_schema;
-  Alembic::AbcGeom::OCurvesSchema::Sample m_sample;
-
-  bool m_uv_warning_shown;
+  bool uv_warning_shown_;
 
  public:
-  AbcHairWriter(Object *ob,
-                AbcTransformWriter *parent,
-                uint32_t time_sampling,
-                ExportSettings &settings,
-                ParticleSystem *psys);
+  explicit ABCHairWriter(const ABCWriterConstructorArgs &args);
+
+  virtual void create_alembic_objects(const HierarchyContext *context) override;
+  virtual const Alembic::Abc::OObject get_alembic_object() const override;
+
+ protected:
+  virtual void do_write(HierarchyContext &context) override;
+  virtual bool check_is_animated(const HierarchyContext &context) const override;
 
  private:
-  virtual void do_write();
-
-  void write_hair_sample(struct Mesh *mesh,
-                         ParticleSettings *part,
+  void write_hair_sample(const HierarchyContext &context,
+                         struct Mesh *mesh,
                          std::vector<Imath::V3f> &verts,
                          std::vector<Imath::V3f> &norm_values,
                          std::vector<Imath::V2f> &uv_values,
                          std::vector<int32_t> &hvertices);
 
-  void write_hair_child_sample(struct Mesh *mesh,
-                               ParticleSettings *part,
+  void write_hair_child_sample(const HierarchyContext &context,
+                               struct Mesh *mesh,
                                std::vector<Imath::V3f> &verts,
                                std::vector<Imath::V3f> &norm_values,
                                std::vector<Imath::V2f> &uv_values,

@@ -19,112 +19,95 @@
  */
 
 #include "abc_writer_transform.h"
+#include "abc_hierarchy_iterator.h"
 #include "intern/abc_axis_conversion.h"
+#include "intern/abc_util.h"
 
-#include <OpenEXR/ImathBoxAlgo.h>
+#include "BKE_object.h"
 
-#include "DNA_object_types.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 
-#include "BLI_math.h"
+#include "DNA_layer_types.h"
 
-#include "DEG_depsgraph_query.h"
-
-using Alembic::AbcGeom::OObject;
-using Alembic::AbcGeom::OXform;
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.alembic"};
 
 namespace blender {
 namespace io {
 namespace alembic {
 
-AbcTransformWriter::AbcTransformWriter(Object *ob,
-                                       const OObject &abc_parent,
-                                       AbcTransformWriter *parent,
-                                       unsigned int time_sampling,
-                                       ExportSettings &settings)
-    : AbcObjectWriter(ob, time_sampling, settings, parent), m_proxy_from(NULL)
+using Alembic::Abc::OObject;
+using Alembic::AbcGeom::OXform;
+using Alembic::AbcGeom::OXformSchema;
+using Alembic::AbcGeom::XformSample;
+
+ABCTransformWriter::ABCTransformWriter(const ABCWriterConstructorArgs &args)
+    : ABCAbstractWriter(args)
 {
-  m_is_animated = hasAnimation(m_object);
-
-  if (!m_is_animated) {
-    time_sampling = 0;
-  }
-
-  m_xform = OXform(abc_parent, get_id_name(m_object), time_sampling);
-  m_schema = m_xform.getSchema();
-
-  /* Blender objects can't have a parent without inheriting the transform. */
-  m_inherits_xform = parent != NULL;
+  timesample_index_ = args_.abc_archive->time_sampling_index_transforms();
 }
 
-void AbcTransformWriter::do_write()
+void ABCTransformWriter::create_alembic_objects(const HierarchyContext * /*context*/)
 {
-  Object *ob_eval = DEG_get_evaluated_object(m_settings.depsgraph, m_object);
+  CLOG_INFO(&LOG, 2, "exporting %s", args_.abc_path.c_str());
+  abc_xform_ = OXform(args_.abc_parent, args_.abc_name, timesample_index_);
+  abc_xform_schema_ = abc_xform_.getSchema();
+}
 
-  if (m_first_frame) {
-    m_visibility = Alembic::AbcGeom::CreateVisibilityProperty(
-        m_xform, m_xform.getSchema().getTimeSampling());
-  }
+void ABCTransformWriter::do_write(HierarchyContext &context)
+{
+  float parent_relative_matrix[4][4];  // The object matrix relative to the parent.
+  mul_m4_m4m4(parent_relative_matrix, context.parent_matrix_inv_world, context.matrix_world);
 
-  m_visibility.set(!(ob_eval->restrictflag & OB_RESTRICT_VIEWPORT));
-
-  if (!m_first_frame && !m_is_animated) {
-    return;
-  }
-
-  float yup_mat[4][4];
-  create_transform_matrix(
-      ob_eval, yup_mat, m_inherits_xform ? ABC_MATRIX_LOCAL : ABC_MATRIX_WORLD, m_proxy_from);
+  // After this, parent_relative_matrix uses Y=up.
+  copy_m44_axis_swap(parent_relative_matrix, parent_relative_matrix, ABC_YUP_FROM_ZUP);
 
   /* If the parent is a camera, undo its to-Maya rotation (see below). */
-  bool is_root_object = !m_inherits_xform || ob_eval->parent == nullptr;
-  if (!is_root_object && ob_eval->parent->type == OB_CAMERA) {
+  bool is_root_object = context.export_parent == nullptr;
+  if (!is_root_object && context.export_parent->type == OB_CAMERA) {
     float rot_mat[4][4];
     axis_angle_to_mat4_single(rot_mat, 'X', M_PI_2);
-    mul_m4_m4m4(yup_mat, rot_mat, yup_mat);
+    mul_m4_m4m4(parent_relative_matrix, rot_mat, parent_relative_matrix);
   }
 
   /* If the object is a camera, apply an extra rotation to Maya camera orientation. */
-  if (ob_eval->type == OB_CAMERA) {
+  if (context.object->type == OB_CAMERA) {
     float rot_mat[4][4];
     axis_angle_to_mat4_single(rot_mat, 'X', -M_PI_2);
-    mul_m4_m4m4(yup_mat, yup_mat, rot_mat);
+    mul_m4_m4m4(parent_relative_matrix, parent_relative_matrix, rot_mat);
   }
 
   if (is_root_object) {
     /* Only apply scaling to root objects, parenting will propagate it. */
     float scale_mat[4][4];
-    scale_m4_fl(scale_mat, m_settings.global_scale);
-    scale_mat[3][3] = m_settings.global_scale; /* also scale translation */
-    mul_m4_m4m4(yup_mat, yup_mat, scale_mat);
-    yup_mat[3][3] /= m_settings.global_scale; /* normalise the homogeneous component */
+    scale_m4_fl(scale_mat, args_.export_params->global_scale);
+    scale_mat[3][3] = args_.export_params->global_scale; /* also scale translation */
+    mul_m4_m4m4(parent_relative_matrix, parent_relative_matrix, scale_mat);
+    parent_relative_matrix[3][3] /=
+        args_.export_params->global_scale; /* normalise the homogeneous component */
   }
 
-  m_matrix = convert_matrix_datatype(yup_mat);
-  m_sample.setMatrix(m_matrix);
-
-  /* Always export as "inherits transform", as this is the only way in which Blender works. The
-   * above code has already taken care of writing the correct matrix so that this option is not
-   * necessary. However, certain packages (for example the USD Alembic exporter) are incompatible
-   * with non-inheriting transforms and will completely ignore the transform if that is used. */
-  m_sample.setInheritsXforms(true);
-  m_schema.set(m_sample);
+  XformSample xform_sample;
+  xform_sample.setMatrix(convert_matrix_datatype(parent_relative_matrix));
+  xform_sample.setInheritsXforms(true);
+  abc_xform_schema_.set(xform_sample);
 }
 
-Imath::Box3d AbcTransformWriter::bounds()
+const OObject ABCTransformWriter::get_alembic_object() const
 {
-  Imath::Box3d bounds;
+  return abc_xform_;
+}
 
-  for (int i = 0; i < m_children.size(); i++) {
-    Imath::Box3d box(m_children[i]->bounds());
-    bounds.extendBy(box);
+bool ABCTransformWriter::check_is_animated(const HierarchyContext &context) const
+{
+  if (context.duplicator != NULL) {
+    /* This object is being duplicated, so could be emitted by a particle system and thus
+     * influenced by forces. TODO(Sybren): Make this more strict. Probably better to get from the
+     * depsgraph whether this object instance has a time source. */
+    return true;
   }
-
-  return Imath::transform(bounds, m_matrix);
-}
-
-bool AbcTransformWriter::hasAnimation(Object * /*ob*/) const
-{
-  return true;
+  return BKE_object_moves_in_time(context.object, context.animation_check_include_parent);
 }
 
 }  // namespace alembic

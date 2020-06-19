@@ -22,9 +22,7 @@
  */
 
 #include "abc_writer_curves.h"
-#include "abc_writer_transform.h"
 #include "intern/abc_axis_conversion.h"
-#include "intern/abc_reader_curves.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
@@ -32,6 +30,9 @@
 #include "BKE_curve.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.alembic"};
 
 using Alembic::AbcGeom::OCompoundProperty;
 using Alembic::AbcGeom::OCurves;
@@ -44,24 +45,32 @@ namespace blender {
 namespace io {
 namespace alembic {
 
-AbcCurveWriter::AbcCurveWriter(Object *ob,
-                               AbcTransformWriter *parent,
-                               uint32_t time_sampling,
-                               ExportSettings &settings)
-    : AbcObjectWriter(ob, time_sampling, settings, parent)
-{
-  OCurves curves(parent->alembicXform(), m_name, m_time_sampling);
-  m_schema = curves.getSchema();
+const std::string ABC_CURVE_RESOLUTION_U_PROPNAME("blender:resolution");
 
-  Curve *cu = static_cast<Curve *>(m_object->data);
-  OCompoundProperty user_props = m_schema.getUserProperties();
+ABCCurveWriter::ABCCurveWriter(const ABCWriterConstructorArgs &args) : ABCAbstractWriter(args)
+{
+}
+
+void ABCCurveWriter::create_alembic_objects(const HierarchyContext *context)
+{
+  CLOG_INFO(&LOG, 2, "exporting %s", args_.abc_path.c_str());
+  abc_curve_ = OCurves(args_.abc_parent, args_.abc_name, timesample_index_);
+  abc_curve_schema_ = abc_curve_.getSchema();
+
+  Curve *cu = static_cast<Curve *>(context->object->data);
+  OCompoundProperty user_props = abc_curve_schema_.getUserProperties();
   OInt16Property user_prop_resolu(user_props, ABC_CURVE_RESOLUTION_U_PROPNAME);
   user_prop_resolu.set(cu->resolu);
 }
 
-void AbcCurveWriter::do_write()
+const Alembic::Abc::OObject ABCCurveWriter::get_alembic_object() const
 {
-  Curve *curve = static_cast<Curve *>(m_object->data);
+  return abc_curve_;
+}
+
+void ABCCurveWriter::do_write(HierarchyContext &context)
+{
+  Curve *curve = static_cast<Curve *>(context.object->data);
 
   std::vector<Imath::V3f> verts;
   std::vector<int32_t> vert_counts;
@@ -152,35 +161,31 @@ void AbcCurveWriter::do_write()
   Alembic::AbcGeom::OFloatGeomParam::Sample width_sample;
   width_sample.setVals(widths);
 
-  m_sample = OCurvesSchema::Sample(verts,
-                                   vert_counts,
-                                   curve_type,
-                                   periodicity,
-                                   width_sample,
-                                   OV2fGeomParam::Sample(), /* UVs */
-                                   ON3fGeomParam::Sample(), /* normals */
-                                   curve_basis,
-                                   weights,
-                                   orders,
-                                   knots);
+  OCurvesSchema::Sample sample(verts,
+                               vert_counts,
+                               curve_type,
+                               periodicity,
+                               width_sample,
+                               OV2fGeomParam::Sample(), /* UVs */
+                               ON3fGeomParam::Sample(), /* normals */
+                               curve_basis,
+                               weights,
+                               orders,
+                               knots);
 
-  m_sample.setSelfBounds(bounds());
-  m_schema.set(m_sample);
+  update_bounding_box(context.object);
+  sample.setSelfBounds(bounding_box_);
+  abc_curve_schema_.set(sample);
 }
 
-AbcCurveMeshWriter::AbcCurveMeshWriter(Object *ob,
-                                       AbcTransformWriter *parent,
-                                       uint32_t time_sampling,
-                                       ExportSettings &settings)
-    : AbcGenericMeshWriter(ob, parent, time_sampling, settings)
+ABCCurveMeshWriter::ABCCurveMeshWriter(const ABCWriterConstructorArgs &args)
+    : ABCGenericMeshWriter(args)
 {
 }
 
-Mesh *AbcCurveMeshWriter::getEvaluatedMesh(Scene * /*scene_eval*/,
-                                           Object *ob_eval,
-                                           bool &r_needsfree)
+Mesh *ABCCurveMeshWriter::get_export_mesh(Object *object_eval, bool &r_needsfree)
 {
-  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(object_eval);
   if (mesh_eval != NULL) {
     /* Mesh_eval only exists when generative modifiers are in use. */
     r_needsfree = false;
@@ -188,7 +193,7 @@ Mesh *AbcCurveMeshWriter::getEvaluatedMesh(Scene * /*scene_eval*/,
   }
 
   r_needsfree = true;
-  return BKE_mesh_new_nomain_from_curve(ob_eval);
+  return BKE_mesh_new_nomain_from_curve(object_eval);
 }
 
 }  // namespace alembic

@@ -19,29 +19,37 @@
  */
 
 #include "abc_writer_mesh.h"
-#include "abc_writer_transform.h"
+#include "abc_hierarchy_iterator.h"
 #include "intern/abc_axis_conversion.h"
 
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_fluidsim_types.h"
+#include "BLI_assert.h"
+#include "BLI_math_vector.h"
 
-#include "BKE_anim_data.h"
-#include "BKE_key.h"
+#include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
-#include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.h"
+
+#include "DNA_layer_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_fluidsim_types.h"
+#include "DNA_particle_types.h"
+
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.alembic"};
 
 using Alembic::Abc::FloatArraySample;
 using Alembic::Abc::Int32ArraySample;
+using Alembic::Abc::OObject;
 using Alembic::Abc::V2fArraySample;
 using Alembic::Abc::V3fArraySample;
 
@@ -61,6 +69,394 @@ using Alembic::AbcGeom::UInt32ArraySample;
 namespace blender {
 namespace io {
 namespace alembic {
+
+/* NOTE: Alembic's polygon winding order is clockwise, to match with Renderman. */
+
+static void get_vertices(struct Mesh *mesh, std::vector<Imath::V3f> &points);
+static void get_topology(struct Mesh *mesh,
+                         std::vector<int32_t> &poly_verts,
+                         std::vector<int32_t> &loop_counts,
+                         bool &r_has_flat_shaded_poly);
+static void get_creases(struct Mesh *mesh,
+                        std::vector<int32_t> &indices,
+                        std::vector<int32_t> &lengths,
+                        std::vector<float> &sharpnesses);
+static void get_loop_normals(struct Mesh *mesh,
+                             std::vector<Imath::V3f> &normals,
+                             bool has_flat_shaded_poly);
+
+ABCGenericMeshWriter::ABCGenericMeshWriter(const ABCWriterConstructorArgs &args)
+    : ABCAbstractWriter(args), is_subd_(false)
+{
+}
+
+void ABCGenericMeshWriter::create_alembic_objects(const HierarchyContext *context)
+{
+  if (!args_.export_params->apply_subdiv && export_as_subdivision_surface(context->object)) {
+    is_subd_ = args_.export_params->use_subdiv_schema;
+  }
+
+  if (is_subd_) {
+    CLOG_INFO(&LOG, 2, "exporting OSubD %s", args_.abc_path.c_str());
+    abc_subdiv_ = OSubD(args_.abc_parent, args_.abc_name, timesample_index_);
+    abc_subdiv_schema_ = abc_subdiv_.getSchema();
+  }
+  else {
+    CLOG_INFO(&LOG, 2, "exporting OPolyMesh %s", args_.abc_path.c_str());
+    abc_poly_mesh_ = OPolyMesh(args_.abc_parent, args_.abc_name, timesample_index_);
+    abc_poly_mesh_schema_ = abc_poly_mesh_.getSchema();
+
+    OCompoundProperty typeContainer = abc_poly_mesh_.getSchema().getUserProperties();
+    OBoolProperty type(typeContainer, "meshtype");
+    type.set(subsurf_modifier_ == nullptr);
+  }
+
+  Scene *scene_eval = DEG_get_evaluated_scene(args_.depsgraph);
+  liquid_sim_modifier_ = get_liquid_sim_modifier(scene_eval, context->object);
+}
+
+ABCGenericMeshWriter::~ABCGenericMeshWriter()
+{
+}
+
+const Alembic::Abc::OObject ABCGenericMeshWriter::get_alembic_object() const
+{
+  if (is_subd_) {
+    return abc_subdiv_;
+  }
+  return abc_poly_mesh_;
+}
+
+bool ABCGenericMeshWriter::export_as_subdivision_surface(Object *ob_eval) const
+{
+  ModifierData *md = static_cast<ModifierData *>(ob_eval->modifiers.last);
+
+  for (; md; md = md->prev) {
+    /* This modifier has been temporarily disabled by SubdivModifierDisabler,
+     * so this indicates this is to be exported as subdivision surface. */
+    if (md->type == eModifierType_Subsurf && (md->mode & eModifierMode_DisableTemporary)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+ModifierData *ABCGenericMeshWriter::get_liquid_sim_modifier(Scene *scene, Object *ob)
+{
+  ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Fluidsim);
+
+  if (md && (BKE_modifier_is_enabled(scene, md, eModifierMode_Render))) {
+    FluidsimModifierData *fsmd = reinterpret_cast<FluidsimModifierData *>(md);
+
+    if (fsmd->fss && fsmd->fss->type == OB_FLUIDSIM_DOMAIN) {
+      return md;
+    }
+  }
+
+  return nullptr;
+}
+
+bool ABCGenericMeshWriter::is_supported(const HierarchyContext *context) const
+{
+  Object *object = context->object;
+  bool is_dupli = context->duplicator != nullptr;
+  int base_flag;
+
+  if (is_dupli) {
+    /* Construct the object's base flags from its dupli-parent, just like is done in
+     * deg_objects_dupli_iterator_next(). Without this, the visibility check below will fail. Doing
+     * this here, instead of a more suitable location in AbstractHierarchyIterator, prevents
+     * copying the Object for every dupli. */
+    base_flag = object->base_flag;
+    object->base_flag = context->duplicator->base_flag | BASE_FROM_DUPLI;
+  }
+
+  int visibility = BKE_object_visibility(
+      object, DAG_EVAL_RENDER /* TODO(Sybren): add evaluation mode to export options? */);
+
+  if (is_dupli) {
+    object->base_flag = base_flag;
+  }
+
+  return (visibility & OB_VISIBLE_SELF) != 0;
+}
+
+void ABCGenericMeshWriter::do_write(HierarchyContext &context)
+{
+  Object *object = context.object;
+  bool needsfree = false;
+
+  Mesh *mesh = get_export_mesh(object, needsfree);
+
+  if (mesh == nullptr) {
+    return;
+  }
+
+  if (args_.export_params->triangulate) {
+    const bool tag_only = false;
+    const int quad_method = args_.export_params->quad_method;
+    const int ngon_method = args_.export_params->ngon_method;
+
+    struct BMeshCreateParams bmcp = {false};
+    struct BMeshFromMeshParams bmfmp = {true, false, false, 0};
+    BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmcp, &bmfmp);
+
+    BM_mesh_triangulate(bm, quad_method, ngon_method, 4, tag_only, nullptr, nullptr, nullptr);
+
+    Mesh *triangulated_mesh = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
+    BM_mesh_free(bm);
+
+    if (needsfree) {
+      free_export_mesh(mesh);
+    }
+    mesh = triangulated_mesh;
+    needsfree = true;
+  }
+
+  m_custom_data_config.pack_uvs = args_.export_params->packuv;
+  m_custom_data_config.mpoly = mesh->mpoly;
+  m_custom_data_config.mloop = mesh->mloop;
+  m_custom_data_config.totpoly = mesh->totpoly;
+  m_custom_data_config.totloop = mesh->totloop;
+  m_custom_data_config.totvert = mesh->totvert;
+
+  try {
+    if (is_subd_) {
+      write_subd(context, mesh);
+    }
+    else {
+      write_mesh(context, mesh);
+    }
+
+    if (needsfree) {
+      free_export_mesh(mesh);
+    }
+  }
+  catch (...) {
+    if (needsfree) {
+      free_export_mesh(mesh);
+    }
+    throw;
+  }
+}
+
+void ABCGenericMeshWriter::free_export_mesh(Mesh *mesh)
+{
+  BKE_id_free(nullptr, mesh);
+}
+
+void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
+{
+  std::vector<Imath::V3f> points, normals;
+  std::vector<int32_t> poly_verts, loop_counts;
+  std::vector<Imath::V3f> velocities;
+  bool has_flat_shaded_poly = false;
+
+  get_vertices(mesh, points);
+  get_topology(mesh, poly_verts, loop_counts, has_flat_shaded_poly);
+
+  if (!frame_has_been_written_ && args_.export_params->face_sets) {
+    write_face_sets(context.object, mesh, abc_poly_mesh_schema_);
+  }
+
+  OPolyMeshSchema::Sample mesh_sample = OPolyMeshSchema::Sample(
+      V3fArraySample(points), Int32ArraySample(poly_verts), Int32ArraySample(loop_counts));
+
+  UVSample uvs_and_indices;
+
+  if (!frame_has_been_written_ && args_.export_params->uvs) {
+    const char *name = get_uv_sample(uvs_and_indices, m_custom_data_config, &mesh->ldata);
+
+    if (!uvs_and_indices.indices.empty() && !uvs_and_indices.uvs.empty()) {
+      OV2fGeomParam::Sample uv_sample;
+      uv_sample.setVals(V2fArraySample(uvs_and_indices.uvs));
+      uv_sample.setIndices(UInt32ArraySample(uvs_and_indices.indices));
+      uv_sample.setScope(kFacevaryingScope);
+
+      abc_poly_mesh_schema_.setUVSourceName(name);
+      mesh_sample.setUVs(uv_sample);
+    }
+
+    write_custom_data(
+        abc_poly_mesh_schema_.getArbGeomParams(), m_custom_data_config, &mesh->ldata, CD_MLOOPUV);
+  }
+
+  if (args_.export_params->normals) {
+    get_loop_normals(mesh, normals, has_flat_shaded_poly);
+
+    ON3fGeomParam::Sample normals_sample;
+    if (!normals.empty()) {
+      normals_sample.setScope(kFacevaryingScope);
+      normals_sample.setVals(V3fArraySample(normals));
+    }
+
+    mesh_sample.setNormals(normals_sample);
+  }
+
+  if (liquid_sim_modifier_ != nullptr) {
+    get_velocities(mesh, velocities);
+    mesh_sample.setVelocities(V3fArraySample(velocities));
+  }
+
+  update_bounding_box(context.object);
+  mesh_sample.setSelfBounds(bounding_box_);
+
+  abc_poly_mesh_schema_.set(mesh_sample);
+
+  write_arb_geo_params(mesh);
+}
+
+void ABCGenericMeshWriter::write_subd(HierarchyContext &context, struct Mesh *mesh)
+{
+  std::vector<float> crease_sharpness;
+  std::vector<Imath::V3f> points;
+  std::vector<int32_t> poly_verts, loop_counts;
+  std::vector<int32_t> crease_indices, crease_lengths;
+  bool has_flat_poly = false;
+
+  get_vertices(mesh, points);
+  get_topology(mesh, poly_verts, loop_counts, has_flat_poly);
+  get_creases(mesh, crease_indices, crease_lengths, crease_sharpness);
+
+  if (!frame_has_been_written_ && args_.export_params->face_sets) {
+    write_face_sets(context.object, mesh, abc_subdiv_schema_);
+  }
+
+  OSubDSchema::Sample subdiv_sample = OSubDSchema::Sample(
+      V3fArraySample(points), Int32ArraySample(poly_verts), Int32ArraySample(loop_counts));
+
+  UVSample sample;
+  if (!frame_has_been_written_ && args_.export_params->uvs) {
+    const char *name = get_uv_sample(sample, m_custom_data_config, &mesh->ldata);
+
+    if (!sample.indices.empty() && !sample.uvs.empty()) {
+      OV2fGeomParam::Sample uv_sample;
+      uv_sample.setVals(V2fArraySample(sample.uvs));
+      uv_sample.setIndices(UInt32ArraySample(sample.indices));
+      uv_sample.setScope(kFacevaryingScope);
+
+      abc_subdiv_schema_.setUVSourceName(name);
+      subdiv_sample.setUVs(uv_sample);
+    }
+
+    write_custom_data(
+        abc_subdiv_schema_.getArbGeomParams(), m_custom_data_config, &mesh->ldata, CD_MLOOPUV);
+  }
+
+  if (!crease_indices.empty()) {
+    subdiv_sample.setCreaseIndices(Int32ArraySample(crease_indices));
+    subdiv_sample.setCreaseLengths(Int32ArraySample(crease_lengths));
+    subdiv_sample.setCreaseSharpnesses(FloatArraySample(crease_sharpness));
+  }
+
+  update_bounding_box(context.object);
+  subdiv_sample.setSelfBounds(bounding_box_);
+  abc_subdiv_schema_.set(subdiv_sample);
+
+  write_arb_geo_params(mesh);
+}
+
+template<typename Schema>
+void ABCGenericMeshWriter::write_face_sets(Object *object, struct Mesh *mesh, Schema &schema)
+{
+  std::map<std::string, std::vector<int32_t>> geo_groups;
+  get_geo_groups(object, mesh, geo_groups);
+
+  std::map<std::string, std::vector<int32_t>>::iterator it;
+  for (it = geo_groups.begin(); it != geo_groups.end(); ++it) {
+    OFaceSet face_set = schema.createFaceSet(it->first);
+    OFaceSetSchema::Sample samp;
+    samp.setFaces(Int32ArraySample(it->second));
+    face_set.getSchema().set(samp);
+  }
+}
+
+void ABCGenericMeshWriter::write_arb_geo_params(struct Mesh *me)
+{
+  if (liquid_sim_modifier_ != nullptr) {
+    /* We don't need anything more for liquid meshes. */
+    return;
+  }
+
+  if (frame_has_been_written_ || !args_.export_params->vcolors) {
+    return;
+  }
+
+  OCompoundProperty arb_geom_params;
+  if (is_subd_) {
+    arb_geom_params = abc_subdiv_.getSchema().getArbGeomParams();
+  }
+  else {
+    arb_geom_params = abc_poly_mesh_.getSchema().getArbGeomParams();
+  }
+  write_custom_data(arb_geom_params, m_custom_data_config, &me->ldata, CD_MLOOPCOL);
+}
+
+void ABCGenericMeshWriter::get_velocities(struct Mesh *mesh, std::vector<Imath::V3f> &vels)
+{
+  const int totverts = mesh->totvert;
+
+  vels.clear();
+  vels.resize(totverts);
+
+  FluidsimModifierData *fmd = reinterpret_cast<FluidsimModifierData *>(liquid_sim_modifier_);
+  FluidsimSettings *fss = fmd->fss;
+
+  if (fss->meshVelocities) {
+    float *mesh_vels = reinterpret_cast<float *>(fss->meshVelocities);
+
+    for (int i = 0; i < totverts; i++) {
+      copy_yup_from_zup(vels[i].getValue(), mesh_vels);
+      mesh_vels += 3;
+    }
+  }
+  else {
+    std::fill(vels.begin(), vels.end(), Imath::V3f(0.0f));
+  }
+}
+
+void ABCGenericMeshWriter::get_geo_groups(Object *object,
+                                          struct Mesh *mesh,
+                                          std::map<std::string, std::vector<int32_t>> &geo_groups)
+{
+  const int num_poly = mesh->totpoly;
+  MPoly *polygons = mesh->mpoly;
+
+  for (int i = 0; i < num_poly; i++) {
+    MPoly &current_poly = polygons[i];
+    short mnr = current_poly.mat_nr;
+
+    Material *mat = BKE_object_material_get(object, mnr + 1);
+
+    if (!mat) {
+      continue;
+    }
+
+    std::string name = args_.hierarchy_iterator->get_id_name(&mat->id);
+
+    if (geo_groups.find(name) == geo_groups.end()) {
+      std::vector<int32_t> faceArray;
+      geo_groups[name] = faceArray;
+    }
+
+    geo_groups[name].push_back(i);
+  }
+
+  if (geo_groups.size() == 0) {
+    Material *mat = BKE_object_material_get(object, 1);
+
+    std::string name = (mat) ? args_.hierarchy_iterator->get_id_name(&mat->id) : "default";
+
+    std::vector<int32_t> faceArray;
+
+    for (int i = 0, e = mesh->totface; i < e; i++) {
+      faceArray.push_back(i);
+    }
+
+    geo_groups[name] = faceArray;
+  }
+}
 
 /* NOTE: Alembic's polygon winding order is clockwise, to match with Renderman. */
 
@@ -148,7 +544,7 @@ static void get_loop_normals(struct Mesh *mesh,
 
   BKE_mesh_calc_normals_split(mesh);
   const float(*lnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
-  BLI_assert(lnors != NULL || !"BKE_mesh_calc_normals_split() should have computed CD_NORMAL");
+  BLI_assert(lnors != nullptr || !"BKE_mesh_calc_normals_split() should have computed CD_NORMAL");
 
   normals.resize(mesh->totloop);
 
@@ -163,435 +559,13 @@ static void get_loop_normals(struct Mesh *mesh,
   }
 }
 
-/* *************** Modifiers *************** */
-
-/* check if the mesh is a subsurf, ignoring disabled modifiers and
- * displace if it's after subsurf. */
-static ModifierData *get_subsurf_modifier(Scene *scene, Object *ob)
-{
-  ModifierData *md = static_cast<ModifierData *>(ob->modifiers.last);
-
-  for (; md; md = md->prev) {
-    if (!BKE_modifier_is_enabled(scene, md, eModifierMode_Render)) {
-      continue;
-    }
-
-    if (md->type == eModifierType_Subsurf) {
-      SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(md);
-
-      if (smd->subdivType == ME_CC_SUBSURF) {
-        return md;
-      }
-    }
-
-    /* mesh is not a subsurf. break */
-    if ((md->type != eModifierType_Displace) && (md->type != eModifierType_ParticleSystem)) {
-      return NULL;
-    }
-  }
-
-  return NULL;
-}
-
-static ModifierData *get_liquid_sim_modifier(Scene *scene, Object *ob)
-{
-  ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Fluidsim);
-
-  if (md && (BKE_modifier_is_enabled(scene, md, eModifierMode_Render))) {
-    FluidsimModifierData *fsmd = reinterpret_cast<FluidsimModifierData *>(md);
-
-    if (fsmd->fss && fsmd->fss->type == OB_FLUIDSIM_DOMAIN) {
-      return md;
-    }
-  }
-
-  return NULL;
-}
-
-/* ************************************************************************** */
-
-AbcGenericMeshWriter::AbcGenericMeshWriter(Object *ob,
-                                           AbcTransformWriter *parent,
-                                           uint32_t time_sampling,
-                                           ExportSettings &settings)
-    : AbcObjectWriter(ob, time_sampling, settings, parent)
-{
-  m_is_animated = isAnimated();
-  m_subsurf_mod = NULL;
-  m_is_subd = false;
-
-  /* If the object is static, use the default static time sampling. */
-  if (!m_is_animated) {
-    time_sampling = 0;
-  }
-
-  if (!m_settings.apply_subdiv) {
-    m_subsurf_mod = get_subsurf_modifier(m_settings.scene, m_object);
-    m_is_subd = (m_subsurf_mod != NULL);
-  }
-
-  m_is_liquid = (get_liquid_sim_modifier(m_settings.scene, m_object) != NULL);
-
-  while (parent->alembicXform().getChildHeader(m_name)) {
-    m_name.append("_");
-  }
-
-  if (m_settings.use_subdiv_schema && m_is_subd) {
-    OSubD subd(parent->alembicXform(), m_name, m_time_sampling);
-    m_subdiv_schema = subd.getSchema();
-  }
-  else {
-    OPolyMesh mesh(parent->alembicXform(), m_name, m_time_sampling);
-    m_mesh_schema = mesh.getSchema();
-
-    OCompoundProperty typeContainer = m_mesh_schema.getUserProperties();
-    OBoolProperty type(typeContainer, "meshtype");
-    type.set(m_is_subd);
-  }
-}
-
-AbcGenericMeshWriter::~AbcGenericMeshWriter()
-{
-  if (m_subsurf_mod) {
-    m_subsurf_mod->mode &= ~eModifierMode_DisableTemporary;
-  }
-}
-
-bool AbcGenericMeshWriter::isAnimated() const
-{
-  if (BKE_animdata_id_is_animated(static_cast<ID *>(m_object->data))) {
-    return true;
-  }
-  if (BKE_key_from_object(m_object) != NULL) {
-    return true;
-  }
-
-  /* Test modifiers. */
-  ModifierData *md = static_cast<ModifierData *>(m_object->modifiers.first);
-  while (md) {
-
-    if (md->type != eModifierType_Subsurf) {
-      return true;
-    }
-
-    md = md->next;
-  }
-
-  return false;
-}
-
-void AbcGenericMeshWriter::setIsAnimated(bool is_animated)
-{
-  m_is_animated = is_animated;
-}
-
-void AbcGenericMeshWriter::do_write()
-{
-  /* We have already stored a sample for this object. */
-  if (!m_first_frame && !m_is_animated) {
-    return;
-  }
-
-  bool needsfree;
-  struct Mesh *mesh = getFinalMesh(needsfree);
-
-  try {
-    if (m_settings.use_subdiv_schema && m_subdiv_schema.valid()) {
-      writeSubD(mesh);
-    }
-    else {
-      writeMesh(mesh);
-    }
-
-    if (needsfree) {
-      freeEvaluatedMesh(mesh);
-    }
-  }
-  catch (...) {
-    if (needsfree) {
-      freeEvaluatedMesh(mesh);
-    }
-    throw;
-  }
-}
-
-void AbcGenericMeshWriter::freeEvaluatedMesh(struct Mesh *mesh)
-{
-  BKE_id_free(NULL, mesh);
-}
-
-void AbcGenericMeshWriter::writeMesh(struct Mesh *mesh)
-{
-  std::vector<Imath::V3f> points, normals;
-  std::vector<int32_t> poly_verts, loop_counts;
-  std::vector<Imath::V3f> velocities;
-  bool has_flat_shaded_poly = false;
-
-  get_vertices(mesh, points);
-  get_topology(mesh, poly_verts, loop_counts, has_flat_shaded_poly);
-
-  if (m_first_frame && m_settings.export_face_sets) {
-    writeFaceSets(mesh, m_mesh_schema);
-  }
-
-  m_mesh_sample = OPolyMeshSchema::Sample(
-      V3fArraySample(points), Int32ArraySample(poly_verts), Int32ArraySample(loop_counts));
-
-  UVSample sample;
-  if (m_settings.export_uvs) {
-    const char *name = get_uv_sample(sample, m_custom_data_config, &mesh->ldata);
-
-    if (!sample.indices.empty() && !sample.uvs.empty()) {
-      OV2fGeomParam::Sample uv_sample;
-      uv_sample.setVals(V2fArraySample(sample.uvs));
-      uv_sample.setIndices(UInt32ArraySample(sample.indices));
-      uv_sample.setScope(kFacevaryingScope);
-
-      m_mesh_schema.setUVSourceName(name);
-      m_mesh_sample.setUVs(uv_sample);
-    }
-
-    write_custom_data(
-        m_mesh_schema.getArbGeomParams(), m_custom_data_config, &mesh->ldata, CD_MLOOPUV);
-  }
-
-  if (m_settings.export_normals) {
-    get_loop_normals(mesh, normals, has_flat_shaded_poly);
-
-    ON3fGeomParam::Sample normals_sample;
-    if (!normals.empty()) {
-      normals_sample.setScope(kFacevaryingScope);
-      normals_sample.setVals(V3fArraySample(normals));
-    }
-
-    m_mesh_sample.setNormals(normals_sample);
-  }
-
-  if (m_is_liquid) {
-    getVelocities(mesh, velocities);
-    m_mesh_sample.setVelocities(V3fArraySample(velocities));
-  }
-
-  m_mesh_sample.setSelfBounds(bounds());
-
-  m_mesh_schema.set(m_mesh_sample);
-
-  writeArbGeoParams(mesh);
-}
-
-void AbcGenericMeshWriter::writeSubD(struct Mesh *mesh)
-{
-  std::vector<float> crease_sharpness;
-  std::vector<Imath::V3f> points;
-  std::vector<int32_t> poly_verts, loop_counts;
-  std::vector<int32_t> crease_indices, crease_lengths;
-  bool has_flat_poly = false;
-
-  get_vertices(mesh, points);
-  get_topology(mesh, poly_verts, loop_counts, has_flat_poly);
-  get_creases(mesh, crease_indices, crease_lengths, crease_sharpness);
-
-  if (m_first_frame && m_settings.export_face_sets) {
-    writeFaceSets(mesh, m_subdiv_schema);
-  }
-
-  m_subdiv_sample = OSubDSchema::Sample(
-      V3fArraySample(points), Int32ArraySample(poly_verts), Int32ArraySample(loop_counts));
-
-  UVSample sample;
-  if (m_first_frame && m_settings.export_uvs) {
-    const char *name = get_uv_sample(sample, m_custom_data_config, &mesh->ldata);
-
-    if (!sample.indices.empty() && !sample.uvs.empty()) {
-      OV2fGeomParam::Sample uv_sample;
-      uv_sample.setVals(V2fArraySample(sample.uvs));
-      uv_sample.setIndices(UInt32ArraySample(sample.indices));
-      uv_sample.setScope(kFacevaryingScope);
-
-      m_subdiv_schema.setUVSourceName(name);
-      m_subdiv_sample.setUVs(uv_sample);
-    }
-
-    write_custom_data(
-        m_subdiv_schema.getArbGeomParams(), m_custom_data_config, &mesh->ldata, CD_MLOOPUV);
-  }
-
-  if (!crease_indices.empty()) {
-    m_subdiv_sample.setCreaseIndices(Int32ArraySample(crease_indices));
-    m_subdiv_sample.setCreaseLengths(Int32ArraySample(crease_lengths));
-    m_subdiv_sample.setCreaseSharpnesses(FloatArraySample(crease_sharpness));
-  }
-
-  m_subdiv_sample.setSelfBounds(bounds());
-  m_subdiv_schema.set(m_subdiv_sample);
-
-  writeArbGeoParams(mesh);
-}
-
-template<typename Schema> void AbcGenericMeshWriter::writeFaceSets(struct Mesh *me, Schema &schema)
-{
-  std::map<std::string, std::vector<int32_t>> geo_groups;
-  getGeoGroups(me, geo_groups);
-
-  std::map<std::string, std::vector<int32_t>>::iterator it;
-  for (it = geo_groups.begin(); it != geo_groups.end(); ++it) {
-    OFaceSet face_set = schema.createFaceSet(it->first);
-    OFaceSetSchema::Sample samp;
-    samp.setFaces(Int32ArraySample(it->second));
-    face_set.getSchema().set(samp);
-  }
-}
-
-Mesh *AbcGenericMeshWriter::getFinalMesh(bool &r_needsfree)
-{
-  /* We don't want subdivided mesh data */
-  if (m_subsurf_mod) {
-    m_subsurf_mod->mode |= eModifierMode_DisableTemporary;
-  }
-
-  r_needsfree = false;
-
-  Scene *scene = DEG_get_evaluated_scene(m_settings.depsgraph);
-  Object *ob_eval = DEG_get_evaluated_object(m_settings.depsgraph, m_object);
-  struct Mesh *mesh = getEvaluatedMesh(scene, ob_eval, r_needsfree);
-
-  if (m_subsurf_mod) {
-    m_subsurf_mod->mode &= ~eModifierMode_DisableTemporary;
-  }
-
-  if (m_settings.triangulate) {
-    const bool tag_only = false;
-    const int quad_method = m_settings.quad_method;
-    const int ngon_method = m_settings.ngon_method;
-
-    struct BMeshCreateParams bmcp = {false};
-    struct BMeshFromMeshParams bmfmp = {true, false, false, 0};
-    BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmcp, &bmfmp);
-
-    BM_mesh_triangulate(bm, quad_method, ngon_method, 4, tag_only, NULL, NULL, NULL);
-
-    Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
-    BM_mesh_free(bm);
-
-    if (r_needsfree) {
-      BKE_id_free(NULL, mesh);
-    }
-
-    mesh = result;
-    r_needsfree = true;
-  }
-
-  m_custom_data_config.pack_uvs = m_settings.pack_uv;
-  m_custom_data_config.mpoly = mesh->mpoly;
-  m_custom_data_config.mloop = mesh->mloop;
-  m_custom_data_config.totpoly = mesh->totpoly;
-  m_custom_data_config.totloop = mesh->totloop;
-  m_custom_data_config.totvert = mesh->totvert;
-
-  return mesh;
-}
-
-void AbcGenericMeshWriter::writeArbGeoParams(struct Mesh *me)
-{
-  if (m_is_liquid) {
-    /* We don't need anything more for liquid meshes. */
-    return;
-  }
-
-  if (m_first_frame && m_settings.export_vcols) {
-    if (m_subdiv_schema.valid()) {
-      write_custom_data(
-          m_subdiv_schema.getArbGeomParams(), m_custom_data_config, &me->ldata, CD_MLOOPCOL);
-    }
-    else {
-      write_custom_data(
-          m_mesh_schema.getArbGeomParams(), m_custom_data_config, &me->ldata, CD_MLOOPCOL);
-    }
-  }
-}
-
-void AbcGenericMeshWriter::getVelocities(struct Mesh *mesh, std::vector<Imath::V3f> &vels)
-{
-  const int totverts = mesh->totvert;
-
-  vels.clear();
-  vels.resize(totverts);
-
-  ModifierData *md = get_liquid_sim_modifier(m_settings.scene, m_object);
-  FluidsimModifierData *fmd = reinterpret_cast<FluidsimModifierData *>(md);
-  FluidsimSettings *fss = fmd->fss;
-
-  if (fss->meshVelocities) {
-    float *mesh_vels = reinterpret_cast<float *>(fss->meshVelocities);
-
-    for (int i = 0; i < totverts; i++) {
-      copy_yup_from_zup(vels[i].getValue(), mesh_vels);
-      mesh_vels += 3;
-    }
-  }
-  else {
-    std::fill(vels.begin(), vels.end(), Imath::V3f(0.0f));
-  }
-}
-
-void AbcGenericMeshWriter::getGeoGroups(struct Mesh *mesh,
-                                        std::map<std::string, std::vector<int32_t>> &geo_groups)
-{
-  const int num_poly = mesh->totpoly;
-  MPoly *polygons = mesh->mpoly;
-
-  for (int i = 0; i < num_poly; i++) {
-    MPoly &current_poly = polygons[i];
-    short mnr = current_poly.mat_nr;
-
-    Material *mat = BKE_object_material_get(m_object, mnr + 1);
-
-    if (!mat) {
-      continue;
-    }
-
-    std::string name = get_id_name(&mat->id);
-
-    if (geo_groups.find(name) == geo_groups.end()) {
-      std::vector<int32_t> faceArray;
-      geo_groups[name] = faceArray;
-    }
-
-    geo_groups[name].push_back(i);
-  }
-
-  if (geo_groups.size() == 0) {
-    Material *mat = BKE_object_material_get(m_object, 1);
-
-    std::string name = (mat) ? get_id_name(&mat->id) : "default";
-
-    std::vector<int32_t> faceArray;
-
-    for (int i = 0, e = mesh->totface; i < e; i++) {
-      faceArray.push_back(i);
-    }
-
-    geo_groups[name] = faceArray;
-  }
-}
-
-AbcMeshWriter::AbcMeshWriter(Object *ob,
-                             AbcTransformWriter *parent,
-                             uint32_t time_sampling,
-                             ExportSettings &settings)
-    : AbcGenericMeshWriter(ob, parent, time_sampling, settings)
+ABCMeshWriter::ABCMeshWriter(const ABCWriterConstructorArgs &args) : ABCGenericMeshWriter(args)
 {
 }
 
-AbcMeshWriter::~AbcMeshWriter()
+Mesh *ABCMeshWriter::get_export_mesh(Object *object_eval, bool & /*r_needsfree*/)
 {
-}
-
-Mesh *AbcMeshWriter::getEvaluatedMesh(Scene *scene_eval,
-                                      Object *ob_eval,
-                                      bool &UNUSED(r_needsfree))
-{
-  return mesh_get_eval_final(m_settings.depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
+  return BKE_object_get_evaluated_mesh(object_eval);
 }
 
 }  // namespace alembic

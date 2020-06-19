@@ -19,7 +19,6 @@
  */
 
 #include "abc_writer_nurbs.h"
-#include "abc_writer_transform.h"
 #include "intern/abc_axis_conversion.h"
 
 #include "DNA_curve_types.h"
@@ -29,50 +28,68 @@
 
 #include "BKE_curve.h"
 
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.alembic"};
+
+namespace blender {
+namespace io {
+namespace alembic {
+
+using Alembic::Abc::OObject;
 using Alembic::AbcGeom::FloatArraySample;
 using Alembic::AbcGeom::OBoolProperty;
 using Alembic::AbcGeom::OCompoundProperty;
 using Alembic::AbcGeom::ONuPatch;
 using Alembic::AbcGeom::ONuPatchSchema;
 
-namespace blender {
-namespace io {
-namespace alembic {
-
-AbcNurbsWriter::AbcNurbsWriter(Object *ob,
-                               AbcTransformWriter *parent,
-                               uint32_t time_sampling,
-                               ExportSettings &settings)
-    : AbcObjectWriter(ob, time_sampling, settings, parent)
+ABCNurbsWriter::ABCNurbsWriter(const ABCWriterConstructorArgs &args) : ABCAbstractWriter(args)
 {
-  m_is_animated = isAnimated();
+}
 
-  /* if the object is static, use the default static time sampling */
-  if (!m_is_animated) {
-    m_time_sampling = 0;
-  }
+void ABCNurbsWriter::create_alembic_objects(const HierarchyContext *context)
+{
+  Curve *curve = static_cast<Curve *>(context->object->data);
+  size_t num_nurbs = BLI_listbase_count(&curve->nurb);
+  OObject abc_parent = args_.abc_parent;
+  const char *abc_parent_path = abc_parent.getFullName().c_str();
 
-  Curve *curve = static_cast<Curve *>(m_object->data);
-  size_t numNurbs = BLI_listbase_count(&curve->nurb);
+  for (size_t i = 0; i < num_nurbs; i++) {
+    std::stringstream patch_name_stream;
+    patch_name_stream << args_.abc_name << '_' << i;
 
-  for (size_t i = 0; i < numNurbs; i++) {
-    std::stringstream str;
-    str << m_name << '_' << i;
-
-    while (parent->alembicXform().getChildHeader(str.str())) {
-      str << "_";
+    while (abc_parent.getChildHeader(patch_name_stream.str())) {
+      patch_name_stream << "_";
     }
 
-    ONuPatch nurbs(parent->alembicXform(), str.str().c_str(), m_time_sampling);
-    m_nurbs_schema.push_back(nurbs.getSchema());
+    std::string patch_name = patch_name_stream.str();
+    CLOG_INFO(&LOG, 2, "exporting %s/%s", abc_parent_path, patch_name.c_str());
+
+    ONuPatch nurbs(abc_parent, patch_name.c_str(), timesample_index_);
+    abc_nurbs_.push_back(nurbs);
+    abc_nurbs_schemas_.push_back(nurbs.getSchema());
   }
 }
 
-bool AbcNurbsWriter::isAnimated() const
+const OObject ABCNurbsWriter::get_alembic_object() const
 {
-  /* check if object has shape keys */
-  Curve *cu = static_cast<Curve *>(m_object->data);
+  if (abc_nurbs_.empty()) {
+    return OObject();
+  }
+  /* For parenting purposes within the Alembic file, all NURBS patches are equal, so just use the
+   * first one. */
+  return abc_nurbs_[0];
+}
+
+bool ABCNurbsWriter::check_is_animated(const HierarchyContext &context) const
+{
+  /* Check if object has shape keys. */
+  Curve *cu = static_cast<Curve *>(context.object->data);
   return (cu->key != NULL);
+}
+
+bool ABCNurbsWriter::is_supported(const HierarchyContext *context) const
+{
+  return ELEM(context->object->type, OB_SURF, OB_CURVE);
 }
 
 static void get_knots(std::vector<float> &knots, const int num_knots, float *nu_knots)
@@ -95,22 +112,13 @@ static void get_knots(std::vector<float> &knots, const int num_knots, float *nu_
   knots.push_back(2.0f * knots[num_knots] - knots[num_knots - 1]);
 }
 
-void AbcNurbsWriter::do_write()
+void ABCNurbsWriter::do_write(HierarchyContext &context)
 {
-  /* we have already stored a sample for this object. */
-  if (!m_first_frame && !m_is_animated) {
-    return;
-  }
-
-  if (!ELEM(m_object->type, OB_SURF, OB_CURVE)) {
-    return;
-  }
-
-  Curve *curve = static_cast<Curve *>(m_object->data);
+  Curve *curve = static_cast<Curve *>(context.object->data);
   ListBase *nulb;
 
-  if (m_object->runtime.curve_cache->deformed_nurbs.first != NULL) {
-    nulb = &m_object->runtime.curve_cache->deformed_nurbs;
+  if (context.object->runtime.curve_cache->deformed_nurbs.first != NULL) {
+    nulb = &context.object->runtime.curve_cache->deformed_nurbs;
   }
   else {
     nulb = BKE_curve_nurbs_get(curve);
@@ -147,7 +155,7 @@ void AbcNurbsWriter::do_write()
 
     /* TODO(kevin): to accommodate other software we should duplicate control
      * points to indicate that a NURBS is cyclic. */
-    OCompoundProperty user_props = m_nurbs_schema[count].getUserProperties();
+    OCompoundProperty user_props = abc_nurbs_schemas_[count].getUserProperties();
 
     if ((nu->flagu & CU_NURB_ENDPOINT) != 0) {
       OBoolProperty prop(user_props, "endpoint_u");
@@ -169,7 +177,7 @@ void AbcNurbsWriter::do_write()
       prop.set(true);
     }
 
-    m_nurbs_schema[count].set(sample);
+    abc_nurbs_schemas_[count].set(sample);
   }
 }
 

@@ -197,8 +197,8 @@ class AbstractHierarchyIterator {
 
   /* Iterate over the depsgraph, create writers, and tell the writers to write.
    * Main entry point for the AbstractHierarchyIterator, must be called for every to-be-exported
-   * frame. */
-  void iterate_and_write();
+   * (sub)frame. */
+  virtual void iterate_and_write();
 
   /* Release all writers. Call after all frames have been exported. */
   void release_writers();

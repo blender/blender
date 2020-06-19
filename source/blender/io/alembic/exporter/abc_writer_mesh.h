@@ -19,75 +19,75 @@
  * \ingroup balembic
  */
 
-#include "abc_writer_object.h"
+#include "abc_writer_abstract.h"
 #include "intern/abc_customdata.h"
 
-struct Mesh;
+#include <Alembic/AbcGeom/OPolyMesh.h>
+#include <Alembic/AbcGeom/OSubD.h>
+
 struct ModifierData;
 
 namespace blender {
 namespace io {
 namespace alembic {
 
-/* Writer for Alembic meshes. Does not assume the object is a mesh object. */
-class AbcGenericMeshWriter : public AbcObjectWriter {
- protected:
-  Alembic::AbcGeom::OPolyMeshSchema m_mesh_schema;
-  Alembic::AbcGeom::OPolyMeshSchema::Sample m_mesh_sample;
+/* Writer for Alembic geometry. Does not assume the object is a mesh object. */
+class ABCGenericMeshWriter : public ABCAbstractWriter {
+ private:
+  /* Either polymesh or subd is used, depending on is_subd_.
+   * References to the schema must be kept, or Alembic will not properly write. */
+  Alembic::AbcGeom::OPolyMesh abc_poly_mesh_;
+  Alembic::AbcGeom::OPolyMeshSchema abc_poly_mesh_schema_;
 
-  Alembic::AbcGeom::OSubDSchema m_subdiv_schema;
-  Alembic::AbcGeom::OSubDSchema::Sample m_subdiv_sample;
+  Alembic::AbcGeom::OSubD abc_subdiv_;
+  Alembic::AbcGeom::OSubDSchema abc_subdiv_schema_;
 
-  Alembic::Abc::OArrayProperty m_mat_indices;
-
-  bool m_is_animated;
-  ModifierData *m_subsurf_mod;
+  /* Determines whether a poly mesh or a subdivision surface is exported.
+   * The value is set by an export option but only true if there is a subsdivision modifier on the
+   * exported object. */
+  bool is_subd_;
+  ModifierData *subsurf_modifier_;
+  ModifierData *liquid_sim_modifier_;
 
   CDStreamConfig m_custom_data_config;
 
-  bool m_is_liquid;
-  bool m_is_subd;
-
  public:
-  AbcGenericMeshWriter(Object *ob,
-                       AbcTransformWriter *parent,
-                       uint32_t time_sampling,
-                       ExportSettings &settings);
+  explicit ABCGenericMeshWriter(const ABCWriterConstructorArgs &args);
+  virtual ~ABCGenericMeshWriter();
 
-  ~AbcGenericMeshWriter();
-  void setIsAnimated(bool is_animated);
+  virtual void create_alembic_objects(const HierarchyContext *context) override;
+  virtual const Alembic::Abc::OObject get_alembic_object() const;
 
  protected:
-  virtual void do_write();
-  virtual bool isAnimated() const;
-  virtual Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree) = 0;
-  virtual void freeEvaluatedMesh(struct Mesh *mesh);
+  virtual bool is_supported(const HierarchyContext *context) const override;
+  virtual void do_write(HierarchyContext &context) override;
 
-  Mesh *getFinalMesh(bool &r_needsfree);
+  virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) = 0;
+  virtual void free_export_mesh(Mesh *mesh);
 
-  void writeMesh(struct Mesh *mesh);
-  void writeSubD(struct Mesh *mesh);
+  virtual bool export_as_subdivision_surface(Object *ob_eval) const;
 
-  void writeArbGeoParams(struct Mesh *mesh);
-  void getGeoGroups(struct Mesh *mesh, std::map<std::string, std::vector<int32_t>> &geoGroups);
+ private:
+  void write_mesh(HierarchyContext &context, Mesh *mesh);
+  void write_subd(HierarchyContext &context, Mesh *mesh);
+  template<typename Schema> void write_face_sets(Object *object, Mesh *mesh, Schema &schema);
 
-  /* fluid surfaces support */
-  void getVelocities(struct Mesh *mesh, std::vector<Imath::V3f> &vels);
+  ModifierData *get_liquid_sim_modifier(Scene *scene_eval, Object *ob_eval);
 
-  template<typename Schema> void writeFaceSets(struct Mesh *mesh, Schema &schema);
+  void write_arb_geo_params(Mesh *me);
+  void get_velocities(Mesh *mesh, std::vector<Imath::V3f> &vels);
+  void get_geo_groups(Object *object,
+                      Mesh *mesh,
+                      std::map<std::string, std::vector<int32_t>> &geo_groups);
 };
 
-class AbcMeshWriter : public AbcGenericMeshWriter {
+/* Writer for Alembic geometry of Blender Mesh objects. */
+class ABCMeshWriter : public ABCGenericMeshWriter {
  public:
-  AbcMeshWriter(Object *ob,
-                AbcTransformWriter *parent,
-                uint32_t time_sampling,
-                ExportSettings &settings);
-
-  ~AbcMeshWriter();
+  ABCMeshWriter(const ABCWriterConstructorArgs &args);
 
  protected:
-  virtual Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree) override;
+  virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
 };
 
 }  // namespace alembic

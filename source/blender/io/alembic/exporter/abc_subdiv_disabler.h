@@ -12,60 +12,42 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2020 Blender Foundation.
+ * All rights reserved.
  */
 #pragma once
 
-/** \file
- * \ingroup balembic
- */
+#include <set>
 
-#include <Alembic/Abc/All.h>
-#include <Alembic/AbcGeom/All.h>
-
-#include "abc_exporter.h"
-
-#include "DNA_ID.h"
-
-struct Main;
+struct Depsgraph;
+struct ModifierData;
 struct Object;
+struct Scene;
 
 namespace blender {
 namespace io {
 namespace alembic {
 
-class AbcTransformWriter;
-
-class AbcObjectWriter {
- protected:
-  Object *m_object;
-  ExportSettings &m_settings;
-
-  uint32_t m_time_sampling;
-
-  Imath::Box3d m_bounds;
-  std::vector<AbcObjectWriter *> m_children;
-
-  std::vector<std::pair<std::string, IDProperty *>> m_props;
-
-  bool m_first_frame;
-  std::string m_name;
+/**
+ * Temporarily all subdivision modifiers on mesh objects.
+ * The destructor restores all disabled modifiers.
+ *
+ * This is used to export unsubdivided meshes to Alembic. It is done in a separate step before the
+ * exporter starts iterating over all the frames, so that it only has to happen once per export.
+ */
+class SubdivModifierDisabler final {
+ private:
+  Depsgraph *depsgraph_;
+  std::set<ModifierData *> disabled_modifiers_;
 
  public:
-  AbcObjectWriter(Object *ob,
-                  uint32_t time_sampling,
-                  ExportSettings &settings,
-                  AbcObjectWriter *parent = NULL);
+  explicit SubdivModifierDisabler(Depsgraph *depsgraph);
+  ~SubdivModifierDisabler();
 
-  virtual ~AbcObjectWriter();
+  void disable_modifiers();
 
-  void addChild(AbcObjectWriter *child);
-
-  virtual Imath::Box3d bounds();
-
-  void write();
-
- private:
-  virtual void do_write() = 0;
+  static ModifierData *get_subdiv_modifier(Scene *scene, Object *ob);
 };
 
 }  // namespace alembic

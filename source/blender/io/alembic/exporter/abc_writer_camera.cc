@@ -19,67 +19,90 @@
  */
 
 #include "abc_writer_camera.h"
-#include "abc_writer_transform.h"
+#include "abc_hierarchy_iterator.h"
+
+#include "BKE_camera.h"
+
+#include "BLI_assert.h"
 
 #include "DNA_camera_types.h"
-#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
-using Alembic::AbcGeom::OCamera;
-using Alembic::AbcGeom::OFloatProperty;
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.alembic"};
 
 namespace blender {
 namespace io {
 namespace alembic {
 
-AbcCameraWriter::AbcCameraWriter(Object *ob,
-                                 AbcTransformWriter *parent,
-                                 uint32_t time_sampling,
-                                 ExportSettings &settings)
-    : AbcObjectWriter(ob, time_sampling, settings, parent)
-{
-  OCamera camera(parent->alembicXform(), m_name, m_time_sampling);
-  m_camera_schema = camera.getSchema();
+using Alembic::AbcGeom::CameraSample;
+using Alembic::AbcGeom::OCamera;
+using Alembic::AbcGeom::OFloatProperty;
 
-  m_custom_data_container = m_camera_schema.getUserProperties();
-  m_stereo_distance = OFloatProperty(m_custom_data_container, "stereoDistance", m_time_sampling);
-  m_eye_separation = OFloatProperty(m_custom_data_container, "eyeSeparation", m_time_sampling);
+ABCCameraWriter::ABCCameraWriter(const ABCWriterConstructorArgs &args) : ABCAbstractWriter(args)
+{
 }
 
-void AbcCameraWriter::do_write()
+bool ABCCameraWriter::is_supported(const HierarchyContext *context) const
 {
-  Camera *cam = static_cast<Camera *>(m_object->data);
+  Camera *camera = static_cast<Camera *>(context->object->data);
+  return camera->type == CAM_PERSP;
+}
 
-  m_stereo_distance.set(cam->stereo.convergence_distance);
-  m_eye_separation.set(cam->stereo.interocular_distance);
+void ABCCameraWriter::create_alembic_objects(const HierarchyContext * /*context*/)
+{
+  CLOG_INFO(&LOG, 2, "exporting %s", args_.abc_path.c_str());
+  abc_camera_ = OCamera(args_.abc_parent, args_.abc_name, timesample_index_);
+  abc_camera_schema_ = abc_camera_.getSchema();
+
+  abc_custom_data_container_ = abc_camera_schema_.getUserProperties();
+  abc_stereo_distance_ = OFloatProperty(
+      abc_custom_data_container_, "stereoDistance", timesample_index_);
+  abc_eye_separation_ = OFloatProperty(
+      abc_custom_data_container_, "eyeSeparation", timesample_index_);
+}
+
+const Alembic::Abc::OObject ABCCameraWriter::get_alembic_object() const
+{
+  return abc_camera_;
+}
+
+void ABCCameraWriter::do_write(HierarchyContext &context)
+{
+  Camera *cam = static_cast<Camera *>(context.object->data);
+
+  abc_stereo_distance_.set(cam->stereo.convergence_distance);
+  abc_eye_separation_.set(cam->stereo.interocular_distance);
 
   const double apperture_x = cam->sensor_x / 10.0;
   const double apperture_y = cam->sensor_y / 10.0;
   const double film_aspect = apperture_x / apperture_y;
 
-  m_camera_sample.setFocalLength(cam->lens);
-  m_camera_sample.setHorizontalAperture(apperture_x);
-  m_camera_sample.setVerticalAperture(apperture_y);
-  m_camera_sample.setHorizontalFilmOffset(apperture_x * cam->shiftx);
-  m_camera_sample.setVerticalFilmOffset(apperture_y * cam->shifty * film_aspect);
-  m_camera_sample.setNearClippingPlane(cam->clip_start);
-  m_camera_sample.setFarClippingPlane(cam->clip_end);
+  CameraSample camera_sample;
+  camera_sample.setFocalLength(cam->lens);
+  camera_sample.setHorizontalAperture(apperture_x);
+  camera_sample.setVerticalAperture(apperture_y);
+  camera_sample.setHorizontalFilmOffset(apperture_x * cam->shiftx);
+  camera_sample.setVerticalFilmOffset(apperture_y * cam->shifty * film_aspect);
+  camera_sample.setNearClippingPlane(cam->clip_start);
+  camera_sample.setFarClippingPlane(cam->clip_end);
 
   if (cam->dof.focus_object) {
-    Imath::V3f v(m_object->loc[0] - cam->dof.focus_object->loc[0],
-                 m_object->loc[1] - cam->dof.focus_object->loc[1],
-                 m_object->loc[2] - cam->dof.focus_object->loc[2]);
-    m_camera_sample.setFocusDistance(v.length());
+    Imath::V3f v(context.object->loc[0] - cam->dof.focus_object->loc[0],
+                 context.object->loc[1] - cam->dof.focus_object->loc[1],
+                 context.object->loc[2] - cam->dof.focus_object->loc[2]);
+    camera_sample.setFocusDistance(v.length());
   }
   else {
-    m_camera_sample.setFocusDistance(cam->dof.focus_distance);
+    camera_sample.setFocusDistance(cam->dof.focus_distance);
   }
 
   /* Blender camera does not have an fstop param, so try to find a custom prop
    * instead. */
-  m_camera_sample.setFStop(cam->dof.aperture_fstop);
+  camera_sample.setFStop(cam->dof.aperture_fstop);
 
-  m_camera_sample.setLensSqueezeRatio(1.0);
-  m_camera_schema.set(m_camera_sample);
+  camera_sample.setLensSqueezeRatio(1.0);
+  abc_camera_schema_.set(camera_sample);
 }
 
 }  // namespace alembic

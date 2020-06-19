@@ -8,7 +8,9 @@ extern "C" {
 #include "BLI_utildefines.h"
 }
 
-using namespace blender::io::alembic;
+namespace blender {
+namespace io {
+namespace alembic {
 
 TEST(abc_matrix, CreateRotationMatrixY_YfromZ)
 {
@@ -286,3 +288,7 @@ TEST(abc_matrix, CopyM44AxisSwapWithScale_gimbal_ZfromY)
 
   EXPECT_M4_NEAR(expect, result, 1e-5f);
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

@@ -20,39 +20,24 @@
  */
 
 #include "abc_writer_mesh.h"
-#include "abc_writer_object.h"
-
-struct Main;
-struct Object;
 
 namespace blender {
 namespace io {
 namespace alembic {
 
-/* AbcMBallWriter converts the metaballs to meshes at every frame,
- * and defers to AbcGenericMeshWriter to perform the writing
- * to the Alembic file. Only the basis balls are exported, as this
- * results in the entire shape as one mesh. */
-class AbcMBallWriter : public AbcGenericMeshWriter {
-  Main *m_bmain;
-
+class ABCMetaballWriter : public ABCGenericMeshWriter {
  public:
-  explicit AbcMBallWriter(Main *bmain,
-                          Object *ob,
-                          AbcTransformWriter *parent,
-                          uint32_t time_sampling,
-                          ExportSettings &settings);
-
-  ~AbcMBallWriter();
-
-  static bool isBasisBall(Scene *scene, Object *ob);
+  explicit ABCMetaballWriter(const ABCWriterConstructorArgs &args);
 
  protected:
-  Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree) override;
-  void freeEvaluatedMesh(struct Mesh *mesh) override;
+  virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
+  virtual void free_export_mesh(Mesh *mesh) override;
+  virtual bool is_supported(const HierarchyContext *context) const override;
+  virtual bool check_is_animated(const HierarchyContext &context) const override;
+  virtual bool export_as_subdivision_surface(Object *ob_eval) const override;
 
  private:
-  bool isAnimated() const override;
+  bool is_basis_ball(Scene *scene, Object *ob) const;
 };
 
 }  // namespace alembic

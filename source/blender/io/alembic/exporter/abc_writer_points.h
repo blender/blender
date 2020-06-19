@@ -22,30 +22,29 @@
  * \ingroup balembic
  */
 
-#include "abc_writer_object.h"
-#include "intern/abc_customdata.h"
+#include "abc_writer_abstract.h"
 
-struct ParticleSystem;
-
-/* ************************************************************************** */
+#include <Alembic/AbcGeom/OPoints.h>
 
 namespace blender {
 namespace io {
 namespace alembic {
 
-class AbcPointsWriter : public AbcObjectWriter {
-  Alembic::AbcGeom::OPointsSchema m_schema;
-  Alembic::AbcGeom::OPointsSchema::Sample m_sample;
-  ParticleSystem *m_psys;
+class ABCPointsWriter : public ABCAbstractWriter {
+  Alembic::AbcGeom::OPoints abc_points_;
+  Alembic::AbcGeom::OPointsSchema abc_points_schema_;
 
  public:
-  AbcPointsWriter(Object *ob,
-                  AbcTransformWriter *parent,
-                  uint32_t time_sampling,
-                  ExportSettings &settings,
-                  ParticleSystem *psys);
+  explicit ABCPointsWriter(const ABCWriterConstructorArgs &args);
 
-  void do_write();
+  virtual void create_alembic_objects(const HierarchyContext *context) override;
+  virtual const Alembic::Abc::OObject get_alembic_object() const override;
+
+  virtual bool is_supported(const HierarchyContext *context) const override;
+
+ protected:
+  virtual bool check_is_animated(const HierarchyContext &context) const override;
+  virtual void do_write(HierarchyContext &context) override;
 };
 
 }  // namespace alembic

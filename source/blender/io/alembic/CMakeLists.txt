@@ -30,6 +30,7 @@ set(INC
   ../../makesdna
   ../../makesrna
   ../../windowmanager
+  ../../../../intern/clog
   ../../../../intern/guardedalloc
   ../../../../intern/utfconv
 )
@@ -54,16 +55,17 @@ set(SRC
   intern/abc_util.cc
   intern/alembic_capi.cc
 
+  exporter/abc_archive.cc
   exporter/abc_export_capi.cc
-  exporter/abc_exporter.cc
-  exporter/abc_writer_archive.cc
+  exporter/abc_hierarchy_iterator.cc
+  exporter/abc_subdiv_disabler.cc
+  exporter/abc_writer_abstract.cc
   exporter/abc_writer_camera.cc
   exporter/abc_writer_curves.cc
   exporter/abc_writer_hair.cc
-  exporter/abc_writer_mball.cc
   exporter/abc_writer_mesh.cc
+  exporter/abc_writer_mball.cc
   exporter/abc_writer_nurbs.cc
-  exporter/abc_writer_object.cc
   exporter/abc_writer_points.cc
   exporter/abc_writer_transform.cc
 
@@ -80,15 +82,16 @@ set(SRC
   intern/abc_reader_transform.h
   intern/abc_util.h
 
-  exporter/abc_exporter.h
-  exporter/abc_writer_archive.h
+  exporter/abc_archive.h
+  exporter/abc_hierarchy_iterator.h
+  exporter/abc_subdiv_disabler.h
+  exporter/abc_writer_abstract.h
   exporter/abc_writer_camera.h
   exporter/abc_writer_curves.h
   exporter/abc_writer_hair.h
-  exporter/abc_writer_mball.h
   exporter/abc_writer_mesh.h
+  exporter/abc_writer_mball.h
   exporter/abc_writer_nurbs.h
-  exporter/abc_writer_object.h
   exporter/abc_writer_points.h
   exporter/abc_writer_transform.h
 )
