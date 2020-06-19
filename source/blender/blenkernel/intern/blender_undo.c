@@ -109,8 +109,6 @@ MemFileUndoData *BKE_memfile_undo_encode(Main *bmain, MemFileUndoData *mfu_prev)
     static int counter = 0;
     char filename[FILE_MAX];
     char numstr[32];
-    /* Don't do file history on undo. */
-    const int fileflags = G.fileflags & ~G_FILE_HISTORY;
 
     /* Calculate current filename. */
     counter++;
@@ -119,7 +117,8 @@ MemFileUndoData *BKE_memfile_undo_encode(Main *bmain, MemFileUndoData *mfu_prev)
     BLI_snprintf(numstr, sizeof(numstr), "%d.blend", counter);
     BLI_join_dirfile(filename, sizeof(filename), BKE_tempdir_session(), numstr);
 
-    /* success = */ /* UNUSED */ BLO_write_file(bmain, filename, fileflags, NULL);
+    /* success = */ /* UNUSED */ BLO_write_file(
+        bmain, filename, G.fileflags, &(const struct BlendFileWriteParams){0}, NULL);
 
     BLI_strncpy(mfu->filename, filename, sizeof(mfu->filename));
   }

@@ -4076,6 +4076,7 @@ static bool write_file_handle(Main *mainvar,
                               MemFile *compare,
                               MemFile *current,
                               int write_flags,
+                              bool use_userdef,
                               const BlendThumbnail *thumb)
 {
   BHead bhead;
@@ -4329,7 +4330,7 @@ static bool write_file_handle(Main *mainvar,
   /* So changes above don't cause a 'DNA1' to be detected as changed on undo. */
   mywrite_flush(wd);
 
-  if (write_flags & G_FILE_USERPREFS) {
+  if (use_userdef) {
     write_userdef(&writer, &U);
   }
 
@@ -4400,17 +4401,21 @@ static bool do_history(const char *name, ReportList *reports)
 /**
  * \return Success.
  */
-bool BLO_write_file_ex(Main *mainvar,
-                       const char *filepath,
-                       const int write_flags,
-                       ReportList *reports,
-                       /* Extra arguments. */
-                       eBLO_WritePathRemap remap_mode,
-                       const BlendThumbnail *thumb)
+bool BLO_write_file(Main *mainvar,
+                    const char *filepath,
+                    const int write_flags,
+                    const struct BlendFileWriteParams *params,
+                    ReportList *reports)
 {
   char tempname[FILE_MAX + 1];
   eWriteWrapType ww_type;
   WriteWrap ww;
+
+  eBLO_WritePathRemap remap_mode = params->remap_mode;
+  const bool use_save_versions = params->use_save_versions;
+  const bool use_save_as_copy = params->use_save_as_copy;
+  const bool use_userdef = params->use_userdef;
+  const BlendThumbnail *thumb = params->thumb;
 
   /* path backup/restore */
   void *path_list_backup = NULL;
@@ -4476,7 +4481,7 @@ bool BLO_write_file_ex(Main *mainvar,
 
     if (remap_mode != BLO_WRITE_PATH_REMAP_NONE) {
       /* Check if we need to backup and restore paths. */
-      if (UNLIKELY(G_FILE_SAVE_COPY & write_flags)) {
+      if (UNLIKELY(use_save_as_copy)) {
         path_list_backup = BKE_bpath_list_backup(mainvar, path_list_flag);
       }
 
@@ -4501,7 +4506,7 @@ bool BLO_write_file_ex(Main *mainvar,
   }
 
   /* actual file writing */
-  const bool err = write_file_handle(mainvar, &ww, NULL, NULL, write_flags, thumb);
+  const bool err = write_file_handle(mainvar, &ww, NULL, NULL, write_flags, use_userdef, thumb);
 
   ww.close(&ww);
 
@@ -4519,7 +4524,7 @@ bool BLO_write_file_ex(Main *mainvar,
 
   /* file save to temporary file was successful */
   /* now do reverse file history (move .blend1 -> .blend2, .blend -> .blend1) */
-  if (write_flags & G_FILE_HISTORY) {
+  if (use_save_versions) {
     const bool err_hist = do_history(filepath, reports);
     if (err_hist) {
       BKE_report(reports, RPT_ERROR, "Version backup failed (file saved with @)");
@@ -4540,23 +4545,15 @@ bool BLO_write_file_ex(Main *mainvar,
   return 1;
 }
 
-bool BLO_write_file(Main *mainvar,
-                    const char *filepath,
-                    const int write_flags,
-                    ReportList *reports)
-{
-  return BLO_write_file_ex(
-      mainvar, filepath, write_flags, reports, BLO_WRITE_PATH_REMAP_NONE, NULL);
-}
-
 /**
  * \return Success.
  */
 bool BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int write_flags)
 {
-  write_flags &= ~G_FILE_USERPREFS;
+  bool use_userdef = false;
 
-  const bool err = write_file_handle(mainvar, NULL, compare, current, write_flags, NULL);
+  const bool err = write_file_handle(
+      mainvar, NULL, compare, current, write_flags, use_userdef, NULL);
 
   return (err == 0);
 }

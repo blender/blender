@@ -679,7 +679,8 @@ static void wm_file_read_post(bContext *C,
 bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 {
   /* assume automated tasks with background, don't write recent file list */
-  const bool do_history = (G.background == false) && (CTX_wm_manager(C)->op_undo_depth == 0);
+  const bool do_history_file_update = (G.background == false) &&
+                                      (CTX_wm_manager(C)->op_undo_depth == 0);
   bool success = false;
 
   const bool use_data = true;
@@ -745,7 +746,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     WM_check(C); /* opens window(s), checks keymaps */
 
     if (success) {
-      if (do_history) {
+      if (do_history_file_update) {
         wm_history_file_update();
       }
     }
@@ -777,7 +778,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
   if (success == false) {
     /* remove from recent files list */
-    if (do_history) {
+    if (do_history_file_update) {
       RecentFile *recent = wm_file_history_find(filepath);
       if (recent) {
         wm_history_file_free(recent);
@@ -1404,12 +1405,9 @@ bool write_crash_blend(void)
 {
   char path[FILE_MAX];
 
-  /* Don't do file history on crash file. */
-  const int fileflags = G.fileflags & ~G_FILE_HISTORY;
-
   BLI_strncpy(path, BKE_main_blendfile_path_from_global(), sizeof(path));
   BLI_path_extension_replace(path, sizeof(path), "_crash.blend");
-  if (BLO_write_file(G_MAIN, path, fileflags, NULL)) {
+  if (BLO_write_file(G_MAIN, path, G.fileflags, &(const struct BlendFileWriteParams){0}, NULL)) {
     printf("written: %s\n", path);
     return 1;
   }
@@ -1426,6 +1424,7 @@ static bool wm_file_write(bContext *C,
                           const char *filepath,
                           int fileflags,
                           eBLO_WritePathRemap remap_mode,
+                          bool use_save_as_copy,
                           ReportList *reports)
 {
   Main *bmain = CTX_data_main(C);
@@ -1492,21 +1491,29 @@ static bool wm_file_write(bContext *C,
 
   ED_editors_flush_edits(bmain);
 
-  fileflags |= G_FILE_HISTORY; /* write file history */
-
   /* first time saving */
   /* XXX temp solution to solve bug, real fix coming (ton) */
-  if ((BKE_main_blendfile_path(bmain)[0] == '\0') && !(fileflags & G_FILE_SAVE_COPY)) {
+  if ((BKE_main_blendfile_path(bmain)[0] == '\0') && (use_save_as_copy == false)) {
     BLI_strncpy(bmain->name, filepath, sizeof(bmain->name));
   }
 
   /* XXX temp solution to solve bug, real fix coming (ton) */
   bmain->recovered = 0;
 
-  if (BLO_write_file_ex(CTX_data_main(C), filepath, fileflags, reports, remap_mode, thumb)) {
-    const bool do_history = (G.background == false) && (CTX_wm_manager(C)->op_undo_depth == 0);
+  if (BLO_write_file(CTX_data_main(C),
+                     filepath,
+                     fileflags,
+                     &(const struct BlendFileWriteParams){
+                         .remap_mode = remap_mode,
+                         .use_save_versions = true,
+                         .use_save_as_copy = use_save_as_copy,
+                         .thumb = thumb,
+                     },
+                     reports)) {
+    const bool do_history_file_update = (G.background == false) &&
+                                        (CTX_wm_manager(C)->op_undo_depth == 0);
 
-    if (!(fileflags & G_FILE_SAVE_COPY)) {
+    if (use_save_as_copy == false) {
       G.relbase_valid = 1;
       BLI_strncpy(bmain->name, filepath, sizeof(bmain->name)); /* is guaranteed current file */
 
@@ -1516,7 +1523,7 @@ static bool wm_file_write(bContext *C,
     SET_FLAG_FROM_TEST(G.fileflags, fileflags & G_FILE_COMPRESS, G_FILE_COMPRESS);
 
     /* prevent background mode scripts from clobbering history */
-    if (do_history) {
+    if (do_history_file_update) {
       wm_history_file_update();
     }
 
@@ -1631,12 +1638,12 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
   }
   else {
     /* Save as regular blend file. */
-    int fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_HISTORY);
+    const int fileflags = G.fileflags & ~G_FILE_COMPRESS;
 
     ED_editors_flush_edits(bmain);
 
-    /* Error reporting into console */
-    BLO_write_file(bmain, filepath, fileflags, NULL);
+    /* Error reporting into console. */
+    BLO_write_file(bmain, filepath, fileflags, &(const struct BlendFileWriteParams){0}, NULL);
   }
   /* do timer after file write, just in case file write takes a long time */
   wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime * 60.0);
@@ -1754,10 +1761,15 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   ED_editors_flush_edits(bmain);
 
   /* Force save as regular blend file. */
-  fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_HISTORY);
+  fileflags = G.fileflags & ~G_FILE_COMPRESS;
 
-  if (BLO_write_file_ex(
-          bmain, filepath, fileflags, op->reports, BLO_WRITE_PATH_REMAP_RELATIVE, NULL) == 0) {
+  if (BLO_write_file(bmain,
+                     filepath,
+                     fileflags,
+                     &(const struct BlendFileWriteParams){
+                         .remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE,
+                     },
+                     op->reports) == 0) {
     printf("fail\n");
     return OPERATOR_CANCELLED;
   }
@@ -2672,6 +2684,8 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   char path[FILE_MAX];
   const bool is_save_as = (op->type->invoke == wm_save_as_mainfile_invoke);
+  const bool use_save_as_copy = (RNA_struct_property_is_set(op->ptr, "copy") &&
+                                 RNA_boolean_get(op->ptr, "copy"));
 
   /* We could expose all options to the users however in most cases remapping
    * existing relative paths is a good default.
@@ -2690,16 +2704,12 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
   }
 
   const int fileflags_orig = G.fileflags;
-  int fileflags = G.fileflags & ~G_FILE_USERPREFS;
+  int fileflags = G.fileflags;
 
   /* set compression flag */
   SET_FLAG_FROM_TEST(fileflags, RNA_boolean_get(op->ptr, "compress"), G_FILE_COMPRESS);
-  SET_FLAG_FROM_TEST(
-      fileflags,
-      (RNA_struct_property_is_set(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy")),
-      G_FILE_SAVE_COPY);
 
-  const bool ok = wm_file_write(C, path, fileflags, remap_mode, op->reports);
+  const bool ok = wm_file_write(C, path, fileflags, remap_mode, use_save_as_copy, op->reports);
 
   if ((op->flag & OP_IS_INVOKE) == 0) {
     /* OP_IS_INVOKE is set when the operator is called from the GUI.

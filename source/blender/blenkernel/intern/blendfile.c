@@ -646,7 +646,13 @@ bool BKE_blendfile_userdef_write(const char *filepath, ReportList *reports)
   Main *mainb = MEM_callocN(sizeof(Main), "empty main");
   bool ok = false;
 
-  if (BLO_write_file(mainb, filepath, G_FILE_USERPREFS, reports)) {
+  if (BLO_write_file(mainb,
+                     filepath,
+                     0,
+                     &(const struct BlendFileWriteParams){
+                         .use_userdef = true,
+                     },
+                     reports)) {
     ok = true;
   }
 
@@ -768,7 +774,7 @@ WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepat
 
 bool BKE_blendfile_workspace_config_write(Main *bmain, const char *filepath, ReportList *reports)
 {
-  int fileflags = G.fileflags & ~(G_FILE_NO_UI | G_FILE_HISTORY);
+  const int fileflags = G.fileflags & ~G_FILE_NO_UI;
   bool retval = false;
 
   BKE_blendfile_write_partial_begin(bmain);
@@ -883,7 +889,13 @@ bool BKE_blendfile_write_partial(Main *bmain_src,
   }
 
   /* save the buffer */
-  retval = BLO_write_file_ex(bmain_dst, filepath, write_flags, reports, remap_mode, NULL);
+  retval = BLO_write_file(bmain_dst,
+                          filepath,
+                          write_flags,
+                          &(const struct BlendFileWriteParams){
+                              .remap_mode = remap_mode,
+                          },
+                          reports);
 
   if (path_list_backup) {
     BKE_bpath_list_restore(bmain_dst, path_list_flag, path_list_backup);

@@ -494,13 +494,15 @@ void WM_exit_ex(bContext *C, const bool do_python)
         Main *bmain = CTX_data_main(C);
         char filename[FILE_MAX];
         bool has_edited;
-        int fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_HISTORY);
+        const int fileflags = G.fileflags & ~G_FILE_COMPRESS;
 
         BLI_join_dirfile(filename, sizeof(filename), BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
         has_edited = ED_editors_flush_edits(bmain);
 
-        if ((has_edited && BLO_write_file(bmain, filename, fileflags, NULL)) ||
+        if ((has_edited &&
+             BLO_write_file(
+                 bmain, filename, fileflags, &(const struct BlendFileWriteParams){0}, NULL)) ||
             (undo_memfile && BLO_memfile_write_file(undo_memfile, filename))) {
           printf("Saved session recovery to '%s'\n", filename);
         }
