@@ -4356,7 +4356,7 @@ static bool match_region_with_redraws(eSpace_Type spacetype,
       return true;
     }
   }
-  else if (ELEM(regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
+  else if (regiontype == RGN_TYPE_HEADER) {
     if (spacetype == SPACE_ACTION) {
       return true;
     }
