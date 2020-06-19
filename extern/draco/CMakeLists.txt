@@ -18,8 +18,6 @@
 # All rights reserved.
 # ***** END GPL LICENSE BLOCK *****
 
-set(CMAKE_CXX_STANDARD 14)
-
 # Build Draco library.
 add_subdirectory(dracoenc)
 
