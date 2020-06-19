@@ -28,6 +28,7 @@
 extern "C" {
 #endif
 
+struct ARegionType;
 struct ID;
 struct ListBase;
 struct ModifierUpdateDepsgraphContext;
@@ -157,11 +158,17 @@ typedef struct ShaderFxTypeInfo {
                         struct Object *ob,
                         ShaderFxIDWalkFunc walk,
                         void *userData);
+
+  /* Register the panel types for the effect's UI. */
+  void (*panelRegister)(struct ARegionType *region_type);
 } ShaderFxTypeInfo;
+
+#define SHADERFX_TYPE_PANEL_PREFIX "FX_PT_"
 
 /* Initialize  global data (type info and some common global storages). */
 void BKE_shaderfx_init(void);
 
+void BKE_shaderfxType_panel_id(ShaderFxType type, char *panel_id);
 const ShaderFxTypeInfo *BKE_shaderfx_get_info(ShaderFxType type);
 struct ShaderFxData *BKE_shaderfx_new(int type);
 void BKE_shaderfx_free_ex(struct ShaderFxData *fx, const int flag);

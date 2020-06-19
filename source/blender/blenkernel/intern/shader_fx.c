@@ -82,8 +82,9 @@ ShaderFxData *BKE_shaderfx_new(int type)
   BLI_strncpy(fx->name, DATA_(fxi->name), sizeof(fx->name));
 
   fx->type = type;
-  fx->mode = eShaderFxMode_Realtime | eShaderFxMode_Render | eShaderFxMode_Expanded;
+  fx->mode = eShaderFxMode_Realtime | eShaderFxMode_Render;
   fx->flag = eShaderFxFlag_OverrideLibrary_Local;
+  fx->ui_expand_flag = 1; /* Expand only the parent panel by default. */
 
   if (fxi->flags & eShaderFxTypeFlag_EnableInEditmode) {
     fx->mode |= eShaderFxMode_Editmode;
@@ -156,12 +157,26 @@ bool BKE_shaderfx_depends_ontime(ShaderFxData *fx)
 const ShaderFxTypeInfo *BKE_shaderfx_get_info(ShaderFxType type)
 {
   /* type unsigned, no need to check < 0 */
-  if (type < NUM_SHADER_FX_TYPES && shader_fx_types[type]->name[0] != '\0') {
+  if (type < NUM_SHADER_FX_TYPES && type > 0 && shader_fx_types[type]->name[0] != '\0') {
     return shader_fx_types[type];
   }
   else {
     return NULL;
   }
+}
+
+/**
+ * Get an effect's panel type, which was defined in the #panelRegister callback.
+ *
+ * \note ShaderFx panel types are assumed to be named with the struct name field concatenated to
+ * the defined prefix.
+ */
+void BKE_shaderfxType_panel_id(ShaderFxType type, char *r_idname)
+{
+  const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(type);
+
+  strcpy(r_idname, SHADERFX_TYPE_PANEL_PREFIX);
+  strcat(r_idname, fxi->name);
 }
 
 void BKE_shaderfx_copydata_generic(const ShaderFxData *fx_src, ShaderFxData *fx_dst)
@@ -198,6 +213,7 @@ void BKE_shaderfx_copydata_ex(ShaderFxData *fx, ShaderFxData *target, const int 
 
   target->mode = fx->mode;
   target->flag = fx->flag;
+  target->ui_expand_flag = fx->ui_expand_flag;
 
   if (fxi->copyData) {
     fxi->copyData(fx, target);

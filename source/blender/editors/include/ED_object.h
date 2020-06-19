@@ -453,6 +453,10 @@ int ED_object_shaderfx_move_down(struct ReportList *reports,
 int ED_object_shaderfx_move_up(struct ReportList *reports,
                                struct Object *ob,
                                struct ShaderFxData *fx);
+bool ED_object_shaderfx_move_to_index(struct ReportList *reports,
+                                      struct Object *ob,
+                                      struct ShaderFxData *fx,
+                                      const int index);
 
 /* object_select.c */
 void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);

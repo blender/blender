@@ -23,11 +23,23 @@
 
 #include <stdio.h>
 
+#include "DNA_screen_types.h"
 #include "DNA_shader_fx_types.h"
 
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
+#include "BKE_context.h"
+#include "BKE_screen.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
+
 #include "FX_shader_types.h"
+#include "FX_ui_common.h"
 
 static void initData(ShaderFxData *fx)
 {
@@ -46,6 +58,42 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
   BKE_shaderfx_copydata_generic(md, target);
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  shaderfx_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "rim_color", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "mask_color", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "mode", 0, IFACE_("Blend"), ICON_NONE);
+  uiItemR(layout, &ptr, "offset", 0, NULL, ICON_NONE);
+
+  shaderfx_panel_end(layout, &ptr);
+}
+
+static void blur_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  shaderfx_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "blur", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "samples", 0, NULL, ICON_NONE);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  PanelType *panel_type = shaderfx_panel_register(region_type, eShaderFxType_Rim, panel_draw);
+  shaderfx_subpanel_register(region_type, "blur", "Blur", NULL, blur_panel_draw, panel_type);
+}
+
 ShaderFxTypeInfo shaderfx_Type_Rim = {
     /* name */ "Rim",
     /* structName */ "RimShaderFxData",
@@ -62,4 +110,5 @@ ShaderFxTypeInfo shaderfx_Type_Rim = {
     /* dependsOnTime */ NULL,
     /* foreachObjectLink */ NULL,
     /* foreachIDLink */ NULL,
+    /* panelRegister */ panelRegister,
 };

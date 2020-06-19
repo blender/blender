@@ -26,14 +26,23 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_utildefines.h"
 
+#include "BKE_context.h"
 #include "BKE_lib_query.h"
 #include "BKE_modifier.h"
+#include "BKE_screen.h"
 #include "BKE_shader_fx.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
+
 #include "FX_shader_types.h"
+#include "FX_ui_common.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -93,4 +102,5 @@ ShaderFxTypeInfo shaderfx_Type_Light = {
     /* dependsOnTime */ NULL,
     /* foreachObjectLink */ foreachObjectLink,
     /* foreachIDLink */ NULL,
+    /* panelRegister */ NULL,
 };

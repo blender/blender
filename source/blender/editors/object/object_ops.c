@@ -161,6 +161,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_shaderfx_remove);
   WM_operatortype_append(OBJECT_OT_shaderfx_move_up);
   WM_operatortype_append(OBJECT_OT_shaderfx_move_down);
+  WM_operatortype_append(OBJECT_OT_shaderfx_move_to_index);
 
   WM_operatortype_append(OBJECT_OT_correctivesmooth_bind);
   WM_operatortype_append(OBJECT_OT_meshdeform_bind);
