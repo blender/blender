@@ -40,6 +40,7 @@
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_task.h"
 #include "BLI_utildefines.h"
 
 #include "RNA_access.h"
@@ -796,6 +797,14 @@ bool BKE_lib_override_library_operations_create(Main *bmain,
   return ret;
 }
 
+static void lib_override_library_operations_create_cb(TaskPool *__restrict pool, void *taskdata)
+{
+  Main *bmain = BLI_task_pool_user_data(pool);
+  ID *id = taskdata;
+
+  BKE_lib_override_library_operations_create(bmain, id, false);
+}
+
 /** Check all overrides from given \a bmain and create/update overriding operations as needed. */
 void BKE_lib_override_library_main_operations_create(Main *bmain, const bool force_auto)
 {
@@ -811,14 +820,20 @@ void BKE_lib_override_library_main_operations_create(Main *bmain, const bool for
     BKE_lib_override_library_main_tag(bmain, IDOVERRIDE_LIBRARY_TAG_UNUSED, true);
   }
 
+  TaskPool *task_pool = BLI_task_pool_create(bmain, TASK_PRIORITY_HIGH);
+
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if ((ID_IS_OVERRIDE_LIBRARY(id) && force_auto) ||
         (id->tag & LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH)) {
-      BKE_lib_override_library_operations_create(bmain, id, force_auto);
+      BLI_task_pool_push(task_pool, lib_override_library_operations_create_cb, id, false, NULL);
       id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
     }
   }
   FOREACH_MAIN_ID_END;
+
+  BLI_task_pool_work_and_wait(task_pool);
+
+  BLI_task_pool_free(task_pool);
 
   if (force_auto) {
     BKE_lib_override_library_main_unused_cleanup(bmain);
