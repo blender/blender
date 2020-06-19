@@ -136,9 +136,6 @@ typedef struct bConstraintTypeInfo {
 const bConstraintTypeInfo *BKE_constraint_typeinfo_get(struct bConstraint *con);
 const bConstraintTypeInfo *BKE_constraint_typeinfo_from_type(int type);
 
-void BKE_constraint_panel_id(int type, char *r_name);
-void BKE_constraint_bone_panel_id(int type, char *r_name);
-
 /* ---------------------------------------------------------------------------- */
 
 /* Constraint function prototypes */
