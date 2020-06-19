@@ -954,7 +954,7 @@ class ConstraintButtonsSubPanel(Panel):
         if context.pose_bone:
             con = context.pose_bone.constraints[self.list_panel_index]
         else:
-            con = context.active.constraints[self.list_panel_index]
+            con = context.object.constraints[self.list_panel_index]
         self.layout.context_pointer_set("constraint", con)
         return con
 
