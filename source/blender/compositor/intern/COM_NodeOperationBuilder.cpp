@@ -98,9 +98,9 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
 
   add_operation_input_constants();
 
-  add_datatype_conversions();
-
   resolve_proxies();
+
+  add_datatype_conversions();
 
   determineResolutions();
 
