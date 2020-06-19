@@ -20,12 +20,10 @@
 
 #include "abc_axis_conversion.h"
 
-extern "C" {
 #include "BLI_assert.h"
-#include "DNA_object_types.h"
-
 #include "BLI_math_geom.h"
-}
+
+#include "DNA_object_types.h"
 
 namespace blender {
 namespace io {

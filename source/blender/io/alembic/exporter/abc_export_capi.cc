@@ -28,7 +28,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
@@ -47,7 +46,6 @@ extern "C" {
 
 #include "WM_api.h"
 #include "WM_types.h"
-}
 
 using namespace blender::io::alembic;
 
