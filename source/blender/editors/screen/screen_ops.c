@@ -4274,56 +4274,58 @@ static void SCREEN_OT_region_context_menu(wmOperatorType *ot)
  * Animation Step.
  * \{ */
 
-static int match_region_with_redraws(int spacetype,
-                                     int regiontype,
-                                     int redraws,
-                                     bool from_anim_edit)
+static bool match_region_with_redraws(eSpace_Type spacetype,
+                                      eRegionType regiontype,
+                                      eScreen_Redraws_Flag redraws,
+                                      bool from_anim_edit)
 {
   if (regiontype == RGN_TYPE_WINDOW) {
 
     switch (spacetype) {
       case SPACE_VIEW3D:
         if ((redraws & TIME_ALL_3D_WIN) || from_anim_edit) {
-          return 1;
+          return true;
         }
         break;
       case SPACE_GRAPH:
       case SPACE_NLA:
         if ((redraws & TIME_ALL_ANIM_WIN) || from_anim_edit) {
-          return 1;
+          return true;
         }
         break;
       case SPACE_ACTION:
         /* if only 1 window or 3d windows, we do timeline too
          * NOTE: Now we do action editor in all these cases, since timeline is here. */
         if ((redraws & (TIME_ALL_ANIM_WIN | TIME_REGION | TIME_ALL_3D_WIN)) || from_anim_edit) {
-          return 1;
+          return true;
         }
         break;
       case SPACE_PROPERTIES:
         if (redraws & TIME_ALL_BUTS_WIN) {
-          return 1;
+          return true;
         }
         break;
       case SPACE_SEQ:
         if ((redraws & (TIME_SEQ | TIME_ALL_ANIM_WIN)) || from_anim_edit) {
-          return 1;
+          return true;
         }
         break;
       case SPACE_NODE:
         if (redraws & TIME_NODES) {
-          return 1;
+          return true;
         }
         break;
       case SPACE_IMAGE:
         if ((redraws & TIME_ALL_IMAGE_WIN) || from_anim_edit) {
-          return 1;
+          return true;
         }
         break;
       case SPACE_CLIP:
         if ((redraws & TIME_CLIPS) || from_anim_edit) {
-          return 1;
+          return true;
         }
+        break;
+      default:
         break;
     }
   }
@@ -4333,8 +4335,10 @@ static int match_region_with_redraws(int spacetype,
       case SPACE_ACTION:
       case SPACE_NLA:
         if (redraws & TIME_ALL_ANIM_WIN) {
-          return 1;
+          return true;
         }
+        break;
+      default:
         break;
     }
   }
@@ -4345,30 +4349,32 @@ static int match_region_with_redraws(int spacetype,
        * during playback, so asking people to enable special option
        * for this is a bit tricky, so add exception here for refreshing
        * Properties Editor for SpaceClip always */
-      return 1;
+      return true;
     }
 
     if (redraws & TIME_ALL_BUTS_WIN) {
-      return 1;
+      return true;
     }
   }
   else if (ELEM(regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
     if (spacetype == SPACE_ACTION) {
-      return 1;
+      return true;
     }
   }
   else if (regiontype == RGN_TYPE_PREVIEW) {
     switch (spacetype) {
       case SPACE_SEQ:
         if (redraws & (TIME_SEQ | TIME_ALL_ANIM_WIN)) {
-          return 1;
+          return true;
         }
         break;
       case SPACE_CLIP:
-        return 1;
+        return true;
+      default:
+        break;
     }
   }
-  return 0;
+  return false;
 }
 
 //#define PROFILE_AUDIO_SYNCH

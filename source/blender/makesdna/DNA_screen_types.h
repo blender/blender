@@ -609,7 +609,7 @@ enum {
 
 /* regiontype, first two are the default set */
 /* Do NOT change order, append on end. Types are hardcoded needed */
-enum {
+typedef enum eRegionType {
   RGN_TYPE_WINDOW = 0,
   RGN_TYPE_HEADER = 1,
   RGN_TYPE_CHANNELS = 2,
@@ -625,7 +625,7 @@ enum {
   RGN_TYPE_EXECUTE = 10,
   RGN_TYPE_FOOTER = 11,
   RGN_TYPE_TOOL_HEADER = 12,
-};
+} eRegionType;
 /* use for function args */
 #define RGN_TYPE_ANY -1
 
