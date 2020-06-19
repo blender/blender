@@ -25,11 +25,14 @@ set(INC
   ../blenfont
   ../blenkernel
   ../blenlib
+  ../blentranslation
   ../bmesh
   ../depsgraph
+  ../editors/include
   ../makesdna
   ../makesrna
   ../render/extern/include
+  ../windowmanager
   ../../../intern/eigen
   ../../../intern/guardedalloc
 )
@@ -40,6 +43,7 @@ set(INC_SYS
 
 set(SRC
   intern/MOD_gpencil_util.h
+  intern/MOD_gpencil_ui_common.c
 
   intern/MOD_gpencil_util.c
   intern/MOD_gpencilarmature.c
@@ -61,6 +65,7 @@ set(SRC
   intern/MOD_gpenciltime.c
   intern/MOD_gpenciltint.c
 
+  intern/MOD_gpencil_ui_common.h
   MOD_gpencil_modifiertypes.h
 )
 

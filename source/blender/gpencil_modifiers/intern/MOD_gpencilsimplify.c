@@ -26,20 +26,31 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_vec_types.h"
 
+#include "BKE_context.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_lib_query.h"
 #include "BKE_modifier.h"
+#include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
+
 #include "MOD_gpencil_modifiertypes.h"
+#include "MOD_gpencil_ui_common.h"
 #include "MOD_gpencil_util.h"
 
 static void initData(GpencilModifierData *md)
@@ -131,6 +142,48 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
   walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  int mode = RNA_enum_get(&ptr, "mode");
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "mode", 0, NULL, ICON_NONE);
+
+  if (mode == GP_SIMPLIFY_FIXED) {
+    uiItemR(layout, &ptr, "step", 0, NULL, ICON_NONE);
+  }
+  else if (mode == GP_SIMPLIFY_ADAPTIVE) {
+    uiItemR(layout, &ptr, "factor", 0, NULL, ICON_NONE);
+  }
+  else if (mode == GP_SIMPLIFY_SAMPLE) {
+    uiItemR(layout, &ptr, "length", 0, NULL, ICON_NONE);
+  }
+  else if (mode == GP_SIMPLIFY_MERGE) {
+    uiItemR(layout, &ptr, "distance", 0, NULL, ICON_NONE);
+  }
+
+  gpencil_modifier_panel_end(layout, &ptr);
+}
+
+static void mask_panel_draw(const bContext *C, Panel *panel)
+{
+  gpencil_modifier_masking_panel_draw(C, panel, true, false);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  PanelType *panel_type = gpencil_modifier_panel_register(
+      region_type, eGpencilModifierType_Simplify, panel_draw);
+  gpencil_modifier_subpanel_register(
+      region_type, "mask", "Influence", NULL, mask_panel_draw, panel_type);
+}
+
 GpencilModifierTypeInfo modifierType_Gpencil_Simplify = {
     /* name */ "Simplify",
     /* structName */ "SimplifyGpencilModifierData",
@@ -153,4 +206,5 @@ GpencilModifierTypeInfo modifierType_Gpencil_Simplify = {
     /* foreachObjectLink */ NULL,
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
+    /* panelRegister */ panelRegister,
 };

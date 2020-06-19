@@ -421,6 +421,10 @@ int ED_object_gpencil_modifier_move_down(struct ReportList *reports,
 int ED_object_gpencil_modifier_move_up(struct ReportList *reports,
                                        struct Object *ob,
                                        struct GpencilModifierData *md);
+bool ED_object_gpencil_modifier_move_to_index(struct ReportList *reports,
+                                              struct Object *ob,
+                                              struct GpencilModifierData *md,
+                                              const int index);
 int ED_object_gpencil_modifier_apply(struct Main *bmain,
                                      struct ReportList *reports,
                                      struct Depsgraph *depsgraph,

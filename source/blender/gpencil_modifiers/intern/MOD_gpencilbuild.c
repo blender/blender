@@ -30,20 +30,31 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
+#include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
+#include "BKE_screen.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
 #include "MOD_gpencil_modifiertypes.h"
+#include "MOD_gpencil_ui_common.h"
 #include "MOD_gpencil_util.h"
 
 static void initData(GpencilModifierData *md)
@@ -537,6 +548,88 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
   }
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *row, *sub;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  gpencil_modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  int mode = RNA_enum_get(&ptr, "mode");
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "mode", 0, NULL, ICON_NONE);
+  if (mode == GP_BUILD_MODE_CONCURRENT) {
+    uiItemR(layout, &ptr, "concurrent_time_alignment", 0, NULL, ICON_NONE);
+  }
+
+  uiItemS(layout);
+
+  uiItemR(layout, &ptr, "transition", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "start_delay", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "length", 0, IFACE_("Frames"), ICON_NONE);
+
+  uiItemS(layout);
+
+  row = uiLayoutRowWithHeading(layout, true, IFACE_("Use Factor"));
+  uiItemR(row, &ptr, "use_percentage", 0, "", ICON_NONE);
+  sub = uiLayoutRow(row, true);
+  uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_percentage"));
+  uiItemR(sub, &ptr, "percentage_factor", 0, "", ICON_NONE);
+
+  /* Check for incompatible time modifier. */
+  Object *ob = ob_ptr.data;
+  GpencilModifierData *md = ptr.data;
+  if (BKE_gpencil_modifiers_findby_type(ob, eGpencilModifierType_Time) != NULL) {
+    BKE_gpencil_modifier_set_error(md, "Build and Time Offset modifiers are incompatible");
+  }
+
+  gpencil_modifier_panel_end(layout, &ptr);
+}
+
+static void frame_range_header_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiItemR(layout, &ptr, "use_restrict_frame_range", 0, IFACE_("Custom Range"), ICON_NONE);
+}
+
+static void frame_range_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, &ptr, "frame_start", 0, IFACE_("Start"), ICON_NONE);
+  uiItemR(col, &ptr, "frame_end", 0, IFACE_("End"), ICON_NONE);
+}
+
+static void mask_panel_draw(const bContext *C, Panel *panel)
+{
+  gpencil_modifier_masking_panel_draw(C, panel, false, false);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  PanelType *panel_type = gpencil_modifier_panel_register(
+      region_type, eGpencilModifierType_Build, panel_draw);
+  gpencil_modifier_subpanel_register(
+      region_type, "frame_range", "", frame_range_header_draw, frame_range_panel_draw, panel_type);
+  gpencil_modifier_subpanel_register(
+      region_type, "_mask", "Influence", NULL, mask_panel_draw, panel_type);
+}
+
 /* ******************************************** */
 
 GpencilModifierTypeInfo modifierType_Gpencil_Build = {
@@ -561,4 +654,5 @@ GpencilModifierTypeInfo modifierType_Gpencil_Build = {
     /* foreachObjectLink */ NULL,
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
+    /* panelRegister */ panelRegister,
 };

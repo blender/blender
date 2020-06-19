@@ -27,23 +27,34 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
 #include "BKE_colortools.h"
+#include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_lib_query.h"
 #include "BKE_modifier.h"
+#include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
+
 #include "MOD_gpencil_modifiertypes.h"
+#include "MOD_gpencil_ui_common.h"
 #include "MOD_gpencil_util.h"
 
 static void initData(GpencilModifierData *md)
@@ -147,8 +158,56 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
   walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  int mode = RNA_enum_get(&ptr, "mode");
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "mode", 0, NULL, ICON_NONE);
+
+  if (ELEM(mode, STROKE, STROKE_AND_FILL)) {
+    col = uiLayoutColumn(layout, false);
+    uiItemR(col, &ptr, "fit_method", 0, IFACE_("Stroke Fit Method"), ICON_NONE);
+    uiItemR(col, &ptr, "uv_offset", 0, NULL, ICON_NONE);
+    uiItemR(col, &ptr, "uv_scale", 0, IFACE_("Scale"), ICON_NONE);
+  }
+
+  if (mode == STROKE_AND_FILL) {
+    uiItemS(layout);
+  }
+
+  if (ELEM(mode, FILL, STROKE_AND_FILL)) {
+    col = uiLayoutColumn(layout, false);
+    uiItemR(col, &ptr, "fill_rotation", 0, NULL, ICON_NONE);
+    uiItemR(col, &ptr, "fill_offset", 0, IFACE_("Offset"), ICON_NONE);
+    uiItemR(col, &ptr, "fill_scale", 0, IFACE_("Scale"), ICON_NONE);
+  }
+
+  gpencil_modifier_panel_end(layout, &ptr);
+}
+
+static void mask_panel_draw(const bContext *C, Panel *panel)
+{
+  gpencil_modifier_masking_panel_draw(C, panel, true, true);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  PanelType *panel_type = gpencil_modifier_panel_register(
+      region_type, eGpencilModifierType_Texture, panel_draw);
+  gpencil_modifier_subpanel_register(
+      region_type, "mask", "Influence", NULL, mask_panel_draw, panel_type);
+}
+
 GpencilModifierTypeInfo modifierType_Gpencil_Texture = {
-    /* name */ "Texture Mapping",
+    /* name */ "TextureMapping",
     /* structName */ "TextureGpencilModifierData",
     /* structSize */ sizeof(TextureGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,
@@ -169,4 +228,5 @@ GpencilModifierTypeInfo modifierType_Gpencil_Texture = {
     /* foreachObjectLink */ NULL,
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
+    /* panelRegister */ panelRegister,
 };

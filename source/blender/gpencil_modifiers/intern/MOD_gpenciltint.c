@@ -28,16 +28,20 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
 #include "BKE_action.h"
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
+#include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
@@ -47,10 +51,17 @@
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "MEM_guardedalloc.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "RNA_access.h"
+
 #include "MOD_gpencil_modifiertypes.h"
+#include "MOD_gpencil_ui_common.h"
 #include "MOD_gpencil_util.h"
 
 #include "DEG_depsgraph.h"
@@ -330,6 +341,56 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
   foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
+static void panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  int tint_type = RNA_enum_get(&ptr, "tint_type");
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, &ptr, "vertex_mode", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "factor", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "tint_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
+  if (tint_type == GP_TINT_UNIFORM) {
+    uiItemR(layout, &ptr, "color", 0, NULL, ICON_NONE);
+  }
+  else {
+    col = uiLayoutColumn(layout, false);
+    uiLayoutSetPropSep(col, false);
+    uiTemplateColorRamp(col, &ptr, "colors", true);
+    uiItemS(layout);
+    uiItemR(layout, &ptr, "object", 0, NULL, ICON_NONE);
+    uiItemR(layout, &ptr, "radius", 0, NULL, ICON_NONE);
+  }
+
+  gpencil_modifier_panel_end(layout, &ptr);
+}
+
+static void mask_panel_draw(const bContext *C, Panel *panel)
+{
+  gpencil_modifier_masking_panel_draw(C, panel, true, true);
+}
+
+static void panelRegister(ARegionType *region_type)
+{
+  PanelType *panel_type = gpencil_modifier_panel_register(
+      region_type, eGpencilModifierType_Tint, panel_draw);
+  PanelType *mask_panel_type = gpencil_modifier_subpanel_register(
+      region_type, "mask", "Influence", NULL, mask_panel_draw, panel_type);
+  gpencil_modifier_subpanel_register(region_type,
+                                     "curve",
+                                     "",
+                                     gpencil_modifier_curve_header_draw,
+                                     gpencil_modifier_curve_panel_draw,
+                                     mask_panel_type);
+}
+
 GpencilModifierTypeInfo modifierType_Gpencil_Tint = {
     /* name */ "Tint",
     /* structName */ "TintGpencilModifierData",
@@ -352,4 +413,5 @@ GpencilModifierTypeInfo modifierType_Gpencil_Tint = {
     /* foreachObjectLink */ foreachObjectLink,
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
+    /* panelRegister */ panelRegister,
 };

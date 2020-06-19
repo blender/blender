@@ -211,6 +211,40 @@ int ED_object_gpencil_modifier_move_down(ReportList *UNUSED(reports),
   return 1;
 }
 
+bool ED_object_gpencil_modifier_move_to_index(ReportList *reports,
+                                              Object *ob,
+                                              GpencilModifierData *md,
+                                              const int index)
+{
+  BLI_assert(md != NULL);
+  BLI_assert(index >= 0);
+  if (index >= BLI_listbase_count(&ob->greasepencil_modifiers)) {
+    BKE_report(reports, RPT_WARNING, "Cannot move modifier beyond the end of the stack");
+    return false;
+  }
+
+  int md_index = BLI_findindex(&ob->greasepencil_modifiers, md);
+  BLI_assert(md_index != -1);
+  if (md_index < index) {
+    /* Move modifier down in list. */
+    for (; md_index < index; md_index++) {
+      if (!ED_object_gpencil_modifier_move_down(reports, ob, md)) {
+        break;
+      }
+    }
+  }
+  else {
+    /* Move modifier up in list. */
+    for (; md_index > index; md_index--) {
+      if (!ED_object_gpencil_modifier_move_up(reports, ob, md)) {
+        break;
+      }
+    }
+  }
+
+  return true;
+}
+
 static int gpencil_modifier_apply_obdata(
     ReportList *reports, Main *bmain, Depsgraph *depsgraph, Object *ob, GpencilModifierData *md)
 {
@@ -594,6 +628,60 @@ void OBJECT_OT_gpencil_modifier_move_down(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
   gpencil_edit_modifier_properties(ot);
+}
+
+/* ************************* Move to Index Gpencil Modifier Operator ************************* */
+
+static bool gpencil_modifier_move_to_index_poll(bContext *C)
+{
+  return gpencil_edit_modifier_poll(C);
+}
+
+static int gpencil_modifier_move_to_index_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_active_context(C);
+  GpencilModifierData *md = gpencil_edit_modifier_property_get(op, ob, 0);
+  int index = RNA_int_get(op->ptr, "index");
+
+  if (!ED_object_gpencil_modifier_move_to_index(op->reports, ob, md, index)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+static int gpencil_modifier_move_to_index_invoke(bContext *C,
+                                                 wmOperator *op,
+                                                 const wmEvent *UNUSED(event))
+{
+  if (gpencil_edit_modifier_invoke_properties(C, op)) {
+    return gpencil_modifier_move_to_index_exec(C, op);
+  }
+  else {
+    return OPERATOR_CANCELLED;
+  }
+}
+
+void OBJECT_OT_gpencil_modifier_move_to_index(wmOperatorType *ot)
+{
+  ot->name = "Move Active Modifier to Index";
+  ot->idname = "OBJECT_OT_gpencil_modifier_move_to_index";
+  ot->description =
+      "Change the modifier's position in the list so it evaluates after the set number of "
+      "others";
+
+  ot->invoke = gpencil_modifier_move_to_index_invoke;
+  ot->exec = gpencil_modifier_move_to_index_exec;
+  ot->poll = gpencil_modifier_move_to_index_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  edit_modifier_properties(ot);
+  RNA_def_int(
+      ot->srna, "index", 0, 0, INT_MAX, "Index", "The index to move the modifier to", 0, INT_MAX);
 }
 
 /************************ apply modifier operator *********************/
