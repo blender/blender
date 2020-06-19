@@ -5417,7 +5417,7 @@ static bConstraint *add_new_constraint_internal(const char *name, short type)
 
   /* Only open the main panel when constraints are created, not the subpanels. */
   con->ui_expand_flag = (1 << 0);
-  if (type == CONSTRAINT_TYPE_ACTION || CONSTRAINT_TYPE_SPLINEIK) {
+  if (ELEM(type, CONSTRAINT_TYPE_ACTION, CONSTRAINT_TYPE_SPLINEIK)) {
     /* Expand the two subpanels in the cases where the main panel barely has any properties. */
     con->ui_expand_flag |= (1 << 1) | (1 << 2);
   }
