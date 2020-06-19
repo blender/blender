@@ -1772,8 +1772,6 @@ static void move_to_collection_menu_create(bContext *UNUSED(C), uiLayout *layout
 
   UI_block_flag_enable(uiLayoutGetBlock(layout), UI_BLOCK_IS_FLIP);
 
-  // uiItemS(layout);
-
   WM_operator_properties_create_ptr(&menu->ptr, menu->ot);
   RNA_int_set(&menu->ptr, "collection_index", menu->index);
   RNA_boolean_set(&menu->ptr, "is_new", true);
