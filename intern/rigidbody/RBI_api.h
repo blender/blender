@@ -175,7 +175,7 @@ void RB_body_set_linear_velocity(rbRigidBody *body, const float v_in[3]);
 void RB_body_get_angular_velocity(rbRigidBody *body, float v_out[3]);
 void RB_body_set_angular_velocity(rbRigidBody *body, const float v_in[3]);
 
-/* Linear/Angular Factor, used to lock translation/roation axes */
+/* Linear/Angular Factor, used to lock translation/rotation axes */
 void RB_body_set_linear_factor(rbRigidBody *object, float x, float y, float z);
 void RB_body_set_angular_factor(rbRigidBody *object, float x, float y, float z);
 

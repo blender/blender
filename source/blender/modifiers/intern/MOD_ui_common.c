@@ -439,7 +439,7 @@ PanelType *modifier_panel_register(ARegionType *region_type, ModifierType type, 
 }
 
 /**
- * Add a shild panel to the parent.
+ * Add a child panel to the parent.
  *
  * \note To create the panel type's idname, it appends the \a name argument to the \a parent's
  * idname.

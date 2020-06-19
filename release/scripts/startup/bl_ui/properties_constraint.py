@@ -1160,7 +1160,7 @@ class BONE_PT_bFollowPathConstraint(BoneConstraintPanel, ConstraintButtonsPanel)
         self.draw_follow_path(context)
 
 
-# Roation Limit Constraint
+# Rotation Limit Constraint
 
 class OBJECT_PT_bRotLimitConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
     def draw(self, context):
