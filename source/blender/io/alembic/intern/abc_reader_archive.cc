@@ -39,6 +39,10 @@ using Alembic::Abc::Exception;
 using Alembic::Abc::IArchive;
 using Alembic::Abc::kWrapExisting;
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 static IArchive open_archive(const std::string &filename,
                              const std::vector<std::istream *> &input_streams)
 {
@@ -103,3 +107,7 @@ Alembic::Abc::IObject ArchiveReader::getTop()
 {
   return m_archive.getTop();
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

@@ -42,6 +42,10 @@ using Alembic::AbcGeom::OPointsSchema;
 
 /* ************************************************************************** */
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 AbcPointsWriter::AbcPointsWriter(Object *ob,
                                  AbcTransformWriter *parent,
                                  uint32_t time_sampling,
@@ -120,3 +124,7 @@ void AbcPointsWriter::do_write()
 
   m_schema.set(m_sample);
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

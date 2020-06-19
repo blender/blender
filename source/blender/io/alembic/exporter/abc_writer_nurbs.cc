@@ -35,6 +35,10 @@ using Alembic::AbcGeom::OCompoundProperty;
 using Alembic::AbcGeom::ONuPatch;
 using Alembic::AbcGeom::ONuPatchSchema;
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 AbcNurbsWriter::AbcNurbsWriter(Object *ob,
                                AbcTransformWriter *parent,
                                uint32_t time_sampling,
@@ -168,3 +172,7 @@ void AbcNurbsWriter::do_write()
     m_nurbs_schema[count].set(sample);
   }
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

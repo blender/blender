@@ -27,6 +27,10 @@
 struct Mesh;
 struct ModifierData;
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 /* Writer for Alembic meshes. Does not assume the object is a mesh object. */
 class AbcGenericMeshWriter : public AbcObjectWriter {
  protected:
@@ -87,5 +91,9 @@ class AbcMeshWriter : public AbcGenericMeshWriter {
  protected:
   virtual Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree) override;
 };
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_WRITER_MESH_H__ */

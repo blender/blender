@@ -23,6 +23,10 @@
 
 #include "abc_reader_object.h"
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 class AbcNurbsReader : public AbcObjectReader {
   std::vector<std::pair<Alembic::AbcGeom::INuPatchSchema, Alembic::Abc::IObject>> m_schemas;
 
@@ -36,5 +40,9 @@ class AbcNurbsReader : public AbcObjectReader {
  private:
   void getNurbsPatches(const Alembic::Abc::IObject &obj);
 };
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_READER_NURBS_H__ */

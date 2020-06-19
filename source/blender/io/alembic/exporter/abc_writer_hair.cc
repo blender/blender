@@ -44,6 +44,10 @@ using Alembic::AbcGeom::OV2fGeomParam;
 
 /* ************************************************************************** */
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 AbcHairWriter::AbcHairWriter(Object *ob,
                              AbcTransformWriter *parent,
                              uint32_t time_sampling,
@@ -289,3 +293,7 @@ void AbcHairWriter::write_hair_child_sample(Mesh *mesh,
     }
   }
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

@@ -31,6 +31,10 @@ struct ParticleSystem;
 
 /* ************************************************************************** */
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 class AbcPointsWriter : public AbcObjectWriter {
   Alembic::AbcGeom::OPointsSchema m_schema;
   Alembic::AbcGeom::OPointsSchema::Sample m_sample;
@@ -45,5 +49,9 @@ class AbcPointsWriter : public AbcObjectWriter {
 
   void do_write();
 };
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_WRITER_POINTS_H__ */

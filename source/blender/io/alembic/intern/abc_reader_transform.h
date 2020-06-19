@@ -25,6 +25,10 @@
 
 #include <Alembic/AbcGeom/All.h>
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 class AbcEmptyReader : public AbcObjectReader {
   Alembic::AbcGeom::IXformSchema m_schema;
 
@@ -38,5 +42,9 @@ class AbcEmptyReader : public AbcObjectReader {
 
   void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
 };
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_READER_TRANSFORM_H__ */

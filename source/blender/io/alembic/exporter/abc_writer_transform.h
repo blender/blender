@@ -25,6 +25,10 @@
 
 #include <Alembic/AbcGeom/All.h>
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 class AbcTransformWriter : public AbcObjectWriter {
   Alembic::AbcGeom::OXform m_xform;
   Alembic::AbcGeom::OXformSchema m_schema;
@@ -56,5 +60,9 @@ class AbcTransformWriter : public AbcObjectWriter {
 
   bool hasAnimation(Object *ob) const;
 };
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_WRITER_TRANSFORM_H__ */

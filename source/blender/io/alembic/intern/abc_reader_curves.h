@@ -31,6 +31,10 @@ struct Curve;
 
 #define ABC_CURVE_RESOLUTION_U_PROPNAME "blender:resolution"
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 class AbcCurveReader : public AbcObjectReader {
   Alembic::AbcGeom::ICurvesSchema m_curves_schema;
 
@@ -52,5 +56,9 @@ class AbcCurveReader : public AbcObjectReader {
                          const Alembic::AbcGeom::ICurvesSchema &schema,
                          const Alembic::Abc::ISampleSelector &sample_selector);
 };
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_READER_CURVES_H__ */

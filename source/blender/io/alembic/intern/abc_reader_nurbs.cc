@@ -44,6 +44,10 @@ using Alembic::AbcGeom::INuPatch;
 using Alembic::AbcGeom::INuPatchSchema;
 using Alembic::AbcGeom::IObject;
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 AbcNurbsReader::AbcNurbsReader(const IObject &object, ImportSettings &settings)
     : AbcObjectReader(object, settings)
 {
@@ -222,3 +226,7 @@ void AbcNurbsReader::getNurbsPatches(const IObject &obj)
     getNurbsPatches(child);
   }
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

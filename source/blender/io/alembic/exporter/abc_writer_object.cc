@@ -24,6 +24,10 @@
 
 #include "BKE_object.h"
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 AbcObjectWriter::AbcObjectWriter(Object *ob,
                                  uint32_t time_sampling,
                                  ExportSettings &settings,
@@ -85,3 +89,7 @@ void AbcObjectWriter::write()
   do_write();
   m_first_frame = false;
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

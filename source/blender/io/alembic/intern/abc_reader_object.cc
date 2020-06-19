@@ -41,6 +41,10 @@ using Alembic::AbcGeom::IObject;
 using Alembic::AbcGeom::IXform;
 using Alembic::AbcGeom::IXformSchema;
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 AbcObjectReader::AbcObjectReader(const IObject &object, ImportSettings &settings)
     : m_name(""),
       m_object_name(""),
@@ -330,3 +334,7 @@ void AbcObjectReader::decref()
   m_refcount--;
   BLI_assert(m_refcount >= 0);
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

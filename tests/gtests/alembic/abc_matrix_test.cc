@@ -8,6 +8,8 @@ extern "C" {
 #include "BLI_utildefines.h"
 }
 
+using namespace blender::io::alembic;
+
 TEST(abc_matrix, CreateRotationMatrixY_YfromZ)
 {
   // Input variables

@@ -32,6 +32,10 @@
 using Alembic::AbcGeom::OObject;
 using Alembic::AbcGeom::OXform;
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 AbcTransformWriter::AbcTransformWriter(Object *ob,
                                        const OObject &abc_parent,
                                        AbcTransformWriter *parent,
@@ -122,3 +126,7 @@ bool AbcTransformWriter::hasAnimation(Object * /*ob*/) const
 {
   return true;
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

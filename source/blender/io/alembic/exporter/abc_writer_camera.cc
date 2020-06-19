@@ -27,6 +27,10 @@
 using Alembic::AbcGeom::OCamera;
 using Alembic::AbcGeom::OFloatProperty;
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 AbcCameraWriter::AbcCameraWriter(Object *ob,
                                  AbcTransformWriter *parent,
                                  uint32_t time_sampling,
@@ -77,3 +81,7 @@ void AbcCameraWriter::do_write()
   m_camera_sample.setLensSqueezeRatio(1.0);
   m_camera_schema.set(m_camera_sample);
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

@@ -27,6 +27,10 @@ extern "C" {
 #include "BLI_math_geom.h"
 }
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 void create_swapped_rotation_matrix(float rot_x_mat[3][3],
                                     float rot_y_mat[3][3],
                                     float rot_z_mat[3][3],
@@ -72,7 +76,8 @@ void create_swapped_rotation_matrix(float rot_x_mat[3][3],
   rot_z_mat[1][0] = -sin(rz);
   rot_z_mat[0][1] = sin(rz);
   rot_z_mat[1][1] = cos(rz);
-}
+}  // namespace
+   // alembicvoidcreate_swapped_rotation_matrix(floatrot_x_mat[3][3],floatrot_y_mat[3][3],floatrot_z_mat[3][3],constfloateuler[3],AbcAxisSwapModemode)
 
 /* Convert matrix from Z=up to Y=up or vice versa.
  * Use yup_mat = zup_mat for in-place conversion. */
@@ -164,3 +169,7 @@ void create_transform_matrix(Object *obj,
 
   copy_m44_axis_swap(r_yup_mat, zup_mat, ABC_YUP_FROM_ZUP);
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

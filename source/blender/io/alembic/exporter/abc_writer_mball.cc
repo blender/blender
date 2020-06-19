@@ -33,6 +33,10 @@
 
 #include "BLI_utildefines.h"
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 AbcMBallWriter::AbcMBallWriter(Main *bmain,
                                Object *ob,
                                AbcTransformWriter *parent,
@@ -93,3 +97,7 @@ bool AbcMBallWriter::isBasisBall(Scene *scene, Object *ob)
   Object *basis_ob = BKE_mball_basis_find(scene, ob);
   return ob == basis_ob;
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

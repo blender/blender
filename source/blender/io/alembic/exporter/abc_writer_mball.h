@@ -27,6 +27,10 @@
 struct Main;
 struct Object;
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 /* AbcMBallWriter converts the metaballs to meshes at every frame,
  * and defers to AbcGenericMeshWriter to perform the writing
  * to the Alembic file. Only the basis balls are exported, as this
@@ -52,5 +56,9 @@ class AbcMBallWriter : public AbcGenericMeshWriter {
  private:
   bool isAnimated() const override;
 };
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_WRITER_MBALL_H__ */

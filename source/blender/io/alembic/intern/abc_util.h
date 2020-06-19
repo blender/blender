@@ -41,11 +41,15 @@ struct CacheReader {
 
 using Alembic::Abc::chrono_t;
 
-class AbcObjectReader;
-struct ImportSettings;
-
 struct ID;
 struct Object;
+
+namespace blender {
+namespace io {
+namespace alembic {
+
+class AbcObjectReader;
+struct ImportSettings;
 
 std::string get_id_name(const ID *const id);
 std::string get_id_name(const Object *const ob);
@@ -164,5 +168,9 @@ class SimpleLogger {
  * Pass the content of the logger's stream to the specified std::ostream.
  */
 std::ostream &operator<<(std::ostream &os, const SimpleLogger &logger);
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_UTIL_H__ */

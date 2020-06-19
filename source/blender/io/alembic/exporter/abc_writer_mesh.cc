@@ -58,6 +58,10 @@ using Alembic::AbcGeom::OSubDSchema;
 using Alembic::AbcGeom::OV2fGeomParam;
 using Alembic::AbcGeom::UInt32ArraySample;
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 /* NOTE: Alembic's polygon winding order is clockwise, to match with Renderman. */
 
 static void get_vertices(struct Mesh *mesh, std::vector<Imath::V3f> &points)
@@ -589,3 +593,7 @@ Mesh *AbcMeshWriter::getEvaluatedMesh(Scene *scene_eval,
 {
   return mesh_get_eval_final(m_settings.depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

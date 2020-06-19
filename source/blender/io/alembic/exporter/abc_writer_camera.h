@@ -25,6 +25,10 @@
 
 /* ************************************************************************** */
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 class AbcCameraWriter : public AbcObjectWriter {
   Alembic::AbcGeom::OCameraSchema m_camera_schema;
   Alembic::AbcGeom::CameraSample m_camera_sample;
@@ -41,5 +45,9 @@ class AbcCameraWriter : public AbcObjectWriter {
  private:
   virtual void do_write();
 };
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_WRITER_CAMERA_H__ */

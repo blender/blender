@@ -23,6 +23,10 @@
 
 #include "abc_reader_object.h"
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 class AbcCameraReader : public AbcObjectReader {
   Alembic::AbcGeom::ICameraSchema m_schema;
 
@@ -36,5 +40,9 @@ class AbcCameraReader : public AbcObjectReader {
 
   void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
 };
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_READER_CAMERA_H__ */

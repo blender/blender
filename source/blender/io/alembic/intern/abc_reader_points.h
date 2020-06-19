@@ -27,6 +27,10 @@
 #include "abc_customdata.h"
 #include "abc_reader_object.h"
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 class AbcPointsReader : public AbcObjectReader {
   Alembic::AbcGeom::IPointsSchema m_schema;
   Alembic::AbcGeom::IPointsSchema::Sample m_sample;
@@ -50,5 +54,9 @@ class AbcPointsReader : public AbcObjectReader {
 void read_points_sample(const Alembic::AbcGeom::IPointsSchema &schema,
                         const Alembic::AbcGeom::ISampleSelector &selector,
                         CDStreamConfig &config);
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_READER_POINTS_H__ */

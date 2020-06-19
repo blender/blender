@@ -59,6 +59,10 @@ using Alembic::AbcGeom::N3fArraySamplePtr;
 using Alembic::AbcGeom::UInt32ArraySamplePtr;
 using Alembic::AbcGeom::V2fArraySamplePtr;
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 /* NOTE: Alembic's polygon winding order is clockwise, to match with Renderman. */
 
 /* Some helpers for mesh generation */
@@ -930,3 +934,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
 
   return config.mesh;
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

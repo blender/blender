@@ -49,6 +49,8 @@ extern "C" {
 #include "WM_types.h"
 }
 
+using namespace blender::io::alembic;
+
 struct ExportJobData {
   ViewLayer *view_layer;
   Main *bmain;

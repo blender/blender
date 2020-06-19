@@ -29,6 +29,10 @@
 
 using Alembic::Abc::ISampleSelector;
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 AbcEmptyReader::AbcEmptyReader(const Alembic::Abc::IObject &object, ImportSettings &settings)
     : AbcObjectReader(object, settings)
 {
@@ -72,3 +76,7 @@ void AbcEmptyReader::readObjectData(Main *bmain, const ISampleSelector &UNUSED(s
   m_object = BKE_object_add_only_object(bmain, OB_EMPTY, m_object_name.c_str());
   m_object->data = NULL;
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

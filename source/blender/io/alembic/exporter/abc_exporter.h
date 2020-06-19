@@ -28,16 +28,20 @@
 
 #include "intern/abc_util.h"
 
-class AbcObjectWriter;
-class AbcTransformWriter;
-class ArchiveWriter;
-
 struct Base;
 struct Depsgraph;
 struct Main;
 struct Object;
 struct Scene;
 struct ViewLayer;
+
+namespace blender {
+namespace io {
+namespace alembic {
+
+class AbcObjectWriter;
+class AbcTransformWriter;
+class ArchiveWriter;
 
 struct ExportSettings {
   ExportSettings();
@@ -123,5 +127,9 @@ class AbcExporter {
 
   void setCurrentFrame(Main *bmain, double t);
 };
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_EXPORTER_H__ */

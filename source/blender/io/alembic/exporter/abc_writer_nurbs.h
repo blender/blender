@@ -23,6 +23,10 @@
 
 #include "abc_writer_object.h"
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 class AbcNurbsWriter : public AbcObjectWriter {
   std::vector<Alembic::AbcGeom::ONuPatchSchema> m_nurbs_schema;
   bool m_is_animated;
@@ -38,5 +42,9 @@ class AbcNurbsWriter : public AbcObjectWriter {
 
   bool isAnimated() const;
 };
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_WRITER_NURBS_H__ */

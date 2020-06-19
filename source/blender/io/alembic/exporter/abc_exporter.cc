@@ -67,6 +67,10 @@ using Alembic::Abc::TimeSamplingPtr;
 
 /* ************************************************************************** */
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 ExportSettings::ExportSettings()
     : scene(NULL),
       view_layer(NULL),
@@ -671,3 +675,7 @@ void AbcExporter::setCurrentFrame(Main *bmain, double t)
   m_settings.scene->r.subframe = static_cast<float>(t) - m_settings.scene->r.cfra;
   BKE_scene_graph_update_for_newframe(m_settings.depsgraph, bmain);
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

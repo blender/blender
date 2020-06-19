@@ -27,6 +27,10 @@
 #include "abc_writer_mesh.h"
 #include "abc_writer_object.h"
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 class AbcCurveWriter : public AbcObjectWriter {
   Alembic::AbcGeom::OCurvesSchema m_schema;
   Alembic::AbcGeom::OCurvesSchema::Sample m_sample;
@@ -51,5 +55,9 @@ class AbcCurveMeshWriter : public AbcGenericMeshWriter {
  protected:
   Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree);
 };
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_WRITER_CURVES_H__ */

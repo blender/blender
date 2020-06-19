@@ -26,6 +26,10 @@
 
 struct Mesh;
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 class AbcMeshReader : public AbcObjectReader {
   Alembic::AbcGeom::IPolyMeshSchema m_schema;
 
@@ -82,5 +86,9 @@ void read_mverts(MVert *mverts,
                  const Alembic::AbcGeom::N3fArraySamplePtr normals);
 
 CDStreamConfig get_config(struct Mesh *mesh);
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_READER_MESH_H__ */

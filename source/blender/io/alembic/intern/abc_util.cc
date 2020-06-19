@@ -38,6 +38,10 @@
 
 #include "PIL_time.h"
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 std::string get_id_name(const Object *const ob)
 {
   if (!ob) {
@@ -256,3 +260,7 @@ std::ostream &operator<<(std::ostream &os, const SimpleLogger &logger)
   os << logger.str();
   return os;
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

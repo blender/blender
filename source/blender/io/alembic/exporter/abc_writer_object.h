@@ -28,10 +28,14 @@
 
 #include "DNA_ID.h"
 
-class AbcTransformWriter;
-
 struct Main;
 struct Object;
+
+namespace blender {
+namespace io {
+namespace alembic {
+
+class AbcTransformWriter;
 
 class AbcObjectWriter {
  protected:
@@ -65,5 +69,9 @@ class AbcObjectWriter {
  private:
   virtual void do_write() = 0;
 };
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_WRITER_OBJECT_H__ */

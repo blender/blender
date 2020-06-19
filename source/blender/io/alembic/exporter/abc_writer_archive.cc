@@ -40,6 +40,10 @@ using Alembic::Abc::ErrorHandler;
 using Alembic::Abc::kWrapExisting;
 using Alembic::Abc::OArchive;
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 /* This kinda duplicates CreateArchiveWithInfo, but Alembic does not seem to
  * have a version supporting streams. */
 static OArchive create_archive(std::ostream *ostream,
@@ -96,3 +100,7 @@ OArchive &ArchiveWriter::archive()
 {
   return m_archive;
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

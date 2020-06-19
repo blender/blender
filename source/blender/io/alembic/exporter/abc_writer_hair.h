@@ -23,8 +23,13 @@
 
 #include "abc_writer_object.h"
 
+struct Mesh;
 struct ParticleSettings;
 struct ParticleSystem;
+
+namespace blender {
+namespace io {
+namespace alembic {
 
 class AbcHairWriter : public AbcObjectWriter {
   ParticleSystem *m_psys;
@@ -58,5 +63,9 @@ class AbcHairWriter : public AbcObjectWriter {
                                std::vector<Imath::V2f> &uv_values,
                                std::vector<int32_t> &hvertices);
 };
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender
 
 #endif /* __ABC_WRITER_HAIR_H__ */

@@ -99,6 +99,8 @@ using Alembic::AbcGeom::XformSample;
 
 using Alembic::AbcMaterial::IMaterial;
 
+using namespace blender::io::alembic;
+
 struct AbcArchiveHandle {
   int unused;
 };

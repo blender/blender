@@ -40,6 +40,10 @@ using Alembic::AbcGeom::OInt16Property;
 using Alembic::AbcGeom::ON3fGeomParam;
 using Alembic::AbcGeom::OV2fGeomParam;
 
+namespace blender {
+namespace io {
+namespace alembic {
+
 AbcCurveWriter::AbcCurveWriter(Object *ob,
                                AbcTransformWriter *parent,
                                uint32_t time_sampling,
@@ -186,3 +190,7 @@ Mesh *AbcCurveMeshWriter::getEvaluatedMesh(Scene * /*scene_eval*/,
   r_needsfree = true;
   return BKE_mesh_new_nomain_from_curve(ob_eval);
 }
+
+}  // namespace alembic
+}  // namespace io
+}  // namespace blender

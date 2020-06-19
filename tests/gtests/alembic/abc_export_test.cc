@@ -13,6 +13,8 @@ extern "C" {
 
 #include "DEG_depsgraph.h"
 
+using namespace blender::io::alembic;
+
 class TestableAbcExporter : public AbcExporter {
  public:
   TestableAbcExporter(Main *bmain, const char *filename, ExportSettings &settings)
