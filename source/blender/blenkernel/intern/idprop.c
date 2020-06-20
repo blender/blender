@@ -732,14 +732,14 @@ void IDP_FreeFromGroup(IDProperty *group, IDProperty *prop)
   IDP_FreeProperty(prop);
 }
 
-IDProperty *IDP_GetPropertyFromGroup(IDProperty *prop, const char *name)
+IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop, const char *name)
 {
   BLI_assert(prop->type == IDP_GROUP);
 
   return (IDProperty *)BLI_findstring(&prop->data.group, name, offsetof(IDProperty, name));
 }
 /** same as above but ensure type match */
-IDProperty *IDP_GetPropertyTypeFromGroup(IDProperty *prop, const char *name, const char type)
+IDProperty *IDP_GetPropertyTypeFromGroup(const IDProperty *prop, const char *name, const char type)
 {
   IDProperty *idprop = IDP_GetPropertyFromGroup(prop, name);
   return (idprop && idprop->type == type) ? idprop : NULL;

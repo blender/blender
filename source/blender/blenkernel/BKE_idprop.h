@@ -110,9 +110,9 @@ bool IDP_InsertToGroup(struct IDProperty *group,
 void IDP_RemoveFromGroup(struct IDProperty *group, struct IDProperty *prop) ATTR_NONNULL();
 void IDP_FreeFromGroup(struct IDProperty *group, struct IDProperty *prop) ATTR_NONNULL();
 
-IDProperty *IDP_GetPropertyFromGroup(struct IDProperty *prop,
+IDProperty *IDP_GetPropertyFromGroup(const struct IDProperty *prop,
                                      const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-IDProperty *IDP_GetPropertyTypeFromGroup(struct IDProperty *prop,
+IDProperty *IDP_GetPropertyTypeFromGroup(const struct IDProperty *prop,
                                          const char *name,
                                          const char type) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 

@@ -819,12 +819,12 @@ int RNA_property_array_item_index(PropertyRNA *prop, char name);
 
 int RNA_property_string_maxlength(PropertyRNA *prop);
 
-const char *RNA_property_ui_name(PropertyRNA *prop);
-const char *RNA_property_ui_name_raw(PropertyRNA *prop);
-const char *RNA_property_ui_description(PropertyRNA *prop);
-const char *RNA_property_ui_description_raw(PropertyRNA *prop);
-const char *RNA_property_translation_context(PropertyRNA *prop);
-int RNA_property_ui_icon(PropertyRNA *prop);
+const char *RNA_property_ui_name(const PropertyRNA *prop);
+const char *RNA_property_ui_name_raw(const PropertyRNA *prop);
+const char *RNA_property_ui_description(const PropertyRNA *prop);
+const char *RNA_property_ui_description_raw(const PropertyRNA *prop);
+const char *RNA_property_translation_context(const PropertyRNA *prop);
+int RNA_property_ui_icon(const PropertyRNA *prop);
 
 /* Dynamic Property Information */
 
