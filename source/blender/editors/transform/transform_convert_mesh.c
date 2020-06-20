@@ -705,23 +705,6 @@ void createTransEditVerts(TransInfo *t)
 
     struct TransIslandData island_data = {NULL};
 
-    /* Snap rotation along normal needs a common axis for whole islands,
-     * otherwise one get random crazy results, see T59104.
-     * However, we do not want to use the island center for the pivot/translation reference. */
-    const bool is_snap_rotate = ((t->mode == TFM_TRANSLATION) &&
-                                 /* There is not guarantee that snapping
-                                  * is initialized yet at this point... */
-                                 (usingSnappingNormal(t) ||
-                                  (t->settings->snap_flag & SCE_SNAP_ROTATE) != 0) &&
-                                 (t->around != V3D_AROUND_LOCAL_ORIGINS));
-    /* Even for translation this is needed because of island-orientation, see: T51651. */
-    const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS) || is_snap_rotate;
-    /* Original index of our connected vertex when connected distances are calculated.
-     * Optional, allocate if needed. */
-    int *dists_index = NULL;
-
-    BLI_bitmap *mirror_bitmap = NULL;
-
     /**
      * Quick check if we can transform.
      *
@@ -731,8 +714,43 @@ void createTransEditVerts(TransInfo *t)
 
     /* Support other objects using PET to adjust these, unless connected is enabled. */
     if ((!prop_mode || (prop_mode & T_PROP_CONNECTED)) && (bm->totvertsel == 0)) {
-      goto cleanup;
+      continue;
     }
+
+    int data_len = 0;
+    if (prop_mode) {
+      BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+        if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+          data_len++;
+        }
+      }
+    }
+    else {
+      data_len = bm->totvertsel;
+    }
+
+    if (data_len == 0) {
+      continue;
+    }
+
+    /* Snap rotation along normal needs a common axis for whole islands,
+     * otherwise one get random crazy results, see T59104.
+     * However, we do not want to use the island center for the pivot/translation reference. */
+    const bool is_snap_rotate = ((t->mode == TFM_TRANSLATION) &&
+                                 /* There is not guarantee that snapping
+                                  * is initialized yet at this point... */
+                                 (usingSnappingNormal(t) ||
+                                  (t->settings->snap_flag & SCE_SNAP_ROTATE) != 0) &&
+                                 (t->around != V3D_AROUND_LOCAL_ORIGINS));
+
+    /* Even for translation this is needed because of island-orientation, see: T51651. */
+    const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS) || is_snap_rotate;
+
+    /* Original index of our connected vertex when connected distances are calculated.
+     * Optional, allocate if needed. */
+    int *dists_index = NULL;
+
+    BLI_bitmap *mirror_bitmap = NULL;
 
     if (t->mode == TFM_BWEIGHT) {
       BM_mesh_cd_flag_ensure(bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_VERT_BWEIGHT);
@@ -747,28 +765,12 @@ void createTransEditVerts(TransInfo *t)
           em, use_select, use_topology, mirror_axis, &tc->data_mirror_len, &mirror_bitmap);
     }
 
-    int data_len = 0;
-    if (prop_mode) {
-      BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-        if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-          data_len++;
-        }
+    /* allocating scratch arrays */
+    if (prop_mode & T_PROP_CONNECTED) {
+      dists = MEM_mallocN(bm->totvert * sizeof(float), __func__);
+      if (is_island_center) {
+        dists_index = MEM_mallocN(bm->totvert * sizeof(int), __func__);
       }
-
-      if (data_len == 0) {
-        goto cleanup;
-      }
-
-      /* allocating scratch arrays */
-      if (prop_mode & T_PROP_CONNECTED) {
-        dists = MEM_mallocN(em->bm->totvert * sizeof(float), __func__);
-        if (is_island_center) {
-          dists_index = MEM_mallocN(em->bm->totvert * sizeof(int), __func__);
-        }
-      }
-    }
-    else {
-      data_len = bm->totvertsel;
     }
 
     if (mirror_bitmap) {
@@ -953,17 +955,12 @@ void createTransEditVerts(TransInfo *t)
     if (island_data.center) {
       MEM_freeN(island_data.center);
     }
-
     if (island_data.axismtx) {
       MEM_freeN(island_data.axismtx);
     }
-
     if (island_data.island_vert_map) {
       MEM_freeN(island_data.island_vert_map);
     }
-
-  cleanup:
-    /* crazy space free */
     if (quats) {
       MEM_freeN(quats);
     }
