@@ -1598,17 +1598,17 @@ static TreeElement *outliner_find_rightmost_visible_child(SpaceOutliner *soops, 
 }
 
 /* Find previous visible element in the tree  */
-static TreeElement *outliner_find_previous_element(SpaceOutliner *soops, TreeElement *walk_element)
+static TreeElement *outliner_find_previous_element(SpaceOutliner *soops, TreeElement *te)
 {
-  if (walk_element->prev) {
-    walk_element = outliner_find_rightmost_visible_child(soops, walk_element->prev);
+  if (te->prev) {
+    te = outliner_find_rightmost_visible_child(soops, te->prev);
   }
-  else if (walk_element->parent) {
+  else if (te->parent) {
     /* Use parent if at beginning of list */
-    walk_element = walk_element->parent;
+    te = te->parent;
   }
 
-  return walk_element;
+  return te;
 }
 
 /* Recursively search up the tree until a successor to a given element is found */
@@ -1629,21 +1629,21 @@ static TreeElement *outliner_element_find_successor_in_parents(TreeElement *te)
 }
 
 /* Find next visible element in the tree */
-static TreeElement *outliner_find_next_element(SpaceOutliner *soops, TreeElement *walk_element)
+static TreeElement *outliner_find_next_element(SpaceOutliner *soops, TreeElement *te)
 {
-  TreeStoreElem *tselem = TREESTORE(walk_element);
+  TreeStoreElem *tselem = TREESTORE(te);
 
-  if (TSELEM_OPEN(tselem, soops) && walk_element->subtree.first) {
-    walk_element = walk_element->subtree.first;
+  if (TSELEM_OPEN(tselem, soops) && te->subtree.first) {
+    te = te->subtree.first;
   }
-  else if (walk_element->next) {
-    walk_element = walk_element->next;
+  else if (te->next) {
+    te = te->next;
   }
   else {
-    walk_element = outliner_element_find_successor_in_parents(walk_element);
+    te = outliner_element_find_successor_in_parents(te);
   }
 
-  return walk_element;
+  return te;
 }
 
 static TreeElement *do_outliner_select_walk(SpaceOutliner *soops,
