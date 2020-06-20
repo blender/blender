@@ -288,8 +288,6 @@ void outliner_object_mode_toggle(struct bContext *C,
                                  ViewLayer *view_layer,
                                  Base *base);
 
-void outliner_set_walk_element(struct SpaceOutliner *soops, struct TreeStoreElem *tselem);
-
 bool outliner_item_is_co_over_name_icons(const TreeElement *te, float view_co_x);
 bool outliner_item_is_co_within_close_toggle(const TreeElement *te, float view_co_x);
 
