@@ -214,10 +214,6 @@ class DATA_PT_gpencil_onion_skinning(DataButtonsPanel, Panel):
 
         layout = self.layout
         layout.use_property_split = True
-        layout.enabled = gpd.users <= 1
-
-        if gpd.users > 1:
-            layout.label(text="Multiuser datablock not supported", icon='ERROR')
 
         col = layout.column()
         col.prop(gpd, "onion_mode")
