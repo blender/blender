@@ -687,7 +687,8 @@ static Nurb *rna_Curve_spline_new(Curve *cu, int type)
   nu->pntsv = 1;
 
   nu->orderu = nu->orderv = 4;
-  nu->resolu = nu->resolv = 12;
+  nu->resolu = cu->resolu;
+  nu->resolv = cu->resolv;
   nu->flag = CU_SMOOTH;
 
   if ((cu->flag & CU_3D) == 0) {
