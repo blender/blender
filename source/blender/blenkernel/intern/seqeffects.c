@@ -2810,7 +2810,7 @@ static ImBuf *do_glow_effect(const SeqRenderData *context,
                          context->rectx,
                          context->recty,
                          ibuf1->rect_float,
-                         ibuf2->rect_float,
+                         NULL,
                          out->rect_float);
   }
   else {
@@ -2821,7 +2821,7 @@ static ImBuf *do_glow_effect(const SeqRenderData *context,
                         context->rectx,
                         context->recty,
                         (unsigned char *)ibuf1->rect,
-                        (unsigned char *)ibuf2->rect,
+                        NULL,
                         (unsigned char *)out->rect);
   }
 
