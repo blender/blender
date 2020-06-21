@@ -112,7 +112,7 @@ typedef enum eMaterialGPencilStyle_Flag {
   /* protected from further editing */
   GP_MATERIAL_LOCKED = (1 << 2),
   /* do onion skinning */
-  GP_MATERIAL_ONIONSKIN = (1 << 3),
+  GP_MATERIAL_HIDE_ONIONSKIN = (1 << 3),
   /* clamp texture */
   GP_MATERIAL_TEX_CLAMP = (1 << 4),
   /* mix fill texture */

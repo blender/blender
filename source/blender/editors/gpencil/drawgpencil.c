@@ -316,7 +316,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
 
     if ((gp_style == NULL) || (gp_style->flag & GP_MATERIAL_HIDE) ||
         /* if onion and ghost flag do not draw*/
-        (tgpw->onion && (gp_style->flag & GP_MATERIAL_ONIONSKIN))) {
+        (tgpw->onion && (gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN))) {
       continue;
     }
 

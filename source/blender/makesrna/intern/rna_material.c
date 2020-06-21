@@ -542,7 +542,7 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
   prop = RNA_def_property(srna, "ghost", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_MATERIAL_ONIONSKIN);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_MATERIAL_HIDE_ONIONSKIN);
   RNA_def_property_ui_icon(prop, ICON_GHOST_ENABLED, 0);
   RNA_def_property_ui_text(
       prop, "Show in Ghosts", "Display strokes using this color when showing onion skins");
