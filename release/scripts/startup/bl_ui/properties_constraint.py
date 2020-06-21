@@ -103,11 +103,13 @@ class ConstraintButtonsPanel(Panel):
                 col.prop_search(con, "subtarget", con.target.data, "bones", text="Bone")
 
                 if hasattr(con, "head_tail"):
-                    row = col.row(align=True, heading="Head/Tail")
+                    row = col.row(align=True)
                     row.use_property_decorate = False
-                    row.prop(con, "head_tail", text="")
+                    sub = row.row(align=True)
+                    sub.prop(con, "head_tail")
                     # XXX icon, and only when bone has segments?
-                    row.prop(con, "use_bbone_shape", text="", icon='IPO_BEZIER')
+                    sub.prop(con, "use_bbone_shape", text="", icon='IPO_BEZIER')
+                    row.prop_decorator(con, "head_tail")
             elif con.target.type in {'MESH', 'LATTICE'}:
                 col.prop_search(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 
@@ -392,18 +394,20 @@ class ConstraintButtonsPanel(Panel):
 
         layout.prop(con, "euler_order", text="Order")
 
-        row = layout.row(heading="Axis")
+        row = layout.row(heading="Axis", align=True)
         row.use_property_decorate = False
-        row.prop(con, "use_x", text="X", toggle=True)
-        row.prop(con, "use_y", text="Y", toggle=True)
-        row.prop(con, "use_z", text="Z", toggle=True)
+        sub = row.row(align=True)
+        sub.prop(con, "use_x", text="X", toggle=True)
+        sub.prop(con, "use_y", text="Y", toggle=True)
+        sub.prop(con, "use_z", text="Z", toggle=True)
         row.label(icon='BLANK1')
 
-        row = layout.row(heading="Invert")
+        row = layout.row(heading="Invert", align=True)
         row.use_property_decorate = False
-        row.prop(con, "invert_x", text="X", toggle=True)
-        row.prop(con, "invert_y", text="Y", toggle=True)
-        row.prop(con, "invert_z", text="Z", toggle=True)
+        sub = row.row(align=True)
+        sub.prop(con, "invert_x", text="X", toggle=True)
+        sub.prop(con, "invert_y", text="Y", toggle=True)
+        sub.prop(con, "invert_z", text="Z", toggle=True)
         row.label(icon='BLANK1')
 
         layout.prop(con, "mix_mode", text="Mix")
@@ -420,18 +424,20 @@ class ConstraintButtonsPanel(Panel):
 
         self.target_template(layout, con)
 
-        row = layout.row(heading="Axis")
+        row = layout.row(heading="Axis", align=True)
         row.use_property_decorate = False
-        row.prop(con, "use_x", text="X", toggle=True)
-        row.prop(con, "use_y", text="Y", toggle=True)
-        row.prop(con, "use_z", text="Z", toggle=True)
+        sub = row.row(align=True)
+        sub.prop(con, "use_x", text="X", toggle=True)
+        sub.prop(con, "use_y", text="Y", toggle=True)
+        sub.prop(con, "use_z", text="Z", toggle=True)
         row.label(icon='BLANK1')
 
-        row = layout.row(heading="Invert")
+        row = layout.row(heading="Invert", align=True)
         row.use_property_decorate = False
-        row.prop(con, "invert_x", text="X", toggle=True)
-        row.prop(con, "invert_y", text="Y", toggle=True)
-        row.prop(con, "invert_z", text="Z", toggle=True)
+        sub = row.row(align=True)
+        sub.prop(con, "invert_x", text="X", toggle=True)
+        sub.prop(con, "invert_y", text="Y", toggle=True)
+        sub.prop(con, "invert_z", text="Z", toggle=True)
         row.label(icon='BLANK1')
 
         layout.prop(con, "use_offset")
@@ -448,10 +454,13 @@ class ConstraintButtonsPanel(Panel):
 
         self.target_template(layout, con)
 
-        row = layout.row(heading="Axis")
-        row.prop(con, "use_x", text="X", toggle=True)
-        row.prop(con, "use_y", text="Y", toggle=True)
-        row.prop(con, "use_z", text="Z", toggle=True)
+        row = layout.row(heading="Axis", align=True)
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_x", text="X", toggle=True)
+        sub.prop(con, "use_y", text="Y", toggle=True)
+        sub.prop(con, "use_z", text="Z", toggle=True)
+        row.label(icon='BLANK1')
 
         col = layout.column()
         col.prop(con, "power")
