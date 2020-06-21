@@ -1432,16 +1432,14 @@ void initEdgeSlide_ex(
     t->custom.mode.use_free = true;
   }
 
-  if (use_double_side) {
-    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      sld = use_double_side ? createEdgeSlideVerts_double_side(t, tc) :
-                              createEdgeSlideVerts_single_side(t, tc);
-      if (sld) {
-        tc->custom.mode.data = sld;
-        tc->custom.mode.free_cb = freeEdgeSlideVerts;
-        trans_mesh_customdata_correction_init(t, tc);
-        ok = true;
-      }
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    sld = use_double_side ? createEdgeSlideVerts_double_side(t, tc) :
+                            createEdgeSlideVerts_single_side(t, tc);
+    if (sld) {
+      tc->custom.mode.data = sld;
+      tc->custom.mode.free_cb = freeEdgeSlideVerts;
+      trans_mesh_customdata_correction_init(t, tc);
+      ok = true;
     }
   }
 
