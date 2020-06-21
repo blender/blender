@@ -2051,10 +2051,13 @@ static void ui_handle_panel_header(
       /* Collapse and expand panels. */
 
       if (ctrl) {
-        /* Only collapse all for parent panels. */
+        /* For parent panels, collapse all other panels or toggle children. */
         if (block->panel->type != NULL && block->panel->type->parent == NULL) {
           if (block->panel->flag & PNL_CLOSED || BLI_listbase_is_empty(&block->panel->children)) {
             panels_collapse_all(C, area, region, block->panel);
+
+            /* Reset the view - we don't want to display a view without content. */
+            UI_view2d_offset(&region->v2d, 0.0f, 1.0f);
           }
           else {
             const int closed_flag = (align == BUT_HORIZONTAL) ? PNL_CLOSEDX : PNL_CLOSEDY;
@@ -2066,9 +2069,6 @@ static void ui_handle_panel_header(
                 block->panel, closed_flag, (first_child->flag & PNL_CLOSED) == 0);
             block->panel->flag |= closed_flag;
           }
-
-          /* reset the view - we don't want to display a view without content */
-          UI_view2d_offset(&region->v2d, 0.0f, 1.0f);
         }
       }
 
