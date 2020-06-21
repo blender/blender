@@ -50,9 +50,6 @@
 /* Own include. */
 #include "transform_convert.h"
 
-/* Used for both mirror epsilon and TD_MIRROR_EDGE_ */
-#define TRANSFORM_MAXDIST_MIRROR 0.00002f
-
 /* -------------------------------------------------------------------- */
 /** \name Island Creation
  *
@@ -432,6 +429,19 @@ static void editmesh_set_connectivity_distance(BMesh *bm,
  *
  * \{ */
 
+/* Used for both mirror epsilon and TD_MIRROR_EDGE_ */
+#define TRANSFORM_MAXDIST_MIRROR 0.00002f
+
+struct MirrorDataVert {
+  int index;
+  int flag;
+};
+
+struct TransMirrorData {
+  struct MirrorDataVert *vert_map;
+  int mirror_elem_len;
+};
+
 static bool is_in_quadrant_v3(const float co[3], const int quadrant[3], const float epsilon)
 {
   if (quadrant[0] && ((co[0] * quadrant[0]) < -epsilon)) {
@@ -446,163 +456,109 @@ static bool is_in_quadrant_v3(const float co[3], const int quadrant[3], const fl
   return true;
 }
 
-static TransDataMirror *editmesh_mirror_data_calc(BMEditMesh *em,
-                                                  bool use_select,
-                                                  const bool use_topology,
-                                                  const bool mirror_axis[3],
-                                                  int *r_mirror_data_len,
-                                                  BLI_bitmap **r_mirror_bitmap)
+static void editmesh_mirror_data_calc(BMEditMesh *em,
+                                      const bool use_select,
+                                      const bool use_topology,
+                                      const bool mirror_axis[3],
+                                      struct TransMirrorData *r_mirror_data)
 {
+  struct MirrorDataVert *vert_map;
+
   BMesh *bm = em->bm;
-  int *index[3] = {NULL};
-  int i;
-
-  bool test_selected_only = use_select && (mirror_axis[0] + mirror_axis[1] + mirror_axis[2]) == 1;
-  for (i = 0; i < 3; i++) {
-    if (mirror_axis[i]) {
-      index[i] = MEM_mallocN(bm->totvert * sizeof(int), __func__);
-      EDBM_verts_mirror_cache_begin_ex(
-          em, i, false, test_selected_only, use_topology, TRANSFORM_MAXDIST_MIRROR, index[i]);
-    }
-  }
-
   BMVert *eve;
   BMIter iter;
+  int i, flag, totvert = bm->totvert;
 
-  int quadrant[3];
-  {
-    float select_sum[3] = {0};
-    BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-      if (BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-        continue;
-      }
-      if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-        add_v3_v3(select_sum, eve->co);
-      }
+  vert_map = MEM_mallocN(totvert * sizeof(*vert_map), __func__);
+
+  float select_sum[3] = {0};
+  BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
+    vert_map[i] = (struct MirrorDataVert){-1, 0};
+    if (BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+      continue;
     }
-
-    for (i = 0; i < 3; i++) {
-      if (mirror_axis[i]) {
-        quadrant[i] = select_sum[i] >= 0.0f ? 1 : -1;
-      }
-      else {
-        quadrant[i] = 0;
-      }
+    if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+      add_v3_v3(select_sum, eve->co);
     }
   }
 
   /* Tag only elements that will be transformed within the quadrant. */
-  BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-    if (BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-      continue;
-    }
-    if ((!use_select || BM_elem_flag_test(eve, BM_ELEM_SELECT)) &&
-        is_in_quadrant_v3(eve->co, quadrant, TRANSFORM_MAXDIST_MIRROR)) {
-      BM_elem_flag_enable(eve, BM_ELEM_TAG);
-      BM_elem_index_set(eve, i);
+  int quadrant[3];
+  for (int a = 0; a < 3; a++) {
+    if (mirror_axis[a]) {
+      quadrant[a] = select_sum[a] >= 0.0f ? 1 : -1;
     }
     else {
-      BM_elem_flag_disable(eve, BM_ELEM_TAG);
-      BM_elem_index_set(eve, -1);
+      quadrant[a] = 0;
     }
   }
 
+  uint mirror_elem_len = 0;
+  int *index[3] = {NULL, NULL, NULL};
+  bool test_selected_only = use_select && (mirror_axis[0] + mirror_axis[1] + mirror_axis[2]) == 1;
   for (int a = 0; a < 3; a++) {
-    int *index_iter = index[a];
-    if (index_iter == NULL) {
+    if (!mirror_axis[a]) {
       continue;
     }
+
+    index[a] = MEM_mallocN(totvert * sizeof(*index[a]), __func__);
+    EDBM_verts_mirror_cache_begin_ex(
+        em, a, false, test_selected_only, use_topology, TRANSFORM_MAXDIST_MIRROR, index[a]);
+
+    flag = TD_MIRROR_X << a;
     BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
+      int i_mirr = index[a][i];
+      if (i_mirr < 0) {
+        continue;
+      }
       if (BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
         continue;
       }
-      if (test_selected_only && !BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+      if (use_select && !BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
         continue;
       }
-      int elem_index = BM_elem_index_get(eve);
-      if (elem_index != -1) {
-        int i_mirr = index_iter[i];
-        if (i_mirr >= 0) {
-          BMVert *vmir = BM_vert_at_index(bm, i_mirr);
-          BM_elem_index_set(vmir, elem_index);
-
-          /* The slot of this element in the index array no longer needs to be read.
-           * Use to set the mirror sign. */
-          if (index[0] && a > 0) {
-            index[0][i_mirr] = index[0][i];
-          }
-          if (index[1] && a > 1) {
-            index[1][i_mirr] = index[1][i];
-          }
-          /* Use -2 to differ from -1, but both can work. */
-          index_iter[i_mirr] = -2;
-        }
+      if (!is_in_quadrant_v3(eve->co, quadrant, TRANSFORM_MAXDIST_MIRROR)) {
+        continue;
       }
-    }
-  }
 
-  /* Count mirror elements. */
-  uint mirror_elem_len = 0;
-  BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-    if (BM_elem_flag_test(eve, BM_ELEM_HIDDEN | BM_ELEM_TAG)) {
-      /* Not a mirror element. */
-      BM_elem_index_set(eve, -1);
-      continue;
-    }
-    int elem_index = BM_elem_index_get(eve);
-    if (elem_index != -1) {
+      vert_map[i_mirr] = (struct MirrorDataVert){i, flag};
       mirror_elem_len++;
     }
   }
 
-  TransDataMirror *td_mirror_iter, *td_mirror = NULL;
-  if (mirror_elem_len != 0) {
-    td_mirror = MEM_mallocN(mirror_elem_len * sizeof(*td_mirror), __func__);
-    td_mirror_iter = &td_mirror[0];
+  if (mirror_elem_len) {
+    for (int a = 0; a < 3; a++) {
+      if (!mirror_axis[a]) {
+        continue;
+      }
 
-    *r_mirror_bitmap = BLI_BITMAP_NEW(bm->totvert, __func__);
-
-    BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-      int elem_index = BM_elem_index_get(eve);
-      if (elem_index != -1) {
-        BMVert *v_src = BM_vert_at_index(bm, elem_index);
-
-        int flag = 0;
-        if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-          flag |= TD_SELECTED;
+      flag = TD_MIRROR_X << a;
+      for (i = 0; i < totvert; i++) {
+        int i_mirr = index[a][i];
+        if (i_mirr < 0) {
+          continue;
         }
-        if (index[0] && index[0][i] == -2) {
-          flag |= TD_MIRROR_X;
+        if (vert_map[i].index != -1 && !(vert_map[i].flag & flag)) {
+          if (vert_map[i_mirr].index == -1) {
+            mirror_elem_len++;
+          }
+          vert_map[i_mirr].index = vert_map[i].index;
+          vert_map[i_mirr].flag |= vert_map[i].flag | flag;
         }
-        if (index[1] && index[1][i] == -2) {
-          flag |= TD_MIRROR_Y;
-        }
-        if (index[2] && index[2][i] == -2) {
-          flag |= TD_MIRROR_Z;
-        }
-
-        td_mirror_iter->extra = eve;
-        td_mirror_iter->loc = eve->co;
-        copy_v3_v3(td_mirror_iter->iloc, eve->co);
-        td_mirror_iter->flag = flag;
-        td_mirror_iter->loc_src = v_src->co;
-        /** `center` will be set in the main createTransEditVerts loop.
-         * copy_v3_v3(td_mirror_iter->center, eve->co); */
-
-        td_mirror_iter++;
-
-        BLI_BITMAP_ENABLE(*r_mirror_bitmap, i);
       }
     }
+  }
+  else {
+    MEM_freeN(vert_map);
+    vert_map = NULL;
   }
 
   MEM_SAFE_FREE(index[0]);
   MEM_SAFE_FREE(index[1]);
   MEM_SAFE_FREE(index[2]);
 
-  bm->elem_index_dirty |= BM_VERT;
-  *r_mirror_data_len = mirror_elem_len;
-  return td_mirror;
+  r_mirror_data->vert_map = vert_map;
+  r_mirror_data->mirror_elem_len = mirror_elem_len;
 }
 
 /** \} */
@@ -704,14 +660,12 @@ void createTransEditVerts(TransInfo *t)
     BMesh *bm = em->bm;
     BMVert *eve;
     BMIter iter;
-    float(*mappedcos)[3] = NULL, (*quats)[4] = NULL;
-    float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
-    float *dists = NULL;
+    float mtx[3][3], smtx[3][3];
     int a;
     const int prop_mode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
-    int cd_vert_bweight_offset = -1;
 
     struct TransIslandData island_data = {NULL};
+    struct TransMirrorData mirror_data = {NULL};
 
     /**
      * Quick check if we can transform.
@@ -753,46 +707,63 @@ void createTransEditVerts(TransInfo *t)
 
     /* Even for translation this is needed because of island-orientation, see: T51651. */
     const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS) || is_snap_rotate;
+    if (is_island_center) {
+      /* In this specific case, near-by vertices will need to know
+       * the island of the nearest connected vertex. */
+      const bool calc_single_islands = ((prop_mode & T_PROP_CONNECTED) &&
+                                        (t->around == V3D_AROUND_LOCAL_ORIGINS) &&
+                                        (em->selectmode & SCE_SELECT_VERTEX));
+
+      const bool calc_island_center = !is_snap_rotate;
+      /* The island axismtx is only necessary in some modes.
+       * TODO(Germano): Extend the list to exclude other modes. */
+      const bool calc_island_axismtx = !ELEM(t->mode, TFM_SHRINKFATTEN);
+
+      editmesh_islands_info_calc(
+          em, calc_single_islands, calc_island_center, calc_island_axismtx, &island_data);
+    }
+
+    copy_m3_m4(mtx, tc->obedit->obmat);
+    /* we use a pseudo-inverse so that when one of the axes is scaled to 0,
+     * matrix inversion still works and we can still moving along the other */
+    pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
     /* Original index of our connected vertex when connected distances are calculated.
      * Optional, allocate if needed. */
     int *dists_index = NULL;
-
-    BLI_bitmap *mirror_bitmap = NULL;
-
-    if (t->mode == TFM_BWEIGHT) {
-      BM_mesh_cd_flag_ensure(bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_VERT_BWEIGHT);
-      cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
-    }
-
-    if (tc->use_mirror_axis_any) {
-      bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
-      bool use_select = (t->flag & T_PROP_EDIT) == 0;
-      bool mirror_axis[3] = {tc->use_mirror_axis_x, tc->use_mirror_axis_y, tc->use_mirror_axis_z};
-      tc->data_mirror = editmesh_mirror_data_calc(
-          em, use_select, use_topology, mirror_axis, &tc->data_mirror_len, &mirror_bitmap);
-    }
-
-    /* allocating scratch arrays */
+    float *dists = NULL;
     if (prop_mode & T_PROP_CONNECTED) {
       dists = MEM_mallocN(bm->totvert * sizeof(float), __func__);
       if (is_island_center) {
         dists_index = MEM_mallocN(bm->totvert * sizeof(int), __func__);
       }
+      editmesh_set_connectivity_distance(em->bm, mtx, dists, dists_index);
     }
 
-    if (mirror_bitmap) {
-      BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, a) {
-        if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-          if (BLI_BITMAP_TEST(mirror_bitmap, a)) {
-            data_len--;
+    /* Create TransDataMirror. */
+    if (tc->use_mirror_axis_any) {
+      bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+      bool use_select = (t->flag & T_PROP_EDIT) == 0;
+      bool mirror_axis[3] = {tc->use_mirror_axis_x, tc->use_mirror_axis_y, tc->use_mirror_axis_z};
+      editmesh_mirror_data_calc(em, use_select, use_topology, mirror_axis, &mirror_data);
+
+      if (mirror_data.vert_map) {
+        tc->data_mirror_len = mirror_data.mirror_elem_len;
+        tc->data_mirror = MEM_mallocN(mirror_data.mirror_elem_len * sizeof(*tc->data_mirror),
+                                      __func__);
+
+        BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, a) {
+          if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+            if (mirror_data.vert_map[a].index != -1) {
+              data_len--;
+            }
           }
         }
       }
     }
 
-    BLI_assert(data_len != 0);
-
+    /* Create TransData. */
+    BLI_assert(data_len >= 1);
     tc->data_len = data_len;
     tc->data = MEM_callocN(data_len * sizeof(TransData), "TransObData(Mesh EditMode)");
     if (ELEM(t->mode, TFM_SKIN_RESIZE, TFM_SHRINKFATTEN)) {
@@ -804,34 +775,11 @@ void createTransEditVerts(TransInfo *t)
                                       "TransObData ext");
     }
 
-    copy_m3_m4(mtx, tc->obedit->obmat);
-    /* we use a pseudo-inverse so that when one of the axes is scaled to 0,
-     * matrix inversion still works and we can still moving along the other */
-    pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
-
-    if (prop_mode & T_PROP_CONNECTED) {
-      editmesh_set_connectivity_distance(em->bm, mtx, dists, dists_index);
-    }
-
-    if (is_island_center) {
-      /* In this specific case, near-by vertices will need to know
-       * the island of the nearest connected vertex. */
-      const bool calc_single_islands = ((prop_mode & T_PROP_CONNECTED) &&
-                                        (t->around == V3D_AROUND_LOCAL_ORIGINS) &&
-                                        (em->selectmode & SCE_SELECT_VERTEX));
-
-      const bool calc_island_center = !is_snap_rotate;
-
-      /* The island axismtx is only necessary in some modes.
-       * TODO(Germano): Extend the list to exclude other modes. */
-      const bool calc_island_axismtx = !ELEM(t->mode, TFM_SHRINKFATTEN);
-
-      editmesh_islands_info_calc(
-          em, calc_single_islands, calc_island_center, calc_island_axismtx, &island_data);
-    }
-
     /* detect CrazySpace [tm] */
+    float(*quats)[4] = NULL;
+    float(*defmats)[3][3] = NULL;
     if (BKE_modifiers_get_cage_index(t->scene, tc->obedit, NULL, 1) != -1) {
+      float(*defcos)[3] = NULL;
       int totleft = -1;
       if (BKE_modifiers_is_correctable_deformed(t->scene, tc->obedit)) {
         BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
@@ -856,6 +804,7 @@ void createTransEditVerts(TransInfo *t)
       if (totleft > 0)
 #endif
       {
+        float(*mappedcos)[3] = NULL;
         mappedcos = BKE_crazyspace_get_mapped_editverts(t->depsgraph, tc->obedit);
         quats = MEM_mallocN(em->bm->totvert * sizeof(*quats), "crazy quats");
         BKE_crazyspace_set_quats_editmesh(em, defcos, mappedcos, quats, !prop_mode);
@@ -867,6 +816,12 @@ void createTransEditVerts(TransInfo *t)
       if (defcos) {
         MEM_freeN(defcos);
       }
+    }
+
+    int cd_vert_bweight_offset = -1;
+    if (t->mode == TFM_BWEIGHT) {
+      BM_mesh_cd_flag_ensure(bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_VERT_BWEIGHT);
+      cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
     }
 
     TransData *tob = tc->data;
@@ -882,7 +837,19 @@ void createTransEditVerts(TransInfo *t)
           island_index = island_data.island_vert_map[connected_index];
         }
 
-        if (mirror_bitmap && BLI_BITMAP_TEST(mirror_bitmap, a)) {
+        if (mirror_data.vert_map && mirror_data.vert_map[a].index != -1) {
+          int elem_index = mirror_data.vert_map[a].index;
+          BMVert *v_src = BM_vert_at_index(bm, elem_index);
+
+          if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+            mirror_data.vert_map[a].flag |= TD_SELECTED;
+          }
+
+          td_mirror->extra = eve;
+          td_mirror->loc = eve->co;
+          copy_v3_v3(td_mirror->iloc, eve->co);
+          td_mirror->flag = mirror_data.vert_map[a].flag;
+          td_mirror->loc_src = v_src->co;
           transdata_center_get(&island_data, island_index, td_mirror->iloc, td_mirror->center);
 
           td_mirror++;
@@ -970,6 +937,9 @@ void createTransEditVerts(TransInfo *t)
     if (island_data.island_vert_map) {
       MEM_freeN(island_data.island_vert_map);
     }
+    if (mirror_data.vert_map) {
+      MEM_freeN(mirror_data.vert_map);
+    }
     if (quats) {
       MEM_freeN(quats);
     }
@@ -981,9 +951,6 @@ void createTransEditVerts(TransInfo *t)
     }
     if (dists_index) {
       MEM_freeN(dists_index);
-    }
-    if (mirror_bitmap) {
-      MEM_freeN(mirror_bitmap);
     }
   }
 }
