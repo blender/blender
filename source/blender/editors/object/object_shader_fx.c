@@ -425,8 +425,8 @@ static int shaderfx_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UN
 
 void OBJECT_OT_shaderfx_remove(wmOperatorType *ot)
 {
-  ot->name = "Remove Grease Pencil Modifier";
-  ot->description = "Remove a shaderfx from the active grease pencil object";
+  ot->name = "Remove Grease Pencil Effect";
+  ot->description = "Remove a effect from the active grease pencil object";
   ot->idname = "OBJECT_OT_shaderfx_remove";
 
   ot->invoke = shaderfx_remove_invoke;
@@ -467,8 +467,8 @@ static int shaderfx_move_up_invoke(bContext *C, wmOperator *op, const wmEvent *U
 
 void OBJECT_OT_shaderfx_move_up(wmOperatorType *ot)
 {
-  ot->name = "Move Up Modifier";
-  ot->description = "Move shaderfx up in the stack";
+  ot->name = "Move Up Effect";
+  ot->description = "Move effect up in the stack";
   ot->idname = "OBJECT_OT_shaderfx_move_up";
 
   ot->invoke = shaderfx_move_up_invoke;
@@ -509,8 +509,8 @@ static int shaderfx_move_down_invoke(bContext *C, wmOperator *op, const wmEvent 
 
 void OBJECT_OT_shaderfx_move_down(wmOperatorType *ot)
 {
-  ot->name = "Move Down Modifier";
-  ot->description = "Move shaderfx down in the stack";
+  ot->name = "Move Down Effect";
+  ot->description = "Move effect down in the stack";
   ot->idname = "OBJECT_OT_shaderfx_move_down";
 
   ot->invoke = shaderfx_move_down_invoke;
