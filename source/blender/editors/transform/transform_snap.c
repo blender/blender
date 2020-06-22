@@ -127,6 +127,9 @@ bool transformModeUseSnap(const TransInfo *t)
   if (t->mode == TFM_VERT_SLIDE) {
     return true;
   }
+  if (t->mode == TFM_EDGE_SLIDE) {
+    return true;
+  }
 
   return false;
 }
