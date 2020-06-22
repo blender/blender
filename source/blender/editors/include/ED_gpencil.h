@@ -87,15 +87,24 @@ typedef enum eGP_ReprojectModes {
  * Used as part of the 'stroke cache' used during drawing of new strokes
  */
 typedef struct tGPspoint {
-  float x, y;          /* x and y coordinates of cursor (in relative to area) */
-  float pressure;      /* pressure of tablet at this point */
-  float strength;      /* pressure of tablet at this point for alpha factor */
-  float time;          /* Time relative to stroke start (used when converting to path) */
-  float uv_fac;        /* factor of uv along the stroke */
-  float uv_rot;        /* uv rotation for dor mode */
-  float rnd[3];        /* rnd value */
-  bool rnd_dirty;      /* rnd flag */
-  float vert_color[4]; /* Point vertex color. */
+  /** Coordinates x and y of cursor (in relative to area). */
+  float x, y;
+  /** Pressure of tablet at this point. */
+  float pressure;
+  /** Pressure of tablet at this point for alpha factor. */
+  float strength;
+  /** Time relative to stroke start (used when converting to path). */
+  float time;
+  /** Factor of uv along the stroke. */
+  float uv_fac;
+  /** UV rotation for dot mode. */
+  float uv_rot;
+  /** Random value. */
+  float rnd[3];
+  /** Random flag. */
+  bool rnd_dirty;
+  /** Point vertex color. */
+  float vert_color[4];
 } tGPspoint;
 
 /* ----------- Grease Pencil Tools/Context ------------- */
