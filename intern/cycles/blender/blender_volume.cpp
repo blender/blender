@@ -35,8 +35,10 @@ CCL_NAMESPACE_BEGIN
 class BlenderSmokeLoader : public ImageLoader {
  public:
   BlenderSmokeLoader(BL::Object &b_ob, AttributeStandard attribute)
-      : b_domain(object_fluid_gas_domain_find(b_ob)), b_mesh(b_ob.data()), attribute(attribute)
+      : b_domain(object_fluid_gas_domain_find(b_ob)), attribute(attribute)
   {
+    BL::Mesh b_mesh(b_ob.data());
+    mesh_texture_space(b_mesh, texspace_loc, texspace_size);
   }
 
   bool load_metadata(ImageMetaData &metadata) override
@@ -77,9 +79,7 @@ class BlenderSmokeLoader : public ImageLoader {
     /* Create a matrix to transform from object space to mesh texture space.
      * This does not work with deformations but that can probably only be done
      * well with a volume grid mapping of coordinates. */
-    float3 loc, size;
-    mesh_texture_space(b_mesh, loc, size);
-    metadata.transform_3d = transform_translate(-loc) * transform_scale(size);
+    metadata.transform_3d = transform_translate(-texspace_loc) * transform_scale(texspace_size);
     metadata.use_transform_3d = true;
 
     return true;
@@ -177,7 +177,7 @@ class BlenderSmokeLoader : public ImageLoader {
   }
 
   BL::FluidDomainSettings b_domain;
-  BL::Mesh b_mesh;
+  float3 texspace_loc, texspace_size;
   AttributeStandard attribute;
 };
 
