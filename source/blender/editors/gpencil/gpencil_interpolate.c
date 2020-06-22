@@ -267,8 +267,10 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
     /* Untag strokes to be sure nothing is pending. This must be done for
      * all layer because it could be anything tagged and it would be removed
      * at the end of the process when all tagged strokes are removed. */
-    gp_interpolate_untag_strokes(gpl->actframe);
-    gp_interpolate_untag_strokes(gpl->actframe->next);
+    if (gpl->actframe != NULL) {
+      gp_interpolate_untag_strokes(gpl->actframe);
+      gp_interpolate_untag_strokes(gpl->actframe->next);
+    }
 
     /* all layers or only active */
     if (!(tgpi->flag & GP_TOOLFLAG_INTERPOLATE_ALL_LAYERS) && (gpl != active_gpl)) {
