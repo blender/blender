@@ -486,7 +486,7 @@ BLI_INLINE const float *bm_vert_no_get(const MeshRenderData *mr, const BMVert *e
   }
   else {
     UNUSED_VARS(mr);
-    return eve->co;
+    return eve->no;
   }
 }
 
