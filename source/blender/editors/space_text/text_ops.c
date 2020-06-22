@@ -428,6 +428,13 @@ static int text_reload_exec(bContext *C, wmOperator *op)
   const int orig_curl = BLI_findindex(&text->lines, text->curl);
   const int orig_curc = text->curc;
 
+  /* Don't make this part of 'poll', since 'Alt-R' will type 'R',
+   * if poll checks for the filename. */
+  if (text->name == NULL) {
+    BKE_report(op->reports, RPT_ERROR, "This text has not been saved");
+    return OPERATOR_CANCELLED;
+  }
+
   if (!BKE_text_reload(text)) {
     BKE_report(op->reports, RPT_ERROR, "Could not reopen file");
     return OPERATOR_CANCELLED;
