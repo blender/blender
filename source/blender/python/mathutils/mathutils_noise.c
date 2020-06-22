@@ -121,7 +121,7 @@ static void init_genrand(ulong s)
     const float range = 32; /* range in both pos/neg direction */
     for (j = 0; j < ARRAY_SIZE(state_offset_vector); j++, state_offset++) {
       /* overflow is fine here */
-      state_offset_vector[j] = (float)(int)(*state_offset) * (1.0f / (INT_MAX / range));
+      state_offset_vector[j] = (float)(int)(*state_offset) * (1.0f / ((float)INT_MAX / range));
     }
   }
 }
