@@ -1045,7 +1045,6 @@ static void clip_preview_region_init(wmWindowManager *wm, ARegion *region)
 static void graph_region_draw(const bContext *C, ARegion *region)
 {
   View2D *v2d = &region->v2d;
-  View2DScrollers *scrollers;
   SpaceClip *sc = CTX_wm_space_clip(C);
   Scene *scene = CTX_data_scene(C);
   short cfra_flag = 0;
@@ -1076,9 +1075,7 @@ static void graph_region_draw(const bContext *C, ARegion *region)
   ED_time_scrub_draw(region, scene, sc->flag & SC_SHOW_SECONDS, true);
 
   /* scrollers */
-  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
-  UI_view2d_scrollers_draw(v2d, scrollers);
-  UI_view2d_scrollers_free(scrollers);
+  UI_view2d_scrollers_draw(v2d, NULL);
 
   /* scale indicators */
   {
@@ -1095,7 +1092,6 @@ static void dopesheet_region_draw(const bContext *C, ARegion *region)
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   View2D *v2d = &region->v2d;
-  View2DScrollers *scrollers;
   short cfra_flag = 0;
 
   if (clip) {
@@ -1127,9 +1123,7 @@ static void dopesheet_region_draw(const bContext *C, ARegion *region)
   ED_time_scrub_draw(region, scene, sc->flag & SC_SHOW_SECONDS, true);
 
   /* scrollers */
-  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
-  UI_view2d_scrollers_draw(v2d, scrollers);
-  UI_view2d_scrollers_free(scrollers);
+  UI_view2d_scrollers_draw(v2d, NULL);
 }
 
 static void clip_preview_region_draw(const bContext *C, ARegion *region)

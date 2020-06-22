@@ -200,7 +200,6 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   Scene *scene = CTX_data_scene(C);
   bAnimContext ac;
   View2D *v2d = &region->v2d;
-  View2DScrollers *scrollers;
   float col[3];
   short cfra_flag = 0;
 
@@ -319,9 +318,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
 
   /* scrollers */
   // FIXME: args for scrollers depend on the type of data being shown...
-  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
-  UI_view2d_scrollers_draw(v2d, scrollers);
-  UI_view2d_scrollers_free(scrollers);
+  UI_view2d_scrollers_draw(v2d, NULL);
 
   /* scale numbers */
   {
@@ -358,7 +355,6 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
 {
   bAnimContext ac;
   View2D *v2d = &region->v2d;
-  View2DScrollers *scrollers;
   float col[3];
 
   /* clear and setup matrix */
@@ -380,9 +376,7 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
-  UI_view2d_scrollers_draw(v2d, scrollers);
-  UI_view2d_scrollers_free(scrollers);
+  UI_view2d_scrollers_draw(v2d, NULL);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

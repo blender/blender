@@ -1772,7 +1772,6 @@ static void draw_group_overlay(const bContext *C, ARegion *region)
 void drawnodespace(const bContext *C, ARegion *region)
 {
   wmWindow *win = CTX_wm_window(C);
-  View2DScrollers *scrollers;
   SpaceNode *snode = CTX_wm_space_node(C);
   View2D *v2d = &region->v2d;
 
@@ -1921,7 +1920,5 @@ void drawnodespace(const bContext *C, ARegion *region)
   draw_tree_path(snode);
 
   /* scrollers */
-  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
-  UI_view2d_scrollers_draw(v2d, scrollers);
-  UI_view2d_scrollers_free(scrollers);
+  UI_view2d_scrollers_draw(v2d, NULL);
 }

@@ -449,7 +449,6 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
   FileSelectParams *params = ED_fileselect_get_params(sfile);
 
   View2D *v2d = &region->v2d;
-  View2DScrollers *scrollers;
   float col[3];
 
   /* Needed, because filelist is not initialized on loading */
@@ -509,9 +508,7 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
   /* scrollers */
   rcti view_rect;
   ED_fileselect_layout_maskrect(sfile->layout, v2d, &view_rect);
-  scrollers = UI_view2d_scrollers_calc(v2d, &view_rect);
-  UI_view2d_scrollers_draw(v2d, scrollers);
-  UI_view2d_scrollers_free(scrollers);
+  UI_view2d_scrollers_draw(v2d, &view_rect);
 }
 
 static void file_operatortypes(void)

@@ -191,7 +191,6 @@ static void nla_channel_region_draw(const bContext *C, ARegion *region)
 {
   bAnimContext ac;
   View2D *v2d = &region->v2d;
-  View2DScrollers *scrollers;
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
@@ -211,9 +210,7 @@ static void nla_channel_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
-  UI_view2d_scrollers_draw(v2d, scrollers);
-  UI_view2d_scrollers_free(scrollers);
+  UI_view2d_scrollers_draw(v2d, NULL);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -237,7 +234,6 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   Scene *scene = CTX_data_scene(C);
   bAnimContext ac;
   View2D *v2d = &region->v2d;
-  View2DScrollers *scrollers;
   short cfra_flag = 0;
 
   /* clear and setup matrix */
@@ -292,9 +288,7 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   ED_time_scrub_draw(region, scene, snla->flag & SNLA_DRAWTIME, true);
 
   /* scrollers */
-  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
-  UI_view2d_scrollers_draw(v2d, scrollers);
-  UI_view2d_scrollers_free(scrollers);
+  UI_view2d_scrollers_draw(v2d, NULL);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

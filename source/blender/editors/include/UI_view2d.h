@@ -180,9 +180,10 @@ void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *region,
                                                int colorid);
 
 /* scrollbar drawing */
-View2DScrollers *UI_view2d_scrollers_calc(struct View2D *v2d, const struct rcti *mask_custom);
-void UI_view2d_scrollers_draw(struct View2D *v2d, View2DScrollers *scrollers);
-void UI_view2d_scrollers_free(View2DScrollers *scrollers);
+void UI_view2d_scrollers_calc(struct View2D *v2d,
+                              const struct rcti *mask_custom,
+                              struct View2DScrollers *r_scrollers);
+void UI_view2d_scrollers_draw(struct View2D *v2d, const struct rcti *mask_custom);
 
 /* list view tools */
 void UI_view2d_listview_view_to_cell(float columnwidth,

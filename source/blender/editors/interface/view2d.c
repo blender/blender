@@ -1413,16 +1413,14 @@ struct View2DScrollers {
 };
 
 /* Calculate relevant scroller properties */
-View2DScrollers *UI_view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom)
+void UI_view2d_scrollers_calc(View2D *v2d,
+                              const rcti *mask_custom,
+                              struct View2DScrollers *r_scrollers)
 {
-  View2DScrollers *scrollers;
   rcti vert, hor;
   float fac1, fac2, totsize, scrollsize;
   int scroll = view2d_scroll_mapped(v2d->scroll);
   int smaller;
-
-  /* scrollers is allocated here... */
-  scrollers = MEM_callocN(sizeof(View2DScrollers), "View2DScrollers");
 
   /* Always update before drawing (for dynamically sized scrollers). */
   view2d_masks(v2d, mask_custom);
@@ -1456,8 +1454,8 @@ View2DScrollers *UI_view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom)
   CLAMP(hor.xmin, hor.xmin, hor.xmax - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
 
   /* store in scrollers, used for drawing */
-  scrollers->vert = vert;
-  scrollers->hor = hor;
+  r_scrollers->vert = vert;
+  r_scrollers->hor = hor;
 
   /* scroller 'buttons':
    * - These should always remain within the visible region of the scrollbar
@@ -1475,30 +1473,30 @@ View2DScrollers *UI_view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom)
 
     fac1 = (v2d->cur.xmin - v2d->tot.xmin) / totsize;
     if (fac1 <= 0.0f) {
-      scrollers->hor_min = hor.xmin;
+      r_scrollers->hor_min = hor.xmin;
     }
     else {
-      scrollers->hor_min = (int)(hor.xmin + (fac1 * scrollsize));
+      r_scrollers->hor_min = (int)(hor.xmin + (fac1 * scrollsize));
     }
 
     fac2 = (v2d->cur.xmax - v2d->tot.xmin) / totsize;
     if (fac2 >= 1.0f) {
-      scrollers->hor_max = hor.xmax;
+      r_scrollers->hor_max = hor.xmax;
     }
     else {
-      scrollers->hor_max = (int)(hor.xmin + (fac2 * scrollsize));
+      r_scrollers->hor_max = (int)(hor.xmin + (fac2 * scrollsize));
     }
 
     /* prevent inverted sliders */
-    if (scrollers->hor_min > scrollers->hor_max) {
-      scrollers->hor_min = scrollers->hor_max;
+    if (r_scrollers->hor_min > r_scrollers->hor_max) {
+      r_scrollers->hor_min = r_scrollers->hor_max;
     }
     /* prevent sliders from being too small to grab */
-    if ((scrollers->hor_max - scrollers->hor_min) < V2D_SCROLL_THUMB_SIZE_MIN) {
-      scrollers->hor_max = scrollers->hor_min + V2D_SCROLL_THUMB_SIZE_MIN;
+    if ((r_scrollers->hor_max - r_scrollers->hor_min) < V2D_SCROLL_THUMB_SIZE_MIN) {
+      r_scrollers->hor_max = r_scrollers->hor_min + V2D_SCROLL_THUMB_SIZE_MIN;
 
-      CLAMP(scrollers->hor_max, hor.xmin + V2D_SCROLL_THUMB_SIZE_MIN, hor.xmax);
-      CLAMP(scrollers->hor_min, hor.xmin, hor.xmax - V2D_SCROLL_THUMB_SIZE_MIN);
+      CLAMP(r_scrollers->hor_max, hor.xmin + V2D_SCROLL_THUMB_SIZE_MIN, hor.xmax);
+      CLAMP(r_scrollers->hor_min, hor.xmin, hor.xmax - V2D_SCROLL_THUMB_SIZE_MIN);
     }
   }
 
@@ -1513,39 +1511,39 @@ View2DScrollers *UI_view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom)
 
     fac1 = (v2d->cur.ymin - v2d->tot.ymin) / totsize;
     if (fac1 <= 0.0f) {
-      scrollers->vert_min = vert.ymin;
+      r_scrollers->vert_min = vert.ymin;
     }
     else {
-      scrollers->vert_min = (int)(vert.ymin + (fac1 * scrollsize));
+      r_scrollers->vert_min = (int)(vert.ymin + (fac1 * scrollsize));
     }
 
     fac2 = (v2d->cur.ymax - v2d->tot.ymin) / totsize;
     if (fac2 >= 1.0f) {
-      scrollers->vert_max = vert.ymax;
+      r_scrollers->vert_max = vert.ymax;
     }
     else {
-      scrollers->vert_max = (int)(vert.ymin + (fac2 * scrollsize));
+      r_scrollers->vert_max = (int)(vert.ymin + (fac2 * scrollsize));
     }
 
     /* prevent inverted sliders */
-    if (scrollers->vert_min > scrollers->vert_max) {
-      scrollers->vert_min = scrollers->vert_max;
+    if (r_scrollers->vert_min > r_scrollers->vert_max) {
+      r_scrollers->vert_min = r_scrollers->vert_max;
     }
     /* prevent sliders from being too small to grab */
-    if ((scrollers->vert_max - scrollers->vert_min) < V2D_SCROLL_THUMB_SIZE_MIN) {
-      scrollers->vert_max = scrollers->vert_min + V2D_SCROLL_THUMB_SIZE_MIN;
+    if ((r_scrollers->vert_max - r_scrollers->vert_min) < V2D_SCROLL_THUMB_SIZE_MIN) {
+      r_scrollers->vert_max = r_scrollers->vert_min + V2D_SCROLL_THUMB_SIZE_MIN;
 
-      CLAMP(scrollers->vert_max, vert.ymin + V2D_SCROLL_THUMB_SIZE_MIN, vert.ymax);
-      CLAMP(scrollers->vert_min, vert.ymin, vert.ymax - V2D_SCROLL_THUMB_SIZE_MIN);
+      CLAMP(r_scrollers->vert_max, vert.ymin + V2D_SCROLL_THUMB_SIZE_MIN, vert.ymax);
+      CLAMP(r_scrollers->vert_min, vert.ymin, vert.ymax - V2D_SCROLL_THUMB_SIZE_MIN);
     }
   }
-
-  return scrollers;
 }
 
 /* Draw scrollbars in the given 2d-region */
-void UI_view2d_scrollers_draw(View2D *v2d, View2DScrollers *vs)
+void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
 {
+  View2DScrollers scrollers;
+  UI_view2d_scrollers_calc(v2d, mask_custom, &scrollers);
   bTheme *btheme = UI_GetTheme();
   rcti vert, hor;
   const int scroll = view2d_scroll_mapped(v2d->scroll);
@@ -1556,8 +1554,8 @@ void UI_view2d_scrollers_draw(View2D *v2d, View2DScrollers *vs)
   UI_GetThemeColor4ubv(TH_BACK, scrollers_back_color);
 
   /* make copies of rects for less typing */
-  vert = vs->vert;
-  hor = vs->hor;
+  vert = scrollers.vert;
+  hor = scrollers.hor;
 
   /* horizontal scrollbar */
   if (scroll & V2D_SCROLL_HORIZONTAL) {
@@ -1566,8 +1564,8 @@ void UI_view2d_scrollers_draw(View2D *v2d, View2DScrollers *vs)
     rcti slider;
     int state;
 
-    slider.xmin = vs->hor_min;
-    slider.xmax = vs->hor_max;
+    slider.xmin = scrollers.hor_min;
+    slider.xmax = scrollers.hor_max;
     slider.ymin = hor.ymin;
     slider.ymax = hor.ymax;
 
@@ -1602,8 +1600,8 @@ void UI_view2d_scrollers_draw(View2D *v2d, View2DScrollers *vs)
 
     slider.xmin = vert.xmin;
     slider.xmax = vert.xmax;
-    slider.ymin = vs->vert_min;
-    slider.ymax = vs->vert_max;
+    slider.ymin = scrollers.vert_min;
+    slider.ymax = scrollers.vert_max;
 
     state = (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE) ? UI_SCROLL_PRESSED : 0;
 
@@ -1629,12 +1627,6 @@ void UI_view2d_scrollers_draw(View2D *v2d, View2DScrollers *vs)
 
   /* Was changed above, so reset. */
   btheme->tui.widget_emboss[3] = emboss_alpha;
-}
-
-/* free temporary memory used for drawing scrollers */
-void UI_view2d_scrollers_free(View2DScrollers *scrollers)
-{
-  MEM_freeN(scrollers);
 }
 
 /** \} */

@@ -84,7 +84,6 @@ static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
 static void outliner_main_region_draw(const bContext *C, ARegion *region)
 {
   View2D *v2d = &region->v2d;
-  View2DScrollers *scrollers;
 
   /* clear */
   UI_ThemeClearColor(TH_BACK);
@@ -96,9 +95,7 @@ static void outliner_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
-  UI_view2d_scrollers_draw(v2d, scrollers);
-  UI_view2d_scrollers_free(scrollers);
+  UI_view2d_scrollers_draw(v2d, NULL);
 }
 
 static void outliner_main_region_free(ARegion *UNUSED(region))

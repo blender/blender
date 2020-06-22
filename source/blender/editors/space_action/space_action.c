@@ -181,7 +181,6 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   Object *obact = CTX_data_active_object(C);
   bAnimContext ac;
   View2D *v2d = &region->v2d;
-  View2DScrollers *scrollers;
   short marker_flag = 0;
   short cfra_flag = 0;
 
@@ -240,9 +239,7 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   ED_time_scrub_draw(region, scene, saction->flag & SACTION_DRAWTIME, true);
 
   /* scrollers */
-  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
-  UI_view2d_scrollers_draw(v2d, scrollers);
-  UI_view2d_scrollers_free(scrollers);
+  UI_view2d_scrollers_draw(v2d, NULL);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

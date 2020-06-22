@@ -208,7 +208,6 @@ static void console_main_region_draw(const bContext *C, ARegion *region)
   /* draw entirely, view changes should be handled here */
   SpaceConsole *sc = CTX_wm_space_console(C);
   View2D *v2d = &region->v2d;
-  View2DScrollers *scrollers;
 
   if (BLI_listbase_is_empty(&sc->scrollback)) {
     WM_operator_name_call((bContext *)C, "CONSOLE_OT_banner", WM_OP_EXEC_DEFAULT, NULL);
@@ -230,9 +229,7 @@ static void console_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
-  UI_view2d_scrollers_draw(v2d, scrollers);
-  UI_view2d_scrollers_free(scrollers);
+  UI_view2d_scrollers_draw(v2d, NULL);
 }
 
 static void console_operatortypes(void)

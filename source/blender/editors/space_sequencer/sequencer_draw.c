@@ -2257,7 +2257,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   View2D *v2d = &region->v2d;
-  View2DScrollers *scrollers;
   short cfra_flag = 0;
   float col[3];
 
@@ -2345,9 +2344,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
   UI_view2d_view_restore(C);
   ED_time_scrub_draw(region, scene, !(sseq->flag & SEQ_DRAWFRAMES), true);
-  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
-  UI_view2d_scrollers_draw(v2d, scrollers);
-  UI_view2d_scrollers_free(scrollers);
+  UI_view2d_scrollers_draw(v2d, NULL);
 
   /* Draw channel numbers. */
   {
