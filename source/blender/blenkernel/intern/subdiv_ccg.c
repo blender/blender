@@ -655,6 +655,7 @@ void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg)
     MEM_SAFE_FREE(adjacent_vertex->corner_coords);
   }
   MEM_SAFE_FREE(subdiv_ccg->adjacent_vertices);
+  MEM_SAFE_FREE(subdiv_ccg->cache_.start_face_grid_index);
   MEM_freeN(subdiv_ccg);
 }
 
@@ -1800,6 +1801,37 @@ int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG *subdiv_ccg, const int gri
   const SubdivCCGFace *face = subdiv_ccg->grid_faces[grid_index];
   const int face_index = face - subdiv_ccg->faces;
   return face_index;
+}
+
+const int *BKE_subdiv_ccg_start_face_grid_index_ensure(SubdivCCG *subdiv_ccg)
+{
+  if (subdiv_ccg->cache_.start_face_grid_index == NULL) {
+    const Subdiv *subdiv = subdiv_ccg->subdiv;
+    OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+    if (topology_refiner == NULL) {
+      return NULL;
+    }
+
+    const int num_coarse_faces = topology_refiner->getNumFaces(topology_refiner);
+
+    subdiv_ccg->cache_.start_face_grid_index = MEM_malloc_arrayN(
+        sizeof(int), num_coarse_faces, "start_face_grid_index");
+
+    int start_grid_index = 0;
+    for (int face_index = 0; face_index < num_coarse_faces; face_index++) {
+      const int num_face_grids = topology_refiner->getNumFaceVertices(topology_refiner,
+                                                                      face_index);
+      subdiv_ccg->cache_.start_face_grid_index[face_index] = start_grid_index;
+      start_grid_index += num_face_grids;
+    }
+  }
+
+  return subdiv_ccg->cache_.start_face_grid_index;
+}
+
+const int *BKE_subdiv_ccg_start_face_grid_index_get(const SubdivCCG *subdiv_ccg)
+{
+  return subdiv_ccg->cache_.start_face_grid_index;
 }
 
 /** \} */

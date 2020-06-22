@@ -214,6 +214,12 @@ typedef struct SubdivCCG {
     /* Corresponds to MULTIRES_HIDDEN_MODIFIED. */
     bool hidden;
   } dirty;
+
+  /* Cached values, are not supposed to be accessed directly. */
+  struct {
+    /* Indexed by face, indicates index of the first grid which corresponds to the face. */
+    int *start_face_grid_index;
+  } cache_;
 } SubdivCCG;
 
 /* Create CCG representation of subdivision surface.
@@ -306,6 +312,15 @@ void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG *subdiv_ccg,
                                         SubdivCCGNeighbors *r_neighbors);
 
 int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG *subdiv_ccg, const int grid_index);
+
+/* Get array which is indexed by face index and contains index of a first grid of the face.
+ *
+ * The "ensure" version allocates the mapping if it's not know yet and stores it in the subdiv_ccg
+ * descriptor. This function is NOT safe for threading.
+ *
+ * The "get" version simply returns cached array. */
+const int *BKE_subdiv_ccg_start_face_grid_index_ensure(SubdivCCG *subdiv_ccg);
+const int *BKE_subdiv_ccg_start_face_grid_index_get(const SubdivCCG *subdiv_ccg);
 
 #ifdef __cplusplus
 }
