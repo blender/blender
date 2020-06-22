@@ -46,6 +46,7 @@ struct MLoopTri;
 struct MLoopUV;
 struct MPoly;
 struct MVert;
+struct MPropCol;
 struct Material;
 struct Mesh;
 struct Multires;
@@ -285,7 +286,7 @@ enum {
   ME_AUTOSMOOTH = 1 << 5,
   ME_FLAG_UNUSED_6 = 1 << 6, /* cleared */
   ME_FLAG_UNUSED_7 = 1 << 7, /* cleared */
-  ME_FLAG_UNUSED_8 = 1 << 8, /* cleared */
+  ME_REMESH_REPROJECT_VERTEX_COLORS = 1 << 8,
   ME_DS_EXPAND = 1 << 9,
   ME_SCULPT_DYNAMIC_TOPOLOGY = 1 << 10,
   ME_REMESH_SMOOTH_NORMALS = 1 << 11,

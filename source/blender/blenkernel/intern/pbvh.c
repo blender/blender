@@ -1325,6 +1325,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                      CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS),
                                      pbvh->face_sets_color_seed,
                                      pbvh->face_sets_color_default,
+                                     CustomData_get_layer(pbvh->vdata, CD_PROP_COLOR),
                                      update_flags);
         break;
       case PBVH_BMESH:
@@ -1440,6 +1441,10 @@ void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flag)
 
   if (flag & (PBVH_UpdateMask)) {
     pbvh_update_mask_redraw(pbvh, nodes, totnode, flag);
+  }
+
+  if (flag & (PBVH_UpdateColor)) {
+    /* Do nothing */
   }
 
   if (flag & (PBVH_UpdateVisibility)) {
@@ -1727,6 +1732,11 @@ void BKE_pbvh_node_mark_update(PBVHNode *node)
 void BKE_pbvh_node_mark_update_mask(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateMask | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+}
+
+void BKE_pbvh_node_mark_update_color(PBVHNode *node)
+{
+  node->flag |= PBVH_UpdateColor | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
 void BKE_pbvh_node_mark_update_visibility(PBVHNode *node)
@@ -2905,6 +2915,26 @@ void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***r_array, int *r_tot)
   *r_tot = tot;
 }
 
+PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node)
+{
+
+  if (!node->color_buffer.color) {
+    node->color_buffer.color = MEM_callocN(node->uniq_verts * sizeof(float) * 4, "Color buffer");
+  }
+  return &node->color_buffer;
+}
+
+void BKE_pbvh_node_color_buffer_free(PBVH *pbvh)
+{
+  PBVHNode **nodes;
+  int totnode;
+  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+  for (int i = 0; i < totnode; i++) {
+    MEM_SAFE_FREE(nodes[i]->color_buffer.color);
+  }
+  MEM_SAFE_FREE(nodes);
+}
+
 void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int mode)
 {
   struct CCGElem **grids;
@@ -2958,6 +2988,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   vi->mask = NULL;
   if (pbvh->type == PBVH_FACES) {
     vi->vmask = CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK);
+    vi->vcol = CustomData_get_layer(pbvh->vdata, CD_PROP_COLOR);
   }
 }
 

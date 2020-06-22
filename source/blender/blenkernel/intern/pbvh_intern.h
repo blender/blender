@@ -105,6 +105,9 @@ struct PBVHNode {
   float (*bm_orco)[3];
   int (*bm_ortri)[3];
   int bm_tot_ortri;
+
+  /* Used to store the brush color during a stroke and composite it over the original color */
+  PBVHColorBufferNode color_buffer;
 };
 
 typedef enum {

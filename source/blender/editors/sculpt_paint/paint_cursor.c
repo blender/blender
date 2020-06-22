@@ -1441,7 +1441,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
              * cursor won't be tagged to update, so always initialize the preview chain if it is
              * null before drawing it. */
             if (update_previews || !ss->pose_ik_chain_preview) {
-              BKE_sculpt_update_object_for_edit(depsgraph, vc.obact, true, false);
+              BKE_sculpt_update_object_for_edit(depsgraph, vc.obact, true, false, false);
 
               /* Free the previous pose brush preview. */
               if (ss->pose_ik_chain_preview) {

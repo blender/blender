@@ -136,6 +136,7 @@ struct GPUBatch **DRW_cache_mesh_surface_shaded_get(struct Object *ob,
 struct GPUBatch **DRW_cache_mesh_surface_texpaint_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_texpaint_single_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_vertpaint_get(struct Object *ob);
+struct GPUBatch *DRW_cache_mesh_surface_sculptcolors_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_weights_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_mesh_analysis_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_face_wireframe_get(struct Object *ob);

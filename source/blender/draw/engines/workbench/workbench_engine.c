@@ -174,8 +174,19 @@ static void workbench_cache_common_populate(WORKBENCH_PrivateData *wpd,
       color_type, V3D_SHADING_MATERIAL_COLOR, V3D_SHADING_TEXTURE_COLOR);
 
   if (use_single_drawcall) {
-    struct GPUBatch *geom = (use_vcol) ? DRW_cache_mesh_surface_vertpaint_get(ob) :
-                                         DRW_cache_object_surface_get(ob);
+    struct GPUBatch *geom;
+    if (use_vcol) {
+      if (ob->mode & OB_MODE_VERTEX_PAINT) {
+        geom = DRW_cache_mesh_surface_vertpaint_get(ob);
+      }
+      else {
+        geom = DRW_cache_mesh_surface_sculptcolors_get(ob);
+      }
+    }
+    else {
+      geom = DRW_cache_object_surface_get(ob);
+    }
+
     if (geom) {
       DRWShadingGroup *grp = workbench_material_setup(wpd, ob, 0, color_type, r_transp);
       DRW_shgroup_call(grp, geom, ob);
@@ -247,8 +258,13 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
   if ((color_type == V3D_SHADING_TEXTURE_COLOR) && (me == NULL || me->mloopuv == NULL)) {
     color_type = V3D_SHADING_MATERIAL_COLOR;
   }
-  if ((color_type == V3D_SHADING_VERTEX_COLOR) && (me == NULL || me->mloopcol == NULL)) {
-    color_type = V3D_SHADING_OBJECT_COLOR;
+  if (color_type == V3D_SHADING_VERTEX_COLOR) {
+    if (me == NULL) {
+      color_type = V3D_SHADING_OBJECT_COLOR;
+    }
+    if (!CustomData_has_layer(&me->vdata, CD_PROP_COLOR)) {
+      color_type = V3D_SHADING_OBJECT_COLOR;
+    }
   }
 
   if (r_sculpt_pbvh) {

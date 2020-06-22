@@ -148,10 +148,9 @@ typedef enum CustomDataType {
   CD_CUSTOMLOOPNORMAL = 41,
   CD_SCULPT_FACE_SETS = 42,
 
-  /* Hair and PointCloud */
   CD_LOCATION = 43,
-  CD_RADIUS = 44,
   CD_HAIRCURVE = 45,
+  CD_RADIUS = 44,
   CD_HAIRMAPPING = 46,
 
   CD_PROP_COLOR = 47,
@@ -205,7 +204,7 @@ typedef enum CustomDataType {
 #define CD_MASK_TESSLOOPNORMAL (1LL << CD_TESSLOOPNORMAL)
 #define CD_MASK_CUSTOMLOOPNORMAL (1LL << CD_CUSTOMLOOPNORMAL)
 #define CD_MASK_SCULPT_FACE_SETS (1LL << CD_SCULPT_FACE_SETS)
-#define CD_MASK_PROP_COLOR (1LL << CD_PROP_COLOR)
+#define CD_MASK_PROP_COLOR (1ULL << CD_PROP_COLOR)
 
 /** Data types that may be defined for all mesh elements types. */
 #define CD_MASK_GENERIC_DATA (CD_MASK_PROP_FLOAT | CD_MASK_PROP_INT32 | CD_MASK_PROP_STRING)

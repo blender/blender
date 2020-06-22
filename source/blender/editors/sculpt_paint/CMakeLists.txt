@@ -64,10 +64,12 @@ set(SRC
   sculpt_detail.c
   sculpt_dyntopo.c
   sculpt_face_set.c
+  sculpt_filter_color.c
   sculpt_filter_mask.c
   sculpt_filter_mesh.c
   sculpt_mask_expand.c
   sculpt_multiplane_scrape.c
+  sculpt_paint_color.c
   sculpt_pose.c
   sculpt_smooth.c
   sculpt_transform.c

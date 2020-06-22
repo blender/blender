@@ -151,7 +151,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   mode = RNA_enum_get(op->ptr, "mode");
   value = RNA_float_get(op->ptr, "value");
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
   pbvh = ob->sculpt->pbvh;
   multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
@@ -313,7 +313,7 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
   /* Transform the clip planes in object space. */
   ED_view3d_clipping_calc(&bb, clip_planes, vc->region, vc->obact, rect);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
   pbvh = ob->sculpt->pbvh;
   multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
@@ -500,7 +500,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 
     ED_view3d_clipping_calc(&bb, clip_planes, vc.region, vc.obact, &data.rect);
 
-    BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true);
+    BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
     pbvh = ob->sculpt->pbvh;
     multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 

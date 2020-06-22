@@ -426,6 +426,15 @@ bool ED_mesh_color_remove_index(struct Mesh *me, const int n);
 bool ED_mesh_color_remove_active(struct Mesh *me);
 bool ED_mesh_color_remove_named(struct Mesh *me, const char *name);
 
+bool ED_mesh_sculpt_color_ensure(struct Mesh *me, const char *name);
+int ED_mesh_sculpt_color_add(struct Mesh *me,
+                             const char *name,
+                             const bool active_set,
+                             const bool do_init);
+bool ED_mesh_sculpt_color_remove_index(struct Mesh *me, const int n);
+bool ED_mesh_sculpt_color_remove_active(struct Mesh *me);
+bool ED_mesh_sculpt_color_remove_named(struct Mesh *me, const char *name);
+
 void ED_mesh_report_mirror(struct wmOperator *op, int totmirr, int totfail);
 void ED_mesh_report_mirror_ex(struct wmOperator *op, int totmirr, int totfail, char selectmode);
 

@@ -269,7 +269,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, mode == SCULPT_FACE_SET_MASKED);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, mode == SCULPT_FACE_SET_MASKED, false);
 
   const int tot_vert = SCULPT_vertex_count_get(ss);
   float threshold = 0.5f;
@@ -630,7 +630,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;
@@ -787,7 +787,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   const int tot_vert = SCULPT_vertex_count_get(ss);
   const int mode = RNA_enum_get(op->ptr, "mode");
@@ -1083,7 +1083,7 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
     return OPERATOR_CANCELLED;
   }
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;

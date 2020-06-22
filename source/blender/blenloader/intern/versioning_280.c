@@ -1749,6 +1749,16 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
+    /* Paint Brush. This ensure that the brush paints by default. Used during the develpment and
+     * patch review of the initial Sculpt Vertex Colors implementation (D5975) */
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->ob_mode & OB_MODE_SCULPT && brush->sculpt_tool == SCULPT_TOOL_PAINT) {
+        brush->tip_roundness = 1.0f;
+        brush->flow = 1.0f;
+        brush->density = 1.0f;
+        brush->tip_scale_x = 1.0f;
+      }
+    }
   }
 }
 
@@ -3474,7 +3484,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     for (Mesh *me = bmain->meshes.first; me; me = me->id.next) {
       me->flag &= ~(ME_FLAG_UNUSED_0 | ME_FLAG_UNUSED_1 | ME_FLAG_UNUSED_3 | ME_FLAG_UNUSED_4 |
-                    ME_FLAG_UNUSED_6 | ME_FLAG_UNUSED_7 | ME_FLAG_UNUSED_8);
+                    ME_FLAG_UNUSED_6 | ME_FLAG_UNUSED_7 | ME_REMESH_REPROJECT_VERTEX_COLORS);
     }
 
     for (Material *mat = bmain->materials.first; mat; mat = mat->id.next) {

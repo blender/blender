@@ -439,6 +439,21 @@ typedef struct Brush {
   float rgb[3];
   /** Opacity. */
   float alpha;
+  /** Hardness */
+  float hardness;
+  /** Flow */
+  float flow;
+  /** Wet Mix */
+  float wet_mix;
+  float wet_persistence;
+  /** Density */
+  float density;
+
+  /** Tip Shape */
+  /* Factor that controls the shape of the brush tip by rounding the corners of a square. */
+  /* 0.0 value produces a square, 1.0 produces a circle. */
+  float tip_roundness;
+  float tip_scale_x;
 
   /** Background color. */
   float secondary_rgb[3];
@@ -459,7 +474,7 @@ typedef struct Brush {
   /** Source for fill tool color gradient application. */
   char gradient_fill_mode;
 
-  char _pad0[1];
+  char _pad0[5];
 
   /** Projection shape (sphere, circle). */
   char falloff_shape;
@@ -503,15 +518,10 @@ typedef struct Brush {
   float texture_sample_bias;
 
   int curve_preset;
-  float hardness;
 
   /* automasking */
   int automasking_flags;
   int automasking_boundary_edges_propagation_steps;
-
-  /* Factor that controls the shape of the brush tip by rounding the corners of a square. */
-  /* 0.0 value produces a square, 1.0 produces a circle. */
-  float tip_roundness;
 
   int elastic_deform_type;
   float elastic_deform_volume_preservation;
@@ -720,6 +730,8 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_CLAY_THUMB = 25,
   SCULPT_TOOL_CLOTH = 26,
   SCULPT_TOOL_DRAW_FACE_SETS = 27,
+  SCULPT_TOOL_PAINT = 28,
+  SCULPT_TOOL_SMEAR = 29,
 } eBrushSculptTool;
 
 /* Brush.uv_sculpt_tool */
@@ -762,6 +774,8 @@ typedef enum eBrushUVSculptTool {
         SCULPT_TOOL_ELASTIC_DEFORM, \
         SCULPT_TOOL_POSE, \
         SCULPT_TOOL_DRAW_FACE_SETS, \
+        SCULPT_TOOL_PAINT, \
+        SCULPT_TOOL_SMEAR, \
 \
         /* These brushes could handle dynamic topology, \ \
          * but user feedback indicates it's better not to */ \

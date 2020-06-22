@@ -1570,6 +1570,23 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->alpha = 1.0f;
       br->height = 0.05f;
       break;
+    case SCULPT_TOOL_PAINT:
+      br->hardness = 0.4f;
+      br->spacing = 10;
+      br->alpha = 0.6f;
+      br->flow = 1.0f;
+      br->tip_scale_x = 1.0f;
+      br->tip_roundness = 1.0f;
+      br->density = 1.0f;
+      br->flag &= ~BRUSH_SPACE_ATTEN;
+      zero_v3(br->rgb);
+      break;
+    case SCULPT_TOOL_SMEAR:
+      br->alpha = 1.0f;
+      br->spacing = 7;
+      br->flag &= ~BRUSH_SPACE_ATTEN;
+      br->curve_preset = BRUSH_CURVE_SPHERE;
+      break;
     default:
       break;
   }
@@ -1629,14 +1646,15 @@ void BKE_brush_sculpt_reset(Brush *br)
       break;
 
     case SCULPT_TOOL_SIMPLIFY:
+    case SCULPT_TOOL_PAINT:
     case SCULPT_TOOL_MASK:
     case SCULPT_TOOL_DRAW_FACE_SETS:
-      br->add_col[0] = 0.750000;
-      br->add_col[1] = 0.750000;
-      br->add_col[2] = 0.750000;
-      br->sub_col[0] = 0.750000;
-      br->sub_col[1] = 0.750000;
-      br->sub_col[2] = 0.750000;
+      br->add_col[0] = 0.75f;
+      br->add_col[1] = 0.75f;
+      br->add_col[2] = 0.75f;
+      br->sub_col[0] = 0.75f;
+      br->sub_col[1] = 0.75f;
+      br->sub_col[2] = 0.75f;
       break;
 
     case SCULPT_TOOL_CLOTH:

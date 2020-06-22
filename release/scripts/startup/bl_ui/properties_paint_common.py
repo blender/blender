@@ -607,6 +607,10 @@ def brush_settings(layout, context, brush, popover=False):
             layout.operator("sculpt.set_persistent_base")
             layout.separator()
 
+        if capabilities.has_color:
+            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="Paint Color")
+            layout.prop(brush, "blend", text="Blend Mode")
+
         if brush.sculpt_tool == 'CLAY_STRIPS':
             row = layout.row()
             row.prop(brush, "tip_roundness")
@@ -654,6 +658,15 @@ def brush_settings(layout, context, brush, popover=False):
 
         if brush.sculpt_tool == 'GRAB':
             layout.prop(brush, "use_grab_active_vertex")
+
+        if brush.sculpt_tool == 'PAINT':
+            col = layout.column()
+            col.prop(brush, "flow")
+            col.prop(brush, "wet_mix")
+            col.prop(brush, "wet_persistence")
+            col.prop(brush, "density")
+            col.prop(brush, "tip_roundness")
+            col.prop(brush, "tip_scale_x")
 
         if brush.sculpt_tool == 'MULTIPLANE_SCRAPE':
             col = layout.column()

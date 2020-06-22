@@ -206,7 +206,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
       (event->type == EVT_PADENTER && event->val == KM_PRESS)) {
 
     /* Smooth iterations. */
-    BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false);
+    BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
     const int smooth_iterations = RNA_int_get(op->ptr, "smooth_iterations");
     SCULPT_mask_filter_smooth_apply(
         sd, ob, ss->filter_cache->nodes, ss->filter_cache->totnode, smooth_iterations);
@@ -365,7 +365,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   int vertex_count = SCULPT_vertex_count_get(ss);
 

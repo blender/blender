@@ -1014,7 +1014,8 @@ static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, Pointer
   PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
   if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
     PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
-    uiItemPointerR(layout, ptr, "layer_name", &dataptr, "vertex_colors", "", ICON_GROUP_VCOL);
+    uiItemPointerR(
+        layout, ptr, "layer_name", &dataptr, "sculpt_vertex_colors", "", ICON_GROUP_VCOL);
   }
   else {
     uiItemL(layout, "No mesh in active object.", ICON_ERROR);

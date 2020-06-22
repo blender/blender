@@ -1258,6 +1258,22 @@ class _defs_sculpt:
             draw_settings=draw_settings,
         )
 
+    @ToolDef.from_fn
+    def color_filter():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sculpt.color_filter")
+            layout.prop(props, "type", expand=False)
+            layout.prop(props, "strength")
+
+        return dict(
+            idname="builtin.color_filter",
+            label="Color Filter",
+            icon="ops.sculpt.color_filter",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
 
 class _defs_vertex_paint:
 
@@ -2433,6 +2449,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_sculpt.mesh_filter,
             _defs_sculpt.cloth_filter,
+            _defs_sculpt.color_filter,
             None,
             _defs_transform.translate,
             _defs_transform.rotate,

@@ -226,6 +226,26 @@ float SCULPT_neighbor_mask_average(SculptSession *ss, int index)
   }
 }
 
+void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], int index)
+{
+  float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  int total = 0;
+
+  SculptVertexNeighborIter ni;
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
+    add_v4_v4(avg, SCULPT_vertex_color_get(ss, ni.index));
+    total++;
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  if (total > 0) {
+    mul_v4_v4fl(result, avg, 1.0f / (float)total);
+  }
+  else {
+    copy_v4_v4(result, SCULPT_vertex_color_get(ss, index));
+  }
+}
+
 static void do_smooth_brush_mesh_task_cb_ex(void *__restrict userdata,
                                             const int n,
                                             const TaskParallelTLS *__restrict tls)

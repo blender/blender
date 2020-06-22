@@ -345,7 +345,7 @@ typedef struct MLoopCol {
 } MLoopCol;
 
 typedef struct MPropCol {
-  float col[4];
+  float color[4];
 } MPropCol;
 
 /** Multi-Resolution loop data. */

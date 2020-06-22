@@ -295,6 +295,11 @@ class _draw_tool_settings_context_mode:
         if not capabilities.has_direction:
             layout.row().prop(brush, "direction", expand=True, text="")
 
+        if capabilities.has_color:
+            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text = "")
+            layout.prop(brush, "blend", text="", expand = False)
+
+
         return True
 
     @staticmethod
@@ -7332,6 +7337,12 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
 
         brush = context.tool_settings.sculpt.brush
         capabilities = brush.sculpt_capabilities
+
+        if capabilities.has_color:
+            split = layout.split(factor=0.1)
+            UnifiedPaintPanel.prop_unified_color(split, context, brush, "color", text="")
+            UnifiedPaintPanel.prop_unified_color_picker(split, context, brush, "color", value_slider=True)
+            layout.prop(brush, "blend", text="")
 
         UnifiedPaintPanel.prop_unified(
             layout,

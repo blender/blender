@@ -308,6 +308,7 @@ typedef struct SculptSession {
   int totvert, totpoly;
 
   struct KeyBlock *shapekey_active;
+  struct MPropCol *vcol;
   float *vmask;
 
   /* Mesh connectivity */
@@ -430,7 +431,8 @@ void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
 void BKE_sculpt_update_object_for_edit(struct Depsgraph *depsgraph,
                                        struct Object *ob_orig,
                                        bool need_pmap,
-                                       bool need_mask);
+                                       bool need_mask,
+                                       bool need_colors);
 void BKE_sculpt_update_object_before_eval(struct Object *ob_eval);
 void BKE_sculpt_update_object_after_eval(struct Depsgraph *depsgraph, struct Object *ob_eval);
 

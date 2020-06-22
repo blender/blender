@@ -873,7 +873,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
 
   SCULPT_vertex_random_access_init(ss);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   const int totverts = SCULPT_vertex_count_get(ss);
   for (int i = 0; i < totverts; i++) {
@@ -922,10 +922,10 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   SCULPT_vertex_random_access_init(ss);
 
   /* Needs mask data to be available as it is used when solving the constraints. */
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   SCULPT_undo_push_begin("Cloth filter");
-  SCULPT_filter_cache_init(ob, sd);
+  SCULPT_filter_cache_init(ob, sd, SCULPT_UNDO_COORDS);
 
   const float cloth_mass = RNA_float_get(op->ptr, "cloth_mass");
   const float cloth_damping = RNA_float_get(op->ptr, "cloth_damping");

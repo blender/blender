@@ -202,7 +202,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   int totnode;
   int filter_type = RNA_enum_get(op->ptr, "filter_type");
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   SCULPT_vertex_random_access_init(ss);
 
@@ -432,7 +432,7 @@ static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   int totnode;
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   SCULPT_vertex_random_access_init(ss);
 

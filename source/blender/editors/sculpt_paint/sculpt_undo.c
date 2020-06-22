@@ -205,7 +205,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
       if (kb) {
         ob->shapenr = BLI_findindex(&key->block, kb) + 1;
 
-        BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false);
+        BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
         WM_event_add_notifier(C, NC_OBJECT | ND_DATA, ob);
       }
       else {
@@ -323,6 +323,29 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode)
     }
   }
 
+  return true;
+}
+
+static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode)
+{
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *ob = OBACT(view_layer);
+  SculptSession *ss = ob->sculpt;
+  MVert *mvert;
+  MPropCol *vcol;
+  int *index, i;
+
+  if (unode->maxvert) {
+    /* regular mesh restore */
+    index = unode->index;
+    mvert = ss->mvert;
+    vcol = ss->vcol;
+
+    for (i = 0; i < unode->totvert; i++) {
+      copy_v4_v4(vcol[index[i]].color, unode->col[i]);
+      mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
   return true;
 }
 
@@ -633,7 +656,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       rebuild = true;
       BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb, &rebuild);
 
-      BKE_sculpt_update_object_for_edit(depsgraph, ob, true, need_mask);
+      BKE_sculpt_update_object_for_edit(depsgraph, ob, true, need_mask, false);
 
       SCULPT_visibility_sync_all_face_sets_to_vertices(ss);
 
@@ -659,7 +682,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
      * ensure object is updated after the node is handled. */
     const SculptUndoNode *first_unode = (const SculptUndoNode *)lb->first;
     if (first_unode->type != SCULPT_UNDO_GEOMETRY) {
-      BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask);
+      BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask, false);
     }
 
     if (sculpt_undo_bmesh_restore(C, lb->first, ob, ss)) {
@@ -712,10 +735,15 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
         break;
       case SCULPT_UNDO_FACE_SETS:
         break;
+      case SCULPT_UNDO_COLOR:
+        if (sculpt_undo_restore_color(C, unode)) {
+          update = true;
+        }
+        break;
 
       case SCULPT_UNDO_GEOMETRY:
         sculpt_undo_geometry_restore(unode, ob);
-        BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask);
+        BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask, false);
         break;
 
       case SCULPT_UNDO_DYNTOPO_BEGIN:
@@ -998,6 +1026,12 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
       usculpt->undo_size += (sizeof(float) * sizeof(int)) * allvert;
 
       break;
+    case SCULPT_UNDO_COLOR:
+      unode->col = MEM_callocN(sizeof(MPropCol) * allvert, "SculptUndoNode.col");
+
+      usculpt->undo_size += (sizeof(MPropCol) * sizeof(int)) * allvert;
+
+      break;
     case SCULPT_UNDO_DYNTOPO_BEGIN:
     case SCULPT_UNDO_DYNTOPO_END:
     case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
@@ -1079,6 +1113,18 @@ static void sculpt_undo_store_mask(Object *ob, SculptUndoNode *unode)
   BKE_pbvh_vertex_iter_begin(ss->pbvh, unode->node, vd, PBVH_ITER_ALL)
   {
     unode->mask[vd.i] = *vd.mask;
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static void sculpt_undo_store_color(Object *ob, SculptUndoNode *unode)
+{
+  SculptSession *ss = ob->sculpt;
+  PBVHVertexIter vd;
+
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, unode->node, vd, PBVH_ITER_ALL)
+  {
+    copy_v4_v4(unode->col[vd.i], vd.col);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1203,6 +1249,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
       case SCULPT_UNDO_GEOMETRY:
       case SCULPT_UNDO_FACE_SETS:
+      case SCULPT_UNDO_COLOR:
         break;
     }
   }
@@ -1271,6 +1318,9 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
       break;
     case SCULPT_UNDO_MASK:
       sculpt_undo_store_mask(ob, unode);
+      break;
+    case SCULPT_UNDO_COLOR:
+      sculpt_undo_store_color(ob, unode);
       break;
     case SCULPT_UNDO_DYNTOPO_BEGIN:
     case SCULPT_UNDO_DYNTOPO_END:

@@ -174,6 +174,11 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     BKE_remesh_reproject_sculpt_face_sets(new_mesh, mesh);
   }
 
+  if (mesh->flag & ME_REMESH_REPROJECT_VERTEX_COLORS) {
+    BKE_mesh_runtime_clear_geometry(mesh);
+    BKE_remesh_reproject_vertex_paint(new_mesh, mesh);
+  }
+
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
 
   if (mesh->flag & ME_REMESH_SMOOTH_NORMALS) {

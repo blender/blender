@@ -71,12 +71,12 @@ void ED_sculpt_init_transform(struct bContext *C)
   copy_v4_v4(ss->init_pivot_rot, ss->pivot_rot);
 
   SCULPT_undo_push_begin("Transform");
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
   ss->pivot_rot[3] = 1.0f;
 
   SCULPT_vertex_random_access_init(ss);
-  SCULPT_filter_cache_init(ob, sd);
+  SCULPT_filter_cache_init(ob, sd, SCULPT_UNDO_COORDS);
 }
 
 static void sculpt_transform_task_cb(void *__restrict userdata,
@@ -127,7 +127,7 @@ void ED_sculpt_update_modal_transform(struct bContext *C)
   const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
   SCULPT_vertex_random_access_init(ss);
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
   SculptThreadedTaskData data = {
       .sd = sd,
@@ -253,7 +253,7 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
 
   int mode = RNA_enum_get(op->ptr, "mode");
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
 
   /* Pivot to center. */
   if (mode == SCULPT_PIVOT_POSITION_ORIGIN) {
