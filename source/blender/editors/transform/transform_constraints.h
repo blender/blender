@@ -27,6 +27,12 @@
 struct TransInfo;
 
 void constraintNumInput(TransInfo *t, float vec[3]);
+void transform_constraint_snap_axis_to_edge(const TransInfo *t,
+                                            const float axis[3],
+                                            float r_out[3]);
+void transform_constraint_snap_axis_to_face(const TransInfo *t,
+                                            const float axis[3],
+                                            float r_out[3]);
 void setConstraint(TransInfo *t, int mode, const char text[]);
 void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[]);
 void setLocalConstraint(TransInfo *t, int mode, const char text[]);

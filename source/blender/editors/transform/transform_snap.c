@@ -124,6 +124,9 @@ bool transformModeUseSnap(const TransInfo *t)
   if (t->mode == TFM_RESIZE) {
     return (ts->snap_transform_mode_flag & SCE_SNAP_TRANSFORM_MODE_SCALE) != 0;
   }
+  if (t->mode == TFM_VERT_SLIDE) {
+    return true;
+  }
 
   return false;
 }
@@ -1537,6 +1540,17 @@ static void applyGridIncrement(
       val[i] = iter_fac * roundf(val[i] / iter_fac);
     }
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic callbacks
+ * \{ */
+
+float transform_snap_distance_len_squared_fn(TransInfo *UNUSED(t), const float p1[3], const float p2[3])
+{
+  return len_squared_v3v3(p1, p2);
 }
 
 /** \} */

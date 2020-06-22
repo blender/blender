@@ -87,4 +87,6 @@ void addSnapPoint(TransInfo *t);
 eRedrawFlag updateSelectedSnapPoint(TransInfo *t);
 void removeSnapPoint(TransInfo *t);
 
+float transform_snap_distance_len_squared_fn(TransInfo *t, const float p1[3], const float p2[3]);
+
 #endif /* __TRANSFORM_SNAP_H__ */

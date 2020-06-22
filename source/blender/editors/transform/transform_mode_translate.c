@@ -215,11 +215,6 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   }
 }
 
-static float TranslationBetween(TransInfo *UNUSED(t), const float p1[3], const float p2[3])
-{
-  return len_squared_v3v3(p1, p2);
-}
-
 static void ApplySnapTranslation(TransInfo *t, float vec[3])
 {
   float point[3];
@@ -411,7 +406,7 @@ void initTranslation(TransInfo *t)
 
   t->transform = applyTranslation;
   t->tsnap.applySnap = ApplySnapTranslation;
-  t->tsnap.distance = TranslationBetween;
+  t->tsnap.distance = transform_snap_distance_len_squared_fn;
 
   initMouseInputMode(t, &t->mouse, INPUT_VECTOR);
 

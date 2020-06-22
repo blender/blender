@@ -320,7 +320,7 @@ static void axisProjection(const TransInfo *t,
 /**
  * Snap to the intersection between the edge direction and the constraint plane.
  */
-static void constraint_plane_to_edge(const TransInfo *t, const float plane[4], float r_out[3])
+static void constraint_snap_plane_to_edge(const TransInfo *t, const float plane[4], float r_out[3])
 {
   float lambda;
   const float *edge_snap_point = t->tsnap.snapPoint;
@@ -336,7 +336,7 @@ static void constraint_plane_to_edge(const TransInfo *t, const float plane[4], f
  * Snap to the nearest point between the snap point and the line that
  * intersects the face plane with the constraint plane.
  */
-static void constraint_plane_to_face(const TransInfo *t, const float plane[4], float r_out[3])
+static void constraint_snap_plane_to_face(const TransInfo *t, const float plane[4], float r_out[3])
 {
   float face_plane[4], isect_orig[3], isect_dir[3];
   const float *face_snap_point = t->tsnap.snapPoint;
@@ -352,7 +352,9 @@ static void constraint_plane_to_face(const TransInfo *t, const float plane[4], f
 /**
  * Snap to the nearest point on the axis to the edge/line element.
  */
-static void constraint_axis_to_edge(const TransInfo *t, const float axis[3], float r_out[3])
+void transform_constraint_snap_axis_to_edge(const TransInfo *t,
+                                            const float axis[3],
+                                            float r_out[3])
 {
   float lambda;
   const float *edge_snap_point = t->tsnap.snapPoint;
@@ -367,7 +369,9 @@ static void constraint_axis_to_edge(const TransInfo *t, const float axis[3], flo
 /**
  * Snap to the intersection of the axis and the plane defined by the face.
  */
-static void constraint_axis_to_face(const TransInfo *t, const float axis[3], float r_out[3])
+void transform_constraint_snap_axis_to_face(const TransInfo *t,
+                                            const float axis[3],
+                                            float r_out[3])
 {
   float lambda;
   float face_plane[4];
@@ -444,10 +448,10 @@ static void applyAxisConstraintVec(
           constraint_plane_calc(t, plane);
 
           if (is_snap_to_edge) {
-            constraint_plane_to_edge(t, plane, out);
+            constraint_snap_plane_to_edge(t, plane, out);
           }
           else if (is_snap_to_face) {
-            constraint_plane_to_face(t, plane, out);
+            constraint_snap_plane_to_face(t, plane, out);
           }
           else {
             /* View alignment correction. */
@@ -471,10 +475,10 @@ static void applyAxisConstraintVec(
         }
 
         if (is_snap_to_edge) {
-          constraint_axis_to_edge(t, c, out);
+          transform_constraint_snap_axis_to_edge(t, c, out);
         }
         else if (is_snap_to_face) {
-          constraint_axis_to_face(t, c, out);
+          transform_constraint_snap_axis_to_face(t, c, out);
         }
         else {
           /* View alignment correction. */
