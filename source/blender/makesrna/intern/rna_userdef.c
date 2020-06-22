@@ -328,6 +328,8 @@ static void rna_userdef_language_update(Main *UNUSED(bmain),
   else {
     U.transopts |= (USER_TR_IFACE | USER_TR_TOOLTIPS | USER_TR_NEWDATANAME);
   }
+
+  USERDEF_TAG_DIRTY;
 }
 
 static void rna_userdef_script_autoexec_update(Main *UNUSED(bmain),
