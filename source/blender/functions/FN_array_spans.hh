@@ -30,22 +30,18 @@ namespace blender {
 namespace fn {
 
 /**
- * A virtual array span. Every element of this span contains a virtual span. So it behaves like a
- * blender::Span, but might not be backed up by an actual array.
+ * Depending on the use case, the referenced data might have a different structure. More
+ * categories can be added when necessary.
  */
-template<typename T> class VArraySpan {
- private:
-  /**
-   * Depending on the use case, the referenced data might have a different structure. More
-   * categories can be added when necessary.
-   */
-  enum Category {
-    SingleArray,
-    StartsAndSizes,
-  };
+enum class VArraySpanCategory {
+  SingleArray,
+  StartsAndSizes,
+};
 
+template<typename T> class VArraySpanBase {
+ protected:
   uint m_virtual_size;
-  Category m_category;
+  VArraySpanCategory m_category;
 
   union {
     struct {
@@ -59,50 +55,77 @@ template<typename T> class VArraySpan {
   } m_data;
 
  public:
+  bool is_single_array() const
+  {
+    switch (m_category) {
+      case VArraySpanCategory::SingleArray:
+        return true;
+      case VArraySpanCategory::StartsAndSizes:
+        return m_virtual_size == 1;
+    }
+    BLI_assert(false);
+    return false;
+  }
+
+  bool is_empty() const
+  {
+    return this->m_virtual_size == 0;
+  }
+
+  uint size() const
+  {
+    return this->m_virtual_size;
+  }
+};
+
+/**
+ * A virtual array span. Every element of this span contains a virtual span. So it behaves like
+ * a blender::Span, but might not be backed up by an actual array.
+ */
+template<typename T> class VArraySpan : public VArraySpanBase<T> {
+ private:
+  friend class GVArraySpan;
+
+  VArraySpan(const VArraySpanBase<void> &other)
+  {
+    memcpy(this, &other, sizeof(VArraySpanBase<void>));
+  }
+
+ public:
   VArraySpan()
   {
-    m_virtual_size = 0;
-    m_category = StartsAndSizes;
-    m_data.starts_and_sizes.starts = nullptr;
-    m_data.starts_and_sizes.sizes = nullptr;
+    this->m_virtual_size = 0;
+    this->m_category = VArraySpanCategory::StartsAndSizes;
+    this->m_data.starts_and_sizes.starts = nullptr;
+    this->m_data.starts_and_sizes.sizes = nullptr;
   }
 
   VArraySpan(Span<T> span, uint virtual_size)
   {
-    m_virtual_size = virtual_size;
-    m_category = SingleArray;
-    m_data.single_array.start = span.data();
-    m_data.single_array.size = span.size();
+    this->m_virtual_size = virtual_size;
+    this->m_category = VArraySpanCategory::SingleArray;
+    this->m_data.single_array.start = span.data();
+    this->m_data.single_array.size = span.size();
   }
 
   VArraySpan(Span<const T *> starts, Span<uint> sizes)
   {
     BLI_assert(starts.size() == sizes.size());
-    m_virtual_size = starts.size();
-    m_category = StartsAndSizes;
-    m_data.starts_and_sizes.starts = starts.begin();
-    m_data.starts_and_sizes.sizes = sizes.begin();
-  }
-
-  bool is_empty() const
-  {
-    return m_virtual_size == 0;
-  }
-
-  uint size() const
-  {
-    return m_virtual_size;
+    this->m_virtual_size = starts.size();
+    this->m_category = VArraySpanCategory::StartsAndSizes;
+    this->m_data.starts_and_sizes.starts = starts.begin();
+    this->m_data.starts_and_sizes.sizes = sizes.begin();
   }
 
   VSpan<T> operator[](uint index) const
   {
-    BLI_assert(index < m_virtual_size);
-    switch (m_category) {
-      case SingleArray:
-        return VSpan<T>(Span<T>(m_data.single_array.start, m_data.single_array.size));
-      case StartsAndSizes:
-        return VSpan<T>(
-            Span<T>(m_data.starts_and_sizes.starts[index], m_data.starts_and_sizes.sizes[index]));
+    BLI_assert(index < this->m_virtual_size);
+    switch (this->m_category) {
+      case VArraySpanCategory::SingleArray:
+        return VSpan<T>(Span<T>(this->m_data.single_array.start, this->m_data.single_array.size));
+      case VArraySpanCategory::StartsAndSizes:
+        return VSpan<T>(Span<T>(this->m_data.starts_and_sizes.starts[index],
+                                this->m_data.starts_and_sizes.sizes[index]));
     }
     BLI_assert(false);
     return {};
@@ -113,99 +136,65 @@ template<typename T> class VArraySpan {
  * A generic virtual array span. It's just like a VArraySpan, but the type is only known at
  * run-time.
  */
-class GVArraySpan {
+class GVArraySpan : public VArraySpanBase<void> {
  private:
-  /**
-   * Depending on the use case, the referenced data might have a different structure. More
-   * categories can be added when necessary.
-   */
-  enum Category {
-    SingleArray,
-    StartsAndSizes,
-  };
-
   const CPPType *m_type;
-  uint m_virtual_size;
-  Category m_category;
-
-  union {
-    struct {
-      const void *values;
-      uint size;
-    } single_array;
-    struct {
-      const void *const *starts;
-      const uint *sizes;
-    } starts_and_sizes;
-  } m_data;
 
   GVArraySpan() = default;
 
  public:
   GVArraySpan(const CPPType &type)
   {
-    m_type = &type;
-    m_virtual_size = 0;
-    m_category = StartsAndSizes;
-    m_data.starts_and_sizes.starts = nullptr;
-    m_data.starts_and_sizes.sizes = nullptr;
+    this->m_type = &type;
+    this->m_virtual_size = 0;
+    this->m_category = VArraySpanCategory::StartsAndSizes;
+    this->m_data.starts_and_sizes.starts = nullptr;
+    this->m_data.starts_and_sizes.sizes = nullptr;
   }
 
   GVArraySpan(GSpan array, uint virtual_size)
   {
-    m_type = &array.type();
-    m_virtual_size = virtual_size;
-    m_category = SingleArray;
-    m_data.single_array.values = array.buffer();
-    m_data.single_array.size = array.size();
+    this->m_type = &array.type();
+    this->m_virtual_size = virtual_size;
+    this->m_category = VArraySpanCategory::SingleArray;
+    this->m_data.single_array.start = array.buffer();
+    this->m_data.single_array.size = array.size();
   }
 
   GVArraySpan(const CPPType &type, Span<const void *> starts, Span<uint> sizes)
   {
     BLI_assert(starts.size() == sizes.size());
-    m_type = &type;
-    m_virtual_size = starts.size();
-    m_category = StartsAndSizes;
-    m_data.starts_and_sizes.starts = starts.begin();
-    m_data.starts_and_sizes.sizes = sizes.begin();
+    this->m_type = &type;
+    this->m_virtual_size = starts.size();
+    this->m_category = VArraySpanCategory::StartsAndSizes;
+    this->m_data.starts_and_sizes.starts = (void **)starts.begin();
+    this->m_data.starts_and_sizes.sizes = sizes.begin();
   }
 
-  bool is_empty() const
+  template<typename T> GVArraySpan(VArraySpan<T> other)
   {
-    return m_virtual_size == 0;
-  }
-
-  uint size() const
-  {
-    return m_virtual_size;
+    this->m_type = &CPPType::get<T>();
+    memcpy(this, &other, sizeof(VArraySpanBase<void>));
   }
 
   const CPPType &type() const
   {
-    return *m_type;
+    return *this->m_type;
   }
 
   template<typename T> VArraySpan<T> typed() const
   {
     BLI_assert(CPPType::get<T>() == *m_type);
-    switch (m_category) {
-      case SingleArray:
-        return VArraySpan<T>(
-            Span<T>((const T *)m_data.single_array.values, m_data.single_array.size));
-      case StartsAndSizes:
-        return VArraySpan<T>(
-            Span<const T *>((const T *const *)m_data.starts_and_sizes.starts, m_virtual_size),
-            Span<uint>(m_data.starts_and_sizes.sizes, m_virtual_size));
-    }
+    return VArraySpan<T>(*this);
   }
 
   GVSpan operator[](uint index) const
   {
     BLI_assert(index < m_virtual_size);
     switch (m_category) {
-      case SingleArray:
-        return GVSpan(GSpan(*m_type, m_data.single_array.values, m_data.single_array.size));
-      case StartsAndSizes:
+      case VArraySpanCategory::SingleArray:
+        return GVSpan(GSpan(*m_type, m_data.single_array.start, m_data.single_array.size));
+      case VArraySpanCategory::StartsAndSizes:
         return GVSpan(GSpan(
             *m_type, m_data.starts_and_sizes.starts[index], m_data.starts_and_sizes.sizes[index]));
     }

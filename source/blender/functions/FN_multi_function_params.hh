@@ -199,6 +199,10 @@ class MFParams {
     return m_builder->m_mutable_spans[data_index];
   }
 
+  template<typename T> GVectorArrayRef<T> vector_mutable(uint param_index, StringRef name = "")
+  {
+    return this->vector_mutable(param_index, name).typed<T>();
+  }
   GVectorArray &vector_mutable(uint param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, MFParamType::VectorMutable);

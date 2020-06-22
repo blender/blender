@@ -97,5 +97,22 @@ TEST(generic_vector_array, TypedRef)
   EXPECT_EQ(ref[3][1], 6);
 }
 
+TEST(generic_vector_array, Extend)
+{
+  GVectorArray vectors{CPPType_int32, 3};
+  GVectorArrayRef<int> ref = vectors;
+
+  ref.extend(1, {5, 6, 7});
+  ref.extend(0, {3});
+
+  EXPECT_EQ(vectors[0].size(), 1);
+  EXPECT_EQ(vectors[1].size(), 3);
+  EXPECT_EQ(vectors[2].size(), 0);
+  EXPECT_EQ(ref[1][0], 5);
+  EXPECT_EQ(ref[1][1], 6);
+  EXPECT_EQ(ref[1][2], 7);
+  EXPECT_EQ(ref[0][0], 3);
+}
+
 }  // namespace fn
 }  // namespace blender

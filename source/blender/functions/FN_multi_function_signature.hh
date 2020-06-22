@@ -135,6 +135,10 @@ class MFSignatureBuilder {
   {
     this->mutable_(name, MFDataType::ForSingle(type));
   }
+  template<typename T> void vector_mutable(StringRef name)
+  {
+    this->vector_mutable(name, CPPType::get<T>());
+  }
   void vector_mutable(StringRef name, const CPPType &base_type)
   {
     this->mutable_(name, MFDataType::ForVector(base_type));

@@ -135,6 +135,16 @@ class MFParamType {
     return SingleInput;
   }
 
+  bool is_input_or_mutable() const
+  {
+    return ELEM(m_interface_type, Input, Mutable);
+  }
+
+  bool is_output_or_mutable() const
+  {
+    return ELEM(m_interface_type, Output, Mutable);
+  }
+
   friend bool operator==(const MFParamType &a, const MFParamType &b);
   friend bool operator!=(const MFParamType &a, const MFParamType &b);
 };

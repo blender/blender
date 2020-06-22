@@ -119,6 +119,23 @@ class GVectorArray : NonCopyable, NonMovable {
     m_lengths[index]++;
   }
 
+  void extend(uint index, GVSpan span)
+  {
+    BLI_assert(m_type == span.type());
+    for (uint i = 0; i < span.size(); i++) {
+      this->append(index, span[i]);
+    }
+  }
+
+  void extend(IndexMask mask, GVArraySpan array_span)
+  {
+    BLI_assert(m_type == array_span.type());
+    BLI_assert(mask.min_array_size() <= array_span.size());
+    for (uint i : mask) {
+      this->extend(i, array_span[i]);
+    }
+  }
+
   GMutableSpan operator[](uint index)
   {
     BLI_assert(index < m_starts.size());
@@ -156,6 +173,16 @@ template<typename T> class GVectorArrayRef {
   void append(uint index, const T &value)
   {
     m_vector_array->append(index, &value);
+  }
+
+  void extend(uint index, Span<T> values)
+  {
+    m_vector_array->extend(index, values);
+  }
+
+  void extend(uint index, VSpan<T> values)
+  {
+    m_vector_array->extend(index, GVSpan(values));
   }
 
   MutableSpan<T> operator[](uint index)

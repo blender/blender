@@ -46,6 +46,8 @@ class MFDataType {
   }
 
  public:
+  MFDataType() = default;
+
   static MFDataType ForSingle(const CPPType &type)
   {
     return MFDataType(Single, type);
