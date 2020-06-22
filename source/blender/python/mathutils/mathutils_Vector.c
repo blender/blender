@@ -96,10 +96,10 @@ static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
   return Vector_CreatePyObject_alloc(vec, size, type);
 }
 
-static PyObject *vec__apply_to_copy(PyNoArgsFunction vec_func, VectorObject *self)
+static PyObject *vec__apply_to_copy(PyObject *(*vec_func)(VectorObject *), VectorObject *self)
 {
   PyObject *ret = Vector_copy(self);
-  PyObject *ret_dummy = vec_func(ret);
+  PyObject *ret_dummy = vec_func((VectorObject *)ret);
   if (ret_dummy) {
     Py_DECREF(ret_dummy);
     return (PyObject *)ret;
@@ -376,7 +376,7 @@ PyDoc_STRVAR(Vector_normalized_doc,
              "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_normalized(VectorObject *self)
 {
-  return vec__apply_to_copy((PyNoArgsFunction)Vector_normalize, self);
+  return vec__apply_to_copy(Vector_normalize, self);
 }
 
 PyDoc_STRVAR(Vector_resize_doc,
