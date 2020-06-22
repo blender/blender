@@ -1797,11 +1797,7 @@ void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG *subdiv_ccg,
 
 int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG *subdiv_ccg, const int grid_index)
 {
-  // Subdiv *subdiv = subdiv_ccg->subdiv; /* UNUSED */
-  // OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner; /* UNUSED */
-  SubdivCCGFace *face = subdiv_ccg->grid_faces[grid_index];
-
-  // const int face_grid_index = grid_index - face->start_grid_index; /* UNUSED */
+  const SubdivCCGFace *face = subdiv_ccg->grid_faces[grid_index];
   const int face_index = face - subdiv_ccg->faces;
   return face_index;
 }
