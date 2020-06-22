@@ -848,6 +848,8 @@ typedef struct uiWidgetBaseParameters {
    * The absolute value itself is the discard factor.
    * Initialize value to 1.0.f if you don't want discard */
   float alpha_discard;
+  float tria_type;
+  float _pad[3];
 } uiWidgetBaseParameters;
 
 enum {
@@ -861,8 +863,7 @@ enum {
   ROUNDBOX_TRIA_MAX, /* don't use */
 };
 
-struct GPUBatch *ui_batch_roundbox_get(bool filled, bool antialiased);
-struct GPUBatch *ui_batch_roundbox_widget_get(int tria);
+struct GPUBatch *ui_batch_roundbox_widget_get(void);
 struct GPUBatch *ui_batch_roundbox_shadow_get(void);
 
 void ui_draw_anti_tria_rect(const rctf *rect, char dir, const float color[4]);

@@ -118,51 +118,53 @@ void UI_draw_roundbox_aa(
     bool filled, float minx, float miny, float maxx, float maxy, float rad, const float color[4])
 {
   uiWidgetBaseParameters widget_params = {
-      .recti.xmin = minx,
-      .recti.ymin = miny,
-      .recti.xmax = maxx,
-      .recti.ymax = maxy,
+      .recti.xmin = minx + U.pixelsize,
+      .recti.ymin = miny + U.pixelsize,
+      .recti.xmax = maxx - U.pixelsize,
+      .recti.ymax = maxy - U.pixelsize,
+      .rect.xmin = minx,
+      .rect.ymin = miny,
+      .rect.xmax = maxx,
+      .rect.ymax = maxy,
       .radi = rad,
+      .rad = rad,
       .round_corners[0] = (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 1.0f : 0.0f,
       .round_corners[1] = (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f,
       .round_corners[2] = (roundboxtype & UI_CNR_TOP_RIGHT) ? 1.0f : 0.0f,
       .round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f,
-      .color_inner1[0] = color[0],
-      .color_inner2[0] = color[0],
-      .color_inner1[1] = color[1],
-      .color_inner2[1] = color[1],
-      .color_inner1[2] = color[2],
-      .color_inner2[2] = color[2],
-      .color_inner1[3] = color[3],
-      .color_inner2[3] = color[3],
+      .color_inner1[0] = filled ? color[0] : 0.0f,
+      .color_inner1[1] = filled ? color[1] : 0.0f,
+      .color_inner1[2] = filled ? color[2] : 0.0f,
+      .color_inner1[3] = filled ? color[3] : 0.0f,
+      .color_inner2[0] = filled ? color[0] : 0.0f,
+      .color_inner2[1] = filled ? color[1] : 0.0f,
+      .color_inner2[2] = filled ? color[2] : 0.0f,
+      .color_inner2[3] = filled ? color[3] : 0.0f,
+      .color_outline[0] = color[0],
+      .color_outline[1] = color[1],
+      .color_outline[2] = color[2],
+      .color_outline[3] = color[3],
       .alpha_discard = 1.0f,
   };
 
+  /* XXX this is to emulate previous behavior of semitransparent fills but that's was a side effect
+   * of the previous AA method. Better fix the callers. */
+  if (filled) {
+    widget_params.color_inner1[3] *= 0.65f;
+    widget_params.color_inner2[3] *= 0.65f;
+    widget_params.color_outline[3] *= 0.65f;
+  }
+
+  /* WATCH: This is assuming the ModelViewProjectionMatrix is area pixel space.
+   * If it has been scaled, then it's no longer valid. */
+
+  GPUBatch *batch = ui_batch_roundbox_widget_get();
+  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
+  GPU_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&widget_params);
+
   GPU_blend(true);
 
-  if (filled) {
-    /* plain antialiased filled box */
-    widget_params.color_inner1[3] *= 0.125f;
-    widget_params.color_inner2[3] *= 0.125f;
-
-    /* WATCH: This is assuming the ModelViewProjectionMatrix is area pixel space.
-     * If it has been scaled, then it's no longer valid. */
-    GPUBatch *batch = ui_batch_roundbox_get(filled, true);
-    GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
-    GPU_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&widget_params);
-    GPU_batch_draw(batch);
-  }
-  else {
-    /* plain antialiased unfilled box */
-    GPU_line_smooth(true);
-
-    GPUBatch *batch = ui_batch_roundbox_get(filled, false);
-    GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
-    GPU_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&widget_params);
-    GPU_batch_draw(batch);
-
-    GPU_line_smooth(false);
-  }
+  GPU_batch_draw(batch);
 
   GPU_blend(false);
 }
@@ -251,32 +253,49 @@ void UI_draw_roundbox_4fv(
   immEnd();
   immUnbindProgram();
 #endif
-
   uiWidgetBaseParameters widget_params = {
-      .recti.xmin = minx,
-      .recti.ymin = miny,
-      .recti.xmax = maxx,
-      .recti.ymax = maxy,
+      .recti.xmin = minx + U.pixelsize,
+      .recti.ymin = miny + U.pixelsize,
+      .recti.xmax = maxx - U.pixelsize,
+      .recti.ymax = maxy - U.pixelsize,
+      .rect.xmin = minx,
+      .rect.ymin = miny,
+      .rect.xmax = maxx,
+      .rect.ymax = maxy,
       .radi = rad,
+      .rad = rad,
       .round_corners[0] = (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 1.0f : 0.0f,
       .round_corners[1] = (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f,
       .round_corners[2] = (roundboxtype & UI_CNR_TOP_RIGHT) ? 1.0f : 0.0f,
       .round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f,
-      .color_inner1[0] = col[0],
-      .color_inner2[0] = col[0],
-      .color_inner1[1] = col[1],
-      .color_inner2[1] = col[1],
-      .color_inner1[2] = col[2],
-      .color_inner2[2] = col[2],
-      .color_inner1[3] = col[3],
-      .color_inner2[3] = col[3],
+      .color_inner1[0] = filled ? col[0] : 0.0f,
+      .color_inner1[1] = filled ? col[1] : 0.0f,
+      .color_inner1[2] = filled ? col[2] : 0.0f,
+      .color_inner1[3] = filled ? col[3] : 0.0f,
+      .color_inner2[0] = filled ? col[0] : 0.0f,
+      .color_inner2[1] = filled ? col[1] : 0.0f,
+      .color_inner2[2] = filled ? col[2] : 0.0f,
+      .color_inner2[3] = filled ? col[3] : 0.0f,
+      .color_outline[0] = col[0],
+      .color_outline[1] = col[1],
+      .color_outline[2] = col[2],
+      .color_outline[3] = col[3],
       .alpha_discard = 1.0f,
   };
+  /* Exactly the same as UI_draw_roundbox_aa but does not do the legacy transparency. */
 
-  GPUBatch *batch = ui_batch_roundbox_get(filled, false);
+  /* WATCH: This is assuming the ModelViewProjectionMatrix is area pixel space.
+   * If it has been scaled, then it's no longer valid. */
+
+  GPUBatch *batch = ui_batch_roundbox_widget_get();
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
   GPU_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&widget_params);
+
+  GPU_blend(true);
+
   GPU_batch_draw(batch);
+
+  GPU_blend(false);
 }
 
 #if 0
@@ -427,29 +446,38 @@ void UI_draw_roundbox_shade_x(bool filled,
   immEnd();
   immUnbindProgram();
 #endif
-
   uiWidgetBaseParameters widget_params = {
-      .recti.xmin = minx,
-      .recti.ymin = miny,
-      .recti.xmax = maxx,
-      .recti.ymax = maxy,
+      .recti.xmin = minx + U.pixelsize,
+      .recti.ymin = miny + U.pixelsize,
+      .recti.xmax = maxx - U.pixelsize,
+      .recti.ymax = maxy - U.pixelsize,
+      .rect.xmin = minx,
+      .rect.ymin = miny,
+      .rect.xmax = maxx,
+      .rect.ymax = maxy,
       .radi = rad,
+      .rad = rad,
       .round_corners[0] = (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 1.0f : 0.0f,
       .round_corners[1] = (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f,
       .round_corners[2] = (roundboxtype & UI_CNR_TOP_RIGHT) ? 1.0f : 0.0f,
       .round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f,
-      .color_inner1[0] = min_ff(1.0f, col[0] + shadetop),
-      .color_inner2[0] = max_ff(0.0f, col[0] + shadedown),
-      .color_inner1[1] = min_ff(1.0f, col[1] + shadetop),
-      .color_inner2[1] = max_ff(0.0f, col[1] + shadedown),
-      .color_inner1[2] = min_ff(1.0f, col[2] + shadetop),
-      .color_inner2[2] = max_ff(0.0f, col[2] + shadedown),
-      .color_inner1[3] = 1.0f,
-      .color_inner2[3] = 1.0f,
+      .color_inner1[0] = !filled ? 0.0f : min_ff(1.0f, col[0] + shadetop),
+      .color_inner1[1] = !filled ? 0.0f : min_ff(1.0f, col[1] + shadetop),
+      .color_inner1[2] = !filled ? 0.0f : min_ff(1.0f, col[2] + shadetop),
+      .color_inner1[3] = !filled ? 0.0f : 1.0f,
+      .color_inner2[0] = !filled ? 0.0f : max_ff(0.0f, col[0] + shadedown),
+      .color_inner2[1] = !filled ? 0.0f : max_ff(0.0f, col[1] + shadedown),
+      .color_inner2[2] = !filled ? 0.0f : max_ff(0.0f, col[2] + shadedown),
+      .color_inner2[3] = !filled ? 0.0f : 1.0f,
+      /* TODO: non-filled box don't have gradients. Just use middle color. */
+      .color_outline[0] = clamp_f(col[0] + shadetop + shadedown, 0.0f, 1.0f),
+      .color_outline[1] = clamp_f(col[1] + shadetop + shadedown, 0.0f, 1.0f),
+      .color_outline[2] = clamp_f(col[2] + shadetop + shadedown, 0.0f, 1.0f),
+      .color_outline[3] = clamp_f(col[3] + shadetop + shadedown, 0.0f, 1.0f),
       .alpha_discard = 1.0f,
   };
 
-  GPUBatch *batch = ui_batch_roundbox_get(filled, false);
+  GPUBatch *batch = ui_batch_roundbox_widget_get();
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
   GPU_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&widget_params);
   GPU_batch_draw(batch);
@@ -2678,7 +2706,6 @@ void ui_draw_dropshadow(
   GPU_batch_draw(batch);
 
   /* outline emphasis */
-  GPU_line_smooth(true);
   float color[4] = {0.0f, 0.0f, 0.0f, 0.4f};
   UI_draw_roundbox_4fv(false,
                        rct->xmin - 0.5f,
@@ -2687,7 +2714,6 @@ void ui_draw_dropshadow(
                        rct->ymax + 0.5f,
                        radius + 0.5f,
                        color);
-  GPU_line_smooth(false);
 
   GPU_blend(false);
 }

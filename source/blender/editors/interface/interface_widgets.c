@@ -393,35 +393,14 @@ static const uint g_shape_preset_hold_action_face[2][3] = {{2, 0, 1}, {3, 5, 4}}
  *
  * \{ */
 
-/* offset in triavec[] in shader per type */
-static const int tria_ofs[ROUNDBOX_TRIA_MAX] = {
-    [ROUNDBOX_TRIA_NONE] = 0,
-    [ROUNDBOX_TRIA_ARROWS] = 0,
-    [ROUNDBOX_TRIA_SCROLL] = 12,
-    [ROUNDBOX_TRIA_MENU] = 28,
-    [ROUNDBOX_TRIA_CHECK] = 34,
-    [ROUNDBOX_TRIA_HOLD_ACTION_ARROW] = 40,
-};
-static const int tria_vcount[ROUNDBOX_TRIA_MAX] = {
-    [ROUNDBOX_TRIA_NONE] = 0,
-    [ROUNDBOX_TRIA_ARROWS] = 6,
-    [ROUNDBOX_TRIA_SCROLL] = 16,
-    [ROUNDBOX_TRIA_MENU] = 6,
-    [ROUNDBOX_TRIA_CHECK] = 6,
-    [ROUNDBOX_TRIA_HOLD_ACTION_ARROW] = 3,
-};
-
 static struct {
-  GPUBatch *roundbox_widget[ROUNDBOX_TRIA_MAX];
-
-  GPUBatch *roundbox_simple;
-  GPUBatch *roundbox_simple_aa;
-  GPUBatch *roundbox_simple_outline;
+  GPUBatch *roundbox_widget;
   GPUBatch *roundbox_shadow;
 
+  /* TODO remove */
   GPUVertFormat format;
   uint vflag_id;
-} g_ui_batch_cache = {{0}};
+} g_ui_batch_cache = {0};
 
 static GPUVertFormat *vflag_format(void)
 {
@@ -436,7 +415,7 @@ static GPUVertFormat *vflag_format(void)
 #define INNER 0
 #define OUTLINE 1
 #define EMBOSS 2
-#define NO_AA WIDGET_AA_JITTER
+#define NO_AA 0
 
 static void set_roundbox_vertex_data(GPUVertBufRaw *vflag_step, uint32_t d)
 {
@@ -462,176 +441,30 @@ static uint32_t set_roundbox_vertex(GPUVertBufRaw *vflag_step,
   return *data;
 }
 
-static uint32_t set_tria_vertex(
-    GPUVertBufRaw *vflag_step, int tria_type, int tria_v, int tria_id, int jit_v)
+GPUBatch *ui_batch_roundbox_widget_get(void)
 {
-  uint32_t *data = GPU_vertbuf_raw_step(vflag_step);
-  if (ELEM(tria_type, ROUNDBOX_TRIA_ARROWS)) {
-    tria_v += tria_id * tria_vcount[ROUNDBOX_TRIA_ARROWS];
-  }
-  *data = tria_ofs[tria_type] + tria_v;
-  *data |= jit_v << 6;
-  *data |= (tria_id == 0) ? (1 << 10) : 0; /* is first tria */
-  *data |= 1 << 14;                        /* is tria vert */
-  return *data;
-}
-
-static void roundbox_batch_add_tria(GPUVertBufRaw *vflag_step, int tria, uint32_t last_data)
-{
-  const int tria_num =
-      ELEM(tria, ROUNDBOX_TRIA_CHECK, ROUNDBOX_TRIA_HOLD_ACTION_ARROW, ROUNDBOX_TRIA_MENU) ? 1 : 2;
-  /* for each tria */
-  for (int t = 0; t < tria_num; t++) {
-    for (int j = 0; j < WIDGET_AA_JITTER; j++) {
-      /* restart */
-      set_roundbox_vertex_data(vflag_step, last_data);
-      set_tria_vertex(vflag_step, tria, 0, t, j);
-      for (int v = 0; v < tria_vcount[tria]; v++) {
-        last_data = set_tria_vertex(vflag_step, tria, v, t, j);
-      }
-    }
-  }
-}
-
-GPUBatch *ui_batch_roundbox_widget_get(int tria)
-{
-  if (g_ui_batch_cache.roundbox_widget[tria] == NULL) {
-    uint32_t last_data;
-    GPUVertBufRaw vflag_step;
+  if (g_ui_batch_cache.roundbox_widget == NULL) {
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
-    int vcount = WIDGET_SIZE_MAX;                                 /* inner */
-    vcount += 2;                                                  /* restart */
-    vcount += ((WIDGET_SIZE_MAX + 1) * 2) * WIDGET_AA_JITTER;     /* outline (edges) */
-    vcount += 2;                                                  /* restart */
-    vcount += ((WIDGET_CURVE_RESOLU * 2) * 2) * WIDGET_AA_JITTER; /* emboss */
-    if (tria) {
-      vcount += (tria_vcount[tria] + 2) * WIDGET_AA_JITTER; /* tria1 */
-      if (!ELEM(tria, ROUNDBOX_TRIA_CHECK, ROUNDBOX_TRIA_HOLD_ACTION_ARROW, ROUNDBOX_TRIA_MENU)) {
-        vcount += (tria_vcount[tria] + 2) * WIDGET_AA_JITTER; /* tria2 */
-      }
-    }
-    GPU_vertbuf_data_alloc(vbo, vcount);
-    GPU_vertbuf_attr_get_raw_data(vbo, g_ui_batch_cache.vflag_id, &vflag_step);
-    /* Inner */
-    for (int c1 = 0, c2 = 3; c1 < 2; c1++, c2--) {
-      for (int a1 = 0, a2 = WIDGET_CURVE_RESOLU - 1; a2 >= 0; a1++, a2--) {
-        last_data = set_roundbox_vertex(&vflag_step, c1, a1, NO_AA, true, false, INNER);
-        last_data = set_roundbox_vertex(&vflag_step, c2, a2, NO_AA, true, false, INNER);
-      }
-    }
-    /* restart */
-    set_roundbox_vertex_data(&vflag_step, last_data);
-    set_roundbox_vertex(&vflag_step, 0, 0, 0, true, false, OUTLINE);
-    /* Outlines */
-    for (int j = 0; j < WIDGET_AA_JITTER; j++) {
-      for (int c = 0; c < 4; c++) {
-        for (int a = 0; a < WIDGET_CURVE_RESOLU; a++) {
-          set_roundbox_vertex(&vflag_step, c, a, j, true, false, OUTLINE);
-          set_roundbox_vertex(&vflag_step, c, a, j, false, false, OUTLINE);
-        }
-      }
-      /* Close the loop. */
-      set_roundbox_vertex(&vflag_step, 0, 0, j, true, false, OUTLINE);
-      last_data = set_roundbox_vertex(&vflag_step, 0, 0, j, false, false, OUTLINE);
-    }
-    /* restart */
-    set_roundbox_vertex_data(&vflag_step, last_data);
-    set_roundbox_vertex(&vflag_step, 0, 0, 0, false, false, EMBOSS);
-    /* Emboss */
-    /* go back and forth : avoid degenerate triangle (but beware of backface cull) */
-    bool rev = false;
-    for (int j = 0; j < WIDGET_AA_JITTER; j++, rev = !rev) {
-      for (int c = (rev) ? 1 : 0; (rev) ? c >= 0 : c < 2; (rev) ? c-- : c++) {
-        int sta = (rev) ? WIDGET_CURVE_RESOLU - 1 : 0;
-        int end = WIDGET_CURVE_RESOLU;
-        for (int a = sta; (rev) ? a >= 0 : a < end; (rev) ? a-- : a++) {
-          set_roundbox_vertex(&vflag_step, c, a, j, false, false, EMBOSS);
-          last_data = set_roundbox_vertex(&vflag_step, c, a, j, false, true, EMBOSS);
-        }
-      }
-    }
-    if (tria) {
-      roundbox_batch_add_tria(&vflag_step, tria, last_data);
-    }
-    g_ui_batch_cache.roundbox_widget[tria] = GPU_batch_create_ex(
-        GPU_PRIM_TRI_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
-    gpu_batch_presets_register(g_ui_batch_cache.roundbox_widget[tria]);
+
+    GPU_vertbuf_data_alloc(vbo, 12);
+
+    GPUIndexBufBuilder ibuf;
+    GPU_indexbuf_init(&ibuf, GPU_PRIM_TRIS, 6, 12);
+    /* Widget */
+    GPU_indexbuf_add_tri_verts(&ibuf, 0, 1, 2);
+    GPU_indexbuf_add_tri_verts(&ibuf, 2, 1, 3);
+    /* Trias */
+    GPU_indexbuf_add_tri_verts(&ibuf, 4, 5, 6);
+    GPU_indexbuf_add_tri_verts(&ibuf, 6, 5, 7);
+
+    GPU_indexbuf_add_tri_verts(&ibuf, 8, 9, 10);
+    GPU_indexbuf_add_tri_verts(&ibuf, 10, 9, 11);
+
+    g_ui_batch_cache.roundbox_widget = GPU_batch_create_ex(
+        GPU_PRIM_TRIS, vbo, GPU_indexbuf_build(&ibuf), GPU_BATCH_OWNS_INDEX | GPU_BATCH_OWNS_VBO);
+    gpu_batch_presets_register(g_ui_batch_cache.roundbox_widget);
   }
-  return g_ui_batch_cache.roundbox_widget[tria];
-}
-
-GPUBatch *ui_batch_roundbox_get(bool filled, bool antialiased)
-{
-  GPUBatch **batch = NULL;
-
-  if (filled) {
-    if (antialiased) {
-      batch = &g_ui_batch_cache.roundbox_simple_aa;
-    }
-    else {
-      batch = &g_ui_batch_cache.roundbox_simple;
-    }
-  }
-  else {
-    if (antialiased) {
-      BLI_assert(0); /* Use GL_LINE_SMOOTH instead!!: */
-    }
-    else {
-      batch = &g_ui_batch_cache.roundbox_simple_outline;
-    }
-  }
-
-  if (*batch == NULL) {
-    uint32_t last_data;
-    GPUVertBufRaw vflag_step;
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
-    int vcount = WIDGET_SIZE_MAX;
-    vcount += (filled) ? 2 : 0;
-    vcount *= (antialiased) ? WIDGET_AA_JITTER : 1;
-    GPU_vertbuf_data_alloc(vbo, vcount);
-    GPU_vertbuf_attr_get_raw_data(vbo, g_ui_batch_cache.vflag_id, &vflag_step);
-
-    if (filled) {
-      for (int j = 0; j < WIDGET_AA_JITTER; j++) {
-        if (!antialiased) {
-          j = NO_AA;
-        }
-        /* restart */
-        set_roundbox_vertex(&vflag_step, 0, 0, j, true, false, INNER);
-        for (int c1 = 0, c2 = 3; c1 < 2; c1++, c2--) {
-          for (int a1 = 0, a2 = WIDGET_CURVE_RESOLU - 1; a2 >= 0; a1++, a2--) {
-            last_data = set_roundbox_vertex(&vflag_step, c1, a1, j, true, false, INNER);
-            last_data = set_roundbox_vertex(&vflag_step, c2, a2, j, true, false, INNER);
-          }
-        }
-        /* restart */
-        set_roundbox_vertex_data(&vflag_step, last_data);
-        if (!antialiased) {
-          break;
-        }
-      }
-      *batch = GPU_batch_create_ex(GPU_PRIM_TRI_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
-    }
-    else {
-      for (int j = 0; j < WIDGET_AA_JITTER; j++) {
-        if (!antialiased) {
-          j = NO_AA;
-        }
-        for (int c = 0; c < 4; c++) {
-          for (int a = 0; a < WIDGET_CURVE_RESOLU; a++) {
-            set_roundbox_vertex(&vflag_step, c, a, j, true, false, INNER);
-          }
-        }
-        if (!antialiased) {
-          break;
-        }
-      }
-      *batch = GPU_batch_create_ex(GPU_PRIM_LINE_LOOP, vbo, NULL, GPU_BATCH_OWNS_VBO);
-    }
-
-    gpu_batch_presets_register(*batch);
-  }
-  return *batch;
+  return g_ui_batch_cache.roundbox_widget;
 }
 
 GPUBatch *ui_batch_roundbox_shadow_get(void)
@@ -1314,14 +1147,13 @@ static void widgetbase_set_uniform_colors_ubv(uiWidgetBase *wtb,
 
 /* keep in sync with shader */
 #define MAX_WIDGET_BASE_BATCH 6
-#define MAX_WIDGET_PARAMETERS 11
+#define MAX_WIDGET_PARAMETERS 12
 
 static struct {
-  GPUBatch *batch; /* Batch type */
   uiWidgetBaseParameters params[MAX_WIDGET_BASE_BATCH];
   int count;
   bool enabled;
-} g_widget_base_batch = {0};
+} g_widget_base_batch = {{{{0}}}};
 
 void UI_widgetbase_draw_cache_flush(void)
 {
@@ -1332,7 +1164,7 @@ void UI_widgetbase_draw_cache_flush(void)
     return;
   }
 
-  GPUBatch *batch = g_widget_base_batch.batch;
+  GPUBatch *batch = ui_batch_roundbox_widget_get();
   if (g_widget_base_batch.count == 1) {
     /* draw single */
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
@@ -1376,31 +1208,15 @@ void UI_widgetbase_draw_cache_end(void)
   GPU_blend(false);
 }
 
-static void draw_widgetbase_batch(GPUBatch *batch, uiWidgetBase *wtb)
+static void draw_widgetbase_batch(uiWidgetBase *wtb)
 {
+  wtb->uniform_params.tria_type = wtb->tria1.type;
   wtb->uniform_params.tria1_size = wtb->tria1.size;
   wtb->uniform_params.tria2_size = wtb->tria2.size;
   copy_v2_v2(wtb->uniform_params.tria1_center, wtb->tria1.center);
   copy_v2_v2(wtb->uniform_params.tria2_center, wtb->tria2.center);
 
   if (g_widget_base_batch.enabled) {
-    if (g_widget_base_batch.batch == NULL) {
-      g_widget_base_batch.batch = ui_batch_roundbox_widget_get(ROUNDBOX_TRIA_ARROWS);
-    }
-
-    /* draw multi */
-    if (batch != g_ui_batch_cache.roundbox_widget[ROUNDBOX_TRIA_NONE] &&
-        batch != g_widget_base_batch.batch) {
-      /* issue previous calls before changing batch type. */
-      UI_widgetbase_draw_cache_flush();
-      g_widget_base_batch.batch = batch;
-    }
-
-    /* No need to change batch if tria is not visible. Just scale it to 0. */
-    if (batch == g_ui_batch_cache.roundbox_widget[ROUNDBOX_TRIA_NONE]) {
-      wtb->uniform_params.tria1_size = wtb->uniform_params.tria2_size = 0;
-    }
-
     g_widget_base_batch.params[g_widget_base_batch.count] = wtb->uniform_params;
     g_widget_base_batch.count++;
 
@@ -1412,6 +1228,7 @@ static void draw_widgetbase_batch(GPUBatch *batch, uiWidgetBase *wtb)
     const float checker_params[3] = {
         UI_ALPHA_CHECKER_DARK / 255.0f, UI_ALPHA_CHECKER_LIGHT / 255.0f, 8.0f};
     /* draw single */
+    GPUBatch *batch = ui_batch_roundbox_widget_get();
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
     GPU_batch_uniform_4fv_array(
         batch, "parameters", MAX_WIDGET_PARAMETERS, (float *)&wtb->uniform_params);
@@ -1434,8 +1251,6 @@ static void widgetbase_draw_ex(uiWidgetBase *wtb,
     show_alpha_checkers = false;
   }
 
-  GPU_blend(true);
-
   /* backdrop non AA */
   if (wtb->draw_inner) {
     if (wcol->shaded == 0) {
@@ -1455,7 +1270,7 @@ static void widgetbase_draw_ex(uiWidgetBase *wtb,
     outline_col[0] = wcol->outline[0];
     outline_col[1] = wcol->outline[1];
     outline_col[2] = wcol->outline[2];
-    outline_col[3] = wcol->outline[3] / WIDGET_AA_JITTER;
+    outline_col[3] = wcol->outline[3];
 
     /* emboss bottom shadow */
     if (wtb->draw_emboss) {
@@ -1467,7 +1282,7 @@ static void widgetbase_draw_ex(uiWidgetBase *wtb,
     tria_col[0] = wcol->item[0];
     tria_col[1] = wcol->item[1];
     tria_col[2] = wcol->item[2];
-    tria_col[3] = (uchar)((float)wcol->item[3] / WIDGET_AA_JITTER);
+    tria_col[3] = wcol->item[3];
   }
 
   /* Draw everything in one drawcall */
@@ -1476,11 +1291,10 @@ static void widgetbase_draw_ex(uiWidgetBase *wtb,
     widgetbase_set_uniform_colors_ubv(
         wtb, inner_col1, inner_col2, outline_col, emboss_col, tria_col, show_alpha_checkers);
 
-    GPUBatch *roundbox_batch = ui_batch_roundbox_widget_get(wtb->tria1.type);
-    draw_widgetbase_batch(roundbox_batch, wtb);
+    GPU_blend(true);
+    draw_widgetbase_batch(wtb);
+    GPU_blend(false);
   }
-
-  GPU_blend(false);
 }
 
 static void widgetbase_draw(uiWidgetBase *wtb, const uiWidgetColors *wcol)
