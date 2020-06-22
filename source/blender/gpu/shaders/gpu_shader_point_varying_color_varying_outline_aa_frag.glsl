@@ -29,4 +29,6 @@ void main()
   else {
     fragColor = mix(fillColor, outlineColor, smoothstep(radii[3], radii[2], dist));
   }
+
+  fragColor = blender_srgb_to_framebuffer_space(fragColor);
 }
