@@ -50,6 +50,23 @@
 /* Own include. */
 #include "transform_mode.h"
 
+int transform_mode_really_used(bContext *C, int mode)
+{
+  if (mode == TFM_BONESIZE) {
+    Object *ob = CTX_data_active_object(C);
+    BLI_assert(ob);
+    if (ob->type != OB_ARMATURE) {
+      return TFM_RESIZE;
+    }
+    bArmature *arm = ob->data;
+    if (arm->drawtype == ARM_ENVELOPE) {
+      return TFM_BONE_ENVELOPE_DIST;
+    }
+  }
+
+  return mode;
+}
+
 bool transdata_check_local_center(TransInfo *t, short around)
 {
   return ((around == V3D_AROUND_LOCAL_ORIGINS) &&
@@ -1174,25 +1191,12 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
     case TFM_CREASE:
       initCrease(t);
       break;
-    case TFM_BONESIZE: { /* used for both B-Bone width (bonesize) as for deform-dist (envelope) */
-      /* Note: we have to pick one, use the active object. */
-      TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_OK(t);
-      bArmature *arm = tc->poseobj->data;
-      if (arm->drawtype == ARM_ENVELOPE) {
-        initBoneEnvelope(t);
-        t->mode = TFM_BONE_ENVELOPE_DIST;
-      }
-      else {
-        initBoneSize(t);
-      }
+    case TFM_BONESIZE:
+      initBoneSize(t);
       break;
-    }
     case TFM_BONE_ENVELOPE:
-      initBoneEnvelope(t);
-      break;
     case TFM_BONE_ENVELOPE_DIST:
       initBoneEnvelope(t);
-      t->mode = TFM_BONE_ENVELOPE_DIST;
       break;
     case TFM_EDGE_SLIDE:
     case TFM_VERT_SLIDE: {

@@ -132,6 +132,11 @@ static void applyBoneSize(TransInfo *t, const int UNUSED(mval[2]))
 
   if (t->con.applySize) {
     t->con.applySize(t, NULL, NULL, mat);
+    for (i = 0; i < 3; i++) {
+      if (!(t->con.mode & (CON_AXIS0 << i))) {
+        t->values_final[i] = 1.0f;
+      }
+    }
   }
 
   copy_m3_m3(t->mat, mat);  // used in gizmo

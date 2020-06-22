@@ -96,7 +96,6 @@ static void applyBoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 
 void initBoneEnvelope(TransInfo *t)
 {
-  t->mode = TFM_BONE_ENVELOPE;
   t->transform = applyBoneEnvelope;
 
   initMouseInputMode(t, &t->mouse, INPUT_SPRING);

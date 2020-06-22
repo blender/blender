@@ -1294,19 +1294,6 @@ void createTransData(bContext *C, TransInfo *t)
     }
   }
 
-  /* exception... hackish, we want bonesize to use bone orientation matrix (ton) */
-  if (t->mode == TFM_BONESIZE) {
-    t->flag &= ~(T_EDIT | T_POINTS);
-    t->flag |= T_POSE;
-    t->obedit_type = -1;
-    t->data_type = TC_NONE;
-
-    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      tc->poseobj = tc->obedit;
-      tc->obedit = NULL;
-    }
-  }
-
   BLI_assert((!(t->flag & T_EDIT)) == (!(t->obedit_type != -1)));
 }
 

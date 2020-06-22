@@ -1819,6 +1819,8 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   int options = 0;
   PropertyRNA *prop;
 
+  mode = transform_mode_really_used(C, mode);
+
   t->context = C;
 
   /* added initialize, for external calls to set stuff in TransInfo, like undo string */
