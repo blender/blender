@@ -80,7 +80,8 @@ class AddPresetBase:
         name = name.lower().strip()
         name = bpy.path.display_name_to_filepath(name)
         trans = maketrans_init()
-        return name.translate(trans)
+        # Strip surrounding "_" as they are displayed as spaces.
+        return name.translate(trans).strip("_")
 
     def execute(self, context):
         import os
@@ -92,15 +93,16 @@ class AddPresetBase:
         preset_menu_class = getattr(bpy.types, self.preset_menu)
 
         is_xml = getattr(preset_menu_class, "preset_type", None) == 'XML'
+        is_preset_add = not (self.remove_name or self.remove_active)
 
         if is_xml:
             ext = ".xml"
         else:
             ext = ".py"
 
-        name = self.name.strip()
-        if not (self.remove_name or self.remove_active):
+        name = self.name.strip() if is_preset_add else self.name
 
+        if is_preset_add:
             if not name:
                 return {'FINISHED'}
 
