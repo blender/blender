@@ -553,8 +553,7 @@ static void pose_mirror_info_init(PoseInitData_Mirror *pid,
 /** \name Convert Armature
  * \{ */
 
-static void add_pose_transdata(
-    TransInfo *t, bPoseChannel *pchan, Object *ob, TransDataContainer *tc, TransData *td)
+static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, TransData *td)
 {
   Bone *bone = pchan->bone;
   float pmat[3][3], omat[3][3];
@@ -832,7 +831,7 @@ void createTransPose(TransInfo *t)
     td = tc->data;
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       if (pchan->bone->flag & BONE_TRANSFORM) {
-        add_pose_transdata(t, pchan, ob, tc, td);
+        add_pose_transdata(t, pchan, ob, td);
         td++;
       }
     }
