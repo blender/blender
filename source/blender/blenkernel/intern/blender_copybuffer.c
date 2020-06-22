@@ -100,7 +100,7 @@ bool BKE_copybuffer_read(Main *bmain_dst,
   BKE_main_lib_objects_recalc_all(bmain_dst);
   IMB_colormanagement_check_file_config(bmain_dst);
   /* Append, rather than linking. */
-  Library *lib = BLI_findstring(&bmain_dst->libraries, libname, offsetof(Library, filepath));
+  Library *lib = BLI_findstring(&bmain_dst->libraries, libname, offsetof(Library, filepath_abs));
   BKE_library_make_local(bmain_dst, lib, NULL, true, false);
   /* Important we unset, otherwise these object wont
    * link into other scenes from this blend file.
@@ -155,7 +155,7 @@ int BKE_copybuffer_paste(bContext *C,
   IMB_colormanagement_check_file_config(bmain);
 
   /* append, rather than linking */
-  lib = BLI_findstring(&bmain->libraries, libname, offsetof(Library, filepath));
+  lib = BLI_findstring(&bmain->libraries, libname, offsetof(Library, filepath_abs));
   BKE_library_make_local(bmain, lib, NULL, true, false);
 
   /* important we unset, otherwise these object wont

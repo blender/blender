@@ -681,10 +681,10 @@ static int wm_lib_relocate_invoke(bContext *C, wmOperator *op, const wmEvent *UN
       BKE_reportf(op->reports,
                   RPT_ERROR_INVALID_INPUT,
                   "Cannot relocate indirectly linked library '%s'",
-                  lib->filepath);
+                  lib->filepath_abs);
       return OPERATOR_CANCELLED;
     }
-    RNA_string_set(op->ptr, "filepath", lib->filepath);
+    RNA_string_set(op->ptr, "filepath", lib->filepath_abs);
 
     WM_event_add_fileselect(C, op);
 
@@ -913,24 +913,24 @@ static void lib_relocate_do(Main *bmain,
 
 void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
 {
-  if (!BLO_has_bfile_extension(lib->filepath)) {
-    BKE_reportf(reports, RPT_ERROR, "'%s' is not a valid library filepath", lib->filepath);
+  if (!BLO_has_bfile_extension(lib->filepath_abs)) {
+    BKE_reportf(reports, RPT_ERROR, "'%s' is not a valid library filepath", lib->filepath_abs);
     return;
   }
 
-  if (!BLI_exists(lib->filepath)) {
+  if (!BLI_exists(lib->filepath_abs)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Trying to reload library '%s' from invalid path '%s'",
                 lib->id.name,
-                lib->filepath);
+                lib->filepath_abs);
     return;
   }
 
   WMLinkAppendData *lapp_data = wm_link_append_data_new(BLO_LIBLINK_USE_PLACEHOLDERS |
                                                         BLO_LIBLINK_FORCE_INDIRECT);
 
-  wm_link_append_data_library_add(lapp_data, lib->filepath);
+  wm_link_append_data_library_add(lapp_data, lib->filepath_abs);
 
   lib_relocate_do(CTX_data_main(C), lib, lapp_data, reports, true);
 
@@ -963,7 +963,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
       BKE_reportf(op->reports,
                   RPT_ERROR_INVALID_INPUT,
                   "Cannot relocate indirectly linked library '%s'",
-                  lib->filepath);
+                  lib->filepath_abs);
       return OPERATOR_CANCELLED;
     }
 
@@ -986,7 +986,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
       return OPERATOR_CANCELLED;
     }
 
-    if (BLI_path_cmp(lib->filepath, path) == 0) {
+    if (BLI_path_cmp(lib->filepath_abs, path) == 0) {
 #ifdef PRINT_DEBUG
       printf("We are supposed to reload '%s' lib (%d)...\n", lib->filepath, lib->id.us);
 #endif
@@ -1023,7 +1023,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
 
           BLI_join_dirfile(path, sizeof(path), root, relname);
 
-          if (BLI_path_cmp(path, lib->filepath) == 0 || !BLO_has_bfile_extension(relname)) {
+          if (BLI_path_cmp(path, lib->filepath_abs) == 0 || !BLO_has_bfile_extension(relname)) {
             continue;
           }
 

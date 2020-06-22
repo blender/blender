@@ -114,7 +114,7 @@ IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
  * Also note that the id _must_ have a library - campbell */
 static void lib_id_library_local_paths(Main *bmain, Library *lib, ID *id)
 {
-  const char *bpath_user_data[2] = {BKE_main_blendfile_path(bmain), lib->filepath};
+  const char *bpath_user_data[2] = {BKE_main_blendfile_path(bmain), lib->filepath_abs};
 
   BKE_bpath_traverse_id(bmain,
                         id,
@@ -225,7 +225,7 @@ void id_us_ensure_real(ID *id)
         CLOG_ERROR(&LOG,
                    "ID user count error: %s (from '%s')",
                    id->name,
-                   id->lib ? id->lib->filepath : "[Main]");
+                   id->lib ? id->lib->filepath_abs : "[Main]");
         BLI_assert(0);
       }
       id->us = limit + 1;
@@ -283,7 +283,7 @@ void id_us_min(ID *id)
       CLOG_ERROR(&LOG,
                  "ID user decrement error: %s (from '%s'): %d <= %d",
                  id->name,
-                 id->lib ? id->lib->filepath : "[Main]",
+                 id->lib ? id->lib->filepath_abs : "[Main]",
                  id->us,
                  limit);
       if (GS(id->name) != ID_IP) {

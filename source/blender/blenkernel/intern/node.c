@@ -3216,7 +3216,7 @@ void BKE_node_clipboard_add_node(bNode *node)
     BLI_strncpy(node_info->id_name, node->id->name, sizeof(node_info->id_name));
     if (ID_IS_LINKED(node->id)) {
       BLI_strncpy(
-          node_info->library_name, node->id->lib->filepath, sizeof(node_info->library_name));
+          node_info->library_name, node->id->lib->filepath_abs, sizeof(node_info->library_name));
     }
     else {
       node_info->library_name[0] = '\0';

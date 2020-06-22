@@ -1458,7 +1458,7 @@ static bool wm_file_write(bContext *C,
 
   /* send the OnSave event */
   for (li = bmain->libraries.first; li; li = li->id.next) {
-    if (BLI_path_cmp(li->filepath, filepath) == 0) {
+    if (BLI_path_cmp(li->filepath_abs, filepath) == 0) {
       BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
       return ok;
     }

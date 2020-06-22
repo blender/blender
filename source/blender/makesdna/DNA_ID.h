@@ -311,7 +311,7 @@ typedef struct Library {
    * This is set on file read.
    * Use BKE_library_filepath_set() rather than setting 'name'
    * directly and it will be kept in sync - campbell */
-  char filepath[1024];
+  char filepath_abs[1024];
 
   /** Set for indirectly linked libs, used in the outliner and while reading. */
   struct Library *parent;
@@ -456,9 +456,9 @@ typedef enum ID_Type {
   ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM) && (GS((id)->name) != ID_WS))
 
 #define ID_BLEND_PATH(_bmain, _id) \
-  ((_id)->lib ? (_id)->lib->filepath : BKE_main_blendfile_path((_bmain)))
+  ((_id)->lib ? (_id)->lib->filepath_abs : BKE_main_blendfile_path((_bmain)))
 #define ID_BLEND_PATH_FROM_GLOBAL(_id) \
-  ((_id)->lib ? (_id)->lib->filepath : BKE_main_blendfile_path_from_global())
+  ((_id)->lib ? (_id)->lib->filepath_abs : BKE_main_blendfile_path_from_global())
 
 #define ID_MISSING(_id) ((((ID *)(_id))->tag & LIB_TAG_MISSING) != 0)
 

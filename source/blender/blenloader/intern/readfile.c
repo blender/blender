@@ -310,7 +310,7 @@ void blo_reportf_wrap(ReportList *reports, ReportType type, const char *format, 
 /* for reporting linking messages */
 static const char *library_parent_filepath(Library *lib)
 {
-  return lib->parent ? lib->parent->filepath : "<direct>";
+  return lib->parent ? lib->parent->filepath_abs : "<direct>";
 }
 
 /* -------------------------------------------------------------------- */
@@ -673,7 +673,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   //  printf("blo_find_main: converted to %s\n", name1);
 
   for (m = mainlist->first; m; m = m->next) {
-    const char *libname = (m->curlib) ? m->curlib->filepath : m->name;
+    const char *libname = (m->curlib) ? m->curlib->filepath_abs : m->name;
 
     if (BLI_path_cmp(name1, libname) == 0) {
       if (G.debug & G_DEBUG) {
@@ -697,7 +697,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   id_us_ensure_real(&lib->id);
 
   BLI_strncpy(lib->name, filepath, sizeof(lib->name));
-  BLI_strncpy(lib->filepath, name1, sizeof(lib->filepath));
+  BLI_strncpy(lib->filepath_abs, name1, sizeof(lib->filepath_abs));
 
   m->curlib = lib;
 
@@ -8356,12 +8356,12 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
   /* check if the library was already read */
   for (newmain = fd->mainlist->first; newmain; newmain = newmain->next) {
     if (newmain->curlib) {
-      if (BLI_path_cmp(newmain->curlib->filepath, lib->filepath) == 0) {
+      if (BLI_path_cmp(newmain->curlib->filepath_abs, lib->filepath_abs) == 0) {
         blo_reportf_wrap(fd->reports,
                          RPT_WARNING,
                          TIP_("Library '%s', '%s' had multiple instances, save and reload!"),
                          lib->name,
-                         lib->filepath);
+                         lib->filepath_abs);
 
         change_link_placeholder_to_real_ID_pointer(fd->mainlist, fd, lib, newmain->curlib);
         /*              change_link_placeholder_to_real_ID_pointer_fd(fd, lib, newmain->curlib); */
@@ -8383,12 +8383,12 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
     }
   }
 
-  /* make sure we have full path in lib->filepath */
-  BLI_strncpy(lib->filepath, lib->name, sizeof(lib->name));
-  BLI_path_normalize(fd->relabase, lib->filepath);
+  /* Make sure we have full path in lib->filepath_abs */
+  BLI_strncpy(lib->filepath_abs, lib->name, sizeof(lib->name));
+  BLI_path_normalize(fd->relabase, lib->filepath_abs);
 
   //  printf("direct_link_library: name %s\n", lib->name);
-  //  printf("direct_link_library: filepath %s\n", lib->filepath);
+  //  printf("direct_link_library: filepath %s\n", lib->filepath_abs);
 
   BlendDataReader reader = {fd};
   lib->packedfile = direct_link_packedfile(&reader, lib->packedfile);
@@ -8421,7 +8421,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
        * link into an unsaved blend file. See [#27405].
        * The remap relative option will make it relative again on save - campbell */
       if (BLI_path_is_rel(lib->name)) {
-        BLI_strncpy(lib->name, lib->filepath, sizeof(lib->name));
+        BLI_strncpy(lib->name, lib->filepath_abs, sizeof(lib->name));
       }
     }
   }
@@ -8431,7 +8431,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
        * relative to the blend file since indirectly linked libs will be
        * relative to their direct linked library. */
       if (BLI_path_is_rel(lib->name)) { /* if this is relative to begin with? */
-        BLI_strncpy(lib->name, lib->filepath, sizeof(lib->name));
+        BLI_strncpy(lib->name, lib->filepath_abs, sizeof(lib->name));
         BLI_path_rel(lib->name, basepath);
       }
     }
@@ -10545,7 +10545,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
                        RPT_WARNING,
                        TIP_("LIB: Data refers to main .blend file: '%s' from %s"),
                        idname,
-                       mainvar->curlib->filepath);
+                       mainvar->curlib->filepath_abs);
       return;
     }
 
@@ -12105,7 +12105,7 @@ static void library_link_end(Main *mainl,
   /* make the lib path relative if required */
   if (flag & FILE_RELPATH) {
     /* use the full path, this could have been read by other library even */
-    BLI_strncpy(curlib->name, curlib->filepath, sizeof(curlib->name));
+    BLI_strncpy(curlib->name, curlib->filepath_abs, sizeof(curlib->name));
 
     /* uses current .blend file as reference */
     BLI_path_rel(curlib->name, BKE_main_blendfile_path_from_global());
@@ -12255,7 +12255,7 @@ static void read_library_linked_id(
                           "non-linkable data type"),
                      BKE_idtype_idcode_to_name(GS(id->name)),
                      id->name + 2,
-                     mainvar->curlib->filepath,
+                     mainvar->curlib->filepath_abs,
                      library_parent_filepath(mainvar->curlib));
   }
 
@@ -12273,7 +12273,7 @@ static void read_library_linked_id(
                      TIP_("LIB: %s: '%s' missing from '%s', parent '%s'"),
                      BKE_idtype_idcode_to_name(GS(id->name)),
                      id->name + 2,
-                     mainvar->curlib->filepath,
+                     mainvar->curlib->filepath_abs,
                      library_parent_filepath(mainvar->curlib));
 
     /* Generate a placeholder for this ID (simplified version of read_libblock actually...). */
@@ -12381,17 +12381,17 @@ static FileData *read_library_file_data(FileData *basefd,
     fd = blo_filedata_from_memory(pf->data, pf->size, basefd->reports);
 
     /* Needed for library_append and read_libraries. */
-    BLI_strncpy(fd->relabase, mainptr->curlib->filepath, sizeof(fd->relabase));
+    BLI_strncpy(fd->relabase, mainptr->curlib->filepath_abs, sizeof(fd->relabase));
   }
   else {
     /* Read file on disk. */
     blo_reportf_wrap(basefd->reports,
                      RPT_INFO,
                      TIP_("Read library:  '%s', '%s', parent '%s'"),
-                     mainptr->curlib->filepath,
+                     mainptr->curlib->filepath_abs,
                      mainptr->curlib->name,
                      library_parent_filepath(mainptr->curlib));
-    fd = blo_filedata_from_file(mainptr->curlib->filepath, basefd->reports);
+    fd = blo_filedata_from_file(mainptr->curlib->filepath_abs, basefd->reports);
   }
 
   if (fd) {
@@ -12428,7 +12428,7 @@ static FileData *read_library_file_data(FileData *basefd,
 
   if (fd == NULL) {
     blo_reportf_wrap(
-        basefd->reports, RPT_WARNING, TIP_("Cannot find lib '%s'"), mainptr->curlib->filepath);
+        basefd->reports, RPT_WARNING, TIP_("Cannot find lib '%s'"), mainptr->curlib->filepath_abs);
   }
 
   return fd;

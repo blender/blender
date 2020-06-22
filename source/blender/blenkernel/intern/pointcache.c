@@ -2190,7 +2190,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 {
   Library *lib = (pid->ob) ? pid->ob->id.lib : NULL;
   const char *blendfilename = (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH) == 0) ?
-                                  lib->filepath :
+                                  lib->filepath_abs :
                                   BKE_main_blendfile_path_from_global();
   size_t i;
 

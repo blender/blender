@@ -705,8 +705,8 @@ int BKE_packedfile_unpack_all_libraries(Main *bmain, ReportList *reports)
 
       newname = BKE_packedfile_unpack_to_file(reports,
                                               BKE_main_blendfile_path(bmain),
-                                              lib->filepath,
-                                              lib->filepath,
+                                              lib->filepath_abs,
+                                              lib->filepath_abs,
                                               lib->packedfile,
                                               PF_WRITE_ORIGINAL);
       if (newname != NULL) {

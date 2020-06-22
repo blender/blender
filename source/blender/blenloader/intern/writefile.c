@@ -3989,7 +3989,7 @@ static void write_libraries(WriteData *wd, Main *main)
                   "ERROR: write file: data-block '%s' from lib '%s' is not linkable "
                   "but is flagged as directly linked",
                   id->name,
-                  main->curlib->filepath);
+                  main->curlib->filepath_abs);
               BLI_assert(0);
             }
             writestruct(wd, ID_LINK_PLACEHOLDER, ID, 1, id);
