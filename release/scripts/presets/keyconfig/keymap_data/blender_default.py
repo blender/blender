@@ -6210,9 +6210,9 @@ def km_3d_view_tool_edit_curve_extrude(params):
     )
 
 
-def km_3d_view_tool_edit_curve_extrude_cursor(params):
+def km_3d_view_tool_edit_curve_extrude_to_cursor(params):
     return (
-        "3D View Tool: Edit Curve, Extrude Cursor",
+        "3D View Tool: Edit Curve, Extrude to Cursor",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("curve.vertex_add", {"type": params.tool_mouse, "value": 'PRESS'}, None),
@@ -6814,7 +6814,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_edit_curve_tilt(params),
         km_3d_view_tool_edit_curve_randomize(params),
         km_3d_view_tool_edit_curve_extrude(params),
-        km_3d_view_tool_edit_curve_extrude_cursor(params),
+        km_3d_view_tool_edit_curve_extrude_to_cursor(params),
         km_3d_view_tool_sculpt_box_hide(params),
         km_3d_view_tool_sculpt_box_mask(params),
         km_3d_view_tool_sculpt_lasso_mask(params),
