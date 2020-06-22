@@ -59,6 +59,8 @@ extern "C" {
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+#include "ED_undo.h"
+
 /* SpaceType struct has a member called 'new' which obviously conflicts with C++
  * so temporarily redefining the new keyword to make it compile. */
 #define new extern_new
@@ -626,6 +628,7 @@ enum {
 };
 
 struct ImportJobData {
+  bContext *C;
   Main *bmain;
   Scene *scene;
   ViewLayer *view_layer;
@@ -644,6 +647,7 @@ struct ImportJobData {
   char error_code;
   bool was_cancelled;
   bool import_ok;
+  bool is_background_job;
 };
 
 static void import_startjob(void *user_data, short *stop, short *do_update, float *progress)
@@ -831,6 +835,12 @@ static void import_endjob(void *user_data)
 
     DEG_id_tag_update(&data->scene->id, ID_RECALC_BASE_FLAGS);
     DEG_relations_tag_update(data->bmain);
+
+    if (data->is_background_job) {
+      /* Blender already returned from the import operator, so we need to store our own extra undo
+       * step. */
+      ED_undo_push(data->C, "Alembic Import Finished");
+    }
   }
 
   for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
@@ -880,6 +890,7 @@ bool ABC_import(bContext *C,
   /* Using new here since MEM_* funcs do not call ctor to properly initialize
    * data. */
   ImportJobData *job = new ImportJobData();
+  job->C = C;
   job->bmain = CTX_data_main(C);
   job->scene = CTX_data_scene(C);
   job->view_layer = CTX_data_view_layer(C);
@@ -896,6 +907,7 @@ bool ABC_import(bContext *C,
   job->error_code = ABC_NO_ERROR;
   job->was_cancelled = false;
   job->archive = NULL;
+  job->is_background_job = as_background_job;
 
   G.is_break = false;
 
