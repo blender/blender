@@ -70,7 +70,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
                     RPT_ERROR,
                     "ID %s is in local database while being linked from library %s!",
                     id->name,
-                    id->lib->name);
+                    id->lib->filepath);
       }
     }
   }
@@ -82,7 +82,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
       continue;
     }
 
-    BKE_library_filepath_set(bmain, curlib, curlib->name);
+    BKE_library_filepath_set(bmain, curlib, curlib->filepath);
     BlendHandle *bh = BLO_blendhandle_from_file(curlib->filepath_abs, reports);
 
     if (bh == NULL) {
@@ -107,7 +107,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
                     RPT_ERROR,
                     "Library ID %s in library %s, this should not happen!",
                     id->name,
-                    curlib->name);
+                    curlib->filepath);
         continue;
       }
 
@@ -120,7 +120,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
                       RPT_ERROR,
                       "ID %s has NULL lib pointer while being in library %s!",
                       id->name,
-                      curlib->name);
+                      curlib->filepath);
           continue;
         }
         if (id->lib != curlib) {
@@ -143,7 +143,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
                       RPT_ERROR,
                       "ID %s not found in library %s anymore!",
                       id->name,
-                      id->lib->name);
+                      id->lib->filepath);
           continue;
         }
       }

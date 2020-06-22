@@ -43,8 +43,8 @@ static void rna_Text_filename_get(PointerRNA *ptr, char *value)
 {
   Text *text = (Text *)ptr->data;
 
-  if (text->name) {
-    strcpy(value, text->name);
+  if (text->filepath) {
+    strcpy(value, text->filepath);
   }
   else {
     value[0] = '\0';
@@ -54,22 +54,22 @@ static void rna_Text_filename_get(PointerRNA *ptr, char *value)
 static int rna_Text_filename_length(PointerRNA *ptr)
 {
   Text *text = (Text *)ptr->data;
-  return (text->name) ? strlen(text->name) : 0;
+  return (text->filepath) ? strlen(text->filepath) : 0;
 }
 
 static void rna_Text_filename_set(PointerRNA *ptr, const char *value)
 {
   Text *text = (Text *)ptr->data;
 
-  if (text->name) {
-    MEM_freeN(text->name);
+  if (text->filepath) {
+    MEM_freeN(text->filepath);
   }
 
   if (value[0]) {
-    text->name = BLI_strdup(value);
+    text->filepath = BLI_strdup(value);
   }
   else {
-    text->name = NULL;
+    text->filepath = NULL;
   }
 }
 

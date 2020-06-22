@@ -341,8 +341,8 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
           const char *id_name = module_conf->script->id.name + 2;
           if (G.debug & G_DEBUG_FREESTYLE) {
             cout << "  " << layer_count + 1 << ": " << id_name;
-            if (module_conf->script->name) {
-              cout << " (" << module_conf->script->name << ")";
+            if (module_conf->script->filepath) {
+              cout << " (" << module_conf->script->filepath << ")";
             }
             cout << endl;
           }

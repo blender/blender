@@ -2133,7 +2133,7 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
     vfont = (VFont *)idptr.owner_id;
   }
 
-  path = (vfont && !BKE_vfont_is_builtin(vfont)) ? vfont->name : U.fontdir;
+  path = (vfont && !BKE_vfont_is_builtin(vfont)) ? vfont->filepath : U.fontdir;
 
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     return font_open_exec(C, op);

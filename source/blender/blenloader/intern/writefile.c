@@ -3206,8 +3206,8 @@ static void write_text(BlendWriter *writer, Text *text, const void *id_address)
   BLO_write_id_struct(writer, Text, id_address, &text->id);
   write_iddata(writer, &text->id);
 
-  if (text->name) {
-    BLO_write_string(writer, text->name);
+  if (text->filepath) {
+    BLO_write_string(writer, text->filepath);
   }
 
   if (!(text->flags & TXT_ISEXT)) {
@@ -3974,7 +3974,7 @@ static void write_libraries(WriteData *wd, Main *main)
         writestruct(wd, DATA, PackedFile, 1, pf);
         writedata(wd, DATA, pf->size, pf->data);
         if (wd->use_memfile == false) {
-          printf("write packed .blend: %s\n", main->curlib->name);
+          printf("write packed .blend: %s\n", main->curlib->filepath);
         }
       }
 

@@ -923,7 +923,7 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
                                                    .style = UI_TIP_STYLE_NORMAL,
                                                    .color_id = UI_TIP_LC_NORMAL,
                                                });
-        field->text = BLI_sprintfN(TIP_("Library: %s"), id->lib->name);
+        field->text = BLI_sprintfN(TIP_("Library: %s"), id->lib->filepath);
       }
     }
   }

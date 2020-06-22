@@ -3945,7 +3945,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
     }
     char filepath[FILE_MAX];
     RNA_string_get(op->ptr, "filepath", filepath);
-    BLI_strncpy(sound->name, filepath, sizeof(sound->name));
+    BLI_strncpy(sound->filepath, filepath, sizeof(sound->filepath));
     BKE_sound_load(bmain, sound);
   }
   else {

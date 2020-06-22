@@ -697,7 +697,8 @@ static void draw_seq_text(View2D *v2d,
       str_len = 0;
     }
     else if (seq->sound) {
-      str_len = BLI_snprintf(str, sizeof(str), "%s: %s | %d", name, seq->sound->name, seq->len);
+      str_len = BLI_snprintf(
+          str, sizeof(str), "%s: %s | %d", name, seq->sound->filepath, seq->len);
     }
     else {
       str_len = BLI_snprintf(str, sizeof(str), "%s | %d", name, seq->len);

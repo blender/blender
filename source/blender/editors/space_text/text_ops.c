@@ -370,7 +370,7 @@ static int text_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 {
   Main *bmain = CTX_data_main(C);
   Text *text = CTX_data_edit_text(C);
-  const char *path = (text && text->name) ? text->name : BKE_main_blendfile_path(bmain);
+  const char *path = (text && text->filepath) ? text->filepath : BKE_main_blendfile_path(bmain);
 
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     return text_open_exec(C, op);
@@ -430,7 +430,7 @@ static int text_reload_exec(bContext *C, wmOperator *op)
 
   /* Don't make this part of 'poll', since 'Alt-R' will type 'R',
    * if poll checks for the filename. */
-  if (text->name == NULL) {
+  if (text->filepath == NULL) {
     BKE_report(op->reports, RPT_ERROR, "This text has not been saved");
     return OPERATOR_CANCELLED;
   }
@@ -543,9 +543,9 @@ static int text_make_internal_exec(bContext *C, wmOperator *UNUSED(op))
 
   text->flags |= TXT_ISMEM | TXT_ISDIRTY;
 
-  if (text->name) {
-    MEM_freeN(text->name);
-    text->name = NULL;
+  if (text->filepath) {
+    MEM_freeN(text->filepath);
+    text->filepath = NULL;
   }
 
   text_update_cursor_moved(C);
@@ -583,7 +583,7 @@ static bool text_save_poll(bContext *C)
     return 0;
   }
 
-  return (text->name != NULL && !(text->flags & TXT_ISMEM));
+  return (text->filepath != NULL && !(text->flags & TXT_ISMEM));
 }
 
 static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
@@ -593,7 +593,7 @@ static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
   BLI_stat_t st;
   char filepath[FILE_MAX];
 
-  BLI_strncpy(filepath, text->name, FILE_MAX);
+  BLI_strncpy(filepath, text->filepath, FILE_MAX);
   BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
 
   fp = BLI_fopen(filepath, "w");
@@ -676,10 +676,10 @@ static int text_save_as_exec(bContext *C, wmOperator *op)
 
   RNA_string_get(op->ptr, "filepath", str);
 
-  if (text->name) {
-    MEM_freeN(text->name);
+  if (text->filepath) {
+    MEM_freeN(text->filepath);
   }
-  text->name = BLI_strdup(str);
+  text->filepath = BLI_strdup(str);
   text->flags &= ~TXT_ISMEM;
 
   txt_write_file(bmain, text, op->reports);
@@ -700,8 +700,8 @@ static int text_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
     return text_save_as_exec(C, op);
   }
 
-  if (text->name) {
-    str = text->name;
+  if (text->filepath) {
+    str = text->filepath;
   }
   else if (text->flags & TXT_ISMEM) {
     str = text->id.name + 2;

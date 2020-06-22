@@ -549,7 +549,7 @@ static void outliner_add_id_contents(SpaceOutliner *soops,
   /* expand specific data always */
   switch (GS(id->name)) {
     case ID_LI: {
-      te->name = ((Library *)id)->name;
+      te->name = ((Library *)id)->filepath;
       break;
     }
     case ID_SCE: {
@@ -870,7 +870,7 @@ static TreeElement *outliner_add_element(
   else {
     /* do here too, for blend file viewer, own ID_LI then shows file name */
     if (GS(id->name) == ID_LI) {
-      te->name = ((Library *)id)->name;
+      te->name = ((Library *)id)->filepath;
     }
     else {
       te->name = id->name + 2;  // default, can be overridden by Library or non-ID data

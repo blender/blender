@@ -73,7 +73,7 @@ static void image_save_post(ReportList *reports,
 
   if (opts->do_newpath) {
     BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
-    BLI_strncpy(ima->name, filepath, sizeof(ima->name));
+    BLI_strncpy(ima->filepath, filepath, sizeof(ima->filepath));
   }
 
   ibuf->userflags &= ~IB_BITMAPDIRTY;
@@ -106,7 +106,7 @@ static void image_save_post(ReportList *reports,
   /* only image path, never ibuf */
   if (opts->relative) {
     const char *relbase = ID_BLEND_PATH(opts->bmain, &ima->id);
-    BLI_path_rel(ima->name, relbase); /* only after saving */
+    BLI_path_rel(ima->filepath, relbase); /* only after saving */
   }
 
   ColorManagedColorspaceSettings old_colorspace_settings;
@@ -135,7 +135,7 @@ static void imbuf_save_post(ImBuf *ibuf, ImBuf *colormanaged_ibuf)
 
 /**
  * \return success.
- * \note ``ima->name`` and ``ibuf->name`` should end up the same.
+ * \note ``ima->filepath`` and ``ibuf->name`` should end up the same.
  * \note for multiview the first ``ibuf`` is important to get the settings.
  */
 static bool image_save_single(ReportList *reports,

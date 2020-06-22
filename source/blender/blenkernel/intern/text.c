@@ -63,14 +63,14 @@
  * How Texts should work
  * --
  * A text should relate to a file as follows -
- * (Text *)->name should be the place where the
+ * (Text *)->filepath should be the place where the
  *     file will or has been saved.
  *
  * (Text *)->flags has the following bits
  *     TXT_ISDIRTY - should always be set if the file in mem. differs from
  *                     the file on disk, or if there is no file on disk.
  *     TXT_ISMEM - should always be set if the Text has not been mapped to
- *                     a file, in which case (Text *)->name may be NULL or garbage.
+ *                     a file, in which case (Text *)->filepath may be NULL or garbage.
  *     TXT_ISEXT - should always be set if the Text is not to be written into
  *                     the .blend
  *     TXT_ISSCRIPT - should be set if the user has designated the text
@@ -110,7 +110,7 @@ static void text_init_data(ID *id)
 
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(text, id));
 
-  text->name = NULL;
+  text->filepath = NULL;
 
   text->nlines = 1;
   text->flags = TXT_ISDIRTY | TXT_ISMEM;
@@ -157,8 +157,8 @@ static void text_copy_data(Main *UNUSED(bmain),
   const Text *text_src = (Text *)id_src;
 
   /* File name can be NULL. */
-  if (text_src->name) {
-    text_dst->name = BLI_strdup(text_src->name);
+  if (text_src->filepath) {
+    text_dst->filepath = BLI_strdup(text_src->filepath);
   }
 
   text_dst->flags |= TXT_ISDIRTY;
@@ -190,7 +190,7 @@ static void text_free_data(ID *id)
 
   BKE_text_free_lines(text);
 
-  MEM_SAFE_FREE(text->name);
+  MEM_SAFE_FREE(text->filepath);
 #ifdef WITH_PYTHON
   BPY_text_free_code(text);
 #endif
@@ -384,11 +384,11 @@ bool BKE_text_reload(Text *text)
   char filepath_abs[FILE_MAX];
   BLI_stat_t st;
 
-  if (!text->name) {
+  if (!text->filepath) {
     return false;
   }
 
-  BLI_strncpy(filepath_abs, text->name, FILE_MAX);
+  BLI_strncpy(filepath_abs, text->filepath, FILE_MAX);
   BLI_path_abs(filepath_abs, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
 
   buffer = BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len);
@@ -444,8 +444,8 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
   }
 
   if (is_internal == false) {
-    ta->name = MEM_mallocN(strlen(file) + 1, "text_name");
-    strcpy(ta->name, file);
+    ta->filepath = MEM_mallocN(strlen(file) + 1, "text_name");
+    strcpy(ta->filepath, file);
   }
   else {
     ta->flags |= TXT_ISMEM | TXT_ISDIRTY;
@@ -503,11 +503,11 @@ int BKE_text_file_modified_check(Text *text)
   int result;
   char file[FILE_MAX];
 
-  if (!text->name) {
+  if (!text->filepath) {
     return 0;
   }
 
-  BLI_strncpy(file, text->name, FILE_MAX);
+  BLI_strncpy(file, text->filepath, FILE_MAX);
   BLI_path_abs(file, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
 
   if (!BLI_exists(file)) {
@@ -537,11 +537,11 @@ void BKE_text_file_modified_ignore(Text *text)
   int result;
   char file[FILE_MAX];
 
-  if (!text->name) {
+  if (!text->filepath) {
     return;
   }
 
-  BLI_strncpy(file, text->name, FILE_MAX);
+  BLI_strncpy(file, text->filepath, FILE_MAX);
   BLI_path_abs(file, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
 
   if (!BLI_exists(file)) {

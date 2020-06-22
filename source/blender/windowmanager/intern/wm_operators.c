@@ -1269,7 +1269,7 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
     if (is_relative_path) {
       if (exists == false) {
         if (idcode == ID_IM) {
-          BLI_path_rel(((Image *)id)->name, BKE_main_blendfile_path(bmain));
+          BLI_path_rel(((Image *)id)->filepath, BKE_main_blendfile_path(bmain));
         }
         else {
           BLI_assert(0);

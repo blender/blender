@@ -57,7 +57,7 @@ void workbench_material_ubo_data(WORKBENCH_PrivateData *wpd,
     case V3D_SHADING_RANDOM_COLOR: {
       uint hash = BLI_ghashutil_strhash_p_murmur(ob->id.name);
       if (ob->id.lib) {
-        hash = (hash * 13) ^ BLI_ghashutil_strhash_p_murmur(ob->id.lib->name);
+        hash = (hash * 13) ^ BLI_ghashutil_strhash_p_murmur(ob->id.lib->filepath);
       }
       float hue = BLI_hash_int_01(hash);
       float hsv[3] = {hue, HSV_SATURATION, HSV_VALUE};

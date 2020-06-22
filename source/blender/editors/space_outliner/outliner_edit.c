@@ -915,8 +915,9 @@ static int lib_relocate(
 
     printf("%s, %s\n", tselem->id->name, lib->filepath_abs);
 
-    /* We assume if both paths in lib are not the same then lib->name was relative... */
-    RNA_boolean_set(&op_props, "relative_path", BLI_path_cmp(lib->filepath_abs, lib->name) != 0);
+    /* We assume if both paths in lib are not the same then `lib->filepath` was relative. */
+    RNA_boolean_set(
+        &op_props, "relative_path", BLI_path_cmp(lib->filepath_abs, lib->filepath) != 0);
 
     RNA_string_set(&op_props, "directory", dir);
     RNA_string_set(&op_props, "filename", filename);

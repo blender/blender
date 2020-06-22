@@ -771,7 +771,7 @@ static int sound_pack_exec(bContext *C, wmOperator *op)
   }
 
   sound->packedfile = BKE_packedfile_new(
-      op->reports, sound->name, ID_BLEND_PATH(bmain, &sound->id));
+      op->reports, sound->filepath, ID_BLEND_PATH(bmain, &sound->id));
   BKE_sound_load(bmain, sound);
 
   return OPERATOR_FINISHED;
@@ -847,7 +847,8 @@ static int sound_unpack_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
                "AutoPack is enabled, so image will be packed again on file save");
   }
 
-  unpack_menu(C, "SOUND_OT_unpack", sound->id.name + 2, sound->name, "sounds", sound->packedfile);
+  unpack_menu(
+      C, "SOUND_OT_unpack", sound->id.name + 2, sound->filepath, "sounds", sound->packedfile);
 
   return OPERATOR_FINISHED;
 }

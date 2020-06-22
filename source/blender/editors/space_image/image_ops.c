@@ -1237,7 +1237,7 @@ static Image *image_open_single(Main *bmain,
   if (!exists) {
     /* only image path after save, never ibuf */
     if (is_relative_path) {
-      BLI_path_rel(ima->name, relbase);
+      BLI_path_rel(ima->filepath, relbase);
     }
 
     /* handle multiview images */
@@ -1417,7 +1417,7 @@ static int image_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
   }
 
   if (ima) {
-    path = ima->name;
+    path = ima->filepath;
   }
 
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -1577,7 +1577,7 @@ static int image_replace_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", str);
 
   /* we cant do much if the str is longer then FILE_MAX :/ */
-  BLI_strncpy(sima->image->name, str, sizeof(sima->image->name));
+  BLI_strncpy(sima->image->filepath, str, sizeof(sima->image->filepath));
 
   if (sima->image->source == IMA_SRC_GENERATED) {
     sima->image->source = IMA_SRC_FILE;
@@ -1614,10 +1614,10 @@ static int image_replace_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
   }
 
   if (!RNA_struct_property_is_set(op->ptr, "relative_path")) {
-    RNA_boolean_set(op->ptr, "relative_path", BLI_path_is_rel(sima->image->name));
+    RNA_boolean_set(op->ptr, "relative_path", BLI_path_is_rel(sima->image->filepath));
   }
 
-  image_filesel(C, op, sima->image->name);
+  image_filesel(C, op, sima->image->filepath);
 
   return OPERATOR_RUNNING_MODAL;
 }
@@ -1777,7 +1777,7 @@ static int image_save_options_init(Main *bmain,
 
       /* append UDIM numbering if not present */
       if (ima->source == IMA_SRC_TILED &&
-          (BLI_path_sequence_decode(ima->name, NULL, NULL, NULL) != 1001)) {
+          (BLI_path_sequence_decode(ima->filepath, NULL, NULL, NULL) != 1001)) {
         int len = strlen(opts->filepath);
         STR_CONCAT(opts->filepath, len, ".1001");
       }
@@ -2301,7 +2301,7 @@ static bool image_should_be_saved(Image *ima, bool *is_format_writable)
 
 static bool image_has_valid_path(Image *ima)
 {
-  return strchr(ima->name, '\\') || strchr(ima->name, '/');
+  return strchr(ima->filepath, '\\') || strchr(ima->filepath, '/');
 }
 
 bool ED_image_should_save_modified(const Main *bmain)
@@ -2336,7 +2336,7 @@ int ED_image_save_all_modified_info(const Main *bmain, ReportList *reports)
                       RPT_WARNING,
                       "Packed library image can't be saved: \"%s\" from \"%s\"",
                       ima->id.name + 2,
-                      ima->id.lib->name);
+                      ima->id.lib->filepath);
         }
       }
       else if (!is_format_writable) {
@@ -2348,19 +2348,21 @@ int ED_image_save_all_modified_info(const Main *bmain, ReportList *reports)
       else {
         if (image_has_valid_path(ima)) {
           num_saveable_images++;
-          if (BLI_gset_haskey(unique_paths, ima->name)) {
+          if (BLI_gset_haskey(unique_paths, ima->filepath)) {
             BKE_reportf(reports,
                         RPT_WARNING,
                         "Multiple images can't be saved to an identical path: \"%s\"",
-                        ima->name);
+                        ima->filepath);
           }
           else {
-            BLI_gset_insert(unique_paths, BLI_strdup(ima->name));
+            BLI_gset_insert(unique_paths, BLI_strdup(ima->filepath));
           }
         }
         else {
-          BKE_reportf(
-              reports, RPT_WARNING, "Image can't be saved, no valid file path: \"%s\"", ima->name);
+          BKE_reportf(reports,
+                      RPT_WARNING,
+                      "Image can't be saved, no valid file path: \"%s\"",
+                      ima->filepath);
         }
       }
     }
@@ -3044,7 +3046,7 @@ static int image_unpack_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
   unpack_menu(C,
               "IMAGE_OT_unpack",
               ima->id.name + 2,
-              ima->name,
+              ima->filepath,
               "textures",
               BKE_image_has_packedfile(ima) ?
                   ((ImagePackedFile *)ima->packedfiles.first)->packedfile :

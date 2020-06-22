@@ -981,7 +981,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
         BLI_addtail(&ima->packedfiles, imapf);
 
         imapf->packedfile = ima->packedfile;
-        BLI_strncpy(imapf->filepath, ima->name, FILE_MAX);
+        BLI_strncpy(imapf->filepath, ima->filepath, FILE_MAX);
         ima->packedfile = NULL;
       }
     }

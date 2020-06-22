@@ -116,7 +116,7 @@ static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *r
   ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
   if (ibuf) {
     char filename[FILE_MAX];
-    BLI_strncpy(filename, image->name, sizeof(filename));
+    BLI_strncpy(filename, image->filepath, sizeof(filename));
     BLI_path_abs(filename, ID_BLEND_PATH(bmain, &image->id));
 
     /* note, we purposefully ignore packed files here,
@@ -138,7 +138,7 @@ static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *r
                   RPT_ERROR,
                   "Image '%s' could not be saved to '%s'",
                   image->id.name + 2,
-                  image->name);
+                  image->filepath);
     }
   }
   else {

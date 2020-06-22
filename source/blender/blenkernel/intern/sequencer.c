@@ -406,17 +406,18 @@ static void seqclipboard_ptr_restore(Main *bmain, ID **id_pt)
       /* check for a data with the same filename */
       switch (GS(ID_PT->name)) {
         case ID_SO: {
-          id_restore = BLI_findstring(lb, ((bSound *)ID_PT)->name, offsetof(bSound, name));
+          id_restore = BLI_findstring(lb, ((bSound *)ID_PT)->filepath, offsetof(bSound, filepath));
           if (id_restore == NULL) {
-            id_restore = BKE_sound_new_file(bmain, ((bSound *)ID_PT)->name);
+            id_restore = BKE_sound_new_file(bmain, ((bSound *)ID_PT)->filepath);
             (ID_PT)->newid = id_restore; /* reuse next time */
           }
           break;
         }
         case ID_MC: {
-          id_restore = BLI_findstring(lb, ((MovieClip *)ID_PT)->name, offsetof(MovieClip, name));
+          id_restore = BLI_findstring(
+              lb, ((MovieClip *)ID_PT)->filepath, offsetof(MovieClip, filepath));
           if (id_restore == NULL) {
-            id_restore = BKE_movieclip_file_add(bmain, ((MovieClip *)ID_PT)->name);
+            id_restore = BKE_movieclip_file_add(bmain, ((MovieClip *)ID_PT)->filepath);
             (ID_PT)->newid = id_restore; /* reuse next time */
           }
           break;

@@ -72,7 +72,7 @@ void RNA_def_vfont(BlenderRNA *brna)
   RNA_def_struct_ui_icon(srna, ICON_FILE_FONT);
 
   prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
-  RNA_def_property_string_sdna(prop, NULL, "name");
+  RNA_def_property_string_sdna(prop, NULL, "filepath");
   RNA_def_property_editable_func(prop, "rna_VectorFont_filepath_editable");
   RNA_def_property_ui_text(prop, "File Path", "");
   RNA_def_property_update(prop, NC_GEOM | ND_DATA, "rna_VectorFont_reload_update");

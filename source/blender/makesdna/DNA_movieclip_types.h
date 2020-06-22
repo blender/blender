@@ -78,7 +78,7 @@ typedef struct MovieClip {
   struct AnimData *adt;
 
   /** File path, 1024 = FILE_MAX. */
-  char name[1024];
+  char filepath[1024];
 
   /** Sequence or movie. */
   int source;

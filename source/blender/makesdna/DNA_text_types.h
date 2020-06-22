@@ -43,7 +43,7 @@ typedef struct TextLine {
 typedef struct Text {
   ID id;
 
-  char *name;
+  char *filepath;
   void *compiled;
 
   int flags, nlines;

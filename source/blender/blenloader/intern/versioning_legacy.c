@@ -856,8 +856,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile <= 223) {
     VFont *vf;
     for (vf = bmain->fonts.first; vf; vf = vf->id.next) {
-      if (STREQ(vf->name + strlen(vf->name) - 6, ".Bfont")) {
-        strcpy(vf->name, FO_BUILTIN_NAME);
+      if (STREQ(vf->filepath + strlen(vf->filepath) - 6, ".Bfont")) {
+        strcpy(vf->filepath, FO_BUILTIN_NAME);
       }
     }
   }
@@ -1643,9 +1643,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     if (bmain->versionfile == 241) {
       Image *ima;
       for (ima = bmain->images.first; ima; ima = ima->id.next) {
-        if (STREQ(ima->name, "Compositor")) {
+        if (STREQ(ima->filepath, "Compositor")) {
           strcpy(ima->id.name + 2, "Viewer Node");
-          strcpy(ima->name, "Viewer Node");
+          strcpy(ima->filepath, "Viewer Node");
         }
       }
     }

@@ -81,8 +81,8 @@ void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath)
 {
   /* in some cases this is used to update the absolute path from the
    * relative */
-  if (lib->name != filepath) {
-    BLI_strncpy(lib->name, filepath, sizeof(lib->name));
+  if (lib->filepath != filepath) {
+    BLI_strncpy(lib->filepath, filepath, sizeof(lib->filepath));
   }
 
   BLI_strncpy(lib->filepath_abs, filepath, sizeof(lib->filepath_abs));
@@ -96,7 +96,7 @@ void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath)
      * since making local could cause this to be directly linked - campbell
      */
     /* Never make paths relative to parent lib - reading code (blenloader) always set *all*
-     * lib->name relative to current main, not to their parent for indirectly linked ones. */
+     * `lib->filepath` relative to current main, not to their parent for indirectly linked ones. */
     const char *basepath = BKE_main_blendfile_path(bmain);
     BLI_path_abs(lib->filepath_abs, basepath);
   }

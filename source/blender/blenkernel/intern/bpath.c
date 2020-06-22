@@ -564,8 +564,8 @@ void BKE_bpath_traverse_id(
          * don't make sense to add directories to until the image has been saved
          * once to give it a meaningful value. */
         if (ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE, IMA_SRC_TILED) &&
-            ima->name[0]) {
-          if (rewrite_path_fixed(ima->name, visit_cb, absbase, bpath_user_data)) {
+            ima->filepath[0]) {
+          if (rewrite_path_fixed(ima->filepath, visit_cb, absbase, bpath_user_data)) {
             if (flag & BKE_BPATH_TRAVERSE_RELOAD_EDITED) {
               if (!BKE_image_has_packedfile(ima) &&
                   /* image may have been painted onto (and not saved, T44543) */
@@ -643,7 +643,7 @@ void BKE_bpath_traverse_id(
     case ID_SO: {
       bSound *sound = (bSound *)id;
       if (sound->packedfile == NULL || (flag & BKE_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
-        rewrite_path_fixed(sound->name, visit_cb, absbase, bpath_user_data);
+        rewrite_path_fixed(sound->filepath, visit_cb, absbase, bpath_user_data);
       }
       break;
     }
@@ -655,15 +655,15 @@ void BKE_bpath_traverse_id(
       break;
     }
     case ID_TXT:
-      if (((Text *)id)->name) {
-        rewrite_path_alloc(&((Text *)id)->name, visit_cb, absbase, bpath_user_data);
+      if (((Text *)id)->filepath) {
+        rewrite_path_alloc(&((Text *)id)->filepath, visit_cb, absbase, bpath_user_data);
       }
       break;
     case ID_VF: {
       VFont *vfont = (VFont *)id;
       if (vfont->packedfile == NULL || (flag & BKE_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
         if (BKE_vfont_is_builtin(vfont) == false) {
-          rewrite_path_fixed(((VFont *)id)->name, visit_cb, absbase, bpath_user_data);
+          rewrite_path_fixed(((VFont *)id)->filepath, visit_cb, absbase, bpath_user_data);
         }
       }
       break;
@@ -756,15 +756,15 @@ void BKE_bpath_traverse_id(
       Library *lib = (Library *)id;
       /* keep packedfile paths always relative to the blend */
       if (lib->packedfile == NULL) {
-        if (rewrite_path_fixed(lib->name, visit_cb, absbase, bpath_user_data)) {
-          BKE_library_filepath_set(bmain, lib, lib->name);
+        if (rewrite_path_fixed(lib->filepath, visit_cb, absbase, bpath_user_data)) {
+          BKE_library_filepath_set(bmain, lib, lib->filepath);
         }
       }
       break;
     }
     case ID_MC: {
       MovieClip *clip = (MovieClip *)id;
-      rewrite_path_fixed(clip->name, visit_cb, absbase, bpath_user_data);
+      rewrite_path_fixed(clip->filepath, visit_cb, absbase, bpath_user_data);
       break;
     }
     case ID_CF: {

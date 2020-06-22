@@ -129,7 +129,7 @@ typedef struct Image {
   ID id;
 
   /** File path, 1024 = FILE_MAX. */
-  char name[1024];
+  char filepath[1024];
 
   /** Not written in file. */
   struct MovieCache *cache;

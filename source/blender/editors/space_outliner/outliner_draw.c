@@ -709,9 +709,9 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
         Library *lib = (Library *)tselem->id;
         char expanded[FILE_MAX];
 
-        BKE_library_filepath_set(bmain, lib, lib->name);
+        BKE_library_filepath_set(bmain, lib, lib->filepath);
 
-        BLI_strncpy(expanded, lib->name, sizeof(expanded));
+        BLI_strncpy(expanded, lib->filepath, sizeof(expanded));
         BLI_path_abs(expanded, BKE_main_blendfile_path(bmain));
         if (!BLI_exists(expanded)) {
           BKE_reportf(CTX_wm_reports(C),
@@ -1842,7 +1842,7 @@ static void outliner_buttons(const bContext *C,
     len = sizeof(((ModifierData *)0)->name);
   }
   else if (tselem->id && GS(tselem->id->name) == ID_LI) {
-    len = sizeof(((Library *)0)->name);
+    len = sizeof(((Library *)0)->filepath);
   }
   else {
     len = MAX_ID_NAME - 2;
@@ -2681,7 +2681,7 @@ static void tselem_draw_icon(uiBlock *block,
                  0.0,
                  1.0,
                  alpha,
-                 (data.drag_id && ID_IS_LINKED(data.drag_id)) ? data.drag_id->lib->name : "");
+                 (data.drag_id && ID_IS_LINKED(data.drag_id)) ? data.drag_id->lib->filepath : "");
   }
 }
 

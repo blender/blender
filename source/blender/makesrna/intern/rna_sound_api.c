@@ -34,7 +34,8 @@
 
 static void rna_Sound_pack(bSound *sound, Main *bmain, ReportList *reports)
 {
-  sound->packedfile = BKE_packedfile_new(reports, sound->name, ID_BLEND_PATH(bmain, &sound->id));
+  sound->packedfile = BKE_packedfile_new(
+      reports, sound->filepath, ID_BLEND_PATH(bmain, &sound->id));
 }
 
 static void rna_Sound_unpack(bSound *sound, Main *bmain, ReportList *reports, int method)

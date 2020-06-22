@@ -283,7 +283,7 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
   }
 
   if (clip) {
-    BLI_strncpy(path, clip->name, sizeof(path));
+    BLI_strncpy(path, clip->filepath, sizeof(path));
 
     BLI_path_abs(path, CTX_data_main(C)->name);
     BLI_path_parent_dir(path);

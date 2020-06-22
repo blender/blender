@@ -114,7 +114,7 @@ static Sequence *rna_Sequences_new_clip(ID *id,
   Scene *scene = (Scene *)id;
   Sequence *seq;
 
-  seq = alloc_generic_sequence(ed, name, frame_start, channel, SEQ_TYPE_MOVIECLIP, clip->name);
+  seq = alloc_generic_sequence(ed, name, frame_start, channel, SEQ_TYPE_MOVIECLIP, clip->filepath);
   seq->clip = clip;
   seq->len = BKE_movieclip_get_duration(clip);
   id_us_plus((ID *)clip);
@@ -265,7 +265,8 @@ static Sequence *rna_Sequences_new_sound(ID *id,
     BKE_report(reports, RPT_ERROR, "Sequences.new_sound: unable to open sound file");
     return NULL;
   }
-  seq = alloc_generic_sequence(ed, name, frame_start, channel, SEQ_TYPE_SOUND_RAM, sound->name);
+  seq = alloc_generic_sequence(
+      ed, name, frame_start, channel, SEQ_TYPE_SOUND_RAM, sound->filepath);
   seq->sound = sound;
   seq->len = ceil((double)info.length * FPS);
 
