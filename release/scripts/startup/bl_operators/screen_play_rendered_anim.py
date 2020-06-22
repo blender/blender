@@ -34,13 +34,9 @@ def guess_player_path(preset):
         return bpy.app.binary_path
 
     elif preset == 'DJV':
-        player_path = "djv_view"
-
+        player_path = "djv"
         if sys.platform == "darwin":
-            # TODO, crummy supporting only 1 version,
-            # could find the newest installed version
-            test_path = ("/Applications/djv-0.8.2.app"
-                         "/Contents/Resources/bin/djv_view")
+            test_path = "/Applications/DJV2.app/Contents/Resources/bin/djv"
             if os.path.exists(test_path):
                 player_path = test_path
 
@@ -138,7 +134,13 @@ class PlayRenderedAnim(Operator):
             ]
             cmd.extend(opts)
         elif preset == 'DJV':
-            opts = [file, "-playback_speed", str(int(fps_final))]
+            opts = [
+                file,
+                "-speed", str(fps_final),
+                "-in_out", str(frame_start), str(frame_end),
+                "-frame", str(scene.frame_current),
+                "-time_units", "Frames"
+            ]
             cmd.extend(opts)
         elif preset == 'FRAMECYCLER':
             opts = [file, f"{scene.frame_start:d}-{scene.frame_end:d}"]

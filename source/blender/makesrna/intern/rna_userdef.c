@@ -5887,9 +5887,9 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 
   static const EnumPropertyItem anim_player_presets[] = {
       {0, "INTERNAL", 0, "Internal", "Built-in animation player"},
-      {2, "DJV", 0, "Djv", "Open source frame player: http://djv.sourceforge.net"},
+      {2, "DJV", 0, "DJV", "Open source frame player: http://djv.sourceforge.net"},
       {3, "FRAMECYCLER", 0, "FrameCycler", "Frame player from IRIDAS"},
-      {4, "RV", 0, "rv", "Frame player from Tweak Software"},
+      {4, "RV", 0, "RV", "Frame player from Tweak Software"},
       {5, "MPLAYER", 0, "MPlayer", "Media player for video & png/jpeg/sgi image sequences"},
       {50, "CUSTOM", 0, "Custom", "Custom animation player executable path"},
       {0, NULL, 0, NULL, NULL},
