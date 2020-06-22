@@ -117,6 +117,7 @@ extern char datatoc_gpu_shader_2D_point_uniform_size_varying_color_outline_aa_ve
 extern char datatoc_gpu_shader_2D_edituvs_points_vert_glsl[];
 extern char datatoc_gpu_shader_2D_edituvs_facedots_vert_glsl[];
 extern char datatoc_gpu_shader_2D_edituvs_edges_vert_glsl[];
+extern char datatoc_gpu_shader_2D_edituvs_edges_frag_glsl[];
 extern char datatoc_gpu_shader_2D_edituvs_faces_vert_glsl[];
 extern char datatoc_gpu_shader_2D_edituvs_stretch_vert_glsl[];
 
@@ -1171,12 +1172,12 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
     [GPU_SHADER_2D_UV_EDGES] =
         {
             .vert = datatoc_gpu_shader_2D_edituvs_edges_vert_glsl,
-            .frag = datatoc_gpu_shader_flat_color_frag_glsl,
+            .frag = datatoc_gpu_shader_2D_edituvs_edges_frag_glsl,
         },
     [GPU_SHADER_2D_UV_EDGES_SMOOTH] =
         {
             .vert = datatoc_gpu_shader_2D_edituvs_edges_vert_glsl,
-            .frag = datatoc_gpu_shader_2D_smooth_color_frag_glsl,
+            .frag = datatoc_gpu_shader_2D_edituvs_edges_frag_glsl,
             .defs = "#define SMOOTH_COLOR\n",
         },
     [GPU_SHADER_2D_UV_FACES] =

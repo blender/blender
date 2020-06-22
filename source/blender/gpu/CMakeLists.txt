@@ -210,6 +210,7 @@ data_to_c_simple(shaders/gpu_shader_2D_point_uniform_size_varying_color_outline_
 data_to_c_simple(shaders/gpu_shader_2D_edituvs_points_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_2D_edituvs_facedots_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_2D_edituvs_edges_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_edituvs_edges_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_2D_edituvs_faces_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_2D_edituvs_stretch_vert.glsl SRC)
 

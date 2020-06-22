@@ -409,70 +409,49 @@ static void draw_uvs(SpaceImage *sima,
       GPU_blend(true);
     }
 
-    switch (sima->dt_uv) {
-      case SI_UVDT_DASH: {
-        float dash_colors[2][4] = {
-            {0.56f, 0.56f, 0.56f, overlay_alpha},
-            {0.07f, 0.07f, 0.07f, overlay_alpha},
-        };
-        float viewport_size[4];
-        GPU_viewport_size_get_f(viewport_size);
+    {
+      /* We could modify the vbo's data filling
+       * instead of modifying the provoking vert. */
+      glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 
-        GPU_line_width(1.0f);
-        GPU_batch_program_set_builtin(batch->edges, GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
-        GPU_batch_uniform_4fv_array(batch->edges, "colors", 2, (float *)dash_colors);
-        GPU_batch_uniform_2f(batch->edges,
-                             "viewport_size",
-                             viewport_size[2] / UI_DPI_FAC,
-                             viewport_size[3] / UI_DPI_FAC);
-        GPU_batch_uniform_1i(batch->edges, "colors_len", 2); /* "advanced" mode */
-        GPU_batch_uniform_1f(batch->edges, "dash_width", 4.0f);
-        GPU_batch_uniform_1f(batch->edges, "dash_factor", 0.5f);
+      UI_GetThemeColor3fv(TH_EDGE_SELECT, col2);
+      col2[3] = overlay_alpha;
+
+      float dash_width = (sima->dt_uv & SI_UVDT_DASH) ? (4.0f * UI_DPI_FAC) : 9999.0f;
+
+      GPU_batch_program_set_builtin(
+          batch->edges, (interpedges) ? GPU_SHADER_2D_UV_EDGES_SMOOTH : GPU_SHADER_2D_UV_EDGES);
+
+      if (sima->dt_uv == SI_UVDT_OUTLINE) {
+        /* Black Outline. */
+        GPU_line_width(3.0f);
+        GPU_batch_uniform_4f(batch->edges, "edgeColor", 0.0f, 0.0f, 0.0f, overlay_alpha);
+        GPU_batch_uniform_4f(batch->edges, "selectColor", 0.0f, 0.0f, 0.0f, overlay_alpha);
+        GPU_batch_uniform_1f(batch->edges, "dashWidth", dash_width);
         GPU_batch_draw(batch->edges);
-        break;
+
+        UI_GetThemeColor3fv(TH_WIRE_EDIT, col1);
       }
-      case SI_UVDT_BLACK:
-      case SI_UVDT_WHITE:
-      case SI_UVDT_OUTLINE: {
-        /* We could modify the vbo's data filling
-         * instead of modifying the provoking vert. */
-        glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
-
-        UI_GetThemeColor3fv(TH_EDGE_SELECT, col2);
-        col2[3] = overlay_alpha;
-
-        GPU_batch_program_set_builtin(
-            batch->edges, (interpedges) ? GPU_SHADER_2D_UV_EDGES_SMOOTH : GPU_SHADER_2D_UV_EDGES);
-
-        if (sima->dt_uv == SI_UVDT_OUTLINE) {
-          /* Black Outline. */
-          GPU_line_width(3.0f);
-          GPU_batch_uniform_4f(batch->edges, "edgeColor", 0.0f, 0.0f, 0.0f, overlay_alpha);
-          GPU_batch_uniform_4f(batch->edges, "selectColor", 0.0f, 0.0f, 0.0f, overlay_alpha);
-          GPU_batch_draw(batch->edges);
-
-          UI_GetThemeColor3fv(TH_WIRE_EDIT, col1);
-        }
-        else if (sima->dt_uv == SI_UVDT_WHITE) {
-          copy_v3_fl3(col1, 1.0f, 1.0f, 1.0f);
-        }
-        else {
-          copy_v3_fl3(col1, 0.0f, 0.0f, 0.0f);
-        }
-        col1[3] = overlay_alpha;
-
-        /* Inner Line. Use depth test to insure selection is drawn on top. */
-        GPU_depth_test(true);
-        GPU_line_width(1.0f);
-        GPU_batch_uniform_4fv(batch->edges, "edgeColor", col1);
-        GPU_batch_uniform_4fv(batch->edges, "selectColor", col2);
-        GPU_batch_draw(batch->edges);
-        GPU_depth_test(false);
-
-        glProvokingVertex(GL_LAST_VERTEX_CONVENTION);
-        break;
+      else if (sima->dt_uv == SI_UVDT_BLACK) {
+        copy_v3_fl3(col1, 0.0f, 0.0f, 0.0f);
       }
+      else {
+        copy_v3_fl3(col1, 1.0f, 1.0f, 1.0f);
+      }
+      col1[3] = overlay_alpha;
+
+      /* Inner Line. Use depth test to insure selection is drawn on top. */
+      GPU_depth_test(true);
+      GPU_line_width(1.0f);
+      GPU_batch_uniform_4fv(batch->edges, "edgeColor", col1);
+      GPU_batch_uniform_4fv(batch->edges, "selectColor", col2);
+      GPU_batch_uniform_1f(batch->edges, "dashWidth", dash_width);
+      GPU_batch_draw(batch->edges);
+      GPU_depth_test(false);
+
+      glProvokingVertex(GL_LAST_VERTEX_CONVENTION);
     }
+
     if (sima->flag & SI_SMOOTH_UV) {
       GPU_line_smooth(false);
       GPU_blend(false);
@@ -481,6 +460,7 @@ static void draw_uvs(SpaceImage *sima,
       GPU_blend(false);
     }
   }
+
   if (batch->verts || batch->facedots) {
     UI_GetThemeColor4fv(TH_VERTEX_SELECT, col2);
     if (batch->verts) {
