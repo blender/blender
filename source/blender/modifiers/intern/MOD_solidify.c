@@ -128,7 +128,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(layout, &ptr, "use_even_offset", 0, NULL, ICON_NONE);
   }
 
-  col = uiLayoutColumnWithHeading(layout, false, "Rim");
+  col = uiLayoutColumnWithHeading(layout, false, IFACE_("Rim"));
   uiItemR(col, &ptr, "use_rim", 0, IFACE_("Fill"), ICON_NONE);
   sub = uiLayoutColumn(col, false);
   uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_rim"));

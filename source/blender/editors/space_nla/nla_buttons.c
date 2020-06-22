@@ -407,7 +407,7 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
     uiItemR(row, &strip_ptr, "use_auto_blend", 0, NULL, ICON_NONE);  // XXX as toggle?
 
     /* settings */
-    column = uiLayoutColumnWithHeading(layout, true, "Playback");
+    column = uiLayoutColumnWithHeading(layout, true, IFACE_("Playback"));
     row = uiLayoutRow(column, true);
     uiLayoutSetActive(row,
                       !(RNA_boolean_get(&strip_ptr, "use_animated_influence") ||
@@ -446,7 +446,7 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
   uiItemR(column, &strip_ptr, "action_frame_start", 0, IFACE_("Frame Start"), ICON_NONE);
   uiItemR(column, &strip_ptr, "action_frame_end", 0, IFACE_("End"), ICON_NONE);
 
-  row = uiLayoutRowWithHeading(layout, false, "Sync Length");
+  row = uiLayoutRowWithHeading(layout, false, IFACE_("Sync Length"));
   uiItemR(row, &strip_ptr, "use_sync_length", 0, "", ICON_NONE);
   uiItemO(row, IFACE_("Now"), ICON_FILE_REFRESH, "NLA_OT_action_sync_length");
 

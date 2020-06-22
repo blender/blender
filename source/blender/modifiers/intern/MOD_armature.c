@@ -249,7 +249,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, &ptr, "use_deform_preserve_volume", 0, NULL, ICON_NONE);
   uiItemR(col, &ptr, "use_multi_modifier", 0, NULL, ICON_NONE);
 
-  col = uiLayoutColumnWithHeading(layout, true, "Bind to");
+  col = uiLayoutColumnWithHeading(layout, true, IFACE_("Bind to"));
   uiItemR(col, &ptr, "use_vertex_groups", 0, IFACE_("Vertex Groups"), ICON_NONE);
   uiItemR(col, &ptr, "use_bone_envelopes", 0, IFACE_("Bone Envelopes"), ICON_NONE);
 

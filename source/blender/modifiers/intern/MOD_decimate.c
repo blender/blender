@@ -239,14 +239,14 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   int decimate_type = RNA_enum_get(&ptr, "decimate_type");
   char count_info[32];
-  snprintf(count_info, 32, IFACE_("Face Count: %d"), RNA_int_get(&ptr, "face_count"));
+  snprintf(count_info, 32, "%s: %d", IFACE_("Face Count"), RNA_int_get(&ptr, "face_count"));
 
   uiItemR(layout, &ptr, "decimate_type", 0, NULL, ICON_NONE);
 
   if (decimate_type == MOD_DECIM_MODE_COLLAPSE) {
     uiItemR(layout, &ptr, "ratio", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 
-    row = uiLayoutRowWithHeading(layout, true, "Symmetry");
+    row = uiLayoutRowWithHeading(layout, true, IFACE_("Symmetry"));
     uiLayoutSetPropDecorate(row, false);
     sub = uiLayoutRow(row, true);
     uiItemR(sub, &ptr, "use_symmetry", 0, "", ICON_NONE);
