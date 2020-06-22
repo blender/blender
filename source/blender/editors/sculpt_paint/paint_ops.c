@@ -304,7 +304,10 @@ static bool palette_extract_img_poll(bContext *C)
 {
   SpaceLink *sl = CTX_wm_space_data(C);
   if ((sl != NULL) && (sl->spacetype == SPACE_IMAGE)) {
-    return true;
+    SpaceImage *sima = CTX_wm_space_image(C);
+    Image *image = sima->image;
+    ImageUser iuser = sima->iuser;
+    return BKE_image_has_ibuf(image, &iuser);
   }
 
   return false;
@@ -326,7 +329,7 @@ static int palette_extract_img_exec(bContext *C, wmOperator *op)
 
   ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
-  if (ibuf->rect) {
+  if (ibuf && ibuf->rect) {
     /* Extract all colors. */
     for (int row = 0; row < ibuf->y; row++) {
       for (int col = 0; col < ibuf->x; col++) {

@@ -55,6 +55,7 @@
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
+#include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -1773,7 +1774,10 @@ static bool image_to_gpencil_poll(bContext *C)
 {
   SpaceLink *sl = CTX_wm_space_data(C);
   if ((sl != NULL) && (sl->spacetype == SPACE_IMAGE)) {
-    return true;
+    SpaceImage *sima = CTX_wm_space_image(C);
+    Image *image = sima->image;
+    ImageUser iuser = sima->iuser;
+    return BKE_image_has_ibuf(image, &iuser);
   }
 
   return false;

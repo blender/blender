@@ -1813,7 +1813,7 @@ bool BKE_gpencil_from_image(SpaceImage *sima, bGPDframe *gpf, const float size, 
 
   ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
-  if (ibuf->rect) {
+  if (ibuf && ibuf->rect) {
     int img_x = ibuf->x;
     int img_y = ibuf->y;
 
