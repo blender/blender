@@ -165,14 +165,8 @@ class PlayRenderedAnim(Operator):
         # launch it
         print("Executing command:\n ", " ".join(quote(c) for c in cmd))
 
-        # workaround for boost 1.46, can be eventually removed. bug: [#32350]
-        env_copy = os.environ.copy()
-        if preset == 'INTERNAL':
-            env_copy["LC_ALL"] = "C"
-        # end workaround
-
         try:
-            subprocess.Popen(cmd, env=env_copy)
+            subprocess.Popen(cmd)
         except Exception as e:
             err_msg = tip_("Couldn't run external animation player with command %r\n%s") % (cmd, e)
             self.report(
