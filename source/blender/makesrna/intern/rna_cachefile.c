@@ -69,9 +69,13 @@ static void rna_def_alembic_object_path(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Object Path", "Path of an object inside of an Alembic archive");
   RNA_def_struct_ui_icon(srna, ICON_NONE);
 
+  RNA_define_lib_overridable(true);
+
   PropertyRNA *prop = RNA_def_property(srna, "path", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Path", "Object path");
   RNA_def_struct_name_property(srna, prop);
+
+  RNA_define_lib_overridable(false);
 }
 
 /* cachefile.object_paths */
@@ -89,6 +93,8 @@ static void rna_def_cachefile(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "CacheFile");
   RNA_def_struct_ui_text(srna, "CacheFile", "");
   RNA_def_struct_ui_icon(srna, ICON_FILE);
+
+  RNA_define_lib_overridable(true);
 
   PropertyRNA *prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_ui_text(prop, "File Path", "Path to external displacements file");
@@ -167,6 +173,9 @@ static void rna_def_cachefile(BlenderRNA *brna)
   RNA_def_property_srna(prop, "AlembicObjectPaths");
   RNA_def_property_ui_text(
       prop, "Object Paths", "Paths of the objects inside the Alembic archive");
+
+  RNA_define_lib_overridable(false);
+
   rna_def_cachefile_object_paths(brna, prop);
 
   rna_def_animdata_common(srna);
