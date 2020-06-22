@@ -670,6 +670,7 @@ void WM_OT_alembic_import(wmOperatorType *ot)
   ot->name = "Import Alembic";
   ot->description = "Load an Alembic archive";
   ot->idname = "WM_OT_alembic_import";
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   ot->invoke = wm_alembic_import_invoke;
   ot->exec = wm_alembic_import_exec;
