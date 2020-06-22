@@ -146,8 +146,7 @@ void modifier_panel_get_property_pointers(const bContext *C,
   }
 
   uiBlock *block = uiLayoutGetBlock(panel->layout);
-  UI_block_lock_set(
-      block, BKE_object_obdata_is_libdata(ob) || ID_IS_LINKED(ob), ERROR_LIBDATA_MESSAGE);
+  UI_block_lock_set(block, ID_IS_LINKED(ob), ERROR_LIBDATA_MESSAGE);
 
   uiLayoutSetContextPointer(panel->layout, "modifier", r_md_ptr);
 }
