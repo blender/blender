@@ -5909,12 +5909,12 @@ def km_3d_view_tool_edit_mesh_extrude_region(params):
         ]},
     )
 
-def km_3d_view_tool_edit_mesh_extrude_dissolve_and_intersect(params):
+def km_3d_view_tool_edit_mesh_extrude_manifold(params):
     return (
-        "3D View Tool: Edit Mesh, Extrude Dissolve and Intersect",
+        "3D View Tool: Edit Mesh, Extrude Manifold",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("mesh.extrude_region_dissolve_move_intersect", {"type": params.tool_tweak, "value": 'ANY'},
+            ("mesh.extrude_manifold", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [
                  ("MESH_OT_extrude_region", [("use_dissolve_ortho_edges", True)]),
                  ("TRANSFORM_OT_translate", [
@@ -6787,7 +6787,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_edit_armature_extrude(params),
         km_3d_view_tool_edit_armature_extrude_to_cursor(params),
         km_3d_view_tool_edit_mesh_extrude_region(params),
-        km_3d_view_tool_edit_mesh_extrude_dissolve_and_intersect(params),
+        km_3d_view_tool_edit_mesh_extrude_manifold(params),
         km_3d_view_tool_edit_mesh_extrude_along_normals(params),
         km_3d_view_tool_edit_mesh_extrude_individual(params),
         km_3d_view_tool_edit_mesh_extrude_to_cursor(params),

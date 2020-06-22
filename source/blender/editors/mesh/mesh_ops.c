@@ -278,8 +278,8 @@ void ED_operatormacros_mesh(void)
   RNA_boolean_set(otmacro->ptr, "mirror", false);
 
   ot = WM_operatortype_append_macro(
-      "MESH_OT_extrude_region_dissolve_move_intersect",
-      "Extrude, Dissolve, Move and Intersect",
+      "MESH_OT_extrude_manifold",
+      "Extrude Manifold",
       "Extrude, dissolves edges whose faces form a flat surface and intersect new edges",
       OPTYPE_UNDO | OPTYPE_REGISTER);
   otmacro = WM_operatortype_macro_define(ot, "MESH_OT_extrude_region");

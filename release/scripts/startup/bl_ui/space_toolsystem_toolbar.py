@@ -802,10 +802,10 @@ class _defs_edit_mesh:
         )
 
     @ToolDef.from_fn
-    def extrude_dissolve_and_intersect():
+    def extrude_manifold():
         return dict(
-            idname="builtin.extrude_dissolve_and_intersect",
-            label="Extrude Dissolve and Intersect",
+            idname="builtin.extrude_manifold",
+            label="Extrude Manifold",
             description=(
                 "Extrude, dissolves edges whose faces form a flat surface and intersect new edges"
             ),
@@ -2327,7 +2327,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             (
                 _defs_edit_mesh.extrude,
-                _defs_edit_mesh.extrude_dissolve_and_intersect,
+                _defs_edit_mesh.extrude_manifold,
                 _defs_edit_mesh.extrude_normals,
                 _defs_edit_mesh.extrude_individual,
                 _defs_edit_mesh.extrude_cursor,

@@ -98,7 +98,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
                     TRANSFORM_OT_shrink_fatten={},
                 )
             elif dissolve_and_intersect:
-                bpy.ops.mesh.extrude_region_dissolve_move_intersect(
+                bpy.ops.mesh.extrude_manifold(
                     'INVOKE_REGION_WIN',
                     MESH_OT_extrude_region={
                         "use_dissolve_ortho_edges": True,
