@@ -530,6 +530,22 @@ static void rna_uiTemplateEventFromKeymapItem(
   uiTemplateEventFromKeymapItem(layout, name, kmi, true);
 }
 
+static uiLayout *rna_uiLayoutRowWithHeading(
+    uiLayout *layout, bool align, const char *heading, const char *heading_ctxt, bool translate)
+{
+  /* Get translated heading. */
+  heading = rna_translate_ui_text(heading, heading_ctxt, NULL, NULL, translate);
+  return uiLayoutRowWithHeading(layout, align, heading);
+}
+
+static uiLayout *rna_uiLayoutColumnWithHeading(
+    uiLayout *layout, bool align, const char *heading, const char *heading_ctxt, bool translate)
+{
+  /* Get translated heading. */
+  heading = rna_translate_ui_text(heading, heading_ctxt, NULL, NULL, translate);
+  return uiLayoutColumnWithHeading(layout, align, heading);
+}
+
 static int rna_ui_get_rnaptr_icon(bContext *C, PointerRNA *ptr_icon)
 {
   return UI_rnaptr_icon_get(C, ptr_icon, RNA_struct_ui_icon(ptr_icon->type), false);
@@ -639,6 +655,24 @@ static int rna_ui_get_enum_icon(bContext *C,
 
 #else
 
+static void api_ui_item_common_heading(FunctionRNA *func)
+{
+  RNA_def_string(func,
+                 "heading",
+                 NULL,
+                 UI_MAX_NAME_STR,
+                 "Heading",
+                 "Label to insert into the layout for this sub-layout");
+  RNA_def_string(func,
+                 "heading_ctxt",
+                 NULL,
+                 0,
+                 "",
+                 "Override automatic translation context of the given heading");
+  RNA_def_boolean(
+      func, "translate", true, "", "Translate the given heading, when UI translation is enabled");
+}
+
 static void api_ui_item_common_text(FunctionRNA *func)
 {
   PropertyRNA *prop;
@@ -708,7 +742,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   static float node_socket_color_default[] = {0.0f, 0.0f, 0.0f, 1.0f};
 
   /* simple layout specifiers */
-  func = RNA_def_function(srna, "row", "uiLayoutRowWithHeading");
+  func = RNA_def_function(srna, "row", "rna_uiLayoutRowWithHeading");
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
   RNA_def_function_return(func, parm);
   RNA_def_function_ui_description(
@@ -716,14 +750,9 @@ void RNA_api_ui_layout(StructRNA *srna)
       "Sub-layout. Items placed in this sublayout are placed next to each other "
       "in a row");
   RNA_def_boolean(func, "align", false, "", "Align buttons to each other");
-  RNA_def_string(func,
-                 "heading",
-                 NULL,
-                 UI_MAX_NAME_STR,
-                 "Heading",
-                 "Label to insert into the layout for this row");
+  api_ui_item_common_heading(func);
 
-  func = RNA_def_function(srna, "column", "uiLayoutColumnWithHeading");
+  func = RNA_def_function(srna, "column", "rna_uiLayoutColumnWithHeading");
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
   RNA_def_function_return(func, parm);
   RNA_def_function_ui_description(
@@ -731,12 +760,7 @@ void RNA_api_ui_layout(StructRNA *srna)
       "Sub-layout. Items placed in this sublayout are placed under each other "
       "in a column");
   RNA_def_boolean(func, "align", false, "", "Align buttons to each other");
-  RNA_def_string(func,
-                 "heading",
-                 NULL,
-                 UI_MAX_NAME_STR,
-                 "Heading",
-                 "Label to insert into the layout for this column");
+  api_ui_item_common_heading(func);
 
   func = RNA_def_function(srna, "column_flow", "uiLayoutColumnFlow");
   RNA_def_int(func, "columns", 0, 0, INT_MAX, "", "Number of columns, 0 is automatic", 0, INT_MAX);
