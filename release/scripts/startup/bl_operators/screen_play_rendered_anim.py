@@ -32,16 +32,6 @@ def guess_player_path(preset):
 
     if preset == 'INTERNAL':
         return bpy.app.binary_path
-    elif preset == 'BLENDER24':
-        player_path = "blender"
-
-        if sys.platform == "darwin":
-            test_path = "/Applications/blender 2.49.app/Contents/MacOS/blender"
-        elif sys.platform[:3] == "win":
-            test_path = "/Program Files/Blender Foundation/Blender/blender.exe"
-
-            if os.path.exists(test_path):
-                player_path = test_path
 
     elif preset == 'DJV':
         player_path = "djv_view"
