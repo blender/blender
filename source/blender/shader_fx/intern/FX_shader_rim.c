@@ -70,7 +70,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiItemR(layout, &ptr, "rim_color", 0, NULL, ICON_NONE);
   uiItemR(layout, &ptr, "mask_color", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "mode", 0, IFACE_("Blend"), ICON_NONE);
+  uiItemR(layout, &ptr, "mode", 0, IFACE_("Blend Mode"), ICON_NONE);
 
   /* Add the X, Z labels manually because offset is a #PROP_PIXEL. */
   col = uiLayoutColumn(layout, true);
