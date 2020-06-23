@@ -5777,33 +5777,6 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
       msmcd->reader = NULL;
       msmcd->reader_object_path[0] = '\0';
     }
-    else if (md->type == eModifierType_SurfaceDeform) {
-      SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
-
-      BLO_read_data_address(reader, &smd->verts);
-
-      if (smd->verts) {
-        for (int i = 0; i < smd->numverts; i++) {
-          BLO_read_data_address(reader, &smd->verts[i].binds);
-
-          if (smd->verts[i].binds) {
-            for (int j = 0; j < smd->verts[i].numbinds; j++) {
-              BLO_read_uint32_array(
-                  reader, smd->verts[i].binds[j].numverts, &smd->verts[i].binds[j].vert_inds);
-
-              if (smd->verts[i].binds[j].mode == MOD_SDEF_MODE_CENTROID ||
-                  smd->verts[i].binds[j].mode == MOD_SDEF_MODE_LOOPTRI) {
-                BLO_read_float3_array(reader, 1, &smd->verts[i].binds[j].vert_weights);
-              }
-              else {
-                BLO_read_float_array(
-                    reader, smd->verts[i].binds[j].numverts, &smd->verts[i].binds[j].vert_weights);
-              }
-            }
-          }
-        }
-      }
-    }
     else if (md->type == eModifierType_Bevel) {
       BevelModifierData *bmd = (BevelModifierData *)md;
       BLO_read_data_address(reader, &bmd->custom_profile);
