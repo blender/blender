@@ -1029,23 +1029,14 @@ void GeometryManager::device_update_bvh(Device *device,
 
   VLOG(1) << "Using " << bvh_layout_name(bparams.bvh_layout) << " layout.";
 
-#ifdef WITH_EMBREE
-  if (bparams.bvh_layout == BVH_LAYOUT_EMBREE) {
-    if (dscene->data.bvh.scene) {
-      BVHEmbree::destroy(dscene->data.bvh.scene);
-    }
-  }
-#endif
-
   BVH *bvh = BVH::create(bparams, scene->geometry, scene->objects);
   bvh->build(progress, &device->stats);
 
   if (progress.get_cancel()) {
 #ifdef WITH_EMBREE
-    if (bparams.bvh_layout == BVH_LAYOUT_EMBREE) {
-      if (dscene->data.bvh.scene) {
-        BVHEmbree::destroy(dscene->data.bvh.scene);
-      }
+    if (dscene->data.bvh.scene) {
+      BVHEmbree::destroy(dscene->data.bvh.scene);
+      dscene->data.bvh.scene = NULL;
     }
 #endif
     delete bvh;
@@ -1417,6 +1408,13 @@ void GeometryManager::device_update(Device *device,
 
 void GeometryManager::device_free(Device *device, DeviceScene *dscene)
 {
+#ifdef WITH_EMBREE
+  if (dscene->data.bvh.scene) {
+    BVHEmbree::destroy(dscene->data.bvh.scene);
+    dscene->data.bvh.scene = NULL;
+  }
+#endif
+
   dscene->bvh_nodes.free();
   dscene->bvh_leaf_nodes.free();
   dscene->object_node.free();
