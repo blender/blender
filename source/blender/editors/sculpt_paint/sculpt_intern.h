@@ -148,6 +148,15 @@ void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3]);
 
 bool SCULPT_vertex_is_boundary(SculptSession *ss, const int index);
 
+/* Fake Neighbors */
+
+#define FAKE_NEIGHBOR_NONE -1
+
+void SCULPT_fake_neighbors_ensure(struct Sculpt *sd, Object *ob, const float max_dist);
+void SCULPT_fake_neighbors_enable(Object *ob);
+void SCULPT_fake_neighbors_disable(Object *ob);
+void SCULPT_fake_neighbors_free(struct Object *ob);
+
 /* Sculpt Visibility API */
 
 void SCULPT_vertex_visible_set(SculptSession *ss, int index, bool visible);

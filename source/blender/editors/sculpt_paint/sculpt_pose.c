@@ -937,18 +937,32 @@ SculptPoseIKChain *SCULPT_pose_ik_chain_init(Sculpt *sd,
                                              const float initial_location[3],
                                              const float radius)
 {
+  SculptPoseIKChain *ik_chain = NULL;
+
+  const bool use_fake_neighbors = !(br->flag2 & BRUSH_USE_CONNECTED_ONLY);
+
+  if (use_fake_neighbors) {
+    SCULPT_fake_neighbors_ensure(sd, ob, br->disconnected_distance_max);
+    SCULPT_fake_neighbors_enable(ob);
+  }
+
   switch (br->pose_origin_type) {
     case BRUSH_POSE_ORIGIN_TOPOLOGY:
-      return pose_ik_chain_init_topology(sd, ob, ss, br, initial_location, radius);
+      ik_chain = pose_ik_chain_init_topology(sd, ob, ss, br, initial_location, radius);
       break;
     case BRUSH_POSE_ORIGIN_FACE_SETS:
-      return pose_ik_chain_init_face_sets(sd, ob, ss, br, radius);
+      ik_chain = pose_ik_chain_init_face_sets(sd, ob, ss, br, radius);
       break;
     case BRUSH_POSE_ORIGIN_FACE_SETS_FK:
       return pose_ik_chain_init_face_sets_fk(sd, ob, ss, radius, initial_location);
       break;
   }
-  return NULL;
+
+  if (use_fake_neighbors) {
+    SCULPT_fake_neighbors_disable(ob);
+  }
+
+  return ik_chain;
 }
 
 void SCULPT_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Brush *br)

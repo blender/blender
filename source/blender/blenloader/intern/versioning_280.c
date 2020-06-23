@@ -1759,6 +1759,14 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
         brush->tip_scale_x = 1.0f;
       }
     }
+
+    /* Pose Brush with support for loose parts. */
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->sculpt_tool == SCULPT_TOOL_POSE && brush->disconnected_distance_max == 0.0f) {
+        brush->flag2 |= BRUSH_USE_CONNECTED_ONLY;
+        brush->disconnected_distance_max = 0.1f;
+      }
+    }
   }
 }
 

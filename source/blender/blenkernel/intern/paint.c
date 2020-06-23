@@ -1368,6 +1368,9 @@ void BKE_sculptsession_free(Object *ob)
 
     MEM_SAFE_FREE(ss->preview_vert_index_list);
 
+    MEM_SAFE_FREE(ss->vertex_info.connected_component);
+    MEM_SAFE_FREE(ss->fake_neighbors.fake_neighbor_index);
+
     if (ss->pose_ik_chain_preview) {
       for (int i = 0; i < ss->pose_ik_chain_preview->tot_segments; i++) {
         MEM_SAFE_FREE(ss->pose_ik_chain_preview->segments[i].weights);

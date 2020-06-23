@@ -248,6 +248,7 @@ static void brush_defaults(Brush *brush)
   FROM_DEFAULT(crease_pinch_factor);
   FROM_DEFAULT(normal_radius_factor);
   FROM_DEFAULT(area_radius_factor);
+  FROM_DEFAULT(disconnected_distance_max);
   FROM_DEFAULT(sculpt_plane);
   FROM_DEFAULT(plane_offset);
   FROM_DEFAULT(clone.alpha);
@@ -1558,7 +1559,7 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_POSE:
       br->pose_smooth_iterations = 4;
       br->pose_ik_segments = 1;
-      br->flag2 |= BRUSH_POSE_IK_ANCHORED;
+      br->flag2 |= BRUSH_POSE_IK_ANCHORED | BRUSH_USE_CONNECTED_ONLY;
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;

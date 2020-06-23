@@ -2362,6 +2362,14 @@ static void rna_def_brush(BlenderRNA *brna)
       prop, "Pose Origin Offset", "Offset of the pose origin in relation to the brush radius");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "disconnected_distance_max", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_sdna(prop, NULL, "disconnected_distance_max");
+  RNA_def_property_range(prop, 0.0f, 10.0f);
+  RNA_def_property_ui_text(prop,
+                           "Max Element Distance",
+                           "Maximum distance to search for disconnected loose parts in the mesh");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "surface_smooth_shape_preservation", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "surface_smooth_shape_preservation");
   RNA_def_property_range(prop, 0.0f, 1.0f);
@@ -2655,6 +2663,11 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_POSE_IK_ANCHORED);
   RNA_def_property_ui_text(
       prop, "Keep Anchor Point", "Keep the position of the last segment in the IK chain fixed");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_connected_only", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_USE_CONNECTED_ONLY);
+  RNA_def_property_ui_text(prop, "Connected Only", "Affect only topologically connected elements");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "invert_to_scrape_fill", PROP_BOOLEAN, PROP_NONE);

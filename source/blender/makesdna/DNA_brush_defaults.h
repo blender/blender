@@ -47,6 +47,7 @@
     .crease_pinch_factor = 0.5f, \
     .normal_radius_factor = 0.5f, \
     .area_radius_factor = 0.5f, \
+    .disconnected_distance_max = 0.1f, \
     .sculpt_plane = SCULPT_DISP_DIR_AREA, \
     .cloth_damping = 0.01, \
     .cloth_mass = 1, \

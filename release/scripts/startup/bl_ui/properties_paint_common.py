@@ -636,6 +636,10 @@ def brush_settings(layout, context, brush, popover=False):
             if brush.pose_deform_type == 'ROTATE_TWIST' and brush.pose_origin_type in {'TOPOLOGY', 'FACE_SETS'}:
               layout.prop(brush, "pose_ik_segments")
             layout.prop(brush, "use_pose_ik_anchored")
+            layout.prop(brush, "use_connected_only")
+            layout.prop(brush, "disconnected_distance_max")
+
+
             layout.separator()
 
         if brush.sculpt_tool == 'CLOTH':

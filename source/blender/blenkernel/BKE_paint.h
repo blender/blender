@@ -289,6 +289,22 @@ typedef struct SculptLayerPersistentBase {
   float disp;
 } SculptLayerPersistentBase;
 
+typedef struct SculptVertexInfo {
+  /* Idexed by vertex, stores and ID of its topologycally connected component. */
+  int *connected_component;
+} SculptVertexInfo;
+
+typedef struct SculptFakeNeighbors {
+  bool use_fake_neighbors;
+
+  /* Max distance used to calculate neighborhood information. */
+  float current_max_distance;
+
+  /* Idexed by vertex, stores the vertex index of its fake neighbor if available. */
+  int *fake_neighbor_index;
+
+} SculptFakeNeighbors;
+
 /* Session data (mode-specific) */
 
 typedef struct SculptSession {
@@ -379,6 +395,9 @@ typedef struct SculptSession {
   /* Layer brush persistence between strokes */
   /* This is freed with the PBVH, so it is always in sync with the mesh. */
   SculptLayerPersistentBase *layer_base;
+
+  SculptVertexInfo vertex_info;
+  SculptFakeNeighbors fake_neighbors;
 
   /* Transform operator */
   float pivot_pos[3];
