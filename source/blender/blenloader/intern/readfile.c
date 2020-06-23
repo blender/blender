@@ -3527,10 +3527,13 @@ static void direct_link_workspace(BlendDataReader *reader, WorkSpace *workspace,
   id_us_ensure_real(&workspace->id);
 }
 
-static void lib_link_workspace_instance_hook(FileData *fd, WorkSpaceInstanceHook *hook, ID *id)
+static void lib_link_workspace_instance_hook(BlendLibReader *reader,
+                                             WorkSpaceInstanceHook *hook,
+                                             ID *id)
 {
   WorkSpace *workspace = BKE_workspace_active_get(hook);
-  BKE_workspace_active_set(hook, newlibadr(fd, id->lib, workspace));
+  BLO_read_id_address(reader, id->lib, &workspace);
+  BKE_workspace_active_set(hook, workspace);
 }
 
 /** \} */
@@ -7330,9 +7333,9 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
   BLO_read_data_address(reader, &area->v4);
 }
 
-static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
+static void lib_link_area(BlendLibReader *reader, ID *parent_id, ScrArea *area)
 {
-  area->full = newlibadr(fd, parent_id->lib, area->full);
+  BLO_read_id_address(reader, parent_id->lib, &area->full);
 
   memset(&area->runtime, 0x0, sizeof(area->runtime));
 
@@ -7341,11 +7344,11 @@ static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
       case SPACE_VIEW3D: {
         View3D *v3d = (View3D *)sl;
 
-        v3d->camera = newlibadr(fd, parent_id->lib, v3d->camera);
-        v3d->ob_center = newlibadr(fd, parent_id->lib, v3d->ob_center);
+        BLO_read_id_address(reader, parent_id->lib, &v3d->camera);
+        BLO_read_id_address(reader, parent_id->lib, &v3d->ob_center);
 
         if (v3d->localvd) {
-          v3d->localvd->camera = newlibadr(fd, parent_id->lib, v3d->localvd->camera);
+          BLO_read_id_address(reader, parent_id->lib, &v3d->localvd->camera);
         }
         break;
       }
@@ -7354,14 +7357,14 @@ static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
         bDopeSheet *ads = sipo->ads;
 
         if (ads) {
-          ads->source = newlibadr(fd, parent_id->lib, ads->source);
-          ads->filter_grp = newlibadr(fd, parent_id->lib, ads->filter_grp);
+          BLO_read_id_address(reader, parent_id->lib, &ads->source);
+          BLO_read_id_address(reader, parent_id->lib, &ads->filter_grp);
         }
         break;
       }
       case SPACE_PROPERTIES: {
         SpaceProperties *sbuts = (SpaceProperties *)sl;
-        sbuts->pinid = newlibadr(fd, parent_id->lib, sbuts->pinid);
+        BLO_read_id_address(reader, parent_id->lib, &sbuts->pinid);
         if (sbuts->pinid == NULL) {
           sbuts->flag &= ~SB_PIN_CONTEXT;
         }
@@ -7374,23 +7377,23 @@ static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
         bDopeSheet *ads = &saction->ads;
 
         if (ads) {
-          ads->source = newlibadr(fd, parent_id->lib, ads->source);
-          ads->filter_grp = newlibadr(fd, parent_id->lib, ads->filter_grp);
+          BLO_read_id_address(reader, parent_id->lib, &ads->source);
+          BLO_read_id_address(reader, parent_id->lib, &ads->filter_grp);
         }
 
-        saction->action = newlibadr(fd, parent_id->lib, saction->action);
+        BLO_read_id_address(reader, parent_id->lib, &saction->action);
         break;
       }
       case SPACE_IMAGE: {
         SpaceImage *sima = (SpaceImage *)sl;
 
-        sima->image = newlibadr(fd, parent_id->lib, sima->image);
-        sima->mask_info.mask = newlibadr(fd, parent_id->lib, sima->mask_info.mask);
+        BLO_read_id_address(reader, parent_id->lib, &sima->image);
+        BLO_read_id_address(reader, parent_id->lib, &sima->mask_info.mask);
 
         /* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
          * so fingers crossed this works fine!
          */
-        sima->gpd = newlibadr(fd, parent_id->lib, sima->gpd);
+        BLO_read_id_address(reader, parent_id->lib, &sima->gpd);
         break;
       }
       case SPACE_SEQ: {
@@ -7399,7 +7402,7 @@ static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
         /* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
          * so fingers crossed this works fine!
          */
-        sseq->gpd = newlibadr(fd, parent_id->lib, sseq->gpd);
+        BLO_read_id_address(reader, parent_id->lib, &sseq->gpd);
         break;
       }
       case SPACE_NLA: {
@@ -7407,22 +7410,22 @@ static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
         bDopeSheet *ads = snla->ads;
 
         if (ads) {
-          ads->source = newlibadr(fd, parent_id->lib, ads->source);
-          ads->filter_grp = newlibadr(fd, parent_id->lib, ads->filter_grp);
+          BLO_read_id_address(reader, parent_id->lib, &ads->source);
+          BLO_read_id_address(reader, parent_id->lib, &ads->filter_grp);
         }
         break;
       }
       case SPACE_TEXT: {
         SpaceText *st = (SpaceText *)sl;
 
-        st->text = newlibadr(fd, parent_id->lib, st->text);
+        BLO_read_id_address(reader, parent_id->lib, &st->text);
         break;
       }
       case SPACE_SCRIPT: {
         SpaceScript *scpt = (SpaceScript *)sl;
         /*scpt->script = NULL; - 2.45 set to null, better re-run the script */
         if (scpt->script) {
-          scpt->script = newlibadr(fd, parent_id->lib, scpt->script);
+          BLO_read_id_address(reader, parent_id->lib, &scpt->script);
           if (scpt->script) {
             SCRIPT_SET_NULL(scpt->script);
           }
@@ -7431,7 +7434,7 @@ static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
       }
       case SPACE_OUTLINER: {
         SpaceOutliner *so = (SpaceOutliner *)sl;
-        so->search_tse.id = newlibadr(fd, NULL, so->search_tse.id);
+        BLO_read_id_address(reader, NULL, &so->search_tse.id);
 
         if (so->treestore) {
           TreeStoreElem *tselem;
@@ -7439,7 +7442,7 @@ static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
 
           BLI_mempool_iternew(so->treestore, &iter);
           while ((tselem = BLI_mempool_iterstep(&iter))) {
-            tselem->id = newlibadr(fd, NULL, tselem->id);
+            BLO_read_id_address(reader, NULL, &tselem->id);
           }
           if (so->treehash) {
             /* rebuild hash table, because it depends on ids too */
@@ -7451,14 +7454,18 @@ static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
       case SPACE_NODE: {
         SpaceNode *snode = (SpaceNode *)sl;
         bNodeTreePath *path, *path_next;
-        bNodeTree *ntree;
 
         /* node tree can be stored locally in id too, link this first */
-        snode->id = newlibadr(fd, parent_id->lib, snode->id);
-        snode->from = newlibadr(fd, parent_id->lib, snode->from);
+        BLO_read_id_address(reader, parent_id->lib, &snode->id);
+        BLO_read_id_address(reader, parent_id->lib, &snode->from);
 
-        ntree = snode->id ? ntreeFromID(snode->id) : NULL;
-        snode->nodetree = ntree ? ntree : newlibadr(fd, parent_id->lib, snode->nodetree);
+        bNodeTree *ntree = snode->id ? ntreeFromID(snode->id) : NULL;
+        if (ntree) {
+          snode->nodetree = ntree;
+        }
+        else {
+          BLO_read_id_address(reader, parent_id->lib, &snode->nodetree);
+        }
 
         for (path = snode->treepath.first; path; path = path->next) {
           if (path == snode->treepath.first) {
@@ -7466,7 +7473,7 @@ static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
             path->nodetree = snode->nodetree;
           }
           else {
-            path->nodetree = newlibadr(fd, parent_id->lib, path->nodetree);
+            BLO_read_id_address(reader, parent_id->lib, &path->nodetree);
           }
 
           if (!path->nodetree) {
@@ -7495,8 +7502,8 @@ static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
       }
       case SPACE_CLIP: {
         SpaceClip *sclip = (SpaceClip *)sl;
-        sclip->clip = newlibadr(fd, parent_id->lib, sclip->clip);
-        sclip->mask_info.mask = newlibadr(fd, parent_id->lib, sclip->mask_info.mask);
+        BLO_read_id_address(reader, parent_id->lib, &sclip->clip);
+        BLO_read_id_address(reader, parent_id->lib, &sclip->mask_info.mask);
         break;
       }
       default:
@@ -7544,10 +7551,9 @@ static void direct_link_wm_xr_data(BlendDataReader *reader, wmXrData *xr_data)
   direct_link_view3dshading(reader, &xr_data->session_settings.shading);
 }
 
-static void lib_link_wm_xr_data(FileData *fd, ID *parent_id, wmXrData *xr_data)
+static void lib_link_wm_xr_data(BlendLibReader *reader, ID *parent_id, wmXrData *xr_data)
 {
-  xr_data->session_settings.base_pose_object = newlibadr(
-      fd, parent_id->lib, xr_data->session_settings.base_pose_object);
+  BLO_read_id_address(reader, parent_id->lib, &xr_data->session_settings.base_pose_object);
 }
 
 /** \} */
@@ -7633,21 +7639,21 @@ static void direct_link_windowmanager(BlendDataReader *reader, wmWindowManager *
   wm->is_interface_locked = 0;
 }
 
-static void lib_link_windowmanager(FileData *fd, Main *UNUSED(bmain), wmWindowManager *wm)
+static void lib_link_windowmanager(BlendLibReader *reader, wmWindowManager *wm)
 {
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     if (win->workspace_hook) { /* NULL for old files */
-      lib_link_workspace_instance_hook(fd, win->workspace_hook, &wm->id);
+      lib_link_workspace_instance_hook(reader, win->workspace_hook, &wm->id);
     }
-    win->scene = newlibadr(fd, wm->id.lib, win->scene);
+    BLO_read_id_address(reader, wm->id.lib, &win->scene);
     /* deprecated, but needed for versioning (will be NULL'ed then) */
-    win->screen = newlibadr(fd, NULL, win->screen);
+    BLO_read_id_address(reader, NULL, &win->screen);
 
     LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
-      lib_link_area(fd, &wm->id, area);
+      lib_link_area(reader, &wm->id, area);
     }
 
-    lib_link_wm_xr_data(fd, &wm->id, &wm->xr);
+    lib_link_wm_xr_data(reader, &wm->id, &wm->xr);
   }
 }
 
@@ -7659,17 +7665,17 @@ static void lib_link_windowmanager(FileData *fd, Main *UNUSED(bmain), wmWindowMa
 
 /* note: file read without screens option G_FILE_NO_UI;
  * check lib pointers in call below */
-static void lib_link_screen(FileData *fd, Main *UNUSED(bmain), bScreen *screen)
+static void lib_link_screen(BlendLibReader *reader, bScreen *screen)
 {
   /* deprecated, but needed for versioning (will be NULL'ed then) */
-  screen->scene = newlibadr(fd, screen->id.lib, screen->scene);
+  BLO_read_id_address(reader, screen->id.lib, &screen->scene);
 
   screen->animtimer = NULL; /* saved in rare cases */
   screen->tool_tip = NULL;
   screen->scrubbing = false;
 
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    lib_link_area(fd, &screen->id, area);
+    lib_link_area(reader, &screen->id, area);
   }
 }
 
@@ -8553,12 +8559,12 @@ static void direct_link_mask(BlendDataReader *reader, Mask *mask)
   }
 }
 
-static void lib_link_mask_parent(FileData *fd, Mask *mask, MaskParent *parent)
+static void lib_link_mask_parent(BlendLibReader *reader, Mask *mask, MaskParent *parent)
 {
-  parent->id = newlibadr(fd, mask->id.lib, parent->id);
+  BLO_read_id_address(reader, mask->id.lib, &parent->id);
 }
 
-static void lib_link_mask(FileData *fd, Main *UNUSED(bmain), Mask *mask)
+static void lib_link_mask(BlendLibReader *reader, Mask *mask)
 {
   LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
     MaskSpline *spline;
@@ -8570,10 +8576,10 @@ static void lib_link_mask(FileData *fd, Main *UNUSED(bmain), Mask *mask)
       for (i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
-        lib_link_mask_parent(fd, mask, &point->parent);
+        lib_link_mask_parent(reader, mask, &point->parent);
       }
 
-      lib_link_mask_parent(fd, mask, &spline->parent);
+      lib_link_mask_parent(reader, mask, &spline->parent);
 
       spline = spline->next;
     }
@@ -9760,6 +9766,8 @@ static void lib_link_all(FileData *fd, Main *bmain)
 {
   const bool do_partial_undo = (fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0;
 
+  BlendLibReader reader = {fd, bmain};
+
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if ((id->tag & LIB_TAG_NEED_LINK) == 0) {
@@ -9788,10 +9796,10 @@ static void lib_link_all(FileData *fd, Main *bmain)
      * whether something is wrong then. */
     switch (GS(id->name)) {
       case ID_MSK:
-        lib_link_mask(fd, bmain, (Mask *)id);
+        lib_link_mask(&reader, (Mask *)id);
         break;
       case ID_WM:
-        lib_link_windowmanager(fd, bmain, (wmWindowManager *)id);
+        lib_link_windowmanager(&reader, (wmWindowManager *)id);
         break;
       case ID_WS:
         /* Could we skip WS in undo case? */
@@ -9809,7 +9817,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_SCR:
         /* DO NOT skip screens here,
          * 3D viewport may contains pointers to other ID data (like bgpic)! See T41411. */
-        lib_link_screen(fd, bmain, (bScreen *)id);
+        lib_link_screen(&reader, (bScreen *)id);
         break;
       case ID_MC:
         lib_link_movieclip(fd, bmain, (MovieClip *)id);
