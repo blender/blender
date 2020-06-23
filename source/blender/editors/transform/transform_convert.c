@@ -1148,21 +1148,6 @@ void createTransData(bContext *C, TransInfo *t)
     }
 
     t->flag |= T_OBJECT;
-
-    /* Check if we're transforming the camera from the camera */
-    if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
-      View3D *v3d = t->view;
-      RegionView3D *rv3d = t->region->regiondata;
-      if ((rv3d->persp == RV3D_CAMOB) && v3d->camera) {
-        /* we could have a flag to easily check an object is being transformed */
-        if (v3d->camera->id.tag & LIB_TAG_DOIT) {
-          t->flag |= T_CAMERA;
-        }
-      }
-      else if (v3d->ob_center && v3d->ob_center->id.tag & LIB_TAG_DOIT) {
-        t->flag |= T_CAMERA;
-      }
-    }
     convert_type = TC_OBJECT;
   }
 
@@ -1224,6 +1209,20 @@ void createTransData(bContext *C, TransInfo *t)
       break;
     case TC_OBJECT:
       createTransObject(C, t);
+      /* Check if we're transforming the camera from the camera */
+      if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
+        View3D *v3d = t->view;
+        RegionView3D *rv3d = t->region->regiondata;
+        if ((rv3d->persp == RV3D_CAMOB) && v3d->camera) {
+          /* we could have a flag to easily check an object is being transformed */
+          if (v3d->camera->id.tag & LIB_TAG_DOIT) {
+            t->flag |= T_CAMERA;
+          }
+        }
+        else if (v3d->ob_center && v3d->ob_center->id.tag & LIB_TAG_DOIT) {
+          t->flag |= T_CAMERA;
+        }
+      }
       break;
     case TC_OBJECT_TEXSPACE:
       createTransTexspace(t);
