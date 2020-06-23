@@ -28,6 +28,8 @@ set(INC_SYS
 
 set(SRC
   intern/cpp_types.cc
+  intern/multi_function_network.cc
+  intern/multi_function_network_evaluation.cc
 
   FN_array_spans.hh
   FN_cpp_type.hh
@@ -36,6 +38,8 @@ set(SRC
   FN_multi_function_builder.hh
   FN_multi_function_context.hh
   FN_multi_function_data_type.hh
+  FN_multi_function_network.hh
+  FN_multi_function_network_evaluation.hh
   FN_multi_function_param_type.hh
   FN_multi_function_params.hh
   FN_multi_function_signature.hh
