@@ -59,34 +59,6 @@
 #  include "BPY_extern.h"
 #endif
 
-/*
- * How Texts should work
- * --
- * A text should relate to a file as follows -
- * (Text *)->filepath should be the place where the
- *     file will or has been saved.
- *
- * (Text *)->flags has the following bits
- *     TXT_ISDIRTY - should always be set if the file in mem. differs from
- *                     the file on disk, or if there is no file on disk.
- *     TXT_ISMEM - should always be set if the Text has not been mapped to
- *                     a file, in which case (Text *)->filepath may be NULL or garbage.
- *     TXT_ISEXT - should always be set if the Text is not to be written into
- *                     the .blend
- *     TXT_ISSCRIPT - should be set if the user has designated the text
- *                     as a script. (NEW: this was unused, but now it is needed by
- *                     space handler script links (see header_view3d.c, for example)
- *
- * ->>> see also: /makesdna/DNA_text_types.h
- *
- * Display
- * --
- *
- * The st->top determines at what line the top of the text is displayed.
- * If the user moves the cursor the st containing that cursor should
- * be popped ... other st's retain their own top location.
- */
-
 /* -------------------------------------------------------------------- */
 /** \name Prototypes
  * \{ */
@@ -737,6 +709,10 @@ bool txt_cursor_is_line_end(Text *text)
 
 /* -------------------------------------------------------------------- */
 /** \name Cursor Movement Functions
+ *
+ * \note If the user moves the cursor the space containing that cursor should be popped
+ * See #txt_pop_first, #txt_pop_last
+ * Other space-types retain their own top location.
  * \{ */
 
 void txt_move_up(Text *text, const bool sel)
@@ -1307,6 +1283,8 @@ void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
   text->sell = tol;
   text->selc = BLI_str_utf8_offset_from_index(tol->line, endc);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Buffer Conversion for Undo/Redo

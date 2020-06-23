@@ -543,10 +543,7 @@ static int text_make_internal_exec(bContext *C, wmOperator *UNUSED(op))
 
   text->flags |= TXT_ISMEM | TXT_ISDIRTY;
 
-  if (text->filepath) {
-    MEM_freeN(text->filepath);
-    text->filepath = NULL;
-  }
+  MEM_SAFE_FREE(text->filepath);
 
   text_update_cursor_moved(C);
   WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);

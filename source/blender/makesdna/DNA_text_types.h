@@ -43,7 +43,17 @@ typedef struct TextLine {
 typedef struct Text {
   ID id;
 
+  /**
+   * Optional file path, when NULL text is considered internal.
+   * Otherwise this path will be used when saving/reloading.
+   *
+   * When set this is where the file will or has been saved.
+   */
   char *filepath;
+
+  /**
+   * Python code object for this text (cached result of #Py_CompileStringObject).
+   */
   void *compiled;
 
   int flags;
@@ -58,12 +68,15 @@ typedef struct Text {
 
 #define TXT_TABSIZE 4
 
-/* text flags */
+/** #Text.flags */
 enum {
+  /** Set if the file in run-time differs from the file on disk, or if there is no file on disk. */
   TXT_ISDIRTY = 1 << 0,
+  /** When the text hasn't been written to a file. #Text.filepath may be NULL or invalid. */
   TXT_ISMEM = 1 << 2,
+  /** Should always be set if the Text is not to be written into the `.blend`. */
   TXT_ISEXT = 1 << 3,
-  /** Used by space handler scriptlinks. */
+  /** Load the script as a Python module when loading the `.blend` file. */
   TXT_ISSCRIPT = 1 << 4,
 
   TXT_FLAG_UNUSED_8 = 1 << 8, /* cleared */

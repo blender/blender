@@ -1220,7 +1220,11 @@ typedef struct SpaceText {
 
   struct Text *text;
 
-  int top, left;
+  /** Determines at what line the top of the text is displayed. */
+  int top;
+
+  /** Determines the horizontal scroll (in columns). */
+  int left;
   char _pad1[4];
 
   short flags;
