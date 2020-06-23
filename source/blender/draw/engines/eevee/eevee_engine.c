@@ -214,6 +214,10 @@ static void eevee_draw_scene(void *vedata)
     loop_len = MAX2(1, scene->eevee.taa_samples);
   }
 
+  if (stl->effects->bypass_drawing) {
+    loop_len = 0;
+  }
+
   while (loop_len--) {
     float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     float clear_depth = 1.0f;
@@ -350,6 +354,11 @@ static void eevee_draw_scene(void *vedata)
   }
   else {
     EEVEE_renderpasses_draw(sldata, vedata);
+  }
+
+  if (stl->effects->bypass_drawing) {
+    /* Restore the depth from sample 1. */
+    GPU_framebuffer_blit(fbl->double_buffer_depth_fb, 0, dfbl->default_fb, 0, GPU_DEPTH_BIT);
   }
 
   EEVEE_renderpasses_draw_debug(vedata);

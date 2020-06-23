@@ -213,6 +213,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
    * we accumulate the redraw inside the drawing loop in eevee_draw_scene().
    **/
   effects->taa_render_sample = 1;
+  effects->bypass_drawing = false;
 
   EEVEE_temporal_sampling_create_view(vedata);
 
@@ -255,7 +256,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 
     if (((effects->taa_total_sample == 0) ||
          (effects->taa_current_sample < effects->taa_total_sample)) ||
-        DRW_state_is_image_render()) {
+        (!view_is_valid) || DRW_state_is_image_render()) {
       if (view_is_valid) {
         /* Viewport rendering updates the matrices in `eevee_draw_scene` */
         if (!DRW_state_is_image_render()) {
@@ -268,7 +269,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
       }
     }
     else {
-      effects->taa_current_sample = 1;
+      effects->bypass_drawing = true;
     }
 
     return repro_flag | EFFECT_TAA | EFFECT_DOUBLE_BUFFER | EFFECT_DEPTH_DOUBLE_BUFFER |
