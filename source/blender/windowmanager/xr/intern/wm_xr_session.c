@@ -315,12 +315,9 @@ static void wm_xr_session_surface_draw(bContext *C)
   wm_xr_session_draw_data_populate(
       &wm->xr, CTX_data_scene(C), CTX_data_ensure_evaluated_depsgraph(C), &draw_data);
 
-  DRW_xr_drawing_begin();
-
   GHOST_XrSessionDrawViews(wm->xr.runtime->context, &draw_data);
 
   GPU_offscreen_unbind(surface_data->offscreen, false);
-  DRW_xr_drawing_end();
 }
 
 bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
@@ -391,6 +388,9 @@ static wmSurface *wm_xr_session_surface_create(void)
 
   surface->draw = wm_xr_session_surface_draw;
   surface->free_data = wm_xr_session_surface_free_data;
+  surface->activate = DRW_xr_drawing_begin;
+  surface->deactivate = DRW_xr_drawing_end;
+
   surface->ghost_ctx = DRW_xr_opengl_context_get();
   surface->gpu_ctx = DRW_xr_gpu_context_get();
 
