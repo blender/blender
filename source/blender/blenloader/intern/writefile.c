@@ -158,6 +158,7 @@
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
+#include "BKE_curveprofile.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"  // for G
@@ -968,12 +969,6 @@ static void write_animdata(BlendWriter *writer, AnimData *adt)
   write_nladata(writer, &adt->nla_tracks);
 }
 
-static void write_CurveProfile(BlendWriter *writer, CurveProfile *profile)
-{
-  BLO_write_struct(writer, CurveProfile, profile);
-  BLO_write_struct_array(writer, CurveProfilePoint, profile->path_len, profile->path);
-}
-
 static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *sock)
 {
   if (sock->default_value == NULL) {
@@ -1751,7 +1746,7 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
     else if (md->type == eModifierType_Bevel) {
       BevelModifierData *bmd = (BevelModifierData *)md;
       if (bmd->custom_profile) {
-        write_CurveProfile(writer, bmd->custom_profile);
+        BKE_curveprofile_blend_write(writer, bmd->custom_profile);
       }
     }
 
@@ -2594,7 +2589,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   }
   /* Write the curve profile to the file. */
   if (tos->custom_bevel_profile_preset) {
-    write_CurveProfile(writer, tos->custom_bevel_profile_preset);
+    BKE_curveprofile_blend_write(writer, tos->custom_bevel_profile_preset);
   }
 
   write_paint(writer, &tos->imapaint.paint);

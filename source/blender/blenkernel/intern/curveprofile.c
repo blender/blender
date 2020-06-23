@@ -41,6 +41,8 @@
 #include "BKE_curveprofile.h"
 #include "BKE_fcurve.h"
 
+#include "BLO_read_write.h"
+
 void BKE_curveprofile_free_data(CurveProfile *profile)
 {
   MEM_SAFE_FREE(profile->path);
@@ -1069,4 +1071,18 @@ void BKE_curveprofile_evaluate_length_portion(const CurveProfile *profile,
 
   *x_out = interpf(profile->table[i].x, profile->table[i + 1].x, lerp_factor);
   *y_out = interpf(profile->table[i].y, profile->table[i + 1].y, lerp_factor);
+}
+
+void BKE_curveprofile_blend_write(struct BlendWriter *writer, const struct CurveProfile *profile)
+{
+  BLO_write_struct(writer, CurveProfile, profile);
+  BLO_write_struct_array(writer, CurveProfilePoint, profile->path_len, profile->path);
+}
+
+/* Expects that the curve profile itself has been read already. */
+void BKE_curveprofile_blend_read(struct BlendDataReader *reader, struct CurveProfile *profile)
+{
+  BLO_read_data_address(reader, &profile->path);
+  profile->table = NULL;
+  profile->segments = NULL;
 }
