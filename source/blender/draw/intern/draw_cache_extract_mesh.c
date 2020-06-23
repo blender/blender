@@ -2010,8 +2010,9 @@ static void extract_tan_ex(const MeshRenderData *mr, GPUVertBuf *vbo, const bool
   }
 
   /* Start Fresh */
-  CustomData_free_layers(cd_ldata, CD_TANGENT, mr->loop_len);
-
+  CustomData loop_data;
+  CustomData_reset(&loop_data);
+  CustomData *ldata = cd_ldata;
   if (tan_len != 0 || use_orco_tan) {
     short tangent_mask = 0;
     bool calc_active_tangent = false;
@@ -2041,9 +2042,10 @@ static void extract_tan_ex(const MeshRenderData *mr, GPUVertBuf *vbo, const bool
                                     mr->poly_normals,
                                     mr->loop_normals,
                                     orco,
-                                    cd_ldata,
+                                    &loop_data,
                                     mr->loop_len,
                                     &tangent_mask);
+      ldata = &loop_data;
     }
   }
 
@@ -2075,7 +2077,7 @@ static void extract_tan_ex(const MeshRenderData *mr, GPUVertBuf *vbo, const bool
     short(*tan_data)[4] = (short(*)[4])vbo->data;
     for (int i = 0; i < tan_len; i++) {
       const char *name = tangent_names[i];
-      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_named(cd_ldata, CD_TANGENT, name);
+      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_named(ldata, CD_TANGENT, name);
       for (int l = 0; l < mr->loop_len; l++) {
         normal_float_to_short_v3(*tan_data, layer_data[l]);
         (*tan_data)[3] = (layer_data[l][3] > 0.0f) ? SHRT_MAX : SHRT_MIN;
@@ -2083,7 +2085,7 @@ static void extract_tan_ex(const MeshRenderData *mr, GPUVertBuf *vbo, const bool
       }
     }
     if (use_orco_tan) {
-      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_n(cd_ldata, CD_TANGENT, 0);
+      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_n(ldata, CD_TANGENT, 0);
       for (int l = 0; l < mr->loop_len; l++) {
         normal_float_to_short_v3(*tan_data, layer_data[l]);
         (*tan_data)[3] = (layer_data[l][3] > 0.0f) ? SHRT_MAX : SHRT_MIN;
@@ -2095,7 +2097,7 @@ static void extract_tan_ex(const MeshRenderData *mr, GPUVertBuf *vbo, const bool
     GPUPackedNormal *tan_data = (GPUPackedNormal *)vbo->data;
     for (int i = 0; i < tan_len; i++) {
       const char *name = tangent_names[i];
-      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_named(cd_ldata, CD_TANGENT, name);
+      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_named(ldata, CD_TANGENT, name);
       for (int l = 0; l < mr->loop_len; l++) {
         *tan_data = GPU_normal_convert_i10_v3(layer_data[l]);
         tan_data->w = (layer_data[l][3] > 0.0f) ? 1 : -2;
@@ -2103,7 +2105,7 @@ static void extract_tan_ex(const MeshRenderData *mr, GPUVertBuf *vbo, const bool
       }
     }
     if (use_orco_tan) {
-      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_n(cd_ldata, CD_TANGENT, 0);
+      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_n(ldata, CD_TANGENT, 0);
       for (int l = 0; l < mr->loop_len; l++) {
         *tan_data = GPU_normal_convert_i10_v3(layer_data[l]);
         tan_data->w = (layer_data[l][3] > 0.0f) ? 1 : -2;
@@ -2112,7 +2114,7 @@ static void extract_tan_ex(const MeshRenderData *mr, GPUVertBuf *vbo, const bool
     }
   }
 
-  CustomData_free_layers(cd_ldata, CD_TANGENT, mr->loop_len);
+  CustomData_free(&loop_data, mr->loop_len);
 }
 
 static void *extract_tan_init(const MeshRenderData *mr, void *buf)
