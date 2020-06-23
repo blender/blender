@@ -1743,12 +1743,6 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
       writestruct(wd, DATA, MFace, collmd->numfaces, collmd->mfaces);
 #endif
     }
-    else if (md->type == eModifierType_Bevel) {
-      BevelModifierData *bmd = (BevelModifierData *)md;
-      if (bmd->custom_profile) {
-        BKE_curveprofile_blend_write(writer, bmd->custom_profile);
-      }
-    }
 
     if (mti->blendWrite != NULL) {
       mti->blendWrite(writer, md);

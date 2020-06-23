@@ -51,6 +51,8 @@
 #include "MOD_ui_common.h"
 #include "MOD_util.h"
 
+#include "BLO_read_write.h"
+
 #include "BKE_curveprofile.h"
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -413,6 +415,25 @@ static void panelRegister(ARegionType *region_type)
       region_type, "shading", "Shading", NULL, shading_panel_draw, panel_type);
 }
 
+static void blendWrite(BlendWriter *writer, const ModifierData *md)
+{
+  const BevelModifierData *bmd = (const BevelModifierData *)md;
+
+  if (bmd->custom_profile) {
+    BKE_curveprofile_blend_write(writer, bmd->custom_profile);
+  }
+}
+
+static void blendRead(BlendDataReader *reader, ModifierData *md)
+{
+  BevelModifierData *bmd = (BevelModifierData *)md;
+
+  BLO_read_data_address(reader, &bmd->custom_profile);
+  if (bmd->custom_profile) {
+    BKE_curveprofile_blend_read(reader, bmd->custom_profile);
+  }
+}
+
 ModifierTypeInfo modifierType_Bevel = {
     /* name */ "Bevel",
     /* structName */ "BevelModifierData",
@@ -441,6 +462,6 @@ ModifierTypeInfo modifierType_Bevel = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* uiPanel */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ blendWrite,
+    /* blendRead */ blendRead,
 };

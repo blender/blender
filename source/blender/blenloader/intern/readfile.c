@@ -5765,13 +5765,6 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
       msmcd->reader = NULL;
       msmcd->reader_object_path[0] = '\0';
     }
-    else if (md->type == eModifierType_Bevel) {
-      BevelModifierData *bmd = (BevelModifierData *)md;
-      BLO_read_data_address(reader, &bmd->custom_profile);
-      if (bmd->custom_profile) {
-        BKE_curveprofile_blend_read(reader, bmd->custom_profile);
-      }
-    }
 
     if (mti->blendRead != NULL) {
       mti->blendRead(reader, md);
