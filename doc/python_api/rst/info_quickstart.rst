@@ -1,19 +1,16 @@
-
 .. _info_quickstart:
 
-***********************
-Quickstart Introduction
-***********************
+**********
+Quickstart
+**********
 
-Preface
-=======
+This :abbr:`API (Application Programming Interface)` is generally stable
+but some areas are still being extended and improved.
 
-This API is generally stable but some areas are still being added and improved.
-
-The Blender/Python API can do the following:
+.. rubric:: Blender Python API features:
 
 - Edit any data the user interface can (Scenes, Meshes, Particles etc.).
-- Modify user preferences, key-maps and themes.
+- Modify user preferences, keymaps and themes.
 - Run tools with own settings.
 - Create user interface elements such as menus, headers and panels.
 - Create new tools.
@@ -21,10 +18,10 @@ The Blender/Python API can do the following:
 - Create new rendering engines that integrate with Blender.
 - Subscribe to changes to data and it's properties.
 - Define new settings in existing Blender data.
-- Draw in the 3D view using Python.
+- Draw in the 3D Viewport using Python.
 
 
-The Blender/Python API **can't** (yet)...
+.. rubric:: (Still) missing features:
 
 - Create new space types.
 - Assign custom properties to every type.
@@ -33,22 +30,21 @@ The Blender/Python API **can't** (yet)...
 Before Starting
 ===============
 
-This document isn't intended to fully cover each topic.
-Rather, its purpose is to familiarize you with Blender Python API.
-
+This document its intended to familiarize you with Blender Python API
+but not to fully cover each topic.
 
 A quick list of helpful things to know before starting:
 
-- Blender uses Python 3.x; some online documentation still assumes 2.x.
+- Blender uses Python 3.x; some online documentation still assumes version 2.x.
 - The interactive console is great for testing one-liners.
   It also has autocompletion so you can inspect the API quickly.
-- Button tool tips show Python attributes and operator names.
-- Right clicking on buttons and menu items directly links to API documentation.
-- For more examples, the text menu has a templates section where some example operators can be found.
+- Button tooltips show Python attributes and operator names.
+- The context menu of buttons directly links to this API documentation.
+- More operator examples can be found in the text editor's template menu.
 - To examine further scripts distributed with Blender, see:
 
-  | ``scripts/startup/bl_ui`` for the user interface,
-  | ``scripts/startup/bl_operators`` for operators.
+  - ``scripts/startup/bl_ui`` for the user interface.
+  - ``scripts/startup/bl_operators`` for operators.
 
   Exact location depends on platform, see:
   :ref:`directory layout docs <blender_manual:blender-directory-layout>`.
@@ -59,19 +55,14 @@ Running Scripts
 
 The two most common ways to execute Python scripts are using the built-in
 text editor or entering commands in the Python console.
-
-Both the *Text Editor* and *Python Console* are space types you can select from the view header.
-
+Both the *Text Editor* and *Python Console* are space types you can select from the header.
 Rather than manually configuring your spaces for Python development,
-you may prefer to use the *Scripting* screen, included default with Blender,
-accessible from the top headers screen selector.
+you can use the *Scripting* workspace accessible from the Topbar tabs.
 
 From the text editor you can open ``.py`` files or paste then from the clipboard, then test using *Run Script*.
-
 The Python Console is typically used for typing in snippets and for testing to get immediate feedback,
 but can also have entire scripts pasted into it.
-
-Scripts can also run from the command line with Blender but to learn Blender/Python this isn't essential.
+Scripts can also run from the command line with Blender but to learn scripting in Blender this isn't essential.
 
 
 Key Concepts
@@ -80,14 +71,13 @@ Key Concepts
 Data Access
 -----------
 
-Accessing DataBlocks
-^^^^^^^^^^^^^^^^^^^^
+Accessing Data-Blocks
+^^^^^^^^^^^^^^^^^^^^^
 
-Python accesses Blender's data in the same way as the animation system and user interface;
-this implies that any setting that can be changed via a button can also be changed from Python.
-
-Accessing data from the currently loaded blend file is done with the module :mod:`bpy.data`.
-This gives access to library data. For example:
+You can access Blender's data with the Python API in the same way as the animation system or user interface;
+this implies that any setting that can be changed via a button can also be changed with Python.
+Accessing data from the currently loaded blend-file is done with the module :mod:`bpy.data`.
+It gives access to library data, for example:
 
    >>> bpy.data.objects
    <bpy_collection[3], BlendDataObjects>
@@ -99,12 +89,11 @@ This gives access to library data. For example:
    <bpy_collection[1], BlendDataMaterials>
 
 
-About Collections
-^^^^^^^^^^^^^^^^^
+Accessing Collections
+^^^^^^^^^^^^^^^^^^^^^
 
-You'll notice that an index as well as a string can be used to access members of the collection.
-
-Unlike Python's dictionaries, both methods are acceptable;
+You will notice that an index as well as a string can be used to access members of the collection.
+Unlike Python dictionaries, both methods are available;
 however, the index of a member may change while running Blender.
 
    >>> list(bpy.data.objects)
@@ -120,7 +109,7 @@ however, the index of a member may change while running Blender.
 Accessing Attributes
 ^^^^^^^^^^^^^^^^^^^^
 
-Once you have a data block, such as a material, object, collections etc.,
+Once you have a data-block, such as a material, object, collection, etc.,
 its attributes can be accessed much like you would change a setting using the graphical interface.
 In fact, the tooltip for each button also displays the Python attribute
 which can help in finding what settings to change in a script.
@@ -135,8 +124,8 @@ which can help in finding what settings to change in a script.
    bpy.data.materials['MyMaterial']
 
 
-For testing what data to access it's useful to use the "Console", which is its own space type.
-This supports auto-complete, giving you a fast way to dig into different data in your file.
+For testing what data to access it's useful to use the Python Console, which is its own space type.
+This supports auto-complete, giving you a fast way to explore the data in your file.
 
 Example of a data path that can be quickly found via the console:
 
@@ -149,8 +138,8 @@ Example of a data path that can be quickly found via the console:
 Data Creation/Removal
 ^^^^^^^^^^^^^^^^^^^^^
 
-Those of you familiar with other Python API's may be surprised that
-new data-blocks in the bpy API can't be created by calling the class:
+When you are familiar with other Python APIs you may be surprised that
+new data-blocks in the bpy API cannot be created by calling the class:
 
    >>> bpy.types.Mesh()
    Traceback (most recent call last):
@@ -159,10 +148,10 @@ new data-blocks in the bpy API can't be created by calling the class:
 
 
 This is an intentional part of the API design.
-The Blender/Python API can't create Blender data that exists outside the main Blender database
-(accessed through :mod:`bpy.data`), because this data is managed by Blender (save/load/undo/append... etc).
+The Blender Python API can't create Blender data that exists outside the main Blender database
+(accessed through :mod:`bpy.data`), because this data is managed by Blender (save, load, undo, append, etc).
 
-Data is added and removed via methods on the collections in :mod:`bpy.data`, eg:
+Data is added and removed via methods on the collections in :mod:`bpy.data`, e.g:
 
    >>> mesh = bpy.data.meshes.new(name="MyMesh")
    >>> print(mesh)
@@ -174,14 +163,12 @@ Data is added and removed via methods on the collections in :mod:`bpy.data`, eg:
 Custom Properties
 ^^^^^^^^^^^^^^^^^
 
-Python can access properties on any datablock that has an ID
-(data that can be linked in and accessed from :mod:`bpy.data`.
-When assigning a property, you can make up your own names,
-these will be created when needed or overwritten if they exist.
+Python can access properties on any data-block that has an ID
+(data that can be linked in and accessed from :mod:`bpy.data`).
+When assigning a property, you can pick your own names,
+these will be created when needed or overwritten if they already exist.
 
-This data is saved with the blend file and copied with objects.
-
-Example:
+This data is saved with the blend-file and copied with objects, for example:
 
 .. code-block:: python
 
@@ -201,10 +188,10 @@ Example:
    del collection["MySettings"]
 
 
-Note that these properties can only be assigned  basic Python types.
+Note that these properties can only be assigned basic Python types:
 
 - int, float, string
-- array of ints/floats
+- array of ints or floats
 - dictionary (only string keys are supported, values must be basic types too)
 
 These properties are valid outside of Python. They can be animated by curves or used in driver paths.
@@ -218,18 +205,16 @@ it's more common to operate on the user's selection.
 The context is always available from ``bpy.context`` and can be used to get the active object, scene,
 tool settings along with many other attributes.
 
-Common-use cases:
+Some common use cases are:
 
    >>> bpy.context.object
    >>> bpy.context.selected_objects
    >>> bpy.context.visible_bones
 
-Note that the context is read-only.
-These values cannot be modified directly,
-though they may be changed by running API functions or by using the data API.
+Note that the context is read-only, which means that these values cannot be modified directly.
+But they can be changed by running API functions or by using the data API.
 
 So ``bpy.context.active_object = obj`` will raise an error.
-
 But ``bpy.context.view_layer.objects.active = obj`` works as expected.
 
 The context attributes change depending on where they are accessed.
@@ -257,7 +242,7 @@ Examples:
 
 .. tip::
 
-   The :ref:`Operator Cheat Sheet <blender_manual:bpy.ops.wm.operator_cheat_sheet>`.
+   The :ref:`Operator Cheat Sheet <blender_manual:bpy.ops.wm.operator_cheat_sheet>`
    gives a list of all operators and their default values in Python syntax, along with the generated docs.
    This is a good way to get an overview of all Blender's operators.
 
@@ -265,8 +250,8 @@ Examples:
 Operator Poll()
 ^^^^^^^^^^^^^^^
 
-Many operators have a "poll" function which may check that the cursor
-is in a valid area or that the object is in the correct mode (Edit Mode, Weight Paint etc).
+Many operators have a "poll" function which checks if the cursor
+is in a valid area or if the object is in the correct mode (Edit Mode, Weight Paint Mode, etc).
 When an operator's poll function fails within Python, an exception is raised.
 
 For example, calling ``bpy.ops.view3d.render_border()`` from the console raises the following error:
@@ -275,10 +260,10 @@ For example, calling ``bpy.ops.view3d.render_border()`` from the console raises 
 
    RuntimeError: Operator bpy.ops.view3d.render_border.poll() failed, context is incorrect
 
-In this case the context must be the 3d view with an active camera.
+In this case the context must be the 3D Viewport with an active camera.
 
-To avoid using try/except clauses wherever operators are called you can call the operators
-own ``poll()`` function to check if it can run in the current context.
+To avoid using try-except clauses wherever operators are called, you can call the operators
+own ``poll()`` function to check if it can run the operator in the current context.
 
 .. code-block:: python
 
@@ -291,11 +276,10 @@ Integration
 
 Python scripts can integrate with Blender in the following ways:
 
-- By defining a rendering engine.
+- By defining a render engine.
 - By defining operators.
 - By defining menus, headers and panels.
-- By inserting new buttons into existing menus, headers and panels
-
+- By inserting new buttons into existing menus, headers and panels.
 
 In Python, this is done by defining a class, which is a subclass of an existing type.
 
@@ -306,56 +290,52 @@ Example Operator
 .. literalinclude:: __/__/__/release/scripts/templates_py/operator_simple.py
 
 Once this script runs, ``SimpleOperator`` is registered with Blender
-and can be called from the operator search popup or added to the toolbar.
+and can be called from Operator Search or added to the toolbar.
 
 To run the script:
 
-#. Highlight the above code then press :kbd:`Ctrl-C` to copy it.
-#. Start Blender
-#. Press :kbd:`Ctrl-Right` twice to change to the Scripting layout.
-#. Click the button labeled ``New`` and the confirmation pop up in order to create a new text block.
-#. Press :kbd:`Ctrl-V` to paste the code into the text panel (the upper left frame).
-#. Click on the button **Run Script**.
+#. Start Blender and switch to the Scripting workspace.
+#. Click the *New* button in the text editor to create a new text data-block.
+#. Copy the code from above and paste it into the text editor.
+#. Click on the *Run Script* button.
 #. Move your cursor into the 3D Viewport,
-   open the :ref:`operator search menu <blender_manual:bpy.ops.wm.search_menu>`,
+   open the :ref:`Operator Search menu <blender_manual:bpy.ops.wm.search_menu>`,
    and type "Simple".
 #. Click on the "Simple Operator" item found in search.
 
+.. seealso::
 
-.. seealso:: The class members with the ``bl_`` prefix are documented in the API
-   reference :class:`bpy.types.Operator`
+   The class members with the ``bl_`` prefix are documented in the API reference :class:`bpy.types.Operator`.
 
 .. note::
 
    The output from the ``main`` function is sent to the terminal;
    in order to see this, be sure to :ref:`use the terminal <use_the_terminal>`.
 
+
 Example Panel
 -------------
 
-Panels register themselves as a class, like an operator.
+Panels are registered as a class, like an operator.
 Notice the extra ``bl_`` variables used to set the context they display in.
 
 .. literalinclude:: __/__/__/release/scripts/templates_py/ui_panel_simple.py
 
 To run the script:
 
-#. Highlight the above code then press :kbd:`Ctrl-C` to copy it.
-#. Start Blender.
-#. Click on the tab for the *Scripting* workspace.
-#. Click the button labeled ``New`` to create a new text block.
-#. Press :kbd:`Ctrl-V` to paste the code into the text panel (the upper left frame).
-#. Click on the button **Run Script**.
-
+#. Start Blender and switch to the Scripting workspace.
+#. Click the *New* button in the text editor to create a new text data-block.
+#. Copy the code from above and paste it into the text editor.
+#. Click on the *Run Script* button.
 
 To view the results:
 
-#. Select the the default cube.
+#. Select the default cube.
 #. Click on the Object properties icon in the buttons panel (far right; appears as a tiny cube).
-#. Scroll down to see a panel named **Hello World Panel**.
-#. Changing the object name also updates **Hello World Panel's** Name: field.
+#. Scroll down to see a panel named "Hello World Panel".
+#. Changing the object name also updates *Hello World Panel's* name: field.
 
-Note the row distribution and the label and properties that are available through the code.
+Note the row distribution and the label and properties that are defined through the code.
 
 .. seealso:: :class:`bpy.types.Panel`
 
@@ -364,8 +344,7 @@ Types
 =====
 
 Blender defines a number of Python types but also uses Python native types.
-
-Blender's Python API can be split up into 3 categories.
+Blender's Python API can be split up into three categories.
 
 
 Native Types
@@ -374,7 +353,7 @@ Native Types
 In simple cases returning a number or a string as a custom type would be cumbersome,
 so these are accessed as normal Python types.
 
-- Blender float/int/boolean -> float/int/boolean
+- Blender float, int, boolean -> float, int, boolean
 - Blender enumerator -> string
 
      >>> C.object.rotation_mode = 'AXIS_ANGLE'
@@ -393,11 +372,10 @@ so these are accessed as normal Python types.
 Internal Types
 --------------
 
-Used for Blender data-blocks and collections: :class:`bpy.types.bpy_struct`
+:class:`bpy.types.bpy_struct` is used for Blender data-blocks and collections.
+Also for data that contains its own attributes: collections, meshes, bones, scenes, etc.
 
-For data that contains its own attributes collections/meshes/bones/scenes... etc.
-
-There are 2 main types that wrap Blenders data, one for data-blocks
+There are two main types that wrap Blender's data, one for data-blocks
 (known internally as ``bpy_struct``), another for properties.
 
    >>> bpy.context.object
@@ -406,14 +384,13 @@ There are 2 main types that wrap Blenders data, one for data-blocks
    >>> C.scene.objects
    bpy.data.scenes['Scene'].objects
 
-Note that these types reference Blender's data so modifying them is immediately visible.
+Note that these types reference Blender's data so modifying them is visible immediately.
 
 
 Mathutils Types
 ---------------
 
-Used for vectors, quaternion, eulers, matrix and color types, accessible from :mod:`mathutils`
-
+Accessible from :mod:`mathutils` are vectors, quaternions, Euler angles, matrix and color types.
 Some attributes such as :class:`bpy.types.Object.location`,
 :class:`bpy.types.PoseBone.rotation_euler` and :class:`bpy.types.Scene.cursor_location`
 can be accessed as special math types which can be used together and manipulated in various useful ways.
@@ -422,13 +399,12 @@ Example of a matrix, vector multiplication:
 
 .. code-block:: python
 
-   bpy.context.object.matrix_world * bpy.context.object.data.verts[0].co
+   bpy.context.object.matrix_world @ bpy.context.object.data.verts[0].co
 
 .. note::
 
    mathutils types keep a reference to Blender's internal data so changes can
    be applied back.
-
 
    Example:
 
@@ -449,13 +425,11 @@ Example of a matrix, vector multiplication:
 Animation
 =========
 
-There are 2 ways to add keyframes through Python.
+There are two ways to add keyframes through Python.
 
-The first is through key properties directly, which is similar to inserting a keyframe from the button as a user.
+The first is through key properties directly, which is like inserting a keyframe from the button as a user.
 You can also manually create the curves and keyframe data, then set the path to the property.
-Here are examples of both methods.
-
-Both examples insert a keyframe on the active object's Z axis.
+Here are examples of both methods. Both insert a keyframe on the active object's Z axis.
 
 Simple example:
 
@@ -467,7 +441,7 @@ Simple example:
    obj.location[2] = 1.0
    obj.keyframe_insert(data_path="location", frame=20.0, index=2)
 
-Using Low-Level Functions:
+Using low-level functions:
 
 .. code-block:: python
 

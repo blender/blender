@@ -427,7 +427,7 @@ offers a set of extensive examples, including advanced features.
 
    Return evaluator parameters
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetMap.xml>`_
+   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetMap.xml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the symbolic name of a map.

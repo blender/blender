@@ -1,5 +1,5 @@
 ..
-   This document is appended to the auto generated bmesh api doc to avoid clogging up the C files with details.
+   This document is appended to the auto generated BMesh API doc to avoid clogging up the C files with details.
    to test this run:
    ./blender.bin -b -noaudio -P doc/python_api/sphinx_doc_gen.py -- \
                  --partial bmesh* ; cd doc/python_api ; sphinx-build sphinx-in sphinx-out ; cd ../../
@@ -19,25 +19,24 @@ Submodules:
 Introduction
 ------------
 
-This API gives access the blenders internal mesh editing api, featuring geometry connectivity data and
+This API gives access the Blender's internal mesh editing API, featuring geometry connectivity data and
 access to editing operations such as split, separate, collapse and dissolve.
-
 The features exposed closely follow the C API,
-giving python access to the functions used by blenders own mesh editing tools.
+giving Python access to the functions used by Blender's own mesh editing tools.
 
 For an overview of BMesh data types and how they reference each other see:
-`BMesh Design Document <https://wiki.blender.org/index.php/Dev:Source/Modeling/BMesh/Design>`_ .
+`BMesh Design Document <https://wiki.blender.org/index.php/Dev:Source/Modeling/BMesh/Design>`__.
 
 
 .. note::
 
-   **Disk** and **Radial** data is not exposed by the python api since this is for internal use only.
+   **Disk** and **Radial** data is not exposed by the Python API since this is for internal use only.
 
 
 .. warning:: TODO items are...
 
-   * add access to BMesh **walkers**
-   * add custom-data manipulation functions add/remove/rename.
+   - add access to BMesh **walkers**.
+   - add custom-data manipulation functions add, remove or rename.
 
 
 Example Script
@@ -46,55 +45,52 @@ Example Script
 .. literalinclude:: __/__/__/release/scripts/templates_py/bmesh_simple.py
 
 
-Stand-Alone Module
-^^^^^^^^^^^^^^^^^^
+Standalone Module
+^^^^^^^^^^^^^^^^^
 
-The bmesh module is written to be standalone except for :mod:`mathutils`
+The BMesh module is written to be standalone except for :mod:`mathutils`
 which is used for vertex locations and normals.
-
 The only other exception to this are when converting mesh data to and from :class:`bpy.types.Mesh`.
 
 
 Mesh Access
 -----------
 
-There are 2 ways to access BMesh data, you can create a new BMesh by converting a mesh from
-:class:`bpy.types.BlendData.meshes` or by accessing the current edit mode mesh.
-see: :class:`bmesh.types.BMesh.from_mesh` and :mod:`bmesh.from_edit_mesh` respectively.
+There are two ways to access BMesh data, you can create a new BMesh by converting a mesh from
+:class:`bpy.types.BlendData.meshes` or by accessing the current Edit-Mode mesh.
+See: :class:`bmesh.types.BMesh.from_mesh` and :mod:`bmesh.from_edit_mesh` respectively.
 
-When explicitly converting from mesh data python **owns** the data, that is to say -
-that the mesh only exists while python holds a reference to it,
-and the script is responsible for putting it back into a mesh data-block when the edits are done.
+When explicitly converting from mesh data Python **owns** the data, that means that
+the mesh only exists while Python holds a reference to it.
+The script is responsible for putting it back into a mesh data-block when the edits are done.
 
-Note that unlike :mod:`bpy`, a BMesh does not necessarily correspond to data in the currently open blend file,
+Note that unlike :mod:`bpy`, a BMesh does not necessarily correspond to data in the currently open blend-file,
 a BMesh can be created, edited and freed without the user ever seeing or having access to it.
-Unlike edit mode, the bmesh module can use multiple BMesh instances at once.
+Unlike Edit-Mode, the BMesh module can use multiple BMesh instances at once.
 
-Take care when dealing with multiple BMesh instances since the mesh data can use a lot of memory, while a mesh that
-python owns will be freed in when the script holds no references to it,
-its good practice to call :class:`bmesh.types.BMesh.free` which will remove all the mesh data immediately and disable
-further access.
+Take care when dealing with multiple BMesh instances since the mesh data can use a lot of memory.
+While a mesh that the Python script owns will be freed when the script holds no references to it,
+it's good practice to call :class:`bmesh.types.BMesh.free` which will remove all the mesh data immediately
+and disable further access.
 
 
-EditMode Tessellation
-^^^^^^^^^^^^^^^^^^^^^
+Edit-Mode Tessellation
+^^^^^^^^^^^^^^^^^^^^^^
 
-When writing scripts that operate on editmode data you will normally want to re-calculate the tessellation after
-running the  script, this needs to be called explicitly.
-
-The BMesh its self does not store the triangulated faces, they are stored in the :class:`bpy.types.Mesh`,
+When writing scripts that operate on Edit-Mode data you will normally want to re-calculate the tessellation after
+running the script, this needs to be called explicitly.
+The BMesh itself does not store the triangulated faces, instead they are stored in the :class:`bpy.types.Mesh`,
 to refresh tessellation triangles call :class:`bpy.types.Mesh.calc_loop_triangles`.
 
 
 CustomData Access
 -----------------
 
-BMesh has a unified way to access mesh attributes such as UV's vertex colors, shape keys, edge crease etc.
+BMesh has a unified way to access mesh attributes such as UVs, vertex colors, shape keys, edge crease, etc.
+This works by having a **layers** property on BMesh data sequences to access the custom data layers
+which can then be used to access the actual data on each vert, edge, face or loop.
 
-This works by having a **layers** property on bmesh data sequences to access the custom data layers which can then be
-used to access the actual data on each vert/edge/face/loop.
-
-Here are some examples ...
+Here are some examples:
 
 .. code-block:: python
 
@@ -139,27 +135,27 @@ Here are some examples ...
 Keeping a Correct State
 -----------------------
 
-When modeling in blender there are certain assumptions made about the state of the mesh.
+When modeling in Blender there are certain assumptions made about the state of the mesh:
 
-* hidden geometry isn't selected.
-* when an edge is selected, its vertices are selected too.
-* when a face is selected, its edges and vertices are selected.
-* duplicate edges / faces don't exist.
-* faces have at least 3 vertices.
+- Hidden geometry isn't selected.
+- When an edge is selected, its vertices are selected too.
+- When a face is selected, its edges and vertices are selected.
+- Duplicate edges / faces don't exist.
+- Faces have at least three vertices.
 
 To give developers flexibility these conventions are not enforced,
-however tools must leave the mesh in a valid state else other tools may behave incorrectly.
-
+yet tools must leave the mesh in a valid state or else other tools may behave incorrectly.
 Any errors that arise from not following these conventions is considered a bug in the script,
-not a bug in blender.
+not a bug in Blender.
 
 
 Selection / Flushing
 ^^^^^^^^^^^^^^^^^^^^
 
 As mentioned above, it is possible to create an invalid selection state
-(by selecting a state and then de-selecting one of its vertices's for example), mostly the best way to solve this is to
-flush the selection after performing a series of edits. this validates the selection state.
+(by selecting a state and then deselecting one of its vertices for example),
+mostly the best way to solve this is to flush the selection
+after performing a series of edits. This validates the selection state.
 
 
 Module Functions
