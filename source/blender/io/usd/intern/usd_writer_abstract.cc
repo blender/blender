@@ -32,7 +32,9 @@ static const pxr::TfToken roughness("roughness", pxr::TfToken::Immortal);
 static const pxr::TfToken surface("surface", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
-namespace USD {
+namespace blender {
+namespace io {
+namespace usd {
 
 USDAbstractWriter::USDAbstractWriter(const USDExporterContext &usd_export_context)
     : usd_export_context_(usd_export_context),
@@ -112,4 +114,6 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(Material *material)
   return usd_material;
 }
 
-}  // namespace USD
+}  // namespace usd
+}  // namespace io
+}  // namespace blender

@@ -32,7 +32,9 @@ struct Depsgraph;
 struct ID;
 struct Object;
 
-namespace USD {
+namespace blender {
+namespace io {
+namespace usd {
 
 using blender::io::AbstractHierarchyIterator;
 using blender::io::AbstractHierarchyWriter;
@@ -70,6 +72,8 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
   USDExporterContext create_usd_export_context(const HierarchyContext *context);
 };
 
-}  // namespace USD
+}  // namespace usd
+}  // namespace io
+}  // namespace blender
 
 #endif /* __USD_HIERARCHY_ITERATOR_H__ */

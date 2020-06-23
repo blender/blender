@@ -21,7 +21,9 @@
 
 #include "usd_writer_mesh.h"
 
-namespace USD {
+namespace blender {
+namespace io {
+namespace usd {
 
 class USDMetaballWriter : public USDGenericMeshWriter {
  public:
@@ -37,6 +39,8 @@ class USDMetaballWriter : public USDGenericMeshWriter {
   bool is_basis_ball(Scene *scene, Object *ob) const;
 };
 
-}  // namespace USD
+}  // namespace usd
+}  // namespace io
+}  // namespace blender
 
 #endif /* __USD_WRITER_METABALL_H__ */

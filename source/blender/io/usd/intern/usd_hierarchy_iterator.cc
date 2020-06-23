@@ -41,7 +41,9 @@
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 
-namespace USD {
+namespace blender {
+namespace io {
+namespace usd {
 
 USDHierarchyIterator::USDHierarchyIterator(Depsgraph *depsgraph,
                                            pxr::UsdStageRefPtr stage,
@@ -145,4 +147,6 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_particle_writer(const Hier
   return nullptr;
 }
 
-}  // namespace USD
+}  // namespace usd
+}  // namespace io
+}  // namespace blender

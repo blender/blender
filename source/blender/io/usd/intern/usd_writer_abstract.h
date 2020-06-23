@@ -36,7 +36,9 @@
 struct Material;
 struct Object;
 
-namespace USD {
+namespace blender {
+namespace io {
+namespace usd {
 
 using blender::io::AbstractHierarchyWriter;
 using blender::io::HierarchyContext;
@@ -73,6 +75,8 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   pxr::UsdShadeMaterial ensure_usd_material(Material *material);
 };
 
-}  // namespace USD
+}  // namespace usd
+}  // namespace io
+}  // namespace blender
 
 #endif /* __USD_WRITER_ABSTRACT_H__ */

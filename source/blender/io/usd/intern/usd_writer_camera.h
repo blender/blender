@@ -21,7 +21,9 @@
 
 #include "usd_writer_abstract.h"
 
-namespace USD {
+namespace blender {
+namespace io {
+namespace usd {
 
 /* Writer for writing camera data to UsdGeomCamera. */
 class USDCameraWriter : public USDAbstractWriter {
@@ -33,6 +35,8 @@ class USDCameraWriter : public USDAbstractWriter {
   virtual void do_write(HierarchyContext &context) override;
 };
 
-}  // namespace USD
+}  // namespace usd
+}  // namespace io
+}  // namespace blender
 
 #endif /* __USD_WRITER_CAMERA_H__ */

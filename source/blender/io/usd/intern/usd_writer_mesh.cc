@@ -42,7 +42,9 @@
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_particle_types.h"
 
-namespace USD {
+namespace blender {
+namespace io {
+namespace usd {
 
 USDGenericMeshWriter::USDGenericMeshWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
 {
@@ -484,4 +486,6 @@ Mesh *USDMeshWriter::get_export_mesh(Object *object_eval, bool & /*r_needsfree*/
   return BKE_object_get_evaluated_mesh(object_eval);
 }
 
-}  // namespace USD
+}  // namespace usd
+}  // namespace io
+}  // namespace blender
