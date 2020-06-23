@@ -336,11 +336,9 @@ static void rna_def_shader_fx_pixel(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Size", "Pixel size");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
 
-  prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
-  RNA_def_property_range(prop, 0.0, 1.0);
-  RNA_def_property_float_sdna(prop, NULL, "rgba");
-  RNA_def_property_array(prop, 4);
-  RNA_def_property_ui_text(prop, "Color", "Color used for lines");
+  prop = RNA_def_property(srna, "use_antialiasing", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", FX_PIXEL_FILTER_NEAREST);
+  RNA_def_property_ui_text(prop, "Antialiasing", "Antialiase pixels");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
 }
 

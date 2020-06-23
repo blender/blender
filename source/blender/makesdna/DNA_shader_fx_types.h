@@ -172,6 +172,10 @@ typedef struct PixelShaderFxData {
   ShaderFxData_Runtime runtime;
 } PixelShaderFxData;
 
+typedef enum ePixelShaderFx_Flag {
+  FX_PIXEL_FILTER_NEAREST = (1 << 0),
+} ePixelShaderFx_Flag;
+
 typedef struct RimShaderFxData {
   ShaderFxData shaderfx;
   int offset[2];

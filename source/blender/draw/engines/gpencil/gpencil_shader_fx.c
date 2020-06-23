@@ -262,6 +262,8 @@ static void gpencil_vfx_pixelize(PixelShaderFxData *fx, Object *ob, gpIterVfxDat
   mul_v3_m4v3(ob_center, persmat, ob->obmat[3]);
   mul_v3_fl(ob_center, 1.0f / w);
 
+  const bool use_antialiasing = ((fx->flag & FX_PIXEL_FILTER_NEAREST) == 0);
+
   /* Convert to uvs. */
   mul_v2_fl(ob_center, 0.5f);
   add_v2_fl(ob_center, 0.5f);
@@ -285,7 +287,8 @@ static void gpencil_vfx_pixelize(PixelShaderFxData *fx, Object *ob, gpIterVfxDat
     DRW_shgroup_uniform_vec2_copy(grp, "targetPixelSize", pixsize_uniform);
     DRW_shgroup_uniform_vec2_copy(grp, "targetPixelOffset", ob_center);
     DRW_shgroup_uniform_vec2_copy(grp, "accumOffset", (float[2]){pixel_size[0], 0.0f});
-    DRW_shgroup_uniform_int_copy(grp, "sampCount", (pixel_size[0] / vp_size_inv[0] > 3.0) ? 2 : 1);
+    int samp_count = (pixel_size[0] / vp_size_inv[0] > 3.0) ? 2 : 1;
+    DRW_shgroup_uniform_int_copy(grp, "sampCount", use_antialiasing ? samp_count : 0);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
 
@@ -294,7 +297,8 @@ static void gpencil_vfx_pixelize(PixelShaderFxData *fx, Object *ob, gpIterVfxDat
     grp = gpencil_vfx_pass_create("Fx Pixelize Y", state, iter, sh);
     DRW_shgroup_uniform_vec2_copy(grp, "targetPixelSize", pixsize_uniform);
     DRW_shgroup_uniform_vec2_copy(grp, "accumOffset", (float[2]){0.0f, pixel_size[1]});
-    DRW_shgroup_uniform_int_copy(grp, "sampCount", (pixel_size[1] / vp_size_inv[1] > 3.0) ? 2 : 1);
+    int samp_count = (pixel_size[1] / vp_size_inv[1] > 3.0) ? 2 : 1;
+    DRW_shgroup_uniform_int_copy(grp, "sampCount", use_antialiasing ? samp_count : 0);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
 }

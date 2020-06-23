@@ -68,6 +68,8 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemFullR(col, &ptr, prop, 0, 0, 0, IFACE_("Size X"), ICON_NONE);
   uiItemFullR(col, &ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
 
+  uiItemR(layout, &ptr, "use_antialiasing", 0, NULL, ICON_NONE);
+
   shaderfx_panel_end(layout, &ptr);
 }
 
