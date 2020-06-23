@@ -359,7 +359,7 @@ INFO_DOCS = (
     ("info_tips_and_tricks.rst",
      "Tips and Tricks: Hints to help you while writing scripts for Blender"),
     ("info_gotcha.rst",
-     "Gotcha's: some of the problems you may come up against when writing scripts"),
+     "Gotcha's: some of the problems you may encounter when writing scripts"),
     ("change_log.rst", "List of changes since last Blender release"),
 )
 
