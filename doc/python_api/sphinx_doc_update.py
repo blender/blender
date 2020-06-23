@@ -118,20 +118,19 @@ def main():
 
         # III) Get Blender version info.
         getver_file = os.path.join(tmp_dir, "blendver.txt")
-        getver_script = (
-            "import sys, bpy\n"
-            "with open(sys.argv[-1], 'w') as f:\n"
-            "    is_release = bpy.app.version_cycle in {'rc', 'release'}\n"
-            "    is_beta = bpy.app.version_cycle in {'beta'}\n"
-            "    branch = bpy.app.build_branch.split()[0].decode()\n"
-            "    f.write('%d\\n' % is_release)\n"
-            "    f.write('%d\\n' % is_beta)\n"
-            "    f.write('%s\\n' % branch)\n"
-            "    f.write('%d.%d\\n' % (bpy.app.version[0], bpy.app.version[1]))\n"
-            "    f.write('%d.%d\\n' % (bpy.app.version[0], bpy.app.version[1])\n"
-            "            if (is_release or is_beta) else '%s\\n' % branch)\n"
-            "    f.write('%d_%d' % (bpy.app.version[0], bpy.app.version[1]))\n"
-        )
+        getver_script = (r"""import sys, bpy
+with open(sys.argv[-1], 'w') as f:
+    is_release = bpy.app.version_cycle in {'rc', 'release'}
+    is_beta = bpy.app.version_cycle in {'beta'}
+    branch = bpy.app.build_branch.split()[0].decode()
+    f.write('%d\n' % is_release)
+    f.write('%d\n' % is_beta)
+    f.write('%s\n' % branch)
+    f.write('%d.%d\n' % (bpy.app.version[0], bpy.app.version[1]))
+    f.write('%d.%d\n' % (bpy.app.version[0], bpy.app.version[1])
+            if (is_release or is_beta) else '%s\n' % branch)
+    f.write('%d_%d' % (bpy.app.version[0], bpy.app.version[1]))
+""")
         get_ver_cmd = (args.blender, "--background", "-noaudio", "--factory-startup", "--python-exit-code", "1",
                        "--python-expr", getver_script, "--", getver_file)
         subprocess.run(get_ver_cmd)
