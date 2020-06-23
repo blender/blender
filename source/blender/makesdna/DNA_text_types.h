@@ -46,7 +46,8 @@ typedef struct Text {
   char *filepath;
   void *compiled;
 
-  int flags, nlines;
+  int flags;
+  char _pad0[4];
 
   ListBase lines;
   TextLine *curl, *sell;

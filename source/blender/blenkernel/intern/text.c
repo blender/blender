@@ -112,7 +112,6 @@ static void text_init_data(ID *id)
 
   text->filepath = NULL;
 
-  text->nlines = 1;
   text->flags = TXT_ISDIRTY | TXT_ISMEM;
   if ((U.flag & USER_TXT_TABSTOSPACES_DISABLE) == 0) {
     text->flags |= TXT_TABSTOSPACES;
@@ -316,12 +315,12 @@ static void cleanup_textline(TextLine *tl)
  */
 static void text_from_buf(Text *text, const unsigned char *buffer, const int len)
 {
-  int i, llen;
+  int i, llen, lines_count;
 
   BLI_assert(BLI_listbase_is_empty(&text->lines));
 
-  text->nlines = 0;
   llen = 0;
+  lines_count = 0;
   for (i = 0; i < len; i++) {
     if (buffer[i] == '\n') {
       TextLine *tmp;
@@ -339,7 +338,7 @@ static void text_from_buf(Text *text, const unsigned char *buffer, const int len
       cleanup_textline(tmp);
 
       BLI_addtail(&text->lines, tmp);
-      text->nlines++;
+      lines_count += 1;
 
       llen = 0;
       continue;
@@ -353,7 +352,7 @@ static void text_from_buf(Text *text, const unsigned char *buffer, const int len
    * - file is empty. in this case new line is needed to start editing from.
    * - last character in buffer is \n. in this case new line is needed to
    *   deal with newline at end of file. (see [#28087]) (sergey) */
-  if (llen != 0 || text->nlines == 0 || buffer[len - 1] == '\n') {
+  if (llen != 0 || lines_count == 0 || buffer[len - 1] == '\n') {
     TextLine *tmp;
 
     tmp = (TextLine *)MEM_mallocN(sizeof(TextLine), "textline");
@@ -370,7 +369,7 @@ static void text_from_buf(Text *text, const unsigned char *buffer, const int len
     cleanup_textline(tmp);
 
     BLI_addtail(&text->lines, tmp);
-    text->nlines++;
+    /* lines_count += 1; */ /* UNUSED */
   }
 
   text->curl = text->sell = text->lines.first;
