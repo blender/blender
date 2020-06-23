@@ -630,6 +630,8 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
                          void (*callback)(void *vedata, void *user_data),
                          void *user_data);
 
+void DRW_cache_restart(void);
+
 /* ViewLayers */
 void *DRW_view_layer_engine_data_get(DrawEngineType *engine_type);
 void **DRW_view_layer_engine_data_ensure_ex(struct ViewLayer *view_layer,

@@ -176,6 +176,13 @@ struct DRWShadingGroup *DRW_shgroup_hair_create_sub(struct Object *object,
                                                     struct ParticleSystem *psys,
                                                     struct ModifierData *md,
                                                     struct DRWShadingGroup *shgrp);
+struct GPUVertBuf *DRW_hair_pos_buffer_get(struct Object *object,
+                                           struct ParticleSystem *psys,
+                                           struct ModifierData *md);
+void DRW_hair_duplimat_get(struct Object *object,
+                           struct ParticleSystem *psys,
+                           struct ModifierData *md,
+                           float (*dupli_mat)[4]);
 
 void DRW_hair_init(void);
 void DRW_hair_update(void);

@@ -46,12 +46,6 @@
 
 #include "eevee_private.h"
 
-bool EEVEE_render_do_motion_blur(const struct Depsgraph *depsgraph)
-{
-  Scene *scene = DEG_get_evaluated_scene(depsgraph);
-  return (scene->eevee.flag & SCE_EEVEE_MOTION_BLUR_ENABLED) != 0;
-}
-
 /* Return true if init properly. */
 bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *depsgraph)
 {
@@ -137,6 +131,29 @@ bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
                                                   &sldata->common_data);
   }
 
+  EEVEE_render_view_sync(vedata, engine, depsgraph);
+
+  /* TODO(sergey): Shall render hold pointer to an evaluated camera instead? */
+  struct Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
+
+  DRWView *view = (DRWView *)DRW_view_default_get();
+  DRW_view_camtexco_set(view, camtexcofac);
+
+  /* `EEVEE_renderpasses_init` will set the active render passes used by `EEVEE_effects_init`.
+   * `EEVEE_effects_init` needs to go second for TAA. */
+  EEVEE_renderpasses_init(vedata);
+  EEVEE_effects_init(sldata, vedata, ob_camera_eval, false);
+  EEVEE_materials_init(sldata, vedata, stl, fbl);
+  EEVEE_shadows_init(sldata);
+  EEVEE_lightprobes_init(sldata, vedata);
+
+  return true;
+}
+
+void EEVEE_render_view_sync(EEVEE_Data *vedata, RenderEngine *engine, struct Depsgraph *depsgraph)
+{
+  EEVEE_PrivateData *g_data = vedata->stl->g_data;
+
   /* Set the pers & view matrix. */
   float winmat[4][4], viewmat[4][4], viewinv[4][4];
   /* TODO(sergey): Shall render hold pointer to an evaluated camera instead? */
@@ -149,20 +166,13 @@ bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
   invert_m4_m4(viewmat, viewinv);
 
   DRWView *view = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
-  DRW_view_camtexco_set(view, camtexcofac);
   DRW_view_reset();
   DRW_view_default_set(view);
   DRW_view_set_active(view);
+}
 
-  /* `EEVEE_renderpasses_init` will set the active render passes used by `EEVEE_effects_init`.
-   * `EEVEE_effects_init` needs to go second for TAA. */
-  EEVEE_renderpasses_init(vedata);
-  EEVEE_effects_init(sldata, vedata, ob_camera_eval, false);
-  EEVEE_materials_init(sldata, vedata, stl, fbl);
-  EEVEE_shadows_init(sldata);
-  EEVEE_lightprobes_init(sldata, vedata);
-
-  /* INIT CACHE */
+void EEVEE_render_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+{
   EEVEE_bloom_cache_init(sldata, vedata);
   EEVEE_depth_of_field_cache_init(sldata, vedata);
   EEVEE_effects_cache_init(sldata, vedata);
@@ -175,8 +185,6 @@ bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
   EEVEE_subsurface_cache_init(sldata, vedata);
   EEVEE_temporal_sampling_cache_init(sldata, vedata);
   EEVEE_volumes_cache_init(sldata, vedata);
-
-  return true;
 }
 
 /* Used by light cache. in this case engine is NULL. */
@@ -188,6 +196,8 @@ void EEVEE_render_cache(void *vedata,
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
   EEVEE_LightProbesInfo *pinfo = sldata->probes;
   bool cast_shadow = false;
+
+  eevee_id_update(vedata, &ob->id);
 
   if (pinfo->vis_data.collection) {
     /* Used for rendering probe with visibility groups. */
@@ -485,27 +495,12 @@ static void eevee_render_draw_background(EEVEE_Data *vedata)
 
 void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl, const rcti *rect)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
   const char *viewname = RE_GetActiveRenderView(engine->re);
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_FramebufferList *fbl = vedata->fbl;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
-  EEVEE_PrivateData *g_data = stl->g_data;
-
-  /* FINISH CACHE */
-  EEVEE_volumes_cache_finish(sldata, vedata);
-  EEVEE_materials_cache_finish(sldata, vedata);
-  EEVEE_lights_cache_finish(sldata, vedata);
-  EEVEE_lightprobes_cache_finish(sldata, vedata);
-
-  EEVEE_effects_draw_init(sldata, vedata);
-  EEVEE_volumes_draw_init(sldata, vedata);
-
-  /* Sort transparents before the loop. */
-  DRW_pass_sort_shgroup_z(psl->transparent_pass);
 
   /* Push instances attributes to the GPU. */
   DRW_render_instance_buffer_finish();
@@ -515,18 +510,15 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
   GPU_framebuffer_bind(fbl->main_fb);
   DRW_hair_update();
 
-  uint tot_sample = scene_eval->eevee.taa_render_samples;
+  /* Sort transparents before the loop. */
+  DRW_pass_sort_shgroup_z(psl->transparent_pass);
+
+  uint tot_sample = stl->g_data->render_tot_samples;
   uint render_samples = 0;
 
   /* SSR needs one iteration to start properly. */
-  if (stl->effects->enabled_effects & EFFECT_SSR) {
+  if ((stl->effects->enabled_effects & EFFECT_SSR) && !stl->effects->ssr_was_valid_double_buffer) {
     tot_sample += 1;
-  }
-
-  EEVEE_renderpasses_output_init(sldata, vedata, tot_sample);
-
-  if (RE_engine_test_break(engine)) {
-    return;
   }
 
   while (render_samples < tot_sample && !RE_engine_test_break(engine)) {
@@ -624,6 +616,15 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 
     RE_engine_update_progress(engine, (float)(render_samples++) / (float)tot_sample);
   }
+}
+
+void EEVEE_render_read_result(EEVEE_Data *vedata,
+                              RenderEngine *engine,
+                              RenderLayer *rl,
+                              const rcti *rect)
+{
+  const char *viewname = RE_GetActiveRenderView(engine->re);
+  EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
   eevee_render_result_combined(rl, viewname, rect, vedata, sldata);
   eevee_render_result_mist(rl, viewname, rect, vedata, sldata);
@@ -638,9 +639,6 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
   eevee_render_result_bloom(rl, viewname, rect, vedata, sldata);
   eevee_render_result_volume_scatter(rl, viewname, rect, vedata, sldata);
   eevee_render_result_volume_transmittance(rl, viewname, rect, vedata, sldata);
-
-  /* Restore original viewport size. */
-  DRW_render_viewport_size_set((int[2]){g_data->size_orig[0], g_data->size_orig[1]});
 }
 
 void EEVEE_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)

@@ -186,6 +186,18 @@ void EEVEE_temporal_sampling_reset(EEVEE_Data *vedata)
   vedata->stl->effects->taa_current_sample = 1;
 }
 
+void EEVEE_temporal_sampling_create_view(EEVEE_Data *vedata)
+{
+  EEVEE_EffectsInfo *effects = vedata->stl->effects;
+  /* Create a sub view to disable clipping planes (if any). */
+  const DRWView *default_view = DRW_view_default_get();
+  float viewmat[4][4], winmat[4][4];
+  DRW_view_viewmat_get(default_view, viewmat, false);
+  DRW_view_winmat_get(default_view, winmat, false);
+  effects->taa_view = DRW_view_create_sub(default_view, viewmat, winmat);
+  DRW_view_clip_planes_set(effects->taa_view, NULL, 0);
+}
+
 int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
   EEVEE_StorageList *stl = vedata->stl;
@@ -201,15 +213,8 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
    * we accumulate the redraw inside the drawing loop in eevee_draw_scene().
    **/
   effects->taa_render_sample = 1;
-  effects->taa_view = NULL;
 
-  /* Create a sub view to disable clipping planes (if any). */
-  const DRWView *default_view = DRW_view_default_get();
-  float viewmat[4][4], winmat[4][4];
-  DRW_view_viewmat_get(default_view, viewmat, false);
-  DRW_view_winmat_get(default_view, winmat, false);
-  effects->taa_view = DRW_view_create_sub(default_view, viewmat, winmat);
-  DRW_view_clip_planes_set(effects->taa_view, NULL, 0);
+  EEVEE_temporal_sampling_create_view(vedata);
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);

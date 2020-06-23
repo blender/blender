@@ -153,7 +153,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
 
   effects->enabled_effects = 0;
   effects->enabled_effects |= (G.debug_value == 9) ? EFFECT_VELOCITY_BUFFER : 0;
-  effects->enabled_effects |= EEVEE_motion_blur_init(sldata, vedata, camera);
+  effects->enabled_effects |= EEVEE_motion_blur_init(sldata, vedata);
   effects->enabled_effects |= EEVEE_bloom_init(sldata, vedata);
   effects->enabled_effects |= EEVEE_depth_of_field_init(sldata, vedata, camera);
   effects->enabled_effects |= EEVEE_temporal_sampling_init(sldata, vedata);

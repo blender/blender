@@ -801,6 +801,8 @@ static void eevee_hair_cache_populate(EEVEE_Data *vedata,
     *matcache.shadow_grp_p = DRW_shgroup_hair_create_sub(ob, psys, md, matcache.shadow_grp);
     *cast_shadow = true;
   }
+
+  EEVEE_motion_blur_hair_cache_populate(sldata, vedata, ob, psys, md);
 }
 
 #define ADD_SHGROUP_CALL(shgrp, ob, geom, oedata) \
@@ -949,17 +951,15 @@ void EEVEE_object_hair_cache_populate(EEVEE_Data *vedata,
   eevee_hair_cache_populate(vedata, sldata, ob, NULL, NULL, HAIR_MATERIAL_NR, cast_shadow);
 }
 
-void EEVEE_materials_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+void EEVEE_materials_cache_finish(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
   EEVEE_PrivateData *pd = vedata->stl->g_data;
   EEVEE_EffectsInfo *effects = vedata->stl->effects;
 
   BLI_ghash_free(pd->material_hash, NULL, NULL);
+  pd->material_hash = NULL;
 
   SET_FLAG_FROM_TEST(effects->enabled_effects, effects->sss_surface_count > 0, EFFECT_SSS);
-
-  /* TODO(fclem) this is not really clean. Init should not be done in cache finish. */
-  EEVEE_subsurface_draw_init(sldata, vedata);
 }
 
 void EEVEE_materials_free(void)

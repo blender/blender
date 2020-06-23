@@ -1942,6 +1942,19 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
 #endif
 }
 
+/* Used when the render engine want to redo another cache populate inside the same render frame. */
+void DRW_cache_restart(void)
+{
+  /* Force cache to reset. */
+  drw_viewport_cache_resize();
+
+  drw_viewport_var_init();
+
+  DST.buffer_finish_called = false;
+
+  DRW_hair_init();
+}
+
 static struct DRWSelectBuffer {
   struct GPUFrameBuffer *framebuffer_depth_only;
   struct GPUTexture *texture_depth;

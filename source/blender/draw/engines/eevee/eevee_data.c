@@ -41,8 +41,19 @@
 static void eevee_motion_blur_mesh_data_free(void *val)
 {
   EEVEE_GeometryMotionData *geom_mb = (EEVEE_GeometryMotionData *)val;
-  for (int i = 0; i < ARRAY_SIZE(geom_mb->vbo); i++) {
-    GPU_VERTBUF_DISCARD_SAFE(geom_mb->vbo[i]);
+  switch (geom_mb->type) {
+    case EEVEE_HAIR_GEOM_MOTION_DATA:
+      for (int i = 0; i < ARRAY_SIZE(geom_mb->vbo); i++) {
+        GPU_VERTBUF_DISCARD_SAFE(geom_mb->hair_pos[i]);
+        DRW_TEXTURE_FREE_SAFE(geom_mb->hair_pos_tx[i]);
+      }
+      break;
+
+    case EEVEE_MESH_GEOM_MOTION_DATA:
+      for (int i = 0; i < ARRAY_SIZE(geom_mb->vbo); i++) {
+        GPU_VERTBUF_DISCARD_SAFE(geom_mb->vbo[i]);
+      }
+      break;
   }
   MEM_freeN(val);
 }
@@ -103,14 +114,17 @@ void EEVEE_motion_blur_data_free(EEVEE_MotionBlurData *mb)
   }
 }
 
-EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *mb, Object *ob)
+EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *mb,
+                                                          Object *ob,
+                                                          bool hair)
 {
   if (mb->object == NULL) {
     return NULL;
   }
 
   EEVEE_ObjectKey key, *key_p;
-  key.ob = ob;
+  /* Small hack to avoid another comparisson. */
+  key.ob = (Object *)((char *)ob + hair);
   DupliObject *dup = DRW_object_get_dupli(ob);
   if (dup) {
     key.parent = DRW_object_get_dupli_parent(ob);
@@ -133,7 +147,9 @@ EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *
   return ob_step;
 }
 
-EEVEE_GeometryMotionData *EEVEE_motion_blur_geometry_data_get(EEVEE_MotionBlurData *mb, Object *ob)
+EEVEE_GeometryMotionData *EEVEE_motion_blur_geometry_data_get(EEVEE_MotionBlurData *mb,
+                                                              Object *ob,
+                                                              bool hair)
 {
   if (mb->geom == NULL) {
     return NULL;
@@ -142,10 +158,12 @@ EEVEE_GeometryMotionData *EEVEE_motion_blur_geometry_data_get(EEVEE_MotionBlurDa
   /* Use original data as key to ensure matching accross update. */
   Object *ob_orig = DEG_get_original_object(ob);
 
-  EEVEE_GeometryMotionData *geom_step = BLI_ghash_lookup(mb->geom, ob_orig->data);
+  void *key = (char *)ob_orig->data + hair;
+  EEVEE_GeometryMotionData *geom_step = BLI_ghash_lookup(mb->geom, key);
   if (geom_step == NULL) {
     geom_step = MEM_callocN(sizeof(EEVEE_GeometryMotionData), __func__);
-    BLI_ghash_insert(mb->geom, ob_orig->data, geom_step);
+    geom_step->type = (hair) ? EEVEE_HAIR_GEOM_MOTION_DATA : EEVEE_MESH_GEOM_MOTION_DATA;
+    BLI_ghash_insert(mb->geom, key, geom_step);
   }
 
   return geom_step;
@@ -229,6 +247,8 @@ static void eevee_object_data_init(DrawData *dd)
 {
   EEVEE_ObjectEngineData *eevee_data = (EEVEE_ObjectEngineData *)dd;
   eevee_data->shadow_caster_id = -1;
+  eevee_data->need_update = false;
+  eevee_data->geom_update = false;
 }
 
 EEVEE_ObjectEngineData *EEVEE_object_data_get(Object *ob)

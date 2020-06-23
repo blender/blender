@@ -75,18 +75,8 @@ static void eevee_create_shader_subsurface(void)
   MEM_freeN(frag_str);
 }
 
-void EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+void EEVEE_subsurface_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *UNUSED(vedata))
 {
-  EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
-  EEVEE_StorageList *stl = vedata->stl;
-  EEVEE_EffectsInfo *effects = stl->effects;
-
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
-
-  effects->sss_sample_count = 1 + scene_eval->eevee.sss_samples * 2;
-  effects->sss_surface_count = 0;
-  common_data->sss_jitter_threshold = scene_eval->eevee.sss_jitter_threshold;
 }
 
 void EEVEE_subsurface_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
@@ -204,14 +194,23 @@ void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata),
   }
 }
 
-void EEVEE_subsurface_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_subsurface_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
+  EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
+  EEVEE_EffectsInfo *effects = vedata->stl->effects;
   EEVEE_PassList *psl = vedata->psl;
+
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
   /* Shaders */
   if (!e_data.sss_sh[0]) {
     eevee_create_shader_subsurface();
   }
+
+  effects->sss_sample_count = 1 + scene_eval->eevee.sss_samples * 2;
+  effects->sss_surface_count = 0;
+  common_data->sss_jitter_threshold = scene_eval->eevee.sss_jitter_threshold;
 
   /** Screen Space SubSurface Scattering overview
    * TODO

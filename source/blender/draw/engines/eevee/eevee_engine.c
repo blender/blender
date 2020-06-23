@@ -167,6 +167,7 @@ static void eevee_cache_finish(void *vedata)
   EEVEE_lights_cache_finish(sldata, vedata);
   EEVEE_lightprobes_cache_finish(sldata, vedata);
 
+  EEVEE_subsurface_draw_init(sldata, vedata);
   EEVEE_effects_draw_init(sldata, vedata);
   EEVEE_volumes_draw_init(sldata, vedata);
 
@@ -381,6 +382,7 @@ static void eevee_id_object_update(void *UNUSED(vedata), Object *object)
   EEVEE_ObjectEngineData *oedata = EEVEE_object_data_get(object);
   if (oedata != NULL && oedata->dd.recalc != 0) {
     oedata->need_update = true;
+    oedata->geom_update = (oedata->dd.recalc & (ID_RECALC_GEOMETRY)) != 0;
     oedata->dd.recalc = 0;
   }
 }
@@ -400,7 +402,7 @@ static void eevee_id_world_update(void *vedata, World *wo)
   }
 }
 
-static void eevee_id_update(void *vedata, ID *id)
+void eevee_id_update(void *vedata, ID *id)
 {
   /* Handle updates based on ID type. */
   switch (GS(id->name)) {
@@ -416,6 +418,12 @@ static void eevee_id_update(void *vedata, ID *id)
   }
 }
 
+static void eevee_render_reset_passes(EEVEE_Data *vedata)
+{
+  /* Reset passlist. This is safe as they are stored into managed memory chunks. */
+  memset(vedata->psl, 0, sizeof(*vedata->psl));
+}
+
 static void eevee_render_to_image(void *vedata,
                                   RenderEngine *engine,
                                   struct RenderLayer *render_layer,
@@ -423,74 +431,114 @@ static void eevee_render_to_image(void *vedata,
 {
   EEVEE_Data *ved = (EEVEE_Data *)vedata;
   const DRWContextState *draw_ctx = DRW_context_state_get();
+  Depsgraph *depsgraph = draw_ctx->depsgraph;
+  Scene *scene = DEG_get_evaluated_scene(depsgraph);
+  EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
+  const bool do_motion_blur = (scene->eevee.flag & SCE_EEVEE_MOTION_BLUR_ENABLED) != 0;
+  const bool do_motion_blur_fx = do_motion_blur && (scene->eevee.motion_blur_max > 0);
 
-  if (EEVEE_render_do_motion_blur(draw_ctx->depsgraph)) {
-    Scene *scene = DEG_get_evaluated_scene(draw_ctx->depsgraph);
-
-    float shutter = scene->eevee.motion_blur_shutter * 0.5f;
-    float time = CFRA;
-    /* Centered on frame for now. */
-    float start_time = time - shutter;
-    float end_time = time + shutter;
-
-    {
-      EEVEE_motion_blur_step_set(ved, MB_PREV);
-      RE_engine_frame_set(engine, floorf(start_time), fractf(start_time));
-
-      if (!EEVEE_render_init(vedata, engine, draw_ctx->depsgraph)) {
-        return;
-      }
-
-      if (RE_engine_test_break(engine)) {
-        return;
-      }
-
-      DRW_render_object_iter(vedata, engine, draw_ctx->depsgraph, EEVEE_render_cache);
-      EEVEE_motion_blur_cache_finish(vedata);
-      /* Reset passlist. This is safe as they are stored into managed memory chunks. */
-      memset(ved->psl, 0, sizeof(*ved->psl));
-      /* Fix memleak */
-      BLI_ghash_free(ved->stl->g_data->material_hash, NULL, NULL);
-      ved->stl->g_data->material_hash = NULL;
-    }
-
-    {
-      EEVEE_motion_blur_step_set(ved, MB_NEXT);
-      RE_engine_frame_set(engine, floorf(end_time), fractf(end_time));
-
-      EEVEE_render_init(vedata, engine, draw_ctx->depsgraph);
-
-      DRW_render_object_iter(vedata, engine, draw_ctx->depsgraph, EEVEE_render_cache);
-      EEVEE_motion_blur_cache_finish(vedata);
-      /* Reset passlist. This is safe as they are stored into managed memory chunks. */
-      memset(ved->psl, 0, sizeof(*ved->psl));
-      /* Fix memleak */
-      BLI_ghash_free(ved->stl->g_data->material_hash, NULL, NULL);
-      ved->stl->g_data->material_hash = NULL;
-    }
-
-    /* Current frame. */
-    EEVEE_motion_blur_step_set(ved, MB_CURR);
-    RE_engine_frame_set(engine, time, 0.0f);
-  }
-
-  if (!EEVEE_render_init(vedata, engine, draw_ctx->depsgraph)) {
+  if (!EEVEE_render_init(vedata, engine, depsgraph)) {
     return;
   }
+  EEVEE_PrivateData *g_data = ved->stl->g_data;
+
+  int steps = max_ii(1, scene->eevee.motion_blur_steps);
+  int time_steps_tot = (do_motion_blur) ? steps : 1;
+  g_data->render_tot_samples = divide_ceil_u(scene->eevee.taa_render_samples, time_steps_tot);
+  /* Centered on frame for now. */
+  float time = CFRA - scene->eevee.motion_blur_shutter / 2.0f;
+  float time_step = scene->eevee.motion_blur_shutter / time_steps_tot;
+  for (int i = 0; i < time_steps_tot && !RE_engine_test_break(engine); i++) {
+    float time_prev = time;
+    float time_curr = time + time_step * 0.5f;
+    float time_next = time + time_step;
+    time += time_step;
+
+    /* Previous motion step. */
+    if (do_motion_blur_fx) {
+      if (i > 0) {
+        /* The previous step of this iteration N is exactly the next step of iteration N - 1.
+         * So we just swap the resources to avoid too much re-evaluation. */
+        EEVEE_motion_blur_swap_data(vedata);
+      }
+      else {
+        EEVEE_motion_blur_step_set(ved, MB_PREV);
+        RE_engine_frame_set(engine, floorf(time_prev), fractf(time_prev));
+
+        EEVEE_render_view_sync(vedata, engine, depsgraph);
+        EEVEE_render_cache_init(sldata, vedata);
+
+        DRW_render_object_iter(vedata, engine, depsgraph, EEVEE_render_cache);
+
+        EEVEE_motion_blur_cache_finish(vedata);
+        EEVEE_materials_cache_finish(sldata, vedata);
+        eevee_render_reset_passes(vedata);
+      }
+    }
+
+    /* Next motion step. */
+    if (do_motion_blur_fx) {
+      EEVEE_motion_blur_step_set(ved, MB_NEXT);
+      RE_engine_frame_set(engine, floorf(time_next), fractf(time_next));
+
+      EEVEE_render_view_sync(vedata, engine, depsgraph);
+      EEVEE_render_cache_init(sldata, vedata);
+
+      DRW_render_object_iter(vedata, engine, depsgraph, EEVEE_render_cache);
+
+      EEVEE_motion_blur_cache_finish(vedata);
+      EEVEE_materials_cache_finish(sldata, vedata);
+      eevee_render_reset_passes(vedata);
+    }
+
+    /* Current motion step. */
+    {
+      if (do_motion_blur) {
+        EEVEE_motion_blur_step_set(ved, MB_CURR);
+        RE_engine_frame_set(engine, floorf(time_curr), fractf(time_curr));
+      }
+
+      EEVEE_render_view_sync(vedata, engine, depsgraph);
+      EEVEE_render_cache_init(sldata, vedata);
+
+      DRW_render_object_iter(vedata, engine, depsgraph, EEVEE_render_cache);
+
+      EEVEE_motion_blur_cache_finish(vedata);
+      EEVEE_volumes_cache_finish(sldata, vedata);
+      EEVEE_materials_cache_finish(sldata, vedata);
+      EEVEE_lights_cache_finish(sldata, vedata);
+      EEVEE_lightprobes_cache_finish(sldata, vedata);
+
+      EEVEE_subsurface_draw_init(sldata, vedata);
+      EEVEE_effects_draw_init(sldata, vedata);
+      EEVEE_volumes_draw_init(sldata, vedata);
+    }
+
+    /* Actual drawing. */
+    {
+      if (i == 0) {
+        EEVEE_renderpasses_output_init(
+            sldata, vedata, g_data->render_tot_samples * time_steps_tot);
+      }
+
+      EEVEE_temporal_sampling_create_view(vedata);
+      EEVEE_render_draw(vedata, engine, render_layer, rect);
+
+      DRW_cache_restart();
+    }
+  }
+
+  EEVEE_volumes_free_smoke_textures();
+  EEVEE_motion_blur_data_free(&ved->stl->effects->motion_blur);
 
   if (RE_engine_test_break(engine)) {
     return;
   }
 
-  DRW_render_object_iter(vedata, engine, draw_ctx->depsgraph, EEVEE_render_cache);
+  EEVEE_render_read_result(vedata, engine, render_layer, rect);
 
-  EEVEE_motion_blur_cache_finish(vedata);
-
-  /* Actually do the rendering. */
-  EEVEE_render_draw(vedata, engine, render_layer, rect);
-
-  EEVEE_volumes_free_smoke_textures();
-  EEVEE_motion_blur_data_free(&ved->stl->effects->motion_blur);
+  /* Restore original viewport size. */
+  DRW_render_viewport_size_set((int[2]){g_data->size_orig[0], g_data->size_orig[1]});
 }
 
 static void eevee_engine_free(void)
