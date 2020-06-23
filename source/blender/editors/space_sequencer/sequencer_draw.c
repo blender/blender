@@ -2345,7 +2345,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
   UI_view2d_view_restore(C);
   ED_time_scrub_draw(region, scene, !(sseq->flag & SEQ_DRAWFRAMES), true);
-  UI_view2d_scrollers_draw(v2d, NULL);
 
   /* Draw channel numbers. */
   {
@@ -2354,4 +2353,14 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
         &rect, 0, 15 * UI_DPI_FAC, 15 * UI_DPI_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
     UI_view2d_draw_scale_y__block(region, v2d, &rect, TH_SCROLL_TEXT);
   }
+}
+
+void draw_timeline_seq_display(const bContext *C, ARegion *region)
+{
+  const Scene *scene = CTX_data_scene(C);
+  const SpaceSeq *sseq = CTX_wm_space_seq(C);
+  View2D *v2d = &region->v2d;
+
+  ED_time_scrub_draw_current_frame(region, scene, !(sseq->flag & SEQ_DRAWFRAMES), true);
+  UI_view2d_scrollers_draw(v2d, NULL);
 }

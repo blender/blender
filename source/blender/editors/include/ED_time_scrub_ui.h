@@ -32,6 +32,11 @@ struct bContext;
 struct bDopeSheet;
 struct wmEvent;
 
+void ED_time_scrub_draw_current_frame(const struct ARegion *region,
+                                      const struct Scene *scene,
+                                      bool display_seconds,
+                                      bool draw_vert_line);
+
 void ED_time_scrub_draw(const struct ARegion *region,
                         const struct Scene *scene,
                         bool display_seconds,

@@ -142,6 +142,8 @@ typedef struct ARegionType {
   void (*exit)(struct wmWindowManager *wm, struct ARegion *region);
   /* draw entirely, view changes should be handled here */
   void (*draw)(const struct bContext *C, struct ARegion *region);
+  /* Handler to draw overlays. This handler is called every draw loop. */
+  void (*draw_overlay)(const struct bContext *C, struct ARegion *region);
   /* optional, compute button layout before drawing for dynamic size */
   void (*layout)(const struct bContext *C, struct ARegion *region);
   /* snap the size of the region (can be NULL for no snapping). */

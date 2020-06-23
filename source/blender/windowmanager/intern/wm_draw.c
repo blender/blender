@@ -69,6 +69,8 @@
 #include "wm_surface.h"
 #include "wm_window.h"
 
+#include "UI_resources.h"
+
 #ifdef WITH_OPENSUBDIV
 #  include "BKE_subsurf.h"
 #endif
@@ -127,6 +129,28 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Post Draw Region on display handlers
+ * \{ */
+
+static void wm_region_draw_overlay(bContext *C, ScrArea *area, ARegion *region)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wmWindow *win = CTX_wm_window(C);
+
+  /* Don't draw overlay with locked interface. Drawing could access scene data that another thread
+   * may be modifying. */
+  if (wm->is_interface_locked) {
+    return;
+  }
+
+  wmViewport(&region->winrct);
+  UI_SetTheme(area->spacetype, region->regiontype);
+  region->type->draw_overlay(C, region);
+  wmWindowViewport(win);
+}
+
+/** \} */
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
@@ -749,25 +773,30 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
     }
   }
 
-  /* Draw paint cursors. */
-  if (wm->paintcursors.first) {
-    ED_screen_areas_iter (win, screen, area) {
-      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-        if (region->visible && region == screen->active_region) {
-          CTX_wm_area_set(C, area);
-          CTX_wm_region_set(C, region);
-
-          /* make region ready for draw, scissor, pixelspace */
-          wm_paintcursor_draw(C, area, region);
-
-          CTX_wm_region_set(C, NULL);
-          CTX_wm_area_set(C, NULL);
+  /* Draw overlays and paint cursors. */
+  ED_screen_areas_iter (win, screen, area) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+      if (region->visible) {
+        const bool do_paint_cursor = (wm->paintcursors.first && region == screen->active_region);
+        const bool do_draw_overlay = (region->type && region->type->draw_overlay);
+        if (!(do_paint_cursor || do_draw_overlay)) {
+          continue;
         }
+
+        CTX_wm_area_set(C, area);
+        CTX_wm_region_set(C, region);
+        if (do_draw_overlay) {
+          wm_region_draw_overlay(C, area, region);
+        }
+        if (do_paint_cursor) {
+          wm_paintcursor_draw(C, area, region);
+        }
+        CTX_wm_region_set(C, NULL);
+        CTX_wm_area_set(C, NULL);
       }
     }
-
-    wmWindowViewport(win);
   }
+  wmWindowViewport(win);
 
   /* Blend in overlapping area regions */
   ED_screen_areas_iter (win, screen, area) {

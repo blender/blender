@@ -92,7 +92,9 @@ static void draw_current_frame(const Scene *scene,
                                bool display_seconds,
                                const View2D *v2d,
                                const rcti *scrub_region_rect,
-                               int current_frame)
+                               int current_frame,
+                               float sub_frame,
+                               bool draw_line)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   int frame_x = UI_view2d_view_to_region_x(v2d, current_frame);
@@ -105,6 +107,23 @@ static void draw_current_frame(const Scene *scene,
 
   float bg_color[4];
   UI_GetThemeColorShade4fv(TH_CFRAME, -5, bg_color);
+
+  if (draw_line) {
+    /* Draw vertical line to from the bottom of the current frame box to the bottom of the screen.
+     */
+    const float subframe_x = UI_view2d_view_to_region_x(v2d, current_frame + sub_frame);
+    GPU_line_width(2.0f);
+    GPUVertFormat *format = immVertexFormat();
+    uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immUniformThemeColor(TH_CFRAME);
+    immBegin(GPU_PRIM_LINES, 2);
+
+    immVertex2f(pos, subframe_x, scrub_region_rect->ymax - box_padding);
+    immVertex2f(pos, subframe_x, 0.0f);
+    immEnd();
+    immUnbindProgram();
+  }
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
 
@@ -135,6 +154,28 @@ static void draw_current_frame(const Scene *scene,
                            text_color);
 }
 
+void ED_time_scrub_draw_current_frame(const ARegion *region,
+                                      const Scene *scene,
+                                      bool display_seconds,
+                                      bool draw_line)
+{
+  const View2D *v2d = &region->v2d;
+  GPU_matrix_push_projection();
+  wmOrtho2_region_pixelspace(region);
+
+  rcti scrub_region_rect;
+  get_time_scrub_region_rect(region, &scrub_region_rect);
+
+  draw_current_frame(scene,
+                     display_seconds,
+                     v2d,
+                     &scrub_region_rect,
+                     scene->r.cfra,
+                     scene->r.subframe,
+                     draw_line);
+  GPU_matrix_pop_projection();
+}
+
 void ED_time_scrub_draw(const ARegion *region,
                         const Scene *scene,
                         bool display_seconds,
@@ -160,8 +201,6 @@ void ED_time_scrub_draw(const ARegion *region,
     UI_view2d_draw_scale_x__frames_or_seconds(
         region, v2d, &numbers_rect, scene, display_seconds, TH_TEXT);
   }
-
-  draw_current_frame(scene, display_seconds, v2d, &scrub_region_rect, scene->r.cfra);
 
   GPU_matrix_pop_projection();
 }

@@ -521,6 +521,12 @@ static void sequencer_main_region_draw(const bContext *C, ARegion *region)
   draw_timeline_seq(C, region);
 }
 
+/* Strip editing timeline. */
+static void sequencer_main_region_draw_overlay(const bContext *C, ARegion *region)
+{
+  draw_timeline_seq_display(C, region);
+}
+
 static void sequencer_main_region_listener(wmWindow *UNUSED(win),
                                            ScrArea *UNUSED(area),
                                            ARegion *region,
@@ -865,6 +871,7 @@ void ED_spacetype_sequencer(void)
   art->regionid = RGN_TYPE_WINDOW;
   art->init = sequencer_main_region_init;
   art->draw = sequencer_main_region_draw;
+  art->draw_overlay = sequencer_main_region_draw_overlay;
   art->listener = sequencer_main_region_listener;
   art->message_subscribe = sequencer_main_region_message_subscribe;
   art->keymapflag = ED_KEYMAP_TOOL | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_ANIMATION;

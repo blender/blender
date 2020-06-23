@@ -184,6 +184,11 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   short marker_flag = 0;
   short cfra_flag = 0;
 
+  UI_view2d_view_ortho(v2d);
+  if (saction->flag & SACTION_DRAWTIME) {
+    cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+  }
+
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
   GPU_clear(GPU_COLOR_BIT);
@@ -202,12 +207,6 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   if (ANIM_animdata_get_context(C, &ac)) {
     draw_channel_strips(&ac, saction, region);
   }
-
-  /* current frame */
-  if (saction->flag & SACTION_DRAWTIME) {
-    cfra_flag |= DRAWCFRA_UNIT_SECONDS;
-  }
-  ANIM_draw_cfra(C, v2d, cfra_flag);
 
   /* markers */
   UI_view2d_view_orthoSpecial(region, v2d, 1);
@@ -237,6 +236,17 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
 
   /* scrubbing region */
   ED_time_scrub_draw(region, scene, saction->flag & SACTION_DRAWTIME, true);
+}
+
+static void action_main_region_draw_overlay(const bContext *C, ARegion *region)
+{
+  /* draw entirely, view changes should be handled here */
+  const SpaceAction *saction = CTX_wm_space_action(C);
+  const Scene *scene = CTX_data_scene(C);
+  View2D *v2d = &region->v2d;
+
+  /* scrubbing region */
+  ED_time_scrub_draw_current_frame(region, scene, saction->flag & SACTION_DRAWTIME, true);
 
   /* scrollers */
   UI_view2d_scrollers_draw(v2d, NULL);
@@ -871,6 +881,7 @@ void ED_spacetype_action(void)
   art->regionid = RGN_TYPE_WINDOW;
   art->init = action_main_region_init;
   art->draw = action_main_region_draw;
+  art->draw_overlay = action_main_region_draw_overlay;
   art->listener = action_main_region_listener;
   art->message_subscribe = saction_main_region_message_subscribe;
   art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;

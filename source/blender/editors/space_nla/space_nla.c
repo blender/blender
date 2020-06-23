@@ -259,13 +259,10 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
     UI_view2d_text_cache_draw(region);
   }
 
-  UI_view2d_view_ortho(v2d);
-
   /* current frame */
   if (snla->flag & SNLA_DRAWTIME) {
     cfra_flag |= DRAWCFRA_UNIT_SECONDS;
   }
-  ANIM_draw_cfra(C, v2d, cfra_flag);
 
   /* markers */
   UI_view2d_view_orthoSpecial(region, v2d, 1);
@@ -286,6 +283,17 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   ED_time_scrub_draw(region, scene, snla->flag & SNLA_DRAWTIME, true);
+}
+
+static void nla_main_region_draw_overlay(const bContext *C, ARegion *region)
+{
+  /* draw entirely, view changes should be handled here */
+  const SpaceNla *snla = CTX_wm_space_nla(C);
+  const Scene *scene = CTX_data_scene(C);
+  View2D *v2d = &region->v2d;
+
+  /* scrubbing region */
+  ED_time_scrub_draw_current_frame(region, scene, snla->flag & SNLA_DRAWTIME, true);
 
   /* scrollers */
   UI_view2d_scrollers_draw(v2d, NULL);
@@ -614,6 +622,7 @@ void ED_spacetype_nla(void)
   art->regionid = RGN_TYPE_WINDOW;
   art->init = nla_main_region_init;
   art->draw = nla_main_region_draw;
+  art->draw_overlay = nla_main_region_draw_overlay;
   art->listener = nla_main_region_listener;
   art->message_subscribe = nla_main_region_message_subscribe;
   art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;

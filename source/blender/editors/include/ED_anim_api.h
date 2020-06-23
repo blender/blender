@@ -640,14 +640,14 @@ bool ANIM_remove_empty_action_from_animdata(struct AnimData *adt);
 /* ---------- Current Frame Drawing ---------------- */
 
 /* flags for Current Frame Drawing */
-enum eAnimEditDraw_CurrentFrame {
+typedef enum eAnimEditDraw_CurrentFrame {
   /* plain time indicator with no special indicators */
   /* DRAWCFRA_PLAIN = 0, */ /* UNUSED */
   /* time indication in seconds or frames */
   DRAWCFRA_UNIT_SECONDS = (1 << 0),
   /* draw indicator extra wide (for timeline) */
   DRAWCFRA_WIDE = (1 << 1),
-};
+} eAnimEditDraw_CurrentFrame;
 
 /* main call to draw current-frame indicator in an Animation Editor */
 void ANIM_draw_cfra(const struct bContext *C, struct View2D *v2d, short flag);

@@ -201,7 +201,6 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   bAnimContext ac;
   View2D *v2d = &region->v2d;
   float col[3];
-  short cfra_flag = 0;
 
   /* clear and setup matrix */
   UI_GetThemeColor3fv(TH_BACK, col);
@@ -283,14 +282,6 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
     immUnbindProgram();
   }
 
-  if (sipo->mode != SIPO_MODE_DRIVERS) {
-    /* current frame */
-    if (sipo->flag & SIPO_DRAWTIME) {
-      cfra_flag |= DRAWCFRA_UNIT_SECONDS;
-    }
-    ANIM_draw_cfra(C, v2d, cfra_flag);
-  }
-
   /* markers */
   if (sipo->mode != SIPO_MODE_DRIVERS) {
     UI_view2d_view_orthoSpecial(region, v2d, 1);
@@ -315,6 +306,18 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
 
   /* time-scrubbing */
   ED_time_scrub_draw(region, scene, display_seconds, false);
+}
+
+static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
+{
+  /* draw entirely, view changes should be handled here */
+  const SpaceGraph *sipo = CTX_wm_space_graph(C);
+  const Scene *scene = CTX_data_scene(C);
+  const bool draw_vert_line = sipo->mode != SIPO_MODE_DRIVERS;
+  View2D *v2d = &region->v2d;
+
+  /* scrubbing region */
+  ED_time_scrub_draw_current_frame(region, scene, sipo->flag & SIPO_DRAWTIME, draw_vert_line);
 
   /* scrollers */
   // FIXME: args for scrollers depend on the type of data being shown...
@@ -853,6 +856,7 @@ void ED_spacetype_ipo(void)
   art->regionid = RGN_TYPE_WINDOW;
   art->init = graph_main_region_init;
   art->draw = graph_main_region_draw;
+  art->draw_overlay = graph_main_region_draw_overlay;
   art->listener = graph_region_listener;
   art->message_subscribe = graph_region_message_subscribe;
   art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;
