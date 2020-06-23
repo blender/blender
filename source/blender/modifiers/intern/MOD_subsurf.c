@@ -57,6 +57,8 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
 
+#include "BLO_read_write.h"
+
 #include "intern/CCGSubSurf.h"
 
 typedef struct SubsurfRuntimeData {
@@ -425,6 +427,13 @@ static void panelRegister(ARegionType *region_type)
       region_type, "advanced", "Advanced", NULL, advanced_panel_draw, panel_type);
 }
 
+static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
+{
+  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+
+  smd->emCache = smd->mCache = NULL;
+}
+
 ModifierTypeInfo modifierType_Subsurf = {
     /* name */ "Subdivision",
     /* structName */ "SubsurfModifierData",
@@ -458,5 +467,5 @@ ModifierTypeInfo modifierType_Subsurf = {
     /* freeRuntimeData */ freeRuntimeData,
     /* panelRegister */ panelRegister,
     /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendRead */ blendRead,
 };

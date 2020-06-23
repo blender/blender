@@ -51,6 +51,8 @@
 #include "MOD_ui_common.h"
 #include "MOD_util.h"
 
+#include "BLO_read_write.h"
+
 #include "MEM_guardedalloc.h"
 
 static void initData(ModifierData *md)
@@ -210,6 +212,17 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_Surface, panel_draw);
 }
 
+static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
+{
+  SurfaceModifierData *surmd = (SurfaceModifierData *)md;
+
+  surmd->mesh = NULL;
+  surmd->bvhtree = NULL;
+  surmd->x = NULL;
+  surmd->v = NULL;
+  surmd->numverts = 0;
+}
+
 ModifierTypeInfo modifierType_Surface = {
     /* name */ "Surface",
     /* structName */ "SurfaceModifierData",
@@ -242,5 +255,5 @@ ModifierTypeInfo modifierType_Surface = {
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
     /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendRead */ blendRead,
 };

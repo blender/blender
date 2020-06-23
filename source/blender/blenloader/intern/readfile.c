@@ -5557,16 +5557,6 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
     if (is_allocated) {
       /* All the fields has been properly allocated. */
     }
-    else if (md->type == eModifierType_Subsurf) {
-      SubsurfModifierData *smd = (SubsurfModifierData *)md;
-
-      smd->emCache = smd->mCache = NULL;
-    }
-    else if (md->type == eModifierType_Armature) {
-      ArmatureModifierData *amd = (ArmatureModifierData *)md;
-
-      amd->vert_coords_prev = NULL;
-    }
     else if (md->type == eModifierType_Cloth) {
       ClothModifierData *clmd = (ClothModifierData *)md;
 
@@ -5705,65 +5695,6 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
         BLO_read_data_address(reader, &pmd->brush->paint_ramp);
         BLO_read_data_address(reader, &pmd->brush->vel_ramp);
       }
-    }
-    else if (md->type == eModifierType_Collision) {
-      CollisionModifierData *collmd = (CollisionModifierData *)md;
-#if 0
-      // TODO: CollisionModifier should use pointcache
-      // + have proper reset events before enabling this
-      collmd->x = newdataadr(fd, collmd->x);
-      collmd->xnew = newdataadr(fd, collmd->xnew);
-      collmd->mfaces = newdataadr(fd, collmd->mfaces);
-
-      collmd->current_x = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_x");
-      collmd->current_xnew = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_xnew");
-      collmd->current_v = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_v");
-#endif
-
-      collmd->x = NULL;
-      collmd->xnew = NULL;
-      collmd->current_x = NULL;
-      collmd->current_xnew = NULL;
-      collmd->current_v = NULL;
-      collmd->time_x = collmd->time_xnew = -1000;
-      collmd->mvert_num = 0;
-      collmd->tri_num = 0;
-      collmd->is_static = false;
-      collmd->bvhtree = NULL;
-      collmd->tri = NULL;
-    }
-    else if (md->type == eModifierType_Surface) {
-      SurfaceModifierData *surmd = (SurfaceModifierData *)md;
-
-      surmd->mesh = NULL;
-      surmd->bvhtree = NULL;
-      surmd->x = NULL;
-      surmd->v = NULL;
-      surmd->numverts = 0;
-    }
-    else if (md->type == eModifierType_ParticleSystem) {
-      ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
-
-      psmd->mesh_final = NULL;
-      psmd->mesh_original = NULL;
-      BLO_read_data_address(reader, &psmd->psys);
-      psmd->flag &= ~eParticleSystemFlag_psys_updated;
-      psmd->flag |= eParticleSystemFlag_file_loaded;
-    }
-    else if (md->type == eModifierType_Explode) {
-      ExplodeModifierData *psmd = (ExplodeModifierData *)md;
-
-      psmd->facepa = NULL;
-    }
-    else if (md->type == eModifierType_Ocean) {
-      OceanModifierData *omd = (OceanModifierData *)md;
-      omd->oceancache = NULL;
-      omd->ocean = NULL;
-    }
-    else if (md->type == eModifierType_MeshSequenceCache) {
-      MeshSeqCacheModifierData *msmcd = (MeshSeqCacheModifierData *)md;
-      msmcd->reader = NULL;
-      msmcd->reader_object_path[0] = '\0';
     }
 
     if (mti->blendRead != NULL) {

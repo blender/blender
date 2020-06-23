@@ -49,6 +49,8 @@
 
 #include "RNA_access.h"
 
+#include "BLO_read_write.h"
+
 #include "DEG_depsgraph_query.h"
 
 #include "bmesh.h"
@@ -261,6 +263,13 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_Armature, panel_draw);
 }
 
+static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
+{
+  ArmatureModifierData *amd = (ArmatureModifierData *)md;
+
+  amd->vert_coords_prev = NULL;
+}
+
 ModifierTypeInfo modifierType_Armature = {
     /* name */ "Armature",
     /* structName */ "ArmatureModifierData",
@@ -293,5 +302,5 @@ ModifierTypeInfo modifierType_Armature = {
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
     /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendRead */ blendRead,
 };

@@ -44,6 +44,8 @@
 
 #include "RNA_access.h"
 
+#include "BLO_read_write.h"
+
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
@@ -229,6 +231,13 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_MeshSequenceCache, panel_draw);
 }
 
+static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
+{
+  MeshSeqCacheModifierData *msmcd = (MeshSeqCacheModifierData *)md;
+  msmcd->reader = NULL;
+  msmcd->reader_object_path[0] = '\0';
+}
+
 ModifierTypeInfo modifierType_MeshSequenceCache = {
     /* name */ "MeshSequenceCache",
     /* structName */ "MeshSeqCacheModifierData",
@@ -260,5 +269,5 @@ ModifierTypeInfo modifierType_MeshSequenceCache = {
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
     /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendRead */ blendRead,
 };

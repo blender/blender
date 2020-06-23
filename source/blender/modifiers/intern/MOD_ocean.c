@@ -49,6 +49,8 @@
 
 #include "RNA_access.h"
 
+#include "BLO_read_write.h"
+
 #include "WM_types.h" /* For UI free bake operator. */
 
 #include "DEG_depsgraph_query.h"
@@ -674,6 +676,13 @@ static void panelRegister(ARegionType *region_type)
 #endif /* WITH_OCEANSIM */
 }
 
+static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
+{
+  OceanModifierData *omd = (OceanModifierData *)md;
+  omd->oceancache = NULL;
+  omd->ocean = NULL;
+}
+
 ModifierTypeInfo modifierType_Ocean = {
     /* name */ "Ocean",
     /* structName */ "OceanModifierData",
@@ -706,5 +715,5 @@ ModifierTypeInfo modifierType_Ocean = {
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
     /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendRead */ blendRead,
 };
