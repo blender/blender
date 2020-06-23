@@ -31,6 +31,7 @@
 extern char datatoc_antialiasing_frag_glsl[];
 extern char datatoc_antialiasing_vert_glsl[];
 extern char datatoc_armature_dof_vert_glsl[];
+extern char datatoc_armature_dof_solid_frag_glsl[];
 extern char datatoc_armature_envelope_distance_frag_glsl[];
 extern char datatoc_armature_envelope_outline_vert_glsl[];
 extern char datatoc_armature_envelope_solid_frag_glsl[];
@@ -507,7 +508,7 @@ GPUShader *OVERLAY_shader_armature_degrees_of_freedom_solid(void)
                                  datatoc_armature_dof_vert_glsl,
                                  NULL},
         .frag = (const char *[]){datatoc_common_view_lib_glsl,
-                                 datatoc_gpu_shader_flat_color_frag_glsl,
+                                 datatoc_armature_dof_solid_frag_glsl,
                                  NULL},
         .defs = (const char *[]){sh_cfg->def, NULL},
     });
