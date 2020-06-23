@@ -2168,7 +2168,8 @@ static void armature_context_setup(ArmatureDrawContext *ctx,
   ctx->do_relations = !DRW_state_is_select() && pd->armature.show_relations &&
                       (is_edit_mode | is_pose_mode);
   ctx->const_color = DRW_state_is_select() ? select_const_color : const_color;
-  ctx->const_wire = (((ob->base_flag & BASE_SELECTED) || (arm->drawtype == ARM_WIRE)) ?
+  ctx->const_wire = ((((ob->base_flag & BASE_SELECTED) && (pd->v3d_flag & V3D_SELECT_OUTLINE)) ||
+                      (arm->drawtype == ARM_WIRE)) ?
                          1.5f :
                          ((!is_filled || is_transparent) ? 1.0f : 0.0f));
 }
