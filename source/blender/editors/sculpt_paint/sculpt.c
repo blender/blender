@@ -2611,11 +2611,6 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
   }
 }
 
-/* Note: uses after-struct allocated mem to store actual cache... */
-typedef struct SculptDoBrushSmoothGridDataChunk {
-  size_t tmpgrid_size;
-} SculptDoBrushSmoothGridDataChunk;
-
 typedef struct {
   SculptSession *ss;
   const float *ray_start;

@@ -208,7 +208,7 @@ typedef struct {
   uint is_cull_face : 1;
   uint is_depth_test : 1;
   uint is_dither : 1;
-  uint is_lighting : 1;
+  /* uint is_lighting : 1; */ /* UNUSED */
   uint is_line_smooth : 1;
   uint is_color_logic_op : 1;
   uint is_multisample : 1;

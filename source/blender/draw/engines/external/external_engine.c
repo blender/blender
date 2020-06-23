@@ -97,8 +97,6 @@ typedef struct EXTERNAL_PrivateData {
   /* Do we need to update the depth or can we reuse the last calculated texture. */
   bool need_depth;
   bool update_depth;
-
-  float last_persmat[4][4];
 } EXTERNAL_PrivateData; /* Transient data */
 
 /* Functions */

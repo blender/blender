@@ -44,6 +44,8 @@ static struct GPUPlatformGlobal {
   char *gpu_name;
 } GPG = {false};
 
+/* Remove this? */
+#if 0
 typedef struct GPUPlatformSupportTest {
   eGPUSupportLevel support_level;
   eGPUDeviceType device;
@@ -53,6 +55,7 @@ typedef struct GPUPlatformSupportTest {
   const char *renderer;
   const char *version;
 } GPUPlatformSupportTest;
+#endif
 
 eGPUSupportLevel GPU_platform_support_level(void)
 {

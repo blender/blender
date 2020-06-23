@@ -94,9 +94,8 @@ struct LaplacianSystem {
     float (*verts)[3]; /* vertex coordinates */
     float (*vnors)[3]; /* vertex normals */
 
-    float (*root)[3];   /* bone root */
-    float (*tip)[3];    /* bone tip */
-    float (*source)[3]; /* vertex source */
+    float (*root)[3]; /* bone root */
+    float (*tip)[3];  /* bone tip */
     int numsource;
 
     float *H;       /* diagonal H matrix */
