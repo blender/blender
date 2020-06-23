@@ -738,10 +738,11 @@ class _defs_edit_mesh:
     def bevel():
         def draw_settings(context, layout, tool, *, extra=False):
             props = tool.operator_properties("mesh.bevel")
-            region_type = context.region.type
+
+            region_is_header = context.region.type == 'TOOL_HEADER'
 
             if not extra:
-                if region_type == 'TOOL_HEADER':
+                if region_is_header:
                     layout.prop(props, "offset_type", text="")
                 else:
                     layout.prop(props, "offset_type")
@@ -749,11 +750,11 @@ class _defs_edit_mesh:
                 layout.prop(props, "segments")
 
                 row = layout.row()
-                row.prop(props, "profile_type", expand=True)
+                row.prop(props, "profile_type", text="" if region_is_header else None)
                 if props.profile_type == 'SUPERELLIPSE':
                     layout.prop(props, "profile", text="Shape", slider=True)
 
-                if region_type == 'TOOL_HEADER':
+                if region_is_header:
                     layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
                 else:
                     extra = True
