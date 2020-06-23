@@ -47,6 +47,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "BLO_read_write.h"
+
 #include "RNA_access.h"
 
 #include "DEG_depsgraph_build.h"
@@ -399,6 +401,25 @@ static void panelRegister(ARegionType *region_type)
       region_type, "influence", "Influence", NULL, influence_panel_draw, panel_type);
 }
 
+static void blendWrite(BlendWriter *writer, const ModifierData *md)
+{
+  const WeightVGEditModifierData *wmd = (const WeightVGEditModifierData *)md;
+
+  if (wmd->cmap_curve) {
+    BKE_curvemapping_blend_write(writer, wmd->cmap_curve);
+  }
+}
+
+static void blendRead(BlendDataReader *reader, ModifierData *md)
+{
+  WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
+
+  BLO_read_data_address(reader, &wmd->cmap_curve);
+  if (wmd->cmap_curve) {
+    BKE_curvemapping_blend_read(reader, wmd->cmap_curve);
+  }
+}
+
 ModifierTypeInfo modifierType_WeightVGEdit = {
     /* name */ "VertexWeightEdit",
     /* structName */ "WeightVGEditModifierData",
@@ -430,6 +451,6 @@ ModifierTypeInfo modifierType_WeightVGEdit = {
     /* foreachTexLink */ foreachTexLink,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ blendWrite,
+    /* blendRead */ blendRead,
 };

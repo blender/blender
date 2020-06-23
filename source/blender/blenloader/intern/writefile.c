@@ -1666,16 +1666,7 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
 
     BLO_write_struct_by_name(writer, mti->structName, md);
 
-    if (md->type == eModifierType_Hook) {
-      HookModifierData *hmd = (HookModifierData *)md;
-
-      if (hmd->curfalloff) {
-        BKE_curvemapping_blend_write(writer, hmd->curfalloff);
-      }
-
-      BLO_write_int32_array(writer, hmd->totindex, hmd->indexar);
-    }
-    else if (md->type == eModifierType_Cloth) {
+    if (md->type == eModifierType_Cloth) {
       ClothModifierData *clmd = (ClothModifierData *)md;
 
       BLO_write_struct(writer, ClothSimSettings, clmd->sim_parms);
@@ -1756,26 +1747,6 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
       writestruct(wd, DATA, MVert, collmd->numverts, collmd->xnew);
       writestruct(wd, DATA, MFace, collmd->numfaces, collmd->mfaces);
 #endif
-    }
-    else if (md->type == eModifierType_Warp) {
-      WarpModifierData *tmd = (WarpModifierData *)md;
-      if (tmd->curfalloff) {
-        BKE_curvemapping_blend_write(writer, tmd->curfalloff);
-      }
-    }
-    else if (md->type == eModifierType_WeightVGEdit) {
-      WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
-
-      if (wmd->cmap_curve) {
-        BKE_curvemapping_blend_write(writer, wmd->cmap_curve);
-      }
-    }
-    else if (md->type == eModifierType_CorrectiveSmooth) {
-      CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
-
-      if (csmd->bind_coords) {
-        BLO_write_float3_array(writer, csmd->bind_coords_num, (float *)csmd->bind_coords);
-      }
     }
     else if (md->type == eModifierType_SurfaceDeform) {
       SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;

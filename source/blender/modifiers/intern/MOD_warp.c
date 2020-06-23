@@ -49,6 +49,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "BLO_read_write.h"
+
 #include "RNA_access.h"
 
 #include "DEG_depsgraph.h"
@@ -510,6 +512,25 @@ static void panelRegister(ARegionType *region_type)
       region_type, "texture", "Texture", NULL, texture_panel_draw, panel_type);
 }
 
+static void blendWrite(BlendWriter *writer, const ModifierData *md)
+{
+  const WarpModifierData *tmd = (const WarpModifierData *)md;
+
+  if (tmd->curfalloff) {
+    BKE_curvemapping_blend_write(writer, tmd->curfalloff);
+  }
+}
+
+static void blendRead(BlendDataReader *reader, ModifierData *md)
+{
+  WarpModifierData *tmd = (WarpModifierData *)md;
+
+  BLO_read_data_address(reader, &tmd->curfalloff);
+  if (tmd->curfalloff) {
+    BKE_curvemapping_blend_read(reader, tmd->curfalloff);
+  }
+}
+
 ModifierTypeInfo modifierType_Warp = {
     /* name */ "Warp",
     /* structName */ "WarpModifierData",
@@ -540,6 +561,6 @@ ModifierTypeInfo modifierType_Warp = {
     /* foreachTexLink */ foreachTexLink,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ blendWrite,
+    /* blendRead */ blendRead,
 };

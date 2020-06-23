@@ -5753,15 +5753,6 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
       surmd->v = NULL;
       surmd->numverts = 0;
     }
-    else if (md->type == eModifierType_Hook) {
-      HookModifierData *hmd = (HookModifierData *)md;
-      BLO_read_int32_array(reader, hmd->totindex, &hmd->indexar);
-
-      BLO_read_data_address(reader, &hmd->curfalloff);
-      if (hmd->curfalloff) {
-        BKE_curvemapping_blend_read(reader, hmd->curfalloff);
-      }
-    }
     else if (md->type == eModifierType_ParticleSystem) {
       ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
@@ -5780,33 +5771,6 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
       OceanModifierData *omd = (OceanModifierData *)md;
       omd->oceancache = NULL;
       omd->ocean = NULL;
-    }
-    else if (md->type == eModifierType_Warp) {
-      WarpModifierData *tmd = (WarpModifierData *)md;
-
-      BLO_read_data_address(reader, &tmd->curfalloff);
-      if (tmd->curfalloff) {
-        BKE_curvemapping_blend_read(reader, tmd->curfalloff);
-      }
-    }
-    else if (md->type == eModifierType_WeightVGEdit) {
-      WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
-
-      BLO_read_data_address(reader, &wmd->cmap_curve);
-      if (wmd->cmap_curve) {
-        BKE_curvemapping_blend_read(reader, wmd->cmap_curve);
-      }
-    }
-    else if (md->type == eModifierType_CorrectiveSmooth) {
-      CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
-
-      if (csmd->bind_coords) {
-        BLO_read_float3_array(reader, csmd->bind_coords_num, (float **)&csmd->bind_coords);
-      }
-
-      /* runtime only */
-      csmd->delta_cache.deltas = NULL;
-      csmd->delta_cache.totverts = 0;
     }
     else if (md->type == eModifierType_MeshSequenceCache) {
       MeshSeqCacheModifierData *msmcd = (MeshSeqCacheModifierData *)md;
