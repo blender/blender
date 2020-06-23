@@ -27,6 +27,8 @@
  * - Pass cached data to called functions.
  */
 
+#include "BLI_utildefines.h"
+
 namespace blender {
 namespace fn {
 
@@ -34,11 +36,8 @@ class MFContextBuilder {
 };
 
 class MFContext {
- private:
-  MFContextBuilder *m_builder;
-
  public:
-  MFContext(MFContextBuilder &builder) : m_builder(&builder)
+  MFContext(MFContextBuilder &UNUSED(builder))
   {
   }
 };
