@@ -40,13 +40,9 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   BL::Material material_override = view_layer.material_override;
   Shader *default_shader = (b_ob.type() == BL::Object::type_VOLUME) ? scene->default_volume :
                                                                       scene->default_surface;
-#ifdef WITH_NEW_OBJECT_TYPES
   Geometry::Type geom_type = (b_ob.type() == BL::Object::type_HAIR || use_particle_hair) ?
                                  Geometry::HAIR :
                                  Geometry::MESH;
-#else
-  Geometry::Type geom_type = (use_particle_hair) ? Geometry::HAIR : Geometry::MESH;
-#endif
 
   /* Find shader indices. */
   vector<Shader *> used_shaders;
@@ -125,11 +121,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 
   geom->name = ustring(b_ob_data.name().c_str());
 
-#ifdef WITH_NEW_OBJECT_TYPES
   if (b_ob.type() == BL::Object::type_HAIR || use_particle_hair) {
-#else
-  if (use_particle_hair) {
-#endif
     Hair *hair = static_cast<Hair *>(geom);
     sync_hair(b_depsgraph, b_ob, hair, used_shaders);
   }
@@ -170,11 +162,7 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
     return;
   }
 
-#ifdef WITH_NEW_OBJECT_TYPES
   if (b_ob.type() == BL::Object::type_HAIR || use_particle_hair) {
-#else
-  if (use_particle_hair) {
-#endif
     Hair *hair = static_cast<Hair *>(geom);
     sync_hair_motion(b_depsgraph, b_ob, hair, motion_step);
   }

@@ -290,13 +290,11 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      "Spawn particles from the shape"},
     {eModifierType_Softbody, "SOFT_BODY", ICON_MOD_SOFT, "Soft Body", ""},
     {eModifierType_Surface, "SURFACE", ICON_MODIFIER, "Surface", ""},
-#ifdef WITH_NEW_SIMULATION_TYPE
     {eModifierType_Simulation,
      "SIMULATION",
      ICON_PHYSICS,
      "Simulation",
      ""}, /* TODO: Use correct icon. */
-#endif
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1632,7 +1630,6 @@ static void rna_ParticleInstanceModifier_particle_system_set(PointerRNA *ptr,
   CLAMP_MIN(psmd->psys, 1);
 }
 
-#  ifdef WITH_NEW_SIMULATION_TYPE
 static void rna_SimulationModifier_simulation_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   SimulationModifierData *smd = ptr->data;
@@ -1641,7 +1638,6 @@ static void rna_SimulationModifier_simulation_update(Main *bmain, Scene *scene, 
   }
   rna_Modifier_dependency_update(bmain, scene, ptr);
 }
-#  endif
 
 /**
  * Special set callback that just changes the first bit of the expansion flag.
@@ -6838,12 +6834,10 @@ static void rna_def_modifier_simulation(BlenderRNA *brna)
 
   RNA_define_lib_overridable(true);
 
-#  ifdef WITH_NEW_SIMULATION_TYPE
   prop = RNA_def_property(srna, "simulation", PROP_POINTER, PROP_NONE);
   RNA_def_property_ui_text(prop, "Simulation", "Simulation to access");
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_update(prop, 0, "rna_SimulationModifier_simulation_update");
-#  endif
 
   prop = RNA_def_property(srna, "data_path", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(

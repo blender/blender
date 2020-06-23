@@ -5063,7 +5063,6 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Duplicate GPencil", "Causes grease pencil data to be duplicated with the object");
 
-#  ifdef WITH_NEW_OBJECT_TYPES
   prop = RNA_def_property(srna, "use_duplicate_hair", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_HAIR);
   RNA_def_property_ui_text(
@@ -5073,7 +5072,6 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_POINTCLOUD);
   RNA_def_property_ui_text(
       prop, "Duplicate Point Cloud", "Causes point cloud data to be duplicated with the object");
-#  endif
 
   prop = RNA_def_property(srna, "use_duplicate_volume", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_VOLUME);
@@ -6072,6 +6070,15 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       prop,
       "Undo Legacy",
       "Use legacy undo (slower than the new default one, but may be more stable in some cases)");
+
+  prop = RNA_def_property(srna, "use_new_particle_system", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_new_particle_system", 1);
+  RNA_def_property_ui_text(
+      prop, "Use New Particle System", "Enable the new particle system in the ui");
+
+  prop = RNA_def_property(srna, "use_new_hair_type", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_new_hair_type", 1);
+  RNA_def_property_ui_text(prop, "Use New Hair Type", "Enable the new hair type in the ui");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)

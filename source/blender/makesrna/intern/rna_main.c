@@ -109,9 +109,7 @@ RNA_MAIN_LISTBASE_FUNCS_DEF(collections)
 RNA_MAIN_LISTBASE_FUNCS_DEF(curves)
 RNA_MAIN_LISTBASE_FUNCS_DEF(fonts)
 RNA_MAIN_LISTBASE_FUNCS_DEF(gpencils)
-#  ifdef WITH_NEW_OBJECT_TYPES
 RNA_MAIN_LISTBASE_FUNCS_DEF(hairs)
-#  endif
 RNA_MAIN_LISTBASE_FUNCS_DEF(images)
 RNA_MAIN_LISTBASE_FUNCS_DEF(lattices)
 RNA_MAIN_LISTBASE_FUNCS_DEF(libraries)
@@ -128,15 +126,11 @@ RNA_MAIN_LISTBASE_FUNCS_DEF(objects)
 RNA_MAIN_LISTBASE_FUNCS_DEF(paintcurves)
 RNA_MAIN_LISTBASE_FUNCS_DEF(palettes)
 RNA_MAIN_LISTBASE_FUNCS_DEF(particles)
-#  ifdef WITH_NEW_OBJECT_TYPES
 RNA_MAIN_LISTBASE_FUNCS_DEF(pointclouds)
-#  endif
 RNA_MAIN_LISTBASE_FUNCS_DEF(scenes)
 RNA_MAIN_LISTBASE_FUNCS_DEF(screens)
 RNA_MAIN_LISTBASE_FUNCS_DEF(shapekeys)
-#  ifdef WITH_NEW_SIMULATION_TYPE
 RNA_MAIN_LISTBASE_FUNCS_DEF(simulations)
-#  endif
 RNA_MAIN_LISTBASE_FUNCS_DEF(sounds)
 RNA_MAIN_LISTBASE_FUNCS_DEF(speakers)
 RNA_MAIN_LISTBASE_FUNCS_DEF(texts)
@@ -390,7 +384,6 @@ void RNA_def_main(BlenderRNA *brna)
        "LightProbes",
        "LightProbe data-blocks",
        RNA_def_main_lightprobes},
-#  ifdef WITH_NEW_OBJECT_TYPES
       {"hairs", "Hair", "rna_Main_hairs_begin", "Hairs", "Hair data-blocks", RNA_def_main_hairs},
       {"pointclouds",
        "PointCloud",
@@ -398,21 +391,18 @@ void RNA_def_main(BlenderRNA *brna)
        "Point Clouds",
        "Point cloud data-blocks",
        RNA_def_main_pointclouds},
-#  endif
       {"volumes",
        "Volume",
        "rna_Main_volumes_begin",
        "Volumes",
        "Volume data-blocks",
        RNA_def_main_volumes},
-#  ifdef WITH_NEW_SIMULATION_TYPE
       {"simulations",
        "Simulation",
        "rna_Main_simulations_begin",
        "Simulations",
        "Simulation data-blocks",
        RNA_def_main_simulations},
-#  endif
       {NULL, NULL, NULL, NULL, NULL, NULL},
   };
 

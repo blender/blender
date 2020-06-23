@@ -628,7 +628,6 @@ void BlenderSync::sync_particle_hair(
   }
 }
 
-#ifdef WITH_NEW_OBJECT_TYPES
 static float4 hair_point_as_float4(BL::HairPoint b_point)
 {
   float4 mP = float3_to_float4(get_float3(b_point.co()));
@@ -794,12 +793,10 @@ static void export_hair_curves_motion(Hair *hair, BL::Hair b_hair, int motion_st
     export_hair_motion_validate_attribute(hair, motion_step, num_motion_keys, have_motion);
   }
 }
-#endif /* WITH_NEW_OBJECT_TYPES */
 
 /* Hair object. */
 void BlenderSync::sync_hair(Hair *hair, BL::Object &b_ob, bool motion, int motion_step)
 {
-#ifdef WITH_NEW_OBJECT_TYPES
   /* Convert Blender hair to Cycles curves. */
   BL::Hair b_hair(b_ob.data());
   if (motion) {
@@ -808,12 +805,6 @@ void BlenderSync::sync_hair(Hair *hair, BL::Object &b_ob, bool motion, int motio
   else {
     export_hair_curves(scene, hair, b_hair);
   }
-#else
-  (void)hair;
-  (void)b_ob;
-  (void)motion;
-  (void)motion_step;
-#endif /* WITH_NEW_OBJECT_TYPES */
 }
 
 void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph,
@@ -832,15 +823,11 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph,
   hair->used_shaders = used_shaders;
 
   if (view_layer.use_hair) {
-#ifdef WITH_NEW_OBJECT_TYPES
     if (b_ob.type() == BL::Object::type_HAIR) {
       /* Hair object. */
       sync_hair(hair, b_ob, false);
-      assert(mesh == NULL);
     }
-    else
-#endif
-    {
+    else {
       /* Particle hair. */
       bool need_undeformed = hair->need_attribute(scene, ATTR_STD_GENERATED);
       BL::Mesh b_mesh = object_to_mesh(
@@ -872,16 +859,12 @@ void BlenderSync::sync_hair_motion(BL::Depsgraph b_depsgraph,
 
   /* Export deformed coordinates. */
   if (ccl::BKE_object_is_deform_modified(b_ob, b_scene, preview)) {
-#ifdef WITH_NEW_OBJECT_TYPES
     if (b_ob.type() == BL::Object::type_HAIR) {
       /* Hair object. */
       sync_hair(hair, b_ob, true, motion_step);
-      assert(mesh == NULL);
       return;
     }
-    else
-#endif
-    {
+    else {
       /* Particle hair. */
       BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_depsgraph, false, Mesh::SUBDIVISION_NONE);
       if (b_mesh) {

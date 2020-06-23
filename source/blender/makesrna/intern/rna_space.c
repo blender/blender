@@ -2181,7 +2181,6 @@ static void rna_SpaceNodeEditor_node_tree_update(const bContext *C, PointerRNA *
   ED_node_tree_update(C);
 }
 
-#  ifdef WITH_NEW_SIMULATION_TYPE
 static PointerRNA rna_SpaceNodeEditor_simulation_get(PointerRNA *ptr)
 {
   SpaceNode *snode = (SpaceNode *)ptr->data;
@@ -2213,7 +2212,6 @@ static void rna_SpaceNodeEditor_simulation_set(PointerRNA *ptr,
   }
   snode->id = &sim->id;
 }
-#  endif
 
 static int rna_SpaceNodeEditor_tree_type_get(PointerRNA *ptr)
 {
@@ -4317,12 +4315,10 @@ static void rna_def_space_view3d(BlenderRNA *brna)
         {"Surface", (1 << OB_SURF), {"show_object_viewport_surf", "show_object_select_surf"}},
         {"Meta", (1 << OB_MBALL), {"show_object_viewport_meta", "show_object_select_meta"}},
         {"Font", (1 << OB_FONT), {"show_object_viewport_font", "show_object_select_font"}},
-#  ifdef WITH_NEW_OBJECT_TYPES
         {"Hair", (1 << OB_HAIR), {"show_object_viewport_hair", "show_object_select_hair"}},
         {"Point Cloud",
          (1 << OB_POINTCLOUD),
          {"show_object_viewport_pointcloud", "show_object_select_pointcloud"}},
-#  endif
         {"Volume", (1 << OB_VOLUME), {"show_object_viewport_volume", "show_object_select_volume"}},
         {"Armature",
          (1 << OB_ARMATURE),
@@ -5534,9 +5530,7 @@ static void rna_def_fileselect_idfilter(BlenderRNA *brna)
        "Grease Pencil",
        "Show Grease pencil data-blocks"},
       {FILTER_ID_GR, "filter_group", ICON_GROUP, "Collections", "Show Collection data-blocks"},
-#  ifdef WITH_NEW_OBJECT_TYPES
       {FILTER_ID_HA, "filter_hair", ICON_HAIR_DATA, "Hairs", "Show/hide Hair data-blocks"},
-#  endif
       {FILTER_ID_IM, "filter_image", ICON_IMAGE_DATA, "Images", "Show Image data-blocks"},
       {FILTER_ID_LA, "filter_light", ICON_LIGHT_DATA, "Lights", "Show Light data-blocks"},
       {FILTER_ID_LP,
@@ -5580,21 +5574,17 @@ static void rna_def_fileselect_idfilter(BlenderRNA *brna)
        ICON_CURVE_BEZCURVE,
        "Paint Curves",
        "Show Paint Curve data-blocks"},
-#  ifdef WITH_NEW_OBJECT_TYPES
       {FILTER_ID_PT,
        "filter_pointcloud",
        ICON_POINTCLOUD_DATA,
        "Point Clouds",
        "Show/hide Point Cloud data-blocks"},
-#  endif
       {FILTER_ID_SCE, "filter_scene", ICON_SCENE_DATA, "Scenes", "Show Scene data-blocks"},
-#  ifdef WITH_NEW_SIMULATION_TYPE
       {FILTER_ID_SIM,
        "filter_simulation",
        ICON_PHYSICS,
        "Simulations",
        "Show Simulation data-blocks"}, /* TODO: Use correct icon. */
-#  endif
       {FILTER_ID_SPK, "filter_speaker", ICON_SPEAKER, "Speakers", "Show Speaker data-blocks"},
       {FILTER_ID_SO, "filter_sound", ICON_SOUND, "Sounds", "Show Sound data-blocks"},
       {FILTER_ID_TE, "filter_texture", ICON_TEXTURE_DATA, "Textures", "Show Texture data-blocks"},
@@ -6276,7 +6266,6 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "ID From", "Data-block from which the edited data-block is linked");
 
-#  ifdef WITH_NEW_SIMULATION_TYPE
   prop = RNA_def_property(srna, "simulation", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "Simulation");
@@ -6287,7 +6276,6 @@ static void rna_def_space_node(BlenderRNA *brna)
                                  NULL,
                                  NULL);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
-#  endif
 
   prop = RNA_def_property(srna, "path", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "treepath", NULL);

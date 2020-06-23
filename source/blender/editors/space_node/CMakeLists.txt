@@ -75,10 +75,6 @@ if(WITH_OPENIMAGEDENOISE)
   add_definitions(-DWITH_OPENIMAGEDENOISE)
 endif()
 
-if (WITH_NEW_SIMULATION_TYPE)
-  add_definitions(-DWITH_NEW_SIMULATION_TYPE)
-endif()
-
 add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_editor_space_node "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

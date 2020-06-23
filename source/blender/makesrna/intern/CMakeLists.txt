@@ -47,6 +47,7 @@ set(DEFSRC
   rna_fluid.c
   rna_gpencil.c
   rna_gpencil_modifier.c
+  rna_hair.c
   rna_image.c
   rna_key.c
   rna_lattice.c
@@ -77,9 +78,11 @@ set(DEFSRC
   rna_sculpt_paint.c
   rna_sequencer.c
   rna_shader_fx.c
+  rna_simulation.c
   rna_sound.c
   rna_space.c
   rna_speaker.c
+  rna_pointcloud.c
   rna_test.c
   rna_text.c
   rna_texture.c
@@ -95,20 +98,6 @@ set(DEFSRC
   rna_world.c
   rna_xr.c
 )
-
-if(WITH_NEW_OBJECT_TYPES)
-  list(APPEND DEFSRC
-    rna_hair.c
-    rna_pointcloud.c
-  )
-endif()
-
-if (WITH_NEW_SIMULATION_TYPE)
-  list(APPEND DEFSRC
-    rna_simulation.c
-  )
-endif()
-
 
 set(APISRC
   rna_action_api.c
@@ -344,15 +333,6 @@ endif()
 if(WITH_XR_OPENXR)
   add_definitions(-DWITH_XR_OPENXR)
 endif()
-
-if(WITH_NEW_OBJECT_TYPES)
-  add_definitions(-DWITH_NEW_OBJECT_TYPES)
-endif()
-
-if (WITH_NEW_SIMULATION_TYPE)
-  add_definitions(-DWITH_NEW_SIMULATION_TYPE)
-endif()
-
 
 # Build makesrna executable
 blender_include_dirs(

@@ -936,11 +936,10 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
   bool free;
   const EnumPropertyItem *item_src = RNA_enum_node_tree_types_itemf_impl(C, &free);
   for (const EnumPropertyItem *item_iter = item_src; item_iter->identifier; item_iter++) {
-#ifndef WITH_NEW_SIMULATION_TYPE
-    if (STREQ(item_iter->identifier, "SimulationNodeTree")) {
+    if (!U.experimental.use_new_particle_system &&
+        STREQ(item_iter->identifier, "SimulationNodeTree")) {
       continue;
     }
-#endif
     RNA_enum_item_add(item, totitem, item_iter);
   }
   if (free) {

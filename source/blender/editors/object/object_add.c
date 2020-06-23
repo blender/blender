@@ -1511,6 +1511,14 @@ void OBJECT_OT_speaker_add(wmOperatorType *ot)
 /** \name Add Hair Operator
  * \{ */
 
+static bool object_hair_add_poll(bContext *C)
+{
+  if (!U.experimental.use_new_hair_type) {
+    return false;
+  }
+  return ED_operator_objectmode(C);
+}
+
 static int object_hair_add_exec(bContext *C, wmOperator *op)
 {
   ushort local_view_bits;
@@ -1534,7 +1542,7 @@ void OBJECT_OT_hair_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = object_hair_add_exec;
-  ot->poll = ED_operator_objectmode;
+  ot->poll = object_hair_add_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1547,6 +1555,14 @@ void OBJECT_OT_hair_add(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name Add Point Cloud Operator
  * \{ */
+
+static bool object_pointcloud_add_poll(bContext *C)
+{
+  if (!U.experimental.use_new_particle_system) {
+    return false;
+  }
+  return ED_operator_objectmode(C);
+}
 
 static int object_pointcloud_add_exec(bContext *C, wmOperator *op)
 {
@@ -1571,7 +1587,7 @@ void OBJECT_OT_pointcloud_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = object_pointcloud_add_exec;
-  ot->poll = ED_operator_objectmode;
+  ot->poll = object_pointcloud_add_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

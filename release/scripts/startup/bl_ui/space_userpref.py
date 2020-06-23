@@ -2139,6 +2139,8 @@ class USERPREF_PT_experimental_system(ExperimentalPanel, Panel):
         self._draw_items(
             context, (
                 ({"property": "use_undo_legacy"}, "T60695"),
+                ({"property": "use_new_particle_system"}, "T73324"),
+                ({"property": "use_new_hair_type"}, "T68981"),
             ),
         )
 

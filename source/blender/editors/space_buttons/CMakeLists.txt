@@ -54,8 +54,4 @@ if(WITH_FREESTYLE)
   add_definitions(-DWITH_FREESTYLE)
 endif()
 
-if(WITH_NEW_OBJECT_TYPES)
-  add_definitions(-DWITH_NEW_OBJECT_TYPES)
-endif()
-
 blender_add_lib(bf_editor_space_buttons "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
