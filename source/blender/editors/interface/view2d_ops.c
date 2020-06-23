@@ -1922,6 +1922,9 @@ struct View2DScrollers {
   /* focus bubbles */
   int vert_min, vert_max; /* vertical scrollbar */
   int hor_min, hor_max;   /* horizontal scrollbar */
+
+  /* These values are written into, even if we don't use them. */
+  rcti _hor, _vert;
 };
 
 /* quick enum for vsm->zone (scroller handles) */

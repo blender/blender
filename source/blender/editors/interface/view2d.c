@@ -1408,8 +1408,10 @@ struct View2DScrollers {
   int vert_min, vert_max; /* vertical scrollbar */
   int hor_min, hor_max;   /* horizontal scrollbar */
 
-  rcti hor, vert;        /* exact size of slider backdrop */
-  int horfull, vertfull; /* set if sliders are full, we don't draw them */
+  /** Exact size of slider backdrop. */
+  rcti hor, vert;
+  /* set if sliders are full, we don't draw them */
+  /* int horfull, vertfull; */ /* UNUSED */
 };
 
 /* Calculate relevant scroller properties */
