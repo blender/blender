@@ -1694,7 +1694,7 @@ class GreasePencilSculptPanel:
 
     @classmethod
     def poll(cls, context):
-        if context.space_data.type in ('VIEW_3D', 'PROPERTIES'):
+        if context.space_data.type in {'VIEW_3D', 'PROPERTIES'}:
             if context.gpencil_data is None:
                 return False
 
@@ -1768,7 +1768,7 @@ class GreasePencilWeightPanel:
 
     @classmethod
     def poll(cls, context):
-        if context.space_data.type in ('VIEW_3D', 'PROPERTIES'):
+        if context.space_data.type in {'VIEW_3D', 'PROPERTIES'}:
             if context.gpencil_data is None:
                 return False
 
@@ -1843,7 +1843,7 @@ class GreasePencilVertexPanel:
 
     @classmethod
     def poll(cls, context):
-        if context.space_data.type in ('VIEW_3D', 'PROPERTIES'):
+        if context.space_data.type in {'VIEW_3D', 'PROPERTIES'}:
             if context.gpencil_data is None:
                 return False
 
