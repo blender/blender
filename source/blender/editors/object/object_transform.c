@@ -1098,21 +1098,21 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         mul_m4_v3(obedit->imat, cent);
       }
       else {
-        if (around == V3D_AROUND_CENTER_MEDIAN) {
-          if (em->bm->totvert) {
-            const float total_div = 1.0f / (float)em->bm->totvert;
-            BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-              madd_v3_v3fl(cent, eve->co, total_div);
-            }
-          }
-        }
-        else {
+        if (around == V3D_AROUND_CENTER_BOUNDS) {
           float min[3], max[3];
           INIT_MINMAX(min, max);
           BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
             minmax_v3v3_v3(min, max, eve->co);
           }
           mid_v3_v3v3(cent, min, max);
+        }
+        else { /* #V3D_AROUND_CENTER_MEDIAN. */
+          if (em->bm->totvert) {
+            const float total_div = 1.0f / (float)em->bm->totvert;
+            BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+              madd_v3_v3fl(cent, eve->co, total_div);
+            }
+          }
         }
       }
 
@@ -1211,11 +1211,11 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         else if (centermode == ORIGIN_TO_CENTER_OF_MASS_VOLUME) {
           BKE_mesh_center_of_volume(me, cent);
         }
-        else if (around == V3D_AROUND_CENTER_MEDIAN) {
-          BKE_mesh_center_median(me, cent);
-        }
-        else {
+        else if (around == V3D_AROUND_CENTER_BOUNDS) {
           BKE_mesh_center_bounds(me, cent);
+        }
+        else { /* #V3D_AROUND_CENTER_MEDIAN. */
+          BKE_mesh_center_median(me, cent);
         }
 
         negate_v3_v3(cent_neg, cent);
@@ -1231,11 +1231,11 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         if (centermode == ORIGIN_TO_CURSOR) {
           /* done */
         }
-        else if (around == V3D_AROUND_CENTER_MEDIAN) {
-          BKE_curve_center_median(cu, cent);
-        }
-        else {
+        else if (around == V3D_AROUND_CENTER_BOUNDS) {
           BKE_curve_center_bounds(cu, cent);
+        }
+        else { /* #V3D_AROUND_CENTER_MEDIAN. */
+          BKE_curve_center_median(cu, cent);
         }
 
         /* don't allow Z change if curve is 2D */
@@ -1324,11 +1324,11 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         if (centermode == ORIGIN_TO_CURSOR) {
           /* done */
         }
-        else if (around == V3D_AROUND_CENTER_MEDIAN) {
-          BKE_mball_center_median(mb, cent);
-        }
-        else {
+        else if (around == V3D_AROUND_CENTER_BOUNDS) {
           BKE_mball_center_bounds(mb, cent);
+        }
+        else { /* #V3D_AROUND_CENTER_MEDIAN. */
+          BKE_mball_center_median(mb, cent);
         }
 
         negate_v3_v3(cent_neg, cent);
@@ -1351,11 +1351,11 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         if (centermode == ORIGIN_TO_CURSOR) {
           /* done */
         }
-        else if (around == V3D_AROUND_CENTER_MEDIAN) {
-          BKE_lattice_center_median(lt, cent);
-        }
-        else {
+        else if (around == V3D_AROUND_CENTER_BOUNDS) {
           BKE_lattice_center_bounds(lt, cent);
+        }
+        else { /* #V3D_AROUND_CENTER_MEDIAN. */
+          BKE_lattice_center_median(lt, cent);
         }
 
         negate_v3_v3(cent_neg, cent);

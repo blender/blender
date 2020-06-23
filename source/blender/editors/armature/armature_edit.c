@@ -140,7 +140,16 @@ void ED_armature_origin_set(
     mul_m4_v3(ob->imat, cent);
   }
   else {
-    if (around == V3D_AROUND_CENTER_MEDIAN) {
+    if (around == V3D_AROUND_CENTER_BOUNDS) {
+      float min[3], max[3];
+      INIT_MINMAX(min, max);
+      for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+        minmax_v3v3_v3(min, max, ebone->head);
+        minmax_v3v3_v3(min, max, ebone->tail);
+      }
+      mid_v3_v3v3(cent, min, max);
+    }
+    else { /* #V3D_AROUND_CENTER_MEDIAN. */
       int total = 0;
       zero_v3(cent);
       for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
@@ -151,15 +160,6 @@ void ED_armature_origin_set(
       if (total) {
         mul_v3_fl(cent, 1.0f / (float)total);
       }
-    }
-    else {
-      float min[3], max[3];
-      INIT_MINMAX(min, max);
-      for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-        minmax_v3v3_v3(min, max, ebone->head);
-        minmax_v3v3_v3(min, max, ebone->tail);
-      }
-      mid_v3_v3v3(cent, min, max);
     }
   }
 

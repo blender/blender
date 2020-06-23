@@ -2956,12 +2956,15 @@ static int gp_snap_cursor_to_sel(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CENTER_MEDIAN && count) {
-    mul_v3_fl(centroid, 1.0f / (float)count);
-    copy_v3_v3(cursor, centroid);
-  }
-  else {
+  if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CENTER_BOUNDS) {
     mid_v3_v3v3(cursor, min, max);
+  }
+  else { /* #V3D_AROUND_CENTER_MEDIAN. */
+    zero_v3(cursor);
+    if (count) {
+      mul_v3_fl(centroid, 1.0f / (float)count);
+      copy_v3_v3(cursor, centroid);
+    }
   }
 
   DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
