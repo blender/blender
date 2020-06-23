@@ -113,6 +113,7 @@ set(SRC_HEADERS
   util_string.h
   util_system.h
   util_task.h
+  util_tbb.h
   util_texture.h
   util_thread.h
   util_time.h

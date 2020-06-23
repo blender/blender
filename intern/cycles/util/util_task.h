@@ -19,21 +19,11 @@
 
 #include "util/util_list.h"
 #include "util/util_string.h"
+#include "util/util_tbb.h"
 #include "util/util_thread.h"
 #include "util/util_vector.h"
 
-#define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
-#include <tbb/tbb.h>
-
-#if TBB_INTERFACE_VERSION_MAJOR >= 10
-#  define WITH_TBB_GLOBAL_CONTROL
-#endif
-
 CCL_NAMESPACE_BEGIN
-
-using tbb::blocked_range;
-using tbb::enumerable_thread_specific;
-using tbb::parallel_for;
 
 class TaskPool;
 class TaskScheduler;
