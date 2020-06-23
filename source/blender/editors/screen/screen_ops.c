@@ -4281,11 +4281,12 @@ static bool screen_animation_region_supports_time_follow(eSpace_Type spacetype,
          (spacetype == SPACE_CLIP && regiontype == RGN_TYPE_PREVIEW);
 }
 
-static bool match_region_with_redraws(eSpace_Type spacetype,
+static bool match_region_with_redraws(const ScrArea *area,
                                       eRegionType regiontype,
                                       eScreen_Redraws_Flag redraws,
                                       bool from_anim_edit)
 {
+  const eSpace_Type spacetype = area->spacetype;
   if (regiontype == RGN_TYPE_WINDOW) {
 
     switch (spacetype) {
@@ -4352,7 +4353,10 @@ static bool match_region_with_redraws(eSpace_Type spacetype,
   }
   else if (regiontype == RGN_TYPE_HEADER) {
     if (spacetype == SPACE_ACTION) {
-      return true;
+      /* The timeline shows the current frame in the header. Other headers
+       * don't need to be updated. */
+      SpaceAction *saction = (SpaceAction *)area->spacedata.first;
+      return saction->mode == SACTCONT_TIMELINE;
     }
   }
   else if (regiontype == RGN_TYPE_PREVIEW) {
@@ -4581,7 +4585,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
             redraw = true;
           }
           else if (match_region_with_redraws(
-                       area->spacetype, region->regiontype, sad->redraws, sad->from_anim_edit)) {
+                       area, region->regiontype, sad->redraws, sad->from_anim_edit)) {
             redraw = true;
           }
 
