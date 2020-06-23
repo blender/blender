@@ -1163,7 +1163,7 @@ static PointerRNA rna_CollisionModifier_settings_get(PointerRNA *ptr)
 static void rna_BevelModifier_update_segments(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   BevelModifierData *bmd = (BevelModifierData *)ptr->data;
-  if (RNA_boolean_get(ptr, "use_custom_profile")) {
+  if (RNA_enum_get(ptr, "profile_type") == MOD_BEVEL_PROFILE_CUSTOM) {
     short segments = (short)RNA_int_get(ptr, "segments");
     BKE_curveprofile_initialize(bmd->custom_profile, segments);
   }
@@ -3956,6 +3956,20 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem prop_profile_type_items[] = {
+      {MOD_BEVEL_PROFILE_SUPERELLIPSE,
+       "SUPERELLIPSE",
+       0,
+       "Superellipse",
+       "The profile can be a concave or convex curve"},
+      {MOD_BEVEL_PROFILE_CUSTOM,
+       "CUSTOM",
+       0,
+       "Custom",
+       "The profile can be any arbitrary path between its endpoints"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   static EnumPropertyItem prop_harden_normals_items[] = {
       {MOD_BEVEL_FACE_STRENGTH_NONE, "FSTR_NONE", 0, "None", "Do not set face strength"},
       {MOD_BEVEL_FACE_STRENGTH_NEW, "FSTR_NEW", 0, "New", "Set face strength on new faces only"},
@@ -4066,6 +4080,13 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Width Type", "What distance Width measures");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  prop = RNA_def_property(srna, "profile_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "profile_type");
+  RNA_def_property_enum_items(prop, prop_profile_type_items);
+  RNA_def_property_ui_text(
+      prop, "Profile Type", "The type of shape used to rebuild a beveled section");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
   prop = RNA_def_property(srna, "profile", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.05, 2);
@@ -4123,12 +4144,6 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0f, 100.0f, 0.1, 4);
   RNA_def_property_ui_text(prop, "Spread", "Spread distance for inner miter arcs");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-  prop = RNA_def_property(srna, "use_custom_profile", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_BEVEL_CUSTOM_PROFILE);
-  RNA_def_property_ui_text(
-      prop, "Custom Profile", "Whether to use a user inputted curve for the bevel's profile");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "custom_profile", PROP_POINTER, PROP_NONE);

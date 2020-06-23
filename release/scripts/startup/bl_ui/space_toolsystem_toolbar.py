@@ -747,18 +747,30 @@ class _defs_edit_mesh:
                     layout.prop(props, "offset_type")
 
                 layout.prop(props, "segments")
-                layout.prop(props, "profile", slider=True)
+
+                row = layout.row()
+                row.prop(props, "profile_type", expand=True)
+                if props.profile_type == 'SUPERELLIPSE':
+                    layout.prop(props, "profile", text="Shape", slider=True)
 
                 if region_type == 'TOOL_HEADER':
                     layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
                 else:
                     extra = True
 
-            if extra or region_type != 'TOOL_HEADER':
-                layout.prop(props, "vertex_only")
-                layout.prop(props, "clamp_overlap")
-                layout.prop(props, "loop_slide")
-                layout.prop(props, "harden_normals")
+            if extra:
+                layout.use_property_split = True
+                layout.use_property_decorate = False
+
+                if props.profile_type == 'CUSTOM':
+                    layout.prop(props, "profile", text="Miter Shape", slider=True)
+
+                col = layout.column()
+                col.prop(props, "vertex_only")
+                col.prop(props, "clamp_overlap")
+                col.prop(props, "loop_slide")
+                col.prop(props, "harden_normals")
+
                 col = layout.column(heading="Mark")
                 col.prop(props, "mark_seam", text="Seam")
                 col.prop(props, "mark_sharp", text="Sharp")
@@ -770,8 +782,7 @@ class _defs_edit_mesh:
                 if props.miter_inner == 'ARC':
                     layout.prop(props, "spread")
 
-                layout.prop(props, "use_custom_profile")
-                if props.use_custom_profile:
+                if props.profile_type == 'CUSTOM':
                     tool_settings = context.tool_settings
                     layout.template_curveprofile(tool_settings, "custom_bevel_profile_preset")
 

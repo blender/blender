@@ -118,6 +118,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   const bool vertex_only = (bmd->flags & MOD_BEVEL_VERT) != 0;
   const bool do_clamp = !(bmd->flags & MOD_BEVEL_OVERLAP_OK);
   const int offset_type = bmd->val_flags;
+  const int profile_type = bmd->profile_type;
   const float value = bmd->value;
   const int mat = CLAMPIS(bmd->mat, -1, ctx->object->totcol - 1);
   const bool loop_slide = (bmd->flags & MOD_BEVEL_EVEN_WIDTHS) == 0;
@@ -128,7 +129,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   const int miter_outer = bmd->miter_outer;
   const int miter_inner = bmd->miter_inner;
   const float spread = bmd->spread;
-  const bool use_custom_profile = (bmd->flags & MOD_BEVEL_CUSTOM_PROFILE);
   const int vmesh_method = bmd->vmesh_method;
   const bool invert_vgroup = (bmd->flags & MOD_BEVEL_INVERT_VGROUP) != 0;
 
@@ -225,6 +225,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   BM_mesh_bevel(bm,
                 value,
                 offset_type,
+                profile_type,
                 bmd->res,
                 bmd->profile,
                 vertex_only,
@@ -242,7 +243,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                 miter_inner,
                 spread,
                 mesh->smoothresh,
-                use_custom_profile,
                 bmd->custom_profile,
                 vmesh_method);
 
@@ -374,47 +374,39 @@ static void shading_panel_draw(const bContext *C, Panel *panel)
 
 static void profile_panel_draw(const bContext *C, Panel *panel)
 {
+  uiLayout *layout = panel->layout;
+
   PointerRNA ptr;
   modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
-  uiLayout *layout = panel->layout;
+
+  int profile_type = RNA_enum_get(&ptr, "profile_type");
+
+  uiItemR(layout, &ptr, "profile_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "profile", UI_ITEM_R_SLIDER, IFACE_("Shape"), ICON_NONE);
-}
+  if (ELEM(profile_type, MOD_BEVEL_PROFILE_SUPERELLIPSE, MOD_BEVEL_PROFILE_CUSTOM)) {
+    uiItemR(layout,
+            &ptr,
+            "profile",
+            UI_ITEM_R_SLIDER,
+            (profile_type == MOD_BEVEL_PROFILE_SUPERELLIPSE) ? IFACE_("Shape") :
+                                                               IFACE_("Miter Shape"),
+            ICON_NONE);
 
-static void custom_profile_panel_draw_header(const bContext *C, Panel *panel)
-{
-  uiLayout *layout = panel->layout;
-
-  PointerRNA ptr;
-  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
-
-  uiItemR(layout, &ptr, "use_custom_profile", 0, NULL, ICON_NONE);
-}
-
-static void custom_profile_panel_draw(const bContext *C, Panel *panel)
-{
-  PointerRNA ptr;
-  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
-  uiLayout *layout = panel->layout;
-
-  uiLayoutSetActive(layout, RNA_boolean_get(&ptr, "use_custom_profile"));
-
-  uiTemplateCurveProfile(layout, &ptr, "custom_profile");
+    if (profile_type == MOD_BEVEL_PROFILE_CUSTOM) {
+      uiLayout *sub = uiLayoutColumn(layout, false);
+      uiLayoutSetPropDecorate(sub, false);
+      uiTemplateCurveProfile(sub, &ptr, "custom_profile");
+    }
+  }
 }
 
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Bevel, panel_draw);
-  PanelType *bevel_profil_panel = modifier_subpanel_register(
+  modifier_subpanel_register(
       region_type, "profile", "Profile", NULL, profile_panel_draw, panel_type);
-  modifier_subpanel_register(region_type,
-                             "custom",
-                             "",
-                             custom_profile_panel_draw_header,
-                             custom_profile_panel_draw,
-                             bevel_profil_panel);
   modifier_subpanel_register(
       region_type, "geometry", "Geometry", NULL, geometry_panel_draw, panel_type);
   modifier_subpanel_register(

@@ -33,6 +33,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 {
   const float offset = BMO_slot_float_get(op->slots_in, "offset");
   const int offset_type = BMO_slot_int_get(op->slots_in, "offset_type");
+  const int profile_type = BMO_slot_int_get(op->slots_in, "profile_type");
   const int seg = BMO_slot_int_get(op->slots_in, "segments");
   const bool vonly = BMO_slot_bool_get(op->slots_in, "vertex_only");
   const float profile = BMO_slot_float_get(op->slots_in, "profile");
@@ -47,7 +48,6 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
   const int miter_inner = BMO_slot_int_get(op->slots_in, "miter_inner");
   const float spread = BMO_slot_float_get(op->slots_in, "spread");
   const float smoothresh = BMO_slot_float_get(op->slots_in, "smoothresh");
-  const bool use_custom_profile = BMO_slot_bool_get(op->slots_in, "use_custom_profile");
   const CurveProfile *custom_profile = BMO_slot_ptr_get(op->slots_in, "custom_profile");
   const int vmesh_method = BMO_slot_int_get(op->slots_in, "vmesh_method");
 
@@ -76,6 +76,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
     BM_mesh_bevel(bm,
                   offset,
                   offset_type,
+                  profile_type,
                   seg,
                   profile,
                   vonly,
@@ -93,7 +94,6 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
                   miter_inner,
                   spread,
                   smoothresh,
-                  use_custom_profile,
                   custom_profile,
                   vmesh_method);
 

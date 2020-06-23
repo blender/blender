@@ -302,6 +302,8 @@ typedef struct BevelParams {
   float offset;
   /** How offset is measured; enum defined in bmesh_operators.h. */
   int offset_type;
+  /** Profile type: radius, superellipse, or custom */
+  int profile_type;
   /** Number of segments in beveled edge profile. */
   int seg;
   /** User profile setting. */
@@ -324,9 +326,7 @@ typedef struct BevelParams {
   bool mark_sharp;
   /** Should we harden normals? */
   bool harden_normals;
-  /** Should we use the custom profiles feature? */
-  bool use_custom_profile;
-  char _pad[3];
+  char _pad[1];
   /** The struct used to store the custom profile input. */
   const struct CurveProfile *custom_profile;
   /** Vertex group array, maybe set if vertex_only. */
@@ -1737,7 +1737,7 @@ static void calculate_profile(BevelParams *bp, BoundVert *bndv, bool reversed, b
     }
   }
   r = pro->super_r;
-  if (!bp->use_custom_profile && r == PRO_LINE_R) {
+  if (bp->profile_type == BEVEL_PROFILE_SUPERELLIPSE && r == PRO_LINE_R) {
     map_ok = false;
   }
   else {
@@ -2334,7 +2334,7 @@ static void calculate_vm_profiles(BevelParams *bp, BevVert *bv, VMesh *vm)
     }
     bool miter_profile = false;
     bool reverse_profile = false;
-    if (bp->use_custom_profile) {
+    if (bp->profile_type == BEVEL_PROFILE_CUSTOM) {
       /* Use the miter profile spacing struct if the default is filled with the custom profile. */
       miter_profile = (bndv->is_arc_start || bndv->is_patch_start);
       /* Don't bother reversing the profile if it's a miter profile */
@@ -2464,7 +2464,7 @@ static void build_boundary_terminal_edge(BevelParams *bp,
     }
     /* For the edges not adjacent to the beveled edge, slide the bevel amount along. */
     d = efirst->offset_l_spec;
-    if (bp->use_custom_profile || bp->profile < 0.25f) {
+    if (bp->profile_type == BEVEL_PROFILE_CUSTOM || bp->profile < 0.25f) {
       d *= sqrtf(2.0f); /* Need to go further along the edge to make room for full profile area. */
     }
     for (e = e->next; e->next != efirst; e = e->next) {
@@ -2496,7 +2496,7 @@ static void build_boundary_terminal_edge(BevelParams *bp,
     }
     else if (vm->count == 3) {
       use_tri_fan = true;
-      if (bp->use_custom_profile) {
+      if (bp->profile_type == BEVEL_PROFILE_CUSTOM) {
         /* Prevent overhanging edges: use M_POLY if the extra point is planar with the profile. */
         bndv = efirst->leftv;
         float profile_plane[4];
@@ -3831,7 +3831,7 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm_in)
       copy_v3_v3(co, mesh_vert(vm_in, i, 0, k)->co);
 
       /* Smooth boundary rule. Custom profiles shouldn't be smoothed. */
-      if (!bp->use_custom_profile) {
+      if (bp->profile_type != BEVEL_PROFILE_CUSTOM) {
         copy_v3_v3(co1, mesh_vert(vm_in, i, 0, k - 1)->co);
         copy_v3_v3(co2, mesh_vert(vm_in, i, 0, k + 1)->co);
 
@@ -3850,7 +3850,7 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm_in)
       get_profile_point(bp, &bndv->profile, k, ns_out, co);
 
       /* Smooth if using a non-custom profile. */
-      if (!bp->use_custom_profile) {
+      if (bp->profile_type != BEVEL_PROFILE_CUSTOM) {
         copy_v3_v3(co1, mesh_vert_canon(vm_out, i, 0, k - 1)->co);
         copy_v3_v3(co2, mesh_vert_canon(vm_out, i, 0, k + 1)->co);
 
@@ -4078,7 +4078,7 @@ static VMesh *make_cube_corner_adj_vmesh(BevelParams *bp)
   int i, j, k, ns2;
   float co[3], coc[3];
 
-  if (!bp->use_custom_profile) {
+  if (bp->profile_type != BEVEL_PROFILE_CUSTOM) {
     if (r == PRO_SQUARE_R) {
       return make_cube_corner_square(mem_arena, nseg);
     }
@@ -4162,7 +4162,7 @@ static int tri_corner_test(BevelParams *bp, BevVert *bv)
   int in_plane_e = 0;
 
   /* The superellipse snapping of this case isn't helpful with custom profiles enabled. */
-  if (bp->vertex_only || bp->use_custom_profile) {
+  if (bp->vertex_only || bp->profile_type == BEVEL_PROFILE_CUSTOM) {
     return -1;
   }
   if (bv->vmesh->count != 3) {
@@ -4281,7 +4281,7 @@ static VMesh *adj_vmesh(BevelParams *bp, BevVert *bv)
   fullness = bp->pro_spacing.fullness;
   sub_v3_v3v3(center_direction, original_vertex, boundverts_center);
   if (len_squared_v3(center_direction) > BEVEL_EPSILON_SQ) {
-    if (bp->use_custom_profile) {
+    if (bp->profile_type == BEVEL_PROFILE_CUSTOM) {
       fullness *= 2.0f;
       madd_v3_v3v3fl(mesh_vert(vm0, 0, 1, 1)->co, negative_fullest, center_direction, fullness);
     }
@@ -4377,7 +4377,7 @@ static VMesh *pipe_adj_vmesh(BevelParams *bp, BevVert *bv, BoundVert *vpipe)
           continue;
         }
         /* With a custom profile just copy the shape of the profile at each ring. */
-        if (bp->use_custom_profile) {
+        if (bp->profile_type == BEVEL_PROFILE_CUSTOM) {
           /* Find both profile vertices that correspond to this point. */
           if (i == ipipe1 || i == ipipe2) {
             if (n_bndv == 3 && i == ipipe1) {
@@ -4832,7 +4832,8 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv, BoundVert
   odd = ns % 2;
   BLI_assert(n_bndv >= 3 && ns > 1);
 
-  if (bp->pro_super_r == PRO_SQUARE_R && bv->selcount >= 3 && !odd && !bp->use_custom_profile) {
+  if (bp->pro_super_r == PRO_SQUARE_R && bv->selcount >= 3 && !odd &&
+      bp->profile_type != BEVEL_PROFILE_CUSTOM) {
     vm1 = square_out_adj_vmesh(bp, bv);
   }
   else if (vpipe) {
@@ -4842,7 +4843,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv, BoundVert
     vm1 = tri_corner_adj_vmesh(bp, bv);
     /* The PRO_SQUARE_IN_R profile has boundary edges that merge
      * and no internal ring polys except possibly center ngon. */
-    if (bp->pro_super_r == PRO_SQUARE_IN_R && !bp->use_custom_profile) {
+    if (bp->pro_super_r == PRO_SQUARE_IN_R && bp->profile_type != BEVEL_PROFILE_CUSTOM) {
       build_square_in_vmesh(bp, bm, bv, vm1);
       return;
     }
@@ -5446,7 +5447,7 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
     for (k = 1; k < ns; k++) {
       v_weld1 = mesh_vert(bv->vmesh, weld1->index, 0, k)->co;
       v_weld2 = mesh_vert(bv->vmesh, weld2->index, 0, ns - k)->co;
-      if (bp->use_custom_profile) {
+      if (bp->profile_type == BEVEL_PROFILE_CUSTOM) {
         /* Don't bother with special case profile check from below. */
         mid_v3_v3v3(co, v_weld1, v_weld2);
       }
@@ -6835,7 +6836,7 @@ static float find_profile_fullness(BevelParams *bp)
       0.647f, /* 11 */
   };
 
-  if (bp->use_custom_profile) {
+  if (bp->profile_type == BEVEL_PROFILE_CUSTOM) {
     /* Set fullness to the average "height" of the profile's sampled points. */
     fullness = 0.0f;
     for (int i = 0; i < nseg; i++) { /* Don't use the end points. */
@@ -7171,6 +7172,7 @@ static void bevel_limit_offset(BevelParams *bp, BMesh *bm)
 void BM_mesh_bevel(BMesh *bm,
                    const float offset,
                    const int offset_type,
+                   const int profile_type,
                    const int segments,
                    const float profile,
                    const bool vertex_only,
@@ -7188,7 +7190,6 @@ void BM_mesh_bevel(BMesh *bm,
                    const int miter_inner,
                    const float spread,
                    const float smoothresh,
-                   const bool use_custom_profile,
                    const struct CurveProfile *custom_profile,
                    const int vmesh_method)
 {
@@ -7222,7 +7223,7 @@ void BM_mesh_bevel(BMesh *bm,
   bp.spread = spread;
   bp.smoothresh = smoothresh;
   bp.face_hash = NULL;
-  bp.use_custom_profile = use_custom_profile;
+  bp.profile_type = profile_type;
   bp.custom_profile = custom_profile;
   bp.vmesh_method = vmesh_method;
 
@@ -7257,13 +7258,13 @@ void BM_mesh_bevel(BMesh *bm,
     BLI_memarena_use_calloc(bp.mem_arena);
 
     /* Get the 2D profile point locations from either the superellipse or the custom profile. */
-    set_profile_spacing(&bp, &bp.pro_spacing, bp.use_custom_profile);
+    set_profile_spacing(&bp, &bp.pro_spacing, bp.profile_type == BEVEL_PROFILE_CUSTOM);
     if (bp.seg > 1) {
       bp.pro_spacing.fullness = find_profile_fullness(&bp);
     }
 
-    /* Get separate non-custom profile samples for the miter profiles if they are needed. */
-    if (bp.use_custom_profile &&
+    /* Get separate non-custom profile samples for the miter profiles if they are needed */
+    if (bp.profile_type == BEVEL_PROFILE_CUSTOM &&
         (bp.miter_inner != BEVEL_MITER_SHARP || bp.miter_outer != BEVEL_MITER_SHARP)) {
       set_profile_spacing(&bp, &bp.pro_spacing_miter, false);
     }
@@ -7297,13 +7298,13 @@ void BM_mesh_bevel(BMesh *bm,
     }
 
     /* Perhaps do a pass to try to even out widths. */
-    if (!bp.vertex_only && bp.offset_adjust && bp.offset_type != BEVEL_AMT_PERCENT &&
-        bp.offset_type != BEVEL_AMT_ABSOLUTE) {
+    if (!bp.vertex_only && bp.offset_adjust &&
+        !ELEM(offset_type, BEVEL_AMT_PERCENT, BEVEL_AMT_ABSOLUTE)) {
       adjust_offsets(&bp, bm);
     }
 
     /* Maintain consistent orientations for the asymmetrical custom profiles. */
-    if (bp.use_custom_profile) {
+    if (bp.profile_type == BEVEL_PROFILE_CUSTOM) {
       BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
         if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
           regularize_profile_orientation(&bp, e);

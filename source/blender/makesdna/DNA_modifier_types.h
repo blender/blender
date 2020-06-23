@@ -394,6 +394,8 @@ typedef struct BevelModifierData {
   short flags;
   /** Used to interpret the bevel value. */
   short val_flags;
+  /** For the type and how we build the bevel's profile. */
+  short profile_type;
   /** Flags to tell the tool how to limit the bevel. */
   short lim_flags;
   /** Flags to direct how edge weights are applied to verts. */
@@ -407,6 +409,7 @@ typedef struct BevelModifierData {
   short miter_outer;
   /** The method to use for creating >2-way intersections */
   short vmesh_method;
+  char _pad0[2];
   /** Controls profile shape (0->1, .5 is round). */
   float profile;
   /** if the MOD_BEVEL_ANGLE is set,
@@ -417,6 +420,7 @@ typedef struct BevelModifierData {
    * this will be the name of the vert group, MAX_VGROUP_NAME */
   char defgrp_name[64];
 
+  char _pad1[4];
   /** Curve info for the custom profile */
   struct CurveProfile *custom_profile;
 
@@ -429,12 +433,15 @@ enum {
   MOD_BEVEL_ANGLE = (1 << 3),
   MOD_BEVEL_WEIGHT = (1 << 4),
   MOD_BEVEL_VGROUP = (1 << 5),
-  MOD_BEVEL_CUSTOM_PROFILE = (1 << 7),
-  /* MOD_BEVEL_SAMPLE_STRAIGHT = (1 << 8), */ /* UNUSED */
-  /*  unused                  = (1 << 9), */
-  /*  unused                  = (1 << 10), */
-  /*  unused                  = (1 << 11), */
-  /*  unused                  = (1 << 12), */
+/* unused                  = (1 << 6), */
+#ifdef DNA_DEPRECATED_ALLOW
+  MOD_BEVEL_CUSTOM_PROFILE_DEPRECATED = (1 << 7),
+#endif
+  /* unused                  = (1 << 8), */
+  /* unused                  = (1 << 9), */
+  /* unused                  = (1 << 10), */
+  /* unused                  = (1 << 11), */
+  /* unused                  = (1 << 12), */
   MOD_BEVEL_OVERLAP_OK = (1 << 13),
   MOD_BEVEL_EVEN_WIDTHS = (1 << 14),
   MOD_BEVEL_HARDEN_NORMALS = (1 << 15),
@@ -447,6 +454,12 @@ enum {
   MOD_BEVEL_AMT_DEPTH = 2,
   MOD_BEVEL_AMT_PERCENT = 3,
   MOD_BEVEL_AMT_ABSOLUTE = 4,
+};
+
+/* BevelModifierData->profile_type */
+enum {
+  MOD_BEVEL_PROFILE_SUPERELLIPSE = 0,
+  MOD_BEVEL_PROFILE_CUSTOM = 1,
 };
 
 /* BevelModifierData->edge_flags */
