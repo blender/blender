@@ -30,6 +30,12 @@ struct Main;
 struct MemFile;
 struct ReportList;
 
+/* -------------------------------------------------------------------- */
+/** \name BLO Write File API
+ *
+ * \see #BLO_read_from_file for file reading.
+ * \{ */
+
 /**
  * Adjust paths when saving (kept unless #G_FILE_SAVE_COPY is set).
  */
@@ -65,5 +71,7 @@ extern bool BLO_write_file_mem(struct Main *mainvar,
                                struct MemFile *compare,
                                struct MemFile *current,
                                int write_flags);
+
+/** \} */
 
 #endif
