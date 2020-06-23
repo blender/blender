@@ -283,7 +283,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object, bool is_object_visible)
   }
 }
 
-void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
+void DepsgraphNodeBuilder::build_proxy_rig(Object *object, bool is_object_visible)
 {
   bArmature *armature = (bArmature *)object->data;
   OperationNode *op_node;
@@ -324,6 +324,11 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
       build_idproperties(pchan->prop);
       add_operation_node(
           &object->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, nullptr, pchan->name);
+    }
+
+    /* Custom shape. */
+    if (pchan->custom != nullptr) {
+      build_object(-1, pchan->custom, DEG_ID_LINKED_INDIRECTLY, is_object_visible);
     }
 
     pchan_index++;

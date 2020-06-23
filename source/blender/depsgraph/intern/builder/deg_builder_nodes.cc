@@ -733,7 +733,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object, bool is_object_visi
       break;
     case OB_ARMATURE:
       if (ID_IS_LINKED(object) && object->proxy_from != nullptr) {
-        build_proxy_rig(object);
+        build_proxy_rig(object, is_object_visible);
       }
       else {
         build_rig(object, is_object_visible);
