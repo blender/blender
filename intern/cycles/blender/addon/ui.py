@@ -398,7 +398,7 @@ class CYCLES_RENDER_PT_hair(CyclesButtonsPanel, Panel):
         col = layout.column()
         col.prop(ccscene, "shape", text="Shape")
         if ccscene.shape == 'RIBBONS':
-            col.prop(ccscene, "subdivisions", text="Curve subdivisions")
+            col.prop(ccscene, "subdivisions", text="Curve Subdivisions")
 
 
 class CYCLES_RENDER_PT_volumes(CyclesButtonsPanel, Panel):
