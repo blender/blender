@@ -931,9 +931,9 @@ static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
   bool do_draw = false;
 
   for (region = screen->regionbase.first; region; region = region->next) {
-    if (region->do_draw_overlay) {
+    if (region->do_draw_paintcursor) {
       screen->do_draw_paintcursor = true;
-      region->do_draw_overlay = false;
+      region->do_draw_paintcursor = false;
     }
     if (region->visible && region->do_draw) {
       do_draw = true;

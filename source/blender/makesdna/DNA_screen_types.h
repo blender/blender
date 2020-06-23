@@ -427,7 +427,7 @@ typedef struct ARegion {
   /** Private, cached notifier events. */
   short do_draw;
   /** Private, cached notifier events. */
-  short do_draw_overlay;
+  short do_draw_paintcursor;
   /** Private, set for indicate drawing overlapped. */
   short overlap;
   /** Temporary copy of flag settings for clean fullscreen. */

@@ -646,7 +646,7 @@ void ED_region_tag_redraw(ARegion *region)
 void ED_region_tag_redraw_cursor(ARegion *region)
 {
   if (region) {
-    region->do_draw_overlay = RGN_DRAW;
+    region->do_draw_paintcursor = RGN_DRAW;
   }
 }
 
