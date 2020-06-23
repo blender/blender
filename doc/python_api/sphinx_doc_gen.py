@@ -1028,6 +1028,7 @@ context_type_map = {
     "gpencil": ("GreasePencil", False),
     "gpencil_data": ("GreasePencil", False),
     "gpencil_data_owner": ("ID", False),
+    "hair": ("Hair", False),
     "image_paint_object": ("Object", False),
     "lattice": ("Lattice", False),
     "light": ("Light", False),
@@ -1044,6 +1045,7 @@ context_type_map = {
     "particle_settings": ("ParticleSettings", False),
     "particle_system": ("ParticleSystem", False),
     "particle_system_editable": ("ParticleSystem", False),
+    "pointcloud": ("PointCloud", False),
     "pose_bone": ("PoseBone", False),
     "pose_object": ("Object", False),
     "scene": ("Scene", False),
@@ -1719,7 +1721,7 @@ class PatchedPythonDomain(PythonDomain):
     # end workaround
 
     fw("def setup(app):\n")
-    fw("    app.add_stylesheet('css/theme_overrides.css')\n")
+    fw("    app.add_css_file('css/theme_overrides.css')\n")
     fw("    app.add_domain(PatchedPythonDomain, override=True)\n\n")
 
     file.close()
