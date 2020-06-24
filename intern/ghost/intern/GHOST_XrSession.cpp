@@ -375,15 +375,6 @@ static void ghost_xr_draw_view_info_from_view(const XrView &view, GHOST_XrDrawVi
   r_info.fov.angle_down = view.fov.angleDown;
 }
 
-static bool ghost_xr_draw_view_expects_srgb_buffer(const GHOST_XrContext *context)
-{
-  /* Monado seems to be faulty and doesn't do OETF transform correctly. So expect a SRGB buffer to
-   * compensate. You get way too dark rendering without this, it's pretty obvious (even in the
-   * default startup scene). */
-  GHOST_TXrOpenXRRuntimeID runtime_id = context->getOpenXRRuntimeID();
-  return (runtime_id == OPENXR_RUNTIME_MONADO) || (runtime_id == OPENXR_RUNTIME_STEAMVR);
-}
-
 void GHOST_XrSession::drawView(GHOST_XrSwapchain &swapchain,
                                XrCompositionLayerProjectionView &r_proj_layer_view,
                                XrSpaceLocation &view_location,
@@ -398,7 +389,7 @@ void GHOST_XrSession::drawView(GHOST_XrSwapchain &swapchain,
   r_proj_layer_view.fov = view.fov;
   swapchain.updateCompositionLayerProjectViewSubImage(r_proj_layer_view.subImage);
 
-  draw_view_info.expects_srgb_buffer = ghost_xr_draw_view_expects_srgb_buffer(m_context);
+  draw_view_info.expects_srgb_buffer = swapchain.isBufferSRGB();
   draw_view_info.ofsx = r_proj_layer_view.subImage.imageRect.offset.x;
   draw_view_info.ofsy = r_proj_layer_view.subImage.imageRect.offset.y;
   draw_view_info.width = r_proj_layer_view.subImage.imageRect.extent.width;
