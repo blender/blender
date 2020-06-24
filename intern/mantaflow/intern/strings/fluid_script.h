@@ -33,7 +33,7 @@ from manta import *\n\
 import os.path, shutil, math, sys, gc, multiprocessing, platform, time\n\
 \n\
 withMPBake = False # Bake files asynchronously\n\
-withMPSave = True # Save files asynchronously\n\
+withMPSave = False # Save files asynchronously\n\
 isWindows = platform.system() != 'Darwin' and platform.system() != 'Linux'\n\
 # TODO (sebbas): Use this to simulate Windows multiprocessing (has default mode spawn)\n\
 #try:\n\
@@ -161,7 +161,19 @@ mantaMsg('scaleSpeed is ' + str(scaleSpeedFrames_s$ID$))\n\
 scaleSpeedTime_s$ID$ = ratioResToBLength_s$ID$ * ratioBTimeToTimstep_s$ID$ # [blength/btime] to [cells/frameLength]\n\
 mantaMsg('scaleSpeedTime is ' + str(scaleSpeedTime_s$ID$))\n\
 \n\
-gravity_s$ID$ *= scaleAcceleration_s$ID$ # scale from world acceleration to cell based acceleration\n";
+gravity_s$ID$ *= scaleAcceleration_s$ID$ # scale from world acceleration to cell based acceleration\n\
+\n\
+# OpenVDB options\n\
+vdbCompression_s$ID$ = $COMPRESSION_OPENVDB$\n\
+vdbPrecisionHalf_s$ID$ = $PRECISION_OPENVDB$\n\
+\n\
+# Cache file names\n\
+file_data_s$ID$ = '$NAME_DATA$'\n\
+file_noise_s$ID$ = '$NAME_NOISE$'\n\
+file_mesh_s$ID$ = '$NAME_MESH$'\n\
+file_meshvel_s$ID$ = '$NAME_MESH$'\n\
+file_particles_s$ID$ = '$NAME_PARTICLES$'\n\
+file_guiding_s$ID$ = '$NAME_GUIDING$'";
 
 const std::string fluid_variables_noise =
     "\n\
@@ -282,8 +294,8 @@ phiIn_s$ID$.setConst(9999)\n\
 phiOut_s$ID$.setConst(9999)\n\
 \n\
 # Keep track of important objects in dict to load them later on\n\
-fluid_data_dict_final_s$ID$  = dict(vel=vel_s$ID$, velTmp=velTmp_s$ID$)\n\
-fluid_data_dict_resume_s$ID$ = dict(phiObs=phiObs_s$ID$, phiIn=phiIn_s$ID$, phiOut=phiOut_s$ID$, flags=flags_s$ID$)\n";
+fluid_data_dict_final_s$ID$  = { 'vel' : vel_s$ID$ }\n\
+fluid_data_dict_resume_s$ID$ = { 'phiObs' : phiObs_s$ID$, 'phiIn' : phiIn_s$ID$, 'phiOut' : phiOut_s$ID$, 'flags' : flags_s$ID$, 'velTmp' : velTmp_s$ID$ }\n";
 
 const std::string fluid_alloc_obstacle =
     "\n\
@@ -497,10 +509,12 @@ def fluid_cache_get_framenr_formatted_$ID$(framenr):\n\
 
 const std::string fluid_bake_multiprocessing =
     "\n\
-def fluid_cache_multiprocessing_start_$ID$(function, framenr, format_data=None, format_noise=None, format_mesh=None, format_particles=None, format_guiding=None, path_data=None, path_noise=None, path_mesh=None, path_particles=None, path_guiding=None, dict=None, do_join=True, resumable=False):\n\
+def fluid_cache_multiprocessing_start_$ID$(function, framenr, file_name=None, format_data=None, format_noise=None, format_mesh=None, format_particles=None, format_guiding=None, path_data=None, path_noise=None, path_mesh=None, path_particles=None, path_guiding=None, dict=None, do_join=True, resumable=False):\n\
     mantaMsg('Multiprocessing cache')\n\
     if __name__ == '__main__':\n\
         args = (framenr,)\n\
+        if file_name:\n\
+            args += (file_name,)\n\
         if format_data:\n\
             args += (format_data,)\n\
         if format_noise:\n\
@@ -531,7 +545,7 @@ def fluid_cache_multiprocessing_start_$ID$(function, framenr, format_data=None, 
 
 const std::string fluid_bake_data =
     "\n\
-def bake_fluid_process_data_$ID$(framenr, format_data, format_particles, format_guiding, path_data, path_guiding):\n\
+def bake_fluid_process_data_$ID$(framenr, format_data, path_data):\n\
     mantaMsg('Bake fluid data')\n\
     \n\
     s$ID$.frame = framenr\n\
@@ -545,15 +559,15 @@ def bake_fluid_process_data_$ID$(framenr, format_data, format_particles, format_
         liquid_adaptive_step_$ID$(framenr)\n\
     mantaMsg('--- Step: %s seconds ---' % (time.time() - start_time))\n\
 \n\
-def bake_fluid_data_$ID$(path_data, path_guiding, framenr, format_data, format_particles, format_guiding):\n\
+def bake_fluid_data_$ID$(path_data, framenr, format_data):\n\
     if not withMPBake or isWindows:\n\
-        bake_fluid_process_data_$ID$(framenr, format_data, format_particles, format_guiding, path_data, path_guiding)\n\
+        bake_fluid_process_data_$ID$(framenr, format_data, path_data)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=bake_fluid_process_data_$ID$, framenr=framenr, format_data=format_data, format_particles=format_particles, format_guiding=format_guiding, path_data=path_data, path_guiding=path_guiding, do_join=False)\n";
+        fluid_cache_multiprocessing_start_$ID$(function=bake_fluid_process_data_$ID$, framenr=framenr, format_data=format_data, path_data=path_data, do_join=False)\n";
 
 const std::string fluid_bake_noise =
     "\n\
-def bake_noise_process_$ID$(framenr, format_data, format_noise, path_data, path_noise, resumable):\n\
+def bake_noise_process_$ID$(framenr, format_noise, path_noise):\n\
     mantaMsg('Bake fluid noise')\n\
     \n\
     sn$ID$.frame = framenr\n\
@@ -563,15 +577,15 @@ def bake_noise_process_$ID$(framenr, format_data, format_noise, path_data, path_
     \n\
     smoke_step_noise_$ID$(framenr)\n\
 \n\
-def bake_noise_$ID$(path_data, path_noise, framenr, format_data, format_noise, resumable):\n\
+def bake_noise_$ID$(path_noise, framenr, format_noise):\n\
     if not withMPBake or isWindows:\n\
-        bake_noise_process_$ID$(framenr, format_data, format_noise, path_data, path_noise, resumable)\n\
+        bake_noise_process_$ID$(framenr, format_noise, path_noise)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=bake_noise_process_$ID$, framenr=framenr, format_data=format_data, format_noise=format_noise, path_data=path_data, path_noise=path_noise, resumable=resumable)\n";
+        fluid_cache_multiprocessing_start_$ID$(function=bake_noise_process_$ID$, framenr=framenr, format_noise=format_noise, path_noise=path_noise)\n";
 
 const std::string fluid_bake_mesh =
     "\n\
-def bake_mesh_process_$ID$(framenr, format_data, format_mesh, format_particles, path_data, path_mesh):\n\
+def bake_mesh_process_$ID$(framenr, format_data, format_mesh, path_mesh):\n\
     mantaMsg('Bake fluid mesh')\n\
     \n\
     sm$ID$.frame = framenr\n\
@@ -587,15 +601,15 @@ def bake_mesh_process_$ID$(framenr, format_data, format_mesh, format_particles, 
         if using_speedvectors_s$ID$:\n\
             liquid_save_meshvel_$ID$(path_mesh, framenr, format_data)\n\
 \n\
-def bake_mesh_$ID$(path_data, path_mesh, framenr, format_data, format_mesh, format_particles):\n\
+def bake_mesh_$ID$(path_mesh, framenr, format_data, format_mesh):\n\
     if not withMPBake or isWindows:\n\
-        bake_mesh_process_$ID$(framenr, format_data, format_mesh, format_particles, path_data, path_mesh)\n\
+        bake_mesh_process_$ID$(framenr, format_data, format_mesh, path_mesh)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=bake_mesh_process_$ID$, framenr=framenr, format_data=format_data, format_mesh=format_mesh, format_particles=format_particles, path_data=path_data, path_mesh=path_mesh)\n";
+        fluid_cache_multiprocessing_start_$ID$(function=bake_mesh_process_$ID$, framenr=framenr, format_data=format_data, format_mesh=format_mesh, path_mesh=path_mesh)\n";
 
 const std::string fluid_bake_particles =
     "\n\
-def bake_particles_process_$ID$(framenr, format_data, format_particles, path_data, path_particles, resumable):\n\
+def bake_particles_process_$ID$(framenr, format_particles, path_particles, resumable):\n\
     mantaMsg('Bake secondary particles')\n\
     \n\
     sp$ID$.frame = framenr\n\
@@ -609,11 +623,11 @@ def bake_particles_process_$ID$(framenr, format_data, format_particles, path_dat
         liquid_step_particles_$ID$()\n\
         liquid_save_particles_$ID$(path_particles, framenr, format_particles, resumable)\n\
 \n\
-def bake_particles_$ID$(path_data, path_particles, framenr, format_data, format_particles, resumable):\n\
+def bake_particles_$ID$(path_particles, framenr, format_particles, resumable):\n\
     if not withMPBake or isWindows:\n\
-        bake_particles_process_$ID$(framenr, format_data, format_particles, path_data, path_particles, resumable)\n\
+        bake_particles_process_$ID$(framenr, format_particles, path_particles, resumable)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=bake_particles_process_$ID$, framenr=framenr, format_data=format_data, format_particles=format_particles, path_data=path_data, path_particles=path_particles, resumable=resumable)\n";
+        fluid_cache_multiprocessing_start_$ID$(function=bake_particles_process_$ID$, framenr=framenr, format_particles=format_particles, path_particles=path_particles, resumable=resumable)\n";
 
 const std::string fluid_bake_guiding =
     "\n\
@@ -650,43 +664,47 @@ def bake_guiding_$ID$(path_guiding, framenr, format_guiding, resumable):\n\
 
 const std::string fluid_file_import =
     "\n\
-def fluid_file_import_s$ID$(dict, path, framenr, file_format):\n\
+def fluid_file_import_s$ID$(dict, path, framenr, file_format, file_name=None):\n\
+    mantaMsg('Fluid file import, frame: ' + str(framenr))\n\
     try:\n\
         framenr = fluid_cache_get_framenr_formatted_$ID$(framenr)\n\
-        for name, object in dict.items():\n\
-            file = os.path.join(path, name + '_' + framenr + file_format)\n\
+        # New cache: Try to load the data from a single file\n\
+        loadCombined = 0\n\
+        if file_name is not None:\n\
+            file = os.path.join(path, file_name + '_' + framenr + file_format)\n\
             if os.path.isfile(file):\n\
-                object.load(file)\n\
-            else:\n\
-                mantaMsg('Could not load file ' + str(file))\n\
-    except:\n\
-        mantaMsg('exception found')\n\
-        #mantaMsg(str(e))\n\
-        pass # Just skip file load errors for now\n";
-
-const std::string fluid_load_data =
-    "\n\
-def fluid_load_data_$ID$(path, framenr, file_format, resumable):\n\
-    mantaMsg('Fluid load data, frame ' + str(framenr))\n\
-    fluid_file_import_s$ID$(dict=fluid_data_dict_final_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
-    \n\
-    if resumable:\n\
-        fluid_file_import_s$ID$(dict=fluid_data_dict_resume_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
+                if file_format == '.vdb':\n\
+                    loadCombined = load(name=file, objects=list(dict.values()), worldSize=domainSize_s$ID$)\n\
+                elif file_format == '.bobj.gz' or file_format == '.obj':\n\
+                    for name, object in dict.items():\n\
+                        if os.path.isfile(file):\n\
+                            loadCombined = object.load(file)\n\
         \n\
-        # When adaptive domain bake is resumed we need correct values in xyz vel grids\n\
-        copyVec3ToReal(source=vel_s$ID$, targetX=x_vel_s$ID$, targetY=y_vel_s$ID$, targetZ=z_vel_s$ID$)\n";
+        # Old cache: Try to load the data from separate files, i.e. per object with the object based load() function\n\
+        if not loadCombined:\n\
+            for name, object in dict.items():\n\
+                file = os.path.join(path, name + '_' + framenr + file_format)\n\
+                if os.path.isfile(file):\n\
+                    loadCombined = object.load(file)\n\
+        \n\
+        if not loadCombined:\n\
+            mantaMsg('Could not load file ' + str(file))\n\
+    \n\
+    except Exception as e:\n\
+        mantaMsg('Exception in Python fluid file import: ' + str(e))\n\
+        pass # Just skip file load errors for now\n";
 
 const std::string fluid_load_guiding =
     "\n\
 def fluid_load_guiding_$ID$(path, framenr, file_format):\n\
     mantaMsg('Fluid load guiding, frame ' + str(framenr))\n\
-    fluid_file_import_s$ID$(dict=fluid_guiding_dict_s$ID$, path=path, framenr=framenr, file_format=file_format)\n";
+    fluid_file_import_s$ID$(dict=fluid_guiding_dict_s$ID$, path=path, framenr=framenr, file_format=file_format, file_name=file_guiding_s$ID$)\n";
 
 const std::string fluid_load_vel =
     "\n\
 def fluid_load_vel_$ID$(path, framenr, file_format):\n\
     mantaMsg('Fluid load vel, frame ' + str(framenr))\n\
-    fluid_vel_dict_s$ID$ = dict(vel=guidevel_sg$ID$)\n\
+    fluid_vel_dict_s$ID$ = { 'vel' : guidevel_sg$ID$ }\n\
     fluid_file_import_s$ID$(dict=fluid_vel_dict_s$ID$, path=path, framenr=framenr, file_format=file_format)\n";
 
 //////////////////////////////////////////////////////////////////////
@@ -695,7 +713,7 @@ def fluid_load_vel_$ID$(path, framenr, file_format):\n\
 
 const std::string fluid_file_export =
     "\n\
-def fluid_file_export_s$ID$(framenr, file_format, path, dict, mode_override=True, skip_subframes=True):\n\
+def fluid_file_export_s$ID$(framenr, file_format, path, dict, file_name=None, mode_override=True, skip_subframes=True):\n\
     if skip_subframes and ((timePerFrame_s$ID$ + dt0_s$ID$) < frameLength_s$ID$):\n\
         return\n\
     mantaMsg('Fluid file export, frame: ' + str(framenr))\n\
@@ -703,36 +721,37 @@ def fluid_file_export_s$ID$(framenr, file_format, path, dict, mode_override=True
         framenr = fluid_cache_get_framenr_formatted_$ID$(framenr)\n\
         if not os.path.exists(path):\n\
             os.makedirs(path)\n\
-        for name, object in dict.items():\n\
-            file = os.path.join(path, name + '_' + framenr + file_format)\n\
-            if not os.path.isfile(file) or mode_override: object.save(file)\n\
+        \n\
+        # New cache: Try to save the data to a single file\n\
+        saveCombined = 0\n\
+        if file_name is not None:\n\
+            file = os.path.join(path, file_name + '_' + framenr + file_format)\n\
+            if not os.path.isfile(file) or mode_override:\n\
+                if file_format == '.vdb':\n\
+                    saveCombined = save(name=file, objects=list(dict.values()), worldSize=domainSize_s$ID$, skipDeletedParts=True, compression=vdbCompression_s$ID$, precisionHalf=vdbPrecisionHalf_s$ID$)\n\
+                elif file_format == '.bobj.gz' or file_format == '.obj':\n\
+                    for name, object in dict.items():\n\
+                        if not os.path.isfile(file) or mode_override:\n\
+                            saveCombined = object.save(file)\n\
+        \n\
+        # Old cache: Try to save the data to separate files, i.e. per object with the object based save() function\n\
+        if not saveCombined:\n\
+            for name, object in dict.items():\n\
+                file = os.path.join(path, name + '_' + framenr + file_format)\n\
+                if not os.path.isfile(file) or mode_override: object.save(file)\n\
+    \n\
     except Exception as e:\n\
-        mantaMsg(str(e))\n\
+        mantaMsg('Exception in Python fluid file export: ' + str(e))\n\
         pass # Just skip file save errors for now\n";
-
-const std::string fluid_save_data =
-    "\n\
-def fluid_save_data_$ID$(path, framenr, file_format, resumable):\n\
-    mantaMsg('Fluid save data, frame ' + str(framenr))\n\
-    start_time = time.time()\n\
-    if not withMPSave or isWindows:\n\
-        fluid_file_export_s$ID$(framenr=framenr, file_format=file_format, path=path, dict=fluid_data_dict_final_s$ID$)\n\
-        if resumable:\n\
-            fluid_file_export_s$ID$(framenr=framenr, file_format=file_format, path=path, dict=fluid_data_dict_resume_s$ID$)\n\
-    else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=fluid_data_dict_final_s$ID$, do_join=False)\n\
-        if resumable:\n\
-            fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=fluid_data_dict_resume_s$ID$, do_join=False)\n\
-    mantaMsg('--- Save: %s seconds ---' % (time.time() - start_time))\n";
 
 const std::string fluid_save_guiding =
     "\n\
-def fluid_save_guiding_$ID$(path, framenr, file_format, resumable):\n\
+def fluid_save_guiding_$ID$(path, framenr, file_format):\n\
     mantaMsg('Fluid save guiding, frame ' + str(framenr))\n\
     if not withMPSave or isWindows:\n\
-        fluid_file_export_s$ID$(dict=fluid_guiding_dict_s$ID$, framenr=framenr, file_format=file_format, path=path)\n\
+        fluid_file_export_s$ID$(dict=fluid_guiding_dict_s$ID$, framenr=framenr, file_format=file_format, path=path, file_name=file_guiding_s$ID$)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=fluid_guiding_dict_s$ID$, do_join=False)\n";
+        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, file_name=file_guiding_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=fluid_guiding_dict_s$ID$, do_join=False)\n";
 
 //////////////////////////////////////////////////////////////////////
 // STANDALONE MODE

@@ -3809,6 +3809,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   bubble = mds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE;
   floater = mds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM;
 
+  bool with_resumable_cache = mds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE;
   bool with_script, with_adaptive, with_noise, with_mesh, with_particles, with_guide;
   with_script = mds->flags & FLUID_DOMAIN_EXPORT_MANTA_SCRIPT;
   with_adaptive = mds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN;
@@ -3868,13 +3869,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
 
   /* Cache mode specific settings. */
   switch (mode) {
-    case FLUID_DOMAIN_CACHE_FINAL:
-      /* Just load the data that has already been baked */
-      if (!baking_data && !baking_noise && !baking_mesh && !baking_particles && !baking_guide) {
-        read_cache = true;
-        bake_cache = false;
-      }
-      break;
+    case FLUID_DOMAIN_CACHE_ALL:
     case FLUID_DOMAIN_CACHE_MODULAR:
       /* Just load the data that has already been baked */
       if (!baking_data && !baking_noise && !baking_mesh && !baking_particles && !baking_guide) {
@@ -3929,6 +3924,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
       break;
   }
 
+  bool read_partial = false, read_all = false;
   /* Try to read from cache and keep track of read success. */
   if (read_cache) {
 
@@ -3937,20 +3933,16 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
       has_config = manta_read_config(mds->fluid, mmd, mesh_frame);
 
       /* Update mesh data from file is faster than via Python (manta_read_mesh()). */
-      has_mesh = manta_update_mesh_structures(mds->fluid, mmd, mesh_frame);
+      has_mesh = manta_read_mesh(mds->fluid, mmd, mesh_frame);
     }
 
     /* Read particles cache. */
     if (with_liquid && with_particles) {
       has_config = manta_read_config(mds->fluid, mmd, particles_frame);
 
-      if (!baking_data && !baking_particles && next_particles) {
-        /* Update particle data from file is faster than via Python (manta_read_particles()). */
-        has_particles = manta_update_particle_structures(mds->fluid, mmd, particles_frame);
-      }
-      else {
-        has_particles = manta_read_particles(mds->fluid, mmd, particles_frame);
-      }
+      read_partial = !baking_data && !baking_particles && next_particles;
+      read_all = !read_partial && with_resumable_cache;
+      has_particles = manta_read_particles(mds->fluid, mmd, particles_frame, read_all);
     }
 
     /* Read guide cache. */
@@ -3968,12 +3960,10 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
           manta_needs_realloc(mds->fluid, mmd)) {
         BKE_fluid_reallocate_fluid(mds, mds->res, 1);
       }
-      if (!baking_data && !baking_noise && next_noise) {
-        has_noise = manta_update_noise_structures(mds->fluid, mmd, noise_frame);
-      }
-      else {
-        has_noise = manta_read_noise(mds->fluid, mmd, noise_frame);
-      }
+
+      read_partial = !baking_data && !baking_noise && next_noise;
+      read_all = !read_partial && with_resumable_cache;
+      has_noise = manta_read_noise(mds->fluid, mmd, noise_frame, read_all);
 
       /* When using the adaptive domain, copy all data that was read to a new fluid object. */
       if (with_adaptive && baking_noise) {
@@ -3987,12 +3977,10 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
               mds, o_res, mds->res, o_min, mds->res_min, o_max, o_shift, mds->shift);
         }
       }
-      if (!baking_data && !baking_noise && next_data && next_noise) {
-        /* Nothing to do here since we already loaded noise grids. */
-      }
-      else {
-        has_data = manta_read_data(mds->fluid, mmd, data_frame);
-      }
+
+      read_partial = !baking_data && !baking_noise && next_data && next_noise;
+      read_all = !read_partial && with_resumable_cache;
+      has_data = manta_read_data(mds->fluid, mmd, data_frame, read_all);
     }
     /* Read data cache only */
     else {
@@ -4003,28 +3991,17 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
         if (has_config && manta_needs_realloc(mds->fluid, mmd)) {
           BKE_fluid_reallocate_fluid(mds, mds->res, 1);
         }
-        /* Read data cache */
-        if (!baking_data && !baking_particles && !baking_mesh && next_data) {
-          has_data = manta_update_smoke_structures(mds->fluid, mmd, data_frame);
-        }
-        else {
-          has_data = manta_read_data(mds->fluid, mmd, data_frame);
-        }
       }
-      if (with_liquid) {
-        if (!baking_data && !baking_particles && !baking_mesh && next_data) {
-          has_data = manta_update_liquid_structures(mds->fluid, mmd, data_frame);
-        }
-        else {
-          has_data = manta_read_data(mds->fluid, mmd, data_frame);
-        }
-      }
+
+      read_partial = !baking_data && !baking_particles && !baking_mesh && next_data;
+      read_all = !read_partial && with_resumable_cache;
+      has_data = manta_read_data(mds->fluid, mmd, data_frame, read_all);
     }
   }
 
   /* Cache mode specific settings */
   switch (mode) {
-    case FLUID_DOMAIN_CACHE_FINAL:
+    case FLUID_DOMAIN_CACHE_ALL:
     case FLUID_DOMAIN_CACHE_MODULAR:
       if (!baking_data && !baking_noise && !baking_mesh && !baking_particles && !baking_guide) {
         bake_cache = false;
@@ -4987,12 +4964,12 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
 
     /* OpenVDB cache options */
 #ifdef WITH_OPENVDB_BLOSC
-    mmd->domain->openvdb_comp = VDB_COMPRESSION_BLOSC;
+    mmd->domain->openvdb_compression = VDB_COMPRESSION_BLOSC;
 #else
-    mmd->domain->openvdb_comp = VDB_COMPRESSION_ZIP;
+    mmd->domain->openvdb_compression = VDB_COMPRESSION_ZIP;
 #endif
     mmd->domain->clipping = 1e-6f;
-    mmd->domain->data_depth = 0;
+    mmd->domain->openvdb_data_depth = 0;
   }
   else if (mmd->type & MOD_FLUID_TYPE_FLOW) {
     if (mmd->flow) {
@@ -5229,9 +5206,9 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *mmd,
     }
 
     /* OpenVDB cache options */
-    tmds->openvdb_comp = mds->openvdb_comp;
+    tmds->openvdb_compression = mds->openvdb_compression;
     tmds->clipping = mds->clipping;
-    tmds->data_depth = mds->data_depth;
+    tmds->openvdb_data_depth = mds->openvdb_data_depth;
   }
   else if (tmmd->flow) {
     FluidFlowSettings *tmfs = tmmd->flow;

@@ -557,7 +557,7 @@ static const EnumPropertyItem *rna_Fluid_cachetype_mesh_itemf(bContext *UNUSED(C
 }
 
 static const EnumPropertyItem *rna_Fluid_cachetype_volume_itemf(bContext *UNUSED(C),
-                                                                PointerRNA *UNUSED(ptr),
+                                                                PointerRNA *ptr,
                                                                 PropertyRNA *UNUSED(prop),
                                                                 bool *r_free)
 {
@@ -579,11 +579,16 @@ static const EnumPropertyItem *rna_Fluid_cachetype_volume_itemf(bContext *UNUSED
   RNA_enum_item_add(&item, &totitem, &tmp);
 #  endif
 
-  tmp.value = FLUID_DOMAIN_FILE_RAW;
-  tmp.identifier = "RAW";
-  tmp.name = "Raw Cache";
-  tmp.description = "Raw file format (.raw)";
-  RNA_enum_item_add(&item, &totitem, &tmp);
+  /* Support for deprecated .raw format. */
+  FluidDomainSettings *mds = (FluidDomainSettings *)ptr->data;
+  if (mds->cache_data_format == FLUID_DOMAIN_FILE_RAW ||
+      mds->cache_noise_format == FLUID_DOMAIN_FILE_RAW) {
+    tmp.value = FLUID_DOMAIN_FILE_RAW;
+    tmp.identifier = "RAW";
+    tmp.name = "Raw Cache";
+    tmp.description = "Raw file format (.raw)";
+    RNA_enum_item_add(&item, &totitem, &tmp);
+  }
 
   RNA_enum_item_end(&item, &totitem);
   *r_free = true;
@@ -1058,27 +1063,18 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   };
 
   static EnumPropertyItem cache_types[] = {
-      {FLUID_DOMAIN_CACHE_REPLAY,
-       "REPLAY",
-       0,
-       "Replay",
-       "Use the timeline to bake the scene. Pausing and resuming possible"},
+      {FLUID_DOMAIN_CACHE_REPLAY, "REPLAY", 0, "Replay", "Use the timeline to bake the scene"},
       {FLUID_DOMAIN_CACHE_MODULAR,
        "MODULAR",
        0,
        "Modular",
-       "Bake every stage of the simulation separately. Pausing and resuming possible"},
-      {FLUID_DOMAIN_CACHE_FINAL,
-       "FINAL",
-       0,
-       "Final",
-       "Bake the entire simulation at once. Only generates the most essential cache files. "
-       "Pausing and resuming not possible"},
+       "Bake every stage of the simulation separately"},
+      {FLUID_DOMAIN_CACHE_ALL, "ALL", 0, "All", "Bake all simulation settings at once"},
       {0, NULL, 0, NULL, NULL}};
 
-  static const EnumPropertyItem smoke_data_depth_items[] = {
-      {16, "16", 0, "Float (Half)", "Half float (16 bit data)"},
-      {0, "32", 0, "Float (Full)", "Full float (32 bit data)"}, /* default */
+  static const EnumPropertyItem fluid_data_depth_items[] = {
+      {VDB_PRECISION_HALF_FLOAT, "16", 0, "Half", "Half float (16 bit data)"},
+      {VDB_PRECISION_FULL_FLOAT, "32", 0, "Full", "Full float (32 bit data)"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -2072,6 +2068,16 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Type", "Change the cache type of the simulation");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Fluid_domain_reset");
 
+  prop = RNA_def_property(srna, "cache_resumable", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", FLUID_DOMAIN_USE_RESUMABLE_CACHE);
+  RNA_def_property_ui_text(
+      prop,
+      "Resumable",
+      "Additional data will be saved so that the bake jobs can be resumed after pausing. Because "
+      "more data will be written to disk it is recommended to avoid enabling this option when "
+      "baking at high resolutions");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
+
   prop = RNA_def_property(srna, "cache_directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_maxlength(prop, FILE_MAX);
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Fluid_cache_directory_set");
@@ -2320,13 +2326,13 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   /* OpenVDB options */
 
   prop = RNA_def_property(srna, "openvdb_cache_compress_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "openvdb_comp");
+  RNA_def_property_enum_sdna(prop, NULL, "openvdb_compression");
   RNA_def_property_enum_items(prop, prop_compression_items);
-  RNA_def_property_ui_text(prop, "Compression", "Compression method to be used");
+  RNA_def_property_ui_text(prop, "Compression", "facession method to be used");
 
-  prop = RNA_def_property(srna, "data_depth", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_bitflag_sdna(prop, NULL, "data_depth");
-  RNA_def_property_enum_items(prop, smoke_data_depth_items);
+  prop = RNA_def_property(srna, "openvdb_data_depth", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, NULL, "openvdb_data_depth");
+  RNA_def_property_enum_items(prop, fluid_data_depth_items);
   RNA_def_property_ui_text(prop,
                            "Data Depth",
                            "Bit depth for writing all scalar (including vector) "

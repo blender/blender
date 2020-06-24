@@ -1062,7 +1062,7 @@ static int ptcache_smoke_openvdb_write(struct OpenVDBWriter *writer, void *smoke
   FluidModifierData *mmd = (FluidModifierData *)smoke_v;
   FluidDomainSettings *mds = mmd->domain;
 
-  OpenVDBWriter_set_flags(writer, mds->openvdb_comp, (mds->data_depth == 16));
+  OpenVDBWriter_set_flags(writer, mds->openvdb_compression, (mds->openvdb_data_depth == 16));
 
   OpenVDBWriter_add_meta_int(writer, "blender/smoke/active_fields", mds->active_fields);
   OpenVDBWriter_add_meta_v3_int(writer, "blender/smoke/resolution", mds->res);

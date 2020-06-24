@@ -41,23 +41,23 @@ int manta_write_config(struct MANTA *fluid, struct FluidModifierData *mmd, int f
 int manta_write_data(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
 int manta_write_noise(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
 int manta_read_config(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
-int manta_read_data(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
-int manta_read_noise(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
+int manta_read_data(struct MANTA *fluid,
+                    struct FluidModifierData *mmd,
+                    int framenr,
+                    bool resumable);
+int manta_read_noise(struct MANTA *fluid,
+                     struct FluidModifierData *mmd,
+                     int framenr,
+                     bool resumable);
 int manta_read_mesh(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
-int manta_read_particles(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
+int manta_read_particles(struct MANTA *fluid,
+                         struct FluidModifierData *mmd,
+                         int framenr,
+                         bool resumable);
 int manta_read_guiding(struct MANTA *fluid,
                        struct FluidModifierData *mmd,
                        int framenr,
                        bool sourceDomain);
-int manta_update_liquid_structures(struct MANTA *fluid,
-                                   struct FluidModifierData *mmd,
-                                   int framenr);
-int manta_update_mesh_structures(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
-int manta_update_particle_structures(struct MANTA *fluid,
-                                     struct FluidModifierData *mmd,
-                                     int framenr);
-int manta_update_smoke_structures(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
-int manta_update_noise_structures(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
 int manta_bake_data(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
 int manta_bake_noise(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
 int manta_bake_mesh(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);

@@ -86,16 +86,16 @@ mapWeights_s$ID$ = s$ID$.create(MACGrid, name='$NAME_MAPWEIGHTS$')\n\
 fractions_s$ID$  = None # allocated dynamically\n\
 curvature_s$ID$  = None\n\
 \n\
-pp_s$ID$         = s$ID$.create(BasicParticleSystem, name='$NAME_PP$')\n\
-pVel_pp$ID$      = pp_s$ID$.create(PdataVec3, name='$NAME_PVEL$')\n\
+pp_s$ID$         = s$ID$.create(BasicParticleSystem, name='$NAME_PARTS$')\n\
+pVel_pp$ID$      = pp_s$ID$.create(PdataVec3, name='$NAME_PARTSVELOCITY$')\n\
 \n\
 # Acceleration data for particle nbs\n\
 pindex_s$ID$     = s$ID$.create(ParticleIndexSystem, name='$NAME_PINDEX$')\n\
 gpi_s$ID$        = s$ID$.create(IntGrid, name='$NAME_GPI$')\n\
 \n\
 # Keep track of important objects in dict to load them later on\n\
-liquid_data_dict_final_s$ID$ = dict(pp=pp_s$ID$, pVel=pVel_pp$ID$)\n\
-liquid_data_dict_resume_s$ID$ = dict(phiParts=phiParts_s$ID$, phi=phi_s$ID$, phiTmp=phiTmp_s$ID$)\n";
+liquid_data_dict_final_s$ID$ = { 'pVel' : pVel_pp$ID$, 'pp' : pp_s$ID$ }\n\
+liquid_data_dict_resume_s$ID$ = { 'phiParts' : phiParts_s$ID$, 'phi' : phi_s$ID$, 'phiTmp' : phiTmp_s$ID$ }\n";
 
 const std::string liquid_alloc_mesh =
     "\n\
@@ -104,7 +104,7 @@ phiParts_sm$ID$ = sm$ID$.create(LevelsetGrid, name='$NAME_PHIPARTS_MESH$')\n\
 phi_sm$ID$      = sm$ID$.create(LevelsetGrid, name='$NAME_PHI_MESH$')\n\
 pp_sm$ID$       = sm$ID$.create(BasicParticleSystem, name='$NAME_PP_MESH$')\n\
 flags_sm$ID$    = sm$ID$.create(FlagGrid, name='$NAME_FLAGS_MESH$')\n\
-mesh_sm$ID$     = sm$ID$.create(Mesh, name='$NAME_LMESH$')\n\
+mesh_sm$ID$     = sm$ID$.create(Mesh, name='$NAME_MESH$')\n\
 \n\
 if using_speedvectors_s$ID$:\n\
     mVel_mesh$ID$ = mesh_sm$ID$.create(MdataVec3, name='$NAME_VELOCITYVEC_MESH$')\n\
@@ -119,10 +119,10 @@ phiParts_sm$ID$.setConst(9999)\n\
 phi_sm$ID$.setConst(9999)\n\
 \n\
 # Keep track of important objects in dict to load them later on\n\
-liquid_mesh_dict_s$ID$ = dict(lMesh=mesh_sm$ID$)\n\
+liquid_mesh_dict_s$ID$ = { 'lMesh' : mesh_sm$ID$ }\n\
 \n\
 if using_speedvectors_s$ID$:\n\
-    liquid_meshvel_dict_s$ID$ = dict(lVelMesh=mVel_mesh$ID$)\n";
+    liquid_meshvel_dict_s$ID$ = { 'lVelMesh' : mVel_mesh$ID$ }\n";
 
 const std::string liquid_alloc_curvature =
     "\n\
@@ -131,10 +131,10 @@ curvature_s$ID$  = s$ID$.create(RealGrid, name='$NAME_CURVATURE$')\n";
 
 const std::string liquid_alloc_particles =
     "\n\
-ppSnd_sp$ID$         = sp$ID$.create(BasicParticleSystem, name='$NAME_PP_PARTICLES$')\n\
-pVelSnd_pp$ID$       = ppSnd_sp$ID$.create(PdataVec3, name='$NAME_PVEL_PARTICLES$')\n\
-pForceSnd_pp$ID$     = ppSnd_sp$ID$.create(PdataVec3, name='$NAME_PFORCE_PARTICLES$')\n\
-pLifeSnd_pp$ID$      = ppSnd_sp$ID$.create(PdataReal, name='$NAME_PLIFE_PARTICLES$')\n\
+ppSnd_sp$ID$         = sp$ID$.create(BasicParticleSystem, name='$NAME_PARTS_PARTICLES$')\n\
+pVelSnd_pp$ID$       = ppSnd_sp$ID$.create(PdataVec3, name='$NAME_PARTSVEL_PARTICLES$')\n\
+pForceSnd_pp$ID$     = ppSnd_sp$ID$.create(PdataVec3, name='$NAME_PARTSFORCE_PARTICLES$')\n\
+pLifeSnd_pp$ID$      = ppSnd_sp$ID$.create(PdataReal, name='$NAME_PARTSLIFE_PARTICLES$')\n\
 vel_sp$ID$           = sp$ID$.create(MACGrid, name='$NAME_VELOCITY_PARTICLES$')\n\
 flags_sp$ID$         = sp$ID$.create(FlagGrid, name='$NAME_FLAGS_PARTICLES$')\n\
 phi_sp$ID$           = sp$ID$.create(LevelsetGrid, name='$NAME_PHI_PARTICLES$')\n\
@@ -152,8 +152,8 @@ phiObs_sp$ID$.setConst(9999)\n\
 phiOut_sp$ID$.setConst(9999)\n\
 \n\
 # Keep track of important objects in dict to load them later on\n\
-liquid_particles_dict_final_s$ID$  = dict(ppSnd=ppSnd_sp$ID$, pVelSnd=pVelSnd_pp$ID$, pLifeSnd=pLifeSnd_pp$ID$)\n\
-liquid_particles_dict_resume_s$ID$ = dict(trappedAir=trappedAir_sp$ID$, waveCrest=waveCrest_sp$ID$, kineticEnergy=kineticEnergy_sp$ID$)\n";
+liquid_particles_dict_final_s$ID$  = { 'pVelSnd' : pVelSnd_pp$ID$, 'pLifeSnd' : pLifeSnd_pp$ID$, 'ppSnd' : ppSnd_sp$ID$ }\n\
+liquid_particles_dict_resume_s$ID$ = { 'trappedAir' : trappedAir_sp$ID$, 'waveCrest' : waveCrest_sp$ID$, 'kineticEnergy' : kineticEnergy_sp$ID$ }\n";
 
 const std::string liquid_init_phi =
     "\n\
@@ -401,27 +401,29 @@ const std::string liquid_load_data =
     "\n\
 def liquid_load_data_$ID$(path, framenr, file_format, resumable):\n\
     mantaMsg('Liquid load data')\n\
-    fluid_file_import_s$ID$(dict=liquid_data_dict_final_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
-    if resumable:\n\
-        fluid_file_import_s$ID$(dict=liquid_data_dict_resume_s$ID$, path=path, framenr=framenr, file_format=file_format)\n";
+    dict = { **fluid_data_dict_final_s$ID$, **fluid_data_dict_resume_s$ID$, **liquid_data_dict_final_s$ID$, **liquid_data_dict_resume_s$ID$ } if resumable else { **fluid_data_dict_final_s$ID$, **liquid_data_dict_final_s$ID$ }\n\
+    fluid_file_import_s$ID$(dict=dict, path=path, framenr=framenr, file_format=file_format, file_name=file_data_s$ID$)\n\
+    \n\
+    copyVec3ToReal(source=vel_s$ID$, targetX=x_vel_s$ID$, targetY=y_vel_s$ID$, targetZ=z_vel_s$ID$)\n";
 
 const std::string liquid_load_mesh =
     "\n\
 def liquid_load_mesh_$ID$(path, framenr, file_format):\n\
     mantaMsg('Liquid load mesh')\n\
-    fluid_file_import_s$ID$(dict=liquid_mesh_dict_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
+    dict = liquid_mesh_dict_s$ID$\n\
+    fluid_file_import_s$ID$(dict=dict, path=path, framenr=framenr, file_format=file_format, file_name=file_mesh_s$ID$)\n\
 \n\
 def liquid_load_meshvel_$ID$(path, framenr, file_format):\n\
     mantaMsg('Liquid load meshvel')\n\
-    fluid_file_import_s$ID$(dict=liquid_meshvel_dict_s$ID$, path=path, framenr=framenr, file_format=file_format)\n";
+    dict = liquid_meshvel_dict_s$ID$\n\
+    fluid_file_import_s$ID$(dict=dict, path=path, framenr=framenr, file_format=file_format, file_name=file_meshvel_s$ID$)\n";
 
 const std::string liquid_load_particles =
     "\n\
 def liquid_load_particles_$ID$(path, framenr, file_format, resumable):\n\
     mantaMsg('Liquid load particles')\n\
-    fluid_file_import_s$ID$(dict=liquid_particles_dict_final_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
-    if resumable:\n\
-        fluid_file_import_s$ID$(dict=liquid_particles_dict_resume_s$ID$, path=path, framenr=framenr, file_format=file_format)\n";
+    dict = { **liquid_particles_dict_final_s$ID$, **liquid_particles_dict_resume_s$ID$ } if resumable else { **liquid_particles_dict_final_s$ID$ }\n\
+    fluid_file_import_s$ID$(dict=dict, path=path, framenr=framenr, file_format=file_format, file_name=file_particles_s$ID$)\n";
 
 //////////////////////////////////////////////////////////////////////
 // EXPORT
@@ -431,43 +433,39 @@ const std::string liquid_save_data =
     "\n\
 def liquid_save_data_$ID$(path, framenr, file_format, resumable):\n\
     mantaMsg('Liquid save data')\n\
+    dict = { **fluid_data_dict_final_s$ID$, **fluid_data_dict_resume_s$ID$, **liquid_data_dict_final_s$ID$, **liquid_data_dict_resume_s$ID$ } if resumable else { **fluid_data_dict_final_s$ID$, **liquid_data_dict_final_s$ID$ }\n\
     if not withMPSave or isWindows:\n\
-        fluid_file_export_s$ID$(dict=liquid_data_dict_final_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
-        if resumable:\n\
-            fluid_file_export_s$ID$(dict=liquid_data_dict_resume_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
+        fluid_file_export_s$ID$(dict=dict, path=path, framenr=framenr, file_format=file_format, file_name=file_data_s$ID$)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=liquid_data_dict_final_s$ID$, do_join=False)\n\
-        if resumable:\n\
-            fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=liquid_data_dict_resume_s$ID$, do_join=False)\n";
+        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, file_name=file_data_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=dict, do_join=False)\n";
 
 const std::string liquid_save_mesh =
     "\n\
 def liquid_save_mesh_$ID$(path, framenr, file_format):\n\
     mantaMsg('Liquid save mesh')\n\
+    dict = liquid_mesh_dict_s$ID$\n\
     if not withMPSave or isWindows:\n\
-         fluid_file_export_s$ID$(dict=liquid_mesh_dict_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
+         fluid_file_export_s$ID$(dict=dict, path=path, framenr=framenr, file_format=file_format, file_name=file_mesh_s$ID$)\n\
     else:\n\
-         fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=liquid_mesh_dict_s$ID$, do_join=False)\n\
+         fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, file_name=file_mesh_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=dict, do_join=False)\n\
 \n\
 def liquid_save_meshvel_$ID$(path, framenr, file_format):\n\
     mantaMsg('Liquid save mesh vel')\n\
+    dict = liquid_meshvel_dict_s$ID$\n\
     if not withMPSave or isWindows:\n\
-        fluid_file_export_s$ID$(dict=liquid_meshvel_dict_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
+        fluid_file_export_s$ID$(dict=dict, path=path, framenr=framenr, file_format=file_format)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=liquid_meshvel_dict_s$ID$, do_join=False)\n";
+        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=dict, do_join=False)\n";
 
 const std::string liquid_save_particles =
     "\n\
 def liquid_save_particles_$ID$(path, framenr, file_format, resumable):\n\
     mantaMsg('Liquid save particles')\n\
+    dict = { **liquid_particles_dict_final_s$ID$, **liquid_particles_dict_resume_s$ID$ } if resumable else { **liquid_particles_dict_final_s$ID$ }\n\
     if not withMPSave or isWindows:\n\
-        fluid_file_export_s$ID$(dict=liquid_particles_dict_final_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
-        if resumable:\n\
-            fluid_file_export_s$ID$(dict=liquid_particles_dict_resume_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
+        fluid_file_export_s$ID$(dict=dict, path=path, framenr=framenr, file_format=file_format, file_name=file_particles_s$ID$)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=liquid_particles_dict_final_s$ID$, do_join=False)\n\
-        if resumable:\n\
-            fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=liquid_particles_dict_resume_s$ID$, do_join=False)\n";
+        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, file_name=file_particles_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=dict, do_join=False)\n";
 
 //////////////////////////////////////////////////////////////////////
 // STANDALONE MODE
@@ -477,7 +475,6 @@ const std::string liquid_standalone =
     "\n\
 # Helper function to call cache load functions\n\
 def load(frame, cache_resumable):\n\
-    fluid_load_data_$ID$(os.path.join(cache_dir, 'data'), frame, file_format_data, cache_resumable)\n\
     liquid_load_data_$ID$(os.path.join(cache_dir, 'data'), frame, file_format_data, cache_resumable)\n\
     if using_sndparts_s$ID$:\n\
         liquid_load_particles_$ID$(os.path.join(cache_dir, 'particles'), frame, file_format_particles, cache_resumable)\n\

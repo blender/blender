@@ -399,9 +399,6 @@ class QuickSmoke(ObjectModeOperator, Operator):
         if self.style == 'FIRE' or self.style == 'BOTH':
             obj.modifiers[-1].domain_settings.use_noise = True
 
-        # set correct cache file format for smoke
-        obj.modifiers[-1].domain_settings.cache_data_format = 'UNI'
-
         # Setup material
 
         # Cycles and Eevee

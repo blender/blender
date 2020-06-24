@@ -270,31 +270,31 @@ static void fluid_bake_sequence(FluidJob *job)
     *(job->do_update) = true;
   }
 
-  /* Get current pause frame (pointer) - depending on bake type */
+  /* Get current pause frame (pointer) - depending on bake type. */
   pause_frame = job->pause_frame;
 
-  /* Set frame to start point (depending on current pause frame value) */
+  /* Set frame to start point (depending on current pause frame value). */
   is_first_frame = ((*pause_frame) == 0);
   frame = is_first_frame ? mds->cache_frame_start : (*pause_frame);
 
-  /* Save orig frame and update scene frame */
+  /* Save orig frame and update scene frame. */
   orig_frame = CFRA;
   CFRA = frame;
 
-  /* Loop through selected frames */
+  /* Loop through selected frames. */
   for (; frame <= mds->cache_frame_end; frame++) {
     const float progress = (frame - mds->cache_frame_start) / (float)frames;
 
-    /* Keep track of pause frame - needed to init future loop */
+    /* Keep track of pause frame - needed to init future loop. */
     (*pause_frame) = frame;
 
-    /* If user requested stop, quit baking */
+    /* If user requested stop, quit baking. */
     if (G.is_break) {
       job->success = 0;
       return;
     }
 
-    /* Update progress bar */
+    /* Update progress bar. */
     if (job->do_update) {
       *(job->do_update) = true;
     }
@@ -304,17 +304,17 @@ static void fluid_bake_sequence(FluidJob *job)
 
     CFRA = frame;
 
-    /* Update animation system */
+    /* Update animation system. */
     ED_update_for_newframe(job->bmain, job->depsgraph);
 
-    /* If user requested stop, quit baking */
+    /* If user requested stop, quit baking. */
     if (G.is_break) {
       job->success = 0;
       return;
     }
   }
 
-  /* Restore frame position that we were on before bake */
+  /* Restore frame position that we were on before bake. */
   CFRA = orig_frame;
 }
 
@@ -355,9 +355,9 @@ static void fluid_bake_endjob(void *customdata)
   WM_set_locked_interface(G_MAIN->wm.first, false);
 
   /* Bake was successful:
-   *  Report for ended bake and how long it took */
+   * Report for ended bake and how long it took. */
   if (job->success) {
-    /* Show bake info */
+    /* Show bake info. */
     WM_reportf(
         RPT_INFO, "Fluid: %s complete! (%.2f)", job->name, PIL_check_seconds_timer() - job->start);
   }
@@ -365,7 +365,7 @@ static void fluid_bake_endjob(void *customdata)
     if (mds->error[0] != '\0') {
       WM_reportf(RPT_ERROR, "Fluid: %s failed: %s", job->name, mds->error);
     }
-    else { /* User canceled the bake */
+    else { /* User canceled the bake. */
       WM_reportf(RPT_WARNING, "Fluid: %s canceled!", job->name);
     }
   }

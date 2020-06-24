@@ -301,9 +301,8 @@ void MANTA::initDomain(FluidModifierData *mmd)
   string tmpString = fluid_variables + fluid_solver + fluid_alloc + fluid_cache_helper +
                      fluid_bake_multiprocessing + fluid_bake_data + fluid_bake_noise +
                      fluid_bake_mesh + fluid_bake_particles + fluid_bake_guiding +
-                     fluid_file_import + fluid_file_export + fluid_save_data + fluid_load_data +
-                     fluid_pre_step + fluid_post_step + fluid_adapt_time_step +
-                     fluid_time_stepping;
+                     fluid_file_import + fluid_file_export + fluid_pre_step + fluid_post_step +
+                     fluid_adapt_time_step + fluid_time_stepping;
   string finalString = parseScript(tmpString, mmd);
   pythonCommands.push_back(finalString);
   runPythonString(pythonCommands);
@@ -674,7 +673,7 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
 
   if (!mmd) {
     if (with_debug)
-      cout << "No modifier data given in RNA map setup - returning early" << endl;
+      cout << "Fluid: No modifier data given in RNA map setup - returning early" << endl;
     return;
   }
 
@@ -730,6 +729,20 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   float viscosity = mds->viscosity_base * pow(10.0f, -mds->viscosity_exponent);
   float domainSize = MAX3(mds->global_size[0], mds->global_size[1], mds->global_size[2]);
 
+  string vdbCompressionMethod = "Compression_None";
+  if (mds->openvdb_compression == VDB_COMPRESSION_NONE)
+    vdbCompressionMethod = "Compression_None";
+  else if (mds->openvdb_compression == VDB_COMPRESSION_ZIP)
+    vdbCompressionMethod = "Compression_Zip";
+  else if (mds->openvdb_compression == VDB_COMPRESSION_BLOSC)
+    vdbCompressionMethod = "Compression_Blosc";
+
+  string vdbPrecisionHalf = "True";
+  if (mds->openvdb_data_depth == VDB_PRECISION_HALF_FLOAT)
+    vdbPrecisionHalf = "True";
+  else if (mds->openvdb_data_depth == VDB_PRECISION_FULL_FLOAT)
+    vdbPrecisionHalf = "False";
+
   mRNAMap["USING_SMOKE"] = getBooleanString(mds->type == FLUID_DOMAIN_TYPE_GAS);
   mRNAMap["USING_LIQUID"] = getBooleanString(mds->type == FLUID_DOMAIN_TYPE_LIQUID);
   mRNAMap["USING_COLORS"] = getBooleanString(mds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS);
@@ -743,7 +756,7 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   mRNAMap["USING_LOG_DISSOLVE"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_DISSOLVE_LOG);
   mRNAMap["USING_DISSOLVE"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_DISSOLVE);
   mRNAMap["DO_OPEN"] = getBooleanString(mds->border_collisions == 0);
-  mRNAMap["CACHE_RESUMABLE"] = getBooleanString(mds->cache_type != FLUID_DOMAIN_CACHE_FINAL);
+  mRNAMap["CACHE_RESUMABLE"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE);
   mRNAMap["USING_ADAPTIVETIME"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_ADAPTIVE_TIME);
   mRNAMap["USING_SPEEDVECTORS"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS);
   mRNAMap["USING_FRACTIONS"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_FRACTIONS);
@@ -850,6 +863,9 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   mRNAMap["LIQUID_SURFACE_TENSION"] = to_string(mds->surface_tension);
   mRNAMap["FLUID_VISCOSITY"] = to_string(viscosity);
   mRNAMap["FLUID_DOMAIN_SIZE"] = to_string(domainSize);
+  mRNAMap["FLUID_DOMAIN_SIZE_X"] = to_string(mds->global_size[0]);
+  mRNAMap["FLUID_DOMAIN_SIZE_Y"] = to_string(mds->global_size[1]);
+  mRNAMap["FLUID_DOMAIN_SIZE_Z"] = to_string(mds->global_size[2]);
   mRNAMap["SNDPARTICLE_TYPES"] = particleTypesStr;
   mRNAMap["GUIDING_ALPHA"] = to_string(mds->guide_alpha);
   mRNAMap["GUIDING_BETA"] = to_string(mds->guide_beta);
@@ -858,6 +874,8 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   mRNAMap["GRAVITY_Y"] = to_string(mds->gravity[1]);
   mRNAMap["GRAVITY_Z"] = to_string(mds->gravity[2]);
   mRNAMap["CACHE_DIR"] = cacheDirectory;
+  mRNAMap["COMPRESSION_OPENVDB"] = vdbCompressionMethod;
+  mRNAMap["PRECISION_OPENVDB"] = vdbPrecisionHalf;
 
   /* Fluid object names. */
   mRNAMap["NAME_FLAGS"] = FLUID_NAME_FLAGS;
@@ -900,6 +918,8 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   mRNAMap["NAME_DENSITYIN"] = FLUID_NAME_DENSITYIN;
   mRNAMap["NAME_HEAT"] = FLUID_NAME_HEAT;
   mRNAMap["NAME_HEATIN"] = FLUID_NAME_HEATIN;
+  mRNAMap["NAME_TEMPERATURE"] = FLUID_NAME_TEMPERATURE;
+  mRNAMap["NAME_TEMPERATUREIN"] = FLUID_NAME_TEMPERATUREIN;
   mRNAMap["NAME_COLORR"] = FLUID_NAME_COLORR;
   mRNAMap["NAME_COLORG"] = FLUID_NAME_COLORG;
   mRNAMap["NAME_COLORB"] = FLUID_NAME_COLORB;
@@ -921,6 +941,8 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   mRNAMap["NAME_MAPWEIGHTS"] = FLUID_NAME_MAPWEIGHTS;
   mRNAMap["NAME_PP"] = FLUID_NAME_PP;
   mRNAMap["NAME_PVEL"] = FLUID_NAME_PVEL;
+  mRNAMap["NAME_PARTS"] = FLUID_NAME_PARTS;
+  mRNAMap["NAME_PARTSVELOCITY"] = FLUID_NAME_PARTSVELOCITY;
   mRNAMap["NAME_PINDEX"] = FLUID_NAME_PINDEX;
   mRNAMap["NAME_GPI"] = FLUID_NAME_GPI;
   mRNAMap["NAME_CURVATURE"] = FLUID_NAME_CURVATURE;
@@ -967,6 +989,10 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   mRNAMap["NAME_PVEL_PARTICLES"] = FLUID_NAME_PVEL_PARTICLES;
   mRNAMap["NAME_PFORCE_PARTICLES"] = FLUID_NAME_PFORCE_PARTICLES;
   mRNAMap["NAME_PLIFE_PARTICLES"] = FLUID_NAME_PLIFE_PARTICLES;
+  mRNAMap["NAME_PARTS_PARTICLES"] = FLUID_NAME_PARTS_PARTICLES;
+  mRNAMap["NAME_PARTSVEL_PARTICLES"] = FLUID_NAME_PARTSVEL_PARTICLES;
+  mRNAMap["NAME_PARTSFORCE_PARTICLES"] = FLUID_NAME_PARTSFORCE_PARTICLES;
+  mRNAMap["NAME_PARTSLIFE_PARTICLES"] = FLUID_NAME_PARTSLIFE_PARTICLES;
   mRNAMap["NAME_VELOCITY_PARTICLES"] = FLUID_NAME_VELOCITY_PARTICLES;
   mRNAMap["NAME_FLAGS_PARTICLES"] = FLUID_NAME_FLAGS_PARTICLES;
   mRNAMap["NAME_PHI_PARTICLES"] = FLUID_NAME_PHI_PARTICLES;
@@ -1000,9 +1026,6 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
 
 string MANTA::getRealValue(const string &varName)
 {
-  if (with_debug)
-    cout << "MANTA::getRealValue()" << endl;
-
   unordered_map<string, string>::iterator it;
   it = mRNAMap.find(varName);
 
@@ -1010,9 +1033,6 @@ string MANTA::getRealValue(const string &varName)
     cerr << "Fluid Error -- variable " << varName << " not found in RNA map " << it->second
          << endl;
     return "";
-  }
-  if (with_debug) {
-    cout << "Found variable " << varName << " with value " << it->second << endl;
   }
 
   return it->second;
@@ -1060,409 +1080,6 @@ string MANTA::parseScript(const string &setup_string, FluidModifierData *mmd)
     res << parseLine(line) << "\n";
   }
   return res.str();
-}
-
-bool MANTA::updateFlipStructures(FluidModifierData *mmd, int framenr)
-{
-  if (MANTA::with_debug)
-    cout << "MANTA::updateFlipStructures()" << endl;
-
-  FluidDomainSettings *mds = mmd->domain;
-  mFlipFromFile = false;
-
-  if (!mUsingLiquid)
-    return false;
-  if (BLI_path_is_rel(mds->cache_directory))
-    return false;
-
-  int result = 0;
-  int expected = 0; /* Expected number of read successes for this frame. */
-
-  /* Ensure empty data structures at start. */
-  if (!mFlipParticleData || !mFlipParticleVelocity)
-    return false;
-
-  mFlipParticleData->clear();
-  mFlipParticleVelocity->clear();
-
-  string pformat = getCacheFileEnding(mds->cache_particle_format);
-  string file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_PP, pformat, framenr);
-
-  expected += 1;
-  if (BLI_exists(file.c_str())) {
-    result += updateParticlesFromFile(file, false, false);
-    assert(result == expected);
-  }
-
-  file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_PVEL, pformat, framenr);
-  expected += 1;
-  if (BLI_exists(file.c_str())) {
-    result += updateParticlesFromFile(file, false, true);
-    assert(result == expected);
-  }
-
-  return mFlipFromFile = (result == expected);
-}
-
-bool MANTA::updateMeshStructures(FluidModifierData *mmd, int framenr)
-{
-  if (MANTA::with_debug)
-    cout << "MANTA::updateMeshStructures()" << endl;
-
-  FluidDomainSettings *mds = mmd->domain;
-  mMeshFromFile = false;
-
-  if (!mUsingMesh)
-    return false;
-  if (BLI_path_is_rel(mds->cache_directory))
-    return false;
-
-  int result = 0;
-  int expected = 0; /* Expected number of read successes for this frame. */
-
-  /* Ensure empty data structures at start. */
-  if (!mMeshNodes || !mMeshTriangles)
-    return false;
-
-  mMeshNodes->clear();
-  mMeshTriangles->clear();
-
-  if (mMeshVelocities)
-    mMeshVelocities->clear();
-
-  string mformat = getCacheFileEnding(mds->cache_mesh_format);
-  string dformat = getCacheFileEnding(mds->cache_data_format);
-  string file = getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_NAME_LMESH, mformat, framenr);
-
-  expected += 1;
-  if (BLI_exists(file.c_str())) {
-    result += updateMeshFromFile(file);
-    assert(result == expected);
-  }
-
-  if (mUsingMVel) {
-    file = getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_NAME_VELOCITYVEC_MESH, dformat, framenr);
-    expected += 1;
-    if (BLI_exists(file.c_str())) {
-      result += updateMeshFromFile(file);
-      assert(result == expected);
-    }
-  }
-
-  return mMeshFromFile = (result == expected);
-}
-
-bool MANTA::updateParticleStructures(FluidModifierData *mmd, int framenr)
-{
-  if (MANTA::with_debug)
-    cout << "MANTA::updateParticleStructures()" << endl;
-
-  FluidDomainSettings *mds = mmd->domain;
-  mParticlesFromFile = false;
-
-  if (!mUsingDrops && !mUsingBubbles && !mUsingFloats && !mUsingTracers)
-    return false;
-  if (BLI_path_is_rel(mds->cache_directory))
-    return false;
-
-  int result = 0;
-  int expected = 0; /* Expected number of read successes for this frame. */
-
-  /* Ensure empty data structures at start. */
-  if (!mSndParticleData || !mSndParticleVelocity || !mSndParticleLife)
-    return false;
-
-  mSndParticleData->clear();
-  mSndParticleVelocity->clear();
-  mSndParticleLife->clear();
-
-  string pformat = getCacheFileEnding(mds->cache_particle_format);
-  string file = getFile(
-      mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PP_PARTICLES, pformat, framenr);
-
-  expected += 1;
-  if (BLI_exists(file.c_str())) {
-    result += updateParticlesFromFile(file, true, false);
-    assert(result == expected);
-  }
-
-  file = getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PVEL_PARTICLES, pformat, framenr);
-  expected += 1;
-  if (BLI_exists(file.c_str())) {
-    result += updateParticlesFromFile(file, true, true);
-    assert(result == expected);
-  }
-
-  file = getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PLIFE_PARTICLES, pformat, framenr);
-  expected += 1;
-  if (BLI_exists(file.c_str())) {
-    result += updateParticlesFromFile(file, true, false);
-    assert(result == expected);
-  }
-
-  return mParticlesFromFile = (result == expected);
-}
-
-static void assertGridItems(vector<MANTA::GridItem> gList)
-{
-  vector<MANTA::GridItem>::iterator gIter = gList.begin();
-  int *resPrev = (*gIter).res;
-
-  for (vector<MANTA::GridItem>::iterator it = gList.begin(); it != gList.end(); ++it) {
-    MANTA::GridItem item = *it;
-    assert(
-        ELEM(item.type, FLUID_DOMAIN_GRID_FLOAT, FLUID_DOMAIN_GRID_INT, FLUID_DOMAIN_GRID_VEC3F));
-    assert(item.pointer[0]);
-    if (item.type == FLUID_DOMAIN_GRID_VEC3F) {
-      assert(item.pointer[1] && item.pointer[2]);
-    }
-    assert(item.res[0] == resPrev[0] && item.res[1] == resPrev[1] && item.res[2] == resPrev[2]);
-    assert((item.name).compare("") != 0);
-  }
-
-  UNUSED_VARS(resPrev);
-}
-
-bool MANTA::updateSmokeStructures(FluidModifierData *mmd, int framenr)
-{
-  if (MANTA::with_debug)
-    cout << "MANTA::updateGridStructures()" << endl;
-
-  FluidDomainSettings *mds = mmd->domain;
-  mSmokeFromFile = false;
-
-  if (!mUsingSmoke)
-    return false;
-  if (BLI_path_is_rel(mds->cache_directory))
-    return false;
-
-  int result = 0;
-  string dformat = getCacheFileEnding(mds->cache_data_format);
-
-  vector<FileItem> filesData;
-  vector<GridItem> gridsData;
-
-  int res[] = {mResX, mResY, mResZ};
-
-  /* Put grid pointers into pointer lists, some grids have more than 1 pointer. */
-  void *aDensity[] = {mDensity};
-  void *aShadow[] = {mShadow};
-  void *aVelocities[] = {mVelocityX, mVelocityY, mVelocityZ};
-  void *aHeat[] = {mHeat};
-  void *aColorR[] = {mColorR};
-  void *aColorG[] = {mColorG};
-  void *aColorB[] = {mColorB};
-  void *aFlame[] = {mFlame};
-  void *aFuel[] = {mFuel};
-  void *aReact[] = {mReact};
-
-  /* File names for grids. */
-  string fDensity = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_DENSITY, dformat, framenr);
-  string fShadow = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_SHADOW, dformat, framenr);
-  string fVel = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_VELOCITY, dformat, framenr);
-  string fHeat = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_HEAT, dformat, framenr);
-  string fColorR = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_COLORR, dformat, framenr);
-  string fColorG = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_COLORG, dformat, framenr);
-  string fColorB = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_COLORB, dformat, framenr);
-  string fFlame = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_FLAME, dformat, framenr);
-  string fFuel = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_FUEL, dformat, framenr);
-  string fReact = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_REACT, dformat, framenr);
-  string fFluid = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_DATA, dformat, framenr);
-
-  /* Prepare grid info containers. */
-  GridItem gDensity = {aDensity, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_DENSITY};
-  GridItem gShadow = {aShadow, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_SHADOW};
-  GridItem gVel = {aVelocities, FLUID_DOMAIN_GRID_VEC3F, res, FLUID_NAME_VELOCITY};
-  GridItem gHeat = {aHeat, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_HEAT};
-  GridItem gColorR = {aColorR, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_COLORR};
-  GridItem gColorG = {aColorG, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_COLORG};
-  GridItem gColorB = {aColorB, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_COLORB};
-  GridItem gFlame = {aFlame, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_FLAME};
-  GridItem gFuel = {aFuel, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_FUEL};
-  GridItem gReact = {aReact, FLUID_DOMAIN_GRID_FLOAT, res, FLUID_NAME_REACT};
-
-  /* TODO (sebbas): For now, only allow single file mode. Combined grid file export is todo. */
-  const int fileMode = FLUID_DOMAIN_CACHE_FILES_SINGLE;
-  if (fileMode == FLUID_DOMAIN_CACHE_FILES_SINGLE) {
-
-    filesData.push_back({fDensity, {gDensity}});
-    filesData.push_back({fShadow, {gShadow}});
-    filesData.push_back({fVel, {gVel}});
-    if (mUsingHeat) {
-      filesData.push_back({fHeat, {gHeat}});
-    }
-    if (mUsingColors) {
-      filesData.push_back({fColorR, {gColorR}});
-      filesData.push_back({fColorG, {gColorG}});
-      filesData.push_back({fColorB, {gColorB}});
-    }
-    if (mUsingFire) {
-      filesData.push_back({fFlame, {gFlame}});
-      filesData.push_back({fFuel, {gFuel}});
-      filesData.push_back({fReact, {gReact}});
-    }
-  }
-  else if (fileMode == FLUID_DOMAIN_CACHE_FILES_COMBINED) {
-
-    gridsData.push_back(gDensity);
-    gridsData.push_back(gShadow);
-    gridsData.push_back(gVel);
-    if (mUsingHeat) {
-      gridsData.push_back(gHeat);
-    }
-    if (mUsingColors) {
-      gridsData.push_back(gColorR);
-      gridsData.push_back(gColorG);
-      gridsData.push_back(gColorB);
-    }
-    if (mUsingFire) {
-      gridsData.push_back(gFlame);
-      gridsData.push_back(gFuel);
-      gridsData.push_back(gReact);
-    }
-
-    if (with_debug) {
-      assertGridItems(gridsData);
-    }
-    filesData.push_back({fFluid, gridsData});
-  }
-
-  /* Update files from data directory. */
-  for (vector<FileItem>::iterator it = filesData.begin(); it != filesData.end(); ++it) {
-    FileItem item = *it;
-    if (BLI_exists(item.filename.c_str())) {
-      result += updateGridsFromFile(item.filename, item.grids);
-      assert(result);
-    }
-  }
-
-  return mSmokeFromFile = result;
-}
-
-bool MANTA::updateNoiseStructures(FluidModifierData *mmd, int framenr)
-{
-  if (MANTA::with_debug)
-    cout << "MANTA::updateNoiseStructures()" << endl;
-
-  FluidDomainSettings *mds = mmd->domain;
-  mNoiseFromFile = false;
-
-  if (!mUsingSmoke || !mUsingNoise)
-    return false;
-  if (BLI_path_is_rel(mds->cache_directory))
-    return false;
-
-  int result = 0;
-  string dformat = getCacheFileEnding(mds->cache_data_format);
-  string nformat = getCacheFileEnding(mds->cache_noise_format);
-
-  vector<FileItem> filesData, filesNoise;
-  vector<GridItem> gridsData, gridsNoise;
-
-  int resData[] = {mResX, mResY, mResZ};
-  int resNoise[] = {mResXNoise, mResYNoise, mResZNoise};
-
-  /* Put grid pointers into pointer lists, some grids have more than 1 pointer. */
-  void *aShadow[] = {mShadow};
-  void *aVelocities[] = {mVelocityX, mVelocityY, mVelocityZ};
-  void *aDensity[] = {mDensityHigh};
-  void *aColorR[] = {mColorRHigh};
-  void *aColorG[] = {mColorGHigh};
-  void *aColorB[] = {mColorBHigh};
-  void *aFlame[] = {mFlameHigh};
-  void *aFuel[] = {mFuelHigh};
-  void *aReact[] = {mReactHigh};
-
-  /* File names for grids. */
-  string fShadow = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_SHADOW, dformat, framenr);
-  string fVel = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_VELOCITY, dformat, framenr);
-  string fFluid = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_DATA, dformat, framenr);
-
-  string fDensity = getFile(
-      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_DENSITY_NOISE, nformat, framenr);
-  string fColorR = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_COLORR_NOISE, nformat, framenr);
-  string fColorG = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_COLORG_NOISE, nformat, framenr);
-  string fColorB = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_COLORB_NOISE, nformat, framenr);
-  string fFlame = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_FLAME_NOISE, nformat, framenr);
-  string fFuel = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_FUEL_NOISE, nformat, framenr);
-  string fReact = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_REACT_NOISE, nformat, framenr);
-  string fNoise = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_NOISE, nformat, framenr);
-
-  /* Prepare grid info containers. */
-  GridItem gShadow = {aShadow, FLUID_DOMAIN_GRID_FLOAT, resData, FLUID_NAME_SHADOW};
-  GridItem gVel = {aVelocities, FLUID_DOMAIN_GRID_VEC3F, resData, FLUID_NAME_VELOCITY};
-
-  GridItem gDensity = {aDensity, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_NAME_DENSITY_NOISE};
-  GridItem gColorR = {aColorR, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_NAME_COLORR_NOISE};
-  GridItem gColorG = {aColorG, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_NAME_COLORG_NOISE};
-  GridItem gColorB = {aColorB, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_NAME_COLORB_NOISE};
-  GridItem gFlame = {aFlame, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_NAME_FLAME_NOISE};
-  GridItem gFuel = {aFuel, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_NAME_FUEL_NOISE};
-  GridItem gReact = {aReact, FLUID_DOMAIN_GRID_FLOAT, resNoise, FLUID_NAME_REACT_NOISE};
-
-  /* TODO (sebbas): For now, only allow single file mode. Combined grid file export is todo. */
-  const int fileMode = FLUID_DOMAIN_CACHE_FILES_SINGLE;
-  if (fileMode == FLUID_DOMAIN_CACHE_FILES_SINGLE) {
-
-    filesData.push_back({fShadow, {gShadow}});
-    filesData.push_back({fVel, {gVel}});
-
-    filesNoise.push_back({fDensity, {gDensity}});
-    if (mUsingColors) {
-      filesNoise.push_back({fColorR, {gColorR}});
-      filesNoise.push_back({fColorG, {gColorG}});
-      filesNoise.push_back({fColorB, {gColorB}});
-    }
-    if (mUsingFire) {
-      filesNoise.push_back({fFlame, {gFlame}});
-      filesNoise.push_back({fFuel, {gFuel}});
-      filesNoise.push_back({fReact, {gReact}});
-    }
-  }
-  else if (fileMode == FLUID_DOMAIN_CACHE_FILES_COMBINED) {
-
-    gridsData.push_back(gShadow);
-    gridsData.push_back(gVel);
-
-    gridsNoise.push_back(gDensity);
-    if (mUsingColors) {
-      gridsNoise.push_back(gColorR);
-      gridsNoise.push_back(gColorG);
-      gridsNoise.push_back(gColorB);
-    }
-    if (mUsingFire) {
-      gridsNoise.push_back(gFlame);
-      gridsNoise.push_back(gFuel);
-      gridsNoise.push_back(gReact);
-    }
-
-    if (with_debug) {
-      assertGridItems(gridsData);
-      assertGridItems(gridsNoise);
-    }
-    filesData.push_back({fFluid, gridsData});
-    filesNoise.push_back({fNoise, gridsNoise});
-  }
-
-  /* Update files from data directory. */
-  for (vector<FileItem>::iterator it = filesData.begin(); it != filesData.end(); ++it) {
-    FileItem item = *it;
-    if (BLI_exists(item.filename.c_str())) {
-      result += updateGridsFromFile(item.filename, item.grids);
-      assert(result);
-    }
-  }
-
-  /* Update files from noise directory. */
-  for (vector<FileItem>::iterator it = filesNoise.begin(); it != filesNoise.end(); ++it) {
-    FileItem item = *it;
-    if (BLI_exists(item.filename.c_str())) {
-      result += updateGridsFromFile(item.filename, item.grids);
-      assert(result);
-    }
-  }
-
-  return mNoiseFromFile = result;
 }
 
 /* Dirty hack: Needed to format paths from python code that is run via PyRun_SimpleString */
@@ -1514,6 +1131,7 @@ bool MANTA::writeConfiguration(FluidModifierData *mmd, int framenr)
   gzwrite(gzf, &mds->res_max, 3 * sizeof(int));
   gzwrite(gzf, &mds->active_color, 3 * sizeof(float));
   gzwrite(gzf, &mds->time_total, sizeof(int));
+  gzwrite(gzf, &FLUID_CACHE_VERSION, 4 * sizeof(char));
 
   return (gzclose(gzf) == Z_OK);
 }
@@ -1528,27 +1146,19 @@ bool MANTA::writeData(FluidModifierData *mmd, int framenr)
   FluidDomainSettings *mds = mmd->domain;
 
   string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_DATA);
-  string dformat = getCacheFileEnding(mds->cache_data_format);
-  string pformat = getCacheFileEnding(mds->cache_particle_format);
-
-  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
-  string resumable_cache = (final_cache) ? "False" : "True";
-
-  ss.str("");
-  ss << "fluid_save_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
-     << ", '" << dformat << "', " << resumable_cache << ")";
-  pythonCommands.push_back(ss.str());
+  string volume_format = getCacheFileEnding(mds->cache_data_format);
+  string resumable_cache = !(mds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE) ? "False" : "True";
 
   if (mUsingSmoke) {
     ss.str("");
     ss << "smoke_save_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
-       << ", '" << dformat << "', " << resumable_cache << ")";
+       << ", '" << volume_format << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
   }
   if (mUsingLiquid) {
     ss.str("");
     ss << "liquid_save_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
-       << ", '" << dformat << "', " << resumable_cache << ")";
+       << ", '" << volume_format << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
   }
   return runPythonString(pythonCommands);
@@ -1564,15 +1174,13 @@ bool MANTA::writeNoise(FluidModifierData *mmd, int framenr)
   FluidDomainSettings *mds = mmd->domain;
 
   string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_NOISE);
-  string nformat = getCacheFileEnding(mds->cache_noise_format);
-
-  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
-  string resumable_cache = (final_cache) ? "False" : "True";
+  string volume_format = getCacheFileEnding(mds->cache_data_format);
+  string resumable_cache = !(mds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE) ? "False" : "True";
 
   if (mUsingSmoke && mUsingNoise) {
     ss.str("");
     ss << "smoke_save_noise_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
-       << ", '" << nformat << "', " << resumable_cache << ")";
+       << ", '" << volume_format << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
   }
   return runPythonString(pythonCommands);
@@ -1593,7 +1201,7 @@ bool MANTA::readConfiguration(FluidModifierData *mmd, int framenr)
   if (!hasConfig(mmd, framenr))
     return false;
 
-  gzFile gzf = (gzFile)BLI_gzopen(file.c_str(), "rb");  // do some compression
+  gzFile gzf = (gzFile)BLI_gzopen(file.c_str(), "rb"); /* Do some compression. */
   if (!gzf) {
     cerr << "Fluid Error -- Cannot open file " << file << endl;
     return false;
@@ -1602,7 +1210,7 @@ bool MANTA::readConfiguration(FluidModifierData *mmd, int framenr)
   gzread(gzf, &mds->active_fields, sizeof(int));
   gzread(gzf, &mds->res, 3 * sizeof(int));
   gzread(gzf, &mds->dx, sizeof(float));
-  gzread(gzf, &dummy, sizeof(float));  // dt not needed right now
+  gzread(gzf, &dummy, sizeof(float)); /* dt not needed right now. */
   gzread(gzf, &mds->p0, 3 * sizeof(float));
   gzread(gzf, &mds->p1, 3 * sizeof(float));
   gzread(gzf, &mds->dp0, 3 * sizeof(float));
@@ -1614,13 +1222,14 @@ bool MANTA::readConfiguration(FluidModifierData *mmd, int framenr)
   gzread(gzf, &mds->res_max, 3 * sizeof(int));
   gzread(gzf, &mds->active_color, 3 * sizeof(float));
   gzread(gzf, &mds->time_total, sizeof(int));
+  gzread(gzf, &mds->cache_id, 4 * sizeof(char)); /* Older caches might have no id. */
 
   mds->total_cells = mds->res[0] * mds->res[1] * mds->res[2];
 
   return (gzclose(gzf) == Z_OK);
 }
 
-bool MANTA::readData(FluidModifierData *mmd, int framenr)
+bool MANTA::readData(FluidModifierData *mmd, int framenr, bool resumable)
 {
   if (with_debug)
     cout << "MANTA::readData()" << endl;
@@ -1634,39 +1243,31 @@ bool MANTA::readData(FluidModifierData *mmd, int framenr)
   bool result = true;
 
   string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_DATA);
-  string dformat = getCacheFileEnding(mds->cache_data_format);
-  string pformat = getCacheFileEnding(mds->cache_particle_format);
-
-  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
-  string resumable_cache = (final_cache) ? "False" : "True";
+  string volume_format = getCacheFileEnding(mds->cache_data_format);
+  string resumable_cache = (!resumable) ? "False" : "True";
 
   /* Sanity check: Are cache files present? */
   if (!hasData(mmd, framenr))
     return false;
 
-  ss.str("");
-  ss << "fluid_load_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
-     << ", '" << dformat << "', " << resumable_cache << ")";
-  pythonCommands.push_back(ss.str());
-
   if (mUsingSmoke) {
     ss.str("");
     ss << "smoke_load_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
-       << ", '" << dformat << "', " << resumable_cache << ")";
+       << ", '" << volume_format << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
     result &= runPythonString(pythonCommands);
   }
   if (mUsingLiquid) {
     ss.str("");
     ss << "liquid_load_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
-       << ", '" << dformat << "', " << resumable_cache << ")";
+       << ", '" << volume_format << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
     result &= runPythonString(pythonCommands);
   }
   return result;
 }
 
-bool MANTA::readNoise(FluidModifierData *mmd, int framenr)
+bool MANTA::readNoise(FluidModifierData *mmd, int framenr, bool resumable)
 {
   if (with_debug)
     cout << "MANTA::readNoise()" << endl;
@@ -1679,10 +1280,12 @@ bool MANTA::readNoise(FluidModifierData *mmd, int framenr)
   FluidDomainSettings *mds = mmd->domain;
 
   string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_NOISE);
-  string nformat = getCacheFileEnding(mds->cache_noise_format);
+  string resumable_cache = (resumable) ? "False" : "True";
 
-  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
-  string resumable_cache = (final_cache) ? "False" : "True";
+  /* Support older caches which had more granular file format control. */
+  char format = (!strcmp(mds->cache_id, FLUID_CACHE_VERSION)) ? mds->cache_data_format :
+                                                                mds->cache_noise_format;
+  string volume_format = getCacheFileEnding(format);
 
   /* Sanity check: Are cache files present? */
   if (!hasNoise(mmd, framenr))
@@ -1690,15 +1293,12 @@ bool MANTA::readNoise(FluidModifierData *mmd, int framenr)
 
   ss.str("");
   ss << "smoke_load_noise_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
-     << ", '" << nformat << "', " << resumable_cache << ")";
+     << ", '" << volume_format << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
   return runPythonString(pythonCommands);
 }
 
-/* Deprecated! This function reads mesh data via the Manta Python API.
- * MANTA:updateMeshStructures() reads cache files directly from disk
- * and is preferred due to its better performance. */
 bool MANTA::readMesh(FluidModifierData *mmd, int framenr)
 {
   if (with_debug)
@@ -1712,8 +1312,8 @@ bool MANTA::readMesh(FluidModifierData *mmd, int framenr)
   FluidDomainSettings *mds = mmd->domain;
 
   string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_MESH);
-  string mformat = getCacheFileEnding(mds->cache_mesh_format);
-  string dformat = getCacheFileEnding(mds->cache_data_format);
+  string mesh_format = getCacheFileEnding(mds->cache_mesh_format);
+  string volume_format = getCacheFileEnding(mds->cache_data_format);
 
   /* Sanity check: Are cache files present? */
   if (!hasMesh(mmd, framenr))
@@ -1721,23 +1321,20 @@ bool MANTA::readMesh(FluidModifierData *mmd, int framenr)
 
   ss.str("");
   ss << "liquid_load_mesh_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
-     << ", '" << mformat << "')";
+     << ", '" << mesh_format << "')";
   pythonCommands.push_back(ss.str());
 
   if (mUsingMVel) {
     ss.str("");
     ss << "liquid_load_meshvel_" << mCurrentID << "('" << escapeSlashes(directory) << "', "
-       << framenr << ", '" << dformat << "')";
+       << framenr << ", '" << volume_format << "')";
     pythonCommands.push_back(ss.str());
   }
 
   return runPythonString(pythonCommands);
 }
 
-/* Deprecated! This function reads particle data via the Manta Python API.
- * MANTA:updateParticleStructures() reads cache files directly from disk
- * and is preferred due to its better performance. */
-bool MANTA::readParticles(FluidModifierData *mmd, int framenr)
+bool MANTA::readParticles(FluidModifierData *mmd, int framenr, bool resumable)
 {
   if (with_debug)
     cout << "MANTA::readParticles()" << endl;
@@ -1752,10 +1349,12 @@ bool MANTA::readParticles(FluidModifierData *mmd, int framenr)
   FluidDomainSettings *mds = mmd->domain;
 
   string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_PARTICLES);
-  string pformat = getCacheFileEnding(mds->cache_particle_format);
+  string resumable_cache = (!resumable) ? "False" : "True";
 
-  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
-  string resumable_cache = (final_cache) ? "False" : "True";
+  /* Support older caches which had more granular file format control. */
+  char format = (!strcmp(mds->cache_id, FLUID_CACHE_VERSION)) ? mds->cache_data_format :
+                                                                mds->cache_particle_format;
+  string volume_format = getCacheFileEnding(format);
 
   /* Sanity check: Are cache files present? */
   if (!hasParticles(mmd, framenr))
@@ -1763,7 +1362,7 @@ bool MANTA::readParticles(FluidModifierData *mmd, int framenr)
 
   ss.str("");
   ss << "liquid_load_particles_" << mCurrentID << "('" << escapeSlashes(directory) << "', "
-     << framenr << ", '" << pformat << "', " << resumable_cache << ")";
+     << framenr << ", '" << volume_format << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
   return runPythonString(pythonCommands);
@@ -1786,7 +1385,7 @@ bool MANTA::readGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain)
 
   string directory = (sourceDomain) ? getDirectory(mmd, FLUID_DOMAIN_DIR_DATA) :
                                       getDirectory(mmd, FLUID_DOMAIN_DIR_GUIDE);
-  string gformat = getCacheFileEnding(mds->cache_data_format);
+  string volume_format = getCacheFileEnding(mds->cache_data_format);
 
   /* Sanity check: Are cache files present? */
   if (!hasGuiding(mmd, framenr, sourceDomain))
@@ -1795,12 +1394,12 @@ bool MANTA::readGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain)
   if (sourceDomain) {
     ss.str("");
     ss << "fluid_load_vel_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
-       << ", '" << gformat << "')";
+       << ", '" << volume_format << "')";
   }
   else {
     ss.str("");
     ss << "fluid_load_guiding_" << mCurrentID << "('" << escapeSlashes(directory) << "', "
-       << framenr << ", '" << gformat << "')";
+       << framenr << ", '" << volume_format << "')";
   }
   pythonCommands.push_back(ss.str());
 
@@ -1821,9 +1420,7 @@ bool MANTA::bakeData(FluidModifierData *mmd, int framenr)
   cacheDirData[0] = '\0';
   cacheDirGuiding[0] = '\0';
 
-  string dformat = getCacheFileEnding(mds->cache_data_format);
-  string pformat = getCacheFileEnding(mds->cache_particle_format);
-  string gformat = dformat;  // Use same data format for guiding format
+  string volume_format = getCacheFileEnding(mds->cache_data_format);
 
   BLI_path_join(
       cacheDirData, sizeof(cacheDirData), mds->cache_directory, FLUID_DOMAIN_DIR_DATA, nullptr);
@@ -1836,9 +1433,8 @@ bool MANTA::bakeData(FluidModifierData *mmd, int framenr)
   BLI_path_make_safe(cacheDirGuiding);
 
   ss.str("");
-  ss << "bake_fluid_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', '"
-     << escapeSlashes(cacheDirGuiding) << "', " << framenr << ", '" << dformat << "', '" << pformat
-     << "', '" << gformat << "')";
+  ss << "bake_fluid_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', " << framenr
+     << ", '" << volume_format << "')";
   pythonCommands.push_back(ss.str());
 
   return runPythonString(pythonCommands);
@@ -1853,27 +1449,18 @@ bool MANTA::bakeNoise(FluidModifierData *mmd, int framenr)
   vector<string> pythonCommands;
   FluidDomainSettings *mds = mmd->domain;
 
-  char cacheDirData[FILE_MAX], cacheDirNoise[FILE_MAX];
-  cacheDirData[0] = '\0';
+  char cacheDirNoise[FILE_MAX];
   cacheDirNoise[0] = '\0';
 
-  string dformat = getCacheFileEnding(mds->cache_data_format);
-  string nformat = getCacheFileEnding(mds->cache_noise_format);
+  string volume_format = getCacheFileEnding(mds->cache_data_format);
 
-  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
-  string resumable_cache = (final_cache) ? "False" : "True";
-
-  BLI_path_join(
-      cacheDirData, sizeof(cacheDirData), mds->cache_directory, FLUID_DOMAIN_DIR_DATA, nullptr);
   BLI_path_join(
       cacheDirNoise, sizeof(cacheDirNoise), mds->cache_directory, FLUID_DOMAIN_DIR_NOISE, nullptr);
-  BLI_path_make_safe(cacheDirData);
   BLI_path_make_safe(cacheDirNoise);
 
   ss.str("");
-  ss << "bake_noise_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', '"
-     << escapeSlashes(cacheDirNoise) << "', " << framenr << ", '" << dformat << "', '" << nformat
-     << "', " << resumable_cache << ")";
+  ss << "bake_noise_" << mCurrentID << "('" << escapeSlashes(cacheDirNoise) << "', " << framenr
+     << ", '" << volume_format << "')";
   pythonCommands.push_back(ss.str());
 
   return runPythonString(pythonCommands);
@@ -1888,25 +1475,19 @@ bool MANTA::bakeMesh(FluidModifierData *mmd, int framenr)
   vector<string> pythonCommands;
   FluidDomainSettings *mds = mmd->domain;
 
-  char cacheDirData[FILE_MAX], cacheDirMesh[FILE_MAX];
-  cacheDirData[0] = '\0';
+  char cacheDirMesh[FILE_MAX];
   cacheDirMesh[0] = '\0';
 
-  string dformat = getCacheFileEnding(mds->cache_data_format);
-  string mformat = getCacheFileEnding(mds->cache_mesh_format);
-  string pformat = getCacheFileEnding(mds->cache_particle_format);
+  string volume_format = getCacheFileEnding(mds->cache_data_format);
+  string mesh_format = getCacheFileEnding(mds->cache_mesh_format);
 
   BLI_path_join(
-      cacheDirData, sizeof(cacheDirData), mds->cache_directory, FLUID_DOMAIN_DIR_DATA, nullptr);
-  BLI_path_join(
       cacheDirMesh, sizeof(cacheDirMesh), mds->cache_directory, FLUID_DOMAIN_DIR_MESH, nullptr);
-  BLI_path_make_safe(cacheDirData);
   BLI_path_make_safe(cacheDirMesh);
 
   ss.str("");
-  ss << "bake_mesh_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', '"
-     << escapeSlashes(cacheDirMesh) << "', " << framenr << ", '" << dformat << "', '" << mformat
-     << "', '" << pformat << "')";
+  ss << "bake_mesh_" << mCurrentID << "('" << escapeSlashes(cacheDirMesh) << "', " << framenr
+     << ", '" << volume_format << "', '" << mesh_format << "')";
   pythonCommands.push_back(ss.str());
 
   return runPythonString(pythonCommands);
@@ -1921,30 +1502,22 @@ bool MANTA::bakeParticles(FluidModifierData *mmd, int framenr)
   vector<string> pythonCommands;
   FluidDomainSettings *mds = mmd->domain;
 
-  char cacheDirData[FILE_MAX], cacheDirParticles[FILE_MAX];
-  cacheDirData[0] = '\0';
+  char cacheDirParticles[FILE_MAX];
   cacheDirParticles[0] = '\0';
 
-  string dformat = getCacheFileEnding(mds->cache_data_format);
-  string pformat = getCacheFileEnding(mds->cache_particle_format);
+  string volume_format = getCacheFileEnding(mds->cache_data_format);
+  string resumable_cache = !(mds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE) ? "False" : "True";
 
-  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
-  string resumable_cache = (final_cache) ? "False" : "True";
-
-  BLI_path_join(
-      cacheDirData, sizeof(cacheDirData), mds->cache_directory, FLUID_DOMAIN_DIR_DATA, nullptr);
   BLI_path_join(cacheDirParticles,
                 sizeof(cacheDirParticles),
                 mds->cache_directory,
                 FLUID_DOMAIN_DIR_PARTICLES,
                 nullptr);
-  BLI_path_make_safe(cacheDirData);
   BLI_path_make_safe(cacheDirParticles);
 
   ss.str("");
-  ss << "bake_particles_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', '"
-     << escapeSlashes(cacheDirParticles) << "', " << framenr << ", '" << dformat << "', '"
-     << pformat << "', " << resumable_cache << ")";
+  ss << "bake_particles_" << mCurrentID << "('" << escapeSlashes(cacheDirParticles) << "', "
+     << framenr << ", '" << volume_format << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
   return runPythonString(pythonCommands);
@@ -1962,10 +1535,7 @@ bool MANTA::bakeGuiding(FluidModifierData *mmd, int framenr)
   char cacheDirGuiding[FILE_MAX];
   cacheDirGuiding[0] = '\0';
 
-  string gformat = getCacheFileEnding(mds->cache_data_format);
-
-  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
-  string resumable_cache = (final_cache) ? "False" : "True";
+  string volume_format = getCacheFileEnding(mds->cache_data_format);
 
   BLI_path_join(cacheDirGuiding,
                 sizeof(cacheDirGuiding),
@@ -1976,7 +1546,7 @@ bool MANTA::bakeGuiding(FluidModifierData *mmd, int framenr)
 
   ss.str("");
   ss << "bake_guiding_" << mCurrentID << "('" << escapeSlashes(cacheDirGuiding) << "', " << framenr
-     << ", '" << gformat << "', " << resumable_cache << ")";
+     << ", '" << volume_format << "')";
   pythonCommands.push_back(ss.str());
 
   return runPythonString(pythonCommands);
@@ -2092,8 +1662,7 @@ void MANTA::exportSmokeScript(FluidModifierData *mmd)
   manta_script += header_time + fluid_time_stepping + fluid_adapt_time_step;
 
   // Import
-  manta_script += header_import + fluid_file_import + fluid_cache_helper + fluid_load_data +
-                  smoke_load_data;
+  manta_script += header_import + fluid_file_import + fluid_cache_helper + smoke_load_data;
   if (noise)
     manta_script += smoke_load_noise;
   if (guiding)
@@ -2198,8 +1767,7 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
   manta_script += header_time + fluid_time_stepping + fluid_adapt_time_step;
 
   // Import
-  manta_script += header_import + fluid_file_import + fluid_cache_helper + fluid_load_data +
-                  liquid_load_data;
+  manta_script += header_import + fluid_file_import + fluid_cache_helper + liquid_load_data;
   if (mesh)
     manta_script += liquid_load_mesh;
   if (drops || bubble || floater || tracer)
@@ -2241,7 +1809,7 @@ static PyObject *callPythonFunction(string varName, string functionName, bool is
 {
   if ((varName == "") || (functionName == "")) {
     if (MANTA::with_debug)
-      cout << "Missing Python variable name and/or function name -- name is: " << varName
+      cout << "Fluid: Missing Python variable name and/or function name -- name is: " << varName
            << ", function name is: " << functionName << endl;
     return nullptr;
   }
@@ -2382,952 +1950,6 @@ void MANTA::adaptTimestep()
   pythonCommands.push_back(ss.str());
 
   runPythonString(pythonCommands);
-}
-
-bool MANTA::updateMeshFromFile(string filename)
-{
-  string fname(filename);
-  string::size_type idx;
-
-  idx = fname.rfind('.');
-  if (idx != string::npos) {
-    string extension = fname.substr(idx + 1);
-
-    if (extension.compare("gz") == 0)
-      return updateMeshFromBobj(filename);
-    else if (extension.compare("obj") == 0)
-      return updateMeshFromObj(filename);
-    else if (extension.compare("uni") == 0)
-      return updateMeshFromUni(filename);
-    else
-      cerr << "Fluid Error -- updateMeshFromFile(): Invalid file extension in file: " << filename
-           << endl;
-  }
-  else {
-    cerr << "Fluid Error -- updateMeshFromFile(): Unable to open file: " << filename << endl;
-  }
-  return false;
-}
-
-bool MANTA::updateMeshFromBobj(string filename)
-{
-  if (with_debug)
-    cout << "MANTA::updateMeshFromBobj()" << endl;
-
-  gzFile gzf;
-
-  gzf = (gzFile)BLI_gzopen(filename.c_str(), "rb1");  // do some compression
-  if (!gzf) {
-    cerr << "Fluid Error -- updateMeshFromBobj(): Unable to open file: " << filename << endl;
-    return false;
-  }
-
-  int numBuffer = 0, readBytes = 0;
-
-  // Num vertices
-  readBytes = gzread(gzf, &numBuffer, sizeof(int));
-  if (!readBytes) {
-    cerr << "Fluid Error -- updateMeshFromBobj(): Unable to read number of mesh vertices from "
-         << filename << endl;
-    gzclose(gzf);
-    return false;
-  }
-
-  if (with_debug)
-    cout << "read mesh , num verts: " << numBuffer << " , in file: " << filename << endl;
-
-  int numChunks = (int)(ceil((float)numBuffer / NODE_CHUNK));
-  int readLen, readStart, readEnd, k;
-
-  if (numBuffer) {
-    // Vertices
-    int todoVertices = numBuffer;
-    float *bufferVerts = (float *)MEM_malloc_arrayN(
-        NODE_CHUNK, sizeof(float) * 3, "fluid_mesh_vertices");
-
-    mMeshNodes->resize(numBuffer);
-
-    for (int i = 0; i < numChunks && todoVertices > 0; ++i) {
-      readLen = NODE_CHUNK;
-      if (todoVertices < NODE_CHUNK) {
-        readLen = todoVertices;
-      }
-
-      readBytes = gzread(gzf, bufferVerts, readLen * sizeof(float) * 3);
-      if (!readBytes) {
-        cerr << "Fluid Error -- updateMeshFromBobj(): Unable to read mesh vertices from "
-             << filename << endl;
-        MEM_freeN(bufferVerts);
-        gzclose(gzf);
-        return false;
-      }
-
-      readStart = (numBuffer - todoVertices);
-      CLAMP(readStart, 0, numBuffer);
-      readEnd = readStart + readLen;
-      CLAMP(readEnd, 0, numBuffer);
-
-      k = 0;
-      for (vector<MANTA::Node>::size_type j = readStart; j < readEnd; j++, k += 3) {
-        mMeshNodes->at(j).pos[0] = bufferVerts[k];
-        mMeshNodes->at(j).pos[1] = bufferVerts[k + 1];
-        mMeshNodes->at(j).pos[2] = bufferVerts[k + 2];
-      }
-      todoVertices -= readLen;
-    }
-    MEM_freeN(bufferVerts);
-  }
-
-  // Num normals
-  readBytes = gzread(gzf, &numBuffer, sizeof(int));
-  if (!readBytes) {
-    cerr << "Fluid Error -- updateMeshFromBobj(): Unable to read number of mesh normals from "
-         << filename << endl;
-    gzclose(gzf);
-    return false;
-  }
-
-  if (with_debug)
-    cout << "read mesh , num normals : " << numBuffer << " , in file: " << filename << endl;
-
-  if (numBuffer) {
-    // Normals
-    int todoNormals = numBuffer;
-    float *bufferNormals = (float *)MEM_malloc_arrayN(
-        NODE_CHUNK, sizeof(float) * 3, "fluid_mesh_normals");
-
-    if (!getNumVertices())
-      mMeshNodes->resize(numBuffer);
-
-    for (int i = 0; i < numChunks && todoNormals > 0; ++i) {
-      readLen = NODE_CHUNK;
-      if (todoNormals < NODE_CHUNK) {
-        readLen = todoNormals;
-      }
-
-      readBytes = gzread(gzf, bufferNormals, readLen * sizeof(float) * 3);
-      if (!readBytes) {
-        cerr << "Fluid Error -- updateMeshFromBobj(): Unable to read mesh normals from "
-             << filename << endl;
-        MEM_freeN(bufferNormals);
-        gzclose(gzf);
-        return false;
-      }
-
-      readStart = (numBuffer - todoNormals);
-      CLAMP(readStart, 0, numBuffer);
-      readEnd = readStart + readLen;
-      CLAMP(readEnd, 0, numBuffer);
-
-      k = 0;
-      for (vector<MANTA::Node>::size_type j = readStart; j < readEnd; j++, k += 3) {
-        mMeshNodes->at(j).normal[0] = bufferNormals[k];
-        mMeshNodes->at(j).normal[1] = bufferNormals[k + 1];
-        mMeshNodes->at(j).normal[2] = bufferNormals[k + 2];
-      }
-      todoNormals -= readLen;
-    }
-    MEM_freeN(bufferNormals);
-  }
-
-  // Num triangles
-  readBytes = gzread(gzf, &numBuffer, sizeof(int));
-  if (!readBytes) {
-    cerr << "Fluid Error -- updateMeshFromBobj(): Unable to read number of mesh triangles from "
-         << filename << endl;
-    gzclose(gzf);
-    return false;
-  }
-
-  if (with_debug)
-    cout << "Fluid: Read mesh , num triangles : " << numBuffer << " , in file: " << filename
-         << endl;
-
-  numChunks = (int)(ceil((float)numBuffer / TRIANGLE_CHUNK));
-
-  if (numBuffer) {
-    // Triangles
-    int todoTriangles = numBuffer;
-    int *bufferTriangles = (int *)MEM_malloc_arrayN(
-        TRIANGLE_CHUNK, sizeof(int) * 3, "fluid_mesh_triangles");
-
-    mMeshTriangles->resize(numBuffer);
-
-    for (int i = 0; i < numChunks && todoTriangles > 0; ++i) {
-      readLen = TRIANGLE_CHUNK;
-      if (todoTriangles < TRIANGLE_CHUNK) {
-        readLen = todoTriangles;
-      }
-
-      readBytes = gzread(gzf, bufferTriangles, readLen * sizeof(int) * 3);
-      if (!readBytes) {
-        cerr << "Fluid Error -- updateMeshFromBobj(): Unable to read mesh triangles from "
-             << filename << endl;
-        MEM_freeN(bufferTriangles);
-        gzclose(gzf);
-        return false;
-      }
-
-      readStart = (numBuffer - todoTriangles);
-      CLAMP(readStart, 0, numBuffer);
-      readEnd = readStart + readLen;
-      CLAMP(readEnd, 0, numBuffer);
-
-      k = 0;
-      for (vector<MANTA::Triangle>::size_type j = readStart; j < readEnd; j++, k += 3) {
-        mMeshTriangles->at(j).c[0] = bufferTriangles[k];
-        mMeshTriangles->at(j).c[1] = bufferTriangles[k + 1];
-        mMeshTriangles->at(j).c[2] = bufferTriangles[k + 2];
-      }
-      todoTriangles -= readLen;
-    }
-    MEM_freeN(bufferTriangles);
-  }
-  return (gzclose(gzf) == Z_OK);
-}
-
-bool MANTA::updateMeshFromObj(string filename)
-{
-  if (with_debug)
-    cout << "MANTA::updateMeshFromObj()" << endl;
-
-  ifstream ifs(filename);
-  float fbuffer[3];
-  int ibuffer[3];
-  int cntVerts = 0, cntNormals = 0, cntTris = 0;
-
-  if (!ifs.good()) {
-    cerr << "Fluid Error -- updateMeshFromObj(): Unable to open file: " << filename << endl;
-    return false;
-  }
-
-  while (ifs.good() && !ifs.eof()) {
-    string id;
-    ifs >> id;
-
-    if (id[0] == '#') {
-      // comment
-      getline(ifs, id);
-      continue;
-    }
-    if (id == "vt") {
-      // tex coord, ignore
-    }
-    else if (id == "vn") {
-      // normals
-      if (getNumVertices() != cntVerts) {
-        cerr << "Fluid Error -- updateMeshFromObj(): Invalid number of mesh nodes in file: "
-             << filename << endl;
-        return false;
-      }
-
-      ifs >> fbuffer[0] >> fbuffer[1] >> fbuffer[2];
-      MANTA::Node *node = &mMeshNodes->at(cntNormals);
-      (*node).normal[0] = fbuffer[0];
-      (*node).normal[1] = fbuffer[1];
-      (*node).normal[2] = fbuffer[2];
-      cntNormals++;
-    }
-    else if (id == "v") {
-      // vertex
-      ifs >> fbuffer[0] >> fbuffer[1] >> fbuffer[2];
-      MANTA::Node node;
-      node.pos[0] = fbuffer[0];
-      node.pos[1] = fbuffer[1];
-      node.pos[2] = fbuffer[2];
-      mMeshNodes->push_back(node);
-      cntVerts++;
-    }
-    else if (id == "g") {
-      // group
-      string group;
-      ifs >> group;
-    }
-    else if (id == "f") {
-      // face
-      string face;
-      for (int i = 0; i < 3; i++) {
-        ifs >> face;
-        if (face.find('/') != string::npos)
-          face = face.substr(0, face.find('/'));  // ignore other indices
-        int idx = atoi(face.c_str()) - 1;
-        if (idx < 0) {
-          cerr << "Fluid Error -- updateMeshFromObj(): Invalid face encountered in file: "
-               << filename << endl;
-          return false;
-        }
-        ibuffer[i] = idx;
-      }
-      MANTA::Triangle triangle;
-      triangle.c[0] = ibuffer[0];
-      triangle.c[1] = ibuffer[1];
-      triangle.c[2] = ibuffer[2];
-      mMeshTriangles->push_back(triangle);
-      cntTris++;
-    }
-    else {
-      // whatever, ignore
-    }
-    // kill rest of line
-    getline(ifs, id);
-  }
-  ifs.close();
-  return true;
-}
-
-bool MANTA::updateMeshFromUni(string filename)
-{
-  if (with_debug)
-    cout << "MANTA::updateMeshFromUni()" << endl;
-
-  gzFile gzf;
-  float fbuffer[4];
-  int ibuffer[4];
-
-  gzf = (gzFile)BLI_gzopen(filename.c_str(), "rb1");  // do some compression
-  if (!gzf) {
-    cerr << "Fluid Error -- updateMeshFromUni(): Unable to open file: " << filename << endl;
-    return false;
-  }
-
-  int readBytes = 0;
-  char file_magic[5] = {0, 0, 0, 0, 0};
-  readBytes = gzread(gzf, file_magic, 4);
-  if (!readBytes) {
-    cerr << "Fluid Error -- updateMeshFromUni(): Unable to read header in file: " << filename
-         << endl;
-    gzclose(gzf);
-    return false;
-  }
-
-  vector<pVel> *velocityPointer = mMeshVelocities;
-
-  // mdata uni header
-  const int STR_LEN_PDATA = 256;
-  int elementType, bytesPerElement, numParticles;
-  char info[STR_LEN_PDATA];      // mantaflow build information
-  unsigned long long timestamp;  // creation time
-
-  // read mesh header
-  gzread(gzf, &ibuffer, sizeof(int) * 4);  // num particles, dimX, dimY, dimZ
-  gzread(gzf, &elementType, sizeof(int));
-  gzread(gzf, &bytesPerElement, sizeof(int));
-  gzread(gzf, &info, sizeof(info));
-  gzread(gzf, &timestamp, sizeof(unsigned long long));
-
-  if (with_debug)
-    cout << "Fluid: Read " << ibuffer[0] << " vertices in file: " << filename << endl;
-
-  // Sanity checks
-  const int meshSize = sizeof(float) * 3 + sizeof(int);
-  if (!(bytesPerElement == meshSize) && (elementType == 0)) {
-    cerr << "Fluid Error -- updateMeshFromUni(): Invalid header in file: " << filename << endl;
-    gzclose(gzf);
-    return false;
-  }
-  if (!ibuffer[0]) {  // Any vertices present?
-    cerr << "Fluid Error -- updateMeshFromUni(): No vertices present in file: " << filename
-         << endl;
-    gzclose(gzf);
-    return false;
-  }
-
-  // Reading mesh
-  if (!strcmp(file_magic, "MB01")) {
-    // TODO (sebbas): Future update could add uni mesh support
-  }
-  // Reading mesh data file v1 with vec3
-  else if (!strcmp(file_magic, "MD01")) {
-    numParticles = ibuffer[0];
-
-    velocityPointer->resize(numParticles);
-    MANTA::pVel *bufferPVel;
-    for (vector<pVel>::iterator it = velocityPointer->begin(); it != velocityPointer->end();
-         ++it) {
-      gzread(gzf, fbuffer, sizeof(float) * 3);
-      bufferPVel = (MANTA::pVel *)fbuffer;
-      it->pos[0] = bufferPVel->pos[0];
-      it->pos[1] = bufferPVel->pos[1];
-      it->pos[2] = bufferPVel->pos[2];
-    }
-  }
-  return (gzclose(gzf) == Z_OK);
-}
-
-bool MANTA::updateParticlesFromFile(string filename, bool isSecondarySys, bool isVelData)
-{
-  if (with_debug)
-    cout << "MANTA::updateParticlesFromFile()" << endl;
-
-  string fname(filename);
-  string::size_type idx;
-
-  idx = fname.rfind('.');
-  if (idx != string::npos) {
-    string extension = fname.substr(idx + 1);
-
-    if (extension.compare("uni") == 0)
-      return updateParticlesFromUni(filename, isSecondarySys, isVelData);
-    else
-      cerr << "Fluid Error -- updateParticlesFromFile(): Invalid file extension in file: "
-           << filename << endl;
-    return false;
-  }
-  else {
-    cerr << "Fluid Error -- updateParticlesFromFile(): Unable to open file: " << filename << endl;
-    return false;
-  }
-}
-
-bool MANTA::updateParticlesFromUni(string filename, bool isSecondarySys, bool isVelData)
-{
-  if (with_debug)
-    cout << "MANTA::updateParticlesFromUni()" << endl;
-
-  gzFile gzf;
-  int ibuffer[4];
-
-  gzf = (gzFile)BLI_gzopen(filename.c_str(), "rb1");  // do some compression
-  if (!gzf) {
-    cerr << "Fluid Error -- updateParticlesFromUni(): Unable to open file: " << filename << endl;
-    return false;
-  }
-
-  int readBytes = 0;
-  char file_magic[5] = {0, 0, 0, 0, 0};
-  readBytes = gzread(gzf, file_magic, 4);
-  if (!readBytes) {
-    cerr << "Fluid Error -- updateParticlesFromUni(): Unable to read header in file: " << filename
-         << endl;
-    gzclose(gzf);
-    return false;
-  }
-
-  if (!strcmp(file_magic, "PB01")) {
-    cerr << "Fluid Error -- updateParticlesFromUni(): Particle uni file format v01 not "
-            "supported anymore."
-         << endl;
-    gzclose(gzf);
-    return false;
-  }
-
-  // Pointer to FLIP system or to secondary particle system
-  vector<pData> *dataPointer = nullptr;
-  vector<pVel> *velocityPointer = nullptr;
-  vector<float> *lifePointer = nullptr;
-
-  if (isSecondarySys) {
-    dataPointer = mSndParticleData;
-    velocityPointer = mSndParticleVelocity;
-    lifePointer = mSndParticleLife;
-  }
-  else {
-    dataPointer = mFlipParticleData;
-    velocityPointer = mFlipParticleVelocity;
-  }
-
-  // pdata uni header
-  const int STR_LEN_PDATA = 256;
-  int elementType, bytesPerElement, numParticles;
-  char info[STR_LEN_PDATA];      // mantaflow build information
-  unsigned long long timestamp;  // creation time
-
-  // read particle header
-  gzread(gzf, &ibuffer, sizeof(int) * 4);  // num particles, dimX, dimY, dimZ
-  gzread(gzf, &elementType, sizeof(int));
-  gzread(gzf, &bytesPerElement, sizeof(int));
-  gzread(gzf, &info, sizeof(info));
-  gzread(gzf, &timestamp, sizeof(unsigned long long));
-
-  if (with_debug)
-    cout << "Fluid: Read " << ibuffer[0] << " particles in file: " << filename << endl;
-
-  // Sanity checks
-  const int partSysSize = sizeof(float) * 3 + sizeof(int);
-  if (!(bytesPerElement == partSysSize) && (elementType == 0)) {
-    cerr << "Fluid Error -- updateParticlesFromUni(): Invalid header in file: " << filename
-         << endl;
-    gzclose(gzf);
-    return false;
-  }
-  if (!ibuffer[0]) {  // Any particles present?
-    if (with_debug)
-      cout << "Fluid: No particles present in file: " << filename << endl;
-    gzclose(gzf);
-    return true;  // return true since having no particles in a cache file is valid
-  }
-
-  numParticles = ibuffer[0];
-
-  const int numChunks = (int)(ceil((float)numParticles / PARTICLE_CHUNK));
-  int todoParticles, readLen;
-  int readStart, readEnd;
-
-  // Reading base particle system file v2
-  if (!strcmp(file_magic, "PB02")) {
-    MANTA::pData *bufferPData;
-    todoParticles = numParticles;
-    bufferPData = (MANTA::pData *)MEM_malloc_arrayN(
-        PARTICLE_CHUNK, sizeof(MANTA::pData), "fluid_particle_data");
-
-    dataPointer->resize(numParticles);
-
-    for (int i = 0; i < numChunks && todoParticles > 0; ++i) {
-      readLen = PARTICLE_CHUNK;
-      if (todoParticles < PARTICLE_CHUNK) {
-        readLen = todoParticles;
-      }
-
-      readBytes = gzread(gzf, bufferPData, readLen * sizeof(pData));
-      if (!readBytes) {
-        cerr << "Fluid Error -- updateParticlesFromUni(): Unable to read particle data in file: "
-             << filename << endl;
-        MEM_freeN(bufferPData);
-        gzclose(gzf);
-        return false;
-      }
-
-      readStart = (numParticles - todoParticles);
-      CLAMP(readStart, 0, numParticles);
-      readEnd = readStart + readLen;
-      CLAMP(readEnd, 0, numParticles);
-
-      int k = 0;
-      for (vector<MANTA::pData>::size_type j = readStart; j < readEnd; j++, k++) {
-        dataPointer->at(j).pos[0] = bufferPData[k].pos[0];
-        dataPointer->at(j).pos[1] = bufferPData[k].pos[1];
-        dataPointer->at(j).pos[2] = bufferPData[k].pos[2];
-        dataPointer->at(j).flag = bufferPData[k].flag;
-      }
-      todoParticles -= readLen;
-    }
-    MEM_freeN(bufferPData);
-  }
-  // Reading particle data file v1 with velocities
-  else if (!strcmp(file_magic, "PD01") && isVelData) {
-    MANTA::pVel *bufferPVel;
-    todoParticles = numParticles;
-    bufferPVel = (MANTA::pVel *)MEM_malloc_arrayN(
-        PARTICLE_CHUNK, sizeof(MANTA::pVel), "fluid_particle_velocity");
-
-    velocityPointer->resize(numParticles);
-
-    for (int i = 0; i < numChunks && todoParticles > 0; ++i) {
-      readLen = PARTICLE_CHUNK;
-      if (todoParticles < PARTICLE_CHUNK) {
-        readLen = todoParticles;
-      }
-
-      readBytes = gzread(gzf, bufferPVel, readLen * sizeof(pVel));
-      if (!readBytes) {
-        cerr << "Fluid Error -- updateParticlesFromUni(): Unable to read particle velocities "
-                "in file: "
-             << filename << endl;
-        MEM_freeN(bufferPVel);
-        gzclose(gzf);
-        return false;
-      }
-
-      readStart = (numParticles - todoParticles);
-      CLAMP(readStart, 0, numParticles);
-      readEnd = readStart + readLen;
-      CLAMP(readEnd, 0, numParticles);
-
-      int k = 0;
-      for (vector<MANTA::pVel>::size_type j = readStart; j < readEnd; j++, k++) {
-        velocityPointer->at(j).pos[0] = bufferPVel[k].pos[0];
-        velocityPointer->at(j).pos[1] = bufferPVel[k].pos[1];
-        velocityPointer->at(j).pos[2] = bufferPVel[k].pos[2];
-      }
-      todoParticles -= readLen;
-    }
-    MEM_freeN(bufferPVel);
-  }
-  // Reading particle data file v1 with lifetime
-  else if (!strcmp(file_magic, "PD01")) {
-    float *bufferPLife;
-    todoParticles = numParticles;
-    bufferPLife = (float *)MEM_malloc_arrayN(PARTICLE_CHUNK, sizeof(float), "fluid_particle_life");
-
-    lifePointer->resize(numParticles);
-
-    for (int i = 0; i < numChunks && todoParticles > 0; ++i) {
-      readLen = PARTICLE_CHUNK;
-      if (todoParticles < PARTICLE_CHUNK) {
-        readLen = todoParticles;
-      }
-
-      readBytes = gzread(gzf, bufferPLife, readLen * sizeof(float));
-      if (!readBytes) {
-        cerr << "Fluid Error -- updateParticlesFromUni(): Unable to read particle life in file: "
-             << filename << endl;
-        MEM_freeN(bufferPLife);
-        gzclose(gzf);
-        return false;
-      }
-
-      readStart = (numParticles - todoParticles);
-      CLAMP(readStart, 0, numParticles);
-      readEnd = readStart + readLen;
-      CLAMP(readEnd, 0, numParticles);
-
-      int k = 0;
-      for (vector<float>::size_type j = readStart; j < readEnd; j++, k++) {
-        lifePointer->at(j) = bufferPLife[k];
-      }
-      todoParticles -= readLen;
-    }
-    MEM_freeN(bufferPLife);
-  }
-  return (gzclose(gzf) == Z_OK);
-}
-
-bool MANTA::updateGridsFromFile(string filename, vector<GridItem> grids)
-{
-  if (with_debug)
-    cout << "MANTA::updateGridsFromFile()" << endl;
-
-  if (grids.empty()) {
-    cerr << "Fluid Error -- updateGridsFromFile(): Cannot read into uninitialized grid vector."
-         << endl;
-    return false;
-  }
-
-  string fname(filename);
-  string::size_type idx;
-
-  idx = fname.rfind('.');
-  if (idx != string::npos) {
-    string extension = fname.substr(idx);
-
-    if (extension.compare(FLUID_DOMAIN_EXTENSION_UNI) == 0) {
-      return updateGridsFromUni(filename, grids);
-    }
-#if OPENVDB == 1
-    else if (extension.compare(FLUID_DOMAIN_EXTENSION_OPENVDB) == 0) {
-      return updateGridsFromVDB(filename, grids);
-    }
-#endif
-    else if (extension.compare(FLUID_DOMAIN_EXTENSION_RAW) == 0) {
-      return updateGridsFromRaw(filename, grids);
-    }
-    else {
-      cerr << "Fluid Error -- updateGridsFromFile(): Invalid file extension in file: " << filename
-           << endl;
-    }
-    return false;
-  }
-  else {
-    cerr << "Fluid Error -- updateGridsFromFile(): Unable to open file: " << filename << endl;
-    return false;
-  }
-}
-
-bool MANTA::updateGridsFromUni(string filename, vector<GridItem> grids)
-{
-  if (with_debug)
-    cout << "MANTA::updateGridsFromUni()" << endl;
-
-  gzFile gzf;
-  int expectedBytes = 0, readBytes = 0;
-  int ibuffer[4];
-
-  gzf = (gzFile)BLI_gzopen(filename.c_str(), "rb1");
-  if (!gzf) {
-    cerr << "Fluid Error -- updateGridsFromUni(): Unable to open file: " << filename << endl;
-    return false;
-  }
-
-  char file_magic[5] = {0, 0, 0, 0, 0};
-  readBytes = gzread(gzf, file_magic, 4);
-  if (!readBytes) {
-    cerr << "Fluid Error -- updateGridsFromUni(): Invalid header in file: " << filename << endl;
-    gzclose(gzf);
-    return false;
-  }
-  if (!strcmp(file_magic, "DDF2") || !strcmp(file_magic, "MNT1") || !strcmp(file_magic, "MNT2")) {
-    cerr << "Fluid Error -- updateGridsFromUni(): Unsupported header in file: " << filename
-         << endl;
-    gzclose(gzf);
-    return false;
-  }
-
-  if (!strcmp(file_magic, "MNT3")) {
-
-    // grid uni header
-    const int STR_LEN_GRID = 252;
-    int elementType, bytesPerElement;  // data type info
-    char info[STR_LEN_GRID];           // mantaflow build information
-    int dimT;                          // optionally store forth dimension for 4d grids
-    unsigned long long timestamp;      // creation time
-
-    // read grid header
-    gzread(gzf, &ibuffer, sizeof(int) * 4);  // dimX, dimY, dimZ, gridType
-    gzread(gzf, &elementType, sizeof(int));
-    gzread(gzf, &bytesPerElement, sizeof(int));
-    gzread(gzf, &info, sizeof(info));
-    gzread(gzf, &dimT, sizeof(int));
-    gzread(gzf, &timestamp, sizeof(unsigned long long));
-
-    if (with_debug)
-      cout << "Fluid: Read " << ibuffer[3] << " grid type in file: " << filename << endl;
-
-    for (vector<GridItem>::iterator gIter = grids.begin(); gIter != grids.end(); ++gIter) {
-      GridItem gridItem = *gIter;
-      void **pointerList = gridItem.pointer;
-      int type = gridItem.type;
-      int *res = gridItem.res;
-      assert(pointerList[0]);
-      assert(res[0] == res[0] && res[1] == res[1] && res[2] == res[2]);
-      UNUSED_VARS(res);
-
-      switch (type) {
-        case FLUID_DOMAIN_GRID_VEC3F: {
-          assert(pointerList[1] && pointerList[2]);
-          float **fpointers = (float **)pointerList;
-          expectedBytes = sizeof(float) * 3 * ibuffer[0] * ibuffer[1] * ibuffer[2];
-          readBytes = 0;
-          for (int i = 0; i < ibuffer[0] * ibuffer[1] * ibuffer[2]; ++i) {
-            for (int j = 0; j < 3; ++j) {
-              readBytes += gzread(gzf, fpointers[j], sizeof(float));
-              ++fpointers[j];
-            }
-          }
-          break;
-        }
-        case FLUID_DOMAIN_GRID_FLOAT: {
-          float **fpointers = (float **)pointerList;
-          expectedBytes = sizeof(float) * ibuffer[0] * ibuffer[1] * ibuffer[2];
-          readBytes = gzread(
-              gzf, fpointers[0], sizeof(float) * ibuffer[0] * ibuffer[1] * ibuffer[2]);
-          break;
-        }
-        default: {
-          cerr << "Fluid Error -- Unknown grid type" << endl;
-        }
-      }
-
-      if (!readBytes) {
-        cerr << "Fluid Error -- updateGridFromRaw(): Unable to read raw file: " << filename
-             << endl;
-        gzclose(gzf);
-        return false;
-      }
-      assert(expectedBytes == readBytes);
-      UNUSED_VARS(expectedBytes);
-
-      if (with_debug)
-        cout << "Fluid: Read successfully: " << filename << endl;
-    }
-  }
-  else {
-    cerr << "Fluid Error -- updateGridsFromUni(): Unknown header in file: " << filename << endl;
-    gzclose(gzf);
-    return false;
-  }
-
-  return (gzclose(gzf) == Z_OK);
-}
-
-#if OPENVDB == 1
-bool MANTA::updateGridsFromVDB(string filename, vector<GridItem> grids)
-{
-  if (with_debug)
-    cout << "MANTA::updateGridsFromVDB()" << endl;
-
-  openvdb::initialize();
-  openvdb::io::File file(filename);
-  try {
-    file.open();
-  }
-  catch (const openvdb::IoError &) {
-    cerr << "Fluid Error -- updateGridsFromVDB(): IOError, invalid OpenVDB file: " << filename
-         << endl;
-    return false;
-  }
-  if (grids.empty()) {
-    cerr << "Fluid Error -- updateGridsFromVDB(): No grids found in grid vector" << endl;
-    return false;
-  }
-
-  unordered_map<string, openvdb::FloatGrid::Accessor> floatAccessors;
-  unordered_map<string, openvdb::Vec3SGrid::Accessor> vec3fAccessors;
-  openvdb::GridBase::Ptr baseGrid;
-
-  /* Get accessors to all grids in this OpenVDB file.*/
-  for (vector<GridItem>::iterator gIter = grids.begin(); gIter != grids.end(); ++gIter) {
-    GridItem gridItem = *gIter;
-    string itemName = gridItem.name;
-    int itemType = gridItem.type;
-
-    for (openvdb::io::File::NameIterator nameIter = file.beginName(); nameIter != file.endName();
-         ++nameIter) {
-      string vdbName = nameIter.gridName();
-      bool nameMatch = !itemName.compare(vdbName);
-
-      /* Support for <= 2.83: If file has only one grid in it, use that grid. */
-      openvdb::io::File::NameIterator peekNext = nameIter;
-      bool onlyGrid = (++peekNext == file.endName());
-      if (onlyGrid) {
-        vdbName = itemName;
-      }
-
-      if (nameMatch || onlyGrid) {
-        baseGrid = file.readGrid(nameIter.gridName());
-
-        switch (itemType) {
-          case FLUID_DOMAIN_GRID_VEC3F: {
-            openvdb::Vec3SGrid::Ptr gridVDB = openvdb::gridPtrCast<openvdb::Vec3SGrid>(baseGrid);
-            openvdb::Vec3SGrid::Accessor vdbAccessor = gridVDB->getAccessor();
-            vec3fAccessors.emplace(vdbName, vdbAccessor);
-            break;
-          }
-          case FLUID_DOMAIN_GRID_FLOAT: {
-            openvdb::FloatGrid::Ptr gridVDB = openvdb::gridPtrCast<openvdb::FloatGrid>(baseGrid);
-            openvdb::FloatGrid::Accessor vdbAccessor = gridVDB->getAccessor();
-            floatAccessors.emplace(vdbName, vdbAccessor);
-            break;
-          }
-          default: {
-            cerr << "Fluid Error -- Unknown grid type" << endl;
-          }
-        }
-      }
-      else {
-        cerr << "Fluid Error -- Could not read grid from file" << endl;
-        return false;
-      }
-    }
-  }
-  file.close();
-
-  size_t index = 0;
-
-  /* Use res of first grid for grid loop. All grids must be same size anyways. */
-  vector<GridItem>::iterator gIter = grids.begin();
-  int *res = (*gIter).res;
-
-  for (int z = 0; z < res[2]; ++z) {
-    for (int y = 0; y < res[1]; ++y) {
-      for (int x = 0; x < res[0]; ++x, ++index) {
-        openvdb::Coord xyz(x, y, z);
-
-        for (vector<GridItem>::iterator gIter = grids.begin(); gIter != grids.end(); ++gIter) {
-          GridItem gridItem = *gIter;
-          void **pointerList = gridItem.pointer;
-          int type = gridItem.type;
-          int *res = gridItem.res;
-          assert(pointerList[0]);
-          assert(res[0] == res[0] && res[1] == res[1] && res[2] == res[2]);
-          UNUSED_VARS(res);
-
-          switch (type) {
-            case FLUID_DOMAIN_GRID_VEC3F: {
-              unordered_map<string, openvdb::Vec3SGrid::Accessor>::iterator it;
-              it = vec3fAccessors.find(gridItem.name);
-              if (it == vec3fAccessors.end()) {
-                cerr << "Fluid Error -- '" << gridItem.name << "' not in vdb grid map" << endl;
-                return false;
-              }
-              openvdb::Vec3f v = it->second.getValue(xyz);
-
-              assert(pointerList[1] && pointerList[2]);
-              float **fpointers = (float **)pointerList;
-              for (int j = 0; j < 3; ++j) {
-                (fpointers[j])[index] = (float)v[j];
-              }
-              break;
-            }
-            case FLUID_DOMAIN_GRID_FLOAT: {
-              unordered_map<string, openvdb::FloatGrid::Accessor>::iterator it;
-              it = floatAccessors.find(gridItem.name);
-              if (it == floatAccessors.end()) {
-                cerr << "Fluid Error -- '" << gridItem.name << "' not in vdb grid map" << endl;
-                return false;
-              }
-              float v = it->second.getValue(xyz);
-              float **fpointers = (float **)pointerList;
-              (fpointers[0])[index] = v;
-              break;
-            }
-            default: {
-              cerr << "Fluid Error -- Unknown grid type" << endl;
-            }
-          }
-        }
-      }
-    }
-  }
-  if (with_debug)
-    cout << "Fluid: Read successfully: " << filename << endl;
-
-  return true;
-}
-#endif
-
-bool MANTA::updateGridsFromRaw(string filename, vector<GridItem> grids)
-{
-  if (with_debug)
-    cout << "MANTA::updateGridsFromRaw()" << endl;
-
-  gzFile gzf;
-  int expectedBytes, readBytes;
-
-  gzf = (gzFile)BLI_gzopen(filename.c_str(), "rb");
-  if (!gzf) {
-    cout << "MANTA::updateGridsFromRaw(): unable to open file" << endl;
-    return false;
-  }
-
-  for (vector<GridItem>::iterator gIter = grids.begin(); gIter != grids.end(); ++gIter) {
-    GridItem gridItem = *gIter;
-    void **pointerList = gridItem.pointer;
-    int type = gridItem.type;
-    int *res = gridItem.res;
-    assert(pointerList[0]);
-    assert(res[0] == res[0] && res[1] == res[1] && res[2] == res[2]);
-    UNUSED_VARS(res);
-
-    switch (type) {
-      case FLUID_DOMAIN_GRID_VEC3F: {
-        assert(pointerList[1] && pointerList[2]);
-        float **fpointers = (float **)pointerList;
-        expectedBytes = sizeof(float) * 3 * res[0] * res[1] * res[2];
-        readBytes = 0;
-        for (int i = 0; i < res[0] * res[1] * res[2]; ++i) {
-          for (int j = 0; j < 3; ++j) {
-            readBytes += gzread(gzf, fpointers[j], sizeof(float));
-            ++fpointers[j];
-          }
-        }
-        break;
-      }
-      case FLUID_DOMAIN_GRID_FLOAT: {
-        float **fpointers = (float **)pointerList;
-        expectedBytes = sizeof(float) * res[0] * res[1] * res[2];
-        readBytes = gzread(gzf, fpointers[0], expectedBytes);
-        break;
-      }
-      default: {
-        cerr << "Fluid Error -- Unknown grid type" << endl;
-      }
-    }
-
-    if (!readBytes) {
-      cerr << "Fluid Error -- updateGridsFromRaw(): Unable to read raw file: " << filename << endl;
-      gzclose(gzf);
-      return false;
-    }
-    assert(expectedBytes == readBytes);
-
-    if (with_debug)
-      cout << "Fluid: Read successfully: " << filename << endl;
-  }
-
-  if (with_debug)
-    cout << "Fluid: Read successfully: " << filename << endl;
-
-  return (gzclose(gzf) == Z_OK);
 }
 
 void MANTA::updatePointers()
@@ -3487,43 +2109,78 @@ bool MANTA::hasData(FluidModifierData *mmd, int framenr)
     string filename = (mUsingSmoke) ? FLUID_NAME_DENSITY : FLUID_NAME_PP;
     exists = BLI_exists(getFile(mmd, FLUID_DOMAIN_DIR_DATA, filename, extension, framenr).c_str());
   }
+  if (with_debug)
+    cout << "Fluid: Has Data: " << exists << endl;
+
   return exists;
 }
 
 bool MANTA::hasNoise(FluidModifierData *mmd, int framenr)
 {
-  string extension = getCacheFileEnding(mmd->domain->cache_noise_format);
+  string extension = getCacheFileEnding(mmd->domain->cache_data_format);
   bool exists = BLI_exists(
       getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_NOISE, extension, framenr).c_str());
 
   /* Check single file naming. */
   if (!exists) {
+    extension = getCacheFileEnding(mmd->domain->cache_data_format);
     exists = BLI_exists(
         getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_DENSITY_NOISE, extension, framenr)
             .c_str());
   }
+  /* Check single file naming with deprecated extension. */
+  if (!exists) {
+    extension = getCacheFileEnding(mmd->domain->cache_noise_format);
+    exists = BLI_exists(
+        getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_DENSITY_NOISE, extension, framenr)
+            .c_str());
+  }
+  if (with_debug)
+    cout << "Fluid: Has Noise: " << exists << endl;
+
   return exists;
 }
 
 bool MANTA::hasMesh(FluidModifierData *mmd, int framenr)
 {
   string extension = getCacheFileEnding(mmd->domain->cache_mesh_format);
-  return BLI_exists(
-      getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_NAME_LMESH, extension, framenr).c_str());
+  bool exists = BLI_exists(
+      getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_NAME_MESH, extension, framenr).c_str());
+
+  /* Check old file naming. */
+  if (!exists) {
+    exists = BLI_exists(
+        getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_NAME_LMESH, extension, framenr).c_str());
+  }
+  if (with_debug)
+    cout << "Fluid: Has Mesh: " << exists << endl;
+
+  return exists;
 }
 
 bool MANTA::hasParticles(FluidModifierData *mmd, int framenr)
 {
-  string extension = getCacheFileEnding(mmd->domain->cache_particle_format);
+  string extension = getCacheFileEnding(mmd->domain->cache_data_format);
   bool exists = BLI_exists(
       getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PARTICLES, extension, framenr).c_str());
 
   /* Check single file naming. */
   if (!exists) {
+    extension = getCacheFileEnding(mmd->domain->cache_data_format);
     exists = BLI_exists(
         getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PP_PARTICLES, extension, framenr)
             .c_str());
   }
+  /* Check single file naming with deprecated extension. */
+  if (!exists) {
+    extension = getCacheFileEnding(mmd->domain->cache_particle_format);
+    exists = BLI_exists(
+        getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PP_PARTICLES, extension, framenr)
+            .c_str());
+  }
+  if (with_debug)
+    cout << "Fluid: Has Particles: " << exists << endl;
+
   return exists;
 }
 
@@ -3532,7 +2189,11 @@ bool MANTA::hasGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain)
   string subdirectory = (sourceDomain) ? FLUID_DOMAIN_DIR_DATA : FLUID_DOMAIN_DIR_GUIDE;
   string filename = (sourceDomain) ? FLUID_NAME_VELOCITY : FLUID_NAME_GUIDEVEL;
   string extension = getCacheFileEnding(mmd->domain->cache_data_format);
-  return BLI_exists(getFile(mmd, subdirectory, filename, extension, framenr).c_str());
+  bool exists = BLI_exists(getFile(mmd, subdirectory, filename, extension, framenr).c_str());
+  if (with_debug)
+    cout << "Fluid: Has Guiding: " << exists << endl;
+
+  return exists;
 }
 
 string MANTA::getDirectory(FluidModifierData *mmd, string subdirectory)

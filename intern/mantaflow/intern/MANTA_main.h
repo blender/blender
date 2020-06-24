@@ -60,19 +60,6 @@ struct MANTA {
     int flags;
   } Triangle;
 
-  // Cache helper typedefs
-  typedef struct GridItem {
-    void **pointer; /* Array of pointers for this grid.*/
-    int type;
-    int *res;
-    string name;
-  } GridItem;
-
-  typedef struct FileItem {
-    string filename;
-    vector<GridItem> grids;
-  } FileItem;
-
   // Manta step, handling everything
   void step(struct FluidModifierData *mmd, int startFrame);
 
@@ -104,10 +91,10 @@ struct MANTA {
 
   // Read cache (via Manta save/load)
   bool readConfiguration(FluidModifierData *mmd, int framenr);
-  bool readData(FluidModifierData *mmd, int framenr);
-  bool readNoise(FluidModifierData *mmd, int framenr);
+  bool readData(FluidModifierData *mmd, int framenr, bool resumable);
+  bool readNoise(FluidModifierData *mmd, int framenr, bool resumable);
   bool readMesh(FluidModifierData *mmd, int framenr);
-  bool readParticles(FluidModifierData *mmd, int framenr);
+  bool readParticles(FluidModifierData *mmd, int framenr, bool resumable);
   bool readGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain);
 
   // Read cache (via file read functions in MANTA - e.g. read .bobj.gz meshes, .uni particles)
@@ -899,16 +886,6 @@ struct MANTA {
   string getRealValue(const string &varName);
   string parseLine(const string &line);
   string parseScript(const string &setup_string, FluidModifierData *mmd = NULL);
-  bool updateMeshFromBobj(string filename);
-  bool updateMeshFromObj(string filename);
-  bool updateMeshFromUni(string filename);
-  bool updateParticlesFromUni(string filename, bool isSecondarySys, bool isVelData);
-  bool updateGridsFromUni(string filename, vector<GridItem> grids);
-  bool updateGridsFromVDB(string filename, vector<GridItem> grids);
-  bool updateGridsFromRaw(string filename, vector<GridItem> grids);
-  bool updateMeshFromFile(string filename);
-  bool updateParticlesFromFile(string filename, bool isSecondarySys, bool isVelData);
-  bool updateGridsFromFile(string filename, vector<GridItem> grids);
   string getDirectory(struct FluidModifierData *mmd, string subdirectory);
   string getFile(struct FluidModifierData *mmd,
                  string subdirectory,

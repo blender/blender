@@ -101,8 +101,8 @@ color_g_in_s$ID$ = None\n\
 color_b_in_s$ID$ = None\n\
 \n\
 # Keep track of important objects in dict to load them later on\n\
-smoke_data_dict_final_s$ID$ = dict(density=density_s$ID$, shadow=shadow_s$ID$)\n\
-smoke_data_dict_resume_s$ID$ = dict(densityIn=densityIn_s$ID$, emission=emission_s$ID$)\n";
+smoke_data_dict_final_s$ID$ = { 'density' : density_s$ID$, 'shadow' : shadow_s$ID$ }\n\
+smoke_data_dict_resume_s$ID$ = { 'densityIn' : densityIn_s$ID$, 'emission' : emission_s$ID$ }\n";
 
 const std::string smoke_alloc_noise =
     "\n\
@@ -213,8 +213,8 @@ if 'heat_s$ID$' in globals(): del heat_s$ID$\n\
 if 'heatIn_s$ID$' in globals(): del heatIn_s$ID$\n\
 \n\
 mantaMsg('Allocating heat')\n\
-heat_s$ID$   = s$ID$.create(RealGrid, name='$NAME_HEAT$')\n\
-heatIn_s$ID$ = s$ID$.create(RealGrid, name='$NAME_HEATIN$')\n\
+heat_s$ID$   = s$ID$.create(RealGrid, name='$NAME_TEMPERATURE$')\n\
+heatIn_s$ID$ = s$ID$.create(RealGrid, name='$NAME_TEMPERATUREIN$')\n\
 \n\
 # Add objects to dict to load them later on\n\
 if 'smoke_data_dict_final_s$ID$' in globals():\n\
@@ -542,19 +542,19 @@ const std::string smoke_load_data =
     "\n\
 def smoke_load_data_$ID$(path, framenr, file_format, resumable):\n\
     mantaMsg('Smoke load data')\n\
-    fluid_file_import_s$ID$(dict=smoke_data_dict_final_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
-    if resumable:\n\
-        fluid_file_import_s$ID$(dict=smoke_data_dict_resume_s$ID$, path=path, framenr=framenr, file_format=file_format)\n";
+    dict = { **fluid_data_dict_final_s$ID$, **fluid_data_dict_resume_s$ID$, **smoke_data_dict_final_s$ID$, **smoke_data_dict_resume_s$ID$ } if resumable else { **fluid_data_dict_final_s$ID$, **smoke_data_dict_final_s$ID$ }\n\
+    fluid_file_import_s$ID$(dict=dict, path=path, framenr=framenr, file_format=file_format, file_name=file_data_s$ID$)\n\
+    \n\
+    copyVec3ToReal(source=vel_s$ID$, targetX=x_vel_s$ID$, targetY=y_vel_s$ID$, targetZ=z_vel_s$ID$)\n";
 
 const std::string smoke_load_noise =
     "\n\
 def smoke_load_noise_$ID$(path, framenr, file_format, resumable):\n\
     mantaMsg('Smoke load noise')\n\
-    fluid_file_import_s$ID$(dict=smoke_noise_dict_final_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
+    dict = { **smoke_noise_dict_final_s$ID$, **smoke_data_dict_resume_s$ID$ } if resumable else { **smoke_noise_dict_final_s$ID$ } \n\
+    fluid_file_import_s$ID$(dict=dict, path=path, framenr=framenr, file_format=file_format, file_name=file_noise_s$ID$)\n\
     \n\
     if resumable:\n\
-        fluid_file_import_s$ID$(dict=smoke_noise_dict_resume_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
-        \n\
         # Fill up xyz texture grids, important when resuming a bake\n\
         copyVec3ToReal(source=uvGrid0_s$ID$, targetX=texture_u_s$ID$, targetY=texture_v_s$ID$, targetZ=texture_w_s$ID$)\n\
         copyVec3ToReal(source=uvGrid1_s$ID$, targetX=texture_u2_s$ID$, targetY=texture_v2_s$ID$, targetZ=texture_w2_s$ID$)\n";
@@ -568,28 +568,22 @@ const std::string smoke_save_data =
 def smoke_save_data_$ID$(path, framenr, file_format, resumable):\n\
     mantaMsg('Smoke save data')\n\
     start_time = time.time()\n\
+    dict = { **fluid_data_dict_final_s$ID$, **fluid_data_dict_resume_s$ID$, **smoke_data_dict_final_s$ID$, **smoke_data_dict_resume_s$ID$ } if resumable else { **fluid_data_dict_final_s$ID$, **smoke_data_dict_final_s$ID$ } \n\
     if not withMPSave or isWindows:\n\
-        fluid_file_export_s$ID$(framenr=framenr, file_format=file_format, path=path, dict=smoke_data_dict_final_s$ID$,)\n\
-        if resumable:\n\
-            fluid_file_export_s$ID$(framenr=framenr, file_format=file_format, path=path, dict=smoke_data_dict_resume_s$ID$,)\n\
+        fluid_file_export_s$ID$(dict=dict, path=path, framenr=framenr, file_format=file_format, file_name=file_data_s$ID$)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=smoke_data_dict_final_s$ID$, do_join=False)\n\
-        if resumable:\n\
-            fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=smoke_data_dict_resume_s$ID$, do_join=False)\n\
+        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, file_name=file_data_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=dict, do_join=False)\n\
     mantaMsg('--- Save: %s seconds ---' % (time.time() - start_time))\n";
 
 const std::string smoke_save_noise =
     "\n\
 def smoke_save_noise_$ID$(path, framenr, file_format, resumable):\n\
     mantaMsg('Smoke save noise')\n\
+    dict = { **smoke_noise_dict_final_s$ID$, **smoke_noise_dict_resume_s$ID$ } if resumable else { **smoke_noise_dict_final_s$ID$ } \n\
     if not withMPSave or isWindows:\n\
-        fluid_file_export_s$ID$(dict=smoke_noise_dict_final_s$ID$, framenr=framenr, file_format=file_format, path=path)\n\
-        if resumable:\n\
-            fluid_file_export_s$ID$(dict=smoke_noise_dict_resume_s$ID$, framenr=framenr, file_format=file_format, path=path)\n\
+        fluid_file_export_s$ID$(dict=dict, framenr=framenr, file_format=file_format, path=path, file_name=file_noise_s$ID$)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=smoke_noise_dict_final_s$ID$, do_join=False)\n\
-        if resumable:\n\
-            fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=smoke_noise_dict_resume_s$ID$, do_join=False)\n";
+        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, file_name=file_noise_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=dict, do_join=False)\n";
 
 //////////////////////////////////////////////////////////////////////
 // STANDALONE MODE
@@ -599,7 +593,6 @@ const std::string smoke_standalone =
     "\n\
 # Helper function to call cache load functions\n\
 def load(frame, cache_resumable):\n\
-    fluid_load_data_$ID$(os.path.join(cache_dir, 'data'), frame, file_format_data, cache_resumable)\n\
     smoke_load_data_$ID$(os.path.join(cache_dir, 'data'), frame, file_format_data, cache_resumable)\n\
     if using_noise_s$ID$:\n\
         smoke_load_noise_$ID$(os.path.join(cache_dir, 'noise'), frame, file_format_noise, cache_resumable)\n\
