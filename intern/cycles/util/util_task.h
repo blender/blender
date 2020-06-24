@@ -19,10 +19,9 @@
 
 #include "util/util_list.h"
 #include "util/util_string.h"
+#include "util/util_tbb.h"
 #include "util/util_thread.h"
 #include "util/util_vector.h"
-
-#include "util/util_tbb.h"
 
 CCL_NAMESPACE_BEGIN
 

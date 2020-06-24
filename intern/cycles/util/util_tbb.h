@@ -17,6 +17,10 @@
 #ifndef __UTIL_TBB_H__
 #define __UTIL_TBB_H__
 
+/* TBB includes <windows.h>, do it ourselves first so we are sure
+ * WIN32_LEAN_AND_MEAN and similar are defined beforehand. */
+#include "util_windows.h"
+
 #define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
 #include <tbb/tbb.h>
 
