@@ -1331,6 +1331,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
     oldscreen->animtimer = NULL;
 
     ED_screen_change(C, screen);
+    ED_area_tag_refresh(fullsa);
 
     BKE_workspace_layout_remove(CTX_data_main(C), workspace, layout_old);
 
