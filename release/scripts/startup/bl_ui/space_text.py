@@ -174,7 +174,10 @@ class TEXT_PT_find(Panel):
         row = col.row(align=True)
         row.prop(st, "replace_text", icon='DECORATE_OVERRIDE', text="")
         row.operator("text.replace_set_selected", text="", icon='EYEDROPPER')
-        col.operator("text.replace")
+
+        row = col.row(align=True)
+        row.operator("text.replace")
+        row.operator("text.replace", text = "Replace all").all = True
 
         layout.separator()
 

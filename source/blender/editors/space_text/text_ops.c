@@ -3625,9 +3625,57 @@ void TEXT_OT_find(wmOperatorType *ot)
 /** \name Replace Operator
  * \{ */
 
+static int text_replace_all(bContext *C)
+{
+  SpaceText *st = CTX_wm_space_text(C);
+  Text *text = st->text;
+  const int flags = st->flags;
+  int found = 0;
+
+  if (!st->findstr[0]) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const int orig_curl = BLI_findindex(&text->lines, text->curl);
+  const int orig_curc = text->curc;
+  bool has_sel = txt_has_sel(text);
+
+  txt_move_toline(text, 0, false);
+
+  found = txt_find_string(text, st->findstr, 0, flags & ST_MATCH_CASE);
+  if (found) {
+    ED_text_undo_push_init(C);
+
+    do {
+      txt_insert_buf(text, st->replacestr);
+      if (text->curl && text->curl->format) {
+        MEM_freeN(text->curl->format);
+        text->curl->format = NULL;
+      }
+      found = txt_find_string(text, st->findstr, 0, flags & ST_MATCH_CASE);
+    } while (found);
+
+    WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
+    text_drawcache_tag_update(CTX_wm_space_text(C), 1);
+  }
+  else {
+    /* Restore position */
+    txt_move_to(text, orig_curl, orig_curc, has_sel);
+    return OPERATOR_CANCELLED;
+  }
+
+  return OPERATOR_FINISHED;
+}
+
 static int text_replace_exec(bContext *C, wmOperator *op)
 {
-  return text_find_and_replace(C, op, TEXT_REPLACE);
+  bool replace_all = RNA_boolean_get(op->ptr, "all");
+  if (replace_all) {
+    return text_replace_all(C);
+  }
+  else {
+    return text_find_and_replace(C, op, TEXT_REPLACE);
+  }
 }
 
 void TEXT_OT_replace(wmOperatorType *ot)
@@ -3643,6 +3691,11 @@ void TEXT_OT_replace(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
+
+  /* properties */
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(ot->srna, "all", false, "Replace all", "Replace all occurrences");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
