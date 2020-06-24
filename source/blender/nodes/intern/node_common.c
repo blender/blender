@@ -125,7 +125,7 @@ static bNodeSocket *group_verify_socket(
   bNodeSocket *sock;
 
   for (sock = verify_lb->first; sock; sock = sock->next) {
-    if (STREQ(sock->identifier, iosock->identifier)) {
+    if (sock->typeinfo == iosock->typeinfo && STREQ(sock->identifier, iosock->identifier)) {
       break;
     }
   }
