@@ -236,13 +236,13 @@ set(SPNAV_VERSION 0.2.3)
 set(SPNAV_URI http://downloads.sourceforge.net/project/spacenav/spacenav%20library%20%28SDK%29/libspnav%20${SPNAV_VERSION}/libspnav-${SPNAV_VERSION}.tar.gz)
 set(SPNAV_HASH 44d840540d53326d4a119c0f1aa7bf0a)
 
-set(JEMALLOC_VERSION 5.0.1)
+set(JEMALLOC_VERSION 5.2.1)
 set(JEMALLOC_URI https://github.com/jemalloc/jemalloc/releases/download/${JEMALLOC_VERSION}/jemalloc-${JEMALLOC_VERSION}.tar.bz2)
-set(JEMALLOC_HASH 507f7b6b882d868730d644510491d18f)
+set(JEMALLOC_HASH 3d41fbf006e6ebffd489bdb304d009ae)
 
-set(XML2_VERSION 2.9.4)
+set(XML2_VERSION 2.9.10)
 set(XML2_URI http://xmlsoft.org/sources/libxml2-${XML2_VERSION}.tar.gz)
-set(XML2_HASH ae249165c173b1ff386ee8ad676815f5)
+set(XML2_HASH 10942a1dc23137a8aa07f0639cbfece5)
 
 set(TINYXML_VERSION 2_6_2)
 set(TINYXML_VERSION_DOTS 2.6.2)
@@ -269,23 +269,23 @@ set(FLEXBISON_HASH d87a3938194520d904013abef3df10ce)
 
 # NOTE: bzip.org domain does no longer belong to BZip 2 project, so we download
 # sources from Debian packaging.
-set(BZIP2_VERSION 1.0.6)
-set(BZIP2_URI http://http.debian.net/debian/pool/main/b/bzip2/bzip2_${BZIP2_VERSION}.orig.tar.bz2)
-set(BZIP2_HASH d70a9ccd8bdf47e302d96c69fecd54925f45d9c7b966bb4ef5f56b770960afa7)
+set(BZIP2_VERSION 1.0.8)
+set(BZIP2_URI http://http.debian.net/debian/pool/main/b/bzip2/bzip2_${BZIP2_VERSION}.orig.tar.gz)
+set(BZIP2_HASH ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269)
 
-set(FFI_VERSION 3.2.1)
+set(FFI_VERSION 3.3)
 set(FFI_URI https://sourceware.org/pub/libffi/libffi-${FFI_VERSION}.tar.gz)
-set(FFI_HASH d06ebb8e1d9a22d19e38d63fdb83954253f39bedc5d46232a05645685722ca37)
+set(FFI_HASH 72fba7922703ddfa7a028d513ac15a85c8d54c8d67f55fa5a4802885dc652056)
 
-set(LZMA_VERSION 5.2.4)
+set(LZMA_VERSION 5.2.5)
 set(LZMA_URI https://tukaani.org/xz/xz-${LZMA_VERSION}.tar.bz2)
-set(LZMA_HASH 3313fd2a95f43d88e44264e6b015e7d03053e681860b0d5d3f9baca79c57b7bf)
+set(LZMA_HASH 5117f930900b341493827d63aa910ff5e011e0b994197c3b71c08a20228a42df)
 
-set(SSL_VERSION 1.1.0i)
+set(SSL_VERSION 1.1.1g)
 set(SSL_URI https://www.openssl.org/source/openssl-${SSL_VERSION}.tar.gz)
-set(SSL_HASH ebbfc844a8c8cc0ea5dc10b86c9ce97f401837f3fa08c17b2cdadc118253cf99)
+set(SSL_HASH ddb04774f1e32f0c49751e21b67216ac87852ceb056b75209af2443400636d46)
 
-set(SQLITE_VERSION 3.24.0)
+set(SQLITE_VERSION 3.31.1)
 set(SQLITE_URI https://www.sqlite.org/2018/sqlite-src-3240000.zip)
 set(SQLITE_HASH fb558c49ee21a837713c4f1e7e413309aabdd9c7)
 
