@@ -1783,7 +1783,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     {sizeof(MPropCol),
      "MPropCol",
      1,
-     N_("Col"),
+     N_("Color"),
      NULL,
      NULL,
      layerInterp_propcol,
