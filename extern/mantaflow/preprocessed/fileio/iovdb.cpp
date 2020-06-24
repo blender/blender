@@ -478,7 +478,7 @@ int readObjectsVDB(const string &filename, std::vector<PbClass *> *objects, floa
     }
 
     // For every manta object, we loop through the vdb grid list and check for a match
-    for (const openvdb::GridBase::Ptr vdbGrid : gridsVDB) {
+    for (const openvdb::GridBase::Ptr &vdbGrid : gridsVDB) {
       bool nameMatch = (vdbGrid->getName() == (*iter)->getName());
 
       // Sanity checks: Only load valid grids and make sure names match.
