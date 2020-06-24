@@ -5284,6 +5284,7 @@ static void do_brush_action_task_cb(void *__restrict userdata,
 
   /* Face Sets modifications do a single undo push */
   if (data->brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) {
+    BKE_pbvh_node_mark_redraw(data->nodes[n]);
     /* Draw face sets in smooth mode moves the vertices. */
     if (ss->cache->alt_smooth) {
       SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
