@@ -8121,6 +8121,9 @@ static int sculpt_sample_color_invoke(bContext *C,
   brush->rgb[1] = active_vertex_color[1];
   brush->rgb[2] = active_vertex_color[2];
   brush->alpha = active_vertex_color[3];
+
+  WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
+
   return OPERATOR_FINISHED;
 }
 
