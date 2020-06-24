@@ -713,6 +713,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.mesh.bisect
   ops.mesh.dupli_extrude_cursor
   ops.mesh.extrude_faces_move
+  ops.mesh.extrude_manifold
   ops.mesh.extrude_region_move
   ops.mesh.extrude_region_shrink_fatten
   ops.mesh.inset

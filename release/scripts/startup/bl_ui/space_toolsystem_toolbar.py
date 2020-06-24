@@ -821,7 +821,7 @@ class _defs_edit_mesh:
             description=(
                 "Extrude, dissolves edges whose faces form a flat surface and intersect new edges"
             ),
-            icon="none",
+            icon="ops.mesh.extrude_manifold",
             widget="VIEW3D_GGT_tool_generic_handle_normal",
             keymap=(),
         )
