@@ -65,6 +65,11 @@ void BKE_curveprofile_copy_data(CurveProfile *target, const CurveProfile *profil
   target->path = MEM_dupallocN(profile->path);
   target->table = MEM_dupallocN(profile->table);
   target->segments = MEM_dupallocN(profile->segments);
+
+  /* Update the reference the points have to the profile. */
+  for (int i = 0; i < target->path_len; i++) {
+    target->path[i].profile = target;
+  }
 }
 
 CurveProfile *BKE_curveprofile_copy(const CurveProfile *profile)
@@ -75,6 +80,101 @@ CurveProfile *BKE_curveprofile_copy(const CurveProfile *profile)
     return new_prdgt;
   }
   return NULL;
+}
+
+/**
+ * Move a point's handle, accounting for the alignment of handles with the HD_ALIGN type.
+ *
+ * \param handle_1 Whether to move the 1st or 2nd control point.
+ * \param new_location The *relative* change in the handle's position.
+ * \note Requires #BKE_curveprofile_update call after.
+ * \return Whether the handle moved from its start position.
+ */
+bool BKE_curveprofile_move_handle(struct CurveProfilePoint *point,
+                                  const bool handle_1,
+                                  const bool snap,
+                                  const float delta[2])
+{
+  short handle_type = (handle_1) ? point->h1 : point->h2;
+  float *handle_location = (handle_1) ? &point->h1_loc[0] : &point->h2_loc[0];
+
+  float start_position[2];
+  copy_v2_v2(start_position, handle_location);
+
+  /* Don't move the handle if it's not a free handle type. */
+  if (!ELEM(handle_type, HD_FREE, HD_ALIGN)) {
+    return false;
+  }
+
+  /* Move the handle. */
+  handle_location[0] += delta ? delta[0] : 0.0f;
+  handle_location[1] += delta ? delta[1] : 0.0f;
+  if (snap) {
+    handle_location[0] = 0.125f * roundf(8.0f * handle_location[0]);
+    handle_location[1] = 0.125f * roundf(8.0f * handle_location[1]);
+  }
+
+  /* Move the other handle if they are aligned. */
+  if (handle_type == HD_ALIGN) {
+    short other_handle_type = (handle_1) ? point->h2 : point->h1;
+    if (other_handle_type == HD_ALIGN) {
+      float *other_handle_location = (handle_1) ? &point->h2_loc[0] : &point->h1_loc[0];
+      other_handle_location[0] = 2.0f * point->x - handle_location[0];
+      other_handle_location[1] = 2.0f * point->y - handle_location[1];
+    }
+  }
+
+  if (!equals_v2v2(handle_location, start_position)) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Moves a control point, accounting for clipping and snapping, and moving free handles.
+ *
+ * \param snap Whether to snap the point to the grid
+ * \param new_location The *relative* change of the point's location.
+ * \return Whether the point moved from its start position.
+ * \note Requires #BKE_curveprofile_update call after.
+ */
+bool BKE_curveprofile_move_point(struct CurveProfile *profile,
+                                 struct CurveProfilePoint *point,
+                                 const bool snap,
+                                 const float delta[2])
+{
+  float origx = point->x;
+  float origy = point->y;
+
+  point->x += delta[0];
+  point->y += delta[1];
+  if (snap) {
+    point->x = 0.125f * roundf(8.0f * point->x);
+    point->y = 0.125f * roundf(8.0f * point->y);
+  }
+
+  /* Clip here instead to test clipping here to stop handles from moving too. */
+  if (profile->flag & PROF_USE_CLIP) {
+    point->x = max_ff(point->x, profile->clip_rect.xmin);
+    point->x = min_ff(point->x, profile->clip_rect.xmax);
+    point->y = max_ff(point->y, profile->clip_rect.ymin);
+    point->y = min_ff(point->y, profile->clip_rect.ymax);
+  }
+
+  /* Also move free handles even when they aren't selected. */
+  if (ELEM(point->h1, HD_FREE, HD_ALIGN)) {
+    point->h1_loc[0] += point->x - origx;
+    point->h1_loc[1] += point->y - origy;
+  }
+  if (ELEM(point->h2, HD_FREE, HD_ALIGN)) {
+    point->h2_loc[0] += point->x - origx;
+    point->h2_loc[1] += point->y - origy;
+  }
+
+  if (point->x != origx || point->y != origy) {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -100,8 +200,10 @@ bool BKE_curveprofile_remove_point(CurveProfile *profile, CurveProfilePoint *poi
   uint i_delete = (uint)(point - profile->path);
 
   /* Copy the before and after the deleted point. */
-  memcpy(pts, profile->path, i_delete);
-  memcpy(pts + i_delete, profile->path + i_delete + 1, (size_t)profile->path_len - i_delete - 1);
+  memcpy(pts, profile->path, sizeof(CurveProfilePoint) * i_delete);
+  memcpy(pts + i_delete,
+         profile->path + i_delete + 1,
+         sizeof(CurveProfilePoint) * (profile->path_len - i_delete - 1));
 
   MEM_freeN(profile->path);
   profile->path = pts;
@@ -180,12 +282,9 @@ CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float
                                            "profile path");
   for (int i_new = 0, i_old = 0; i_new < profile->path_len; i_new++) {
     if (i_new != i_insert) {
-      /* Insert old points */
-      new_pts[i_new].x = profile->path[i_old].x;
-      new_pts[i_new].y = profile->path[i_old].y;
-      new_pts[i_new].flag = profile->path[i_old].flag & ~PROF_SELECT; /* Deselect old points. */
-      new_pts[i_new].h1 = profile->path[i_old].h1;
-      new_pts[i_new].h2 = profile->path[i_old].h2;
+      /* Insert old points. */
+      memcpy(&new_pts[i_new], &profile->path[i_old], sizeof(CurveProfilePoint));
+      new_pts[i_new].flag &= ~PROF_SELECT; /* Deselect old points. */
       i_old++;
     }
     else {
@@ -201,6 +300,8 @@ CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float
       else {
         new_pt->h1 = new_pt->h2 = HD_AUTO;
       }
+      /* Give new point a reference to the profile. */
+      new_pt->profile = profile;
     }
   }
 
@@ -212,35 +313,19 @@ CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float
 
 /**
  * Sets the handle type of the selected control points.
- * \param type_1, type_2: Either HD_VECT or HD_AUTO. Handle types for the first and second handles.
- *
+ * \param type_* Handle type for the first handle. HD_VECT, HD_AUTO, HD_FREE, or HD_ALIGN.
  * \note Requires #BKE_curveprofile_update call after.
  */
 void BKE_curveprofile_selected_handle_set(CurveProfile *profile, int type_1, int type_2)
 {
   for (int i = 0; i < profile->path_len; i++) {
-    if (profile->path[i].flag & PROF_SELECT) {
-      switch (type_1) {
-        case HD_AUTO:
-          profile->path[i].h1 = HD_AUTO;
-          break;
-        case HD_VECT:
-          profile->path[i].h1 = HD_VECT;
-          break;
-        default:
-          profile->path[i].h1 = HD_AUTO;
-          break;
-      }
-      switch (type_2) {
-        case HD_AUTO:
-          profile->path[i].h2 = HD_AUTO;
-          break;
-        case HD_VECT:
-          profile->path[i].h2 = HD_VECT;
-          break;
-        default:
-          profile->path[i].h1 = HD_AUTO;
-          break;
+    if (ELEM(profile->path[i].flag, PROF_SELECT, PROF_H1_SELECT, PROF_H2_SELECT)) {
+      profile->path[i].h1 = type_1;
+      profile->path[i].h2 = type_2;
+
+      if (type_1 == HD_ALIGN && type_2 == HD_ALIGN) {
+        /* Align the handles. */
+        BKE_curveprofile_move_handle(&profile->path[i], true, false, NULL);
       }
     }
   }
@@ -261,11 +346,24 @@ void BKE_curveprofile_reverse(CurveProfile *profile)
                                            "profile path");
   /* Mirror the new points across the y = x line */
   for (int i = 0; i < profile->path_len; i++) {
-    new_pts[profile->path_len - i - 1].x = profile->path[i].y;
-    new_pts[profile->path_len - i - 1].y = profile->path[i].x;
-    new_pts[profile->path_len - i - 1].flag = profile->path[i].flag;
-    new_pts[profile->path_len - i - 1].h1 = profile->path[i].h1;
-    new_pts[profile->path_len - i - 1].h2 = profile->path[i].h2;
+    int i_reversed = profile->path_len - i - 1;
+    BLI_assert(i_reversed >= 0);
+    new_pts[i_reversed].x = profile->path[i].y;
+    new_pts[i_reversed].y = profile->path[i].x;
+    new_pts[i_reversed].flag = profile->path[i].flag;
+    new_pts[i_reversed].h1 = profile->path[i].h2;
+    new_pts[i_reversed].h2 = profile->path[i].h1;
+    new_pts[i_reversed].profile = profile;
+
+    /* Mirror free handles, they can't be recalculated. */
+    if (ELEM(profile->path[i].h1, HD_FREE, HD_ALIGN)) {
+      new_pts[i_reversed].h1_loc[0] = profile->path[i].h2_loc[1];
+      new_pts[i_reversed].h1_loc[1] = profile->path[i].h2_loc[0];
+    }
+    if (ELEM(profile->path[i].h2, HD_FREE, HD_ALIGN)) {
+      new_pts[i_reversed].h2_loc[0] = profile->path[i].h1_loc[1];
+      new_pts[i_reversed].h2_loc[1] = profile->path[i].h1_loc[0];
+    }
   }
 
   /* Free the old points and use the new ones */
@@ -448,6 +546,13 @@ void BKE_curveprofile_reset(CurveProfile *profile)
       break;
   }
 
+  profile->flag &= ~PROF_DIRTY_PRESET;
+
+  /* Ensure each point has a reference to the profile. */
+  for (int i = 0; i < profile->path_len; i++) {
+    profile->path[i].profile = profile;
+  }
+
   if (profile->table) {
     MEM_freeN(profile->table);
     profile->table = NULL;
@@ -465,7 +570,7 @@ static bool is_curved_edge(BezTriple *bezt, int i)
 
 /**
  * Used to set bezier handle locations in the sample creation process. Reduced copy of
- * #calchandleNurb_intern code in curve.c.
+ * #calchandleNurb_intern code in curve.c, mostly changed by removing the third dimension.
  */
 static void calchandle_profile(BezTriple *bezt, const BezTriple *prev, const BezTriple *next)
 {
@@ -600,7 +705,7 @@ static int sort_points_curvature(const void *in_a, const void *in_b)
  * this is true and there are only vector edges the straight edges will still be sampled.
  * \param r_samples: An array of points to put the sampled positions. Must have length n_segments.
  * \return r_samples: Fill the array with the sampled locations and if the point corresponds
- * to a control point, its handle type
+ * to a control point, its handle type.
  */
 void BKE_curveprofile_create_samples(CurveProfile *profile,
                                      int n_segments,
@@ -621,20 +726,32 @@ void BKE_curveprofile_create_samples(CurveProfile *profile,
   for (i = 0; i < totpoints; i++) {
     bezt[i].vec[1][0] = profile->path[i].x;
     bezt[i].vec[1][1] = profile->path[i].y;
-    bezt[i].h1 = (profile->path[i].h1 == HD_VECT) ? HD_VECT : HD_AUTO;
-    bezt[i].h2 = (profile->path[i].h2 == HD_VECT) ? HD_VECT : HD_AUTO;
+    bezt[i].h1 = profile->path[i].h1;
+    bezt[i].h2 = profile->path[i].h2;
+    /* Copy handle locations if the handle type is free. */
+    if (ELEM(profile->path[i].h1, HD_FREE, HD_ALIGN)) {
+      bezt[i].vec[0][0] = profile->path[i].h1_loc[0];
+      bezt[i].vec[0][1] = profile->path[i].h1_loc[1];
+    }
+    if (ELEM(profile->path[i].h1, HD_FREE, HD_ALIGN)) {
+      bezt[i].vec[2][0] = profile->path[i].h2_loc[0];
+      bezt[i].vec[2][1] = profile->path[i].h2_loc[1];
+    }
   }
-  /* Give the first and last bezier points the same handle type as their neighbors. */
-  if (totpoints > 2) {
-    bezt[0].h1 = bezt[0].h2 = bezt[1].h1;
-    bezt[totpoints - 1].h1 = bezt[totpoints - 1].h2 = bezt[totpoints - 2].h2;
-  }
-  /* Get handle positions for the bezier points. */
+  /* Get handle positions for the non-free bezier points. */
   calchandle_profile(&bezt[0], NULL, &bezt[1]);
   for (i = 1; i < totpoints - 1; i++) {
     calchandle_profile(&bezt[i], &bezt[i - 1], &bezt[i + 1]);
   }
   calchandle_profile(&bezt[totpoints - 1], &bezt[totpoints - 2], NULL);
+
+  /* Copy the handle locations back to the control points. */
+  for (i = 0; i < totpoints; i++) {
+    profile->path[i].h1_loc[0] = bezt[i].vec[0][0];
+    profile->path[i].h1_loc[1] = bezt[i].vec[0][1];
+    profile->path[i].h2_loc[0] = bezt[i].vec[2][0];
+    profile->path[i].h2_loc[1] = bezt[i].vec[2][1];
+  }
 
   /* Create a list of edge indices with the most curved at the start, least curved at the end. */
   curve_sorted = MEM_callocN(sizeof(CurvatureSortPoint) * totedges, "curve sorted");
@@ -720,7 +837,7 @@ void BKE_curveprofile_create_samples(CurveProfile *profile,
         BLI_assert(j < n_segments);
       }
 
-      /* Do the sampling from bezier points, X values first, then Y values. */
+      /* Sample from the bezier points. X then Y values. */
       BKE_curve_forward_diff_bezier(bezt[i].vec[1][0],
                                     bezt[i].vec[2][0],
                                     bezt[i + 1].vec[0][0],
@@ -740,7 +857,7 @@ void BKE_curveprofile_create_samples(CurveProfile *profile,
     BLI_assert(i_sample <= n_segments);
   }
 
-#ifdef DEBUG_profile_TABLE
+#ifdef DEBUG_PROFILE_TABLE
   printf("CURVEPROFILE CREATE SAMPLES\n");
   printf("n_segments: %d\n", n_segments);
   printf("totedges: %d\n", totedges);
@@ -757,6 +874,7 @@ void BKE_curveprofile_create_samples(CurveProfile *profile,
   }
   printf("\n");
 #endif
+
   MEM_freeN(bezt);
   MEM_freeN(curve_sorted);
   MEM_freeN(n_samples);
@@ -827,8 +945,10 @@ void BKE_curveprofile_set_defaults(CurveProfile *profile)
 
   profile->path[0].x = 1.0f;
   profile->path[0].y = 0.0f;
+  profile->path[0].profile = profile;
   profile->path[1].x = 1.0f;
   profile->path[1].y = 1.0f;
+  profile->path[1].profile = profile;
 
   profile->changed_timestamp = 0;
 }
@@ -852,13 +972,14 @@ struct CurveProfile *BKE_curveprofile_add(int preset)
 /**
  * Should be called after the widget is changed. Does profile and remove double checks and more
  * importantly, recreates the display / evaluation and segments tables.
+ * \param update_flags: Bitfield with fields defined in header file. Controls removing doubles and
+ * clipping.
  */
-void BKE_curveprofile_update(CurveProfile *profile, const bool remove_double)
+void BKE_curveprofile_update(CurveProfile *profile, const int update_flags)
 {
   CurveProfilePoint *points = profile->path;
   rctf *clipr = &profile->clip_rect;
   float thresh;
-  float dx, dy;
   int i;
 
   profile->changed_timestamp++;
@@ -866,11 +987,16 @@ void BKE_curveprofile_update(CurveProfile *profile, const bool remove_double)
   /* Clamp with the clipping rect in case something got past. */
   if (profile->flag & PROF_USE_CLIP) {
     /* Move points inside the clip rectangle. */
-    for (i = 0; i < profile->path_len; i++) {
-      points[i].x = max_ff(points[i].x, clipr->xmin);
-      points[i].x = min_ff(points[i].x, clipr->xmax);
-      points[i].y = max_ff(points[i].y, clipr->ymin);
-      points[i].y = min_ff(points[i].y, clipr->ymax);
+    if (update_flags & PROF_UPDATE_CLIP) {
+      for (i = 0; i < profile->path_len; i++) {
+        points[i].x = max_ff(points[i].x, clipr->xmin);
+        points[i].x = min_ff(points[i].x, clipr->xmax);
+        points[i].y = max_ff(points[i].y, clipr->ymin);
+        points[i].y = min_ff(points[i].y, clipr->ymax);
+
+        /* Extra sanity assert to make sure the points have the right profile pointer. */
+        BLI_assert(points[i].profile == profile);
+      }
     }
     /* Ensure zoom-level respects clipping. */
     if (BLI_rctf_size_x(&profile->view_rect) > BLI_rctf_size_x(&profile->clip_rect)) {
@@ -884,29 +1010,18 @@ void BKE_curveprofile_update(CurveProfile *profile, const bool remove_double)
   }
 
   /* Remove doubles with a threshold set at 1% of default range. */
-  thresh = 0.01f * BLI_rctf_size_x(clipr);
-  if (remove_double && profile->path_len > 2) {
+  thresh = pow2f(0.01f * BLI_rctf_size_x(clipr));
+  if (update_flags & PROF_UPDATE_REMOVE_DOUBLES && profile->path_len > 2) {
     for (i = 0; i < profile->path_len - 1; i++) {
-      dx = points[i].x - points[i + 1].x;
-      dy = points[i].y - points[i + 1].y;
-      if (sqrtf(dx * dx + dy * dy) < thresh) {
+      if (len_squared_v2v2(&points[i].x, &points[i + 1].x) < thresh) {
         if (i == 0) {
-          points[i + 1].flag |= HD_VECT;
-          if (points[i + 1].flag & PROF_SELECT) {
-            points[i].flag |= PROF_SELECT;
-          }
+          BKE_curveprofile_remove_point(profile, &points[1]);
         }
         else {
-          points[i].flag |= HD_VECT;
-          if (points[i].flag & PROF_SELECT) {
-            points[i + 1].flag |= PROF_SELECT;
-          }
+          BKE_curveprofile_remove_point(profile, &points[i]);
         }
-        break; /* Assumes 1 deletion per edit is ok. */
+        break; /* Assumes 1 deletion per update call is ok. */
       }
-    }
-    if (i != profile->path_len - 1) {
-      BKE_curveprofile_remove_by_flag(profile, 2);
     }
   }
 
@@ -927,10 +1042,13 @@ void BKE_curveprofile_update(CurveProfile *profile, const bool remove_double)
  */
 void BKE_curveprofile_initialize(CurveProfile *profile, short segments_len)
 {
+  if (segments_len != profile->segments_len) {
+    profile->flag |= PROF_DIRTY_PRESET;
+  }
   profile->segments_len = segments_len;
 
   /* Calculate the higher resolution / segments tables for display and evaluation. */
-  BKE_curveprofile_update(profile, false);
+  BKE_curveprofile_update(profile, PROF_UPDATE_NONE);
 }
 
 /**
@@ -1085,4 +1203,9 @@ void BKE_curveprofile_blend_read(struct BlendDataReader *reader, struct CurvePro
   BLO_read_data_address(reader, &profile->path);
   profile->table = NULL;
   profile->segments = NULL;
+
+  /* Reset the points' pointers to the profile. */
+  for (int i = 0; i < profile->path_len; i++) {
+    profile->path[i].profile = profile;
+  }
 }

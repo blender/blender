@@ -43,13 +43,22 @@ typedef struct CurveProfilePoint {
   float x, y;
   /** Flag selection state and others. */
   short flag;
-  /** Flags for both handle's type (eBezTriple_Handle). */
+  /** Flags for both handle's type (eBezTriple_Handle auto, vect, free, and aligned supported). */
   char h1, h2;
+  /** Handle locations, keep together.
+   * \note For now the two handle types are set to the same type in RNA. */
+  float h1_loc[2];
+  float h2_loc[2];
+  char _pad[4];
+  /** Runtime pointer to the point's profile for updating the curve with no direct reference. */
+  struct CurveProfile *profile;
 } CurveProfilePoint;
 
 /** #CurveProfilePoint.flag */
 enum {
   PROF_SELECT = (1 << 0),
+  PROF_H1_SELECT = (1 << 1),
+  PROF_H2_SELECT = (1 << 2),
 };
 
 /** Defines a profile. */
@@ -76,10 +85,11 @@ typedef struct CurveProfile {
 
 /** #CurveProfile.flag */
 enum {
-  PROF_USE_CLIP = (1 << 0),                    /* Keep control points inside bounding rectangle. */
-  /* PROF_SYMMETRY_MODE = (1 << 1),         */ /* Unused for now. */
-  PROF_SAMPLE_STRAIGHT_EDGES = (1 << 2),       /* Sample extra points on straight edges. */
-  PROF_SAMPLE_EVEN_LENGTHS = (1 << 3),         /* Put segments evenly spaced along the path. */
+  PROF_USE_CLIP = (1 << 0), /* Keep control points inside bounding rectangle. */
+  /* PROF_SYMMETRY_MODE = (1 << 1),         Unused for now. */
+  PROF_SAMPLE_STRAIGHT_EDGES = (1 << 2), /* Sample extra points on straight edges. */
+  PROF_SAMPLE_EVEN_LENGTHS = (1 << 3),   /* Put segments evenly spaced along the path. */
+  PROF_DIRTY_PRESET = (1 << 4),          /* Marks when the dynamic preset has been changed. */
 };
 
 typedef enum eCurveProfilePresets {

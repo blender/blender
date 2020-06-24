@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include "DNA_color_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_curveprofile_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_screen_types.h"
@@ -2159,7 +2160,19 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   immUnbindProgram();
 }
 
-/** Used to draw a curve profile widget. Somewhat similar to ui_draw_but_CURVE */
+/**
+ * Helper for #ui_draw_but_CURVEPROFILE. Used to tell whether to draw a control point's handles.
+ */
+static bool point_draw_handles(CurveProfilePoint *point)
+{
+  return (point->flag & PROF_SELECT &&
+          (ELEM(point->h1, HD_FREE, HD_ALIGN) || ELEM(point->h2, HD_FREE, HD_ALIGN))) ||
+         ELEM(point->flag, PROF_H1_SELECT, PROF_H2_SELECT);
+}
+
+/**
+ *  Draws the curve profile widget. Somewhat similar to ui_draw_but_CURVE.
+ */
 void ui_draw_but_CURVEPROFILE(ARegion *region,
                               uiBut *but,
                               const uiWidgetColors *wcol,
@@ -2175,18 +2188,18 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
     profile = (CurveProfile *)but->poin;
   }
 
-  /* Calculate offset and zoom */
+  /* Calculate offset and zoom. */
   float zoomx = (BLI_rcti_size_x(rect) - 2.0f) / BLI_rctf_size_x(&profile->view_rect);
   float zoomy = (BLI_rcti_size_y(rect) - 2.0f) / BLI_rctf_size_y(&profile->view_rect);
   float offsx = profile->view_rect.xmin - (1.0f / zoomx);
   float offsy = profile->view_rect.ymin - (1.0f / zoomy);
 
-  /* Exit early if too narrow */
+  /* Exit early if too narrow. */
   if (zoomx == 0.0f) {
     return;
   }
 
-  /* Test needed because path can draw outside of boundary */
+  /* Test needed because path can draw outside of boundary. */
   int scissor[4];
   GPU_scissor_get_i(scissor);
   rcti scissor_new = {
@@ -2208,7 +2221,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  /* Backdrop */
+  /* Draw the backdrop. */
   float color_backdrop[4] = {0, 0, 0, 1};
   if (profile->flag & PROF_USE_CLIP) {
     gl_shaded_color_get_fl((uchar *)wcol->inner, -20, color_backdrop);
@@ -2227,33 +2240,33 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
     immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
   }
 
-  /* 0.25 step grid */
+  /* 0.25 step grid. */
   gl_shaded_color((uchar *)wcol->inner, -16);
   ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 0.25f);
-  /* 1.0 step grid */
+  /* 1.0 step grid. */
   gl_shaded_color((uchar *)wcol->inner, -24);
   ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 1.0f);
 
-  /* Draw the path's fill */
+  /* Draw the path's fill. */
   if (profile->table == NULL) {
-    BKE_curveprofile_update(profile, false);
+    BKE_curveprofile_update(profile, PROF_UPDATE_NONE);
   }
   CurveProfilePoint *pts = profile->table;
-  /* Also add the last points on the right and bottom edges to close off the fill polygon */
+  /* Also add the last points on the right and bottom edges to close off the fill polygon. */
   bool add_left_tri = profile->view_rect.xmin < 0.0f;
   bool add_bottom_tri = profile->view_rect.ymin < 0.0f;
   uint tot_points = (uint)PROF_N_TABLE(profile->path_len) + 1 + add_left_tri + add_bottom_tri;
   uint tot_triangles = tot_points - 2;
 
-  /* Create array of the positions of the table's points */
+  /* Create array of the positions of the table's points. */
   float(*table_coords)[2] = MEM_mallocN(sizeof(*table_coords) * tot_points, "table x coords");
   for (i = 0; i < (uint)PROF_N_TABLE(profile->path_len);
-       i++) { /* Only add the points from the table here */
+       i++) { /* Only add the points from the table here. */
     table_coords[i][0] = pts[i].x;
     table_coords[i][1] = pts[i].y;
   }
   if (add_left_tri && add_bottom_tri) {
-    /* Add left side, bottom left corner, and bottom side points */
+    /* Add left side, bottom left corner, and bottom side points. */
     table_coords[tot_points - 3][0] = profile->view_rect.xmin;
     table_coords[tot_points - 3][1] = 1.0f;
     table_coords[tot_points - 2][0] = profile->view_rect.xmin;
@@ -2262,30 +2275,30 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
     table_coords[tot_points - 1][1] = profile->view_rect.ymin;
   }
   else if (add_left_tri) {
-    /* Add the left side and bottom left corner points */
+    /* Add the left side and bottom left corner points. */
     table_coords[tot_points - 2][0] = profile->view_rect.xmin;
     table_coords[tot_points - 2][1] = 1.0f;
     table_coords[tot_points - 1][0] = profile->view_rect.xmin;
     table_coords[tot_points - 1][1] = 0.0f;
   }
   else if (add_bottom_tri) {
-    /* Add the bottom side and bottom left corner points */
+    /* Add the bottom side and bottom left corner points. */
     table_coords[tot_points - 2][0] = 0.0f;
     table_coords[tot_points - 2][1] = profile->view_rect.ymin;
     table_coords[tot_points - 1][0] = 1.0f;
     table_coords[tot_points - 1][1] = profile->view_rect.ymin;
   }
   else {
-    /* Just add the bottom corner point. Side points would be redundant anyway */
+    /* Just add the bottom corner point. Side points would be redundant anyway. */
     table_coords[tot_points - 1][0] = 0.0f;
     table_coords[tot_points - 1][1] = 0.0f;
   }
 
-  /* Calculate the table point indices of the triangles for the profile's fill */
+  /* Calculate the table point indices of the triangles for the profile's fill. */
   uint(*tri_indices)[3] = MEM_mallocN(sizeof(*tri_indices) * tot_triangles, "return tri indices");
   BLI_polyfill_calc(table_coords, tot_points, -1, tri_indices);
 
-  /* Draw the triangles for the profile fill */
+  /* Draw the triangles for the profile fill. */
   immUniformColor3ubvAlpha((const uchar *)wcol->item, 128);
   GPU_blend(true);
   GPU_polygon_smooth(false);
@@ -2301,7 +2314,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   immEnd();
   MEM_freeN(tri_indices);
 
-  /* Draw the profile's path so the edge stands out a bit */
+  /* Draw the profile's path so the edge stands out a bit. */
   tot_points -= (add_left_tri + add_left_tri);
   GPU_line_width(1.0f);
   immUniformColor3ubvAlpha((const uchar *)wcol->item, 255);
@@ -2313,8 +2326,43 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
     immVertex2f(pos, fx, fy);
   }
   immEnd();
-  immUnbindProgram();
   MEM_freeN(table_coords);
+
+  /* Draw the handles for the selected control points. */
+  pts = profile->path;
+  tot_points = (uint)profile->path_len;
+  int selected_free_points = 0;
+  for (i = 0; i < tot_points; i++) {
+    if (point_draw_handles(&pts[i])) {
+      selected_free_points++;
+    }
+  }
+  /* Draw the lines to the handles from the points. */
+  if (selected_free_points > 0) {
+    GPU_line_width(1.0f);
+    gl_shaded_color((uchar *)wcol->inner, -24);
+    GPU_line_smooth(true);
+    immBegin(GPU_PRIM_LINES, selected_free_points * 4);
+    float ptx, pty;
+    for (i = 0; i < tot_points; i++) {
+      if (point_draw_handles(&pts[i])) {
+        ptx = rect->xmin + zoomx * (pts[i].x - offsx);
+        pty = rect->ymin + zoomy * (pts[i].y - offsy);
+
+        fx = rect->xmin + zoomx * (pts[i].h1_loc[0] - offsx);
+        fy = rect->ymin + zoomy * (pts[i].h1_loc[1] - offsy);
+        immVertex2f(pos, ptx, pty);
+        immVertex2f(pos, fx, fy);
+
+        fx = rect->xmin + zoomx * (pts[i].h2_loc[0] - offsx);
+        fy = rect->ymin + zoomy * (pts[i].h2_loc[1] - offsy);
+        immVertex2f(pos, ptx, pty);
+        immVertex2f(pos, fx, fy);
+      }
+    }
+    immEnd();
+  }
+  immUnbindProgram();
 
   /* New GPU instructions for control points and sampled points. */
   format = immVertexFormat();
@@ -2339,8 +2387,6 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   }
 
   /* Draw the control points. */
-  pts = profile->path;
-  tot_points = (uint)profile->path_len;
   GPU_line_smooth(false);
   GPU_blend(false);
   GPU_point_size(max_ff(3.0f, min_ff(UI_DPI_FAC / but->block->aspect * 5.0f, 5.0f)));
@@ -2352,6 +2398,28 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
     immVertex2f(pos, fx, fy);
   }
   immEnd();
+
+  /* Draw the handle points. */
+  if (selected_free_points > 0) {
+    GPU_line_smooth(false);
+    GPU_blend(false);
+    GPU_point_size(max_ff(2.0f, min_ff(UI_DPI_FAC / but->block->aspect * 4.0f, 4.0f)));
+    immBegin(GPU_PRIM_POINTS, selected_free_points * 2);
+    for (i = 0; i < tot_points; i++) {
+      if (point_draw_handles(&pts[i])) {
+        fx = rect->xmin + zoomx * (pts[i].h1_loc[0] - offsx);
+        fy = rect->ymin + zoomy * (pts[i].h1_loc[1] - offsy);
+        immAttr4fv(col, (pts[i].flag & PROF_H1_SELECT) ? color_vert_select : color_vert);
+        immVertex2f(pos, fx, fy);
+
+        fx = rect->xmin + zoomx * (pts[i].h2_loc[0] - offsx);
+        fy = rect->ymin + zoomy * (pts[i].h2_loc[1] - offsy);
+        immAttr4fv(col, (pts[i].flag & PROF_H2_SELECT) ? color_vert_select : color_vert);
+        immVertex2f(pos, fx, fy);
+      }
+    }
+    immEnd();
+  }
 
   /* Draw the sampled points in addition to the control points if they have been created */
   pts = profile->segments;
@@ -2367,7 +2435,6 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
     }
     immEnd();
   }
-
   immUnbindProgram();
 
   /* restore scissortest */

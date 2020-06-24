@@ -45,6 +45,16 @@ void BKE_curveprofile_copy_data(struct CurveProfile *target, const struct CurveP
 
 struct CurveProfile *BKE_curveprofile_copy(const struct CurveProfile *profile);
 
+bool BKE_curveprofile_move_handle(struct CurveProfilePoint *point,
+                                  const bool handle_1,
+                                  const bool snap,
+                                  const float delta[2]);
+
+bool BKE_curveprofile_move_point(struct CurveProfile *profile,
+                                 struct CurveProfilePoint *point,
+                                 const bool snap,
+                                 const float delta[2]);
+
 bool BKE_curveprofile_remove_point(struct CurveProfile *profile, struct CurveProfilePoint *point);
 
 void BKE_curveprofile_remove_by_flag(struct CurveProfile *profile, const short flag);
@@ -65,7 +75,12 @@ void BKE_curveprofile_create_samples(struct CurveProfile *profile,
 void BKE_curveprofile_initialize(struct CurveProfile *profile, short segments_len);
 
 /* Called for a complete update of the widget after modifications */
-void BKE_curveprofile_update(struct CurveProfile *profile, const bool rem_doubles);
+enum {
+  PROF_UPDATE_NONE = 0,
+  PROF_UPDATE_REMOVE_DOUBLES = (1 << 0),
+  PROF_UPDATE_CLIP = (1 << 1),
+};
+void BKE_curveprofile_update(struct CurveProfile *profile, const int update_flags);
 
 /* Need to find the total length of the curve to sample a portion of it */
 float BKE_curveprofile_total_length(const struct CurveProfile *profile);
