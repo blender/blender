@@ -538,6 +538,11 @@ static void drw_call_culling_init(DRWCullingState *cull, Object *ob)
     mul_v3_m4v3(corner, ob->obmat, bbox->vec[0]);
     mul_m4_v3(ob->obmat, cull->bsphere.center);
     cull->bsphere.radius = len_v3v3(cull->bsphere.center, corner);
+
+    /* Bypass test for very large objects (see T67319). */
+    if (UNLIKELY(cull->bsphere.radius > 1e12)) {
+      cull->bsphere.radius = -1.0f;
+    }
   }
   else {
     /* Bypass test. */
