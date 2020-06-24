@@ -27,10 +27,6 @@ extern "C" {
 }
 #endif
 
-#if OPENVDB == 1
-#  include "openvdb/openvdb.h"
-#endif
-
 #include "cnpy.h"
 #include "mantaio.h"
 #include "grid.h"
@@ -279,52 +275,85 @@ static int unifyGridType(int type)
 // grid data
 //*****************************************************************************
 
-template<class T> void writeGridTxt(const string &name, Grid<T> *grid)
+template<class T> int writeGridTxt(const string &name, Grid<T> *grid)
 {
   debMsg("writing grid " << grid->getName() << " to text file " << name, 1);
 
   ofstream ofs(name.c_str());
   if (!ofs.good())
     errMsg("writeGridTxt: can't open file " << name);
+  return 0;
   FOR_IJK(*grid)
   {
     ofs << Vec3i(i, j, k) << " = " << (*grid)(i, j, k) << "\n";
   }
   ofs.close();
+  return 1;
 }
 
-template<class T> void writeGridRaw(const string &name, Grid<T> *grid)
+int writeGridsTxt(const string &name, std::vector<PbClass *> *grids)
+{
+  errMsg("writeGridsTxt: writing multiple grids to one .txt file not supported yet");
+  return 0;
+}
+
+int readGridsTxt(const string &name, std::vector<PbClass *> *grids)
+{
+  errMsg("readGridsTxt: writing multiple grids from one .txt file not supported yet");
+  return 0;
+}
+
+template<class T> int writeGridRaw(const string &name, Grid<T> *grid)
 {
   debMsg("writing grid " << grid->getName() << " to raw file " << name, 1);
 
 #if NO_ZLIB != 1
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "wb1");  // do some compression
-  if (!gzf)
+  if (!gzf) {
     errMsg("writeGridRaw: can't open file " << name);
+    return 0;
+  }
+
   gzwrite(gzf, &((*grid)[0]), sizeof(T) * grid->getSizeX() * grid->getSizeY() * grid->getSizeZ());
-  gzclose(gzf);
+  return (gzclose(gzf) == Z_OK);
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 }
 
-template<class T> void readGridRaw(const string &name, Grid<T> *grid)
+template<class T> int readGridRaw(const string &name, Grid<T> *grid)
 {
   debMsg("reading grid " << grid->getName() << " from raw file " << name, 1);
 
 #if NO_ZLIB != 1
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "rb");
-  if (!gzf)
+  if (!gzf) {
     errMsg("readGridRaw: can't open file " << name);
+    return 0;
+  }
 
   IndexInt bytes = sizeof(T) * grid->getSizeX() * grid->getSizeY() * grid->getSizeZ();
   IndexInt readBytes = gzread(gzf, &((*grid)[0]), bytes);
   assertMsg(bytes == readBytes,
             "can't read raw file, stream length does not match, " << bytes << " vs " << readBytes);
-  gzclose(gzf);
+  return (gzclose(gzf) == Z_OK);
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
+}
+
+int writeGridsRaw(const string &name, std::vector<PbClass *> *grids)
+{
+  errMsg("writeGridsRaw: writing multiple grids to one .raw file not supported yet");
+  return 0;
+}
+
+int readGridsRaw(const string &name, std::vector<PbClass *> *grids)
+{
+  errMsg("readGridsRaw: reading multiple grids from one .raw file not supported yet");
+  return 0;
 }
 
 //! legacy headers for reading old files
@@ -473,7 +502,7 @@ void PbRegister_printUniFileInfoString()
 
 // actual read/write functions
 
-template<class T> void writeGridUni(const string &name, Grid<T> *grid)
+template<class T> int writeGridUni(const string &name, Grid<T> *grid)
 {
   debMsg("Writing grid " << grid->getName() << " to uni file " << name, 1);
 
@@ -496,12 +525,16 @@ template<class T> void writeGridUni(const string &name, Grid<T> *grid)
     head.elementType = 1;
   else if (grid->getType() & GridBase::TypeVec3)
     head.elementType = 2;
-  else
+  else {
     errMsg("writeGridUni: unknown element type");
+    return 0;
+  }
 
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "wb1");  // do some compression
-  if (!gzf)
+  if (!gzf) {
     errMsg("writeGridUni: can't open file " << name);
+    return 0;
+  }
 
   gzwrite(gzf, ID, 4);
 #  if FLOATINGPOINT_PRECISION != 1
@@ -515,21 +548,24 @@ template<class T> void writeGridUni(const string &name, Grid<T> *grid)
   gzwrite(gzf, &head, sizeof(UniHeader));
   gzwrite(gzf, ptr, sizeof(T) * head.dimX * head.dimY * head.dimZ);
 #  endif
-  gzclose(gzf);
+  return (gzclose(gzf) == Z_OK);
 
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 };
 
-template<class T> void readGridUni(const string &name, Grid<T> *grid)
+template<class T> int readGridUni(const string &name, Grid<T> *grid)
 {
   debMsg("Reading grid " << grid->getName() << " from uni file " << name, 1);
 
 #if NO_ZLIB != 1
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "rb");
-  if (!gzf)
+  if (!gzf) {
     errMsg("readGridUni: can't open file " << name);
+    return 0;
+  }
 
   char ID[5] = {0, 0, 0, 0, 0};
   gzread(gzf, ID, 4);
@@ -609,17 +645,44 @@ template<class T> void readGridUni(const string &name, Grid<T> *grid)
   }
   else {
     errMsg("readGridUni: Unknown header '" << ID << "' ");
+    return 0;
   }
-  gzclose(gzf);
+  return (gzclose(gzf) == Z_OK);
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 };
 
-template<class T> void writeGridVol(const string &name, Grid<T> *grid)
+int writeGridsUni(const string &name, std::vector<PbClass *> *grids)
+{
+  errMsg("writeGridsUni: writing multiple grids to one .uni file not supported yet");
+  return 0;
+}
+
+int readGridsUni(const string &name, std::vector<PbClass *> *grids)
+{
+  errMsg("readGridsUni: reading multiple grids from one .uni file not supported yet");
+  return 0;
+}
+
+template<class T> int writeGridVol(const string &name, Grid<T> *grid)
 {
   debMsg("writing grid " << grid->getName() << " to vol file " << name, 1);
   errMsg("writeGridVol: Type not yet supported!");
+  return 0;
+}
+
+int writeGridsVol(const string &name, std::vector<PbClass *> *grids)
+{
+  errMsg("writeGridsVol: writing multiple grids to one .vol file not supported yet");
+  return 0;
+}
+
+int readGridsVol(const string &name, std::vector<PbClass *> *grids)
+{
+  errMsg("readGridsVol: reading multiple grids from one .vol file not supported yet");
+  return 0;
 }
 
 struct volHeader {
@@ -631,7 +694,7 @@ struct volHeader {
   Vec3 bboxMin, bboxMax;
 };
 
-template<> void writeGridVol<Real>(const string &name, Grid<Real> *grid)
+template<> int writeGridVol<Real>(const string &name, Grid<Real> *grid)
 {
   debMsg("writing real grid " << grid->getName() << " to vol file " << name, 1);
 
@@ -651,7 +714,7 @@ template<> void writeGridVol<Real>(const string &name, Grid<Real> *grid)
   FILE *fp = fopen(name.c_str(), "wb");
   if (fp == NULL) {
     errMsg("writeGridVol: Cannot open '" << name << "'");
-    return;
+    return 0;
   }
 
   fwrite(&header, sizeof(volHeader), 1, fp);
@@ -667,17 +730,17 @@ template<> void writeGridVol<Real>(const string &name, Grid<Real> *grid)
     fwrite(&value, sizeof(float), 1, fp);
   }
 #endif
-
-  fclose(fp);
+  return (!fclose(fp));
 };
 
-template<class T> void readGridVol(const string &name, Grid<T> *grid)
+template<class T> int readGridVol(const string &name, Grid<T> *grid)
 {
   debMsg("writing grid " << grid->getName() << " to vol file " << name, 1);
   errMsg("readGridVol: Type not yet supported!");
+  return 0;
 }
 
-template<> void readGridVol<Real>(const string &name, Grid<Real> *grid)
+template<> int readGridVol<Real>(const string &name, Grid<Real> *grid)
 {
   debMsg("reading real grid " << grid->getName() << " from vol file " << name, 1);
 
@@ -685,7 +748,7 @@ template<> void readGridVol<Real>(const string &name, Grid<Real> *grid)
   FILE *fp = fopen(name.c_str(), "rb");
   if (fp == NULL) {
     errMsg("readGridVol: Cannot open '" << name << "'");
-    return;
+    return 0;
   }
 
   // note, only very basic file format checks here!
@@ -697,17 +760,17 @@ template<> void readGridVol<Real>(const string &name, Grid<Real> *grid)
                                       << grid->getSize());
 #if FLOATINGPOINT_PRECISION != 1
   errMsg("readGridVol: Double precision not yet supported");
+  return 0;
 #else
   const unsigned int s = sizeof(float) * header.dimX * header.dimY * header.dimZ;
   assertMsg(fread(&((*grid)[0]), 1, s, fp) == s, "can't read file, no / not enough data");
 #endif
-
-  fclose(fp);
+  return (!fclose(fp));
 };
 
 // 4d grids IO
 
-template<class T> void writeGrid4dUni(const string &name, Grid4d<T> *grid)
+template<class T> int writeGrid4dUni(const string &name, Grid4d<T> *grid)
 {
   debMsg("writing grid4d " << grid->getName() << " to uni file " << name, 1);
 
@@ -733,12 +796,16 @@ template<class T> void writeGrid4dUni(const string &name, Grid4d<T> *grid)
     head.elementType = 2;
   else if (grid->getType() & Grid4dBase::TypeVec4)
     head.elementType = 2;
-  else
+  else {
     errMsg("writeGrid4dUni: unknown element type");
+    return 0;
+  }
 
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "wb1");  // do some compression
-  if (!gzf)
+  if (!gzf) {
     errMsg("writeGrid4dUni: can't open file " << name);
+    return 0;
+  }
 
   gzwrite(gzf, ID, 4);
 #  if FLOATINGPOINT_PRECISION != 1
@@ -753,16 +820,17 @@ template<class T> void writeGrid4dUni(const string &name, Grid4d<T> *grid)
     gzwrite(gzf, ptr, sizeof(T) * head.dimX * head.dimY * head.dimZ * 1);
   }
 #  endif
-  gzclose(gzf);
+  return (gzclose(gzf) == Z_OK);
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 };
 
 //! note, reading 4d uni grids is slightly more complicated than 3d ones
 //! as it optionally supports sliced reading
 template<class T>
-void readGrid4dUni(
+int readGrid4dUni(
     const string &name, Grid4d<T> *grid, int readTslice, Grid4d<T> *slice, void **fileHandle)
 {
   if (grid)
@@ -779,8 +847,10 @@ void readGrid4dUni(
   // optionally - reuse file handle, if valid one is passed in fileHandle pointer...
   if ((!fileHandle) || (fileHandle && (*fileHandle == NULL))) {
     gzf = (gzFile)safeGzopen(name.c_str(), "rb");
-    if (!gzf)
+    if (!gzf) {
       errMsg("readGrid4dUni: can't open file " << name);
+      return 0;
+    }
 
     gzread(gzf, ID, 4);
     if (fileHandle) {
@@ -792,7 +862,7 @@ void readGrid4dUni(
     gzf = (gzFile)(*fileHandle);
     void *ptr = &((*slice)[0]);
     gzread(gzf, ptr, sizeof(T) * slice->getStrideT() * 1);  // quick and dirty...
-    return;
+    return 1;
   }
 
   if ((!strcmp(ID, "M4T2")) || (!strcmp(ID, "M4T3"))) {
@@ -867,6 +937,7 @@ void readGrid4dUni(
 
 #  if FLOATINGPOINT_PRECISION != 1
       errMsg("readGrid4dUni: NYI (2)");  // slice read not yet supported for double
+      return 0;
 #  else
       assertMsg(slice, "No 3d slice grid data given");
       assertMsg(readTslice < head.dimT,
@@ -884,10 +955,12 @@ void readGrid4dUni(
   }
 
   if (!fileHandle) {
-    gzclose(gzf);
+    return (gzclose(gzf) == Z_OK);
   }
+  return 1;
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 };
 void readGrid4dUniCleanup(void **fileHandle)
@@ -900,296 +973,61 @@ void readGrid4dUniCleanup(void **fileHandle)
   }
 }
 
-template<class T> void writeGrid4dRaw(const string &name, Grid4d<T> *grid)
+template<class T> int writeGrid4dRaw(const string &name, Grid4d<T> *grid)
 {
   debMsg("writing grid4d " << grid->getName() << " to raw file " << name, 1);
 
 #if NO_ZLIB != 1
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "wb1");  // do some compression
-  if (!gzf)
+  if (!gzf) {
     errMsg("writeGrid4dRaw: can't open file " << name);
+    return 0;
+  }
   gzwrite(gzf,
           &((*grid)[0]),
           sizeof(T) * grid->getSizeX() * grid->getSizeY() * grid->getSizeZ() * grid->getSizeT());
-  gzclose(gzf);
+  return (gzclose(gzf) == Z_OK);
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 }
 
-template<class T> void readGrid4dRaw(const string &name, Grid4d<T> *grid)
+template<class T> int readGrid4dRaw(const string &name, Grid4d<T> *grid)
 {
   debMsg("reading grid4d " << grid->getName() << " from raw file " << name, 1);
 
 #if NO_ZLIB != 1
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "rb");
-  if (!gzf)
+  if (!gzf) {
     errMsg("readGrid4dRaw: can't open file " << name);
-
+    return 0;
+  }
   IndexInt bytes = sizeof(T) * grid->getSizeX() * grid->getSizeY() * grid->getSizeZ() *
                    grid->getSizeT();
   IndexInt readBytes = gzread(gzf, &((*grid)[0]), bytes);
   assertMsg(bytes == readBytes,
             "can't read raw file, stream length does not match, " << bytes << " vs " << readBytes);
-  gzclose(gzf);
+  return (gzclose(gzf) == Z_OK);
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 }
-
-//*****************************************************************************
-// optional openvdb export
-
-#if OPENVDB == 1
-
-template<class T> void writeGridVDB(const string &name, Grid<T> *grid)
-{
-  debMsg("Writing grid " << grid->getName() << " to vdb file " << name << " not yet supported!",
-         1);
-}
-
-template<class T> void readGridVDB(const string &name, Grid<T> *grid)
-{
-  debMsg("Reading grid " << grid->getName() << " from vdb file " << name << " not yet supported!",
-         1);
-}
-
-template<> void writeGridVDB(const string &name, Grid<int> *grid)
-{
-  debMsg("Writing int grid " << grid->getName() << " to vdb file " << name, 1);
-
-  // Create an empty int32-point grid with background value 0.
-  openvdb::initialize();
-  openvdb::Int32Grid::Ptr gridVDB = openvdb::Int32Grid::create();
-  gridVDB->setTransform(
-      openvdb::math::Transform::createLinearTransform(1. / grid->getSizeX()));  // voxel size
-
-  // Get an accessor for coordinate-based access to voxels.
-  openvdb::Int32Grid::Accessor accessor = gridVDB->getAccessor();
-
-  gridVDB->setGridClass(openvdb::GRID_UNKNOWN);
-
-  // Name the grid "density".
-  gridVDB->setName(grid->getName());
-
-  openvdb::io::File file(name);
-
-  FOR_IJK(*grid)
-  {
-    openvdb::Coord xyz(i, j, k);
-    accessor.setValue(xyz, (*grid)(i, j, k));
-  }
-
-  // Add the grid pointer to a container.
-  openvdb::GridPtrVec gridsVDB;
-  gridsVDB.push_back(gridVDB);
-
-  // Write out the contents of the container.
-  file.write(gridsVDB);
-  file.close();
-}
-
-template<> void readGridVDB(const string &name, Grid<int> *grid)
-{
-  debMsg("Reading int grid " << grid->getName() << " from vdb file " << name, 1);
-
-  openvdb::initialize();
-  openvdb::io::File file(name);
-  file.open();
-
-  openvdb::GridBase::Ptr baseGrid;
-  for (openvdb::io::File::NameIterator nameIter = file.beginName(); nameIter != file.endName();
-       ++nameIter) {
-#  ifndef BLENDER
-    // Read in only the grid we are interested in.
-    if (nameIter.gridName() == grid->getName()) {
-      baseGrid = file.readGrid(nameIter.gridName());
-    }
-    else {
-      debMsg("skipping grid " << nameIter.gridName(), 1);
-    }
-#  else
-    // For Blender, skip name check and pick first grid from loop
-    baseGrid = file.readGrid(nameIter.gridName());
-    break;
-#  endif
-  }
-  file.close();
-  openvdb::Int32Grid::Ptr gridVDB = openvdb::gridPtrCast<openvdb::Int32Grid>(baseGrid);
-
-  openvdb::Int32Grid::Accessor accessor = gridVDB->getAccessor();
-
-  FOR_IJK(*grid)
-  {
-    openvdb::Coord xyz(i, j, k);
-    int v = accessor.getValue(xyz);
-    (*grid)(i, j, k) = v;
-  }
-}
-
-template<> void writeGridVDB(const string &name, Grid<Real> *grid)
-{
-  debMsg("Writing real grid " << grid->getName() << " to vdb file " << name, 1);
-
-  // Create an empty floating-point grid with background value 0.
-  openvdb::initialize();
-  openvdb::FloatGrid::Ptr gridVDB = openvdb::FloatGrid::create();
-  gridVDB->setTransform(
-      openvdb::math::Transform::createLinearTransform(1. / grid->getSizeX()));  // voxel size
-
-  // Get an accessor for coordinate-based access to voxels.
-  openvdb::FloatGrid::Accessor accessor = gridVDB->getAccessor();
-
-  // Identify the grid as a level set.
-  gridVDB->setGridClass(openvdb::GRID_FOG_VOLUME);
-
-  // Name the grid "density".
-  gridVDB->setName(grid->getName());
-
-  openvdb::io::File file(name);
-
-  FOR_IJK(*grid)
-  {
-    openvdb::Coord xyz(i, j, k);
-    accessor.setValue(xyz, (*grid)(i, j, k));
-  }
-
-  // Add the grid pointer to a container.
-  openvdb::GridPtrVec gridsVDB;
-  gridsVDB.push_back(gridVDB);
-
-  // Write out the contents of the container.
-  file.write(gridsVDB);
-  file.close();
-};
-
-template<> void readGridVDB(const string &name, Grid<Real> *grid)
-{
-  debMsg("Reading real grid " << grid->getName() << " from vdb file " << name, 1);
-
-  openvdb::initialize();
-  openvdb::io::File file(name);
-  file.open();
-
-  openvdb::GridBase::Ptr baseGrid;
-  for (openvdb::io::File::NameIterator nameIter = file.beginName(); nameIter != file.endName();
-       ++nameIter) {
-#  ifndef BLENDER
-    // Read in only the grid we are interested in.
-    if (nameIter.gridName() == grid->getName()) {
-      baseGrid = file.readGrid(nameIter.gridName());
-    }
-    else {
-      debMsg("skipping grid " << nameIter.gridName(), 1);
-    }
-#  else
-    // For Blender, skip name check and pick first grid from loop
-    baseGrid = file.readGrid(nameIter.gridName());
-    break;
-#  endif
-  }
-  file.close();
-  openvdb::FloatGrid::Ptr gridVDB = openvdb::gridPtrCast<openvdb::FloatGrid>(baseGrid);
-
-  openvdb::FloatGrid::Accessor accessor = gridVDB->getAccessor();
-
-  FOR_IJK(*grid)
-  {
-    openvdb::Coord xyz(i, j, k);
-    float v = accessor.getValue(xyz);
-    (*grid)(i, j, k) = v;
-  }
-};
-
-template<> void writeGridVDB(const string &name, Grid<Vec3> *grid)
-{
-  debMsg("Writing vec3 grid " << grid->getName() << " to vdb file " << name, 1);
-
-  openvdb::initialize();
-  openvdb::Vec3SGrid::Ptr gridVDB = openvdb::Vec3SGrid::create();
-  // note , warning - velocity content currently not scaled...
-  gridVDB->setTransform(
-      openvdb::math::Transform::createLinearTransform(1. / grid->getSizeX()));  // voxel size
-  openvdb::Vec3SGrid::Accessor accessor = gridVDB->getAccessor();
-
-  // MAC or regular vec grid?
-  if (grid->getType() & GridBase::TypeMAC)
-    gridVDB->setGridClass(openvdb::GRID_STAGGERED);
-  else
-    gridVDB->setGridClass(openvdb::GRID_UNKNOWN);
-
-  gridVDB->setName(grid->getName());
-
-  openvdb::io::File file(name);
-  FOR_IJK(*grid)
-  {
-    openvdb::Coord xyz(i, j, k);
-    Vec3 v = (*grid)(i, j, k);
-    openvdb::Vec3f vo((float)v[0], (float)v[1], (float)v[2]);
-    accessor.setValue(xyz, vo);
-  }
-
-  openvdb::GridPtrVec gridsVDB;
-  gridsVDB.push_back(gridVDB);
-
-  file.write(gridsVDB);
-  file.close();
-};
-
-template<> void readGridVDB(const string &name, Grid<Vec3> *grid)
-{
-  debMsg("Reading vec3 grid " << grid->getName() << " from vdb file " << name, 1);
-
-  openvdb::initialize();
-  openvdb::io::File file(name);
-  file.open();
-
-  openvdb::GridBase::Ptr baseGrid;
-  for (openvdb::io::File::NameIterator nameIter = file.beginName(); nameIter != file.endName();
-       ++nameIter) {
-#  ifndef BLENDER
-    // Read in only the grid we are interested in.
-    if (nameIter.gridName() == grid->getName()) {
-      baseGrid = file.readGrid(nameIter.gridName());
-    }
-    else {
-      debMsg("skipping grid " << nameIter.gridName(), 1);
-    }
-#  else
-    // For Blender, skip name check and pick first grid from loop
-    baseGrid = file.readGrid(nameIter.gridName());
-    break;
-#  endif
-  }
-  file.close();
-  openvdb::Vec3SGrid::Ptr gridVDB = openvdb::gridPtrCast<openvdb::Vec3SGrid>(baseGrid);
-
-  openvdb::Vec3SGrid::Accessor accessor = gridVDB->getAccessor();
-
-  FOR_IJK(*grid)
-  {
-    openvdb::Coord xyz(i, j, k);
-    openvdb::Vec3f v = accessor.getValue(xyz);
-    (*grid)(i, j, k).x = (float)v[0];
-    (*grid)(i, j, k).y = (float)v[1];
-    (*grid)(i, j, k).z = (float)v[2];
-  }
-};
-
-#endif  // OPENVDB==1
 
 //*****************************************************************************
 // npz file support (warning - read works, but write generates uncompressed npz; i.e. not
 // recommended for large volumes)
 
-template<class T> void writeGridNumpy(const string &name, Grid<T> *grid)
+template<class T> int writeGridNumpy(const string &name, Grid<T> *grid)
 {
 #if NO_ZLIB == 1
   debMsg("file format not supported without zlib", 1);
-  return;
+  return 0;
 #endif
 #if FLOATINGPOINT_PRECISION != 1
   errMsg("writeGridNumpy: Double precision not yet supported");
+  return 0;
 #endif
 
   // find suffix to differentiate between npy <-> npz , TODO: check for actual "npy" string
@@ -1211,8 +1049,10 @@ template<class T> void writeGridNumpy(const string &name, Grid<T> *grid)
     uDim = 1;
   else if (grid->getType() & GridBase::TypeVec3 || grid->getType() & GridBase::TypeMAC)
     uDim = 3;
-  else
+  else {
     errMsg("writeGridNumpy: unknown element type");
+    return 0;
+  }
 
   const std::vector<size_t> shape = {static_cast<size_t>(grid->getSizeZ()),
                                      static_cast<size_t>(grid->getSizeY()),
@@ -1234,16 +1074,18 @@ template<class T> void writeGridNumpy(const string &name, Grid<T> *grid)
   else {
     cnpy::npy_save(name, &grid[0], shape, "w");
   }
+  return 1;
 };
 
-template<class T> void readGridNumpy(const string &name, Grid<T> *grid)
+template<class T> int readGridNumpy(const string &name, Grid<T> *grid)
 {
 #if NO_ZLIB == 1
   debMsg("file format not supported without zlib", 1);
-  return;
+  return 0;
 #endif
 #if FLOATINGPOINT_PRECISION != 1
   errMsg("readGridNumpy: Double precision not yet supported");
+  return 0;
 #endif
 
   // find suffix to differentiate between npy <-> npz
@@ -1279,8 +1121,10 @@ template<class T> void readGridNumpy(const string &name, Grid<T> *grid)
     uDim = 1;
   else if (grid->getType() & GridBase::TypeVec3 || grid->getType() & GridBase::TypeMAC)
     uDim = 3;
-  else
+  else {
     errMsg("readGridNumpy: unknown element type");
+    return 0;
+  }
   assertMsg(gridArr.shape[3] == uDim,
             "grid data dim doesn't match, " << gridArr.shape[3] << " vs " << uDim);
 
@@ -1299,7 +1143,20 @@ template<class T> void readGridNumpy(const string &name, Grid<T> *grid)
   memcpy(&((*grid)[0]),
          gridArr.data<T>(),
          sizeof(T) * grid->getSizeX() * grid->getSizeY() * grid->getSizeZ());
+  return 1;
 };
+
+int writeGridsNumpy(const string &name, std::vector<PbClass *> *grids)
+{
+  errMsg("writeGridsNumpy: writing multiple grids to one .npz file not supported yet");
+  return 0;
+}
+
+int readGridsNumpy(const string &name, std::vector<PbClass *> *grids)
+{
+  errMsg("readGridsNumpy: reading multiple grids from one .npz file not supported yet");
+  return 0;
+}
 
 // adopted from getUniFileSize
 void getNpzFileSize(
@@ -1521,77 +1378,63 @@ void PbRegister_quantizeGridVec3()
 }
 
 // explicit instantiation
-template void writeGridRaw<int>(const string &name, Grid<int> *grid);
-template void writeGridRaw<Real>(const string &name, Grid<Real> *grid);
-template void writeGridRaw<Vec3>(const string &name, Grid<Vec3> *grid);
-template void writeGridUni<int>(const string &name, Grid<int> *grid);
-template void writeGridUni<Real>(const string &name, Grid<Real> *grid);
-template void writeGridUni<Vec3>(const string &name, Grid<Vec3> *grid);
-template void writeGridVol<int>(const string &name, Grid<int> *grid);
-template void writeGridVol<Vec3>(const string &name, Grid<Vec3> *grid);
-template void writeGridTxt<int>(const string &name, Grid<int> *grid);
-template void writeGridTxt<Real>(const string &name, Grid<Real> *grid);
-template void writeGridTxt<Vec3>(const string &name, Grid<Vec3> *grid);
+template int writeGridRaw<int>(const string &name, Grid<int> *grid);
+template int writeGridRaw<Real>(const string &name, Grid<Real> *grid);
+template int writeGridRaw<Vec3>(const string &name, Grid<Vec3> *grid);
+template int writeGridUni<int>(const string &name, Grid<int> *grid);
+template int writeGridUni<Real>(const string &name, Grid<Real> *grid);
+template int writeGridUni<Vec3>(const string &name, Grid<Vec3> *grid);
+template int writeGridVol<int>(const string &name, Grid<int> *grid);
+template int writeGridVol<Vec3>(const string &name, Grid<Vec3> *grid);
+template int writeGridTxt<int>(const string &name, Grid<int> *grid);
+template int writeGridTxt<Real>(const string &name, Grid<Real> *grid);
+template int writeGridTxt<Vec3>(const string &name, Grid<Vec3> *grid);
 
-template void readGridRaw<int>(const string &name, Grid<int> *grid);
-template void readGridRaw<Real>(const string &name, Grid<Real> *grid);
-template void readGridRaw<Vec3>(const string &name, Grid<Vec3> *grid);
-template void readGridUni<int>(const string &name, Grid<int> *grid);
-template void readGridUni<Real>(const string &name, Grid<Real> *grid);
-template void readGridUni<Vec3>(const string &name, Grid<Vec3> *grid);
-template void readGridVol<int>(const string &name, Grid<int> *grid);
-template void readGridVol<Vec3>(const string &name, Grid<Vec3> *grid);
+template int readGridRaw<int>(const string &name, Grid<int> *grid);
+template int readGridRaw<Real>(const string &name, Grid<Real> *grid);
+template int readGridRaw<Vec3>(const string &name, Grid<Vec3> *grid);
+template int readGridUni<int>(const string &name, Grid<int> *grid);
+template int readGridUni<Real>(const string &name, Grid<Real> *grid);
+template int readGridUni<Vec3>(const string &name, Grid<Vec3> *grid);
+template int readGridVol<int>(const string &name, Grid<int> *grid);
+template int readGridVol<Vec3>(const string &name, Grid<Vec3> *grid);
 
-template void readGrid4dUni<int>(
+template int readGrid4dUni<int>(
     const string &name, Grid4d<int> *grid, int readTslice, Grid4d<int> *slice, void **fileHandle);
-template void readGrid4dUni<Real>(const string &name,
-                                  Grid4d<Real> *grid,
-                                  int readTslice,
-                                  Grid4d<Real> *slice,
-                                  void **fileHandle);
-template void readGrid4dUni<Vec3>(const string &name,
-                                  Grid4d<Vec3> *grid,
-                                  int readTslice,
-                                  Grid4d<Vec3> *slice,
-                                  void **fileHandle);
-template void readGrid4dUni<Vec4>(const string &name,
-                                  Grid4d<Vec4> *grid,
-                                  int readTslice,
-                                  Grid4d<Vec4> *slice,
-                                  void **fileHandle);
-template void writeGrid4dUni<int>(const string &name, Grid4d<int> *grid);
-template void writeGrid4dUni<Real>(const string &name, Grid4d<Real> *grid);
-template void writeGrid4dUni<Vec3>(const string &name, Grid4d<Vec3> *grid);
-template void writeGrid4dUni<Vec4>(const string &name, Grid4d<Vec4> *grid);
+template int readGrid4dUni<Real>(const string &name,
+                                 Grid4d<Real> *grid,
+                                 int readTslice,
+                                 Grid4d<Real> *slice,
+                                 void **fileHandle);
+template int readGrid4dUni<Vec3>(const string &name,
+                                 Grid4d<Vec3> *grid,
+                                 int readTslice,
+                                 Grid4d<Vec3> *slice,
+                                 void **fileHandle);
+template int readGrid4dUni<Vec4>(const string &name,
+                                 Grid4d<Vec4> *grid,
+                                 int readTslice,
+                                 Grid4d<Vec4> *slice,
+                                 void **fileHandle);
+template int writeGrid4dUni<int>(const string &name, Grid4d<int> *grid);
+template int writeGrid4dUni<Real>(const string &name, Grid4d<Real> *grid);
+template int writeGrid4dUni<Vec3>(const string &name, Grid4d<Vec3> *grid);
+template int writeGrid4dUni<Vec4>(const string &name, Grid4d<Vec4> *grid);
 
-template void readGrid4dRaw<int>(const string &name, Grid4d<int> *grid);
-template void readGrid4dRaw<Real>(const string &name, Grid4d<Real> *grid);
-template void readGrid4dRaw<Vec3>(const string &name, Grid4d<Vec3> *grid);
-template void readGrid4dRaw<Vec4>(const string &name, Grid4d<Vec4> *grid);
-template void writeGrid4dRaw<int>(const string &name, Grid4d<int> *grid);
-template void writeGrid4dRaw<Real>(const string &name, Grid4d<Real> *grid);
-template void writeGrid4dRaw<Vec3>(const string &name, Grid4d<Vec3> *grid);
-template void writeGrid4dRaw<Vec4>(const string &name, Grid4d<Vec4> *grid);
+template int readGrid4dRaw<int>(const string &name, Grid4d<int> *grid);
+template int readGrid4dRaw<Real>(const string &name, Grid4d<Real> *grid);
+template int readGrid4dRaw<Vec3>(const string &name, Grid4d<Vec3> *grid);
+template int readGrid4dRaw<Vec4>(const string &name, Grid4d<Vec4> *grid);
+template int writeGrid4dRaw<int>(const string &name, Grid4d<int> *grid);
+template int writeGrid4dRaw<Real>(const string &name, Grid4d<Real> *grid);
+template int writeGrid4dRaw<Vec3>(const string &name, Grid4d<Vec3> *grid);
+template int writeGrid4dRaw<Vec4>(const string &name, Grid4d<Vec4> *grid);
 
-template void writeGridNumpy<int>(const string &name, Grid<int> *grid);
-template void writeGridNumpy<Real>(const string &name, Grid<Real> *grid);
-template void writeGridNumpy<Vec3>(const string &name, Grid<Vec3> *grid);
-template void readGridNumpy<int>(const string &name, Grid<int> *grid);
-template void readGridNumpy<Real>(const string &name, Grid<Real> *grid);
-template void readGridNumpy<Vec3>(const string &name, Grid<Vec3> *grid);
-
-#if OPENVDB == 1
-template void writeGridVDB<int>(const string &name, Grid<int> *grid);
-template void writeGridVDB<Vec3>(const string &name, Grid<Vec3> *grid);
-template void writeGridVDB<Real>(const string &name, Grid<Real> *grid);
-
-template void readGridVDB<int>(const string &name, Grid<int> *grid);
-template void readGridVDB<Vec3>(const string &name, Grid<Vec3> *grid);
-template void readGridVDB<Real>(const string &name, Grid<Real> *grid);
-#endif  // OPENVDB==1
+template int writeGridNumpy<int>(const string &name, Grid<int> *grid);
+template int writeGridNumpy<Real>(const string &name, Grid<Real> *grid);
+template int writeGridNumpy<Vec3>(const string &name, Grid<Vec3> *grid);
+template int readGridNumpy<int>(const string &name, Grid<int> *grid);
+template int readGridNumpy<Real>(const string &name, Grid<Real> *grid);
+template int readGridNumpy<Vec3>(const string &name, Grid<Vec3> *grid);
 
 }  // namespace Manta
-
-namespace Manta {
-
-}

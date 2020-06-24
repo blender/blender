@@ -15,7 +15,8 @@ static const Pb::Register _reg(
     "4\nTypeInflow   = 8\nTypeOutflow  = 16\nTypeStick    = 64\nTypeReserved = 256\n\n# "
     "integration mode\nIntEuler = 0\nIntRK2   = 1\nIntRK4   = 2\n\n# CG preconditioner\nPcNone    "
     "  = 0\nPcMIC       = 1\nPcMGDynamic = 2\nPcMGStatic  = 3\n\n# particles\nPtypeSpray   = "
-    "2\nPtypeBubble  = 4\nPtypeFoam    = 8\nPtypeTracer  = 16\n\n\n\n\n");
+    "2\nPtypeBubble  = 4\nPtypeFoam    = 8\nPtypeTracer  = 16\n\n# OpenVDB export "
+    "flags\nCompression_None = 0\nCompression_Zip = 1\nCompression_Blosc = 2\n\n\n\n\n");
 extern "C" {
 void PbRegister_file_0()
 {

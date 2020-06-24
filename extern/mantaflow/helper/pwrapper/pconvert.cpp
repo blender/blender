@@ -96,6 +96,37 @@ template<> PyObject *toPy<PbClass *>(const PbClass_Ptr &obj)
 {
   return obj->getPyObject();
 }
+template<> PyObject *toPy<std::vector<PbClass *>>(const std::vector<PbClass *> &vec)
+{
+  PyObject *listObj = PyList_New(vec.size());
+  if (!listObj)
+    throw logic_error("Unable to allocate memory for Python list");
+  for (unsigned int i = 0; i < vec.size(); i++) {
+    PbClass *pb = vec[i];
+    PyObject *item = pb->getPyObject();
+    if (!item) {
+      Py_DECREF(listObj);
+      throw logic_error("Unable to allocate memory for Python list");
+    }
+    PyList_SET_ITEM(listObj, i, item);
+  }
+  return listObj;
+}
+template<> PyObject *toPy<std::vector<float>>(const std::vector<float> &vec)
+{
+  PyObject *listObj = PyList_New(vec.size());
+  if (!listObj)
+    throw logic_error("Unable to allocate memory for Python list");
+  for (unsigned int i = 0; i < vec.size(); i++) {
+    PyObject *item = toPy<float>(vec[i]);
+    if (!item) {
+      Py_DECREF(listObj);
+      throw logic_error("Unable to allocate memory for Python list");
+    }
+    PyList_SET_ITEM(listObj, i, item);
+  }
+  return listObj;
+}
 
 template<> float fromPy<float>(PyObject *obj)
 {
@@ -124,6 +155,42 @@ template<> double fromPy<double>(PyObject *obj)
 template<> PyObject *fromPy<PyObject *>(PyObject *obj)
 {
   return obj;
+}
+template<> PbClass *fromPy<PbClass *>(PyObject *obj)
+{
+  PbClass *pbo = Pb::objFromPy(obj);
+
+  if (!PyType_Check(obj))
+    return pbo;
+
+  const char *tname = ((PyTypeObject *)obj)->tp_name;
+  pbo->setName(tname);
+
+  return pbo;
+}
+template<> std::vector<PbClass *> fromPy<std::vector<PbClass *>>(PyObject *obj)
+{
+  std::vector<PbClass *> vec;
+  if (PyList_Check(obj)) {
+    int sz = PyList_Size(obj);
+    for (int i = 0; i < sz; ++i) {
+      PyObject *lobj = PyList_GetItem(obj, i);
+      vec.push_back(fromPy<PbClass *>(lobj));
+    }
+  }
+  return vec;
+}
+template<> std::vector<float> fromPy<std::vector<float>>(PyObject *obj)
+{
+  std::vector<float> vec;
+  if (PyList_Check(obj)) {
+    int sz = PyList_Size(obj);
+    for (int i = 0; i < sz; ++i) {
+      PyObject *lobj = PyList_GetItem(obj, i);
+      vec.push_back(fromPy<float>(lobj));
+    }
+  }
+  return vec;
 }
 template<> int fromPy<int>(PyObject *obj)
 {
@@ -259,11 +326,10 @@ template<class T> T *tmpAlloc(PyObject *obj, std::vector<void *> *tmp)
 {
   if (!tmp)
     throw Error("dynamic de-ref not supported for this type");
-  void *ptr = malloc(sizeof(T));
-  tmp->push_back(ptr);
 
-  *((T *)ptr) = fromPy<T>(obj);
-  return (T *)ptr;
+  T *ptr = new T(fromPy<T>(obj));
+  tmp->push_back(ptr);
+  return ptr;
 }
 template<> float *fromPyPtr<float>(PyObject *obj, std::vector<void *> *tmp)
 {
@@ -300,6 +366,11 @@ template<> Vec4 *fromPyPtr<Vec4>(PyObject *obj, std::vector<void *> *tmp)
 template<> Vec4i *fromPyPtr<Vec4i>(PyObject *obj, std::vector<void *> *tmp)
 {
   return tmpAlloc<Vec4i>(obj, tmp);
+}
+template<>
+std::vector<PbClass *> *fromPyPtr<std::vector<PbClass *>>(PyObject *obj, std::vector<void *> *tmp)
+{
+  return tmpAlloc<std::vector<PbClass *>>(obj, tmp);
 }
 
 template<> bool isPy<float>(PyObject *obj)
@@ -404,6 +475,18 @@ template<> bool isPy<PbType>(PyObject *obj)
 {
   return PyType_Check(obj);
 }
+template<> bool isPy<std::vector<PbClass *>>(PyObject *obj)
+{
+  if (PyList_Check(obj))
+    return true;
+  return false;
+}
+template<> bool isPy<std::vector<float>>(PyObject *obj)
+{
+  if (PyList_Check(obj))
+    return true;
+  return false;
+}
 
 //******************************************************************************
 // PbArgs class defs
@@ -417,7 +500,7 @@ PbArgs::PbArgs(PyObject *linarg, PyObject *dict) : mLinArgs(0), mKwds(0)
 PbArgs::~PbArgs()
 {
   for (int i = 0; i < (int)mTmpStorage.size(); i++)
-    free(mTmpStorage[i]);
+    operator delete(mTmpStorage[i]);
   mTmpStorage.clear();
 }
 

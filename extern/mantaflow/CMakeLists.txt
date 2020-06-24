@@ -54,6 +54,10 @@ if(WITH_OPENVDB)
   add_definitions(-DOPENVDB_STATICLIB)
 endif()
 
+if(WITH_OPENVDB_BLOSC)
+  add_definitions(-DOPENVDB_BLOSC=1)
+endif()
+
 if(WIN32)
   add_definitions(-D_USE_MATH_DEFINES)
 endif()
@@ -106,10 +110,12 @@ set(SRC
   ${MANTA_PP}/fastmarch.cpp
   ${MANTA_PP}/fastmarch.h
   ${MANTA_PP}/fastmarch.h.reg.cpp
-  ${MANTA_PP}/fileio/ioutil.cpp
   ${MANTA_PP}/fileio/iogrids.cpp
   ${MANTA_PP}/fileio/iomeshes.cpp
   ${MANTA_PP}/fileio/ioparticles.cpp
+  ${MANTA_PP}/fileio/ioutil.cpp
+  ${MANTA_PP}/fileio/iovdb.cpp
+  ${MANTA_PP}/fileio/mantaio.cpp
   ${MANTA_PP}/fileio/mantaio.h
   ${MANTA_PP}/fileio/mantaio.h.reg.cpp
   ${MANTA_PP}/fluidsolver.cpp

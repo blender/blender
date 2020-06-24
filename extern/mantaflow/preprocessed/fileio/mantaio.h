@@ -21,62 +21,98 @@
 
 #include <string>
 
+#include "manta.h"
+
+// OpenVDB compression flags
+#define COMPRESSION_NONE 0
+#define COMPRESSION_ZIP 1
+#define COMPRESSION_BLOSC 2
+
 namespace Manta {
 
-// forward decl.
+// Forward declations
 class Mesh;
 class FlagGrid;
+class GridBase;
 template<class T> class Grid;
 template<class T> class Grid4d;
 class BasicParticleSystem;
 template<class T> class ParticleDataImpl;
 template<class T> class MeshDataImpl;
 
-void writeObjFile(const std::string &name, Mesh *mesh);
-void writeBobjFile(const std::string &name, Mesh *mesh);
-void readObjFile(const std::string &name, Mesh *mesh, bool append);
-void readBobjFile(const std::string &name, Mesh *mesh, bool append);
+// Obj format
+int writeObjFile(const std::string &name, Mesh *mesh);
+int writeBobjFile(const std::string &name, Mesh *mesh);
+int readObjFile(const std::string &name, Mesh *mesh, bool append);
+int readBobjFile(const std::string &name, Mesh *mesh, bool append);
 
-template<class T> void writeGridRaw(const std::string &name, Grid<T> *grid);
-template<class T> void writeGridUni(const std::string &name, Grid<T> *grid);
-template<class T> void writeGridVol(const std::string &name, Grid<T> *grid);
-template<class T> void writeGridTxt(const std::string &name, Grid<T> *grid);
+// Other formats (Raw, Uni, Vol)
+template<class T> int readGridUni(const std::string &name, Grid<T> *grid);
+template<class T> int readGridRaw(const std::string &name, Grid<T> *grid);
+template<class T> int readGridVol(const std::string &name, Grid<T> *grid);
+int readGridsRaw(const std::string &name, std::vector<PbClass *> *grids);
+int readGridsUni(const std::string &name, std::vector<PbClass *> *grids);
+int readGridsVol(const std::string &name, std::vector<PbClass *> *grids);
+int readGridsTxt(const std::string &name, std::vector<PbClass *> *grids);
 
-#if OPENVDB == 1
-template<class T> void writeGridVDB(const std::string &name, Grid<T> *grid);
-template<class T> void readGridVDB(const std::string &name, Grid<T> *grid);
-#endif  // OPENVDB==1
-template<class T> void writeGridNumpy(const std::string &name, Grid<T> *grid);
-template<class T> void readGridNumpy(const std::string &name, Grid<T> *grid);
+template<class T> int writeGridRaw(const std::string &name, Grid<T> *grid);
+template<class T> int writeGridUni(const std::string &name, Grid<T> *grid);
+template<class T> int writeGridVol(const std::string &name, Grid<T> *grid);
+template<class T> int writeGridTxt(const std::string &name, Grid<T> *grid);
+int writeGridsRaw(const std::string &name, std::vector<PbClass *> *grids);
+int writeGridsUni(const std::string &name, std::vector<PbClass *> *grids);
+int writeGridsVol(const std::string &name, std::vector<PbClass *> *grids);
+int writeGridsTxt(const std::string &name, std::vector<PbClass *> *grids);
 
-template<class T> void readGridUni(const std::string &name, Grid<T> *grid);
-template<class T> void readGridRaw(const std::string &name, Grid<T> *grid);
-template<class T> void readGridVol(const std::string &name, Grid<T> *grid);
+// OpenVDB
+int writeObjectsVDB(const std::string &filename,
+                    std::vector<PbClass *> *objects,
+                    float scale = 1.0,
+                    bool skipDeletedParts = false,
+                    int compression = COMPRESSION_ZIP,
+                    bool precisionHalf = true);
+int readObjectsVDB(const std::string &filename,
+                   std::vector<PbClass *> *objects,
+                   float scale = 1.0);
 
-template<class T> void writeGrid4dUni(const std::string &name, Grid4d<T> *grid);
+// Numpy
+template<class T> int writeGridNumpy(const std::string &name, Grid<T> *grid);
+template<class T> int readGridNumpy(const std::string &name, Grid<T> *grid);
+
+int writeGridsNumpy(const std::string &name, std::vector<PbClass *> *grids);
+int readGridsNumpy(const std::string &name, std::vector<PbClass *> *grids);
+
+// 4D Grids
+template<class T> int writeGrid4dUni(const std::string &name, Grid4d<T> *grid);
 template<class T>
-void readGrid4dUni(const std::string &name,
-                   Grid4d<T> *grid,
-                   int readTslice = -1,
-                   Grid4d<T> *slice = NULL,
-                   void **fileHandle = NULL);
+int readGrid4dUni(const std::string &name,
+                  Grid4d<T> *grid,
+                  int readTslice = -1,
+                  Grid4d<T> *slice = NULL,
+                  void **fileHandle = NULL);
 void readGrid4dUniCleanup(void **fileHandle);
-template<class T> void writeGrid4dRaw(const std::string &name, Grid4d<T> *grid);
-template<class T> void readGrid4dRaw(const std::string &name, Grid4d<T> *grid);
+template<class T> int writeGrid4dRaw(const std::string &name, Grid4d<T> *grid);
+template<class T> int readGrid4dRaw(const std::string &name, Grid4d<T> *grid);
 
-void writeParticlesUni(const std::string &name, const BasicParticleSystem *parts);
-void readParticlesUni(const std::string &name, BasicParticleSystem *parts);
+// Particles + particle data
+int writeParticlesUni(const std::string &name, const BasicParticleSystem *parts);
+int readParticlesUni(const std::string &name, BasicParticleSystem *parts);
 
-template<class T> void writePdataUni(const std::string &name, ParticleDataImpl<T> *pdata);
-template<class T> void readPdataUni(const std::string &name, ParticleDataImpl<T> *pdata);
+template<class T> int writePdataUni(const std::string &name, ParticleDataImpl<T> *pdata);
+template<class T> int readPdataUni(const std::string &name, ParticleDataImpl<T> *pdata);
 
-template<class T> void writeMdataUni(const std::string &name, MeshDataImpl<T> *mdata);
-template<class T> void readMdataUni(const std::string &name, MeshDataImpl<T> *mdata);
+// Mesh data
+template<class T> int writeMdataUni(const std::string &name, MeshDataImpl<T> *mdata);
+template<class T> int readMdataUni(const std::string &name, MeshDataImpl<T> *mdata);
 
+// Helpers
 void getUniFileSize(
     const std::string &name, int &x, int &y, int &z, int *t = NULL, std::string *info = NULL);
-
 void *safeGzopen(const char *filename, const char *mode);
+#if OPENVDB == 1
+template<class S, class T> void convertFrom(S &in, T *out);
+template<class S, class T> void convertTo(S *out, T &in);
+#endif
 
 }  // namespace Manta
 

@@ -158,7 +158,7 @@ void pdataReadConvert<Vec3>(gzFile &gzf,
 
 static const int PartSysSize = sizeof(Vector3D<float>) + sizeof(int);
 
-void writeParticlesUni(const std::string &name, const BasicParticleSystem *parts)
+int writeParticlesUni(const std::string &name, const BasicParticleSystem *parts)
 {
   debMsg("writing particles " << parts->getName() << " to uni file " << name, 1);
 
@@ -177,8 +177,10 @@ void writeParticlesUni(const std::string &name, const BasicParticleSystem *parts
   head.timestamp = stamp.time;
 
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "wb1");  // do some compression
-  if (!gzf)
+  if (!gzf) {
     errMsg("can't open file " << name);
+    return 0;
+  }
 
   gzwrite(gzf, ID, 4);
 #  if FLOATINGPOINT_PRECISION != 1
@@ -195,26 +197,30 @@ void writeParticlesUni(const std::string &name, const BasicParticleSystem *parts
   gzwrite(gzf, &head, sizeof(UniPartHeader));
   gzwrite(gzf, &((*parts)[0]), PartSysSize * head.dim);
 #  endif
-  gzclose(gzf);
+  return (gzclose(gzf) == Z_OK);
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 };
 
-void readParticlesUni(const std::string &name, BasicParticleSystem *parts)
+int readParticlesUni(const std::string &name, BasicParticleSystem *parts)
 {
   debMsg("reading particles " << parts->getName() << " from uni file " << name, 1);
 
 #if NO_ZLIB != 1
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "rb");
-  if (!gzf)
+  if (!gzf) {
     errMsg("can't open file " << name);
+    return 0;
+  }
 
   char ID[5] = {0, 0, 0, 0, 0};
   gzread(gzf, ID, 4);
 
   if (!strcmp(ID, "PB01")) {
     errMsg("particle uni file format v01 not supported anymore");
+    return 0;
   }
   else if (!strcmp(ID, "PB02")) {
     // current file format
@@ -249,13 +255,14 @@ void readParticlesUni(const std::string &name, BasicParticleSystem *parts)
     parts->transformPositions(Vec3i(head.dimX, head.dimY, head.dimZ),
                               parts->getParent()->getGridSize());
   }
-  gzclose(gzf);
+  return (gzclose(gzf) == Z_OK);
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 };
 
-template<class T> void writePdataUni(const std::string &name, ParticleDataImpl<T> *pdata)
+template<class T> int writePdataUni(const std::string &name, ParticleDataImpl<T> *pdata)
 {
   debMsg("writing particle data " << pdata->getName() << " to uni file " << name, 1);
 
@@ -274,8 +281,10 @@ template<class T> void writePdataUni(const std::string &name, ParticleDataImpl<T
   head.timestamp = stamp.time;
 
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "wb1");  // do some compression
-  if (!gzf)
+  if (!gzf) {
     errMsg("can't open file " << name);
+    return 0;
+  }
   gzwrite(gzf, ID, 4);
 
 #  if FLOATINGPOINT_PRECISION != 1
@@ -287,21 +296,24 @@ template<class T> void writePdataUni(const std::string &name, ParticleDataImpl<T
   gzwrite(gzf, &head, sizeof(UniPartHeader));
   gzwrite(gzf, &(pdata->get(0)), sizeof(T) * head.dim);
 #  endif
-  gzclose(gzf);
+  return (gzclose(gzf) == Z_OK);
 
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 };
 
-template<class T> void readPdataUni(const std::string &name, ParticleDataImpl<T> *pdata)
+template<class T> int readPdataUni(const std::string &name, ParticleDataImpl<T> *pdata)
 {
   debMsg("reading particle data " << pdata->getName() << " from uni file " << name, 1);
 
 #if NO_ZLIB != 1
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "rb");
-  if (!gzf)
+  if (!gzf) {
     errMsg("can't open file " << name);
+    return 0;
+  }
 
   char ID[5] = {0, 0, 0, 0, 0};
   gzread(gzf, ID, 4);
@@ -327,18 +339,19 @@ template<class T> void readPdataUni(const std::string &name, ParticleDataImpl<T>
                                                                     << readBytes);
 #  endif
   }
-  gzclose(gzf);
+  return (gzclose(gzf) == Z_OK);
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 }
 
 // explicit instantiation
-template void writePdataUni<int>(const std::string &name, ParticleDataImpl<int> *pdata);
-template void writePdataUni<Real>(const std::string &name, ParticleDataImpl<Real> *pdata);
-template void writePdataUni<Vec3>(const std::string &name, ParticleDataImpl<Vec3> *pdata);
-template void readPdataUni<int>(const std::string &name, ParticleDataImpl<int> *pdata);
-template void readPdataUni<Real>(const std::string &name, ParticleDataImpl<Real> *pdata);
-template void readPdataUni<Vec3>(const std::string &name, ParticleDataImpl<Vec3> *pdata);
+template int writePdataUni<int>(const std::string &name, ParticleDataImpl<int> *pdata);
+template int writePdataUni<Real>(const std::string &name, ParticleDataImpl<Real> *pdata);
+template int writePdataUni<Vec3>(const std::string &name, ParticleDataImpl<Vec3> *pdata);
+template int readPdataUni<int>(const std::string &name, ParticleDataImpl<int> *pdata);
+template int readPdataUni<Real>(const std::string &name, ParticleDataImpl<Real> *pdata);
+template int readPdataUni<Vec3>(const std::string &name, ParticleDataImpl<Vec3> *pdata);
 
 }  // namespace Manta

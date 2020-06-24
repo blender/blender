@@ -122,48 +122,52 @@ template<class T> void Grid<T>::swap(Grid<T> &other)
   mData = dswap;
 }
 
-template<class T> void Grid<T>::load(string name)
+template<class T> int Grid<T>::load(string name)
 {
   if (name.find_last_of('.') == string::npos)
     errMsg("file '" + name + "' does not have an extension");
   string ext = name.substr(name.find_last_of('.'));
   if (ext == ".raw")
-    readGridRaw(name, this);
+    return readGridRaw(name, this);
   else if (ext == ".uni")
-    readGridUni(name, this);
+    return readGridUni(name, this);
   else if (ext == ".vol")
-    readGridVol(name, this);
+    return readGridVol(name, this);
   else if (ext == ".npz")
-    readGridNumpy(name, this);
-#if OPENVDB == 1
-  else if (ext == ".vdb")
-    readGridVDB(name, this);
-#endif  // OPENVDB==1
+    return readGridNumpy(name, this);
+  else if (ext == ".vdb") {
+    std::vector<PbClass *> grids;
+    grids.push_back(this);
+    return readObjectsVDB(name, &grids);
+  }
   else
     errMsg("file '" + name + "' filetype not supported");
+  return 0;
 }
 
-template<class T> void Grid<T>::save(string name)
+template<class T> int Grid<T>::save(string name)
 {
   if (name.find_last_of('.') == string::npos)
     errMsg("file '" + name + "' does not have an extension");
   string ext = name.substr(name.find_last_of('.'));
   if (ext == ".raw")
-    writeGridRaw(name, this);
+    return writeGridRaw(name, this);
   else if (ext == ".uni")
-    writeGridUni(name, this);
+    return writeGridUni(name, this);
   else if (ext == ".vol")
-    writeGridVol(name, this);
-#if OPENVDB == 1
-  else if (ext == ".vdb")
-    writeGridVDB(name, this);
-#endif  // OPENVDB==1
+    return writeGridVol(name, this);
   else if (ext == ".npz")
-    writeGridNumpy(name, this);
+    return writeGridNumpy(name, this);
+  else if (ext == ".vdb") {
+    std::vector<PbClass *> grids;
+    grids.push_back(this);
+    return writeObjectsVDB(name, &grids);
+  }
   else if (ext == ".txt")
-    writeGridTxt(name, this);
+    return writeGridTxt(name, this);
   else
     errMsg("file '" + name + "' filetype not supported");
+  return 0;
 }
 
 //******************************************************************************

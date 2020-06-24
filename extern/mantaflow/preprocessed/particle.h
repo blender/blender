@@ -646,7 +646,7 @@ class BasicParticleSystem : public ParticleSystem<BasicParticleData> {
   }
 
   //! file io
-  void save(const std::string name) const;
+  int save(const std::string name);
   static PyObject *_W_13(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
@@ -659,8 +659,7 @@ class BasicParticleSystem : public ParticleSystem<BasicParticleData> {
         ArgLocker _lock;
         const std::string name = _args.get<std::string>("name", 0, &_lock);
         pbo->_args.copy(_args);
-        _retval = getPyNone();
-        pbo->save(name);
+        _retval = toPy(pbo->save(name));
         pbo->_args.check();
       }
       pbFinalizePlugin(pbo->getParent(), "BasicParticleSystem::save", !noTiming);
@@ -672,7 +671,7 @@ class BasicParticleSystem : public ParticleSystem<BasicParticleData> {
     }
   }
 
-  void load(const std::string name);
+  int load(const std::string name);
   static PyObject *_W_14(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
@@ -685,8 +684,7 @@ class BasicParticleSystem : public ParticleSystem<BasicParticleData> {
         ArgLocker _lock;
         const std::string name = _args.get<std::string>("name", 0, &_lock);
         pbo->_args.copy(_args);
-        _retval = getPyNone();
-        pbo->load(name);
+        _retval = toPy(pbo->load(name));
         pbo->_args.check();
       }
       pbFinalizePlugin(pbo->getParent(), "BasicParticleSystem::load", !noTiming);
@@ -1022,10 +1020,14 @@ class ParticleDataBase : public PbClass {
     return;
   }
 
-  //! set base pointer
+  //! set / get base pointer to parent particle system
   void setParticleSys(ParticleBase *set)
   {
     mpParticleSys = set;
+  }
+  ParticleBase *getParticleSys()
+  {
+    return mpParticleSys;
   }
 
   //! debugging
@@ -1092,6 +1094,13 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
   {
     DEBUG_ONLY(checkPartIndex(idx));
     return mData[idx];
+  }
+
+  //! set data
+  inline void set(const IndexInt idx, T &val)
+  {
+    DEBUG_ONLY(checkPartIndex(idx));
+    mData[idx] = val;
   }
 
   //! set all values to 0, note - different from particleSystem::clear! doesnt modify size of array
@@ -1716,7 +1725,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
   }
 
   //! file io
-  void save(const std::string name);
+  int save(const std::string name);
   static PyObject *_W_46(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
@@ -1729,8 +1738,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
         ArgLocker _lock;
         const std::string name = _args.get<std::string>("name", 0, &_lock);
         pbo->_args.copy(_args);
-        _retval = getPyNone();
-        pbo->save(name);
+        _retval = toPy(pbo->save(name));
         pbo->_args.check();
       }
       pbFinalizePlugin(pbo->getParent(), "ParticleDataImpl::save", !noTiming);
@@ -1742,7 +1750,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
     }
   }
 
-  void load(const std::string name);
+  int load(const std::string name);
   static PyObject *_W_47(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
@@ -1755,8 +1763,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
         ArgLocker _lock;
         const std::string name = _args.get<std::string>("name", 0, &_lock);
         pbo->_args.copy(_args);
-        _retval = getPyNone();
-        pbo->load(name);
+        _retval = toPy(pbo->load(name));
         pbo->_args.check();
       }
       pbFinalizePlugin(pbo->getParent(), "ParticleDataImpl::load", !noTiming);

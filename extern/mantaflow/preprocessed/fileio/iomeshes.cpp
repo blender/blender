@@ -146,21 +146,25 @@ void mdataReadConvert<Vec3>(gzFile &gzf, MeshDataImpl<Vec3> &mdata, void *ptr, i
 // mesh data
 //*****************************************************************************
 
-void readBobjFile(const string &name, Mesh *mesh, bool append)
+int readBobjFile(const string &name, Mesh *mesh, bool append)
 {
   debMsg("reading mesh file " << name, 1);
   if (!append)
     mesh->clear();
-  else
+  else {
     errMsg("readBobj: append not yet implemented!");
+    return 0;
+  }
 
 #if NO_ZLIB != 1
   const Real dx = mesh->getParent()->getDx();
   const Vec3 gs = toVec3(mesh->getParent()->getGridSize());
 
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "rb1");  // do some compression
-  if (!gzf)
+  if (!gzf) {
     errMsg("readBobj: unable to open file");
+    return 0;
+  }
 
   // read vertices
   int num = 0;
@@ -198,15 +202,16 @@ void readBobjFile(const string &name, Mesh *mesh, bool append)
     }
   }
   // note - vortex sheet info ignored for now... (see writeBobj)
-  gzclose(gzf);
   debMsg("read mesh , triangles " << mesh->numTris() << ", vertices " << mesh->numNodes() << " ",
          1);
+  return (gzclose(gzf) == Z_OK);
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 }
 
-void writeBobjFile(const string &name, Mesh *mesh)
+int writeBobjFile(const string &name, Mesh *mesh)
 {
   debMsg("writing mesh file " << name, 1);
 #if NO_ZLIB != 1
@@ -214,8 +219,10 @@ void writeBobjFile(const string &name, Mesh *mesh)
   const Vec3i gs = mesh->getParent()->getGridSize();
 
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "wb1");  // do some compression
-  if (!gzf)
+  if (!gzf) {
     errMsg("writeBobj: unable to open file");
+    return 0;
+  }
 
   // write vertices
   int numVerts = mesh->numNodes();
@@ -292,18 +299,21 @@ void writeBobjFile(const string &name, Mesh *mesh)
     }
   }
 
-  gzclose(gzf);
+  return (gzclose(gzf) == Z_OK);
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 }
 
-void readObjFile(const std::string &name, Mesh *mesh, bool append)
+int readObjFile(const std::string &name, Mesh *mesh, bool append)
 {
   ifstream ifs(name.c_str());
 
-  if (!ifs.good())
+  if (!ifs.good()) {
     errMsg("can't open file '" + name + "'");
+    return 0;
+  }
 
   if (!append)
     mesh->clear();
@@ -323,8 +333,10 @@ void readObjFile(const std::string &name, Mesh *mesh, bool append)
     }
     else if (id == "vn") {
       // normals
-      if (!mesh->numNodes())
+      if (!mesh->numNodes()) {
         errMsg("invalid amount of nodes");
+        return 0;
+      }
       Node n = mesh->nodes(cnt);
       ifs >> n.normal.x >> n.normal.y >> n.normal.z;
       cnt++;
@@ -349,8 +361,10 @@ void readObjFile(const std::string &name, Mesh *mesh, bool append)
         if (face.find('/') != string::npos)
           face = face.substr(0, face.find('/'));  // ignore other indices
         int idx = atoi(face.c_str()) - 1;
-        if (idx < 0)
+        if (idx < 0) {
           errMsg("invalid face encountered");
+          return 0;
+        }
         idx += nodebase;
         t.c[i] = idx;
       }
@@ -363,17 +377,20 @@ void readObjFile(const std::string &name, Mesh *mesh, bool append)
     getline(ifs, id);
   }
   ifs.close();
+  return 1;
 }
 
 // write regular .obj file, in line with bobj.gz output (but only verts & tris for now)
-void writeObjFile(const string &name, Mesh *mesh)
+int writeObjFile(const string &name, Mesh *mesh)
 {
   const Real dx = mesh->getParent()->getDx();
   const Vec3i gs = mesh->getParent()->getGridSize();
 
   ofstream ofs(name.c_str());
-  if (!ofs.good())
+  if (!ofs.good()) {
     errMsg("writeObjFile: can't open file " << name);
+    return 0;
+  }
 
   ofs << "o MantaMesh\n";
 
@@ -405,16 +422,19 @@ void writeObjFile(const string &name, Mesh *mesh)
   }
 
   ofs.close();
+  return 1;
 }
 
-template<class T> void readMdataUni(const std::string &name, MeshDataImpl<T> *mdata)
+template<class T> int readMdataUni(const std::string &name, MeshDataImpl<T> *mdata)
 {
   debMsg("reading mesh data " << mdata->getName() << " from uni file " << name, 1);
 
 #if NO_ZLIB != 1
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "rb");
-  if (!gzf)
+  if (!gzf) {
     errMsg("can't open file " << name);
+    return 0;
+  }
 
   char ID[5] = {0, 0, 0, 0, 0};
   gzread(gzf, ID, 4);
@@ -440,13 +460,14 @@ template<class T> void readMdataUni(const std::string &name, MeshDataImpl<T> *md
                                                                     << readBytes);
 #  endif
   }
-  gzclose(gzf);
+  return (gzclose(gzf) == Z_OK);
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 }
 
-template<class T> void writeMdataUni(const std::string &name, MeshDataImpl<T> *mdata)
+template<class T> int writeMdataUni(const std::string &name, MeshDataImpl<T> *mdata)
 {
   debMsg("writing mesh data " << mdata->getName() << " to uni file " << name, 1);
 
@@ -461,8 +482,10 @@ template<class T> void writeMdataUni(const std::string &name, MeshDataImpl<T> *m
   head.timestamp = stamp.time;
 
   gzFile gzf = (gzFile)safeGzopen(name.c_str(), "wb1");  // do some compression
-  if (!gzf)
+  if (!gzf) {
     errMsg("can't open file " << name);
+    return 0;
+  }
   gzwrite(gzf, ID, 4);
 
 #  if FLOATINGPOINT_PRECISION != 1
@@ -474,19 +497,20 @@ template<class T> void writeMdataUni(const std::string &name, MeshDataImpl<T> *m
   gzwrite(gzf, &head, sizeof(UniMeshHeader));
   gzwrite(gzf, &(mdata->get(0)), sizeof(T) * head.dim);
 #  endif
-  gzclose(gzf);
+  return (gzclose(gzf) == Z_OK);
 
 #else
   debMsg("file format not supported without zlib", 1);
+  return 0;
 #endif
 };
 
 // explicit instantiation
-template void writeMdataUni<int>(const std::string &name, MeshDataImpl<int> *mdata);
-template void writeMdataUni<Real>(const std::string &name, MeshDataImpl<Real> *mdata);
-template void writeMdataUni<Vec3>(const std::string &name, MeshDataImpl<Vec3> *mdata);
-template void readMdataUni<int>(const std::string &name, MeshDataImpl<int> *mdata);
-template void readMdataUni<Real>(const std::string &name, MeshDataImpl<Real> *mdata);
-template void readMdataUni<Vec3>(const std::string &name, MeshDataImpl<Vec3> *mdata);
+template int writeMdataUni<int>(const std::string &name, MeshDataImpl<int> *mdata);
+template int writeMdataUni<Real>(const std::string &name, MeshDataImpl<Real> *mdata);
+template int writeMdataUni<Vec3>(const std::string &name, MeshDataImpl<Vec3> *mdata);
+template int readMdataUni<int>(const std::string &name, MeshDataImpl<int> *mdata);
+template int readMdataUni<Real>(const std::string &name, MeshDataImpl<Real> *mdata);
+template int readMdataUni<Vec3>(const std::string &name, MeshDataImpl<Vec3> *mdata);
 
 }  // namespace Manta

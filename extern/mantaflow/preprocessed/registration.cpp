@@ -45,6 +45,8 @@ extern void PbRegister_printUniFileInfoString();
 extern void PbRegister_getNpzFileSize();
 extern void PbRegister_quantizeGrid();
 extern void PbRegister_quantizeGridVec3();
+extern void PbRegister_load();
+extern void PbRegister_save();
 extern void PbRegister_resetPhiInObs();
 extern void PbRegister_advectSemiLagrange();
 extern void PbRegister_addGravity();
@@ -238,6 +240,8 @@ void MantaEnsureRegistration()
   PbRegister_getNpzFileSize();
   PbRegister_quantizeGrid();
   PbRegister_quantizeGridVec3();
+  PbRegister_load();
+  PbRegister_save();
   PbRegister_resetPhiInObs();
   PbRegister_advectSemiLagrange();
   PbRegister_addGravity();

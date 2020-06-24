@@ -372,7 +372,7 @@ template<class T> class Grid4d : public Grid4dBase {
   typedef T BASETYPE;
   typedef Grid4dBase BASETYPE_GRID;
 
-  void save(std::string name);
+  int save(std::string name);
   static PyObject *_W_9(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
@@ -385,8 +385,7 @@ template<class T> class Grid4d : public Grid4dBase {
         ArgLocker _lock;
         std::string name = _args.get<std::string>("name", 0, &_lock);
         pbo->_args.copy(_args);
-        _retval = getPyNone();
-        pbo->save(name);
+        _retval = toPy(pbo->save(name));
         pbo->_args.check();
       }
       pbFinalizePlugin(pbo->getParent(), "Grid4d::save", !noTiming);
@@ -398,7 +397,7 @@ template<class T> class Grid4d : public Grid4dBase {
     }
   }
 
-  void load(std::string name);
+  int load(std::string name);
   static PyObject *_W_10(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
@@ -411,8 +410,7 @@ template<class T> class Grid4d : public Grid4dBase {
         ArgLocker _lock;
         std::string name = _args.get<std::string>("name", 0, &_lock);
         pbo->_args.copy(_args);
-        _retval = getPyNone();
-        pbo->load(name);
+        _retval = toPy(pbo->load(name));
         pbo->_args.check();
       }
       pbFinalizePlugin(pbo->getParent(), "Grid4d::load", !noTiming);

@@ -121,30 +121,32 @@ template<class T> void Grid4d<T>::swap(Grid4d<T> &other)
   mData = dswap;
 }
 
-template<class T> void Grid4d<T>::load(string name)
+template<class T> int Grid4d<T>::load(string name)
 {
   if (name.find_last_of('.') == string::npos)
     errMsg("file '" + name + "' does not have an extension");
   string ext = name.substr(name.find_last_of('.'));
   if (ext == ".uni")
-    readGrid4dUni(name, this);
+    return readGrid4dUni(name, this);
   else if (ext == ".raw")
-    readGrid4dRaw(name, this);
+    return readGrid4dRaw(name, this);
   else
     errMsg("file '" + name + "' filetype not supported");
+  return 0;
 }
 
-template<class T> void Grid4d<T>::save(string name)
+template<class T> int Grid4d<T>::save(string name)
 {
   if (name.find_last_of('.') == string::npos)
     errMsg("file '" + name + "' does not have an extension");
   string ext = name.substr(name.find_last_of('.'));
   if (ext == ".uni")
-    writeGrid4dUni(name, this);
+    return writeGrid4dUni(name, this);
   else if (ext == ".raw")
-    writeGrid4dRaw(name, this);
+    return writeGrid4dRaw(name, this);
   else
     errMsg("file '" + name + "' filetype not supported");
+  return 0;
 }
 
 //******************************************************************************

@@ -18,6 +18,10 @@
 
 #include "mantaio.h"
 
+#if OPENVDB == 1
+#  include "openvdb/openvdb.h"
+#endif
+
 #if NO_ZLIB != 1
 extern "C" {
 #  include <zlib.h>
@@ -40,7 +44,7 @@ static wstring stringToWstring(const char *str)
   MultiByteToWideChar(CP_UTF8, 0, str, strlen(str), &strWide[0], length_wc);
   return strWide;
 }
-#  endif
+#  endif  // WIN32==1
 
 void *safeGzopen(const char *filename, const char *mode)
 {
@@ -55,6 +59,54 @@ void *safeGzopen(const char *filename, const char *mode)
 
   return gzfile;
 }
-#endif
+#endif  // NO_ZLIB != 1
+
+#if defined(OPENVDB)
+// Convert from OpenVDB value to Manta value.
+template<class S, class T> void convertFrom(S &in, T *out)
+{
+  errMsg("OpenVDB convertFrom Warning: Unsupported type conversion");
+}
+
+template<> void convertFrom(int &in, int *out)
+{
+  (*out) = in;
+}
+
+template<> void convertFrom(float &in, Real *out)
+{
+  (*out) = (Real)in;
+}
+
+template<> void convertFrom(openvdb::Vec3s &in, Vec3 *out)
+{
+  (*out).x = in.x();
+  (*out).y = in.y();
+  (*out).z = in.z();
+}
+
+// Convert to OpenVDB value from Manta value.
+template<class S, class T> void convertTo(S *out, T &in)
+{
+  errMsg("OpenVDB convertTo Warning: Unsupported type conversion");
+}
+
+template<> void convertTo(int *out, int &in)
+{
+  (*out) = in;
+}
+
+template<> void convertTo(float *out, Real &in)
+{
+  (*out) = (float)in;
+}
+
+template<> void convertTo(openvdb::Vec3s *out, Vec3 &in)
+{
+  (*out).x() = in.x;
+  (*out).y() = in.y;
+  (*out).z() = in.z;
+}
+#endif  // OPENVDB==1
 
 }  // namespace

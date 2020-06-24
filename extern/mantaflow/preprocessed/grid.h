@@ -409,7 +409,7 @@ template<class T> class Grid : public GridBase {
   typedef T BASETYPE;
   typedef GridBase BASETYPE_GRID;
 
-  void save(std::string name);
+  int save(std::string name);
   static PyObject *_W_10(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
@@ -422,8 +422,7 @@ template<class T> class Grid : public GridBase {
         ArgLocker _lock;
         std::string name = _args.get<std::string>("name", 0, &_lock);
         pbo->_args.copy(_args);
-        _retval = getPyNone();
-        pbo->save(name);
+        _retval = toPy(pbo->save(name));
         pbo->_args.check();
       }
       pbFinalizePlugin(pbo->getParent(), "Grid::save", !noTiming);
@@ -435,7 +434,7 @@ template<class T> class Grid : public GridBase {
     }
   }
 
-  void load(std::string name);
+  int load(std::string name);
   static PyObject *_W_11(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
@@ -448,8 +447,7 @@ template<class T> class Grid : public GridBase {
         ArgLocker _lock;
         std::string name = _args.get<std::string>("name", 0, &_lock);
         pbo->_args.copy(_args);
-        _retval = getPyNone();
-        pbo->load(name);
+        _retval = toPy(pbo->load(name));
         pbo->_args.check();
       }
       pbFinalizePlugin(pbo->getParent(), "Grid::load", !noTiming);
@@ -552,6 +550,12 @@ template<class T> class Grid : public GridBase {
   {
     DEBUG_ONLY(checkIndex(idx));
     return mData[idx];
+  }
+
+  //! set data
+  inline void set(int i, int j, int k, T &val)
+  {
+    mData[index(i, j, k)] = val;
   }
 
   // interpolated access
