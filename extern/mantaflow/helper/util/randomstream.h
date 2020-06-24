@@ -16,12 +16,12 @@
 #ifndef _RANDOMSTREAM_H
 #define _RANDOMSTREAM_H
 
-namespace Manta {
-
 #include <iostream>
 #include <stdio.h>
 #include <time.h>
 #include "vectorbase.h"
+
+namespace Manta {
 
 class MTRand {
   // Data
