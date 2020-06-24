@@ -402,6 +402,11 @@ static void eevee_id_world_update(void *vedata, World *wo)
   EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
   LightCache *lcache = stl->g_data->light_cache;
 
+  if (lcache == NULL || lcache == stl->lookdev_lightcache) {
+    /* Avoid Lookdev viewport clearing the update flag (see T67741). */
+    return;
+  }
+
   EEVEE_WorldEngineData *wedata = EEVEE_world_data_ensure(wo);
 
   if (wedata != NULL && wedata->dd.recalc != 0) {
