@@ -1452,8 +1452,8 @@ void UI_view2d_scrollers_calc(View2D *v2d,
     vert.xmax -= smaller;
   }
 
-  CLAMP(vert.ymin, vert.ymin, vert.ymax - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
-  CLAMP(hor.xmin, hor.xmin, hor.xmax - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
+  CLAMP_MAX(vert.ymin, vert.ymax - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
+  CLAMP_MAX(hor.xmin, hor.xmax - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
 
   /* store in scrollers, used for drawing */
   r_scrollers->vert = vert;

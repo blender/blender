@@ -434,7 +434,7 @@ static int gp_vertexpaint_set_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
   Paint *paint = &ts->gp_vertexpaint->paint;
-  Brush *brush = brush = paint->brush;
+  Brush *brush = paint->brush;
 
   bool changed = false;
   int i;

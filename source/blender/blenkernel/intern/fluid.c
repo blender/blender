@@ -3794,8 +3794,8 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
 
   int next_frame = scene_framenr + 1;
   int prev_frame = scene_framenr - 1;
-  /* Ensure positivity of previous frame. */
-  CLAMP(prev_frame, mds->cache_frame_start, prev_frame);
+  /* Ensure positive of previous frame. */
+  CLAMP_MIN(prev_frame, mds->cache_frame_start);
 
   int data_frame = scene_framenr, noise_frame = scene_framenr;
   int mesh_frame = scene_framenr, particles_frame = scene_framenr, guide_frame = scene_framenr;
@@ -3902,10 +3902,10 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
       }
 
       /* Noise, mesh and particles can never be baked more than data. */
-      CLAMP(noise_frame, noise_frame, data_frame);
-      CLAMP(mesh_frame, mesh_frame, data_frame);
-      CLAMP(particles_frame, particles_frame, data_frame);
-      CLAMP(guide_frame, guide_frame, mds->cache_frame_end);
+      CLAMP_MAX(noise_frame, data_frame);
+      CLAMP_MAX(mesh_frame, data_frame);
+      CLAMP_MAX(particles_frame, data_frame);
+      CLAMP_MAX(guide_frame, mds->cache_frame_end);
 
       /* Force to read cache as we're resuming the bake */
       read_cache = true;
