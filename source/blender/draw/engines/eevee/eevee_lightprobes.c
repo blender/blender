@@ -957,8 +957,8 @@ static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *us
   /* Slight modification: we handle refraction as normal
    * shading and don't do SSRefraction. */
 
-  DRW_draw_pass(psl->depth_ps);
-  DRW_draw_pass(psl->depth_refract_ps);
+  DRW_draw_pass(psl->depth_clip_ps);
+  DRW_draw_pass(psl->depth_refract_clip_ps);
 
   DRW_draw_pass(psl->probe_background);
   EEVEE_create_minmax_buffer(vedata, tmp_planar_depth, layer);
