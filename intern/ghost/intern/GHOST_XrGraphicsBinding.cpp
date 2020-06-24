@@ -36,7 +36,7 @@
 
 static bool choose_swapchain_format_from_candidates(std::vector<int64_t> gpu_binding_formats,
                                                     std::vector<int64_t> runtime_formats,
-                                                    int64_t *r_result)
+                                                    int64_t &r_result)
 {
   if (gpu_binding_formats.empty()) {
     return false;
@@ -50,7 +50,7 @@ static bool choose_swapchain_format_from_candidates(std::vector<int64_t> gpu_bin
     return false;
   }
 
-  *r_result = *res;
+  r_result = *res;
   return true;
 }
 
@@ -132,10 +132,20 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
   }
 
   bool chooseSwapchainFormat(const std::vector<int64_t> &runtime_formats,
-                             int64_t *r_result) const override
+                             int64_t &r_result,
+                             bool &r_is_srgb_format) const override
   {
-    std::vector<int64_t> gpu_binding_formats = {GL_RGBA8};
-    return choose_swapchain_format_from_candidates(gpu_binding_formats, runtime_formats, r_result);
+    std::vector<int64_t> gpu_binding_formats = {
+        GL_RGBA8,
+        GL_SRGB8_ALPHA8,
+    };
+
+    if (choose_swapchain_format_from_candidates(gpu_binding_formats, runtime_formats, r_result)) {
+      r_is_srgb_format = (r_result == GL_SRGB8_ALPHA8);
+      return true;
+    }
+
+    return false;
   }
 
   std::vector<XrSwapchainImageBaseHeader *> createSwapchainImages(uint32_t image_count) override
@@ -248,10 +258,19 @@ class GHOST_XrGraphicsBindingD3D : public GHOST_IXrGraphicsBinding {
   }
 
   bool chooseSwapchainFormat(const std::vector<int64_t> &runtime_formats,
-                             int64_t *r_result) const override
+                             int64_t &r_result,
+                             bool &r_is_srgb_format) const override
   {
-    std::vector<int64_t> gpu_binding_formats = {DXGI_FORMAT_R8G8B8A8_UNORM};
-    return choose_swapchain_format_from_candidates(gpu_binding_formats, runtime_formats, r_result);
+    std::vector<int64_t> gpu_binding_formats = {
+        DXGI_FORMAT_R8G8B8A8_UNORM,
+        DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
+    };
+
+    if (choose_swapchain_format_from_candidates(gpu_binding_formats, runtime_formats, r_result)) {
+      r_is_srgb_format = (r_result == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
+      return true;
+    }
+    return false;
   }
 
   std::vector<XrSwapchainImageBaseHeader *> createSwapchainImages(uint32_t image_count) override
