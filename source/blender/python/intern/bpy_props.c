@@ -1366,14 +1366,14 @@ static void bpy_prop_enum_set_cb(struct PointerRNA *ptr, struct PropertyRNA *pro
 }
 
 /* utility function we need for parsing int's in an if statement */
-static int py_long_as_int(PyObject *py_long, int *r_int)
+static bool py_long_as_int(PyObject *py_long, int *r_int)
 {
   if (PyLong_CheckExact(py_long)) {
     *r_int = (int)PyLong_AS_LONG(py_long);
-    return 0;
+    return true;
   }
   else {
-    return -1;
+    return false;
   }
 }
 
@@ -1422,7 +1422,8 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
   Py_ssize_t totbuf = 0;
   int i;
   short def_used = 0;
-  const char *def_cmp = NULL;
+  const char *def_string_cmp = NULL;
+  int def_int_cmp = 0;
 
   if (is_enum_flag) {
     if (seq_len > RNA_ENUM_BITFLAG_SIZE) {
@@ -1441,13 +1442,15 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
   }
   else {
     if (def) {
-      def_cmp = _PyUnicode_AsString(def);
-      if (def_cmp == NULL) {
-        PyErr_Format(PyExc_TypeError,
-                     "EnumProperty(...): default option must be a 'str' "
-                     "type when ENUM_FLAG is disabled, not a '%.200s'",
-                     Py_TYPE(def)->tp_name);
-        return NULL;
+      if (!py_long_as_int(def, &def_int_cmp)) {
+        def_string_cmp = _PyUnicode_AsString(def);
+        if (def_string_cmp == NULL) {
+          PyErr_Format(PyExc_TypeError,
+                       "EnumProperty(...): default option must be a 'str' or 'int' "
+                       "type when ENUM_FLAG is disabled, not a '%.200s'",
+                       Py_TYPE(def)->tp_name);
+          return NULL;
+        }
       }
     }
   }
@@ -1474,10 +1477,10 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
         (tmp.description = _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2),
                                                       &desc_str_size)) &&
         /* TODO, number isn't ensured to be unique from the script author */
-        (item_size != 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value) != -1) &&
-        (item_size != 5 || ((py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.icon) != -1 ||
+        (item_size != 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value)) &&
+        (item_size != 5 || ((py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.icon) ||
                              (tmp_icon = _PyUnicode_AsString(PyTuple_GET_ITEM(item, 3)))) &&
-                            py_long_as_int(PyTuple_GET_ITEM(item, 4), &tmp.value) != -1))) {
+                            py_long_as_int(PyTuple_GET_ITEM(item, 4), &tmp.value)))) {
       if (is_enum_flag) {
         if (item_size < 4) {
           tmp.value = 1 << i;
@@ -1493,9 +1496,12 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
           tmp.value = i;
         }
 
-        if (def && def_used == 0 && STREQ(def_cmp, tmp.identifier)) {
-          *defvalue = tmp.value;
-          def_used++; /* only ever 1 */
+        if (def && def_used == 0) {
+          if ((def_string_cmp != NULL && STREQ(def_string_cmp, tmp.identifier)) ||
+              (def_string_cmp == NULL && def_int_cmp == tmp.value)) {
+            *defvalue = tmp.value;
+            def_used++; /* only ever 1 */
+          }
         }
       }
 
@@ -1537,9 +1543,16 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
     if (def && def_used == 0) {
       MEM_freeN(items);
 
-      PyErr_Format(PyExc_TypeError,
-                   "EnumProperty(..., default=\'%s\'): not found in enum members",
-                   def_cmp);
+      if (def_string_cmp) {
+        PyErr_Format(PyExc_TypeError,
+                     "EnumProperty(..., default=\'%s\'): not found in enum members",
+                     def_string_cmp);
+      }
+      else {
+        PyErr_Format(PyExc_TypeError,
+                     "EnumProperty(..., default=%d): not found in enum members",
+                     def_int_cmp);
+      }
       return NULL;
     }
   }
@@ -3001,13 +3014,12 @@ PyDoc_STRVAR(
     "   :type items: sequence of string tuples or a function\n" BPY_PROPDEF_NAME_DOC
         BPY_PROPDEF_DESC_DOC
     "   :arg default: The default value for this enum, a string from the identifiers used in "
-    "*items*.\n"
+    "*items*, or integer matching an item number.\n"
     "      If the *ENUM_FLAG* option is used this must be a set of such string identifiers "
     "instead.\n"
-    "      WARNING: It shall not be specified (or specified to its default *None* value) for "
-    "dynamic enums\n"
+    "      WARNING: Strings can not be specified for dynamic enums\n"
     "      (i.e. if a callback function is given as *items* parameter).\n"
-    "   :type default: string or set\n" BPY_PROPDEF_OPTIONS_ENUM_DOC BPY_PROPDEF_TAGS_DOC
+    "   :type default: string, integer or set\n" BPY_PROPDEF_OPTIONS_ENUM_DOC BPY_PROPDEF_TAGS_DOC
         BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC BPY_PROPDEF_SET_DOC);
 static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
@@ -3095,10 +3107,14 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
       }
 
       if (def) {
-        /* note, using type error here is odd but python does this for invalid arguments */
-        PyErr_SetString(PyExc_TypeError,
-                        "EnumProperty(...): 'default' can't be set when 'items' is a function");
-        return NULL;
+        /* Only support getting integer default values here. */
+        if (!py_long_as_int(def, &defvalue)) {
+          /* note, using type error here is odd but python does this for invalid arguments */
+          PyErr_SetString(
+              PyExc_TypeError,
+              "EnumProperty(...): 'default' can only be an integer when 'items' is a function");
+          return NULL;
+        }
       }
 
       is_itemf = true;
