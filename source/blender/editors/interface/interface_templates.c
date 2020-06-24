@@ -511,6 +511,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
   PointerRNA idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
   ID *id = idptr.data;
   int event = POINTER_AS_INT(arg_event);
+  const char *undo_push_label = NULL;
 
   switch (event) {
     case UI_ID_BROWSE:
@@ -531,6 +532,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         id_us_clear_real(id);
         id_fake_user_clear(id);
         id->us = 0;
+        undo_push_label = "Delete Data-Block";
       }
 
       break;
@@ -542,6 +544,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         else {
           id_us_min(id);
         }
+        undo_push_label = "Fake User";
       }
       else {
         return;
@@ -572,6 +575,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         }
         RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, NULL);
         RNA_property_update(C, &template_ui->ptr, template_ui->prop);
+        undo_push_label = "Make Local";
       }
       break;
     case UI_ID_OVERRIDE:
@@ -581,6 +585,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
         RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, NULL);
         RNA_property_update(C, &template_ui->ptr, template_ui->prop);
+        undo_push_label = "Override Data-Block";
       }
       break;
     case UI_ID_ALONE:
@@ -601,12 +606,17 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
           id_single_user(C, id, &template_ui->ptr, template_ui->prop);
           DEG_relations_tag_update(bmain);
         }
+        undo_push_label = "Make Single User";
       }
       break;
 #if 0
     case UI_ID_AUTO_NAME:
       break;
 #endif
+  }
+
+  if (undo_push_label != NULL) {
+    ED_undo_push(C, undo_push_label);
   }
 }
 
