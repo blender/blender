@@ -1669,7 +1669,9 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
       else {
         Mesh *me_orig = mesh_input;
         if (me_orig->id.tag & LIB_TAG_COPIED_ON_WRITE) {
-          BKE_mesh_runtime_ensure_edit_data(me_orig);
+          if (!BKE_mesh_runtime_ensure_edit_data(me_orig)) {
+            BKE_mesh_runtime_reset_edit_data(me_orig);
+          }
           me_orig->runtime.edit_data->vertexCos = MEM_dupallocN(deformed_verts);
         }
         mesh_cage = BKE_mesh_wrapper_from_editmesh_with_coords(

@@ -203,26 +203,31 @@ bool BKE_mesh_runtime_ensure_edit_data(struct Mesh *mesh)
   return true;
 }
 
+bool BKE_mesh_runtime_reset_edit_data(Mesh *mesh)
+{
+  EditMeshData *edit_data = mesh->runtime.edit_data;
+  if (edit_data == NULL) {
+    return false;
+  }
+
+  MEM_SAFE_FREE(edit_data->polyCos);
+  MEM_SAFE_FREE(edit_data->polyNos);
+  MEM_SAFE_FREE(edit_data->vertexCos);
+  MEM_SAFE_FREE(edit_data->vertexNos);
+
+  return true;
+}
+
 bool BKE_mesh_runtime_clear_edit_data(Mesh *mesh)
 {
   if (mesh->runtime.edit_data == NULL) {
     return false;
   }
+  BKE_mesh_runtime_reset_edit_data(mesh);
 
-  if (mesh->runtime.edit_data->polyCos != NULL) {
-    MEM_freeN((void *)mesh->runtime.edit_data->polyCos);
-  }
-  if (mesh->runtime.edit_data->polyNos != NULL) {
-    MEM_freeN((void *)mesh->runtime.edit_data->polyNos);
-  }
-  if (mesh->runtime.edit_data->vertexCos != NULL) {
-    MEM_freeN((void *)mesh->runtime.edit_data->vertexCos);
-  }
-  if (mesh->runtime.edit_data->vertexNos != NULL) {
-    MEM_freeN((void *)mesh->runtime.edit_data->vertexNos);
-  }
+  MEM_freeN(mesh->runtime.edit_data);
+  mesh->runtime.edit_data = NULL;
 
-  MEM_SAFE_FREE(mesh->runtime.edit_data);
   return true;
 }
 
