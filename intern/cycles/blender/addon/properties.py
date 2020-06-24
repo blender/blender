@@ -199,7 +199,7 @@ def enum_preview_denoiser(self, context):
     if len(optix_items):
         auto_label = "Fastest (Optix)"
     elif len(oidn_items):
-        auto_label = "Fatest (OpenImageDenoise)"
+        auto_label = "Fastest (OpenImageDenoise)"
     else:
         auto_label = "None"
 
