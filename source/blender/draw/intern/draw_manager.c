@@ -373,6 +373,8 @@ void DRW_render_viewport_size_set(int size[2])
 {
   DST.size[0] = size[0];
   DST.size[1] = size[1];
+  DST.inv_size[0] = 1.0f / size[0];
+  DST.inv_size[1] = 1.0f / size[1];
 }
 
 const float *DRW_viewport_size_get(void)
@@ -1945,6 +1947,11 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
 /* Used when the render engine want to redo another cache populate inside the same render frame. */
 void DRW_cache_restart(void)
 {
+  /* Save viewport size. */
+  float size[2], inv_size[2];
+  copy_v2_v2(size, DST.size);
+  copy_v2_v2(inv_size, DST.inv_size);
+
   /* Force cache to reset. */
   drw_viewport_cache_resize();
 
@@ -1953,6 +1960,10 @@ void DRW_cache_restart(void)
   DST.buffer_finish_called = false;
 
   DRW_hair_init();
+
+  /* Restore. */
+  copy_v2_v2(DST.size, size);
+  copy_v2_v2(DST.inv_size, inv_size);
 }
 
 static struct DRWSelectBuffer {
