@@ -577,7 +577,7 @@ uint32_t DRW_object_resource_id_get(Object *UNUSED(ob))
     /* Handle not yet allocated. Return next handle. */
     handle = DST.resource_handle;
   }
-  return handle;
+  return handle & ~(1 << 31);
 }
 
 static DRWResourceHandle drw_resource_handle(DRWShadingGroup *shgroup,
