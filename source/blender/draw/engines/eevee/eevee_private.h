@@ -1220,6 +1220,7 @@ void EEVEE_renderpasses_init(EEVEE_Data *vedata);
 void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
                                     EEVEE_Data *vedata,
                                     uint tot_samples);
+void EEVEE_renderpasses_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_renderpasses_output_accumulate(EEVEE_ViewLayerData *sldata,
                                           EEVEE_Data *vedata,
                                           bool post_effect);

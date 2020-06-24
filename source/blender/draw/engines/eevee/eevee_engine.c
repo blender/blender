@@ -166,6 +166,7 @@ static void eevee_cache_finish(void *vedata)
   EEVEE_materials_cache_finish(sldata, vedata);
   EEVEE_lights_cache_finish(sldata, vedata);
   EEVEE_lightprobes_cache_finish(sldata, vedata);
+  EEVEE_renderpasses_cache_finish(sldata, vedata);
 
   EEVEE_subsurface_draw_init(sldata, vedata);
   EEVEE_effects_draw_init(sldata, vedata);
@@ -469,6 +470,8 @@ static void eevee_render_to_image(void *vedata,
         /* The previous step of this iteration N is exactly the next step of iteration N - 1.
          * So we just swap the resources to avoid too much re-evaluation. */
         EEVEE_motion_blur_swap_data(vedata);
+
+        DRW_cache_restart();
       }
       else {
         EEVEE_motion_blur_step_set(ved, MB_PREV);
@@ -517,6 +520,7 @@ static void eevee_render_to_image(void *vedata,
       EEVEE_materials_cache_finish(sldata, vedata);
       EEVEE_lights_cache_finish(sldata, vedata);
       EEVEE_lightprobes_cache_finish(sldata, vedata);
+      EEVEE_renderpasses_cache_finish(sldata, vedata);
 
       EEVEE_subsurface_draw_init(sldata, vedata);
       EEVEE_effects_draw_init(sldata, vedata);
@@ -532,8 +536,6 @@ static void eevee_render_to_image(void *vedata,
 
       EEVEE_temporal_sampling_create_view(vedata);
       EEVEE_render_draw(vedata, engine, render_layer, rect);
-
-      DRW_cache_restart();
     }
   }
 

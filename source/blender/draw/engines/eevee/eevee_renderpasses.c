@@ -136,24 +136,13 @@ void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
 {
   EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_TextureList *txl = vedata->txl;
-  EEVEE_PassList *psl = vedata->psl;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_EffectsInfo *effects = stl->effects;
   EEVEE_PrivateData *g_data = stl->g_data;
-  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
   const bool needs_post_processing = (g_data->render_passes &
                                       EEVEE_RENDERPASSES_WITH_POST_PROCESSING) > 0;
   if (needs_post_processing) {
-    if (e_data.postprocess_sh == NULL) {
-      char *frag_str = BLI_string_joinN(datatoc_common_view_lib_glsl,
-                                        datatoc_common_uniforms_lib_glsl,
-                                        datatoc_bsdf_common_lib_glsl,
-                                        datatoc_renderpass_postprocess_frag_glsl);
-      e_data.postprocess_sh = DRW_shader_create_fullscreen(frag_str, NULL);
-      MEM_freeN(frag_str);
-    }
-
     /* Create FrameBuffer. */
 
     /* Should be enough to store the data needs for a single pass.
@@ -188,29 +177,51 @@ void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
       EEVEE_volumes_output_init(sldata, vedata, tot_samples);
     }
 
-    /* Create Pass. */
-    DRW_PASS_CREATE(psl->renderpass_pass, DRW_STATE_WRITE_COLOR);
-    DRWShadingGroup *grp = DRW_shgroup_create(e_data.postprocess_sh, psl->renderpass_pass);
     /* We set a default texture as not all post processes uses the inputBuffer. */
     g_data->renderpass_input = txl->color;
     g_data->renderpass_col_input = txl->color;
     g_data->renderpass_light_input = txl->color;
+  }
+  else {
+    /* Free unneeded memory */
+    DRW_TEXTURE_FREE_SAFE(txl->renderpass);
+    GPU_FRAMEBUFFER_FREE_SAFE(fbl->renderpass_fb);
+  }
+}
+
+void EEVEE_renderpasses_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+{
+  EEVEE_PassList *psl = vedata->psl;
+  EEVEE_PrivateData *g_data = vedata->stl->g_data;
+  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+
+  const bool needs_post_processing = (g_data->render_passes &
+                                      EEVEE_RENDERPASSES_WITH_POST_PROCESSING) > 0;
+  if (needs_post_processing) {
+    if (e_data.postprocess_sh == NULL) {
+      char *frag_str = BLI_string_joinN(datatoc_common_view_lib_glsl,
+                                        datatoc_common_uniforms_lib_glsl,
+                                        datatoc_bsdf_common_lib_glsl,
+                                        datatoc_renderpass_postprocess_frag_glsl);
+      e_data.postprocess_sh = DRW_shader_create_fullscreen(frag_str, NULL);
+      MEM_freeN(frag_str);
+    }
+
+    DRW_PASS_CREATE(psl->renderpass_pass, DRW_STATE_WRITE_COLOR);
+    DRWShadingGroup *grp = DRW_shgroup_create(e_data.postprocess_sh, psl->renderpass_pass);
     DRW_shgroup_uniform_texture_ref(grp, "inputBuffer", &g_data->renderpass_input);
     DRW_shgroup_uniform_texture_ref(grp, "inputColorBuffer", &g_data->renderpass_col_input);
     DRW_shgroup_uniform_texture_ref(
         grp, "inputSecondLightBuffer", &g_data->renderpass_light_input);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
-    DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-    DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
+    DRW_shgroup_uniform_block_ref(grp, "common_block", &sldata->common_ubo);
+    DRW_shgroup_uniform_block_ref(grp, "renderpass_block", &sldata->renderpass_ubo.combined);
     DRW_shgroup_uniform_int(grp, "currentSample", &g_data->renderpass_current_sample, 1);
     DRW_shgroup_uniform_int(grp, "renderpassType", &g_data->renderpass_type, 1);
     DRW_shgroup_uniform_int(grp, "postProcessType", &g_data->renderpass_postprocess, 1);
     DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
   else {
-    /* Free unneeded memory */
-    DRW_TEXTURE_FREE_SAFE(txl->renderpass);
-    GPU_FRAMEBUFFER_FREE_SAFE(fbl->renderpass_fb);
     psl->renderpass_pass = NULL;
   }
 }
