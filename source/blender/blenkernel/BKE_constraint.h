@@ -145,6 +145,11 @@ struct bConstraint *BKE_constraint_duplicate_ex(struct bConstraint *src,
                                                 const int flag,
                                                 const bool do_extern);
 
+struct bConstraint *BKE_constraint_copy_for_pose(struct Object *ob,
+                                                 struct bPoseChannel *pchan,
+                                                 struct bConstraint *src);
+struct bConstraint *BKE_constraint_copy_for_object(struct Object *ob, struct bConstraint *src);
+
 void BKE_constraints_free(struct ListBase *list);
 void BKE_constraints_free_ex(struct ListBase *list, bool do_id_user);
 void BKE_constraints_copy(struct ListBase *dst, const struct ListBase *src, bool do_extern);
