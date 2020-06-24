@@ -158,9 +158,6 @@ class DeviceTask {
   bool denoising_from_render;
   vector<int> denoising_frames;
 
-  bool denoising_do_filter;
-  bool denoising_do_prefilter;
-
   int pass_stride;
   int frame_stride;
   int target_pass_stride;

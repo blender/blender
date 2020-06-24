@@ -1445,21 +1445,21 @@ class OptiXDevice : public CUDADevice {
       KernelData *const data = (KernelData *)host;
       *(OptixTraversableHandle *)&data->bvh.scene = tlas_handle;
 
-      update_launch_params(name, offsetof(KernelParams, data), host, size);
+      update_launch_params(offsetof(KernelParams, data), host, size);
       return;
     }
 
     // Update data storage pointers in launch parameters
 #  define KERNEL_TEX(data_type, tex_name) \
     if (strcmp(name, #tex_name) == 0) { \
-      update_launch_params(name, offsetof(KernelParams, tex_name), host, size); \
+      update_launch_params(offsetof(KernelParams, tex_name), host, size); \
       return; \
     }
 #  include "kernel/kernel_textures.h"
 #  undef KERNEL_TEX
   }
 
-  void update_launch_params(const char *name, size_t offset, void *data, size_t data_size)
+  void update_launch_params(size_t offset, void *data, size_t data_size)
   {
     const CUDAContextScope scope(cuContext);
 

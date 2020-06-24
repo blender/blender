@@ -64,12 +64,14 @@ CCL_NAMESPACE_BEGIN
 
 /* Memory Copy */
 
-void kernel_const_copy(KernelGlobals *kg, const char *name, void *host, size_t size)
+void kernel_const_copy(KernelGlobals *kg, const char *name, void *host, size_t)
 {
-  if (strcmp(name, "__data") == 0)
-    memcpy(&kg->__data, host, size);
-  else
+  if (strcmp(name, "__data") == 0) {
+    kg->__data = *(KernelData *)host;
+  }
+  else {
     assert(0);
+  }
 }
 
 void kernel_global_memory_copy(KernelGlobals *kg, const char *name, void *mem, size_t size)

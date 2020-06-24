@@ -57,7 +57,7 @@ DenoisingTask::DenoisingTask(Device *device, const DeviceTask &task)
   }
 
   do_prefilter = task.denoising.store_passes && task.denoising.type == DENOISER_NLM;
-  do_filter = task.denoising_do_filter && task.denoising.type == DENOISER_NLM;
+  do_filter = task.denoising.use && task.denoising.type == DENOISER_NLM;
 }
 
 DenoisingTask::~DenoisingTask()

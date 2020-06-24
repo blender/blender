@@ -605,6 +605,10 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
                  }
                });
 
+  if (progress.get_cancel()) {
+    return;
+  }
+
   dscene->objects.copy_to_device();
   if (state.need_motion == Scene::MOTION_PASS) {
     dscene->object_motion_pass.copy_to_device();
