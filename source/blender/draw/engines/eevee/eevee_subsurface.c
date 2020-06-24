@@ -187,7 +187,7 @@ void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata),
    * already higher than one. This is noticeable when loading a file that has the diffuse light
    * pass in look dev mode active. `texture_created` will make sure that newly created textures
    * are cleared. */
-  if (DRW_state_is_image_render() || effects->taa_current_sample == 1 || texture_created) {
+  if (effects->taa_current_sample == 1 || texture_created) {
     float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     GPU_framebuffer_bind(fbl->sss_accum_fb);
     GPU_framebuffer_clear_color(fbl->sss_accum_fb, clear);

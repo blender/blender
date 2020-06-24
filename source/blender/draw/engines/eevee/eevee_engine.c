@@ -527,10 +527,7 @@ static void eevee_render_to_image(void *vedata,
 
     /* Actual drawing. */
     {
-      if (i == 0) {
-        EEVEE_renderpasses_output_init(
-            sldata, vedata, g_data->render_tot_samples * time_steps_tot);
-      }
+      EEVEE_renderpasses_output_init(sldata, vedata, g_data->render_tot_samples * time_steps_tot);
 
       EEVEE_temporal_sampling_create_view(vedata);
       EEVEE_render_draw(vedata, engine, render_layer, rect);

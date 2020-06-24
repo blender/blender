@@ -894,7 +894,7 @@ void EEVEE_volumes_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, 
                                  GPU_ATTACHMENT_TEXTURE(txl->volume_transmittance_accum)});
 
   /* Clear texture. */
-  if (DRW_state_is_image_render() || effects->taa_current_sample == 1) {
+  if (effects->taa_current_sample == 1) {
     GPU_framebuffer_bind(fbl->volumetric_accum_fb);
     GPU_framebuffer_clear_color(fbl->volumetric_accum_fb, clear);
   }

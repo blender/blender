@@ -75,7 +75,7 @@ void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
                                 {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->mist_accum)});
 
   /* Clear texture. */
-  if (DRW_state_is_image_render() || effects->taa_current_sample == 1) {
+  if (effects->taa_current_sample == 1) {
     GPU_framebuffer_bind(fbl->mist_accum_fb);
     GPU_framebuffer_clear_color(fbl->mist_accum_fb, clear);
   }
