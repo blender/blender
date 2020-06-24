@@ -1323,7 +1323,7 @@ static void edge_slide_snap_apply(TransInfo *t, float *value)
   *value = perc;
 }
 
-void doEdgeSlide(TransInfo *t, float perc)
+static void doEdgeSlide(TransInfo *t, float perc)
 {
   EdgeSlideParams *slp = t->custom.mode.data;
   EdgeSlideData *sld_active = edgeSlideFirstGet(t);

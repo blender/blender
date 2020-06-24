@@ -1401,16 +1401,7 @@ void recalcData_mesh(TransInfo *t)
 void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 {
   const bool canceled = (t->state == TRANS_CANCEL);
-
-  if (canceled) {
-    /* Exception, edge slide transformed UVs too. */
-    if (t->mode == TFM_EDGE_SLIDE) {
-      doEdgeSlide(t, 0.0f);
-    }
-    else if (t->mode == TFM_VERT_SLIDE) {
-      doVertSlide(t, 0.0f);
-    }
-  }
+  const bool use_automerge = !canceled && (t->flag & (T_AUTOMERGE | T_AUTOSPLIT)) != 0;
 
   if (ELEM(t->mode, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
     /* Handle multires re-projection, done
@@ -1421,10 +1412,8 @@ void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
     }
   }
 
-  bool use_automerge = !canceled && (t->flag & (T_AUTOMERGE | T_AUTOSPLIT)) != 0;
   if (use_automerge) {
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-
       BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
       BMesh *bm = em->bm;
       char hflag;

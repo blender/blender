@@ -492,7 +492,7 @@ void drawVertSlide(TransInfo *t)
   }
 }
 
-void doVertSlide(TransInfo *t, float perc)
+static void doVertSlide(TransInfo *t, float perc)
 {
   VertSlideParams *slp = t->custom.mode.data;
 

@@ -97,7 +97,6 @@ void initSeqSlide(TransInfo *t);
 
 /* transform_mode_edge_slide.c */
 void drawEdgeSlide(TransInfo *t);
-void doEdgeSlide(TransInfo *t, float perc);
 void initEdgeSlide_ex(
     TransInfo *t, bool use_double_side, bool use_even, bool flipped, bool use_clamp);
 void initEdgeSlide(TransInfo *t);
@@ -155,7 +154,6 @@ void initTranslation(TransInfo *t);
 
 /* transform_mode_vert_slide.c */
 void drawVertSlide(TransInfo *t);
-void doVertSlide(TransInfo *t, float perc);
 void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp);
 void initVertSlide(TransInfo *t);
 #endif
