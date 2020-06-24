@@ -446,6 +446,11 @@ ccl_device_inline float fast_expf(float x)
 }
 
 #ifndef __KERNEL_GPU__
+/* MSVC seems to have a codegen bug here in atleast SSE41/AVX 
+ * see T78047 for details. */
+#ifdef _MSC_VER
+#  pragma optimize( "", off )
+#endif
 ccl_device float4 fast_exp2f4(float4 x)
 {
   const float4 one = make_float4(1.0f);
@@ -461,6 +466,9 @@ ccl_device float4 fast_exp2f4(float4 x)
   r = madd4(x, r, make_float4(1.0f));
   return __int4_as_float4(__float4_as_int4(r) + (m << 23));
 }
+#ifdef _MSC_VER
+#  pragma optimize( "", on )
+#endif
 
 ccl_device_inline float4 fast_expf4(float4 x)
 {
