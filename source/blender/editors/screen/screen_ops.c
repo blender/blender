@@ -4393,7 +4393,7 @@ static void screen_animation_region_tag_redraw(ScrArea *area,
     else if (scene->r.cfra > region->v2d.cur.xmax) {
       region->v2d.cur.xmin = scene->r.cfra;
       region->v2d.cur.xmax = region->v2d.cur.xmin + w;
-      ED_region_tag_redraw (region);
+      ED_region_tag_redraw(region);
       return;
     }
   }

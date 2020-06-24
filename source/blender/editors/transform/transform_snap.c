@@ -1551,7 +1551,9 @@ static void applyGridIncrement(
 /** \name Generic callbacks
  * \{ */
 
-float transform_snap_distance_len_squared_fn(TransInfo *UNUSED(t), const float p1[3], const float p2[3])
+float transform_snap_distance_len_squared_fn(TransInfo *UNUSED(t),
+                                             const float p1[3],
+                                             const float p2[3])
 {
   return len_squared_v3v3(p1, p2);
 }
