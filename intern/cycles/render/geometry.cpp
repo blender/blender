@@ -1409,9 +1409,11 @@ void GeometryManager::device_update(Device *device,
 void GeometryManager::device_free(Device *device, DeviceScene *dscene)
 {
 #ifdef WITH_EMBREE
-  if (dscene->data.bvh.scene) {
-    BVHEmbree::destroy(dscene->data.bvh.scene);
-    dscene->data.bvh.scene = NULL;
+  if (dscene->data.bvh.bvh_layout == BVH_LAYOUT_EMBREE) {
+    if (dscene->data.bvh.scene) {
+      BVHEmbree::destroy(dscene->data.bvh.scene);
+      dscene->data.bvh.scene = NULL;
+    }
   }
 #endif
 
