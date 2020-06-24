@@ -399,6 +399,9 @@ class QuickSmoke(ObjectModeOperator, Operator):
         if self.style == 'FIRE' or self.style == 'BOTH':
             obj.modifiers[-1].domain_settings.use_noise = True
 
+        # ensure correct cache file format for smoke
+        obj.modifiers[-1].domain_settings.cache_data_format = 'OPENVDB'
+
         # Setup material
 
         # Cycles and Eevee
@@ -511,7 +514,8 @@ class QuickLiquid(Operator):
         obj.modifiers[-1].domain_settings.use_collision_border_top = True
         obj.modifiers[-1].domain_settings.use_collision_border_bottom = True
 
-        # set correct cache file format for liquid
+        # ensure correct cache file formats for liquid
+        obj.modifiers[-1].domain_settings.cache_data_format = 'OPENVDB'
         obj.modifiers[-1].domain_settings.cache_mesh_format = 'BOBJECT'
 
         # change domain type, will also allocate and show particle system for FLIP

@@ -4583,13 +4583,9 @@ void BKE_fluid_particles_set(FluidDomainSettings *settings, int value, bool clea
 
 void BKE_fluid_domain_type_set(Object *object, FluidDomainSettings *settings, int type)
 {
-  /* Set common values for liquid/smoke domain: cache type,
-   * border collision and viewport draw-type. */
+  /* Set values for border collision:
+   * Liquids should have a closed domain, smoke domains should be open. */
   if (type == FLUID_DOMAIN_TYPE_GAS) {
-    BKE_fluid_cachetype_mesh_set(settings, FLUID_DOMAIN_FILE_BIN_OBJECT);
-    BKE_fluid_cachetype_data_set(settings, FLUID_DOMAIN_FILE_UNI);
-    BKE_fluid_cachetype_particle_set(settings, FLUID_DOMAIN_FILE_UNI);
-    BKE_fluid_cachetype_noise_set(settings, FLUID_DOMAIN_FILE_UNI);
     BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_FRONT, 1);
     BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BACK, 1);
     BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_RIGHT, 1);
@@ -4599,10 +4595,6 @@ void BKE_fluid_domain_type_set(Object *object, FluidDomainSettings *settings, in
     object->dt = OB_WIRE;
   }
   else if (type == FLUID_DOMAIN_TYPE_LIQUID) {
-    BKE_fluid_cachetype_mesh_set(settings, FLUID_DOMAIN_FILE_BIN_OBJECT);
-    BKE_fluid_cachetype_data_set(settings, FLUID_DOMAIN_FILE_UNI);
-    BKE_fluid_cachetype_particle_set(settings, FLUID_DOMAIN_FILE_UNI);
-    BKE_fluid_cachetype_noise_set(settings, FLUID_DOMAIN_FILE_UNI);
     BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_FRONT, 0);
     BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BACK, 0);
     BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_RIGHT, 0);
