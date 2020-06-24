@@ -205,7 +205,6 @@ static void color_filter_task_cb(void *__restrict userdata,
 
 static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -241,8 +240,7 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
       &settings, (sd->flags & SCULPT_USE_OPENMP), ss->filter_cache->totnode);
   BLI_task_parallel_range(0, ss->filter_cache->totnode, &data, color_filter_task_cb, &settings);
 
-  ED_region_tag_redraw(ar);
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+  SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
 
   return OPERATOR_RUNNING_MODAL;
 }
