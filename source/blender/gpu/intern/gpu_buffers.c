@@ -316,7 +316,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
           empty_mask = empty_mask && (cmask == 0);
           /* Vertex Colors. */
           if (show_vcol) {
-            ushort scol[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+            ushort scol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
             if (vtcol) {
               scol[0] = unit_float_to_ushort_clamp(vtcol[vtri[j]].color[0]);
               scol[1] = unit_float_to_ushort_clamp(vtcol[vtri[j]].color[1]);
@@ -334,10 +334,9 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
               memcpy(GPU_vertbuf_raw_step(&col_step), scol, sizeof(scol));
             }
           }
+          /* Face Sets. */
+          memcpy(GPU_vertbuf_raw_step(&fset_step), face_set_color, sizeof(uchar) * 3);
         }
-
-        /* Face Sets. */
-        memcpy(GPU_vertbuf_raw_step(&fset_step), face_set_color, sizeof(uchar) * 3);
       }
     }
 
