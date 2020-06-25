@@ -475,13 +475,18 @@ void UI_draw_roundbox_shade_x(bool filled,
       .color_outline[1] = clamp_f(col[1] + shadetop + shadedown, 0.0f, 1.0f),
       .color_outline[2] = clamp_f(col[2] + shadetop + shadedown, 0.0f, 1.0f),
       .color_outline[3] = clamp_f(col[3] + shadetop + shadedown, 0.0f, 1.0f),
+      .shade_dir = 1.0f,
       .alpha_discard = 1.0f,
   };
+
+  GPU_blend(true);
 
   GPUBatch *batch = ui_batch_roundbox_widget_get();
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
   GPU_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&widget_params);
   GPU_batch_draw(batch);
+
+  GPU_blend(false);
 }
 
 #if 0  /* unused */

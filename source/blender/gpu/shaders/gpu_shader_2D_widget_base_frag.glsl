@@ -19,9 +19,14 @@ vec3 compute_masks(vec2 uv)
   bool right_half = uv.x > outRectSize.x * 0.5;
   float corner_rad;
 
+  /* Correct aspect ratio for 2D views not using uniform scalling.
+   * uv is already in pixel space so a uniform scale should give us a ratio of 1. */
+  float ratio = (butCo != -2.0) ? (dFdy(uv.y) / dFdx(uv.x)) : 1.0;
   vec2 uv_sdf = uv;
+  uv_sdf.x *= ratio;
+
   if (right_half) {
-    uv_sdf.x = outRectSize.x - uv_sdf.x;
+    uv_sdf.x = outRectSize.x * ratio - uv_sdf.x;
   }
   if (upper_half) {
     uv_sdf.y = outRectSize.y - uv_sdf.y;
@@ -43,7 +48,7 @@ vec3 compute_masks(vec2 uv)
 
   /* Clamp line width to be at least 1px wide. This can happen if the projection matrix
    * has been scaled (i.e: Node editor)... */
-  float line_width = (lineWidth > 0.0) ? max(fwidth(uv.x), lineWidth) : 0.0;
+  float line_width = (lineWidth > 0.0) ? max(fwidth(uv.y), lineWidth) : 0.0;
 
   const float aa_radius = 0.5;
   vec3 masks;

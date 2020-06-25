@@ -163,7 +163,7 @@ vec2 do_tria()
   borderColor = vec4(0.0);
   embossColor = vec4(0.0);
 
-  butCo = -1.0;
+  butCo = -2.0;
 
   return pos;
 }
