@@ -1491,11 +1491,6 @@ static bool uiAlignPanelStep(ScrArea *area, ARegion *region, const float fac, co
   ps->panel->ofsx = 0;
   ps->panel->ofsy = -get_panel_size_y(ps->panel);
   ps->panel->ofsx += ps->panel->runtime.region_ofsx;
-  /* Extra margin if the panel is a box style panel. */
-  if (ps->panel->type && ps->panel->type->flag & PNL_DRAW_BOX) {
-    ps->panel->ofsx += UI_PANEL_BOX_STYLE_MARGIN;
-    ps->panel->ofsy -= UI_PANEL_BOX_STYLE_MARGIN;
-  }
 
   for (a = 0; a < tot - 1; a++, ps++) {
     psnext = ps + 1;
@@ -1505,15 +1500,11 @@ static bool uiAlignPanelStep(ScrArea *area, ARegion *region, const float fac, co
       bool use_box_next = psnext->panel->type && psnext->panel->type->flag & PNL_DRAW_BOX;
       psnext->panel->ofsx = ps->panel->ofsx;
       psnext->panel->ofsy = get_panel_real_ofsy(ps->panel) - get_panel_size_y(psnext->panel);
+
       /* Extra margin for box style panels. */
+      ps->panel->ofsx += (use_box) ? UI_PANEL_BOX_STYLE_MARGIN : 0.0f;
       if (use_box || use_box_next) {
         psnext->panel->ofsy -= UI_PANEL_BOX_STYLE_MARGIN;
-      }
-      if (use_box && !use_box_next) {
-        psnext->panel->ofsx -= UI_PANEL_BOX_STYLE_MARGIN;
-      }
-      else if (!use_box && use_box_next) {
-        psnext->panel->ofsx += UI_PANEL_BOX_STYLE_MARGIN;
       }
     }
     else {
@@ -1521,6 +1512,10 @@ static bool uiAlignPanelStep(ScrArea *area, ARegion *region, const float fac, co
       psnext->panel->ofsy = ps->panel->ofsy + get_panel_size_y(ps->panel) -
                             get_panel_size_y(psnext->panel);
     }
+  }
+  /* Extra margin for the last panel if it's a box-style panel. */
+  if (panelsort[tot - 1].panel->type && panelsort[tot - 1].panel->type->flag & PNL_DRAW_BOX) {
+    panelsort[tot - 1].panel->ofsx += UI_PANEL_BOX_STYLE_MARGIN;
   }
 
   /* we interpolate */
