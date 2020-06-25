@@ -367,6 +367,8 @@ static void eevee_draw_scene(void *vedata)
   EEVEE_volumes_free_smoke_textures();
 
   stl->g_data->view_updated = false;
+
+  DRW_view_set_active(NULL);
 }
 
 static void eevee_view_update(void *vedata)
