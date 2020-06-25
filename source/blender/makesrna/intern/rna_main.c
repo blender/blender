@@ -445,7 +445,7 @@ void RNA_def_main(BlenderRNA *brna)
                             0,
                             INT_MAX,
                             "Version",
-                            "Version of Blender the .blend was saved with",
+                            "File format version the .blend file was saved with",
                             0,
                             INT_MAX);
   RNA_def_property_int_funcs(prop, "rna_Main_version_get", NULL, NULL);
