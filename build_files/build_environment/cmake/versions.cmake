@@ -212,10 +212,6 @@ set(ICONV_VERSION 1.16)
 set(ICONV_URI http://ftp.gnu.org/pub/gnu/libiconv/libiconv-${ICONV_VERSION}.tar.gz)
 set(ICONV_HASH 7d2a800b952942bb2880efb00cfd524c)
 
-set(LAPACK_VERSION 3.6.0)
-set(LAPACK_URI http://www.netlib.org/lapack/lapack-${LAPACK_VERSION}.tgz)
-set(LAPACK_HASH f2f6c67134e851fe189bb3ca1fbb5101)
-
 set(SNDFILE_VERSION 1.0.28)
 set(SNDFILE_URI http://www.mega-nerd.com/libsndfile/files/libsndfile-${SNDFILE_VERSION}.tar.gz)
 set(SNDFILE_HASH 646b5f98ce89ac60cdb060fcd398247c)

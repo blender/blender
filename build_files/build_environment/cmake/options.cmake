@@ -17,7 +17,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 if(WIN32)
-  option(ENABLE_MINGW64 "Enable building of ffmpeg/iconv/libsndfile/lapack/fftw3 by installing mingw64" ON)
+  option(ENABLE_MINGW64 "Enable building of ffmpeg/iconv/libsndfile/fftw3 by installing mingw64" ON)
 endif()
 option(WITH_WEBP "Enable building of oiio with webp support" OFF)
 set(MAKE_THREADS 1 CACHE STRING "Number of threads to run make with")
@@ -45,11 +45,7 @@ message("PATCH_DIR = ${PATCH_DIR}")
 message("BUILD_DIR = ${BUILD_DIR}")
 
 if(WIN32)
-  if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-    set(PATCH_CMD ${DOWNLOAD_DIR}/mingw/mingw64/msys/1.0/bin/patch.exe)
-  else()
-    set(PATCH_CMD ${DOWNLOAD_DIR}/mingw/mingw32/msys/1.0/bin/patch.exe)
-  endif()
+  set(PATCH_CMD ${DOWNLOAD_DIR}/mingw/mingw64/msys/1.0/bin/patch.exe)
   set(LIBEXT ".lib")
   set(LIBPREFIX "")
 
@@ -82,17 +78,10 @@ if(WIN32)
   set(PLATFORM_CXX_FLAGS)
   set(PLATFORM_CMAKE_FLAGS)
 
-  if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-    set(MINGW_PATH ${DOWNLOAD_DIR}/mingw/mingw64)
-    set(MINGW_SHELL ming64sh.cmd)
-    set(PERL_SHELL ${DOWNLOAD_DIR}/perl/portableshell.bat)
-    set(MINGW_HOST x86_64-w64-mingw32)
-  else()
-    set(MINGW_PATH ${DOWNLOAD_DIR}/mingw/mingw32)
-    set(MINGW_SHELL ming32sh.cmd)
-    set(PERL_SHELL ${DOWNLOAD_DIR}/perl32/portableshell.bat)
-    set(MINGW_HOST i686-w64-mingw32)
-  endif()
+  set(MINGW_PATH ${DOWNLOAD_DIR}/mingw/mingw64)
+  set(MINGW_SHELL ming64sh.cmd)
+  set(PERL_SHELL ${DOWNLOAD_DIR}/perl/portableshell.bat)
+  set(MINGW_HOST x86_64-w64-mingw32)
 
   set(CONFIGURE_ENV
     cd ${MINGW_PATH} &&

@@ -48,11 +48,7 @@ include(cmake/options.cmake)
 include(cmake/versions.cmake)
 
 if(ENABLE_MINGW64)
-  if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-    include(cmake/setup_mingw64.cmake)
-  else()
-    include(cmake/setup_mingw32.cmake)
-  endif()
+  include(cmake/setup_mingw64.cmake)
 else()
   set(mingw_LIBDIR ${LIBDIR})
 endif()
@@ -107,8 +103,6 @@ if(WITH_WEBP)
 endif()
 
 if(WIN32)
-  # HMD branch deps
-  include(cmake/hidapi.cmake)
   # OCIO deps
   include(cmake/tinyxml.cmake)
   include(cmake/yamlcpp.cmake)
