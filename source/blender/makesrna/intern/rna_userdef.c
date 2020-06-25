@@ -6074,11 +6074,11 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_new_particle_system", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_new_particle_system", 1);
   RNA_def_property_ui_text(
-      prop, "Use New Particle System", "Enable the new particle system in the ui");
+      prop, "New Particle System", "Enable the new particle system in the ui");
 
   prop = RNA_def_property(srna, "use_new_hair_type", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_new_hair_type", 1);
-  RNA_def_property_ui_text(prop, "Use New Hair Type", "Enable the new hair type in the ui");
+  RNA_def_property_ui_text(prop, "New Hair Type", "Enable the new hair type in the ui");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)
