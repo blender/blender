@@ -755,7 +755,7 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   mRNAMap["USING_OUTFLOW"] = getBooleanString(mds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW);
   mRNAMap["USING_LOG_DISSOLVE"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_DISSOLVE_LOG);
   mRNAMap["USING_DISSOLVE"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_DISSOLVE);
-  mRNAMap["DO_OPEN"] = getBooleanString(mds->border_collisions == 0);
+  mRNAMap["DOMAIN_CLOSED"] = getBooleanString(borderCollisions.compare("") == 0);
   mRNAMap["CACHE_RESUMABLE"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE);
   mRNAMap["USING_ADAPTIVETIME"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_ADAPTIVE_TIME);
   mRNAMap["USING_SPEEDVECTORS"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS);

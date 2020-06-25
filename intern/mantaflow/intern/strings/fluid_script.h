@@ -96,7 +96,7 @@ gravity_s$ID$ = vec3($GRAVITY_X$, $GRAVITY_Y$, $GRAVITY_Z$) # in SI unit (e.g. m
 gs_s$ID$      = vec3($RESX$, $RESY$, $RESZ$)\n\
 maxVel_s$ID$  = 0\n\
 \n\
-doOpen_s$ID$           = $DO_OPEN$\n\
+domainClosed_s$ID$     = $DOMAIN_CLOSED$\n\
 boundConditions_s$ID$  = '$BOUND_CONDITIONS$'\n\
 boundaryWidth_s$ID$    = $BOUNDARY_WIDTH$\n\
 deleteInObstacle_s$ID$ = $DELETE_IN_OBSTACLE$\n\
