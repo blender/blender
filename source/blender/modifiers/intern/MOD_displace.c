@@ -440,6 +440,8 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA ob_ptr;
   modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
 
+  PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
+
   PointerRNA texture_ptr = RNA_pointer_get(&ptr, "texture");
   bool has_texture = !RNA_pointer_is_null(&texture_ptr);
   int texture_coords = RNA_enum_get(&ptr, "texture_coords");
@@ -467,7 +469,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
   else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
-    uiItemR(col, &ptr, "uv_layer", 0, NULL, ICON_NONE);
+    uiItemPointerR(col, &ptr, "uv_layer", &obj_data_ptr, "uv_layers", NULL, ICON_NONE);
   }
 
   uiItemS(layout);
