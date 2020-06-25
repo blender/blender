@@ -1135,7 +1135,7 @@ bool Session::render_need_denoise(bool &delayed)
   }
 
   /* Do not denoise until the sample at which denoising should start is reached. */
-  if (tile_manager.state.sample < params.denoising.start_sample) {
+  if (tile_manager.state.sample < min(params.denoising.start_sample, params.samples - 1)) {
     return false;
   }
 
