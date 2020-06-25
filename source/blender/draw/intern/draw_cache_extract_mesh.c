@@ -1904,15 +1904,16 @@ static void *extract_uv_init(const MeshRenderData *mr, void *buf)
     if (uv_layers & (1 << i)) {
       if (mr->extract_type == MR_EXTRACT_BMESH) {
         int cd_ofs = CustomData_get_n_offset(cd_ldata, CD_MLOOPUV, i);
-        BMIter f_iter, l_iter;
+        BMIter f_iter;
         BMFace *efa;
-        BMLoop *loop;
         BM_ITER_MESH (efa, &f_iter, mr->bm, BM_FACES_OF_MESH) {
-          BM_ITER_ELEM (loop, &l_iter, efa, BM_LOOPS_OF_FACE) {
-            MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(loop, cd_ofs);
+          BMLoop *l_iter, *l_first;
+          l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
+          do {
+            MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l_iter, cd_ofs);
             memcpy(uv_data, luv->uv, sizeof(*uv_data));
             uv_data++;
-          }
+          } while ((l_iter = l_iter->next) != l_first);
         }
       }
       else {
@@ -2247,18 +2248,19 @@ static void *extract_vcol_init(const MeshRenderData *mr, void *buf)
     if (vcol_layers & (1 << i)) {
       if (mr->extract_type == MR_EXTRACT_BMESH) {
         int cd_ofs = CustomData_get_n_offset(cd_ldata, CD_MLOOPCOL, i);
-        BMIter f_iter, l_iter;
+        BMIter f_iter;
         BMFace *efa;
-        BMLoop *loop;
         BM_ITER_MESH (efa, &f_iter, mr->bm, BM_FACES_OF_MESH) {
-          BM_ITER_ELEM (loop, &l_iter, efa, BM_LOOPS_OF_FACE) {
-            const MLoopCol *mloopcol = BM_ELEM_CD_GET_VOID_P(loop, cd_ofs);
+          BMLoop *l_iter, *l_first;
+          l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
+          do {
+            const MLoopCol *mloopcol = BM_ELEM_CD_GET_VOID_P(l_iter, cd_ofs);
             vcol_data->r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->r]);
             vcol_data->g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->g]);
             vcol_data->b = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->b]);
             vcol_data->a = unit_float_to_ushort_clamp(mloopcol->a * (1.0f / 255.0f));
             vcol_data++;
-          }
+          } while ((l_iter = l_iter->next) != l_first);
         }
       }
       else {
@@ -2275,18 +2277,19 @@ static void *extract_vcol_init(const MeshRenderData *mr, void *buf)
     if (svcol_layers & (1 << i)) {
       if (mr->extract_type == MR_EXTRACT_BMESH) {
         int cd_ofs = CustomData_get_n_offset(cd_vdata, CD_PROP_COLOR, i);
-        BMIter l_iter, f_iter;
-        BMLoop *loop;
+        BMIter f_iter;
         BMFace *efa;
         BM_ITER_MESH (efa, &f_iter, mr->bm, BM_FACES_OF_MESH) {
-          BM_ITER_ELEM (loop, &l_iter, efa, BM_LOOPS_OF_FACE) {
-            const MPropCol *prop_col = BM_ELEM_CD_GET_VOID_P(loop->v, cd_ofs);
+          BMLoop *l_iter, *l_first;
+          l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
+          do {
+            const MPropCol *prop_col = BM_ELEM_CD_GET_VOID_P(l_iter->v, cd_ofs);
             vcol_data->r = unit_float_to_ushort_clamp(prop_col->color[0]);
             vcol_data->g = unit_float_to_ushort_clamp(prop_col->color[1]);
             vcol_data->b = unit_float_to_ushort_clamp(prop_col->color[2]);
             vcol_data->a = unit_float_to_ushort_clamp(prop_col->color[3]);
             vcol_data++;
-          }
+          } while ((l_iter = l_iter->next) != l_first);
         }
       }
       else {
@@ -3308,7 +3311,7 @@ static void extract_stretch_angle_loop_bmesh(const MeshRenderData *mr,
   const MLoopUV *luv, *luv_next;
   BMLoop *l_next = loop->next;
   BMFace *efa = loop->f;
-  if (loop == efa->l_first) {
+  if (loop == BM_FACE_FIRST_LOOP(efa)) {
     /* First loop in face. */
     BMLoop *l_tmp = loop->prev;
     BMLoop *l_next_tmp = loop;
@@ -3324,7 +3327,7 @@ static void extract_stretch_angle_loop_bmesh(const MeshRenderData *mr,
     copy_v2_v2(last_auv, auv[1]);
     copy_v3_v3(last_av, av[1]);
   }
-  if (l_next == efa->l_first) {
+  if (l_next == BM_FACE_FIRST_LOOP(efa)) {
     /* Move previous edge. */
     copy_v2_v2(auv[0], auv[1]);
     copy_v3_v3(av[0], av[1]);
@@ -3889,11 +3892,10 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
   copy_vn_fl(vert_angles, mr->vert_len, -M_PI);
 
   if (mr->extract_type == MR_EXTRACT_BMESH) {
-    BMIter iter, l_iter;
+    BMIter iter;
     BMesh *bm = em->bm;
     BMFace *efa;
     BMEdge *e;
-    BMLoop *loop;
     /* first assign float values to verts */
     BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
       float angle = BM_edge_calc_face_angle_signed(e);
@@ -3904,11 +3906,13 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
     }
     /* Copy vert value to loops. */
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-      BM_ITER_ELEM (loop, &l_iter, efa, BM_LOOPS_OF_FACE) {
-        int l = BM_elem_index_get(loop);
-        int v = BM_elem_index_get(loop->v);
+      BMLoop *l_iter, *l_first;
+      l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
+      do {
+        int l = BM_elem_index_get(l_iter);
+        int v = BM_elem_index_get(l_iter->v);
         r_sharp[l] = sharp_remap(vert_angles[v], min, max, minmax_irange);
-      }
+      } while ((l_iter = l_iter->next) != l_first);
     }
   }
   else {
@@ -4702,11 +4706,11 @@ BLI_INLINE void mesh_extract_iter(const MeshRenderData *mr,
         int l_end = min_ii(mr->poly_len, end);
         for (int f = start; f < l_end; f++) {
           BMFace *efa = BM_face_at_index(mr->bm, f);
-          BMLoop *loop;
-          BMIter l_iter;
-          BM_ITER_ELEM (loop, &l_iter, efa, BM_LOOPS_OF_FACE) {
-            extract->iter_loop_bm(mr, BM_elem_index_get(loop), loop, user_data);
-          }
+          BMLoop *l_iter, *l_first;
+          l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
+          do {
+            extract->iter_loop_bm(mr, BM_elem_index_get(l_iter), l_iter, user_data);
+          } while ((l_iter = l_iter->next) != l_first);
         }
       }
       if (iter_type & MR_ITER_LEDGE) {
