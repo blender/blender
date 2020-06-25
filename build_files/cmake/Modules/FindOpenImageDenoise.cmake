@@ -48,7 +48,14 @@ SET(_openimagedenoise_FIND_COMPONENTS
 # These are needed when building statically
 SET(_openimagedenoise_FIND_STATIC_COMPONENTS
   common
+
+  # These additional library names change between versions, we list all of them
+  # so builds work with multiple versions. Missing libraries are skipped.
+  dnnl_cpu
+  dnnl_common
+  dnnl_cpu # Second time because of circular dependency
   mkldnn
+  dnnl
 )
 
 SET(_openimagedenoise_LIBRARIES)

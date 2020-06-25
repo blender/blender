@@ -539,10 +539,10 @@ if(WITH_OPENIMAGEDENOISE)
   set(OPENIMAGEDENOISE_LIBRARIES
     optimized ${OPENIMAGEDENOISE_LIBPATH}/OpenImageDenoise.lib
     optimized ${OPENIMAGEDENOISE_LIBPATH}/common.lib
-    optimized ${OPENIMAGEDENOISE_LIBPATH}/mkldnn.lib
+    optimized ${OPENIMAGEDENOISE_LIBPATH}/dnnl.lib
     debug ${OPENIMAGEDENOISE_LIBPATH}/OpenImageDenoise_d.lib
     debug ${OPENIMAGEDENOISE_LIBPATH}/common_d.lib
-    debug ${OPENIMAGEDENOISE_LIBPATH}/mkldnn_d.lib)
+    debug ${OPENIMAGEDENOISE_LIBPATH}/dnnl_d.lib)
   set(OPENIMAGEDENOISE_DEFINITIONS)
 endif()
 

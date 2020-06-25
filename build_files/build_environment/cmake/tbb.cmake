@@ -50,6 +50,13 @@ ExternalProject_Add(external_tbb
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_tbb after_install
+      # findtbb.cmake in some deps *NEEDS* to find tbb_debug.lib even if they are not going to use it
+      # to make that test pass, we place a copy with the right name in the lib folder.
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbb.lib ${HARVEST_TARGET}/tbb/lib/tbb_debug.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbbmalloc.lib ${HARVEST_TARGET}/tbb/lib/tbbmalloc_debug.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbb.dll ${HARVEST_TARGET}/tbb/lib/tbb_debug.dll
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbbmalloc.dll ${HARVEST_TARGET}/tbb/lib/tbbmalloc_debug.dll
+      # Normal collection of build artifacts
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbb.lib ${HARVEST_TARGET}/tbb/lib/tbb.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbb.dll ${HARVEST_TARGET}/tbb/lib/tbb.dll
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbbmalloc.lib ${HARVEST_TARGET}/tbb/lib/tbbmalloc.lib

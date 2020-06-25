@@ -128,6 +128,14 @@ if((EXISTS "${DOWNLOAD_DIR}/mingw/mingw64/bin/mingw-get.exe") AND (NOT EXISTS "$
   )
 endif()
 
+if((EXISTS "${DOWNLOAD_DIR}/mingw/mingw64/bin/mingw-get.exe") AND (NOT EXISTS "${DOWNLOAD_DIR}/mingw/mingw64/msys/1.0/bin/m4.exe"))
+  message("Installing m4")
+  execute_process(
+    COMMAND ${DOWNLOAD_DIR}/mingw/mingw64/bin/mingw-get install msys msys-m4
+    WORKING_DIRECTORY  ${DOWNLOAD_DIR}/mingw/mingw64/bin/
+  )
+endif()
+
 message("Checking for CoreUtils")
 # download old core_utils for pr.exe (ffmpeg needs it to build)
 if(NOT EXISTS "${DOWNLOAD_DIR}/coreutils-5.97-MSYS-1.0.11-snapshot.tar.bz2")
