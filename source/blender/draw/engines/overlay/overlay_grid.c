@@ -41,6 +41,7 @@ enum {
   CLIP_ZPOS = (1 << 7),
   CLIP_ZNEG = (1 << 8),
   GRID_BACK = (1 << 9),
+  GRID_CAMERA = (1 << 10),
 };
 
 void OVERLAY_grid_init(OVERLAY_Data *vedata)
@@ -145,6 +146,9 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
   if (rv3d->persp == RV3D_CAMOB && v3d->camera && v3d->camera->type == OB_CAMERA) {
     Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, v3d->camera);
     dist = ((Camera *)(camera_object->data))->clip_end;
+    shd->grid_flag |= GRID_CAMERA;
+    shd->zneg_flag |= GRID_CAMERA;
+    shd->zpos_flag |= GRID_CAMERA;
   }
   else {
     dist = v3d->clip_end;

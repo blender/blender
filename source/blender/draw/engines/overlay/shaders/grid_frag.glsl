@@ -28,7 +28,8 @@ uniform float gridSteps[STEPS_LEN] = float[](0.001, 0.01, 0.1, 1.0, 10.0, 100.0,
 #define PLANE_XY (1 << 4)
 #define PLANE_XZ (1 << 5)
 #define PLANE_YZ (1 << 6)
-#define GRID_BACK (1 << 9) /* grid is behind objects */
+#define GRID_BACK (1 << 9)    /* grid is behind objects */
+#define GRID_CAMERA (1 << 10) /* In camera view */
 
 #define M_1_SQRTPI 0.5641895835477563 /* 1/sqrt(pi) */
 
@@ -104,7 +105,9 @@ void main()
     fade *= 1.0 - smoothstep(0.0, gridDistance, dist - gridDistance);
   }
   else {
-    dist = abs(gl_FragCoord.z * 2.0 - 1.0);
+    dist = gl_FragCoord.z * 2.0 - 1.0;
+    /* Avoid fading in +Z direction in camera view (see T70193). */
+    dist = ((gridFlag & GRID_CAMERA) != 0) ? clamp(dist, 0.0, 1.0) : abs(dist);
     fade = 1.0 - smoothstep(0.0, 0.5, dist - 0.5);
     dist = 1.0; /* avoid branch after */
 
