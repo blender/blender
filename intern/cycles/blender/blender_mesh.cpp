@@ -278,25 +278,59 @@ static void mikk_compute_tangents(
   genTangSpaceDefault(&context);
 }
 
+/* Create sculpt vertex color attributes. */
+static void attr_create_sculpt_vertex_color(Scene *scene,
+                                            Mesh *mesh,
+                                            BL::Mesh &b_mesh,
+                                            bool subdivision)
+{
+  BL::Mesh::sculpt_vertex_colors_iterator l;
+
+  for (b_mesh.sculpt_vertex_colors.begin(l); l != b_mesh.sculpt_vertex_colors.end(); ++l) {
+    const bool active_render = l->active_render();
+    AttributeStandard vcol_std = (active_render) ? ATTR_STD_VERTEX_COLOR : ATTR_STD_NONE;
+    ustring vcol_name = ustring(l->name().c_str());
+
+    const bool need_vcol = mesh->need_attribute(scene, vcol_name) ||
+                           mesh->need_attribute(scene, vcol_std);
+
+    if (!need_vcol) {
+      continue;
+    }
+
+    AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
+    Attribute *vcol_attr = attributes.add(vcol_name, TypeRGBA, ATTR_ELEMENT_VERTEX);
+    vcol_attr->std = vcol_std;
+
+    float4 *cdata = vcol_attr->data_float4();
+    int numverts = b_mesh.vertices.length();
+
+    for (int i = 0; i < numverts; i++) {
+      *(cdata++) = get_float4(l->data[i].color());
+    }
+  }
+}
+
 /* Create vertex color attributes. */
 static void attr_create_vertex_color(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, bool subdivision)
 {
-  if (subdivision) {
-    BL::Mesh::vertex_colors_iterator l;
+  BL::Mesh::vertex_colors_iterator l;
 
-    for (b_mesh.vertex_colors.begin(l); l != b_mesh.vertex_colors.end(); ++l) {
-      const bool active_render = l->active_render();
-      AttributeStandard vcol_std = (active_render) ? ATTR_STD_VERTEX_COLOR : ATTR_STD_NONE;
-      ustring vcol_name = ustring(l->name().c_str());
+  for (b_mesh.vertex_colors.begin(l); l != b_mesh.vertex_colors.end(); ++l) {
+    const bool active_render = l->active_render();
+    AttributeStandard vcol_std = (active_render) ? ATTR_STD_VERTEX_COLOR : ATTR_STD_NONE;
+    ustring vcol_name = ustring(l->name().c_str());
 
-      const bool need_vcol = mesh->need_attribute(scene, vcol_name) ||
-                             mesh->need_attribute(scene, vcol_std);
+    const bool need_vcol = mesh->need_attribute(scene, vcol_name) ||
+                           mesh->need_attribute(scene, vcol_std);
 
-      if (!need_vcol) {
-        continue;
-      }
+    if (!need_vcol) {
+      continue;
+    }
 
-      Attribute *vcol_attr = NULL;
+    Attribute *vcol_attr = NULL;
+
+    if (subdivision) {
       if (active_render) {
         vcol_attr = mesh->subd_attributes.add(vcol_std, vcol_name);
       }
@@ -316,22 +350,7 @@ static void attr_create_vertex_color(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh,
         }
       }
     }
-  }
-  else {
-    BL::Mesh::vertex_colors_iterator l;
-    for (b_mesh.vertex_colors.begin(l); l != b_mesh.vertex_colors.end(); ++l) {
-      const bool active_render = l->active_render();
-      AttributeStandard vcol_std = (active_render) ? ATTR_STD_VERTEX_COLOR : ATTR_STD_NONE;
-      ustring vcol_name = ustring(l->name().c_str());
-
-      const bool need_vcol = mesh->need_attribute(scene, vcol_name) ||
-                             mesh->need_attribute(scene, vcol_std);
-
-      if (!need_vcol) {
-        continue;
-      }
-
-      Attribute *vcol_attr = NULL;
+    else {
       if (active_render) {
         vcol_attr = mesh->attributes.add(vcol_std, vcol_name);
       }
@@ -828,6 +847,7 @@ static void create_mesh(Scene *scene,
    */
   attr_create_pointiness(scene, mesh, b_mesh, subdivision);
   attr_create_vertex_color(scene, mesh, b_mesh, subdivision);
+  attr_create_sculpt_vertex_color(scene, mesh, b_mesh, subdivision);
   attr_create_random_per_island(scene, mesh, b_mesh, subdivision);
 
   if (subdivision) {

@@ -312,12 +312,21 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals *kg,
                                             float4 *dx,
                                             float4 *dy)
 {
-  if (desc.element == ATTR_ELEMENT_CORNER_BYTE) {
-    int tri = desc.offset + sd->prim * 3;
+  if (desc.element == ATTR_ELEMENT_CORNER_BYTE || desc.element == ATTR_ELEMENT_VERTEX) {
+    float4 f0, f1, f2;
 
-    float4 f0 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 0));
-    float4 f1 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 1));
-    float4 f2 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 2));
+    if (desc.element == ATTR_ELEMENT_CORNER_BYTE) {
+      int tri = desc.offset + sd->prim * 3;
+      f0 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 0));
+      f1 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 1));
+      f2 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 2));
+    }
+    else {
+      uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, sd->prim);
+      f0 = kernel_tex_fetch(__attributes_float3, desc.offset + tri_vindex.x);
+      f1 = kernel_tex_fetch(__attributes_float3, desc.offset + tri_vindex.y);
+      f2 = kernel_tex_fetch(__attributes_float3, desc.offset + tri_vindex.z);
+    }
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx)
