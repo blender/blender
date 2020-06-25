@@ -61,8 +61,10 @@ Session::Session(const SessionParams &params_)
 
   TaskScheduler::init(params.threads);
 
+  /* Create CPU/GPU devices. */
   device = Device::create(params.device, stats, profiler, params.background);
 
+  /* Create buffers for interactive rendering. */
   if (params.background && !params.write_render_cb) {
     buffers = NULL;
     display = NULL;
@@ -71,6 +73,9 @@ Session::Session(const SessionParams &params_)
     buffers = new RenderBuffers(device);
     display = new DisplayBuffer(device, params.display_buffer_linear);
   }
+
+  /* Validate denoising parameters. */
+  set_denoising(params.denoising);
 
   session_thread = NULL;
   scene = NULL;
@@ -944,16 +949,20 @@ void Session::set_pause(bool pause_)
 
 void Session::set_denoising(const DenoiseParams &denoising)
 {
-  const bool need_denoise = denoising.need_denoising_task();
-
-  if (need_denoise && !(params.device.denoisers & denoising.type)) {
-    progress.set_error("Denoiser type not supported by compute device");
-    return;
-  }
+  bool need_denoise = denoising.need_denoising_task();
 
   /* Lock buffers so no denoising operation is triggered while the settings are changed here. */
   thread_scoped_lock buffers_lock(buffers_mutex);
   params.denoising = denoising;
+
+  if (!(params.device.denoisers & denoising.type)) {
+    if (need_denoise) {
+      progress.set_error("Denoiser type not supported by compute device");
+    }
+
+    params.denoising.use = false;
+    need_denoise = false;
+  }
 
   // TODO(pmours): Query the required overlap value for denoising from the device?
   tile_manager.slice_overlap = need_denoise && !params.background ? 64 : 0;

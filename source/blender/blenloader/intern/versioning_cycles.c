@@ -1568,6 +1568,7 @@ void do_versions_after_linking_cycles(Main *bmain)
       }
 
       if (cscene) {
+        const int DENOISER_AUTO = 0;
         const int DENOISER_NLM = 1;
         const int DENOISER_OPTIX = 2;
 
@@ -1578,7 +1579,7 @@ void do_versions_after_linking_cycles(Main *bmain)
         /* Migrate Optix denoiser to new settings. */
         if (cycles_property_int(cscene, "preview_denoising", 0)) {
           cycles_property_boolean_set(cscene, "use_preview_denoising", true);
-          cycles_property_boolean_set(cscene, "preview_denoiser", DENOISER_OPTIX);
+          cycles_property_int_set(cscene, "preview_denoiser", DENOISER_AUTO);
         }
       }
 
