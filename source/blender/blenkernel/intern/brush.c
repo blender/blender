@@ -1185,6 +1185,11 @@ void BKE_brush_gpencil_paint_presets(Main *bmain, ToolSettings *ts, const bool r
   if (reset || brush_prev == NULL) {
     BKE_paint_brush_set(paint, deft_draw);
   }
+  else {
+    if (brush_prev != NULL) {
+      BKE_paint_brush_set(paint, brush_prev);
+    }
+  }
 }
 
 /* Create a set of grease pencil Vertex Paint presets. */
@@ -1226,6 +1231,11 @@ void BKE_brush_gpencil_vertex_presets(Main *bmain, ToolSettings *ts, const bool 
   /* Set default Vertex brush. */
   if (reset || brush_prev == NULL) {
     BKE_paint_brush_set(vertexpaint, deft_vertex);
+  }
+  else {
+    if (brush_prev != NULL) {
+      BKE_paint_brush_set(vertexpaint, brush_prev);
+    }
   }
 }
 
@@ -1297,6 +1307,11 @@ void BKE_brush_gpencil_sculpt_presets(Main *bmain, ToolSettings *ts, const bool 
   if (reset || brush_prev == NULL) {
     BKE_paint_brush_set(sculptpaint, deft_sculpt);
   }
+  else {
+    if (brush_prev != NULL) {
+      BKE_paint_brush_set(sculptpaint, brush_prev);
+    }
+  }
 }
 
 /* Create a set of grease pencil Weight Paint presets. */
@@ -1317,6 +1332,11 @@ void BKE_brush_gpencil_weight_presets(Main *bmain, ToolSettings *ts, const bool 
   /* Set default brush. */
   if (reset || brush_prev == NULL) {
     BKE_paint_brush_set(weightpaint, deft_weight);
+  }
+  else {
+    if (brush_prev != NULL) {
+      BKE_paint_brush_set(weightpaint, brush_prev);
+    }
   }
 }
 
