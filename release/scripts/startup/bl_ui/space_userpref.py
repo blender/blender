@@ -2132,15 +2132,35 @@ class USERPREF_PT_experimental_virtual_reality(ExperimentalPanel, Panel):
 """
 
 
-class USERPREF_PT_experimental_system(ExperimentalPanel, Panel):
-    bl_label = "System"
+class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
+    bl_label = "New Features"
+
+    def draw(self, context):
+        self._draw_items(
+            context, (
+                ({"property": "use_new_particle_system"}, "T73324"),
+            ),
+        )
+
+
+class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
+    bl_label = "Prototypes"
+
+    def draw(self, context):
+        self._draw_items(
+            context, (
+                ({"property": "use_new_hair_type"}, "T68981"),
+            ),
+        )
+
+
+class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
+    bl_label = "Debugging"
 
     def draw(self, context):
         self._draw_items(
             context, (
                 ({"property": "use_undo_legacy"}, "T60695"),
-                ({"property": "use_new_particle_system"}, "T73324"),
-                ({"property": "use_new_hair_type"}, "T68981"),
             ),
         )
 
@@ -2235,7 +2255,9 @@ classes = (
     # Popovers.
     USERPREF_PT_ndof_settings,
 
-    USERPREF_PT_experimental_system,
+    USERPREF_PT_experimental_new_features,
+    USERPREF_PT_experimental_prototypes,
+    USERPREF_PT_experimental_debugging,
 
     # Add dynamically generated editor theme panels last,
     # so they show up last in the theme section.
