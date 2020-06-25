@@ -365,8 +365,9 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
       effects->taa_current_sample += 1;
     }
     else {
-      if ((effects->taa_total_sample == 0) ||
-          (effects->taa_current_sample < effects->taa_total_sample)) {
+      if (!DRW_state_is_playback() &&
+          ((effects->taa_total_sample == 0) ||
+           (effects->taa_current_sample < effects->taa_total_sample))) {
         DRW_viewport_request_redraw();
       }
     }
