@@ -1641,7 +1641,7 @@ static void rna_SimulationModifier_simulation_update(Main *bmain, Scene *scene, 
 
 /**
  * Special set callback that just changes the first bit of the expansion flag.
- * This way the expansion state of all the subpanels is not changed by RNA.
+ * This way the expansion state of all the sub-panels is not changed by RNA.
  */
 static void rna_Modifier_show_expanded_set(PointerRNA *ptr, bool value)
 {

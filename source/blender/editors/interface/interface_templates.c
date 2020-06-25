@@ -1963,7 +1963,7 @@ static short get_constraint_expand_flag(const bContext *C, Panel *panel)
 }
 
 /**
- * Save the expand flag for the panel and subpanels to the constraint.
+ * Save the expand flag for the panel and sub-panels to the constraint.
  */
 static void set_constraint_expand_flag(const bContext *C, Panel *panel, short expand_flag)
 {

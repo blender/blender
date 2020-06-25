@@ -416,11 +416,12 @@ static Collection *collection_duplicate_recursive(Main *bmain,
 }
 
 /**
- * Make a deep copy (aka duplicate) of the given collection and all of its children, recusrsively.
+ * Make a deep copy (aka duplicate) of the given collection and all of its children, recursively.
  *
  * \warning This functions will clear all \a bmain #ID.idnew pointers, unless \a
- * LIB_ID_DUPLICATE_IS_SUBPROCESS duplicate option is passed on, in which case caller is reponsible
- * to reconstruct collection dependencies informations (i.e. call #BKE_main_collection_sync).
+ * #LIB_ID_DUPLICATE_IS_SUBPROCESS duplicate option is passed on, in which case caller is
+ * responsible to reconstruct collection dependencies information's
+ * (i.e. call #BKE_main_collection_sync).
  *
  * \param do_objects: If true, it will also make copies of objects.
  * \param do_obdata: If true, it will also make duplicates of objects,
@@ -444,8 +445,8 @@ Collection *BKE_collection_duplicate(Main *bmain,
       bmain, parent, collection, duplicate_flags, duplicate_options);
 
   if (!is_subprocess) {
-    /* `collection_duplicate_recursive` will also tag our 'root' collection, whic is not required
-     * unless its duplication is a subprocess of another one. */
+    /* `collection_duplicate_recursive` will also tag our 'root' collection, which is not required
+     * unless its duplication is a sub-process of another one. */
     collection_new->id.tag &= ~LIB_TAG_NEW;
 
     /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW.*/

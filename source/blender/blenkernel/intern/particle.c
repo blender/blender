@@ -4787,7 +4787,7 @@ void psys_get_dupli_texture(ParticleSystem *psys,
   int num;
 
   /* XXX: on checking '(psmd->dm != NULL)'
-   * This is incorrect but needed for metaball evaluation.
+   * This is incorrect but needed for meta-ball evaluation.
    * Ideally this would be calculated via the depsgraph, however with meta-balls,
    * the entire scenes dupli's are scanned, which also looks into uncalculated data.
    *

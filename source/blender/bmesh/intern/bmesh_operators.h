@@ -118,7 +118,7 @@ enum {
   BEVEL_PROFILE_CUSTOM,
 };
 
-/* Bevel face_strength_mode values: should match face_str mode enum in DNA_modifer_types.h */
+/* Bevel face_strength_mode values: should match face_str mode enum in DNA_modifier_types.h */
 enum {
   BEVEL_FACE_STRENGTH_NONE,
   BEVEL_FACE_STRENGTH_NEW,

@@ -30,7 +30,7 @@
  * Every slot is in one of three states: empty, occupied or removed. If a slot is occupied, it
  * contains an instance of the key type.
  *
- * Benchmarking and comparing hash tables is hard, because many factors influence the result. The
+ * Bench-marking and comparing hash tables is hard, because many factors influence the result. The
  * performance of a hash table depends on the combination of the hash function, probing strategy,
  * max load factor, key type, slot type and the data distribution. This implementation is designed
  * to be relatively fast by default in all cases. However, it also offers many customization
@@ -49,21 +49,21 @@
  * - Small buffer optimization is enabled by default, if the key is not too large.
  * - The methods `add_new` and `remove_contained` should be used instead of `add` and `remove`
  *   whenever appropriate. Assumptions and intention are described better this way.
- * - Lookups can be performed using types other than Key without conversion. For that use the
- *   methods ending with `_as`. The template parameters Hash and IsEqual have to support the other
+ * - Look-ups can be performed using types other than Key without conversion. For that use the
+ *   methods ending with `_as`. The template parameters Hash and #IsEqual have to support the other
  *   key type. This can greatly improve performance when the set contains strings.
- * - The default constructor is cheap, even when a large InlineBufferCapacity is used. A large
+ * - The default constructor is cheap, even when a large #InlineBufferCapacity is used. A large
  *   slot array will only be initialized when the first key is added.
  * - The `print_stats` method can be used to get information about the distribution of keys and
  *   memory usage of the set.
  * - The method names don't follow the std::unordered_set names in many cases. Searching for such
  *   names in this file will usually let you discover the new name.
- * - There is a StdUnorderedSetWrapper class, that wraps std::unordered_set and gives it the same
- *   interface as blender::Set. This is useful for benchmarking.
+ * - There is a #StdUnorderedSetWrapper class, that wraps std::unordered_set and gives it the same
+ *   interface as blender::Set. This is useful for bench-marking.
  *
  * Possible Improvements:
- * - Use a branchless loop over slots in grow function (measured ~10% performance improvement when
- *   the distribution of occupied slots is suffiently random).
+ * - Use a branch-less loop over slots in grow function (measured ~10% performance improvement when
+ *   the distribution of occupied slots is sufficiently random).
  * - Support max load factor customization.
  * - Improve performance with large data sets through software prefetching. I got fairly
  *   significant improvements in simple tests (~30% faster). It still needs to be investigated how

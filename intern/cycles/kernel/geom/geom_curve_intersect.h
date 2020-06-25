@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 /* Curve primitive intersection functions.
  *
  * The code here was adapted from curve_intersector_sweep.h in Embree, to get
- * an exact match betwee Embree CPU ray-tracing and our GPU ray-tracing. */
+ * an exact match between Embree CPU ray-tracing and our GPU ray-tracing. */
 
 #define CURVE_NUM_BEZIER_SUBDIVISIONS 3
 #define CURVE_NUM_BEZIER_SUBDIVISIONS_UNSTABLE (CURVE_NUM_BEZIER_SUBDIVISIONS + 1)
@@ -176,7 +176,7 @@ ccl_device bool curve_intersect_iterative(const float3 ray_dir,
 {
   const float length_ray_dir = len(ray_dir);
 
-  /* Error of curve evaluations is propertional to largest coordinate. */
+  /* Error of curve evaluations is proportional to largest coordinate. */
   const float4 box_min = min(min(curve[0], curve[1]), min(curve[2], curve[3]));
   const float4 box_max = max(min(curve[0], curve[1]), max(curve[2], curve[3]));
   const float4 box_abs = max(fabs(box_min), fabs(box_max));

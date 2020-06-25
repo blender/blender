@@ -113,7 +113,7 @@ typedef struct Key {
 
   /**
    * Can never be 0, this is used for detecting old data.
-   * current free uid for keyblocks
+   * current free UID for key-blocks.
    */
   int uidgen;
 } Key;

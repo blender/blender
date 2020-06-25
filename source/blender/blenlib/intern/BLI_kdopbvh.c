@@ -769,7 +769,7 @@ static void non_recursive_bvh_div_nodes_task_cb(void *__restrict userdata,
  * This functions builds an optimal implicit tree from the given leafs.
  * Where optimal stands for:
  * - The resulting tree will have the smallest number of branches;
- * - At most only one branch will have NULL childs;
+ * - At most only one branch will have NULL children;
  * - All leafs will be stored at level N or N+1.
  *
  * This function creates an implicit tree on branches_array,
@@ -777,7 +777,7 @@ static void non_recursive_bvh_div_nodes_task_cb(void *__restrict userdata,
  *
  * The tree is built per depth levels. First branches at depth 1.. then branches at depth 2.. etc..
  * The reason is that we can build level N+1 from level N without any data dependencies..
- * thus it allows to use multithread building.
+ * thus it allows to use multi-thread building.
  *
  * To archive this is necessary to find how much leafs are accessible from a certain branch,
  * #BVHBuildHelper, #implicit_needed_branches and #implicit_leafs_index

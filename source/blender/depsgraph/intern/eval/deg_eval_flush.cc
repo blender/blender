@@ -252,9 +252,9 @@ void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *upd
         deg_editors_id_update(update_ctx, id_orig);
       }
       if (ID_IS_OVERRIDE_LIBRARY(id_orig) && id_orig->recalc != 0) {
-        /* We only want to tag an ID for liboverride autorefresh if it was actually tagged as
+        /* We only want to tag an ID for lib-override auto-refresh if it was actually tagged as
          * changed. CoW IDs indirectly modified because of changes in other IDs should never
-         * require a liboverride diffing. */
+         * require a lib-override diffing. */
         id_orig->tag |= LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
       }
       /* Inform draw engines that something was changed. */

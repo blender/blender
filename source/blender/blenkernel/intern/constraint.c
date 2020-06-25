@@ -5415,10 +5415,10 @@ static bConstraint *add_new_constraint_internal(const char *name, short type)
   con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
   con->enforce = 1.0f;
 
-  /* Only open the main panel when constraints are created, not the subpanels. */
+  /* Only open the main panel when constraints are created, not the sub-panels. */
   con->ui_expand_flag = (1 << 0);
   if (ELEM(type, CONSTRAINT_TYPE_ACTION, CONSTRAINT_TYPE_SPLINEIK)) {
-    /* Expand the two subpanels in the cases where the main panel barely has any properties. */
+    /* Expand the two sub-panels in the cases where the main panel barely has any properties. */
     con->ui_expand_flag |= (1 << 1) | (1 << 2);
   }
 

@@ -396,8 +396,8 @@ class MultiDevice : public Device {
     size_t existing_size = mem.device_size;
 
     /* This is a hack to only allocate the tile buffers on denoising devices
-     * Similarily the tile buffers also need to be allocated separately on all devices so any
-     * overlap rendered for denoising does not interfer with each other */
+     * Similarly the tile buffers also need to be allocated separately on all devices so any
+     * overlap rendered for denoising does not interfere with each other */
     if (strcmp(mem.name, "RenderBuffers") == 0) {
       vector<device_ptr> device_pointers;
       device_pointers.reserve(devices.size());

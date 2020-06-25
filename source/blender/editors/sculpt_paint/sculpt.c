@@ -4713,7 +4713,7 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
    * artifacts, this displaces the test cube space in relation to the plane in order to
    * deform more vertices that may be below it. */
   /* The 0.7 and 1.25 factors are arbitrary and don't have any relation between them, they were set
-   * by doing multiple tests using the defaul Clay Strips brush preset. */
+   * by doing multiple tests using the default "Clay Strips" brush preset. */
   float area_co_displaced[3];
   madd_v3_v3v3fl(area_co_displaced, area_co, area_no, -radius * 0.7f);
 

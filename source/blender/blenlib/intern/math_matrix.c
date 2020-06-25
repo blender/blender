@@ -2388,7 +2388,7 @@ void interp_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3], con
   mat3_polar_decompose(A, U_A, P_A);
   mat3_polar_decompose(B, U_B, P_B);
 
-  /* Quaterions cannot represent an axis flip. If such a singularity is detected, choose a
+  /* Quaternions cannot represent an axis flip. If such a singularity is detected, choose a
    * different decomposition of the matrix that still satisfies A = U_A * P_A but which has a
    * positive determinant and thus no axis flips. This resolves T77154.
    *

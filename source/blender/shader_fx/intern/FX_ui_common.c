@@ -90,7 +90,7 @@ static short get_shaderfx_expand_flag(const bContext *C, Panel *panel)
 }
 
 /**
- * Save the expand flag for the panel and subpanels to the effect.
+ * Save the expand flag for the panel and sub-panels to the effect.
  */
 static void set_shaderfx_expand_flag(const bContext *C, Panel *panel, short expand_flag)
 {

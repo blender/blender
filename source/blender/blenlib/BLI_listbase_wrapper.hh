@@ -20,10 +20,10 @@
 /** \file
  * \ingroup bli
  *
- * `blender::ListBaseWrapper` is a typed wrapper for the ListBase struct. That makes it safer and
+ * `blender::ListBaseWrapper` is a typed wrapper for the #ListBase struct. That makes it safer and
  * more convenient to use in C++ in some cases. However, if you find yourself iterating over a
  * linked list a lot, consider to convert it into a vector for further processing. This improves
- * performance and debugability.
+ * performance and debug-ability.
  */
 
 #include "BLI_listbase.h"

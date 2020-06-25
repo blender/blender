@@ -98,7 +98,7 @@ template<
      */
     uint32_t InlineBufferCapacity = (sizeof(Key) + sizeof(Value) < 100) ? 4 : 0,
     /**
-     * The strategy used to deal with collistions. They are defined in BLI_probing_strategies.hh.
+     * The strategy used to deal with collisions. They are defined in BLI_probing_strategies.hh.
      */
     typename ProbingStrategy = DefaultProbingStrategy,
     /**

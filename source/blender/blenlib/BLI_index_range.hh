@@ -211,7 +211,7 @@ class IndexRange {
   }
 
   /**
-   * Returns a new range, that contains a subinterval of the current one.
+   * Returns a new range, that contains a sub-interval of the current one.
    */
   IndexRange slice(uint start, uint size) const
   {

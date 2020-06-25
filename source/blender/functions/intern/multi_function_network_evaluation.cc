@@ -27,7 +27,7 @@
  * - It can handle all existing parameter types (including mutable parameters).
  * - Avoids data copies in many cases.
  * - Every node is executed at most once.
- * - Can compute subfunctions on a single element, when the result is the same for all elements.
+ * - Can compute sub-functions on a single element, when the result is the same for all elements.
  *
  * Possible improvements:
  * - Cache and reuse buffers.

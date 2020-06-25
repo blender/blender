@@ -406,7 +406,7 @@ PanelType *gpencil_modifier_panel_register(ARegionType *region_type,
   panel_type->poll = gpencil_modifier_ui_poll;
 
   /* Give the panel the special flag that says it was built here and corresponds to a
-   * modifer rather than a PanelType. */
+   * modifier rather than a #PanelType. */
   panel_type->flag = PNL_LAYOUT_HEADER_EXPAND | PNL_DRAW_BOX | PNL_INSTANCED;
   panel_type->reorder = gpencil_modifier_reorder;
   panel_type->get_list_data_expand_flag = get_gpencil_modifier_expand_flag;

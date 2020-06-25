@@ -20,10 +20,10 @@
 /** \file
  * \ingroup fn
  *
- * An MFContext is passed along with every call to a multi-function. Right now it does nothing, but
- * it can be used for the following purposes:
+ * An #MFContext is passed along with every call to a multi-function. Right now it does nothing,
+ * but it can be used for the following purposes:
  * - Pass debug information up and down the function call stack.
- * - Pass reusable memory buffers to subfunctions to increase performance.
+ * - Pass reusable memory buffers to sub-functions to increase performance.
  * - Pass cached data to called functions.
  */
 

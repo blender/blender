@@ -127,7 +127,7 @@ void modifier_panel_end(uiLayout *layout, PointerRNA *ptr)
 
 /**
  * Gets RNA pointers for the active object and the panel's modifier data. Also locks
- * the layout if the modifer is from a linked object, and sets the context pointer.
+ * the layout if the modifier is from a linked object, and sets the context pointer.
  */
 #define ERROR_LIBDATA_MESSAGE TIP_("External library data")
 void modifier_panel_get_property_pointers(const bContext *C,

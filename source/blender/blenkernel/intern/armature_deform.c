@@ -349,8 +349,7 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
         pchan_bone_deform(pchan, weight, vec, dq, smat, co, &contrib);
       }
     }
-    /* if there are vertexgroups but not groups with bones
-     * (like for softbody groups) */
+    /* If there are vertex-groups but not groups with bones (like for soft-body groups). */
     if (deformed == 0 && use_envelope) {
       for (pchan = data->ob_arm->pose->chanbase.first; pchan; pchan = pchan->next) {
         if (!(pchan->bone->flag & BONE_NO_DEFORM)) {

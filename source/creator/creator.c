@@ -158,7 +158,7 @@ static void callback_mem_error(const char *errorStr)
 
 static void main_callback_setup(void)
 {
-  /* Error output from the alloc routines: */
+  /* Error output from the guarded allocation routines. */
   MEM_set_error_callback(callback_mem_error);
 }
 
@@ -208,7 +208,7 @@ static void callback_clg_fatal(void *fp)
 static void *evil_C = NULL;
 
 #  ifdef __APPLE__
-/* environ is not available in mac shared libraries */
+/* Environment is not available in macOS shared libraries. */
 #    include <crt_externs.h>
 char **environ = NULL;
 #  endif
@@ -246,24 +246,24 @@ int main(int argc,
   struct CreatorAtExitData app_init_data = {NULL};
   BKE_blender_atexit_register(callback_main_atexit, &app_init_data);
 
-  /* Unbuffered stdout makes stdout and stderr better synchronized, and helps
+  /* Un-buffered `stdout` makes `stdout` and `stderr` better synchronized, and helps
    * when stepping through code in a debugger (prints are immediately
    * visible). However disabling buffering causes lock contention on windows
-   * see T76767 for detais, since this is a debugging aid, we do not enable
-   * the unbuffered behavior for release builds. */
+   * see T76767 for details, since this is a debugging aid, we do not enable
+   * the un-buffered behavior for release builds. */
 #ifndef NDEBUG
   setvbuf(stdout, NULL, _IONBF, 0);
 #endif
 
 #ifdef WIN32
-  /* We delay loading of openmp so we can set the policy here. */
+  /* We delay loading of OPENMP so we can set the policy here. */
 #  if defined(_MSC_VER)
   _putenv_s("OMP_WAIT_POLICY", "PASSIVE");
 #  endif
 
-  /* Win32 Unicode Args */
+  /* Win32 Unicode Arguments. */
   /* NOTE: cannot use guardedalloc malloc here, as it's not yet initialized
-   *       (it depends on the args passed in, which is what we're getting here!)
+   *       (it depends on the arguments passed in, which is what we're getting here!)
    */
   {
     wchar_t **argv_16 = CommandLineToArgvW(GetCommandLineW(), &argc);
@@ -345,7 +345,7 @@ int main(int argc,
   main_callback_setup();
 
 #if defined(__APPLE__) && !defined(WITH_PYTHON_MODULE) && !defined(WITH_HEADLESS)
-  /* patch to ignore argument finder gives us (pid?) */
+  /* Patch to ignore argument finder gives us (PID?) */
   if (argc == 2 && STREQLEN(argv[1], "-psn_", 5)) {
     extern int GHOST_HACK_getFirstFile(char buf[]);
     static char firstfilebuf[512];
@@ -419,7 +419,7 @@ int main(int argc,
   RE_engines_init();
   init_nodesystem();
   psys_init_rng();
-  /* end second init */
+  /* End second initialization. */
 
 #if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
   /* Python module mode ALWAYS runs in background-mode (for now). */
@@ -475,7 +475,7 @@ int main(int argc,
    * #WM_init() before #BPY_python_start() crashes Blender at startup.
    */
 
-  /* TODO - U.pythondir */
+  /* TODO: #U.pythondir */
 #else
   printf(
       "\n* WARNING * - Blender compiled without Python!\n"
@@ -532,7 +532,7 @@ int main(int argc,
   WM_main(C);
 
   return 0;
-} /* end of int main(argc, argv) */
+} /* End of int main(...) function. */
 
 #ifdef WITH_PYTHON_MODULE
 void main_python_exit(void)
