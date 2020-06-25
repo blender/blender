@@ -667,15 +667,8 @@ void DepsgraphNodeBuilder::build_object_flags(int base_index,
                                               eDepsNode_LinkedState_Type linked_state)
 {
   if (base_index == -1) {
-    /* An object can be targeted by a driver that reads its `hide_viewport` or `hide_render`
-     * property. For visible objects, these properties are synced from the base flags, so that
-     * driver variable creates a relation from the OBJECT_FROM_LAYER component. However, when the
-     * object is hidden, it has base_index=-1. To support the aforementioned driver, the component
-     * should still exist, even if it's a no-op. See T78071. */
-    add_operation_node(&object->id, NodeType::OBJECT_FROM_LAYER, OperationCode::OBJECT_BASE_FLAGS);
     return;
   }
-
   Scene *scene_cow = get_cow_datablock(scene_);
   Object *object_cow = get_cow_datablock(object);
   const bool is_from_set = (linked_state == DEG_ID_LINKED_VIA_SET);

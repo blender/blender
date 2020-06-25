@@ -757,20 +757,14 @@ void DepsgraphRelationBuilder::build_object_proxy_group(Object *object)
 
 void DepsgraphRelationBuilder::build_object_flags(Base *base, Object *object)
 {
-  /* An object can be targeted by a driver that reads its `hide_viewport` or `hide_render`
-   * property. When the object is hidden, it has no base. To support such a driver, the component
-   * should still have a relation from the view layer, as it should be updated when the object
-   * toggles visiblity. See T78071. */
+  if (base == nullptr) {
+    return;
+  }
   OperationKey view_layer_done_key(
       &scene_->id, NodeType::LAYER_COLLECTIONS, OperationCode::VIEW_LAYER_EVAL);
   OperationKey object_flags_key(
       &object->id, NodeType::OBJECT_FROM_LAYER, OperationCode::OBJECT_BASE_FLAGS);
   add_relation(view_layer_done_key, object_flags_key, "Base flags flush");
-
-  if (base == nullptr) {
-    return;
-  }
-
   /* Synchronization back to original object. */
   OperationKey synchronize_key(
       &object->id, NodeType::SYNCHRONIZATION, OperationCode::SYNCHRONIZE_TO_ORIGINAL);
