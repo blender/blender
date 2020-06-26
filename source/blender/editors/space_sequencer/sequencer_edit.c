@@ -3453,6 +3453,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
    * on the actual data-blocks. */
   BKE_sequencer_base_clipboard_pointers_restore(&seqbase_clipboard, bmain);
   BKE_sequence_base_dupli_recursive(scene, scene, &nseqbase, &seqbase_clipboard, 0, 0);
+  BKE_sequencer_base_clipboard_pointers_store(bmain, &seqbase_clipboard);
 
   iseq_first = nseqbase.first;
 
