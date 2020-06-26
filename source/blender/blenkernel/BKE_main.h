@@ -173,6 +173,7 @@ void BKE_main_unlock(struct Main *bmain);
 
 void BKE_main_relations_create(struct Main *bmain, const short flag);
 void BKE_main_relations_free(struct Main *bmain);
+void BKE_main_relations_ID_remove(struct Main *bmain, struct ID *id);
 
 struct GSet *BKE_main_gset_create(struct Main *bmain, struct GSet *gset);
 

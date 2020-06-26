@@ -288,6 +288,29 @@ void BKE_main_relations_free(Main *bmain)
 }
 
 /**
+ * Remove an ID from the relations (the two entries for that ID, not the ID from entries in other
+ * IDs' relationships).
+ *
+ * Does not free any allocated memory.
+ * Allows to use those relations as a way to mark an ID as already processed, without requiring any
+ * additional tagging or GSet.
+ * Obviously, relations should be freed after use then, since this will make them fully invalid.
+ */
+void BKE_main_relations_ID_remove(Main *bmain, ID *id)
+{
+  if (bmain->relations) {
+    /* Note: we do not free the entries from the mempool, those will be dealt with when finally
+     * freeing the whole relations. */
+    if (bmain->relations->id_used_to_user) {
+      BLI_ghash_remove(bmain->relations->id_used_to_user, id, NULL, NULL);
+    }
+    if (bmain->relations->id_user_to_used) {
+      BLI_ghash_remove(bmain->relations->id_user_to_used, id, NULL, NULL);
+    }
+  }
+}
+
+/**
  * Create a GSet storing all IDs present in given \a bmain, by their pointers.
  *
  * \param gset: If not NULL, given GSet will be extended with IDs from given \a bmain,
