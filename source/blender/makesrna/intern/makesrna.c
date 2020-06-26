@@ -3770,7 +3770,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
       /* XXX This systematically enforces that flag on ID pointers...
        * we'll probably have to revisit. :/ */
       StructRNA *type = rna_find_struct((const char *)pprop->type);
-      if (type && (type->flag & STRUCT_ID)) {
+      if (type && (type->flag & STRUCT_ID) &&
+          !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED)) {
         prop->flag |= PROP_PTR_NO_OWNERSHIP;
       }
       break;
@@ -3781,7 +3782,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
       /* XXX This systematically enforces that flag on ID pointers...
        * we'll probably have to revisit. :/ */
       StructRNA *type = rna_find_struct((const char *)cprop->item_type);
-      if (type && (type->flag & STRUCT_ID)) {
+      if (type && (type->flag & STRUCT_ID) &&
+          !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED)) {
         prop->flag |= PROP_PTR_NO_OWNERSHIP;
       }
       break;

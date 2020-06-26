@@ -329,6 +329,9 @@ typedef enum PropertyFlagIntern {
   PROP_INTERN_RAW_ACCESS = (1 << 2),
   PROP_INTERN_RAW_ARRAY = (1 << 3),
   PROP_INTERN_FREE_POINTERS = (1 << 4),
+  /* Negative mirror of PROP_PTR_NO_OWNERSHIP, used to prevent automatically setting that one in
+   * makesrna when pointer is an ID... */
+  PROP_INTERN_PTR_OWNERSHIP_FORCED = (1 << 5),
 } PropertyFlagIntern;
 
 /* Property Types */
