@@ -4268,7 +4268,7 @@ static void direct_link_text(BlendDataReader *reader, Text *text)
 /** \name Read ID: Image
  * \{ */
 
-static void lib_link_image(FileData *UNUSED(fd), Main *UNUSED(bmain), Image *UNUSED(ima))
+static void lib_link_image(BlendLibReader *UNUSED(reader), Image *UNUSED(ima))
 {
 }
 
@@ -4441,10 +4441,10 @@ static void direct_link_curve(BlendDataReader *reader, Curve *cu)
 /** \name Read ID: Texture
  * \{ */
 
-static void lib_link_texture(FileData *fd, Main *UNUSED(bmain), Tex *tex)
+static void lib_link_texture(BlendLibReader *reader, Tex *tex)
 {
-  tex->ima = newlibadr(fd, tex->id.lib, tex->ima);
-  tex->ipo = newlibadr(fd, tex->id.lib, tex->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, tex->id.lib, &tex->ima);
+  BLO_read_id_address(reader, tex->id.lib, &tex->ipo);  // XXX deprecated - old animation system
 }
 
 static void direct_link_texture(BlendDataReader *reader, Tex *tex)
@@ -4466,18 +4466,18 @@ static void direct_link_texture(BlendDataReader *reader, Tex *tex)
 /** \name Read ID: Material
  * \{ */
 
-static void lib_link_material(FileData *fd, Main *UNUSED(bmain), Material *ma)
+static void lib_link_material(BlendLibReader *reader, Material *ma)
 {
-  ma->ipo = newlibadr(fd, ma->id.lib, ma->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, ma->id.lib, &ma->ipo);  // XXX deprecated - old animation system
 
   /* relink grease pencil settings */
   if (ma->gp_style != NULL) {
     MaterialGPencilStyle *gp_style = ma->gp_style;
     if (gp_style->sima != NULL) {
-      gp_style->sima = newlibadr(fd, ma->id.lib, gp_style->sima);
+      BLO_read_id_address(reader, ma->id.lib, &gp_style->sima);
     }
     if (gp_style->ima != NULL) {
-      gp_style->ima = newlibadr(fd, ma->id.lib, gp_style->ima);
+      BLO_read_id_address(reader, ma->id.lib, &gp_style->ima);
     }
   }
 }
@@ -8834,10 +8834,10 @@ static void direct_link_linestyle(BlendDataReader *reader, FreestyleLineStyle *l
 /** \name Read ID: Hair
  * \{ */
 
-static void lib_link_hair(FileData *fd, Main *UNUSED(main), Hair *hair)
+static void lib_link_hair(BlendLibReader *reader, Hair *hair)
 {
   for (int a = 0; a < hair->totcol; a++) {
-    hair->mat[a] = newlibadr(fd, hair->id.lib, hair->mat[a]);
+    BLO_read_id_address(reader, hair->id.lib, &hair->mat[a]);
   }
 }
 
@@ -8861,10 +8861,10 @@ static void direct_link_hair(BlendDataReader *reader, Hair *hair)
 /** \name Read ID: Point Cloud
  * \{ */
 
-static void lib_link_pointcloud(FileData *fd, Main *UNUSED(main), PointCloud *pointcloud)
+static void lib_link_pointcloud(BlendLibReader *reader, PointCloud *pointcloud)
 {
   for (int a = 0; a < pointcloud->totcol; a++) {
-    pointcloud->mat[a] = newlibadr(fd, pointcloud->id.lib, pointcloud->mat[a]);
+    BLO_read_id_address(reader, pointcloud->id.lib, &pointcloud->mat[a]);
   }
 }
 
@@ -8887,10 +8887,10 @@ static void direct_link_pointcloud(BlendDataReader *reader, PointCloud *pointclo
 /** \name Read ID: Volume
  * \{ */
 
-static void lib_link_volume(FileData *fd, Main *UNUSED(main), Volume *volume)
+static void lib_link_volume(BlendLibReader *reader, Volume *volume)
 {
   for (int a = 0; a < volume->totcol; a++) {
-    volume->mat[a] = newlibadr(fd, volume->id.lib, volume->mat[a]);
+    BLO_read_id_address(reader, volume->id.lib, &volume->mat[a]);
   }
 }
 
@@ -9877,22 +9877,22 @@ static void lib_link_all(FileData *fd, Main *bmain)
         lib_link_vfont(&reader, (VFont *)id);
         break;
       case ID_HA:
-        lib_link_hair(fd, bmain, (Hair *)id);
+        lib_link_hair(&reader, (Hair *)id);
         break;
       case ID_PT:
-        lib_link_pointcloud(fd, bmain, (PointCloud *)id);
+        lib_link_pointcloud(&reader, (PointCloud *)id);
         break;
       case ID_VO:
-        lib_link_volume(fd, bmain, (Volume *)id);
+        lib_link_volume(&reader, (Volume *)id);
         break;
       case ID_MA:
-        lib_link_material(fd, bmain, (Material *)id);
+        lib_link_material(&reader, (Material *)id);
         break;
       case ID_TE:
-        lib_link_texture(fd, bmain, (Tex *)id);
+        lib_link_texture(&reader, (Tex *)id);
         break;
       case ID_IM:
-        lib_link_image(fd, bmain, (Image *)id);
+        lib_link_image(&reader, (Image *)id);
         break;
       case ID_NT:
         /* Has to be done after node users (scene/materials/...), this will verify group nodes. */
