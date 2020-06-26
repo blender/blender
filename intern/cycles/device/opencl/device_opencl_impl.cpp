@@ -800,7 +800,7 @@ bool OpenCLDevice::load_kernels(const DeviceRequestedFeatures &requested_feature
   foreach (OpenCLProgram *program, programs) {
     if (!program->load()) {
       load_kernel_num_compiling++;
-      load_kernel_task_pool.push([&] {
+      load_kernel_task_pool.push([=] {
         program->compile();
         load_kernel_num_compiling--;
       });
