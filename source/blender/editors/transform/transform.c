@@ -1597,11 +1597,19 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
   if (!(t->con.mode & CON_APPLY) && (t->flag & T_MODAL) &&
       ELEM(t->mode, TFM_TRANSLATION, TFM_RESIZE)) {
     /* When redoing these modes the first time, it's more convenient to save
-     * the Global orientation. */
-    mul_m3_v3(t->spacemtx, t->values_final);
-    unit_m3(t->spacemtx);
+     * in the Global orientation. */
+    if (t->mode == TFM_TRANSLATION) {
+      mul_m3_v3(t->spacemtx, t->values_final);
+    }
+    else {
+      float tmat[3][3], sizemat[3][3];
+      size_to_mat3(sizemat, t->values_final);
+      mul_m3_m3m3(tmat, t->spacemtx, sizemat);
+      mat3_to_size(t->values_final, tmat);
+    }
 
     BLI_assert(t->orient_curr == 0);
+    unit_m3(t->spacemtx);
     t->orient[0].type = V3D_ORIENT_GLOBAL;
   }
 
