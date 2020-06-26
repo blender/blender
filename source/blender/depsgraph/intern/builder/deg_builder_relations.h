@@ -213,7 +213,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_object(Base *base, Object *object);
   virtual void build_object_proxy_from(Object *object);
   virtual void build_object_proxy_group(Object *object);
-  virtual void build_object_flags(Base *base, Object *object);
+  virtual void build_object_from_layer_relations(Object *object);
   virtual void build_object_data(Object *object);
   virtual void build_object_data_camera(Object *object);
   virtual void build_object_data_geometry(Object *object);

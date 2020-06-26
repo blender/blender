@@ -63,7 +63,9 @@ enum class OperationCode {
   AUDIO_VOLUME,
 
   /* Object related. ------------------------------------------------------ */
+  OBJECT_FROM_LAYER_ENTRY,
   OBJECT_BASE_FLAGS,
+  OBJECT_FROM_LAYER_EXIT,
   DIMENSIONS,
 
   /* Transform. ----------------------------------------------------------- */

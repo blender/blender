@@ -109,7 +109,7 @@ void depsgraph_select_tag_to_component_opcode(const ID *id,
   }
   else if (id_type == ID_OB) {
     *component_type = NodeType::OBJECT_FROM_LAYER;
-    *operation_code = OperationCode::OBJECT_BASE_FLAGS;
+    *operation_code = OperationCode::OBJECT_FROM_LAYER_ENTRY;
   }
   else if (id_type == ID_MC) {
     *component_type = NodeType::BATCH_CACHE;

@@ -63,8 +63,12 @@ const char *operationCodeAsString(OperationCode opcode)
     case OperationCode::AUDIO_VOLUME:
       return "AUDIO_VOLUME";
     /* Object related. */
+    case OperationCode::OBJECT_FROM_LAYER_ENTRY:
+      return "OBJECT_FROM_LAYER_ENTRY";
     case OperationCode::OBJECT_BASE_FLAGS:
       return "OBJECT_BASE_FLAGS";
+    case OperationCode::OBJECT_FROM_LAYER_EXIT:
+      return "OBJECT_FROM_LAYER_EXIT";
     case OperationCode::DIMENSIONS:
       return "DIMENSIONS";
     /* Transform. */

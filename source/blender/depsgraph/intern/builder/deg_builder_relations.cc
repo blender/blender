@@ -621,12 +621,9 @@ void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_coll
   }
 }
 
-void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
+void DepsgraphRelationBuilder::build_object(Base * /*base*/, Object *object)
 {
   if (built_map_.checkIsBuiltAndTag(object)) {
-    if (base != nullptr) {
-      build_object_flags(base, object);
-    }
     return;
   }
   /* Object Transforms */
@@ -644,7 +641,7 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
   OperationKey ob_eval_key(&object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_EVAL);
   add_relation(init_transform_key, local_transform_key, "Transform Init");
   /* Various flags, flushing from bases/collections. */
-  build_object_flags(base, object);
+  build_object_from_layer_relations(object);
   /* Parenting. */
   if (object->parent != nullptr) {
     /* Make sure parent object's relations are built. */
@@ -755,20 +752,34 @@ void DepsgraphRelationBuilder::build_object_proxy_group(Object *object)
   add_relation(proxy_group_eval_key, transform_eval_key, "Proxy Group Transform");
 }
 
-void DepsgraphRelationBuilder::build_object_flags(Base *base, Object *object)
+void DepsgraphRelationBuilder::build_object_from_layer_relations(Object *object)
 {
-  if (base == nullptr) {
-    return;
-  }
-  OperationKey view_layer_done_key(
-      &scene_->id, NodeType::LAYER_COLLECTIONS, OperationCode::VIEW_LAYER_EVAL);
+  OperationKey object_from_layer_entry_key(
+      &object->id, NodeType::OBJECT_FROM_LAYER, OperationCode::OBJECT_FROM_LAYER_ENTRY);
+  OperationKey object_from_layer_exit_key(
+      &object->id, NodeType::OBJECT_FROM_LAYER, OperationCode::OBJECT_FROM_LAYER_EXIT);
   OperationKey object_flags_key(
       &object->id, NodeType::OBJECT_FROM_LAYER, OperationCode::OBJECT_BASE_FLAGS);
-  add_relation(view_layer_done_key, object_flags_key, "Base flags flush");
-  /* Synchronization back to original object. */
-  OperationKey synchronize_key(
-      &object->id, NodeType::SYNCHRONIZATION, OperationCode::SYNCHRONIZE_TO_ORIGINAL);
-  add_relation(object_flags_key, synchronize_key, "Synchronize to Original");
+
+  /* Only connect Entry -> Exit if there is no OBJECT_BASE_FLAGS node. */
+  if (has_node(object_flags_key)) {
+    /* Entry -> OBJECT_BASE_FLAGS -> Exit */
+    add_relation(object_from_layer_entry_key, object_flags_key, "Base flags flush Entry");
+    add_relation(object_flags_key, object_from_layer_exit_key, "Base flags flush Exit");
+
+    /* Synchronization back to original object. */
+    OperationKey synchronize_key(
+        &object->id, NodeType::SYNCHRONIZATION, OperationCode::SYNCHRONIZE_TO_ORIGINAL);
+    add_relation(object_from_layer_exit_key, synchronize_key, "Synchronize to Original");
+  }
+  else {
+    /* Directly connect Entry -> Exit. */
+    add_relation(object_from_layer_entry_key, object_from_layer_exit_key, "Object from Layer");
+  }
+
+  OperationKey view_layer_done_key(
+      &scene_->id, NodeType::LAYER_COLLECTIONS, OperationCode::VIEW_LAYER_EVAL);
+  add_relation(view_layer_done_key, object_from_layer_entry_key, "View Layer flags to Object");
 }
 
 void DepsgraphRelationBuilder::build_object_data(Object *object)
