@@ -36,7 +36,7 @@ __all__ = (
 # Support reloading icons.
 if "_icon_cache" in locals():
     release = bpy.app.icons.release
-    for icon_value in _icon_cache.values():
+    for icon_value in set(_icon_cache.values()):
         if icon_value != 0:
             release(icon_value)
     del release
