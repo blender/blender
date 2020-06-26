@@ -679,6 +679,9 @@ static void id_swap(Main *bmain, ID *id_a, ID *id_b, const bool do_full_id)
     /* Exception: IDProperties. */
     id_a->properties = id_b_back.properties;
     id_b->properties = id_a_back.properties;
+    /* Exception: recalc flags. */
+    id_a->recalc = id_b_back.recalc;
+    id_b->recalc = id_a_back.recalc;
   }
 
   if (bmain != NULL) {
