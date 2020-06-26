@@ -2452,7 +2452,7 @@ static void link_glob_list(FileData *fd, ListBase *lb) /* for glob data */
  * \{ */
 
 static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader);
-static void IDP_LibLinkProperty(IDProperty *prop, FileData *fd);
+static void IDP_LibLinkProperty(IDProperty *prop, BlendLibReader *reader);
 
 static void IDP_DirectLinkIDPArray(IDProperty *prop, BlendDataReader *reader)
 {
@@ -2588,7 +2588,7 @@ static void _IDP_DirectLinkGroup_OrFree(IDProperty **prop,
   }
 }
 
-static void IDP_LibLinkProperty(IDProperty *prop, FileData *fd)
+static void IDP_LibLinkProperty(IDProperty *prop, BlendLibReader *reader)
 {
   if (!prop) {
     return;
@@ -2597,7 +2597,7 @@ static void IDP_LibLinkProperty(IDProperty *prop, FileData *fd)
   switch (prop->type) {
     case IDP_ID: /* PointerProperty */
     {
-      void *newaddr = newlibadr(fd, NULL, IDP_Id(prop));
+      void *newaddr = BLO_read_get_new_id_address(reader, NULL, IDP_Id(prop));
       if (IDP_Id(prop) && !newaddr && G.debug) {
         printf("Error while loading \"%s\". Data not found in file!\n", prop->name);
       }
@@ -2608,14 +2608,14 @@ static void IDP_LibLinkProperty(IDProperty *prop, FileData *fd)
     {
       IDProperty *idp_array = IDP_IDPArray(prop);
       for (int i = 0; i < prop->len; i++) {
-        IDP_LibLinkProperty(&(idp_array[i]), fd);
+        IDP_LibLinkProperty(&(idp_array[i]), reader);
       }
       break;
     }
     case IDP_GROUP: /* PointerProperty */
     {
       LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
-        IDP_LibLinkProperty(loop, fd);
+        IDP_LibLinkProperty(loop, reader);
       }
       break;
     }
@@ -2682,7 +2682,7 @@ static void lib_link_id(BlendLibReader *reader, ID *id)
 {
   /* Note: WM IDProperties are never written to file, hence they should always be NULL here. */
   BLI_assert((GS(id->name) != ID_WM) || id->properties == NULL);
-  IDP_LibLinkProperty(id->properties, reader->fd);
+  IDP_LibLinkProperty(id->properties, reader);
 
   AnimData *adt = BKE_animdata_from_id(id);
   if (adt != NULL) {
@@ -3542,7 +3542,7 @@ static void lib_link_workspace_instance_hook(BlendLibReader *reader,
 
 static void lib_link_node_socket(BlendLibReader *reader, Library *lib, bNodeSocket *sock)
 {
-  IDP_LibLinkProperty(sock->prop, reader->fd);
+  IDP_LibLinkProperty(sock->prop, reader);
 
   switch ((eNodeSocketDatatype)sock->type) {
     case SOCK_OBJECT: {
@@ -3589,7 +3589,7 @@ static void lib_link_ntree(BlendLibReader *reader, Library *lib, bNodeTree *ntre
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     /* Link ID Properties -- and copy this comment EXACTLY for easy finding
      * of library blocks that implement this.*/
-    IDP_LibLinkProperty(node->prop, reader->fd);
+    IDP_LibLinkProperty(node->prop, reader);
 
     BLO_read_id_address(reader, lib, &node->id);
 
@@ -3939,7 +3939,7 @@ static void lib_link_pose(BlendLibReader *reader, Object *ob, bPose *pose)
 
     pchan->bone = BKE_armature_find_bone_name(arm, pchan->name);
 
-    IDP_LibLinkProperty(pchan->prop, reader->fd);
+    IDP_LibLinkProperty(pchan->prop, reader);
 
     BLO_read_id_address(reader, arm->id.lib, &pchan->custom);
     if (UNLIKELY(pchan->bone == NULL)) {
@@ -3961,7 +3961,7 @@ static void lib_link_pose(BlendLibReader *reader, Object *ob, bPose *pose)
 
 static void lib_link_bones(BlendLibReader *reader, Bone *bone)
 {
-  IDP_LibLinkProperty(bone->prop, reader->fd);
+  IDP_LibLinkProperty(bone->prop, reader);
 
   LISTBASE_FOREACH (Bone *, curbone, &bone->childbase) {
     lib_link_bones(reader, curbone);
@@ -6112,7 +6112,7 @@ static void lib_link_view_layer(BlendLibReader *reader, Library *lib, ViewLayer 
 
   BLO_read_id_address(reader, lib, &view_layer->mat_override);
 
-  IDP_LibLinkProperty(view_layer->id_properties, reader->fd);
+  IDP_LibLinkProperty(view_layer->id_properties, reader);
 }
 
 /** \} */
@@ -6399,7 +6399,7 @@ static void lib_link_scene(BlendLibReader *reader, Scene *sce)
 
   Sequence *seq;
   SEQ_BEGIN (sce->ed, seq) {
-    IDP_LibLinkProperty(seq->prop, reader->fd);
+    IDP_LibLinkProperty(seq->prop, reader);
 
     if (seq->ipo) {
       BLO_read_id_address(
