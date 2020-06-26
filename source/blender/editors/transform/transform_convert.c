@@ -1086,7 +1086,6 @@ void createTransData(bContext *C, TransInfo *t)
       convert_type = TC_MBALL_VERTS;
     }
     else if (t->obedit_type == OB_ARMATURE) {
-      t->flag &= ~T_PROP_EDIT;
       convert_type = TC_ARMATURE_VERTS;
     }
   }
@@ -1164,6 +1163,7 @@ void createTransData(bContext *C, TransInfo *t)
       break;
     case TC_ARMATURE_VERTS:
       createTransArmatureVerts(t);
+      init_prop_edit = false;
       break;
     case TC_CURSOR_IMAGE:
       createTransCursor_image(t);
@@ -1290,6 +1290,10 @@ void createTransData(bContext *C, TransInfo *t)
       /* Needed because bezier handles can be partially selected
        * and are still added into transform data. */
       sort_trans_data_selected_first(t);
+    }
+
+    if (!init_prop_edit) {
+      t->flag &= ~T_PROP_EDIT;
     }
   }
 

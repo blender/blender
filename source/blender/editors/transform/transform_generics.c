@@ -650,34 +650,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       t->flag |= initTransInfo_edit_pet_to_flag(proportional);
     }
     else {
-      /* use settings from scene only if modal */
-      if (t->flag & T_MODAL) {
-        if ((t->options & CTX_NO_PET) == 0) {
-          if (t->spacetype == SPACE_GRAPH) {
-            t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional_fcurve);
-          }
-          else if (t->spacetype == SPACE_ACTION) {
-            t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional_action);
-          }
-          else if (t->obedit_type != -1) {
-            t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional_edit);
-          }
-          else if (t->options & CTX_GPENCIL_STROKES) {
-            t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional_edit);
-          }
-          else if (t->options & CTX_MASK) {
-            if (ts->proportional_mask) {
-              t->flag |= T_PROP_EDIT;
-
-              if (ts->proportional_edit & PROP_EDIT_CONNECTED) {
-                t->flag |= T_PROP_CONNECTED;
-              }
-            }
-          }
-          else if (!(t->options & CTX_CURSOR) && ts->proportional_objects) {
-            t->flag |= T_PROP_EDIT;
-          }
-        }
+      /* Use settings from scene only if modal. */
+      if (t->flag & T_MODAL && (t->options & CTX_NO_PET) == 0) {
+        t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional_edit);
       }
     }
 
