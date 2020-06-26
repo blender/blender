@@ -1301,7 +1301,7 @@ static bool brush_colors_flip_poll(bContext *C)
   else {
     Object *ob = CTX_data_active_object(C);
     if (ob != NULL) {
-      if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT)) {
+      if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT | OB_MODE_SCULPT)) {
         return true;
       }
     }

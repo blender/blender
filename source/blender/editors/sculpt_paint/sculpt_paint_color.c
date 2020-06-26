@@ -130,6 +130,9 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  float brush_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  copy_v3_v3(brush_color, BKE_brush_color_get(ss->scene, brush));
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
@@ -168,11 +171,11 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
       }
 
       /* Brush paint color, brush test falloff and flow. */
-      float paint_color[4] = {brush->rgb[0], brush->rgb[1], brush->rgb[2], 1.0f};
+      float paint_color[4];
       float wet_mix_color[4];
       float buffer_color[4];
 
-      mul_v4_fl(paint_color, fade * brush->flow);
+      mul_v4_v4fl(paint_color, brush_color, fade * brush->flow);
       mul_v4_v4fl(wet_mix_color, data->wet_mix_sampled_color, fade * brush->flow);
 
       /* Interpolate with the wet_mix color for wet paint mixing. */

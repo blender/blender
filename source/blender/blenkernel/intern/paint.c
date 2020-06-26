@@ -1494,6 +1494,8 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   ss->building_vp_handle = false;
 
+  ss->scene = scene;
+
   if (need_mask) {
     if (mmd == NULL) {
       if (!CustomData_has_layer(&me->vdata, CD_PAINT_MASK)) {

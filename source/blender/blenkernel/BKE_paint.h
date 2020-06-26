@@ -366,6 +366,7 @@ typedef struct SculptSession {
   /* TODO(jbakker): Replace rv3d adn v3d with ViewContext */
   struct RegionView3D *rv3d;
   struct View3D *v3d;
+  struct Scene *scene;
 
   /* Dynamic mesh preview */
   int *preview_vert_index_list;
