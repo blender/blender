@@ -2887,20 +2887,19 @@ static void direct_link_id_common(
  * \{ */
 
 /* library brush linking after fileread */
-static void lib_link_brush(FileData *fd, Main *UNUSED(bmain), Brush *brush)
+static void lib_link_brush(BlendLibReader *reader, Brush *brush)
 {
   /* brush->(mask_)mtex.obj is ignored on purpose? */
-  brush->mtex.tex = newlibadr(fd, brush->id.lib, brush->mtex.tex);
-  brush->mask_mtex.tex = newlibadr(fd, brush->id.lib, brush->mask_mtex.tex);
-  brush->clone.image = newlibadr(fd, brush->id.lib, brush->clone.image);
-  brush->toggle_brush = newlibadr(fd, brush->id.lib, brush->toggle_brush);
-  brush->paint_curve = newlibadr(fd, brush->id.lib, brush->paint_curve);
+  BLO_read_id_address(reader, brush->id.lib, &brush->mtex.tex);
+  BLO_read_id_address(reader, brush->id.lib, &brush->mask_mtex.tex);
+  BLO_read_id_address(reader, brush->id.lib, &brush->clone.image);
+  BLO_read_id_address(reader, brush->id.lib, &brush->toggle_brush);
+  BLO_read_id_address(reader, brush->id.lib, &brush->paint_curve);
 
   /* link default grease pencil palette */
   if (brush->gpencil_settings != NULL) {
     if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
-      brush->gpencil_settings->material = newlibadr(
-          fd, brush->id.lib, brush->gpencil_settings->material);
+      BLO_read_id_address(reader, brush->id.lib, &brush->gpencil_settings->material);
 
       if (!brush->gpencil_settings->material) {
         brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;
@@ -3000,7 +2999,7 @@ static void direct_link_palette(BlendDataReader *reader, Palette *palette)
   BLO_read_list(reader, &palette->colors);
 }
 
-static void lib_link_paint_curve(FileData *UNUSED(fd), Main *UNUSED(bmain), PaintCurve *UNUSED(pc))
+static void lib_link_paint_curve(BlendLibReader *UNUSED(reader), PaintCurve *UNUSED(pc))
 {
 }
 
@@ -4189,9 +4188,9 @@ static void direct_link_mball(BlendDataReader *reader, MetaBall *mb)
 /** \name Read ID: World
  * \{ */
 
-static void lib_link_world(FileData *fd, Main *UNUSED(bmain), World *wrld)
+static void lib_link_world(BlendLibReader *reader, World *wrld)
 {
-  wrld->ipo = newlibadr(fd, wrld->id.lib, wrld->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, wrld->id.lib, &wrld->ipo);  // XXX deprecated - old animation system
 }
 
 static void direct_link_world(BlendDataReader *reader, World *wrld)
@@ -8299,9 +8298,9 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 /** \name Read ID: Light Probe
  * \{ */
 
-static void lib_link_lightprobe(FileData *fd, Main *UNUSED(bmain), LightProbe *prb)
+static void lib_link_lightprobe(BlendLibReader *reader, LightProbe *prb)
 {
-  prb->visibility_grp = newlibadr(fd, prb->id.lib, prb->visibility_grp);
+  BLO_read_id_address(reader, prb->id.lib, &prb->visibility_grp);
 }
 
 static void direct_link_lightprobe(BlendDataReader *reader, LightProbe *prb)
@@ -8316,9 +8315,9 @@ static void direct_link_lightprobe(BlendDataReader *reader, LightProbe *prb)
 /** \name Read ID: Speaker
  * \{ */
 
-static void lib_link_speaker(FileData *fd, Main *UNUSED(bmain), Speaker *spk)
+static void lib_link_speaker(BlendLibReader *reader, Speaker *spk)
 {
-  spk->sound = newlibadr(fd, spk->id.lib, spk->sound);
+  BLO_read_id_address(reader, spk->id.lib, &spk->sound);
 }
 
 static void direct_link_speaker(BlendDataReader *reader, Speaker *spk)
@@ -8462,36 +8461,38 @@ static void direct_link_movieclip(BlendDataReader *reader, MovieClip *clip)
   }
 }
 
-static void lib_link_movieTracks(FileData *fd, MovieClip *clip, ListBase *tracksbase)
+static void lib_link_movieTracks(BlendLibReader *reader, MovieClip *clip, ListBase *tracksbase)
 {
   MovieTrackingTrack *track;
 
   for (track = tracksbase->first; track; track = track->next) {
-    track->gpd = newlibadr(fd, clip->id.lib, track->gpd);
+    BLO_read_id_address(reader, clip->id.lib, &track->gpd);
   }
 }
 
-static void lib_link_moviePlaneTracks(FileData *fd, MovieClip *clip, ListBase *tracksbase)
+static void lib_link_moviePlaneTracks(BlendLibReader *reader,
+                                      MovieClip *clip,
+                                      ListBase *tracksbase)
 {
   MovieTrackingPlaneTrack *plane_track;
 
   for (plane_track = tracksbase->first; plane_track; plane_track = plane_track->next) {
-    plane_track->image = newlibadr(fd, clip->id.lib, plane_track->image);
+    BLO_read_id_address(reader, clip->id.lib, &plane_track->image);
   }
 }
 
-static void lib_link_movieclip(FileData *fd, Main *UNUSED(bmain), MovieClip *clip)
+static void lib_link_movieclip(BlendLibReader *reader, MovieClip *clip)
 {
   MovieTracking *tracking = &clip->tracking;
 
-  clip->gpd = newlibadr(fd, clip->id.lib, clip->gpd);
+  BLO_read_id_address(reader, clip->id.lib, &clip->gpd);
 
-  lib_link_movieTracks(fd, clip, &tracking->tracks);
-  lib_link_moviePlaneTracks(fd, clip, &tracking->plane_tracks);
+  lib_link_movieTracks(reader, clip, &tracking->tracks);
+  lib_link_moviePlaneTracks(reader, clip, &tracking->plane_tracks);
 
   LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
-    lib_link_movieTracks(fd, clip, &object->tracks);
-    lib_link_moviePlaneTracks(fd, clip, &object->plane_tracks);
+    lib_link_movieTracks(reader, clip, &object->tracks);
+    lib_link_moviePlaneTracks(reader, clip, &object->plane_tracks);
   }
 }
 
@@ -9820,25 +9821,25 @@ static void lib_link_all(FileData *fd, Main *bmain)
         lib_link_screen(&reader, (bScreen *)id);
         break;
       case ID_MC:
-        lib_link_movieclip(fd, bmain, (MovieClip *)id);
+        lib_link_movieclip(&reader, (MovieClip *)id);
         break;
       case ID_WO:
-        lib_link_world(fd, bmain, (World *)id);
+        lib_link_world(&reader, (World *)id);
         break;
       case ID_LP:
-        lib_link_lightprobe(fd, bmain, (LightProbe *)id);
+        lib_link_lightprobe(&reader, (LightProbe *)id);
         break;
       case ID_SPK:
-        lib_link_speaker(fd, bmain, (Speaker *)id);
+        lib_link_speaker(&reader, (Speaker *)id);
         break;
       case ID_PA:
         lib_link_particlesettings(&reader, (ParticleSettings *)id);
         break;
       case ID_PC:
-        lib_link_paint_curve(fd, bmain, (PaintCurve *)id);
+        lib_link_paint_curve(&reader, (PaintCurve *)id);
         break;
       case ID_BR:
-        lib_link_brush(fd, bmain, (Brush *)id);
+        lib_link_brush(&reader, (Brush *)id);
         break;
       case ID_GR:
         lib_link_collection(&reader, (Collection *)id);
