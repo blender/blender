@@ -912,6 +912,7 @@ static void seq_multiview_name(Scene *scene,
                                size_t r_size)
 {
   const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, view_id);
+  BLI_assert(ext != NULL && suffix != NULL && prefix != NULL);
   BLI_snprintf(r_path, r_size, "%s%s%s", prefix, suffix, ext);
 }
 
@@ -3013,6 +3014,7 @@ static ImBuf *seq_render_image_strip_view(const SeqRenderData *context,
   }
   else {
     char str[FILE_MAX];
+    BKE_scene_multiview_view_prefix_get(context->scene, name, prefix, &ext);
     seq_multiview_name(context->scene, view_id, prefix, ext, str, FILE_MAX);
     ibuf = IMB_loadiffname(str, flag, seq->strip->colorspace_settings.name);
   }
