@@ -4026,16 +4026,16 @@ static void direct_link_armature(BlendDataReader *reader, bArmature *arm)
 /** \name Read ID: Camera
  * \{ */
 
-static void lib_link_camera(FileData *fd, Main *UNUSED(bmain), Camera *ca)
+static void lib_link_camera(BlendLibReader *reader, Camera *ca)
 {
-  ca->ipo = newlibadr(fd, ca->id.lib, ca->ipo); /* deprecated, for versioning */
+  BLO_read_id_address(reader, ca->id.lib, &ca->ipo); /* deprecated, for versioning */
 
-  ca->dof_ob = newlibadr(fd, ca->id.lib, ca->dof_ob); /* deprecated, for versioning */
-  ca->dof.focus_object = newlibadr(fd, ca->id.lib, ca->dof.focus_object);
+  BLO_read_id_address(reader, ca->id.lib, &ca->dof_ob); /* deprecated, for versioning */
+  BLO_read_id_address(reader, ca->id.lib, &ca->dof.focus_object);
 
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
-    bgpic->ima = newlibadr(fd, ca->id.lib, bgpic->ima);
-    bgpic->clip = newlibadr(fd, ca->id.lib, bgpic->clip);
+    BLO_read_id_address(reader, ca->id.lib, &bgpic->ima);
+    BLO_read_id_address(reader, ca->id.lib, &bgpic->clip);
   }
 }
 
@@ -4058,9 +4058,9 @@ static void direct_link_camera(BlendDataReader *reader, Camera *ca)
 /** \name Read ID: Light
  * \{ */
 
-static void lib_link_light(FileData *fd, Main *UNUSED(bmain), Light *la)
+static void lib_link_light(BlendLibReader *reader, Light *la)
 {
-  la->ipo = newlibadr(fd, la->id.lib, la->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, la->id.lib, &la->ipo);  // XXX deprecated - old animation system
 }
 
 static void direct_link_light(BlendDataReader *reader, Light *la)
@@ -4155,13 +4155,13 @@ static void direct_link_key(BlendDataReader *reader, Key *key)
 /** \name Read ID: Meta Ball
  * \{ */
 
-static void lib_link_mball(FileData *fd, Main *UNUSED(bmain), MetaBall *mb)
+static void lib_link_mball(BlendLibReader *reader, MetaBall *mb)
 {
   for (int a = 0; a < mb->totcol; a++) {
-    mb->mat[a] = newlibadr(fd, mb->id.lib, mb->mat[a]);
+    BLO_read_id_address(reader, mb->id.lib, &mb->mat[a]);
   }
 
-  mb->ipo = newlibadr(fd, mb->id.lib, mb->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, mb->id.lib, &mb->ipo);  // XXX deprecated - old animation system
 }
 
 static void direct_link_mball(BlendDataReader *reader, MetaBall *mb)
@@ -4225,7 +4225,7 @@ static void direct_link_vfont(BlendDataReader *reader, VFont *vf)
 /** \name Read ID: Text
  * \{ */
 
-static void lib_link_text(FileData *UNUSED(fd), Main *UNUSED(bmain), Text *UNUSED(text))
+static void lib_link_text(BlendLibReader *UNUSED(reader), Text *UNUSED(text))
 {
 }
 
@@ -5087,10 +5087,10 @@ static void direct_link_mesh(BlendDataReader *reader, Mesh *mesh)
 /** \name Read ID: Lattice
  * \{ */
 
-static void lib_link_latt(FileData *fd, Main *UNUSED(bmain), Lattice *lt)
+static void lib_link_latt(BlendLibReader *reader, Lattice *lt)
 {
-  lt->ipo = newlibadr(fd, lt->id.lib, lt->ipo);  // XXX deprecated - old animation system
-  lt->key = newlibadr(fd, lt->id.lib, lt->key);
+  BLO_read_id_address(reader, lt->id.lib, &lt->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, lt->id.lib, &lt->key);
 }
 
 static void direct_link_latt(BlendDataReader *reader, Lattice *lt)
@@ -8367,9 +8367,10 @@ static void direct_link_sound(BlendDataReader *reader, bSound *sound)
   sound->newpackedfile = direct_link_packedfile(reader, sound->newpackedfile);
 }
 
-static void lib_link_sound(FileData *fd, Main *UNUSED(bmain), bSound *sound)
+static void lib_link_sound(BlendLibReader *reader, bSound *sound)
 {
-  sound->ipo = newlibadr(fd, sound->id.lib, sound->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(
+      reader, sound->id.lib, &sound->ipo);  // XXX deprecated - old animation system
 }
 
 /** \} */
@@ -9845,22 +9846,22 @@ static void lib_link_all(FileData *fd, Main *bmain)
         lib_link_collection(&reader, (Collection *)id);
         break;
       case ID_SO:
-        lib_link_sound(fd, bmain, (bSound *)id);
+        lib_link_sound(&reader, (bSound *)id);
         break;
       case ID_TXT:
-        lib_link_text(fd, bmain, (Text *)id);
+        lib_link_text(&reader, (Text *)id);
         break;
       case ID_CA:
-        lib_link_camera(fd, bmain, (Camera *)id);
+        lib_link_camera(&reader, (Camera *)id);
         break;
       case ID_LA:
-        lib_link_light(fd, bmain, (Light *)id);
+        lib_link_light(&reader, (Light *)id);
         break;
       case ID_LT:
-        lib_link_latt(fd, bmain, (Lattice *)id);
+        lib_link_latt(&reader, (Lattice *)id);
         break;
       case ID_MB:
-        lib_link_mball(fd, bmain, (MetaBall *)id);
+        lib_link_mball(&reader, (MetaBall *)id);
         break;
       case ID_CU:
         lib_link_curve(fd, bmain, (Curve *)id);
