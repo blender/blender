@@ -181,18 +181,17 @@ static void data_panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  col = uiLayoutColumnWithHeading(layout, false, IFACE_("Mirror U"));
-  row = uiLayoutRow(col, true);
+  col = uiLayoutColumn(layout, true);
+  row = uiLayoutRowWithHeading(col, true, IFACE_("Mirror U"));
   uiLayoutSetPropDecorate(row, false);
   sub = uiLayoutRow(row, true);
   uiItemR(sub, &ptr, "use_mirror_u", 0, "", ICON_NONE);
   sub = uiLayoutRow(sub, true);
   uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_mirror_u"));
   uiItemR(sub, &ptr, "mirror_offset_u", UI_ITEM_R_SLIDER, "", ICON_NONE);
-  uiItemDecoratorR(row, &ptr, "mirror_offset_v", 0);
+  uiItemDecoratorR(row, &ptr, "mirror_offset_u", 0);
 
-  col = uiLayoutColumnWithHeading(layout, false, "V");
-  row = uiLayoutRow(col, true);
+  row = uiLayoutRowWithHeading(col, true, IFACE_("V"));
   uiLayoutSetPropDecorate(row, false);
   sub = uiLayoutRow(row, true);
   uiItemR(sub, &ptr, "use_mirror_v", 0, "", ICON_NONE);
@@ -200,6 +199,10 @@ static void data_panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_mirror_v"));
   uiItemR(sub, &ptr, "mirror_offset_v", UI_ITEM_R_SLIDER, "", ICON_NONE);
   uiItemDecoratorR(row, &ptr, "mirror_offset_v", 0);
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col, &ptr, "offset_u", UI_ITEM_R_SLIDER, IFACE_("Offset U"), ICON_NONE);
+  uiItemR(col, &ptr, "offset_v", UI_ITEM_R_SLIDER, IFACE_("V"), ICON_NONE);
 
   uiItemR(layout, &ptr, "use_mirror_vertex_groups", 0, IFACE_("Vertex Groups"), ICON_NONE);
   uiItemR(layout, &ptr, "use_mirror_udim", 0, IFACE_("Flip UDIM"), ICON_NONE);
