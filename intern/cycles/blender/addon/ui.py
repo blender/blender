@@ -268,7 +268,7 @@ class CYCLES_RENDER_PT_sampling_denoising(CyclesButtonsPanel, Panel):
         sub.active = cscene.use_denoising
         sub.prop(cscene, "denoiser", text="")
 
-        heading = layout.column(align=True, heading="Viewport")
+        heading = layout.column(align=False, heading="Viewport")
         row = heading.row(align=True)
         row.prop(cscene, "use_preview_denoising", text="")
         sub = row.row()
