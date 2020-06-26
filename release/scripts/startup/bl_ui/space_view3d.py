@@ -5626,8 +5626,8 @@ class VIEW3D_PT_object_type_visibility(Panel):
             elif attr == "pointcloud" and not hasattr(bpy.data, "pointclouds"):
                 continue
 
-            attr_v = "show_object_viewport_" f"{attr:s}"
-            attr_s = "show_object_select_" f"{attr:s}"
+            attr_v = "show_object_viewport_" + attr
+            attr_s = "show_object_select_" + attr
 
             icon_v = 'HIDE_OFF' if getattr(view, attr_v) else 'HIDE_ON'
             icon_s = 'RESTRICT_SELECT_OFF' if getattr(view, attr_s) else 'RESTRICT_SELECT_ON'

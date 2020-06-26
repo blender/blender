@@ -31,13 +31,13 @@ def url_prefill_from_blender(addon_info=None):
 
     fh.write("**System Information**\n")
     fh.write(
-        "Operating system: {!s} {!s} Bits\n".format(
+        "Operating system: %s %d Bits\n" % (
             platform.platform(),
             struct.calcsize("P") * 8,
         )
     )
     fh.write(
-        "Graphics card: {!s} {!s} {!s}\n".format(
+        "Graphics card: %s %s %s\n" % (
             bgl.glGetString(bgl.GL_RENDERER),
             bgl.glGetString(bgl.GL_VENDOR),
             bgl.glGetString(bgl.GL_VERSION),
@@ -48,7 +48,7 @@ def url_prefill_from_blender(addon_info=None):
         "**Blender Version**\n"
     )
     fh.write(
-        "Broken: version: {!s}, branch: {!s}, commit date: {!s} {!s}, hash: `rB{!s}`\n".format(
+        "Broken: version: %s, branch: %s, commit date: %s %s, hash: `rB%s`\n" % (
             bpy.app.version_string,
             bpy.app.build_branch.decode('utf-8', 'replace'),
             bpy.app.build_commit_date.decode('utf-8', 'replace'),

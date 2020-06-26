@@ -505,7 +505,7 @@ def main():
 
 
 if __name__ == "__main__":
-    print("\n\n *** Running {} *** \n".format(__file__))
-    print(" *** Blend file {} *** \n".format(bpy.data.filepath))
+    print("\n\n *** Running %s *** \n" % __file__)
+    print(" *** Blend file %s *** \n" % bpy.data.filepath)
     main()
     bpy.ops.wm.quit_blender()

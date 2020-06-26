@@ -450,7 +450,7 @@ class ToolSelectPanelHelper:
 
     @classmethod
     def _km_action_simple(cls, kc_default, kc, context_descr, label, keymap_fn):
-        km_idname = f"{cls.keymap_prefix:s} {context_descr:s}, {label:s}"
+        km_idname = "%s %s, %s" % (cls.keymap_prefix, context_descr, label)
         km = kc.keymaps.get(km_idname)
         km_kwargs = dict(space_type=cls.bl_space_type, region_type='WINDOW', tool=True)
         if km is None:

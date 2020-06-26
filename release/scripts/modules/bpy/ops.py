@@ -123,7 +123,7 @@ class BPyOpsSubModOp:
         # op_class = getattr(bpy.types, idname)
         op_class = op_get_rna_type(idname)
         descr = op_class.description
-        return f"{sig}\n{descr}"
+        return "%s\n%s" % (sig, descr)
 
     @staticmethod
     def _parse_args(args):

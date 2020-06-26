@@ -76,8 +76,7 @@ class ImagePreviewCollection(dict):
             return
 
         raise ResourceWarning(
-            f"{self!r}: left open, remove with "
-            "'bpy.utils.previews.remove()'"
+            "%r: left open, remove with 'bpy.utils.previews.remove()'" % self
         )
         self.close()
 
@@ -116,7 +115,9 @@ class ImagePreviewCollection(dict):
         super().__delitem__(key)
 
     def __repr__(self):
-        return f"<{self.__class__.__name__:s} id={self._uuid:s}[{len(self):d}], {super()!r}>"
+        return "<%s id=%s[%d], %r>" % (
+            self.__class__.__name__, self._uuid, len(self), super()
+        )
 
 
 def new():

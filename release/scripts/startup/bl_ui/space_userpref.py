@@ -45,7 +45,7 @@ class USERPREF_HT_header(Header):
             # Show '*' to let users know the preferences have been modified.
             layout.operator(
                 "wm.save_userpref",
-                text="Save Preferences{:s}".format(" *" if prefs.is_dirty else ""),
+                text="Save Preferences" + (" *" if prefs.is_dirty else ""),
             )
 
     def draw(self, context):
@@ -1903,8 +1903,10 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                                 "wm.url_open", text="Report a Bug", icon='URL',
                             ).url = info["tracker_url"]
                         elif not user_addon:
-                            addon_info = ("Name: {} {}\nAuthor: {}\n").format(
-                                info["name"], info["version"], info["author"])
+                            addon_info = (
+                                "Name: %s %s\n"
+                                "Author: %s\n"
+                            ) % (info["name"], str(info["version"]), info["author"])
                             props = sub.operator(
                                 "wm.url_open_preset", text="Report a Bug", icon='URL',
                             )
@@ -1987,7 +1989,7 @@ class StudioLightPanelMixin:
             for studio_light in lights:
                 self.draw_studio_light(flow, studio_light)
         else:
-            layout.label(text="No custom {} configured".format(self.bl_label))
+            layout.label(text="No custom %s configured" % self.bl_label)
 
     def draw_studio_light(self, layout, studio_light):
         box = layout.box()

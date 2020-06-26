@@ -1697,7 +1697,7 @@ class WM_OT_tool_set_by_id(Operator):
                 tool_settings.workspace_tool_type = 'FALLBACK'
             return {'FINISHED'}
         else:
-            self.report({'WARNING'}, f"Tool {self.name!r:s} not found for space {space_type!r:s}.")
+            self.report({'WARNING'}, "Tool %r not found for space %r." % (self.name, space_type))
             return {'CANCELLED'}
 
 
@@ -2216,8 +2216,8 @@ class WM_OT_batch_rename(Operator):
             elif ty == 'STRIP':
                 chars = action.strip_chars
                 chars_strip = (
-                    "{:s}{:s}{:s}"
-                ).format(
+                    "%s%s%s"
+                ) % (
                     string.punctuation if 'PUNCT' in chars else "",
                     string.digits if 'DIGIT' in chars else "",
                     " " if 'SPACE' in chars else "",
@@ -2282,7 +2282,7 @@ class WM_OT_batch_rename(Operator):
         split.prop(self, "data_type", text="")
 
         split = layout.split(factor=0.5)
-        split.label(text="Rename {:d} {:s}:".format(len(self._data[0]), self._data[2]))
+        split.label(text="Rename %d %s:" % (len(self._data[0]), self._data[2]))
         split.row().prop(self, "data_source", expand=True)
 
         for action in self.actions:
@@ -2397,7 +2397,7 @@ class WM_OT_batch_rename(Operator):
                 change_len += 1
             total_len += 1
 
-        self.report({'INFO'}, "Renamed {:d} of {:d} {:s}".format(change_len, total_len, descr))
+        self.report({'INFO'}, "Renamed %d of %d %s" % (change_len, total_len, descr))
 
         return {'FINISHED'}
 
