@@ -551,7 +551,7 @@ const std::string smoke_load_noise =
     "\n\
 def smoke_load_noise_$ID$(path, framenr, file_format, resumable):\n\
     mantaMsg('Smoke load noise')\n\
-    dict = { **smoke_noise_dict_final_s$ID$, **smoke_data_dict_resume_s$ID$ } if resumable else { **smoke_noise_dict_final_s$ID$ } \n\
+    dict = { **smoke_noise_dict_final_s$ID$, **smoke_noise_dict_resume_s$ID$ } if resumable else { **smoke_noise_dict_final_s$ID$ } \n\
     fluid_file_import_s$ID$(dict=dict, path=path, framenr=framenr, file_format=file_format, file_name=file_noise_s$ID$)\n\
     \n\
     if resumable:\n\

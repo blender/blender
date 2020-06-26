@@ -1280,7 +1280,7 @@ bool MANTA::readNoise(FluidModifierData *mmd, int framenr, bool resumable)
   FluidDomainSettings *mds = mmd->domain;
 
   string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_NOISE);
-  string resumable_cache = (resumable) ? "False" : "True";
+  string resumable_cache = (!resumable) ? "False" : "True";
 
   /* Support older caches which had more granular file format control. */
   char format = (!strcmp(mds->cache_id, FLUID_CACHE_VERSION)) ? mds->cache_data_format :
