@@ -1942,10 +1942,8 @@ void OpenCLDevice::bake(DeviceTask &task, RenderTile &rtile)
   clFinish(cqCommandQueue);
 }
 
-string OpenCLDevice::kernel_build_options(const string *debug_src)
+static bool kernel_build_opencl_2(cl_device_id cdDevice)
 {
-  string build_options = "-cl-no-signed-zeros -cl-mad-enable ";
-
   /* Build with OpenCL 2.0 if available, this improves performance
    * with AMD OpenCL drivers on Windows and Linux (legacy drivers).
    * Note that OpenCL selects the highest 1.x version by default,
@@ -1953,16 +1951,34 @@ string OpenCLDevice::kernel_build_options(const string *debug_src)
   int version_major, version_minor;
   if (OpenCLInfo::get_device_version(cdDevice, &version_major, &version_minor)) {
     if (version_major >= 2) {
-      /* This appears to trigger a driver bug in Radeon RX cards, so we
-       * don't use OpenCL 2.0 for those. */
+      /* This appears to trigger a driver bug in Radeon RX cards with certain
+       * driver version, so don't use OpenCL 2.0 for those. */
       string device_name = OpenCLInfo::get_readable_device_name(cdDevice);
-      if (!(string_startswith(device_name, "Radeon RX 4") ||
-            string_startswith(device_name, "Radeon (TM) RX 4") ||
-            string_startswith(device_name, "Radeon RX 5") ||
-            string_startswith(device_name, "Radeon (TM) RX 5"))) {
-        build_options += "-cl-std=CL2.0 ";
+      if (string_startswith(device_name, "Radeon RX 4") ||
+          string_startswith(device_name, "Radeon (TM) RX 4") ||
+          string_startswith(device_name, "Radeon RX 5") ||
+          string_startswith(device_name, "Radeon (TM) RX 5")) {
+        char version[256] = "";
+        int driver_major, driver_minor;
+        clGetDeviceInfo(cdDevice, CL_DEVICE_VERSION, sizeof(version), &version, NULL);
+        if (sscanf(version, "OpenCL 2.0 AMD-APP (%d.%d)", &driver_major, &driver_minor) == 2) {
+          return !(driver_major == 3075 && driver_minor <= 12);
+        }
       }
+
+      return true;
     }
+  }
+
+  return false;
+}
+
+string OpenCLDevice::kernel_build_options(const string *debug_src)
+{
+  string build_options = "-cl-no-signed-zeros -cl-mad-enable ";
+
+  if (kernel_build_opencl_2(cdDevice)) {
+    build_options += "-cl-std=CL2.0 ";
   }
 
   if (platform_name == "NVIDIA CUDA") {
