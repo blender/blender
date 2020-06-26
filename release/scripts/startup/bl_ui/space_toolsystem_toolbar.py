@@ -482,7 +482,7 @@ class _defs_view3d_add:
         return dict(
             idname="builtin.primitive_cone_add",
             label="Add Cone",
-            icon="ops.mesh.primitive_cube_add_gizmo",
+            icon="ops.mesh.primitive_cone_add_gizmo",
             description=(
                 "Add cone to mesh interactively"
             ),
