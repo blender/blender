@@ -27,6 +27,9 @@ set(USD_EXTRA_ARGS
   -DTBB_INCLUDE_DIRS=${LIBDIR}/tbb/include
   -DTBB_LIBRARIES=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${LIBEXT}
   -DTbb_TBB_LIBRARY=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${LIBEXT}
+  # USD wants the tbb debug lib set even when you are doing a release build
+  # Otherwise it will error out during the cmake configure phase.
+  -DTBB_LIBRARIES_DEBUG=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${LIBEXT}
 
   # This is a preventative measure that avoids possible conflicts when add-ons
   # try to load another USD library into the same process space.
