@@ -43,7 +43,7 @@ void DepsgraphRelationBuilder::build_scene_render(Scene *scene, ViewLayer *view_
     build_scene_speakers(scene, view_layer);
   }
   if (scene->camera != nullptr) {
-    build_object(nullptr, scene->camera);
+    build_object(scene->camera);
   }
 }
 

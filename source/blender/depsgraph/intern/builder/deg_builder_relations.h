@@ -210,7 +210,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_collection(LayerCollection *from_layer_collection,
                                 Object *object,
                                 Collection *collection);
-  virtual void build_object(Base *base, Object *object);
+  virtual void build_object(Object *object);
   virtual void build_object_proxy_from(Object *object);
   virtual void build_object_proxy_group(Object *object);
   virtual void build_object_from_layer_relations(Object *object);

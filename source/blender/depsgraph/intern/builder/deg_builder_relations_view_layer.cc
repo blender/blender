@@ -96,14 +96,14 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
    * do nullptr-pointer check of the base, so it's fine to pass original one. */
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (need_pull_base_into_graph(base)) {
-      build_object(base, base->object);
+      build_object(base->object);
     }
   }
 
   build_layer_collections(&view_layer->layer_collections);
 
   if (scene->camera != nullptr) {
-    build_object(nullptr, scene->camera);
+    build_object(scene->camera);
   }
   /* Rigidbody. */
   if (scene->rigidbody_world != nullptr) {

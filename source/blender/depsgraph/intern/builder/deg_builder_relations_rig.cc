@@ -449,7 +449,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
     }
     /* Custom shape. */
     if (pchan->custom != nullptr) {
-      build_object(nullptr, pchan->custom);
+      build_object(pchan->custom);
     }
   }
 }
