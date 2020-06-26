@@ -914,7 +914,7 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
  */
 static BMFace *choose_rep_face(BevelParams *bp, BMFace **face, int nfaces)
 {
-  int f, bmf_index, value_index, best_f, i;
+  int bmf_index, value_index, best_f, i;
   BMFace *bmf;
   float cent[3];
 #define VEC_VALUE_LEN 6
@@ -955,7 +955,7 @@ static BMFace *choose_rep_face(BevelParams *bp, BMFace **face, int nfaces)
    */
   best_f = -1;
   for (value_index = 0; num_viable > 1 && value_index < VEC_VALUE_LEN; value_index++) {
-    for (f = 0; f < nfaces; f++) {
+    for (int f = 0; f < nfaces; f++) {
       if (!still_viable[f] || f == best_f) {
         continue;
       }
