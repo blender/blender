@@ -122,7 +122,7 @@ void ED_scene_change_update(Main *bmain, Scene *scene, ViewLayer *layer)
   DEG_graph_relations_update(depsgraph, bmain, scene, layer);
   DEG_on_visible_update(bmain, false);
 
-  ED_render_engine_changed(bmain);
+  ED_render_engine_changed(bmain, false);
   ED_update_for_newframe(bmain, depsgraph);
 }
 

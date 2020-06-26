@@ -299,7 +299,7 @@ static void rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
   BLI_freelinkN(&R_engines, et);
 
   /* Stop all renders in case we were using this one. */
-  ED_render_engine_changed(bmain);
+  ED_render_engine_changed(bmain, false);
 }
 
 static StructRNA *rna_RenderEngine_register(Main *bmain,

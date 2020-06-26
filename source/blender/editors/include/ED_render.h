@@ -47,7 +47,7 @@ void ED_operatortypes_render(void);
 
 /* render_update.c */
 
-void ED_render_engine_changed(struct Main *bmain);
+void ED_render_engine_changed(struct Main *bmain, const bool update_scene_data);
 void ED_render_engine_area_exit(struct Main *bmain, struct ScrArea *area);
 void ED_render_view_layer_changed(struct Main *bmain, struct bScreen *screen);
 

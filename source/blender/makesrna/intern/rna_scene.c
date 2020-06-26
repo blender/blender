@@ -1662,7 +1662,7 @@ static void rna_RenderSettings_engine_update(Main *bmain,
                                              Scene *UNUSED(unused),
                                              PointerRNA *UNUSED(ptr))
 {
-  ED_render_engine_changed(bmain);
+  ED_render_engine_changed(bmain, true);
 }
 
 static bool rna_RenderSettings_multiple_engines_get(PointerRNA *UNUSED(ptr))

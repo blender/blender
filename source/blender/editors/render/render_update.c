@@ -178,7 +178,7 @@ void ED_render_engine_area_exit(Main *bmain, ScrArea *area)
   }
 }
 
-void ED_render_engine_changed(Main *bmain)
+void ED_render_engine_changed(Main *bmain, const bool update_scene_data)
 {
   /* on changing the render engine type, clear all running render engines */
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
@@ -198,7 +198,7 @@ void ED_render_engine_changed(Main *bmain)
       update_ctx.view_layer = view_layer;
       ED_render_id_flush_update(&update_ctx, &scene->id);
     }
-    if (scene->nodetree) {
+    if (scene->nodetree && update_scene_data) {
       ntreeCompositUpdateRLayers(scene->nodetree);
     }
   }
