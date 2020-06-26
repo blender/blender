@@ -1603,7 +1603,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       break;
     case SCULPT_TOOL_SMEAR:
       br->alpha = 1.0f;
-      br->spacing = 7;
+      br->spacing = 5;
+      br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->curve_preset = BRUSH_CURVE_SPHERE;
       break;

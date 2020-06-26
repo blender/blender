@@ -2148,8 +2148,7 @@ static float brush_strength(const Sculpt *sd,
       final_pressure = pressure * pressure;
       return final_pressure * overlap * feather;
     case SCULPT_TOOL_SMEAR:
-      final_pressure = pressure * pressure;
-      return final_pressure * overlap * feather;
+      return pressure * overlap * feather;
     case SCULPT_TOOL_CLAY_STRIPS:
       /* Clay Strips needs less strength to compensate the curve. */
       final_pressure = powf(pressure, 1.5f);
