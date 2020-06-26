@@ -42,6 +42,7 @@ static void rna_def_simulation(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
+  RNA_def_property_clear_flag(prop, PROP_PTR_NO_OWNERSHIP);
   RNA_def_property_ui_text(prop, "Node Tree", "Node tree defining the simulation");
 
   /* common */
