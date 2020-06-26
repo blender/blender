@@ -259,7 +259,7 @@ static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const 
 static BHead *find_bhead_from_idname(FileData *fd, const char *idname);
 
 #ifdef USE_COLLECTION_COMPAT_28
-static void expand_scene_collection(FileData *fd, Main *mainvar, SceneCollection *sc);
+static void expand_scene_collection(BlendExpander *expander, SceneCollection *sc);
 #endif
 static void direct_link_animdata(BlendDataReader *reader, AnimData *adt);
 static void lib_link_animdata(BlendLibReader *reader, ID *id, AnimData *adt);
@@ -10486,26 +10486,26 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 static BLOExpandDoitCallback expand_doit;
 
 // XXX deprecated - old animation system
-static void expand_ipo(FileData *fd, Main *mainvar, Ipo *ipo)
+static void expand_ipo(BlendExpander *expander, Ipo *ipo)
 {
   IpoCurve *icu;
   for (icu = ipo->curve.first; icu; icu = icu->next) {
     if (icu->driver) {
-      expand_doit(fd, mainvar, icu->driver->ob);
+      BLO_expand(expander, icu->driver->ob);
     }
   }
 }
 
 // XXX deprecated - old animation system
-static void expand_constraint_channels(FileData *fd, Main *mainvar, ListBase *chanbase)
+static void expand_constraint_channels(BlendExpander *expander, ListBase *chanbase)
 {
   bConstraintChannel *chan;
   for (chan = chanbase->first; chan; chan = chan->next) {
-    expand_doit(fd, mainvar, chan->ipo);
+    BLO_expand(expander, chan->ipo);
   }
 }
 
-static void expand_fmodifiers(FileData *fd, Main *mainvar, ListBase *list)
+static void expand_fmodifiers(BlendExpander *expander, ListBase *list)
 {
   FModifier *fcm;
 
@@ -10515,7 +10515,7 @@ static void expand_fmodifiers(FileData *fd, Main *mainvar, ListBase *list)
       case FMODIFIER_TYPE_PYTHON: {
         FMod_Python *data = (FMod_Python *)fcm->data;
 
-        expand_doit(fd, mainvar, data->script);
+        BLO_expand(expander, data->script);
 
         break;
       }
@@ -10523,7 +10523,7 @@ static void expand_fmodifiers(FileData *fd, Main *mainvar, ListBase *list)
   }
 }
 
-static void expand_fcurves(FileData *fd, Main *mainvar, ListBase *list)
+static void expand_fcurves(BlendExpander *expander, ListBase *list)
 {
   FCurve *fcu;
 
@@ -10536,54 +10536,54 @@ static void expand_fcurves(FileData *fd, Main *mainvar, ListBase *list)
       for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
         DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
           // TODO: only expand those that are going to get used?
-          expand_doit(fd, mainvar, dtar->id);
+          BLO_expand(expander, dtar->id);
         }
         DRIVER_TARGETS_LOOPER_END;
       }
     }
 
     /* F-Curve Modifiers */
-    expand_fmodifiers(fd, mainvar, &fcu->modifiers);
+    expand_fmodifiers(expander, &fcu->modifiers);
   }
 }
 
-static void expand_animdata_nlastrips(FileData *fd, Main *mainvar, ListBase *list)
+static void expand_animdata_nlastrips(BlendExpander *expander, ListBase *list)
 {
   NlaStrip *strip;
 
   for (strip = list->first; strip; strip = strip->next) {
     /* check child strips */
-    expand_animdata_nlastrips(fd, mainvar, &strip->strips);
+    expand_animdata_nlastrips(expander, &strip->strips);
 
     /* check F-Curves */
-    expand_fcurves(fd, mainvar, &strip->fcurves);
+    expand_fcurves(expander, &strip->fcurves);
 
     /* check F-Modifiers */
-    expand_fmodifiers(fd, mainvar, &strip->modifiers);
+    expand_fmodifiers(expander, &strip->modifiers);
 
     /* relink referenced action */
-    expand_doit(fd, mainvar, strip->act);
+    BLO_expand(expander, strip->act);
   }
 }
 
-static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
+static void expand_animdata(BlendExpander *expander, AnimData *adt)
 {
   NlaTrack *nlt;
 
   /* own action */
-  expand_doit(fd, mainvar, adt->action);
-  expand_doit(fd, mainvar, adt->tmpact);
+  BLO_expand(expander, adt->action);
+  BLO_expand(expander, adt->tmpact);
 
   /* drivers - assume that these F-Curves have driver data to be in this list... */
-  expand_fcurves(fd, mainvar, &adt->drivers);
+  expand_fcurves(expander, &adt->drivers);
 
   /* nla-data - referenced actions */
   for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
-    expand_animdata_nlastrips(fd, mainvar, &nlt->strips);
+    expand_animdata_nlastrips(expander, &nlt->strips);
   }
 }
 
-static void expand_idprops(FileData *fd, Main *mainvar, IDProperty *prop)
+static void expand_idprops(BlendExpander *expander, IDProperty *prop)
 {
   if (!prop) {
     return;
@@ -10591,84 +10591,84 @@ static void expand_idprops(FileData *fd, Main *mainvar, IDProperty *prop)
 
   switch (prop->type) {
     case IDP_ID:
-      expand_doit(fd, mainvar, IDP_Id(prop));
+      BLO_expand(expander, IDP_Id(prop));
       break;
     case IDP_IDPARRAY: {
       IDProperty *idp_array = IDP_IDPArray(prop);
       for (int i = 0; i < prop->len; i++) {
-        expand_idprops(fd, mainvar, &idp_array[i]);
+        expand_idprops(expander, &idp_array[i]);
       }
       break;
     }
     case IDP_GROUP:
       LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
-        expand_idprops(fd, mainvar, loop);
+        expand_idprops(expander, loop);
       }
       break;
   }
 }
 
-static void expand_id(FileData *fd, Main *mainvar, ID *id);
-static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree);
-static void expand_collection(FileData *fd, Main *mainvar, Collection *collection);
+static void expand_id(BlendExpander *expander, ID *id);
+static void expand_nodetree(BlendExpander *expander, bNodeTree *ntree);
+static void expand_collection(BlendExpander *expander, Collection *collection);
 
-static void expand_id_embedded_id(FileData *fd, Main *mainvar, ID *id)
+static void expand_id_embedded_id(BlendExpander *expander, ID *id)
 {
   /* Handle 'private IDs'. */
   bNodeTree *nodetree = ntreeFromID(id);
   if (nodetree != NULL) {
-    expand_id(fd, mainvar, &nodetree->id);
-    expand_nodetree(fd, mainvar, nodetree);
+    expand_id(expander, &nodetree->id);
+    expand_nodetree(expander, nodetree);
   }
 
   if (GS(id->name) == ID_SCE) {
     Scene *scene = (Scene *)id;
     if (scene->master_collection != NULL) {
-      expand_id(fd, mainvar, &scene->master_collection->id);
-      expand_collection(fd, mainvar, scene->master_collection);
+      expand_id(expander, &scene->master_collection->id);
+      expand_collection(expander, scene->master_collection);
     }
   }
 }
 
-static void expand_id(FileData *fd, Main *mainvar, ID *id)
+static void expand_id(BlendExpander *expander, ID *id)
 {
-  expand_idprops(fd, mainvar, id->properties);
+  expand_idprops(expander, id->properties);
 
   if (id->override_library) {
-    expand_doit(fd, mainvar, id->override_library->reference);
-    expand_doit(fd, mainvar, id->override_library->storage);
+    BLO_expand(expander, id->override_library->reference);
+    BLO_expand(expander, id->override_library->storage);
   }
 
   AnimData *adt = BKE_animdata_from_id(id);
   if (adt != NULL) {
-    expand_animdata(fd, mainvar, adt);
+    expand_animdata(expander, adt);
   }
 
-  expand_id_embedded_id(fd, mainvar, id);
+  expand_id_embedded_id(expander, id);
 }
 
-static void expand_action(FileData *fd, Main *mainvar, bAction *act)
+static void expand_action(BlendExpander *expander, bAction *act)
 {
   bActionChannel *chan;
 
   // XXX deprecated - old animation system --------------
   for (chan = act->chanbase.first; chan; chan = chan->next) {
-    expand_doit(fd, mainvar, chan->ipo);
-    expand_constraint_channels(fd, mainvar, &chan->constraintChannels);
+    BLO_expand(expander, chan->ipo);
+    expand_constraint_channels(expander, &chan->constraintChannels);
   }
   // ---------------------------------------------------
 
   /* F-Curves in Action */
-  expand_fcurves(fd, mainvar, &act->curves);
+  expand_fcurves(expander, &act->curves);
 
   LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
     if (marker->camera) {
-      expand_doit(fd, mainvar, marker->camera);
+      BLO_expand(expander, marker->camera);
     }
   }
 }
 
-static void expand_keyingsets(FileData *fd, Main *mainvar, ListBase *list)
+static void expand_keyingsets(BlendExpander *expander, ListBase *list)
 {
   KeyingSet *ks;
   KS_Path *ksp;
@@ -10676,39 +10676,39 @@ static void expand_keyingsets(FileData *fd, Main *mainvar, ListBase *list)
   /* expand the ID-pointers in KeyingSets's paths */
   for (ks = list->first; ks; ks = ks->next) {
     for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
-      expand_doit(fd, mainvar, ksp->id);
+      BLO_expand(expander, ksp->id);
     }
   }
 }
 
-static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSettings *part)
+static void expand_particlesettings(BlendExpander *expander, ParticleSettings *part)
 {
   int a;
 
-  expand_doit(fd, mainvar, part->instance_object);
-  expand_doit(fd, mainvar, part->instance_collection);
-  expand_doit(fd, mainvar, part->force_group);
-  expand_doit(fd, mainvar, part->bb_ob);
-  expand_doit(fd, mainvar, part->collision_group);
+  BLO_expand(expander, part->instance_object);
+  BLO_expand(expander, part->instance_collection);
+  BLO_expand(expander, part->force_group);
+  BLO_expand(expander, part->bb_ob);
+  BLO_expand(expander, part->collision_group);
 
   for (a = 0; a < MAX_MTEX; a++) {
     if (part->mtex[a]) {
-      expand_doit(fd, mainvar, part->mtex[a]->tex);
-      expand_doit(fd, mainvar, part->mtex[a]->object);
+      BLO_expand(expander, part->mtex[a]->tex);
+      BLO_expand(expander, part->mtex[a]->object);
     }
   }
 
   if (part->effector_weights) {
-    expand_doit(fd, mainvar, part->effector_weights->group);
+    BLO_expand(expander, part->effector_weights->group);
   }
 
   if (part->pd) {
-    expand_doit(fd, mainvar, part->pd->tex);
-    expand_doit(fd, mainvar, part->pd->f_source);
+    BLO_expand(expander, part->pd->tex);
+    BLO_expand(expander, part->pd->f_source);
   }
   if (part->pd2) {
-    expand_doit(fd, mainvar, part->pd2->tex);
-    expand_doit(fd, mainvar, part->pd2->f_source);
+    BLO_expand(expander, part->pd2->tex);
+    BLO_expand(expander, part->pd2->f_source);
   }
 
   if (part->boids) {
@@ -10719,58 +10719,58 @@ static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSetting
       for (rule = state->rules.first; rule; rule = rule->next) {
         if (rule->type == eBoidRuleType_Avoid) {
           BoidRuleGoalAvoid *gabr = (BoidRuleGoalAvoid *)rule;
-          expand_doit(fd, mainvar, gabr->ob);
+          BLO_expand(expander, gabr->ob);
         }
         else if (rule->type == eBoidRuleType_FollowLeader) {
           BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader *)rule;
-          expand_doit(fd, mainvar, flbr->ob);
+          BLO_expand(expander, flbr->ob);
         }
       }
     }
   }
 
   LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
-    expand_doit(fd, mainvar, dw->ob);
+    BLO_expand(expander, dw->ob);
   }
 }
 
-static void expand_collection(FileData *fd, Main *mainvar, Collection *collection)
+static void expand_collection(BlendExpander *expander, Collection *collection)
 {
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    expand_doit(fd, mainvar, cob->ob);
+    BLO_expand(expander, cob->ob);
   }
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    expand_doit(fd, mainvar, child->collection);
+    BLO_expand(expander, child->collection);
   }
 
 #ifdef USE_COLLECTION_COMPAT_28
   if (collection->collection != NULL) {
-    expand_scene_collection(fd, mainvar, collection->collection);
+    expand_scene_collection(expander, collection->collection);
   }
 #endif
 }
 
-static void expand_key(FileData *fd, Main *mainvar, Key *key)
+static void expand_key(BlendExpander *expander, Key *key)
 {
-  expand_doit(fd, mainvar, key->ipo);  // XXX deprecated - old animation system
+  BLO_expand(expander, key->ipo);  // XXX deprecated - old animation system
 }
 
-static void expand_node_socket(FileData *fd, Main *mainvar, bNodeSocket *sock)
+static void expand_node_socket(BlendExpander *expander, bNodeSocket *sock)
 {
-  expand_idprops(fd, mainvar, sock->prop);
+  expand_idprops(expander, sock->prop);
 
   if (sock->default_value != NULL) {
 
     switch ((eNodeSocketDatatype)sock->type) {
       case SOCK_OBJECT: {
         bNodeSocketValueObject *default_value = sock->default_value;
-        expand_doit(fd, mainvar, default_value->value);
+        BLO_expand(expander, default_value->value);
         break;
       }
       case SOCK_IMAGE: {
         bNodeSocketValueImage *default_value = sock->default_value;
-        expand_doit(fd, mainvar, default_value->value);
+        BLO_expand(expander, default_value->value);
         break;
       }
       case SOCK_FLOAT:
@@ -10791,155 +10791,145 @@ static void expand_node_socket(FileData *fd, Main *mainvar, bNodeSocket *sock)
   }
 }
 
-static void expand_node_sockets(FileData *fd, Main *mainvar, ListBase *sockets)
+static void expand_node_sockets(BlendExpander *expander, ListBase *sockets)
 {
   LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
-    expand_node_socket(fd, mainvar, sock);
+    expand_node_socket(expander, sock);
   }
 }
 
-static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
+static void expand_nodetree(BlendExpander *expander, bNodeTree *ntree)
 {
   bNode *node;
 
   if (ntree->gpd) {
-    expand_doit(fd, mainvar, ntree->gpd);
+    BLO_expand(expander, ntree->gpd);
   }
 
   for (node = ntree->nodes.first; node; node = node->next) {
     if (node->id && node->type != CMP_NODE_R_LAYERS) {
-      expand_doit(fd, mainvar, node->id);
+      BLO_expand(expander, node->id);
     }
 
-    expand_idprops(fd, mainvar, node->prop);
+    expand_idprops(expander, node->prop);
 
-    expand_node_sockets(fd, mainvar, &node->inputs);
-    expand_node_sockets(fd, mainvar, &node->outputs);
+    expand_node_sockets(expander, &node->inputs);
+    expand_node_sockets(expander, &node->outputs);
   }
 
-  expand_node_sockets(fd, mainvar, &ntree->inputs);
-  expand_node_sockets(fd, mainvar, &ntree->outputs);
+  expand_node_sockets(expander, &ntree->inputs);
+  expand_node_sockets(expander, &ntree->outputs);
 }
 
-static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
+static void expand_texture(BlendExpander *expander, Tex *tex)
 {
-  expand_doit(fd, mainvar, tex->ima);
-  expand_doit(fd, mainvar, tex->ipo);  // XXX deprecated - old animation system
+  BLO_expand(expander, tex->ima);
+  BLO_expand(expander, tex->ipo);  // XXX deprecated - old animation system
 }
 
-static void expand_brush(FileData *fd, Main *mainvar, Brush *brush)
+static void expand_brush(BlendExpander *expander, Brush *brush)
 {
-  expand_doit(fd, mainvar, brush->mtex.tex);
-  expand_doit(fd, mainvar, brush->mask_mtex.tex);
-  expand_doit(fd, mainvar, brush->clone.image);
-  expand_doit(fd, mainvar, brush->paint_curve);
+  BLO_expand(expander, brush->mtex.tex);
+  BLO_expand(expander, brush->mask_mtex.tex);
+  BLO_expand(expander, brush->clone.image);
+  BLO_expand(expander, brush->paint_curve);
   if (brush->gpencil_settings != NULL) {
-    expand_doit(fd, mainvar, brush->gpencil_settings->material);
+    BLO_expand(expander, brush->gpencil_settings->material);
   }
 }
 
-static void expand_material(FileData *fd, Main *mainvar, Material *ma)
+static void expand_material(BlendExpander *expander, Material *ma)
 {
-  expand_doit(fd, mainvar, ma->ipo);  // XXX deprecated - old animation system
+  BLO_expand(expander, ma->ipo);  // XXX deprecated - old animation system
 
   if (ma->gp_style) {
     MaterialGPencilStyle *gp_style = ma->gp_style;
-    expand_doit(fd, mainvar, gp_style->sima);
-    expand_doit(fd, mainvar, gp_style->ima);
+    BLO_expand(expander, gp_style->sima);
+    BLO_expand(expander, gp_style->ima);
   }
 }
 
-static void expand_light(FileData *fd, Main *mainvar, Light *la)
+static void expand_light(BlendExpander *expander, Light *la)
 {
-  expand_doit(fd, mainvar, la->ipo);  // XXX deprecated - old animation system
+  BLO_expand(expander, la->ipo);  // XXX deprecated - old animation system
 }
 
-static void expand_lattice(FileData *fd, Main *mainvar, Lattice *lt)
+static void expand_lattice(BlendExpander *expander, Lattice *lt)
 {
-  expand_doit(fd, mainvar, lt->ipo);  // XXX deprecated - old animation system
-  expand_doit(fd, mainvar, lt->key);
+  BLO_expand(expander, lt->ipo);  // XXX deprecated - old animation system
+  BLO_expand(expander, lt->key);
 }
 
-static void expand_world(FileData *fd, Main *mainvar, World *wrld)
+static void expand_world(BlendExpander *expander, World *wrld)
 {
-  expand_doit(fd, mainvar, wrld->ipo);  // XXX deprecated - old animation system
+  BLO_expand(expander, wrld->ipo);  // XXX deprecated - old animation system
 }
 
-static void expand_mball(FileData *fd, Main *mainvar, MetaBall *mb)
+static void expand_mball(BlendExpander *expander, MetaBall *mb)
 {
   int a;
 
   for (a = 0; a < mb->totcol; a++) {
-    expand_doit(fd, mainvar, mb->mat[a]);
+    BLO_expand(expander, mb->mat[a]);
   }
 }
 
-static void expand_curve(FileData *fd, Main *mainvar, Curve *cu)
+static void expand_curve(BlendExpander *expander, Curve *cu)
 {
   int a;
 
   for (a = 0; a < cu->totcol; a++) {
-    expand_doit(fd, mainvar, cu->mat[a]);
+    BLO_expand(expander, cu->mat[a]);
   }
 
-  expand_doit(fd, mainvar, cu->vfont);
-  expand_doit(fd, mainvar, cu->vfontb);
-  expand_doit(fd, mainvar, cu->vfonti);
-  expand_doit(fd, mainvar, cu->vfontbi);
-  expand_doit(fd, mainvar, cu->key);
-  expand_doit(fd, mainvar, cu->ipo);  // XXX deprecated - old animation system
-  expand_doit(fd, mainvar, cu->bevobj);
-  expand_doit(fd, mainvar, cu->taperobj);
-  expand_doit(fd, mainvar, cu->textoncurve);
+  BLO_expand(expander, cu->vfont);
+  BLO_expand(expander, cu->vfontb);
+  BLO_expand(expander, cu->vfonti);
+  BLO_expand(expander, cu->vfontbi);
+  BLO_expand(expander, cu->key);
+  BLO_expand(expander, cu->ipo);  // XXX deprecated - old animation system
+  BLO_expand(expander, cu->bevobj);
+  BLO_expand(expander, cu->taperobj);
+  BLO_expand(expander, cu->textoncurve);
 }
 
-static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
+static void expand_mesh(BlendExpander *expander, Mesh *me)
 {
   int a;
 
   for (a = 0; a < me->totcol; a++) {
-    expand_doit(fd, mainvar, me->mat[a]);
+    BLO_expand(expander, me->mat[a]);
   }
 
-  expand_doit(fd, mainvar, me->key);
-  expand_doit(fd, mainvar, me->texcomesh);
+  BLO_expand(expander, me->key);
+  BLO_expand(expander, me->texcomesh);
 }
 
-/* temp struct used to transport needed info to expand_constraint_cb() */
-typedef struct tConstraintExpandData {
-  FileData *fd;
-  Main *mainvar;
-} tConstraintExpandData;
 /* callback function used to expand constraint ID-links */
 static void expand_constraint_cb(bConstraint *UNUSED(con),
                                  ID **idpoin,
                                  bool UNUSED(is_reference),
                                  void *userdata)
 {
-  tConstraintExpandData *ced = (tConstraintExpandData *)userdata;
-  expand_doit(ced->fd, ced->mainvar, *idpoin);
+  BlendExpander *expander = userdata;
+  BLO_expand(expander, *idpoin);
 }
 
-static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
+static void expand_constraints(BlendExpander *expander, ListBase *lb)
 {
-  tConstraintExpandData ced;
   bConstraint *curcon;
 
-  /* relink all ID-blocks used by the constraints */
-  ced.fd = fd;
-  ced.mainvar = mainvar;
-
-  BKE_constraints_id_loop(lb, expand_constraint_cb, &ced);
+  BKE_constraints_id_loop(lb, expand_constraint_cb, expander);
 
   /* deprecated manual expansion stuff */
   for (curcon = lb->first; curcon; curcon = curcon->next) {
     if (curcon->ipo) {
-      expand_doit(fd, mainvar, curcon->ipo);  // XXX deprecated - old animation system
+      BLO_expand(expander, curcon->ipo);  // XXX deprecated - old animation system
     }
   }
 }
 
-static void expand_pose(FileData *fd, Main *mainvar, bPose *pose)
+static void expand_pose(BlendExpander *expander, bPose *pose)
 {
   bPoseChannel *chan;
 
@@ -10948,25 +10938,25 @@ static void expand_pose(FileData *fd, Main *mainvar, bPose *pose)
   }
 
   for (chan = pose->chanbase.first; chan; chan = chan->next) {
-    expand_constraints(fd, mainvar, &chan->constraints);
-    expand_idprops(fd, mainvar, chan->prop);
-    expand_doit(fd, mainvar, chan->custom);
+    expand_constraints(expander, &chan->constraints);
+    expand_idprops(expander, chan->prop);
+    BLO_expand(expander, chan->custom);
   }
 }
 
-static void expand_bones(FileData *fd, Main *mainvar, Bone *bone)
+static void expand_bones(BlendExpander *expander, Bone *bone)
 {
-  expand_idprops(fd, mainvar, bone->prop);
+  expand_idprops(expander, bone->prop);
 
   LISTBASE_FOREACH (Bone *, curBone, &bone->childbase) {
-    expand_bones(fd, mainvar, curBone);
+    expand_bones(expander, curBone);
   }
 }
 
-static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
+static void expand_armature(BlendExpander *expander, bArmature *arm)
 {
   LISTBASE_FOREACH (Bone *, curBone, &arm->bonebase) {
-    expand_bones(fd, mainvar, curBone);
+    expand_bones(expander, curBone);
   }
 }
 
@@ -10975,298 +10965,268 @@ static void expand_object_expandModifiers(void *userData,
                                           ID **idpoin,
                                           int UNUSED(cb_flag))
 {
-  struct {
-    FileData *fd;
-    Main *mainvar;
-  } *data = userData;
-
-  FileData *fd = data->fd;
-  Main *mainvar = data->mainvar;
-
-  expand_doit(fd, mainvar, *idpoin);
+  BlendExpander *expander = userData;
+  BLO_expand(expander, *idpoin);
 }
 
-static void expand_object(FileData *fd, Main *mainvar, Object *ob)
+static void expand_object(BlendExpander *expander, Object *ob)
 {
   ParticleSystem *psys;
   bActionStrip *strip;
   PartEff *paf;
   int a;
 
-  expand_doit(fd, mainvar, ob->data);
+  BLO_expand(expander, ob->data);
 
   /* expand_object_expandModifier() */
   if (ob->modifiers.first) {
-    struct {
-      FileData *fd;
-      Main *mainvar;
-    } data;
-    data.fd = fd;
-    data.mainvar = mainvar;
-
-    BKE_modifiers_foreach_ID_link(ob, expand_object_expandModifiers, (void *)&data);
+    BKE_modifiers_foreach_ID_link(ob, expand_object_expandModifiers, expander);
   }
 
   /* expand_object_expandModifier() */
   if (ob->greasepencil_modifiers.first) {
-    struct {
-      FileData *fd;
-      Main *mainvar;
-    } data;
-    data.fd = fd;
-    data.mainvar = mainvar;
-
-    BKE_gpencil_modifiers_foreach_ID_link(ob, expand_object_expandModifiers, (void *)&data);
+    BKE_gpencil_modifiers_foreach_ID_link(ob, expand_object_expandModifiers, expander);
   }
 
   /* expand_object_expandShaderFx() */
   if (ob->shader_fx.first) {
-    struct {
-      FileData *fd;
-      Main *mainvar;
-    } data;
-    data.fd = fd;
-    data.mainvar = mainvar;
-
-    BKE_shaderfx_foreach_ID_link(ob, expand_object_expandModifiers, (void *)&data);
+    BKE_shaderfx_foreach_ID_link(ob, expand_object_expandModifiers, expander);
   }
 
-  expand_pose(fd, mainvar, ob->pose);
-  expand_doit(fd, mainvar, ob->poselib);
-  expand_constraints(fd, mainvar, &ob->constraints);
+  expand_pose(expander, ob->pose);
+  BLO_expand(expander, ob->poselib);
+  expand_constraints(expander, &ob->constraints);
 
-  expand_doit(fd, mainvar, ob->gpd);
+  BLO_expand(expander, ob->gpd);
 
   // XXX deprecated - old animation system (for version patching only)
-  expand_doit(fd, mainvar, ob->ipo);
-  expand_doit(fd, mainvar, ob->action);
+  BLO_expand(expander, ob->ipo);
+  BLO_expand(expander, ob->action);
 
-  expand_constraint_channels(fd, mainvar, &ob->constraintChannels);
+  expand_constraint_channels(expander, &ob->constraintChannels);
 
   for (strip = ob->nlastrips.first; strip; strip = strip->next) {
-    expand_doit(fd, mainvar, strip->object);
-    expand_doit(fd, mainvar, strip->act);
-    expand_doit(fd, mainvar, strip->ipo);
+    BLO_expand(expander, strip->object);
+    BLO_expand(expander, strip->act);
+    BLO_expand(expander, strip->ipo);
   }
   // XXX deprecated - old animation system (for version patching only)
 
   for (a = 0; a < ob->totcol; a++) {
-    expand_doit(fd, mainvar, ob->mat[a]);
+    BLO_expand(expander, ob->mat[a]);
   }
 
   paf = blo_do_version_give_parteff_245(ob);
   if (paf && paf->group) {
-    expand_doit(fd, mainvar, paf->group);
+    BLO_expand(expander, paf->group);
   }
 
   if (ob->instance_collection) {
-    expand_doit(fd, mainvar, ob->instance_collection);
+    BLO_expand(expander, ob->instance_collection);
   }
 
   if (ob->proxy) {
-    expand_doit(fd, mainvar, ob->proxy);
+    BLO_expand(expander, ob->proxy);
   }
   if (ob->proxy_group) {
-    expand_doit(fd, mainvar, ob->proxy_group);
+    BLO_expand(expander, ob->proxy_group);
   }
 
   for (psys = ob->particlesystem.first; psys; psys = psys->next) {
-    expand_doit(fd, mainvar, psys->part);
+    BLO_expand(expander, psys->part);
   }
 
   if (ob->pd) {
-    expand_doit(fd, mainvar, ob->pd->tex);
-    expand_doit(fd, mainvar, ob->pd->f_source);
+    BLO_expand(expander, ob->pd->tex);
+    BLO_expand(expander, ob->pd->f_source);
   }
 
   if (ob->soft) {
-    expand_doit(fd, mainvar, ob->soft->collision_group);
+    BLO_expand(expander, ob->soft->collision_group);
 
     if (ob->soft->effector_weights) {
-      expand_doit(fd, mainvar, ob->soft->effector_weights->group);
+      BLO_expand(expander, ob->soft->effector_weights->group);
     }
   }
 
   if (ob->rigidbody_constraint) {
-    expand_doit(fd, mainvar, ob->rigidbody_constraint->ob1);
-    expand_doit(fd, mainvar, ob->rigidbody_constraint->ob2);
+    BLO_expand(expander, ob->rigidbody_constraint->ob1);
+    BLO_expand(expander, ob->rigidbody_constraint->ob2);
   }
 
   if (ob->currentlod) {
     LodLevel *level;
     for (level = ob->lodlevels.first; level; level = level->next) {
-      expand_doit(fd, mainvar, level->source);
+      BLO_expand(expander, level->source);
     }
   }
 }
 
 #ifdef USE_COLLECTION_COMPAT_28
-static void expand_scene_collection(FileData *fd, Main *mainvar, SceneCollection *sc)
+static void expand_scene_collection(BlendExpander *expander, SceneCollection *sc)
 {
   LISTBASE_FOREACH (LinkData *, link, &sc->objects) {
-    expand_doit(fd, mainvar, link->data);
+    BLO_expand(expander, link->data);
   }
 
   LISTBASE_FOREACH (SceneCollection *, nsc, &sc->scene_collections) {
-    expand_scene_collection(fd, mainvar, nsc);
+    expand_scene_collection(expander, nsc);
   }
 }
 #endif
 
-static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
+static void expand_scene(BlendExpander *expander, Scene *sce)
 {
   SceneRenderLayer *srl;
   FreestyleModuleConfig *module;
   FreestyleLineSet *lineset;
 
   LISTBASE_FOREACH (Base *, base_legacy, &sce->base) {
-    expand_doit(fd, mainvar, base_legacy->object);
+    BLO_expand(expander, base_legacy->object);
   }
-  expand_doit(fd, mainvar, sce->camera);
-  expand_doit(fd, mainvar, sce->world);
+  BLO_expand(expander, sce->camera);
+  BLO_expand(expander, sce->world);
 
-  expand_keyingsets(fd, mainvar, &sce->keyingsets);
+  expand_keyingsets(expander, &sce->keyingsets);
 
   if (sce->set) {
-    expand_doit(fd, mainvar, sce->set);
+    BLO_expand(expander, sce->set);
   }
 
   for (srl = sce->r.layers.first; srl; srl = srl->next) {
-    expand_doit(fd, mainvar, srl->mat_override);
+    BLO_expand(expander, srl->mat_override);
     for (module = srl->freestyleConfig.modules.first; module; module = module->next) {
       if (module->script) {
-        expand_doit(fd, mainvar, module->script);
+        BLO_expand(expander, module->script);
       }
     }
     for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
       if (lineset->group) {
-        expand_doit(fd, mainvar, lineset->group);
+        BLO_expand(expander, lineset->group);
       }
-      expand_doit(fd, mainvar, lineset->linestyle);
+      BLO_expand(expander, lineset->linestyle);
     }
   }
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
-    expand_idprops(fd, mainvar, view_layer->id_properties);
+    expand_idprops(expander, view_layer->id_properties);
 
     for (module = view_layer->freestyle_config.modules.first; module; module = module->next) {
       if (module->script) {
-        expand_doit(fd, mainvar, module->script);
+        BLO_expand(expander, module->script);
       }
     }
 
     for (lineset = view_layer->freestyle_config.linesets.first; lineset; lineset = lineset->next) {
       if (lineset->group) {
-        expand_doit(fd, mainvar, lineset->group);
+        BLO_expand(expander, lineset->group);
       }
-      expand_doit(fd, mainvar, lineset->linestyle);
+      BLO_expand(expander, lineset->linestyle);
     }
   }
 
   if (sce->gpd) {
-    expand_doit(fd, mainvar, sce->gpd);
+    BLO_expand(expander, sce->gpd);
   }
 
   if (sce->ed) {
     Sequence *seq;
 
     SEQ_BEGIN (sce->ed, seq) {
-      expand_idprops(fd, mainvar, seq->prop);
+      expand_idprops(expander, seq->prop);
 
       if (seq->scene) {
-        expand_doit(fd, mainvar, seq->scene);
+        BLO_expand(expander, seq->scene);
       }
       if (seq->scene_camera) {
-        expand_doit(fd, mainvar, seq->scene_camera);
+        BLO_expand(expander, seq->scene_camera);
       }
       if (seq->clip) {
-        expand_doit(fd, mainvar, seq->clip);
+        BLO_expand(expander, seq->clip);
       }
       if (seq->mask) {
-        expand_doit(fd, mainvar, seq->mask);
+        BLO_expand(expander, seq->mask);
       }
       if (seq->sound) {
-        expand_doit(fd, mainvar, seq->sound);
+        BLO_expand(expander, seq->sound);
       }
 
       if (seq->type == SEQ_TYPE_TEXT && seq->effectdata) {
         TextVars *data = seq->effectdata;
-        expand_doit(fd, mainvar, data->text_font);
+        BLO_expand(expander, data->text_font);
       }
     }
     SEQ_END;
   }
 
   if (sce->rigidbody_world) {
-    expand_doit(fd, mainvar, sce->rigidbody_world->group);
-    expand_doit(fd, mainvar, sce->rigidbody_world->constraints);
+    BLO_expand(expander, sce->rigidbody_world->group);
+    BLO_expand(expander, sce->rigidbody_world->constraints);
   }
 
   LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
     if (marker->camera) {
-      expand_doit(fd, mainvar, marker->camera);
+      BLO_expand(expander, marker->camera);
     }
   }
 
-  expand_doit(fd, mainvar, sce->clip);
+  BLO_expand(expander, sce->clip);
 
 #ifdef USE_COLLECTION_COMPAT_28
   if (sce->collection) {
-    expand_scene_collection(fd, mainvar, sce->collection);
+    expand_scene_collection(expander, sce->collection);
   }
 #endif
 
   if (sce->r.bake.cage_object) {
-    expand_doit(fd, mainvar, sce->r.bake.cage_object);
+    BLO_expand(expander, sce->r.bake.cage_object);
   }
 }
 
-static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)
+static void expand_camera(BlendExpander *expander, Camera *ca)
 {
-  expand_doit(fd, mainvar, ca->ipo);  // XXX deprecated - old animation system
+  BLO_expand(expander, ca->ipo);  // XXX deprecated - old animation system
 
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
     if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
-      expand_doit(fd, mainvar, bgpic->ima);
+      BLO_expand(expander, bgpic->ima);
     }
     else if (bgpic->source == CAM_BGIMG_SOURCE_MOVIE) {
-      expand_doit(fd, mainvar, bgpic->ima);
+      BLO_expand(expander, bgpic->ima);
     }
   }
 }
 
-static void expand_cachefile(FileData *UNUSED(fd),
-                             Main *UNUSED(mainvar),
-                             CacheFile *UNUSED(cache_file))
+static void expand_cachefile(BlendExpander *UNUSED(expander), CacheFile *UNUSED(cache_file))
 {
 }
 
-static void expand_speaker(FileData *fd, Main *mainvar, Speaker *spk)
+static void expand_speaker(BlendExpander *expander, Speaker *spk)
 {
-  expand_doit(fd, mainvar, spk->sound);
+  BLO_expand(expander, spk->sound);
 }
 
-static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
+static void expand_sound(BlendExpander *expander, bSound *snd)
 {
-  expand_doit(fd, mainvar, snd->ipo);  // XXX deprecated - old animation system
+  BLO_expand(expander, snd->ipo);  // XXX deprecated - old animation system
 }
 
-static void expand_lightprobe(FileData *UNUSED(fd), Main *UNUSED(mainvar), LightProbe *UNUSED(prb))
-{
-}
-
-static void expand_movieclip(FileData *UNUSED(fd), Main *UNUSED(mainvar), MovieClip *UNUSED(clip))
+static void expand_lightprobe(BlendExpander *UNUSED(expander), LightProbe *UNUSED(prb))
 {
 }
 
-static void expand_mask_parent(FileData *fd, Main *mainvar, MaskParent *parent)
+static void expand_movieclip(BlendExpander *UNUSED(expander), MovieClip *UNUSED(clip))
+{
+}
+
+static void expand_mask_parent(BlendExpander *expander, MaskParent *parent)
 {
   if (parent->id) {
-    expand_doit(fd, mainvar, parent->id);
+    BLO_expand(expander, parent->id);
   }
 }
 
-static void expand_mask(FileData *fd, Main *mainvar, Mask *mask)
+static void expand_mask(BlendExpander *expander, Mask *mask)
 {
   MaskLayer *mask_layer;
 
@@ -11279,98 +11239,98 @@ static void expand_mask(FileData *fd, Main *mainvar, Mask *mask)
       for (i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
-        expand_mask_parent(fd, mainvar, &point->parent);
+        expand_mask_parent(expander, &point->parent);
       }
 
-      expand_mask_parent(fd, mainvar, &spline->parent);
+      expand_mask_parent(expander, &spline->parent);
     }
   }
 }
 
-static void expand_linestyle(FileData *fd, Main *mainvar, FreestyleLineStyle *linestyle)
+static void expand_linestyle(BlendExpander *expander, FreestyleLineStyle *linestyle)
 {
   int a;
   LineStyleModifier *m;
 
   for (a = 0; a < MAX_MTEX; a++) {
     if (linestyle->mtex[a]) {
-      expand_doit(fd, mainvar, linestyle->mtex[a]->tex);
-      expand_doit(fd, mainvar, linestyle->mtex[a]->object);
+      BLO_expand(expander, linestyle->mtex[a]->tex);
+      BLO_expand(expander, linestyle->mtex[a]->object);
     }
   }
 
   for (m = linestyle->color_modifiers.first; m; m = m->next) {
     if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
-      expand_doit(fd, mainvar, ((LineStyleColorModifier_DistanceFromObject *)m)->target);
+      BLO_expand(expander, ((LineStyleColorModifier_DistanceFromObject *)m)->target);
     }
   }
   for (m = linestyle->alpha_modifiers.first; m; m = m->next) {
     if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
-      expand_doit(fd, mainvar, ((LineStyleAlphaModifier_DistanceFromObject *)m)->target);
+      BLO_expand(expander, ((LineStyleAlphaModifier_DistanceFromObject *)m)->target);
     }
   }
   for (m = linestyle->thickness_modifiers.first; m; m = m->next) {
     if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
-      expand_doit(fd, mainvar, ((LineStyleThicknessModifier_DistanceFromObject *)m)->target);
+      BLO_expand(expander, ((LineStyleThicknessModifier_DistanceFromObject *)m)->target);
     }
   }
 }
 
-static void expand_gpencil(FileData *fd, Main *mainvar, bGPdata *gpd)
+static void expand_gpencil(BlendExpander *expander, bGPdata *gpd)
 {
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    expand_doit(fd, mainvar, gpl->parent);
+    BLO_expand(expander, gpl->parent);
   }
 
   for (int a = 0; a < gpd->totcol; a++) {
-    expand_doit(fd, mainvar, gpd->mat[a]);
+    BLO_expand(expander, gpd->mat[a]);
   }
 }
 
-static void expand_workspace(FileData *fd, Main *mainvar, WorkSpace *workspace)
+static void expand_workspace(BlendExpander *expander, WorkSpace *workspace)
 {
   LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
-    expand_doit(fd, mainvar, BKE_workspace_layout_screen_get(layout));
+    BLO_expand(expander, BKE_workspace_layout_screen_get(layout));
   }
 }
 
-static void expand_hair(FileData *fd, Main *mainvar, Hair *hair)
+static void expand_hair(BlendExpander *expander, Hair *hair)
 {
   for (int a = 0; a < hair->totcol; a++) {
-    expand_doit(fd, mainvar, hair->mat[a]);
+    BLO_expand(expander, hair->mat[a]);
   }
 
   if (hair->adt) {
-    expand_animdata(fd, mainvar, hair->adt);
+    expand_animdata(expander, hair->adt);
   }
 }
 
-static void expand_pointcloud(FileData *fd, Main *mainvar, PointCloud *pointcloud)
+static void expand_pointcloud(BlendExpander *expander, PointCloud *pointcloud)
 {
   for (int a = 0; a < pointcloud->totcol; a++) {
-    expand_doit(fd, mainvar, pointcloud->mat[a]);
+    BLO_expand(expander, pointcloud->mat[a]);
   }
 
   if (pointcloud->adt) {
-    expand_animdata(fd, mainvar, pointcloud->adt);
+    expand_animdata(expander, pointcloud->adt);
   }
 }
 
-static void expand_volume(FileData *fd, Main *mainvar, Volume *volume)
+static void expand_volume(BlendExpander *expander, Volume *volume)
 {
   for (int a = 0; a < volume->totcol; a++) {
-    expand_doit(fd, mainvar, volume->mat[a]);
+    BLO_expand(expander, volume->mat[a]);
   }
 
   if (volume->adt) {
-    expand_animdata(fd, mainvar, volume->adt);
+    expand_animdata(expander, volume->adt);
   }
 }
 
-static void expand_simulation(FileData *fd, Main *mainvar, Simulation *simulation)
+static void expand_simulation(BlendExpander *expander, Simulation *simulation)
 {
   if (simulation->adt) {
-    expand_animdata(fd, mainvar, simulation->adt);
+    expand_animdata(expander, simulation->adt);
   }
 }
 
@@ -11399,6 +11359,8 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
   int a;
   bool do_it = true;
 
+  BlendExpander expander = {fd, mainvar};
+
   while (do_it) {
     do_it = false;
 
@@ -11407,104 +11369,104 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
       id = lbarray[a]->first;
       while (id) {
         if (id->tag & LIB_TAG_NEED_EXPAND) {
-          expand_id(fd, mainvar, id);
+          expand_id(&expander, id);
 
           switch (GS(id->name)) {
             case ID_OB:
-              expand_object(fd, mainvar, (Object *)id);
+              expand_object(&expander, (Object *)id);
               break;
             case ID_ME:
-              expand_mesh(fd, mainvar, (Mesh *)id);
+              expand_mesh(&expander, (Mesh *)id);
               break;
             case ID_CU:
-              expand_curve(fd, mainvar, (Curve *)id);
+              expand_curve(&expander, (Curve *)id);
               break;
             case ID_MB:
-              expand_mball(fd, mainvar, (MetaBall *)id);
+              expand_mball(&expander, (MetaBall *)id);
               break;
             case ID_SCE:
-              expand_scene(fd, mainvar, (Scene *)id);
+              expand_scene(&expander, (Scene *)id);
               break;
             case ID_MA:
-              expand_material(fd, mainvar, (Material *)id);
+              expand_material(&expander, (Material *)id);
               break;
             case ID_TE:
-              expand_texture(fd, mainvar, (Tex *)id);
+              expand_texture(&expander, (Tex *)id);
               break;
             case ID_WO:
-              expand_world(fd, mainvar, (World *)id);
+              expand_world(&expander, (World *)id);
               break;
             case ID_LT:
-              expand_lattice(fd, mainvar, (Lattice *)id);
+              expand_lattice(&expander, (Lattice *)id);
               break;
             case ID_LA:
-              expand_light(fd, mainvar, (Light *)id);
+              expand_light(&expander, (Light *)id);
               break;
             case ID_KE:
-              expand_key(fd, mainvar, (Key *)id);
+              expand_key(&expander, (Key *)id);
               break;
             case ID_CA:
-              expand_camera(fd, mainvar, (Camera *)id);
+              expand_camera(&expander, (Camera *)id);
               break;
             case ID_SPK:
-              expand_speaker(fd, mainvar, (Speaker *)id);
+              expand_speaker(&expander, (Speaker *)id);
               break;
             case ID_SO:
-              expand_sound(fd, mainvar, (bSound *)id);
+              expand_sound(&expander, (bSound *)id);
               break;
             case ID_LP:
-              expand_lightprobe(fd, mainvar, (LightProbe *)id);
+              expand_lightprobe(&expander, (LightProbe *)id);
               break;
             case ID_AR:
-              expand_armature(fd, mainvar, (bArmature *)id);
+              expand_armature(&expander, (bArmature *)id);
               break;
             case ID_AC:
-              expand_action(fd, mainvar, (bAction *)id);  // XXX deprecated - old animation system
+              expand_action(&expander, (bAction *)id);  // XXX deprecated - old animation system
               break;
             case ID_GR:
-              expand_collection(fd, mainvar, (Collection *)id);
+              expand_collection(&expander, (Collection *)id);
               break;
             case ID_NT:
-              expand_nodetree(fd, mainvar, (bNodeTree *)id);
+              expand_nodetree(&expander, (bNodeTree *)id);
               break;
             case ID_BR:
-              expand_brush(fd, mainvar, (Brush *)id);
+              expand_brush(&expander, (Brush *)id);
               break;
             case ID_IP:
-              expand_ipo(fd, mainvar, (Ipo *)id);  // XXX deprecated - old animation system
+              expand_ipo(&expander, (Ipo *)id);  // XXX deprecated - old animation system
               break;
             case ID_PA:
-              expand_particlesettings(fd, mainvar, (ParticleSettings *)id);
+              expand_particlesettings(&expander, (ParticleSettings *)id);
               break;
             case ID_MC:
-              expand_movieclip(fd, mainvar, (MovieClip *)id);
+              expand_movieclip(&expander, (MovieClip *)id);
               break;
             case ID_MSK:
-              expand_mask(fd, mainvar, (Mask *)id);
+              expand_mask(&expander, (Mask *)id);
               break;
             case ID_LS:
-              expand_linestyle(fd, mainvar, (FreestyleLineStyle *)id);
+              expand_linestyle(&expander, (FreestyleLineStyle *)id);
               break;
             case ID_GD:
-              expand_gpencil(fd, mainvar, (bGPdata *)id);
+              expand_gpencil(&expander, (bGPdata *)id);
               break;
             case ID_CF:
-              expand_cachefile(fd, mainvar, (CacheFile *)id);
+              expand_cachefile(&expander, (CacheFile *)id);
               break;
             case ID_WS:
-              expand_workspace(fd, mainvar, (WorkSpace *)id);
+              expand_workspace(&expander, (WorkSpace *)id);
               break;
             case ID_HA:
-              expand_hair(fd, mainvar, (Hair *)id);
+              expand_hair(&expander, (Hair *)id);
               break;
             case ID_PT:
-              expand_pointcloud(fd, mainvar, (PointCloud *)id);
+              expand_pointcloud(&expander, (PointCloud *)id);
               break;
             case ID_VO:
-              expand_volume(fd, mainvar, (Volume *)id);
+              expand_volume(&expander, (Volume *)id);
               break;
             case ID_SIM:
-              expand_simulation(fd, mainvar, (Simulation *)id);
+              expand_simulation(&expander, (Simulation *)id);
               break;
             default:
               break;
