@@ -3447,9 +3447,7 @@ static void direct_link_animdata(BlendDataReader *reader, AnimData *adt)
 /** \name Read ID: CacheFiles
  * \{ */
 
-static void lib_link_cachefiles(FileData *UNUSED(fd),
-                                Main *UNUSED(bmain),
-                                CacheFile *UNUSED(cache_file))
+static void lib_link_cachefiles(BlendLibReader *UNUSED(reader), CacheFile *UNUSED(cache_file))
 {
 }
 
@@ -3961,19 +3959,19 @@ static void lib_link_pose(BlendLibReader *reader, Object *ob, bPose *pose)
   }
 }
 
-static void lib_link_bones(FileData *fd, Bone *bone)
+static void lib_link_bones(BlendLibReader *reader, Bone *bone)
 {
-  IDP_LibLinkProperty(bone->prop, fd);
+  IDP_LibLinkProperty(bone->prop, reader->fd);
 
   LISTBASE_FOREACH (Bone *, curbone, &bone->childbase) {
-    lib_link_bones(fd, curbone);
+    lib_link_bones(reader, curbone);
   }
 }
 
-static void lib_link_armature(FileData *fd, Main *UNUSED(bmain), bArmature *arm)
+static void lib_link_armature(BlendLibReader *reader, bArmature *arm)
 {
   LISTBASE_FOREACH (Bone *, curbone, &arm->bonebase) {
-    lib_link_bones(fd, curbone);
+    lib_link_bones(reader, curbone);
   }
 }
 
@@ -4208,7 +4206,7 @@ static void direct_link_world(BlendDataReader *reader, World *wrld)
 /** \name Read ID: VFont
  * \{ */
 
-static void lib_link_vfont(FileData *UNUSED(fd), Main *UNUSED(bmain), VFont *UNUSED(vf))
+static void lib_link_vfont(BlendLibReader *UNUSED(reader), VFont *UNUSED(vf))
 {
 }
 
@@ -4349,22 +4347,22 @@ static void direct_link_image(BlendDataReader *reader, Image *ima)
 /** \name Read ID: Curve
  * \{ */
 
-static void lib_link_curve(FileData *fd, Main *UNUSED(bmain), Curve *cu)
+static void lib_link_curve(BlendLibReader *reader, Curve *cu)
 {
   for (int a = 0; a < cu->totcol; a++) {
-    cu->mat[a] = newlibadr(fd, cu->id.lib, cu->mat[a]);
+    BLO_read_id_address(reader, cu->id.lib, &cu->mat[a]);
   }
 
-  cu->bevobj = newlibadr(fd, cu->id.lib, cu->bevobj);
-  cu->taperobj = newlibadr(fd, cu->id.lib, cu->taperobj);
-  cu->textoncurve = newlibadr(fd, cu->id.lib, cu->textoncurve);
-  cu->vfont = newlibadr(fd, cu->id.lib, cu->vfont);
-  cu->vfontb = newlibadr(fd, cu->id.lib, cu->vfontb);
-  cu->vfonti = newlibadr(fd, cu->id.lib, cu->vfonti);
-  cu->vfontbi = newlibadr(fd, cu->id.lib, cu->vfontbi);
+  BLO_read_id_address(reader, cu->id.lib, &cu->bevobj);
+  BLO_read_id_address(reader, cu->id.lib, &cu->taperobj);
+  BLO_read_id_address(reader, cu->id.lib, &cu->textoncurve);
+  BLO_read_id_address(reader, cu->id.lib, &cu->vfont);
+  BLO_read_id_address(reader, cu->id.lib, &cu->vfontb);
+  BLO_read_id_address(reader, cu->id.lib, &cu->vfonti);
+  BLO_read_id_address(reader, cu->id.lib, &cu->vfontbi);
 
-  cu->ipo = newlibadr(fd, cu->id.lib, cu->ipo);  // XXX deprecated - old animation system
-  cu->key = newlibadr(fd, cu->id.lib, cu->key);
+  BLO_read_id_address(reader, cu->id.lib, &cu->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, cu->id.lib, &cu->key);
 }
 
 static void switch_endian_knots(Nurb *nu)
@@ -4858,21 +4856,21 @@ static void direct_link_particlesystems(BlendDataReader *reader, ListBase *parti
 /** \name Read ID: Mesh
  * \{ */
 
-static void lib_link_mesh(FileData *fd, Main *UNUSED(bmain), Mesh *me)
+static void lib_link_mesh(BlendLibReader *reader, Mesh *me)
 {
   /* this check added for python created meshes */
   if (me->mat) {
     for (int i = 0; i < me->totcol; i++) {
-      me->mat[i] = newlibadr(fd, me->id.lib, me->mat[i]);
+      BLO_read_id_address(reader, me->id.lib, &me->mat[i]);
     }
   }
   else {
     me->totcol = 0;
   }
 
-  me->ipo = newlibadr(fd, me->id.lib, me->ipo);  // XXX: deprecated: old anim sys
-  me->key = newlibadr(fd, me->id.lib, me->key);
-  me->texcomesh = newlibadr(fd, me->id.lib, me->texcomesh);
+  BLO_read_id_address(reader, me->id.lib, &me->ipo);  // XXX: deprecated: old anim sys
+  BLO_read_id_address(reader, me->id.lib, &me->key);
+  BLO_read_id_address(reader, me->id.lib, &me->texcomesh);
 }
 
 static void direct_link_dverts(BlendDataReader *reader, int count, MDeformVert *mdverts)
@@ -9864,19 +9862,19 @@ static void lib_link_all(FileData *fd, Main *bmain)
         lib_link_mball(&reader, (MetaBall *)id);
         break;
       case ID_CU:
-        lib_link_curve(fd, bmain, (Curve *)id);
+        lib_link_curve(&reader, (Curve *)id);
         break;
       case ID_ME:
-        lib_link_mesh(fd, bmain, (Mesh *)id);
+        lib_link_mesh(&reader, (Mesh *)id);
         break;
       case ID_CF:
-        lib_link_cachefiles(fd, bmain, (CacheFile *)id);
+        lib_link_cachefiles(&reader, (CacheFile *)id);
         break;
       case ID_AR:
-        lib_link_armature(fd, bmain, (bArmature *)id);
+        lib_link_armature(&reader, (bArmature *)id);
         break;
       case ID_VF:
-        lib_link_vfont(fd, bmain, (VFont *)id);
+        lib_link_vfont(&reader, (VFont *)id);
         break;
       case ID_HA:
         lib_link_hair(fd, bmain, (Hair *)id);
