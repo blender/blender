@@ -2657,10 +2657,12 @@ static PreviewImage *direct_link_preview_image(BlendDataReader *reader, PreviewI
 
 static void lib_link_id(FileData *fd, Main *bmain, ID *id);
 static void lib_link_nodetree(FileData *fd, Main *bmain, bNodeTree *ntree);
-static void lib_link_collection(FileData *fd, Main *bmain, Collection *collection);
+static void lib_link_collection(BlendLibReader *reader, Collection *collection);
 
 static void lib_link_id_embedded_id(FileData *fd, Main *bmain, ID *id)
 {
+  BlendLibReader reader = {fd, bmain};
+
   /* Handle 'private IDs'. */
   bNodeTree *nodetree = ntreeFromID(id);
   if (nodetree != NULL) {
@@ -2672,7 +2674,7 @@ static void lib_link_id_embedded_id(FileData *fd, Main *bmain, ID *id)
     Scene *scene = (Scene *)id;
     if (scene->master_collection != NULL) {
       lib_link_id(fd, bmain, &scene->master_collection->id);
-      lib_link_collection(fd, bmain, scene->master_collection);
+      lib_link_collection(&reader, scene->master_collection);
     }
   }
 }
@@ -3360,7 +3362,7 @@ static void direct_link_nladata(BlendDataReader *reader, ListBase *list)
 
 /* ------- */
 
-static void lib_link_keyingsets(FileData *fd, ID *id, ListBase *list)
+static void lib_link_keyingsets(BlendLibReader *reader, ID *id, ListBase *list)
 {
   KeyingSet *ks;
   KS_Path *ksp;
@@ -3368,7 +3370,7 @@ static void lib_link_keyingsets(FileData *fd, ID *id, ListBase *list)
   /* here, we're only interested in the ID pointer stored in some of the paths */
   for (ks = list->first; ks; ks = ks->next) {
     for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
-      ksp->id = newlibadr(fd, id->lib, ksp->id);
+      BLO_read_id_address(reader, id->lib, &ksp->id);
     }
   }
 }
@@ -3471,26 +3473,26 @@ static void direct_link_cachefile(BlendDataReader *reader, CacheFile *cache_file
 /** \name Read ID: WorkSpace
  * \{ */
 
-static void lib_link_workspaces(FileData *fd, Main *bmain, WorkSpace *workspace)
+static void lib_link_workspaces(BlendLibReader *reader, WorkSpace *workspace)
 {
   ID *id = (ID *)workspace;
 
   LISTBASE_FOREACH_MUTABLE (WorkSpaceLayout *, layout, &workspace->layouts) {
-    layout->screen = newlibadr(fd, id->lib, layout->screen);
+    BLO_read_id_address(reader, id->lib, &layout->screen);
 
     if (layout->screen) {
       if (ID_IS_LINKED(id)) {
         layout->screen->winid = 0;
         if (layout->screen->temp) {
           /* delete temp layouts when appending */
-          BKE_workspace_layout_remove(bmain, workspace, layout);
+          BKE_workspace_layout_remove(reader->main, workspace, layout);
         }
       }
     }
     else {
       /* If we're reading a layout without screen stored, it's useless and we shouldn't keep it
        * around. */
-      BKE_workspace_layout_remove(bmain, workspace, layout);
+      BKE_workspace_layout_remove(reader->main, workspace, layout);
     }
   }
 }
@@ -6061,39 +6063,39 @@ static void direct_link_view_layer(BlendDataReader *reader, ViewLayer *view_laye
   view_layer->object_bases_hash = NULL;
 }
 
-static void lib_link_layer_collection(FileData *fd,
+static void lib_link_layer_collection(BlendLibReader *reader,
                                       Library *lib,
                                       LayerCollection *layer_collection,
                                       bool master)
 {
   /* Master collection is not a real data-lock. */
   if (!master) {
-    layer_collection->collection = newlibadr(fd, lib, layer_collection->collection);
+    BLO_read_id_address(reader, lib, &layer_collection->collection);
   }
 
   for (LayerCollection *layer_collection_nested = layer_collection->layer_collections.first;
        layer_collection_nested != NULL;
        layer_collection_nested = layer_collection_nested->next) {
-    lib_link_layer_collection(fd, lib, layer_collection_nested, false);
+    lib_link_layer_collection(reader, lib, layer_collection_nested, false);
   }
 }
 
-static void lib_link_view_layer(FileData *fd, Library *lib, ViewLayer *view_layer)
+static void lib_link_view_layer(BlendLibReader *reader, Library *lib, ViewLayer *view_layer)
 {
   LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
-    fmc->script = newlibadr(fd, lib, fmc->script);
+    BLO_read_id_address(reader, lib, &fmc->script);
   }
 
   LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
-    fls->linestyle = newlibadr(fd, lib, fls->linestyle);
-    fls->group = newlibadr(fd, lib, fls->group);
+    BLO_read_id_address(reader, lib, &fls->linestyle);
+    BLO_read_id_address(reader, lib, &fls->group);
   }
 
   for (Base *base = view_layer->object_bases.first, *base_next = NULL; base; base = base_next) {
     base_next = base->next;
 
     /* we only bump the use count for the collection objects */
-    base->object = newlibadr(fd, lib, base->object);
+    BLO_read_id_address(reader, lib, &base->object);
 
     if (base->object == NULL) {
       /* Free in case linked object got lost. */
@@ -6107,12 +6109,12 @@ static void lib_link_view_layer(FileData *fd, Library *lib, ViewLayer *view_laye
   for (LayerCollection *layer_collection = view_layer->layer_collections.first;
        layer_collection != NULL;
        layer_collection = layer_collection->next) {
-    lib_link_layer_collection(fd, lib, layer_collection, true);
+    lib_link_layer_collection(reader, lib, layer_collection, true);
   }
 
-  view_layer->mat_override = newlibadr(fd, lib, view_layer->mat_override);
+  BLO_read_id_address(reader, lib, &view_layer->mat_override);
 
-  IDP_LibLinkProperty(view_layer->id_properties, fd);
+  IDP_LibLinkProperty(view_layer->id_properties, reader->fd);
 }
 
 /** \} */
@@ -6132,15 +6134,15 @@ static void direct_link_scene_collection(BlendDataReader *reader, SceneCollectio
   }
 }
 
-static void lib_link_scene_collection(FileData *fd, Library *lib, SceneCollection *sc)
+static void lib_link_scene_collection(BlendLibReader *reader, Library *lib, SceneCollection *sc)
 {
   LISTBASE_FOREACH (LinkData *, link, &sc->objects) {
-    link->data = newlibadr(fd, lib, link->data);
+    BLO_read_id_address(reader, lib, &link->data);
     BLI_assert(link->data);
   }
 
   LISTBASE_FOREACH (SceneCollection *, nsc, &sc->scene_collections) {
-    lib_link_scene_collection(fd, lib, nsc);
+    lib_link_scene_collection(reader, lib, nsc);
   }
 }
 #endif
@@ -6171,11 +6173,11 @@ static void direct_link_collection(BlendDataReader *reader, Collection *collecti
 #endif
 }
 
-static void lib_link_collection_data(FileData *fd, Library *lib, Collection *collection)
+static void lib_link_collection_data(BlendLibReader *reader, Library *lib, Collection *collection)
 {
   for (CollectionObject *cob = collection->gobject.first, *cob_next = NULL; cob; cob = cob_next) {
     cob_next = cob->next;
-    cob->ob = newlibadr(fd, lib, cob->ob);
+    BLO_read_id_address(reader, lib, &cob->ob);
 
     if (cob->ob == NULL) {
       BLI_freelinkN(&collection->gobject, cob);
@@ -6183,23 +6185,23 @@ static void lib_link_collection_data(FileData *fd, Library *lib, Collection *col
   }
 
   for (CollectionChild *child = collection->children.first; child != NULL; child = child->next) {
-    child->collection = newlibadr(fd, lib, child->collection);
+    BLO_read_id_address(reader, lib, &child->collection);
   }
 }
 
-static void lib_link_collection(FileData *fd, Main *UNUSED(bmain), Collection *collection)
+static void lib_link_collection(BlendLibReader *reader, Collection *collection)
 {
 #ifdef USE_COLLECTION_COMPAT_28
   if (collection->collection) {
-    lib_link_scene_collection(fd, collection->id.lib, collection->collection);
+    lib_link_scene_collection(reader, collection->id.lib, collection->collection);
   }
 
   if (collection->view_layer) {
-    lib_link_view_layer(fd, collection->id.lib, collection->view_layer);
+    lib_link_view_layer(reader, collection->id.lib, collection->view_layer);
   }
 #endif
 
-  lib_link_collection_data(fd, collection->id.lib, collection);
+  lib_link_collection_data(reader, collection->id.lib, collection);
 }
 
 /** \} */
@@ -6220,29 +6222,29 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
   }
 }
 
-static void link_paint(FileData *fd, Scene *sce, Paint *p)
+static void link_paint(BlendLibReader *reader, Scene *sce, Paint *p)
 {
   if (p) {
-    p->brush = newlibadr(fd, sce->id.lib, p->brush);
+    BLO_read_id_address(reader, sce->id.lib, &p->brush);
     for (int i = 0; i < p->tool_slots_len; i++) {
       if (p->tool_slots[i].brush != NULL) {
-        p->tool_slots[i].brush = newlibadr(fd, sce->id.lib, p->tool_slots[i].brush);
+        BLO_read_id_address(reader, sce->id.lib, &p->tool_slots[i].brush);
       }
     }
-    p->palette = newlibadr(fd, sce->id.lib, p->palette);
+    BLO_read_id_address(reader, sce->id.lib, &p->palette);
     p->paint_cursor = NULL;
 
     BKE_paint_runtime_init(sce->toolsettings, p);
   }
 }
 
-static void lib_link_sequence_modifiers(FileData *fd, Scene *scene, ListBase *lb)
+static void lib_link_sequence_modifiers(BlendLibReader *reader, Scene *scene, ListBase *lb)
 {
   SequenceModifierData *smd;
 
   for (smd = lb->first; smd; smd = smd->next) {
     if (smd->mask_id) {
-      smd->mask_id = newlibadr(fd, scene->id.lib, smd->mask_id);
+      BLO_read_id_address(reader, scene->id.lib, &smd->mask_id);
     }
   }
 }
@@ -6323,76 +6325,72 @@ static bool scene_validate_setscene__liblink(Scene *sce, const int totscene)
 }
 #endif
 
-static void lib_link_scene(FileData *fd, Main *UNUSED(bmain), Scene *sce)
+static void lib_link_scene(BlendLibReader *reader, Scene *sce)
 {
-  lib_link_keyingsets(fd, &sce->id, &sce->keyingsets);
+  lib_link_keyingsets(reader, &sce->id, &sce->keyingsets);
 
-  sce->camera = newlibadr(fd, sce->id.lib, sce->camera);
-  sce->world = newlibadr(fd, sce->id.lib, sce->world);
-  sce->set = newlibadr(fd, sce->id.lib, sce->set);
-  sce->gpd = newlibadr(fd, sce->id.lib, sce->gpd);
+  BLO_read_id_address(reader, sce->id.lib, &sce->camera);
+  BLO_read_id_address(reader, sce->id.lib, &sce->world);
+  BLO_read_id_address(reader, sce->id.lib, &sce->set);
+  BLO_read_id_address(reader, sce->id.lib, &sce->gpd);
 
-  link_paint(fd, sce, &sce->toolsettings->imapaint.paint);
+  link_paint(reader, sce, &sce->toolsettings->imapaint.paint);
   if (sce->toolsettings->sculpt) {
-    link_paint(fd, sce, &sce->toolsettings->sculpt->paint);
+    link_paint(reader, sce, &sce->toolsettings->sculpt->paint);
   }
   if (sce->toolsettings->vpaint) {
-    link_paint(fd, sce, &sce->toolsettings->vpaint->paint);
+    link_paint(reader, sce, &sce->toolsettings->vpaint->paint);
   }
   if (sce->toolsettings->wpaint) {
-    link_paint(fd, sce, &sce->toolsettings->wpaint->paint);
+    link_paint(reader, sce, &sce->toolsettings->wpaint->paint);
   }
   if (sce->toolsettings->uvsculpt) {
-    link_paint(fd, sce, &sce->toolsettings->uvsculpt->paint);
+    link_paint(reader, sce, &sce->toolsettings->uvsculpt->paint);
   }
   if (sce->toolsettings->gp_paint) {
-    link_paint(fd, sce, &sce->toolsettings->gp_paint->paint);
+    link_paint(reader, sce, &sce->toolsettings->gp_paint->paint);
   }
   if (sce->toolsettings->gp_vertexpaint) {
-    link_paint(fd, sce, &sce->toolsettings->gp_vertexpaint->paint);
+    link_paint(reader, sce, &sce->toolsettings->gp_vertexpaint->paint);
   }
   if (sce->toolsettings->gp_sculptpaint) {
-    link_paint(fd, sce, &sce->toolsettings->gp_sculptpaint->paint);
+    link_paint(reader, sce, &sce->toolsettings->gp_sculptpaint->paint);
   }
   if (sce->toolsettings->gp_weightpaint) {
-    link_paint(fd, sce, &sce->toolsettings->gp_weightpaint->paint);
+    link_paint(reader, sce, &sce->toolsettings->gp_weightpaint->paint);
   }
 
   if (sce->toolsettings->sculpt) {
-    sce->toolsettings->sculpt->gravity_object = newlibadr(
-        fd, sce->id.lib, sce->toolsettings->sculpt->gravity_object);
+    BLO_read_id_address(reader, sce->id.lib, &sce->toolsettings->sculpt->gravity_object);
   }
 
   if (sce->toolsettings->imapaint.stencil) {
-    sce->toolsettings->imapaint.stencil = newlibadr(
-        fd, sce->id.lib, sce->toolsettings->imapaint.stencil);
+    BLO_read_id_address(reader, sce->id.lib, &sce->toolsettings->imapaint.stencil);
   }
 
   if (sce->toolsettings->imapaint.clone) {
-    sce->toolsettings->imapaint.clone = newlibadr(
-        fd, sce->id.lib, sce->toolsettings->imapaint.clone);
+    BLO_read_id_address(reader, sce->id.lib, &sce->toolsettings->imapaint.clone);
   }
 
   if (sce->toolsettings->imapaint.canvas) {
-    sce->toolsettings->imapaint.canvas = newlibadr(
-        fd, sce->id.lib, sce->toolsettings->imapaint.canvas);
+    BLO_read_id_address(reader, sce->id.lib, &sce->toolsettings->imapaint.canvas);
   }
 
-  sce->toolsettings->particle.shape_object = newlibadr(
-      fd, sce->id.lib, sce->toolsettings->particle.shape_object);
+  BLO_read_id_address(reader, sce->id.lib, &sce->toolsettings->particle.shape_object);
 
-  sce->toolsettings->gp_sculpt.guide.reference_object = newlibadr(
-      fd, sce->id.lib, sce->toolsettings->gp_sculpt.guide.reference_object);
+  BLO_read_id_address(reader, sce->id.lib, &sce->toolsettings->gp_sculpt.guide.reference_object);
 
   for (Base *base_legacy_next, *base_legacy = sce->base.first; base_legacy;
        base_legacy = base_legacy_next) {
     base_legacy_next = base_legacy->next;
 
-    base_legacy->object = newlibadr(fd, sce->id.lib, base_legacy->object);
+    BLO_read_id_address(reader, sce->id.lib, &base_legacy->object);
 
     if (base_legacy->object == NULL) {
-      blo_reportf_wrap(
-          fd->reports, RPT_WARNING, TIP_("LIB: object lost from scene: '%s'"), sce->id.name + 2);
+      blo_reportf_wrap(reader->fd->reports,
+                       RPT_WARNING,
+                       TIP_("LIB: object lost from scene: '%s'"),
+                       sce->id.name + 2);
       BLI_remlink(&sce->base, base_legacy);
       if (base_legacy == sce->basact) {
         sce->basact = NULL;
@@ -6403,24 +6401,25 @@ static void lib_link_scene(FileData *fd, Main *UNUSED(bmain), Scene *sce)
 
   Sequence *seq;
   SEQ_BEGIN (sce->ed, seq) {
-    IDP_LibLinkProperty(seq->prop, fd);
+    IDP_LibLinkProperty(seq->prop, reader->fd);
 
     if (seq->ipo) {
-      seq->ipo = newlibadr(fd, sce->id.lib, seq->ipo);  // XXX deprecated - old animation system
+      BLO_read_id_address(
+          reader, sce->id.lib, &seq->ipo);  // XXX deprecated - old animation system
     }
     seq->scene_sound = NULL;
     if (seq->scene) {
-      seq->scene = newlibadr(fd, sce->id.lib, seq->scene);
+      BLO_read_id_address(reader, sce->id.lib, &seq->scene);
       seq->scene_sound = NULL;
     }
     if (seq->clip) {
-      seq->clip = newlibadr(fd, sce->id.lib, seq->clip);
+      BLO_read_id_address(reader, sce->id.lib, &seq->clip);
     }
     if (seq->mask) {
-      seq->mask = newlibadr(fd, sce->id.lib, seq->mask);
+      BLO_read_id_address(reader, sce->id.lib, &seq->mask);
     }
     if (seq->scene_camera) {
-      seq->scene_camera = newlibadr(fd, sce->id.lib, seq->scene_camera);
+      BLO_read_id_address(reader, sce->id.lib, &seq->scene_camera);
     }
     if (seq->sound) {
       seq->scene_sound = NULL;
@@ -6428,7 +6427,7 @@ static void lib_link_scene(FileData *fd, Main *UNUSED(bmain), Scene *sce)
         seq->type = SEQ_TYPE_SOUND_RAM;
       }
       else {
-        seq->sound = newlibadr(fd, sce->id.lib, seq->sound);
+        BLO_read_id_address(reader, sce->id.lib, &seq->sound);
       }
       if (seq->sound) {
         id_us_plus_no_lib((ID *)seq->sound);
@@ -6437,17 +6436,17 @@ static void lib_link_scene(FileData *fd, Main *UNUSED(bmain), Scene *sce)
     }
     if (seq->type == SEQ_TYPE_TEXT) {
       TextVars *t = seq->effectdata;
-      t->text_font = newlibadr(fd, sce->id.lib, t->text_font);
+      BLO_read_id_address(reader, sce->id.lib, &t->text_font);
     }
     BLI_listbase_clear(&seq->anims);
 
-    lib_link_sequence_modifiers(fd, sce, &seq->modifiers);
+    lib_link_sequence_modifiers(reader, sce, &seq->modifiers);
   }
   SEQ_END;
 
   LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
     if (marker->camera) {
-      marker->camera = newlibadr(fd, sce->id.lib, marker->camera);
+      BLO_read_id_address(reader, sce->id.lib, &marker->camera);
     }
   }
 
@@ -6455,13 +6454,13 @@ static void lib_link_scene(FileData *fd, Main *UNUSED(bmain), Scene *sce)
   if (sce->rigidbody_world) {
     RigidBodyWorld *rbw = sce->rigidbody_world;
     if (rbw->group) {
-      rbw->group = newlibadr(fd, sce->id.lib, rbw->group);
+      BLO_read_id_address(reader, sce->id.lib, &rbw->group);
     }
     if (rbw->constraints) {
-      rbw->constraints = newlibadr(fd, sce->id.lib, rbw->constraints);
+      BLO_read_id_address(reader, sce->id.lib, &rbw->constraints);
     }
     if (rbw->effector_weights) {
-      rbw->effector_weights->group = newlibadr(fd, sce->id.lib, rbw->effector_weights->group);
+      BLO_read_id_address(reader, sce->id.lib, &rbw->effector_weights->group);
     }
   }
 
@@ -6470,30 +6469,30 @@ static void lib_link_scene(FileData *fd, Main *UNUSED(bmain), Scene *sce)
   }
 
   LISTBASE_FOREACH (SceneRenderLayer *, srl, &sce->r.layers) {
-    srl->mat_override = newlibadr(fd, sce->id.lib, srl->mat_override);
+    BLO_read_id_address(reader, sce->id.lib, &srl->mat_override);
     LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &srl->freestyleConfig.modules) {
-      fmc->script = newlibadr(fd, sce->id.lib, fmc->script);
+      BLO_read_id_address(reader, sce->id.lib, &fmc->script);
     }
     LISTBASE_FOREACH (FreestyleLineSet *, fls, &srl->freestyleConfig.linesets) {
-      fls->linestyle = newlibadr(fd, sce->id.lib, fls->linestyle);
-      fls->group = newlibadr(fd, sce->id.lib, fls->group);
+      BLO_read_id_address(reader, sce->id.lib, &fls->linestyle);
+      BLO_read_id_address(reader, sce->id.lib, &fls->group);
     }
   }
   /* Motion Tracking */
-  sce->clip = newlibadr(fd, sce->id.lib, sce->clip);
+  BLO_read_id_address(reader, sce->id.lib, &sce->clip);
 
 #ifdef USE_COLLECTION_COMPAT_28
   if (sce->collection) {
-    lib_link_scene_collection(fd, sce->id.lib, sce->collection);
+    lib_link_scene_collection(reader, sce->id.lib, sce->collection);
   }
 #endif
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
-    lib_link_view_layer(fd, sce->id.lib, view_layer);
+    lib_link_view_layer(reader, sce->id.lib, view_layer);
   }
 
   if (sce->r.bake.cage_object) {
-    sce->r.bake.cage_object = newlibadr(fd, sce->id.lib, sce->r.bake.cage_object);
+    BLO_read_id_address(reader, sce->id.lib, &sce->r.bake.cage_object);
   }
 
 #ifdef USE_SETSCENE_CHECK
@@ -9803,10 +9802,10 @@ static void lib_link_all(FileData *fd, Main *bmain)
         break;
       case ID_WS:
         /* Could we skip WS in undo case? */
-        lib_link_workspaces(fd, bmain, (WorkSpace *)id);
+        lib_link_workspaces(&reader, (WorkSpace *)id);
         break;
       case ID_SCE:
-        lib_link_scene(fd, bmain, (Scene *)id);
+        lib_link_scene(&reader, (Scene *)id);
         break;
       case ID_LS:
         lib_link_linestyle(fd, bmain, (FreestyleLineStyle *)id);
@@ -9841,7 +9840,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
         lib_link_brush(fd, bmain, (Brush *)id);
         break;
       case ID_GR:
-        lib_link_collection(fd, bmain, (Collection *)id);
+        lib_link_collection(&reader, (Collection *)id);
         break;
       case ID_SO:
         lib_link_sound(fd, bmain, (bSound *)id);
