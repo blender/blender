@@ -2356,8 +2356,10 @@ void outliner_build_tree(
 
     for (lib = mainvar->libraries.first; lib; lib = lib->id.next) {
       ten = outliner_add_library_contents(mainvar, soops, &soops->tree, lib);
-      BLI_assert(ten != NULL);
-      lib->id.newid = (ID *)ten;
+      /* NULL-check matters, due to filtering there may not be a new element. */
+      if (ten) {
+        lib->id.newid = (ID *)ten;
+      }
     }
     /* make hierarchy */
     ten = soops->tree.first;
