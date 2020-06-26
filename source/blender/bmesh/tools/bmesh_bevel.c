@@ -797,7 +797,7 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f
   if (lef1->f == f2) {
     SWAP(BMLoop *, lef1, lef2);
   }
-  if (lef1->f != f1 || lef2 != lef2) {
+  if (lef1->f != f1 || lef2->f != f2) {
     return false;
   }
   v1 = lef1->v;
