@@ -416,8 +416,6 @@ static void advanced_panel_draw(const bContext *C, Panel *panel)
   uiItemR(layout, &ptr, "quality", 0, NULL, ICON_NONE);
   uiItemR(layout, &ptr, "uv_smooth", 0, NULL, ICON_NONE);
   uiItemR(layout, &ptr, "use_creases", 0, NULL, ICON_NONE);
-
-  modifier_panel_end(layout, &ptr);
 }
 
 static void panelRegister(ARegionType *region_type)
