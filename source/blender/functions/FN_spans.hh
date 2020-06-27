@@ -100,7 +100,7 @@ class GSpan {
 
   template<typename T> Span<T> typed() const
   {
-    BLI_assert(CPPType::get<T>() == *m_type);
+    BLI_assert(m_type->is<T>());
     return Span<T>((const T *)m_buffer, m_size);
   }
 };
@@ -166,7 +166,7 @@ class GMutableSpan {
 
   template<typename T> MutableSpan<T> typed()
   {
-    BLI_assert(CPPType::get<T>() == *m_type);
+    BLI_assert(m_type->is<T>());
     return MutableSpan<T>((T *)m_buffer, m_size);
   }
 };
@@ -372,7 +372,7 @@ class GVSpan : public VSpanBase<void> {
 
   template<typename T> VSpan<T> typed() const
   {
-    BLI_assert(CPPType::get<T>() == *m_type);
+    BLI_assert(m_type->is<T>());
     return VSpan<T>(*this);
   }
 

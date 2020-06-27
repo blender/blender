@@ -483,6 +483,11 @@ class CPPType {
 
   template<typename T> static const CPPType &get();
 
+  template<typename T> bool is() const
+  {
+    return this == &CPPType::get<T>();
+  }
+
  private:
   uint m_size;
   uint m_alignment;

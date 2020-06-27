@@ -84,6 +84,12 @@ TEST(cpp_type, Alignment)
   EXPECT_EQ(CPPType_TestType.alignment(), alignof(TestType));
 }
 
+TEST(cpp_type, Is)
+{
+  EXPECT_TRUE(CPPType_TestType.is<TestType>());
+  EXPECT_FALSE(CPPType_TestType.is<int>());
+}
+
 TEST(cpp_type, DefaultConstruction)
 {
   int buffer[10] = {0};

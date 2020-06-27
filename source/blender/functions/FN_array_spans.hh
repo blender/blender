@@ -184,7 +184,7 @@ class GVArraySpan : public VArraySpanBase<void> {
 
   template<typename T> VArraySpan<T> typed() const
   {
-    BLI_assert(CPPType::get<T>() == *m_type);
+    BLI_assert(m_type->is<T>());
     return VArraySpan<T>(*this);
   }
 
