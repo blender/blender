@@ -132,7 +132,7 @@ static bGPDstroke *gpencil_prepare_stroke(bContext *C, wmOperator *op, int totpo
   bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, add_frame_mode);
 
   /* stroke */
-  bGPDstroke *gps = BKE_gpencil_stroke_new(ob->actcol - 1, totpoints, brush->size);
+  bGPDstroke *gps = BKE_gpencil_stroke_new(max(ob->actcol - 1, 0), totpoints, brush->size);
   gps->flag |= GP_STROKE_SELECT;
 
   if (cyclic) {
