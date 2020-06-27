@@ -27,11 +27,13 @@ set(INC_SYS
 )
 
 set(SRC
+  intern/attributes_ref.cc
   intern/cpp_types.cc
   intern/multi_function_network.cc
   intern/multi_function_network_evaluation.cc
 
   FN_array_spans.hh
+  FN_attributes_ref.hh
   FN_cpp_type.hh
   FN_cpp_types.hh
   FN_multi_function.hh
