@@ -703,8 +703,9 @@ typedef struct bDopeSheet {
   /** String to search for in displayed names of F-Curves, or NlaTracks/GP Layers/etc. */
   char searchstr[64];
 
-  /** Flags to use for filtering data. */
+  /** Flags to use for filtering data #eAnimFilter_Flags. */
   int filterflag;
+  /** #eDopeSheet_FilterFlag2 */
   int filterflag2;
   /** Standard flags. */
   int flag;

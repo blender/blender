@@ -281,10 +281,13 @@ typedef enum eAnim_Update_Flags {
 
 /* filtering flags  - under what circumstances should a channel be returned */
 typedef enum eAnimFilter_Flags {
-  /** data which channel represents is fits the dopesheet filters
-   * (i.e. scene visibility criteria) */
-  /* XXX: it's hard to think of any examples where this *ISN'T* the case...
-   * perhaps becomes implicit?. */
+  /**
+   * Data which channel represents is fits the dope-sheet filters
+   * (i.e. scene visibility criteria).
+   *
+   * XXX: it's hard to think of any examples where this *ISN'T* the case...
+   * perhaps becomes implicit?.
+   */
   ANIMFILTER_DATA_VISIBLE = (1 << 0),
   /** channel is visible within the channel-list hierarchy
    * (i.e. F-Curves within Groups in ActEdit) */
@@ -297,7 +300,7 @@ typedef enum eAnimFilter_Flags {
 
   /** for its type, channel should be "active" one */
   ANIMFILTER_ACTIVE = (1 << 4),
-  /** channel is a child of the active group (* Actions speciality) */
+  /** channel is a child of the active group (* Actions specialty) */
   ANIMFILTER_ACTGROUPED = (1 << 5),
 
   /** channel must be selected/not-selected, but both must not be set together */
@@ -310,8 +313,10 @@ typedef enum eAnimFilter_Flags {
    * for Graph Editor's option for keys on select curves only */
   ANIMFILTER_SELEDIT = (1 << 9),
 
-  /** flags used to enforce certain data types
-   * \node the ones for curves and NLA tracks were redundant and have been removed for now...
+  /**
+   * Flags used to enforce certain data types.
+   *
+   * \note The ones for curves and NLA tracks were redundant and have been removed for now.
    */
   ANIMFILTER_ANIMDATA = (1 << 10),
 
@@ -321,7 +326,7 @@ typedef enum eAnimFilter_Flags {
   /** for checking if we should keep some collapsed channel around (internal use only!) */
   ANIMFILTER_TMP_PEEK = (1 << 30),
 
-  /** ignore ONLYSEL flag from filterflag, (internal use only!) */
+  /** Ignore ONLYSEL flag from #bDopeSheet.filterflag (internal use only!) */
   ANIMFILTER_TMP_IGNORE_ONLYSEL = (1u << 31),
 } eAnimFilter_Flags;
 

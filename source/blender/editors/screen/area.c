@@ -2355,9 +2355,9 @@ BLI_INLINE bool streq_array_any(const char *s, const char *arr[])
 /**
  * Builds the panel layout for the input \a panel or type \a pt.
  *
- * \param panel The panel to draw. Can be null, in which case a panel with the type of \a pt will
- * be created.
- * \param unique_panel_str A unique identifier for the name of the \a uiBlock associated with the
+ * \param panel: The panel to draw. Can be null,
+ * in which case a panel with the type of \a pt will be created.
+ * \param unique_panel_str: A unique identifier for the name of the \a uiBlock associated with the
  * panel. Used when the panel is an instanced panel so a unique identifier is needed to find the
  * correct old \a uiBlock, and NULL otherwise.
  */

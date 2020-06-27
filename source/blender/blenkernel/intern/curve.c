@@ -4081,9 +4081,9 @@ void BKE_nurb_handle_calc(
 /**
  * Variant of #BKE_nurb_handle_calc() that allows calculating based on a different select flag.
  *
- * \param sel_flag: The flag (bezt.f1/2/3) value to use to determine selection. Usually `SELECT`,
- *                  but may want to use a different one at times (if caller does not operate on
- *                  selection).
+ * \param handle_sel_flag: The flag (bezt.f1/2/3) value to use to determine selection.
+ * Usually #SELECT, but may want to use a different one at times
+ * (if caller does not operate on selection).
  */
 void BKE_nurb_handle_calc_ex(BezTriple *bezt,
                              BezTriple *prev,

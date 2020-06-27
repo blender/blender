@@ -122,7 +122,6 @@ uint *DRW_select_buffer_read(struct Depsgraph *depsgraph,
 
 /**
  * \param rect: The rectangle to sample indices from (min/max inclusive).
- * \param mask: Specifies the rect pixels (optional).
  * \returns a #BLI_bitmap the length of \a bitmap_len or NULL on failure.
  */
 uint *DRW_select_buffer_bitmap_from_rect(struct Depsgraph *depsgraph,
@@ -165,10 +164,10 @@ uint *DRW_select_buffer_bitmap_from_rect(struct Depsgraph *depsgraph,
 }
 
 /**
- * \param bitmap_len: Number of indices in the selection id buffer.
  * \param center: Circle center.
  * \param radius: Circle radius.
- * \returns a #BLI_bitmap the length of \a bitmap_len or NULL on failure.
+ * \param r_bitmap_len: Number of indices in the selection id buffer.
+ * \returns a #BLI_bitmap the length of \a r_bitmap_len or NULL on failure.
  */
 uint *DRW_select_buffer_bitmap_from_circle(struct Depsgraph *depsgraph,
                                            struct ARegion *region,
@@ -338,7 +337,7 @@ uint DRW_select_buffer_sample_point(struct Depsgraph *depsgraph,
 
 /**
  * Find the selection id closest to \a center.
- * \param dist[in,out]: Use to initialize the distance,
+ * \param dist: Use to initialize the distance,
  * when found, this value is set to the distance of the selection that's returned.
  */
 uint DRW_select_buffer_find_nearest_to_point(struct Depsgraph *depsgraph,

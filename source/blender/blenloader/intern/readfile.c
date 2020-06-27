@@ -11814,10 +11814,6 @@ ID *BLO_library_link_named_part(Main *mainl,
  * \param idcode: The kind of data-block to link.
  * \param name: The name of the data-block (without the 2 char ID prefix).
  * \param flag: Options for linking, used for instantiating.
- * \param scene: The scene in which to instantiate objects/collections
- * (if NULL, no instantiation is done).
- * \param v3d: The active 3D viewport.
- * (only to define active layers for instantiated objects & collections, can be NULL).
  * \return the linked ID when found.
  */
 ID *BLO_library_link_named_part_ex(
@@ -11856,13 +11852,13 @@ static Main *library_link_begin(Main *mainvar, FileData **fd, const char *filepa
 }
 
 /**
- * Initialize the BlendHandle for linking library data.
+ * Initialize the #BlendHandle for linking library data.
  *
  * \param mainvar: The current main database, e.g. #G_MAIN or #CTX_data_main(C).
  * \param bh: A blender file handle as returned by
  * #BLO_blendhandle_from_file or #BLO_blendhandle_from_memory.
  * \param filepath: Used for relative linking, copied to the `lib->filepath`.
- * \return the library Main, to be passed to #BLO_library_append_named_part as \a mainl.
+ * \return the library #Main, to be passed to #BLO_library_link_named_part_ex as \a mainl.
  */
 Main *BLO_library_link_begin(Main *mainvar, BlendHandle **bh, const char *filepath)
 {
@@ -11896,7 +11892,12 @@ static void split_main_newid(Main *mainptr, Main *main_newid)
   }
 }
 
-/* scene and v3d may be NULL. */
+/**
+ * \param scene: The scene in which to instantiate objects/collections
+ * (if NULL, no instantiation is done).
+ * \param v3d: The active 3D viewport.
+ * (only to define active layers for instantiated objects & collections, can be NULL).
+ */
 static void library_link_end(Main *mainl,
                              FileData **fd,
                              const short flag,
@@ -11977,7 +11978,7 @@ static void library_link_end(Main *mainl,
 
   /* Give a base to loose objects and collections.
    * Only directly linked objects & collections are instantiated by
-   * `BLO_library_link_named_part_ex()` & co,
+   * #BLO_library_link_named_part_ex & co,
    * here we handle indirect ones and other possible edge-cases. */
   if (scene) {
     add_collections_to_scene(mainvar, bmain, scene, view_layer, v3d, curlib, flag);
@@ -12327,10 +12328,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
       lib_link_all(mainptr->curlib->filedata, mainptr);
     }
 
-    /* Note: No need to call `do_versions_after_linking()` or `BKE_main_id_refcount_recompute()`
+    /* Note: No need to call #do_versions_after_linking() or #BKE_main_id_refcount_recompute()
      * here, as this function is only called for library 'subset' data handling, as part of either
-     * full blendfile reading (`blo_read_file_internal()`), or libdata linking
-     * (`library_link_end()`). */
+     * full blendfile reading (#blo_read_file_internal()), or library-data linking
+     * (#library_link_end()). */
 
     /* Free file data we no longer need. */
     if (mainptr->curlib->filedata) {
@@ -12471,7 +12472,7 @@ void BLO_read_pointer_array(BlendDataReader *reader, void **ptr_p)
   int file_pointer_size = fd->filesdna->pointer_size;
   int current_pointer_size = fd->memsdna->pointer_size;
 
-  /* Overallocation is fine, but might be better to pass the length as parameter. */
+  /* Over-allocation is fine, but might be better to pass the length as parameter. */
   int array_size = MEM_allocN_len(orig_array) / file_pointer_size;
 
   void *final_array = NULL;

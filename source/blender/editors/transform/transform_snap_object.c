@@ -375,9 +375,6 @@ typedef void (*IterSnapObjsCallback)(SnapObjectContext *sctx,
 
 /**
  * Walks through all objects in the scene to create the list of objects to snap.
- *
- * \param sctx: Snap context to store data.
- * \param snap_select: from enum #eSnapSelect.
  */
 static void iter_snap_objects(SnapObjectContext *sctx,
                               Depsgraph *depsgraph,
@@ -1071,9 +1068,7 @@ static void raycast_obj_fn(SnapObjectContext *sctx,
  * Walks through all objects in the scene to find the `hit` on object surface.
  *
  * \param sctx: Snap context to store data.
- * \param snap_select: from enum eSnapSelect.
- * \param use_object_edit_cage: Uses the coordinates of BMesh(if any) to do the snapping.
- * \param obj_list: List with objects to snap (created in `create_object_list`).
+ * \param params: Snapping behavior.
  *
  * Read/Write Args
  * ---------------
@@ -3205,7 +3200,7 @@ short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
  * \param mval: Screenspace coordinate.
  * \param prev_co: Coordinate for perpendicular point calculation (optional).
  * \param dist_px: Maximum distance to snap (in pixels).
- * \param r_co: hit location.
+ * \param r_loc: hit location.
  * \param r_no: hit normal (optional).
  * \return Snap success
  */

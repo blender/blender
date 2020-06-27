@@ -422,11 +422,6 @@ static Collection *collection_duplicate_recursive(Main *bmain,
  * #LIB_ID_DUPLICATE_IS_SUBPROCESS duplicate option is passed on, in which case caller is
  * responsible to reconstruct collection dependencies information's
  * (i.e. call #BKE_main_collection_sync).
- *
- * \param do_objects: If true, it will also make copies of objects.
- * \param do_obdata: If true, it will also make duplicates of objects,
- * using behavior defined in user settings (#U.dupflag).
- * This one does nothing if \a do_objects is not set.
  */
 Collection *BKE_collection_duplicate(Main *bmain,
                                      Collection *parent,
@@ -925,7 +920,7 @@ bool BKE_collection_object_remove(Main *bmain,
 
 /**
  * Remove object from all collections of scene
- * \param scene_collection_skip: Don't remove base from this collection.
+ * \param collection_skip: Don't remove base from this collection.
  */
 static bool scene_collections_object_remove(
     Main *bmain, Scene *scene, Object *ob, const bool free_us, Collection *collection_skip)

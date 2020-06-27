@@ -2383,7 +2383,6 @@ void BKE_object_matrix_local_get(struct Object *ob, float mat[4][4])
 }
 
 /**
- * \param depsgraph: Used for dupli-frame time.
  * \return success if \a mat is set.
  */
 static bool ob_parcurve(Object *ob, Object *par, float mat[4][4])

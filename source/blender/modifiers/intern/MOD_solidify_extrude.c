@@ -76,7 +76,7 @@ BLI_INLINE bool edgeref_is_init(const EdgeFaceRef *edge_ref)
 }
 
 /**
- * \param dm: Mesh to calculate normals for.
+ * \param mesh: Mesh to calculate normals for.
  * \param poly_nors: Precalculated face normals.
  * \param r_vert_nors: Return vert normals.
  */

@@ -963,11 +963,10 @@ static int elem_strcmp(const char *name, const char *oname)
  * Returns whether the specified field exists according to the struct format
  * pointed to by old.
  *
- * \param sdna: Old SDNA
- * \param type: Current field type name
- * \param name: Current field name
- * \param old: Pointer to struct information in sdna
- * \return true when existing, false otherwise.
+ * \param type: Current field type name.
+ * \param name: Current field name.
+ * \param old: Pointer to struct information in sdna.
+ * \return true when existing, false otherwise..
  */
 static bool elem_exists_impl(
     /* Expand SDNA. */
@@ -995,6 +994,9 @@ static bool elem_exists_impl(
   return false;
 }
 
+/**
+ * \param sdna: Old SDNA.
+ */
 static bool elem_exists(const SDNA *sdna, const char *type, const char *name, const short *old)
 {
   return elem_exists_impl(
@@ -1079,7 +1081,7 @@ static const char *find_elem(const SDNA *sdna,
 
 /**
  * Converts the contents of a single field of a struct, of a non-struct type,
- * from oldsdna to newsdna format.
+ * from \a oldsdna to \a newsdna format.
  *
  * \param newsdna: SDNA of current Blender
  * \param oldsdna: SDNA of Blender that saved file

@@ -2082,8 +2082,6 @@ static void txt_select_prefix(Text *text, const char *add, bool skip_blank_lines
 /**
  * Generic un-prefix operation, use for comment & indent.
  *
- * \param r_line_index_mask: List of lines that are already at indent level 0,
- * to store them later into the undo buffer.
  * \param require_all: When true, all non-empty lines must have this prefix.
  * Needed for comments where we might want to un-comment a block which contains some comments.
  *

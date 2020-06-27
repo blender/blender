@@ -83,10 +83,10 @@ CurveProfile *BKE_curveprofile_copy(const CurveProfile *profile)
 }
 
 /**
- * Move a point's handle, accounting for the alignment of handles with the HD_ALIGN type.
+ * Move a point's handle, accounting for the alignment of handles with the #HD_ALIGN type.
  *
- * \param handle_1 Whether to move the 1st or 2nd control point.
- * \param new_location The *relative* change in the handle's position.
+ * \param handle_1: Whether to move the 1st or 2nd control point.
+ * \param delta: The *relative* change in the handle's position.
  * \note Requires #BKE_curveprofile_update call after.
  * \return Whether the handle moved from its start position.
  */
@@ -133,8 +133,8 @@ bool BKE_curveprofile_move_handle(struct CurveProfilePoint *point,
 /**
  * Moves a control point, accounting for clipping and snapping, and moving free handles.
  *
- * \param snap Whether to snap the point to the grid
- * \param new_location The *relative* change of the point's location.
+ * \param snap: Whether to snap the point to the grid
+ * \param delta: The *relative* change of the point's location.
  * \return Whether the point moved from its start position.
  * \note Requires #BKE_curveprofile_update call after.
  */
@@ -313,7 +313,7 @@ CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float
 
 /**
  * Sets the handle type of the selected control points.
- * \param type_* Handle type for the first handle. HD_VECT, HD_AUTO, HD_FREE, or HD_ALIGN.
+ * \param type_1, type_2: Handle type for the first handle. HD_VECT, HD_AUTO, HD_FREE, or HD_ALIGN.
  * \note Requires #BKE_curveprofile_update call after.
  */
 void BKE_curveprofile_selected_handle_set(CurveProfile *profile, int type_1, int type_2)

@@ -529,7 +529,7 @@ void *BLI_file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t
  * Return the text file data with:
 
  * - Newlines replaced with '\0'.
- * - Optionally trim whitespace, replacing trailing ' ' & '\t' with '\0'.
+ * - Optionally trim white-space, replacing trailing <space> & <tab> with '\0'.
  *
  * This is an alternative to using #BLI_file_read_as_lines,
  * allowing us to loop over lines without converting it into a linked list

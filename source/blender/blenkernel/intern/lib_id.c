@@ -446,9 +446,9 @@ void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
 /**
  * Calls the appropriate make_local method for the block, unless test is set.
  *
- * \note Always set ID->newid pointer in case it gets duplicated...
+ * \note Always set #ID.newid pointer in case it gets duplicated.
  *
- * \param lib_local: Special flag used when making a whole library's content local,
+ * \param flags: Special flag used when making a whole library's content local,
  * it needs specific handling.
  *
  * \return true if the block can be made local.

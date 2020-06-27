@@ -3414,12 +3414,13 @@ static size_t animdata_filter_remove_duplis(ListBase *anim_data)
 
 /* ----------- Public API --------------- */
 
-/* This function filters the active data source to leave only animation channels suitable for
+/**
+ * This function filters the active data source to leave only animation channels suitable for
  * usage by the caller. It will return the length of the list
  *
- * *anim_data: is a pointer to a ListBase, to which the filtered animation channels
- * will be placed for use.
- * filter_mode: how should the data be filtered - bitmapping accessed flags
+ * \param anim_data: Is a pointer to a #ListBase,
+ * to which the filtered animation channels will be placed for use.
+ * \param filter_mode: how should the data be filtered - bit-mapping accessed flags.
  */
 size_t ANIM_animdata_filter(bAnimContext *ac,
                             ListBase *anim_data,

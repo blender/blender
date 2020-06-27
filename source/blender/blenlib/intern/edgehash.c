@@ -376,7 +376,7 @@ bool BLI_edgehash_ensure_p(EdgeHash *eh, uint v0, uint v1, void ***r_value)
  * Remove \a key (v0, v1) from \a eh, or return false if the key wasn't found.
  *
  * \param v0, v1: The key to remove.
- * \param valfreefp: Optional callback to free the value.
+ * \param free_value: Optional callback to free the value.
  * \return true if \a key was removed from \a eh.
  */
 bool BLI_edgehash_remove(EdgeHash *eh, uint v0, uint v1, EdgeHashFreeFP free_value)

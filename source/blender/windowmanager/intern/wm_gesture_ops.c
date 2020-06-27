@@ -272,7 +272,7 @@ void WM_gesture_box_cancel(bContext *C, wmOperator *op)
 /** \name Circle Gesture
  *
  * Currently only used for selection or modal paint stuff,
- * calls #wmOperator.exec while hold mouse, exits on release
+ * calls #wmOperatorType.exec while hold mouse, exits on release
  * (with no difference between cancel and confirm).
  *
  * \{ */

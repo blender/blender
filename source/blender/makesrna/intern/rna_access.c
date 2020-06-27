@@ -5379,7 +5379,7 @@ bool RNA_path_resolve_property_full(
  * This is a convenience method to avoid logic errors and ugly syntax,
  * it combines both \a RNA_path_resolve and #RNA_path_resolve_property in a single call.
  * \note Assumes all pointers provided are valid.
- * \param r_item_pointer: The final Pointer or Collection item value.
+ * \param r_item_ptr: The final Pointer or Collection item value.
  * You must check for its validity before use!
  * \return True only if both a valid pointer and property are found after resolving the path
  */
@@ -5405,7 +5405,7 @@ bool RNA_path_resolve_property_and_item_pointer(PointerRNA *ptr,
  * it combines both \a RNA_path_resolve_full and
  * \a RNA_path_resolve_property_full in a single call.
  * \note Assumes all pointers provided are valid.
- * \param r_item_pointer: The final Pointer or Collection item value.
+ * \param r_item_ptr: The final Pointer or Collection item value.
  * You must check for its validity before use!
  * \return True only if both a valid pointer and property are found after resolving the path
  */

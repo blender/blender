@@ -836,7 +836,7 @@ static void blendfile_write_partial_cb(void *UNUSED(handle), Main *UNUSED(bmain)
 }
 
 /**
- * \param remap_mode: Choose the kind of path remapping or none #eBLO_FilePathRemap.
+ * \param remap_mode: Choose the kind of path remapping or none #eBLO_WritePathRemap.
  * \return Success.
  */
 bool BKE_blendfile_write_partial(Main *bmain_src,

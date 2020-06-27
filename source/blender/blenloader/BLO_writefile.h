@@ -37,7 +37,7 @@ struct ReportList;
  * \{ */
 
 /**
- * Adjust paths when saving (kept unless #G_FILE_SAVE_COPY is set).
+ * Adjust paths when saving (kept unless #BlendFileWriteParams.use_save_as_copy is set).
  */
 typedef enum eBLO_WritePathRemap {
   /** No path manipulation. */

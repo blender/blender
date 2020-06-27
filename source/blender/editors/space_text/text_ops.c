@@ -85,7 +85,7 @@ static void test_line_start(char c, bool *r_last_state)
 
 /**
  * This function converts the indentation tabs from a buffer to spaces.
- * \param buf: A pointer to a cstring.
+ * \param in_buf: A pointer to a cstring.
  * \param tab_size: The size, in spaces, of the tab character.
  */
 static char *buf_tabs_to_spaces(const char *in_buf, const int tab_size)

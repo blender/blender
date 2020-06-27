@@ -94,7 +94,7 @@
 /* Context Wrangling... */
 
 /**
- * Get pointer to active Grease Pencil datablock,
+ * Get pointer to active Grease Pencil data-block,
  * and an RNA-pointer to trace back to whatever owns it,
  * when context info is not available.
  */
@@ -107,7 +107,7 @@ bGPdata **ED_gpencil_data_get_pointers_direct(ScrArea *area, Object *ob, Pointer
     switch (area->spacetype) {
       case SPACE_PROPERTIES: /* properties */
       case SPACE_INFO:       /* header info */
-      case SPACE_TOPBAR:     /* Topbar */
+      case SPACE_TOPBAR:     /* Top-bar */
       case SPACE_VIEW3D:     /* 3D-View */
       {
         if (ob && (ob->type == OB_GPENCIL)) {
@@ -132,7 +132,7 @@ bGPdata **ED_gpencil_data_get_pointers_direct(ScrArea *area, Object *ob, Pointer
 }
 
 /**
- * Get pointer to active Grease Pencil datablock for annotations,
+ * Get pointer to active Grease Pencil data-block for annotations,
  * and an RNA-pointer to trace back to whatever owns it,
  * when context info is not available.
  */
@@ -154,7 +154,7 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
         break;
       }
 
-      case SPACE_TOPBAR: /* Topbar */
+      case SPACE_TOPBAR: /* Top-bar */
       case SPACE_VIEW3D: /* 3D-View */
       {
         if (r_ptr) {
@@ -237,8 +237,10 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
   return NULL;
 }
 
-/* Get pointer to active Grease Pencil datablock,
- * and an RNA-pointer to trace back to whatever owns it. */
+/**
+ * Get pointer to active Grease Pencil data-block,
+ * and an RNA-pointer to trace back to whatever owns it.
+ */
 bGPdata **ED_gpencil_data_get_pointers(const bContext *C, PointerRNA *r_ptr)
 {
   ScrArea *area = CTX_wm_area(C);
@@ -247,8 +249,10 @@ bGPdata **ED_gpencil_data_get_pointers(const bContext *C, PointerRNA *r_ptr)
   return ED_gpencil_data_get_pointers_direct(area, ob, r_ptr);
 }
 
-/* Get pointer to active Grease Pencil datablock,
- * and an RNA-pointer to trace back to whatever owns it. */
+/**
+ * Get pointer to active Grease Pencil data-block,
+ * and an RNA-pointer to trace back to whatever owns it.
+ */
 bGPdata **ED_annotation_data_get_pointers(const bContext *C, PointerRNA *r_ptr)
 {
   ID *screen_id = (ID *)CTX_wm_screen(C);
@@ -259,14 +263,14 @@ bGPdata **ED_annotation_data_get_pointers(const bContext *C, PointerRNA *r_ptr)
 }
 /* -------------------------------------------------------- */
 
-/* Get the active Grease Pencil datablock, when context is not available */
+/* Get the active Grease Pencil data-block, when context is not available */
 bGPdata *ED_gpencil_data_get_active_direct(ScrArea *area, Object *ob)
 {
   bGPdata **gpd_ptr = ED_gpencil_data_get_pointers_direct(area, ob, NULL);
   return (gpd_ptr) ? *(gpd_ptr) : NULL;
 }
 
-/* Get the active Grease Pencil datablock, when context is not available */
+/* Get the active Grease Pencil data-block, when context is not available */
 bGPdata *ED_annotation_data_get_active_direct(ID *screen_id, ScrArea *area, Scene *scene)
 {
   bGPdata **gpd_ptr = ED_annotation_data_get_pointers_direct(screen_id, area, scene, NULL);
@@ -274,7 +278,7 @@ bGPdata *ED_annotation_data_get_active_direct(ID *screen_id, ScrArea *area, Scen
 }
 
 /**
- * Get the active Grease Pencil datablock
+ * Get the active Grease Pencil data-block
  */
 bGPdata *ED_gpencil_data_get_active(const bContext *C)
 {
@@ -286,9 +290,9 @@ bGPdata *ED_gpencil_data_get_active(const bContext *C)
 }
 
 /**
- * Get the active Grease Pencil datablock
- * \note This is the original (bmain) copy of the datablock, stored in files.
- * Do not use for reading evaluated copies of GP Objects data
+ * Get the active Grease Pencil data-block
+ * \note This is the original (#G.main) copy of the data-block, stored in files.
+ * Do not use for reading evaluated copies of GP Objects data.
  */
 bGPdata *ED_annotation_data_get_active(const bContext *C)
 {
@@ -296,11 +300,11 @@ bGPdata *ED_annotation_data_get_active(const bContext *C)
   return (gpd_ptr) ? *(gpd_ptr) : NULL;
 }
 /**
- * Get the evaluated copy of the active Grease Pencil datablock (where applicable)
- * - For the 3D View (i.e. "GP Objects"), this gives the evaluated copy of the GP datablock
- *   (i.e. a copy of the active GP datablock for the active object, where modifiers have been
+ * Get the evaluated copy of the active Grease Pencil data-block (where applicable)
+ * - For the 3D View (i.e. "GP Objects"), this gives the evaluated copy of the GP data-block
+ *   (i.e. a copy of the active GP data-block for the active object, where modifiers have been
  *   applied). This is needed to correctly work with "Copy-on-Write".
- * - For all other editors (i.e. "GP Annotations"), this just gives the active datablock
+ * - For all other editors (i.e. "GP Annotations"), this just gives the active data-block
  *   like for #ED_gpencil_data_get_active()
  */
 bGPdata *ED_gpencil_data_get_active_evaluated(const bContext *C)
@@ -323,8 +327,7 @@ bGPdata *ED_gpencil_data_get_active_evaluated(const bContext *C)
 bool ED_gpencil_data_owner_is_annotation(PointerRNA *owner_ptr)
 {
   /* Key Assumption: If the pointer is an object, we're dealing with a GP Object's data.
-   * Otherwise, the GP datablock is being used for annotations (i.e. everywhere else)
-   */
+   * Otherwise, the GP data-block is being used for annotations (i.e. everywhere else). */
   return ((owner_ptr) && (owner_ptr->type != &RNA_Object));
 }
 
@@ -528,7 +531,6 @@ const EnumPropertyItem *ED_gpencil_material_enum_itemf(bContext *C,
  * Check whether a given stroke segment is inside a circular brush
  *
  * \param mval: The current screen-space coordinates (midpoint) of the brush
- * \param mvalo: The previous screen-space coordinates (midpoint) of the brush (NOT CURRENTLY USED)
  * \param rad: The radius of the brush
  *
  * \param x0, y0: The screen-space x and y coordinates of the start of the stroke segment
@@ -765,8 +767,8 @@ void gp_point_to_xy(
  * Use this version to solve "stair-step" artifacts which may arise when
  * roundtripping the calculations.
  *
- * \param r_x[out]: The screen-space x-coordinate of the point.
- * \param r_y[out]: The screen-space y-coordinate of the point.
+ * \param r_x: The screen-space x-coordinate of the point.
+ * \param r_y: The screen-space y-coordinate of the point.
  *
  * \warning This assumes that the caller has already checked
  * whether the stroke in question can be drawn.
@@ -936,9 +938,9 @@ bool gp_point_xy_to_3d(const GP_SpaceConversion *gsc,
  * Convert tGPspoint (temporary 2D/screenspace point data used by GP modal operators)
  * to 3D coordinates.
  *
- * \param point2D: The screenspace 2D point data to convert.
+ * \param point2D: The screen-space 2D point data to convert.
  * \param depth: Depth array (via #ED_view3d_autodist_depth()).
- * \param[out] r_out: The resulting 2D point data.
+ * \param r_out: The resulting 2D point data.
  */
 void gp_stroke_convertcoords_tpoint(Scene *scene,
                                     ARegion *region,
@@ -983,7 +985,7 @@ void gp_stroke_convertcoords_tpoint(Scene *scene,
 
 /**
  * Get drawing reference point for conversion or projection of the stroke
- * \param[out] r_vec : Reference point found
+ * \param r_vec: Reference point found
  */
 void ED_gpencil_drawing_reference_get(const Scene *scene,
                                       const Object *ob,
@@ -1252,7 +1254,7 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
 
 /**
  * Reproject given point to a plane locked to axis to avoid stroke offset
- * \param[in,out] pt: Point to affect
+ * \param pt: Point to affect (used for input & output).
  */
 void ED_gp_project_point_to_plane(const Scene *scene,
                                   const Object *ob,
@@ -1811,7 +1813,9 @@ static bool gp_brush_cursor_poll(bContext *C)
   return false;
 }
 
-/* Helper callback for drawing the cursor itself */
+/**
+ * Helper callback for drawing the cursor itself.
+ */
 static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 {
   Scene *scene = CTX_data_scene(C);
@@ -1831,7 +1835,7 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
   float radius = 3.0f;
 
   int mval_i[2] = {x, y};
-  /* check if cursor is in drawing region and has valid datablock */
+  /* Check if cursor is in drawing region and has valid data-block. */
   if ((!gp_check_cursor_region(C, mval_i)) || (gpd == NULL)) {
     return;
   }
@@ -2082,7 +2086,9 @@ void ED_gpencil_setup_modes(bContext *C, bGPdata *gpd, int newmode)
   }
 }
 
-/* helper to convert 2d to 3d for simple drawing buffer */
+/**
+ * Helper to convert 2d to 3d for simple drawing buffer.
+ */
 static void gpencil_stroke_convertcoords(ARegion *region,
                                          const tGPspoint *point2D,
                                          const float origin[3],
@@ -2108,7 +2114,9 @@ static void gpencil_stroke_convertcoords(ARegion *region,
   }
 }
 
-/* convert 2d tGPspoint to 3d bGPDspoint */
+/**
+ * Convert 2d #tGPspoint to 3d #bGPDspoint.
+ */
 void ED_gpencil_tpoint_to_point(ARegion *region,
                                 float origin[3],
                                 const tGPspoint *tpt,
@@ -2126,7 +2134,9 @@ void ED_gpencil_tpoint_to_point(ARegion *region,
   pt->uv_rot = tpt->uv_rot;
 }
 
-/* recalc uv for any stroke using the material */
+/**
+ * Recalculate UV for any stroke using the material.
+ */
 void ED_gpencil_update_color_uv(Main *bmain, Material *mat)
 {
   Material *gps_ma = NULL;
@@ -2297,7 +2307,7 @@ static void gp_insert_point(
       gp_copy_points(gps, pt, pt_final, i, i2);
       copy_v3_v3(&pt_final->x, (i == a_idx) ? co_a : co_b);
 
-      /* unselect */
+      /* Un-select. */
       pt_final->flag &= ~GP_SPOINT_SELECT;
       /* tag to avoid more checking with this point */
       pt_final->flag |= GP_SPOINT_TAG;
@@ -2305,7 +2315,7 @@ static void gp_insert_point(
 
     i2++;
   }
-  /* Calc geometry data. */
+  /* Calculate geometry data. */
   BKE_gpencil_stroke_geometry_update(gps);
 
   MEM_SAFE_FREE(temp_points);
@@ -2611,7 +2621,10 @@ void ED_gpencil_select_toggle_all(bContext *C, int action)
   }
 }
 
-/* Ensure the SBuffer (while drawing stroke) size is enough to save all points of the stroke */
+/**
+ * Ensure the #tGPspoint buffer (while drawing stroke)
+ * size is enough to save all points of the stroke.
+ */
 tGPspoint *ED_gpencil_sbuffer_ensure(tGPspoint *buffer_array,
                                      int *buffer_size,
                                      int *buffer_used,
@@ -2662,10 +2675,12 @@ void ED_gpencil_sbuffer_update_eval(bGPdata *gpd, Object *ob_eval)
   gpd_eval->runtime.cp_points = gpd->runtime.cp_points;
 }
 
-/* Tag all scene grease pencil object to update. */
+/**
+ * Tag all scene grease pencil object to update.
+ */
 void ED_gpencil_tag_scene_gpencil(Scene *scene)
 {
-  /* mark all grease pencil datablocks of the scene */
+  /* Mark all grease pencil data-blocks of the scene. */
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection, ob) {
       if (ob->type == OB_GPENCIL) {
@@ -2749,7 +2764,7 @@ void ED_gpencil_init_random_settings(Brush *brush,
     random_settings->pressure = BLI_hash_int_01(BLI_hash_int_2d(ix + iz, iy + iz)) * 2.0f - 1.0f;
   }
 
-  /* Randomn to color strength. */
+  /* Random to color strength. */
   if (brush_settings->draw_random_strength) {
     random_settings->strength = BLI_hash_int_01(BLI_hash_int_2d(ix + iy, iy + iz + ix)) * 2.0f -
                                 1.0f;
@@ -2882,8 +2897,8 @@ void ED_gpencil_sbuffer_vertex_color_set(Depsgraph *depsgraph,
   /* Random Color. */
   gpencil_sbuffer_vertex_color_random(gpd, brush, tpt, random_color, pen_pressure);
 
-  /* Copy to eval data because paint operators don't tag refresh until end for speedup
-     painting. */
+  /* Copy to evaluate data because paint operators don't tag refresh until end for speedup
+   * painting. */
   if (gpd_eval != NULL) {
     copy_v4_v4(gpd_eval->runtime.vert_color_fill, gpd->runtime.vert_color_fill);
     gpd_eval->runtime.matid = gpd->runtime.matid;
@@ -2926,7 +2941,7 @@ bool ED_gpencil_stroke_check_collision(GP_SpaceConversion *gsc,
 
   rcti rect_stroke = {boundbox_min[0], boundbox_max[0], boundbox_min[1], boundbox_max[1]};
 
-  /* For mouse, add a small offet to avoid false negative in corners. */
+  /* For mouse, add a small offset to avoid false negative in corners. */
   rcti rect_mouse = {mouse[0] - offset, mouse[0] + offset, mouse[1] - offset, mouse[1] + offset};
 
   /* Check collision between both rectangles. */
@@ -2934,12 +2949,13 @@ bool ED_gpencil_stroke_check_collision(GP_SpaceConversion *gsc,
 }
 
 /**
- * Check if a point is inside of the stroke
- * \param gps: Stroke to check
- * \param gsc: SpaceConversion data
- * \param mouse:  Mouse position
- * \param diff_mat:  View matrix
- * \return  True if the point is inside
+ * Check if a point is inside of the stroke.
+ *
+ * \param gps: Stroke to check.
+ * \param gsc: Space conversion data.
+ * \param mouse:  Mouse position.
+ * \param diff_mat:  View matrix.
+ * \return True if the point is inside.
  */
 bool ED_gpencil_stroke_point_is_inside(bGPDstroke *gps,
                                        GP_SpaceConversion *gsc,
@@ -2964,7 +2980,7 @@ bool ED_gpencil_stroke_point_is_inside(bGPDstroke *gps,
     gp_point_to_xy(gsc, gps, &pt2, &mcoords[i][0], &mcoords[i][1]);
   }
 
-  /* Compute boundbox of lasso (for faster testing later). */
+  /* Compute bound-box of lasso (for faster testing later). */
   rcti rect;
   BLI_lasso_boundbox(&rect, mcoords, len);
 

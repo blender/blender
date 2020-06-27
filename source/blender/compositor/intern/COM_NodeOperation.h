@@ -167,7 +167,7 @@ class NodeOperation : public SocketReader {
    * the ExecutionSystem.
    *
    * \see ExecutionSystem
-   * \group check
+   * \ingroup check
    * \param rendering: [true false]
    *  true: rendering
    *  false: editing
