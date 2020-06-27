@@ -857,8 +857,6 @@ void createTransPose(TransInfo *t)
   }
 
   t->flag |= T_POSE;
-  /* disable PET, its not usable in pose mode yet [#32444] */
-  t->flag &= ~T_PROP_EDIT_ALL;
 }
 
 void createTransArmatureVerts(TransInfo *t)

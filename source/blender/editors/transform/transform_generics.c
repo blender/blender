@@ -131,21 +131,6 @@ void resetTransRestrictions(TransInfo *t)
   t->flag &= ~T_ALL_RESTRICTIONS;
 }
 
-static int initTransInfo_edit_pet_to_flag(const int proportional)
-{
-  int flag = 0;
-  if (proportional & PROP_EDIT_USE) {
-    flag |= T_PROP_EDIT;
-  }
-  if (proportional & PROP_EDIT_CONNECTED) {
-    flag |= T_PROP_CONNECTED;
-  }
-  if (proportional & PROP_EDIT_PROJECTED) {
-    flag |= T_PROP_PROJECTED;
-  }
-  return flag;
-}
-
 void initTransDataContainers_FromObjectData(TransInfo *t,
                                             Object *obact,
                                             Object **objects,
@@ -637,45 +622,45 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   /* setting PET flag only if property exist in operator. Otherwise, assume it's not supported */
   if (op && (prop = RNA_struct_find_property(op->ptr, "use_proportional_edit"))) {
     if (RNA_property_is_set(op->ptr, prop)) {
-      int proportional = 0;
       if (RNA_property_boolean_get(op->ptr, prop)) {
-        proportional |= PROP_EDIT_USE;
+        t->flag |= T_PROP_EDIT;
         if (RNA_boolean_get(op->ptr, "use_proportional_connected")) {
-          proportional |= PROP_EDIT_CONNECTED;
+          t->flag |= T_PROP_CONNECTED;
         }
         if (RNA_boolean_get(op->ptr, "use_proportional_projected")) {
-          proportional |= PROP_EDIT_PROJECTED;
+          t->flag |= T_PROP_PROJECTED;
         }
       }
-      t->flag |= initTransInfo_edit_pet_to_flag(proportional);
     }
     else {
       /* use settings from scene only if modal */
       if (t->flag & T_MODAL) {
         if ((t->options & CTX_NO_PET) == 0) {
+          bool use_prop_edit = false;
           if (t->spacetype == SPACE_GRAPH) {
-            t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional_fcurve);
+            use_prop_edit = ts->proportional_fcurve;
           }
           else if (t->spacetype == SPACE_ACTION) {
-            t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional_action);
-          }
-          else if (t->obedit_type != -1) {
-            t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional_edit);
-          }
-          else if (t->options & CTX_GPENCIL_STROKES) {
-            t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional_edit);
+            use_prop_edit = ts->proportional_action;
           }
           else if (t->options & CTX_MASK) {
-            if (ts->proportional_mask) {
-              t->flag |= T_PROP_EDIT;
-
-              if (ts->proportional_edit & PROP_EDIT_CONNECTED) {
-                t->flag |= T_PROP_CONNECTED;
-              }
-            }
+            use_prop_edit = ts->proportional_mask;
           }
-          else if (!(t->options & CTX_CURSOR) && ts->proportional_objects) {
+          else if (obact && obact->mode == OB_MODE_OBJECT) {
+            use_prop_edit = ts->proportional_objects;
+          }
+          else {
+            use_prop_edit = (ts->proportional_edit & PROP_EDIT_USE) != 0;
+          }
+
+          if (use_prop_edit) {
             t->flag |= T_PROP_EDIT;
+            if (ts->proportional_edit & PROP_EDIT_CONNECTED) {
+              t->flag |= T_PROP_CONNECTED;
+            }
+            if (ts->proportional_edit & PROP_EDIT_PROJECTED) {
+              t->flag |= T_PROP_PROJECTED;
+            }
           }
         }
       }

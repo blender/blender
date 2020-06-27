@@ -1160,6 +1160,7 @@ void createTransData(bContext *C, TransInfo *t)
       break;
     case TC_POSE:
       createTransPose(t);
+      /* Disable PET, its not usable in pose mode yet [#32444] */
       init_prop_edit = false;
       break;
     case TC_ARMATURE_VERTS:
@@ -1290,6 +1291,10 @@ void createTransData(bContext *C, TransInfo *t)
       /* Needed because bezier handles can be partially selected
        * and are still added into transform data. */
       sort_trans_data_selected_first(t);
+    }
+
+    if (!init_prop_edit) {
+      t->flag &= ~T_PROP_EDIT_ALL;
     }
   }
 

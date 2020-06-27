@@ -1591,7 +1591,6 @@ static void drawTransformPixel(const struct bContext *C, ARegion *region, void *
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 {
   ToolSettings *ts = CTX_data_tool_settings(C);
-  int proportional = 0;
   PropertyRNA *prop;
 
   if (!(t->con.mode & CON_APPLY) && (t->flag & T_MODAL) &&
@@ -1627,15 +1626,17 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     }
   }
 
+  bool use_prop_edit = false;
+  int prop_edit_flag = 0;
   if (t->flag & T_PROP_EDIT_ALL) {
     if (t->flag & T_PROP_EDIT) {
-      proportional |= PROP_EDIT_USE;
+      use_prop_edit = true;
     }
     if (t->flag & T_PROP_CONNECTED) {
-      proportional |= PROP_EDIT_CONNECTED;
+      prop_edit_flag |= PROP_EDIT_CONNECTED;
     }
     if (t->flag & T_PROP_PROJECTED) {
-      proportional |= PROP_EDIT_PROJECTED;
+      prop_edit_flag |= PROP_EDIT_PROJECTED;
     }
   }
 
@@ -1647,20 +1648,27 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     if (!(t->options & CTX_NO_PET)) {
       if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit")) &&
           !RNA_property_is_set(op->ptr, prop)) {
+        const Object *obact = OBACT(t->view_layer);
+
         if (t->spacetype == SPACE_GRAPH) {
-          ts->proportional_fcurve = proportional;
+          ts->proportional_fcurve = use_prop_edit;
         }
         else if (t->spacetype == SPACE_ACTION) {
-          ts->proportional_action = proportional;
-        }
-        else if (t->obedit_type != -1) {
-          ts->proportional_edit = proportional;
+          ts->proportional_action = use_prop_edit;
         }
         else if (t->options & CTX_MASK) {
-          ts->proportional_mask = proportional != 0;
+          ts->proportional_mask = use_prop_edit;
         }
-        else if ((t->options & CTX_CURSOR) == 0) {
-          ts->proportional_objects = proportional != 0;
+        else if (obact && obact->mode == OB_MODE_OBJECT) {
+          ts->proportional_objects = use_prop_edit;
+        }
+        else {
+          if (use_prop_edit) {
+            ts->proportional_edit |= PROP_EDIT_USE;
+          }
+          else {
+            ts->proportional_edit &= ~PROP_EDIT_USE;
+          }
         }
       }
 
@@ -1693,9 +1701,9 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit"))) {
-    RNA_property_boolean_set(op->ptr, prop, proportional & PROP_EDIT_USE);
-    RNA_boolean_set(op->ptr, "use_proportional_connected", proportional & PROP_EDIT_CONNECTED);
-    RNA_boolean_set(op->ptr, "use_proportional_projected", proportional & PROP_EDIT_PROJECTED);
+    RNA_property_boolean_set(op->ptr, prop, use_prop_edit);
+    RNA_boolean_set(op->ptr, "use_proportional_connected", prop_edit_flag & PROP_EDIT_CONNECTED);
+    RNA_boolean_set(op->ptr, "use_proportional_projected", prop_edit_flag & PROP_EDIT_PROJECTED);
     RNA_enum_set(op->ptr, "proportional_edit_falloff", t->prop_mode);
     RNA_float_set(op->ptr, "proportional_size", t->prop_size);
   }
