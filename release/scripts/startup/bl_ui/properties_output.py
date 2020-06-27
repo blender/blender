@@ -411,6 +411,8 @@ class RENDER_PT_encoding_audio(RenderOutputButtonsPanel, Panel):
             layout.prop(ffmpeg, "audio_codec", text="Audio Codec")
 
         if ffmpeg.audio_codec != 'NONE':
+            layout.prop(ffmpeg, "audio_channels")
+            layout.prop(ffmpeg, "audio_mixrate", text="Sample Rate")
             layout.prop(ffmpeg, "audio_bitrate")
             layout.prop(ffmpeg, "audio_volume", slider=True)
 
