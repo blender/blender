@@ -331,14 +331,14 @@ static int palette_extract_img_exec(bContext *C, wmOperator *op)
 
   if (ibuf && ibuf->rect) {
     /* Extract all colors. */
+    const int range = (int)pow(10.0f, threshold);
     for (int row = 0; row < ibuf->y; row++) {
       for (int col = 0; col < ibuf->x; col++) {
         float color[4];
         IMB_sampleImageAtLocation(ibuf, (float)col, (float)row, false, color);
-        const float range = pow(10.0f, threshold);
-        color[0] = truncf(color[0] * range) / range;
-        color[1] = truncf(color[1] * range) / range;
-        color[2] = truncf(color[2] * range) / range;
+        for (int i = 0; i < 3; i++) {
+          color[i] = truncf(color[i] * range) / range;
+        }
 
         uint key = rgb_to_cpack(color[0], color[1], color[2]);
         if (!BLI_ghash_haskey(color_table, POINTER_FROM_INT(key))) {
@@ -363,6 +363,8 @@ static int palette_extract_img_exec(bContext *C, wmOperator *op)
 
 static void PALETTE_OT_extract_from_image(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Extract Palette from Image";
   ot->idname = "PALETTE_OT_extract_from_image";
@@ -376,7 +378,8 @@ static void PALETTE_OT_extract_from_image(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_int(ot->srna, "threshold", 1, 1, 4, "Threshold", "", 1, 4);
+  prop = RNA_def_int(ot->srna, "threshold", 1, 1, 1, "Threshold", "", 1, 1);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /* Sort Palette color by Hue and Saturation. */
