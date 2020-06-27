@@ -748,7 +748,7 @@ GHashIterator *nodeSocketTypeGetIterator(void)
   return BLI_ghashIterator_new(nodesockettypes_hash);
 }
 
-struct bNodeSocket *nodeFindSocket(bNode *node, int in_out, const char *identifier)
+struct bNodeSocket *nodeFindSocket(const bNode *node, int in_out, const char *identifier)
 {
   bNodeSocket *sock = (in_out == SOCK_IN ? node->inputs.first : node->outputs.first);
   for (; sock; sock = sock->next) {
