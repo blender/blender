@@ -869,125 +869,70 @@ static bool gp_stroke_do_circle_sel(bGPdata *UNUSED(gpd),
                                     const int selectmode,
                                     const float scale)
 {
-  bGPDspoint *pt1 = NULL;
-  bGPDspoint *pt2 = NULL;
-  int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
+  bGPDspoint *pt = NULL;
+  int x0 = 0, y0 = 0;
   int i;
   bool changed = false;
   bGPDstroke *gps_active = (gps->runtime.gps_orig) ? gps->runtime.gps_orig : gps;
   bGPDspoint *pt_active = NULL;
+  bool hit = false;
 
-  if (gps->totpoints == 1) {
+  for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+    pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
+
     bGPDspoint pt_temp;
-    gp_point_to_parent_space(gps->points, diff_mat, &pt_temp);
+    gp_point_to_parent_space(pt_active, diff_mat, &pt_temp);
     gp_point_to_xy(gsc, gps, &pt_temp, &x0, &y0);
 
     /* do boundbox check first */
     if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) {
       /* only check if point is inside */
       if (((x0 - mx) * (x0 - mx) + (y0 - my) * (y0 - my)) <= radius * radius) {
+        hit = true;
+
         /* change selection */
         if (select) {
-          gps_active->points->flag |= GP_SPOINT_SELECT;
+          pt_active->flag |= GP_SPOINT_SELECT;
           gps_active->flag |= GP_STROKE_SELECT;
         }
         else {
-          gps_active->points->flag &= ~GP_SPOINT_SELECT;
+          pt_active->flag &= ~GP_SPOINT_SELECT;
           gps_active->flag &= ~GP_STROKE_SELECT;
         }
-
-        return true;
-      }
-    }
-  }
-  else {
-    /* Loop over the points in the stroke, checking for intersections
-     * - an intersection means that we touched the stroke
-     */
-    bool hit = false;
-    for (i = 0; (i + 1) < gps->totpoints; i++) {
-      /* get points to work with */
-      pt1 = gps->points + i;
-      pt2 = gps->points + i + 1;
-      bGPDspoint npt;
-      gp_point_to_parent_space(pt1, diff_mat, &npt);
-      gp_point_to_xy(gsc, gps, &npt, &x0, &y0);
-
-      gp_point_to_parent_space(pt2, diff_mat, &npt);
-      gp_point_to_xy(gsc, gps, &npt, &x1, &y1);
-
-      /* check that point segment of the boundbox of the selection stroke */
-      if (((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) ||
-          ((!ELEM(V2D_IS_CLIPPED, x1, y1)) && BLI_rcti_isect_pt(rect, x1, y1))) {
-        float mval[2] = {(float)mx, (float)my};
-
-        /* check if point segment of stroke had anything to do with
-         * eraser region  (either within stroke painted, or on its lines)
-         * - this assumes that linewidth is irrelevant
-         */
-        if (gp_stroke_inside_circle(mval, radius, x0, y0, x1, y1)) {
-          /* change selection of stroke, and then of both points
-           * (as the last point otherwise wouldn't get selected
-           * as we only do n-1 loops through).
-           */
-          hit = true;
-          if (select) {
-            pt_active = pt1->runtime.pt_orig;
-            if (pt_active != NULL) {
-              pt_active->flag |= GP_SPOINT_SELECT;
-            }
-            pt_active = pt2->runtime.pt_orig;
-            if (pt_active != NULL) {
-              pt_active->flag |= GP_SPOINT_SELECT;
-            }
-            changed = true;
-          }
-          else {
-            pt_active = pt1->runtime.pt_orig;
-            if (pt_active != NULL) {
-              pt_active->flag &= ~GP_SPOINT_SELECT;
-            }
-            pt_active = pt2->runtime.pt_orig;
-            if (pt_active != NULL) {
-              pt_active->flag &= ~GP_SPOINT_SELECT;
-            }
-            changed = true;
-          }
+        changed = true;
+        /* if stroke mode, don't check more points */
+        if ((hit) && (selectmode == GP_SELECTMODE_STROKE)) {
+          break;
         }
-      }
-      /* if stroke mode, don't check more points */
-      if ((hit) && (selectmode == GP_SELECTMODE_STROKE)) {
-        break;
-      }
-    }
 
-    /* if stroke mode expand selection */
-    if ((hit) && (selectmode == GP_SELECTMODE_STROKE)) {
-      for (i = 0, pt1 = gps->points; i < gps->totpoints; i++, pt1++) {
-        pt_active = (pt1->runtime.pt_orig) ? pt1->runtime.pt_orig : pt1;
-        if (pt_active != NULL) {
-          if (select) {
-            pt_active->flag |= GP_SPOINT_SELECT;
-          }
-          else {
-            pt_active->flag &= ~GP_SPOINT_SELECT;
-          }
+        /* Expand selection to segment. */
+        if ((hit) && (selectmode == GP_SELECTMODE_SEGMENT) && (select) && (pt_active != NULL)) {
+          float r_hita[3], r_hitb[3];
+          bool hit_select = (bool)(pt_active->flag & GP_SPOINT_SELECT);
+          ED_gpencil_select_stroke_segment(
+              gpl, gps_active, pt_active, hit_select, false, scale, r_hita, r_hitb);
         }
       }
     }
-
-    /* expand selection to segment */
-    pt_active = (pt1->runtime.pt_orig) ? pt1->runtime.pt_orig : pt1;
-    if ((hit) && (selectmode == GP_SELECTMODE_SEGMENT) && (select) && (pt_active != NULL)) {
-      float r_hita[3], r_hitb[3];
-      bool hit_select = (bool)(pt1->flag & GP_SPOINT_SELECT);
-      ED_gpencil_select_stroke_segment(
-          gpl, gps_active, pt_active, hit_select, false, scale, r_hita, r_hitb);
-    }
-
-    /* Ensure that stroke selection is in sync with its points */
-    BKE_gpencil_stroke_sync_selection(gps_active);
   }
+
+  /* If stroke mode expand selection. */
+  if ((hit) && (selectmode == GP_SELECTMODE_STROKE)) {
+    for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+      pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
+      if (pt_active != NULL) {
+        if (select) {
+          pt_active->flag |= GP_SPOINT_SELECT;
+        }
+        else {
+          pt_active->flag &= ~GP_SPOINT_SELECT;
+        }
+      }
+    }
+  }
+
+  /* Ensure that stroke selection is in sync with its points. */
+  BKE_gpencil_stroke_sync_selection(gps_active);
 
   return changed;
 }
