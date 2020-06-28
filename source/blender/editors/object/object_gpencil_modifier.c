@@ -105,23 +105,6 @@ GpencilModifierData *ED_object_gpencil_modifier_add(
   return new_md;
 }
 
-/* Return true if the object has a modifier of type 'type' other than
- * the modifier pointed to be 'exclude', otherwise returns false. */
-static bool UNUSED_FUNCTION(gpencil_object_has_modifier)(const Object *ob,
-                                                         const GpencilModifierData *exclude,
-                                                         GpencilModifierType type)
-{
-  GpencilModifierData *md;
-
-  for (md = ob->greasepencil_modifiers.first; md; md = md->next) {
-    if ((md != exclude) && (md->type == type)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 static bool gpencil_object_modifier_remove(Main *bmain,
                                            Object *ob,
                                            GpencilModifierData *md,
