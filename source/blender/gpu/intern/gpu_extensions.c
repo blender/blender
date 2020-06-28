@@ -288,6 +288,13 @@ void gpu_extensions_init(void)
     }
   }
 
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
+      strstr(renderer, "AMD VERDE")) {
+    /* We have issues with this specific renderer. (see T74024) */
+    GG.unused_fb_slot_workaround = true;
+    GG.broken_amd_driver = true;
+  }
+
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_MAC, GPU_DRIVER_OFFICIAL)) {
     if (strstr(renderer, "AMD Radeon Pro") || strstr(renderer, "AMD Radeon R9") ||
         strstr(renderer, "AMD Radeon RX")) {
