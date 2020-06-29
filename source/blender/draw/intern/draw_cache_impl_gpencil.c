@@ -349,10 +349,10 @@ static void gpencil_stroke_iter_cb(bGPDlayer *UNUSED(gpl),
   }
 }
 
-static void gp_object_verts_count_cb(bGPDlayer *UNUSED(gpl),
-                                     bGPDframe *UNUSED(gpf),
-                                     bGPDstroke *gps,
-                                     void *thunk)
+static void gpencil_object_verts_count_cb(bGPDlayer *UNUSED(gpl),
+                                          bGPDframe *UNUSED(gpf),
+                                          bGPDstroke *gps,
+                                          void *thunk)
 {
   gpIterData *iter = (gpIterData *)thunk;
 
@@ -387,7 +387,7 @@ static void gpencil_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfr
         .tri_len = 0,
     };
     BKE_gpencil_visible_stroke_iter(
-        NULL, ob, NULL, gp_object_verts_count_cb, &iter, do_onion, cfra);
+        NULL, ob, NULL, gpencil_object_verts_count_cb, &iter, do_onion, cfra);
 
     /* Create VBOs. */
     GPUVertFormat *format = gpencil_stroke_format();
@@ -441,10 +441,10 @@ GPUBatch *DRW_cache_gpencil_fills_get(Object *ob, int cfra)
   return cache->fill_batch;
 }
 
-static void gp_lines_indices_cb(bGPDlayer *UNUSED(gpl),
-                                bGPDframe *UNUSED(gpf),
-                                bGPDstroke *gps,
-                                void *thunk)
+static void gpencil_lines_indices_cb(bGPDlayer *UNUSED(gpl),
+                                     bGPDframe *UNUSED(gpf),
+                                     bGPDstroke *gps,
+                                     void *thunk)
 {
   gpIterData *iter = (gpIterData *)thunk;
   int pts_len = gps->totpoints + gpencil_stroke_is_cyclic(gps);
@@ -477,7 +477,8 @@ GPUBatch *DRW_cache_gpencil_face_wireframe_get(Object *ob)
 
     /* IMPORTANT: Keep in sync with gpencil_edit_batches_ensure() */
     bool do_onion = true;
-    BKE_gpencil_visible_stroke_iter(NULL, ob, NULL, gp_lines_indices_cb, &iter, do_onion, cfra);
+    BKE_gpencil_visible_stroke_iter(
+        NULL, ob, NULL, gpencil_lines_indices_cb, &iter, do_onion, cfra);
 
     GPUIndexBuf *ibo = GPU_indexbuf_build(&iter.ibo);
 
