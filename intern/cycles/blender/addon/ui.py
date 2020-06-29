@@ -1587,17 +1587,18 @@ class CYCLES_WORLD_PT_ray_visibility(CyclesButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         world = context.world
         visibility = world.cycles_visibility
 
-        flow = layout.column_flow()
-
-        flow.prop(visibility, "camera")
-        flow.prop(visibility, "diffuse")
-        flow.prop(visibility, "glossy")
-        flow.prop(visibility, "transmission")
-        flow.prop(visibility, "scatter")
+        col = layout.column()
+        col.prop(visibility, "camera")
+        col.prop(visibility, "diffuse")
+        col.prop(visibility, "glossy")
+        col.prop(visibility, "transmission")
+        col.prop(visibility, "scatter")
 
 
 class CYCLES_WORLD_PT_settings(CyclesButtonsPanel, Panel):
