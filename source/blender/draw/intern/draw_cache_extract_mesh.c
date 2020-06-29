@@ -2059,6 +2059,7 @@ static void extract_tan_ex(const MeshRenderData *mr, GPUVertBuf *vbo, const bool
     }
   }
 
+  CustomData_free_layers(ldata, CD_TANGENT, mr->loop_len);
   CustomData_free(&loop_data, mr->loop_len);
 }
 
