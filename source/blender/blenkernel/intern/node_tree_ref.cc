@@ -18,7 +18,8 @@
 
 #include "BLI_dot_export.hh"
 
-namespace BKE {
+namespace blender {
+namespace bke {
 
 NodeTreeRef::NodeTreeRef(bNodeTree *btree) : m_btree(btree)
 {
@@ -175,4 +176,5 @@ std::string NodeTreeRef::to_dot() const
   return digraph.to_dot_string();
 }
 
-}  // namespace BKE
+}  // namespace bke
+}  // namespace blender
