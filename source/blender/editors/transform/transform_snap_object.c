@@ -367,10 +367,11 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
  * \{ */
 
 typedef void (*IterSnapObjsCallback)(SnapObjectContext *sctx,
-                                     bool use_obedit,
-                                     bool use_backface_culling,
                                      Object *ob,
                                      float obmat[4][4],
+                                     bool use_obedit,
+                                     bool use_backface_culling,
+                                     bool is_object_active,
                                      void *data);
 
 /**
@@ -390,7 +391,6 @@ static void iter_snap_objects(SnapObjectContext *sctx,
 
   Base *base_act = view_layer->basact;
   for (Base *base = view_layer->object_bases.first; base != NULL; base = base->next) {
-
     if (!BASE_VISIBLE(v3d, base)) {
       continue;
     }
@@ -402,13 +402,14 @@ static void iter_snap_objects(SnapObjectContext *sctx,
       continue;
     }
 
+    const bool is_object_active = (base == base_act);
     if (snap_select == SNAP_NOT_SELECTED) {
       if ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL)) {
         continue;
       }
     }
     else if (snap_select == SNAP_NOT_ACTIVE) {
-      if (base == base_act) {
+      if (is_object_active) {
         continue;
       }
     }
@@ -418,14 +419,24 @@ static void iter_snap_objects(SnapObjectContext *sctx,
       DupliObject *dupli_ob;
       ListBase *lb = object_duplilist(depsgraph, sctx->scene, obj_eval);
       for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
-        sob_callback(
-            sctx, use_object_edit_cage, use_backface_culling, dupli_ob->ob, dupli_ob->mat, data);
+        sob_callback(sctx,
+                     dupli_ob->ob,
+                     dupli_ob->mat,
+                     use_object_edit_cage,
+                     use_backface_culling,
+                     is_object_active,
+                     data);
       }
       free_object_duplilist(lb);
     }
 
-    sob_callback(
-        sctx, use_object_edit_cage, use_backface_culling, obj_eval, obj_eval->obmat, data);
+    sob_callback(sctx,
+                 obj_eval,
+                 obj_eval->obmat,
+                 use_object_edit_cage,
+                 use_backface_culling,
+                 is_object_active,
+                 data);
   }
 }
 
@@ -953,10 +964,11 @@ struct RaycastObjUserData {
  * \note Duplicate args here are documented at #snapObjectsRay
  */
 static void raycast_obj_fn(SnapObjectContext *sctx,
-                           bool use_obedit,
-                           bool use_backface_culling,
                            Object *ob,
                            float obmat[4][4],
+                           bool use_obedit,
+                           bool use_backface_culling,
+                           bool is_object_active,
                            void *data)
 {
   struct RaycastObjUserData *dt = data;
@@ -1029,24 +1041,26 @@ static void raycast_obj_fn(SnapObjectContext *sctx,
     case OB_CURVE:
     case OB_SURF:
     case OB_FONT: {
-      Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
-      if (mesh_eval) {
-        retval = raycastMesh(sctx,
-                             dt->ray_start,
-                             dt->ray_dir,
-                             ob,
-                             mesh_eval,
-                             obmat,
-                             ob_index,
-                             false,
-                             use_backface_culling,
-                             ray_depth,
-                             dt->r_loc,
-                             dt->r_no,
-                             dt->r_index,
-                             dt->r_hit_list);
-        break;
+      if (!is_object_active) {
+        Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+        if (mesh_eval) {
+          retval = raycastMesh(sctx,
+                               dt->ray_start,
+                               dt->ray_dir,
+                               ob,
+                               mesh_eval,
+                               obmat,
+                               ob_index,
+                               false,
+                               use_backface_culling,
+                               ray_depth,
+                               dt->r_loc,
+                               dt->r_no,
+                               dt->r_index,
+                               dt->r_hit_list);
+        }
       }
+      break;
     }
   }
 
@@ -2645,11 +2659,12 @@ struct SnapObjUserData {
  *
  * \note Duplicate args here are documented at #snapObjectsRay
  */
-static void sanp_obj_fn(SnapObjectContext *sctx,
-                        bool use_obedit,
-                        bool use_backface_culling,
+static void snap_obj_fn(SnapObjectContext *sctx,
                         Object *ob,
                         float obmat[4][4],
+                        bool use_obedit,
+                        bool use_backface_culling,
+                        bool UNUSED(is_object_active),
                         void *data)
 {
   struct SnapObjUserData *dt = data;
@@ -2795,7 +2810,7 @@ static short snapObjectsRay(SnapObjectContext *sctx,
       .ret = 0,
   };
 
-  iter_snap_objects(sctx, depsgraph, params, sanp_obj_fn, &data);
+  iter_snap_objects(sctx, depsgraph, params, snap_obj_fn, &data);
 
   return data.ret;
 }
