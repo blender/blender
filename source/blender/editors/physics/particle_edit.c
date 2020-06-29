@@ -4103,7 +4103,7 @@ static void brush_add_count_iter(void *__restrict iter_data_v,
   BrushAddCountIterTLSData *tls = tls_v->userdata_chunk;
   const int number = iter_data->number;
   const short size = iter_data->size;
-  const short size2 = size * size;
+  const int size2 = size * size;
   float dmx, dmy;
   if (number > 1) {
     dmx = size;
