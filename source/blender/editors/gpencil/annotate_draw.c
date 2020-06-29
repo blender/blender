@@ -787,13 +787,7 @@ static void annotation_draw_data_all(Scene *scene,
   }
 }
 
-/* ----- Grease Pencil Sketches Drawing API ------ */
-
-/* ............................
- * XXX
- * We need to review the calls below, since they may be/are not that suitable for
- * the new ways that we intend to be drawing data...
- * ............................ */
+/* ----- Annotation Sketches Drawing API ------ */
 
 /* draw grease-pencil sketches to specified 2d-view that uses ibuf corrections */
 void ED_annotation_draw_2dimage(const bContext *C)
