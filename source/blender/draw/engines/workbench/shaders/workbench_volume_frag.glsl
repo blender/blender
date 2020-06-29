@@ -107,7 +107,6 @@ void volume_properties(vec3 ls_pos, out vec3 scattering, out float extinction)
 #ifdef USE_COBA
   float val = sample_volume_texture(densityTexture, co).r;
   vec4 tval = texture(transferTexture, val) * densityScale;
-  tval.rgb = pow(tval.rgb, vec3(2.2));
   scattering = tval.rgb * 1500.0;
   extinction = max(1e-4, tval.a * 50.0);
 #else
@@ -127,7 +126,7 @@ void volume_properties(vec3 ls_pos, out vec3 scattering, out float extinction)
 
 #  ifdef VOLUME_SMOKE
   /* 800 is arbitrary and here to mimic old viewport. TODO make it a parameter */
-  scattering += pow(emission.rgb, vec3(2.2)) * emission.a * 800.0;
+  scattering += emission.rgb * emission.a * 800.0;
 #  endif
 #endif
 }
