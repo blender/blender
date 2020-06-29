@@ -236,15 +236,12 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
   uiLayoutSetUnitsX(layout, 4.0f);
 
   /* Apply. */
-  uiItemFullO(layout,
+  uiItemEnumO(layout,
               "OBJECT_OT_modifier_apply",
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
               ICON_CHECKMARK,
-              NULL,
-              WM_OP_INVOKE_DEFAULT,
-              0,
-              &op_ptr);
-  RNA_boolean_set(&op_ptr, "report", true);
+              "apply_as",
+              MODIFIER_APPLY_DATA);
 
   /* Apply as shapekey. */
   if (BKE_modifier_is_same_topology(md) && !BKE_modifier_is_non_geometrical(md)) {
@@ -374,10 +371,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   if (modifier_can_delete(md) && !modifier_is_simulation(md)) {
     sub = uiLayoutRow(row, false);
     uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
-    PointerRNA op_ptr;
-    uiItemFullO(
-        sub, "OBJECT_OT_modifier_remove", "", ICON_X, NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
-    RNA_boolean_set(&op_ptr, "report", true);
+    uiItemO(sub, "", ICON_X, "OBJECT_OT_modifier_remove");
     buttons_number++;
   }
 
