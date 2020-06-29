@@ -853,8 +853,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
      */
     bool use_volume_material = (matcache[0].shading_gpumat &&
                                 GPU_material_has_volume_output(matcache[0].shading_gpumat));
-
-    if ((ob->dt >= OB_SOLID) || DRW_state_is_image_render()) {
+    if ((ob->dt >= OB_SOLID) || DRW_state_is_scene_render()) {
       if (use_sculpt_pbvh) {
         struct DRWShadingGroup **shgrps_array = BLI_array_alloca(shgrps_array, materials_len);
 
