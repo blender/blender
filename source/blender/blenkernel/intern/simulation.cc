@@ -54,10 +54,6 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-using blender::float3;
-using blender::MutableSpan;
-using blender::Span;
-
 static void simulation_init_data(ID *id)
 {
   Simulation *simulation = (Simulation *)id;
@@ -168,6 +164,9 @@ void *BKE_simulation_add(Main *bmain, const char *name)
   return simulation;
 }
 
+namespace blender {
+namespace bke {
+
 static MutableSpan<float3> get_particle_positions(ParticleSimulationState *state)
 {
   return MutableSpan<float3>(
@@ -197,7 +196,7 @@ static void copy_particle_state_to_cow(ParticleSimulationState *state_orig,
   state_cow->tot_particles = state_orig->tot_particles;
 }
 
-void BKE_simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulation *simulation)
+static void simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulation *simulation)
 {
   int current_frame = scene->r.cfra;
 
@@ -258,4 +257,12 @@ void BKE_simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulation *
     BKE_ptcache_write(&pid_orig, current_frame);
     copy_particle_state_to_cow(state_orig, state_cow);
   }
+}
+
+}  // namespace bke
+}  // namespace blender
+
+void BKE_simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulation *simulation)
+{
+  blender::bke::simulation_data_update(depsgraph, scene, simulation);
 }
