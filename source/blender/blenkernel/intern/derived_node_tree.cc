@@ -25,8 +25,8 @@ namespace bke {
 
 static const NodeTreeRef &get_tree_ref(NodeTreeRefMap &node_tree_refs, bNodeTree *btree)
 {
-  return *node_tree_refs.lookup_or_add_cb(
-      btree, [&]() { return blender::make_unique<NodeTreeRef>(btree); });
+  return *node_tree_refs.lookup_or_add_cb(btree,
+                                          [&]() { return std::make_unique<NodeTreeRef>(btree); });
 }
 
 DerivedNodeTree::DerivedNodeTree(bNodeTree *btree, NodeTreeRefMap &node_tree_refs) : m_btree(btree)

@@ -204,14 +204,6 @@ template<typename T> void uninitialized_fill_n(T *dst, uint n, const T &value)
   }
 }
 
-/**
- * The same as std::unique_ptr. This can be removed when we start using C++14.
- */
-template<typename T, typename... Args> std::unique_ptr<T> make_unique(Args &&... args)
-{
-  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
-
 template<typename T> struct DestructValueAtAddress {
   void operator()(T *ptr)
   {
