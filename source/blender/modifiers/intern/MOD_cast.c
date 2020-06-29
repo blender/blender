@@ -565,7 +565,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiItemR(layout, &ptr, "object", 0, NULL, ICON_NONE);
   if (!RNA_pointer_is_null(&cast_object_ptr)) {
-    uiItemR(layout, &ptr, "use_radius_as_size", 0, NULL, ICON_NONE);
+    uiItemR(layout, &ptr, "use_transform", 0, NULL, ICON_NONE);
   }
 
   modifier_panel_end(layout, &ptr);
