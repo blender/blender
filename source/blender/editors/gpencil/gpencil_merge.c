@@ -431,7 +431,7 @@ static int gpencil_analyze_strokes(tGPencilPointCache *src_array,
   return last;
 }
 
-static bool gp_strokes_merge_poll(bContext *C)
+static bool gpencil_strokes_merge_poll(bContext *C)
 {
   /* only supported with grease pencil objects */
   Object *ob = CTX_data_active_object(C);
@@ -462,7 +462,7 @@ static bool gp_strokes_merge_poll(bContext *C)
   return (CTX_DATA_COUNT(C, editable_gpencil_strokes) != 0) && ED_operator_view3d_active(C);
 }
 
-static int gp_stroke_merge_exec(bContext *C, wmOperator *op)
+static int gpencil_stroke_merge_exec(bContext *C, wmOperator *op)
 {
   const int mode = RNA_enum_get(op->ptr, "mode");
   const bool clear_point = RNA_boolean_get(op->ptr, "clear_point");
@@ -546,8 +546,8 @@ void GPENCIL_OT_stroke_merge(wmOperatorType *ot)
   ot->description = "Create a new stroke with the selected stroke points";
 
   /* api callbacks */
-  ot->exec = gp_stroke_merge_exec;
-  ot->poll = gp_strokes_merge_poll;
+  ot->exec = gpencil_stroke_merge_exec;
+  ot->poll = gpencil_strokes_merge_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -563,7 +563,7 @@ void GPENCIL_OT_stroke_merge(wmOperatorType *ot)
 }
 
 /* Merge similar materials. */
-static bool gp_stroke_merge_material_poll(bContext *C)
+static bool gpencil_stroke_merge_material_poll(bContext *C)
 {
   /* only supported with grease pencil objects */
   Object *ob = CTX_data_active_object(C);
@@ -574,7 +574,7 @@ static bool gp_stroke_merge_material_poll(bContext *C)
   return true;
 }
 
-static int gp_stroke_merge_material_exec(bContext *C, wmOperator *op)
+static int gpencil_stroke_merge_material_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
@@ -642,8 +642,8 @@ void GPENCIL_OT_stroke_merge_material(wmOperatorType *ot)
   ot->description = "Replace materials in strokes merging similar";
 
   /* api callbacks */
-  ot->exec = gp_stroke_merge_material_exec;
-  ot->poll = gp_stroke_merge_material_poll;
+  ot->exec = gpencil_stroke_merge_material_exec;
+  ot->poll = gpencil_stroke_merge_material_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

@@ -162,13 +162,13 @@ typedef struct tGPDfill {
 } tGPDfill;
 
 /* draw a given stroke using same thickness and color for all points */
-static void gp_draw_basic_stroke(tGPDfill *tgpf,
-                                 bGPDstroke *gps,
-                                 const float diff_mat[4][4],
-                                 const bool cyclic,
-                                 const float ink[4],
-                                 const int flag,
-                                 const float thershold)
+static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
+                                      bGPDstroke *gps,
+                                      const float diff_mat[4][4],
+                                      const bool cyclic,
+                                      const float ink[4],
+                                      const int flag,
+                                      const float thershold)
 {
   bGPDspoint *points = gps->points;
 
@@ -223,7 +223,7 @@ static void gp_draw_basic_stroke(tGPDfill *tgpf,
 }
 
 /* loop all layers */
-static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
+static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
 {
   /* duplicated: etempFlags */
   enum {
@@ -304,13 +304,13 @@ static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
       /* 3D Lines with basic shapes and invisible lines */
       if ((tgpf->fill_draw_mode == GP_FILL_DMODE_CONTROL) ||
           (tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH)) {
-        gp_draw_basic_stroke(tgpf,
-                             gps,
-                             tgpw.diff_mat,
-                             gps->flag & GP_STROKE_CYCLIC,
-                             ink,
-                             tgpf->flag,
-                             tgpf->fill_threshold);
+        gpencil_draw_basic_stroke(tgpf,
+                                  gps,
+                                  tgpw.diff_mat,
+                                  gps->flag & GP_STROKE_CYCLIC,
+                                  ink,
+                                  tgpf->flag,
+                                  tgpf->fill_threshold);
       }
     }
   }
@@ -319,7 +319,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
 }
 
 /* draw strokes in offscreen buffer */
-static bool gp_render_offscreen(tGPDfill *tgpf)
+static bool gpencil_render_offscreen(tGPDfill *tgpf)
 {
   bool is_ortho = false;
   float winmat[4][4];
@@ -410,7 +410,7 @@ static bool gp_render_offscreen(tGPDfill *tgpf)
 
   /* draw strokes */
   float ink[4] = {1.0f, 0.0f, 0.0f, 1.0f};
-  gp_draw_datablock(tgpf, ink);
+  gpencil_draw_datablock(tgpf, ink);
 
   GPU_matrix_pop_projection();
   GPU_matrix_pop();
@@ -665,62 +665,6 @@ static void gpencil_boundaryfill_area(tGPDfill *tgpf)
   tgpf->ima->id.tag |= LIB_TAG_DOIT;
   /* free temp stack data */
   BLI_stack_free(stack);
-}
-
-/* Check if there are some pixel not filled with green. If no points, means nothing to fill. */
-static bool UNUSED_FUNCTION(gpencil_check_borders)(tGPDfill *tgpf)
-{
-  ImBuf *ibuf;
-  void *lock;
-  ibuf = BKE_image_acquire_ibuf(tgpf->ima, NULL, &lock);
-  int idx;
-  int pixel = 0;
-  float color[4];
-  bool found = false;
-
-  /* horizontal lines */
-  for (idx = 0; idx < ibuf->x; idx++) {
-    /* bottom line */
-    get_pixel(ibuf, idx, color);
-    if (color[1] != 1.0f) {
-      found = true;
-      break;
-    }
-    /* top line */
-    pixel = idx + (ibuf->x * (ibuf->y - 1));
-    get_pixel(ibuf, pixel, color);
-    if (color[1] != 1.0f) {
-      found = true;
-      break;
-    }
-  }
-  if (!found) {
-    /* vertical lines */
-    for (idx = 0; idx < ibuf->y; idx++) {
-      /* left line */
-      get_pixel(ibuf, ibuf->x * idx, color);
-      if (color[1] != 1.0f) {
-        found = true;
-        break;
-      }
-      /* right line */
-      pixel = ibuf->x * idx + (ibuf->x - 1);
-      get_pixel(ibuf, pixel, color);
-      if (color[1] != 1.0f) {
-        found = true;
-        break;
-      }
-    }
-  }
-
-  /* release ibuf */
-  if (ibuf) {
-    BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
-  }
-
-  tgpf->ima->id.tag |= LIB_TAG_DOIT;
-
-  return found;
 }
 
 /* Set a border to create image limits. */
@@ -1225,7 +1169,7 @@ static void gpencil_draw_boundary_lines(const bContext *UNUSED(C), tGPDfill *tgp
     return;
   }
   const float ink[4] = {1.0f, 0.0f, 0.0f, 1.0f};
-  gp_draw_datablock(tgpf, ink);
+  gpencil_draw_datablock(tgpf, ink);
 }
 
 /* Drawing callback for modal operator in 3d mode */
@@ -1268,7 +1212,7 @@ static bool gpencil_fill_poll(bContext *C)
 }
 
 /* Allocate memory and initialize values */
-static tGPDfill *gp_session_init_fill(bContext *C, wmOperator *UNUSED(op))
+static tGPDfill *gpencil_session_init_fill(bContext *C, wmOperator *UNUSED(op))
 {
   tGPDfill *tgpf = MEM_callocN(sizeof(tGPDfill), "GPencil Fill Data");
 
@@ -1401,7 +1345,7 @@ static int gpencil_fill_init(bContext *C, wmOperator *op)
   }
 
   /* check context */
-  tgpf = op->customdata = gp_session_init_fill(C, op);
+  tgpf = op->customdata = gpencil_session_init_fill(C, op);
   if (tgpf == NULL) {
     /* something wasn't set correctly in context */
     gpencil_fill_exit(C, op);
@@ -1501,7 +1445,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
             tgpf->active_cfra = CFRA;
 
             /* render screen to temp image */
-            if (gp_render_offscreen(tgpf)) {
+            if (gpencil_render_offscreen(tgpf)) {
 
               /* Set red borders to create a external limit. */
               gpencil_set_borders(tgpf, true);

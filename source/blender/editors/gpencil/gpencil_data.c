@@ -90,7 +90,7 @@
 /* Datablock Operators */
 
 /* ******************* Add New Data ************************ */
-static bool gp_data_add_poll(bContext *C)
+static bool gpencil_data_add_poll(bContext *C)
 {
 
   /* the base line we have is that we have somewhere to add Grease Pencil data */
@@ -98,7 +98,7 @@ static bool gp_data_add_poll(bContext *C)
 }
 
 /* add new datablock - wrapper around API */
-static int gp_data_add_exec(bContext *C, wmOperator *op)
+static int gpencil_data_add_exec(bContext *C, wmOperator *op)
 {
   PointerRNA gpd_owner = {NULL};
   bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, &gpd_owner);
@@ -145,14 +145,14 @@ void GPENCIL_OT_annotation_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* callbacks */
-  ot->exec = gp_data_add_exec;
-  ot->poll = gp_data_add_poll;
+  ot->exec = gpencil_data_add_exec;
+  ot->poll = gpencil_data_add_poll;
 }
 
 /* ******************* Unlink Data ************************ */
 
 /* poll callback for adding data/layers - special */
-static bool gp_data_unlink_poll(bContext *C)
+static bool gpencil_data_unlink_poll(bContext *C)
 {
   bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, NULL);
 
@@ -168,7 +168,7 @@ static bool gp_data_unlink_poll(bContext *C)
 }
 
 /* unlink datablock - wrapper around API */
-static int gp_data_unlink_exec(bContext *C, wmOperator *op)
+static int gpencil_data_unlink_exec(bContext *C, wmOperator *op)
 {
   bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, NULL);
 
@@ -199,8 +199,8 @@ void GPENCIL_OT_data_unlink(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* callbacks */
-  ot->exec = gp_data_unlink_exec;
-  ot->poll = gp_data_unlink_poll;
+  ot->exec = gpencil_data_unlink_exec;
+  ot->poll = gpencil_data_unlink_poll;
 }
 
 /* ************************************************ */
@@ -209,7 +209,7 @@ void GPENCIL_OT_data_unlink(wmOperatorType *ot)
 /* ******************* Add New Layer ************************ */
 
 /* add new layer - wrapper around API */
-static int gp_layer_add_exec(bContext *C, wmOperator *op)
+static int gpencil_layer_add_exec(bContext *C, wmOperator *op)
 {
   const bool is_annotation = STREQ(op->idname, "GPENCIL_OT_layer_annotation_add");
 
@@ -268,11 +268,11 @@ void GPENCIL_OT_layer_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* callbacks */
-  ot->exec = gp_layer_add_exec;
+  ot->exec = gpencil_layer_add_exec;
   ot->poll = gpencil_add_poll;
 }
 
-static bool gp_add_annotation_poll(bContext *C)
+static bool gpencil_add_annotation_poll(bContext *C)
 {
   return ED_annotation_data_get_pointers(C, NULL) != NULL;
 }
@@ -287,12 +287,12 @@ void GPENCIL_OT_layer_annotation_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* callbacks */
-  ot->exec = gp_layer_add_exec;
-  ot->poll = gp_add_annotation_poll;
+  ot->exec = gpencil_layer_add_exec;
+  ot->poll = gpencil_add_annotation_poll;
 }
 /* ******************* Remove Active Layer ************************* */
 
-static int gp_layer_remove_exec(bContext *C, wmOperator *op)
+static int gpencil_layer_remove_exec(bContext *C, wmOperator *op)
 {
   const bool is_annotation = STREQ(op->idname, "GPENCIL_OT_layer_annotation_remove");
 
@@ -345,11 +345,11 @@ void GPENCIL_OT_layer_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* callbacks */
-  ot->exec = gp_layer_remove_exec;
+  ot->exec = gpencil_layer_remove_exec;
   ot->poll = gpencil_active_layer_poll;
 }
 
-static bool gp_active_layer_annotation_poll(bContext *C)
+static bool gpencil_active_layer_annotation_poll(bContext *C)
 {
   bGPdata *gpd = ED_annotation_data_get_active(C);
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
@@ -367,8 +367,8 @@ void GPENCIL_OT_layer_annotation_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* callbacks */
-  ot->exec = gp_layer_remove_exec;
-  ot->poll = gp_active_layer_annotation_poll;
+  ot->exec = gpencil_layer_remove_exec;
+  ot->poll = gpencil_active_layer_annotation_poll;
 }
 /* ******************* Move Layer Up/Down ************************** */
 
@@ -377,7 +377,7 @@ enum {
   GP_LAYER_MOVE_DOWN = 1,
 };
 
-static int gp_layer_move_exec(bContext *C, wmOperator *op)
+static int gpencil_layer_move_exec(bContext *C, wmOperator *op)
 {
   const bool is_annotation = STREQ(op->idname, "GPENCIL_OT_layer_annotation_move");
 
@@ -418,7 +418,7 @@ void GPENCIL_OT_layer_move(wmOperatorType *ot)
   ot->description = "Move the active Grease Pencil layer up/down in the list";
 
   /* api callbacks */
-  ot->exec = gp_layer_move_exec;
+  ot->exec = gpencil_layer_move_exec;
   ot->poll = gpencil_active_layer_poll;
 
   /* flags */
@@ -441,8 +441,8 @@ void GPENCIL_OT_layer_annotation_move(wmOperatorType *ot)
   ot->description = "Move the active Annotation layer up/down in the list";
 
   /* api callbacks */
-  ot->exec = gp_layer_move_exec;
-  ot->poll = gp_active_layer_annotation_poll;
+  ot->exec = gpencil_layer_move_exec;
+  ot->poll = gpencil_active_layer_annotation_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -451,7 +451,7 @@ void GPENCIL_OT_layer_annotation_move(wmOperatorType *ot)
 }
 /* ********************* Duplicate Layer ************************** */
 
-static int gp_layer_copy_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_layer_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
@@ -491,7 +491,7 @@ void GPENCIL_OT_layer_duplicate(wmOperatorType *ot)
   ot->description = "Make a copy of the active Grease Pencil layer";
 
   /* callbacks */
-  ot->exec = gp_layer_copy_exec;
+  ot->exec = gpencil_layer_copy_exec;
   ot->poll = gpencil_active_layer_poll;
 
   /* flags */
@@ -504,7 +504,7 @@ enum {
   GP_LAYER_COPY_OBJECT_ACT_FRAME = 1,
 };
 
-static bool gp_layer_duplicate_object_poll(bContext *C)
+static bool gpencil_layer_duplicate_object_poll(bContext *C)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = CTX_data_active_object(C);
@@ -529,7 +529,7 @@ static bool gp_layer_duplicate_object_poll(bContext *C)
   return false;
 }
 
-static int gp_layer_duplicate_object_exec(bContext *C, wmOperator *op)
+static int gpencil_layer_duplicate_object_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -622,8 +622,8 @@ void GPENCIL_OT_layer_duplicate_object(wmOperatorType *ot)
   ot->description = "Make a copy of the active Grease Pencil layer to new object";
 
   /* callbacks */
-  ot->exec = gp_layer_duplicate_object_exec;
-  ot->poll = gp_layer_duplicate_object_poll;
+  ot->exec = gpencil_layer_duplicate_object_exec;
+  ot->poll = gpencil_layer_duplicate_object_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -641,7 +641,7 @@ enum {
   GP_FRAME_DUP_ALL = 1,
 };
 
-static int gp_frame_duplicate_exec(bContext *C, wmOperator *op)
+static int gpencil_frame_duplicate_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   bGPDlayer *gpl_active = BKE_gpencil_layer_active_get(gpd);
@@ -685,7 +685,7 @@ void GPENCIL_OT_frame_duplicate(wmOperatorType *ot)
   ot->description = "Make a copy of the active Grease Pencil Frame";
 
   /* callbacks */
-  ot->exec = gp_frame_duplicate_exec;
+  ot->exec = gpencil_frame_duplicate_exec;
   ot->poll = gpencil_active_layer_poll;
 
   /* flags */
@@ -700,7 +700,7 @@ enum {
   GP_FRAME_CLEAN_FILL_ALL = 1,
 };
 
-static int gp_frame_clean_fill_exec(bContext *C, wmOperator *op)
+static int gpencil_frame_clean_fill_exec(bContext *C, wmOperator *op)
 {
   bool changed = false;
   bGPdata *gpd = ED_gpencil_data_get_active(C);
@@ -770,7 +770,7 @@ void GPENCIL_OT_frame_clean_fill(wmOperatorType *ot)
   ot->description = "Remove 'no fill' boundary strokes";
 
   /* callbacks */
-  ot->exec = gp_frame_clean_fill_exec;
+  ot->exec = gpencil_frame_clean_fill_exec;
   ot->poll = gpencil_active_layer_poll;
 
   /* flags */
@@ -780,7 +780,7 @@ void GPENCIL_OT_frame_clean_fill(wmOperatorType *ot)
 }
 
 /* ********************* Clean Loose Boundaries on Frame ************************** */
-static int gp_frame_clean_loose_exec(bContext *C, wmOperator *op)
+static int gpencil_frame_clean_loose_exec(bContext *C, wmOperator *op)
 {
   bool changed = false;
   bGPdata *gpd = ED_gpencil_data_get_active(C);
@@ -846,7 +846,7 @@ void GPENCIL_OT_frame_clean_loose(wmOperatorType *ot)
   ot->description = "Remove loose points";
 
   /* callbacks */
-  ot->exec = gp_frame_clean_loose_exec;
+  ot->exec = gpencil_frame_clean_loose_exec;
   ot->poll = gpencil_active_layer_poll;
 
   /* flags */
@@ -865,7 +865,7 @@ void GPENCIL_OT_frame_clean_loose(wmOperatorType *ot)
 
 /* *********************** Hide Layers ******************************** */
 
-static int gp_hide_exec(bContext *C, wmOperator *op)
+static int gpencil_hide_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   bGPDlayer *layer = BKE_gpencil_layer_active_get(gpd);
@@ -908,7 +908,7 @@ void GPENCIL_OT_hide(wmOperatorType *ot)
   ot->description = "Hide selected/unselected Grease Pencil layers";
 
   /* callbacks */
-  ot->exec = gp_hide_exec;
+  ot->exec = gpencil_hide_exec;
   ot->poll = gpencil_active_layer_poll; /* NOTE: we need an active layer to play with */
 
   /* flags */
@@ -922,12 +922,12 @@ void GPENCIL_OT_hide(wmOperatorType *ot)
 /* ********************** Show All Layers ***************************** */
 
 /* poll callback for showing layers */
-static bool gp_reveal_poll(bContext *C)
+static bool gpencil_reveal_poll(bContext *C)
 {
   return ED_gpencil_data_get_active(C) != NULL;
 }
 
-static void gp_reveal_select_frame(bContext *C, bGPDframe *frame, bool select)
+static void gpencil_reveal_select_frame(bContext *C, bGPDframe *frame, bool select)
 {
   bGPDstroke *gps;
   for (gps = frame->strokes.first; gps; gps = gps->next) {
@@ -948,7 +948,7 @@ static void gp_reveal_select_frame(bContext *C, bGPDframe *frame, bool select)
   }
 }
 
-static int gp_reveal_exec(bContext *C, wmOperator *op)
+static int gpencil_reveal_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   const bool select = RNA_boolean_get(op->ptr, "select");
@@ -967,14 +967,14 @@ static int gp_reveal_exec(bContext *C, wmOperator *op)
         if (select) {
           /* select all strokes on active frame only (same as select all operator) */
           if (gpl->actframe) {
-            gp_reveal_select_frame(C, gpl->actframe, true);
+            gpencil_reveal_select_frame(C, gpl->actframe, true);
           }
         }
         else {
           /* deselect strokes on all frames (same as deselect all operator) */
           bGPDframe *gpf;
           for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-            gp_reveal_select_frame(C, gpf, false);
+            gpencil_reveal_select_frame(C, gpf, false);
           }
         }
       }
@@ -996,8 +996,8 @@ void GPENCIL_OT_reveal(wmOperatorType *ot)
   ot->description = "Show all Grease Pencil layers";
 
   /* callbacks */
-  ot->exec = gp_reveal_exec;
-  ot->poll = gp_reveal_poll;
+  ot->exec = gpencil_reveal_exec;
+  ot->poll = gpencil_reveal_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1008,7 +1008,7 @@ void GPENCIL_OT_reveal(wmOperatorType *ot)
 
 /* ***************** Lock/Unlock All Layers ************************ */
 
-static int gp_lock_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_lock_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
 
@@ -1038,8 +1038,8 @@ void GPENCIL_OT_lock_all(wmOperatorType *ot)
       "Lock all Grease Pencil layers to prevent them from being accidentally modified";
 
   /* callbacks */
-  ot->exec = gp_lock_all_exec;
-  ot->poll = gp_reveal_poll;
+  ot->exec = gpencil_lock_all_exec;
+  ot->poll = gpencil_reveal_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1047,7 +1047,7 @@ void GPENCIL_OT_lock_all(wmOperatorType *ot)
 
 /* -------------------------- */
 
-static int gp_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
 
@@ -1076,8 +1076,8 @@ void GPENCIL_OT_unlock_all(wmOperatorType *ot)
   ot->description = "Unlock all Grease Pencil layers so that they can be edited";
 
   /* callbacks */
-  ot->exec = gp_unlock_all_exec;
-  ot->poll = gp_reveal_poll;
+  ot->exec = gpencil_unlock_all_exec;
+  ot->poll = gpencil_reveal_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1085,7 +1085,7 @@ void GPENCIL_OT_unlock_all(wmOperatorType *ot)
 
 /* ********************** Isolate Layer **************************** */
 
-static int gp_isolate_layer_exec(bContext *C, wmOperator *op)
+static int gpencil_isolate_layer_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   bGPDlayer *layer = BKE_gpencil_layer_active_get(gpd);
@@ -1153,7 +1153,7 @@ void GPENCIL_OT_layer_isolate(wmOperatorType *ot)
       "Toggle whether the active layer is the only one that can be edited and/or visible";
 
   /* callbacks */
-  ot->exec = gp_isolate_layer_exec;
+  ot->exec = gpencil_isolate_layer_exec;
   ot->poll = gpencil_active_layer_poll;
 
   /* flags */
@@ -1169,7 +1169,7 @@ void GPENCIL_OT_layer_isolate(wmOperatorType *ot)
 
 /* ********************** Merge Layer with the next layer **************************** */
 
-static int gp_merge_layer_exec(bContext *C, wmOperator *op)
+static int gpencil_merge_layer_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   bGPDlayer *gpl_next = BKE_gpencil_layer_active_get(gpd);
@@ -1242,7 +1242,7 @@ void GPENCIL_OT_layer_merge(wmOperatorType *ot)
   ot->description = "Merge the current layer with the layer below";
 
   /* callbacks */
-  ot->exec = gp_merge_layer_exec;
+  ot->exec = gpencil_merge_layer_exec;
   ot->poll = gpencil_active_layer_poll;
 
   /* flags */
@@ -1251,7 +1251,7 @@ void GPENCIL_OT_layer_merge(wmOperatorType *ot)
 
 /* ********************** Change Layer ***************************** */
 
-static int gp_layer_change_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(evt))
+static int gpencil_layer_change_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(evt))
 {
   uiPopupMenu *pup;
   uiLayout *layout;
@@ -1265,7 +1265,7 @@ static int gp_layer_change_invoke(bContext *C, wmOperator *op, const wmEvent *UN
   return OPERATOR_INTERFACE;
 }
 
-static int gp_layer_change_exec(bContext *C, wmOperator *op)
+static int gpencil_layer_change_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = CTX_data_gpencil_data(C);
   bGPDlayer *gpl = NULL;
@@ -1306,8 +1306,8 @@ void GPENCIL_OT_layer_change(wmOperatorType *ot)
   ot->description = "Change active Grease Pencil layer";
 
   /* callbacks */
-  ot->invoke = gp_layer_change_invoke;
-  ot->exec = gp_layer_change_exec;
+  ot->invoke = gpencil_layer_change_invoke;
+  ot->exec = gpencil_layer_change_exec;
   ot->poll = gpencil_active_layer_poll;
 
   /* flags */
@@ -1318,7 +1318,7 @@ void GPENCIL_OT_layer_change(wmOperatorType *ot)
   RNA_def_enum_funcs(ot->prop, ED_gpencil_layers_with_new_enum_itemf);
 }
 
-static int gp_layer_active_exec(bContext *C, wmOperator *op)
+static int gpencil_layer_active_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
@@ -1352,7 +1352,7 @@ void GPENCIL_OT_layer_active(wmOperatorType *ot)
   ot->description = "Active Grease Pencil layer";
 
   /* callbacks */
-  ot->exec = gp_layer_active_exec;
+  ot->exec = gpencil_layer_active_exec;
   ot->poll = gpencil_active_layer_poll;
 
   /* flags */
@@ -1373,7 +1373,7 @@ enum {
   GP_STROKE_MOVE_BOTTOM = 3,
 };
 
-static int gp_stroke_arrange_exec(bContext *C, wmOperator *op)
+static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
@@ -1503,7 +1503,7 @@ void GPENCIL_OT_stroke_arrange(wmOperatorType *ot)
   ot->description = "Arrange selected strokes up/down in the drawing order of the active layer";
 
   /* callbacks */
-  ot->exec = gp_stroke_arrange_exec;
+  ot->exec = gpencil_stroke_arrange_exec;
   ot->poll = gpencil_active_layer_poll;
 
   /* flags */
@@ -1515,7 +1515,7 @@ void GPENCIL_OT_stroke_arrange(wmOperatorType *ot)
 
 /* ******************* Move Stroke to new color ************************** */
 
-static int gp_stroke_change_color_exec(bContext *C, wmOperator *op)
+static int gpencil_stroke_change_color_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Material *ma = NULL;
@@ -1599,7 +1599,7 @@ void GPENCIL_OT_stroke_change_color(wmOperatorType *ot)
   ot->description = "Move selected strokes to active material";
 
   /* callbacks */
-  ot->exec = gp_stroke_change_color_exec;
+  ot->exec = gpencil_stroke_change_color_exec;
   ot->poll = gpencil_active_layer_poll;
 
   /* flags */
@@ -1610,7 +1610,7 @@ void GPENCIL_OT_stroke_change_color(wmOperatorType *ot)
 
 /* ******************* Lock color of non selected Strokes colors ************************** */
 
-static int gp_material_lock_unsused_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_material_lock_unsused_exec(bContext *C, wmOperator *UNUSED(op))
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
 
@@ -1674,7 +1674,7 @@ void GPENCIL_OT_material_lock_unused(wmOperatorType *ot)
   ot->description = "Lock any material not used in any selected stroke";
 
   /* api callbacks */
-  ot->exec = gp_material_lock_unsused_exec;
+  ot->exec = gpencil_material_lock_unsused_exec;
   ot->poll = gpencil_active_layer_poll;
 
   /* flags */
@@ -1685,7 +1685,7 @@ void GPENCIL_OT_material_lock_unused(wmOperatorType *ot)
 /* Drawing Brushes Operators */
 
 /* ******************* Brush resets ************************** */
-static int gp_brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -1743,16 +1743,16 @@ void GPENCIL_OT_brush_reset(wmOperatorType *ot)
   ot->description = "Reset Brush to default parameters";
 
   /* api callbacks */
-  ot->exec = gp_brush_reset_exec;
+  ot->exec = gpencil_brush_reset_exec;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static Brush *gp_brush_get_first_by_mode(Main *bmain,
-                                         Paint *UNUSED(paint),
-                                         const enum eContextObjectMode mode,
-                                         char tool)
+static Brush *gpencil_brush_get_first_by_mode(Main *bmain,
+                                              Paint *UNUSED(paint),
+                                              const enum eContextObjectMode mode,
+                                              char tool)
 {
   Brush *brush_next = NULL;
   for (Brush *brush = bmain->brushes.first; brush; brush = brush_next) {
@@ -1782,9 +1782,9 @@ static Brush *gp_brush_get_first_by_mode(Main *bmain,
   return NULL;
 }
 
-static void gp_brush_delete_mode_brushes(Main *bmain,
-                                         Paint *paint,
-                                         const enum eContextObjectMode mode)
+static void gpencil_brush_delete_mode_brushes(Main *bmain,
+                                              Paint *paint,
+                                              const enum eContextObjectMode mode)
 {
   Brush *brush_active = paint->brush;
   Brush *brush_next = NULL;
@@ -1847,7 +1847,7 @@ static void gp_brush_delete_mode_brushes(Main *bmain,
   }
 }
 
-static int gp_brush_reset_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_brush_reset_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -1903,7 +1903,7 @@ static int gp_brush_reset_all_exec(bContext *C, wmOperator *UNUSED(op))
       }
     }
 
-    gp_brush_delete_mode_brushes(bmain, paint, mode);
+    gpencil_brush_delete_mode_brushes(bmain, paint, mode);
 
     switch (mode) {
       case CTX_MODE_PAINT_GPENCIL: {
@@ -1930,7 +1930,7 @@ static int gp_brush_reset_all_exec(bContext *C, wmOperator *UNUSED(op))
     BKE_paint_toolslots_brush_validate(bmain, paint);
 
     /* Set Again the first brush of the mode. */
-    Brush *deft_brush = gp_brush_get_first_by_mode(bmain, paint, mode, tool);
+    Brush *deft_brush = gpencil_brush_get_first_by_mode(bmain, paint, mode, tool);
     if (deft_brush) {
       BKE_paint_brush_set(paint, deft_brush);
     }
@@ -1950,7 +1950,7 @@ void GPENCIL_OT_brush_reset_all(wmOperatorType *ot)
   ot->description = "Delete all mode brushes and recreate a default set";
 
   /* api callbacks */
-  ot->exec = gp_brush_reset_all_exec;
+  ot->exec = gpencil_brush_reset_all_exec;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2496,7 +2496,7 @@ typedef struct tJoinGPencil_AdtFixData {
  * Callback to pass to #BKE_fcurves_main_cb()
  * for RNA Paths attached to each F-Curve used in the #AnimData.
  */
-static void joined_gpencil_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data)
+static void gpencil_joined_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data)
 {
   tJoinGPencil_AdtFixData *afd = (tJoinGPencil_AdtFixData *)user_data;
   ID *src_id = &afd->src_gpd->id;
@@ -2721,7 +2721,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
         }
 
         /* Fix all the animation data */
-        BKE_fcurves_main_cb(bmain, joined_gpencil_fix_animdata_cb, &afd);
+        BKE_fcurves_main_cb(bmain, gpencil_joined_fix_animdata_cb, &afd);
         BLI_ghash_free(afd.names_map, MEM_freeN, NULL);
 
         /* Only copy over animdata now, after all the remapping has been done,
@@ -3415,7 +3415,7 @@ bool ED_gpencil_add_lattice_modifier(const bContext *C,
 }
 
 /* Masking operators */
-static int gp_layer_mask_add_exec(bContext *C, wmOperator *op)
+static int gpencil_layer_mask_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
@@ -3476,14 +3476,14 @@ void GPENCIL_OT_layer_mask_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* callbacks */
-  ot->exec = gp_layer_mask_add_exec;
+  ot->exec = gpencil_layer_mask_add_exec;
   ot->poll = gpencil_add_poll;
 
   /* properties */
   RNA_def_string(ot->srna, "name", NULL, 128, "Layer", "Name of the layer");
 }
 
-static int gp_layer_mask_remove_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_layer_mask_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = CTX_data_active_object(C);
   if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
@@ -3525,6 +3525,6 @@ void GPENCIL_OT_layer_mask_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* callbacks */
-  ot->exec = gp_layer_mask_remove_exec;
+  ot->exec = gpencil_layer_mask_remove_exec;
   ot->poll = gpencil_active_layer_poll;
 }

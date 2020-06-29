@@ -100,10 +100,10 @@ static bool gpencil_view3d_poll(bContext *C)
 }
 
 /* Perform interpolation */
-static void gp_interpolate_update_points(const bGPDstroke *gps_from,
-                                         const bGPDstroke *gps_to,
-                                         bGPDstroke *new_stroke,
-                                         float factor)
+static void gpencil_interpolate_update_points(const bGPDstroke *gps_from,
+                                              const bGPDstroke *gps_to,
+                                              bGPDstroke *new_stroke,
+                                              float factor)
 {
   /* update points */
   for (int i = 0; i < new_stroke->totpoints; i++) {
@@ -121,7 +121,7 @@ static void gp_interpolate_update_points(const bGPDstroke *gps_from,
 
 /* ****************** Interpolate Interactive *********************** */
 /* Helper: free all temp strokes for display. */
-static void gp_interpolate_free_temp_strokes(bGPDframe *gpf)
+static void gpencil_interpolate_free_temp_strokes(bGPDframe *gpf)
 {
   if (gpf == NULL) {
     return;
@@ -136,7 +136,7 @@ static void gp_interpolate_free_temp_strokes(bGPDframe *gpf)
 }
 
 /* Helper: Untag all strokes. */
-static void gp_interpolate_untag_strokes(bGPDframe *gpf)
+static void gpencil_interpolate_untag_strokes(bGPDframe *gpf)
 {
   if (gpf == NULL) {
     return;
@@ -150,7 +150,7 @@ static void gp_interpolate_untag_strokes(bGPDframe *gpf)
 }
 
 /* Helper: Update all strokes interpolated */
-static void gp_interpolate_update_strokes(bContext *C, tGPDinterpolate *tgpi)
+static void gpencil_interpolate_update_strokes(bContext *C, tGPDinterpolate *tgpi)
 {
   bGPdata *gpd = tgpi->gpd;
   const float shift = tgpi->shift;
@@ -160,7 +160,7 @@ static void gp_interpolate_update_strokes(bContext *C, tGPDinterpolate *tgpi)
 
     bGPDframe *gpf = tgpil->gpl->actframe;
     /* Free temp strokes. */
-    gp_interpolate_free_temp_strokes(gpf);
+    gpencil_interpolate_free_temp_strokes(gpf);
 
     LISTBASE_FOREACH (bGPDstroke *, new_stroke, &tgpil->interFrame->strokes) {
       bGPDstroke *gps_from, *gps_to;
@@ -178,7 +178,7 @@ static void gp_interpolate_update_strokes(bContext *C, tGPDinterpolate *tgpi)
 
       /* update points position */
       if ((gps_from) && (gps_to)) {
-        gp_interpolate_update_points(gps_from, gps_to, new_stroke, factor);
+        gpencil_interpolate_update_points(gps_from, gps_to, new_stroke, factor);
 
         /* Add temp strokes. */
         if (gpf) {
@@ -195,7 +195,7 @@ static void gp_interpolate_update_strokes(bContext *C, tGPDinterpolate *tgpi)
 }
 
 /* Helper: Verify valid strokes for interpolation */
-static bool gp_interpolate_check_todo(bContext *C, bGPdata *gpd)
+static bool gpencil_interpolate_check_todo(bContext *C, bGPdata *gpd)
 {
   Object *ob = CTX_data_active_object(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -245,7 +245,7 @@ static bool gp_interpolate_check_todo(bContext *C, bGPdata *gpd)
 }
 
 /* Helper: Create internal strokes interpolated */
-static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
+static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 {
   bGPdata *gpd = tgpi->gpd;
   bGPDlayer *active_gpl = CTX_data_active_gpencil_layer(C);
@@ -268,8 +268,8 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
      * all layer because it could be anything tagged and it would be removed
      * at the end of the process when all tagged strokes are removed. */
     if (gpl->actframe != NULL) {
-      gp_interpolate_untag_strokes(gpl->actframe);
-      gp_interpolate_untag_strokes(gpl->actframe->next);
+      gpencil_interpolate_untag_strokes(gpl->actframe);
+      gpencil_interpolate_untag_strokes(gpl->actframe->next);
     }
 
     /* all layers or only active */
@@ -343,7 +343,7 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
           new_stroke->totpoints = gps_to->totpoints;
         }
         /* update points position */
-        gp_interpolate_update_points(gps_from, gps_to, new_stroke, tgpil->factor);
+        gpencil_interpolate_update_points(gps_from, gps_to, new_stroke, tgpil->factor);
       }
       else {
         /* need an empty stroke to keep index correct for lookup, but resize to smallest size */
@@ -419,7 +419,7 @@ static void gpencil_interpolate_update(bContext *C, wmOperator *op, tGPDinterpol
   /* apply... */
   tgpi->shift = RNA_float_get(op->ptr, "shift");
   /* update points position */
-  gp_interpolate_update_strokes(C, tgpi);
+  gpencil_interpolate_update_strokes(C, tgpi);
 }
 
 /* ----------------------- */
@@ -439,7 +439,7 @@ static void gpencil_interpolate_exit(bContext *C, wmOperator *op)
     /* Clear any temp stroke. */
     LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
       LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-        gp_interpolate_free_temp_strokes(gpf);
+        gpencil_interpolate_free_temp_strokes(gpf);
       }
     }
 
@@ -460,7 +460,7 @@ static void gpencil_interpolate_exit(bContext *C, wmOperator *op)
 }
 
 /* Init new temporary interpolation data */
-static bool gp_interpolate_set_init_values(bContext *C, wmOperator *op, tGPDinterpolate *tgpi)
+static bool gpencil_interpolate_set_init_values(bContext *C, wmOperator *op, tGPDinterpolate *tgpi)
 {
   ToolSettings *ts = CTX_data_tool_settings(C);
   bGPdata *gpd = CTX_data_gpencil_data(C);
@@ -481,18 +481,18 @@ static bool gp_interpolate_set_init_values(bContext *C, wmOperator *op, tGPDinte
   /* set interpolation weight */
   tgpi->shift = RNA_float_get(op->ptr, "shift");
   /* set layers */
-  gp_interpolate_set_points(C, tgpi);
+  gpencil_interpolate_set_points(C, tgpi);
 
   return 1;
 }
 
 /* Allocate memory and initialize values */
-static tGPDinterpolate *gp_session_init_interpolation(bContext *C, wmOperator *op)
+static tGPDinterpolate *gpencil_session_init_interpolation(bContext *C, wmOperator *op)
 {
   tGPDinterpolate *tgpi = MEM_callocN(sizeof(tGPDinterpolate), "GPencil Interpolate Data");
 
   /* define initial values */
-  gp_interpolate_set_init_values(C, op, tgpi);
+  gpencil_interpolate_set_init_values(C, op, tgpi);
 
   /* return context data for running operator */
   return tgpi;
@@ -504,7 +504,7 @@ static int gpencil_interpolate_init(bContext *C, wmOperator *op)
   tGPDinterpolate *tgpi;
 
   /* check context */
-  tgpi = op->customdata = gp_session_init_interpolation(C, op);
+  tgpi = op->customdata = gpencil_session_init_interpolation(C, op);
   if (tgpi == NULL) {
     /* something wasn't set correctly in context */
     gpencil_interpolate_exit(C, op);
@@ -546,7 +546,7 @@ static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent
   }
 
   /* need editable strokes */
-  if (!gp_interpolate_check_todo(C, gpd)) {
+  if (!gpencil_interpolate_check_todo(C, gpd)) {
     BKE_report(op->reports, RPT_ERROR, "Interpolation requires some editable strokes");
     return OPERATOR_CANCELLED;
   }
@@ -737,7 +737,7 @@ void GPENCIL_OT_interpolate(wmOperatorType *ot)
 /* ****************** Interpolate Sequence *********************** */
 
 /* Helper: Perform easing equation calculations for GP interpolation operator */
-static float gp_interpolate_seq_easing_calc(GP_Interpolate_Settings *ipo_settings, float time)
+static float gpencil_interpolate_seq_easing_calc(GP_Interpolate_Settings *ipo_settings, float time)
 {
   const float begin = 0.0f;
   const float change = 1.0f;
@@ -1014,7 +1014,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
       }
       else if (ipo_settings->type >= GP_IPO_BACK) {
         /* easing equation... */
-        factor = gp_interpolate_seq_easing_calc(ipo_settings, factor);
+        factor = gpencil_interpolate_seq_easing_calc(ipo_settings, factor);
       }
 
       /* create new strokes data with interpolated points reading original stroke */
@@ -1070,7 +1070,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
         }
 
         /* update points position */
-        gp_interpolate_update_points(gps_from, gps_to, new_stroke, factor);
+        gpencil_interpolate_update_points(gps_from, gps_to, new_stroke, factor);
 
         /* Calc geometry data. */
         BKE_gpencil_stroke_geometry_update(new_stroke);

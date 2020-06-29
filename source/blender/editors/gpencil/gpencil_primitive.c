@@ -111,7 +111,7 @@
 /* Core/Shared Utilities */
 
 /* clear the session buffers (call this before AND after a paint operation) */
-static void gp_session_validatebuffer(tGPDprimitive *p)
+static void gpencil_session_validatebuffer(tGPDprimitive *p)
 {
   bGPdata *gpd = p->gpd;
 
@@ -137,7 +137,7 @@ static void gp_session_validatebuffer(tGPDprimitive *p)
   }
 }
 
-static void gp_init_colors(tGPDprimitive *p)
+static void gpencil_init_colors(tGPDprimitive *p)
 {
   bGPdata *gpd = p->gpd;
   Brush *brush = p->brush;
@@ -196,10 +196,10 @@ static void gpencil_primitive_constrain(tGPDprimitive *tgpi, bool line_mode)
 }
 
 /* Helper to rotate point around origin */
-static void gp_rotate_v2_v2v2fl(float v[2],
-                                const float p[2],
-                                const float origin[2],
-                                const float angle)
+static void gpencil_rotate_v2_v2v2fl(float v[2],
+                                     const float p[2],
+                                     const float origin[2],
+                                     const float angle)
 {
   float pt[2];
   float r[2];
@@ -209,17 +209,17 @@ static void gp_rotate_v2_v2v2fl(float v[2],
 }
 
 /* Helper to rotate line around line center. */
-static void gp_primitive_rotate_line(
+static void gpencil_primitive_rotate_line(
     float va[2], float vb[2], const float a[2], const float b[2], const float angle)
 {
   float midpoint[2];
   mid_v2_v2v2(midpoint, a, b);
-  gp_rotate_v2_v2v2fl(va, a, midpoint, angle);
-  gp_rotate_v2_v2v2fl(vb, b, midpoint, angle);
+  gpencil_rotate_v2_v2v2fl(va, a, midpoint, angle);
+  gpencil_rotate_v2_v2v2fl(vb, b, midpoint, angle);
 }
 
 /* Helper to update cps */
-static void gp_primitive_update_cps(tGPDprimitive *tgpi)
+static void gpencil_primitive_update_cps(tGPDprimitive *tgpi)
 {
   if (!tgpi->curve) {
     mid_v2_v2v2(tgpi->midpoint, tgpi->start, tgpi->end);
@@ -233,10 +233,10 @@ static void gp_primitive_update_cps(tGPDprimitive *tgpi)
   }
   else if (tgpi->type == GP_STROKE_ARC) {
     if (tgpi->flip) {
-      gp_primitive_rotate_line(tgpi->cp1, tgpi->cp2, tgpi->start, tgpi->end, M_PI_2);
+      gpencil_primitive_rotate_line(tgpi->cp1, tgpi->cp2, tgpi->start, tgpi->end, M_PI_2);
     }
     else {
-      gp_primitive_rotate_line(tgpi->cp1, tgpi->cp2, tgpi->end, tgpi->start, M_PI_2);
+      gpencil_primitive_rotate_line(tgpi->cp1, tgpi->cp2, tgpi->end, tgpi->start, M_PI_2);
     }
   }
 }
@@ -294,7 +294,7 @@ static void gpencil_primitive_allocate_memory(tGPDprimitive *tgpi)
 /* ****************** Primitive Interactive *********************** */
 
 /* Helper: Create internal strokes primitives data */
-static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
+static void gpencil_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 {
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
@@ -378,7 +378,7 @@ static void gpencil_primitive_add_segment(tGPDprimitive *tgpi)
 }
 
 /* Helper: set control point */
-static void gp_primitive_set_cp(tGPDprimitive *tgpi, float p[2], float color[4], int size)
+static void gpencil_primitive_set_cp(tGPDprimitive *tgpi, float p[2], float color[4], int size)
 {
   if (tgpi->flag == IN_PROGRESS) {
     return;
@@ -500,7 +500,7 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
 }
 
 /* create a rectangle */
-static void gp_primitive_rectangle(tGPDprimitive *tgpi, tGPspoint *points2D)
+static void gpencil_primitive_rectangle(tGPDprimitive *tgpi, tGPspoint *points2D)
 {
   float coords[5][2];
 
@@ -531,20 +531,20 @@ static void gp_primitive_rectangle(tGPDprimitive *tgpi, tGPspoint *points2D)
   mid_v2_v2v2(tgpi->midpoint, tgpi->start, tgpi->end);
   float color[4];
   UI_GetThemeColor4fv(TH_GIZMO_PRIMARY, color);
-  gp_primitive_set_cp(tgpi, tgpi->end, color, BIG_SIZE_CTL);
+  gpencil_primitive_set_cp(tgpi, tgpi->end, color, BIG_SIZE_CTL);
   if (tgpi->tot_stored_edges) {
     UI_GetThemeColor4fv(TH_REDALERT, color);
-    gp_primitive_set_cp(tgpi, tgpi->start, color, SMALL_SIZE_CTL);
+    gpencil_primitive_set_cp(tgpi, tgpi->start, color, SMALL_SIZE_CTL);
   }
   else {
-    gp_primitive_set_cp(tgpi, tgpi->start, color, BIG_SIZE_CTL);
+    gpencil_primitive_set_cp(tgpi, tgpi->start, color, BIG_SIZE_CTL);
   }
   UI_GetThemeColor4fv(TH_REDALERT, color);
-  gp_primitive_set_cp(tgpi, tgpi->midpoint, color, SMALL_SIZE_CTL);
+  gpencil_primitive_set_cp(tgpi, tgpi->midpoint, color, SMALL_SIZE_CTL);
 }
 
 /* create a line */
-static void gp_primitive_line(tGPDprimitive *tgpi, tGPspoint *points2D, bool editable)
+static void gpencil_primitive_line(tGPDprimitive *tgpi, tGPspoint *points2D, bool editable)
 {
   const int totpoints = (tgpi->tot_edges + tgpi->tot_stored_edges);
   const float step = 1.0f / (float)(tgpi->tot_edges - 1);
@@ -559,24 +559,24 @@ static void gp_primitive_line(tGPDprimitive *tgpi, tGPspoint *points2D, bool edi
   if (editable) {
     float color[4];
     UI_GetThemeColor4fv(TH_GIZMO_PRIMARY, color);
-    gp_primitive_set_cp(tgpi, tgpi->end, color, BIG_SIZE_CTL);
+    gpencil_primitive_set_cp(tgpi, tgpi->end, color, BIG_SIZE_CTL);
     if (tgpi->tot_stored_edges) {
       UI_GetThemeColor4fv(TH_REDALERT, color);
-      gp_primitive_set_cp(tgpi, tgpi->start, color, SMALL_SIZE_CTL);
+      gpencil_primitive_set_cp(tgpi, tgpi->start, color, SMALL_SIZE_CTL);
     }
     else {
-      gp_primitive_set_cp(tgpi, tgpi->start, color, BIG_SIZE_CTL);
+      gpencil_primitive_set_cp(tgpi, tgpi->start, color, BIG_SIZE_CTL);
     }
   }
   else {
     float color[4];
     UI_GetThemeColor4fv(TH_REDALERT, color);
-    gp_primitive_set_cp(tgpi, tgpi->start, color, SMALL_SIZE_CTL);
+    gpencil_primitive_set_cp(tgpi, tgpi->start, color, SMALL_SIZE_CTL);
   }
 }
 
 /* create an arc */
-static void gp_primitive_arc(tGPDprimitive *tgpi, tGPspoint *points2D)
+static void gpencil_primitive_arc(tGPDprimitive *tgpi, tGPspoint *points2D)
 {
   const int totpoints = (tgpi->tot_edges + tgpi->tot_stored_edges);
   const float step = M_PI_2 / (float)(tgpi->tot_edges - 1);
@@ -604,20 +604,20 @@ static void gp_primitive_arc(tGPDprimitive *tgpi, tGPspoint *points2D)
   }
   float color[4];
   UI_GetThemeColor4fv(TH_GIZMO_PRIMARY, color);
-  gp_primitive_set_cp(tgpi, tgpi->end, color, BIG_SIZE_CTL);
+  gpencil_primitive_set_cp(tgpi, tgpi->end, color, BIG_SIZE_CTL);
   if (tgpi->tot_stored_edges) {
     UI_GetThemeColor4fv(TH_REDALERT, color);
-    gp_primitive_set_cp(tgpi, tgpi->start, color, SMALL_SIZE_CTL);
+    gpencil_primitive_set_cp(tgpi, tgpi->start, color, SMALL_SIZE_CTL);
   }
   else {
-    gp_primitive_set_cp(tgpi, tgpi->start, color, BIG_SIZE_CTL);
+    gpencil_primitive_set_cp(tgpi, tgpi->start, color, BIG_SIZE_CTL);
   }
   UI_GetThemeColor4fv(TH_GIZMO_SECONDARY, color);
-  gp_primitive_set_cp(tgpi, tgpi->cp1, color, BIG_SIZE_CTL * 0.9f);
+  gpencil_primitive_set_cp(tgpi, tgpi->cp1, color, BIG_SIZE_CTL * 0.9f);
 }
 
 /* create a bezier */
-static void gp_primitive_bezier(tGPDprimitive *tgpi, tGPspoint *points2D)
+static void gpencil_primitive_bezier(tGPDprimitive *tgpi, tGPspoint *points2D)
 {
   const int totpoints = (tgpi->tot_edges + tgpi->tot_stored_edges);
   const float step = 1.0f / (float)(tgpi->tot_edges - 1);
@@ -639,21 +639,21 @@ static void gp_primitive_bezier(tGPDprimitive *tgpi, tGPspoint *points2D)
   }
   float color[4];
   UI_GetThemeColor4fv(TH_GIZMO_PRIMARY, color);
-  gp_primitive_set_cp(tgpi, tgpi->end, color, BIG_SIZE_CTL);
+  gpencil_primitive_set_cp(tgpi, tgpi->end, color, BIG_SIZE_CTL);
   if (tgpi->tot_stored_edges) {
     UI_GetThemeColor4fv(TH_REDALERT, color);
-    gp_primitive_set_cp(tgpi, tgpi->start, color, SMALL_SIZE_CTL);
+    gpencil_primitive_set_cp(tgpi, tgpi->start, color, SMALL_SIZE_CTL);
   }
   else {
-    gp_primitive_set_cp(tgpi, tgpi->start, color, BIG_SIZE_CTL);
+    gpencil_primitive_set_cp(tgpi, tgpi->start, color, BIG_SIZE_CTL);
   }
   UI_GetThemeColor4fv(TH_GIZMO_SECONDARY, color);
-  gp_primitive_set_cp(tgpi, tgpi->cp1, color, BIG_SIZE_CTL * 0.9f);
-  gp_primitive_set_cp(tgpi, tgpi->cp2, color, BIG_SIZE_CTL * 0.9f);
+  gpencil_primitive_set_cp(tgpi, tgpi->cp1, color, BIG_SIZE_CTL * 0.9f);
+  gpencil_primitive_set_cp(tgpi, tgpi->cp2, color, BIG_SIZE_CTL * 0.9f);
 }
 
 /* create a circle */
-static void gp_primitive_circle(tGPDprimitive *tgpi, tGPspoint *points2D)
+static void gpencil_primitive_circle(tGPDprimitive *tgpi, tGPspoint *points2D)
 {
   const int totpoints = (tgpi->tot_edges + tgpi->tot_stored_edges);
   const float step = (2.0f * M_PI) / (float)(tgpi->tot_edges);
@@ -674,14 +674,14 @@ static void gp_primitive_circle(tGPDprimitive *tgpi, tGPspoint *points2D)
   }
   float color[4];
   UI_GetThemeColor4fv(TH_GIZMO_PRIMARY, color);
-  gp_primitive_set_cp(tgpi, tgpi->end, color, BIG_SIZE_CTL);
-  gp_primitive_set_cp(tgpi, tgpi->start, color, BIG_SIZE_CTL);
+  gpencil_primitive_set_cp(tgpi, tgpi->end, color, BIG_SIZE_CTL);
+  gpencil_primitive_set_cp(tgpi, tgpi->start, color, BIG_SIZE_CTL);
   UI_GetThemeColor4fv(TH_REDALERT, color);
-  gp_primitive_set_cp(tgpi, center, color, SMALL_SIZE_CTL);
+  gpencil_primitive_set_cp(tgpi, center, color, SMALL_SIZE_CTL);
 }
 
 /* Helper: Update shape of the stroke */
-static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
+static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 {
   ToolSettings *ts = tgpi->scene->toolsettings;
   bGPdata *gpd = tgpi->gpd;
@@ -715,30 +715,30 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
   if (tgpi->tot_edges > 1) {
     switch (tgpi->type) {
       case GP_STROKE_BOX:
-        gp_primitive_rectangle(tgpi, points2D);
+        gpencil_primitive_rectangle(tgpi, points2D);
         break;
       case GP_STROKE_LINE:
-        gp_primitive_line(tgpi, points2D, true);
+        gpencil_primitive_line(tgpi, points2D, true);
         break;
       case GP_STROKE_POLYLINE:
-        gp_primitive_line(tgpi, points2D, false);
+        gpencil_primitive_line(tgpi, points2D, false);
         break;
       case GP_STROKE_CIRCLE:
-        gp_primitive_circle(tgpi, points2D);
+        gpencil_primitive_circle(tgpi, points2D);
         break;
       case GP_STROKE_ARC:
-        gp_primitive_arc(tgpi, points2D);
+        gpencil_primitive_arc(tgpi, points2D);
         break;
       case GP_STROKE_CURVE:
-        gp_primitive_bezier(tgpi, points2D);
+        gpencil_primitive_bezier(tgpi, points2D);
       default:
         break;
     }
   }
 
   /* convert screen-coordinates to 3D coordinates */
-  gp_session_validatebuffer(tgpi);
-  gp_init_colors(tgpi);
+  gpencil_session_validatebuffer(tgpi);
+  gpencil_init_colors(tgpi);
   if (gset->flag & GP_SCULPT_SETT_FLAG_PRIMITIVE_CURVE) {
     BKE_curvemapping_initialize(ts->gp_sculpt.cur_primitive);
   }
@@ -1082,7 +1082,7 @@ static void gpencil_primitive_update(bContext *C, wmOperator *op, tGPDprimitive 
   tgpi->type = RNA_enum_get(op->ptr, "type");
   tgpi->tot_edges = RNA_int_get(op->ptr, "edges");
   /* update points position */
-  gp_primitive_update_strokes(C, tgpi);
+  gpencil_primitive_update_strokes(C, tgpi);
 }
 
 /* Initialise mouse points */
@@ -1237,7 +1237,7 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
   tgpi->lock_axis = ts->gp_sculpt.lock_axis;
 
   /* set temp layer, frame and stroke */
-  gp_primitive_set_initdata(C, tgpi);
+  gpencil_primitive_set_initdata(C, tgpi);
 }
 
 /* Invoke handler: Initialize the operator */
@@ -1396,14 +1396,14 @@ static void gpencil_primitive_edit_event_handling(
           gpencil_primitive_add_segment(tgpi);
           copy_v2_v2(tgpi->start, tgpi->end);
           copy_v2_v2(tgpi->origin, tgpi->start);
-          gp_primitive_update_cps(tgpi);
+          gpencil_primitive_update_cps(tgpi);
 
           tgpi->flag = IN_POLYLINE;
           WM_cursor_modal_set(win, WM_CURSOR_CROSS);
         }
         else {
           tgpi->flag = IN_CURVE_EDIT;
-          gp_primitive_update_cps(tgpi);
+          gpencil_primitive_update_cps(tgpi);
           gpencil_primitive_update(C, op, tgpi);
         }
       }
@@ -1460,7 +1460,7 @@ static void gpencil_primitive_edit_event_handling(
     case EVT_MKEY: {
       if ((event->val == KM_PRESS) && (tgpi->curve) && (ELEM(tgpi->orign_type, GP_STROKE_ARC))) {
         tgpi->flip ^= 1;
-        gp_primitive_update_cps(tgpi);
+        gpencil_primitive_update_cps(tgpi);
         gpencil_primitive_update(C, op, tgpi);
       }
       break;
@@ -1472,7 +1472,7 @@ static void gpencil_primitive_edit_event_handling(
         gpencil_primitive_add_segment(tgpi);
         copy_v2_v2(tgpi->start, tgpi->end);
         copy_v2_v2(tgpi->origin, tgpi->start);
-        gp_primitive_update_cps(tgpi);
+        gpencil_primitive_update_cps(tgpi);
       }
       break;
     }
@@ -1625,7 +1625,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
         if (event->val == KM_PRESS) {
           tgpi->flag = IDLE;
           tgpi->tot_edges = tgpi->tot_stored_edges ? 1 : 0;
-          gp_primitive_update_strokes(C, tgpi);
+          gpencil_primitive_update_strokes(C, tgpi);
           gpencil_primitive_interaction_end(C, op, win, tgpi);
           return OPERATOR_FINISHED;
         }
@@ -1749,7 +1749,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
                (!ELEM(tgpi->type, GP_STROKE_POLYLINE))) {
         /* set control points and enter edit mode */
         tgpi->flag = IN_CURVE_EDIT;
-        gp_primitive_update_cps(tgpi);
+        gpencil_primitive_update_cps(tgpi);
         gpencil_primitive_update(C, op, tgpi);
       }
       else if ((event->val == KM_RELEASE) && (tgpi->flag == IN_PROGRESS) &&
@@ -1792,7 +1792,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
       if (tgpi->tot_stored_edges > 0) {
         tgpi->flag = IDLE;
         tgpi->tot_edges = tgpi->tot_stored_edges ? 1 : 0;
-        gp_primitive_update_strokes(C, tgpi);
+        gpencil_primitive_update_strokes(C, tgpi);
         gpencil_primitive_interaction_end(C, op, win, tgpi);
         /* done! */
         return OPERATOR_FINISHED;
@@ -1871,7 +1871,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
         }
 
         RNA_enum_set(op->ptr, "type", tgpi->type);
-        gp_primitive_update_cps(tgpi);
+        gpencil_primitive_update_cps(tgpi);
         gpencil_primitive_update(C, op, tgpi);
       }
       break;
@@ -1880,7 +1880,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
       if (tgpi->flag == IN_CURVE_EDIT) {
         tgpi->flag = IN_PROGRESS;
         WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
-        gp_primitive_update_cps(tgpi);
+        gpencil_primitive_update_cps(tgpi);
         gpencil_primitive_update(C, op, tgpi);
       }
       break;
@@ -1908,7 +1908,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
           tgpi->start[0] = tgpi->origin[0] - (tgpi->end[0] - tgpi->origin[0]);
           tgpi->start[1] = tgpi->origin[1] - (tgpi->end[1] - tgpi->origin[1]);
         }
-        gp_primitive_update_cps(tgpi);
+        gpencil_primitive_update_cps(tgpi);
         /* update screen */
         gpencil_primitive_update(C, op, tgpi);
       }
