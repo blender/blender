@@ -1133,129 +1133,139 @@ static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEven
 
 void drawEdgeSlide(TransInfo *t)
 {
-  if ((t->mode == TFM_EDGE_SLIDE) && edgeSlideFirstGet(t)) {
-    const EdgeSlideParams *slp = t->custom.mode.data;
-    EdgeSlideData *sld = edgeSlideFirstGet(t);
-    const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
+  if (t->mode != TFM_EDGE_SLIDE) {
+    return;
+  }
 
+  EdgeSlideData *sld = edgeSlideFirstGet(t);
+  if (sld == NULL) {
+    return;
+  }
+
+  const EdgeSlideParams *slp = t->custom.mode.data;
+  const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
+
+  const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
+
+  GPU_depth_test(false);
+
+  GPU_blend(true);
+  GPU_blend_set_func_separate(
+      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+
+  GPU_matrix_push();
+  GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat);
+
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
+  if (slp->use_even == true) {
     /* Even mode */
-    if ((slp->use_even == true) || (is_clamp == false)) {
-      const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
+    float co_a[3], co_b[3], co_mark[3];
+    TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
+    const float fac = (slp->perc + 1.0f) / 2.0f;
+    const float ctrl_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
+    const float guide_size = ctrl_size - 0.5f;
+    const int alpha_shade = -30;
 
-      GPU_depth_test(false);
+    add_v3_v3v3(co_a, curr_sv->v_co_orig, curr_sv->dir_side[0]);
+    add_v3_v3v3(co_b, curr_sv->v_co_orig, curr_sv->dir_side[1]);
 
-      GPU_blend(true);
-      GPU_blend_set_func_separate(
-          GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_line_width(line_size);
+    immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
+    immBeginAtMost(GPU_PRIM_LINES, 4);
+    if (curr_sv->v_side[0]) {
+      immVertex3fv(pos, curr_sv->v_side[0]->co);
+      immVertex3fv(pos, curr_sv->v_co_orig);
+    }
+    if (curr_sv->v_side[1]) {
+      immVertex3fv(pos, curr_sv->v_side[1]->co);
+      immVertex3fv(pos, curr_sv->v_co_orig);
+    }
+    immEnd();
 
-      GPU_matrix_push();
-      GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat);
-
-      uint pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-
-      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-      if (slp->use_even == true) {
-        float co_a[3], co_b[3], co_mark[3];
-        TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
-        const float fac = (slp->perc + 1.0f) / 2.0f;
-        const float ctrl_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
-        const float guide_size = ctrl_size - 0.5f;
-        const int alpha_shade = -30;
-
-        add_v3_v3v3(co_a, curr_sv->v_co_orig, curr_sv->dir_side[0]);
-        add_v3_v3v3(co_b, curr_sv->v_co_orig, curr_sv->dir_side[1]);
-
-        GPU_line_width(line_size);
-        immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
-        immBeginAtMost(GPU_PRIM_LINES, 4);
-        if (curr_sv->v_side[0]) {
-          immVertex3fv(pos, curr_sv->v_side[0]->co);
-          immVertex3fv(pos, curr_sv->v_co_orig);
-        }
+    {
+      float *co_test = NULL;
+      if (slp->flipped) {
         if (curr_sv->v_side[1]) {
-          immVertex3fv(pos, curr_sv->v_side[1]->co);
-          immVertex3fv(pos, curr_sv->v_co_orig);
+          co_test = curr_sv->v_side[1]->co;
         }
-        immEnd();
-
-        {
-          float *co_test = NULL;
-          if (slp->flipped) {
-            if (curr_sv->v_side[1]) {
-              co_test = curr_sv->v_side[1]->co;
-            }
-          }
-          else {
-            if (curr_sv->v_side[0]) {
-              co_test = curr_sv->v_side[0]->co;
-            }
-          }
-
-          if (co_test != NULL) {
-            immUniformThemeColorShadeAlpha(TH_SELECT, -30, alpha_shade);
-            GPU_point_size(ctrl_size);
-            immBegin(GPU_PRIM_POINTS, 1);
-            immVertex3fv(pos, co_test);
-            immEnd();
-          }
-        }
-
-        immUniformThemeColorShadeAlpha(TH_SELECT, 255, alpha_shade);
-        GPU_point_size(guide_size);
-        immBegin(GPU_PRIM_POINTS, 1);
-        interp_line_v3_v3v3v3(co_mark, co_b, curr_sv->v_co_orig, co_a, fac);
-        immVertex3fv(pos, co_mark);
-        immEnd();
       }
       else {
-        if (is_clamp == false) {
-          const int side_index = sld->curr_side_unclamp;
-          TransDataEdgeSlideVert *sv;
-          int i;
-          const int alpha_shade = -160;
-
-          GPU_line_width(line_size);
-          immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
-          immBegin(GPU_PRIM_LINES, sld->totsv * 2);
-
-          /* TODO(campbell): Loop over all verts  */
-          sv = sld->sv;
-          for (i = 0; i < sld->totsv; i++, sv++) {
-            float a[3], b[3];
-
-            if (!is_zero_v3(sv->dir_side[side_index])) {
-              copy_v3_v3(a, sv->dir_side[side_index]);
-            }
-            else {
-              copy_v3_v3(a, sv->dir_side[!side_index]);
-            }
-
-            mul_v3_fl(a, 100.0f);
-            negate_v3_v3(b, a);
-            add_v3_v3(a, sv->v_co_orig);
-            add_v3_v3(b, sv->v_co_orig);
-
-            immVertex3fv(pos, a);
-            immVertex3fv(pos, b);
-          }
-          immEnd();
-        }
-        else {
-          BLI_assert(0);
+        if (curr_sv->v_side[0]) {
+          co_test = curr_sv->v_side[0]->co;
         }
       }
 
-      immUnbindProgram();
-
-      GPU_matrix_pop();
-
-      GPU_blend(false);
-
-      GPU_depth_test(true);
+      if (co_test != NULL) {
+        immUniformThemeColorShadeAlpha(TH_SELECT, -30, alpha_shade);
+        GPU_point_size(ctrl_size);
+        immBegin(GPU_PRIM_POINTS, 1);
+        immVertex3fv(pos, co_test);
+        immEnd();
+      }
     }
+
+    immUniformThemeColorShadeAlpha(TH_SELECT, 255, alpha_shade);
+    GPU_point_size(guide_size);
+    immBegin(GPU_PRIM_POINTS, 1);
+    interp_line_v3_v3v3v3(co_mark, co_b, curr_sv->v_co_orig, co_a, fac);
+    immVertex3fv(pos, co_mark);
+    immEnd();
   }
+  else if (is_clamp == false) {
+    const int side_index = sld->curr_side_unclamp;
+    TransDataEdgeSlideVert *sv;
+    int i;
+    const int alpha_shade = -160;
+
+    GPU_line_width(line_size);
+    immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
+    immBegin(GPU_PRIM_LINES, sld->totsv * 2);
+
+    /* TODO(campbell): Loop over all verts  */
+    sv = sld->sv;
+    for (i = 0; i < sld->totsv; i++, sv++) {
+      float a[3], b[3];
+
+      if (!is_zero_v3(sv->dir_side[side_index])) {
+        copy_v3_v3(a, sv->dir_side[side_index]);
+      }
+      else {
+        copy_v3_v3(a, sv->dir_side[!side_index]);
+      }
+
+      mul_v3_fl(a, 100.0f);
+      negate_v3_v3(b, a);
+      add_v3_v3(a, sv->v_co_orig);
+      add_v3_v3(b, sv->v_co_orig);
+
+      immVertex3fv(pos, a);
+      immVertex3fv(pos, b);
+    }
+    immEnd();
+  }
+  else {
+    /* Common case. */
+    TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
+    const int alpha_shade = -30;
+
+    GPU_line_width(line_size);
+    immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
+    immBeginAtMost(GPU_PRIM_LINES, 2);
+    immVertex3fv(pos, curr_sv->v_side[sld->curr_side_unclamp]->co);
+    immVertex3fv(pos, curr_sv->v_co_orig);
+    immEnd();
+  }
+
+  immUnbindProgram();
+
+  GPU_matrix_pop();
+
+  GPU_blend(false);
+
+  GPU_depth_test(true);
 }
 
 static void edge_slide_snap_apply(TransInfo *t, float *value)
