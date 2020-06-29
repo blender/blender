@@ -67,13 +67,13 @@
  *   interface as blender::Map. This is useful for benchmarking.
  */
 
+#include <optional>
 #include <unordered_map>
 
 #include "BLI_array.hh"
 #include "BLI_hash.hh"
 #include "BLI_hash_tables.hh"
 #include "BLI_map_slots.hh"
-#include "BLI_optional.hh"
 #include "BLI_probing_strategies.hh"
 
 namespace blender {
@@ -392,7 +392,7 @@ class Map {
    * Get the value that is stored for the given key and remove it from the map. If the key is not
    * in the map, a value-less optional is returned.
    */
-  Optional<Value> pop_try(const Key &key)
+  std::optional<Value> pop_try(const Key &key)
   {
     return this->pop_try_as(key);
   }
@@ -400,7 +400,7 @@ class Map {
   /**
    * Same as `pop_try`, but accepts other key types that are supported by the hash function.
    */
-  template<typename ForwardKey> Optional<Value> pop_try_as(const ForwardKey &key)
+  template<typename ForwardKey> std::optional<Value> pop_try_as(const ForwardKey &key)
   {
     return this->pop_try__impl(key, m_hash(key));
   }
@@ -1074,11 +1074,12 @@ class Map {
     MAP_SLOT_PROBING_END();
   }
 
-  template<typename ForwardKey> Optional<Value> pop_try__impl(const ForwardKey &key, uint32_t hash)
+  template<typename ForwardKey>
+  std::optional<Value> pop_try__impl(const ForwardKey &key, uint32_t hash)
   {
     MAP_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, m_is_equal, hash)) {
-        Optional<Value> value = std::move(*slot.value());
+        std::optional<Value> value = std::move(*slot.value());
         slot.remove();
         m_removed_slots++;
         return value;

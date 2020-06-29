@@ -24,6 +24,8 @@
  * and index.
  */
 
+#include <optional>
+
 #include "FN_spans.hh"
 
 #include "BLI_linear_allocator.hh"
@@ -204,7 +206,7 @@ class MutableAttributesRef {
     return this->get<T>(m_info->index_of(name));
   }
 
-  Optional<GMutableSpan> try_get(StringRef name, const CPPType &type) const
+  std::optional<GMutableSpan> try_get(StringRef name, const CPPType &type) const
   {
     int index = m_info->try_index_of(name, type);
     if (index == -1) {
@@ -215,7 +217,7 @@ class MutableAttributesRef {
     }
   }
 
-  template<typename T> Optional<MutableSpan<T>> try_get(StringRef name) const
+  template<typename T> std::optional<MutableSpan<T>> try_get(StringRef name) const
   {
     int index = m_info->try_index_of(name);
     if (index == -1) {

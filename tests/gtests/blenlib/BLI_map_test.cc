@@ -88,7 +88,7 @@ TEST(map, PopTry)
   map.add(1, 5);
   map.add(2, 7);
   EXPECT_EQ(map.size(), 2u);
-  Optional<int> value = map.pop_try(4);
+  std::optional<int> value = map.pop_try(4);
   EXPECT_EQ(map.size(), 2u);
   EXPECT_FALSE(value.has_value());
   value = map.pop_try(2);

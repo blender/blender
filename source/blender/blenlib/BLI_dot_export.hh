@@ -25,13 +25,13 @@
  */
 
 #include "BLI_map.hh"
-#include "BLI_optional.hh"
 #include "BLI_set.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
 #include "BLI_dot_export_attribute_enums.hh"
 
+#include <optional>
 #include <sstream>
 
 namespace blender {
@@ -197,10 +197,10 @@ class DirectedGraph final : public Graph {
 class NodePort {
  private:
   Node *m_node;
-  Optional<std::string> m_port_name;
+  std::optional<std::string> m_port_name;
 
  public:
-  NodePort(Node &node, Optional<std::string> port_name = {})
+  NodePort(Node &node, std::optional<std::string> port_name = {})
       : m_node(&node), m_port_name(std::move(port_name))
   {
   }
