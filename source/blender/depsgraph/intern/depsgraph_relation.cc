@@ -28,7 +28,8 @@
 #include "intern/depsgraph_type.h"
 #include "intern/node/deg_node.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 Relation::Relation(Node *from, Node *to, const char *description)
     : from(from), to(to), name(description), flag(0)
@@ -64,4 +65,5 @@ void Relation::unlink()
   to->inlinks.remove_first_occurrence_and_reorder(this);
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

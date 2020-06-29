@@ -23,6 +23,8 @@
 
 #include "intern/eval/deg_eval_runtime_backup_pose.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
-}  // namespace DEG
+}
+}  // namespace blender

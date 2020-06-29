@@ -25,7 +25,8 @@
 
 #pragma once
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct Depsgraph;
 
@@ -38,4 +39,5 @@ struct Depsgraph;
  */
 void deg_evaluate_on_refresh(Depsgraph *graph);
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

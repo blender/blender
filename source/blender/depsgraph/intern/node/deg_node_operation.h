@@ -29,7 +29,8 @@
 
 struct Depsgraph;
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct ComponentNode;
 
@@ -276,4 +277,5 @@ struct OperationNode : public Node {
 
 void deg_register_operation_depsnodes();
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

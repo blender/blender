@@ -25,7 +25,8 @@
 
 #include "intern/node/deg_node.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 /* Time Source Node. */
 struct TimeSourceNode : public Node {
@@ -42,4 +43,5 @@ struct TimeSourceNode : public Node {
   DEG_DEPSNODE_DECLARE;
 };
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

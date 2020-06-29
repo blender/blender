@@ -33,7 +33,8 @@
 #include "intern/depsgraph_relation.h"
 #include "intern/depsgraph_type.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 static inline bool is_unused_noop(OperationNode *op_node)
 {
@@ -84,4 +85,5 @@ void deg_graph_remove_unused_noops(Depsgraph *graph)
       (::Depsgraph *)graph, BUILD, "Removed %d relations to no-op nodes\n", num_removed_relations);
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

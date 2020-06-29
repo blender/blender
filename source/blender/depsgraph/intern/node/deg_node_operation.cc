@@ -32,7 +32,8 @@
 #include "intern/node/deg_node_factory.h"
 #include "intern/node/deg_node_id.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 const char *operationCodeAsString(OperationCode opcode)
 {
@@ -270,4 +271,5 @@ void deg_register_operation_depsnodes()
   register_node_typeinfo(&DNTI_OPERATION);
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

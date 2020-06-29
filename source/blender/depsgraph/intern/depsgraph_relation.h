@@ -23,7 +23,8 @@
 
 #pragma once
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct Node;
 
@@ -60,4 +61,5 @@ struct Relation {
   int flag;         /* Bitmask of RelationFlag) */
 };
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

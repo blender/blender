@@ -55,7 +55,8 @@
 #include "intern/node/deg_node_component.h"
 #include "intern/node/deg_node_operation.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 void DepsgraphNodeBuilder::build_layer_collections(ListBase *lb)
 {
@@ -174,4 +175,5 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
   }
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

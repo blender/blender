@@ -32,7 +32,8 @@
 #include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 void deg_eval_stats_aggregate(Depsgraph *graph)
 {
@@ -54,4 +55,5 @@ void deg_eval_stats_aggregate(Depsgraph *graph)
   }
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

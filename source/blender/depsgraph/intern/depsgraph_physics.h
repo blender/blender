@@ -26,7 +26,8 @@
 struct Collection;
 struct ListBase;
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct Depsgraph;
 
@@ -36,4 +37,5 @@ ListBase *build_collision_relations(Depsgraph *graph,
                                     unsigned int modifier_type);
 void clear_physics_relations(Depsgraph *graph);
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

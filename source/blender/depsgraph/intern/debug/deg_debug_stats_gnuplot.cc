@@ -36,7 +36,10 @@
 
 #define NL "\r\n"
 
-namespace DEG {
+namespace deg = blender::deg;
+
+namespace blender {
+namespace deg {
 namespace {
 
 struct DebugContext {
@@ -147,7 +150,8 @@ void deg_debug_stats_gnuplot(const DebugContext &ctx)
 }
 
 }  // namespace
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender
 
 void DEG_debug_stats_gnuplot(const Depsgraph *depsgraph,
                              FILE *f,
@@ -157,10 +161,10 @@ void DEG_debug_stats_gnuplot(const Depsgraph *depsgraph,
   if (depsgraph == nullptr) {
     return;
   }
-  DEG::DebugContext ctx;
+  deg::DebugContext ctx;
   ctx.file = f;
-  ctx.graph = (DEG::Depsgraph *)depsgraph;
+  ctx.graph = (deg::Depsgraph *)depsgraph;
   ctx.label = label;
   ctx.output_filename = output_filename;
-  DEG::deg_debug_stats_gnuplot(ctx);
+  deg::deg_debug_stats_gnuplot(ctx);
 }

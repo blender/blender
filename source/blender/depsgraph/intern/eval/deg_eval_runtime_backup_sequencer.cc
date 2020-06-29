@@ -29,7 +29,8 @@
 #include "BKE_sequencer.h"
 #include "BKE_sound.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 SequencerBackup::SequencerBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph)
 {
@@ -66,4 +67,5 @@ void SequencerBackup::restore_to_scene(Scene *scene)
   }
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

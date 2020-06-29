@@ -55,7 +55,10 @@
 #include "intern/node/deg_node_operation.h"
 #include "intern/node/deg_node_time.h"
 
-namespace DEG {
+namespace deg = blender::deg;
+
+namespace blender {
+namespace deg {
 
 Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
     : time_source(nullptr),
@@ -258,7 +261,8 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
   return id_node->id_cow;
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender
 
 /* **************** */
 /* Public Graph API */
@@ -266,9 +270,9 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
 /* Initialize a new Depsgraph */
 Depsgraph *DEG_graph_new(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
 {
-  DEG::Depsgraph *deg_depsgraph = OBJECT_GUARDED_NEW(
-      DEG::Depsgraph, bmain, scene, view_layer, mode);
-  DEG::register_graph(deg_depsgraph);
+  deg::Depsgraph *deg_depsgraph = OBJECT_GUARDED_NEW(
+      deg::Depsgraph, bmain, scene, view_layer, mode);
+  deg::register_graph(deg_depsgraph);
   return reinterpret_cast<Depsgraph *>(deg_depsgraph);
 }
 
@@ -279,11 +283,11 @@ void DEG_graph_replace_owners(struct Depsgraph *depsgraph,
                               Scene *scene,
                               ViewLayer *view_layer)
 {
-  DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+  deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
 
   const bool do_update_register = deg_graph->bmain != bmain;
   if (do_update_register && deg_graph->bmain != NULL) {
-    DEG::unregister_graph(deg_graph);
+    deg::unregister_graph(deg_graph);
   }
 
   deg_graph->bmain = bmain;
@@ -291,7 +295,7 @@ void DEG_graph_replace_owners(struct Depsgraph *depsgraph,
   deg_graph->view_layer = view_layer;
 
   if (do_update_register) {
-    DEG::register_graph(deg_graph);
+    deg::register_graph(deg_graph);
   }
 }
 
@@ -301,15 +305,15 @@ void DEG_graph_free(Depsgraph *graph)
   if (graph == nullptr) {
     return;
   }
-  using DEG::Depsgraph;
-  DEG::Depsgraph *deg_depsgraph = reinterpret_cast<DEG::Depsgraph *>(graph);
-  DEG::unregister_graph(deg_depsgraph);
+  using deg::Depsgraph;
+  deg::Depsgraph *deg_depsgraph = reinterpret_cast<deg::Depsgraph *>(graph);
+  deg::unregister_graph(deg_depsgraph);
   OBJECT_GUARDED_DELETE(deg_depsgraph, Depsgraph);
 }
 
 bool DEG_is_evaluating(const struct Depsgraph *depsgraph)
 {
-  const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(depsgraph);
+  const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(depsgraph);
   return deg_graph->is_evaluating;
 }
 
@@ -322,19 +326,19 @@ bool DEG_is_active(const struct Depsgraph *depsgraph)
      * cases. */
     return false;
   }
-  const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(depsgraph);
+  const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(depsgraph);
   return deg_graph->is_active;
 }
 
 void DEG_make_active(struct Depsgraph *depsgraph)
 {
-  DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+  deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   deg_graph->is_active = true;
   /* TODO(sergey): Copy data from evaluated state to original. */
 }
 
 void DEG_make_inactive(struct Depsgraph *depsgraph)
 {
-  DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+  deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   deg_graph->is_active = false;
 }

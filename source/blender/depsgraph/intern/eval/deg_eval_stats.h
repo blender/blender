@@ -23,11 +23,13 @@
 
 #pragma once
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct Depsgraph;
 
 /* Aggregate operation timings to overall component and ID nodes timing. */
 void deg_eval_stats_aggregate(Depsgraph *graph);
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

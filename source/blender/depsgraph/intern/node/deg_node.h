@@ -32,7 +32,8 @@
 struct ID;
 struct Scene;
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct Depsgraph;
 struct OperationNode;
@@ -212,4 +213,5 @@ struct Node {
 
 void deg_register_base_depsnodes();
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

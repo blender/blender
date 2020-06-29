@@ -40,9 +40,12 @@
 #include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
 
+namespace deg = blender::deg;
+
 /* ************************ DEG TRAVERSAL ********************* */
 
-namespace DEG {
+namespace blender {
+namespace deg {
 namespace {
 
 typedef deque<OperationNode *> TraversalQueue;
@@ -262,14 +265,15 @@ void deg_foreach_id(const Depsgraph *depsgraph, DEGForeachIDCallback callback, v
 }
 
 }  // namespace
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender
 
 void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
                               const ID *id,
                               DEGForeachIDCallback callback,
                               void *user_data)
 {
-  DEG::deg_foreach_dependent_ID((const DEG::Depsgraph *)depsgraph, id, callback, user_data);
+  deg::deg_foreach_dependent_ID((const deg::Depsgraph *)depsgraph, id, callback, user_data);
 }
 
 void DEG_foreach_dependent_ID_component(const Depsgraph *depsgraph,
@@ -279,8 +283,8 @@ void DEG_foreach_dependent_ID_component(const Depsgraph *depsgraph,
                                         DEGForeachIDComponentCallback callback,
                                         void *user_data)
 {
-  DEG::deg_foreach_dependent_ID_component(
-      (const DEG::Depsgraph *)depsgraph, id, source_component_type, flags, callback, user_data);
+  deg::deg_foreach_dependent_ID_component(
+      (const deg::Depsgraph *)depsgraph, id, source_component_type, flags, callback, user_data);
 }
 
 void DEG_foreach_ancestor_ID(const Depsgraph *depsgraph,
@@ -288,10 +292,10 @@ void DEG_foreach_ancestor_ID(const Depsgraph *depsgraph,
                              DEGForeachIDCallback callback,
                              void *user_data)
 {
-  DEG::deg_foreach_ancestor_ID((const DEG::Depsgraph *)depsgraph, id, callback, user_data);
+  deg::deg_foreach_ancestor_ID((const deg::Depsgraph *)depsgraph, id, callback, user_data);
 }
 
 void DEG_foreach_ID(const Depsgraph *depsgraph, DEGForeachIDCallback callback, void *user_data)
 {
-  DEG::deg_foreach_id((const DEG::Depsgraph *)depsgraph, callback, user_data);
+  deg::deg_foreach_id((const deg::Depsgraph *)depsgraph, callback, user_data);
 }

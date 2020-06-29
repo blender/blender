@@ -54,7 +54,8 @@
 #include "intern/node/deg_node_component.h"
 #include "intern/node/deg_node_operation.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 void DepsgraphNodeBuilder::build_pose_constraints(Object *object,
                                                   bPoseChannel *pchan,
@@ -344,4 +345,5 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object, bool is_object_visibl
   op_node->set_as_exit();
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

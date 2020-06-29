@@ -54,7 +54,8 @@
 #include "intern/node/deg_node_operation.h"
 #include "intern/node/deg_node_time.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 namespace {
 
@@ -416,4 +417,5 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
   graph->debug.end_graph_evaluation();
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

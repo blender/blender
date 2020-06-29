@@ -38,7 +38,8 @@
 #include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 /* *********** */
 /* Outer Nodes */
@@ -377,4 +378,5 @@ void deg_register_component_depsnodes()
   register_node_typeinfo(&DNTI_SIMULATION);
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

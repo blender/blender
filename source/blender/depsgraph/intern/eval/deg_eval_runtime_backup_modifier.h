@@ -29,7 +29,8 @@
 
 struct ModifierData;
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct Depsgraph;
 
@@ -57,4 +58,5 @@ class ModifierDataBackupID {
 /* Storage for backed up runtime modifier data. */
 typedef Map<ModifierDataBackupID, void *> ModifierRuntimeDataBackup;
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

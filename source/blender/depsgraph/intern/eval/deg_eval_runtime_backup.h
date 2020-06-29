@@ -32,7 +32,8 @@
 #include "intern/eval/deg_eval_runtime_backup_sound.h"
 #include "intern/eval/deg_eval_runtime_backup_volume.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct Depsgraph;
 
@@ -67,4 +68,5 @@ class RuntimeBackup {
   VolumeBackup volume_backup;
 };
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

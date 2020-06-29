@@ -67,7 +67,8 @@
 // catch usage of invalid state.
 #undef INVALIDATE_ON_FLUSH
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 enum {
   ID_STATE_NONE = 0,
@@ -227,7 +228,7 @@ void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *upd
     ID *id_orig = id_node->id_orig;
     ID *id_cow = id_node->id_cow;
     /* Gather recalc flags from all changed components. */
-    for (DEG::ComponentNode *comp_node : id_node->components.values()) {
+    for (ComponentNode *comp_node : id_node->components.values()) {
       if (comp_node->custom_flags != COMPONENT_STATE_DONE) {
         continue;
       }
@@ -339,9 +340,9 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
   if (graph->need_update_time) {
     const Scene *scene_orig = graph->scene;
     const float ctime = BKE_scene_frame_get(scene_orig);
-    DEG::TimeSourceNode *time_source = graph->find_time_source();
+    TimeSourceNode *time_source = graph->find_time_source();
     graph->ctime = ctime;
-    time_source->tag_update(graph, DEG::DEG_UPDATE_SOURCE_TIME);
+    time_source->tag_update(graph, DEG_UPDATE_SOURCE_TIME);
   }
   if (graph->entry_tags.is_empty()) {
     return;
@@ -392,4 +393,5 @@ void deg_graph_clear_tags(Depsgraph *graph)
   graph->entry_tags.clear();
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

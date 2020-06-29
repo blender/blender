@@ -40,10 +40,13 @@
 #include "intern/node/deg_node_operation.h"
 #include "intern/node/deg_node_time.h"
 
+namespace deg = blender::deg;
+
 /* ****************** */
 /* Graphviz Debugging */
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 #define NL "\r\n"
 
@@ -578,7 +581,8 @@ static void deg_debug_graphviz_graph_relations(const DebugContext &ctx, const De
   }
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender
 
 void DEG_debug_relations_graphviz(const Depsgraph *graph, FILE *f, const char *label)
 {
@@ -586,29 +590,29 @@ void DEG_debug_relations_graphviz(const Depsgraph *graph, FILE *f, const char *l
     return;
   }
 
-  const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
+  const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
 
-  DEG::DebugContext ctx;
+  deg::DebugContext ctx;
   ctx.file = f;
 
-  DEG::deg_debug_fprintf(ctx, "digraph depgraph {" NL);
-  DEG::deg_debug_fprintf(ctx, "rankdir=LR;" NL);
-  DEG::deg_debug_fprintf(ctx, "graph [");
-  DEG::deg_debug_fprintf(ctx, "compound=true");
-  DEG::deg_debug_fprintf(ctx, ",labelloc=\"t\"");
-  DEG::deg_debug_fprintf(ctx, ",fontsize=%f", DEG::deg_debug_graphviz_graph_label_size);
-  DEG::deg_debug_fprintf(ctx, ",fontname=\"%s\"", DEG::deg_debug_graphviz_fontname);
-  DEG::deg_debug_fprintf(ctx, ",label=\"%s\"", label);
-  DEG::deg_debug_fprintf(ctx, ",splines=ortho");
-  DEG::deg_debug_fprintf(ctx, ",overlap=scalexy");  // XXX: only when using neato
-  DEG::deg_debug_fprintf(ctx, "];" NL);
+  deg::deg_debug_fprintf(ctx, "digraph depgraph {" NL);
+  deg::deg_debug_fprintf(ctx, "rankdir=LR;" NL);
+  deg::deg_debug_fprintf(ctx, "graph [");
+  deg::deg_debug_fprintf(ctx, "compound=true");
+  deg::deg_debug_fprintf(ctx, ",labelloc=\"t\"");
+  deg::deg_debug_fprintf(ctx, ",fontsize=%f", deg::deg_debug_graphviz_graph_label_size);
+  deg::deg_debug_fprintf(ctx, ",fontname=\"%s\"", deg::deg_debug_graphviz_fontname);
+  deg::deg_debug_fprintf(ctx, ",label=\"%s\"", label);
+  deg::deg_debug_fprintf(ctx, ",splines=ortho");
+  deg::deg_debug_fprintf(ctx, ",overlap=scalexy");  // XXX: only when using neato
+  deg::deg_debug_fprintf(ctx, "];" NL);
 
-  DEG::deg_debug_graphviz_graph_nodes(ctx, deg_graph);
-  DEG::deg_debug_graphviz_graph_relations(ctx, deg_graph);
+  deg::deg_debug_graphviz_graph_nodes(ctx, deg_graph);
+  deg::deg_debug_graphviz_graph_relations(ctx, deg_graph);
 
-  DEG::deg_debug_graphviz_legend(ctx);
+  deg::deg_debug_graphviz_legend(ctx);
 
-  DEG::deg_debug_fprintf(ctx, "}" NL);
+  deg::deg_debug_fprintf(ctx, "}" NL);
 }
 
 #undef NL

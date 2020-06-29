@@ -30,7 +30,8 @@
 
 struct Object;
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 class ObjectRuntimeBackup {
  public:
@@ -56,4 +57,5 @@ class ObjectRuntimeBackup {
   Map<bPoseChannel *, bPoseChannel_Runtime> pose_channel_runtime_data;
 };
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

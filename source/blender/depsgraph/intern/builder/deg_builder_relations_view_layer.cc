@@ -56,7 +56,8 @@
 
 #include "intern/depsgraph_type.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 void DepsgraphRelationBuilder::build_layer_collections(ListBase *lb)
 {
@@ -153,4 +154,5 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
   }
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

@@ -26,7 +26,8 @@
 struct ID;
 struct Main;
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct Depsgraph;
 
@@ -40,4 +41,5 @@ void id_tag_update(Main *bmain, ID *id, int flag, eUpdateSource update_source);
 void graph_id_tag_update(
     Main *bmain, Depsgraph *graph, ID *id, int flag, eUpdateSource update_source);
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

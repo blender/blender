@@ -47,7 +47,8 @@ struct ID;
 struct Scene;
 struct ViewLayer;
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct IDNode;
 struct Node;
@@ -169,4 +170,5 @@ struct Depsgraph {
   Map<const ID *, ListBase *> *physics_relations[DEG_PHYSICS_RELATIONS_NUM];
 };
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

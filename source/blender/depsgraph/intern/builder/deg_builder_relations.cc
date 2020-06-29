@@ -118,7 +118,8 @@
 #include "intern/depsgraph_relation.h"
 #include "intern/depsgraph_type.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 /* ***************** */
 /* Relations Builder */
@@ -321,7 +322,7 @@ void DepsgraphRelationBuilder::add_customdata_mask(Object *object,
 {
   if (customdata_masks != DEGCustomDataMeshMasks() && object != nullptr &&
       object->type == OB_MESH) {
-    DEG::IDNode *id_node = graph_->find_id_node(&object->id);
+    IDNode *id_node = graph_->find_id_node(&object->id);
 
     if (id_node == nullptr) {
       BLI_assert(!"ID should always be valid");
@@ -334,7 +335,7 @@ void DepsgraphRelationBuilder::add_customdata_mask(Object *object,
 
 void DepsgraphRelationBuilder::add_special_eval_flag(ID *id, uint32_t flag)
 {
-  DEG::IDNode *id_node = graph_->find_id_node(id);
+  IDNode *id_node = graph_->find_id_node(id);
   if (id_node == nullptr) {
     BLI_assert(!"ID should always be valid");
   }
@@ -2984,4 +2985,5 @@ void DepsgraphRelationBuilder::constraint_walk(bConstraint * /*con*/,
   data->builder->build_id(id);
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

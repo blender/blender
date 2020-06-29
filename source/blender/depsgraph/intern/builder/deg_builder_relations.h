@@ -84,7 +84,8 @@ struct bSound;
 
 struct PropertyRNA;
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct ComponentNode;
 struct DepsNodeHandle;
@@ -385,6 +386,7 @@ struct DepsNodeHandle {
   const char *default_name;
 };
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender
 
 #include "intern/builder/deg_builder_relations_impl.h"

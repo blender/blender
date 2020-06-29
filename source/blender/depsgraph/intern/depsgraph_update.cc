@@ -27,7 +27,10 @@
 
 #include "intern/depsgraph_type.h"
 
-namespace DEG {
+namespace deg = blender::deg;
+
+namespace blender {
+namespace deg {
 
 static DEG_EditorUpdateIDCb deg_editor_update_id_cb = nullptr;
 static DEG_EditorUpdateSceneCb deg_editor_update_scene_cb = nullptr;
@@ -46,11 +49,12 @@ void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx, bool upd
   }
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender
 
 /* Set callbacks which are being called when depsgraph changes. */
 void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func, DEG_EditorUpdateSceneCb scene_func)
 {
-  DEG::deg_editor_update_id_cb = id_func;
-  DEG::deg_editor_update_scene_cb = scene_func;
+  deg::deg_editor_update_id_cb = id_func;
+  deg::deg_editor_update_scene_cb = scene_func;
 }

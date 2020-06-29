@@ -23,7 +23,8 @@
 
 #include "intern/eval/deg_eval_runtime_backup_modifier.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 ModifierDataBackupID::ModifierDataBackupID(const Depsgraph * /*depsgraph*/)
     : ModifierDataBackupID(nullptr, eModifierType_None)
@@ -46,4 +47,5 @@ uint32_t ModifierDataBackupID::hash() const
   return (ptr >> 4) ^ (uintptr_t)type;
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

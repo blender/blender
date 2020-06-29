@@ -23,7 +23,8 @@
 
 #pragma once
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 // Utility class which takes care of calculating average of time series, such as
 // FPS counters.
@@ -68,4 +69,5 @@ template<int MaxSamples> class AveragedTimeSampler {
   int next_sample_index_;
 };
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

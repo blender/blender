@@ -44,6 +44,8 @@
 
 #include "depsgraph.h"
 
+namespace deg = blender::deg;
+
 /*************************** Evaluation Query API *****************************/
 
 static ePhysicsRelationType modifier_to_relation_type(unsigned int modifier_type)
@@ -63,7 +65,7 @@ static ePhysicsRelationType modifier_to_relation_type(unsigned int modifier_type
 
 ListBase *DEG_get_effector_relations(const Depsgraph *graph, Collection *collection)
 {
-  const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
+  const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
   if (deg_graph->physics_relations[DEG_PHYSICS_EFFECTOR] == nullptr) {
     return nullptr;
   }
@@ -77,7 +79,7 @@ ListBase *DEG_get_collision_relations(const Depsgraph *graph,
                                       Collection *collection,
                                       unsigned int modifier_type)
 {
-  const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
+  const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
   const ePhysicsRelationType type = modifier_to_relation_type(modifier_type);
   if (deg_graph->physics_relations[type] == nullptr) {
     return nullptr;
@@ -96,7 +98,7 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
                                  const char *name)
 {
   Depsgraph *depsgraph = DEG_get_graph_from_handle(handle);
-  DEG::Depsgraph *deg_graph = (DEG::Depsgraph *)depsgraph;
+  deg::Depsgraph *deg_graph = (deg::Depsgraph *)depsgraph;
   ListBase *relations = build_collision_relations(deg_graph, collection, modifier_type);
   LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
     Object *ob1 = relation->ob;
@@ -119,7 +121,7 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
                                   const char *name)
 {
   Depsgraph *depsgraph = DEG_get_graph_from_handle(handle);
-  DEG::Depsgraph *deg_graph = (DEG::Depsgraph *)depsgraph;
+  deg::Depsgraph *deg_graph = (deg::Depsgraph *)depsgraph;
   ListBase *relations = build_effector_relations(deg_graph, effector_weights->group);
   LISTBASE_FOREACH (EffectorRelation *, relation, relations) {
     if (relation->ob == object) {
@@ -158,7 +160,8 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
 
 /******************************** Internal API ********************************/
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 ListBase *build_effector_relations(Depsgraph *graph, Collection *collection)
 {
@@ -218,4 +221,5 @@ void clear_physics_relations(Depsgraph *graph)
   }
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

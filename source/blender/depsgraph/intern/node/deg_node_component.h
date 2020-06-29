@@ -32,7 +32,8 @@
 struct ID;
 struct bPoseChannel;
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct BoneComponentNode;
 struct Depsgraph;
@@ -200,4 +201,5 @@ struct BoneComponentNode : public ComponentNode {
 
 void deg_register_component_depsnodes();
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

@@ -28,7 +28,8 @@
 #include "DNA_ID.h"
 #include "intern/node/deg_node.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct ComponentNode;
 
@@ -115,4 +116,5 @@ struct IDNode : public Node {
   DEG_DEPSNODE_DECLARE;
 };
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

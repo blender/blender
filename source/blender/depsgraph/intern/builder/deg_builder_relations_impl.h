@@ -28,7 +28,8 @@
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 template<typename KeyType>
 OperationNode *DepsgraphRelationBuilder::find_operation_node(const KeyType &key)
@@ -215,4 +216,5 @@ bool DepsgraphRelationBuilder::is_same_nodetree_node_dependency(const KeyFrom &k
   return true;
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

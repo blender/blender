@@ -27,7 +27,8 @@
 
 #include "intern/depsgraph.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 static Map<Main *, VectorSet<Depsgraph *>> g_graph_registry;
 
@@ -58,4 +59,5 @@ Span<Depsgraph *> get_all_registered_graphs(Main *bmain)
   return {};
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

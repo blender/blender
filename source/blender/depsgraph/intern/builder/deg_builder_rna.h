@@ -30,7 +30,8 @@ struct ID;
 struct PointerRNA;
 struct PropertyRNA;
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct Depsgraph;
 struct Node;
@@ -94,4 +95,5 @@ class RNANodeQuery {
   RNANodeQueryIDData *ensure_id_data(const ID *id);
 };
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

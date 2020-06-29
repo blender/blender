@@ -31,7 +31,8 @@ struct ID;
 struct PointerRNA;
 struct PropertyRNA;
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 class DepsgraphBuilderCache;
 
@@ -99,4 +100,5 @@ class DepsgraphBuilderCache {
   Map<ID *, AnimatedPropertyStorage *> animated_property_storage_map_;
 };
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

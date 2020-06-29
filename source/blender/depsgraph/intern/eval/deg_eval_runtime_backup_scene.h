@@ -27,7 +27,8 @@
 
 struct Scene;
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct Depsgraph;
 
@@ -55,4 +56,5 @@ class SceneBackup {
   SequencerBackup sequencer_backup;
 };
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

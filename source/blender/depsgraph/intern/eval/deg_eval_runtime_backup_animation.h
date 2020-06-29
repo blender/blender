@@ -27,7 +27,8 @@
 
 #include "intern/depsgraph_type.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct Depsgraph;
 
@@ -62,4 +63,5 @@ class AnimationBackup {
   Vector<AnimationValueBackup> values_backup;
 };
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

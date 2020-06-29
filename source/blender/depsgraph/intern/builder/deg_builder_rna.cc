@@ -48,7 +48,8 @@
 #include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 /* ********************************* ID Data ******************************** */
 
@@ -369,4 +370,5 @@ RNANodeQueryIDData *RNANodeQuery::ensure_id_data(const ID *id)
   return id_data.get();
 }
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender

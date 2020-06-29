@@ -27,7 +27,8 @@
 
 struct Main;
 
-namespace DEG {
+namespace blender {
+namespace deg {
 
 struct Depsgraph;
 
@@ -39,4 +40,5 @@ void deg_graph_flush_updates(struct Main *bmain, struct Depsgraph *graph);
 /* Clear tags from all operation nodes. */
 void deg_graph_clear_tags(struct Depsgraph *graph);
 
-}  // namespace DEG
+}  // namespace deg
+}  // namespace blender
