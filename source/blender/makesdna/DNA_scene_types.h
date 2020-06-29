@@ -2174,7 +2174,7 @@ typedef enum eSculptFlags {
 
   SCULPT_FLAG_UNUSED_6 = (1 << 6), /* cleared */
 
-  SCULPT_USE_OPENMP = (1 << 7),
+  SCULPT_FLAG_UNUSED_7 = (1 << 7), /* cleared */
   SCULPT_ONLY_DEFORM = (1 << 8),
   // SCULPT_SHOW_DIFFUSE = (1 << 9), // deprecated
 

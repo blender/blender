@@ -289,8 +289,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
         .mask_expand_create_face_set = RNA_boolean_get(op->ptr, "create_face_set"),
     };
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(
-        &settings, (sd->flags & SCULPT_USE_OPENMP), ss->filter_cache->totnode);
+    BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
     BLI_task_parallel_range(0, ss->filter_cache->totnode, &data, sculpt_expand_task_cb, &settings);
     ss->filter_cache->mask_update_current_it = mask_expand_update_it;
   }
@@ -459,8 +458,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
       .mask_expand_create_face_set = RNA_boolean_get(op->ptr, "create_face_set"),
   };
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(
-      &settings, (sd->flags & SCULPT_USE_OPENMP), ss->filter_cache->totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
   BLI_task_parallel_range(0, ss->filter_cache->totnode, &data, sculpt_expand_task_cb, &settings);
 
   const char *status_str = TIP_(

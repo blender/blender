@@ -291,7 +291,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     };
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
     BLI_task_parallel_range(0, totnode, &data, do_color_smooth_task_cb_exec, &settings);
     return;
   }
@@ -313,7 +313,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     zero_v4(swptd.color);
 
     TaskParallelSettings settings_sample;
-    BKE_pbvh_parallel_range_settings(&settings_sample, (sd->flags & SCULPT_USE_OPENMP), totnode);
+    BKE_pbvh_parallel_range_settings(&settings_sample, true, totnode);
     settings_sample.func_reduce = sample_wet_paint_reduce;
     settings_sample.userdata_chunk = &swptd;
     settings_sample.userdata_chunk_size = sizeof(SampleWetPaintTLSData);
@@ -345,7 +345,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_paint_brush_task_cb_ex, &settings);
 }
 
@@ -460,7 +460,7 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
 
   /* Smooth colors mode. */
   if (ss->cache->alt_smooth) {

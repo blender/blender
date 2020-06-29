@@ -114,8 +114,7 @@ void SCULPT_filter_cache_init(Object *ob, Sculpt *sd, const int undo_type)
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(
-      &settings, (sd->flags & SCULPT_USE_OPENMP), ss->filter_cache->totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
   BLI_task_parallel_range(
       0, ss->filter_cache->totnode, &data, filter_cache_init_task_cb, &settings);
 }
@@ -487,8 +486,7 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(
-      &settings, (sd->flags & SCULPT_USE_OPENMP), ss->filter_cache->totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
   BLI_task_parallel_range(0, ss->filter_cache->totnode, &data, mesh_filter_task_cb, &settings);
 
   if (filter_type == MESH_FILTER_SURFACE_SMOOTH) {

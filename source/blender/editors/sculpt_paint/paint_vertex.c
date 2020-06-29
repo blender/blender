@@ -2171,7 +2171,7 @@ static void calculate_average_weight(SculptThreadedTaskData *data,
   data->custom_data = accum;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (data->sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, data, do_wpaint_brush_calc_average_weight_cb_ex, &settings);
 
   uint accum_len = 0;

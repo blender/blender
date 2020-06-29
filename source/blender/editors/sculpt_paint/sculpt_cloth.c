@@ -547,7 +547,7 @@ static void cloth_brush_do_simulation_step(
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(
       0, totnode, &solve_simulation_data, do_cloth_brush_solve_simulation_task_cb_ex, &settings);
 }
@@ -622,7 +622,7 @@ static void cloth_brush_apply_brush_foces(Sculpt *sd, Object *ob, PBVHNode **nod
   }
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(
       0, totnode, &apply_forces_data, do_cloth_brush_apply_forces_task_cb_ex, &settings);
 }
@@ -872,8 +872,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(
-      &settings, (sd->flags & SCULPT_USE_OPENMP), ss->filter_cache->totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
   BLI_task_parallel_range(
       0, ss->filter_cache->totnode, &data, cloth_filter_apply_forces_task_cb, &settings);
 

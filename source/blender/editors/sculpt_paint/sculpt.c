@@ -837,7 +837,7 @@ int SCULPT_nearest_vertex_get(
   nvtd.nearest_vertex_distance_squared = FLT_MAX;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   settings.func_reduce = nearest_vertex_get_reduce;
   settings.userdata_chunk = &nvtd;
   settings.userdata_chunk_size = sizeof(NearestVertexTLSData);
@@ -1321,7 +1321,7 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP) && !ss->bm, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true && !ss->bm, totnode);
   BLI_task_parallel_range(0, totnode, &data, paint_mesh_restore_co_task_cb, &settings);
 
   BKE_pbvh_node_color_buffer_free(ss->pbvh);
@@ -1952,7 +1952,7 @@ static void calc_area_center(
   AreaNormalCenterTLSData anctd = {{{0}}};
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   settings.func_reduce = calc_area_normal_and_center_reduce;
   settings.userdata_chunk = &anctd;
   settings.userdata_chunk_size = sizeof(AreaNormalCenterTLSData);
@@ -1981,8 +1981,7 @@ void SCULPT_calc_area_normal(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3])
 {
   const Brush *brush = BKE_paint_brush(&sd->paint);
-  bool use_threading = (sd->flags & SCULPT_USE_OPENMP);
-  SCULPT_pbvh_calc_area_normal(brush, ob, nodes, totnode, use_threading, r_area_no);
+  SCULPT_pbvh_calc_area_normal(brush, ob, nodes, totnode, true, r_area_no);
 }
 
 /* Expose 'calc_area_normal' externally. */
@@ -2052,7 +2051,7 @@ static void calc_area_normal_and_center(
   AreaNormalCenterTLSData anctd = {{{0}}};
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   settings.func_reduce = calc_area_normal_and_center_reduce;
   settings.userdata_chunk = &anctd;
   settings.userdata_chunk_size = sizeof(AreaNormalCenterTLSData);
@@ -2717,7 +2716,7 @@ static void bmesh_topology_rake(
         .strength = factor,
     };
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
 
     BLI_task_parallel_range(0, totnode, &data, do_topology_rake_bmesh_task_cb_ex, &settings);
   }
@@ -2774,7 +2773,7 @@ static void do_mask_brush_draw(Sculpt *sd, Object *ob, PBVHNode **nodes, int tot
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_mask_brush_draw_task_cb_ex, &settings);
 }
 
@@ -2862,7 +2861,7 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_draw_brush_task_cb_ex, &settings);
 }
 
@@ -2939,7 +2938,7 @@ static void do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_draw_sharp_brush_task_cb_ex, &settings);
 }
 
@@ -3126,7 +3125,7 @@ static void do_slide_relax_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   if (ss->cache->alt_smooth) {
     for (int i = 0; i < 4; i++) {
       BLI_task_parallel_range(0, totnode, &data, do_topology_relax_task_cb_ex, &settings);
@@ -3336,7 +3335,7 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_crease_brush_task_cb_ex, &settings);
 }
 
@@ -3450,7 +3449,7 @@ static void do_pinch_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_pinch_brush_task_cb_ex, &settings);
 }
 
@@ -3523,7 +3522,7 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_grab_brush_task_cb_ex, &settings);
 }
 
@@ -3632,7 +3631,7 @@ static void do_elastic_deform_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_elastic_deform_brush_task_cb_ex, &settings);
 }
 
@@ -3839,7 +3838,7 @@ static void do_nudge_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_nudge_brush_task_cb_ex, &settings);
 }
 
@@ -3961,7 +3960,7 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_snake_hook_brush_task_cb_ex, &settings);
 }
 
@@ -4034,7 +4033,7 @@ static void do_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_thumb_brush_task_cb_ex, &settings);
 }
 
@@ -4108,7 +4107,7 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_rotate_brush_task_cb_ex, &settings);
 }
 
@@ -4224,7 +4223,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_layer_brush_task_cb_ex, &settings);
 }
 
@@ -4291,7 +4290,7 @@ static void do_inflate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_inflate_brush_task_cb_ex, &settings);
 }
 
@@ -4416,7 +4415,7 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_flatten_brush_task_cb_ex, &settings);
 }
 
@@ -4567,7 +4566,7 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   ClaySampleData csd = {{0}};
 
   TaskParallelSettings sample_settings;
-  BKE_pbvh_parallel_range_settings(&sample_settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&sample_settings, true, totnode);
   sample_settings.func_reduce = calc_clay_surface_reduce;
   sample_settings.userdata_chunk = &csd;
   sample_settings.userdata_chunk_size = sizeof(ClaySampleData);
@@ -4598,7 +4597,7 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_clay_brush_task_cb_ex, &settings);
 }
 
@@ -4749,7 +4748,7 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_clay_strips_brush_task_cb_ex, &settings);
 }
 
@@ -4843,7 +4842,7 @@ static void do_fill_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_fill_brush_task_cb_ex, &settings);
 }
 
@@ -4936,7 +4935,7 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_scrape_brush_task_cb_ex, &settings);
 }
 
@@ -5109,7 +5108,7 @@ static void do_clay_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_clay_thumb_brush_task_cb_ex, &settings);
 }
 
@@ -5181,7 +5180,7 @@ static void do_gravity(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, fl
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_gravity_task_cb_ex, &settings);
 }
 
@@ -5407,7 +5406,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     };
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
     BLI_task_parallel_range(0, totnode, &task_data, do_brush_action_task_cb, &settings);
 
     if (sculpt_brush_needs_normal(ss, brush)) {
@@ -5670,7 +5669,7 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
     };
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
     BLI_task_parallel_range(0, totnode, &data, sculpt_combine_proxies_task_cb, &settings);
   }
 
@@ -5758,7 +5757,7 @@ void SCULPT_flush_stroke_deform(Sculpt *sd, Object *ob, bool is_proxy_used)
     };
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
     BLI_task_parallel_range(0, totnode, &data, SCULPT_flush_stroke_deform_task_cb, &settings);
 
     if (vertCos) {

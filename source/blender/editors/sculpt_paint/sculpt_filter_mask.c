@@ -247,7 +247,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
     };
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
     BLI_task_parallel_range(0, totnode, &data, mask_filter_task_cb, &settings);
 
     if (ELEM(filter_type, MASK_FILTER_GROW, MASK_FILTER_SHRINK)) {
@@ -276,7 +276,7 @@ void SCULPT_mask_filter_smooth_apply(
 
   for (int i = 0; i < smooth_iterations; i++) {
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
     BLI_task_parallel_range(0, totnode, &data, mask_filter_task_cb, &settings);
   }
 }
@@ -459,7 +459,7 @@ static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
 
   settings.func_reduce = dirty_mask_compute_range_reduce;
   settings.userdata_chunk = &range;

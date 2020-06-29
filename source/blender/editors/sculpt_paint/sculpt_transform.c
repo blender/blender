@@ -178,8 +178,7 @@ void ED_sculpt_update_modal_transform(struct bContext *C)
   }
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(
-      &settings, (sd->flags & SCULPT_USE_OPENMP), ss->filter_cache->totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
   BLI_task_parallel_range(
       0, ss->filter_cache->totnode, &data, sculpt_transform_task_cb, &settings);
 

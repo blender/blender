@@ -763,12 +763,6 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Lock Z", "Disallow changes to the Z axis of vertices");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
-  prop = RNA_def_property(srna, "use_threaded", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_USE_OPENMP);
-  RNA_def_property_ui_text(
-      prop, "Use OpenMP", "Take advantage of multiple CPU cores to improve sculpting performance");
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
-
   prop = RNA_def_property(srna, "use_deform_only", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_ONLY_DEFORM);
   RNA_def_property_ui_text(prop,
