@@ -7246,37 +7246,35 @@ void uiTemplateCacheFile(uiLayout *layout,
 
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
 
-  uiLayout *row = uiLayoutRow(layout, false);
-  uiBlock *block = uiLayoutGetBlock(row);
-  uiDefBut(block, UI_BTYPE_LABEL, 0, IFACE_("File Path:"), 0, 19, 145, 19, NULL, 0, 0, 0, 0, "");
+  uiLayout *row, *sub, *subsub;
+
+  uiLayoutSetPropSep(layout, true);
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, &fileptr, "filepath", 0, NULL, ICON_NONE);
+  sub = uiLayoutRow(row, true);
+  uiItemO(sub, "", ICON_FILE_REFRESH, "cachefile.reload");
 
   row = uiLayoutRow(layout, false);
-  uiLayout *split = uiLayoutSplit(row, 0.0f, false);
-  row = uiLayoutRow(split, true);
+  uiItemR(row, &fileptr, "is_sequence", 0, NULL, ICON_NONE);
 
-  uiItemR(row, &fileptr, "filepath", 0, "", ICON_NONE);
-  uiItemO(row, "", ICON_FILE_REFRESH, "cachefile.reload");
-
-  row = uiLayoutRow(layout, false);
-  uiItemR(row, &fileptr, "is_sequence", 0, "Is Sequence", ICON_NONE);
-
-  row = uiLayoutRow(layout, false);
-  uiItemR(row, &fileptr, "override_frame", 0, "Override Frame", ICON_NONE);
-
-  row = uiLayoutRow(layout, false);
-  uiLayoutSetActive(row, RNA_boolean_get(&fileptr, "override_frame"));
-  uiItemR(row, &fileptr, "frame", 0, "Frame", ICON_NONE);
+  row = uiLayoutRowWithHeading(layout, true, IFACE_("Override Frame"));
+  sub = uiLayoutRow(row, true);
+  uiLayoutSetPropDecorate(sub, false);
+  uiItemR(sub, &fileptr, "override_frame", 0, "", ICON_NONE);
+  subsub = uiLayoutRow(sub, true);
+  uiLayoutSetActive(subsub, RNA_boolean_get(&fileptr, "override_frame"));
+  uiItemR(subsub, &fileptr, "frame", 0, "", ICON_NONE);
+  uiItemDecoratorR(row, &fileptr, "frame", 0);
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, &fileptr, "frame_offset", 0, "Frame Offset", ICON_NONE);
+  uiItemR(row, &fileptr, "frame_offset", 0, NULL, ICON_NONE);
   uiLayoutSetActive(row, !RNA_boolean_get(&fileptr, "is_sequence"));
 
-  row = uiLayoutRow(layout, false);
-  uiItemL(row, IFACE_("Manual Transform:"), ICON_NONE);
-
-  row = uiLayoutRow(layout, false);
-  uiLayoutSetActive(row, (sbuts->mainb == BCONTEXT_CONSTRAINT));
-  uiItemR(row, &fileptr, "scale", 0, "Scale", ICON_NONE);
+  if (sbuts->mainb == BCONTEXT_CONSTRAINT) {
+    row = uiLayoutRow(layout, false);
+    uiItemR(row, &fileptr, "scale", 0, IFACE_("Manual Scale"), ICON_NONE);
+  }
 
   /* TODO: unused for now, so no need to expose. */
 #if 0
