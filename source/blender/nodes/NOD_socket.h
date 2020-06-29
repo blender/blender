@@ -35,6 +35,10 @@
 struct bNode;
 struct bNodeTree;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree,
                                                   struct bNode *node,
                                                   struct bNodeSocketTemplate *stemp,
@@ -46,4 +50,8 @@ void node_socket_init_default_value(struct bNodeSocket *sock);
 void node_socket_copy_default_value(struct bNodeSocket *to, const struct bNodeSocket *from);
 void register_standard_node_socket_types(void);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* __NOD_SOCKET_H__ */

@@ -9020,7 +9020,7 @@ static void rna_def_node_socket_standard_types(BlenderRNA *brna)
   /* XXX These types should eventually be registered at runtime.
    * Then use the nodeStaticSocketType and nodeStaticSocketInterfaceType functions
    * to get the idname strings from int type and subtype
-   * (see node_socket.c, register_standard_node_socket_types).
+   * (see node_socket.cc, register_standard_node_socket_types).
    */
 
   rna_def_node_socket_float(brna, "NodeSocketFloat", "NodeSocketInterfaceFloat", PROP_NONE);
