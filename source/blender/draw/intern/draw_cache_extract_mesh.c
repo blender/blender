@@ -542,10 +542,10 @@ typedef void(ExtractLVertBMeshFn)(const MeshRenderData *mr,
                                   int lvert_index,
                                   BMVert *eve,
                                   void *data);
-typedef void(ExtractLVertFn)(const MeshRenderData *mr,
-                             int lvert_index,
-                             const MVert *mvert,
-                             void *data);
+typedef void(ExtractLVertMeshFn)(const MeshRenderData *mr,
+                                 int lvert_index,
+                                 const MVert *mvert,
+                                 void *data);
 typedef void(ExtractFinishFn)(const MeshRenderData *mr, void *buffer, void *data);
 
 typedef struct MeshExtract {
@@ -559,7 +559,7 @@ typedef struct MeshExtract {
   ExtractLEdgeBMeshFn *iter_ledge_bm;
   ExtractLEdgeMeshFn *iter_ledge_mesh;
   ExtractLVertBMeshFn *iter_lvert_bm;
-  ExtractLVertFn *iter_lvert_mesh;
+  ExtractLVertMeshFn *iter_lvert_mesh;
   /** Executed on one worker thread after all elements iterations. */
   ExtractFinishFn *finish;
   /** Used to request common data. */
