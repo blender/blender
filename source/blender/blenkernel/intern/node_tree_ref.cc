@@ -139,15 +139,13 @@ void NodeTreeRef::find_targets_skipping_reroutes(OutputSocketRef &socket,
 
 std::string NodeTreeRef::to_dot() const
 {
-  namespace Dot = blender::DotExport;
+  dot::DirectedGraph digraph;
+  digraph.set_rankdir(dot::Attr_rankdir::LeftToRight);
 
-  Dot::DirectedGraph digraph;
-  digraph.set_rankdir(Dot::Attr_rankdir::LeftToRight);
-
-  Map<const NodeRef *, Dot::NodeWithSocketsRef> dot_nodes;
+  Map<const NodeRef *, dot::NodeWithSocketsRef> dot_nodes;
 
   for (const NodeRef *node : m_nodes_by_id) {
-    Dot::Node &dot_node = digraph.new_node("");
+    dot::Node &dot_node = digraph.new_node("");
     dot_node.set_background_color("white");
 
     Vector<std::string> input_names;
@@ -160,13 +158,13 @@ std::string NodeTreeRef::to_dot() const
     }
 
     dot_nodes.add_new(node,
-                      Dot::NodeWithSocketsRef(dot_node, node->name(), input_names, output_names));
+                      dot::NodeWithSocketsRef(dot_node, node->name(), input_names, output_names));
   }
 
   for (const OutputSocketRef *from_socket : m_output_sockets) {
     for (const InputSocketRef *to_socket : from_socket->directly_linked_sockets()) {
-      Dot::NodeWithSocketsRef &from_dot_node = dot_nodes.lookup(&from_socket->node());
-      Dot::NodeWithSocketsRef &to_dot_node = dot_nodes.lookup(&to_socket->node());
+      dot::NodeWithSocketsRef &from_dot_node = dot_nodes.lookup(&from_socket->node());
+      dot::NodeWithSocketsRef &to_dot_node = dot_nodes.lookup(&to_socket->node());
 
       digraph.new_edge(from_dot_node.output(from_socket->index()),
                        to_dot_node.input(to_socket->index()));
