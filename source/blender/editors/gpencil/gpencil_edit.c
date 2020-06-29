@@ -1216,7 +1216,7 @@ void GPENCIL_OT_extrude(wmOperatorType *ot)
 
 /* list of bGPDstroke instances */
 /* NOTE: is exposed within the editors/gpencil module so that other tools can use it too */
-ListBase gp_strokes_copypastebuf = {NULL, NULL};
+ListBase gpencil_strokes_copypastebuf = {NULL, NULL};
 
 /* Hash for hanging on to all the colors used by strokes in the buffer
  *
@@ -1273,7 +1273,7 @@ void ED_gpencil_strokes_copybuf_free(void)
   }
 
   /* Free the stroke buffer */
-  for (gps = gp_strokes_copypastebuf.first; gps; gps = gpsn) {
+  for (gps = gpencil_strokes_copypastebuf.first; gps; gps = gpsn) {
     gpsn = gps->next;
 
     if (gps->points) {
@@ -1286,17 +1286,17 @@ void ED_gpencil_strokes_copybuf_free(void)
 
     MEM_SAFE_FREE(gps->triangles);
 
-    BLI_freelinkN(&gp_strokes_copypastebuf, gps);
+    BLI_freelinkN(&gpencil_strokes_copypastebuf, gps);
   }
 
-  gp_strokes_copypastebuf.first = gp_strokes_copypastebuf.last = NULL;
+  gpencil_strokes_copypastebuf.first = gpencil_strokes_copypastebuf.last = NULL;
 }
 
 /**
  * Ensure that destination datablock has all the colors the pasted strokes need.
  * Helper function for copy-pasting strokes
  */
-GHash *gp_copybuf_validate_colormap(bContext *C)
+GHash *gpencil_copybuf_validate_colormap(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
@@ -1389,11 +1389,11 @@ static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
 
           /* add to temp buffer */
           gpsd->next = gpsd->prev = NULL;
-          BLI_addtail(&gp_strokes_copypastebuf, gpsd);
+          BLI_addtail(&gpencil_strokes_copypastebuf, gpsd);
         }
         else {
           /* delegate to a helper, as there's too much to fit in here (for copying subsets)... */
-          gp_duplicate_points(gps, &gp_strokes_copypastebuf, gpl->info);
+          gp_duplicate_points(gps, &gpencil_strokes_copypastebuf, gpl->info);
         }
       }
     }
@@ -1401,10 +1401,10 @@ static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
   CTX_DATA_END;
 
   /* Build up hash of material colors used in these strokes */
-  if (gp_strokes_copypastebuf.first) {
+  if (gpencil_strokes_copypastebuf.first) {
     gp_strokes_copypastebuf_colors = BLI_ghash_int_new("GPencil CopyBuf Colors");
     GHash *ma_to_name = gp_strokes_copypastebuf_colors_material_to_name_create(bmain);
-    LISTBASE_FOREACH (bGPDstroke *, gps, &gp_strokes_copypastebuf) {
+    LISTBASE_FOREACH (bGPDstroke *, gps, &gpencil_strokes_copypastebuf) {
       if (ED_gpencil_stroke_can_use(C, gps)) {
         Material *ma = BKE_object_material_get(ob, gps->mat_nr + 1);
         /* Avoid default material. */
@@ -1464,7 +1464,7 @@ static bool gp_strokes_paste_poll(bContext *C)
    * 2) Copy buffer must at least have something (though it may be the wrong sort...).
    */
   return (ED_gpencil_data_get_active(C) != NULL) &&
-         (!BLI_listbase_is_empty(&gp_strokes_copypastebuf));
+         (!BLI_listbase_is_empty(&gpencil_strokes_copypastebuf));
 }
 
 typedef enum eGP_PasteMode {
@@ -1489,7 +1489,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "Operator not supported in multiframe edition");
     return OPERATOR_CANCELLED;
   }
-  else if (BLI_listbase_is_empty(&gp_strokes_copypastebuf)) {
+  else if (BLI_listbase_is_empty(&gpencil_strokes_copypastebuf)) {
     BKE_report(op->reports,
                RPT_ERROR,
                "No strokes to paste, select and copy some points before trying again");
@@ -1509,7 +1509,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
     bGPDstroke *gps;
     bool ok = false;
 
-    for (gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
+    for (gps = gpencil_strokes_copypastebuf.first; gps; gps = gps->next) {
       if (ED_gpencil_stroke_can_use(C, gps)) {
         ok = true;
         break;
@@ -1535,10 +1535,11 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
   CTX_DATA_END;
 
   /* Ensure that all the necessary colors exist */
-  new_colors = gp_copybuf_validate_colormap(C);
+  new_colors = gpencil_copybuf_validate_colormap(C);
 
   /* Copy over the strokes from the buffer (and adjust the colors) */
-  bGPDstroke *gps_init = (!on_back) ? gp_strokes_copypastebuf.first : gp_strokes_copypastebuf.last;
+  bGPDstroke *gps_init = (!on_back) ? gpencil_strokes_copypastebuf.first :
+                                      gpencil_strokes_copypastebuf.last;
   for (bGPDstroke *gps = gps_init; gps; gps = (!on_back) ? gps->next : gps->prev) {
     if (ED_gpencil_stroke_can_use(C, gps)) {
       /* Need to verify if layer exists */
@@ -1809,7 +1810,7 @@ void GPENCIL_OT_blank_frame_add(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_blank_frame_add_exec;
-  ot->poll = gp_add_poll;
+  ot->poll = gpencil_add_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -2382,12 +2383,12 @@ static void gp_stroke_join_islands(bGPDframe *gpf, bGPDstroke *gps_first, bGPDst
  * 2) Each island gets converted to a new stroke
  * If the number of points is <= limit, the stroke is deleted
  */
-void gp_stroke_delete_tagged_points(bGPDframe *gpf,
-                                    bGPDstroke *gps,
-                                    bGPDstroke *next_stroke,
-                                    int tag_flags,
-                                    bool select,
-                                    int limit)
+void gpencil_stroke_delete_tagged_points(bGPDframe *gpf,
+                                         bGPDstroke *gps,
+                                         bGPDstroke *next_stroke,
+                                         int tag_flags,
+                                         bool select,
+                                         int limit)
 {
   tGPDeleteIsland *islands = MEM_callocN(sizeof(tGPDeleteIsland) * (gps->totpoints + 1) / 2,
                                          "gp_point_islands");
@@ -2564,7 +2565,7 @@ static int gp_delete_selected_points(bContext *C)
             gps->flag &= ~GP_STROKE_SELECT;
 
             /* delete unwanted points by splitting stroke into several smaller ones */
-            gp_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
+            gpencil_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
 
             changed = true;
           }
@@ -2585,7 +2586,7 @@ static int gp_delete_selected_points(bContext *C)
 }
 
 /* simple wrapper to external call */
-int gp_delete_selected_point_wrap(bContext *C)
+int gpencil_delete_selected_point_wrap(bContext *C)
 {
   return gp_delete_selected_points(C);
 }
@@ -2766,7 +2767,7 @@ static int gp_snap_to_grid(bContext *C, wmOperator *UNUSED(op))
 
             /* return data */
             copy_v3_v3(&pt->x, fpt);
-            gp_apply_parent_point(depsgraph, obact, gpl, pt);
+            gpencil_apply_parent_point(depsgraph, obact, gpl, pt);
           }
         }
       }
@@ -2854,7 +2855,7 @@ static int gp_snap_to_cursor(bContext *C, wmOperator *op)
           for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
             if (pt->flag & GP_SPOINT_SELECT) {
               copy_v3_v3(&pt->x, cursor_global);
-              gp_apply_parent_point(depsgraph, obact, gpl, pt);
+              gpencil_apply_parent_point(depsgraph, obact, gpl, pt);
             }
           }
         }
@@ -3036,7 +3037,7 @@ void GPENCIL_OT_stroke_apply_thickness(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = gp_stroke_apply_thickness_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 }
 
 /** \} */
@@ -3151,7 +3152,7 @@ void GPENCIL_OT_stroke_cyclical_set(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = gp_stroke_cyclical_set_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3254,7 +3255,7 @@ void GPENCIL_OT_stroke_caps_set(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = gp_stroke_caps_set_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3553,7 +3554,7 @@ void GPENCIL_OT_stroke_join(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = gp_stroke_join_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3624,7 +3625,7 @@ void GPENCIL_OT_stroke_flip(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = gp_stroke_flip_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3650,7 +3651,7 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
   /* Init space conversion stuff. */
   GP_SpaceConversion gsc = {NULL};
   SnapObjectContext *sctx = NULL;
-  gp_point_conversion_init(C, &gsc);
+  gpencil_point_conversion_init(C, &gsc);
   /* Init snap context for geometry projection. */
   sctx = ED_transform_snap_object_context_create_view3d(scene, 0, region, CTX_wm_view3d(C));
 
@@ -3769,7 +3770,7 @@ void GPENCIL_OT_recalc_geometry(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_recalc_geometry_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3988,7 +3989,7 @@ void GPENCIL_OT_stroke_subdivide(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = gp_stroke_subdivide_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -4051,7 +4052,7 @@ void GPENCIL_OT_stroke_simplify(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = gp_stroke_simplify_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -4101,7 +4102,7 @@ void GPENCIL_OT_stroke_simplify_fixed(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = gp_stroke_simplify_fixed_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -4150,7 +4151,7 @@ void GPENCIL_OT_stroke_sample(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = gp_stroke_sample_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -4225,7 +4226,7 @@ void GPENCIL_OT_stroke_trim(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = gp_stroke_trim_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -4350,10 +4351,12 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
                 }
 
                 /* delete selected points from destination stroke */
-                gp_stroke_delete_tagged_points(gpf_dst, gps_dst, NULL, GP_SPOINT_SELECT, false, 0);
+                gpencil_stroke_delete_tagged_points(
+                    gpf_dst, gps_dst, NULL, GP_SPOINT_SELECT, false, 0);
 
                 /* delete selected points from origin stroke */
-                gp_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
+                gpencil_stroke_delete_tagged_points(
+                    gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
               }
               /* selected strokes mode */
               else if (mode == GP_SEPARATE_STROKE) {
@@ -4508,10 +4511,10 @@ static int gp_stroke_split_exec(bContext *C, wmOperator *UNUSED(op))
             }
 
             /* delete selected points from destination stroke */
-            gp_stroke_delete_tagged_points(gpf, gps_dst, NULL, GP_SPOINT_SELECT, true, 0);
+            gpencil_stroke_delete_tagged_points(gpf, gps_dst, NULL, GP_SPOINT_SELECT, true, 0);
 
             /* delete selected points from origin stroke */
-            gp_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
+            gpencil_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
           }
         }
         /* select again tagged points */
@@ -4591,7 +4594,7 @@ void GPENCIL_OT_stroke_smooth(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = gp_stroke_smooth_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -4634,8 +4637,8 @@ static bool gpencil_test_lasso(bGPDstroke *gps,
   const struct GP_SelectLassoUserData *data = user_data;
   bGPDspoint pt2;
   int x0, y0;
-  gp_point_to_parent_space(pt, diff_mat, &pt2);
-  gp_point_to_xy(gsc, gps, &pt2, &x0, &y0);
+  gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+  gpencil_point_to_xy(gsc, gps, &pt2, &x0, &y0);
   /* test if in lasso */
   return ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&data->rect, x0, y0) &&
           BLI_lasso_is_point_inside(data->mcoords, data->mcoords_len, x0, y0, INT_MAX));
@@ -4691,7 +4694,8 @@ static void gpencil_cutter_dissolve(bGPDlayer *hit_layer, bGPDstroke *hit_stroke
         pt->flag &= ~GP_SPOINT_TAG;
       }
     }
-    gp_stroke_delete_tagged_points(hit_layer->actframe, hit_stroke, gpsn, GP_SPOINT_TAG, false, 1);
+    gpencil_stroke_delete_tagged_points(
+        hit_layer->actframe, hit_stroke, gpsn, GP_SPOINT_TAG, false, 1);
   }
 }
 
@@ -4718,7 +4722,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
   }
 
   /* init space conversion stuff */
-  gp_point_conversion_init(C, &gsc);
+  gpencil_point_conversion_init(C, &gsc);
 
   /* deselect all strokes first */
   CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {

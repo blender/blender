@@ -1011,7 +1011,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
     }
 
     /* convert screen-coordinates to 3D coordinates */
-    gp_stroke_convertcoords_tpoint(
+    gpencil_stroke_convertcoords_tpoint(
         tgpi->scene, tgpi->region, tgpi->ob, p2d, depth_arr ? depth_arr + i : NULL, &pt->x);
 
     pt->pressure = pressure;
@@ -1036,7 +1036,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
     bGPDcontrolpoint *cps = tgpi->gpd->runtime.cp_points;
     for (int i = 0; i < tgpi->gpd->runtime.tot_cp_points; i++) {
       bGPDcontrolpoint *cp = &cps[i];
-      gp_stroke_convertcoords_tpoint(
+      gpencil_stroke_convertcoords_tpoint(
           tgpi->scene, tgpi->region, tgpi->ob, (tGPspoint *)cp, NULL, &cp->x);
     }
   }
@@ -1052,7 +1052,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
   /* if parented change position relative to parent object */
   for (int i = 0; i < gps->totpoints; i++) {
     bGPDspoint *pt = &gps->points[i];
-    gp_apply_parent_point(tgpi->depsgraph, tgpi->ob, tgpi->gpl, pt);
+    gpencil_apply_parent_point(tgpi->depsgraph, tgpi->ob, tgpi->gpl, pt);
   }
 
   /* if camera view, reproject flat to view to avoid perspective effect */

@@ -216,7 +216,7 @@ static int gp_bake_mesh_animation_exec(bContext *C, wmOperator *op)
   SnapObjectContext *sctx = NULL;
   if (project_type != GP_REPROJECT_KEEP) {
     /* Init space conversion stuff. */
-    gp_point_conversion_init(C, &gsc);
+    gpencil_point_conversion_init(C, &gsc);
     /* Init snap context for geometry projection. */
     sctx = ED_transform_snap_object_context_create_view3d(scene, 0, region, CTX_wm_view3d(C));
 

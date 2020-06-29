@@ -358,7 +358,7 @@ bool ED_gpencil_has_keyframe_v3d(Scene *UNUSED(scene), Object *ob, int cfra)
 /* Poll Callbacks */
 
 /* poll callback for adding data/layers - special */
-bool gp_add_poll(bContext *C)
+bool gpencil_add_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob == NULL) {
@@ -370,7 +370,7 @@ bool gp_add_poll(bContext *C)
 }
 
 /* poll callback for checking if there is an active layer */
-bool gp_active_layer_poll(bContext *C)
+bool gpencil_active_layer_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
@@ -383,7 +383,7 @@ bool gp_active_layer_poll(bContext *C)
 }
 
 /* poll callback for checking if there is an active brush */
-bool gp_active_brush_poll(bContext *C)
+bool gpencil_active_brush_poll(bContext *C)
 {
   ToolSettings *ts = CTX_data_tool_settings(C);
   Paint *paint = &ts->gp_paint->paint;
@@ -536,7 +536,7 @@ const EnumPropertyItem *ED_gpencil_material_enum_itemf(bContext *C,
  * \param x0, y0: The screen-space x and y coordinates of the start of the stroke segment
  * \param x1, y1: The screen-space x and y coordinates of the end of the stroke segment
  */
-bool gp_stroke_inside_circle(const float mval[2], int rad, int x0, int y0, int x1, int y1)
+bool gpencil_stroke_inside_circle(const float mval[2], int rad, int x0, int y0, int x1, int y1)
 {
   /* simple within-radius check for now */
   const float screen_co_a[2] = {x0, y0};
@@ -614,7 +614,7 @@ bool ED_gpencil_stroke_color_use(Object *ob, const bGPDlayer *gpl, const bGPDstr
  *
  * \param r_gsc: [out] The space conversion settings struct, populated with necessary params
  */
-void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
+void gpencil_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
 {
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
@@ -661,7 +661,9 @@ void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
  * \param diff_mat: Matrix with the difference between original parent matrix
  * \param[out] r_pt: Pointer to new point after apply matrix
  */
-void gp_point_to_parent_space(const bGPDspoint *pt, const float diff_mat[4][4], bGPDspoint *r_pt)
+void gpencil_point_to_parent_space(const bGPDspoint *pt,
+                                   const float diff_mat[4][4],
+                                   bGPDspoint *r_pt)
 {
   float fpt[3];
 
@@ -672,7 +674,7 @@ void gp_point_to_parent_space(const bGPDspoint *pt, const float diff_mat[4][4], 
 /**
  * Change position relative to parent object
  */
-void gp_apply_parent(Depsgraph *depsgraph, Object *obact, bGPDlayer *gpl, bGPDstroke *gps)
+void gpencil_apply_parent(Depsgraph *depsgraph, Object *obact, bGPDlayer *gpl, bGPDstroke *gps)
 {
   bGPDspoint *pt;
   int i;
@@ -695,7 +697,10 @@ void gp_apply_parent(Depsgraph *depsgraph, Object *obact, bGPDlayer *gpl, bGPDst
 /**
  * Change point position relative to parent object
  */
-void gp_apply_parent_point(Depsgraph *depsgraph, Object *obact, bGPDlayer *gpl, bGPDspoint *pt)
+void gpencil_apply_parent_point(Depsgraph *depsgraph,
+                                Object *obact,
+                                bGPDlayer *gpl,
+                                bGPDspoint *pt)
 {
   /* undo matrix */
   float diff_mat[4][4];
@@ -718,7 +723,7 @@ void gp_apply_parent_point(Depsgraph *depsgraph, Object *obact, bGPDlayer *gpl, 
  * \warning This assumes that the caller has already checked
  * whether the stroke in question can be drawn.
  */
-void gp_point_to_xy(
+void gpencil_point_to_xy(
     const GP_SpaceConversion *gsc, const bGPDstroke *gps, const bGPDspoint *pt, int *r_x, int *r_y)
 {
   const ARegion *region = gsc->region;
@@ -773,11 +778,11 @@ void gp_point_to_xy(
  * \warning This assumes that the caller has already checked
  * whether the stroke in question can be drawn.
  */
-void gp_point_to_xy_fl(const GP_SpaceConversion *gsc,
-                       const bGPDstroke *gps,
-                       const bGPDspoint *pt,
-                       float *r_x,
-                       float *r_y)
+void gpencil_point_to_xy_fl(const GP_SpaceConversion *gsc,
+                            const bGPDstroke *gps,
+                            const bGPDspoint *pt,
+                            float *r_x,
+                            float *r_y)
 {
   const ARegion *region = gsc->region;
   const View2D *v2d = gsc->v2d;
@@ -833,10 +838,10 @@ void gp_point_to_xy_fl(const GP_SpaceConversion *gsc,
 /**
  * generic based on gp_point_to_xy_fl
  */
-void gp_point_3d_to_xy(const GP_SpaceConversion *gsc,
-                       const short flag,
-                       const float pt[3],
-                       float xy[2])
+void gpencil_point_3d_to_xy(const GP_SpaceConversion *gsc,
+                            const short flag,
+                            const float pt[3],
+                            float xy[2])
 {
   const ARegion *region = gsc->region;
   const View2D *v2d = gsc->v2d;
@@ -902,10 +907,10 @@ void gp_point_3d_to_xy(const GP_SpaceConversion *gsc,
  *
  * \warning Assumes that it is getting called in a 3D view only.
  */
-bool gp_point_xy_to_3d(const GP_SpaceConversion *gsc,
-                       Scene *scene,
-                       const float screen_co[2],
-                       float r_out[3])
+bool gpencil_point_xy_to_3d(const GP_SpaceConversion *gsc,
+                            Scene *scene,
+                            const float screen_co[2],
+                            float r_out[3])
 {
   const RegionView3D *rv3d = gsc->region->regiondata;
   float rvec[3];
@@ -942,12 +947,12 @@ bool gp_point_xy_to_3d(const GP_SpaceConversion *gsc,
  * \param depth: Depth array (via #ED_view3d_autodist_depth()).
  * \param r_out: The resulting 2D point data.
  */
-void gp_stroke_convertcoords_tpoint(Scene *scene,
-                                    ARegion *region,
-                                    Object *ob,
-                                    const tGPspoint *point2D,
-                                    float *depth,
-                                    float r_out[3])
+void gpencil_stroke_convertcoords_tpoint(Scene *scene,
+                                         ARegion *region,
+                                         Object *ob,
+                                         const tGPspoint *point2D,
+                                         float *depth,
+                                         float r_out[3])
 {
   ToolSettings *ts = scene->toolsettings;
 
@@ -1027,7 +1032,7 @@ void ED_gpencil_project_stroke_to_view(bContext *C, bGPDlayer *gpl, bGPDstroke *
   float inverse_diff_mat[4][4];
 
   /* init space conversion stuff */
-  gp_point_conversion_init(C, &gsc);
+  gpencil_point_conversion_init(C, &gsc);
 
   BKE_gpencil_parent_matrix_get(depsgraph, ob, gpl, diff_mat);
   invert_m4_m4(inverse_diff_mat, diff_mat);
@@ -1037,11 +1042,11 @@ void ED_gpencil_project_stroke_to_view(bContext *C, bGPDlayer *gpl, bGPDstroke *
     float xy[2];
 
     bGPDspoint pt2;
-    gp_point_to_parent_space(pt, diff_mat, &pt2);
-    gp_point_to_xy_fl(&gsc, gps, &pt2, &xy[0], &xy[1]);
+    gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+    gpencil_point_to_xy_fl(&gsc, gps, &pt2, &xy[0], &xy[1]);
 
     /* Planar - All on same plane parallel to the viewplane */
-    gp_point_xy_to_3d(&gsc, scene, xy, &pt->x);
+    gpencil_point_xy_to_3d(&gsc, scene, xy, &pt->x);
 
     /* Unapply parent corrections */
     mul_m4_v3(inverse_diff_mat, &pt->x);
@@ -1173,8 +1178,8 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
      * artifacts in the final points. */
 
     bGPDspoint pt2;
-    gp_point_to_parent_space(pt, diff_mat, &pt2);
-    gp_point_to_xy_fl(gsc, gps_active, &pt2, &xy[0], &xy[1]);
+    gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+    gpencil_point_to_xy_fl(gsc, gps_active, &pt2, &xy[0], &xy[1]);
 
     /* Project stroke in one axis */
     if (ELEM(mode, GP_REPROJECT_FRONT, GP_REPROJECT_SIDE, GP_REPROJECT_TOP, GP_REPROJECT_CURSOR)) {
@@ -1207,13 +1212,13 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
       copy_v3_v3(&pt->x, &pt2.x);
 
       /* apply parent again */
-      gp_apply_parent_point(depsgraph, gsc->ob, gpl, pt);
+      gpencil_apply_parent_point(depsgraph, gsc->ob, gpl, pt);
     }
     /* Project screen-space back to 3D space (from current perspective)
      * so that all points have been treated the same way. */
     else if (mode == GP_REPROJECT_VIEW) {
       /* Planar - All on same plane parallel to the view-plane. */
-      gp_point_xy_to_3d(gsc, gsc->scene, xy, &pt->x);
+      gpencil_point_xy_to_3d(gsc, gsc->scene, xy, &pt->x);
     }
     else {
       /* Geometry - Snap to surfaces of visible geometry */
@@ -1241,7 +1246,7 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
       }
       else {
         /* Default to planar */
-        gp_point_xy_to_3d(gsc, gsc->scene, xy, &pt->x);
+        gpencil_point_xy_to_3d(gsc, gsc->scene, xy, &pt->x);
       }
     }
 
@@ -1333,7 +1338,7 @@ void ED_gp_project_point_to_plane(const Scene *scene,
  * \param gps: Stroke data
  * \param subdivide: Number of times to subdivide
  */
-void gp_subdivide_stroke(bGPDstroke *gps, const int subdivide)
+void gpencil_subdivide_stroke(bGPDstroke *gps, const int subdivide)
 {
   bGPDspoint *temp_points;
   int totnewpoints, oldtotpoints;
@@ -2924,12 +2929,12 @@ bool ED_gpencil_stroke_check_collision(GP_SpaceConversion *gsc,
 
   /* Convert bound box to 2d */
   copy_v3_v3(&pt_dummy.x, gps->boundbox_min);
-  gp_point_to_parent_space(&pt_dummy, diff_mat, &pt_dummy_ps);
-  gp_point_to_xy_fl(gsc, gps, &pt_dummy_ps, &boundbox_min[0], &boundbox_min[1]);
+  gpencil_point_to_parent_space(&pt_dummy, diff_mat, &pt_dummy_ps);
+  gpencil_point_to_xy_fl(gsc, gps, &pt_dummy_ps, &boundbox_min[0], &boundbox_min[1]);
 
   copy_v3_v3(&pt_dummy.x, gps->boundbox_max);
-  gp_point_to_parent_space(&pt_dummy, diff_mat, &pt_dummy_ps);
-  gp_point_to_xy_fl(gsc, gps, &pt_dummy_ps, &boundbox_max[0], &boundbox_max[1]);
+  gpencil_point_to_parent_space(&pt_dummy, diff_mat, &pt_dummy_ps);
+  gpencil_point_to_xy_fl(gsc, gps, &pt_dummy_ps, &boundbox_max[0], &boundbox_max[1]);
 
   /* Ensure the bounding box is oriented to axis. */
   if (boundbox_max[0] < boundbox_min[0]) {
@@ -2976,8 +2981,8 @@ bool ED_gpencil_stroke_point_is_inside(bGPDstroke *gps,
   int i;
   for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
     bGPDspoint pt2;
-    gp_point_to_parent_space(pt, diff_mat, &pt2);
-    gp_point_to_xy(gsc, gps, &pt2, &mcoords[i][0], &mcoords[i][1]);
+    gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+    gpencil_point_to_xy(gsc, gps, &pt2, &mcoords[i][0], &mcoords[i][1]);
   }
 
   /* Compute bound-box of lasso (for faster testing later). */

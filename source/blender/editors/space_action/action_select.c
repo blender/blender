@@ -270,7 +270,7 @@ static void deselect_action_keys(bAnimContext *ac, short test, short sel)
   if (test) {
     for (ale = anim_data.first; ale; ale = ale->next) {
       if (ale->type == ANIMTYPE_GPLAYER) {
-        if (ED_gplayer_frame_select_check(ale->data)) {
+        if (ED_gpencil_layer_frame_select_check(ale->data)) {
           sel = SELECT_SUBTRACT;
           break;
         }
@@ -296,7 +296,7 @@ static void deselect_action_keys(bAnimContext *ac, short test, short sel)
   /* Now set the flags */
   for (ale = anim_data.first; ale; ale = ale->next) {
     if (ale->type == ANIMTYPE_GPLAYER) {
-      ED_gplayer_frame_select_set(ale->data, sel);
+      ED_gpencil_layer_frame_select_set(ale->data, sel);
       ale->update |= ANIM_UPDATE_DEPS;
     }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
@@ -405,14 +405,14 @@ static void box_select_elem(
       bGPdata *gpd = ale->data;
       bGPDlayer *gpl;
       for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-        ED_gplayer_frames_select_box(gpl, xmin, xmax, data->selectmode);
+        ED_gpencil_layer_frames_select_box(gpl, xmin, xmax, data->selectmode);
       }
       ale->update |= ANIM_UPDATE_DEPS;
       break;
     }
 #endif
     case ANIMTYPE_GPLAYER: {
-      ED_gplayer_frames_select_box(ale->data, xmin, xmax, sel_data->selectmode);
+      ED_gpencil_layer_frames_select_box(ale->data, xmin, xmax, sel_data->selectmode);
       ale->update |= ANIM_UPDATE_DEPS;
       break;
     }
@@ -641,13 +641,13 @@ static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, b
       bGPdata *gpd = ale->data;
       bGPDlayer *gpl;
       for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-        ED_gplayer_frames_select_region(&rdata->ked, ale->data, rdata->mode, rdata->selectmode);
+        ED_gpencil_layer_frames_select_region(&rdata->ked, ale->data, rdata->mode, rdata->selectmode);
       }
       break;
     }
 #endif
     case ANIMTYPE_GPLAYER: {
-      ED_gplayer_frames_select_region(
+      ED_gpencil_layer_frames_select_region(
           &sel_data->ked, ale->data, sel_data->mode, sel_data->selectmode);
       ale->update |= ANIM_UPDATE_DEPS;
       break;
@@ -972,7 +972,7 @@ static void markers_selectkeys_between(bAnimContext *ac)
       ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
     }
     else if (ale->type == ANIMTYPE_GPLAYER) {
-      ED_gplayer_frames_select_box(ale->data, min, max, SELECT_ADD);
+      ED_gpencil_layer_frames_select_box(ale->data, min, max, SELECT_ADD);
       ale->update |= ANIM_UPDATE_DEPS;
     }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
@@ -1008,7 +1008,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
         ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
         for (ale = anim_data.first; ale; ale = ale->next) {
-          ED_gplayer_make_cfra_list(ale->data, &ked.list, 1);
+          ED_gpencil_layer_make_cfra_list(ale->data, &ked.list, 1);
         }
       }
       else {
@@ -1385,7 +1385,7 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
       ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
     }
     else if (ale->type == ANIMTYPE_GPLAYER) {
-      ED_gplayer_frames_select_box(ale->data, ked.f1, ked.f2, select_mode);
+      ED_gpencil_layer_frames_select_box(ale->data, ked.f1, ked.f2, select_mode);
       ale->update |= ANIM_UPDATE_DEPS;
     }
     else if (ale->type == ANIMTYPE_MASKLAYER) {

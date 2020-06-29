@@ -148,7 +148,7 @@ static bool gpencil_uv_transform_init(bContext *C, wmOperator *op)
 
   opdata->ob = CTX_data_active_object(C);
   opdata->gpd = (bGPdata *)opdata->ob->data;
-  gp_point_conversion_init(C, &opdata->gsc);
+  gpencil_point_conversion_init(C, &opdata->gsc);
   opdata->array_loc = NULL;
   opdata->array_rot = NULL;
   opdata->array_scale = NULL;
@@ -197,7 +197,7 @@ static bool gpencil_uv_transform_init(bContext *C, wmOperator *op)
     GP_EDITABLE_STROKES_END(gpstroke_iter);
   }
   /* Convert to 2D. */
-  gp_point_3d_to_xy(&opdata->gsc, GP_STROKE_3DSPACE, center, opdata->mcenter);
+  gpencil_point_3d_to_xy(&opdata->gsc, GP_STROKE_3DSPACE, center, opdata->mcenter);
 
   return true;
 }

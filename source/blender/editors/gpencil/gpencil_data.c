@@ -269,7 +269,7 @@ void GPENCIL_OT_layer_add(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_layer_add_exec;
-  ot->poll = gp_add_poll;
+  ot->poll = gpencil_add_poll;
 }
 
 static bool gp_add_annotation_poll(bContext *C)
@@ -346,7 +346,7 @@ void GPENCIL_OT_layer_remove(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_layer_remove_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 }
 
 static bool gp_active_layer_annotation_poll(bContext *C)
@@ -419,7 +419,7 @@ void GPENCIL_OT_layer_move(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = gp_layer_move_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -492,7 +492,7 @@ void GPENCIL_OT_layer_duplicate(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_layer_copy_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -686,7 +686,7 @@ void GPENCIL_OT_frame_duplicate(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_frame_duplicate_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -771,7 +771,7 @@ void GPENCIL_OT_frame_clean_fill(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_frame_clean_fill_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -847,7 +847,7 @@ void GPENCIL_OT_frame_clean_loose(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_frame_clean_loose_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -909,7 +909,7 @@ void GPENCIL_OT_hide(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_hide_exec;
-  ot->poll = gp_active_layer_poll; /* NOTE: we need an active layer to play with */
+  ot->poll = gpencil_active_layer_poll; /* NOTE: we need an active layer to play with */
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1154,7 +1154,7 @@ void GPENCIL_OT_layer_isolate(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_isolate_layer_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1243,7 +1243,7 @@ void GPENCIL_OT_layer_merge(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_merge_layer_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1308,7 +1308,7 @@ void GPENCIL_OT_layer_change(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = gp_layer_change_invoke;
   ot->exec = gp_layer_change_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1353,7 +1353,7 @@ void GPENCIL_OT_layer_active(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_layer_active_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1504,7 +1504,7 @@ void GPENCIL_OT_stroke_arrange(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_stroke_arrange_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1600,7 +1600,7 @@ void GPENCIL_OT_stroke_change_color(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_stroke_change_color_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1675,7 +1675,7 @@ void GPENCIL_OT_material_lock_unused(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = gp_material_lock_unsused_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2856,7 +2856,7 @@ void GPENCIL_OT_lock_layer(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = gpencil_lock_layer_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 }
 
 /* ********************** Isolate gpencil_ color **************************** */
@@ -3477,7 +3477,7 @@ void GPENCIL_OT_layer_mask_add(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_layer_mask_add_exec;
-  ot->poll = gp_add_poll;
+  ot->poll = gpencil_add_poll;
 
   /* properties */
   RNA_def_string(ot->srna, "name", NULL, 128, "Layer", "Name of the layer");
@@ -3526,5 +3526,5 @@ void GPENCIL_OT_layer_mask_remove(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_layer_mask_remove_exec;
-  ot->poll = gp_active_layer_poll;
+  ot->poll = gpencil_active_layer_poll;
 }

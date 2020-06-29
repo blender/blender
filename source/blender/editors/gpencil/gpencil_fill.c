@@ -298,7 +298,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
       /* normal strokes */
       if ((tgpf->fill_draw_mode == GP_FILL_DMODE_STROKE) ||
           (tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH)) {
-        ED_gp_draw_fill(&tgpw);
+        ED_gpencil_draw_fill(&tgpw);
       }
 
       /* 3D Lines with basic shapes and invisible lines */
@@ -1139,12 +1139,12 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 
   for (int i = 0; i < tgpf->sbuffer_used && point2D; i++, point2D++, pt++) {
     /* convert screen-coordinates to 3D coordinates */
-    gp_stroke_convertcoords_tpoint(tgpf->scene,
-                                   tgpf->region,
-                                   tgpf->ob,
-                                   point2D,
-                                   tgpf->depth_arr ? tgpf->depth_arr + i : NULL,
-                                   &pt->x);
+    gpencil_stroke_convertcoords_tpoint(tgpf->scene,
+                                        tgpf->region,
+                                        tgpf->ob,
+                                        point2D,
+                                        tgpf->depth_arr ? tgpf->depth_arr + i : NULL,
+                                        &pt->x);
 
     pt->pressure = 1.0f;
     pt->strength = 1.0f;
@@ -1192,7 +1192,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   /* if parented change position relative to parent object */
   for (int a = 0; a < tgpf->sbuffer_used; a++) {
     pt = &gps->points[a];
-    gp_apply_parent_point(tgpf->depsgraph, tgpf->ob, tgpf->gpl, pt);
+    gpencil_apply_parent_point(tgpf->depsgraph, tgpf->ob, tgpf->gpl, pt);
   }
 
   /* if camera view, reproject flat to view to avoid perspective effect */

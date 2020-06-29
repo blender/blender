@@ -918,7 +918,7 @@ static void gp_brush_clone_init(bContext *C, tGP_BrushEditData *gso)
   gso->customdata = data = MEM_callocN(sizeof(tGPSB_CloneBrushData), "CloneBrushData");
 
   /* compute midpoint of strokes on clipboard */
-  for (gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
+  for (gps = gpencil_strokes_copypastebuf.first; gps; gps = gps->next) {
     if (ED_gpencil_stroke_can_use(C, gps)) {
       const float dfac = 1.0f / ((float)gps->totpoints);
       float mid[3] = {0.0f};
@@ -954,7 +954,7 @@ static void gp_brush_clone_init(bContext *C, tGP_BrushEditData *gso)
   /* Init colormap for mapping between the pasted stroke's source color (names)
    * and the final colors that will be used here instead.
    */
-  data->new_colors = gp_copybuf_validate_colormap(C);
+  data->new_colors = gpencil_copybuf_validate_colormap(C);
 }
 
 /* Free custom data used for "clone" brush */
@@ -999,7 +999,7 @@ static void gp_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
   sub_v3_v3v3(delta, gso->dvec, data->buffer_midpoint);
 
   /* Copy each stroke into the layer */
-  for (gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
+  for (gps = gpencil_strokes_copypastebuf.first; gps; gps = gps->next) {
     if (ED_gpencil_stroke_can_use(C, gps)) {
       bGPDstroke *new_stroke;
       bGPDspoint *pt;
@@ -1075,7 +1075,7 @@ static void gp_brush_clone_adjust(tGP_BrushEditData *gso)
       float influence;
 
       /* compute influence on point */
-      gp_point_to_xy(&gso->gsc, gps, pt, &sco[0], &sco[1]);
+      gpencil_point_to_xy(&gso->gsc, gps, pt, &sco[0], &sco[1]);
       influence = gp_brush_influence_calc(gso, gso->brush->size, sco);
 
       /* adjust the amount of displacement to apply */
@@ -1209,7 +1209,7 @@ static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
       bool found = false;
 
       /* check that there are some usable strokes in the buffer */
-      for (gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
+      for (gps = gpencil_strokes_copypastebuf.first; gps; gps = gps->next) {
         if (ED_gpencil_stroke_can_use(C, gps)) {
           found = true;
           break;
@@ -1246,7 +1246,7 @@ static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
   }
 
   /* setup space conversions */
-  gp_point_conversion_init(C, &gso->gsc);
+  gpencil_point_conversion_init(C, &gso->gsc);
 
   /* update header */
   gpsculpt_brush_header_set(C, gso);
@@ -1402,12 +1402,12 @@ static float gpsculpt_rotation_eval_get(tGP_BrushEditData *gso,
   /* create 2D vectors of the stroke segments */
   float v_orig_a[2], v_orig_b[2], v_eval_a[2], v_eval_b[2];
 
-  gp_point_3d_to_xy(gsc, GP_STROKE_3DSPACE, &pt_orig->x, v_orig_a);
-  gp_point_3d_to_xy(gsc, GP_STROKE_3DSPACE, &pt_orig_prev->x, v_orig_b);
+  gpencil_point_3d_to_xy(gsc, GP_STROKE_3DSPACE, &pt_orig->x, v_orig_a);
+  gpencil_point_3d_to_xy(gsc, GP_STROKE_3DSPACE, &pt_orig_prev->x, v_orig_b);
   sub_v2_v2(v_orig_a, v_orig_b);
 
-  gp_point_3d_to_xy(gsc, GP_STROKE_3DSPACE, &pt_eval->x, v_eval_a);
-  gp_point_3d_to_xy(gsc, GP_STROKE_3DSPACE, &pt_prev_eval->x, v_eval_b);
+  gpencil_point_3d_to_xy(gsc, GP_STROKE_3DSPACE, &pt_eval->x, v_eval_a);
+  gpencil_point_3d_to_xy(gsc, GP_STROKE_3DSPACE, &pt_prev_eval->x, v_eval_b);
   sub_v2_v2(v_eval_a, v_eval_b);
 
   return angle_v2v2(v_orig_a, v_eval_a);
@@ -1447,8 +1447,8 @@ static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso,
   if (gps->totpoints == 1) {
     bGPDspoint pt_temp;
     pt = &gps->points[0];
-    gp_point_to_parent_space(gps->points, diff_mat, &pt_temp);
-    gp_point_to_xy(gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
+    gpencil_point_to_parent_space(gps->points, diff_mat, &pt_temp);
+    gpencil_point_to_xy(gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
 
     pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
     /* do boundbox check first */
@@ -1483,11 +1483,11 @@ static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso,
         }
       }
       bGPDspoint npt;
-      gp_point_to_parent_space(pt1, diff_mat, &npt);
-      gp_point_to_xy(gsc, gps, &npt, &pc1[0], &pc1[1]);
+      gpencil_point_to_parent_space(pt1, diff_mat, &npt);
+      gpencil_point_to_xy(gsc, gps, &npt, &pc1[0], &pc1[1]);
 
-      gp_point_to_parent_space(pt2, diff_mat, &npt);
-      gp_point_to_xy(gsc, gps, &npt, &pc2[0], &pc2[1]);
+      gpencil_point_to_parent_space(pt2, diff_mat, &npt);
+      gpencil_point_to_xy(gsc, gps, &npt, &pc2[0], &pc2[1]);
 
       /* Check that point segment of the boundbox of the selection stroke */
       if (((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
@@ -1496,7 +1496,7 @@ static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso,
          * brush region  (either within stroke painted, or on its lines)
          * - this assumes that linewidth is irrelevant
          */
-        if (gp_stroke_inside_circle(gso->mval, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
+        if (gpencil_stroke_inside_circle(gso->mval, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
           /* Apply operation to these points */
           bool ok = false;
 

@@ -114,10 +114,10 @@ typedef enum eDrawStrokeFlags {
 /* ----- Tool Buffer Drawing ------ */
 /* helper functions to set color of buffer point */
 
-static void gp_set_point_varying_color(const bGPDspoint *pt,
-                                       const float ink[4],
-                                       uint attr_id,
-                                       bool fix_strength)
+static void gpencil_set_point_varying_color(const bGPDspoint *pt,
+                                            const float ink[4],
+                                            uint attr_id,
+                                            bool fix_strength)
 {
   float alpha = ink[3] * pt->strength;
   if ((fix_strength) && (alpha >= 0.1f)) {
@@ -130,10 +130,10 @@ static void gp_set_point_varying_color(const bGPDspoint *pt,
 /* ----------- Volumetric Strokes --------------- */
 
 /* draw a 3D stroke in "volumetric" style */
-static void gp_draw_stroke_volumetric_3d(const bGPDspoint *points,
-                                         int totpoints,
-                                         short thickness,
-                                         const float ink[4])
+static void gpencil_draw_stroke_volumetric_3d(const bGPDspoint *points,
+                                              int totpoints,
+                                              short thickness,
+                                              const float ink[4])
 {
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
@@ -147,7 +147,7 @@ static void gp_draw_stroke_volumetric_3d(const bGPDspoint *points,
 
   const bGPDspoint *pt = points;
   for (int i = 0; i < totpoints && pt; i++, pt++) {
-    gp_set_point_varying_color(pt, ink, color, false);
+    gpencil_set_point_varying_color(pt, ink, color, false);
     /* TODO: scale based on view transform */
     immAttr1f(size, pt->pressure * thickness);
     /* we can adjust size in vertex shader based on view/projection! */
@@ -162,7 +162,10 @@ static void gp_draw_stroke_volumetric_3d(const bGPDspoint *points,
 /* ----- Existing Strokes Drawing (3D and Point) ------ */
 
 /* draw a given stroke in 3d (i.e. in 3d-space) */
-static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4], bool cyclic)
+static void gpencil_draw_stroke_3d(tGPDdraw *tgpw,
+                                   short thickness,
+                                   const float ink[4],
+                                   bool cyclic)
 {
   bGPDspoint *points = tgpw->gps->points;
   int totpoints = tgpw->gps->totpoints;
@@ -209,7 +212,7 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
   for (int i = 0; i < totpoints; i++, pt++) {
     /* first point for adjacency (not drawn) */
     if (i == 0) {
-      gp_set_point_varying_color(points, ink, attr_id.color, (bool)tgpw->is_fill_stroke);
+      gpencil_set_point_varying_color(points, ink, attr_id.color, (bool)tgpw->is_fill_stroke);
 
       if ((cyclic) && (totpoints > 2)) {
         immAttr1f(attr_id.thickness, max_ff((points + totpoints - 1)->pressure * thickness, 1.0f));
@@ -222,7 +225,7 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
       immVertex3fv(attr_id.pos, fpt);
     }
     /* set point */
-    gp_set_point_varying_color(pt, ink, attr_id.color, (bool)tgpw->is_fill_stroke);
+    gpencil_set_point_varying_color(pt, ink, attr_id.color, (bool)tgpw->is_fill_stroke);
     immAttr1f(attr_id.thickness, max_ff(pt->pressure * thickness, 1.0f));
     mul_v3_m4v3(fpt, tgpw->diff_mat, &pt->x);
     immVertex3fv(attr_id.pos, fpt);
@@ -241,7 +244,7 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
   }
   /* last adjacency point (not drawn) */
   else {
-    gp_set_point_varying_color(
+    gpencil_set_point_varying_color(
         points + totpoints - 2, ink, attr_id.color, (bool)tgpw->is_fill_stroke);
 
     immAttr1f(attr_id.thickness, max_ff((points + totpoints - 2)->pressure * thickness, 1.0f));
@@ -256,7 +259,7 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
 /* ----- Strokes Drawing ------ */
 
 /* Helper for doing all the checks on whether a stroke can be drawn */
-static bool gp_can_draw_stroke(const bGPDstroke *gps, const int dflag)
+static bool gpencil_can_draw_stroke(const bGPDstroke *gps, const int dflag)
 {
   /* skip stroke if it isn't in the right display space for this drawing context */
   /* 1) 3D Strokes */
@@ -293,7 +296,7 @@ static bool gp_can_draw_stroke(const bGPDstroke *gps, const int dflag)
 }
 
 /* draw a set of strokes */
-static void gp_draw_strokes(tGPDdraw *tgpw)
+static void gpencil_draw_strokes(tGPDdraw *tgpw)
 {
   float tcolor[4];
   short sthickness;
@@ -307,7 +310,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
 
   for (bGPDstroke *gps = gps_init; gps; gps = gps->next) {
     /* check if stroke can be drawn */
-    if (gp_can_draw_stroke(gps, tgpw->dflag) == false) {
+    if (gpencil_can_draw_stroke(gps, tgpw->dflag) == false) {
       continue;
     }
     /* check if the color is visible */
@@ -379,14 +382,14 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
       if (gp_style->mode == GP_MATERIAL_MODE_DOT) {
         /* volumetric stroke drawing */
         if (tgpw->disable_fill != 1) {
-          gp_draw_stroke_volumetric_3d(gps->points, gps->totpoints, sthickness, ink);
+          gpencil_draw_stroke_volumetric_3d(gps->points, gps->totpoints, sthickness, ink);
         }
       }
       else {
         /* 3D Lines - OpenGL primitives-based */
         if (gps->totpoints > 1) {
           tgpw->gps = gps;
-          gp_draw_stroke_3d(tgpw, sthickness, ink, gps->flag & GP_STROKE_CYCLIC);
+          gpencil_draw_stroke_3d(tgpw, sthickness, ink, gps->flag & GP_STROKE_CYCLIC);
         }
       }
       if (no_xray) {
@@ -408,7 +411,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
 /* ----- General Drawing ------ */
 
 /* wrapper to draw strokes for filling operator */
-void ED_gp_draw_fill(tGPDdraw *tgpw)
+void ED_gpencil_draw_fill(tGPDdraw *tgpw)
 {
-  gp_draw_strokes(tgpw);
+  gpencil_draw_strokes(tgpw);
 }

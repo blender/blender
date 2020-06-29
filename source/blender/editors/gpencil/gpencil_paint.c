@@ -1082,7 +1082,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
     pt = gps->points;
     for (i = 0; i < gps->totpoints; i++, pt++) {
       /* if parented change position relative to parent object */
-      gp_apply_parent_point(depsgraph, obact, gpl, pt);
+      gpencil_apply_parent_point(depsgraph, obact, gpl, pt);
     }
 
     /* if camera view, reproject flat to view to avoid perspective effect */
@@ -1195,7 +1195,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 
     /* subdivide and smooth the stroke */
     if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) && (subdivide > 0)) {
-      gp_subdivide_stroke(gps, subdivide);
+      gpencil_subdivide_stroke(gps, subdivide);
     }
 
     /* Smooth stroke after subdiv - only if there's something to do for each iteration,
@@ -1232,7 +1232,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
     /* reproject to plane (only in 3d space) */
     gp_reproject_toplane(p, gps);
     /* change position relative to parent object */
-    gp_apply_parent(depsgraph, obact, gpl, gps);
+    gpencil_apply_parent(depsgraph, obact, gpl, gps);
     /* if camera view, reproject flat to view to avoid perspective effect */
     if (is_camera) {
       ED_gpencil_project_stroke_to_view(p->C, p->gpl, gps);
@@ -1456,8 +1456,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
     /* only process if it hasn't been masked out... */
     if (!(p->flags & GP_PAINTFLAG_SELECTMASK) || (gps->points->flag & GP_SPOINT_SELECT)) {
       bGPDspoint pt_temp;
-      gp_point_to_parent_space(gps->points, p->diff_mat, &pt_temp);
-      gp_point_to_xy(&p->gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
+      gpencil_point_to_parent_space(gps->points, p->diff_mat, &pt_temp);
+      gpencil_point_to_xy(&p->gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
       /* do boundbox check first */
       if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
         /* only check if point is inside */
@@ -1480,8 +1480,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
       /* get points to work with */
       pt1 = gps->points + i;
       bGPDspoint npt;
-      gp_point_to_parent_space(pt1, p->diff_mat, &npt);
-      gp_point_to_xy(&p->gsc, gps, &npt, &pc1[0], &pc1[1]);
+      gpencil_point_to_parent_space(pt1, p->diff_mat, &npt);
+      gpencil_point_to_xy(&p->gsc, gps, &npt, &pc1[0], &pc1[1]);
 
       /* do boundbox check first */
       if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
@@ -1532,19 +1532,19 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 
       bGPDspoint npt;
       if (pt0) {
-        gp_point_to_parent_space(pt0, p->diff_mat, &npt);
-        gp_point_to_xy(&p->gsc, gps, &npt, &pc0[0], &pc0[1]);
+        gpencil_point_to_parent_space(pt0, p->diff_mat, &npt);
+        gpencil_point_to_xy(&p->gsc, gps, &npt, &pc0[0], &pc0[1]);
       }
       else {
         /* avoid null values */
         copy_v2_v2_int(pc0, pc1);
       }
 
-      gp_point_to_parent_space(pt1, p->diff_mat, &npt);
-      gp_point_to_xy(&p->gsc, gps, &npt, &pc1[0], &pc1[1]);
+      gpencil_point_to_parent_space(pt1, p->diff_mat, &npt);
+      gpencil_point_to_xy(&p->gsc, gps, &npt, &pc1[0], &pc1[1]);
 
-      gp_point_to_parent_space(pt2, p->diff_mat, &npt);
-      gp_point_to_xy(&p->gsc, gps, &npt, &pc2[0], &pc2[1]);
+      gpencil_point_to_parent_space(pt2, p->diff_mat, &npt);
+      gpencil_point_to_xy(&p->gsc, gps, &npt, &pc2[0], &pc2[1]);
 
       /* Check that point segment of the boundbox of the eraser stroke */
       if (((!ELEM(V2D_IS_CLIPPED, pc0[0], pc0[1])) && BLI_rcti_isect_pt(rect, pc0[0], pc0[1])) ||
@@ -1554,7 +1554,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
          * eraser region  (either within stroke painted, or on its lines)
          * - this assumes that linewidth is irrelevant
          */
-        if (gp_stroke_inside_circle(mval, radius, pc0[0], pc0[1], pc2[0], pc2[1])) {
+        if (gpencil_stroke_inside_circle(mval, radius, pc0[0], pc0[1], pc2[0], pc2[1])) {
           if ((gp_stroke_eraser_is_occluded(p, pt0, pc0[0], pc0[1]) == false) ||
               (gp_stroke_eraser_is_occluded(p, pt1, pc1[0], pc1[1]) == false) ||
               (gp_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false)) {
@@ -1634,7 +1634,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
         gp_stroke_soft_refine(gps);
       }
 
-      gp_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
+      gpencil_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
     }
     gp_update_cache(p->gpd);
   }
@@ -2564,7 +2564,7 @@ static void gp_origin_get(tGPsdata *p, float origin[2])
     copy_v3_v3(location, p->scene->cursor.location);
   }
   GP_SpaceConversion *gsc = &p->gsc;
-  gp_point_3d_to_xy(gsc, p->gpd->runtime.sbuffer_sflag, location, origin);
+  gpencil_point_3d_to_xy(gsc, p->gpd->runtime.sbuffer_sflag, location, origin);
 }
 
 /* speed guide initial values */

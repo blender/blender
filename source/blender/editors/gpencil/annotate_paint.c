@@ -456,10 +456,10 @@ static void annotation_stroke_arrow_calc_points_segment(float stroke_points[8],
 }
 
 static void annotation_stroke_arrow_calc_points(tGPspoint *point,
-                                        const float stroke_dir[2],
-                                        float corner[2],
-                                        float stroke_points[8],
-                                        const int arrow_style)
+                                                const float stroke_dir[2],
+                                                float corner[2],
+                                                float stroke_points[8],
+                                                const int arrow_style)
 {
   const int arrow_lenght = 8;
   float norm_dir[2];
@@ -1131,7 +1131,7 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
   else if (gps->totpoints == 1) {
     /* only process if it hasn't been masked out... */
     if (!(p->flags & GP_PAINTFLAG_SELECTMASK) || (gps->points->flag & GP_SPOINT_SELECT)) {
-      gp_point_to_xy(&p->gsc, gps, gps->points, &pc1[0], &pc1[1]);
+      gpencil_point_to_xy(&p->gsc, gps, gps->points, &pc1[0], &pc1[1]);
 
       /* do boundbox check first */
       if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
@@ -1172,8 +1172,8 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
         continue;
       }
 
-      gp_point_to_xy(&p->gsc, gps, pt1, &pc1[0], &pc1[1]);
-      gp_point_to_xy(&p->gsc, gps, pt2, &pc2[0], &pc2[1]);
+      gpencil_point_to_xy(&p->gsc, gps, pt1, &pc1[0], &pc1[1]);
+      gpencil_point_to_xy(&p->gsc, gps, pt2, &pc2[0], &pc2[1]);
 
       /* Check that point segment of the boundbox of the eraser stroke */
       if (((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
@@ -1182,7 +1182,7 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
          * eraser region  (either within stroke painted, or on its lines)
          *  - this assumes that linewidth is irrelevant
          */
-        if (gp_stroke_inside_circle(mval, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
+        if (gpencil_stroke_inside_circle(mval, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
           if ((annotation_stroke_eraser_is_occluded(p, pt1, pc1[0], pc1[1]) == false) ||
               (annotation_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false)) {
             /* Edge is affected - Check individual points now */
@@ -1200,7 +1200,7 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
 
     /* Second Pass: Remove any points that are tagged */
     if (do_cull) {
-      gp_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
+      gpencil_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
     }
   }
 }

@@ -1817,7 +1817,7 @@ static int image_to_gpencil_exec(bContext *C, wmOperator *op)
   if (done) {
     /* Delete any selected point. */
     LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
-      gp_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
+      gpencil_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
     }
 
     BKE_reportf(op->reports, RPT_INFO, "Object created");

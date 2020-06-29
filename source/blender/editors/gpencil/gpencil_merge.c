@@ -178,7 +178,7 @@ static void gpencil_dissolve_points(bContext *C)
     }
 
     LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
-      gp_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
+      gpencil_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
     }
   }
   CTX_DATA_END;

@@ -881,8 +881,8 @@ static bool gp_stroke_do_circle_sel(bGPdata *UNUSED(gpd),
     pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
 
     bGPDspoint pt_temp;
-    gp_point_to_parent_space(pt_active, diff_mat, &pt_temp);
-    gp_point_to_xy(gsc, gps, &pt_temp, &x0, &y0);
+    gpencil_point_to_parent_space(pt_active, diff_mat, &pt_temp);
+    gpencil_point_to_xy(gsc, gps, &pt_temp, &x0, &y0);
 
     /* do boundbox check first */
     if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) {
@@ -988,7 +988,7 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
   }
 
   /* init space conversion stuff */
-  gp_point_conversion_init(C, &gsc);
+  gpencil_point_conversion_init(C, &gsc);
 
   /* rect is rectangle of selection circle */
   rect.xmin = mx - radius;
@@ -1102,7 +1102,7 @@ static int gpencil_generic_select_exec(
   }
 
   /* init space conversion stuff */
-  gp_point_conversion_init(C, &gsc);
+  gpencil_point_conversion_init(C, &gsc);
 
   /* deselect all strokes first? */
   if (SEL_OP_USE_PRE_DESELECT(sel_op) || (GPENCIL_PAINT_MODE(gpd))) {
@@ -1200,7 +1200,7 @@ static int gpencil_generic_select_exec(
 
   /* if paint mode,delete selected points */
   if (GPENCIL_PAINT_MODE(gpd)) {
-    gp_delete_selected_point_wrap(C);
+    gpencil_delete_selected_point_wrap(C);
     changed = true;
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   }
@@ -1237,8 +1237,8 @@ static bool gpencil_test_box(bGPDstroke *gps,
   const struct GP_SelectBoxUserData *data = user_data;
   bGPDspoint pt2;
   int x0, y0;
-  gp_point_to_parent_space(pt, diff_mat, &pt2);
-  gp_point_to_xy(gsc, gps, &pt2, &x0, &y0);
+  gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+  gpencil_point_to_xy(gsc, gps, &pt2, &x0, &y0);
   return ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&data->rect, x0, y0));
 }
 
@@ -1294,8 +1294,8 @@ static bool gpencil_test_lasso(bGPDstroke *gps,
   const struct GP_SelectLassoUserData *data = user_data;
   bGPDspoint pt2;
   int x0, y0;
-  gp_point_to_parent_space(pt, diff_mat, &pt2);
-  gp_point_to_xy(gsc, gps, &pt2, &x0, &y0);
+  gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+  gpencil_point_to_xy(gsc, gps, &pt2, &x0, &y0);
   /* test if in lasso boundbox + within the lasso noose */
   return ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&data->rect, x0, y0) &&
           BLI_lasso_is_point_inside(data->mcoords, data->mcoords_len, x0, y0, INT_MAX));
@@ -1417,7 +1417,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
   }
 
   /* init space conversion stuff */
-  gp_point_conversion_init(C, &gsc);
+  gpencil_point_conversion_init(C, &gsc);
 
   /* get mouse location */
   RNA_int_get_array(op->ptr, "location", mval);
@@ -1433,8 +1433,8 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
       int xy[2];
 
       bGPDspoint pt2;
-      gp_point_to_parent_space(pt, gpstroke_iter.diff_mat, &pt2);
-      gp_point_to_xy(&gsc, gps, &pt2, &xy[0], &xy[1]);
+      gpencil_point_to_parent_space(pt, gpstroke_iter.diff_mat, &pt2);
+      gpencil_point_to_xy(&gsc, gps, &pt2, &xy[0], &xy[1]);
 
       /* do boundbox check first */
       if (!ELEM(V2D_IS_CLIPPED, xy[0], xy[1])) {

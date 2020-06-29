@@ -330,7 +330,7 @@ static bool gp_weightpaint_brush_init(bContext *C, wmOperator *op)
   }
 
   /* Setup space conversions. */
-  gp_point_conversion_init(C, &gso->gsc);
+  gpencil_point_conversion_init(C, &gso->gsc);
 
   /* Update header. */
   gp_weightpaint_brush_header_set(C);
@@ -409,8 +409,8 @@ static void gp_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
   if (gps->totpoints == 1) {
     bGPDspoint pt_temp;
     pt = &gps->points[0];
-    gp_point_to_parent_space(gps->points, diff_mat, &pt_temp);
-    gp_point_to_xy(gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
+    gpencil_point_to_parent_space(gps->points, diff_mat, &pt_temp);
+    gpencil_point_to_xy(gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
 
     pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
     /* do boundbox check first */
@@ -436,11 +436,11 @@ static void gp_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
       pt2 = gps->points + i + 1;
 
       bGPDspoint npt;
-      gp_point_to_parent_space(pt1, diff_mat, &npt);
-      gp_point_to_xy(gsc, gps, &npt, &pc1[0], &pc1[1]);
+      gpencil_point_to_parent_space(pt1, diff_mat, &npt);
+      gpencil_point_to_xy(gsc, gps, &npt, &pc1[0], &pc1[1]);
 
-      gp_point_to_parent_space(pt2, diff_mat, &npt);
-      gp_point_to_xy(gsc, gps, &npt, &pc2[0], &pc2[1]);
+      gpencil_point_to_parent_space(pt2, diff_mat, &npt);
+      gpencil_point_to_xy(gsc, gps, &npt, &pc2[0], &pc2[1]);
 
       /* Check that point segment of the boundbox of the selection stroke */
       if (((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
@@ -449,7 +449,7 @@ static void gp_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
          * brush region  (either within stroke painted, or on its lines)
          * - this assumes that linewidth is irrelevant
          */
-        if (gp_stroke_inside_circle(gso->mval, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
+        if (gpencil_stroke_inside_circle(gso->mval, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
 
           /* To each point individually... */
           pt = &gps->points[i];

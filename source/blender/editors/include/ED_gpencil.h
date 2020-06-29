@@ -175,28 +175,31 @@ void ED_annotation_draw_ex(struct Scene *scene,
                            const char spacetype);
 
 /* ----------- Grease-Pencil AnimEdit API ------------------ */
-bool ED_gplayer_frames_looper(struct bGPDlayer *gpl,
-                              struct Scene *scene,
-                              short (*gpf_cb)(struct bGPDframe *, struct Scene *));
-void ED_gplayer_make_cfra_list(struct bGPDlayer *gpl, ListBase *elems, bool onlysel);
+bool ED_gpencil_layer_frames_looper(struct bGPDlayer *gpl,
+                                    struct Scene *scene,
+                                    short (*gpf_cb)(struct bGPDframe *, struct Scene *));
+void ED_gpencil_layer_make_cfra_list(struct bGPDlayer *gpl, ListBase *elems, bool onlysel);
 
-bool ED_gplayer_frame_select_check(struct bGPDlayer *gpl);
-void ED_gplayer_frame_select_set(struct bGPDlayer *gpl, short mode);
-void ED_gplayer_frames_select_box(struct bGPDlayer *gpl, float min, float max, short select_mode);
-void ED_gplayer_frames_select_region(struct KeyframeEditData *ked,
-                                     struct bGPDlayer *gpl,
-                                     short tool,
-                                     short select_mode);
+bool ED_gpencil_layer_frame_select_check(struct bGPDlayer *gpl);
+void ED_gpencil_layer_frame_select_set(struct bGPDlayer *gpl, short mode);
+void ED_gpencil_layer_frames_select_box(struct bGPDlayer *gpl,
+                                        float min,
+                                        float max,
+                                        short select_mode);
+void ED_gpencil_layer_frames_select_region(struct KeyframeEditData *ked,
+                                           struct bGPDlayer *gpl,
+                                           short tool,
+                                           short select_mode);
 void ED_gpencil_select_frames(struct bGPDlayer *gpl, short select_mode);
 void ED_gpencil_select_frame(struct bGPDlayer *gpl, int selx, short select_mode);
 
-bool ED_gplayer_frames_delete(struct bGPDlayer *gpl);
-void ED_gplayer_frames_duplicate(struct bGPDlayer *gpl);
+bool ED_gpencil_layer_frames_delete(struct bGPDlayer *gpl);
+void ED_gpencil_layer_frames_duplicate(struct bGPDlayer *gpl);
 
-void ED_gplayer_frames_keytype_set(struct bGPDlayer *gpl, short type);
+void ED_gpencil_layer_frames_keytype_set(struct bGPDlayer *gpl, short type);
 
-void ED_gplayer_snap_frames(struct bGPDlayer *gpl, struct Scene *scene, short mode);
-void ED_gplayer_mirror_frames(struct bGPDlayer *gpl, struct Scene *scene, short mode);
+void ED_gpencil_layer_snap_frames(struct bGPDlayer *gpl, struct Scene *scene, short mode);
+void ED_gpencil_layer_mirror_frames(struct bGPDlayer *gpl, struct Scene *scene, short mode);
 
 void ED_gpencil_anim_copybuf_free(void);
 bool ED_gpencil_anim_copybuf_copy(struct bAnimContext *ac);
