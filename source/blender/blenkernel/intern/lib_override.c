@@ -471,7 +471,8 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
     return ELEM(subitem_locindex, -1, opop->subitem_local_index) ? opop : NULL;
   }
 
-  /* index == -1 means all indices, that is valid fallback in case we requested specific index. */
+  /* index == -1 means all indices, that is valid fallback in case we requested specific index.
+   */
   if (!strict && (subitem_locindex != subitem_defindex) &&
       (opop = BLI_listbase_bytes_find(
            &override_property->operations,
@@ -754,9 +755,9 @@ bool BKE_lib_override_library_operations_create(Main *bmain, ID *local)
     }
 
     if (GS(local->name) == ID_OB) {
-      /* Our beloved pose's bone cross-data pointers... Usually, depsgraph evaluation would ensure
-       * this is valid, but in some situations (like hidden collections etc.) this won't be the
-       * case, so we need to take care of this ourselves. */
+      /* Our beloved pose's bone cross-data pointers... Usually, depsgraph evaluation would
+       * ensure this is valid, but in some situations (like hidden collections etc.) this won't
+       * be the case, so we need to take care of this ourselves. */
       Object *ob_local = (Object *)local;
       if (ob_local->data != NULL && ob_local->type == OB_ARMATURE && ob_local->pose != NULL &&
           ob_local->pose->flag & POSE_RECALC) {
@@ -949,8 +950,8 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
    * So we work on temp copy of reference, and 'swap' its content with local. */
 
   /* XXX We need a way to get off-Main copies of IDs (similar to localized mats/texts/ etc.)!
-   *     However, this is whole bunch of code work in itself, so for now plain stupid ID copy will
-   *     do, as inn-efficient as it is. :/
+   *     However, this is whole bunch of code work in itself, so for now plain stupid ID copy
+   *     will do, as inn-efficient as it is. :/
    *     Actually, maybe not! Since we are swapping with original ID's local content, we want to
    *     keep user-count in correct state when freeing tmp_id
    *     (and that user-counts of IDs used by 'new' local data also remain correct). */
@@ -967,9 +968,9 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
   }
 
   /* This ID name is problematic, since it is an 'rna name property' it should not be editable or
-   * different from reference linked ID. But local ID names need to be unique in a given type list
-   * of Main, so we cannot always keep it identical, which is why we need this special manual
-   * handling here. */
+   * different from reference linked ID. But local ID names need to be unique in a given type
+   * list of Main, so we cannot always keep it identical, which is why we need this special
+   * manual handling here. */
   BLI_strncpy(tmp_id->name, local->name, sizeof(tmp_id->name));
 
   PointerRNA rnaptr_src, rnaptr_dst, rnaptr_storage_stack, *rnaptr_storage = NULL;
@@ -1071,8 +1072,8 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
 #endif
 
   /* XXX TODO We may also want a specialized handling of things here too, to avoid copying heavy
-   * never-overridable data (like Mesh geometry etc.)? And also maybe avoid lib reference-counting
-   * completely (shallow copy...). */
+   * never-overridable data (like Mesh geometry etc.)? And also maybe avoid lib
+   * reference-counting completely (shallow copy...). */
   /* This would imply change in handling of user-count all over RNA
    * (and possibly all over Blender code).
    * Not impossible to do, but would rather see first is extra useless usual user handling is
@@ -1114,8 +1115,8 @@ void BKE_lib_override_library_operations_store_end(
 
 void BKE_lib_override_library_operations_store_finalize(OverrideLibraryStorage *override_storage)
 {
-  /* We cannot just call BKE_main_free(override_storage), not until we have option to make 'ghost'
-   * copies of IDs without increasing usercount of used data-blocks. */
+  /* We cannot just call BKE_main_free(override_storage), not until we have option to make
+   * 'ghost' copies of IDs without increasing usercount of used data-blocks. */
   ID *id;
 
   FOREACH_MAIN_ID_BEGIN (override_storage, id) {
