@@ -768,7 +768,7 @@ void gpencil_point_to_xy(
 /**
  * Convert a Grease Pencil coordinate (i.e. can be 2D or 3D) to screenspace (2D).
  *
- * Just like #gp_point_to_xy(), except the resulting coordinates are floats not ints.
+ * Just like #gpencil_point_to_xy(), except the resulting coordinates are floats not ints.
  * Use this version to solve "stair-step" artifacts which may arise when
  * roundtripping the calculations.
  *
@@ -836,7 +836,7 @@ void gpencil_point_to_xy_fl(const GP_SpaceConversion *gsc,
 }
 
 /**
- * generic based on gp_point_to_xy_fl
+ * generic based on gpencil_point_to_xy_fl
  */
 void gpencil_point_3d_to_xy(const GP_SpaceConversion *gsc,
                             const short flag,
@@ -1056,12 +1056,12 @@ void ED_gpencil_project_stroke_to_view(bContext *C, bGPDlayer *gpl, bGPDstroke *
 /**
  * Reproject all points of the stroke to a plane locked to axis to avoid stroke offset
  */
-void ED_gp_project_stroke_to_plane(const Scene *scene,
-                                   const Object *ob,
-                                   const RegionView3D *rv3d,
-                                   bGPDstroke *gps,
-                                   const float origin[3],
-                                   const int axis)
+void ED_gpencil_project_stroke_to_plane(const Scene *scene,
+                                        const Object *ob,
+                                        const RegionView3D *rv3d,
+                                        bGPDstroke *gps,
+                                        const float origin[3],
+                                        const int axis)
 {
   const ToolSettings *ts = scene->toolsettings;
   const View3DCursor *cursor = &scene->cursor;
@@ -1173,7 +1173,7 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
     float xy[2];
 
     /* 3D to Screen-space */
-    /* Note: We can't use gp_point_to_xy() here because that uses ints for the screen-space
+    /* Note: We can't use gpencil_point_to_xy() here because that uses ints for the screen-space
      * coordinates, resulting in lost precision, which in turn causes stair-stepping
      * artifacts in the final points. */
 
@@ -1207,7 +1207,7 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
         }
       }
 
-      ED_gp_project_point_to_plane(gsc->scene, gsc->ob, rv3d, origin, axis, &pt2);
+      ED_gpencil_project_point_to_plane(gsc->scene, gsc->ob, rv3d, origin, axis, &pt2);
 
       copy_v3_v3(&pt->x, &pt2.x);
 
@@ -1261,12 +1261,12 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
  * Reproject given point to a plane locked to axis to avoid stroke offset
  * \param pt: Point to affect (used for input & output).
  */
-void ED_gp_project_point_to_plane(const Scene *scene,
-                                  const Object *ob,
-                                  const RegionView3D *rv3d,
-                                  const float origin[3],
-                                  const int axis,
-                                  bGPDspoint *pt)
+void ED_gpencil_project_point_to_plane(const Scene *scene,
+                                       const Object *ob,
+                                       const RegionView3D *rv3d,
+                                       const float origin[3],
+                                       const int axis,
+                                       bGPDspoint *pt)
 {
   const ToolSettings *ts = scene->toolsettings;
   const View3DCursor *cursor = &scene->cursor;
@@ -1738,7 +1738,7 @@ void ED_gpencil_vgroup_deselect(bContext *C, Object *ob)
 /* Cursor drawing */
 
 /* check if cursor is in drawing region */
-static bool gp_check_cursor_region(bContext *C, int mval_i[2])
+static bool gpencil_check_cursor_region(bContext *C, int mval_i[2])
 {
   ARegion *region = CTX_wm_region(C);
   ScrArea *area = CTX_wm_area(C);
@@ -1810,7 +1810,7 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
   GPU_line_smooth(false);
 }
 
-static bool gp_brush_cursor_poll(bContext *C)
+static bool gpencil_brush_cursor_poll(bContext *C)
 {
   if (WM_toolsystem_active_tool_is_brush(C)) {
     return true;
@@ -1821,7 +1821,7 @@ static bool gp_brush_cursor_poll(bContext *C)
 /**
  * Helper callback for drawing the cursor itself.
  */
-static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
+static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 {
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
@@ -1841,7 +1841,7 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 
   int mval_i[2] = {x, y};
   /* Check if cursor is in drawing region and has valid data-block. */
-  if ((!gp_check_cursor_region(C, mval_i)) || (gpd == NULL)) {
+  if ((!gpencil_check_cursor_region(C, mval_i)) || (gpd == NULL)) {
     return;
   }
 
@@ -2026,8 +2026,8 @@ void ED_gpencil_toggle_brush_cursor(bContext *C, bool enable, void *customdata)
     /* enable cursor */
     gset->paintcursor = WM_paint_cursor_activate(SPACE_TYPE_ANY,
                                                  RGN_TYPE_ANY,
-                                                 gp_brush_cursor_poll,
-                                                 gp_brush_cursor_draw,
+                                                 gpencil_brush_cursor_poll,
+                                                 gpencil_brush_cursor_draw,
                                                  (lastpost) ? customdata : NULL);
   }
 }
@@ -2228,7 +2228,8 @@ static bool gpencil_check_collision(bGPDstroke *gps,
   return hit;
 }
 
-static void gp_copy_points(bGPDstroke *gps, bGPDspoint *pt, bGPDspoint *pt_final, int i, int i2)
+static void gpencil_copy_points(
+    bGPDstroke *gps, bGPDspoint *pt, bGPDspoint *pt_final, int i, int i2)
 {
   /* don't copy same point */
   if (i == i2) {
@@ -2260,7 +2261,7 @@ static void gp_copy_points(bGPDstroke *gps, bGPDspoint *pt, bGPDspoint *pt_final
   }
 }
 
-static void gp_insert_point(
+static void gpencil_insert_point(
     bGPDstroke *gps, bGPDspoint *a_pt, bGPDspoint *b_pt, const float co_a[3], float co_b[3])
 {
   bGPDspoint *temp_points;
@@ -2303,13 +2304,13 @@ static void gp_insert_point(
   for (int i = 0; i < oldtotpoints; i++) {
     bGPDspoint *pt = &temp_points[i];
     bGPDspoint *pt_final = &gps->points[i2];
-    gp_copy_points(gps, pt, pt_final, i, i2);
+    gpencil_copy_points(gps, pt, pt_final, i, i2);
 
     /* create new point duplicating point and copy location */
     if ((i == a_idx) || (i == b_idx)) {
       i2++;
       pt_final = &gps->points[i2];
-      gp_copy_points(gps, pt, pt_final, i, i2);
+      gpencil_copy_points(gps, pt, pt_final, i, i2);
       copy_v3_v3(&pt_final->x, (i == a_idx) ? co_a : co_b);
 
       /* Un-select. */
@@ -2326,7 +2327,7 @@ static void gp_insert_point(
   MEM_SAFE_FREE(temp_points);
 }
 
-static float gp_calc_factor(float p2d_a1[2], float p2d_a2[2], float r_hit2d[2])
+static float gpencil_calc_factor(float p2d_a1[2], float p2d_a2[2], float r_hit2d[2])
 {
   float dist1 = len_squared_v2v2(p2d_a1, p2d_a2);
   float dist2 = len_squared_v2v2(p2d_a1, r_hit2d);
@@ -2451,7 +2452,7 @@ int ED_gpencil_select_stroke_segment(bGPDlayer *gpl,
       }
 
       if (hit_a) {
-        f = gp_calc_factor(p2d_a1, p2d_a2, r_hit2d);
+        f = gpencil_calc_factor(p2d_a1, p2d_a2, r_hit2d);
         interp_v3_v3v3(r_hita, &pta1->x, &pta2->x, f);
         if (f > min_factor) {
           hit_pointa = pta2; /* first point is second (inverted loop) */
@@ -2484,7 +2485,7 @@ int ED_gpencil_select_stroke_segment(bGPDlayer *gpl,
     }
 
     if (hit_b) {
-      f = gp_calc_factor(p2d_a1, p2d_a2, r_hit2d);
+      f = gpencil_calc_factor(p2d_a1, p2d_a2, r_hit2d);
       interp_v3_v3v3(r_hitb, &pta1->x, &pta2->x, f);
       if (f > min_factor) {
         hit_pointb = pta1;
@@ -2498,7 +2499,7 @@ int ED_gpencil_select_stroke_segment(bGPDlayer *gpl,
 
   /* insert new point in the collision points */
   if (insert) {
-    gp_insert_point(gps, hit_pointa, hit_pointb, r_hita, r_hitb);
+    gpencil_insert_point(gps, hit_pointa, hit_pointb, r_hita, r_hitb);
   }
 
   /* free memory */

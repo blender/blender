@@ -369,7 +369,7 @@ typedef enum eGP_SelectGrouped {
 /* ----------------------------------- */
 
 /* On each visible layer, check for selected strokes - if found, select all others */
-static void gp_select_same_layer(bContext *C)
+static void gpencil_select_same_layer(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
 
@@ -412,7 +412,7 @@ static void gp_select_same_layer(bContext *C)
 }
 
 /* Select all strokes with same colors as selected ones */
-static void gp_select_same_material(bContext *C)
+static void gpencil_select_same_material(bContext *C)
 {
   /* First, build set containing all the colors of selected strokes */
   GSet *selected_colors = BLI_gset_str_new("GP Selected Colors");
@@ -462,10 +462,10 @@ static int gpencil_select_grouped_exec(bContext *C, wmOperator *op)
 
   switch (mode) {
     case GP_SEL_SAME_LAYER:
-      gp_select_same_layer(C);
+      gpencil_select_same_layer(C);
       break;
     case GP_SEL_SAME_MATERIAL:
-      gp_select_same_material(C);
+      gpencil_select_same_material(C);
       break;
 
     default:
@@ -853,21 +853,21 @@ void GPENCIL_OT_select_less(wmOperatorType *ot)
  * Helper to check if a given stroke is within the area.
  *
  * \note Code here is adapted (i.e. copied directly)
- * from gpencil_paint.c #gp_stroke_eraser_dostroke().
+ * from gpencil_paint.c #gpencil_stroke_eraser_dostroke().
  * It would be great to de-duplicate the logic here sometime, but that can wait.
  */
-static bool gp_stroke_do_circle_sel(bGPdata *UNUSED(gpd),
-                                    bGPDlayer *gpl,
-                                    bGPDstroke *gps,
-                                    GP_SpaceConversion *gsc,
-                                    const int mx,
-                                    const int my,
-                                    const int radius,
-                                    const bool select,
-                                    rcti *rect,
-                                    const float diff_mat[4][4],
-                                    const int selectmode,
-                                    const float scale)
+static bool gpencil_stroke_do_circle_sel(bGPdata *UNUSED(gpd),
+                                         bGPDlayer *gpl,
+                                         bGPDstroke *gps,
+                                         GP_SpaceConversion *gsc,
+                                         const int mx,
+                                         const int my,
+                                         const int radius,
+                                         const bool select,
+                                         rcti *rect,
+                                         const float diff_mat[4][4],
+                                         const int selectmode,
+                                         const float scale)
 {
   bGPDspoint *pt = NULL;
   int x0 = 0, y0 = 0;
@@ -998,18 +998,18 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
 
   /* find visible strokes, and select if hit */
   GP_EVALUATED_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
-    changed |= gp_stroke_do_circle_sel(gpd,
-                                       gpl,
-                                       gps,
-                                       &gsc,
-                                       mx,
-                                       my,
-                                       radius,
-                                       select,
-                                       &rect,
-                                       gpstroke_iter.diff_mat,
-                                       selectmode,
-                                       scale);
+    changed |= gpencil_stroke_do_circle_sel(gpd,
+                                            gpl,
+                                            gps,
+                                            &gsc,
+                                            mx,
+                                            my,
+                                            radius,
+                                            select,
+                                            &rect,
+                                            gpstroke_iter.diff_mat,
+                                            selectmode,
+                                            scale);
   }
   GP_EVALUATED_STROKES_END(gpstroke_iter);
 
