@@ -44,6 +44,8 @@
 
 #include "DEG_depsgraph.h"
 
+#include "IMB_colormanagement.h"
+
 #include "WM_api.h"
 #include "WM_message.h"
 #include "WM_toolsystem.h"
@@ -132,6 +134,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
 
   float brush_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   copy_v3_v3(brush_color, BKE_brush_color_get(ss->scene, brush));
+  IMB_colormanagement_srgb_to_scene_linear_v3(brush_color);
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
