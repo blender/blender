@@ -3108,33 +3108,13 @@ static void outliner_draw_tree_element(bContext *C,
       offsx += 2 * ufac;
     }
 
-    if (ELEM(tselem->type, 0, TSE_LAYER_COLLECTION) && ID_IS_LINKED(tselem->id)) {
-      if (tselem->id->tag & LIB_TAG_MISSING) {
-        UI_icon_draw_alpha((float)startx + offsx + 2 * ufac,
-                           (float)*starty + 2 * ufac,
-                           ICON_LIBRARY_DATA_BROKEN,
-                           alpha_fac);
+    if (ELEM(tselem->type, 0, TSE_LAYER_COLLECTION)) {
+      const BIFIconID lib_icon = UI_library_icon_get(tselem->id);
+      if (lib_icon != ICON_NONE) {
+        UI_icon_draw_alpha(
+            (float)startx + offsx + 2 * ufac, (float)*starty + 2 * ufac, lib_icon, alpha_fac);
+        offsx += UI_UNIT_X + 4 * ufac;
       }
-      else if (tselem->id->tag & LIB_TAG_INDIRECT) {
-        UI_icon_draw_alpha((float)startx + offsx + 2 * ufac,
-                           (float)*starty + 2 * ufac,
-                           ICON_LIBRARY_DATA_INDIRECT,
-                           alpha_fac);
-      }
-      else {
-        UI_icon_draw_alpha((float)startx + offsx + 2 * ufac,
-                           (float)*starty + 2 * ufac,
-                           ICON_LIBRARY_DATA_DIRECT,
-                           alpha_fac);
-      }
-      offsx += UI_UNIT_X + 4 * ufac;
-    }
-    else if (ELEM(tselem->type, 0, TSE_LAYER_COLLECTION) && ID_IS_OVERRIDE_LIBRARY(tselem->id)) {
-      UI_icon_draw_alpha((float)startx + offsx + 2 * ufac,
-                         (float)*starty + 2 * ufac,
-                         ICON_LIBRARY_DATA_OVERRIDE,
-                         alpha_fac);
-      offsx += UI_UNIT_X + 4 * ufac;
     }
     GPU_blend(false);
 

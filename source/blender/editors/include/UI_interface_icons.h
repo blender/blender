@@ -106,6 +106,7 @@ struct PreviewImage *UI_icon_to_preview(int icon_id);
 
 int UI_rnaptr_icon_get(struct bContext *C, struct PointerRNA *ptr, int rnaicon, const bool big);
 int UI_idcode_icon_get(const int idcode);
+int UI_library_icon_get(const struct ID *id);
 
 #ifdef __cplusplus
 }

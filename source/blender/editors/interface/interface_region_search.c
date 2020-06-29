@@ -77,6 +77,9 @@ struct uiSearchItems {
   int *icons;
   int *states;
 
+  /** Is there any item with an icon? */
+  bool has_icon;
+
   AutoComplete *autocpl;
   void *active;
 };
@@ -120,6 +123,10 @@ bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int 
   if (items->autocpl) {
     UI_autocomplete_update_name(items->autocpl, name);
     return true;
+  }
+
+  if (iconid) {
+    items->has_icon = true;
   }
 
   /* hijack for finding active item */
@@ -562,6 +569,10 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
         /* widget itself */
         if ((search_sep_len == 0) ||
             !(name_sep_test = strstr(data->items.names[a], data->sep_string))) {
+          if (!icon && data->items.has_icon) {
+            /* If there is any icon item, make sure all items line up. */
+            icon = ICON_BLANK1;
+          }
 
           /* Simple menu item. */
           ui_draw_menu_item(&data->fstyle, &rect, name, icon, state, use_sep_char, NULL);

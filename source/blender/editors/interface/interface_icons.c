@@ -2192,6 +2192,26 @@ int ui_id_icon_get(const bContext *C, ID *id, const bool big)
   return iconid;
 }
 
+int UI_library_icon_get(const ID *id)
+{
+  if (ID_IS_LINKED(id)) {
+    if (id->tag & LIB_TAG_MISSING) {
+      return ICON_LIBRARY_DATA_BROKEN;
+    }
+    else if (id->tag & LIB_TAG_INDIRECT) {
+      return ICON_LIBRARY_DATA_INDIRECT;
+    }
+    else {
+      return ICON_LIBRARY_DATA_DIRECT;
+    }
+  }
+  else if (ID_IS_OVERRIDE_LIBRARY(id)) {
+    return ICON_LIBRARY_DATA_OVERRIDE;
+  }
+
+  return ICON_NONE;
+}
+
 int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big)
 {
   ID *id = NULL;

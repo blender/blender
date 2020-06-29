@@ -2175,13 +2175,18 @@ void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const ID *id, char separa
  */
 void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI],
                                     const ID *id,
+                                    const bool add_lib_hint,
                                     char separator_char)
 {
-  name[0] = id->lib ? (ID_MISSING(id) ? 'M' : 'L') : ID_IS_OVERRIDE_LIBRARY(id) ? 'O' : ' ';
-  name[1] = (id->flag & LIB_FAKEUSER) ? 'F' : ((id->us == 0) ? '0' : ' ');
-  name[2] = ' ';
+  int i = 0;
 
-  BKE_id_full_name_get(name + 3, id, separator_char);
+  if (add_lib_hint) {
+    name[i++] = id->lib ? (ID_MISSING(id) ? 'M' : 'L') : ID_IS_OVERRIDE_LIBRARY(id) ? 'O' : ' ';
+  }
+  name[i++] = (id->flag & LIB_FAKEUSER) ? 'F' : ((id->us == 0) ? '0' : ' ');
+  name[i++] = ' ';
+
+  BKE_id_full_name_get(name + i, id, separator_char);
 }
 
 /**

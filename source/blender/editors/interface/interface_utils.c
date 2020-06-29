@@ -45,6 +45,7 @@
 #include "RNA_access.h"
 
 #include "UI_interface.h"
+#include "UI_interface_icons.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"
@@ -384,6 +385,7 @@ typedef struct CollItemSearch {
   char *name;
   int index;
   int iconid;
+  bool is_id;
   uint has_sep_char : 1;
 } CollItemSearch;
 
@@ -418,6 +420,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
   const bool skip_filter = data->search_but && !data->search_but->changed;
   char name_buf[UI_MAX_DRAW_STR];
   char *name;
+  bool has_id_icon = false;
 
   /* build a temporary list of relevant items first */
   RNA_PROP_BEGIN (&data->search_ptr, itemptr, data->search_prop) {
@@ -437,16 +440,20 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
 
     int iconid = ICON_NONE;
     bool has_sep_char = false;
+    bool is_id = itemptr.type && RNA_struct_is_ID(itemptr.type);
 
-    if (itemptr.type && RNA_struct_is_ID(itemptr.type)) {
+    if (is_id) {
       iconid = ui_id_icon_get(C, itemptr.data, false);
+      if (!ELEM(iconid, 0, ICON_BLANK1)) {
+        has_id_icon = true;
+      }
 
       if (requires_exact_data_name) {
         name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), NULL);
       }
       else {
         const ID *id = itemptr.data;
-        BKE_id_full_name_ui_prefix_get(name_buf, id, UI_SEP_CHAR);
+        BKE_id_full_name_ui_prefix_get(name_buf, itemptr.data, true, UI_SEP_CHAR);
         BLI_STATIC_ASSERT(sizeof(name_buf) >= MAX_ID_FULL_NAME_UI,
                           "Name string buffer should be big enough to hold full UI ID name");
         name = name_buf;
@@ -464,6 +471,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
         cis->name = BLI_strdup(name);
         cis->index = i;
         cis->iconid = iconid;
+        cis->is_id = is_id;
         cis->has_sep_char = has_sep_char;
         BLI_addtail(items_list, cis);
       }
@@ -480,6 +488,17 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
 
   /* add search items from temporary list */
   for (cis = items_list->first; cis; cis = cis->next) {
+    /* If no item has an own icon to display, libraries can use the library icons rather than the
+     * name prefix for showing the library status. */
+    if (!has_id_icon && cis->is_id) {
+      cis->iconid = UI_library_icon_get(cis->data);
+      /* No need to re-allocate, string should be shorter than before (lib status prefix is
+       * removed). */
+      BKE_id_full_name_ui_prefix_get(name_buf, cis->data, false, UI_SEP_CHAR);
+      BLI_assert(strlen(name_buf) <= MEM_allocN_len(cis->name));
+      strcpy(cis->name, name_buf);
+    }
+
     if (!UI_search_item_add(items,
                             cis->name,
                             cis->data,
