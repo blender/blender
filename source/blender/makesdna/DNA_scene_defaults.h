@@ -218,7 +218,6 @@
     .bloom_radius = 6.5f, \
     .bloom_clamp = 0.0f, \
  \
-    .motion_blur_samples = 8, \
     .motion_blur_shutter = 0.5f, \
     .motion_blur_depth_scale = 100.0f, \
     .motion_blur_max = 32, \
