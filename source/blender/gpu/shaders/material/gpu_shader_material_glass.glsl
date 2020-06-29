@@ -28,5 +28,5 @@ void node_bsdf_glass(
 }
 #else
 /* Stub glass because it is not compatible with volumetrics. */
-#  define node_bsdf_glass
+#  define node_bsdf_glass(a, b, c, d, e, f) (f = CLOSURE_DEFAULT)
 #endif

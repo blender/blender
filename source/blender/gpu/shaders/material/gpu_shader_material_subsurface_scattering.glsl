@@ -24,5 +24,5 @@ void node_subsurface_scattering(vec4 color,
 }
 #else
 /* Stub subsurface scattering because it is not compatible with volumetrics. */
-#  define node_subsurface_scattering
+#  define node_subsurface_scattering(a, b, c, d, e, f, g, h) (h = CLOSURE_DEFAULT)
 #endif

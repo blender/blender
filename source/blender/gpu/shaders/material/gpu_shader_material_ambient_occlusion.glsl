@@ -9,5 +9,5 @@ void node_ambient_occlusion(
 }
 #else
 /* Stub ambient occlusion because it is not compatible with volumetrics. */
-#  define node_ambient_occlusion
+#  define node_ambient_occlusion(a, b, c, d, e) (e = CLOSURE_DEFAULT)
 #endif

@@ -40,4 +40,7 @@ void node_eevee_specular(vec4 diffuse,
 
   closure_load_ssr_data(ssr_spec * alpha, roughness, normal, viewCameraVec, int(ssr_id), result);
 }
+#else
+/* Stub specular because it is not compatible with volumetrics. */
+#  define node_eevee_specular(a, b, c, d, e, f, g, h, i, j, k, result) (result = CLOSURE_DEFAULT)
 #endif
