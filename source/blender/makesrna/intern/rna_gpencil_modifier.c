@@ -128,12 +128,12 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      ICON_MOD_OPACITY,
      "Opacity",
      "Opacity of the strokes"},
-    {eGpencilModifierType_Tint, "GP_TINT", ICON_MOD_TINT, "Tint", "Tint strokes with new color"},
     {eGpencilModifierType_Texture,
      "GP_TEXTURE",
      ICON_TEXTURE,
      "Texture Mapping",
      "Change stroke uv texture values"},
+    {eGpencilModifierType_Tint, "GP_TINT", ICON_MOD_TINT, "Tint", "Tint strokes with new color"},
     {0, NULL, 0, NULL, NULL},
 };
 
