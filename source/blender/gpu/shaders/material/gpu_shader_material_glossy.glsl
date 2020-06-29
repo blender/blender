@@ -12,5 +12,5 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, float ssr_id, out Clo
 }
 #else
 /* Stub glossy because it is not compatible with volumetrics. */
-#  define node_bsdf_glossy
+#  define node_bsdf_glossy(a, b, c, d, e) (e = CLOSURE_DEFAULT)
 #endif

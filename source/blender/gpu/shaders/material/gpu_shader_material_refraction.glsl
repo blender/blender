@@ -12,5 +12,5 @@ void node_bsdf_refraction(vec4 color, float roughness, float ior, vec3 N, out Cl
 }
 #else
 /* Stub refraction because it is not compatible with volumetrics. */
-#  define node_bsdf_refraction
+#  define node_bsdf_refraction(a, b, c, d, e) (e = CLOSURE_DEFAULT)
 #endif

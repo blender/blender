@@ -26,6 +26,6 @@ void node_wireframe_screenspace(float size, vec2 barycentric, out float fac)
 }
 #else
 /* Stub wireframe because it is not compatible with volumetrics. */
-#  define node_wireframe
-#  define node_wireframe_screenspace
+#  define node_wireframe(a, b, c, d) (d = 0.0)
+#  define node_wireframe_screenspace(a, b, c) (c = 0.0)
 #endif

@@ -9,5 +9,5 @@ void node_bsdf_translucent(vec4 color, vec3 N, out Closure result)
 }
 #else
 /* Stub translucent because it is not compatible with volumetrics. */
-#  define node_bsdf_translucent
+#  define node_bsdf_translucent(a, b, c) (c = CLOSURE_DEFAULT)
 #endif

@@ -9,5 +9,5 @@ void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out Closure result)
 }
 #else
 /* Stub diffuse because it is not compatible with volumetrics. */
-#  define node_bsdf_diffuse
+#  define node_bsdf_diffuse(a, b, c, d) (d = CLOSURE_DEFAULT)
 #endif
