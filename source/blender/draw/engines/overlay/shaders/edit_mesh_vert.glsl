@@ -83,7 +83,7 @@ void main()
   finalColor = EDIT_MESH_facedot_color(norAndFlag.w);
 
   /* Bias Facedot Z position in clipspace. */
-  gl_Position.z -= 0.00035;
+  gl_Position.z -= (ProjectionMatrix[3][3] == 0.0) ? 0.00035 : 1e-6;
   gl_PointSize = sizeFaceDot;
 
   bool occluded = test_occlusion();
