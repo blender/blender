@@ -7015,6 +7015,7 @@ static void direct_link_panel_list(BlendDataReader *reader, ListBase *lb)
     panel->runtime_flag = 0;
     panel->activedata = NULL;
     panel->type = NULL;
+    panel->runtime.custom_data_ptr = NULL;
     direct_link_panel_list(reader, &panel->children);
   }
 }

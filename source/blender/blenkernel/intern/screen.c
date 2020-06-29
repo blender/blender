@@ -393,6 +393,7 @@ static void panel_list_copy(ListBase *newlb, const ListBase *lb)
   Panel *panel = lb->first;
   for (; new_panel; new_panel = new_panel->next, panel = panel->next) {
     new_panel->activedata = NULL;
+    new_panel->runtime.custom_data_ptr = NULL;
     panel_list_copy(&new_panel->children, &panel->children);
   }
 }
@@ -575,18 +576,25 @@ void BKE_region_callback_free_gizmomap_set(void (*callback)(struct wmGizmoMap *)
   region_free_gizmomap_callback = callback;
 }
 
-void BKE_area_region_panels_free(ListBase *lb)
+static void area_region_panels_free_recursive(Panel *panel)
 {
-  Panel *panel, *panel_next;
-  for (panel = lb->first; panel; panel = panel_next) {
-    panel_next = panel->next;
-    if (panel->activedata) {
-      MEM_freeN(panel->activedata);
-    }
-    BKE_area_region_panels_free(&panel->children);
+  MEM_SAFE_FREE(panel->activedata);
+
+  LISTBASE_FOREACH_MUTABLE (Panel *, child_panel, &panel->children) {
+    area_region_panels_free_recursive(child_panel);
   }
 
-  BLI_freelistN(lb);
+  MEM_freeN(panel);
+}
+
+void BKE_area_region_panels_free(ListBase *lb)
+{
+  LISTBASE_FOREACH_MUTABLE (Panel *, panel, lb) {
+    /* Free custom data just for parent panels to avoid a double free. */
+    MEM_SAFE_FREE(panel->runtime.custom_data_ptr);
+    area_region_panels_free_recursive(panel);
+  }
+  BLI_listbase_clear(lb);
 }
 
 /* not region itself */

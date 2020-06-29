@@ -245,20 +245,25 @@ static bool panels_need_realign(ScrArea *area, ARegion *region, Panel **r_panel_
 
 /********* Functions for instanced panels. ***********/
 
-static Panel *UI_panel_add_instanced_ex(
-    ScrArea *area, ARegion *region, ListBase *panels, PanelType *panel_type, int list_index)
+static Panel *UI_panel_add_instanced_ex(ScrArea *area,
+                                        ARegion *region,
+                                        ListBase *panels,
+                                        PanelType *panel_type,
+                                        int list_index,
+                                        PointerRNA *custom_data)
 {
   Panel *panel = MEM_callocN(sizeof(Panel), "instanced panel");
   panel->type = panel_type;
   BLI_strncpy(panel->panelname, panel_type->idname, sizeof(panel->panelname));
 
   panel->runtime.list_index = list_index;
+  panel->runtime.custom_data_ptr = custom_data;
 
   /* Add the panel's children too. Although they aren't instanced panels, we can still use this
    * function to create them, as UI_panel_begin does other things we don't need to do. */
   LISTBASE_FOREACH (LinkData *, child, &panel_type->children) {
     PanelType *child_type = child->data;
-    UI_panel_add_instanced_ex(area, region, &panel->children, child_type, list_index);
+    UI_panel_add_instanced_ex(area, region, &panel->children, child_type, list_index, custom_data);
   }
 
   /* Make sure the panel is added to the end of the display-order as well. This is needed for
@@ -283,8 +288,12 @@ static Panel *UI_panel_add_instanced_ex(
  * Called in situations where panels need to be added dynamically rather than having only one panel
  * corresponding to each PanelType.
  */
-Panel *UI_panel_add_instanced(
-    ScrArea *area, ARegion *region, ListBase *panels, char *panel_idname, int list_index)
+Panel *UI_panel_add_instanced(ScrArea *area,
+                              ARegion *region,
+                              ListBase *panels,
+                              char *panel_idname,
+                              int list_index,
+                              PointerRNA *custom_data)
 {
   ARegionType *region_type = region->type;
 
@@ -296,7 +305,7 @@ Panel *UI_panel_add_instanced(
     return NULL;
   }
 
-  return UI_panel_add_instanced_ex(area, region, panels, panel_type, list_index);
+  return UI_panel_add_instanced_ex(area, region, panels, panel_type, list_index, custom_data);
 }
 
 /**
@@ -332,7 +341,8 @@ static void panel_free_block(ARegion *region, Panel *panel)
 }
 
 /**
- * Free a panel and it's children.
+ * Free a panel and it's children. Custom data is shared by the panel and its children
+ * and is freed by #UI_panels_free_instanced.
  *
  * \note The only panels that should need to be deleted at runtime are panels with the
  * #PNL_INSTANCED flag set.
@@ -369,6 +379,13 @@ void UI_panels_free_instanced(bContext *C, ARegion *region)
       if (C != NULL && panel->activedata != NULL) {
         panel_activate_state(C, panel, PANEL_STATE_EXIT);
       }
+
+      /* Free panel's custom data. */
+      if (panel->runtime.custom_data_ptr != NULL) {
+        MEM_freeN(panel->runtime.custom_data_ptr);
+      }
+
+      /* Free the panel and its subpanels. */
       panel_delete(region, &region->panels, panel);
     }
   }
@@ -2884,6 +2901,56 @@ int ui_handler_panel_region(bContext *C,
   }
 
   return retval;
+}
+
+static void ui_panel_custom_data_set_recursive(Panel *panel, PointerRNA *custom_data)
+{
+  panel->runtime.custom_data_ptr = custom_data;
+
+  LISTBASE_FOREACH (Panel *, child_panel, &panel->children) {
+    ui_panel_custom_data_set_recursive(child_panel, custom_data);
+  }
+}
+
+void UI_panel_custom_data_set(Panel *panel, PointerRNA *custom_data)
+{
+  BLI_assert(panel->type != NULL);
+
+  /* Free the old custom data, which should be shared among all of the panel's subpanels. */
+  if (panel->runtime.custom_data_ptr != NULL) {
+    MEM_freeN(panel->runtime.custom_data_ptr);
+  }
+
+  ui_panel_custom_data_set_recursive(panel, custom_data);
+}
+
+PointerRNA *UI_region_panel_custom_data_under_cursor(const bContext *C, const wmEvent *event)
+{
+  ARegion *region = CTX_wm_region(C);
+
+  Panel *panel = NULL;
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    panel = block->panel;
+    if (panel == NULL) {
+      continue;
+    }
+
+    int mx = event->x;
+    int my = event->y;
+    ui_window_to_block(region, block, &mx, &my);
+    int mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
+    if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER)) {
+      break;
+    }
+  }
+
+  if (panel == NULL) {
+    return NULL;
+  }
+
+  PointerRNA *customdata = panel->runtime.custom_data_ptr;
+
+  return customdata;
 }
 
 /**************** window level modal panel interaction **************/
