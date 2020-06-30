@@ -30,6 +30,13 @@
 #include <Alembic/AbcCoreOgawa/All.h>
 #include <Alembic/AbcGeom/All.h>
 
+#ifdef WIN32
+#  include "BLI_path_util.h"
+#  include "BLI_string.h"
+
+#  include "utfconv.h"
+#endif
+
 namespace blender {
 namespace io {
 namespace alembic {
@@ -81,10 +88,13 @@ static OArchive *create_archive(std::ofstream *abc_ostream,
 {
   /* Use stream to support unicode character paths on Windows. */
 #ifdef WIN32
-  UTF16_ENCODE(filename);
-  std::wstring wstr(filename_16);
+  char filename_cstr[FILE_MAX];
+  BLI_strncpy(filename_cstr, filename.c_str(), FILE_MAX);
+
+  UTF16_ENCODE(filename_cstr);
+  std::wstring wstr(filename_cstr_16);
   abc_ostream->open(wstr.c_str(), std::ios::out | std::ios::binary);
-  UTF16_UN_ENCODE(filename);
+  UTF16_UN_ENCODE(filename_cstr);
 #else
   abc_ostream->open(filename, std::ios::out | std::ios::binary);
 #endif
