@@ -247,8 +247,10 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     return;
   }
 
-  if (ss->cache->first_time && ss->cache->mirror_symmetry_pass == 0) {
-    ss->cache->density_seed = BLI_hash_int_01(ss->cache->location[0] * 1000);
+  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
+    if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+      ss->cache->density_seed = BLI_hash_int_01(ss->cache->location[0] * 1000);
+    }
     return;
   }
 
@@ -444,7 +446,7 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  if (ss->cache->first_time && ss->cache->mirror_symmetry_pass == 0) {
+  if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     if (!ss->cache->prev_colors) {
       ss->cache->prev_colors = MEM_callocN(sizeof(float) * 4 * totvert, "prev colors");
       for (int i = 0; i < totvert; i++) {

@@ -778,6 +778,31 @@ bool SCULPT_vertex_is_boundary(SculptSession *ss, const int index)
 }
 
 /* Utils */
+
+/* Returns true when the step belongs to the stroke that is directly performend by the brush and
+ * not by one of the symmetry passes. */
+bool SCULPT_stroke_is_main_symmetry_pass(StrokeCache *cache)
+{
+  return cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0 &&
+         cache->tile_pass == 0;
+}
+
+/* Return true only once per stroke on the first symmetry pass, regardless of the symmetry passes
+ * enabled. */
+/* This should be used for functionality that needs to be computed once per stroke of a particular
+ * tool (allocating memory, updating random seeds...). */
+bool SCULPT_stroke_is_first_brush_step(StrokeCache *cache)
+{
+  return cache->first_time && cache->mirror_symmetry_pass == 0 &&
+         cache->radial_symmetry_pass == 0 && cache->tile_pass == 0;
+}
+
+/* Returnns true on the first brush step of each symmetry pass. */
+bool SCULPT_stroke_is_first_brush_step_of_symmetry_pass(StrokeCache *cache)
+{
+  return cache->first_time;
+}
+
 bool SCULPT_check_vertex_pivot_symmetry(const float vco[3], const float pco[3], const char symm)
 {
   bool is_in_symmetry_area = true;
@@ -2558,7 +2583,7 @@ static void update_sculpt_normal(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
                                cache->normal_weight > 0.0f);
 
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0 &&
-      (cache->first_time || update_normal)) {
+      (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(cache) || update_normal)) {
     calc_sculpt_normal(sd, ob, nodes, totnode, cache->sculpt_normal);
     if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
       project_plane_v3_v3v3(cache->sculpt_normal, cache->sculpt_normal, cache->view_normal);
@@ -3144,7 +3169,7 @@ static void do_slide_relax_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  if (ss->cache->first_time) {
+  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
     return;
   }
 
@@ -3175,10 +3200,9 @@ static void calc_sculpt_plane(
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  if (ss->cache->mirror_symmetry_pass == 0 && ss->cache->radial_symmetry_pass == 0 &&
-      ss->cache->tile_pass == 0 &&
-      (ss->cache->first_time || !(brush->flag & BRUSH_ORIGINAL_PLANE) ||
-       !(brush->flag & BRUSH_ORIGINAL_NORMAL))) {
+  if (SCULPT_stroke_is_main_symmetry_pass(ss->cache) &&
+      (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache) ||
+       !(brush->flag & BRUSH_ORIGINAL_PLANE) || !(brush->flag & BRUSH_ORIGINAL_NORMAL))) {
     switch (brush->sculpt_plane) {
       case SCULPT_DISP_DIR_VIEW:
         copy_v3_v3(r_area_no, ss->cache->true_view_normal);
@@ -3215,7 +3239,8 @@ static void calc_sculpt_plane(
     }
 
     /* For area normal. */
-    if ((!ss->cache->first_time) && (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
+    if ((!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) &&
+        (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
       copy_v3_v3(r_area_no, ss->cache->sculpt_normal);
     }
     else {
@@ -3223,7 +3248,8 @@ static void calc_sculpt_plane(
     }
 
     /* For flatten center. */
-    if ((!ss->cache->first_time) && (brush->flag & BRUSH_ORIGINAL_PLANE)) {
+    if ((!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) &&
+        (brush->flag & BRUSH_ORIGINAL_PLANE)) {
       copy_v3_v3(r_area_co, ss->cache->last_center);
     }
     else {
@@ -3450,7 +3476,7 @@ static void do_pinch_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   calc_sculpt_plane(sd, ob, nodes, totnode, area_no, area_co);
 
   /* delay the first daub because grab delta is not setup */
-  if (ss->cache->first_time) {
+  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
     return;
   }
 
@@ -3728,10 +3754,9 @@ void SCULPT_calc_brush_plane(
   zero_v3(r_area_co);
   zero_v3(r_area_no);
 
-  if (ss->cache->mirror_symmetry_pass == 0 && ss->cache->radial_symmetry_pass == 0 &&
-      ss->cache->tile_pass == 0 &&
-      (ss->cache->first_time || !(brush->flag & BRUSH_ORIGINAL_PLANE) ||
-       !(brush->flag & BRUSH_ORIGINAL_NORMAL))) {
+  if (SCULPT_stroke_is_main_symmetry_pass(ss->cache) &&
+      (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache) ||
+       !(brush->flag & BRUSH_ORIGINAL_PLANE) || !(brush->flag & BRUSH_ORIGINAL_NORMAL))) {
     switch (brush->sculpt_plane) {
       case SCULPT_DISP_DIR_VIEW:
         copy_v3_v3(r_area_no, ss->cache->true_view_normal);
@@ -3768,7 +3793,8 @@ void SCULPT_calc_brush_plane(
     }
 
     /* For area normal. */
-    if ((!ss->cache->first_time) && (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
+    if ((!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) &&
+        (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
       copy_v3_v3(r_area_no, ss->cache->sculpt_normal);
     }
     else {
@@ -3776,7 +3802,8 @@ void SCULPT_calc_brush_plane(
     }
 
     /* For flatten center. */
-    if ((!ss->cache->first_time) && (brush->flag & BRUSH_ORIGINAL_PLANE)) {
+    if ((!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) &&
+        (brush->flag & BRUSH_ORIGINAL_PLANE)) {
       copy_v3_v3(r_area_co, ss->cache->last_center);
     }
     else {
@@ -4725,7 +4752,7 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
   }
 
   /* Delay the first daub because grab delta is not setup. */
-  if (ss->cache->first_time) {
+  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
     return;
   }
 
@@ -5088,14 +5115,14 @@ static void do_clay_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   }
 
   /* Delay the first daub because grab delta is not setup. */
-  if (ss->cache->first_time) {
+  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
     ss->cache->clay_thumb_front_angle = 0.0f;
     return;
   }
 
   /* Simulate the clay accumulation by increasing the plane angle as more samples are added to the
    * stroke. */
-  if (ss->cache->mirror_symmetry_pass == 0) {
+  if (SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
     ss->cache->clay_thumb_front_angle += 0.8f;
     CLAMP(ss->cache->clay_thumb_front_angle, 0.0f, 60.0f);
   }
@@ -5407,8 +5434,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
    * vertices and uses regular coords undo. */
   /* It also assigns the paint_face_set here as it needs to be done regardless of the stroke type
    * and the number of nodes under the brush influence. */
-  if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS && ss->cache->first_time &&
-      ss->cache->mirror_symmetry_pass == 0 && !ss->cache->alt_smooth) {
+  if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS &&
+      SCULPT_stroke_is_first_brush_step(ss->cache) && !ss->cache->alt_smooth) {
 
     /* Dyntopo does not support Face Sets data, so it can't store/restore it from undo. */
     /* TODO (pablodp606): This check should be done in the undo code and not here, but the rest of
@@ -5450,14 +5477,13 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       update_brush_local_mat(sd, ob);
     }
 
-    if (ss->cache->first_time && ss->cache->mirror_symmetry_pass == 0) {
+    if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
       if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
         SCULPT_automasking_init(sd, ob);
       }
     }
 
-    if (brush->sculpt_tool == SCULPT_TOOL_POSE && ss->cache->first_time &&
-        ss->cache->mirror_symmetry_pass == 0) {
+    if (brush->sculpt_tool == SCULPT_TOOL_POSE && SCULPT_stroke_is_first_brush_step(ss->cache)) {
       SCULPT_pose_brush_init(sd, ob, ss, brush);
     }
 
@@ -6390,7 +6416,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
       sculpt_brush_use_topology_rake(ss, brush)) {
     float grab_location[3], imat[4][4], delta[3], loc[3];
 
-    if (cache->first_time) {
+    if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
       if (tool == SCULPT_TOOL_GRAB && brush->flag & BRUSH_GRAB_ACTIVE_VERTEX) {
         copy_v3_v3(cache->orig_grab_location, SCULPT_active_vertex_co_get(ss));
       }
@@ -6407,7 +6433,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
     ED_view3d_win_to_3d(cache->vc->v3d, cache->vc->region, loc, mouse, grab_location);
 
     /* Compute delta to move verts by. */
-    if (!cache->first_time) {
+    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
       if (sculpt_needs_delta_from_anchored_origin(brush)) {
         sub_v3_v3v3(delta, grab_location, cache->old_grab_location);
         invert_m4_m4(imat, ob->obmat);
@@ -6471,7 +6497,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
     invert_m4_m4(imat, ob->obmat);
     mul_mat3_m4_v3(imat, grab_location);
 
-    if (cache->first_time) {
+    if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
       copy_v3_v3(cache->rake_data.follow_co, grab_location);
     }
 
@@ -6525,7 +6551,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
   StrokeCache *cache = ss->cache;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  if (cache->first_time ||
+  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache) ||
       !((brush->flag & BRUSH_ANCHORED) || (brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK) ||
         (brush->sculpt_tool == SCULPT_TOOL_ROTATE) || SCULPT_is_cloth_deform_brush(brush))) {
     RNA_float_get_array(ptr, "location", cache->true_location);
@@ -6543,7 +6569,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
   }
 
   /* Truly temporary data that isn't stored in properties. */
-  if (cache->first_time) {
+  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
     if (!BKE_brush_use_locked_size(scene, brush)) {
       cache->initial_radius = paint_calc_object_space_radius(
           cache->vc, cache->true_location, BKE_brush_size_get(scene, brush));
@@ -6556,7 +6582,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
 
   /* Clay stabilized pressure. */
   if (brush->sculpt_tool == SCULPT_TOOL_CLAY_THUMB) {
-    if (ss->cache->first_time) {
+    if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
       for (int i = 0; i < SCULPT_CLAY_STABILIZER_LEN; i++) {
         ss->cache->clay_pressure_stabilizer[i] = 0.0f;
       }

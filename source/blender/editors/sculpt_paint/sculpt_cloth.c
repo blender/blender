@@ -640,10 +640,10 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
    * nodes inside the simulation's limits. */
   /* Brush stroke types that restore the mesh on each brush step also need the cloth sim data to be
    * created on each step. */
-  if (ss->cache->first_time || !ss->cache->cloth_sim) {
+  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache) || !ss->cache->cloth_sim) {
 
     /* The simulation structure only needs to be created on the first symmetry pass. */
-    if (ss->cache->mirror_symmetry_pass == 0) {
+    if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
       ss->cache->cloth_sim = cloth_brush_simulation_create(
           ss, brush->cloth_mass, brush->cloth_damping);
       for (int i = 0; i < totverts; i++) {
