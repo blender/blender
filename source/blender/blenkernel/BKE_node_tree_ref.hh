@@ -67,7 +67,7 @@ class OutputSocketRef;
 class NodeRef;
 class NodeTreeRef;
 
-class SocketRef : blender::NonCopyable, blender::NonMovable {
+class SocketRef : NonCopyable, NonMovable {
  protected:
   NodeRef *m_node;
   bNodeSocket *m_bsocket;
@@ -120,7 +120,7 @@ class OutputSocketRef final : public SocketRef {
   Span<const InputSocketRef *> directly_linked_sockets() const;
 };
 
-class NodeRef : blender::NonCopyable, blender::NonMovable {
+class NodeRef : NonCopyable, NonMovable {
  private:
   NodeTreeRef *m_tree;
   bNode *m_bnode;
@@ -155,7 +155,7 @@ class NodeRef : blender::NonCopyable, blender::NonMovable {
   bool is_group_output_node() const;
 };
 
-class NodeTreeRef : blender::NonCopyable, blender::NonMovable {
+class NodeTreeRef : NonCopyable, NonMovable {
  private:
   LinearAllocator<> m_allocator;
   bNodeTree *m_btree;
