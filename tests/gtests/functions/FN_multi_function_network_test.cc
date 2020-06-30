@@ -26,9 +26,8 @@ namespace fn {
 
 TEST(multi_function_network, Test1)
 {
-  CustomFunction_SI_SO<int, int> add_10_fn("add 10", [](int value) { return value + 10; });
-  CustomFunction_SI_SI_SO<int, int, int> multiply_fn("multiply",
-                                                     [](int a, int b) { return a * b; });
+  CustomMF_SI_SO<int, int> add_10_fn("add 10", [](int value) { return value + 10; });
+  CustomMF_SI_SI_SO<int, int, int> multiply_fn("multiply", [](int a, int b) { return a * b; });
 
   MFNetwork network;
 
@@ -171,7 +170,7 @@ class CreateRangeFunction : public MultiFunction {
 
 TEST(multi_function_network, Test2)
 {
-  CustomFunction_SI_SO<int, int> add_3_fn("add 3", [](int value) { return value + 3; });
+  CustomMF_SI_SO<int, int> add_3_fn("add 3", [](int value) { return value + 3; });
 
   ConcatVectorsFunction concat_vectors_fn;
   AppendFunction append_fn;
