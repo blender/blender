@@ -262,7 +262,7 @@ static bool ObtainCacheParticleVcol(Hair *hair,
           BL::Mesh::vertex_colors_iterator l;
           b_mesh->vertex_colors.begin(l);
 
-          float3 vcol = make_float3(0.0f, 0.0f, 0.0f);
+          float4 vcol = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
           if (b_mesh->vertex_colors.length())
             b_psys.mcol_on_emitter(psmd, *b_pa, pa_no, vcol_num, &vcol.x);
           CData->curve_vcol.push_back_slow(vcol);
@@ -578,16 +578,16 @@ void BlenderSync::sync_particle_hair(
       ObtainCacheParticleVcol(hair, &b_mesh, &b_ob, &CData, !preview, vcol_num);
 
       Attribute *attr_vcol = hair->attributes.add(
-          ustring(l->name().c_str()), TypeDesc::TypeColor, ATTR_ELEMENT_CURVE);
+          ustring(l->name().c_str()), TypeRGBA, ATTR_ELEMENT_CURVE);
 
-      float3 *fdata = attr_vcol->data_float3();
+      float4 *fdata = attr_vcol->data_float4();
 
       if (fdata) {
         size_t i = 0;
 
         /* Encode vertex color using the sRGB curve. */
         for (size_t curve = 0; curve < CData.curve_vcol.size(); curve++) {
-          fdata[i++] = color_srgb_to_linear_v3(CData.curve_vcol[curve]);
+          fdata[i++] = color_srgb_to_linear_v4(CData.curve_vcol[curve]);
         }
       }
     }

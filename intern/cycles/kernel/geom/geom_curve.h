@@ -198,6 +198,66 @@ ccl_device float3 curve_attribute_float3(KernelGlobals *kg,
   }
 }
 
+ccl_device float4 curve_attribute_float4(KernelGlobals *kg,
+                                         const ShaderData *sd,
+                                         const AttributeDescriptor desc,
+                                         float4 *dx,
+                                         float4 *dy)
+{
+  if (desc.element == ATTR_ELEMENT_CURVE) {
+    /* idea: we can't derive any useful differentials here, but for tiled
+     * mipmap image caching it would be useful to avoid reading the highest
+     * detail level always. maybe a derivative based on the hair density
+     * could be computed somehow? */
+#  ifdef __RAY_DIFFERENTIALS__
+    if (dx)
+      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    if (dy)
+      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+#  endif
+
+    return kernel_tex_fetch(__attributes_float3, desc.offset + sd->prim);
+  }
+  else if (desc.element == ATTR_ELEMENT_CURVE_KEY ||
+           desc.element == ATTR_ELEMENT_CURVE_KEY_MOTION) {
+    float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
+    int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
+    int k1 = k0 + 1;
+
+    float4 f0 = kernel_tex_fetch(__attributes_float3, desc.offset + k0);
+    float4 f1 = kernel_tex_fetch(__attributes_float3, desc.offset + k1);
+
+#  ifdef __RAY_DIFFERENTIALS__
+    if (dx)
+      *dx = sd->du.dx * (f1 - f0);
+    if (dy)
+      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+#  endif
+
+    return (1.0f - sd->u) * f0 + sd->u * f1;
+  }
+  else if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
+#  ifdef __RAY_DIFFERENTIALS__
+    if (dx)
+      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    if (dy)
+      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+#  endif
+
+    return kernel_tex_fetch(__attributes_float3, desc.offset);
+  }
+  else {
+#  ifdef __RAY_DIFFERENTIALS__
+    if (dx)
+      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    if (dy)
+      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+#  endif
+
+    return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  }
+}
+
 /* Curve thickness */
 
 ccl_device float curve_thickness(KernelGlobals *kg, ShaderData *sd)

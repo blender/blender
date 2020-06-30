@@ -174,6 +174,11 @@ ccl_device_inline float4 primitive_attribute_float4(KernelGlobals *kg,
     else
       return subd_triangle_attribute_float4(kg, sd, desc, dx, dy);
   }
+#ifdef __HAIR__
+  else if (sd->type & PRIMITIVE_ALL_CURVE) {
+    return curve_attribute_float4(kg, sd, desc, dx, dy);
+  }
+#endif
   else {
     if (dx)
       *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
