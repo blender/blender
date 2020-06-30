@@ -100,7 +100,12 @@ static bool object_remesh_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
-  if (ob == NULL) {
+  if (ob == NULL || ob->data == NULL) {
+    return false;
+  }
+
+  if (ID_IS_LINKED(ob) || ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+    CTX_wm_operator_poll_msg_set(C, "The remesher cannot worked on linked or override data");
     return false;
   }
 

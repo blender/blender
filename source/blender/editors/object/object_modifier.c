@@ -1347,6 +1347,10 @@ static bool modifier_apply_poll(bContext *C)
   Object *ob = (ptr.owner_id != NULL) ? (Object *)ptr.owner_id : ED_object_active_context(C);
   ModifierData *md = ptr.data; /* May be NULL. */
 
+  if (ID_IS_OVERRIDE_LIBRARY(ob) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+    CTX_wm_operator_poll_msg_set(C, "Modifiers cannot be applied on override data");
+    return false;
+  }
   if ((ob->data != NULL) && ID_REAL_USERS(ob->data) > 1) {
     CTX_wm_operator_poll_msg_set(C, "Modifiers cannot be applied to multi-user data");
     return false;
@@ -2070,8 +2074,9 @@ static bool skin_poll(bContext *C)
 
 static bool skin_edit_poll(bContext *C)
 {
-  return (CTX_data_edit_object(C) &&
-          edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH), true));
+  Object *ob = CTX_data_edit_object(C);
+  return (ob != NULL && edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH), true) &&
+          !ID_IS_OVERRIDE_LIBRARY(ob) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
 }
 
 static void skin_root_clear(BMVert *bm_vert, GSet *visited, const int cd_vert_skin_offset)

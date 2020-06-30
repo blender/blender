@@ -2210,8 +2210,13 @@ static bool object_convert_poll(bContext *C)
   Base *base_act = CTX_data_active_base(C);
   Object *obact = base_act ? base_act->object : NULL;
 
-  return (!ID_IS_LINKED(scene) && obact && (BKE_object_is_in_editmode(obact) == false) &&
-          (base_act->flag & BASE_SELECTED) && !ID_IS_LINKED(obact));
+  if (obact == NULL || obact->data == NULL || ID_IS_LINKED(obact) ||
+      ID_IS_OVERRIDE_LIBRARY(obact) || ID_IS_OVERRIDE_LIBRARY(obact->data)) {
+    return false;
+  }
+
+  return (!ID_IS_LINKED(scene) && (BKE_object_is_in_editmode(obact) == false) &&
+          (base_act->flag & BASE_SELECTED));
 }
 
 /* Helper for object_convert_exec */
@@ -3063,15 +3068,16 @@ static bool object_join_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
-  if (!ob || ID_IS_LINKED(ob)) {
-    return 0;
+  if (ob == NULL || ob->data == NULL || ID_IS_LINKED(ob) || ID_IS_OVERRIDE_LIBRARY(ob) ||
+      ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+    return false;
   }
 
   if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_ARMATURE, OB_GPENCIL)) {
     return ED_operator_screenactive(C);
   }
   else {
-    return 0;
+    return false;
   }
 }
 
@@ -3136,8 +3142,9 @@ static bool join_shapes_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
-  if (!ob || ID_IS_LINKED(ob)) {
-    return 0;
+  if (ob == NULL || ob->data == NULL || ID_IS_LINKED(ob) || ID_IS_OVERRIDE_LIBRARY(ob) ||
+      ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+    return false;
   }
 
   /* only meshes supported at the moment */
@@ -3145,7 +3152,7 @@ static bool join_shapes_poll(bContext *C)
     return ED_operator_screenactive(C);
   }
   else {
-    return 0;
+    return false;
   }
 }
 

@@ -2659,46 +2659,43 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 /** \name Shared Operator Poll Functions
  * \{ */
 
-static bool vertex_group_poll(bContext *C)
-{
-  Object *ob = ED_object_context(C);
-  ID *data = (ob) ? ob->data : NULL;
-
-  return (ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data) &&
-          OB_TYPE_SUPPORT_VGROUP(ob->type) && ob->defbase.first);
-}
-
 static bool vertex_group_supported_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
   ID *data = (ob) ? ob->data : NULL;
-  return (ob && !ID_IS_LINKED(ob) && OB_TYPE_SUPPORT_VGROUP(ob->type) && data &&
-          !ID_IS_LINKED(data));
+
+  return (ob && !ID_IS_LINKED(ob) && OB_TYPE_SUPPORT_VGROUP(ob->type) &&
+          !ID_IS_OVERRIDE_LIBRARY(ob) && data && !ID_IS_LINKED(data) &&
+          !ID_IS_OVERRIDE_LIBRARY(data));
+}
+
+static bool vertex_group_poll(bContext *C)
+{
+  Object *ob = ED_object_context(C);
+
+  return (vertex_group_supported_poll(C) && ob->defbase.first);
 }
 
 static bool vertex_group_mesh_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
-  ID *data = (ob) ? ob->data : NULL;
 
-  return (ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data) && ob->type == OB_MESH &&
-          ob->defbase.first);
+  return (vertex_group_poll(C) && ob->type == OB_MESH);
 }
 
 static bool UNUSED_FUNCTION(vertex_group_mesh_supported_poll)(bContext *C)
 {
   Object *ob = ED_object_context(C);
-  ID *data = (ob) ? ob->data : NULL;
-  return (ob && !ID_IS_LINKED(ob) && ob->type == OB_MESH && data && !ID_IS_LINKED(data));
+
+  return (vertex_group_supported_poll(C) && ob->type == OB_MESH);
 }
 
 static bool UNUSED_FUNCTION(vertex_group_poll_edit)(bContext *C)
 {
   Object *ob = ED_object_context(C);
-  ID *data = (ob) ? ob->data : NULL;
 
-  if (!(ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data))) {
-    return 0;
+  if (!vertex_group_supported_poll(C)) {
+    return false;
   }
 
   return BKE_object_is_in_editmode_vgroup(ob);
@@ -2710,9 +2707,8 @@ static bool vertex_group_vert_poll_ex(bContext *C,
                                       const short ob_type_flag)
 {
   Object *ob = ED_object_context(C);
-  ID *data = (ob) ? ob->data : NULL;
 
-  if (!(ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data))) {
+  if (!vertex_group_supported_poll(C)) {
     return false;
   }
 
@@ -2770,14 +2766,13 @@ static bool vertex_group_mesh_vert_select_poll(bContext *C)
 static bool vertex_group_vert_select_unlocked_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
-  ID *data = (ob) ? ob->data : NULL;
 
-  if (!(ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data))) {
-    return 0;
+  if (!vertex_group_supported_poll(C)) {
+    return false;
   }
 
   if (!(BKE_object_is_in_editmode_vgroup(ob) || BKE_object_is_in_wpaint_select_vert(ob))) {
-    return 0;
+    return false;
   }
 
   if (ob->actdef != 0) {
@@ -2786,21 +2781,20 @@ static bool vertex_group_vert_select_unlocked_poll(bContext *C)
       return !(dg->flag & DG_LOCK_WEIGHT);
     }
   }
-  return 1;
+  return true;
 }
 
 static bool vertex_group_vert_select_mesh_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
-  ID *data = (ob) ? ob->data : NULL;
 
-  if (!(ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data))) {
-    return 0;
+  if (!vertex_group_supported_poll(C)) {
+    return false;
   }
 
   /* only difference to #vertex_group_vert_select_poll */
   if (ob->type != OB_MESH) {
-    return 0;
+    return false;
   }
 
   return (BKE_object_is_in_editmode_vgroup(ob) || BKE_object_is_in_wpaint_select_vert(ob));

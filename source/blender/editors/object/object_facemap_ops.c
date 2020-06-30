@@ -171,14 +171,15 @@ static bool face_map_supported_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
   ID *data = (ob) ? ob->data : NULL;
-  return (ob && !ob->id.lib && ob->type == OB_MESH && data && !data->lib);
+  return (ob && !ID_IS_LINKED(ob) && !ID_IS_OVERRIDE_LIBRARY(ob) && ob->type == OB_MESH && data &&
+          !ID_IS_LINKED(data) && !ID_IS_OVERRIDE_LIBRARY(data));
 }
 
 static bool face_map_supported_edit_mode_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
-  ID *data = (ob) ? ob->data : NULL;
-  if (ob && !ob->id.lib && ob->type == OB_MESH && data && !data->lib) {
+
+  if (face_map_supported_poll(C)) {
     if (ob->mode == OB_MODE_EDIT) {
       return true;
     }

@@ -381,7 +381,7 @@ static bool data_transfer_exec_is_object_valid(wmOperator *op,
     me->id.tag &= ~LIB_TAG_DOIT;
     return true;
   }
-  else if (!ID_IS_LINKED(me)) {
+  else if (!ID_IS_LINKED(me) && !ID_IS_OVERRIDE_LIBRARY(me)) {
     /* Do not apply transfer operation more than once. */
     /* XXX This is not nice regarding vgroups, which are half-Object data... :/ */
     BKE_reportf(
@@ -446,8 +446,8 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  if (reverse_transfer && ID_IS_LINKED(ob_src->data)) {
-    /* Do not transfer to linked data, not supported. */
+  if (reverse_transfer && (ID_IS_LINKED(ob_src->data) || ID_IS_OVERRIDE_LIBRARY(ob_src->data))) {
+    /* Do not transfer to linked or override data, not supported. */
     return OPERATOR_CANCELLED;
   }
 
@@ -530,7 +530,7 @@ static bool data_transfer_poll(bContext *C)
 {
   Object *ob = ED_object_active_context(C);
   ID *data = (ob) ? ob->data : NULL;
-  return (ob && ob->type == OB_MESH && data);
+  return (ob != NULL && ob->type == OB_MESH && data != NULL);
 }
 
 /* Used by both OBJECT_OT_data_transfer and OBJECT_OT_datalayout_transfer */
@@ -786,7 +786,7 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 
     const bool use_delete = false; /* Never when used from modifier, for now. */
 
-    if (!ob_src) {
+    if (!ob_src || ID_IS_LINKED(ob_dst) || ID_IS_OVERRIDE_LIBRARY(ob_dst)) {
       return OPERATOR_CANCELLED;
     }
 
