@@ -278,12 +278,10 @@ static void gpencil_modifier_ops_extra_draw(bContext *C, uiLayout *layout, void 
 
   /* Apply. */
   if (!(mti->flags & eGpencilModifierTypeFlag_NoApply)) {
-    uiItemEnumO(layout,
-                "OBJECT_OT_gpencil_modifier_apply",
-                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
-                ICON_CHECKMARK,
-                "apply_as",
-                MODIFIER_APPLY_DATA);
+    uiItemO(layout,
+            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
+            ICON_CHECKMARK,
+            "OBJECT_OT_gpencil_modifier_apply");
   }
 
   /* Duplicate. */

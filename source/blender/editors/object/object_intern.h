@@ -153,9 +153,10 @@ bool edit_modifier_poll_generic(struct bContext *C,
                                 const bool is_editmode_allowed);
 bool edit_modifier_poll(struct bContext *C);
 void edit_modifier_properties(struct wmOperatorType *ot);
-int edit_modifier_invoke_properties(struct bContext *C,
-                                    struct wmOperator *op,
-                                    const struct wmEvent *event);
+bool edit_modifier_invoke_properties(struct bContext *C,
+                                     struct wmOperator *op,
+                                     const struct wmEvent *event,
+                                     int *r_retval);
 struct ModifierData *edit_modifier_property_get(struct wmOperator *op,
                                                 struct Object *ob,
                                                 int type);

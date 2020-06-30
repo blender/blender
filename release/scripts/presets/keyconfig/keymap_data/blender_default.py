@@ -733,6 +733,11 @@ def km_property_editor(_params):
         ("object.modifier_remove", {"type": 'DEL', "value": 'PRESS'}, {"properties": [("report", True)]}),
         ("object.modifier_copy", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         ("object.modifier_apply", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("report", True)]}),
+        # Grease pencil modifier panels
+        ("object.gpencil_modifier_remove", {"type": 'X', "value": 'PRESS'}, {"properties": [("report", True)]}),
+        ("object.gpencil_modifier_remove", {"type": 'DEL', "value": 'PRESS'}, {"properties": [("report", True)]}),
+        ("object.gpencil_modifier_copy", {"type": 'D', "value": 'PRESS', "shift": True}, None),
+        ("object.gpencil_modifier_apply", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("report", True)]}),
     ])
 
     return keymap

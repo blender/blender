@@ -2083,7 +2083,7 @@ void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Grease Pencil Modifier Template
+/** \name Grease Pencil Modifiers Template
  * \{ */
 
 /**
@@ -2109,15 +2109,22 @@ void uiTemplateGpencilModifiers(uiLayout *UNUSED(layout), bContext *C)
     GpencilModifierData *md = modifiers->first;
     for (int i = 0; md; i++, md = md->next) {
       const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
-      if (mti->panelRegister) {
-        char panel_idname[MAX_NAME];
-        gpencil_modifier_panel_id(md, panel_idname);
+      if (mti->panelRegister == NULL) {
+        continue;
+      }
 
-        Panel *new_panel = UI_panel_add_instanced(
-            sa, region, &region->panels, panel_idname, i, NULL);
-        if (new_panel != NULL) {
-          UI_panel_set_expand_from_list_data(C, new_panel);
-        }
+      char panel_idname[MAX_NAME];
+      gpencil_modifier_panel_id(md, panel_idname);
+
+      /* Create custom data RNA pointer. */
+      PointerRNA *md_ptr = MEM_mallocN(sizeof(PointerRNA), "panel customdata");
+      RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md, md_ptr);
+
+      Panel *new_panel = UI_panel_add_instanced(
+          sa, region, &region->panels, panel_idname, i, md_ptr);
+
+      if (new_panel != NULL) {
+        UI_panel_set_expand_from_list_data(C, new_panel);
       }
     }
   }
@@ -2126,6 +2133,27 @@ void uiTemplateGpencilModifiers(uiLayout *UNUSED(layout), bContext *C)
     LISTBASE_FOREACH (Panel *, panel, &region->panels) {
       if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED))
         UI_panel_set_expand_from_list_data(C, panel);
+    }
+
+    /* Assuming there's only one group of instanced panels, update the custom data pointers. */
+    Panel *panel = region->panels.first;
+    LISTBASE_FOREACH (ModifierData *, md, modifiers) {
+      const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
+      if (mti->panelRegister == NULL) {
+        continue;
+      }
+
+      /* Move to the next instanced panel corresponding to the next modifier. */
+      while ((panel->type == NULL) || !(panel->type->flag & PNL_INSTANCED)) {
+        panel = panel->next;
+        BLI_assert(panel != NULL); /* There shouldn't be fewer panels than modifiers with UIs. */
+      }
+
+      PointerRNA *md_ptr = MEM_mallocN(sizeof(PointerRNA), "panel customdata");
+      RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md, md_ptr);
+      UI_panel_custom_data_set(panel, md_ptr);
+
+      panel = panel->next;
     }
   }
 }
