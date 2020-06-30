@@ -1485,7 +1485,8 @@ void RNA_struct_override_apply(struct Main *bmain,
                                struct IDOverrideLibrary *override);
 
 struct IDOverrideLibraryProperty *RNA_property_override_property_find(PointerRNA *ptr,
-                                                                      PropertyRNA *prop);
+                                                                      PropertyRNA *prop,
+                                                                      struct ID **r_owner_id);
 struct IDOverrideLibraryProperty *RNA_property_override_property_get(PointerRNA *ptr,
                                                                      PropertyRNA *prop,
                                                                      bool *r_created);

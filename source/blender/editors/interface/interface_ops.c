@@ -630,7 +630,7 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   ID *id = ptr.owner_id;
-  IDOverrideLibraryProperty *oprop = RNA_property_override_property_find(&ptr, prop);
+  IDOverrideLibraryProperty *oprop = RNA_property_override_property_find(&ptr, prop, &id);
   BLI_assert(oprop != NULL);
   BLI_assert(id != NULL && id->override_library != NULL);
 
