@@ -29,6 +29,7 @@ set(INC_SYS
 set(SRC
   intern/attributes_ref.cc
   intern/cpp_types.cc
+  intern/multi_function.cc
   intern/multi_function_network.cc
   intern/multi_function_network_evaluation.cc
 
