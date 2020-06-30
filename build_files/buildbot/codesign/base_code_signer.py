@@ -338,6 +338,11 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
         # TOOD(sergey): Support graceful shutdown on Ctrl-C.
 
         logger_server.info(
+            f'Waiting for a request directory {self.unsigned_storage_dir} to appear.')
+        while not self.unsigned_storage_dir.exists():
+            time.sleep(1)
+
+        logger_server.info(
             'Waiting for a READY indicator of any signing request.')
         request_id = None
         while request_id is None:
