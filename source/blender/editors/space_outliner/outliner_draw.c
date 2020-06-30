@@ -3108,7 +3108,8 @@ static void outliner_draw_tree_element(bContext *C,
       offsx += 2 * ufac;
     }
 
-    if (ELEM(tselem->type, 0, TSE_LAYER_COLLECTION)) {
+    if (ELEM(tselem->type, 0, TSE_LAYER_COLLECTION) ||
+        ((tselem->type == TSE_RNA_STRUCT) && RNA_struct_is_ID(te->rnaptr.type))) {
       const BIFIconID lib_icon = UI_library_icon_get(tselem->id);
       if (lib_icon != ICON_NONE) {
         UI_icon_draw_alpha(
