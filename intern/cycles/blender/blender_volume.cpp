@@ -216,25 +216,16 @@ static void sync_smoke_volume(Scene *scene, BL::Object &b_ob, Mesh *mesh, float 
 
 class BlenderVolumeLoader : public VDBImageLoader {
  public:
-  BlenderVolumeLoader(BL::Volume b_volume, const string &grid_name)
-      : VDBImageLoader(grid_name),
-        b_volume(b_volume),
-        b_volume_grid(PointerRNA_NULL),
-        unload(false)
+  BlenderVolumeLoader(BL::BlendData &b_data, BL::Volume &b_volume, const string &grid_name)
+      : VDBImageLoader(grid_name), b_data(b_data), b_volume(b_volume), unload(false)
   {
-#ifdef WITH_OPENVDB
-    /* Find grid with matching name. */
-    BL::Volume::grids_iterator b_grid_iter;
-    for (b_volume.grids.begin(b_grid_iter); b_grid_iter != b_volume.grids.end(); ++b_grid_iter) {
-      if (b_grid_iter->name() == grid_name) {
-        b_volume_grid = *b_grid_iter;
-      }
-    }
-#endif
   }
 
   bool load_metadata(ImageMetaData &metadata) override
   {
+    b_volume.grids.load(b_data.ptr.data);
+    BL::VolumeGrid b_volume_grid = find_grid();
+
     if (!b_volume_grid) {
       return false;
     }
@@ -255,6 +246,9 @@ class BlenderVolumeLoader : public VDBImageLoader {
                    const size_t pixel_size,
                    const bool associate_alpha) override
   {
+    b_volume.grids.load(b_data.ptr.data);
+    BL::VolumeGrid b_volume_grid = find_grid();
+
     if (!b_volume_grid) {
       return false;
     }
@@ -266,19 +260,38 @@ class BlenderVolumeLoader : public VDBImageLoader {
   {
     /* TODO: detect multiple volume datablocks with the same filepath. */
     const BlenderVolumeLoader &other_loader = (const BlenderVolumeLoader &)other;
-    return b_volume == other_loader.b_volume && b_volume_grid == other_loader.b_volume_grid;
+    return b_volume == other_loader.b_volume && grid_name == other_loader.grid_name;
   }
 
   void cleanup() override
   {
     VDBImageLoader::cleanup();
+
+    BL::VolumeGrid b_volume_grid = find_grid();
     if (b_volume_grid && unload) {
       b_volume_grid.unload();
     }
   }
 
+  /* Find grid with matching name. Grid point not stored in the class since
+   * grids may be unloaded before we load the pixels, for example for motion
+   * blur where we move between frames. */
+  BL::VolumeGrid find_grid()
+  {
+#ifdef WITH_OPENVDB
+    BL::Volume::grids_iterator b_grid_iter;
+    for (b_volume.grids.begin(b_grid_iter); b_grid_iter != b_volume.grids.end(); ++b_grid_iter) {
+      if (b_grid_iter->name() == grid_name) {
+        return *b_grid_iter;
+      }
+    }
+#endif
+
+    return BL::VolumeGrid(PointerRNA_NULL);
+  }
+
+  BL::BlendData b_data;
   BL::Volume b_volume;
-  BL::VolumeGrid b_volume_grid;
   bool unload;
 };
 
@@ -325,7 +338,7 @@ static void sync_volume_object(BL::BlendData &b_data, BL::Object &b_ob, Scene *s
                             mesh->attributes.add(std) :
                             mesh->attributes.add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VOXEL);
 
-      ImageLoader *loader = new BlenderVolumeLoader(b_volume, name.string());
+      ImageLoader *loader = new BlenderVolumeLoader(b_data, b_volume, name.string());
       ImageParams params;
       params.frame = b_volume.grids.frame();
 
