@@ -156,6 +156,15 @@ class MFSocket : NonCopyable, NonMovable {
 
   MFNode &node();
   const MFNode &node() const;
+
+  bool is_input() const;
+  bool is_output() const;
+
+  MFInputSocket &as_input();
+  const MFInputSocket &as_input() const;
+
+  MFOutputSocket &as_output();
+  const MFOutputSocket &as_output() const;
 };
 
 class MFInputSocket : public MFSocket {
@@ -204,6 +213,10 @@ class MFNetwork : NonCopyable, NonMovable {
 
   MFOutputSocket &add_input(StringRef name, MFDataType data_type);
   MFInputSocket &add_output(StringRef name, MFDataType data_type);
+
+  void relink(MFOutputSocket &old_output, MFOutputSocket &new_output);
+
+  void remove(MFNode &node);
 
   uint max_socket_id() const;
 
@@ -403,6 +416,40 @@ inline MFNode &MFSocket::node()
 inline const MFNode &MFSocket::node() const
 {
   return *m_node;
+}
+
+inline bool MFSocket::is_input() const
+{
+  return !m_is_output;
+}
+
+inline bool MFSocket::is_output() const
+{
+  return m_is_output;
+}
+
+inline MFInputSocket &MFSocket::as_input()
+{
+  BLI_assert(this->is_input());
+  return *(MFInputSocket *)this;
+}
+
+inline const MFInputSocket &MFSocket::as_input() const
+{
+  BLI_assert(this->is_input());
+  return *(const MFInputSocket *)this;
+}
+
+inline MFOutputSocket &MFSocket::as_output()
+{
+  BLI_assert(this->is_output());
+  return *(MFOutputSocket *)this;
+}
+
+inline const MFOutputSocket &MFSocket::as_output() const
+{
+  BLI_assert(this->is_output());
+  return *(const MFOutputSocket *)this;
 }
 
 /* --------------------------------------------------------------------

@@ -193,6 +193,44 @@ MFInputSocket &MFNetwork::add_output(StringRef name, MFDataType data_type)
   return this->add_dummy(name, {data_type}, {}, {name}, {}).input(0);
 }
 
+void MFNetwork::relink(MFOutputSocket &old_output, MFOutputSocket &new_output)
+{
+  BLI_assert(&old_output != &new_output);
+  for (MFInputSocket *input : old_output.targets()) {
+    input->m_origin = &new_output;
+  }
+  new_output.m_targets.extend(old_output.m_targets);
+  old_output.m_targets.clear();
+}
+
+void MFNetwork::remove(MFNode &node)
+{
+  for (MFInputSocket *socket : node.m_inputs) {
+    if (socket->m_origin != nullptr) {
+      socket->m_origin->m_targets.remove_first_occurrence_and_reorder(socket);
+    }
+    m_socket_or_null_by_id[socket->m_id] = nullptr;
+  }
+  for (MFOutputSocket *socket : node.m_outputs) {
+    for (MFInputSocket *other : socket->m_targets) {
+      other->m_origin = nullptr;
+    }
+    m_socket_or_null_by_id[socket->m_id] = nullptr;
+  }
+  node.destruct_sockets();
+  if (node.is_dummy()) {
+    MFDummyNode &dummy_node = node.as_dummy();
+    dummy_node.~MFDummyNode();
+    m_dummy_nodes.remove_contained(&dummy_node);
+  }
+  else {
+    MFFunctionNode &function_node = node.as_function();
+    function_node.~MFFunctionNode();
+    m_function_nodes.remove_contained(&function_node);
+  }
+  m_node_or_null_by_id[node.m_id] = nullptr;
+}
+
 std::string MFNetwork::to_dot() const
 {
   dot::DirectedGraph digraph;
