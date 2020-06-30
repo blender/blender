@@ -107,7 +107,7 @@ class Vector {
 #endif
 
   /**
-   * Be a friend with other vector instanciations. This is necessary to implement some memory
+   * Be a friend with other vector instantiations. This is necessary to implement some memory
    * management logic.
    */
   template<typename OtherT, uint OtherInlineBufferCapacity, typename OtherAllocator>

@@ -385,7 +385,7 @@ void UI_panels_free_instanced(bContext *C, ARegion *region)
         MEM_freeN(panel->runtime.custom_data_ptr);
       }
 
-      /* Free the panel and its subpanels. */
+      /* Free the panel and its sub-panels. */
       panel_delete(region, &region->panels, panel);
     }
   }
@@ -2916,7 +2916,7 @@ void UI_panel_custom_data_set(Panel *panel, PointerRNA *custom_data)
 {
   BLI_assert(panel->type != NULL);
 
-  /* Free the old custom data, which should be shared among all of the panel's subpanels. */
+  /* Free the old custom data, which should be shared among all of the panel's sub-panels. */
   if (panel->runtime.custom_data_ptr != NULL) {
     MEM_freeN(panel->runtime.custom_data_ptr);
   }

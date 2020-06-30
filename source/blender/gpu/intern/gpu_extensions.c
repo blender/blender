@@ -71,7 +71,7 @@ static struct GPUGlobal {
   int samples_color_texture_max;
   float line_width_range[2];
   /* workaround for different calculation of dfdy factors on GPUs. Some GPUs/drivers
-   * calculate dfdy in shader differently when drawing to an offscreen buffer. First
+   * calculate dfdy in shader differently when drawing to an off-screen buffer. First
    * number is factor on screen and second is off-screen */
   float dfdyfactors[2];
   float max_anisotropy;
@@ -84,9 +84,9 @@ static struct GPUGlobal {
    * GL_TEXTURE_MAX_LEVEL is higher than the target mip.
    * We need a workaround in this cases. */
   bool mip_render_workaround;
-  /* There is an issue with the glBlitFramebuffer on MacOS with radeon pro graphics.
-   * Blitting depth with GL_DEPTH24_STENCIL8 is buggy so the workaround is to use
-   * GPU_DEPTH32F_STENCIL8. Then Blitting depth will work but blitting stencil will
+  /* There is an issue with the #glBlitFramebuffer on MacOS with radeon pro graphics.
+   * Blitting depth with#GL_DEPTH24_STENCIL8 is buggy so the workaround is to use
+   * #GPU_DEPTH32F_STENCIL8. Then Blitting depth will work but blitting stencil will
    * still be broken. */
   bool depth_blitting_workaround;
   /* Crappy driver don't know how to map framebuffer slot to output vars...
@@ -96,7 +96,7 @@ static struct GPUGlobal {
   /* Some crappy Intel drivers don't work well with shaders created in different
    * rendering contexts. */
   bool context_local_shaders_workaround;
-  /* Intel drivers exhibit artifacts when using glCopyImageSubData & workbench antialiasing.
+  /* Intel drivers exhibit artifacts when using #glCopyImageSubData & workbench anti-aliasing.
    * (see T76273) */
   bool texture_copy_workaround;
 } GG = {1, 0};

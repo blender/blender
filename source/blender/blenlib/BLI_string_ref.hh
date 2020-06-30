@@ -89,7 +89,7 @@ class StringRefBase {
   }
 
   /**
-   * Implicitely convert to std::string. This is convenient in most cases, but you have to be a bit
+   * Implicitly convert to std::string. This is convenient in most cases, but you have to be a bit
    * careful not to convert to std::string accidentally.
    */
   operator std::string() const

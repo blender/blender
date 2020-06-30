@@ -141,7 +141,7 @@ typedef struct Panel_Runtime {
    * Pointer for storing which data the panel corresponds to.
    * Useful when there can be multiple instances of the same panel type.
    *
-   * \note A panel and its subpanels share the same custom data pointer.
+   * \note A panel and its sub-panels share the same custom data pointer.
    * This avoids freeing the same pointer twice when panels are removed.
    */
   struct PointerRNA *custom_data_ptr;

@@ -1680,7 +1680,7 @@ static TreeElement *do_outliner_select_walk(SpaceOutliner *soops,
 }
 
 /* Find the active element to walk from, or set one if none exists.
- * Changed is set to true if the active elmenet is found, or false if it was set */
+ * Changed is set to true if the active element is found, or false if it was set */
 static TreeElement *find_walk_select_start_element(SpaceOutliner *soops, bool *changed)
 {
   TreeElement *active_te = outliner_find_element_with_flag(&soops->tree, TSE_ACTIVE);

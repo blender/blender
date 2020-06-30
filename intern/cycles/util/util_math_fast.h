@@ -446,7 +446,7 @@ ccl_device_inline float fast_expf(float x)
 }
 
 #ifndef __KERNEL_GPU__
-/* MSVC seems to have a codegen bug here in atleast SSE41/AVX
+/* MSVC seems to have a code-gen bug here in at least SSE41/AVX
  * see T78047 for details. */
 #  ifdef _MSC_VER
 #    pragma optimize("", off)

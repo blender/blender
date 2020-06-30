@@ -87,7 +87,7 @@ void createTransCurveVerts(TransInfo *t)
 
   t->data_len_all = 0;
 
-  /* Count control points (one per bez-triple) if any number of handles are selected.
+  /* Count control points (one per #BezTriple) if any number of handles are selected.
    * Needed for #transform_around_single_fallback_ex. */
   int data_len_all_pt = 0;
 
