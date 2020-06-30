@@ -94,9 +94,16 @@ class NodeAddOperator:
         for setting in self.settings:
             # XXX catch exceptions here?
             value = eval(setting.value)
+            node_data = node
+            node_attr_name = setting.name
+
+            # Support path to nested data.
+            if '.' in node_attr_name:
+                node_data_path, node_attr_name = node_attr_name.rsplit(".", 1)
+                node_data = node.path_resolve(node_data_path)
 
             try:
-                setattr(node, setting.name, value)
+                setattr(node_data, node_attr_name, value)
             except AttributeError as e:
                 self.report(
                     {'ERROR_INVALID_INPUT'},
