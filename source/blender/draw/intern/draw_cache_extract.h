@@ -63,7 +63,7 @@ typedef struct DRW_MeshCDMask {
 
 typedef enum eMRIterType {
   MR_ITER_LOOPTRI = 1 << 0,
-  MR_ITER_LOOP = 1 << 1,
+  MR_ITER_POLY = 1 << 1,
   MR_ITER_LEDGE = 1 << 2,
   MR_ITER_LVERT = 1 << 3,
 } eMRIterType;
