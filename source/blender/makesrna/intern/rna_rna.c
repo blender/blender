@@ -1133,6 +1133,7 @@ static int rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr,
  * (if they are IDs, or have different names or RNA type, then this would be meaningless). */
 static bool rna_property_override_diff_propptr_validate_diffing(PointerRNA *propptr_a,
                                                                 PointerRNA *propptr_b,
+                                                                const bool no_ownership,
                                                                 const bool no_prop_name,
                                                                 bool *r_is_id,
                                                                 bool *r_is_null,
@@ -1172,7 +1173,7 @@ static bool rna_property_override_diff_propptr_validate_diffing(PointerRNA *prop
     *r_is_id = RNA_struct_is_ID(propptr_a->type);
     *r_is_null = (ELEM(NULL, propptr_b, propptr_b->type, propptr_b->data));
     *r_is_type_diff = (propptr_b == NULL || propptr_b->type != propptr_a->type);
-    is_valid_for_diffing = !(*r_is_id || *r_is_null);
+    is_valid_for_diffing = !((*r_is_id && no_ownership) || *r_is_null);
   }
 
   if (propptr_b == NULL || propptr_a->type != propptr_b->type) {
@@ -1266,6 +1267,7 @@ static int rna_property_override_diff_propptr(Main *bmain,
    * so no point in going inside of it at all! */
   bool is_valid_for_diffing = rna_property_override_diff_propptr_validate_diffing(propptr_a,
                                                                                   propptr_b,
+                                                                                  no_ownership,
                                                                                   no_prop_name,
                                                                                   &is_id,
                                                                                   &is_null,
@@ -1279,7 +1281,7 @@ static int rna_property_override_diff_propptr(Main *bmain,
 
   if (is_id) {
     /* For now, once we deal with nodetrees we'll want to get rid of that one. */
-    BLI_assert(no_ownership);
+    //    BLI_assert(no_ownership);
   }
 
   if (override) {
@@ -1745,6 +1747,7 @@ int rna_property_override_diff_default(Main *bmain,
       const bool use_insertion = (RNA_property_override_flag(prop_a) &
                                   PROPOVERRIDE_LIBRARY_INSERTION) &&
                                  do_create;
+      const bool no_ownership = (RNA_property_flag(prop_a) & PROP_PTR_NO_OWNERSHIP) != 0;
       const bool no_prop_name = (RNA_property_override_flag(prop_a) & PROPOVERRIDE_NO_PROP_NAME) !=
                                 0;
       bool equals = true;
@@ -1778,6 +1781,7 @@ int rna_property_override_diff_default(Main *bmain,
             is_valid_for_diffing = rna_property_override_diff_propptr_validate_diffing(
                 &iter_a.ptr,
                 &iter_b.ptr,
+                no_ownership,
                 no_prop_name,
                 &is_id,
                 &is_null,
@@ -1795,6 +1799,7 @@ int rna_property_override_diff_default(Main *bmain,
               /* We still need propname from 'a' item... */
               rna_property_override_diff_propptr_validate_diffing(&iter_a.ptr,
                                                                   NULL,
+                                                                  no_ownership,
                                                                   no_prop_name,
                                                                   &is_id,
                                                                   &is_null,
@@ -1880,7 +1885,6 @@ int rna_property_override_diff_default(Main *bmain,
           }
           else if (is_id || is_valid_for_diffing) {
             if (equals || do_create) {
-              const bool no_ownership = (RNA_property_flag(prop_a) & PROP_PTR_NO_OWNERSHIP) != 0;
               const int eq = rna_property_override_diff_propptr(bmain,
                                                                 &iter_a.ptr,
                                                                 &iter_b.ptr,
