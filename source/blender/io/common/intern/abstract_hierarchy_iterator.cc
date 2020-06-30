@@ -217,7 +217,7 @@ void AbstractHierarchyIterator::debug_print_export_graph(const ExportGraph &grap
     for (HierarchyContext *child_ctx : map_iter.second) {
       if (child_ctx->duplicator == nullptr) {
         printf("       - %s%s%s\n",
-               child_ctx->object->id.name + 2,
+               child_ctx->export_name.c_str(),
                child_ctx->weak_export ? " (weak)" : "",
                child_ctx->original_export_path.empty() ?
                    "" :
@@ -225,7 +225,7 @@ void AbstractHierarchyIterator::debug_print_export_graph(const ExportGraph &grap
       }
       else {
         printf("       - %s (dup by %s%s) %s\n",
-               child_ctx->object->id.name + 2,
+               child_ctx->export_name.c_str(),
                child_ctx->duplicator->id.name + 2,
                child_ctx->weak_export ? ", weak" : "",
                child_ctx->original_export_path.empty() ?
@@ -234,7 +234,7 @@ void AbstractHierarchyIterator::debug_print_export_graph(const ExportGraph &grap
       }
     }
   }
-  printf("    (Total graph size: %zu objects\n", total_graph_size);
+  printf("    (Total graph size: %zu objects)\n", total_graph_size);
 }
 
 void AbstractHierarchyIterator::export_graph_construct()
