@@ -613,7 +613,7 @@ static bool override_remove_button_poll(bContext *C)
 
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
-  const int override_status = RNA_property_override_library_status(&ptr, prop, index);
+  const uint override_status = RNA_property_override_library_status(&ptr, prop, index);
 
   return (ptr.data && ptr.owner_id && prop && (override_status & RNA_OVERRIDE_STATUS_OVERRIDDEN));
 }
@@ -634,7 +634,7 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
   BLI_assert(oprop != NULL);
   BLI_assert(id != NULL && id->override_library != NULL);
 
-  const bool is_template = (id->override_library->reference == NULL);
+  const bool is_template = ID_IS_OVERRIDE_LIBRARY_TEMPLATE(id);
 
   /* We need source (i.e. linked data) to restore values of deleted overrides...
    * If this is an override template, we obviously do not need to restore anything. */

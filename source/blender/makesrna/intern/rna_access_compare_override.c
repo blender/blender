@@ -108,7 +108,7 @@ bool RNA_property_overridden(PointerRNA *ptr, PropertyRNA *prop)
   char *rna_path = RNA_path_from_ID_to_property(ptr, prop);
   ID *id = ptr->owner_id;
 
-  if (rna_path == NULL || id == NULL || id->override_library == NULL) {
+  if (rna_path == NULL || id == NULL || !ID_IS_OVERRIDE_LIBRARY(id)) {
     return false;
   }
 
@@ -1156,7 +1156,7 @@ eRNAOverrideStatus RNA_property_override_library_status(PointerRNA *ptr,
     return override_status;
   }
 
-  if (!ptr || !prop || !ptr->owner_id || !(ptr->owner_id)->override_library) {
+  if (!ptr || !prop || !ptr->owner_id || !ID_IS_OVERRIDE_LIBRARY(ptr->owner_id)) {
     return override_status;
   }
 

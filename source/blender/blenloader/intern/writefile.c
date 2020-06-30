@@ -4070,7 +4070,8 @@ static bool write_file_handle(Main *mainvar,
         BLI_assert(
             (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) == 0);
 
-        const bool do_override = !ELEM(override_storage, NULL, bmain) && id->override_library;
+        const bool do_override = !ELEM(override_storage, NULL, bmain) &&
+                                 ID_IS_OVERRIDE_LIBRARY(id);
 
         if (do_override) {
           BKE_lib_override_library_operations_store_start(bmain, override_storage, id);

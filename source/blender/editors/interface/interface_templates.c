@@ -584,7 +584,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       }
       break;
     case UI_ID_OVERRIDE:
-      if (id && id->override_library) {
+      if (id && ID_IS_OVERRIDE_LIBRARY(id)) {
         BKE_lib_override_library_free(&id->override_library, true);
         /* reassign to get get proper updates/notifiers */
         idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);

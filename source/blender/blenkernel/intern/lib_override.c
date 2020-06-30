@@ -114,7 +114,7 @@ IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
 /** Shalow or deep copy of a whole override from \a src_id to \a dst_id. */
 void BKE_lib_override_library_copy(ID *dst_id, const ID *src_id, const bool do_full_copy)
 {
-  BLI_assert(src_id->override_library != NULL);
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY(src_id));
 
   if (dst_id->override_library != NULL) {
     if (src_id->override_library == NULL) {
@@ -620,7 +620,7 @@ bool BKE_lib_override_library_property_operation_operands_validate(
  * \return true if status is OK, false otherwise. */
 bool BKE_lib_override_library_status_check_local(Main *bmain, ID *local)
 {
-  BLI_assert(local->override_library != NULL);
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY(local));
 
   ID *reference = local->override_library->reference;
 
@@ -676,7 +676,7 @@ bool BKE_lib_override_library_status_check_local(Main *bmain, ID *local)
  * \return true if status is OK, false otherwise. */
 bool BKE_lib_override_library_status_check_reference(Main *bmain, ID *local)
 {
-  BLI_assert(local->override_library != NULL);
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY(local));
 
   ID *reference = local->override_library->reference;
 
@@ -895,7 +895,7 @@ void BKE_lib_override_library_main_tag(struct Main *bmain, const short tag, cons
 /** Remove all tagged-as-unused properties and operations from that ID override data. */
 void BKE_lib_override_library_id_unused_cleanup(struct ID *local)
 {
-  if (local->override_library != NULL) {
+  if (ID_IS_OVERRIDE_LIBRARY(local)) {
     LISTBASE_FOREACH_MUTABLE (
         IDOverrideLibraryProperty *, op, &local->override_library->properties) {
       if (op->tag & IDOVERRIDE_LIBRARY_TAG_UNUSED) {
@@ -928,7 +928,7 @@ void BKE_lib_override_library_main_unused_cleanup(struct Main *bmain)
 /** Update given override from its reference (re-applying overridden properties). */
 void BKE_lib_override_library_update(Main *bmain, ID *local)
 {
-  if (local->override_library == NULL || local->override_library->reference == NULL) {
+  if (!ID_IS_OVERRIDE_LIBRARY(local)) {
     return;
   }
 
@@ -1054,14 +1054,13 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
                                                     OverrideLibraryStorage *override_storage,
                                                     ID *local)
 {
-  BLI_assert(local->override_library != NULL);
-  BLI_assert(override_storage != NULL);
-  const bool is_template = (local->override_library->reference == NULL);
-
-  if (is_template) {
+  if (ID_IS_OVERRIDE_LIBRARY_TEMPLATE(local)) {
     /* This is actually purely local data with an override template, nothing to do here! */
     return NULL;
   }
+
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY(local));
+  BLI_assert(override_storage != NULL);
 
   /* Forcefully ensure we know about all needed override operations. */
   BKE_lib_override_library_operations_create(bmain, local);
@@ -1106,7 +1105,7 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
 void BKE_lib_override_library_operations_store_end(
     OverrideLibraryStorage *UNUSED(override_storage), ID *local)
 {
-  BLI_assert(local->override_library != NULL);
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY(local));
 
   /* Nothing else to do here really, we need to keep all temp override storage data-blocks in
    * memory until whole file is written anyway (otherwise we'd get mem pointers overlap...). */

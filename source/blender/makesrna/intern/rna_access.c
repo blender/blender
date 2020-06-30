@@ -2064,9 +2064,10 @@ bool RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop_orig)
   PropertyRNA *prop = rna_ensure_property(prop_orig);
   flag = prop->editable ? prop->editable(ptr, &dummy_info) : prop->flag;
 
-  return ((flag & PROP_EDITABLE) && (flag & PROP_REGISTER) == 0 &&
-          (!id || ((!ID_IS_LINKED(id) || (prop->flag & PROP_LIB_EXCEPTION)) &&
-                   (!id->override_library || RNA_property_overridable_get(ptr, prop_orig)))));
+  return (
+      (flag & PROP_EDITABLE) && (flag & PROP_REGISTER) == 0 &&
+      (!id || ((!ID_IS_LINKED(id) || (prop->flag & PROP_LIB_EXCEPTION)) &&
+               (!ID_IS_OVERRIDE_LIBRARY(id) || RNA_property_overridable_get(ptr, prop_orig)))));
 }
 
 /**
@@ -2100,7 +2101,7 @@ bool RNA_property_editable_info(PointerRNA *ptr, PropertyRNA *prop, const char *
       }
       return false;
     }
-    if (id->override_library != NULL) {
+    if (ID_IS_OVERRIDE_LIBRARY(id)) {
       /* We need the real data property in case of IDProperty here... */
       PropertyRNA *real_prop = rna_ensure_property_realdata(&prop, ptr);
       if (real_prop == NULL || !RNA_property_overridable_get(ptr, real_prop)) {
