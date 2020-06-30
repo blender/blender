@@ -417,10 +417,7 @@ static void sculpt_undo_bmesh_restore_generic_task_cb(
   BKE_pbvh_node_mark_redraw(nodes[n]);
 }
 
-static void sculpt_undo_bmesh_restore_generic(bContext *C,
-                                              SculptUndoNode *unode,
-                                              Object *ob,
-                                              SculptSession *ss)
+static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob, SculptSession *ss)
 {
   if (unode->applied) {
     BM_log_undo(ss->bm, ss->bm_log);
@@ -434,7 +431,6 @@ static void sculpt_undo_bmesh_restore_generic(bContext *C,
   if (unode->type == SCULPT_UNDO_MASK) {
     int totnode;
     PBVHNode **nodes;
-    Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
     BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
@@ -611,7 +607,7 @@ static int sculpt_undo_bmesh_restore(bContext *C,
       return true;
     default:
       if (ss->bm_log) {
-        sculpt_undo_bmesh_restore_generic(C, unode, ob, ss);
+        sculpt_undo_bmesh_restore_generic(unode, ob, ss);
         return true;
       }
       break;

@@ -146,7 +146,6 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   PBVHNode **nodes;
   int totnode;
   bool multires;
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
   mode = RNA_enum_get(op->ptr, "mode");
   value = RNA_float_get(op->ptr, "value");
