@@ -677,12 +677,14 @@ static bool gpu_texture_check_capacity(
     GPUTexture *tex, GLenum proxy, GLenum internalformat, GLenum data_format, GLenum data_type)
 {
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_ANY) ||
+      GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_OFFICIAL) ||
       GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL)) {
     /* Some AMD drivers have a faulty `GL_PROXY_TEXTURE_..` check.
      * (see T55888, T56185, T59351).
      * Checking with `GL_PROXY_TEXTURE_..` doesn't prevent `Out Of Memory` issue,
      * it just states that the OGL implementation can support the texture.
-     * So manually check the maximum size and maximum number of layers. */
+     * So manually check the maximum size and maximum number of layers.
+     * Same thing happens on Nvidia/macOS 10.15 (T78175). */
     switch (proxy) {
       case GL_PROXY_TEXTURE_2D_ARRAY:
         if ((tex->d < 0) || (tex->d > GPU_max_texture_layers())) {
