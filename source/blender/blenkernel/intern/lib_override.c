@@ -248,7 +248,7 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
 bool BKE_lib_override_library_create_from_tag(Main *bmain)
 {
   ID *reference_id;
-  bool ret = true;
+  bool success = true;
 
   ListBase todo_ids = {NULL};
   LinkData *todo_id_iter;
@@ -267,7 +267,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain)
   for (todo_id_iter = todo_ids.first; todo_id_iter != NULL; todo_id_iter = todo_id_iter->next) {
     reference_id = todo_id_iter->data;
     if ((reference_id->newid = lib_override_library_create_from(bmain, reference_id)) == NULL) {
-      ret = false;
+      success = false;
     }
     else {
       /* We also tag the new IDs so that in next step we can remap their pointers too. */
@@ -304,7 +304,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain)
 
   BLI_freelistN(&todo_ids);
 
-  return ret;
+  return success;
 }
 
 /* We only build override GHash on request. */
