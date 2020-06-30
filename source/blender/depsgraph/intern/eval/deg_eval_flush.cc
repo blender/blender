@@ -32,9 +32,11 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_key.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
+#include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -251,12 +253,30 @@ void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *upd
     if (deg_copy_on_write_is_expanded(id_cow)) {
       if (graph->is_active && id_node->is_user_modified) {
         deg_editors_id_update(update_ctx, id_orig);
-      }
-      if (ID_IS_OVERRIDE_LIBRARY(id_orig) && id_orig->recalc != 0) {
+
         /* We only want to tag an ID for lib-override auto-refresh if it was actually tagged as
          * changed. CoW IDs indirectly modified because of changes in other IDs should never
          * require a lib-override diffing. */
-        id_orig->tag |= LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
+        if (ID_IS_OVERRIDE_LIBRARY_REAL(id_orig)) {
+          id_orig->tag |= LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
+        }
+        else if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id_orig)) {
+          switch (GS(id_orig->name)) {
+            case ID_KE:
+              ((Key *)id_orig)->from->tag |= LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
+              break;
+            case ID_GR:
+              BLI_assert(id_orig->flag & LIB_EMBEDDED_DATA);
+              /* TODO. */
+              break;
+            case ID_NT:
+              BLI_assert(id_orig->flag & LIB_EMBEDDED_DATA);
+              /* TODO. */
+              break;
+            default:
+              BLI_assert(0);
+          }
+        }
       }
       /* Inform draw engines that something was changed. */
       flush_engine_data_update(id_cow);
