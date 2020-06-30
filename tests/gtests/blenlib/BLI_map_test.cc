@@ -6,7 +6,7 @@
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-using namespace blender;
+namespace blender {
 
 TEST(map, DefaultConstructor)
 {
@@ -584,3 +584,5 @@ TEST(map, Benchmark)
  */
 
 #endif /* Benchmark */
+
+}  // namespace blender

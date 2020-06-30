@@ -3,7 +3,7 @@
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-using namespace blender;
+namespace blender {
 
 TEST(span, FromSmallVector)
 {
@@ -282,3 +282,5 @@ TEST(span, CastLargerSize)
   EXPECT_EQ(a_span.size(), 4u);
   EXPECT_EQ(new_a_span.size(), 2u);
 }
+
+}  // namespace blender

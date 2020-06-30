@@ -3,7 +3,7 @@
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-using namespace blender;
+namespace blender {
 
 TEST(stack, DefaultConstructor)
 {
@@ -182,3 +182,5 @@ TEST(stack, OveralignedValues)
     EXPECT_EQ((uintptr_t)&stack.peek() % 512, 0);
   }
 }
+
+}  // namespace blender

@@ -2,7 +2,7 @@
 #include "BLI_strict_flags.h"
 #include "testing/testing.h"
 
-using namespace blender;
+namespace blender {
 
 TEST(array, DefaultConstructor)
 {
@@ -159,3 +159,5 @@ TEST(array, NoInitializationSizeConstructor)
     array.~Array();
   }
 }
+
+}  // namespace blender

@@ -3,7 +3,7 @@
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-using namespace blender;
+namespace blender {
 
 TEST(index_range, DefaultConstructor)
 {
@@ -137,3 +137,5 @@ TEST(index_range, AsSpan)
   EXPECT_EQ(span[2], 6u);
   EXPECT_EQ(span[3], 7u);
 }
+
+}  // namespace blender

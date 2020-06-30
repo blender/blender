@@ -3,7 +3,7 @@
 #include "testing/testing.h"
 #include <forward_list>
 
-using namespace blender;
+namespace blender {
 
 TEST(vector, DefaultConstructor)
 {
@@ -636,3 +636,5 @@ TEST(vector, OveralignedValues)
     EXPECT_EQ((uintptr_t)&vec.last() % 512, 0);
   }
 }
+
+}  // namespace blender
