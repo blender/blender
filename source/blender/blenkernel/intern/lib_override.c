@@ -127,6 +127,7 @@ void BKE_lib_override_library_copy(ID *dst_id, const ID *src_id, const bool do_f
     }
   }
   else if (src_id->override_library == NULL) {
+    /* Virtual overrides of embedded data does not require any extra work. */
     return;
   }
   else {
@@ -621,7 +622,7 @@ bool BKE_lib_override_library_property_operation_operands_validate(
  * \return true if status is OK, false otherwise. */
 bool BKE_lib_override_library_status_check_local(Main *bmain, ID *local)
 {
-  BLI_assert(ID_IS_OVERRIDE_LIBRARY(local));
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
 
   ID *reference = local->override_library->reference;
 
@@ -677,7 +678,7 @@ bool BKE_lib_override_library_status_check_local(Main *bmain, ID *local)
  * \return true if status is OK, false otherwise. */
 bool BKE_lib_override_library_status_check_reference(Main *bmain, ID *local)
 {
-  BLI_assert(ID_IS_OVERRIDE_LIBRARY(local));
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
 
   ID *reference = local->override_library->reference;
 
@@ -823,7 +824,7 @@ void BKE_lib_override_library_main_operations_create(Main *bmain, const bool for
   TaskPool *task_pool = BLI_task_pool_create(bmain, TASK_PRIORITY_HIGH);
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if ((ID_IS_OVERRIDE_LIBRARY(id) && force_auto) ||
+    if ((ID_IS_OVERRIDE_LIBRARY_REAL(id) && force_auto) ||
         (id->tag & LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH)) {
       BLI_task_pool_push(task_pool, lib_override_library_operations_create_cb, id, false, NULL);
       id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
@@ -896,7 +897,7 @@ void BKE_lib_override_library_main_tag(struct Main *bmain, const short tag, cons
 /** Remove all tagged-as-unused properties and operations from that ID override data. */
 void BKE_lib_override_library_id_unused_cleanup(struct ID *local)
 {
-  if (ID_IS_OVERRIDE_LIBRARY(local)) {
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(local)) {
     LISTBASE_FOREACH_MUTABLE (
         IDOverrideLibraryProperty *, op, &local->override_library->properties) {
       if (op->tag & IDOVERRIDE_LIBRARY_TAG_UNUSED) {
@@ -929,7 +930,7 @@ void BKE_lib_override_library_main_unused_cleanup(struct Main *bmain)
 /** Update given override from its reference (re-applying overridden properties). */
 void BKE_lib_override_library_update(Main *bmain, ID *local)
 {
-  if (!ID_IS_OVERRIDE_LIBRARY(local)) {
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(local)) {
     return;
   }
 
@@ -1055,12 +1056,12 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
                                                     OverrideLibraryStorage *override_storage,
                                                     ID *local)
 {
-  if (ID_IS_OVERRIDE_LIBRARY_TEMPLATE(local)) {
+  if (ID_IS_OVERRIDE_LIBRARY_TEMPLATE(local) || ID_IS_OVERRIDE_LIBRARY_VIRTUAL(local)) {
     /* This is actually purely local data with an override template, nothing to do here! */
     return NULL;
   }
 
-  BLI_assert(ID_IS_OVERRIDE_LIBRARY(local));
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
   BLI_assert(override_storage != NULL);
 
   /* Forcefully ensure we know about all needed override operations. */
@@ -1106,7 +1107,7 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
 void BKE_lib_override_library_operations_store_end(
     OverrideLibraryStorage *UNUSED(override_storage), ID *local)
 {
-  BLI_assert(ID_IS_OVERRIDE_LIBRARY(local));
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
 
   /* Nothing else to do here really, we need to keep all temp override storage data-blocks in
    * memory until whole file is written anyway (otherwise we'd get mem pointers overlap...). */

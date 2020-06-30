@@ -470,8 +470,15 @@ typedef enum ID_Type {
 #define ID_IS_OVERRIDABLE_LIBRARY(_id) \
   (ID_IS_LINKED(_id) && !ID_MISSING(_id) && (((const ID *)(_id))->tag & LIB_TAG_EXTERN) != 0)
 
+#define ID_IS_OVERRIDE_LIBRARY_REAL(_id) \
+  (((const ID *)(_id))->override_library != NULL && \
+   ((const ID *)(_id))->override_library->reference != NULL)
+
+#define ID_IS_OVERRIDE_LIBRARY_VIRTUAL(_id) \
+  ((((const ID *)(_id))->flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE) != 0)
+
 #define ID_IS_OVERRIDE_LIBRARY(_id) \
-  (((const ID *)(_id))->override_library != NULL && ((const ID *)(_id))->override_library->reference != NULL)
+  (ID_IS_OVERRIDE_LIBRARY_REAL(_id) || ID_IS_OVERRIDE_LIBRARY_VIRTUAL(_id))
 
 #define ID_IS_OVERRIDE_LIBRARY_TEMPLATE(_id) \
   (((ID *)(_id))->override_library != NULL && ((ID *)(_id))->override_library->reference == NULL)
@@ -509,6 +516,11 @@ enum {
    * we want to restore if possible, and silently drop if it's missing.
    */
   LIB_INDIRECT_WEAK_LINK = 1 << 11,
+  /**
+   * The data-block is a sub-data of another one, which is an override.
+   * Note that this also applies to shapekeys, even though they are not 100% embedded data...
+   */
+  LIB_EMBEDDED_DATA_LIB_OVERRIDE = 1 << 12,
 };
 
 /**
