@@ -878,12 +878,21 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    immUniformThemeColor(TH_GRID);
+    immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
-    GPU_logic_op_invert_set(true);
+    float viewport[4];
+    GPU_viewport_size_get_f(viewport);
+    GPU_blend(true);
+
+    immUniform2fv("viewportSize", &viewport[2]);
+    immUniform1f("lineWidth", 3.0f * U.pixelsize);
+
+    immUniformThemeColorShadeAlpha(TH_GRID, -20, 255);
     imm_drawcircball(t->center_global, t->prop_size, imat, pos);
-    GPU_logic_op_invert_set(false);
+
+    immUniform1f("lineWidth", 1.0f * U.pixelsize);
+    immUniformThemeColorShadeAlpha(TH_GRID, 20, 255);
+    imm_drawcircball(t->center_global, t->prop_size, imat, pos);
 
     immUnbindProgram();
 
