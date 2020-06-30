@@ -907,6 +907,9 @@ static int outliner_item_drag_drop_invoke(bContext *C,
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
+  /* Scroll view when dragging near edges */
+  WM_operator_name_call(C, "VIEW2D_OT_edge_pan", WM_OP_INVOKE_DEFAULT, NULL);
+
   wmDrag *drag = WM_event_start_drag(C, data.icon, WM_DRAG_ID, NULL, 0.0, WM_DRAG_NOP);
 
   if (ELEM(GS(data.drag_id->name), ID_OB, ID_GR)) {
