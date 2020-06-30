@@ -28,6 +28,10 @@ struct Color4f {
 
   Color4f() = default;
 
+  Color4f(const float *rgba) : r(rgba[0]), g(rgba[1]), b(rgba[2]), a(rgba[3])
+  {
+  }
+
   Color4f(float r, float g, float b, float a) : r(r), g(g), b(b), a(a)
   {
   }
