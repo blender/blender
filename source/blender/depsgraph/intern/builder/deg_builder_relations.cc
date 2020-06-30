@@ -762,21 +762,20 @@ void DepsgraphRelationBuilder::build_object_from_layer_relations(Object *object)
   OperationKey object_flags_key(
       &object->id, NodeType::OBJECT_FROM_LAYER, OperationCode::OBJECT_BASE_FLAGS);
 
-  /* Only connect Entry -> Exit if there is no OBJECT_BASE_FLAGS node. */
-  if (has_node(object_flags_key)) {
-    /* Entry -> OBJECT_BASE_FLAGS -> Exit */
-    add_relation(object_from_layer_entry_key, object_flags_key, "Base flags flush Entry");
-    add_relation(object_flags_key, object_from_layer_exit_key, "Base flags flush Exit");
-
-    /* Synchronization back to original object. */
-    OperationKey synchronize_key(
-        &object->id, NodeType::SYNCHRONIZATION, OperationCode::SYNCHRONIZE_TO_ORIGINAL);
-    add_relation(object_from_layer_exit_key, synchronize_key, "Synchronize to Original");
-  }
-  else {
-    /* Directly connect Entry -> Exit. */
+  if (!has_node(object_flags_key)) {
+    /* Just connect Entry -> Exit if there is no OBJECT_BASE_FLAGS node. */
     add_relation(object_from_layer_entry_key, object_from_layer_exit_key, "Object from Layer");
+    return;
   }
+
+  /* Entry -> OBJECT_BASE_FLAGS -> Exit */
+  add_relation(object_from_layer_entry_key, object_flags_key, "Base flags flush Entry");
+  add_relation(object_flags_key, object_from_layer_exit_key, "Base flags flush Exit");
+
+  /* Synchronization back to original object. */
+  OperationKey synchronize_key(
+      &object->id, NodeType::SYNCHRONIZATION, OperationCode::SYNCHRONIZE_TO_ORIGINAL);
+  add_relation(object_from_layer_exit_key, synchronize_key, "Synchronize to Original");
 
   OperationKey view_layer_done_key(
       &scene_->id, NodeType::LAYER_COLLECTIONS, OperationCode::VIEW_LAYER_EVAL);
