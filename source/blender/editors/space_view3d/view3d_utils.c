@@ -94,7 +94,7 @@ bool ED_view3d_has_workbench_in_texture_color(const Scene *scene,
     if (v3d->shading.color_type == V3D_SHADING_TEXTURE_COLOR) {
       return true;
     }
-    if (ob->mode == OB_MODE_TEXTURE_PAINT) {
+    if (ob && ob->mode == OB_MODE_TEXTURE_PAINT) {
       return true;
     }
   }
