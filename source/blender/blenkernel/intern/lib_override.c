@@ -27,12 +27,15 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
+#include "DNA_key_types.h"
 #include "DNA_object_types.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "BKE_armature.h"
+#include "BKE_idtype.h"
+#include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
 #include "BKE_lib_remap.h"
@@ -201,6 +204,16 @@ static ID *lib_override_library_create_from(Main *bmain, ID *reference_id)
 
   BKE_lib_override_library_init(local_id, reference_id);
 
+  /* Note: From liboverride perspective (and RNA one), shape keys are considered as local embedded
+   * data-blocks, just like root node trees or master collections. Therefore, we never need to
+   * create overrides for them. We need a way to mark them as overrides though. */
+  Key *reference_key;
+  if ((reference_key = BKE_key_from_id(reference_id)) != NULL) {
+    Key *local_key = BKE_key_from_id(local_id);
+    BLI_assert(local_key != NULL);
+    local_key->id.flag |= LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+  }
+
   return local_id;
 }
 
@@ -215,6 +228,12 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
   ID *local_id = lib_override_library_create_from(bmain, reference_id);
 
   if (do_tagged_remap) {
+    Key *reference_key, *local_key = NULL;
+    if ((reference_key = BKE_key_from_id(reference_id)) != NULL) {
+      local_key = BKE_key_from_id(local_id);
+      BLI_assert(local_key != NULL);
+    }
+
     ID *other_id;
     FOREACH_MAIN_ID_BEGIN (bmain, other_id) {
       if ((other_id->tag & LIB_TAG_DOIT) != 0 && other_id->lib == NULL) {
@@ -225,6 +244,13 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
                                reference_id,
                                local_id,
                                ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_OVERRIDE_LIBRARY);
+        if (reference_key != NULL) {
+          BKE_libblock_relink_ex(bmain,
+                                 other_id,
+                                 &reference_key->id,
+                                 &local_key->id,
+                                 ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_OVERRIDE_LIBRARY);
+        }
       }
     }
     FOREACH_MAIN_ID_END;
@@ -256,7 +282,8 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain)
 
   /* Get all IDs we want to override. */
   FOREACH_MAIN_ID_BEGIN (bmain, reference_id) {
-    if ((reference_id->tag & LIB_TAG_DOIT) != 0 && reference_id->lib != NULL) {
+    if ((reference_id->tag & LIB_TAG_DOIT) != 0 && reference_id->lib != NULL &&
+        BKE_idtype_idcode_is_linkable(GS(reference_id->name))) {
       todo_id_iter = MEM_callocN(sizeof(*todo_id_iter), __func__);
       todo_id_iter->data = reference_id;
       BLI_addtail(&todo_ids, todo_id_iter);
@@ -269,38 +296,71 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain)
     reference_id = todo_id_iter->data;
     if ((reference_id->newid = lib_override_library_create_from(bmain, reference_id)) == NULL) {
       success = false;
+      break;
     }
-    else {
+    /* We also tag the new IDs so that in next step we can remap their pointers too. */
+    reference_id->newid->tag |= LIB_TAG_DOIT;
+
+    Key *reference_key;
+    if ((reference_key = BKE_key_from_id(reference_id)) != NULL) {
+      reference_key->id.tag |= LIB_TAG_DOIT;
+
+      Key *local_key = BKE_key_from_id(reference_id->newid);
+      BLI_assert(local_key != NULL);
+      reference_key->id.newid = &local_key->id;
       /* We also tag the new IDs so that in next step we can remap their pointers too. */
-      reference_id->newid->tag |= LIB_TAG_DOIT;
+      local_key->id.tag |= LIB_TAG_DOIT;
     }
   }
 
   /* Only remap new local ID's pointers, we don't want to force our new overrides onto our whole
    * existing linked IDs usages. */
-  for (todo_id_iter = todo_ids.first; todo_id_iter != NULL; todo_id_iter = todo_id_iter->next) {
-    ID *other_id;
-    reference_id = todo_id_iter->data;
+  if (success) {
+    for (todo_id_iter = todo_ids.first; todo_id_iter != NULL; todo_id_iter = todo_id_iter->next) {
+      ID *other_id;
+      reference_id = todo_id_iter->data;
+      ID *local_id = reference_id->newid;
 
-    if (reference_id->newid == NULL) {
-      continue;
-    }
-
-    /* Still checking the whole Main, that way we can tag other local IDs as needing to be remapped
-     * to use newly created overriding IDs, if needed. */
-    FOREACH_MAIN_ID_BEGIN (bmain, other_id) {
-      if ((other_id->tag & LIB_TAG_DOIT) != 0 && other_id->lib == NULL) {
-        ID *local_id = reference_id->newid;
-        /* Note that using ID_REMAP_SKIP_INDIRECT_USAGE below is superfluous, as we only remap
-         * local IDs usages anyway... */
-        BKE_libblock_relink_ex(bmain,
-                               other_id,
-                               reference_id,
-                               local_id,
-                               ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_OVERRIDE_LIBRARY);
+      if (local_id == NULL) {
+        continue;
       }
+
+      Key *reference_key, *local_key = NULL;
+      if ((reference_key = BKE_key_from_id(reference_id)) != NULL) {
+        local_key = BKE_key_from_id(reference_id->newid);
+        BLI_assert(local_key != NULL);
+      }
+
+      /* Still checking the whole Main, that way we can tag other local IDs as needing to be
+       * remapped to use newly created overriding IDs, if needed. */
+      FOREACH_MAIN_ID_BEGIN (bmain, other_id) {
+        if ((other_id->tag & LIB_TAG_DOIT) != 0 && other_id->lib == NULL) {
+          /* Note that using ID_REMAP_SKIP_INDIRECT_USAGE below is superfluous, as we only remap
+           * local IDs usages anyway... */
+          BKE_libblock_relink_ex(bmain,
+                                 other_id,
+                                 reference_id,
+                                 local_id,
+                                 ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_OVERRIDE_LIBRARY);
+          if (reference_key != NULL) {
+            BKE_libblock_relink_ex(bmain,
+                                   other_id,
+                                   &reference_key->id,
+                                   &local_key->id,
+                                   ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_OVERRIDE_LIBRARY);
+          }
+        }
+      }
+      FOREACH_MAIN_ID_END;
     }
-    FOREACH_MAIN_ID_END;
+  }
+  else {
+    /* We need to cleanup potentially already created data. */
+    for (todo_id_iter = todo_ids.first; todo_id_iter != NULL; todo_id_iter = todo_id_iter->next) {
+      reference_id = todo_id_iter->data;
+      BKE_id_delete(bmain, reference_id->newid);
+      reference_id->newid = NULL;
+    }
   }
 
   BLI_freelistN(&todo_ids);
@@ -974,6 +1034,16 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
    * list of Main, so we cannot always keep it identical, which is why we need this special
    * manual handling here. */
   BLI_strncpy(tmp_id->name, local->name, sizeof(tmp_id->name));
+
+  /* Those ugly loopback pointers again... Luckily we only need to deal with the shape keys here,
+   * collections' parents are fully runtime and reconstructed later. */
+  Key *local_key = BKE_key_from_id(local);
+  Key *tmp_key = BKE_key_from_id(tmp_id);
+  if (local_key != NULL && tmp_key != NULL) {
+    /* This is some kind of hard-coded 'always enforced override'... */
+    tmp_key->from = local_key->from;
+    tmp_key->id.flag |= (local_key->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE);
+  }
 
   PointerRNA rnaptr_src, rnaptr_dst, rnaptr_storage_stack, *rnaptr_storage = NULL;
   RNA_id_pointer_create(local, &rnaptr_src);
