@@ -168,12 +168,12 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
     def signed_archive_info_for_request_id(
             self, request_id: str) -> ArchiveWithIndicator:
         return self.archive_info_for_request_id(
-            self.signed_storage_dir, request_id);
+            self.signed_storage_dir, request_id)
 
     def unsigned_archive_info_for_request_id(
             self, request_id: str) -> ArchiveWithIndicator:
         return self.archive_info_for_request_id(
-            self.unsigned_storage_dir, request_id);
+            self.unsigned_storage_dir, request_id)
 
     ############################################################################
     # Buildbot worker side helpers.
