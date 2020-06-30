@@ -130,7 +130,7 @@ def rna_idprop_ui_prop_default_set(item, prop, value):
     try:
         prop_type, is_array = rna_idprop_value_item_type(item[prop])
 
-        if prop_type in {int, float}:
+        if prop_type in {int, float, str}:
             if is_array and isinstance(value, ARRAY_TYPES):
                 value = [prop_type(item) for item in value]
                 if any(value):

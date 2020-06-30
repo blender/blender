@@ -3473,6 +3473,24 @@ void RNA_property_string_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop,
 {
   StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);
 
+  if (prop->magic != RNA_MAGIC) {
+    /* attempt to get the local ID values */
+    const IDProperty *idp_ui = rna_idproperty_ui(prop);
+
+    if (idp_ui) {
+      IDProperty *item;
+
+      item = IDP_GetPropertyTypeFromGroup(idp_ui, "default", IDP_STRING);
+      if (item) {
+        strcpy(value, IDP_String(item));
+        return;
+      }
+    }
+
+    strcpy(value, "");
+    return;
+  }
+
   BLI_assert(RNA_property_type(prop) == PROP_STRING);
 
   strcpy(value, sprop->defaultvalue);
@@ -3506,6 +3524,22 @@ char *RNA_property_string_get_default_alloc(PointerRNA *ptr,
 int RNA_property_string_default_length(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
   StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);
+
+  if (prop->magic != RNA_MAGIC) {
+    /* attempt to get the local ID values */
+    const IDProperty *idp_ui = rna_idproperty_ui(prop);
+
+    if (idp_ui) {
+      IDProperty *item;
+
+      item = IDP_GetPropertyTypeFromGroup(idp_ui, "default", IDP_STRING);
+      if (item) {
+        return strlen(IDP_String(item));
+      }
+    }
+
+    return 0;
+  }
 
   BLI_assert(RNA_property_type(prop) == PROP_STRING);
 

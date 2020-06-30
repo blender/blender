@@ -1457,7 +1457,7 @@ class WM_OT_properties_edit(Operator):
         proptype, is_array = rna_idprop_value_item_type(value)
 
         row = layout.row()
-        row.enabled = proptype in {int, float}
+        row.enabled = proptype in {int, float, str}
         row.prop(self, "default")
 
         row = layout.row(align=True)
