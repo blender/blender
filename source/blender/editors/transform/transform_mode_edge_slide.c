@@ -1250,7 +1250,7 @@ void drawEdgeSlide(TransInfo *t)
   else {
     /* Common case. */
     TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
-    const int alpha_shade = -30;
+    const int alpha_shade = -160;
 
     GPU_line_width(line_size);
     immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
