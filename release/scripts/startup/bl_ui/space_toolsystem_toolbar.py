@@ -1263,6 +1263,8 @@ class _defs_sculpt:
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.color_filter")
             layout.prop(props, "type", expand=False)
+            if (props.type == "FILL"):
+                layout.prop(props, "fill_color", expand=False)
             layout.prop(props, "strength")
 
         return dict(

@@ -582,6 +582,7 @@ typedef struct SculptThreadedTaskData {
 
   int filter_type;
   float filter_strength;
+  float *filter_fill_color;
 
   bool use_area_cos;
   bool use_area_nos;

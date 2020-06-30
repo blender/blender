@@ -42,6 +42,8 @@
 #include "BKE_pbvh.h"
 #include "BKE_scene.h"
 
+#include "IMB_colormanagement.h"
+
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
@@ -66,6 +68,7 @@
 #include <stdlib.h>
 
 typedef enum eSculptColorFilterTypes {
+  COLOR_FILTER_FILL,
   COLOR_FILTER_HUE,
   COLOR_FILTER_SATURATION,
   COLOR_FILTER_VALUE,
@@ -78,6 +81,7 @@ typedef enum eSculptColorFilterTypes {
 } eSculptColorFilterTypes;
 
 EnumPropertyItem prop_color_filter_types[] = {
+    {COLOR_FILTER_FILL, "FILL", 0, "Fill", "Fill with a specific color"},
     {COLOR_FILTER_HUE, "HUE", 0, "Hue", "Change hue"},
     {COLOR_FILTER_SATURATION, "SATURATION", 0, "Saturation", "Change saturation"},
     {COLOR_FILTER_VALUE, "VALUE", 0, "Value", "Change value"},
@@ -119,6 +123,15 @@ static void color_filter_task_cb(void *__restrict userdata,
     copy_v3_v3(orig_color, orig_data.col);
 
     switch (mode) {
+      case COLOR_FILTER_FILL: {
+        float fill_color_rgba[4];
+        copy_v3_v3(fill_color_rgba, data->filter_fill_color);
+        fill_color_rgba[3] = 1.0f;
+        CLAMP(fade, 0.0f, 1.0f);
+        mul_v4_fl(fill_color_rgba, fade);
+        blend_color_mix_float(final_color, orig_data.col, fill_color_rgba);
+        break;
+      }
       case COLOR_FILTER_HUE:
         rgb_to_hsv_v(orig_color, hsv_color);
         hue = hsv_color[0] + fade;
@@ -225,12 +238,17 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   float len = event->prevclickx - event->mval[0];
   filter_strength = filter_strength * -len * 0.001f;
 
+  float fill_color[3];
+  RNA_float_get_array(op->ptr, "fill_color", fill_color);
+  IMB_colormanagement_srgb_to_scene_linear_v3(fill_color);
+
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
       .nodes = ss->filter_cache->nodes,
       .filter_type = mode,
       .filter_strength = filter_strength,
+      .filter_fill_color = fill_color,
   };
 
   TaskParallelSettings settings;
@@ -298,4 +316,8 @@ void SCULPT_OT_color_filter(struct wmOperatorType *ot)
   RNA_def_enum(ot->srna, "type", prop_color_filter_types, COLOR_FILTER_HUE, "Filter type", "");
   RNA_def_float(
       ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter Strength", -10.0f, 10.0f);
+
+  PropertyRNA *prop = RNA_def_float_color(
+      ot->srna, "fill_color", 3, NULL, 0.0f, FLT_MAX, "Fill Color", "fill color", 0.0f, 1.0f);
+  RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
 }
