@@ -163,14 +163,15 @@ class NodeTreeRef : NonCopyable, NonMovable {
   Vector<SocketRef *> m_sockets_by_id;
   Vector<InputSocketRef *> m_input_sockets;
   Vector<OutputSocketRef *> m_output_sockets;
-  Map<std::string, Vector<NodeRef *>> m_nodes_by_idname;
+  Map<const bNodeType *, Vector<NodeRef *>> m_nodes_by_type;
 
  public:
   NodeTreeRef(bNodeTree *btree);
   ~NodeTreeRef();
 
   Span<const NodeRef *> nodes() const;
-  Span<const NodeRef *> nodes_with_idname(StringRef idname) const;
+  Span<const NodeRef *> nodes_by_type(StringRefNull idname) const;
+  Span<const NodeRef *> nodes_by_type(const bNodeType *nodetype) const;
 
   Span<const SocketRef *> sockets() const;
   Span<const InputSocketRef *> input_sockets() const;
@@ -403,9 +404,15 @@ inline Span<const NodeRef *> NodeTreeRef::nodes() const
   return m_nodes_by_id.as_span();
 }
 
-inline Span<const NodeRef *> NodeTreeRef::nodes_with_idname(StringRef idname) const
+inline Span<const NodeRef *> NodeTreeRef::nodes_by_type(StringRefNull idname) const
 {
-  const Vector<NodeRef *> *nodes = m_nodes_by_idname.lookup_ptr(idname);
+  const bNodeType *nodetype = nodeTypeFind(idname.data());
+  return this->nodes_by_type(nodetype);
+}
+
+inline Span<const NodeRef *> NodeTreeRef::nodes_by_type(const bNodeType *nodetype) const
+{
+  const Vector<NodeRef *> *nodes = m_nodes_by_type.lookup_ptr(nodetype);
   if (nodes == nullptr) {
     return {};
   }

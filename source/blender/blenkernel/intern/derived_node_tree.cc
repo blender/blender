@@ -174,7 +174,7 @@ BLI_NOINLINE void DerivedNodeTree::relink_group_inputs(const NodeTreeRef &group_
                                                        Span<DNode *> nodes_by_id,
                                                        DNode &group_node)
 {
-  Span<const NodeRef *> node_refs = group_ref.nodes_with_idname("NodeGroupInput");
+  Span<const NodeRef *> node_refs = group_ref.nodes_by_type("NodeGroupInput");
   if (node_refs.size() == 0) {
     return;
   }
@@ -221,7 +221,7 @@ BLI_NOINLINE void DerivedNodeTree::relink_group_outputs(const NodeTreeRef &group
                                                         Span<DNode *> nodes_by_id,
                                                         DNode &group_node)
 {
-  Span<const NodeRef *> node_refs = group_ref.nodes_with_idname("NodeGroupOutput");
+  Span<const NodeRef *> node_refs = group_ref.nodes_by_type("NodeGroupOutput");
   if (node_refs.size() == 0) {
     return;
   }
@@ -321,7 +321,8 @@ BLI_NOINLINE void DerivedNodeTree::store_in_this_and_init_ids(
     DNode *node = m_nodes_by_id[node_index];
     node->m_id = node_index;
 
-    m_nodes_by_idname.lookup_or_add_default(node->idname()).append(node);
+    const bNodeType *nodetype = node->m_node_ref->bnode()->typeinfo;
+    m_nodes_by_type.lookup_or_add_default(nodetype).append(node);
 
     for (DInputSocket *socket : node->m_inputs) {
       socket->m_id = m_sockets_by_id.append_and_get_index(socket);
