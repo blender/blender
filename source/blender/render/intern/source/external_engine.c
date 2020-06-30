@@ -838,9 +838,11 @@ int RE_engine_render(Render *re, int do_all)
   engine->resolution_x = re->winx;
   engine->resolution_y = re->winy;
 
+  BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
   RE_parts_init(re);
   engine->tile_x = re->partx;
   engine->tile_y = re->party;
+  BLI_rw_mutex_unlock(&re->partsmutex);
 
   if (re->result->do_exr_tile) {
     render_result_exr_file_begin(re, engine);
