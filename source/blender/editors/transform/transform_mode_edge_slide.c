@@ -50,6 +50,7 @@
 #include "BLT_translation.h"
 
 #include "transform.h"
+#include "transform_constraints.h"
 #include "transform_convert.h"
 #include "transform_mode.h"
 #include "transform_snap.h"
@@ -1291,6 +1292,7 @@ static void edge_slide_snap_apply(TransInfo *t, float *value)
 
   float perc = *value;
   int side_index;
+  float t_mid;
   if (slp->use_even == false) {
     const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
     if (is_clamp) {
@@ -1299,19 +1301,34 @@ static void edge_slide_snap_apply(TransInfo *t, float *value)
     else {
       side_index = sld_active->curr_side_unclamp;
     }
-    perc = line_point_factor_v3(snap_point, co_orig, co_dest[side_index]);
+  }
+  else {
+    /* Could be pre-calculated. */
+    t_mid = line_point_factor_v3((float[3]){0.0f, 0.0f, 0.0f}, sv->dir_side[0], sv->dir_side[1]);
+
+    float t_snap = line_point_factor_v3(snap_point, co_dest[0], co_dest[1]);
+    side_index = t_snap >= t_mid;
+  }
+
+  if (t->tsnap.snapElem & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE)) {
+    float co_dir[3];
+    sub_v3_v3v3(co_dir, co_dest[side_index], co_orig);
+    if (t->tsnap.snapElem & SCE_SNAP_MODE_EDGE) {
+      transform_constraint_snap_axis_to_edge(t, co_dir, dvec);
+    }
+    else {
+      transform_constraint_snap_axis_to_face(t, co_dir, dvec);
+    }
+    add_v3_v3v3(snap_point, co_orig, dvec);
+  }
+
+  perc = line_point_factor_v3(snap_point, co_orig, co_dest[side_index]);
+  if (slp->use_even == false) {
     if (side_index) {
       perc *= -1;
     }
   }
   else {
-    /* Could be pre-calculated. */
-    float t_mid = line_point_factor_v3(
-        (float[3]){0.0f, 0.0f, 0.0f}, sv->dir_side[0], sv->dir_side[1]);
-
-    float t_snap = line_point_factor_v3(snap_point, co_dest[0], co_dest[1]);
-    side_index = t_snap >= t_mid;
-    perc = line_point_factor_v3(snap_point, co_orig, co_dest[side_index]);
     if (!side_index) {
       perc = (1.0f - perc) * t_mid;
     }
