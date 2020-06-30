@@ -26,6 +26,10 @@
 
 #include "BKE_node.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern struct bNodeTreeType *ntreeType_Composite;
 
 /* ****************** types array for all composite nodes ****************** */
@@ -142,5 +146,9 @@ void node_cmp_rlayers_register_pass(struct bNodeTree *ntree,
 const char *node_cmp_rlayers_sock_to_pass(int sock_index);
 
 void register_node_type_cmp_custom_group(bNodeType *ntype);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

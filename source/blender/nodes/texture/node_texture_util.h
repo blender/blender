@@ -64,6 +64,10 @@
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct TexCallData {
   TexResult *target;
   /* all float[3] */
@@ -123,5 +127,9 @@ void tex_do_preview(bNodePreview *preview,
                     bool do_manage);
 
 void params_from_cdata(TexParams *out, TexCallData *in);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

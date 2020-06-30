@@ -34,6 +34,10 @@
 
 #include "RNA_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bNode;
 struct bNodeStack;
 struct bNodeTree;
@@ -97,5 +101,9 @@ struct bNodeTreeExec *ntreeTexBeginExecTree_internal(struct bNodeExecContext *co
                                                      struct bNodeTree *ntree,
                                                      bNodeInstanceKey parent_key);
 void ntreeTexEndExecTree_internal(struct bNodeTreeExec *exec);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
