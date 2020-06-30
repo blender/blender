@@ -30,6 +30,7 @@
 #include "DNA_object_types.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "BKE_armature.h"
 #include "BKE_lib_id.h"
@@ -1004,9 +1005,9 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
   local->tag |= LIB_TAG_OVERRIDE_LIBRARY_REFOK;
 
   /* Full rebuild of Depsgraph! */
-
-  /* XXX Is this actual valid replacement for old DAG_relations_tag_update(bmain) ? */
-  DEG_on_visible_update(bmain, true);
+  /* Note: this is reallly brute force, in theory updates from RNA should have handle this already,
+   * but for now let's play it safe. */
+  DEG_relations_tag_update(bmain);
 }
 
 /** Update all overrides from given \a bmain. */
