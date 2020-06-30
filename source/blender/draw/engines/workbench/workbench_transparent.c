@@ -157,7 +157,7 @@ void workbench_transparent_draw_depth_pass(WORKBENCH_Data *data)
   WORKBENCH_FramebufferList *fbl = data->fbl;
   WORKBENCH_PassList *psl = data->psl;
 
-  const bool do_xray_depth_pass = XRAY_ALPHA(wpd) > 0.0f;
+  const bool do_xray_depth_pass = !XRAY_FLAG_ENABLED(wpd) || XRAY_ALPHA(wpd) > 0.0f;
   const bool do_transparent_depth_pass = psl->outline_ps || wpd->dof_enabled || do_xray_depth_pass;
 
   if (do_transparent_depth_pass) {
