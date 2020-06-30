@@ -132,7 +132,7 @@ typedef struct PTCacheID {
   struct PTCacheID *next, *prev;
 
   struct Scene *scene;
-  struct Object *ob;
+  struct ID *owner_id;
   void *calldata;
   unsigned int type, file_type;
   unsigned int stack_index;

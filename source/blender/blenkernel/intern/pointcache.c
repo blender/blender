@@ -1593,7 +1593,7 @@ void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 {
   memset(pid, 0, sizeof(PTCacheID));
 
-  pid->ob = ob;
+  pid->owner_id = &ob->id;
   pid->calldata = sb;
   pid->type = PTCACHE_TYPE_SOFTBODY;
   pid->cache = sb->shared->pointcache;
@@ -1632,7 +1632,7 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 {
   memset(pid, 0, sizeof(PTCacheID));
 
-  pid->ob = ob;
+  pid->owner_id = &ob->id;
   pid->calldata = psys;
   pid->type = PTCACHE_TYPE_PARTICLES;
   pid->stack_index = psys->pointcache->index;
@@ -1697,7 +1697,7 @@ void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *cl
 {
   memset(pid, 0, sizeof(PTCacheID));
 
-  pid->ob = ob;
+  pid->owner_id = &ob->id;
   pid->calldata = clmd;
   pid->type = PTCACHE_TYPE_CLOTH;
   pid->stack_index = clmd->point_cache->index;
@@ -1738,7 +1738,7 @@ void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct FluidMo
 
   memset(pid, 0, sizeof(PTCacheID));
 
-  pid->ob = ob;
+  pid->owner_id = &ob->id;
   pid->calldata = mmd;
 
   pid->type = PTCACHE_TYPE_SMOKE_DOMAIN;
@@ -1788,7 +1788,7 @@ void BKE_ptcache_id_from_dynamicpaint(PTCacheID *pid, Object *ob, DynamicPaintSu
 
   memset(pid, 0, sizeof(PTCacheID));
 
-  pid->ob = ob;
+  pid->owner_id = &ob->id;
   pid->calldata = surface;
   pid->type = PTCACHE_TYPE_DYNAMICPAINT;
   pid->cache = surface->pointcache;
@@ -1829,7 +1829,7 @@ void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, Object *ob, RigidBodyWorld *r
 
   memset(pid, 0, sizeof(PTCacheID));
 
-  pid->ob = ob;
+  pid->owner_id = &ob->id;
   pid->calldata = rbw;
   pid->type = PTCACHE_TYPE_RIGIDBODY;
   pid->cache = rbw->shared->pointcache;
@@ -2188,7 +2188,7 @@ static int ptcache_frame_from_filename(const char *filename, const char *ext)
 
 static int ptcache_path(PTCacheID *pid, char *filename)
 {
-  Library *lib = (pid->ob) ? pid->ob->id.lib : NULL;
+  Library *lib = (pid->owner_id) ? pid->owner_id->lib : NULL;
   const char *blendfilename = (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH) == 0) ?
                                   lib->filepath_abs :
                                   BKE_main_blendfile_path_from_global();
@@ -2246,7 +2246,7 @@ static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_p
     newname += len;
   }
   if (pid->cache->name[0] == '\0' && (pid->cache->flag & PTCACHE_EXTERNAL) == 0) {
-    idname = (pid->ob->id.name + 2);
+    idname = (pid->owner_id->name + 2);
     /* convert chars to hex so they are always a valid filename */
     while ('\0' != *idname) {
       BLI_snprintf(newname, MAX_PTCACHE_FILE, "%02X", (unsigned int)(*idname++));
@@ -2263,7 +2263,8 @@ static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_p
 
   if (do_ext) {
     if (pid->cache->index < 0) {
-      pid->cache->index = pid->stack_index = BKE_object_insert_ptcache(pid->ob);
+      BLI_assert(GS(pid->owner_id->name) == ID_OB);
+      pid->cache->index = pid->stack_index = BKE_object_insert_ptcache((Object *)pid->owner_id);
     }
 
     const char *ext = ptcache_file_extension(pid);
@@ -2297,7 +2298,7 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 
 #ifndef DURIAN_POINTCACHE_LIB_OK
   /* don't allow writing for linked objects */
-  if (pid->ob->id.lib && mode == PTCACHE_FILE_WRITE) {
+  if (pid->owner_id->lib && mode == PTCACHE_FILE_WRITE) {
     return NULL;
   }
 #endif
@@ -3508,7 +3509,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 
 #ifndef DURIAN_POINTCACHE_LIB_OK
   /* don't allow clearing for linked objects */
-  if (pid->ob->id.lib) {
+  if (pid->owner_id->lib) {
     return;
   }
 #endif
@@ -3688,7 +3689,6 @@ void BKE_ptcache_id_time(
    *   is probably to interpolate results from two frames for that ..
    */
 
-  /* ob= pid->ob; */ /* UNUSED */
   cache = pid->cache;
 
   if (timescale) {
@@ -4119,7 +4119,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
   G.is_break = false;
 
   /* set caches to baking mode and figure out start frame */
-  if (pid->ob) {
+  if (pid->owner_id) {
     /* cache/bake a single object */
     cache = pid->cache;
     if ((cache->flag & PTCACHE_BAKED) == 0) {
@@ -4136,7 +4136,8 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
         /* get all pids from the object and search for smoke low res */
         ListBase pidlist2;
         PTCacheID *pid2;
-        BKE_ptcache_ids_from_object(&pidlist2, pid->ob, scene, MAX_DUPLI_RECUR);
+        BLI_assert(GS(pid->owner_id->name) == ID_OB);
+        BKE_ptcache_ids_from_object(&pidlist2, (Object *)pid->owner_id, scene, MAX_DUPLI_RECUR);
         for (pid2 = pidlist2.first; pid2; pid2 = pid2->next) {
           if (pid2->type == PTCACHE_TYPE_SMOKE_DOMAIN) {
             if (pid2->cache && !(pid2->cache->flag & PTCACHE_BAKED)) {
@@ -4425,7 +4426,7 @@ void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
 
   if ((cache->flag & PTCACHE_DISK_CACHE) == 0) {
     if (cache->index) {
-      BKE_object_delete_ptcache(pid->ob, cache->index);
+      BKE_object_delete_ptcache((Object *)pid->owner_id, cache->index);
       cache->index = -1;
     }
   }
