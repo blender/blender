@@ -33,9 +33,10 @@ namespace fn {
 
 struct MFSignature {
   std::string function_name;
-  Vector<std::string> param_names;
-  Vector<MFParamType> param_types;
-  Vector<uint> param_data_indices;
+  /* Use RawAllocator so that a MultiFunction can have static storage duration. */
+  Vector<std::string, 4, RawAllocator> param_names;
+  Vector<MFParamType, 4, RawAllocator> param_types;
+  Vector<uint, 4, RawAllocator> param_data_indices;
 
   uint data_index(uint param_index) const
   {
