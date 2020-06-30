@@ -327,8 +327,8 @@ enum {
 #define FLUID_NAME_PP_MESH "pp_mesh"
 #define FLUID_NAME_FLAGS_MESH "flags_mesh"
 #define FLUID_NAME_LMESH "lMesh"
-#define FLUID_NAME_VELOCITYVEC_MESH "vertex_velocities_mesh" /* == OpenVDB grid attribute name. \
-                                                              */
+/* == OpenVDB grid attribute name. */
+#define FLUID_NAME_VELOCITYVEC_MESH "vertex_velocities_mesh"
 #define FLUID_NAME_VELOCITY_MESH "velocity_mesh"
 #define FLUID_NAME_PINDEX_MESH "pindex_mesh"
 #define FLUID_NAME_GPI_MESH "gpi_mesh"
@@ -338,11 +338,12 @@ enum {
 #define FLUID_NAME_PVEL_PARTICLES "pVelSnd"
 #define FLUID_NAME_PLIFE_PARTICLES "pLifeSnd"
 #define FLUID_NAME_PFORCE_PARTICLES "pForceSnd"
-#define FLUID_NAME_PARTS_PARTICLES "particles_secondary" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_PARTSVEL_PARTICLES \
-  "particles_velocity_secondary" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_PARTSLIFE_PARTICLES \
-  "particles_life_secondary" /* == OpenVDB grid attribute name. */
+/* == OpenVDB grid attribute name. */
+#define FLUID_NAME_PARTS_PARTICLES "particles_secondary"
+/* == OpenVDB grid attribute name. */
+#define FLUID_NAME_PARTSVEL_PARTICLES "particles_velocity_secondary"
+/* == OpenVDB grid attribute name. */
+#define FLUID_NAME_PARTSLIFE_PARTICLES "particles_life_secondary"
 #define FLUID_NAME_PARTSFORCE_PARTICLES "particles_force_secondary"
 #define FLUID_NAME_VELOCITY_PARTICLES "velocity_secondary"
 #define FLUID_NAME_FLAGS_PARTICLES "flags_secondary"
@@ -351,12 +352,12 @@ enum {
 #define FLUID_NAME_PHIOUT_PARTICLES "phiOut_secondary"
 #define FLUID_NAME_NORMAL_PARTICLES "normal_secondary"
 #define FLUID_NAME_NEIGHBORRATIO_PARTICLES "neighbor_ratio_secondary"
-#define FLUID_NAME_TRAPPEDAIR_PARTICLES \
-  "trapped_air_secondary"                                     /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_WAVECREST_PARTICLES "wave_crest_secondary" /* == OpenVDB grid attribute name. \
-                                                               */
-#define FLUID_NAME_KINETICENERGY_PARTICLES \
-  "kinetic_energy_secondary" /* == OpenVDB grid attribute name. */
+/* == OpenVDB grid attribute name. */
+#define FLUID_NAME_TRAPPEDAIR_PARTICLES "trapped_air_secondary"
+/* == OpenVDB grid attribute name. */
+#define FLUID_NAME_WAVECREST_PARTICLES "wave_crest_secondary"
+/* == OpenVDB grid attribute name. */
+#define FLUID_NAME_KINETICENERGY_PARTICLES "kinetic_energy_secondary"
 
 /* Guiding object names. */
 #define FLUID_NAME_VELT "velT"
