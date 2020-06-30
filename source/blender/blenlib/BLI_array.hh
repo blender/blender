@@ -27,8 +27,7 @@
  * blender::Array should usually be used instead of blender::Vector whenever the number of elements
  * is known at construction time. Note however, that blender::Array will default construct all
  * elements when initialized with the size-constructor. For trivial types, this does nothing. In
- * all other cases, this adds overhead. If this becomes a problem, a different constructor which
- * does not do default construction can be added.
+ * all other cases, this adds overhead.
  *
  * A main benefit of using Array over Vector is that it expresses the intent of the developer
  * better. It indicates that the size of the data structure is not expected to change. Furthermore,
@@ -128,6 +127,24 @@ class Array {
     m_size = size;
     m_data = this->get_buffer_for_size(size);
     uninitialized_fill_n(m_data, m_size, value);
+  }
+
+  /**
+   * Create a new array with uninitialized elements. The caller is responsible for constructing the
+   * elements. Moving, copying or destructing an Array with uninitialized elements invokes
+   * undefined behavior.
+   *
+   * This should be used very rarely. Note, that the normal size-constructor also does not
+   * initialize the elements when T is trivially constructible. Therefore, it only makes sense to
+   * use this with non trivially constructible types.
+   *
+   * Usage:
+   *  Array<std::string> my_strings(10, NoInitialization());
+   */
+  Array(uint size, NoInitialization)
+  {
+    m_size = size;
+    m_data = this->get_buffer_for_size(size);
   }
 
   Array(const Array &other) : m_allocator(other.m_allocator)

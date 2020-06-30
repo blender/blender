@@ -124,3 +124,38 @@ TEST(array, TrivialTypeSizeConstructor)
   EXPECT_EQ(*ptr, magic);
   delete array;
 }
+
+struct ConstructibleType {
+  char value;
+
+  ConstructibleType()
+  {
+    value = 42;
+  }
+};
+
+TEST(array, NoInitializationSizeConstructor)
+{
+  using MyArray = Array<ConstructibleType>;
+
+  AlignedBuffer<sizeof(MyArray), alignof(MyArray)> buffer;
+  char *buffer_ptr = (char *)buffer.ptr();
+  memset(buffer_ptr, 100, sizeof(MyArray));
+
+  /* Doing this to avoid some compiler optimization. */
+  for (uint i : IndexRange(sizeof(MyArray))) {
+    EXPECT_EQ(buffer_ptr[i], 100);
+  }
+
+  {
+    MyArray &array = *new (buffer.ptr()) MyArray(1, NoInitialization());
+    EXPECT_EQ(array[0].value, 100);
+    array.clear_without_destruct();
+    array.~Array();
+  }
+  {
+    MyArray &array = *new (buffer.ptr()) MyArray(1);
+    EXPECT_EQ(array[0].value, 42);
+    array.~Array();
+  }
+}
