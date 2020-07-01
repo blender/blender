@@ -1222,6 +1222,7 @@ def has_geometry_visibility(ob):
     return ob and ((ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'LIGHT'}) or
                     (ob.instance_type == 'COLLECTION' and ob.instance_collection))
 
+
 class CYCLES_OBJECT_PT_shading(CyclesButtonsPanel, Panel):
     bl_label = "Shading"
     bl_context = "object"
@@ -1243,6 +1244,7 @@ class CYCLES_OBJECT_PT_shading(CyclesButtonsPanel, Panel):
         if has_geometry_visibility(ob):
             col = flow.column()
             col.prop(cob, "shadow_terminator_offset")
+
 
 class CYCLES_OBJECT_PT_visibility(CyclesButtonsPanel, Panel):
     bl_label = "Visibility"
