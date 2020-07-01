@@ -865,19 +865,18 @@ class ConstraintButtonsPanel(Panel):
         self.target_template(layout, con)
 
         if context.object.pose.ik_solver == 'ITASC':
-            layout.prop(con, "ik_type")
-
-            layout.prop(con, "pole_target")
-
-            if con.pole_target and con.pole_target.type == 'ARMATURE':
-                layout.prop_search(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
-
-            if con.pole_target:
-                row = layout.row()
-                row.label()
-                row.prop(con, "pole_angle")
+            col = layout.column()
+            col.prop(con, "ik_type")
 
             col = layout.column()
+            col.prop(con, "pole_target")
+
+            if con.pole_target and con.pole_target.type == 'ARMATURE':
+                col.prop_search(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
+
+            col = layout.column()
+            if con.pole_target:
+                col.prop(con, "pole_angle")
             col.prop(con, "use_tail")
             col.prop(con, "use_stretch")
             col.prop(con, "chain_count")
@@ -919,17 +918,15 @@ class ConstraintButtonsPanel(Panel):
                 col.prop(con, "distance", text="Distance", slider=True)
         else:
             # Standard IK constraint
-            layout.prop(con, "pole_target")
+            col = layout.column()
+            col.prop(con, "pole_target")
 
             if con.pole_target and con.pole_target.type == 'ARMATURE':
-                layout.prop_search(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
-
-            if con.pole_target:
-                row = layout.row()
-                row.prop(con, "pole_angle")
-                row.label()
+                col.prop_search(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
 
             col = layout.column()
+            if con.pole_target:
+                col.prop(con, "pole_angle")
             col.prop(con, "iterations")
             col.prop(con, "chain_count")
             col.prop(con, "use_tail")
