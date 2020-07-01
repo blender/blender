@@ -254,11 +254,18 @@ void OVERLAY_paint_draw(OVERLAY_Data *vedata)
   OVERLAY_PrivateData *pd = stl->pd;
 
   OVERLAY_PassList *psl = vedata->psl;
+  OVERLAY_FramebufferList *fbl = vedata->fbl;
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
   if (DRW_state_is_fbo()) {
-    /* Paint overlay needs final color because of multiply blend mode. */
-    GPU_framebuffer_bind(pd->painting.in_front ? dfbl->in_front_fb : dfbl->default_fb);
+    if (pd->painting.alpha_blending) {
+      GPU_framebuffer_bind(pd->painting.in_front ? fbl->overlay_in_front_fb :
+                                                   fbl->overlay_default_fb);
+    }
+    else {
+      /* Paint overlay needs final color because of multiply blend mode. */
+      GPU_framebuffer_bind(pd->painting.in_front ? dfbl->in_front_fb : dfbl->default_fb);
+    }
   }
 
   if (psl->paint_depth_ps) {
