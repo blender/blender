@@ -1772,6 +1772,21 @@ static void copy_object_set_idnew(bContext *C)
   }
   CTX_DATA_END;
 
+#ifndef NDEBUG
+  /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those flags. */
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (GS(id_iter->name) == ID_OB) {
+      /* Not all duplicated objects would be used by other newly duplicated data, so their flag
+       * will not always be cleared. */
+      continue;
+    }
+    BLI_assert((id_iter->tag & LIB_TAG_NEW) == 0);
+  }
+  FOREACH_MAIN_ID_END;
+#endif
+
+  BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
   BKE_main_id_clear_newpoins(bmain);
 }
 
@@ -2907,9 +2922,14 @@ static int duplicate_exec(bContext *C, wmOperator *op)
   const bool linked = RNA_boolean_get(op->ptr, "linked");
   const eDupli_ID_Flags dupflag = (linked) ? 0 : (eDupli_ID_Flags)U.dupflag;
 
+  /* We need to handle that here ourselves, because we may duplicate several objects, in which case
+   * we also want to remap pointers between those... */
+  BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
+  BKE_main_id_clear_newpoins(bmain);
+
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
     Base *basen = object_add_duplicate_internal(
-        bmain, scene, view_layer, base->object, dupflag, 0);
+        bmain, scene, view_layer, base->object, dupflag, LIB_ID_DUPLICATE_IS_SUBPROCESS);
 
     /* note that this is safe to do with this context iterator,
      * the list is made in advance */
@@ -2931,6 +2951,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
+  /* Note that this will also clear newid pointers and tags. */
   copy_object_set_idnew(C);
 
   ED_outliner_select_sync_from_object_tag(C);
