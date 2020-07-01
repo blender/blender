@@ -269,6 +269,7 @@ void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   struct GPUBatch *geom = NULL;
 
+  bool draw_as_solid = (ob->dt > OB_WIRE);
   bool do_in_front = (ob->dtx & OB_DRAWXRAY) != 0;
   bool do_occlude_wire = (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_OCCLUDE_WIRE) != 0;
   bool do_show_mesh_analysis = (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_STATVIS) != 0;
@@ -283,7 +284,7 @@ void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
     }
   }
 
-  if (do_occlude_wire || do_in_front) {
+  if (do_occlude_wire || (do_in_front && draw_as_solid)) {
     geom = DRW_cache_mesh_surface_get(ob);
     DRW_shgroup_call_no_cull(pd->edit_mesh_depth_grp[do_in_front], geom, ob);
   }
