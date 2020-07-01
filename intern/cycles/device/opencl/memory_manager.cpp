@@ -64,6 +64,9 @@ void MemoryManager::DeviceBuffer::update_device_memory(OpenCLDevice *device)
     total_size += alloc_size;
   }
 
+  /* Always allocate non-empty buffer, NULL pointers cause problems with some drivers. */
+  total_size = max(total_size, 16);
+
   if (need_realloc) {
     cl_ulong max_buffer_size;
     clGetDeviceInfo(
@@ -251,7 +254,7 @@ void MemoryManager::set_kernel_arg_buffers(cl_kernel kernel, cl_uint *narg)
       device->kernel_set_args(kernel, (*narg)++, *device_buffer.buffer);
     }
     else {
-      device->kernel_set_args(kernel, (*narg)++, 0);
+      device->kernel_set_args(kernel, (*narg)++);
     }
   }
 }
