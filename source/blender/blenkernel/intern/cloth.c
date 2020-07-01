@@ -43,6 +43,7 @@
 #include "BKE_cloth.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
@@ -1270,6 +1271,21 @@ static void cloth_update_verts(Object *ob, ClothModifierData *clmd, Mesh *mesh)
   }
 }
 
+/* Write rest vert locations to a copy of the mesh. */
+static Mesh *cloth_make_rest_mesh(ClothModifierData *clmd, Mesh *mesh)
+{
+  Mesh *new_mesh = BKE_mesh_copy_for_eval(mesh, false);
+  ClothVertex *verts = clmd->clothObject->verts;
+  MVert *mvert = new_mesh->mvert;
+
+  /* vertex count is already ensured to match */
+  for (unsigned i = 0; i < mesh->totvert; i++, verts++) {
+    copy_v3_v3(mvert[i].co, verts->xrest);
+  }
+
+  return new_mesh;
+}
+
 /* Update spring rest length, for dynamically deformable cloth */
 static void cloth_update_spring_lengths(ClothModifierData *clmd, Mesh *mesh)
 {
@@ -1598,10 +1614,18 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     BVHTreeFromMesh treedata = {NULL};
     unsigned int tar_v_idx;
     BLI_bitmap *verts_used = NULL;
+    Mesh *tmp_mesh = NULL;
     RNG *rng;
 
+    /* If using the rest shape key, it's necessary to make a copy of the mesh. */
+    if (clmd->sim_parms->shapekey_rest &&
+        !(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH)) {
+      tmp_mesh = cloth_make_rest_mesh(clmd, mesh);
+      BKE_mesh_calc_normals(tmp_mesh);
+    }
+
     verts_used = BLI_BITMAP_NEW(mvert_num * mvert_num, __func__);
-    BKE_bvhtree_from_mesh_get(&treedata, mesh, BVHTREE_FROM_LOOPTRI, 2);
+    BKE_bvhtree_from_mesh_get(&treedata, tmp_mesh ? tmp_mesh : mesh, BVHTREE_FROM_LOOPTRI, 2);
     rng = BLI_rng_new_srandom(0);
 
     for (int i = 0; i < mvert_num; i++) {
@@ -1646,12 +1670,18 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
           cloth_free_errorsprings(cloth, edgelist, spring_ref);
           MEM_freeN(verts_used);
           free_bvhtree_from_mesh(&treedata);
+          if (tmp_mesh) {
+            BKE_mesh_free(tmp_mesh);
+          }
           return 0;
         }
       }
     }
     MEM_freeN(verts_used);
     free_bvhtree_from_mesh(&treedata);
+    if (tmp_mesh) {
+      BKE_mesh_free(tmp_mesh);
+    }
     BLI_rng_free(rng);
   }
 
