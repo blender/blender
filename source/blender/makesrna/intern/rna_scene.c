@@ -3090,12 +3090,11 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       prop, "Transform Parents", "Transform the parents, leaving the children in place");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "use_correct_custom_data", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_transform_correct_face_attributes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uvcalc_flag", UVCALC_TRANSFORM_CORRECT);
-  RNA_def_property_ui_text(
-      prop,
-      "Correct Face Attributes",
-      "Correct data such as UV coordinates and loop colors when transforming");
+  RNA_def_property_ui_text(prop,
+                           "Correct Face Attributes",
+                           "Correct data such as UV's and vertex colors when transforming");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   prop = RNA_def_property(srna, "use_mesh_automerge", PROP_BOOLEAN, PROP_NONE);

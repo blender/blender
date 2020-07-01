@@ -206,7 +206,7 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         split = layout.split()
 
         row = layout.row(align=True, heading="Transform")
-        row.prop(tool_settings, "use_correct_custom_data")
+        row.prop(tool_settings, "use_transform_correct_face_attributes")
 
         row = layout.row(heading="Mirror")
         sub = row.row(align=True)
