@@ -1428,11 +1428,15 @@ int node_render_changed_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *sce = CTX_data_scene(C);
   bNode *node;
 
+  /* This is actually a test whether scene is used by the compositor or not.
+   * All the nodes are using same render result, so there is no need to do
+   * anything smart about check how exactly scene is used. */
   for (node = sce->nodetree->nodes.first; node; node = node->next) {
-    if (node->id == (ID *)sce && node->need_exec) {
+    if (node->id == (ID *)sce) {
       break;
     }
   }
+
   if (node) {
     ViewLayer *view_layer = BLI_findlink(&sce->view_layers, node->custom1);
 
