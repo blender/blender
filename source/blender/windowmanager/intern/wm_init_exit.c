@@ -580,7 +580,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
     BKE_subsurf_osd_cleanup();
 #endif
 
-    GPU_free_unused_buffers(G_MAIN);
+    GPU_free_unused_buffers();
   }
 
   BKE_blender_free(); /* blender.c, does entire library and spacetypes */

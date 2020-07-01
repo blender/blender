@@ -987,7 +987,7 @@ void wm_draw_update(bContext *C)
   BKE_subsurf_free_unused_buffers();
 #endif
 
-  GPU_free_unused_buffers(bmain);
+  GPU_free_unused_buffers();
 
   for (win = wm->windows.first; win; win = win->next) {
 #ifdef WIN32
