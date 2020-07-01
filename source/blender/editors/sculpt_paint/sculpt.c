@@ -198,7 +198,7 @@ void SCULPT_vertex_normal_get(SculptSession *ss, int index, float no[3])
   }
 }
 
-const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, int index)
+static const float *sculpt_vertex_persistent_co_get(SculptSession *ss, int index)
 {
   if (ss->persistent_base) {
     return ss->persistent_base[index].co;
@@ -206,7 +206,7 @@ const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, int index)
   return SCULPT_vertex_co_get(ss, index);
 }
 
-void SCULPT_vertex_persistent_normal_get(SculptSession *ss, int index, float no[3])
+static void sculpt_vertex_persistent_normal_get(SculptSession *ss, int index, float no[3])
 {
   if (ss->persistent_base) {
     copy_v3_v3(no, ss->persistent_base[index].no);
@@ -4213,9 +4213,9 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
       float normal[3];
 
       if (use_persistent_base) {
-        SCULPT_vertex_persistent_normal_get(ss, vi, normal);
+        sculpt_vertex_persistent_normal_get(ss, vi, normal);
         mul_v3_fl(normal, brush->height);
-        madd_v3_v3v3fl(final_co, SCULPT_vertex_persistent_co_get(ss, vi), normal, *disp_factor);
+        madd_v3_v3v3fl(final_co, sculpt_vertex_persistent_co_get(ss, vi), normal, *disp_factor);
       }
       else {
         normal_short_to_float_v3(normal, orig_data.no);
@@ -8342,7 +8342,7 @@ static bool SCULPT_connected_components_floodfill_cb(
   return true;
 }
 
-void SCULPT_connected_components_ensure(Object *ob)
+static void sculpt_connected_components_ensure(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -8386,7 +8386,7 @@ void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist)
     return;
   }
 
-  SCULPT_connected_components_ensure(ob);
+  sculpt_connected_components_ensure(ob);
   SCULPT_fake_neighbor_init(ss, max_dist);
 
   for (int i = 0; i < totvert; i++) {
