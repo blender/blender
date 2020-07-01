@@ -251,18 +251,17 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
   const bool is_texpaint_mode = is_active && (wpd->ctx_mode == CTX_MODE_PAINT_TEXTURE);
   const bool is_vertpaint_mode = is_active && (wpd->ctx_mode == CTX_MODE_PAINT_VERTEX);
 
-  if ((color_type == V3D_SHADING_TEXTURE_COLOR) && (ob->dt < OB_TEXTURE)) {
-    color_type = V3D_SHADING_MATERIAL_COLOR;
-  }
-  /* Disable color mode if data layer is unavailable. */
-  if ((color_type == V3D_SHADING_TEXTURE_COLOR) && (me == NULL || me->mloopuv == NULL)) {
-    color_type = V3D_SHADING_MATERIAL_COLOR;
-  }
-  if (color_type == V3D_SHADING_VERTEX_COLOR) {
-    if (me == NULL) {
-      color_type = V3D_SHADING_OBJECT_COLOR;
+  if (color_type == V3D_SHADING_TEXTURE_COLOR) {
+    if (ob->dt < OB_TEXTURE) {
+      color_type = V3D_SHADING_MATERIAL_COLOR;
     }
-    if (!CustomData_has_layer(&me->vdata, CD_PROP_COLOR)) {
+    else if ((me == NULL) || (me->mloopuv == NULL)) {
+      /* Disable color mode if data layer is unavailable. */
+      color_type = V3D_SHADING_MATERIAL_COLOR;
+    }
+  }
+  else if (color_type == V3D_SHADING_VERTEX_COLOR) {
+    if ((me == NULL) || !CustomData_has_layer(&me->vdata, CD_PROP_COLOR)) {
       color_type = V3D_SHADING_OBJECT_COLOR;
     }
   }
