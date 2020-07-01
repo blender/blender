@@ -1276,6 +1276,24 @@ class _defs_sculpt:
             draw_settings=draw_settings,
         )
 
+    @ToolDef.from_fn
+    def mask_by_color():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sculpt.mask_by_color")
+            layout.prop(props, "threshold")
+            layout.prop(props, "contiguous")
+            layout.prop(props, "invert")
+            layout.prop(props, "preserve_previous_mask")
+
+        return dict(
+            idname="builtin.mask_by_color",
+            label="Mask By Color",
+            icon="ops.sculpt.mask_by_color",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
 
 class _defs_vertex_paint:
 
@@ -2452,6 +2470,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_sculpt.mesh_filter,
             _defs_sculpt.cloth_filter,
             _defs_sculpt.color_filter,
+            None,
+            _defs_sculpt.mask_by_color,
             None,
             _defs_transform.translate,
             _defs_transform.rotate,

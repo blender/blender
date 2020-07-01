@@ -633,6 +633,16 @@ typedef struct SculptThreadedTaskData {
   float dirty_mask_max;
   bool dirty_mask_dirty_only;
 
+  /* Mask By Color Tool */
+
+  float mask_by_color_threshold;
+  bool mask_by_color_invert;
+  bool mask_by_color_preserve_mask;
+
+  /* Index of the vertex that is going to be used as a reference for the colors. */
+  int mask_by_color_vertex;
+  float *mask_by_color_floodfill;
+
   int face_set;
   int filter_undo_type;
 
