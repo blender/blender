@@ -359,7 +359,7 @@ void transform_constraint_snap_axis_to_edge(const TransInfo *t,
   float lambda;
   const float *edge_snap_point = t->tsnap.snapPoint;
   const float *edge_dir = t->tsnap.snapNormal;
-  bool is_aligned = fabsf(dot_v3v3(axis, edge_dir)) < CONSTRAIN_EPSILON;
+  bool is_aligned = fabsf(dot_v3v3(axis, edge_dir)) > (1.0f - CONSTRAIN_EPSILON);
   if (!is_aligned &&
       isect_ray_ray_v3(t->tsnap.snapTarget, axis, edge_snap_point, edge_dir, &lambda, NULL)) {
     mul_v3_v3fl(r_out, axis, lambda);
