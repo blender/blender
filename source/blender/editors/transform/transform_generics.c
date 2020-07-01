@@ -375,15 +375,15 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     if (op && ((prop = RNA_struct_find_property(op->ptr, "correct_uv")))) {
       if (RNA_property_is_set(op->ptr, prop)) {
         if (RNA_property_boolean_get(op->ptr, prop)) {
-          t->settings->uvcalc_flag |= UVCALC_TRANSFORM_CORRECT;
+          t->settings->uvcalc_flag |= UVCALC_TRANSFORM_CORRECT_SLIDE;
         }
         else {
-          t->settings->uvcalc_flag &= ~UVCALC_TRANSFORM_CORRECT;
+          t->settings->uvcalc_flag &= ~UVCALC_TRANSFORM_CORRECT_SLIDE;
         }
       }
       else {
         RNA_property_boolean_set(
-            op->ptr, prop, (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) != 0);
+            op->ptr, prop, (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT_SLIDE) != 0);
       }
     }
   }

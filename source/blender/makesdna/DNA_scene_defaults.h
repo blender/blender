@@ -327,7 +327,7 @@
     .doublimit = 0.001, \
     .vgroup_weight = 1.0f, \
     .uvcalc_margin = 0.001f, \
-    .uvcalc_flag = UVCALC_TRANSFORM_CORRECT, \
+    .uvcalc_flag = UVCALC_TRANSFORM_CORRECT_SLIDE, \
     .unwrapper = 1, \
     .select_thresh = 0.01f, \
  \

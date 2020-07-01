@@ -1537,7 +1537,6 @@ void initEdgeSlide_ex(
     if (sld) {
       tc->custom.mode.data = sld;
       tc->custom.mode.free_cb = freeEdgeSlideVerts;
-      trans_mesh_customdata_correction_init(t, tc);
       ok = true;
     }
   }

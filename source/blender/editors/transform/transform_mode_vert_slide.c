@@ -652,7 +652,6 @@ void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp)
     if (sld) {
       tc->custom.mode.data = sld;
       tc->custom.mode.free_cb = freeVertSlideVerts;
-      trans_mesh_customdata_correction_init(t, tc);
       ok = true;
     }
   }

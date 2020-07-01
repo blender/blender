@@ -526,8 +526,11 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
     }
 
     /* redraw UV editor */
-    if (ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE) &&
-        (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT)) {
+    const char uvcalc_correct_flag = ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE) ?
+                                         UVCALC_TRANSFORM_CORRECT_SLIDE :
+                                         UVCALC_TRANSFORM_CORRECT;
+
+    if ((t->data_type == TC_MESH_VERTS) && (t->settings->uvcalc_flag & uvcalc_correct_flag)) {
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
     }
 
@@ -1784,7 +1787,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
   if ((prop = RNA_struct_find_property(op->ptr, "correct_uv"))) {
     RNA_property_boolean_set(
-        op->ptr, prop, (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) != 0);
+        op->ptr, prop, (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT_SLIDE) != 0);
   }
 }
 

@@ -1068,15 +1068,26 @@ static void create_trans_vert_customdata_layer(BMVert *v,
   BLI_ghash_insert(tcld->origverts, v, r_tcld_vert);
 }
 
-void trans_mesh_customdata_correction_init(TransInfo *t, TransDataContainer *tc)
+static void trans_mesh_customdata_correction_init_container(TransInfo *t, TransDataContainer *tc)
 {
-  if (!(t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT)) {
-    return;
-  }
-
   if (tc->custom.type.data) {
     /* Custom data correction has initiated before. */
     BLI_assert(tc->custom.type.free_cb == trans_mesh_customdata_free_cb);
+    return;
+  }
+
+  if (!ELEM(t->mode,
+            TFM_TRANSLATION,
+            TFM_ROTATION,
+            TFM_RESIZE,
+            TFM_TOSPHERE,
+            TFM_SHEAR,
+            TFM_BEND,
+            TFM_SHRINKFATTEN,
+            TFM_TRACKBALL,
+            TFM_PUSHPULL,
+            TFM_ALIGN)) {
+    /* Currently only modes that change the position of vertices are supported. */
     return;
   }
 
@@ -1096,7 +1107,6 @@ void trans_mesh_customdata_correction_init(TransInfo *t, TransDataContainer *tc)
     return;
   }
 
-  /* create copies of faces for customdata projection */
   bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
 
   struct GHash *origfaces = BLI_ghash_ptr_new(__func__);
@@ -1158,6 +1168,19 @@ void trans_mesh_customdata_correction_init(TransInfo *t, TransDataContainer *tc)
 
   tc->custom.type.data = tcld;
   tc->custom.type.free_cb = trans_mesh_customdata_free_cb;
+}
+
+void trans_mesh_customdata_correction_init(TransInfo *t)
+{
+  const char uvcalc_correct_flag = ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE) ?
+                                       UVCALC_TRANSFORM_CORRECT_SLIDE :
+                                       UVCALC_TRANSFORM_CORRECT;
+
+  if (t->settings->uvcalc_flag & uvcalc_correct_flag) {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+      trans_mesh_customdata_correction_init_container(t, tc);
+    }
+  }
 }
 
 /**
@@ -1375,13 +1398,9 @@ void recalcData_mesh(TransInfo *t)
     }
   }
 
-  if (ELEM(t->mode, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
-    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      trans_mesh_customdata_correction_apply(tc, false);
-    }
-  }
-
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    trans_mesh_customdata_correction_apply(tc, false);
+
     DEG_id_tag_update(tc->obedit->data, 0); /* sets recalc flags */
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
     EDBM_mesh_normals_update(em);
@@ -1399,7 +1418,7 @@ void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
   const bool canceled = (t->state == TRANS_CANCEL);
   const bool use_automerge = !canceled && (t->flag & (T_AUTOMERGE | T_AUTOSPLIT)) != 0;
 
-  if (ELEM(t->mode, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+  if (TRANS_DATA_CONTAINER_FIRST_OK(t)->custom.type.data != NULL) {
     /* Handle multires re-projection, done
      * on transform completion since it's
      * really slow -joeedh. */

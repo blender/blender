@@ -744,9 +744,21 @@ void BM_loop_interp_from_face(
   float co[2];
   int i;
 
-  /* convert the 3d coords into 2d for projection */
-  BLI_assert(BM_face_is_normal_valid(f_src));
-  axis_dominant_v3_to_m3(axis_mat, f_src->no);
+  /* Convert the 3d coords into 2d for projection. */
+  float axis_dominant[3];
+  if (!is_zero_v3(f_src->no)) {
+    BLI_assert(BM_face_is_normal_valid(f_src));
+    copy_v3_v3(axis_dominant, f_src->no);
+  }
+  else {
+    /* Rare case in which all the vertices of the face are aligned.
+     * Get a random axis that is orthogonal to the tangent. */
+    float vec[3];
+    BM_face_calc_tangent_auto(f_src, vec);
+    ortho_v3_v3(axis_dominant, vec);
+    normalize_v3(axis_dominant);
+  }
+  axis_dominant_v3_to_m3(axis_mat, axis_dominant);
 
   i = 0;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f_src);
