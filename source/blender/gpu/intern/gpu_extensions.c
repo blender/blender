@@ -295,6 +295,12 @@ void gpu_extensions_init(void)
     GG.broken_amd_driver = true;
   }
 
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
+      strstr(version, "Mesa 19.3.4")) {
+    /* Fix slowdown on this particular driver. (see T77641) */
+    GG.broken_amd_driver = true;
+  }
+
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_MAC, GPU_DRIVER_OFFICIAL)) {
     if (strstr(renderer, "AMD Radeon Pro") || strstr(renderer, "AMD Radeon R9") ||
         strstr(renderer, "AMD Radeon RX")) {
