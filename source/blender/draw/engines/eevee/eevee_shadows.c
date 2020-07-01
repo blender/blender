@@ -260,10 +260,8 @@ void EEVEE_shadows_update(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 
   if (!sldata->shadow_cube_pool) {
-    /* TODO shadowcube array. */
-    int cube_size = linfo->shadow_cube_size + ((true) ? 2 : 0);
-    sldata->shadow_cube_pool = DRW_texture_create_2d_array(cube_size,
-                                                           cube_size,
+    sldata->shadow_cube_pool = DRW_texture_create_2d_array(linfo->shadow_cube_size,
+                                                           linfo->shadow_cube_size,
                                                            max_ii(1, linfo->num_cube_layer * 6),
                                                            shadow_pool_format,
                                                            DRW_TEX_FILTER | DRW_TEX_COMPARE,
