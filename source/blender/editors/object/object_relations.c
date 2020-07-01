@@ -2409,9 +2409,9 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* The we tag all intermediary data-blocks in-between to overridden ones (e.g. if a shapekey has
-   * a driver using an armature object's bone, we need to override the shapekey/obdata, the objects
-   * using them, etc.) */
+  /* Then we tag all intermediary data-blocks in-between two overridden ones (e.g. if a shapekey
+   * has a driver using an armature object's bone, we need to override the shapekey/obdata, the
+   * objects using them, etc.) */
   make_override_hierarchy_recursive_tag(bmain, id_root);
 
   BKE_main_relations_free(bmain);
