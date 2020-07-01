@@ -137,6 +137,35 @@ static float cloth_calc_volume(ClothModifierData *clmd)
   return vol;
 }
 
+static float cloth_calc_rest_volume(ClothModifierData *clmd)
+{
+  /* Calculate the (closed) cloth volume. */
+  Cloth *cloth = clmd->clothObject;
+  const MVertTri *tri = cloth->tri;
+  const ClothVertex *v = cloth->verts;
+  float weights[3] = {1.0f, 1.0f, 1.0f};
+  float vol = 0;
+
+  /* Early exit for hair, as it never has volume. */
+  if (clmd->hairdata) {
+    return 0.0f;
+  }
+
+  for (unsigned int i = 0; i < cloth->primitive_num; i++) {
+    const MVertTri *vt = &tri[i];
+
+    if (cloth_get_pressure_weights(clmd, vt, weights)) {
+      vol += volume_tri_tetrahedron_signed_v3_6x(
+          v[vt->tri[0]].xrest, v[vt->tri[1]].xrest, v[vt->tri[2]].xrest);
+    }
+  }
+
+  /* We need to divide by 6 to get the actual volume. */
+  vol = vol / 6.0f;
+
+  return vol;
+}
+
 static float cloth_calc_average_pressure(ClothModifierData *clmd, const float *vertex_pressure)
 {
   Cloth *cloth = clmd->clothObject;
@@ -219,7 +248,7 @@ void BKE_cloth_solver_set_volume(ClothModifierData *clmd)
 {
   Cloth *cloth = clmd->clothObject;
 
-  cloth->initial_mesh_volume = cloth_calc_volume(clmd);
+  cloth->initial_mesh_volume = cloth_calc_rest_volume(clmd);
 }
 
 /* Init constraint matrix
