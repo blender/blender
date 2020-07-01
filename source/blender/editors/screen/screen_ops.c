@@ -4398,8 +4398,9 @@ static void screen_animation_region_tag_redraw(ScrArea *area,
     }
   }
 
-  /* No need to do a full redraw as the playhead is only updated. We do need to redraw when this
-   * area is in full screen as no other areas will be tagged for redrawing. */
+  /* No need to do a full redraw as the current frame indicator is only updated.
+   * We do need to redraw when this area is in full screen as no other areas
+   * will be tagged for redrawing. */
   if ((region->regiontype == RGN_TYPE_WINDOW) &&
       (ELEM(area->spacetype, SPACE_GRAPH, SPACE_NLA, SPACE_ACTION, SPACE_SEQ)) && !area->full) {
     return;

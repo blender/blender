@@ -243,8 +243,8 @@ class TIME_PT_playback(TimelinePanelButtons, Panel):
 
         layout.prop(scene, "show_subframe", text="Subframes")
 
-        layout.prop(scene, "lock_frame_selection_to_range", text="Limit Playhead to Frame Range")
-        layout.prop(screen, "use_follow", text="Follow Playhead")
+        layout.prop(scene, "lock_frame_selection_to_range", text="Limit Playback to Frame Range")
+        layout.prop(screen, "use_follow", text="Follow Current Frame")
 
         layout.separator()
 

@@ -446,8 +446,8 @@ void WM_operator_properties_select_walk_direction(wmOperatorType *ot)
  * help getting the wanted behavior to work. Most generic logic should be handled in these, so that
  * the select operators only have to care for the case dependent handling.
  *
- * Every select operator has slightly different requirements, e.g. VSE strip selection also needs
- * to account for handle selection. This should be the baseline behavior though.
+ * Every select operator has slightly different requirements, e.g. sequencer strip selection
+ * also needs to account for handle selection. This should be the baseline behavior though.
  */
 void WM_operator_properties_generic_select(wmOperatorType *ot)
 {
