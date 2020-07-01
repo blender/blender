@@ -509,5 +509,5 @@ static GPUTexture *DRW_create_weight_colorramp_texture(void)
     pixels[i][3] = 1.0f;
   }
 
-  return GPU_texture_create_1d(256, GPU_RGBA8, pixels[0], error);
+  return GPU_texture_create_1d(256, GPU_SRGB8_A8, pixels[0], error);
 }
