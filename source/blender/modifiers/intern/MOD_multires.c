@@ -296,10 +296,10 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   /**
    * Changing some of the properties can not be done once there is an
-   * actual displacement stored for this multires modifier. This check
-   * will disallow changes for those properties.
-   * This check is a bit stupif but it should be sufficient for the usual
-   * multires usage. It might become less strict and only disallow
+   * actual displacement stored for this multi-resolution modifier.
+   * This check will disallow changes for those properties.
+   * This check is a bit stupid but it should be sufficient for the usual
+   * multi-resolution usage. It might become less strict and only disallow
    * modifications if there is CD_MDISPS layer, or if there is actual
    * non-zero displacement, but such checks will be too slow to be done
    * on every redraw.

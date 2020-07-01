@@ -573,8 +573,8 @@ ccl_device_inline ssef quad_mix(avxf p, avxf q, ssef f)
  *
  *    Point  Offset from v0
  *     v0      (0, 0, 0)
- *     v1      (0, 0, 1)    The full avx type is computed by inserting the following
- *     v2      (0, 1, 0)    sse types into both the low and high parts of the avx.
+ *     v1      (0, 0, 1)    The full AVX type is computed by inserting the following
+ *     v2      (0, 1, 0)    SSE types into both the low and high parts of the AVX.
  *     v3      (0, 1, 1)
  *     v4      (1, 0, 0)
  *     v5      (1, 0, 1)    (0, 1, 0, 1) = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(V, V + 1))

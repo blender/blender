@@ -4988,7 +4988,7 @@ void ED_view3d_cursor3d_position(bContext *C,
 
   ED_view3d_calc_zfac(rv3d, cursor_co, &flip);
 
-  /* reset the depth based on the view offset (we _know_ the offset is infront of us) */
+  /* Reset the depth based on the view offset (we _know_ the offset is in front of us). */
   if (flip) {
     negate_v3_v3(cursor_co, rv3d->ofs);
     /* re initialize, no need to check flip again */

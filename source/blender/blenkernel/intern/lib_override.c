@@ -1076,7 +1076,7 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
   local->tag |= LIB_TAG_OVERRIDE_LIBRARY_REFOK;
 
   /* Full rebuild of Depsgraph! */
-  /* Note: this is reallly brute force, in theory updates from RNA should have handle this already,
+  /* Note: this is really brute force, in theory updates from RNA should have handle this already,
    * but for now let's play it safe. */
   DEG_relations_tag_update(bmain);
 }

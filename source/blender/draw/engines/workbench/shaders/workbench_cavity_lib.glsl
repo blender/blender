@@ -23,7 +23,7 @@ void cavity_compute(vec2 screenco,
 
   float depth = texture(depthBuffer, screenco).x;
 
-  /* Early out if background and infront. */
+  /* Early out if background and in front. */
   if (depth == 1.0 || depth == 0.0) {
     return;
   }

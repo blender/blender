@@ -811,7 +811,7 @@ static bool project_paint_PickColor(
 }
 
 /**
- * Check if 'pt' is infront of the 3 verts on the Z axis (used for screenspace occlusion test)
+ * Check if 'pt' is in front of the 3 verts on the Z axis (used for screen-space occlusion test)
  * \return
  * -  `0`:   no occlusion
  * - `-1`: no occlusion but 2D intersection is true
@@ -836,7 +836,7 @@ static int project_paint_occlude_ptv(const float pt[3],
   }
 
   /* From here on we know there IS an intersection */
-  /* if ALL of the verts are infront of us then we know it intersects ? */
+  /* if ALL of the verts are in front of us then we know it intersects ? */
   if (v1[2] < pt[2] && v2[2] < pt[2] && v3[2] < pt[2]) {
     return 1;
   }

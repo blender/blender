@@ -794,11 +794,11 @@ void createTransEditVerts(TransInfo *t)
             t->depsgraph, scene_eval, obedit_eval, em_eval, &defmats, &defcos);
       }
 
-      /* if we still have more modifiers, also do crazyspace
-       * correction with quats, relative to the coordinates after
-       * the modifiers that support deform matrices (defcos) */
+      /* If we still have more modifiers, also do crazy-space
+       * correction with \a quats, relative to the coordinates after
+       * the modifiers that support deform matrices \a defcos. */
 
-#if 0 /* TODO, fix crazyspace+extrude so it can be enabled for general use - campbell */
+#if 0 /* TODO, fix crazy-space & extrude so it can be enabled for general use - campbell */
       if ((totleft > 0) || (totleft == -1))
 #else
       if (totleft > 0)

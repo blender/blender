@@ -484,14 +484,14 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
     dtar->flag &= ~DTAR_FLAG_INVALID;
   }
 
-  /* try to get posechannel */
+  /* Try to get pose-channel. */
   pchan = BKE_pose_channel_find_name(ob->pose, dtar->pchan_name);
 
-  /* check if object or bone, and get transform matrix accordingly
-   * - "useEulers" code is used to prevent the problems associated with non-uniqueness
-   *   of euler decomposition from matrices [#20870]
-   * - localspace is for [#21384], where parent results are not wanted
-   *   but local-consts is for all the common "corrective-shapes-for-limbs" situations
+  /* Check if object or bone, and get transform matrix accordingly:
+   * - "use_eulers" code is used to prevent the problems associated with non-uniqueness
+   *   of euler decomposition from matrices T20870.
+   * - "local-space" is for T21384, where parent results are not wanted
+   *   but #DTAR_FLAG_LOCAL_CONSTS is for all the common "corrective-shapes-for-limbs" situations.
    */
   if (pchan) {
     /* bone */
@@ -517,7 +517,7 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
       }
     }
     else {
-      /* worldspace matrix */
+      /* World-space matrix. */
       mul_m4_m4m4(mat, ob->obmat, pchan->pose_mat);
     }
   }

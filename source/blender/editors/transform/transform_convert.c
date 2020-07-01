@@ -774,7 +774,7 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
   bConstraint *con;
 
   /* loop through constraints, checking if there's one of the mentioned
-   * constraints needing special crazyspace corrections
+   * constraints needing special crazy-space corrections
    */
   if (list) {
     for (con = list->first; con; con = con->next) {

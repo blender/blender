@@ -4536,7 +4536,7 @@ static VMesh *pipe_adj_vmesh(BevelParams *bp, BevVert *bv, BoundVert *vpipe)
   bool even, midline;
   float *profile_point_pipe1, *profile_point_pipe2, f;
 
-  /* Some unecessary overhead running this subdivision with custom profile snapping later on. */
+  /* Some unnecessary overhead running this subdivision with custom profile snapping later on. */
   vm = adj_vmesh(bp, bv);
 
   /* Now snap all interior coordinates to be on the epipe profile. */

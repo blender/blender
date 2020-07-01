@@ -1119,7 +1119,7 @@ static bool collection_find_instance_recursive(Collection *collection,
 {
   LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
     if (collection_object->ob != NULL &&
-        /* Object from a given collection should never instanciate that collection either. */
+        /* Object from a given collection should never instantiate that collection either. */
         ELEM(collection_object->ob->instance_collection, instance_collection, collection)) {
       return true;
     }
@@ -1146,7 +1146,7 @@ bool BKE_collection_find_cycle(Collection *new_ancestor, Collection *collection)
     }
   }
 
-  /* Find possible objects in collection or its children, that would instanciate the given ancestor
+  /* Find possible objects in collection or its children, that would instantiate the given ancestor
    * collection (that would also make a fully invalid cycle of dependencies) .*/
   return collection_find_instance_recursive(collection, new_ancestor);
 }

@@ -153,12 +153,11 @@ static void verify_socket_template_list(bNodeTree *ntree,
     /* and we put back the verified sockets */
     stemp = stemp_first;
     if (socklist->first) {
-      /* some dynamic sockets left, store the list start
-       * so we can add static sockets infront of it.
-       */
+      /* Some dynamic sockets left, store the list start
+       * so we can add static sockets in front of it. */
       sock = (bNodeSocket *)socklist->first;
       while (stemp->type != -1) {
-        /* put static sockets infront of dynamic */
+        /* Put static sockets in front of dynamic. */
         BLI_insertlinkbefore(socklist, sock, stemp->sock);
         stemp++;
       }

@@ -39,7 +39,7 @@ namespace blender {
 /* -------------------------------------------------------------------- */
 /** \name Constexpr Utility Functions
  *
- * Those should eventually be deduplicated with functions in BLI_math_base.h.
+ * Those should eventually be de-duplicated with functions in BLI_math_base.h.
  * \{ */
 
 inline constexpr int is_power_of_2_i_constexpr(int n)

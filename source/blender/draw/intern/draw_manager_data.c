@@ -76,7 +76,7 @@ static void draw_call_sort(DRWCommand *array, DRWCommand *array_tmp, int array_l
   for (int i = 1; i < ARRAY_SIZE(idx); i++) {
     idx[i] += idx[i - 1];
   }
-  /* Traverse in reverse to not change the order of the resource ids. */
+  /* Traverse in reverse to not change the order of the resource ID's. */
   for (int src = array_len - 1; src >= 0; src--) {
     array_tmp[--idx[KEY(array[src])]] = array[src];
   }
@@ -116,7 +116,7 @@ void drw_resource_buffer_finish(ViewportMemoryPool *vmempool)
     vmempool->ubo_len = ubo_len;
   }
 
-  /* Remove unecessary buffers */
+  /* Remove unnecessary buffers */
   for (int i = ubo_len; i < vmempool->ubo_len; i++) {
     GPU_uniformbuffer_free(vmempool->matrices_ubo[i]);
     GPU_uniformbuffer_free(vmempool->obinfos_ubo[i]);
@@ -151,7 +151,7 @@ void drw_resource_buffer_finish(ViewportMemoryPool *vmempool)
   BLI_memblock_iternew(vmempool->commands, &iter);
   while ((chunk = BLI_memblock_iterstep(&iter))) {
     bool sortable = true;
-    /* We can only sort chunks that contain DRWCommandDraw only. */
+    /* We can only sort chunks that contain #DRWCommandDraw only. */
     for (int i = 0; i < ARRAY_SIZE(chunk->command_type) && sortable; i++) {
       if (chunk->command_type[i] != 0) {
         sortable = false;
@@ -179,7 +179,7 @@ static void drw_shgroup_uniform_create_ex(DRWShadingGroup *shgroup,
                                           int arraysize)
 {
   if (loc == -1) {
-    /* Nice to enable eventually, for now eevee uses uniforms that might not exist. */
+    /* Nice to enable eventually, for now EEVEE uses uniforms that might not exist. */
     // BLI_assert(0);
     return;
   }
@@ -432,7 +432,7 @@ void DRW_shgroup_uniform_vec4_array_copy(DRWShadingGroup *shgroup,
   int location = GPU_shader_get_uniform(shgroup->shader, name);
 
   if (location == -1) {
-    /* Nice to enable eventually, for now eevee uses uniforms that might not exist. */
+    /* Nice to enable eventually, for now EEVEE uses uniforms that might not exist. */
     // BLI_assert(0);
     return;
   }

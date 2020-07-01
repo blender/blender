@@ -252,7 +252,7 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
 }
 
 /**
- * Returns an array of deform matrices for crazyspace correction,
+ * Returns an array of deform matrices for crazy-space correction,
  * and the number of modifiers left.
  */
 int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgraph,
@@ -327,7 +327,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
 }
 
 /**
- * Crazyspace evaluation needs to have an object which has all the fields
+ * Crazy-space evaluation needs to have an object which has all the fields
  * evaluated, but the mesh data being at undeformed state. This way it can
  * re-apply modifiers and also have proper pointers to key data blocks.
  *
@@ -455,8 +455,8 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
       depsgraph, scene, object, deformmats, deformcos);
 
   if (totleft) {
-    /* there are deformation modifier which doesn't support deformation matrices
-     * calculation. Need additional crazyspace correction */
+    /* There are deformation modifier which doesn't support deformation matrices calculation.
+     * Need additional crazy-space correction. */
 
     Mesh *mesh = (Mesh *)object->data;
     Mesh *mesh_eval = NULL;

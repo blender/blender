@@ -190,8 +190,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
         break;
     }
     /* TODO(jbakker): Dualcon crashes when run in parallel. Could be related to incorrect
-     * input data or that the library isn't thread safe. This was identified when changing the task
-     * isolations during T76553. */
+     * input data or that the library isn't thread safe.
+     * This was identified when changing the task isolation's during T76553. */
     static ThreadMutex dualcon_mutex = BLI_MUTEX_INITIALIZER;
     BLI_mutex_lock(&dualcon_mutex);
     output = dualcon(&input,

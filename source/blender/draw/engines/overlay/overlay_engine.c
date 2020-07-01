@@ -423,7 +423,7 @@ static void OVERLAY_cache_finish(void *vedata)
 {
   /* TODO(fclem) Only do this when really needed. */
   {
-    /* HACK we allocate the infront depth here to avoid the overhead when if is not needed. */
+    /* HACK we allocate the in front depth here to avoid the overhead when if is not needed. */
     DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
     DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 

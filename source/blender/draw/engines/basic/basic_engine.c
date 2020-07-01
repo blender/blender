@@ -131,7 +131,7 @@ static void basic_cache_init(void *vedata)
     stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
   }
 
-  /* Twice for normal and infront objects. */
+  /* Twice for normal and in front objects. */
   for (int i = 0; i < 2; i++) {
     DRWState clip_state = (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) ? DRW_STATE_CLIP_PLANES : 0;
     DRWState infront_state = (DRW_state_is_select() && (i == 1)) ? DRW_STATE_IN_FRONT_SELECT : 0;

@@ -149,7 +149,7 @@ static void MaskPointToTransData(Scene *scene,
 
       /* CV coords are scaled by aspects. this is needed for rotations and
        * proportional editing to be consistent with the stretched CV coords
-       * that are displayed. this also means that for display and numinput,
+       * that are displayed. this also means that for display and number-input,
        * and when the CV coords are flushed, these are converted each time */
       mul_v2_m3v2(td2d->loc, parent_matrix, bezt->vec[i]);
       td2d->loc[0] *= asp[0];

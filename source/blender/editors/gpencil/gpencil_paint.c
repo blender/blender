@@ -1295,7 +1295,9 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
 
 /* --- 'Eraser' for 'Paint' Tool ------ */
 
-/* which which point is infront (result should only be used for comparison) */
+/**
+ * Which which point is in front (result should only be used for comparison).
+ */
 static float view3d_point_depth(const RegionView3D *rv3d, const float co[3])
 {
   if (rv3d->is_persp) {

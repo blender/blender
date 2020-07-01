@@ -925,7 +925,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
         else if ((oldkey != NULL) && (cd_shape_keyindex_offset != -1) &&
                  ((keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset)) != ORIGINDEX_NONE) &&
                  (keyi < currkey->totelem)) {
-          /* Old method of reconstructing keys via vertice's original key indices,
+          /* Old method of reconstructing keys via vertices original key indices,
            * currently used if the new method above fails
            * (which is theoretically possible in certain cases of undo). */
           copy_v3_v3(fp, oldkey[keyi]);
@@ -938,9 +938,9 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
         /* Propagate edited basis offsets to other shapes. */
         if (apply_offset) {
           add_v3_v3(fp, *ofs_pt++);
-          /* Apply back new coordinates of offsetted shape-keys into BMesh.
-           * Otherwise, in case we call again BM_mesh_bm_to_me on same BMesh,
-           * we'll apply diff from previous call to BM_mesh_bm_to_me,
+          /* Apply back new coordinates shape-keys that have offset into BMesh.
+           * Otherwise, in case we call again #BM_mesh_bm_to_me on same BMesh,
+           * we'll apply diff from previous call to #BM_mesh_bm_to_me,
            * to shape-key values from *original creation of the BMesh*. See T50524. */
           copy_v3_v3(BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset), fp);
         }
@@ -976,7 +976,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     MEM_freeN(oldverts);
   }
 
-  /* Topology could be changed, ensure mdisps are ok. */
+  /* Topology could be changed, ensure #CD_MDISPS are ok. */
   multires_topology_changed(me);
 
   /* To be removed as soon as COW is enabled by default.. */

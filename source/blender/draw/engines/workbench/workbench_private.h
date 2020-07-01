@@ -293,7 +293,7 @@ typedef struct WORKBENCH_PrivateData {
   /** Object IDs buffer for curvature & outline. */
   struct GPUTexture *object_id_tx;
 
-  /** Prepass infos for each draw types [transparent][infront][hair]. */
+  /** Pre-pass information for each draw types [transparent][infront][hair]. */
   WORKBENCH_Prepass prepass[2][2][2];
 
   /* Materials */

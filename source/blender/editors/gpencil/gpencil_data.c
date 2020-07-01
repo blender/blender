@@ -2534,8 +2534,8 @@ static void gpencil_joined_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data)
         if (dtar->id == src_id) {
           dtar->id = dst_id;
 
-          /* Also check on the subtarget...
-           * We duplicate the logic from drivers_path_rename_fix() here, with our own
+          /* Also check on the sub-target.
+           * We duplicate the logic from #drivers_path_rename_fix() here, with our own
            * little twists so that we know that it isn't going to clobber the wrong data
            */
           if (dtar->rna_path && strstr(dtar->rna_path, "layers[")) {

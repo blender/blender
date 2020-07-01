@@ -1895,12 +1895,12 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd,
 
   if (!f) {
     if (kcd->is_interactive) {
-      /* try to use backbuffer selection method if ray casting failed */
+      /* Try to use back-buffer selection method if ray casting failed. */
       f = EDBM_face_find_nearest(&kcd->vc, &dist);
 
       /* cheat for now; just put in the origin instead
        * of a true coordinate on the face.
-       * This just puts a point 1.0f infront of the view. */
+       * This just puts a point 1.0f in front of the view. */
       add_v3_v3v3(co, origin, ray);
     }
   }
@@ -1908,8 +1908,10 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd,
   return f;
 }
 
-/* find the 2d screen space density of vertices within a radius.  used to scale snapping
- * distance for picking edges/verts.*/
+/**
+ * Find the 2d screen space density of vertices within a radius.
+ * Used to scale snapping distance for picking edges/verts.
+ */
 static int knife_sample_screen_density(KnifeTool_OpData *kcd, const float radius)
 {
   BMFace *f;

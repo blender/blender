@@ -38,7 +38,7 @@
 #include "screen_intern.h"
 
 /**
- * Empty screen, with 1 dummy area without spacedata. Uses window size.
+ * Empty screen, with 1 dummy area without space-data. Uses window size.
  */
 WorkSpaceLayout *ED_workspace_layout_add(Main *bmain,
                                          WorkSpace *workspace,

@@ -43,7 +43,7 @@ class ABCGenericMeshWriter : public ABCAbstractWriter {
   Alembic::AbcGeom::OSubDSchema abc_subdiv_schema_;
 
   /* Determines whether a poly mesh or a subdivision surface is exported.
-   * The value is set by an export option but only true if there is a subsdivision modifier on the
+   * The value is set by an export option but only true if there is a subdivision modifier on the
    * exported object. */
   bool is_subd_;
   ModifierData *subsurf_modifier_;

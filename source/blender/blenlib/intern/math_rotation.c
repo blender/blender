@@ -2127,7 +2127,7 @@ void mul_v3m3_dq(float co[3], float mat[3][3], DualQuat *dq)
   co[1] = (co[1] + t[1]) * len2;
   co[2] = (co[2] + t[2]) * len2;
 
-  /* compute crazyspace correction mat */
+  /* Compute crazy-space correction matrix. */
   if (mat) {
     if (dq->scale_weight) {
       copy_m3_m4(scalemat, dq->scale);

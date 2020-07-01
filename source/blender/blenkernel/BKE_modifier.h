@@ -217,7 +217,7 @@ typedef struct ModifierTypeInfo {
                         float (*vertexCos)[3],
                         int numVerts);
 
-  /* Set deform matrix per vertex for crazyspace correction */
+  /* Set deform matrix per vertex for crazy-space correction */
   void (*deformMatricesEM)(struct ModifierData *md,
                            const struct ModifierEvalContext *ctx,
                            struct BMEditMesh *editData,

@@ -131,7 +131,7 @@ enum {
    */
   AZONE_FULLSCREEN,
   /**
-   * Hotspot azone around scroll-bars to show/hide them.
+   * Hot-spot #AZone around scroll-bars to show/hide them.
    * Only show the scroll-bars when the cursor is close.
    */
   AZONE_REGION_SCROLL,

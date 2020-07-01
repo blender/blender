@@ -355,10 +355,10 @@ typedef struct SculptSession {
   bool show_face_sets;
 
   /* Painting on deformed mesh */
-  bool deform_modifiers_active; /* object is deformed with some modifiers */
-  float (*orig_cos)[3];         /* coords of undeformed mesh */
-  float (*deform_cos)[3];       /* coords of deformed mesh but without stroke displacement */
-  float (*deform_imats)[3][3];  /* crazyspace deformation matrices */
+  bool deform_modifiers_active; /* Object is deformed with some modifiers. */
+  float (*orig_cos)[3];         /* Coords of un-deformed mesh. */
+  float (*deform_cos)[3];       /* Coords of deformed mesh but without stroke displacement. */
+  float (*deform_imats)[3][3];  /* Crazy-space deformation matrices. */
 
   /* Used to cache the render of the active texture */
   unsigned int texcache_side, *texcache, texcache_actual;
