@@ -69,6 +69,7 @@ class DSocket : NonCopyable, NonMovable {
   StringRefNull name() const;
 
   const SocketRef &socket_ref() const;
+  bNodeSocket *bsocket() const;
 
   bool is_available() const;
 };
@@ -111,6 +112,7 @@ class DGroupInput : NonCopyable, NonMovable {
 
  public:
   const InputSocketRef &socket_ref() const;
+  bNodeSocket *bsocket() const;
   const DParentNode *parent() const;
   Span<const DInputSocket *> linked_sockets() const;
   uint id() const;
@@ -291,6 +293,11 @@ inline const SocketRef &DSocket::socket_ref() const
   return *m_socket_ref;
 }
 
+inline bNodeSocket *DSocket::bsocket() const
+{
+  return m_socket_ref->bsocket();
+}
+
 inline bool DSocket::is_available() const
 {
   return (m_socket_ref->bsocket()->flag & SOCK_UNAVAIL) == 0;
@@ -341,6 +348,11 @@ inline Span<const DInputSocket *> DOutputSocket::linked_sockets() const
 inline const InputSocketRef &DGroupInput::socket_ref() const
 {
   return *m_socket_ref;
+}
+
+inline bNodeSocket *DGroupInput::bsocket() const
+{
+  return m_socket_ref->bsocket();
 }
 
 inline const DParentNode *DGroupInput::parent() const
