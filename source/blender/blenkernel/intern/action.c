@@ -939,7 +939,7 @@ void BKE_pose_channel_free_ex(bPoseChannel *pchan, bool do_id_user)
   BKE_constraints_free_ex(&pchan->constraints, do_id_user);
 
   if (pchan->prop) {
-    IDP_FreeProperty(pchan->prop);
+    IDP_FreeProperty_ex(pchan->prop, do_id_user);
     pchan->prop = NULL;
   }
 
