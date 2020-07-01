@@ -865,9 +865,9 @@ class ConstraintButtonsPanel(Panel):
         self.target_template(layout, con)
 
         if context.object.pose.ik_solver == 'ITASC':
-            col = layout.column()
-            col.prop(con, "ik_type")
+            layout.prop(con, "ik_type")
 
+            # This button gives itself too much padding, so put it in a column with the subtarget
             col = layout.column()
             col.prop(con, "pole_target")
 
@@ -884,30 +884,37 @@ class ConstraintButtonsPanel(Panel):
             if con.ik_type == 'COPY_POSE':
                 layout.prop(con, "reference_axis", expand=True)
 
-                col = layout.column()
-                col.prop(con, "use_location")
+                # Use separate rows and columns here to avoid an alignment issue with the lock buttons
+                loc_col = layout.column()
+                loc_col.prop(con, "use_location")
 
-                sub = col.column()
-                sub.active = con.use_location
-                sub.prop(con, "weight", text="Weight", slider=True)
-                row = sub.row(heading="Lock")
+                row = loc_col.row()
+                row.active = con.use_location
+                row.prop(con, "weight", text="Weight", slider=True)
+
+                row = loc_col.row(heading="Lock", align=True)
                 row.use_property_decorate = False
-                row.prop(con, "lock_location_x", text="X", toggle=True)
-                row.prop(con, "lock_location_y", text="Y", toggle=True)
-                row.prop(con, "lock_location_z", text="Z", toggle=True)
+                row.active = con.use_location
+                sub = row.row(align=True)
+                sub.prop(con, "lock_location_x", text="X", toggle=True)
+                sub.prop(con, "lock_location_y", text="Y", toggle=True)
+                sub.prop(con, "lock_location_z", text="Z", toggle=True)
                 row.label(icon='BLANK1')
 
-                col = layout.column()
-                col.prop(con, "use_rotation")
+                rot_col = layout.column()
+                rot_col.prop(con, "use_rotation")
 
-                sub = col.column()
-                sub.active = con.use_rotation
-                sub.prop(con, "orient_weight", text="Weight", slider=True)
-                row = sub.row(heading="Lock")
+                row = rot_col.row()
+                row.active = con.use_rotation
+                row.prop(con, "orient_weight", text="Weight", slider=True)
+
+                row = rot_col.row(heading="Lock", align=True)
                 row.use_property_decorate = False
-                row.prop(con, "lock_rotation_x", text="X", toggle=True)
-                row.prop(con, "lock_rotation_y", text="Y", toggle=True)
-                row.prop(con, "lock_rotation_z", text="Z", toggle=True)
+                row.active = con.use_rotation
+                sub = row.row(align=True)
+                sub.prop(con, "lock_rotation_x", text="X", toggle=True)
+                sub.prop(con, "lock_rotation_y", text="Y", toggle=True)
+                sub.prop(con, "lock_rotation_z", text="Z", toggle=True)
                 row.label(icon='BLANK1')
 
             elif con.ik_type == 'DISTANCE':
