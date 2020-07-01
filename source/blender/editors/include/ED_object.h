@@ -389,7 +389,8 @@ bool ED_object_modifier_apply(struct Main *bmain,
                               struct Scene *scene,
                               struct Object *ob,
                               struct ModifierData *md,
-                              int mode);
+                              int mode,
+                              bool keep_modifier);
 int ED_object_modifier_copy(struct ReportList *reports,
                             struct Object *ob,
                             struct ModifierData *md);

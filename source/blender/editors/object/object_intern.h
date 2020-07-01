@@ -167,6 +167,7 @@ void OBJECT_OT_modifier_move_up(struct wmOperatorType *ot);
 void OBJECT_OT_modifier_move_down(struct wmOperatorType *ot);
 void OBJECT_OT_modifier_move_to_index(struct wmOperatorType *ot);
 void OBJECT_OT_modifier_apply(struct wmOperatorType *ot);
+void OBJECT_OT_modifier_apply_as_shapekey(wmOperatorType *ot);
 void OBJECT_OT_modifier_convert(struct wmOperatorType *ot);
 void OBJECT_OT_modifier_copy(struct wmOperatorType *ot);
 void OBJECT_OT_multires_subdivide(struct wmOperatorType *ot);
