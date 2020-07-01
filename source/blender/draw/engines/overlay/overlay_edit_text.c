@@ -53,13 +53,22 @@ void OVERLAY_edit_text_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_vec4_copy(grp, "color", G_draw.block.colorWire);
   }
   {
-    state = DRW_STATE_WRITE_COLOR | DRW_STATE_LOGIC_INVERT;
+    state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
     DRW_PASS_CREATE(psl->edit_text_overlay_ps, state | pd->clipping_state);
 
     sh = OVERLAY_shader_uniform_color();
     pd->edit_text_overlay_grp = grp = DRW_shgroup_create(sh, psl->edit_text_overlay_ps);
 
-    DRW_shgroup_uniform_vec4_copy(grp, "color", (float[4]){1.0f, 1.0f, 1.0f, 1.0f});
+    DRW_shgroup_uniform_vec4(grp, "color", pd->edit_text.overlay_color, 1);
+
+    state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_MUL | DRW_STATE_DEPTH_GREATER_EQUAL |
+            pd->clipping_state;
+    DRW_PASS_INSTANCE_CREATE(psl->edit_text_darken_ps, psl->edit_text_overlay_ps, state);
+  }
+  {
+    /* Create view which will render everything (hopefully) behind the text geometry. */
+    DRWView *default_view = (DRWView *)DRW_view_default_get();
+    pd->view_edit_text = DRW_view_create_with_zoffset(default_view, draw_ctx->rv3d, -5.0f);
   }
 }
 
@@ -193,16 +202,24 @@ void OVERLAY_edit_text_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
 void OVERLAY_edit_text_draw(OVERLAY_Data *vedata)
 {
+  OVERLAY_PrivateData *pd = vedata->stl->pd;
   OVERLAY_PassList *psl = vedata->psl;
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  OVERLAY_FramebufferList *fbl = vedata->fbl;
 
   if (DRW_state_is_fbo()) {
-    /* Text overlay need final color for color inversion. */
-    GPU_framebuffer_bind(dfbl->default_fb);
+    GPU_framebuffer_bind(fbl->overlay_default_fb);
   }
 
   DRW_draw_pass(psl->edit_text_wire_ps[0]);
   DRW_draw_pass(psl->edit_text_wire_ps[1]);
 
+  DRW_view_set_active(pd->view_edit_text);
+
+  /* Alpha blended. */
+  copy_v4_fl4(pd->edit_text.overlay_color, 0.8f, 0.8f, 0.8f, 0.5f);
   DRW_draw_pass(psl->edit_text_overlay_ps);
+
+  /* Multiply previous result where depth test fail. */
+  copy_v4_fl4(pd->edit_text.overlay_color, 0.0f, 0.0f, 0.0f, 1.0f);
+  DRW_draw_pass(psl->edit_text_darken_ps);
 }
