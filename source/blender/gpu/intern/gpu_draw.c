@@ -60,7 +60,8 @@
 
 #include "PIL_time.h"
 
-static void gpu_free_image_immediate(Image *ima);
+static void gpu_free_image(Image *ima, const bool immediate);
+static void gpu_free_unused_buffers(void);
 
 //* Checking powers of two for images since OpenGL ES requires it */
 #ifdef WITH_DDS
@@ -859,9 +860,13 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, ImBuf *ibuf, 
     return NULL;
   }
 
+  /* Free any unused GPU textures, since we know we are in a thread with OpenGL
+   * context and might as well ensure we have as much space free as possible. */
+  gpu_free_unused_buffers();
+
   /* currently, gpu refresh tagging is used by ima sequences */
   if (ima->gpuflag & IMA_GPU_REFRESH) {
-    gpu_free_image_immediate(ima);
+    gpu_free_image(ima, true);
     ima->gpuflag &= ~IMA_GPU_REFRESH;
   }
 
@@ -1338,47 +1343,47 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 #endif
 }
 
-static LinkNode *image_free_queue = NULL;
-static ThreadMutex img_queue_mutex = BLI_MUTEX_INITIALIZER;
+/* Delayed GPU texture free. Image datablocks can be deleted by any thread,
+ * but there may not be any active OpenGL context. In that case we push them
+ * into a queue and free the buffers later. */
+static LinkNode *gpu_texture_free_queue = NULL;
+static ThreadMutex gpu_texture_queue_mutex = BLI_MUTEX_INITIALIZER;
 
-static void gpu_queue_image_for_free(Image *ima)
+static void gpu_free_unused_buffers()
 {
-  BLI_mutex_lock(&img_queue_mutex);
-  BLI_linklist_prepend(&image_free_queue, ima);
-  BLI_mutex_unlock(&img_queue_mutex);
-}
-
-void GPU_free_unused_buffers(Main *bmain)
-{
-  if (!BLI_thread_is_main()) {
+  if (gpu_texture_free_queue == NULL) {
     return;
   }
 
-  BLI_mutex_lock(&img_queue_mutex);
+  BLI_mutex_lock(&gpu_texture_queue_mutex);
 
-  /* images */
-  for (LinkNode *node = image_free_queue; node; node = node->next) {
-    Image *ima = node->link;
-
-    /* check in case it was freed in the meantime */
-    if (bmain && BLI_findindex(&bmain->images, ima) != -1) {
-      GPU_free_image(ima);
+  if (gpu_texture_free_queue != NULL) {
+    for (LinkNode *node = gpu_texture_free_queue; node; node = node->next) {
+      GPUTexture *tex = node->link;
+      GPU_texture_free(tex);
     }
+
+    BLI_linklist_free(gpu_texture_free_queue, NULL);
+    gpu_texture_free_queue = NULL;
   }
 
-  BLI_linklist_free(image_free_queue, NULL);
-  image_free_queue = NULL;
-
-  BLI_mutex_unlock(&img_queue_mutex);
+  BLI_mutex_unlock(&gpu_texture_queue_mutex);
 }
 
-static void gpu_free_image_immediate(Image *ima)
+static void gpu_free_image(Image *ima, const bool immediate)
 {
   for (int eye = 0; eye < 2; eye++) {
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      /* free glsl image binding */
       if (ima->gputexture[i][eye] != NULL) {
-        GPU_texture_free(ima->gputexture[i][eye]);
+        if (immediate) {
+          GPU_texture_free(ima->gputexture[i][eye]);
+        }
+        else {
+          BLI_mutex_lock(&gpu_texture_queue_mutex);
+          BLI_linklist_prepend(&gpu_texture_free_queue, ima->gputexture[i][eye]);
+          BLI_mutex_unlock(&gpu_texture_queue_mutex);
+        }
+
         ima->gputexture[i][eye] = NULL;
       }
     }
@@ -1387,14 +1392,16 @@ static void gpu_free_image_immediate(Image *ima)
   ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
 }
 
+void GPU_free_unused_buffers()
+{
+  if (BLI_thread_is_main()) {
+    gpu_free_unused_buffers();
+  }
+}
+
 void GPU_free_image(Image *ima)
 {
-  if (!BLI_thread_is_main()) {
-    gpu_queue_image_for_free(ima);
-    return;
-  }
-
-  gpu_free_image_immediate(ima);
+  gpu_free_image(ima, BLI_thread_is_main());
 }
 
 void GPU_free_images(Main *bmain)

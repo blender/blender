@@ -86,7 +86,7 @@ void GPU_create_smoke_coba_field(struct FluidModifierData *mmd);
 void GPU_create_smoke_velocity(struct FluidModifierData *mmd);
 
 /* Delayed free of OpenGL buffers by main thread */
-void GPU_free_unused_buffers(struct Main *bmain);
+void GPU_free_unused_buffers(void);
 
 #ifdef __cplusplus
 }

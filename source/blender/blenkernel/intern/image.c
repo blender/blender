@@ -360,13 +360,7 @@ void BKE_image_free_buffers_ex(Image *ima, bool do_lock)
     ima->rr = NULL;
   }
 
-  if (!G.background) {
-    /* Background mode doesn't use OpenGL,
-     * so we can avoid freeing GPU images and save some
-     * time by skipping mutex lock.
-     */
-    GPU_free_image(ima);
-  }
+  GPU_free_image(ima);
 
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
     tile->ok = IMA_OK;
