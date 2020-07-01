@@ -1316,6 +1316,7 @@ static void edge_slide_snap_apply(TransInfo *t, float *value)
   if (t->tsnap.snapElem & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE)) {
     float co_dir[3];
     sub_v3_v3v3(co_dir, co_dest[side_index], co_orig);
+    normalize_v3(co_dir);
     if (t->tsnap.snapElem & SCE_SNAP_MODE_EDGE) {
       transform_constraint_snap_axis_to_edge(t, co_dir, dvec);
     }
