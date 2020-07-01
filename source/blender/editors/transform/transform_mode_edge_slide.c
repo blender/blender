@@ -1252,11 +1252,14 @@ void drawEdgeSlide(TransInfo *t)
     TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
     const int alpha_shade = -160;
 
+    float co_dir[3];
+    add_v3_v3v3(co_dir, curr_sv->v_co_orig, curr_sv->dir_side[sld->curr_side_unclamp]);
+
     GPU_line_width(line_size);
     immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
     immBeginAtMost(GPU_PRIM_LINES, 2);
-    immVertex3fv(pos, curr_sv->v_side[sld->curr_side_unclamp]->co);
     immVertex3fv(pos, curr_sv->v_co_orig);
+    immVertex3fv(pos, co_dir);
     immEnd();
   }
 
