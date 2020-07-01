@@ -1224,10 +1224,10 @@ class _defs_sculpt:
             layout.prop(props, "strength")
             layout.prop(props, "deform_axis")
             layout.prop(props, "use_face_sets")
-            if (props.type == "SURFACE_SMOOTH"):
+            if props.type == 'SURFACE_SMOOTH':
                 layout.prop(props, "surface_smooth_shape_preservation", expand=False)
                 layout.prop(props, "surface_smooth_current_vertex", expand=False)
-            if (props.type == "SHARPEN"):
+            elif props.type == 'SHARPEN':
                 layout.prop(props, "sharpen_smooth_ratio", expand=False)
 
         return dict(
@@ -1263,7 +1263,7 @@ class _defs_sculpt:
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.color_filter")
             layout.prop(props, "type", expand=False)
-            if (props.type == "FILL"):
+            if props.type == 'FILL':
                 layout.prop(props, "fill_color", expand=False)
             layout.prop(props, "strength")
 
