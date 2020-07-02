@@ -106,7 +106,7 @@
  * This is read-only, for writing use PBVH vertex iterators. There vd.index matches
  * the indices used here.
  *
- * For multires, the same vertex in multiple grids is counted multiple times, with
+ * For multi-resolution, the same vertex in multiple grids is counted multiple times, with
  * different index for each grid. */
 
 void SCULPT_vertex_random_access_init(SculptSession *ss)
@@ -779,25 +779,32 @@ bool SCULPT_vertex_is_boundary(SculptSession *ss, const int index)
 
 /* Utils */
 
-/* Returns true when the step belongs to the stroke that is directly performend by the brush and
- * not by one of the symmetry passes. */
+/**
+ * Returns true when the step belongs to the stroke that is directly performed by the brush and
+ * not by one of the symmetry passes.
+ */
 bool SCULPT_stroke_is_main_symmetry_pass(StrokeCache *cache)
 {
   return cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0 &&
          cache->tile_pass == 0;
 }
 
-/* Return true only once per stroke on the first symmetry pass, regardless of the symmetry passes
- * enabled. */
-/* This should be used for functionality that needs to be computed once per stroke of a particular
- * tool (allocating memory, updating random seeds...). */
+/**
+ * Return true only once per stroke on the first symmetry pass, regardless of the symmetry passes
+ * enabled.
+ *
+ * This should be used for functionality that needs to be computed once per stroke of a particular
+ * tool (allocating memory, updating random seeds...).
+ */
 bool SCULPT_stroke_is_first_brush_step(StrokeCache *cache)
 {
   return cache->first_time && cache->mirror_symmetry_pass == 0 &&
          cache->radial_symmetry_pass == 0 && cache->tile_pass == 0;
 }
 
-/* Returnns true on the first brush step of each symmetry pass. */
+/**
+ * Returns true on the first brush step of each symmetry pass.
+ */
 bool SCULPT_stroke_is_first_brush_step_of_symmetry_pass(StrokeCache *cache)
 {
   return cache->first_time;
@@ -1119,8 +1126,10 @@ typedef enum StrokeFlags {
   CLIP_Z = 4,
 } StrokeFlags;
 
-/* Initialize a SculptOrigVertData for accessing original vertex data;
- * handles BMesh, mesh, and multires. */
+/**
+ * Initialize a #SculptOrigVertData for accessing original vertex data;
+ * handles #BMesh, #Mesh, and multi-resolution.
+ */
 void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, SculptUndoNode *unode)
 {
   SculptSession *ss = ob->sculpt;
@@ -1140,8 +1149,10 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, Scul
   }
 }
 
-/* Initialize a SculptOrigVertData for accessing original vertex data;
- * handles BMesh, mesh, and multires. */
+/**
+ * Initialize a #SculptOrigVertData for accessing original vertex data;
+ * handles #BMesh, #Mesh, and multi-resolution.
+ */
 void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *node)
 {
   SculptUndoNode *unode;
@@ -1149,8 +1160,9 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *
   SCULPT_orig_vert_data_unode_init(data, ob, unode);
 }
 
-/* Update a SculptOrigVertData for a particular vertex from the PBVH
- * iterator. */
+/**
+ * Update a #SculptOrigVertData for a particular vertex from the PBVH iterator.
+ */
 void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter *iter)
 {
   if (orig_data->unode->type == SCULPT_UNDO_COORDS) {
@@ -1286,8 +1298,8 @@ static void sculpt_project_v3(const SculptProjectVector *spvc, const float vec[3
  * otherwise.
  *
  * Factors: some brushes like grab cannot do dynamic topology.
- * Others, like smooth, are better without. Same goes for alt-
- * key smoothing. */
+ * Others, like smooth, are better without.
+ * Same goes for alt-key smoothing. */
 bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush)
 {
   return ((BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) &&
@@ -2143,9 +2155,11 @@ static void calc_area_normal_and_center(
 
 /** \} */
 
-/* Return modified brush strength. Includes the direction of the brush, positive
+/**
+ * Return modified brush strength. Includes the direction of the brush, positive
  * values pull vertices, negative values push. Uses tablet pressure and a
- * special multiplier found experimentally to scale the strength factor. */
+ * special multiplier found experimentally to scale the strength factor.
+ */
 static float brush_strength(const Sculpt *sd,
                             const StrokeCache *cache,
                             const float feather,
@@ -2461,7 +2475,9 @@ bool SCULPT_search_circle_cb(PBVHNode *node, void *data_v)
   return dist_sq < data->radius_squared || true;
 }
 
-/* Handles clipping against a mirror modifier and SCULPT_LOCK axis flags. */
+/**
+ * Handles clipping against a mirror modifier and #SCULPT_LOCK_X/Y/Z axis flags.
+ */
 void SCULPT_clip(Sculpt *sd, SculptSession *ss, float co[3], const float val[3])
 {
   for (int i = 0; i < 3; i++) {
@@ -5967,9 +5983,10 @@ static void do_radial_symmetry(Sculpt *sd,
   }
 }
 
-/* Noise texture gives different values for the same input coord; this
- * can tear a multires mesh during sculpting so do a stitch in this
- * case. */
+/**
+ * Noise texture gives different values for the same input coord; this
+ * can tear a multi-resolution mesh during sculpting so do a stitch in this case.
+ */
 static void sculpt_fix_noise_tear(Sculpt *sd, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
@@ -5996,7 +6013,7 @@ static void do_symmetrical_brush_actions(Sculpt *sd,
   cache->bstrength = brush_strength(sd, cache, feather, ups);
   cache->symmetry = symm;
 
-  /* symm is a bit combination of XYZ -
+  /* `symm` is a bit combination of XYZ -
    * 1 is mirror X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
   for (int i = 0; i <= symm; i++) {
     if (i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5)))) {

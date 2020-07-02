@@ -901,16 +901,17 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
   MEM_freeN(stack);
 }
 
-/* Use a tie-breaking rule to choose a representative face when
- * there are number of choices, face[0], face[1], ..., face[nfaces].
+/**
+ * Use a tie-breaking rule to choose a representative face when
+ * there are number of choices, `face[0]`, `face[1]`, ..., `face[nfaces]`.
  * This is needed when there are an odd number of segments, and the center
- * segmment (and its continuation into vmesh) can usually arbitrarily be
+ * segment (and its continuation into vmesh) can usually arbitrarily be
  * the previous face or the next face.
  * Or, for the center polygon of a corner, all of the faces around
  * the vertex are possible choices.
  * If we just choose randomly, the resulting UV maps or material
  * assignment can look ugly/inconsistent.
- * Allow for the case when args are null.
+ * Allow for the case when arguments are null.
  */
 static BMFace *choose_rep_face(BevelParams *bp, BMFace **face, int nfaces)
 {
@@ -2948,7 +2949,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
             bool betodd = (between % 2) == 1;
             int i = 0;
             /* Put first half of in-between edges at index 0, second half at index bp->seg.
-             * If between is odd, put middle one at midindex. */
+             * If between is odd, put middle one at mid-index. */
             for (e3 = e->next; e3 != e2; e3 = e3->next) {
               v1->elast = e3;
               if (i < bet2) {
@@ -4682,10 +4683,11 @@ static float interp_poly_area(BevVert *bv, BMFace *frep)
 }
 
 /**
- * If we make a poly out of verts around bv, snapping to rep frep, will uv poly have zero area?
- * The uv poly is made by snapping all outside-of-frep vertices to the closest edge in frep.
+ * If we make a poly out of verts around \a bv, snapping to rep \a frep,
+ * will uv poly have zero area?
+ * The uv poly is made by snapping all `outside-of-frep` vertices to the closest edge in \a frep.
  * Sometimes this results in a zero or very small area polygon, which translates to a zero
- * or very small area polygong in UV space -- not good for interpolating textures.
+ * or very small area polygon in UV space -- not good for interpolating textures.
  */
 static bool is_bad_uv_poly(BevVert *bv, BMFace *frep)
 {
@@ -4693,8 +4695,8 @@ static bool is_bad_uv_poly(BevVert *bv, BMFace *frep)
   return area < BEVEL_EPSILON_BIG;
 }
 
-/*
- * Pick a good face from all the faces around bv to use for
+/**
+ * Pick a good face from all the faces around \a bv to use for
  * a representative face, using choose_rep_face.
  * We want to choose from among the faces that would be
  * chosen for a single-segment edge polygon between two successive
@@ -4801,10 +4803,12 @@ static void build_center_ngon(BevelParams *bp, BMesh *bm, BevVert *bv, int mat_n
   BLI_array_free(ve);
 }
 
-/* Special case of bevel_build_rings when tri-corner and profile is 0.
+/**
+ * Special case of #bevel_build_rings when triangle-corner and profile is 0.
  * There is no corner mesh except, if nseg odd, for a center poly.
  * Boundary verts merge with previous ones according to pattern:
- * (i, 0, k) merged with (i+1, 0, ns-k) for k <= ns/2. */
+ * (i, 0, k) merged with (i+1, 0, ns-k) for k <= ns/2.
+ */
 static void build_square_in_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv, VMesh *vm1)
 {
   int n, ns, ns2, odd, i, k;
@@ -4838,7 +4842,9 @@ static void build_square_in_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv, VMesh
   }
 }
 
-/* Copy whichever of a and b is closer to v into r. */
+/**
+ * Copy whichever of \a a and \a b is closer to v into \a r.
+ */
 static void closer_v3_v3v3v3(float r[3], float a[3], float b[3], float v[3])
 {
   if (len_squared_v3v3(a, v) <= len_squared_v3v3(b, v)) {
@@ -4998,7 +5004,7 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
     bndv = bndv->next;
   }
 
-  /* Fill in rest of centerlines by interpolation. */
+  /* Fill in rest of center-lines by interpolation. */
   copy_v3_v3(co2, bv->v->co);
   bndv = vm->boundstart;
   for (i = 0; i < n_bndv; i++) {
@@ -5049,7 +5055,7 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
   }
   vmesh_copy_equiv_verts(vm);
 
-  /* Fill in interior points by interpolation from edges to centerlines. */
+  /* Fill in interior points by interpolation from edges to center-lines. */
   bndv = vm->boundstart;
   for (i = 0; i < n_bndv; i++) {
     im1 = (i == 0) ? n_bndv - 1 : i - 1;
@@ -5087,9 +5093,9 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
 }
 
 /**
- * Given that the boundary is built and the boundary BMVerts have been made,
+ * Given that the boundary is built and the boundary #BMVert's have been made,
  * calculate the positions of the interior mesh points for the M_ADJ pattern,
- * using cubic subdivision, then make the BMVerts and the new faces.
+ * using cubic subdivision, then make the #BMVert's and the new faces.
  */
 static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv, BoundVert *vpipe)
 {
@@ -5312,7 +5318,7 @@ static void bevel_build_cutoff(BevelParams *bp, BMesh *bm, BevVert *bv)
     i = bndv->index;
 
     /* Find the "down" direction for this side of the cutoff face. */
-    /* Find the direction along the intersection of the two adjecent profile normals. */
+    /* Find the direction along the intersection of the two adjacent profile normals. */
     cross_v3_v3v3(down_direction, bndv->profile.plane_no, bndv->prev->profile.plane_no);
     if (dot_v3v3(down_direction, bv->v->no) > 0.0f) {
       negate_v3(down_direction);
@@ -7121,7 +7127,7 @@ static float find_profile_fullness(BevelParams *bp)
 
 /**
  * Fills the ProfileSpacing struct with the 2D coordinates for the profile's vertices.
- * The superellipse used for multisegment profiles does not have a closed-form way
+ * The superellipse used for multi-segment profiles does not have a closed-form way
  * to generate evenly spaced points along an arc. We use an expensive search procedure
  * to find the parameter values that lead to bp->seg even chords.
  * We also want spacing for a number of segments that is a power of 2 >= bp->seg (but at least 4).

@@ -125,7 +125,7 @@ void main_python_exit(void);
  * patched USD (see usd.diff) to avoid that particular static constructor, and have an
  * initialization function instead.
  *
- * This function is implemented in the USD source code, pxr/base/lib/plug/initConfig.cpp.
+ * This function is implemented in the USD source code, `pxr/base/lib/plug/initConfig.cpp`.
  */
 void usd_initialise_plugin_path(const char *datafiles_usd_path);
 #endif

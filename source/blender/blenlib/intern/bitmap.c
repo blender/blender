@@ -20,7 +20,7 @@
 /** \file
  * \ingroup bli
  *
- * Utility functions for variable size bitmasks.
+ * Utility functions for variable size bit-masks.
  */
 
 #include <limits.h>

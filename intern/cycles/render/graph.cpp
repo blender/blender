@@ -942,12 +942,12 @@ void ShaderGraph::refine_bump_nodes()
       foreach (NodePair &pair, nodes_dy)
         add(pair.second);
 
-      /* connect what is connected is bump to samplecenter input*/
+      /* Connect what is connected is bump to sample-center input. */
       connect(out, node->input("SampleCenter"));
 
-      /* bump input is just for connectivity purpose for the graph input,
-       * we re-connected this input to samplecenter, so lets disconnect it
-       * from bump input */
+      /* Bump input is just for connectivity purpose for the graph input,
+       * we re-connected this input to sample-center, so lets disconnect it
+       * from bump input. */
       disconnect(bump_input);
     }
   }

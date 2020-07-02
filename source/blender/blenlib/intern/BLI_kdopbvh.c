@@ -1032,12 +1032,14 @@ bool BLI_bvhtree_update_node(
   return true;
 }
 
-/* call BLI_bvhtree_update_node() first for every node/point/triangle */
+/**
+ * Call #BLI_bvhtree_update_node() first for every node/point/triangle.
+ */
 void BLI_bvhtree_update_tree(BVHTree *tree)
 {
   /* Update bottom=>top
-   * TRICKY: the way we build the tree all the childs have an index greater than the parent
-   * This allows us todo a bottom up update by starting on the bigger numbered branch */
+   * TRICKY: the way we build the tree all the children have an index greater than the parent
+   * This allows us todo a bottom up update by starting on the bigger numbered branch. */
 
   BVHNode **root = tree->nodes + tree->totleaf;
   BVHNode **index = tree->nodes + tree->totleaf + tree->totbranch - 1;
@@ -2309,7 +2311,7 @@ static bool bvhtree_walk_dfs_recursive(BVHTree_WalkData *walk_data, const BVHNod
 }
 
 /**
- * This is a generic function to perform a depth first search on the BVHTree
+ * This is a generic function to perform a depth first search on the #BVHTree
  * where the search order and nodes traversed depend on callbacks passed in.
  *
  * \param tree: Tree to walk.
@@ -2317,7 +2319,7 @@ static bool bvhtree_walk_dfs_recursive(BVHTree_WalkData *walk_data, const BVHNod
  * \param walk_leaf_cb: Callback to test leaf nodes, callback must store its own result,
  * returning false exits early.
  * \param walk_order_cb: Callback that indicates which direction to search,
- * either from the node with the lower or higher k-dop axis value.
+ * either from the node with the lower or higher K-DOP axis value.
  * \param userdata: Argument passed to all callbacks.
  */
 void BLI_bvhtree_walk_dfs(BVHTree *tree,

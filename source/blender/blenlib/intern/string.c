@@ -409,7 +409,7 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
 
 /**
  * string with all instances of substr_old replaced with substr_new,
- * Returns a copy of the cstring \a str into a newly mallocN'd
+ * Returns a copy of the c-string \a str into a newly #MEM_mallocN'd
  * and returns it.
  *
  * \note A rather wasteful string-replacement utility, though this shall do for now...
@@ -430,53 +430,49 @@ char *BLI_str_replaceN(const char *__restrict str,
 
   BLI_assert(substr_old[0] != '\0');
 
-  /* while we can still find a match for the old substring that we're searching for,
-   * keep dicing and replacing
-   */
+  /* While we can still find a match for the old sub-string that we're searching for,
+   * keep dicing and replacing. */
   while ((match = strstr(str, substr_old))) {
     /* the assembly buffer only gets created when we actually need to rebuild the string */
     if (ds == NULL) {
       ds = BLI_dynstr_new();
     }
 
-    /* if the match position does not match the current position in the string,
-     * copy the text up to this position and advance the current position in the string
-     */
+    /* If the match position does not match the current position in the string,
+     * copy the text up to this position and advance the current position in the string. */
     if (str != match) {
-      /* add the segment of the string from str to match to the buffer,
-       * then restore the value at match */
+      /* Add the segment of the string from `str` to match to the buffer,
+       * then restore the value at match. */
       BLI_dynstr_nappend(ds, str, (match - str));
 
       /* now our current position should be set on the start of the match */
       str = match;
     }
 
-    /* add the replacement text to the accumulation buffer */
+    /* Add the replacement text to the accumulation buffer. */
     BLI_dynstr_append(ds, substr_new);
 
-    /* advance the current position of the string up to the end of the replaced segment */
+    /* Advance the current position of the string up to the end of the replaced segment. */
     str += len_old;
   }
 
-  /* finish off and return a new string that has had all occurrences of */
+  /* Finish off and return a new string that has had all occurrences of. */
   if (ds) {
     char *str_new;
 
-    /* add what's left of the string to the assembly buffer
-     * - we've been adjusting str to point at the end of the replaced segments
-     */
+    /* Add what's left of the string to the assembly buffer
+     * - we've been adjusting `str` to point at the end of the replaced segments. */
     BLI_dynstr_append(ds, str);
 
-    /* convert to new c-string (MEM_malloc'd), and free the buffer */
+    /* Convert to new c-string (MEM_malloc'd), and free the buffer. */
     str_new = BLI_dynstr_get_cstring(ds);
     BLI_dynstr_free(ds);
 
     return str_new;
   }
   else {
-    /* just create a new copy of the entire string - we avoid going through the assembly buffer
-     * for what should be a bit more efficiency...
-     */
+    /* Just create a new copy of the entire string - we avoid going through the assembly buffer
+     * for what should be a bit more efficiency. */
     return BLI_strdup(str);
   }
 }

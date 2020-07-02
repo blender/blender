@@ -266,7 +266,7 @@ inline void processor_apply_pixels(const OCIO::Processor *processor, T *pixels, 
 {
   /* TODO: implement faster version for when we know the conversion
    * is a simple matrix transform between linear spaces. In that case
-   * unpremultiply is not needed. */
+   * un-premultiply is not needed. */
 
   /* Process large images in chunks to keep temporary memory requirement down. */
   const size_t chunk_size = std::min((size_t)(16 * 1024 * 1024), num_pixels);
@@ -354,7 +354,7 @@ void ColorSpaceManager::to_scene_linear(ColorSpaceProcessor *processor_,
         processor->applyRGB(pixel);
       }
       else {
-        /* Unassociate and associate alpha since color management should not
+        /* Un-associate and associate alpha since color management should not
          * be affected by transparency. */
         float alpha = pixel[3];
         float inv_alpha = 1.0f / alpha;
