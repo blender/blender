@@ -2002,13 +2002,28 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "cache_frame_start");
   RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
   RNA_def_property_int_funcs(prop, NULL, "rna_Fluid_cache_startframe_set", NULL);
-  RNA_def_property_ui_text(prop, "Start", "Frame on which the simulation starts");
+  RNA_def_property_ui_text(
+      prop,
+      "Start",
+      "Frame on which the simulation starts. This is the first frame that will be baked");
 
   prop = RNA_def_property(srna, "cache_frame_end", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, NULL, "cache_frame_end");
   RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
   RNA_def_property_int_funcs(prop, NULL, "rna_Fluid_cache_endframe_set", NULL);
-  RNA_def_property_ui_text(prop, "End", "Frame on which the simulation stops");
+  RNA_def_property_ui_text(
+      prop,
+      "End",
+      "Frame on which the simulation stops. This is the last frame that will be baked");
+
+  prop = RNA_def_property(srna, "cache_frame_offset", PROP_INT, PROP_TIME);
+  RNA_def_property_int_sdna(prop, NULL, "cache_frame_offset");
+  RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
+  RNA_def_property_ui_text(
+      prop,
+      "Offset",
+      "Frame offset that is used when loading the simulation from the cache. It is not considered "
+      "when baking the simulation, only when loading it");
 
   prop = RNA_def_property(srna, "cache_frame_pause_data", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, NULL, "cache_frame_pause_data");

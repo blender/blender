@@ -3724,10 +3724,31 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   bool is_startframe, has_advanced;
   is_startframe = (scene_framenr == mds->cache_frame_start);
   has_advanced = (scene_framenr == mmd->time + 1);
+  int mode = mds->cache_type;
 
   /* Do not process modifier if current frame is out of cache range. */
-  if (scene_framenr < mds->cache_frame_start || scene_framenr > mds->cache_frame_end) {
-    return;
+  switch (mode) {
+    case FLUID_DOMAIN_CACHE_ALL:
+    case FLUID_DOMAIN_CACHE_MODULAR:
+      if (mds->cache_frame_offset > 0) {
+        if (scene_framenr < mds->cache_frame_start ||
+            scene_framenr > mds->cache_frame_end + mds->cache_frame_offset) {
+          return;
+        }
+      }
+      else {
+        if (scene_framenr < mds->cache_frame_start + mds->cache_frame_offset ||
+            scene_framenr > mds->cache_frame_end) {
+          return;
+        }
+      }
+      break;
+    case FLUID_DOMAIN_CACHE_REPLAY:
+    default:
+      if (scene_framenr < mds->cache_frame_start || scene_framenr > mds->cache_frame_end) {
+        return;
+      }
+      break;
   }
 
   /* Reset fluid if no fluid present. Also resets active fields. */
@@ -3865,7 +3886,6 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   with_gdomain = (mds->guide_source == FLUID_DOMAIN_GUIDE_SRC_DOMAIN);
 
   int o_res[3], o_min[3], o_max[3], o_shift[3];
-  int mode = mds->cache_type;
 
   /* Cache mode specific settings. */
   switch (mode) {
@@ -3875,6 +3895,12 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
       if (!baking_data && !baking_noise && !baking_mesh && !baking_particles && !baking_guide) {
         read_cache = true;
         bake_cache = false;
+
+        /* Apply frame offset. */
+        data_frame -= mmd->domain->cache_frame_offset;
+        noise_frame -= mmd->domain->cache_frame_offset;
+        mesh_frame -= mmd->domain->cache_frame_offset;
+        particles_frame -= mmd->domain->cache_frame_offset;
         break;
       }
 
@@ -4905,6 +4931,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
     mmd->domain->cache_frame_pause_mesh = 0;
     mmd->domain->cache_frame_pause_particles = 0;
     mmd->domain->cache_frame_pause_guide = 0;
+    mmd->domain->cache_frame_offset = 0;
     mmd->domain->cache_flag = 0;
     mmd->domain->cache_type = FLUID_DOMAIN_CACHE_REPLAY;
     mmd->domain->cache_mesh_format = FLUID_DOMAIN_FILE_BIN_OBJECT;
@@ -5151,6 +5178,7 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *mmd,
     tmds->cache_frame_pause_mesh = mds->cache_frame_pause_mesh;
     tmds->cache_frame_pause_particles = mds->cache_frame_pause_particles;
     tmds->cache_frame_pause_guide = mds->cache_frame_pause_guide;
+    tmds->cache_frame_offset = mds->cache_frame_offset;
     tmds->cache_flag = mds->cache_flag;
     tmds->cache_type = mds->cache_type;
     tmds->cache_mesh_format = mds->cache_mesh_format;

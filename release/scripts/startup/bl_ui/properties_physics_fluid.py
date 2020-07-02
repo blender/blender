@@ -1135,22 +1135,22 @@ class PHYSICS_PT_cache(PhysicButtonsPanel, Panel):
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column()
-        col.prop(domain, "cache_type", expand=False)
-        col.enabled = not is_baking_any
-
-        col.separator()
-
         row = col.row()
-        col = row.column(align=True)
-        col.prop(domain, "cache_frame_start", text="Frame Start")
-        col.prop(domain, "cache_frame_end", text="End")
-        row.enabled = not is_baking_any
+        row = row.column(align=True)
+        row.prop(domain, "cache_frame_start", text="Frame Start")
+        row.prop(domain, "cache_frame_end", text="End")
+        row = col.row()
+        row.enabled = domain.cache_type in {'MODULAR', 'ALL'}
+        row.prop(domain, "cache_frame_offset", text="Offset")
 
         col.separator()
 
         col = flow.column()
-        col.enabled = not is_baking_any and not has_baked_data
-        col.prop(domain, "cache_resumable", text="Is Resumable")
+        col.prop(domain, "cache_type", expand=False)
+
+        row = col.row()
+        row.enabled = not is_baking_any and not has_baked_data
+        row.prop(domain, "cache_resumable", text="Is Resumable")
 
         row = col.row()
         row.enabled = not is_baking_any and not has_baked_data
