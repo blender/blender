@@ -264,7 +264,7 @@ static void rna_def_camera_background_image(BlenderRNA *brna)
   prop = RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "alpha");
   RNA_def_property_ui_text(
-      prop, "Alpha", "Image opacity to blend the image against the background color");
+      prop, "Opacity", "Image opacity to blend the image against the background color");
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
