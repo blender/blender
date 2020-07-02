@@ -418,18 +418,36 @@ static void draw_uvs(SpaceImage *sima,
       col2[3] = overlay_alpha;
 
       float dash_width = (sima->dt_uv & SI_UVDT_DASH) ? (4.0f * UI_DPI_FAC) : 9999.0f;
+      eGPUBuiltinShader shader = (interpedges) ? GPU_SHADER_2D_UV_EDGES_SMOOTH :
+                                                 GPU_SHADER_2D_UV_EDGES;
 
-      GPU_batch_program_set_builtin(
-          batch->edges, (interpedges) ? GPU_SHADER_2D_UV_EDGES_SMOOTH : GPU_SHADER_2D_UV_EDGES);
+#ifndef __APPLE__
+      GPU_batch_program_set_builtin(batch->edges, shader);
+#endif
 
       if (sima->dt_uv == SI_UVDT_OUTLINE) {
+#ifdef __APPLE__
+        /* Apple drivers do not support wide line. This is a workaround awaiting the 2D view
+         * refactor. Limiting to OSX since this will slow down the drawing. (see T76806) */
+        GPU_batch_program_set_builtin(batch->edges, GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+
+        float viewport[4];
+        GPU_viewport_size_get_f(viewport);
+
+        /* No U.pixelsize scaling for now since the inner line is not scalled. */
+        GPU_batch_uniform_1f(batch->edges, "lineWidth", 2.0f);
+        GPU_batch_uniform_4f(batch->edges, "color", 0.0f, 0.0f, 0.0f, 1.0f);
+        GPU_batch_uniform_2fv(batch->edges, "viewportSize", &viewport[2]);
+
+        GPU_batch_draw(batch->edges);
+#else
         /* Black Outline. */
         GPU_line_width(3.0f);
         GPU_batch_uniform_4f(batch->edges, "edgeColor", 0.0f, 0.0f, 0.0f, overlay_alpha);
         GPU_batch_uniform_4f(batch->edges, "selectColor", 0.0f, 0.0f, 0.0f, overlay_alpha);
         GPU_batch_uniform_1f(batch->edges, "dashWidth", dash_width);
         GPU_batch_draw(batch->edges);
-
+#endif
         UI_GetThemeColor3fv(TH_WIRE_EDIT, col1);
       }
       else if (sima->dt_uv == SI_UVDT_BLACK) {
