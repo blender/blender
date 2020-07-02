@@ -196,14 +196,11 @@ def enum_preview_denoiser(self, context):
     optix_items = enum_optix_denoiser(self, context)
     oidn_items = enum_openimagedenoise_denoiser(self, context)
 
-    if len(optix_items):
-        auto_label = "Fastest (Optix)"
-    elif len(oidn_items):
-        auto_label = "Fastest (OpenImageDenoise)"
+    if len(optix_items) or len(oidn_items):
+        items = [('AUTO', "Automatic", "Use the fastest available denoiser for viewport rendering (OptiX if available, OpenImageDenoise otherwise)", 0)]
     else:
-        auto_label = "None"
+        items = [('AUTO', "None", "Blender was compiled without a viewport denoiser", 0)]
 
-    items = [('AUTO', auto_label, "Use the fastest available denoiser for viewport rendering", 0)]
     items += optix_items
     items += oidn_items
     return items
