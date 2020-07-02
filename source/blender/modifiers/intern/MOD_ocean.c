@@ -122,7 +122,8 @@ static void initData(ModifierData *md)
   omd->bakeend = 250;
   omd->oceancache = NULL;
   omd->foam_fade = 0.98;
-  omd->foamlayername[0] = '\0'; /* layer name empty by default */
+  omd->foamlayername[0] = '\0';  /* layer name empty by default */
+  omd->spraylayername[0] = '\0'; /* layer name empty by default */
 
   omd->ocean = BKE_ocean_add();
   BKE_ocean_init_from_modifier(omd->ocean, omd);
@@ -420,6 +421,12 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
       MLoopCol *mloopcols = CustomData_add_layer_named(
           &result->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, num_loops, omd->foamlayername);
 
+      MLoopCol *mloopcols_spray = NULL;
+      if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
+        mloopcols_spray = CustomData_add_layer_named(
+            &result->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, num_loops, omd->spraylayername);
+      }
+
       if (mloopcols) { /* unlikely to fail */
         MPoly *mpolys = result->mpoly;
         MPoly *mp;
@@ -427,6 +434,11 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
         for (i = 0, mp = mpolys; i < num_polys; i++, mp++) {
           MLoop *ml = &mloops[mp->loopstart];
           MLoopCol *mlcol = &mloopcols[mp->loopstart];
+
+          MLoopCol *mlcolspray = NULL;
+          if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
+            mlcolspray = &mloopcols_spray[mp->loopstart];
+          }
 
           for (j = mp->totloop; j--; ml++, mlcol++) {
             const float *vco = mverts[ml->v].co;
@@ -447,6 +459,23 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
             mlcol->r = mlcol->g = mlcol->b = (char)(foam * 255);
             /* This needs to be set (render engine uses) */
             mlcol->a = 255;
+
+            if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
+              if (omd->flag & MOD_OCEAN_INVERT_SPRAY) {
+                mlcolspray->r = ocr.Eminus[0] * 255;
+              }
+              else {
+                mlcolspray->r = ocr.Eplus[0] * 255;
+              }
+              mlcolspray->g = 0;
+              if (omd->flag & MOD_OCEAN_INVERT_SPRAY) {
+                mlcolspray->b = ocr.Eminus[2] * 255;
+              }
+              else {
+                mlcolspray->b = ocr.Eplus[2] * 255;
+              }
+              mlcolspray->a = 255;
+            }
           }
         }
       }
@@ -607,6 +636,35 @@ static void foam_panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, &ptr, "foam_layer_name", 0, IFACE_("Data Layer"), ICON_NONE);
 }
 
+static void spray_panel_draw_header(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiItemR(layout, &ptr, "use_spray", 0, IFACE_("Spray"), ICON_NONE);
+}
+
+static void spray_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  bool use_foam = RNA_boolean_get(&ptr, "use_foam");
+  bool use_spray = RNA_boolean_get(&ptr, "use_spray") && use_foam;
+
+  uiLayoutSetPropSep(layout, true);
+
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(col, use_foam && use_spray);
+  uiItemR(col, &ptr, "spray_layer_name", 0, IFACE_("Data Layer"), ICON_NONE);
+  uiItemR(col, &ptr, "invert_spray", 0, IFACE_("Invert"), ICON_NONE);
+}
+
 static void spectrum_panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *col;
@@ -674,8 +732,10 @@ static void panelRegister(ARegionType *region_type)
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Ocean, panel_draw);
 #ifdef WITH_OCEANSIM
   modifier_subpanel_register(region_type, "waves", "Waves", NULL, waves_panel_draw, panel_type);
-  modifier_subpanel_register(
+  PanelType *foam_panel = modifier_subpanel_register(
       region_type, "foam", "", foam_panel_draw_header, foam_panel_draw, panel_type);
+  modifier_subpanel_register(
+      region_type, "spray", "", spray_panel_draw_header, spray_panel_draw, foam_panel);
   modifier_subpanel_register(
       region_type, "spectrum", "Spectrum", NULL, spectrum_panel_draw, panel_type);
   modifier_subpanel_register(region_type, "bake", "Bake", NULL, bake_panel_draw, panel_type);

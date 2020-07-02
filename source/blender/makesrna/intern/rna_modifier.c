@@ -5587,6 +5587,24 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Generate Foam", "Generate foam mask as a vertex color channel");
   RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 
+  prop = RNA_def_property(srna, "use_spray", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_OCEAN_GENERATE_SPRAY);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(
+      prop, "Generate Spray Map", "Generate map of spray direction as a vertex color channel");
+  RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
+
+  prop = RNA_def_property(srna, "invert_spray", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_OCEAN_INVERT_SPRAY);
+  RNA_def_property_ui_text(prop, "Invert Spray", "Invert the spray direction map");
+  RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
+
+  prop = RNA_def_property(srna, "spray_layer_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "spraylayername");
+  RNA_def_property_ui_text(
+      prop, "Spray Map", "Name of the vertex color layer used for the spray direction map");
+  RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
+
   prop = RNA_def_property(srna, "resolution", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "resolution");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

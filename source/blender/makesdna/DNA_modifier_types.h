@@ -1302,6 +1302,7 @@ typedef struct OceanModifierData {
   char cachepath[1024];
   /** MAX_CUSTOMDATA_LAYER_NAME. */
   char foamlayername[64];
+  char spraylayername[64];
   char cached;
   char geometry_mode;
 
@@ -1336,6 +1337,8 @@ enum {
 enum {
   MOD_OCEAN_GENERATE_FOAM = (1 << 0),
   MOD_OCEAN_GENERATE_NORMALS = (1 << 1),
+  MOD_OCEAN_GENERATE_SPRAY = (1 << 2),
+  MOD_OCEAN_INVERT_SPRAY = (1 << 3),
 };
 
 typedef struct WarpModifierData {
