@@ -85,7 +85,7 @@ class BUILTIN_KSI_Rotation(KeyingSetInfo):
 class BUILTIN_KSI_Scaling(KeyingSetInfo):
     """Insert a keyframe on each of the scale channels"""
     bl_idname = ANIM_KS_SCALING_ID
-    bl_label = "Scaling"
+    bl_label = "Scale"
 
     # poll - use predefined callback for selected bones/objects
     poll = keyingsets_utils.RKS_POLL_selected_items
@@ -102,7 +102,7 @@ class BUILTIN_KSI_Scaling(KeyingSetInfo):
 # LocRot
 class BUILTIN_KSI_LocRot(KeyingSetInfo):
     """Insert a keyframe on each of the location and rotation channels"""
-    bl_label = "LocRot"
+    bl_label = "Location & Rotation"
 
     # poll - use predefined callback for selected bones/objects
     poll = keyingsets_utils.RKS_POLL_selected_items
@@ -121,7 +121,7 @@ class BUILTIN_KSI_LocRot(KeyingSetInfo):
 # LocScale
 class BUILTIN_KSI_LocScale(KeyingSetInfo):
     """Insert a keyframe on each of the location and scale channels"""
-    bl_label = "LocScale"
+    bl_label = "Location & Scale"
 
     # poll - use predefined callback for selected bones/objects
     poll = keyingsets_utils.RKS_POLL_selected_items
@@ -141,7 +141,7 @@ class BUILTIN_KSI_LocScale(KeyingSetInfo):
 class BUILTIN_KSI_LocRotScale(KeyingSetInfo):
     """Insert a keyframe on each of the location, rotation, and scale channels"""
     bl_idname = ANIM_KS_LOC_ROT_SCALE_ID
-    bl_label = "LocRotScale"
+    bl_label = "Location, Rotation & Scale"
 
     # poll - use predefined callback for selected bones/objects
     poll = keyingsets_utils.RKS_POLL_selected_items
@@ -162,7 +162,7 @@ class BUILTIN_KSI_LocRotScale(KeyingSetInfo):
 # RotScale
 class BUILTIN_KSI_RotScale(KeyingSetInfo):
     """Insert a keyframe on each of the rotation and scale channels"""
-    bl_label = "RotScale"
+    bl_label = "Rotation & Scale"
 
     # poll - use predefined callback for selected bones/objects
     poll = keyingsets_utils.RKS_POLL_selected_items
@@ -237,7 +237,7 @@ class BUILTIN_KSI_VisualRot(KeyingSetInfo):
 class BUILTIN_KSI_VisualScaling(KeyingSetInfo):
     """Insert a keyframe on each of the scale channels, """ \
     """taking into account effects of constraints and relationships"""
-    bl_label = "Visual Scaling"
+    bl_label = "Visual Scale"
 
     bl_options = {'INSERTKEY_VISUAL'}
 
@@ -255,7 +255,7 @@ class BUILTIN_KSI_VisualScaling(KeyingSetInfo):
 class BUILTIN_KSI_VisualLocRot(KeyingSetInfo):
     """Insert a keyframe on each of the location and rotation channels, """ \
     """taking into account effects of constraints and relationships"""
-    bl_label = "Visual LocRot"
+    bl_label = "Visual Location & Rotation"
 
     bl_options = {'INSERTKEY_VISUAL'}
 
@@ -275,9 +275,9 @@ class BUILTIN_KSI_VisualLocRot(KeyingSetInfo):
 
 # VisualLocScale
 class BUILTIN_KSI_VisualLocScale(KeyingSetInfo):
-    """Insert a keyframe on each of the location and scaling channels, """ \
+    """Insert a keyframe on each of the location and scale channels, """ \
     """taking into account effects of constraints and relationships"""
-    bl_label = "Visual LocScale"
+    bl_label = "Visual Location & Scale"
 
     bl_options = {'INSERTKEY_VISUAL'}
 
@@ -298,8 +298,8 @@ class BUILTIN_KSI_VisualLocScale(KeyingSetInfo):
 # VisualLocRotScale
 class BUILTIN_KSI_VisualLocRotScale(KeyingSetInfo):
     """Insert a keyframe on each of the location, """ \
-    """rotation and scaling channels, taking into account effects of constraints and relationships"""
-    bl_label = "Visual LocRotScale"
+    """rotation and scale channels, taking into account effects of constraints and relationships"""
+    bl_label = "Visual Location, Rotation & Scale"
 
     bl_options = {'INSERTKEY_VISUAL'}
 
@@ -321,9 +321,9 @@ class BUILTIN_KSI_VisualLocRotScale(KeyingSetInfo):
 
 # VisualRotScale
 class BUILTIN_KSI_VisualRotScale(KeyingSetInfo):
-    """Insert a keyframe on each of the rotation and scaling channels, """ \
+    """Insert a keyframe on each of the rotation and scale channels, """ \
     """taking into account effects of constraints and relationships"""
-    bl_label = "Visual RotScale"
+    bl_label = "Visual Rotation & Scale"
 
     bl_options = {'INSERTKEY_VISUAL'}
 
@@ -628,7 +628,7 @@ class BUILTIN_KSI_DeltaRotation(KeyingSetInfo):
 
 # Delta Scale
 class BUILTIN_KSI_DeltaScale(KeyingSetInfo):
-    """Insert keyframes for additional scaling factor"""
+    """Insert keyframes for additional scale factor"""
     bl_label = "Delta Scale"
 
     # poll - selected objects only (and only if active object in object mode)

@@ -1228,17 +1228,17 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "lock_rotation_x", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_ROT_X);
-  RNA_def_property_ui_text(prop, "Lock X Rot", "Constraint rotation along X axis");
+  RNA_def_property_ui_text(prop, "Lock X Rotation", "Constraint rotation along X axis");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Constraint_dependency_update");
 
   prop = RNA_def_property(srna, "lock_rotation_y", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_ROT_Y);
-  RNA_def_property_ui_text(prop, "Lock Y Rot", "Constraint rotation along Y axis");
+  RNA_def_property_ui_text(prop, "Lock Y Rotation", "Constraint rotation along Y axis");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Constraint_dependency_update");
 
   prop = RNA_def_property(srna, "lock_rotation_z", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_ROT_Z);
-  RNA_def_property_ui_text(prop, "Lock Z Rot", "Constraint rotation along Z axis");
+  RNA_def_property_ui_text(prop, "Lock Z Rotation", "Constraint rotation along Z axis");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Constraint_dependency_update");
 
   prop = RNA_def_property(srna, "use_stretch", PROP_BOOLEAN, PROP_NONE);
@@ -2063,8 +2063,8 @@ static void rna_def_constraint_transform(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem transform_items[] = {
-      {TRANS_LOCATION, "LOCATION", 0, "Loc", ""},
-      {TRANS_ROTATION, "ROTATION", 0, "Rot", ""},
+      {TRANS_LOCATION, "LOCATION", 0, "Location", ""},
+      {TRANS_ROTATION, "ROTATION", 0, "Rotation", ""},
       {TRANS_SCALE, "SCALE", 0, "Scale", ""},
       {0, NULL, 0, NULL, NULL},
   };
@@ -3036,32 +3036,32 @@ static void rna_def_constraint_pivot(BlenderRNA *brna)
       {PIVOTCON_AXIS_X_NEG,
        "NX",
        0,
-       "-X Rot",
+       "-X Rotation",
        "Use the pivot point in the negative rotation range around the X-axis"},
       {PIVOTCON_AXIS_Y_NEG,
        "NY",
        0,
-       "-Y Rot",
+       "-Y Rotation",
        "Use the pivot point in the negative rotation range around the Y-axis"},
       {PIVOTCON_AXIS_Z_NEG,
        "NZ",
        0,
-       "-Z Rot",
+       "-Z Rotation",
        "Use the pivot point in the negative rotation range around the Z-axis"},
       {PIVOTCON_AXIS_X,
        "X",
        0,
-       "X Rot",
+       "X Rotation",
        "Use the pivot point in the positive rotation range around the X-axis"},
       {PIVOTCON_AXIS_Y,
        "Y",
        0,
-       "Y Rot",
+       "Y Rotation",
        "Use the pivot point in the positive rotation range around the Y-axis"},
       {PIVOTCON_AXIS_Z,
        "Z",
        0,
-       "Z Rot",
+       "Z Rotation",
        "Use the pivot point in the positive rotation range around the Z-axis"},
       {0, NULL, 0, NULL, NULL},
   };

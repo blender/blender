@@ -1578,7 +1578,7 @@ class CLIP_MT_marker_pie(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # Use Location Tracking
-        prop = pie.operator("wm.context_set_enum", text="Loc")
+        prop = pie.operator("wm.context_set_enum", text="Location")
         prop.data_path = "space_data.clip.tracking.tracks.active.motion_model"
         prop.value = "Loc"
         # Use Affine Tracking
