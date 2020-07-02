@@ -352,8 +352,7 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
   round_v2i_v2fl(tgpf->center, center);
 
   char err_out[256] = "unknown";
-  GPUOffScreen *offscreen = GPU_offscreen_create(
-      tgpf->sizex, tgpf->sizey, 0, true, false, err_out);
+  GPUOffScreen *offscreen = GPU_offscreen_create(tgpf->sizex, tgpf->sizey, true, false, err_out);
   if (offscreen == NULL) {
     printf("GPencil - Fill - Unable to create fill buffer\n");
     return false;

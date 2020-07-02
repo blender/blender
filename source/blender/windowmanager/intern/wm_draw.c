@@ -443,7 +443,7 @@ static void wm_draw_region_buffer_create(ARegion *region, bool stereo, bool use_
        * depth or multisample buffers. 3D view creates own buffers with
        * the data it needs. */
       GPUOffScreen *offscreen = GPU_offscreen_create(
-          region->winx, region->winy, 0, false, false, NULL);
+          region->winx, region->winy, false, false, NULL);
       if (!offscreen) {
         return;
       }
@@ -861,7 +861,7 @@ static void wm_draw_window(bContext *C, wmWindow *win)
      * stereo methods, but it's less efficient than drawing directly. */
     const int width = WM_window_pixels_x(win);
     const int height = WM_window_pixels_y(win);
-    GPUOffScreen *offscreen = GPU_offscreen_create(width, height, 0, false, false, NULL);
+    GPUOffScreen *offscreen = GPU_offscreen_create(width, height, false, false, NULL);
 
     if (offscreen) {
       GPUTexture *texture = GPU_offscreen_color_texture(offscreen);

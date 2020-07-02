@@ -611,7 +611,7 @@ static void screen_preview_draw(const bScreen *screen, int size_x, int size_y)
 void ED_screen_preview_render(const bScreen *screen, int size_x, int size_y, uint *r_rect)
 {
   char err_out[256] = "unknown";
-  GPUOffScreen *offscreen = GPU_offscreen_create(size_x, size_y, 0, true, false, err_out);
+  GPUOffScreen *offscreen = GPU_offscreen_create(size_x, size_y, true, false, err_out);
 
   GPU_offscreen_bind(offscreen, true);
   GPU_clear_color(0.0, 0.0, 0.0, 0.0);

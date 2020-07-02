@@ -86,17 +86,17 @@ static PyObject *bpygpu_offscreen_new(PyTypeObject *UNUSED(self), PyObject *args
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
   GPUOffScreen *ofs = NULL;
-  int width, height, samples = 0;
+  int width, height;
   char err_out[256];
 
-  static const char *_keywords[] = {"width", "height", "samples", NULL};
+  static const char *_keywords[] = {"width", "height", NULL};
   static _PyArg_Parser _parser = {"ii|i:GPUOffScreen.__new__", _keywords, 0};
-  if (!_PyArg_ParseTupleAndKeywordsFast(args, kwds, &_parser, &width, &height, &samples)) {
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kwds, &_parser, &width, &height)) {
     return NULL;
   }
 
   if (GPU_context_active_get()) {
-    ofs = GPU_offscreen_create(width, height, samples, true, false, err_out);
+    ofs = GPU_offscreen_create(width, height, true, false, err_out);
   }
   else {
     strncpy(err_out, "No active GPU context found", 256);
@@ -345,16 +345,14 @@ static struct PyMethodDef bpygpu_offscreen_methods[] = {
 };
 
 PyDoc_STRVAR(bpygpu_offscreen_doc,
-             ".. class:: GPUOffScreen(width, height, samples=0)\n"
+             ".. class:: GPUOffScreen(width, height)\n"
              "\n"
              "   This object gives access to off screen buffers.\n"
              "\n"
              "   :arg width: Horizontal dimension of the buffer.\n"
              "   :type width: `int`\n"
              "   :arg height: Vertical dimension of the buffer.\n"
-             "   :type height: `int`\n"
-             "   :arg samples: OpenGL samples to use for MSAA or zero to disable.\n"
-             "   :type samples: `int`\n");
+             "   :type height: `int`\n");
 PyTypeObject BPyGPUOffScreen_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUOffScreen",
     .tp_basicsize = sizeof(BPyGPUOffScreen),

@@ -876,7 +876,7 @@ static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
 }
 
 GPUOffScreen *GPU_offscreen_create(
-    int width, int height, int samples, bool depth, bool high_bitdepth, char err_out[256])
+    int width, int height, bool depth, bool high_bitdepth, char err_out[256])
 {
   GPUOffScreen *ofs;
 
@@ -887,12 +887,11 @@ GPUOffScreen *GPU_offscreen_create(
   height = max_ii(1, height);
   width = max_ii(1, width);
 
-  ofs->color = GPU_texture_create_2d_multisample(
-      width, height, (high_bitdepth) ? GPU_RGBA16F : GPU_RGBA8, NULL, samples, err_out);
+  ofs->color = GPU_texture_create_2d(
+      width, height, (high_bitdepth) ? GPU_RGBA16F : GPU_RGBA8, NULL, err_out);
 
   if (depth) {
-    ofs->depth = GPU_texture_create_2d_multisample(
-        width, height, GPU_DEPTH24_STENCIL8, NULL, samples, err_out);
+    ofs->depth = GPU_texture_create_2d(width, height, GPU_DEPTH24_STENCIL8, NULL, err_out);
   }
 
   if ((depth && !ofs->depth) || !ofs->color) {
@@ -993,48 +992,7 @@ void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels)
 
   BLI_assert(type == GL_UNSIGNED_BYTE || type == GL_FLOAT);
 
-  if (GPU_texture_target(ofs->color) == GL_TEXTURE_2D_MULTISAMPLE) {
-    /* For a multi-sample texture,
-     * we need to create an intermediate buffer to blit to,
-     * before its copied using 'glReadPixels' */
-    GLuint fbo_blit = 0;
-    GLuint tex_blit = 0;
-
-    /* create texture for new 'fbo_blit' */
-    glGenTextures(1, &tex_blit);
-    glBindTexture(GL_TEXTURE_2D, tex_blit);
-    glTexImage2D(
-        GL_TEXTURE_2D, 0, (type == GL_FLOAT) ? GL_RGBA16F : GL_RGBA8, w, h, 0, GL_RGBA, type, 0);
-
-    /* write into new single-sample buffer */
-    glGenFramebuffers(1, &fbo_blit);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_blit);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_blit, 0);
-
-    GLenum status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE) {
-      goto finally;
-    }
-
-    /* perform the copy */
-    glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-    /* read the results */
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_blit);
-    glReadPixels(0, 0, w, h, GL_RGBA, type, pixels);
-
-    /* restore the original frame-bufer */
-    GPUFrameBuffer *ofs_fb = gpu_offscreen_fb_get(ofs);
-    glBindFramebuffer(GL_FRAMEBUFFER, ofs_fb->object);
-
-  finally:
-    /* cleanup */
-    glDeleteTextures(1, &tex_blit);
-    glDeleteFramebuffers(1, &fbo_blit);
-  }
-  else {
-    glReadPixels(0, 0, w, h, GL_RGBA, type, pixels);
-  }
+  glReadPixels(0, 0, w, h, GL_RGBA, type, pixels);
 }
 
 int GPU_offscreen_width(const GPUOffScreen *ofs)

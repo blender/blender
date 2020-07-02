@@ -340,7 +340,7 @@ bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
   }
 
   if (!(surface_data->offscreen = GPU_offscreen_create(
-            draw_view->width, draw_view->height, 0, true, false, err_out))) {
+            draw_view->width, draw_view->height, true, false, err_out))) {
     failure = true;
   }
 
