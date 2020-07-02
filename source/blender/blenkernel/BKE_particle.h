@@ -48,7 +48,6 @@ struct BVHTreeRay;
 struct BVHTreeRayHit;
 struct CustomData_MeshMasks;
 struct Depsgraph;
-struct Depsgraph;
 struct EdgeHash;
 struct KDTree_3d;
 struct LatticeDeformData;

@@ -34,7 +34,6 @@ extern "C" {
 struct Base;
 struct Depsgraph;
 struct EnumPropertyItem;
-struct EnumPropertyItem;
 struct ID;
 struct Main;
 struct ModifierData;

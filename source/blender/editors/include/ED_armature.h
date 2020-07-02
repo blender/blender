@@ -34,7 +34,6 @@ struct Depsgraph;
 struct IDProperty;
 struct ListBase;
 struct Main;
-struct Main;
 struct Mesh;
 struct MeshDeformModifierData;
 struct Object;

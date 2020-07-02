@@ -31,7 +31,6 @@ extern "C" {
 struct ID;
 struct Main;
 struct Scene;
-struct Scene;
 struct ScrArea;
 struct Tex;
 struct View2D;
@@ -39,7 +38,6 @@ struct bContext;
 struct bNode;
 struct bNodeSocket;
 struct bNodeSocketType;
-struct bNodeTree;
 struct bNodeTree;
 struct bNodeTreeType;
 struct bNodeType;

@@ -45,7 +45,6 @@ struct Mesh;
 struct MeshElemMap;
 struct Object;
 struct PBVH;
-struct PBVH;
 struct SubsurfModifierData;
 
 /**************************** External *****************************/

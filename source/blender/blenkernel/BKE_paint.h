@@ -57,7 +57,6 @@ struct ReportList;
 struct Scene;
 struct StrokeCache;
 struct SubdivCCG;
-struct SubdivCCG;
 struct Tex;
 struct ToolSettings;
 struct UnifiedPaintSettings;

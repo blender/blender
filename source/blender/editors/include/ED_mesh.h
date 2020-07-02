@@ -47,8 +47,6 @@ struct ReportList;
 struct Scene;
 struct UndoType;
 struct UvMapVert;
-struct UvMapVert;
-struct UvVertMap;
 struct UvVertMap;
 struct View3D;
 struct ViewContext;

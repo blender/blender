@@ -65,7 +65,6 @@ struct uiWidgetColors;
 struct wmDrag;
 struct wmDropBox;
 struct wmEvent;
-struct wmEvent;
 struct wmGizmo;
 struct wmKeyConfig;
 struct wmKeyMap;
