@@ -1047,10 +1047,10 @@ static void sequence_cb(int event, TreeElement *te, TreeStoreElem *tselem, void 
   (void)tselem;
 }
 
-static void gp_layer_cb(int event,
-                        TreeElement *te,
-                        TreeStoreElem *UNUSED(tselem),
-                        void *UNUSED(arg))
+static void gpencil_layer_cb(int event,
+                             TreeElement *te,
+                             TreeStoreElem *UNUSED(tselem),
+                             void *UNUSED(arg))
 {
   bGPDlayer *gpl = (bGPDlayer *)te->directdata;
 
@@ -2320,7 +2320,7 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
       break;
     }
     case TSE_GP_LAYER: {
-      outliner_do_data_operation(soops, datalevel, event, &soops->tree, gp_layer_cb, NULL);
+      outliner_do_data_operation(soops, datalevel, event, &soops->tree, gpencil_layer_cb, NULL);
       WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL);
       ED_undo_push(C, "Grease Pencil Layer operation");
 

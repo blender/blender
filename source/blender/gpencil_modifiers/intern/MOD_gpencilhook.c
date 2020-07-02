@@ -114,7 +114,7 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 }
 
 /* calculate factor of fallof */
-static float gp_hook_falloff(const struct GPHookData_cb *tData, const float len_sq)
+static float gpencil_hook_falloff(const struct GPHookData_cb *tData, const float len_sq)
 {
   BLI_assert(tData->falloff_sq);
   if (len_sq > tData->falloff_sq) {
@@ -167,7 +167,7 @@ static float gp_hook_falloff(const struct GPHookData_cb *tData, const float len_
 }
 
 /* apply point deformation */
-static void gp_hook_co_apply(struct GPHookData_cb *tData, float weight, bGPDspoint *pt)
+static void gpencil_hook_co_apply(struct GPHookData_cb *tData, float weight, bGPDspoint *pt)
 {
   float fac;
 
@@ -183,7 +183,7 @@ static void gp_hook_co_apply(struct GPHookData_cb *tData, float weight, bGPDspoi
       len_sq = len_squared_v3v3(tData->cent, &pt->x);
     }
 
-    fac = gp_hook_falloff(tData, len_sq);
+    fac = gpencil_hook_falloff(tData, len_sq);
   }
   else {
     fac = tData->fac_orig;
@@ -271,7 +271,7 @@ static void deformStroke(GpencilModifierData *md,
     if (weight < 0.0f) {
       continue;
     }
-    gp_hook_co_apply(&tData, weight, pt);
+    gpencil_hook_co_apply(&tData, weight, pt);
   }
   /* Calc geometry data. */
   BKE_gpencil_stroke_geometry_update(gps);

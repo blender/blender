@@ -178,10 +178,10 @@ typedef struct iterData {
   float plane[4];
 } iterData;
 
-static void gp_layer_cache_populate(bGPDlayer *gpl,
-                                    bGPDframe *UNUSED(gpf),
-                                    bGPDstroke *UNUSED(gps),
-                                    void *thunk)
+static void gpencil_layer_cache_populate(bGPDlayer *gpl,
+                                         bGPDframe *UNUSED(gpf),
+                                         bGPDstroke *UNUSED(gps),
+                                         void *thunk)
 {
   iterData *iter = (iterData *)thunk;
   bGPdata *gpd = (bGPdata *)iter->ob->data;
@@ -204,10 +204,10 @@ static void gp_layer_cache_populate(bGPDlayer *gpl,
   DRW_shgroup_uniform_vec4_copy(grp, "gpDepthPlane", iter->plane);
 }
 
-static void gp_stroke_cache_populate(bGPDlayer *UNUSED(gpl),
-                                     bGPDframe *UNUSED(gpf),
-                                     bGPDstroke *gps,
-                                     void *thunk)
+static void gpencil_stroke_cache_populate(bGPDlayer *UNUSED(gpl),
+                                          bGPDframe *UNUSED(gpf),
+                                          bGPDstroke *gps,
+                                          void *thunk)
 {
   iterData *iter = (iterData *)thunk;
 
@@ -258,8 +258,13 @@ static void OVERLAY_outline_gpencil(OVERLAY_PrivateData *pd, Object *ob)
     gpencil_depth_plane(ob, iter.plane);
   }
 
-  BKE_gpencil_visible_stroke_iter(
-      NULL, ob, gp_layer_cache_populate, gp_stroke_cache_populate, &iter, false, pd->cfra);
+  BKE_gpencil_visible_stroke_iter(NULL,
+                                  ob,
+                                  gpencil_layer_cache_populate,
+                                  gpencil_stroke_cache_populate,
+                                  &iter,
+                                  false,
+                                  pd->cfra);
 }
 
 void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
