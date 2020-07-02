@@ -118,6 +118,8 @@ static void update_mirror_object(Object *ob,
   float eul[3];
   mat4_to_eul(eul, mmd->object->obmat);
   mul_v3_fl(eul, 2.0f);
+  /* Don't apply rotation to current axis. */
+  eul[axis] = 0.0f;
   eul_to_mat3(rot_mat, eul);
   sub_v3_v3v3(ob_origin, ob->obmat[3], mmd->object->obmat[3]);
 
