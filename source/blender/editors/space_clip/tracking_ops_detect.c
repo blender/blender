@@ -117,13 +117,13 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
       {1,
        "INSIDE_GPENCIL",
        0,
-       "Inside Grease Pencil",
-       "Place markers only inside areas outlined with Grease Pencil"},
+       "Inside Annotated Area",
+       "Place markers only inside areas outlined with the Annotation tool"},
       {2,
        "OUTSIDE_GPENCIL",
        0,
-       "Outside Grease Pencil",
-       "Place markers only outside areas outlined with Grease Pencil"},
+       "Outside Annotated Area",
+       "Place markers only outside areas outlined with the Annotation tool"},
       {0, NULL, 0, NULL, NULL},
   };
 
