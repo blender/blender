@@ -403,6 +403,7 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
     mesh->remesh_voxel_size = cd->voxel_size;
     MEM_freeN(op->customdata);
     ED_region_tag_redraw(ar);
+    ED_workspace_status_text(C, NULL);
     return OPERATOR_FINISHED;
   }
 
