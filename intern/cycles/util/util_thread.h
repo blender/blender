@@ -29,9 +29,9 @@
 #  include <pthread.h>
 #endif
 
-#ifdef __APPLE__
-#  include <libkern/OSAtomic.h>
-#endif
+/* NOTE: Use tbb/spin_mutex.h instead of util_tbb.h because some of the TBB
+ * functionality requires RTTI, which is disabled for OSL kernel. */
+#include <tbb/spin_mutex.h>
 
 #include "util/util_function.h"
 
@@ -65,76 +65,7 @@ class thread {
   int node_;
 };
 
-/* Own wrapper around pthread's spin lock to make it's use easier. */
-
-class thread_spin_lock {
- public:
-#ifdef __APPLE__
-  inline thread_spin_lock()
-  {
-    spin_ = OS_SPINLOCK_INIT;
-  }
-
-  inline void lock()
-  {
-    OSSpinLockLock(&spin_);
-  }
-
-  inline void unlock()
-  {
-    OSSpinLockUnlock(&spin_);
-  }
-#elif defined(_WIN32)
-  inline thread_spin_lock()
-  {
-    const DWORD SPIN_COUNT = 50000;
-    InitializeCriticalSectionAndSpinCount(&cs_, SPIN_COUNT);
-  }
-
-  inline ~thread_spin_lock()
-  {
-    DeleteCriticalSection(&cs_);
-  }
-
-  inline void lock()
-  {
-    EnterCriticalSection(&cs_);
-  }
-
-  inline void unlock()
-  {
-    LeaveCriticalSection(&cs_);
-  }
-#else
-  inline thread_spin_lock()
-  {
-    pthread_spin_init(&spin_, 0);
-  }
-
-  inline ~thread_spin_lock()
-  {
-    pthread_spin_destroy(&spin_);
-  }
-
-  inline void lock()
-  {
-    pthread_spin_lock(&spin_);
-  }
-
-  inline void unlock()
-  {
-    pthread_spin_unlock(&spin_);
-  }
-#endif
- protected:
-#ifdef __APPLE__
-  OSSpinLock spin_;
-#elif defined(_WIN32)
-  CRITICAL_SECTION cs_;
-#else
-  pthread_spinlock_t spin_;
-#endif
-};
+using thread_spin_lock = tbb::spin_mutex;
 
 class thread_scoped_spin_lock {
  public:
