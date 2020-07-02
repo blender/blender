@@ -417,7 +417,8 @@ typedef struct EEVEE_RenderPassData {
   int renderPassGlossyLight;
   int renderPassEmit;
   int renderPassSSSColor;
-  int _pad[2];
+  int renderPassEnvironment;
+  int _pad[1];
 } EEVEE_RenderPassData;
 
 /* ************ LIGHT UBO ************* */
@@ -835,6 +836,7 @@ typedef struct EEVEE_ViewLayerData {
   /* Material Render passes */
   struct {
     struct GPUUniformBuffer *combined;
+    struct GPUUniformBuffer *environment;
     struct GPUUniformBuffer *diff_color;
     struct GPUUniformBuffer *diff_light;
     struct GPUUniformBuffer *spec_color;

@@ -325,27 +325,31 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
     if (sldata->renderpass_ubo.combined == NULL) {
       sldata->renderpass_ubo.combined = DRW_uniformbuffer_create(
           sizeof(EEVEE_RenderPassData),
-          &(const EEVEE_RenderPassData){true, true, true, true, true, false});
+          &(const EEVEE_RenderPassData){true, true, true, true, true, false, false});
 
       sldata->renderpass_ubo.diff_color = DRW_uniformbuffer_create(
           sizeof(EEVEE_RenderPassData),
-          &(const EEVEE_RenderPassData){true, false, false, false, false, true});
+          &(const EEVEE_RenderPassData){true, false, false, false, false, true, false});
 
       sldata->renderpass_ubo.diff_light = DRW_uniformbuffer_create(
           sizeof(EEVEE_RenderPassData),
-          &(const EEVEE_RenderPassData){true, true, false, false, false, false});
+          &(const EEVEE_RenderPassData){true, true, false, false, false, false, false});
 
       sldata->renderpass_ubo.spec_color = DRW_uniformbuffer_create(
           sizeof(EEVEE_RenderPassData),
-          &(const EEVEE_RenderPassData){false, false, true, false, false, false});
+          &(const EEVEE_RenderPassData){false, false, true, false, false, false, false});
 
       sldata->renderpass_ubo.spec_light = DRW_uniformbuffer_create(
           sizeof(EEVEE_RenderPassData),
-          &(const EEVEE_RenderPassData){false, false, true, true, false, false});
+          &(const EEVEE_RenderPassData){false, false, true, true, false, false, false});
 
       sldata->renderpass_ubo.emit = DRW_uniformbuffer_create(
           sizeof(EEVEE_RenderPassData),
-          &(const EEVEE_RenderPassData){false, false, false, false, true, false});
+          &(const EEVEE_RenderPassData){false, false, false, false, true, false, false});
+
+      sldata->renderpass_ubo.environment = DRW_uniformbuffer_create(
+          sizeof(EEVEE_RenderPassData),
+          &(const EEVEE_RenderPassData){true, true, true, true, true, false, true});
     }
 
     /* Used combined pass by default. */
@@ -408,7 +412,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
       DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
       DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
       DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
-      DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
+      DRW_shgroup_uniform_block_ref(grp, "renderpass_block", &stl->g_data->renderpass_ubo);
       DRW_shgroup_call(grp, geom, NULL);
     }
 
@@ -1073,7 +1077,7 @@ void EEVEE_material_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
     DRWPass *material_accum_ps = psl->material_accum_ps;
     if (pd->render_passes & EEVEE_RENDER_PASS_ENVIRONMENT) {
       material_renderpass_accumulate(
-          fbl, psl->background_accum_ps, pd, txl->env_accum, sldata->renderpass_ubo.combined);
+          fbl, psl->background_accum_ps, pd, txl->env_accum, sldata->renderpass_ubo.environment);
     }
     if (pd->render_passes & EEVEE_RENDER_PASS_EMIT) {
       material_renderpass_accumulate(

@@ -94,6 +94,7 @@ layout(std140) uniform renderpass_block
   bool renderPassGlossyLight;
   bool renderPassEmit;
   bool renderPassSSSColor;
+  bool renderPassEnvironment;
 };
 
 vec3 render_pass_diffuse_mask(vec3 diffuse_color, vec3 diffuse_light)
