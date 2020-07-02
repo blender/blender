@@ -629,21 +629,23 @@ static void foam_panel_draw(const bContext *C, Panel *panel)
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, use_foam);
-  uiItemR(col, &ptr, "foam_coverage", 0, IFACE_("Coverage"), ICON_NONE);
-
-  col = uiLayoutColumn(layout, true);
-  uiLayoutSetActive(col, use_foam);
   uiItemR(col, &ptr, "foam_layer_name", 0, IFACE_("Data Layer"), ICON_NONE);
+  uiItemR(col, &ptr, "foam_coverage", 0, IFACE_("Coverage"), ICON_NONE);
 }
 
 static void spray_panel_draw_header(const bContext *C, Panel *panel)
 {
+  uiLayout *row;
   uiLayout *layout = panel->layout;
 
   PointerRNA ptr;
   modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
 
-  uiItemR(layout, &ptr, "use_spray", 0, IFACE_("Spray"), ICON_NONE);
+  bool use_foam = RNA_boolean_get(&ptr, "use_foam");
+
+  row = uiLayoutRow(layout, false);
+  uiLayoutSetActive(row, use_foam);
+  uiItemR(row, &ptr, "use_spray", 0, IFACE_("Spray"), ICON_NONE);
 }
 
 static void spray_panel_draw(const bContext *C, Panel *panel)
