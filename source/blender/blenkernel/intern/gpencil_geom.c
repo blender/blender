@@ -95,7 +95,7 @@ bool BKE_gpencil_data_minmax(const bGPdata *gpd, float r_min[3], float r_max[3])
 
     if (gpf != NULL) {
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-        changed = BKE_gpencil_stroke_minmax(gps, false, r_min, r_max);
+        changed |= BKE_gpencil_stroke_minmax(gps, false, r_min, r_max);
       }
     }
   }
