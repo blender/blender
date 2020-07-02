@@ -97,54 +97,19 @@ static void update_mirror_object(Object *ob,
                                  bGPDstroke *gps,
                                  int axis)
 {
-  /* Calculate local matrix transformation. */
-  float mat[3][3], inv_mat[3][3];
-  BKE_object_to_mat3(ob, mat);
-  invert_m3_m3(inv_mat, mat);
+  float mtx[4][4];
+  unit_m4(mtx);
+  mtx[axis][axis] = -1.0f;
 
-  int i;
-  bGPDspoint *pt;
-  float factor[3] = {1.0f, 1.0f, 1.0f};
-  factor[axis] = -1.0f;
+  float tmp[4][4];
+  float itmp[4][4];
+  invert_m4_m4(tmp, mmd->object->obmat);
+  mul_m4_m4m4(tmp, tmp, ob->obmat);
+  invert_m4_m4(itmp, tmp);
+  mul_m4_series(mtx, itmp, mtx, tmp);
 
-  float clear[3] = {0.0f, 0.0f, 0.0f};
-  clear[axis] = 1.0f;
-
-  float ob_origin[3];
-  float pt_origin[3];
-  float half_origin[3];
-  float rot_mat[3][3];
-
-  float eul[3];
-  mat4_to_eul(eul, mmd->object->obmat);
-  mul_v3_fl(eul, 2.0f);
-  /* Don't apply rotation to current axis. */
-  eul[axis] = 0.0f;
-  eul_to_mat3(rot_mat, eul);
-  sub_v3_v3v3(ob_origin, ob->obmat[3], mmd->object->obmat[3]);
-
-  /* Only works with current axis. */
-  mul_v3_v3(ob_origin, clear);
-
-  /* Invert the origin. */
-  mul_v3_v3fl(pt_origin, ob_origin, -2.0f);
-  mul_v3_v3fl(half_origin, pt_origin, 0.5f);
-
-  for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-    /* Apply any local transformation. */
-    mul_m3_v3(mat, &pt->x);
-
-    /* Apply mirror effect. */
-    mul_v3_v3(&pt->x, factor);
-    /* Apply location. */
-    add_v3_v3(&pt->x, pt_origin);
-    /* Apply rotation (around new center). */
-    sub_v3_v3(&pt->x, half_origin);
-    mul_m3_v3(rot_mat, &pt->x);
-    add_v3_v3(&pt->x, half_origin);
-
-    /* Undo local transformation to avoid double transform in drawing. */
-    mul_m3_v3(inv_mat, &pt->x);
+  for (int i = 0; i < gps->totpoints; i++) {
+    mul_m4_v3(mtx, &gps->points[i].x);
   }
 }
 
