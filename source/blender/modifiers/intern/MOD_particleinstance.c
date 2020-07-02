@@ -645,6 +645,7 @@ static void path_panel_draw(const bContext *C, Panel *panel)
 
 static void layers_panel_draw(const bContext *C, Panel *panel)
 {
+  uiLayout *col;
   uiLayout *layout = panel->layout;
 
   PointerRNA ptr;
@@ -655,20 +656,11 @@ static void layers_panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemPointerR(layout,
-                 &ptr,
-                 "index_layer_name",
-                 &obj_data_ptr,
-                 "vertex_colors",
-                 IFACE_("Index"),
-                 ICON_NONE);
-  uiItemPointerR(layout,
-                 &ptr,
-                 "value_layer_name",
-                 &obj_data_ptr,
-                 "vertex_colors",
-                 IFACE_("Value"),
-                 ICON_NONE);
+  col = uiLayoutColumn(layout, false);
+  uiItemPointerR(
+      col, &ptr, "index_layer_name", &obj_data_ptr, "vertex_colors", IFACE_("Index"), ICON_NONE);
+  uiItemPointerR(
+      col, &ptr, "value_layer_name", &obj_data_ptr, "vertex_colors", IFACE_("Value"), ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)

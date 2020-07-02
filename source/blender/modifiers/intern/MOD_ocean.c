@@ -514,7 +514,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 #ifdef WITH_OCEANSIM
-  uiLayout *col;
+  uiLayout *col, *sub;
 
   PointerRNA ptr;
   PointerRNA ob_ptr;
@@ -522,22 +522,24 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "geometry_mode", 0, NULL, ICON_NONE);
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, &ptr, "geometry_mode", 0, NULL, ICON_NONE);
   if (RNA_enum_get(&ptr, "geometry_mode") == MOD_OCEAN_GEOM_GENERATE) {
-    col = uiLayoutColumn(layout, true);
-    uiItemR(col, &ptr, "repeat_x", 0, IFACE_("Repeat X"), ICON_NONE);
-    uiItemR(col, &ptr, "repeat_y", 0, IFACE_("Y"), ICON_NONE);
+    sub = uiLayoutColumn(col, true);
+    uiItemR(sub, &ptr, "repeat_x", 0, IFACE_("Repeat X"), ICON_NONE);
+    uiItemR(sub, &ptr, "repeat_y", 0, IFACE_("Y"), ICON_NONE);
   }
-  uiItemR(layout, &ptr, "random_seed", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "resolution", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "resolution", 0, NULL, ICON_NONE);
 
-  uiItemR(layout, &ptr, "time", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "depth", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "time", 0, NULL, ICON_NONE);
 
-  uiItemR(layout, &ptr, "size", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "spatial_size", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "depth", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "size", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "spatial_size", 0, NULL, ICON_NONE);
 
-  uiItemR(layout, &ptr, "use_normals", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "random_seed", 0, NULL, ICON_NONE);
+
+  uiItemR(col, &ptr, "use_normals", 0, NULL, ICON_NONE);
 
   modifier_panel_end(layout, &ptr);
 
@@ -550,7 +552,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 #ifdef WITH_OCEANSIM
 static void waves_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *col;
+  uiLayout *col, *sub;
   uiLayout *layout = panel->layout;
 
   PointerRNA ptr;
@@ -558,16 +560,20 @@ static void waves_panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "wave_scale", 0, IFACE_("Scale"), ICON_NONE);
-  uiItemR(layout, &ptr, "wave_scale_min", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "choppiness", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "wind_velocity", 0, NULL, ICON_NONE);
-
-  uiItemR(layout, &ptr, "wave_alignment", 0, IFACE_("Alignment"), ICON_NONE);
   col = uiLayoutColumn(layout, false);
-  uiLayoutSetActive(col, RNA_float_get(&ptr, "wave_alignment") > 0.0f);
-  uiItemR(col, &ptr, "wave_direction", 0, IFACE_("Direction"), ICON_NONE);
-  uiItemR(col, &ptr, "damping", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "wave_scale", 0, IFACE_("Scale"), ICON_NONE);
+  uiItemR(col, &ptr, "wave_scale_min", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "choppiness", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "wind_velocity", 0, NULL, ICON_NONE);
+
+  uiItemS(layout);
+
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, &ptr, "wave_alignment", 0, IFACE_("Alignment"), ICON_NONE);
+  sub = uiLayoutColumn(col, false);
+  uiLayoutSetActive(sub, RNA_float_get(&ptr, "wave_alignment") > 0.0f);
+  uiItemR(sub, &ptr, "wave_direction", 0, IFACE_("Direction"), ICON_NONE);
+  uiItemR(sub, &ptr, "damping", 0, NULL, ICON_NONE);
 }
 
 static void foam_panel_draw_header(const bContext *C, Panel *panel)
@@ -603,19 +609,21 @@ static void foam_panel_draw(const bContext *C, Panel *panel)
 
 static void spectrum_panel_draw(const bContext *C, Panel *panel)
 {
+  uiLayout *col;
   uiLayout *layout = panel->layout;
 
   PointerRNA ptr;
   modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
 
-  uiLayoutSetPropSep(layout, true);
-
   int spectrum = RNA_enum_get(&ptr, "spectrum");
 
-  uiItemR(layout, &ptr, "spectrum", 0, NULL, ICON_NONE);
+  uiLayoutSetPropSep(layout, true);
+
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, &ptr, "spectrum", 0, NULL, ICON_NONE);
   if (ELEM(spectrum, MOD_OCEAN_SPECTRUM_TEXEL_MARSEN_ARSLOE, MOD_OCEAN_SPECTRUM_JONSWAP)) {
-    uiItemR(layout, &ptr, "sharpen_peak_jonswap", 0, NULL, ICON_NONE);
-    uiItemR(layout, &ptr, "fetch_jonswap", 0, NULL, ICON_NONE);
+    uiItemR(col, &ptr, "sharpen_peak_jonswap", 0, NULL, ICON_NONE);
+    uiItemR(col, &ptr, "fetch_jonswap", 0, NULL, ICON_NONE);
   }
 }
 
@@ -652,7 +660,7 @@ static void bake_panel_draw(const bContext *C, Panel *panel)
 
   col = uiLayoutColumn(layout, true);
   uiLayoutSetEnabled(col, !is_cached);
-  uiItemR(col, &ptr, "frame_start", 0, IFACE_("Start"), ICON_NONE);
+  uiItemR(col, &ptr, "frame_start", 0, IFACE_("Frame Start"), ICON_NONE);
   uiItemR(col, &ptr, "frame_end", 0, IFACE_("End"), ICON_NONE);
 
   col = uiLayoutColumn(layout, false);

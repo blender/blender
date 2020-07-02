@@ -709,11 +709,12 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA ob_ptr;
   modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
 
-  uiLayoutSetPropSep(layout, true);
-
   int mode = RNA_enum_get(&ptr, "mode");
 
   uiItemR(layout, &ptr, "mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
+  uiLayoutSetPropSep(layout, true);
+
   uiItemR(layout, &ptr, "target", 0, NULL, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);

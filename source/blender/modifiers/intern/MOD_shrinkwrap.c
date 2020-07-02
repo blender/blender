@@ -242,13 +242,14 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(layout, &ptr, "project_limit", 0, IFACE_("Limit"), ICON_NONE);
     uiItemR(layout, &ptr, "subsurf_levels", 0, NULL, ICON_NONE);
 
-    row = uiLayoutRowWithHeading(layout, true, IFACE_("Axis"));
+    col = uiLayoutColumn(layout, false);
+    row = uiLayoutRowWithHeading(col, true, IFACE_("Axis"));
     uiItemR(row, &ptr, "use_project_x", toggles_flag, NULL, ICON_NONE);
     uiItemR(row, &ptr, "use_project_y", toggles_flag, NULL, ICON_NONE);
     uiItemR(row, &ptr, "use_project_z", toggles_flag, NULL, ICON_NONE);
 
-    uiItemR(layout, &ptr, "use_negative_direction", 0, NULL, ICON_NONE);
-    uiItemR(layout, &ptr, "use_positive_direction", 0, NULL, ICON_NONE);
+    uiItemR(col, &ptr, "use_negative_direction", 0, NULL, ICON_NONE);
+    uiItemR(col, &ptr, "use_positive_direction", 0, NULL, ICON_NONE);
 
     uiItemR(layout, &ptr, "cull_face", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
     col = uiLayoutColumn(layout, false);

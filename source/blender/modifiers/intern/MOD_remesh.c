@@ -241,7 +241,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 #ifdef WITH_MOD_REMESH
-  uiLayout *row;
+  uiLayout *row, *col;
 
   PointerRNA ptr;
   PointerRNA ob_ptr;
@@ -253,16 +253,17 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
+  col = uiLayoutColumn(layout, false);
   if (mode == MOD_REMESH_VOXEL) {
-    uiItemR(layout, &ptr, "voxel_size", 0, NULL, ICON_NONE);
-    uiItemR(layout, &ptr, "adaptivity", 0, NULL, ICON_NONE);
+    uiItemR(col, &ptr, "voxel_size", 0, NULL, ICON_NONE);
+    uiItemR(col, &ptr, "adaptivity", 0, NULL, ICON_NONE);
   }
   else {
-    uiItemR(layout, &ptr, "octree_depth", 0, NULL, ICON_NONE);
-    uiItemR(layout, &ptr, "scale", 0, NULL, ICON_NONE);
+    uiItemR(col, &ptr, "octree_depth", 0, NULL, ICON_NONE);
+    uiItemR(col, &ptr, "scale", 0, NULL, ICON_NONE);
 
     if (mode == MOD_REMESH_SHARP_FEATURES) {
-      uiItemR(layout, &ptr, "sharpness", 0, NULL, ICON_NONE);
+      uiItemR(col, &ptr, "sharpness", 0, NULL, ICON_NONE);
     }
 
     uiItemR(layout, &ptr, "use_remove_disconnected", 0, NULL, ICON_NONE);

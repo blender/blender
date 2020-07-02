@@ -1974,7 +1974,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemO(row, IFACE_("Create Armature"), ICON_NONE, "OBJECT_OT_skin_armature_create");
   uiItemO(row, NULL, ICON_NONE, "MESH_OT_customdata_skin_add");
 
-  row = uiLayoutRow(layout, true);
+  row = uiLayoutRow(layout, false);
   uiItemFullO(row,
               "OBJECT_OT_skin_loose_mark_clear",
               IFACE_("Mark Loose"),

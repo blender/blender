@@ -350,9 +350,9 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 #endif
 
-  uiLayoutSetPropSep(layout, true);
+  uiItemR(layout, &ptr, "subdivision_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
-  uiItemR(layout, &ptr, "subdivision_type", 0, IFACE_("Type"), ICON_NONE);
+  uiLayoutSetPropSep(layout, true);
 
   if (show_adaptive_options) {
     uiItemR(layout,

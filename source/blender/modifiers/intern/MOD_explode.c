@@ -1189,7 +1189,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *row;
+  uiLayout *row, *col;
   uiLayout *layout = panel->layout;
   int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
@@ -1211,8 +1211,9 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "use_edge_cut", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "use_size", 0, NULL, ICON_NONE);
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, &ptr, "use_edge_cut", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "use_size", 0, NULL, ICON_NONE);
 
   modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 

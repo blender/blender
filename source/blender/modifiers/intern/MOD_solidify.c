@@ -152,6 +152,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
 static void normals_panel_draw(const bContext *C, Panel *panel)
 {
+  uiLayout *col;
   uiLayout *layout = panel->layout;
 
   PointerRNA ptr;
@@ -162,9 +163,10 @@ static void normals_panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "use_flip_normals", 0, NULL, ICON_NONE);
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, &ptr, "use_flip_normals", 0, IFACE_("Flip"), ICON_NONE);
   if (solidify_mode == MOD_SOLIDIFY_MODE_EXTRUDE) {
-    uiItemR(layout, &ptr, "use_quality_normals", 0, IFACE_("High Quality"), ICON_NONE);
+    uiItemR(col, &ptr, "use_quality_normals", 0, IFACE_("High Quality"), ICON_NONE);
   }
 }
 
@@ -198,16 +200,18 @@ static void edge_data_panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   if (solidify_mode == MOD_SOLIDIFY_MODE_EXTRUDE) {
-    uiItemR(layout, &ptr, "edge_crease_inner", 0, IFACE_("Inner"), ICON_NONE);
-    uiItemR(layout, &ptr, "edge_crease_outer", 0, IFACE_("Outer"), ICON_NONE);
-    uiItemR(layout, &ptr, "edge_crease_rim", 0, IFACE_("Rim"), ICON_NONE);
+    uiLayout *col;
+    col = uiLayoutColumn(layout, true);
+    uiItemR(col, &ptr, "edge_crease_inner", 0, IFACE_("Crease Inner"), ICON_NONE);
+    uiItemR(col, &ptr, "edge_crease_outer", 0, IFACE_("Outer"), ICON_NONE);
+    uiItemR(col, &ptr, "edge_crease_rim", 0, IFACE_("Rim"), ICON_NONE);
   }
   uiItemR(layout, &ptr, "bevel_convex", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
 
 static void clamp_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *row;
+  uiLayout *row, *col;
   uiLayout *layout = panel->layout;
 
   PointerRNA ptr;
@@ -216,8 +220,9 @@ static void clamp_panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "thickness_clamp", 0, NULL, ICON_NONE);
-  row = uiLayoutRow(layout, false);
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, &ptr, "thickness_clamp", 0, NULL, ICON_NONE);
+  row = uiLayoutRow(col, false);
   uiLayoutSetActive(row, RNA_float_get(&ptr, "thickness_clamp") > 0.0f);
   uiItemR(row, &ptr, "use_thickness_angle_clamp", 0, NULL, ICON_NONE);
 }

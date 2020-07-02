@@ -200,7 +200,6 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *box;
   uiLayout *layout = panel->layout;
 
   PointerRNA ptr;
@@ -210,10 +209,9 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA cache_file_ptr = RNA_pointer_get(&ptr, "cache_file");
   bool has_cache_file = !RNA_pointer_is_null(&cache_file_ptr);
 
-  box = uiLayoutBox(layout);
-  uiTemplateCacheFile(box, C, &ptr, "cache_file");
-
   uiLayoutSetPropSep(layout, true);
+
+  uiTemplateCacheFile(layout, C, &ptr, "cache_file");
 
   if (has_cache_file) {
     uiItemPointerR(layout, &ptr, "object_path", &cache_file_ptr, "object_paths", NULL, ICON_NONE);

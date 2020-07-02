@@ -2086,7 +2086,7 @@ static void rna_def_modifier_build(BlenderRNA *brna)
   prop = RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_TIME);
   RNA_def_property_float_sdna(prop, NULL, "start");
   RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
-  RNA_def_property_ui_text(prop, "Start", "Start frame of the effect");
+  RNA_def_property_ui_text(prop, "Start Frame", "Start frame of the effect");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "frame_duration", PROP_FLOAT, PROP_TIME);
@@ -3415,7 +3415,7 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_radius_as_size", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_SIZE_FROM_RADIUS);
   RNA_def_property_ui_text(
-      prop, "From Radius", "Use radius as size of projection shape (0 = auto)");
+      prop, "Size from Radius", "Use radius as size of projection shape (0 = auto)");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "use_transform", PROP_BOOLEAN, PROP_NONE);
@@ -4800,7 +4800,7 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_normal_calculate", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_NORMAL_CALC);
   RNA_def_property_ui_text(
-      prop, "Calc Order", "Calculate the order of edges (needed for meshes, but not curves)");
+      prop, "Calculate Order", "Calculate the order of edges (needed for meshes, but not curves)");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "use_object_screw_offset", PROP_BOOLEAN, PROP_NONE);

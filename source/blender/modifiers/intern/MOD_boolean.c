@@ -364,9 +364,10 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA ptr;
   modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
 
+  uiItemR(layout, &ptr, "operation", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "operation", 0, NULL, ICON_NONE);
   uiItemR(layout, &ptr, "object", 0, NULL, ICON_NONE);
   uiItemR(layout, &ptr, "double_threshold", 0, NULL, ICON_NONE);
 
