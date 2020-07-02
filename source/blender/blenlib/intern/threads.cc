@@ -151,7 +151,7 @@ void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int t
 {
   int a;
 
-  if (threadbase != NULL && tot > 0) {
+  if (threadbase != nullptr && tot > 0) {
     BLI_listbase_clear(threadbase);
 
     if (tot > RE_MAX_THREAD) {
@@ -162,7 +162,7 @@ void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int t
     }
 
     for (a = 0; a < tot; a++) {
-      ThreadSlot *tslot = MEM_callocN(sizeof(ThreadSlot), "threadslot");
+      ThreadSlot *tslot = static_cast<ThreadSlot *>(MEM_callocN(sizeof(ThreadSlot), "threadslot"));
       BLI_addtail(threadbase, tslot);
       tslot->do_thread = do_thread;
       tslot->avail = 1;
@@ -183,28 +183,29 @@ void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int t
 /* amount of available threads */
 int BLI_available_threads(ListBase *threadbase)
 {
-  ThreadSlot *tslot;
   int counter = 0;
 
-  for (tslot = threadbase->first; tslot; tslot = tslot->next) {
+  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
     if (tslot->avail) {
       counter++;
     }
   }
+
   return counter;
 }
 
 /* returns thread number, for sample patterns or threadsafe tables */
 int BLI_threadpool_available_thread_index(ListBase *threadbase)
 {
-  ThreadSlot *tslot;
   int counter = 0;
 
-  for (tslot = threadbase->first; tslot; tslot = tslot->next, counter++) {
+  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
     if (tslot->avail) {
       return counter;
     }
+    ++counter;
   }
+
   return 0;
 }
 
@@ -228,13 +229,11 @@ int BLI_thread_is_main(void)
 
 void BLI_threadpool_insert(ListBase *threadbase, void *callerdata)
 {
-  ThreadSlot *tslot;
-
-  for (tslot = threadbase->first; tslot; tslot = tslot->next) {
+  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
     if (tslot->avail) {
       tslot->avail = 0;
       tslot->callerdata = callerdata;
-      pthread_create(&tslot->pthread, NULL, tslot_thread_start, tslot);
+      pthread_create(&tslot->pthread, nullptr, tslot_thread_start, tslot);
       return;
     }
   }
@@ -243,12 +242,10 @@ void BLI_threadpool_insert(ListBase *threadbase, void *callerdata)
 
 void BLI_threadpool_remove(ListBase *threadbase, void *callerdata)
 {
-  ThreadSlot *tslot;
-
-  for (tslot = threadbase->first; tslot; tslot = tslot->next) {
+  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
     if (tslot->callerdata == callerdata) {
-      pthread_join(tslot->pthread, NULL);
-      tslot->callerdata = NULL;
+      pthread_join(tslot->pthread, nullptr);
+      tslot->callerdata = nullptr;
       tslot->avail = 1;
     }
   }
@@ -256,27 +253,25 @@ void BLI_threadpool_remove(ListBase *threadbase, void *callerdata)
 
 void BLI_threadpool_remove_index(ListBase *threadbase, int index)
 {
-  ThreadSlot *tslot;
   int counter = 0;
 
-  for (tslot = threadbase->first; tslot; tslot = tslot->next, counter++) {
+  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
     if (counter == index && tslot->avail == 0) {
-      pthread_join(tslot->pthread, NULL);
-      tslot->callerdata = NULL;
+      pthread_join(tslot->pthread, nullptr);
+      tslot->callerdata = nullptr;
       tslot->avail = 1;
       break;
     }
+    ++counter;
   }
 }
 
 void BLI_threadpool_clear(ListBase *threadbase)
 {
-  ThreadSlot *tslot;
-
-  for (tslot = threadbase->first; tslot; tslot = tslot->next) {
+  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
     if (tslot->avail == 0) {
-      pthread_join(tslot->pthread, NULL);
-      tslot->callerdata = NULL;
+      pthread_join(tslot->pthread, nullptr);
+      tslot->callerdata = nullptr;
       tslot->avail = 1;
     }
   }
@@ -284,19 +279,20 @@ void BLI_threadpool_clear(ListBase *threadbase)
 
 void BLI_threadpool_end(ListBase *threadbase)
 {
-  ThreadSlot *tslot;
 
   /* only needed if there's actually some stuff to end
    * this way we don't end up decrementing thread_levels on an empty threadbase
    * */
-  if (threadbase && (BLI_listbase_is_empty(threadbase) == false)) {
-    for (tslot = threadbase->first; tslot; tslot = tslot->next) {
-      if (tslot->avail == 0) {
-        pthread_join(tslot->pthread, NULL);
-      }
-    }
-    BLI_freelistN(threadbase);
+  if (threadbase == nullptr || BLI_listbase_is_empty(threadbase)) {
+    return;
   }
+
+  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
+    if (tslot->avail == 0) {
+      pthread_join(tslot->pthread, nullptr);
+    }
+  }
+  BLI_freelistN(threadbase);
 }
 
 /* System Information */
@@ -326,7 +322,7 @@ int BLI_system_thread_count(void)
     mib[0] = CTL_HW;
     mib[1] = HW_NCPU;
     len = sizeof(t);
-    sysctl(mib, 2, &t, &len, NULL, 0);
+    sysctl(mib, 2, &t, &len, nullptr, 0);
 #  else
     t = (int)sysconf(_SC_NPROCESSORS_ONLN);
 #  endif
@@ -377,7 +373,7 @@ static ThreadMutex *global_mutex_from_type(const int type)
       return &_view3d_lock;
     default:
       BLI_assert(0);
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -395,7 +391,7 @@ void BLI_thread_unlock(int type)
 
 void BLI_mutex_init(ThreadMutex *mutex)
 {
-  pthread_mutex_init(mutex, NULL);
+  pthread_mutex_init(mutex, nullptr);
 }
 
 void BLI_mutex_lock(ThreadMutex *mutex)
@@ -420,7 +416,7 @@ void BLI_mutex_end(ThreadMutex *mutex)
 
 ThreadMutex *BLI_mutex_alloc(void)
 {
-  ThreadMutex *mutex = MEM_callocN(sizeof(ThreadMutex), "ThreadMutex");
+  ThreadMutex *mutex = static_cast<ThreadMutex *>(MEM_callocN(sizeof(ThreadMutex), "ThreadMutex"));
   BLI_mutex_init(mutex);
   return mutex;
 }
@@ -487,7 +483,7 @@ void BLI_spin_end(SpinLock *spin)
 
 void BLI_rw_mutex_init(ThreadRWMutex *mutex)
 {
-  pthread_rwlock_init(mutex, NULL);
+  pthread_rwlock_init(mutex, nullptr);
 }
 
 void BLI_rw_mutex_lock(ThreadRWMutex *mutex, int mode)
@@ -512,7 +508,8 @@ void BLI_rw_mutex_end(ThreadRWMutex *mutex)
 
 ThreadRWMutex *BLI_rw_mutex_alloc(void)
 {
-  ThreadRWMutex *mutex = MEM_callocN(sizeof(ThreadRWMutex), "ThreadRWMutex");
+  ThreadRWMutex *mutex = static_cast<ThreadRWMutex *>(
+      MEM_callocN(sizeof(ThreadRWMutex), "ThreadRWMutex"));
   BLI_rw_mutex_init(mutex);
   return mutex;
 }
@@ -533,10 +530,11 @@ struct TicketMutex {
 
 TicketMutex *BLI_ticket_mutex_alloc(void)
 {
-  TicketMutex *ticket = MEM_callocN(sizeof(TicketMutex), "TicketMutex");
+  TicketMutex *ticket = static_cast<TicketMutex *>(
+      MEM_callocN(sizeof(TicketMutex), "TicketMutex"));
 
-  pthread_cond_init(&ticket->cond, NULL);
-  pthread_mutex_init(&ticket->mutex, NULL);
+  pthread_cond_init(&ticket->cond, nullptr);
+  pthread_mutex_init(&ticket->mutex, nullptr);
 
   return ticket;
 }
@@ -576,7 +574,7 @@ void BLI_ticket_mutex_unlock(TicketMutex *ticket)
 
 void BLI_condition_init(ThreadCondition *cond)
 {
-  pthread_cond_init(cond, NULL);
+  pthread_cond_init(cond, nullptr);
 }
 
 void BLI_condition_wait(ThreadCondition *cond, ThreadMutex *mutex)
@@ -619,12 +617,12 @@ ThreadQueue *BLI_thread_queue_init(void)
 {
   ThreadQueue *queue;
 
-  queue = MEM_callocN(sizeof(ThreadQueue), "ThreadQueue");
+  queue = static_cast<ThreadQueue *>(MEM_callocN(sizeof(ThreadQueue), "ThreadQueue"));
   queue->queue = BLI_gsqueue_new(sizeof(void *));
 
-  pthread_mutex_init(&queue->mutex, NULL);
-  pthread_cond_init(&queue->push_cond, NULL);
-  pthread_cond_init(&queue->finish_cond, NULL);
+  pthread_mutex_init(&queue->mutex, nullptr);
+  pthread_cond_init(&queue->push_cond, nullptr);
+  pthread_cond_init(&queue->finish_cond, nullptr);
 
   return queue;
 }
@@ -654,7 +652,7 @@ void BLI_thread_queue_push(ThreadQueue *queue, void *work)
 
 void *BLI_thread_queue_pop(ThreadQueue *queue)
 {
-  void *work = NULL;
+  void *work = nullptr;
 
   /* wait until there is work */
   pthread_mutex_lock(&queue->mutex);
@@ -691,7 +689,7 @@ static void wait_timeout(struct timespec *timeout, int ms)
 #else
   {
     struct timeval now;
-    gettimeofday(&now, NULL);
+    gettimeofday(&now, nullptr);
     sec = now.tv_sec;
     usec = now.tv_usec;
   }
@@ -714,7 +712,7 @@ static void wait_timeout(struct timespec *timeout, int ms)
 void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
 {
   double t;
-  void *work = NULL;
+  void *work = nullptr;
   struct timespec timeout;
 
   t = PIL_check_seconds_timer();
@@ -805,7 +803,7 @@ static bool check_is_threadripper2_alike_topology(void)
   }
   is_initialized = true;
   char *cpu_brand = BLI_cpu_brand_string();
-  if (cpu_brand == NULL) {
+  if (cpu_brand == nullptr) {
     return false;
   }
   if (strstr(cpu_brand, "Threadripper")) {
