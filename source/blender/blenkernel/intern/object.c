@@ -2486,9 +2486,10 @@ static void give_parvert(Object *par, int nr, float vec[3])
 
     if (me_eval) {
       int count = 0;
-      const int numVerts = me_eval->totvert;
+      int numVerts = me_eval->totvert;
 
-      if (em && me_eval->runtime.is_original) {
+      if (em && me_eval->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+        numVerts = em->bm->totvert;
         if (em->bm->elem_table_dirty & BM_VERT) {
 #ifdef VPARENT_THREADING_HACK
           BLI_mutex_lock(&vparent_lock);
@@ -2501,10 +2502,18 @@ static void give_parvert(Object *par, int nr, float vec[3])
           BM_mesh_elem_table_ensure(em->bm, BM_VERT);
 #endif
         }
+        if (nr < numVerts) {
+          if (me_eval && me_eval->runtime.edit_data && me_eval->runtime.edit_data->vertexCos) {
+            add_v3_v3(vec, me_eval->runtime.edit_data->vertexCos[nr]);
+          }
+          else {
+            const BMVert *v = BM_vert_at_index(em->bm, nr);
+            add_v3_v3(vec, v->co);
+          }
+          count++;
+        }
       }
-
-      if (CustomData_has_layer(&me_eval->vdata, CD_ORIGINDEX) &&
-          !(em && me_eval->runtime.is_original)) {
+      else if (CustomData_has_layer(&me_eval->vdata, CD_ORIGINDEX)) {
         const int *index = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
         /* Get the average of all verts with (original index == nr). */
         for (int i = 0; i < numVerts; i++) {
