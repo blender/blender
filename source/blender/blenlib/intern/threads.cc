@@ -47,6 +47,10 @@
 #  include <unistd.h>
 #endif
 
+#ifdef WITH_TBB
+#  include <tbb/spin_mutex.h>
+#endif
+
 #include "atomic_ops.h"
 #include "numaapi.h"
 
@@ -429,10 +433,24 @@ void BLI_mutex_free(ThreadMutex *mutex)
 
 /* Spin Locks */
 
+#if WITH_TBB
+static tbb::spin_mutex *tbb_spin_mutex_cast(SpinLock *spin)
+{
+  static_assert(sizeof(SpinLock) >= sizeof(tbb::spin_mutex),
+                "SpinLock must match tbb::spin_mutex");
+  static_assert(alignof(SpinLock) % alignof(tbb::spin_mutex) == 0,
+                "SpinLock must be aligned same as tbb::spin_mutex");
+  return reinterpret_cast<tbb::spin_mutex *>(spin);
+}
+#endif
+
 void BLI_spin_init(SpinLock *spin)
 {
-#if defined(__APPLE__)
-  *spin = OS_SPINLOCK_INIT;
+#ifdef WITH_TBB
+  tbb::spin_mutex *spin_mutex = tbb_spin_mutex_cast(spin);
+  new (spin_mutex) tbb::spin_mutex();
+#elif defined(__APPLE__)
+  BLI_mutex_init(spin);
 #elif defined(_MSC_VER)
   *spin = 0;
 #else
@@ -442,8 +460,11 @@ void BLI_spin_init(SpinLock *spin)
 
 void BLI_spin_lock(SpinLock *spin)
 {
-#if defined(__APPLE__)
-  OSSpinLockLock(spin);
+#ifdef WITH_TBB
+  tbb::spin_mutex *spin_mutex = tbb_spin_mutex_cast(spin);
+  spin_mutex->lock();
+#elif defined(__APPLE__)
+  BLI_mutex_lock(spin);
 #elif defined(_MSC_VER)
   while (InterlockedExchangeAcquire(spin, 1)) {
     while (*spin) {
@@ -458,8 +479,11 @@ void BLI_spin_lock(SpinLock *spin)
 
 void BLI_spin_unlock(SpinLock *spin)
 {
-#if defined(__APPLE__)
-  OSSpinLockUnlock(spin);
+#ifdef WITH_TBB
+  tbb::spin_mutex *spin_mutex = tbb_spin_mutex_cast(spin);
+  spin_mutex->unlock();
+#elif defined(__APPLE__)
+  BLI_mutex_unlock(spin);
 #elif defined(_MSC_VER)
   _ReadWriteBarrier();
   *spin = 0;
@@ -468,16 +492,19 @@ void BLI_spin_unlock(SpinLock *spin)
 #endif
 }
 
-#if defined(__APPLE__) || defined(_MSC_VER)
-void BLI_spin_end(SpinLock *UNUSED(spin))
-{
-}
-#else
 void BLI_spin_end(SpinLock *spin)
 {
+#ifdef WITH_TBB
+  tbb::spin_mutex *spin_mutex = tbb_spin_mutex_cast(spin);
+  spin_mutex->~spin_mutex();
+#elif defined(__APPLE__)
+  BLI_mutex_end(spin);
+#elif defined(_MSC_VER)
+  BLI_mutex_unlock(spin);
+#else
   pthread_spin_destroy(spin);
-}
 #endif
+}
 
 /* Read/Write Mutex Lock */
 

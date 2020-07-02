@@ -28,10 +28,6 @@
 
 #include "BLI_sys_types.h"
 
-#ifdef __APPLE__
-#  include <libkern/OSAtomic.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -100,8 +96,16 @@ void BLI_mutex_unlock(ThreadMutex *mutex);
 
 /* Spin Lock */
 
-#if defined(__APPLE__)
-typedef OSSpinLock SpinLock;
+/* By default we use TBB for spin lock on all platforms. When building without
+ * TBB fall-back to spin lock implementation which is native to the platform.
+ *
+ * On macOS we use mutex lock instead of spin since the spin lock has been
+ * deprecated in SDK 10.12 and is discouraged from use. */
+
+#ifdef WITH_TBB
+typedef uint32_t SpinLock;
+#elif defined(__APPLE__)
+typedef ThreadMutex SpinLock;
 #elif defined(_MSC_VER)
 typedef volatile int SpinLock;
 #else
