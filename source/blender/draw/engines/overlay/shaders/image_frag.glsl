@@ -26,4 +26,7 @@ void main()
       fragColor.a = 1.0;
     }
   }
+
+  /* Pre-multiplied blending. */
+  fragColor.rgb *= fragColor.a;
 }
