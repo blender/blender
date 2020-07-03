@@ -129,6 +129,23 @@ static void movie_clip_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void movie_clip_foreach_cache(ID *id,
+                                     IDTypeForeachCacheFunctionCallback function_callback,
+                                     void *user_data)
+{
+  MovieClip *movie_clip = (MovieClip *)id;
+  IDCacheKey key = {
+      .id_session_uuid = id->session_uuid,
+      .offset_in_ID = offsetof(MovieClip, cache),
+      .cache_v = movie_clip->cache,
+  };
+  function_callback(id, &key, (void **)&movie_clip->cache, user_data);
+
+  key.offset_in_ID = offsetof(MovieClip, tracking.camera.intrinsics);
+  key.cache_v = movie_clip->tracking.camera.intrinsics;
+  function_callback(id, &key, (void **)&movie_clip->tracking.camera.intrinsics, user_data);
+}
+
 IDTypeInfo IDType_ID_MC = {
     .id_code = ID_MC,
     .id_filter = FILTER_ID_MC,
@@ -144,6 +161,7 @@ IDTypeInfo IDType_ID_MC = {
     .free_data = movie_clip_free_data,
     .make_local = NULL,
     .foreach_id = movie_clip_foreach_id,
+    .foreach_cache = movie_clip_foreach_cache,
 };
 
 /*********************** movieclip buffer loaders *************************/

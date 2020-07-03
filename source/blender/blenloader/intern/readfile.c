@@ -2013,21 +2013,9 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 
 void blo_make_movieclip_pointer_map(FileData *fd, Main *oldmain)
 {
-  MovieClip *clip = oldmain->movieclips.first;
   Scene *sce = oldmain->scenes.first;
 
   fd->movieclipmap = oldnewmap_new();
-
-  for (; clip; clip = clip->id.next) {
-    if (clip->cache) {
-      oldnewmap_insert(fd->movieclipmap, clip->cache, clip->cache, 0);
-    }
-
-    if (clip->tracking.camera.intrinsics) {
-      oldnewmap_insert(
-          fd->movieclipmap, clip->tracking.camera.intrinsics, clip->tracking.camera.intrinsics, 0);
-    }
-  }
 
   for (; sce; sce = sce->id.next) {
     if (sce->nodetree) {
@@ -2058,8 +2046,6 @@ void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
   }
 
   for (; clip; clip = clip->id.next) {
-    clip->cache = newmclipadr(fd, clip->cache);
-    clip->tracking.camera.intrinsics = newmclipadr(fd, clip->tracking.camera.intrinsics);
     BLI_freelistN(&clip->runtime.gputextures);
   }
 
@@ -8469,20 +8455,6 @@ static void direct_link_movieclip(BlendDataReader *reader, MovieClip *clip)
   MovieTrackingObject *object;
 
   BLO_read_data_address(reader, &clip->adt);
-
-  if (reader->fd->movieclipmap) {
-    clip->cache = newmclipadr(reader->fd, clip->cache);
-  }
-  else {
-    clip->cache = NULL;
-  }
-
-  if (reader->fd->movieclipmap) {
-    clip->tracking.camera.intrinsics = newmclipadr(reader->fd, clip->tracking.camera.intrinsics);
-  }
-  else {
-    clip->tracking.camera.intrinsics = NULL;
-  }
 
   direct_link_movieTracks(reader, &tracking->tracks);
   direct_link_moviePlaneTracks(reader, &tracking->plane_tracks);
