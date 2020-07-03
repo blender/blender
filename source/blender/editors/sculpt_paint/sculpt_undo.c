@@ -167,9 +167,7 @@ static bool test_swap_v3_v3(float a[3], float b[3])
     swap_v3_v3(a, b);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 static bool sculpt_undo_restore_deformed(
@@ -179,9 +177,7 @@ static bool sculpt_undo_restore_deformed(
     copy_v3_v3(unode->co[uindex], ss->deform_cos[oindex]);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, SculptUndoNode *unode)
@@ -1270,17 +1266,17 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
-  else if (type == SCULPT_UNDO_GEOMETRY) {
+  if (type == SCULPT_UNDO_GEOMETRY) {
     unode = sculpt_undo_geometry_push(ob, type);
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
-  else if (type == SCULPT_UNDO_FACE_SETS) {
+  if (type == SCULPT_UNDO_FACE_SETS) {
     unode = sculpt_undo_face_sets_push(ob, type);
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
-  else if ((unode = SCULPT_undo_get_node(node))) {
+  if ((unode = SCULPT_undo_get_node(node))) {
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }

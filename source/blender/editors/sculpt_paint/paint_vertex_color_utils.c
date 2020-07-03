@@ -220,7 +220,7 @@ BLI_INLINE uint mcol_lighten(uint col_src, uint col_dst, int fac)
   if (fac == 0) {
     return col_src;
   }
-  else if (fac >= 255) {
+  if (fac >= 255) {
     return col_dst;
   }
 
@@ -254,7 +254,7 @@ BLI_INLINE uint mcol_darken(uint col_src, uint col_dst, int fac)
   if (fac == 0) {
     return col_src;
   }
-  else if (fac >= 255) {
+  if (fac >= 255) {
     return col_dst;
   }
 

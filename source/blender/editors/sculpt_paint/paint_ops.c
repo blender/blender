@@ -695,14 +695,12 @@ static Brush *brush_tool_toggle(Main *bmain, Paint *paint, Brush *brush_orig, co
 
     return br;
   }
-  else if (brush_orig->toggle_brush) {
+  if (brush_orig->toggle_brush) {
     /* if current brush is using the desired tool, try to toggle
      * back to the previously selected brush. */
     return brush_orig->toggle_brush;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 static bool brush_generic_tool_set(bContext *C,
@@ -751,9 +749,7 @@ static bool brush_generic_tool_set(bContext *C,
 
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 static const ePaintMode brush_select_paint_modes[] = {

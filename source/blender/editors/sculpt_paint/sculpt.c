@@ -139,9 +139,7 @@ const float *SCULPT_vertex_co_get(SculptSession *ss, int index)
         const MVert *mverts = BKE_pbvh_get_verts(ss->pbvh);
         return mverts[index].co;
       }
-      else {
-        return ss->mvert[index].co;
-      }
+      return ss->mvert[index].co;
     }
     case PBVH_BMESH:
       return BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index)->co;
@@ -1520,9 +1518,7 @@ bool SCULPT_brush_test_sphere(SculptBrushTest *test, const float co[3])
     test->dist = sqrtf(distsq);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 bool SCULPT_brush_test_sphere_sq(SculptBrushTest *test, const float co[3])
@@ -1536,9 +1532,7 @@ bool SCULPT_brush_test_sphere_sq(SculptBrushTest *test, const float co[3])
     test->dist = distsq;
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 bool SCULPT_brush_test_sphere_fast(const SculptBrushTest *test, const float co[3])
@@ -1562,9 +1556,7 @@ bool SCULPT_brush_test_circle_sq(SculptBrushTest *test, const float co[3])
     test->dist = distsq;
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 bool SCULPT_brush_test_cube(SculptBrushTest *test,
@@ -1612,10 +1604,8 @@ bool SCULPT_brush_test_cube(SculptBrushTest *test,
     test->dist = 0.0f;
     return true;
   }
-  else {
-    /* Outside the square. */
-    return false;
-  }
+  /* Outside the square. */
+  return false;
 }
 
 SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(SculptSession *ss,
@@ -1641,10 +1631,8 @@ const float *SCULPT_brush_frontface_normal_from_falloff_shape(SculptSession *ss,
   if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
     return ss->cache->sculpt_normal_symm;
   }
-  else {
-    /* PAINT_FALLOFF_SHAPE_TUBE */
-    return ss->cache->view_normal;
-  }
+  /* PAINT_FALLOFF_SHAPE_TUBE */
+  return ss->cache->view_normal;
 }
 
 static float frontface(const Brush *br,
@@ -1666,9 +1654,7 @@ static float frontface(const Brush *br,
     }
     return dot > 0.0f ? dot : 0.0f;
   }
-  else {
-    return 1.0f;
-  }
+  return 1.0f;
 }
 
 #if 0
@@ -1728,9 +1714,7 @@ static float calc_overlap(StrokeCache *cache, const char symm, const char axis, 
   if (distsq <= 4.0f * (cache->radius_squared)) {
     return (2.0f * (cache->radius) - sqrtf(distsq)) / (2.0f * (cache->radius));
   }
-  else {
-    return 0.0f;
-  }
+  return 0.0f;
 }
 
 static float calc_radial_symmetry_feather(Sculpt *sd,
@@ -1768,9 +1752,7 @@ static float calc_symmetry_feather(Sculpt *sd, StrokeCache *cache)
 
     return 1.0f / overlap;
   }
-  else {
-    return 1.0f;
-  }
+  return 1.0f;
 }
 
 /** \name Calculate Normal and Center
@@ -7254,9 +7236,7 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
 
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 static void sculpt_stroke_update_step(bContext *C,

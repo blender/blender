@@ -115,9 +115,7 @@ static int vertex_color_set_exec(bContext *C, wmOperator *UNUSED(op))
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void PAINT_OT_vertex_color_set(wmOperatorType *ot)
@@ -182,9 +180,7 @@ static int vertex_paint_from_weight_exec(bContext *C, wmOperator *UNUSED(op))
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void PAINT_OT_vertex_color_from_weight(wmOperatorType *ot)
@@ -323,9 +319,7 @@ static int vertex_color_smooth_exec(bContext *C, wmOperator *UNUSED(op))
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void PAINT_OT_vertex_color_smooth(wmOperatorType *ot)
@@ -402,9 +396,7 @@ static int vertex_color_brightness_contrast_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void PAINT_OT_vertex_color_brightness_contrast(wmOperatorType *ot)
@@ -469,9 +461,7 @@ static int vertex_color_hsv_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void PAINT_OT_vertex_color_hsv(wmOperatorType *ot)
@@ -509,9 +499,7 @@ static int vertex_color_invert_exec(bContext *C, wmOperator *UNUSED(op))
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void PAINT_OT_vertex_color_invert(wmOperatorType *ot)
@@ -555,9 +543,7 @@ static int vertex_color_levels_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void PAINT_OT_vertex_color_levels(wmOperatorType *ot)

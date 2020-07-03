@@ -142,19 +142,15 @@ static char paintcurve_point_side_index(const BezTriple *bezt,
     if ((bezt->f1 & SELECT) == (bezt->f3 & SELECT)) {
       return is_first ? SEL_F1 : SEL_F3;
     }
-    else if (bezt->f1 & SELECT) {
+    if (bezt->f1 & SELECT) {
       return SEL_F1;
     }
-    else if (bezt->f3 & SELECT) {
+    if (bezt->f3 & SELECT) {
       return SEL_F3;
     }
-    else {
-      return fallback;
-    }
+    return fallback;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 /******************* Operators *********************************/
@@ -491,9 +487,7 @@ static int paintcurve_select_point_invoke(bContext *C, wmOperator *op, const wmE
     RNA_int_set_array(op->ptr, "location", loc);
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 static int paintcurve_select_point_exec(bContext *C, wmOperator *op)

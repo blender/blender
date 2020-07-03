@@ -557,11 +557,9 @@ static int project_brush_radius(ViewContext *vc, float radius, const float locat
     /* The distance between these points is the size of the projected brush in pixels. */
     return len_v2v2(p1, p2);
   }
-  else {
-    /* Assert because the code that sets up the vectors should disallow this. */
-    BLI_assert(0);
-    return 0;
-  }
+  /* Assert because the code that sets up the vectors should disallow this. */
+  BLI_assert(0);
+  return 0;
 }
 
 static bool sculpt_get_brush_geometry(bContext *C,

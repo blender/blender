@@ -94,9 +94,7 @@ float SCULPT_automasking_factor_get(SculptSession *ss, int vert)
   if (ss->cache && ss->cache->automask) {
     return ss->cache->automask[vert];
   }
-  else {
-    return 1.0f;
-  }
+  return 1.0f;
 }
 
 void SCULPT_automasking_end(Object *ob)

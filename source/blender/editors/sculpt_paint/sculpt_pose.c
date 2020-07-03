@@ -430,7 +430,7 @@ static bool pose_topology_floodfill_cb(
           co, data->pose_initial_co, data->radius, data->symm)) {
     return true;
   }
-  else if (SCULPT_check_vertex_pivot_symmetry(co, data->pose_initial_co, data->symm)) {
+  if (SCULPT_check_vertex_pivot_symmetry(co, data->pose_initial_co, data->symm)) {
     if (!is_duplicate) {
       add_v3_v3(data->pose_origin, co);
       data->tot_co++;

@@ -221,9 +221,7 @@ float SCULPT_neighbor_mask_average(SculptSession *ss, int index)
   if (total > 0) {
     return avg / (float)total;
   }
-  else {
-    return SCULPT_vertex_mask_get(ss, index);
-  }
+  return SCULPT_vertex_mask_get(ss, index);
 }
 
 void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], int index)

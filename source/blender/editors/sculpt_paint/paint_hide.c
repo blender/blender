@@ -70,13 +70,12 @@ static bool is_effected(PartialVisArea area,
   if (area == PARTIALVIS_ALL) {
     return true;
   }
-  else if (area == PARTIALVIS_MASKED) {
+  if (area == PARTIALVIS_MASKED) {
     return mask > 0.5f;
   }
-  else {
-    bool inside = isect_point_planes_v3(planes, 4, co);
-    return ((inside && area == PARTIALVIS_INSIDE) || (!inside && area == PARTIALVIS_OUTSIDE));
-  }
+
+  bool inside = isect_point_planes_v3(planes, 4, co);
+  return ((inside && area == PARTIALVIS_INSIDE) || (!inside && area == PARTIALVIS_OUTSIDE));
 }
 
 static void partialvis_update_mesh(Object *ob,
@@ -418,9 +417,7 @@ static int hide_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   if (!ELEM(area, PARTIALVIS_ALL, PARTIALVIS_MASKED)) {
     return WM_gesture_box_invoke(C, op, event);
   }
-  else {
-    return op->type->exec(C, op);
-  }
+  return op->type->exec(C, op);
 }
 
 void PAINT_OT_hide_show(struct wmOperatorType *ot)
