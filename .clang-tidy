@@ -30,6 +30,7 @@ Checks:  >
   -readability-redundant-string-cstr,
   -readability-static-accessed-through-instance,
   -readability-redundant-declaration,
+  -readability-qualified-auto,
 
   bugprone-*,
   -bugprone-narrowing-conversions,
@@ -50,5 +51,6 @@ Checks:  >
   -bugprone-parent-virtual-call,
   -bugprone-infinite-loop,
   -bugprone-copy-constructor-init,
+  -bugprone-lambda-function-name,
 
 WarningsAsErrors: '*'
