@@ -43,6 +43,10 @@ flat out float lineWidth;
 noperspective out float butCo;
 flat out float discardFac;
 
+#ifdef OS_MAC
+in float dummy;
+#endif
+
 vec2 do_widget(void)
 {
   lineWidth = abs(rect.x - recti.x);
@@ -175,4 +179,10 @@ void main()
   vec2 pos = (is_tria) ? do_tria() : do_widget();
 
   gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
+
+#ifdef OS_MAC
+  /* Generate a dummy read to avoid the driver bug with shaders having no
+   * vertex reads on macOS (T78307) */
+  gl_Position.x += dummy * 0.0;
+#endif
 }
