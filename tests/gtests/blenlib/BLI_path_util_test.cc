@@ -408,6 +408,20 @@ TEST(path_util, Frame)
     EXPECT_FALSE(ret);
     EXPECT_STREQ("test_middle", path);
   }
+
+  /* negative frame numbers */
+  {
+    char path[FILE_MAX] = "test_####";
+    ret = BLI_path_frame(path, -1, 4);
+    EXPECT_TRUE(ret);
+    EXPECT_STREQ("test_-0001", path);
+  }
+  {
+    char path[FILE_MAX] = "test_####";
+    ret = BLI_path_frame(path, -100, 4);
+    EXPECT_TRUE(ret);
+    EXPECT_STREQ("test_-0100", path);
+  }
 }
 
 /* BLI_split_dirfile */

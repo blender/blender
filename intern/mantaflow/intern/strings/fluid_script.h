@@ -502,10 +502,12 @@ gc.collect()\n";
 // BAKE
 //////////////////////////////////////////////////////////////////////
 
+/* This has to match the behavior of BLI_path_frame,
+ * for positive and negative frame numbers. */
 const std::string fluid_cache_helper =
     "\n\
 def fluid_cache_get_framenr_formatted_$ID$(framenr):\n\
-    return str(framenr).zfill(4) # framenr with leading zeroes\n";
+    return str(framenr).zfill(4) if framenr >= 0 else str(framenr).zfill(5)\n";
 
 const std::string fluid_bake_multiprocessing =
     "\n\
