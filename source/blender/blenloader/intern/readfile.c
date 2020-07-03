@@ -2034,7 +2034,6 @@ void blo_make_movieclip_pointer_map(FileData *fd, Main *oldmain)
 void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
 {
   OldNew *entry = fd->movieclipmap->entries;
-  MovieClip *clip = oldmain->movieclips.first;
   Scene *sce = oldmain->scenes.first;
   int i;
 
@@ -2043,10 +2042,6 @@ void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
     if (entry->nr > 0) {
       entry->newp = NULL;
     }
-  }
-
-  for (; clip; clip = clip->id.next) {
-    BLI_freelistN(&clip->runtime.gputextures);
   }
 
   for (; sce; sce = sce->id.next) {
@@ -8466,6 +8461,10 @@ static void direct_link_movieclip(BlendDataReader *reader, MovieClip *clip)
   clip->anim = NULL;
   clip->tracking_context = NULL;
   clip->tracking.stats = NULL;
+
+  /* TODO we could store those in undo cache storage as well, and preserve them instead of
+   * re-creating them... */
+  BLI_listbase_clear(&clip->runtime.gputextures);
 
   /* Needed for proper versioning, will be NULL for all newer files anyway. */
   BLO_read_data_address(reader, &clip->tracking.stabilization.rot_track);
