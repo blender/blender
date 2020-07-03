@@ -164,7 +164,7 @@ class SequencerFadesClear(Operator):
             if curve:
                 fcurves.remove(curve)
             setattr(sequence, animated_property, 1.0)
-            sequence.invalidate('COMPOSITE')
+            sequence.invalidate_cache('COMPOSITE')
 
         return {'FINISHED'}
 
@@ -233,7 +233,7 @@ class SequencerFadesAdd(Operator):
             self.fade_animation_clear(fade_fcurve, fades)
             self.fade_animation_create(fade_fcurve, fades)
             faded_sequences.append(sequence)
-            sequence.invalidate('COMPOSITE')
+            sequence.invalidate_cache('COMPOSITE')
 
         sequence_string = "sequence" if len(faded_sequences) == 1 else "sequences"
         self.report({'INFO'}, "Added fade animation to %d %s." % (len(faded_sequences), sequence_string))
