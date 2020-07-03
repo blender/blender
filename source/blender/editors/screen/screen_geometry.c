@@ -327,27 +327,26 @@ short screen_geom_find_area_split_point(const ScrArea *area,
 
     return y;
   }
-  else {
-    x = area->v1->vec.x + round_fl_to_short(fac * cur_area_width);
 
-    area_min = area_min_x;
+  x = area->v1->vec.x + round_fl_to_short(fac * cur_area_width);
 
-    if (area->v1->vec.x > window_rect->xmin) {
-      area_min += U.pixelsize;
-    }
-    if (area->v4->vec.x < (window_rect->xmax - 1)) {
-      area_min += U.pixelsize;
-    }
+  area_min = area_min_x;
 
-    if (x - area->v1->vec.x < area_min) {
-      x = area->v1->vec.x + area_min;
-    }
-    else if (area->v4->vec.x - x < area_min) {
-      x = area->v4->vec.x - area_min;
-    }
-
-    return x;
+  if (area->v1->vec.x > window_rect->xmin) {
+    area_min += U.pixelsize;
   }
+  if (area->v4->vec.x < (window_rect->xmax - 1)) {
+    area_min += U.pixelsize;
+  }
+
+  if (x - area->v1->vec.x < area_min) {
+    x = area->v1->vec.x + area_min;
+  }
+  else if (area->v4->vec.x - x < area_min) {
+    x = area->v4->vec.x - area_min;
+  }
+
+  return x;
 }
 
 /**

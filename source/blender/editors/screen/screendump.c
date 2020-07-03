@@ -91,10 +91,8 @@ static int screenshot_data_create(bContext *C, wmOperator *op)
 
     return true;
   }
-  else {
-    op->customdata = NULL;
-    return false;
-  }
+  op->customdata = NULL;
+  return false;
 }
 
 static void screenshot_data_free(wmOperator *op)

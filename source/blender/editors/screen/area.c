@@ -531,7 +531,7 @@ void ED_region_do_draw(bContext *C, ARegion *region)
     return;
   }
   /* optional header info instead? */
-  else if (region->headerstr) {
+  if (region->headerstr) {
     region_draw_status_text(area, region);
   }
   else if (at->draw) {
@@ -1128,9 +1128,8 @@ static int rct_fits(const rcti *rect, char dir, int size)
   if (dir == 'h') {
     return BLI_rcti_size_x(rect) + 1 - size;
   }
-  else { /* 'v' */
-    return BLI_rcti_size_y(rect) + 1 - size;
-  }
+  /* 'v' */
+  return BLI_rcti_size_y(rect) + 1 - size;
 }
 
 /* *************************************************************** */
@@ -1176,18 +1175,14 @@ static void region_overlap_fix(ScrArea *area, ARegion *region)
         region->flag |= RGN_FLAG_TOO_SMALL;
         return;
       }
-      else {
-        BLI_rcti_translate(&region->winrct, ar1->winx, 0);
-      }
+      BLI_rcti_translate(&region->winrct, ar1->winx, 0);
     }
     else if (align1 == RGN_ALIGN_RIGHT) {
       if (region->winrct.xmin - ar1->winx < U.widget_unit) {
         region->flag |= RGN_FLAG_TOO_SMALL;
         return;
       }
-      else {
-        BLI_rcti_translate(&region->winrct, -ar1->winx, 0);
-      }
+      BLI_rcti_translate(&region->winrct, -ar1->winx, 0);
     }
   }
 
@@ -3014,7 +3009,7 @@ ScrArea *ED_screen_areas_iter_first(const wmWindow *win, const bScreen *screen)
   if (!global_area) {
     return screen->areabase.first;
   }
-  else if ((global_area->global->flag & GLOBAL_AREA_IS_HIDDEN) == 0) {
+  if ((global_area->global->flag & GLOBAL_AREA_IS_HIDDEN) == 0) {
     return global_area;
   }
   /* Find next visible area. */

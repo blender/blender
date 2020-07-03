@@ -260,9 +260,7 @@ bool ED_operator_outliner_active_no_editobject(bContext *C)
     if (ob && ob == obedit) {
       return 0;
     }
-    else {
-      return 1;
-    }
+    return 1;
   }
   return 0;
 }
@@ -762,10 +760,10 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
       if (az->type == AZONE_AREA) {
         break;
       }
-      else if (az->type == AZONE_REGION) {
+      if (az->type == AZONE_REGION) {
         break;
       }
-      else if (az->type == AZONE_FULLSCREEN) {
+      if (az->type == AZONE_FULLSCREEN) {
         rcti click_rect;
         fullscreen_click_rcti_init(&click_rect, az->x1, az->y1, az->x2, az->y2);
         const bool click_isect = BLI_rcti_isect_pt_v(&click_rect, xy);
@@ -997,14 +995,13 @@ static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     actionzone_exit(op);
     return OPERATOR_FINISHED;
   }
-  else {
-    BLI_assert(ELEM(sad->az->type, AZONE_AREA, AZONE_REGION_SCROLL));
 
-    /* add modal handler */
-    G.moving |= G_TRANSFORM_WM;
-    WM_event_add_modal_handler(C, op);
-    return OPERATOR_RUNNING_MODAL;
-  }
+  BLI_assert(ELEM(sad->az->type, AZONE_AREA, AZONE_REGION_SCROLL));
+
+  /* add modal handler */
+  G.moving |= G_TRANSFORM_WM;
+  WM_event_add_modal_handler(C, op);
+  return OPERATOR_RUNNING_MODAL;
 }
 
 static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1392,9 +1389,7 @@ finally:
   if (newwin) {
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 static void SCREEN_OT_area_dupli(wmOperatorType *ot)
@@ -1492,21 +1487,21 @@ static void area_move_set_limits(wmWindow *win,
         return;
       }
       /* top edge */
-      else if ((area->v2->editflag && area->v3->editflag)) {
+      if ((area->v2->editflag && area->v3->editflag)) {
         *smaller = area->v1->vec.y + size_min;
         *bigger = area->v1->vec.y + size_max;
         *use_bigger_smaller_snap = true;
         return;
       }
       /* right edge */
-      else if ((area->v3->editflag && area->v4->editflag)) {
+      if ((area->v3->editflag && area->v4->editflag)) {
         *smaller = area->v1->vec.x + size_min;
         *bigger = area->v1->vec.x + size_max;
         *use_bigger_smaller_snap = true;
         return;
       }
       /* lower edge */
-      else if ((area->v4->editflag && area->v1->editflag)) {
+      if ((area->v4->editflag && area->v1->editflag)) {
         *smaller = area->v2->vec.y - size_max;
         *bigger = area->v2->vec.y - size_min;
         *use_bigger_smaller_snap = true;
@@ -2046,13 +2041,13 @@ static ScrEdge *area_findsharededge(bScreen *screen, ScrArea *area, ScrArea *sb)
   if (sav1 == sbv4 && sav2 == sbv3) { /* area to right of sb = W */
     return BKE_screen_find_edge(screen, sav1, sav2);
   }
-  else if (sav2 == sbv1 && sav3 == sbv4) { /* area to bottom of sb = N */
+  if (sav2 == sbv1 && sav3 == sbv4) { /* area to bottom of sb = N */
     return BKE_screen_find_edge(screen, sav2, sav3);
   }
-  else if (sav3 == sbv2 && sav4 == sbv1) { /* area to left of sb = E */
+  if (sav3 == sbv2 && sav4 == sbv1) { /* area to left of sb = E */
     return BKE_screen_find_edge(screen, sav3, sav4);
   }
-  else if (sav1 == sbv2 && sav4 == sbv3) { /* area on top of sb = S*/
+  if (sav1 == sbv2 && sav4 == sbv3) { /* area on top of sb = S*/
     return BKE_screen_find_edge(screen, sav1, sav4);
   }
 
@@ -3028,15 +3023,14 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_CANCELLED;
   }
-  else {
-    areas_do_frame_follow(C, true);
 
-    DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
+  areas_do_frame_follow(C, true);
 
-    WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
 
-    return OPERATOR_FINISHED;
-  }
+  WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+
+  return OPERATOR_FINISHED;
 }
 
 static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
@@ -3092,17 +3086,16 @@ static int marker_jump_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_CANCELLED;
   }
-  else {
-    CFRA = closest;
 
-    areas_do_frame_follow(C, true);
+  CFRA = closest;
 
-    DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
+  areas_do_frame_follow(C, true);
 
-    WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
 
-    return OPERATOR_FINISHED;
-  }
+  WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+
+  return OPERATOR_FINISHED;
 }
 
 static void SCREEN_OT_marker_jump(wmOperatorType *ot)
@@ -3366,10 +3359,8 @@ static int area_join_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     if (sad->sa1 == sad->sa2) {
       return OPERATOR_PASS_THROUGH;
     }
-    else {
-      if (!area_join_init(C, op, sad->sa1, sad->sa2)) {
-        return OPERATOR_CANCELLED;
-      }
+    if (!area_join_init(C, op, sad->sa1, sad->sa2)) {
+      return OPERATOR_CANCELLED;
     }
   }
 
@@ -3677,9 +3668,7 @@ static int repeat_last_exec(bContext *C, wmOperator *UNUSED(op))
     if (lastop->type->flag & OPTYPE_REGISTER) {
       break;
     }
-    else {
-      lastop = lastop->prev;
-    }
+    lastop = lastop->prev;
   }
 
   if (lastop) {
@@ -4391,7 +4380,7 @@ static void screen_animation_region_tag_redraw(ScrArea *area,
       ED_region_tag_redraw(region);
       return;
     }
-    else if (scene->r.cfra > region->v2d.cur.xmax) {
+    if (scene->r.cfra > region->v2d.cur.xmax) {
       region->v2d.cur.xmin = scene->r.cfra;
       region->v2d.cur.xmax = region->v2d.cur.xmin + w;
       ED_region_tag_redraw(region);
@@ -4916,10 +4905,8 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
-    return OPERATOR_CANCELLED;
-  }
+  BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
+  return OPERATOR_CANCELLED;
 }
 
 static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
@@ -4994,10 +4981,8 @@ static int drivers_editor_show_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
-    return OPERATOR_CANCELLED;
-  }
+  BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
+  return OPERATOR_CANCELLED;
 }
 
 static void SCREEN_OT_drivers_editor_show(struct wmOperatorType *ot)
@@ -5038,10 +5023,8 @@ static int info_log_show_exec(bContext *C, wmOperator *op)
                           false) != NULL) {
     return OPERATOR_FINISHED;
   }
-  else {
-    BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
-    return OPERATOR_CANCELLED;
-  }
+  BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
+  return OPERATOR_CANCELLED;
 }
 
 static void SCREEN_OT_info_log_show(struct wmOperatorType *ot)
