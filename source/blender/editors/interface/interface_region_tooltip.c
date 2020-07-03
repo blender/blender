@@ -763,9 +763,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
     MEM_freeN(data);
     return NULL;
   }
-  else {
-    return data;
-  }
+  return data;
 }
 
 static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
@@ -1045,9 +1043,7 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
     MEM_freeN(data);
     return NULL;
   }
-  else {
-    return data;
-  }
+  return data;
 }
 
 static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
@@ -1144,9 +1140,7 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
     MEM_freeN(data);
     return NULL;
   }
-  else {
-    return data;
-  }
+  return data;
 }
 
 static ARegion *ui_tooltip_create_with_data(bContext *C,

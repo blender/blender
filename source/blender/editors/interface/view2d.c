@@ -74,12 +74,10 @@ BLI_INLINE int clamp_float_to_int(const float f)
   if (UNLIKELY(f < min)) {
     return min;
   }
-  else if (UNLIKELY(f > max)) {
+  if (UNLIKELY(f > max)) {
     return (int)max;
   }
-  else {
-    return (int)f;
-  }
+  return (int)f;
 }
 
 /**
@@ -1756,12 +1754,11 @@ bool UI_view2d_view_to_region_clip(
 
     return true;
   }
-  else {
-    /* set initial value in case coordinate lies outside of bounds */
-    *r_region_x = *r_region_y = V2D_IS_CLIPPED;
 
-    return false;
-  }
+  /* set initial value in case coordinate lies outside of bounds */
+  *r_region_x = *r_region_y = V2D_IS_CLIPPED;
+
+  return false;
 }
 
 /**
@@ -1855,11 +1852,9 @@ bool UI_view2d_view_to_region_rcti_clip(const View2D *v2d, const rctf *rect_src,
 
     return true;
   }
-  else {
-    rect_dst->xmin = rect_dst->xmax = rect_dst->ymin = rect_dst->ymax = V2D_IS_CLIPPED;
 
-    return false;
-  }
+  rect_dst->xmin = rect_dst->xmax = rect_dst->ymin = rect_dst->ymax = V2D_IS_CLIPPED;
+  return false;
 }
 
 /** \} */

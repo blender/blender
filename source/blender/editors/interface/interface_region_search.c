@@ -292,16 +292,14 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
 
     return true;
   }
-  else if (but->flag & UI_BUT_VALUE_CLEAR) {
+  if (but->flag & UI_BUT_VALUE_CLEAR) {
     /* It is valid for _VALUE_CLEAR flavor to have no active element
      * (it's a valid way to unlink). */
     but->editstr[0] = '\0';
 
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 static struct ARegion *wm_searchbox_tooltip_init(struct bContext *C,

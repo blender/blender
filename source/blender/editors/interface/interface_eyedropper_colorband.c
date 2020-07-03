@@ -314,9 +314,7 @@ static int eyedropper_colorband_invoke(bContext *C, wmOperator *op, const wmEven
 
     return OPERATOR_RUNNING_MODAL;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 /* Repeat operator */
@@ -332,9 +330,7 @@ static int eyedropper_colorband_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 static bool eyedropper_colorband_poll(bContext *C)

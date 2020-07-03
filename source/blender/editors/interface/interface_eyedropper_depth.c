@@ -321,9 +321,7 @@ static int depthdropper_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 
     return OPERATOR_RUNNING_MODAL;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 /* Repeat operator */
@@ -336,9 +334,7 @@ static int depthdropper_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 static bool depthdropper_poll(bContext *C)

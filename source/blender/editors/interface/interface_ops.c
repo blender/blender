@@ -209,10 +209,9 @@ static int copy_as_driver_button_exec(bContext *C, wmOperator *op)
       MEM_freeN(path);
       return OPERATOR_FINISHED;
     }
-    else {
-      BKE_reportf(op->reports, RPT_ERROR, "Could not compute a valid data path");
-      return OPERATOR_CANCELLED;
-    }
+
+    BKE_reportf(op->reports, RPT_ERROR, "Could not compute a valid data path");
+    return OPERATOR_CANCELLED;
   }
 
   return OPERATOR_CANCELLED;
@@ -312,9 +311,7 @@ static int operator_button_property_finish(bContext *C, PointerRNA *ptr, Propert
     /* do nothing, go ahead with undo */
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 static bool reset_default_button_poll(bContext *C)
@@ -1005,11 +1002,9 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
                 success = true;
                 break;
               }
-              else {
-                if (RNA_property_copy(bmain, &lptr, &ptr, prop, (all) ? -1 : index)) {
-                  RNA_property_update(C, &lptr, prop);
-                  success = true;
-                }
+              if (RNA_property_copy(bmain, &lptr, &ptr, prop, (all) ? -1 : index)) {
+                RNA_property_update(C, &lptr, prop);
+                success = true;
               }
             }
           }
@@ -1149,7 +1144,7 @@ static bool jump_to_target_button(bContext *C, bool poll)
       return jump_to_target_ptr(C, target_ptr, poll);
     }
     /* For string properties with prop_search, look up the search collection item. */
-    else if (type == PROP_STRING) {
+    if (type == PROP_STRING) {
       const uiBut *but = UI_context_active_but_get(C);
 
       if (but->type == UI_BTYPE_SEARCH_MENU && but->search &&
@@ -1265,9 +1260,7 @@ static bool ui_editsource_uibut_match(uiBut *but_a, uiBut *but_b)
       STREQLEN(but_a->drawstr, but_b->drawstr, UI_MAX_DRAW_STR)) {
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 void UI_editsource_active_but_test(uiBut *but)
@@ -1323,21 +1316,20 @@ static int editsource_text_edit(bContext *C,
     BKE_reportf(op->reports, RPT_WARNING, "File '%s' cannot be opened", filepath);
     return OPERATOR_CANCELLED;
   }
-  else {
-    /* naughty!, find text area to set, not good behavior
-     * but since this is a dev tool lets allow it - campbell */
-    ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TEXT, 0);
-    if (area) {
-      SpaceText *st = area->spacedata.first;
-      st->text = text;
-    }
-    else {
-      BKE_reportf(op->reports, RPT_INFO, "See '%s' in the text editor", text->id.name + 2);
-    }
 
-    txt_move_toline(text, line - 1, false);
-    WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
+  /* naughty!, find text area to set, not good behavior
+   * but since this is a dev tool lets allow it - campbell */
+  ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TEXT, 0);
+  if (area) {
+    SpaceText *st = area->spacedata.first;
+    st->text = text;
   }
+  else {
+    BKE_reportf(op->reports, RPT_INFO, "See '%s' in the text editor", text->id.name + 2);
+  }
+
+  txt_move_toline(text, line - 1, false);
+  WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
 
   return OPERATOR_FINISHED;
 }
@@ -1397,10 +1389,9 @@ static int editsource_exec(bContext *C, wmOperator *op)
 
     return ret;
   }
-  else {
-    BKE_report(op->reports, RPT_ERROR, "Active button not found");
-    return OPERATOR_CANCELLED;
-  }
+
+  BKE_report(op->reports, RPT_ERROR, "Active button not found");
+  return OPERATOR_CANCELLED;
 }
 
 static void UI_OT_editsource(wmOperatorType *ot)
@@ -1585,10 +1576,9 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 
     return ret;
   }
-  else {
-    BKE_report(op->reports, RPT_ERROR, "Active button not found");
-    return OPERATOR_CANCELLED;
-  }
+
+  BKE_report(op->reports, RPT_ERROR, "Active button not found");
+  return OPERATOR_CANCELLED;
 }
 
 static void UI_OT_edittranslation_init(wmOperatorType *ot)

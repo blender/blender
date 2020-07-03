@@ -147,22 +147,22 @@ static int panel_aligned(const ScrArea *area, const ARegion *region)
   if (area->spacetype == SPACE_PROPERTIES && region->regiontype == RGN_TYPE_WINDOW) {
     return BUT_VERTICAL;
   }
-  else if (area->spacetype == SPACE_USERPREF && region->regiontype == RGN_TYPE_WINDOW) {
+  if (area->spacetype == SPACE_USERPREF && region->regiontype == RGN_TYPE_WINDOW) {
     return BUT_VERTICAL;
   }
-  else if (area->spacetype == SPACE_FILE && region->regiontype == RGN_TYPE_CHANNELS) {
+  if (area->spacetype == SPACE_FILE && region->regiontype == RGN_TYPE_CHANNELS) {
     return BUT_VERTICAL;
   }
-  else if (area->spacetype == SPACE_IMAGE && region->regiontype == RGN_TYPE_PREVIEW) {
+  if (area->spacetype == SPACE_IMAGE && region->regiontype == RGN_TYPE_PREVIEW) {
     return BUT_VERTICAL;
   }
-  else if (ELEM(region->regiontype,
-                RGN_TYPE_UI,
-                RGN_TYPE_TOOLS,
-                RGN_TYPE_TOOL_PROPS,
-                RGN_TYPE_HUD,
-                RGN_TYPE_NAV_BAR,
-                RGN_TYPE_EXECUTE)) {
+  if (ELEM(region->regiontype,
+           RGN_TYPE_UI,
+           RGN_TYPE_TOOLS,
+           RGN_TYPE_TOOL_PROPS,
+           RGN_TYPE_HUD,
+           RGN_TYPE_NAV_BAR,
+           RGN_TYPE_EXECUTE)) {
     return BUT_VERTICAL;
   }
 
@@ -1323,9 +1323,7 @@ static int get_panel_real_ofsy(Panel *panel)
   if (panel->flag & PNL_CLOSEDY) {
     return panel->ofsy + panel->sizey;
   }
-  else {
-    return panel->ofsy;
-  }
+  return panel->ofsy;
 }
 
 static int get_panel_real_ofsx(Panel *panel)
@@ -1333,9 +1331,7 @@ static int get_panel_real_ofsx(Panel *panel)
   if (panel->flag & PNL_CLOSEDX) {
     return panel->ofsx + get_panel_header(panel);
   }
-  else {
-    return panel->ofsx + panel->sizex;
-  }
+  return panel->ofsx + panel->sizex;
 }
 
 bool UI_panel_is_dragging(const struct Panel *panel)
@@ -1363,13 +1359,13 @@ static int find_leftmost_panel(const void *a1, const void *a2)
   if (ps1->panel->ofsx > ps2->panel->ofsx) {
     return 1;
   }
-  else if (ps1->panel->ofsx < ps2->panel->ofsx) {
+  if (ps1->panel->ofsx < ps2->panel->ofsx) {
     return -1;
   }
-  else if (ps1->panel->sortorder > ps2->panel->sortorder) {
+  if (ps1->panel->sortorder > ps2->panel->sortorder) {
     return 1;
   }
-  else if (ps1->panel->sortorder < ps2->panel->sortorder) {
+  if (ps1->panel->sortorder < ps2->panel->sortorder) {
     return -1;
   }
 
@@ -1385,23 +1381,23 @@ static int find_highest_panel(const void *a1, const void *a2)
   if (ps1->panel->type->flag & PNL_NO_HEADER && ps2->panel->type->flag & PNL_NO_HEADER) {
     /* skip and check for ofs and sortorder below */
   }
-  else if (ps1->panel->type->flag & PNL_NO_HEADER) {
+  if (ps1->panel->type->flag & PNL_NO_HEADER) {
     return -1;
   }
-  else if (ps2->panel->type->flag & PNL_NO_HEADER) {
+  if (ps2->panel->type->flag & PNL_NO_HEADER) {
     return 1;
   }
 
   if (ps1->panel->ofsy + ps1->panel->sizey < ps2->panel->ofsy + ps2->panel->sizey) {
     return 1;
   }
-  else if (ps1->panel->ofsy + ps1->panel->sizey > ps2->panel->ofsy + ps2->panel->sizey) {
+  if (ps1->panel->ofsy + ps1->panel->sizey > ps2->panel->ofsy + ps2->panel->sizey) {
     return -1;
   }
-  else if (ps1->panel->sortorder > ps2->panel->sortorder) {
+  if (ps1->panel->sortorder > ps2->panel->sortorder) {
     return 1;
   }
-  else if (ps1->panel->sortorder < ps2->panel->sortorder) {
+  if (ps1->panel->sortorder < ps2->panel->sortorder) {
     return -1;
   }
 
@@ -1415,7 +1411,7 @@ static int compare_panel(const void *a1, const void *a2)
   if (ps1->panel->sortorder > ps2->panel->sortorder) {
     return 1;
   }
-  else if (ps1->panel->sortorder < ps2->panel->sortorder) {
+  if (ps1->panel->sortorder < ps2->panel->sortorder) {
     return -1;
   }
 
@@ -2838,7 +2834,7 @@ int ui_handler_panel_region(bContext *C,
             retval = WM_UI_HANDLER_BREAK;
             break;
           }
-          else if ((mouse_state == PANEL_MOUSE_INSIDE_SCALE) && !(panel->flag & PNL_CLOSED)) {
+          if ((mouse_state == PANEL_MOUSE_INSIDE_SCALE) && !(panel->flag & PNL_CLOSED)) {
             panel_activate_state(C, panel, PANEL_STATE_DRAG_SCALE);
             retval = WM_UI_HANDLER_BREAK;
             break;
@@ -2993,9 +2989,7 @@ static int ui_handler_panel(bContext *C, const wmEvent *event, void *userdata)
   if (data && data->state == PANEL_STATE_ANIMATION) {
     return WM_UI_HANDLER_CONTINUE;
   }
-  else {
-    return WM_UI_HANDLER_BREAK;
-  }
+  return WM_UI_HANDLER_BREAK;
 }
 
 static void ui_handler_remove_panel(bContext *C, void *userdata)

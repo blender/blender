@@ -1408,7 +1408,7 @@ bool UI_GetIconThemeColor4ubv(int colorid, uchar col[4])
   if (colorid == 0) {
     return false;
   }
-  else if (colorid == TH_ICON_FUND) {
+  if (colorid == TH_ICON_FUND) {
     /* Always color development fund icon. */
   }
   else if (!((theme_spacetype == SPACE_OUTLINER && theme_regionid == RGN_TYPE_WINDOW) ||

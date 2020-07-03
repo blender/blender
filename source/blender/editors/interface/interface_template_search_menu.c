@@ -346,7 +346,7 @@ static void menu_types_add_from_keymap_items(bContext *C,
         continue;
       }
 
-      else if (handler_base->poll == NULL || handler_base->poll(region, win->eventstate)) {
+      if (handler_base->poll == NULL || handler_base->poll(region, win->eventstate)) {
         wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
         wmKeyMap *keymap = WM_event_get_keymap_from_handler(wm, handler);
         if (keymap && WM_keymap_poll(C, keymap)) {

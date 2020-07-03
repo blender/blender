@@ -1608,57 +1608,56 @@ static int view2d_ndof_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;
   }
-  else {
-    const wmNDOFMotionData *ndof = event->customdata;
 
-    /* tune these until it feels right */
-    const float zoom_sensitivity = 0.5f;
-    const float speed = 10.0f; /* match view3d ortho */
-    const bool has_translate = (ndof->tvec[0] && ndof->tvec[1]) && view_pan_poll(C);
-    const bool has_zoom = (ndof->tvec[2] != 0.0f) && view_zoom_poll(C);
+  const wmNDOFMotionData *ndof = event->customdata;
 
-    if (has_translate) {
-      if (view_pan_init(C, op)) {
-        v2dViewPanData *vpd;
-        float pan_vec[3];
+  /* tune these until it feels right */
+  const float zoom_sensitivity = 0.5f;
+  const float speed = 10.0f; /* match view3d ortho */
+  const bool has_translate = (ndof->tvec[0] && ndof->tvec[1]) && view_pan_poll(C);
+  const bool has_zoom = (ndof->tvec[2] != 0.0f) && view_zoom_poll(C);
 
-        WM_event_ndof_pan_get(ndof, pan_vec, false);
+  if (has_translate) {
+    if (view_pan_init(C, op)) {
+      v2dViewPanData *vpd;
+      float pan_vec[3];
 
-        pan_vec[0] *= speed;
-        pan_vec[1] *= speed;
+      WM_event_ndof_pan_get(ndof, pan_vec, false);
 
-        vpd = op->customdata;
+      pan_vec[0] *= speed;
+      pan_vec[1] *= speed;
 
-        view_pan_apply_ex(C, vpd, pan_vec[0], pan_vec[1]);
+      vpd = op->customdata;
 
-        view_pan_exit(op);
-      }
+      view_pan_apply_ex(C, vpd, pan_vec[0], pan_vec[1]);
+
+      view_pan_exit(op);
     }
-
-    if (has_zoom) {
-      if (view_zoomdrag_init(C, op)) {
-        v2dViewZoomData *vzd;
-        float zoom_factor = zoom_sensitivity * ndof->dt * -ndof->tvec[2];
-
-        bool do_zoom_xy[2];
-
-        if (U.ndof_flag & NDOF_ZOOM_INVERT) {
-          zoom_factor = -zoom_factor;
-        }
-
-        view_zoom_axis_lock_defaults(C, do_zoom_xy);
-
-        vzd = op->customdata;
-
-        view_zoomstep_apply_ex(
-            C, vzd, false, do_zoom_xy[0] ? zoom_factor : 0.0f, do_zoom_xy[1] ? zoom_factor : 0.0f);
-
-        view_zoomstep_exit(op);
-      }
-    }
-
-    return OPERATOR_FINISHED;
   }
+
+  if (has_zoom) {
+    if (view_zoomdrag_init(C, op)) {
+      v2dViewZoomData *vzd;
+      float zoom_factor = zoom_sensitivity * ndof->dt * -ndof->tvec[2];
+
+      bool do_zoom_xy[2];
+
+      if (U.ndof_flag & NDOF_ZOOM_INVERT) {
+        zoom_factor = -zoom_factor;
+      }
+
+      view_zoom_axis_lock_defaults(C, do_zoom_xy);
+
+      vzd = op->customdata;
+
+      view_zoomstep_apply_ex(
+          C, vzd, false, do_zoom_xy[0] ? zoom_factor : 0.0f, do_zoom_xy[1] ? zoom_factor : 0.0f);
+
+      view_zoomstep_exit(op);
+    }
+  }
+
+  return OPERATOR_FINISHED;
 }
 
 static void VIEW2D_OT_ndof(wmOperatorType *ot)
@@ -1975,16 +1974,16 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
   if (in_bar) {
     return SCROLLHANDLE_BAR;
   }
-  else if (in_max) {
+  if (in_max) {
     return SCROLLHANDLE_MAX;
   }
-  else if (in_min) {
+  if (in_min) {
     return SCROLLHANDLE_MIN;
   }
-  else if (out_min) {
+  if (out_min) {
     return SCROLLHANDLE_MIN_OUTSIDE;
   }
-  else if (out_max) {
+  if (out_max) {
     return SCROLLHANDLE_MAX_OUTSIDE;
   }
 
@@ -2323,11 +2322,10 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
     WM_event_add_modal_handler(C, op);
     return OPERATOR_RUNNING_MODAL;
   }
-  else {
-    /* not in scroller, so nothing happened...
-     * (pass through let's something else catch event) */
-    return OPERATOR_PASS_THROUGH;
-  }
+
+  /* not in scroller, so nothing happened...
+   * (pass through let's something else catch event) */
+  return OPERATOR_PASS_THROUGH;
 }
 
 /* LMB-Drag in Scrollers - not repeatable operator! */

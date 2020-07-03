@@ -593,10 +593,10 @@ int UI_icon_from_event_type(short event_type, short event_value)
   if (event_type == LEFTMOUSE) {
     return ELEM(event_value, KM_CLICK, KM_PRESS) ? ICON_MOUSE_LMB : ICON_MOUSE_LMB_DRAG;
   }
-  else if (event_type == MIDDLEMOUSE) {
+  if (event_type == MIDDLEMOUSE) {
     return ELEM(event_value, KM_CLICK, KM_PRESS) ? ICON_MOUSE_MMB : ICON_MOUSE_MMB_DRAG;
   }
-  else if (event_type == RIGHTMOUSE) {
+  if (event_type == RIGHTMOUSE) {
     return ELEM(event_value, KM_CLICK, KM_PRESS) ? ICON_MOUSE_RMB : ICON_MOUSE_RMB_DRAG;
   }
 
@@ -2139,7 +2139,8 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
       }
       return id->icon_id;
     }
-    else if (paint_mode != PAINT_MODE_INVALID) {
+
+    if (paint_mode != PAINT_MODE_INVALID) {
       items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
       const uint tool_offset = BKE_paint_get_brush_tool_offset_from_paintmode(paint_mode);
       const int tool_type = *(char *)POINTER_OFFSET(br, tool_offset);
@@ -2198,14 +2199,12 @@ int UI_library_icon_get(const ID *id)
     if (id->tag & LIB_TAG_MISSING) {
       return ICON_LIBRARY_DATA_BROKEN;
     }
-    else if (id->tag & LIB_TAG_INDIRECT) {
+    if (id->tag & LIB_TAG_INDIRECT) {
       return ICON_LIBRARY_DATA_INDIRECT;
     }
-    else {
-      return ICON_LIBRARY_DATA_DIRECT;
-    }
+    return ICON_LIBRARY_DATA_DIRECT;
   }
-  else if (ID_IS_OVERRIDE_LIBRARY(id)) {
+  if (ID_IS_OVERRIDE_LIBRARY(id)) {
     return ICON_LIBRARY_DATA_OVERRIDE;
   }
 
@@ -2239,10 +2238,10 @@ int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big
     if (surface->format == MOD_DPAINT_SURFACE_F_PTEX) {
       return ICON_SHADING_TEXTURE;
     }
-    else if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
+    if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
       return ICON_OUTLINER_DATA_MESH;
     }
-    else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
+    if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
       return ICON_FILE_IMAGE;
     }
   }

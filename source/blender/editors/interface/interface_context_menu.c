@@ -104,7 +104,8 @@ static const char *shortcut_get_operator_property(bContext *C, uiBut *but, IDPro
     *r_prop = (but->opptr && but->opptr->data) ? IDP_CopyProperty(but->opptr->data) : NULL;
     return but->optype->idname;
   }
-  else if (but->rnaprop) {
+
+  if (but->rnaprop) {
     const PropertyType rnaprop_type = RNA_property_type(but->rnaprop);
 
     if (rnaprop_type == PROP_BOOLEAN) {
@@ -115,7 +116,7 @@ static const char *shortcut_get_operator_property(bContext *C, uiBut *but, IDPro
       }
       return "WM_OT_context_toggle";
     }
-    else if (rnaprop_type == PROP_ENUM) {
+    if (rnaprop_type == PROP_ENUM) {
       /* Enum */
       *r_prop = shortcut_property_from_rna(C, but);
       if (*r_prop == NULL) {
@@ -351,7 +352,7 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *
     return (bUserMenuItem *)ED_screen_user_menu_item_find_operator(
         &um->items, but->optype, prop, but->opcontext);
   }
-  else if (but->rnaprop) {
+  if (but->rnaprop) {
     const char *member_id = WM_context_member_from_ptr(C, &but->rnapoin);
     const char *data_path = RNA_path_from_ID_to_struct(&but->rnapoin);
     const char *member_id_data_path = member_id;
@@ -369,12 +370,10 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *
     }
     return umi;
   }
-  else if ((mt = UI_but_menutype_get(but))) {
+  if ((mt = UI_but_menutype_get(but))) {
     return (bUserMenuItem *)ED_screen_user_menu_item_find_menu(&um->items, mt);
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)

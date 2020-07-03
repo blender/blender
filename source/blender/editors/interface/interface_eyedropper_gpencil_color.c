@@ -324,9 +324,7 @@ static int eyedropper_gpencil_invoke(bContext *C, wmOperator *op, const wmEvent 
 
     return OPERATOR_RUNNING_MODAL;
   }
-  else {
-    return OPERATOR_PASS_THROUGH;
-  }
+  return OPERATOR_PASS_THROUGH;
 }
 
 /* Repeat operator */
@@ -340,9 +338,7 @@ static int eyedropper_gpencil_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_PASS_THROUGH;
-  }
+  return OPERATOR_PASS_THROUGH;
 }
 
 static bool eyedropper_gpencil_poll(bContext *C)

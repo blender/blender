@@ -1152,9 +1152,7 @@ ID *UI_context_active_but_get_tab_ID(bContext *C)
   if (but && but->type == UI_BTYPE_TAB) {
     return but->custom_data;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 static void template_ID_tabs(const bContext *C,
@@ -1847,9 +1845,7 @@ static Object *get_context_object(const bContext *C)
   if (sbuts != NULL && (sbuts->pinid != NULL) && GS(sbuts->pinid->name) == ID_OB) {
     return (Object *)sbuts->pinid;
   }
-  else {
-    return CTX_data_active_object(C);
-  }
+  return CTX_data_active_object(C);
 }
 
 static void modifier_panel_id(void *md_link, char *r_name)
@@ -2270,10 +2266,9 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
     UI_block_lock_set(block, true, "Operator can't' redo");
     return return_info;
   }
-  else {
-    /* useful for macros where only one of the steps can't be re-done */
-    UI_block_lock_clear(block);
-  }
+
+  /* useful for macros where only one of the steps can't be re-done */
+  UI_block_lock_clear(block);
 
   if (layout_flags & UI_TEMPLATE_OP_PROPS_SHOW_TITLE) {
     uiItemL(layout, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
@@ -4976,7 +4971,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
       selection_y = &point->y;
       break;
     }
-    else if (profile->path[i].flag & PROF_H1_SELECT) {
+    if (profile->path[i].flag & PROF_H1_SELECT) {
       point = &profile->path[i];
       selection_x = &point->h1_loc[0];
       selection_y = &point->h1_loc[1];
@@ -6630,48 +6625,48 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
       owner = scene;
       break;
     }
-    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_SEQ_BUILD_PREVIEW)) {
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_SEQ_BUILD_PREVIEW)) {
       handle_event = B_STOPSEQ;
       icon = ICON_SEQUENCE;
       break;
     }
-    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_BUILD_PROXY)) {
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_BUILD_PROXY)) {
       handle_event = B_STOPCLIP;
       icon = ICON_TRACKER;
       break;
     }
-    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_PREFETCH)) {
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_PREFETCH)) {
       handle_event = B_STOPCLIP;
       icon = ICON_TRACKER;
       break;
     }
-    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_TRACK_MARKERS)) {
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_TRACK_MARKERS)) {
       handle_event = B_STOPCLIP;
       icon = ICON_TRACKER;
       break;
     }
-    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_SOLVE_CAMERA)) {
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_SOLVE_CAMERA)) {
       handle_event = B_STOPCLIP;
       icon = ICON_TRACKER;
       break;
     }
-    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_FILESEL_READDIR)) {
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_FILESEL_READDIR)) {
       handle_event = B_STOPFILE;
       icon = ICON_FILEBROWSER;
       break;
     }
-    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER)) {
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER)) {
       handle_event = B_STOPRENDER;
       icon = ICON_SCENE;
       break;
     }
-    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE)) {
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE)) {
       handle_event = B_STOPCOMPO;
       icon = ICON_RENDERLAYERS;
       break;
     }
-    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE) ||
-             WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_BAKE)) {
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE) ||
+        WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_BAKE)) {
       /* Skip bake jobs in compositor to avoid compo header displaying
        * progress bar which is not being updated (bake jobs only need
        * to update NC_IMAGE context.
@@ -6681,23 +6676,24 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
         icon = ICON_IMAGE;
         break;
       }
+      continue;
     }
-    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_DPAINT_BAKE)) {
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_DPAINT_BAKE)) {
       handle_event = B_STOPOTHER;
       icon = ICON_MOD_DYNAMICPAINT;
       break;
     }
-    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_POINTCACHE)) {
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_POINTCACHE)) {
       handle_event = B_STOPOTHER;
       icon = ICON_PHYSICS;
       break;
     }
-    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
       handle_event = B_STOPOTHER;
       icon = ICON_MOD_FLUIDSIM;
       break;
     }
-    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_SIM_OCEAN)) {
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_SIM_OCEAN)) {
       handle_event = B_STOPOTHER;
       icon = ICON_MOD_OCEAN;
       break;

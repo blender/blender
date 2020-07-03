@@ -147,9 +147,7 @@ uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *ev
   if (ELEM(NULL, but, but->rnapoin.data, but->rnaprop)) {
     return NULL;
   }
-  else {
-    return but;
-  }
+  return but;
 }
 
 /** \} */

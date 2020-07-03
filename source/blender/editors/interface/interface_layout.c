@@ -250,28 +250,23 @@ static int ui_item_fit(
     if (is_last) {
       return available - pos;
     }
-    else {
-      float width = *extra_pixel + (item * available) / (float)all;
-      *extra_pixel = width - (int)width;
-      return (int)width;
-    }
+
+    float width = *extra_pixel + (item * available) / (float)all;
+    *extra_pixel = width - (int)width;
+    return (int)width;
   }
-  else {
-    /* contents is smaller or equal to available space */
-    if (alignment == UI_LAYOUT_ALIGN_EXPAND) {
-      if (is_last) {
-        return available - pos;
-      }
-      else {
-        float width = *extra_pixel + (item * available) / (float)all;
-        *extra_pixel = width - (int)width;
-        return (int)width;
-      }
+
+  /* contents is smaller or equal to available space */
+  if (alignment == UI_LAYOUT_ALIGN_EXPAND) {
+    if (is_last) {
+      return available - pos;
     }
-    else {
-      return item;
-    }
+
+    float width = *extra_pixel + (item * available) / (float)all;
+    *extra_pixel = width - (int)width;
+    return (int)width;
   }
+  return item;
 }
 
 /* variable button size in which direction? */
@@ -323,9 +318,7 @@ static int ui_text_icon_width(uiLayout *layout, const char *name, int icon, bool
     }
     return UI_fontstyle_string_width(fstyle, name) + (unit_x * margin);
   }
-  else {
-    return unit_x * 10;
-  }
+  return unit_x * 10;
 }
 
 static void ui_item_size(uiItem *item, int *r_w, int *r_h)
@@ -1458,9 +1451,7 @@ void uiItemsFullEnumO_items(uiLayout *layout,
           /* break since rest of items is handled in new pie level */
           break;
         }
-        else {
-          last_iter = true;
-        }
+        last_iter = true;
       }
       else {
         continue;
@@ -2579,43 +2570,42 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
     RNA_warning("not an enum property: %s.%s", RNA_struct_identifier(ptr->type), propname);
     return;
   }
-  else {
-    const EnumPropertyItem *item;
-    int totitem, i;
-    bool free;
-    uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
-    uiLayout *column = uiLayoutColumn(split, false);
 
-    RNA_property_enum_items_gettexted(block->evil_C, ptr, prop, &item, &totitem, &free);
+  const EnumPropertyItem *item;
+  int totitem, i;
+  bool free;
+  uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
+  uiLayout *column = uiLayoutColumn(split, false);
 
-    for (i = 0; i < totitem; i++) {
-      if (item[i].identifier[0]) {
-        uiItemEnumR_prop(column, item[i].name, item[i].icon, ptr, prop, item[i].value);
-        ui_but_tip_from_enum_item(block->buttons.last, &item[i]);
+  RNA_property_enum_items_gettexted(block->evil_C, ptr, prop, &item, &totitem, &free);
+
+  for (i = 0; i < totitem; i++) {
+    if (item[i].identifier[0]) {
+      uiItemEnumR_prop(column, item[i].name, item[i].icon, ptr, prop, item[i].value);
+      ui_but_tip_from_enum_item(block->buttons.last, &item[i]);
+    }
+    else {
+      if (item[i].name) {
+        if (i != 0) {
+          column = uiLayoutColumn(split, false);
+          /* inconsistent, but menus with labels do not look good flipped */
+          block->flag |= UI_BLOCK_NO_FLIP;
+        }
+
+        uiItemL(column, item[i].name, ICON_NONE);
+        bt = block->buttons.last;
+        bt->drawflag = UI_BUT_TEXT_LEFT;
+
+        ui_but_tip_from_enum_item(bt, &item[i]);
       }
       else {
-        if (item[i].name) {
-          if (i != 0) {
-            column = uiLayoutColumn(split, false);
-            /* inconsistent, but menus with labels do not look good flipped */
-            block->flag |= UI_BLOCK_NO_FLIP;
-          }
-
-          uiItemL(column, item[i].name, ICON_NONE);
-          bt = block->buttons.last;
-          bt->drawflag = UI_BUT_TEXT_LEFT;
-
-          ui_but_tip_from_enum_item(bt, &item[i]);
-        }
-        else {
-          uiItemS(column);
-        }
+        uiItemS(column);
       }
     }
+  }
 
-    if (free) {
-      MEM_freeN((void *)item);
-    }
+  if (free) {
+    MEM_freeN((void *)item);
   }
 
   /* intentionally don't touch UI_BLOCK_IS_FLIP here,
@@ -3199,15 +3189,14 @@ uiLayout *uiItemL_respect_property_split(uiLayout *layout, const char *text, int
 
     return split_wrapper.decorate_column;
   }
-  else {
-    char namestr[UI_MAX_NAME_STR];
-    if (text) {
-      text = ui_item_name_add_colon(text, namestr);
-    }
-    uiItemL_(layout, text, icon);
 
-    return layout;
+  char namestr[UI_MAX_NAME_STR];
+  if (text) {
+    text = ui_item_name_add_colon(text, namestr);
   }
+  uiItemL_(layout, text, icon);
+
+  return layout;
 }
 
 void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, const char *name, int icon)
@@ -5046,9 +5035,7 @@ int uiLayoutGetEmboss(uiLayout *layout)
   if (layout->emboss == UI_EMBOSS_UNDEFINED) {
     return layout->root->block->dt;
   }
-  else {
-    return layout->emboss;
-  }
+  return layout->emboss;
 }
 
 /** \} */
@@ -5516,9 +5503,7 @@ MenuType *UI_but_menutype_get(uiBut *but)
   if (but->menu_create_func == ui_item_menutype_func) {
     return (MenuType *)but->poin;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /* this is a bit of a hack but best keep it in one place at least */
@@ -5527,9 +5512,7 @@ PanelType *UI_but_paneltype_get(uiBut *but)
   if (but->menu_create_func == ui_item_paneltype_func) {
     return (PanelType *)but->poin;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 void UI_menutype_draw(bContext *C, MenuType *mt, struct uiLayout *layout)

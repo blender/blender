@@ -962,11 +962,9 @@ static bool ui_but_is_rna_undo(const uiBut *but)
     if (ID_CHECK_UNDO(id) == false) {
       return false;
     }
-    else {
-      return true;
-    }
+    return true;
   }
-  else if (but->rnapoin.type && !RNA_struct_undo_check(but->rnapoin.type)) {
+  if (but->rnapoin.type && !RNA_struct_undo_check(but->rnapoin.type)) {
     return false;
   }
 
@@ -1482,7 +1480,7 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
         if (but->drawstr[0] == '\0') {
           continue;
         }
-        else if (((block->flag & UI_BLOCK_POPOVER) == 0) && UI_but_is_tool(but)) {
+        if (((block->flag & UI_BLOCK_POPOVER) == 0) && UI_but_is_tool(but)) {
           /* For non-popovers, shown in shortcut only
            * (has special shortcut handling code). */
           continue;
@@ -2305,10 +2303,8 @@ bool ui_but_is_rna_valid(uiBut *but)
   if (but->rnaprop == NULL || RNA_struct_contains_property(&but->rnapoin, but->rnaprop)) {
     return true;
   }
-  else {
-    printf("property removed %s: %p\n", but->drawstr, but->rnaprop);
-    return false;
-  }
+  printf("property removed %s: %p\n", but->drawstr, but->rnaprop);
+  return false;
 }
 
 /**
@@ -2490,9 +2486,7 @@ int ui_but_string_get_max_length(uiBut *but)
   if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
     return but->hardmax;
   }
-  else {
-    return UI_MAX_DRAW_STR;
-  }
+  return UI_MAX_DRAW_STR;
 }
 
 uiBut *ui_but_drag_multi_edit_get(uiBut *but)
@@ -2520,9 +2514,7 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
     Scene *scene = CTX_data_scene(but->block->evil_C);
     return FRA2TIME(value);
   }
-  else {
-    return BKE_scene_unit_scale(unit, RNA_SUBTYPE_UNIT_VALUE(unit_type), value);
-  }
+  return BKE_scene_unit_scale(unit, RNA_SUBTYPE_UNIT_VALUE(unit_type), value);
 }
 
 /* str will be overwritten */
@@ -2610,9 +2602,7 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
 
     return (float)step_final;
   }
-  else {
-    return step_default;
-  }
+  return step_default;
 }
 
 /**
@@ -2838,15 +2828,13 @@ static bool ui_number_from_string_factor(bContext *C, const char *str, double *r
     *r_value /= 100.0;
     return success;
   }
-  else {
-    if (!ui_number_from_string(C, str, r_value)) {
-      return false;
-    }
-    if (U.factor_display_type == USER_FACTOR_AS_PERCENTAGE) {
-      *r_value /= 100.0;
-    }
-    return true;
+  if (!ui_number_from_string(C, str, r_value)) {
+    return false;
   }
+  if (U.factor_display_type == USER_FACTOR_AS_PERCENTAGE) {
+    *r_value /= 100.0;
+  }
+  return true;
 }
 
 static bool ui_number_from_string_percentage(bContext *C, const char *str, double *r_value)
@@ -2858,9 +2846,7 @@ static bool ui_number_from_string_percentage(bContext *C, const char *str, doubl
     MEM_freeN(str_new);
     return success;
   }
-  else {
-    return ui_number_from_string(C, str, r_value);
-  }
+  return ui_number_from_string(C, str, r_value);
 }
 
 bool ui_but_string_set_eval_num(bContext *C, uiBut *but, const char *str, double *r_value)
@@ -2879,19 +2865,15 @@ bool ui_but_string_set_eval_num(bContext *C, uiBut *but, const char *str, double
     if (ui_but_is_unit(but)) {
       return ui_set_but_string_eval_num_unit(C, but, str, r_value);
     }
-    else if (subtype == PROP_FACTOR) {
+    if (subtype == PROP_FACTOR) {
       return ui_number_from_string_factor(C, str, r_value);
     }
-    else if (subtype == PROP_PERCENTAGE) {
+    if (subtype == PROP_PERCENTAGE) {
       return ui_number_from_string_percentage(C, str, r_value);
     }
-    else {
-      return ui_number_from_string(C, str, r_value);
-    }
-  }
-  else {
     return ui_number_from_string(C, str, r_value);
   }
+  return ui_number_from_string(C, str, r_value);
 }
 
 /* just the assignment/free part */
@@ -2934,40 +2916,36 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
         RNA_property_string_set(&but->rnapoin, but->rnaprop, str);
         return true;
       }
-      else if (type == PROP_POINTER) {
+
+      if (type == PROP_POINTER) {
         if (str[0] == '\0') {
           RNA_property_pointer_set(&but->rnapoin, but->rnaprop, PointerRNA_NULL, NULL);
           return true;
         }
-        else {
-          /* RNA pointer */
-          PointerRNA rptr;
-          PointerRNA ptr = but->rnasearchpoin;
-          PropertyRNA *prop = but->rnasearchprop;
+        /* RNA pointer */
+        PointerRNA rptr;
+        PointerRNA ptr = but->rnasearchpoin;
+        PropertyRNA *prop = but->rnasearchprop;
 
-          /* This is kind of hackish, in theory think we could only ever use the second member of
-           * this if/else, since ui_searchbox_apply() is supposed to always set that pointer when
-           * we are storing pointers... But keeping str search first for now,
-           * to try to break as little as possible existing code. All this is band-aids anyway.
-           * Fact remains, using editstr as main 'reference' over whole search button thingy
-           * is utterly weak and should be redesigned imho, but that's not a simple task. */
-          if (prop && RNA_property_collection_lookup_string(&ptr, prop, str, &rptr)) {
-            RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr, NULL);
-          }
-          else if (but->func_arg2 != NULL) {
-            RNA_pointer_create(NULL,
-                               RNA_property_pointer_type(&but->rnapoin, but->rnaprop),
-                               but->func_arg2,
-                               &rptr);
-            RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr, NULL);
-          }
-
-          return true;
+        /* This is kind of hackish, in theory think we could only ever use the second member of
+         * this if/else, since ui_searchbox_apply() is supposed to always set that pointer when
+         * we are storing pointers... But keeping str search first for now,
+         * to try to break as little as possible existing code. All this is band-aids anyway.
+         * Fact remains, using editstr as main 'reference' over whole search button thingy
+         * is utterly weak and should be redesigned imho, but that's not a simple task. */
+        if (prop && RNA_property_collection_lookup_string(&ptr, prop, str, &rptr)) {
+          RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr, NULL);
+        }
+        else if (but->func_arg2 != NULL) {
+          RNA_pointer_create(
+              NULL, RNA_property_pointer_type(&but->rnapoin, but->rnaprop), but->func_arg2, &rptr);
+          RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr, NULL);
         }
 
-        return false;
+        return true;
       }
-      else if (type == PROP_ENUM) {
+
+      if (type == PROP_ENUM) {
         int value;
         if (RNA_property_enum_value(
                 but->block->evil_C, &but->rnapoin, but->rnaprop, str, &value)) {
@@ -2976,9 +2954,7 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
         }
         return false;
       }
-      else {
-        BLI_assert(0);
-      }
+      BLI_assert(0);
     }
   }
   else if (but->type == UI_BTYPE_TAB) {
@@ -3078,12 +3054,10 @@ static double soft_range_round_up(double value, double max)
   if (newmax * 0.2 >= max && newmax * 0.2 >= value) {
     return newmax * 0.2;
   }
-  else if (newmax * 0.5 >= max && newmax * 0.5 >= value) {
+  if (newmax * 0.5 >= max && newmax * 0.5 >= value) {
     return newmax * 0.5;
   }
-  else {
-    return newmax;
-  }
+  return newmax;
 }
 
 static double soft_range_round_down(double value, double max)
@@ -3095,12 +3069,10 @@ static double soft_range_round_down(double value, double max)
   if (newmax * 5.0 <= max && newmax * 5.0 <= value) {
     return newmax * 5.0;
   }
-  else if (newmax * 2.0 <= max && newmax * 2.0 <= value) {
+  if (newmax * 2.0 <= max && newmax * 2.0 <= value) {
     return newmax * 2.0;
   }
-  else {
-    return newmax;
-  }
+  return newmax;
 }
 
 /* note: this could be split up into functions which handle arrays and not */
@@ -4487,21 +4459,20 @@ uiBut *uiDefButAlert(uiBlock *block, int icon, int x, int y, short width, short 
   if (icon == ALERT_ICON_BLENDER) {
     return uiDefButImage(block, ibuf, x, y, width, height, NULL);
   }
-  else {
-    uchar icon_color[4];
-    ThemeColorID color_id = TH_INFO_WARNING;
-    if (icon == ALERT_ICON_ERROR) {
-      color_id = TH_INFO_ERROR;
-    }
-    else if (icon == ALERT_ICON_INFO) {
-      color_id = TH_INFO_INFO;
-    }
-    else if (icon == ALERT_ICON_QUESTION) {
-      color_id = TH_INFO_PROPERTY;
-    }
-    UI_GetThemeColorType4ubv(color_id, SPACE_INFO, icon_color);
-    return uiDefButImage(block, ibuf, x, y, width, height, icon_color);
+
+  uchar icon_color[4];
+  ThemeColorID color_id = TH_INFO_WARNING;
+  if (icon == ALERT_ICON_ERROR) {
+    color_id = TH_INFO_ERROR;
   }
+  else if (icon == ALERT_ICON_INFO) {
+    color_id = TH_INFO_INFO;
+  }
+  else if (icon == ALERT_ICON_QUESTION) {
+    color_id = TH_INFO_PROPERTY;
+  }
+  UI_GetThemeColorType4ubv(color_id, SPACE_INFO, icon_color);
+  return uiDefButImage(block, ibuf, x, y, width, height, icon_color);
 }
 
 /**
@@ -4518,31 +4489,29 @@ static int findBitIndex(uint x)
   if (!x || !is_power_of_2_i(x)) { /* is_power_of_2_i(x) strips lowest bit */
     return -1;
   }
-  else {
-    int idx = 0;
+  int idx = 0;
 
-    if (x & 0xFFFF0000) {
-      idx += 16;
-      x >>= 16;
-    }
-    if (x & 0xFF00) {
-      idx += 8;
-      x >>= 8;
-    }
-    if (x & 0xF0) {
-      idx += 4;
-      x >>= 4;
-    }
-    if (x & 0xC) {
-      idx += 2;
-      x >>= 2;
-    }
-    if (x & 0x2) {
-      idx += 1;
-    }
-
-    return idx;
+  if (x & 0xFFFF0000) {
+    idx += 16;
+    x >>= 16;
   }
+  if (x & 0xFF00) {
+    idx += 8;
+    x >>= 8;
+  }
+  if (x & 0xF0) {
+    idx += 4;
+    x >>= 4;
+  }
+  if (x & 0xC) {
+    idx += 2;
+    x >>= 2;
+  }
+  if (x & 0x2) {
+    idx += 1;
+  }
+
+  return idx;
 }
 
 /* autocomplete helper functions */
@@ -4591,7 +4560,7 @@ void UI_autocomplete_update_name(AutoComplete *autocpl, const char *name)
           truncate[a] = 0;
           break;
         }
-        else if (truncate[a] != name[a]) {
+        if (truncate[a] != name[a]) {
           truncate[a] = 0;
         }
       }
@@ -4651,22 +4620,20 @@ static uiBut *uiDefButBit(uiBlock *block,
   if (bitIdx == -1) {
     return NULL;
   }
-  else {
-    return uiDefBut(block,
-                    type | UI_BUT_POIN_BIT | bitIdx,
-                    retval,
-                    str,
-                    x,
-                    y,
-                    width,
-                    height,
-                    poin,
-                    min,
-                    max,
-                    a1,
-                    a2,
-                    tip);
-  }
+  return uiDefBut(block,
+                  type | UI_BUT_POIN_BIT | bitIdx,
+                  retval,
+                  str,
+                  x,
+                  y,
+                  width,
+                  height,
+                  poin,
+                  min,
+                  max,
+                  a1,
+                  a2,
+                  tip);
 }
 uiBut *uiDefButF(uiBlock *block,
                  int type,
@@ -5038,22 +5005,20 @@ static uiBut *uiDefIconButBit(uiBlock *block,
   if (bitIdx == -1) {
     return NULL;
   }
-  else {
-    return uiDefIconBut(block,
-                        type | UI_BUT_POIN_BIT | bitIdx,
-                        retval,
-                        icon,
-                        x,
-                        y,
-                        width,
-                        height,
-                        poin,
-                        min,
-                        max,
-                        a1,
-                        a2,
-                        tip);
-  }
+  return uiDefIconBut(block,
+                      type | UI_BUT_POIN_BIT | bitIdx,
+                      retval,
+                      icon,
+                      x,
+                      y,
+                      width,
+                      height,
+                      poin,
+                      min,
+                      max,
+                      a1,
+                      a2,
+                      tip);
 }
 
 uiBut *uiDefIconButF(uiBlock *block,
@@ -5426,23 +5391,21 @@ static uiBut *uiDefIconTextButBit(uiBlock *block,
   if (bitIdx == -1) {
     return NULL;
   }
-  else {
-    return uiDefIconTextBut(block,
-                            type | UI_BUT_POIN_BIT | bitIdx,
-                            retval,
-                            icon,
-                            str,
-                            x,
-                            y,
-                            width,
-                            height,
-                            poin,
-                            min,
-                            max,
-                            a1,
-                            a2,
-                            tip);
-  }
+  return uiDefIconTextBut(block,
+                          type | UI_BUT_POIN_BIT | bitIdx,
+                          retval,
+                          icon,
+                          str,
+                          x,
+                          y,
+                          width,
+                          height,
+                          poin,
+                          min,
+                          max,
+                          a1,
+                          a2,
+                          tip);
 }
 
 uiBut *uiDefIconTextButF(uiBlock *block,
@@ -5828,7 +5791,7 @@ void UI_block_order_flip(uiBlock *block)
   if (U.uiflag & USER_MENUFIXEDORDER) {
     return;
   }
-  else if (block->flag & UI_BLOCK_NO_FLIP) {
+  if (block->flag & UI_BLOCK_NO_FLIP) {
     return;
   }
 
@@ -5994,9 +5957,7 @@ int UI_but_unit_type_get(const uiBut *but)
   if ((ownUnit != 0) || (but->rnaprop == NULL)) {
     return ownUnit << 16;
   }
-  else {
-    return RNA_SUBTYPE_UNIT(RNA_property_subtype(but->rnaprop));
-  }
+  return RNA_SUBTYPE_UNIT(RNA_property_subtype(but->rnaprop));
 }
 
 void UI_block_func_handle_set(uiBlock *block, uiBlockHandleFunc func, void *arg)

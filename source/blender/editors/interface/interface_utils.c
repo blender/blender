@@ -60,13 +60,9 @@ bool ui_str_has_word_prefix(const char *haystack, const char *needle, size_t nee
     if ((match == haystack) || (*(match - 1) == ' ') || ispunct(*(match - 1))) {
       return true;
     }
-    else {
-      return ui_str_has_word_prefix(match + 1, needle, needle_len);
-    }
+    return ui_str_has_word_prefix(match + 1, needle, needle_len);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /*************************** RNA Utilities ******************************/
@@ -397,9 +393,7 @@ static int sort_search_items_list(const void *a, const void *b)
   if (BLI_strcasecmp(cis1->name, cis2->name) > 0) {
     return 1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 void ui_rna_collection_search_update_fn(const struct bContext *C,
@@ -535,9 +529,7 @@ int UI_icon_from_id(ID *id)
     if (ob->type == OB_EMPTY) {
       return ICON_EMPTY_DATA;
     }
-    else {
-      return UI_icon_from_id(ob->data);
-    }
+    return UI_icon_from_id(ob->data);
   }
 
   /* otherwise get it through RNA, creating the pointer
@@ -553,15 +545,13 @@ int UI_icon_from_report_type(int type)
   if (type & RPT_ERROR_ALL) {
     return ICON_ERROR;
   }
-  else if (type & RPT_WARNING_ALL) {
+  if (type & RPT_WARNING_ALL) {
     return ICON_ERROR;
   }
-  else if (type & RPT_INFO_ALL) {
+  if (type & RPT_INFO_ALL) {
     return ICON_INFO;
   }
-  else {
-    return ICON_NONE;
-  }
+  return ICON_NONE;
 }
 
 /********************************** Misc **************************************/
@@ -632,7 +622,7 @@ bool UI_but_online_manual_id(const uiBut *but, char *r_str, size_t maxlength)
                  RNA_property_identifier(but->rnaprop));
     return true;
   }
-  else if (but->optype) {
+  if (but->optype) {
     WM_operator_py_idname(r_str, but->optype->idname);
     return true;
   }

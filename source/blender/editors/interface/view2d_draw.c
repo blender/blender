@@ -428,9 +428,7 @@ float UI_view2d_grid_resolution_x__frames_or_seconds(const struct View2D *v2d,
   if (display_seconds) {
     return view2d_major_step_x__time(v2d, scene);
   }
-  else {
-    return view2d_major_step_x__continuous(v2d);
-  }
+  return view2d_major_step_x__continuous(v2d);
 }
 
 float UI_view2d_grid_resolution_y__values(const struct View2D *v2d)

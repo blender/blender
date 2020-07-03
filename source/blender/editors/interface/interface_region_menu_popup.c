@@ -77,11 +77,10 @@ int ui_but_menu_step(uiBut *but, int direction)
     if (but->menu_step_func) {
       return but->menu_step_func(but->block->evil_C, direction, but->poin);
     }
-    else {
-      const int curval = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
-      return RNA_property_enum_step(
-          but->block->evil_C, &but->rnapoin, but->rnaprop, curval, direction);
-    }
+
+    const int curval = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
+    return RNA_property_enum_step(
+        but->block->evil_C, &but->rnapoin, but->rnaprop, curval, direction);
   }
 
   printf("%s: cannot cycle button '%s'\n", __func__, but->str);
@@ -129,16 +128,15 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
     mem[hash_mod] = ui_popup_string_hash(but->str, but->flag & UI_BUT_HAS_SEP_CHAR);
     return NULL;
   }
-  else {
-    /* get */
-    for (but = block->buttons.first; but; but = but->next) {
-      if (mem[hash_mod] == ui_popup_string_hash(but->str, but->flag & UI_BUT_HAS_SEP_CHAR)) {
-        return but;
-      }
-    }
 
-    return NULL;
+  /* get */
+  for (but = block->buttons.first; but; but = but->next) {
+    if (mem[hash_mod] == ui_popup_string_hash(but->str, but->flag & UI_BUT_HAS_SEP_CHAR)) {
+      return but;
+    }
   }
+
+  return NULL;
 }
 
 uiBut *ui_popup_menu_memory_get(uiBlock *block)
@@ -488,13 +486,11 @@ bool UI_popup_menu_end_or_cancel(bContext *C, uiPopupMenu *pup)
     UI_popup_menu_end(C, pup);
     return true;
   }
-  else {
-    UI_block_layout_resolve(pup->block, NULL, NULL);
-    MEM_freeN(pup->block->handle);
-    UI_block_free(C, pup->block);
-    MEM_freeN(pup);
-    return false;
-  }
+  UI_block_layout_resolve(pup->block, NULL, NULL);
+  MEM_freeN(pup->block->handle);
+  UI_block_free(C, pup->block);
+  MEM_freeN(pup);
+  return false;
 }
 
 uiLayout *UI_popup_menu_layout(uiPopupMenu *pup)

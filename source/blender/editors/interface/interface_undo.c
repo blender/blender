@@ -88,9 +88,7 @@ const char *ui_textedit_undo(uiUndoStack_Text *stack, int direction, int *r_curs
   if (direction < 0) {
     return ui_textedit_undo_impl(stack, r_cursor_index);
   }
-  else {
-    return ui_textedit_redo_impl(stack, r_cursor_index);
-  }
+  return ui_textedit_redo_impl(stack, r_cursor_index);
 }
 
 /**

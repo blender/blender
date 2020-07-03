@@ -292,10 +292,8 @@ static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
           /* Could support finished & undo-skip. */
           return is_undo ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
         }
-        else {
-          BKE_report(op->reports, RPT_WARNING, "Failed to set value");
-          return OPERATOR_CANCELLED;
-        }
+        BKE_report(op->reports, RPT_WARNING, "Failed to set value");
+        return OPERATOR_CANCELLED;
       }
     }
   }
@@ -326,9 +324,7 @@ static int datadropper_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
 
     return OPERATOR_RUNNING_MODAL;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 /* Repeat operator */
@@ -341,9 +337,7 @@ static int datadropper_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 static bool datadropper_poll(bContext *C)
