@@ -816,9 +816,7 @@ static int stretchto_reset_invoke(bContext *C, wmOperator *op, const wmEvent *UN
   if (edit_constraint_invoke_properties(C, op)) {
     return stretchto_reset_exec(C, op);
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void CONSTRAINT_OT_stretchto_reset(wmOperatorType *ot)
@@ -873,9 +871,7 @@ static int limitdistance_reset_invoke(bContext *C, wmOperator *op, const wmEvent
   if (edit_constraint_invoke_properties(C, op)) {
     return limitdistance_reset_exec(C, op);
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void CONSTRAINT_OT_limitdistance_reset(wmOperatorType *ot)
@@ -953,9 +949,7 @@ static int childof_set_inverse_invoke(bContext *C, wmOperator *op, const wmEvent
   if (edit_constraint_invoke_properties(C, op)) {
     return childof_set_inverse_exec(C, op);
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void CONSTRAINT_OT_childof_set_inverse(wmOperatorType *ot)
@@ -1004,9 +998,7 @@ static int childof_clear_inverse_invoke(bContext *C, wmOperator *op, const wmEve
   if (edit_constraint_invoke_properties(C, op)) {
     return childof_clear_inverse_exec(C, op);
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void CONSTRAINT_OT_childof_clear_inverse(wmOperatorType *ot)
@@ -1131,9 +1123,7 @@ static int followpath_path_animate_invoke(bContext *C,
   if (edit_constraint_invoke_properties(C, op)) {
     return followpath_path_animate_exec(C, op);
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void CONSTRAINT_OT_followpath_path_animate(wmOperatorType *ot)
@@ -1214,9 +1204,7 @@ static int objectsolver_set_inverse_invoke(bContext *C,
   if (edit_constraint_invoke_properties(C, op)) {
     return objectsolver_set_inverse_exec(C, op);
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void CONSTRAINT_OT_objectsolver_set_inverse(wmOperatorType *ot)
@@ -1272,9 +1260,7 @@ static int objectsolver_clear_inverse_invoke(bContext *C,
   if (edit_constraint_invoke_properties(C, op)) {
     return objectsolver_clear_inverse_exec(C, op);
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void CONSTRAINT_OT_objectsolver_clear_inverse(wmOperatorType *ot)
@@ -1423,10 +1409,8 @@ static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
     return OPERATOR_FINISHED;
   }
-  else {
-    /* couldn't remove due to some invalid data */
-    return OPERATOR_CANCELLED;
-  }
+  /* couldn't remove due to some invalid data */
+  return OPERATOR_CANCELLED;
 }
 
 void CONSTRAINT_OT_delete(wmOperatorType *ot)
@@ -1476,9 +1460,7 @@ static int constraint_move_down_invoke(bContext *C, wmOperator *op, const wmEven
   if (edit_constraint_invoke_properties(C, op)) {
     return constraint_move_down_exec(C, op);
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void CONSTRAINT_OT_move_down(wmOperatorType *ot)
@@ -1532,9 +1514,7 @@ static int constraint_move_up_invoke(bContext *C, wmOperator *op, const wmEvent 
   if (edit_constraint_invoke_properties(C, op)) {
     return constraint_move_up_exec(C, op);
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void CONSTRAINT_OT_move_up(wmOperatorType *ot)
@@ -1592,9 +1572,7 @@ static int constraint_move_to_index_invoke(bContext *C,
   if (edit_constraint_invoke_properties(C, op)) {
     return constraint_move_to_index_exec(C, op);
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void CONSTRAINT_OT_move_to_index(wmOperatorType *ot)
@@ -1908,8 +1886,7 @@ static bool get_new_constraint_target(
 
           break;
         }
-        else if (((!only_curve) || (ob->type == OB_CURVE)) &&
-                 ((!only_mesh) || (ob->type == OB_MESH))) {
+        if (((!only_curve) || (ob->type == OB_CURVE)) && ((!only_mesh) || (ob->type == OB_MESH))) {
           /* set target */
           *tar_ob = ob;
           found = true;

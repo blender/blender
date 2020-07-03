@@ -1002,10 +1002,8 @@ static int object_transform_apply_exec(bContext *C, wmOperator *op)
   if (loc || rot || sca) {
     return apply_objects_internal(C, op->reports, loc, rot, sca, do_props);
   }
-  else {
-    /* allow for redo */
-    return OPERATOR_FINISHED;
-  }
+  /* allow for redo */
+  return OPERATOR_FINISHED;
 }
 
 void OBJECT_OT_transform_apply(wmOperatorType *ot)
@@ -2036,7 +2034,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
     object_transform_axis_target_free_data(op);
     return OPERATOR_FINISHED;
   }
-  else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
+  if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
     object_transform_axis_target_cancel(C, op);
     return OPERATOR_CANCELLED;
   }

@@ -367,13 +367,12 @@ static int edit_shaderfx_invoke_properties(bContext *C, wmOperator *op)
   if (RNA_struct_property_is_set(op->ptr, "shaderfx")) {
     return true;
   }
-  else {
-    PointerRNA ptr = CTX_data_pointer_get_type(C, "shaderfx", &RNA_ShaderFx);
-    if (ptr.data) {
-      fx = ptr.data;
-      RNA_string_set(op->ptr, "shaderfx", fx->name);
-      return true;
-    }
+
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "shaderfx", &RNA_ShaderFx);
+  if (ptr.data) {
+    fx = ptr.data;
+    RNA_string_set(op->ptr, "shaderfx", fx->name);
+    return true;
   }
 
   return false;
@@ -418,9 +417,7 @@ static int shaderfx_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UN
   if (edit_shaderfx_invoke_properties(C, op)) {
     return shaderfx_remove_exec(C, op);
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void OBJECT_OT_shaderfx_remove(wmOperatorType *ot)
@@ -460,9 +457,7 @@ static int shaderfx_move_up_invoke(bContext *C, wmOperator *op, const wmEvent *U
   if (edit_shaderfx_invoke_properties(C, op)) {
     return shaderfx_move_up_exec(C, op);
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void OBJECT_OT_shaderfx_move_up(wmOperatorType *ot)
@@ -502,9 +497,7 @@ static int shaderfx_move_down_invoke(bContext *C, wmOperator *op, const wmEvent 
   if (edit_shaderfx_invoke_properties(C, op)) {
     return shaderfx_move_down_exec(C, op);
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void OBJECT_OT_shaderfx_move_down(wmOperatorType *ot)
@@ -550,9 +543,7 @@ static int shaderfx_move_to_index_invoke(bContext *C, wmOperator *op, const wmEv
   if (edit_shaderfx_invoke_properties(C, op)) {
     return shaderfx_move_to_index_exec(C, op);
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void OBJECT_OT_shaderfx_move_to_index(wmOperatorType *ot)

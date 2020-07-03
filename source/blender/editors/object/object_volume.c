@@ -119,7 +119,7 @@ static int volume_import_exec(bContext *C, wmOperator *op)
       BKE_id_delete(bmain, &volume->id);
       continue;
     }
-    else if (BKE_volume_is_points_only(volume)) {
+    if (BKE_volume_is_points_only(volume)) {
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "Volume \"%s\" contains points, only voxel grids are supported",

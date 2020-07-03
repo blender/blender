@@ -86,13 +86,11 @@ static bool vertex_group_use_vert_sel(Object *ob)
   if (ob->mode == OB_MODE_EDIT) {
     return true;
   }
-  else if ((ob->type == OB_MESH) &&
-           ((Mesh *)ob->data)->editflag & (ME_EDIT_PAINT_VERT_SEL | ME_EDIT_PAINT_FACE_SEL)) {
+  if ((ob->type == OB_MESH) &&
+      ((Mesh *)ob->data)->editflag & (ME_EDIT_PAINT_VERT_SEL | ME_EDIT_PAINT_FACE_SEL)) {
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 static Lattice *vgroup_edit_lattice(Object *ob)
@@ -189,7 +187,7 @@ bool ED_vgroup_parray_alloc(ID *id,
 
           return true;
         }
-        else if (me->dvert) {
+        if (me->dvert) {
           MVert *mvert = me->mvert;
           MDeformVert *dvert = me->dvert;
           int i;
@@ -2115,15 +2113,13 @@ static int inv_cmp_mdef_vert_weights(const void *a1, const void *a2)
   if (dw1->weight < dw2->weight) {
     return 1;
   }
-  else if (dw1->weight > dw2->weight) {
+  if (dw1->weight > dw2->weight) {
     return -1;
   }
-  else if (&dw1 < &dw2) {
+  if (&dw1 < &dw2) {
     return 1; /* compare address for stable sort algorithm */
   }
-  else {
-    return -1;
-  }
+  return -1;
 }
 
 /* Used for limiting the number of influencing bones per vertex when exporting
@@ -2719,23 +2715,17 @@ static bool vertex_group_vert_poll_ex(bContext *C,
   if (BKE_object_is_in_editmode_vgroup(ob)) {
     return true;
   }
-  else if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+  if (ob->mode & OB_MODE_WEIGHT_PAINT) {
     if (needs_select) {
       if (BKE_object_is_in_wpaint_select_vert(ob)) {
         return true;
       }
-      else {
-        CTX_wm_operator_poll_msg_set(C, "Vertex select needs to be enabled in weight paint mode");
-        return false;
-      }
+      CTX_wm_operator_poll_msg_set(C, "Vertex select needs to be enabled in weight paint mode");
+      return false;
     }
-    else {
-      return true;
-    }
+    return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 #if 0
@@ -3181,9 +3171,7 @@ static int vertex_group_normalize_exec(bContext *C, wmOperator *UNUSED(op))
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 /** \} */
@@ -3229,10 +3217,9 @@ static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    /* allow to adjust settings */
-    return OPERATOR_FINISHED;
-  }
+
+  /* allow to adjust settings */
+  return OPERATOR_FINISHED;
 }
 
 /** \} */
@@ -3723,11 +3710,10 @@ static int vertex_group_limit_total_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    /* note, would normally return canceled, except we want the redo
-     * UI to show up for users to change */
-    return OPERATOR_FINISHED;
-  }
+
+  /* note, would normally return canceled, except we want the redo
+   * UI to show up for users to change */
+  return OPERATOR_FINISHED;
 }
 
 void OBJECT_OT_vertex_group_limit_total(wmOperatorType *ot)
@@ -4501,9 +4487,7 @@ static int vertex_weight_normalize_active_vertex_exec(bContext *C, wmOperator *U
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void OBJECT_OT_vertex_weight_normalize_active_vertex(wmOperatorType *ot)

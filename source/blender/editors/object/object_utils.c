@@ -131,20 +131,18 @@ bool ED_object_calc_active_center(Object *ob, const bool select_only, float r_ce
     }
     return false;
   }
-  else if (ob->mode & OB_MODE_POSE) {
+  if (ob->mode & OB_MODE_POSE) {
     if (ED_object_calc_active_center_for_posemode(ob, select_only, r_center)) {
       mul_m4_v3(ob->obmat, r_center);
       return true;
     }
     return false;
   }
-  else {
-    if (!select_only || (ob->base_flag & BASE_SELECTED)) {
-      copy_v3_v3(r_center, ob->obmat[3]);
-      return true;
-    }
-    return false;
+  if (!select_only || (ob->base_flag & BASE_SELECTED)) {
+    copy_v3_v3(r_center, ob->obmat[3]);
+    return true;
   }
+  return false;
 }
 
 /** \} */

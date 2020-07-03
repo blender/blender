@@ -434,14 +434,12 @@ static bool bake_object_check(ViewLayer *view_layer, Object *ob, ReportList *rep
     BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not a mesh", ob->id.name + 2);
     return false;
   }
-  else {
-    Mesh *me = (Mesh *)ob->data;
 
-    if (CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV) == -1) {
-      BKE_reportf(
-          reports, RPT_ERROR, "No active UV layer found in the object \"%s\"", ob->id.name + 2);
-      return false;
-    }
+  Mesh *me = (Mesh *)ob->data;
+  if (CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV) == -1) {
+    BKE_reportf(
+        reports, RPT_ERROR, "No active UV layer found in the object \"%s\"", ob->id.name + 2);
+    return false;
   }
 
   for (i = 0; i < ob->totcol; i++) {
@@ -542,14 +540,11 @@ static bool bake_pass_filter_check(eScenePassType pass_type,
 
         return false;
       }
-      else {
-        BKE_report(reports,
-                   RPT_ERROR,
-                   "Combined bake pass requires Emit, or a light pass with "
-                   "Direct or Indirect contributions enabled");
-        return false;
-      }
-      break;
+      BKE_report(reports,
+                 RPT_ERROR,
+                 "Combined bake pass requires Emit, or a light pass with "
+                 "Direct or Indirect contributions enabled");
+      return false;
     case SCE_PASS_DIFFUSE_COLOR:
     case SCE_PASS_GLOSSY_COLOR:
     case SCE_PASS_TRANSM_COLOR:
@@ -1071,10 +1066,7 @@ static int bake(Render *re,
             (normal_swizzle[2] == R_BAKE_POSZ)) {
           break;
         }
-        else {
-          RE_bake_normal_world_to_world(
-              pixel_array_low, num_pixels, depth, result, normal_swizzle);
-        }
+        RE_bake_normal_world_to_world(pixel_array_low, num_pixels, depth, result, normal_swizzle);
         break;
       }
       case R_BAKE_SPACE_OBJECT: {

@@ -254,16 +254,12 @@ static const EnumPropertyItem *dt_layers_select_itemf(bContext *C,
     if (reverse_transfer) {
       return dt_layers_select_src_itemf(C, ptr, prop, r_free);
     }
-    else {
-      return dt_layers_select_dst_itemf(C, ptr, prop, r_free);
-    }
-  }
-  else if (reverse_transfer) {
     return dt_layers_select_dst_itemf(C, ptr, prop, r_free);
   }
-  else {
-    return dt_layers_select_src_itemf(C, ptr, prop, r_free);
+  if (reverse_transfer) {
+    return dt_layers_select_dst_itemf(C, ptr, prop, r_free);
   }
+  return dt_layers_select_src_itemf(C, ptr, prop, r_free);
 }
 
 /* Note: rna_enum_dt_mix_mode_items enum is from rna_modifier.c */
@@ -381,7 +377,7 @@ static bool data_transfer_exec_is_object_valid(wmOperator *op,
     me->id.tag &= ~LIB_TAG_DOIT;
     return true;
   }
-  else if (!ID_IS_LINKED(me) && !ID_IS_OVERRIDE_LIBRARY(me)) {
+  if (!ID_IS_LINKED(me) && !ID_IS_OVERRIDE_LIBRARY(me)) {
     /* Do not apply transfer operation more than once. */
     /* XXX This is not nice regarding vgroups, which are half-Object data... :/ */
     BKE_reportf(
@@ -857,9 +853,7 @@ static int datalayout_transfer_invoke(bContext *C, wmOperator *op, const wmEvent
   if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
     return datalayout_transfer_exec(C, op);
   }
-  else {
-    return WM_menu_invoke(C, op, event);
-  }
+  return WM_menu_invoke(C, op, event);
 }
 
 void OBJECT_OT_datalayout_transfer(wmOperatorType *ot)

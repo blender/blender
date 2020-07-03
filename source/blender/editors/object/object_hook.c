@@ -649,9 +649,7 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, obedit);
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void OBJECT_OT_hook_add_selob(wmOperatorType *ot)
@@ -690,9 +688,7 @@ static int object_add_hook_newob_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, obedit);
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void OBJECT_OT_hook_add_newob(wmOperatorType *ot)

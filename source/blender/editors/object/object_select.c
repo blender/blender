@@ -218,13 +218,9 @@ static int get_base_select_priority(Base *base)
     if (base->flag & BASE_SELECTABLE) {
       return 3;
     }
-    else {
-      return 2;
-    }
+    return 2;
   }
-  else {
-    return 1;
-  }
+  return 1;
 }
 
 /**
@@ -251,13 +247,12 @@ Base *ED_object_find_first_by_data_id(ViewLayer *view_layer, ID *id)
       if (base->flag & BASE_SELECTED) {
         return base;
       }
-      else {
-        int priority_test = get_base_select_priority(base);
 
-        if (priority_test > priority_best) {
-          priority_best = priority_test;
-          base_best = base;
-        }
+      int priority_test = get_base_select_priority(base);
+
+      if (priority_test > priority_best) {
+        priority_best = priority_test;
+        base_best = base;
       }
     }
   }
@@ -671,7 +666,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
     // object_select_all_by_ipo(C, ob->ipo)
     return OPERATOR_CANCELLED;
   }
-  else if (nr == OBJECT_SELECT_LINKED_OBDATA) {
+  if (nr == OBJECT_SELECT_LINKED_OBDATA) {
     if (ob->data == NULL) {
       return OPERATOR_CANCELLED;
     }
@@ -855,7 +850,7 @@ static bool select_grouped_collection(bContext *C, Object *ob)
   if (!collection_count) {
     return 0;
   }
-  else if (collection_count == 1) {
+  if (collection_count == 1) {
     collection = ob_collections[0];
     CTX_DATA_BEGIN (C, Base *, base, visible_bases) {
       if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLE) != 0)) {
@@ -998,7 +993,7 @@ static bool select_grouped_keyingset(bContext *C, Object *UNUSED(ob), ReportList
     BKE_report(reports, RPT_ERROR, "No active Keying Set to use");
     return false;
   }
-  else if (ANIM_validate_keyingset(C, NULL, ks) != 0) {
+  if (ANIM_validate_keyingset(C, NULL, ks) != 0) {
     if (ks->paths.first == NULL) {
       if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
         BKE_report(reports,
@@ -1160,14 +1155,12 @@ static int object_select_all_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else if (any_visible == false) {
+  if (any_visible == false) {
     /* TODO(campbell): Looks like we could remove this,
      * if not comment should say why its needed. */
     return OPERATOR_PASS_THROUGH;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void OBJECT_OT_select_all(wmOperatorType *ot)
@@ -1386,9 +1379,7 @@ static int object_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void OBJECT_OT_select_more(wmOperatorType *ot)
@@ -1419,9 +1410,7 @@ static int object_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void OBJECT_OT_select_less(wmOperatorType *ot)

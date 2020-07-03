@@ -305,9 +305,7 @@ static int shape_key_remove_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void OBJECT_OT_shape_key_remove(wmOperatorType *ot)

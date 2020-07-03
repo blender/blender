@@ -245,7 +245,7 @@ static int gpencil_modifier_apply_obdata(
     if (ELEM(NULL, ob, ob->data)) {
       return 0;
     }
-    else if (mti->bakeModifier == NULL) {
+    if (mti->bakeModifier == NULL) {
       BKE_report(reports, RPT_ERROR, "Not implemented");
       return 0;
     }
@@ -487,13 +487,12 @@ static bool gpencil_edit_modifier_invoke_properties(bContext *C,
         RNA_string_set(op->ptr, "modifier", md->name);
         return true;
       }
-      else {
-        BLI_assert(r_retval != NULL); /* We need the return value in this case. */
-        if (r_retval != NULL) {
-          *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
-        }
-        return false;
+
+      BLI_assert(r_retval != NULL); /* We need the return value in this case. */
+      if (r_retval != NULL) {
+        *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
       }
+      return false;
     }
   }
 
@@ -555,9 +554,7 @@ static int gpencil_modifier_remove_invoke(bContext *C, wmOperator *op, const wmE
   if (gpencil_edit_modifier_invoke_properties(C, op, event, &retval)) {
     return gpencil_modifier_remove_exec(C, op);
   }
-  else {
-    return retval;
-  }
+  return retval;
 }
 
 void OBJECT_OT_gpencil_modifier_remove(wmOperatorType *ot)
@@ -599,9 +596,7 @@ static int gpencil_modifier_move_up_invoke(bContext *C, wmOperator *op, const wm
   if (gpencil_edit_modifier_invoke_properties(C, op, event, &retval)) {
     return gpencil_modifier_move_up_exec(C, op);
   }
-  else {
-    return retval;
-  }
+  return retval;
 }
 
 void OBJECT_OT_gpencil_modifier_move_up(wmOperatorType *ot)
@@ -642,9 +637,7 @@ static int gpencil_modifier_move_down_invoke(bContext *C, wmOperator *op, const 
   if (gpencil_edit_modifier_invoke_properties(C, op, event, &retval)) {
     return gpencil_modifier_move_down_exec(C, op);
   }
-  else {
-    return retval;
-  }
+  return retval;
 }
 
 void OBJECT_OT_gpencil_modifier_move_down(wmOperatorType *ot)
@@ -691,9 +684,7 @@ static int gpencil_modifier_move_to_index_invoke(bContext *C, wmOperator *op, co
   if (gpencil_edit_modifier_invoke_properties(C, op, event, &retval)) {
     return gpencil_modifier_move_to_index_exec(C, op);
   }
-  else {
-    return retval;
-  }
+  return retval;
 }
 
 void OBJECT_OT_gpencil_modifier_move_to_index(wmOperatorType *ot)
@@ -753,9 +744,7 @@ static int gpencil_modifier_apply_invoke(bContext *C, wmOperator *op, const wmEv
   if (gpencil_edit_modifier_invoke_properties(C, op, event, &retval)) {
     return gpencil_modifier_apply_exec(C, op);
   }
-  else {
-    return retval;
-  }
+  return retval;
 }
 
 static const EnumPropertyItem gpencil_modifier_apply_as_items[] = {
@@ -814,9 +803,7 @@ static int gpencil_modifier_copy_invoke(bContext *C, wmOperator *op, const wmEve
   if (gpencil_edit_modifier_invoke_properties(C, op, event, &retval)) {
     return gpencil_modifier_copy_exec(C, op);
   }
-  else {
-    return retval;
-  }
+  return retval;
 }
 
 void OBJECT_OT_gpencil_modifier_copy(wmOperatorType *ot)
