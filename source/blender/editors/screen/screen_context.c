@@ -257,6 +257,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "selected_bones") ||
            CTX_data_equals(member, "selected_editable_bones")) {
@@ -314,6 +315,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "visible_pose_bones")) {
     Object *obpose = BKE_object_pose_armature_get(obact);
@@ -336,6 +338,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "selected_pose_bones")) {
     Object *obpose = BKE_object_pose_armature_get(obact);
@@ -358,6 +361,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "selected_pose_bones_from_active_object")) {
     Object *obpose = BKE_object_pose_armature_get(obact);
@@ -377,6 +381,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "active_bone")) {
     if (obact && obact->type == OB_ARMATURE) {
@@ -394,6 +399,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
         }
       }
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "active_pose_bone")) {
     bPoseChannel *pchan;
@@ -404,6 +410,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_pointer_set(result, &obpose->id, &RNA_PoseBone, pchan);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "active_object")) {
     if (obact) {
@@ -468,6 +475,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_id_pointer_set(result, &obpose->id);
     }
     return 1;
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "sequences")) {
     Editing *ed = BKE_sequencer_editing_get(scene, false);
@@ -479,6 +487,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "selected_sequences")) {
     Editing *ed = BKE_sequencer_editing_get(scene, false);
@@ -492,6 +501,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "selected_editable_sequences")) {
     Editing *ed = BKE_sequencer_editing_get(scene, false);
@@ -505,6 +515,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "selected_nla_strips")) {
     bAnimContext ac;
@@ -530,6 +541,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "gpencil_data")) {
     /* FIXME: for some reason, CTX_data_active_object(C) returns NULL when called from these
@@ -543,6 +555,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_id_pointer_set(result, &gpd->id);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "gpencil_data_owner")) {
     /* Pointer to which data/datablock owns the reference to the Grease Pencil data being used
@@ -557,6 +570,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "annotation_data")) {
     bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)screen, area, scene);
@@ -565,6 +579,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_id_pointer_set(result, &gpd->id);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "annotation_data_owner")) {
     /* Pointer to which data/datablock owns the reference to the Grease Pencil data being used. */
@@ -578,6 +593,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "active_gpencil_layer")) {
     bGPdata *gpd = ED_gpencil_data_get_active_direct(area, obact);
@@ -590,6 +606,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
         return 1;
       }
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "active_annotation_layer")) {
     bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)screen, area, scene);
@@ -602,6 +619,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
         return 1;
       }
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "active_gpencil_frame")) {
     bGPdata *gpd = ED_gpencil_data_get_active_direct(area, obact);
@@ -614,6 +632,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
         return 1;
       }
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "visible_gpencil_layers")) {
     bGPdata *gpd = ED_gpencil_data_get_active_direct(area, obact);
@@ -629,6 +648,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "editable_gpencil_layers")) {
     bGPdata *gpd = ED_gpencil_data_get_active_direct(area, obact);
@@ -644,6 +664,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "editable_gpencil_strokes")) {
     bGPdata *gpd = ED_gpencil_data_get_active_direct(area, obact);
@@ -684,6 +705,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "active_operator")) {
     wmOperator *op = NULL;
@@ -706,6 +728,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_pointer_set(result, NULL, &RNA_Operator, op);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "editable_fcurves") ||
            CTX_data_equals(member, "visible_fcurves") ||
@@ -740,6 +763,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "active_editable_fcurve")) {
     bAnimContext ac;
@@ -762,6 +786,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       ANIM_animdata_freelist(&anim_data);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else {
     return 0; /* not found */
