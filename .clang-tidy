@@ -51,6 +51,5 @@ Checks:  >
   -bugprone-parent-virtual-call,
   -bugprone-infinite-loop,
   -bugprone-copy-constructor-init,
-  -bugprone-lambda-function-name,
 
 WarningsAsErrors: '*'
