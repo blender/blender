@@ -438,13 +438,12 @@ int ED_fileselect_layout_numfiles(FileLayout *layout, ARegion *region)
     numfiles = (int)((float)(x_view + x_over) / (float)(x_item));
     return numfiles * layout->rows;
   }
-  else {
-    const int y_item = layout->tile_h + (2 * layout->tile_border_y);
-    const int y_view = (int)(BLI_rctf_size_y(&region->v2d.cur)) - layout->offset_top;
-    const int y_over = y_item - (y_view % y_item);
-    numfiles = (int)((float)(y_view + y_over) / (float)(y_item));
-    return numfiles * layout->flow_columns;
-  }
+
+  const int y_item = layout->tile_h + (2 * layout->tile_border_y);
+  const int y_view = (int)(BLI_rctf_size_y(&region->v2d.cur)) - layout->offset_top;
+  const int y_over = y_item - (y_view % y_item);
+  numfiles = (int)((float)(y_view + y_over) / (float)(y_item));
+  return numfiles * layout->flow_columns;
 }
 
 static bool is_inside(int x, int y, int cols, int rows)

@@ -1236,9 +1236,8 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, const wmEvent
     screen_opengl_render_end(C, op->customdata);
     return OPERATOR_FINISHED;
   }
-  else {
-    ret = screen_opengl_render_anim_step(C, op);
-  }
+
+  ret = screen_opengl_render_anim_step(C, op);
 
   /* stop at the end or on error */
   if (ret == false) {
@@ -1291,16 +1290,15 @@ static int screen_opengl_render_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    bool ret = true;
 
-    if (!screen_opengl_render_anim_initialize(C, op)) {
-      return OPERATOR_CANCELLED;
-    }
+  bool ret = true;
 
-    while (ret) {
-      ret = screen_opengl_render_anim_step(C, op);
-    }
+  if (!screen_opengl_render_anim_initialize(C, op)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  while (ret) {
+    ret = screen_opengl_render_anim_step(C, op);
   }
 
   /* no redraw needed, we leave state as we entered it */

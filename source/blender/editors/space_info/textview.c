@@ -186,7 +186,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
     MEM_freeN(offsets);
     return true;
   }
-  else if (y_next < tds->scroll_ymin) {
+  if (y_next < tds->scroll_ymin) {
     /* Have not reached the drawable area so don't break. */
     tds->xy[1] = y_next;
 

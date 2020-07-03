@@ -68,9 +68,7 @@ static bool ED_operator_rigidbody_con_active_poll(bContext *C)
     Object *ob = ED_object_active_context(C);
     return (ob && ob->rigidbody_constraint);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 static bool ED_operator_rigidbody_con_add_poll(bContext *C)
@@ -151,9 +149,7 @@ static int rigidbody_con_add_exec(bContext *C, wmOperator *op)
     /* done */
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void RIGIDBODY_OT_constraint_add(wmOperatorType *ot)
@@ -193,9 +189,7 @@ static int rigidbody_con_remove_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "Object has no Rigid Body Constraint to remove");
     return OPERATOR_CANCELLED;
   }
-  else {
-    ED_rigidbody_constraint_remove(bmain, scene, ob);
-  }
+  ED_rigidbody_constraint_remove(bmain, scene, ob);
 
   /* send updates */
   WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);

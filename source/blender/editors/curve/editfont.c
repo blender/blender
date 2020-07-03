@@ -373,9 +373,7 @@ static wchar_t findaccent(wchar_t char1, uint code)
   if (new) {
     return new;
   }
-  else {
-    return char1;
-  }
+  return char1;
 }
 
 static int insert_into_textbuf(Object *obedit, uintptr_t c)
@@ -403,9 +401,7 @@ static int insert_into_textbuf(Object *obedit, uintptr_t c)
 
     return 1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static void text_update_edited(bContext *C, Object *obedit, int mode)
@@ -887,9 +883,7 @@ static int font_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void FONT_OT_select_all(wmOperatorType *ot)
@@ -1015,10 +1009,9 @@ static bool paste_selection(Object *obedit, ReportList *reports)
   if (font_paste_wchar(obedit, text_buf, len, info_buf)) {
     return true;
   }
-  else {
-    BKE_report(reports, RPT_WARNING, "Text too long");
-    return false;
-  }
+
+  BKE_report(reports, RPT_WARNING, "Text too long");
+  return false;
 }
 
 static int paste_text_exec(bContext *C, wmOperator *op)
@@ -1347,9 +1340,7 @@ static int change_spacing_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void FONT_OT_change_spacing(wmOperatorType *ot)
@@ -1688,9 +1679,8 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     if ((alt || ctrl || shift) == 0) {
       return OPERATOR_PASS_THROUGH;
     }
-    else {
-      ascii = 9;
-    }
+
+    ascii = 9;
   }
 
   if (event_type == EVT_BACKSPACEKEY) {
@@ -2290,9 +2280,7 @@ bool ED_curve_editfont_select_pick(
     }
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /** \} */

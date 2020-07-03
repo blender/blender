@@ -208,45 +208,44 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     MEM_freeN(str);
     return OPERATOR_CANCELLED;
   }
-  else {
-    PropertyRNA *prop_relpath;
-    const char *path_prop = RNA_struct_find_property(op->ptr, "directory") ? "directory" :
-                                                                             "filepath";
-    fbo = MEM_callocN(sizeof(FileBrowseOp), "FileBrowseOp");
-    fbo->ptr = ptr;
-    fbo->prop = prop;
-    fbo->is_undo = is_undo;
-    fbo->is_userdef = is_userdef;
-    op->customdata = fbo;
 
-    /* normally ED_fileselect_get_params would handle this but we need to because of stupid
-     * user-prefs exception - campbell */
-    if ((prop_relpath = RNA_struct_find_property(op->ptr, "relative_path"))) {
-      if (!RNA_property_is_set(op->ptr, prop_relpath)) {
-        bool is_relative = (U.flag & USER_RELPATHS) != 0;
+  PropertyRNA *prop_relpath;
+  const char *path_prop = RNA_struct_find_property(op->ptr, "directory") ? "directory" :
+                                                                           "filepath";
+  fbo = MEM_callocN(sizeof(FileBrowseOp), "FileBrowseOp");
+  fbo->ptr = ptr;
+  fbo->prop = prop;
+  fbo->is_undo = is_undo;
+  fbo->is_userdef = is_userdef;
+  op->customdata = fbo;
 
-        /* while we want to follow the defaults,
-         * we better not switch existing paths relative/absolute state. */
-        if (str[0]) {
-          is_relative = BLI_path_is_rel(str);
-        }
+  /* normally ED_fileselect_get_params would handle this but we need to because of stupid
+   * user-prefs exception - campbell */
+  if ((prop_relpath = RNA_struct_find_property(op->ptr, "relative_path"))) {
+    if (!RNA_property_is_set(op->ptr, prop_relpath)) {
+      bool is_relative = (U.flag & USER_RELPATHS) != 0;
 
-        if (UNLIKELY(ptr.data == &U)) {
-          is_relative = false;
-        }
-
-        /* annoying exception!, if we're dealing with the user prefs, default relative to be off */
-        RNA_property_boolean_set(op->ptr, prop_relpath, is_relative);
+      /* while we want to follow the defaults,
+       * we better not switch existing paths relative/absolute state. */
+      if (str[0]) {
+        is_relative = BLI_path_is_rel(str);
       }
+
+      if (UNLIKELY(ptr.data == &U)) {
+        is_relative = false;
+      }
+
+      /* annoying exception!, if we're dealing with the user prefs, default relative to be off */
+      RNA_property_boolean_set(op->ptr, prop_relpath, is_relative);
     }
-
-    RNA_string_set(op->ptr, path_prop, str);
-    MEM_freeN(str);
-
-    WM_event_add_fileselect(C, op);
-
-    return OPERATOR_RUNNING_MODAL;
   }
+
+  RNA_string_set(op->ptr, path_prop, str);
+  MEM_freeN(str);
+
+  WM_event_add_fileselect(C, op);
+
+  return OPERATOR_RUNNING_MODAL;
 }
 
 void BUTTONS_OT_file_browse(wmOperatorType *ot)

@@ -331,52 +331,51 @@ static int select_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    MaskSplinePointUW *uw;
 
-    if (ED_mask_feather_find_nearest(
-            C, mask, co, threshold, &mask_layer, &spline, &point, &uw, NULL)) {
+  MaskSplinePointUW *uw;
 
-      if (extend) {
-        mask_layer->act_spline = spline;
-        mask_layer->act_point = point;
+  if (ED_mask_feather_find_nearest(
+          C, mask, co, threshold, &mask_layer, &spline, &point, &uw, NULL)) {
 
-        if (uw) {
+    if (extend) {
+      mask_layer->act_spline = spline;
+      mask_layer->act_point = point;
+
+      if (uw) {
+        uw->flag |= SELECT;
+      }
+    }
+    else if (deselect) {
+      if (uw) {
+        uw->flag &= ~SELECT;
+      }
+    }
+    else {
+      mask_layer->act_spline = spline;
+      mask_layer->act_point = point;
+
+      if (uw) {
+        if (!(uw->flag & SELECT)) {
           uw->flag |= SELECT;
         }
-      }
-      else if (deselect) {
-        if (uw) {
+        else if (toggle) {
           uw->flag &= ~SELECT;
         }
       }
-      else {
-        mask_layer->act_spline = spline;
-        mask_layer->act_point = point;
-
-        if (uw) {
-          if (!(uw->flag & SELECT)) {
-            uw->flag |= SELECT;
-          }
-          else if (toggle) {
-            uw->flag &= ~SELECT;
-          }
-        }
-      }
-
-      ED_mask_select_flush_all(mask);
-
-      DEG_id_tag_update(&mask->id, ID_RECALC_SELECT);
-      WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
-
-      return OPERATOR_FINISHED;
     }
-    else if (deselect_all) {
-      /* For clip editor tracks, leave deselect all to clip editor. */
-      if (!ED_clip_can_select(C)) {
-        ED_mask_deselect_all(C);
-        return OPERATOR_FINISHED;
-      }
+
+    ED_mask_select_flush_all(mask);
+
+    DEG_id_tag_update(&mask->id, ID_RECALC_SELECT);
+    WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
+
+    return OPERATOR_FINISHED;
+  }
+  if (deselect_all) {
+    /* For clip editor tracks, leave deselect all to clip editor. */
+    if (!ED_clip_can_select(C)) {
+      ED_mask_deselect_all(C);
+      return OPERATOR_FINISHED;
     }
   }
 

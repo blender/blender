@@ -360,7 +360,7 @@ bool ED_undo_is_legacy_compatible_for_property(struct bContext *C, ID *id)
         CLOG_INFO(&LOG, 1, "skipping undo for paint-mode");
         return false;
       }
-      else if (obact->mode & OB_MODE_EDIT) {
+      if (obact->mode & OB_MODE_EDIT) {
         if ((id == NULL) || (obact->data == NULL) ||
             (GS(id->name) != GS(((ID *)obact->data)->name))) {
           /* No undo push on id type mismatch in edit-mode. */

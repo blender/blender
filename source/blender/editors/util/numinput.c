@@ -239,13 +239,12 @@ bool applyNumInput(NumInput *n, float *vec)
 #endif
     return true;
   }
-  else {
-    /* Else, we set the 'org' values for numinput! */
-    for (j = 0; j <= n->idx_max; j++) {
-      n->val[j] = n->val_org[j] = vec[j];
-    }
-    return false;
+
+  /* Else, we set the 'org' values for numinput! */
+  for (j = 0; j <= n->idx_max; j++) {
+    n->val[j] = n->val_org[j] = vec[j];
   }
+  return false;
 }
 
 static void value_to_editstr(NumInput *n, int idx)
@@ -291,12 +290,12 @@ bool user_string_to_number(
 
     return BPY_execute_string_as_number(C, NULL, str_unit_convert, true, r_value);
   }
-  else {
-    int success = BPY_execute_string_as_number(C, NULL, str, true, r_value);
-    *r_value *= bUnit_PreferredInputUnitScalar(unit, type);
-    *r_value /= unit_scale;
-    return success;
-  }
+
+  int success = BPY_execute_string_as_number(C, NULL, str, true, r_value);
+  *r_value *= bUnit_PreferredInputUnitScalar(unit, type);
+  *r_value /= unit_scale;
+  return success;
+
 #else
   UNUSED_VARS(C, unit, type);
   *r_value = atof(str);
@@ -309,12 +308,10 @@ static bool editstr_is_simple_numinput(const char ascii)
   if (ascii >= '0' && ascii <= '9') {
     return true;
   }
-  else if (ascii == '.') {
+  if (ascii == '.') {
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
@@ -348,7 +345,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
       n->val_flag[idx] |= NUM_EDITED;
       return true;
     }
-    else if (event->ctrl) {
+    if (event->ctrl) {
       n->flag &= ~NUM_EDIT_FULL;
       return true;
     }

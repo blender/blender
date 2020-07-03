@@ -637,11 +637,10 @@ static bool is_hidden_dot_filename(const char *filename, FileListInternEntry *fi
   if (filename[0] == '.' && !ELEM(filename[1], '.', '\0')) {
     return true; /* ignore .file */
   }
-  else {
-    int len = strlen(filename);
-    if ((len > 0) && (filename[len - 1] == '~')) {
-      return true; /* ignore file~ */
-    }
+
+  int len = strlen(filename);
+  if ((len > 0) && (filename[len - 1] == '~')) {
+    return true; /* ignore file~ */
   }
 
   /* filename might actually be a piece of path, in which case we have to check all its parts. */
@@ -1011,43 +1010,41 @@ static int filelist_geticon_ex(FileDirEntry *file,
     if (FILENAME_IS_PARENT(file->relpath)) {
       return is_main ? ICON_FILE_PARENT : ICON_NONE;
     }
-    else if (typeflag & FILE_TYPE_APPLICATIONBUNDLE) {
+    if (typeflag & FILE_TYPE_APPLICATIONBUNDLE) {
       return ICON_UGLYPACKAGE;
     }
-    else if (typeflag & FILE_TYPE_BLENDER) {
+    if (typeflag & FILE_TYPE_BLENDER) {
       return ICON_FILE_BLEND;
     }
-    else if (is_main) {
+    if (is_main) {
       /* Do not return icon for folders if icons are not 'main' draw type
        * (e.g. when used over previews). */
       return (file->attributes & FILE_ATTR_ANY_LINK) ? ICON_FOLDER_REDIRECT : ICON_FILE_FOLDER;
     }
-    else {
 
-      /* If this path is in System list or path cache then use that icon. */
-      struct FSMenu *fsmenu = ED_fsmenu_get();
-      FSMenuCategory categories[] = {
-          FS_CATEGORY_SYSTEM,
-          FS_CATEGORY_SYSTEM_BOOKMARKS,
-          FS_CATEGORY_OTHER,
-      };
+    /* If this path is in System list or path cache then use that icon. */
+    struct FSMenu *fsmenu = ED_fsmenu_get();
+    FSMenuCategory categories[] = {
+        FS_CATEGORY_SYSTEM,
+        FS_CATEGORY_SYSTEM_BOOKMARKS,
+        FS_CATEGORY_OTHER,
+    };
 
-      for (int i = 0; i < ARRAY_SIZE(categories); i++) {
-        FSMenuEntry *tfsm = ED_fsmenu_get_category(fsmenu, categories[i]);
-        char fullpath[FILE_MAX_LIBEXTRA];
-        char *target = fullpath;
-        if (file->redirection_path) {
-          target = file->redirection_path;
-        }
-        else {
-          BLI_join_dirfile(fullpath, sizeof(fullpath), root, file->relpath);
-          BLI_path_slash_ensure(fullpath);
-        }
-        for (; tfsm; tfsm = tfsm->next) {
-          if (STREQ(tfsm->path, target)) {
-            /* Never want a little folder inside a large one. */
-            return (tfsm->icon == ICON_FILE_FOLDER) ? ICON_NONE : tfsm->icon;
-          }
+    for (int i = 0; i < ARRAY_SIZE(categories); i++) {
+      FSMenuEntry *tfsm = ED_fsmenu_get_category(fsmenu, categories[i]);
+      char fullpath[FILE_MAX_LIBEXTRA];
+      char *target = fullpath;
+      if (file->redirection_path) {
+        target = file->redirection_path;
+      }
+      else {
+        BLI_join_dirfile(fullpath, sizeof(fullpath), root, file->relpath);
+        BLI_path_slash_ensure(fullpath);
+      }
+      for (; tfsm; tfsm = tfsm->next) {
+        if (STREQ(tfsm->path, target)) {
+          /* Never want a little folder inside a large one. */
+          return (tfsm->icon == ICON_FILE_FOLDER) ? ICON_NONE : tfsm->icon;
         }
       }
     }
@@ -1055,10 +1052,10 @@ static int filelist_geticon_ex(FileDirEntry *file,
     if (file->attributes & FILE_ATTR_OFFLINE) {
       return ICON_ERROR;
     }
-    else if (file->attributes & FILE_ATTR_TEMPORARY) {
+    if (file->attributes & FILE_ATTR_TEMPORARY) {
       return ICON_FILE_CACHE;
     }
-    else if (file->attributes & FILE_ATTR_SYSTEM) {
+    if (file->attributes & FILE_ATTR_SYSTEM) {
       return ICON_SYSTEM;
     }
   }
@@ -1066,49 +1063,49 @@ static int filelist_geticon_ex(FileDirEntry *file,
   if (typeflag & FILE_TYPE_BLENDER) {
     return ICON_FILE_BLEND;
   }
-  else if (typeflag & FILE_TYPE_BLENDER_BACKUP) {
+  if (typeflag & FILE_TYPE_BLENDER_BACKUP) {
     return ICON_FILE_BACKUP;
   }
-  else if (typeflag & FILE_TYPE_IMAGE) {
+  if (typeflag & FILE_TYPE_IMAGE) {
     return ICON_FILE_IMAGE;
   }
-  else if (typeflag & FILE_TYPE_MOVIE) {
+  if (typeflag & FILE_TYPE_MOVIE) {
     return ICON_FILE_MOVIE;
   }
-  else if (typeflag & FILE_TYPE_PYSCRIPT) {
+  if (typeflag & FILE_TYPE_PYSCRIPT) {
     return ICON_FILE_SCRIPT;
   }
-  else if (typeflag & FILE_TYPE_SOUND) {
+  if (typeflag & FILE_TYPE_SOUND) {
     return ICON_FILE_SOUND;
   }
-  else if (typeflag & FILE_TYPE_FTFONT) {
+  if (typeflag & FILE_TYPE_FTFONT) {
     return ICON_FILE_FONT;
   }
-  else if (typeflag & FILE_TYPE_BTX) {
+  if (typeflag & FILE_TYPE_BTX) {
     return ICON_FILE_BLANK;
   }
-  else if (typeflag & FILE_TYPE_COLLADA) {
+  if (typeflag & FILE_TYPE_COLLADA) {
     return ICON_FILE_3D;
   }
-  else if (typeflag & FILE_TYPE_ALEMBIC) {
+  if (typeflag & FILE_TYPE_ALEMBIC) {
     return ICON_FILE_3D;
   }
-  else if (typeflag & FILE_TYPE_USD) {
+  if (typeflag & FILE_TYPE_USD) {
     return ICON_FILE_3D;
   }
-  else if (typeflag & FILE_TYPE_VOLUME) {
+  if (typeflag & FILE_TYPE_VOLUME) {
     return ICON_FILE_VOLUME;
   }
-  else if (typeflag & FILE_TYPE_OBJECT_IO) {
+  if (typeflag & FILE_TYPE_OBJECT_IO) {
     return ICON_FILE_3D;
   }
-  else if (typeflag & FILE_TYPE_TEXT) {
+  if (typeflag & FILE_TYPE_TEXT) {
     return ICON_FILE_TEXT;
   }
-  else if (typeflag & FILE_TYPE_ARCHIVE) {
+  if (typeflag & FILE_TYPE_ARCHIVE) {
     return ICON_FILE_ARCHIVE;
   }
-  else if (typeflag & FILE_TYPE_BLENDERLIB) {
+  if (typeflag & FILE_TYPE_BLENDERLIB) {
     const int ret = UI_idcode_icon_get(file->blentype);
     if (ret != ICON_NONE) {
       return ret;
@@ -1145,9 +1142,7 @@ static bool filelist_checkdir_dir(struct FileList *UNUSED(filelist),
     parent_dir_until_exists_or_default_root(r_dir);
     return true;
   }
-  else {
-    return BLI_is_dir(r_dir);
-  }
+  return BLI_is_dir(r_dir);
 }
 
 static bool filelist_checkdir_lib(struct FileList *UNUSED(filelist),
@@ -2118,7 +2113,7 @@ void filelist_cache_previews_set(FileList *filelist, const bool use_previews)
     return;
   }
   /* Do not start preview work while listing, gives nasty flickering! */
-  else if (use_previews && (filelist->flags & FL_IS_READY)) {
+  if (use_previews && (filelist->flags & FL_IS_READY)) {
     cache->flags |= FLC_PREVIEWS_ACTIVE;
 
     BLI_assert((cache->previews_pool == NULL) && (cache->previews_done == NULL));
@@ -2227,67 +2222,65 @@ int ED_path_extension_type(const char *path)
   if (BLO_has_bfile_extension(path)) {
     return FILE_TYPE_BLENDER;
   }
-  else if (file_is_blend_backup(path)) {
+  if (file_is_blend_backup(path)) {
     return FILE_TYPE_BLENDER_BACKUP;
   }
-  else if (BLI_path_extension_check(path, ".app")) {
+  if (BLI_path_extension_check(path, ".app")) {
     return FILE_TYPE_APPLICATIONBUNDLE;
   }
-  else if (BLI_path_extension_check(path, ".py")) {
+  if (BLI_path_extension_check(path, ".py")) {
     return FILE_TYPE_PYSCRIPT;
   }
-  else if (BLI_path_extension_check_n(path,
-                                      ".txt",
-                                      ".glsl",
-                                      ".osl",
-                                      ".data",
-                                      ".pov",
-                                      ".ini",
-                                      ".mcr",
-                                      ".inc",
-                                      ".fountain",
-                                      NULL)) {
+  if (BLI_path_extension_check_n(path,
+                                 ".txt",
+                                 ".glsl",
+                                 ".osl",
+                                 ".data",
+                                 ".pov",
+                                 ".ini",
+                                 ".mcr",
+                                 ".inc",
+                                 ".fountain",
+                                 NULL)) {
     return FILE_TYPE_TEXT;
   }
-  else if (BLI_path_extension_check_n(path, ".ttf", ".ttc", ".pfb", ".otf", ".otc", NULL)) {
+  if (BLI_path_extension_check_n(path, ".ttf", ".ttc", ".pfb", ".otf", ".otc", NULL)) {
     return FILE_TYPE_FTFONT;
   }
-  else if (BLI_path_extension_check(path, ".btx")) {
+  if (BLI_path_extension_check(path, ".btx")) {
     return FILE_TYPE_BTX;
   }
-  else if (BLI_path_extension_check(path, ".dae")) {
+  if (BLI_path_extension_check(path, ".dae")) {
     return FILE_TYPE_COLLADA;
   }
-  else if (BLI_path_extension_check(path, ".abc")) {
+  if (BLI_path_extension_check(path, ".abc")) {
     return FILE_TYPE_ALEMBIC;
   }
-  else if (BLI_path_extension_check_n(path, ".usd", ".usda", ".usdc", NULL)) {
+  if (BLI_path_extension_check_n(path, ".usd", ".usda", ".usdc", NULL)) {
     return FILE_TYPE_USD;
   }
-  else if (BLI_path_extension_check(path, ".vdb")) {
+  if (BLI_path_extension_check(path, ".vdb")) {
     return FILE_TYPE_VOLUME;
   }
-  else if (BLI_path_extension_check(path, ".zip")) {
+  if (BLI_path_extension_check(path, ".zip")) {
     return FILE_TYPE_ARCHIVE;
   }
-  else if (BLI_path_extension_check_n(path, ".obj", ".3ds", ".fbx", ".glb", ".gltf", NULL)) {
+  if (BLI_path_extension_check_n(path, ".obj", ".3ds", ".fbx", ".glb", ".gltf", NULL)) {
     return FILE_TYPE_OBJECT_IO;
   }
-  else if (BLI_path_extension_check_array(path, imb_ext_image)) {
+  if (BLI_path_extension_check_array(path, imb_ext_image)) {
     return FILE_TYPE_IMAGE;
   }
-  else if (BLI_path_extension_check(path, ".ogg")) {
+  if (BLI_path_extension_check(path, ".ogg")) {
     if (IMB_isanim(path)) {
       return FILE_TYPE_MOVIE;
     }
-    else {
-      return FILE_TYPE_SOUND;
-    }
+    return FILE_TYPE_SOUND;
   }
-  else if (BLI_path_extension_check_array(path, imb_ext_movie)) {
+  if (BLI_path_extension_check_array(path, imb_ext_movie)) {
     return FILE_TYPE_MOVIE;
   }
-  else if (BLI_path_extension_check_array(path, imb_ext_audio)) {
+  if (BLI_path_extension_check_array(path, imb_ext_audio)) {
     return FILE_TYPE_SOUND;
   }
   return 0;

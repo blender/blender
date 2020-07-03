@@ -283,12 +283,12 @@ static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
 
     return OPERATOR_FINISHED;
   }
-  else if (sima->flag & SI_FULLWINDOW) {
+  if (sima->flag & SI_FULLWINDOW) {
     sima->flag &= ~SI_FULLWINDOW;
     ED_screen_state_toggle(C, win, area, SCREENMAXIMIZED);
     return OPERATOR_FINISHED;
   }
-  else if (WM_window_is_temp_screen(win)) {
+  if (WM_window_is_temp_screen(win)) {
     wm_window_close(C, CTX_wm_manager(C), win);
     return OPERATOR_FINISHED;
   }

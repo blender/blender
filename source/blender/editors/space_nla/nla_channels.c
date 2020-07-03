@@ -461,10 +461,9 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
                  "block)");
       return OPERATOR_CANCELLED;
     }
-    else {
-      id = adt_ptr.owner_id;
-      adt = adt_ptr.data;
-    }
+
+    id = adt_ptr.owner_id;
+    adt = adt_ptr.data;
   }
   else {
     /* indexed channel */
@@ -483,7 +482,7 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
       ANIM_animdata_freelist(&anim_data);
       return OPERATOR_CANCELLED;
     }
-    else if (ale->type != ANIMTYPE_NLAACTION) {
+    if (ale->type != ANIMTYPE_NLAACTION) {
       BKE_reportf(op->reports,
                   RPT_ERROR,
                   "Animation channel at index %d is not a NLA 'Active Action' channel",
@@ -505,22 +504,21 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_WARNING, "Internal Error - AnimData block is not valid");
     return OPERATOR_CANCELLED;
   }
-  else if (nlaedit_is_tweakmode_on(&ac)) {
+  if (nlaedit_is_tweakmode_on(&ac)) {
     BKE_report(op->reports,
                RPT_WARNING,
                "Cannot push down actions while tweaking a strip's action, exit tweak mode first");
     return OPERATOR_CANCELLED;
   }
-  else if (adt->action == NULL) {
+  if (adt->action == NULL) {
     BKE_report(op->reports, RPT_WARNING, "No active action to push down");
     return OPERATOR_CANCELLED;
   }
-  else {
-    /* 'push-down' action - only usable when not in TweakMode */
-    BKE_nla_action_pushdown(adt);
 
-    DEG_id_tag_update_ex(CTX_data_main(C), id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
-  }
+  /* 'push-down' action - only usable when not in TweakMode */
+  BKE_nla_action_pushdown(adt);
+
+  DEG_id_tag_update_ex(CTX_data_main(C), id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
 
   /* set notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
@@ -735,14 +733,13 @@ static int nlaedit_add_tracks_exec(bContext *C, wmOperator *op)
     /* done */
     return OPERATOR_FINISHED;
   }
-  else {
-    /* failed to add any tracks */
-    BKE_report(
-        op->reports, RPT_WARNING, "Select an existing NLA Track or an empty action line first");
 
-    /* not done */
-    return OPERATOR_CANCELLED;
-  }
+  /* failed to add any tracks */
+  BKE_report(
+      op->reports, RPT_WARNING, "Select an existing NLA Track or an empty action line first");
+
+  /* not done */
+  return OPERATOR_CANCELLED;
 }
 
 void NLA_OT_tracks_add(wmOperatorType *ot)

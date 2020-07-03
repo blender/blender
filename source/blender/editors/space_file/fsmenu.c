@@ -307,14 +307,13 @@ char *ED_fsmenu_entry_get_name(struct FSMenuEntry *fsentry)
   if (fsentry->name[0]) {
     return fsentry->name;
   }
-  else {
-    /* Here we abuse fsm_iter->name, keeping first char NULL. */
-    char *name = fsentry->name + 1;
-    size_t name_size = sizeof(fsentry->name) - 1;
 
-    fsmenu_entry_generate_name(fsentry, name, name_size);
-    return name;
-  }
+  /* Here we abuse fsm_iter->name, keeping first char NULL. */
+  char *name = fsentry->name + 1;
+  size_t name_size = sizeof(fsentry->name) - 1;
+
+  fsmenu_entry_generate_name(fsentry, name, name_size);
+  return name;
 }
 
 void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name)
@@ -411,7 +410,7 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu,
         }
         return;
       }
-      else if ((flag & FS_INSERT_SORTED) && cmp_ret < 0) {
+      if ((flag & FS_INSERT_SORTED) && cmp_ret < 0) {
         break;
       }
     }
@@ -948,10 +947,10 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
             /* Hide share not usable to the user. */
             continue;
           }
-          else if (!STRPREFIX(mnt->mnt_fsname, "/dev")) {
+          if (!STRPREFIX(mnt->mnt_fsname, "/dev")) {
             continue;
           }
-          else if (STRPREFIX(mnt->mnt_fsname, "/dev/loop")) {
+          if (STRPREFIX(mnt->mnt_fsname, "/dev/loop")) {
             /* The dev/loop* entries are SNAPS used by desktop environment
              * (Gnome) no need for them to show up in the list. */
             continue;

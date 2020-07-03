@@ -211,14 +211,13 @@ bool gizmo_window_project_2d(bContext *C,
     }
     return false;
   }
-  else {
-    float co[3] = {mval[0], mval[1], 0.0f};
-    float imat[4][4];
-    invert_m4_m4(imat, mat);
-    mul_m4_v3(imat, co);
-    copy_v2_v2(r_co, co);
-    return true;
-  }
+
+  float co[3] = {mval[0], mval[1], 0.0f};
+  float imat[4][4];
+  invert_m4_m4(imat, mat);
+  mul_m4_v3(imat, co);
+  copy_v2_v2(r_co, co);
+  return true;
 }
 
 bool gizmo_window_project_3d(
@@ -245,12 +244,11 @@ bool gizmo_window_project_3d(
     mul_m4_v3(mat, r_co);
     return true;
   }
-  else {
-    float co[3] = {mval[0], mval[1], 0.0f};
-    float imat[4][4];
-    invert_m4_m4(imat, mat);
-    mul_m4_v3(imat, co);
-    copy_v2_v2(r_co, co);
-    return true;
-  }
+
+  float co[3] = {mval[0], mval[1], 0.0f};
+  float imat[4][4];
+  invert_m4_m4(imat, mat);
+  mul_m4_v3(imat, co);
+  copy_v2_v2(r_co, co);
+  return true;
 }

@@ -337,10 +337,9 @@ static int action_pushdown_exec(bContext *C, wmOperator *op)
       BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
       return OPERATOR_CANCELLED;
     }
-    else {
-      /* action can be safely added */
-      BKE_nla_action_pushdown(adt);
-    }
+
+    /* action can be safely added */
+    BKE_nla_action_pushdown(adt);
 
     /* Stop displaying this action in this editor
      * NOTE: The editor itself doesn't set a user...
@@ -383,24 +382,23 @@ static int action_stash_exec(bContext *C, wmOperator *op)
       BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
       return OPERATOR_CANCELLED;
     }
-    else {
-      /* stash the action */
-      if (BKE_nla_action_stash(adt)) {
-        /* The stash operation will remove the user already,
-         * so the flushing step later shouldn't double up
-         * the user-count fixes. Hence, we must unset this ref
-         * first before setting the new action.
-         */
-        saction->action = NULL;
-      }
-      else {
-        /* action has already been added - simply warn about this, and clear */
-        BKE_report(op->reports, RPT_ERROR, "Action has already been stashed");
-      }
 
-      /* clear action refs from editor, and then also the backing data (not necessary) */
-      actedit_change_action(C, NULL);
+    /* stash the action */
+    if (BKE_nla_action_stash(adt)) {
+      /* The stash operation will remove the user already,
+       * so the flushing step later shouldn't double up
+       * the user-count fixes. Hence, we must unset this ref
+       * first before setting the new action.
+       */
+      saction->action = NULL;
     }
+    else {
+      /* action has already been added - simply warn about this, and clear */
+      BKE_report(op->reports, RPT_ERROR, "Action has already been stashed");
+    }
+
+    /* clear action refs from editor, and then also the backing data (not necessary) */
+    actedit_change_action(C, NULL);
   }
 
   /* Send notifiers that stuff has changed */
@@ -486,28 +484,27 @@ static int action_stash_create_exec(bContext *C, wmOperator *op)
       BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
       return OPERATOR_CANCELLED;
     }
+
+    /* stash the action */
+    if (BKE_nla_action_stash(adt)) {
+      bAction *new_action = NULL;
+
+      /* Create new action not based on the old one
+       * (since the "new" operator already does that). */
+      new_action = action_create_new(C, NULL);
+
+      /* The stash operation will remove the user already,
+       * so the flushing step later shouldn't double up
+       * the user-count fixes. Hence, we must unset this ref
+       * first before setting the new action.
+       */
+      saction->action = NULL;
+      actedit_change_action(C, new_action);
+    }
     else {
-      /* stash the action */
-      if (BKE_nla_action_stash(adt)) {
-        bAction *new_action = NULL;
-
-        /* Create new action not based on the old one
-         * (since the "new" operator already does that). */
-        new_action = action_create_new(C, NULL);
-
-        /* The stash operation will remove the user already,
-         * so the flushing step later shouldn't double up
-         * the user-count fixes. Hence, we must unset this ref
-         * first before setting the new action.
-         */
-        saction->action = NULL;
-        actedit_change_action(C, new_action);
-      }
-      else {
-        /* action has already been added - simply warn about this, and clear */
-        BKE_report(op->reports, RPT_ERROR, "Action has already been stashed");
-        actedit_change_action(C, NULL);
-      }
+      /* action has already been added - simply warn about this, and clear */
+      BKE_report(op->reports, RPT_ERROR, "Action has already been stashed");
+      actedit_change_action(C, NULL);
     }
   }
 
@@ -709,11 +706,11 @@ static NlaStrip *action_layer_get_nlastrip(ListBase *strips, float ctime)
       /* in range - use this one */
       return strip;
     }
-    else if ((ctime < strip->start) && (strip->prev == NULL)) {
+    if ((ctime < strip->start) && (strip->prev == NULL)) {
       /* before first - use this one */
       return strip;
     }
-    else if ((ctime > strip->end) && (strip->next == NULL)) {
+    if ((ctime > strip->end) && (strip->next == NULL)) {
       /* after last - use this one */
       return strip;
     }

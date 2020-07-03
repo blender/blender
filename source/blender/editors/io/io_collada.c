@@ -253,16 +253,15 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_WARNING, "No objects selected -- Created empty export file");
     return OPERATOR_CANCELLED;
   }
-  else if (export_count < 0) {
+  if (export_count < 0) {
     BKE_report(op->reports, RPT_WARNING, "Error during export (see Console)");
     return OPERATOR_CANCELLED;
   }
-  else {
-    char buff[100];
-    sprintf(buff, "Exported %d Objects", export_count);
-    BKE_report(op->reports, RPT_INFO, buff);
-    return OPERATOR_FINISHED;
-  }
+
+  char buff[100];
+  sprintf(buff, "Exported %d Objects", export_count);
+  BKE_report(op->reports, RPT_INFO, buff);
+  return OPERATOR_FINISHED;
 }
 
 static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
@@ -803,10 +802,9 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_BASE_FLAGS);
     return OPERATOR_FINISHED;
   }
-  else {
-    BKE_report(op->reports, RPT_ERROR, "Parsing errors in Document (see Blender Console)");
-    return OPERATOR_CANCELLED;
-  }
+
+  BKE_report(op->reports, RPT_ERROR, "Parsing errors in Document (see Blender Console)");
+  return OPERATOR_CANCELLED;
 }
 
 static void uiCollada_importSettings(uiLayout *layout, PointerRNA *imfptr)

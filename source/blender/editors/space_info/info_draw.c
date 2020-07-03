@@ -108,9 +108,8 @@ static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
     UI_GetThemeColor4ubv(icon_bg_id, r_icon_bg);
     return TVC_LINE_FG | TVC_LINE_BG | TVC_LINE_ICON | TVC_LINE_ICON_FG | TVC_LINE_ICON_BG;
   }
-  else {
-    return TVC_LINE_FG | TVC_LINE_BG;
-  }
+
+  return TVC_LINE_FG | TVC_LINE_BG;
 }
 
 /* reports! */
@@ -159,9 +158,8 @@ static int report_textview_begin(TextViewContext *tvc)
 
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 static void report_textview_end(TextViewContext *UNUSED(tvc))
@@ -185,17 +183,14 @@ static int report_textview_step(TextViewContext *tvc)
 
       return true;
     }
-    else {
-      return false;
-    }
+    return false;
   }
-  else {
-    /* step to the next newline */
-    tvc->iter_char_end = tvc->iter_char_begin - 1;
-    report_textview_init__internal(tvc);
 
-    return true;
-  }
+  /* step to the next newline */
+  tvc->iter_char_end = tvc->iter_char_begin - 1;
+  report_textview_init__internal(tvc);
+
+  return true;
 }
 
 static void report_textview_line_get(TextViewContext *tvc, const char **r_line, int *r_len)

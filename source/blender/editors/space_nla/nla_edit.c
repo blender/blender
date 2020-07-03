@@ -269,9 +269,7 @@ static int nlaedit_disable_tweakmode_exec(bContext *C, wmOperator *op)
   if (ok) {
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void NLA_OT_tweakmode_exit(wmOperatorType *ot)
@@ -373,9 +371,8 @@ static int nlaedit_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
   if (ac.scene == NULL) {
     return OPERATOR_CANCELLED;
   }
-  else {
-    scene = ac.scene;
-  }
+
+  scene = ac.scene;
 
   /* set the range directly */
   get_nlastrip_extents(&ac, &min, &max, true);
@@ -616,7 +613,7 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
     // printf("Add strip - actname = '%s'\n", actname);
     return OPERATOR_CANCELLED;
   }
-  else if (act->idroot == 0) {
+  if (act->idroot == 0) {
     /* hopefully in this case (i.e. library of userless actions),
      * the user knows what they're doing... */
     BKE_reportf(op->reports,
@@ -830,12 +827,11 @@ static int nlaedit_add_transition_exec(bContext *C, wmOperator *op)
     /* done */
     return OPERATOR_FINISHED;
   }
-  else {
-    BKE_report(op->reports,
-               RPT_ERROR,
-               "Needs at least a pair of adjacent selected strips with a gap between them");
-    return OPERATOR_CANCELLED;
-  }
+
+  BKE_report(op->reports,
+             RPT_ERROR,
+             "Needs at least a pair of adjacent selected strips with a gap between them");
+  return OPERATOR_CANCELLED;
 }
 
 void NLA_OT_transition_add(wmOperatorType *ot)
@@ -1146,9 +1142,8 @@ static int nlaedit_duplicate_exec(bContext *C, wmOperator *op)
     /* done */
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+
+  return OPERATOR_CANCELLED;
 }
 
 static int nlaedit_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
@@ -1293,9 +1288,8 @@ static void nlaedit_split_strip_actclip(
     if (IS_EQF(len, 0.0f)) {
       return;
     }
-    else {
-      splitframe = strip->start + (len / 2.0f);
-    }
+
+    splitframe = strip->start + (len / 2.0f);
 
     /* action range */
     len = strip->actend - strip->actstart;
@@ -2504,10 +2498,9 @@ static int nla_fmodifier_copy_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No F-Modifiers available to be copied");
     return OPERATOR_CANCELLED;
   }
-  else {
-    /* no updates needed - copy is non-destructive operation */
-    return OPERATOR_FINISHED;
-  }
+
+  /* no updates needed - copy is non-destructive operation */
+  return OPERATOR_FINISHED;
 }
 
 void NLA_OT_fmodifier_copy(wmOperatorType *ot)
@@ -2591,10 +2584,9 @@ static int nla_fmodifier_paste_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
     return OPERATOR_FINISHED;
   }
-  else {
-    BKE_report(op->reports, RPT_ERROR, "No F-Modifiers to paste");
-    return OPERATOR_CANCELLED;
-  }
+
+  BKE_report(op->reports, RPT_ERROR, "No F-Modifiers to paste");
+  return OPERATOR_CANCELLED;
 }
 
 void NLA_OT_fmodifier_paste(wmOperatorType *ot)

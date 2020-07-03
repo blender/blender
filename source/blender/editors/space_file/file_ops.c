@@ -778,7 +778,7 @@ static bool file_walk_select_do(bContext *C,
       }
       /* if we don't extend, selecting '..' (index == 0) is allowed so
        * using key selection to go to parent directory is possible */
-      else if (active_new != 0) {
+      if (active_new != 0) {
         /* select initial file */
         active_new = active_old;
       }

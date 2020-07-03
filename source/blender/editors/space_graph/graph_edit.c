@@ -233,9 +233,8 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
   if (ac.scene == NULL) {
     return OPERATOR_CANCELLED;
   }
-  else {
-    scene = ac.scene;
-  }
+
+  scene = ac.scene;
 
   /* set the range directly */
   get_graph_keyframe_extents(&ac, &min, &max, NULL, NULL, false, false);
@@ -1631,11 +1630,10 @@ static int graphkeys_decimate_modal(bContext *C, wmOperator *op, const wmEvent *
         graphkeys_decimate_modal_update(C, op);
         break;
       }
-      else {
-        /* unhandled event - maybe it was some view manip? */
-        /* allow to pass through */
-        return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
-      }
+
+      /* unhandled event - maybe it was some view manip? */
+      /* allow to pass through */
+      return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
     }
   }
 
@@ -1694,7 +1692,7 @@ static bool graphkeys_decimate_poll_property(const bContext *UNUSED(C),
     if (STREQ(prop_id, "remove_ratio") && mode != DECIM_RATIO) {
       return false;
     }
-    else if (STREQ(prop_id, "remove_error_margin") && mode != DECIM_ERROR) {
+    if (STREQ(prop_id, "remove_error_margin") && mode != DECIM_ERROR) {
       return false;
     }
   }
@@ -2577,7 +2575,7 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
     if (strstr(fcu->rna_path, "rotation_euler") == NULL) {
       continue;
     }
-    else if (ELEM(fcu->array_index, 0, 1, 2) == 0) {
+    if (ELEM(fcu->array_index, 0, 1, 2) == 0) {
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "Euler Rotation F-Curve has invalid index (ID='%s', Path='%s', Index=%d)",
@@ -2689,23 +2687,22 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
         "and that F-Curves for these are in consecutive XYZ order and selected");
     return OPERATOR_CANCELLED;
   }
-  else {
-    if (failed) {
-      BKE_report(
-          op->reports,
-          RPT_ERROR,
-          "Some Euler Rotations could not be corrected due to missing/unselected/out-of-order "
-          "F-Curves, "
-          "ensure each rotation has keys for all components, and that F-Curves for these are in "
-          "consecutive XYZ order and selected");
-    }
 
-    /* set notifier that keyframes have changed */
-    WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
-
-    /* done at last */
-    return OPERATOR_FINISHED;
+  if (failed) {
+    BKE_report(
+        op->reports,
+        RPT_ERROR,
+        "Some Euler Rotations could not be corrected due to missing/unselected/out-of-order "
+        "F-Curves, "
+        "ensure each rotation has keys for all components, and that F-Curves for these are in "
+        "consecutive XYZ order and selected");
   }
+
+  /* set notifier that keyframes have changed */
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+
+  /* done at last */
+  return OPERATOR_FINISHED;
 }
 
 void GRAPH_OT_euler_filter(wmOperatorType *ot)
@@ -3347,9 +3344,7 @@ static int graph_fmodifier_copy_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No F-Modifiers available to be copied");
     return OPERATOR_CANCELLED;
   }
-  else {
-    return OPERATOR_FINISHED;
-  }
+  return OPERATOR_FINISHED;
 }
 
 void GRAPH_OT_fmodifier_copy(wmOperatorType *ot)
@@ -3434,10 +3429,9 @@ static int graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    BKE_report(op->reports, RPT_ERROR, "No F-Modifiers to paste");
-    return OPERATOR_CANCELLED;
-  }
+
+  BKE_report(op->reports, RPT_ERROR, "No F-Modifiers to paste");
+  return OPERATOR_CANCELLED;
 }
 
 void GRAPH_OT_fmodifier_paste(wmOperatorType *ot)
@@ -3487,9 +3481,7 @@ static int graph_driver_vars_copy_exec(bContext *C, wmOperator *op)
   if (ok) {
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void GRAPH_OT_driver_variables_copy(wmOperatorType *ot)
@@ -3533,9 +3525,7 @@ static int graph_driver_vars_paste_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void GRAPH_OT_driver_variables_paste(wmOperatorType *ot)

@@ -191,7 +191,8 @@ void ED_curve_nurb_vert_selected_find(
             *r_bezt = NULL;
             return;
           }
-          else if (*r_bezt || *r_bp) {
+
+          if (*r_bezt || *r_bp) {
             *r_bp = NULL;
             *r_bezt = NULL;
           }
@@ -214,7 +215,8 @@ void ED_curve_nurb_vert_selected_find(
             *r_nu = NULL;
             return;
           }
-          else if (*r_bezt || *r_bp) {
+
+          if (*r_bezt || *r_bp) {
             *r_bp = NULL;
             *r_bezt = NULL;
           }

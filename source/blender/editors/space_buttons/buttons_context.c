@@ -146,7 +146,7 @@ static int buttons_context_path_world(ButsContextPath *path)
     return 1;
   }
   /* if we have a scene, use the scene's world */
-  else if (buttons_context_path_scene(path)) {
+  if (buttons_context_path_scene(path)) {
     scene = path->ptr[path->len - 1].data;
     world = scene->world;
 
@@ -155,9 +155,8 @@ static int buttons_context_path_world(ButsContextPath *path)
       path->len++;
       return 1;
     }
-    else {
-      return 1;
-    }
+
+    return 1;
   }
 
   /* no path to a world possible */
@@ -174,7 +173,7 @@ static int buttons_context_path_linestyle(ButsContextPath *path, wmWindow *windo
     return 1;
   }
   /* if we have a view layer, use the lineset's linestyle */
-  else if (buttons_context_path_view_layer(path, window)) {
+  if (buttons_context_path_view_layer(path, window)) {
     ViewLayer *view_layer = path->ptr[path->len - 1].data;
     linestyle = BKE_linestyle_active_from_view_layer(view_layer);
     if (linestyle) {
@@ -223,45 +222,45 @@ static int buttons_context_path_data(ButsContextPath *path, int type)
   if (RNA_struct_is_a(ptr->type, &RNA_Mesh) && (type == -1 || type == OB_MESH)) {
     return 1;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Curve) &&
-           (type == -1 || ELEM(type, OB_CURVE, OB_SURF, OB_FONT))) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Curve) &&
+      (type == -1 || ELEM(type, OB_CURVE, OB_SURF, OB_FONT))) {
     return 1;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Armature) && (type == -1 || type == OB_ARMATURE)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Armature) && (type == -1 || type == OB_ARMATURE)) {
     return 1;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_MetaBall) && (type == -1 || type == OB_MBALL)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_MetaBall) && (type == -1 || type == OB_MBALL)) {
     return 1;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Lattice) && (type == -1 || type == OB_LATTICE)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Lattice) && (type == -1 || type == OB_LATTICE)) {
     return 1;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Camera) && (type == -1 || type == OB_CAMERA)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Camera) && (type == -1 || type == OB_CAMERA)) {
     return 1;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Light) && (type == -1 || type == OB_LAMP)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Light) && (type == -1 || type == OB_LAMP)) {
     return 1;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Speaker) && (type == -1 || type == OB_SPEAKER)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Speaker) && (type == -1 || type == OB_SPEAKER)) {
     return 1;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_LightProbe) && (type == -1 || type == OB_LIGHTPROBE)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_LightProbe) && (type == -1 || type == OB_LIGHTPROBE)) {
     return 1;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_GreasePencil) && (type == -1 || type == OB_GPENCIL)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_GreasePencil) && (type == -1 || type == OB_GPENCIL)) {
     return 1;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Hair) && (type == -1 || type == OB_HAIR)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Hair) && (type == -1 || type == OB_HAIR)) {
     return 1;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_PointCloud) && (type == -1 || type == OB_POINTCLOUD)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_PointCloud) && (type == -1 || type == OB_POINTCLOUD)) {
     return 1;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Volume) && (type == -1 || type == OB_VOLUME)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Volume) && (type == -1 || type == OB_VOLUME)) {
     return 1;
   }
   /* try to get an object in the path, no pinning supported here */
-  else if (buttons_context_path_object(path)) {
+  if (buttons_context_path_object(path)) {
     ob = path->ptr[path->len - 1].data;
 
     if (ob && (type == -1 || type == ob->type)) {
@@ -326,7 +325,7 @@ static int buttons_context_path_material(ButsContextPath *path)
     return 1;
   }
   /* if we have an object, use the object material slot */
-  else if (buttons_context_path_object(path)) {
+  if (buttons_context_path_object(path)) {
     ob = path->ptr[path->len - 1].data;
 
     if (ob && OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
@@ -388,14 +387,13 @@ static int buttons_context_path_pose_bone(ButsContextPath *path)
     if (ob->type != OB_ARMATURE || arm->edbo) {
       return 0;
     }
-    else {
-      if (arm->act_bone) {
-        bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, arm->act_bone->name);
-        if (pchan) {
-          RNA_pointer_create(&ob->id, &RNA_PoseBone, pchan, &path->ptr[path->len]);
-          path->len++;
-          return 1;
-        }
+
+    if (arm->act_bone) {
+      bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, arm->act_bone->name);
+      if (pchan) {
+        RNA_pointer_create(&ob->id, &RNA_PoseBone, pchan, &path->ptr[path->len]);
+        path->len++;
+        return 1;
       }
     }
   }
@@ -442,7 +440,7 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
     return 1;
   }
   /* if we have a scene, use the toolsettings brushes */
-  else if (buttons_context_path_scene(path)) {
+  if (buttons_context_path_scene(path)) {
     scene = path->ptr[path->len - 1].data;
 
     if (scene) {
@@ -661,10 +659,10 @@ static int buttons_shading_new_context(const bContext *C, int flag)
   if (flag & (1 << BCONTEXT_MATERIAL)) {
     return BCONTEXT_MATERIAL;
   }
-  else if (ob && ELEM(ob->type, OB_LAMP, OB_CAMERA) && (flag & (1 << BCONTEXT_DATA))) {
+  if (ob && ELEM(ob->type, OB_LAMP, OB_CAMERA) && (flag & (1 << BCONTEXT_DATA))) {
     return BCONTEXT_DATA;
   }
-  else if (flag & (1 << BCONTEXT_WORLD)) {
+  if (flag & (1 << BCONTEXT_WORLD)) {
     return BCONTEXT_WORLD;
   }
 
@@ -825,72 +823,72 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
     }
     return 1;
   }
-  else if (CTX_data_equals(member, "scene")) {
+  if (CTX_data_equals(member, "scene")) {
     /* Do not return one here if scene not found in path,
      * in this case we want to get default context scene! */
     return set_pointer_type(path, result, &RNA_Scene);
   }
-  else if (CTX_data_equals(member, "world")) {
+  if (CTX_data_equals(member, "world")) {
     set_pointer_type(path, result, &RNA_World);
     return 1;
   }
-  else if (CTX_data_equals(member, "object")) {
+  if (CTX_data_equals(member, "object")) {
     set_pointer_type(path, result, &RNA_Object);
     return 1;
   }
-  else if (CTX_data_equals(member, "mesh")) {
+  if (CTX_data_equals(member, "mesh")) {
     set_pointer_type(path, result, &RNA_Mesh);
     return 1;
   }
-  else if (CTX_data_equals(member, "armature")) {
+  if (CTX_data_equals(member, "armature")) {
     set_pointer_type(path, result, &RNA_Armature);
     return 1;
   }
-  else if (CTX_data_equals(member, "lattice")) {
+  if (CTX_data_equals(member, "lattice")) {
     set_pointer_type(path, result, &RNA_Lattice);
     return 1;
   }
-  else if (CTX_data_equals(member, "curve")) {
+  if (CTX_data_equals(member, "curve")) {
     set_pointer_type(path, result, &RNA_Curve);
     return 1;
   }
-  else if (CTX_data_equals(member, "meta_ball")) {
+  if (CTX_data_equals(member, "meta_ball")) {
     set_pointer_type(path, result, &RNA_MetaBall);
     return 1;
   }
-  else if (CTX_data_equals(member, "light")) {
+  if (CTX_data_equals(member, "light")) {
     set_pointer_type(path, result, &RNA_Light);
     return 1;
   }
-  else if (CTX_data_equals(member, "camera")) {
+  if (CTX_data_equals(member, "camera")) {
     set_pointer_type(path, result, &RNA_Camera);
     return 1;
   }
-  else if (CTX_data_equals(member, "speaker")) {
+  if (CTX_data_equals(member, "speaker")) {
     set_pointer_type(path, result, &RNA_Speaker);
     return 1;
   }
-  else if (CTX_data_equals(member, "lightprobe")) {
+  if (CTX_data_equals(member, "lightprobe")) {
     set_pointer_type(path, result, &RNA_LightProbe);
     return 1;
   }
-  else if (CTX_data_equals(member, "hair")) {
+  if (CTX_data_equals(member, "hair")) {
     set_pointer_type(path, result, &RNA_Hair);
     return 1;
   }
-  else if (CTX_data_equals(member, "pointcloud")) {
+  if (CTX_data_equals(member, "pointcloud")) {
     set_pointer_type(path, result, &RNA_PointCloud);
     return 1;
   }
-  else if (CTX_data_equals(member, "volume")) {
+  if (CTX_data_equals(member, "volume")) {
     set_pointer_type(path, result, &RNA_Volume);
     return 1;
   }
-  else if (CTX_data_equals(member, "material")) {
+  if (CTX_data_equals(member, "material")) {
     set_pointer_type(path, result, &RNA_Material);
     return 1;
   }
-  else if (CTX_data_equals(member, "texture")) {
+  if (CTX_data_equals(member, "texture")) {
     ButsContextTexture *ct = sbuts->texuser;
 
     if (ct) {
@@ -899,7 +897,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
     return 1;
   }
-  else if (CTX_data_equals(member, "material_slot")) {
+  if (CTX_data_equals(member, "material_slot")) {
     PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
 
     if (ptr) {
@@ -917,7 +915,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
     return 1;
   }
-  else if (CTX_data_equals(member, "texture_user")) {
+  if (CTX_data_equals(member, "texture_user")) {
     ButsContextTexture *ct = sbuts->texuser;
 
     if (!ct) {
@@ -931,7 +929,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
     return 1;
   }
-  else if (CTX_data_equals(member, "texture_user_property")) {
+  if (CTX_data_equals(member, "texture_user_property")) {
     ButsContextTexture *ct = sbuts->texuser;
 
     if (!ct) {
@@ -945,7 +943,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
     return 1;
   }
-  else if (CTX_data_equals(member, "texture_node")) {
+  if (CTX_data_equals(member, "texture_node")) {
     ButsContextTexture *ct = sbuts->texuser;
 
     if (ct) {
@@ -958,7 +956,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
     }
     return -1; /* found but not available */
   }
-  else if (CTX_data_equals(member, "texture_slot")) {
+  if (CTX_data_equals(member, "texture_slot")) {
     ButsContextTexture *ct = sbuts->texuser;
     PointerRNA *ptr;
 
@@ -985,23 +983,23 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
     return 1;
   }
-  else if (CTX_data_equals(member, "bone")) {
+  if (CTX_data_equals(member, "bone")) {
     set_pointer_type(path, result, &RNA_Bone);
     return 1;
   }
-  else if (CTX_data_equals(member, "edit_bone")) {
+  if (CTX_data_equals(member, "edit_bone")) {
     set_pointer_type(path, result, &RNA_EditBone);
     return 1;
   }
-  else if (CTX_data_equals(member, "pose_bone")) {
+  if (CTX_data_equals(member, "pose_bone")) {
     set_pointer_type(path, result, &RNA_PoseBone);
     return 1;
   }
-  else if (CTX_data_equals(member, "particle_system")) {
+  if (CTX_data_equals(member, "particle_system")) {
     set_pointer_type(path, result, &RNA_ParticleSystem);
     return 1;
   }
-  else if (CTX_data_equals(member, "particle_system_editable")) {
+  if (CTX_data_equals(member, "particle_system_editable")) {
     if (PE_poll((bContext *)C)) {
       set_pointer_type(path, result, &RNA_ParticleSystem);
     }
@@ -1010,7 +1008,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
     }
     return 1;
   }
-  else if (CTX_data_equals(member, "particle_settings")) {
+  if (CTX_data_equals(member, "particle_settings")) {
     /* only available when pinned */
     PointerRNA *ptr = get_pointer_type(path, &RNA_ParticleSettings);
 
@@ -1018,20 +1016,20 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       CTX_data_pointer_set(result, ptr->owner_id, &RNA_ParticleSettings, ptr->data);
       return 1;
     }
-    else {
-      /* get settings from active particle system instead */
-      ptr = get_pointer_type(path, &RNA_ParticleSystem);
 
-      if (ptr && ptr->data) {
-        ParticleSettings *part = ((ParticleSystem *)ptr->data)->part;
-        CTX_data_pointer_set(result, ptr->owner_id, &RNA_ParticleSettings, part);
-        return 1;
-      }
+    /* get settings from active particle system instead */
+    ptr = get_pointer_type(path, &RNA_ParticleSystem);
+
+    if (ptr && ptr->data) {
+      ParticleSettings *part = ((ParticleSystem *)ptr->data)->part;
+      CTX_data_pointer_set(result, ptr->owner_id, &RNA_ParticleSettings, part);
+      return 1;
     }
+
     set_pointer_type(path, result, &RNA_ParticleSettings);
     return 1;
   }
-  else if (CTX_data_equals(member, "cloth")) {
+  if (CTX_data_equals(member, "cloth")) {
     PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
 
     if (ptr && ptr->data) {
@@ -1042,7 +1040,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
     }
     return -1; /* found but not available */
   }
-  else if (CTX_data_equals(member, "soft_body")) {
+  if (CTX_data_equals(member, "soft_body")) {
     PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
 
     if (ptr && ptr->data) {
@@ -1054,7 +1052,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
     return -1; /* found but not available */
   }
 
-  else if (CTX_data_equals(member, "fluid")) {
+  if (CTX_data_equals(member, "fluid")) {
     PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
 
     if (ptr && ptr->data) {
@@ -1065,7 +1063,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
     }
     return -1; /* found but not available */
   }
-  else if (CTX_data_equals(member, "collision")) {
+  if (CTX_data_equals(member, "collision")) {
     PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
 
     if (ptr && ptr->data) {
@@ -1076,11 +1074,11 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
     }
     return -1; /* found but not available */
   }
-  else if (CTX_data_equals(member, "brush")) {
+  if (CTX_data_equals(member, "brush")) {
     set_pointer_type(path, result, &RNA_Brush);
     return 1;
   }
-  else if (CTX_data_equals(member, "dynamic_paint")) {
+  if (CTX_data_equals(member, "dynamic_paint")) {
     PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
 
     if (ptr && ptr->data) {
@@ -1091,19 +1089,15 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
     }
     return -1; /* found but not available */
   }
-  else if (CTX_data_equals(member, "line_style")) {
+  if (CTX_data_equals(member, "line_style")) {
     set_pointer_type(path, result, &RNA_FreestyleLineStyle);
     return 1;
   }
-  else if (CTX_data_equals(member, "gpencil")) {
+  if (CTX_data_equals(member, "gpencil")) {
     set_pointer_type(path, result, &RNA_GreasePencil);
     return 1;
   }
-  else {
-    return 0; /* not found */
-  }
-
-  return -1; /* found but not available */
+  return 0; /* not found */
 }
 
 /************************* Drawing the Path ************************/
@@ -1154,13 +1148,13 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
          ptr->type == &RNA_Scene)) {
       continue;
     }
-    else if ((!ELEM(sbuts->mainb,
-                    BCONTEXT_RENDER,
-                    BCONTEXT_OUTPUT,
-                    BCONTEXT_SCENE,
-                    BCONTEXT_VIEW_LAYER,
-                    BCONTEXT_WORLD) &&
-              ptr->type == &RNA_ViewLayer)) {
+    if ((!ELEM(sbuts->mainb,
+               BCONTEXT_RENDER,
+               BCONTEXT_OUTPUT,
+               BCONTEXT_SCENE,
+               BCONTEXT_VIEW_LAYER,
+               BCONTEXT_WORLD) &&
+         ptr->type == &RNA_ViewLayer)) {
       continue;
     }
 

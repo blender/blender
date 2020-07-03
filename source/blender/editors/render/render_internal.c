@@ -220,12 +220,10 @@ static void image_buffer_rect_update(RenderJob *rj,
         ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
         return;
       }
-      else {
-        if (rr->renlay == NULL) {
-          return;
-        }
-        rectf = RE_RenderLayerGetPass(rr->renlay, RE_PASSNAME_COMBINED, viewname);
+      if (rr->renlay == NULL) {
+        return;
       }
+      rectf = RE_RenderLayerGetPass(rr->renlay, RE_PASSNAME_COMBINED, viewname);
     }
     if (rectf == NULL) {
       return;
@@ -579,7 +577,7 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
     rj->image_outdated = true;
     return;
   }
-  else if (rj->image_outdated) {
+  if (rj->image_outdated) {
     /* update entire render */
     rj->image_outdated = false;
     BKE_image_signal(rj->main, ima, NULL, IMA_SIGNAL_COLORMANAGE);

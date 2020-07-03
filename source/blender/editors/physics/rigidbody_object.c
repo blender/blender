@@ -73,9 +73,7 @@ static bool ED_operator_rigidbody_active_poll(bContext *C)
     Object *ob = ED_object_active_context(C);
     return (ob && ob->rigidbody_object);
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static bool ED_operator_rigidbody_add_poll(bContext *C)
@@ -91,9 +89,7 @@ static bool ED_operator_rigidbody_add_poll(bContext *C)
     Object *ob = ED_object_active_context(C);
     return (ob && ob->type == OB_MESH);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /* ----------------- */
@@ -135,9 +131,7 @@ static int rigidbody_object_add_exec(bContext *C, wmOperator *op)
     /* done */
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void RIGIDBODY_OT_object_add(wmOperatorType *ot)
@@ -186,10 +180,9 @@ static int rigidbody_object_remove_exec(bContext *C, wmOperator *op)
     /* done */
     return OPERATOR_FINISHED;
   }
-  else {
-    BKE_report(op->reports, RPT_ERROR, "Object has no Rigid Body settings to remove");
-    return OPERATOR_CANCELLED;
-  }
+
+  BKE_report(op->reports, RPT_ERROR, "Object has no Rigid Body settings to remove");
+  return OPERATOR_CANCELLED;
 }
 
 void RIGIDBODY_OT_object_remove(wmOperatorType *ot)
@@ -233,9 +226,7 @@ static int rigidbody_objects_add_exec(bContext *C, wmOperator *op)
     /* done */
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void RIGIDBODY_OT_objects_add(wmOperatorType *ot)
@@ -286,9 +277,7 @@ static int rigidbody_objects_remove_exec(bContext *C, wmOperator *UNUSED(op))
     /* done */
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void RIGIDBODY_OT_objects_remove(wmOperatorType *ot)
@@ -340,9 +329,7 @@ static int rigidbody_objects_shape_change_exec(bContext *C, wmOperator *op)
     /* done */
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void RIGIDBODY_OT_shape_change(wmOperatorType *ot)
@@ -531,9 +518,7 @@ static int rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
     /* done */
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void RIGIDBODY_OT_mass_calculate(wmOperatorType *ot)
