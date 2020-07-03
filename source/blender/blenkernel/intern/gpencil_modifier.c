@@ -67,7 +67,7 @@ static GpencilModifierTypeInfo *modifier_gpencil_types[NUM_GREASEPENCIL_MODIFIER
 
 /**
  * Init grease pencil lattice deform data.
- * \param ob Grease pencil object
+ * \param ob: Grease pencil object
  */
 void BKE_gpencil_lattice_init(Object *ob)
 {
@@ -92,7 +92,7 @@ void BKE_gpencil_lattice_init(Object *ob)
 
 /**
  * Clear grease pencil lattice deform data.
- * \param ob Grease pencil object
+ * \param ob: Grease pencil object
  */
 void BKE_gpencil_lattice_clear(Object *ob)
 {
@@ -112,7 +112,7 @@ void BKE_gpencil_lattice_clear(Object *ob)
 
 /**
  * Check if object has grease pencil Geometry modifiers.
- * \param ob Grease pencil object
+ * \param ob: Grease pencil object
  * \return True if exist
  */
 bool BKE_gpencil_has_geometry_modifiers(Object *ob)
@@ -129,7 +129,7 @@ bool BKE_gpencil_has_geometry_modifiers(Object *ob)
 
 /**
  * Check if object has grease pencil Time modifiers.
- * \param ob Grease pencil object
+ * \param ob: Grease pencil object
  * \return True if exist
  */
 bool BKE_gpencil_has_time_modifiers(Object *ob)
@@ -146,7 +146,7 @@ bool BKE_gpencil_has_time_modifiers(Object *ob)
 
 /**
  * Check if object has grease pencil transform stroke modifiers.
- * \param ob Grease pencil object
+ * \param ob: Grease pencil object
  * \return True if exist
  */
 bool BKE_gpencil_has_transform_modifiers(Object *ob)
@@ -196,8 +196,8 @@ static int gpencil_time_modifier(
 
 /**
  * Set current grease pencil active frame.
- * \param depsgraph Current depsgraph
- * \param gpd Grease pencil data-block
+ * \param depsgraph: Current depsgraph
+ * \param gpd: Grease pencil data-block
  */
 void BKE_gpencil_frame_active_set(Depsgraph *depsgraph, bGPdata *gpd)
 {
@@ -234,7 +234,7 @@ void BKE_gpencil_modifier_init(void)
 
 /**
  * Create new grease pencil modifier.
- * \param type Type of modifier
+ * \param type: Type of modifier
  * \return New modifier pointer
  */
 GpencilModifierData *BKE_gpencil_modifier_new(int type)
@@ -274,8 +274,8 @@ static void modifier_free_data_id_us_cb(void *UNUSED(userData),
 
 /**
  * Free grease pencil modifier data
- * \param md Modifier data
- * \param flag Flags
+ * \param md: Modifier data
+ * \param flag: Flags
  */
 void BKE_gpencil_modifier_free_ex(GpencilModifierData *md, const int flag)
 {
@@ -303,7 +303,7 @@ void BKE_gpencil_modifier_free_ex(GpencilModifierData *md, const int flag)
 
 /**
  * Free grease pencil modifier data
- * \param md Modifier data
+ * \param md: Modifier data
  */
 void BKE_gpencil_modifier_free(GpencilModifierData *md)
 {
@@ -327,7 +327,7 @@ bool BKE_gpencil_modifier_unique_name(ListBase *modifiers, GpencilModifierData *
 
 /**
  * Check if grease pencil modifier depends on time.
- * \param md Modifier data
+ * \param md: Modifier data
  * \return True if depends on time
  */
 bool BKE_gpencil_modifier_depends_ontime(GpencilModifierData *md)
@@ -339,7 +339,7 @@ bool BKE_gpencil_modifier_depends_ontime(GpencilModifierData *md)
 
 /**
  * Get grease pencil modifier information.
- * \param type Type of modifier
+ * \param type: Type of modifier
  * \return Pointer to type
  */
 const GpencilModifierTypeInfo *BKE_gpencil_modifier_get_info(GpencilModifierType type)
@@ -357,8 +357,8 @@ const GpencilModifierTypeInfo *BKE_gpencil_modifier_get_info(GpencilModifierType
 /**
  * Get the idname of the modifier type's panel, which was defined in the #panelRegister callback.
  *
- * \param type Type of modifier
- * \param r_idname ID name
+ * \param type: Type of modifier
+ * \param r_idname: ID name
  */
 void BKE_gpencil_modifierType_panel_id(GpencilModifierType type, char *r_idname)
 {
@@ -370,8 +370,8 @@ void BKE_gpencil_modifierType_panel_id(GpencilModifierType type, char *r_idname)
 
 /**
  * Generic grease pencil modifier copy data.
- * \param md_src Source modifier data
- * \param md_dst Target modifier data
+ * \param md_src: Source modifier data
+ * \param md_dst: Target modifier data
  */
 void BKE_gpencil_modifier_copydata_generic(const GpencilModifierData *md_src,
                                            GpencilModifierData *md_dst)
@@ -404,9 +404,9 @@ static void gpencil_modifier_copy_data_id_us_cb(void *UNUSED(userData),
 
 /**
  * Copy grease pencil modifier data.
- * \param md Source modifier data
- * \param target Target modifier data
- * \parm flag Flags
+ * \param md: Source modifier data
+ * \param target: Target modifier data
+ * \parm flag: Flags
  */
 void BKE_gpencil_modifier_copydata_ex(GpencilModifierData *md,
                                       GpencilModifierData *target,
@@ -435,8 +435,8 @@ void BKE_gpencil_modifier_copydata_ex(GpencilModifierData *md,
 
 /**
  * Copy grease pencil modifier data.
- * \param md Source modifier data
- * \param target Target modifier data
+ * \param md: Source modifier data
+ * \param target: Target modifier data
  */
 void BKE_gpencil_modifier_copydata(GpencilModifierData *md, GpencilModifierData *target)
 {
@@ -458,8 +458,8 @@ GpencilModifierData *BKE_gpencil_modifiers_findby_type(Object *ob, GpencilModifi
 
 /**
  * Set grease pencil modifier error.
- * \param md Modifier data
- * \param _format Format
+ * \param md: Modifier data
+ * \param _format: Format
  * \param
  */
 void BKE_gpencil_modifier_set_error(GpencilModifierData *md, const char *_format, ...)
@@ -484,9 +484,9 @@ void BKE_gpencil_modifier_set_error(GpencilModifierData *md, const char *_format
 
 /**
  * Link grease pencil modifier related IDs.
- * \param ob Grease pencil object
- * \param walk Walk option
- * \param userData User data
+ * \param ob: Grease pencil object
+ * \param walk: Walk option
+ * \param userData: User data
  */
 void BKE_gpencil_modifiers_foreach_ID_link(Object *ob, GreasePencilIDWalkFunc walk, void *userData)
 {
@@ -508,9 +508,9 @@ void BKE_gpencil_modifiers_foreach_ID_link(Object *ob, GreasePencilIDWalkFunc wa
 
 /**
  * Link grease pencil modifier related Texts.
- * \param ob Grease pencil object
- * \param walk Walk option
- * \param userData User data
+ * \param ob: Grease pencil object
+ * \param walk: Walk option
+ * \param userData: User data
  */
 void BKE_gpencil_modifiers_foreach_tex_link(Object *ob,
                                             GreasePencilTexWalkFunc walk,
@@ -529,8 +529,8 @@ void BKE_gpencil_modifiers_foreach_tex_link(Object *ob,
 
 /**
  * Find grease pencil modifier by name.
- * \param ob Grease pencil object
- * \param name Name to find
+ * \param ob: Grease pencil object
+ * \param name: Name to find
  * \return Pointer to modifier
  */
 GpencilModifierData *BKE_gpencil_modifiers_findby_name(Object *ob, const char *name)
@@ -540,10 +540,10 @@ GpencilModifierData *BKE_gpencil_modifiers_findby_name(Object *ob, const char *n
 
 /**
  * Remap grease pencil frame (Time modifier)
- * \param depsgraph Current depsgraph
- * \param scene Current scene
- * \param ob Grease pencil object
- * \param gpl Grease pencil layer
+ * \param depsgraph: Current depsgraph
+ * \param scene: Current scene
+ * \param ob: Grease pencil object
+ * \param gpl: Grease pencil layer
  * \return New frame number
  */
 static int gpencil_remap_time_get(Depsgraph *depsgraph, Scene *scene, Object *ob, bGPDlayer *gpl)
@@ -561,10 +561,10 @@ static int gpencil_remap_time_get(Depsgraph *depsgraph, Scene *scene, Object *ob
 }
 
 /** Get the current frame retimed with time modifiers.
- * \param depsgraph Current depsgraph
- * \param scene Current scene
- * \param ob Grease pencil object
- * \param gpl Grease pencil layer
+ * \param depsgraph: Current depsgraph
+ * \param scene: Current scene
+ * \param ob: Grease pencil object
+ * \param gpl: Grease pencil layer
  * \return New frame number
  */
 bGPDframe *BKE_gpencil_frame_retime_get(Depsgraph *depsgraph,
@@ -636,9 +636,9 @@ static bGPdata *gpencil_copy_for_eval(bGPdata *gpd)
 
 /**
  * Prepare grease pencil eval data for modifiers
- * \param depsgraph Current depsgraph
- * \param scene Current scene
- * \param ob Grease pencil object
+ * \param depsgraph: Current depsgraph
+ * \param scene: Current scene
+ * \param ob: Grease pencil object
  */
 void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
@@ -683,9 +683,9 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
 }
 
 /** Calculate gpencil modifiers.
- * \param depsgraph Current depsgraph
- * \param scene Current scene
- * \param ob Grease pencil object
+ * \param depsgraph: Current depsgraph
+ * \param scene: Current scene
+ * \param ob: Grease pencil object
  */
 void BKE_gpencil_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
