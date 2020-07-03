@@ -53,9 +53,7 @@ void NormalizeOperation::executePixel(float output[4], int x, int y, void *data)
 void NormalizeOperation::deinitExecution()
 {
   this->m_imageReader = NULL;
-  if (this->m_cachedInstance) {
-    delete this->m_cachedInstance;
-  }
+  delete this->m_cachedInstance;
   NodeOperation::deinitMutex();
 }
 

@@ -98,9 +98,7 @@ void ComponentNode::init(const ID * /*id*/, const char * /*subdata*/)
 ComponentNode::~ComponentNode()
 {
   clear_operations();
-  if (operations_map != nullptr) {
-    delete operations_map;
-  }
+  delete operations_map;
 }
 
 string ComponentNode::identifier() const

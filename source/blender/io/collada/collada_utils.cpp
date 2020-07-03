@@ -528,9 +528,7 @@ BoneExtensionManager::~BoneExtensionManager()
     for (BoneExtensionMap::iterator ext_it = extended_bones->begin();
          ext_it != extended_bones->end();
          ++ext_it) {
-      if (ext_it->second != NULL) {
-        delete ext_it->second;
-      }
+      delete ext_it->second;
     }
     extended_bones->clear();
     delete extended_bones;
