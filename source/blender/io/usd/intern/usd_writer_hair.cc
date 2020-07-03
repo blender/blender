@@ -82,7 +82,7 @@ void USDHairWriter::do_write(HierarchyContext &context)
   }
 }
 
-bool USDHairWriter::check_is_animated(const HierarchyContext &) const
+bool USDHairWriter::check_is_animated(const HierarchyContext &UNUSED(context)) const
 {
   return true;
 }

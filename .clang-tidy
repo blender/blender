@@ -17,7 +17,6 @@ Checks:  >
   -readability-inconsistent-declaration-parameter-name,
   -readability-non-const-parameter,
   -readability-redundant-preprocessor,
-  -readability-named-parameter,
   -readability-function-size,
   -readability-function-size,
   -readability-redundant-string-init,

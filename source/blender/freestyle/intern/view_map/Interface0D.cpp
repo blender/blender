@@ -24,6 +24,8 @@ extern "C" {
 
 #include "Interface0D.h"
 
+#include "BLI_utildefines.h"
+
 namespace Freestyle {
 
 real Interface0D::getX() const
@@ -74,7 +76,7 @@ Geometry::Vec2r Interface0D::getPoint2D() const
   return 0;
 }
 
-FEdge *Interface0D::getFEdge(Interface0D &)
+FEdge *Interface0D::getFEdge(Interface0D &UNUSED(element))
 {
   PyErr_SetString(PyExc_TypeError, "method getFEdge() not properly overridden");
   return 0;

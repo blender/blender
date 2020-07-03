@@ -39,42 +39,42 @@ VISIT(NodeLight)
 VISIT(NodeDrawingStyle)
 VISIT(NodeTransform)
 
-void ScenePrettyPrinter::visitNodeShapeBefore(NodeShape &)
+void ScenePrettyPrinter::visitNodeShapeBefore(NodeShape &UNUSED(shape))
 {
   increaseSpace();
 }
 
-void ScenePrettyPrinter::visitNodeShapeAfter(NodeShape &)
+void ScenePrettyPrinter::visitNodeShapeAfter(NodeShape &UNUSED(shape))
 {
   decreaseSpace();
 }
 
-void ScenePrettyPrinter::visitNodeGroupBefore(NodeGroup &)
+void ScenePrettyPrinter::visitNodeGroupBefore(NodeGroup &UNUSED(group))
 {
   increaseSpace();
 }
 
-void ScenePrettyPrinter::visitNodeGroupAfter(NodeGroup &)
+void ScenePrettyPrinter::visitNodeGroupAfter(NodeGroup &UNUSED(group))
 {
   decreaseSpace();
 }
 
-void ScenePrettyPrinter::visitNodeDrawingStyleBefore(NodeDrawingStyle &)
+void ScenePrettyPrinter::visitNodeDrawingStyleBefore(NodeDrawingStyle &UNUSED(style))
 {
   increaseSpace();
 }
 
-void ScenePrettyPrinter::visitNodeDrawingStyleAfter(NodeDrawingStyle &)
+void ScenePrettyPrinter::visitNodeDrawingStyleAfter(NodeDrawingStyle &UNUSED(style))
 {
   decreaseSpace();
 }
 
-void ScenePrettyPrinter::visitNodeTransformBefore(NodeTransform &)
+void ScenePrettyPrinter::visitNodeTransformBefore(NodeTransform &UNUSED(transform))
 {
   increaseSpace();
 }
 
-void ScenePrettyPrinter::visitNodeTransformAfter(NodeTransform &)
+void ScenePrettyPrinter::visitNodeTransformAfter(NodeTransform &UNUSED(transform))
 {
   decreaseSpace();
 }

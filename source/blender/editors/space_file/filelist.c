@@ -359,12 +359,24 @@ enum {
 
 static ImBuf *gSpecialFileImages[SPECIAL_IMG_MAX];
 
-static void filelist_readjob_main(
-    struct FileList *, const char *, short *, short *, float *, ThreadMutex *);
-static void filelist_readjob_lib(
-    struct FileList *, const char *, short *, short *, float *, ThreadMutex *);
-static void filelist_readjob_dir(
-    struct FileList *, const char *, short *, short *, float *, ThreadMutex *);
+static void filelist_readjob_main(FileList *filelist,
+                                  const char *main_name,
+                                  short *stop,
+                                  short *do_update,
+                                  float *progress,
+                                  ThreadMutex *lock);
+static void filelist_readjob_lib(FileList *filelist,
+                                 const char *main_name,
+                                 short *stop,
+                                 short *do_update,
+                                 float *progress,
+                                 ThreadMutex *lock);
+static void filelist_readjob_dir(FileList *filelist,
+                                 const char *main_name,
+                                 short *stop,
+                                 short *do_update,
+                                 float *progress,
+                                 ThreadMutex *lock);
 
 /* helper, could probably go in BKE actually? */
 static int groupname_to_code(const char *group);

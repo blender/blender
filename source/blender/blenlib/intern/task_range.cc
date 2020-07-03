@@ -62,7 +62,7 @@ struct RangeTask {
   }
 
   /* Splitting constructor for parallel reduce. */
-  RangeTask(RangeTask &other, tbb::split)
+  RangeTask(RangeTask &other, tbb::split /* unused */)
       : func(other.func), userdata(other.userdata), settings(other.settings)
   {
     init_chunk(settings->userdata_chunk);
