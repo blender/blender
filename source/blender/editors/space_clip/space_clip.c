@@ -585,13 +585,13 @@ static int clip_context(const bContext *C, const char *member, bContextDataResul
 
     return true;
   }
-  else if (CTX_data_equals(member, "edit_movieclip")) {
+  if (CTX_data_equals(member, "edit_movieclip")) {
     if (sc->clip) {
       CTX_data_id_pointer_set(result, &sc->clip->id);
     }
     return true;
   }
-  else if (CTX_data_equals(member, "edit_mask")) {
+  if (CTX_data_equals(member, "edit_mask")) {
     if (sc->mask_info.mask) {
       CTX_data_id_pointer_set(result, &sc->mask_info.mask->id);
     }

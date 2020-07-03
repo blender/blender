@@ -88,7 +88,7 @@ static int generic_track_get_markersnr(MovieTrackingTrack *track,
   if (track) {
     return track->markersnr;
   }
-  else if (plane_track) {
+  if (plane_track) {
     return plane_track->markersnr;
   }
 
@@ -103,7 +103,7 @@ static int generic_track_get_marker_framenr(MovieTrackingTrack *track,
     BLI_assert(marker_index < track->markersnr);
     return track->markers[marker_index].framenr;
   }
-  else if (plane_track) {
+  if (plane_track) {
     BLI_assert(marker_index < plane_track->markersnr);
     return plane_track->markers[marker_index].framenr;
   }
@@ -119,7 +119,7 @@ static bool generic_track_is_marker_enabled(MovieTrackingTrack *track,
     BLI_assert(marker_index < track->markersnr);
     return (track->markers[marker_index].flag & MARKER_DISABLED) == 0;
   }
-  else if (plane_track) {
+  if (plane_track) {
     return true;
   }
 
@@ -134,7 +134,7 @@ static bool generic_track_is_marker_keyframed(MovieTrackingTrack *track,
     BLI_assert(marker_index < track->markersnr);
     return (track->markers[marker_index].flag & MARKER_TRACKED) == 0;
   }
-  else if (plane_track) {
+  if (plane_track) {
     BLI_assert(marker_index < plane_track->markersnr);
     return (plane_track->markers[marker_index].flag & PLANE_MARKER_TRACKED) == 0;
   }
@@ -228,7 +228,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
           ok = true;
           break;
         }
-        else if (cameras[a].framenr > i) {
+        if (cameras[a].framenr > i) {
           break;
         }
 

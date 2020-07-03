@@ -61,18 +61,17 @@ static int create_plane_track_tracks_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "Need at least 4 selected point tracks to create a plane");
     return OPERATOR_CANCELLED;
   }
-  else {
-    BKE_tracking_tracks_deselect_all(tracks_base);
 
-    plane_track->flag |= SELECT;
-    clip->tracking.act_track = NULL;
-    clip->tracking.act_plane_track = plane_track;
+  BKE_tracking_tracks_deselect_all(tracks_base);
 
-    /* Compute homoraphies and apply them on marker's corner, so we've got
-     * quite nice motion from the very beginning.
-     */
-    BKE_tracking_track_plane_from_existing_motion(plane_track, framenr);
-  }
+  plane_track->flag |= SELECT;
+  clip->tracking.act_track = NULL;
+  clip->tracking.act_plane_track = plane_track;
+
+  /* Compute homoraphies and apply them on marker's corner, so we've got
+   * quite nice motion from the very beginning.
+   */
+  BKE_tracking_track_plane_from_existing_motion(plane_track, framenr);
 
   DEG_id_tag_update(&clip->id, ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);

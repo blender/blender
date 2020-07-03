@@ -110,9 +110,7 @@ static bool set_orientation_poll(bContext *C)
       if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
         return true;
       }
-      else {
-        return OBACT(view_layer) != NULL;
-      }
+      return OBACT(view_layer) != NULL;
     }
   }
   return false;

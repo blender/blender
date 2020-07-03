@@ -463,11 +463,10 @@ static int view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    view_pan_init(C, op, event);
 
-    return OPERATOR_RUNNING_MODAL;
-  }
+  view_pan_init(C, op, event);
+
+  return OPERATOR_RUNNING_MODAL;
 }
 
 static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -633,11 +632,10 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    view_zoom_init(C, op, event);
 
-    return OPERATOR_RUNNING_MODAL;
-  }
+  view_zoom_init(C, op, event);
+
+  return OPERATOR_RUNNING_MODAL;
 }
 
 static void view_zoom_apply(
@@ -1253,10 +1251,9 @@ static void do_movie_proxy(void *pjv,
 
     return;
   }
-  else {
-    sfra = 1;
-    efra = clip->len;
-  }
+
+  sfra = 1;
+  efra = clip->len;
 
   if (build_undistort_count) {
     int threads = BLI_system_thread_count();
@@ -1646,27 +1643,26 @@ static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
   if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;
   }
-  else {
-    SpaceClip *sc = CTX_wm_space_clip(C);
-    ARegion *region = CTX_wm_region(C);
-    float pan_vec[3];
 
-    const wmNDOFMotionData *ndof = event->customdata;
-    const float speed = NDOF_PIXELS_PER_SECOND;
+  SpaceClip *sc = CTX_wm_space_clip(C);
+  ARegion *region = CTX_wm_region(C);
+  float pan_vec[3];
 
-    WM_event_ndof_pan_get(ndof, pan_vec, true);
+  const wmNDOFMotionData *ndof = event->customdata;
+  const float speed = NDOF_PIXELS_PER_SECOND;
 
-    mul_v2_fl(pan_vec, (speed * ndof->dt) / sc->zoom);
-    pan_vec[2] *= -ndof->dt;
+  WM_event_ndof_pan_get(ndof, pan_vec, true);
 
-    sclip_zoom_set_factor(C, 1.0f + pan_vec[2], NULL, false);
-    sc->xof += pan_vec[0];
-    sc->yof += pan_vec[1];
+  mul_v2_fl(pan_vec, (speed * ndof->dt) / sc->zoom);
+  pan_vec[2] *= -ndof->dt;
 
-    ED_region_tag_redraw(region);
+  sclip_zoom_set_factor(C, 1.0f + pan_vec[2], NULL, false);
+  sc->xof += pan_vec[0];
+  sc->yof += pan_vec[1];
 
-    return OPERATOR_FINISHED;
-  }
+  ED_region_tag_redraw(region);
+
+  return OPERATOR_FINISHED;
 }
 
 void CLIP_OT_view_ndof(wmOperatorType *ot)

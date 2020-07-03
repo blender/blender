@@ -381,21 +381,20 @@ static bool selected_boundbox(const bContext *C, float min[2], float max[2])
   if (sc->mode == SC_MODE_TRACKING) {
     return selected_tracking_boundbox(sc, min, max);
   }
-  else {
-    if (ED_mask_selected_minmax(C, min, max)) {
-      MovieClip *clip = ED_space_clip_get_clip(sc);
-      int width, height;
-      ED_space_clip_get_size(sc, &width, &height);
-      BKE_mask_coord_to_movieclip(clip, &sc->user, min, min);
-      BKE_mask_coord_to_movieclip(clip, &sc->user, max, max);
-      min[0] *= width;
-      min[1] *= height;
-      max[0] *= width;
-      max[1] *= height;
-      return true;
-    }
-    return false;
+
+  if (ED_mask_selected_minmax(C, min, max)) {
+    MovieClip *clip = ED_space_clip_get_clip(sc);
+    int width, height;
+    ED_space_clip_get_size(sc, &width, &height);
+    BKE_mask_coord_to_movieclip(clip, &sc->user, min, min);
+    BKE_mask_coord_to_movieclip(clip, &sc->user, max, max);
+    min[0] *= width;
+    min[1] *= height;
+    max[0] *= width;
+    max[1] *= height;
+    return true;
   }
+  return false;
 }
 
 bool ED_clip_view_selection(const bContext *C, ARegion *region, bool fit)
