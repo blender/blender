@@ -483,6 +483,20 @@ static void volume_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void volume_foreach_cache(ID *id,
+                                 IDTypeForeachCacheFunctionCallback function_callback,
+                                 void *user_data)
+{
+  Volume *volume = (Volume *)id;
+  IDCacheKey key = {
+      /* id_session_uuid */ id->session_uuid,
+      /*offset_in_ID*/ offsetof(Volume, runtime.grids),
+      /* cache_v */ volume->runtime.grids,
+  };
+
+  function_callback(id, &key, (void **)&volume->runtime.grids, user_data);
+}
+
 IDTypeInfo IDType_ID_VO = {
     /* id_code */ ID_VO,
     /* id_filter */ FILTER_ID_VO,
@@ -498,6 +512,7 @@ IDTypeInfo IDType_ID_VO = {
     /* free_data */ volume_free_data,
     /* make_local */ nullptr,
     /* foreach_id */ volume_foreach_id,
+    /* foreach_cache */ volume_foreach_cache,
 };
 
 void BKE_volume_init_grids(Volume *volume)

@@ -4360,9 +4360,10 @@ static void direct_link_text(BlendDataReader *reader, Text *text)
 
 static void lib_link_image(BlendLibReader *UNUSED(reader), Image *ima)
 {
-  /* Images have some kind of 'main' cache, when NULL we should also clear all others.
-   * XXX It is not ideal to do that from here, but for now it will do. We have to do it after all
-   * cache pointers have been potentially remapped (in undo case) or NULL-ified. */
+  /* Images have some kind of 'main' cache, when NULL we should also clear all others. */
+  /* Needs to be done *after* cache pointers are restored (call to
+   * `foreach_cache`/`blo_cache_storage_entry_restore_in_new`), easier for now to do it in
+   * lib_link... */
   if (ima->cache == NULL) {
     BKE_image_free_buffers(ima);
   }
@@ -8946,6 +8947,11 @@ static void direct_link_pointcloud(BlendDataReader *reader, PointCloud *pointclo
 
 static void lib_link_volume(BlendLibReader *reader, Volume *volume)
 {
+  /* Needs to be done *after* cache pointers are restored (call to
+   * `foreach_cache`/`blo_cache_storage_entry_restore_in_new`), easier for now to do it in
+   * lib_link... */
+  BKE_volume_init_grids(volume);
+
   for (int a = 0; a < volume->totcol; a++) {
     BLO_read_id_address(reader, volume->id.lib, &volume->mat[a]);
   }
@@ -8957,11 +8963,7 @@ static void direct_link_volume(BlendDataReader *reader, Volume *volume)
   direct_link_animdata(reader, volume->adt);
 
   volume->packedfile = direct_link_packedfile(reader, volume->packedfile);
-  volume->runtime.grids = (reader->fd->volumemap) ?
-                              newvolumeadr(reader->fd, volume->runtime.grids) :
-                              NULL;
   volume->runtime.frame = 0;
-  BKE_volume_init_grids(volume);
 
   /* materials */
   BLO_read_pointer_array(reader, (void **)&volume->mat);
