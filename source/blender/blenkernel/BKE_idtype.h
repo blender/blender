@@ -76,6 +76,14 @@ typedef void (*IDTypeMakeLocalFunction)(struct Main *bmain, struct ID *id, const
 
 typedef void (*IDTypeForeachIDFunction)(struct ID *id, struct LibraryForeachIDData *data);
 
+typedef void (*IDTypeForeachCacheFunctionCallback)(struct ID *id,
+                                                   const struct IDCacheKey *cache_key,
+                                                   void **cache_p,
+                                                   void *user_data);
+typedef void (*IDTypeForeachCacheFunction)(struct ID *id,
+                                           IDTypeForeachCacheFunctionCallback function_callback,
+                                           void *user_data);
+
 typedef struct IDTypeInfo {
   /* ********** General IDType data. ********** */
 
@@ -143,6 +151,11 @@ typedef struct IDTypeInfo {
    * pointers) of given data-block.
    */
   IDTypeForeachIDFunction foreach_id;
+
+  /**
+   * Iterator over all cache pointers of given ID.
+   */
+  IDTypeForeachCacheFunction foreach_cache;
 } IDTypeInfo;
 
 /* ********** Declaration of each IDTypeInfo. ********** */
