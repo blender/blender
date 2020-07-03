@@ -8874,7 +8874,7 @@ static void direct_link_hair(BlendDataReader *reader, Hair *hair)
   BKE_hair_update_customdata_pointers(hair);
 
   /* Materials */
-  BLO_read_pointer_array(reader, (void **)hair->mat);
+  BLO_read_pointer_array(reader, (void **)&hair->mat);
 }
 
 /** \} */
