@@ -2265,6 +2265,7 @@ static void blo_cache_storage_entry_register(ID *id,
                                              void *cache_storage_v)
 {
   BLI_assert(key->id_session_uuid == id->session_uuid);
+  UNUSED_VARS_NDEBUG(id);
 
   BLOCacheStorage *cache_storage = cache_storage_v;
   BLI_assert(!BLI_ghash_haskey(cache_storage->cache_map, key));
