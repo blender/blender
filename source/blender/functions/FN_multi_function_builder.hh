@@ -41,10 +41,10 @@ namespace fn {
 template<typename In1, typename Out1> class CustomMF_SI_SO : public MultiFunction {
  private:
   using FunctionT = std::function<void(IndexMask, VSpan<In1>, MutableSpan<Out1>)>;
-  FunctionT m_function;
+  FunctionT function_;
 
  public:
-  CustomMF_SI_SO(StringRef name, FunctionT function) : m_function(std::move(function))
+  CustomMF_SI_SO(StringRef name, FunctionT function) : function_(std::move(function))
   {
     MFSignatureBuilder signature = this->get_builder(name);
     signature.single_input<In1>("In1");
@@ -68,7 +68,7 @@ template<typename In1, typename Out1> class CustomMF_SI_SO : public MultiFunctio
   {
     VSpan<In1> in1 = params.readonly_single_input<In1>(0);
     MutableSpan<Out1> out1 = params.uninitialized_single_output<Out1>(1);
-    m_function(mask, in1, out1);
+    function_(mask, in1, out1);
   }
 };
 
@@ -82,10 +82,10 @@ template<typename In1, typename In2, typename Out1>
 class CustomMF_SI_SI_SO : public MultiFunction {
  private:
   using FunctionT = std::function<void(IndexMask, VSpan<In1>, VSpan<In2>, MutableSpan<Out1>)>;
-  FunctionT m_function;
+  FunctionT function_;
 
  public:
-  CustomMF_SI_SI_SO(StringRef name, FunctionT function) : m_function(std::move(function))
+  CustomMF_SI_SI_SO(StringRef name, FunctionT function) : function_(std::move(function))
   {
     MFSignatureBuilder signature = this->get_builder(name);
     signature.single_input<In1>("In1");
@@ -111,7 +111,7 @@ class CustomMF_SI_SI_SO : public MultiFunction {
     VSpan<In1> in1 = params.readonly_single_input<In1>(0);
     VSpan<In2> in2 = params.readonly_single_input<In2>(1);
     MutableSpan<Out1> out1 = params.uninitialized_single_output<Out1>(2);
-    m_function(mask, in1, in2, out1);
+    function_(mask, in1, in2, out1);
   }
 };
 
@@ -127,10 +127,10 @@ class CustomMF_SI_SI_SI_SO : public MultiFunction {
  private:
   using FunctionT =
       std::function<void(IndexMask, VSpan<In1>, VSpan<In2>, VSpan<In3>, MutableSpan<Out1>)>;
-  FunctionT m_function;
+  FunctionT function_;
 
  public:
-  CustomMF_SI_SI_SI_SO(StringRef name, FunctionT function) : m_function(std::move(function))
+  CustomMF_SI_SI_SI_SO(StringRef name, FunctionT function) : function_(std::move(function))
   {
     MFSignatureBuilder signature = this->get_builder(name);
     signature.single_input<In1>("In1");
@@ -163,7 +163,7 @@ class CustomMF_SI_SI_SI_SO : public MultiFunction {
     VSpan<In2> in2 = params.readonly_single_input<In2>(1);
     VSpan<In3> in3 = params.readonly_single_input<In3>(2);
     MutableSpan<Out1> out1 = params.uninitialized_single_output<Out1>(3);
-    m_function(mask, in1, in2, in3, out1);
+    function_(mask, in1, in2, in3, out1);
   }
 };
 
@@ -174,10 +174,10 @@ class CustomMF_SI_SI_SI_SO : public MultiFunction {
 template<typename Mut1> class CustomMF_SM : public MultiFunction {
  private:
   using FunctionT = std::function<void(IndexMask, MutableSpan<Mut1>)>;
-  FunctionT m_function;
+  FunctionT function_;
 
  public:
-  CustomMF_SM(StringRef name, FunctionT function) : m_function(std::move(function))
+  CustomMF_SM(StringRef name, FunctionT function) : function_(std::move(function))
   {
     MFSignatureBuilder signature = this->get_builder(name);
     signature.single_mutable<Mut1>("Mut1");
@@ -199,7 +199,7 @@ template<typename Mut1> class CustomMF_SM : public MultiFunction {
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
     MutableSpan<Mut1> mut1 = params.single_mutable<Mut1>(0);
-    m_function(mask, mut1);
+    function_(mask, mut1);
   }
 };
 
@@ -208,21 +208,21 @@ template<typename Mut1> class CustomMF_SM : public MultiFunction {
  */
 template<typename T> class CustomMF_Constant : public MultiFunction {
  private:
-  T m_value;
+  T value_;
 
  public:
-  template<typename U> CustomMF_Constant(U &&value) : m_value(std::forward<U>(value))
+  template<typename U> CustomMF_Constant(U &&value) : value_(std::forward<U>(value))
   {
     MFSignatureBuilder signature = this->get_builder("Constant");
     std::stringstream ss;
-    ss << m_value;
+    ss << value_;
     signature.single_output<T>(ss.str());
   }
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
     MutableSpan<T> output = params.uninitialized_single_output<T>(0);
-    mask.foreach_index([&](uint i) { new (&output[i]) T(m_value); });
+    mask.foreach_index([&](uint i) { new (&output[i]) T(value_); });
   }
 };
 

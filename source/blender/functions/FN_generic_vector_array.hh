@@ -42,12 +42,12 @@ template<typename T> class GVectorArrayRef;
 
 class GVectorArray : NonCopyable, NonMovable {
  private:
-  const CPPType &m_type;
-  uint m_element_size;
-  Array<void *, 1> m_starts;
-  Array<uint, 1> m_lengths;
-  Array<uint, 1> m_capacities;
-  LinearAllocator<> m_allocator;
+  const CPPType &type_;
+  uint element_size_;
+  Array<void *, 1> starts_;
+  Array<uint, 1> lengths_;
+  Array<uint, 1> capacities_;
+  LinearAllocator<> allocator_;
 
   template<typename T> friend class GVectorArrayRef;
 
@@ -55,73 +55,73 @@ class GVectorArray : NonCopyable, NonMovable {
   GVectorArray() = delete;
 
   GVectorArray(const CPPType &type, uint array_size)
-      : m_type(type),
-        m_element_size(type.size()),
-        m_starts(array_size),
-        m_lengths(array_size),
-        m_capacities(array_size)
+      : type_(type),
+        element_size_(type.size()),
+        starts_(array_size),
+        lengths_(array_size),
+        capacities_(array_size)
   {
-    m_starts.fill(nullptr);
-    m_lengths.fill(0);
-    m_capacities.fill(0);
+    starts_.fill(nullptr);
+    lengths_.fill(0);
+    capacities_.fill(0);
   }
 
   ~GVectorArray()
   {
-    if (m_type.is_trivially_destructible()) {
+    if (type_.is_trivially_destructible()) {
       return;
     }
 
-    for (uint i : m_starts.index_range()) {
-      m_type.destruct_n(m_starts[i], m_lengths[i]);
+    for (uint i : starts_.index_range()) {
+      type_.destruct_n(starts_[i], lengths_[i]);
     }
   }
 
   operator GVArraySpan() const
   {
-    return GVArraySpan(m_type, m_starts.as_span(), m_lengths);
+    return GVArraySpan(type_, starts_.as_span(), lengths_);
   }
 
   bool is_empty() const
   {
-    return m_starts.size() == 0;
+    return starts_.size() == 0;
   }
 
   uint size() const
   {
-    return m_starts.size();
+    return starts_.size();
   }
 
   const CPPType &type() const
   {
-    return m_type;
+    return type_;
   }
 
   Span<const void *> starts() const
   {
-    return m_starts.as_span();
+    return starts_.as_span();
   }
 
   Span<uint> lengths() const
   {
-    return m_lengths;
+    return lengths_;
   }
 
   void append(uint index, const void *src)
   {
-    uint old_length = m_lengths[index];
-    if (old_length == m_capacities[index]) {
+    uint old_length = lengths_[index];
+    if (old_length == capacities_[index]) {
       this->grow_at_least_one(index);
     }
 
-    void *dst = POINTER_OFFSET(m_starts[index], m_element_size * old_length);
-    m_type.copy_to_uninitialized(src, dst);
-    m_lengths[index]++;
+    void *dst = POINTER_OFFSET(starts_[index], element_size_ * old_length);
+    type_.copy_to_uninitialized(src, dst);
+    lengths_[index]++;
   }
 
   void extend(uint index, GVSpan span)
   {
-    BLI_assert(m_type == span.type());
+    BLI_assert(type_ == span.type());
     for (uint i = 0; i < span.size(); i++) {
       this->append(index, span[i]);
     }
@@ -129,7 +129,7 @@ class GVectorArray : NonCopyable, NonMovable {
 
   void extend(IndexMask mask, GVArraySpan array_span)
   {
-    BLI_assert(m_type == array_span.type());
+    BLI_assert(type_ == array_span.type());
     BLI_assert(mask.min_array_size() <= array_span.size());
     for (uint i : mask) {
       this->extend(i, array_span[i]);
@@ -138,8 +138,8 @@ class GVectorArray : NonCopyable, NonMovable {
 
   GMutableSpan operator[](uint index)
   {
-    BLI_assert(index < m_starts.size());
-    return GMutableSpan(m_type, m_starts[index], m_lengths[index]);
+    BLI_assert(index < starts_.size());
+    return GMutableSpan(type_, starts_[index], lengths_[index]);
   }
   template<typename T> GVectorArrayRef<T> typed()
   {
@@ -149,56 +149,56 @@ class GVectorArray : NonCopyable, NonMovable {
  private:
   void grow_at_least_one(uint index)
   {
-    BLI_assert(m_lengths[index] == m_capacities[index]);
-    uint new_capacity = m_lengths[index] * 2 + 1;
+    BLI_assert(lengths_[index] == capacities_[index]);
+    uint new_capacity = lengths_[index] * 2 + 1;
 
-    void *new_buffer = m_allocator.allocate(m_element_size * new_capacity, m_type.alignment());
-    m_type.relocate_to_uninitialized_n(m_starts[index], new_buffer, m_lengths[index]);
+    void *new_buffer = allocator_.allocate(element_size_ * new_capacity, type_.alignment());
+    type_.relocate_to_uninitialized_n(starts_[index], new_buffer, lengths_[index]);
 
-    m_starts[index] = new_buffer;
-    m_capacities[index] = new_capacity;
+    starts_[index] = new_buffer;
+    capacities_[index] = new_capacity;
   }
 };
 
 template<typename T> class GVectorArrayRef {
  private:
-  GVectorArray *m_vector_array;
+  GVectorArray *vector_array_;
 
  public:
-  GVectorArrayRef(GVectorArray &vector_array) : m_vector_array(&vector_array)
+  GVectorArrayRef(GVectorArray &vector_array) : vector_array_(&vector_array)
   {
-    BLI_assert(vector_array.m_type.is<T>());
+    BLI_assert(vector_array.type_.is<T>());
   }
 
   void append(uint index, const T &value)
   {
-    m_vector_array->append(index, &value);
+    vector_array_->append(index, &value);
   }
 
   void extend(uint index, Span<T> values)
   {
-    m_vector_array->extend(index, values);
+    vector_array_->extend(index, values);
   }
 
   void extend(uint index, VSpan<T> values)
   {
-    m_vector_array->extend(index, GVSpan(values));
+    vector_array_->extend(index, GVSpan(values));
   }
 
   MutableSpan<T> operator[](uint index)
   {
-    BLI_assert(index < m_vector_array->m_starts.size());
-    return MutableSpan<T>((T *)m_vector_array->m_starts[index], m_vector_array->m_lengths[index]);
+    BLI_assert(index < vector_array_->starts_.size());
+    return MutableSpan<T>((T *)vector_array_->starts_[index], vector_array_->lengths_[index]);
   }
 
   uint size() const
   {
-    return m_vector_array->size();
+    return vector_array_->size();
   }
 
   bool is_empty() const
   {
-    return m_vector_array->is_empty();
+    return vector_array_->is_empty();
   }
 };
 

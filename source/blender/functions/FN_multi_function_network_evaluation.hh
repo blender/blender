@@ -30,8 +30,8 @@ class MFNetworkEvaluationStorage;
 
 class MFNetworkEvaluator : public MultiFunction {
  private:
-  Vector<const MFOutputSocket *> m_inputs;
-  Vector<const MFInputSocket *> m_outputs;
+  Vector<const MFOutputSocket *> inputs_;
+  Vector<const MFInputSocket *> outputs_;
 
  public:
   MFNetworkEvaluator(Vector<const MFOutputSocket *> inputs, Vector<const MFInputSocket *> outputs);

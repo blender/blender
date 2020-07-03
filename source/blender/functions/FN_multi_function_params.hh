@@ -34,18 +34,18 @@ namespace fn {
 
 class MFParamsBuilder {
  private:
-  const MFSignature *m_signature;
-  uint m_min_array_size;
-  Vector<GVSpan> m_virtual_spans;
-  Vector<GMutableSpan> m_mutable_spans;
-  Vector<GVArraySpan> m_virtual_array_spans;
-  Vector<GVectorArray *> m_vector_arrays;
+  const MFSignature *signature_;
+  uint min_array_size_;
+  Vector<GVSpan> virtual_spans_;
+  Vector<GMutableSpan> mutable_spans_;
+  Vector<GVArraySpan> virtual_array_spans_;
+  Vector<GVectorArray *> vector_arrays_;
 
   friend class MFParams;
 
  public:
   MFParamsBuilder(const MFSignature &signature, uint min_array_size)
-      : m_signature(&signature), m_min_array_size(min_array_size)
+      : signature_(&signature), min_array_size_(min_array_size)
   {
   }
 
@@ -53,67 +53,66 @@ class MFParamsBuilder {
 
   template<typename T> void add_readonly_single_input(const T *value)
   {
-    this->add_readonly_single_input(
-        GVSpan::FromSingle(CPPType::get<T>(), value, m_min_array_size));
+    this->add_readonly_single_input(GVSpan::FromSingle(CPPType::get<T>(), value, min_array_size_));
   }
   void add_readonly_single_input(GVSpan ref)
   {
     this->assert_current_param_type(MFParamType::ForSingleInput(ref.type()));
-    BLI_assert(ref.size() >= m_min_array_size);
-    m_virtual_spans.append(ref);
+    BLI_assert(ref.size() >= min_array_size_);
+    virtual_spans_.append(ref);
   }
 
   void add_readonly_vector_input(GVArraySpan ref)
   {
     this->assert_current_param_type(MFParamType::ForVectorInput(ref.type()));
-    BLI_assert(ref.size() >= m_min_array_size);
-    m_virtual_array_spans.append(ref);
+    BLI_assert(ref.size() >= min_array_size_);
+    virtual_array_spans_.append(ref);
   }
 
   void add_uninitialized_single_output(GMutableSpan ref)
   {
     this->assert_current_param_type(MFParamType::ForSingleOutput(ref.type()));
-    BLI_assert(ref.size() >= m_min_array_size);
-    m_mutable_spans.append(ref);
+    BLI_assert(ref.size() >= min_array_size_);
+    mutable_spans_.append(ref);
   }
 
   void add_vector_output(GVectorArray &vector_array)
   {
     this->assert_current_param_type(MFParamType::ForVectorOutput(vector_array.type()));
-    BLI_assert(vector_array.size() >= m_min_array_size);
-    m_vector_arrays.append(&vector_array);
+    BLI_assert(vector_array.size() >= min_array_size_);
+    vector_arrays_.append(&vector_array);
   }
 
   void add_single_mutable(GMutableSpan ref)
   {
     this->assert_current_param_type(MFParamType::ForMutableSingle(ref.type()));
-    BLI_assert(ref.size() >= m_min_array_size);
-    m_mutable_spans.append(ref);
+    BLI_assert(ref.size() >= min_array_size_);
+    mutable_spans_.append(ref);
   }
 
   void add_vector_mutable(GVectorArray &vector_array)
   {
     this->assert_current_param_type(MFParamType::ForMutableVector(vector_array.type()));
-    BLI_assert(vector_array.size() >= m_min_array_size);
-    m_vector_arrays.append(&vector_array);
+    BLI_assert(vector_array.size() >= min_array_size_);
+    vector_arrays_.append(&vector_array);
   }
 
   GMutableSpan computed_array(uint param_index)
   {
-    BLI_assert(ELEM(m_signature->param_types[param_index].category(),
+    BLI_assert(ELEM(signature_->param_types[param_index].category(),
                     MFParamType::SingleOutput,
                     MFParamType::SingleMutable));
-    uint data_index = m_signature->data_index(param_index);
-    return m_mutable_spans[data_index];
+    uint data_index = signature_->data_index(param_index);
+    return mutable_spans_[data_index];
   }
 
   GVectorArray &computed_vector_array(uint param_index)
   {
-    BLI_assert(ELEM(m_signature->param_types[param_index].category(),
+    BLI_assert(ELEM(signature_->param_types[param_index].category(),
                     MFParamType::VectorOutput,
                     MFParamType::VectorMutable));
-    uint data_index = m_signature->data_index(param_index);
-    return *m_vector_arrays[data_index];
+    uint data_index = signature_->data_index(param_index);
+    return *vector_arrays_[data_index];
   }
 
  private:
@@ -122,24 +121,24 @@ class MFParamsBuilder {
     UNUSED_VARS_NDEBUG(param_type);
 #ifdef DEBUG
     uint param_index = this->current_param_index();
-    MFParamType expected_type = m_signature->param_types[param_index];
+    MFParamType expected_type = signature_->param_types[param_index];
     BLI_assert(expected_type == param_type);
 #endif
   }
 
   uint current_param_index() const
   {
-    return m_virtual_spans.size() + m_mutable_spans.size() + m_virtual_array_spans.size() +
-           m_vector_arrays.size();
+    return virtual_spans_.size() + mutable_spans_.size() + virtual_array_spans_.size() +
+           vector_arrays_.size();
   }
 };
 
 class MFParams {
  private:
-  MFParamsBuilder *m_builder;
+  MFParamsBuilder *builder_;
 
  public:
-  MFParams(MFParamsBuilder &builder) : m_builder(&builder)
+  MFParams(MFParamsBuilder &builder) : builder_(&builder)
   {
   }
 
@@ -150,8 +149,8 @@ class MFParams {
   GVSpan readonly_single_input(uint param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, MFParamType::SingleInput);
-    uint data_index = m_builder->m_signature->data_index(param_index);
-    return m_builder->m_virtual_spans[data_index];
+    uint data_index = builder_->signature_->data_index(param_index);
+    return builder_->virtual_spans_[data_index];
   }
 
   template<typename T>
@@ -162,8 +161,8 @@ class MFParams {
   GMutableSpan uninitialized_single_output(uint param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, MFParamType::SingleOutput);
-    uint data_index = m_builder->m_signature->data_index(param_index);
-    return m_builder->m_mutable_spans[data_index];
+    uint data_index = builder_->signature_->data_index(param_index);
+    return builder_->mutable_spans_[data_index];
   }
 
   template<typename T> VArraySpan<T> readonly_vector_input(uint param_index, StringRef name = "")
@@ -173,8 +172,8 @@ class MFParams {
   GVArraySpan readonly_vector_input(uint param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, MFParamType::VectorInput);
-    uint data_index = m_builder->m_signature->data_index(param_index);
-    return m_builder->m_virtual_array_spans[data_index];
+    uint data_index = builder_->signature_->data_index(param_index);
+    return builder_->virtual_array_spans_[data_index];
   }
 
   template<typename T> GVectorArrayRef<T> vector_output(uint param_index, StringRef name = "")
@@ -184,8 +183,8 @@ class MFParams {
   GVectorArray &vector_output(uint param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, MFParamType::VectorOutput);
-    uint data_index = m_builder->m_signature->data_index(param_index);
-    return *m_builder->m_vector_arrays[data_index];
+    uint data_index = builder_->signature_->data_index(param_index);
+    return *builder_->vector_arrays_[data_index];
   }
 
   template<typename T> MutableSpan<T> single_mutable(uint param_index, StringRef name = "")
@@ -195,8 +194,8 @@ class MFParams {
   GMutableSpan single_mutable(uint param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, MFParamType::SingleMutable);
-    uint data_index = m_builder->m_signature->data_index(param_index);
-    return m_builder->m_mutable_spans[data_index];
+    uint data_index = builder_->signature_->data_index(param_index);
+    return builder_->mutable_spans_[data_index];
   }
 
   template<typename T> GVectorArrayRef<T> vector_mutable(uint param_index, StringRef name = "")
@@ -206,8 +205,8 @@ class MFParams {
   GVectorArray &vector_mutable(uint param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, MFParamType::VectorMutable);
-    uint data_index = m_builder->m_signature->data_index(param_index);
-    return *m_builder->m_vector_arrays[data_index];
+    uint data_index = builder_->signature_->data_index(param_index);
+    return *builder_->vector_arrays_[data_index];
   }
 
  private:
@@ -215,9 +214,9 @@ class MFParams {
   {
     UNUSED_VARS_NDEBUG(param_index, name, param_type);
 #ifdef DEBUG
-    BLI_assert(m_builder->m_signature->param_types[param_index] == param_type);
+    BLI_assert(builder_->signature_->param_types[param_index] == param_type);
     if (name.size() > 0) {
-      BLI_assert(m_builder->m_signature->param_names[param_index] == name);
+      BLI_assert(builder_->signature_->param_names[param_index] == name);
     }
 #endif
   }
@@ -226,9 +225,9 @@ class MFParams {
   {
     UNUSED_VARS_NDEBUG(param_index, name, category);
 #ifdef DEBUG
-    BLI_assert(m_builder->m_signature->param_types[param_index].category() == category);
+    BLI_assert(builder_->signature_->param_types[param_index].category() == category);
     if (name.size() > 0) {
-      BLI_assert(m_builder->m_signature->param_names[param_index] == name);
+      BLI_assert(builder_->signature_->param_names[param_index] == name);
     }
 #endif
   }

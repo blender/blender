@@ -56,12 +56,12 @@ class MFParamType {
   };
 
  private:
-  InterfaceType m_interface_type;
-  MFDataType m_data_type;
+  InterfaceType interface_type_;
+  MFDataType data_type_;
 
  public:
   MFParamType(InterfaceType interface_type, MFDataType data_type)
-      : m_interface_type(interface_type), m_data_type(data_type)
+      : interface_type_(interface_type), data_type_(data_type)
   {
   }
 
@@ -97,19 +97,19 @@ class MFParamType {
 
   MFDataType data_type() const
   {
-    return m_data_type;
+    return data_type_;
   }
 
   InterfaceType interface_type() const
   {
-    return m_interface_type;
+    return interface_type_;
   }
 
   Category category() const
   {
-    switch (m_data_type.category()) {
+    switch (data_type_.category()) {
       case MFDataType::Single: {
-        switch (m_interface_type) {
+        switch (interface_type_) {
           case Input:
             return SingleInput;
           case Output:
@@ -120,7 +120,7 @@ class MFParamType {
         break;
       }
       case MFDataType::Vector: {
-        switch (m_interface_type) {
+        switch (interface_type_) {
           case Input:
             return VectorInput;
           case Output:
@@ -137,12 +137,12 @@ class MFParamType {
 
   bool is_input_or_mutable() const
   {
-    return ELEM(m_interface_type, Input, Mutable);
+    return ELEM(interface_type_, Input, Mutable);
   }
 
   bool is_output_or_mutable() const
   {
-    return ELEM(m_interface_type, Output, Mutable);
+    return ELEM(interface_type_, Output, Mutable);
   }
 
   friend bool operator==(const MFParamType &a, const MFParamType &b);
@@ -151,7 +151,7 @@ class MFParamType {
 
 inline bool operator==(const MFParamType &a, const MFParamType &b)
 {
-  return a.m_interface_type == b.m_interface_type && a.m_data_type == b.m_data_type;
+  return a.interface_type_ == b.interface_type_ && a.data_type_ == b.data_type_;
 }
 
 inline bool operator!=(const MFParamType &a, const MFParamType &b)

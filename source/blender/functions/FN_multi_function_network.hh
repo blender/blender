@@ -59,11 +59,11 @@ class MFNetwork;
 
 class MFNode : NonCopyable, NonMovable {
  protected:
-  MFNetwork *m_network;
-  Span<MFInputSocket *> m_inputs;
-  Span<MFOutputSocket *> m_outputs;
-  bool m_is_dummy;
-  uint m_id;
+  MFNetwork *network_;
+  Span<MFInputSocket *> inputs_;
+  Span<MFOutputSocket *> outputs_;
+  bool is_dummy_;
+  uint id_;
 
   friend MFNetwork;
 
@@ -106,9 +106,9 @@ class MFNode : NonCopyable, NonMovable {
 
 class MFFunctionNode : public MFNode {
  private:
-  const MultiFunction *m_function;
-  Span<uint> m_input_param_indices;
-  Span<uint> m_output_param_indices;
+  const MultiFunction *function_;
+  Span<uint> input_param_indices_;
+  Span<uint> output_param_indices_;
 
   friend MFNetwork;
 
@@ -123,9 +123,9 @@ class MFFunctionNode : public MFNode {
 
 class MFDummyNode : public MFNode {
  private:
-  StringRefNull m_name;
-  MutableSpan<StringRefNull> m_input_names;
-  MutableSpan<StringRefNull> m_output_names;
+  StringRefNull name_;
+  MutableSpan<StringRefNull> input_names_;
+  MutableSpan<StringRefNull> output_names_;
 
   friend MFNetwork;
 
@@ -138,12 +138,12 @@ class MFDummyNode : public MFNode {
 
 class MFSocket : NonCopyable, NonMovable {
  protected:
-  MFNode *m_node;
-  bool m_is_output;
-  uint m_index;
-  MFDataType m_data_type;
-  uint m_id;
-  StringRefNull m_name;
+  MFNode *node_;
+  bool is_output_;
+  uint index_;
+  MFDataType data_type_;
+  uint id_;
+  StringRefNull name_;
 
   friend MFNetwork;
 
@@ -169,7 +169,7 @@ class MFSocket : NonCopyable, NonMovable {
 
 class MFInputSocket : public MFSocket {
  private:
-  MFOutputSocket *m_origin;
+  MFOutputSocket *origin_;
 
   friend MFNetwork;
 
@@ -180,7 +180,7 @@ class MFInputSocket : public MFSocket {
 
 class MFOutputSocket : public MFSocket {
  private:
-  Vector<MFInputSocket *, 1> m_targets;
+  Vector<MFInputSocket *, 1> targets_;
 
   friend MFNetwork;
 
@@ -191,13 +191,13 @@ class MFOutputSocket : public MFSocket {
 
 class MFNetwork : NonCopyable, NonMovable {
  private:
-  LinearAllocator<> m_allocator;
+  LinearAllocator<> allocator_;
 
-  VectorSet<MFFunctionNode *> m_function_nodes;
-  VectorSet<MFDummyNode *> m_dummy_nodes;
+  VectorSet<MFFunctionNode *> function_nodes_;
+  VectorSet<MFDummyNode *> dummy_nodes_;
 
-  Vector<MFNode *> m_node_or_null_by_id;
-  Vector<MFSocket *> m_socket_or_null_by_id;
+  Vector<MFNode *> node_or_null_by_id_;
+  Vector<MFSocket *> socket_or_null_by_id_;
 
  public:
   MFNetwork() = default;
@@ -229,7 +229,7 @@ class MFNetwork : NonCopyable, NonMovable {
 
 inline StringRefNull MFNode::name() const
 {
-  if (m_is_dummy) {
+  if (is_dummy_) {
     return this->as_dummy().name();
   }
   else {
@@ -239,96 +239,96 @@ inline StringRefNull MFNode::name() const
 
 inline uint MFNode::id() const
 {
-  return m_id;
+  return id_;
 }
 
 inline MFNetwork &MFNode::network()
 {
-  return *m_network;
+  return *network_;
 }
 
 inline const MFNetwork &MFNode::network() const
 {
-  return *m_network;
+  return *network_;
 }
 
 inline bool MFNode::is_dummy() const
 {
-  return m_is_dummy;
+  return is_dummy_;
 }
 
 inline bool MFNode::is_function() const
 {
-  return !m_is_dummy;
+  return !is_dummy_;
 }
 
 inline MFDummyNode &MFNode::as_dummy()
 {
-  BLI_assert(m_is_dummy);
+  BLI_assert(is_dummy_);
   return *(MFDummyNode *)this;
 }
 
 inline const MFDummyNode &MFNode::as_dummy() const
 {
-  BLI_assert(m_is_dummy);
+  BLI_assert(is_dummy_);
   return *(const MFDummyNode *)this;
 }
 
 inline MFFunctionNode &MFNode::as_function()
 {
-  BLI_assert(!m_is_dummy);
+  BLI_assert(!is_dummy_);
   return *(MFFunctionNode *)this;
 }
 
 inline const MFFunctionNode &MFNode::as_function() const
 {
-  BLI_assert(!m_is_dummy);
+  BLI_assert(!is_dummy_);
   return *(const MFFunctionNode *)this;
 }
 
 inline MFInputSocket &MFNode::input(uint index)
 {
-  return *m_inputs[index];
+  return *inputs_[index];
 }
 
 inline const MFInputSocket &MFNode::input(uint index) const
 {
-  return *m_inputs[index];
+  return *inputs_[index];
 }
 
 inline MFOutputSocket &MFNode::output(uint index)
 {
-  return *m_outputs[index];
+  return *outputs_[index];
 }
 
 inline const MFOutputSocket &MFNode::output(uint index) const
 {
-  return *m_outputs[index];
+  return *outputs_[index];
 }
 
 inline Span<MFInputSocket *> MFNode::inputs()
 {
-  return m_inputs;
+  return inputs_;
 }
 
 inline Span<const MFInputSocket *> MFNode::inputs() const
 {
-  return m_inputs;
+  return inputs_;
 }
 
 inline Span<MFOutputSocket *> MFNode::outputs()
 {
-  return m_outputs;
+  return outputs_;
 }
 
 inline Span<const MFOutputSocket *> MFNode::outputs() const
 {
-  return m_outputs;
+  return outputs_;
 }
 
 template<typename FuncT> void MFNode::foreach_origin_socket(const FuncT &func) const
 {
-  for (const MFInputSocket *socket : m_inputs) {
+  for (const MFInputSocket *socket : inputs_) {
     const MFOutputSocket *origin = socket->origin();
     if (origin != nullptr) {
       func(*origin);
@@ -338,7 +338,7 @@ template<typename FuncT> void MFNode::foreach_origin_socket(const FuncT &func) c
 
 inline bool MFNode::all_inputs_have_origin() const
 {
-  for (const MFInputSocket *socket : m_inputs) {
+  for (const MFInputSocket *socket : inputs_) {
     if (socket->origin() == nullptr) {
       return false;
     }
@@ -352,22 +352,22 @@ inline bool MFNode::all_inputs_have_origin() const
 
 inline StringRefNull MFFunctionNode::name() const
 {
-  return m_function->name();
+  return function_->name();
 }
 
 inline const MultiFunction &MFFunctionNode::function() const
 {
-  return *m_function;
+  return *function_;
 }
 
 inline const MFInputSocket &MFFunctionNode::input_for_param(uint param_index) const
 {
-  return this->input(m_input_param_indices.first_index(param_index));
+  return this->input(input_param_indices_.first_index(param_index));
 }
 
 inline const MFOutputSocket &MFFunctionNode::output_for_param(uint param_index) const
 {
-  return this->output(m_output_param_indices.first_index(param_index));
+  return this->output(output_param_indices_.first_index(param_index));
 }
 
 /* --------------------------------------------------------------------
@@ -376,17 +376,17 @@ inline const MFOutputSocket &MFFunctionNode::output_for_param(uint param_index) 
 
 inline StringRefNull MFDummyNode::name() const
 {
-  return m_name;
+  return name_;
 }
 
 inline Span<StringRefNull> MFDummyNode::input_names() const
 {
-  return m_input_names;
+  return input_names_;
 }
 
 inline Span<StringRefNull> MFDummyNode::output_names() const
 {
-  return m_output_names;
+  return output_names_;
 }
 
 /* --------------------------------------------------------------------
@@ -395,37 +395,37 @@ inline Span<StringRefNull> MFDummyNode::output_names() const
 
 inline StringRefNull MFSocket::name() const
 {
-  return m_name;
+  return name_;
 }
 
 inline uint MFSocket::id() const
 {
-  return m_id;
+  return id_;
 }
 
 inline const MFDataType &MFSocket::data_type() const
 {
-  return m_data_type;
+  return data_type_;
 }
 
 inline MFNode &MFSocket::node()
 {
-  return *m_node;
+  return *node_;
 }
 
 inline const MFNode &MFSocket::node() const
 {
-  return *m_node;
+  return *node_;
 }
 
 inline bool MFSocket::is_input() const
 {
-  return !m_is_output;
+  return !is_output_;
 }
 
 inline bool MFSocket::is_output() const
 {
-  return m_is_output;
+  return is_output_;
 }
 
 inline MFInputSocket &MFSocket::as_input()
@@ -458,12 +458,12 @@ inline const MFOutputSocket &MFSocket::as_output() const
 
 inline MFOutputSocket *MFInputSocket::origin()
 {
-  return m_origin;
+  return origin_;
 }
 
 inline const MFOutputSocket *MFInputSocket::origin() const
 {
-  return m_origin;
+  return origin_;
 }
 
 /* --------------------------------------------------------------------
@@ -472,12 +472,12 @@ inline const MFOutputSocket *MFInputSocket::origin() const
 
 inline Span<MFInputSocket *> MFOutputSocket::targets()
 {
-  return m_targets;
+  return targets_;
 }
 
 inline Span<const MFInputSocket *> MFOutputSocket::targets() const
 {
-  return m_targets.as_span();
+  return targets_.as_span();
 }
 
 /* --------------------------------------------------------------------
@@ -486,7 +486,7 @@ inline Span<const MFInputSocket *> MFOutputSocket::targets() const
 
 inline uint MFNetwork::max_socket_id() const
 {
-  return m_socket_or_null_by_id.size() - 1;
+  return socket_or_null_by_id_.size() - 1;
 }
 
 }  // namespace fn

@@ -53,7 +53,7 @@ namespace fn {
 
 class MultiFunction {
  private:
-  MFSignature m_signature;
+  MFSignature signature_;
 
  public:
   virtual ~MultiFunction()
@@ -64,34 +64,34 @@ class MultiFunction {
 
   IndexRange param_indices() const
   {
-    return m_signature.param_types.index_range();
+    return signature_.param_types.index_range();
   }
 
   MFParamType param_type(uint param_index) const
   {
-    return m_signature.param_types[param_index];
+    return signature_.param_types[param_index];
   }
 
   StringRefNull param_name(uint param_index) const
   {
-    return m_signature.param_names[param_index];
+    return signature_.param_names[param_index];
   }
 
   StringRefNull name() const
   {
-    return m_signature.function_name;
+    return signature_.function_name;
   }
 
   const MFSignature &signature() const
   {
-    return m_signature;
+    return signature_;
   }
 
  protected:
   MFSignatureBuilder get_builder(std::string function_name)
   {
-    m_signature.function_name = std::move(function_name);
-    return MFSignatureBuilder(m_signature);
+    signature_.function_name = std::move(function_name);
+    return MFSignatureBuilder(signature_);
   }
 };
 

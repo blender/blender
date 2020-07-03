@@ -21,50 +21,50 @@ namespace fn {
 
 AttributesInfoBuilder::~AttributesInfoBuilder()
 {
-  for (uint i : m_defaults.index_range()) {
-    m_types[i]->destruct(m_defaults[i]);
+  for (uint i : defaults_.index_range()) {
+    types_[i]->destruct(defaults_[i]);
   }
 }
 
 void AttributesInfoBuilder::add(StringRef name, const CPPType &type, const void *default_value)
 {
-  if (m_names.add_as(name)) {
-    m_types.append(&type);
+  if (names_.add_as(name)) {
+    types_.append(&type);
 
     if (default_value == nullptr) {
       default_value = type.default_value();
     }
-    void *dst = m_allocator.allocate(type.size(), type.alignment());
+    void *dst = allocator_.allocate(type.size(), type.alignment());
     type.copy_to_uninitialized(default_value, dst);
-    m_defaults.append(dst);
+    defaults_.append(dst);
   }
   else {
     /* The same name can be added more than once as long as the type is always the same. */
-    BLI_assert(m_types[m_names.index_of_as(name)] == &type);
+    BLI_assert(types_[names_.index_of_as(name)] == &type);
   }
 }
 
 AttributesInfo::AttributesInfo(const AttributesInfoBuilder &builder)
 {
-  for (uint i : builder.m_types.index_range()) {
-    StringRefNull name = m_allocator.copy_string(builder.m_names[i]);
-    const CPPType &type = *builder.m_types[i];
-    const void *default_value = builder.m_defaults[i];
+  for (uint i : builder.types_.index_range()) {
+    StringRefNull name = allocator_.copy_string(builder.names_[i]);
+    const CPPType &type = *builder.types_[i];
+    const void *default_value = builder.defaults_[i];
 
-    m_index_by_name.add_new(name, i);
-    m_name_by_index.append(name);
-    m_type_by_index.append(&type);
+    index_by_name_.add_new(name, i);
+    name_by_index_.append(name);
+    type_by_index_.append(&type);
 
-    void *dst = m_allocator.allocate(type.size(), type.alignment());
+    void *dst = allocator_.allocate(type.size(), type.alignment());
     type.copy_to_uninitialized(default_value, dst);
-    m_defaults.append(dst);
+    defaults_.append(dst);
   }
 }
 
 AttributesInfo::~AttributesInfo()
 {
-  for (uint i : m_defaults.index_range()) {
-    m_type_by_index[i]->destruct(m_defaults[i]);
+  for (uint i : defaults_.index_range()) {
+    type_by_index_[i]->destruct(defaults_[i]);
   }
 }
 

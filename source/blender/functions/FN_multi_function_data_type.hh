@@ -38,10 +38,10 @@ class MFDataType {
   };
 
  private:
-  Category m_category;
-  const CPPType *m_type;
+  Category category_;
+  const CPPType *type_;
 
-  MFDataType(Category category, const CPPType &type) : m_category(category), m_type(&type)
+  MFDataType(Category category, const CPPType &type) : category_(category), type_(&type)
   {
   }
 
@@ -70,29 +70,29 @@ class MFDataType {
 
   bool is_single() const
   {
-    return m_category == Single;
+    return category_ == Single;
   }
 
   bool is_vector() const
   {
-    return m_category == Vector;
+    return category_ == Vector;
   }
 
   Category category() const
   {
-    return m_category;
+    return category_;
   }
 
   const CPPType &single_type() const
   {
     BLI_assert(this->is_single());
-    return *m_type;
+    return *type_;
   }
 
   const CPPType &vector_base_type() const
   {
     BLI_assert(this->is_vector());
-    return *m_type;
+    return *type_;
   }
 
   friend bool operator==(const MFDataType &a, const MFDataType &b);
@@ -100,11 +100,11 @@ class MFDataType {
 
   std::string to_string() const
   {
-    switch (m_category) {
+    switch (category_) {
       case Single:
-        return m_type->name();
+        return type_->name();
       case Vector:
-        return m_type->name() + " Vector";
+        return type_->name() + " Vector";
     }
     BLI_assert(false);
     return "";
@@ -113,7 +113,7 @@ class MFDataType {
 
 inline bool operator==(const MFDataType &a, const MFDataType &b)
 {
-  return a.m_category == b.m_category && a.m_type == b.m_type;
+  return a.category_ == b.category_ && a.type_ == b.type_;
 }
 
 inline bool operator!=(const MFDataType &a, const MFDataType &b)

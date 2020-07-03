@@ -46,14 +46,14 @@ struct MFSignature {
 
 class MFSignatureBuilder {
  private:
-  MFSignature &m_data;
-  uint m_span_count = 0;
-  uint m_virtual_span_count = 0;
-  uint m_virtual_array_span_count = 0;
-  uint m_vector_array_count = 0;
+  MFSignature &data_;
+  uint span_count_ = 0;
+  uint virtual_span_count_ = 0;
+  uint virtual_array_span_count_ = 0;
+  uint vector_array_count_ = 0;
 
  public:
-  MFSignatureBuilder(MFSignature &data) : m_data(data)
+  MFSignatureBuilder(MFSignature &data) : data_(data)
   {
     BLI_assert(data.param_names.is_empty());
     BLI_assert(data.param_types.is_empty());
@@ -80,15 +80,15 @@ class MFSignatureBuilder {
   }
   void input(StringRef name, MFDataType data_type)
   {
-    m_data.param_names.append(name);
-    m_data.param_types.append(MFParamType(MFParamType::Input, data_type));
+    data_.param_names.append(name);
+    data_.param_types.append(MFParamType(MFParamType::Input, data_type));
 
     switch (data_type.category()) {
       case MFDataType::Single:
-        m_data.param_data_indices.append(m_virtual_span_count++);
+        data_.param_data_indices.append(virtual_span_count_++);
         break;
       case MFDataType::Vector:
-        m_data.param_data_indices.append(m_virtual_array_span_count++);
+        data_.param_data_indices.append(virtual_array_span_count_++);
         break;
     }
   }
@@ -113,15 +113,15 @@ class MFSignatureBuilder {
   }
   void output(StringRef name, MFDataType data_type)
   {
-    m_data.param_names.append(name);
-    m_data.param_types.append(MFParamType(MFParamType::Output, data_type));
+    data_.param_names.append(name);
+    data_.param_types.append(MFParamType(MFParamType::Output, data_type));
 
     switch (data_type.category()) {
       case MFDataType::Single:
-        m_data.param_data_indices.append(m_span_count++);
+        data_.param_data_indices.append(span_count_++);
         break;
       case MFDataType::Vector:
-        m_data.param_data_indices.append(m_vector_array_count++);
+        data_.param_data_indices.append(vector_array_count_++);
         break;
     }
   }
@@ -146,15 +146,15 @@ class MFSignatureBuilder {
   }
   void mutable_(StringRef name, MFDataType data_type)
   {
-    m_data.param_names.append(name);
-    m_data.param_types.append(MFParamType(MFParamType::Mutable, data_type));
+    data_.param_names.append(name);
+    data_.param_types.append(MFParamType(MFParamType::Mutable, data_type));
 
     switch (data_type.category()) {
       case MFDataType::Single:
-        m_data.param_data_indices.append(m_span_count++);
+        data_.param_data_indices.append(span_count_++);
         break;
       case MFDataType::Vector:
-        m_data.param_data_indices.append(m_vector_array_count++);
+        data_.param_data_indices.append(vector_array_count_++);
         break;
     }
   }

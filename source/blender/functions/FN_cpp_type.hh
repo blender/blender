@@ -132,36 +132,36 @@ class CPPType {
           FillUninitializedF fill_uninitialized,
           FillUninitializedIndicesF fill_uninitialized_indices,
           const void *default_value)
-      : m_size(size),
-        m_alignment(alignment),
-        m_is_trivially_destructible(is_trivially_destructible),
-        m_construct_default(construct_default),
-        m_construct_default_n(construct_default_n),
-        m_construct_default_indices(construct_default_indices),
-        m_destruct(destruct),
-        m_destruct_n(destruct_n),
-        m_destruct_indices(destruct_indices),
-        m_copy_to_initialized(copy_to_initialized),
-        m_copy_to_initialized_n(copy_to_initialized_n),
-        m_copy_to_initialized_indices(copy_to_initialized_indices),
-        m_copy_to_uninitialized(copy_to_uninitialized),
-        m_copy_to_uninitialized_n(copy_to_uninitialized_n),
-        m_copy_to_uninitialized_indices(copy_to_uninitialized_indices),
-        m_relocate_to_initialized(relocate_to_initialized),
-        m_relocate_to_initialized_n(relocate_to_initialized_n),
-        m_relocate_to_initialized_indices(relocate_to_initialized_indices),
-        m_relocate_to_uninitialized(relocate_to_uninitialized),
-        m_relocate_to_uninitialized_n(relocate_to_uninitialized_n),
-        m_relocate_to_uninitialized_indices(relocate_to_uninitialized_indices),
-        m_fill_initialized(fill_initialized),
-        m_fill_initialized_indices(fill_initialized_indices),
-        m_fill_uninitialized(fill_uninitialized),
-        m_fill_uninitialized_indices(fill_uninitialized_indices),
-        m_default_value(default_value),
-        m_name(name)
+      : size_(size),
+        alignment_(alignment),
+        is_trivially_destructible_(is_trivially_destructible),
+        construct_default_(construct_default),
+        construct_default_n_(construct_default_n),
+        construct_default_indices_(construct_default_indices),
+        destruct_(destruct),
+        destruct_n_(destruct_n),
+        destruct_indices_(destruct_indices),
+        copy_to_initialized_(copy_to_initialized),
+        copy_to_initialized_n_(copy_to_initialized_n),
+        copy_to_initialized_indices_(copy_to_initialized_indices),
+        copy_to_uninitialized_(copy_to_uninitialized),
+        copy_to_uninitialized_n_(copy_to_uninitialized_n),
+        copy_to_uninitialized_indices_(copy_to_uninitialized_indices),
+        relocate_to_initialized_(relocate_to_initialized),
+        relocate_to_initialized_n_(relocate_to_initialized_n),
+        relocate_to_initialized_indices_(relocate_to_initialized_indices),
+        relocate_to_uninitialized_(relocate_to_uninitialized),
+        relocate_to_uninitialized_n_(relocate_to_uninitialized_n),
+        relocate_to_uninitialized_indices_(relocate_to_uninitialized_indices),
+        fill_initialized_(fill_initialized),
+        fill_initialized_indices_(fill_initialized_indices),
+        fill_uninitialized_(fill_uninitialized),
+        fill_uninitialized_indices_(fill_uninitialized_indices),
+        default_value_(default_value),
+        name_(name)
   {
-    BLI_assert(is_power_of_2_i(m_alignment));
-    m_alignment_mask = (uintptr_t)m_alignment - (uintptr_t)1;
+    BLI_assert(is_power_of_2_i(alignment_));
+    alignment_mask_ = (uintptr_t)alignment_ - (uintptr_t)1;
   }
 
   /**
@@ -170,7 +170,7 @@ class CPPType {
    */
   StringRefNull name() const
   {
-    return m_name;
+    return name_;
   }
 
   /**
@@ -181,7 +181,7 @@ class CPPType {
    */
   uint size() const
   {
-    return m_size;
+    return size_;
   }
 
   /**
@@ -192,7 +192,7 @@ class CPPType {
    */
   uint alignment() const
   {
-    return m_alignment;
+    return alignment_;
   }
 
   /**
@@ -204,7 +204,7 @@ class CPPType {
    */
   bool is_trivially_destructible() const
   {
-    return m_is_trivially_destructible;
+    return is_trivially_destructible_;
   }
 
   /**
@@ -212,7 +212,7 @@ class CPPType {
    */
   bool pointer_has_valid_alignment(const void *ptr) const
   {
-    return ((uintptr_t)ptr & m_alignment_mask) == 0;
+    return ((uintptr_t)ptr & alignment_mask_) == 0;
   }
 
   bool pointer_can_point_to_instance(const void *ptr) const
@@ -232,21 +232,21 @@ class CPPType {
   {
     BLI_assert(this->pointer_can_point_to_instance(ptr));
 
-    m_construct_default(ptr);
+    construct_default_(ptr);
   }
 
   void construct_default_n(void *ptr, uint n) const
   {
     BLI_assert(this->pointer_has_valid_alignment(ptr));
 
-    m_construct_default_n(ptr, n);
+    construct_default_n_(ptr, n);
   }
 
   void construct_default_indices(void *ptr, IndexMask index_mask) const
   {
     BLI_assert(this->pointer_has_valid_alignment(ptr));
 
-    m_construct_default_indices(ptr, index_mask);
+    construct_default_indices_(ptr, index_mask);
   }
 
   /**
@@ -261,21 +261,21 @@ class CPPType {
   {
     BLI_assert(this->pointer_can_point_to_instance(ptr));
 
-    m_destruct(ptr);
+    destruct_(ptr);
   }
 
   void destruct_n(void *ptr, uint n) const
   {
     BLI_assert(this->pointer_has_valid_alignment(ptr));
 
-    m_destruct_n(ptr, n);
+    destruct_n_(ptr, n);
   }
 
   void destruct_indices(void *ptr, IndexMask index_mask) const
   {
     BLI_assert(this->pointer_has_valid_alignment(ptr));
 
-    m_destruct_indices(ptr, index_mask);
+    destruct_indices_(ptr, index_mask);
   }
 
   /**
@@ -290,7 +290,7 @@ class CPPType {
     BLI_assert(this->pointer_can_point_to_instance(src));
     BLI_assert(this->pointer_can_point_to_instance(dst));
 
-    m_copy_to_initialized(src, dst);
+    copy_to_initialized_(src, dst);
   }
 
   void copy_to_initialized_n(const void *src, void *dst, uint n) const
@@ -299,7 +299,7 @@ class CPPType {
     BLI_assert(this->pointer_has_valid_alignment(src));
     BLI_assert(this->pointer_has_valid_alignment(dst));
 
-    m_copy_to_initialized_n(src, dst, n);
+    copy_to_initialized_n_(src, dst, n);
   }
 
   void copy_to_initialized_indices(const void *src, void *dst, IndexMask index_mask) const
@@ -308,7 +308,7 @@ class CPPType {
     BLI_assert(this->pointer_has_valid_alignment(src));
     BLI_assert(this->pointer_has_valid_alignment(dst));
 
-    m_copy_to_initialized_indices(src, dst, index_mask);
+    copy_to_initialized_indices_(src, dst, index_mask);
   }
 
   /**
@@ -325,7 +325,7 @@ class CPPType {
     BLI_assert(this->pointer_can_point_to_instance(src));
     BLI_assert(this->pointer_can_point_to_instance(dst));
 
-    m_copy_to_uninitialized(src, dst);
+    copy_to_uninitialized_(src, dst);
   }
 
   void copy_to_uninitialized_n(const void *src, void *dst, uint n) const
@@ -334,7 +334,7 @@ class CPPType {
     BLI_assert(this->pointer_has_valid_alignment(src));
     BLI_assert(this->pointer_has_valid_alignment(dst));
 
-    m_copy_to_uninitialized_n(src, dst, n);
+    copy_to_uninitialized_n_(src, dst, n);
   }
 
   void copy_to_uninitialized_indices(const void *src, void *dst, IndexMask index_mask) const
@@ -343,7 +343,7 @@ class CPPType {
     BLI_assert(this->pointer_has_valid_alignment(src));
     BLI_assert(this->pointer_has_valid_alignment(dst));
 
-    m_copy_to_uninitialized_indices(src, dst, index_mask);
+    copy_to_uninitialized_indices_(src, dst, index_mask);
   }
 
   /**
@@ -360,7 +360,7 @@ class CPPType {
     BLI_assert(this->pointer_can_point_to_instance(src));
     BLI_assert(this->pointer_can_point_to_instance(dst));
 
-    m_relocate_to_initialized(src, dst);
+    relocate_to_initialized_(src, dst);
   }
 
   void relocate_to_initialized_n(void *src, void *dst, uint n) const
@@ -369,7 +369,7 @@ class CPPType {
     BLI_assert(this->pointer_has_valid_alignment(src));
     BLI_assert(this->pointer_has_valid_alignment(dst));
 
-    m_relocate_to_initialized_n(src, dst, n);
+    relocate_to_initialized_n_(src, dst, n);
   }
 
   void relocate_to_initialized_indices(void *src, void *dst, IndexMask index_mask) const
@@ -378,7 +378,7 @@ class CPPType {
     BLI_assert(this->pointer_has_valid_alignment(src));
     BLI_assert(this->pointer_has_valid_alignment(dst));
 
-    m_relocate_to_initialized_indices(src, dst, index_mask);
+    relocate_to_initialized_indices_(src, dst, index_mask);
   }
 
   /**
@@ -395,7 +395,7 @@ class CPPType {
     BLI_assert(this->pointer_can_point_to_instance(src));
     BLI_assert(this->pointer_can_point_to_instance(dst));
 
-    m_relocate_to_uninitialized(src, dst);
+    relocate_to_uninitialized_(src, dst);
   }
 
   void relocate_to_uninitialized_n(void *src, void *dst, uint n) const
@@ -404,7 +404,7 @@ class CPPType {
     BLI_assert(this->pointer_has_valid_alignment(src));
     BLI_assert(this->pointer_has_valid_alignment(dst));
 
-    m_relocate_to_uninitialized_n(src, dst, n);
+    relocate_to_uninitialized_n_(src, dst, n);
   }
 
   void relocate_to_uninitialized_indices(void *src, void *dst, IndexMask index_mask) const
@@ -413,7 +413,7 @@ class CPPType {
     BLI_assert(this->pointer_has_valid_alignment(src));
     BLI_assert(this->pointer_has_valid_alignment(dst));
 
-    m_relocate_to_uninitialized_indices(src, dst, index_mask);
+    relocate_to_uninitialized_indices_(src, dst, index_mask);
   }
 
   /**
@@ -426,7 +426,7 @@ class CPPType {
     BLI_assert(this->pointer_can_point_to_instance(value));
     BLI_assert(this->pointer_can_point_to_instance(dst));
 
-    m_fill_initialized(value, dst, n);
+    fill_initialized_(value, dst, n);
   }
 
   void fill_initialized_indices(const void *value, void *dst, IndexMask index_mask) const
@@ -434,7 +434,7 @@ class CPPType {
     BLI_assert(this->pointer_has_valid_alignment(value));
     BLI_assert(this->pointer_has_valid_alignment(dst));
 
-    m_fill_initialized_indices(value, dst, index_mask);
+    fill_initialized_indices_(value, dst, index_mask);
   }
 
   /**
@@ -447,7 +447,7 @@ class CPPType {
     BLI_assert(this->pointer_can_point_to_instance(value));
     BLI_assert(this->pointer_can_point_to_instance(dst));
 
-    m_fill_uninitialized(value, dst, n);
+    fill_uninitialized_(value, dst, n);
   }
 
   void fill_uninitialized_indices(const void *value, void *dst, IndexMask index_mask) const
@@ -455,7 +455,7 @@ class CPPType {
     BLI_assert(this->pointer_has_valid_alignment(value));
     BLI_assert(this->pointer_has_valid_alignment(dst));
 
-    m_fill_uninitialized_indices(value, dst, index_mask);
+    fill_uninitialized_indices_(value, dst, index_mask);
   }
 
   /**
@@ -464,7 +464,7 @@ class CPPType {
    */
   const void *default_value() const
   {
-    return m_default_value;
+    return default_value_;
   }
 
   /**
@@ -489,43 +489,43 @@ class CPPType {
   }
 
  private:
-  uint m_size;
-  uint m_alignment;
-  uintptr_t m_alignment_mask;
-  bool m_is_trivially_destructible;
+  uint size_;
+  uint alignment_;
+  uintptr_t alignment_mask_;
+  bool is_trivially_destructible_;
 
-  ConstructDefaultF m_construct_default;
-  ConstructDefaultNF m_construct_default_n;
-  ConstructDefaultIndicesF m_construct_default_indices;
+  ConstructDefaultF construct_default_;
+  ConstructDefaultNF construct_default_n_;
+  ConstructDefaultIndicesF construct_default_indices_;
 
-  DestructF m_destruct;
-  DestructNF m_destruct_n;
-  DestructIndicesF m_destruct_indices;
+  DestructF destruct_;
+  DestructNF destruct_n_;
+  DestructIndicesF destruct_indices_;
 
-  CopyToInitializedF m_copy_to_initialized;
-  CopyToInitializedNF m_copy_to_initialized_n;
-  CopyToInitializedIndicesF m_copy_to_initialized_indices;
+  CopyToInitializedF copy_to_initialized_;
+  CopyToInitializedNF copy_to_initialized_n_;
+  CopyToInitializedIndicesF copy_to_initialized_indices_;
 
-  CopyToUninitializedF m_copy_to_uninitialized;
-  CopyToUninitializedNF m_copy_to_uninitialized_n;
-  CopyToUninitializedIndicesF m_copy_to_uninitialized_indices;
+  CopyToUninitializedF copy_to_uninitialized_;
+  CopyToUninitializedNF copy_to_uninitialized_n_;
+  CopyToUninitializedIndicesF copy_to_uninitialized_indices_;
 
-  RelocateToInitializedF m_relocate_to_initialized;
-  RelocateToInitializedNF m_relocate_to_initialized_n;
-  RelocateToInitializedIndicesF m_relocate_to_initialized_indices;
+  RelocateToInitializedF relocate_to_initialized_;
+  RelocateToInitializedNF relocate_to_initialized_n_;
+  RelocateToInitializedIndicesF relocate_to_initialized_indices_;
 
-  RelocateToUninitializedF m_relocate_to_uninitialized;
-  RelocateToUninitializedNF m_relocate_to_uninitialized_n;
-  RelocateToUninitializedIndicesF m_relocate_to_uninitialized_indices;
+  RelocateToUninitializedF relocate_to_uninitialized_;
+  RelocateToUninitializedNF relocate_to_uninitialized_n_;
+  RelocateToUninitializedIndicesF relocate_to_uninitialized_indices_;
 
-  FillInitializedF m_fill_initialized;
-  FillInitializedIndicesF m_fill_initialized_indices;
+  FillInitializedF fill_initialized_;
+  FillInitializedIndicesF fill_initialized_indices_;
 
-  FillUninitializedF m_fill_uninitialized;
-  FillUninitializedIndicesF m_fill_uninitialized_indices;
+  FillUninitializedF fill_uninitialized_;
+  FillUninitializedIndicesF fill_uninitialized_indices_;
 
-  const void *m_default_value;
-  std::string m_name;
+  const void *default_value_;
+  std::string name_;
 };
 
 /* --------------------------------------------------------------------
