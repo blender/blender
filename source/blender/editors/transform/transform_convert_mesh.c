@@ -1086,7 +1086,9 @@ static void trans_mesh_customdata_correction_init_container(TransInfo *t, TransD
             TFM_SHRINKFATTEN,
             TFM_TRACKBALL,
             TFM_PUSHPULL,
-            TFM_ALIGN)) {
+            TFM_ALIGN,
+            TFM_EDGE_SLIDE,
+            TFM_VERT_SLIDE)) {
     /* Currently only modes that change the position of vertices are supported. */
     return;
   }
