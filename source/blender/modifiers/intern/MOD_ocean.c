@@ -657,7 +657,7 @@ static void spray_panel_draw(const bContext *C, Panel *panel)
   modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
 
   bool use_foam = RNA_boolean_get(&ptr, "use_foam");
-  bool use_spray = RNA_boolean_get(&ptr, "use_spray") && use_foam;
+  bool use_spray = RNA_boolean_get(&ptr, "use_spray");
 
   uiLayoutSetPropSep(layout, true);
 
