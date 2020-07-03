@@ -1116,7 +1116,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
   if (t->spacetype != SPACE_VIEW3D) {
     return false;
   }
-  else if (tc->obedit) {
+  if (tc->obedit) {
     if (ED_object_calc_active_center_for_editmode(tc->obedit, select_only, r_center)) {
       mul_m4_v3(tc->obedit->obmat, r_center);
       return true;

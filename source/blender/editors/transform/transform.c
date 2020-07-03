@@ -673,10 +673,10 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       if (t->spacetype != SPACE_VIEW3D) {
         return false;
       }
-      else if ((t->tsnap.mode & ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) == 0) {
+      if ((t->tsnap.mode & ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) == 0) {
         return false;
       }
-      else if (!validSnap(t)) {
+      if (!validSnap(t)) {
         return false;
       }
       break;
@@ -1417,9 +1417,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   if (handled || t->redraw) {
     return 0;
   }
-  else {
-    return OPERATOR_PASS_THROUGH;
-  }
+  return OPERATOR_PASS_THROUGH;
 }
 
 bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], float cent2d[2])

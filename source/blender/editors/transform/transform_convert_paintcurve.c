@@ -154,13 +154,11 @@ void createTransPaintCurveVerts(bContext *C, TransInfo *t)
         total += 3;
         continue;
       }
-      else {
-        if (pcp->bez.f1 & SELECT) {
-          total++;
-        }
-        if (pcp->bez.f3 & SELECT) {
-          total++;
-        }
+      if (pcp->bez.f1 & SELECT) {
+        total++;
+      }
+      if (pcp->bez.f3 & SELECT) {
+        total++;
       }
     }
   }

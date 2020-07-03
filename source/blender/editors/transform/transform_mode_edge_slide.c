@@ -281,15 +281,14 @@ static BMLoop *get_next_loop(
       copy_v3_v3(r_slide_vec, vec_accum);
       return l;
     }
-    else {
-      /* accumulate the normalized edge vector,
-       * normalize so some edges don't skew the result */
-      float tvec[3];
-      sub_v3_v3v3(tvec, BM_edge_other_vert(l->e, v)->co, v->co);
-      vec_accum_len += normalize_v3(tvec);
-      add_v3_v3(vec_accum, tvec);
-      i += 1;
-    }
+
+    /* accumulate the normalized edge vector,
+     * normalize so some edges don't skew the result */
+    float tvec[3];
+    sub_v3_v3v3(tvec, BM_edge_other_vert(l->e, v)->co, v->co);
+    vec_accum_len += normalize_v3(tvec);
+    add_v3_v3(vec_accum, tvec);
+    i += 1;
 
     if (BM_loop_other_edge_loop(l, v)->e == e_next) {
       if (i) {

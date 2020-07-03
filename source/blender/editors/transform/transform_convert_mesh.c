@@ -830,101 +830,100 @@ void createTransEditVerts(TransInfo *t)
       if (BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
         continue;
       }
-      else {
-        int island_index = -1;
-        if (island_data.island_vert_map) {
-          const int connected_index = (dists_index && dists_index[a] != -1) ? dists_index[a] : a;
-          island_index = island_data.island_vert_map[connected_index];
+
+      int island_index = -1;
+      if (island_data.island_vert_map) {
+        const int connected_index = (dists_index && dists_index[a] != -1) ? dists_index[a] : a;
+        island_index = island_data.island_vert_map[connected_index];
+      }
+
+      if (mirror_data.vert_map && mirror_data.vert_map[a].index != -1) {
+        int elem_index = mirror_data.vert_map[a].index;
+        BMVert *v_src = BM_vert_at_index(bm, elem_index);
+
+        if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+          mirror_data.vert_map[a].flag |= TD_SELECTED;
         }
 
-        if (mirror_data.vert_map && mirror_data.vert_map[a].index != -1) {
-          int elem_index = mirror_data.vert_map[a].index;
-          BMVert *v_src = BM_vert_at_index(bm, elem_index);
+        td_mirror->extra = eve;
+        td_mirror->loc = eve->co;
+        copy_v3_v3(td_mirror->iloc, eve->co);
+        td_mirror->flag = mirror_data.vert_map[a].flag;
+        td_mirror->loc_src = v_src->co;
+        transdata_center_get(&island_data, island_index, td_mirror->iloc, td_mirror->center);
 
-          if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-            mirror_data.vert_map[a].flag |= TD_SELECTED;
-          }
+        td_mirror++;
+      }
+      else if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+        float *bweight = (cd_vert_bweight_offset != -1) ?
+                             BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset) :
+                             NULL;
 
-          td_mirror->extra = eve;
-          td_mirror->loc = eve->co;
-          copy_v3_v3(td_mirror->iloc, eve->co);
-          td_mirror->flag = mirror_data.vert_map[a].flag;
-          td_mirror->loc_src = v_src->co;
-          transdata_center_get(&island_data, island_index, td_mirror->iloc, td_mirror->center);
-
-          td_mirror++;
+        /* Do not use the island center in case we are using islands
+         * only to get axis for snap/rotate to normal... */
+        VertsToTransData(t, tob, tx, em, eve, bweight, &island_data, island_index);
+        if (tx) {
+          tx++;
         }
-        else if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-          float *bweight = (cd_vert_bweight_offset != -1) ?
-                               BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset) :
-                               NULL;
 
-          /* Do not use the island center in case we are using islands
-           * only to get axis for snap/rotate to normal... */
-          VertsToTransData(t, tob, tx, em, eve, bweight, &island_data, island_index);
-          if (tx) {
-            tx++;
-          }
+        /* selected */
+        if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+          tob->flag |= TD_SELECTED;
+        }
 
-          /* selected */
-          if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-            tob->flag |= TD_SELECTED;
-          }
-
-          if (prop_mode) {
-            if (prop_mode & T_PROP_CONNECTED) {
-              tob->dist = dists[a];
-            }
-            else {
-              tob->flag |= TD_NOTCONNECTED;
-              tob->dist = FLT_MAX;
-            }
-          }
-
-          /* CrazySpace */
-          const bool use_quats = quats && BM_elem_flag_test(eve, BM_ELEM_TAG);
-          if (use_quats || defmats) {
-            float mat[3][3], qmat[3][3], imat[3][3];
-
-            /* Use both or either quat and defmat correction. */
-            if (use_quats) {
-              quat_to_mat3(qmat, quats[BM_elem_index_get(eve)]);
-
-              if (defmats) {
-                mul_m3_series(mat, defmats[a], qmat, mtx);
-              }
-              else {
-                mul_m3_m3m3(mat, mtx, qmat);
-              }
-            }
-            else {
-              mul_m3_m3m3(mat, mtx, defmats[a]);
-            }
-
-            invert_m3_m3(imat, mat);
-
-            copy_m3_m3(tob->smtx, imat);
-            copy_m3_m3(tob->mtx, mat);
+        if (prop_mode) {
+          if (prop_mode & T_PROP_CONNECTED) {
+            tob->dist = dists[a];
           }
           else {
-            copy_m3_m3(tob->smtx, smtx);
-            copy_m3_m3(tob->mtx, mtx);
+            tob->flag |= TD_NOTCONNECTED;
+            tob->dist = FLT_MAX;
           }
-
-          if (tc->use_mirror_axis_any) {
-            if (tc->use_mirror_axis_x && fabsf(tob->loc[0]) < TRANSFORM_MAXDIST_MIRROR) {
-              tob->flag |= TD_MIRROR_EDGE_X;
-            }
-            if (tc->use_mirror_axis_y && fabsf(tob->loc[1]) < TRANSFORM_MAXDIST_MIRROR) {
-              tob->flag |= TD_MIRROR_EDGE_Y;
-            }
-            if (tc->use_mirror_axis_z && fabsf(tob->loc[2]) < TRANSFORM_MAXDIST_MIRROR) {
-              tob->flag |= TD_MIRROR_EDGE_Z;
-            }
-          }
-
-          tob++;
         }
+
+        /* CrazySpace */
+        const bool use_quats = quats && BM_elem_flag_test(eve, BM_ELEM_TAG);
+        if (use_quats || defmats) {
+          float mat[3][3], qmat[3][3], imat[3][3];
+
+          /* Use both or either quat and defmat correction. */
+          if (use_quats) {
+            quat_to_mat3(qmat, quats[BM_elem_index_get(eve)]);
+
+            if (defmats) {
+              mul_m3_series(mat, defmats[a], qmat, mtx);
+            }
+            else {
+              mul_m3_m3m3(mat, mtx, qmat);
+            }
+          }
+          else {
+            mul_m3_m3m3(mat, mtx, defmats[a]);
+          }
+
+          invert_m3_m3(imat, mat);
+
+          copy_m3_m3(tob->smtx, imat);
+          copy_m3_m3(tob->mtx, mat);
+        }
+        else {
+          copy_m3_m3(tob->smtx, smtx);
+          copy_m3_m3(tob->mtx, mtx);
+        }
+
+        if (tc->use_mirror_axis_any) {
+          if (tc->use_mirror_axis_x && fabsf(tob->loc[0]) < TRANSFORM_MAXDIST_MIRROR) {
+            tob->flag |= TD_MIRROR_EDGE_X;
+          }
+          if (tc->use_mirror_axis_y && fabsf(tob->loc[1]) < TRANSFORM_MAXDIST_MIRROR) {
+            tob->flag |= TD_MIRROR_EDGE_Y;
+          }
+          if (tc->use_mirror_axis_z && fabsf(tob->loc[2]) < TRANSFORM_MAXDIST_MIRROR) {
+            tob->flag |= TD_MIRROR_EDGE_Z;
+          }
+        }
+
+        tob++;
       }
     }
 

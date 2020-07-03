@@ -84,9 +84,7 @@ static int count_fcurve_keys(FCurve *fcu, char side, float cfra, bool is_prop_ed
   if (is_prop_edit && count > 0) {
     return count_all;
   }
-  else {
-    return count;
-  }
+  return count;
 }
 
 /* fully select selected beztriples, but only include if it's on the right side of cfra */
@@ -112,9 +110,7 @@ static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra, bool is_p
   if (is_prop_edit && count > 0) {
     return count_all;
   }
-  else {
-    return count;
-  }
+  return count;
 }
 
 /* fully select selected beztriples, but only include if it's on the right side of cfra */
@@ -141,9 +137,7 @@ static int count_masklayer_frames(MaskLayer *masklay, char side, float cfra, boo
   if (is_prop_edit && count > 0) {
     return count_all;
   }
-  else {
-    return count;
-  }
+  return count;
 }
 
 /* This function assigns the information to transdata */

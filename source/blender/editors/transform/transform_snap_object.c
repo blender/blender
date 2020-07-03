@@ -1014,12 +1014,11 @@ static void raycast_obj_fn(SnapObjectContext *sctx,
                                    dt->r_hit_list);
           break;
         }
-        else {
-          BMEditMesh *em = BKE_editmesh_from_object(ob);
-          if (em->mesh_eval_final) {
-            me = em->mesh_eval_final;
-            use_hide = true;
-          }
+
+        BMEditMesh *em = BKE_editmesh_from_object(ob);
+        if (em->mesh_eval_final) {
+          me = em->mesh_eval_final;
+          use_hide = true;
         }
       }
       retval = raycastMesh(sctx,
@@ -2689,11 +2688,10 @@ static void snap_obj_fn(SnapObjectContext *sctx,
                                 dt->r_index);
           break;
         }
-        else {
-          BMEditMesh *em = BKE_editmesh_from_object(ob);
-          if (em->mesh_eval_final) {
-            me = em->mesh_eval_final;
-          }
+
+        BMEditMesh *em = BKE_editmesh_from_object(ob);
+        if (em->mesh_eval_final) {
+          me = em->mesh_eval_final;
         }
       }
       else if (ob->dt == OB_BOUNDBOX) {
