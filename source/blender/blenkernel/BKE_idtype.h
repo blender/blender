@@ -46,6 +46,19 @@ enum {
   IDTYPE_FLAGS_NO_MAKELOCAL = 1 << 2,
 };
 
+typedef struct IDCacheKey {
+  /* The session uuid of the ID owning the cached data. */
+  unsigned int id_session_uuid;
+  /* Value uniquely indentifying the cache whithin its ID.
+   * Typically the offset of its member in the data-block struct, but can be anything. */
+  size_t offset_in_ID;
+  /* Actual address of the cached data to save and restore. */
+  void *cache_v;
+} IDCacheKey;
+
+uint BKE_idtype_cache_key_hash(const void *key_v);
+bool BKE_idtype_cache_key_cmp(const void *key_a_v, const void *key_b_v);
+
 /* ********** Prototypes for IDTypeInfo callbacks. ********** */
 
 typedef void (*IDTypeInitDataFunction)(struct ID *id);

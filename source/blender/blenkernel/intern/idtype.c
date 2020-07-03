@@ -28,6 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
 #include "CLG_log.h"
@@ -41,6 +42,22 @@
 #include "BKE_idtype.h"
 
 // static CLG_LogRef LOG = {"bke.idtype"};
+
+uint BKE_idtype_cache_key_hash(const void *key_v)
+{
+  const IDCacheKey *key = key_v;
+  size_t hash = BLI_ghashutil_uinthash(key->id_session_uuid);
+  hash = BLI_ghashutil_combine_hash(hash, BLI_ghashutil_uinthash((uint)key->offset_in_ID));
+  return (uint)BLI_ghashutil_combine_hash(hash, BLI_ghashutil_ptrhash(key->cache_v));
+}
+
+bool BKE_idtype_cache_key_cmp(const void *key_a_v, const void *key_b_v)
+{
+  const IDCacheKey *key_a = key_a_v;
+  const IDCacheKey *key_b = key_b_v;
+  return (key_a->id_session_uuid != key_b->id_session_uuid) ||
+         (key_a->offset_in_ID != key_b->offset_in_ID) || (key_a->cache_v != key_b->cache_v);
+}
 
 static IDTypeInfo *id_types[MAX_LIBARRAY] = {NULL};
 
