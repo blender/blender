@@ -34,8 +34,8 @@
 
 static const char *traceback_filepath(PyTracebackObject *tb, PyObject **coerce)
 {
-  return PyBytes_AS_STRING(
-      (*coerce = PyUnicode_EncodeFSDefault(tb->tb_frame->f_code->co_filename)));
+  *coerce = PyUnicode_EncodeFSDefault(tb->tb_frame->f_code->co_filename);
+  return PyBytes_AS_STRING(*coerce);
 }
 
 /* copied from pythonrun.c, 3.4.0 */
