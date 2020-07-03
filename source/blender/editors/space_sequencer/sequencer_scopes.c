@@ -232,9 +232,7 @@ ImBuf *make_waveform_view_from_ibuf(ImBuf *ibuf)
   if (ibuf->rect_float) {
     return make_waveform_view_from_ibuf_float(ibuf);
   }
-  else {
-    return make_waveform_view_from_ibuf_byte(ibuf);
-  }
+  return make_waveform_view_from_ibuf_byte(ibuf);
 }
 
 static ImBuf *make_sep_waveform_view_from_ibuf_byte(ImBuf *ibuf)
@@ -336,9 +334,7 @@ ImBuf *make_sep_waveform_view_from_ibuf(ImBuf *ibuf)
   if (ibuf->rect_float) {
     return make_sep_waveform_view_from_ibuf_float(ibuf);
   }
-  else {
-    return make_sep_waveform_view_from_ibuf_byte(ibuf);
-  }
+  return make_sep_waveform_view_from_ibuf_byte(ibuf);
 }
 
 static void draw_zebra_byte(ImBuf *src, ImBuf *ibuf, float perc)
@@ -541,7 +537,7 @@ BLI_INLINE int get_bin_float(float f)
   if (f < -0.25f) {
     return 0;
   }
-  else if (f >= 1.25f) {
+  if (f >= 1.25f) {
     return 511;
   }
 
@@ -627,9 +623,7 @@ ImBuf *make_histogram_view_from_ibuf(ImBuf *ibuf)
   if (ibuf->rect_float) {
     return make_histogram_view_from_ibuf_float(ibuf);
   }
-  else {
-    return make_histogram_view_from_ibuf_byte(ibuf);
-  }
+  return make_histogram_view_from_ibuf_byte(ibuf);
 }
 
 static void vectorscope_put_cross(uchar r, uchar g, uchar b, char *tgt, int w, int h, int size)
@@ -757,7 +751,5 @@ ImBuf *make_vectorscope_view_from_ibuf(ImBuf *ibuf)
   if (ibuf->rect_float) {
     return make_vectorscope_view_from_ibuf_float(ibuf);
   }
-  else {
-    return make_vectorscope_view_from_ibuf_byte(ibuf);
-  }
+  return make_vectorscope_view_from_ibuf_byte(ibuf);
 }

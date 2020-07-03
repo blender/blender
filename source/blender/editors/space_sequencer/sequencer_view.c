@@ -321,9 +321,7 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void SEQUENCER_OT_view_selected(wmOperatorType *ot)

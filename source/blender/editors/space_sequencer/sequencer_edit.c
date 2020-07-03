@@ -227,7 +227,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
       BKE_reportf(reports, RPT_WARNING, "Proxy is not enabled for %s, skipping", seq->name);
       continue;
     }
-    else if (seq->strip->proxy->build_size_flags == 0) {
+    if (seq->strip->proxy->build_size_flags == 0) {
       BKE_reportf(reports, RPT_WARNING, "Resolution is not selected for %s, skipping", seq->name);
       continue;
     }
@@ -392,7 +392,7 @@ static Sequence *find_next_prev_sequence(Scene *scene, Sequence *test, int lr, i
         best_seq = seq;
         break;
       }
-      else if (dist < best_dist) {
+      if (dist < best_dist) {
         best_dist = dist;
         best_seq = seq;
       }
@@ -475,16 +475,16 @@ static bool seq_is_predecessor(Sequence *pred, Sequence *seq)
   if (pred == seq) {
     return 0;
   }
-  else if (seq_is_parent(pred, seq)) {
+  if (seq_is_parent(pred, seq)) {
     return 1;
   }
-  else if (pred->seq1 && seq_is_predecessor(pred->seq1, seq)) {
+  if (pred->seq1 && seq_is_predecessor(pred->seq1, seq)) {
     return 1;
   }
-  else if (pred->seq2 && seq_is_predecessor(pred->seq2, seq)) {
+  if (pred->seq2 && seq_is_predecessor(pred->seq2, seq)) {
     return 1;
   }
-  else if (pred->seq3 && seq_is_predecessor(pred->seq3, seq)) {
+  if (pred->seq3 && seq_is_predecessor(pred->seq3, seq)) {
     return 1;
   }
 
@@ -700,10 +700,10 @@ static Sequence *del_seq_find_replace_recurs(Scene *scene, Sequence *seq)
   if (!seq) {
     return NULL;
   }
-  else if (!(seq->type & SEQ_TYPE_EFFECT)) {
+  if (!(seq->type & SEQ_TYPE_EFFECT)) {
     return ((seq->flag & SELECT) ? NULL : seq);
   }
-  else if (!(seq->flag & SELECT)) {
+  if (!(seq->flag & SELECT)) {
     /* Try to find replacement for effect inputs. */
     seq1 = del_seq_find_replace_recurs(scene, seq->seq1);
     seq2 = del_seq_find_replace_recurs(scene, seq->seq2);
@@ -734,13 +734,9 @@ static Sequence *del_seq_find_replace_recurs(Scene *scene, Sequence *seq)
     if ((seq3 = del_seq_find_replace_recurs(scene, seq->seq3))) {
       return seq3;
     }
-    else {
-      return NULL;
-    }
+    return NULL;
   }
-  else {
-    return seq;
-  }
+  return seq;
 }
 
 static void del_seq_clear_modifiers_recurs(Scene *scene, Sequence *deleting_sequence)
@@ -1744,9 +1740,7 @@ static int sequencer_slip_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 static void sequencer_slip_update_header(Scene *scene, ScrArea *area, SlipData *data, int offset)
@@ -2433,10 +2427,9 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
     return OPERATOR_FINISHED;
   }
-  else {
-    /* Passthrough to selection if used as tool. */
-    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
-  }
+
+  /* Passthrough to selection if used as tool. */
+  return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
 }
 
 static int sequencer_split_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -3030,18 +3023,16 @@ static int seq_depends_on_meta(Sequence *seq, Sequence *seqm)
   if (seq == seqm) {
     return 1;
   }
-  else if (seq->seq1 && seq_depends_on_meta(seq->seq1, seqm)) {
+  if (seq->seq1 && seq_depends_on_meta(seq->seq1, seqm)) {
     return 1;
   }
-  else if (seq->seq2 && seq_depends_on_meta(seq->seq2, seqm)) {
+  if (seq->seq2 && seq_depends_on_meta(seq->seq2, seqm)) {
     return 1;
   }
-  else if (seq->seq3 && seq_depends_on_meta(seq->seq3, seqm)) {
+  if (seq->seq3 && seq_depends_on_meta(seq->seq3, seqm)) {
     return 1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3772,9 +3763,8 @@ static int sequencer_change_effect_input_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "One of the effect inputs is unset, cannot swap");
     return OPERATOR_CANCELLED;
   }
-  else {
-    SWAP(Sequence *, *seq_1, *seq_2);
-  }
+
+  SWAP(Sequence *, *seq_1, *seq_2);
 
   BKE_sequencer_update_changed_seq_and_deps(scene, seq, 0, 1);
 
@@ -3829,15 +3819,14 @@ static int sequencer_change_effect_type_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "New effect needs more input strips");
     return OPERATOR_CANCELLED;
   }
-  else {
-    sh = BKE_sequence_get_effect(seq);
-    sh.free(seq, true);
 
-    seq->type = new_type;
+  sh = BKE_sequence_get_effect(seq);
+  sh.free(seq, true);
 
-    sh = BKE_sequence_get_effect(seq);
-    sh.init(seq);
-  }
+  seq->type = new_type;
+
+  sh = BKE_sequence_get_effect(seq);
+  sh.init(seq);
 
   BKE_sequencer_update_changed_seq_and_deps(scene, seq, 0, 1);
   /* Invalidate cache. */
@@ -4191,7 +4180,7 @@ static int sequencer_set_range_to_strips_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_WARNING, "Select one or more strips");
     return OPERATOR_CANCELLED;
   }
-  else if (efra < 0) {
+  if (efra < 0) {
     BKE_report(op->reports, RPT_ERROR, "Can't set a negative range");
     return OPERATOR_CANCELLED;
   }
