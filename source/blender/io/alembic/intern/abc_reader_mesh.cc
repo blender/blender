@@ -104,7 +104,7 @@ static void assign_materials(Main *bmain,
 
     for (; it != mat_index_map.end(); ++it) {
       std::string mat_name = it->first;
-      mat_iter = mat_map.find(mat_name.c_str());
+      mat_iter = mat_map.find(mat_name);
 
       Material *assigned_mat;
 
