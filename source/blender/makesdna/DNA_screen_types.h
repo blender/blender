@@ -167,9 +167,8 @@ typedef struct Panel {
   /** Panel size excluding children. */
   int blocksizex, blocksizey;
   short labelofs;
-  char _pad[2];
+  char _pad[4];
   short flag, runtime_flag;
-  short control;
   short snap;
   /** Panels are aligned according to increasing sort-order. */
   int sortorder;
@@ -539,8 +538,8 @@ enum {
   PNL_CLOSEDX = (1 << 1),
   PNL_CLOSEDY = (1 << 2),
   PNL_CLOSED = (PNL_CLOSEDX | PNL_CLOSEDY),
-  /*PNL_TABBED    = (1 << 3), */ /*UNUSED*/
-  PNL_OVERLAP = (1 << 4),
+  /* PNL_TABBED = (1 << 3), */  /*UNUSED*/
+  /* PNL_OVERLAP = (1 << 4), */ /*UNUSED*/
   PNL_PIN = (1 << 5),
   PNL_POPOVER = (1 << 6),
   /** The panel has been drag-drop reordered and the instanced panel list needs to be rebuilt. */

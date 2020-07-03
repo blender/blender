@@ -175,13 +175,6 @@ enum {
   UI_RETURN_POPUP_OK = 1 << 5,
 };
 
-/* panel controls */
-enum {
-  UI_PNL_SOLID = 1 << 1,
-  UI_PNL_CLOSE = 1 << 5,
-  UI_PNL_SCALE = 1 << 9,
-};
-
 /* but->flag - general state flags. */
 enum {
   /** Warning, the first 6 flags are internal. */

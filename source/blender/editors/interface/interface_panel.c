@@ -878,78 +878,7 @@ void UI_draw_icon_tri(float x, float y, char dir, const float color[4])
   }
 }
 
-static void ui_draw_anti_x(uint pos, float x1, float y1, float x2, float y2)
-{
-
-  /* set antialias line */
-  GPU_line_smooth(true);
-  GPU_blend(true);
-
-  GPU_line_width(2.0);
-
-  immBegin(GPU_PRIM_LINES, 4);
-
-  immVertex2f(pos, x1, y1);
-  immVertex2f(pos, x2, y2);
-
-  immVertex2f(pos, x1, y2);
-  immVertex2f(pos, x2, y1);
-
-  immEnd();
-
-  GPU_line_smooth(false);
-  GPU_blend(false);
-}
-
-/* x 'icon' for panel header */
-static void ui_draw_x_icon(uint pos, float x, float y)
-{
-
-  ui_draw_anti_x(pos, x, y, x + 9.375f, y + 9.375f);
-}
-
 #define PNL_ICON UI_UNIT_X /* could be UI_UNIT_Y too */
-
-static void ui_draw_panel_scalewidget(uint pos, const rcti *rect)
-{
-  float xmin, xmax, dx;
-  float ymin, ymax, dy;
-
-  xmin = rect->xmax - PNL_HEADER + 2;
-  xmax = rect->xmax - 3;
-  ymin = rect->ymin + 3;
-  ymax = rect->ymin + PNL_HEADER - 2;
-
-  dx = 0.5f * (xmax - xmin);
-  dy = 0.5f * (ymax - ymin);
-
-  GPU_blend(true);
-  immUniformColor4ub(255, 255, 255, 50);
-
-  immBegin(GPU_PRIM_LINES, 4);
-
-  immVertex2f(pos, xmin, ymin);
-  immVertex2f(pos, xmax, ymax);
-
-  immVertex2f(pos, xmin + dx, ymin);
-  immVertex2f(pos, xmax, ymax - dy);
-
-  immEnd();
-
-  immUniformColor4ub(0, 0, 0, 50);
-
-  immBegin(GPU_PRIM_LINES, 4);
-
-  immVertex2f(pos, xmin, ymin + 1);
-  immVertex2f(pos, xmax, ymax + 1);
-
-  immVertex2f(pos, xmin + dx, ymin + 1);
-  immVertex2f(pos, xmax, ymax - dy + 1);
-
-  immEnd();
-
-  GPU_blend(false);
-}
 
 /* For button layout next to label. */
 void UI_panel_label_offset(uiBlock *block, int *r_x, int *r_y)
@@ -977,12 +906,7 @@ static void ui_draw_aligned_panel_header(
   uchar col_title[4];
 
   /* + 0.001f to avoid flirting with float inaccuracy */
-  if (panel->control & UI_PNL_CLOSE) {
-    pnl_icons = (panel->labelofs + (2.0f * PNL_ICON)) / block->aspect + 0.001f;
-  }
-  else {
-    pnl_icons = (panel->labelofs + (1.1f * PNL_ICON)) / block->aspect + 0.001f;
-  }
+  pnl_icons = (panel->labelofs + (1.1f * PNL_ICON)) / block->aspect + 0.001f;
 
   /* draw text label */
   panel_title_color_get(show_background, col_title);
@@ -1178,11 +1102,7 @@ void ui_draw_aligned_panel(uiStyle *style,
     /* in some occasions, draw a border */
     if (panel->flag & PNL_SELECT && !is_subpanel) {
       float radius;
-      if (panel->control & UI_PNL_SOLID) {
-        UI_draw_roundbox_corner_set(UI_CNR_ALL);
-        radius = 8.0f;
-      }
-      else if (draw_box_style) {
+      if (draw_box_style) {
         UI_draw_roundbox_corner_set(UI_CNR_ALL);
         radius = box_wcol->roundness * U.widget_unit;
       }
@@ -1233,25 +1153,11 @@ void ui_draw_aligned_panel(uiStyle *style,
       }
     }
 
-    if (panel->control & UI_PNL_SCALE) {
-      ui_draw_panel_scalewidget(pos, rect);
-    }
-
     immUnbindProgram();
   }
 
   uchar col_title[4];
   panel_title_color_get(show_background, col_title);
-
-  /* draw optional close icon */
-
-  if (panel->control & UI_PNL_CLOSE) {
-    const int ofsx = 6;
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-    immUniformColor3ubv(col_title);
-    ui_draw_x_icon(pos, rect->xmin + 2 + ofsx, rect->ymax + 2);
-    immUnbindProgram();
-  }
 
   /* draw collapse icon */
 
@@ -1731,48 +1637,6 @@ void UI_panels_scale(ARegion *region, float new_width)
   }
 }
 
-/* ------------ panel merging ---------------- */
-
-static void check_panel_overlap(ARegion *region, Panel *panel)
-{
-  Panel *panel_list;
-
-  /* also called with (panel == NULL) for clear */
-
-  for (panel_list = region->panels.first; panel_list; panel_list = panel_list->next) {
-    panel_list->flag &= ~PNL_OVERLAP;
-    if (panel && (panel_list != panel)) {
-      if (panel_list->runtime_flag & PNL_ACTIVE) {
-        float safex = 0.2, safey = 0.2;
-
-        if (panel_list->flag & PNL_CLOSEDX) {
-          safex = 0.05;
-        }
-        else if (panel_list->flag & PNL_CLOSEDY) {
-          safey = 0.05;
-        }
-        else if (panel->flag & PNL_CLOSEDX) {
-          safex = 0.05;
-        }
-        else if (panel->flag & PNL_CLOSEDY) {
-          safey = 0.05;
-        }
-
-        if (panel_list->ofsx > panel->ofsx - safex * panel->sizex) {
-          if (panel_list->ofsx + panel_list->sizex < panel->ofsx + (1.0f + safex) * panel->sizex) {
-            if (panel_list->ofsy > panel->ofsy - safey * panel->sizey) {
-              if (panel_list->ofsy + panel_list->sizey <
-                  panel->ofsy + (1.0f + safey) * panel->sizey) {
-                panel_list->flag |= PNL_OVERLAP;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
 /************************ panel dragging ****************************/
 
 #define DRAG_REGION_PAD (PNL_HEADER * 0.5)
@@ -1813,7 +1677,6 @@ static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
     dy += ((float)region->v2d.cur.ymin - data->start_cur_ymin);
     panel->ofsx = data->startofsx + round_fl_to_int(dx);
     panel->ofsy = data->startofsy + round_fl_to_int(dy);
-    check_panel_overlap(region, panel);
 
     if (align) {
       uiAlignPanelStep(area, region, 0.2f, true);
@@ -1846,13 +1709,6 @@ static uiPanelMouseState ui_panel_mouse_state_get(const uiBlock *block,
   }
   /* open panel */
   else if (!(panel->flag & PNL_CLOSEDY)) {
-    if (panel->control & UI_PNL_SCALE) {
-      if (block->rect.xmax - PNL_HEADER <= mx) {
-        if (block->rect.ymin + PNL_HEADER >= my) {
-          return PANEL_MOUSE_INSIDE_SCALE;
-        }
-      }
-    }
     if ((block->rect.xmin <= mx) && (block->rect.xmax >= mx)) {
       if ((block->rect.ymin <= my) && (block->rect.ymax + PNL_HEADER >= my)) {
         return PANEL_MOUSE_INSIDE_CONTENT;
@@ -2037,15 +1893,6 @@ static void ui_handle_panel_header(
     if (my >= block->rect.ymax) {
       button = 1;
     }
-  }
-  else if (block->panel->control & UI_PNL_CLOSE) {
-    /* whole of header can be used to collapse panel (except top-right corner) */
-    if (mx <= block->rect.xmax - 8 - PNL_ICON) {
-      button = 2;
-    }
-    // else if (mx <= block->rect.xmin + 10 + 2 * PNL_ICON + 2) {
-    //  button = 1;
-    //}
   }
   else if (mx < rect_leftmost) {
     button = 1;
@@ -2847,51 +2694,6 @@ int ui_handler_panel_region(bContext *C,
             break;
           }
         }
-        else if (event->type == EVT_ESCKEY) {
-          /*XXX 2.50*/
-#if 0
-          if (block->handler) {
-            rem_blockhandler(area, block->handler);
-            ED_region_tag_redraw(region);
-            retval = WM_UI_HANDLER_BREAK;
-          }
-#endif
-        }
-        else if (event->type == EVT_PADPLUSKEY || event->type == EVT_PADMINUS) {
-#if 0 /* XXX make float panel exception? */
-          int zoom = 0;
-
-          /* if panel is closed, only zoom if mouse is over the header */
-          if (panel->flag & (PNL_CLOSEDX | PNL_CLOSEDY)) {
-            if (inside_header) {
-              zoom = 1;
-            }
-          }
-          else {
-            zoom = 1;
-          }
-
-          if (zoom) {
-            ScrArea *area = CTX_wm_area(C);
-            SpaceLink *sl = area->spacedata.first;
-
-            if (area->spacetype != SPACE_PROPERTIES) {
-              if (!(panel->control & UI_PNL_SCALE)) {
-                if (event->type == PADPLUSKEY) {
-                  sl->blockscale += 0.1;
-                }
-                else {
-                  sl->blockscale -= 0.1;
-                }
-                CLAMP(sl->blockscale, 0.6, 1.0);
-
-                ED_region_tag_redraw(region);
-                retval = WM_UI_HANDLER_BREAK;
-              }
-            }
-          }
-#endif
-        }
       }
     }
   }
@@ -3014,17 +2816,6 @@ static void panel_activate_state(const bContext *C, Panel *panel, uiHandlePanelS
   /* Set selection state for the panel and its sub-panels, which need to know they are selected
    * too so they can be drawn above their parent when it's dragged. */
   if (state == PANEL_STATE_EXIT || state == PANEL_STATE_ANIMATION) {
-    if (data && data->state != PANEL_STATE_ANIMATION) {
-      /* XXX:
-       * - the panel tabbing function call below (test_add_new_tabs()) has been commented out
-       *   "It is too easy to do by accident when reordering panels,
-       *   is very hard to control and use, and has no real benefit." - BillRey
-       * Aligorith, 2009Sep
-       */
-      // test_add_new_tabs(region);   // also copies locations of tabs in dragged panel
-      check_panel_overlap(region, NULL); /* clears */
-    }
-
     panel_set_flag_recursive(panel, PNL_SELECT, false);
   }
   else {
