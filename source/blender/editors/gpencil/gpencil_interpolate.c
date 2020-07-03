@@ -558,9 +558,7 @@ static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent
     }
     return OPERATOR_CANCELLED;
   }
-  else {
-    tgpi = op->customdata;
-  }
+  tgpi = op->customdata;
 
   /* set cursor to indicate modal */
   WM_cursor_modal_set(win, WM_CURSOR_EW_SCROLL);
@@ -687,10 +685,8 @@ static int gpencil_interpolate_modal(bContext *C, wmOperator *op, const wmEvent 
 
         break;
       }
-      else {
-        /* unhandled event - allow to pass through */
-        return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
-      }
+      /* unhandled event - allow to pass through */
+      return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
     }
   }
 

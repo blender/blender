@@ -117,11 +117,7 @@ bGPdata **ED_gpencil_data_get_pointers_direct(ScrArea *area, Object *ob, Pointer
           }
           return (bGPdata **)&ob->data;
         }
-        else {
-          return NULL;
-        }
-
-        break;
+        return NULL;
       }
       default: /* Unsupported space. */
         return NULL;
@@ -220,12 +216,10 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
             }
             return &track->gpd;
           }
-          else {
-            if (r_ptr) {
-              RNA_id_pointer_create(&clip->id, r_ptr);
-            }
-            return &clip->gpd;
+          if (r_ptr) {
+            RNA_id_pointer_create(&clip->id, r_ptr);
           }
+          return &clip->gpd;
         }
         break;
       }
@@ -344,10 +338,8 @@ bool ED_gpencil_has_keyframe_v3d(Scene *UNUSED(scene), Object *ob, int cfra)
         // XXX: assumes that frame has been fetched already
         return (gpl->actframe->framenum == cfra);
       }
-      else {
-        /* XXX: disabled as could be too much of a penalty */
-        /* return BKE_gpencil_layer_frame_find(gpl, cfra); */
-      }
+      /* XXX: disabled as could be too much of a penalty */
+      /* return BKE_gpencil_layer_frame_find(gpl, cfra); */
     }
   }
 
@@ -390,9 +382,7 @@ bool gpencil_active_brush_poll(bContext *C)
   if (paint) {
     return (paint->brush != NULL);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /* ******************************************************** */
@@ -567,18 +557,16 @@ bool ED_gpencil_stroke_can_use_direct(const ScrArea *area, const bGPDstroke *gps
     /* 3D strokes - only in 3D view */
     return ((area->spacetype == SPACE_VIEW3D) || (area->spacetype == SPACE_PROPERTIES));
   }
-  else if (gps->flag & GP_STROKE_2DIMAGE) {
+  if (gps->flag & GP_STROKE_2DIMAGE) {
     /* Special "image" strokes - only in Image Editor */
     return (area->spacetype == SPACE_IMAGE);
   }
-  else if (gps->flag & GP_STROKE_2DSPACE) {
+  if (gps->flag & GP_STROKE_2DSPACE) {
     /* 2D strokes (dataspace) - for any 2D view (i.e. everything other than 3D view) */
     return (area->spacetype != SPACE_VIEW3D);
   }
-  else {
-    /* view aligned - anything goes */
-    return true;
-  }
+  /* view aligned - anything goes */
+  return true;
 }
 
 /* Check whether given stroke can be edited in the current context */
@@ -932,11 +920,8 @@ bool gpencil_point_xy_to_3d(const GP_SpaceConversion *gsc,
 
     return true;
   }
-  else {
-    zero_v3(r_out);
-
-    return false;
-  }
+  zero_v3(r_out);
+  return false;
 }
 
 /**
@@ -1759,12 +1744,10 @@ static bool gpencil_check_cursor_region(bContext *C, int mval_i[2])
   if ((region) && (region->regiontype != RGN_TYPE_WINDOW)) {
     return false;
   }
-  else if (region) {
+  if (region) {
     return BLI_rcti_isect_pt_v(&region->winrct, mval_i);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /* draw eraser cursor */
@@ -2529,15 +2512,13 @@ int ED_gpencil_select_stroke_segment(bGPDlayer *gpl,
   if ((hit_a) && (hit_b)) {
     return 3;
   }
-  else if (hit_a) {
+  if (hit_a) {
     return 1;
   }
-  else if (hit_b) {
+  if (hit_b) {
     return 2;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 void ED_gpencil_select_toggle_all(bContext *C, int action)

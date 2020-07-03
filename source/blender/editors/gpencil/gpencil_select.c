@@ -74,15 +74,13 @@ static int gpencil_select_mode_from_sculpt(eGP_Sculpt_SelectMaskFlag mode)
   if (mode & GP_SCULPT_MASK_SELECTMODE_POINT) {
     return GP_SELECTMODE_POINT;
   }
-  else if (mode & GP_SCULPT_MASK_SELECTMODE_STROKE) {
+  if (mode & GP_SCULPT_MASK_SELECTMODE_STROKE) {
     return GP_SELECTMODE_STROKE;
   }
-  else if (mode & GP_SCULPT_MASK_SELECTMODE_SEGMENT) {
+  if (mode & GP_SCULPT_MASK_SELECTMODE_SEGMENT) {
     return GP_SELECTMODE_SEGMENT;
   }
-  else {
-    return GP_SELECTMODE_POINT;
-  }
+  return GP_SELECTMODE_POINT;
 }
 
 /* Convert vertex mask mode to Select mode */
@@ -91,15 +89,13 @@ static int gpencil_select_mode_from_vertex(eGP_Sculpt_SelectMaskFlag mode)
   if (mode & GP_VERTEX_MASK_SELECTMODE_POINT) {
     return GP_SELECTMODE_POINT;
   }
-  else if (mode & GP_VERTEX_MASK_SELECTMODE_STROKE) {
+  if (mode & GP_VERTEX_MASK_SELECTMODE_STROKE) {
     return GP_SELECTMODE_STROKE;
   }
-  else if (mode & GP_VERTEX_MASK_SELECTMODE_SEGMENT) {
+  if (mode & GP_VERTEX_MASK_SELECTMODE_SEGMENT) {
     return GP_SELECTMODE_SEGMENT;
   }
-  else {
-    return GP_SELECTMODE_POINT;
-  }
+  return GP_SELECTMODE_POINT;
 }
 
 static bool gpencil_select_poll(bContext *C)

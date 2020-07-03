@@ -176,13 +176,11 @@ static int gpencil_data_unlink_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "Nowhere for grease pencil data to go");
     return OPERATOR_CANCELLED;
   }
-  else {
-    /* just unlink datablock now, decreasing its user count */
-    bGPdata *gpd = (*gpd_ptr);
+  /* just unlink datablock now, decreasing its user count */
+  bGPdata *gpd = (*gpd_ptr);
 
-    id_us_min(&gpd->id);
-    *gpd_ptr = NULL;
-  }
+  id_us_min(&gpd->id);
+  *gpd_ptr = NULL;
 
   /* notifiers */
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
@@ -1125,9 +1123,7 @@ static int gpencil_isolate_layer_exec(bContext *C, wmOperator *op)
       if (gpl == layer) {
         continue;
       }
-      else {
-        gpl->flag |= flags;
-      }
+      gpl->flag |= flags;
     }
   }
   else {
@@ -2913,9 +2909,7 @@ static int gpencil_material_isolate_exec(bContext *C, wmOperator *op)
       if (gp_style == active_color) {
         continue;
       }
-      else {
-        gp_style->flag |= flags;
-      }
+      gp_style->flag |= flags;
       DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
     }
   }

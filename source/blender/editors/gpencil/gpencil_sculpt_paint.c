@@ -1229,10 +1229,8 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
         op->customdata = NULL;
         return false;
       }
-      else {
-        /* initialise customdata */
-        gpencil_brush_clone_init(C, gso);
-      }
+      /* initialise customdata */
+      gpencil_brush_clone_init(C, gso);
       break;
     }
 

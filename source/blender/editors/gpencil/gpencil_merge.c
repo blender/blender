@@ -73,7 +73,8 @@ static int gpencil_sort_points(const void *a1, const void *a2)
   if (ps1->factor < ps2->factor) {
     return -1;
   }
-  else if (ps1->factor > ps2->factor) {
+
+  if (ps1->factor > ps2->factor) {
     return 1;
   }
 

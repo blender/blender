@@ -332,10 +332,9 @@ static bool gpencil_draw_poll(bContext *C)
 
     return true;
   }
-  else {
-    CTX_wm_operator_poll_msg_set(C, "Active region not set");
-    return false;
-  }
+
+  CTX_wm_operator_poll_msg_set(C, "Active region not set");
+  return false;
 }
 
 /* check if projecting strokes into 3d-geometry in the 3D-View */
@@ -375,38 +374,33 @@ static bool gpencil_stroke_filtermval(tGPsdata *p, const float mval[2], float mv
     return true;
   }
   /* if lazy mouse, check minimum distance */
-  else if (GPENCIL_LAZY_MODE(brush, p->shift)) {
+  if (GPENCIL_LAZY_MODE(brush, p->shift)) {
     brush->gpencil_settings->flag |= GP_BRUSH_STABILIZE_MOUSE_TEMP;
     if ((dx * dx + dy * dy) > (brush->smooth_stroke_radius * brush->smooth_stroke_radius)) {
       return true;
     }
-    else {
-      /* If the mouse is moving within the radius of the last move,
-       * don't update the mouse position. This allows sharp turns. */
-      copy_v2_v2(p->mval, p->mvalo);
-      return false;
-    }
+
+    /* If the mouse is moving within the radius of the last move,
+     * don't update the mouse position. This allows sharp turns. */
+    copy_v2_v2(p->mval, p->mvalo);
+    return false;
   }
   /* check if mouse moved at least certain distance on both axes (best case)
    * - aims to eliminate some jitter-noise from input when trying to draw straight lines freehand
    */
-  else if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX)) {
+  if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX)) {
     return true;
-
-    /* Check if the distance since the last point is significant enough:
-     * - Prevents points being added too densely
-     * - Distance here doesn't use sqrt to prevent slowness.
-     *   We should still be safe from overflows though.
-     */
   }
-  else if ((dx * dx + dy * dy) > MIN_EUCLIDEAN_PX * MIN_EUCLIDEAN_PX) {
+  /* Check if the distance since the last point is significant enough:
+   * - Prevents points being added too densely
+   * - Distance here doesn't use sqrt to prevent slowness.
+   *   We should still be safe from overflows though.
+   */
+  if ((dx * dx + dy * dy) > MIN_EUCLIDEAN_PX * MIN_EUCLIDEAN_PX) {
     return true;
-
-    /* mouse 'didn't move' */
   }
-  else {
-    return false;
-  }
+  /* mouse 'didn't move' */
+  return false;
 }
 
 /* reproject stroke to plane locked to axis in 3d cursor location */
@@ -816,7 +810,8 @@ static short gpencil_stroke_addpoint(tGPsdata *p,
     /* can keep carrying on this way :) */
     return GP_STROKEADD_NORMAL;
   }
-  else if (p->paintmode == GP_PAINTMODE_DRAW) { /* normal drawing */
+
+  if (p->paintmode == GP_PAINTMODE_DRAW) { /* normal drawing */
     /* check if still room in buffer or add more */
     gpd->runtime.sbuffer = ED_gpencil_sbuffer_ensure(
         gpd->runtime.sbuffer, &gpd->runtime.sbuffer_size, &gpd->runtime.sbuffer_used, false);
@@ -955,10 +950,8 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       if (ptc->pressure > 0.001f) {
         break;
       }
-      else {
-        gpd->runtime.sbuffer_used = last_i - 1;
-        CLAMP_MIN(gpd->runtime.sbuffer_used, 1);
-      }
+      gpd->runtime.sbuffer_used = last_i - 1;
+      CLAMP_MIN(gpd->runtime.sbuffer_used, 1);
 
       last_i--;
     }
@@ -1303,9 +1296,7 @@ static float view3d_point_depth(const RegionView3D *rv3d, const float co[3])
   if (rv3d->is_persp) {
     return ED_view3d_calc_zfac(rv3d, co, NULL);
   }
-  else {
-    return -dot_v3v3(rv3d->viewinv[2], co);
-  }
+  return -dot_v3v3(rv3d->viewinv[2], co);
 }
 
 /* only erase stroke points that are visible */
@@ -1697,7 +1688,7 @@ static void gpencil_stroke_doeraser(tGPsdata *p)
     if (BKE_gpencil_layer_is_editable(gpl) == false) {
       continue;
     }
-    else if (gpf == NULL) {
+    if (gpf == NULL) {
       continue;
     }
     /* calculate difference matrix */
@@ -1777,19 +1768,18 @@ static Brush *gpencil_get_default_eraser(Main *bmain, ToolSettings *ts)
     return brush_dft;
   }
   /* create a new soft eraser brush */
-  else {
-    brush_dft = BKE_brush_add_gpencil(bmain, ts, "Soft Eraser", OB_MODE_PAINT_GPENCIL);
-    brush_dft->size = 30.0f;
-    brush_dft->gpencil_settings->flag |= GP_BRUSH_DEFAULT_ERASER;
-    brush_dft->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_SOFT;
-    brush_dft->gpencil_tool = GPAINT_TOOL_ERASE;
-    brush_dft->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_SOFT;
 
-    /* reset current brush */
-    BKE_paint_brush_set(paint, brush_prev);
+  brush_dft = BKE_brush_add_gpencil(bmain, ts, "Soft Eraser", OB_MODE_PAINT_GPENCIL);
+  brush_dft->size = 30.0f;
+  brush_dft->gpencil_settings->flag |= GP_BRUSH_DEFAULT_ERASER;
+  brush_dft->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_SOFT;
+  brush_dft->gpencil_tool = GPAINT_TOOL_ERASE;
+  brush_dft->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_SOFT;
 
-    return brush_dft;
-  }
+  /* reset current brush */
+  BKE_paint_brush_set(paint, brush_prev);
+
+  return brush_dft;
 }
 
 /* helper to set default eraser and disable others */
@@ -1959,13 +1949,12 @@ static bool gpencil_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
     }
     return 0;
   }
-  else {
-    /* if no existing GPencil block exists, add one */
-    if (*gpd_ptr == NULL) {
-      *gpd_ptr = BKE_gpencil_data_addnew(bmain, "GPencil");
-    }
-    p->gpd = *gpd_ptr;
+
+  /* if no existing GPencil block exists, add one */
+  if (*gpd_ptr == NULL) {
+    *gpd_ptr = BKE_gpencil_data_addnew(bmain, "GPencil");
   }
+  p->gpd = *gpd_ptr;
 
   /* clear out buffer (stored in gp-data), in case something contaminated it */
   gpencil_session_validatebuffer(p);
@@ -2152,9 +2141,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
       }
       return;
     }
-    else {
-      p->gpf->flag |= GP_FRAME_PAINT;
-    }
+    p->gpf->flag |= GP_FRAME_PAINT;
   }
 
   /* set 'eraser' for this stroke if using eraser */
@@ -2524,11 +2511,8 @@ static float gpencil_snap_to_grid_fl(float v, const float offset, const float sp
     v -= offset;
     v = roundf((v + spacing * 0.5f) / spacing) * spacing;
     v += offset;
-    return v;
   }
-  else {
-    return v;
-  }
+  return v;
 }
 
 /* Helper to snap value to grid */
@@ -2957,9 +2941,8 @@ static int gpencil_draw_exec(bContext *C, wmOperator *op)
     MEM_SAFE_FREE(op->customdata);
     return OPERATOR_CANCELLED;
   }
-  else {
-    p = op->customdata;
-  }
+
+  p = op->customdata;
 
   /* loop over the stroke RNA elements recorded (i.e. progress of mouse movement),
    * setting the relevant values in context at each step, then applying
@@ -3161,9 +3144,9 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
     }
     return OPERATOR_CANCELLED;
   }
-  else {
-    p = op->customdata;
-  }
+
+  p = op->customdata;
+
   /* Init random settings. */
   ED_gpencil_init_random_settings(p->brush, event->mval, &p->random_settings);
 

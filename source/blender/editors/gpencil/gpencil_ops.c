@@ -184,10 +184,9 @@ static bool gpencil_stroke_sculptmode_poll(bContext *C)
   if (area->spacetype != SPACE_VIEW3D) {
     return ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
   }
-  else {
-    if ((ob) && (ob->type == OB_GPENCIL)) {
-      return GPENCIL_SCULPT_MODE(gpd);
-    }
+
+  if ((ob) && (ob->type == OB_GPENCIL)) {
+    return GPENCIL_SCULPT_MODE(gpd);
   }
 
   return 0;

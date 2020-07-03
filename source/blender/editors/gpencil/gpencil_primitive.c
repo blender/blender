@@ -1598,7 +1598,8 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     copy_v2_v2(tgpi->mvalo, tgpi->mval);
     return OPERATOR_RUNNING_MODAL;
   }
-  else if (tgpi->flag == IN_POLYLINE) {
+
+  if (tgpi->flag == IN_POLYLINE) {
 
     switch (event->type) {
 
@@ -1688,7 +1689,8 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     copy_v2_v2(tgpi->mvalo, tgpi->mval);
     return OPERATOR_RUNNING_MODAL;
   }
-  else if (tgpi->flag == IN_BRUSH_SIZE) {
+
+  if (tgpi->flag == IN_BRUSH_SIZE) {
     switch (event->type) {
       case MOUSEMOVE:
         gpencil_primitive_size(tgpi, false);
@@ -1711,7 +1713,8 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     copy_v2_v2(tgpi->mvalo, tgpi->mval);
     return OPERATOR_RUNNING_MODAL;
   }
-  else if (tgpi->flag == IN_BRUSH_STRENGTH) {
+
+  if (tgpi->flag == IN_BRUSH_STRENGTH) {
     switch (event->type) {
       case MOUSEMOVE:
         gpencil_primitive_strength(tgpi, false);
@@ -1734,7 +1737,8 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     copy_v2_v2(tgpi->mvalo, tgpi->mval);
     return OPERATOR_RUNNING_MODAL;
   }
-  else if (!ELEM(tgpi->flag, IDLE) && !ELEM(tgpi->type, GP_STROKE_POLYLINE)) {
+
+  if (!ELEM(tgpi->flag, IDLE) && !ELEM(tgpi->type, GP_STROKE_POLYLINE)) {
     gpencil_primitive_edit_event_handling(C, op, win, event, tgpi);
   }
 
@@ -1938,10 +1942,9 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 
         break;
       }
-      else {
-        /* unhandled event - allow to pass through */
-        return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
-      }
+
+      /* unhandled event - allow to pass through */
+      return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
     }
   }
 

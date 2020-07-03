@@ -233,9 +233,7 @@ static bool annotation_draw_poll(bContext *C)
       if (ED_gpencil_session_active() == 0) {
         return true;
       }
-      else {
-        CTX_wm_operator_poll_msg_set(C, "Annotation operator is already active");
-      }
+      CTX_wm_operator_poll_msg_set(C, "Annotation operator is already active");
     }
     else {
       CTX_wm_operator_poll_msg_set(C, "Failed to find Annotation data to draw into");
@@ -281,40 +279,39 @@ static bool annotation_stroke_filtermval(tGPsdata *p, const float mval[2], float
   /* if buffer is empty, just let this go through (i.e. so that dots will work) */
   if (p->gpd->runtime.sbuffer_used == 0) {
     return true;
-
-    /* check if mouse moved at least certain distance on both axes (best case)
-     * - aims to eliminate some jitter-noise from input when trying to draw straight lines freehand
-     */
   }
+
+  /* check if mouse moved at least certain distance on both axes (best case)
+   * - aims to eliminate some jitter-noise from input when trying to draw straight lines freehand
+   */
+
   /* If lazy mouse, check minimum distance. */
-  else if (p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) {
+  if (p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) {
     if ((dx * dx + dy * dy) > (p->stabilizer_radius * p->stabilizer_radius)) {
       return true;
     }
-    else {
-      /* If the mouse is moving within the radius of the last move,
-       * don't update the mouse position. This allows sharp turns. */
-      copy_v2_v2(p->mval, p->mvalo);
-      return false;
-    }
-  }
-  else if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX)) {
-    return true;
 
-    /* Check if the distance since the last point is significant enough:
-     * - Prevents points being added too densely
-     * - Distance here doesn't use sqrt to prevent slowness.
-     *   We should still be safe from overflows though.
-     */
-  }
-  else if ((dx * dx + dy * dy) > MIN_EUCLIDEAN_PX * MIN_EUCLIDEAN_PX) {
-    return true;
-
-    /* mouse 'didn't move' */
-  }
-  else {
+    /* If the mouse is moving within the radius of the last move,
+     * don't update the mouse position. This allows sharp turns. */
+    copy_v2_v2(p->mval, p->mvalo);
     return false;
   }
+
+  if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX)) {
+    return true;
+  }
+
+  /* Check if the distance since the last point is significant enough:
+   * - Prevents points being added too densely
+   * - Distance here doesn't use sqrt to prevent slowness.
+   *   We should still be safe from overflows though.
+   */
+  if ((dx * dx + dy * dy) > MIN_EUCLIDEAN_PX * MIN_EUCLIDEAN_PX) {
+    return true;
+  }
+
+  /* mouse 'didn't move' */
+  return false;
 }
 
 /* convert screen-coordinates to buffer-coordinates */
@@ -594,7 +591,8 @@ static short annotation_stroke_addpoint(tGPsdata *p,
     /* can keep carrying on this way :) */
     return GP_STROKEADD_NORMAL;
   }
-  else if (p->paintmode == GP_PAINTMODE_DRAW) { /* normal drawing */
+
+  if (p->paintmode == GP_PAINTMODE_DRAW) { /* normal drawing */
     /* check if still room in buffer or add more */
     gpd->runtime.sbuffer = ED_gpencil_sbuffer_ensure(
         gpd->runtime.sbuffer, &gpd->runtime.sbuffer_size, &gpd->runtime.sbuffer_used, false);
@@ -624,7 +622,8 @@ static short annotation_stroke_addpoint(tGPsdata *p,
 
     return GP_STROKEADD_NORMAL;
   }
-  else if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
+
+  if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
     /* get pointer to destination point */
     pt = (tGPspoint *)gpd->runtime.sbuffer;
 
@@ -1083,9 +1082,7 @@ static float view3d_point_depth(const RegionView3D *rv3d, const float co[3])
   if (rv3d->is_persp) {
     return ED_view3d_calc_zfac(rv3d, co, NULL);
   }
-  else {
-    return -dot_v3v3(rv3d->viewinv[2], co);
-  }
+  return -dot_v3v3(rv3d->viewinv[2], co);
 }
 
 /* only erase stroke points that are visible (3d view) */
@@ -1412,17 +1409,16 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
     }
     return 0;
   }
-  else {
-    /* if no existing GPencil block exists, add one */
-    if (*gpd_ptr == NULL) {
-      bGPdata *gpd = BKE_gpencil_data_addnew(bmain, "Annotations");
-      *gpd_ptr = gpd;
 
-      /* mark datablock as being used for annotations */
-      gpd->flag |= GP_DATA_ANNOTATIONS;
-    }
-    p->gpd = *gpd_ptr;
+  /* if no existing GPencil block exists, add one */
+  if (*gpd_ptr == NULL) {
+    bGPdata *gpd = BKE_gpencil_data_addnew(bmain, "Annotations");
+    *gpd_ptr = gpd;
+
+    /* mark datablock as being used for annotations */
+    gpd->flag |= GP_DATA_ANNOTATIONS;
   }
+  p->gpd = *gpd_ptr;
 
   if (ED_gpencil_session_active() == 0) {
     /* initialize undo stack,
@@ -1570,9 +1566,8 @@ static void annotation_paint_initstroke(tGPsdata *p,
       }
       return;
     }
-    else {
-      p->gpf->flag |= GP_FRAME_PAINT;
-    }
+
+    p->gpf->flag |= GP_FRAME_PAINT;
   }
 
   /* set 'eraser' for this stroke if using eraser */
@@ -2200,9 +2195,8 @@ static int annotation_draw_exec(bContext *C, wmOperator *op)
     /* printf("\tGP - no valid data\n"); */
     return OPERATOR_CANCELLED;
   }
-  else {
-    p = op->customdata;
-  }
+
+  p = op->customdata;
 
   /* printf("\tGP - Start redrawing stroke\n"); */
 
@@ -2285,9 +2279,8 @@ static int annotation_draw_invoke(bContext *C, wmOperator *op, const wmEvent *ev
     }
     return OPERATOR_CANCELLED;
   }
-  else {
-    p = op->customdata;
-  }
+
+  p = op->customdata;
 
   /* if empty erase capture and finish */
   if (p->status == GP_STATUS_CAPTURE) {

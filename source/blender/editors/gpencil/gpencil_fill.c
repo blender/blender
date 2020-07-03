@@ -1199,15 +1199,12 @@ static bool gpencil_fill_poll(bContext *C)
 
       return true;
     }
-    else {
-      CTX_wm_operator_poll_msg_set(C, "Active region not valid for filling operator");
-      return false;
-    }
-  }
-  else {
-    CTX_wm_operator_poll_msg_set(C, "Active region not set");
+    CTX_wm_operator_poll_msg_set(C, "Active region not valid for filling operator");
     return false;
   }
+
+  CTX_wm_operator_poll_msg_set(C, "Active region not set");
+  return false;
 }
 
 /* Allocate memory and initialize values */
@@ -1388,9 +1385,8 @@ static int gpencil_fill_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
     }
     return OPERATOR_CANCELLED;
   }
-  else {
-    tgpf = op->customdata;
-  }
+
+  tgpf = op->customdata;
 
   /* Enable custom drawing handlers to show help lines */
   if (tgpf->flag & GP_BRUSH_FILL_SHOW_HELPLINES) {
