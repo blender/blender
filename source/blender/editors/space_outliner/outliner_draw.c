@@ -173,12 +173,12 @@ static void restrictbutton_recursive_bone(Bone *bone_parent, int flag, bool set_
   }
 }
 
-static void restrictbutton_r_lay_cb(bContext *C, void *poin, void *UNUSED(poin2))
+static void restrictbutton_r_lay_fn(bContext *C, void *poin, void *UNUSED(poin2))
 {
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, poin);
 }
 
-static void restrictbutton_bone_visibility_cb(bContext *C, void *poin, void *UNUSED(poin2))
+static void restrictbutton_bone_visibility_fn(bContext *C, void *poin, void *UNUSED(poin2))
 {
   Bone *bone = (Bone *)poin;
 
@@ -187,7 +187,7 @@ static void restrictbutton_bone_visibility_cb(bContext *C, void *poin, void *UNU
   }
 }
 
-static void restrictbutton_bone_select_cb(bContext *C, void *UNUSED(poin), void *poin2)
+static void restrictbutton_bone_select_fn(bContext *C, void *UNUSED(poin), void *poin2)
 {
   Bone *bone = (Bone *)poin2;
   if (bone->flag & BONE_UNSELECTABLE) {
@@ -201,7 +201,7 @@ static void restrictbutton_bone_select_cb(bContext *C, void *UNUSED(poin), void 
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 }
 
-static void restrictbutton_ebone_select_cb(bContext *C, void *UNUSED(poin), void *poin2)
+static void restrictbutton_ebone_select_fn(bContext *C, void *UNUSED(poin), void *poin2)
 {
   EditBone *ebone = (EditBone *)poin2;
 
@@ -217,7 +217,7 @@ static void restrictbutton_ebone_select_cb(bContext *C, void *UNUSED(poin), void
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 }
 
-static void restrictbutton_ebone_visibility_cb(bContext *C, void *UNUSED(poin), void *poin2)
+static void restrictbutton_ebone_visibility_fn(bContext *C, void *UNUSED(poin), void *poin2)
 {
   EditBone *ebone = (EditBone *)poin2;
   if (ebone->flag & BONE_HIDDEN_A) {
@@ -231,7 +231,7 @@ static void restrictbutton_ebone_visibility_cb(bContext *C, void *UNUSED(poin), 
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 }
 
-static void restrictbutton_gp_layer_flag_cb(bContext *C, void *poin, void *UNUSED(poin2))
+static void restrictbutton_gp_layer_flag_fn(bContext *C, void *poin, void *UNUSED(poin2))
 {
   ID *id = (ID *)poin;
 
@@ -253,7 +253,7 @@ static void restrictbutton_id_user_toggle(bContext *UNUSED(C), void *poin, void 
   }
 }
 
-static void outliner_object_set_flag_recursive_cb(bContext *C,
+static void outliner_object_set_flag_recursive_fn(bContext *C,
                                                   Base *base,
                                                   Object *ob,
                                                   const char *propname)
@@ -313,21 +313,21 @@ static void outliner_object_set_flag_recursive_cb(bContext *C,
 /**
  * Object properties.
  * */
-static void outliner__object_set_flag_recursive_cb(bContext *C, void *poin, void *poin2)
+static void outliner__object_set_flag_recursive_fn(bContext *C, void *poin, void *poin2)
 {
   Object *ob = poin;
   char *propname = poin2;
-  outliner_object_set_flag_recursive_cb(C, NULL, ob, propname);
+  outliner_object_set_flag_recursive_fn(C, NULL, ob, propname);
 }
 
 /**
  * Base properties.
  * */
-static void outliner__base_set_flag_recursive_cb(bContext *C, void *poin, void *poin2)
+static void outliner__base_set_flag_recursive_fn(bContext *C, void *poin, void *poin2)
 {
   Base *base = poin;
   char *propname = poin2;
-  outliner_object_set_flag_recursive_cb(C, base, NULL, propname);
+  outliner_object_set_flag_recursive_fn(C, base, NULL, propname);
 }
 
 /** Create either a RNA_LayerCollection or a RNA_Collection pointer. */
@@ -568,7 +568,7 @@ void outliner_collection_isolate_flag(Scene *scene,
   }
 }
 
-static void outliner_collection_set_flag_recursive_cb(bContext *C,
+static void outliner_collection_set_flag_recursive_fn(bContext *C,
                                                       LayerCollection *layer_collection,
                                                       Collection *collection,
                                                       const char *propname)
@@ -632,24 +632,24 @@ static void outliner_collection_set_flag_recursive_cb(bContext *C,
  * Layer collection properties called from the ViewLayer mode.
  * Change the (non-excluded) collection children, and the objects nested to them all.
  */
-static void view_layer__layer_collection_set_flag_recursive_cb(bContext *C,
+static void view_layer__layer_collection_set_flag_recursive_fn(bContext *C,
                                                                void *poin,
                                                                void *poin2)
 {
   LayerCollection *layer_collection = poin;
   char *propname = poin2;
-  outliner_collection_set_flag_recursive_cb(C, layer_collection, NULL, propname);
+  outliner_collection_set_flag_recursive_fn(C, layer_collection, NULL, propname);
 }
 
 /**
  * Collection properties called from the ViewLayer mode.
  * Change the (non-excluded) collection children, and the objects nested to them all.
  */
-static void view_layer__collection_set_flag_recursive_cb(bContext *C, void *poin, void *poin2)
+static void view_layer__collection_set_flag_recursive_fn(bContext *C, void *poin, void *poin2)
 {
   LayerCollection *layer_collection = poin;
   char *propname = poin2;
-  outliner_collection_set_flag_recursive_cb(
+  outliner_collection_set_flag_recursive_fn(
       C, layer_collection, layer_collection->collection, propname);
 }
 
@@ -657,14 +657,14 @@ static void view_layer__collection_set_flag_recursive_cb(bContext *C, void *poin
  * Collection properties called from the Scenes mode.
  * Change the collection children but no objects.
  */
-static void scenes__collection_set_flag_recursive_cb(bContext *C, void *poin, void *poin2)
+static void scenes__collection_set_flag_recursive_fn(bContext *C, void *poin, void *poin2)
 {
   Collection *collection = poin;
   char *propname = poin2;
-  outliner_collection_set_flag_recursive_cb(C, NULL, collection, propname);
+  outliner_collection_set_flag_recursive_fn(C, NULL, collection, propname);
 }
 
-static void namebutton_cb(bContext *C, void *tsep, char *oldname)
+static void namebutton_fn(bContext *C, void *tsep, char *oldname)
 {
   Main *bmain = CTX_data_main(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
@@ -1073,7 +1073,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 0,
                                 0,
                                 TIP_("Use view layer for rendering"));
-          UI_but_func_set(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
+          UI_but_func_set(bt, restrictbutton_r_lay_fn, tselem->id, NULL);
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
         }
@@ -1111,7 +1111,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     TIP_("Temporarily hide in viewport\n"
                                          "* Shift to set children"));
             UI_but_func_set(
-                bt, outliner__base_set_flag_recursive_cb, base, (void *)"hide_viewport");
+                bt, outliner__base_set_flag_recursive_fn, base, (void *)"hide_viewport");
             UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
             if (!props_active.base_hide_viewport) {
               UI_but_flag_enable(bt, UI_BUT_INACTIVE);
@@ -1137,7 +1137,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   -1,
                                   TIP_("Disable selection in viewport\n"
                                        "* Shift to set children"));
-          UI_but_func_set(bt, outliner__object_set_flag_recursive_cb, ob, (char *)"hide_select");
+          UI_but_func_set(bt, outliner__object_set_flag_recursive_fn, ob, (char *)"hide_select");
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           if (!props_active.object_hide_select) {
             UI_but_flag_enable(bt, UI_BUT_INACTIVE);
@@ -1162,7 +1162,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   -1,
                                   TIP_("Globally disable in viewports\n"
                                        "* Shift to set children"));
-          UI_but_func_set(bt, outliner__object_set_flag_recursive_cb, ob, (void *)"hide_viewport");
+          UI_but_func_set(bt, outliner__object_set_flag_recursive_fn, ob, (void *)"hide_viewport");
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           if (!props_active.object_hide_viewport) {
             UI_but_flag_enable(bt, UI_BUT_INACTIVE);
@@ -1187,7 +1187,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   -1,
                                   TIP_("Globally disable in renders\n"
                                        "* Shift to set children"));
-          UI_but_func_set(bt, outliner__object_set_flag_recursive_cb, ob, (char *)"hide_render");
+          UI_but_func_set(bt, outliner__object_set_flag_recursive_fn, ob, (char *)"hide_render");
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           if (!props_active.object_hide_render) {
             UI_but_flag_enable(bt, UI_BUT_INACTIVE);
@@ -1301,7 +1301,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   -1,
                                   -1,
                                   TIP_("Restrict visibility in the 3D View"));
-          UI_but_func_set(bt, restrictbutton_bone_visibility_cb, bone, NULL);
+          UI_but_func_set(bt, restrictbutton_bone_visibility_fn, bone, NULL);
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
         }
@@ -1322,7 +1322,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 0,
                                 0,
                                 TIP_("Restrict selection in the 3D View"));
-          UI_but_func_set(bt, restrictbutton_bone_select_cb, ob->data, bone);
+          UI_but_func_set(bt, restrictbutton_bone_select_fn, ob->data, bone);
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
         }
@@ -1346,7 +1346,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 0,
                                 0,
                                 TIP_("Restrict visibility in the 3D View"));
-          UI_but_func_set(bt, restrictbutton_ebone_visibility_cb, NULL, ebone);
+          UI_but_func_set(bt, restrictbutton_ebone_visibility_fn, NULL, ebone);
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
         }
@@ -1367,7 +1367,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 0,
                                 0,
                                 TIP_("Restrict selection in the 3D View"));
-          UI_but_func_set(bt, restrictbutton_ebone_select_cb, NULL, ebone);
+          UI_but_func_set(bt, restrictbutton_ebone_select_fn, NULL, ebone);
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
         }
@@ -1392,7 +1392,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 0,
                                 0,
                                 TIP_("Restrict visibility in the 3D View"));
-          UI_but_func_set(bt, restrictbutton_gp_layer_flag_cb, id, gpl);
+          UI_but_func_set(bt, restrictbutton_gp_layer_flag_fn, id, gpl);
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
         }
@@ -1413,7 +1413,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 0,
                                 0,
                                 TIP_("Restrict editing of strokes and keyframes in this layer"));
-          UI_but_func_set(bt, restrictbutton_gp_layer_flag_cb, id, gpl);
+          UI_but_func_set(bt, restrictbutton_gp_layer_flag_fn, id, gpl);
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
         }
       }
@@ -1450,7 +1450,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                            "* Ctrl to isolate collection\n"
                                            "* Shift to set inside collections and objects"));
               UI_but_func_set(bt,
-                              view_layer__layer_collection_set_flag_recursive_cb,
+                              view_layer__layer_collection_set_flag_recursive_fn,
                               layer_collection,
                               (char *)"hide_viewport");
               UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
@@ -1479,7 +1479,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                            "* Ctrl to isolate collection\n"
                                            "* Shift to set inside collections"));
               UI_but_func_set(bt,
-                              view_layer__layer_collection_set_flag_recursive_cb,
+                              view_layer__layer_collection_set_flag_recursive_fn,
                               layer_collection,
                               (char *)"holdout");
               UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
@@ -1510,7 +1510,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                        "* Ctrl to isolate collection\n"
                        "* Shift to set inside collections"));
               UI_but_func_set(bt,
-                              view_layer__layer_collection_set_flag_recursive_cb,
+                              view_layer__layer_collection_set_flag_recursive_fn,
                               layer_collection,
                               (char *)"indirect_only");
               UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
@@ -1542,13 +1542,13 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                          "* Shift to set inside collections and objects"));
             if (layer_collection != NULL) {
               UI_but_func_set(bt,
-                              view_layer__collection_set_flag_recursive_cb,
+                              view_layer__collection_set_flag_recursive_fn,
                               layer_collection,
                               (char *)"hide_viewport");
             }
             else {
               UI_but_func_set(bt,
-                              scenes__collection_set_flag_recursive_cb,
+                              scenes__collection_set_flag_recursive_fn,
                               collection,
                               (char *)"hide_viewport");
             }
@@ -1579,13 +1579,13 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                          "* Shift to set inside collections and objects"));
             if (layer_collection != NULL) {
               UI_but_func_set(bt,
-                              view_layer__collection_set_flag_recursive_cb,
+                              view_layer__collection_set_flag_recursive_fn,
                               layer_collection,
                               (char *)"hide_render");
             }
             else {
               UI_but_func_set(
-                  bt, scenes__collection_set_flag_recursive_cb, collection, (char *)"hide_render");
+                  bt, scenes__collection_set_flag_recursive_fn, collection, (char *)"hide_render");
             }
             UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
             if (!props_active.collection_hide_render) {
@@ -1614,13 +1614,13 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                          "* Shift to set inside collections and objects"));
             if (layer_collection != NULL) {
               UI_but_func_set(bt,
-                              view_layer__collection_set_flag_recursive_cb,
+                              view_layer__collection_set_flag_recursive_fn,
                               layer_collection,
                               (char *)"hide_select");
             }
             else {
               UI_but_func_set(
-                  bt, scenes__collection_set_flag_recursive_cb, collection, (char *)"hide_select");
+                  bt, scenes__collection_set_flag_recursive_fn, collection, (char *)"hide_select");
             }
             UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
             if (!props_active.collection_hide_select) {
@@ -1869,7 +1869,7 @@ static void outliner_buttons(const bContext *C,
                 0,
                 0,
                 "");
-  UI_but_func_rename_set(bt, namebutton_cb, tselem);
+  UI_but_func_rename_set(bt, namebutton_fn, tselem);
 
   /* returns false if button got removed */
   if (false == UI_but_active_only(C, region, block, bt)) {
