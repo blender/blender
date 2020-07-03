@@ -58,56 +58,6 @@ struct float3 {
     return &x;
   }
 
-  float normalize_and_get_length()
-  {
-    return normalize_v3(*this);
-  }
-
-  float3 normalized() const
-  {
-    float3 result;
-    normalize_v3_v3(result, *this);
-    return result;
-  }
-
-  float length() const
-  {
-    return len_v3(*this);
-  }
-
-  float length_squared() const
-  {
-    return len_squared_v3(*this);
-  }
-
-  void reflect(const float3 &normal)
-  {
-    *this = this->reflected(normal);
-  }
-
-  float3 reflected(const float3 &normal) const
-  {
-    float3 result;
-    reflect_v3_v3v3(result, *this, normal);
-    return result;
-  }
-
-  static float3 safe_divide(const float3 &a, const float3 &b)
-  {
-    float3 result;
-    result.x = (b.x == 0.0f) ? 0.0f : a.x / b.x;
-    result.y = (b.y == 0.0f) ? 0.0f : a.y / b.y;
-    result.z = (b.z == 0.0f) ? 0.0f : a.z / b.z;
-    return result;
-  }
-
-  void invert()
-  {
-    x = -x;
-    y = -y;
-    z = -z;
-  }
-
   friend float3 operator+(const float3 &a, const float3 &b)
   {
     return {a.x + b.x, a.y + b.y, a.z + b.z};
@@ -176,6 +126,56 @@ struct float3 {
   {
     stream << "(" << v.x << ", " << v.y << ", " << v.z << ")";
     return stream;
+  }
+
+  float normalize_and_get_length()
+  {
+    return normalize_v3(*this);
+  }
+
+  float3 normalized() const
+  {
+    float3 result;
+    normalize_v3_v3(result, *this);
+    return result;
+  }
+
+  float length() const
+  {
+    return len_v3(*this);
+  }
+
+  float length_squared() const
+  {
+    return len_squared_v3(*this);
+  }
+
+  void reflect(const float3 &normal)
+  {
+    *this = this->reflected(normal);
+  }
+
+  float3 reflected(const float3 &normal) const
+  {
+    float3 result;
+    reflect_v3_v3v3(result, *this, normal);
+    return result;
+  }
+
+  static float3 safe_divide(const float3 &a, const float3 &b)
+  {
+    float3 result;
+    result.x = (b.x == 0.0f) ? 0.0f : a.x / b.x;
+    result.y = (b.y == 0.0f) ? 0.0f : a.y / b.y;
+    result.z = (b.z == 0.0f) ? 0.0f : a.z / b.z;
+    return result;
+  }
+
+  void invert()
+  {
+    x = -x;
+    y = -y;
+    z = -z;
   }
 
   static float dot(const float3 &a, const float3 &b)

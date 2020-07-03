@@ -263,26 +263,6 @@ class Vector {
     }
   }
 
-  operator Span<T>() const
-  {
-    return Span<T>(begin_, this->size());
-  }
-
-  operator MutableSpan<T>()
-  {
-    return MutableSpan<T>(begin_, this->size());
-  }
-
-  Span<T> as_span() const
-  {
-    return *this;
-  }
-
-  MutableSpan<T> as_mutable_span()
-  {
-    return *this;
-  }
-
   Vector &operator=(const Vector &other)
   {
     if (this == &other) {
@@ -306,6 +286,42 @@ class Vector {
     this->~Vector();
     new (this) Vector(std::move(other));
 
+    return *this;
+  }
+
+  /**
+   * Get the value at the given index. This invokes undefined behavior when the index is out of
+   * bounds.
+   */
+  const T &operator[](uint index) const
+  {
+    BLI_assert(index < this->size());
+    return begin_[index];
+  }
+
+  T &operator[](uint index)
+  {
+    BLI_assert(index < this->size());
+    return begin_[index];
+  }
+
+  operator Span<T>() const
+  {
+    return Span<T>(begin_, this->size());
+  }
+
+  operator MutableSpan<T>()
+  {
+    return MutableSpan<T>(begin_, this->size());
+  }
+
+  Span<T> as_span() const
+  {
+    return *this;
+  }
+
+  MutableSpan<T> as_mutable_span()
+  {
     return *this;
   }
 
@@ -671,22 +687,6 @@ class Vector {
   bool contains(const T &value) const
   {
     return this->first_index_of_try(value) != -1;
-  }
-
-  /**
-   * Get the value at the given index. This invokes undefined behavior when the index is out of
-   * bounds.
-   */
-  const T &operator[](uint index) const
-  {
-    BLI_assert(index < this->size());
-    return begin_[index];
-  }
-
-  T &operator[](uint index)
-  {
-    BLI_assert(index < this->size());
-    return begin_[index];
   }
 
   /**

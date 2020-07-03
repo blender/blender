@@ -46,23 +46,6 @@ struct float4x4 {
     return (const float *)this;
   }
 
-  float4x4 inverted() const
-  {
-    float result[4][4];
-    invert_m4_m4(result, values);
-    return result;
-  }
-
-  /**
-   * Matrix inversion can be implemented more efficiently for affine matrices.
-   */
-  float4x4 inverted_affine() const
-  {
-    BLI_assert(values[0][3] == 0.0f && values[1][3] == 0.0f && values[2][3] == 0.0f &&
-               values[3][3] == 1.0f);
-    return this->inverted();
-  }
-
   friend float4x4 operator*(const float4x4 &a, const float4x4 &b)
   {
     float4x4 result;
@@ -84,6 +67,23 @@ struct float4x4 {
   friend float3 operator*(const float4x4 &m, const float (*v)[3])
   {
     return m * float3(v);
+  }
+
+  float4x4 inverted() const
+  {
+    float result[4][4];
+    invert_m4_m4(result, values);
+    return result;
+  }
+
+  /**
+   * Matrix inversion can be implemented more efficiently for affine matrices.
+   */
+  float4x4 inverted_affine() const
+  {
+    BLI_assert(values[0][3] == 0.0f && values[1][3] == 0.0f && values[2][3] == 0.0f &&
+               values[3][3] == 1.0f);
+    return this->inverted();
   }
 
   struct float3x3_ref {

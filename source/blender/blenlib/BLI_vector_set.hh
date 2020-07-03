@@ -236,6 +236,31 @@ class VectorSet {
   }
 
   /**
+   * Get the key stored at the given position in the vector.
+   */
+  const Key &operator[](uint32_t index) const
+  {
+    BLI_assert(index <= this->size());
+    return keys_[index];
+  }
+
+  operator Span<Key>() const
+  {
+    return Span<Key>(keys_, this->size());
+  }
+
+  /**
+   * Get an Span referencing the keys vector. The referenced memory buffer is only valid as
+   * long as the vector set is not changed.
+   *
+   * The keys must not be changed, because this would change their hash value.
+   */
+  Span<Key> as_span() const
+  {
+    return *this;
+  }
+
+  /**
    * Add a new key to the vector set. This invokes undefined behavior when the key is in the set
    * already. When you know for certain that a key is not in the set yet, use this method for
    * better performance. This also expresses the intent better.
@@ -400,31 +425,6 @@ class VectorSet {
   const Key *end() const
   {
     return keys_ + this->size();
-  }
-
-  /**
-   * Get the key stored at the given position in the vector.
-   */
-  const Key &operator[](uint32_t index) const
-  {
-    BLI_assert(index <= this->size());
-    return keys_[index];
-  }
-
-  operator Span<Key>() const
-  {
-    return Span<Key>(keys_, this->size());
-  }
-
-  /**
-   * Get an Span referencing the keys vector. The referenced memory buffer is only valid as
-   * long as the vector set is not changed.
-   *
-   * The keys must not be changed, because this would change their hash value.
-   */
-  Span<Key> as_span() const
-  {
-    return *this;
   }
 
   /**

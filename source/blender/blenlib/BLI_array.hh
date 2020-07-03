@@ -201,6 +201,18 @@ class Array {
     return *this;
   }
 
+  T &operator[](uint index)
+  {
+    BLI_assert(index < size_);
+    return data_[index];
+  }
+
+  const T &operator[](uint index) const
+  {
+    BLI_assert(index < size_);
+    return data_[index];
+  }
+
   operator Span<T>() const
   {
     return Span<T>(data_, size_);
@@ -219,18 +231,6 @@ class Array {
   MutableSpan<T> as_mutable_span()
   {
     return *this;
-  }
-
-  T &operator[](uint index)
-  {
-    BLI_assert(index < size_);
-    return data_[index];
-  }
-
-  const T &operator[](uint index) const
-  {
-    BLI_assert(index < size_);
-    return data_[index];
   }
 
   /**
