@@ -699,8 +699,8 @@ static void outliner_object_delete_fn(bContext *C, ReportList *reports, Scene *s
           reports, RPT_WARNING, "Cannot delete indirectly linked object '%s'", ob->id.name + 2);
       return;
     }
-    else if (BKE_library_ID_is_indirectly_used(bmain, ob) && ID_REAL_USERS(ob) <= 1 &&
-             ID_EXTRA_USERS(ob) == 0) {
+    if (BKE_library_ID_is_indirectly_used(bmain, ob) && ID_REAL_USERS(ob) <= 1 &&
+        ID_EXTRA_USERS(ob) == 0) {
       BKE_reportf(reports,
                   RPT_WARNING,
                   "Cannot delete object '%s' from scene '%s', indirectly used objects need at "
@@ -1202,8 +1202,8 @@ static Base *outline_batch_delete_hierarchy(
                 base->object->id.name + 2);
     return base_next;
   }
-  else if (BKE_library_ID_is_indirectly_used(bmain, object) && ID_REAL_USERS(object) <= 1 &&
-           ID_EXTRA_USERS(object) == 0) {
+  if (BKE_library_ID_is_indirectly_used(bmain, object) && ID_REAL_USERS(object) <= 1 &&
+      ID_EXTRA_USERS(object) == 0) {
     BKE_reportf(reports,
                 RPT_WARNING,
                 "Cannot delete object '%s' from scene '%s', indirectly used objects need at least "
@@ -1983,7 +1983,7 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No valid action to add");
     return OPERATOR_CANCELLED;
   }
-  else if (act->idroot == 0) {
+  if (act->idroot == 0) {
     /* Hopefully in this case (i.e. library of userless actions),
      * the user knows what they're doing. */
     BKE_reportf(op->reports,
@@ -2414,32 +2414,29 @@ static int do_outliner_operation_event(
         BKE_report(reports, RPT_WARNING, "Mixed selection");
         return OPERATOR_CANCELLED;
       }
-      else {
-        return outliner_operator_menu(C, "OUTLINER_OT_scene_operation");
-      }
+      return outliner_operator_menu(C, "OUTLINER_OT_scene_operation");
     }
-    else if (objectlevel) {
+    if (objectlevel) {
       WM_menu_name_call(C, "OUTLINER_MT_object", WM_OP_INVOKE_REGION_WIN);
       return OPERATOR_FINISHED;
     }
-    else if (idlevel) {
+    if (idlevel) {
       if (idlevel == -1 || datalevel) {
         BKE_report(reports, RPT_WARNING, "Mixed selection");
         return OPERATOR_CANCELLED;
       }
-      else {
-        switch (idlevel) {
-          case ID_GR:
-            WM_menu_name_call(C, "OUTLINER_MT_collection", WM_OP_INVOKE_REGION_WIN);
-            return OPERATOR_FINISHED;
-            break;
-          case ID_LI:
-            return outliner_operator_menu(C, "OUTLINER_OT_lib_operation");
-            break;
-          default:
-            return outliner_operator_menu(C, "OUTLINER_OT_id_operation");
-            break;
-        }
+
+      switch (idlevel) {
+        case ID_GR:
+          WM_menu_name_call(C, "OUTLINER_MT_collection", WM_OP_INVOKE_REGION_WIN);
+          return OPERATOR_FINISHED;
+          break;
+        case ID_LI:
+          return outliner_operator_menu(C, "OUTLINER_OT_lib_operation");
+          break;
+        default:
+          return outliner_operator_menu(C, "OUTLINER_OT_id_operation");
+          break;
       }
     }
     else if (datalevel) {
@@ -2447,35 +2444,32 @@ static int do_outliner_operation_event(
         BKE_report(reports, RPT_WARNING, "Mixed selection");
         return OPERATOR_CANCELLED;
       }
-      else {
-        if (datalevel == TSE_ANIM_DATA) {
-          return outliner_operator_menu(C, "OUTLINER_OT_animdata_operation");
-        }
-        else if (datalevel == TSE_DRIVER_BASE) {
-          /* do nothing... no special ops needed yet */
-          return OPERATOR_CANCELLED;
-        }
-        else if (datalevel == TSE_LAYER_COLLECTION) {
-          WM_menu_name_call(C, "OUTLINER_MT_collection", WM_OP_INVOKE_REGION_WIN);
-          return OPERATOR_FINISHED;
-        }
-        else if (ELEM(datalevel, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
-          WM_menu_name_call(C, "OUTLINER_MT_collection_new", WM_OP_INVOKE_REGION_WIN);
-          return OPERATOR_FINISHED;
-        }
-        else if (datalevel == TSE_ID_BASE) {
-          /* do nothing... there are no ops needed here yet */
-        }
-        else if (datalevel == TSE_CONSTRAINT) {
-          return outliner_operator_menu(C, "OUTLINER_OT_constraint_operation");
-        }
-        else if (datalevel == TSE_MODIFIER) {
-          return outliner_operator_menu(C, "OUTLINER_OT_modifier_operation");
-        }
-        else {
-          return outliner_operator_menu(C, "OUTLINER_OT_data_operation");
-        }
+      if (datalevel == TSE_ANIM_DATA) {
+        return outliner_operator_menu(C, "OUTLINER_OT_animdata_operation");
       }
+      if (datalevel == TSE_DRIVER_BASE) {
+        /* do nothing... no special ops needed yet */
+        return OPERATOR_CANCELLED;
+      }
+      if (datalevel == TSE_LAYER_COLLECTION) {
+        WM_menu_name_call(C, "OUTLINER_MT_collection", WM_OP_INVOKE_REGION_WIN);
+        return OPERATOR_FINISHED;
+      }
+      if (ELEM(datalevel, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
+        WM_menu_name_call(C, "OUTLINER_MT_collection_new", WM_OP_INVOKE_REGION_WIN);
+        return OPERATOR_FINISHED;
+      }
+      if (datalevel == TSE_ID_BASE) {
+        /* do nothing... there are no ops needed here yet */
+        return 0;
+      }
+      if (datalevel == TSE_CONSTRAINT) {
+        return outliner_operator_menu(C, "OUTLINER_OT_constraint_operation");
+      }
+      if (datalevel == TSE_MODIFIER) {
+        return outliner_operator_menu(C, "OUTLINER_OT_modifier_operation");
+      }
+      return outliner_operator_menu(C, "OUTLINER_OT_data_operation");
     }
 
     return 0;

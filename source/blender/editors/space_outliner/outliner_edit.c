@@ -500,14 +500,14 @@ static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeSto
     BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked id '%s'", id->name);
     return;
   }
-  else if (BKE_library_ID_is_indirectly_used(bmain, id) && ID_REAL_USERS(id) <= 1) {
+  if (BKE_library_ID_is_indirectly_used(bmain, id) && ID_REAL_USERS(id) <= 1) {
     BKE_reportf(reports,
                 RPT_WARNING,
                 "Cannot delete id '%s', indirectly used data-blocks need at least one user",
                 id->name);
     return;
   }
-  else if (te->idcode == ID_WS) {
+  if (te->idcode == ID_WS) {
     BKE_workspace_id_tag_all_visible(bmain, LIB_TAG_DOIT);
     if (id->tag & LIB_TAG_DOIT) {
       BKE_reportf(
@@ -947,12 +947,10 @@ static int outliner_lib_relocate_invoke_do(
                     ((Library *)tselem->id)->filepath_abs);
         return OPERATOR_CANCELLED;
       }
-      else {
-        wmOperatorType *ot = WM_operatortype_find(
-            reload ? "WM_OT_lib_reload" : "WM_OT_lib_relocate", false);
 
-        return lib_relocate(C, te, tselem, ot, reload);
-      }
+      wmOperatorType *ot = WM_operatortype_find(reload ? "WM_OT_lib_reload" : "WM_OT_lib_relocate",
+                                                false);
+      return lib_relocate(C, te, tselem, ot, reload);
     }
   }
   else {

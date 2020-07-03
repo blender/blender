@@ -1666,10 +1666,10 @@ static int treesort_alpha_ob(const void *v1, const void *v2)
   if (comp == 1) {
     return 1;
   }
-  else if (comp == 2) {
+  if (comp == 2) {
     return -1;
   }
-  else if (comp == 3) {
+  if (comp == 3) {
     /* Among objects first come the ones in the collection, followed by the ones not on it.
      * This way we can have the dashed lines in a separate style connecting the former. */
     if ((x1->te->flag & TE_CHILD_NOT_IN_COLLECTION) !=
@@ -1682,7 +1682,7 @@ static int treesort_alpha_ob(const void *v1, const void *v2)
     if (comp > 0) {
       return 1;
     }
-    else if (comp < 0) {
+    if (comp < 0) {
       return -1;
     }
     return 0;
@@ -1714,7 +1714,7 @@ static int treesort_alpha(const void *v1, const void *v2)
   if (comp > 0) {
     return 1;
   }
-  else if (comp < 0) {
+  if (comp < 0) {
     return -1;
   }
   return 0;
@@ -1981,9 +1981,7 @@ static TreeElement *outliner_find_first_desired_element_at_y(const SpaceOutliner
       if (te->ys + UI_UNIT_Y > view_co_limit) {
         return te_sub;
       }
-      else {
-        return NULL;
-      }
+      return NULL;
     }
 
     if (te->next) {
@@ -2191,7 +2189,7 @@ static bool outliner_element_is_collection_or_object(TreeElement *te)
   if ((tselem->type == 0) && (te->idcode == ID_OB)) {
     return true;
   }
-  else if (outliner_is_collection_tree_element(te)) {
+  if (outliner_is_collection_tree_element(te)) {
     return true;
   }
 
@@ -2241,7 +2239,7 @@ static int outliner_filter_subtree(SpaceOutliner *soops,
       te_next = outliner_extract_children_from_subtree(te, lb);
       continue;
     }
-    else if ((exclude_filter & SO_FILTER_SEARCH) == 0) {
+    if ((exclude_filter & SO_FILTER_SEARCH) == 0) {
       /* Filter subtree too. */
       outliner_filter_subtree(soops, view_layer, &te->subtree, search_string, exclude_filter);
       continue;

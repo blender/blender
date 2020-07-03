@@ -2816,13 +2816,11 @@ int tree_element_id_type_to_index(TreeElement *te)
   if (id_index < INDEX_ID_OB) {
     return id_index;
   }
-  else if (id_index == INDEX_ID_OB) {
+  if (id_index == INDEX_ID_OB) {
     const Object *ob = (Object *)tselem->id;
     return INDEX_ID_OB + ob->type;
   }
-  else {
-    return id_index + OB_TYPE_MAX;
-  }
+  return id_index + OB_TYPE_MAX;
 }
 
 typedef struct MergedIconRow {
@@ -3590,9 +3588,7 @@ static int outliner_width(SpaceOutliner *soops, int max_tree_width, float restri
   if (soops->outlinevis == SO_DATA_API) {
     return outliner_data_api_buttons_start_x(max_tree_width) + OL_RNA_COL_SIZEX + 10 * UI_DPI_FAC;
   }
-  else {
-    return max_tree_width + restrict_column_width;
-  }
+  return max_tree_width + restrict_column_width;
 }
 
 static void outliner_update_viewable_area(ARegion *region,

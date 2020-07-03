@@ -70,7 +70,7 @@ bool outliner_is_collection_tree_element(const TreeElement *te)
            TSE_VIEW_COLLECTION_BASE)) {
     return true;
   }
-  else if (tselem->type == 0 && te->idcode == ID_GR) {
+  if (tselem->type == 0 && te->idcode == ID_GR) {
     return true;
   }
 
@@ -89,11 +89,11 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
     LayerCollection *lc = te->directdata;
     return lc->collection;
   }
-  else if (ELEM(tselem->type, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
+  if (ELEM(tselem->type, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
     Scene *scene = (Scene *)tselem->id;
     return scene->master_collection;
   }
-  else if (tselem->type == 0 && te->idcode == ID_GR) {
+  if (tselem->type == 0 && te->idcode == ID_GR) {
     return (Collection *)tselem->id;
   }
 
@@ -338,7 +338,7 @@ void outliner_collection_delete(
               skip = true;
               break;
             }
-            else if (parent->flag & COLLECTION_IS_MASTER) {
+            if (parent->flag & COLLECTION_IS_MASTER) {
               Scene *parent_scene = BKE_collection_master_scene_search(bmain, parent);
               if (ID_IS_LINKED(parent_scene)) {
                 skip = true;
@@ -1194,7 +1194,7 @@ static bool collection_flag_poll(bContext *C, bool clear, int flag)
   if (clear && (collection->flag & flag)) {
     return true;
   }
-  else if (!clear && !(collection->flag & flag)) {
+  if (!clear && !(collection->flag & flag)) {
     return true;
   }
 

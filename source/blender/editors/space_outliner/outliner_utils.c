@@ -122,7 +122,7 @@ static TreeElement *outliner_find_item_at_x_in_row_recursive(const TreeElement *
     if ((child_te->flag & TE_ICONROW) && over_element) {
       return child_te;
     }
-    else if ((child_te->flag & TE_ICONROW_MERGED) && over_element) {
+    if ((child_te->flag & TE_ICONROW_MERGED) && over_element) {
       if (r_merged) {
         *r_merged = true;
       }
@@ -409,9 +409,7 @@ bool outliner_is_element_visible(const TreeElement *te)
     if (tselem->flag & TSE_CLOSED) {
       return false;
     }
-    else {
-      te = te->parent;
-    }
+    te = te->parent;
   }
 
   return true;

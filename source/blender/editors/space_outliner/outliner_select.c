@@ -520,9 +520,7 @@ static eOLDrawState tree_element_active_camera(bContext *C,
 
     return OL_DRAWSEL_NONE;
   }
-  else {
-    return scene->camera == ob;
-  }
+  return scene->camera == ob;
 }
 
 static eOLDrawState tree_element_active_world(bContext *C,
@@ -1001,9 +999,7 @@ static eOLDrawState tree_element_active_keymap_item(bContext *UNUSED(C),
     }
     return OL_DRAWSEL_NORMAL;
   }
-  else {
-    kmi->flag ^= KMI_INACTIVE;
-  }
+  kmi->flag ^= KMI_INACTIVE;
   return OL_DRAWSEL_NONE;
 }
 
@@ -1620,9 +1616,7 @@ static TreeElement *outliner_element_find_successor_in_parents(TreeElement *te)
       te = successor->parent->next;
       break;
     }
-    else {
-      successor = successor->parent;
-    }
+    successor = successor->parent;
   }
 
   return te;
