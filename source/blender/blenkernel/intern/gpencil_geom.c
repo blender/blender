@@ -616,6 +616,7 @@ bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const
 
   return true;
 }
+
 /**
  * Split stroke.
  * \param gpf Grease pencil frame
@@ -1141,7 +1142,7 @@ void BKE_gpencil_stroke_2d_flat_ref(const bGPDspoint *ref_points,
   *r_direction = (int)locy[2];
 }
 
-/* calc texture coordinates using flat projected points */
+/* Calc texture coordinates using flat projected points. */
 static void gpencil_calc_stroke_fill_uv(const float (*points2d)[2],
                                         bGPDstroke *gps,
                                         const float minv[2],
@@ -1286,6 +1287,12 @@ void BKE_gpencil_stroke_geometry_update(bGPDstroke *gps)
   BKE_gpencil_stroke_boundingbox_calc(gps);
 }
 
+/**
+ * Calculate grease pencil stroke length.
+ * @param gps Grease pencil stroke
+ * @param use_3d Set to true to use 3D points
+ * @return Length of the stroke
+ */
 float BKE_gpencil_stroke_length(const bGPDstroke *gps, bool use_3d)
 {
   if (!gps->points || gps->totpoints < 2) {
@@ -1309,7 +1316,7 @@ float BKE_gpencil_stroke_length(const bGPDstroke *gps, bool use_3d)
 }
 
 /**
- * Trim stroke to the first intersection or loop
+ * Trim stroke to the first intersection or loop.
  * \param gps: Stroke data
  */
 bool BKE_gpencil_stroke_trim(bGPDstroke *gps)
@@ -1406,7 +1413,7 @@ bool BKE_gpencil_stroke_trim(bGPDstroke *gps)
 }
 
 /**
- * Close stroke
+ * Close grease pencil stroke.
  * \param gps: Stroke to close
  */
 bool BKE_gpencil_stroke_close(bGPDstroke *gps)
@@ -1499,7 +1506,7 @@ bool BKE_gpencil_stroke_close(bGPDstroke *gps)
  * \param gpf Grease pencil frame
  * \param gps Grease pencil stroke
  * \param tag Type of tag for point
-*/
+ */
 void BKE_gpencil_dissolve_points(bGPDframe *gpf, bGPDstroke *gps, const short tag)
 {
   bGPDspoint *pt;
@@ -2386,7 +2393,11 @@ void BKE_gpencil_convert_mesh(Main *bmain,
   DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
 }
 
-/* Apply Transforms */
+/**
+ * Apply grease pencil Transforms.
+ * @param gpd Grease pencil data-block
+ * @param mat Transformation matrix
+ */
 void BKE_gpencil_transform(bGPdata *gpd, float mat[4][4])
 {
   if (gpd == NULL) {
