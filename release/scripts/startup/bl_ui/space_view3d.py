@@ -4022,6 +4022,8 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
         layout.separator()
 
         layout.operator("transform.edge_slide")
+        props = layout.operator("mesh.loopcut_slide")
+        props.TRANSFORM_OT_edge_slide.release_confirm = False
         layout.operator("mesh.offset_edge_loops_slide")
 
         layout.separator()
