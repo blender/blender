@@ -782,6 +782,7 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f
   BMLoop *lef1, *lef2;
   BMLoop *lv1f1, *lv1f2, *lv2f1, *lv2f2;
   BMVert *v1, *v2;
+  UNUSED_VARS_NDEBUG(v1, v2);
   int i;
 
   if (bm->ldata.totlayer == 0) {
