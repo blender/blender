@@ -72,27 +72,30 @@ BCMatrix::BCMatrix(BC_global_forward_axis global_forward_axis, BC_global_up_axis
   set_transform(mat);
 }
 
-void BCMatrix::add_transform(const Matrix &mat, bool inverse)
+void BCMatrix::add_transform(const Matrix &mat, bool inverted)
 {
-  add_transform(this->matrix, mat, this->matrix, inverse);
+  add_transform(this->matrix, mat, this->matrix, inverted);
 }
 
-void BCMatrix::add_transform(const BCMatrix &mat, bool inverse)
+void BCMatrix::add_transform(const BCMatrix &mat, bool inverted)
 {
-  add_transform(this->matrix, mat.matrix, this->matrix, inverse);
+  add_transform(this->matrix, mat.matrix, this->matrix, inverted);
 }
 
-void BCMatrix::apply_transform(const BCMatrix &mat, bool inverse)
+void BCMatrix::apply_transform(const BCMatrix &mat, bool inverted)
 {
-  apply_transform(this->matrix, mat.matrix, this->matrix, inverse);
+  apply_transform(this->matrix, mat.matrix, this->matrix, inverted);
 }
 
-void BCMatrix::add_transform(Matrix &to, const Matrix &transform, const Matrix &from, bool inverse)
+void BCMatrix::add_transform(Matrix &to,
+                             const Matrix &transform,
+                             const Matrix &from,
+                             bool inverted)
 {
-  if (inverse) {
+  if (inverted) {
     Matrix globinv;
     invert_m4_m4(globinv, transform);
-    add_transform(to, globinv, from, /*inverse=*/false);
+    add_transform(to, globinv, from, /*inverted=*/false);
   }
   else {
     mul_m4_m4m4(to, transform, from);
@@ -107,7 +110,7 @@ void BCMatrix::apply_transform(Matrix &to,
   Matrix globinv;
   invert_m4_m4(globinv, transform);
   if (inverse) {
-    add_transform(to, globinv, from, /*inverse=*/false);
+    add_transform(to, globinv, from, /*inverted=*/false);
   }
   else {
     mul_m4_m4m4(to, transform, from);
