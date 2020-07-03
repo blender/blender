@@ -56,6 +56,8 @@ typedef struct Hair {
   /* Custom Data */
   struct CustomData pdata;
   struct CustomData cdata;
+  int attributes_active_index;
+  int _pad3;
 
   /* Material */
   struct Material **mat;

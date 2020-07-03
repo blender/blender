@@ -84,6 +84,15 @@ PyDoc_STRVAR(bpy_bmlayeraccess_collection__float_doc,
              "Generic float custom-data layer.\n\ntype: :class:`BMLayerCollection`");
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__int_doc,
              "Generic int custom-data layer.\n\ntype: :class:`BMLayerCollection`");
+PyDoc_STRVAR(bpy_bmlayeraccess_collection__float_vector_doc,
+             "Generic 3D vector with float precision custom-data layer.\n\ntype: "
+             ":class:`BMLayerCollection`");
+PyDoc_STRVAR(bpy_bmlayeraccess_collection__float_color_doc,
+             "Generic RGBA color with float precision custom-data layer.\n\ntype: "
+             ":class:`BMLayerCollection`");
+PyDoc_STRVAR(bpy_bmlayeraccess_collection__color_doc,
+             "Generic RGBA color with 8-bit precision custom-data layer.\n\ntype: "
+             ":class:`BMLayerCollection`");
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__string_doc,
              "Generic string custom-data layer (exposed as bytes, 255 max length).\n\ntype: "
              ":class:`BMLayerCollection`");
@@ -102,8 +111,6 @@ PyDoc_STRVAR(bpy_bmlayeraccess_collection__crease_doc,
 PyDoc_STRVAR(
     bpy_bmlayeraccess_collection__uv_doc,
     "Accessor for :class:`BMLoopUV` UV (as a 2D Vector).\n\ntype: :class:`BMLayerCollection`");
-PyDoc_STRVAR(bpy_bmlayeraccess_collection__color_doc,
-             "Accessor for vertex color layer.\n\ntype: :class:`BMLayerCollection`");
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__skin_doc,
              "Accessor for skin layer.\n\ntype: :class:`BMLayerCollection`");
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__paint_mask_doc,
@@ -188,6 +195,21 @@ static PyGetSetDef bpy_bmlayeraccess_vert_getseters[] = {
      (setter)NULL,
      bpy_bmlayeraccess_collection__int_doc,
      (void *)CD_PROP_INT32},
+    {"float_vector",
+     (getter)bpy_bmlayeraccess_collection_get,
+     (setter)NULL,
+     bpy_bmlayeraccess_collection__float_vector_doc,
+     (void *)CD_PROP_FLOAT3},
+    {"float_color",
+     (getter)bpy_bmlayeraccess_collection_get,
+     (setter)NULL,
+     bpy_bmlayeraccess_collection__float_color_doc,
+     (void *)CD_PROP_COLOR},
+    {"color",
+     (getter)bpy_bmlayeraccess_collection_get,
+     (setter)NULL,
+     bpy_bmlayeraccess_collection__color_doc,
+     (void *)CD_MLOOPCOL},
     {"string",
      (getter)bpy_bmlayeraccess_collection_get,
      (setter)NULL,
@@ -229,6 +251,21 @@ static PyGetSetDef bpy_bmlayeraccess_edge_getseters[] = {
      (setter)NULL,
      bpy_bmlayeraccess_collection__int_doc,
      (void *)CD_PROP_INT32},
+    {"float_vector",
+     (getter)bpy_bmlayeraccess_collection_get,
+     (setter)NULL,
+     bpy_bmlayeraccess_collection__float_vector_doc,
+     (void *)CD_PROP_FLOAT3},
+    {"float_color",
+     (getter)bpy_bmlayeraccess_collection_get,
+     (setter)NULL,
+     bpy_bmlayeraccess_collection__float_color_doc,
+     (void *)CD_PROP_COLOR},
+    {"color",
+     (getter)bpy_bmlayeraccess_collection_get,
+     (setter)NULL,
+     bpy_bmlayeraccess_collection__color_doc,
+     (void *)CD_MLOOPCOL},
     {"string",
      (getter)bpy_bmlayeraccess_collection_get,
      (setter)NULL,
@@ -267,6 +304,21 @@ static PyGetSetDef bpy_bmlayeraccess_face_getseters[] = {
      (setter)NULL,
      bpy_bmlayeraccess_collection__int_doc,
      (void *)CD_PROP_INT32},
+    {"float_vector",
+     (getter)bpy_bmlayeraccess_collection_get,
+     (setter)NULL,
+     bpy_bmlayeraccess_collection__float_vector_doc,
+     (void *)CD_PROP_FLOAT3},
+    {"float_color",
+     (getter)bpy_bmlayeraccess_collection_get,
+     (setter)NULL,
+     bpy_bmlayeraccess_collection__float_color_doc,
+     (void *)CD_PROP_COLOR},
+    {"color",
+     (getter)bpy_bmlayeraccess_collection_get,
+     (setter)NULL,
+     bpy_bmlayeraccess_collection__color_doc,
+     (void *)CD_MLOOPCOL},
     {"string",
      (getter)bpy_bmlayeraccess_collection_get,
      (setter)NULL,
@@ -300,12 +352,21 @@ static PyGetSetDef bpy_bmlayeraccess_loop_getseters[] = {
      (setter)NULL,
      bpy_bmlayeraccess_collection__int_doc,
      (void *)CD_PROP_INT32},
+    {"float_vector",
+     (getter)bpy_bmlayeraccess_collection_get,
+     (setter)NULL,
+     bpy_bmlayeraccess_collection__float_vector_doc,
+     (void *)CD_PROP_FLOAT3},
+    {"float_color",
+     (getter)bpy_bmlayeraccess_collection_get,
+     (setter)NULL,
+     bpy_bmlayeraccess_collection__float_color_doc,
+     (void *)CD_PROP_COLOR},
     {"string",
      (getter)bpy_bmlayeraccess_collection_get,
      (setter)NULL,
      bpy_bmlayeraccess_collection__string_doc,
      (void *)CD_PROP_STRING},
-
     {"uv",
      (getter)bpy_bmlayeraccess_collection_get,
      (setter)NULL,
@@ -1072,6 +1133,14 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
       ret = PyLong_FromLong(*(int *)value);
       break;
     }
+    case CD_PROP_FLOAT3: {
+      ret = Vector_CreatePyObject_wrap((float *)value, 3, NULL);
+      break;
+    }
+    case CD_PROP_COLOR: {
+      ret = Vector_CreatePyObject_wrap((float *)value, 4, NULL);
+      break;
+    }
     case CD_PROP_STRING: {
       MStringProperty *mstring = value;
       ret = PyBytes_FromStringAndSize(mstring->s, mstring->s_len);
@@ -1147,6 +1216,18 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
       }
       else {
         *(int *)value = tmp_val;
+      }
+      break;
+    }
+    case CD_PROP_FLOAT3: {
+      if (mathutils_array_parse((float *)value, 3, 3, py_value, "BMElem Float Vector") == -1) {
+        ret = -1;
+      }
+      break;
+    }
+    case CD_PROP_COLOR: {
+      if (mathutils_array_parse((float *)value, 4, 4, py_value, "BMElem Float Color") == -1) {
+        ret = -1;
       }
       break;
     }

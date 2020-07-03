@@ -33,7 +33,6 @@
 #include "DNA_customdata_types.h"
 #include "DNA_hair_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_pointcloud_types.h"
 
 #include "BLI_bitmap.h"
 #include "BLI_endian_switch.h"
@@ -1976,43 +1975,42 @@ const CustomData_MeshMasks CD_MASK_BAREMESH_ORIGINDEX = {
 };
 const CustomData_MeshMasks CD_MASK_MESH = {
     .vmask = (CD_MASK_MVERT | CD_MASK_MDEFORMVERT | CD_MASK_MVERT_SKIN | CD_MASK_PAINT_MASK |
-              CD_MASK_GENERIC_DATA | CD_MASK_PROP_COLOR),
-    .emask = (CD_MASK_MEDGE | CD_MASK_FREESTYLE_EDGE | CD_MASK_GENERIC_DATA),
+              CD_MASK_PROP_ALL | CD_MASK_PROP_COLOR),
+    .emask = (CD_MASK_MEDGE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     .fmask = 0,
     .lmask = (CD_MASK_MLOOP | CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL |
-              CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK | CD_MASK_GENERIC_DATA),
+              CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
     .pmask = (CD_MASK_MPOLY | CD_MASK_RECAST | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE |
-              CD_MASK_GENERIC_DATA | CD_MASK_SCULPT_FACE_SETS),
+              CD_MASK_PROP_ALL | CD_MASK_SCULPT_FACE_SETS),
 };
 const CustomData_MeshMasks CD_MASK_EDITMESH = {
     .vmask = (CD_MASK_MDEFORMVERT | CD_MASK_PAINT_MASK | CD_MASK_MVERT_SKIN | CD_MASK_SHAPEKEY |
-              CD_MASK_SHAPE_KEYINDEX | CD_MASK_GENERIC_DATA | CD_MASK_PROP_COLOR),
-    .emask = (CD_MASK_GENERIC_DATA),
+              CD_MASK_SHAPE_KEYINDEX | CD_MASK_PROP_ALL | CD_MASK_PROP_COLOR),
+    .emask = (CD_MASK_PROP_ALL),
     .fmask = 0,
     .lmask = (CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL |
-              CD_MASK_GRID_PAINT_MASK | CD_MASK_GENERIC_DATA),
-    .pmask = (CD_MASK_RECAST | CD_MASK_FACEMAP | CD_MASK_GENERIC_DATA | CD_MASK_SCULPT_FACE_SETS),
+              CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
+    .pmask = (CD_MASK_RECAST | CD_MASK_FACEMAP | CD_MASK_PROP_ALL | CD_MASK_SCULPT_FACE_SETS),
 };
 const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
     .vmask = (CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT | CD_MASK_SHAPEKEY | CD_MASK_MVERT_SKIN |
-              CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_GENERIC_DATA | CD_MASK_PROP_COLOR),
-    .emask = (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_GENERIC_DATA),
+              CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_PROP_ALL | CD_MASK_PROP_COLOR),
+    .emask = (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     .fmask = (CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_PREVIEW_MCOL | CD_MASK_TANGENT),
     .lmask = (CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL |
               CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP |
-              CD_MASK_GENERIC_DATA), /* XXX MISSING CD_MASK_MLOOPTANGENT ? */
+              CD_MASK_PROP_ALL), /* XXX MISSING CD_MASK_MLOOPTANGENT ? */
     .pmask = (CD_MASK_ORIGINDEX | CD_MASK_RECAST | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP |
-              CD_MASK_GENERIC_DATA | CD_MASK_SCULPT_FACE_SETS),
+              CD_MASK_PROP_ALL | CD_MASK_SCULPT_FACE_SETS),
 };
 const CustomData_MeshMasks CD_MASK_BMESH = {
     .vmask = (CD_MASK_MDEFORMVERT | CD_MASK_BWEIGHT | CD_MASK_MVERT_SKIN | CD_MASK_SHAPEKEY |
-              CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_GENERIC_DATA |
-              CD_MASK_PROP_COLOR),
-    .emask = (CD_MASK_BWEIGHT | CD_MASK_CREASE | CD_MASK_FREESTYLE_EDGE | CD_MASK_GENERIC_DATA),
+              CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_PROP_COLOR),
+    .emask = (CD_MASK_BWEIGHT | CD_MASK_CREASE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     .fmask = 0,
     .lmask = (CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL |
-              CD_MASK_GRID_PAINT_MASK | CD_MASK_GENERIC_DATA),
-    .pmask = (CD_MASK_RECAST | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_GENERIC_DATA |
+              CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
+    .pmask = (CD_MASK_RECAST | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL |
               CD_MASK_SCULPT_FACE_SETS),
 };
 /**
@@ -2031,18 +2029,18 @@ const CustomData_MeshMasks CD_MASK_EVERYTHING = {
     .vmask = (CD_MASK_MVERT | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_NORMAL |
               CD_MASK_MDEFORMVERT | CD_MASK_BWEIGHT | CD_MASK_MVERT_SKIN | CD_MASK_ORCO |
               CD_MASK_CLOTH_ORCO | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK |
-              CD_MASK_GENERIC_DATA | CD_MASK_PROP_COLOR),
+              CD_MASK_PROP_ALL | CD_MASK_PROP_COLOR),
     .emask = (CD_MASK_MEDGE | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_BWEIGHT |
-              CD_MASK_CREASE | CD_MASK_FREESTYLE_EDGE | CD_MASK_GENERIC_DATA),
+              CD_MASK_CREASE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     .fmask = (CD_MASK_MFACE | CD_MASK_ORIGINDEX | CD_MASK_NORMAL | CD_MASK_MTFACE | CD_MASK_MCOL |
               CD_MASK_ORIGSPACE | CD_MASK_TANGENT | CD_MASK_TESSLOOPNORMAL | CD_MASK_PREVIEW_MCOL |
-              CD_MASK_GENERIC_DATA),
+              CD_MASK_PROP_ALL),
     .lmask = (CD_MASK_MLOOP | CD_MASK_BM_ELEM_PYPTR | CD_MASK_MDISPS | CD_MASK_NORMAL |
               CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL |
               CD_MASK_MLOOPTANGENT | CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP |
-              CD_MASK_GRID_PAINT_MASK | CD_MASK_GENERIC_DATA),
+              CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
     .pmask = (CD_MASK_MPOLY | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_NORMAL |
-              CD_MASK_RECAST | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_GENERIC_DATA |
+              CD_MASK_RECAST | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL |
               CD_MASK_SCULPT_FACE_SETS),
 };
 
@@ -4306,14 +4304,6 @@ int CustomData_layertype_layers_max(const int type)
   return typeInfo->layers_max();
 }
 
-static bool CustomData_is_property_layer(int type)
-{
-  if ((type == CD_PROP_FLOAT) || (type == CD_PROP_INT32) || (type == CD_PROP_STRING)) {
-    return true;
-  }
-  return false;
-}
-
 static bool cd_layer_find_dupe(CustomData *data, const char *name, int type, int index)
 {
   /* see if there is a duplicate */
@@ -4321,8 +4311,8 @@ static bool cd_layer_find_dupe(CustomData *data, const char *name, int type, int
     if (i != index) {
       CustomDataLayer *layer = &data->layers[i];
 
-      if (CustomData_is_property_layer(type)) {
-        if (CustomData_is_property_layer(layer->type) && STREQ(layer->name, name)) {
+      if (CD_TYPE_AS_MASK(type) & CD_MASK_PROP_ALL) {
+        if ((CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL) && STREQ(layer->name, name)) {
           return true;
         }
       }

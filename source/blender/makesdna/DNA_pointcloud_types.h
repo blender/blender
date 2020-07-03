@@ -38,6 +38,8 @@ typedef struct PointCloud {
 
   /* Custom Data */
   struct CustomData pdata;
+  int attributes_active_index;
+  int _pad4;
 
   /* Material */
   struct Material **mat;

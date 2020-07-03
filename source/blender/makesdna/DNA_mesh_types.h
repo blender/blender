@@ -191,6 +191,9 @@ typedef struct Mesh {
   int totpoly, totloop;
   /* END BMESH ONLY */
 
+  int attributes_active_index;
+  int _pad3;
+
   /* the last selected vertex/edge/face are used for the active face however
    * this means the active face must always be selected, this is to keep track
    * of the last selected face and is similar to the old active face flag where

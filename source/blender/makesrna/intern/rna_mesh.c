@@ -3200,6 +3200,9 @@ static void rna_def_mesh(BlenderRNA *brna)
   rna_def_paint_mask(brna, prop);
   /* End paint mask */
 
+  /* Attributes */
+  rna_def_attributes_common(srna);
+
   /* Remesh */
   prop = RNA_def_property(srna, "remesh_voxel_size", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "remesh_voxel_size");

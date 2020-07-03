@@ -34,6 +34,7 @@
 
 #  include "BLI_math_vector.h"
 
+#  include "BKE_attribute.h"
 #  include "BKE_hair.h"
 
 #  include "DEG_depsgraph.h"
@@ -223,6 +224,9 @@ static void rna_def_hair(BlenderRNA *brna)
   RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
   RNA_def_property_collection_funcs(
       prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "rna_IDMaterials_assign_int");
+
+  /* attributes */
+  rna_def_attributes_common(srna);
 
   /* common */
   rna_def_animdata_common(srna);
