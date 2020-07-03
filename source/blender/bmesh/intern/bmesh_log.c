@@ -183,9 +183,7 @@ static float vert_mask_get(BMVert *v, const int cd_vert_mask_offset)
   if (cd_vert_mask_offset != -1) {
     return BM_ELEM_CD_GET_FLOAT(v, cd_vert_mask_offset);
   }
-  else {
-    return 0.0f;
-  }
+  return 0.0f;
 }
 
 /* Set a vertex's paint-mask value

@@ -143,9 +143,7 @@ static bool bm_edgenet_path_check_overlap(BMVert *v1, BMVert *v2, VertNetInfo *v
 
     return BM_face_exists_overlap_subset(vert_arr, (int)v_ls_tot);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /**
@@ -331,11 +329,10 @@ static LinkNode *bm_edgenet_path_calc(BMEdge *e,
         *r_path_cost = path_cost_accum;
         return path;
       }
-      else {
-        /* check if a change was made */
-        if (v_ls_next_old != v_ls_next) {
-          found = true;
-        }
+
+      /* check if a change was made */
+      if (v_ls_next_old != v_ls_next) {
+        found = true;
       }
     }
     BLI_assert(v_ls_prev == NULL);
@@ -379,49 +376,49 @@ static LinkNode *bm_edgenet_path_calc_best(BMEdge *e,
   if (path == NULL) {
     return NULL;
   }
-  else if (path_cost < 1) {
+  if (path_cost < 1) {
     /* any face that takes 1 iteration to find we consider valid */
     return path;
   }
-  else {
-    /* Check every edge to see if any can give a better path.
-     * This avoids very strange/long paths from being created. */
 
-    const uint path_len = *r_path_len;
-    uint i, i_prev;
-    BMVert **vert_arr = BLI_array_alloca(vert_arr, path_len);
-    LinkNode *v_lnk;
+  /* Check every edge to see if any can give a better path.
+   * This avoids very strange/long paths from being created. */
 
-    for (v_lnk = path, i = 0; v_lnk; v_lnk = v_lnk->next, i++) {
-      vert_arr[i] = v_lnk->link;
-    }
+  const uint path_len = *r_path_len;
+  uint i, i_prev;
+  BMVert **vert_arr = BLI_array_alloca(vert_arr, path_len);
+  LinkNode *v_lnk;
 
-    i_prev = path_len - 1;
-    for (i = 0; i < path_len; i++) {
-      BMEdge *e_other = BM_edge_exists(vert_arr[i], vert_arr[i_prev]);
-      if (e_other != e) {
-        LinkNode *path_test;
-        uint path_len_test;
-        uint path_cost_test;
-
-        path_test = bm_edgenet_path_calc(
-            e_other, *pass_nr, path_cost, &path_len_test, &path_cost_test, vnet_info, path_pool);
-        (*pass_nr)++;
-
-        if (path_test) {
-          BLI_assert(path_cost_test < path_cost);
-
-          BLI_linklist_free_pool(path, NULL, path_pool);
-          path = path_test;
-          *r_path_len = path_len_test;
-          *r_path_cost = path_cost_test;
-          path_cost = path_cost_test;
-        }
-      }
-
-      i_prev = i;
-    }
+  for (v_lnk = path, i = 0; v_lnk; v_lnk = v_lnk->next, i++) {
+    vert_arr[i] = v_lnk->link;
   }
+
+  i_prev = path_len - 1;
+  for (i = 0; i < path_len; i++) {
+    BMEdge *e_other = BM_edge_exists(vert_arr[i], vert_arr[i_prev]);
+    if (e_other != e) {
+      LinkNode *path_test;
+      uint path_len_test;
+      uint path_cost_test;
+
+      path_test = bm_edgenet_path_calc(
+          e_other, *pass_nr, path_cost, &path_len_test, &path_cost_test, vnet_info, path_pool);
+      (*pass_nr)++;
+
+      if (path_test) {
+        BLI_assert(path_cost_test < path_cost);
+
+        BLI_linklist_free_pool(path, NULL, path_pool);
+        path = path_test;
+        *r_path_len = path_len_test;
+        *r_path_cost = path_cost_test;
+        path_cost = path_cost_test;
+      }
+    }
+
+    i_prev = i;
+  }
+
   return path;
 }
 

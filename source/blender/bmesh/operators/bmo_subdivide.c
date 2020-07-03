@@ -1276,7 +1276,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
       continue;
     }
-    else if (!pat) {
+    if (!pat) {
       continue;
     }
 

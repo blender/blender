@@ -534,7 +534,7 @@ static EdgeHalf *find_other_end_edge_half(BevelParams *bp, EdgeHalf *e, BevVert 
     BLI_assert(eother != NULL);
     return eother;
   }
-  else if (r_bvother) {
+  if (r_bvother) {
     *r_bvother = NULL;
   }
   return NULL;
@@ -1095,13 +1095,11 @@ static bool is_outside_edge(EdgeHalf *e, const float co[3], BMVert **ret_closer_
     *ret_closer_v = e->e->v1;
     return true;
   }
-  else if (lambda >= (1.0f + BEVEL_EPSILON_BIG) * lenu) {
+  if (lambda >= (1.0f + BEVEL_EPSILON_BIG) * lenu) {
     *ret_closer_v = e->e->v2;
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /* Return whether the angle is less than, equal to, or larger than 180 degrees. */
@@ -1132,12 +1130,10 @@ static int edges_angle_kind(EdgeHalf *e1, EdgeHalf *e2, BMVert *v)
   if (fabsf(dot) < BEVEL_EPSILON_BIG) {
     return ANGLE_STRAIGHT;
   }
-  else if (dot < 0.0f) {
+  if (dot < 0.0f) {
     return ANGLE_LARGER;
   }
-  else {
-    return ANGLE_SMALLER;
-  }
+  return ANGLE_SMALLER;
 }
 
 /* co should be approximately on the plane between e1 and e2, which share common vert v and common
@@ -1845,9 +1841,7 @@ static double superellipse_co(double x, float r, bool rbig)
   if (rbig) {
     return pow((1.0 - pow(x, r)), (1.0 / r));
   }
-  else {
-    return 1.0 - pow((1.0 - pow(1.0 - x, r)), (1.0 / r));
-  }
+  return 1.0 - pow((1.0 - pow(1.0 - x, r)), (1.0 / r));
 }
 
 /**
@@ -3291,16 +3285,13 @@ static EdgeHalf *next_edgehalf_bev(BevelParams *bp,
     if ((next_edge != NULL) && compare_ff(best_dot, second_best_dot, BEVEL_SMALL_ANG_DOT)) {
       return NULL;
     }
-    else {
-      return next_edge;
-    }
-  }
-  else {
-    /* Case 2: The next EdgeHalf is the other side of the BMEdge.
-     * It's part of the same BMEdge, so we know the other EdgeHalf is also beveled. */
-    next_edge = find_other_end_edge_half(bp, start_edge, r_bv);
     return next_edge;
   }
+
+  /* Case 2: The next EdgeHalf is the other side of the BMEdge.
+   * It's part of the same BMEdge, so we know the other EdgeHalf is also beveled. */
+  next_edge = find_other_end_edge_half(bp, start_edge, r_bv);
+  return next_edge;
 }
 
 /**
@@ -3740,9 +3731,8 @@ static bool is_canon(VMesh *vm, int i, int j, int k)
   if (vm->seg % 2 == 1) { /* Odd. */
     return (j <= ns2 && k <= ns2);
   }
-  else { /* Even. */
-    return ((j < ns2 && k <= ns2) || (j == ns2 && k == ns2 && i == 0));
-  }
+  /* Even. */
+  return ((j < ns2 && k <= ns2) || (j == ns2 && k == ns2 && i == 0));
 }
 
 /* Copy the vertex data to all of vm verts from canonical ones. */
@@ -3806,7 +3796,7 @@ static float sabin_gamma(int n)
   if (n < 3) {
     return 0.0f;
   }
-  else if (n == 3) {
+  if (n == 3) {
     ans = 0.065247584f;
   }
   else if (n == 4) {
@@ -4260,7 +4250,7 @@ static VMesh *make_cube_corner_adj_vmesh(BevelParams *bp)
     if (r == PRO_SQUARE_R) {
       return make_cube_corner_square(mem_arena, nseg);
     }
-    else if (r == PRO_SQUARE_IN_R) {
+    if (r == PRO_SQUARE_IN_R) {
       return make_cube_corner_square_in(mem_arena, nseg);
     }
   }
@@ -4628,9 +4618,7 @@ static BMEdge *find_closer_edge(float *co, BMEdge *e1, BMEdge *e2)
   if (dsq1 < dsq2) {
     return e1;
   }
-  else {
-    return e2;
-  }
+  return e2;
 }
 
 /* Snap co to the closest edge of face f. Return the edge in *r_snap_e,
@@ -5769,9 +5757,7 @@ static float edge_face_angle(EdgeHalf *e)
     /* Angle between faces is supplement of angle between face normals. */
     return (float)M_PI - angle_normalized_v3v3(e->fprev->no, e->fnext->no);
   }
-  else {
-    return 0.0f;
-  }
+  return 0.0f;
 }
 
 /* Take care, this flag isn't cleared before use, it just so happens that its not set. */

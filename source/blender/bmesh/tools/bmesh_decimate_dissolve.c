@@ -278,9 +278,7 @@ static bool bm_vert_collapse_is_degenerate(BMVert *v)
     }
     return false;
   }
-  else {
-    return true;
-  }
+  return true;
 }
 #endif /* USE_DEGENERATE_CHECK */
 

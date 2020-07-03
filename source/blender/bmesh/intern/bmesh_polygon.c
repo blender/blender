@@ -743,9 +743,7 @@ bool BM_vert_calc_normal_ex(const BMVert *v, const char hflag, float r_no[3])
     normalize_v3(r_no);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 bool BM_vert_calc_normal(const BMVert *v, float r_no[3])
@@ -773,9 +771,7 @@ bool BM_vert_calc_normal(const BMVert *v, float r_no[3])
     normalize_v3(r_no);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 void BM_vert_normal_update_all(BMVert *v)

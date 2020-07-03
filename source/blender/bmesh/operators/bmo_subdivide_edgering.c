@@ -907,9 +907,7 @@ static void bm_edgering_pair_order(BMesh *bm,
         if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
           break;
         }
-        else {
-          v_other = NULL;
-        }
+        v_other = NULL;
       }
     }
     BLI_assert(v_other != NULL);

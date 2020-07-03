@@ -139,9 +139,7 @@ BLI_INLINE bool bm_uuidwalk_face_test(UUIDWalk *uuidwalk, BMFace *f)
   if (uuidwalk->use_face_isolate) {
     return BM_elem_flag_test_bool(f, BM_ELEM_TAG);
   }
-  else {
-    return true;
-  }
+  return true;
 }
 
 BLI_INLINE bool bm_uuidwalk_vert_lookup(UUIDWalk *uuidwalk, BMVert *v, UUID_Int *r_uuid)
@@ -152,9 +150,7 @@ BLI_INLINE bool bm_uuidwalk_vert_lookup(UUIDWalk *uuidwalk, BMVert *v, UUID_Int 
     *r_uuid = (UUID_Int)(*ret);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 BLI_INLINE bool bm_uuidwalk_face_lookup(UUIDWalk *uuidwalk, BMFace *f, UUID_Int *r_uuid)
@@ -165,9 +161,7 @@ BLI_INLINE bool bm_uuidwalk_face_lookup(UUIDWalk *uuidwalk, BMFace *f, UUID_Int 
     *r_uuid = (UUID_Int)(*ret);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 static uint ghashutil_bmelem_indexhash(const void *key)
@@ -566,12 +560,10 @@ static int bm_face_len_cmp(const void *v1, const void *v2)
   if (f1->len > f2->len) {
     return 1;
   }
-  else if (f1->len < f2->len) {
+  if (f1->len < f2->len) {
     return -1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static uint bm_uuidwalk_init_from_edge(UUIDWalk *uuidwalk, BMEdge *e)
@@ -937,10 +929,8 @@ static bool bm_edge_is_region_boundary(BMEdge *e)
     } while ((l_iter = l_iter->radial_next) != e->l);
     return false;
   }
-  else {
-    /* boundary */
-    return true;
-  }
+  /* boundary */
+  return true;
 }
 
 static void bm_face_region_pivot_edge_use_best(GHash *gh,

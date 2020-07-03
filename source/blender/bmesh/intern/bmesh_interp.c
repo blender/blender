@@ -160,13 +160,12 @@ void BM_data_interp_face_vert_edge(BMesh *bm,
     if (!l_v1 || !l_v2) {
       return;
     }
-    else {
-      const void *src[2];
-      src[0] = l_v1->head.data;
-      src[1] = l_v2->head.data;
 
-      CustomData_bmesh_interp(&bm->ldata, src, w, NULL, 2, l_v->head.data);
-    }
+    const void *src[2];
+    src[0] = l_v1->head.data;
+    src[1] = l_v2->head.data;
+
+    CustomData_bmesh_interp(&bm->ldata, src, w, NULL, 2, l_v->head.data);
   } while ((l_iter = l_iter->radial_next) != e->l);
 }
 

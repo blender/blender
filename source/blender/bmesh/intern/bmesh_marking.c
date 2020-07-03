@@ -743,7 +743,7 @@ BMFace *BM_mesh_active_face_get(BMesh *bm, const bool is_sloppy, const bool is_s
   if (bm->act_face && (!is_selected || BM_elem_flag_test(bm->act_face, BM_ELEM_SELECT))) {
     return bm->act_face;
   }
-  else if (is_sloppy) {
+  if (is_sloppy) {
     BMIter iter;
     BMFace *f = NULL;
     BMEditSelection *ese;
@@ -953,9 +953,7 @@ bool _bm_select_history_remove(BMesh *bm, BMHeader *ele)
     BLI_freelinkN(&bm->selected, ese);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 void _bm_select_history_store_notest(BMesh *bm, BMHeader *ele)

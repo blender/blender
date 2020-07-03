@@ -1826,117 +1826,116 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
     if (BM_verts_in_edge(v_kill, v_target, e_old)) {
       return NULL;
     }
-    else {
-      BMEdge *e_splice;
-      BLI_SMALLSTACK_DECLARE(faces_degenerate, BMFace *);
-      BMLoop *l_kill_next;
+
+    BMEdge *e_splice;
+    BLI_SMALLSTACK_DECLARE(faces_degenerate, BMFace *);
+    BMLoop *l_kill_next;
 
 #ifndef NDEBUG
-      /* For verification later, count valence of 'v_old' and 'v_target' */
-      valence1 = bmesh_disk_count(v_old);
-      valence2 = bmesh_disk_count(v_target);
+    /* For verification later, count valence of 'v_old' and 'v_target' */
+    valence1 = bmesh_disk_count(v_old);
+    valence2 = bmesh_disk_count(v_target);
 #endif
 
-      if (check_edge_double) {
-        e_splice = BM_edge_exists(v_target, v_old);
-      }
-
-      bmesh_disk_vert_replace(e_old, v_target, v_kill);
-
-      /* remove e_kill from 'v_target's disk cycle */
-      bmesh_disk_edge_remove(e_kill, v_target);
-
-#ifndef NDEBUG
-      /* deal with radial cycle of e_kill */
-      radlen = bmesh_radial_length(e_kill->l);
-#endif
-      if (e_kill->l) {
-
-        /* fix the neighboring loops of all loops in e_kill's radial cycle */
-        l_kill = e_kill->l;
-        do {
-          /* relink loops and fix vertex pointer */
-          if (l_kill->next->v == v_kill) {
-            l_kill->next->v = v_target;
-          }
-
-          l_kill->next->prev = l_kill->prev;
-          l_kill->prev->next = l_kill->next;
-          if (BM_FACE_FIRST_LOOP(l_kill->f) == l_kill) {
-            BM_FACE_FIRST_LOOP(l_kill->f) = l_kill->next;
-          }
-
-          /* fix len attribute of face */
-          l_kill->f->len--;
-          if (kill_degenerate_faces) {
-            if (l_kill->f->len < 3) {
-              BLI_SMALLSTACK_PUSH(faces_degenerate, l_kill->f);
-            }
-          }
-          l_kill_next = l_kill->radial_next;
-
-          bm_kill_only_loop(bm, l_kill);
-
-        } while ((l_kill = l_kill_next) != e_kill->l);
-        /* `e_kill->l` is invalid but the edge is freed next. */
-#ifndef NDEBUG
-        /* Validate radial cycle of e_old */
-        edok = bmesh_radial_validate(radlen, e_old->l);
-        BMESH_ASSERT(edok != false);
-#endif
-      }
-      /* deallocate edge */
-      bm_kill_only_edge(bm, e_kill);
-
-      /* deallocate vertex */
-      if (do_del) {
-        bm_kill_only_vert(bm, v_kill);
-      }
-      else {
-        v_kill->e = NULL;
-      }
-
-#ifndef NDEBUG
-      /* Validate disk cycle lengths of 'v_old', 'v_target' are unchanged */
-      edok = bmesh_disk_validate(valence1, v_old->e, v_old);
-      BMESH_ASSERT(edok != false);
-      edok = bmesh_disk_validate(valence2, v_target->e, v_target);
-      BMESH_ASSERT(edok != false);
-
-      /* Validate loop cycle of all faces attached to 'e_old' */
-      for (i = 0, l = e_old->l; i < radlen; i++, l = l->radial_next) {
-        BMESH_ASSERT(l->e == e_old);
-        edok = BM_verts_in_edge(l->v, l->next->v, e_old);
-        BMESH_ASSERT(edok != false);
-        edok = bmesh_loop_validate(l->f);
-        BMESH_ASSERT(edok != false);
-
-        BM_CHECK_ELEMENT(l);
-        BM_CHECK_ELEMENT(l->v);
-        BM_CHECK_ELEMENT(l->e);
-        BM_CHECK_ELEMENT(l->f);
-      }
-#endif
-      if (check_edge_double) {
-        if (e_splice) {
-          /* removes e_splice */
-          BM_edge_splice(bm, e_old, e_splice);
-        }
-      }
-
-      if (kill_degenerate_faces) {
-        BMFace *f_kill;
-        while ((f_kill = BLI_SMALLSTACK_POP(faces_degenerate))) {
-          BM_face_kill(bm, f_kill);
-        }
-      }
-
-      BM_CHECK_ELEMENT(v_old);
-      BM_CHECK_ELEMENT(v_target);
-      BM_CHECK_ELEMENT(e_old);
-
-      return e_old;
+    if (check_edge_double) {
+      e_splice = BM_edge_exists(v_target, v_old);
     }
+
+    bmesh_disk_vert_replace(e_old, v_target, v_kill);
+
+    /* remove e_kill from 'v_target's disk cycle */
+    bmesh_disk_edge_remove(e_kill, v_target);
+
+#ifndef NDEBUG
+    /* deal with radial cycle of e_kill */
+    radlen = bmesh_radial_length(e_kill->l);
+#endif
+    if (e_kill->l) {
+
+      /* fix the neighboring loops of all loops in e_kill's radial cycle */
+      l_kill = e_kill->l;
+      do {
+        /* relink loops and fix vertex pointer */
+        if (l_kill->next->v == v_kill) {
+          l_kill->next->v = v_target;
+        }
+
+        l_kill->next->prev = l_kill->prev;
+        l_kill->prev->next = l_kill->next;
+        if (BM_FACE_FIRST_LOOP(l_kill->f) == l_kill) {
+          BM_FACE_FIRST_LOOP(l_kill->f) = l_kill->next;
+        }
+
+        /* fix len attribute of face */
+        l_kill->f->len--;
+        if (kill_degenerate_faces) {
+          if (l_kill->f->len < 3) {
+            BLI_SMALLSTACK_PUSH(faces_degenerate, l_kill->f);
+          }
+        }
+        l_kill_next = l_kill->radial_next;
+
+        bm_kill_only_loop(bm, l_kill);
+
+      } while ((l_kill = l_kill_next) != e_kill->l);
+      /* `e_kill->l` is invalid but the edge is freed next. */
+#ifndef NDEBUG
+      /* Validate radial cycle of e_old */
+      edok = bmesh_radial_validate(radlen, e_old->l);
+      BMESH_ASSERT(edok != false);
+#endif
+    }
+    /* deallocate edge */
+    bm_kill_only_edge(bm, e_kill);
+
+    /* deallocate vertex */
+    if (do_del) {
+      bm_kill_only_vert(bm, v_kill);
+    }
+    else {
+      v_kill->e = NULL;
+    }
+
+#ifndef NDEBUG
+    /* Validate disk cycle lengths of 'v_old', 'v_target' are unchanged */
+    edok = bmesh_disk_validate(valence1, v_old->e, v_old);
+    BMESH_ASSERT(edok != false);
+    edok = bmesh_disk_validate(valence2, v_target->e, v_target);
+    BMESH_ASSERT(edok != false);
+
+    /* Validate loop cycle of all faces attached to 'e_old' */
+    for (i = 0, l = e_old->l; i < radlen; i++, l = l->radial_next) {
+      BMESH_ASSERT(l->e == e_old);
+      edok = BM_verts_in_edge(l->v, l->next->v, e_old);
+      BMESH_ASSERT(edok != false);
+      edok = bmesh_loop_validate(l->f);
+      BMESH_ASSERT(edok != false);
+
+      BM_CHECK_ELEMENT(l);
+      BM_CHECK_ELEMENT(l->v);
+      BM_CHECK_ELEMENT(l->e);
+      BM_CHECK_ELEMENT(l->f);
+    }
+#endif
+    if (check_edge_double) {
+      if (e_splice) {
+        /* removes e_splice */
+        BM_edge_splice(bm, e_old, e_splice);
+      }
+    }
+
+    if (kill_degenerate_faces) {
+      BMFace *f_kill;
+      while ((f_kill = BLI_SMALLSTACK_POP(faces_degenerate))) {
+        BM_face_kill(bm, f_kill);
+      }
+    }
+
+    BM_CHECK_ELEMENT(v_old);
+    BM_CHECK_ELEMENT(v_target);
+    BM_CHECK_ELEMENT(e_old);
+
+    return e_old;
   }
   return NULL;
 }
@@ -2373,23 +2372,22 @@ void bmesh_kernel_vert_separate(
        * if 'edges' were alloc'd it'd be freed here. */
       break;
     }
-    else {
-      BMVert *v_new;
 
-      v_new = BM_vert_create(bm, v->co, v, BM_CREATE_NOP);
-      if (copy_select) {
-        BM_elem_select_copy(bm, v_new, v);
-      }
+    BMVert *v_new;
 
-      while ((e = BLI_SMALLSTACK_POP(edges))) {
-        bmesh_edge_vert_swap(e, v_new, v);
-      }
-
-      if (r_vout) {
-        BLI_SMALLSTACK_PUSH(verts_new, v_new);
-      }
-      verts_num += 1;
+    v_new = BM_vert_create(bm, v->co, v, BM_CREATE_NOP);
+    if (copy_select) {
+      BM_elem_select_copy(bm, v_new, v);
     }
+
+    while ((e = BLI_SMALLSTACK_POP(edges))) {
+      bmesh_edge_vert_swap(e, v_new, v);
+    }
+
+    if (r_vout) {
+      BLI_SMALLSTACK_PUSH(verts_new, v_new);
+    }
+    verts_num += 1;
   }
 
 #undef EDGE_VISIT

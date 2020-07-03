@@ -148,11 +148,10 @@ static void bm_decim_calc_target_co_db(BMEdge *e, double optimize_co[3], const Q
     /* all is good */
     return;
   }
-  else {
-    optimize_co[0] = 0.5 * ((double)e->v1->co[0] + (double)e->v2->co[0]);
-    optimize_co[1] = 0.5 * ((double)e->v1->co[1] + (double)e->v2->co[1]);
-    optimize_co[2] = 0.5 * ((double)e->v1->co[2] + (double)e->v2->co[2]);
-  }
+
+  optimize_co[0] = 0.5 * ((double)e->v1->co[0] + (double)e->v2->co[0]);
+  optimize_co[1] = 0.5 * ((double)e->v1->co[1] + (double)e->v2->co[1]);
+  optimize_co[2] = 0.5 * ((double)e->v1->co[2] + (double)e->v2->co[2]);
 }
 
 static void bm_decim_calc_target_co_fl(BMEdge *e, float optimize_co[3], const Quadric *vquadrics)
@@ -1059,7 +1058,7 @@ static bool bm_edge_collapse(BMesh *bm,
 
     return true;
   }
-  else if (BM_edge_is_boundary(e_clear)) {
+  if (BM_edge_is_boundary(e_clear)) {
     /* same as above but only one triangle */
     BMLoop *l_a;
     BMEdge *e_a_other[2];
@@ -1115,9 +1114,7 @@ static bool bm_edge_collapse(BMesh *bm,
 
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /**
@@ -1273,11 +1270,9 @@ static bool bm_decim_edge_collapse(BMesh *bm,
     return true;
 #endif
   }
-  else {
-    /* add back with a high cost */
-    bm_decim_invalid_edge_cost_single(e, eheap, eheap_table);
-    return false;
-  }
+  /* add back with a high cost */
+  bm_decim_invalid_edge_cost_single(e, eheap, eheap_table);
+  return false;
 }
 
 /* Main Decimate Function

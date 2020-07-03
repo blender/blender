@@ -1501,7 +1501,7 @@ void *BMO_iter_step(BMOIter *iter)
 
     return ele;
   }
-  else if (slot->slot_type == BMO_OP_SLOT_MAPPING) {
+  if (slot->slot_type == BMO_OP_SLOT_MAPPING) {
     void *ret;
 
     if (BLI_ghashIterator_done(&iter->giter) == false) {
@@ -1517,9 +1517,7 @@ void *BMO_iter_step(BMOIter *iter)
 
     return ret;
   }
-  else {
-    BLI_assert(0);
-  }
+  BLI_assert(0);
 
   return NULL;
 }

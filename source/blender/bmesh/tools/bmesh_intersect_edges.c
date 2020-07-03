@@ -127,12 +127,10 @@ static bool bm_vert_pair_share_splittable_face_cb(BMFace *UNUSED(f),
     if (IN_RANGE(lambda_b, range_min, range_max)) {
       return true;
     }
-    else {
-      copy_v3_v3(co, l_b->prev->v->co);
-      sub_v3_v3v3(dir, l_b->next->v->co, co);
-      if (isect_ray_ray_v3(v_a_co, v_a_b_dir, co, dir, NULL, &lambda_b)) {
-        return IN_RANGE(lambda_b, range_min, range_max);
-      }
+    copy_v3_v3(co, l_b->prev->v->co);
+    sub_v3_v3v3(dir, l_b->next->v->co, co);
+    if (isect_ray_ray_v3(v_a_co, v_a_b_dir, co, dir, NULL, &lambda_b)) {
+      return IN_RANGE(lambda_b, range_min, range_max);
     }
   }
   return false;
@@ -476,9 +474,7 @@ static int sort_cmp_by_lambda_cb(const void *index1_v, const void *index2_v, voi
   if (pair_flat[index1].lambda > pair_flat[index2].lambda) {
     return 1;
   }
-  else {
-    return -1;
-  }
+  return -1;
 }
 
 /* -------------------------------------------------------------------- */

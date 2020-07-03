@@ -57,12 +57,10 @@ static short plane_point_test_v3(const float plane[4],
   if (f <= -eps) {
     return -1;
   }
-  else if (f >= eps) {
+  if (f >= eps) {
     return 1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 /* -------------------------------------------------------------------- */
@@ -135,12 +133,10 @@ static int bm_vert_sortval_cb(const void *v_a_v, const void *v_b_v)
   if (val_a > val_b) {
     return 1;
   }
-  else if (val_a < val_b) {
+  if (val_a < val_b) {
     return -1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static void bm_face_bisect_verts(

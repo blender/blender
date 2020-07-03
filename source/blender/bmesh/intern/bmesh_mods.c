@@ -65,32 +65,26 @@ bool BM_vert_dissolve(BMesh *bm, BMVert *v)
     BM_vert_kill(bm, v); /* will kill edges too */
     return true;
   }
-  else if (!BM_vert_is_manifold(v)) {
+  if (!BM_vert_is_manifold(v)) {
     if (!v->e) {
       BM_vert_kill(bm, v);
       return true;
     }
-    else if (!v->e->l) {
+    if (!v->e->l) {
       if (len == 2) {
         return (BM_vert_collapse_edge(bm, v->e, v, true, true) != NULL);
       }
-      else {
-        /* used to kill the vertex here, but it may be connected to faces.
-         * so better do nothing */
-        return false;
-      }
-    }
-    else {
+      /* used to kill the vertex here, but it may be connected to faces.
+       * so better do nothing */
       return false;
     }
+    return false;
   }
-  else if (len == 2 && BM_vert_face_count_is_equal(v, 1)) {
+  if (len == 2 && BM_vert_face_count_is_equal(v, 1)) {
     /* boundary vertex on a face */
     return (BM_vert_collapse_edge(bm, v->e, v, true, true) != NULL);
   }
-  else {
-    return BM_disk_dissolve(bm, v);
-  }
+  return BM_disk_dissolve(bm, v);
 }
 
 /**
@@ -139,13 +133,13 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
     if (UNLIKELY(!BM_faces_join_pair(bm, e->l, e->l->radial_next, true))) {
       return false;
     }
-    else if (UNLIKELY(!BM_vert_collapse_faces(bm, v->e, v, 1.0, true, false, true))) {
+    if (UNLIKELY(!BM_vert_collapse_faces(bm, v->e, v, 1.0, true, false, true))) {
       return false;
     }
 #endif
     return true;
   }
-  else if (keepedge == NULL && len == 2) {
+  if (keepedge == NULL && len == 2) {
     /* collapse the vertex */
     e = BM_vert_collapse_faces(bm, v->e, v, 1.0, true, true, true);
 
@@ -855,9 +849,7 @@ bool BM_edge_rotate_check(BMEdge *e)
 
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /**

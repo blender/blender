@@ -651,9 +651,7 @@ bool BM_edgeloop_calc_normal(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
     el_store->no[2] = 1.0f; /* other axis set to 0.0 */
     return false;
   }
-  else {
-    return true;
-  }
+  return true;
 }
 
 /**
@@ -693,9 +691,7 @@ bool BM_edgeloop_calc_normal_aligned(BMesh *UNUSED(bm),
     el_store->no[2] = 1.0f; /* other axis set to 0.0 */
     return false;
   }
-  else {
-    return true;
-  }
+  return true;
 }
 
 void BM_edgeloop_flip(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)

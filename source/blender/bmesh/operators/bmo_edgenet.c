@@ -194,10 +194,8 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
       BLI_array_free(edges2);
       return;
     }
-    else {
-      edges1 = edges2;
-      edges2 = NULL;
-    }
+    edges1 = edges2;
+    edges2 = NULL;
   }
 
   if (edges2 && BLI_array_len(edges2) > 2 &&

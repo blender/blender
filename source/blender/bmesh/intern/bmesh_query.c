@@ -104,20 +104,16 @@ BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v)
     if (l_iter->prev->v == v_prev) {
       return l_iter->next;
     }
-    else if (l_iter->next->v == v_prev) {
+    if (l_iter->next->v == v_prev) {
       return l_iter->prev;
     }
-    else {
-      /* invalid args */
-      BLI_assert(0);
-      return NULL;
-    }
-  }
-  else {
     /* invalid args */
     BLI_assert(0);
     return NULL;
   }
+  /* invalid args */
+  BLI_assert(0);
+  return NULL;
 }
 
 /**
@@ -147,23 +143,17 @@ BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v)
     if (l->prev->v == v_prev) {
       return l->next;
     }
-    else {
-      BLI_assert(l->next->v == v_prev);
+    BLI_assert(l->next->v == v_prev);
 
-      return l->prev;
-    }
+    return l->prev;
   }
-  else {
-    BLI_assert(l->v == v_prev);
+  BLI_assert(l->v == v_prev);
 
-    if (l->prev->v == v) {
-      return l->prev->prev;
-    }
-    else {
-      BLI_assert(l->next->v == v);
-      return l->next->next;
-    }
+  if (l->prev->v == v) {
+    return l->prev->prev;
   }
+  BLI_assert(l->next->v == v);
+  return l->next->next;
 #endif
 }
 
@@ -302,9 +292,7 @@ static float bm_face_calc_split_dot(BMLoop *l_a, BMLoop *l_b)
       (BM_face_calc_normal_subset(l_b, l_a, no[1]) != 0.0f)) {
     return dot_v3v3(no[0], no[1]);
   }
-  else {
-    return -1.0f;
-  }
+  return -1.0f;
 }
 
 /**
@@ -634,9 +622,7 @@ BMLoop *BM_vert_step_fan_loop(BMLoop *l, BMEdge **e_step)
   if (BM_edge_is_manifold(e_next)) {
     return BM_edge_other_loop((*e_step = e_next), l);
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /**
@@ -722,11 +708,10 @@ bool BM_edge_face_pair(BMEdge *e, BMFace **r_fa, BMFace **r_fb)
     *r_fb = lb->f;
     return true;
   }
-  else {
-    *r_fa = NULL;
-    *r_fb = NULL;
-    return false;
-  }
+
+  *r_fa = NULL;
+  *r_fb = NULL;
+  return false;
 }
 
 /**
@@ -744,11 +729,10 @@ bool BM_edge_loop_pair(BMEdge *e, BMLoop **r_la, BMLoop **r_lb)
     *r_lb = lb;
     return true;
   }
-  else {
-    *r_la = NULL;
-    *r_lb = NULL;
-    return false;
-  }
+
+  *r_la = NULL;
+  *r_lb = NULL;
+  return false;
 }
 
 /**
@@ -916,9 +900,7 @@ bool BM_vert_is_wire(const BMVert *v)
 
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /**
@@ -1167,9 +1149,7 @@ bool BM_vert_is_boundary(const BMVert *v)
 
     return false;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /**
@@ -1359,12 +1339,10 @@ BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2)
   if (BM_vert_in_edge(e2, e1->v1)) {
     return e1->v1;
   }
-  else if (BM_vert_in_edge(e2, e1->v2)) {
+  if (BM_vert_in_edge(e2, e1->v2)) {
     return e1->v2;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /**
@@ -1381,9 +1359,7 @@ BMLoop *BM_edge_vert_share_loop(BMLoop *l, BMVert *v)
   if (l->v == v) {
     return l;
   }
-  else {
-    return l->next;
-  }
+  return l->next;
 }
 
 /**
@@ -1561,10 +1537,8 @@ float BM_loop_calc_face_normal_safe_ex(const BMLoop *l, const float epsilon_sq, 
     cross_v3_v3v3(r_normal, v1, v2);
     return normalize_v3(r_normal);
   }
-  else {
-    copy_v3_v3(r_normal, l->f->no);
-    return 0.0f;
-  }
+  copy_v3_v3(r_normal, l->f->no);
+  return 0.0f;
 }
 
 /**
@@ -1596,10 +1570,8 @@ float BM_loop_calc_face_normal_safe_vcos_ex(const BMLoop *l,
     cross_v3_v3v3(r_normal, v1, v2);
     return normalize_v3(r_normal);
   }
-  else {
-    copy_v3_v3(r_normal, normal_fallback);
-    return 0.0f;
-  }
+  copy_v3_v3(r_normal, normal_fallback);
+  return 0.0f;
 }
 
 /**
@@ -1721,9 +1693,7 @@ float BM_edge_calc_face_angle_ex(const BMEdge *e, const float fallback)
     const BMLoop *l2 = e->l->radial_next;
     return angle_normalized_v3v3(l1->f->no, l2->f->no);
   }
-  else {
-    return fallback;
-  }
+  return fallback;
 }
 float BM_edge_calc_face_angle(const BMEdge *e)
 {
@@ -1757,9 +1727,7 @@ float BM_edge_calc_face_angle_with_imat3_ex(const BMEdge *e,
 
     return angle_normalized_v3v3(no1, no2);
   }
-  else {
-    return fallback;
-  }
+  return fallback;
 }
 float BM_edge_calc_face_angle_with_imat3(const BMEdge *e, const float imat3[3][3])
 {
@@ -1782,9 +1750,7 @@ float BM_edge_calc_face_angle_signed_ex(const BMEdge *e, const float fallback)
     const float angle = angle_normalized_v3v3(l1->f->no, l2->f->no);
     return BM_edge_is_convex(e) ? angle : -angle;
   }
-  else {
-    return fallback;
-  }
+  return fallback;
 }
 float BM_edge_calc_face_angle_signed(const BMEdge *e)
 {
@@ -1839,9 +1805,7 @@ float BM_vert_calc_edge_angle_ex(const BMVert *v, const float fallback)
 
     return (float)M_PI - angle_v3v3v3(v1->co, v->co, v2->co);
   }
-  else {
-    return fallback;
-  }
+  return fallback;
 }
 
 float BM_vert_calc_edge_angle(const BMVert *v)
@@ -1869,9 +1833,7 @@ float BM_vert_calc_shell_factor(const BMVert *v)
   if (accum_angle != 0.0f) {
     return accum_shell / accum_angle;
   }
-  else {
-    return 1.0f;
-  }
+  return 1.0f;
 }
 /* alternate version of #BM_vert_calc_shell_factor which only
  * uses 'hflag' faces, but falls back to all if none found. */
@@ -1896,16 +1858,12 @@ float BM_vert_calc_shell_factor_ex(const BMVert *v, const float no[3], const cha
   if (accum_angle != 0.0f) {
     return accum_shell / accum_angle;
   }
-  else {
-    /* other main difference from BM_vert_calc_shell_factor! */
-    if (tot != 0 && tot_sel == 0) {
-      /* none selected, so use all */
-      return BM_vert_calc_shell_factor(v);
-    }
-    else {
-      return 1.0f;
-    }
+  /* other main difference from BM_vert_calc_shell_factor! */
+  if (tot != 0 && tot_sel == 0) {
+    /* none selected, so use all */
+    return BM_vert_calc_shell_factor(v);
   }
+  return 1.0f;
 }
 
 /**
@@ -1929,9 +1887,7 @@ float BM_vert_calc_median_tagged_edge_length(const BMVert *v)
   if (tot) {
     return length / (float)tot;
   }
-  else {
-    return 0.0f;
-  }
+  return 0.0f;
 }
 
 /**

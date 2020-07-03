@@ -61,23 +61,20 @@ static int bm_edge_length_cmp(const void *a_, const void *b_)
   if (e_a_concave < e_b_concave) {
     return -1;
   }
-  else if (e_a_concave > e_b_concave) {
+  if (e_a_concave > e_b_concave) {
     return 1;
   }
-  else {
-    /* otherwise shortest edges last */
-    const float e_a_len = BM_edge_calc_length_squared(e_a);
-    const float e_b_len = BM_edge_calc_length_squared(e_b);
-    if (e_a_len < e_b_len) {
-      return 1;
-    }
-    else if (e_a_len > e_b_len) {
-      return -1;
-    }
-    else {
-      return 0;
-    }
+
+  /* otherwise shortest edges last */
+  const float e_a_len = BM_edge_calc_length_squared(e_a);
+  const float e_b_len = BM_edge_calc_length_squared(e_b);
+  if (e_a_len < e_b_len) {
+    return 1;
   }
+  if (e_a_len > e_b_len) {
+    return -1;
+  }
+  return 0;
 }
 
 static bool bm_face_split_by_concave(BMesh *bm,

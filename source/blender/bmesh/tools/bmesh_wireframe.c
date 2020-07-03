@@ -142,13 +142,13 @@ static bool bm_loop_is_radial_boundary(BMLoop *l_first)
   if (l == l_first) {
     return true; /* a real boundary */
   }
-  else {
-    do {
-      if (BM_elem_flag_test(l->f, BM_ELEM_TAG)) {
-        return false;
-      }
-    } while ((l = l->radial_next) != l_first);
-  }
+
+  do {
+    if (BM_elem_flag_test(l->f, BM_ELEM_TAG)) {
+      return false;
+    }
+  } while ((l = l->radial_next) != l_first);
+
   return true;
 }
 

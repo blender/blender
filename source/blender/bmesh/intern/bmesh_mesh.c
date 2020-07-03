@@ -650,7 +650,7 @@ bool BM_loop_check_cyclic_smooth_fan(BMLoop *l_curr)
       return false;
     }
     /* Smooth loop/edge... */
-    else if (BM_elem_flag_test(lfan_pivot_next, BM_ELEM_TAG)) {
+    if (BM_elem_flag_test(lfan_pivot_next, BM_ELEM_TAG)) {
       if (lfan_pivot_next == l_curr) {
         /* We walked around a whole cyclic smooth fan
          * without finding any already-processed loop,
@@ -660,10 +660,8 @@ bool BM_loop_check_cyclic_smooth_fan(BMLoop *l_curr)
       /* ... already checked in some previous looping, we can abort. */
       return false;
     }
-    else {
-      /* ... we can skip it in future, and keep checking the smooth fan. */
-      BM_elem_flag_enable(lfan_pivot_next, BM_ELEM_TAG);
-    }
+    /* ... we can skip it in future, and keep checking the smooth fan. */
+    BM_elem_flag_enable(lfan_pivot_next, BM_ELEM_TAG);
   }
 }
 
@@ -2389,9 +2387,7 @@ BMVert *BM_vert_at_index_find_or_table(BMesh *bm, const int index)
   if ((bm->elem_table_dirty & BM_VERT) == 0) {
     return (index < bm->totvert) ? bm->vtable[index] : NULL;
   }
-  else {
-    return BM_vert_at_index_find(bm, index);
-  }
+  return BM_vert_at_index_find(bm, index);
 }
 
 BMEdge *BM_edge_at_index_find_or_table(BMesh *bm, const int index)
@@ -2399,9 +2395,7 @@ BMEdge *BM_edge_at_index_find_or_table(BMesh *bm, const int index)
   if ((bm->elem_table_dirty & BM_EDGE) == 0) {
     return (index < bm->totedge) ? bm->etable[index] : NULL;
   }
-  else {
-    return BM_edge_at_index_find(bm, index);
-  }
+  return BM_edge_at_index_find(bm, index);
 }
 
 BMFace *BM_face_at_index_find_or_table(BMesh *bm, const int index)
@@ -2409,9 +2403,7 @@ BMFace *BM_face_at_index_find_or_table(BMesh *bm, const int index)
   if ((bm->elem_table_dirty & BM_FACE) == 0) {
     return (index < bm->totface) ? bm->ftable[index] : NULL;
   }
-  else {
-    return BM_face_at_index_find(bm, index);
-  }
+  return BM_face_at_index_find(bm, index);
 }
 
 /**
