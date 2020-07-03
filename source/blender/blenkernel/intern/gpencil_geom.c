@@ -54,8 +54,12 @@
 
 /* GP Object - Boundbox Support */
 /**
- * Get min/max coordinate bounds for single stroke
- * \return Returns whether we found any selected points
+ *Get min/max coordinate bounds for single stroke.
+ * \param gps Grease pencil stroke
+ * \param use_select Include only selected points
+ * \param r_min Result minimum coordinates
+ * \param r_max Result maximum coordinates
+ * \return True if it was possible to calculate
  */
 bool BKE_gpencil_stroke_minmax(const bGPDstroke *gps,
                                const bool use_select,
@@ -79,7 +83,13 @@ bool BKE_gpencil_stroke_minmax(const bGPDstroke *gps,
   return changed;
 }
 
-/* get min/max bounds of all strokes in GP datablock */
+/**
+ * Get min/max bounds of all strokes in grease pencil data-block.
+ * \param gpd Grease pencil datablock
+ * \param r_min Result minimum coordinates
+ * \param r_max Result maximum coordinates
+ * \return True if it was possible to calculate
+ */
 bool BKE_gpencil_data_minmax(const bGPdata *gpd, float r_min[3], float r_max[3])
 {
   bool changed = false;
@@ -103,7 +113,11 @@ bool BKE_gpencil_data_minmax(const bGPdata *gpd, float r_min[3], float r_max[3])
   return changed;
 }
 
-/* compute center of bounding box */
+/**
+ * Compute center of bounding box.
+ * \param gpd Grease pencil data-block
+ * \param r_centroid Location of the center
+ */
 void BKE_gpencil_centroid_3d(bGPdata *gpd, float r_centroid[3])
 {
   float min[3], max[3], tot[3];
@@ -114,14 +128,20 @@ void BKE_gpencil_centroid_3d(bGPdata *gpd, float r_centroid[3])
   mul_v3_v3fl(r_centroid, tot, 0.5f);
 }
 
-/* Compute stroke bounding box. */
+/**
+ * Compute stroke bounding box.
+ * \param gps Grease pencil Stroke
+ */
 void BKE_gpencil_stroke_boundingbox_calc(bGPDstroke *gps)
 {
   INIT_MINMAX(gps->boundbox_min, gps->boundbox_max);
   BKE_gpencil_stroke_minmax(gps, false, gps->boundbox_min, gps->boundbox_max);
 }
 
-/* create bounding box values */
+/**
+ * Create bounding box values.
+ * \param ob Grease pencil object
+ */
 static void boundbox_gpencil(Object *ob)
 {
   BoundBox *bb;
@@ -145,7 +165,11 @@ static void boundbox_gpencil(Object *ob)
   bb->flag &= ~BOUNDBOX_DIRTY;
 }
 
-/* get bounding box */
+/**
+ * Get grease pencil object bounding box.
+ * \param ob Grease pencil object
+ * \return Bounding box
+ */
 BoundBox *BKE_gpencil_boundbox_get(Object *ob)
 {
   if (ELEM(NULL, ob, ob->data)) {
@@ -591,7 +615,14 @@ bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const
 
   return true;
 }
-
+/**
+ * Split stroke.
+ * \param gpf Grease pencil frame
+ * \param gps Grease pencil original stroke
+ * \param before_index Position of the point to split
+ * \param remaining_gps Secondary stroke after split.
+ * \return True if the split was done
+ */
 bool BKE_gpencil_stroke_split(bGPDframe *gpf,
                               bGPDstroke *gps,
                               const int before_index,
@@ -718,7 +749,7 @@ bool BKE_gpencil_stroke_shrink(bGPDstroke *gps, const float dist)
 }
 
 /**
- * Apply smooth to stroke point
+ * Apply smooth position to stroke point.
  * \param gps: Stroke to smooth
  * \param i: Point index
  * \param inf: Amount of smoothing to apply
@@ -781,7 +812,11 @@ bool BKE_gpencil_stroke_smooth(bGPDstroke *gps, int i, float inf)
 }
 
 /**
- * Apply smooth for strength to stroke point */
+ * Apply smooth strength to stroke point.
+ * \param gps: Stroke to smooth
+ * \param point_index: Point index
+ * \param influence: Amount of smoothing to apply
+ */
 bool BKE_gpencil_stroke_smooth_strength(bGPDstroke *gps, int point_index, float influence)
 {
   bGPDspoint *ptb = &gps->points[point_index];
@@ -841,7 +876,11 @@ bool BKE_gpencil_stroke_smooth_strength(bGPDstroke *gps, int point_index, float 
 }
 
 /**
- * Apply smooth for thickness to stroke point (use pressure) */
+ * Apply smooth for thickness to stroke point (use pressure).
+ * \param gps: Stroke to smooth
+ * \param point_index: Point index
+ * \param influence: Amount of smoothing to apply
+ */
 bool BKE_gpencil_stroke_smooth_thickness(bGPDstroke *gps, int point_index, float influence)
 {
   bGPDspoint *ptb = &gps->points[point_index];
@@ -901,6 +940,9 @@ bool BKE_gpencil_stroke_smooth_thickness(bGPDstroke *gps, int point_index, float
 
 /**
  * Apply smooth for UV rotation to stroke point (use pressure).
+ * \param gps: Stroke to smooth
+ * \param point_index: Point index
+ * \param influence: Amount of smoothing to apply
  */
 bool BKE_gpencil_stroke_smooth_uv(bGPDstroke *gps, int point_index, float influence)
 {
@@ -938,7 +980,15 @@ bool BKE_gpencil_stroke_smooth_uv(bGPDstroke *gps, int point_index, float influe
 
   return true;
 }
-/* Get points of stroke always flat to view not affected by camera view or view position */
+
+/**
+ * Get points of stroke always flat to view not affected
+ * by camera view or view position.
+ * \param points Array of grease pencil points (3D)
+ * \param totpoints Total of points
+ * \param points2d Result array of 2D points
+ * \param r_direction Concave (-1), Convex (1), or Autodetect (0)
+ */
 void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
                                 int totpoints,
                                 float (*points2d)[2],
@@ -995,8 +1045,16 @@ void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
   *r_direction = (int)locy[2];
 }
 
-/* Get points of stroke always flat to view not affected by camera view or view position
- * using another stroke as reference
+/**
+ * Get points of stroke always flat to view not affected by camera view or view position
+ * using another stroke as reference.
+ * \param ref_points Array of reference points (3D)
+ * \param ref_totpoints Total reference points
+ * \param points Array of points to flat (3D)
+ * \param totpoints Total points
+ * \param points2d Result array of 2D points
+ * \param scale Scale factor
+ * \param r_direction Concave (-1), Convex (1), or Autodetect (0)
  */
 void BKE_gpencil_stroke_2d_flat_ref(const bGPDspoint *ref_points,
                                     int ref_totpoints,
@@ -1121,8 +1179,10 @@ static void gpencil_calc_stroke_fill_uv(const float (*points2d)[2],
   }
 }
 
-/* Triangulate stroke for high quality fill (this is done only if cache is null or stroke was
- * modified) */
+/**
+ * Triangulate stroke to generate data for filling areas.
+ * \param gps Grease pencil stroke
+ */
 void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
 {
   BLI_assert(gps->totpoints >= 3);
@@ -1181,7 +1241,10 @@ void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
   MEM_SAFE_FREE(uv);
 }
 
-/* texture coordinate utilities */
+/**
+ * Update Stroke UV data.
+ * \param gps Grease pencil stroke
+ */
 void BKE_gpencil_stroke_uv_update(bGPDstroke *gps)
 {
   if (gps == NULL || gps->totpoints == 0) {
@@ -1197,7 +1260,10 @@ void BKE_gpencil_stroke_uv_update(bGPDstroke *gps)
   }
 }
 
-/* Recalc the internal geometry caches for fill and uvs. */
+/**
+ * Recalc all internal geometry data for the stroke
+ * \param gps Grease pencil stroke
+ */
 void BKE_gpencil_stroke_geometry_update(bGPDstroke *gps)
 {
   if (gps == NULL) {
