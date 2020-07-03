@@ -24,7 +24,7 @@ endif()
 
 if(WITH_CLANG_TIDY)
   if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
-    message(FATAL_ERROR "Currently Clang-Tidy is only supported when using Clang compiler")
+    message(WARNING "Currently Clang-Tidy might fail with GCC toolchain, switch to Clang toolchain if that happens")
   endif()
 
   find_package(ClangTidy REQUIRED)
