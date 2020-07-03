@@ -185,6 +185,37 @@ static void image_free_data(ID *id)
   BLI_freelistN(&image->tiles);
 }
 
+static void image_foreach_cache(ID *id,
+                                IDTypeForeachCacheFunctionCallback function_callback,
+                                void *user_data)
+{
+  Image *image = (Image *)id;
+  IDCacheKey key = {
+      .id_session_uuid = id->session_uuid,
+      .offset_in_ID = offsetof(Image, cache),
+      .cache_v = image->cache,
+  };
+  function_callback(id, &key, (void **)&image->cache, user_data);
+
+  for (int eye = 0; eye < 2; eye++) {
+    for (int a = 0; a < TEXTARGET_COUNT; a++) {
+      key.offset_in_ID = offsetof(Image, gputexture[a][eye]);
+      key.cache_v = image->gputexture[a][eye];
+      function_callback(id, &key, (void **)&image->gputexture[a][eye], user_data);
+    }
+  }
+
+  key.offset_in_ID = offsetof(Image, rr);
+  key.cache_v = image->rr;
+  function_callback(id, &key, (void **)&image->rr, user_data);
+
+  LISTBASE_FOREACH (RenderSlot *, slot, &image->renderslots) {
+    key.offset_in_ID = (size_t)BLI_ghashutil_strhash_p(slot->name);
+    key.cache_v = slot->render;
+    function_callback(id, &key, (void **)&slot->render, user_data);
+  }
+}
+
 IDTypeInfo IDType_ID_IM = {
     .id_code = ID_IM,
     .id_filter = FILTER_ID_IM,
@@ -200,6 +231,7 @@ IDTypeInfo IDType_ID_IM = {
     .free_data = image_free_data,
     .make_local = NULL,
     .foreach_id = NULL,
+    .foreach_cache = image_foreach_cache,
 };
 
 /* prototypes */

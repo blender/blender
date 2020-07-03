@@ -1959,32 +1959,9 @@ void blo_end_scene_pointer_map(FileData *fd, Main *oldmain)
 
 void blo_make_image_pointer_map(FileData *fd, Main *oldmain)
 {
-  Image *ima = oldmain->images.first;
   Scene *sce = oldmain->scenes.first;
-  int a;
-
   fd->imamap = oldnewmap_new();
 
-  for (; ima; ima = ima->id.next) {
-    if (ima->cache) {
-      oldnewmap_insert(fd->imamap, ima->cache, ima->cache, 0);
-    }
-    for (int eye = 0; eye < 2; eye++) {
-      for (a = 0; a < TEXTARGET_COUNT; a++) {
-        if (ima->gputexture[a][eye] != NULL) {
-          oldnewmap_insert(fd->imamap, ima->gputexture[a][eye], ima->gputexture[a][eye], 0);
-        }
-      }
-    }
-    if (ima->rr) {
-      oldnewmap_insert(fd->imamap, ima->rr, ima->rr, 0);
-    }
-    LISTBASE_FOREACH (RenderSlot *, slot, &ima->renderslots) {
-      if (slot->render) {
-        oldnewmap_insert(fd->imamap, slot->render, slot->render, 0);
-      }
-    }
-  }
   for (; sce; sce = sce->id.next) {
     if (sce->nodetree && sce->nodetree->previews) {
       bNodeInstanceHashIterator iter;
@@ -2001,7 +1978,6 @@ void blo_make_image_pointer_map(FileData *fd, Main *oldmain)
 void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 {
   OldNew *entry = fd->imamap->entries;
-  Image *ima = oldmain->images.first;
   Scene *sce = oldmain->scenes.first;
   int i;
 
@@ -2012,29 +1988,6 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
     }
   }
 
-  for (; ima; ima = ima->id.next) {
-    ima->cache = newimaadr(fd, ima->cache);
-    if (ima->cache == NULL) {
-      ima->gpuflag = 0;
-      ima->gpuframenr = INT_MAX;
-      for (int eye = 0; eye < 2; eye++) {
-        for (i = 0; i < TEXTARGET_COUNT; i++) {
-          ima->gputexture[i][eye] = NULL;
-        }
-      }
-      ima->rr = NULL;
-    }
-    LISTBASE_FOREACH (RenderSlot *, slot, &ima->renderslots) {
-      slot->render = newimaadr(fd, slot->render);
-    }
-
-    for (int eye = 0; eye < 2; eye++) {
-      for (i = 0; i < TEXTARGET_COUNT; i++) {
-        ima->gputexture[i][eye] = newimaadr(fd, ima->gputexture[i][eye]);
-      }
-    }
-    ima->rr = newimaadr(fd, ima->rr);
-  }
   for (; sce; sce = sce->id.next) {
     if (sce->nodetree && sce->nodetree->previews) {
       bNodeInstanceHash *new_previews = BKE_node_instance_hash_new("node previews");
@@ -4404,55 +4357,25 @@ static void direct_link_text(BlendDataReader *reader, Text *text)
 /** \name Read ID: Image
  * \{ */
 
-static void lib_link_image(BlendLibReader *UNUSED(reader), Image *UNUSED(ima))
+static void lib_link_image(BlendLibReader *UNUSED(reader), Image *ima)
 {
+  /* Images have some kind of 'main' cache, when NULL we should also clear all others.
+   * XXX It is not ideal to do that from here, but for now it will do. We have to do it after all
+   * cache pointers have been potentially remapped (in undo case) or NULL-ified. */
+  if (ima->cache == NULL) {
+    BKE_image_free_buffers(ima);
+  }
 }
 
 static void direct_link_image(BlendDataReader *reader, Image *ima)
 {
   ImagePackedFile *imapf;
 
-  /* for undo system, pointers could be restored */
-  if (reader->fd->imamap) {
-    ima->cache = newimaadr(reader->fd, ima->cache);
-  }
-  else {
-    ima->cache = NULL;
-  }
-
   BLO_read_list(reader, &ima->tiles);
 
-  /* if not restored, we keep the binded opengl index */
-  if (!ima->cache) {
-    ima->gpuflag = 0;
-    ima->gpuframenr = INT_MAX;
-    for (int eye = 0; eye < 2; eye++) {
-      for (int i = 0; i < TEXTARGET_COUNT; i++) {
-        ima->gputexture[i][eye] = NULL;
-      }
-    }
-    ima->rr = NULL;
-  }
-  else {
-    for (int eye = 0; eye < 2; eye++) {
-      for (int i = 0; i < TEXTARGET_COUNT; i++) {
-        ima->gputexture[i][eye] = newimaadr(reader->fd, ima->gputexture[i][eye]);
-      }
-    }
-    ima->rr = newimaadr(reader->fd, ima->rr);
-  }
-
-  /* undo system, try to restore render buffers */
   BLO_read_list(reader, &(ima->renderslots));
-  if (reader->fd->imamap) {
-    LISTBASE_FOREACH (RenderSlot *, slot, &ima->renderslots) {
-      slot->render = newimaadr(reader->fd, slot->render);
-    }
-  }
-  else {
-    LISTBASE_FOREACH (RenderSlot *, slot, &ima->renderslots) {
-      slot->render = NULL;
-    }
+  if (reader->fd->memfile == NULL) {
+    /* We reset this last render slot index only when actually reading a file, not for undo. */
     ima->last_render_slot = ima->render_slot;
   }
 
