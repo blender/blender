@@ -35,8 +35,7 @@
 #include "BLI_linear_allocator.hh"
 #include "BLI_utility_mixins.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 template<typename T> class GVectorArrayRef;
 
@@ -202,7 +201,6 @@ template<typename T> class GVectorArrayRef {
   }
 };
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn
 
 #endif /* __FN_GENERIC_VECTOR_ARRAY_HH__ */

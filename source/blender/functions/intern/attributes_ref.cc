@@ -16,8 +16,7 @@
 
 #include "FN_attributes_ref.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 AttributesInfoBuilder::~AttributesInfoBuilder()
 {
@@ -68,5 +67,4 @@ AttributesInfo::~AttributesInfo()
   }
 }
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn

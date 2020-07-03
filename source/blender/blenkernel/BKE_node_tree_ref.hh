@@ -58,8 +58,7 @@
 
 #include "RNA_access.h"
 
-namespace blender {
-namespace bke {
+namespace blender::bke {
 
 class SocketRef;
 class InputSocketRef;
@@ -441,7 +440,6 @@ inline bNodeTree *NodeTreeRef::btree() const
   return btree_;
 }
 
-}  // namespace bke
-}  // namespace blender
+}  // namespace blender::bke
 
 #endif /* __BKE_NODE_TREE_REF_HH__ */

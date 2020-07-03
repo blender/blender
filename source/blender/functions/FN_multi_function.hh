@@ -48,8 +48,7 @@
 #include "FN_multi_function_context.hh"
 #include "FN_multi_function_params.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 class MultiFunction {
  private:
@@ -102,7 +101,6 @@ inline MFParamsBuilder::MFParamsBuilder(const class MultiFunction &fn, uint min_
 
 extern const MultiFunction &dummy_multi_function;
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn
 
 #endif /* __FN_MULTI_FUNCTION_HH__ */

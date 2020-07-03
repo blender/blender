@@ -18,8 +18,7 @@
 
 #include "BLI_dot_export.hh"
 
-namespace blender {
-namespace dot {
+namespace blender::dot {
 
 /* Graph Building
  ************************************************/
@@ -301,5 +300,4 @@ NodeWithSocketsRef::NodeWithSocketsRef(Node &node,
   node_->set_shape(Attr_shape::Rectangle);
 }
 
-}  // namespace dot
-}  // namespace blender
+}  // namespace blender::dot

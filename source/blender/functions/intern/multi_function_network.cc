@@ -17,8 +17,7 @@
 #include "BLI_dot_export.hh"
 #include "FN_multi_function_network.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 MFNetwork::~MFNetwork()
 {
@@ -274,5 +273,4 @@ std::string MFNetwork::to_dot() const
   return digraph.to_dot_string();
 }
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn

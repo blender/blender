@@ -29,8 +29,7 @@
 #include "FN_generic_vector_array.hh"
 #include "FN_multi_function_signature.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 class MFParamsBuilder {
  private:
@@ -233,7 +232,6 @@ class MFParams {
   }
 };
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn
 
 #endif /* __FN_MULTI_FUNCTION_PARAMS_HH__ */

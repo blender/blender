@@ -20,8 +20,7 @@
 
 #define UNINITIALIZED_ID UINT32_MAX
 
-namespace blender {
-namespace bke {
+namespace blender::bke {
 
 static const NodeTreeRef &get_tree_ref(NodeTreeRefMap &node_tree_refs, bNodeTree *btree)
 {
@@ -439,5 +438,4 @@ std::string DerivedNodeTree::to_dot() const
   return digraph.to_dot_string();
 }
 
-}  // namespace bke
-}  // namespace blender
+}  // namespace blender::bke

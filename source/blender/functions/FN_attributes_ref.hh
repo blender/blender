@@ -33,8 +33,7 @@
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector_set.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 class AttributesInfo;
 
@@ -242,7 +241,6 @@ class MutableAttributesRef {
   }
 };
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn
 
 #endif /* __FN_ATTRIBUTES_REF_HH__ */

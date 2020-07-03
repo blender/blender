@@ -20,8 +20,7 @@
 #include "FN_multi_function.hh"
 #include "FN_multi_function_builder.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 class AddFunction : public MultiFunction {
  public:
@@ -330,5 +329,4 @@ TEST(multi_function, CustomMF_Constant)
   EXPECT_EQ(outputs[3], 42);
 }
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn

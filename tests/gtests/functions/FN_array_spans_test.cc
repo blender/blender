@@ -22,8 +22,7 @@
 
 #include "BLI_array.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 TEST(virtual_array_span, EmptyConstructor)
 {
@@ -145,5 +144,4 @@ TEST(generic_virtual_array_span, IsSingleArray2)
   EXPECT_FALSE(converted.is_single_array());
 }
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn

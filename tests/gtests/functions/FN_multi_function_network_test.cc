@@ -21,8 +21,7 @@
 #include "FN_multi_function_network.hh"
 #include "FN_multi_function_network_evaluation.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 TEST(multi_function_network, Test1)
 {
@@ -266,5 +265,4 @@ TEST(multi_function_network, Test2)
   }
 }
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn

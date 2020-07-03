@@ -46,8 +46,7 @@
 
 #include "BLI_vector_set.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 class MFNode;
 class MFFunctionNode;
@@ -489,7 +488,6 @@ inline uint MFNetwork::max_socket_id() const
   return socket_or_null_by_id_.size() - 1;
 }
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn
 
 #endif /* __FN_MULTI_FUNCTION_NETWORK_HH__ */

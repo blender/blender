@@ -28,8 +28,7 @@
 
 #include "BLI_vector.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 struct MFSignature {
   std::string function_name;
@@ -160,7 +159,6 @@ class MFSignatureBuilder {
   }
 };
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn
 
 #endif /* __FN_MULTI_FUNCTION_SIGNATURE_HH__ */

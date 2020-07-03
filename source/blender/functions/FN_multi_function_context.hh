@@ -29,8 +29,7 @@
 
 #include "BLI_utildefines.h"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 class MFContextBuilder {
 };
@@ -42,7 +41,6 @@ class MFContext {
   }
 };
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn
 
 #endif /* __FN_MULTI_FUNCTION_CONTEXT_HH__ */

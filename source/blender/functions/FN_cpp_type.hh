@@ -70,8 +70,7 @@
 #include "BLI_math_base.h"
 #include "BLI_string_ref.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 class CPPType {
  public:
@@ -720,8 +719,7 @@ static std::unique_ptr<const CPPType> create_cpp_type(StringRef name, const T &d
   return std::unique_ptr<const CPPType>(type);
 }
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn
 
 #define MAKE_CPP_TYPE(IDENTIFIER, TYPE_NAME) \
   static TYPE_NAME default_value_##IDENTIFIER; \

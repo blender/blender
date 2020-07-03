@@ -26,8 +26,7 @@
 
 #include "FN_spans.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 /**
  * Depending on the use case, the referenced data might have a different structure. More
@@ -203,7 +202,6 @@ class GVArraySpan : public VArraySpanBase<void> {
   }
 };
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn
 
 #endif /* __FN_ARRAY_SPANS_HH__ */

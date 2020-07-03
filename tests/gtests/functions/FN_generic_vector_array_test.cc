@@ -19,8 +19,7 @@
 
 #include "testing/testing.h"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 TEST(generic_vector_array, Constructor)
 {
@@ -114,5 +113,4 @@ TEST(generic_vector_array, Extend)
   EXPECT_EQ(ref[0][0], 3);
 }
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn

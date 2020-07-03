@@ -164,8 +164,7 @@ void *BKE_simulation_add(Main *bmain, const char *name)
   return simulation;
 }
 
-namespace blender {
-namespace bke {
+namespace blender::bke {
 
 static MutableSpan<float3> get_particle_positions(ParticleSimulationState *state)
 {
@@ -259,8 +258,7 @@ static void simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulatio
   }
 }
 
-}  // namespace bke
-}  // namespace blender
+}  // namespace blender::bke
 
 void BKE_simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulation *simulation)
 {

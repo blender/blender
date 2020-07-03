@@ -20,8 +20,7 @@
 
 #include "testing/testing.h"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 TEST(attributes_info, BuildEmpty)
 {
@@ -110,5 +109,4 @@ TEST(mutable_attributes_ref, ComplexTest)
   EXPECT_EQ(ids[2], 100);
 }
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn

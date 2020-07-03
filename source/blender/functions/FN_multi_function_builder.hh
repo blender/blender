@@ -27,8 +27,7 @@
 
 #include "FN_multi_function.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 /**
  * Generates a multi-function with the following parameters:
@@ -226,7 +225,6 @@ template<typename T> class CustomMF_Constant : public MultiFunction {
   }
 };
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn
 
 #endif /* __FN_MULTI_FUNCTION_BUILDER_HH__ */

@@ -34,8 +34,7 @@
 #include <optional>
 #include <sstream>
 
-namespace blender {
-namespace dot {
+namespace blender::dot {
 
 class Graph;
 class DirectedGraph;
@@ -283,7 +282,6 @@ class NodeWithSocketsRef {
   }
 };
 
-}  // namespace dot
-}  // namespace blender
+}  // namespace blender::dot
 
 #endif /* __BLI_DOT_EXPORT_HH__ */

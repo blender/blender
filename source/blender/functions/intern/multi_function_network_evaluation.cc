@@ -39,8 +39,7 @@
 
 #include "BLI_stack.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 struct Value;
 
@@ -1059,5 +1058,4 @@ GVArraySpan MFNetworkEvaluationStorage::get_vector_input__single(const MFInputSo
 
 /** \} */
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn

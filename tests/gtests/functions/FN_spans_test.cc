@@ -19,8 +19,7 @@
 #include "FN_cpp_types.hh"
 #include "FN_spans.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 TEST(generic_span, TypeConstructor)
 {
@@ -227,5 +226,4 @@ TEST(generic_virtual_span, SingleConstructor)
   EXPECT_EQ(converted[2], 5);
 }
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn

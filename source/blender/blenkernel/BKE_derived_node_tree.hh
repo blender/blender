@@ -32,8 +32,7 @@
 
 #include "BKE_node_tree_ref.hh"
 
-namespace blender {
-namespace bke {
+namespace blender::bke {
 
 class DSocket;
 class DInputSocket;
@@ -494,7 +493,6 @@ inline Span<const DGroupInput *> DerivedNodeTree::group_inputs() const
   return group_inputs_.as_span();
 }
 
-}  // namespace bke
-}  // namespace blender
+}  // namespace blender::bke
 
 #endif /* __BKE_DERIVED_NODE_TREE_HH__ */

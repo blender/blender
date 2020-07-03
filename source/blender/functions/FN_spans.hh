@@ -43,8 +43,7 @@
 
 #include "FN_cpp_type.hh"
 
-namespace blender {
-namespace fn {
+namespace blender::fn {
 
 /**
  * A generic span. It behaves just like a blender::Span<T>, but the type is only known at run-time.
@@ -398,7 +397,6 @@ class GVSpan : public VSpanBase<void> {
   }
 };
 
-}  // namespace fn
-}  // namespace blender
+}  // namespace blender::fn
 
 #endif /* __FN_SPANS_HH__ */
