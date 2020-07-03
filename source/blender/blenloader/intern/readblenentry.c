@@ -407,7 +407,11 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
 
     /* removed packed data from this trick - it's internal data that needs saves */
 
+    blo_cache_storage_init(fd, oldmain);
+
     bfd = blo_read_file_internal(fd, filename);
+
+    blo_cache_storage_old_bmain_clear(fd, oldmain);
 
     /* ensures relinked light caches are not freed */
     blo_end_scene_pointer_map(fd, oldmain);

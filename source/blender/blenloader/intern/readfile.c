@@ -105,6 +105,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
+#include "BLI_memarena.h"
 #include "BLI_mempool.h"
 #include "BLI_threads.h"
 
@@ -1635,6 +1636,7 @@ void blo_filedata_free(FileData *fd)
     if (fd->old_idmap != NULL) {
       BKE_main_idmap_destroy(fd->old_idmap);
     }
+    blo_cache_storage_end(fd);
     if (fd->bheadmap) {
       MEM_freeN(fd->bheadmap);
     }
@@ -2314,6 +2316,140 @@ void blo_make_old_idmap_from_main(FileData *fd, Main *bmain)
     BKE_main_idmap_destroy(fd->old_idmap);
   }
   fd->old_idmap = BKE_main_idmap_create(bmain, false, NULL, MAIN_IDMAP_TYPE_UUID);
+}
+
+typedef struct BLOCacheStorage {
+  GHash *cache_map;
+  MemArena *memarena;
+} BLOCacheStorage;
+
+/** Register a cache data entry to be preserved when reading some undo memfile. */
+static void blo_cache_storage_entry_register(ID *id,
+                                             const IDCacheKey *key,
+                                             void **UNUSED(cache_p),
+                                             void *cache_storage_v)
+{
+  BLI_assert(key->id_session_uuid == id->session_uuid);
+
+  BLOCacheStorage *cache_storage = cache_storage_v;
+  BLI_assert(!BLI_ghash_haskey(cache_storage->cache_map, key));
+
+  IDCacheKey *storage_key = BLI_memarena_alloc(cache_storage->memarena, sizeof(*storage_key));
+  *storage_key = *key;
+  BLI_ghash_insert(cache_storage->cache_map, storage_key, POINTER_FROM_UINT(0));
+}
+
+/** Restore a cache data entry from old ID into new one, when reading some undo memfile. */
+static void blo_cache_storage_entry_restore_in_new(ID *UNUSED(id),
+                                                   const IDCacheKey *key,
+                                                   void **cache_p,
+                                                   void *cache_storage_v)
+{
+  BLOCacheStorage *cache_storage = cache_storage_v;
+
+  if (cache_storage == NULL) {
+    *cache_p = NULL;
+    return;
+  }
+
+  void **value = BLI_ghash_lookup_p(cache_storage->cache_map, key);
+  if (value == NULL) {
+    *cache_p = NULL;
+    return;
+  }
+  *value = POINTER_FROM_UINT(POINTER_AS_UINT(*value) + 1);
+  *cache_p = key->cache_v;
+}
+
+/** Clear as needed a cache data entry from old ID, when reading some undo memfile. */
+static void blo_cache_storage_entry_clear_in_old(ID *UNUSED(id),
+                                                 const IDCacheKey *key,
+                                                 void **cache_p,
+                                                 void *cache_storage_v)
+{
+  BLOCacheStorage *cache_storage = cache_storage_v;
+
+  void **value = BLI_ghash_lookup_p(cache_storage->cache_map, key);
+  if (value == NULL) {
+    *cache_p = NULL;
+    return;
+  }
+  /* If that cache has been restored into some new ID, we want to remove it from old one, otherwise
+   * keep it there so that it gets properly freed together with its ID. */
+  *cache_p = POINTER_AS_UINT(*value) != 0 ? NULL : key->cache_v;
+}
+
+void blo_cache_storage_init(FileData *fd, Main *bmain)
+{
+  if (fd->memfile != NULL) {
+    BLI_assert(fd->cache_storage == NULL);
+    fd->cache_storage = MEM_mallocN(sizeof(*fd->cache_storage), __func__);
+    fd->cache_storage->memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+    fd->cache_storage->cache_map = BLI_ghash_new(
+        BKE_idtype_cache_key_hash, BKE_idtype_cache_key_cmp, __func__);
+
+    ListBase *lb;
+    FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
+      ID *id = lb->first;
+      if (id == NULL) {
+        continue;
+      }
+
+      const IDTypeInfo *type_info = BKE_idtype_get_info_from_id(id);
+      if (type_info->foreach_cache == NULL) {
+        continue;
+      }
+
+      FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id) {
+        if (ID_IS_LINKED(id)) {
+          continue;
+        }
+        type_info->foreach_cache(id, blo_cache_storage_entry_register, fd->cache_storage);
+      }
+      FOREACH_MAIN_LISTBASE_ID_END;
+    }
+    FOREACH_MAIN_LISTBASE_END;
+  }
+  else {
+    fd->cache_storage = NULL;
+  }
+}
+
+void blo_cache_storage_old_bmain_clear(FileData *fd, Main *bmain_old)
+{
+  if (fd->cache_storage != NULL) {
+    ListBase *lb;
+    FOREACH_MAIN_LISTBASE_BEGIN (bmain_old, lb) {
+      ID *id = lb->first;
+      if (id == NULL) {
+        continue;
+      }
+
+      const IDTypeInfo *type_info = BKE_idtype_get_info_from_id(id);
+      if (type_info->foreach_cache == NULL) {
+        continue;
+      }
+
+      FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id) {
+        if (ID_IS_LINKED(id)) {
+          continue;
+        }
+        type_info->foreach_cache(id, blo_cache_storage_entry_clear_in_old, fd->cache_storage);
+      }
+      FOREACH_MAIN_LISTBASE_ID_END;
+    }
+    FOREACH_MAIN_LISTBASE_END;
+  }
+}
+
+void blo_cache_storage_end(FileData *fd)
+{
+  if (fd->cache_storage != NULL) {
+    BLI_ghash_free(fd->cache_storage->cache_map, NULL, NULL);
+    BLI_memarena_free(fd->cache_storage->memarena);
+    MEM_freeN(fd->cache_storage);
+    fd->cache_storage = NULL;
+  }
 }
 
 /** \} */
@@ -9079,6 +9215,8 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     return true;
   }
 
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+
   /* XXX Very weakly handled currently, see comment in read_libblock() before trying to
    * use it for anything new. */
   bool success = true;
@@ -9204,6 +9342,11 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_SIM:
       direct_link_simulation(&reader, (Simulation *)id);
       break;
+  }
+
+  /* try to restore (when undoing) or clear ID's cache pointers. */
+  if (id_type->foreach_cache != NULL) {
+    id_type->foreach_cache(id, blo_cache_storage_entry_restore_in_new, reader.fd->cache_storage);
   }
 
   return success;
