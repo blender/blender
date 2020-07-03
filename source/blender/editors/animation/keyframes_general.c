@@ -83,7 +83,7 @@ void delete_fcurve_key(FCurve *fcu, int index, bool do_recalc)
   if (abs(index) >= fcu->totvert) {
     return;
   }
-  else if (index < 0) {
+  if (index < 0) {
     index += fcu->totvert;
   }
 

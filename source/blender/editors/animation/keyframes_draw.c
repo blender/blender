@@ -84,9 +84,7 @@ short compare_ak_cfraPtr(void *node, void *data)
   if (val < ak->cfra) {
     return -1;
   }
-  else {
-    return 1;
-  }
+  return 1;
 }
 
 /* --------------- */
@@ -106,18 +104,16 @@ static eKeyframeHandleDrawOpts bezt_handle_type(BezTriple *bezt)
   if (bezt->h1 == HD_AUTO_ANIM && bezt->h2 == HD_AUTO_ANIM) {
     return KEYFRAME_HANDLE_AUTO_CLAMP;
   }
-  else if (ELEM(bezt->h1, HD_AUTO_ANIM, HD_AUTO) && ELEM(bezt->h2, HD_AUTO_ANIM, HD_AUTO)) {
+  if (ELEM(bezt->h1, HD_AUTO_ANIM, HD_AUTO) && ELEM(bezt->h2, HD_AUTO_ANIM, HD_AUTO)) {
     return KEYFRAME_HANDLE_AUTO;
   }
-  else if (bezt->h1 == HD_VECT && bezt->h2 == HD_VECT) {
+  if (bezt->h1 == HD_VECT && bezt->h2 == HD_VECT) {
     return KEYFRAME_HANDLE_VECTOR;
   }
-  else if (ELEM(HD_FREE, bezt->h1, bezt->h2)) {
+  if (ELEM(HD_FREE, bezt->h1, bezt->h2)) {
     return KEYFRAME_HANDLE_FREE;
   }
-  else {
-    return KEYFRAME_HANDLE_ALIGNED;
-  }
+  return KEYFRAME_HANDLE_ALIGNED;
 }
 
 /* Determine if the keyframe is an extreme by comparing with neighbors.
@@ -337,9 +333,8 @@ static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTripleChain *bezt)
   if (ELEM(NULL, keys, bezt)) {
     return;
   }
-  else {
-    BLI_dlrbTree_add(keys, compare_ak_bezt, nalloc_ak_bezt, nupdate_ak_bezt, bezt);
-  }
+
+  BLI_dlrbTree_add(keys, compare_ak_bezt, nalloc_ak_bezt, nupdate_ak_bezt, bezt);
 }
 
 /* Add the given GPencil Frame to the given 'list' of Keyframes */
@@ -348,9 +343,8 @@ static void add_gpframe_to_keycolumns_list(DLRBT_Tree *keys, bGPDframe *gpf)
   if (ELEM(NULL, keys, gpf)) {
     return;
   }
-  else {
-    BLI_dlrbTree_add(keys, compare_ak_gpframe, nalloc_ak_gpframe, nupdate_ak_gpframe, gpf);
-  }
+
+  BLI_dlrbTree_add(keys, compare_ak_gpframe, nalloc_ak_gpframe, nupdate_ak_gpframe, gpf);
 }
 
 /* Add the given MaskLayerShape Frame to the given 'list' of Keyframes */
@@ -359,13 +353,12 @@ static void add_masklay_to_keycolumns_list(DLRBT_Tree *keys, MaskLayerShape *mas
   if (ELEM(NULL, keys, masklay_shape)) {
     return;
   }
-  else {
-    BLI_dlrbTree_add(keys,
-                     compare_ak_masklayshape,
-                     nalloc_ak_masklayshape,
-                     nupdate_ak_masklayshape,
-                     masklay_shape);
-  }
+
+  BLI_dlrbTree_add(keys,
+                   compare_ak_masklayshape,
+                   nalloc_ak_masklayshape,
+                   nupdate_ak_masklayshape,
+                   masklay_shape);
 }
 
 /* ActKeyBlocks (Long Keyframes) ------------------------------------------ */

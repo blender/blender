@@ -110,9 +110,7 @@ ListBase *ED_animcontext_get_markers(const bAnimContext *ac)
   if (ac) {
     return context_get_markers(ac->scene, ac->area);
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /* --------------------------------- */
@@ -307,7 +305,7 @@ static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, short only
       }
       return;
     }
-    else if (ce->cfra > marker->frame) {
+    if (ce->cfra > marker->frame) {
       break;
     }
   }
@@ -487,13 +485,11 @@ static int marker_get_icon_id(TimeMarker *marker, int flag)
                                      (marker->flag & SELECT) ? ICON_PMARKER_SEL : ICON_PMARKER;
   }
 #ifdef DURIAN_CAMERA_SWITCH
-  else if (marker->camera) {
+  if (marker->camera) {
     return (marker->flag & SELECT) ? ICON_OUTLINER_OB_CAMERA : ICON_CAMERA_DATA;
   }
 #endif
-  else {
-    return (marker->flag & SELECT) ? ICON_MARKER_HLT : ICON_MARKER;
-  }
+  return (marker->flag & SELECT) ? ICON_MARKER_HLT : ICON_MARKER;
 }
 
 static void draw_marker(
@@ -1508,9 +1504,8 @@ static int ed_marker_rename_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+
+  return OPERATOR_CANCELLED;
 }
 
 static int ed_marker_rename_invoke(bContext *C, wmOperator *op, const wmEvent *event)

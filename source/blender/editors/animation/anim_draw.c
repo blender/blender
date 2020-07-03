@@ -473,9 +473,7 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
           if (flag & ANIM_UNITCONV_RESTORE) {
             return DEG2RADF(1.0f); /* degrees to radians */
           }
-          else {
-            return RAD2DEGF(1.0f); /* radians to degrees */
-          }
+          return RAD2DEGF(1.0f); /* radians to degrees */
         }
       }
 

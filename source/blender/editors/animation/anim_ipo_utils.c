@@ -59,7 +59,8 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
   if (name == NULL) {
     return icon;
   }
-  else if (ELEM(NULL, id, fcu, fcu->rna_path)) {
+
+  if (ELEM(NULL, id, fcu, fcu->rna_path)) {
     if (fcu == NULL) {
       strcpy(name, TIP_("<invalid>"));
     }

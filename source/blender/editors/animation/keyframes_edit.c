@@ -569,9 +569,7 @@ static short ok_bezier_selected(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
   if (BEZT_ISSEL_ANY(bezt)) {
     return KEYFRAME_OK_ALL;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static short ok_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
@@ -617,9 +615,7 @@ static short ok_bezier_region(KeyframeEditData *ked, BezTriple *bezt)
     /* return ok flags */
     return ok;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 /**
@@ -654,9 +650,7 @@ static short ok_bezier_region_lasso(KeyframeEditData *ked, BezTriple *bezt)
     /* return ok flags */
     return ok;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static short ok_bezier_channel_lasso(KeyframeEditData *ked, BezTriple *bezt)
@@ -718,9 +712,7 @@ static short ok_bezier_region_circle(KeyframeEditData *ked, BezTriple *bezt)
     /* return ok flags */
     return ok;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static short ok_bezier_channel_circle(KeyframeEditData *ked, BezTriple *bezt)

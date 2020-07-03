@@ -1020,9 +1020,7 @@ static int add_driver_button_none(bContext *C, wmOperator *op, short mapping_typ
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 static int add_driver_button_menu_exec(bContext *C, wmOperator *op)
@@ -1032,16 +1030,15 @@ static int add_driver_button_menu_exec(bContext *C, wmOperator *op)
     /* Just create driver with no targets */
     return add_driver_button_none(C, op, mapping_type);
   }
-  else {
-    /* Create Driver using Eyedropper */
-    wmOperatorType *ot = WM_operatortype_find("UI_OT_eyedropper_driver", true);
 
-    /* XXX: We assume that it's fine to use the same set of properties,
-     * since they're actually the same. */
-    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, op->ptr);
+  /* Create Driver using Eyedropper */
+  wmOperatorType *ot = WM_operatortype_find("UI_OT_eyedropper_driver", true);
 
-    return OPERATOR_FINISHED;
-  }
+  /* XXX: We assume that it's fine to use the same set of properties,
+   * since they're actually the same. */
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, op->ptr);
+
+  return OPERATOR_FINISHED;
 }
 
 /* Show menu or create drivers */
@@ -1054,12 +1051,11 @@ static int add_driver_button_menu_invoke(bContext *C, wmOperator *op, const wmEv
     /* Mapping Type is Set - Directly go into creating drivers */
     return add_driver_button_menu_exec(C, op);
   }
-  else {
-    /* Show menu */
-    // TODO: This should get filtered by the enum filter
-    /* important to execute in the region we're currently in */
-    return WM_menu_invoke_ex(C, op, WM_OP_INVOKE_DEFAULT);
-  }
+
+  /* Show menu */
+  // TODO: This should get filtered by the enum filter
+  /* important to execute in the region we're currently in */
+  return WM_menu_invoke_ex(C, op, WM_OP_INVOKE_DEFAULT);
 }
 
 static void UNUSED_FUNCTION(ANIM_OT_driver_button_add_menu)(wmOperatorType *ot)

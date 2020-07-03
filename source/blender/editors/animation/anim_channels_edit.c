@@ -505,9 +505,9 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
     printf("ERROR: no channel matching the one changed was found\n");
     return;
   }
-  else {
-    const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale_setting);
 
+  {
+    const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale_setting);
     if (acf == NULL) {
       printf("ERROR: no channel info for the changed channel\n");
       return;
@@ -571,9 +571,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
            * finished, so skip until we get to the parent of this level
            */
         }
-        else {
-          continue;
-        }
+        continue;
       }
     }
   }
@@ -2314,7 +2312,7 @@ static int animchannels_clean_empty_exec(bContext *C, wmOperator *UNUSED(op))
           nla_empty = false;
           break;
         }
-        else if (nlt->strips.first == NULL) {
+        if (nlt->strips.first == NULL) {
           /* this track is empty, but another one may still have stuff in it, so can't break yet */
           nla_empty = true;
         }
@@ -2812,10 +2810,9 @@ static int animchannels_rename_invoke(bContext *C, wmOperator *UNUSED(op), const
   if (rename_anim_channels(&ac, channel_index)) {
     return OPERATOR_FINISHED;
   }
-  else {
-    /* allow event to be handled by selectall operator */
-    return OPERATOR_PASS_THROUGH;
-  }
+
+  /* allow event to be handled by selectall operator */
+  return OPERATOR_PASS_THROUGH;
 }
 
 static void ANIM_OT_channels_rename(wmOperatorType *ot)
@@ -3372,10 +3369,9 @@ static int animchannels_channel_select_keys_invoke(bContext *C,
     WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
     return OPERATOR_FINISHED;
   }
-  else {
-    /* allow event to be handled by selectall operator */
-    return OPERATOR_PASS_THROUGH;
-  }
+
+  /* allow event to be handled by selectall operator */
+  return OPERATOR_PASS_THROUGH;
 }
 
 static void ANIM_OT_channel_select_keys(wmOperatorType *ot)
