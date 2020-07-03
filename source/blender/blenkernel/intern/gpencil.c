@@ -282,6 +282,10 @@ void BKE_gpencil_free(bGPdata *gpd, bool free_all)
   }
 }
 
+/**
+ * Delete grease pencil evaluated data
+ * \param gpd_eval: Grease pencil data-block
+ */
 void BKE_gpencil_eval_delete(bGPdata *gpd_eval)
 {
   BKE_gpencil_free(gpd_eval, true);
@@ -302,7 +306,12 @@ void BKE_gpencil_tag(bGPdata *gpd)
 /* ************************************************** */
 /* Container Creation */
 
-/* add a new gp-frame to the given layer */
+/**
+ * Add a new gp-frame to the given layer.
+ * \param gpl: Grease pencil layer
+ * \param cframe: Frame number
+ * \return Pointer to new frame
+ */
 bGPDframe *BKE_gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
 {
   bGPDframe *gpf = NULL, *gf = NULL;
@@ -356,7 +365,12 @@ bGPDframe *BKE_gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
   return gpf;
 }
 
-/* add a copy of the active gp-frame to the given layer */
+/**
+ * Add a copy of the active gp-frame to the given layer.
+ * \param gpl: Grease pencil layer
+ * \param cframe: Frame number
+ * \return Pointer to new frame
+ */
 bGPDframe *BKE_gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
 {
   bGPDframe *new_frame;
@@ -411,7 +425,13 @@ bGPDframe *BKE_gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
   return new_frame;
 }
 
-/* add a new gp-layer and make it the active layer */
+/**
+ * Add a new gp-layer and make it the active layer.
+ * \param gpd: Grease pencil data-block
+ * \param name: Name of the layer
+ * \param setactive: Set as active
+ * \return Pointer to new layer
+ */
 bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setactive)
 {
   bGPDlayer *gpl = NULL;
@@ -481,6 +501,9 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setacti
 
 /**
  * Add a new grease pencil data-block.
+ * \param bmain: Main pointer
+ * \param name: Name of the datablock
+ * \return Pointer to new data-block
  */
 bGPdata *BKE_gpencil_data_addnew(Main *bmain, const char name[])
 {
@@ -526,9 +549,10 @@ bGPdata *BKE_gpencil_data_addnew(Main *bmain, const char name[])
 /* Utilities for easier bulk-creation of geometry */
 
 /**
- * Populate stroke with point data from data buffers
- *
+ * Populate stroke with point data from data buffers.
+ * \param gps: Grease pencil stroke
  * \param array: Flat array of point data values. Each entry has #GP_PRIM_DATABUF_SIZE values.
+ * \param totpoints: Total of points
  * \param mat: 4x4 transform matrix to transform points into the right coordinate space.
  */
 void BKE_gpencil_stroke_add_points(bGPDstroke *gps,
@@ -550,7 +574,13 @@ void BKE_gpencil_stroke_add_points(bGPDstroke *gps,
   }
 }
 
-/* Create a new stroke, with pre-allocated data buffers. */
+/**
+ * Create a new stroke, with pre-allocated data buffers.
+ * \param mat_idx: Index of the material
+ * \param totpoints: Total points
+ * \param thickness: Stroke thickness
+ * \return Pointer to new stroke
+ */
 bGPDstroke *BKE_gpencil_stroke_new(int mat_idx, int totpoints, short thickness)
 {
   /* allocate memory for a new stroke */
@@ -584,7 +614,15 @@ bGPDstroke *BKE_gpencil_stroke_new(int mat_idx, int totpoints, short thickness)
   return gps;
 }
 
-/* Create a new stroke and add to frame. */
+/**
+ * Create a new stroke and add to frame.
+ * \param gpf: Grease pencil frame
+ * \param mat_idx: Material index
+ * \param totpoints: Total points
+ * \param thickness: Stroke thickness
+ * \param insert_at_head: Add to the head of the strokes list
+ * \return Pointer to new stroke
+ */
 bGPDstroke *BKE_gpencil_stroke_add(
     bGPDframe *gpf, int mat_idx, int totpoints, short thickness, const bool insert_at_head)
 {
@@ -603,7 +641,16 @@ bGPDstroke *BKE_gpencil_stroke_add(
   return gps;
 }
 
-/* Add a stroke and copy the temporary drawing color value from one of the existing stroke */
+/**
+ * Add a stroke and copy the temporary drawing color value
+ * from one of the existing stroke.
+ * \param gpf: Grease pencil frame
+ * \param existing: Stroke with the style to copy
+ * \param mat_idx: Material index
+ * \param totpoints: Total points
+ * \param thickness: Stroke thickness
+ * \return Pointer to new stroke
+ */
 bGPDstroke *BKE_gpencil_stroke_add_existing_style(
     bGPDframe *gpf, bGPDstroke *existing, int mat_idx, int totpoints, short thickness)
 {
@@ -618,7 +665,11 @@ bGPDstroke *BKE_gpencil_stroke_add_existing_style(
 /* ************************************************** */
 /* Data Duplication */
 
-/* make a copy of a given gpencil weights */
+/**
+ * Make a copy of a given gpencil weights.
+ * \param gps_src: Source grease pencil stroke
+ * \param gps_dst: Destination grease pencil stroke
+ */
 void BKE_gpencil_stroke_weights_duplicate(bGPDstroke *gps_src, bGPDstroke *gps_dst)
 {
   if (gps_src == NULL) {
@@ -629,7 +680,12 @@ void BKE_gpencil_stroke_weights_duplicate(bGPDstroke *gps_src, bGPDstroke *gps_d
   BKE_defvert_array_copy(gps_dst->dvert, gps_src->dvert, gps_src->totpoints);
 }
 
-/* make a copy of a given gpencil stroke */
+/**
+ * Make a copy of a given gpencil stroke.
+ * \param gps_src: Source grease pencil strokeyes
+ * \param dup_points: Duplicate points data
+ * \return Pointer to new stroke
+ */
 bGPDstroke *BKE_gpencil_stroke_duplicate(bGPDstroke *gps_src, const bool dup_points)
 {
   bGPDstroke *gps_dst = NULL;
@@ -654,7 +710,11 @@ bGPDstroke *BKE_gpencil_stroke_duplicate(bGPDstroke *gps_src, const bool dup_poi
   return gps_dst;
 }
 
-/* make a copy of a given gpencil frame */
+/**
+ * Make a copy of a given gpencil frame.
+ * \param gpf_src: Source grease pencil frame
+ * \return Pointer to new frame
+ */
 bGPDframe *BKE_gpencil_frame_duplicate(const bGPDframe *gpf_src)
 {
   bGPDstroke *gps_dst = NULL;
@@ -681,7 +741,11 @@ bGPDframe *BKE_gpencil_frame_duplicate(const bGPDframe *gpf_src)
   return gpf_dst;
 }
 
-/* make a copy of strokes between gpencil frames */
+/**
+ * Make a copy of strokes between gpencil frames.
+ * \param gpf_src: Source grease pencil frame
+ * \param gpf_dst: Destination grease pencil frame
+ */
 void BKE_gpencil_frame_copy_strokes(bGPDframe *gpf_src, struct bGPDframe *gpf_dst)
 {
   bGPDstroke *gps_dst = NULL;
@@ -699,7 +763,11 @@ void BKE_gpencil_frame_copy_strokes(bGPDframe *gpf_src, struct bGPDframe *gpf_ds
   }
 }
 
-/* make a copy of a given gpencil layer */
+/**
+ * Make a copy of a given gpencil layer.
+ * \param gpl_src: Source grease pencil layer
+ * \return Pointer to new layer
+ */
 bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src)
 {
   const bGPDframe *gpf_src;
@@ -742,6 +810,10 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src)
 
 /**
  * Standard API to make a copy of GP data-block, separate from copying its data.
+ *
+ * \param bmain: Main pointer
+ * \param gpd: Grease pencil data-block
+ * \return Pointer to new data-block
  */
 bGPdata *BKE_gpencil_copy(Main *bmain, const bGPdata *gpd)
 {
@@ -787,7 +859,10 @@ bGPdata *BKE_gpencil_data_duplicate(Main *bmain, const bGPdata *gpd_src, bool in
 /* ************************************************** */
 /* GP Stroke API */
 
-/* ensure selection status of stroke is in sync with its points */
+/**
+ * Ensure selection status of stroke is in sync with its points.
+ * \param gps: Grease pencil stroke
+ */
 void BKE_gpencil_stroke_sync_selection(bGPDstroke *gps)
 {
   bGPDspoint *pt;
@@ -814,7 +889,11 @@ void BKE_gpencil_stroke_sync_selection(bGPDstroke *gps)
 /* ************************************************** */
 /* GP Frame API */
 
-/* delete the last stroke of the given frame */
+/**
+ * Delete the last stroke of the given frame.
+ * \param gpl: Grease pencil layer
+ * \param gpf: Grease pencil frame
+ */
 void BKE_gpencil_frame_delete_laststroke(bGPDlayer *gpl, bGPDframe *gpf)
 {
   bGPDstroke *gps = (gpf) ? gpf->strokes.last : NULL;

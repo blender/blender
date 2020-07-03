@@ -56,10 +56,10 @@
 /* GP Object - Boundbox Support */
 /**
  *Get min/max coordinate bounds for single stroke.
- * \param gps Grease pencil stroke
- * \param use_select Include only selected points
- * \param r_min Result minimum coordinates
- * \param r_max Result maximum coordinates
+ * \param gps: Grease pencil stroke
+ * \param use_select: Include only selected points
+ * \param r_min: Result minimum coordinates
+ * \param r_max: Result maximum coordinates
  * \return True if it was possible to calculate
  */
 bool BKE_gpencil_stroke_minmax(const bGPDstroke *gps,
@@ -86,9 +86,9 @@ bool BKE_gpencil_stroke_minmax(const bGPDstroke *gps,
 
 /**
  * Get min/max bounds of all strokes in grease pencil data-block.
- * \param gpd Grease pencil datablock
- * \param r_min Result minimum coordinates
- * \param r_max Result maximum coordinates
+ * \param gpd: Grease pencil datablock
+ * \param r_min: Result minimum coordinates
+ * \param r_max: Result maximum coordinates
  * \return True if it was possible to calculate
  */
 bool BKE_gpencil_data_minmax(const bGPdata *gpd, float r_min[3], float r_max[3])
@@ -116,8 +116,8 @@ bool BKE_gpencil_data_minmax(const bGPdata *gpd, float r_min[3], float r_max[3])
 
 /**
  * Compute center of bounding box.
- * \param gpd Grease pencil data-block
- * \param r_centroid Location of the center
+ * \param gpd: Grease pencil data-block
+ * \param r_centroid: Location of the center
  */
 void BKE_gpencil_centroid_3d(bGPdata *gpd, float r_centroid[3])
 {
@@ -131,7 +131,7 @@ void BKE_gpencil_centroid_3d(bGPdata *gpd, float r_centroid[3])
 
 /**
  * Compute stroke bounding box.
- * \param gps Grease pencil Stroke
+ * \param gps: Grease pencil Stroke
  */
 void BKE_gpencil_stroke_boundingbox_calc(bGPDstroke *gps)
 {
@@ -141,7 +141,7 @@ void BKE_gpencil_stroke_boundingbox_calc(bGPDstroke *gps)
 
 /**
  * Create bounding box values.
- * \param ob Grease pencil object
+ * \param ob: Grease pencil object
  */
 static void boundbox_gpencil(Object *ob)
 {
@@ -168,7 +168,7 @@ static void boundbox_gpencil(Object *ob)
 
 /**
  * Get grease pencil object bounding box.
- * \param ob Grease pencil object
+ * \param ob: Grease pencil object
  * \return Bounding box
  */
 BoundBox *BKE_gpencil_boundbox_get(Object *ob)
@@ -619,10 +619,10 @@ bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const
 
 /**
  * Split stroke.
- * \param gpf Grease pencil frame
- * \param gps Grease pencil original stroke
- * \param before_index Position of the point to split
- * \param remaining_gps Secondary stroke after split.
+ * \param gpf: Grease pencil frame
+ * \param gps: Grease pencil original stroke
+ * \param before_index: Position of the point to split
+ * \param remaining_gps: Secondary stroke after split.
  * \return True if the split was done
  */
 bool BKE_gpencil_stroke_split(bGPDframe *gpf,
@@ -986,10 +986,10 @@ bool BKE_gpencil_stroke_smooth_uv(bGPDstroke *gps, int point_index, float influe
 /**
  * Get points of stroke always flat to view not affected
  * by camera view or view position.
- * \param points Array of grease pencil points (3D)
- * \param totpoints Total of points
- * \param points2d Result array of 2D points
- * \param r_direction Concave (-1), Convex (1), or Autodetect (0)
+ * \param points: Array of grease pencil points (3D)
+ * \param totpoints: Total of points
+ * \param points2d: Result array of 2D points
+ * \param r_direction: Return Concave (-1), Convex (1), or Autodetect (0)
  */
 void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
                                 int totpoints,
@@ -1050,13 +1050,13 @@ void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
 /**
  * Get points of stroke always flat to view not affected by camera view or view position
  * using another stroke as reference.
- * \param ref_points Array of reference points (3D)
- * \param ref_totpoints Total reference points
- * \param points Array of points to flat (3D)
- * \param totpoints Total points
- * \param points2d Result array of 2D points
- * \param scale Scale factor
- * \param r_direction Concave (-1), Convex (1), or Autodetect (0)
+ * \param ref_points: Array of reference points (3D)
+ * \param ref_totpoints: Total reference points
+ * \param points: Array of points to flat (3D)
+ * \param totpoints: Total points
+ * \param points2d: Result array of 2D points
+ * \param scale: Scale factor
+ * \param r_direction: Return Concave (-1), Convex (1), or Autodetect (0)
  */
 void BKE_gpencil_stroke_2d_flat_ref(const bGPDspoint *ref_points,
                                     int ref_totpoints,
@@ -1183,7 +1183,7 @@ static void gpencil_calc_stroke_fill_uv(const float (*points2d)[2],
 
 /**
  * Triangulate stroke to generate data for filling areas.
- * \param gps Grease pencil stroke
+ * \param gps: Grease pencil stroke
  */
 void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
 {
@@ -1245,7 +1245,7 @@ void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
 
 /**
  * Update Stroke UV data.
- * \param gps Grease pencil stroke
+ * \param gps: Grease pencil stroke
  */
 void BKE_gpencil_stroke_uv_update(bGPDstroke *gps)
 {
@@ -1264,7 +1264,7 @@ void BKE_gpencil_stroke_uv_update(bGPDstroke *gps)
 
 /**
  * Recalc all internal geometry data for the stroke
- * \param gps Grease pencil stroke
+ * \param gps: Grease pencil stroke
  */
 void BKE_gpencil_stroke_geometry_update(bGPDstroke *gps)
 {
@@ -1503,9 +1503,9 @@ bool BKE_gpencil_stroke_close(bGPDstroke *gps)
 
 /**
  * Dissolve points in stroke.
- * \param gpf Grease pencil frame
- * \param gps Grease pencil stroke
- * \param tag Type of tag for point
+ * \param gpf: Grease pencil frame
+ * \param gps: Grease pencil stroke
+ * \param tag: Type of tag for point
  */
 void BKE_gpencil_dissolve_points(bGPDframe *gpf, bGPDstroke *gps, const short tag)
 {
@@ -1589,8 +1589,8 @@ void BKE_gpencil_dissolve_points(bGPDframe *gpf, bGPDstroke *gps, const short ta
 
 /**
  * Calculate stroke normals.
- * \param gps Grease pencil stroke
- * \param r_normal Normal vector normalized
+ * \param gps: Grease pencil stroke
+ * \param r_normal: Return Normal vector normalized
  */
 void BKE_gpencil_stroke_normal(const bGPDstroke *gps, float r_normal[3])
 {
@@ -1629,8 +1629,8 @@ void BKE_gpencil_stroke_normal(const bGPDstroke *gps, float r_normal[3])
  *
  * Ramer - Douglas - Peucker algorithm
  * by http ://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm
- * \param gps Grease pencil stroke
- * \param epsilon Epsilon value to define precision of the algorithm
+ * \param gps: Grease pencil stroke
+ * \param epsilon: Epsilon value to define precision of the algorithm
  */
 void BKE_gpencil_stroke_simplify_adaptive(bGPDstroke *gps, float epsilon)
 {
@@ -1738,7 +1738,7 @@ void BKE_gpencil_stroke_simplify_adaptive(bGPDstroke *gps, float epsilon)
 
 /**
  * Simplify alternate vertex of stroke except extremes.
- * \param gps Grease pencil stroke
+ * \param gps: Grease pencil stroke
  */
 void BKE_gpencil_stroke_simplify_fixed(bGPDstroke *gps)
 {
@@ -1802,9 +1802,9 @@ void BKE_gpencil_stroke_simplify_fixed(bGPDstroke *gps)
 
 /**
  * Subdivide grease pencil stroke.
- * \param gps Grease pencil stroke
- * \param level Level of subdivision
- * \param type Type of subdivision
+ * \param gps: Grease pencil stroke
+ * \param level: Level of subdivision
+ * \param type: Type of subdivision
  */
 void BKE_gpencil_stroke_subdivide(bGPDstroke *gps, int level, int type)
 {
