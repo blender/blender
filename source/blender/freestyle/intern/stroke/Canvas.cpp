@@ -90,9 +90,7 @@ Canvas::~Canvas()
     }
     _maps.clear();
   }
-  if (_steerableViewMap) {
-    delete _steerableViewMap;
-  }
+  delete _steerableViewMap;
 }
 
 void Canvas::preDraw()

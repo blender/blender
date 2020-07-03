@@ -210,9 +210,7 @@ static int StrokeShader___init__(BPy_StrokeShader *self, PyObject *args, PyObjec
 
 static void StrokeShader___dealloc__(BPy_StrokeShader *self)
 {
-  if (self->ss) {
-    delete self->ss;
-  }
+  delete self->ss;
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 

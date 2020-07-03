@@ -83,9 +83,7 @@ static int UnaryFunction0DEdgeNature___init__(BPy_UnaryFunction0DEdgeNature *sel
 
 static void UnaryFunction0DEdgeNature___dealloc__(BPy_UnaryFunction0DEdgeNature *self)
 {
-  if (self->uf0D_edgenature) {
-    delete self->uf0D_edgenature;
-  }
+  delete self->uf0D_edgenature;
   UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 

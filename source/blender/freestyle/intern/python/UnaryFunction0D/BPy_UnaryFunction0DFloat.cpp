@@ -121,9 +121,7 @@ static int UnaryFunction0DFloat___init__(BPy_UnaryFunction0DFloat *self,
 
 static void UnaryFunction0DFloat___dealloc__(BPy_UnaryFunction0DFloat *self)
 {
-  if (self->uf0D_float) {
-    delete self->uf0D_float;
-  }
+  delete self->uf0D_float;
   UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 

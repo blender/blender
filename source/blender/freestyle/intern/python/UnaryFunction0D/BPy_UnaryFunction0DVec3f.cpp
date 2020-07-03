@@ -82,9 +82,7 @@ static int UnaryFunction0DVec3f___init__(BPy_UnaryFunction0DVec3f *self,
 
 static void UnaryFunction0DVec3f___dealloc__(BPy_UnaryFunction0DVec3f *self)
 {
-  if (self->uf0D_vec3f) {
-    delete self->uf0D_vec3f;
-  }
+  delete self->uf0D_vec3f;
   UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 

@@ -93,9 +93,7 @@ static int UnaryFunction1DFloat___init__(BPy_UnaryFunction1DFloat *self,
 
 static void UnaryFunction1DFloat___dealloc__(BPy_UnaryFunction1DFloat *self)
 {
-  if (self->uf1D_float) {
-    delete self->uf1D_float;
-  }
+  delete self->uf1D_float;
   UnaryFunction1D_Type.tp_dealloc((PyObject *)self);
 }
 

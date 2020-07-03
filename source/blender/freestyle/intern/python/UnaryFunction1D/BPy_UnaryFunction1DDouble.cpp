@@ -197,9 +197,7 @@ static int UnaryFunction1DDouble___init__(BPy_UnaryFunction1DDouble *self,
 
 static void UnaryFunction1DDouble___dealloc__(BPy_UnaryFunction1DDouble *self)
 {
-  if (self->uf1D_double) {
-    delete self->uf1D_double;
-  }
+  delete self->uf1D_double;
   UnaryFunction1D_Type.tp_dealloc((PyObject *)self);
 }
 

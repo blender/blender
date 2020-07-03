@@ -116,9 +116,7 @@ static int UnaryFunction1DVoid___init__(BPy_UnaryFunction1DVoid *self,
 
 static void UnaryFunction1DVoid___dealloc__(BPy_UnaryFunction1DVoid *self)
 {
-  if (self->uf1D_void) {
-    delete self->uf1D_void;
-  }
+  delete self->uf1D_void;
   UnaryFunction1D_Type.tp_dealloc((PyObject *)self);
 }
 

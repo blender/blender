@@ -193,9 +193,7 @@ void SteerableViewMap::buildImagesPyramids(GrayImage **steerableBases,
 {
   for (unsigned int i = 0; i <= _nbOrientations; ++i) {
     ImagePyramid *svm = (_imagesPyramids)[i];
-    if (svm) {
-      delete svm;
-    }
+    delete svm;
     if (copy) {
       svm = new GaussianPyramid(*(steerableBases[i]), iNbLevels, iSigma);
     }

@@ -20,7 +20,6 @@ Checks:  >
   -readability-named-parameter,
   -readability-function-size,
   -readability-function-size,
-  -readability-delete-null-pointer,
   -readability-redundant-string-init,
   -readability-redundant-member-init,
   -readability-const-return-type,

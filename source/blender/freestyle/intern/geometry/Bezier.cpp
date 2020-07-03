@@ -109,9 +109,7 @@ BezierCurve::~BezierCurve()
       delete *v;
     }
   }
-  if (_currentSegment) {
-    delete _currentSegment;
-  }
+  delete _currentSegment;
 }
 
 void BezierCurve::AddControlPoint(const Vec2d &iPoint)

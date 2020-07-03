@@ -84,9 +84,8 @@ static int BinaryPredicate0D___init__(BPy_BinaryPredicate0D *self, PyObject *arg
 
 static void BinaryPredicate0D___dealloc__(BPy_BinaryPredicate0D *self)
 {
-  if (self->bp0D) {
-    delete self->bp0D;
-  }
+  delete self->bp0D;
+
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 

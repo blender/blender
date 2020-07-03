@@ -69,9 +69,7 @@ static int ViewMap_init(BPy_ViewMap *self, PyObject *args, PyObject *kwds)
 
 static void ViewMap_dealloc(BPy_ViewMap *self)
 {
-  if (self->vm) {
-    delete self->vm;
-  }
+  delete self->vm;
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 

@@ -90,9 +90,7 @@ static int UnaryFunction0DViewShape___init__(BPy_UnaryFunction0DViewShape *self,
 
 static void UnaryFunction0DViewShape___dealloc__(BPy_UnaryFunction0DViewShape *self)
 {
-  if (self->uf0D_viewshape) {
-    delete self->uf0D_viewshape;
-  }
+  delete self->uf0D_viewshape;
   UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 

@@ -137,9 +137,7 @@ static int Iterator_init(BPy_Iterator *self, PyObject *args, PyObject *kwds)
 
 static void Iterator_dealloc(BPy_Iterator *self)
 {
-  if (self->it) {
-    delete self->it;
-  }
+  delete self->it;
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 

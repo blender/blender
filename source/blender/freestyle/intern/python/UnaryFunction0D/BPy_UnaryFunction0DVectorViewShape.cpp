@@ -84,9 +84,7 @@ static int UnaryFunction0DVectorViewShape___init__(BPy_UnaryFunction0DVectorView
 
 static void UnaryFunction0DVectorViewShape___dealloc__(BPy_UnaryFunction0DVectorViewShape *self)
 {
-  if (self->uf0D_vectorviewshape) {
-    delete self->uf0D_vectorviewshape;
-  }
+  delete self->uf0D_vectorviewshape;
   UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 

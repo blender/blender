@@ -66,9 +66,7 @@ void WingedEdgeBuilder::visitNodeTransform(NodeTransform &tn)
 
 void WingedEdgeBuilder::visitNodeTransformAfter(NodeTransform &)
 {
-  if (_current_matrix) {
-    delete _current_matrix;
-  }
+  delete _current_matrix;
 
   if (_matrices_stack.empty()) {
     _current_matrix = NULL;
