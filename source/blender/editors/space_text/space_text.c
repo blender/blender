@@ -256,7 +256,7 @@ static int text_context(const bContext *C, const char *member, bContextDataResul
     CTX_data_dir_set(result, text_context_dir);
     return 1;
   }
-  else if (CTX_data_equals(member, "edit_text")) {
+  if (CTX_data_equals(member, "edit_text")) {
     if (st->text != NULL) {
       CTX_data_id_pointer_set(result, &st->text->id);
     }

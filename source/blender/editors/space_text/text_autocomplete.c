@@ -319,15 +319,12 @@ static int text_autocomplete_invoke(bContext *C, wmOperator *op, const wmEvent *
       ED_undo_push(C, op->type->name);
       return OPERATOR_FINISHED;
     }
-    else {
-      WM_event_add_modal_handler(C, op);
-      return OPERATOR_RUNNING_MODAL;
-    }
+
+    WM_event_add_modal_handler(C, op);
+    return OPERATOR_RUNNING_MODAL;
   }
-  else {
-    text_autocomplete_free(C, op);
-    return OPERATOR_CANCELLED;
-  }
+  text_autocomplete_free(C, op);
+  return OPERATOR_CANCELLED;
 }
 
 static int doc_scroll = 0;
@@ -590,10 +587,8 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
     }
     return retval;
   }
-  else {
-    text_autocomplete_free(C, op);
-    return OPERATOR_FINISHED;
-  }
+  text_autocomplete_free(C, op);
+  return OPERATOR_FINISHED;
 }
 
 static void text_autocomplete_free(bContext *C, wmOperator *op)

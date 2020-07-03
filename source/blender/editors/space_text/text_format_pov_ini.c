@@ -410,7 +410,7 @@ static void txtfmt_pov_ini_format_line(SpaceText *st, TextLine *line, const bool
       continue;
     }
     /* Handle continuations */
-    else if (cont) {
+    if (cont) {
       /* Multi-line comments */
       if (cont & FMT_CONT_COMMENT_C) {
         if (*str == ']' && *(str + 1) == ']') {

@@ -234,11 +234,10 @@ void wrap_offset(
     if (i - lines < 0) {
       break;
     }
-    else {
-      linep = linep->next;
-      (*offl) += lines - 1;
-      i -= lines;
-    }
+
+    linep = linep->next;
+    (*offl) += lines - 1;
+    i -= lines;
   }
 
   max = wrap_width(st, region);
@@ -849,9 +848,7 @@ int text_get_span_wrap(const SpaceText *st, ARegion *region, TextLine *from, Tex
 
     return ret;
   }
-  else {
-    return txt_get_span(from, to);
-  }
+  return txt_get_span(from, to);
 }
 
 int text_get_total_lines(SpaceText *st, ARegion *region)
@@ -1612,11 +1609,10 @@ void draw_text_main(SpaceText *st, ARegion *region)
         wrap_skip = st->top - wraplinecount;
         break;
       }
-      else {
-        wraplinecount += lines;
-        tmp = tmp->next;
-        linecount++;
-      }
+
+      wraplinecount += lines;
+      tmp = tmp->next;
+      linecount++;
     }
     else {
       tmp = tmp->next;

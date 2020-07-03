@@ -226,7 +226,7 @@ static void txtfmt_lua_format_line(SpaceText *st, TextLine *line, const bool do_
       continue;
     }
     /* Handle continuations */
-    else if (cont) {
+    if (cont) {
       /* Multi-line comments */
       if (cont & FMT_CONT_COMMENT_C) {
         if (*str == ']' && *(str + 1) == ']') {

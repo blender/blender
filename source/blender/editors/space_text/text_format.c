@@ -222,10 +222,9 @@ TextFormatType *ED_text_format_get(Text *text)
      * the "default" text format */
     return tft_lb.first;
   }
-  else {
-    /* Return the "default" text format */
-    return tft_lb.first;
-  }
+
+  /* Return the "default" text format */
+  return tft_lb.first;
 }
 
 bool ED_text_is_syntax_highlight_supported(Text *text)

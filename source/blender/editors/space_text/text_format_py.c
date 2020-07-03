@@ -376,7 +376,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
       continue;
     }
     /* Handle continuations */
-    else if (cont) {
+    if (cont) {
       /* Triple strings ("""...""" or '''...''') */
       if (cont & FMT_CONT_TRIPLE) {
         find = (cont & FMT_CONT_QUOTEDOUBLE) ? '"' : '\'';
