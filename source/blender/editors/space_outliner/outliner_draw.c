@@ -80,8 +80,8 @@
 
 #include "outliner_intern.h"
 
-/* disable - this is far too slow - campbell */
-// #define USE_GROUP_SELECT
+/* Disable - this is far too slow - campbell. */
+/* #define USE_GROUP_SELECT */
 
 /* ****************************************************** */
 /* Tree Size Functions */
@@ -731,7 +731,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
     else {
       switch (tselem->type) {
         case TSE_DEFGROUP:
-          BKE_object_defgroup_unique_name(te->directdata, (Object *)tselem->id);  //  id = object
+          BKE_object_defgroup_unique_name(te->directdata, (Object *)tselem->id); /* id = object. */
           break;
         case TSE_NLA_ACTION:
           BLI_libblock_ensure_unique_name(bmain, tselem->id->name);
@@ -790,7 +790,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           break;
         }
         case TSE_POSEGRP: {
-          Object *ob = (Object *)tselem->id;  // id = object
+          Object *ob = (Object *)tselem->id; /* id = object. */
           bActionGroup *grp = te->directdata;
 
           BLI_uniquename(&ob->pose->agroups,
@@ -809,7 +809,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           /* always make layer active */
           BKE_gpencil_layer_active_set(gpd, gpl);
 
-          // XXX: name needs translation stuff
+          /* XXX: name needs translation stuff. */
           BLI_uniquename(
               &gpd->layers, gpl, "GP Layer", '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
 
@@ -3069,7 +3069,7 @@ static void outliner_draw_tree_element(bContext *C,
                           icon_border);
       GPU_blend(true); /* roundbox disables it */
 
-      te->flag |= TE_ACTIVE;  // for lookup in display hierarchies
+      te->flag |= TE_ACTIVE; /* For lookup in display hierarchies. */
     }
 
     if (tselem->type == TSE_VIEW_COLLECTION_BASE) {
@@ -3080,7 +3080,7 @@ static void outliner_draw_tree_element(bContext *C,
       /* open/close icon, only when sublevels, except for scene */
       int icon_x = startx;
 
-      // icons a bit higher
+      /* Icons a bit higher. */
       if (TSELEM_OPEN(tselem, soops)) {
         UI_icon_draw_alpha((float)icon_x + 2 * ufac,
                            (float)*starty + 1 * ufac,
@@ -3487,7 +3487,7 @@ static void outliner_draw_tree(bContext *C,
   int starty, startx;
 
   GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);  // only once
+      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA); /* Only once. */
 
   if (soops->outlinevis == SO_DATA_API) {
     /* struct marks */
@@ -3510,13 +3510,12 @@ static void outliner_draw_tree(bContext *C,
     GPU_scissor(0, 0, mask_x, region->winy);
   }
 
-  // gray hierarchy lines
-
+  /* Gray hierarchy lines. */
   starty = (int)region->v2d.tot.ymax - UI_UNIT_Y / 2 - OL_Y_OFFSET;
   startx = UI_UNIT_X / 2 - (U.pixelsize + 1) / 2;
   outliner_draw_hierarchy_lines(soops, &soops->tree, startx, &starty);
 
-  // items themselves
+  /* Items themselves. */
   starty = (int)region->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
   startx = 0;
   LISTBASE_FOREACH (TreeElement *, te, &soops->tree) {
@@ -3621,7 +3620,7 @@ void draw_outliner(const bContext *C)
   TreeViewContext tvc;
   outliner_viewcontext_init(C, &tvc);
 
-  outliner_build_tree(mainvar, tvc.scene, tvc.view_layer, soops, region);  // always
+  outliner_build_tree(mainvar, tvc.scene, tvc.view_layer, soops, region); /* Always. */
 
   /* If global sync select is dirty, flag other outliners */
   if (ED_outliner_select_sync_is_dirty(C)) {

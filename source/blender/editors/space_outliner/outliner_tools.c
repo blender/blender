@@ -862,12 +862,12 @@ void outliner_do_object_operation_ex(bContext *C,
     bool select_handled = false;
     if (tselem->flag & TSE_SELECTED) {
       if (tselem->type == 0 && te->idcode == ID_OB) {
-        // when objects selected in other scenes... dunno if that should be allowed
+        /* When objects selected in other scenes... dunno if that should be allowed. */
         Scene *scene_owner = (Scene *)outliner_search_back(te, ID_SCE);
         if (scene_owner && scene_act != scene_owner) {
           WM_window_set_active_scene(CTX_data_main(C), C, CTX_wm_window(C), scene_owner);
         }
-        /* important to use 'scene_owner' not scene_act else deleting objects can crash.
+        /* Important to use 'scene_owner' not scene_act else deleting objects can crash.
          * only use 'scene_act' when 'scene_owner' is NULL, which can happen when the
          * outliner isn't showing scenes: Visible Layer draw mode for eg. */
         operation_cb(
@@ -1299,7 +1299,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
   event = RNA_enum_get(op->ptr, "type");
 
   if (event == OL_OP_SELECT) {
-    Scene *sce = scene;  // to be able to delete, scenes are set...
+    Scene *sce = scene; /* To be able to delete, scenes are set... */
     outliner_do_object_operation(C, op->reports, scene, soops, &soops->tree, object_select_cb);
     if (scene != sce) {
       WM_window_set_active_scene(bmain, C, win, sce);
@@ -1309,7 +1309,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
     selection_changed = true;
   }
   else if (event == OL_OP_SELECT_HIERARCHY) {
-    Scene *sce = scene;  // to be able to delete, scenes are set...
+    Scene *sce = scene; /* To be able to delete, scenes are set... */
     outliner_do_object_operation_ex(
         C, op->reports, scene, soops, &soops->tree, object_select_hierarchy_cb, NULL, false);
     if (scene != sce) {
@@ -1521,7 +1521,7 @@ typedef enum eOutlinerIdOpTypes {
   OUTLINER_IDOP_SELECT_LINKED,
 } eOutlinerIdOpTypes;
 
-// TODO: implement support for changing the ID-block used
+/* TODO: implement support for changing the ID-block used. */
 static const EnumPropertyItem prop_id_op_types[] = {
     {OUTLINER_IDOP_UNLINK, "UNLINK", 0, "Unlink", ""},
     {OUTLINER_IDOP_LOCAL, "LOCAL", 0, "Make Local", ""},
@@ -1776,14 +1776,14 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       break;
 
     default:
-      // invalid - unhandled
+      /* Invalid - unhandled. */
       break;
   }
 
   /* wrong notifier still... */
   WM_event_add_notifier(C, NC_ID | NA_EDITED, NULL);
 
-  // XXX: this is just so that outliner is always up to date
+  /* XXX: this is just so that outliner is always up to date. */
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
   return OPERATOR_FINISHED;
@@ -1959,7 +1959,7 @@ static void actionset_id_cb(TreeElement *UNUSED(te),
     /* "animation" entries case again */
     BKE_animdata_set_action(NULL, tsep->id, act);
   }
-  // TODO: other cases not supported yet
+  /* TODO: other cases not supported yet. */
 }
 
 static int outliner_action_set_exec(bContext *C, wmOperator *op)
@@ -2031,7 +2031,7 @@ void OUTLINER_OT_action_set(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  // TODO: this would be nicer as an ID-pointer...
+  /* TODO: this would be nicer as an ID-pointer... */
   prop = RNA_def_enum(ot->srna, "action", DummyRNA_NULL_items, 0, "Action", "");
   RNA_def_enum_funcs(prop, RNA_action_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
@@ -2055,8 +2055,8 @@ typedef enum eOutliner_AnimDataOps {
   OUTLINER_ANIMOP_REFRESH_DRV,
   OUTLINER_ANIMOP_CLEAR_DRV
 
-  // OUTLINER_ANIMOP_COPY_DRIVERS,
-  // OUTLINER_ANIMOP_PASTE_DRIVERS
+  /* OUTLINER_ANIMOP_COPY_DRIVERS, */
+  /* OUTLINER_ANIMOP_PASTE_DRIVERS */
 } eOutliner_AnimDataOps;
 
 static const EnumPropertyItem prop_animdata_op_types[] = {
@@ -2068,8 +2068,8 @@ static const EnumPropertyItem prop_animdata_op_types[] = {
     {OUTLINER_ANIMOP_SET_ACT, "SET_ACT", 0, "Set Action", ""},
     {OUTLINER_ANIMOP_CLEAR_ACT, "CLEAR_ACT", 0, "Unlink Action", ""},
     {OUTLINER_ANIMOP_REFRESH_DRV, "REFRESH_DRIVERS", 0, "Refresh Drivers", ""},
-    //{OUTLINER_ANIMOP_COPY_DRIVERS, "COPY_DRIVERS", 0, "Copy Drivers", ""},
-    //{OUTLINER_ANIMOP_PASTE_DRIVERS, "PASTE_DRIVERS", 0, "Paste Drivers", ""},
+    /* {OUTLINER_ANIMOP_COPY_DRIVERS, "COPY_DRIVERS", 0, "Copy Drivers", ""}, */
+    /* {OUTLINER_ANIMOP_PASTE_DRIVERS, "PASTE_DRIVERS", 0, "Paste Drivers", ""}, */
     {OUTLINER_ANIMOP_CLEAR_DRV, "CLEAR_DRIVERS", 0, "Clear Drivers", ""},
     {0, NULL, 0, NULL, NULL},
 };
@@ -2125,7 +2125,7 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
           soops, datalevel, event, &soops->tree, refreshdrivers_animdata_cb, NULL);
 
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, NULL);
-      // ED_undo_push(C, "Refresh Drivers"); /* no undo needed - shouldn't have any impact? */
+      /* ED_undo_push(C, "Refresh Drivers"); No undo needed - shouldn't have any impact? */
       break;
 
     case OUTLINER_ANIMOP_CLEAR_DRV:
@@ -2136,7 +2136,7 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
       ED_undo_push(C, "Clear Drivers");
       break;
 
-    default:  // invalid
+    default: /* Invalid. */
       break;
   }
 
@@ -2267,7 +2267,7 @@ void OUTLINER_OT_modifier_operation(wmOperatorType *ot)
 /** \name Data Menu Operator
  * \{ */
 
-// XXX: select linked is for RNA structs only
+/* XXX: select linked is for RNA structs only. */
 static const EnumPropertyItem prop_data_op_types[] = {
     {OL_DOP_SELECT, "SELECT", 0, "Select", ""},
     {OL_DOP_DESELECT, "DESELECT", 0, "Deselect", ""},
@@ -2386,7 +2386,7 @@ static int outliner_operator_menu(bContext *C, const char *opname)
 static int do_outliner_operation_event(
     bContext *C, ARegion *region, SpaceOutliner *soops, TreeElement *te, const float mval[2])
 {
-  ReportList *reports = CTX_wm_reports(C);  // XXX...
+  ReportList *reports = CTX_wm_reports(C); /* XXX... */
 
   if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
     int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;

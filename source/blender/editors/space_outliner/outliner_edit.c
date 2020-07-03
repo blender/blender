@@ -1475,7 +1475,7 @@ void OUTLINER_OT_scroll_page(wmOperatorType *ot)
 
 /** \} */
 
-#if 0  // TODO: probably obsolete now with filtering?
+#if 0 /* TODO: probably obsolete now with filtering? */
 
 /* -------------------------------------------------------------------- */
 /** \name Search
@@ -1519,7 +1519,7 @@ static TreeElement *outliner_find_name(
 static void outliner_find_panel(
     Scene *UNUSED(scene), ARegion *region, SpaceOutliner *soops, int again, int flags)
 {
-  ReportList *reports = NULL;  // CTX_wm_reports(C);
+  ReportList *reports = NULL;  /* CTX_wm_reports(C); */
   TreeElement *te = NULL;
   TreeElement *last_find;
   TreeStoreElem *tselem;
@@ -1546,10 +1546,10 @@ static void outliner_find_panel(
   else {
     /* pop up panel - no previous, or user didn't want search after previous */
     name[0] = '\0';
-    // XXX      if (sbutton(name, 0, sizeof(name) - 1, "Find: ") && name[0]) {
-    //          te = outliner_find_name(soops, &soops->tree, name, flags, NULL, &prevFound);
-    //      }
-    //      else return; /* XXX RETURN! XXX */
+    /* XXX      if (sbutton(name, 0, sizeof(name) - 1, "Find: ") && name[0]) { */
+    /*          te = outliner_find_name(soops, &soops->tree, name, flags, NULL, &prevFound); */
+    /*      } */
+    /*      else return; XXX RETURN! XXX */
   }
 
   /* do selection and reveal */
@@ -1764,7 +1764,7 @@ void OUTLINER_OT_show_hierarchy(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = outliner_show_hierarchy_exec;
-  ot->poll = ED_operator_outliner_active;  //  TODO: shouldn't be allowed in RNA views...
+  ot->poll = ED_operator_outliner_active; /* TODO: shouldn't be allowed in RNA views... */
 
   /* no undo or registry, UI option */
 }
@@ -2050,7 +2050,7 @@ static int outliner_drivers_addsel_exec(bContext *C, wmOperator *op)
   do_outliner_drivers_editop(soutliner, &soutliner->tree, op->reports, DRIVERS_EDITMODE_ADD);
 
   /* send notifiers */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL);  // XXX
+  WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL); /* XXX */
 
   return OPERATOR_FINISHED;
 }
@@ -2089,7 +2089,7 @@ static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *op)
   do_outliner_drivers_editop(soutliner, &soutliner->tree, op->reports, DRIVERS_EDITMODE_REMOVE);
 
   /* send notifiers */
-  WM_event_add_notifier(C, ND_KEYS, NULL);  // XXX
+  WM_event_add_notifier(C, ND_KEYS, NULL); /* XXX */
 
   return OPERATOR_FINISHED;
 }
@@ -2126,8 +2126,8 @@ enum {
   KEYINGSET_EDITMODE_REMOVE,
 } /*eKeyingSet_EditModes*/;
 
-/* find the 'active' KeyingSet, and add if not found (if adding is allowed) */
-// TODO: should this be an API func?
+/* Find the 'active' KeyingSet, and add if not found (if adding is allowed). */
+/* TODO: should this be an API func? */
 static KeyingSet *verify_active_keyingset(Scene *scene, short add)
 {
   KeyingSet *ks = NULL;
@@ -2142,8 +2142,8 @@ static KeyingSet *verify_active_keyingset(Scene *scene, short add)
     ks = BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1);
   }
 
-  /* add if none found */
-  // XXX the default settings have yet to evolve
+  /* Add if none found */
+  /* XXX the default settings have yet to evolve. */
   if ((add) && (ks == NULL)) {
     ks = BKE_keyingset_add(&scene->keyingsets, NULL, NULL, KEYINGSET_ABSOLUTE, 0);
     scene->active_keyingset = BLI_listbase_count(&scene->keyingsets);
