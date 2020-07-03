@@ -1515,7 +1515,7 @@ static void ui_text_clip_right_ex(const uiFontStyle *fstyle,
     l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth - sep_strwidth, &tmp);
     memcpy(str + l_end, sep, sep_len + 1); /* +1 for trailing '\0'. */
     if (r_final_len) {
-      *r_final_len = (size_t)(l_end + sep_len);
+      *r_final_len = (size_t)(l_end) + sep_len;
     }
   }
 }

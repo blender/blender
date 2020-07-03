@@ -619,7 +619,7 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em, Key *
       if (kb_act->totelem != um->me.totvert) {
         /* The current mesh has some extra/missing verts compared to the undo, adjust. */
         MEM_SAFE_FREE(kb_act->data);
-        kb_act->data = MEM_mallocN((size_t)(key->elemsize * bm->totvert), __func__);
+        kb_act->data = MEM_mallocN((size_t)(key->elemsize) * bm->totvert, __func__);
         kb_act->totelem = um->me.totvert;
       }
 

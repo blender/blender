@@ -297,7 +297,7 @@ void blf_font_size(FontBLF *font, unsigned int size, unsigned int dpi)
     }
   }
 
-  err = FT_Set_Char_Size(font->face, 0, (FT_F26Dot6)(size * 64), dpi, dpi);
+  err = FT_Set_Char_Size(font->face, 0, ((FT_F26Dot6)(size)) * 64, dpi, dpi);
   if (err) {
     /* FIXME: here we can go through the fixed size and choice a close one */
     printf("The current font don't support the size, %u and dpi, %u\n", size, dpi);
