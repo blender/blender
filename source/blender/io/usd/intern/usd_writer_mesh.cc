@@ -338,7 +338,7 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
    * https://github.com/PixarAnimationStudios/USD/issues/542 for more info. */
   bool mesh_material_bound = false;
   pxr::UsdShadeMaterialBindingAPI material_binding_api(usd_mesh.GetPrim());
-  for (short mat_num = 0; mat_num < context.object->totcol; mat_num++) {
+  for (int mat_num = 0; mat_num < context.object->totcol; mat_num++) {
     Material *material = BKE_object_material_get(context.object, mat_num + 1);
     if (material == nullptr) {
       continue;

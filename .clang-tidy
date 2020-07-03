@@ -37,7 +37,6 @@ Checks:  >
   -bugprone-integer-division,
   -bugprone-incorrect-roundings,
   -bugprone-suspicious-string-compare,
-  -bugprone-too-small-loop-variable,
   -bugprone-misplaced-widening-cast,
   -bugprone-not-null-terminated-result,
   -bugprone-suspicious-missing-comma,
