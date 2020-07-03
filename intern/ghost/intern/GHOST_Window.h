@@ -34,7 +34,7 @@ class GHOST_Context;
  * Dimensions are given in screen coordinates that are relative to the
  * upper-left corner of the screen.
  * Implements part of the GHOST_IWindow interface and adds some methods to
- * be implemented by childs of this class.
+ * be implemented by sub-classes of this class.
  */
 class GHOST_Window : public GHOST_IWindow {
  public:

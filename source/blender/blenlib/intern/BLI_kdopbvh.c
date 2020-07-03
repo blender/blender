@@ -94,7 +94,7 @@ typedef struct BVHNode {
 struct BVHTree {
   BVHNode **nodes;
   BVHNode *nodearray;  /* pre-alloc branch nodes */
-  BVHNode **nodechild; /* pre-alloc childs for nodes */
+  BVHNode **nodechild; /* pre-alloc children for nodes */
   float *nodebv;       /* pre-alloc bounding-volumes for nodes */
   float epsilon;       /* epslion is used for inflation of the k-dop      */
   int totleaf;         /* leafs */

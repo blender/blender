@@ -682,9 +682,9 @@ static void sculpt_vertex_neighbors_get_grids(SculptSession *ss,
                                               const bool include_duplicates,
                                               SculptVertexNeighborIter *iter)
 {
-  /* TODO: optimize this. We could fill SculptVertexNeighborIter directly,
+  /* TODO: optimize this. We could fill #SculptVertexNeighborIter directly,
    * maybe provide coordinate and mask pointers directly rather than converting
-   * back and forth between CCGElem and global index. */
+   * back and forth between #CCGElem and global index. */
   const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
   const int grid_index = index / key->grid_area;
   const int vertex_index = index - grid_index * key->grid_area;
@@ -777,7 +777,7 @@ bool SCULPT_vertex_is_boundary(SculptSession *ss, const int index)
   return true;
 }
 
-/* Utils */
+/* Utilities */
 
 /**
  * Returns true when the step belongs to the stroke that is directly performed by the brush and
@@ -1380,9 +1380,10 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
   BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
   /**
-   * Disable OpenMP when dynamic-topology is enabled. Otherwise, new entries might be inserted by
-   * #SCULPT_undo_push_node() into the #GHash used internally by #BM_log_original_vert_co()
-   * by a different thread. See T33787. */
+   * Disable multi-threading when dynamic-topology is enabled. Otherwise,
+   * new entries might be inserted by #SCULPT_undo_push_node() into the #GHash
+   * used internally by #BM_log_original_vert_co() by a different thread. See T33787.
+   */
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
@@ -1403,11 +1404,11 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 
 static void sculpt_extend_redraw_rect_previous(Object *ob, rcti *rect)
 {
-  /* Expand redraw rect with redraw rect from previous step to
+  /* Expand redraw \a rect with redraw \a rect from previous step to
    * prevent partial-redraw issues caused by fast strokes. This is
    * needed here (not in sculpt_flush_update) as it was before
    * because redraw rectangle should be the same in both of
-   * optimized PBVH draw function and 3d view redraw (if not -- some
+   * optimized PBVH draw function and 3d view redraw, if not -- some
    * mesh parts could disappear from screen (sergey). */
   SculptSession *ss = ob->sculpt;
 
@@ -1448,8 +1449,8 @@ void ED_sculpt_redraw_planes_get(float planes[4][4], ARegion *region, Object *ob
 
   paint_calc_redraw_planes(planes, region, ob, &rect);
 
-  /* We will draw this rect, so now we can set it as the previous partial rect.
-   * Note that we don't update with the union of previous/current (rect), only with
+  /* We will draw this \a rect, so now we can set it as the previous partial \a rect.
+   * Note that we don't update with the union of previous/current (\a rect), only with
    * the current. Thus we avoid the rectangle needlessly growing to include
    * all the stroke area. */
   ob->sculpt->cache->previous_r = ob->sculpt->cache->current_r;
@@ -2397,7 +2398,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
   /* Paint mask. */
   avg *= 1.0f - mask;
 
-  /* Automasking. */
+  /* Auto-masking. */
   avg *= SCULPT_automasking_factor_get(ss, vertex_index);
 
   return avg;
@@ -2639,7 +2640,7 @@ static void calc_brush_local_mat(const Brush *brush, Object *ob, float local_mat
   float angle, v[3];
   float up[3];
 
-  /* Ensure ob->imat is up to date. */
+  /* Ensure `ob->imat` is up to date. */
   invert_m4_m4(ob->imat, ob->obmat);
 
   /* Initialize last column of matrix. */
@@ -2669,8 +2670,7 @@ static void calc_brush_local_mat(const Brush *brush, Object *ob, float local_mat
   scale_m4_fl(scale, cache->radius);
   mul_m4_m4m4(tmat, mat, scale);
 
-  /* Return inverse (for converting from modelspace coords to local
-   * area coords). */
+  /* Return inverse (for converting from model-space coords to local area coords). */
   invert_m4_m4(local_mat, tmat);
 }
 
@@ -3454,7 +3454,7 @@ static void do_pinch_brush_task_cb_ex(void *__restrict userdata,
       float disp_center[3];
       float x_disp[3];
       float z_disp[3];
-      /* Calcualte displacement from the vertex to the brush center. */
+      /* Calculate displacement from the vertex to the brush center. */
       sub_v3_v3v3(disp_center, test.location, vd.co);
 
       /* Project the displacement into the X vector (aligned to the stroke). */
@@ -3463,8 +3463,8 @@ static void do_pinch_brush_task_cb_ex(void *__restrict userdata,
       /* Project the displacement into the Z vector (aligned to the surface normal). */
       mul_v3_v3fl(z_disp, z_object_space, dot_v3v3(disp_center, z_object_space));
 
-      /* Add the two projected vectors to calculate the final displacement. The Y component is
-       * removed */
+      /* Add the two projected vectors to calculate the final displacement.
+       * The Y component is removed. */
       add_v3_v3v3(disp_center, x_disp, z_disp);
 
       if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
@@ -3500,7 +3500,7 @@ static void do_pinch_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     return;
   }
 
-  /* Init mat */
+  /* Initialize `mat`. */
   cross_v3_v3v3(mat[0], area_no, ss->cache->grab_delta_symmetry);
   mat[0][3] = 0.0f;
   cross_v3_v3v3(mat[1], area_no, mat[0]);
@@ -3803,7 +3803,7 @@ void SCULPT_calc_brush_plane(
     }
 
     /* For flatten center. */
-    /* fFlatten center has not been calculated yet if we are not using the area normal. */
+    /* Flatten center has not been calculated yet if we are not using the area normal. */
     if (brush->sculpt_plane != SCULPT_DISP_DIR_AREA) {
       calc_area_center(sd, ob, nodes, totnode, r_area_co);
     }
@@ -4232,9 +4232,9 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
         disp_factor = &ss->cache->layer_displacement_factor[vi];
       }
 
-      /* When using persistent base, the layer brush Ctrl invert mode resets the height of the
-       * layer to 0. This makes possible to clean edges of previously added layers on top of the
-       * base. */
+      /* When using persistent base, the layer brush (holding Control) invert mode resets the
+       * height of the layer to 0. This makes possible to clean edges of previously added layers
+       * on top of the base. */
       /* The main direction of the layers is inverted using the regular brush strength with the
        * brush direction property. */
       if (use_persistent_base && ss->cache->invert) {
@@ -4791,7 +4791,7 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
   float area_co_displaced[3];
   madd_v3_v3v3fl(area_co_displaced, area_co, area_no, -radius * 0.7f);
 
-  /* Init brush local space matrix. */
+  /* Initialize brush local-space matrix. */
   cross_v3_v3v3(mat[0], area_no, ss->cache->grab_delta_symmetry);
   mat[0][3] = 0.0f;
   cross_v3_v3v3(mat[1], area_no, mat[0]);
@@ -5153,7 +5153,7 @@ static void do_clay_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   mul_v3_fl(temp, displace);
   add_v3_v3(area_co, temp);
 
-  /* Init brush local space matrix. */
+  /* Initialize brush local-space matrix. */
   cross_v3_v3v3(mat[0], area_no, ss->cache->grab_delta_symmetry);
   mat[0][3] = 0.0f;
   cross_v3_v3v3(mat[1], area_no, mat[0]);
@@ -5453,7 +5453,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
   if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS &&
       SCULPT_stroke_is_first_brush_step(ss->cache) && !ss->cache->alt_smooth) {
 
-    /* Dyntopo does not support Face Sets data, so it can't store/restore it from undo. */
+    /* Dynamic-topology does not support Face Sets data, so it can't store/restore it from undo. */
     /* TODO (pablodp606): This check should be done in the undo code and not here, but the rest of
      * the sculpt code is not checking for unsupported undo types that may return a null node. */
     if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
@@ -5751,13 +5751,15 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
   MEM_SAFE_FREE(nodes);
 }
 
-/*Copy the modified vertices from bvh to the active key. */
+/**
+ * Copy the modified vertices from the #PBVH to the active key.
+ */
 static void sculpt_update_keyblock(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   float(*vertCos)[3];
 
-  /* Keyblock update happens after handling deformation caused by modifiers,
+  /* Key-block update happens after handling deformation caused by modifiers,
    * so ss->orig_cos would be updated with new stroke. */
   if (ss->orig_cos) {
     vertCos = ss->orig_cos;
@@ -5844,7 +5846,7 @@ void SCULPT_flush_stroke_deform(Sculpt *sd, Object *ob, bool is_proxy_used)
 
     /* Modifiers could depend on mesh normals, so we should update them.
      * Note, then if sculpting happens on locked key, normals should be re-calculate after applying
-     * coords from keyblock on base mesh. */
+     * coords from key-block on base mesh. */
     BKE_mesh_calc_normals(me);
   }
   else if (ss->shapekey_active) {
@@ -5852,8 +5854,10 @@ void SCULPT_flush_stroke_deform(Sculpt *sd, Object *ob, bool is_proxy_used)
   }
 }
 
-/* Flip all the editdata across the axis/axes specified by symm. Used to
- * calculate multiple modifications to the mesh when symmetry is enabled. */
+/**
+ * Flip all the edit-data across the axis/axes specified by \a symm.
+ * Used to calculate multiple modifications to the mesh when symmetry is enabled.
+ */
 void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
                                       const char symm,
                                       const char axis,
@@ -8466,13 +8470,15 @@ void SCULPT_fake_neighbors_free(Object *ob)
   sculpt_pose_fake_neighbors_free(ss);
 }
 
-/* sculpt_mask_by_color_delta_get returns values in the (0,1) range that are used to generate the
- * mask based on the diference between two colors (the active color and the color of any other
+/**
+ * #sculpt_mask_by_color_delta_get returns values in the (0,1) range that are used to generate the
+ * mask based on the difference between two colors (the active color and the color of any other
  * vertex). Ideally, a threshold of 0 should mask only the colors that are equal to the active
  * color and threshold of 1 should mask all colors. In order to avoid artifacts and produce softer
  * falloffs in the mask, the MASK_BY_COLOR_SLOPE defines the size of the transition values between
  * masked and unmasked vertices. The smaller this value is, the sharper the generated mask is going
- * to be. */
+ * to be.
+ */
 #define MASK_BY_COLOR_SLOPE 0.25f
 
 static float sculpt_mask_by_color_delta_get(const float *color_a,

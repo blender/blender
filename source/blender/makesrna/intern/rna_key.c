@@ -708,9 +708,8 @@ static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, float *point)
     return NULL;
   }
 
-  /* we'll need to manually search through the keyblocks and check
-   * if the point is somewhere in the middle of each block's data
-   */
+  /* We'll need to manually search through the key-blocks and check
+   * if the point is somewhere in the middle of each block's data. */
   for (kb = key->block.first; kb; kb = kb->next) {
     if (kb->data) {
       float *start = (float *)kb->data;

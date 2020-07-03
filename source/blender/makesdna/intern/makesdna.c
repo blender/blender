@@ -360,7 +360,7 @@ static int add_type(const char *str, int size)
   }
   else if (strchr(str, '*')) {
     /* note: this is valid C syntax but we can't parse, complain!
-     * 'struct SomeStruct* somevar;' <-- correct but we cant handle right now. */
+     * `struct SomeStruct* some_var;` <-- correct but we cant handle right now. */
     return -1;
   }
 

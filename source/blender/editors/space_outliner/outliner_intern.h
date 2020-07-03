@@ -50,11 +50,11 @@ typedef enum TreeElementInsertType {
 } TreeElementInsertType;
 
 typedef enum TreeTraversalAction {
-  /* Continue traversal regularly, don't skip children. */
+  /** Continue traversal regularly, don't skip children. */
   TRAVERSE_CONTINUE = 0,
-  /* Stop traversal */
+  /** Stop traversal. */
   TRAVERSE_BREAK,
-  /* Continue traversal, but skip childs of traversed element */
+  /** Continue traversal, but skip children of traversed element. */
   TRAVERSE_SKIP_CHILDS,
 } TreeTraversalAction;
 

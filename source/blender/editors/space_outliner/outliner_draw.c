@@ -3171,9 +3171,9 @@ static void outliner_draw_tree_element(bContext *C,
     *starty -= UI_UNIT_Y;
 
     LISTBASE_FOREACH (TreeElement *, ten, &te->subtree) {
-      /* check if element needs to be drawn grayed out, but also gray out
-       * childs of a grayed out parent (pass on draw_grayed_out to childs) */
-      bool draw_childs_grayed_out = draw_grayed_out || (ten->flag & TE_DRAGGING);
+      /* Check if element needs to be drawn grayed out, but also gray out
+       * children of a grayed out parent (pass on draw_grayed_out to children). */
+      bool draw_children_grayed_out = draw_grayed_out || (ten->flag & TE_DRAGGING);
       outliner_draw_tree_element(C,
                                  block,
                                  fstyle,
@@ -3181,7 +3181,7 @@ static void outliner_draw_tree_element(bContext *C,
                                  region,
                                  soops,
                                  ten,
-                                 draw_childs_grayed_out,
+                                 draw_children_grayed_out,
                                  startx + UI_UNIT_X,
                                  starty,
                                  restrict_column_width,
@@ -3228,10 +3228,10 @@ static void outliner_draw_hierarchy_lines_recursive(uint pos,
   /* For vertical lines between objects. */
   y1 = y2 = y1_dashed = y2_dashed = *starty;
   for (te = lb->first; te; te = te->next) {
-    bool draw_childs_grayed_out = draw_grayed_out || (te->flag & TE_DRAGGING);
+    bool draw_children_grayed_out = draw_grayed_out || (te->flag & TE_DRAGGING);
     TreeStoreElem *tselem = TREESTORE(te);
 
-    if (draw_childs_grayed_out) {
+    if (draw_children_grayed_out) {
       immUniformColor3ubvAlpha(col, grayed_alpha);
     }
     else {
@@ -3268,7 +3268,7 @@ static void outliner_draw_hierarchy_lines_recursive(uint pos,
 
     if (TSELEM_OPEN(tselem, soops)) {
       outliner_draw_hierarchy_lines_recursive(
-          pos, soops, &te->subtree, startx + UI_UNIT_X, col, draw_childs_grayed_out, starty);
+          pos, soops, &te->subtree, startx + UI_UNIT_X, col, draw_children_grayed_out, starty);
     }
   }
 
