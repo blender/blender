@@ -13,7 +13,6 @@ Checks:  >
   -readability-misleading-indentation,
 
   -readability-else-after-return,
-  -readability-braces-around-statements,
   -readability-inconsistent-declaration-parameter-name,
   -readability-non-const-parameter,
   -readability-redundant-preprocessor,

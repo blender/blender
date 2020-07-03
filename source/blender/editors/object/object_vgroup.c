@@ -1769,12 +1769,14 @@ static void vgroup_lock_all(Object *ob, int action, int mask)
       switch (mask) {
         case VGROUP_MASK_INVERT_UNSELECTED:
         case VGROUP_MASK_SELECTED:
-          if (!selected[i])
+          if (!selected[i]) {
             continue;
+          }
           break;
         case VGROUP_MASK_UNSELECTED:
-          if (selected[i])
+          if (selected[i]) {
             continue;
+          }
           break;
         default:;
       }
@@ -1789,12 +1791,14 @@ static void vgroup_lock_all(Object *ob, int action, int mask)
   for (dg = ob->defbase.first, i = 0; dg; dg = dg->next, i++) {
     switch (mask) {
       case VGROUP_MASK_SELECTED:
-        if (!selected[i])
+        if (!selected[i]) {
           continue;
+        }
         break;
       case VGROUP_MASK_UNSELECTED:
-        if (selected[i])
+        if (selected[i]) {
           continue;
+        }
         break;
       default:;
     }

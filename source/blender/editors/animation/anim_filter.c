@@ -2601,8 +2601,9 @@ static size_t animdata_filter_ds_obdata(
     {
       Hair *hair = (Hair *)ob->data;
 
-      if (ads->filterflag2 & ADS_FILTER_NOHAIR)
+      if (ads->filterflag2 & ADS_FILTER_NOHAIR) {
         return 0;
+      }
 
       type = ANIMTYPE_DSHAIR;
       expanded = FILTER_HAIR_OBJD(hair);
@@ -2612,8 +2613,9 @@ static size_t animdata_filter_ds_obdata(
     {
       PointCloud *pointcloud = (PointCloud *)ob->data;
 
-      if (ads->filterflag2 & ADS_FILTER_NOPOINTCLOUD)
+      if (ads->filterflag2 & ADS_FILTER_NOPOINTCLOUD) {
         return 0;
+      }
 
       type = ANIMTYPE_DSPOINTCLOUD;
       expanded = FILTER_POINTS_OBJD(pointcloud);
@@ -2623,8 +2625,9 @@ static size_t animdata_filter_ds_obdata(
     {
       Volume *volume = (Volume *)ob->data;
 
-      if (ads->filterflag2 & ADS_FILTER_NOVOLUME)
+      if (ads->filterflag2 & ADS_FILTER_NOVOLUME) {
         return 0;
+      }
 
       type = ANIMTYPE_DSVOLUME;
       expanded = FILTER_VOLUME_OBJD(volume);

@@ -2111,8 +2111,9 @@ void blo_end_volume_pointer_map(FileData *fd, Main *oldmain)
 
   /* used entries were restored, so we put them to zero */
   for (i = 0; i < fd->volumemap->nentries; i++, entry++) {
-    if (entry->nr > 0)
+    if (entry->nr > 0) {
       entry->newp = NULL;
+    }
   }
 
   for (; volume; volume = volume->id.next) {

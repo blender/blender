@@ -2842,8 +2842,9 @@ static void *acf_dshair_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
-      if (hair->adt)
+      if (hair->adt) {
         return GET_ACF_FLAG_PTR(hair->adt->flag, type);
+      }
       return NULL;
 
     default: /* unsupported */
@@ -2922,8 +2923,9 @@ static void *acf_dspointcloud_setting_ptr(bAnimListElem *ale,
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
-      if (pointcloud->adt)
+      if (pointcloud->adt) {
         return GET_ACF_FLAG_PTR(pointcloud->adt->flag, type);
+      }
       return NULL;
 
     default: /* unsupported */
@@ -3002,8 +3004,9 @@ static void *acf_dsvolume_setting_ptr(bAnimListElem *ale,
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
-      if (volume->adt)
+      if (volume->adt) {
         return GET_ACF_FLAG_PTR(volume->adt->flag, type);
+      }
       return NULL;
 
     default: /* unsupported */
@@ -3080,8 +3083,9 @@ static void *acf_dssimulation_setting_ptr(bAnimListElem *ale,
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
-      if (simulation->adt)
+      if (simulation->adt) {
         return GET_ACF_FLAG_PTR(simulation->adt->flag, type);
+      }
       return NULL;
 
     default: /* unsupported */

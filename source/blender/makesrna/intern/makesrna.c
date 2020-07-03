@@ -96,8 +96,9 @@ static void rna_generate_static_parameter_prototypes(FILE *f,
 /* helpers */
 #define WRITE_COMMA \
   { \
-    if (!first) \
+    if (!first) { \
       fprintf(f, ", "); \
+    } \
     first = 0; \
   } \
   (void)0
@@ -118,10 +119,12 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
     FILE *file_test = fopen(orgfile, "rb"); \
     if (file_test) { \
       fclose(file_test); \
-      if (fp_org) \
+      if (fp_org) { \
         fclose(fp_org); \
-      if (fp_new) \
+      } \
+      if (fp_new) { \
         fclose(fp_new); \
+      } \
       if (remove(orgfile) != 0) { \
         CLOG_ERROR(&LOG, "remove error (%s): \"%s\"", strerror(errno), orgfile); \
         return -1; \
@@ -1080,21 +1083,26 @@ static char *rna_def_property_set_func(
 
         if (prop->flag & PROP_ID_SELF_CHECK) {
           rna_print_id_get(f, dp);
-          fprintf(f, "    if (id == value.data) return;\n\n");
+          fprintf(f, "    if (id == value.data) {\n");
+          fprintf(f, "      return;\n");
+          fprintf(f, "    }\n");
         }
 
         if (prop->flag & PROP_ID_REFCOUNT) {
-          fprintf(f, "\n    if (data->%s)\n", dp->dnaname);
+          fprintf(f, "\n    if (data->%s) {\n", dp->dnaname);
           fprintf(f, "        id_us_min((ID *)data->%s);\n", dp->dnaname);
-          fprintf(f, "    if (value.data)\n");
-          fprintf(f, "        id_us_plus((ID *)value.data);\n\n");
+          fprintf(f, "    }\n");
+          fprintf(f, "    if (value.data) {\n");
+          fprintf(f, "        id_us_plus((ID *)value.data);\n");
+          fprintf(f, "    }\n");
         }
         else {
           PointerPropertyRNA *pprop = (PointerPropertyRNA *)dp->prop;
           StructRNA *type = (pprop->type) ? rna_find_struct((const char *)pprop->type) : NULL;
           if (type && (type->flag & STRUCT_ID)) {
-            fprintf(f, "    if (value.data)\n");
-            fprintf(f, "        id_lib_extern((ID *)value.data);\n\n");
+            fprintf(f, "    if (value.data) {\n");
+            fprintf(f, "        id_lib_extern((ID *)value.data);\n");
+            fprintf(f, "    }\n");
           }
         }
 
@@ -1141,14 +1149,14 @@ static char *rna_def_property_set_func(
           if (dp->dnaarraylength == 1) {
             if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
               fprintf(f,
-                      "        if (%svalues[i]) data->%s |= (",
+                      "        if (%svalues[i]) { data->%s |= (",
                       (dp->booleannegative) ? "!" : "",
                       dp->dnaname);
               rna_int_print(f, dp->booleanbit);
-              fprintf(f, " << i);\n");
-              fprintf(f, "        else data->%s &= ~(", dp->dnaname);
+              fprintf(f, " << i); }\n");
+              fprintf(f, "        else { data->%s &= ~(", dp->dnaname);
               rna_int_print(f, dp->booleanbit);
-              fprintf(f, " << i);\n");
+              fprintf(f, " << i); }\n");
             }
             else {
               fprintf(
@@ -1159,14 +1167,14 @@ static char *rna_def_property_set_func(
           else {
             if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
               fprintf(f,
-                      "        if (%svalues[i]) data->%s[i] |= ",
+                      "        if (%svalues[i]) { data->%s[i] |= ",
                       (dp->booleannegative) ? "!" : "",
                       dp->dnaname);
               rna_int_print(f, dp->booleanbit);
-              fprintf(f, ";\n");
-              fprintf(f, "        else data->%s[i] &= ~", dp->dnaname);
+              fprintf(f, "; }\n");
+              fprintf(f, "        else { data->%s[i] &= ~", dp->dnaname);
               rna_int_print(f, dp->booleanbit);
-              fprintf(f, ";\n");
+              fprintf(f, "; }\n");
             }
             else if (rna_color_quantize(prop, dp)) {
               fprintf(
@@ -1215,13 +1223,15 @@ static char *rna_def_property_set_func(
         else {
           rna_print_data_get(f, dp);
           if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
-            fprintf(
-                f, "    if (%svalue) data->%s |= ", (dp->booleannegative) ? "!" : "", dp->dnaname);
+            fprintf(f,
+                    "    if (%svalue) { data->%s |= ",
+                    (dp->booleannegative) ? "!" : "",
+                    dp->dnaname);
             rna_int_print(f, dp->booleanbit);
-            fprintf(f, ";\n");
-            fprintf(f, "    else data->%s &= ~", dp->dnaname);
+            fprintf(f, "; }\n");
+            fprintf(f, "    else { data->%s &= ~", dp->dnaname);
             rna_int_print(f, dp->booleanbit);
-            fprintf(f, ";\n");
+            fprintf(f, "; }\n");
           }
           else if (prop->type == PROP_ENUM && dp->enumbitflags) {
             fprintf(f, "    data->%s &= ~", dp->dnaname);
@@ -1278,7 +1288,7 @@ static char *rna_def_property_length_func(
     else {
       rna_print_data_get(f, dp);
       if (!(prop->flag & PROP_NEVER_NULL)) {
-        fprintf(f, "    if (data->%s == NULL) return 0;\n", dp->dnaname);
+        fprintf(f, "    if (data->%s == NULL) { return 0; }\n", dp->dnaname);
       }
       fprintf(f, "    return strlen(data->%s);\n", dp->dnaname);
     }
@@ -1393,8 +1403,9 @@ static char *rna_def_property_begin_func(
 
   getfunc = rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "get");
 
-  fprintf(f, "\n    if (iter->valid)\n");
-  fprintf(f, "        iter->ptr = %s(iter);\n", getfunc);
+  fprintf(f, "\n    if (iter->valid) {\n");
+  fprintf(f, "        iter->ptr = %s(iter);", getfunc);
+  fprintf(f, "\n    }\n");
 
   fprintf(f, "}\n\n");
 
@@ -1479,14 +1490,15 @@ static char *rna_def_property_lookup_int_func(FILE *f,
     fprintf(f, "            found = (index == -1 && iter.valid);\n");
     fprintf(f, "        }\n");
     fprintf(f, "        else {\n");
-    fprintf(f, "            while (index-- > 0 && internal->link)\n");
+    fprintf(f, "            while (index-- > 0 && internal->link) {\n");
     fprintf(f, "                internal->link = internal->link->next;\n");
+    fprintf(f, "            }\n");
     fprintf(f, "            found = (index == -1 && internal->link);\n");
     fprintf(f, "        }\n");
   }
 
   fprintf(f,
-          "        if (found) *r_ptr = %s_%s_get(&iter);\n",
+          "        if (found) { *r_ptr = %s_%s_get(&iter); }\n",
           srna->identifier,
           rna_safe_id(prop->identifier));
   fprintf(f, "    }\n\n");
@@ -1672,8 +1684,9 @@ static char *rna_def_property_next_func(FILE *f,
 
   getfunc = rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "get");
 
-  fprintf(f, "\n    if (iter->valid)\n");
-  fprintf(f, "        iter->ptr = %s(iter);\n", getfunc);
+  fprintf(f, "\n    if (iter->valid) {\n");
+  fprintf(f, "        iter->ptr = %s(iter);", getfunc);
+  fprintf(f, "\n    }\n");
 
   fprintf(f, "}\n\n");
 

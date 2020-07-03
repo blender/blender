@@ -1879,8 +1879,9 @@ void uiTemplateModifiers(uiLayout *UNUSED(layout), bContext *C)
   else {
     /* The expansion might have been changed elsewhere, so we still need to set it. */
     LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-      if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED))
+      if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED)) {
         UI_panel_set_expand_from_list_data(C, panel);
+      }
     }
 
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
@@ -2055,8 +2056,9 @@ void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_
   else {
     /* The expansion might have been changed elsewhere, so we still need to set it. */
     LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-      if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED))
+      if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED)) {
         UI_panel_set_expand_from_list_data(C, panel);
+      }
     }
   }
 }
@@ -2115,8 +2117,9 @@ void uiTemplateGpencilModifiers(uiLayout *UNUSED(layout), bContext *C)
   else {
     /* The expansion might have been changed elsewhere, so we still need to set it. */
     LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-      if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED))
+      if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED)) {
         UI_panel_set_expand_from_list_data(C, panel);
+      }
     }
 
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
@@ -2193,8 +2196,9 @@ void uiTemplateShaderFx(uiLayout *UNUSED(layout), bContext *C)
   else {
     /* The expansion might have been changed elsewhere, so we still need to set it. */
     LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-      if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED))
+      if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED)) {
         UI_panel_set_expand_from_list_data(C, panel);
+      }
     }
   }
 }

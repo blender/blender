@@ -769,20 +769,23 @@ static void outliner_add_id_contents(SpaceOutliner *soops,
     }
     case ID_HA: {
       Hair *hair = (Hair *)id;
-      if (outliner_animdata_test(hair->adt))
+      if (outliner_animdata_test(hair->adt)) {
         outliner_add_element(soops, &te->subtree, hair, te, TSE_ANIM_DATA, 0);
+      }
       break;
     }
     case ID_PT: {
       PointCloud *pointcloud = (PointCloud *)id;
-      if (outliner_animdata_test(pointcloud->adt))
+      if (outliner_animdata_test(pointcloud->adt)) {
         outliner_add_element(soops, &te->subtree, pointcloud, te, TSE_ANIM_DATA, 0);
+      }
       break;
     }
     case ID_VO: {
       Volume *volume = (Volume *)id;
-      if (outliner_animdata_test(volume->adt))
+      if (outliner_animdata_test(volume->adt)) {
         outliner_add_element(soops, &te->subtree, volume, te, TSE_ANIM_DATA, 0);
+      }
       break;
     }
     case ID_SIM: {

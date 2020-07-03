@@ -177,8 +177,9 @@ size_t BLI_gzip_mem_to_file_at_pos(
   strm.zfree = Z_NULL;
   strm.opaque = Z_NULL;
   ret = deflateInit(&strm, compression_level);
-  if (ret != Z_OK)
+  if (ret != Z_OK) {
     return 0;
+  }
 
   strm.avail_in = len;
   strm.next_in = (Bytef *)buf;
@@ -224,8 +225,9 @@ size_t BLI_ungzip_file_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t g
   strm.avail_in = 0;
   strm.next_in = Z_NULL;
   ret = inflateInit(&strm);
-  if (ret != Z_OK)
+  if (ret != Z_OK) {
     return 0;
+  }
 
   do {
     strm.avail_in = fread(in, 1, chunk, file);
