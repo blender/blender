@@ -487,11 +487,11 @@ static bool eevee_volume_object_mesh_init(Scene *scene,
   if ((md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
       (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) &&
       ((FluidModifierData *)md)->domain != NULL) {
-    FluidModifierData *mmd = (FluidModifierData *)md;
-    FluidDomainSettings *mds = mmd->domain;
+    FluidModifierData *fmd = (FluidModifierData *)md;
+    FluidDomainSettings *fds = fmd->domain;
 
     /* Don't try to show liquid domains here. */
-    if (!mds->fluid || !(mds->type == FLUID_DOMAIN_TYPE_GAS)) {
+    if (!fds->fluid || !(fds->type == FLUID_DOMAIN_TYPE_GAS)) {
       return false;
     }
 
@@ -500,33 +500,33 @@ static bool eevee_volume_object_mesh_init(Scene *scene,
 #if 0
     const DRWContextState *draw_ctx = DRW_context_state_get();
     const bool show_smoke = ((int)DEG_get_ctime(draw_ctx->depsgraph) >=
-                             *mds->point_cache[0]->startframe);
+                             *fds->point_cache[0]->startframe);
 #endif
 
-    if (mds->fluid && (mds->type == FLUID_DOMAIN_TYPE_GAS) /* && show_smoke */) {
-      if (!(mds->flags & FLUID_DOMAIN_USE_NOISE)) {
-        GPU_create_smoke(mmd, 0);
+    if (fds->fluid && (fds->type == FLUID_DOMAIN_TYPE_GAS) /* && show_smoke */) {
+      if (!(fds->flags & FLUID_DOMAIN_USE_NOISE)) {
+        GPU_create_smoke(fmd, 0);
       }
-      else if (mds->flags & FLUID_DOMAIN_USE_NOISE) {
-        GPU_create_smoke(mmd, 1);
+      else if (fds->flags & FLUID_DOMAIN_USE_NOISE) {
+        GPU_create_smoke(fmd, 1);
       }
-      BLI_addtail(&e_data.smoke_domains, BLI_genericNodeN(mmd));
+      BLI_addtail(&e_data.smoke_domains, BLI_genericNodeN(fmd));
     }
 
     LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, gpu_grids) {
       if (STREQ(gpu_grid->name, "density")) {
         DRW_shgroup_uniform_texture_ref(grp,
                                         gpu_grid->sampler_name,
-                                        mds->tex_density ? &mds->tex_density :
+                                        fds->tex_density ? &fds->tex_density :
                                                            &e_data.dummy_density);
       }
       else if (STREQ(gpu_grid->name, "color")) {
         DRW_shgroup_uniform_texture_ref(
-            grp, gpu_grid->sampler_name, mds->tex_color ? &mds->tex_color : &e_data.dummy_density);
+            grp, gpu_grid->sampler_name, fds->tex_color ? &fds->tex_color : &e_data.dummy_density);
       }
       else if (STREQ(gpu_grid->name, "flame") || STREQ(gpu_grid->name, "temperature")) {
         DRW_shgroup_uniform_texture_ref(
-            grp, gpu_grid->sampler_name, mds->tex_flame ? &mds->tex_flame : &e_data.dummy_flame);
+            grp, gpu_grid->sampler_name, fds->tex_flame ? &fds->tex_flame : &e_data.dummy_flame);
       }
       else {
         DRW_shgroup_uniform_texture_ref(grp, gpu_grid->sampler_name, &e_data.dummy_density);
@@ -534,14 +534,14 @@ static bool eevee_volume_object_mesh_init(Scene *scene,
     }
 
     /* Constant Volume color. */
-    bool use_constant_color = ((mds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) == 0 &&
-                               (mds->active_fields & FLUID_DOMAIN_ACTIVE_COLOR_SET) != 0);
+    bool use_constant_color = ((fds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) == 0 &&
+                               (fds->active_fields & FLUID_DOMAIN_ACTIVE_COLOR_SET) != 0);
 
     DRW_shgroup_uniform_vec3(
-        grp, "volumeColor", (use_constant_color) ? mds->active_color : white, 1);
+        grp, "volumeColor", (use_constant_color) ? fds->active_color : white, 1);
 
     /* Output is such that 0..1 maps to 0..1000K */
-    DRW_shgroup_uniform_vec2(grp, "volumeTemperature", &mds->flame_ignition, 1);
+    DRW_shgroup_uniform_vec2(grp, "volumeTemperature", &fds->flame_ignition, 1);
   }
   else {
     LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, gpu_grids) {
@@ -840,8 +840,8 @@ void EEVEE_volumes_free_smoke_textures(void)
 {
   /* Free Smoke Textures after rendering */
   LISTBASE_FOREACH (LinkData *, link, &e_data.smoke_domains) {
-    FluidModifierData *mmd = (FluidModifierData *)link->data;
-    GPU_free_smoke(mmd);
+    FluidModifierData *fmd = (FluidModifierData *)link->data;
+    GPU_free_smoke(fmd);
   }
   BLI_freelistN(&e_data.smoke_domains);
 }

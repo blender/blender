@@ -67,34 +67,34 @@ int MANTA::with_debug(0);
 /* Number of mesh triangles that the cache reads at once (with zlib). */
 #define TRIANGLE_CHUNK 20000
 
-MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
+MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
 {
   if (with_debug)
     cout << "FLUID: " << mCurrentID << " with res(" << res[0] << ", " << res[1] << ", " << res[2]
          << ")" << endl;
 
-  FluidDomainSettings *mds = mmd->domain;
-  mds->fluid = this;
+  FluidDomainSettings *fds = fmd->domain;
+  fds->fluid = this;
 
-  mUsingLiquid = (mds->type == FLUID_DOMAIN_TYPE_LIQUID);
-  mUsingSmoke = (mds->type == FLUID_DOMAIN_TYPE_GAS);
-  mUsingNoise = (mds->flags & FLUID_DOMAIN_USE_NOISE) && mUsingSmoke;
-  mUsingFractions = (mds->flags & FLUID_DOMAIN_USE_FRACTIONS) && mUsingLiquid;
-  mUsingMesh = (mds->flags & FLUID_DOMAIN_USE_MESH) && mUsingLiquid;
-  mUsingDiffusion = (mds->flags & FLUID_DOMAIN_USE_DIFFUSION) && mUsingLiquid;
-  mUsingMVel = (mds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS) && mUsingLiquid;
-  mUsingGuiding = (mds->flags & FLUID_DOMAIN_USE_GUIDE);
-  mUsingDrops = (mds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) && mUsingLiquid;
-  mUsingBubbles = (mds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) && mUsingLiquid;
-  mUsingFloats = (mds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) && mUsingLiquid;
-  mUsingTracers = (mds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER) && mUsingLiquid;
+  mUsingLiquid = (fds->type == FLUID_DOMAIN_TYPE_LIQUID);
+  mUsingSmoke = (fds->type == FLUID_DOMAIN_TYPE_GAS);
+  mUsingNoise = (fds->flags & FLUID_DOMAIN_USE_NOISE) && mUsingSmoke;
+  mUsingFractions = (fds->flags & FLUID_DOMAIN_USE_FRACTIONS) && mUsingLiquid;
+  mUsingMesh = (fds->flags & FLUID_DOMAIN_USE_MESH) && mUsingLiquid;
+  mUsingDiffusion = (fds->flags & FLUID_DOMAIN_USE_DIFFUSION) && mUsingLiquid;
+  mUsingMVel = (fds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS) && mUsingLiquid;
+  mUsingGuiding = (fds->flags & FLUID_DOMAIN_USE_GUIDE);
+  mUsingDrops = (fds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) && mUsingLiquid;
+  mUsingBubbles = (fds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) && mUsingLiquid;
+  mUsingFloats = (fds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) && mUsingLiquid;
+  mUsingTracers = (fds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER) && mUsingLiquid;
 
-  mUsingHeat = (mds->active_fields & FLUID_DOMAIN_ACTIVE_HEAT) && mUsingSmoke;
-  mUsingFire = (mds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE) && mUsingSmoke;
-  mUsingColors = (mds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) && mUsingSmoke;
-  mUsingObstacle = (mds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE);
-  mUsingInvel = (mds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL);
-  mUsingOutflow = (mds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW);
+  mUsingHeat = (fds->active_fields & FLUID_DOMAIN_ACTIVE_HEAT) && mUsingSmoke;
+  mUsingFire = (fds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE) && mUsingSmoke;
+  mUsingColors = (fds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) && mUsingSmoke;
+  mUsingObstacle = (fds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE);
+  mUsingInvel = (fds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL);
+  mUsingOutflow = (fds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW);
 
   // Simulation constants
   mTempAmb = 0;  // TODO: Maybe use this later for buoyancy calculation
@@ -103,7 +103,7 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
   mResZ = res[2];
   mMaxRes = MAX3(mResX, mResY, mResZ);
   mTotalCells = mResX * mResY * mResZ;
-  mResGuiding = mds->res;
+  mResGuiding = fds->res;
 
   // Smoke low res grids
   mDensity = nullptr;
@@ -194,7 +194,7 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
   initializeMantaflow();
 
   // Initializa RNA map with values that Python will need
-  initializeRNAMap(mmd);
+  initializeRNAMap(fmd);
 
   // Initialize Mantaflow variables in Python
   // Liquid
@@ -209,7 +209,7 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
       initOutflow();
 
     if (mUsingDrops || mUsingBubbles || mUsingFloats || mUsingTracers) {
-      mUpresParticle = mds->particle_scale;
+      mUpresParticle = fds->particle_scale;
       mResXParticle = mUpresParticle * mResX;
       mResYParticle = mUpresParticle * mResY;
       mResZParticle = mUpresParticle * mResZ;
@@ -220,7 +220,7 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
     }
 
     if (mUsingMesh) {
-      mUpresMesh = mds->mesh_scale;
+      mUpresMesh = fds->mesh_scale;
       mResXMesh = mUpresMesh * mResX;
       mResYMesh = mUpresMesh * mResY;
       mResZMesh = mUpresMesh * mResZ;
@@ -236,7 +236,7 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
     }
 
     if (mUsingGuiding) {
-      mResGuiding = (mds->guide_parent) ? mds->guide_res : mds->res;
+      mResGuiding = (fds->guide_parent) ? fds->guide_res : fds->res;
       initGuiding();
     }
     if (mUsingFractions) {
@@ -262,12 +262,12 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
       initOutflow();
 
     if (mUsingGuiding) {
-      mResGuiding = (mds->guide_parent) ? mds->guide_res : mds->res;
+      mResGuiding = (fds->guide_parent) ? fds->guide_res : fds->res;
       initGuiding();
     }
 
     if (mUsingNoise) {
-      int amplify = mds->noise_scale;
+      int amplify = fds->noise_scale;
       mResXNoise = amplify * mResX;
       mResYNoise = amplify * mResY;
       mResZNoise = amplify * mResZ;
@@ -285,7 +285,7 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
   updatePointers();
 }
 
-void MANTA::initDomain(FluidModifierData *mmd)
+void MANTA::initDomain(FluidModifierData *fmd)
 {
   // Vector will hold all python commands that are to be executed
   vector<string> pythonCommands;
@@ -303,50 +303,50 @@ void MANTA::initDomain(FluidModifierData *mmd)
                      fluid_bake_mesh + fluid_bake_particles + fluid_bake_guiding +
                      fluid_file_import + fluid_file_export + fluid_pre_step + fluid_post_step +
                      fluid_adapt_time_step + fluid_time_stepping;
-  string finalString = parseScript(tmpString, mmd);
+  string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
   runPythonString(pythonCommands);
 }
 
-void MANTA::initNoise(FluidModifierData *mmd)
+void MANTA::initNoise(FluidModifierData *fmd)
 {
   vector<string> pythonCommands;
   string tmpString = fluid_variables_noise + fluid_solver_noise;
-  string finalString = parseScript(tmpString, mmd);
+  string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
   runPythonString(pythonCommands);
 }
 
-void MANTA::initSmoke(FluidModifierData *mmd)
+void MANTA::initSmoke(FluidModifierData *fmd)
 {
   vector<string> pythonCommands;
   string tmpString = smoke_variables + smoke_alloc + smoke_adaptive_step + smoke_save_data +
                      smoke_load_data + smoke_step;
-  string finalString = parseScript(tmpString, mmd);
+  string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
   runPythonString(pythonCommands);
 }
 
-void MANTA::initSmokeNoise(FluidModifierData *mmd)
+void MANTA::initSmokeNoise(FluidModifierData *fmd)
 {
   vector<string> pythonCommands;
   string tmpString = smoke_variables_noise + smoke_alloc_noise + smoke_wavelet_noise +
                      smoke_save_noise + smoke_load_noise + smoke_step_noise;
-  string finalString = parseScript(tmpString, mmd);
+  string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
   runPythonString(pythonCommands);
   mUsingNoise = true;
 }
 
-void MANTA::initHeat(FluidModifierData *mmd)
+void MANTA::initHeat(FluidModifierData *fmd)
 {
   if (!mHeat) {
     vector<string> pythonCommands;
     string tmpString = smoke_alloc_heat + smoke_with_heat;
-    string finalString = parseScript(tmpString, mmd);
+    string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
     runPythonString(pythonCommands);
@@ -354,12 +354,12 @@ void MANTA::initHeat(FluidModifierData *mmd)
   }
 }
 
-void MANTA::initFire(FluidModifierData *mmd)
+void MANTA::initFire(FluidModifierData *fmd)
 {
   if (!mFuel) {
     vector<string> pythonCommands;
     string tmpString = smoke_alloc_fire + smoke_with_fire;
-    string finalString = parseScript(tmpString, mmd);
+    string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
     runPythonString(pythonCommands);
@@ -367,12 +367,12 @@ void MANTA::initFire(FluidModifierData *mmd)
   }
 }
 
-void MANTA::initFireHigh(FluidModifierData *mmd)
+void MANTA::initFireHigh(FluidModifierData *fmd)
 {
   if (!mFuelHigh) {
     vector<string> pythonCommands;
     string tmpString = smoke_alloc_fire_noise + smoke_with_fire;
-    string finalString = parseScript(tmpString, mmd);
+    string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
     runPythonString(pythonCommands);
@@ -380,12 +380,12 @@ void MANTA::initFireHigh(FluidModifierData *mmd)
   }
 }
 
-void MANTA::initColors(FluidModifierData *mmd)
+void MANTA::initColors(FluidModifierData *fmd)
 {
   if (!mColorR) {
     vector<string> pythonCommands;
     string tmpString = smoke_alloc_colors + smoke_init_colors + smoke_with_colors;
-    string finalString = parseScript(tmpString, mmd);
+    string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
     runPythonString(pythonCommands);
@@ -393,12 +393,12 @@ void MANTA::initColors(FluidModifierData *mmd)
   }
 }
 
-void MANTA::initColorsHigh(FluidModifierData *mmd)
+void MANTA::initColorsHigh(FluidModifierData *fmd)
 {
   if (!mColorRHigh) {
     vector<string> pythonCommands;
     string tmpString = smoke_alloc_colors_noise + smoke_init_colors_noise + smoke_with_colors;
-    string finalString = parseScript(tmpString, mmd);
+    string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
     runPythonString(pythonCommands);
@@ -406,13 +406,13 @@ void MANTA::initColorsHigh(FluidModifierData *mmd)
   }
 }
 
-void MANTA::initLiquid(FluidModifierData *mmd)
+void MANTA::initLiquid(FluidModifierData *fmd)
 {
   if (!mPhiIn) {
     vector<string> pythonCommands;
     string tmpString = liquid_variables + liquid_alloc + liquid_init_phi + liquid_save_data +
                        liquid_load_data + liquid_adaptive_step + liquid_step;
-    string finalString = parseScript(tmpString, mmd);
+    string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
     runPythonString(pythonCommands);
@@ -420,44 +420,44 @@ void MANTA::initLiquid(FluidModifierData *mmd)
   }
 }
 
-void MANTA::initMesh(FluidModifierData *mmd)
+void MANTA::initMesh(FluidModifierData *fmd)
 {
   vector<string> pythonCommands;
   string tmpString = fluid_variables_mesh + fluid_solver_mesh + liquid_load_mesh;
-  string finalString = parseScript(tmpString, mmd);
+  string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
   runPythonString(pythonCommands);
   mUsingMesh = true;
 }
 
-void MANTA::initLiquidMesh(FluidModifierData *mmd)
+void MANTA::initLiquidMesh(FluidModifierData *fmd)
 {
   vector<string> pythonCommands;
   string tmpString = liquid_alloc_mesh + liquid_step_mesh + liquid_save_mesh;
-  string finalString = parseScript(tmpString, mmd);
+  string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
   runPythonString(pythonCommands);
   mUsingMesh = true;
 }
 
-void MANTA::initCurvature(FluidModifierData *mmd)
+void MANTA::initCurvature(FluidModifierData *fmd)
 {
   std::vector<std::string> pythonCommands;
-  std::string finalString = parseScript(liquid_alloc_curvature, mmd);
+  std::string finalString = parseScript(liquid_alloc_curvature, fmd);
   pythonCommands.push_back(finalString);
 
   runPythonString(pythonCommands);
   mUsingDiffusion = true;
 }
 
-void MANTA::initObstacle(FluidModifierData *mmd)
+void MANTA::initObstacle(FluidModifierData *fmd)
 {
   if (!mPhiObsIn) {
     vector<string> pythonCommands;
     string tmpString = fluid_alloc_obstacle + fluid_with_obstacle;
-    string finalString = parseScript(tmpString, mmd);
+    string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
     runPythonString(pythonCommands);
@@ -465,13 +465,13 @@ void MANTA::initObstacle(FluidModifierData *mmd)
   }
 }
 
-void MANTA::initGuiding(FluidModifierData *mmd)
+void MANTA::initGuiding(FluidModifierData *fmd)
 {
   if (!mPhiGuideIn) {
     vector<string> pythonCommands;
     string tmpString = fluid_variables_guiding + fluid_solver_guiding + fluid_alloc_guiding +
                        fluid_save_guiding + fluid_load_vel + fluid_load_guiding;
-    string finalString = parseScript(tmpString, mmd);
+    string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
     runPythonString(pythonCommands);
@@ -479,23 +479,23 @@ void MANTA::initGuiding(FluidModifierData *mmd)
   }
 }
 
-void MANTA::initFractions(FluidModifierData *mmd)
+void MANTA::initFractions(FluidModifierData *fmd)
 {
   vector<string> pythonCommands;
   string tmpString = fluid_alloc_fractions + fluid_with_fractions;
-  string finalString = parseScript(tmpString, mmd);
+  string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
   runPythonString(pythonCommands);
   mUsingFractions = true;
 }
 
-void MANTA::initInVelocity(FluidModifierData *mmd)
+void MANTA::initInVelocity(FluidModifierData *fmd)
 {
   if (!mInVelocityX) {
     vector<string> pythonCommands;
     string tmpString = fluid_alloc_invel + fluid_with_invel;
-    string finalString = parseScript(tmpString, mmd);
+    string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
     runPythonString(pythonCommands);
@@ -503,12 +503,12 @@ void MANTA::initInVelocity(FluidModifierData *mmd)
   }
 }
 
-void MANTA::initOutflow(FluidModifierData *mmd)
+void MANTA::initOutflow(FluidModifierData *fmd)
 {
   if (!mPhiOutIn) {
     vector<string> pythonCommands;
     string tmpString = fluid_alloc_outflow + fluid_with_outflow;
-    string finalString = parseScript(tmpString, mmd);
+    string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
     runPythonString(pythonCommands);
@@ -516,24 +516,24 @@ void MANTA::initOutflow(FluidModifierData *mmd)
   }
 }
 
-void MANTA::initSndParts(FluidModifierData *mmd)
+void MANTA::initSndParts(FluidModifierData *fmd)
 {
   vector<string> pythonCommands;
   string tmpString = fluid_variables_particles + fluid_solver_particles;
-  string finalString = parseScript(tmpString, mmd);
+  string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
   runPythonString(pythonCommands);
 }
 
-void MANTA::initLiquidSndParts(FluidModifierData *mmd)
+void MANTA::initLiquidSndParts(FluidModifierData *fmd)
 {
   if (!mSndParticleData) {
     vector<string> pythonCommands;
     string tmpString = liquid_alloc_particles + liquid_variables_particles +
                        liquid_step_particles + fluid_with_sndparts + liquid_load_particles +
                        liquid_save_particles;
-    string finalString = parseScript(tmpString, mmd);
+    string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
     runPythonString(pythonCommands);
@@ -557,7 +557,7 @@ MANTA::~MANTA()
   // Initializa RNA map with values that Python will need
   initializeRNAMap();
 
-  // Leave out mmd argument in parseScript since only looking up IDs
+  // Leave out fmd argument in parseScript since only looking up IDs
   string finalString = parseScript(tmpString);
   pythonCommands.push_back(finalString);
   result = runPythonString(pythonCommands);
@@ -664,56 +664,56 @@ static string getBooleanString(int value)
   return (value) ? "True" : "False";
 }
 
-void MANTA::initializeRNAMap(FluidModifierData *mmd)
+void MANTA::initializeRNAMap(FluidModifierData *fmd)
 {
   if (with_debug)
     cout << "MANTA::initializeRNAMap()" << endl;
 
   mRNAMap["ID"] = to_string(mCurrentID);
 
-  if (!mmd) {
+  if (!fmd) {
     if (with_debug)
       cout << "Fluid: No modifier data given in RNA map setup - returning early" << endl;
     return;
   }
 
-  FluidDomainSettings *mds = mmd->domain;
-  bool is2D = (mds->solver_res == 2);
+  FluidDomainSettings *fds = fmd->domain;
+  bool is2D = (fds->solver_res == 2);
 
   string borderCollisions = "";
-  if ((mds->border_collisions & FLUID_DOMAIN_BORDER_LEFT) == 0)
+  if ((fds->border_collisions & FLUID_DOMAIN_BORDER_LEFT) == 0)
     borderCollisions += "x";
-  if ((mds->border_collisions & FLUID_DOMAIN_BORDER_RIGHT) == 0)
+  if ((fds->border_collisions & FLUID_DOMAIN_BORDER_RIGHT) == 0)
     borderCollisions += "X";
-  if ((mds->border_collisions & FLUID_DOMAIN_BORDER_FRONT) == 0)
+  if ((fds->border_collisions & FLUID_DOMAIN_BORDER_FRONT) == 0)
     borderCollisions += "y";
-  if ((mds->border_collisions & FLUID_DOMAIN_BORDER_BACK) == 0)
+  if ((fds->border_collisions & FLUID_DOMAIN_BORDER_BACK) == 0)
     borderCollisions += "Y";
-  if ((mds->border_collisions & FLUID_DOMAIN_BORDER_BOTTOM) == 0)
+  if ((fds->border_collisions & FLUID_DOMAIN_BORDER_BOTTOM) == 0)
     borderCollisions += "z";
-  if ((mds->border_collisions & FLUID_DOMAIN_BORDER_TOP) == 0)
+  if ((fds->border_collisions & FLUID_DOMAIN_BORDER_TOP) == 0)
     borderCollisions += "Z";
 
   string simulationMethod = "";
-  if (mds->simulation_method & FLUID_DOMAIN_METHOD_FLIP)
+  if (fds->simulation_method & FLUID_DOMAIN_METHOD_FLIP)
     simulationMethod += "'FLIP'";
-  else if (mds->simulation_method & FLUID_DOMAIN_METHOD_APIC)
+  else if (fds->simulation_method & FLUID_DOMAIN_METHOD_APIC)
     simulationMethod += "'APIC'";
 
   string particleTypesStr = "";
-  if (mds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY)
+  if (fds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY)
     particleTypesStr += "PtypeSpray";
-  if (mds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) {
+  if (fds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) {
     if (!particleTypesStr.empty())
       particleTypesStr += "|";
     particleTypesStr += "PtypeBubble";
   }
-  if (mds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) {
+  if (fds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) {
     if (!particleTypesStr.empty())
       particleTypesStr += "|";
     particleTypesStr += "PtypeFoam";
   }
-  if (mds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER) {
+  if (fds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER) {
     if (!particleTypesStr.empty())
       particleTypesStr += "|";
     particleTypesStr += "PtypeTracer";
@@ -724,73 +724,73 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   int particleTypes = (FLUID_DOMAIN_PARTICLE_SPRAY | FLUID_DOMAIN_PARTICLE_BUBBLE |
                        FLUID_DOMAIN_PARTICLE_FOAM | FLUID_DOMAIN_PARTICLE_TRACER);
 
-  string cacheDirectory(mds->cache_directory);
+  string cacheDirectory(fds->cache_directory);
 
-  float viscosity = mds->viscosity_base * pow(10.0f, -mds->viscosity_exponent);
-  float domainSize = MAX3(mds->global_size[0], mds->global_size[1], mds->global_size[2]);
+  float viscosity = fds->viscosity_base * pow(10.0f, -fds->viscosity_exponent);
+  float domainSize = MAX3(fds->global_size[0], fds->global_size[1], fds->global_size[2]);
 
   string vdbCompressionMethod = "Compression_None";
-  if (mds->openvdb_compression == VDB_COMPRESSION_NONE)
+  if (fds->openvdb_compression == VDB_COMPRESSION_NONE)
     vdbCompressionMethod = "Compression_None";
-  else if (mds->openvdb_compression == VDB_COMPRESSION_ZIP)
+  else if (fds->openvdb_compression == VDB_COMPRESSION_ZIP)
     vdbCompressionMethod = "Compression_Zip";
-  else if (mds->openvdb_compression == VDB_COMPRESSION_BLOSC)
+  else if (fds->openvdb_compression == VDB_COMPRESSION_BLOSC)
     vdbCompressionMethod = "Compression_Blosc";
 
   string vdbPrecisionHalf = "True";
-  if (mds->openvdb_data_depth == VDB_PRECISION_HALF_FLOAT)
+  if (fds->openvdb_data_depth == VDB_PRECISION_HALF_FLOAT)
     vdbPrecisionHalf = "True";
-  else if (mds->openvdb_data_depth == VDB_PRECISION_FULL_FLOAT)
+  else if (fds->openvdb_data_depth == VDB_PRECISION_FULL_FLOAT)
     vdbPrecisionHalf = "False";
 
-  mRNAMap["USING_SMOKE"] = getBooleanString(mds->type == FLUID_DOMAIN_TYPE_GAS);
-  mRNAMap["USING_LIQUID"] = getBooleanString(mds->type == FLUID_DOMAIN_TYPE_LIQUID);
-  mRNAMap["USING_COLORS"] = getBooleanString(mds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS);
-  mRNAMap["USING_HEAT"] = getBooleanString(mds->active_fields & FLUID_DOMAIN_ACTIVE_HEAT);
-  mRNAMap["USING_FIRE"] = getBooleanString(mds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE);
-  mRNAMap["USING_NOISE"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_NOISE);
-  mRNAMap["USING_OBSTACLE"] = getBooleanString(mds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE);
-  mRNAMap["USING_GUIDING"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_GUIDE);
-  mRNAMap["USING_INVEL"] = getBooleanString(mds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL);
-  mRNAMap["USING_OUTFLOW"] = getBooleanString(mds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW);
-  mRNAMap["USING_LOG_DISSOLVE"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_DISSOLVE_LOG);
-  mRNAMap["USING_DISSOLVE"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_DISSOLVE);
+  mRNAMap["USING_SMOKE"] = getBooleanString(fds->type == FLUID_DOMAIN_TYPE_GAS);
+  mRNAMap["USING_LIQUID"] = getBooleanString(fds->type == FLUID_DOMAIN_TYPE_LIQUID);
+  mRNAMap["USING_COLORS"] = getBooleanString(fds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS);
+  mRNAMap["USING_HEAT"] = getBooleanString(fds->active_fields & FLUID_DOMAIN_ACTIVE_HEAT);
+  mRNAMap["USING_FIRE"] = getBooleanString(fds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE);
+  mRNAMap["USING_NOISE"] = getBooleanString(fds->flags & FLUID_DOMAIN_USE_NOISE);
+  mRNAMap["USING_OBSTACLE"] = getBooleanString(fds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE);
+  mRNAMap["USING_GUIDING"] = getBooleanString(fds->flags & FLUID_DOMAIN_USE_GUIDE);
+  mRNAMap["USING_INVEL"] = getBooleanString(fds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL);
+  mRNAMap["USING_OUTFLOW"] = getBooleanString(fds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW);
+  mRNAMap["USING_LOG_DISSOLVE"] = getBooleanString(fds->flags & FLUID_DOMAIN_USE_DISSOLVE_LOG);
+  mRNAMap["USING_DISSOLVE"] = getBooleanString(fds->flags & FLUID_DOMAIN_USE_DISSOLVE);
   mRNAMap["DOMAIN_CLOSED"] = getBooleanString(borderCollisions.compare("") == 0);
-  mRNAMap["CACHE_RESUMABLE"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE);
-  mRNAMap["USING_ADAPTIVETIME"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_ADAPTIVE_TIME);
-  mRNAMap["USING_SPEEDVECTORS"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS);
-  mRNAMap["USING_FRACTIONS"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_FRACTIONS);
-  mRNAMap["DELETE_IN_OBSTACLE"] = getBooleanString(mds->flags & FLUID_DOMAIN_DELETE_IN_OBSTACLE);
-  mRNAMap["USING_DIFFUSION"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_DIFFUSION);
-  mRNAMap["USING_MESH"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_MESH);
-  mRNAMap["USING_IMPROVED_MESH"] = getBooleanString(mds->mesh_generator ==
+  mRNAMap["CACHE_RESUMABLE"] = getBooleanString(fds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE);
+  mRNAMap["USING_ADAPTIVETIME"] = getBooleanString(fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_TIME);
+  mRNAMap["USING_SPEEDVECTORS"] = getBooleanString(fds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS);
+  mRNAMap["USING_FRACTIONS"] = getBooleanString(fds->flags & FLUID_DOMAIN_USE_FRACTIONS);
+  mRNAMap["DELETE_IN_OBSTACLE"] = getBooleanString(fds->flags & FLUID_DOMAIN_DELETE_IN_OBSTACLE);
+  mRNAMap["USING_DIFFUSION"] = getBooleanString(fds->flags & FLUID_DOMAIN_USE_DIFFUSION);
+  mRNAMap["USING_MESH"] = getBooleanString(fds->flags & FLUID_DOMAIN_USE_MESH);
+  mRNAMap["USING_IMPROVED_MESH"] = getBooleanString(fds->mesh_generator ==
                                                     FLUID_DOMAIN_MESH_IMPROVED);
-  mRNAMap["USING_SNDPARTS"] = getBooleanString(mds->particle_type & particleTypes);
-  mRNAMap["SNDPARTICLE_BOUNDARY_DELETE"] = getBooleanString(mds->sndparticle_boundary ==
+  mRNAMap["USING_SNDPARTS"] = getBooleanString(fds->particle_type & particleTypes);
+  mRNAMap["SNDPARTICLE_BOUNDARY_DELETE"] = getBooleanString(fds->sndparticle_boundary ==
                                                             SNDPARTICLE_BOUNDARY_DELETE);
-  mRNAMap["SNDPARTICLE_BOUNDARY_PUSHOUT"] = getBooleanString(mds->sndparticle_boundary ==
+  mRNAMap["SNDPARTICLE_BOUNDARY_PUSHOUT"] = getBooleanString(fds->sndparticle_boundary ==
                                                              SNDPARTICLE_BOUNDARY_PUSHOUT);
 
-  mRNAMap["SOLVER_DIM"] = to_string(mds->solver_res);
+  mRNAMap["SOLVER_DIM"] = to_string(fds->solver_res);
   mRNAMap["BOUND_CONDITIONS"] = borderCollisions;
-  mRNAMap["BOUNDARY_WIDTH"] = to_string(mds->boundary_width);
+  mRNAMap["BOUNDARY_WIDTH"] = to_string(fds->boundary_width);
   mRNAMap["RES"] = to_string(mMaxRes);
   mRNAMap["RESX"] = to_string(mResX);
   mRNAMap["RESY"] = (is2D) ? to_string(mResZ) : to_string(mResY);
   mRNAMap["RESZ"] = (is2D) ? to_string(1) : to_string(mResZ);
-  mRNAMap["TIME_SCALE"] = to_string(mds->time_scale);
-  mRNAMap["FRAME_LENGTH"] = to_string(mds->frame_length);
-  mRNAMap["CFL"] = to_string(mds->cfl_condition);
-  mRNAMap["DT"] = to_string(mds->dt);
-  mRNAMap["TIMESTEPS_MIN"] = to_string(mds->timesteps_minimum);
-  mRNAMap["TIMESTEPS_MAX"] = to_string(mds->timesteps_maximum);
-  mRNAMap["TIME_TOTAL"] = to_string(mds->time_total);
-  mRNAMap["TIME_PER_FRAME"] = to_string(mds->time_per_frame);
-  mRNAMap["VORTICITY"] = to_string(mds->vorticity);
-  mRNAMap["FLAME_VORTICITY"] = to_string(mds->flame_vorticity);
-  mRNAMap["NOISE_SCALE"] = to_string(mds->noise_scale);
-  mRNAMap["MESH_SCALE"] = to_string(mds->mesh_scale);
-  mRNAMap["PARTICLE_SCALE"] = to_string(mds->particle_scale);
+  mRNAMap["TIME_SCALE"] = to_string(fds->time_scale);
+  mRNAMap["FRAME_LENGTH"] = to_string(fds->frame_length);
+  mRNAMap["CFL"] = to_string(fds->cfl_condition);
+  mRNAMap["DT"] = to_string(fds->dt);
+  mRNAMap["TIMESTEPS_MIN"] = to_string(fds->timesteps_minimum);
+  mRNAMap["TIMESTEPS_MAX"] = to_string(fds->timesteps_maximum);
+  mRNAMap["TIME_TOTAL"] = to_string(fds->time_total);
+  mRNAMap["TIME_PER_FRAME"] = to_string(fds->time_per_frame);
+  mRNAMap["VORTICITY"] = to_string(fds->vorticity);
+  mRNAMap["FLAME_VORTICITY"] = to_string(fds->flame_vorticity);
+  mRNAMap["NOISE_SCALE"] = to_string(fds->noise_scale);
+  mRNAMap["MESH_SCALE"] = to_string(fds->mesh_scale);
+  mRNAMap["PARTICLE_SCALE"] = to_string(fds->particle_scale);
   mRNAMap["NOISE_RESX"] = to_string(mResXNoise);
   mRNAMap["NOISE_RESY"] = (is2D) ? to_string(mResZNoise) : to_string(mResYNoise);
   mRNAMap["NOISE_RESZ"] = (is2D) ? to_string(1) : to_string(mResZNoise);
@@ -803,76 +803,76 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   mRNAMap["GUIDING_RESX"] = to_string(mResGuiding[0]);
   mRNAMap["GUIDING_RESY"] = (is2D) ? to_string(mResGuiding[2]) : to_string(mResGuiding[1]);
   mRNAMap["GUIDING_RESZ"] = (is2D) ? to_string(1) : to_string(mResGuiding[2]);
-  mRNAMap["MIN_RESX"] = to_string(mds->res_min[0]);
-  mRNAMap["MIN_RESY"] = to_string(mds->res_min[1]);
-  mRNAMap["MIN_RESZ"] = to_string(mds->res_min[2]);
-  mRNAMap["BASE_RESX"] = to_string(mds->base_res[0]);
-  mRNAMap["BASE_RESY"] = to_string(mds->base_res[1]);
-  mRNAMap["BASE_RESZ"] = to_string(mds->base_res[2]);
-  mRNAMap["WLT_STR"] = to_string(mds->noise_strength);
-  mRNAMap["NOISE_POSSCALE"] = to_string(mds->noise_pos_scale);
-  mRNAMap["NOISE_TIMEANIM"] = to_string(mds->noise_time_anim);
-  mRNAMap["COLOR_R"] = to_string(mds->active_color[0]);
-  mRNAMap["COLOR_G"] = to_string(mds->active_color[1]);
-  mRNAMap["COLOR_B"] = to_string(mds->active_color[2]);
-  mRNAMap["BUOYANCY_ALPHA"] = to_string(mds->alpha);
-  mRNAMap["BUOYANCY_BETA"] = to_string(mds->beta);
-  mRNAMap["DISSOLVE_SPEED"] = to_string(mds->diss_speed);
-  mRNAMap["BURNING_RATE"] = to_string(mds->burning_rate);
-  mRNAMap["FLAME_SMOKE"] = to_string(mds->flame_smoke);
-  mRNAMap["IGNITION_TEMP"] = to_string(mds->flame_ignition);
-  mRNAMap["MAX_TEMP"] = to_string(mds->flame_max_temp);
-  mRNAMap["FLAME_SMOKE_COLOR_X"] = to_string(mds->flame_smoke_color[0]);
-  mRNAMap["FLAME_SMOKE_COLOR_Y"] = to_string(mds->flame_smoke_color[1]);
-  mRNAMap["FLAME_SMOKE_COLOR_Z"] = to_string(mds->flame_smoke_color[2]);
-  mRNAMap["CURRENT_FRAME"] = to_string(int(mmd->time));
-  mRNAMap["START_FRAME"] = to_string(mds->cache_frame_start);
-  mRNAMap["END_FRAME"] = to_string(mds->cache_frame_end);
-  mRNAMap["CACHE_DATA_FORMAT"] = getCacheFileEnding(mds->cache_data_format);
-  mRNAMap["CACHE_MESH_FORMAT"] = getCacheFileEnding(mds->cache_mesh_format);
-  mRNAMap["CACHE_NOISE_FORMAT"] = getCacheFileEnding(mds->cache_noise_format);
-  mRNAMap["CACHE_PARTICLE_FORMAT"] = getCacheFileEnding(mds->cache_particle_format);
+  mRNAMap["MIN_RESX"] = to_string(fds->res_min[0]);
+  mRNAMap["MIN_RESY"] = to_string(fds->res_min[1]);
+  mRNAMap["MIN_RESZ"] = to_string(fds->res_min[2]);
+  mRNAMap["BASE_RESX"] = to_string(fds->base_res[0]);
+  mRNAMap["BASE_RESY"] = to_string(fds->base_res[1]);
+  mRNAMap["BASE_RESZ"] = to_string(fds->base_res[2]);
+  mRNAMap["WLT_STR"] = to_string(fds->noise_strength);
+  mRNAMap["NOISE_POSSCALE"] = to_string(fds->noise_pos_scale);
+  mRNAMap["NOISE_TIMEANIM"] = to_string(fds->noise_time_anim);
+  mRNAMap["COLOR_R"] = to_string(fds->active_color[0]);
+  mRNAMap["COLOR_G"] = to_string(fds->active_color[1]);
+  mRNAMap["COLOR_B"] = to_string(fds->active_color[2]);
+  mRNAMap["BUOYANCY_ALPHA"] = to_string(fds->alpha);
+  mRNAMap["BUOYANCY_BETA"] = to_string(fds->beta);
+  mRNAMap["DISSOLVE_SPEED"] = to_string(fds->diss_speed);
+  mRNAMap["BURNING_RATE"] = to_string(fds->burning_rate);
+  mRNAMap["FLAME_SMOKE"] = to_string(fds->flame_smoke);
+  mRNAMap["IGNITION_TEMP"] = to_string(fds->flame_ignition);
+  mRNAMap["MAX_TEMP"] = to_string(fds->flame_max_temp);
+  mRNAMap["FLAME_SMOKE_COLOR_X"] = to_string(fds->flame_smoke_color[0]);
+  mRNAMap["FLAME_SMOKE_COLOR_Y"] = to_string(fds->flame_smoke_color[1]);
+  mRNAMap["FLAME_SMOKE_COLOR_Z"] = to_string(fds->flame_smoke_color[2]);
+  mRNAMap["CURRENT_FRAME"] = to_string(int(fmd->time));
+  mRNAMap["START_FRAME"] = to_string(fds->cache_frame_start);
+  mRNAMap["END_FRAME"] = to_string(fds->cache_frame_end);
+  mRNAMap["CACHE_DATA_FORMAT"] = getCacheFileEnding(fds->cache_data_format);
+  mRNAMap["CACHE_MESH_FORMAT"] = getCacheFileEnding(fds->cache_mesh_format);
+  mRNAMap["CACHE_NOISE_FORMAT"] = getCacheFileEnding(fds->cache_noise_format);
+  mRNAMap["CACHE_PARTICLE_FORMAT"] = getCacheFileEnding(fds->cache_particle_format);
   mRNAMap["SIMULATION_METHOD"] = simulationMethod;
-  mRNAMap["FLIP_RATIO"] = to_string(mds->flip_ratio);
-  mRNAMap["PARTICLE_RANDOMNESS"] = to_string(mds->particle_randomness);
-  mRNAMap["PARTICLE_NUMBER"] = to_string(mds->particle_number);
-  mRNAMap["PARTICLE_MINIMUM"] = to_string(mds->particle_minimum);
-  mRNAMap["PARTICLE_MAXIMUM"] = to_string(mds->particle_maximum);
-  mRNAMap["PARTICLE_RADIUS"] = to_string(mds->particle_radius);
-  mRNAMap["FRACTIONS_THRESHOLD"] = to_string(mds->fractions_threshold);
-  mRNAMap["MESH_CONCAVE_UPPER"] = to_string(mds->mesh_concave_upper);
-  mRNAMap["MESH_CONCAVE_LOWER"] = to_string(mds->mesh_concave_lower);
-  mRNAMap["MESH_PARTICLE_RADIUS"] = to_string(mds->mesh_particle_radius);
-  mRNAMap["MESH_SMOOTHEN_POS"] = to_string(mds->mesh_smoothen_pos);
-  mRNAMap["MESH_SMOOTHEN_NEG"] = to_string(mds->mesh_smoothen_neg);
-  mRNAMap["PARTICLE_BAND_WIDTH"] = to_string(mds->particle_band_width);
-  mRNAMap["SNDPARTICLE_TAU_MIN_WC"] = to_string(mds->sndparticle_tau_min_wc);
-  mRNAMap["SNDPARTICLE_TAU_MAX_WC"] = to_string(mds->sndparticle_tau_max_wc);
-  mRNAMap["SNDPARTICLE_TAU_MIN_TA"] = to_string(mds->sndparticle_tau_min_ta);
-  mRNAMap["SNDPARTICLE_TAU_MAX_TA"] = to_string(mds->sndparticle_tau_max_ta);
-  mRNAMap["SNDPARTICLE_TAU_MIN_K"] = to_string(mds->sndparticle_tau_min_k);
-  mRNAMap["SNDPARTICLE_TAU_MAX_K"] = to_string(mds->sndparticle_tau_max_k);
-  mRNAMap["SNDPARTICLE_K_WC"] = to_string(mds->sndparticle_k_wc);
-  mRNAMap["SNDPARTICLE_K_TA"] = to_string(mds->sndparticle_k_ta);
-  mRNAMap["SNDPARTICLE_K_B"] = to_string(mds->sndparticle_k_b);
-  mRNAMap["SNDPARTICLE_K_D"] = to_string(mds->sndparticle_k_d);
-  mRNAMap["SNDPARTICLE_L_MIN"] = to_string(mds->sndparticle_l_min);
-  mRNAMap["SNDPARTICLE_L_MAX"] = to_string(mds->sndparticle_l_max);
-  mRNAMap["SNDPARTICLE_POTENTIAL_RADIUS"] = to_string(mds->sndparticle_potential_radius);
-  mRNAMap["SNDPARTICLE_UPDATE_RADIUS"] = to_string(mds->sndparticle_update_radius);
-  mRNAMap["LIQUID_SURFACE_TENSION"] = to_string(mds->surface_tension);
+  mRNAMap["FLIP_RATIO"] = to_string(fds->flip_ratio);
+  mRNAMap["PARTICLE_RANDOMNESS"] = to_string(fds->particle_randomness);
+  mRNAMap["PARTICLE_NUMBER"] = to_string(fds->particle_number);
+  mRNAMap["PARTICLE_MINIMUM"] = to_string(fds->particle_minimum);
+  mRNAMap["PARTICLE_MAXIMUM"] = to_string(fds->particle_maximum);
+  mRNAMap["PARTICLE_RADIUS"] = to_string(fds->particle_radius);
+  mRNAMap["FRACTIONS_THRESHOLD"] = to_string(fds->fractions_threshold);
+  mRNAMap["MESH_CONCAVE_UPPER"] = to_string(fds->mesh_concave_upper);
+  mRNAMap["MESH_CONCAVE_LOWER"] = to_string(fds->mesh_concave_lower);
+  mRNAMap["MESH_PARTICLE_RADIUS"] = to_string(fds->mesh_particle_radius);
+  mRNAMap["MESH_SMOOTHEN_POS"] = to_string(fds->mesh_smoothen_pos);
+  mRNAMap["MESH_SMOOTHEN_NEG"] = to_string(fds->mesh_smoothen_neg);
+  mRNAMap["PARTICLE_BAND_WIDTH"] = to_string(fds->particle_band_width);
+  mRNAMap["SNDPARTICLE_TAU_MIN_WC"] = to_string(fds->sndparticle_tau_min_wc);
+  mRNAMap["SNDPARTICLE_TAU_MAX_WC"] = to_string(fds->sndparticle_tau_max_wc);
+  mRNAMap["SNDPARTICLE_TAU_MIN_TA"] = to_string(fds->sndparticle_tau_min_ta);
+  mRNAMap["SNDPARTICLE_TAU_MAX_TA"] = to_string(fds->sndparticle_tau_max_ta);
+  mRNAMap["SNDPARTICLE_TAU_MIN_K"] = to_string(fds->sndparticle_tau_min_k);
+  mRNAMap["SNDPARTICLE_TAU_MAX_K"] = to_string(fds->sndparticle_tau_max_k);
+  mRNAMap["SNDPARTICLE_K_WC"] = to_string(fds->sndparticle_k_wc);
+  mRNAMap["SNDPARTICLE_K_TA"] = to_string(fds->sndparticle_k_ta);
+  mRNAMap["SNDPARTICLE_K_B"] = to_string(fds->sndparticle_k_b);
+  mRNAMap["SNDPARTICLE_K_D"] = to_string(fds->sndparticle_k_d);
+  mRNAMap["SNDPARTICLE_L_MIN"] = to_string(fds->sndparticle_l_min);
+  mRNAMap["SNDPARTICLE_L_MAX"] = to_string(fds->sndparticle_l_max);
+  mRNAMap["SNDPARTICLE_POTENTIAL_RADIUS"] = to_string(fds->sndparticle_potential_radius);
+  mRNAMap["SNDPARTICLE_UPDATE_RADIUS"] = to_string(fds->sndparticle_update_radius);
+  mRNAMap["LIQUID_SURFACE_TENSION"] = to_string(fds->surface_tension);
   mRNAMap["FLUID_VISCOSITY"] = to_string(viscosity);
   mRNAMap["FLUID_DOMAIN_SIZE"] = to_string(domainSize);
-  mRNAMap["FLUID_DOMAIN_SIZE_X"] = to_string(mds->global_size[0]);
-  mRNAMap["FLUID_DOMAIN_SIZE_Y"] = to_string(mds->global_size[1]);
-  mRNAMap["FLUID_DOMAIN_SIZE_Z"] = to_string(mds->global_size[2]);
+  mRNAMap["FLUID_DOMAIN_SIZE_X"] = to_string(fds->global_size[0]);
+  mRNAMap["FLUID_DOMAIN_SIZE_Y"] = to_string(fds->global_size[1]);
+  mRNAMap["FLUID_DOMAIN_SIZE_Z"] = to_string(fds->global_size[2]);
   mRNAMap["SNDPARTICLE_TYPES"] = particleTypesStr;
-  mRNAMap["GUIDING_ALPHA"] = to_string(mds->guide_alpha);
-  mRNAMap["GUIDING_BETA"] = to_string(mds->guide_beta);
-  mRNAMap["GUIDING_FACTOR"] = to_string(mds->guide_vel_factor);
-  mRNAMap["GRAVITY_X"] = to_string(mds->gravity[0]);
-  mRNAMap["GRAVITY_Y"] = to_string(mds->gravity[1]);
-  mRNAMap["GRAVITY_Z"] = to_string(mds->gravity[2]);
+  mRNAMap["GUIDING_ALPHA"] = to_string(fds->guide_alpha);
+  mRNAMap["GUIDING_BETA"] = to_string(fds->guide_beta);
+  mRNAMap["GUIDING_FACTOR"] = to_string(fds->guide_vel_factor);
+  mRNAMap["GRAVITY_X"] = to_string(fds->gravity[0]);
+  mRNAMap["GRAVITY_Y"] = to_string(fds->gravity[1]);
+  mRNAMap["GRAVITY_Z"] = to_string(fds->gravity[2]);
   mRNAMap["CACHE_DIR"] = cacheDirectory;
   mRNAMap["COMPRESSION_OPENVDB"] = vdbCompressionMethod;
   mRNAMap["PRECISION_OPENVDB"] = vdbPrecisionHalf;
@@ -1063,7 +1063,7 @@ string MANTA::parseLine(const string &line)
   return res;
 }
 
-string MANTA::parseScript(const string &setup_string, FluidModifierData *mmd)
+string MANTA::parseScript(const string &setup_string, FluidModifierData *fmd)
 {
   if (MANTA::with_debug)
     cout << "MANTA::parseScript()" << endl;
@@ -1073,8 +1073,8 @@ string MANTA::parseScript(const string &setup_string, FluidModifierData *mmd)
   string line = "";
 
   // Update RNA map if modifier data is handed over
-  if (mmd) {
-    initializeRNAMap(mmd);
+  if (fmd) {
+    initializeRNAMap(fmd);
   }
   while (getline(f, line)) {
     res << parseLine(line) << "\n";
@@ -1096,16 +1096,16 @@ static string escapeSlashes(string const &s)
   return result;
 }
 
-bool MANTA::writeConfiguration(FluidModifierData *mmd, int framenr)
+bool MANTA::writeConfiguration(FluidModifierData *fmd, int framenr)
 {
   if (with_debug)
     cout << "MANTA::writeConfiguration()" << endl;
 
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
 
-  string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_CONFIG);
+  string directory = getDirectory(fmd, FLUID_DOMAIN_DIR_CONFIG);
   string format = FLUID_DOMAIN_EXTENSION_UNI;
-  string file = getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_NAME_CONFIG, format, framenr);
+  string file = getFile(fmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_NAME_CONFIG, format, framenr);
 
   /* Create 'config' subdir if it does not exist already. */
   BLI_dir_create_recursive(directory.c_str());
@@ -1116,38 +1116,38 @@ bool MANTA::writeConfiguration(FluidModifierData *mmd, int framenr)
     return false;
   }
 
-  gzwrite(gzf, &mds->active_fields, sizeof(int));
-  gzwrite(gzf, &mds->res, 3 * sizeof(int));
-  gzwrite(gzf, &mds->dx, sizeof(float));
-  gzwrite(gzf, &mds->dt, sizeof(float));
-  gzwrite(gzf, &mds->p0, 3 * sizeof(float));
-  gzwrite(gzf, &mds->p1, 3 * sizeof(float));
-  gzwrite(gzf, &mds->dp0, 3 * sizeof(float));
-  gzwrite(gzf, &mds->shift, 3 * sizeof(int));
-  gzwrite(gzf, &mds->obj_shift_f, 3 * sizeof(float));
-  gzwrite(gzf, &mds->obmat, 16 * sizeof(float));
-  gzwrite(gzf, &mds->base_res, 3 * sizeof(int));
-  gzwrite(gzf, &mds->res_min, 3 * sizeof(int));
-  gzwrite(gzf, &mds->res_max, 3 * sizeof(int));
-  gzwrite(gzf, &mds->active_color, 3 * sizeof(float));
-  gzwrite(gzf, &mds->time_total, sizeof(int));
+  gzwrite(gzf, &fds->active_fields, sizeof(int));
+  gzwrite(gzf, &fds->res, 3 * sizeof(int));
+  gzwrite(gzf, &fds->dx, sizeof(float));
+  gzwrite(gzf, &fds->dt, sizeof(float));
+  gzwrite(gzf, &fds->p0, 3 * sizeof(float));
+  gzwrite(gzf, &fds->p1, 3 * sizeof(float));
+  gzwrite(gzf, &fds->dp0, 3 * sizeof(float));
+  gzwrite(gzf, &fds->shift, 3 * sizeof(int));
+  gzwrite(gzf, &fds->obj_shift_f, 3 * sizeof(float));
+  gzwrite(gzf, &fds->obmat, 16 * sizeof(float));
+  gzwrite(gzf, &fds->base_res, 3 * sizeof(int));
+  gzwrite(gzf, &fds->res_min, 3 * sizeof(int));
+  gzwrite(gzf, &fds->res_max, 3 * sizeof(int));
+  gzwrite(gzf, &fds->active_color, 3 * sizeof(float));
+  gzwrite(gzf, &fds->time_total, sizeof(int));
   gzwrite(gzf, &FLUID_CACHE_VERSION, 4 * sizeof(char));
 
   return (gzclose(gzf) == Z_OK);
 }
 
-bool MANTA::writeData(FluidModifierData *mmd, int framenr)
+bool MANTA::writeData(FluidModifierData *fmd, int framenr)
 {
   if (with_debug)
     cout << "MANTA::writeData()" << endl;
 
   ostringstream ss;
   vector<string> pythonCommands;
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
 
-  string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_DATA);
-  string volume_format = getCacheFileEnding(mds->cache_data_format);
-  string resumable_cache = !(mds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE) ? "False" : "True";
+  string directory = getDirectory(fmd, FLUID_DOMAIN_DIR_DATA);
+  string volume_format = getCacheFileEnding(fds->cache_data_format);
+  string resumable_cache = !(fds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE) ? "False" : "True";
 
   if (mUsingSmoke) {
     ss.str("");
@@ -1164,18 +1164,18 @@ bool MANTA::writeData(FluidModifierData *mmd, int framenr)
   return runPythonString(pythonCommands);
 }
 
-bool MANTA::writeNoise(FluidModifierData *mmd, int framenr)
+bool MANTA::writeNoise(FluidModifierData *fmd, int framenr)
 {
   if (with_debug)
     cout << "MANTA::writeNoise()" << endl;
 
   ostringstream ss;
   vector<string> pythonCommands;
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
 
-  string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_NOISE);
-  string volume_format = getCacheFileEnding(mds->cache_data_format);
-  string resumable_cache = !(mds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE) ? "False" : "True";
+  string directory = getDirectory(fmd, FLUID_DOMAIN_DIR_NOISE);
+  string volume_format = getCacheFileEnding(fds->cache_data_format);
+  string resumable_cache = !(fds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE) ? "False" : "True";
 
   if (mUsingSmoke && mUsingNoise) {
     ss.str("");
@@ -1186,19 +1186,19 @@ bool MANTA::writeNoise(FluidModifierData *mmd, int framenr)
   return runPythonString(pythonCommands);
 }
 
-bool MANTA::readConfiguration(FluidModifierData *mmd, int framenr)
+bool MANTA::readConfiguration(FluidModifierData *fmd, int framenr)
 {
   if (with_debug)
     cout << "MANTA::readConfiguration()" << endl;
 
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
   float dummy;
 
-  string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_CONFIG);
+  string directory = getDirectory(fmd, FLUID_DOMAIN_DIR_CONFIG);
   string format = FLUID_DOMAIN_EXTENSION_UNI;
-  string file = getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_NAME_CONFIG, format, framenr);
+  string file = getFile(fmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_NAME_CONFIG, format, framenr);
 
-  if (!hasConfig(mmd, framenr))
+  if (!hasConfig(fmd, framenr))
     return false;
 
   gzFile gzf = (gzFile)BLI_gzopen(file.c_str(), "rb"); /* Do some compression. */
@@ -1207,29 +1207,29 @@ bool MANTA::readConfiguration(FluidModifierData *mmd, int framenr)
     return false;
   }
 
-  gzread(gzf, &mds->active_fields, sizeof(int));
-  gzread(gzf, &mds->res, 3 * sizeof(int));
-  gzread(gzf, &mds->dx, sizeof(float));
+  gzread(gzf, &fds->active_fields, sizeof(int));
+  gzread(gzf, &fds->res, 3 * sizeof(int));
+  gzread(gzf, &fds->dx, sizeof(float));
   gzread(gzf, &dummy, sizeof(float)); /* dt not needed right now. */
-  gzread(gzf, &mds->p0, 3 * sizeof(float));
-  gzread(gzf, &mds->p1, 3 * sizeof(float));
-  gzread(gzf, &mds->dp0, 3 * sizeof(float));
-  gzread(gzf, &mds->shift, 3 * sizeof(int));
-  gzread(gzf, &mds->obj_shift_f, 3 * sizeof(float));
-  gzread(gzf, &mds->obmat, 16 * sizeof(float));
-  gzread(gzf, &mds->base_res, 3 * sizeof(int));
-  gzread(gzf, &mds->res_min, 3 * sizeof(int));
-  gzread(gzf, &mds->res_max, 3 * sizeof(int));
-  gzread(gzf, &mds->active_color, 3 * sizeof(float));
-  gzread(gzf, &mds->time_total, sizeof(int));
-  gzread(gzf, &mds->cache_id, 4 * sizeof(char)); /* Older caches might have no id. */
+  gzread(gzf, &fds->p0, 3 * sizeof(float));
+  gzread(gzf, &fds->p1, 3 * sizeof(float));
+  gzread(gzf, &fds->dp0, 3 * sizeof(float));
+  gzread(gzf, &fds->shift, 3 * sizeof(int));
+  gzread(gzf, &fds->obj_shift_f, 3 * sizeof(float));
+  gzread(gzf, &fds->obmat, 16 * sizeof(float));
+  gzread(gzf, &fds->base_res, 3 * sizeof(int));
+  gzread(gzf, &fds->res_min, 3 * sizeof(int));
+  gzread(gzf, &fds->res_max, 3 * sizeof(int));
+  gzread(gzf, &fds->active_color, 3 * sizeof(float));
+  gzread(gzf, &fds->time_total, sizeof(int));
+  gzread(gzf, &fds->cache_id, 4 * sizeof(char)); /* Older caches might have no id. */
 
-  mds->total_cells = mds->res[0] * mds->res[1] * mds->res[2];
+  fds->total_cells = fds->res[0] * fds->res[1] * fds->res[2];
 
   return (gzclose(gzf) == Z_OK);
 }
 
-bool MANTA::readData(FluidModifierData *mmd, int framenr, bool resumable)
+bool MANTA::readData(FluidModifierData *fmd, int framenr, bool resumable)
 {
   if (with_debug)
     cout << "MANTA::readData()" << endl;
@@ -1239,15 +1239,15 @@ bool MANTA::readData(FluidModifierData *mmd, int framenr, bool resumable)
 
   ostringstream ss;
   vector<string> pythonCommands;
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
   bool result = true;
 
-  string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_DATA);
-  string volume_format = getCacheFileEnding(mds->cache_data_format);
+  string directory = getDirectory(fmd, FLUID_DOMAIN_DIR_DATA);
+  string volume_format = getCacheFileEnding(fds->cache_data_format);
   string resumable_cache = (!resumable) ? "False" : "True";
 
   /* Sanity check: Are cache files present? */
-  if (!hasData(mmd, framenr))
+  if (!hasData(fmd, framenr))
     return false;
 
   if (mUsingSmoke) {
@@ -1267,7 +1267,7 @@ bool MANTA::readData(FluidModifierData *mmd, int framenr, bool resumable)
   return result;
 }
 
-bool MANTA::readNoise(FluidModifierData *mmd, int framenr, bool resumable)
+bool MANTA::readNoise(FluidModifierData *fmd, int framenr, bool resumable)
 {
   if (with_debug)
     cout << "MANTA::readNoise()" << endl;
@@ -1277,18 +1277,18 @@ bool MANTA::readNoise(FluidModifierData *mmd, int framenr, bool resumable)
 
   ostringstream ss;
   vector<string> pythonCommands;
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
 
-  string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_NOISE);
+  string directory = getDirectory(fmd, FLUID_DOMAIN_DIR_NOISE);
   string resumable_cache = (!resumable) ? "False" : "True";
 
   /* Support older caches which had more granular file format control. */
-  char format = (!strcmp(mds->cache_id, FLUID_CACHE_VERSION)) ? mds->cache_data_format :
-                                                                mds->cache_noise_format;
+  char format = (!strcmp(fds->cache_id, FLUID_CACHE_VERSION)) ? fds->cache_data_format :
+                                                                fds->cache_noise_format;
   string volume_format = getCacheFileEnding(format);
 
   /* Sanity check: Are cache files present? */
-  if (!hasNoise(mmd, framenr))
+  if (!hasNoise(fmd, framenr))
     return false;
 
   ss.str("");
@@ -1299,7 +1299,7 @@ bool MANTA::readNoise(FluidModifierData *mmd, int framenr, bool resumable)
   return runPythonString(pythonCommands);
 }
 
-bool MANTA::readMesh(FluidModifierData *mmd, int framenr)
+bool MANTA::readMesh(FluidModifierData *fmd, int framenr)
 {
   if (with_debug)
     cout << "MANTA::readMesh()" << endl;
@@ -1309,14 +1309,14 @@ bool MANTA::readMesh(FluidModifierData *mmd, int framenr)
 
   ostringstream ss;
   vector<string> pythonCommands;
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
 
-  string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_MESH);
-  string mesh_format = getCacheFileEnding(mds->cache_mesh_format);
-  string volume_format = getCacheFileEnding(mds->cache_data_format);
+  string directory = getDirectory(fmd, FLUID_DOMAIN_DIR_MESH);
+  string mesh_format = getCacheFileEnding(fds->cache_mesh_format);
+  string volume_format = getCacheFileEnding(fds->cache_data_format);
 
   /* Sanity check: Are cache files present? */
-  if (!hasMesh(mmd, framenr))
+  if (!hasMesh(fmd, framenr))
     return false;
 
   ss.str("");
@@ -1334,7 +1334,7 @@ bool MANTA::readMesh(FluidModifierData *mmd, int framenr)
   return runPythonString(pythonCommands);
 }
 
-bool MANTA::readParticles(FluidModifierData *mmd, int framenr, bool resumable)
+bool MANTA::readParticles(FluidModifierData *fmd, int framenr, bool resumable)
 {
   if (with_debug)
     cout << "MANTA::readParticles()" << endl;
@@ -1346,18 +1346,18 @@ bool MANTA::readParticles(FluidModifierData *mmd, int framenr, bool resumable)
 
   ostringstream ss;
   vector<string> pythonCommands;
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
 
-  string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_PARTICLES);
+  string directory = getDirectory(fmd, FLUID_DOMAIN_DIR_PARTICLES);
   string resumable_cache = (!resumable) ? "False" : "True";
 
   /* Support older caches which had more granular file format control. */
-  char format = (!strcmp(mds->cache_id, FLUID_CACHE_VERSION)) ? mds->cache_data_format :
-                                                                mds->cache_particle_format;
+  char format = (!strcmp(fds->cache_id, FLUID_CACHE_VERSION)) ? fds->cache_data_format :
+                                                                fds->cache_particle_format;
   string volume_format = getCacheFileEnding(format);
 
   /* Sanity check: Are cache files present? */
-  if (!hasParticles(mmd, framenr))
+  if (!hasParticles(fmd, framenr))
     return false;
 
   ss.str("");
@@ -1368,27 +1368,27 @@ bool MANTA::readParticles(FluidModifierData *mmd, int framenr, bool resumable)
   return runPythonString(pythonCommands);
 }
 
-bool MANTA::readGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain)
+bool MANTA::readGuiding(FluidModifierData *fmd, int framenr, bool sourceDomain)
 {
   if (with_debug)
     cout << "MANTA::readGuiding()" << endl;
 
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
 
   if (!mUsingGuiding)
     return false;
-  if (!mds)
+  if (!fds)
     return false;
 
   ostringstream ss;
   vector<string> pythonCommands;
 
-  string directory = (sourceDomain) ? getDirectory(mmd, FLUID_DOMAIN_DIR_DATA) :
-                                      getDirectory(mmd, FLUID_DOMAIN_DIR_GUIDE);
-  string volume_format = getCacheFileEnding(mds->cache_data_format);
+  string directory = (sourceDomain) ? getDirectory(fmd, FLUID_DOMAIN_DIR_DATA) :
+                                      getDirectory(fmd, FLUID_DOMAIN_DIR_GUIDE);
+  string volume_format = getCacheFileEnding(fds->cache_data_format);
 
   /* Sanity check: Are cache files present? */
-  if (!hasGuiding(mmd, framenr, sourceDomain))
+  if (!hasGuiding(fmd, framenr, sourceDomain))
     return false;
 
   if (sourceDomain) {
@@ -1406,7 +1406,7 @@ bool MANTA::readGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain)
   return runPythonString(pythonCommands);
 }
 
-bool MANTA::bakeData(FluidModifierData *mmd, int framenr)
+bool MANTA::bakeData(FluidModifierData *fmd, int framenr)
 {
   if (with_debug)
     cout << "MANTA::bakeData()" << endl;
@@ -1414,19 +1414,19 @@ bool MANTA::bakeData(FluidModifierData *mmd, int framenr)
   string tmpString, finalString;
   ostringstream ss;
   vector<string> pythonCommands;
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
 
   char cacheDirData[FILE_MAX], cacheDirGuiding[FILE_MAX];
   cacheDirData[0] = '\0';
   cacheDirGuiding[0] = '\0';
 
-  string volume_format = getCacheFileEnding(mds->cache_data_format);
+  string volume_format = getCacheFileEnding(fds->cache_data_format);
 
   BLI_path_join(
-      cacheDirData, sizeof(cacheDirData), mds->cache_directory, FLUID_DOMAIN_DIR_DATA, nullptr);
+      cacheDirData, sizeof(cacheDirData), fds->cache_directory, FLUID_DOMAIN_DIR_DATA, nullptr);
   BLI_path_join(cacheDirGuiding,
                 sizeof(cacheDirGuiding),
-                mds->cache_directory,
+                fds->cache_directory,
                 FLUID_DOMAIN_DIR_GUIDE,
                 nullptr);
   BLI_path_make_safe(cacheDirData);
@@ -1440,22 +1440,22 @@ bool MANTA::bakeData(FluidModifierData *mmd, int framenr)
   return runPythonString(pythonCommands);
 }
 
-bool MANTA::bakeNoise(FluidModifierData *mmd, int framenr)
+bool MANTA::bakeNoise(FluidModifierData *fmd, int framenr)
 {
   if (with_debug)
     cout << "MANTA::bakeNoise()" << endl;
 
   ostringstream ss;
   vector<string> pythonCommands;
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
 
   char cacheDirNoise[FILE_MAX];
   cacheDirNoise[0] = '\0';
 
-  string volume_format = getCacheFileEnding(mds->cache_data_format);
+  string volume_format = getCacheFileEnding(fds->cache_data_format);
 
   BLI_path_join(
-      cacheDirNoise, sizeof(cacheDirNoise), mds->cache_directory, FLUID_DOMAIN_DIR_NOISE, nullptr);
+      cacheDirNoise, sizeof(cacheDirNoise), fds->cache_directory, FLUID_DOMAIN_DIR_NOISE, nullptr);
   BLI_path_make_safe(cacheDirNoise);
 
   ss.str("");
@@ -1466,23 +1466,23 @@ bool MANTA::bakeNoise(FluidModifierData *mmd, int framenr)
   return runPythonString(pythonCommands);
 }
 
-bool MANTA::bakeMesh(FluidModifierData *mmd, int framenr)
+bool MANTA::bakeMesh(FluidModifierData *fmd, int framenr)
 {
   if (with_debug)
     cout << "MANTA::bakeMesh()" << endl;
 
   ostringstream ss;
   vector<string> pythonCommands;
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
 
   char cacheDirMesh[FILE_MAX];
   cacheDirMesh[0] = '\0';
 
-  string volume_format = getCacheFileEnding(mds->cache_data_format);
-  string mesh_format = getCacheFileEnding(mds->cache_mesh_format);
+  string volume_format = getCacheFileEnding(fds->cache_data_format);
+  string mesh_format = getCacheFileEnding(fds->cache_mesh_format);
 
   BLI_path_join(
-      cacheDirMesh, sizeof(cacheDirMesh), mds->cache_directory, FLUID_DOMAIN_DIR_MESH, nullptr);
+      cacheDirMesh, sizeof(cacheDirMesh), fds->cache_directory, FLUID_DOMAIN_DIR_MESH, nullptr);
   BLI_path_make_safe(cacheDirMesh);
 
   ss.str("");
@@ -1493,24 +1493,24 @@ bool MANTA::bakeMesh(FluidModifierData *mmd, int framenr)
   return runPythonString(pythonCommands);
 }
 
-bool MANTA::bakeParticles(FluidModifierData *mmd, int framenr)
+bool MANTA::bakeParticles(FluidModifierData *fmd, int framenr)
 {
   if (with_debug)
     cout << "MANTA::bakeParticles()" << endl;
 
   ostringstream ss;
   vector<string> pythonCommands;
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
 
   char cacheDirParticles[FILE_MAX];
   cacheDirParticles[0] = '\0';
 
-  string volume_format = getCacheFileEnding(mds->cache_data_format);
-  string resumable_cache = !(mds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE) ? "False" : "True";
+  string volume_format = getCacheFileEnding(fds->cache_data_format);
+  string resumable_cache = !(fds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE) ? "False" : "True";
 
   BLI_path_join(cacheDirParticles,
                 sizeof(cacheDirParticles),
-                mds->cache_directory,
+                fds->cache_directory,
                 FLUID_DOMAIN_DIR_PARTICLES,
                 nullptr);
   BLI_path_make_safe(cacheDirParticles);
@@ -1523,23 +1523,23 @@ bool MANTA::bakeParticles(FluidModifierData *mmd, int framenr)
   return runPythonString(pythonCommands);
 }
 
-bool MANTA::bakeGuiding(FluidModifierData *mmd, int framenr)
+bool MANTA::bakeGuiding(FluidModifierData *fmd, int framenr)
 {
   if (with_debug)
     cout << "MANTA::bakeGuiding()" << endl;
 
   ostringstream ss;
   vector<string> pythonCommands;
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
 
   char cacheDirGuiding[FILE_MAX];
   cacheDirGuiding[0] = '\0';
 
-  string volume_format = getCacheFileEnding(mds->cache_data_format);
+  string volume_format = getCacheFileEnding(fds->cache_data_format);
 
   BLI_path_join(cacheDirGuiding,
                 sizeof(cacheDirGuiding),
-                mds->cache_directory,
+                fds->cache_directory,
                 FLUID_DOMAIN_DIR_GUIDE,
                 nullptr);
   BLI_path_make_safe(cacheDirGuiding);
@@ -1552,7 +1552,7 @@ bool MANTA::bakeGuiding(FluidModifierData *mmd, int framenr)
   return runPythonString(pythonCommands);
 }
 
-bool MANTA::updateVariables(FluidModifierData *mmd)
+bool MANTA::updateVariables(FluidModifierData *fmd)
 {
   string tmpString, finalString;
   vector<string> pythonCommands;
@@ -1576,13 +1576,13 @@ bool MANTA::updateVariables(FluidModifierData *mmd)
   if (mUsingMesh)
     tmpString += fluid_variables_mesh;
 
-  finalString = parseScript(tmpString, mmd);
+  finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
   return runPythonString(pythonCommands);
 }
 
-void MANTA::exportSmokeScript(FluidModifierData *mmd)
+void MANTA::exportSmokeScript(FluidModifierData *fmd)
 {
   if (with_debug)
     cout << "MANTA::exportSmokeScript()" << endl;
@@ -1590,10 +1590,10 @@ void MANTA::exportSmokeScript(FluidModifierData *mmd)
   char cacheDir[FILE_MAX] = "\0";
   char cacheDirScript[FILE_MAX] = "\0";
 
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
 
   BLI_path_join(
-      cacheDir, sizeof(cacheDir), mds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, nullptr);
+      cacheDir, sizeof(cacheDir), fds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, nullptr);
   BLI_path_make_safe(cacheDir);
   /* Create 'script' subdir if it does not exist already */
   BLI_dir_create_recursive(cacheDir);
@@ -1601,14 +1601,14 @@ void MANTA::exportSmokeScript(FluidModifierData *mmd)
       cacheDirScript, sizeof(cacheDirScript), cacheDir, FLUID_DOMAIN_SMOKE_SCRIPT, nullptr);
   BLI_path_make_safe(cacheDir);
 
-  bool noise = mds->flags & FLUID_DOMAIN_USE_NOISE;
-  bool heat = mds->active_fields & FLUID_DOMAIN_ACTIVE_HEAT;
-  bool colors = mds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS;
-  bool fire = mds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE;
-  bool obstacle = mds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE;
-  bool guiding = mds->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
-  bool invel = mds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
-  bool outflow = mds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW;
+  bool noise = fds->flags & FLUID_DOMAIN_USE_NOISE;
+  bool heat = fds->active_fields & FLUID_DOMAIN_ACTIVE_HEAT;
+  bool colors = fds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS;
+  bool fire = fds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE;
+  bool obstacle = fds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE;
+  bool guiding = fds->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
+  bool invel = fds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
+  bool outflow = fds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW;
 
   string manta_script;
 
@@ -1681,7 +1681,7 @@ void MANTA::exportSmokeScript(FluidModifierData *mmd)
   manta_script += header_main + smoke_standalone + fluid_standalone;
 
   // Fill in missing variables in script
-  string final_script = MANTA::parseScript(manta_script, mmd);
+  string final_script = MANTA::parseScript(manta_script, fmd);
 
   // Write script
   ofstream myfile;
@@ -1690,7 +1690,7 @@ void MANTA::exportSmokeScript(FluidModifierData *mmd)
   myfile.close();
 }
 
-void MANTA::exportLiquidScript(FluidModifierData *mmd)
+void MANTA::exportLiquidScript(FluidModifierData *fmd)
 {
   if (with_debug)
     cout << "MANTA::exportLiquidScript()" << endl;
@@ -1698,10 +1698,10 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
   char cacheDir[FILE_MAX] = "\0";
   char cacheDirScript[FILE_MAX] = "\0";
 
-  FluidDomainSettings *mds = mmd->domain;
+  FluidDomainSettings *fds = fmd->domain;
 
   BLI_path_join(
-      cacheDir, sizeof(cacheDir), mds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, nullptr);
+      cacheDir, sizeof(cacheDir), fds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, nullptr);
   BLI_path_make_safe(cacheDir);
   /* Create 'script' subdir if it does not exist already */
   BLI_dir_create_recursive(cacheDir);
@@ -1709,16 +1709,16 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
       cacheDirScript, sizeof(cacheDirScript), cacheDir, FLUID_DOMAIN_LIQUID_SCRIPT, nullptr);
   BLI_path_make_safe(cacheDirScript);
 
-  bool mesh = mds->flags & FLUID_DOMAIN_USE_MESH;
-  bool drops = mds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY;
-  bool bubble = mds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE;
-  bool floater = mds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM;
-  bool tracer = mds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER;
-  bool obstacle = mds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE;
-  bool fractions = mds->flags & FLUID_DOMAIN_USE_FRACTIONS;
-  bool guiding = mds->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
-  bool invel = mds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
-  bool outflow = mds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW;
+  bool mesh = fds->flags & FLUID_DOMAIN_USE_MESH;
+  bool drops = fds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY;
+  bool bubble = fds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE;
+  bool floater = fds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM;
+  bool tracer = fds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER;
+  bool obstacle = fds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE;
+  bool fractions = fds->flags & FLUID_DOMAIN_USE_FRACTIONS;
+  bool guiding = fds->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
+  bool invel = fds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
+  bool outflow = fds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW;
 
   string manta_script;
 
@@ -1789,7 +1789,7 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
   manta_script += header_main + liquid_standalone + fluid_standalone;
 
   // Fill in missing variables in script
-  string final_script = MANTA::parseScript(manta_script, mmd);
+  string final_script = MANTA::parseScript(manta_script, fmd);
 
   // Write script
   ofstream myfile;
@@ -1932,10 +1932,10 @@ float MANTA::getTimestep()
   return (float)pyObjectToDouble(callPythonFunction(solver, func, true));
 }
 
-bool MANTA::needsRealloc(FluidModifierData *mmd)
+bool MANTA::needsRealloc(FluidModifierData *fmd)
 {
-  FluidDomainSettings *mds = mmd->domain;
-  return (mds->res[0] != mResX || mds->res[1] != mResY || mds->res[2] != mResZ);
+  FluidDomainSettings *fds = fmd->domain;
+  return (fds->res[0] != mResX || fds->res[1] != mResY || fds->res[2] != mResZ);
 }
 
 void MANTA::adaptTimestep()
@@ -2091,23 +2091,23 @@ void MANTA::updatePointers()
   mNoiseFromFile = false;
 }
 
-bool MANTA::hasConfig(FluidModifierData *mmd, int framenr)
+bool MANTA::hasConfig(FluidModifierData *fmd, int framenr)
 {
   string extension = FLUID_DOMAIN_EXTENSION_UNI;
   return BLI_exists(
-      getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_NAME_CONFIG, extension, framenr).c_str());
+      getFile(fmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_NAME_CONFIG, extension, framenr).c_str());
 }
 
-bool MANTA::hasData(FluidModifierData *mmd, int framenr)
+bool MANTA::hasData(FluidModifierData *fmd, int framenr)
 {
-  string extension = getCacheFileEnding(mmd->domain->cache_data_format);
+  string extension = getCacheFileEnding(fmd->domain->cache_data_format);
   bool exists = BLI_exists(
-      getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_DATA, extension, framenr).c_str());
+      getFile(fmd, FLUID_DOMAIN_DIR_DATA, FLUID_NAME_DATA, extension, framenr).c_str());
 
   /* Check single file naming. */
   if (!exists) {
     string filename = (mUsingSmoke) ? FLUID_NAME_DENSITY : FLUID_NAME_PP;
-    exists = BLI_exists(getFile(mmd, FLUID_DOMAIN_DIR_DATA, filename, extension, framenr).c_str());
+    exists = BLI_exists(getFile(fmd, FLUID_DOMAIN_DIR_DATA, filename, extension, framenr).c_str());
   }
   if (with_debug)
     cout << "Fluid: Has Data: " << exists << endl;
@@ -2115,24 +2115,24 @@ bool MANTA::hasData(FluidModifierData *mmd, int framenr)
   return exists;
 }
 
-bool MANTA::hasNoise(FluidModifierData *mmd, int framenr)
+bool MANTA::hasNoise(FluidModifierData *fmd, int framenr)
 {
-  string extension = getCacheFileEnding(mmd->domain->cache_data_format);
+  string extension = getCacheFileEnding(fmd->domain->cache_data_format);
   bool exists = BLI_exists(
-      getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_NOISE, extension, framenr).c_str());
+      getFile(fmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_NOISE, extension, framenr).c_str());
 
   /* Check single file naming. */
   if (!exists) {
-    extension = getCacheFileEnding(mmd->domain->cache_data_format);
+    extension = getCacheFileEnding(fmd->domain->cache_data_format);
     exists = BLI_exists(
-        getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_DENSITY_NOISE, extension, framenr)
+        getFile(fmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_DENSITY_NOISE, extension, framenr)
             .c_str());
   }
   /* Check single file naming with deprecated extension. */
   if (!exists) {
-    extension = getCacheFileEnding(mmd->domain->cache_noise_format);
+    extension = getCacheFileEnding(fmd->domain->cache_noise_format);
     exists = BLI_exists(
-        getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_DENSITY_NOISE, extension, framenr)
+        getFile(fmd, FLUID_DOMAIN_DIR_NOISE, FLUID_NAME_DENSITY_NOISE, extension, framenr)
             .c_str());
   }
   if (with_debug)
@@ -2141,16 +2141,16 @@ bool MANTA::hasNoise(FluidModifierData *mmd, int framenr)
   return exists;
 }
 
-bool MANTA::hasMesh(FluidModifierData *mmd, int framenr)
+bool MANTA::hasMesh(FluidModifierData *fmd, int framenr)
 {
-  string extension = getCacheFileEnding(mmd->domain->cache_mesh_format);
+  string extension = getCacheFileEnding(fmd->domain->cache_mesh_format);
   bool exists = BLI_exists(
-      getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_NAME_MESH, extension, framenr).c_str());
+      getFile(fmd, FLUID_DOMAIN_DIR_MESH, FLUID_NAME_MESH, extension, framenr).c_str());
 
   /* Check old file naming. */
   if (!exists) {
     exists = BLI_exists(
-        getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_NAME_LMESH, extension, framenr).c_str());
+        getFile(fmd, FLUID_DOMAIN_DIR_MESH, FLUID_NAME_LMESH, extension, framenr).c_str());
   }
   if (with_debug)
     cout << "Fluid: Has Mesh: " << exists << endl;
@@ -2158,24 +2158,24 @@ bool MANTA::hasMesh(FluidModifierData *mmd, int framenr)
   return exists;
 }
 
-bool MANTA::hasParticles(FluidModifierData *mmd, int framenr)
+bool MANTA::hasParticles(FluidModifierData *fmd, int framenr)
 {
-  string extension = getCacheFileEnding(mmd->domain->cache_data_format);
+  string extension = getCacheFileEnding(fmd->domain->cache_data_format);
   bool exists = BLI_exists(
-      getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PARTICLES, extension, framenr).c_str());
+      getFile(fmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PARTICLES, extension, framenr).c_str());
 
   /* Check single file naming. */
   if (!exists) {
-    extension = getCacheFileEnding(mmd->domain->cache_data_format);
+    extension = getCacheFileEnding(fmd->domain->cache_data_format);
     exists = BLI_exists(
-        getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PP_PARTICLES, extension, framenr)
+        getFile(fmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PP_PARTICLES, extension, framenr)
             .c_str());
   }
   /* Check single file naming with deprecated extension. */
   if (!exists) {
-    extension = getCacheFileEnding(mmd->domain->cache_particle_format);
+    extension = getCacheFileEnding(fmd->domain->cache_particle_format);
     exists = BLI_exists(
-        getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PP_PARTICLES, extension, framenr)
+        getFile(fmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_NAME_PP_PARTICLES, extension, framenr)
             .c_str());
   }
   if (with_debug)
@@ -2184,32 +2184,32 @@ bool MANTA::hasParticles(FluidModifierData *mmd, int framenr)
   return exists;
 }
 
-bool MANTA::hasGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain)
+bool MANTA::hasGuiding(FluidModifierData *fmd, int framenr, bool sourceDomain)
 {
   string subdirectory = (sourceDomain) ? FLUID_DOMAIN_DIR_DATA : FLUID_DOMAIN_DIR_GUIDE;
   string filename = (sourceDomain) ? FLUID_NAME_VELOCITY : FLUID_NAME_GUIDEVEL;
-  string extension = getCacheFileEnding(mmd->domain->cache_data_format);
-  bool exists = BLI_exists(getFile(mmd, subdirectory, filename, extension, framenr).c_str());
+  string extension = getCacheFileEnding(fmd->domain->cache_data_format);
+  bool exists = BLI_exists(getFile(fmd, subdirectory, filename, extension, framenr).c_str());
   if (with_debug)
     cout << "Fluid: Has Guiding: " << exists << endl;
 
   return exists;
 }
 
-string MANTA::getDirectory(FluidModifierData *mmd, string subdirectory)
+string MANTA::getDirectory(FluidModifierData *fmd, string subdirectory)
 {
   char directory[FILE_MAX];
   BLI_path_join(
-      directory, sizeof(directory), mmd->domain->cache_directory, subdirectory.c_str(), nullptr);
+      directory, sizeof(directory), fmd->domain->cache_directory, subdirectory.c_str(), nullptr);
   BLI_path_make_safe(directory);
   return directory;
 }
 
 string MANTA::getFile(
-    FluidModifierData *mmd, string subdirectory, string fname, string extension, int framenr)
+    FluidModifierData *fmd, string subdirectory, string fname, string extension, int framenr)
 {
   char targetFile[FILE_MAX];
-  string path = getDirectory(mmd, subdirectory);
+  string path = getDirectory(fmd, subdirectory);
   string filename = fname + "_####" + extension;
   BLI_join_dirfile(targetFile, sizeof(targetFile), path.c_str(), filename.c_str());
   BLI_path_frame(targetFile, framenr, 0);

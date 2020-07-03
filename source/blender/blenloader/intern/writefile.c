@@ -1670,37 +1670,37 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
       write_pointcaches(writer, &clmd->ptcaches);
     }
     else if (md->type == eModifierType_Fluid) {
-      FluidModifierData *mmd = (FluidModifierData *)md;
+      FluidModifierData *fmd = (FluidModifierData *)md;
 
-      if (mmd->type & MOD_FLUID_TYPE_DOMAIN) {
-        BLO_write_struct(writer, FluidDomainSettings, mmd->domain);
+      if (fmd->type & MOD_FLUID_TYPE_DOMAIN) {
+        BLO_write_struct(writer, FluidDomainSettings, fmd->domain);
 
-        if (mmd->domain) {
-          write_pointcaches(writer, &(mmd->domain->ptcaches[0]));
+        if (fmd->domain) {
+          write_pointcaches(writer, &(fmd->domain->ptcaches[0]));
 
           /* create fake pointcache so that old blender versions can read it */
-          mmd->domain->point_cache[1] = BKE_ptcache_add(&mmd->domain->ptcaches[1]);
-          mmd->domain->point_cache[1]->flag |= PTCACHE_DISK_CACHE | PTCACHE_FAKE_SMOKE;
-          mmd->domain->point_cache[1]->step = 1;
+          fmd->domain->point_cache[1] = BKE_ptcache_add(&fmd->domain->ptcaches[1]);
+          fmd->domain->point_cache[1]->flag |= PTCACHE_DISK_CACHE | PTCACHE_FAKE_SMOKE;
+          fmd->domain->point_cache[1]->step = 1;
 
-          write_pointcaches(writer, &(mmd->domain->ptcaches[1]));
+          write_pointcaches(writer, &(fmd->domain->ptcaches[1]));
 
-          if (mmd->domain->coba) {
-            BLO_write_struct(writer, ColorBand, mmd->domain->coba);
+          if (fmd->domain->coba) {
+            BLO_write_struct(writer, ColorBand, fmd->domain->coba);
           }
 
           /* cleanup the fake pointcache */
-          BKE_ptcache_free_list(&mmd->domain->ptcaches[1]);
-          mmd->domain->point_cache[1] = NULL;
+          BKE_ptcache_free_list(&fmd->domain->ptcaches[1]);
+          fmd->domain->point_cache[1] = NULL;
 
-          BLO_write_struct(writer, EffectorWeights, mmd->domain->effector_weights);
+          BLO_write_struct(writer, EffectorWeights, fmd->domain->effector_weights);
         }
       }
-      else if (mmd->type & MOD_FLUID_TYPE_FLOW) {
-        BLO_write_struct(writer, FluidFlowSettings, mmd->flow);
+      else if (fmd->type & MOD_FLUID_TYPE_FLOW) {
+        BLO_write_struct(writer, FluidFlowSettings, fmd->flow);
       }
-      else if (mmd->type & MOD_FLUID_TYPE_EFFEC) {
-        BLO_write_struct(writer, FluidEffectorSettings, mmd->effector);
+      else if (fmd->type & MOD_FLUID_TYPE_EFFEC) {
+        BLO_write_struct(writer, FluidEffectorSettings, fmd->effector);
       }
     }
     else if (md->type == eModifierType_Fluidsim) {

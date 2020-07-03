@@ -1532,12 +1532,12 @@ void BKE_object_copy_particlesystems(Object *ob_dst, const Object *ob_src, const
         }
       }
       else if (md->type == eModifierType_Fluid) {
-        FluidModifierData *mmd = (FluidModifierData *)md;
+        FluidModifierData *fmd = (FluidModifierData *)md;
 
-        if (mmd->type == MOD_FLUID_TYPE_FLOW) {
-          if (mmd->flow) {
-            if (mmd->flow->psys == psys) {
-              mmd->flow->psys = npsys;
+        if (fmd->type == MOD_FLUID_TYPE_FLOW) {
+          if (fmd->flow) {
+            if (fmd->flow->psys == psys) {
+              fmd->flow->psys = npsys;
             }
           }
         }
@@ -4592,9 +4592,9 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
     }
   }
   else if (type == eModifierType_Fluid) {
-    FluidModifierData *mmd = (FluidModifierData *)md;
+    FluidModifierData *fmd = (FluidModifierData *)md;
 
-    if (mmd && (mmd->type & MOD_FLUID_TYPE_DOMAIN) != 0) {
+    if (fmd && (fmd->type & MOD_FLUID_TYPE_DOMAIN) != 0) {
       return true;
     }
   }

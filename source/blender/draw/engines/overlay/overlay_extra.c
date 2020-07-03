@@ -1358,22 +1358,22 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
                                  Scene *scene,
                                  float *color)
 {
-  FluidModifierData *mmd = (FluidModifierData *)md;
-  FluidDomainSettings *mds = mmd->domain;
+  FluidModifierData *fmd = (FluidModifierData *)md;
+  FluidDomainSettings *fds = fmd->domain;
 
   /* Don't show smoke before simulation starts, this could be made an option in the future. */
-  const bool draw_velocity = (mds->draw_velocity && mds->fluid &&
-                              CFRA >= mds->point_cache[0]->startframe);
+  const bool draw_velocity = (fds->draw_velocity && fds->fluid &&
+                              CFRA >= fds->point_cache[0]->startframe);
 
   /* Small cube showing voxel size. */
   {
     float min[3];
-    madd_v3fl_v3fl_v3fl_v3i(min, mds->p0, mds->cell_size, mds->res_min);
+    madd_v3fl_v3fl_v3fl_v3i(min, fds->p0, fds->cell_size, fds->res_min);
     float voxel_cubemat[4][4] = {{0.0f}};
     /* scale small cube to voxel size */
-    voxel_cubemat[0][0] = mds->cell_size[0] / 2.0f;
-    voxel_cubemat[1][1] = mds->cell_size[1] / 2.0f;
-    voxel_cubemat[2][2] = mds->cell_size[2] / 2.0f;
+    voxel_cubemat[0][0] = fds->cell_size[0] / 2.0f;
+    voxel_cubemat[1][1] = fds->cell_size[1] / 2.0f;
+    voxel_cubemat[2][2] = fds->cell_size[2] / 2.0f;
     voxel_cubemat[3][3] = 1.0f;
     /* translate small cube to corner */
     copy_v3_v3(voxel_cubemat[3], min);
@@ -1385,38 +1385,38 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
   }
 
   if (draw_velocity) {
-    const bool use_needle = (mds->vector_draw_type == VECTOR_DRAW_NEEDLE);
+    const bool use_needle = (fds->vector_draw_type == VECTOR_DRAW_NEEDLE);
     int line_count = (use_needle) ? 6 : 1;
     int slice_axis = -1;
-    line_count *= mds->res[0] * mds->res[1] * mds->res[2];
+    line_count *= fds->res[0] * fds->res[1] * fds->res[2];
 
-    if (mds->slice_method == FLUID_DOMAIN_SLICE_AXIS_ALIGNED &&
-        mds->axis_slice_method == AXIS_SLICE_SINGLE) {
+    if (fds->slice_method == FLUID_DOMAIN_SLICE_AXIS_ALIGNED &&
+        fds->axis_slice_method == AXIS_SLICE_SINGLE) {
       float viewinv[4][4];
       DRW_view_viewmat_get(NULL, viewinv, true);
 
-      const int axis = (mds->slice_axis == SLICE_AXIS_AUTO) ? axis_dominant_v3_single(viewinv[2]) :
-                                                              mds->slice_axis - 1;
+      const int axis = (fds->slice_axis == SLICE_AXIS_AUTO) ? axis_dominant_v3_single(viewinv[2]) :
+                                                              fds->slice_axis - 1;
       slice_axis = axis;
-      line_count /= mds->res[axis];
+      line_count /= fds->res[axis];
     }
 
-    GPU_create_smoke_velocity(mmd);
+    GPU_create_smoke_velocity(fmd);
 
     GPUShader *sh = OVERLAY_shader_volume_velocity(use_needle);
     DRWShadingGroup *grp = DRW_shgroup_create(sh, data->psl->extra_ps[0]);
-    DRW_shgroup_uniform_texture(grp, "velocityX", mds->tex_velocity_x);
-    DRW_shgroup_uniform_texture(grp, "velocityY", mds->tex_velocity_y);
-    DRW_shgroup_uniform_texture(grp, "velocityZ", mds->tex_velocity_z);
-    DRW_shgroup_uniform_float_copy(grp, "displaySize", mds->vector_scale);
-    DRW_shgroup_uniform_float_copy(grp, "slicePosition", mds->slice_depth);
-    DRW_shgroup_uniform_vec3_copy(grp, "cellSize", mds->cell_size);
-    DRW_shgroup_uniform_vec3_copy(grp, "domainOriginOffset", mds->p0);
-    DRW_shgroup_uniform_ivec3_copy(grp, "adaptiveCellOffset", mds->res_min);
+    DRW_shgroup_uniform_texture(grp, "velocityX", fds->tex_velocity_x);
+    DRW_shgroup_uniform_texture(grp, "velocityY", fds->tex_velocity_y);
+    DRW_shgroup_uniform_texture(grp, "velocityZ", fds->tex_velocity_z);
+    DRW_shgroup_uniform_float_copy(grp, "displaySize", fds->vector_scale);
+    DRW_shgroup_uniform_float_copy(grp, "slicePosition", fds->slice_depth);
+    DRW_shgroup_uniform_vec3_copy(grp, "cellSize", fds->cell_size);
+    DRW_shgroup_uniform_vec3_copy(grp, "domainOriginOffset", fds->p0);
+    DRW_shgroup_uniform_ivec3_copy(grp, "adaptiveCellOffset", fds->res_min);
     DRW_shgroup_uniform_int_copy(grp, "sliceAxis", slice_axis);
     DRW_shgroup_call_procedural_lines(grp, ob, line_count);
 
-    BLI_addtail(&data->stl->pd->smoke_domains, BLI_genericNodeN(mmd));
+    BLI_addtail(&data->stl->pd->smoke_domains, BLI_genericNodeN(fmd));
   }
 }
 
@@ -1430,8 +1430,8 @@ static void OVERLAY_volume_free_smoke_textures(OVERLAY_Data *data)
    * all viewport in a redraw at least. */
   LinkData *link;
   while ((link = BLI_pophead(&data->stl->pd->smoke_domains))) {
-    FluidModifierData *mmd = (FluidModifierData *)link->data;
-    GPU_free_smoke_velocity(mmd);
+    FluidModifierData *fmd = (FluidModifierData *)link->data;
+    GPU_free_smoke_velocity(fmd);
     MEM_freeN(link);
   }
 }

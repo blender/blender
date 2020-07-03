@@ -1793,18 +1793,18 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
       for (md = ob->modifiers.first; md; md = md->next) {
         if (md->type == eModifierType_Fluid) {
-          FluidModifierData *mmd = (FluidModifierData *)md;
+          FluidModifierData *fmd = (FluidModifierData *)md;
 
-          if ((mmd->type & MOD_FLUID_TYPE_DOMAIN) && mmd->domain) {
-            mmd->domain->vorticity = 2.0f;
-            mmd->domain->time_scale = 1.0f;
+          if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
+            fmd->domain->vorticity = 2.0f;
+            fmd->domain->time_scale = 1.0f;
 
-            if (!(mmd->domain->flags & (1 << 4))) {
+            if (!(fmd->domain->flags & (1 << 4))) {
               continue;
             }
 
             /* delete old MOD_SMOKE_INITVELOCITY flag */
-            mmd->domain->flags &= ~(1 << 4);
+            fmd->domain->flags &= ~(1 << 4);
 
             /* for now just add it to all flow objects in the scene */
             {
@@ -1813,18 +1813,18 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
                 ModifierData *md2;
                 for (md2 = ob2->modifiers.first; md2; md2 = md2->next) {
                   if (md2->type == eModifierType_Fluid) {
-                    FluidModifierData *mmd2 = (FluidModifierData *)md2;
+                    FluidModifierData *fmd2 = (FluidModifierData *)md2;
 
-                    if ((mmd2->type & MOD_FLUID_TYPE_FLOW) && mmd2->flow) {
-                      mmd2->flow->flags |= FLUID_FLOW_INITVELOCITY;
+                    if ((fmd2->type & MOD_FLUID_TYPE_FLOW) && fmd2->flow) {
+                      fmd2->flow->flags |= FLUID_FLOW_INITVELOCITY;
                     }
                   }
                 }
               }
             }
           }
-          else if ((mmd->type & MOD_FLUID_TYPE_FLOW) && mmd->flow) {
-            mmd->flow->vel_multi = 1.0f;
+          else if ((fmd->type & MOD_FLUID_TYPE_FLOW) && fmd->flow) {
+            fmd->flow->vel_multi = 1.0f;
           }
         }
       }

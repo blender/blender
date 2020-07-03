@@ -1040,20 +1040,20 @@ static void rna_UVProjector_object_set(PointerRNA *ptr,
 
 static void rna_fluid_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  FluidModifierData *mmd = (FluidModifierData *)ptr->data;
+  FluidModifierData *fmd = (FluidModifierData *)ptr->data;
   Object *ob = (Object *)ptr->owner_id;
 
   /* nothing changed */
-  if ((mmd->type & MOD_FLUID_TYPE_DOMAIN) && mmd->domain) {
+  if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
     return;
   }
 
 #  ifdef WITH_FLUID
-  BKE_fluid_modifier_free(mmd);             /* XXX TODO: completely free all 3 pointers */
-  BKE_fluid_modifier_create_type_data(mmd); /* create regarding of selected type */
+  BKE_fluid_modifier_free(fmd);             /* XXX TODO: completely free all 3 pointers */
+  BKE_fluid_modifier_create_type_data(fmd); /* create regarding of selected type */
 #  endif
 
-  switch (mmd->type) {
+  switch (fmd->type) {
     case MOD_FLUID_TYPE_DOMAIN:
       ob->dt = OB_WIRE;
       break;

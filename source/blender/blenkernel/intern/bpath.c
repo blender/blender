@@ -609,9 +609,9 @@ void BKE_bpath_traverse_id(
           }
         }
         else if (md->type == eModifierType_Fluid) {
-          FluidModifierData *mmd = (FluidModifierData *)md;
-          if (mmd->type & MOD_FLUID_TYPE_DOMAIN && mmd->domain) {
-            rewrite_path_fixed(mmd->domain->cache_directory, visit_cb, absbase, bpath_user_data);
+          FluidModifierData *fmd = (FluidModifierData *)md;
+          if (fmd->type & MOD_FLUID_TYPE_DOMAIN && fmd->domain) {
+            rewrite_path_fixed(fmd->domain->cache_directory, visit_cb, absbase, bpath_user_data);
           }
         }
         else if (md->type == eModifierType_Cloth) {

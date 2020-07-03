@@ -427,7 +427,7 @@ typedef struct FluidDomainSettings {
 
   /* -- Runtime-only fields (from here on). -- */
 
-  struct FluidModifierData *mmd; /* For fast RNA access. */
+  struct FluidModifierData *fmd; /* For fast RNA access. */
   struct MANTA *fluid;
   struct MANTA *fluid_old; /* Adaptive domain needs access to old fluid state. */
   void *fluid_mutex;
@@ -689,7 +689,7 @@ typedef struct FluidFlowSettings {
   /* -- Runtime-only fields (from here on). -- */
 
   /* For fast RNA access. */
-  struct FluidModifierData *mmd;
+  struct FluidModifierData *fmd;
   struct Mesh *mesh;
   struct ParticleSystem *psys;
   struct Tex *noise_texture;
@@ -765,7 +765,7 @@ typedef struct FluidEffectorSettings {
   /* -- Runtime-only fields (from here on). -- */
 
   /* For fast RNA access. */
-  struct FluidModifierData *mmd;
+  struct FluidModifierData *fmd;
   struct Mesh *mesh;
   float *verts_old;
   int numverts;

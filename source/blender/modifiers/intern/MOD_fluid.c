@@ -59,13 +59,13 @@
 
 static void initData(ModifierData *md)
 {
-  FluidModifierData *mmd = (FluidModifierData *)md;
+  FluidModifierData *fmd = (FluidModifierData *)md;
 
-  mmd->domain = NULL;
-  mmd->flow = NULL;
-  mmd->effector = NULL;
-  mmd->type = 0;
-  mmd->time = -1;
+  fmd->domain = NULL;
+  fmd->flow = NULL;
+  fmd->effector = NULL;
+  fmd->type = 0;
+  fmd->time = -1;
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -73,11 +73,11 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 #ifndef WITH_FLUID
   UNUSED_VARS(md, target, flag);
 #else
-  const FluidModifierData *mmd = (const FluidModifierData *)md;
-  FluidModifierData *tmmd = (FluidModifierData *)target;
+  const FluidModifierData *fmd = (const FluidModifierData *)md;
+  FluidModifierData *tfmd = (FluidModifierData *)target;
 
-  BKE_fluid_modifier_free(tmmd);
-  BKE_fluid_modifier_copy(mmd, tmmd, flag);
+  BKE_fluid_modifier_free(tfmd);
+  BKE_fluid_modifier_copy(fmd, tfmd, flag);
 #endif /* WITH_FLUID */
 }
 
@@ -86,9 +86,9 @@ static void freeData(ModifierData *md)
 #ifndef WITH_FLUID
   UNUSED_VARS(md);
 #else
-  FluidModifierData *mmd = (FluidModifierData *)md;
+  FluidModifierData *fmd = (FluidModifierData *)md;
 
-  BKE_fluid_modifier_free(mmd);
+  BKE_fluid_modifier_free(fmd);
 #endif /* WITH_FLUID */
 }
 
@@ -96,16 +96,16 @@ static void requiredDataMask(Object *UNUSED(ob),
                              ModifierData *md,
                              CustomData_MeshMasks *r_cddata_masks)
 {
-  FluidModifierData *mmd = (FluidModifierData *)md;
+  FluidModifierData *fmd = (FluidModifierData *)md;
 
-  if (mmd && (mmd->type & MOD_FLUID_TYPE_FLOW) && mmd->flow) {
-    if (mmd->flow->source == FLUID_FLOW_SOURCE_MESH) {
+  if (fmd && (fmd->type & MOD_FLUID_TYPE_FLOW) && fmd->flow) {
+    if (fmd->flow->source == FLUID_FLOW_SOURCE_MESH) {
       /* vertex groups */
-      if (mmd->flow->vgroup_density) {
+      if (fmd->flow->vgroup_density) {
         r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
       }
       /* uv layer */
-      if (mmd->flow->texture_type == FLUID_FLOW_TEXTURE_MAP_UV) {
+      if (fmd->flow->texture_type == FLUID_FLOW_TEXTURE_MAP_UV) {
         r_cddata_masks->fmask |= CD_MASK_MTFACE;
       }
     }
@@ -118,7 +118,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   UNUSED_VARS(md, ctx);
   return me;
 #else
-  FluidModifierData *mmd = (FluidModifierData *)md;
+  FluidModifierData *fmd = (FluidModifierData *)md;
   Mesh *result = NULL;
 
   if (ctx->flag & MOD_APPLY_ORCO) {
@@ -127,7 +127,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
-  result = BKE_fluid_modifier_do(mmd, ctx->depsgraph, scene, ctx->object, me);
+  result = BKE_fluid_modifier_do(fmd, ctx->depsgraph, scene, ctx->object, me);
   return result ? result : me;
 #endif /* WITH_FLUID */
 }
@@ -139,69 +139,69 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 
 static bool is_flow_cb(Object *UNUSED(ob), ModifierData *md)
 {
-  FluidModifierData *mmd = (FluidModifierData *)md;
-  return (mmd->type & MOD_FLUID_TYPE_FLOW) && mmd->flow;
+  FluidModifierData *fmd = (FluidModifierData *)md;
+  return (fmd->type & MOD_FLUID_TYPE_FLOW) && fmd->flow;
 }
 
 static bool is_coll_cb(Object *UNUSED(ob), ModifierData *md)
 {
-  FluidModifierData *mmd = (FluidModifierData *)md;
-  return (mmd->type & MOD_FLUID_TYPE_EFFEC) && mmd->effector;
+  FluidModifierData *fmd = (FluidModifierData *)md;
+  return (fmd->type & MOD_FLUID_TYPE_EFFEC) && fmd->effector;
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  FluidModifierData *mmd = (FluidModifierData *)md;
+  FluidModifierData *fmd = (FluidModifierData *)md;
 
-  if (mmd && (mmd->type & MOD_FLUID_TYPE_DOMAIN) && mmd->domain) {
+  if (fmd && (fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
     DEG_add_collision_relations(ctx->node,
                                 ctx->object,
-                                mmd->domain->fluid_group,
+                                fmd->domain->fluid_group,
                                 eModifierType_Fluid,
                                 is_flow_cb,
                                 "Fluid Flow");
     DEG_add_collision_relations(ctx->node,
                                 ctx->object,
-                                mmd->domain->effector_group,
+                                fmd->domain->effector_group,
                                 eModifierType_Fluid,
                                 is_coll_cb,
                                 "Fluid Effector");
     DEG_add_forcefield_relations(ctx->node,
                                  ctx->object,
-                                 mmd->domain->effector_weights,
+                                 fmd->domain->effector_weights,
                                  true,
                                  PFIELD_FLUIDFLOW,
                                  "Fluid Force Field");
 
-    if (mmd->domain->guide_parent != NULL) {
+    if (fmd->domain->guide_parent != NULL) {
       DEG_add_object_relation(
-          ctx->node, mmd->domain->guide_parent, DEG_OB_COMP_TRANSFORM, "Fluid Guiding Object");
+          ctx->node, fmd->domain->guide_parent, DEG_OB_COMP_TRANSFORM, "Fluid Guiding Object");
       DEG_add_object_relation(
-          ctx->node, mmd->domain->guide_parent, DEG_OB_COMP_GEOMETRY, "Fluid Guiding Object");
+          ctx->node, fmd->domain->guide_parent, DEG_OB_COMP_GEOMETRY, "Fluid Guiding Object");
     }
   }
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
-  FluidModifierData *mmd = (FluidModifierData *)md;
+  FluidModifierData *fmd = (FluidModifierData *)md;
 
-  if (mmd->type == MOD_FLUID_TYPE_DOMAIN && mmd->domain) {
-    walk(userData, ob, (ID **)&mmd->domain->effector_group, IDWALK_CB_NOP);
-    walk(userData, ob, (ID **)&mmd->domain->fluid_group, IDWALK_CB_NOP);
-    walk(userData, ob, (ID **)&mmd->domain->force_group, IDWALK_CB_NOP);
+  if (fmd->type == MOD_FLUID_TYPE_DOMAIN && fmd->domain) {
+    walk(userData, ob, (ID **)&fmd->domain->effector_group, IDWALK_CB_NOP);
+    walk(userData, ob, (ID **)&fmd->domain->fluid_group, IDWALK_CB_NOP);
+    walk(userData, ob, (ID **)&fmd->domain->force_group, IDWALK_CB_NOP);
 
-    if (mmd->domain->guide_parent) {
-      walk(userData, ob, (ID **)&mmd->domain->guide_parent, IDWALK_CB_NOP);
+    if (fmd->domain->guide_parent) {
+      walk(userData, ob, (ID **)&fmd->domain->guide_parent, IDWALK_CB_NOP);
     }
 
-    if (mmd->domain->effector_weights) {
-      walk(userData, ob, (ID **)&mmd->domain->effector_weights->group, IDWALK_CB_NOP);
+    if (fmd->domain->effector_weights) {
+      walk(userData, ob, (ID **)&fmd->domain->effector_weights->group, IDWALK_CB_NOP);
     }
   }
 
-  if (mmd->type == MOD_FLUID_TYPE_FLOW && mmd->flow) {
-    walk(userData, ob, (ID **)&mmd->flow->noise_texture, IDWALK_CB_USER);
+  if (fmd->type == MOD_FLUID_TYPE_FLOW && fmd->flow) {
+    walk(userData, ob, (ID **)&fmd->flow->noise_texture, IDWALK_CB_USER);
   }
 }
 

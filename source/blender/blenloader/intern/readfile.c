@@ -5285,18 +5285,18 @@ static void lib_link_object(BlendLibReader *reader, Object *ob)
   }
 
   {
-    FluidModifierData *mmd = (FluidModifierData *)BKE_modifiers_findby_type(ob,
+    FluidModifierData *fmd = (FluidModifierData *)BKE_modifiers_findby_type(ob,
                                                                             eModifierType_Fluid);
 
-    if (mmd && (mmd->type == MOD_FLUID_TYPE_DOMAIN) && mmd->domain) {
+    if (fmd && (fmd->type == MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
       /* Flag for refreshing the simulation after loading */
-      mmd->domain->flags |= FLUID_DOMAIN_FILE_LOAD;
+      fmd->domain->flags |= FLUID_DOMAIN_FILE_LOAD;
     }
-    else if (mmd && (mmd->type == MOD_FLUID_TYPE_FLOW) && mmd->flow) {
-      mmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
+    else if (fmd && (fmd->type == MOD_FLUID_TYPE_FLOW) && fmd->flow) {
+      fmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
     }
-    else if (mmd && (mmd->type == MOD_FLUID_TYPE_EFFEC) && mmd->effector) {
-      mmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
+    else if (fmd && (fmd->type == MOD_FLUID_TYPE_EFFEC) && fmd->effector) {
+      fmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
     }
   }
 
@@ -5589,42 +5589,42 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
     }
     else if (md->type == eModifierType_Fluid) {
 
-      FluidModifierData *mmd = (FluidModifierData *)md;
+      FluidModifierData *fmd = (FluidModifierData *)md;
 
-      if (mmd->type == MOD_FLUID_TYPE_DOMAIN) {
-        mmd->flow = NULL;
-        mmd->effector = NULL;
-        BLO_read_data_address(reader, &mmd->domain);
-        mmd->domain->mmd = mmd;
+      if (fmd->type == MOD_FLUID_TYPE_DOMAIN) {
+        fmd->flow = NULL;
+        fmd->effector = NULL;
+        BLO_read_data_address(reader, &fmd->domain);
+        fmd->domain->fmd = fmd;
 
-        mmd->domain->fluid = NULL;
-        mmd->domain->fluid_mutex = BLI_rw_mutex_alloc();
-        mmd->domain->tex_density = NULL;
-        mmd->domain->tex_color = NULL;
-        mmd->domain->tex_shadow = NULL;
-        mmd->domain->tex_flame = NULL;
-        mmd->domain->tex_flame_coba = NULL;
-        mmd->domain->tex_coba = NULL;
-        mmd->domain->tex_field = NULL;
-        mmd->domain->tex_velocity_x = NULL;
-        mmd->domain->tex_velocity_y = NULL;
-        mmd->domain->tex_velocity_z = NULL;
-        mmd->domain->tex_wt = NULL;
-        mmd->domain->mesh_velocities = NULL;
-        BLO_read_data_address(reader, &mmd->domain->coba);
+        fmd->domain->fluid = NULL;
+        fmd->domain->fluid_mutex = BLI_rw_mutex_alloc();
+        fmd->domain->tex_density = NULL;
+        fmd->domain->tex_color = NULL;
+        fmd->domain->tex_shadow = NULL;
+        fmd->domain->tex_flame = NULL;
+        fmd->domain->tex_flame_coba = NULL;
+        fmd->domain->tex_coba = NULL;
+        fmd->domain->tex_field = NULL;
+        fmd->domain->tex_velocity_x = NULL;
+        fmd->domain->tex_velocity_y = NULL;
+        fmd->domain->tex_velocity_z = NULL;
+        fmd->domain->tex_wt = NULL;
+        fmd->domain->mesh_velocities = NULL;
+        BLO_read_data_address(reader, &fmd->domain->coba);
 
-        BLO_read_data_address(reader, &mmd->domain->effector_weights);
-        if (!mmd->domain->effector_weights) {
-          mmd->domain->effector_weights = BKE_effector_add_weights(NULL);
+        BLO_read_data_address(reader, &fmd->domain->effector_weights);
+        if (!fmd->domain->effector_weights) {
+          fmd->domain->effector_weights = BKE_effector_add_weights(NULL);
         }
 
         direct_link_pointcache_list(
-            reader, &(mmd->domain->ptcaches[0]), &(mmd->domain->point_cache[0]), 1);
+            reader, &(fmd->domain->ptcaches[0]), &(fmd->domain->point_cache[0]), 1);
 
         /* Manta sim uses only one cache from now on, so store pointer convert */
-        if (mmd->domain->ptcaches[1].first || mmd->domain->point_cache[1]) {
-          if (mmd->domain->point_cache[1]) {
-            PointCache *cache = BLO_read_get_new_data_address(reader, mmd->domain->point_cache[1]);
+        if (fmd->domain->ptcaches[1].first || fmd->domain->point_cache[1]) {
+          if (fmd->domain->point_cache[1]) {
+            PointCache *cache = BLO_read_get_new_data_address(reader, fmd->domain->point_cache[1]);
             if (cache->flag & PTCACHE_FAKE_SMOKE) {
               /* Manta-sim/smoke was already saved in "new format" and this cache is a fake one. */
             }
@@ -5635,35 +5635,35 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
             }
             BKE_ptcache_free(cache);
           }
-          BLI_listbase_clear(&mmd->domain->ptcaches[1]);
-          mmd->domain->point_cache[1] = NULL;
+          BLI_listbase_clear(&fmd->domain->ptcaches[1]);
+          fmd->domain->point_cache[1] = NULL;
         }
       }
-      else if (mmd->type == MOD_FLUID_TYPE_FLOW) {
-        mmd->domain = NULL;
-        mmd->effector = NULL;
-        BLO_read_data_address(reader, &mmd->flow);
-        mmd->flow->mmd = mmd;
-        mmd->flow->mesh = NULL;
-        mmd->flow->verts_old = NULL;
-        mmd->flow->numverts = 0;
-        BLO_read_data_address(reader, &mmd->flow->psys);
+      else if (fmd->type == MOD_FLUID_TYPE_FLOW) {
+        fmd->domain = NULL;
+        fmd->effector = NULL;
+        BLO_read_data_address(reader, &fmd->flow);
+        fmd->flow->fmd = fmd;
+        fmd->flow->mesh = NULL;
+        fmd->flow->verts_old = NULL;
+        fmd->flow->numverts = 0;
+        BLO_read_data_address(reader, &fmd->flow->psys);
       }
-      else if (mmd->type == MOD_FLUID_TYPE_EFFEC) {
-        mmd->flow = NULL;
-        mmd->domain = NULL;
-        BLO_read_data_address(reader, &mmd->effector);
-        if (mmd->effector) {
-          mmd->effector->mmd = mmd;
-          mmd->effector->verts_old = NULL;
-          mmd->effector->numverts = 0;
-          mmd->effector->mesh = NULL;
+      else if (fmd->type == MOD_FLUID_TYPE_EFFEC) {
+        fmd->flow = NULL;
+        fmd->domain = NULL;
+        BLO_read_data_address(reader, &fmd->effector);
+        if (fmd->effector) {
+          fmd->effector->fmd = fmd;
+          fmd->effector->verts_old = NULL;
+          fmd->effector->numverts = 0;
+          fmd->effector->mesh = NULL;
         }
         else {
-          mmd->type = 0;
-          mmd->flow = NULL;
-          mmd->domain = NULL;
-          mmd->effector = NULL;
+          fmd->type = 0;
+          fmd->flow = NULL;
+          fmd->domain = NULL;
+          fmd->effector = NULL;
         }
       }
     }
