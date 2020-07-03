@@ -222,7 +222,7 @@ void AnimationExporter::export_matrix_animation(Object *ob, BCAnimationSampler &
 
   std::vector<float> frames;
   sampler.get_object_frames(frames, ob);
-  if (frames.size() > 0) {
+  if (!frames.empty()) {
     BCMatrixSampleMap samples;
     bool is_animated = sampler.get_object_samples(samples, ob);
     if (keep_flat_curves || is_animated) {
@@ -264,7 +264,7 @@ void AnimationExporter::export_bone_animations_recursive(Object *ob,
   std::vector<float> frames;
   sampler.get_bone_frames(frames, ob, bone);
 
-  if (frames.size()) {
+  if (!frames.empty()) {
     BCMatrixSampleMap samples;
     bool is_animated = sampler.get_bone_samples(samples, ob, bone);
     if (keep_flat_curves || is_animated) {
@@ -542,7 +542,7 @@ void AnimationExporter::add_source_parameters(COLLADASW::SourceBase::ParameterNa
         param.push_back("ANGLE");
       }
       else {
-        if (axis != "") {
+        if (!axis.empty()) {
           param.push_back(axis);
         }
         else if (transform) {
@@ -836,11 +836,11 @@ std::string AnimationExporter::get_collada_sid(const BCAnimationCurve &curve,
 
   bool is_angle = curve.is_rotation_curve();
 
-  if (tm_name.size()) {
+  if (!tm_name.empty()) {
     if (is_angle) {
       return tm_name + std::string(axis_name) + ".ANGLE";
     }
-    else if (axis_name != "") {
+    else if (!axis_name.empty()) {
       return tm_name + "." + std::string(axis_name);
     }
     else {

@@ -469,7 +469,7 @@ void Controller::DeleteViewMap(bool freeCache)
 
 void Controller::ComputeViewMap()
 {
-  if (!_ListOfModels.size()) {
+  if (_ListOfModels.empty()) {
     return;
   }
 

@@ -25,7 +25,6 @@ Checks:  >
   -readability-redundant-string-init,
   -readability-redundant-member-init,
   -readability-const-return-type,
-  -readability-container-size-empty,
   -readability-redundant-string-cstr,
   -readability-static-accessed-through-instance,
   -readability-redundant-declaration,

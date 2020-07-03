@@ -251,7 +251,7 @@ void DocumentImporter::finish()
     }
   }
 
-  if (libnode_ob.size()) {
+  if (!libnode_ob.empty()) {
 
     fprintf(stderr, "| Cleanup: free %d library nodes\n", (int)libnode_ob.size());
     /* free all library_nodes */
@@ -667,7 +667,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
     for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end();
          ++it) {
       ob = *it;
-      std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
+      std::string nodename = node->getName().empty() ? node->getOriginalId() : node->getName();
       BKE_libblock_rename(bmain, &ob->id, (char *)nodename.c_str());
       object_map.insert(std::pair<COLLADAFW::UniqueId, Object *>(node->getUniqueId(), ob));
       node_map[node->getUniqueId()] = node;
@@ -699,11 +699,11 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
     }
   }
 
-  if (objects_done->size() > 0) {
-    ob = *objects_done->begin();
+  if (objects_done->empty()) {
+    ob = NULL;
   }
   else {
-    ob = NULL;
+    ob = *objects_done->begin();
   }
 
   for (unsigned int i = 0; i < child_nodes.getCount(); i++) {
@@ -792,7 +792,8 @@ bool DocumentImporter::writeMaterial(const COLLADAFW::Material *cmat)
   }
 
   Main *bmain = CTX_data_main(mContext);
-  const std::string &str_mat_id = cmat->getName().size() ? cmat->getName() : cmat->getOriginalId();
+  const std::string &str_mat_id = cmat->getName().empty() ? cmat->getOriginalId() :
+                                                            cmat->getName();
   Material *ma = BKE_material_add(bmain, (char *)str_mat_id.c_str());
 
   this->uid_effect_map[cmat->getInstantiatedEffect()] = ma;
@@ -880,11 +881,11 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
   ExtraTags *et = getExtraTags(camera->getUniqueId());
   cam_id = camera->getOriginalId();
   cam_name = camera->getName();
-  if (cam_name.size()) {
-    cam = (Camera *)BKE_camera_add(bmain, (char *)cam_name.c_str());
+  if (cam_name.empty()) {
+    cam = (Camera *)BKE_camera_add(bmain, (char *)cam_id.c_str());
   }
   else {
-    cam = (Camera *)BKE_camera_add(bmain, (char *)cam_id.c_str());
+    cam = (Camera *)BKE_camera_add(bmain, (char *)cam_name.c_str());
   }
 
   if (!cam) {
@@ -1042,11 +1043,11 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 
   la_id = light->getOriginalId();
   la_name = light->getName();
-  if (la_name.size()) {
-    lamp = (Light *)BKE_light_add(bmain, (char *)la_name.c_str());
+  if (la_name.empty()) {
+    lamp = (Light *)BKE_light_add(bmain, (char *)la_id.c_str());
   }
   else {
-    lamp = (Light *)BKE_light_add(bmain, (char *)la_id.c_str());
+    lamp = (Light *)BKE_light_add(bmain, (char *)la_name.c_str());
   }
 
   if (!lamp) {

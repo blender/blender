@@ -49,7 +49,7 @@
 template<class T> static const char *bc_get_joint_name(T *node)
 {
   const std::string &id = node->getName();
-  return id.size() ? id.c_str() : node->getOriginalId().c_str();
+  return id.empty() ? node->getOriginalId().c_str() : id.c_str();
 }
 
 /* This is used to store data passed in write_controller_data.

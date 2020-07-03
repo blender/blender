@@ -443,7 +443,7 @@ void ABCGenericMeshWriter::get_geo_groups(Object *object,
     geo_groups[name].push_back(i);
   }
 
-  if (geo_groups.size() == 0) {
+  if (geo_groups.empty()) {
     Material *mat = BKE_object_material_get(object, 1);
 
     std::string name = (mat) ? args_.hierarchy_iterator->get_id_name(&mat->id) : "default";

@@ -373,7 +373,7 @@ static std::pair<bool, AbcObjectReader *> visit_object(
     }
   }
   else if (object.getParent()) {
-    if (claiming_child_readers.size() > 0) {
+    if (!claiming_child_readers.empty()) {
       /* The first claiming child will serve just fine as parent to
        * our non-claiming children. Since all claiming children share
        * the same XForm, it doesn't really matter which one we pick. */
@@ -479,7 +479,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
   visit_object(archive->getTop(), data->readers, data->settings, assign_as_parent);
 
   /* There shouldn't be any orphans. */
-  BLI_assert(assign_as_parent.size() == 0);
+  BLI_assert(assign_as_parent.empty());
 
   if (G.is_break) {
     data->was_cancelled = true;

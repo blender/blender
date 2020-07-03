@@ -41,7 +41,7 @@
 template<class T> static const char *bc_get_joint_name(T *node)
 {
   const std::string &id = node->getName();
-  return id.size() ? id.c_str() : node->getOriginalId().c_str();
+  return id.empty() ? node->getOriginalId().c_str() : id.c_str();
 }
 
 ArmatureImporter::ArmatureImporter(UnitConverter *conv,
@@ -606,7 +606,7 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
     }
   }
 
-  if (!shared && this->joint_parent_map.size() > 0) {
+  if (!shared && !this->joint_parent_map.empty()) {
     /* All armatures have been created while creating the Node tree.
      * The Collada exporter currently does not create a
      * strict relationship between geometries and armatures

@@ -52,7 +52,7 @@
 template<class T> static const char *bc_get_joint_name(T *node)
 {
   const std::string &id = node->getName();
-  return id.size() ? id.c_str() : node->getOriginalId().c_str();
+  return id.empty() ? node->getOriginalId().c_str() : id.c_str();
 }
 
 FCurve *AnimationImporter::create_fcurve(int array_index, const char *rna_path)
@@ -277,7 +277,7 @@ AnimationImporter::~AnimationImporter()
     BKE_fcurve_free(*it);
   }
 
-  if (unused_curves.size()) {
+  if (!unused_curves.empty()) {
     fprintf(stderr, "removed %d unused curves\n", (int)unused_curves.size());
   }
 }
@@ -738,7 +738,7 @@ void AnimationImporter::Assign_float_animations(const COLLADAFW::UniqueId &listi
           /* NOTE: Do NOT convert if imported file was made by blender <= 2.69.10
            * Reason: old blender versions stored spot_size in radians (was a bug)
            */
-          if (this->import_from_version == "" ||
+          if (this->import_from_version.empty() ||
               BLI_strcasecmp_natural(this->import_from_version.c_str(), "2.69.10") != -1) {
             fcurve_deg_to_rad(fcu);
           }
@@ -878,7 +878,7 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
     newcu[i]->totvert = frames.size();
   }
 
-  if (frames.size() == 0) {
+  if (frames.empty()) {
     return;
   }
 
@@ -1333,7 +1333,7 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
     newcu[i]->totvert = frames.size();
   }
 
-  if (frames.size() == 0) {
+  if (frames.empty()) {
     return;
   }
 
@@ -1641,7 +1641,7 @@ Object *AnimationImporter::translate_animation_OLD(
   job = get_joint_object(root, node, par_job);
 #endif
 
-  if (frames.size() == 0) {
+  if (frames.empty()) {
     return job;
   }
 
@@ -1876,7 +1876,7 @@ void AnimationImporter::evaluate_transform_at_frame(float mat[4][4],
 
     unit_m4(m);
 
-    std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
+    std::string nodename = node->getName().empty() ? node->getOriginalId() : node->getName();
     if (!evaluate_animation(tm, m, fra, nodename.c_str())) {
       switch (type) {
         case COLLADAFW::Transformation::ROTATE:

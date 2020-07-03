@@ -50,7 +50,7 @@
 // get node name, or fall back to original id if not present (name is optional)
 template<class T> static const std::string bc_get_dae_name(T *node)
 {
-  return node->getName().size() ? node->getName() : node->getOriginalId();
+  return node->getName().empty() ? node->getOriginalId() : node->getName();
 }
 
 static const char *bc_primTypeToStr(COLLADAFW::MeshPrimitive::PrimitiveType type)
@@ -1126,7 +1126,7 @@ Object *MeshImporter::create_mesh_object(
   }
 
   // name Object
-  const std::string &id = node->getName().size() ? node->getName() : node->getOriginalId();
+  const std::string &id = node->getName().empty() ? node->getOriginalId() : node->getName();
   const char *name = (id.length()) ? id.c_str() : NULL;
 
   // add object
@@ -1185,8 +1185,8 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
     return true;
   }
 
-  const std::string &str_geom_id = mesh->getName().size() ? mesh->getName() :
-                                                            mesh->getOriginalId();
+  const std::string &str_geom_id = mesh->getName().empty() ? mesh->getOriginalId() :
+                                                             mesh->getName();
   Mesh *me = BKE_mesh_add(m_bmain, (char *)str_geom_id.c_str());
   id_us_min(&me->id);  // is already 1 here, but will be set later in BKE_mesh_assign_object
 

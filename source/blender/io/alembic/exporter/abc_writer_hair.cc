@@ -282,10 +282,10 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
       norm_values.push_back(Imath::V3f(tmpnor[0], tmpnor[2], -tmpnor[1]));
     }
     else {
-      if (uv_values.size()) {
+      if (!uv_values.empty()) {
         uv_values.push_back(uv_values[pc->parent]);
       }
-      if (norm_values.size()) {
+      if (!norm_values.empty()) {
         norm_values.push_back(norm_values[pc->parent]);
       }
     }

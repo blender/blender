@@ -25,7 +25,7 @@ namespace Freestyle {
 
 NodeGroup *ViewMapTesselator::Tesselate(ViewMap *iViewMap)
 {
-  if (0 == iViewMap->ViewEdges().size()) {
+  if (iViewMap->ViewEdges().empty()) {
     return NULL;
   }
 

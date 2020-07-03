@@ -27,7 +27,7 @@ NodeShape::~NodeShape()
 {
   vector<Rep *>::iterator rep;
 
-  if (0 != _Shapes.size()) {
+  if (!_Shapes.empty()) {
     for (rep = _Shapes.begin(); rep != _Shapes.end(); ++rep) {
       int refCount = (*rep)->destroy();
       if (0 == refCount) {

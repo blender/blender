@@ -219,18 +219,18 @@ void AbstractHierarchyIterator::debug_print_export_graph(const ExportGraph &grap
         printf("       - %s%s%s\n",
                child_ctx->object->id.name + 2,
                child_ctx->weak_export ? " (weak)" : "",
-               child_ctx->original_export_path.size() ?
-                   (std::string("ref ") + child_ctx->original_export_path).c_str() :
-                   "");
+               child_ctx->original_export_path.empty() ?
+                   "" :
+                   (std::string("ref ") + child_ctx->original_export_path).c_str());
       }
       else {
         printf("       - %s (dup by %s%s) %s\n",
                child_ctx->object->id.name + 2,
                child_ctx->duplicator->id.name + 2,
                child_ctx->weak_export ? ", weak" : "",
-               child_ctx->original_export_path.size() ?
-                   (std::string("ref ") + child_ctx->original_export_path).c_str() :
-                   "");
+               child_ctx->original_export_path.empty() ?
+                   "" :
+                   (std::string("ref ") + child_ctx->original_export_path).c_str());
       }
     }
   }

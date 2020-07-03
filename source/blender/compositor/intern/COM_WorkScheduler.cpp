@@ -184,7 +184,7 @@ bool WorkScheduler::hasGPUDevices()
 {
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 #  ifdef COM_OPENCL_ENABLED
-  return g_gpudevices.size() > 0;
+  return !g_gpudevices.empty();
 #  else
   return 0;
 #  endif
@@ -210,7 +210,7 @@ void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
   if (g_cpudevices.size() != num_cpu_threads) {
     Device *device;
 
-    while (g_cpudevices.size() > 0) {
+    while (!g_cpudevices.empty()) {
       device = g_cpudevices.back();
       g_cpudevices.pop_back();
       device->deinitialize();
@@ -331,7 +331,7 @@ void WorkScheduler::deinitialize()
   /* deinitialize CPU threads */
   if (g_cpuInitialized) {
     Device *device;
-    while (g_cpudevices.size() > 0) {
+    while (!g_cpudevices.empty()) {
       device = g_cpudevices.back();
       g_cpudevices.pop_back();
       device->deinitialize();
@@ -345,7 +345,7 @@ void WorkScheduler::deinitialize()
   /* deinitialize OpenCL GPU's */
   if (g_openclInitialized) {
     Device *device;
-    while (g_gpudevices.size() > 0) {
+    while (!g_gpudevices.empty()) {
       device = g_gpudevices.back();
       g_gpudevices.pop_back();
       device->deinitialize();

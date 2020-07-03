@@ -93,7 +93,7 @@ bool firstIntersectionGridVisitor::stop()
 /////////////////
 void Grid::clear()
 {
-  if (_occluders.size() != 0) {
+  if (!_occluders.empty()) {
     for (OccludersSet::iterator it = _occluders.begin(); it != _occluders.end(); it++) {
       delete (*it);
     }
@@ -154,7 +154,7 @@ void Grid::configure(const Vec3r &orig, const Vec3r &size, unsigned nb)
 void Grid::insertOccluder(Polygon3r *occluder)
 {
   const vector<Vec3r> vertices = occluder->getVertices();
-  if (vertices.size() == 0) {
+  if (vertices.empty()) {
     return;
   }
 

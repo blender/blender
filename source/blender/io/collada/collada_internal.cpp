@@ -221,7 +221,7 @@ std::string translate_id(const char *idString)
 
 std::string translate_id(const std::string &id)
 {
-  if (id.size() == 0) {
+  if (id.empty()) {
     return id;
   }
 

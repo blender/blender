@@ -152,7 +152,7 @@ static struct VolumeFileCache {
 
   ~VolumeFileCache()
   {
-    assert(cache.size() == 0);
+    assert(cache.empty());
   }
 
   Entry *add_metadata_user(const Entry &template_entry)

@@ -816,7 +816,7 @@ void IMB_exr_add_channel(void *handle,
   if (layname && layname[0] != '\0') {
     imb_exr_insert_view_name(echan->name, echan->m->name.c_str(), echan->m->view.c_str());
   }
-  else if (data->multiView->size() >= 1) {
+  else if (!data->multiView->empty()) {
     std::string raw_name = insertViewName(echan->m->name, *data->multiView, echan->view_id);
     BLI_strncpy(echan->name, raw_name.c_str(), sizeof(echan->name));
   }
@@ -1066,7 +1066,7 @@ float *IMB_exr_channel_rect(void *handle,
     imb_exr_insert_view_name(temp_buf, name, viewname);
     BLI_strncpy(name, temp_buf, sizeof(name));
   }
-  else if (data->multiView->size() >= 1) {
+  else if (!data->multiView->empty()) {
     const int view_id = std::max(0, imb_exr_get_multiView_id(*data->multiView, viewname));
     std::string raw_name = insertViewName(name, *data->multiView, view_id);
     BLI_strncpy(name, raw_name.c_str(), sizeof(name));
@@ -1300,7 +1300,7 @@ void IMB_exr_multilayer_convert(void *handle,
   ExrPass *pass;
 
   /* RenderResult needs at least one RenderView */
-  if (data->multiView->size() == 0) {
+  if (data->multiView->empty()) {
     addview(base, "");
   }
   else {
@@ -1775,7 +1775,7 @@ static bool imb_exr_is_multilayer_file(MultiPartInputFile &file)
    * channels without a layer name will be single layer. */
   channels.layers(layerNames);
 
-  return (layerNames.size() > 0);
+  return (!layerNames.empty());
 }
 
 static void imb_exr_type_by_channels(ChannelList &channels,
@@ -1792,7 +1792,7 @@ static void imb_exr_type_by_channels(ChannelList &channels,
   /* will not include empty layer names */
   channels.layers(layerNames);
 
-  if (views.size() && views[0] != "") {
+  if (!views.empty() && !views[0].empty()) {
     *r_multiview = true;
   }
   else {
@@ -1802,7 +1802,7 @@ static void imb_exr_type_by_channels(ChannelList &channels,
     return;
   }
 
-  if (layerNames.size()) {
+  if (!layerNames.empty()) {
     /* if layerNames is not empty, it means at least one layer is non-empty,
      * but it also could be layers without names in the file and such case
      * shall be considered a multilayer exr
