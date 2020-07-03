@@ -321,7 +321,7 @@ static PHashLink *phash_lookup(PHash *ph, PHashKey key)
     if (link->key == key) {
       return link;
     }
-    else if (PHASH_hash(ph, link->key) != hash) {
+    if (PHASH_hash(ph, link->key) != hash) {
       return NULL;
     }
   }
@@ -337,7 +337,7 @@ static PHashLink *phash_next(PHash *ph, PHashKey key, PHashLink *link)
     if (link->key == key) {
       return link;
     }
-    else if (PHASH_hash(ph, link->key) != hash) {
+    if (PHASH_hash(ph, link->key) != hash) {
       return NULL;
     }
   }
@@ -372,12 +372,10 @@ static float p_vec_angle(const float v1[3], const float v2[3], const float v3[3]
   if (dot <= -1.0f) {
     return (float)M_PI;
   }
-  else if (dot >= 1.0f) {
+  if (dot >= 1.0f) {
     return 0.0f;
   }
-  else {
-    return acosf(dot);
-  }
+  return acosf(dot);
 }
 
 static float p_vec2_angle(const float v1[2], const float v2[2], const float v3[2])
@@ -790,9 +788,7 @@ static PVert *p_vert_lookup(PHandle *handle, PHashKey key, const float co[3], PE
   if (v) {
     return v;
   }
-  else {
-    return p_vert_add(handle, key, co, e);
-  }
+  return p_vert_add(handle, key, co, e);
 }
 
 static PVert *p_vert_copy(PChart *chart, PVert *v)
@@ -818,7 +814,7 @@ static PEdge *p_edge_lookup(PHandle *handle, PHashKey *vkeys)
     if ((e->vert->u.key == vkeys[0]) && (e->next->vert->u.key == vkeys[1])) {
       return e;
     }
-    else if ((e->vert->u.key == vkeys[1]) && (e->next->vert->u.key == vkeys[0])) {
+    if ((e->vert->u.key == vkeys[1]) && (e->next->vert->u.key == vkeys[0])) {
       return e;
     }
 
@@ -3353,11 +3349,10 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
     p_chart_lscm_load_solution(chart);
     return P_TRUE;
   }
-  else {
-    for (v = chart->verts; v; v = v->nextlink) {
-      v->uv[0] = 0.0f;
-      v->uv[1] = 0.0f;
-    }
+
+  for (v = chart->verts; v; v = v->nextlink) {
+    v->uv[0] = 0.0f;
+    v->uv[1] = 0.0f;
   }
 
   return P_FALSE;
@@ -3542,20 +3537,16 @@ static int p_compare_geometric_uv(const void *a, const void *b)
   if (v1->uv[0] < v2->uv[0]) {
     return -1;
   }
-  else if (v1->uv[0] == v2->uv[0]) {
+  if (v1->uv[0] == v2->uv[0]) {
     if (v1->uv[1] < v2->uv[1]) {
       return -1;
     }
-    else if (v1->uv[1] == v2->uv[1]) {
+    if (v1->uv[1] == v2->uv[1]) {
       return 0;
     }
-    else {
-      return 1;
-    }
-  }
-  else {
     return 1;
   }
+  return 1;
 }
 
 static PBool p_chart_convex_hull(PChart *chart, PVert ***r_verts, int *r_nverts, int *r_right)
@@ -3935,14 +3926,11 @@ static PBool p_node_intersect(SmoothNode *node, float co[2])
 
     return P_FALSE;
   }
-  else {
-    if (co[node->axis] < node->split) {
-      return p_node_intersect(node->c1, co);
-    }
-    else {
-      return p_node_intersect(node->c2, co);
-    }
+
+  if (co[node->axis] < node->split) {
+    return p_node_intersect(node->c1, co);
   }
+  return p_node_intersect(node->c2, co);
 }
 
 /* smoothing */
@@ -3955,12 +3943,10 @@ static int p_compare_float(const void *a_, const void *b_)
   if (a < b) {
     return -1;
   }
-  else if (a == b) {
+  if (a == b) {
     return 0;
   }
-  else {
-    return 1;
-  }
+  return 1;
 }
 
 static float p_smooth_median_edge_length(PChart *chart)

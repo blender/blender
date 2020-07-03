@@ -998,9 +998,7 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
   if (RNA_boolean_get(op->ptr, "use_unselected")) {
     return uv_remove_doubles_to_unselected(C, op);
   }
-  else {
-    return uv_remove_doubles_to_selected(C, op);
-  }
+  return uv_remove_doubles_to_selected(C, op);
 }
 
 static void UV_OT_remove_doubles(wmOperatorType *ot)

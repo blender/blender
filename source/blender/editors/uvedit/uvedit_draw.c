@@ -86,16 +86,12 @@ static int draw_uvs_face_check(const ToolSettings *ts)
     if (ts->selectmode == SCE_SELECT_FACE) {
       return 2;
     }
-    else if (ts->selectmode & SCE_SELECT_FACE) {
+    if (ts->selectmode & SCE_SELECT_FACE) {
       return 1;
     }
-    else {
-      return 0;
-    }
+    return 0;
   }
-  else {
-    return (ts->uv_selectmode == UV_SELECT_FACE);
-  }
+  return (ts->uv_selectmode == UV_SELECT_FACE);
 }
 
 /* ------------------------- */

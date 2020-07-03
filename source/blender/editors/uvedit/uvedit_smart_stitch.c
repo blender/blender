@@ -320,9 +320,7 @@ static int getNumOfIslandUvs(UvElementMap *elementMap, int island)
   if (island == elementMap->totalIslands - 1) {
     return elementMap->totalUVs - elementMap->islandIndices[island];
   }
-  else {
-    return elementMap->islandIndices[island + 1] - elementMap->islandIndices[island];
-  }
+  return elementMap->islandIndices[island + 1] - elementMap->islandIndices[island];
 }
 
 static void stitch_uv_rotate(float mat[2][2], float medianPoint[2], float uv[2], float aspect)
@@ -367,13 +365,9 @@ static bool stitch_check_uvs_stitchable(UvElement *element,
         fabsf(luv->uv[1] - luv_iter->uv[1]) < limit) {
       return 1;
     }
-    else {
-      return 0;
-    }
+    return 0;
   }
-  else {
-    return 1;
-  }
+  return 1;
 }
 
 static bool stitch_check_edges_stitchable(UvEdge *edge,
@@ -411,13 +405,9 @@ static bool stitch_check_edges_stitchable(UvEdge *edge,
         fabsf(luv_orig2->uv[1] - luv_iter2->uv[1]) < limit) {
       return 1;
     }
-    else {
-      return 0;
-    }
+    return 0;
   }
-  else {
-    return 1;
-  }
+  return 1;
 }
 
 static bool stitch_check_uvs_state_stitchable(UvElement *element,
@@ -2535,10 +2525,8 @@ static int stitch_exec(bContext *C, wmOperator *op)
     stitch_exit(C, op, 1);
     return OPERATOR_FINISHED;
   }
-  else {
-    stitch_cancel(C, op);
-    return OPERATOR_CANCELLED;
-  }
+  stitch_cancel(C, op);
+  return OPERATOR_CANCELLED;
 }
 
 static StitchState *stitch_select(bContext *C,
@@ -2619,14 +2607,12 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
           stitch_exit(C, op, 1);
           return OPERATOR_FINISHED;
         }
-        else {
-          stitch_cancel(C, op);
-          return OPERATOR_CANCELLED;
-        }
+
+        stitch_cancel(C, op);
+        return OPERATOR_CANCELLED;
       }
-      else {
-        return OPERATOR_PASS_THROUGH;
-      }
+      return OPERATOR_PASS_THROUGH;
+
       /* Increase limit */
     case EVT_PADPLUSKEY:
     case WHEELUPMOUSE:
