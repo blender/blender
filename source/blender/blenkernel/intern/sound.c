@@ -112,6 +112,20 @@ static void sound_free_data(ID *id)
   }
 }
 
+static void sound_foreach_cache(ID *id,
+                                IDTypeForeachCacheFunctionCallback function_callback,
+                                void *user_data)
+{
+  bSound *sound = (bSound *)id;
+  IDCacheKey key = {
+      .id_session_uuid = id->session_uuid,
+      .offset_in_ID = offsetof(bSound, waveform),
+      .cache_v = sound->waveform,
+  };
+
+  function_callback(id, &key, &sound->waveform, user_data);
+}
+
 IDTypeInfo IDType_ID_SO = {
     .id_code = ID_SO,
     .id_filter = FILTER_ID_SO,
@@ -128,6 +142,7 @@ IDTypeInfo IDType_ID_SO = {
     .free_data = sound_free_data,
     .make_local = NULL,
     .foreach_id = NULL,
+    .foreach_cache = sound_foreach_cache,
 };
 
 #ifdef WITH_AUDASPACE

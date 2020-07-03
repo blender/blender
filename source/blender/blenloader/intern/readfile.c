@@ -8408,12 +8408,8 @@ static void direct_link_sound(BlendDataReader *reader, bSound *sound)
     sound->cache = NULL;
   }
 
-  if (reader->fd->soundmap) {
-    sound->waveform = newsoundadr(reader->fd, sound->waveform);
+  if (reader->fd->memfile != NULL) {
     sound->tags |= SOUND_TAGS_WAVEFORM_NO_RELOAD;
-  }
-  else {
-    sound->waveform = NULL;
   }
 
   sound->spinlock = MEM_mallocN(sizeof(SpinLock), "sound_spinlock");
