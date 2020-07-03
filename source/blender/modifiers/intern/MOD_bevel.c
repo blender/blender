@@ -308,7 +308,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   col = uiLayoutColumn(layout, false);
   uiItemR(col, &ptr, "limit_method", 0, NULL, ICON_NONE);
   int limit_method = RNA_enum_get(&ptr, "limit_method");
-  if (limit_method != MOD_BEVEL_ANGLE) {
+  if (limit_method == MOD_BEVEL_ANGLE) {
     sub = uiLayoutColumn(col, false);
     uiLayoutSetActive(sub, edge_bevel);
     uiItemR(col, &ptr, "angle_limit", 0, NULL, ICON_NONE);
