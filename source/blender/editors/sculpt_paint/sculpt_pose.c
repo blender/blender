@@ -954,7 +954,7 @@ SculptPoseIKChain *SCULPT_pose_ik_chain_init(Sculpt *sd,
       ik_chain = pose_ik_chain_init_face_sets(sd, ob, ss, br, radius);
       break;
     case BRUSH_POSE_ORIGIN_FACE_SETS_FK:
-      return pose_ik_chain_init_face_sets_fk(sd, ob, ss, radius, initial_location);
+      ik_chain = pose_ik_chain_init_face_sets_fk(sd, ob, ss, radius, initial_location);
       break;
   }
 
