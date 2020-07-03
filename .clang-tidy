@@ -41,7 +41,6 @@ Checks:  >
   -bugprone-misplaced-widening-cast,
   -bugprone-not-null-terminated-result,
   -bugprone-suspicious-missing-comma,
-  -bugprone-assert-side-effect,
   -bugprone-parent-virtual-call,
   -bugprone-infinite-loop,
   -bugprone-copy-constructor-init,
