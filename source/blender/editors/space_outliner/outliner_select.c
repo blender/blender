@@ -550,10 +550,7 @@ static eOLDrawState tree_element_active_world(bContext *C,
   }
 
   if (tep == NULL || tselem->id == (ID *)scene) {
-    if (set != OL_SETSEL_NONE) {
-      // XXX          extern_set_butspace(F8KEY, 0);
-    }
-    else {
+    if (set == OL_SETSEL_NONE) {
       return OL_DRAWSEL_NORMAL;
     }
   }
@@ -840,8 +837,6 @@ static eOLDrawState tree_element_active_modifier(bContext *C,
     Object *ob = (Object *)tselem->id;
 
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
-
-    // XXX      extern_set_butspace(F9KEY, 0);
   }
 
   return OL_DRAWSEL_NONE;
@@ -857,8 +852,6 @@ static eOLDrawState tree_element_active_psys(bContext *C,
     Object *ob = (Object *)tselem->id;
 
     WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);
-
-    // XXX      extern_set_butspace(F7KEY, 0);
   }
 
   return OL_DRAWSEL_NONE;
@@ -875,20 +868,8 @@ static int tree_element_active_constraint(bContext *C,
     Object *ob = (Object *)tselem->id;
 
     WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
-    // XXX      extern_set_butspace(F7KEY, 0);
   }
 
-  return OL_DRAWSEL_NONE;
-}
-
-static eOLDrawState tree_element_active_text(bContext *UNUSED(C),
-                                             Scene *UNUSED(scene),
-                                             ViewLayer *UNUSED(sl),
-                                             SpaceOutliner *UNUSED(soops),
-                                             TreeElement *UNUSED(te),
-                                             int UNUSED(set))
-{
-  // XXX removed
   return OL_DRAWSEL_NONE;
 }
 
@@ -1071,8 +1052,6 @@ eOLDrawState tree_element_active(bContext *C,
       return tree_element_active_material(C, tvc->scene, tvc->view_layer, te, set);
     case ID_WO:
       return tree_element_active_world(C, tvc->scene, tvc->view_layer, soops, te, set);
-    case ID_TXT:
-      return tree_element_active_text(C, tvc->scene, tvc->view_layer, soops, te, set);
     case ID_CA:
       return tree_element_active_camera(C, tvc->scene, tvc->view_layer, te, set);
   }
