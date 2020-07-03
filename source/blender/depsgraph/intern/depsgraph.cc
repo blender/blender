@@ -83,9 +83,7 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
 Depsgraph::~Depsgraph()
 {
   clear_id_nodes();
-  if (time_source != nullptr) {
-    OBJECT_GUARDED_DELETE(time_source, TimeSourceNode);
-  }
+  delete time_source;
   BLI_spin_end(&lock);
 }
 
@@ -157,7 +155,7 @@ void Depsgraph::clear_id_nodes()
   clear_id_nodes_conditional([](ID_Type id_type) { return id_type != ID_PA; });
 
   for (IDNode *id_node : id_nodes) {
-    OBJECT_GUARDED_DELETE(id_node, IDNode);
+    delete id_node;
   }
   /* Clear containers. */
   id_hash.clear();
@@ -188,7 +186,7 @@ Relation *Depsgraph::add_new_relation(Node *from, Node *to, const char *descript
 #endif
 
   /* Create new relation, and add it to the graph. */
-  rel = OBJECT_GUARDED_NEW(Relation, from, to, description);
+  rel = new Relation(from, to, description);
   rel->flag |= flags;
   return rel;
 }
@@ -229,10 +227,8 @@ void Depsgraph::add_entry_tag(OperationNode *node)
 void Depsgraph::clear_all_nodes()
 {
   clear_id_nodes();
-  if (time_source != nullptr) {
-    OBJECT_GUARDED_DELETE(time_source, TimeSourceNode);
-    time_source = nullptr;
-  }
+  delete time_source;
+  time_source = nullptr;
 }
 
 ID *Depsgraph::get_cow_id(const ID *id_orig) const
@@ -270,8 +266,7 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
 /* Initialize a new Depsgraph */
 Depsgraph *DEG_graph_new(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
 {
-  deg::Depsgraph *deg_depsgraph = OBJECT_GUARDED_NEW(
-      deg::Depsgraph, bmain, scene, view_layer, mode);
+  deg::Depsgraph *deg_depsgraph = new deg::Depsgraph(bmain, scene, view_layer, mode);
   deg::register_graph(deg_depsgraph);
   return reinterpret_cast<Depsgraph *>(deg_depsgraph);
 }
@@ -308,7 +303,7 @@ void DEG_graph_free(Depsgraph *graph)
   using deg::Depsgraph;
   deg::Depsgraph *deg_depsgraph = reinterpret_cast<deg::Depsgraph *>(graph);
   deg::unregister_graph(deg_depsgraph);
-  OBJECT_GUARDED_DELETE(deg_depsgraph, Depsgraph);
+  delete deg_depsgraph;
 }
 
 bool DEG_is_evaluating(const struct Depsgraph *depsgraph)

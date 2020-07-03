@@ -68,7 +68,7 @@ void deg_graph_remove_unused_noops(Depsgraph *graph)
 
       /* Remove the relation. */
       rel_in->unlink();
-      OBJECT_GUARDED_DELETE(rel_in, Relation);
+      delete rel_in;
       num_removed_relations++;
 
       /* Queue parent no-op node that has now become unused. */

@@ -102,7 +102,7 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
     }
     for (Relation *rel : relations_to_remove) {
       rel->unlink();
-      OBJECT_GUARDED_DELETE(rel, Relation);
+      delete rel;
     }
     num_removed_relations += relations_to_remove.size();
     relations_to_remove.clear();

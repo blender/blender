@@ -31,6 +31,8 @@
 
 #include <stdlib.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_ID.h" /* for ID_Type */
 
 #include "BKE_main.h" /* for MAX_LIBARRAY */
@@ -168,6 +170,8 @@ struct Depsgraph {
   /* Cached list of colliders/effectors for collections and the scene
    * created along with relations, for fast lookup during evaluation. */
   Map<const ID *, ListBase *> *physics_relations[DEG_PHYSICS_RELATIONS_NUM];
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("Depsgraph");
 };
 
 }  // namespace deg

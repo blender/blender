@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "MEM_guardedalloc.h"
+
 #include "intern/depsgraph_type.h"
 
 #include "RNA_access.h"
@@ -51,6 +53,8 @@ class AnimatedPropertyID {
   /* Corresponds to PointerRNA.data. */
   void *data;
   const PropertyRNA *property_rna;
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("AnimatedPropertyID");
 };
 
 class AnimatedPropertyStorage {
@@ -70,6 +74,8 @@ class AnimatedPropertyStorage {
 
   /* indexed by PointerRNA.data. */
   Set<AnimatedPropertyID> animated_properties_set;
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("AnimatedPropertyStorage");
 };
 
 /* Cached data which can be re-used by multiple builders. */
@@ -98,6 +104,8 @@ class DepsgraphBuilderCache {
   }
 
   Map<ID *, AnimatedPropertyStorage *> animated_property_storage_map_;
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("DepsgraphBuilderCache");
 };
 
 }  // namespace deg

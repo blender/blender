@@ -133,7 +133,7 @@ void IDNode::destroy()
   }
 
   for (ComponentNode *comp_node : components.values()) {
-    OBJECT_GUARDED_DELETE(comp_node, ComponentNode);
+    delete comp_node;
   }
 
   /* Free memory used by this CoW ID. */

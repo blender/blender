@@ -158,14 +158,14 @@ DepsgraphBuilderCache::~DepsgraphBuilderCache()
 {
   for (AnimatedPropertyStorage *animated_property_storage :
        animated_property_storage_map_.values()) {
-    OBJECT_GUARDED_DELETE(animated_property_storage, AnimatedPropertyStorage);
+    delete animated_property_storage;
   }
 }
 
 AnimatedPropertyStorage *DepsgraphBuilderCache::ensureAnimatedPropertyStorage(ID *id)
 {
   return animated_property_storage_map_.lookup_or_add_cb(
-      id, []() { return OBJECT_GUARDED_NEW(AnimatedPropertyStorage); });
+      id, []() { return new AnimatedPropertyStorage(); });
 }
 
 AnimatedPropertyStorage *DepsgraphBuilderCache::ensureInitializedAnimatedPropertyStorage(ID *id)

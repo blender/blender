@@ -221,12 +221,12 @@ void ComponentNode::clear_operations()
 {
   if (operations_map != nullptr) {
     for (OperationNode *op_node : operations_map->values()) {
-      OBJECT_GUARDED_DELETE(op_node, OperationNode);
+      delete op_node;
     }
     operations_map->clear();
   }
   for (OperationNode *op_node : operations) {
-    OBJECT_GUARDED_DELETE(op_node, OperationNode);
+    delete op_node;
   }
   operations.clear();
 }

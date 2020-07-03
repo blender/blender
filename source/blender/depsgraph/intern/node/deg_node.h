@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "MEM_guardedalloc.h"
+
 #include "intern/depsgraph_type.h"
 
 #include "BLI_utildefines.h"
@@ -204,6 +206,8 @@ struct Node {
   }
 
   virtual NodeClass get_class() const;
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("Node");
 };
 
 /* Macros for common static typeinfo. */

@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "MEM_guardedalloc.h"
+
 namespace blender {
 namespace deg {
 
@@ -59,6 +61,8 @@ struct Relation {
   /* relationship attributes */
   const char *name; /* label for debugging */
   int flag;         /* Bitmask of RelationFlag) */
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("Relation");
 };
 
 }  // namespace deg
