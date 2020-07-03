@@ -148,11 +148,6 @@ class GPENCIL_OT_mesh_bake(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, _event):
-        scene = context.scene
-        self.frame_start = scene.frame_start
-        self.frame_end = scene.frame_end
-        self.frame_target = scene.frame_start
-
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
