@@ -451,11 +451,10 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
              "hold Alt for smooth"));
     return OPERATOR_RUNNING_MODAL;
   }
-  else {
-    ringsel_finish(C, op);
-    ringsel_exit(C, op);
-    return OPERATOR_FINISHED;
-  }
+
+  ringsel_finish(C, op);
+  ringsel_exit(C, op);
+  return OPERATOR_FINISHED;
 }
 
 static int ringcut_invoke(bContext *C, wmOperator *op, const wmEvent *event)

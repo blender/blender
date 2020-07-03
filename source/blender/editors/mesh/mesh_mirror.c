@@ -129,7 +129,7 @@ static int mirrtopo_hash_sort(const void *l1, const void *l2)
   if ((MirrTopoHash_t)(intptr_t)l1 > (MirrTopoHash_t)(intptr_t)l2) {
     return 1;
   }
-  else if ((MirrTopoHash_t)(intptr_t)l1 < (MirrTopoHash_t)(intptr_t)l2) {
+  if ((MirrTopoHash_t)(intptr_t)l1 < (MirrTopoHash_t)(intptr_t)l2) {
     return -1;
   }
   return 0;
@@ -140,7 +140,7 @@ static int mirrtopo_vert_sort(const void *v1, const void *v2)
   if (((MirrTopoVert_t *)v1)->hash > ((MirrTopoVert_t *)v2)->hash) {
     return 1;
   }
-  else if (((MirrTopoVert_t *)v1)->hash < ((MirrTopoVert_t *)v2)->hash) {
+  if (((MirrTopoVert_t *)v1)->hash < ((MirrTopoVert_t *)v2)->hash) {
     return -1;
   }
   return 0;
@@ -166,9 +166,7 @@ bool ED_mesh_mirrtopo_recalc_check(BMEditMesh *em, Mesh *me, MirrTopoStore_t *me
       (totvert != mesh_topo_store->prev_vert_tot) || (totedge != mesh_topo_store->prev_edge_tot)) {
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 void ED_mesh_mirrtopo_init(BMEditMesh *em,
@@ -278,10 +276,8 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
        * higher number of unique values compared to the previous loop. */
       break;
     }
-    else {
-      tot_unique_prev = tot_unique;
-      tot_unique_edges_prev = tot_unique_edges;
-    }
+    tot_unique_prev = tot_unique;
+    tot_unique_edges_prev = tot_unique_edges;
     /* Copy the hash calculated this iteration, so we can use them next time */
     memcpy(topo_hash_prev, topo_hash, sizeof(MirrTopoHash_t) * totvert);
 

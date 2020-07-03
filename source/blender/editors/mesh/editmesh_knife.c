@@ -649,28 +649,22 @@ static int linehit_compare(const void *vlh1, const void *vlh2)
   if (lh1->l < lh2->l) {
     return -1;
   }
-  else if (lh1->l > lh2->l) {
+  if (lh1->l > lh2->l) {
     return 1;
   }
-  else {
-    if (lh1->m < lh2->m) {
-      return -1;
-    }
-    else if (lh1->m > lh2->m) {
-      return 1;
-    }
-    else {
-      if (lh1->v < lh2->v) {
-        return -1;
-      }
-      else if (lh1->v > lh2->v) {
-        return 1;
-      }
-      else {
-        return 0;
-      }
-    }
+  if (lh1->m < lh2->m) {
+    return -1;
   }
+  if (lh1->m > lh2->m) {
+    return 1;
+  }
+  if (lh1->v < lh2->v) {
+    return -1;
+  }
+  if (lh1->v > lh2->v) {
+    return 1;
+  }
+  return 0;
 }
 
 /*
@@ -816,11 +810,9 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd,
     kfe->e = e_base;
     return;
   }
-  else {
-    if (knife_add_single_cut__is_linehit_outside_face(f, lh1, lh2->hit) ||
-        knife_add_single_cut__is_linehit_outside_face(f, lh2, lh1->hit)) {
-      return;
-    }
+  if (knife_add_single_cut__is_linehit_outside_face(f, lh1, lh2->hit) ||
+      knife_add_single_cut__is_linehit_outside_face(f, lh2, lh1->hit)) {
+    return;
   }
 
   /* Check if edge actually lies within face (might not, if this face is concave) */
@@ -1405,9 +1397,7 @@ static bool coinciding_edges(BMEdge *e1, BMEdge *e2)
       (equals_v3v3(co11, co22) && equals_v3v3(co12, co21))) {
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /* Callback used in point_is_visible to exclude hits on the faces that are the same
@@ -2191,13 +2181,11 @@ static KnifeVert *knife_find_closest_vert(
 
       return curv;
     }
-    else {
-      if (fptr) {
-        *fptr = f;
-      }
 
-      return NULL;
+    if (fptr) {
+      *fptr = f;
     }
+    return NULL;
   }
 
   if (fptr) {
@@ -2310,12 +2298,10 @@ static int sort_verts_by_dist_cb(void *co_p, const void *cur_a_p, const void *cu
   if (a_sq < b_sq) {
     return -1;
   }
-  else if (a_sq > b_sq) {
+  if (a_sq > b_sq) {
     return 1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static bool knife_verts_edge_in_face(KnifeVert *v1, KnifeVert *v2, BMFace *f)

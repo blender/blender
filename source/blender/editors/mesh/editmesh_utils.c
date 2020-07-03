@@ -187,20 +187,19 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
 
     return false;
   }
-  else {
-    em->emcopyusers--;
-    if (em->emcopyusers < 0) {
-      printf("warning: em->emcopyusers was less than zero.\n");
-    }
 
-    if (em->emcopyusers <= 0) {
-      BKE_editmesh_free(em->emcopy);
-      MEM_freeN(em->emcopy);
-      em->emcopy = NULL;
-    }
-
-    return true;
+  em->emcopyusers--;
+  if (em->emcopyusers < 0) {
+    printf("warning: em->emcopyusers was less than zero.\n");
   }
+
+  if (em->emcopyusers <= 0) {
+    BKE_editmesh_free(em->emcopy);
+    MEM_freeN(em->emcopy);
+    em->emcopy = NULL;
+  }
+
+  return true;
 }
 
 bool EDBM_op_callf(BMEditMesh *em, wmOperator *op, const char *fmt, ...)
@@ -1628,10 +1627,10 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree,
   if (f && !edge_ray_cast(tree, co2, dir2, NULL, e)) {
     return true;
   }
-  else if (f && !edge_ray_cast(tree, co3, dir3, NULL, e)) {
+  if (f && !edge_ray_cast(tree, co3, dir3, NULL, e)) {
     return true;
   }
-  else if (!f) {
+  if (!f) {
     return true;
   }
 

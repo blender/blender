@@ -247,9 +247,7 @@ static int edbm_polybuild_delete_at_cursor_invoke(bContext *C,
     WM_event_add_mousemove(vc.win);
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void MESH_OT_polybuild_delete_at_cursor(wmOperatorType *ot)
@@ -415,9 +413,7 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void MESH_OT_polybuild_face_at_cursor(wmOperatorType *ot)
@@ -470,7 +466,7 @@ static int edbm_polybuild_split_at_cursor_invoke(bContext *C,
   if (ele_act == NULL || ele_act->head.hflag == BM_FACE) {
     return OPERATOR_PASS_THROUGH;
   }
-  else if (ele_act->head.htype == BM_EDGE) {
+  if (ele_act->head.htype == BM_EDGE) {
     BMEdge *e_act = (BMEdge *)ele_act;
     mid_v3_v3v3(center, e_act->v1->co, e_act->v2->co);
     mul_m4_v3(vc.obedit->obmat, center);
@@ -503,9 +499,7 @@ static int edbm_polybuild_split_at_cursor_invoke(bContext *C,
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void MESH_OT_polybuild_split_at_cursor(wmOperatorType *ot)
@@ -596,9 +590,7 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(bContext *C,
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void MESH_OT_polybuild_dissolve_at_cursor(wmOperatorType *ot)

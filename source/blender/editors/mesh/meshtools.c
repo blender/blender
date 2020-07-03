@@ -892,9 +892,7 @@ int mesh_get_x_mirror_vert(Object *ob, Mesh *me_eval, int index, const bool use_
   if (use_topology) {
     return mesh_get_x_mirror_vert_topo(ob, me_eval, index);
   }
-  else {
-    return mesh_get_x_mirror_vert_spatial(ob, me_eval, index);
-  }
+  return mesh_get_x_mirror_vert_spatial(ob, me_eval, index);
 }
 
 static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMEditMesh *em, const float co[3])
@@ -963,9 +961,7 @@ BMVert *editbmesh_get_x_mirror_vert(Object *ob,
   if (use_topology) {
     return editbmesh_get_x_mirror_vert_topo(ob, em, eve, index);
   }
-  else {
-    return editbmesh_get_x_mirror_vert_spatial(ob, em, co);
-  }
+  return editbmesh_get_x_mirror_vert_spatial(ob, em, co);
 }
 
 /**
@@ -1072,13 +1068,13 @@ static int mirror_facerotation(MFace *a, MFace *b)
     if (a->v1 == b->v1 && a->v2 == b->v2 && a->v3 == b->v3 && a->v4 == b->v4) {
       return 0;
     }
-    else if (a->v4 == b->v1 && a->v1 == b->v2 && a->v2 == b->v3 && a->v3 == b->v4) {
+    if (a->v4 == b->v1 && a->v1 == b->v2 && a->v2 == b->v3 && a->v3 == b->v4) {
       return 1;
     }
-    else if (a->v3 == b->v1 && a->v4 == b->v2 && a->v1 == b->v3 && a->v2 == b->v4) {
+    if (a->v3 == b->v1 && a->v4 == b->v2 && a->v1 == b->v3 && a->v2 == b->v4) {
       return 2;
     }
-    else if (a->v2 == b->v1 && a->v3 == b->v2 && a->v4 == b->v3 && a->v1 == b->v4) {
+    if (a->v2 == b->v1 && a->v3 == b->v2 && a->v4 == b->v3 && a->v1 == b->v4) {
       return 3;
     }
   }
@@ -1086,10 +1082,10 @@ static int mirror_facerotation(MFace *a, MFace *b)
     if (a->v1 == b->v1 && a->v2 == b->v2 && a->v3 == b->v3) {
       return 0;
     }
-    else if (a->v3 == b->v1 && a->v1 == b->v2 && a->v2 == b->v3) {
+    if (a->v3 == b->v1 && a->v1 == b->v2 && a->v2 == b->v3) {
       return 1;
     }
-    else if (a->v2 == b->v1 && a->v3 == b->v2 && a->v1 == b->v3) {
+    if (a->v2 == b->v1 && a->v3 == b->v2 && a->v1 == b->v3) {
       return 2;
     }
   }
@@ -1468,9 +1464,7 @@ MDeformVert *ED_mesh_active_dvert_get_ob(Object *ob, int *r_index)
   if (index == -1 || me->dvert == NULL) {
     return NULL;
   }
-  else {
-    return me->dvert + index;
-  }
+  return me->dvert + index;
 }
 
 MDeformVert *ED_mesh_active_dvert_get_only(Object *ob)
@@ -1479,13 +1473,9 @@ MDeformVert *ED_mesh_active_dvert_get_only(Object *ob)
     if (ob->mode & OB_MODE_EDIT) {
       return ED_mesh_active_dvert_get_em(ob, NULL);
     }
-    else {
-      return ED_mesh_active_dvert_get_ob(ob, NULL);
-    }
+    return ED_mesh_active_dvert_get_ob(ob, NULL);
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 void EDBM_mesh_stats_multi(struct Object **objects,

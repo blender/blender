@@ -626,7 +626,7 @@ static bool edbm_bevel_poll_property(const bContext *UNUSED(C),
     if (STREQ(prop_id, "offset") && offset_type == BEVEL_AMT_PERCENT) {
       return false;
     }
-    else if (STREQ(prop_id, "offset_pct") && offset_type != BEVEL_AMT_PERCENT) {
+    if (STREQ(prop_id, "offset_pct") && offset_type != BEVEL_AMT_PERCENT) {
       return false;
     }
   }
@@ -729,7 +729,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
     edbm_bevel_update_status_text(C, op);
     return OPERATOR_RUNNING_MODAL;
   }
-  else if (etype == MOUSEMOVE) {
+  if (etype == MOUSEMOVE) {
     if (!has_numinput) {
       edbm_bevel_mouse_set_value(op, event);
       edbm_bevel_calc(op);

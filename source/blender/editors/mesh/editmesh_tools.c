@@ -1557,7 +1557,7 @@ static int edbm_vert_connect_path_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "Invalid selection order");
     return OPERATOR_CANCELLED;
   }
-  else if (failed_connect_len == objects_len) {
+  if (failed_connect_len == objects_len) {
     BKE_report(op->reports, RPT_ERROR, "Could not connect vertices");
     return OPERATOR_CANCELLED;
   }
@@ -2686,7 +2686,7 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_WARNING, "No selected vertex");
     return OPERATOR_CANCELLED;
   }
-  else if (tot_invalid == objects_len) {
+  if (tot_invalid == objects_len) {
     BKE_report(op->reports, RPT_WARNING, "Selected faces must be triangles or quads");
     return OPERATOR_CANCELLED;
   }
@@ -3505,7 +3505,7 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No selected vertex");
     return OPERATOR_CANCELLED;
   }
-  else if (tot_shapekeys == 0) {
+  if (tot_shapekeys == 0) {
     BKE_report(op->reports,
                RPT_ERROR,
                objects_len > 1 ? "Meshes do not have shape keys" :
@@ -3562,7 +3562,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "Active mesh does not have shape keys");
     return OPERATOR_CANCELLED;
   }
-  else if (shape_ref >= totshape_ref) {
+  if (shape_ref >= totshape_ref) {
     /* This case occurs if operator was used before on object with more keys than current one. */
     shape_ref = 0; /* default to basis */
   }
@@ -3592,10 +3592,8 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
     if (!key) {
       continue;
     }
-    else {
-      kb = BKE_keyblock_find_name(key, kb_ref->name);
-      shape = BLI_findindex(&key->block, kb);
-    }
+    kb = BKE_keyblock_find_name(key, kb_ref->name);
+    shape = BLI_findindex(&key->block, kb);
 
     if (kb) {
       /* Perform blending on selected vertices. */
@@ -3861,7 +3859,7 @@ static float bm_edge_seg_isect(const float sco_a[2],
         return perc;
       }
       /* test e->v2 */
-      else if ((x11 == x22 && y11 == y22) || (x12 == x22 && y12 == y22)) {
+      if ((x11 == x22 && y11 == y22) || (x12 == x22 && y12 == y22)) {
         perc = 0;
         *isected = 2;
         return perc;
@@ -5885,12 +5883,10 @@ static int edbm_dissolve_mode_exec(bContext *C, wmOperator *op)
   if (em->selectmode & SCE_SELECT_VERTEX) {
     return edbm_dissolve_verts_exec(C, op);
   }
-  else if (em->selectmode & SCE_SELECT_EDGE) {
+  if (em->selectmode & SCE_SELECT_EDGE) {
     return edbm_dissolve_edges_exec(C, op);
   }
-  else {
-    return edbm_dissolve_faces_exec(C, op);
-  }
+  return edbm_dissolve_faces_exec(C, op);
 }
 
 void MESH_OT_dissolve_mode(wmOperatorType *ot)
@@ -6814,9 +6810,7 @@ static bool edbm_sort_elements_poll_property(const bContext *UNUSED(C),
     if (action == SRT_RANDOMIZE) {
       return true;
     }
-    else {
-      return false;
-    }
+    return false;
   }
 
   /* Hide seed for reverse and randomize actions! */
@@ -6824,9 +6818,7 @@ static bool edbm_sort_elements_poll_property(const bContext *UNUSED(C),
     if (ELEM(action, SRT_RANDOMIZE, SRT_REVERSE)) {
       return false;
     }
-    else {
-      return true;
-    }
+    return true;
   }
 
   return true;
@@ -7507,10 +7499,8 @@ static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
     if (!EDBM_op_finish(em, &bmop, op, true)) {
       continue;
     }
-    else {
-      EDBM_update_generic(obedit->data, true, true);
-      EDBM_selectmode_flush(em);
-    }
+    EDBM_update_generic(obedit->data, true, true);
+    EDBM_selectmode_flush(em);
   }
   MEM_freeN(objects);
 
@@ -8869,7 +8859,7 @@ static bool average_normals_draw_check_prop(PointerRNA *ptr,
   if (STREQ(prop_id, "weight")) {
     return (average_type == EDBM_CLNOR_AVERAGE_LOOP);
   }
-  else if (STREQ(prop_id, "threshold")) {
+  if (STREQ(prop_id, "threshold")) {
     return (average_type == EDBM_CLNOR_AVERAGE_LOOP);
   }
 

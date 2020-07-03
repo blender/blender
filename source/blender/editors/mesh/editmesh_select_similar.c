@@ -245,9 +245,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
         if (custom_data_offset == -1) {
           continue;
         }
-        else {
-          gset_array[ob_index] = BLI_gset_ptr_new("Select similar face: facemap gset");
-        }
+        gset_array[ob_index] = BLI_gset_ptr_new("Select similar face: facemap gset");
       }
     }
 
@@ -1249,12 +1247,10 @@ static int edbm_select_similar_exec(bContext *C, wmOperator *op)
   if (type < 100) {
     return similar_vert_select_exec(C, op);
   }
-  else if (type < 200) {
+  if (type < 200) {
     return similar_edge_select_exec(C, op);
   }
-  else {
-    return similar_face_select_exec(C, op);
-  }
+  return similar_face_select_exec(C, op);
 }
 
 static const EnumPropertyItem *select_similar_type_itemf(bContext *C,

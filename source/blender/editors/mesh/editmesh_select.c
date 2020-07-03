@@ -316,65 +316,63 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
     }
     return NULL;
   }
-  else {
-    struct NearestVertUserData data = {{0}};
-    const struct NearestVertUserData_Hit *hit = NULL;
-    const eV3DProjTest clip_flag = RV3D_CLIPPING_ENABLED(vc->v3d, vc->rv3d) ?
-                                       V3D_PROJ_TEST_CLIP_DEFAULT :
-                                       V3D_PROJ_TEST_CLIP_DEFAULT & ~V3D_PROJ_TEST_CLIP_BB;
-    BMesh *prev_select_bm = NULL;
 
-    static struct {
-      int index;
-      const BMVert *elem;
-      const BMesh *bm;
-    } prev_select = {0};
+  struct NearestVertUserData data = {{0}};
+  const struct NearestVertUserData_Hit *hit = NULL;
+  const eV3DProjTest clip_flag = RV3D_CLIPPING_ENABLED(vc->v3d, vc->rv3d) ?
+                                     V3D_PROJ_TEST_CLIP_DEFAULT :
+                                     V3D_PROJ_TEST_CLIP_DEFAULT & ~V3D_PROJ_TEST_CLIP_BB;
+  BMesh *prev_select_bm = NULL;
 
-    data.mval_fl[0] = vc->mval[0];
-    data.mval_fl[1] = vc->mval[1];
-    data.use_select_bias = use_select_bias;
-    data.use_cycle = use_cycle;
+  static struct {
+    int index;
+    const BMVert *elem;
+    const BMesh *bm;
+  } prev_select = {0};
 
-    for (; base_index < bases_len; base_index++) {
-      Base *base_iter = bases[base_index];
-      ED_view3d_viewcontext_init_object(vc, base_iter->object);
-      if (use_cycle && prev_select.bm == vc->em->bm &&
-          prev_select.elem == BM_vert_at_index_find_or_table(vc->em->bm, prev_select.index)) {
-        data.cycle_index_prev = prev_select.index;
-        /* No need to compare in the rest of the loop. */
-        use_cycle = false;
-      }
-      else {
-        data.cycle_index_prev = 0;
-      }
+  data.mval_fl[0] = vc->mval[0];
+  data.mval_fl[1] = vc->mval[1];
+  data.use_select_bias = use_select_bias;
+  data.use_cycle = use_cycle;
 
-      data.hit.dist = data.hit_cycle.dist = data.hit.dist_bias = data.hit_cycle.dist_bias =
-          *r_dist;
-
-      ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-      mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, clip_flag);
-
-      hit = (data.use_cycle && data.hit_cycle.vert) ? &data.hit_cycle : &data.hit;
-
-      if (hit->dist < *r_dist) {
-        if (r_base_index) {
-          *r_base_index = base_index;
-        }
-        *r_dist = hit->dist;
-        prev_select_bm = vc->em->bm;
-      }
+  for (; base_index < bases_len; base_index++) {
+    Base *base_iter = bases[base_index];
+    ED_view3d_viewcontext_init_object(vc, base_iter->object);
+    if (use_cycle && prev_select.bm == vc->em->bm &&
+        prev_select.elem == BM_vert_at_index_find_or_table(vc->em->bm, prev_select.index)) {
+      data.cycle_index_prev = prev_select.index;
+      /* No need to compare in the rest of the loop. */
+      use_cycle = false;
+    }
+    else {
+      data.cycle_index_prev = 0;
     }
 
-    if (hit == NULL) {
-      return NULL;
+    data.hit.dist = data.hit_cycle.dist = data.hit.dist_bias = data.hit_cycle.dist_bias = *r_dist;
+
+    ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
+    mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, clip_flag);
+
+    hit = (data.use_cycle && data.hit_cycle.vert) ? &data.hit_cycle : &data.hit;
+
+    if (hit->dist < *r_dist) {
+      if (r_base_index) {
+        *r_base_index = base_index;
+      }
+      *r_dist = hit->dist;
+      prev_select_bm = vc->em->bm;
     }
-
-    prev_select.index = hit->index;
-    prev_select.elem = hit->vert;
-    prev_select.bm = prev_select_bm;
-
-    return hit->vert;
   }
+
+  if (hit == NULL) {
+    return NULL;
+  }
+
+  prev_select.index = hit->index;
+  prev_select.elem = hit->vert;
+  prev_select.bm = prev_select_bm;
+
+  return hit->vert;
 }
 
 BMVert *EDBM_vert_find_nearest(ViewContext *vc, float *r_dist)
@@ -563,69 +561,67 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
     }
     return NULL;
   }
-  else {
-    struct NearestEdgeUserData data = {{0}};
-    const struct NearestEdgeUserData_Hit *hit = NULL;
-    /* interpolate along the edge before doing a clipping plane test */
-    const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_DEFAULT & ~V3D_PROJ_TEST_CLIP_BB;
-    BMesh *prev_select_bm = NULL;
 
-    static struct {
-      int index;
-      const BMEdge *elem;
-      const BMesh *bm;
-    } prev_select = {0};
+  struct NearestEdgeUserData data = {{0}};
+  const struct NearestEdgeUserData_Hit *hit = NULL;
+  /* interpolate along the edge before doing a clipping plane test */
+  const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_DEFAULT & ~V3D_PROJ_TEST_CLIP_BB;
+  BMesh *prev_select_bm = NULL;
 
-    data.vc = *vc;
-    data.mval_fl[0] = vc->mval[0];
-    data.mval_fl[1] = vc->mval[1];
-    data.use_select_bias = use_select_bias;
-    data.use_cycle = use_cycle;
+  static struct {
+    int index;
+    const BMEdge *elem;
+    const BMesh *bm;
+  } prev_select = {0};
 
-    for (; base_index < bases_len; base_index++) {
-      Base *base_iter = bases[base_index];
-      ED_view3d_viewcontext_init_object(vc, base_iter->object);
-      if (use_cycle && prev_select.bm == vc->em->bm &&
-          prev_select.elem == BM_edge_at_index_find_or_table(vc->em->bm, prev_select.index)) {
-        data.cycle_index_prev = prev_select.index;
-        /* No need to compare in the rest of the loop. */
-        use_cycle = false;
-      }
-      else {
-        data.cycle_index_prev = 0;
-      }
+  data.vc = *vc;
+  data.mval_fl[0] = vc->mval[0];
+  data.mval_fl[1] = vc->mval[1];
+  data.use_select_bias = use_select_bias;
+  data.use_cycle = use_cycle;
 
-      data.hit.dist = data.hit_cycle.dist = data.hit.dist_bias = data.hit_cycle.dist_bias =
-          *r_dist;
-
-      ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-      mesh_foreachScreenEdge(vc, find_nearest_edge__doClosest, &data, clip_flag);
-
-      hit = (data.use_cycle && data.hit_cycle.edge) ? &data.hit_cycle : &data.hit;
-
-      if (hit->dist < *r_dist) {
-        if (r_base_index) {
-          *r_base_index = base_index;
-        }
-        *r_dist = hit->dist;
-        prev_select_bm = vc->em->bm;
-      }
+  for (; base_index < bases_len; base_index++) {
+    Base *base_iter = bases[base_index];
+    ED_view3d_viewcontext_init_object(vc, base_iter->object);
+    if (use_cycle && prev_select.bm == vc->em->bm &&
+        prev_select.elem == BM_edge_at_index_find_or_table(vc->em->bm, prev_select.index)) {
+      data.cycle_index_prev = prev_select.index;
+      /* No need to compare in the rest of the loop. */
+      use_cycle = false;
+    }
+    else {
+      data.cycle_index_prev = 0;
     }
 
-    if (hit == NULL) {
-      return NULL;
+    data.hit.dist = data.hit_cycle.dist = data.hit.dist_bias = data.hit_cycle.dist_bias = *r_dist;
+
+    ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
+    mesh_foreachScreenEdge(vc, find_nearest_edge__doClosest, &data, clip_flag);
+
+    hit = (data.use_cycle && data.hit_cycle.edge) ? &data.hit_cycle : &data.hit;
+
+    if (hit->dist < *r_dist) {
+      if (r_base_index) {
+        *r_base_index = base_index;
+      }
+      *r_dist = hit->dist;
+      prev_select_bm = vc->em->bm;
     }
-
-    if (r_dist_center) {
-      *r_dist_center = hit->dist_center;
-    }
-
-    prev_select.index = hit->index;
-    prev_select.elem = hit->edge;
-    prev_select.bm = prev_select_bm;
-
-    return hit->edge;
   }
+
+  if (hit == NULL) {
+    return NULL;
+  }
+
+  if (r_dist_center) {
+    *r_dist_center = hit->dist_center;
+  }
+
+  prev_select.index = hit->index;
+  prev_select.elem = hit->edge;
+  prev_select.bm = prev_select_bm;
+
+  return hit->edge;
 }
 
 BMEdge *EDBM_edge_find_nearest(ViewContext *vc, float *r_dist)
@@ -769,67 +765,65 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
     }
     return NULL;
   }
-  else {
-    struct NearestFaceUserData data = {{0}};
-    const struct NearestFaceUserData_Hit *hit = NULL;
-    const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_DEFAULT;
-    BMesh *prev_select_bm = NULL;
 
-    static struct {
-      int index;
-      const BMFace *elem;
-      const BMesh *bm;
-    } prev_select = {0};
+  struct NearestFaceUserData data = {{0}};
+  const struct NearestFaceUserData_Hit *hit = NULL;
+  const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_DEFAULT;
+  BMesh *prev_select_bm = NULL;
 
-    data.mval_fl[0] = vc->mval[0];
-    data.mval_fl[1] = vc->mval[1];
-    data.use_select_bias = use_select_bias;
-    data.use_cycle = use_cycle;
+  static struct {
+    int index;
+    const BMFace *elem;
+    const BMesh *bm;
+  } prev_select = {0};
 
-    for (; base_index < bases_len; base_index++) {
-      Base *base_iter = bases[base_index];
-      ED_view3d_viewcontext_init_object(vc, base_iter->object);
-      if (use_cycle && prev_select.bm == vc->em->bm &&
-          prev_select.elem == BM_face_at_index_find_or_table(vc->em->bm, prev_select.index)) {
-        data.cycle_index_prev = prev_select.index;
-        /* No need to compare in the rest of the loop. */
-        use_cycle = false;
-      }
-      else {
-        data.cycle_index_prev = 0;
-      }
+  data.mval_fl[0] = vc->mval[0];
+  data.mval_fl[1] = vc->mval[1];
+  data.use_select_bias = use_select_bias;
+  data.use_cycle = use_cycle;
 
-      data.hit.dist = data.hit_cycle.dist = data.hit.dist_bias = data.hit_cycle.dist_bias =
-          *r_dist;
-
-      ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-      mesh_foreachScreenFace(vc, findnearestface__doClosest, &data, clip_flag);
-
-      hit = (data.use_cycle && data.hit_cycle.face) ? &data.hit_cycle : &data.hit;
-
-      if (hit->dist < *r_dist) {
-        if (r_base_index) {
-          *r_base_index = base_index;
-        }
-        *r_dist = hit->dist;
-        prev_select_bm = vc->em->bm;
-      }
+  for (; base_index < bases_len; base_index++) {
+    Base *base_iter = bases[base_index];
+    ED_view3d_viewcontext_init_object(vc, base_iter->object);
+    if (use_cycle && prev_select.bm == vc->em->bm &&
+        prev_select.elem == BM_face_at_index_find_or_table(vc->em->bm, prev_select.index)) {
+      data.cycle_index_prev = prev_select.index;
+      /* No need to compare in the rest of the loop. */
+      use_cycle = false;
+    }
+    else {
+      data.cycle_index_prev = 0;
     }
 
-    if (hit == NULL) {
-      return NULL;
+    data.hit.dist = data.hit_cycle.dist = data.hit.dist_bias = data.hit_cycle.dist_bias = *r_dist;
+
+    ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
+    mesh_foreachScreenFace(vc, findnearestface__doClosest, &data, clip_flag);
+
+    hit = (data.use_cycle && data.hit_cycle.face) ? &data.hit_cycle : &data.hit;
+
+    if (hit->dist < *r_dist) {
+      if (r_base_index) {
+        *r_base_index = base_index;
+      }
+      *r_dist = hit->dist;
+      prev_select_bm = vc->em->bm;
     }
-
-    if (r_dist_center) {
-      *r_dist_center = hit->dist;
-    }
-
-    prev_select.index = hit->index;
-    prev_select.elem = hit->face;
-    prev_select.bm = prev_select_bm;
-
-    return hit->face;
   }
+
+  if (hit == NULL) {
+    return NULL;
+  }
+
+  if (r_dist_center) {
+    *r_dist_center = hit->dist;
+  }
+
+  prev_select.index = hit->index;
+  prev_select.elem = hit->face;
+  prev_select.bm = prev_select_bm;
+
+  return hit->face;
 }
 
 BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
@@ -1353,9 +1347,7 @@ static int edbm_select_mode_exec(bContext *C, wmOperator *op)
   if (EDBM_selectmode_toggle_multi(C, type, action, use_extend, use_expand)) {
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 static int edbm_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1809,9 +1801,7 @@ static int edbm_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *e
                       RNA_boolean_get(op->ptr, "ring"))) {
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void MESH_OT_loop_select(wmOperatorType *ot)
@@ -2556,9 +2546,7 @@ bool EDBM_selectmode_disable(Scene *scene,
 
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /** \} */
@@ -4202,11 +4190,11 @@ static bool edbm_deselect_nth(BMEditMesh *em, const struct CheckerIntervalParams
     walker_deselect_nth(em, op_params, &v->head);
     return true;
   }
-  else if (e) {
+  if (e) {
     walker_deselect_nth(em, op_params, &e->head);
     return true;
   }
-  else if (f) {
+  if (f) {
     walker_deselect_nth(em, op_params, &f->head);
     return true;
   }

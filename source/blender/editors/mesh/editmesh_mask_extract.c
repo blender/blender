@@ -66,9 +66,7 @@ static bool paint_mask_extract_poll(bContext *C)
       CTX_wm_operator_poll_msg_set(C, "The mask can not be extracted with dyntopo activated");
       return false;
     }
-    else {
-      return ED_operator_object_active_editable_mesh(C);
-    }
+    return ED_operator_object_active_editable_mesh(C);
   }
   return false;
 }

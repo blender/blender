@@ -424,10 +424,9 @@ static bool edbm_extrude_mesh(Object *obedit, BMEditMesh *em, wmOperator *op)
   if (changed) {
     return true;
   }
-  else {
-    BKE_report(op->reports, RPT_ERROR, "Not a valid selection for extrude");
-    return false;
-  }
+
+  BKE_report(op->reports, RPT_ERROR, "Not a valid selection for extrude");
+  return false;
 }
 
 /* extrude without transform */

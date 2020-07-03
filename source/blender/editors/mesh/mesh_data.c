@@ -370,9 +370,7 @@ bool ED_mesh_uv_texture_remove_active(Mesh *me)
   if (n != -1) {
     return ED_mesh_uv_texture_remove_index(me, n);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 bool ED_mesh_uv_texture_remove_named(Mesh *me, const char *name)
 {
@@ -382,9 +380,7 @@ bool ED_mesh_uv_texture_remove_named(Mesh *me, const char *name)
   if (n != -1) {
     return ED_mesh_uv_texture_remove_index(me, n);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /* note: keep in sync with ED_mesh_uv_texture_add */
@@ -479,9 +475,7 @@ bool ED_mesh_color_remove_active(Mesh *me)
   if (n != -1) {
     return ED_mesh_color_remove_index(me, n);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 bool ED_mesh_color_remove_named(Mesh *me, const char *name)
 {
@@ -490,9 +484,7 @@ bool ED_mesh_color_remove_named(Mesh *me, const char *name)
   if (n != -1) {
     return ED_mesh_color_remove_index(me, n);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /*********************** Sculpt Vertex colors operators ************************/
@@ -590,9 +582,7 @@ bool ED_mesh_sculpt_color_remove_active(Mesh *me)
   if (n != -1) {
     return ED_mesh_sculpt_color_remove_index(me, n);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 bool ED_mesh_sculpt_color_remove_named(Mesh *me, const char *name)
 {
@@ -601,9 +591,7 @@ bool ED_mesh_sculpt_color_remove_named(Mesh *me, const char *name)
   if (n != -1) {
     return ED_mesh_sculpt_color_remove_index(me, n);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /*********************** UV texture operators ************************/
@@ -817,9 +805,7 @@ static int mesh_customdata_clear_exec__internal(bContext *C, char htype, int typ
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 /* Clear Mask */
@@ -855,9 +841,7 @@ static int mesh_customdata_mask_clear_exec(bContext *C, wmOperator *UNUSED(op))
   if (ret_a == OPERATOR_FINISHED || ret_b == OPERATOR_FINISHED) {
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void MESH_OT_customdata_mask_clear(wmOperatorType *ot)
@@ -1289,7 +1273,7 @@ void ED_mesh_verts_remove(Mesh *mesh, ReportList *reports, int count)
     BKE_report(reports, RPT_ERROR, "Cannot remove vertices in edit mode");
     return;
   }
-  else if (count > mesh->totvert) {
+  if (count > mesh->totvert) {
     BKE_report(reports, RPT_ERROR, "Cannot remove more vertices than the mesh contains");
     return;
   }
@@ -1303,7 +1287,7 @@ void ED_mesh_edges_remove(Mesh *mesh, ReportList *reports, int count)
     BKE_report(reports, RPT_ERROR, "Cannot remove edges in edit mode");
     return;
   }
-  else if (count > mesh->totedge) {
+  if (count > mesh->totedge) {
     BKE_report(reports, RPT_ERROR, "Cannot remove more edges than the mesh contains");
     return;
   }
@@ -1317,7 +1301,7 @@ void ED_mesh_loops_remove(Mesh *mesh, ReportList *reports, int count)
     BKE_report(reports, RPT_ERROR, "Cannot remove loops in edit mode");
     return;
   }
-  else if (count > mesh->totloop) {
+  if (count > mesh->totloop) {
     BKE_report(reports, RPT_ERROR, "Cannot remove more loops than the mesh contains");
     return;
   }
@@ -1331,7 +1315,7 @@ void ED_mesh_polys_remove(Mesh *mesh, ReportList *reports, int count)
     BKE_report(reports, RPT_ERROR, "Cannot remove polys in edit mode");
     return;
   }
-  else if (count > mesh->totpoly) {
+  if (count > mesh->totpoly) {
     BKE_report(reports, RPT_ERROR, "Cannot remove more polys than the mesh contains");
     return;
   }

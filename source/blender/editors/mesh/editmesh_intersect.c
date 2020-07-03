@@ -60,9 +60,7 @@ static int bm_face_isect_self(BMFace *f, void *UNUSED(user_data))
   if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
     return 0;
   }
-  else {
-    return -1;
-  }
+  return -1;
 }
 
 /**
@@ -73,12 +71,10 @@ static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
   if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
     return -1;
   }
-  else if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+  if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
     return 1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 /**
@@ -90,12 +86,10 @@ static int bm_face_isect_pair_swap(BMFace *f, void *UNUSED(user_data))
   if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
     return -1;
   }
-  else if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+  if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
     return 0;
   }
-  else {
-    return 1;
-  }
+  return 1;
 }
 
 /**
@@ -515,12 +509,10 @@ static int bm_edge_sort_length_cb(const void *e_a_v, const void *e_b_v)
   if (val_a > val_b) {
     return 1;
   }
-  else if (val_a < val_b) {
+  if (val_a < val_b) {
     return -1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static void bm_face_split_by_edges_island_connect(
