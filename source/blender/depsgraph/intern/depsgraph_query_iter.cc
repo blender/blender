@@ -98,7 +98,7 @@ void verify_id_properties_freed(DEGObjectIterData *data)
   temp_dupli_object->id.properties = nullptr;
 }
 
-static bool deg_object_hide_original(eEvaluationMode eval_mode, Object *ob, DupliObject *dob)
+bool deg_object_hide_original(eEvaluationMode eval_mode, Object *ob, DupliObject *dob)
 {
   /* Automatic hiding if this object is being instanced on verts/faces/frames
    * by its parent. Ideally this should not be needed, but due to the wrong

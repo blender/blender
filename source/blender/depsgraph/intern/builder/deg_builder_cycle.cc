@@ -77,22 +77,22 @@ struct CyclesSolverState {
   int num_cycles;
 };
 
-BLI_INLINE void set_node_visited_state(Node *node, eCyclicCheckVisitedState state)
+inline void set_node_visited_state(Node *node, eCyclicCheckVisitedState state)
 {
   node->custom_flags = (node->custom_flags & ~0x3) | (int)state;
 }
 
-BLI_INLINE eCyclicCheckVisitedState get_node_visited_state(Node *node)
+inline eCyclicCheckVisitedState get_node_visited_state(Node *node)
 {
   return (eCyclicCheckVisitedState)(node->custom_flags & 0x3);
 }
 
-BLI_INLINE void set_node_num_visited_children(Node *node, int num_children)
+inline void set_node_num_visited_children(Node *node, int num_children)
 {
   node->custom_flags = (node->custom_flags & 0x3) | (num_children << 2);
 }
 
-BLI_INLINE int get_node_num_visited_children(Node *node)
+inline int get_node_num_visited_children(Node *node)
 {
   return node->custom_flags >> 2;
 }

@@ -362,12 +362,12 @@ void deg_graph_id_tag_legacy_compat(
   }
 }
 
-static void graph_id_tag_update_single_flag(Main *bmain,
-                                            Depsgraph *graph,
-                                            ID *id,
-                                            IDNode *id_node,
-                                            IDRecalcFlag tag,
-                                            eUpdateSource update_source)
+void graph_id_tag_update_single_flag(Main *bmain,
+                                     Depsgraph *graph,
+                                     ID *id,
+                                     IDNode *id_node,
+                                     IDRecalcFlag tag,
+                                     eUpdateSource update_source)
 {
   if (tag == ID_RECALC_EDITORS) {
     if (graph != nullptr && graph->is_active) {

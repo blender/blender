@@ -55,9 +55,8 @@ struct StatsEntry {
 };
 
 /* TODO(sergey): De-duplicate with graphviz relation debugger. */
-static void deg_debug_fprintf(const DebugContext &ctx, const char *fmt, ...)
-    ATTR_PRINTF_FORMAT(2, 3);
-static void deg_debug_fprintf(const DebugContext &ctx, const char *fmt, ...)
+void deg_debug_fprintf(const DebugContext &ctx, const char *fmt, ...) ATTR_PRINTF_FORMAT(2, 3);
+void deg_debug_fprintf(const DebugContext &ctx, const char *fmt, ...)
 {
   va_list args;
   va_start(args, fmt);
@@ -65,7 +64,7 @@ static void deg_debug_fprintf(const DebugContext &ctx, const char *fmt, ...)
   va_end(args);
 }
 
-BLI_INLINE double get_node_time(const DebugContext & /*ctx*/, const Node *node)
+inline double get_node_time(const DebugContext & /*ctx*/, const Node *node)
 {
   // TODO(sergey): Figure out a nice way to define which exact time
   // we want to show.

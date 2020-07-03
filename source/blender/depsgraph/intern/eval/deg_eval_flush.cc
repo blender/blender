@@ -99,7 +99,7 @@ void flush_init_id_node_func(void *__restrict data_v,
   }
 }
 
-BLI_INLINE void flush_prepare(Depsgraph *graph)
+inline void flush_prepare(Depsgraph *graph)
 {
   for (OperationNode *node : graph->operations) {
     node->scheduled = false;
@@ -114,7 +114,7 @@ BLI_INLINE void flush_prepare(Depsgraph *graph)
   }
 }
 
-BLI_INLINE void flush_schedule_entrypoints(Depsgraph *graph, FlushQueue *queue)
+inline void flush_schedule_entrypoints(Depsgraph *graph, FlushQueue *queue)
 {
   for (OperationNode *op_node : graph->entry_tags) {
     queue->push_back(op_node);
@@ -126,15 +126,15 @@ BLI_INLINE void flush_schedule_entrypoints(Depsgraph *graph, FlushQueue *queue)
   }
 }
 
-BLI_INLINE void flush_handle_id_node(IDNode *id_node)
+inline void flush_handle_id_node(IDNode *id_node)
 {
   id_node->custom_flags = ID_STATE_MODIFIED;
 }
 
 /* TODO(sergey): We can reduce number of arguments here. */
-BLI_INLINE void flush_handle_component_node(IDNode *id_node,
-                                            ComponentNode *comp_node,
-                                            FlushQueue *queue)
+inline void flush_handle_component_node(IDNode *id_node,
+                                        ComponentNode *comp_node,
+                                        FlushQueue *queue)
 {
   /* We only handle component once. */
   if (comp_node->custom_flags == COMPONENT_STATE_DONE) {
@@ -169,7 +169,7 @@ BLI_INLINE void flush_handle_component_node(IDNode *id_node,
  * return value, so it can start being handled right away, without building too
  * much of a queue.
  */
-BLI_INLINE OperationNode *flush_schedule_children(OperationNode *op_node, FlushQueue *queue)
+inline OperationNode *flush_schedule_children(OperationNode *op_node, FlushQueue *queue)
 {
   if (op_node->flag & DEPSOP_FLAG_USER_MODIFIED) {
     IDNode *id_node = op_node->owner->owner;

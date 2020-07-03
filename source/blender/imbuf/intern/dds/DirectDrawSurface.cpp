@@ -501,7 +501,7 @@ struct FormatDescriptor {
   uint amask;
 };
 
-static const FormatDescriptor s_d3dFormats[] = {
+const FormatDescriptor s_d3dFormats[] = {
     {D3DFMT_R8G8B8, 24, 0xFF0000, 0xFF00, 0xFF, 0},
     {D3DFMT_A8R8G8B8, 32, 0xFF0000, 0xFF00, 0xFF, 0xFF000000}, /* DXGI_FORMAT_B8G8R8A8_UNORM */
     {D3DFMT_X8R8G8B8, 32, 0xFF0000, 0xFF00, 0xFF, 0},          /* DXGI_FORMAT_B8G8R8X8_UNORM */
@@ -524,7 +524,7 @@ static const FormatDescriptor s_d3dFormats[] = {
     {D3DFMT_L16, 16, 16, 0, 0, 0}, /* DXGI_FORMAT_R16_UNORM */
 };
 
-static const uint s_d3dFormatCount = sizeof(s_d3dFormats) / sizeof(s_d3dFormats[0]);
+const uint s_d3dFormatCount = sizeof(s_d3dFormats) / sizeof(s_d3dFormats[0]);
 
 }  // namespace
 

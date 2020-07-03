@@ -496,7 +496,7 @@ void update_scene_orig_pointers(const Scene *scene_orig, Scene *scene_cow)
 }
 
 /* Check whether given ID is expanded or still a shallow copy. */
-BLI_INLINE bool check_datablock_expanded(const ID *id_cow)
+inline bool check_datablock_expanded(const ID *id_cow)
 {
   return (id_cow->name[0] != '\0');
 }
