@@ -619,9 +619,8 @@ static void action_idcode_patch_check(ID *id, bAction *act)
   if (ELEM(NULL, id, act)) {
     return;
   }
-  else {
-    idcode = GS(id->name);
-  }
+
+  idcode = GS(id->name);
 
   /* the actual checks... hopefully not too much of a performance hit in the long run... */
   if (act->idroot == 0) {
@@ -717,14 +716,13 @@ static float nlastrip_get_influence(NlaStrip *strip, float cframe)
     /* there is some blend-in */
     return fabsf(cframe - strip->start) / (strip->blendin);
   }
-  else if (IS_EQF(strip->blendout, 0.0f) == false && (cframe >= (strip->end - strip->blendout))) {
+  if (IS_EQF(strip->blendout, 0.0f) == false && (cframe >= (strip->end - strip->blendout))) {
     /* there is some blend-out */
     return fabsf(strip->end - cframe) / (strip->blendout);
   }
-  else {
-    /* in the middle of the strip, we should be full strength */
-    return 1.0f;
-  }
+
+  /* in the middle of the strip, we should be full strength */
+  return 1.0f;
 }
 
 /* evaluate the evaluation time and influence for the strip, storing the results in the strip */
@@ -1115,9 +1113,7 @@ static int nlaevalchan_validate_index(NlaEvalChannel *nec, int index)
 
     return -1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 /* Initialise default values for NlaEvalChannel from the property data. */
@@ -1209,15 +1205,13 @@ static char nlaevalchan_detect_mix_mode(NlaEvalChannelKey *key, int length)
   if (subtype == PROP_QUATERNION && length == 4) {
     return NEC_MIX_QUATERNION;
   }
-  else if (subtype == PROP_AXISANGLE && length == 4) {
+  if (subtype == PROP_AXISANGLE && length == 4) {
     return NEC_MIX_AXIS_ANGLE;
   }
-  else if (RNA_property_flag(key->prop) & PROP_PROPORTIONAL) {
+  if (RNA_property_flag(key->prop) & PROP_PROPORTIONAL) {
     return NEC_MIX_MULTIPLY;
   }
-  else {
-    return NEC_MIX_ADD;
-  }
+  return NEC_MIX_ADD;
 }
 
 /* Verify that an appropriate NlaEvalChannel for this property exists. */
@@ -1454,10 +1448,9 @@ static bool nla_invert_combine_value(int mix_mode,
         /* Division by zero. */
         return false;
       }
-      else {
-        *r_value = base_value * powf(target_value / old_value, 1.0f / influence);
-        return true;
-      }
+
+      *r_value = base_value * powf(target_value / old_value, 1.0f / influence);
+      return true;
 
     case NEC_MIX_QUATERNION:
     default:

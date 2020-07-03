@@ -512,12 +512,10 @@ bool BKE_armature_bone_flag_test_recursive(const Bone *bone, int flag)
   if (bone->flag & flag) {
     return true;
   }
-  else if (bone->parent) {
+  if (bone->parent) {
     return BKE_armature_bone_flag_test_recursive(bone->parent, flag);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /** \} */
@@ -687,10 +685,7 @@ int bone_autoside_name(
 
     return 1;
   }
-
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 /** \} */

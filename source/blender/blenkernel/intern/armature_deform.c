@@ -163,17 +163,15 @@ float distfactor_to_bone(
   if (dist_sq < a) {
     return 1.0f;
   }
-  else {
-    l = rad + rdist;
-    l *= l;
-    if (rdist == 0.0f || dist_sq >= l) {
-      return 0.0f;
-    }
-    else {
-      a = sqrtf(dist_sq) - rad;
-      return 1.0f - (a * a) / (rdist * rdist);
-    }
+
+  l = rad + rdist;
+  l *= l;
+  if (rdist == 0.0f || dist_sq >= l) {
+    return 0.0f;
   }
+
+  a = sqrtf(dist_sq) - rad;
+  return 1.0f - (a * a) / (rdist * rdist);
 }
 
 static float dist_bone_deform(

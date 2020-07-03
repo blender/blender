@@ -147,19 +147,16 @@ static bool bpath_relative_rebase_visit_cb(void *userdata, char *path_dst, const
       data->count_changed++;
       return true;
     }
-    else {
-      /* Failed to make relative path absolute. */
-      BLI_assert(0);
-      BKE_reportf(data->reports, RPT_WARNING, "Path '%s' cannot be made absolute", path_src);
-      data->count_failed++;
-      return false;
-    }
+
+    /* Failed to make relative path absolute. */
+    BLI_assert(0);
+    BKE_reportf(data->reports, RPT_WARNING, "Path '%s' cannot be made absolute", path_src);
+    data->count_failed++;
     return false;
   }
-  else {
-    /* Absolute, leave this as-is. */
-    return false;
-  }
+
+  /* Absolute, leave this as-is. */
+  return false;
 }
 
 void BKE_bpath_relative_rebase(Main *bmain,
@@ -211,18 +208,17 @@ static bool bpath_relative_convert_visit_cb(void *userdata, char *path_dst, cons
   if (BLI_path_is_rel(path_src)) {
     return false; /* already relative */
   }
-  else {
-    strcpy(path_dst, path_src);
-    BLI_path_rel(path_dst, data->basedir);
-    if (BLI_path_is_rel(path_dst)) {
-      data->count_changed++;
-    }
-    else {
-      BKE_reportf(data->reports, RPT_WARNING, "Path '%s' cannot be made relative", path_src);
-      data->count_failed++;
-    }
-    return true;
+
+  strcpy(path_dst, path_src);
+  BLI_path_rel(path_dst, data->basedir);
+  if (BLI_path_is_rel(path_dst)) {
+    data->count_changed++;
   }
+  else {
+    BKE_reportf(data->reports, RPT_WARNING, "Path '%s' cannot be made relative", path_src);
+    data->count_failed++;
+  }
+  return true;
 }
 
 void BKE_bpath_relative_convert(Main *bmain, const char *basedir, ReportList *reports)
@@ -263,18 +259,17 @@ static bool bpath_absolute_convert_visit_cb(void *userdata, char *path_dst, cons
   if (BLI_path_is_rel(path_src) == false) {
     return false; /* already absolute */
   }
-  else {
-    strcpy(path_dst, path_src);
-    BLI_path_abs(path_dst, data->basedir);
-    if (BLI_path_is_rel(path_dst) == false) {
-      data->count_changed++;
-    }
-    else {
-      BKE_reportf(data->reports, RPT_WARNING, "Path '%s' cannot be made absolute", path_src);
-      data->count_failed++;
-    }
-    return true;
+
+  strcpy(path_dst, path_src);
+  BLI_path_abs(path_dst, data->basedir);
+  if (BLI_path_is_rel(path_dst) == false) {
+    data->count_changed++;
   }
+  else {
+    BKE_reportf(data->reports, RPT_WARNING, "Path '%s' cannot be made absolute", path_src);
+    data->count_failed++;
+  }
+  return true;
 }
 
 /* similar to BKE_bpath_relative_convert - keep in sync! */
@@ -411,7 +406,7 @@ static bool missing_files_find__visit_cb(void *userdata, char *path_dst, const c
                 BLI_path_basename(data->searchdir));
     return false;
   }
-  else if (found == false) {
+  if (found == false) {
     BKE_reportf(data->reports,
                 RPT_WARNING,
                 "Could not find '%s' in '%s'",
@@ -419,18 +414,17 @@ static bool missing_files_find__visit_cb(void *userdata, char *path_dst, const c
                 data->searchdir);
     return false;
   }
-  else {
-    bool was_relative = BLI_path_is_rel(path_dst);
 
-    BLI_strncpy(path_dst, filename_new, FILE_MAX);
+  bool was_relative = BLI_path_is_rel(path_dst);
 
-    /* keep path relative if the previous one was relative */
-    if (was_relative) {
-      BLI_path_rel(path_dst, data->basedir);
-    }
+  BLI_strncpy(path_dst, filename_new, FILE_MAX);
 
-    return true;
+  /* keep path relative if the previous one was relative */
+  if (was_relative) {
+    BLI_path_rel(path_dst, data->basedir);
   }
+
+  return true;
 }
 
 void BKE_bpath_missing_files_find(Main *bmain,
@@ -483,9 +477,8 @@ static bool rewrite_path_fixed(char *path,
     BLI_strncpy(path, path_dst, FILE_MAX);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 static bool rewrite_path_fixed_dirfile(char path_dir[FILE_MAXDIR],
@@ -510,9 +503,8 @@ static bool rewrite_path_fixed_dirfile(char path_dir[FILE_MAXDIR],
     BLI_split_dirfile(path_dst, path_dir, path_file, FILE_MAXDIR, FILE_MAXFILE);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 static bool rewrite_path_alloc(char **path,
@@ -538,9 +530,8 @@ static bool rewrite_path_alloc(char **path,
     (*path) = BLI_strdup(path_dst);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /**
@@ -827,10 +818,9 @@ bool BKE_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *pa
     BLI_strncpy(path_dst, filepath, FILE_MAX);
     return true;
   }
-  else {
-    /* Path was not relative to begin with. */
-    return false;
-  }
+
+  /* Path was not relative to begin with. */
+  return false;
 }
 
 /** \} */

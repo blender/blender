@@ -184,10 +184,8 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
         /* return/use this as it is already valid length */
         return mpath;
       }
-      else {
-        /* clear the existing path (as the range has changed), and reallocate below */
-        animviz_free_motionpath_cache(mpath);
-      }
+      /* clear the existing path (as the range has changed), and reallocate below */
+      animviz_free_motionpath_cache(mpath);
     }
   }
   else {

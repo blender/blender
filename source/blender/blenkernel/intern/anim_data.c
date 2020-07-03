@@ -130,9 +130,7 @@ AnimData *BKE_animdata_from_id(ID *id)
     IdAdtTemplate *iat = (IdAdtTemplate *)id;
     return iat->adt;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /* Add AnimData to the given ID-block. In order for this to work, we assume that
@@ -161,9 +159,7 @@ AnimData *BKE_animdata_add_id(ID *id)
 
     return iat->adt;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /* Action Setter --------------------------------------- */
@@ -775,10 +771,9 @@ static char *rna_path_rename_fix(ID *owner_id,
         MEM_freeN(oldpath);
         return newPath;
       }
-      else {
-        /* still couldn't resolve the path... so, might as well just leave it alone */
-        MEM_freeN(newPath);
-      }
+
+      /* still couldn't resolve the path... so, might as well just leave it alone */
+      MEM_freeN(newPath);
     }
   }
 
