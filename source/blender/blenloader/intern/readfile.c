@@ -128,6 +128,7 @@
 #include "BKE_hair.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
+#include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
@@ -4396,7 +4397,7 @@ static void direct_link_image(BlendDataReader *reader, Image *ima)
   ima->preview = direct_link_preview_image(reader, ima->preview);
   BLO_read_data_address(reader, &ima->stereo3d_format);
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-    tile->ok = 1;
+    tile->ok = IMA_OK;
   }
 }
 

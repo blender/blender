@@ -3606,7 +3606,7 @@ ImageTile *BKE_image_add_tile(struct Image *ima, int tile_number, const char *la
   }
 
   ImageTile *tile = MEM_callocN(sizeof(ImageTile), "image new tile");
-  tile->ok = 1;
+  tile->ok = IMA_OK;
   tile->tile_number = tile_number;
 
   if (next_tile) {
@@ -3674,7 +3674,7 @@ bool BKE_image_fill_tile(struct Image *ima,
   if (tile_ibuf != NULL) {
     image_assign_ibuf(ima, tile_ibuf, 0, tile->tile_number);
     BKE_image_release_ibuf(ima, tile_ibuf, NULL);
-    tile->ok = 1;
+    tile->ok = IMA_OK;
     return true;
   }
   return false;
