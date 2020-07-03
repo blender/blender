@@ -1122,7 +1122,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
         do_pose_update = true;
         break;
       }
-      else if (event->val == KM_PRESS) {
+      if (event->val == KM_PRESS) {
         switch (event->type) {
           /* Transform Channel Limits  */
           /* XXX: Replace these hardcoded hotkeys with a modalmap that can be customised */
@@ -1307,9 +1307,8 @@ static int pose_slide_push_invoke(bContext *C, wmOperator *op, const wmEvent *ev
     pose_slide_exit(op);
     return OPERATOR_CANCELLED;
   }
-  else {
-    pso = op->customdata;
-  }
+
+  pso = op->customdata;
 
   /* initialise percentage so that it won't pop on first mouse move */
   pose_slide_mouse_update_percentage(pso, op, event);
@@ -1328,9 +1327,8 @@ static int pose_slide_push_exec(bContext *C, wmOperator *op)
     pose_slide_exit(op);
     return OPERATOR_CANCELLED;
   }
-  else {
-    pso = op->customdata;
-  }
+
+  pso = op->customdata;
 
   /* do common exec work */
   return pose_slide_exec_common(C, op, pso);
@@ -1369,9 +1367,8 @@ static int pose_slide_relax_invoke(bContext *C, wmOperator *op, const wmEvent *e
     pose_slide_exit(op);
     return OPERATOR_CANCELLED;
   }
-  else {
-    pso = op->customdata;
-  }
+
+  pso = op->customdata;
 
   /* initialise percentage so that it won't pop on first mouse move */
   pose_slide_mouse_update_percentage(pso, op, event);
@@ -1390,9 +1387,8 @@ static int pose_slide_relax_exec(bContext *C, wmOperator *op)
     pose_slide_exit(op);
     return OPERATOR_CANCELLED;
   }
-  else {
-    pso = op->customdata;
-  }
+
+  pso = op->customdata;
 
   /* do common exec work */
   return pose_slide_exec_common(C, op, pso);
@@ -1430,9 +1426,8 @@ static int pose_slide_push_rest_invoke(bContext *C, wmOperator *op, const wmEven
     pose_slide_exit(op);
     return OPERATOR_CANCELLED;
   }
-  else {
-    pso = op->customdata;
-  }
+
+  pso = op->customdata;
 
   /* initialise percentage so that it won't pop on first mouse move */
   pose_slide_mouse_update_percentage(pso, op, event);
@@ -1451,9 +1446,8 @@ static int pose_slide_push_rest_exec(bContext *C, wmOperator *op)
     pose_slide_exit(op);
     return OPERATOR_CANCELLED;
   }
-  else {
-    pso = op->customdata;
-  }
+
+  pso = op->customdata;
 
   /* do common exec work */
   return pose_slide_exec_common(C, op, pso);
@@ -1492,9 +1486,8 @@ static int pose_slide_relax_rest_invoke(bContext *C, wmOperator *op, const wmEve
     pose_slide_exit(op);
     return OPERATOR_CANCELLED;
   }
-  else {
-    pso = op->customdata;
-  }
+
+  pso = op->customdata;
 
   /* initialise percentage so that it won't pop on first mouse move */
   pose_slide_mouse_update_percentage(pso, op, event);
@@ -1513,9 +1506,8 @@ static int pose_slide_relax_rest_exec(bContext *C, wmOperator *op)
     pose_slide_exit(op);
     return OPERATOR_CANCELLED;
   }
-  else {
-    pso = op->customdata;
-  }
+
+  pso = op->customdata;
 
   /* do common exec work */
   return pose_slide_exec_common(C, op, pso);
@@ -1554,9 +1546,8 @@ static int pose_slide_breakdown_invoke(bContext *C, wmOperator *op, const wmEven
     pose_slide_exit(op);
     return OPERATOR_CANCELLED;
   }
-  else {
-    pso = op->customdata;
-  }
+
+  pso = op->customdata;
 
   /* initialise percentage so that it won't pop on first mouse move */
   pose_slide_mouse_update_percentage(pso, op, event);
@@ -1575,9 +1566,8 @@ static int pose_slide_breakdown_exec(bContext *C, wmOperator *op)
     pose_slide_exit(op);
     return OPERATOR_CANCELLED;
   }
-  else {
-    pso = op->customdata;
-  }
+
+  pso = op->customdata;
 
   /* do common exec work */
   return pose_slide_exec_common(C, op, pso);

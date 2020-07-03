@@ -141,9 +141,7 @@ static int poselib_get_free_index(bAction *act)
   if (low < high) {
     return (low + 1);
   }
-  else {
-    return (high + 1);
-  }
+  return (high + 1);
 }
 
 /* returns the active pose for a poselib */
@@ -152,9 +150,7 @@ static TimeMarker *poselib_get_active_pose(bAction *act)
   if ((act) && (act->active_marker)) {
     return BLI_findlink(&act->markers, act->active_marker - 1);
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /* Get object that Pose Lib should be found on */
@@ -173,9 +169,7 @@ static Object *get_poselib_object(bContext *C)
   if (area && (area->spacetype == SPACE_PROPERTIES)) {
     return ED_object_context(C);
   }
-  else {
-    return BKE_object_pose_armature_get(CTX_data_active_object(C));
-  }
+  return BKE_object_pose_armature_get(CTX_data_active_object(C));
 }
 
 /* Poll callback for operators that require existing PoseLib data (with poses) to work */
@@ -221,12 +215,10 @@ static bAction *poselib_validate(Main *bmain, Object *ob)
   if (ELEM(NULL, ob, ob->pose)) {
     return NULL;
   }
-  else if (ob->poselib == NULL) {
+  if (ob->poselib == NULL) {
     return poselib_init_new(bmain, ob);
   }
-  else {
-    return ob->poselib;
-  }
+  return ob->poselib;
 }
 
 /* ************************************************************* */
@@ -697,12 +689,11 @@ static int poselib_rename_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     BKE_report(op->reports, RPT_ERROR, "Invalid index for pose");
     return OPERATOR_CANCELLED;
   }
-  else {
-    /* Use the existing name of the marker as the name,
-     * and use the active marker as the one to rename. */
-    RNA_enum_set(op->ptr, "pose", act->active_marker - 1);
-    RNA_string_set(op->ptr, "name", marker->name);
-  }
+
+  /* Use the existing name of the marker as the name,
+   * and use the active marker as the one to rename. */
+  RNA_enum_set(op->ptr, "pose", act->active_marker - 1);
+  RNA_string_set(op->ptr, "name", marker->name);
 
   /* part to sync with other similar operators... */
   return WM_operator_props_popup_confirm(C, op, event);
@@ -1755,9 +1746,7 @@ static int poselib_preview_exit(bContext *C, wmOperator *op)
   if (ELEM(exit_state, PL_PREVIEW_CANCEL, PL_PREVIEW_ERROR)) {
     return OPERATOR_CANCELLED;
   }
-  else {
-    return OPERATOR_FINISHED;
-  }
+  return OPERATOR_FINISHED;
 }
 
 /* Cancel previewing operation (called when exiting Blender) */

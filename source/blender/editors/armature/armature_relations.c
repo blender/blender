@@ -207,7 +207,7 @@ static void joined_armature_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data
                       id, dtar->rna_path, "pose.bones", old_name, new_name, 0, 0, false);
                   break; /* no need to try any more names for bone path */
                 }
-                else if (STREQ(dtar->pchan_name, old_name)) {
+                if (STREQ(dtar->pchan_name, old_name)) {
                   /* Change target bone name */
                   BLI_strncpy(dtar->pchan_name, new_name, sizeof(dtar->pchan_name));
                   break; /* no need to try any more names for bone subtarget */
@@ -636,7 +636,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
             has_selected_bone = true;
             break;
           }
-          else if (ebone->flag & (BONE_TIPSEL | BONE_ROOTSEL)) {
+          if (ebone->flag & (BONE_TIPSEL | BONE_ROOTSEL)) {
             has_selected_any = true;
           }
         }
@@ -816,7 +816,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "Operation requires an active bone");
     return OPERATOR_CANCELLED;
   }
-  else if (arm->flag & ARM_MIRROR_EDIT) {
+  if (arm->flag & ARM_MIRROR_EDIT) {
     /* For X-Axis Mirror Editing option, we may need a mirror copy of actbone:
      * - If there's a mirrored copy of selbone, try to find a mirrored copy of actbone
      *   (i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").

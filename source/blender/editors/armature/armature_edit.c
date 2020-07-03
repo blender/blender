@@ -728,7 +728,8 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No joints selected");
     return OPERATOR_CANCELLED;
   }
-  else if (mixed_object_error) {
+
+  if (mixed_object_error) {
     BKE_report(op->reports, RPT_ERROR, "Bones for different objects selected");
     BLI_freelistN(&points);
     return OPERATOR_CANCELLED;
@@ -1093,7 +1094,8 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "Operation requires an active bone");
     return OPERATOR_CANCELLED;
   }
-  else if (arm->flag & ARM_MIRROR_EDIT) {
+
+  if (arm->flag & ARM_MIRROR_EDIT) {
     /* For X-Axis Mirror Editing option, we may need a mirror copy of actbone
      * - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone
      *   (i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").

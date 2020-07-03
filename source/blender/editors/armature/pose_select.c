@@ -1016,7 +1016,7 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool ex
     BKE_report(reports, RPT_ERROR, "No active Keying Set to use");
     return false;
   }
-  else if (ANIM_validate_keyingset(C, NULL, ks) != 0) {
+  if (ANIM_validate_keyingset(C, NULL, ks) != 0) {
     if (ks->paths.first == NULL) {
       if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
         BKE_report(reports,
@@ -1129,9 +1129,7 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void POSE_OT_select_grouped(wmOperatorType *ot)

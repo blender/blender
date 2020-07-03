@@ -182,9 +182,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
       if (flipbone == NULL) {
         break;
       }
-      else {
-        SWAP(EditBone *, flipbone, ebone);
-      }
+      SWAP(EditBone *, flipbone, ebone);
     }
 
     newbone = ED_armature_ebone_add(arm, ebone->name);
@@ -1084,13 +1082,12 @@ static EditBone *get_symmetrized_bone(bArmature *arm, EditBone *bone)
   if (bone == NULL) {
     return NULL;
   }
-  else if (bone->temp.ebone != NULL) {
+  if (bone->temp.ebone != NULL) {
     return bone->temp.ebone;
   }
-  else {
-    EditBone *mirror = ED_armature_ebone_get_mirrored(arm->edbo, bone);
-    return (mirror != NULL) ? mirror : bone;
-  }
+
+  EditBone *mirror = ED_armature_ebone_get_mirrored(arm->edbo, bone);
+  return (mirror != NULL) ? mirror : bone;
 }
 
 /**
@@ -1417,9 +1414,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
               if (flipbone == NULL) {
                 break;
               }
-              else {
-                SWAP(EditBone *, flipbone, ebone);
-              }
+              SWAP(EditBone *, flipbone, ebone);
             }
 
             totbone++;

@@ -177,11 +177,10 @@ static int pose_groups_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
 
     return OPERATOR_INTERFACE;
   }
-  else {
-    /* just use the active group index, and call the exec callback for the calling operator */
-    RNA_int_set(op->ptr, "type", pose->active_group);
-    return op->type->exec(C, op);
-  }
+
+  /* just use the active group index, and call the exec callback for the calling operator */
+  RNA_int_set(op->ptr, "type", pose->active_group);
+  return op->type->exec(C, op);
 }
 
 /* Assign selected pchans to the bone group that the user selects */
@@ -221,9 +220,7 @@ static int pose_group_assign_exec(bContext *C, wmOperator *op)
   if (done) {
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void POSE_OT_group_assign(wmOperatorType *ot)
@@ -272,9 +269,7 @@ static int pose_group_unassign_exec(bContext *C, wmOperator *UNUSED(op))
   if (done) {
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void POSE_OT_group_unassign(wmOperatorType *ot)

@@ -915,9 +915,7 @@ int ED_armature_ebone_selectflag_get(const EditBone *ebone)
     return ((ebone->flag & (BONE_SELECTED | BONE_TIPSEL)) |
             ((ebone->parent->flag & BONE_TIPSEL) ? BONE_ROOTSEL : 0));
   }
-  else {
-    return (ebone->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL));
-  }
+  return (ebone->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL));
 }
 
 void ED_armature_ebone_selectflag_set(EditBone *ebone, int flag)

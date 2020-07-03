@@ -263,10 +263,8 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(const bool is_editmode
     *r_base = firstunSel_base;
     return firstunSel;
   }
-  else {
-    *r_base = firstSel_base;
-    return firstSel;
-  }
+  *r_base = firstSel_base;
+  return firstSel;
 }
 
 EditBone *ED_armature_pick_ebone_from_selectbuffer(Base **bases,
@@ -2253,10 +2251,9 @@ static int armature_shortest_path_pick_invoke(bContext *C, wmOperator *op, const
 
     return OPERATOR_FINISHED;
   }
-  else {
-    BKE_report(op->reports, RPT_WARNING, "Unselectable bone in chain");
-    return OPERATOR_CANCELLED;
-  }
+
+  BKE_report(op->reports, RPT_WARNING, "Unselectable bone in chain");
+  return OPERATOR_CANCELLED;
 }
 
 void ARMATURE_OT_shortest_path_pick(wmOperatorType *ot)
