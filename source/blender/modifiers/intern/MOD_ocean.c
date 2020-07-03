@@ -598,7 +598,7 @@ static void waves_panel_draw(const bContext *C, Panel *panel)
   uiItemS(layout);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, &ptr, "wave_alignment", 0, IFACE_("Alignment"), ICON_NONE);
+  uiItemR(col, &ptr, "wave_alignment", UI_ITEM_R_SLIDER, IFACE_("Alignment"), ICON_NONE);
   sub = uiLayoutColumn(col, false);
   uiLayoutSetActive(sub, RNA_float_get(&ptr, "wave_alignment") > 0.0f);
   uiItemR(sub, &ptr, "wave_direction", 0, IFACE_("Direction"), ICON_NONE);
@@ -682,7 +682,7 @@ static void spectrum_panel_draw(const bContext *C, Panel *panel)
   col = uiLayoutColumn(layout, false);
   uiItemR(col, &ptr, "spectrum", 0, NULL, ICON_NONE);
   if (ELEM(spectrum, MOD_OCEAN_SPECTRUM_TEXEL_MARSEN_ARSLOE, MOD_OCEAN_SPECTRUM_JONSWAP)) {
-    uiItemR(col, &ptr, "sharpen_peak_jonswap", 0, NULL, ICON_NONE);
+    uiItemR(col, &ptr, "sharpen_peak_jonswap", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
     uiItemR(col, &ptr, "fetch_jonswap", 0, NULL, ICON_NONE);
   }
 }

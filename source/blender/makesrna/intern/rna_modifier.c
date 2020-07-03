@@ -5644,7 +5644,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "wave_alignment", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_float_sdna(prop, NULL, "wave_alignment");
-  RNA_def_property_range(prop, 0.0, 10.0);
+  RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_text(prop, "Wave Alignment", "How much the waves are aligned to each other");
   RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 
@@ -5721,7 +5721,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "sharpen_peak_jonswap", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_float_sdna(prop, NULL, "sharpen_peak_jonswap");
-  RNA_def_property_range(prop, 0.0, 10.0);
+  RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_text(prop, "Sharpen peak", "Peak sharpening for 'JONSWAP' and 'TMA' models");
   RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 

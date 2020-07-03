@@ -257,18 +257,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 290, 6)) {
     /* Transition to saving expansion for all of a modifier's sub-panels. */
     if (!DNA_struct_elem_find(fd->filesdna, "ModifierData", "short", "ui_expand_flag")) {
       for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
@@ -338,19 +327,43 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
-  }
 
-  /* Refactor bevel profile type to use an enum. */
-  if (!DNA_struct_elem_find(fd->filesdna, "BevelModifierData", "short", "profile_type")) {
-    for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
-      LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-        if (md->type == eModifierType_Bevel) {
-          BevelModifierData *bmd = (BevelModifierData *)md;
-          bool use_custom_profile = bmd->flags & MOD_BEVEL_CUSTOM_PROFILE_DEPRECATED;
-          bmd->profile_type = use_custom_profile ? MOD_BEVEL_PROFILE_CUSTOM :
-                                                   MOD_BEVEL_PROFILE_SUPERELLIPSE;
+    /* Refactor bevel profile type to use an enum. */
+    if (!DNA_struct_elem_find(fd->filesdna, "BevelModifierData", "short", "profile_type")) {
+      for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+        LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+          if (md->type == eModifierType_Bevel) {
+            BevelModifierData *bmd = (BevelModifierData *)md;
+            bool use_custom_profile = bmd->flags & MOD_BEVEL_CUSTOM_PROFILE_DEPRECATED;
+            bmd->profile_type = use_custom_profile ? MOD_BEVEL_PROFILE_CUSTOM :
+                                                     MOD_BEVEL_PROFILE_SUPERELLIPSE;
+          }
         }
       }
     }
+
+    /* Change ocean modifier values from [0, 10] to [0, 1] ranges. */
+    for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+      LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+        if (md->type == eModifierType_Ocean) {
+          OceanModifierData *omd = (OceanModifierData *)md;
+          omd->wave_alignment *= 0.1f;
+          omd->sharpen_peak_jonswap *= 0.1f;
+        }
+      }
+    }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

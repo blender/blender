@@ -831,7 +831,7 @@ void BKE_ocean_init(struct Ocean *o,
   o->_A = A;
   o->_w = w;
   o->_damp_reflections = 1.0f - damp;
-  o->_wind_alignment = alignment;
+  o->_wind_alignment = alignment * 10.0f;
   o->_depth = depth;
   o->_Lx = Lx;
   o->_Lz = Lz;
@@ -845,7 +845,7 @@ void BKE_ocean_init(struct Ocean *o,
 
   /* Common JONSWAP parameters. */
   o->_fetch_jonswap = fetch_jonswap;
-  o->_sharpen_peak_jonswap = sharpen_peak_jonswap;
+  o->_sharpen_peak_jonswap = sharpen_peak_jonswap * 10.0f;
 
   o->_do_disp_y = do_height_field;
   o->_do_normals = do_normals;
