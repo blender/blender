@@ -116,9 +116,8 @@ Object *ED_view3d_cameracontrol_object_get(View3DCameraControl *vctrl)
   if (rv3d->persp == RV3D_CAMOB) {
     return view3d_cameracontrol_object(vctrl);
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 /**

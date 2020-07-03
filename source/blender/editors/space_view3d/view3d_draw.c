@@ -1619,9 +1619,7 @@ RenderEngineType *ED_view3d_engine_type(const Scene *scene, int drawtype)
   if (drawtype == OB_MATERIAL && (type->flag & RE_USE_EEVEE_VIEWPORT)) {
     return RE_engines_find(RE_engine_id_BLENDER_EEVEE);
   }
-  else {
-    return type;
-  }
+  return type;
 }
 
 void view3d_main_region_draw(const bContext *C, ARegion *region)

@@ -869,9 +869,7 @@ static int snap_curs_to_sel_exec(bContext *C, wmOperator *UNUSED(op))
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
@@ -921,9 +919,7 @@ static int snap_curs_to_active_exec(bContext *C, wmOperator *UNUSED(op))
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)

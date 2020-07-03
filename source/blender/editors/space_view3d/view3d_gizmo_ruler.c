@@ -397,9 +397,7 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
     }
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /** \} */

@@ -425,7 +425,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
   if (fly->state == FLY_RUNNING) {
     return OPERATOR_RUNNING_MODAL;
   }
-  else if (fly->state == FLY_CONFIRM) {
+  if (fly->state == FLY_CONFIRM) {
     /* Needed for auto_keyframe. */
 #ifdef WITH_INPUT_NDOF
     if (fly->ndof) {

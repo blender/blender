@@ -126,9 +126,8 @@ static void WIDGETGROUP_tool_generic_refresh(const bContext *C, wmGizmoGroup *gz
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
     return;
   }
-  else {
-    gzgroup->use_fallback_keymap = true;
-  }
+
+  gzgroup->use_fallback_keymap = true;
 
   /* skip, we don't draw anything anyway */
   {

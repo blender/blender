@@ -620,7 +620,7 @@ static int walkEnd(bContext *C, WalkInfo *walk)
   if (walk->state == WALK_RUNNING) {
     return OPERATOR_RUNNING_MODAL;
   }
-  else if (walk->state == WALK_CONFIRM) {
+  if (walk->state == WALK_CONFIRM) {
     /* Needed for auto_keyframe. */
 #ifdef WITH_INPUT_NDOF
     if (walk->ndof) {

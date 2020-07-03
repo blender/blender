@@ -826,7 +826,7 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
     view3d_interactive_add_exit(C, op);
     return OPERATOR_CANCELLED;
   }
-  else if (event->type == MOUSEMOVE) {
+  if (event->type == MOUSEMOVE) {
     do_cursor_update = true;
   }
 

@@ -568,9 +568,7 @@ static int view3d_camera_to_view_selected_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, camera_ob);
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_camera_to_view_selected(wmOperatorType *ot)
@@ -1486,9 +1484,7 @@ static int localview_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_localview(wmOperatorType *ot)
@@ -1538,10 +1534,9 @@ static int localview_remove_from_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
     return OPERATOR_FINISHED;
   }
-  else {
-    BKE_report(op->reports, RPT_ERROR, "No object selected");
-    return OPERATOR_CANCELLED;
-  }
+
+  BKE_report(op->reports, RPT_ERROR, "No object selected");
+  return OPERATOR_CANCELLED;
 }
 
 static bool localview_remove_from_poll(bContext *C)

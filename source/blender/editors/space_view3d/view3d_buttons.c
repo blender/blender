@@ -126,27 +126,25 @@ static float compute_scale_factor(const float ve_median, const float median)
   if (ve_median <= 0.0f) {
     return 0.0f;
   }
-  else if (ve_median >= 1.0f) {
+  if (ve_median >= 1.0f) {
     return 1.0f;
   }
-  else {
-    /* Scale value to target median. */
-    float median_new = ve_median;
-    float median_orig = ve_median - median; /* Previous median value. */
 
-    /* In case of floating point error. */
-    CLAMP(median_orig, 0.0f, 1.0f);
-    CLAMP(median_new, 0.0f, 1.0f);
+  /* Scale value to target median. */
+  float median_new = ve_median;
+  float median_orig = ve_median - median; /* Previous median value. */
 
-    if (median_new <= median_orig) {
-      /* Scale down. */
-      return median_new / median_orig;
-    }
-    else {
-      /* Scale up, negative to indicate it... */
-      return -(1.0f - median_new) / (1.0f - median_orig);
-    }
+  /* In case of floating point error. */
+  CLAMP(median_orig, 0.0f, 1.0f);
+  CLAMP(median_new, 0.0f, 1.0f);
+
+  if (median_new <= median_orig) {
+    /* Scale down. */
+    return median_new / median_orig;
   }
+
+  /* Scale up, negative to indicate it... */
+  return -(1.0f - median_new) / (1.0f - median_orig);
 }
 
 /**
@@ -1117,13 +1115,12 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
     /* not for me */
     return;
   }
-  else {
-    ViewLayer *view_layer = CTX_data_view_layer(C);
-    Object *ob = view_layer->basact->object;
-    ED_vgroup_vert_active_mirror(ob, event - B_VGRP_PNL_EDIT_SINGLE);
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
-  }
+
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *ob = view_layer->basact->object;
+  ED_vgroup_vert_active_mirror(ob, event - B_VGRP_PNL_EDIT_SINGLE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 }
 
 static bool view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
@@ -1641,14 +1638,13 @@ static int view3d_object_mode_menu(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_WARNING, "No active object found");
     return OPERATOR_CANCELLED;
   }
-  else if (((ob->mode & OB_MODE_EDIT) == 0) && (ELEM(ob->type, OB_ARMATURE))) {
+  if (((ob->mode & OB_MODE_EDIT) == 0) && (ELEM(ob->type, OB_ARMATURE))) {
     ED_object_mode_set(C, (ob->mode == OB_MODE_OBJECT) ? OB_MODE_POSE : OB_MODE_OBJECT);
     return OPERATOR_CANCELLED;
   }
-  else {
-    UI_pie_menu_invoke(C, "VIEW3D_MT_object_mode_pie", CTX_wm_window(C)->eventstate);
-    return OPERATOR_CANCELLED;
-  }
+
+  UI_pie_menu_invoke(C, "VIEW3D_MT_object_mode_pie", CTX_wm_window(C)->eventstate);
+  return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_object_mode_pie_or_toggle(wmOperatorType *ot)

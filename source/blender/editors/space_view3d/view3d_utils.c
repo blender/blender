@@ -113,9 +113,7 @@ Camera *ED_view3d_camera_data_get(View3D *v3d, RegionView3D *rv3d)
   if ((rv3d->persp == RV3D_CAMOB) && v3d->camera && (v3d->camera->type == OB_CAMERA)) {
     return v3d->camera->data;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 void ED_view3d_dist_range_get(const View3D *v3d, float r_dist_range[2])
@@ -602,9 +600,7 @@ bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionV
 
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 bool ED_view3d_camera_autokey(const Scene *scene,
@@ -639,9 +635,7 @@ bool ED_view3d_camera_autokey(const Scene *scene,
 
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /**
@@ -673,9 +667,7 @@ bool ED_view3d_camera_lock_autokey(View3D *v3d,
 
     return ED_view3d_camera_autokey(scene, id_key, C, do_rotate, do_translate);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /** \} */
@@ -1017,9 +1009,7 @@ bool ED_view3d_autodist(Depsgraph *depsgraph,
     ED_view3d_win_to_3d_int(v3d, region, fallback_depth_pt, mval, mouse_worldloc);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 void ED_view3d_autodist_init(Depsgraph *depsgraph, ARegion *region, View3D *v3d, int mode)
@@ -1086,9 +1076,7 @@ static bool depth_segment_cb(int x, int y, void *userData)
     data->depth = depth;
     return 0;
   }
-  else {
-    return 1;
-  }
+  return 1;
 }
 
 bool ED_view3d_autodist_depth_seg(
@@ -1390,9 +1378,7 @@ bool ED_view3d_quat_from_axis_view(const char view, const char view_axis_roll, f
     copy_qt_qt(quat, view3d_quat_axis[view - RV3D_VIEW_FRONT][view_axis_roll]);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 bool ED_view3d_quat_to_axis_view(const float quat[4],
@@ -1575,10 +1561,9 @@ float ED_view3d_depth_read_cached(const ViewContext *vc, const int mval[2])
   if (vd && vd->depths && x > 0 && y > 0 && x < vd->w && y < vd->h) {
     return vd->depths[y * vd->w + x];
   }
-  else {
-    BLI_assert(1.0 <= vd->depth_range[1]);
-    return 1.0f;
-  }
+
+  BLI_assert(1.0 <= vd->depth_range[1]);
+  return 1.0f;
 }
 
 bool ED_view3d_depth_read_cached_normal(const ViewContext *vc,
@@ -1633,9 +1618,7 @@ bool ED_view3d_depth_read_cached_normal(const ViewContext *vc,
   if (normalize_v3(r_normal) != 0.0f) {
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 bool ED_view3d_depth_unproject(const ARegion *region,

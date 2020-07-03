@@ -1021,12 +1021,11 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    /* add temp handler */
-    WM_event_add_modal_handler(C, op);
 
-    return OPERATOR_RUNNING_MODAL;
-  }
+  /* add temp handler */
+  WM_event_add_modal_handler(C, op);
+
+  return OPERATOR_RUNNING_MODAL;
 }
 
 static void viewrotate_cancel(bContext *C, wmOperator *op)
@@ -1848,12 +1847,11 @@ static int viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    /* add temp handler */
-    WM_event_add_modal_handler(C, op);
 
-    return OPERATOR_RUNNING_MODAL;
-  }
+  /* add temp handler */
+  WM_event_add_modal_handler(C, op);
+
+  return OPERATOR_RUNNING_MODAL;
 }
 
 static void viewmove_cancel(bContext *C, wmOperator *op)
@@ -2407,18 +2405,17 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       viewops_data_free(C, op);
       return OPERATOR_FINISHED;
     }
-    else {
-      if (U.viewzoom == USER_ZOOM_CONT) {
-        /* needs a timer to continue redrawing */
-        vod->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
-        vod->prev.time = PIL_check_seconds_timer();
-      }
 
-      /* add temp handler */
-      WM_event_add_modal_handler(C, op);
-
-      return OPERATOR_RUNNING_MODAL;
+    if (U.viewzoom == USER_ZOOM_CONT) {
+      /* needs a timer to continue redrawing */
+      vod->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+      vod->prev.time = PIL_check_seconds_timer();
     }
+
+    /* add temp handler */
+    WM_event_add_modal_handler(C, op);
+
+    return OPERATOR_RUNNING_MODAL;
   }
   return OPERATOR_FINISHED;
 }
@@ -2500,9 +2497,7 @@ static bool viewdolly_offset_lock_check(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_WARNING, "Cannot dolly when the view offset is locked");
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 static void view_dolly_to_vector_3d(ARegion *region, float orig_ofs[3], float dvec[3], float dfac)
@@ -2726,12 +2721,10 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       viewops_data_free(C, op);
       return OPERATOR_FINISHED;
     }
-    else {
-      /* add temp handler */
-      WM_event_add_modal_handler(C, op);
 
-      return OPERATOR_RUNNING_MODAL;
-    }
+    /* add temp handler */
+    WM_event_add_modal_handler(C, op);
+    return OPERATOR_RUNNING_MODAL;
   }
   return OPERATOR_FINISHED;
 }
@@ -3170,9 +3163,8 @@ static int view_lock_clear_exec(bContext *C, wmOperator *UNUSED(op))
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+
+  return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_view_lock_clear(wmOperatorType *ot)
@@ -3228,9 +3220,8 @@ static int view_lock_to_active_exec(bContext *C, wmOperator *UNUSED(op))
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+
+  return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_view_lock_to_active(wmOperatorType *ot)
@@ -4500,10 +4491,9 @@ static int viewroll_exec(bContext *C, wmOperator *op)
     viewops_data_free(C, op);
     return OPERATOR_FINISHED;
   }
-  else {
-    viewops_data_free(C, op);
-    return OPERATOR_CANCELLED;
-  }
+
+  viewops_data_free(C, op);
+  return OPERATOR_CANCELLED;
 }
 
 static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -4535,12 +4525,10 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       viewops_data_free(C, op);
       return OPERATOR_FINISHED;
     }
-    else {
-      /* add temp handler */
-      WM_event_add_modal_handler(C, op);
 
-      return OPERATOR_RUNNING_MODAL;
-    }
+    /* add temp handler */
+    WM_event_add_modal_handler(C, op);
+    return OPERATOR_RUNNING_MODAL;
   }
   return OPERATOR_FINISHED;
 }
@@ -4755,9 +4743,8 @@ static Camera *background_image_camera_from_context(bContext *C)
     }
     return NULL;
   }
-  else {
-    return CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
-  }
+
+  return CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
 }
 
 static int background_image_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -4848,9 +4835,7 @@ static int background_image_remove_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_background_image_remove(wmOperatorType *ot)
@@ -4933,9 +4918,7 @@ static int view3d_clipping_invoke(bContext *C, wmOperator *op, const wmEvent *ev
     rv3d->clipbb = NULL;
     return OPERATOR_FINISHED;
   }
-  else {
-    return WM_gesture_box_invoke(C, op, event);
-  }
+  return WM_gesture_box_invoke(C, op, event);
 }
 
 void VIEW3D_OT_clip_border(wmOperatorType *ot)

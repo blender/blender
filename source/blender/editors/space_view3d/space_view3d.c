@@ -120,11 +120,10 @@ bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_regi
         *r_region = region;
         return true;
       }
-      else {
-        if (ED_view3d_area_user_region(area, v3d, r_region)) {
-          *r_v3d = v3d;
-          return true;
-        }
+
+      if (ED_view3d_area_user_region(area, v3d, r_region)) {
+        *r_v3d = v3d;
+        return true;
       }
     }
   }
@@ -508,9 +507,8 @@ static bool view3d_ima_drop_poll(bContext *C,
     /* rule might not work? */
     return (ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE));
   }
-  else {
-    return WM_drag_ID(drag, ID_IM) != NULL;
-  }
+
+  return WM_drag_ID(drag, ID_IM) != NULL;
 }
 
 static bool view3d_ima_bg_is_camera_view(bContext *C)
