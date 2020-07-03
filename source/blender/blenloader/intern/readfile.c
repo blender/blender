@@ -6942,13 +6942,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
   }
 
   if (reader->fd->memfile) {
-    /* If it's undo try to recover the cache. */
-    if (reader->fd->scenemap) {
-      sce->eevee.light_cache_data = newsceadr(reader->fd, sce->eevee.light_cache_data);
-    }
-    else {
-      sce->eevee.light_cache_data = NULL;
-    }
+    /* If it's undo do nothing here, caches are handled by higher-level generic calling code. */
   }
   else {
     /* else try to read the cache from file. */

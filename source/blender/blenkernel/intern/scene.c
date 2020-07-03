@@ -570,6 +570,20 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void scene_foreach_cache(ID *id,
+                                IDTypeForeachCacheFunctionCallback function_callback,
+                                void *user_data)
+{
+  Scene *scene = (Scene *)id;
+  IDCacheKey key = {
+      .id_session_uuid = id->session_uuid,
+      .offset_in_ID = offsetof(Scene, eevee.light_cache_data),
+      .cache_v = scene->eevee.light_cache_data,
+  };
+
+  function_callback(id, &key, (void **)&scene->eevee.light_cache_data, user_data);
+}
+
 IDTypeInfo IDType_ID_SCE = {
     .id_code = ID_SCE,
     .id_filter = FILTER_ID_SCE,
@@ -587,6 +601,7 @@ IDTypeInfo IDType_ID_SCE = {
      * support all possible corner cases. */
     .make_local = NULL,
     .foreach_id = scene_foreach_id,
+    .foreach_cache = scene_foreach_cache,
 };
 
 const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";
