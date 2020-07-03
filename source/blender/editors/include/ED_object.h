@@ -58,9 +58,9 @@ struct wmWindowManager;
 
 /* object_edit.c */
 /* context.object */
-struct Object *ED_object_context(struct bContext *C);
+struct Object *ED_object_context(const struct bContext *C);
 /* context.object or context.active_object */
-struct Object *ED_object_active_context(struct bContext *C);
+struct Object *ED_object_active_context(const struct bContext *C);
 void ED_collection_hide_menu_draw(const struct bContext *C, struct uiLayout *layout);
 
 /* object_utils.c */

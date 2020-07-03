@@ -33,7 +33,6 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 
 #include "ED_object.h"
 
@@ -50,24 +49,13 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h" /* Self include */
 
-static Object *get_modifier_object(const bContext *C)
-{
-  SpaceProperties *sbuts = CTX_wm_space_properties(C);
-  if (sbuts != NULL && (sbuts->pinid != NULL) && GS(sbuts->pinid->name) == ID_OB) {
-    return (Object *)sbuts->pinid;
-  }
-  else {
-    return CTX_data_active_object(C);
-  }
-}
-
 /**
  * Poll function so these modifier panels don't show for other object types with modifiers (only
  * grease pencil currently).
  */
 static bool modifier_ui_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-  Object *ob = get_modifier_object(C);
+  Object *ob = ED_object_active_context(C);
 
   return (ob != NULL) && (ob->type != OB_GPENCIL);
 }
@@ -81,7 +69,7 @@ static bool modifier_ui_poll(const bContext *C, PanelType *UNUSED(pt))
  */
 static void modifier_reorder(bContext *C, Panel *panel, int new_index)
 {
-  Object *ob = get_modifier_object(C);
+  Object *ob = ED_object_active_context(C);
 
   ModifierData *md = BLI_findlink(&ob->modifiers, panel->runtime.list_index);
   PointerRNA props_ptr;
@@ -95,14 +83,14 @@ static void modifier_reorder(bContext *C, Panel *panel, int new_index)
 
 static short get_modifier_expand_flag(const bContext *C, Panel *panel)
 {
-  Object *ob = get_modifier_object(C);
+  Object *ob = ED_object_active_context(C);
   ModifierData *md = BLI_findlink(&ob->modifiers, panel->runtime.list_index);
   return md->ui_expand_flag;
 }
 
 static void set_modifier_expand_flag(const bContext *C, Panel *panel, short expand_flag)
 {
-  Object *ob = get_modifier_object(C);
+  Object *ob = ED_object_active_context(C);
   ModifierData *md = BLI_findlink(&ob->modifiers, panel->runtime.list_index);
   md->ui_expand_flag = expand_flag;
 }
@@ -135,7 +123,7 @@ void modifier_panel_get_property_pointers(const bContext *C,
                                           PointerRNA *r_ob_ptr,
                                           PointerRNA *r_md_ptr)
 {
-  Object *ob = get_modifier_object(C);
+  Object *ob = ED_object_active_context(C);
 
   ModifierData *md = BLI_findlink(&ob->modifiers, panel->runtime.list_index);
 
@@ -228,7 +216,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
   ModifierData *md = (ModifierData *)md_v;
 
   PointerRNA ptr;
-  Object *ob = get_modifier_object(C);
+  Object *ob = ED_object_active_context(C);
   RNA_pointer_create(&ob->id, &RNA_Modifier, md, &ptr);
   uiLayoutSetContextPointer(layout, "modifier", &ptr);
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
@@ -303,7 +291,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   uiLayout *layout = panel->layout;
 
   PointerRNA ptr;
-  Object *ob = get_modifier_object(C);
+  Object *ob = ED_object_active_context(C);
 
   /* Don't use #modifier_panel_get_property_pointers, we don't want to lock the header. */
   ModifierData *md = BLI_findlink(&ob->modifiers, panel->runtime.list_index);

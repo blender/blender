@@ -32,7 +32,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_shader_fx_types.h"
-#include "DNA_space_types.h"
 
 #include "ED_object.h"
 
@@ -48,17 +47,6 @@
 
 #include "FX_ui_common.h" /* Self include */
 
-static Object *get_context_object(const bContext *C)
-{
-  SpaceProperties *sbuts = CTX_wm_space_properties(C);
-  if (sbuts != NULL && (sbuts->pinid != NULL) && GS(sbuts->pinid->name) == ID_OB) {
-    return (Object *)sbuts->pinid;
-  }
-  else {
-    return CTX_data_active_object(C);
-  }
-}
-
 /* -------------------------------------------------------------------- */
 /** \name Panel Drag and Drop, Expansion Saving
  * \{ */
@@ -68,7 +56,7 @@ static Object *get_context_object(const bContext *C)
  */
 static void shaderfx_reorder(bContext *C, Panel *panel, int new_index)
 {
-  Object *ob = get_context_object(C);
+  Object *ob = ED_object_active_context(C);
 
   ShaderFxData *fx = BLI_findlink(&ob->shader_fx, panel->runtime.list_index);
   PointerRNA props_ptr;
@@ -85,7 +73,7 @@ static void shaderfx_reorder(bContext *C, Panel *panel, int new_index)
  */
 static short get_shaderfx_expand_flag(const bContext *C, Panel *panel)
 {
-  Object *ob = get_context_object(C);
+  Object *ob = ED_object_active_context(C);
   ShaderFxData *fx = BLI_findlink(&ob->shader_fx, panel->runtime.list_index);
   return fx->ui_expand_flag;
 }
@@ -95,7 +83,7 @@ static short get_shaderfx_expand_flag(const bContext *C, Panel *panel)
  */
 static void set_shaderfx_expand_flag(const bContext *C, Panel *panel, short expand_flag)
 {
-  Object *ob = get_context_object(C);
+  Object *ob = ED_object_active_context(C);
   ShaderFxData *fx = BLI_findlink(&ob->shader_fx, panel->runtime.list_index);
   fx->ui_expand_flag = expand_flag;
 }
@@ -126,7 +114,7 @@ void shaderfx_panel_get_property_pointers(const bContext *C,
                                           PointerRNA *r_ob_ptr,
                                           PointerRNA *r_md_ptr)
 {
-  Object *ob = get_context_object(C);
+  Object *ob = ED_object_active_context(C);
   ShaderFxData *md = BLI_findlink(&ob->shader_fx, panel->runtime.list_index);
 
   RNA_pointer_create(&ob->id, &RNA_ShaderFx, md, r_md_ptr);
@@ -147,7 +135,7 @@ static void shaderfx_panel_header(const bContext *C, Panel *panel)
 
   PointerRNA ptr;
   shaderfx_panel_get_property_pointers(C, panel, NULL, &ptr);
-  Object *ob = get_context_object(C);
+  Object *ob = ED_object_active_context(C);
   ShaderFxData *fx = (ShaderFxData *)ptr.data;
 
   const ShaderFxTypeInfo *fxti = BKE_shaderfx_get_info(fx->type);
@@ -192,7 +180,7 @@ static void shaderfx_panel_header(const bContext *C, Panel *panel)
 
 static bool shaderfx_ui_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-  Object *ob = get_context_object(C);
+  Object *ob = ED_object_active_context(C);
 
   return (ob != NULL) && (ob->type == OB_GPENCIL);
 }

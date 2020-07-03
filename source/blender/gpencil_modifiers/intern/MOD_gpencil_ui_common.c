@@ -34,7 +34,6 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 
 #include "ED_object.h"
 
@@ -50,23 +49,12 @@
 
 #include "MOD_gpencil_ui_common.h" /* Self include */
 
-static Object *get_gpencilmodifier_object(const bContext *C)
-{
-  SpaceProperties *sbuts = CTX_wm_space_properties(C);
-  if (sbuts != NULL && (sbuts->pinid != NULL) && GS(sbuts->pinid->name) == ID_OB) {
-    return (Object *)sbuts->pinid;
-  }
-  else {
-    return CTX_data_active_object(C);
-  }
-}
-
 /**
  * Poll function so these modifier panels only show for grease pencil objects.
  */
 static bool gpencil_modifier_ui_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-  Object *ob = get_gpencilmodifier_object(C);
+  Object *ob = ED_object_active_context(C);
 
   return (ob != NULL) && (ob->type == OB_GPENCIL);
 }
@@ -80,7 +68,7 @@ static bool gpencil_modifier_ui_poll(const bContext *C, PanelType *UNUSED(pt))
  */
 static void gpencil_modifier_reorder(bContext *C, Panel *panel, int new_index)
 {
-  Object *ob = get_gpencilmodifier_object(C);
+  Object *ob = ED_object_active_context(C);
 
   GpencilModifierData *md = BLI_findlink(&ob->greasepencil_modifiers, panel->runtime.list_index);
   PointerRNA props_ptr;
@@ -94,7 +82,7 @@ static void gpencil_modifier_reorder(bContext *C, Panel *panel, int new_index)
 
 static short get_gpencil_modifier_expand_flag(const bContext *C, Panel *panel)
 {
-  Object *ob = get_gpencilmodifier_object(C);
+  Object *ob = ED_object_active_context(C);
   GpencilModifierData *md = BLI_findlink(&ob->greasepencil_modifiers, panel->runtime.list_index);
   return md->ui_expand_flag;
   return 0;
@@ -102,7 +90,7 @@ static short get_gpencil_modifier_expand_flag(const bContext *C, Panel *panel)
 
 static void set_gpencil_modifier_expand_flag(const bContext *C, Panel *panel, short expand_flag)
 {
-  Object *ob = get_gpencilmodifier_object(C);
+  Object *ob = ED_object_active_context(C);
   GpencilModifierData *md = BLI_findlink(&ob->greasepencil_modifiers, panel->runtime.list_index);
   md->ui_expand_flag = expand_flag;
 }
@@ -245,7 +233,7 @@ void gpencil_modifier_panel_get_property_pointers(const bContext *C,
                                                   PointerRNA *r_ob_ptr,
                                                   PointerRNA *r_md_ptr)
 {
-  Object *ob = get_gpencilmodifier_object(C);
+  Object *ob = ED_object_active_context(C);
   GpencilModifierData *md = BLI_findlink(&ob->greasepencil_modifiers, panel->runtime.list_index);
 
   RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md, r_md_ptr);
@@ -269,7 +257,7 @@ static void gpencil_modifier_ops_extra_draw(bContext *C, uiLayout *layout, void 
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
 
   PointerRNA ptr;
-  Object *ob = get_gpencilmodifier_object(C);
+  Object *ob = ED_object_active_context(C);
   RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md, &ptr);
   uiLayoutSetContextPointer(layout, "modifier", &ptr);
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
@@ -328,7 +316,7 @@ static void gpencil_modifier_panel_header(const bContext *C, Panel *panel)
   uiLayout *row, *sub;
   uiLayout *layout = panel->layout;
 
-  Object *ob = get_gpencilmodifier_object(C);
+  Object *ob = ED_object_active_context(C);
   GpencilModifierData *md = BLI_findlink(&ob->greasepencil_modifiers, panel->runtime.list_index);
   PointerRNA ptr;
   RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md, &ptr);

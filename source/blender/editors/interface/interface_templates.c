@@ -1836,18 +1836,6 @@ void uiTemplatePathBuilder(uiLayout *layout,
  *  Template for building the panel layout for the active object's modifiers.
  * \{ */
 
-/**
- * Get the active object or the property region's pinned object.
- */
-static Object *get_context_object(const bContext *C)
-{
-  SpaceProperties *sbuts = CTX_wm_space_properties(C);
-  if (sbuts != NULL && (sbuts->pinid != NULL) && GS(sbuts->pinid->name) == ID_OB) {
-    return (Object *)sbuts->pinid;
-  }
-  return CTX_data_active_object(C);
-}
-
 static void modifier_panel_id(void *md_link, char *r_name)
 {
   ModifierData *md = (ModifierData *)md_link;
@@ -1859,7 +1847,7 @@ void uiTemplateModifiers(uiLayout *UNUSED(layout), bContext *C)
   ScrArea *sa = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
-  Object *ob = get_context_object(C);
+  Object *ob = ED_object_active_context(C);
   ListBase *modifiers = &ob->modifiers;
 
   bool panels_match = UI_panel_list_matches_data(region, modifiers, modifier_panel_id);
@@ -1952,7 +1940,7 @@ static ListBase *get_constraints(const bContext *C, bool use_bone_constraints)
     }
   }
   else {
-    Object *ob = get_context_object(C);
+    Object *ob = ED_object_active_context(C);
     if (ob != NULL) {
       constraints = &ob->constraints;
     }
@@ -2095,7 +2083,7 @@ void uiTemplateGpencilModifiers(uiLayout *UNUSED(layout), bContext *C)
 {
   ScrArea *sa = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  Object *ob = get_context_object(C);
+  Object *ob = ED_object_active_context(C);
   ListBase *modifiers = &ob->greasepencil_modifiers;
 
   bool panels_match = UI_panel_list_matches_data(region, modifiers, gpencil_modifier_panel_id);
@@ -2183,7 +2171,7 @@ void uiTemplateShaderFx(uiLayout *UNUSED(layout), bContext *C)
 {
   ScrArea *sa = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  Object *ob = get_context_object(C);
+  Object *ob = ED_object_active_context(C);
   ListBase *shaderfx = &ob->shader_fx;
 
   bool panels_match = UI_panel_list_matches_data(region, shaderfx, shaderfx_panel_id);
