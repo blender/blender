@@ -42,56 +42,57 @@ namespace blender {
  * Those should eventually be de-duplicated with functions in BLI_math_base.h.
  * \{ */
 
-inline constexpr int is_power_of_2_i_constexpr(int n)
+inline constexpr int is_power_of_2_i_constexpr(const int n)
 {
   return (n & (n - 1)) == 0;
 }
 
-inline constexpr uint32_t log2_floor_u_constexpr(uint32_t x)
+inline constexpr uint32_t log2_floor_u_constexpr(const uint32_t x)
 {
   return x <= 1 ? 0 : 1 + log2_floor_u_constexpr(x >> 1);
 }
 
-inline constexpr uint32_t log2_ceil_u_constexpr(uint32_t x)
+inline constexpr uint32_t log2_ceil_u_constexpr(const uint32_t x)
 {
   return (is_power_of_2_i_constexpr((int)x)) ? log2_floor_u_constexpr(x) :
                                                log2_floor_u_constexpr(x) + 1;
 }
 
-inline constexpr uint32_t power_of_2_max_u_constexpr(uint32_t x)
+inline constexpr uint32_t power_of_2_max_u_constexpr(const uint32_t x)
 {
   return 1u << log2_ceil_u_constexpr(x);
 }
 
-template<typename IntT> inline constexpr IntT ceil_division(IntT x, IntT y)
+template<typename IntT> inline constexpr IntT ceil_division(const IntT x, const IntT y)
 {
   BLI_STATIC_ASSERT(!std::is_signed<IntT>::value, "");
   return x / y + ((x % y) != 0);
 }
 
-template<typename IntT> inline constexpr IntT floor_division(IntT x, IntT y)
+template<typename IntT> inline constexpr IntT floor_division(const IntT x, const IntT y)
 {
   BLI_STATIC_ASSERT(!std::is_signed<IntT>::value, "");
   return x / y;
 }
 
-inline constexpr uint32_t ceil_division_by_fraction(uint32_t x,
-                                                    uint32_t numerator,
-                                                    uint32_t denominator)
+inline constexpr uint32_t ceil_division_by_fraction(const uint32_t x,
+                                                    const uint32_t numerator,
+                                                    const uint32_t denominator)
 {
   return (uint32_t)ceil_division((uint64_t)x * (uint64_t)denominator, (uint64_t)numerator);
 }
 
-inline constexpr uint32_t floor_multiplication_with_fraction(uint32_t x,
-                                                             uint32_t numerator,
-                                                             uint32_t denominator)
+inline constexpr uint32_t floor_multiplication_with_fraction(const uint32_t x,
+                                                             const uint32_t numerator,
+                                                             const uint32_t denominator)
 {
   return (uint32_t)((uint64_t)x * (uint64_t)numerator / (uint64_t)denominator);
 }
 
-inline constexpr uint32_t total_slot_amount_for_usable_slots(uint32_t min_usable_slots,
-                                                             uint32_t max_load_factor_numerator,
-                                                             uint32_t max_load_factor_denominator)
+inline constexpr uint32_t total_slot_amount_for_usable_slots(
+    const uint32_t min_usable_slots,
+    const uint32_t max_load_factor_numerator,
+    const uint32_t max_load_factor_denominator)
 {
   return power_of_2_max_u_constexpr(ceil_division_by_fraction(
       min_usable_slots, max_load_factor_numerator, max_load_factor_denominator));
@@ -129,7 +130,7 @@ class LoadFactor {
 
     uint32_t total_slots = this->compute_total_slots(min_usable_slots, numerator_, denominator_);
     total_slots = std::max(total_slots, min_total_slots);
-    uint32_t usable_slots = floor_multiplication_with_fraction(
+    const uint32_t usable_slots = floor_multiplication_with_fraction(
         total_slots, numerator_, denominator_);
     BLI_assert(min_usable_slots <= usable_slots);
 

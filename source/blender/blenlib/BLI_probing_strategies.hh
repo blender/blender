@@ -68,7 +68,7 @@ class LinearProbingStrategy {
   uint32_t hash_;
 
  public:
-  LinearProbingStrategy(uint32_t hash) : hash_(hash)
+  LinearProbingStrategy(const uint32_t hash) : hash_(hash)
   {
   }
 
@@ -106,7 +106,7 @@ class QuadraticProbingStrategy {
   uint32_t iteration_;
 
  public:
-  QuadraticProbingStrategy(uint32_t hash)
+  QuadraticProbingStrategy(const uint32_t hash)
       : original_hash_(hash), current_hash_(hash), iteration_(1)
   {
   }
@@ -144,7 +144,7 @@ template<uint32_t LinearSteps = 1, bool PreShuffle = false> class PythonProbingS
   uint32_t perturb_;
 
  public:
-  PythonProbingStrategy(uint32_t hash) : hash_(hash), perturb_(hash)
+  PythonProbingStrategy(const uint32_t hash) : hash_(hash), perturb_(hash)
   {
     if (PreShuffle) {
       this->next();
@@ -179,7 +179,7 @@ template<uint32_t LinearSteps = 2, bool PreShuffle = false> class ShuffleProbing
   uint32_t perturb_;
 
  public:
-  ShuffleProbingStrategy(uint32_t hash) : hash_(hash), perturb_(hash)
+  ShuffleProbingStrategy(const uint32_t hash) : hash_(hash), perturb_(hash)
   {
     if (PreShuffle) {
       this->next();

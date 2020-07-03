@@ -62,7 +62,7 @@ class StringRefBase {
   const char *data_;
   uint size_;
 
-  StringRefBase(const char *data, uint size) : data_(data), size_(size)
+  StringRefBase(const char *data, const uint size) : data_(data), size_(size)
   {
   }
 
@@ -122,7 +122,7 @@ class StringRefBase {
    * Copy the string into a buffer. The copied string will be null-terminated. This invokes
    * undefined behavior when dst_size is too small. (Should we define the behavior?)
    */
-  void copy(char *dst, uint dst_size) const
+  void copy(char *dst, const uint dst_size) const
   {
     if (size_ < dst_size) {
       this->unsafe_copy(dst);
@@ -152,7 +152,7 @@ class StringRefBase {
    */
   bool endswith(StringRef suffix) const;
 
-  StringRef substr(uint start, uint size) const;
+  StringRef substr(uint start, const uint size) const;
 };
 
 /**
@@ -178,7 +178,7 @@ class StringRefNull : public StringRefBase {
    * Construct a StringRefNull from a null terminated c-string. This invokes undefined behavior
    * when the given size is not the correct size of the string.
    */
-  StringRefNull(const char *str, uint size) : StringRefBase(str, size)
+  StringRefNull(const char *str, const uint size) : StringRefBase(str, size)
   {
     BLI_assert((uint)strlen(str) == size);
   }
@@ -194,7 +194,7 @@ class StringRefNull : public StringRefBase {
   /**
    * Get the char at the given index.
    */
-  char operator[](uint index) const
+  char operator[](const uint index) const
   {
     /* Use '<=' instead of just '<', so that the null character can be accessed as well. */
     BLI_assert(index <= size_);
@@ -225,7 +225,7 @@ class StringRef : public StringRefBase {
   {
   }
 
-  StringRef(const char *str, uint length) : StringRefBase(str, length)
+  StringRef(const char *str, const uint length) : StringRefBase(str, length)
   {
   }
 
@@ -250,7 +250,7 @@ class StringRef : public StringRefBase {
   /**
    * Return a new StringRef that does not contain the first n chars.
    */
-  StringRef drop_prefix(uint n) const
+  StringRef drop_prefix(const uint n) const
   {
     BLI_assert(n <= size_);
     return StringRef(data_ + n, size_ - n);
@@ -337,7 +337,7 @@ inline bool StringRefBase::endswith(StringRef suffix) const
   if (size_ < suffix.size_) {
     return false;
   }
-  uint offset = size_ - suffix.size_;
+  const uint offset = size_ - suffix.size_;
   for (uint i = 0; i < suffix.size_; i++) {
     if (data_[offset + i] != suffix.data_[i]) {
       return false;
@@ -349,7 +349,7 @@ inline bool StringRefBase::endswith(StringRef suffix) const
 /**
  * Return a new #StringRef containing only a sub-string of the original string.
  */
-inline StringRef StringRefBase::substr(uint start, uint size) const
+inline StringRef StringRefBase::substr(const uint start, const uint size) const
 {
   BLI_assert(start + size <= size_);
   return StringRef(data_ + start, size);

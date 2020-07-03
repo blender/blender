@@ -260,7 +260,7 @@ template<typename Key> class HashedSetSlot {
     return hash_;
   }
 
-  void relocate_occupied_here(HashedSetSlot &other, uint32_t hash)
+  void relocate_occupied_here(HashedSetSlot &other, const uint32_t hash)
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(other.is_occupied());
@@ -271,7 +271,7 @@ template<typename Key> class HashedSetSlot {
   }
 
   template<typename ForwardKey, typename IsEqual>
-  bool contains(const ForwardKey &key, const IsEqual &is_equal, uint32_t hash) const
+  bool contains(const ForwardKey &key, const IsEqual &is_equal, const uint32_t hash) const
   {
     /* hash_ might be uninitialized here, but that is ok. */
     if (hash_ == hash) {
@@ -282,7 +282,7 @@ template<typename Key> class HashedSetSlot {
     return false;
   }
 
-  template<typename ForwardKey> void occupy(ForwardKey &&key, uint32_t hash)
+  template<typename ForwardKey> void occupy(ForwardKey &&key, const uint32_t hash)
   {
     BLI_assert(!this->is_occupied());
     state_ = Occupied;
@@ -342,7 +342,7 @@ template<typename Key, typename KeyInfo> class IntrusiveSetSlot {
     return hash(key_);
   }
 
-  void relocate_occupied_here(IntrusiveSetSlot &other, uint32_t UNUSED(hash))
+  void relocate_occupied_here(IntrusiveSetSlot &other, const uint32_t UNUSED(hash))
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(other.is_occupied());
@@ -351,13 +351,13 @@ template<typename Key, typename KeyInfo> class IntrusiveSetSlot {
   }
 
   template<typename ForwardKey, typename IsEqual>
-  bool contains(const ForwardKey &key, const IsEqual &is_equal, uint32_t UNUSED(hash)) const
+  bool contains(const ForwardKey &key, const IsEqual &is_equal, const uint32_t UNUSED(hash)) const
   {
     BLI_assert(KeyInfo::is_not_empty_or_removed(key));
     return is_equal(key_, key);
   }
 
-  template<typename ForwardKey> void occupy(ForwardKey &&key, uint32_t UNUSED(hash))
+  template<typename ForwardKey> void occupy(ForwardKey &&key, const uint32_t UNUSED(hash))
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(KeyInfo::is_not_empty_or_removed(key));

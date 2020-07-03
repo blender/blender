@@ -296,8 +296,8 @@ class Stack {
         this->activate_next_chunk(remaining_values.size());
       }
 
-      uint remaining_capacity = top_chunk_->capacity_end - top_;
-      uint amount = std::min(remaining_values.size(), remaining_capacity);
+      const uint remaining_capacity = top_chunk_->capacity_end - top_;
+      const uint amount = std::min(remaining_values.size(), remaining_capacity);
       uninitialized_copy_n(remaining_values.data(), amount, top_);
       top_ += amount;
 
@@ -347,11 +347,11 @@ class Stack {
    *
    * This invokes undefined behavior when the currently active chunk is not full.
    */
-  void activate_next_chunk(uint size_hint)
+  void activate_next_chunk(const uint size_hint)
   {
     BLI_assert(top_ == top_chunk_->capacity_end);
     if (top_chunk_->above == nullptr) {
-      uint new_capacity = std::max(size_hint, top_chunk_->capacity() * 2 + 10);
+      const uint new_capacity = std::max(size_hint, top_chunk_->capacity() * 2 + 10);
 
       /* Do a single memory allocation for the Chunk and the array it references. */
       void *buffer = allocator_.allocate(

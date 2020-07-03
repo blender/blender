@@ -493,7 +493,7 @@ class Set {
    * Potentially resize the set such that it can hold the specified number of keys without another
    * grow operation.
    */
-  void reserve(uint32_t n)
+  void reserve(const uint32_t n)
   {
     if (usable_slots_ < n) {
       this->realloc_and_reinsert(n);
@@ -527,12 +527,12 @@ class Set {
   }
 
  private:
-  BLI_NOINLINE void realloc_and_reinsert(uint32_t min_usable_slots)
+  BLI_NOINLINE void realloc_and_reinsert(const uint32_t min_usable_slots)
   {
     uint32_t total_slots, usable_slots;
     max_load_factor_.compute_total_and_usable_slots(
         SlotArray::inline_buffer_capacity(), min_usable_slots, &total_slots, &usable_slots);
-    uint32_t new_slot_mask = total_slots - 1;
+    const uint32_t new_slot_mask = total_slots - 1;
 
     /**
      * Optimize the case when the set was empty beforehand. We can avoid some copies here.
@@ -568,9 +568,9 @@ class Set {
 
   void add_after_grow_and_destruct_old(Slot &old_slot,
                                        SlotArray &new_slots,
-                                       uint32_t new_slot_mask)
+                                       const uint32_t new_slot_mask)
   {
-    uint32_t hash = old_slot.get_hash(Hash());
+    const uint32_t hash = old_slot.get_hash(Hash());
 
     SLOT_PROBING_BEGIN (ProbingStrategy, hash, new_slot_mask, slot_index) {
       Slot &slot = new_slots[slot_index];
@@ -582,7 +582,8 @@ class Set {
     SLOT_PROBING_END();
   }
 
-  template<typename ForwardKey> bool contains__impl(const ForwardKey &key, uint32_t hash) const
+  template<typename ForwardKey>
+  bool contains__impl(const ForwardKey &key, const uint32_t hash) const
   {
     SET_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.is_empty()) {
@@ -595,7 +596,7 @@ class Set {
     SET_SLOT_PROBING_END();
   }
 
-  template<typename ForwardKey> void add_new__impl(ForwardKey &&key, uint32_t hash)
+  template<typename ForwardKey> void add_new__impl(ForwardKey &&key, const uint32_t hash)
   {
     BLI_assert(!this->contains_as(key));
 
@@ -611,7 +612,7 @@ class Set {
     SET_SLOT_PROBING_END();
   }
 
-  template<typename ForwardKey> bool add__impl(ForwardKey &&key, uint32_t hash)
+  template<typename ForwardKey> bool add__impl(ForwardKey &&key, const uint32_t hash)
   {
     this->ensure_can_add();
 
@@ -628,7 +629,7 @@ class Set {
     SET_SLOT_PROBING_END();
   }
 
-  template<typename ForwardKey> bool remove__impl(const ForwardKey &key, uint32_t hash)
+  template<typename ForwardKey> bool remove__impl(const ForwardKey &key, const uint32_t hash)
   {
     SET_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, is_equal_, hash)) {
@@ -643,7 +644,8 @@ class Set {
     SET_SLOT_PROBING_END();
   }
 
-  template<typename ForwardKey> void remove_contained__impl(const ForwardKey &key, uint32_t hash)
+  template<typename ForwardKey>
+  void remove_contained__impl(const ForwardKey &key, const uint32_t hash)
   {
     BLI_assert(this->contains_as(key));
     removed_slots_++;
@@ -658,7 +660,7 @@ class Set {
   }
 
   template<typename ForwardKey>
-  uint32_t count_collisions__impl(const ForwardKey &key, uint32_t hash) const
+  uint32_t count_collisions__impl(const ForwardKey &key, const uint32_t hash) const
   {
     uint32_t collisions = 0;
 

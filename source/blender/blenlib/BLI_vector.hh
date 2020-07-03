@@ -161,7 +161,7 @@ class Vector {
    */
   Vector(Span<T> values) : Vector()
   {
-    uint size = values.size();
+    const uint size = values.size();
     this->reserve(size);
     this->increase_size_by_unchecked(size);
     blender::uninitialized_copy_n(values.data(), size, begin_);
@@ -222,7 +222,7 @@ class Vector {
   Vector(Vector<T, OtherInlineBufferCapacity, Allocator> &&other) noexcept
       : allocator_(other.allocator_)
   {
-    uint size = other.size();
+    const uint size = other.size();
 
     if (other.is_inline()) {
       if (size <= InlineBufferCapacity) {
@@ -234,7 +234,7 @@ class Vector {
       }
       else {
         /* Copy from inline buffer to newly allocated buffer. */
-        uint capacity = size;
+        const uint capacity = size;
         begin_ = (T *)allocator_.allocate(sizeof(T) * capacity, alignof(T), AT);
         end_ = begin_ + size;
         capacity_end_ = begin_ + capacity;
@@ -330,7 +330,7 @@ class Vector {
    * This won't necessarily make an allocation when min_capacity is small.
    * The actual size of the vector does not change.
    */
-  void reserve(uint min_capacity)
+  void reserve(const uint min_capacity)
   {
     if (min_capacity > this->capacity()) {
       this->realloc_to_at_least(min_capacity);
@@ -343,9 +343,9 @@ class Vector {
    * destructed. If new_size is larger than the old size, the new elements at the end are default
    * constructed. If T is trivially constructible, the memory is not touched by this function.
    */
-  void resize(uint new_size)
+  void resize(const uint new_size)
   {
-    uint old_size = this->size();
+    const uint old_size = this->size();
     if (new_size > old_size) {
       this->reserve(new_size);
       default_construct_n(begin_ + old_size, new_size - old_size);
@@ -363,9 +363,9 @@ class Vector {
    * destructed. If new_size is larger than the old size, the new elements will be copy constructed
    * from the given value.
    */
-  void resize(uint new_size, const T &value)
+  void resize(const uint new_size, const T &value)
   {
-    uint old_size = this->size();
+    const uint old_size = this->size();
     if (new_size > old_size) {
       this->reserve(new_size);
       uninitialized_fill_n(begin_ + old_size, new_size - old_size, value);
@@ -428,7 +428,7 @@ class Vector {
    */
   uint append_and_get_index(const T &value)
   {
-    uint index = this->size();
+    const uint index = this->size();
     this->append(value);
     return index;
   }
@@ -469,7 +469,7 @@ class Vector {
    * Insert the same element n times at the end of the vector.
    * This might result in a reallocation internally.
    */
-  void append_n_times(const T &value, uint n)
+  void append_n_times(const T &value, const uint n)
   {
     this->reserve(this->size() + n);
     blender::uninitialized_fill_n(end_, n, value);
@@ -482,7 +482,7 @@ class Vector {
    * useful when you want to call constructors in the vector yourself. This should only be done in
    * very rare cases and has to be justified every time.
    */
-  void increase_size_by_unchecked(uint n)
+  void increase_size_by_unchecked(const uint n)
   {
     BLI_assert(end_ + n <= capacity_end_);
     end_ += n;
@@ -614,7 +614,7 @@ class Vector {
    * Delete any element in the vector. The empty space will be filled by the previously last
    * element. This takes O(1) time.
    */
-  void remove_and_reorder(uint index)
+  void remove_and_reorder(const uint index)
   {
     BLI_assert(index < this->size());
     T *element_to_remove = begin_ + index;
@@ -632,7 +632,7 @@ class Vector {
    */
   void remove_first_occurrence_and_reorder(const T &value)
   {
-    uint index = this->first_index_of(value);
+    const uint index = this->first_index_of(value);
     this->remove_and_reorder((uint)index);
   }
 
@@ -643,10 +643,10 @@ class Vector {
    *
    * This is similar to std::vector::erase.
    */
-  void remove(uint index)
+  void remove(const uint index)
   {
     BLI_assert(index < this->size());
-    uint last_index = this->size() - 1;
+    const uint last_index = this->size() - 1;
     for (uint i = index; i < last_index; i++) {
       begin_[i] = std::move(begin_[i + 1]);
     }
@@ -661,7 +661,7 @@ class Vector {
    */
   int first_index_of_try(const T &value) const
   {
-    for (T *current = begin_; current != end_; current++) {
+    for (const T *current = begin_; current != end_; current++) {
       if (*current == value) {
         return (int)(current - begin_);
       }
@@ -675,7 +675,7 @@ class Vector {
    */
   uint first_index_of(const T &value) const
   {
-    int index = this->first_index_of_try(value);
+    const int index = this->first_index_of_try(value);
     BLI_assert(index >= 0);
     return (uint)index;
   }
@@ -780,7 +780,7 @@ class Vector {
     }
   }
 
-  BLI_NOINLINE void realloc_to_at_least(uint min_capacity)
+  BLI_NOINLINE void realloc_to_at_least(const uint min_capacity)
   {
     if (this->capacity() >= min_capacity) {
       return;
@@ -788,10 +788,10 @@ class Vector {
 
     /* At least double the size of the previous allocation. Otherwise consecutive calls to grow can
      * cause a reallocation every time even though min_capacity only increments.  */
-    uint min_new_capacity = this->capacity() * 2;
+    const uint min_new_capacity = this->capacity() * 2;
 
-    uint new_capacity = std::max(min_capacity, min_new_capacity);
-    uint size = this->size();
+    const uint new_capacity = std::max(min_capacity, min_new_capacity);
+    const uint size = this->size();
 
     T *new_array = (T *)allocator_.allocate(new_capacity * (uint)sizeof(T), alignof(T), AT);
     uninitialized_relocate_n(begin_, size, new_array);
@@ -813,8 +813,8 @@ class Vector {
   {
     allocator_ = other.allocator_;
 
-    uint size = other.size();
-    uint capacity = size;
+    const uint size = other.size();
+    uint capacity;
 
     if (size <= InlineBufferCapacity) {
       begin_ = this->inline_buffer();

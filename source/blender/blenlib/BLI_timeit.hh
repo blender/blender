@@ -45,8 +45,8 @@ class ScopedTimer {
 
   ~ScopedTimer()
   {
-    TimePoint end = Clock::now();
-    Nanoseconds duration = end - start_;
+    const TimePoint end = Clock::now();
+    const Nanoseconds duration = end - start_;
 
     std::cout << "Timer '" << name_ << "' took ";
     print_duration(duration);

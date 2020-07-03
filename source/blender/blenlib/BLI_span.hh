@@ -359,7 +359,7 @@ template<typename T> class Span {
    */
   uint first_index(const T &search_value) const
   {
-    int index = this->first_index_try(search_value);
+    const int index = this->first_index_try(search_value);
     BLI_assert(index >= 0);
     return (uint)index;
   }
@@ -432,7 +432,7 @@ template<typename T> class MutableSpan {
  public:
   MutableSpan() = default;
 
-  MutableSpan(T *start, uint size) : start_(start), size_(size)
+  MutableSpan(T *start, const uint size) : start_(start), size_(size)
   {
   }
 
@@ -511,7 +511,7 @@ template<typename T> class MutableSpan {
     return start_ + size_;
   }
 
-  T &operator[](uint index) const
+  T &operator[](const uint index) const
   {
     BLI_assert(index < this->size());
     return start_[index];
@@ -521,7 +521,7 @@ template<typename T> class MutableSpan {
    * Returns a contiguous part of the array. This invokes undefined behavior when the slice would
    * go out of bounds.
    */
-  MutableSpan slice(uint start, uint length) const
+  MutableSpan slice(const uint start, const uint length) const
   {
     BLI_assert(start + length <= this->size());
     return MutableSpan(start_ + start, length);
@@ -531,7 +531,7 @@ template<typename T> class MutableSpan {
    * Returns a new MutableSpan with n elements removed from the beginning. This invokes
    * undefined behavior when the array is too small.
    */
-  MutableSpan drop_front(uint n) const
+  MutableSpan drop_front(const uint n) const
   {
     BLI_assert(n <= this->size());
     return this->slice(n, this->size() - n);
@@ -541,7 +541,7 @@ template<typename T> class MutableSpan {
    * Returns a new MutableSpan with n elements removed from the end. This invokes undefined
    * behavior when the array is too small.
    */
-  MutableSpan drop_back(uint n) const
+  MutableSpan drop_back(const uint n) const
   {
     BLI_assert(n <= this->size());
     return this->slice(0, this->size() - n);
@@ -551,7 +551,7 @@ template<typename T> class MutableSpan {
    * Returns a new MutableSpan that only contains the first n elements. This invokes undefined
    * behavior when the array is too small.
    */
-  MutableSpan take_front(uint n) const
+  MutableSpan take_front(const uint n) const
   {
     BLI_assert(n <= this->size());
     return this->slice(0, n);
@@ -561,7 +561,7 @@ template<typename T> class MutableSpan {
    * Return a new MutableSpan that only contains the last n elements. This invokes undefined
    * behavior when the array is too small.
    */
-  MutableSpan take_back(uint n) const
+  MutableSpan take_back(const uint n) const
   {
     BLI_assert(n <= this->size());
     return this->slice(this->size() - n, n);

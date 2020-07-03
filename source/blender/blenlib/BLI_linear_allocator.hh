@@ -66,7 +66,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
    *
    * The alignment has to be a power of 2.
    */
-  void *allocate(uint size, uint alignment)
+  void *allocate(const uint size, const uint alignment)
   {
     BLI_assert(alignment >= 1);
     BLI_assert(is_power_of_2_i(alignment));
@@ -75,9 +75,10 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     debug_allocated_amount_ += size;
 #endif
 
-    uintptr_t alignment_mask = alignment - 1;
-    uintptr_t potential_allocation_begin = (current_begin_ + alignment_mask) & ~alignment_mask;
-    uintptr_t potential_allocation_end = potential_allocation_begin + size;
+    const uintptr_t alignment_mask = alignment - 1;
+    const uintptr_t potential_allocation_begin = (current_begin_ + alignment_mask) &
+                                                 ~alignment_mask;
+    const uintptr_t potential_allocation_end = potential_allocation_begin + size;
 
     if (potential_allocation_end <= current_end_) {
       current_begin_ = potential_allocation_end;
@@ -140,7 +141,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
    */
   StringRefNull copy_string(StringRef str)
   {
-    uint alloc_size = str.size() + 1;
+    const uint alloc_size = str.size() + 1;
     char *buffer = (char *)this->allocate(alloc_size, 1);
     str.copy(buffer, alloc_size);
     return StringRefNull((const char *)buffer);
@@ -205,7 +206,8 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
       }
     }
 
-    uint size_in_bytes = power_of_2_min_u(std::max(min_allocation_size, next_min_alloc_size_));
+    const uint size_in_bytes = power_of_2_min_u(
+        std::max(min_allocation_size, next_min_alloc_size_));
     next_min_alloc_size_ = size_in_bytes * 2;
 
     void *buffer = allocator_.allocate(size_in_bytes, 8, AT);
