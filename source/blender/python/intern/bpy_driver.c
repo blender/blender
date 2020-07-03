@@ -237,8 +237,6 @@ void BPY_driver_reset(void)
   if (use_gil) {
     PyGILState_Release(gilstate);
   }
-
-  return;
 }
 
 /* error return function for BPY_eval_pydriver */

@@ -138,7 +138,6 @@ void VectorBlurOperation::generateVectorBlur(float *data,
                           inputImage->getBuffer(),
                           inputSpeed->getBuffer(),
                           inputZ->getBuffer());
-  return;
 }
 
 /* ****************** Spans ******************************* */

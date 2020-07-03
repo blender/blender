@@ -150,7 +150,6 @@ void DRW_gpencil_batch_cache_free(bGPdata *gpd)
   gpencil_batch_cache_clear(gpd->runtime.gpencil_cache);
   MEM_SAFE_FREE(gpd->runtime.gpencil_cache);
   gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
-  return;
 }
 
 /** \} */

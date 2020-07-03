@@ -4908,7 +4908,6 @@ static void direct_link_particlesystems(BlendDataReader *reader, ListBase *parti
     psys->orig_psys = NULL;
     psys->batch_cache = NULL;
   }
-  return;
 }
 
 /** \} */

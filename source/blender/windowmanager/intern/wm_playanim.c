@@ -542,7 +542,6 @@ static void build_pict_list_ex(
       totframes--;
     }
   }
-  return;
 }
 
 static void build_pict_list(PlayState *ps, const char *first, int totframes, int fstep, int fontid)

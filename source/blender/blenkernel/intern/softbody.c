@@ -481,7 +481,6 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
     mima->maxy = max_ff(mima->maxy, v[1] + hull);
     mima->maxz = max_ff(mima->maxz, v[2] + hull);
   }
-  return;
 }
 
 static void ccd_mesh_free(ccd_Mesh *ccdm)

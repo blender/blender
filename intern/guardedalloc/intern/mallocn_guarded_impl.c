@@ -906,8 +906,6 @@ void MEM_guarded_freeN(void *vmemh)
 
   totblock--;
   /* here a DUMP should happen */
-
-  return;
 }
 
 /* --------------------------------------------------------------------- */

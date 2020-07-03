@@ -967,8 +967,6 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
   else {
     ob->rotmode = ROT_MODE_QUAT;
   }
-
-  return;
 }
 
 /*

@@ -4119,8 +4119,6 @@ static void vgroup_sort_bone_hierarchy(Object *ob, ListBase *bonebase)
       }
     }
   }
-
-  return;
 }
 
 enum {

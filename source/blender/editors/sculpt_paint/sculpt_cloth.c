@@ -671,8 +671,6 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   /* Update and write the simulation to the nodes. */
   cloth_brush_do_simulation_step(sd, ob, ss->cache->cloth_sim, nodes, totnode);
-
-  return;
 }
 
 void SCULPT_cloth_simulation_free(struct SculptClothSimulation *cloth_sim)

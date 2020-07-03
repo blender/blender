@@ -248,7 +248,6 @@ void semi_definite_symmetric_eigen(const double *mat, int n, double *eigen_vec, 
 
   delete[] v;
   delete[] index;
-  return;
 }
 
 //_________________________________________________________

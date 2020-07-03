@@ -1272,8 +1272,6 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma)
   if (ma->paint_clone_slot >= count) {
     ma->paint_clone_slot = count - 1;
   }
-
-  return;
 }
 
 void BKE_texpaint_slots_refresh_object(Scene *scene, struct Object *ob)

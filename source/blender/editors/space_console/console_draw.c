@@ -139,7 +139,6 @@ static void console_cursor_wrap_offset(
 
     *column += col;
   }
-  return;
 }
 
 static void console_textview_draw_cursor(TextViewContext *tvc, int cwidth, int columns)

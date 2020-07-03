@@ -875,7 +875,6 @@ BLI_INLINE void studiolight_spherical_harmonics_eval(StudioLight *sl,
     color[i] = studiolight_spherical_harmonics_geomerics_eval(
         normal, sh[0][i], sh[1][i], sh[2][i], sh[3][i]);
   }
-  return;
 #else
   /* L0 */
   mul_v3_v3fl(color, sl->spherical_harmonics_coefs[0], 0.282095f);

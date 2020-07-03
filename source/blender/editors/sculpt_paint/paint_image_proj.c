@@ -5906,8 +5906,6 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
   ps->dither = settings->imapaint.dither;
 
   ps->use_colormanagement = BKE_scene_check_color_management_enabled(CTX_data_scene(C));
-
-  return;
 }
 
 void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int mode)

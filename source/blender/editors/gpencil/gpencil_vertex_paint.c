@@ -408,8 +408,6 @@ static void gpencil_grid_colors_calc(tGP_BrushVertexpaintData *gso)
   round_v2i_v2fl(gso->grid_sample, gso->mval);
 
   gso->grid_ready = true;
-
-  return;
 }
 
 /* ************************************************ */

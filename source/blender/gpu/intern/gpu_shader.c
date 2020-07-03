@@ -282,8 +282,6 @@ static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH])
   else {
     strcat(defines, "#define DFDY_SIGN -1.0\n");
   }
-
-  return;
 }
 
 GPUShader *GPU_shader_create(const char *vertexcode,
