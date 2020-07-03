@@ -956,6 +956,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "texture_slot")) {
     ButsContextTexture *ct = sbuts->texuser;
@@ -1039,6 +1040,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       CTX_data_pointer_set(result, &ob->id, &RNA_ClothModifier, md);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "soft_body")) {
     PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
@@ -1049,6 +1051,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       CTX_data_pointer_set(result, &ob->id, &RNA_SoftBodyModifier, md);
       return 1;
     }
+    return -1; /* found but not available */
   }
 
   else if (CTX_data_equals(member, "fluid")) {
@@ -1060,6 +1063,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       CTX_data_pointer_set(result, &ob->id, &RNA_FluidModifier, md);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "collision")) {
     PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
@@ -1070,6 +1074,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       CTX_data_pointer_set(result, &ob->id, &RNA_CollisionModifier, md);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "brush")) {
     set_pointer_type(path, result, &RNA_Brush);
@@ -1084,6 +1089,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       CTX_data_pointer_set(result, &ob->id, &RNA_DynamicPaintModifier, md);
       return 1;
     }
+    return -1; /* found but not available */
   }
   else if (CTX_data_equals(member, "line_style")) {
     set_pointer_type(path, result, &RNA_FreestyleLineStyle);
