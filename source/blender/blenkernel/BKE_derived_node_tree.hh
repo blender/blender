@@ -45,9 +45,9 @@ class DerivedNodeTree;
 
 class DSocket : NonCopyable, NonMovable {
  protected:
-  DNode *m_node;
-  const SocketRef *m_socket_ref;
-  uint m_id;
+  DNode *node_;
+  const SocketRef *socket_ref_;
+  uint id_;
 
   friend DerivedNodeTree;
 
@@ -76,8 +76,8 @@ class DSocket : NonCopyable, NonMovable {
 
 class DInputSocket : public DSocket {
  private:
-  Vector<DOutputSocket *> m_linked_sockets;
-  Vector<DGroupInput *> m_linked_group_inputs;
+  Vector<DOutputSocket *> linked_sockets_;
+  Vector<DGroupInput *> linked_group_inputs_;
 
   friend DerivedNodeTree;
 
@@ -92,7 +92,7 @@ class DInputSocket : public DSocket {
 
 class DOutputSocket : public DSocket {
  private:
-  Vector<DInputSocket *> m_linked_sockets;
+  Vector<DInputSocket *> linked_sockets_;
 
   friend DerivedNodeTree;
 
@@ -103,10 +103,10 @@ class DOutputSocket : public DSocket {
 
 class DGroupInput : NonCopyable, NonMovable {
  private:
-  const InputSocketRef *m_socket_ref;
-  DParentNode *m_parent;
-  Vector<DInputSocket *> m_linked_sockets;
-  uint m_id;
+  const InputSocketRef *socket_ref_;
+  DParentNode *parent_;
+  Vector<DInputSocket *> linked_sockets_;
+  uint id_;
 
   friend DerivedNodeTree;
 
@@ -121,13 +121,13 @@ class DGroupInput : NonCopyable, NonMovable {
 
 class DNode : NonCopyable, NonMovable {
  private:
-  const NodeRef *m_node_ref;
-  DParentNode *m_parent;
+  const NodeRef *node_ref_;
+  DParentNode *parent_;
 
-  Span<DInputSocket *> m_inputs;
-  Span<DOutputSocket *> m_outputs;
+  Span<DInputSocket *> inputs_;
+  Span<DOutputSocket *> outputs_;
 
-  uint m_id;
+  uint id_;
 
   friend DerivedNodeTree;
 
@@ -153,9 +153,9 @@ class DNode : NonCopyable, NonMovable {
 
 class DParentNode : NonCopyable, NonMovable {
  private:
-  const NodeRef *m_node_ref;
-  DParentNode *m_parent;
-  uint m_id;
+  const NodeRef *node_ref_;
+  DParentNode *parent_;
+  uint id_;
 
   friend DerivedNodeTree;
 
@@ -169,17 +169,17 @@ using NodeTreeRefMap = Map<bNodeTree *, std::unique_ptr<const NodeTreeRef>>;
 
 class DerivedNodeTree : NonCopyable, NonMovable {
  private:
-  LinearAllocator<> m_allocator;
-  bNodeTree *m_btree;
-  Vector<DNode *> m_nodes_by_id;
-  Vector<DGroupInput *> m_group_inputs;
-  Vector<DParentNode *> m_parent_nodes;
+  LinearAllocator<> allocator_;
+  bNodeTree *btree_;
+  Vector<DNode *> nodes_by_id_;
+  Vector<DGroupInput *> group_inputs_;
+  Vector<DParentNode *> parent_nodes_;
 
-  Vector<DSocket *> m_sockets_by_id;
-  Vector<DInputSocket *> m_input_sockets;
-  Vector<DOutputSocket *> m_output_sockets;
+  Vector<DSocket *> sockets_by_id_;
+  Vector<DInputSocket *> input_sockets_;
+  Vector<DOutputSocket *> output_sockets_;
 
-  Map<const bNodeType *, Vector<DNode *>> m_nodes_by_type;
+  Map<const bNodeType *, Vector<DNode *>> nodes_by_type_;
 
  public:
   DerivedNodeTree(bNodeTree *btree, NodeTreeRefMap &node_tree_refs);
@@ -235,27 +235,27 @@ class DerivedNodeTree : NonCopyable, NonMovable {
 
 inline const DNode &DSocket::node() const
 {
-  return *m_node;
+  return *node_;
 }
 
 inline uint DSocket::id() const
 {
-  return m_id;
+  return id_;
 }
 
 inline uint DSocket::index() const
 {
-  return m_socket_ref->index();
+  return socket_ref_->index();
 }
 
 inline bool DSocket::is_input() const
 {
-  return m_socket_ref->is_input();
+  return socket_ref_->is_input();
 }
 
 inline bool DSocket::is_output() const
 {
-  return m_socket_ref->is_output();
+  return socket_ref_->is_output();
 }
 
 inline const DSocket &DSocket::as_base() const
@@ -275,32 +275,32 @@ inline const DOutputSocket &DSocket::as_output() const
 
 inline PointerRNA *DSocket::rna() const
 {
-  return m_socket_ref->rna();
+  return socket_ref_->rna();
 }
 
 inline StringRefNull DSocket::idname() const
 {
-  return m_socket_ref->idname();
+  return socket_ref_->idname();
 }
 
 inline StringRefNull DSocket::name() const
 {
-  return m_socket_ref->name();
+  return socket_ref_->name();
 }
 
 inline const SocketRef &DSocket::socket_ref() const
 {
-  return *m_socket_ref;
+  return *socket_ref_;
 }
 
 inline bNodeSocket *DSocket::bsocket() const
 {
-  return m_socket_ref->bsocket();
+  return socket_ref_->bsocket();
 }
 
 inline bool DSocket::is_available() const
 {
-  return (m_socket_ref->bsocket()->flag & SOCK_UNAVAIL) == 0;
+  return (socket_ref_->bsocket()->flag & SOCK_UNAVAIL) == 0;
 }
 
 /* --------------------------------------------------------------------
@@ -309,22 +309,22 @@ inline bool DSocket::is_available() const
 
 inline const InputSocketRef &DInputSocket::socket_ref() const
 {
-  return m_socket_ref->as_input();
+  return socket_ref_->as_input();
 }
 
 inline Span<const DOutputSocket *> DInputSocket::linked_sockets() const
 {
-  return m_linked_sockets.as_span();
+  return linked_sockets_.as_span();
 }
 
 inline Span<const DGroupInput *> DInputSocket::linked_group_inputs() const
 {
-  return m_linked_group_inputs.as_span();
+  return linked_group_inputs_.as_span();
 }
 
 inline bool DInputSocket::is_linked() const
 {
-  return m_linked_sockets.size() > 0 || m_linked_group_inputs.size() > 0;
+  return linked_sockets_.size() > 0 || linked_group_inputs_.size() > 0;
 }
 
 /* --------------------------------------------------------------------
@@ -333,12 +333,12 @@ inline bool DInputSocket::is_linked() const
 
 inline const OutputSocketRef &DOutputSocket::socket_ref() const
 {
-  return m_socket_ref->as_output();
+  return socket_ref_->as_output();
 }
 
 inline Span<const DInputSocket *> DOutputSocket::linked_sockets() const
 {
-  return m_linked_sockets.as_span();
+  return linked_sockets_.as_span();
 }
 
 /* --------------------------------------------------------------------
@@ -347,32 +347,32 @@ inline Span<const DInputSocket *> DOutputSocket::linked_sockets() const
 
 inline const InputSocketRef &DGroupInput::socket_ref() const
 {
-  return *m_socket_ref;
+  return *socket_ref_;
 }
 
 inline bNodeSocket *DGroupInput::bsocket() const
 {
-  return m_socket_ref->bsocket();
+  return socket_ref_->bsocket();
 }
 
 inline const DParentNode *DGroupInput::parent() const
 {
-  return m_parent;
+  return parent_;
 }
 
 inline Span<const DInputSocket *> DGroupInput::linked_sockets() const
 {
-  return m_linked_sockets.as_span();
+  return linked_sockets_.as_span();
 }
 
 inline uint DGroupInput::id() const
 {
-  return m_id;
+  return id_;
 }
 
 inline StringRefNull DGroupInput::name() const
 {
-  return m_socket_ref->name();
+  return socket_ref_->name();
 }
 
 /* --------------------------------------------------------------------
@@ -381,52 +381,52 @@ inline StringRefNull DGroupInput::name() const
 
 inline const NodeRef &DNode::node_ref() const
 {
-  return *m_node_ref;
+  return *node_ref_;
 }
 
 inline const DParentNode *DNode::parent() const
 {
-  return m_parent;
+  return parent_;
 }
 
 inline Span<const DInputSocket *> DNode::inputs() const
 {
-  return m_inputs;
+  return inputs_;
 }
 
 inline Span<const DOutputSocket *> DNode::outputs() const
 {
-  return m_outputs;
+  return outputs_;
 }
 
 inline const DInputSocket &DNode::input(uint index) const
 {
-  return *m_inputs[index];
+  return *inputs_[index];
 }
 
 inline const DOutputSocket &DNode::output(uint index) const
 {
-  return *m_outputs[index];
+  return *outputs_[index];
 }
 
 inline uint DNode::id() const
 {
-  return m_id;
+  return id_;
 }
 
 inline PointerRNA *DNode::rna() const
 {
-  return m_node_ref->rna();
+  return node_ref_->rna();
 }
 
 inline StringRefNull DNode::idname() const
 {
-  return m_node_ref->idname();
+  return node_ref_->idname();
 }
 
 inline StringRefNull DNode::name() const
 {
-  return m_node_ref->name();
+  return node_ref_->name();
 }
 
 /* --------------------------------------------------------------------
@@ -435,17 +435,17 @@ inline StringRefNull DNode::name() const
 
 inline const DParentNode *DParentNode::parent() const
 {
-  return m_parent;
+  return parent_;
 }
 
 inline const NodeRef &DParentNode::node_ref() const
 {
-  return *m_node_ref;
+  return *node_ref_;
 }
 
 inline uint DParentNode::id() const
 {
-  return m_id;
+  return id_;
 }
 
 /* --------------------------------------------------------------------
@@ -454,7 +454,7 @@ inline uint DParentNode::id() const
 
 inline Span<const DNode *> DerivedNodeTree::nodes() const
 {
-  return m_nodes_by_id.as_span();
+  return nodes_by_id_.as_span();
 }
 
 inline Span<const DNode *> DerivedNodeTree::nodes_by_type(StringRefNull idname) const
@@ -465,7 +465,7 @@ inline Span<const DNode *> DerivedNodeTree::nodes_by_type(StringRefNull idname) 
 
 inline Span<const DNode *> DerivedNodeTree::nodes_by_type(const bNodeType *nodetype) const
 {
-  const Vector<DNode *> *nodes = m_nodes_by_type.lookup_ptr(nodetype);
+  const Vector<DNode *> *nodes = nodes_by_type_.lookup_ptr(nodetype);
   if (nodes == nullptr) {
     return {};
   }
@@ -476,22 +476,22 @@ inline Span<const DNode *> DerivedNodeTree::nodes_by_type(const bNodeType *nodet
 
 inline Span<const DSocket *> DerivedNodeTree::sockets() const
 {
-  return m_sockets_by_id.as_span();
+  return sockets_by_id_.as_span();
 }
 
 inline Span<const DInputSocket *> DerivedNodeTree::input_sockets() const
 {
-  return m_input_sockets.as_span();
+  return input_sockets_.as_span();
 }
 
 inline Span<const DOutputSocket *> DerivedNodeTree::output_sockets() const
 {
-  return m_output_sockets.as_span();
+  return output_sockets_.as_span();
 }
 
 inline Span<const DGroupInput *> DerivedNodeTree::group_inputs() const
 {
-  return m_group_inputs.as_span();
+  return group_inputs_.as_span();
 }
 
 }  // namespace bke

@@ -87,8 +87,8 @@ namespace blender {
  */
 template<typename T> class Span {
  private:
-  const T *m_start = nullptr;
-  uint m_size = 0;
+  const T *start_ = nullptr;
+  uint size_ = 0;
 
  public:
   /**
@@ -96,7 +96,7 @@ template<typename T> class Span {
    */
   Span() = default;
 
-  Span(const T *start, uint size) : m_start(start), m_size(size)
+  Span(const T *start, uint size) : start_(start), size_(size)
   {
   }
 
@@ -141,7 +141,7 @@ template<typename T> class Span {
   Span slice(uint start, uint size) const
   {
     BLI_assert(start + size <= this->size() || size == 0);
-    return Span(m_start + start, size);
+    return Span(start_ + start, size);
   }
 
   Span slice(IndexRange range) const
@@ -195,17 +195,17 @@ template<typename T> class Span {
    */
   const T *data() const
   {
-    return m_start;
+    return start_;
   }
 
   const T *begin() const
   {
-    return m_start;
+    return start_;
   }
 
   const T *end() const
   {
-    return m_start + m_size;
+    return start_ + size_;
   }
 
   /**
@@ -214,8 +214,8 @@ template<typename T> class Span {
    */
   const T &operator[](uint index) const
   {
-    BLI_assert(index < m_size);
-    return m_start[index];
+    BLI_assert(index < size_);
+    return start_[index];
   }
 
   /**
@@ -223,7 +223,7 @@ template<typename T> class Span {
    */
   uint size() const
   {
-    return m_size;
+    return size_;
   }
 
   /**
@@ -231,7 +231,7 @@ template<typename T> class Span {
    */
   bool is_empty() const
   {
-    return m_size == 0;
+    return size_ == 0;
   }
 
   /**
@@ -239,7 +239,7 @@ template<typename T> class Span {
    */
   uint size_in_bytes() const
   {
-    return sizeof(T) * m_size;
+    return sizeof(T) * size_;
   }
 
   /**
@@ -286,8 +286,8 @@ template<typename T> class Span {
    */
   const T &first() const
   {
-    BLI_assert(m_size > 0);
-    return m_start[0];
+    BLI_assert(size_ > 0);
+    return start_[0];
   }
 
   /**
@@ -296,8 +296,8 @@ template<typename T> class Span {
    */
   const T &last() const
   {
-    BLI_assert(m_size > 0);
-    return m_start[m_size - 1];
+    BLI_assert(size_ > 0);
+    return start_[size_ - 1];
   }
 
   /**
@@ -306,8 +306,8 @@ template<typename T> class Span {
    */
   T get(uint index, const T &fallback) const
   {
-    if (index < m_size) {
-      return m_start[index];
+    if (index < size_) {
+      return start_[index];
     }
     return fallback;
   }
@@ -320,12 +320,12 @@ template<typename T> class Span {
   {
     /* The size should really be smaller than that. If it is not, the calling code should be
      * changed. */
-    BLI_assert(m_size < 1000);
+    BLI_assert(size_ < 1000);
 
-    for (uint i = 0; i < m_size; i++) {
-      const T &value = m_start[i];
-      for (uint j = i + 1; j < m_size; j++) {
-        if (value == m_start[j]) {
+    for (uint i = 0; i < size_; i++) {
+      const T &value = start_[i];
+      for (uint j = i + 1; j < size_; j++) {
+        if (value == start_[j]) {
           return true;
         }
       }
@@ -342,10 +342,10 @@ template<typename T> class Span {
   {
     /* The size should really be smaller than that. If it is not, the calling code should be
      * changed. */
-    BLI_assert(m_size < 1000);
+    BLI_assert(size_ < 1000);
 
-    for (uint i = 0; i < m_size; i++) {
-      const T &value = m_start[i];
+    for (uint i = 0; i < size_; i++) {
+      const T &value = start_[i];
       if (other.contains(value)) {
         return true;
       }
@@ -369,8 +369,8 @@ template<typename T> class Span {
    */
   int first_index_try(const T &search_value) const
   {
-    for (uint i = 0; i < m_size; i++) {
-      if (m_start[i] == search_value) {
+    for (uint i = 0; i < size_; i++) {
+      if (start_[i] == search_value) {
         return i;
       }
     }
@@ -383,7 +383,7 @@ template<typename T> class Span {
    */
   IndexRange index_range() const
   {
-    return IndexRange(m_size);
+    return IndexRange(size_);
   }
 
   /**
@@ -391,9 +391,9 @@ template<typename T> class Span {
    */
   template<typename NewT> Span<NewT> cast() const
   {
-    BLI_assert((m_size * sizeof(T)) % sizeof(NewT) == 0);
-    uint new_size = m_size * sizeof(T) / sizeof(NewT);
-    return Span<NewT>(reinterpret_cast<const NewT *>(m_start), new_size);
+    BLI_assert((size_ * sizeof(T)) % sizeof(NewT) == 0);
+    uint new_size = size_ * sizeof(T) / sizeof(NewT);
+    return Span<NewT>(reinterpret_cast<const NewT *>(start_), new_size);
   }
 
   /**
@@ -402,7 +402,7 @@ template<typename T> class Span {
    */
   template<typename PrintLineF> void print_as_lines(std::string name, PrintLineF print_line) const
   {
-    std::cout << "Span: " << name << " \tSize:" << m_size << '\n';
+    std::cout << "Span: " << name << " \tSize:" << size_ << '\n';
     for (const T &value : *this) {
       std::cout << "  ";
       print_line(value);
@@ -426,13 +426,13 @@ template<typename T> class Span {
  */
 template<typename T> class MutableSpan {
  private:
-  T *m_start;
-  uint m_size;
+  T *start_;
+  uint size_;
 
  public:
   MutableSpan() = default;
 
-  MutableSpan(T *start, uint size) : m_start(start), m_size(size)
+  MutableSpan(T *start, uint size) : start_(start), size_(size)
   {
   }
 
@@ -461,7 +461,7 @@ template<typename T> class MutableSpan {
 
   operator Span<T>() const
   {
-    return Span<T>(m_start, m_size);
+    return Span<T>(start_, size_);
   }
 
   /**
@@ -469,7 +469,7 @@ template<typename T> class MutableSpan {
    */
   uint size() const
   {
-    return m_size;
+    return size_;
   }
 
   /**
@@ -477,7 +477,7 @@ template<typename T> class MutableSpan {
    */
   void fill(const T &value)
   {
-    initialized_fill_n(m_start, m_size, value);
+    initialized_fill_n(start_, size_, value);
   }
 
   /**
@@ -487,8 +487,8 @@ template<typename T> class MutableSpan {
   void fill_indices(Span<uint> indices, const T &value)
   {
     for (uint i : indices) {
-      BLI_assert(i < m_size);
-      m_start[i] = value;
+      BLI_assert(i < size_);
+      start_[i] = value;
     }
   }
 
@@ -498,23 +498,23 @@ template<typename T> class MutableSpan {
    */
   T *data() const
   {
-    return m_start;
+    return start_;
   }
 
   T *begin() const
   {
-    return m_start;
+    return start_;
   }
 
   T *end() const
   {
-    return m_start + m_size;
+    return start_ + size_;
   }
 
   T &operator[](uint index) const
   {
     BLI_assert(index < this->size());
-    return m_start[index];
+    return start_[index];
   }
 
   /**
@@ -524,7 +524,7 @@ template<typename T> class MutableSpan {
   MutableSpan slice(uint start, uint length) const
   {
     BLI_assert(start + length <= this->size());
-    return MutableSpan(m_start + start, length);
+    return MutableSpan(start_ + start, length);
   }
 
   /**
@@ -573,7 +573,7 @@ template<typename T> class MutableSpan {
    */
   Span<T> as_span() const
   {
-    return Span<T>(m_start, m_size);
+    return Span<T>(start_, size_);
   }
 
   /**
@@ -582,7 +582,7 @@ template<typename T> class MutableSpan {
    */
   IndexRange index_range() const
   {
-    return IndexRange(m_size);
+    return IndexRange(size_);
   }
 
   /**
@@ -591,8 +591,8 @@ template<typename T> class MutableSpan {
    */
   T &last() const
   {
-    BLI_assert(m_size > 0);
-    return m_start[m_size - 1];
+    BLI_assert(size_ > 0);
+    return start_[size_ - 1];
   }
 
   /**
@@ -600,9 +600,9 @@ template<typename T> class MutableSpan {
    */
   template<typename NewT> MutableSpan<NewT> cast() const
   {
-    BLI_assert((m_size * sizeof(T)) % sizeof(NewT) == 0);
-    uint new_size = m_size * sizeof(T) / sizeof(NewT);
-    return MutableSpan<NewT>(reinterpret_cast<NewT *>(m_start), new_size);
+    BLI_assert((size_ * sizeof(T)) % sizeof(NewT) == 0);
+    uint new_size = size_ * sizeof(T) / sizeof(NewT);
+    return MutableSpan<NewT>(reinterpret_cast<NewT *>(start_), new_size);
   }
 };
 

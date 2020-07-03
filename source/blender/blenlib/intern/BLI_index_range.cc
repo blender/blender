@@ -31,16 +31,16 @@ static std::mutex current_array_mutex;
 
 Span<uint> IndexRange::as_span() const
 {
-  uint min_required_size = m_start + m_size;
+  uint min_required_size = start_ + size_;
 
   if (min_required_size <= current_array_size) {
-    return Span<uint>(current_array + m_start, m_size);
+    return Span<uint>(current_array + start_, size_);
   }
 
   std::lock_guard<std::mutex> lock(current_array_mutex);
 
   if (min_required_size <= current_array_size) {
-    return Span<uint>(current_array + m_start, m_size);
+    return Span<uint>(current_array + start_, size_);
   }
 
   uint new_size = std::max<uint>(1000, power_of_2_max_u(min_required_size));
@@ -54,7 +54,7 @@ Span<uint> IndexRange::as_span() const
   std::atomic_thread_fence(std::memory_order_seq_cst);
   current_array_size = new_size;
 
-  return Span<uint>(current_array + m_start, m_size);
+  return Span<uint>(current_array + start_, size_);
 }
 
 }  // namespace blender

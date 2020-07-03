@@ -34,21 +34,21 @@ void print_duration(Nanoseconds duration);
 
 class ScopedTimer {
  private:
-  std::string m_name;
-  TimePoint m_start;
+  std::string name_;
+  TimePoint start_;
 
  public:
-  ScopedTimer(std::string name) : m_name(std::move(name))
+  ScopedTimer(std::string name) : name_(std::move(name))
   {
-    m_start = Clock::now();
+    start_ = Clock::now();
   }
 
   ~ScopedTimer()
   {
     TimePoint end = Clock::now();
-    Nanoseconds duration = end - m_start;
+    Nanoseconds duration = end - start_;
 
-    std::cout << "Timer '" << m_name << "' took ";
+    std::cout << "Timer '" << name_ << "' took ";
     print_duration(duration);
     std::cout << '\n';
   }

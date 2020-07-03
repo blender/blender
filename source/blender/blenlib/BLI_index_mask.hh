@@ -46,7 +46,7 @@ namespace blender {
 class IndexMask {
  private:
   /* The underlying reference to sorted integers. */
-  Span<uint> m_indices;
+  Span<uint> indices_;
 
  public:
   /* Creates an IndexMask that contains no indices. */
@@ -57,7 +57,7 @@ class IndexMask {
    * This constructor asserts that the given integers are in ascending order and that there are no
    * duplicates.
    */
-  IndexMask(Span<uint> indices) : m_indices(indices)
+  IndexMask(Span<uint> indices) : indices_(indices)
   {
 #ifdef DEBUG
     for (uint i = 1; i < indices.size(); i++) {
@@ -70,7 +70,7 @@ class IndexMask {
    * Use this method when you know that no indices are skipped. It is more efficient than preparing
    * an integer array all the time.
    */
-  IndexMask(IndexRange range) : m_indices(range.as_span())
+  IndexMask(IndexRange range) : indices_(range.as_span())
   {
   }
 
@@ -97,17 +97,17 @@ class IndexMask {
 
   operator Span<uint>() const
   {
-    return m_indices;
+    return indices_;
   }
 
   const uint *begin() const
   {
-    return m_indices.begin();
+    return indices_.begin();
   }
 
   const uint *end() const
   {
-    return m_indices.end();
+    return indices_.end();
   }
 
   /**
@@ -116,7 +116,7 @@ class IndexMask {
    */
   uint operator[](uint n) const
   {
-    return m_indices[n];
+    return indices_[n];
   }
 
   /**
@@ -125,17 +125,17 @@ class IndexMask {
    */
   uint min_array_size() const
   {
-    if (m_indices.size() == 0) {
+    if (indices_.size() == 0) {
       return 0;
     }
     else {
-      return m_indices.last() + 1;
+      return indices_.last() + 1;
     }
   }
 
   Span<uint> indices() const
   {
-    return m_indices;
+    return indices_;
   }
 
   /**
@@ -143,7 +143,7 @@ class IndexMask {
    */
   bool is_range() const
   {
-    return m_indices.size() > 0 && m_indices.last() - m_indices.first() == m_indices.size() - 1;
+    return indices_.size() > 0 && indices_.last() - indices_.first() == indices_.size() - 1;
   }
 
   /**
@@ -153,7 +153,7 @@ class IndexMask {
   IndexRange as_range() const
   {
     BLI_assert(this->is_range());
-    return IndexRange{m_indices.first(), m_indices.size()};
+    return IndexRange{indices_.first(), indices_.size()};
   }
 
   /**
@@ -172,7 +172,7 @@ class IndexMask {
       }
     }
     else {
-      for (uint i : m_indices) {
+      for (uint i : indices_) {
         callback(i);
       }
     }
@@ -187,7 +187,7 @@ class IndexMask {
    */
   IndexRange index_range() const
   {
-    return m_indices.index_range();
+    return indices_.index_range();
   }
 
   /**
@@ -195,7 +195,7 @@ class IndexMask {
    */
   uint last() const
   {
-    return m_indices.last();
+    return indices_.last();
   }
 
   /**
@@ -203,7 +203,7 @@ class IndexMask {
    */
   uint size() const
   {
-    return m_indices.size();
+    return indices_.size();
   }
 };
 

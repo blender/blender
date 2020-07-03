@@ -128,30 +128,30 @@ class Set {
    * Slots are either empty, occupied or removed. The number of occupied slots can be computed by
    * subtracting the removed slots from the occupied-and-removed slots.
    */
-  uint32_t m_removed_slots;
-  uint32_t m_occupied_and_removed_slots;
+  uint32_t removed_slots_;
+  uint32_t occupied_and_removed_slots_;
 
   /**
    * The maximum number of slots that can be used (either occupied or removed) until the set has to
    * grow. This is the total number of slots times the max load factor.
    */
-  uint32_t m_usable_slots;
+  uint32_t usable_slots_;
 
   /**
    * The number of slots minus one. This is a bit mask that can be used to turn any integer into a
    * valid slot index efficiently.
    */
-  uint32_t m_slot_mask;
+  uint32_t slot_mask_;
 
   /** This is called to hash incoming keys. */
-  Hash m_hash;
+  Hash hash_;
 
   /** This is called to check equality of two keys. */
-  IsEqual m_is_equal;
+  IsEqual is_equal_;
 
   /** The max load factor is 1/2 = 50% by default. */
 #define LOAD_FACTOR 1, 2
-  LoadFactor m_max_load_factor = LoadFactor(LOAD_FACTOR);
+  LoadFactor max_load_factor_ = LoadFactor(LOAD_FACTOR);
   using SlotArray =
       Array<Slot, LoadFactor::compute_total_slots(InlineBufferCapacity, LOAD_FACTOR), Allocator>;
 #undef LOAD_FACTOR
@@ -160,12 +160,12 @@ class Set {
    * This is the array that contains the actual slots. There is always at least one empty slot and
    * the size of the array is a power of two.
    */
-  SlotArray m_slots;
+  SlotArray slots_;
 
   /** Iterate over a slot index sequence for a given hash. */
 #define SET_SLOT_PROBING_BEGIN(HASH, R_SLOT) \
-  SLOT_PROBING_BEGIN (ProbingStrategy, HASH, m_slot_mask, SLOT_INDEX) \
-    auto &R_SLOT = m_slots[SLOT_INDEX];
+  SLOT_PROBING_BEGIN (ProbingStrategy, HASH, slot_mask_, SLOT_INDEX) \
+    auto &R_SLOT = slots_[SLOT_INDEX];
 #define SET_SLOT_PROBING_END() SLOT_PROBING_END()
 
  public:
@@ -175,11 +175,11 @@ class Set {
    * grow operation is performed on the first insertion.
    */
   Set()
-      : m_removed_slots(0),
-        m_occupied_and_removed_slots(0),
-        m_usable_slots(0),
-        m_slot_mask(0),
-        m_slots(1)
+      : removed_slots_(0),
+        occupied_and_removed_slots_(0),
+        usable_slots_(0),
+        slot_mask_(0),
+        slots_(1)
   {
   }
 
@@ -196,13 +196,13 @@ class Set {
   Set(const Set &other) = default;
 
   Set(Set &&other) noexcept
-      : m_removed_slots(other.m_removed_slots),
-        m_occupied_and_removed_slots(other.m_occupied_and_removed_slots),
-        m_usable_slots(other.m_usable_slots),
-        m_slot_mask(other.m_slot_mask),
-        m_hash(std::move(other.m_hash)),
-        m_is_equal(std::move(other.m_is_equal)),
-        m_slots(std::move(other.m_slots))
+      : removed_slots_(other.removed_slots_),
+        occupied_and_removed_slots_(other.occupied_and_removed_slots_),
+        usable_slots_(other.usable_slots_),
+        slot_mask_(other.slot_mask_),
+        hash_(std::move(other.hash_)),
+        is_equal_(std::move(other.is_equal_)),
+        slots_(std::move(other.slots_))
   {
     other.~Set();
     new (&other) Set();
@@ -239,11 +239,11 @@ class Set {
    */
   void add_new(const Key &key)
   {
-    this->add_new__impl(key, m_hash(key));
+    this->add_new__impl(key, hash_(key));
   }
   void add_new(Key &&key)
   {
-    this->add_new__impl(std::move(key), m_hash(key));
+    this->add_new__impl(std::move(key), hash_(key));
   }
 
   /**
@@ -266,7 +266,7 @@ class Set {
    */
   template<typename ForwardKey> bool add_as(ForwardKey &&key)
   {
-    return this->add__impl(std::forward<ForwardKey>(key), m_hash(key));
+    return this->add__impl(std::forward<ForwardKey>(key), hash_(key));
   }
 
   /**
@@ -309,7 +309,7 @@ class Set {
    */
   template<typename ForwardKey> bool contains_as(const ForwardKey &key) const
   {
-    return this->contains__impl(key, m_hash(key));
+    return this->contains__impl(key, hash_(key));
   }
 
   /**
@@ -327,7 +327,7 @@ class Set {
    */
   template<typename ForwardKey> bool remove_as(const ForwardKey &key)
   {
-    return this->remove__impl(key, m_hash(key));
+    return this->remove__impl(key, hash_(key));
   }
 
   /**
@@ -344,7 +344,7 @@ class Set {
    */
   template<typename ForwardKey> void remove_contained_as(const ForwardKey &key)
   {
-    this->remove_contained__impl(key, m_hash(key));
+    this->remove_contained__impl(key, hash_(key));
   }
 
   /**
@@ -356,20 +356,20 @@ class Set {
    */
   class Iterator {
    private:
-    const Slot *m_slots;
-    uint32_t m_total_slots;
-    uint32_t m_current_slot;
+    const Slot *slots_;
+    uint32_t total_slots_;
+    uint32_t current_slot_;
 
    public:
     Iterator(const Slot *slots, uint32_t total_slots, uint32_t current_slot)
-        : m_slots(slots), m_total_slots(total_slots), m_current_slot(current_slot)
+        : slots_(slots), total_slots_(total_slots), current_slot_(current_slot)
     {
     }
 
     Iterator &operator++()
     {
-      while (++m_current_slot < m_total_slots) {
-        if (m_slots[m_current_slot].is_occupied()) {
+      while (++current_slot_ < total_slots_) {
+        if (slots_[current_slot_].is_occupied()) {
           break;
         }
       }
@@ -378,22 +378,22 @@ class Set {
 
     const Key &operator*() const
     {
-      return *m_slots[m_current_slot].key();
+      return *slots_[current_slot_].key();
     }
 
     friend bool operator!=(const Iterator &a, const Iterator &b)
     {
-      BLI_assert(a.m_slots == b.m_slots);
-      BLI_assert(a.m_total_slots == b.m_total_slots);
-      return a.m_current_slot != b.m_current_slot;
+      BLI_assert(a.slots_ == b.slots_);
+      BLI_assert(a.total_slots_ == b.total_slots_);
+      return a.current_slot_ != b.current_slot_;
     }
   };
 
   Iterator begin() const
   {
-    for (uint32_t i = 0; i < m_slots.size(); i++) {
-      if (m_slots[i].is_occupied()) {
-        return Iterator(m_slots.data(), m_slots.size(), i);
+    for (uint32_t i = 0; i < slots_.size(); i++) {
+      if (slots_[i].is_occupied()) {
+        return Iterator(slots_.data(), slots_.size(), i);
       }
     }
     return this->end();
@@ -401,7 +401,7 @@ class Set {
 
   Iterator end() const
   {
-    return Iterator(m_slots.data(), m_slots.size(), m_slots.size());
+    return Iterator(slots_.data(), slots_.size(), slots_.size());
   }
 
   /**
@@ -419,7 +419,7 @@ class Set {
    */
   uint32_t count_collisions(const Key &key) const
   {
-    return this->count_collisions__impl(key, m_hash(key));
+    return this->count_collisions__impl(key, hash_(key));
   }
 
   /**
@@ -445,7 +445,7 @@ class Set {
    */
   uint32_t size() const
   {
-    return m_occupied_and_removed_slots - m_removed_slots;
+    return occupied_and_removed_slots_ - removed_slots_;
   }
 
   /**
@@ -453,7 +453,7 @@ class Set {
    */
   bool is_empty() const
   {
-    return m_occupied_and_removed_slots == m_removed_slots;
+    return occupied_and_removed_slots_ == removed_slots_;
   }
 
   /**
@@ -461,7 +461,7 @@ class Set {
    */
   uint32_t capacity() const
   {
-    return m_slots.size();
+    return slots_.size();
   }
 
   /**
@@ -469,7 +469,7 @@ class Set {
    */
   uint32_t removed_amount() const
   {
-    return m_removed_slots;
+    return removed_slots_;
   }
 
   /**
@@ -486,7 +486,7 @@ class Set {
    */
   uint32_t size_in_bytes() const
   {
-    return sizeof(Slot) * m_slots.size();
+    return sizeof(Slot) * slots_.size();
   }
 
   /**
@@ -495,7 +495,7 @@ class Set {
    */
   void reserve(uint32_t n)
   {
-    if (m_usable_slots < n) {
+    if (usable_slots_ < n) {
       this->realloc_and_reinsert(n);
     }
   }
@@ -530,7 +530,7 @@ class Set {
   BLI_NOINLINE void realloc_and_reinsert(uint32_t min_usable_slots)
   {
     uint32_t total_slots, usable_slots;
-    m_max_load_factor.compute_total_and_usable_slots(
+    max_load_factor_.compute_total_and_usable_slots(
         SlotArray::inline_buffer_capacity(), min_usable_slots, &total_slots, &usable_slots);
     uint32_t new_slot_mask = total_slots - 1;
 
@@ -538,19 +538,19 @@ class Set {
      * Optimize the case when the set was empty beforehand. We can avoid some copies here.
      */
     if (this->size() == 0) {
-      m_slots.~Array();
-      new (&m_slots) SlotArray(total_slots);
-      m_removed_slots = 0;
-      m_occupied_and_removed_slots = 0;
-      m_usable_slots = usable_slots;
-      m_slot_mask = new_slot_mask;
+      slots_.~Array();
+      new (&slots_) SlotArray(total_slots);
+      removed_slots_ = 0;
+      occupied_and_removed_slots_ = 0;
+      usable_slots_ = usable_slots;
+      slot_mask_ = new_slot_mask;
       return;
     }
 
     /* The grown array that we insert the keys into. */
     SlotArray new_slots(total_slots);
 
-    for (Slot &slot : m_slots) {
+    for (Slot &slot : slots_) {
       if (slot.is_occupied()) {
         this->add_after_grow_and_destruct_old(slot, new_slots, new_slot_mask);
       }
@@ -558,12 +558,12 @@ class Set {
 
     /* All occupied slots have been destructed already and empty/removed slots are assumed to be
      * trivially destructible. */
-    m_slots.clear_without_destruct();
-    m_slots = std::move(new_slots);
-    m_occupied_and_removed_slots -= m_removed_slots;
-    m_usable_slots = usable_slots;
-    m_removed_slots = 0;
-    m_slot_mask = new_slot_mask;
+    slots_.clear_without_destruct();
+    slots_ = std::move(new_slots);
+    occupied_and_removed_slots_ -= removed_slots_;
+    usable_slots_ = usable_slots;
+    removed_slots_ = 0;
+    slot_mask_ = new_slot_mask;
   }
 
   void add_after_grow_and_destruct_old(Slot &old_slot,
@@ -588,7 +588,7 @@ class Set {
       if (slot.is_empty()) {
         return false;
       }
-      if (slot.contains(key, m_is_equal, hash)) {
+      if (slot.contains(key, is_equal_, hash)) {
         return true;
       }
     }
@@ -604,7 +604,7 @@ class Set {
     SET_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.is_empty()) {
         slot.occupy(std::forward<ForwardKey>(key), hash);
-        m_occupied_and_removed_slots++;
+        occupied_and_removed_slots_++;
         return;
       }
     }
@@ -618,10 +618,10 @@ class Set {
     SET_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.is_empty()) {
         slot.occupy(std::forward<ForwardKey>(key), hash);
-        m_occupied_and_removed_slots++;
+        occupied_and_removed_slots_++;
         return true;
       }
-      if (slot.contains(key, m_is_equal, hash)) {
+      if (slot.contains(key, is_equal_, hash)) {
         return false;
       }
     }
@@ -631,9 +631,9 @@ class Set {
   template<typename ForwardKey> bool remove__impl(const ForwardKey &key, uint32_t hash)
   {
     SET_SLOT_PROBING_BEGIN (hash, slot) {
-      if (slot.contains(key, m_is_equal, hash)) {
+      if (slot.contains(key, is_equal_, hash)) {
         slot.remove();
-        m_removed_slots++;
+        removed_slots_++;
         return true;
       }
       if (slot.is_empty()) {
@@ -646,10 +646,10 @@ class Set {
   template<typename ForwardKey> void remove_contained__impl(const ForwardKey &key, uint32_t hash)
   {
     BLI_assert(this->contains_as(key));
-    m_removed_slots++;
+    removed_slots_++;
 
     SET_SLOT_PROBING_BEGIN (hash, slot) {
-      if (slot.contains(key, m_is_equal, hash)) {
+      if (slot.contains(key, is_equal_, hash)) {
         slot.remove();
         return;
       }
@@ -663,7 +663,7 @@ class Set {
     uint32_t collisions = 0;
 
     SET_SLOT_PROBING_BEGIN (hash, slot) {
-      if (slot.contains(key, m_is_equal, hash)) {
+      if (slot.contains(key, is_equal_, hash)) {
         return collisions;
       }
       if (slot.is_empty()) {
@@ -676,9 +676,9 @@ class Set {
 
   void ensure_can_add()
   {
-    if (m_occupied_and_removed_slots >= m_usable_slots) {
+    if (occupied_and_removed_slots_ >= usable_slots_) {
       this->realloc_and_reinsert(this->size() + 1);
-      BLI_assert(m_occupied_and_removed_slots < m_usable_slots);
+      BLI_assert(occupied_and_removed_slots_ < usable_slots_);
     }
   }
 };
@@ -690,77 +690,77 @@ class Set {
 template<typename Key> class StdUnorderedSetWrapper {
  private:
   using SetType = std::unordered_set<Key, blender::DefaultHash<Key>>;
-  SetType m_set;
+  SetType set_;
 
  public:
   uint32_t size() const
   {
-    return (uint32_t)m_set.size();
+    return (uint32_t)set_.size();
   }
 
   bool is_empty() const
   {
-    return m_set.empty();
+    return set_.empty();
   }
 
   void reserve(uint32_t n)
   {
-    m_set.reserve(n);
+    set_.reserve(n);
   }
 
   void add_new(const Key &key)
   {
-    m_set.insert(key);
+    set_.insert(key);
   }
   void add_new(Key &&key)
   {
-    m_set.insert(std::move(key));
+    set_.insert(std::move(key));
   }
 
   bool add(const Key &key)
   {
-    return m_set.insert(key).second;
+    return set_.insert(key).second;
   }
   bool add(Key &&key)
   {
-    return m_set.insert(std::move(key)).second;
+    return set_.insert(std::move(key)).second;
   }
 
   void add_multiple(Span<Key> keys)
   {
     for (const Key &key : keys) {
-      m_set.insert(key);
+      set_.insert(key);
     }
   }
 
   bool contains(const Key &key) const
   {
-    return m_set.find(key) != m_set.end();
+    return set_.find(key) != set_.end();
   }
 
   bool remove(const Key &key)
   {
-    return (bool)m_set.erase(key);
+    return (bool)set_.erase(key);
   }
 
   void remove_contained(const Key &key)
   {
-    return m_set.erase(key);
+    return set_.erase(key);
   }
 
   void clear()
   {
-    m_set.clear();
+    set_.clear();
   }
 
   typename SetType::iterator begin() const
   {
-    return m_set.begin();
+    return set_.begin();
   }
 
   typename SetType::iterator end() const
   {
-    return m_set.end();
+    return set_.end();
   }
 };
 

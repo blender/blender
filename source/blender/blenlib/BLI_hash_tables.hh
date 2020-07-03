@@ -109,12 +109,12 @@ inline constexpr uint32_t total_slot_amount_for_usable_slots(uint32_t min_usable
 
 class LoadFactor {
  private:
-  uint8_t m_numerator;
-  uint8_t m_denominator;
+  uint8_t numerator_;
+  uint8_t denominator_;
 
  public:
   LoadFactor(uint8_t numerator, uint8_t denominator)
-      : m_numerator(numerator), m_denominator(denominator)
+      : numerator_(numerator), denominator_(denominator)
   {
     BLI_assert(numerator > 0);
     BLI_assert(numerator < denominator);
@@ -127,10 +127,10 @@ class LoadFactor {
   {
     BLI_assert(is_power_of_2_i((int)min_total_slots));
 
-    uint32_t total_slots = this->compute_total_slots(min_usable_slots, m_numerator, m_denominator);
+    uint32_t total_slots = this->compute_total_slots(min_usable_slots, numerator_, denominator_);
     total_slots = std::max(total_slots, min_total_slots);
     uint32_t usable_slots = floor_multiplication_with_fraction(
-        total_slots, m_numerator, m_denominator);
+        total_slots, numerator_, denominator_);
     BLI_assert(min_usable_slots <= usable_slots);
 
     *r_total_slots = total_slots;
@@ -261,17 +261,17 @@ template<typename Pointer> struct PointerKeyInfo {
 
 class HashTableStats {
  private:
-  Vector<uint32_t> m_keys_by_collision_count;
-  uint32_t m_total_collisions;
-  float m_average_collisions;
-  uint32_t m_size;
-  uint32_t m_capacity;
-  uint32_t m_removed_amount;
-  float m_load_factor;
-  float m_removed_load_factor;
-  uint32_t m_size_per_element;
-  uint32_t m_size_in_bytes;
-  const void *m_address;
+  Vector<uint32_t> keys_by_collision_count_;
+  uint32_t total_collisions_;
+  float average_collisions_;
+  uint32_t size_;
+  uint32_t capacity_;
+  uint32_t removed_amount_;
+  float load_factor_;
+  float removed_load_factor_;
+  uint32_t size_per_element_;
+  uint32_t size_in_bytes_;
+  const void *address_;
 
  public:
   /**
@@ -286,47 +286,47 @@ class HashTableStats {
   template<typename HashTable, typename Keys>
   HashTableStats(const HashTable &hash_table, const Keys &keys)
   {
-    m_total_collisions = 0;
-    m_size = hash_table.size();
-    m_capacity = hash_table.capacity();
-    m_removed_amount = hash_table.removed_amount();
-    m_size_per_element = hash_table.size_per_element();
-    m_size_in_bytes = hash_table.size_in_bytes();
-    m_address = (const void *)&hash_table;
+    total_collisions_ = 0;
+    size_ = hash_table.size();
+    capacity_ = hash_table.capacity();
+    removed_amount_ = hash_table.removed_amount();
+    size_per_element_ = hash_table.size_per_element();
+    size_in_bytes_ = hash_table.size_in_bytes();
+    address_ = (const void *)&hash_table;
 
     for (const auto &key : keys) {
       uint32_t collisions = hash_table.count_collisions(key);
-      if (m_keys_by_collision_count.size() <= collisions) {
-        m_keys_by_collision_count.append_n_times(
-            0, collisions - m_keys_by_collision_count.size() + 1);
+      if (keys_by_collision_count_.size() <= collisions) {
+        keys_by_collision_count_.append_n_times(0,
+                                                collisions - keys_by_collision_count_.size() + 1);
       }
-      m_keys_by_collision_count[collisions]++;
-      m_total_collisions += collisions;
+      keys_by_collision_count_[collisions]++;
+      total_collisions_ += collisions;
     }
 
-    m_average_collisions = (m_size == 0) ? 0 : (float)m_total_collisions / (float)m_size;
-    m_load_factor = (float)m_size / (float)m_capacity;
-    m_removed_load_factor = (float)m_removed_amount / (float)m_capacity;
+    average_collisions_ = (size_ == 0) ? 0 : (float)total_collisions_ / (float)size_;
+    load_factor_ = (float)size_ / (float)capacity_;
+    removed_load_factor_ = (float)removed_amount_ / (float)capacity_;
   }
 
   void print(StringRef name = "")
   {
     std::cout << "Hash Table Stats: " << name << "\n";
-    std::cout << "  Address: " << m_address << "\n";
-    std::cout << "  Total Slots: " << m_capacity << "\n";
-    std::cout << "  Occupied Slots:  " << m_size << " (" << m_load_factor * 100.0f << " %)\n";
-    std::cout << "  Removed Slots: " << m_removed_amount << " (" << m_removed_load_factor * 100.0f
+    std::cout << "  Address: " << address_ << "\n";
+    std::cout << "  Total Slots: " << capacity_ << "\n";
+    std::cout << "  Occupied Slots:  " << size_ << " (" << load_factor_ * 100.0f << " %)\n";
+    std::cout << "  Removed Slots: " << removed_amount_ << " (" << removed_load_factor_ * 100.0f
               << " %)\n";
 
     char memory_size_str[15];
-    BLI_str_format_byte_unit(memory_size_str, m_size_in_bytes, true);
+    BLI_str_format_byte_unit(memory_size_str, size_in_bytes_, true);
     std::cout << "  Size: ~" << memory_size_str << "\n";
-    std::cout << "  Size per Slot: " << m_size_per_element << " bytes\n";
+    std::cout << "  Size per Slot: " << size_per_element_ << " bytes\n";
 
-    std::cout << "  Average Collisions: " << m_average_collisions << "\n";
-    for (uint32_t collision_count : m_keys_by_collision_count.index_range()) {
+    std::cout << "  Average Collisions: " << average_collisions_ << "\n";
+    for (uint32_t collision_count : keys_by_collision_count_.index_range()) {
       std::cout << "  " << collision_count
-                << " Collisions: " << m_keys_by_collision_count[collision_count] << "\n";
+                << " Collisions: " << keys_by_collision_count_[collision_count] << "\n";
     }
   }
 };

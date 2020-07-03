@@ -53,7 +53,7 @@ template<typename Key> class SimpleVectorSetSlot {
   /**
    * After the default constructor has run, the slot has to be in the empty state.
    */
-  int32_t m_state = s_is_empty;
+  int32_t state_ = s_is_empty;
 
  public:
   /**
@@ -61,7 +61,7 @@ template<typename Key> class SimpleVectorSetSlot {
    */
   bool is_occupied() const
   {
-    return m_state >= 0;
+    return state_ >= 0;
   }
 
   /**
@@ -69,7 +69,7 @@ template<typename Key> class SimpleVectorSetSlot {
    */
   bool is_empty() const
   {
-    return m_state == s_is_empty;
+    return state_ == s_is_empty;
   }
 
   /**
@@ -78,7 +78,7 @@ template<typename Key> class SimpleVectorSetSlot {
   uint32_t index() const
   {
     BLI_assert(this->is_occupied());
-    return (uint32_t)m_state;
+    return (uint32_t)state_;
   }
 
   /**
@@ -91,8 +91,8 @@ template<typename Key> class SimpleVectorSetSlot {
                 uint32_t UNUSED(hash),
                 const Key *keys) const
   {
-    if (m_state >= 0) {
-      return is_equal(key, keys[m_state]);
+    if (state_ >= 0) {
+      return is_equal(key, keys[state_]);
     }
     return false;
   }
@@ -106,7 +106,7 @@ template<typename Key> class SimpleVectorSetSlot {
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(other.is_occupied());
-    m_state = other.m_state;
+    state_ = other.state_;
   }
 
   /**
@@ -116,7 +116,7 @@ template<typename Key> class SimpleVectorSetSlot {
   void occupy(uint32_t index, uint32_t UNUSED(hash))
   {
     BLI_assert(!this->is_occupied());
-    m_state = (int32_t)index;
+    state_ = (int32_t)index;
   }
 
   /**
@@ -126,7 +126,7 @@ template<typename Key> class SimpleVectorSetSlot {
   void update_index(uint32_t index)
   {
     BLI_assert(this->is_occupied());
-    m_state = (int32_t)index;
+    state_ = (int32_t)index;
   }
 
   /**
@@ -135,7 +135,7 @@ template<typename Key> class SimpleVectorSetSlot {
   void remove()
   {
     BLI_assert(this->is_occupied());
-    m_state = s_is_removed;
+    state_ = s_is_removed;
   }
 
   /**
@@ -143,7 +143,7 @@ template<typename Key> class SimpleVectorSetSlot {
    */
   bool has_index(uint32_t index) const
   {
-    return (uint32_t)m_state == index;
+    return (uint32_t)state_ == index;
   }
 
   /**

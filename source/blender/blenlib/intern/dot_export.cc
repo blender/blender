@@ -27,8 +27,8 @@ namespace dot {
 Node &Graph::new_node(StringRef label)
 {
   Node *node = new Node(*this);
-  m_nodes.append(std::unique_ptr<Node>(node));
-  m_top_level_nodes.add_new(node);
+  nodes_.append(std::unique_ptr<Node>(node));
+  top_level_nodes_.add_new(node);
   node->set_attribute("label", label);
   return *node;
 }
@@ -36,8 +36,8 @@ Node &Graph::new_node(StringRef label)
 Cluster &Graph::new_cluster(StringRef label)
 {
   Cluster *cluster = new Cluster(*this);
-  m_clusters.append(std::unique_ptr<Cluster>(cluster));
-  m_top_level_clusters.add_new(cluster);
+  clusters_.append(std::unique_ptr<Cluster>(cluster));
+  top_level_clusters_.add_new(cluster);
   cluster->set_attribute("label", label);
   return *cluster;
 }
@@ -45,55 +45,55 @@ Cluster &Graph::new_cluster(StringRef label)
 UndirectedEdge &UndirectedGraph::new_edge(NodePort a, NodePort b)
 {
   UndirectedEdge *edge = new UndirectedEdge(a, b);
-  m_edges.append(std::unique_ptr<UndirectedEdge>(edge));
+  edges_.append(std::unique_ptr<UndirectedEdge>(edge));
   return *edge;
 }
 
 DirectedEdge &DirectedGraph::new_edge(NodePort from, NodePort to)
 {
   DirectedEdge *edge = new DirectedEdge(from, to);
-  m_edges.append(std::unique_ptr<DirectedEdge>(edge));
+  edges_.append(std::unique_ptr<DirectedEdge>(edge));
   return *edge;
 }
 
 void Cluster::set_parent_cluster(Cluster *new_parent)
 {
-  if (m_parent == new_parent) {
+  if (parent_ == new_parent) {
     return;
   }
-  else if (m_parent == nullptr) {
-    m_graph.m_top_level_clusters.remove(this);
-    new_parent->m_children.add_new(this);
+  else if (parent_ == nullptr) {
+    graph_.top_level_clusters_.remove(this);
+    new_parent->children_.add_new(this);
   }
   else if (new_parent == nullptr) {
-    m_parent->m_children.remove(this);
-    m_graph.m_top_level_clusters.add_new(this);
+    parent_->children_.remove(this);
+    graph_.top_level_clusters_.add_new(this);
   }
   else {
-    m_parent->m_children.remove(this);
-    new_parent->m_children.add_new(this);
+    parent_->children_.remove(this);
+    new_parent->children_.add_new(this);
   }
-  m_parent = new_parent;
+  parent_ = new_parent;
 }
 
 void Node::set_parent_cluster(Cluster *cluster)
 {
-  if (m_cluster == cluster) {
+  if (cluster_ == cluster) {
     return;
   }
-  else if (m_cluster == nullptr) {
-    m_graph.m_top_level_nodes.remove(this);
-    cluster->m_nodes.add_new(this);
+  else if (cluster_ == nullptr) {
+    graph_.top_level_nodes_.remove(this);
+    cluster->nodes_.add_new(this);
   }
   else if (cluster == nullptr) {
-    m_cluster->m_nodes.remove(this);
-    m_graph.m_top_level_nodes.add_new(this);
+    cluster_->nodes_.remove(this);
+    graph_.top_level_nodes_.add_new(this);
   }
   else {
-    m_cluster->m_nodes.remove(this);
-    cluster->m_nodes.add_new(this);
+    cluster_->nodes_.remove(this);
+    cluster->nodes_.add_new(this);
   }
-  m_cluster = cluster;
+  cluster_ = cluster;
 }
 
 /* Utility methods
@@ -101,7 +101,7 @@ void Node::set_parent_cluster(Cluster *cluster)
 
 void Graph::set_random_cluster_bgcolors()
 {
-  for (Cluster *cluster : m_top_level_clusters) {
+  for (Cluster *cluster : top_level_clusters_) {
     cluster->set_random_cluster_bgcolors();
   }
 }
@@ -113,7 +113,7 @@ void Cluster::set_random_cluster_bgcolors()
   float value = 0.8f;
   this->set_attribute("bgcolor", color_attr_from_hsv(hue, staturation, value));
 
-  for (Cluster *cluster : m_children) {
+  for (Cluster *cluster : children_) {
     cluster->set_random_cluster_bgcolors();
   }
 }
@@ -128,7 +128,7 @@ std::string DirectedGraph::to_dot_string() const
   this->export__declare_nodes_and_clusters(ss);
   ss << "\n";
 
-  for (const std::unique_ptr<DirectedEdge> &edge : m_edges) {
+  for (const std::unique_ptr<DirectedEdge> &edge : edges_) {
     edge->export__as_edge_statement(ss);
     ss << "\n";
   }
@@ -144,7 +144,7 @@ std::string UndirectedGraph::to_dot_string() const
   this->export__declare_nodes_and_clusters(ss);
   ss << "\n";
 
-  for (const std::unique_ptr<UndirectedEdge> &edge : m_edges) {
+  for (const std::unique_ptr<UndirectedEdge> &edge : edges_) {
     edge->export__as_edge_statement(ss);
     ss << "\n";
   }
@@ -156,14 +156,14 @@ std::string UndirectedGraph::to_dot_string() const
 void Graph::export__declare_nodes_and_clusters(std::stringstream &ss) const
 {
   ss << "graph ";
-  m_attributes.export__as_bracket_list(ss);
+  attributes_.export__as_bracket_list(ss);
   ss << "\n\n";
 
-  for (Node *node : m_top_level_nodes) {
+  for (Node *node : top_level_nodes_) {
     node->export__as_declaration(ss);
   }
 
-  for (Cluster *cluster : m_top_level_clusters) {
+  for (Cluster *cluster : top_level_clusters_) {
     cluster->export__declare_nodes_and_clusters(ss);
   }
 }
@@ -173,14 +173,14 @@ void Cluster::export__declare_nodes_and_clusters(std::stringstream &ss) const
   ss << "subgraph cluster_" << (uintptr_t)this << " {\n";
 
   ss << "graph ";
-  m_attributes.export__as_bracket_list(ss);
+  attributes_.export__as_bracket_list(ss);
   ss << "\n\n";
 
-  for (Node *node : m_nodes) {
+  for (Node *node : nodes_) {
     node->export__as_declaration(ss);
   }
 
-  for (Cluster *cluster : m_children) {
+  for (Cluster *cluster : children_) {
     cluster->export__declare_nodes_and_clusters(ss);
   }
 
@@ -189,26 +189,26 @@ void Cluster::export__declare_nodes_and_clusters(std::stringstream &ss) const
 
 void DirectedEdge::export__as_edge_statement(std::stringstream &ss) const
 {
-  m_a.to_dot_string(ss);
+  a_.to_dot_string(ss);
   ss << " -> ";
-  m_b.to_dot_string(ss);
+  b_.to_dot_string(ss);
   ss << " ";
-  m_attributes.export__as_bracket_list(ss);
+  attributes_.export__as_bracket_list(ss);
 }
 
 void UndirectedEdge::export__as_edge_statement(std::stringstream &ss) const
 {
-  m_a.to_dot_string(ss);
+  a_.to_dot_string(ss);
   ss << " -- ";
-  m_b.to_dot_string(ss);
+  b_.to_dot_string(ss);
   ss << " ";
-  m_attributes.export__as_bracket_list(ss);
+  attributes_.export__as_bracket_list(ss);
 }
 
 void AttributeList::export__as_bracket_list(std::stringstream &ss) const
 {
   ss << "[";
-  m_attributes.foreach_item([&](StringRef key, StringRef value) {
+  attributes_.foreach_item([&](StringRef key, StringRef value) {
     if (StringRef(value).startswith("<")) {
       /* Don't draw the quotes, this is an html-like value. */
       ss << key << "=" << value << ", ";
@@ -229,15 +229,15 @@ void Node::export__as_declaration(std::stringstream &ss) const
 {
   this->export__as_id(ss);
   ss << " ";
-  m_attributes.export__as_bracket_list(ss);
+  attributes_.export__as_bracket_list(ss);
   ss << "\n";
 }
 
 void NodePort::to_dot_string(std::stringstream &ss) const
 {
-  m_node->export__as_id(ss);
-  if (m_port_name.has_value()) {
-    ss << ":" << *m_port_name;
+  node_->export__as_id(ss);
+  if (port_name_.has_value()) {
+    ss << ":" << *port_name_;
   }
 }
 
@@ -252,7 +252,7 @@ NodeWithSocketsRef::NodeWithSocketsRef(Node &node,
                                        StringRef name,
                                        Span<std::string> input_names,
                                        Span<std::string> output_names)
-    : m_node(&node)
+    : node_(&node)
 {
   std::stringstream ss;
 
@@ -297,8 +297,8 @@ NodeWithSocketsRef::NodeWithSocketsRef(Node &node,
 
   ss << "</table>>";
 
-  m_node->set_attribute("label", ss.str());
-  m_node->set_shape(Attr_shape::Rectangle);
+  node_->set_attribute("label", ss.str());
+  node_->set_shape(Attr_shape::Rectangle);
 }
 
 }  // namespace dot

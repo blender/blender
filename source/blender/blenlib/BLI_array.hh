@@ -65,16 +65,16 @@ template<
 class Array {
  private:
   /** The beginning of the array. It might point into the inline buffer. */
-  T *m_data;
+  T *data_;
 
   /** Number of elements in the array. */
-  uint m_size;
+  uint size_;
 
   /** Used for allocations when the inline buffer is too small. */
-  Allocator m_allocator;
+  Allocator allocator_;
 
   /** A placeholder buffer that will remain uninitialized until it is used. */
-  AlignedBuffer<sizeof(T) * InlineBufferCapacity, alignof(T)> m_inline_buffer;
+  AlignedBuffer<sizeof(T) * InlineBufferCapacity, alignof(T)> inline_buffer_;
 
  public:
   /**
@@ -82,8 +82,8 @@ class Array {
    */
   Array()
   {
-    m_data = this->inline_buffer();
-    m_size = 0;
+    data_ = this->inline_buffer();
+    size_ = 0;
   }
 
   /**
@@ -91,9 +91,9 @@ class Array {
    */
   Array(Span<T> values)
   {
-    m_size = values.size();
-    m_data = this->get_buffer_for_size(values.size());
-    uninitialized_copy_n(values.data(), m_size, m_data);
+    size_ = values.size();
+    data_ = this->get_buffer_for_size(values.size());
+    uninitialized_copy_n(values.data(), size_, data_);
   }
 
   /**
@@ -113,9 +113,9 @@ class Array {
    */
   explicit Array(uint size)
   {
-    m_size = size;
-    m_data = this->get_buffer_for_size(size);
-    default_construct_n(m_data, size);
+    size_ = size;
+    data_ = this->get_buffer_for_size(size);
+    default_construct_n(data_, size);
   }
 
   /**
@@ -124,9 +124,9 @@ class Array {
    */
   Array(uint size, const T &value)
   {
-    m_size = size;
-    m_data = this->get_buffer_for_size(size);
-    uninitialized_fill_n(m_data, m_size, value);
+    size_ = size;
+    data_ = this->get_buffer_for_size(size);
+    uninitialized_fill_n(data_, size_, value);
   }
 
   /**
@@ -143,39 +143,39 @@ class Array {
    */
   Array(uint size, NoInitialization)
   {
-    m_size = size;
-    m_data = this->get_buffer_for_size(size);
+    size_ = size;
+    data_ = this->get_buffer_for_size(size);
   }
 
-  Array(const Array &other) : m_allocator(other.m_allocator)
+  Array(const Array &other) : allocator_(other.allocator_)
   {
-    m_size = other.size();
+    size_ = other.size();
 
-    m_data = this->get_buffer_for_size(other.size());
-    uninitialized_copy_n(other.data(), m_size, m_data);
+    data_ = this->get_buffer_for_size(other.size());
+    uninitialized_copy_n(other.data(), size_, data_);
   }
 
-  Array(Array &&other) noexcept : m_allocator(other.m_allocator)
+  Array(Array &&other) noexcept : allocator_(other.allocator_)
   {
-    m_size = other.m_size;
+    size_ = other.size_;
 
     if (!other.uses_inline_buffer()) {
-      m_data = other.m_data;
+      data_ = other.data_;
     }
     else {
-      m_data = this->get_buffer_for_size(m_size);
-      uninitialized_relocate_n(other.m_data, m_size, m_data);
+      data_ = this->get_buffer_for_size(size_);
+      uninitialized_relocate_n(other.data_, size_, data_);
     }
 
-    other.m_data = other.inline_buffer();
-    other.m_size = 0;
+    other.data_ = other.inline_buffer();
+    other.size_ = 0;
   }
 
   ~Array()
   {
-    destruct_n(m_data, m_size);
+    destruct_n(data_, size_);
     if (!this->uses_inline_buffer()) {
-      m_allocator.deallocate((void *)m_data);
+      allocator_.deallocate((void *)data_);
     }
   }
 
@@ -203,12 +203,12 @@ class Array {
 
   operator Span<T>() const
   {
-    return Span<T>(m_data, m_size);
+    return Span<T>(data_, size_);
   }
 
   operator MutableSpan<T>()
   {
-    return MutableSpan<T>(m_data, m_size);
+    return MutableSpan<T>(data_, size_);
   }
 
   Span<T> as_span() const
@@ -223,14 +223,14 @@ class Array {
 
   T &operator[](uint index)
   {
-    BLI_assert(index < m_size);
-    return m_data[index];
+    BLI_assert(index < size_);
+    return data_[index];
   }
 
   const T &operator[](uint index) const
   {
-    BLI_assert(index < m_size);
-    return m_data[index];
+    BLI_assert(index < size_);
+    return data_[index];
   }
 
   /**
@@ -238,7 +238,7 @@ class Array {
    */
   uint size() const
   {
-    return m_size;
+    return size_;
   }
 
   /**
@@ -246,7 +246,7 @@ class Array {
    */
   bool is_empty() const
   {
-    return m_size == 0;
+    return size_ == 0;
   }
 
   /**
@@ -254,7 +254,7 @@ class Array {
    */
   void fill(const T &value)
   {
-    initialized_fill_n(m_data, m_size, value);
+    initialized_fill_n(data_, size_, value);
   }
 
   /**
@@ -270,31 +270,31 @@ class Array {
    */
   const T *data() const
   {
-    return m_data;
+    return data_;
   }
   T *data()
   {
-    return m_data;
+    return data_;
   }
 
   const T *begin() const
   {
-    return m_data;
+    return data_;
   }
 
   const T *end() const
   {
-    return m_data + m_size;
+    return data_ + size_;
   }
 
   T *begin()
   {
-    return m_data;
+    return data_;
   }
 
   T *end()
   {
-    return m_data + m_size;
+    return data_ + size_;
   }
 
   /**
@@ -302,7 +302,7 @@ class Array {
    */
   IndexRange index_range() const
   {
-    return IndexRange(m_size);
+    return IndexRange(size_);
   }
 
   /**
@@ -311,7 +311,7 @@ class Array {
    */
   void clear_without_destruct()
   {
-    m_size = 0;
+    size_ = 0;
   }
 
   /**
@@ -319,7 +319,7 @@ class Array {
    */
   Allocator &allocator()
   {
-    return m_allocator;
+    return allocator_;
   }
 
   /**
@@ -344,17 +344,17 @@ class Array {
 
   T *inline_buffer() const
   {
-    return (T *)m_inline_buffer.ptr();
+    return (T *)inline_buffer_.ptr();
   }
 
   T *allocate(uint size)
   {
-    return (T *)m_allocator.allocate(size * sizeof(T), alignof(T), AT);
+    return (T *)allocator_.allocate(size * sizeof(T), alignof(T), AT);
   }
 
   bool uses_inline_buffer() const
   {
-    return m_data == this->inline_buffer();
+    return data_ == this->inline_buffer();
   }
 };
 

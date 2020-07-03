@@ -70,59 +70,59 @@ template<typename T> class Span;
 
 class IndexRange {
  private:
-  uint m_start = 0;
-  uint m_size = 0;
+  uint start_ = 0;
+  uint size_ = 0;
 
  public:
   IndexRange() = default;
 
-  explicit IndexRange(uint size) : m_start(0), m_size(size)
+  explicit IndexRange(uint size) : start_(0), size_(size)
   {
   }
 
-  IndexRange(uint start, uint size) : m_start(start), m_size(size)
+  IndexRange(uint start, uint size) : start_(start), size_(size)
   {
   }
 
   template<typename T>
-  IndexRange(const tbb::blocked_range<T> &range) : m_start(range.begin()), m_size(range.size())
+  IndexRange(const tbb::blocked_range<T> &range) : start_(range.begin()), size_(range.size())
   {
   }
 
   class Iterator {
    private:
-    uint m_current;
+    uint current_;
 
    public:
-    Iterator(uint current) : m_current(current)
+    Iterator(uint current) : current_(current)
     {
     }
 
     Iterator &operator++()
     {
-      m_current++;
+      current_++;
       return *this;
     }
 
     bool operator!=(const Iterator &iterator) const
     {
-      return m_current != iterator.m_current;
+      return current_ != iterator.current_;
     }
 
     uint operator*() const
     {
-      return m_current;
+      return current_;
     }
   };
 
   Iterator begin() const
   {
-    return Iterator(m_start);
+    return Iterator(start_);
   }
 
   Iterator end() const
   {
-    return Iterator(m_start + m_size);
+    return Iterator(start_ + size_);
   }
 
   /**
@@ -131,7 +131,7 @@ class IndexRange {
   uint operator[](uint index) const
   {
     BLI_assert(index < this->size());
-    return m_start + index;
+    return start_ + index;
   }
 
   /**
@@ -139,7 +139,7 @@ class IndexRange {
    */
   friend bool operator==(IndexRange a, IndexRange b)
   {
-    return (a.m_size == b.m_size) && (a.m_start == b.m_start || a.m_size == 0);
+    return (a.size_ == b.size_) && (a.start_ == b.start_ || a.size_ == 0);
   }
 
   /**
@@ -147,7 +147,7 @@ class IndexRange {
    */
   uint size() const
   {
-    return m_size;
+    return size_;
   }
 
   /**
@@ -155,7 +155,7 @@ class IndexRange {
    */
   IndexRange after(uint n) const
   {
-    return IndexRange(m_start + m_size, n);
+    return IndexRange(start_ + size_, n);
   }
 
   /**
@@ -163,7 +163,7 @@ class IndexRange {
    */
   IndexRange before(uint n) const
   {
-    return IndexRange(m_start - n, n);
+    return IndexRange(start_ - n, n);
   }
 
   /**
@@ -173,7 +173,7 @@ class IndexRange {
   uint first() const
   {
     BLI_assert(this->size() > 0);
-    return m_start;
+    return start_;
   }
 
   /**
@@ -183,7 +183,7 @@ class IndexRange {
   uint last() const
   {
     BLI_assert(this->size() > 0);
-    return m_start + m_size - 1;
+    return start_ + size_ - 1;
   }
 
   /**
@@ -191,7 +191,7 @@ class IndexRange {
    */
   uint one_after_last() const
   {
-    return m_start + m_size;
+    return start_ + size_;
   }
 
   /**
@@ -199,7 +199,7 @@ class IndexRange {
    */
   uint start() const
   {
-    return m_start;
+    return start_;
   }
 
   /**
@@ -207,7 +207,7 @@ class IndexRange {
    */
   bool contains(uint value) const
   {
-    return value >= m_start && value < m_start + m_size;
+    return value >= start_ && value < start_ + size_;
   }
 
   /**
@@ -215,8 +215,8 @@ class IndexRange {
    */
   IndexRange slice(uint start, uint size) const
   {
-    uint new_start = m_start + start;
-    BLI_assert(new_start + size <= m_start + m_size || size == 0);
+    uint new_start = start_ + start;
+    BLI_assert(new_start + size <= start_ + size_ || size == 0);
     return IndexRange(new_start, size);
   }
   IndexRange slice(IndexRange range) const

@@ -65,21 +65,21 @@ namespace blender {
  */
 class LinearProbingStrategy {
  private:
-  uint32_t m_hash;
+  uint32_t hash_;
 
  public:
-  LinearProbingStrategy(uint32_t hash) : m_hash(hash)
+  LinearProbingStrategy(uint32_t hash) : hash_(hash)
   {
   }
 
   void next()
   {
-    m_hash++;
+    hash_++;
   }
 
   uint32_t get() const
   {
-    return m_hash;
+    return hash_;
   }
 
   uint32_t linear_steps() const
@@ -101,25 +101,25 @@ class LinearProbingStrategy {
  */
 class QuadraticProbingStrategy {
  private:
-  uint32_t m_original_hash;
-  uint32_t m_current_hash;
-  uint32_t m_iteration;
+  uint32_t original_hash_;
+  uint32_t current_hash_;
+  uint32_t iteration_;
 
  public:
   QuadraticProbingStrategy(uint32_t hash)
-      : m_original_hash(hash), m_current_hash(hash), m_iteration(1)
+      : original_hash_(hash), current_hash_(hash), iteration_(1)
   {
   }
 
   void next()
   {
-    m_current_hash = m_original_hash + ((m_iteration * m_iteration + m_iteration) >> 1);
-    m_iteration++;
+    current_hash_ = original_hash_ + ((iteration_ * iteration_ + iteration_) >> 1);
+    iteration_++;
   }
 
   uint32_t get() const
   {
-    return m_current_hash;
+    return current_hash_;
   }
 
   uint32_t linear_steps() const
@@ -140,11 +140,11 @@ class QuadraticProbingStrategy {
  */
 template<uint32_t LinearSteps = 1, bool PreShuffle = false> class PythonProbingStrategy {
  private:
-  uint32_t m_hash;
-  uint32_t m_perturb;
+  uint32_t hash_;
+  uint32_t perturb_;
 
  public:
-  PythonProbingStrategy(uint32_t hash) : m_hash(hash), m_perturb(hash)
+  PythonProbingStrategy(uint32_t hash) : hash_(hash), perturb_(hash)
   {
     if (PreShuffle) {
       this->next();
@@ -153,13 +153,13 @@ template<uint32_t LinearSteps = 1, bool PreShuffle = false> class PythonProbingS
 
   void next()
   {
-    m_perturb >>= 5;
-    m_hash = 5 * m_hash + 1 + m_perturb;
+    perturb_ >>= 5;
+    hash_ = 5 * hash_ + 1 + perturb_;
   }
 
   uint32_t get() const
   {
-    return m_hash;
+    return hash_;
   }
 
   uint32_t linear_steps() const
@@ -175,11 +175,11 @@ template<uint32_t LinearSteps = 1, bool PreShuffle = false> class PythonProbingS
  */
 template<uint32_t LinearSteps = 2, bool PreShuffle = false> class ShuffleProbingStrategy {
  private:
-  uint32_t m_hash;
-  uint32_t m_perturb;
+  uint32_t hash_;
+  uint32_t perturb_;
 
  public:
-  ShuffleProbingStrategy(uint32_t hash) : m_hash(hash), m_perturb(hash)
+  ShuffleProbingStrategy(uint32_t hash) : hash_(hash), perturb_(hash)
   {
     if (PreShuffle) {
       this->next();
@@ -188,18 +188,18 @@ template<uint32_t LinearSteps = 2, bool PreShuffle = false> class ShuffleProbing
 
   void next()
   {
-    if (m_perturb != 0) {
-      m_perturb >>= 10;
-      m_hash = ((m_hash >> 16) ^ m_hash) * 0x45d9f3b + m_perturb;
+    if (perturb_ != 0) {
+      perturb_ >>= 10;
+      hash_ = ((hash_ >> 16) ^ hash_) * 0x45d9f3b + perturb_;
     }
     else {
-      m_hash = 5 * m_hash + 1;
+      hash_ = 5 * hash_ + 1;
     }
   }
 
   uint32_t get() const
   {
-    return m_hash;
+    return hash_;
   }
 
   uint32_t linear_steps() const

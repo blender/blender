@@ -59,10 +59,10 @@ class StringRef;
  */
 class StringRefBase {
  protected:
-  const char *m_data;
-  uint m_size;
+  const char *data_;
+  uint size_;
 
-  StringRefBase(const char *data, uint size) : m_data(data), m_size(size)
+  StringRefBase(const char *data, uint size) : data_(data), size_(size)
   {
   }
 
@@ -72,7 +72,7 @@ class StringRefBase {
    */
   uint size() const
   {
-    return m_size;
+    return size_;
   }
 
   /**
@@ -80,12 +80,12 @@ class StringRefBase {
    */
   const char *data() const
   {
-    return m_data;
+    return data_;
   }
 
   operator Span<char>() const
   {
-    return Span<char>(m_data, m_size);
+    return Span<char>(data_, size_);
   }
 
   /**
@@ -94,17 +94,17 @@ class StringRefBase {
    */
   operator std::string() const
   {
-    return std::string(m_data, m_size);
+    return std::string(data_, size_);
   }
 
   const char *begin() const
   {
-    return m_data;
+    return data_;
   }
 
   const char *end() const
   {
-    return m_data + m_size;
+    return data_ + size_;
   }
 
   /**
@@ -114,8 +114,8 @@ class StringRefBase {
    */
   void unsafe_copy(char *dst) const
   {
-    memcpy(dst, m_data, m_size);
-    dst[m_size] = '\0';
+    memcpy(dst, data_, size_);
+    dst[size_] = '\0';
   }
 
   /**
@@ -124,7 +124,7 @@ class StringRefBase {
    */
   void copy(char *dst, uint dst_size) const
   {
-    if (m_size < dst_size) {
+    if (size_ < dst_size) {
       this->unsafe_copy(dst);
     }
     else {
@@ -171,7 +171,7 @@ class StringRefNull : public StringRefBase {
   StringRefNull(const char *str) : StringRefBase(str, (uint)strlen(str))
   {
     BLI_assert(str != NULL);
-    BLI_assert(m_data[m_size] == '\0');
+    BLI_assert(data_[size_] == '\0');
   }
 
   /**
@@ -197,8 +197,8 @@ class StringRefNull : public StringRefBase {
   char operator[](uint index) const
   {
     /* Use '<=' instead of just '<', so that the null character can be accessed as well. */
-    BLI_assert(index <= m_size);
-    return m_data[index];
+    BLI_assert(index <= size_);
+    return data_[index];
   }
 };
 
@@ -252,8 +252,8 @@ class StringRef : public StringRefBase {
    */
   StringRef drop_prefix(uint n) const
   {
-    BLI_assert(n <= m_size);
-    return StringRef(m_data + n, m_size - n);
+    BLI_assert(n <= size_);
+    return StringRef(data_ + n, size_ - n);
   }
 
   /**
@@ -271,8 +271,8 @@ class StringRef : public StringRefBase {
    */
   char operator[](uint index) const
   {
-    BLI_assert(index < m_size);
-    return m_data[index];
+    BLI_assert(index < size_);
+    return data_[index];
   }
 };
 
@@ -318,11 +318,11 @@ inline bool operator!=(StringRef a, StringRef b)
  */
 inline bool StringRefBase::startswith(StringRef prefix) const
 {
-  if (m_size < prefix.m_size) {
+  if (size_ < prefix.size_) {
     return false;
   }
-  for (uint i = 0; i < prefix.m_size; i++) {
-    if (m_data[i] != prefix.m_data[i]) {
+  for (uint i = 0; i < prefix.size_; i++) {
+    if (data_[i] != prefix.data_[i]) {
       return false;
     }
   }
@@ -334,12 +334,12 @@ inline bool StringRefBase::startswith(StringRef prefix) const
  */
 inline bool StringRefBase::endswith(StringRef suffix) const
 {
-  if (m_size < suffix.m_size) {
+  if (size_ < suffix.size_) {
     return false;
   }
-  uint offset = m_size - suffix.m_size;
-  for (uint i = 0; i < suffix.m_size; i++) {
-    if (m_data[offset + i] != suffix.m_data[i]) {
+  uint offset = size_ - suffix.size_;
+  for (uint i = 0; i < suffix.size_; i++) {
+    if (data_[offset + i] != suffix.data_[i]) {
       return false;
     }
   }
@@ -351,8 +351,8 @@ inline bool StringRefBase::endswith(StringRef suffix) const
  */
 inline StringRef StringRefBase::substr(uint start, uint size) const
 {
-  BLI_assert(start + size <= m_size);
-  return StringRef(m_data + start, size);
+  BLI_assert(start + size <= size_);
+  return StringRef(data_ + start, size);
 }
 
 }  // namespace blender

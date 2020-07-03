@@ -69,14 +69,14 @@ class NodeTreeRef;
 
 class SocketRef : NonCopyable, NonMovable {
  protected:
-  NodeRef *m_node;
-  bNodeSocket *m_bsocket;
-  bool m_is_input;
-  uint m_id;
-  uint m_index;
-  PointerRNA m_rna;
-  Vector<SocketRef *> m_linked_sockets;
-  Vector<SocketRef *> m_directly_linked_sockets;
+  NodeRef *node_;
+  bNodeSocket *bsocket_;
+  bool is_input_;
+  uint id_;
+  uint index_;
+  PointerRNA rna_;
+  Vector<SocketRef *> linked_sockets_;
+  Vector<SocketRef *> directly_linked_sockets_;
 
   friend NodeTreeRef;
 
@@ -122,12 +122,12 @@ class OutputSocketRef final : public SocketRef {
 
 class NodeRef : NonCopyable, NonMovable {
  private:
-  NodeTreeRef *m_tree;
-  bNode *m_bnode;
-  PointerRNA m_rna;
-  uint m_id;
-  Vector<InputSocketRef *> m_inputs;
-  Vector<OutputSocketRef *> m_outputs;
+  NodeTreeRef *tree_;
+  bNode *bnode_;
+  PointerRNA rna_;
+  uint id_;
+  Vector<InputSocketRef *> inputs_;
+  Vector<OutputSocketRef *> outputs_;
 
   friend NodeTreeRef;
 
@@ -157,13 +157,13 @@ class NodeRef : NonCopyable, NonMovable {
 
 class NodeTreeRef : NonCopyable, NonMovable {
  private:
-  LinearAllocator<> m_allocator;
-  bNodeTree *m_btree;
-  Vector<NodeRef *> m_nodes_by_id;
-  Vector<SocketRef *> m_sockets_by_id;
-  Vector<InputSocketRef *> m_input_sockets;
-  Vector<OutputSocketRef *> m_output_sockets;
-  Map<const bNodeType *, Vector<NodeRef *>> m_nodes_by_type;
+  LinearAllocator<> allocator_;
+  bNodeTree *btree_;
+  Vector<NodeRef *> nodes_by_id_;
+  Vector<SocketRef *> sockets_by_id_;
+  Vector<InputSocketRef *> input_sockets_;
+  Vector<OutputSocketRef *> output_sockets_;
+  Map<const bNodeType *, Vector<NodeRef *>> nodes_by_type_;
 
  public:
   NodeTreeRef(bNodeTree *btree);
@@ -198,47 +198,47 @@ class NodeTreeRef : NonCopyable, NonMovable {
 
 inline Span<const SocketRef *> SocketRef::linked_sockets() const
 {
-  return m_linked_sockets.as_span();
+  return linked_sockets_.as_span();
 }
 
 inline Span<const SocketRef *> SocketRef::directly_linked_sockets() const
 {
-  return m_directly_linked_sockets.as_span();
+  return directly_linked_sockets_.as_span();
 }
 
 inline bool SocketRef::is_linked() const
 {
-  return m_linked_sockets.size() > 0;
+  return linked_sockets_.size() > 0;
 }
 
 inline const NodeRef &SocketRef::node() const
 {
-  return *m_node;
+  return *node_;
 }
 
 inline const NodeTreeRef &SocketRef::tree() const
 {
-  return m_node->tree();
+  return node_->tree();
 }
 
 inline uint SocketRef::id() const
 {
-  return m_id;
+  return id_;
 }
 
 inline uint SocketRef::index() const
 {
-  return m_index;
+  return index_;
 }
 
 inline bool SocketRef::is_input() const
 {
-  return m_is_input;
+  return is_input_;
 }
 
 inline bool SocketRef::is_output() const
 {
-  return !m_is_input;
+  return !is_input_;
 }
 
 inline const SocketRef &SocketRef::as_base() const
@@ -260,32 +260,32 @@ inline const OutputSocketRef &SocketRef::as_output() const
 
 inline PointerRNA *SocketRef::rna() const
 {
-  return const_cast<PointerRNA *>(&m_rna);
+  return const_cast<PointerRNA *>(&rna_);
 }
 
 inline StringRefNull SocketRef::idname() const
 {
-  return m_bsocket->idname;
+  return bsocket_->idname;
 }
 
 inline StringRefNull SocketRef::name() const
 {
-  return m_bsocket->name;
+  return bsocket_->name;
 }
 
 inline bNodeSocket *SocketRef::bsocket() const
 {
-  return m_bsocket;
+  return bsocket_;
 }
 
 inline bNode *SocketRef::bnode() const
 {
-  return m_node->bnode();
+  return node_->bnode();
 }
 
 inline bNodeTree *SocketRef::btree() const
 {
-  return m_node->btree();
+  return node_->btree();
 }
 
 /* --------------------------------------------------------------------
@@ -294,12 +294,12 @@ inline bNodeTree *SocketRef::btree() const
 
 inline Span<const OutputSocketRef *> InputSocketRef::linked_sockets() const
 {
-  return m_linked_sockets.as_span().cast<const OutputSocketRef *>();
+  return linked_sockets_.as_span().cast<const OutputSocketRef *>();
 }
 
 inline Span<const OutputSocketRef *> InputSocketRef::directly_linked_sockets() const
 {
-  return m_directly_linked_sockets.as_span().cast<const OutputSocketRef *>();
+  return directly_linked_sockets_.as_span().cast<const OutputSocketRef *>();
 }
 
 /* --------------------------------------------------------------------
@@ -308,12 +308,12 @@ inline Span<const OutputSocketRef *> InputSocketRef::directly_linked_sockets() c
 
 inline Span<const InputSocketRef *> OutputSocketRef::linked_sockets() const
 {
-  return m_linked_sockets.as_span().cast<const InputSocketRef *>();
+  return linked_sockets_.as_span().cast<const InputSocketRef *>();
 }
 
 inline Span<const InputSocketRef *> OutputSocketRef::directly_linked_sockets() const
 {
-  return m_directly_linked_sockets.as_span().cast<const InputSocketRef *>();
+  return directly_linked_sockets_.as_span().cast<const InputSocketRef *>();
 }
 
 /* --------------------------------------------------------------------
@@ -322,77 +322,77 @@ inline Span<const InputSocketRef *> OutputSocketRef::directly_linked_sockets() c
 
 inline const NodeTreeRef &NodeRef::tree() const
 {
-  return *m_tree;
+  return *tree_;
 }
 
 inline Span<const InputSocketRef *> NodeRef::inputs() const
 {
-  return m_inputs.as_span();
+  return inputs_.as_span();
 }
 
 inline Span<const OutputSocketRef *> NodeRef::outputs() const
 {
-  return m_outputs.as_span();
+  return outputs_.as_span();
 }
 
 inline const InputSocketRef &NodeRef::input(uint index) const
 {
-  return *m_inputs[index];
+  return *inputs_[index];
 }
 
 inline const OutputSocketRef &NodeRef::output(uint index) const
 {
-  return *m_outputs[index];
+  return *outputs_[index];
 }
 
 inline bNode *NodeRef::bnode() const
 {
-  return m_bnode;
+  return bnode_;
 }
 
 inline bNodeTree *NodeRef::btree() const
 {
-  return m_tree->btree();
+  return tree_->btree();
 }
 
 inline PointerRNA *NodeRef::rna() const
 {
-  return const_cast<PointerRNA *>(&m_rna);
+  return const_cast<PointerRNA *>(&rna_);
 }
 
 inline StringRefNull NodeRef::idname() const
 {
-  return m_bnode->idname;
+  return bnode_->idname;
 }
 
 inline StringRefNull NodeRef::name() const
 {
-  return m_bnode->name;
+  return bnode_->name;
 }
 
 inline uint NodeRef::id() const
 {
-  return m_id;
+  return id_;
 }
 
 inline bool NodeRef::is_reroute_node() const
 {
-  return m_bnode->type == NODE_REROUTE;
+  return bnode_->type == NODE_REROUTE;
 }
 
 inline bool NodeRef::is_group_node() const
 {
-  return m_bnode->type == NODE_GROUP;
+  return bnode_->type == NODE_GROUP;
 }
 
 inline bool NodeRef::is_group_input_node() const
 {
-  return m_bnode->type == NODE_GROUP_INPUT;
+  return bnode_->type == NODE_GROUP_INPUT;
 }
 
 inline bool NodeRef::is_group_output_node() const
 {
-  return m_bnode->type == NODE_GROUP_OUTPUT;
+  return bnode_->type == NODE_GROUP_OUTPUT;
 }
 
 /* --------------------------------------------------------------------
@@ -401,7 +401,7 @@ inline bool NodeRef::is_group_output_node() const
 
 inline Span<const NodeRef *> NodeTreeRef::nodes() const
 {
-  return m_nodes_by_id.as_span();
+  return nodes_by_id_.as_span();
 }
 
 inline Span<const NodeRef *> NodeTreeRef::nodes_by_type(StringRefNull idname) const
@@ -412,7 +412,7 @@ inline Span<const NodeRef *> NodeTreeRef::nodes_by_type(StringRefNull idname) co
 
 inline Span<const NodeRef *> NodeTreeRef::nodes_by_type(const bNodeType *nodetype) const
 {
-  const Vector<NodeRef *> *nodes = m_nodes_by_type.lookup_ptr(nodetype);
+  const Vector<NodeRef *> *nodes = nodes_by_type_.lookup_ptr(nodetype);
   if (nodes == nullptr) {
     return {};
   }
@@ -423,22 +423,22 @@ inline Span<const NodeRef *> NodeTreeRef::nodes_by_type(const bNodeType *nodetyp
 
 inline Span<const SocketRef *> NodeTreeRef::sockets() const
 {
-  return m_sockets_by_id.as_span();
+  return sockets_by_id_.as_span();
 }
 
 inline Span<const InputSocketRef *> NodeTreeRef::input_sockets() const
 {
-  return m_input_sockets.as_span();
+  return input_sockets_.as_span();
 }
 
 inline Span<const OutputSocketRef *> NodeTreeRef::output_sockets() const
 {
-  return m_output_sockets.as_span();
+  return output_sockets_.as_span();
 }
 
 inline bNodeTree *NodeTreeRef::btree() const
 {
-  return m_btree;
+  return btree_;
 }
 
 }  // namespace bke
