@@ -133,9 +133,7 @@ static int node_view_all_exec(bContext *C, wmOperator *op)
   if (space_node_view_flag(C, snode, region, 0, smooth_viewtx)) {
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void NODE_OT_view_all(wmOperatorType *ot)
@@ -162,9 +160,7 @@ static int node_view_selected_exec(bContext *C, wmOperator *op)
   if (space_node_view_flag(C, snode, region, NODE_SELECT, smooth_viewtx)) {
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 void NODE_OT_view_selected(wmOperatorType *ot)

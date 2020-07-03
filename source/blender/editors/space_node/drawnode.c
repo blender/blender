@@ -284,23 +284,21 @@ static int node_resize_area_default(bNode *node, int x, int y)
     if (BLI_rctf_isect_pt(&totr, x, y)) {
       return NODE_RESIZE_RIGHT;
     }
-    else {
-      return 0;
-    }
-  }
-  else {
-    const float size = NODE_RESIZE_MARGIN;
-    rctf totr = node->totr;
-    int dir = 0;
 
-    if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
-      dir |= NODE_RESIZE_RIGHT;
-    }
-    if (x >= totr.xmin && x < totr.xmin + size && y >= totr.ymin && y < totr.ymax) {
-      dir |= NODE_RESIZE_LEFT;
-    }
-    return dir;
+    return 0;
   }
+
+  const float size = NODE_RESIZE_MARGIN;
+  rctf totr = node->totr;
+  int dir = 0;
+
+  if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
+    dir |= NODE_RESIZE_RIGHT;
+  }
+  if (x >= totr.xmin && x < totr.xmin + size && y >= totr.ymin && y < totr.ymax) {
+    dir |= NODE_RESIZE_LEFT;
+  }
+  return dir;
 }
 
 /* ****************** BUTTON CALLBACKS FOR COMMON NODES ***************** */
@@ -3833,7 +3831,7 @@ static bool node_link_bezier_handles(View2D *v2d,
   if (v2d && min_ffff(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) > v2d->cur.xmax) {
     return 0; /* clipped */
   }
-  else if (v2d && max_ffff(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) < v2d->cur.xmin) {
+  if (v2d && max_ffff(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) < v2d->cur.xmin) {
     return 0; /* clipped */
   }
 

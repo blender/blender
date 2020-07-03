@@ -71,9 +71,7 @@ static bool node_link_item_compare(bNode *node, NodeLinkItem *item)
   if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
     return (node->id == (ID *)item->ngroup);
   }
-  else {
-    return true;
-  }
+  return true;
 }
 
 static void node_link_item_apply(Main *bmain, bNode *node, NodeLinkItem *item)

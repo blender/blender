@@ -107,13 +107,13 @@ static const char *group_node_idname(bContext *C)
   if (ED_node_is_shader(snode)) {
     return "ShaderNodeGroup";
   }
-  else if (ED_node_is_compositor(snode)) {
+  if (ED_node_is_compositor(snode)) {
     return "CompositorNodeGroup";
   }
-  else if (ED_node_is_texture(snode)) {
+  if (ED_node_is_texture(snode)) {
     return "TextureNodeGroup";
   }
-  else if (ED_node_is_simulation(snode)) {
+  if (ED_node_is_simulation(snode)) {
     return "SimulationNodeGroup";
   }
 
@@ -128,9 +128,7 @@ static bNode *node_group_get_active(bContext *C, const char *node_idname)
   if (node && STREQ(node->idname, node_idname)) {
     return node;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /* ***************** Edit Group operator ************* */

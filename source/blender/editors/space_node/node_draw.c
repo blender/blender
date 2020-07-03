@@ -97,9 +97,7 @@ static bNodeTree *node_tree_from_ID(ID *id)
     if (GS(id->name) == ID_NT) {
       return (bNodeTree *)id;
     }
-    else {
-      return ntreeFromID(id);
-    }
+    return ntreeFromID(id);
   }
 
   return NULL;
@@ -217,7 +215,7 @@ static bool compare_nodes(const bNode *a, const bNode *b)
   if ((a->flag & NODE_BACKGROUND) && !(b->flag & NODE_BACKGROUND)) {
     return 0;
   }
-  else if (!(a->flag & NODE_BACKGROUND) && (b->flag & NODE_BACKGROUND)) {
+  if (!(a->flag & NODE_BACKGROUND) && (b->flag & NODE_BACKGROUND)) {
     return 1;
   }
 
@@ -225,7 +223,7 @@ static bool compare_nodes(const bNode *a, const bNode *b)
   if (!b_active && a_active) {
     return 1;
   }
-  else if (!b_select && (a_active || a_select)) {
+  if (!b_select && (a_active || a_select)) {
     return 1;
   }
 
@@ -1558,15 +1556,13 @@ int node_get_resize_cursor(int directions)
   if (directions == 0) {
     return WM_CURSOR_DEFAULT;
   }
-  else if ((directions & ~(NODE_RESIZE_TOP | NODE_RESIZE_BOTTOM)) == 0) {
+  if ((directions & ~(NODE_RESIZE_TOP | NODE_RESIZE_BOTTOM)) == 0) {
     return WM_CURSOR_Y_MOVE;
   }
-  else if ((directions & ~(NODE_RESIZE_RIGHT | NODE_RESIZE_LEFT)) == 0) {
+  if ((directions & ~(NODE_RESIZE_RIGHT | NODE_RESIZE_LEFT)) == 0) {
     return WM_CURSOR_X_MOVE;
   }
-  else {
-    return WM_CURSOR_EDIT;
-  }
+  return WM_CURSOR_EDIT;
 }
 
 void node_set_cursor(wmWindow *win, SpaceNode *snode, float cursor[2])

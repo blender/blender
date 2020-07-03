@@ -641,9 +641,7 @@ static bool node_ima_drop_poll(bContext *UNUSED(C),
     /* rule might not work? */
     return (ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE));
   }
-  else {
-    return WM_drag_ID(drag, ID_IM) != NULL;
-  }
+  return WM_drag_ID(drag, ID_IM) != NULL;
 }
 
 static bool node_mask_drop_poll(bContext *UNUSED(C),
@@ -787,7 +785,7 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
     CTX_data_dir_set(result, node_context_dir);
     return 1;
   }
-  else if (CTX_data_equals(member, "selected_nodes")) {
+  if (CTX_data_equals(member, "selected_nodes")) {
     bNode *node;
 
     if (snode->edittree) {
@@ -800,7 +798,7 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
     return 1;
   }
-  else if (CTX_data_equals(member, "active_node")) {
+  if (CTX_data_equals(member, "active_node")) {
     if (snode->edittree) {
       bNode *node = nodeGetActive(snode->edittree);
       CTX_data_pointer_set(result, &snode->edittree->id, &RNA_Node, node);
@@ -809,7 +807,7 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
     CTX_data_type_set(result, CTX_DATA_TYPE_POINTER);
     return 1;
   }
-  else if (CTX_data_equals(member, "node_previews")) {
+  if (CTX_data_equals(member, "node_previews")) {
     if (snode->nodetree) {
       CTX_data_pointer_set(
           result, &snode->nodetree->id, &RNA_NodeInstanceHash, snode->nodetree->previews);
@@ -818,19 +816,19 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
     CTX_data_type_set(result, CTX_DATA_TYPE_POINTER);
     return 1;
   }
-  else if (CTX_data_equals(member, "material")) {
+  if (CTX_data_equals(member, "material")) {
     if (snode->id && GS(snode->id->name) == ID_MA) {
       CTX_data_id_pointer_set(result, snode->id);
     }
     return 1;
   }
-  else if (CTX_data_equals(member, "light")) {
+  if (CTX_data_equals(member, "light")) {
     if (snode->id && GS(snode->id->name) == ID_LA) {
       CTX_data_id_pointer_set(result, snode->id);
     }
     return 1;
   }
-  else if (CTX_data_equals(member, "world")) {
+  if (CTX_data_equals(member, "world")) {
     if (snode->id && GS(snode->id->name) == ID_WO) {
       CTX_data_id_pointer_set(result, snode->id);
     }

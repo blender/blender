@@ -382,9 +382,7 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, const wmEvent *even
       RNA_struct_property_is_set(op->ptr, "name")) {
     return node_add_file_exec(C, op);
   }
-  else {
-    return WM_operator_filesel(C, op, event);
-  }
+  return WM_operator_filesel(C, op, event);
 }
 
 void NODE_OT_add_file(wmOperatorType *ot)
