@@ -38,6 +38,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -1492,7 +1493,13 @@ bool BKE_gpencil_stroke_close(bGPDstroke *gps)
 
   return true;
 }
-/* Dissolve points in stroke */
+
+/**
+ * Dissolve points in stroke.
+ * \param gpf Grease pencil frame
+ * \param gps Grease pencil stroke
+ * \param tag Type of tag for point
+*/
 void BKE_gpencil_dissolve_points(bGPDframe *gpf, bGPDstroke *gps, const short tag)
 {
   bGPDspoint *pt;
@@ -1571,6 +1578,337 @@ void BKE_gpencil_dissolve_points(bGPDframe *gpf, bGPDstroke *gps, const short ta
     /* triangles cache needs to be recalculated */
     BKE_gpencil_stroke_geometry_update(gps);
   }
+}
+
+/**
+ * Calculate stroke normals.
+ * \param gps Grease pencil stroke
+ * \param r_normal Normal vector normalized
+ */
+void BKE_gpencil_stroke_normal(const bGPDstroke *gps, float r_normal[3])
+{
+  if (gps->totpoints < 3) {
+    zero_v3(r_normal);
+    return;
+  }
+
+  bGPDspoint *points = gps->points;
+  int totpoints = gps->totpoints;
+
+  const bGPDspoint *pt0 = &points[0];
+  const bGPDspoint *pt1 = &points[1];
+  const bGPDspoint *pt3 = &points[(int)(totpoints * 0.75)];
+
+  float vec1[3];
+  float vec2[3];
+
+  /* initial vector (p0 -> p1) */
+  sub_v3_v3v3(vec1, &pt1->x, &pt0->x);
+
+  /* point vector at 3/4 */
+  sub_v3_v3v3(vec2, &pt3->x, &pt0->x);
+
+  /* vector orthogonal to polygon plane */
+  cross_v3_v3v3(r_normal, vec1, vec2);
+
+  /* Normalize vector */
+  normalize_v3(r_normal);
+}
+
+/* Stroke Simplify ------------------------------------- */
+
+/** Reduce a series of points to a simplified version, but
+ * maintains the general shape of the series
+ *
+ * Ramer - Douglas - Peucker algorithm
+ * by http ://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm
+ * \param gps Grease pencil stroke
+ * \param epsilon Epsilon value to define precision of the algorithm
+ */
+void BKE_gpencil_stroke_simplify_adaptive(bGPDstroke *gps, float epsilon)
+{
+  bGPDspoint *old_points = MEM_dupallocN(gps->points);
+  int totpoints = gps->totpoints;
+  char *marked = NULL;
+  char work;
+
+  int start = 0;
+  int end = gps->totpoints - 1;
+
+  marked = MEM_callocN(totpoints, "GP marked array");
+  marked[start] = 1;
+  marked[end] = 1;
+
+  work = 1;
+  int totmarked = 0;
+  /* while still reducing */
+  while (work) {
+    int ls, le;
+    work = 0;
+
+    ls = start;
+    le = start + 1;
+
+    /* while not over interval */
+    while (ls < end) {
+      int max_i = 0;
+      /* divided to get more control */
+      float max_dist = epsilon / 10.0f;
+
+      /* find the next marked point */
+      while (marked[le] == 0) {
+        le++;
+      }
+
+      for (int i = ls + 1; i < le; i++) {
+        float point_on_line[3];
+        float dist;
+
+        closest_to_line_segment_v3(
+            point_on_line, &old_points[i].x, &old_points[ls].x, &old_points[le].x);
+
+        dist = len_v3v3(point_on_line, &old_points[i].x);
+
+        if (dist > max_dist) {
+          max_dist = dist;
+          max_i = i;
+        }
+      }
+
+      if (max_i != 0) {
+        work = 1;
+        marked[max_i] = 1;
+        totmarked++;
+      }
+
+      ls = le;
+      le = ls + 1;
+    }
+  }
+
+  /* adding points marked */
+  MDeformVert *old_dvert = NULL;
+  MDeformVert *dvert_src = NULL;
+
+  if (gps->dvert != NULL) {
+    old_dvert = MEM_dupallocN(gps->dvert);
+  }
+  /* resize gps */
+  int j = 0;
+  for (int i = 0; i < totpoints; i++) {
+    bGPDspoint *pt_src = &old_points[i];
+    bGPDspoint *pt = &gps->points[j];
+
+    if ((marked[i]) || (i == 0) || (i == totpoints - 1)) {
+      memcpy(pt, pt_src, sizeof(bGPDspoint));
+      if (gps->dvert != NULL) {
+        dvert_src = &old_dvert[i];
+        MDeformVert *dvert = &gps->dvert[j];
+        memcpy(dvert, dvert_src, sizeof(MDeformVert));
+        if (dvert_src->dw) {
+          memcpy(dvert->dw, dvert_src->dw, sizeof(MDeformWeight));
+        }
+      }
+      j++;
+    }
+    else {
+      if (gps->dvert != NULL) {
+        dvert_src = &old_dvert[i];
+        BKE_gpencil_free_point_weights(dvert_src);
+      }
+    }
+  }
+
+  gps->totpoints = j;
+
+  /* Calc geometry data. */
+  BKE_gpencil_stroke_geometry_update(gps);
+
+  MEM_SAFE_FREE(old_points);
+  MEM_SAFE_FREE(old_dvert);
+  MEM_SAFE_FREE(marked);
+}
+
+/**
+ * Simplify alternate vertex of stroke except extremes.
+ * \param gps Grease pencil stroke
+ */
+void BKE_gpencil_stroke_simplify_fixed(bGPDstroke *gps)
+{
+  if (gps->totpoints < 5) {
+    return;
+  }
+
+  /* save points */
+  bGPDspoint *old_points = MEM_dupallocN(gps->points);
+  MDeformVert *old_dvert = NULL;
+  MDeformVert *dvert_src = NULL;
+
+  if (gps->dvert != NULL) {
+    old_dvert = MEM_dupallocN(gps->dvert);
+  }
+
+  /* resize gps */
+  int newtot = (gps->totpoints - 2) / 2;
+  if (((gps->totpoints - 2) % 2) > 0) {
+    newtot++;
+  }
+  newtot += 2;
+
+  gps->points = MEM_recallocN(gps->points, sizeof(*gps->points) * newtot);
+  if (gps->dvert != NULL) {
+    gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * newtot);
+  }
+
+  int j = 0;
+  for (int i = 0; i < gps->totpoints; i++) {
+    bGPDspoint *pt_src = &old_points[i];
+    bGPDspoint *pt = &gps->points[j];
+
+    if ((i == 0) || (i == gps->totpoints - 1) || ((i % 2) > 0.0)) {
+      memcpy(pt, pt_src, sizeof(bGPDspoint));
+      if (gps->dvert != NULL) {
+        dvert_src = &old_dvert[i];
+        MDeformVert *dvert = &gps->dvert[j];
+        memcpy(dvert, dvert_src, sizeof(MDeformVert));
+        if (dvert_src->dw) {
+          memcpy(dvert->dw, dvert_src->dw, sizeof(MDeformWeight));
+        }
+      }
+      j++;
+    }
+    else {
+      if (gps->dvert != NULL) {
+        dvert_src = &old_dvert[i];
+        BKE_gpencil_free_point_weights(dvert_src);
+      }
+    }
+  }
+
+  gps->totpoints = j;
+  /* Calc geometry data. */
+  BKE_gpencil_stroke_geometry_update(gps);
+
+  MEM_SAFE_FREE(old_points);
+  MEM_SAFE_FREE(old_dvert);
+}
+
+/**
+ * Subdivide grease pencil stroke.
+ * \param gps Grease pencil stroke
+ * \param level Level of subdivision
+ * \param type Type of subdivision
+ */
+void BKE_gpencil_stroke_subdivide(bGPDstroke *gps, int level, int type)
+{
+  bGPDspoint *temp_points;
+  MDeformVert *temp_dverts = NULL;
+  MDeformVert *dvert = NULL;
+  MDeformVert *dvert_final = NULL;
+  MDeformVert *dvert_next = NULL;
+  int totnewpoints, oldtotpoints;
+  int i2;
+
+  for (int s = 0; s < level; s++) {
+    totnewpoints = gps->totpoints - 1;
+    /* duplicate points in a temp area */
+    temp_points = MEM_dupallocN(gps->points);
+    oldtotpoints = gps->totpoints;
+
+    /* resize the points arrays */
+    gps->totpoints += totnewpoints;
+    gps->points = MEM_recallocN(gps->points, sizeof(*gps->points) * gps->totpoints);
+    if (gps->dvert != NULL) {
+      temp_dverts = MEM_dupallocN(gps->dvert);
+      gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
+    }
+
+    /* move points from last to first to new place */
+    i2 = gps->totpoints - 1;
+    for (int i = oldtotpoints - 1; i > 0; i--) {
+      bGPDspoint *pt = &temp_points[i];
+      bGPDspoint *pt_final = &gps->points[i2];
+
+      copy_v3_v3(&pt_final->x, &pt->x);
+      pt_final->pressure = pt->pressure;
+      pt_final->strength = pt->strength;
+      pt_final->time = pt->time;
+      pt_final->flag = pt->flag;
+      pt_final->runtime.pt_orig = pt->runtime.pt_orig;
+      pt_final->runtime.idx_orig = pt->runtime.idx_orig;
+      copy_v4_v4(pt_final->vert_color, pt->vert_color);
+
+      if (gps->dvert != NULL) {
+        dvert = &temp_dverts[i];
+        dvert_final = &gps->dvert[i2];
+        dvert_final->totweight = dvert->totweight;
+        dvert_final->dw = dvert->dw;
+      }
+      i2 -= 2;
+    }
+    /* interpolate mid points */
+    i2 = 1;
+    for (int i = 0; i < oldtotpoints - 1; i++) {
+      bGPDspoint *pt = &temp_points[i];
+      bGPDspoint *next = &temp_points[i + 1];
+      bGPDspoint *pt_final = &gps->points[i2];
+
+      /* add a half way point */
+      interp_v3_v3v3(&pt_final->x, &pt->x, &next->x, 0.5f);
+      pt_final->pressure = interpf(pt->pressure, next->pressure, 0.5f);
+      pt_final->strength = interpf(pt->strength, next->strength, 0.5f);
+      CLAMP(pt_final->strength, GPENCIL_STRENGTH_MIN, 1.0f);
+      pt_final->time = interpf(pt->time, next->time, 0.5f);
+      pt_final->runtime.pt_orig = NULL;
+      pt_final->flag = 0;
+      interp_v4_v4v4(pt_final->vert_color, pt->vert_color, next->vert_color, 0.5f);
+
+      if (gps->dvert != NULL) {
+        dvert = &temp_dverts[i];
+        dvert_next = &temp_dverts[i + 1];
+        dvert_final = &gps->dvert[i2];
+
+        dvert_final->totweight = dvert->totweight;
+        dvert_final->dw = MEM_dupallocN(dvert->dw);
+
+        /* interpolate weight values */
+        for (int d = 0; d < dvert->totweight; d++) {
+          MDeformWeight *dw_a = &dvert->dw[d];
+          if (dvert_next->totweight > d) {
+            MDeformWeight *dw_b = &dvert_next->dw[d];
+            MDeformWeight *dw_final = &dvert_final->dw[d];
+            dw_final->weight = interpf(dw_a->weight, dw_b->weight, 0.5f);
+          }
+        }
+      }
+
+      i2 += 2;
+    }
+
+    MEM_SAFE_FREE(temp_points);
+    MEM_SAFE_FREE(temp_dverts);
+
+    /* move points to smooth stroke (not simple type )*/
+    if (type != GP_SUBDIV_SIMPLE) {
+      /* duplicate points in a temp area with the new subdivide data */
+      temp_points = MEM_dupallocN(gps->points);
+
+      /* extreme points are not changed */
+      for (int i = 0; i < gps->totpoints - 2; i++) {
+        bGPDspoint *pt = &temp_points[i];
+        bGPDspoint *next = &temp_points[i + 1];
+        bGPDspoint *pt_final = &gps->points[i + 1];
+
+        /* move point */
+        interp_v3_v3v3(&pt_final->x, &pt->x, &next->x, 0.5f);
+      }
+      /* free temp memory */
+      MEM_SAFE_FREE(temp_points);
+    }
+  }
+
+  /* Calc geometry data. */
+  BKE_gpencil_stroke_geometry_update(gps);
 }
 
 /* Merge by distance ------------------------------------- */
