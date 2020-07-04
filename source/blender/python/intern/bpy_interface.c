@@ -68,6 +68,7 @@
 /* inittab initialization functions */
 #include "../bmesh/bmesh_py_api.h"
 #include "../generic/bgl.h"
+#include "../generic/bl_math_py_api.h"
 #include "../generic/blf_py_api.h"
 #include "../generic/idprop_py_api.h"
 #include "../generic/imbuf_py_api.h"
@@ -228,6 +229,7 @@ static struct _inittab bpy_internal_modules[] = {
     {"_bpy_path", BPyInit__bpy_path},
     {"bgl", BPyInit_bgl},
     {"blf", BPyInit_blf},
+    {"bl_math", BPyInit_bl_math},
     {"imbuf", BPyInit_imbuf},
     {"bmesh", BPyInit_bmesh},
 #if 0

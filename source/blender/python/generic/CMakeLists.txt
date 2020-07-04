@@ -36,12 +36,14 @@ set(SRC
   bpy_threads.c
   idprop_py_api.c
   imbuf_py_api.c
+  bl_math_py_api.c
   py_capi_utils.c
 
   bgl.h
   blf_py_api.h
   idprop_py_api.h
   imbuf_py_api.h
+  bl_math_py_api.h
   py_capi_utils.h
 
   # header-only

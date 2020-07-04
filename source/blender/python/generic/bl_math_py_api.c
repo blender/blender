@@ -1,0 +1,163 @@
+/*
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+/**
+ * \file
+ * \ingroup pygen
+ *
+ * This file defines the 'bl_math' module, a module for math utilities.
+ */
+
+#include <Python.h>
+
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
+
+#include "py_capi_utils.h"
+
+#include "bl_math_py_api.h"
+
+/*------------------------------------------------------------*/
+/**
+ * \name Module doc string
+ * \{ */
+
+PyDoc_STRVAR(M_Math_doc, "Miscellaneous math utilities module");
+
+/** \} */
+/*------------------------------------------------------------*/
+/**
+ * \name Python functions
+ * \{ */
+
+PyDoc_STRVAR(M_Math_clamp_doc,
+             ".. function:: clamp(value, min=0, max=1)\n"
+             "\n"
+             "   Clamps the float value between minimum and maximum. To avoid\n"
+             "   confusion, any call must use either one or all three arguments.\n"
+             "\n"
+             "   :arg value: The value to clamp.\n"
+             "   :type value: float\n"
+             "   :arg min: The minimum value, defaults to 0.\n"
+             "   :type min: float\n"
+             "   :arg max: The maximum value, defaults to 1.\n"
+             "   :type max: float\n"
+             "   :return: The clamped value.\n"
+             "   :rtype: float\n");
+static PyObject *M_Math_clamp(PyObject *UNUSED(self), PyObject *args)
+{
+  double x, minv = 0.0, maxv = 1.0;
+
+  if (PyTuple_Size(args) <= 1) {
+    if (!PyArg_ParseTuple(args, "d:clamp", &x)) {
+      return NULL;
+    }
+  }
+  else {
+    if (!PyArg_ParseTuple(args, "ddd:clamp", &x, &minv, &maxv)) {
+      return NULL;
+    }
+  }
+
+  CLAMP(x, minv, maxv);
+
+  return PyFloat_FromDouble(x);
+}
+
+PyDoc_STRVAR(M_Math_lerp_doc,
+             ".. function:: lerp(from, to, factor)\n"
+             "\n"
+             "   Linearly interpolate between two float values based on factor.\n"
+             "\n"
+             "   :arg from: The value to return when factor is 0.\n"
+             "   :type from: float\n"
+             "   :arg to: The value to return when factor is 1.\n"
+             "   :type to: float\n"
+             "   :arg factor: The interpolation value, normally in [0.0, 1.0].\n"
+             "   :type factor: float\n"
+             "   :return: The interpolated value.\n"
+             "   :rtype: float\n");
+static PyObject *M_Math_lerp(PyObject *UNUSED(self), PyObject *args)
+{
+  double a, b, x;
+  if (!PyArg_ParseTuple(args, "ddd:lerp", &a, &b, &x)) {
+    return NULL;
+  }
+
+  return PyFloat_FromDouble(a * (1.0 - x) + b * x);
+}
+
+PyDoc_STRVAR(
+    M_Math_smoothstep_doc,
+    ".. function:: smoothstep(from, to, value)\n"
+    "\n"
+    "   Performs smooth interpolation between 0 and 1 as value changes between from and to.\n"
+    "   Outside the range the function returns the same value as the nearest edge.\n"
+    "\n"
+    "   :arg from: The edge value where the result is 0.\n"
+    "   :type from: float\n"
+    "   :arg to: The edge value where the result is 1.\n"
+    "   :type to: float\n"
+    "   :arg factor: The interpolation value.\n"
+    "   :type factor: float\n"
+    "   :return: The interpolated value in [0.0, 1.0].\n"
+    "   :rtype: float\n");
+static PyObject *M_Math_smoothstep(PyObject *UNUSED(self), PyObject *args)
+{
+  double a, b, x;
+  if (!PyArg_ParseTuple(args, "ddd:smoothstep", &a, &b, &x)) {
+    return NULL;
+  }
+
+  double t = (x - a) / (b - a);
+
+  CLAMP(t, 0.0, 1.0);
+
+  return PyFloat_FromDouble(t * t * (3.0 - 2.0 * t));
+}
+
+/** \} */
+/*------------------------------------------------------------*/
+/**
+ * \name Module definition
+ * \{ */
+
+static PyMethodDef M_Math_methods[] = {
+    {"clamp", (PyCFunction)M_Math_clamp, METH_VARARGS, M_Math_clamp_doc},
+    {"lerp", (PyCFunction)M_Math_lerp, METH_VARARGS, M_Math_lerp_doc},
+    {"smoothstep", (PyCFunction)M_Math_smoothstep, METH_VARARGS, M_Math_smoothstep_doc},
+    {NULL, NULL, 0, NULL},
+};
+
+static struct PyModuleDef M_Math_module_def = {
+    PyModuleDef_HEAD_INIT,
+    "bl_math",      /* m_name */
+    M_Math_doc,     /* m_doc */
+    0,              /* m_size */
+    M_Math_methods, /* m_methods */
+    NULL,           /* m_reload */
+    NULL,           /* m_traverse */
+    NULL,           /* m_clear */
+    NULL,           /* m_free */
+};
+
+PyMODINIT_FUNC BPyInit_bl_math(void)
+{
+  PyObject *submodule = PyModule_Create(&M_Math_module_def);
+  return submodule;
+}
+
+/** \} */

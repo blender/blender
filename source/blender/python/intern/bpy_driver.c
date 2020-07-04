@@ -114,6 +114,19 @@ int bpy_pydriver_create_dict(void)
     Py_DECREF(mod);
   }
 
+  /* Add math utility functions. */
+  mod = PyImport_ImportModuleLevel("bl_math", NULL, NULL, NULL, 0);
+  if (mod) {
+    static const char *names[] = {"clamp", "lerp", "smoothstep", NULL};
+
+    for (const char **pname = names; *pname; ++pname) {
+      PyObject *func = PyDict_GetItemString(PyModule_GetDict(mod), *pname);
+      PyDict_SetItemString(bpy_pydriver_Dict, *pname, func);
+    }
+
+    Py_DECREF(mod);
+  }
+
 #ifdef USE_BYTECODE_WHITELIST
   /* setup the whitelist */
   {
@@ -133,6 +146,10 @@ int bpy_pydriver_create_dict(void)
         "bool",
         "float",
         "int",
+        /* bl_math */
+        "clamp",
+        "lerp",
+        "smoothstep",
 
         NULL,
     };

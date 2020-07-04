@@ -157,6 +157,32 @@ TEST_EVAL(FMod, "fmod(x, 2)", 3.5, 1.5)
 TEST_CONST(Pow, "pow(4, 0.5)", 2.0)
 TEST_EVAL(Pow, "pow(4, x)", 0.5, 2.0)
 
+TEST_CONST(Log2_1, "log(4, 2)", 2.0)
+
+TEST_CONST(Round1, "round(-0.5)", -1.0)
+TEST_CONST(Round2, "round(-0.4)", 0.0)
+TEST_CONST(Round3, "round(0.4)", 0.0)
+TEST_CONST(Round4, "round(0.5)", 1.0)
+
+TEST_CONST(Clamp1, "clamp(-0.1)", 0.0)
+TEST_CONST(Clamp2, "clamp(0.5)", 0.5)
+TEST_CONST(Clamp3, "clamp(1.5)", 1.0)
+TEST_CONST(Clamp4, "clamp(0.5, 0.2, 0.3)", 0.3)
+TEST_CONST(Clamp5, "clamp(0.0, 0.2, 0.3)", 0.2)
+
+TEST_CONST(Lerp1, "lerp(-10,10,-1)", -30.0)
+TEST_CONST(Lerp2, "lerp(-10,10,0.25)", -5.0)
+TEST_CONST(Lerp3, "lerp(-10,10,1)", 10.0)
+TEST_EVAL(Lerp1, "lerp(-10,10,x)", 0, -10.0)
+TEST_EVAL(Lerp2, "lerp(-10,10,x)", 0.75, 5.0)
+
+TEST_CONST(Smoothstep1, "smoothstep(-10,10,-20)", 0.0)
+TEST_CONST(Smoothstep2, "smoothstep(-10,10,-10)", 0.0)
+TEST_CONST(Smoothstep3, "smoothstep(-10,10,10)", 1.0)
+TEST_CONST(Smoothstep4, "smoothstep(-10,10,20)", 1.0)
+TEST_CONST(Smoothstep5, "smoothstep(-10,10,-5)", 0.15625)
+TEST_EVAL(Smoothstep1, "smoothstep(-10,10,x)", 5, 0.84375)
+
 TEST_RESULT(Min1, "min(3,1,2)", 1.0)
 TEST_RESULT(Max1, "max(3,1,2)", 3.0)
 TEST_RESULT(Min2, "min(1,2,3)", 1.0)
