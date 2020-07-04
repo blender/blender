@@ -362,12 +362,13 @@ static bool id_search_add(const bContext *C,
        */
       char name_ui[MAX_ID_FULL_NAME_UI];
       int iconid = ui_id_icon_get(C, id, template_ui->preview);
-      bool has_sep_char = (id->lib != NULL);
+      const bool use_lib_prefix = template_ui->preview || iconid;
+      const bool has_sep_char = (id->lib != NULL);
 
       /* When using previews, the library hint (linked, overridden, missing) is added with a
        * character prefix, otherwise we can use a icon. */
-      BKE_id_full_name_ui_prefix_get(name_ui, id, template_ui->preview, UI_SEP_CHAR);
-      if (!template_ui->preview) {
+      BKE_id_full_name_ui_prefix_get(name_ui, id, use_lib_prefix, UI_SEP_CHAR);
+      if (!use_lib_prefix) {
         iconid = UI_library_icon_get(id);
       }
 
