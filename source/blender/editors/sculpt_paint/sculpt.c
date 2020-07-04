@@ -8184,7 +8184,6 @@ static int sculpt_sample_color_invoke(bContext *C,
   copy_v3_v3(color_srgb, active_vertex_color);
   IMB_colormanagement_scene_linear_to_srgb_v3(color_srgb);
   BKE_brush_color_set(scene, brush, color_srgb);
-  BKE_brush_alpha_set(scene, brush, active_vertex_color[3]);
 
   WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
 
