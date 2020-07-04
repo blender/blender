@@ -174,6 +174,10 @@ class Stack {
     inline_chunk_.above = other.inline_chunk_.above;
     size_ = other.size_;
 
+    if (inline_chunk_.above != nullptr) {
+      inline_chunk_.above->below = &inline_chunk_;
+    }
+
     if (size_ <= InlineBufferCapacity) {
       top_chunk_ = &inline_chunk_;
       top_ = this->inline_buffer() + size_;
