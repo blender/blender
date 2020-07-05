@@ -74,7 +74,7 @@ class Array {
   Allocator allocator_;
 
   /** A placeholder buffer that will remain uninitialized until it is used. */
-  TypedBuffer<T, InlineBufferCapacity> inline_buffer_;
+  AlignedBuffer<sizeof(T) * InlineBufferCapacity, alignof(T)> inline_buffer_;
 
  public:
   /**
@@ -82,7 +82,7 @@ class Array {
    */
   Array()
   {
-    data_ = inline_buffer_;
+    data_ = this->inline_buffer();
     size_ = 0;
   }
 
@@ -167,7 +167,7 @@ class Array {
       uninitialized_relocate_n(other.data_, size_, data_);
     }
 
-    other.data_ = other.inline_buffer_;
+    other.data_ = other.inline_buffer();
     other.size_ = 0;
   }
 
@@ -335,11 +335,16 @@ class Array {
   T *get_buffer_for_size(uint size)
   {
     if (size <= InlineBufferCapacity) {
-      return inline_buffer_;
+      return this->inline_buffer();
     }
     else {
       return this->allocate(size);
     }
+  }
+
+  T *inline_buffer() const
+  {
+    return (T *)inline_buffer_.ptr();
   }
 
   T *allocate(uint size)
@@ -349,7 +354,7 @@ class Array {
 
   bool uses_inline_buffer() const
   {
-    return data_ == inline_buffer_;
+    return data_ == this->inline_buffer();
   }
 };
 

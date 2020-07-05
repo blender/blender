@@ -92,7 +92,7 @@ class Vector {
   Allocator allocator_;
 
   /** A placeholder buffer that will remain uninitialized until it is used. */
-  TypedBuffer<T, InlineBufferCapacity> inline_buffer_;
+  AlignedBuffer<(uint)sizeof(T) * InlineBufferCapacity, (uint)alignof(T)> inline_buffer_;
 
   /**
    * Store the size of the vector explicitly in debug builds. Otherwise you'd always have to call
@@ -120,7 +120,7 @@ class Vector {
    */
   Vector()
   {
-    begin_ = inline_buffer_;
+    begin_ = this->inline_buffer();
     end_ = begin_;
     capacity_end_ = begin_ + InlineBufferCapacity;
     UPDATE_VECTOR_SIZE(this);
@@ -227,7 +227,7 @@ class Vector {
     if (other.is_inline()) {
       if (size <= InlineBufferCapacity) {
         /* Copy between inline buffers. */
-        begin_ = inline_buffer_;
+        begin_ = this->inline_buffer();
         end_ = begin_ + size;
         capacity_end_ = begin_ + InlineBufferCapacity;
         uninitialized_relocate_n(other.begin_, size, begin_);
@@ -248,7 +248,7 @@ class Vector {
       capacity_end_ = other.capacity_end_;
     }
 
-    other.begin_ = other.inline_buffer_;
+    other.begin_ = other.inline_buffer();
     other.end_ = other.begin_;
     other.capacity_end_ = other.begin_ + OtherInlineBufferCapacity;
     UPDATE_VECTOR_SIZE(this);
@@ -399,7 +399,7 @@ class Vector {
       allocator_.deallocate(begin_);
     }
 
-    begin_ = inline_buffer_;
+    begin_ = this->inline_buffer();
     end_ = begin_;
     capacity_end_ = begin_ + InlineBufferCapacity;
     UPDATE_VECTOR_SIZE(this);
@@ -763,9 +763,14 @@ class Vector {
   }
 
  private:
+  T *inline_buffer() const
+  {
+    return (T *)inline_buffer_.ptr();
+  }
+
   bool is_inline() const
   {
-    return begin_ == inline_buffer_;
+    return begin_ == this->inline_buffer();
   }
 
   void ensure_space_for_one()
@@ -812,7 +817,7 @@ class Vector {
     uint capacity;
 
     if (size <= InlineBufferCapacity) {
-      begin_ = inline_buffer_;
+      begin_ = this->inline_buffer();
       capacity = InlineBufferCapacity;
     }
     else {
