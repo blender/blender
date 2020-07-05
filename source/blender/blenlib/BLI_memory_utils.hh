@@ -218,12 +218,8 @@ template<typename T> struct DestructValueAtAddress {
 template<typename T> using destruct_ptr = std::unique_ptr<T, DestructValueAtAddress<T>>;
 
 /**
- * An `AlignedBuffer` is simply a byte array with the given size and alignment. The buffer will
+ * An `AlignedBuffer` is a byte array with at least the given size and alignment. The buffer will
  * not be initialized by the default constructor.
- *
- * This can be used to reserve memory for C++ objects whose lifetime is different from the
- * lifetime of the object they are embedded in. It's used by containers with small buffer
- * optimization and hash table implementations.
  */
 template<size_t Size, size_t Alignment> class alignas(Alignment) AlignedBuffer {
  private:
@@ -231,6 +227,16 @@ template<size_t Size, size_t Alignment> class alignas(Alignment) AlignedBuffer {
   char buffer_[(Size > 0) ? Size : 1];
 
  public:
+  operator void *()
+  {
+    return (void *)buffer_;
+  }
+
+  operator const void *() const
+  {
+    return (void *)buffer_;
+  }
+
   void *ptr()
   {
     return (void *)buffer_;
@@ -239,6 +245,57 @@ template<size_t Size, size_t Alignment> class alignas(Alignment) AlignedBuffer {
   const void *ptr() const
   {
     return (const void *)buffer_;
+  }
+};
+
+/**
+ * This can be used to reserve memory for C++ objects whose lifetime is different from the
+ * lifetime of the object they are embedded in. It's used by containers with small buffer
+ * optimization and hash table implementations.
+ */
+template<typename T, size_t Size = 1> class TypedBuffer {
+ private:
+  AlignedBuffer<sizeof(T) * Size, alignof(T)> buffer_;
+
+ public:
+  operator T *()
+  {
+    return (T *)&buffer_;
+  }
+
+  operator const T *() const
+  {
+    return (const T *)&buffer_;
+  }
+
+  T *operator->()
+  {
+    return (T *)&buffer_;
+  }
+
+  const T *operator->() const
+  {
+    return (const T *)&buffer_;
+  }
+
+  T &operator*()
+  {
+    return *(T *)&buffer_;
+  }
+
+  const T &operator*() const
+  {
+    return *(const T *)&buffer_;
+  }
+
+  T *ptr()
+  {
+    return (T *)&buffer_;
+  }
+
+  const T *ptr() const
+  {
+    return (const T *)&buffer_;
   }
 };
 

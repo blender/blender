@@ -106,7 +106,7 @@ class Stack {
   uint size_;
 
   /** The buffer used to implement small object optimization. */
-  AlignedBuffer<sizeof(T) * InlineBufferCapacity, alignof(T)> inline_buffer_;
+  TypedBuffer<T, InlineBufferCapacity> inline_buffer_;
 
   /**
    * A chunk referencing the inline buffer. This is always the bottom-most chunk.
@@ -123,14 +123,12 @@ class Stack {
    */
   Stack(Allocator allocator = {}) : allocator_(allocator)
   {
-    T *inline_buffer = this->inline_buffer();
-
     inline_chunk_.below = nullptr;
     inline_chunk_.above = nullptr;
-    inline_chunk_.begin = inline_buffer;
-    inline_chunk_.capacity_end = inline_buffer + InlineBufferCapacity;
+    inline_chunk_.begin = inline_buffer_;
+    inline_chunk_.capacity_end = inline_buffer_ + InlineBufferCapacity;
 
-    top_ = inline_buffer;
+    top_ = inline_buffer_;
     top_chunk_ = &inline_chunk_;
     size_ = 0;
   }
@@ -168,8 +166,8 @@ class Stack {
 
   Stack(Stack &&other) noexcept : Stack(other.allocator_)
   {
-    uninitialized_relocate_n(
-        other.inline_buffer(), std::min(other.size_, InlineBufferCapacity), this->inline_buffer());
+    uninitialized_relocate_n<T>(
+        other.inline_buffer_, std::min(other.size_, InlineBufferCapacity), inline_buffer_);
 
     inline_chunk_.above = other.inline_chunk_.above;
     size_ = other.size_;
@@ -180,7 +178,7 @@ class Stack {
 
     if (size_ <= InlineBufferCapacity) {
       top_chunk_ = &inline_chunk_;
-      top_ = this->inline_buffer() + size_;
+      top_ = inline_buffer_ + size_;
     }
     else {
       top_chunk_ = other.top_chunk_;
@@ -339,11 +337,6 @@ class Stack {
   }
 
  private:
-  T *inline_buffer() const
-  {
-    return (T *)inline_buffer_.ptr();
-  }
-
   /**
    * Changes top_chunk_ to point to a new chunk that is above the current one. The new chunk might
    * be smaller than the given size_hint. This happens when a chunk that has been allocated before
