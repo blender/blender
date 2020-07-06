@@ -50,7 +50,7 @@ struct TestType {
     other.value = copy_constructed_from_value;
   }
 
-  TestType(TestType &&other)
+  TestType(TestType &&other) noexcept
   {
     value = move_constructed_value;
     other.value = move_constructed_from_value;
@@ -63,7 +63,7 @@ struct TestType {
     return *this;
   }
 
-  TestType &operator=(TestType &&other)
+  TestType &operator=(TestType &&other) noexcept
   {
     value = move_assigned_value;
     other.value = move_assigned_from_value;

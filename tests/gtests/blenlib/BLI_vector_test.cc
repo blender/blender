@@ -499,7 +499,7 @@ class TypeConstructMock {
   {
   }
 
-  TypeConstructMock(TypeConstructMock &&other) : move_constructed(true)
+  TypeConstructMock(TypeConstructMock &&other) noexcept : move_constructed(true)
   {
   }
 
@@ -513,7 +513,7 @@ class TypeConstructMock {
     return *this;
   }
 
-  TypeConstructMock &operator=(TypeConstructMock &&other)
+  TypeConstructMock &operator=(TypeConstructMock &&other) noexcept
   {
     if (this == &other) {
       return *this;
