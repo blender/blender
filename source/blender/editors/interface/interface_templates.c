@@ -2187,8 +2187,13 @@ void uiTemplateShaderFx(uiLayout *UNUSED(layout), bContext *C)
       char panel_idname[MAX_NAME];
       shaderfx_panel_id(fx, panel_idname);
 
+      /* Create custom data RNA pointer. */
+      PointerRNA *fx_ptr = MEM_mallocN(sizeof(PointerRNA), "panel customdata");
+      RNA_pointer_create(&ob->id, &RNA_ShaderFx, fx, fx_ptr);
+
       Panel *new_panel = UI_panel_add_instanced(
-          sa, region, &region->panels, panel_idname, i, NULL);
+          sa, region, &region->panels, panel_idname, i, fx_ptr);
+
       if (new_panel != NULL) {
         UI_panel_set_expand_from_list_data(C, new_panel);
       }
@@ -2200,6 +2205,27 @@ void uiTemplateShaderFx(uiLayout *UNUSED(layout), bContext *C)
       if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED)) {
         UI_panel_set_expand_from_list_data(C, panel);
       }
+    }
+
+    /* Assuming there's only one group of instanced panels, update the custom data pointers. */
+    Panel *panel = region->panels.first;
+    LISTBASE_FOREACH (ShaderFxData *, fx, shaderfx) {
+      const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(fx->type);
+      if (fxi->panelRegister == NULL) {
+        continue;
+      }
+
+      /* Move to the next instanced panel corresponding to the next modifier. */
+      while ((panel->type == NULL) || !(panel->type->flag & PNL_INSTANCED)) {
+        panel = panel->next;
+        BLI_assert(panel != NULL); /* There shouldn't be fewer panels than modifiers with UIs. */
+      }
+
+      PointerRNA *fx_ptr = MEM_mallocN(sizeof(PointerRNA), "panel customdata");
+      RNA_pointer_create(&ob->id, &RNA_ShaderFx, fx, fx_ptr);
+      UI_panel_custom_data_set(panel, fx_ptr);
+
+      panel = panel->next;
     }
   }
 }
