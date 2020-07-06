@@ -433,7 +433,7 @@ void BLI_mutex_free(ThreadMutex *mutex)
 
 /* Spin Locks */
 
-#if WITH_TBB
+#ifdef WITH_TBB
 static tbb::spin_mutex *tbb_spin_mutex_cast(SpinLock *spin)
 {
   static_assert(sizeof(SpinLock) >= sizeof(tbb::spin_mutex),
