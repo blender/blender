@@ -16,6 +16,12 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+if(WITH_WEBP)
+  set(WITH_TIFF_WEBP ON)
+else()
+  set(WITH_TIFF_WEBP OFF)
+endif()
+
 set(TIFF_EXTRA_ARGS
   -DZLIB_LIBRARY=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
   -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include
@@ -23,6 +29,8 @@ set(TIFF_EXTRA_ARGS
   -DBUILD_SHARED_LIBS=OFF
   -Dlzma=OFF
   -Djbig=OFF
+  -Dzstd=OFF
+  -Dwebp=${WITH_TIFF_WEBP}
 )
 
 ExternalProject_Add(external_tiff

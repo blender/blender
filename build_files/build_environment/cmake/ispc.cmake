@@ -22,6 +22,12 @@ if(WIN32)
     -DBISON_EXECUTABLE=${LIBDIR}/flexbison/win_bison.exe
     -DM4_EXECUTABLE=${DOWNLOAD_DIR}/mingw/mingw64/msys/1.0/bin/m4.exe
   )
+elseif(APPLE)
+  # Use bison installed via Homebrew.
+  # The one which comes which Xcode toolset is too old.
+  set(ISPC_EXTRA_ARGS_APPLE
+    -DBISON_EXECUTABLE=/usr/local/opt/bison/bin/bison
+  )
 endif()
 
 set(ISPC_EXTRA_ARGS
@@ -36,6 +42,7 @@ set(ISPC_EXTRA_ARGS
     -DCLANG_LIBRARY_DIR=${LIBDIR}/clang/lib
     -DCLANG_INCLUDE_DIRS=${LIBDIR}/clang/include
     ${ISPC_EXTRA_ARGS_WIN}
+    ${ISPC_EXTRA_ARGS_APPLE}
 )
 
 ExternalProject_Add(external_ispc
