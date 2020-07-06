@@ -1613,21 +1613,6 @@ void blo_filedata_free(FileData *fd)
     if (fd->globmap) {
       oldnewmap_free(fd->globmap);
     }
-    if (fd->imamap) {
-      oldnewmap_free(fd->imamap);
-    }
-    if (fd->movieclipmap) {
-      oldnewmap_free(fd->movieclipmap);
-    }
-    if (fd->scenemap) {
-      oldnewmap_free(fd->scenemap);
-    }
-    if (fd->soundmap) {
-      oldnewmap_free(fd->soundmap);
-    }
-    if (fd->volumemap) {
-      oldnewmap_free(fd->volumemap);
-    }
     if (fd->packedmap) {
       oldnewmap_free(fd->packedmap);
     }
@@ -1804,51 +1789,6 @@ static void *newglobadr(FileData *fd, const void *adr)
   return oldnewmap_lookup_and_inc(fd->globmap, adr, true);
 }
 
-/* used to restore image data after undo */
-static void *newimaadr(FileData *fd, const void *adr)
-{
-  if (fd->imamap && adr) {
-    return oldnewmap_lookup_and_inc(fd->imamap, adr, true);
-  }
-  return NULL;
-}
-
-/* used to restore scene data after undo */
-static void *newsceadr(FileData *fd, const void *adr)
-{
-  if (fd->scenemap && adr) {
-    return oldnewmap_lookup_and_inc(fd->scenemap, adr, true);
-  }
-  return NULL;
-}
-
-/* used to restore movie clip data after undo */
-static void *newmclipadr(FileData *fd, const void *adr)
-{
-  if (fd->movieclipmap && adr) {
-    return oldnewmap_lookup_and_inc(fd->movieclipmap, adr, true);
-  }
-  return NULL;
-}
-
-/* used to restore sound data after undo */
-static void *newsoundadr(FileData *fd, const void *adr)
-{
-  if (fd->soundmap && adr) {
-    return oldnewmap_lookup_and_inc(fd->soundmap, adr, true);
-  }
-  return NULL;
-}
-
-/* used to restore volume data after undo */
-static void *newvolumeadr(FileData *fd, const void *adr)
-{
-  if (fd->volumemap && adr) {
-    return oldnewmap_lookup_and_inc(fd->volumemap, adr, true);
-  }
-  return NULL;
-}
-
 /* used to restore packed data after undo */
 static void *newpackedadr(FileData *fd, const void *adr)
 {
@@ -1923,201 +1863,6 @@ void blo_clear_proxy_pointers_from_lib(Main *oldmain)
     if (ob->id.lib != NULL && ob->proxy_from != NULL && ob->proxy_from->id.lib == NULL) {
       ob->proxy_from = NULL;
     }
-  }
-}
-
-void blo_make_scene_pointer_map(FileData *fd, Main *oldmain)
-{
-  Scene *sce = oldmain->scenes.first;
-
-  fd->scenemap = oldnewmap_new();
-
-  for (; sce; sce = sce->id.next) {
-    if (sce->eevee.light_cache_data) {
-      struct LightCache *light_cache = sce->eevee.light_cache_data;
-      oldnewmap_insert(fd->scenemap, light_cache, light_cache, 0);
-    }
-  }
-}
-
-void blo_end_scene_pointer_map(FileData *fd, Main *oldmain)
-{
-  OldNew *entry = fd->scenemap->entries;
-  Scene *sce = oldmain->scenes.first;
-  int i;
-
-  /* used entries were restored, so we put them to zero */
-  for (i = 0; i < fd->scenemap->nentries; i++, entry++) {
-    if (entry->nr > 0) {
-      entry->newp = NULL;
-    }
-  }
-
-  for (; sce; sce = sce->id.next) {
-    sce->eevee.light_cache_data = newsceadr(fd, sce->eevee.light_cache_data);
-  }
-}
-
-void blo_make_image_pointer_map(FileData *fd, Main *oldmain)
-{
-  Scene *sce = oldmain->scenes.first;
-  fd->imamap = oldnewmap_new();
-
-  for (; sce; sce = sce->id.next) {
-    if (sce->nodetree && sce->nodetree->previews) {
-      bNodeInstanceHashIterator iter;
-      NODE_INSTANCE_HASH_ITER (iter, sce->nodetree->previews) {
-        bNodePreview *preview = BKE_node_instance_hash_iterator_get_value(&iter);
-        oldnewmap_insert(fd->imamap, preview, preview, 0);
-      }
-    }
-  }
-}
-
-/* set old main image ibufs to zero if it has been restored */
-/* this works because freeing old main only happens after this call */
-void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
-{
-  OldNew *entry = fd->imamap->entries;
-  Scene *sce = oldmain->scenes.first;
-  int i;
-
-  /* used entries were restored, so we put them to zero */
-  for (i = 0; i < fd->imamap->nentries; i++, entry++) {
-    if (entry->nr > 0) {
-      entry->newp = NULL;
-    }
-  }
-
-  for (; sce; sce = sce->id.next) {
-    if (sce->nodetree && sce->nodetree->previews) {
-      bNodeInstanceHash *new_previews = BKE_node_instance_hash_new("node previews");
-      bNodeInstanceHashIterator iter;
-
-      /* reconstruct the preview hash, only using remaining pointers */
-      NODE_INSTANCE_HASH_ITER (iter, sce->nodetree->previews) {
-        bNodePreview *preview = BKE_node_instance_hash_iterator_get_value(&iter);
-        if (preview) {
-          bNodePreview *new_preview = newimaadr(fd, preview);
-          if (new_preview) {
-            bNodeInstanceKey key = BKE_node_instance_hash_iterator_get_key(&iter);
-            BKE_node_instance_hash_insert(new_previews, key, new_preview);
-          }
-        }
-      }
-      BKE_node_instance_hash_free(sce->nodetree->previews, NULL);
-      sce->nodetree->previews = new_previews;
-    }
-  }
-}
-
-void blo_make_movieclip_pointer_map(FileData *fd, Main *oldmain)
-{
-  Scene *sce = oldmain->scenes.first;
-
-  fd->movieclipmap = oldnewmap_new();
-
-  for (; sce; sce = sce->id.next) {
-    if (sce->nodetree) {
-      bNode *node;
-      for (node = sce->nodetree->nodes.first; node; node = node->next) {
-        if (node->type == CMP_NODE_MOVIEDISTORTION) {
-          oldnewmap_insert(fd->movieclipmap, node->storage, node->storage, 0);
-        }
-      }
-    }
-  }
-}
-
-/* set old main movie clips caches to zero if it has been restored */
-/* this works because freeing old main only happens after this call */
-void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
-{
-  OldNew *entry = fd->movieclipmap->entries;
-  Scene *sce = oldmain->scenes.first;
-  int i;
-
-  /* used entries were restored, so we put them to zero */
-  for (i = 0; i < fd->movieclipmap->nentries; i++, entry++) {
-    if (entry->nr > 0) {
-      entry->newp = NULL;
-    }
-  }
-
-  for (; sce; sce = sce->id.next) {
-    if (sce->nodetree) {
-      bNode *node;
-      for (node = sce->nodetree->nodes.first; node; node = node->next) {
-        if (node->type == CMP_NODE_MOVIEDISTORTION) {
-          node->storage = newmclipadr(fd, node->storage);
-        }
-      }
-    }
-  }
-}
-
-void blo_make_sound_pointer_map(FileData *fd, Main *oldmain)
-{
-  bSound *sound = oldmain->sounds.first;
-
-  fd->soundmap = oldnewmap_new();
-
-  for (; sound; sound = sound->id.next) {
-    if (sound->waveform) {
-      oldnewmap_insert(fd->soundmap, sound->waveform, sound->waveform, 0);
-    }
-  }
-}
-
-/* set old main sound caches to zero if it has been restored */
-/* this works because freeing old main only happens after this call */
-void blo_end_sound_pointer_map(FileData *fd, Main *oldmain)
-{
-  OldNew *entry = fd->soundmap->entries;
-  bSound *sound = oldmain->sounds.first;
-  int i;
-
-  /* used entries were restored, so we put them to zero */
-  for (i = 0; i < fd->soundmap->nentries; i++, entry++) {
-    if (entry->nr > 0) {
-      entry->newp = NULL;
-    }
-  }
-
-  for (; sound; sound = sound->id.next) {
-    sound->waveform = newsoundadr(fd, sound->waveform);
-  }
-}
-
-void blo_make_volume_pointer_map(FileData *fd, Main *oldmain)
-{
-  fd->volumemap = oldnewmap_new();
-
-  Volume *volume = oldmain->volumes.first;
-  for (; volume; volume = volume->id.next) {
-    if (volume->runtime.grids) {
-      oldnewmap_insert(fd->volumemap, volume->runtime.grids, volume->runtime.grids, 0);
-    }
-  }
-}
-
-/* set old main volume caches to zero if it has been restored */
-/* this works because freeing old main only happens after this call */
-void blo_end_volume_pointer_map(FileData *fd, Main *oldmain)
-{
-  OldNew *entry = fd->volumemap->entries;
-  Volume *volume = oldmain->volumes.first;
-  int i;
-
-  /* used entries were restored, so we put them to zero */
-  for (i = 0; i < fd->volumemap->nentries; i++, entry++) {
-    if (entry->nr > 0) {
-      entry->newp = NULL;
-    }
-  }
-
-  for (; volume; volume = volume->id.next) {
-    volume->runtime.grids = newvolumeadr(fd, volume->runtime.grids);
   }
 }
 
@@ -3752,7 +3497,8 @@ static void direct_link_nodetree(BlendDataReader *reader, bNodeTree *ntree)
     }
 
     if (node->type == CMP_NODE_MOVIEDISTORTION) {
-      node->storage = newmclipadr(reader->fd, node->storage);
+      /* Do nothing, this is runtime cache and hence handled by generic code using
+       * `IDTypeInfo.foreach_cache` callback. */
     }
     else {
       BLO_read_data_address(reader, &node->storage);
