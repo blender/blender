@@ -74,22 +74,25 @@ static void mesh_batch_cache_clear(Mesh *me);
 /* Return true is all layers in _b_ are inside _a_. */
 BLI_INLINE bool mesh_cd_layers_type_overlap(DRW_MeshCDMask a, DRW_MeshCDMask b)
 {
-  return (*((uint32_t *)&a) & *((uint32_t *)&b)) == *((uint32_t *)&b);
+  return (*((uint64_t *)&a) & *((uint64_t *)&b)) == *((uint64_t *)&b);
 }
 
 BLI_INLINE bool mesh_cd_layers_type_equal(DRW_MeshCDMask a, DRW_MeshCDMask b)
 {
-  return *((uint32_t *)&a) == *((uint32_t *)&b);
+  return *((uint64_t *)&a) == *((uint64_t *)&b);
 }
 
 BLI_INLINE void mesh_cd_layers_type_merge(DRW_MeshCDMask *a, DRW_MeshCDMask b)
 {
-  atomic_fetch_and_or_uint32((uint32_t *)a, *(uint32_t *)&b);
+  uint32_t *a_p = (uint32_t *)a;
+  uint32_t *b_p = (uint32_t *)&b;
+  atomic_fetch_and_or_uint32(a_p, *b_p);
+  atomic_fetch_and_or_uint32(a_p + 1, *(b_p + 1));
 }
 
 BLI_INLINE void mesh_cd_layers_type_clear(DRW_MeshCDMask *a)
 {
-  *((uint32_t *)a) = 0;
+  *((uint64_t *)a) = 0;
 }
 
 static void mesh_cd_calc_edit_uv_layer(const Mesh *UNUSED(me), DRW_MeshCDMask *cd_used)
