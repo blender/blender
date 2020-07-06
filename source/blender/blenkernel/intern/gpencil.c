@@ -1555,7 +1555,7 @@ Material *BKE_gpencil_object_material_from_brush_get(Object *ob, Brush *brush)
  * Returns the material index for a brush with respect to its pinned state.
  * \param ob: Grease pencil object
  * \param brush: Brush
- * \return Materil index
+ * \return Material index.
  */
 int BKE_gpencil_object_material_get_index_from_brush(Object *ob, Brush *brush)
 {
@@ -1571,8 +1571,7 @@ int BKE_gpencil_object_material_get_index_from_brush(Object *ob, Brush *brush)
  * Guaranteed to return a material assigned to object. Returns never NULL.
  * \param bmain: Main pointer
  * \param ob: Grease pencil object
- * \param ts: Toolsettings
- * \return Material pointer
+ * \return Material pointer.
  */
 Material *BKE_gpencil_object_material_ensure_from_active_input_toolsettings(Main *bmain,
                                                                             Object *ob,

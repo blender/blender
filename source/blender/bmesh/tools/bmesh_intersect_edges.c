@@ -857,7 +857,7 @@ bool BM_mesh_intersect_edges(
         v_key = (*pair_iter)[0].vert;
         v_val = (*pair_iter)[1].vert;
         BMVert *v_target;
-        while (v_target = BLI_ghash_lookup(r_targetmap, v_val)) {
+        while ((v_target = BLI_ghash_lookup(r_targetmap, v_val))) {
           v_val = v_target;
         }
         if (v_val != (*pair_iter)[1].vert) {
