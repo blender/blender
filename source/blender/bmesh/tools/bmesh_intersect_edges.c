@@ -833,15 +833,37 @@ bool BM_mesh_intersect_edges(
     }
 
     if (pair_array) {
+      BMVert *v_key, *v_val;
       pair_iter = &pair_array[0];
       for (i = 0; i < pair_len; i++, pair_iter++) {
         BLI_assert((*pair_iter)[0].elem->head.htype == BM_VERT);
         BLI_assert((*pair_iter)[1].elem->head.htype == BM_VERT);
         BLI_assert((*pair_iter)[0].elem != (*pair_iter)[1].elem);
-        BMVert *v_key, *v_val;
         v_key = (*pair_iter)[0].vert;
         v_val = (*pair_iter)[1].vert;
         BLI_ghash_insert(r_targetmap, v_key, v_val);
+      }
+
+      /**
+       * The weld_verts operator works best when all keys in the same group of
+       * collapsed vertices point to the same vertex.
+       * That is, if the pairs of vertices are:
+       *   [1, 2], [2, 3] and [3, 4],
+       * They are better adjusted to:
+       *   [1, 4], [2, 4] and [3, 4].
+       */
+      pair_iter = &pair_array[0];
+      for (i = 0; i < pair_len; i++, pair_iter++) {
+        v_key = (*pair_iter)[0].vert;
+        v_val = (*pair_iter)[1].vert;
+        BMVert *v_target;
+        while (v_target = BLI_ghash_lookup(r_targetmap, v_val)) {
+          v_val = v_target;
+        }
+        if (v_val != (*pair_iter)[1].vert) {
+          BMVert **v_val_p = (BMVert **)BLI_ghash_lookup_p(r_targetmap, v_key);
+          *v_val_p = (*pair_iter)[1].vert = v_val;
+        }
         if (split_faces) {
           /* The vertex index indicates its position in the pair_array flat. */
           BM_elem_index_set(v_key, i * 2);
