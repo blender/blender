@@ -422,6 +422,9 @@ static void buttons_area_listener(wmWindow *UNUSED(win),
           buttons_area_redraw(area, BCONTEXT_CONSTRAINT);
           buttons_area_redraw(area, BCONTEXT_BONE_CONSTRAINT);
           break;
+        case ND_SHADERFX:
+          buttons_area_redraw(area, BCONTEXT_SHADERFX);
+          break;
         case ND_PARTICLE:
           if (wmn->action == NA_EDITED) {
             buttons_area_redraw(area, BCONTEXT_PARTICLE);
@@ -434,13 +437,6 @@ static void buttons_area_listener(wmWindow *UNUSED(win),
           buttons_area_redraw(area, BCONTEXT_PHYSICS);
           /* Needed to refresh context path when changing active particle system index. */
           buttons_area_redraw(area, BCONTEXT_PARTICLE);
-          break;
-        case ND_SHADING:
-        case ND_SHADING_DRAW:
-        case ND_SHADING_LINKS:
-        case ND_SHADING_PREVIEW:
-          /* currently works by redraws... if preview is set, it (re)starts job */
-          sbuts->preview = 1;
           break;
         default:
           /* Not all object RNA props have a ND_ notifier (yet) */

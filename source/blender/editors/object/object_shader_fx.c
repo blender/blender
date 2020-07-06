@@ -247,7 +247,7 @@ static int shaderfx_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_SHADERFX, ob);
 
   return OPERATOR_FINISHED;
 }
@@ -407,7 +407,7 @@ static int shaderfx_remove_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_SHADERFX, ob);
 
   return OPERATOR_FINISHED;
 }
@@ -447,7 +447,7 @@ static int shaderfx_move_up_exec(bContext *C, wmOperator *op)
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_SHADERFX, ob);
 
   return OPERATOR_FINISHED;
 }
@@ -487,7 +487,7 @@ static int shaderfx_move_down_exec(bContext *C, wmOperator *op)
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_SHADERFX, ob);
 
   return OPERATOR_FINISHED;
 }
@@ -533,7 +533,7 @@ static int shaderfx_move_to_index_exec(bContext *C, wmOperator *op)
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_SHADERFX, ob);
 
   return OPERATOR_FINISHED;
 }

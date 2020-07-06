@@ -825,6 +825,7 @@ static void view3d_main_region_listener(
         case ND_POSE:
         case ND_DRAW:
         case ND_MODIFIER:
+        case ND_SHADERFX:
         case ND_CONSTRAINT:
         case ND_KEYS:
         case ND_PARTICLE:
@@ -1381,6 +1382,7 @@ static void view3d_buttons_region_listener(wmWindow *UNUSED(win),
         case ND_DRAW:
         case ND_KEYS:
         case ND_MODIFIER:
+        case ND_SHADERFX:
           ED_region_tag_redraw(region);
           break;
       }
