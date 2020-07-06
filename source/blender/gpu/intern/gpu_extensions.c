@@ -339,7 +339,6 @@ void gpu_extensions_init(void)
     GG.depth_blitting_workaround = true;
     GG.unused_fb_slot_workaround = true;
     GG.texture_copy_workaround = true;
-    GG.context_local_shaders_workaround = GLEW_ARB_get_program_binary;
   }
 
   /* Special fix for theses specific GPUs.
@@ -347,7 +346,6 @@ void gpu_extensions_init(void)
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
       (strstr(renderer, "HD Graphics 620") || strstr(renderer, "HD Graphics 630"))) {
     GG.mip_render_workaround = true;
-    GG.context_local_shaders_workaround = GLEW_ARB_get_program_binary;
   }
 
   /* df/dy calculation factors, those are dependent on driver */
