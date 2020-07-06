@@ -32,7 +32,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_ghash.h"
+#include "BLI_edgehash.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
@@ -1153,17 +1153,7 @@ static bool cloth_bvh_selfcollision_is_active(const Cloth *cloth,
       }
 
       if (sewing_active) {
-        unsigned int vertex_index_pair[2];
-        /* The indices pair are ordered, thus must ensure the same here as well */
-        if (tri_a->tri[i] < tri_b->tri[j]) {
-          vertex_index_pair[0] = tri_a->tri[i];
-          vertex_index_pair[1] = tri_b->tri[j];
-        }
-        else {
-          vertex_index_pair[0] = tri_b->tri[j];
-          vertex_index_pair[1] = tri_a->tri[i];
-        }
-        if (BLI_ghash_haskey(cloth->sew_edge_graph, vertex_index_pair)) {
+        if (BLI_edgeset_haskey(cloth->sew_edge_graph, tri_a->tri[i], tri_b->tri[j])) {
           return false;
         }
       }

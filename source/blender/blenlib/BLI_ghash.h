@@ -371,20 +371,6 @@ unsigned int BLI_ghashutil_uinthash_v4_murmur(const unsigned int key[4]);
 bool BLI_ghashutil_uinthash_v4_cmp(const void *a, const void *b);
 #define BLI_ghashutil_inthash_v4_cmp BLI_ghashutil_uinthash_v4_cmp
 
-unsigned int BLI_ghashutil_uinthash_v2(const unsigned int key[2]);
-#define BLI_ghashutil_inthash_v2(key) \
-  (CHECK_TYPE_ANY(key, int *, const int *), BLI_ghashutil_uinthash_v2((const unsigned int *)key))
-#define BLI_ghashutil_inthash_v2_p ((GSetHashFP)BLI_ghashutil_uinthash_v2)
-#define BLI_ghashutil_uinthash_v2_p ((GSetHashFP)BLI_ghashutil_uinthash_v2)
-unsigned int BLI_ghashutil_uinthash_v2_murmur(const unsigned int key[2]);
-#define BLI_ghashutil_inthash_v2_murmur(key) \
-  (CHECK_TYPE_ANY(key, int *, const int *), \
-   BLI_ghashutil_uinthash_v2_murmur((const unsigned int *)key))
-#define BLI_ghashutil_inthash_v2_p_murmur ((GSetHashFP)BLI_ghashutil_uinthash_v2_murmur)
-#define BLI_ghashutil_uinthash_v2_p_murmur ((GSetHashFP)BLI_ghashutil_uinthash_v2_murmur)
-bool BLI_ghashutil_uinthash_v2_cmp(const void *a, const void *b);
-#define BLI_ghashutil_inthash_v2_cmp BLI_ghashutil_uinthash_v2_cmp
-
 typedef struct GHashPair {
   const void *first;
   const void *second;
