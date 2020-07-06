@@ -535,42 +535,6 @@ static void int2_ghash_tests(GHash *ghash, const char *id, const unsigned int nb
   printf("========== ENDED %s ==========\n\n", id);
 }
 
-TEST(ghash, Int2GHash2000)
-{
-  GHash *ghash = BLI_ghash_new(
-      BLI_ghashutil_uinthash_v2_p, BLI_ghashutil_uinthash_v2_cmp, __func__);
-
-  int2_ghash_tests(ghash, "Int2GHash - GHash - 2000", 2000);
-}
-
-#ifdef GHASH_RUN_BIG
-TEST(ghash, Int2GHash20000000)
-{
-  GHash *ghash = BLI_ghash_new(
-      BLI_ghashutil_uinthash_v2_p, BLI_ghashutil_uinthash_v2_cmp, __func__);
-
-  int2_ghash_tests(ghash, "Int2GHash - GHash - 20000000", 20000000);
-}
-#endif
-
-TEST(ghash, Int2Murmur2a2000)
-{
-  GHash *ghash = BLI_ghash_new(
-      BLI_ghashutil_uinthash_v2_p_murmur, BLI_ghashutil_uinthash_v2_cmp, __func__);
-
-  int2_ghash_tests(ghash, "Int2GHash - Murmur - 2000", 2000);
-}
-
-#ifdef GHASH_RUN_BIG
-TEST(ghash, Int2Murmur2a20000000)
-{
-  GHash *ghash = BLI_ghash_new(
-      BLI_ghashutil_uinthash_v2_p_murmur, BLI_ghashutil_uinthash_v2_cmp, __func__);
-
-  int2_ghash_tests(ghash, "Int2GHash - Murmur - 20000000", 20000000);
-}
-#endif
-
 /* MultiSmall: create and manipulate a lot of very small ghashes
  * (90% < 10 items, 9% < 100 items, 1% < 1000 items). */
 
