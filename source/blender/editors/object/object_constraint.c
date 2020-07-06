@@ -670,12 +670,12 @@ static bool edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
 
   if (!ob) {
     CTX_wm_operator_poll_msg_set(C, "Context missing active object");
-    return 0;
+    return false;
   }
 
   if (ID_IS_LINKED(ob) || (ptr.owner_id && ID_IS_LINKED(ptr.owner_id))) {
     CTX_wm_operator_poll_msg_set(C, "Cannot edit library data");
-    return 0;
+    return false;
   }
 
   if (ID_IS_OVERRIDE_LIBRARY(ob) && ptr.data != NULL) {
@@ -683,7 +683,7 @@ static bool edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
     return (((bConstraint *)ptr.data)->flag & CONSTRAINT_OVERRIDE_LIBRARY_LOCAL) != 0;
   }
 
-  return 1;
+  return true;
 }
 
 static bool edit_constraint_poll(bContext *C)
@@ -702,7 +702,7 @@ static void edit_constraint_properties(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-static int edit_constraint_invoke_properties(bContext *C, wmOperator *op)
+static bool edit_constraint_invoke_properties(bContext *C, wmOperator *op)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
   Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
@@ -711,7 +711,7 @@ static int edit_constraint_invoke_properties(bContext *C, wmOperator *op)
 
   if (RNA_struct_property_is_set(op->ptr, "constraint") &&
       RNA_struct_property_is_set(op->ptr, "owner")) {
-    return 1;
+    return true;
   }
 
   if (ptr.data) {
@@ -727,10 +727,10 @@ static int edit_constraint_invoke_properties(bContext *C, wmOperator *op)
       RNA_enum_set(op->ptr, "owner", EDIT_CONSTRAINT_OWNER_BONE);
     }
 
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int type)
