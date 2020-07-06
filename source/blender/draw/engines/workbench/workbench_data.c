@@ -256,6 +256,8 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
     }
     else if (XRAY_ENABLED(v3d)) {
       wpd->shading.xray_alpha = XRAY_ALPHA(v3d);
+      /* Disable shading options that aren't supported in transparency mode. */
+      wpd->shading.flag &= ~(V3D_SHADING_SHADOW | V3D_SHADING_CAVITY | V3D_SHADING_DEPTH_OF_FIELD);
     }
     else {
       wpd->shading.xray_alpha = 1.0f;
