@@ -170,8 +170,6 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       if (stl->lookdev_lightcache == NULL) {
 #if defined(IRRADIANCE_SH_L2)
         int grid_res = 4;
-#elif defined(IRRADIANCE_CUBEMAP)
-        int grid_res = 8;
 #elif defined(IRRADIANCE_HL2)
         int grid_res = 4;
 #endif

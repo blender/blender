@@ -111,32 +111,7 @@ void main()
 
   FragColor = vec4(sh, 1.0);
 #else
-#  if defined(IRRADIANCE_CUBEMAP)
-  /* Downside: Need lots of memory for storage, distortion due to octahedral mapping */
-  const vec2 map_size = vec2(16.0);
-  const vec2 texelSize = 1.0 / map_size;
-  vec2 uvs = mod(gl_FragCoord.xy, map_size) * texelSize;
-  const float paddingSize = 1.0;
-
-  /* Add a N pixel border to ensure filtering is correct
-   * for N mipmap levels. */
-  uvs = (uvs - texelSize * paddingSize) / (1.0 - 2.0 * texelSize * paddingSize);
-
-  /* edge mirroring : only mirror if directly adjacent
-   * (not diagonally adjacent) */
-  vec2 m = abs(uvs - 0.5) + 0.5;
-  vec2 f = floor(m);
-  if (f.x - f.y != 0.0) {
-    uvs = 1.0 - uvs;
-  }
-
-  /* clamp to [0-1] */
-  uvs = fract(uvs);
-
-  /* get cubemap vector */
-  vec3 cubevec = octahedral_to_cubemap_proj(uvs);
-
-#  elif defined(IRRADIANCE_HL2)
+#  if defined(IRRADIANCE_HL2)
   /* Downside: very very low resolution (6 texels), bleed lighting because of interpolation */
   int x = int(gl_FragCoord.x) % 3;
   int y = int(gl_FragCoord.y) % 2;

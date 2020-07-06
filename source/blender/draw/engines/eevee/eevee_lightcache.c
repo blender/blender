@@ -53,9 +53,6 @@
 #if defined(IRRADIANCE_SH_L2)
 #  define IRRADIANCE_SAMPLE_SIZE_X 4 /* 3 in reality */
 #  define IRRADIANCE_SAMPLE_SIZE_Y 4 /* 3 in reality */
-#elif defined(IRRADIANCE_CUBEMAP)
-#  define IRRADIANCE_SAMPLE_SIZE_X 8
-#  define IRRADIANCE_SAMPLE_SIZE_Y 8
 #elif defined(IRRADIANCE_HL2)
 #  define IRRADIANCE_SAMPLE_SIZE_X 4 /* 3 in reality */
 #  define IRRADIANCE_SAMPLE_SIZE_Y 2

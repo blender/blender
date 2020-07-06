@@ -179,8 +179,6 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     if (!sldata->fallback_lightcache) {
 #if defined(IRRADIANCE_SH_L2)
       int grid_res = 4;
-#elif defined(IRRADIANCE_CUBEMAP)
-      int grid_res = 8;
 #elif defined(IRRADIANCE_HL2)
       int grid_res = 4;
 #endif
@@ -1114,9 +1112,6 @@ void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
   /* NOTE : Keep in sync with load_irradiance_cell() */
 #if defined(IRRADIANCE_SH_L2)
   int size[2] = {3, 3};
-#elif defined(IRRADIANCE_CUBEMAP)
-  int size[2] = {8, 8};
-  pinfo->samples_len = 1024.0f;
 #elif defined(IRRADIANCE_HL2)
   int size[2] = {3, 2};
   pinfo->samples_len = 1024.0f;
