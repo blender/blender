@@ -1579,6 +1579,20 @@ class _defs_image_uv_select:
         )
 
 
+class _defs_image_uv_edit:
+
+    @ToolDef.from_fn
+    def rip_region():
+        return dict(
+            idname="builtin.rip_region",
+            label="Rip Region",
+            icon="ops.mesh.rip",
+            # TODO: generic operator (UV version of `VIEW3D_GGT_tool_generic_handle_free`).
+            widget=None,
+            keymap=(),
+        )
+
+
 class _defs_image_uv_sculpt:
 
     @staticmethod
@@ -2172,6 +2186,8 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_transform,
             None,
             *_tools_annotate,
+            None,
+            _defs_image_uv_edit.rip_region,
             None,
             lambda context: (
                 _defs_image_uv_sculpt.generate_from_brushes(context)

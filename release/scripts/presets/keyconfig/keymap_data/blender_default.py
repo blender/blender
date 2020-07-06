@@ -5590,6 +5590,17 @@ def km_image_editor_tool_uv_select_lasso(params):
     )
 
 
+def km_image_editor_tool_uv_rip_region(params):
+    return (
+        "Image Editor Tool: Uv, Rip Region",
+        {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
+        {"items": [
+            ("uv.rip_move", {"type": params.tool_tweak, "value": 'ANY'},
+             {"properties": [("TRANSFORM_OT_translate", [("release_confirm", True)])]}),
+        ]},
+    )
+
+
 def km_image_editor_tool_uv_sculpt_stroke(params):
     return (
         "Image Editor Tool: Uv, Sculpt Stroke",
@@ -6792,6 +6803,7 @@ def generate_keymaps(params=None):
         km_image_editor_tool_uv_select_box(params),
         km_image_editor_tool_uv_select_circle(params),
         km_image_editor_tool_uv_select_lasso(params),
+        km_image_editor_tool_uv_rip_region(params),
         km_image_editor_tool_uv_sculpt_stroke(params),
         km_image_editor_tool_uv_move(params),
         km_image_editor_tool_uv_rotate(params),
