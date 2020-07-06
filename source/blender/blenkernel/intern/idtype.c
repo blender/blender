@@ -36,8 +36,11 @@
 #include "BLT_translation.h"
 
 #include "DNA_ID.h"
+#include "DNA_node_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_main.h"
+#include "BKE_node.h"
 
 #include "BKE_idtype.h"
 
@@ -469,4 +472,34 @@ short BKE_idtype_idcode_from_index(const int index)
 short BKE_idtype_idcode_iter_step(int *index)
 {
   return (*index < ARRAY_SIZE(id_types)) ? BKE_idtype_idcode_from_index((*index)++) : 0;
+}
+
+/** Wrapper around IDTypeInfo foreach_cache that also handles embedded IDs. */
+void BKE_idtype_id_foreach_cache(struct ID *id,
+                                 IDTypeForeachCacheFunctionCallback function_callback,
+                                 void *user_data)
+{
+  const IDTypeInfo *type_info = BKE_idtype_get_info_from_id(id);
+  if (type_info->foreach_cache != NULL) {
+    type_info->foreach_cache(id, function_callback, user_data);
+  }
+
+  /* Handle 'private IDs'. */
+  bNodeTree *nodetree = ntreeFromID(id);
+  if (nodetree != NULL) {
+    type_info = BKE_idtype_get_info_from_id(&nodetree->id);
+    if (type_info->foreach_cache != NULL) {
+      type_info->foreach_cache(&nodetree->id, function_callback, user_data);
+    }
+  }
+
+  if (GS(id->name) == ID_SCE) {
+    Scene *scene = (Scene *)id;
+    if (scene->master_collection != NULL) {
+      type_info = BKE_idtype_get_info_from_id(&scene->master_collection->id);
+      if (type_info->foreach_cache != NULL) {
+        type_info->foreach_cache(&scene->master_collection->id, function_callback, user_data);
+      }
+    }
+  }
 }

@@ -2349,7 +2349,7 @@ void blo_cache_storage_init(FileData *fd, Main *bmain)
         if (ID_IS_LINKED(id)) {
           continue;
         }
-        type_info->foreach_cache(id, blo_cache_storage_entry_register, fd->cache_storage);
+        BKE_idtype_id_foreach_cache(id, blo_cache_storage_entry_register, fd->cache_storage);
       }
       FOREACH_MAIN_LISTBASE_ID_END;
     }
@@ -2379,7 +2379,7 @@ void blo_cache_storage_old_bmain_clear(FileData *fd, Main *bmain_old)
         if (ID_IS_LINKED(id)) {
           continue;
         }
-        type_info->foreach_cache(id, blo_cache_storage_entry_clear_in_old, fd->cache_storage);
+        BKE_idtype_id_foreach_cache(id, blo_cache_storage_entry_clear_in_old, fd->cache_storage);
       }
       FOREACH_MAIN_LISTBASE_ID_END;
     }
@@ -3851,28 +3851,8 @@ static void direct_link_nodetree(BlendDataReader *reader, bNodeTree *ntree)
     BLO_read_data_address(reader, &link->tosock);
   }
 
-#if 0
-  if (ntree->previews) {
-    bNodeInstanceHash* new_previews = BKE_node_instance_hash_new("node previews");
-    bNodeInstanceHashIterator iter;
-
-    NODE_INSTANCE_HASH_ITER(iter, ntree->previews) {
-      bNodePreview* preview = BKE_node_instance_hash_iterator_get_value(&iter);
-      if (preview) {
-        bNodePreview* new_preview = newimaadr(fd, preview);
-        if (new_preview) {
-          bNodeInstanceKey key = BKE_node_instance_hash_iterator_get_key(&iter);
-          BKE_node_instance_hash_insert(new_previews, key, new_preview);
-        }
-      }
-    }
-    BKE_node_instance_hash_free(ntree->previews, NULL);
-    ntree->previews = new_previews;
-  }
-#else
-  /* XXX TODO */
+  /* TODO, should be dealt by new generic cache handling of IDs... */
   ntree->previews = NULL;
-#endif
 
   /* type verification is in lib-link */
 }
@@ -9242,7 +9222,8 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
 
   /* try to restore (when undoing) or clear ID's cache pointers. */
   if (id_type->foreach_cache != NULL) {
-    id_type->foreach_cache(id, blo_cache_storage_entry_restore_in_new, reader.fd->cache_storage);
+    BKE_idtype_id_foreach_cache(
+        id, blo_cache_storage_entry_restore_in_new, reader.fd->cache_storage);
   }
 
   return success;

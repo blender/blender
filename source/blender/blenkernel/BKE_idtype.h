@@ -235,6 +235,14 @@ short BKE_idtype_idcode_from_index(const int index);
 
 short BKE_idtype_idcode_iter_step(int *index);
 
+/* Some helpers/wrappers around callbacks defined in IDTypeInfo, dealing e.g. with embedded IDs...
+ * XXX Ideally those would rather belong to BKE_lib_id, but using callback fonction pointers makes
+ * this hard to do properly if we want to avoid headers includes in headers... */
+
+void BKE_idtype_id_foreach_cache(struct ID *id,
+                                 IDTypeForeachCacheFunctionCallback function_callback,
+                                 void *user_data);
+
 #ifdef __cplusplus
 }
 #endif
