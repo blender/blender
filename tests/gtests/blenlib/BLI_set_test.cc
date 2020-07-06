@@ -403,6 +403,51 @@ TEST(set, IntrusiveIntKey)
   EXPECT_TRUE(set.remove(4));
 }
 
+struct MyKeyType {
+  uint32_t key;
+  uint32_t attached_data;
+
+  uint32_t hash() const
+  {
+    return key;
+  }
+
+  friend bool operator==(const MyKeyType &a, const MyKeyType &b)
+  {
+    return a.key == b.key;
+  }
+};
+
+TEST(set, LookupKey)
+{
+  Set<MyKeyType> set;
+  set.add({1, 10});
+  set.add({2, 20});
+  EXPECT_EQ(set.lookup_key({1, 30}).attached_data, 10);
+  EXPECT_EQ(set.lookup_key({2, 0}).attached_data, 20);
+}
+
+TEST(set, LookupKeyDefault)
+{
+  Set<MyKeyType> set;
+  set.add({1, 10});
+  set.add({2, 20});
+
+  MyKeyType fallback{5, 50};
+  EXPECT_EQ(set.lookup_key_default({1, 66}, fallback).attached_data, 10);
+  EXPECT_EQ(set.lookup_key_default({4, 40}, fallback).attached_data, 50);
+}
+
+TEST(set, LookupKeyPtr)
+{
+  Set<MyKeyType> set;
+  set.add({1, 10});
+  set.add({2, 20});
+  EXPECT_EQ(set.lookup_key_ptr({1, 50})->attached_data, 10);
+  EXPECT_EQ(set.lookup_key_ptr({2, 50})->attached_data, 20);
+  EXPECT_EQ(set.lookup_key_ptr({3, 50}), nullptr);
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */
