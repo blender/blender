@@ -734,7 +734,6 @@ ccl_device_inline void curve_shader_setup(KernelGlobals *kg,
   }
 
   sd->u = isect->u;
-  sd->v = isect->v;
 
   P = P + D * t;
 
@@ -750,6 +749,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals *kg,
 
     sd->N = normalize(sine * bitangent - cosine * normalize(cross(tangent, bitangent)));
     sd->Ng = -D;
+    sd->v = isect->v;
 
 #  if 0
     /* This approximates the position and geometric normal of a thick curve too,
@@ -764,8 +764,11 @@ ccl_device_inline void curve_shader_setup(KernelGlobals *kg,
      * This could be optimized by recording the normal in the intersection,
      * however for Optix this would go beyond the size of the payload. */
     const float3 P_inside = float4_to_float3(catmull_rom_basis_eval(P_curve, isect->u));
-    sd->Ng = normalize(P - P_inside);
-    sd->N = sd->Ng;
+    const float3 Ng = normalize(P - P_inside);
+
+    sd->N = Ng;
+    sd->Ng = Ng;
+    sd->v = 0.0f;
   }
 
 #  ifdef __DPDU__

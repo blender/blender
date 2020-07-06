@@ -830,6 +830,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     debug_use_cuda_split_kernel: BoolProperty(name="Split Kernel", default=False)
 
     debug_optix_cuda_streams: IntProperty(name="CUDA Streams", default=1, min=1)
+    debug_optix_curves_api: BoolProperty(name="Native OptiX Curve Primitive", default=False)
 
     debug_opencl_kernel_type: EnumProperty(
         name="OpenCL Kernel Type",

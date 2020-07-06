@@ -92,6 +92,7 @@ bool debug_flags_sync_from_scene(BL::Scene b_scene)
   flags.cuda.split_kernel = get_boolean(cscene, "debug_use_cuda_split_kernel");
   /* Synchronize OptiX flags. */
   flags.optix.cuda_streams = get_int(cscene, "debug_optix_cuda_streams");
+  flags.optix.curves_api = get_boolean(cscene, "debug_optix_curves_api");
   /* Synchronize OpenCL device type. */
   switch (get_enum(cscene, "debug_opencl_device_type")) {
     case 0:

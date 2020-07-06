@@ -83,6 +83,7 @@ DebugFlags::OptiX::OptiX()
 void DebugFlags::OptiX::reset()
 {
   cuda_streams = 1;
+  curves_api = false;
 }
 
 DebugFlags::OpenCL::OpenCL() : device_type(DebugFlags::OpenCL::DEVICE_ALL), debug(false)

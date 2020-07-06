@@ -2031,6 +2031,7 @@ class CYCLES_RENDER_PT_debug(CyclesButtonsPanel, Panel):
         col = layout.column()
         col.label(text="OptiX Flags:")
         col.prop(cscene, "debug_optix_cuda_streams")
+        col.prop(cscene, "debug_optix_curves_api")
 
         col.separator()
 
