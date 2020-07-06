@@ -88,7 +88,8 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
   const int draw_style = RNA_enum_get(arrow->gizmo.ptr, "draw_style");
   const int draw_options = RNA_enum_get(arrow->gizmo.ptr, "draw_options");
 
-  immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+  immBindBuiltinProgram(select ? GPU_SHADER_3D_UNIFORM_COLOR :
+                                 GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
   float viewport[4];
   GPU_viewport_size_get_f(viewport);
