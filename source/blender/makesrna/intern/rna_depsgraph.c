@@ -551,7 +551,7 @@ static void rna_def_depsgraph_instance(BlenderRNA *brna)
       prop,
       "Persistent ID",
       "Persistent identifier for inter-frame matching of objects with motion blur");
-  RNA_def_property_array(prop, 2 * MAX_DUPLI_RECUR);
+  RNA_def_property_array(prop, MAX_DUPLI_RECUR);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
   RNA_def_property_int_funcs(prop, "rna_DepsgraphObjectInstance_persistent_id_get", NULL, NULL);
 

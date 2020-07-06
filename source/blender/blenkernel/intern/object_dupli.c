@@ -186,7 +186,7 @@ static DupliObject *make_dupli(const DupliContext *ctx, Object *ob, float mat[4]
   dob->random_id = BLI_hash_string(dob->ob->id.name + 2);
 
   if (dob->persistent_id[0] != INT_MAX) {
-    for (i = 0; i < MAX_DUPLI_RECUR * 2; i++) {
+    for (i = 0; i < MAX_DUPLI_RECUR; i++) {
       dob->random_id = BLI_hash_int_2d(dob->random_id, (unsigned int)dob->persistent_id[i]);
     }
   }

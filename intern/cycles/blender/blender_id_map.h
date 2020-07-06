@@ -200,7 +200,7 @@ template<typename K, typename T> class id_map {
  * To uniquely identify instances, we use the parent, object and persistent instance ID.
  * We also export separate object for a mesh and its particle hair. */
 
-enum { OBJECT_PERSISTENT_ID_SIZE = 16 };
+enum { OBJECT_PERSISTENT_ID_SIZE = 8 /* MAX_DUPLI_RECUR in Blender. */ };
 
 struct ObjectKey {
   void *parent;
