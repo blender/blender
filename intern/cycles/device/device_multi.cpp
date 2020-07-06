@@ -177,8 +177,11 @@ class MultiDevice : public Device {
         return false;
 
     if (requested_features.use_denoising) {
+      /* Only need denoising feature, everything else is unused. */
+      DeviceRequestedFeatures denoising_features;
+      denoising_features.use_denoising = true;
       foreach (SubDevice &sub, denoising_devices)
-        if (!sub.device->load_kernels(requested_features))
+        if (!sub.device->load_kernels(denoising_features))
           return false;
     }
 
