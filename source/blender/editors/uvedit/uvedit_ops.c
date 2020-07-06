@@ -2087,6 +2087,7 @@ void ED_operatortypes_uvedit(void)
 
   WM_operatortype_append(UV_OT_align);
 
+  WM_operatortype_append(UV_OT_rip);
   WM_operatortype_append(UV_OT_stitch);
 
   WM_operatortype_append(UV_OT_seams_from_islands);
@@ -2109,6 +2110,21 @@ void ED_operatortypes_uvedit(void)
   WM_operatortype_append(UV_OT_hide);
 
   WM_operatortype_append(UV_OT_cursor_set);
+}
+
+void ED_operatormacros_uvedit(void)
+{
+  wmOperatorType *ot;
+  wmOperatorTypeMacro *otmacro;
+
+  ot = WM_operatortype_append_macro("UV_OT_rip_move",
+                                    "UV Rip Move",
+                                    "unstitch UV's and move the result",
+                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  WM_operatortype_macro_define(ot, "UV_OT_rip");
+  otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+  RNA_enum_set(otmacro->ptr, "proportional", 0);
+  RNA_boolean_set(otmacro->ptr, "mirror", false);
 }
 
 void ED_keymap_uvedit(wmKeyConfig *keyconf)

@@ -47,6 +47,7 @@ struct wmKeyConfig;
 
 /* uvedit_ops.c */
 void ED_operatortypes_uvedit(void);
+void ED_operatormacros_uvedit(void);
 void ED_keymap_uvedit(struct wmKeyConfig *keyconf);
 
 bool ED_uvedit_minmax(const struct Scene *scene,
