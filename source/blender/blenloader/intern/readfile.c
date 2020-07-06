@@ -2263,6 +2263,7 @@ typedef struct BLOCacheStorage {
 static void blo_cache_storage_entry_register(ID *id,
                                              const IDCacheKey *key,
                                              void **UNUSED(cache_p),
+                                             eIDTypeInfoCacheCallbackFlags UNUSED(flags),
                                              void *cache_storage_v)
 {
   BLI_assert(key->id_session_uuid == id->session_uuid);
@@ -2280,12 +2281,18 @@ static void blo_cache_storage_entry_register(ID *id,
 static void blo_cache_storage_entry_restore_in_new(ID *UNUSED(id),
                                                    const IDCacheKey *key,
                                                    void **cache_p,
+                                                   eIDTypeInfoCacheCallbackFlags flags,
                                                    void *cache_storage_v)
 {
   BLOCacheStorage *cache_storage = cache_storage_v;
 
   if (cache_storage == NULL) {
-    *cache_p = NULL;
+    /* In non-undo case, only clear the pointer if it is a purely runtime one.
+     * If it may be stored in a persistent way in the .blend file, direct_link code is responsible
+     * to properly deal with it. */
+    if ((flags & IDTYPE_CACHE_CB_FLAGS_PERSISTENT) == 0) {
+      *cache_p = NULL;
+    }
     return;
   }
 
@@ -2302,6 +2309,7 @@ static void blo_cache_storage_entry_restore_in_new(ID *UNUSED(id),
 static void blo_cache_storage_entry_clear_in_old(ID *UNUSED(id),
                                                  const IDCacheKey *key,
                                                  void **cache_p,
+                                                 eIDTypeInfoCacheCallbackFlags UNUSED(flags),
                                                  void *cache_storage_v)
 {
   BLOCacheStorage *cache_storage = cache_storage_v;
@@ -9249,8 +9257,8 @@ static BHead *read_data_into_datamap(FileData *fd, BHead *bhead, const char *all
     void *data;
 #if 0
     /* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */
-    short* sp = fd->filesdna->structs[bhead->SDNAnr];
-    char* tmp = malloc(100);
+    short *sp = fd->filesdna->structs[bhead->SDNAnr];
+    char *tmp = malloc(100);
     allocname = fd->filesdna->types[sp[0]];
     strcpy(tmp, allocname);
     data = read_struct(fd, bhead, tmp);

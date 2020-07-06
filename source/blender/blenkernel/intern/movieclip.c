@@ -139,11 +139,11 @@ static void movie_clip_foreach_cache(ID *id,
       .offset_in_ID = offsetof(MovieClip, cache),
       .cache_v = movie_clip->cache,
   };
-  function_callback(id, &key, (void **)&movie_clip->cache, user_data);
+  function_callback(id, &key, (void **)&movie_clip->cache, 0, user_data);
 
   key.offset_in_ID = offsetof(MovieClip, tracking.camera.intrinsics);
   key.cache_v = movie_clip->tracking.camera.intrinsics;
-  function_callback(id, &key, (void **)&movie_clip->tracking.camera.intrinsics, user_data);
+  function_callback(id, &key, (void **)&movie_clip->tracking.camera.intrinsics, 0, user_data);
 }
 
 IDTypeInfo IDType_ID_MC = {

@@ -123,7 +123,7 @@ static void sound_foreach_cache(ID *id,
       .cache_v = sound->waveform,
   };
 
-  function_callback(id, &key, &sound->waveform, user_data);
+  function_callback(id, &key, &sound->waveform, 0, user_data);
 }
 
 IDTypeInfo IDType_ID_SO = {

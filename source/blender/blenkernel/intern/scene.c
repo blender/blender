@@ -581,7 +581,11 @@ static void scene_foreach_cache(ID *id,
       .cache_v = scene->eevee.light_cache_data,
   };
 
-  function_callback(id, &key, (void **)&scene->eevee.light_cache_data, user_data);
+  function_callback(id,
+                    &key,
+                    (void **)&scene->eevee.light_cache_data,
+                    IDTYPE_CACHE_CB_FLAGS_PERSISTENT,
+                    user_data);
 }
 
 IDTypeInfo IDType_ID_SCE = {

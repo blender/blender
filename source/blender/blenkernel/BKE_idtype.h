@@ -76,9 +76,15 @@ typedef void (*IDTypeMakeLocalFunction)(struct Main *bmain, struct ID *id, const
 
 typedef void (*IDTypeForeachIDFunction)(struct ID *id, struct LibraryForeachIDData *data);
 
+typedef enum eIDTypeInfoCacheCallbackFlags {
+  /** Indicates to the callback that that cache may be stored in the .blend file, so its pointer
+   * should not be cleared at readtime.*/
+  IDTYPE_CACHE_CB_FLAGS_PERSISTENT = 1 << 0,
+} eIDTypeInfoCacheCallbackFlags;
 typedef void (*IDTypeForeachCacheFunctionCallback)(struct ID *id,
                                                    const struct IDCacheKey *cache_key,
                                                    void **cache_p,
+                                                   uint flags,
                                                    void *user_data);
 typedef void (*IDTypeForeachCacheFunction)(struct ID *id,
                                            IDTypeForeachCacheFunctionCallback function_callback,
