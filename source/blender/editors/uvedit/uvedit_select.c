@@ -2061,6 +2061,7 @@ void UV_OT_select_linked_pick(wmOperatorType *ot)
  */
 static int uv_select_split_exec(bContext *C, wmOperator *op)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const ToolSettings *ts = scene->toolsettings;
@@ -2127,6 +2128,7 @@ static int uv_select_split_exec(bContext *C, wmOperator *op)
     if (changed) {
       changed_multi = true;
       WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, NULL);
+      uv_select_tag_update_for_object(depsgraph, ts, obedit);
     }
   }
   MEM_freeN(objects);
