@@ -248,7 +248,7 @@ using the ``bl_idname`` rather than the classes original name.
 .. note::
 
    There are some exceptions to this for class names which aren't guarantee to be unique.
-   In this case use: :func:`bpy.types.Struct.bl_rna_get_subclass`.
+   In this case use: :func:`bpy.types.Struct.bl_rna_get_subclass_py`.
 
 
 When loading a class, Blender performs sanity checks making sure all required properties and functions are found,
