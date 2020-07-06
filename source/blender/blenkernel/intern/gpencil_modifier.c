@@ -197,7 +197,7 @@ static int gpencil_time_modifier(
 /**
  * Set current grease pencil active frame.
  * \param depsgraph: Current depsgraph
- * \param gpd: Grease pencil data-block
+ * \param gpd: Grease pencil data-block.
  */
 void BKE_gpencil_frame_active_set(Depsgraph *depsgraph, bGPdata *gpd)
 {
@@ -223,8 +223,7 @@ void BKE_gpencil_frame_active_set(Depsgraph *depsgraph, bGPdata *gpd)
 }
 
 /**
- * Init grease pencil modifier.
- * \param  void
+ * Initialize grease pencil modifier.
  */
 void BKE_gpencil_modifier_init(void)
 {
@@ -460,7 +459,6 @@ GpencilModifierData *BKE_gpencil_modifiers_findby_type(Object *ob, GpencilModifi
  * Set grease pencil modifier error.
  * \param md: Modifier data
  * \param _format: Format
- * \param
  */
 void BKE_gpencil_modifier_set_error(GpencilModifierData *md, const char *_format, ...)
 {
@@ -560,8 +558,8 @@ static int gpencil_remap_time_get(Depsgraph *depsgraph, Scene *scene, Object *ob
   return remap_cfra;
 }
 
-/** Get the current frame retimed with time modifiers.
- * \param depsgraph: Current depsgraph
+/** Get the current frame re-timed with time modifiers.
+ * \param depsgraph: Current depsgraph.
  * \param scene: Current scene
  * \param ob: Grease pencil object
  * \param gpl: Grease pencil layer

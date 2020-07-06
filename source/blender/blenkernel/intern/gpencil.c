@@ -681,10 +681,10 @@ void BKE_gpencil_stroke_weights_duplicate(bGPDstroke *gps_src, bGPDstroke *gps_d
 }
 
 /**
- * Make a copy of a given gpencil stroke.
- * \param gps_src: Source grease pencil strokeyes
- * \param dup_points: Duplicate points data
- * \return Pointer to new stroke
+ * Make a copy of a given grease-pencil stroke.
+ * \param gps_src: Source grease pencil strokes.
+ * \param dup_points: Duplicate points data.
+ * \return Pointer to new stroke.
  */
 bGPDstroke *BKE_gpencil_stroke_duplicate(bGPDstroke *gps_src, const bool dup_points)
 {
@@ -1590,7 +1590,7 @@ Material *BKE_gpencil_object_material_ensure_from_active_input_toolsettings(Main
 /**
  * Guaranteed to return a material assigned to object. Returns never NULL.
  * \param bmain: Main pointer
- * \param ob: Grease pencil obejct
+ * \param ob: Grease pencil object.
  * \param brush: Brush
  * \return Material pointer
  */
@@ -2330,8 +2330,8 @@ void BKE_gpencil_visible_stroke_iter(ViewLayer *view_layer,
 
 /**
  * Update original pointers in evaluated frame.
- * \param gpf_orig: Original greas epencil frame
- * \param gpf_eval: Evaluated grease pencil frame
+ * \param gpf_orig: Original grease-pencil frame.
+ * \param gpf_eval: Evaluated grease pencil frame.
  */
 void BKE_gpencil_frame_original_pointers_update(const struct bGPDframe *gpf_orig,
                                                 const struct bGPDframe *gpf_eval)

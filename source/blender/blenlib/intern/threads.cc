@@ -176,9 +176,9 @@ void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int t
   unsigned int level = atomic_fetch_and_add_u(&thread_levels, 1);
   if (level == 0) {
 #ifdef USE_APPLE_OMP_FIX
-    /* workaround for Apple gcc 4.2.1 omp vs background thread bug,
-     * we copy gomp thread local storage pointer to setting it again
-     * inside the thread that we start */
+    /* Workaround for Apple gcc 4.2.1 OMP vs background thread bug,
+     * we copy GOMP thread local storage pointer to setting it again
+     * inside the thread that we start. */
     thread_tls_data = pthread_getspecific(gomp_tls_key);
 #endif
   }

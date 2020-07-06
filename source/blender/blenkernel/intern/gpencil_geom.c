@@ -989,7 +989,7 @@ bool BKE_gpencil_stroke_smooth_uv(bGPDstroke *gps, int point_index, float influe
  * \param points: Array of grease pencil points (3D)
  * \param totpoints: Total of points
  * \param points2d: Result array of 2D points
- * \param r_direction: Return Concave (-1), Convex (1), or Autodetect (0)
+ * \param r_direction: Return Concave (-1), Convex (1), or Auto-detect (0)
  */
 void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
                                 int totpoints,
@@ -1043,7 +1043,7 @@ void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
     points2d[i][1] = dot_v3v3(loc, locy);
   }
 
-  /* Concave (-1), Convex (1), or Autodetect (0)? */
+  /* Concave (-1), Convex (1), or Auto-detect (0)? */
   *r_direction = (int)locy[2];
 }
 
@@ -1056,7 +1056,7 @@ void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
  * \param totpoints: Total points
  * \param points2d: Result array of 2D points
  * \param scale: Scale factor
- * \param r_direction: Return Concave (-1), Convex (1), or Autodetect (0)
+ * \param r_direction: Return Concave (-1), Convex (1), or Auto-detect (0)
  */
 void BKE_gpencil_stroke_2d_flat_ref(const bGPDspoint *ref_points,
                                     int ref_totpoints,
@@ -1138,7 +1138,7 @@ void BKE_gpencil_stroke_2d_flat_ref(const bGPDspoint *ref_points,
     points2d[i][1] = dot_v3v3(loc, locy);
   }
 
-  /* Concave (-1), Convex (1), or Autodetect (0)? */
+  /* Concave (-1), Convex (1), or Auto-detect (0)? */
   *r_direction = (int)locy[2];
 }
 
