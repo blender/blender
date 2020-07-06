@@ -191,6 +191,7 @@ typedef struct View3DShading {
   int render_pass;
 
   struct IDProperty *prop;
+  void *_pad2;
 } View3DShading;
 
 /** 3D Viewport Overlay settings. */
