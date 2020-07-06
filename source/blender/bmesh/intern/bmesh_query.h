@@ -48,6 +48,8 @@ BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v) ATTR_WARN_UNUSE
 BMLoop *BM_loop_other_edge_loop(BMLoop *l, BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
+BMLoop *BM_loop_other_vert_loop_by_edge(BMLoop *l, BMEdge *e) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
 BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BMLoop *BM_vert_step_fan_loop(BMLoop *l, BMEdge **e_step) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 

@@ -158,6 +158,37 @@ BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v)
 }
 
 /**
+ * Return the other loop that uses this edge.
+ *
+ * In this case the loop defines the vertex,
+ * the edge passed in defines the direction to step.
+ *
+ * <pre>
+ *     +----------+ <-- Return the face-loop of this vertex.
+ *     |          |
+ *     |        e | <-- This edge defines the direction.
+ *     |          |
+ *     +----------+ <-- This loop defines the face and vertex..
+ *                l
+ * </pre>
+ *
+ */
+BMLoop *BM_loop_other_vert_loop_by_edge(BMLoop *l, BMEdge *e)
+{
+  BLI_assert(BM_vert_in_edge(e, l->v));
+  if (l->e == e) {
+    return l->next;
+  }
+  else if (l->prev->e == e) {
+    return l->prev;
+  }
+  else {
+    BLI_assert(0);
+    return NULL;
+  }
+}
+
+/**
  * Check if verts share a face.
  */
 bool BM_vert_pair_share_face_check(BMVert *v_a, BMVert *v_b)
