@@ -107,7 +107,7 @@ typedef uint32_t SpinLock;
 #elif defined(__APPLE__)
 typedef ThreadMutex SpinLock;
 #elif defined(_MSC_VER)
-typedef volatile int SpinLock;
+typedef volatile unsigned int SpinLock;
 #else
 typedef pthread_spinlock_t SpinLock;
 #endif
