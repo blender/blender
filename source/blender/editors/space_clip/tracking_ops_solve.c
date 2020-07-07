@@ -144,7 +144,7 @@ static void solve_camera_freejob(void *scv)
   else {
     BKE_reportf(scj->reports,
                 RPT_INFO,
-                "Average re-projection error: %.3f",
+                "Average re-projection error: %.2f px",
                 tracking->reconstruction.error);
   }
 

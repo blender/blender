@@ -316,8 +316,8 @@ double InternalReprojectionError(
   }
   LG << "Skipped " << num_skipped << " markers.";
   LG << "Reprojected " << num_reprojected << " markers.";
-  LG << "Total error: " << total_error;
-  LG << "Average error: " << (total_error / num_reprojected) << " [pixels].";
+  LG << "Total error: " << total_error << " px";
+  LG << "Average error: " << (total_error / num_reprojected) << " px";
   return total_error / num_reprojected;
 }
 

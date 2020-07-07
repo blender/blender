@@ -1111,7 +1111,7 @@ static void draw_marker_texts(SpaceClip *sc,
   pos[1] -= fontsize;
 
   if (track->flag & TRACK_HAS_BUNDLE) {
-    BLI_snprintf(str, sizeof(str), "Average error: %.3f", track->error);
+    BLI_snprintf(str, sizeof(str), "Average error: %.2f px", track->error);
     BLF_position(fontid, pos[0], pos[1], 0.0f);
     BLF_draw(fontid, str, sizeof(str));
     pos[1] -= fontsize;
