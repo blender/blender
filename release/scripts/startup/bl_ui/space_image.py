@@ -321,15 +321,37 @@ class IMAGE_MT_uvs_mirror(Menu):
         layout.operator("transform.mirror", text="Y Axis").constraint_axis[1] = True
 
 
-class IMAGE_MT_uvs_weldalign(Menu):
-    bl_label = "Weld/Align"
+class IMAGE_MT_uvs_align(Menu):
+    bl_label = "Align"
 
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("uv.weld")  # W, 1.
-        layout.operator("uv.remove_doubles")
-        layout.operator_enum("uv.align", "axis")  # W, 2/3/4.
+        layout.operator_enum("uv.align", "axis")
+
+
+class IMAGE_MT_uvs_merge(Menu):
+    bl_label = "Merge"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("uv.weld", text="At Center")
+        # Mainly to match the mesh menu.
+        layout.operator("uv.snap_selected", text="At Cursor").target = 'CURSOR'
+
+        layout.separator()
+
+        layout.operator("uv.remove_doubles", text="By Distance")
+
+
+class IMAGE_MT_uvs_split(Menu):
+    bl_label = "Split"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("uv.select_split", text="Selection")
 
 
 class IMAGE_MT_uvs(Menu):
@@ -347,6 +369,11 @@ class IMAGE_MT_uvs(Menu):
 
         layout.prop_menu_enum(uv, "pixel_snap_mode")
         layout.prop(uv, "lock_bounds")
+
+        layout.separator()
+
+        layout.menu("IMAGE_MT_uvs_merge")
+        layout.menu("IMAGE_MT_uvs_split")
 
         layout.separator()
 
@@ -373,7 +400,7 @@ class IMAGE_MT_uvs(Menu):
 
         layout.operator("uv.minimize_stretch")
         layout.operator("uv.stitch")
-        layout.menu("IMAGE_MT_uvs_weldalign")
+        layout.menu("IMAGE_MT_uvs_align")
 
         layout.separator()
 
@@ -462,7 +489,7 @@ class IMAGE_MT_uvs_context_menu(Menu):
             layout.separator()
 
             # Remove
-            layout.operator("uv.remove_doubles", text="Remove Double UVs")
+            layout.operator("uv.remove_doubles", text="Merge By Distance")
             layout.operator("uv.stitch")
             layout.operator("uv.weld")
 
@@ -1459,7 +1486,9 @@ classes = (
     IMAGE_MT_uvs_transform,
     IMAGE_MT_uvs_snap,
     IMAGE_MT_uvs_mirror,
-    IMAGE_MT_uvs_weldalign,
+    IMAGE_MT_uvs_align,
+    IMAGE_MT_uvs_merge,
+    IMAGE_MT_uvs_split,
     IMAGE_MT_uvs_select_mode,
     IMAGE_MT_uvs_context_menu,
     IMAGE_MT_mask_context_menu,
