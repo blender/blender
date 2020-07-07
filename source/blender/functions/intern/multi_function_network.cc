@@ -230,7 +230,14 @@ void MFNetwork::remove(MFNode &node)
   node_or_null_by_id_[node.id_] = nullptr;
 }
 
-std::string MFNetwork::to_dot() const
+void MFNetwork::remove(Span<MFNode *> nodes)
+{
+  for (MFNode *node : nodes) {
+    this->remove(*node);
+  }
+}
+
+std::string MFNetwork::to_dot(Span<const MFNode *> marked_nodes) const
 {
   dot::DirectedGraph digraph;
   digraph.set_rankdir(dot::Attr_rankdir::LeftToRight);
@@ -254,6 +261,13 @@ std::string MFNetwork::to_dot() const
 
     dot::NodeWithSocketsRef dot_node_ref{dot_node, node->name(), input_names, output_names};
     dot_nodes.add_new(node, dot_node_ref);
+  }
+
+  for (const MFDummyNode *node : dummy_nodes_) {
+    dot_nodes.lookup(node).node().set_background_color("#77EE77");
+  }
+  for (const MFNode *node : marked_nodes) {
+    dot_nodes.lookup(node).node().set_background_color("#7777EE");
   }
 
   for (const MFNode *to_node : all_nodes) {
