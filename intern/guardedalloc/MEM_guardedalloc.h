@@ -244,7 +244,9 @@ void MEM_use_guarded_allocator(void);
     { \
       return ptr; \
     } \
-    void operator delete(void *, void *) \
+    /* This is the matching delete operator to the placement-new operator above. Both parameters \
+     * will have the same value. Without this, we get the warning C4291 on windows. */ \
+    void operator delete(void * /*ptr_to_free*/, void * /*ptr*/) \
     { \
     }
 
