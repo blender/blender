@@ -118,7 +118,7 @@ class Vector {
    * Create an empty vector.
    * This does not do any memory allocation.
    */
-  Vector()
+  Vector(Allocator allocator = {}) : allocator_(allocator)
   {
     begin_ = inline_buffer_;
     end_ = begin_;
@@ -159,7 +159,7 @@ class Vector {
   /**
    * Create a vector from an array ref. The values in the vector are copy constructed.
    */
-  Vector(Span<T> values) : Vector()
+  Vector(Span<T> values, Allocator allocator = {}) : Vector(allocator)
   {
     const uint size = values.size();
     this->reserve(size);
@@ -198,9 +198,8 @@ class Vector {
    * Create a copy of another vector. The other vector will not be changed. If the other vector has
    * less than InlineBufferCapacity elements, no allocation will be made.
    */
-  Vector(const Vector &other) : allocator_(other.allocator_)
+  Vector(const Vector &other) : Vector(other.as_span(), other.allocator_)
   {
-    this->init_copy_from_other_vector(other);
   }
 
   /**
@@ -209,9 +208,8 @@ class Vector {
    */
   template<uint OtherInlineBufferCapacity>
   Vector(const Vector<T, OtherInlineBufferCapacity, Allocator> &other)
-      : allocator_(other.allocator_)
+      : Vector(other.as_span(), other.allocator_)
   {
-    this->init_copy_from_other_vector(other);
   }
 
   /**
@@ -799,43 +797,9 @@ class Vector {
     end_ = begin_ + size;
     capacity_end_ = begin_ + new_capacity;
   }
-
-  /**
-   * Initialize all properties, except for allocator_, which has to be initialized beforehand.
-   */
-  template<uint OtherInlineBufferCapacity>
-  void init_copy_from_other_vector(const Vector<T, OtherInlineBufferCapacity, Allocator> &other)
-  {
-    allocator_ = other.allocator_;
-
-    const uint size = other.size();
-    uint capacity;
-
-    if (size <= InlineBufferCapacity) {
-      begin_ = inline_buffer_;
-      capacity = InlineBufferCapacity;
-    }
-    else {
-      begin_ = (T *)allocator_.allocate(sizeof(T) * size, alignof(T), AT);
-      capacity = size;
-    }
-
-    end_ = begin_ + size;
-    capacity_end_ = begin_ + capacity;
-
-    uninitialized_copy_n(other.data(), size, begin_);
-    UPDATE_VECTOR_SIZE(this);
-  }
 };
 
 #undef UPDATE_VECTOR_SIZE
-
-/**
- * Use when the vector is used in the local scope of a function. It has a larger inline storage by
- * default to make allocations less likely.
- */
-template<typename T, uint InlineBufferCapacity = 20>
-using ScopedVector = Vector<T, InlineBufferCapacity, GuardedAllocator>;
 
 } /* namespace blender */
 
