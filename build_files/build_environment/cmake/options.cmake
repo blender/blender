@@ -113,6 +113,10 @@ else()
       COMMAND xcode-select --print-path
       OUTPUT_VARIABLE XCODE_DEV_PATH OUTPUT_STRIP_TRAILING_WHITESPACE
     )
+    execute_process(
+      COMMAND xcodebuild -version -sdk macosx SDKVersion
+      OUTPUT_VARIABLE MACOSX_SDK_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
+
     set(OSX_ARCHITECTURES x86_64)
     set(OSX_DEPLOYMENT_TARGET 10.11)
     set(OSX_SYSROOT ${XCODE_DEV_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk)
@@ -155,6 +159,7 @@ else()
 
   set(CONFIGURE_ENV
     export MACOSX_DEPLOYMENT_TARGET=${OSX_DEPLOYMENT_TARGET} &&
+    export MACOSX_SDK_VERSION=${OSX_DEPLOYMENT_TARGET} &&
     export CFLAGS=${PLATFORM_CFLAGS} &&
     export CXXFLAGS=${PLATFORM_CXXFLAGS} &&
     export LDFLAGS=${PLATFORM_LDFLAGS}

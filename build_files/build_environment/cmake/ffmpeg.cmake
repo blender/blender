@@ -50,7 +50,8 @@ if(APPLE)
   set(FFMPEG_EXTRA_FLAGS
     ${FFMPEG_EXTRA_FLAGS}
     --target-os=darwin
-    )
+    --x86asmexe=${LIBDIR}/nasm/bin/nasm
+  )
 endif()
 
 ExternalProject_Add(external_ffmpeg

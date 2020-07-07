@@ -21,12 +21,21 @@ if(WIN32)
 endif()
 
 
+if(APPLE)
+  set(X264_CONFIGURE_ENV
+    export AS=${LIBDIR}/nasm/bin/nasm
+  )
+else()
+  set(X264_CONFIGURE_ENV echo .)
+endif()
+
 ExternalProject_Add(external_x264
   URL ${X264_URI}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH SHA256=${X264_HASH}
   PREFIX ${BUILD_DIR}/x264
-  CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/x264/src/external_x264/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/x264
+  CONFIGURE_COMMAND ${CONFIGURE_ENV} && ${X264_CONFIGURE_ENV} && cd ${BUILD_DIR}/x264/src/external_x264/ &&
+    ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/x264
     --enable-static
     --enable-pic
     --disable-lavf
