@@ -210,15 +210,16 @@ static bool uvedit_have_selection_multi(const Scene *scene,
   return have_select;
 }
 
-void ED_uvedit_get_aspect(
-    const Scene *UNUSED(scene), Object *ob, BMesh *bm, float *r_aspx, float *r_aspy)
+void ED_uvedit_get_aspect(Object *ob, float *r_aspx, float *r_aspy)
 {
+  BMEditMesh *em = BKE_editmesh_from_object(ob);
+  BLI_assert(em != NULL);
   bool sloppy = true;
   bool selected = false;
   BMFace *efa;
   Image *ima;
 
-  efa = BM_mesh_active_face_get(bm, sloppy, selected);
+  efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
 
   if (efa) {
     ED_object_get_active_image(ob, efa->mat_nr + 1, &ima, NULL, NULL, NULL);
@@ -285,7 +286,7 @@ static ParamHandle *construct_param_handle(const Scene *scene,
   if (options->correct_aspect) {
     float aspx, aspy;
 
-    ED_uvedit_get_aspect(scene, ob, bm, &aspx, &aspy);
+    ED_uvedit_get_aspect(ob, &aspx, &aspy);
 
     if (aspx != aspy) {
       param_aspect_ratio(handle, aspx, aspy);
@@ -354,11 +355,9 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
 
   if (options->correct_aspect) {
     Object *ob = objects[0];
-    BMEditMesh *em = BKE_editmesh_from_object(ob);
-    BMesh *bm = em->bm;
     float aspx, aspy;
 
-    ED_uvedit_get_aspect(scene, ob, bm, &aspx, &aspy);
+    ED_uvedit_get_aspect(ob, &aspx, &aspy);
     if (aspx != aspy) {
       param_aspect_ratio(handle, aspx, aspy);
     }
@@ -500,7 +499,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   if (options->correct_aspect) {
     float aspx, aspy;
 
-    ED_uvedit_get_aspect(scene, ob, em->bm, &aspx, &aspy);
+    ED_uvedit_get_aspect(ob, &aspx, &aspy);
 
     if (aspx != aspy) {
       param_aspect_ratio(handle, aspx, aspy);
@@ -1413,7 +1412,7 @@ static void uv_transform_properties(wmOperatorType *ot, int radius)
   }
 }
 
-static void correct_uv_aspect(const Scene *scene, Object *ob, BMEditMesh *em)
+static void correct_uv_aspect(Object *ob, BMEditMesh *em)
 {
   BMLoop *l;
   BMIter iter, liter;
@@ -1423,7 +1422,7 @@ static void correct_uv_aspect(const Scene *scene, Object *ob, BMEditMesh *em)
 
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-  ED_uvedit_get_aspect(scene, ob, em->bm, &aspx, &aspy);
+  ED_uvedit_get_aspect(ob, &aspx, &aspy);
 
   if (aspx == aspy) {
     return;
@@ -1491,10 +1490,7 @@ static void uv_map_clip_correct_properties(wmOperatorType *ot)
                   "Scale UV coordinates to bounds after unwrapping");
 }
 
-static void uv_map_clip_correct_multi(const Scene *scene,
-                                      Object **objects,
-                                      uint objects_len,
-                                      wmOperator *op)
+static void uv_map_clip_correct_multi(Object **objects, uint objects_len, wmOperator *op)
 {
   BMFace *efa;
   BMLoop *l;
@@ -1515,7 +1511,7 @@ static void uv_map_clip_correct_multi(const Scene *scene,
 
     /* correct for image aspect ratio */
     if (correct_aspect) {
-      correct_uv_aspect(scene, ob, em);
+      correct_uv_aspect(ob, em);
     }
 
     if (scale_to_bounds) {
@@ -1580,9 +1576,9 @@ static void uv_map_clip_correct_multi(const Scene *scene,
   }
 }
 
-static void uv_map_clip_correct(const Scene *scene, Object *ob, wmOperator *op)
+static void uv_map_clip_correct(Object *ob, wmOperator *op)
 {
-  uv_map_clip_correct_multi(scene, &ob, 1, op);
+  uv_map_clip_correct_multi(&ob, 1, op);
 }
 
 /** \} */
@@ -1973,7 +1969,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
   }
 
   if (changed_multi) {
-    uv_map_clip_correct_multi(scene, objects, objects_len, op);
+    uv_map_clip_correct_multi(objects, objects_len, op);
   }
 
   MEM_freeN(objects);
@@ -2174,7 +2170,7 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
       uv_map_mirror(em, efa);
     }
 
-    uv_map_clip_correct(scene, obedit, op);
+    uv_map_clip_correct(obedit, op);
 
     DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -2272,7 +2268,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
       uv_map_mirror(em, efa);
     }
 
-    uv_map_clip_correct(scene, obedit, op);
+    uv_map_clip_correct(obedit, op);
 
     DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -2395,7 +2391,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 
     uvedit_unwrap_cube_project(em->bm, cube_size, true, center);
 
-    uv_map_clip_correct(scene, obedit, op);
+    uv_map_clip_correct(obedit, op);
 
     DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);

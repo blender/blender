@@ -1935,7 +1935,7 @@ static StitchState *stitch_init(bContext *C,
     return NULL;
   }
 
-  ED_uvedit_get_aspect(scene, obedit, em->bm, &aspx, &aspy);
+  ED_uvedit_get_aspect(obedit, &aspx, &aspy);
   state->aspect = aspx / aspy;
 
   /* Count 'unique' uvs */

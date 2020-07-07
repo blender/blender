@@ -955,9 +955,7 @@ static int uv_rip_exec(bContext *C, wmOperator *op)
   {
     /* Note that we only want to run this on the  */
     Object *obedit = CTX_data_edit_object(C);
-    Mesh *me = (Mesh *)obedit->data;
-    BMEditMesh *em = me->edit_mesh;
-    ED_uvedit_get_aspect(scene, obedit, em->bm, &aspx, &aspy);
+    ED_uvedit_get_aspect(obedit, &aspx, &aspy);
   }
   const float aspect_y = aspx / aspy;
 
