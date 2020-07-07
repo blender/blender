@@ -182,6 +182,7 @@ enum_aov_types = (
     ('COLOR', "Color", "Write a Color pass", 1),
 )
 
+
 def enum_openimagedenoise_denoiser(self, context):
     if _cycles.with_openimagedenoise:
         return [('OPENIMAGEDENOISE', "OpenImageDenoise", "Use Intel OpenImageDenoise AI denoiser running on the CPU", 4)]
@@ -215,6 +216,14 @@ enum_denoising_optix_input_passes = (
     ('RGB_ALBEDO', "Color + Albedo", "Use color and albedo data as input", 2),
     ('RGB_ALBEDO_NORMAL', "Color + Albedo + Normal", "Use color, albedo and normal data as input", 3),
 )
+
+
+def update_render_passes(self, context):
+    scene = context.scene
+    view_layer = context.view_layer
+    view_layer.update_render_passes()
+    engine.detect_conflicting_passes(scene, view_layer)
+
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
 
@@ -261,9 +270,12 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     denoiser: EnumProperty(
         name="Denoiser",
-        description="Denoise the image with the selected denoiser",
+        description="Denoise the image with the selected denoiser. "
+        "For denoising the image after rendering, denoising data render passes "
+        "also adapt to the selected denoiser.",
         items=enum_denoiser,
         default=1,
+        update=update_render_passes,
     )
     preview_denoiser: EnumProperty(
         name="Viewport Denoiser",
@@ -1291,12 +1303,6 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
         del bpy.types.Scene.cycles_curves
 
 
-def update_render_passes(self, context):
-    view_layer = context.view_layer
-    view_layer.update_render_passes()
-    engine.detect_conflicting_passes(view_layer)
-
-
 class CyclesAOVPass(bpy.types.PropertyGroup):
     name: StringProperty(
         name="Name",
@@ -1430,7 +1436,7 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
     )
     denoising_store_passes: BoolProperty(
         name="Store Denoising Passes",
-        description="Store the denoising feature passes and the noisy image",
+        description="Store the denoising feature passes and the noisy image. The passes adapt to the denoiser selected for rendering",
         default=False,
         update=update_render_passes,
     )
