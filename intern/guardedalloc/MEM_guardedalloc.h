@@ -243,6 +243,9 @@ void MEM_use_guarded_allocator(void);
     void *operator new(size_t /*count*/, void *ptr) \
     { \
       return ptr; \
+    } \
+    void operator delete(void *, void *) \
+    { \
     }
 
 /* Needed when type includes a namespace, then the namespace should not be
