@@ -1625,8 +1625,6 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   float plane[4];
   {
     float v1_v2[3], v1_v3[3];
-    copy_v3_v3(v1, kcd->prev.cage);
-    copy_v3_v3(v2, kcd->curr.cage);
     sub_v3_v3v3(v1_v2, v2, v1);
     sub_v3_v3v3(v1_v3, v3, v1);
     cross_v3_v3v3(plane, v1_v2, v1_v3);
