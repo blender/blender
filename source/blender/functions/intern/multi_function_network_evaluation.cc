@@ -219,8 +219,6 @@ BLI_NOINLINE void MFNetworkEvaluator::evaluate_network_to_compute_outputs(
     sockets_to_compute.push(socket->origin());
   }
 
-  Vector<const MFOutputSocket *, 32> missing_sockets;
-
   /* This is the main loop that traverses the MFNetwork. */
   while (!sockets_to_compute.is_empty()) {
     const MFOutputSocket &socket = *sockets_to_compute.peek();
@@ -235,17 +233,18 @@ BLI_NOINLINE void MFNetworkEvaluator::evaluate_network_to_compute_outputs(
     BLI_assert(node.all_inputs_have_origin());
     const MFFunctionNode &function_node = node.as_function();
 
-    missing_sockets.clear();
-    function_node.foreach_origin_socket([&](const MFOutputSocket &origin) {
-      if (!storage.socket_is_computed(origin)) {
-        missing_sockets.append(&origin);
+    bool all_origins_are_computed = true;
+    for (const MFInputSocket *input_socket : function_node.inputs()) {
+      const MFOutputSocket *origin = input_socket->origin();
+      if (origin != nullptr) {
+        if (!storage.socket_is_computed(*origin)) {
+          sockets_to_compute.push(origin);
+          all_origins_are_computed = false;
+        }
       }
-    });
+    }
 
-    sockets_to_compute.push_multiple(missing_sockets);
-
-    bool all_inputs_are_computed = missing_sockets.size() == 0;
-    if (all_inputs_are_computed) {
+    if (all_origins_are_computed) {
       this->evaluate_function(global_context, function_node, storage);
       sockets_to_compute.pop();
     }
