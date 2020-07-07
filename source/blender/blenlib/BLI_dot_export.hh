@@ -269,6 +269,11 @@ class NodeWithSocketsRef {
                      Span<std::string> input_names,
                      Span<std::string> output_names);
 
+  Node &node()
+  {
+    return *node_;
+  }
+
   NodePort input(uint index) const
   {
     std::string port = "\"in" + std::to_string(index) + "\"";
