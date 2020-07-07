@@ -26,6 +26,7 @@
 #include "DNA_node_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_alloca.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -1171,9 +1172,15 @@ static void node_find_update_fn(const struct bContext *C,
   SpaceNode *snode = CTX_wm_space_node(C);
   bNode *node;
 
-  for (node = snode->edittree->nodes.first; node; node = node->next) {
+  /* Prepare BLI_string_all_words_matched. */
+  const size_t str_len = strlen(str);
+  const int words_max = BLI_string_max_possible_word_count(str_len);
+  int(*words)[2] = BLI_array_alloca(words, words_max);
+  const int words_len = BLI_string_find_split_words(str, str_len, ' ', words, words_max);
 
-    if (BLI_strcasestr(node->name, str) || BLI_strcasestr(node->label, str)) {
+  for (node = snode->edittree->nodes.first; node; node = node->next) {
+    if (BLI_string_all_words_matched(node->name, str, words, words_len) ||
+        BLI_string_all_words_matched(node->label, str, words, words_len)) {
       char name[256];
 
       if (node->label[0]) {

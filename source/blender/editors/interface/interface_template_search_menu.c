@@ -992,23 +992,15 @@ static void menu_search_update_fn(const bContext *UNUSED(C),
                                   uiSearchItems *items)
 {
   struct MenuSearch_Data *data = arg;
-  const size_t str_len = strlen(str);
-  const int words_max = (str_len / 2) + 1;
-  int(*words)[2] = BLI_array_alloca(words, words_max);
 
+  /* Prepare BLI_string_all_words_matched. */
+  const size_t str_len = strlen(str);
+  const int words_max = BLI_string_max_possible_word_count(str_len);
+  int(*words)[2] = BLI_array_alloca(words, words_max);
   const int words_len = BLI_string_find_split_words(str, str_len, ' ', words, words_max);
 
   for (struct MenuSearch_Item *item = data->items.first; item; item = item->next) {
-    int index;
-
-    /* match name against all search words */
-    for (index = 0; index < words_len; index++) {
-      if (!ui_str_has_word_prefix(item->drawwstr_full, str + words[index][0], words[index][1])) {
-        break;
-      }
-    }
-
-    if (index == words_len) {
+    if (BLI_string_all_words_matched(item->drawwstr_full, str, words, words_len)) {
       if (!UI_search_item_add(items, item->drawwstr_full, item, item->icon, item->state, 0)) {
         break;
       }

@@ -37,6 +37,7 @@
 #include "DNA_shader_fx_types.h"
 #include "DNA_texture_types.h"
 
+#include "BLI_alloca.h"
 #include "BLI_fnmatch.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -356,7 +357,13 @@ static bool id_search_add(const bContext *C,
       }
     }
 
-    if (*str == '\0' || BLI_strcasestr(id->name + 2, str)) {
+    /* Prepare BLI_string_all_words_matched. */
+    const size_t str_len = strlen(str);
+    const int words_max = BLI_string_max_possible_word_count(str_len);
+    int(*words)[2] = BLI_array_alloca(words, words_max);
+    const int words_len = BLI_string_find_split_words(str, str_len, ' ', words, words_max);
+
+    if (*str == '\0' || BLI_string_all_words_matched(id->name + 2, str, words, words_len)) {
       /* +1 is needed because BKE_id_ui_prefix used 3 letter prefix
        * followed by ID_NAME-2 characters from id->name
        */

@@ -570,6 +570,16 @@ TEST(string, StringStrncasestr)
   EXPECT_EQ(res, (void *)NULL);
 }
 
+/* BLI_string_max_possible_word_count */
+TEST(string, StringMaxPossibleWordCount)
+{
+  EXPECT_EQ(BLI_string_max_possible_word_count(0), 1);
+  EXPECT_EQ(BLI_string_max_possible_word_count(1), 1);
+  EXPECT_EQ(BLI_string_max_possible_word_count(2), 2);
+  EXPECT_EQ(BLI_string_max_possible_word_count(3), 2);
+  EXPECT_EQ(BLI_string_max_possible_word_count(10), 6);
+}
+
 /* BLI_string_is_decimal */
 TEST(string, StrIsDecimal)
 {

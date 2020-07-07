@@ -133,6 +133,13 @@ size_t BLI_str_partition_ex(const char *str,
                             const char **suf,
                             const bool from_right) ATTR_NONNULL(1, 3, 4, 5);
 
+int BLI_string_max_possible_word_count(const int str_len);
+bool BLI_string_has_word_prefix(const char *haystack, const char *needle, size_t needle_len);
+bool BLI_string_all_words_matched(const char *name,
+                                  const char *str,
+                                  int (*words)[2],
+                                  const int words_len);
+
 int BLI_string_find_split_words(const char *str,
                                 const size_t len,
                                 const char delim,

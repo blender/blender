@@ -36,6 +36,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BLI_alloca.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
@@ -6613,12 +6614,18 @@ static void operator_enum_search_update_fn(const struct bContext *C,
     const EnumPropertyItem *item, *item_array;
     bool do_free;
 
+    /* Prepare BLI_string_all_words_matched. */
+    const size_t str_len = strlen(str);
+    const int words_max = BLI_string_max_possible_word_count(str_len);
+    int(*words)[2] = BLI_array_alloca(words, words_max);
+    const int words_len = BLI_string_find_split_words(str, str_len, ' ', words, words_max);
+
     RNA_property_enum_items_gettexted((bContext *)C, ptr, prop, &item_array, NULL, &do_free);
 
     for (item = item_array; item->identifier; item++) {
       /* note: need to give the index rather than the
        * identifier because the enum can be freed */
-      if (BLI_strcasestr(item->name, str)) {
+      if (BLI_string_all_words_matched(item->name, str, words, words_len)) {
         if (!UI_search_item_add(
                 items, item->name, POINTER_FROM_INT(item->value), item->icon, 0, 0)) {
           break;

@@ -65,30 +65,23 @@ static void operator_search_update_fn(const bContext *C,
                                       uiSearchItems *items)
 {
   GHashIterator iter;
-  const size_t str_len = strlen(str);
-  const int words_max = (str_len / 2) + 1;
-  int(*words)[2] = BLI_array_alloca(words, words_max);
 
+  /* Prepare BLI_string_all_words_matched. */
+  const size_t str_len = strlen(str);
+  const int words_max = BLI_string_max_possible_word_count(str_len);
+  int(*words)[2] = BLI_array_alloca(words, words_max);
   const int words_len = BLI_string_find_split_words(str, str_len, ' ', words, words_max);
 
   for (WM_operatortype_iter(&iter); !BLI_ghashIterator_done(&iter);
        BLI_ghashIterator_step(&iter)) {
     wmOperatorType *ot = BLI_ghashIterator_getValue(&iter);
     const char *ot_ui_name = CTX_IFACE_(ot->translation_context, ot->name);
-    int index;
 
     if ((ot->flag & OPTYPE_INTERNAL) && (G.debug & G_DEBUG_WM) == 0) {
       continue;
     }
 
-    /* match name against all search words */
-    for (index = 0; index < words_len; index++) {
-      if (!ui_str_has_word_prefix(ot_ui_name, str + words[index][0], words[index][1])) {
-        break;
-      }
-    }
-
-    if (index == words_len) {
+    if (BLI_string_all_words_matched(ot_ui_name, str, words, words_len)) {
       if (WM_operator_poll((bContext *)C, ot)) {
         char name[256];
         const int len = strlen(ot_ui_name);

@@ -524,6 +524,39 @@ char *BLI_strcasestr(const char *s, const char *find)
   return ((char *)s);
 }
 
+int BLI_string_max_possible_word_count(const int str_len)
+{
+  return (str_len / 2) + 1;
+}
+
+bool BLI_string_has_word_prefix(const char *haystack, const char *needle, size_t needle_len)
+{
+  const char *match = BLI_strncasestr(haystack, needle, needle_len);
+  if (match) {
+    if ((match == haystack) || (*(match - 1) == ' ') || ispunct(*(match - 1))) {
+      return true;
+    }
+    return BLI_string_has_word_prefix(match + 1, needle, needle_len);
+  }
+  return false;
+}
+
+bool BLI_string_all_words_matched(const char *name,
+                                  const char *str,
+                                  int (*words)[2],
+                                  const int words_len)
+{
+  int index;
+  for (index = 0; index < words_len; index++) {
+    if (!BLI_string_has_word_prefix(name, str + words[index][0], (size_t)words[index][1])) {
+      break;
+    }
+  }
+  const bool all_words_matched = (index == words_len);
+
+  return all_words_matched;
+}
+
 /**
  * Variation of #BLI_strcasestr with string length limited to \a len
  */

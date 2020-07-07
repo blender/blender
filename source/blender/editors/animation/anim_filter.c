@@ -1152,7 +1152,7 @@ static bool name_matches_dopesheet_filter(bDopeSheet *ads, char *name)
   if (ads->flag & ADS_FLAG_FUZZY_NAMES) {
     /* full fuzzy, multi-word, case insensitive matches */
     const size_t str_len = strlen(ads->searchstr);
-    const int words_max = (str_len / 2) + 1;
+    const int words_max = BLI_string_max_possible_word_count(str_len);
 
     int(*words)[2] = BLI_array_alloca(words, words_max);
     const int words_len = BLI_string_find_split_words(
