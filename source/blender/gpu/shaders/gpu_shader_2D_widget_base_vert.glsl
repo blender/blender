@@ -9,25 +9,33 @@ uniform vec4 parameters[MAX_PARAM * MAX_INSTANCE];
 uniform vec4 parameters[MAX_PARAM];
 #endif
 
-/* gl_InstanceID is 0 if not drawing instances. */
-#define recti parameters[gl_InstanceID * MAX_PARAM + 0]
-#define rect parameters[gl_InstanceID * MAX_PARAM + 1]
-#define radsi parameters[gl_InstanceID * MAX_PARAM + 2].x
-#define rads parameters[gl_InstanceID * MAX_PARAM + 2].y
-#define faci parameters[gl_InstanceID * MAX_PARAM + 2].zw
-#define roundCorners parameters[gl_InstanceID * MAX_PARAM + 3]
-#define colorInner1 parameters[gl_InstanceID * MAX_PARAM + 4]
-#define colorInner2 parameters[gl_InstanceID * MAX_PARAM + 5]
-#define colorEdge parameters[gl_InstanceID * MAX_PARAM + 6]
-#define colorEmboss parameters[gl_InstanceID * MAX_PARAM + 7]
-#define colorTria parameters[gl_InstanceID * MAX_PARAM + 8]
-#define tria1Center parameters[gl_InstanceID * MAX_PARAM + 9].xy
-#define tria2Center parameters[gl_InstanceID * MAX_PARAM + 9].zw
-#define tria1Size parameters[gl_InstanceID * MAX_PARAM + 10].x
-#define tria2Size parameters[gl_InstanceID * MAX_PARAM + 10].y
-#define shadeDir parameters[gl_InstanceID * MAX_PARAM + 10].z
-#define alphaDiscard parameters[gl_InstanceID * MAX_PARAM + 10].w
-#define triaType parameters[gl_InstanceID * MAX_PARAM + 11].x
+/* gl_InstanceID is supposed to be 0 if not drawing instances, but this seems
+ * to be violated in some drivers. For example, macOS 10.15.4 and Intel Iris
+ * causes T78307 when using gl_InstanceID outside of instance. */
+#ifdef USE_INSTANCE
+#  define widgetID gl_InstanceID
+#else
+#  define widgetID 0
+#endif
+
+#define recti parameters[widgetID * MAX_PARAM + 0]
+#define rect parameters[widgetID * MAX_PARAM + 1]
+#define radsi parameters[widgetID * MAX_PARAM + 2].x
+#define rads parameters[widgetID * MAX_PARAM + 2].y
+#define faci parameters[widgetID * MAX_PARAM + 2].zw
+#define roundCorners parameters[widgetID * MAX_PARAM + 3]
+#define colorInner1 parameters[widgetID * MAX_PARAM + 4]
+#define colorInner2 parameters[widgetID * MAX_PARAM + 5]
+#define colorEdge parameters[widgetID * MAX_PARAM + 6]
+#define colorEmboss parameters[widgetID * MAX_PARAM + 7]
+#define colorTria parameters[widgetID * MAX_PARAM + 8]
+#define tria1Center parameters[widgetID * MAX_PARAM + 9].xy
+#define tria2Center parameters[widgetID * MAX_PARAM + 9].zw
+#define tria1Size parameters[widgetID * MAX_PARAM + 10].x
+#define tria2Size parameters[widgetID * MAX_PARAM + 10].y
+#define shadeDir parameters[widgetID * MAX_PARAM + 10].z
+#define alphaDiscard parameters[widgetID * MAX_PARAM + 10].w
+#define triaType parameters[widgetID * MAX_PARAM + 11].x
 
 /* We encode alpha check and discard factor together. */
 #define doAlphaCheck (alphaDiscard < 0.0)
@@ -179,10 +187,4 @@ void main()
   vec2 pos = (is_tria) ? do_tria() : do_widget();
 
   gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
-
-#ifdef OS_MAC
-  /* Generate a dummy read to avoid the driver bug with shaders having no
-   * vertex reads on macOS (T78307) */
-  gl_Position.x += dummy * 0.0;
-#endif
 }
