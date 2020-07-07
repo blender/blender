@@ -51,8 +51,8 @@ class MF_SeparateXYZ : public blender::fn::MultiFunction {
     blender::fn::MFSignatureBuilder signature = this->get_builder("Separate XYZ");
     signature.single_input<blender::float3>("XYZ");
     signature.single_output<float>("X");
-    signature.single_output<float>("y");
-    signature.single_output<float>("z");
+    signature.single_output<float>("Y");
+    signature.single_output<float>("Z");
   }
 
   void call(blender::IndexMask mask,
