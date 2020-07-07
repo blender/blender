@@ -254,7 +254,7 @@ class DupliGroupExportTest(AbstractAlembicTest):
         #  `--Triangle
         #      |--Triangle
         #      |--Empty-1
-        #      |    `--Pole-0-1
+        #      |    `--Pole-1-0
         #      |        |--Pole
         #      |        `--Block-1-1
         #      |            `--Block
@@ -264,18 +264,18 @@ class DupliGroupExportTest(AbstractAlembicTest):
         #      |        `--Block-1
         #      |            `--Block
         #      |--Empty-2
-        #      |    `--Pole-0-2
+        #      |    `--Pole-2-0
         #      |        |--Pole
-        #      |        `--Block-1-2
+        #      |        `--Block-2-1
         #      |            `--Block
         #      `--Empty-0
         #          `--Pole-0-0
         #              |--Pole
-        #              `--Block-1-0
+        #              `--Block-0-1
         #                  `--Block
 
         # Now check the resulting Alembic file.
-        xform = self.abcprop(abc, '/Triangle/Empty-1/Pole-0-1/Block-1-1/.xform')
+        xform = self.abcprop(abc, '/Triangle/Empty-1/Pole-1-0/Block-1-1/.xform')
         self.assertEqual(1, xform['.inherits'])
         self.assertAlmostEqualFloatArray(
             xform['.vals'],
@@ -288,17 +288,17 @@ class DupliGroupExportTest(AbstractAlembicTest):
         # If the property can be gotten, the hierarchy is okay. No need to actually check each xform.
         self.abcprop(abc, '/Triangle/.xform')
         self.abcprop(abc, '/Triangle/Empty-1/.xform')
-        self.abcprop(abc, '/Triangle/Empty-1/Pole-0-1/.xform')
-        self.abcprop(abc, '/Triangle/Empty-1/Pole-0-1/Block-1-1/.xform')
+        self.abcprop(abc, '/Triangle/Empty-1/Pole-1-0/.xform')
+        self.abcprop(abc, '/Triangle/Empty-1/Pole-1-0/Block-1-1/.xform')
         self.abcprop(abc, '/Triangle/Empty/.xform')
         self.abcprop(abc, '/Triangle/Empty/Pole-0/.xform')
         self.abcprop(abc, '/Triangle/Empty/Pole-0/Block-1/.xform')
         self.abcprop(abc, '/Triangle/Empty-2/.xform')
-        self.abcprop(abc, '/Triangle/Empty-2/Pole-0-2/.xform')
-        self.abcprop(abc, '/Triangle/Empty-2/Pole-0-2/Block-1-2/.xform')
+        self.abcprop(abc, '/Triangle/Empty-2/Pole-2-0/.xform')
+        self.abcprop(abc, '/Triangle/Empty-2/Pole-2-0/Block-2-1/.xform')
         self.abcprop(abc, '/Triangle/Empty-0/.xform')
         self.abcprop(abc, '/Triangle/Empty-0/Pole-0-0/.xform')
-        self.abcprop(abc, '/Triangle/Empty-0/Pole-0-0/Block-1-0/.xform')
+        self.abcprop(abc, '/Triangle/Empty-0/Pole-0-0/Block-0-1/.xform')
 
 
 class CurveExportTest(AbstractAlembicTest):

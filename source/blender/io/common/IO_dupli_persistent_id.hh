@@ -48,6 +48,13 @@ class PersistentID {
   /* Construct the persistent ID of this instance's instancer. */
   PersistentID instancer_pid() const;
 
+  /* Construct a string representation by reversing the persistent ID.
+   * In case of a duplicator that is duplicated itself as well, this
+   * results in strings like:
+   * "3" for the duplicated duplicator, and
+   * "3-0", "3-1", etc. for its duplis. */
+  std::string as_object_name_suffix() const;
+
   friend bool operator==(const PersistentID &persistent_id_a, const PersistentID &persistent_id_b);
   friend bool operator<(const PersistentID &persistent_id_a, const PersistentID &persistent_id_b);
   friend std::ostream &operator<<(std::ostream &os, const PersistentID &persistent_id);

@@ -427,10 +427,10 @@ void AbstractHierarchyIterator::visit_dupli_object(DupliObject *dupli_object,
   copy_m4_m4(context->matrix_world, dupli_object->mat);
 
   // Construct export name for the dupli-instance.
-  std::stringstream suffix_stream;
-  suffix_stream << std::hex;
-  suffix_stream << "-" << context->persistent_id;
-  context->export_name = make_valid_name(get_object_name(context->object) + suffix_stream.str());
+  std::stringstream export_name_stream;
+  export_name_stream << get_object_name(context->object) << "-"
+                     << context->persistent_id.as_object_name_suffix();
+  context->export_name = make_valid_name(export_name_stream.str());
 
   ExportGraph::key_type graph_index = determine_graph_index_dupli(
       context, dupli_object, dupli_parent_finder);

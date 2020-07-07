@@ -39,11 +39,30 @@ Object *fake_pointer(int value)
 /* PersistentID subclass for use in tests, making it easier to construct test values. */
 class TestPersistentID : public PersistentID {
  public:
-  TestPersistentID(int value0, int value1)
+  TestPersistentID(int value0,
+                   int value1,
+                   int value2,
+                   int value3,
+                   int value4,
+                   int value5,
+                   int value6,
+                   int value7)
   {
     persistent_id_[0] = value0;
     persistent_id_[1] = value1;
-    persistent_id_[2] = INT_MAX;
+    persistent_id_[2] = value2;
+    persistent_id_[3] = value3;
+    persistent_id_[4] = value4;
+    persistent_id_[5] = value5;
+    persistent_id_[6] = value6;
+    persistent_id_[7] = value7;
+  }
+  TestPersistentID(int value0, int value1, int value2)
+      : TestPersistentID(value0, value1, value2, INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX)
+  {
+  }
+  TestPersistentID(int value0, int value1) : TestPersistentID(value0, value1, INT_MAX)
+  {
   }
   explicit TestPersistentID(int value0) : TestPersistentID(value0, INT_MAX)
   {
@@ -197,6 +216,20 @@ TEST_F(PersistentIDTest, instancer_id)
 
   EXPECT_LT(child_id, expect_instancer_id);
   EXPECT_LT(expect_instancer_id, empty_id);
+}
+
+TEST_F(PersistentIDTest, as_object_name_suffix)
+{
+  EXPECT_EQ("", PersistentID().as_object_name_suffix());
+  EXPECT_EQ("47", TestPersistentID(47).as_object_name_suffix());
+  EXPECT_EQ("327-47", TestPersistentID(47, 327).as_object_name_suffix());
+  EXPECT_EQ("42-327-47", TestPersistentID(47, 327, 42).as_object_name_suffix());
+
+  EXPECT_EQ("7-6-5-4-3-2-1-0", TestPersistentID(0, 1, 2, 3, 4, 5, 6, 7).as_object_name_suffix());
+
+  EXPECT_EQ("0-0-0", TestPersistentID(0, 0, 0).as_object_name_suffix());
+  EXPECT_EQ("0-0", TestPersistentID(0, 0).as_object_name_suffix());
+  EXPECT_EQ("-3--2--1", TestPersistentID(-1, -2, -3).as_object_name_suffix());
 }
 
 }  // namespace io

@@ -22,6 +22,7 @@
 #include <climits>
 #include <cstring>
 #include <ostream>
+#include <sstream>
 
 namespace blender::io {
 
@@ -82,6 +83,27 @@ PersistentID PersistentID::instancer_pid() const
   new_pid_values[index] = INT_MAX;
 
   return PersistentID(new_pid_values);
+}
+
+std::string PersistentID::as_object_name_suffix() const
+{
+  std::stringstream stream;
+
+  /* Find one past the last index. */
+  int index;
+  for (index = 0; index < array_length_ && persistent_id_[index] < INT_MAX; ++index)
+    ;
+
+  /* Iterate backward to construct the string. */
+  --index;
+  for (; index >= 0; --index) {
+    stream << persistent_id_[index];
+    if (index > 0) {
+      stream << "-";
+    }
+  }
+
+  return stream.str();
 }
 
 bool operator<(const PersistentID &persistent_id_a, const PersistentID &persistent_id_b)
