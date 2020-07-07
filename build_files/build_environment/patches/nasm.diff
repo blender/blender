@@ -1,0 +1,129 @@
+diff --git a/output/macho.h b/output/macho.h
+index 538c531e..fd5e8849 100644
+--- a/output/macho.h
++++ b/output/macho.h
+@@ -60,6 +60,8 @@
+ #define LC_SEGMENT			0x1
+ #define LC_SEGMENT_64			0x19
+ #define LC_SYMTAB			0x2
++#define LC_VERSION_MIN_MACOSX		0x24
++#define LC_BUILD_VERSION		0x32
+ 
+ /* Symbol type bits */
+ #define N_STAB				0xe0
+diff --git a/output/outmacho.c b/output/outmacho.c
+index 08147883..de6ec902 100644
+--- a/output/outmacho.c
++++ b/output/outmacho.c
+@@ -38,6 +38,8 @@
+ 
+ #include "compiler.h"
+ 
++#include <stdlib.h>
++
+ #include "nctype.h"
+ 
+ #include "nasm.h"
+@@ -64,6 +66,8 @@
+ #define MACHO_SYMCMD_SIZE		24
+ #define MACHO_NLIST_SIZE		12
+ #define MACHO_RELINFO_SIZE		8
++#define MACHO_BUILD_VERSION_SIZE	24
++#define MACHO_VERSION_MIN_MACOSX_SIZE	16
+ 
+ #define MACHO_HEADER64_SIZE		32
+ #define MACHO_SEGCMD64_SIZE		72
+@@ -1224,6 +1228,46 @@ static void macho_layout_symbols (uint32_t *numsyms,
+     }
+ }
+ 
++static bool get_full_version_from_env (const char *variable_name,
++                                       int *r_major,
++                                       int *r_minor,
++                                       int *r_patch)  {
++    *r_major = 0;
++    *r_minor = 0;
++    *r_patch = 0;
++
++    const char *value = getenv(variable_name);
++    if (value == NULL || value[0] == '\0') {
++        return false;
++    }
++
++    const char *current_value = value;
++    const char *end_value = value + strlen(value);
++
++    char *endptr;
++
++    *r_major = strtol(current_value, &endptr, 10);
++    if (endptr >= end_value) {
++        return true;
++    }
++    current_value = endptr + 1;
++
++    *r_minor = strtol(current_value, &endptr, 10);
++    if (endptr >= end_value) {
++        return true;
++    }
++    current_value = endptr + 1;
++
++    *r_patch = strtol(current_value, &endptr, 10);
++
++    return true;
++}
++
++static bool need_version_min_macosx_command (void) {
++    return getenv("MACOSX_DEPLOYMENT_TARGET") &&
++           getenv("MACOSX_SDK_VERSION");
++}
++
+ /* Calculate some values we'll need for writing later.  */
+ 
+ static void macho_calculate_sizes (void)
+@@ -1270,6 +1314,12 @@ static void macho_calculate_sizes (void)
+         head_sizeofcmds += fmt.segcmd_size  + seg_nsects * fmt.sectcmd_size;
+     }
+ 
++    /* LC_VERSION_MIN_MACOSX */
++    if (need_version_min_macosx_command()) {
++	++head_ncmds;
++	head_sizeofcmds += MACHO_VERSION_MIN_MACOSX_SIZE;
++    }
++
+     if (nsyms > 0) {
+ 	++head_ncmds;
+ 	head_sizeofcmds += MACHO_SYMCMD_SIZE;
+@@ -1653,6 +1703,33 @@ static void macho_write (void)
+     else
+         nasm_warn(WARN_OTHER, "no sections?");
+ 
++#define ENCODE_BUILD_VERSION(major, minor, patch) \
++    (((major) << 16) | ((minor) << 8) | (patch))
++
++    if (0) {
++        fwriteint32_t(LC_BUILD_VERSION, ofile); /* cmd == LC_BUILD_VERSION */
++        fwriteint32_t(MACHO_BUILD_VERSION_SIZE, ofile); /* size of load command */
++        fwriteint32_t(1, ofile);    /* platform */
++        fwriteint32_t(ENCODE_BUILD_VERSION(10, 13, 0), ofile);    /* minos, X.Y.Z is encoded in nibbles xxxx.yy.zz */
++        fwriteint32_t(ENCODE_BUILD_VERSION(10, 15, 4), ofile);    /* sdk, X.Y.Z is encoded in nibbles xxxx.yy.zz */
++        fwriteint32_t(0, ofile);    /* number of tool entries following this */
++    }
++
++    if (need_version_min_macosx_command()) {
++        int sdk_major, sdk_minor, sdk_patch;
++        get_full_version_from_env("MACOSX_SDK_VERSION", &sdk_major, &sdk_minor, &sdk_patch);
++
++        int version_major, version_minor, version_patch;
++        get_full_version_from_env("MACOSX_DEPLOYMENT_TARGET", &version_major, &version_minor, &version_patch);
++
++        fwriteint32_t(LC_VERSION_MIN_MACOSX, ofile); /* cmd == LC_VERSION_MIN_MACOSX */
++        fwriteint32_t(MACHO_VERSION_MIN_MACOSX_SIZE, ofile); /* size of load command */
++        fwriteint32_t(ENCODE_BUILD_VERSION(version_major, version_minor, version_patch), ofile);    /* minos, X.Y.Z is encoded in nibbles xxxx.yy.zz */
++        fwriteint32_t(ENCODE_BUILD_VERSION(sdk_major, sdk_minor, sdk_patch), ofile);    /* sdk, X.Y.Z is encoded in nibbles xxxx.yy.zz */
++    }
++
++#undef ENCODE_BUILD_VERSION
++
+     if (nsyms > 0) {
+         /* write out symbol command */
+         fwriteint32_t(LC_SYMTAB, ofile); /* cmd == LC_SYMTAB */

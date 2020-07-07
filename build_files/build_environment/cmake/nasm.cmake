@@ -16,33 +16,14 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-if(WIN32)
-  set(X264_EXTRA_ARGS --enable-win32thread --cross-prefix=${MINGW_HOST}- --host=${MINGW_HOST})
-endif()
-
-
-ExternalProject_Add(external_x264
-  URL ${X264_URI}
+ExternalProject_Add(external_nasm
+  URL ${NASM_URI}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH SHA256=${X264_HASH}
-  PREFIX ${BUILD_DIR}/x264
-  CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/x264/src/external_x264/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/x264
-    --enable-static
-    --enable-pic
-    --disable-lavf
-    ${X264_EXTRA_ARGS}
-  BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/x264/src/external_x264/ && make -j${MAKE_THREADS}
-  INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/x264/src/external_x264/ && make install
-  INSTALL_DIR ${LIBDIR}/x264
+  URL_HASH SHA256=${NASM_HASH}
+  PREFIX ${BUILD_DIR}/nasm
+  PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/nasm/src/external_nasm < ${PATCH_DIR}/nasm.diff
+  CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/nasm/src/external_nasm/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/nasm
+  BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/nasm/src/external_nasm/ && make -j${MAKE_THREADS}
+  INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/nasm/src/external_nasm/ && make install
+  INSTALL_DIR ${LIBDIR}/nasm
 )
-
-if(MSVC)
-  set_target_properties(external_x264 PROPERTIES FOLDER Mingw)
-endif()
-
-if(APPLE)
-  add_dependencies(
-    external_x264
-    external_nasm
-  )
-endif()

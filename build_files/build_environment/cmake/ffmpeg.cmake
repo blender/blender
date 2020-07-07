@@ -143,6 +143,12 @@ if(WIN32)
     external_zlib_mingw
   )
 endif()
+if(APPLE)
+  add_dependencies(
+    external_ffmpeg
+    external_nasm
+  )
+endif()
 
 if(BUILD_MODE STREQUAL Release AND WIN32)
   ExternalProject_Add_Step(external_ffmpeg after_install
