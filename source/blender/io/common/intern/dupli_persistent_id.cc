@@ -91,8 +91,9 @@ std::string PersistentID::as_object_name_suffix() const
 
   /* Find one past the last index. */
   int index;
-  for (index = 0; index < array_length_ && persistent_id_[index] < INT_MAX; ++index)
+  for (index = 0; index < array_length_ && persistent_id_[index] < INT_MAX; ++index) {
     ;
+  }
 
   /* Iterate backward to construct the string. */
   --index;
