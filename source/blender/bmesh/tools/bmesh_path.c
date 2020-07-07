@@ -18,6 +18,8 @@
  * \ingroup bmesh
  *
  * Find a path between 2 elements.
+ *
+ * \note All 3 functions are similar, changes to one most likely apply to another.
  */
 
 #include "MEM_guardedalloc.h"
@@ -30,7 +32,8 @@
 #include "bmesh_path.h" /* own include */
 
 /* -------------------------------------------------------------------- */
-/* Generic Helpers */
+/** \name Generic Helpers
+ * \{ */
 
 /**
  * Use skip options when we want to start measuring from a boundary.
@@ -40,16 +43,15 @@ static float step_cost_3_v3_ex(
 {
   float d1[3], d2[3];
 
-  /* The cost is based on the simple sum of the length of the two edgees... */
+  /* The cost is based on the simple sum of the length of the two edges. */
   sub_v3_v3v3(d1, v2, v1);
   sub_v3_v3v3(d2, v3, v2);
   const float cost_12 = normalize_v3(d1);
   const float cost_23 = normalize_v3(d2);
   const float cost = ((skip_12 ? 0.0f : cost_12) + (skip_23 ? 0.0f : cost_23));
 
-  /* but is biased to give higher values to sharp turns, so that it will take
-   * paths with fewer "turns" when selecting between equal-weighted paths between
-   * the two edges */
+  /* But is biased to give higher values to sharp turns, so that it will take paths with
+   * fewer "turns" when selecting between equal-weighted paths between the two edges. */
   return cost * (1.0f + 0.5f * (2.0f - sqrtf(fabsf(dot_v3v3(d1, d2)))));
 }
 
@@ -58,8 +60,11 @@ static float step_cost_3_v3(const float v1[3], const float v2[3], const float v3
   return step_cost_3_v3_ex(v1, v2, v3, false, false);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* BM_mesh_calc_path_vert */
+/** \name BM_mesh_calc_path_vert
+ * \{ */
 
 static void verttag_add_adjacent(HeapSimple *heap,
                                  BMVert *v_a,
@@ -72,11 +77,11 @@ static void verttag_add_adjacent(HeapSimple *heap,
   {
     BMIter eiter;
     BMEdge *e;
-    /* loop over faces of face, but do so by first looping over loops */
+    /* Loop over faces of face, but do so by first looping over loops. */
     BM_ITER_ELEM (e, &eiter, v_a, BM_EDGES_OF_VERT) {
       BMVert *v_b = BM_edge_other_vert(e, v_a);
       if (!BM_elem_flag_test(v_b, BM_ELEM_TAG)) {
-        /* we know 'v_b' is not visited, check it out! */
+        /* We know 'v_b' is not visited, check it out! */
         const int v_b_index = BM_elem_index_get(v_b);
         const float cost_cut = params->use_topology_distance ? 1.0f : len_v3v3(v_a->co, v_b->co);
         const float cost_new = cost[v_a_index] + cost_cut;
@@ -93,15 +98,15 @@ static void verttag_add_adjacent(HeapSimple *heap,
   if (params->use_step_face) {
     BMIter liter;
     BMLoop *l;
-    /* loop over faces of face, but do so by first looping over loops */
+    /* Loop over faces of face, but do so by first looping over loops. */
     BM_ITER_ELEM (l, &liter, v_a, BM_LOOPS_OF_VERT) {
       if (l->f->len > 3) {
-        /* skip loops on adjacent edges */
+        /* Skip loops on adjacent edges. */
         BMLoop *l_iter = l->next->next;
         do {
           BMVert *v_b = l_iter->v;
           if (!BM_elem_flag_test(v_b, BM_ELEM_TAG)) {
-            /* we know 'v_b' is not visited, check it out! */
+            /* We know 'v_b' is not visited, check it out! */
             const int v_b_index = BM_elem_index_get(v_b);
             const float cost_cut = params->use_topology_distance ? 1.0f :
                                                                    len_v3v3(v_a->co, v_b->co);
@@ -127,7 +132,7 @@ LinkNode *BM_mesh_calc_path_vert(BMesh *bm,
                                  void *user_data)
 {
   LinkNode *path = NULL;
-  /* BM_ELEM_TAG flag is used to store visited edges */
+  /* #BM_ELEM_TAG flag is used to store visited edges. */
   BMVert *v;
   BMIter viter;
   HeapSimple *heap;
@@ -135,7 +140,7 @@ LinkNode *BM_mesh_calc_path_vert(BMesh *bm,
   BMVert **verts_prev;
   int i, totvert;
 
-  /* note, would pass BM_EDGE except we are looping over all faces anyway */
+  /* Note, would pass #BM_EDGE except we are looping over all faces anyway. */
   // BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */); // NOT NEEDED FOR FACETAG
 
   BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
@@ -144,7 +149,7 @@ LinkNode *BM_mesh_calc_path_vert(BMesh *bm,
   }
   bm->elem_index_dirty &= ~BM_VERT;
 
-  /* alloc */
+  /* Allocate. */
   totvert = bm->totvert;
   verts_prev = MEM_callocN(sizeof(*verts_prev) * totvert, __func__);
   cost = MEM_mallocN(sizeof(*cost) * totvert, __func__);
@@ -154,15 +159,15 @@ LinkNode *BM_mesh_calc_path_vert(BMesh *bm,
   /*
    * Arrays are now filled as follows:
    *
-   * As the search continues, verts_prev[n] will be the previous verts on the shortest
-   * path found so far to face n. BM_ELEM_TAG is used to tag elements we have visited,
-   * cost[n] will contain the length of the shortest
+   * As the search continues, `verts_prev[n]` will be the previous verts on the shortest
+   * path found so far to face `n`. #BM_ELEM_TAG is used to tag elements we have visited,
+   * `cost[n]` will contain the length of the shortest
    * path to face n found so far, Finally, heap is a priority heap which is built on the
-   * the same data as the cost array, but inverted: it is a worklist of faces prioritized
+   * the same data as the cost array, but inverted: it is a work-list of faces prioritized
    * by the shortest path found so far to the face.
    */
 
-  /* regular dijkstra shortest path, but over faces instead of vertices */
+  /* Regular dijkstra shortest path, but over faces instead of vertices. */
   heap = BLI_heapsimple_new();
   BLI_heapsimple_insert(heap, 0.0f, v_src);
   cost[BM_elem_index_get(v_src)] = 0.0f;
@@ -193,8 +198,11 @@ LinkNode *BM_mesh_calc_path_vert(BMesh *bm,
   return path;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* BM_mesh_calc_path_edge */
+/** \name BM_mesh_calc_path_edge
+ * \{ */
 
 static float edgetag_cut_cost_vert(BMEdge *e_a, BMEdge *e_b, BMVert *v)
 {
@@ -223,8 +231,8 @@ static void edgetag_add_adjacent(HeapSimple *heap,
 {
   const int e_a_index = BM_elem_index_get(e_a);
 
-  /* unlike vert/face, stepping faces disables scanning connected edges
-   * and only steps over faces (selecting a ring of edges instead of a loop) */
+  /* Unlike vert/face, stepping faces disables scanning connected edges
+   * and only steps over faces (selecting a ring of edges instead of a loop). */
   if (params->use_step_face == false || e_a->l == NULL) {
     BMIter viter;
     BMVert *v;
@@ -234,14 +242,14 @@ static void edgetag_add_adjacent(HeapSimple *heap,
 
     BM_ITER_ELEM (v, &viter, e_a, BM_VERTS_OF_EDGE) {
 
-      /* don't walk over previous vertex */
+      /* Don't walk over previous vertex. */
       if ((edges_prev[e_a_index]) && (BM_vert_in_edge(edges_prev[e_a_index], v))) {
         continue;
       }
 
       BM_ITER_ELEM (e_b, &eiter, v, BM_EDGES_OF_VERT) {
         if (!BM_elem_flag_test(e_b, BM_ELEM_TAG)) {
-          /* we know 'e_b' is not visited, check it out! */
+          /* We know 'e_b' is not visited, check it out! */
           const int e_b_index = BM_elem_index_get(e_b);
           const float cost_cut = params->use_topology_distance ?
                                      1.0f :
@@ -267,7 +275,7 @@ static void edgetag_add_adjacent(HeapSimple *heap,
       l_cycle_iter = l_iter->next;
       l_cycle_end = l_iter;
 
-      /* good, but we need to allow this otherwise paths may fail to connect at all */
+      /* Good, but we need to allow this otherwise paths may fail to connect at all. */
 #if 0
       if (l_iter->f->len > 3) {
         l_cycle_iter = l_cycle_iter->next;
@@ -278,7 +286,7 @@ static void edgetag_add_adjacent(HeapSimple *heap,
       do {
         BMEdge *e_b = l_cycle_iter->e;
         if (!BM_elem_flag_test(e_b, BM_ELEM_TAG)) {
-          /* we know 'e_b' is not visited, check it out! */
+          /* We know 'e_b' is not visited, check it out! */
           const int e_b_index = BM_elem_index_get(e_b);
           const float cost_cut = params->use_topology_distance ?
                                      1.0f :
@@ -304,7 +312,7 @@ LinkNode *BM_mesh_calc_path_edge(BMesh *bm,
                                  void *user_data)
 {
   LinkNode *path = NULL;
-  /* BM_ELEM_TAG flag is used to store visited edges */
+  /* #BM_ELEM_TAG flag is used to store visited edges. */
   BMEdge *e;
   BMIter eiter;
   HeapSimple *heap;
@@ -312,7 +320,7 @@ LinkNode *BM_mesh_calc_path_edge(BMesh *bm,
   BMEdge **edges_prev;
   int i, totedge;
 
-  /* note, would pass BM_EDGE except we are looping over all edges anyway */
+  /* Note, would pass #BM_EDGE except we are looping over all edges anyway. */
   BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */);
 
   BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
@@ -321,25 +329,25 @@ LinkNode *BM_mesh_calc_path_edge(BMesh *bm,
   }
   bm->elem_index_dirty &= ~BM_EDGE;
 
-  /* alloc */
+  /* Allocate. */
   totedge = bm->totedge;
-  edges_prev = MEM_callocN(sizeof(*edges_prev) * totedge, "SeamPathPrevious");
-  cost = MEM_mallocN(sizeof(*cost) * totedge, "SeamPathCost");
+  edges_prev = MEM_callocN(sizeof(*edges_prev) * totedge, __func__);
+  cost = MEM_mallocN(sizeof(*cost) * totedge, __func__);
 
   copy_vn_fl(cost, totedge, 1e20f);
 
   /*
    * Arrays are now filled as follows:
    *
-   * As the search continues, prevedge[n] will be the previous edge on the shortest
-   * path found so far to edge n. BM_ELEM_TAG is used to tag elements we have visited,
-   * cost[n] will contain the length of the shortest
+   * As the search continues, `edges_prev[n]` will be the previous edge on the shortest
+   * path found so far to edge `n`. #BM_ELEM_TAG is used to tag elements we have visited,
+   * `cost[n]` will contain the length of the shortest
    * path to edge n found so far, Finally, heap is a priority heap which is built on the
-   * the same data as the cost array, but inverted: it is a worklist of edges prioritized
+   * the same data as the cost array, but inverted: it is a work-list of edges prioritized
    * by the shortest path found so far to the edge.
    */
 
-  /* regular dijkstra shortest path, but over edges instead of vertices */
+  /* Regular dijkstra shortest path, but over edges instead of vertices. */
   heap = BLI_heapsimple_new();
   BLI_heapsimple_insert(heap, 0.0f, e_src);
   cost[BM_elem_index_get(e_src)] = 0.0f;
@@ -370,8 +378,11 @@ LinkNode *BM_mesh_calc_path_edge(BMesh *bm,
   return path;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* BM_mesh_calc_path_face */
+/** \name BM_mesh_calc_path_face
+ * \{ */
 
 static float facetag_cut_cost_edge(BMFace *f_a,
                                    BMFace *f_b,
@@ -387,7 +398,7 @@ static float facetag_cut_cost_edge(BMFace *f_a,
 #if 0
   mid_v3_v3v3(e_cent, e->v1->co, e->v2->co);
 #else
-  /* for triangle fans it gives better results to pick a point on the edge */
+  /* For triangle fans it gives better results to pick a point on the edge. */
   {
     float ix_e[3], ix_f[3], f;
     isect_line_line_v3(e->v1->co, e->v2->co, f_a_cent, f_b_cent, ix_e, ix_f);
@@ -432,7 +443,7 @@ static void facetag_add_adjacent(HeapSimple *heap,
 {
   const int f_a_index = BM_elem_index_get(f_a);
 
-  /* loop over faces of face, but do so by first looping over loops */
+  /* Loop over faces of face, but do so by first looping over loops. */
   {
     BMIter liter;
     BMLoop *l_a;
@@ -444,7 +455,7 @@ static void facetag_add_adjacent(HeapSimple *heap,
       do {
         BMFace *f_b = l_iter->f;
         if (!BM_elem_flag_test(f_b, BM_ELEM_TAG)) {
-          /* we know 'f_b' is not visited, check it out! */
+          /* We know 'f_b' is not visited, check it out! */
           const int f_b_index = BM_elem_index_get(f_b);
           const float cost_cut = params->use_topology_distance ?
                                      1.0f :
@@ -472,7 +483,7 @@ static void facetag_add_adjacent(HeapSimple *heap,
         if ((l_a != l_b) && !BM_loop_share_edge_check(l_a, l_b)) {
           BMFace *f_b = l_b->f;
           if (!BM_elem_flag_test(f_b, BM_ELEM_TAG)) {
-            /* we know 'f_b' is not visited, check it out! */
+            /* We know 'f_b' is not visited, check it out! */
             const int f_b_index = BM_elem_index_get(f_b);
             const float cost_cut = params->use_topology_distance ?
                                        1.0f :
@@ -499,7 +510,7 @@ LinkNode *BM_mesh_calc_path_face(BMesh *bm,
                                  void *user_data)
 {
   LinkNode *path = NULL;
-  /* BM_ELEM_TAG flag is used to store visited edges */
+  /* #BM_ELEM_TAG flag is used to store visited edges. */
   BMFace *f;
   BMIter fiter;
   HeapSimple *heap;
@@ -510,7 +521,7 @@ LinkNode *BM_mesh_calc_path_face(BMesh *bm,
   /* Start measuring face path at the face edges, ignoring their centers. */
   const void *const f_endpoints[2] = {f_src, f_dst};
 
-  /* note, would pass BM_EDGE except we are looping over all faces anyway */
+  /* Note, would pass #BM_EDGE except we are looping over all faces anyway. */
   // BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */); // NOT NEEDED FOR FACETAG
 
   BM_ITER_MESH_INDEX (f, &fiter, bm, BM_FACES_OF_MESH, i) {
@@ -519,7 +530,7 @@ LinkNode *BM_mesh_calc_path_face(BMesh *bm,
   }
   bm->elem_index_dirty &= ~BM_FACE;
 
-  /* alloc */
+  /* Allocate. */
   totface = bm->totface;
   faces_prev = MEM_callocN(sizeof(*faces_prev) * totface, __func__);
   cost = MEM_mallocN(sizeof(*cost) * totface, __func__);
@@ -529,15 +540,15 @@ LinkNode *BM_mesh_calc_path_face(BMesh *bm,
   /*
    * Arrays are now filled as follows:
    *
-   * As the search continues, faces_prev[n] will be the previous face on the shortest
-   * path found so far to face n. BM_ELEM_TAG is used to tag elements we have visited,
-   * cost[n] will contain the length of the shortest
+   * As the search continues, `faces_prev[n]` will be the previous face on the shortest
+   * path found so far to face `n`. #BM_ELEM_TAG is used to tag elements we have visited,
+   * `cost[n]` will contain the length of the shortest
    * path to face n found so far, Finally, heap is a priority heap which is built on the
-   * the same data as the cost array, but inverted: it is a worklist of faces prioritized
+   * the same data as the cost array, but inverted: it is a work-list of faces prioritized
    * by the shortest path found so far to the face.
    */
 
-  /* regular dijkstra shortest path, but over faces instead of vertices */
+  /* Regular dijkstra shortest path, but over faces instead of vertices. */
   heap = BLI_heapsimple_new();
   BLI_heapsimple_insert(heap, 0.0f, f_src);
   cost[BM_elem_index_get(f_src)] = 0.0f;
@@ -567,3 +578,4 @@ LinkNode *BM_mesh_calc_path_face(BMesh *bm,
 
   return path;
 }
+/** \} */
