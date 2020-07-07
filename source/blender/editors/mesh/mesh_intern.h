@@ -76,6 +76,7 @@ struct BMElem *EDBM_elem_from_selectmode(struct BMEditMesh *em,
                                          struct BMVert *eve,
                                          struct BMEdge *eed,
                                          struct BMFace *efa);
+
 int EDBM_elem_to_index_any(struct BMEditMesh *em, struct BMElem *ele);
 struct BMElem *EDBM_elem_from_index_any(struct BMEditMesh *em, int index);
 

@@ -109,6 +109,9 @@ void UV_OT_unwrap(struct wmOperatorType *ot);
 void UV_OT_rip(struct wmOperatorType *ot);
 void UV_OT_stitch(struct wmOperatorType *ot);
 
+/* uvedit_path.c */
+void UV_OT_shortest_path_pick(struct wmOperatorType *ot);
+
 /* uvedit_select.c */
 
 bool uvedit_select_is_any_selected(struct Scene *scene, struct Object *obedit);

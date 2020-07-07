@@ -177,6 +177,12 @@ bool ED_uvedit_nearest_uv_multi(const struct Scene *scene,
 
 void ED_uvedit_get_aspect(struct Object *obedit, float *r_aspx, float *r_aspy);
 
+void ED_uvedit_active_vert_loop_set(struct BMesh *bm, struct BMLoop *l);
+struct BMLoop *ED_uvedit_active_vert_loop_get(struct BMesh *bm);
+
+void ED_uvedit_active_edge_loop_set(struct BMesh *bm, struct BMLoop *l);
+struct BMLoop *ED_uvedit_active_edge_loop_get(struct BMesh *bm);
+
 /* uvedit_unwrap_ops.c */
 void ED_uvedit_live_unwrap_begin(struct Scene *scene, struct Object *obedit);
 void ED_uvedit_live_unwrap_re_solve(void);
