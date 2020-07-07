@@ -17,6 +17,7 @@
 #include "testing/testing.h"
 
 #include "FN_cpp_type.hh"
+#include "FN_cpp_types.hh"
 
 namespace blender::fn {
 
@@ -68,6 +69,12 @@ struct TestType {
     value = move_assigned_value;
     other.value = move_assigned_from_value;
     return *this;
+  }
+
+  friend std::ostream &operator<<(std::ostream &stream, const TestType &value)
+  {
+    stream << value.value;
+    return stream;
   }
 };
 
@@ -303,6 +310,15 @@ TEST(cpp_type, FillUninitialized)
   EXPECT_EQ(buffer2[7], 0);
   EXPECT_EQ(buffer2[8], copy_constructed_value);
   EXPECT_EQ(buffer2[9], 0);
+}
+
+TEST(cpp_type, DebugPrint)
+{
+  int value = 42;
+  std::stringstream ss;
+  CPPType_int32.debug_print((void *)&value, ss);
+  std::string text = ss.str();
+  EXPECT_EQ(text, "42");
 }
 
 }  // namespace blender::fn

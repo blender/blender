@@ -104,6 +104,8 @@ class CPPType {
   using FillUninitializedF = void (*)(const void *value, void *dst, uint n);
   using FillUninitializedIndicesF = void (*)(const void *value, void *dst, IndexMask index_mask);
 
+  using DebugPrintF = void (*)(const void *value, std::stringstream &ss);
+
   CPPType(std::string name,
           uint size,
           uint alignment,
@@ -130,6 +132,7 @@ class CPPType {
           FillInitializedIndicesF fill_initialized_indices,
           FillUninitializedF fill_uninitialized,
           FillUninitializedIndicesF fill_uninitialized_indices,
+          DebugPrintF debug_print,
           const void *default_value)
       : size_(size),
         alignment_(alignment),
@@ -156,6 +159,7 @@ class CPPType {
         fill_initialized_indices_(fill_initialized_indices),
         fill_uninitialized_(fill_uninitialized),
         fill_uninitialized_indices_(fill_uninitialized_indices),
+        debug_print_(debug_print),
         default_value_(default_value),
         name_(name)
   {
@@ -275,6 +279,11 @@ class CPPType {
     BLI_assert(this->pointer_has_valid_alignment(ptr));
 
     destruct_indices_(ptr, index_mask);
+  }
+
+  DestructF destruct_cb() const
+  {
+    return destruct_;
   }
 
   /**
@@ -457,6 +466,12 @@ class CPPType {
     fill_uninitialized_indices_(value, dst, index_mask);
   }
 
+  void debug_print(const void *value, std::stringstream &ss) const
+  {
+    BLI_assert(this->pointer_can_point_to_instance(value));
+    debug_print_(value, ss);
+  }
+
   /**
    * Get a pointer to a constant value of this type. The specific value depends on the type.
    * It is usually a zero-initialized or default constructed value.
@@ -522,6 +537,8 @@ class CPPType {
 
   FillUninitializedF fill_uninitialized_;
   FillUninitializedIndicesF fill_uninitialized_indices_;
+
+  DebugPrintF debug_print_;
 
   const void *default_value_;
   std::string name_;
@@ -683,6 +700,12 @@ void fill_uninitialized_indices_cb(const void *value, void *dst, IndexMask index
   index_mask.foreach_index([&](uint i) { new (dst_ + i) T(value_); });
 }
 
+template<typename T> void debug_print_cb(const void *value, std::stringstream &ss)
+{
+  const T &value_ = *(const T *)value;
+  ss << value_;
+}
+
 }  // namespace CPPTypeUtil
 
 template<typename T>
@@ -715,6 +738,7 @@ static std::unique_ptr<const CPPType> create_cpp_type(StringRef name, const T &d
                                     fill_initialized_indices_cb<T>,
                                     fill_uninitialized_cb<T>,
                                     fill_uninitialized_indices_cb<T>,
+                                    debug_print_cb<T>,
                                     (const void *)&default_value);
   return std::unique_ptr<const CPPType>(type);
 }
