@@ -591,7 +591,7 @@ static int wm_handler_ui_call(bContext *C,
     return WM_HANDLER_CONTINUE;
   }
 
-  /* UI is quite aggressive with swallowing events, like scrollwheel */
+  /* UI is quite aggressive with swallowing events, like scroll-wheel. */
   /* I realize this is not extremely nice code... when UI gets keymaps it can be maybe smarter */
   if (do_wheel_ui == false) {
     if (is_wheel) {
@@ -608,7 +608,7 @@ static int wm_handler_ui_call(bContext *C,
     return WM_UI_HANDLER_CONTINUE;
   }
 
-  /* we set context to where ui handler came from */
+  /* We set context to where UI handler came from. */
   if (handler->context.area) {
     CTX_wm_area_set(C, handler->context.area);
   }
@@ -810,7 +810,7 @@ bool WM_operator_check_ui_empty(wmOperatorType *ot)
     return true;
   }
 
-  /* Assume a ui callback will draw something. */
+  /* Assume a UI callback will draw something. */
   if (ot->ui) {
     return false;
   }
@@ -2707,7 +2707,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
        handler_base = handler_base_next) {
     handler_base_next = handler_base->next;
 
-    /* during this loop, ui handlers for nested menus can tag multiple handlers free */
+    /* During this loop, UI handlers for nested menus can tag multiple handlers free. */
     if (handler_base->flag & WM_HANDLER_DO_FREE) {
       /* pass */
     }
@@ -2829,7 +2829,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 
     /* XXX code this for all modal ops, and ensure free only happens here */
 
-    /* modal ui handler can be tagged to be freed */
+    /* Modal UI handler can be tagged to be freed. */
     if (BLI_findindex(handlers, handler_base) !=
         -1) { /* could be freed already by regular modal ops */
       if (handler_base->flag & WM_HANDLER_DO_FREE) {
@@ -4834,7 +4834,7 @@ wmKeyMapItem *WM_event_match_keymap_item_from_handlers(bContext *C,
                                                        const wmEvent *event)
 {
   LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
-    /* during this loop, ui handlers for nested menus can tag multiple handlers free */
+    /* During this loop, UI handlers for nested menus can tag multiple handlers free. */
     if (handler_base->flag & WM_HANDLER_DO_FREE) {
       /* pass */
     }

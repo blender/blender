@@ -392,7 +392,7 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
     uiItemR(column, &strip_ptr, "blend_type", 0, NULL, ICON_NONE);
 
     /* Blend in/out + auto-blending:
-     * - blend in/out can only be set when autoblending is off
+     * - blend in/out can only be set when auto-blending is off.
      */
 
     uiItemS(layout);

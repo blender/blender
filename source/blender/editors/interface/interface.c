@@ -737,8 +737,8 @@ static bool ui_but_update_from_old_block(const bContext *C,
 #else
   BLI_assert(*but_old_p == NULL || BLI_findindex(&oldblock->buttons, *but_old_p) != -1);
 
-  /* fastpath - avoid loop-in-loop, calling 'ui_but_find_old'
-   * as long as old/new buttons are aligned */
+  /* Fast-path - avoid loop-in-loop, calling #ui_but_find_old
+   * as long as old/new buttons are aligned. */
   if (LIKELY(*but_old_p && ui_but_equals_old(but, *but_old_p))) {
     oldbut = *but_old_p;
   }

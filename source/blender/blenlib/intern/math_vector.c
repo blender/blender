@@ -307,7 +307,7 @@ void mid_v3_v3_array(float r[3], const float (*vec_arr)[3], const uint nbr)
 
 /**
  * Specialized function for calculating normals.
- * fastpath for:
+ * Fast-path for:
  *
  * \code{.c}
  * add_v3_v3v3(r, a, b);

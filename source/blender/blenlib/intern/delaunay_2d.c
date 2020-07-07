@@ -952,7 +952,7 @@ static void initial_triangulation(CDT_state *cdt)
   }
 #endif
 
-  /* Now dedup according to user-defined epsilon.
+  /* Now de-duplicate according to user-defined epsilon.
    * We will merge a vertex into an earlier-indexed vertex
    * that is within epsilon (Euclidean distance).
    * Merges may cascade. So we may end up merging two things

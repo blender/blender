@@ -2289,7 +2289,9 @@ static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_p
   return len; /* make sure the above string is always 16 chars */
 }
 
-/* youll need to close yourself after! */
+/**
+ * Caller must close after!
+ */
 static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 {
   PTCacheFile *pf;

@@ -218,8 +218,8 @@ static void *tslot_thread_start(void *tslot_p)
   ThreadSlot *tslot = (ThreadSlot *)tslot_p;
 
 #ifdef USE_APPLE_OMP_FIX
-  /* workaround for Apple gcc 4.2.1 omp vs background thread bug,
-   * set gomp thread local storage pointer which was copied beforehand */
+  /* Workaround for Apple gcc 4.2.1 OMP vs background thread bug,
+   * set GOMP thread local storage pointer which was copied beforehand */
   pthread_setspecific(gomp_tls_key, thread_tls_data);
 #endif
 

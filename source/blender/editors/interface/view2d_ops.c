@@ -68,7 +68,7 @@ static bool view2d_poll(bContext *C)
 /**
  * This group of operators come in several forms:
  * -# Modal 'dragging' with MMB - where movement of mouse dictates amount to pan view by
- * -# Scrollwheel 'steps' - rolling mousewheel by one step moves view by predefined amount
+ * -# Scroll-wheel 'steps' - rolling mouse-wheel by one step moves view by predefined amount
  *
  * In order to make sure this works, each operator must define the following RNA-Operator Props:
  * - `deltax, deltay` - define how much to move view by (relative to zoom-correction factor)
@@ -738,8 +738,8 @@ static void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 
 /**
  * This group of operators come in several forms:
- * -# Scrollwheel 'steps' - rolling mousewheel by one step zooms view by predefined amount.
- * -# Scrollwheel 'steps' + alt + ctrl/shift - zooms view on one axis only (ctrl=x, shift=y).
+ * -# Scroll-wheel 'steps' - rolling mouse-wheel by one step zooms view by predefined amount.
+ * -# Scroll-wheel 'steps' + alt + ctrl/shift - zooms view on one axis only (ctrl=x, shift=y).
  *    XXX this could be implemented...
  * -# Pad +/- Keys - pressing each key moves the zooms the view by a predefined amount.
  *

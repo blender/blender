@@ -1426,7 +1426,7 @@ static void insert_seam_vert_array(const ProjPaintState *ps,
  * Be tricky with flags, first 4 bits are #PROJ_FACE_SEAM0 to 4,
  * last 4 bits are #PROJ_FACE_NOSEAM0 to 4. `1 << i` - where i is `(0..3)`.
  *
- * If we're multithreadng, make sure threads are locked when this is called.
+ * If we're multi-threadng, make sure threads are locked when this is called.
  */
 static void project_face_seams_init(const ProjPaintState *ps,
                                     MemArena *arena,
@@ -3566,8 +3566,8 @@ static bool project_bucket_face_isect(ProjPaintState *ps,
                                       int bucket_y,
                                       const MLoopTri *lt)
 {
-  /* TODO - replace this with a tricker method that uses sideofline for all
-   * screenCoords's edges against the closest bucket corner */
+  /* TODO - replace this with a trickier method that uses side-of-line for all
+   * #ProjPaintState.screenCoords edges against the closest bucket corner. */
   const int lt_vtri[3] = {PS_LOOPTRI_AS_VERT_INDEX_3(ps, lt)};
   rctf bucket_bounds;
   float p1[2], p2[2], p3[2], p4[2];

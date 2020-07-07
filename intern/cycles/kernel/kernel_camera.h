@@ -379,7 +379,7 @@ ccl_device_inline void camera_sample(KernelGlobals *kg,
     const int shutter_table_offset = kernel_data.cam.shutter_table_offset;
     ray->time = lookup_table_read(kg, time, shutter_table_offset, SHUTTER_TABLE_SIZE);
     /* TODO(sergey): Currently single rolling shutter effect type only
-     * where scan-lines are acquired from top to bottom and whole scanline
+     * where scan-lines are acquired from top to bottom and whole scan-line
      * is acquired at once (no delay in acquisition happens between pixels
      * of single scan-line).
      *

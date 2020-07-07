@@ -509,8 +509,8 @@ static void viewops_data_create(bContext *C,
 
         negate_v3_v3(my_origin, rv3d->ofs); /* ofs is flipped */
 
-        /* Set the dist value to be the distance from this 3d point this means youll
-         * always be able to zoom into it and panning wont go bad when dist was zero */
+        /* Set the dist value to be the distance from this 3d point this means you'll
+         * always be able to zoom into it and panning wont go bad when dist was zero. */
 
         /* remove dist value */
         upvec[0] = upvec[1] = 0;

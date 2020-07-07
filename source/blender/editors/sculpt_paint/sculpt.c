@@ -8209,7 +8209,7 @@ static void SCULPT_OT_sample_color(wmOperatorType *ot)
 /* This allows the sculpt tools to work on meshes with multiple connected components as they had
  * only one connected component. When initialized and enabled, the sculpt API will return extra
  * connectivity neighbors that are not in the real mesh. These neighbors are calculated for each
- * vertex using the minimun distance to a vertex that is in a different connected component. */
+ * vertex using the minimum distance to a vertex that is in a different connected component. */
 
 /* The fake neighbors first need to be ensured to be initialized.
  * After that tools which needs fake neighbors functionality need to
@@ -8224,7 +8224,7 @@ static void SCULPT_OT_sample_color(wmOperatorType *ot)
  *   }
  *
  * Such approach allows to keep all the connectivity information ready for reuse
- * (withouy having lag prior to every stroke), but also makes it so the affect
+ * (without having lag prior to every stroke), but also makes it so the affect
  * is localized to a specific brushes and tools only. */
 
 enum {

@@ -1512,12 +1512,12 @@ int BKE_gpencil_object_material_ensure(Main *bmain, Object *ob, Material *materi
 }
 
 /**
- * Creates a new gpencil material and assigns it to object.
+ * Creates a new grease-pencil material and assigns it to object.
  * \param bmain: Main pointer
  * \param ob: Grease pencil object
  * \param name: Material name
  * \param r_index: value is set to zero based index of the new material if \a r_index is not NULL.
- * \return Materil pointer
+ * \return Material pointer.
  */
 Material *BKE_gpencil_object_material_new(Main *bmain, Object *ob, const char *name, int *r_index)
 {

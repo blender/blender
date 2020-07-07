@@ -560,7 +560,7 @@ int BLI_move(const char *file, const char *to)
 
   /* windows doesn't support moving to a directory
    * it has to be 'mv filename filename' and not
-   * 'mv filename destdir' */
+   * 'mv filename destination_directory' */
 
   BLI_strncpy(str, to, sizeof(str));
   /* points 'to' to a directory ? */

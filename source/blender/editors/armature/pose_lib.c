@@ -87,12 +87,12 @@ static void action_set_activemarker(void *UNUSED(a), void *UNUSED(b), void *UNUS
  *  It acts as a kind of "glorified clipboard for poses", allowing for naming of poses.
  *
  * Features:
- * - PoseLibs are simply normal Actions.
- * - Each "pose" is simply a set of keyframes that occur on a particular frame.
- *   - A set of TimeMarkers that belong to each Action, help 'label' where a 'pose' can be
+ * - Pose-libs are simply normal Actions.
+ * - Each "pose" is simply a set of key-frames that occur on a particular frame.
+ *   - A set of #TimeMarker that belong to each Action, help 'label' where a 'pose' can be
  *     found in the Action.
- * - The Scrollwheel or PageUp/Down buttons when used in a special mode or after pressing/holding
- *   [a modifier] key, cycles through the poses available for the active pose's poselib,
+ * - The Scroll-wheel or PageUp/Down buttons when used in a special mode or after pressing/holding
+ *   [a modifier] key, cycles through the poses available for the active pose's pose-lib,
  *   allowing the animator to preview what action best suits that pose.
  */
 /* ************************************************************* */

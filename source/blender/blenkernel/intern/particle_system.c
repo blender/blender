@@ -1939,7 +1939,7 @@ static void sphclassical_density_accum_cb(void *userdata,
     return;
   }
 
-  /* Smoothing factor. Utilise the Wendland kernel. gnuplot:
+  /* Smoothing factor. Utilize the Wendland kernel. gnuplot:
    *     q1(x) = (2.0 - x)**4 * ( 1.0 + 2.0 * x)
    *     plot [0:2] q1(x) */
   q = qfac / pow3f(pfr->h) * pow4f(2.0f - rij_h) * (1.0f + 2.0f * rij_h);
@@ -2054,7 +2054,7 @@ static void sphclassical_force_cb(void *sphdata_v,
 
     npressure = stiffness * (pow7f(npa->sphdensity / rest_density) - 1.0f);
 
-    /* First derivative of smoothing factor. Utilise the Wendland kernel.
+    /* First derivative of smoothing factor. Utilize the Wendland kernel.
      * gnuplot:
      *     q2(x) = 2.0 * (2.0 - x)**4 - 4.0 * (2.0 - x)**3 * (1.0 + 2.0 * x)
      *     plot [0:2] q2(x)
@@ -2947,7 +2947,7 @@ static int collision_response(ParticleSimulationData *sim,
     /* get exact velocity right before collision */
     madd_v3_v3v3fl(v0, col->ve1, col->acc, dt1);
 
-    /* Convert collider velocity from 1/framestep to 1/s TODO:
+    /* Convert collider velocity from `1/frame_step` to `1/s` TODO:
      * here we assume 1 frame step for collision modifier. */
     mul_v3_fl(pce->vel, col->inv_timestep);
 
