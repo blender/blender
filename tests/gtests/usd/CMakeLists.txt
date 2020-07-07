@@ -67,6 +67,7 @@ get_property(BLENDER_SORTED_LIBS GLOBAL PROPERTY BLENDER_SORTED_LIBS_PROP)
 set(SRC
   abstract_hierarchy_iterator_test.cc
   hierarchy_context_order_test.cc
+  object_identifier_test.cc
 )
 
 # TODO(Sybren): re-enable this unit test.

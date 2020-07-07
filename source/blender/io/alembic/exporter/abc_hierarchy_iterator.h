@@ -67,7 +67,9 @@ class ABCHierarchyIterator : public AbstractHierarchyIterator {
   virtual ExportGraph::key_type determine_graph_index_object(
       const HierarchyContext *context) override;
   virtual AbstractHierarchyIterator::ExportGraph::key_type determine_graph_index_dupli(
-      const HierarchyContext *context, const std::set<Object *> &dupli_set) override;
+      const HierarchyContext *context,
+      const DupliObject *dupli_object,
+      const DupliParentFinder &dupli_parent_finder) override;
 
   virtual AbstractHierarchyWriter *create_transform_writer(
       const HierarchyContext *context) override;

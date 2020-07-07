@@ -107,20 +107,23 @@ AbstractHierarchyIterator::ExportGraph::key_type ABCHierarchyIterator::
     determine_graph_index_object(const HierarchyContext *context)
 {
   if (params_.flatten_hierarchy) {
-    return std::make_pair(nullptr, nullptr);
+    return ObjectIdentifier::for_graph_root();
   }
 
   return AbstractHierarchyIterator::determine_graph_index_object(context);
 }
 
 AbstractHierarchyIterator::ExportGraph::key_type ABCHierarchyIterator::determine_graph_index_dupli(
-    const HierarchyContext *context, const std::set<Object *> &dupli_set)
+    const HierarchyContext *context,
+    const DupliObject *dupli_object,
+    const DupliParentFinder &dupli_parent_finder)
 {
   if (params_.flatten_hierarchy) {
-    return std::make_pair(nullptr, nullptr);
+    return ObjectIdentifier::for_graph_root();
   }
 
-  return AbstractHierarchyIterator::determine_graph_index_dupli(context, dupli_set);
+  return AbstractHierarchyIterator::determine_graph_index_dupli(
+      context, dupli_object, dupli_parent_finder);
 }
 
 Alembic::Abc::OObject ABCHierarchyIterator::get_alembic_parent(
