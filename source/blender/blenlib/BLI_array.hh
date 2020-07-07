@@ -89,7 +89,7 @@ class Array {
   /**
    * Create a new array that contains copies of all values.
    */
-  Array(Span<T> values)
+  Array(Span<T> values, Allocator allocator = {}) : allocator_(allocator)
   {
     size_ = values.size();
     data_ = this->get_buffer_for_size(values.size());
@@ -147,12 +147,8 @@ class Array {
     data_ = this->get_buffer_for_size(size);
   }
 
-  Array(const Array &other) : allocator_(other.allocator_)
+  Array(const Array &other) : Array(other.as_span(), other.allocator_)
   {
-    size_ = other.size();
-
-    data_ = this->get_buffer_for_size(other.size());
-    uninitialized_copy_n(other.data(), size_, data_);
   }
 
   Array(Array &&other) noexcept : allocator_(other.allocator_)
