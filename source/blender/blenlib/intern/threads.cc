@@ -500,7 +500,7 @@ void BLI_spin_end(SpinLock *spin)
 #elif defined(__APPLE__)
   BLI_mutex_end(spin);
 #elif defined(_MSC_VER)
-  BLI_mutex_unlock(spin);
+  /* Nothing to do, spin is a simple integer type. */
 #else
   pthread_spin_destroy(spin);
 #endif
