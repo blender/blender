@@ -48,7 +48,12 @@ if(WIN32)
 
 else()
   if(APPLE)
-    # disable functions that can be in 10.13 sdk but aren't available on 10.9 target
+    # Disable functions that can be in 10.13 sdk but aren't available on 10.9 target.
+    #
+    # Disable libintl (gettext library) as it might come from Homebrew, which makes
+    # it so test program compiles, but the Python does not. This is because for Python
+    # we use isysroot, which seems to forbid using libintl.h.
+    # The gettext functionality seems to come from CoreFoundation, so should be all fine.
     set(PYTHON_FUNC_CONFIGS
       export ac_cv_func_futimens=no &&
       export ac_cv_func_utimensat=no &&
@@ -60,7 +65,10 @@ else()
       export ac_cv_func_getentropy=no &&
       export ac_cv_func_mkostemp=no &&
       export ac_cv_func_mkostemps=no &&
-      export ac_cv_func_timingsafe_bcmp=no)
+      export ac_cv_func_timingsafe_bcmp=no &&
+      export ac_cv_header_libintl_h=no &&
+      export ac_cv_lib_intl_textdomain=no
+    )
     set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV} && ${PYTHON_FUNC_CONFIGS})
     set(PYTHON_BINARY ${BUILD_DIR}/python/src/external_python/python.exe)
   else()
