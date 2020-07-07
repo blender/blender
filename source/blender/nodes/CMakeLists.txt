@@ -30,6 +30,7 @@ set(INC
   ../blenlib
   ../blentranslation
   ../depsgraph
+  ../functions
   ../gpu
   ../imbuf
   ../makesdna
@@ -192,7 +193,7 @@ set(SRC
   shader/nodes/node_shader_script.c
   shader/nodes/node_shader_sepcombHSV.c
   shader/nodes/node_shader_sepcombRGB.c
-  shader/nodes/node_shader_sepcombXYZ.c
+  shader/nodes/node_shader_sepcombXYZ.cc
   shader/nodes/node_shader_shaderToRgb.c
   shader/nodes/node_shader_squeeze.c
   shader/nodes/node_shader_subsurface_scattering.c
@@ -277,7 +278,7 @@ set(SRC
   intern/node_util.c
 
   composite/node_composite_util.h
-  function/node_function_util.h
+  function/node_function_util.hh
   shader/node_shader_util.h
   simulation/node_simulation_util.h
   texture/node_texture_util.h
@@ -296,6 +297,7 @@ set(SRC
 )
 
 set(LIB
+  bf_functions
 )
 
 if(WITH_PYTHON)

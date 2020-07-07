@@ -14,12 +14,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <cmath>
+
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
 #include "RNA_enum_types.h"
 
-#include "node_function_util.h"
+#include "node_function_util.hh"
 
 static bNodeSocketTemplate fn_node_float_compare_in[] = {
     {SOCK_FLOAT, N_("A"), 0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
@@ -54,6 +56,46 @@ static void node_float_compare_label(bNodeTree *UNUSED(ntree),
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
+static const blender::fn::MultiFunction &get_multi_function(bNode &node)
+{
+  static blender::fn::CustomMF_SI_SI_SO<float, float, bool> less_than_fn{
+      "Less Than", [](float a, float b) { return a < b; }};
+  static blender::fn::CustomMF_SI_SI_SO<float, float, bool> less_equal_fn{
+      "Less Equal", [](float a, float b) { return a <= b; }};
+  static blender::fn::CustomMF_SI_SI_SO<float, float, bool> greater_than_fn{
+      "Greater Than", [](float a, float b) { return a > b; }};
+  static blender::fn::CustomMF_SI_SI_SO<float, float, bool> greater_equal_fn{
+      "Greater Equal", [](float a, float b) { return a >= b; }};
+  static blender::fn::CustomMF_SI_SI_SI_SO<float, float, float, bool> equal_fn{
+      "Equal", [](float a, float b, float epsilon) { return std::abs(a - b) <= epsilon; }};
+  static blender::fn::CustomMF_SI_SI_SI_SO<float, float, float, bool> not_equal_fn{
+      "Not Equal", [](float a, float b, float epsilon) { return std::abs(a - b) > epsilon; }};
+
+  switch (node.custom1) {
+    case NODE_FLOAT_COMPARE_LESS_THAN:
+      return less_than_fn;
+    case NODE_FLOAT_COMPARE_LESS_EQUAL:
+      return less_equal_fn;
+    case NODE_FLOAT_COMPARE_GREATER_THAN:
+      return greater_than_fn;
+    case NODE_FLOAT_COMPARE_GREATER_EQUAL:
+      return greater_equal_fn;
+    case NODE_FLOAT_COMPARE_EQUAL:
+      return equal_fn;
+    case NODE_FLOAT_COMPARE_NOT_EQUAL:
+      return not_equal_fn;
+  }
+
+  BLI_assert(false);
+  return blender::fn::dummy_multi_function;
+}
+
+static void node_float_compare_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+{
+  const blender::fn::MultiFunction &fn = get_multi_function(builder.bnode());
+  builder.set_matching_fn(fn);
+}
+
 void register_node_type_fn_float_compare()
 {
   static bNodeType ntype;
@@ -62,5 +104,6 @@ void register_node_type_fn_float_compare()
   node_type_socket_templates(&ntype, fn_node_float_compare_in, fn_node_float_compare_out);
   node_type_label(&ntype, node_float_compare_label);
   node_type_update(&ntype, node_float_compare_update);
+  ntype.expand_in_mf_network = node_float_compare_expand_in_mf_network;
   nodeRegisterType(&ntype);
 }

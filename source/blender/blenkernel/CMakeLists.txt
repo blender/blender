@@ -27,6 +27,7 @@ set(INC
   ../bmesh
   ../depsgraph
   ../draw
+  ../functions
   ../gpencil_modifiers
   ../gpu
   ../ikplugin
@@ -187,6 +188,7 @@ set(SRC
   intern/multires_unsubdivide.c
   intern/nla.c
   intern/node.c
+  intern/node_tree_multi_function.cc
   intern/node_tree_ref.cc
   intern/object.c
   intern/object_deform.c
@@ -356,6 +358,7 @@ set(SRC
   BKE_multires.h
   BKE_nla.h
   BKE_node.h
+  BKE_node_tree_multi_function.hh
   BKE_node_tree_ref.hh
   BKE_object.h
   BKE_object_deform.h
@@ -424,6 +427,7 @@ set(LIB
   bf_bmesh
   bf_depsgraph
   bf_draw
+  bf_functions
   bf_gpencil_modifiers
   bf_gpu
   bf_ikplugin

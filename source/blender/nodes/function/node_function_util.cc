@@ -14,7 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "node_function_util.h"
+#include "node_function_util.hh"
 #include "node_util.h"
 
 bool fn_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)

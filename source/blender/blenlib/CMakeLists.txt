@@ -232,6 +232,7 @@ set(SRC
   BLI_quadric.h
   BLI_rand.h
   BLI_rect.h
+  BLI_resource_collector.hh
   BLI_scanfill.h
   BLI_set.hh
   BLI_set_slots.hh

@@ -15,7 +15,7 @@
  */
 
 #include "BLI_listbase.h"
-#include "node_function_util.h"
+#include "node_function_util.hh"
 
 static bNodeSocketTemplate fn_node_switch_in[] = {
     {SOCK_BOOLEAN, N_("Switch")},

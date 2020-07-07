@@ -44,6 +44,42 @@ static int gpu_shader_sepxyz(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "separate_xyz", in, out);
 }
 
+class MF_SeparateXYZ : public blender::fn::MultiFunction {
+ public:
+  MF_SeparateXYZ()
+  {
+    blender::fn::MFSignatureBuilder signature = this->get_builder("Separate XYZ");
+    signature.single_input<blender::float3>("XYZ");
+    signature.single_output<float>("X");
+    signature.single_output<float>("y");
+    signature.single_output<float>("z");
+  }
+
+  void call(blender::IndexMask mask,
+            blender::fn::MFParams params,
+            blender::fn::MFContext UNUSED(context)) const override
+  {
+    blender::fn::VSpan<blender::float3> vectors = params.readonly_single_input<blender::float3>(
+        0, "XYZ");
+    blender::MutableSpan<float> xs = params.uninitialized_single_output<float>(1, "X");
+    blender::MutableSpan<float> ys = params.uninitialized_single_output<float>(2, "Y");
+    blender::MutableSpan<float> zs = params.uninitialized_single_output<float>(3, "Z");
+
+    for (uint i : mask) {
+      blender::float3 xyz = vectors[i];
+      xs[i] = xyz.x;
+      ys[i] = xyz.y;
+      zs[i] = xyz.z;
+    }
+  }
+};
+
+static void sh_node_sepxyz_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+{
+  static MF_SeparateXYZ separate_fn;
+  builder.set_matching_fn(separate_fn);
+}
+
 void register_node_type_sh_sepxyz(void)
 {
   static bNodeType ntype;
@@ -51,6 +87,7 @@ void register_node_type_sh_sepxyz(void)
   sh_fn_node_type_base(&ntype, SH_NODE_SEPXYZ, "Separate XYZ", NODE_CLASS_CONVERTOR, 0);
   node_type_socket_templates(&ntype, sh_node_sepxyz_in, sh_node_sepxyz_out);
   node_type_gpu(&ntype, gpu_shader_sepxyz);
+  ntype.expand_in_mf_network = sh_node_sepxyz_expand_in_mf_network;
 
   nodeRegisterType(&ntype);
 }
@@ -76,6 +113,39 @@ static int gpu_shader_combxyz(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "combine_xyz", in, out);
 }
 
+class MF_CombineXYZ : public blender::fn::MultiFunction {
+ public:
+  MF_CombineXYZ()
+  {
+    blender::fn::MFSignatureBuilder signature = this->get_builder("Combine XYZ");
+    signature.single_input<float>("X");
+    signature.single_input<float>("Y");
+    signature.single_input<float>("Z");
+    signature.single_output<blender::float3>("XYZ");
+  }
+
+  void call(blender::IndexMask mask,
+            blender::fn::MFParams params,
+            blender::fn::MFContext UNUSED(context)) const override
+  {
+    blender::fn::VSpan<float> xs = params.readonly_single_input<float>(0, "X");
+    blender::fn::VSpan<float> ys = params.readonly_single_input<float>(1, "Y");
+    blender::fn::VSpan<float> zs = params.readonly_single_input<float>(2, "Z");
+    blender::MutableSpan<blender::float3> vectors =
+        params.uninitialized_single_output<blender::float3>(3, "XYZ");
+
+    for (uint i : mask) {
+      vectors[i] = {xs[i], ys[i], zs[i]};
+    }
+  }
+};
+
+static void sh_node_combxyz_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+{
+  static MF_CombineXYZ combine_fn;
+  builder.set_matching_fn(combine_fn);
+}
+
 void register_node_type_sh_combxyz(void)
 {
   static bNodeType ntype;
@@ -83,6 +153,7 @@ void register_node_type_sh_combxyz(void)
   sh_fn_node_type_base(&ntype, SH_NODE_COMBXYZ, "Combine XYZ", NODE_CLASS_CONVERTOR, 0);
   node_type_socket_templates(&ntype, sh_node_combxyz_in, sh_node_combxyz_out);
   node_type_gpu(&ntype, gpu_shader_combxyz);
+  ntype.expand_in_mf_network = sh_node_combxyz_expand_in_mf_network;
 
   nodeRegisterType(&ntype);
 }

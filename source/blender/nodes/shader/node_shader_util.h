@@ -70,6 +70,12 @@
 #include "GPU_uniformbuffer.h"
 
 #ifdef __cplusplus
+#  include "FN_multi_function_builder.hh"
+
+#  include "BKE_node_tree_multi_function.hh"
+
+#  include "BLI_float3.hh"
+
 extern "C" {
 #endif
 
