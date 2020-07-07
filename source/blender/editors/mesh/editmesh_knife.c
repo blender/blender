@@ -1548,8 +1548,8 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 {
   SmallHash faces, kfes, kfvs;
   float v1[3], v2[3], v3[3], v4[3], s1[2], s2[2];
-  BVHTree *planetree, *tree;
-  BVHTreeOverlap *results, *result;
+  BVHTree *tree;
+  int *results, *result;
   BMLoop **ls;
   BMFace *f;
   KnifeEdge *kfe;
@@ -1562,7 +1562,6 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   KnifeLineHit hit;
   void *val;
   void **val_p;
-  float plane_cos[12];
   float s[2], se1[2], se2[2], sint[2];
   float r1[3], r2[3];
   float d, d1, d2, lambda;
@@ -1623,22 +1622,24 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
     clip_to_ortho_planes(v2, v4, kcd->ortho_extent_center, kcd->ortho_extent + 10.0f);
   }
 
+  float plane[4];
+  {
+    float v1_v2[3], v1_v3[3];
+    copy_v3_v3(v1, kcd->prev.cage);
+    copy_v3_v3(v2, kcd->curr.cage);
+    sub_v3_v3v3(v1_v2, v2, v1);
+    sub_v3_v3v3(v1_v3, v3, v1);
+    cross_v3_v3v3(plane, v1_v2, v1_v3);
+    plane_from_point_normal_v3(plane, v1, plane);
+  }
+
   /* First use bvh tree to find faces, knife edges, and knife verts that might
    * intersect the cut plane with rays v1-v3 and v2-v4.
    * This deduplicates the candidates before doing more expensive intersection tests. */
 
   tree = BKE_bmbvh_tree_get(kcd->bmbvh);
-  planetree = BLI_bvhtree_new(4, FLT_EPSILON * 4, 8, 8);
-  copy_v3_v3(plane_cos + 0, v1);
-  copy_v3_v3(plane_cos + 3, v2);
-  copy_v3_v3(plane_cos + 6, v3);
-  copy_v3_v3(plane_cos + 9, v4);
-  BLI_bvhtree_insert(planetree, 0, plane_cos, 4);
-  BLI_bvhtree_balance(planetree);
-
-  results = BLI_bvhtree_overlap(tree, planetree, &tot, NULL, NULL);
+  results = BLI_bvhtree_intersect_plane(tree, plane, &tot);
   if (!results) {
-    BLI_bvhtree_free(planetree);
     return;
   }
 
@@ -1647,9 +1648,9 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   BLI_smallhash_init(&kfvs);
 
   for (i = 0, result = results; i < tot; i++, result++) {
-    ls = (BMLoop **)kcd->em->looptris[result->indexA];
+    ls = (BMLoop **)kcd->em->looptris[*result];
     f = ls[0]->f;
-    set_lowest_face_tri(kcd, f, result->indexA);
+    set_lowest_face_tri(kcd, f, *result);
 
     /* occlude but never cut unselected faces (when only_select is used) */
     if (kcd->only_select && !BM_elem_flag_test(f, BM_ELEM_SELECT)) {
@@ -1834,7 +1835,6 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   BLI_smallhash_release(&faces);
   BLI_smallhash_release(&kfes);
   BLI_smallhash_release(&kfvs);
-  BLI_bvhtree_free(planetree);
   if (results) {
     MEM_freeN(results);
   }
