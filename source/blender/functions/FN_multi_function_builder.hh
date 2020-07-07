@@ -225,6 +225,33 @@ template<typename T> class CustomMF_Constant : public MultiFunction {
   }
 };
 
+/**
+ * A multi-function that outputs the same value every time. The value is not owned by an instance
+ * of this function. The caller is responsible for destructing and freeing the value.
+ */
+class CustomMF_GenericConstant : public MultiFunction {
+ private:
+  const CPPType &type_;
+  const void *value_;
+
+ public:
+  CustomMF_GenericConstant(const CPPType &type, const void *value);
+  void call(IndexMask mask, MFParams params, MFContext context) const override;
+};
+
+/**
+ * A multi-function that outputs the same array every time. The array is not owned by in instance
+ * of this function. The caller is responsible for destructing and freeing the values.
+ */
+class CustomMF_GenericConstantArray : public MultiFunction {
+ private:
+  GSpan array_;
+
+ public:
+  CustomMF_GenericConstantArray(GSpan array);
+  void call(IndexMask mask, MFParams params, MFContext context) const override;
+};
+
 }  // namespace blender::fn
 
 #endif /* __FN_MULTI_FUNCTION_BUILDER_HH__ */

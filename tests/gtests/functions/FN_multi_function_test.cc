@@ -329,4 +329,53 @@ TEST(multi_function, CustomMF_Constant)
   EXPECT_EQ(outputs[3], 42);
 }
 
+TEST(multi_function, CustomMF_GenericConstant)
+{
+  int value = 42;
+  CustomMF_GenericConstant fn{CPPType_int32, (const void *)&value};
+  EXPECT_EQ(fn.param_name(0), "42");
+
+  Array<int> outputs(4, 0);
+
+  MFParamsBuilder params(fn, outputs.size());
+  params.add_uninitialized_single_output(outputs.as_mutable_span());
+
+  MFContextBuilder context;
+
+  fn.call({0, 1, 2}, params, context);
+
+  EXPECT_EQ(outputs[0], 42);
+  EXPECT_EQ(outputs[1], 42);
+  EXPECT_EQ(outputs[2], 42);
+  EXPECT_EQ(outputs[3], 0);
+}
+
+TEST(multi_function, CustomMF_GenericConstantArray)
+{
+  std::array<int, 4> values = {3, 4, 5, 6};
+  CustomMF_GenericConstantArray fn{GSpan(Span(values))};
+  EXPECT_EQ(fn.param_name(0), "[3, 4, 5, 6, ]");
+
+  GVectorArray g_vector_array{CPPType_int32, 4};
+  GVectorArrayRef<int> vector_array = g_vector_array;
+
+  MFParamsBuilder params(fn, g_vector_array.size());
+  params.add_vector_output(g_vector_array);
+
+  MFContextBuilder context;
+
+  fn.call({1, 2, 3}, params, context);
+
+  EXPECT_EQ(vector_array[0].size(), 0);
+  EXPECT_EQ(vector_array[1].size(), 4);
+  EXPECT_EQ(vector_array[2].size(), 4);
+  EXPECT_EQ(vector_array[3].size(), 4);
+  for (uint i = 1; i < 4; i++) {
+    EXPECT_EQ(vector_array[i][0], 3);
+    EXPECT_EQ(vector_array[i][1], 4);
+    EXPECT_EQ(vector_array[i][2], 5);
+    EXPECT_EQ(vector_array[i][3], 6);
+  }
+}
+
 }  // namespace blender::fn
