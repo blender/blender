@@ -823,6 +823,12 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
       Mesh *mesh = static_cast<Mesh *>(geom);
       apply = apply && mesh->subdivision_type == Mesh::SUBDIVISION_NONE;
     }
+    else if (geom->type == Geometry::HAIR) {
+      /* Can't apply non-uniform scale to curves, this can't be represented by
+       * control points and radius alone. */
+      float scale;
+      apply = apply && transform_uniform_scale(object->tfm, scale);
+    }
 
     if (apply) {
       if (!(motion_blur && object->use_motion())) {
