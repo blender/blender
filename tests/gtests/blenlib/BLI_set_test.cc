@@ -405,7 +405,7 @@ TEST(set, IntrusiveIntKey)
 
 struct MyKeyType {
   uint32_t key;
-  uint32_t attached_data;
+  int32_t attached_data;
 
   uint32_t hash() const
   {
