@@ -288,10 +288,6 @@ class VectorSet {
   {
     return this->add_as(std::move(key));
   }
-
-  /**
-   * Same as `add`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> bool add_as(ForwardKey &&key)
   {
     return this->add__impl(std::forward<ForwardKey>(key), hash_(key));
@@ -320,10 +316,6 @@ class VectorSet {
   {
     return this->contains_as(key);
   }
-
-  /**
-   * Same as `contains`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> bool contains_as(const ForwardKey &key) const
   {
     return this->contains__impl(key, hash_(key));
@@ -339,10 +331,6 @@ class VectorSet {
   {
     return this->remove_as(key);
   }
-
-  /**
-   * Same as `remove`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> bool remove_as(const ForwardKey &key)
   {
     return this->remove__impl(key, hash_(key));
@@ -356,11 +344,6 @@ class VectorSet {
   {
     this->remove_contained_as(key);
   }
-
-  /**
-   * Same as `remove_contained`, but accepts other key types that are supported by the hash
-   * function.
-   */
   template<typename ForwardKey> void remove_contained_as(const ForwardKey &key)
   {
     this->remove_contained__impl(key, hash_(key));
@@ -383,10 +366,6 @@ class VectorSet {
   {
     return this->index_of_as(key);
   }
-
-  /**
-   * Same as `index_of`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> uint32_t index_of_as(const ForwardKey &key) const
   {
     return this->index_of__impl(key, hash_(key));
@@ -400,10 +379,6 @@ class VectorSet {
   {
     return (int32_t)this->index_of_try_as(key);
   }
-
-  /**
-   * Same as `index_of_try`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> int32_t index_of_try_as(const ForwardKey &key) const
   {
     return this->index_of_try__impl(key, hash_(key));

@@ -271,10 +271,6 @@ class Map {
   {
     return this->add_as(std::move(key), std::move(value));
   }
-
-  /**
-   * Same as `add`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey, typename ForwardValue>
   bool add_as(ForwardKey &&key, ForwardValue &&value)
   {
@@ -305,10 +301,6 @@ class Map {
   {
     return this->add_overwrite_as(std::move(key), std::move(value));
   }
-
-  /**
-   * Same as `add_overwrite`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey, typename ForwardValue>
   bool add_overwrite_as(ForwardKey &&key, ForwardValue &&value)
   {
@@ -325,10 +317,6 @@ class Map {
   {
     return this->contains_as(key);
   }
-
-  /**
-   * Same as `contains`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> bool contains_as(const ForwardKey &key) const
   {
     return this->contains__impl(key, hash_(key));
@@ -344,10 +332,6 @@ class Map {
   {
     return this->remove_as(key);
   }
-
-  /**
-   * Same as `remove`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> bool remove_as(const ForwardKey &key)
   {
     return this->remove__impl(key, hash_(key));
@@ -361,11 +345,6 @@ class Map {
   {
     this->remove_contained_as(key);
   }
-
-  /**
-   * Same as `remove_contained`, but accepts other key types that are supported by the hash
-   * function.
-   */
   template<typename ForwardKey> void remove_contained_as(const ForwardKey &key)
   {
     this->remove_contained__impl(key, hash_(key));
@@ -379,10 +358,6 @@ class Map {
   {
     return this->pop_as(key);
   }
-
-  /**
-   * Same as `pop`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> Value pop_as(const ForwardKey &key)
   {
     return this->pop__impl(key, hash_(key));
@@ -396,10 +371,6 @@ class Map {
   {
     return this->pop_try_as(key);
   }
-
-  /**
-   * Same as `pop_try`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> std::optional<Value> pop_try_as(const ForwardKey &key)
   {
     return this->pop_try__impl(key, hash_(key));
@@ -417,10 +388,6 @@ class Map {
   {
     return this->pop_default_as(key, std::move(default_value));
   }
-
-  /**
-   * Same as `pop_default`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey, typename ForwardValue>
   Value pop_default_as(const ForwardKey &key, ForwardValue &&default_value)
   {
@@ -460,10 +427,6 @@ class Map {
   {
     return this->add_or_modify_as(std::move(key), create_value, modify_value);
   }
-
-  /**
-   * Same as `add_or_modify`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey, typename CreateValueF, typename ModifyValueF>
   auto add_or_modify_as(ForwardKey &&key,
                         const CreateValueF &create_value,
@@ -487,10 +450,6 @@ class Map {
   {
     return this->lookup_ptr_as(key);
   }
-
-  /**
-   * Same as `lookup_ptr`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> const Value *lookup_ptr_as(const ForwardKey &key) const
   {
     return this->lookup_ptr__impl(key, hash_(key));
@@ -512,10 +471,6 @@ class Map {
   {
     return this->lookup_as(key);
   }
-
-  /**
-   * Same as `lookup`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> const Value &lookup_as(const ForwardKey &key) const
   {
     const Value *ptr = this->lookup_ptr_as(key);
@@ -537,10 +492,6 @@ class Map {
   {
     return this->lookup_default_as(key, default_value);
   }
-
-  /**
-   * Same as `lookup_default`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey, typename ForwardValue>
   Value lookup_default_as(const ForwardKey &key, ForwardValue &&default_value) const
   {
@@ -573,11 +524,6 @@ class Map {
   {
     return this->lookup_or_add_as(std::move(key), std::move(value));
   }
-
-  /**
-   * Same as `lookup_or_add`, but accepts other key types that are supported by the hash
-   * function.
-   */
   template<typename ForwardKey, typename ForwardValue>
   Value &lookup_or_add_as(ForwardKey &&key, ForwardValue &&value)
   {
@@ -602,11 +548,6 @@ class Map {
   {
     return this->lookup_or_add_cb_as(std::move(key), create_value);
   }
-
-  /**
-   * Same as `lookup_or_add_cb`, but accepts other key types that are supported by the hash
-   * function.
-   */
   template<typename ForwardKey, typename CreateValueF>
   Value &lookup_or_add_cb_as(ForwardKey &&key, const CreateValueF &create_value)
   {
@@ -625,11 +566,6 @@ class Map {
   {
     return this->lookup_or_add_default_as(std::move(key));
   }
-
-  /**
-   * Same as `lookup_or_add_default`, but accepts other key types that are supported by the hash
-   * function.
-   */
   template<typename ForwardKey> Value &lookup_or_add_default_as(ForwardKey &&key)
   {
     return this->lookup_or_add_cb_as(std::forward<ForwardKey>(key), []() { return Value(); });

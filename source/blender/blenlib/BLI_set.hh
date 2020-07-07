@@ -260,10 +260,6 @@ class Set {
   {
     return this->add_as(std::move(key));
   }
-
-  /**
-   * Same as `add`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> bool add_as(ForwardKey &&key)
   {
     return this->add__impl(std::forward<ForwardKey>(key), hash_(key));
@@ -303,10 +299,6 @@ class Set {
   {
     return this->contains_as(key);
   }
-
-  /**
-   * Same as `contains`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> bool contains_as(const ForwardKey &key) const
   {
     return this->contains__impl(key, hash_(key));
@@ -320,10 +312,6 @@ class Set {
   {
     return this->lookup_key_as(key);
   }
-
-  /**
-   * Same as `lookup_key`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> const Key &lookup_key_as(const ForwardKey &key) const
   {
     return this->lookup_key__impl(key, hash_(key));
@@ -337,11 +325,6 @@ class Set {
   {
     return this->lookup_key_default_as(key, default_value);
   }
-
-  /**
-   * Same as `lookup_key_default`, but accepts other key types that are supported by the hash
-   * function.
-   */
   template<typename ForwardKey>
   const Key &lookup_key_default_as(const ForwardKey &key, const Key &default_key) const
   {
@@ -360,11 +343,6 @@ class Set {
   {
     return this->lookup_key_ptr_as(key);
   }
-
-  /**
-   * Same as `lookup_key_ptr`, but accepts other key types that are supported by the hash
-   * function.
-   */
   template<typename ForwardKey> const Key *lookup_key_ptr_as(const ForwardKey &key) const
   {
     return this->lookup_key_ptr__impl(key, hash_(key));
@@ -379,10 +357,6 @@ class Set {
   {
     return this->remove_as(key);
   }
-
-  /**
-   * Same as `remove`, but accepts other key types that are supported by the hash function.
-   */
   template<typename ForwardKey> bool remove_as(const ForwardKey &key)
   {
     return this->remove__impl(key, hash_(key));
@@ -395,11 +369,6 @@ class Set {
   {
     this->remove_contained_as(key);
   }
-
-  /**
-   * Same as `remove_contained`, but accepts other key types that are supported by the hash
-   * function.
-   */
   template<typename ForwardKey> void remove_contained_as(const ForwardKey &key)
   {
     this->remove_contained__impl(key, hash_(key));
