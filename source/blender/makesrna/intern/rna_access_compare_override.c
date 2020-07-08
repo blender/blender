@@ -186,7 +186,7 @@ static int rna_property_override_diff(Main *bmain,
                                       const size_t rna_path_len,
                                       eRNACompareMode mode,
                                       IDOverrideLibrary *override,
-                                      const int flags,
+                                      const eRNAOverrideMatch flags,
                                       eRNAOverrideMatchResult *r_report_flags);
 
 bool RNA_property_equals(
@@ -256,7 +256,7 @@ static int rna_property_override_diff(Main *bmain,
                                       const size_t rna_path_len,
                                       eRNACompareMode mode,
                                       IDOverrideLibrary *override,
-                                      const int flags,
+                                      const eRNAOverrideMatch flags,
                                       eRNAOverrideMatchResult *r_report_flags)
 {
   if (prop != NULL) {
@@ -274,13 +274,13 @@ static int rna_property_override_diff(Main *bmain,
   }
 
   if (mode == RNA_EQ_UNSET_MATCH_ANY) {
-    /* uninitialized properties are assumed to match anything */
+    /* Unset properties are assumed to match anything. */
     if (!RNA_property_is_set(ptr_a, prop_a) || !RNA_property_is_set(ptr_b, prop_b)) {
       return 0;
     }
   }
   else if (mode == RNA_EQ_UNSET_MATCH_NONE) {
-    /* unset properties never match set properties */
+    /* Unset properties never match set properties. */
     if (RNA_property_is_set(ptr_a, prop_a) != RNA_property_is_set(ptr_b, prop_b)) {
       return 1;
     }
@@ -354,7 +354,7 @@ static int rna_property_override_diff(Main *bmain,
   }
 
   bool override_changed = false;
-  int diff_flags = flags;
+  eRNAOverrideMatch diff_flags = flags;
   if (!RNA_property_overridable_get(ptr_a, prop_a)) {
     diff_flags &= ~RNA_OVERRIDE_COMPARE_CREATE;
   }

@@ -161,6 +161,8 @@ class MutableAttributesRef {
   Span<void *> buffers_;
   IndexRange range_;
 
+  friend class AttributesRef;
+
  public:
   MutableAttributesRef(const AttributesInfo &info, Span<void *> buffers, uint size)
       : MutableAttributesRef(info, buffers, IndexRange(size))
@@ -238,6 +240,97 @@ class MutableAttributesRef {
   MutableAttributesRef slice(uint start, uint size) const
   {
     return MutableAttributesRef(*info_, buffers_, range_.slice(start, size));
+  }
+};
+
+class AttributesRef {
+ private:
+  const AttributesInfo *info_;
+  Span<const void *> buffers_;
+  IndexRange range_;
+
+ public:
+  AttributesRef(const AttributesInfo &info, Span<const void *> buffers, uint size)
+      : AttributesRef(info, buffers, IndexRange(size))
+  {
+  }
+
+  AttributesRef(const AttributesInfo &info, Span<const void *> buffers, IndexRange range)
+      : info_(&info), buffers_(buffers), range_(range)
+  {
+  }
+
+  AttributesRef(MutableAttributesRef attributes)
+      : info_(attributes.info_), buffers_(attributes.buffers_), range_(attributes.range_)
+  {
+  }
+
+  uint size() const
+  {
+    return range_.size();
+  }
+
+  const AttributesInfo &info() const
+  {
+    return *info_;
+  }
+
+  GSpan get(uint index) const
+  {
+    const CPPType &type = info_->type_of(index);
+    const void *ptr = POINTER_OFFSET(buffers_[index], type.size() * range_.start());
+    return GSpan(type, ptr, range_.size());
+  }
+
+  GSpan get(StringRef name) const
+  {
+    return this->get(info_->index_of(name));
+  }
+
+  template<typename T> Span<T> get(uint index) const
+  {
+    BLI_assert(info_->type_of(index).is<T>());
+    return Span<T>((T *)buffers_[index] + range_.start(), range_.size());
+  }
+
+  template<typename T> Span<T> get(StringRef name) const
+  {
+    return this->get<T>(info_->index_of(name));
+  }
+
+  std::optional<GSpan> try_get(StringRef name, const CPPType &type) const
+  {
+    int index = info_->try_index_of(name, type);
+    if (index == -1) {
+      return {};
+    }
+    else {
+      return this->get((uint)index);
+    }
+  }
+
+  template<typename T> std::optional<Span<T>> try_get(StringRef name) const
+  {
+    int index = info_->try_index_of(name);
+    if (index == -1) {
+      return {};
+    }
+    else if (info_->type_of((uint)index).is<T>()) {
+      return this->get<T>((uint)index);
+    }
+    else {
+      return {};
+    }
+  }
+
+  AttributesRef slice(IndexRange range) const
+  {
+    return this->slice(range.start(), range.size());
+  }
+
+  AttributesRef slice(uint start, uint size) const
+  {
+    return AttributesRef(*info_, buffers_, range_.slice(start, size));
   }
 };
 

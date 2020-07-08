@@ -184,12 +184,12 @@ void MFNetwork::add_link(MFOutputSocket &from, MFInputSocket &to)
 
 MFOutputSocket &MFNetwork::add_input(StringRef name, MFDataType data_type)
 {
-  return this->add_dummy(name, {}, {data_type}, {}, {name}).output(0);
+  return this->add_dummy(name, {}, {data_type}, {}, {"Value"}).output(0);
 }
 
 MFInputSocket &MFNetwork::add_output(StringRef name, MFDataType data_type)
 {
-  return this->add_dummy(name, {data_type}, {}, {name}, {}).input(0);
+  return this->add_dummy(name, {data_type}, {}, {"Value"}, {}).input(0);
 }
 
 void MFNetwork::relink(MFOutputSocket &old_output, MFOutputSocket &new_output)

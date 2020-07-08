@@ -65,13 +65,13 @@ inline constexpr uint32_t power_of_2_max_u_constexpr(const uint32_t x)
 
 template<typename IntT> inline constexpr IntT ceil_division(const IntT x, const IntT y)
 {
-  BLI_STATIC_ASSERT(!std::is_signed<IntT>::value, "");
+  BLI_STATIC_ASSERT(!std::is_signed_v<IntT>, "");
   return x / y + ((x % y) != 0);
 }
 
 template<typename IntT> inline constexpr IntT floor_division(const IntT x, const IntT y)
 {
-  BLI_STATIC_ASSERT(!std::is_signed<IntT>::value, "");
+  BLI_STATIC_ASSERT(!std::is_signed_v<IntT>, "");
   return x / y;
 }
 
