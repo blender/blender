@@ -18,7 +18,7 @@
 #define __FN_CPP_TYPE_HH__
 
 /** \file
- * \ingroup functions
+ * \ingroup fn
  *
  * The CPPType class is the core of the runtime-type-system used by the functions system. An
  * instance of this class can represent any C++ type, that is default-constructible, destructible,

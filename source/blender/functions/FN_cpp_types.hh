@@ -18,7 +18,7 @@
 #define __FN_CPP_TYPES_HH__
 
 /** \file
- * \ingroup functions
+ * \ingroup fn
  *
  * This header provides convenient access to CPPType instances for some core types like integer
  * types.
