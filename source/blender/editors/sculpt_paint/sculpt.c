@@ -547,28 +547,79 @@ void SCULPT_visibility_sync_all_vertex_to_face_sets(SculptSession *ss)
   }
 }
 
+bool sculpt_check_unique_face_set_in_base_mesh(SculptSession *ss, int index)
+{
+  MeshElemMap *vert_map = &ss->pmap[index];
+  int face_set = -1;
+  for (int i = 0; i < ss->pmap[index].count; i++) {
+    if (face_set == -1) {
+      face_set = abs(ss->face_sets[vert_map->indices[i]]);
+    }
+    else {
+      if (abs(ss->face_sets[vert_map->indices[i]]) != face_set) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+/* Checks if the face sets of the adjacent faces to the edge between v1 and v2 in the base mesh are
+ * equal. */
+bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss, int v1, int v2)
+{
+  MeshElemMap *vert_map = &ss->pmap[v1];
+  int p1 = -1, p2 = -1;
+  for (int i = 0; i < ss->pmap[v1].count; i++) {
+    MPoly *p = &ss->mpoly[vert_map->indices[i]];
+    for (int l = 0; l < p->totloop; l++) {
+      MLoop *loop = &ss->mloop[p->loopstart + l];
+      if (loop->v == v2) {
+        if (p1 == -1) {
+          p1 = vert_map->indices[i];
+          break;
+        }
+        else if (p2 == -1) {
+          p2 = vert_map->indices[i];
+          break;
+        }
+      }
+    }
+  }
+
+  if (p1 != -1 && p2 != -1) {
+    return abs(ss->face_sets[p1]) == (ss->face_sets[p2]);
+  }
+  return true;
+}
+
 bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
-      MeshElemMap *vert_map = &ss->pmap[index];
-      int face_set = -1;
-      for (int i = 0; i < ss->pmap[index].count; i++) {
-        if (face_set == -1) {
-          face_set = abs(ss->face_sets[vert_map->indices[i]]);
-        }
-        else {
-          if (abs(ss->face_sets[vert_map->indices[i]]) != face_set) {
-            return false;
-          }
-        }
-      }
-      return true;
+      return sculpt_check_unique_face_set_in_base_mesh(ss, index);
     }
     case PBVH_BMESH:
       return false;
-    case PBVH_GRIDS:
-      return true;
+    case PBVH_GRIDS: {
+      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+      const int grid_index = index / key->grid_area;
+      const int vertex_index = index - grid_index * key->grid_area;
+      const SubdivCCGCoord coord = {.grid_index = grid_index,
+                                    .x = vertex_index % key->grid_size,
+                                    .y = vertex_index / key->grid_size};
+      int v1, v2;
+      const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
+          ss->subdiv_ccg, &coord, ss->mloop, ss->mpoly, &v1, &v2);
+      switch (adjacency) {
+        case SUBDIV_CCG_ADJACENT_VERTEX:
+          return sculpt_check_unique_face_set_in_base_mesh(ss, v1);
+        case SUBDIV_CCG_ADJACENT_EDGE:
+          return sculpt_check_unique_face_set_for_edge_in_base_mesh(ss, v1, v2);
+        case SUBDIV_CCG_ADJACENT_NONE:
+          return true;
+      }
+    }
   }
   return false;
 }
@@ -735,44 +786,64 @@ void SCULPT_vertex_neighbors_get(SculptSession *ss,
   }
 }
 
+bool sculpt_check_boundary_vertex_in_base_mesh(SculptSession *ss, const int index)
+{
+  const MeshElemMap *vert_map = &ss->pmap[index];
+  if (vert_map->count <= 1) {
+    return true;
+  }
+  for (int i = 0; i < vert_map->count; i++) {
+    const MPoly *p = &ss->mpoly[vert_map->indices[i]];
+    unsigned f_adj_v[2];
+    if (poly_get_adj_loops_from_vert(p, ss->mloop, index, f_adj_v) != -1) {
+      int j;
+      for (j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
+        if (!(vert_map->count != 2 || ss->pmap[f_adj_v[j]].count <= 2)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 bool SCULPT_vertex_is_boundary(SculptSession *ss, const int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
-      const MeshElemMap *vert_map = &ss->pmap[index];
-
-      if (vert_map->count <= 1) {
-        return false;
-      }
-
       if (!SCULPT_vertex_all_face_sets_visible_get(ss, index)) {
-        return false;
+        return true;
       }
-
-      for (int i = 0; i < vert_map->count; i++) {
-        const MPoly *p = &ss->mpoly[vert_map->indices[i]];
-        unsigned f_adj_v[2];
-        if (poly_get_adj_loops_from_vert(p, ss->mloop, index, f_adj_v) != -1) {
-          int j;
-          for (j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
-            if (!(vert_map->count != 2 || ss->pmap[f_adj_v[j]].count <= 2)) {
-              return false;
-            }
-          }
-        }
-      }
-      return true;
+      return sculpt_check_boundary_vertex_in_base_mesh(ss, index);
     }
     case PBVH_BMESH: {
       BMVert *v = BM_vert_at_index(ss->bm, index);
       return BM_vert_is_boundary(v);
     }
 
-    case PBVH_GRIDS:
-      return true;
+    case PBVH_GRIDS: {
+      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+      const int grid_index = index / key->grid_area;
+      const int vertex_index = index - grid_index * key->grid_area;
+      const SubdivCCGCoord coord = {.grid_index = grid_index,
+                                    .x = vertex_index % key->grid_size,
+                                    .y = vertex_index / key->grid_size};
+      int v1, v2;
+      const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
+          ss->subdiv_ccg, &coord, ss->mloop, ss->mpoly, &v1, &v2);
+      switch (adjacency) {
+        case SUBDIV_CCG_ADJACENT_VERTEX:
+          return sculpt_check_boundary_vertex_in_base_mesh(ss, v1);
+        case SUBDIV_CCG_ADJACENT_EDGE:
+          return sculpt_check_boundary_vertex_in_base_mesh(ss, v1) &&
+                 sculpt_check_boundary_vertex_in_base_mesh(ss, v2);
+        case SUBDIV_CCG_ADJACENT_NONE:
+          return false;
+      }
+    }
   }
 
-  return true;
+  return false;
 }
 
 /* Utilities */
