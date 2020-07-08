@@ -78,7 +78,7 @@ class GVectorArray : NonCopyable, NonMovable {
 
   operator GVArraySpan() const
   {
-    return GVArraySpan(type_, starts_.as_span(), lengths_);
+    return GVArraySpan(type_, starts_, lengths_);
   }
 
   bool is_empty() const
@@ -98,7 +98,7 @@ class GVectorArray : NonCopyable, NonMovable {
 
   Span<const void *> starts() const
   {
-    return starts_.as_span();
+    return starts_;
   }
 
   Span<uint> lengths() const

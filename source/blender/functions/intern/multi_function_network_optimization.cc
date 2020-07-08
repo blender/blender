@@ -287,14 +287,14 @@ void constant_folding(MFNetwork &network, ResourceCollector &resources)
   }
 
   Array<MFOutputSocket *> folded_sockets = compute_constant_sockets_and_add_folded_nodes(
-      network, inputs_to_fold.as_span(), resources);
+      network, inputs_to_fold, resources);
 
   for (uint i : inputs_to_fold.index_range()) {
     MFOutputSocket &original_socket = *inputs_to_fold[i]->origin();
     network.relink(original_socket, *folded_sockets[i]);
   }
 
-  network.remove(temporary_nodes.as_span());
+  network.remove(temporary_nodes);
 }
 
 /** \} */
