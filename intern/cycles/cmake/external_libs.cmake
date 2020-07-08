@@ -133,9 +133,9 @@ if(CYCLES_STANDALONE_REPOSITORY)
   set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 
   ####
-  # embree
+  # Embree
   if(WITH_CYCLES_EMBREE)
-    find_package(embree 3.8.0 REQUIRED)
+    find_package(Embree 3.8.0 REQUIRED)
   endif()
 
   ####
