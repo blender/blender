@@ -148,6 +148,7 @@ class MFSocket : NonCopyable, NonMovable {
   StringRefNull name() const;
 
   uint id() const;
+  uint index() const;
 
   const MFDataType &data_type() const;
 
@@ -396,6 +397,11 @@ inline StringRefNull MFSocket::name() const
 inline uint MFSocket::id() const
 {
   return id_;
+}
+
+inline uint MFSocket::index() const
+{
+  return index_;
 }
 
 inline const MFDataType &MFSocket::data_type() const
