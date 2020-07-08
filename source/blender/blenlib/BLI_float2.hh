@@ -79,6 +79,16 @@ struct float2 {
     stream << "(" << v.x << ", " << v.y << ")";
     return stream;
   }
+
+  friend bool operator==(const float2 &a, const float2 &b)
+  {
+    return a.x == b.x && a.y == b.y;
+  }
+
+  friend bool operator!=(const float2 &a, const float2 &b)
+  {
+    return !(a == b);
+  }
 };
 
 }  // namespace blender

@@ -128,6 +128,16 @@ struct float3 {
     return stream;
   }
 
+  friend bool operator==(const float3 &a, const float3 &b)
+  {
+    return a.x == b.x && a.y == b.y && a.z == b.z;
+  }
+
+  friend bool operator!=(const float3 &a, const float3 &b)
+  {
+    return !(a == b);
+  }
+
   float normalize_and_get_length()
   {
     return normalize_v3(*this);
@@ -176,6 +186,14 @@ struct float3 {
     x = -x;
     y = -y;
     z = -z;
+  }
+
+  uint32_t hash() const
+  {
+    uint32_t x1 = *(uint32_t *)&x;
+    uint32_t x2 = *(uint32_t *)&y;
+    uint32_t x3 = *(uint32_t *)&z;
+    return (x1 * 435109) ^ (x2 * 380867) ^ (x3 * 1059217);
   }
 
   static float dot(const float3 &a, const float3 &b)
