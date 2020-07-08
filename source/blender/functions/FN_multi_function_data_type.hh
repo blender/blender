@@ -108,6 +108,11 @@ class MFDataType {
     BLI_assert(false);
     return "";
   }
+
+  uint hash() const
+  {
+    return DefaultHash<CPPType>{}(*type_) + (uint32_t)category_;
+  }
 };
 
 inline bool operator==(const MFDataType &a, const MFDataType &b)

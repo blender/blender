@@ -66,6 +66,7 @@
  *    pointers to virtual member functions.
  */
 
+#include "BLI_hash.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_math_base.h"
 #include "BLI_string_ref.hh"
@@ -479,6 +480,11 @@ class CPPType {
   const void *default_value() const
   {
     return default_value_;
+  }
+
+  uint32_t hash() const
+  {
+    return DefaultHash<const CPPType *>{}(this);
   }
 
   /**
