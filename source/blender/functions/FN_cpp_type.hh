@@ -204,7 +204,7 @@ class CPPType {
    * for optimization purposes.
    *
    * C++ equivalent:
-   *   std::is_trivially_destructible<T>::value;
+   *   std::is_trivially_destructible_v<T>;
    */
   bool is_trivially_destructible() const
   {
@@ -721,7 +721,7 @@ static std::unique_ptr<const CPPType> create_cpp_type(StringRef name, const T &d
   const CPPType *type = new CPPType(name,
                                     sizeof(T),
                                     alignof(T),
-                                    std::is_trivially_destructible<T>::value,
+                                    std::is_trivially_destructible_v<T>,
                                     construct_default_cb<T>,
                                     construct_default_n_cb<T>,
                                     construct_default_indices_cb<T>,

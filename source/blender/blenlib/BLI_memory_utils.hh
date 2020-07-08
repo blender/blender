@@ -49,7 +49,7 @@ template<typename T> void destruct_n(T *ptr, uint n)
 
   /* This is not strictly necessary, because the loop below will be optimized away anyway. It is
    * nice to make behavior this explicitly, though. */
-  if (std::is_trivially_destructible<T>::value) {
+  if (std::is_trivially_destructible_v<T>) {
     return;
   }
 
@@ -73,7 +73,7 @@ template<typename T> void default_construct_n(T *ptr, uint n)
 {
   /* This is not strictly necessary, because the loop below will be optimized away anyway. It is
    * nice to make behavior this explicitly, though. */
-  if (std::is_trivially_constructible<T>::value) {
+  if (std::is_trivially_constructible_v<T>) {
     return;
   }
 

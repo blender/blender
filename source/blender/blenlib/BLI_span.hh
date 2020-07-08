@@ -128,8 +128,7 @@ template<typename T> class Span {
    *   Span<T *> -> Span<const T *>
    *   Span<Derived *> -> Span<Base *>
    */
-  template<typename U,
-           typename std::enable_if<std::is_convertible<U *, T>::value>::type * = nullptr>
+  template<typename U, typename std::enable_if_t<std::is_convertible_v<U *, T>> * = nullptr>
   Span(Span<U *> array) : Span((T *)array.data(), array.size())
   {
   }
