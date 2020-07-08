@@ -65,7 +65,8 @@ TEST(mutable_attributes_ref, ComplexTest)
   Array<float> sizes(amount);
   Array<std::string> names(amount);
 
-  Array<void *> buffers = {positions.data(), ids.data(), sizes.data(), names.data()};
+  Array<void *> buffers = {
+      (void *)positions.data(), (void *)ids.data(), (void *)sizes.data(), (void *)names.data()};
   MutableAttributesRef attributes{info, buffers, IndexRange(1, 3)};
   EXPECT_EQ(attributes.size(), 3);
   EXPECT_EQ(attributes.info().size(), 4);

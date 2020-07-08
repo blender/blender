@@ -100,6 +100,11 @@ template<typename T> class Span {
   {
   }
 
+  template<typename U, typename std::enable_if_t<is_convertible_pointer_v<U, T>> * = nullptr>
+  Span(const U *start, uint size) : start_((const T *)start), size_(size)
+  {
+  }
+
   /**
    * Reference an initializer_list. Note that the data in the initializer_list is only valid until
    * the expression containing it is fully computed.
@@ -128,8 +133,8 @@ template<typename T> class Span {
    *   Span<T *> -> Span<const T *>
    *   Span<Derived *> -> Span<Base *>
    */
-  template<typename U, typename std::enable_if_t<std::is_convertible_v<U *, T>> * = nullptr>
-  Span(Span<U *> array) : Span((T *)array.data(), array.size())
+  template<typename U, typename std::enable_if_t<is_convertible_pointer_v<U, T>> * = nullptr>
+  Span(Span<U> array) : start_((T *)array.data()), size_(array.size())
   {
   }
 

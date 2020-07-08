@@ -141,9 +141,19 @@ class Vector {
    */
   Vector(uint size, const T &value) : Vector()
   {
+    this->resize(size, value);
+  }
+
+  /**
+   * Create a vector from an array ref. The values in the vector are copy constructed.
+   */
+  template<typename U, typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>
+  Vector(Span<U> values, Allocator allocator = {}) : Vector(allocator)
+  {
+    const uint size = values.size();
     this->reserve(size);
     this->increase_size_by_unchecked(size);
-    blender::uninitialized_fill_n(begin_, size, value);
+    uninitialized_convert_n<U, T>(values.data(), size, begin_);
   }
 
   /**
@@ -152,24 +162,21 @@ class Vector {
    * This allows you to write code like:
    * Vector<int> vec = {3, 4, 5};
    */
-  Vector(const std::initializer_list<T> &values) : Vector(Span<T>(values))
+  template<typename U, typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>
+  Vector(const std::initializer_list<U> &values) : Vector(Span<U>(values))
+  {
+  }
+
+  template<typename U,
+           size_t N,
+           typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>
+  Vector(const std::array<U, N> &values) : Vector(Span(values))
   {
   }
 
   /**
-   * Create a vector from an array ref. The values in the vector are copy constructed.
-   */
-  Vector(Span<T> values, Allocator allocator = {}) : Vector(allocator)
-  {
-    const uint size = values.size();
-    this->reserve(size);
-    this->increase_size_by_unchecked(size);
-    blender::uninitialized_copy_n(values.data(), size, begin_);
-  }
-
-  /**
-   * Create a vector from any container. It must be possible to use the container in a range-for
-   * loop.
+   * Create a vector from any container. It must be possible to use the container in a
+   * range-for loop.
    */
   template<typename ContainerT> static Vector FromContainer(const ContainerT &container)
   {
@@ -311,6 +318,18 @@ class Vector {
   operator MutableSpan<T>()
   {
     return MutableSpan<T>(begin_, this->size());
+  }
+
+  template<typename U, typename std::enable_if_t<is_convertible_pointer_v<T, U>> * = nullptr>
+  operator Span<U>() const
+  {
+    return Span<U>(begin_, this->size());
+  }
+
+  template<typename U, typename std::enable_if_t<is_convertible_pointer_v<T, U>> * = nullptr>
+  operator MutableSpan<U>()
+  {
+    return MutableSpan<U>(begin_, this->size());
   }
 
   Span<T> as_span() const
