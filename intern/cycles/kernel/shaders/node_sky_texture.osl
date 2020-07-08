@@ -122,6 +122,11 @@ vector geographical_to_direction(float lat, float lon)
   return vector(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
 }
 
+float precise_angle(vector a, vector b)
+{
+  return 2.0 * atan2(length(a - b), length(a + b));
+}
+
 color sky_radiance_nishita(vector dir, float nishita_data[9], string filename)
 {
   /* definitions */
@@ -138,7 +143,7 @@ color sky_radiance_nishita(vector dir, float nishita_data[9], string filename)
   if (dir[2] >= 0.0) {
     /* definitions */
     vector sun_dir = geographical_to_direction(sun_elevation, sun_rotation + M_PI_2);
-    float sun_dir_angle = acos(dot(dir, sun_dir));
+    float sun_dir_angle = precise_angle(dir, sun_dir);
     float half_angular = angular_diameter / 2.0;
     float dir_elevation = M_PI_2 - direction[0];
 

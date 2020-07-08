@@ -787,6 +787,16 @@ ccl_device_inline float compare_floats(float a, float b, float abs_diff, int ulp
   return (abs(__float_as_int(a) - __float_as_int(b)) < ulp_diff);
 }
 
+/* Calculate the angle between the two vectors a and b.
+ * The usual approach acos(dot(a, b)) has severe precision issues for small angles,
+ * which are avoided by this method.
+ * Based on "Mangled Angles" from https://people.eecs.berkeley.edu/~wkahan/Mindless.pdf
+ */
+ccl_device_inline float precise_angle(float3 a, float3 b)
+{
+  return 2.0f * atan2f(len(a - b), len(a + b));
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_MATH_H__ */
