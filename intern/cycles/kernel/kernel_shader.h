@@ -1017,15 +1017,36 @@ ccl_device float3 shader_emissive_eval(ShaderData *sd)
 
 /* Holdout */
 
-ccl_device float3 shader_holdout_eval(KernelGlobals *kg, ShaderData *sd)
+ccl_device float3 shader_holdout_apply(KernelGlobals *kg, ShaderData *sd)
 {
   float3 weight = make_float3(0.0f, 0.0f, 0.0f);
 
-  for (int i = 0; i < sd->num_closure; i++) {
-    ShaderClosure *sc = &sd->closure[i];
+  /* For objects marked as holdout, preserve transparency and remove all other
+   * closures, replacing them with a holdout weight. */
+  if (sd->object_flag & SD_OBJECT_HOLDOUT_MASK) {
+    if ((sd->flag & SD_TRANSPARENT) && !(sd->flag & SD_HAS_ONLY_VOLUME)) {
+      weight = make_float3(1.0f, 1.0f, 1.0f) - sd->closure_transparent_extinction;
 
-    if (CLOSURE_IS_HOLDOUT(sc->type))
-      weight += sc->weight;
+      for (int i = 0; i < sd->num_closure; i++) {
+        ShaderClosure *sc = &sd->closure[i];
+        if (!CLOSURE_IS_BSDF_TRANSPARENT(sc->type)) {
+          sc->type = NBUILTIN_CLOSURES;
+        }
+      }
+
+      sd->flag &= ~(SD_CLOSURE_FLAGS - (SD_TRANSPARENT | SD_BSDF));
+    }
+    else {
+      weight = make_float3(1.0f, 1.0f, 1.0f);
+    }
+  }
+  else {
+    for (int i = 0; i < sd->num_closure; i++) {
+      ShaderClosure *sc = &sd->closure[i];
+      if (CLOSURE_IS_HOLDOUT(sc->type)) {
+        weight += sc->weight;
+      }
+    }
   }
 
   return weight;
