@@ -606,14 +606,6 @@ template<typename T> class MutableSpan {
 };
 
 /**
- * Shorthand to make use of automatic template parameter deduction.
- */
-template<typename T> Span<T> ref_c_array(const T *array, uint size)
-{
-  return Span<T>(array, size);
-}
-
-/**
  * Utilities to check that arrays have the same size in debug builds.
  */
 template<typename T1, typename T2> void assert_same_size(const T1 &v1, const T2 &v2)
