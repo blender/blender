@@ -33,6 +33,7 @@ set(SRC
   intern/multi_function_builder.cc
   intern/multi_function_network.cc
   intern/multi_function_network_evaluation.cc
+  intern/multi_function_network_optimization.cc
 
   FN_array_spans.hh
   FN_attributes_ref.hh
@@ -44,6 +45,7 @@ set(SRC
   FN_multi_function_data_type.hh
   FN_multi_function_network.hh
   FN_multi_function_network_evaluation.hh
+  FN_multi_function_network_optimization.hh
   FN_multi_function_param_type.hh
   FN_multi_function_params.hh
   FN_multi_function_signature.hh
