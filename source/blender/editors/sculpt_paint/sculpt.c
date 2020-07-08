@@ -2471,7 +2471,10 @@ bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v)
   }
   float t[3], bb_min[3], bb_max[3];
 
-  if (data->ignore_fully_masked) {
+  if (data->ignore_fully_ineffective) {
+    if (BKE_pbvh_node_fully_hidden_get(node)) {
+      return false;
+    }
     if (BKE_pbvh_node_fully_masked_get(node)) {
       return false;
     }
@@ -2507,7 +2510,7 @@ bool SCULPT_search_circle_cb(PBVHNode *node, void *data_v)
   SculptSearchCircleData *data = data_v;
   float bb_min[3], bb_max[3];
 
-  if (data->ignore_fully_masked) {
+  if (data->ignore_fully_ineffective) {
     if (BKE_pbvh_node_fully_masked_get(node)) {
       return false;
     }
@@ -2560,7 +2563,7 @@ static PBVHNode **sculpt_pbvh_gather_cursor_update(Object *ob,
       .sd = sd,
       .radius_squared = ss->cursor_radius,
       .original = use_original,
-      .ignore_fully_masked = false,
+      .ignore_fully_ineffective = false,
       .center = NULL,
   };
   BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, r_totnode);
@@ -2585,7 +2588,7 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
         .sd = sd,
         .radius_squared = square_f(ss->cache->radius * radius_scale),
         .original = use_original,
-        .ignore_fully_masked = brush->sculpt_tool != SCULPT_TOOL_MASK,
+        .ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK,
         .center = NULL,
     };
     BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, r_totnode);
@@ -2601,7 +2604,7 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
                                       ss->cursor_radius,
         .original = use_original,
         .dist_ray_to_aabb_precalc = &dist_ray_to_aabb_precalc,
-        .ignore_fully_masked = brush->sculpt_tool != SCULPT_TOOL_MASK,
+        .ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK,
     };
     BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_circle_cb, &data, &nodes, r_totnode);
   }
@@ -5482,7 +5485,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         .sd = sd,
         .radius_squared = square_f(ss->cache->radius * (1.0 + brush->cloth_sim_limit)),
         .original = false,
-        .ignore_fully_masked = false,
+        .ignore_fully_ineffective = false,
         .center = ss->cache->initial_location,
     };
     BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, &totnode);

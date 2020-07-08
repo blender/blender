@@ -264,6 +264,7 @@ void BKE_pbvh_node_mark_redraw(PBVHNode *node);
 void BKE_pbvh_node_mark_normals_update(PBVHNode *node);
 void BKE_pbvh_node_mark_topology_update(PBVHNode *node);
 void BKE_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden);
+bool BKE_pbvh_node_fully_hidden_get(PBVHNode *node);
 void BKE_pbvh_node_fully_masked_set(PBVHNode *node, int fully_masked);
 bool BKE_pbvh_node_fully_masked_get(PBVHNode *node);
 void BKE_pbvh_node_fully_unmasked_set(PBVHNode *node, int fully_masked);

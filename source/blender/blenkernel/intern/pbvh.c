@@ -1772,6 +1772,11 @@ void BKE_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden)
   }
 }
 
+bool BKE_pbvh_node_fully_hidden_get(PBVHNode *node)
+{
+  return (node->flag & PBVH_Leaf) && (node->flag & PBVH_FullyHidden);
+}
+
 void BKE_pbvh_node_fully_masked_set(PBVHNode *node, int fully_masked)
 {
   BLI_assert(node->flag & PBVH_Leaf);
