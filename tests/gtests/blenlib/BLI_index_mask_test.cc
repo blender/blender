@@ -1,3 +1,5 @@
+/* Apache License, Version 2.0 */
+
 #include "BLI_index_mask.hh"
 #include "testing/testing.h"
 

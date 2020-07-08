@@ -45,6 +45,8 @@
  * 3. Override the `call` function.
  */
 
+#include "BLI_hash.hh"
+
 #include "FN_multi_function_context.hh"
 #include "FN_multi_function_params.hh"
 
@@ -60,6 +62,16 @@ class MultiFunction {
   }
 
   virtual void call(IndexMask mask, MFParams params, MFContext context) const = 0;
+
+  virtual uint32_t hash() const
+  {
+    return DefaultHash<const MultiFunction *>{}(this);
+  }
+
+  virtual bool equals(const MultiFunction &UNUSED(other)) const
+  {
+    return false;
+  }
 
   IndexRange param_indices() const
   {

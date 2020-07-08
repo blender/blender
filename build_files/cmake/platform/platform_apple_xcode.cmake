@@ -65,13 +65,9 @@ endif()
 
 message(STATUS "Detected OS X ${OSX_SYSTEM} and Xcode ${XCODE_VERSION} at ${XCODE_BUNDLE}")
 
-# Older Xcode versions had different approach to the directory hiearchy.
-# Require newer Xcode which is also have better chances of being able to compile with the
-# required deployment target.
-#
-# NOTE: Xcode version 8.2 is the latest one which runs on macOS 10.11.
-if(${XCODE_VERSION} VERSION_LESS 8.2)
-  message(FATAL_ERROR "Only Xcode version 8.2 and newer is supported")
+# Require a relatively recent Xcode version.
+if(${XCODE_VERSION} VERSION_LESS 10.0)
+  message(FATAL_ERROR "Only Xcode version 10.0 and newer is supported")
 endif()
 
 # note: xcode-select path could be ambiguous,
@@ -133,14 +129,14 @@ if(${CMAKE_GENERATOR} MATCHES "Xcode")
 endif()
 unset(OSX_SDKROOT)
 
-# 10.11 is our min. target, if you use higher sdk, weak linking happens
+# 10.13 is our min. target, if you use higher sdk, weak linking happens
 if(CMAKE_OSX_DEPLOYMENT_TARGET)
-  if(${CMAKE_OSX_DEPLOYMENT_TARGET} VERSION_LESS 10.11)
-    message(STATUS "Setting deployment target to 10.11, lower versions are not supported")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "" FORCE)
+  if(${CMAKE_OSX_DEPLOYMENT_TARGET} VERSION_LESS 10.13)
+    message(STATUS "Setting deployment target to 10.13, lower versions are not supported")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "" FORCE)
   endif()
 else()
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "" FORCE)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "" FORCE)
 endif()
 
 if(NOT ${CMAKE_GENERATOR} MATCHES "Xcode")

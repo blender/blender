@@ -163,6 +163,7 @@ set(SRC
   BLI_convexhull_2d.h
   BLI_delaunay_2d.h
   BLI_dial_2d.h
+  BLI_disjoint_set.hh
   BLI_dlrbTree.h
   BLI_dot_export.hh
   BLI_dot_export_attribute_enums.hh

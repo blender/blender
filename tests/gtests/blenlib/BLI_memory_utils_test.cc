@@ -1,3 +1,5 @@
+/* Apache License, Version 2.0 */
+
 #include "BLI_memory_utils.hh"
 #include "BLI_strict_flags.h"
 #include "testing/testing.h"
