@@ -226,6 +226,9 @@ class MFNetwork : NonCopyable, NonMovable {
   MFNode *node_or_null_by_id(uint id);
   const MFNode *node_or_null_by_id(uint id) const;
 
+  MFSocket *socket_or_null_by_id(uint id);
+  const MFSocket *socket_or_null_by_id(uint id) const;
+
   std::string to_dot(Span<const MFNode *> marked_nodes = {}) const;
 };
 
@@ -503,6 +506,16 @@ inline MFNode *MFNetwork::node_or_null_by_id(uint id)
 inline const MFNode *MFNetwork::node_or_null_by_id(uint id) const
 {
   return node_or_null_by_id_[id];
+}
+
+inline MFSocket *MFNetwork::socket_or_null_by_id(uint id)
+{
+  return socket_or_null_by_id_[id];
+}
+
+inline const MFSocket *MFNetwork::socket_or_null_by_id(uint id) const
+{
+  return socket_or_null_by_id_[id];
 }
 
 inline uint MFNetwork::socket_id_amount() const
