@@ -8681,6 +8681,11 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
+  /* Color data is not available in Multires. */
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    return OPERATOR_CANCELLED;
+  }
+
   if (!ss->vcol) {
     return OPERATOR_CANCELLED;
   }
