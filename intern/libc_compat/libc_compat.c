@@ -28,6 +28,7 @@
 #  if defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 31)
 
 double __exp_finite(double x);
+double __exp2_finite(double x);
 double __acos_finite(double x);
 double __asin_finite(double x);
 double __log2_finite(double x);
@@ -35,6 +36,7 @@ double __log10_finite(double x);
 double __log_finite(double x);
 double __pow_finite(double x, double y);
 float __expf_finite(float x);
+float __exp2f_finite(float x);
 float __acosf_finite(float x);
 float __asinf_finite(float x);
 float __log2f_finite(float x);
@@ -45,6 +47,11 @@ float __powf_finite(float x, float y);
 double __exp_finite(double x)
 {
   return exp(x);
+}
+
+double __exp2_finite(double x)
+{
+  return exp2(x);
 }
 
 double __acos_finite(double x)
@@ -80,6 +87,11 @@ double __pow_finite(double x, double y)
 float __expf_finite(float x)
 {
   return expf(x);
+}
+
+float __exp2f_finite(float x)
+{
+  return exp2f(x);
 }
 
 float __acosf_finite(float x)
