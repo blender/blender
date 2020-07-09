@@ -32,6 +32,69 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
+static void uv_aspect(const BMLoop *l,
+                      const float aspect[2],
+                      const int cd_loop_uv_offset,
+                      float r_uv[2])
+{
+  const float *uv = ((const MLoopUV *)BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset))->uv;
+  r_uv[0] = uv[0] * aspect[0];
+  r_uv[1] = uv[1] * aspect[1];
+}
+
+/**
+ * Typically we avoid hiding arguments,
+ * make this an exception since it reads poorly with so many repeated arguments.
+ */
+#define UV_ASPECT(l, r_uv) uv_aspect(l, aspect, cd_loop_uv_offset, r_uv)
+
+/**
+ * Computes the UV center of a face, using the mean average weighted by edge length.
+ *
+ * See #BM_face_calc_center_median_weighted for matching spatial functionality.
+ *
+ * \param aspect: Calculate the center scaling by these values, and finally dividing.
+ * Since correct weighting depends on having the correct aspect.
+ */
+void BM_face_uv_calc_center_median_weighted(const BMFace *f,
+                                            const float aspect[2],
+                                            const int cd_loop_uv_offset,
+                                            float r_cent[2])
+{
+  const BMLoop *l_iter;
+  const BMLoop *l_first;
+  float totw = 0.0f;
+  float w_prev;
+
+  zero_v2(r_cent);
+
+  l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+
+  float uv_prev[2], uv_curr[2];
+  UV_ASPECT(l_iter->prev, uv_prev);
+  UV_ASPECT(l_iter, uv_curr);
+  w_prev = len_v2v2(uv_prev, uv_curr);
+  do {
+    float uv_next[2];
+    UV_ASPECT(l_iter->next, uv_next);
+    const float w_curr = len_v2v2(uv_curr, uv_next);
+    const float w = (w_curr + w_prev);
+    madd_v2_v2fl(r_cent, uv_curr, w);
+    totw += w;
+    w_prev = w_curr;
+    copy_v2_v2(uv_curr, uv_next);
+  } while ((l_iter = l_iter->next) != l_first);
+
+  if (totw != 0.0f) {
+    mul_v2_fl(r_cent, 1.0f / (float)totw);
+  }
+  /* Reverse aspect. */
+  r_cent[0] /= aspect[0];
+  r_cent[1] /= aspect[1];
+}
+
+#undef UV_ASPECT
+
 /**
  * Calculate the UV cross product (use the sign to check the winding).
  */
@@ -69,16 +132,25 @@ bool BM_loop_uv_share_edge_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_
 /**
  * Check if two loops that share a vertex also have the same UV coordinates.
  */
-bool BM_loop_uv_share_vert_check(BMEdge *e, BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_offset)
+bool BM_loop_uv_share_vert_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_offset)
 {
   BLI_assert(l_a->v == l_b->v);
-
-  {
     const MLoopUV *luv_a = BM_ELEM_CD_GET_VOID_P(l_a, cd_loop_uv_offset);
     const MLoopUV *luv_b = BM_ELEM_CD_GET_VOID_P(l_b, cd_loop_uv_offset);
     if (!equals_v2v2(luv_a->uv, luv_b->uv)) {
       return false;
     }
+  return true;
+}
+
+/**
+ * Check if two loops that share a vertex also have the same UV coordinates.
+ */
+bool BM_edge_uv_share_vert_check(BMEdge *e, BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_offset)
+{
+  BLI_assert(l_a->v == l_b->v);
+  if (!BM_loop_uv_share_vert_check(l_a, l_b, cd_loop_uv_offset)) {
+    return false;
   }
 
   /* No need for NULL checks, these will always succeed. */

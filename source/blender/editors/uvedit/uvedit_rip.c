@@ -657,7 +657,7 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
             BMLoop *l_other = (l_radial_iter->v == l_step->v) ? l_radial_iter :
                                                                 l_radial_iter->next;
             BLI_assert(l_other->v == l_step->v);
-            if (BM_loop_uv_share_vert_check(e_radial, l_other, l_step, cd_loop_uv_offset)) {
+            if (BM_edge_uv_share_vert_check(e_radial, l_other, l_step, cd_loop_uv_offset)) {
               if (!UL(l_other)->in_rip_pairs && !UL(l_other)->in_stack) {
                 BLI_SMALLSTACK_PUSH(stack, l_other);
                 UL(l_other)->in_stack = true;
