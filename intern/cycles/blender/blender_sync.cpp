@@ -147,30 +147,43 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
     /* Object */
     else if (b_id.is_a(&RNA_Object)) {
       BL::Object b_ob(b_id);
-      const bool updated_geometry = b_update->is_updated_geometry();
+      const bool is_geometry = object_is_geometry(b_ob);
+      const bool is_light = !is_geometry && object_is_light(b_ob);
 
-      if (b_update->is_updated_transform() || b_update->is_updated_shading()) {
-        object_map.set_recalc(b_ob);
-        light_map.set_recalc(b_ob);
-      }
+      if (is_geometry || is_light) {
+        const bool updated_geometry = b_update->is_updated_geometry();
 
-      if (object_is_mesh(b_ob)) {
-        if (updated_geometry ||
-            (object_subdivision_type(b_ob, preview, experimental) != Mesh::SUBDIVISION_NONE)) {
-          BL::ID key = BKE_object_is_modified(b_ob) ? b_ob : b_ob.data();
-          geometry_map.set_recalc(key);
+        /* Geometry (mesh, hair, volume). */
+        if (is_geometry) {
+          if (b_update->is_updated_transform() || b_update->is_updated_shading()) {
+            object_map.set_recalc(b_ob);
+          }
+
+          if (updated_geometry ||
+              (object_subdivision_type(b_ob, preview, experimental) != Mesh::SUBDIVISION_NONE)) {
+            BL::ID key = BKE_object_is_modified(b_ob) ? b_ob : b_ob.data();
+            geometry_map.set_recalc(key);
+          }
+
+          if (updated_geometry) {
+            BL::Object::particle_systems_iterator b_psys;
+            for (b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end();
+                 ++b_psys) {
+              particle_system_map.set_recalc(b_ob);
+            }
+          }
         }
-      }
-      else if (object_is_light(b_ob)) {
-        if (updated_geometry) {
-          light_map.set_recalc(b_ob);
-        }
-      }
+        /* Light */
+        else if (is_light) {
+          if (b_update->is_updated_transform() || b_update->is_updated_shading()) {
+            object_map.set_recalc(b_ob);
+            light_map.set_recalc(b_ob);
+          }
 
-      if (updated_geometry) {
-        BL::Object::particle_systems_iterator b_psys;
-        for (b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end(); ++b_psys)
-          particle_system_map.set_recalc(b_ob);
+          if (updated_geometry) {
+            light_map.set_recalc(b_ob);
+          }
+        }
       }
     }
     /* Mesh */

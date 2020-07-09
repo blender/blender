@@ -59,7 +59,7 @@ bool BlenderSync::BKE_object_is_modified(BL::Object &b_ob)
   return false;
 }
 
-bool BlenderSync::object_is_mesh(BL::Object &b_ob)
+bool BlenderSync::object_is_geometry(BL::Object &b_ob)
 {
   BL::ID b_ob_data = b_ob.data();
 
@@ -143,7 +143,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   }
 
   /* only interested in object that we can create meshes from */
-  if (!object_is_mesh(b_ob)) {
+  if (!object_is_geometry(b_ob)) {
     return NULL;
   }
 
