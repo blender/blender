@@ -1772,7 +1772,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 42: CD_SCULPT_FACE_SETS */
     {sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
     /* 43: CD_LOCATION */
-    {sizeof(float[3]), "vec3f", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+    {sizeof(float[3]), "vec3f", 1, "Location", NULL, NULL, NULL, NULL, NULL},
     /* 44: CD_RADIUS */
     {sizeof(float), "MFloatProperty", 1, NULL, NULL, NULL, NULL, NULL, NULL},
     /* 45: CD_HAIRCURVE */

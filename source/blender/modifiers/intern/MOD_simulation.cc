@@ -29,6 +29,7 @@
 
 #include "BLI_float3.hh"
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
@@ -46,6 +47,8 @@
 #include "BKE_modifier.h"
 #include "BKE_pointcloud.h"
 #include "BKE_simulation.h"
+
+#include "BLO_read_write.h"
 
 /* SpaceType struct has a member called 'new' which obviously conflicts with C++
  * so temporarily redefining the new keyword to make it compile. */
@@ -93,9 +96,14 @@ static const ParticleSimulationState *find_particle_state(SimulationModifierData
   if (smd->simulation == nullptr) {
     return nullptr;
   }
+  if (smd->data_path == nullptr) {
+    return nullptr;
+  }
   LISTBASE_FOREACH (const SimulationState *, state, &smd->simulation->states) {
-    if (state->type == SIM_STATE_TYPE_PARTICLES) {
-      return (ParticleSimulationState *)state;
+    if (STREQ(smd->data_path, state->name)) {
+      if (state->type == SIM_STATE_TYPE_PARTICLES) {
+        return (ParticleSimulationState *)state;
+      }
     }
   }
   return nullptr;
@@ -121,7 +129,7 @@ static PointCloud *modifyPointCloud(ModifierData *md,
   memcpy(pointcloud->co, positions, sizeof(float3) * state->tot_particles);
 
   for (int i = 0; i < state->tot_particles; i++) {
-    pointcloud->radius[i] = 0.05f;
+    pointcloud->radius[i] = 0.1f;
   }
 
   return pointcloud;
@@ -146,6 +154,37 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_Simulation, panel_draw);
 }
 
+static void blendWrite(BlendWriter *writer, const ModifierData *md)
+{
+  const SimulationModifierData *smd = (const SimulationModifierData *)md;
+  BLO_write_string(writer, smd->data_path);
+}
+
+static void blendRead(BlendDataReader *reader, ModifierData *md)
+{
+  SimulationModifierData *smd = (SimulationModifierData *)md;
+  BLO_read_data_address(reader, &smd->data_path);
+}
+
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
+{
+  const SimulationModifierData *smd = (const SimulationModifierData *)md;
+  SimulationModifierData *tsmd = (SimulationModifierData *)target;
+
+  BKE_modifier_copydata_generic(md, target, flag);
+  if (smd->data_path != nullptr) {
+    tsmd->data_path = BLI_strdup(smd->data_path);
+  }
+}
+
+static void freeData(ModifierData *md)
+{
+  SimulationModifierData *smd = (SimulationModifierData *)md;
+  if (smd->data_path) {
+    MEM_freeN(smd->data_path);
+  }
+}
+
 ModifierTypeInfo modifierType_Simulation = {
     /* name */ "Simulation",
     /* structName */ "SimulationModifierData",
@@ -153,7 +192,7 @@ ModifierTypeInfo modifierType_Simulation = {
     /* type */ eModifierTypeType_None,
     /* flags */ (ModifierTypeFlag)0,
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /* copyData */ copyData,
 
     /* deformVerts */ NULL,
     /* deformMatrices */ NULL,
@@ -166,7 +205,7 @@ ModifierTypeInfo modifierType_Simulation = {
 
     /* initData */ NULL,
     /* requiredDataMask */ NULL,
-    /* freeData */ NULL,
+    /* freeData */ freeData,
     /* isDisabled */ isDisabled,
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
@@ -176,6 +215,6 @@ ModifierTypeInfo modifierType_Simulation = {
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ blendWrite,
+    /* blendRead */ blendRead,
 };
