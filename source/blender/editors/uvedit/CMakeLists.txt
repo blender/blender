@@ -50,6 +50,7 @@ set(SRC
 )
 
 set(LIB
+  bf_bmesh
 )
 
 if(WITH_INTERNATIONAL)

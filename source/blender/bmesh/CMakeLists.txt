@@ -117,6 +117,8 @@ set(SRC
   intern/bmesh_private.h
   intern/bmesh_query.c
   intern/bmesh_query.h
+  intern/bmesh_query_uv.c
+  intern/bmesh_query_uv.h
   intern/bmesh_query_inline.h
   intern/bmesh_structure.c
   intern/bmesh_structure.h

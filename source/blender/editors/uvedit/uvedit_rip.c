@@ -111,50 +111,6 @@ BLI_INLINE ULData *UL(BMLoop *l)
 /** \name UV Utilities
  * \{ */
 
-static bool bm_loop_share_uv_by_edge_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_offset)
-{
-  BLI_assert(l_a->e == l_b->e);
-  MLoopUV *luv_a_curr = BM_ELEM_CD_GET_VOID_P(l_a, cd_loop_uv_offset);
-  MLoopUV *luv_a_next = BM_ELEM_CD_GET_VOID_P(l_a->next, cd_loop_uv_offset);
-  MLoopUV *luv_b_curr = BM_ELEM_CD_GET_VOID_P(l_b, cd_loop_uv_offset);
-  MLoopUV *luv_b_next = BM_ELEM_CD_GET_VOID_P(l_b->next, cd_loop_uv_offset);
-  if (l_a->v != l_b->v) {
-    SWAP(MLoopUV *, luv_b_curr, luv_b_next);
-  }
-  return (equals_v2v2(luv_a_curr->uv, luv_b_curr->uv) &&
-          equals_v2v2(luv_a_next->uv, luv_b_next->uv));
-}
-
-static bool bm_loop_share_uv_by_vert_check(BMEdge *e,
-                                           BMLoop *l_a,
-                                           BMLoop *l_b,
-                                           const int cd_loop_uv_offset)
-{
-  BLI_assert(l_a->v == l_b->v);
-
-  {
-    const MLoopUV *luv_a = BM_ELEM_CD_GET_VOID_P(l_a, cd_loop_uv_offset);
-    const MLoopUV *luv_b = BM_ELEM_CD_GET_VOID_P(l_b, cd_loop_uv_offset);
-    if (!equals_v2v2(luv_a->uv, luv_b->uv)) {
-      return false;
-    }
-  }
-
-  /* No need for NULL checks, these will always succeed. */
-  const BMLoop *l_other_a = BM_loop_other_vert_loop_by_edge(l_a, e);
-  const BMLoop *l_other_b = BM_loop_other_vert_loop_by_edge(l_b, e);
-
-  {
-    const MLoopUV *luv_other_a = BM_ELEM_CD_GET_VOID_P(l_other_a, cd_loop_uv_offset);
-    const MLoopUV *luv_other_b = BM_ELEM_CD_GET_VOID_P(l_other_b, cd_loop_uv_offset);
-    if (!equals_v2v2(luv_other_a->uv, luv_other_b->uv)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 static BMLoop *bm_loop_find_other_radial_loop_with_visible_face(BMLoop *l_src,
                                                                 const int cd_loop_uv_offset)
 {
@@ -163,7 +119,7 @@ static BMLoop *bm_loop_find_other_radial_loop_with_visible_face(BMLoop *l_src,
   if (l_iter != l_src) {
     do {
       if (BM_elem_flag_test(l_iter->f, BM_ELEM_TAG) && UL(l_iter)->is_select_edge &&
-          bm_loop_share_uv_by_edge_check(l_src, l_iter, cd_loop_uv_offset)) {
+          BM_loop_uv_share_edge_check(l_src, l_iter, cd_loop_uv_offset)) {
         /* Check UV's are contiguous. */
         if (l_other == NULL) {
           l_other = l_iter;
@@ -189,7 +145,7 @@ static BMLoop *bm_loop_find_other_fan_loop_with_visible_face(BMLoop *l_src,
   if (l_iter != l_src) {
     do {
       if (BM_elem_flag_test(l_iter->f, BM_ELEM_TAG) &&
-          bm_loop_share_uv_by_edge_check(l_src, l_iter, cd_loop_uv_offset)) {
+          BM_loop_uv_share_edge_check(l_src, l_iter, cd_loop_uv_offset)) {
         /* Check UV's are contiguous. */
         if (l_other == NULL) {
           l_other = l_iter;
@@ -305,7 +261,7 @@ static void bm_loop_calc_uv_angle_from_dir(BMLoop *l,
   SWAP(float, dir_test[1][0], dir_test[1][1]);
   dir_test[1][1] *= -1.0f;
 
-  if (BM_face_calc_uv_cross(l->f, cd_loop_uv_offset) > 0.0f) {
+  if (BM_face_uv_calc_cross(l->f, cd_loop_uv_offset) > 0.0f) {
     negate_v2(dir_test[1]);
   }
 
@@ -462,7 +418,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
       BMLoop *l_radial_init = (edge_index_best == -1) ? l_init_edge->prev : l_init_edge;
       BMLoop *l_radial_iter = l_radial_init;
       do {
-        if (bm_loop_share_uv_by_edge_check(l_radial_init, l_radial_iter, cd_loop_uv_offset)) {
+        if (BM_loop_uv_share_edge_check(l_radial_init, l_radial_iter, cd_loop_uv_offset)) {
           BMLoop *l = (l_radial_iter->v == l_init->v) ? l_radial_iter : l_radial_iter->next;
           BLI_assert(l->v == l_init->v);
           /* Keep. */
@@ -701,7 +657,7 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
             BMLoop *l_other = (l_radial_iter->v == l_step->v) ? l_radial_iter :
                                                                 l_radial_iter->next;
             BLI_assert(l_other->v == l_step->v);
-            if (bm_loop_share_uv_by_vert_check(e_radial, l_other, l_step, cd_loop_uv_offset)) {
+            if (BM_loop_uv_share_vert_check(e_radial, l_other, l_step, cd_loop_uv_offset)) {
               if (!UL(l_other)->in_rip_pairs && !UL(l_other)->in_stack) {
                 BLI_SMALLSTACK_PUSH(stack, l_other);
                 UL(l_other)->in_stack = true;
