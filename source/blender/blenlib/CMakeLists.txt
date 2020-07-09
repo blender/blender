@@ -105,7 +105,7 @@ set(SRC
   intern/polyfill_2d.c
   intern/polyfill_2d_beautify.c
   intern/quadric.c
-  intern/rand.c
+  intern/rand.cc
   intern/rct.c
   intern/scanfill.c
   intern/scanfill_utils.c

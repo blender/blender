@@ -57,7 +57,7 @@ struct RNG {
 
 RNG *BLI_rng_new(unsigned int seed)
 {
-  RNG *rng = MEM_mallocN(sizeof(*rng), "rng");
+  RNG *rng = (RNG *)MEM_mallocN(sizeof(*rng), "rng");
 
   BLI_rng_seed(rng, seed);
 
@@ -69,7 +69,7 @@ RNG *BLI_rng_new(unsigned int seed)
  */
 RNG *BLI_rng_new_srandom(unsigned int seed)
 {
-  RNG *rng = MEM_mallocN(sizeof(*rng), "rng");
+  RNG *rng = (RNG *)MEM_mallocN(sizeof(*rng), "rng");
 
   BLI_rng_srandom(rng, seed);
 
@@ -78,7 +78,7 @@ RNG *BLI_rng_new_srandom(unsigned int seed)
 
 RNG *BLI_rng_copy(RNG *rng)
 {
-  return MEM_dupallocN(rng);
+  return (RNG *)MEM_dupallocN(rng);
 }
 
 void BLI_rng_free(RNG *rng)
@@ -124,7 +124,7 @@ void BLI_rng_get_char_n(RNG *rng, char *bytes, size_t bytes_len)
     last_len = bytes_len;
   }
 
-  const char *data_src = (void *)&(rng->X);
+  const char *data_src = (const char *)&(rng->X);
   size_t i = 0;
   while (i != trim_len) {
     BLI_assert(i < trim_len);
@@ -326,7 +326,8 @@ struct RNG_THREAD_ARRAY {
 RNG_THREAD_ARRAY *BLI_rng_threaded_new(void)
 {
   unsigned int i;
-  RNG_THREAD_ARRAY *rngarr = MEM_mallocN(sizeof(RNG_THREAD_ARRAY), "random_array");
+  RNG_THREAD_ARRAY *rngarr = (RNG_THREAD_ARRAY *)MEM_mallocN(sizeof(RNG_THREAD_ARRAY),
+                                                             "random_array");
 
   for (i = 0; i < BLENDER_MAX_THREADS; i++) {
     BLI_rng_srandom(&rngarr->rng_tab[i], (unsigned int)clock());
