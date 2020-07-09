@@ -1514,7 +1514,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   /* Add a color layer if a color tool is used. */
   Mesh *orig_me = BKE_object_get_original_mesh(ob);
-  if (need_colors) {
+  if (need_colors && U.experimental.use_sculpt_vertex_colors) {
     if (!CustomData_has_layer(&orig_me->vdata, CD_PROP_COLOR)) {
       CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
       BKE_mesh_update_customdata_pointers(orig_me, true);

@@ -51,6 +51,8 @@ bool SCULPT_mode_poll_view3d(struct bContext *C);
 bool SCULPT_poll(struct bContext *C);
 bool SCULPT_poll_view3d(struct bContext *C);
 
+bool SCULPT_vertex_colors_poll(struct bContext *C);
+
 /* Updates */
 
 typedef enum SculptUpdateType {

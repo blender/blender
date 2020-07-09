@@ -50,11 +50,14 @@ def generate_from_enum_ex(
         attr,
         cursor='DEFAULT',
         tooldef_keywords={},
+        exclude_filter = {}
 ):
     tool_defs = []
     for enum in type.bl_rna.properties[attr].enum_items_static:
         name = enum.name
         idname = enum.identifier
+        if idname in exclude_filter:
+            continue
         tool_defs.append(
             ToolDef.from_dict(
                 dict(
@@ -1178,12 +1181,18 @@ class _defs_sculpt:
 
     @staticmethod
     def generate_from_brushes(context):
+        if bpy.context.preferences.experimental.use_sculpt_vertex_colors:
+            exclude_filter = {}
+        else:
+            exclude_filter = {'PAINT', 'SMEAR'}
+
         return generate_from_enum_ex(
             context,
             idname_prefix="builtin_brush.",
             icon_prefix="brush.sculpt.",
             type=bpy.types.Brush,
             attr="sculpt_tool",
+            exclude_filter = exclude_filter,
         )
 
     @ToolDef.from_fn
@@ -2485,9 +2494,19 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_sculpt.mesh_filter,
             _defs_sculpt.cloth_filter,
-            _defs_sculpt.color_filter,
+            lambda context: (
+                (_defs_sculpt.color_filter,)
+                if bpy.context.preferences.view.show_developer_ui and \
+                   bpy.context.preferences.experimental.use_sculpt_vertex_colors
+                else ()
+            ),
             None,
-            _defs_sculpt.mask_by_color,
+            lambda context: (
+                (_defs_sculpt.mask_by_color,)
+                if bpy.context.preferences.view.show_developer_ui and \
+                   bpy.context.preferences.experimental.use_sculpt_vertex_colors
+                else ()
+            ),
             None,
             _defs_transform.translate,
             _defs_transform.rotate,

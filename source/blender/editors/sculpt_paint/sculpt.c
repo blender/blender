@@ -5461,11 +5461,15 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
   /* Check for unsupported features. */
   PBVHType type = BKE_pbvh_type(ss->pbvh);
   if (brush->sculpt_tool == SCULPT_TOOL_PAINT && type != PBVH_FACES) {
-    return;
+    if (!U.experimental.use_sculpt_vertex_colors) {
+      return;
+    }
   }
 
   if (brush->sculpt_tool == SCULPT_TOOL_SMEAR && type != PBVH_FACES) {
-    return;
+    if (!U.experimental.use_sculpt_vertex_colors) {
+      return;
+    }
   }
 
   /* Build a list of all nodes that are potentially within the brush's area of influence */
@@ -6118,6 +6122,14 @@ bool SCULPT_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   return ob && ob->mode & OB_MODE_SCULPT;
+}
+
+bool SCULPT_vertex_colors_poll(bContext *C)
+{
+  if (!U.experimental.use_sculpt_vertex_colors) {
+    return false;
+  }
+  return SCULPT_mode_poll(C);
 }
 
 bool SCULPT_mode_poll_view3d(bContext *C)
@@ -8170,7 +8182,7 @@ static void SCULPT_OT_vertex_to_loop_colors(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_vertex_to_loop_colors";
 
   /* api callbacks */
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_vertex_colors_poll;
   ot->exec = vertex_to_loop_colors_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -8233,7 +8245,7 @@ static void SCULPT_OT_loop_to_vertex_colors(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_loop_to_vertex_colors";
 
   /* api callbacks */
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_vertex_colors_poll;
   ot->exec = loop_to_vertex_colors_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -8273,7 +8285,7 @@ static void SCULPT_OT_sample_color(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = sculpt_sample_color_invoke;
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_vertex_colors_poll;
 
   ot->flag = OPTYPE_REGISTER;
 }
@@ -8804,7 +8816,7 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = sculpt_mask_by_color_invoke;
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_vertex_colors_poll;
 
   ot->flag = OPTYPE_REGISTER;
 
@@ -8852,6 +8864,7 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_face_sets_init);
   WM_operatortype_append(SCULPT_OT_cloth_filter);
   WM_operatortype_append(SCULPT_OT_face_sets_edit);
+
   WM_operatortype_append(SCULPT_OT_sample_color);
   WM_operatortype_append(SCULPT_OT_loop_to_vertex_colors);
   WM_operatortype_append(SCULPT_OT_vertex_to_loop_colors);

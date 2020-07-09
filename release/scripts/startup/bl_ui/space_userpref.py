@@ -2143,6 +2143,7 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
         self._draw_items(
             context, (
                 ({"property": "use_new_particle_system"}, "T73324"),
+                ({"property": "use_sculpt_vertex_colors"}, "T71947"),
             ),
         )
 

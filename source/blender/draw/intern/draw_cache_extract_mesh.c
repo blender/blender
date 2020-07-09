@@ -2534,26 +2534,28 @@ static void *extract_vcol_init(const MeshRenderData *mr, void *buf)
   }
 
   /* Sculpt Vertex Colors */
-  for (int i = 0; i < 8; i++) {
-    if (svcol_layers & (1 << i)) {
-      char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-      const char *layer_name = CustomData_get_layer_name(cd_vdata, CD_PROP_COLOR, i);
-      GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+  if (U.experimental.use_sculpt_vertex_colors) {
+    for (int i = 0; i < 8; i++) {
+      if (svcol_layers & (1 << i)) {
+        char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
+        const char *layer_name = CustomData_get_layer_name(cd_vdata, CD_PROP_COLOR, i);
+        GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
-      BLI_snprintf(attr_name, sizeof(attr_name), "c%s", attr_safe_name);
-      GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        BLI_snprintf(attr_name, sizeof(attr_name), "c%s", attr_safe_name);
+        GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
-      if (i == CustomData_get_render_layer(cd_vdata, CD_PROP_COLOR)) {
-        GPU_vertformat_alias_add(&format, "c");
-      }
-      if (i == CustomData_get_active_layer(cd_vdata, CD_PROP_COLOR)) {
-        GPU_vertformat_alias_add(&format, "ac");
-      }
-      /* Gather number of auto layers. */
-      /* We only do `vcols` that are not overridden by `uvs`. */
-      if (CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, layer_name) == -1) {
-        BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
-        GPU_vertformat_alias_add(&format, attr_name);
+        if (i == CustomData_get_render_layer(cd_vdata, CD_PROP_COLOR)) {
+          GPU_vertformat_alias_add(&format, "c");
+        }
+        if (i == CustomData_get_active_layer(cd_vdata, CD_PROP_COLOR)) {
+          GPU_vertformat_alias_add(&format, "ac");
+        }
+        /* Gather number of auto layers. */
+        /* We only do `vcols` that are not overridden by `uvs`. */
+        if (CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, layer_name) == -1) {
+          BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
+          GPU_vertformat_alias_add(&format, attr_name);
+        }
       }
     }
   }
@@ -2599,7 +2601,7 @@ static void *extract_vcol_init(const MeshRenderData *mr, void *buf)
       }
     }
 
-    if (svcol_layers & (1 << i)) {
+    if (svcol_layers & (1 << i) && U.experimental.use_sculpt_vertex_colors) {
       if (mr->extract_type == MR_EXTRACT_BMESH) {
         int cd_ofs = CustomData_get_n_offset(cd_vdata, CD_PROP_COLOR, i);
         BMIter f_iter;

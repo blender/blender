@@ -38,6 +38,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_meshdata_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_ccg.h"
@@ -234,7 +235,8 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
   const bool show_mask = vmask && (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
   const bool show_face_sets = sculpt_face_sets &&
                               (update_flags & GPU_PBVH_BUFFERS_SHOW_SCULPT_FACE_SETS) != 0;
-  const bool show_vcol = (vcol || vtcol) && (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
+  const bool show_vcol = (vcol || (vtcol && U.experimental.use_sculpt_vertex_colors)) &&
+                         (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
   bool empty_mask = true;
   bool default_face_set = true;
 
@@ -317,7 +319,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
           /* Vertex Colors. */
           if (show_vcol) {
             ushort scol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
-            if (vtcol) {
+            if (vtcol && U.experimental.use_sculpt_vertex_colors) {
               scol[0] = unit_float_to_ushort_clamp(vtcol[vtri[j]].color[0]);
               scol[1] = unit_float_to_ushort_clamp(vtcol[vtri[j]].color[1]);
               scol[2] = unit_float_to_ushort_clamp(vtcol[vtri[j]].color[2]);
