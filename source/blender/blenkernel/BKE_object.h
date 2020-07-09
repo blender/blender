@@ -139,7 +139,7 @@ bool BKE_object_obdata_is_libdata(const struct Object *ob);
 
 struct Object *BKE_object_duplicate(struct Main *bmain,
                                     struct Object *ob,
-                                    const uint dupflag,
+                                    uint dupflag,
                                     const uint duplicate_options);
 
 void BKE_object_obdata_size_init(struct Object *ob, const float scale);
