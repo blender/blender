@@ -8900,6 +8900,11 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 
     /* for jumping to the next button with tab while text editing */
     if (post_but) {
+      /* The post_but still has previous ranges (without the changes in active button considered),
+       * needs refreshing the ranges. */
+      ui_but_range_set_soft(post_but);
+      ui_but_range_set_hard(post_but);
+
       button_activate_init(C, region, post_but, post_type);
     }
     else if (!((event->type == EVT_BUT_CANCEL) && (event->val == 1))) {
