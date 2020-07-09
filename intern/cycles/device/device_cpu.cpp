@@ -1040,7 +1040,7 @@ class CPUDevice : public Device {
     denoising.render_buffer.samples = tile.sample;
     denoising.buffer.gpu_temporary_mem = false;
 
-    denoising.run_denoising(&tile);
+    denoising.run_denoising(tile);
   }
 
   void thread_render(DeviceTask &task)

@@ -102,8 +102,8 @@ class DenoisingTask {
                   device_ptr output_ptr)>
         detect_outliers;
     function<bool(int out_offset, device_ptr frop_ptr, device_ptr buffer_ptr)> write_feature;
-    function<void(RenderTile *rtiles)> map_neighbor_tiles;
-    function<void(RenderTile *rtiles)> unmap_neighbor_tiles;
+    function<void(RenderTileNeighbors &neighbors)> map_neighbor_tiles;
+    function<void(RenderTileNeighbors &neighbors)> unmap_neighbor_tiles;
   } functions;
 
   /* Stores state of the current Reconstruction operation,
@@ -154,7 +154,7 @@ class DenoisingTask {
   DenoisingTask(Device *device, const DeviceTask &task);
   ~DenoisingTask();
 
-  void run_denoising(RenderTile *tile);
+  void run_denoising(RenderTile &tile);
 
   struct DenoiseBuffers {
     int pass_stride;
@@ -179,7 +179,7 @@ class DenoisingTask {
  protected:
   Device *device;
 
-  void set_render_buffer(RenderTile *rtiles);
+  void set_render_buffer(RenderTileNeighbors &neighbors);
   void setup_denoising_buffer();
   void prefilter_shadowing();
   void prefilter_features();

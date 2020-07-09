@@ -271,42 +271,45 @@ bool DenoiseTask::acquire_tile(Device *device, Device *tile_device, RenderTile &
  *
  * However, since there is only one large memory, the denoised result has to be written to
  * a different buffer to avoid having to copy an entire horizontal slice of the image. */
-void DenoiseTask::map_neighboring_tiles(RenderTile *tiles, Device *tile_device)
+void DenoiseTask::map_neighboring_tiles(RenderTileNeighbors &neighbors, Device *tile_device)
 {
+  RenderTile &center_tile = neighbors.tiles[RenderTileNeighbors::CENTER];
+  RenderTile &target_tile = neighbors.target;
+
   /* Fill tile information. */
-  for (int i = 0; i < 9; i++) {
-    if (i == 4) {
+  for (int i = 0; i < RenderTileNeighbors::SIZE; i++) {
+    if (i == RenderTileNeighbors::CENTER) {
       continue;
     }
 
+    RenderTile &tile = neighbors.tiles[i];
     int dx = (i % 3) - 1;
     int dy = (i / 3) - 1;
-    tiles[i].x = clamp(tiles[4].x + dx * denoiser->tile_size.x, 0, image.width);
-    tiles[i].w = clamp(tiles[4].x + (dx + 1) * denoiser->tile_size.x, 0, image.width) - tiles[i].x;
-    tiles[i].y = clamp(tiles[4].y + dy * denoiser->tile_size.y, 0, image.height);
-    tiles[i].h = clamp(tiles[4].y + (dy + 1) * denoiser->tile_size.y, 0, image.height) -
-                 tiles[i].y;
+    tile.x = clamp(center_tile.x + dx * denoiser->tile_size.x, 0, image.width);
+    tile.w = clamp(center_tile.x + (dx + 1) * denoiser->tile_size.x, 0, image.width) - tile.x;
+    tile.y = clamp(center_tile.y + dy * denoiser->tile_size.y, 0, image.height);
+    tile.h = clamp(center_tile.y + (dy + 1) * denoiser->tile_size.y, 0, image.height) - tile.y;
 
-    tiles[i].buffer = tiles[4].buffer;
-    tiles[i].offset = tiles[4].offset;
-    tiles[i].stride = image.width;
+    tile.buffer = center_tile.buffer;
+    tile.offset = center_tile.offset;
+    tile.stride = image.width;
   }
 
   /* Allocate output buffer. */
   device_vector<float> *output_mem = new device_vector<float>(
       tile_device, "denoising_output", MEM_READ_WRITE);
-  output_mem->alloc(OUTPUT_NUM_CHANNELS * tiles[4].w * tiles[4].h);
+  output_mem->alloc(OUTPUT_NUM_CHANNELS * center_tile.w * center_tile.h);
 
   /* Fill output buffer with noisy image, assumed by kernel_filter_finalize
    * when skipping denoising of some pixels. */
   float *result = output_mem->data();
-  float *in = &image.pixels[image.num_channels * (tiles[4].y * image.width + tiles[4].x)];
+  float *in = &image.pixels[image.num_channels * (center_tile.y * image.width + center_tile.x)];
 
   const DenoiseImageLayer &layer = image.layers[current_layer];
   const int *input_to_image_channel = layer.input_to_image_channel.data();
 
-  for (int y = 0; y < tiles[4].h; y++) {
-    for (int x = 0; x < tiles[4].w; x++, result += OUTPUT_NUM_CHANNELS) {
+  for (int y = 0; y < center_tile.h; y++) {
+    for (int x = 0; x < center_tile.w; x++, result += OUTPUT_NUM_CHANNELS) {
       for (int i = 0; i < OUTPUT_NUM_CHANNELS; i++) {
         result[i] = in[image.num_channels * x + input_to_image_channel[INPUT_NOISY_IMAGE + i]];
       }
@@ -317,35 +320,38 @@ void DenoiseTask::map_neighboring_tiles(RenderTile *tiles, Device *tile_device)
   output_mem->copy_to_device();
 
   /* Fill output tile info. */
-  tiles[9] = tiles[4];
-  tiles[9].buffer = output_mem->device_pointer;
-  tiles[9].stride = tiles[9].w;
-  tiles[9].offset -= tiles[9].x + tiles[9].y * tiles[9].stride;
+  target_tile = center_tile;
+  target_tile.buffer = output_mem->device_pointer;
+  target_tile.stride = target_tile.w;
+  target_tile.offset -= target_tile.x + target_tile.y * target_tile.stride;
 
   thread_scoped_lock output_lock(output_mutex);
-  assert(output_pixels.count(tiles[4].tile_index) == 0);
-  output_pixels[tiles[9].tile_index] = output_mem;
+  assert(output_pixels.count(center_tile.tile_index) == 0);
+  output_pixels[target_tile.tile_index] = output_mem;
 }
 
-void DenoiseTask::unmap_neighboring_tiles(RenderTile *tiles)
+void DenoiseTask::unmap_neighboring_tiles(RenderTileNeighbors &neighbors)
 {
+  RenderTile &center_tile = neighbors.tiles[RenderTileNeighbors::CENTER];
+  RenderTile &target_tile = neighbors.target;
+
   thread_scoped_lock output_lock(output_mutex);
-  assert(output_pixels.count(tiles[4].tile_index) == 1);
-  device_vector<float> *output_mem = output_pixels[tiles[9].tile_index];
-  output_pixels.erase(tiles[4].tile_index);
+  assert(output_pixels.count(center_tile.tile_index) == 1);
+  device_vector<float> *output_mem = output_pixels[target_tile.tile_index];
+  output_pixels.erase(center_tile.tile_index);
   output_lock.unlock();
 
   /* Copy denoised pixels from device. */
-  output_mem->copy_from_device(0, OUTPUT_NUM_CHANNELS * tiles[9].w, tiles[9].h);
+  output_mem->copy_from_device(0, OUTPUT_NUM_CHANNELS * target_tile.w, target_tile.h);
 
   float *result = output_mem->data();
-  float *out = &image.pixels[image.num_channels * (tiles[9].y * image.width + tiles[9].x)];
+  float *out = &image.pixels[image.num_channels * (target_tile.y * image.width + target_tile.x)];
 
   const DenoiseImageLayer &layer = image.layers[current_layer];
   const int *output_to_image_channel = layer.output_to_image_channel.data();
 
-  for (int y = 0; y < tiles[9].h; y++) {
-    for (int x = 0; x < tiles[9].w; x++, result += OUTPUT_NUM_CHANNELS) {
+  for (int y = 0; y < target_tile.h; y++) {
+    for (int x = 0; x < target_tile.w; x++, result += OUTPUT_NUM_CHANNELS) {
       for (int i = 0; i < OUTPUT_NUM_CHANNELS; i++) {
         out[image.num_channels * x + output_to_image_channel[i]] = result[i];
       }

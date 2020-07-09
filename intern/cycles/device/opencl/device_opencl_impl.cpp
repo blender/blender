@@ -1850,7 +1850,7 @@ void OpenCLDevice::denoise(RenderTile &rtile, DenoisingTask &denoising)
   denoising.render_buffer.samples = rtile.sample;
   denoising.buffer.gpu_temporary_mem = true;
 
-  denoising.run_denoising(&rtile);
+  denoising.run_denoising(rtile);
 }
 
 void OpenCLDevice::shader(DeviceTask &task)

@@ -29,6 +29,7 @@ CCL_NAMESPACE_BEGIN
 class Device;
 class RenderBuffers;
 class RenderTile;
+class RenderTileNeighbors;
 class Tile;
 
 enum DenoiserType {
@@ -150,8 +151,8 @@ class DeviceTask {
   function<void(RenderTile &)> update_tile_sample;
   function<void(RenderTile &)> release_tile;
   function<bool()> get_cancel;
-  function<void(RenderTile *, Device *)> map_neighbor_tiles;
-  function<void(RenderTile *, Device *)> unmap_neighbor_tiles;
+  function<void(RenderTileNeighbors &, Device *)> map_neighbor_tiles;
+  function<void(RenderTileNeighbors &, Device *)> unmap_neighbor_tiles;
 
   uint tile_types;
   DenoiseParams denoising;

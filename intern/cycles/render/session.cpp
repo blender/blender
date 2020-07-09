@@ -536,7 +536,7 @@ void Session::release_tile(RenderTile &rtile, const bool need_denoise)
   denoising_cond.notify_all();
 }
 
-void Session::map_neighbor_tiles(RenderTile *tiles, Device *tile_device)
+void Session::map_neighbor_tiles(RenderTileNeighbors &neighbors, Device *tile_device)
 {
   thread_scoped_lock tile_lock(tile_mutex);
 
@@ -546,75 +546,77 @@ void Session::map_neighbor_tiles(RenderTile *tiles, Device *tile_device)
       tile_manager.state.buffer.full_x + tile_manager.state.buffer.width,
       tile_manager.state.buffer.full_y + tile_manager.state.buffer.height);
 
+  RenderTile &center_tile = neighbors.tiles[RenderTileNeighbors::CENTER];
+
   if (!tile_manager.schedule_denoising) {
     /* Fix up tile slices with overlap. */
     if (tile_manager.slice_overlap != 0) {
-      int y = max(tiles[4].y - tile_manager.slice_overlap, image_region.y);
-      tiles[4].h = min(tiles[4].y + tiles[4].h + tile_manager.slice_overlap, image_region.w) - y;
-      tiles[4].y = y;
+      int y = max(center_tile.y - tile_manager.slice_overlap, image_region.y);
+      center_tile.h = min(center_tile.y + center_tile.h + tile_manager.slice_overlap,
+                          image_region.w) -
+                      y;
+      center_tile.y = y;
     }
 
     /* Tiles are not being denoised individually, which means the entire image is processed. */
-    tiles[3].x = tiles[4].x;
-    tiles[1].y = tiles[4].y;
-    tiles[5].x = tiles[4].x + tiles[4].w;
-    tiles[7].y = tiles[4].y + tiles[4].h;
+    neighbors.set_bounds_from_center();
   }
   else {
-    int center_idx = tiles[4].tile_index;
+    int center_idx = center_tile.tile_index;
     assert(tile_manager.state.tiles[center_idx].state == Tile::DENOISE);
 
     for (int dy = -1, i = 0; dy <= 1; dy++) {
       for (int dx = -1; dx <= 1; dx++, i++) {
+        RenderTile &rtile = neighbors.tiles[i];
         int nindex = tile_manager.get_neighbor_index(center_idx, i);
         if (nindex >= 0) {
           Tile *tile = &tile_manager.state.tiles[nindex];
 
-          tiles[i].x = image_region.x + tile->x;
-          tiles[i].y = image_region.y + tile->y;
-          tiles[i].w = tile->w;
-          tiles[i].h = tile->h;
+          rtile.x = image_region.x + tile->x;
+          rtile.y = image_region.y + tile->y;
+          rtile.w = tile->w;
+          rtile.h = tile->h;
 
           if (buffers) {
-            tile_manager.state.buffer.get_offset_stride(tiles[i].offset, tiles[i].stride);
+            tile_manager.state.buffer.get_offset_stride(rtile.offset, rtile.stride);
 
-            tiles[i].buffer = buffers->buffer.device_pointer;
-            tiles[i].buffers = buffers;
+            rtile.buffer = buffers->buffer.device_pointer;
+            rtile.buffers = buffers;
           }
           else {
             assert(tile->buffers);
-            tile->buffers->params.get_offset_stride(tiles[i].offset, tiles[i].stride);
+            tile->buffers->params.get_offset_stride(rtile.offset, rtile.stride);
 
-            tiles[i].buffer = tile->buffers->buffer.device_pointer;
-            tiles[i].buffers = tile->buffers;
+            rtile.buffer = tile->buffers->buffer.device_pointer;
+            rtile.buffers = tile->buffers;
           }
         }
         else {
-          int px = tiles[4].x + dx * params.tile_size.x;
-          int py = tiles[4].y + dy * params.tile_size.y;
+          int px = center_tile.x + dx * params.tile_size.x;
+          int py = center_tile.y + dy * params.tile_size.y;
 
-          tiles[i].x = clamp(px, image_region.x, image_region.z);
-          tiles[i].y = clamp(py, image_region.y, image_region.w);
-          tiles[i].w = tiles[i].h = 0;
+          rtile.x = clamp(px, image_region.x, image_region.z);
+          rtile.y = clamp(py, image_region.y, image_region.w);
+          rtile.w = rtile.h = 0;
 
-          tiles[i].buffer = (device_ptr)NULL;
-          tiles[i].buffers = NULL;
+          rtile.buffer = (device_ptr)NULL;
+          rtile.buffers = NULL;
         }
       }
     }
   }
 
-  assert(tiles[4].buffers);
-  device->map_neighbor_tiles(tile_device, tiles);
+  assert(center_tile.buffers);
+  device->map_neighbor_tiles(tile_device, neighbors);
 
   /* The denoised result is written back to the original tile. */
-  tiles[9] = tiles[4];
+  neighbors.target = center_tile;
 }
 
-void Session::unmap_neighbor_tiles(RenderTile *tiles, Device *tile_device)
+void Session::unmap_neighbor_tiles(RenderTileNeighbors &neighbors, Device *tile_device)
 {
   thread_scoped_lock tile_lock(tile_mutex);
-  device->unmap_neighbor_tiles(tile_device, tiles);
+  device->unmap_neighbor_tiles(tile_device, neighbors);
 }
 
 void Session::run_cpu()

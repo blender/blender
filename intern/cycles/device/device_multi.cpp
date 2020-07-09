@@ -584,20 +584,22 @@ class MultiDevice : public Device {
     return -1;
   }
 
-  void map_neighbor_tiles(Device *sub_device, RenderTile *tiles)
+  void map_neighbor_tiles(Device *sub_device, RenderTileNeighbors &neighbors)
   {
-    for (int i = 0; i < 9; i++) {
-      if (!tiles[i].buffers) {
+    for (int i = 0; i < RenderTileNeighbors::SIZE; i++) {
+      RenderTile &tile = neighbors.tiles[i];
+
+      if (!tile.buffers) {
         continue;
       }
 
-      device_vector<float> &mem = tiles[i].buffers->buffer;
-      tiles[i].buffer = mem.device_pointer;
+      device_vector<float> &mem = tile.buffers->buffer;
+      tile.buffer = mem.device_pointer;
 
       if (mem.device == this && matching_rendering_and_denoising_devices) {
         /* Skip unnecessary copies in viewport mode (buffer covers the
          * whole image), but still need to fix up the tile device pointer. */
-        map_tile(sub_device, tiles[i]);
+        map_tile(sub_device, tile);
         continue;
       }
 
@@ -610,15 +612,15 @@ class MultiDevice : public Device {
          * also required for the case where a CPU thread is denoising
          * a tile rendered on the GPU. In that case we have to avoid
          * overwriting the buffer being de-noised by the CPU thread. */
-        if (!tiles[i].buffers->map_neighbor_copied) {
-          tiles[i].buffers->map_neighbor_copied = true;
+        if (!tile.buffers->map_neighbor_copied) {
+          tile.buffers->map_neighbor_copied = true;
           mem.copy_from_device();
         }
 
         if (mem.device == this) {
           /* Can re-use memory if tile is already allocated on the sub device. */
-          map_tile(sub_device, tiles[i]);
-          mem.swap_device(sub_device, mem.device_size, tiles[i].buffer);
+          map_tile(sub_device, tile);
+          mem.swap_device(sub_device, mem.device_size, tile.buffer);
         }
         else {
           mem.swap_device(sub_device, 0, 0);
@@ -626,40 +628,42 @@ class MultiDevice : public Device {
 
         mem.copy_to_device();
 
-        tiles[i].buffer = mem.device_pointer;
-        tiles[i].device_size = mem.device_size;
+        tile.buffer = mem.device_pointer;
+        tile.device_size = mem.device_size;
 
         mem.restore_device();
       }
     }
   }
 
-  void unmap_neighbor_tiles(Device *sub_device, RenderTile *tiles)
+  void unmap_neighbor_tiles(Device *sub_device, RenderTileNeighbors &neighbors)
   {
-    device_vector<float> &mem = tiles[9].buffers->buffer;
+    RenderTile &target_tile = neighbors.target;
+    device_vector<float> &mem = target_tile.buffers->buffer;
 
     if (mem.device == this && matching_rendering_and_denoising_devices) {
       return;
     }
 
     /* Copy denoised result back to the host. */
-    mem.swap_device(sub_device, tiles[9].device_size, tiles[9].buffer);
+    mem.swap_device(sub_device, target_tile.device_size, target_tile.buffer);
     mem.copy_from_device();
     mem.restore_device();
 
     /* Copy denoised result to the original device. */
     mem.copy_to_device();
 
-    for (int i = 0; i < 9; i++) {
-      if (!tiles[i].buffers) {
+    for (int i = 0; i < RenderTileNeighbors::SIZE; i++) {
+      RenderTile &tile = neighbors.tiles[i];
+      if (!tile.buffers) {
         continue;
       }
 
-      device_vector<float> &mem = tiles[i].buffers->buffer;
+      device_vector<float> &mem = tile.buffers->buffer;
 
       if (mem.device != sub_device && mem.device != this) {
         /* Free up memory again if it was allocated for the copy above. */
-        mem.swap_device(sub_device, tiles[i].device_size, tiles[i].buffer);
+        mem.swap_device(sub_device, tile.device_size, tile.buffer);
         sub_device->mem_free(mem);
         mem.restore_device();
       }

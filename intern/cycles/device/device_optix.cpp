@@ -801,19 +801,18 @@ class OptiXDevice : public CUDADevice {
       //   0 1 2
       //   3 4 5
       //   6 7 8  9
-      RenderTile rtiles[10];
-      rtiles[4] = rtile;
-      task.map_neighbor_tiles(rtiles, this);
-      rtile = rtiles[4];  // Tile may have been modified by mapping code
+      RenderTileNeighbors neighbors(rtile);
+      task.map_neighbor_tiles(neighbors, this);
+      RenderTile &center_tile = neighbors.tiles[RenderTileNeighbors::CENTER];
+      RenderTile &target_tile = neighbors.target;
+      rtile = center_tile;  // Tile may have been modified by mapping code
 
       // Calculate size of the tile to denoise (including overlap)
-      int4 rect = make_int4(
-          rtiles[4].x, rtiles[4].y, rtiles[4].x + rtiles[4].w, rtiles[4].y + rtiles[4].h);
+      int4 rect = center_tile.bounds();
       // Overlap between tiles has to be at least 64 pixels
       // TODO(pmours): Query this value from OptiX
       rect = rect_expand(rect, 64);
-      int4 clip_rect = make_int4(
-          rtiles[3].x, rtiles[1].y, rtiles[5].x + rtiles[5].w, rtiles[7].y + rtiles[7].h);
+      int4 clip_rect = neighbors.bounds();
       rect = rect_clip(rect, clip_rect);
       int2 rect_size = make_int2(rect.z - rect.x, rect.w - rect.y);
       int2 overlap_offset = make_int2(rtile.x - rect.x, rtile.y - rect.y);
@@ -834,14 +833,14 @@ class OptiXDevice : public CUDADevice {
       device_only_memory<float> input(this, "denoiser input");
       device_vector<TileInfo> tile_info_mem(this, "denoiser tile info", MEM_READ_WRITE);
 
-      if ((!rtiles[0].buffer || rtiles[0].buffer == rtile.buffer) &&
-          (!rtiles[1].buffer || rtiles[1].buffer == rtile.buffer) &&
-          (!rtiles[2].buffer || rtiles[2].buffer == rtile.buffer) &&
-          (!rtiles[3].buffer || rtiles[3].buffer == rtile.buffer) &&
-          (!rtiles[5].buffer || rtiles[5].buffer == rtile.buffer) &&
-          (!rtiles[6].buffer || rtiles[6].buffer == rtile.buffer) &&
-          (!rtiles[7].buffer || rtiles[7].buffer == rtile.buffer) &&
-          (!rtiles[8].buffer || rtiles[8].buffer == rtile.buffer)) {
+      bool contiguous_memory = true;
+      for (int i = 0; i < RenderTileNeighbors::SIZE; i++) {
+        if (neighbors.tiles[i].buffer && neighbors.tiles[i].buffer != rtile.buffer) {
+          contiguous_memory = false;
+        }
+      }
+
+      if (contiguous_memory) {
         // Tiles are in continous memory, so can just subtract overlap offset
         input_ptr -= (overlap_offset.x + overlap_offset.y * rtile.stride) * pixel_stride;
         // Stride covers the whole width of the image and not just a single tile
@@ -856,19 +855,19 @@ class OptiXDevice : public CUDADevice {
         input_stride *= rect_size.x;
 
         TileInfo *tile_info = tile_info_mem.alloc(1);
-        for (int i = 0; i < 9; i++) {
-          tile_info->offsets[i] = rtiles[i].offset;
-          tile_info->strides[i] = rtiles[i].stride;
-          tile_info->buffers[i] = rtiles[i].buffer;
+        for (int i = 0; i < RenderTileNeighbors::SIZE; i++) {
+          tile_info->offsets[i] = neighbors.tiles[i].offset;
+          tile_info->strides[i] = neighbors.tiles[i].stride;
+          tile_info->buffers[i] = neighbors.tiles[i].buffer;
         }
-        tile_info->x[0] = rtiles[3].x;
-        tile_info->x[1] = rtiles[4].x;
-        tile_info->x[2] = rtiles[5].x;
-        tile_info->x[3] = rtiles[5].x + rtiles[5].w;
-        tile_info->y[0] = rtiles[1].y;
-        tile_info->y[1] = rtiles[4].y;
-        tile_info->y[2] = rtiles[7].y;
-        tile_info->y[3] = rtiles[7].y + rtiles[7].h;
+        tile_info->x[0] = neighbors.tiles[3].x;
+        tile_info->x[1] = neighbors.tiles[4].x;
+        tile_info->x[2] = neighbors.tiles[5].x;
+        tile_info->x[3] = neighbors.tiles[5].x + neighbors.tiles[5].w;
+        tile_info->y[0] = neighbors.tiles[1].y;
+        tile_info->y[1] = neighbors.tiles[4].y;
+        tile_info->y[2] = neighbors.tiles[7].y;
+        tile_info->y[3] = neighbors.tiles[7].y + neighbors.tiles[7].h;
         tile_info_mem.copy_to_device();
 
         void *args[] = {
@@ -977,10 +976,10 @@ class OptiXDevice : public CUDADevice {
       int2 output_offset = overlap_offset;
       overlap_offset = make_int2(0, 0);  // Not supported by denoiser API, so apply manually
 #  else
-      output_layers[0].data = rtiles[9].buffer + pixel_offset;
-      output_layers[0].width = rtiles[9].w;
-      output_layers[0].height = rtiles[9].h;
-      output_layers[0].rowStrideInBytes = rtiles[9].stride * pixel_stride;
+      output_layers[0].data = target_tile.buffer + pixel_offset;
+      output_layers[0].width = target_tile.w;
+      output_layers[0].height = target_tile.h;
+      output_layers[0].rowStrideInBytes = target_tile.stride * pixel_stride;
       output_layers[0].pixelStrideInBytes = pixel_stride;
 #  endif
       output_layers[0].format = OPTIX_PIXEL_FORMAT_FLOAT3;
@@ -1002,26 +1001,26 @@ class OptiXDevice : public CUDADevice {
 
 #  if OPTIX_DENOISER_NO_PIXEL_STRIDE
       void *output_args[] = {&input_ptr,
-                             &rtiles[9].buffer,
+                             &target_tile.buffer,
                              &output_offset.x,
                              &output_offset.y,
                              &rect_size.x,
                              &rect_size.y,
-                             &rtiles[9].x,
-                             &rtiles[9].y,
-                             &rtiles[9].w,
-                             &rtiles[9].h,
-                             &rtiles[9].offset,
-                             &rtiles[9].stride,
+                             &target_tile.x,
+                             &target_tile.y,
+                             &target_tile.w,
+                             &target_tile.h,
+                             &target_tile.offset,
+                             &target_tile.stride,
                              &task.pass_stride,
                              &rtile.sample};
       launch_filter_kernel(
-          "kernel_cuda_filter_convert_from_rgb", rtiles[9].w, rtiles[9].h, output_args);
+          "kernel_cuda_filter_convert_from_rgb", target_tile.w, target_tile.h, output_args);
 #  endif
 
       check_result_cuda_ret(cuStreamSynchronize(0));
 
-      task.unmap_neighbor_tiles(rtiles, this);
+      task.unmap_neighbor_tiles(neighbors, this);
     }
     else {
       // Run CUDA denoising kernels

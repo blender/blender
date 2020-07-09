@@ -1760,7 +1760,7 @@ void CUDADevice::denoise(RenderTile &rtile, DenoisingTask &denoising)
   denoising.render_buffer.samples = rtile.sample;
   denoising.buffer.gpu_temporary_mem = true;
 
-  denoising.run_denoising(&rtile);
+  denoising.run_denoising(rtile);
 }
 
 void CUDADevice::adaptive_sampling_filter(uint filter_sample,

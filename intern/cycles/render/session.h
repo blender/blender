@@ -198,8 +198,8 @@ class Session {
   void update_tile_sample(RenderTile &tile);
   void release_tile(RenderTile &tile, const bool need_denoise);
 
-  void map_neighbor_tiles(RenderTile *tiles, Device *tile_device);
-  void unmap_neighbor_tiles(RenderTile *tiles, Device *tile_device);
+  void map_neighbor_tiles(RenderTileNeighbors &neighbors, Device *tile_device);
+  void unmap_neighbor_tiles(RenderTileNeighbors &neighbors, Device *tile_device);
 
   bool device_use_gl;
 

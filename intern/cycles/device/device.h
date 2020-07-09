@@ -439,10 +439,10 @@ class Device {
   {
     return 0;
   }
-  virtual void map_neighbor_tiles(Device * /*sub_device*/, RenderTile * /*tiles*/)
+  virtual void map_neighbor_tiles(Device * /*sub_device*/, RenderTileNeighbors & /*neighbors*/)
   {
   }
-  virtual void unmap_neighbor_tiles(Device * /*sub_device*/, RenderTile * /*tiles*/)
+  virtual void unmap_neighbor_tiles(Device * /*sub_device*/, RenderTileNeighbors & /*neighbors*/)
   {
   }
 
