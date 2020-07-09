@@ -38,6 +38,7 @@ set(INC
   ../render/extern/include
   ../../../intern/glew-mx
   ../../../intern/guardedalloc
+  ../../../intern/sky/include
 )
 
 set(INC_SYS
@@ -298,6 +299,7 @@ set(SRC
 
 set(LIB
   bf_functions
+  bf_intern_sky
 )
 
 if(WITH_PYTHON)
