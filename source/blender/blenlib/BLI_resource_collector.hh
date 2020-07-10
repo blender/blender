@@ -91,7 +91,7 @@ class ResourceCollector : NonCopyable, NonMovable {
 
   /**
    * Pass ownership of some resource to the ResourceCollector. The given free function will be
-   * calld when the collector is destructed.
+   * called when the collector is destructed.
    */
   void add(void *userdata, void (*free)(void *), const char *name)
   {

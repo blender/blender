@@ -2308,7 +2308,7 @@ bool ui_but_is_rna_valid(uiBut *but)
 }
 
 /**
- * Checks if the button supports ctrl+mousewheel cycling
+ * Checks if the button supports cycling next/previous menu items (ctrl+mouse-wheel).
  */
 bool ui_but_supports_cycling(const uiBut *but)
 {

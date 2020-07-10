@@ -313,8 +313,8 @@ static void mesh_join_offset_face_sets_ID(const Mesh *mesh, int *face_set_offset
 
   int max_face_set = 0;
   for (int f = 0; f < mesh->totpoly; f++) {
-    /* As face sets enconde the visibility in the integer sign, the offset needs to be added or
-     * substracted depending on the initial sign of the integer to get the new ID. */
+    /* As face sets encode the visibility in the integer sign, the offset needs to be added or
+     * subtracted depending on the initial sign of the integer to get the new ID. */
     if (abs(face_sets[f]) <= *face_set_offset) {
       if (face_sets[f] > 0) {
         face_sets[f] += *face_set_offset;

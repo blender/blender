@@ -300,7 +300,7 @@ void constant_folding(MFNetwork &network, ResourceCollector &resources)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Common Subnetwork Elimination
+/** \name Common Sub-network Elimination
  *
  * \{ */
 
@@ -462,7 +462,7 @@ static void relink_duplicate_nodes(MFNetwork &network,
 }
 
 /**
- * Tries to detect duplicate subnetworks and eliminates them. This can help quite a lot when node
+ * Tries to detect duplicate sub-networks and eliminates them. This can help quite a lot when node
  * groups were used to create the network.
  */
 void common_subnetwork_elimination(MFNetwork &network)
