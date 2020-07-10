@@ -176,12 +176,22 @@ class IMAGE_MT_select(Menu):
         layout.separator()
 
         layout.operator("uv.select_pinned")
-        layout.operator("uv.select_linked")
+        layout.menu("IMAGE_MT_select_linked")
 
         layout.separator()
 
         layout.operator("uv.select_split")
         layout.operator("uv.select_overlap")
+
+
+class IMAGE_MT_select_linked(Menu):
+    bl_label = "Select Linked"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("uv.select_linked", text="Linked")
+        layout.operator("uv.shortest_path_pick", text="Shortest Path")
 
 
 class IMAGE_MT_image(Menu):
@@ -1479,6 +1489,7 @@ classes = (
     IMAGE_MT_view,
     IMAGE_MT_view_zoom,
     IMAGE_MT_select,
+    IMAGE_MT_select_linked,
     IMAGE_MT_image,
     IMAGE_MT_image_invert,
     IMAGE_MT_uvs,
