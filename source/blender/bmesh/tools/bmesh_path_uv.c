@@ -33,6 +33,8 @@
 #include "intern/bmesh_query.h"
 #include "intern/bmesh_query_uv.h"
 
+#define COST_INIT_MAX 1e20f
+
 /* -------------------------------------------------------------------- */
 /** \name Generic Helpers
  * \{ */
@@ -156,7 +158,7 @@ struct LinkNode *BM_mesh_calc_path_uv_vert(BMesh *bm,
   loops_prev = MEM_callocN(sizeof(*loops_prev) * totloop, __func__);
   cost = MEM_mallocN(sizeof(*cost) * totloop, __func__);
 
-  copy_vn_fl(cost, totloop, 1e20f);
+  copy_vn_fl(cost, totloop, COST_INIT_MAX);
 
   /* Regular dijkstra shortest path, but over UV loops instead of vertices. */
   heap = BLI_heapsimple_new();
@@ -196,8 +198,7 @@ struct LinkNode *BM_mesh_calc_path_uv_vert(BMesh *bm,
 /* -------------------------------------------------------------------- */
 /** \name BM_mesh_calc_path_uv_edge
  * \{ */
-
-/* TODO(campbell): not very urgent. */
+/* TODO(campbell): not very urgent, since the operator fakes this using vertex path. */
 
 /** \} */
 
@@ -228,9 +229,9 @@ static float facetag_cut_cost_edge_uv(BMFace *f_a,
 #else
   /* For triangle fans it gives better results to pick a point on the edge. */
   {
-    float ix_e[2], factor;
+    float ix_e[2];
     isect_line_line_v2_point(co_v1, co_v2, f_a_cent, f_b_cent, ix_e);
-    factor = line_point_factor_v2(ix_e, co_v1, co_v2);
+    const float factor = line_point_factor_v2(ix_e, co_v1, co_v2);
     if (factor < 0.0f) {
       copy_v2_v2(e_cent, co_v1);
     }
@@ -394,7 +395,7 @@ struct LinkNode *BM_mesh_calc_path_uv_face(BMesh *bm,
   faces_prev = MEM_callocN(sizeof(*faces_prev) * totface, __func__);
   cost = MEM_mallocN(sizeof(*cost) * totface, __func__);
 
-  copy_vn_fl(cost, totface, 1e20f);
+  copy_vn_fl(cost, totface, COST_INIT_MAX);
 
   /* Regular dijkstra shortest path, but over UV faces instead of vertices. */
   heap = BLI_heapsimple_new();
