@@ -181,8 +181,8 @@ class CPUDevice : public Device {
 #ifdef WITH_OPENIMAGEDENOISE
   oidn::DeviceRef oidn_device;
   oidn::FilterRef oidn_filter;
-  thread_spin_lock oidn_task_lock;
 #endif
+  thread_spin_lock oidn_task_lock;
 
   bool use_split_kernel;
 

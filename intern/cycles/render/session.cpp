@@ -1128,6 +1128,11 @@ bool Session::render_need_denoise(bool &delayed)
 {
   delayed = false;
 
+  /* Not supported yet for baking. */
+  if (read_bake_tile_cb) {
+    return false;
+  }
+
   /* Denoising enabled? */
   if (!params.denoising.need_denoising_task()) {
     return false;
