@@ -388,7 +388,17 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
       float interp_color[4];
       copy_v4_v4(interp_color, ss->cache->prev_colors[vd.index]);
 
-      sub_v3_v3v3(current_disp, ss->cache->location, ss->cache->last_location);
+      switch (brush->smear_deform_type) {
+        case BRUSH_SMEAR_DEFORM_DRAG:
+          sub_v3_v3v3(current_disp, ss->cache->location, ss->cache->last_location);
+          break;
+        case BRUSH_SMEAR_DEFORM_PINCH:
+          sub_v3_v3v3(current_disp, ss->cache->location, vd.co);
+          break;
+        case BRUSH_SMEAR_DEFORM_EXPAND:
+          sub_v3_v3v3(current_disp, vd.co, ss->cache->location);
+          break;
+      }
       normalize_v3_v3(current_disp_norm, current_disp);
       mul_v3_v3fl(current_disp, current_disp_norm, ss->cache->bstrength);
 

@@ -682,6 +682,10 @@ def brush_settings(layout, context, brush, popover=False):
             col.prop(brush, "tip_roundness")
             col.prop(brush, "tip_scale_x")
 
+        if brush.sculpt_tool == 'SMEAR':
+            col = layout.column()
+            col.prop(brush, "smear_deform_type")
+
         if brush.sculpt_tool == 'MULTIPLANE_SCRAPE':
             col = layout.column()
             col.prop(brush, "multiplane_scrape_angle")

@@ -343,6 +343,12 @@ typedef enum eBrushPoseOriginType {
   BRUSH_POSE_ORIGIN_FACE_SETS_FK = 2,
 } eBrushPoseOriginType;
 
+typedef enum eBrushSmearDeformType {
+  BRUSH_SMEAR_DEFORM_DRAG = 0,
+  BRUSH_SMEAR_DEFORM_PINCH = 1,
+  BRUSH_SMEAR_DEFORM_EXPAND = 2,
+} eBrushSmearDeformType;
+
 /* Gpencilsettings.Vertex_mode */
 typedef enum eGp_Vertex_Mode {
   /* Affect to Stroke only. */
@@ -500,7 +506,7 @@ typedef struct Brush {
   char gpencil_sculpt_tool;
   /** Active grease pencil weight tool. */
   char gpencil_weight_tool;
-  char _pad1[2];
+  char _pad1[6];
 
   float autosmooth_factor;
 
@@ -554,6 +560,9 @@ typedef struct Brush {
 
   /* multiplane scrape */
   float multiplane_scrape_angle;
+
+  /* smear */
+  int smear_deform_type;
 
   /* overlay */
   int texture_overlay_alpha;
