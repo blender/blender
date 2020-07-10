@@ -301,7 +301,7 @@ set(SQLITE_HASH fb558c49ee21a837713c4f1e7e413309aabdd9c7)
 
 set(EMBREE_VERSION 3.8.0)
 set(EMBREE_URI https://github.com/embree/embree/archive/v${EMBREE_VERSION}.zip)
-set(EMBREE_HASH ac504d5426945fe25dec1267e0c39d52)
+set(EMBREE_HASH 837b297bfe9c328152e9ce42c301d340)
 
 set(USD_VERSION 19.11)
 set(USD_URI https://github.com/PixarAnimationStudios/USD/archive/v${USD_VERSION}.tar.gz)
