@@ -321,7 +321,7 @@ static void layerInterp_mdeformvert(const void **sources,
       }
       dvert->dw[i] = node->dw;
     }
-    BKE_defvert_array_sort_weights(dvert, count);
+    BKE_defvert_array_sort_weights(dvert, totweight);
   }
   else {
     memset(dvert, 0, sizeof(*dvert));
