@@ -2442,6 +2442,8 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
   MetaStack *ms;
   bool nothing_selected = true;
 
+  BKE_sequencer_prefetch_stop(scene);
+
   seq = BKE_sequencer_active_get(scene);
   if (seq && seq->flag & SELECT) { /* Avoid a loop since this is likely to be selected. */
     nothing_selected = false;
