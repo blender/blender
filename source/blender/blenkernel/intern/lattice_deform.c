@@ -418,8 +418,8 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
 void BKE_lattice_deform_coords(const Object *ob_lattice,
                                const Object *ob_target,
                                float (*vert_coords)[3],
-                               int vert_coords_len,
-                               short flag,
+                               const int vert_coords_len,
+                               const short flag,
                                const char *defgrp_name,
                                float fac)
 {
