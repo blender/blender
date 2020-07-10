@@ -812,26 +812,25 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
     }
   }
 
-  /* Mark only boundary edges. */
+  /* Special case: if we have selected faces, isolated them.
+   * This isn't a rip, however it's useful for users as a quick way
+   * to detech the selection.
+   *
+   * We could also extract an edge loop from the boundary
+   * however in practice it's not that useful, see T78751. */
   if (is_select_all_any) {
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-      if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-        BMLoop *l_first = BM_FACE_FIRST_LOOP(efa);
-        if (UL(l_first)->is_select_all) {
-          BMLoop *l_iter = l_first;
-          do {
-            BMLoop *l_other = bm_loop_find_other_radial_loop_with_visible_face(l_iter,
-                                                                               cd_loop_uv_offset);
-            if (l_other != NULL) {
-              if (UL(l_other)->is_select_all) {
-                UL(l_iter)->is_select_edge = false;
-                UL(l_other)->is_select_edge = false;
-              }
-            }
-          } while ((l_iter = l_iter->next) != l_first);
+      BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+        if (!UL(l)->is_select_all) {
+          MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+          if (luv->flag & MLOOPUV_VERTSEL) {
+            luv->flag &= ~MLOOPUV_VERTSEL;
+            changed = true;
+          }
         }
       }
     }
+    return changed;
   }
 
   /* Extract loop pairs or single loops. */
