@@ -142,6 +142,19 @@ void dead_node_removal(MFNetwork &network)
  *
  * \{ */
 
+static Vector<MFNode *> find_non_constant_nodes(MFNetwork &network)
+{
+  Vector<MFNode *> non_constant_nodes;
+  non_constant_nodes.extend(network.dummy_nodes());
+
+  for (MFFunctionNode *node : network.function_nodes()) {
+    if (!node->all_inputs_have_origin()) {
+      non_constant_nodes.append(node);
+    }
+  }
+  return non_constant_nodes;
+}
+
 static bool output_has_non_constant_target_node(MFOutputSocket *output_socket,
                                                 Span<bool> is_not_constant_mask)
 {
@@ -168,7 +181,7 @@ static MFInputSocket *try_find_dummy_target_socket(MFOutputSocket *output_socket
 static Vector<MFInputSocket *> find_constant_inputs_to_fold(
     MFNetwork &network, Vector<MFDummyNode *> &r_temporary_nodes)
 {
-  Span<MFNode *> non_constant_nodes = network.dummy_nodes();
+  Vector<MFNode *> non_constant_nodes = find_non_constant_nodes(network);
   Array<bool> is_not_constant_mask = mask_nodes_to_the_right(network, non_constant_nodes);
   Vector<MFNode *> constant_nodes = find_nodes_based_on_mask(network, is_not_constant_mask, false);
 
