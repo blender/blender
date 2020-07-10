@@ -1817,8 +1817,7 @@ static void rna_def_modifier_gpencilmirror(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "MirrorGpencilModifier", "GpencilModifier");
-  RNA_def_struct_ui_text(
-      srna, "Mirror Modifier", "Change stroke using lattice to deform modifier");
+  RNA_def_struct_ui_text(srna, "Mirror Modifier", "Create mirroring strokes");
   RNA_def_struct_sdna(srna, "MirrorGpencilModifierData");
   RNA_def_struct_ui_icon(srna, ICON_MOD_MIRROR);
 
