@@ -1782,7 +1782,8 @@ float BKE_gpencil_multiframe_falloff_calc(
     value = BKE_curvemapping_evaluateF(cur_falloff, 0, fnum + 0.5f);
   }
   else {
-    value = 1.0f;
+    /* Center of the curve. */
+    value = BKE_curvemapping_evaluateF(cur_falloff, 0, 0.5f);
   }
 
   return value;
