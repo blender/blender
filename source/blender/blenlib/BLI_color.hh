@@ -118,6 +118,12 @@ struct Color4b {
   {
     return !(a == b);
   }
+
+  uint32_t hash() const
+  {
+    return ((uint32_t)r * 1283591) ^ ((uint32_t)g * 850177) ^ ((uint32_t)b * 735391) ^
+           ((uint32_t)a * 442319);
+  }
 };
 
 }  // namespace blender

@@ -108,6 +108,16 @@ struct float4x4 {
     interp_m4_m4m4(result, a.values, b.values, t);
     return result;
   }
+
+  uint32_t hash() const
+  {
+    uint32_t h = 435109;
+    for (uint i = 0; i < 16; i++) {
+      float value = ((const float *)this)[i];
+      h = h * 33 + (*(uint32_t *)&value);
+    }
+    return h;
+  }
 };
 
 }  // namespace blender
