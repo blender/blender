@@ -275,18 +275,15 @@ eFileAttributes BLI_file_attributes(const char *path)
     ret |= FILE_ATTR_REPARSE_POINT;
   }
 
-#  endif
+#  else
 
-#  ifdef __linux__
   UNUSED_VARS(path);
 
   /* TODO:
    * If Immutable set FILE_ATTR_READONLY
    * If Archived set FILE_ATTR_ARCHIVE
    */
-
 #  endif
-
   return ret;
 }
 #endif
@@ -330,9 +327,7 @@ bool BLI_file_alias_target(char target[FILE_MAXDIR], const char *filepath)
   }
 
   return (success && target[0]);
-#  endif
-
-#  ifdef __linux__
+#  else
   UNUSED_VARS(target, filepath);
   /* File-based redirection not supported. */
   return false;
