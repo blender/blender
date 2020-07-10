@@ -1018,7 +1018,7 @@ class CPUDevice : public Device {
     (void)offset;
     (void)stride;
     (void)x;
-    (void)ry;
+    (void)y;
     (void)w;
     (void)h;
 #endif
