@@ -20,10 +20,9 @@
 /** \file
  * \ingroup fn
  *
- * The CPPType class is the core of the runtime-type-system used by the functions system. An
- * instance of this class can represent any C++ type, that is default-constructible, destructible,
- * movable and copyable. Therefore it also works for all C types. This restrictions might need to
- * be removed in the future, but for now every required type has these properties.
+ * The CPPType class is the core of the runtime-type-system used by the functions system. It can
+ * represent C++ types that are default-constructible, destructible, movable, copyable and
+ * equality comparable. In the future we might want to make some of these properties optional.
  *
  * Every type has a size and an alignment. Every function dealing with C++ types in a generic way,
  * has to make sure that alignment rules are followed. The methods provided by a CPPType instance
@@ -106,6 +105,7 @@ class CPPType {
   using FillUninitializedIndicesF = void (*)(const void *value, void *dst, IndexMask mask);
 
   using DebugPrintF = void (*)(const void *value, std::stringstream &ss);
+  using IsEqualF = bool (*)(const void *a, const void *b);
 
  private:
   uint size_;
@@ -144,6 +144,7 @@ class CPPType {
   FillUninitializedIndicesF fill_uninitialized_indices_;
 
   DebugPrintF debug_print_;
+  IsEqualF is_equal_;
 
   const void *default_value_;
   std::string name_;
@@ -176,6 +177,7 @@ class CPPType {
           FillUninitializedF fill_uninitialized,
           FillUninitializedIndicesF fill_uninitialized_indices,
           DebugPrintF debug_print,
+          IsEqualF is_equal,
           const void *default_value)
       : size_(size),
         alignment_(alignment),
@@ -203,6 +205,7 @@ class CPPType {
         fill_uninitialized_(fill_uninitialized),
         fill_uninitialized_indices_(fill_uninitialized_indices),
         debug_print_(debug_print),
+        is_equal_(is_equal),
         default_value_(default_value),
         name_(name)
   {
@@ -531,6 +534,13 @@ class CPPType {
     debug_print_(value, ss);
   }
 
+  bool is_equal(const void *a, const void *b) const
+  {
+    BLI_assert(this->pointer_can_point_to_instance(a));
+    BLI_assert(this->pointer_can_point_to_instance(b));
+    return is_equal_(a, b);
+  }
+
   /**
    * Get a pointer to a constant value of this type. The specific value depends on the type.
    * It is usually a zero-initialized or default constructed value.
@@ -711,6 +721,13 @@ template<typename T> void debug_print_cb(const void *value, std::stringstream &s
   ss << value_;
 }
 
+template<typename T> bool is_equal_cb(const void *a, const void *b)
+{
+  const T &a_ = *(T *)a;
+  const T &b_ = *(T *)b;
+  return a_ == b_;
+}
+
 }  // namespace cpp_type_util
 
 template<typename T>
@@ -744,6 +761,7 @@ inline std::unique_ptr<const CPPType> create_cpp_type(StringRef name, const T &d
                                     fill_uninitialized_cb<T>,
                                     fill_uninitialized_indices_cb<T>,
                                     debug_print_cb<T>,
+                                    is_equal_cb<T>,
                                     (const void *)&default_value);
   return std::unique_ptr<const CPPType>(type);
 }

@@ -62,6 +62,11 @@ struct TestType {
     stream << value.value;
     return stream;
   }
+
+  friend bool operator==(const TestType &a, const TestType &b)
+  {
+    return false;
+  }
 };
 
 MAKE_CPP_TYPE(TestType, TestType)
