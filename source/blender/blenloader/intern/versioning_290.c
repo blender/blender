@@ -27,6 +27,9 @@
 #include "DNA_constraint_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_gpencil_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -34,6 +37,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
+#include "BKE_deform.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 
@@ -349,6 +353,26 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
           OceanModifierData *omd = (OceanModifierData *)md;
           omd->wave_alignment *= 0.1f;
           omd->sharpen_peak_jonswap *= 0.1f;
+        }
+      }
+    }
+  }
+
+  /* Make sure that all weights of MDeformVert are sorted. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 290, 7)) {
+    for (Mesh *mesh = bmain->meshes.first; mesh != NULL; mesh = mesh->id.next) {
+      BKE_defvert_array_sort_weights(mesh->dvert, mesh->totvert);
+    }
+    for (Lattice *lt = bmain->lattices.first; lt != NULL; lt = lt->id.next) {
+      const int totvert = lt->pntsu * lt->pntsv * lt->pntsw;
+      BKE_defvert_array_sort_weights(lt->dvert, totvert);
+    }
+    for (bGPdata *gp = bmain->gpencils.first; gp != NULL; gp = gp->id.next) {
+      LISTBASE_FOREACH (bGPDlayer *, layer, &gp->layers) {
+        LISTBASE_FOREACH (bGPDframe *, frame, &layer->frames) {
+          LISTBASE_FOREACH (bGPDstroke *, stroke, &frame->strokes) {
+            BKE_defvert_array_sort_weights(stroke->dvert, stroke->totpoints);
+          }
         }
       }
     }

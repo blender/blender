@@ -216,6 +216,47 @@ void BKE_defvert_sync(MDeformVert *dvert_dst, const MDeformVert *dvert_src, cons
   }
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Deform Weights - Sorting
+ *
+ * \{ */
+
+/* Reorder the weights so they are sorted. It is required that all `MDeformVert` weights are sorted
+ * so we can use binary search.
+ */
+static int defweight_cmp(const void *a, const void *b)
+{
+  const MDeformWeight *dw1 = a;
+  const MDeformWeight *dw2 = b;
+  if (dw1->def_nr < dw2->def_nr) {
+    return -1;
+  }
+  else if (dw1->def_nr > dw2->def_nr) {
+    return 1;
+  }
+  else {
+    return 0;
+  }
+}
+
+static void defvert_sort_weights(struct MDeformVert *dvert)
+{
+  if (dvert->dw) {
+    qsort(dvert->dw, dvert->totweight, sizeof(MDeformWeight), defweight_cmp);
+  }
+}
+
+void BKE_defvert_array_sort_weights(struct MDeformVert *dvert, const int num_verts)
+{
+  if (!dvert) {
+    return;
+  }
+  for (int i = 0; i < num_verts; i++) {
+    defvert_sort_weights(&dvert[i]);
+  }
+}
+/* \} */
+
 /**
  * be sure all flip_map values are valid
  */
@@ -260,6 +301,7 @@ void BKE_defvert_remap(MDeformVert *dvert, int *map, const int map_len)
       dw->def_nr = map[dw->def_nr];
     }
   }
+  defvert_sort_weights(dvert);
 }
 
 /**
@@ -459,6 +501,7 @@ void BKE_defvert_flip(MDeformVert *dvert, const int *flip_map, const int flip_ma
       }
     }
   }
+  defvert_sort_weights(dvert);
 }
 
 void BKE_defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int flip_map_len)
@@ -665,23 +708,40 @@ float BKE_defvert_array_find_weight_safe(const struct MDeformVert *dvert,
   return BKE_defvert_find_weight(dvert + index, defgroup);
 }
 
-MDeformWeight *BKE_defvert_find_index(const MDeformVert *dvert, const int defgroup)
+static int defvert_index_get(const MDeformVert *dvert, const int defgroup)
 {
-  if (dvert && defgroup >= 0) {
-    MDeformWeight *dw = dvert->dw;
-    unsigned int i;
-
-    for (i = dvert->totweight; i != 0; i--, dw++) {
-      if (dw->def_nr == defgroup) {
-        return dw;
-      }
+  int low = 0;
+  int high = dvert->totweight - 1;
+  int mid;
+  while (low < high) {
+    mid = (low + high) / 2;
+    MDeformWeight *dweight = &dvert->dw[mid];
+    const unsigned int dweight_def_nr = dweight->def_nr;
+    if (dweight_def_nr == defgroup) {
+      return mid;
+    }
+    if (dweight_def_nr < defgroup) {
+      low = mid + 1;
+    }
+    else {
+      high = mid - 1;
     }
   }
-  else {
-    BLI_assert(0);
-  }
+  return -1;
+}
 
-  return NULL;
+MDeformWeight *BKE_defvert_find_index(const MDeformVert *dvert, const int defgroup)
+{
+  BLI_assert(dvert);
+  BLI_assert(defgroup >= 0);
+
+  int index = defvert_index_get(dvert, defgroup);
+  if (index == -1) {
+    return NULL;
+  }
+  else {
+    return &dvert->dw[index];
+  }
 }
 
 /**
@@ -706,16 +766,17 @@ MDeformWeight *BKE_defvert_ensure_index(MDeformVert *dvert, const int defgroup)
 
   dw_new = MEM_mallocN(sizeof(MDeformWeight) * (dvert->totweight + 1), "deformWeight");
   if (dvert->dw) {
-    memcpy(dw_new, dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
+    memcpy(dw_new + 1, dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
     MEM_freeN(dvert->dw);
   }
   dvert->dw = dw_new;
-  dw_new += dvert->totweight;
   dw_new->weight = 0.0f;
   dw_new->def_nr = defgroup;
   /* Group index */
 
   dvert->totweight++;
+
+  defvert_sort_weights(dvert);
 
   return dw_new;
 }
@@ -740,14 +801,15 @@ void BKE_defvert_add_index_notest(MDeformVert *dvert, int defgroup, const float 
   dw_new = MEM_callocN(sizeof(MDeformWeight) * (dvert->totweight + 1),
                        "defvert_add_to group, new deformWeight");
   if (dvert->dw) {
-    memcpy(dw_new, dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
+    memcpy(dw_new + 1, dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
     MEM_freeN(dvert->dw);
   }
   dvert->dw = dw_new;
-  dw_new += dvert->totweight;
   dw_new->weight = weight;
   dw_new->def_nr = defgroup;
   dvert->totweight++;
+
+  defvert_sort_weights(dvert);
 }
 
 /**
@@ -773,7 +835,7 @@ void BKE_defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
       BLI_assert(dvert->dw != NULL);
 
       if (i != dvert->totweight) {
-        dvert->dw[i] = dvert->dw[dvert->totweight];
+        memmove(&dvert->dw[i], &dvert->dw[i + 1], sizeof(MDeformWeight) * dvert->totweight - i);
       }
 
       dvert->dw = MEM_reallocN(dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
@@ -1524,5 +1586,18 @@ void BKE_defvert_weight_to_rgb(float r_rgb[3], const float weight)
     r_rgb[2] = 1.0f;
   }
 }
+
+#ifndef NDEBUG
+bool BKE_defvert_is_sorted_for_assert(const MDeformVert *dv)
+{
+  const MDeformWeight *dw = dv->dw;
+  for (int i = 1; i < dv->totweight; i++) {
+    if (dw[i - 1].def_nr > dw[i].def_nr) {
+      return false;
+    }
+  }
+  return true;
+}
+#endif
 
 /** \} */

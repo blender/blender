@@ -2642,6 +2642,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
                     dvert->dw->def_nr = idx;
                   }
                 }
+                BKE_defvert_array_sort_weights(gps->dvert, gps->totpoints);
               }
             }
           }

@@ -159,6 +159,7 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_curveprofile.h"
+#include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"  // for G
@@ -2044,6 +2045,7 @@ static void write_dverts(BlendWriter *writer, int count, MDeformVert *dvlist)
     /* Write deformation data for each dvert */
     for (int i = 0; i < count; i++) {
       if (dvlist[i].dw) {
+        BKE_DEFVERT_IS_SORTED_ASSERT(&dvlist[i]);
         BLO_write_struct_array(writer, MDeformWeight, dvlist[i].totweight, dvlist[i].dw);
       }
     }
