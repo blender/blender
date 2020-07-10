@@ -49,11 +49,11 @@ BEGIN
     BEGIN
       VALUE "FileVersion", BLEN_VER_RC_STR
       VALUE "ProductVersion", BLEN_VER_RC_STR
-      VALUE "CompanyName", "Blender Foundation"
-      VALUE "FileDescription", "Blender"
-      VALUE "LegalCopyright", "GPLv3 (Blender Foundation)"
+      VALUE "CompanyName", "Resona Team"
+      VALUE "FileDescription", "Resona"
+      VALUE "LegalCopyright", "GPLv3 (Resona Team)"
       VALUE "OriginalFilename", "blender.exe"
-      VALUE "ProductName", "Blender"
+      VALUE "ProductName", "Resona"
     END
   END
   BLOCK "VarFileInfo"
