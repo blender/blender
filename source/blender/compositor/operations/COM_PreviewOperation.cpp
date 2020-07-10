@@ -130,10 +130,10 @@ void PreviewOperation::determineResolution(unsigned int resolution[2],
   int height = resolution[1];
   this->m_divider = 0.0f;
   if (width > height) {
-    this->m_divider = COM_PREVIEW_SIZE / (width - 1);
+    this->m_divider = (float)COM_PREVIEW_SIZE / (width);
   }
   else {
-    this->m_divider = COM_PREVIEW_SIZE / (height - 1);
+    this->m_divider = (float)COM_PREVIEW_SIZE / (height);
   }
   width = width * this->m_divider;
   height = height * this->m_divider;
