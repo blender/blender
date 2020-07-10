@@ -79,7 +79,6 @@ static Sequence *alloc_generic_sequence(
     Editing *ed, const char *name, int frame_start, int channel, int type, const char *file)
 {
   Sequence *seq;
-  Strip *strip;
   StripElem *se;
 
   seq = BKE_sequence_alloc(ed->seqbasep, frame_start, channel, type);
@@ -87,8 +86,7 @@ static Sequence *alloc_generic_sequence(
   BLI_strncpy(seq->name + 2, name, sizeof(seq->name) - 2);
   BKE_sequence_base_unique_name_recursive(&ed->seqbase, seq);
 
-  seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
-  seq->strip->us = 1;
+  Strip *strip = seq->strip;
 
   if (file) {
     strip->stripdata = se = MEM_callocN(sizeof(StripElem), "stripelem");
