@@ -21,8 +21,9 @@
  * \ingroup fn
  *
  * The CPPType class is the core of the runtime-type-system used by the functions system. It can
- * represent C++ types that are default-constructible, destructible, movable, copyable and
- * equality comparable. In the future we might want to make some of these properties optional.
+ * represent C++ types that are default-constructible, destructible, movable, copyable,
+ * equality comparable and hashable. In the future we might want to make some of these properties
+ * optional.
  *
  * Every type has a size and an alignment. Every function dealing with C++ types in a generic way,
  * has to make sure that alignment rules are followed. The methods provided by a CPPType instance
@@ -106,6 +107,7 @@ class CPPType {
 
   using DebugPrintF = void (*)(const void *value, std::stringstream &ss);
   using IsEqualF = bool (*)(const void *a, const void *b);
+  using HashF = uint32_t (*)(const void *value);
 
  private:
   uint size_;
@@ -145,6 +147,7 @@ class CPPType {
 
   DebugPrintF debug_print_;
   IsEqualF is_equal_;
+  HashF hash_;
 
   const void *default_value_;
   std::string name_;
@@ -178,6 +181,7 @@ class CPPType {
           FillUninitializedIndicesF fill_uninitialized_indices,
           DebugPrintF debug_print,
           IsEqualF is_equal,
+          HashF hash,
           const void *default_value)
       : size_(size),
         alignment_(alignment),
@@ -206,6 +210,7 @@ class CPPType {
         fill_uninitialized_indices_(fill_uninitialized_indices),
         debug_print_(debug_print),
         is_equal_(is_equal),
+        hash_(hash),
         default_value_(default_value),
         name_(name)
   {
@@ -541,6 +546,12 @@ class CPPType {
     return is_equal_(a, b);
   }
 
+  uint32_t hash(const void *value) const
+  {
+    BLI_assert(this->pointer_can_point_to_instance(value));
+    return hash_(value);
+  }
+
   /**
    * Get a pointer to a constant value of this type. The specific value depends on the type.
    * It is usually a zero-initialized or default constructed value.
@@ -728,6 +739,12 @@ template<typename T> bool is_equal_cb(const void *a, const void *b)
   return a_ == b_;
 }
 
+template<typename T> uint32_t hash_cb(const void *value)
+{
+  const T &value_ = *(const T *)value;
+  return DefaultHash<T>{}(value_);
+}
+
 }  // namespace cpp_type_util
 
 template<typename T>
@@ -762,6 +779,7 @@ inline std::unique_ptr<const CPPType> create_cpp_type(StringRef name, const T &d
                                     fill_uninitialized_indices_cb<T>,
                                     debug_print_cb<T>,
                                     is_equal_cb<T>,
+                                    hash_cb<T>,
                                     (const void *)&default_value);
   return std::unique_ptr<const CPPType>(type);
 }

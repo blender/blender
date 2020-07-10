@@ -67,6 +67,11 @@ struct TestType {
   {
     return false;
   }
+
+  uint32_t hash() const
+  {
+    return 0;
+  }
 };
 
 MAKE_CPP_TYPE(TestType, TestType)
