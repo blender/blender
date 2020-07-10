@@ -2,6 +2,7 @@
 set(INC
   ..
   ../../glew-mx
+  ../../sky/include
 )
 
 set(INC_SYS
@@ -92,6 +93,7 @@ set(LIB
   cycles_device
   cycles_subd
   cycles_util
+  bf_intern_sky
 )
 
 if(WITH_CYCLES_OSL)

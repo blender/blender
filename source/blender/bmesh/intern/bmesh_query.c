@@ -34,8 +34,6 @@
 
 #include "BKE_customdata.h"
 
-#include "DNA_meshdata_types.h"
-
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
@@ -1814,20 +1812,6 @@ void BM_edge_calc_face_tangent(const BMEdge *e, const BMLoop *e_loop, float r_ta
    * for non flat ngons it will give a better direction */
   cross_v3_v3v3(r_tangent, tvec, e_loop->f->no);
   normalize_v3(r_tangent);
-}
-
-float BM_face_calc_uv_cross(const BMFace *f, const int cd_loop_uv_offset)
-{
-  float(*uvs)[2] = BLI_array_alloca(uvs, f->len);
-  const BMLoop *l_iter;
-  const BMLoop *l_first;
-  int i = 0;
-  l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-  do {
-    const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
-    copy_v2_v2(uvs[i++], luv->uv);
-  } while ((l_iter = l_iter->next) != l_first);
-  return cross_poly_v2(uvs, f->len);
 }
 
 /**

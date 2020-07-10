@@ -709,6 +709,10 @@ static void blender_camera_from_view(BlenderCamera *bcam,
 
   /* 3d view transform */
   bcam->matrix = transform_inverse(get_transform(b_rv3d.view_matrix()));
+
+  /* dimensions */
+  bcam->full_width = width;
+  bcam->full_height = height;
 }
 
 static void blender_camera_view_subset(BL::RenderEngine &b_engine,

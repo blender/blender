@@ -481,7 +481,7 @@ inline Span<MFInputSocket *> MFOutputSocket::targets()
 
 inline Span<const MFInputSocket *> MFOutputSocket::targets() const
 {
-  return targets_.as_span();
+  return targets_;
 }
 
 /* --------------------------------------------------------------------

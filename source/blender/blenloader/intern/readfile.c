@@ -8686,6 +8686,7 @@ static void direct_link_simulation(BlendDataReader *reader, Simulation *simulati
 
   BLO_read_list(reader, &simulation->states);
   LISTBASE_FOREACH (SimulationState *, state, &simulation->states) {
+    BLO_read_data_address(reader, &state->name);
     switch ((eSimulationStateType)state->type) {
       case SIM_STATE_TYPE_PARTICLES: {
         ParticleSimulationState *particle_state = (ParticleSimulationState *)state;

@@ -313,12 +313,12 @@ inline const InputSocketRef &DInputSocket::socket_ref() const
 
 inline Span<const DOutputSocket *> DInputSocket::linked_sockets() const
 {
-  return linked_sockets_.as_span();
+  return linked_sockets_;
 }
 
 inline Span<const DGroupInput *> DInputSocket::linked_group_inputs() const
 {
-  return linked_group_inputs_.as_span();
+  return linked_group_inputs_;
 }
 
 inline bool DInputSocket::is_linked() const
@@ -337,7 +337,7 @@ inline const OutputSocketRef &DOutputSocket::socket_ref() const
 
 inline Span<const DInputSocket *> DOutputSocket::linked_sockets() const
 {
-  return linked_sockets_.as_span();
+  return linked_sockets_;
 }
 
 /* --------------------------------------------------------------------
@@ -361,7 +361,7 @@ inline const DParentNode *DGroupInput::parent() const
 
 inline Span<const DInputSocket *> DGroupInput::linked_sockets() const
 {
-  return linked_sockets_.as_span();
+  return linked_sockets_;
 }
 
 inline uint DGroupInput::id() const
@@ -453,7 +453,7 @@ inline uint DParentNode::id() const
 
 inline Span<const DNode *> DerivedNodeTree::nodes() const
 {
-  return nodes_by_id_.as_span();
+  return nodes_by_id_;
 }
 
 inline Span<const DNode *> DerivedNodeTree::nodes_by_type(StringRefNull idname) const
@@ -469,28 +469,28 @@ inline Span<const DNode *> DerivedNodeTree::nodes_by_type(const bNodeType *nodet
     return {};
   }
   else {
-    return nodes->as_span();
+    return *nodes;
   }
 }
 
 inline Span<const DSocket *> DerivedNodeTree::sockets() const
 {
-  return sockets_by_id_.as_span();
+  return sockets_by_id_;
 }
 
 inline Span<const DInputSocket *> DerivedNodeTree::input_sockets() const
 {
-  return input_sockets_.as_span();
+  return input_sockets_;
 }
 
 inline Span<const DOutputSocket *> DerivedNodeTree::output_sockets() const
 {
-  return output_sockets_.as_span();
+  return output_sockets_;
 }
 
 inline Span<const DGroupInput *> DerivedNodeTree::group_inputs() const
 {
-  return group_inputs_.as_span();
+  return group_inputs_;
 }
 
 }  // namespace blender::bke

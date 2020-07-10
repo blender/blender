@@ -27,9 +27,10 @@
 #include "render/scene.h"
 #include "render/svm.h"
 
+#include "sky_model.h"
+
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
-#include "util/util_sky_model.h"
 #include "util/util_transform.h"
 
 #include "kernel/svm/svm_color_util.h"
@@ -726,8 +727,8 @@ static void sky_texture_precompute_hosek(SunSky *sunsky,
   float solarElevation = M_PI_2_F - theta;
 
   /* Initialize Sky Model */
-  ArHosekSkyModelState *sky_state;
-  sky_state = arhosek_xyz_skymodelstate_alloc_init(
+  SKY_ArHosekSkyModelState *sky_state;
+  sky_state = SKY_arhosek_xyz_skymodelstate_alloc_init(
       (double)turbidity, (double)ground_albedo, (double)solarElevation);
 
   /* Copy values from sky_state to SunSky */
@@ -741,7 +742,7 @@ static void sky_texture_precompute_hosek(SunSky *sunsky,
   sunsky->radiance_z = (float)sky_state->radiances[2];
 
   /* Free sky_state */
-  arhosekskymodelstate_free(sky_state);
+  SKY_arhosekskymodelstate_free(sky_state);
 }
 
 /* Nishita improved */
@@ -758,7 +759,7 @@ static void sky_texture_precompute_nishita(SunSky *sunsky,
   float pixel_bottom[3];
   float pixel_top[3];
   float altitude_f = (float)altitude;
-  nishita_skymodel_precompute_sun(
+  SKY_nishita_skymodel_precompute_sun(
       sun_elevation, sun_size, altitude_f, air_density, dust_density, pixel_bottom, pixel_top);
   /* send data to svm_sky */
   sunsky->nishita_data[0] = pixel_bottom[0];

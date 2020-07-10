@@ -91,8 +91,6 @@ an updated version of this code has been published!
 
 ============================================================================ */
 
-CCL_NAMESPACE_BEGIN
-
 /*
 
 This file contains the coefficient data for the XYZ colour space version of
@@ -3843,5 +3841,3 @@ static const double datasetXYZRad3[] = {
 static const double *datasetsXYZ[] = {datasetXYZ1, datasetXYZ2, datasetXYZ3};
 
 static const double *datasetsXYZRad[] = {datasetXYZRad1, datasetXYZRad2, datasetXYZRad3};
-
-CCL_NAMESPACE_END

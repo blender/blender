@@ -48,15 +48,13 @@ void Path::setRootDir(const string &iRootDir)
 {
   _ProjectDir = iRootDir + string(DIR_SEP) + "freestyle";
   _ModelsPath = "";
-  _PatternsPath = _ProjectDir + string(DIR_SEP) + "data" + string(DIR_SEP) +
-                  "textures" + string(DIR_SEP) + "variation_patterns" +
-                  string(DIR_SEP);
-  _BrushesPath = _ProjectDir + string(DIR_SEP) + "data" + string(DIR_SEP) +
-                 "textures" + string(DIR_SEP) + "brushes" + string(DIR_SEP);
-  _EnvMapDir = _ProjectDir + string(DIR_SEP) + "data" + string(DIR_SEP) +
-               "env_map" + string(DIR_SEP);
-  _MapsDir = _ProjectDir + string(DIR_SEP) + "data" + string(DIR_SEP) + "maps" +
-             string(DIR_SEP);
+  _PatternsPath = _ProjectDir + string(DIR_SEP) + "data" + string(DIR_SEP) + "textures" +
+                  string(DIR_SEP) + "variation_patterns" + string(DIR_SEP);
+  _BrushesPath = _ProjectDir + string(DIR_SEP) + "data" + string(DIR_SEP) + "textures" +
+                 string(DIR_SEP) + "brushes" + string(DIR_SEP);
+  _EnvMapDir = _ProjectDir + string(DIR_SEP) + "data" + string(DIR_SEP) + "env_map" +
+               string(DIR_SEP);
+  _MapsDir = _ProjectDir + string(DIR_SEP) + "data" + string(DIR_SEP) + "maps" + string(DIR_SEP);
 }
 
 void Path::setHomeDir(const string &iHomeDir)

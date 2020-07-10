@@ -365,6 +365,10 @@ struct ModifierData *object_add_particle_system(struct Main *bmain,
                                                 struct Scene *scene,
                                                 struct Object *ob,
                                                 const char *name);
+struct ModifierData *object_copy_particle_system(struct Main *bmain,
+                                                 struct Scene *scene,
+                                                 struct Object *ob,
+                                                 const struct ParticleSystem *psys_orig);
 void object_remove_particle_system(struct Main *bmain, struct Scene *scene, struct Object *ob);
 struct ParticleSettings *BKE_particlesettings_add(struct Main *bmain, const char *name);
 struct ParticleSettings *BKE_particlesettings_copy(struct Main *bmain,

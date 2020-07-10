@@ -1542,7 +1542,7 @@ static void pbvh_update_visibility_task_cb(void *__restrict userdata,
   PBVHUpdateData *data = userdata;
   PBVH *pbvh = data->pbvh;
   PBVHNode *node = data->nodes[n];
-  if (node->flag & PBVH_UpdateMask) {
+  if (node->flag & PBVH_UpdateVisibility) {
     switch (BKE_pbvh_type(pbvh)) {
       case PBVH_FACES:
         pbvh_faces_node_visibility_update(pbvh, node);
@@ -1554,7 +1554,7 @@ static void pbvh_update_visibility_task_cb(void *__restrict userdata,
         pbvh_bmesh_node_visibility_update(node);
         break;
     }
-    node->flag &= ~PBVH_UpdateMask;
+    node->flag &= ~PBVH_UpdateVisibility;
   }
 }
 
@@ -1770,6 +1770,11 @@ void BKE_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden)
   else {
     node->flag &= ~PBVH_FullyHidden;
   }
+}
+
+bool BKE_pbvh_node_fully_hidden_get(PBVHNode *node)
+{
+  return (node->flag & PBVH_Leaf) && (node->flag & PBVH_FullyHidden);
 }
 
 void BKE_pbvh_node_fully_masked_set(PBVHNode *node, int fully_masked)

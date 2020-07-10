@@ -28,6 +28,11 @@ elseif(APPLE)
   set(ISPC_EXTRA_ARGS_APPLE
     -DBISON_EXECUTABLE=/usr/local/opt/bison/bin/bison
   )
+elseif(UNIX)
+  set(ISPC_EXTRA_ARGS_UNIX
+    -DCMAKE_C_COMPILER=${LIBDIR}/clang/bin/clang
+    -DCMAKE_CXX_COMPILER=${LIBDIR}/clang/bin/clang++
+  )
 endif()
 
 set(ISPC_EXTRA_ARGS
@@ -43,6 +48,7 @@ set(ISPC_EXTRA_ARGS
     -DCLANG_INCLUDE_DIRS=${LIBDIR}/clang/include
     ${ISPC_EXTRA_ARGS_WIN}
     ${ISPC_EXTRA_ARGS_APPLE}
+    ${ISPC_EXTRA_ARGS_UNIX}
 )
 
 ExternalProject_Add(external_ispc

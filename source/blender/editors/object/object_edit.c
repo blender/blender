@@ -895,7 +895,7 @@ void ED_object_check_force_modifiers(Main *bmain, Scene *scene, Object *object)
   else {
     if (!pd || (pd->shape != PFIELD_SHAPE_SURFACE) ||
         ELEM(pd->forcefield, 0, PFIELD_GUIDE, PFIELD_TEXTURE)) {
-      ED_object_modifier_remove(NULL, bmain, object, md);
+      ED_object_modifier_remove(NULL, bmain, scene, object, md);
     }
   }
 }

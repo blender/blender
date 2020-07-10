@@ -770,7 +770,6 @@ void BKE_scene_copy_data_eevee(Scene *sce_dst, const Scene *sce_src)
 
 Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
 {
-  const bool is_scene_liboverride = ID_IS_OVERRIDE_LIBRARY(sce);
   Scene *sce_copy;
 
   /* TODO this should/could most likely be replaced by call to more generic code at some point...
@@ -841,15 +840,13 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     return sce_copy;
   }
   else {
-    const eDupli_ID_Flags duplicate_flags = U.dupflag | USER_DUP_OBJECT;
+    eDupli_ID_Flags duplicate_flags = U.dupflag | USER_DUP_OBJECT;
 
     BKE_id_copy(bmain, (ID *)sce, (ID **)&sce_copy);
     id_us_min(&sce_copy->id);
     id_us_ensure_real(&sce_copy->id);
 
-    if (duplicate_flags & USER_DUP_ACT) {
-      BKE_animdata_copy_id_action(bmain, &sce_copy->id, true);
-    }
+    BKE_animdata_duplicate_id_action(bmain, &sce_copy->id, duplicate_flags);
 
     /* Extra actions, most notably SCE_FULL_COPY also duplicates several 'children' datablocks. */
 
@@ -860,22 +857,26 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
       if (!is_subprocess) {
         BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
         BKE_main_id_clear_newpoins(bmain);
+        /* In case root duplicated ID is linked, assume we want to get a local copy of it and
+         * duplicate all expected linked data. */
+        if (ID_IS_LINKED(sce)) {
+          duplicate_flags |= USER_DUP_LINKED_ID;
+        }
       }
 
       /* Copy Freestyle LineStyle datablocks. */
       LISTBASE_FOREACH (ViewLayer *, view_layer_dst, &sce_copy->view_layers) {
         LISTBASE_FOREACH (
             FreestyleLineSet *, lineset, &view_layer_dst->freestyle_config.linesets) {
-          BKE_id_copy_for_duplicate(
-              bmain, &lineset->linestyle->id, is_scene_liboverride, duplicate_flags);
+          BKE_id_copy_for_duplicate(bmain, (ID *)lineset->linestyle, duplicate_flags);
         }
       }
 
       /* Full copy of world (included animations) */
-      BKE_id_copy_for_duplicate(bmain, &sce->world->id, is_scene_liboverride, duplicate_flags);
+      BKE_id_copy_for_duplicate(bmain, (ID *)sce->world, duplicate_flags);
 
       /* Full copy of GreasePencil. */
-      BKE_id_copy_for_duplicate(bmain, &sce->gpd->id, is_scene_liboverride, duplicate_flags);
+      BKE_id_copy_for_duplicate(bmain, (ID *)sce->gpd, duplicate_flags);
 
       /* Deep-duplicate collections and objects (using preferences' settings for which sub-data to
        * duplicate along the object itself). */

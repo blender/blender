@@ -180,7 +180,12 @@ static void workbench_cache_common_populate(WORKBENCH_PrivateData *wpd,
         geom = DRW_cache_mesh_surface_vertpaint_get(ob);
       }
       else {
-        geom = DRW_cache_mesh_surface_sculptcolors_get(ob);
+        if (U.experimental.use_sculpt_vertex_colors) {
+          geom = DRW_cache_mesh_surface_sculptcolors_get(ob);
+        }
+        else {
+          geom = DRW_cache_mesh_surface_vertpaint_get(ob);
+        }
       }
     }
     else {
@@ -261,8 +266,15 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
     }
   }
   else if (color_type == V3D_SHADING_VERTEX_COLOR) {
-    if ((me == NULL) || !CustomData_has_layer(&me->vdata, CD_PROP_COLOR)) {
-      color_type = V3D_SHADING_OBJECT_COLOR;
+    if (U.experimental.use_sculpt_vertex_colors) {
+      if ((me == NULL) || !CustomData_has_layer(&me->vdata, CD_PROP_COLOR)) {
+        color_type = V3D_SHADING_OBJECT_COLOR;
+      }
+    }
+    else {
+      if ((me == NULL) || !CustomData_has_layer(&me->ldata, CD_MLOOPCOL)) {
+        color_type = V3D_SHADING_OBJECT_COLOR;
+      }
     }
   }
 

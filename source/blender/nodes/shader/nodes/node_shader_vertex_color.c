@@ -39,6 +39,10 @@ static int node_shader_gpu_vertex_color(GPUMaterial *mat,
                                         GPUNodeStack *out)
 {
   NodeShaderVertexColor *vertexColor = (NodeShaderVertexColor *)node->storage;
+  if (U.experimental.use_sculpt_vertex_colors) {
+    GPUNodeLink *vertexColorLink = GPU_attribute(mat, CD_PROP_COLOR, vertexColor->layer_name);
+    return GPU_stack_link(mat, node, "node_vertex_color", in, out, vertexColorLink);
+  }
   GPUNodeLink *vertexColorLink = GPU_attribute(mat, CD_MCOL, vertexColor->layer_name);
   return GPU_stack_link(mat, node, "node_vertex_color", in, out, vertexColorLink);
 }

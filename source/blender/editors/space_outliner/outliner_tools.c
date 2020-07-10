@@ -1127,6 +1127,7 @@ static void modifier_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem
 {
   bContext *C = (bContext *)Carg;
   Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
   ModifierData *md = (ModifierData *)te->directdata;
   Object *ob = (Object *)outliner_search_back(te, ID_OB);
 
@@ -1141,7 +1142,7 @@ static void modifier_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
   }
   else if (event == OL_MODIFIER_OP_DELETE) {
-    ED_object_modifier_remove(NULL, bmain, ob, md);
+    ED_object_modifier_remove(NULL, bmain, scene, ob, md);
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_REMOVED, ob);
     te->store_elem->flag &= ~TSE_SELECTED;
   }

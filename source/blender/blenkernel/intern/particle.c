@@ -3611,7 +3611,8 @@ void psys_mat_hair_to_global(
 /************************************************/
 /*          ParticleSettings handling           */
 /************************************************/
-ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, const char *name)
+static ModifierData *object_add_or_copy_particle_system(
+    Main *bmain, Scene *scene, Object *ob, const char *name, const ParticleSystem *psys_orig)
 {
   ParticleSystem *psys;
   ModifierData *md;
@@ -3622,7 +3623,7 @@ ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, 
   }
 
   if (name == NULL) {
-    name = DATA_("ParticleSettings");
+    name = (psys_orig != NULL) ? psys_orig->name : DATA_("ParticleSettings");
   }
 
   psys = ob->particlesystem.first;
@@ -3635,8 +3636,13 @@ ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, 
   BLI_addtail(&ob->particlesystem, psys);
   psys_unique_name(ob, psys, name);
 
-  psys->part = BKE_particlesettings_add(bmain, psys->name);
-
+  if (psys_orig != NULL) {
+    psys->part = psys_orig->part;
+    id_us_plus(&psys->part->id);
+  }
+  else {
+    psys->part = BKE_particlesettings_add(bmain, psys->name);
+  }
   md = BKE_modifier_new(eModifierType_ParticleSystem);
   BLI_strncpy(md->name, psys->name, sizeof(md->name));
   BKE_modifier_unique_name(&ob->modifiers, md);
@@ -3656,6 +3662,20 @@ ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, 
 
   return md;
 }
+
+ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, const char *name)
+{
+  return object_add_or_copy_particle_system(bmain, scene, ob, name, NULL);
+}
+
+ModifierData *object_copy_particle_system(Main *bmain,
+                                          Scene *scene,
+                                          Object *ob,
+                                          const ParticleSystem *psys_orig)
+{
+  return object_add_or_copy_particle_system(bmain, scene, ob, NULL, psys_orig);
+}
+
 void object_remove_particle_system(Main *bmain, Scene *UNUSED(scene), Object *ob)
 {
   ParticleSystem *psys = psys_get_current(ob);

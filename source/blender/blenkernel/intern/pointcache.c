@@ -1898,19 +1898,13 @@ static void ptcache_sim_particle_read(
   PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, 0, positions + (index * 3));
 }
 
-void BKE_ptcache_id_from_sim_particles(PTCacheID *pid, ParticleSimulationState *state)
+void BKE_ptcache_id_from_sim_particles(PTCacheID *pid,
+                                       ParticleSimulationState *state_orig,
+                                       ParticleSimulationState *state_cow)
 {
   memset(pid, 0, sizeof(PTCacheID));
 
-  ParticleSimulationState *state_orig;
-  if (state->head.orig_state != NULL) {
-    state_orig = (ParticleSimulationState *)state->head.orig_state;
-  }
-  else {
-    state_orig = state;
-  }
-
-  pid->calldata = state;
+  pid->calldata = state_cow;
   pid->type = PTCACHE_TYPE_SIM_PARTICLES;
   pid->cache = state_orig->point_cache;
   pid->cache_ptr = &state_orig->point_cache;
@@ -2050,11 +2044,7 @@ static bool foreach_object_modifier_ptcache(Object *object,
         LISTBASE_FOREACH (SimulationState *, state, &smd->simulation->states) {
           switch ((eSimulationStateType)state->type) {
             case SIM_STATE_TYPE_PARTICLES: {
-              ParticleSimulationState *particle_state = (ParticleSimulationState *)state;
-              BKE_ptcache_id_from_sim_particles(&pid, particle_state);
-              if (!callback(&pid, callback_user_data)) {
-                return false;
-              }
+              /* TODO(jacques) */
               break;
             }
           }

@@ -333,7 +333,6 @@ static Collection *collection_duplicate_recursive(Main *bmain,
   Collection *collection_new;
   bool do_full_process = false;
   const bool is_collection_master = (collection_old->flag & COLLECTION_IS_MASTER) != 0;
-  const bool is_collection_liboverride = ID_IS_OVERRIDE_LIBRARY(collection_old);
 
   const bool do_objects = (duplicate_flags & USER_DUP_OBJECT) != 0;
 
@@ -346,7 +345,12 @@ static Collection *collection_duplicate_recursive(Main *bmain,
   }
   else if (collection_old->id.newid == NULL) {
     collection_new = (Collection *)BKE_id_copy_for_duplicate(
-        bmain, (ID *)collection_old, is_collection_liboverride, duplicate_flags);
+        bmain, (ID *)collection_old, duplicate_flags);
+
+    if (collection_new == collection_old) {
+      return collection_new;
+    }
+
     do_full_process = true;
   }
   else {
@@ -382,15 +386,13 @@ static Collection *collection_duplicate_recursive(Main *bmain,
       Object *ob_old = cob->ob;
       Object *ob_new = (Object *)ob_old->id.newid;
 
-      /* If collection is an override, we do not want to duplicate any linked data-block, as that
-       * would generate a purely local data. */
-      if (is_collection_liboverride && ID_IS_LINKED(ob_old)) {
-        continue;
-      }
-
       if (ob_new == NULL) {
         ob_new = BKE_object_duplicate(
             bmain, ob_old, duplicate_flags, duplicate_options | LIB_ID_DUPLICATE_IS_SUBPROCESS);
+      }
+
+      if (ob_new == ob_old) {
+        continue;
       }
 
       collection_object_add(bmain, collection_new, ob_new, 0, true);
@@ -403,13 +405,11 @@ static Collection *collection_duplicate_recursive(Main *bmain,
   LISTBASE_FOREACH_MUTABLE (CollectionChild *, child, &collection_old->children) {
     Collection *child_collection_old = child->collection;
 
-    if (is_collection_liboverride && ID_IS_LINKED(child_collection_old)) {
-      continue;
-    }
-
-    collection_duplicate_recursive(
+    Collection *child_collection_new = collection_duplicate_recursive(
         bmain, collection_new, child_collection_old, duplicate_flags, duplicate_options);
-    collection_child_remove(collection_new, child_collection_old);
+    if (child_collection_new != child_collection_old) {
+      collection_child_remove(collection_new, child_collection_old);
+    }
   }
 
   return collection_new;
@@ -434,6 +434,11 @@ Collection *BKE_collection_duplicate(Main *bmain,
   if (!is_subprocess) {
     BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
     BKE_main_id_clear_newpoins(bmain);
+    /* In case root duplicated ID is linked, assume we want to get a local copy of it and duplicate
+     * all expected linked data. */
+    if (ID_IS_LINKED(collection)) {
+      duplicate_flags |= USER_DUP_LINKED_ID;
+    }
   }
 
   Collection *collection_new = collection_duplicate_recursive(

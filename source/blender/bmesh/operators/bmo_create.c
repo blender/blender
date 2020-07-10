@@ -280,7 +280,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
    * last resort when all else fails.
    */
   if (totv > 2) {
-    /* TODO, some of these vertes may be connected by edges,
+    /* TODO, some of these vertices may be connected by edges,
      * this connectivity could be used rather than treating
      * them as a bunch of isolated verts. */
 

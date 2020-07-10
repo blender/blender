@@ -2377,6 +2377,26 @@ BMFace *BM_face_at_index_find(BMesh *bm, const int index)
   return BLI_mempool_findelem(bm->fpool, index);
 }
 
+BMLoop *BM_loop_at_index_find(BMesh *bm, const int index)
+{
+  BMIter iter;
+  BMFace *f;
+  int i = index;
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    if (i < f->len) {
+      BMLoop *l_first, *l_iter;
+      l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+      do {
+        if (i == 0) {
+          return l_iter;
+        }
+      } while ((l_iter = l_iter->next) != l_first);
+    }
+    i -= f->len;
+  }
+  return NULL;
+}
+
 /**
  * Use lookup table when available, else use slower find functions.
  *

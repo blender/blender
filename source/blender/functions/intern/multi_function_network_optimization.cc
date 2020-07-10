@@ -287,20 +287,20 @@ void constant_folding(MFNetwork &network, ResourceCollector &resources)
   }
 
   Array<MFOutputSocket *> folded_sockets = compute_constant_sockets_and_add_folded_nodes(
-      network, inputs_to_fold.as_span(), resources);
+      network, inputs_to_fold, resources);
 
   for (uint i : inputs_to_fold.index_range()) {
     MFOutputSocket &original_socket = *inputs_to_fold[i]->origin();
     network.relink(original_socket, *folded_sockets[i]);
   }
 
-  network.remove(temporary_nodes.as_span());
+  network.remove(temporary_nodes);
 }
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Common Subnetwork Elimination
+/** \name Common Sub-network Elimination
  *
  * \{ */
 
@@ -462,7 +462,7 @@ static void relink_duplicate_nodes(MFNetwork &network,
 }
 
 /**
- * Tries to detect duplicate subnetworks and eliminates them. This can help quite a lot when node
+ * Tries to detect duplicate sub-networks and eliminates them. This can help quite a lot when node
  * groups were used to create the network.
  */
 void common_subnetwork_elimination(MFNetwork &network)

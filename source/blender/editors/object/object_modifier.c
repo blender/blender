@@ -330,10 +330,8 @@ static bool object_modifier_safe_to_delete(Main *bmain,
           !ED_object_iter_other(bmain, ob, false, object_has_modifier_cb, &type));
 }
 
-static bool object_modifier_remove(Main *bmain,
-                                   Object *ob,
-                                   ModifierData *md,
-                                   bool *r_sort_depsgraph)
+static bool object_modifier_remove(
+    Main *bmain, Scene *scene, Object *ob, ModifierData *md, bool *r_sort_depsgraph)
 {
   /* It seems on rapid delete it is possible to
    * get called twice on same modifier, so make
@@ -344,11 +342,8 @@ static bool object_modifier_remove(Main *bmain,
 
   /* special cases */
   if (md->type == eModifierType_ParticleSystem) {
-    ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
-
-    BLI_remlink(&ob->particlesystem, psmd->psys);
-    psys_free(ob, psmd->psys);
-    psmd->psys = NULL;
+    object_remove_particle_system(bmain, scene, ob);
+    return true;
   }
   else if (md->type == eModifierType_Softbody) {
     if (ob->soft) {
@@ -391,12 +386,13 @@ static bool object_modifier_remove(Main *bmain,
   return 1;
 }
 
-bool ED_object_modifier_remove(ReportList *reports, Main *bmain, Object *ob, ModifierData *md)
+bool ED_object_modifier_remove(
+    ReportList *reports, Main *bmain, Scene *scene, Object *ob, ModifierData *md)
 {
   bool sort_depsgraph = false;
   bool ok;
 
-  ok = object_modifier_remove(bmain, ob, md, &sort_depsgraph);
+  ok = object_modifier_remove(bmain, scene, ob, md, &sort_depsgraph);
 
   if (!ok) {
     BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'", md->name, ob->id.name);
@@ -409,7 +405,7 @@ bool ED_object_modifier_remove(ReportList *reports, Main *bmain, Object *ob, Mod
   return 1;
 }
 
-void ED_object_modifier_clear(Main *bmain, Object *ob)
+void ED_object_modifier_clear(Main *bmain, Scene *scene, Object *ob)
 {
   ModifierData *md = ob->modifiers.first;
   bool sort_depsgraph = false;
@@ -423,7 +419,7 @@ void ED_object_modifier_clear(Main *bmain, Object *ob)
 
     next_md = md->next;
 
-    object_modifier_remove(bmain, ob, md, &sort_depsgraph);
+    object_modifier_remove(bmain, scene, ob, md, &sort_depsgraph);
 
     md = next_md;
   }
@@ -881,14 +877,23 @@ bool ED_object_modifier_apply(Main *bmain,
   return true;
 }
 
-int ED_object_modifier_copy(ReportList *UNUSED(reports), Object *ob, ModifierData *md)
+int ED_object_modifier_copy(
+    ReportList *UNUSED(reports), Main *bmain, Scene *scene, Object *ob, ModifierData *md)
 {
   ModifierData *nmd;
 
-  nmd = BKE_modifier_new(md->type);
-  BKE_modifier_copydata(md, nmd);
-  BLI_insertlinkafter(&ob->modifiers, md, nmd);
-  BKE_modifier_unique_name(&ob->modifiers, nmd);
+  if (md->type == eModifierType_ParticleSystem) {
+    nmd = object_copy_particle_system(bmain, scene, ob, ((ParticleSystemModifierData *)md)->psys);
+    BLI_remlink(&ob->modifiers, nmd);
+    BLI_insertlinkafter(&ob->modifiers, md, nmd);
+    return true;
+  }
+  else {
+    nmd = BKE_modifier_new(md->type);
+    BKE_modifier_copydata(md, nmd);
+    BLI_insertlinkafter(&ob->modifiers, md, nmd);
+    BKE_modifier_unique_name(&ob->modifiers, nmd);
+  }
 
   return 1;
 }
@@ -1120,6 +1125,7 @@ ModifierData *edit_modifier_property_get(wmOperator *op, Object *ob, int type)
 static int modifier_remove_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = ED_object_active_context(C);
   ModifierData *md = edit_modifier_property_get(op, ob, 0);
@@ -1133,7 +1139,7 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
   char name[MAX_NAME];
   strcpy(name, md->name);
 
-  if (!ED_object_modifier_remove(op->reports, bmain, ob, md)) {
+  if (!ED_object_modifier_remove(op->reports, bmain, scene, ob, md)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1547,10 +1553,12 @@ void OBJECT_OT_modifier_convert(wmOperatorType *ot)
 
 static int modifier_copy_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
   Object *ob = ED_object_active_context(C);
   ModifierData *md = edit_modifier_property_get(op, ob, 0);
 
-  if (!md || !ED_object_modifier_copy(op->reports, ob, md)) {
+  if (!md || !ED_object_modifier_copy(op->reports, bmain, scene, ob, md)) {
     return OPERATOR_CANCELLED;
   }
 

@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-#include "util/util_math.h"
-#include "util/util_sky_model.h"
-
-CCL_NAMESPACE_BEGIN
+#include "sky_model.h"
+#include "sky_float3.h"
 
 /* Constants */
 static const float rayleigh_scale = 8000.0f;        // Rayleigh scale height (m)
@@ -269,7 +267,7 @@ static void single_scattering(float3 ray_dir,
 }
 
 /* calculate texture array */
-void nishita_skymodel_precompute_texture(float *pixels,
+void SKY_nishita_skymodel_precompute_texture(float *pixels,
                                          int stride,
                                          int start_y,
                                          int end_y,
@@ -332,7 +330,7 @@ static void sun_radiation(float3 cam_dir,
   }
 }
 
-void nishita_skymodel_precompute_sun(float sun_elevation,
+void SKY_nishita_skymodel_precompute_sun(float sun_elevation,
                                      float angular_diameter,
                                      float altitude,
                                      float air_density,
@@ -367,5 +365,3 @@ void nishita_skymodel_precompute_sun(float sun_elevation,
   pixel_top[1] = pix_top.y;
   pixel_top[2] = pix_top.z;
 }
-
-CCL_NAMESPACE_END

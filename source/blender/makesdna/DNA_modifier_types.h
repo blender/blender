@@ -2146,7 +2146,7 @@ typedef struct SimulationModifierData {
   ModifierData modifier;
 
   struct Simulation *simulation;
-  char data_path[64];
+  char *data_path;
 } SimulationModifierData;
 
 #ifdef __cplusplus

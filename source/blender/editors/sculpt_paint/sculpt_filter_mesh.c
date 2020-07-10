@@ -87,7 +87,7 @@ void SCULPT_filter_cache_init(Object *ob, Sculpt *sd, const int undo_type)
       .original = true,
       .center = center,
       .radius_squared = FLT_MAX,
-      .ignore_fully_masked = true,
+      .ignore_fully_ineffective = true,
 
   };
   BKE_pbvh_search_gather(pbvh,

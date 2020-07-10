@@ -2089,6 +2089,7 @@ void ED_operatortypes_uvedit(void)
 
   WM_operatortype_append(UV_OT_rip);
   WM_operatortype_append(UV_OT_stitch);
+  WM_operatortype_append(UV_OT_shortest_path_pick);
 
   WM_operatortype_append(UV_OT_seams_from_islands);
   WM_operatortype_append(UV_OT_mark_seam);

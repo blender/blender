@@ -52,8 +52,8 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
       RNA_pointer_create(&btree->id, &RNA_NodeSocket, bsocket, &socket.rna_);
     }
 
-    input_sockets_.extend(node.inputs_);
-    output_sockets_.extend(node.outputs_);
+    input_sockets_.extend(node.inputs_.as_span());
+    output_sockets_.extend(node.outputs_.as_span());
 
     node_mapping.add_new(bnode, &node);
   }

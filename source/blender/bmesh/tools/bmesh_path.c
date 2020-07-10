@@ -31,6 +31,8 @@
 #include "bmesh.h"
 #include "bmesh_path.h" /* own include */
 
+#define COST_INIT_MAX FLT_MAX
+
 /* -------------------------------------------------------------------- */
 /** \name Generic Helpers
  * \{ */
@@ -154,7 +156,7 @@ LinkNode *BM_mesh_calc_path_vert(BMesh *bm,
   verts_prev = MEM_callocN(sizeof(*verts_prev) * totvert, __func__);
   cost = MEM_mallocN(sizeof(*cost) * totvert, __func__);
 
-  copy_vn_fl(cost, totvert, 1e20f);
+  copy_vn_fl(cost, totvert, COST_INIT_MAX);
 
   /*
    * Arrays are now filled as follows:
@@ -334,7 +336,7 @@ LinkNode *BM_mesh_calc_path_edge(BMesh *bm,
   edges_prev = MEM_callocN(sizeof(*edges_prev) * totedge, __func__);
   cost = MEM_mallocN(sizeof(*cost) * totedge, __func__);
 
-  copy_vn_fl(cost, totedge, 1e20f);
+  copy_vn_fl(cost, totedge, COST_INIT_MAX);
 
   /*
    * Arrays are now filled as follows:
@@ -400,13 +402,13 @@ static float facetag_cut_cost_edge(BMFace *f_a,
 #else
   /* For triangle fans it gives better results to pick a point on the edge. */
   {
-    float ix_e[3], ix_f[3], f;
+    float ix_e[3], ix_f[3];
     isect_line_line_v3(e->v1->co, e->v2->co, f_a_cent, f_b_cent, ix_e, ix_f);
-    f = line_point_factor_v3(ix_e, e->v1->co, e->v2->co);
-    if (f < 0.0f) {
+    const float factor = line_point_factor_v3(ix_e, e->v1->co, e->v2->co);
+    if (factor < 0.0f) {
       copy_v3_v3(e_cent, e->v1->co);
     }
-    else if (f > 1.0f) {
+    else if (factor > 1.0f) {
       copy_v3_v3(e_cent, e->v2->co);
     }
     else {
@@ -535,7 +537,7 @@ LinkNode *BM_mesh_calc_path_face(BMesh *bm,
   faces_prev = MEM_callocN(sizeof(*faces_prev) * totface, __func__);
   cost = MEM_mallocN(sizeof(*cost) * totface, __func__);
 
-  copy_vn_fl(cost, totface, 1e20f);
+  copy_vn_fl(cost, totface, COST_INIT_MAX);
 
   /*
    * Arrays are now filled as follows:

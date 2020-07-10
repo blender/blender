@@ -51,6 +51,8 @@ bool SCULPT_mode_poll_view3d(struct bContext *C);
 bool SCULPT_poll(struct bContext *C);
 bool SCULPT_poll_view3d(struct bContext *C);
 
+bool SCULPT_vertex_colors_poll(struct bContext *C);
+
 /* Updates */
 
 typedef enum SculptUpdateType {
@@ -676,7 +678,8 @@ typedef struct {
   float radius_squared;
   const float *center;
   bool original;
-  bool ignore_fully_masked;
+  /* This ignores fully masked and fully hidden nodes. */
+  bool ignore_fully_ineffective;
 } SculptSearchSphereData;
 
 typedef struct {
@@ -684,7 +687,7 @@ typedef struct {
   struct SculptSession *ss;
   float radius_squared;
   bool original;
-  bool ignore_fully_masked;
+  bool ignore_fully_ineffective;
   struct DistRayAABB_Precalc *dist_ray_to_aabb_precalc;
 } SculptSearchCircleData;
 

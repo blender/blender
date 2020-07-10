@@ -694,14 +694,7 @@ void RE_bake_pixels_populate(Mesh *me,
                              const BakeImages *bake_images,
                              const char *uv_layer)
 {
-  BakeDataZSpan bd;
-  size_t i;
-  int a, p_id;
-
   const MLoopUV *mloopuv;
-  const int tottri = poly_to_tri_count(me->totpoly, me->totloop);
-  MLoopTri *looptri;
-
   if ((uv_layer == NULL) || (uv_layer[0] == '\0')) {
     mloopuv = CustomData_get_layer(&me->ldata, CD_MLOOPUV);
   }
@@ -714,25 +707,26 @@ void RE_bake_pixels_populate(Mesh *me,
     return;
   }
 
+  BakeDataZSpan bd;
   bd.pixel_array = pixel_array;
   bd.zspan = MEM_callocN(sizeof(ZSpan) * bake_images->size, "bake zspan");
 
   /* initialize all pixel arrays so we know which ones are 'blank' */
-  for (i = 0; i < num_pixels; i++) {
+  for (int i = 0; i < num_pixels; i++) {
     pixel_array[i].primitive_id = -1;
     pixel_array[i].object_id = 0;
   }
 
-  for (i = 0; i < bake_images->size; i++) {
+  for (int i = 0; i < bake_images->size; i++) {
     zbuf_alloc_span(&bd.zspan[i], bake_images->data[i].width, bake_images->data[i].height);
   }
 
-  looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
+  const int tottri = poly_to_tri_count(me->totpoly, me->totloop);
+  MLoopTri *looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
 
   BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
 
-  p_id = -1;
-  for (i = 0; i < tottri; i++) {
+  for (int i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
     const MPoly *mp = &me->mpoly[lt->poly];
     float vec[3][2];
@@ -744,9 +738,9 @@ void RE_bake_pixels_populate(Mesh *me,
     }
 
     bd.bk_image = &bake_images->data[image_id];
-    bd.primitive_id = ++p_id;
+    bd.primitive_id = i;
 
-    for (a = 0; a < 3; a++) {
+    for (int a = 0; a < 3; a++) {
       const float *uv = mloopuv[lt->tri[a]].uv;
 
       /* Note, workaround for pixel aligned UVs which are common and can screw up our
@@ -761,7 +755,7 @@ void RE_bake_pixels_populate(Mesh *me,
     zspan_scanconvert(&bd.zspan[image_id], (void *)&bd, vec[0], vec[1], vec[2], store_bake_pixel);
   }
 
-  for (i = 0; i < bake_images->size; i++) {
+  for (int i = 0; i < bake_images->size; i++) {
     zbuf_free_span(&bd.zspan[i]);
   }
 
