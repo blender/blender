@@ -202,6 +202,39 @@ template<typename Mut1> class CustomMF_SM : public MultiFunction {
   }
 };
 
+bool generic_values_are_equal(const CPPType &type, const void *a, const void *b);
+
+/**
+ * A multi-function that outputs the same value every time. The value is not owned by an instance
+ * of this function. The caller is responsible for destructing and freeing the value.
+ */
+class CustomMF_GenericConstant : public MultiFunction {
+ private:
+  const CPPType &type_;
+  const void *value_;
+
+  template<typename T> friend class CustomMF_Constant;
+
+ public:
+  CustomMF_GenericConstant(const CPPType &type, const void *value);
+  void call(IndexMask mask, MFParams params, MFContext context) const override;
+  uint32_t hash() const override;
+  bool equals(const MultiFunction &other) const override;
+};
+
+/**
+ * A multi-function that outputs the same array every time. The array is not owned by in instance
+ * of this function. The caller is responsible for destructing and freeing the values.
+ */
+class CustomMF_GenericConstantArray : public MultiFunction {
+ private:
+  GSpan array_;
+
+ public:
+  CustomMF_GenericConstantArray(GSpan array);
+  void call(IndexMask mask, MFParams params, MFContext context) const override;
+};
+
 /**
  * Generates a multi-function that outputs a constant value.
  */
@@ -223,33 +256,27 @@ template<typename T> class CustomMF_Constant : public MultiFunction {
     MutableSpan<T> output = params.uninitialized_single_output<T>(0);
     mask.foreach_index([&](uint i) { new (&output[i]) T(value_); });
   }
-};
 
-/**
- * A multi-function that outputs the same value every time. The value is not owned by an instance
- * of this function. The caller is responsible for destructing and freeing the value.
- */
-class CustomMF_GenericConstant : public MultiFunction {
- private:
-  const CPPType &type_;
-  const void *value_;
+  uint32_t hash() const override
+  {
+    return DefaultHash<T>{}(value_);
+  }
 
- public:
-  CustomMF_GenericConstant(const CPPType &type, const void *value);
-  void call(IndexMask mask, MFParams params, MFContext context) const override;
-};
-
-/**
- * A multi-function that outputs the same array every time. The array is not owned by in instance
- * of this function. The caller is responsible for destructing and freeing the values.
- */
-class CustomMF_GenericConstantArray : public MultiFunction {
- private:
-  GSpan array_;
-
- public:
-  CustomMF_GenericConstantArray(GSpan array);
-  void call(IndexMask mask, MFParams params, MFContext context) const override;
+  bool equals(const MultiFunction &other) const override
+  {
+    const CustomMF_Constant *other1 = dynamic_cast<const CustomMF_Constant *>(&other);
+    if (other1 != nullptr) {
+      return value_ == other1->value_;
+    }
+    const CustomMF_GenericConstant *other2 = dynamic_cast<const CustomMF_GenericConstant *>(
+        &other);
+    if (other2 != nullptr) {
+      if (CPPType::get<T>() == other2->type_) {
+        return generic_values_are_equal(other2->type_, (const void *)&value_, other2->value_);
+      }
+    }
+    return false;
+  }
 };
 
 }  // namespace blender::fn

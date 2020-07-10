@@ -31,7 +31,7 @@ typedef struct Simulation {
   struct bNodeTree *nodetree;
 
   int flag;
-  int _pad;
+  float current_frame;
 
   /** List containing SimulationState objects. */
   struct ListBase states;
@@ -41,23 +41,19 @@ typedef struct SimulationState {
   struct SimulationState *next;
   struct SimulationState *prev;
 
-  /** This is only initialized on cow copies of the simulation. It points to the state on the
-   * original data block. That is where the cache is stored.  */
-  struct SimulationState *orig_state;
-
   /** eSimulationStateType */
   int type;
   int _pad;
 
-  char name[64];
+  char *name;
 } SimulationState;
 
 typedef struct ParticleSimulationState {
   SimulationState head;
 
-  /** Contains the state of the particles at time current_frame. */
-  float current_frame;
+  /** Contains the state of the particles at time Simulation->current_frame. */
   int tot_particles;
+  int _pad;
   struct CustomData attributes;
 
   /** Caches the state of the particles over time. The cache only exists on the original data

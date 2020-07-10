@@ -1050,7 +1050,7 @@ class Map {
   {
     using CreateReturnT = decltype(create_value(nullptr));
     using ModifyReturnT = decltype(modify_value(nullptr));
-    BLI_STATIC_ASSERT((std::is_same<CreateReturnT, ModifyReturnT>::value),
+    BLI_STATIC_ASSERT((std::is_same_v<CreateReturnT, ModifyReturnT>),
                       "Both callbacks should return the same type.");
 
     this->ensure_can_add();

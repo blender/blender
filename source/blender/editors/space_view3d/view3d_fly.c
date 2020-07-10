@@ -200,7 +200,7 @@ typedef struct FlyInfo {
   float grid;
 
   /* compare between last state */
-  /** Used to accelerate when using the mousewheel a lot. */
+  /** Used to accelerate when using the mouse-wheel a lot. */
   double time_lastwheel;
   /** Time between draws. */
   double time_lastdraw;
@@ -614,8 +614,8 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
           fly->axis = -1;
         }
         else {
-          /* flip speed rather than stopping, game like motion,
-           * else increase like mousewheel if we're already moving in that direction */
+          /* Flip speed rather than stopping, game like motion,
+           * else increase like mouse-wheel if we're already moving in that direction. */
           if (fly->speed < 0.0f) {
             fly->speed = -fly->speed;
           }

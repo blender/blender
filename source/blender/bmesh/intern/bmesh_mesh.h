@@ -118,6 +118,7 @@ BLI_INLINE BMFace *BM_face_at_index(BMesh *bm, const int index)
 BMVert *BM_vert_at_index_find(BMesh *bm, const int index);
 BMEdge *BM_edge_at_index_find(BMesh *bm, const int index);
 BMFace *BM_face_at_index_find(BMesh *bm, const int index);
+BMLoop *BM_loop_at_index_find(BMesh *bm, const int index);
 
 BMVert *BM_vert_at_index_find_or_table(BMesh *bm, const int index);
 BMEdge *BM_edge_at_index_find_or_table(BMesh *bm, const int index);

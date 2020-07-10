@@ -1456,6 +1456,11 @@ bool IMB_colormanagement_space_name_is_data(const char *name)
   return (colorspace && colorspace->is_data);
 }
 
+const float *IMB_colormangement_get_xyz_to_rgb()
+{
+  return &imbuf_xyz_to_rgb[0][0];
+}
+
 /*********************** Threaded display buffer transform routines *************************/
 
 typedef struct DisplayBufferThread {

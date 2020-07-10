@@ -26,6 +26,7 @@
 
 #include <memory>
 #include <new>
+#include <type_traits>
 
 #include "BLI_utildefines.h"
 
@@ -49,7 +50,7 @@ template<typename T> void destruct_n(T *ptr, uint n)
 
   /* This is not strictly necessary, because the loop below will be optimized away anyway. It is
    * nice to make behavior this explicitly, though. */
-  if (std::is_trivially_destructible<T>::value) {
+  if (std::is_trivially_destructible_v<T>) {
     return;
   }
 
@@ -73,7 +74,7 @@ template<typename T> void default_construct_n(T *ptr, uint n)
 {
   /* This is not strictly necessary, because the loop below will be optimized away anyway. It is
    * nice to make behavior this explicitly, though. */
-  if (std::is_trivially_constructible<T>::value) {
+  if (std::is_trivially_constructible_v<T>) {
     return;
   }
 
@@ -126,6 +127,32 @@ template<typename T> void uninitialized_copy_n(const T *src, uint n, T *dst)
   try {
     for (; current < n; current++) {
       new ((void *)(dst + current)) T(src[current]);
+    }
+  }
+  catch (...) {
+    destruct_n(dst, current);
+    throw;
+  }
+}
+
+/**
+ * Convert n values from type `From` to type `To`.
+ *
+ * Exception Safety: Strong.
+ *
+ * Before:
+ *  src: initialized
+ *  dst: uninitialized
+ * After:
+ *  src: initialized
+ *  dst: initialized
+ */
+template<typename From, typename To> void uninitialized_convert_n(const From *src, uint n, To *dst)
+{
+  uint current = 0;
+  try {
+    for (; current < n; current++) {
+      new ((void *)(dst + current)) To((To)src[current]);
     }
   }
   catch (...) {
@@ -363,6 +390,15 @@ template<typename T, size_t Size = 1> class TypedBuffer {
  */
 class NoInitialization {
 };
+
+/**
+ * Helper variable that checks if a pointer type can be converted into another pointer type without
+ * issues. Possible issues are casting away const and casting a pointer to a child class.
+ * Adding const or casting to a parent class is fine.
+ */
+template<typename From, typename To>
+inline constexpr bool is_convertible_pointer_v =
+    std::is_convertible_v<From, To> &&std::is_pointer_v<From> &&std::is_pointer_v<To>;
 
 }  // namespace blender
 

@@ -66,6 +66,7 @@
  *    pointers to virtual member functions.
  */
 
+#include "BLI_hash.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_math_base.h"
 #include "BLI_string_ref.hh"
@@ -203,7 +204,7 @@ class CPPType {
    * for optimization purposes.
    *
    * C++ equivalent:
-   *   std::is_trivially_destructible<T>::value;
+   *   std::is_trivially_destructible_v<T>;
    */
   bool is_trivially_destructible() const
   {
@@ -481,6 +482,11 @@ class CPPType {
     return default_value_;
   }
 
+  uint32_t hash() const
+  {
+    return DefaultHash<const CPPType *>{}(this);
+  }
+
   /**
    * Two types only compare equal when their pointer is equal. No two instances of CPPType for the
    * same C++ type should be created.
@@ -715,7 +721,7 @@ static std::unique_ptr<const CPPType> create_cpp_type(StringRef name, const T &d
   const CPPType *type = new CPPType(name,
                                     sizeof(T),
                                     alignof(T),
-                                    std::is_trivially_destructible<T>::value,
+                                    std::is_trivially_destructible_v<T>,
                                     construct_default_cb<T>,
                                     construct_default_n_cb<T>,
                                     construct_default_indices_cb<T>,

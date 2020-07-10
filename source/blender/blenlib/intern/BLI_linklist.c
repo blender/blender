@@ -74,6 +74,16 @@ LinkNode *BLI_linklist_find(LinkNode *list, int index)
   return NULL;
 }
 
+LinkNode *BLI_linklist_find_last(LinkNode *list)
+{
+  if (list) {
+    while (list->next) {
+      list = list->next;
+    }
+  }
+  return list;
+}
+
 void BLI_linklist_reverse(LinkNode **listp)
 {
   LinkNode *rhead = NULL, *cur = *listp;

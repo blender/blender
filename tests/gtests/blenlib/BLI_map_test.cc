@@ -1,3 +1,5 @@
+/* Apache License, Version 2.0 */
+
 #include "BLI_map.hh"
 #include "BLI_rand.h"
 #include "BLI_set.hh"

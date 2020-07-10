@@ -283,8 +283,8 @@ int count_particles_mod(ParticleSystem *psys, int totgr, int cur)
   }
   return tot;
 }
-/* we allocate path cache memory in chunks instead of a big contiguous
- * chunk, windows' memory allocater fails to find big blocks of memory often */
+/* We allocate path cache memory in chunks instead of a big contiguous
+ * chunk, windows' memory allocator fails to find big blocks of memory often. */
 
 #define PATH_CACHE_BUF_SIZE 1024
 
@@ -1297,7 +1297,7 @@ static void do_particle_interpolation(ParticleSystem *psys,
   dfra = keys[2].time - keys[1].time;
   keytime = (real_t - keys[1].time) / dfra;
 
-  /* convert velocity to timestep size */
+  /* Convert velocity to time-step size. */
   if (pind->keyed || pind->cache || point_vel) {
     invdt = dfra * 0.04f * (psys ? psys->part->timetweak : 1.f);
     mul_v3_fl(keys[1].vel, invdt);
@@ -1305,8 +1305,8 @@ static void do_particle_interpolation(ParticleSystem *psys,
     interp_qt_qtqt(result->rot, keys[1].rot, keys[2].rot, keytime);
   }
 
-  /* Now we should have in chronologiacl order k1<=k2<=t<=k3<=k4 with keytime between
-   * [0, 1]->[k2, k3] (k1 & k4 used for cardinal & bspline interpolation). */
+  /* Now we should have in chronological order k1<=k2<=t<=k3<=k4 with key-time between
+   * [0, 1]->[k2, k3] (k1 & k4 used for cardinal & b-spline interpolation). */
   psys_interpolate_particle((pind->keyed || pind->cache || point_vel) ?
                                 -1 /* signal for cubic interpolation */
                                 :
@@ -3611,7 +3611,8 @@ void psys_mat_hair_to_global(
 /************************************************/
 /*          ParticleSettings handling           */
 /************************************************/
-ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, const char *name)
+static ModifierData *object_add_or_copy_particle_system(
+    Main *bmain, Scene *scene, Object *ob, const char *name, const ParticleSystem *psys_orig)
 {
   ParticleSystem *psys;
   ModifierData *md;
@@ -3622,7 +3623,7 @@ ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, 
   }
 
   if (name == NULL) {
-    name = DATA_("ParticleSettings");
+    name = (psys_orig != NULL) ? psys_orig->name : DATA_("ParticleSettings");
   }
 
   psys = ob->particlesystem.first;
@@ -3635,8 +3636,13 @@ ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, 
   BLI_addtail(&ob->particlesystem, psys);
   psys_unique_name(ob, psys, name);
 
-  psys->part = BKE_particlesettings_add(bmain, psys->name);
-
+  if (psys_orig != NULL) {
+    psys->part = psys_orig->part;
+    id_us_plus(&psys->part->id);
+  }
+  else {
+    psys->part = BKE_particlesettings_add(bmain, psys->name);
+  }
   md = BKE_modifier_new(eModifierType_ParticleSystem);
   BLI_strncpy(md->name, psys->name, sizeof(md->name));
   BKE_modifier_unique_name(&ob->modifiers, md);
@@ -3656,6 +3662,20 @@ ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, 
 
   return md;
 }
+
+ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, const char *name)
+{
+  return object_add_or_copy_particle_system(bmain, scene, ob, name, NULL);
+}
+
+ModifierData *object_copy_particle_system(Main *bmain,
+                                          Scene *scene,
+                                          Object *ob,
+                                          const ParticleSystem *psys_orig)
+{
+  return object_add_or_copy_particle_system(bmain, scene, ob, NULL, psys_orig);
+}
+
 void object_remove_particle_system(Main *bmain, Scene *UNUSED(scene), Object *ob)
 {
   ParticleSystem *psys = psys_get_current(ob);

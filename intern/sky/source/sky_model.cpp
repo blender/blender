@@ -97,15 +97,13 @@ All instructions on how to use this code are in the accompanying header file.
 
 */
 
-#include "util/util_sky_model.h"
-#include "util/util_sky_model_data.h"
+#include "sky_model.h"
+#include "sky_model_data.h"
 
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-CCL_NAMESPACE_BEGIN
 
 //   Some macro definitions that occur elsewhere in ART, and that have to be
 //   replicated to make this a stand-alone module.
@@ -138,7 +136,7 @@ typedef const double *ArHosekSkyModel_Radiance_Dataset;
 // internal functions
 
 static void ArHosekSkyModel_CookConfiguration(ArHosekSkyModel_Dataset dataset,
-                                              ArHosekSkyModelConfiguration config,
+                                              SKY_ArHosekSkyModelConfiguration config,
                                               double turbidity,
                                               double albedo,
                                               double solar_elevation)
@@ -272,7 +270,7 @@ static double ArHosekSkyModel_CookRadianceConfiguration(ArHosekSkyModel_Radiance
   return res;
 }
 
-static double ArHosekSkyModel_GetRadianceInternal(ArHosekSkyModelConfiguration configuration,
+static double ArHosekSkyModel_GetRadianceInternal(SKY_ArHosekSkyModelConfiguration configuration,
                                                   double theta,
                                                   double gamma)
 {
@@ -288,12 +286,12 @@ static double ArHosekSkyModel_GetRadianceInternal(ArHosekSkyModelConfiguration c
           configuration[6] * mieM + configuration[7] * zenith);
 }
 
-void arhosekskymodelstate_free(ArHosekSkyModelState *state)
+void SKY_arhosekskymodelstate_free(SKY_ArHosekSkyModelState *state)
 {
   free(state);
 }
 
-double arhosekskymodel_radiance(ArHosekSkyModelState *state,
+double SKY_arhosekskymodel_radiance(SKY_ArHosekSkyModelState *state,
                                 double theta,
                                 double gamma,
                                 double wavelength)
@@ -324,11 +322,11 @@ double arhosekskymodel_radiance(ArHosekSkyModelState *state,
 
 // xyz and rgb versions
 
-ArHosekSkyModelState *arhosek_xyz_skymodelstate_alloc_init(const double turbidity,
+SKY_ArHosekSkyModelState *SKY_arhosek_xyz_skymodelstate_alloc_init(const double turbidity,
                                                            const double albedo,
                                                            const double elevation)
 {
-  ArHosekSkyModelState *state = ALLOC(ArHosekSkyModelState);
+  SKY_ArHosekSkyModelState *state = ALLOC(SKY_ArHosekSkyModelState);
 
   state->solar_radius = TERRESTRIAL_SOLAR_RADIUS;
   state->turbidity = turbidity;
@@ -345,5 +343,3 @@ ArHosekSkyModelState *arhosek_xyz_skymodelstate_alloc_init(const double turbidit
 
   return state;
 }
-
-CCL_NAMESPACE_END

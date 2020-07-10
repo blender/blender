@@ -547,28 +547,81 @@ void SCULPT_visibility_sync_all_vertex_to_face_sets(SculptSession *ss)
   }
 }
 
+static bool sculpt_check_unique_face_set_in_base_mesh(SculptSession *ss, int index)
+{
+  MeshElemMap *vert_map = &ss->pmap[index];
+  int face_set = -1;
+  for (int i = 0; i < ss->pmap[index].count; i++) {
+    if (face_set == -1) {
+      face_set = abs(ss->face_sets[vert_map->indices[i]]);
+    }
+    else {
+      if (abs(ss->face_sets[vert_map->indices[i]]) != face_set) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+/**
+ * Checks if the face sets of the adjacent faces to the edge between \a v1 and \a v2
+ * in the base mesh are equal.
+ */
+static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss, int v1, int v2)
+{
+  MeshElemMap *vert_map = &ss->pmap[v1];
+  int p1 = -1, p2 = -1;
+  for (int i = 0; i < ss->pmap[v1].count; i++) {
+    MPoly *p = &ss->mpoly[vert_map->indices[i]];
+    for (int l = 0; l < p->totloop; l++) {
+      MLoop *loop = &ss->mloop[p->loopstart + l];
+      if (loop->v == v2) {
+        if (p1 == -1) {
+          p1 = vert_map->indices[i];
+          break;
+        }
+        else if (p2 == -1) {
+          p2 = vert_map->indices[i];
+          break;
+        }
+      }
+    }
+  }
+
+  if (p1 != -1 && p2 != -1) {
+    return abs(ss->face_sets[p1]) == (ss->face_sets[p2]);
+  }
+  return true;
+}
+
 bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
-      MeshElemMap *vert_map = &ss->pmap[index];
-      int face_set = -1;
-      for (int i = 0; i < ss->pmap[index].count; i++) {
-        if (face_set == -1) {
-          face_set = abs(ss->face_sets[vert_map->indices[i]]);
-        }
-        else {
-          if (abs(ss->face_sets[vert_map->indices[i]]) != face_set) {
-            return false;
-          }
-        }
-      }
-      return true;
+      return sculpt_check_unique_face_set_in_base_mesh(ss, index);
     }
     case PBVH_BMESH:
       return false;
-    case PBVH_GRIDS:
-      return true;
+    case PBVH_GRIDS: {
+      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+      const int grid_index = index / key->grid_area;
+      const int vertex_index = index - grid_index * key->grid_area;
+      const SubdivCCGCoord coord = {.grid_index = grid_index,
+                                    .x = vertex_index % key->grid_size,
+                                    .y = vertex_index / key->grid_size};
+      int v1, v2;
+      const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
+          ss->subdiv_ccg, &coord, ss->mloop, ss->mpoly, &v1, &v2);
+      switch (adjacency) {
+        case SUBDIV_CCG_ADJACENT_VERTEX:
+          return sculpt_check_unique_face_set_in_base_mesh(ss, v1);
+        case SUBDIV_CCG_ADJACENT_EDGE:
+          return sculpt_check_unique_face_set_for_edge_in_base_mesh(ss, v1, v2);
+        case SUBDIV_CCG_ADJACENT_NONE:
+          return true;
+      }
+    }
   }
   return false;
 }
@@ -735,44 +788,64 @@ void SCULPT_vertex_neighbors_get(SculptSession *ss,
   }
 }
 
+static bool sculpt_check_boundary_vertex_in_base_mesh(SculptSession *ss, const int index)
+{
+  const MeshElemMap *vert_map = &ss->pmap[index];
+  if (vert_map->count <= 1) {
+    return true;
+  }
+  for (int i = 0; i < vert_map->count; i++) {
+    const MPoly *p = &ss->mpoly[vert_map->indices[i]];
+    unsigned f_adj_v[2];
+    if (poly_get_adj_loops_from_vert(p, ss->mloop, index, f_adj_v) != -1) {
+      int j;
+      for (j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
+        if (!(vert_map->count != 2 || ss->pmap[f_adj_v[j]].count <= 2)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 bool SCULPT_vertex_is_boundary(SculptSession *ss, const int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
-      const MeshElemMap *vert_map = &ss->pmap[index];
-
-      if (vert_map->count <= 1) {
-        return false;
-      }
-
       if (!SCULPT_vertex_all_face_sets_visible_get(ss, index)) {
-        return false;
+        return true;
       }
-
-      for (int i = 0; i < vert_map->count; i++) {
-        const MPoly *p = &ss->mpoly[vert_map->indices[i]];
-        unsigned f_adj_v[2];
-        if (poly_get_adj_loops_from_vert(p, ss->mloop, index, f_adj_v) != -1) {
-          int j;
-          for (j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
-            if (!(vert_map->count != 2 || ss->pmap[f_adj_v[j]].count <= 2)) {
-              return false;
-            }
-          }
-        }
-      }
-      return true;
+      return sculpt_check_boundary_vertex_in_base_mesh(ss, index);
     }
     case PBVH_BMESH: {
       BMVert *v = BM_vert_at_index(ss->bm, index);
       return BM_vert_is_boundary(v);
     }
 
-    case PBVH_GRIDS:
-      return true;
+    case PBVH_GRIDS: {
+      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+      const int grid_index = index / key->grid_area;
+      const int vertex_index = index - grid_index * key->grid_area;
+      const SubdivCCGCoord coord = {.grid_index = grid_index,
+                                    .x = vertex_index % key->grid_size,
+                                    .y = vertex_index / key->grid_size};
+      int v1, v2;
+      const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
+          ss->subdiv_ccg, &coord, ss->mloop, ss->mpoly, &v1, &v2);
+      switch (adjacency) {
+        case SUBDIV_CCG_ADJACENT_VERTEX:
+          return sculpt_check_boundary_vertex_in_base_mesh(ss, v1);
+        case SUBDIV_CCG_ADJACENT_EDGE:
+          return sculpt_check_boundary_vertex_in_base_mesh(ss, v1) &&
+                 sculpt_check_boundary_vertex_in_base_mesh(ss, v2);
+        case SUBDIV_CCG_ADJACENT_NONE:
+          return false;
+      }
+    }
   }
 
-  return true;
+  return false;
 }
 
 /* Utilities */
@@ -2400,7 +2473,10 @@ bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v)
   }
   float t[3], bb_min[3], bb_max[3];
 
-  if (data->ignore_fully_masked) {
+  if (data->ignore_fully_ineffective) {
+    if (BKE_pbvh_node_fully_hidden_get(node)) {
+      return false;
+    }
     if (BKE_pbvh_node_fully_masked_get(node)) {
       return false;
     }
@@ -2436,7 +2512,7 @@ bool SCULPT_search_circle_cb(PBVHNode *node, void *data_v)
   SculptSearchCircleData *data = data_v;
   float bb_min[3], bb_max[3];
 
-  if (data->ignore_fully_masked) {
+  if (data->ignore_fully_ineffective) {
     if (BKE_pbvh_node_fully_masked_get(node)) {
       return false;
     }
@@ -2489,7 +2565,7 @@ static PBVHNode **sculpt_pbvh_gather_cursor_update(Object *ob,
       .sd = sd,
       .radius_squared = ss->cursor_radius,
       .original = use_original,
-      .ignore_fully_masked = false,
+      .ignore_fully_ineffective = false,
       .center = NULL,
   };
   BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, r_totnode);
@@ -2514,7 +2590,7 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
         .sd = sd,
         .radius_squared = square_f(ss->cache->radius * radius_scale),
         .original = use_original,
-        .ignore_fully_masked = brush->sculpt_tool != SCULPT_TOOL_MASK,
+        .ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK,
         .center = NULL,
     };
     BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, r_totnode);
@@ -2530,7 +2606,7 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
                                       ss->cursor_radius,
         .original = use_original,
         .dist_ray_to_aabb_precalc = &dist_ray_to_aabb_precalc,
-        .ignore_fully_masked = brush->sculpt_tool != SCULPT_TOOL_MASK,
+        .ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK,
     };
     BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_circle_cb, &data, &nodes, r_totnode);
   }
@@ -5387,11 +5463,15 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
   /* Check for unsupported features. */
   PBVHType type = BKE_pbvh_type(ss->pbvh);
   if (brush->sculpt_tool == SCULPT_TOOL_PAINT && type != PBVH_FACES) {
-    return;
+    if (!U.experimental.use_sculpt_vertex_colors) {
+      return;
+    }
   }
 
   if (brush->sculpt_tool == SCULPT_TOOL_SMEAR && type != PBVH_FACES) {
-    return;
+    if (!U.experimental.use_sculpt_vertex_colors) {
+      return;
+    }
   }
 
   /* Build a list of all nodes that are potentially within the brush's area of influence */
@@ -5411,7 +5491,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         .sd = sd,
         .radius_squared = square_f(ss->cache->radius * (1.0 + brush->cloth_sim_limit)),
         .original = false,
-        .ignore_fully_masked = false,
+        .ignore_fully_ineffective = false,
         .center = ss->cache->initial_location,
     };
     BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, &totnode);
@@ -6044,6 +6124,14 @@ bool SCULPT_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   return ob && ob->mode & OB_MODE_SCULPT;
+}
+
+bool SCULPT_vertex_colors_poll(bContext *C)
+{
+  if (!U.experimental.use_sculpt_vertex_colors) {
+    return false;
+  }
+  return SCULPT_mode_poll(C);
 }
 
 bool SCULPT_mode_poll_view3d(bContext *C)
@@ -8096,7 +8184,7 @@ static void SCULPT_OT_vertex_to_loop_colors(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_vertex_to_loop_colors";
 
   /* api callbacks */
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_vertex_colors_poll;
   ot->exec = vertex_to_loop_colors_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -8159,7 +8247,7 @@ static void SCULPT_OT_loop_to_vertex_colors(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_loop_to_vertex_colors";
 
   /* api callbacks */
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_vertex_colors_poll;
   ot->exec = loop_to_vertex_colors_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -8184,7 +8272,6 @@ static int sculpt_sample_color_invoke(bContext *C,
   copy_v3_v3(color_srgb, active_vertex_color);
   IMB_colormanagement_scene_linear_to_srgb_v3(color_srgb);
   BKE_brush_color_set(scene, brush, color_srgb);
-  BKE_brush_alpha_set(scene, brush, active_vertex_color[3]);
 
   WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
 
@@ -8200,7 +8287,7 @@ static void SCULPT_OT_sample_color(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = sculpt_sample_color_invoke;
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_vertex_colors_poll;
 
   ot->flag = OPTYPE_REGISTER;
 }
@@ -8681,6 +8768,11 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
+  /* Color data is not available in Multires. */
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    return OPERATOR_CANCELLED;
+  }
+
   if (!ss->vcol) {
     return OPERATOR_CANCELLED;
   }
@@ -8726,12 +8818,12 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = sculpt_mask_by_color_invoke;
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_vertex_colors_poll;
 
   ot->flag = OPTYPE_REGISTER;
 
   ot->prop = RNA_def_boolean(
-      ot->srna, "contiguous", false, "Contiguous", "Mask only contiguos color areas");
+      ot->srna, "contiguous", false, "Contiguous", "Mask only contiguous color areas");
 
   ot->prop = RNA_def_boolean(ot->srna, "invert", false, "Invert", "Invert the generated mask");
   ot->prop = RNA_def_boolean(
@@ -8774,6 +8866,7 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_face_sets_init);
   WM_operatortype_append(SCULPT_OT_cloth_filter);
   WM_operatortype_append(SCULPT_OT_face_sets_edit);
+
   WM_operatortype_append(SCULPT_OT_sample_color);
   WM_operatortype_append(SCULPT_OT_loop_to_vertex_colors);
   WM_operatortype_append(SCULPT_OT_vertex_to_loop_colors);

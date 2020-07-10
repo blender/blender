@@ -223,6 +223,7 @@ extern "C" {
 #include "intern/bmesh_polygon.h"
 #include "intern/bmesh_polygon_edgenet.h"
 #include "intern/bmesh_query.h"
+#include "intern/bmesh_query_uv.h"
 #include "intern/bmesh_walkers.h"
 
 #include "intern/bmesh_inline.h"

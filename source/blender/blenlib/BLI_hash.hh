@@ -154,6 +154,13 @@ template<> struct DefaultHash<float> {
   }
 };
 
+template<> struct DefaultHash<bool> {
+  uint32_t operator()(bool value) const
+  {
+    return (uint32_t)(value != false) * 1298191;
+  }
+};
+
 inline uint32_t hash_string(StringRef str)
 {
   uint32_t hash = 5381;

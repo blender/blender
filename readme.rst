@@ -4,6 +4,7 @@
    See 'release/text/readme.html' for the end user read-me.
 
 
+
 Resona Video Editor
 ===================
 **Build for Linux, Windows and Mac required. Help us, build and share the packages to support our effort...**
@@ -19,7 +20,6 @@ I am currently linking to the Official Blender Website, as this project is yet t
 
 Goals
 -----
-
 **COMPLETED** - `New Resona Logo <https://aldrinmathew.com/wp-content/uploads/2020/07/resonalogo-512.png>`_, Added **Color Grading Workspace**, Brand New **"Resona Dark" Theme** for Video Editing, Changed Startup Screen
 
 #5 - **Change Icon** - Change the Icon of the software to a new one. The icon design is finished. **ONGOING - Adapting to various Build OS**

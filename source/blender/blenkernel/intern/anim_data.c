@@ -375,17 +375,19 @@ bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const int flag)
   return true;
 }
 
-void BKE_animdata_copy_id_action(Main *bmain, ID *id, const bool set_newid)
+static void animdata_copy_id_action(Main *bmain,
+                                    ID *id,
+                                    const bool set_newid,
+                                    const bool do_linked_id)
 {
-  const bool is_id_liboverride = ID_IS_OVERRIDE_LIBRARY(id);
   AnimData *adt = BKE_animdata_from_id(id);
   if (adt) {
-    if (adt->action && (!is_id_liboverride || !ID_IS_LINKED(adt->action))) {
+    if (adt->action && (do_linked_id || !ID_IS_LINKED(adt->action))) {
       id_us_min((ID *)adt->action);
       adt->action = set_newid ? ID_NEW_SET(adt->action, BKE_action_copy(bmain, adt->action)) :
                                 BKE_action_copy(bmain, adt->action);
     }
-    if (adt->tmpact && (!is_id_liboverride || !ID_IS_LINKED(adt->tmpact))) {
+    if (adt->tmpact && (do_linked_id || !ID_IS_LINKED(adt->tmpact))) {
       id_us_min((ID *)adt->tmpact);
       adt->tmpact = set_newid ? ID_NEW_SET(adt->tmpact, BKE_action_copy(bmain, adt->tmpact)) :
                                 BKE_action_copy(bmain, adt->tmpact);
@@ -393,10 +395,25 @@ void BKE_animdata_copy_id_action(Main *bmain, ID *id, const bool set_newid)
   }
   bNodeTree *ntree = ntreeFromID(id);
   if (ntree) {
-    BKE_animdata_copy_id_action(bmain, &ntree->id, set_newid);
+    animdata_copy_id_action(bmain, &ntree->id, set_newid, do_linked_id);
   }
   /* Note that collections are not animatable currently, so no need to handle scenes' master
    * collection here. */
+}
+
+void BKE_animdata_copy_id_action(Main *bmain, ID *id)
+{
+  const bool is_id_liboverride = ID_IS_OVERRIDE_LIBRARY(id);
+  animdata_copy_id_action(bmain, id, false, !is_id_liboverride);
+}
+
+void BKE_animdata_duplicate_id_action(struct Main *bmain,
+                                      struct ID *id,
+                                      const eDupli_ID_Flags duplicate_flags)
+{
+  if (duplicate_flags & USER_DUP_ACT) {
+    animdata_copy_id_action(bmain, id, true, (duplicate_flags & USER_DUP_LINKED_ID) != 0);
+  }
 }
 
 /* Merge copies of the data from the src AnimData into the destination AnimData */

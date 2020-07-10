@@ -1,3 +1,5 @@
+/* Apache License, Version 2.0 */
+
 #include "BLI_stack.hh"
 #include "BLI_strict_flags.h"
 #include "BLI_vector.hh"

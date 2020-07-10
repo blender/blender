@@ -1003,7 +1003,7 @@ bool Session::update_scene()
   int height = tile_manager.state.buffer.full_height;
   int resolution = tile_manager.state.resolution_divider;
 
-  if (width != cam->width || height != cam->height) {
+  if (width != cam->width || height != cam->height || resolution != cam->resolution) {
     cam->width = width;
     cam->height = height;
     cam->resolution = resolution;

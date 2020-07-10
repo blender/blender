@@ -3832,6 +3832,7 @@ static void write_simulation(BlendWriter *writer, Simulation *simulation, const 
     }
 
     LISTBASE_FOREACH (SimulationState *, state, &simulation->states) {
+      BLO_write_string(writer, state->name);
       switch ((eSimulationStateType)state->type) {
         case SIM_STATE_TYPE_PARTICLES: {
           ParticleSimulationState *particle_state = (ParticleSimulationState *)state;

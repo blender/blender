@@ -1,3 +1,6 @@
+/* Apache License, Version 2.0 */
+
+#include "BLI_float3.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_strict_flags.h"
 #include "testing/testing.h"
@@ -116,5 +119,41 @@ TEST(memory_utils, UninitializedFillN_StrongExceptionSafety)
   }
   EXPECT_EQ(MyValue::alive, 0);
 }
+
+class TestBaseClass {
+  virtual void mymethod(){};
+};
+
+class TestChildClass : public TestBaseClass {
+  void mymethod() override
+  {
+  }
+};
+
+static_assert(is_convertible_pointer_v<int *, int *>);
+static_assert(is_convertible_pointer_v<int *, const int *>);
+static_assert(is_convertible_pointer_v<int *, int *const>);
+static_assert(is_convertible_pointer_v<int *, const int *const>);
+static_assert(!is_convertible_pointer_v<const int *, int *>);
+static_assert(!is_convertible_pointer_v<int, int *>);
+static_assert(!is_convertible_pointer_v<int *, int>);
+static_assert(is_convertible_pointer_v<TestBaseClass *, const TestBaseClass *>);
+static_assert(!is_convertible_pointer_v<const TestBaseClass *, TestBaseClass *>);
+static_assert(is_convertible_pointer_v<TestChildClass *, TestBaseClass *>);
+static_assert(!is_convertible_pointer_v<TestBaseClass *, TestChildClass *>);
+static_assert(is_convertible_pointer_v<const TestChildClass *, const TestBaseClass *>);
+static_assert(!is_convertible_pointer_v<TestBaseClass, const TestChildClass *>);
+static_assert(!is_convertible_pointer_v<float3, float *>);
+static_assert(!is_convertible_pointer_v<float *, float3>);
+static_assert(!is_convertible_pointer_v<int **, int *>);
+static_assert(!is_convertible_pointer_v<int *, int **>);
+static_assert(is_convertible_pointer_v<int **, int **>);
+static_assert(is_convertible_pointer_v<const int **, const int **>);
+static_assert(!is_convertible_pointer_v<const int **, int **>);
+static_assert(!is_convertible_pointer_v<int *const *, int **>);
+static_assert(!is_convertible_pointer_v<int *const *const, int **>);
+static_assert(is_convertible_pointer_v<int **, int **const>);
+static_assert(is_convertible_pointer_v<int **, int *const *>);
+static_assert(is_convertible_pointer_v<int **, int const *const *>);
 
 }  // namespace blender

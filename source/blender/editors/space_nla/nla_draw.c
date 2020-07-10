@@ -645,8 +645,9 @@ static void nla_draw_strip_text(AnimData *adt,
   UI_view2d_text_cache_add_rectf(v2d, &rect, str, str_len, col);
 }
 
-/* add frame extents to cache of text-strings to draw in pixelspace
- * for now, only used when transforming strips
+/**
+ * Add frame extents to cache of text-strings to draw in pixel-space
+ * for now, only used when transforming strips.
  */
 static void nla_draw_strip_frames_text(
     NlaTrack *UNUSED(nlt), NlaStrip *strip, View2D *v2d, float UNUSED(yminc), float ymaxc)

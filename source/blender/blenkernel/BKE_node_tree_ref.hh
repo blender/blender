@@ -197,12 +197,12 @@ class NodeTreeRef : NonCopyable, NonMovable {
 
 inline Span<const SocketRef *> SocketRef::linked_sockets() const
 {
-  return linked_sockets_.as_span();
+  return linked_sockets_;
 }
 
 inline Span<const SocketRef *> SocketRef::directly_linked_sockets() const
 {
-  return directly_linked_sockets_.as_span();
+  return directly_linked_sockets_;
 }
 
 inline bool SocketRef::is_linked() const
@@ -326,12 +326,12 @@ inline const NodeTreeRef &NodeRef::tree() const
 
 inline Span<const InputSocketRef *> NodeRef::inputs() const
 {
-  return inputs_.as_span();
+  return inputs_;
 }
 
 inline Span<const OutputSocketRef *> NodeRef::outputs() const
 {
-  return outputs_.as_span();
+  return outputs_;
 }
 
 inline const InputSocketRef &NodeRef::input(uint index) const
@@ -400,7 +400,7 @@ inline bool NodeRef::is_group_output_node() const
 
 inline Span<const NodeRef *> NodeTreeRef::nodes() const
 {
-  return nodes_by_id_.as_span();
+  return nodes_by_id_;
 }
 
 inline Span<const NodeRef *> NodeTreeRef::nodes_by_type(StringRefNull idname) const
@@ -416,23 +416,23 @@ inline Span<const NodeRef *> NodeTreeRef::nodes_by_type(const bNodeType *nodetyp
     return {};
   }
   else {
-    return nodes->as_span();
+    return *nodes;
   }
 }
 
 inline Span<const SocketRef *> NodeTreeRef::sockets() const
 {
-  return sockets_by_id_.as_span();
+  return sockets_by_id_;
 }
 
 inline Span<const InputSocketRef *> NodeTreeRef::input_sockets() const
 {
-  return input_sockets_.as_span();
+  return input_sockets_;
 }
 
 inline Span<const OutputSocketRef *> NodeTreeRef::output_sockets() const
 {
-  return output_sockets_.as_span();
+  return output_sockets_;
 }
 
 inline bNodeTree *NodeTreeRef::btree() const

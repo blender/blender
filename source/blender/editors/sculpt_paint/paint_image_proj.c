@@ -1426,7 +1426,7 @@ static void insert_seam_vert_array(const ProjPaintState *ps,
  * Be tricky with flags, first 4 bits are #PROJ_FACE_SEAM0 to 4,
  * last 4 bits are #PROJ_FACE_NOSEAM0 to 4. `1 << i` - where i is `(0..3)`.
  *
- * If we're multi-threadng, make sure threads are locked when this is called.
+ * If we're multi-threading, make sure threads are locked when this is called.
  */
 static void project_face_seams_init(const ProjPaintState *ps,
                                     MemArena *arena,

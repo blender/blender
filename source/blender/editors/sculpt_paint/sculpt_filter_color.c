@@ -308,7 +308,7 @@ void SCULPT_OT_color_filter(struct wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = sculpt_color_filter_invoke;
   ot->modal = sculpt_color_filter_modal;
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_vertex_colors_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 

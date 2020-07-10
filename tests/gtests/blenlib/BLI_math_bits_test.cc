@@ -1,3 +1,5 @@
+/* Apache License, Version 2.0 */
+
 #include "BLI_math_bits.h"
 #include "testing/testing.h"
 #include <iostream>

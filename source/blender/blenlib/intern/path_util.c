@@ -242,7 +242,7 @@ void BLI_path_normalize(const char *relabase, char *path)
 
       /* Note: previous version of following call used an offset of 3 instead of 4,
        * which meant that the "/../home/me" example actually became "home/me".
-       * Using offset of 3 gives behavior consistent with the abovementioned
+       * Using offset of 3 gives behavior consistent with the aforementioned
        * Python routine. */
       memmove(path, path + 3, strlen(path + 3) + 1);
     }

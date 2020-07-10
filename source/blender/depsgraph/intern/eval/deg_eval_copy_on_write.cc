@@ -711,13 +711,6 @@ void update_modifiers_orig_pointers(const Object *object_orig, Object *object_co
       &object_orig->modifiers, &object_cow->modifiers, &ModifierData::orig_modifier_data);
 }
 
-void update_simulation_states_orig_pointers(const Simulation *simulation_orig,
-                                            Simulation *simulation_cow)
-{
-  update_list_orig_pointers(
-      &simulation_orig->states, &simulation_cow->states, &SimulationState::orig_state);
-}
-
 void update_nla_strips_orig_pointers(const ListBase *strips_orig, ListBase *strips_cow)
 {
   NlaStrip *strip_orig = reinterpret_cast<NlaStrip *>(strips_orig->first);
@@ -815,12 +808,6 @@ void update_id_after_copy(const Depsgraph *depsgraph,
       scene_cow->eevee.light_cache_data = scene_orig->eevee.light_cache_data;
       scene_setup_view_layers_after_remap(depsgraph, id_node, reinterpret_cast<Scene *>(id_cow));
       update_scene_orig_pointers(scene_orig, scene_cow);
-      break;
-    }
-    case ID_SIM: {
-      Simulation *simulation_cow = (Simulation *)id_cow;
-      const Simulation *simulation_orig = (const Simulation *)id_orig;
-      update_simulation_states_orig_pointers(simulation_orig, simulation_cow);
       break;
     }
     default:

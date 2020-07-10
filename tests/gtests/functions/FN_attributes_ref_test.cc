@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* Apache License, Version 2.0 */
 
 #include "BLI_float3.hh"
 #include "FN_attributes_ref.hh"
@@ -79,7 +65,8 @@ TEST(mutable_attributes_ref, ComplexTest)
   Array<float> sizes(amount);
   Array<std::string> names(amount);
 
-  Array<void *> buffers = {positions.data(), ids.data(), sizes.data(), names.data()};
+  Array<void *> buffers = {
+      (void *)positions.data(), (void *)ids.data(), (void *)sizes.data(), (void *)names.data()};
   MutableAttributesRef attributes{info, buffers, IndexRange(1, 3)};
   EXPECT_EQ(attributes.size(), 3);
   EXPECT_EQ(attributes.info().size(), 4);

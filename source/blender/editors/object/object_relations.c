@@ -1878,7 +1878,7 @@ static void single_obdata_users(
             /* Needed to remap texcomesh below. */
             me = ob->data = ID_NEW_SET(ob->data, BKE_mesh_copy(bmain, ob->data));
             if (me->key) { /* We do not need to set me->key->id.newid here... */
-              BKE_animdata_copy_id_action(bmain, (ID *)me->key, false);
+              BKE_animdata_copy_id_action(bmain, (ID *)me->key);
             }
             break;
           case OB_MBALL:
@@ -1891,13 +1891,13 @@ static void single_obdata_users(
             ID_NEW_REMAP(cu->bevobj);
             ID_NEW_REMAP(cu->taperobj);
             if (cu->key) { /* We do not need to set cu->key->id.newid here... */
-              BKE_animdata_copy_id_action(bmain, (ID *)cu->key, false);
+              BKE_animdata_copy_id_action(bmain, (ID *)cu->key);
             }
             break;
           case OB_LATTICE:
             ob->data = lat = ID_NEW_SET(ob->data, BKE_lattice_copy(bmain, ob->data));
             if (lat->key) { /* We do not need to set lat->key->id.newid here... */
-              BKE_animdata_copy_id_action(bmain, (ID *)lat->key, false);
+              BKE_animdata_copy_id_action(bmain, (ID *)lat->key);
             }
             break;
           case OB_ARMATURE:
@@ -1937,7 +1937,7 @@ static void single_obdata_users(
          * AnimData structure, which is not what we want.
          *                                             (sergey)
          */
-        BKE_animdata_copy_id_action(bmain, (ID *)ob->data, false);
+        BKE_animdata_copy_id_action(bmain, (ID *)ob->data);
 
         id_us_min(id);
       }
@@ -1958,7 +1958,7 @@ static void single_object_action_users(
   FOREACH_OBJECT_FLAG_BEGIN (scene, view_layer, v3d, flag, ob) {
     if (!ID_IS_LINKED(ob)) {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-      BKE_animdata_copy_id_action(bmain, &ob->id, false);
+      BKE_animdata_copy_id_action(bmain, &ob->id);
     }
   }
   FOREACH_OBJECT_FLAG_END;
@@ -1980,7 +1980,7 @@ static void single_mat_users(
 
           if (ma->id.us > 1) {
             man = BKE_material_copy(bmain, ma);
-            BKE_animdata_copy_id_action(bmain, &man->id, false);
+            BKE_animdata_copy_id_action(bmain, &man->id);
 
             man->id.us = 0;
             BKE_object_material_assign(bmain, ob, man, a, BKE_MAT_ASSIGN_USERPREF);

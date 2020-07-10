@@ -1,3 +1,5 @@
+/* Apache License, Version 2.0 */
+
 #include "BLI_strict_flags.h"
 #include "BLI_vector.hh"
 #include "testing/testing.h"
@@ -55,6 +57,18 @@ TEST(vector, InitializerListConstructor)
   EXPECT_EQ(vec[1], 3);
   EXPECT_EQ(vec[2], 4);
   EXPECT_EQ(vec[3], 6);
+}
+
+TEST(vector, ConvertingConstructor)
+{
+  std::array<float, 5> values = {5.4f, 7.3f, -8.1f, 5.0f, 0.0f};
+  Vector<int> vec = values;
+  EXPECT_EQ(vec.size(), 5u);
+  EXPECT_EQ(vec[0], 5);
+  EXPECT_EQ(vec[1], 7);
+  EXPECT_EQ(vec[2], -8);
+  EXPECT_EQ(vec[3], 5);
+  EXPECT_EQ(vec[4], 0);
 }
 
 struct TestListValue {

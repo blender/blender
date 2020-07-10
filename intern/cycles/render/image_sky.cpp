@@ -16,10 +16,11 @@
 
 #include "render/image_sky.h"
 
+#include "sky_model.h"
+
 #include "util/util_image.h"
 #include "util/util_logging.h"
 #include "util/util_path.h"
-#include "util/util_sky_model.h"
 #include "util/util_task.h"
 
 CCL_NAMESPACE_BEGIN
@@ -62,17 +63,17 @@ bool SkyLoader::load_pixels(const ImageMetaData &metadata,
   const int rows_per_task = divide_up(1024, width);
   parallel_for(blocked_range<size_t>(0, height, rows_per_task),
                [&](const blocked_range<size_t> &r) {
-                 nishita_skymodel_precompute_texture(pixel_data,
-                                                     metadata.channels,
-                                                     r.begin(),
-                                                     r.end(),
-                                                     width,
-                                                     height,
-                                                     sun_elevation,
-                                                     altitude_f,
-                                                     air_density,
-                                                     dust_density,
-                                                     ozone_density);
+                 SKY_nishita_skymodel_precompute_texture(pixel_data,
+                                                         metadata.channels,
+                                                         r.begin(),
+                                                         r.end(),
+                                                         width,
+                                                         height,
+                                                         sun_elevation,
+                                                         altitude_f,
+                                                         air_density,
+                                                         dust_density,
+                                                         ozone_density);
                });
 
   return true;
