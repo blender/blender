@@ -47,7 +47,6 @@
 
 #include "BKE_customdata.h"
 #include "BKE_customdata_file.h"
-#include "BKE_deform.h"
 #include "BKE_main.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
@@ -321,7 +320,6 @@ static void layerInterp_mdeformvert(const void **sources,
       }
       dvert->dw[i] = node->dw;
     }
-    BKE_defvert_array_sort_weights(dvert, totweight);
   }
   else {
     memset(dvert, 0, sizeof(*dvert));

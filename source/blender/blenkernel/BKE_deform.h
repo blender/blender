@@ -54,7 +54,6 @@ void BKE_object_defgroup_unique_name(struct bDeformGroup *dg, struct Object *ob)
 
 struct MDeformWeight *BKE_defvert_find_index(const struct MDeformVert *dv, const int defgroup);
 struct MDeformWeight *BKE_defvert_ensure_index(struct MDeformVert *dv, const int defgroup);
-void BKE_defvert_array_sort_weights(struct MDeformVert *dv, const int num_verts);
 void BKE_defvert_add_index_notest(struct MDeformVert *dv, int defgroup, const float weight);
 void BKE_defvert_remove_group(struct MDeformVert *dvert, struct MDeformWeight *dw);
 void BKE_defvert_clear(struct MDeformVert *dvert);
@@ -163,16 +162,6 @@ void BKE_defvert_extract_vgroup_to_polyweights(struct MDeformVert *dvert,
                                                const bool invert_vgroup);
 
 void BKE_defvert_weight_to_rgb(float r_rgb[3], const float weight);
-
-#ifndef NDEBUG
-bool BKE_defvert_is_sorted_for_assert(const struct MDeformVert *dv);
-#  define BKE_DEFVERT_IS_SORTED_ASSERT(dv) BLI_assert(BKE_defvert_is_sorted_for_assert(dv))
-#else
-#  define BKE_DEFVERT_IS_SORTED_ASSERT(dv) \
-    if (false) { \
-      (void)(dv); \
-    }
-#endif
 
 #ifdef __cplusplus
 }

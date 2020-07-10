@@ -286,7 +286,6 @@ typedef struct MDeformWeight {
 } MDeformWeight;
 
 typedef struct MDeformVert {
-  /* Mut be sorted by def_nr due to binary search. */
   struct MDeformWeight *dw;
   int totweight;
   /** Flag is only in use as a run-time tag at the moment. */

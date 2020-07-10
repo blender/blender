@@ -534,7 +534,6 @@ void BKE_object_defgroup_index_map_apply(MDeformVert *dvert,
       dv->totweight = totweight;
     }
   }
-  BKE_defvert_array_sort_weights(dv, dvert_len);
 }
 
 /**
