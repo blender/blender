@@ -69,7 +69,8 @@
 
 #include "bmesh_tools.h"
 
-#define USE_FILL
+/* TODO(campbell): region filling, matching mesh selection. */
+// #define USE_FILL
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -252,7 +253,8 @@ static void mouse_mesh_uv_shortest_path_vert(Scene *scene,
   };
 
   const struct BMCalcPathUVParams params = {
-      .use_topology_distance = false,
+      .use_topology_distance = op_params->use_topology_distance,
+      .use_step_face = op_params->use_face_step,
       .aspect_y = aspect_y,
       .cd_loop_uv_offset = cd_loop_uv_offset,
   };
@@ -367,7 +369,8 @@ static void mouse_mesh_uv_shortest_path_face(Scene *scene,
   };
 
   const struct BMCalcPathUVParams params = {
-      .use_topology_distance = false,
+      .use_topology_distance = op_params->use_topology_distance,
+      .use_step_face = op_params->use_face_step,
       .aspect_y = aspect_y,
       .cd_loop_uv_offset = cd_loop_uv_offset,
   };
@@ -617,7 +620,7 @@ static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
   }
-  if (ts->uv_selectmode & UV_SELECT_EDGE) {
+  else if (ts->uv_selectmode & UV_SELECT_EDGE) {
     if (index < 0 || index >= bm->totloop) {
       return OPERATOR_CANCELLED;
     }
