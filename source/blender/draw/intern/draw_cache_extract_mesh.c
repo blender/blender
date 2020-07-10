@@ -4386,10 +4386,6 @@ static void *extract_fdots_pos_init(const MeshRenderData *mr, void *buf)
   GPUVertBuf *vbo = buf;
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->poly_len);
-  if (!mr->use_subsurf_fdots) {
-    /* Clear so we can accumulate on it. */
-    memset(vbo->data, 0x0, mr->poly_len * vbo->format.stride);
-  }
   return vbo->data;
 }
 
@@ -4398,12 +4394,20 @@ static void extract_fdots_pos_iter_poly_bm(const MeshRenderData *mr,
                                            void *data)
 {
   float(*center)[3] = data;
-  EXTRACT_POLY_AND_LOOP_FOREACH_BM_BEGIN(l, l_index, params, mr)
+
+  EXTRACT_POLY_FOREACH_BM_BEGIN(f, f_index, params, mr)
   {
-    float w = 1.0f / (float)l->f->len;
-    madd_v3_v3fl(center[BM_elem_index_get(l->f)], bm_vert_co_get(mr, l->v), w);
+    float *co = center[f_index];
+    zero_v3(co);
+
+    BMLoop *l_iter, *l_first;
+    l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+    do {
+      add_v3_v3(co, bm_vert_co_get(mr, l_iter->v));
+    } while ((l_iter = l_iter->next) != l_first);
+    mul_v3_fl(co, 1.0f / (float)f->len);
   }
-  EXTRACT_POLY_AND_LOOP_FOREACH_BM_END(l);
+  EXTRACT_POLY_FOREACH_BM_END;
 }
 
 static void extract_fdots_pos_iter_poly_mesh(const MeshRenderData *mr,
@@ -4411,20 +4415,34 @@ static void extract_fdots_pos_iter_poly_mesh(const MeshRenderData *mr,
                                              void *data)
 {
   float(*center)[3] = (float(*)[3])data;
-  EXTRACT_POLY_AND_LOOP_FOREACH_MESH_BEGIN(mp, mp_index, ml, ml_index, params, mr)
-  {
-    const MVert *mv = &mr->mvert[ml->v];
-    if (mr->use_subsurf_fdots) {
+  const MVert *mvert = mr->mvert;
+  const MLoop *mloop = mr->mloop;
+
+  if (mr->use_subsurf_fdots) {
+    EXTRACT_POLY_AND_LOOP_FOREACH_MESH_BEGIN(mp, mp_index, ml, ml_index, params, mr)
+    {
+      const MVert *mv = &mr->mvert[ml->v];
       if (mv->flag & ME_VERT_FACEDOT) {
         copy_v3_v3(center[mp_index], mv->co);
       }
     }
-    else {
-      float w = 1.0f / (float)mp->totloop;
-      madd_v3_v3fl(center[mp_index], mv->co, w);
-    }
+    EXTRACT_POLY_AND_LOOP_FOREACH_MESH_END;
   }
-  EXTRACT_POLY_AND_LOOP_FOREACH_MESH_END;
+  else {
+    EXTRACT_POLY_FOREACH_MESH_BEGIN(mp, mp_index, params, mr)
+    {
+      float *co = center[mp_index];
+      zero_v3(co);
+
+      const MLoop *ml = &mloop[mp->loopstart];
+      for (int i = 0; i < mp->totloop; i++, ml++) {
+        const MVert *mv = &mvert[ml->v];
+        add_v3_v3(center[mp_index], mv->co);
+      }
+      mul_v3_fl(co, 1.0f / (float)mp->totloop);
+    }
+    EXTRACT_POLY_FOREACH_MESH_END;
+  }
 }
 
 static const MeshExtract extract_fdots_pos = {
