@@ -56,14 +56,28 @@ class MFNetworkTreeMap {
    * Input sockets in a node tree can have multiple corresponding sockets in the generated
    * MFNetwork. This is because nodes are allowed to expand into multiple multi-function nodes.
    */
+  const DerivedNodeTree &m_tree;
+  fn::MFNetwork &m_network;
   Array<Vector<fn::MFSocket *, 1>> m_sockets_by_dsocket_id;
   Array<fn::MFOutputSocket *> m_socket_by_group_input_id;
 
  public:
-  MFNetworkTreeMap(const DerivedNodeTree &tree)
-      : m_sockets_by_dsocket_id(tree.sockets().size()),
+  MFNetworkTreeMap(const DerivedNodeTree &tree, fn::MFNetwork &network)
+      : m_tree(tree),
+        m_network(network),
+        m_sockets_by_dsocket_id(tree.sockets().size()),
         m_socket_by_group_input_id(tree.group_inputs().size(), nullptr)
   {
+  }
+
+  const DerivedNodeTree &tree() const
+  {
+    return m_tree;
+  }
+
+  const fn::MFNetwork &network() const
+  {
+    return m_network;
   }
 
   void add(const DSocket &dsocket, fn::MFSocket &socket)

@@ -217,7 +217,7 @@ MFNetworkTreeMap insert_node_tree_into_mf_network(fn::MFNetwork &network,
                                                   const DerivedNodeTree &tree,
                                                   ResourceCollector &resources)
 {
-  MFNetworkTreeMap network_map{tree};
+  MFNetworkTreeMap network_map{tree, network};
 
   CommonMFNetworkBuilderData common{resources, network, network_map, tree};
 
