@@ -192,6 +192,10 @@ class ColorPalettePanel(BrushPanel):
         elif context.vertex_paint_object:
             capabilities = brush.vertex_paint_capabilities
             return capabilities.has_color
+
+        elif context.sculpt_object:
+            capabilities = brush.sculpt_capabilities
+            return capabilities.has_color
         return False
 
     def draw(self, context):
