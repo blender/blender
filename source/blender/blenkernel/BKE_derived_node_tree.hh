@@ -140,6 +140,9 @@ class DNode : NonCopyable, NonMovable {
   const DInputSocket &input(uint index) const;
   const DOutputSocket &output(uint index) const;
 
+  const DInputSocket &input(uint index, StringRef expected_name) const;
+  const DOutputSocket &output(uint index, StringRef expected_name) const;
+
   uint id() const;
 
   PointerRNA *rna() const;
@@ -406,6 +409,22 @@ inline const DInputSocket &DNode::input(uint index) const
 inline const DOutputSocket &DNode::output(uint index) const
 {
   return *outputs_[index];
+}
+
+inline const DInputSocket &DNode::input(uint index, StringRef expected_name) const
+{
+  const DInputSocket &socket = *inputs_[index];
+  BLI_assert(socket.name() == expected_name);
+  UNUSED_VARS_NDEBUG(expected_name);
+  return socket;
+}
+
+inline const DOutputSocket &DNode::output(uint index, StringRef expected_name) const
+{
+  const DOutputSocket &socket = *outputs_[index];
+  BLI_assert(socket.name() == expected_name);
+  UNUSED_VARS_NDEBUG(expected_name);
+  return socket;
 }
 
 inline uint DNode::id() const
