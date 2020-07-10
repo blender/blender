@@ -415,7 +415,7 @@ char pyrna_struct_keyframe_delete_doc[] =
     "   :arg group: The name of the group the F-Curve should be added to if it doesn't exist "
     "yet.\n"
     "   :type group: str\n"
-    "   :return: Success of keyframe deleation.\n"
+    "   :return: Success of keyframe deletion.\n"
     "   :rtype: boolean\n";
 PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyObject *kw)
 {

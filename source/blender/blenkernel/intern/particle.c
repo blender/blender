@@ -283,8 +283,8 @@ int count_particles_mod(ParticleSystem *psys, int totgr, int cur)
   }
   return tot;
 }
-/* we allocate path cache memory in chunks instead of a big contiguous
- * chunk, windows' memory allocater fails to find big blocks of memory often */
+/* We allocate path cache memory in chunks instead of a big contiguous
+ * chunk, windows' memory allocator fails to find big blocks of memory often. */
 
 #define PATH_CACHE_BUF_SIZE 1024
 
@@ -1297,7 +1297,7 @@ static void do_particle_interpolation(ParticleSystem *psys,
   dfra = keys[2].time - keys[1].time;
   keytime = (real_t - keys[1].time) / dfra;
 
-  /* convert velocity to timestep size */
+  /* Convert velocity to time-step size. */
   if (pind->keyed || pind->cache || point_vel) {
     invdt = dfra * 0.04f * (psys ? psys->part->timetweak : 1.f);
     mul_v3_fl(keys[1].vel, invdt);
@@ -1305,8 +1305,8 @@ static void do_particle_interpolation(ParticleSystem *psys,
     interp_qt_qtqt(result->rot, keys[1].rot, keys[2].rot, keytime);
   }
 
-  /* Now we should have in chronologiacl order k1<=k2<=t<=k3<=k4 with keytime between
-   * [0, 1]->[k2, k3] (k1 & k4 used for cardinal & bspline interpolation). */
+  /* Now we should have in chronological order k1<=k2<=t<=k3<=k4 with key-time between
+   * [0, 1]->[k2, k3] (k1 & k4 used for cardinal & b-spline interpolation). */
   psys_interpolate_particle((pind->keyed || pind->cache || point_vel) ?
                                 -1 /* signal for cubic interpolation */
                                 :

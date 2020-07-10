@@ -20,7 +20,7 @@
 /** \file
  * \ingroup avi
  *
- * This is external code. Converts between avi and mpeg/jpeg.
+ * This is external code. Converts between AVI and MPEG/JPEG.
  */
 
 #include <stdlib.h>

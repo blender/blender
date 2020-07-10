@@ -708,7 +708,7 @@ void getcolor_fcurve_rainbow(int cur, int tot, float out[3]);
 
 /* ----------------- NLA Drawing ----------------------- */
 /* NOTE: Technically, this is not in the animation module (it's in space_nla)
- * but these are sometimes needed by various animation apis.
+ * but these are sometimes needed by various animation API's.
  */
 
 /* Get color to use for NLA Action channel's background */

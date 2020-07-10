@@ -2949,7 +2949,7 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
         }
 
         add_operation_relation(
-            op_from->get_exit_operation(), op_to->get_entry_operation(), "Driver Serialisation");
+            op_from->get_exit_operation(), op_to->get_entry_operation(), "Driver Serialization");
         break;
       }
     }
