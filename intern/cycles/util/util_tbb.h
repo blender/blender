@@ -34,6 +34,11 @@ using tbb::blocked_range;
 using tbb::enumerable_thread_specific;
 using tbb::parallel_for;
 
+static inline void parallel_for_cancel()
+{
+  tbb::task::self().cancel_group_execution();
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_TBB_H__ */

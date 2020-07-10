@@ -26,6 +26,7 @@
 #include "util/util_function.h"
 #include "util/util_logging.h"
 #include "util/util_math_cdf.h"
+#include "util/util_task.h"
 #include "util/util_vector.h"
 
 /* needed for calculating differentials */
@@ -496,20 +497,35 @@ void Camera::device_update_volume(Device * /*device*/, DeviceScene *dscene, Scen
   if (!need_device_update && !need_flags_update) {
     return;
   }
-  KernelCamera *kcam = &dscene->data.cam;
-  BoundBox viewplane_boundbox = viewplane_bounds_get();
-  for (size_t i = 0; i < scene->objects.size(); ++i) {
-    Object *object = scene->objects[i];
-    if (object->geometry->has_volume && viewplane_boundbox.intersects(object->bounds)) {
-      /* TODO(sergey): Consider adding more grained check. */
-      VLOG(1) << "Detected camera inside volume.";
-      kcam->is_inside_volume = 1;
-      break;
+
+  KernelIntegrator *kintegrator = &dscene->data.integrator;
+  if (kintegrator->use_volumes) {
+    KernelCamera *kcam = &dscene->data.cam;
+    BoundBox viewplane_boundbox = viewplane_bounds_get();
+
+    /* Parallel object update, with grain size to avoid too much threading overhead
+     * for individual objects. */
+    static const int OBJECTS_PER_TASK = 32;
+    parallel_for(blocked_range<size_t>(0, scene->objects.size(), OBJECTS_PER_TASK),
+                 [&](const blocked_range<size_t> &r) {
+                   for (size_t i = r.begin(); i != r.end(); i++) {
+                     Object *object = scene->objects[i];
+                     if (object->geometry->has_volume &&
+                         viewplane_boundbox.intersects(object->bounds)) {
+                       /* TODO(sergey): Consider adding more grained check. */
+                       VLOG(1) << "Detected camera inside volume.";
+                       kcam->is_inside_volume = 1;
+                       parallel_for_cancel();
+                       break;
+                     }
+                   }
+                 });
+
+    if (!kcam->is_inside_volume) {
+      VLOG(1) << "Camera is outside of the volume.";
     }
   }
-  if (!kcam->is_inside_volume) {
-    VLOG(1) << "Camera is outside of the volume.";
-  }
+
   need_device_update = false;
   need_flags_update = false;
 }
