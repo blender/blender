@@ -33,7 +33,7 @@
 #include "intern/bmesh_query.h"
 #include "intern/bmesh_query_uv.h"
 
-#define COST_INIT_MAX 1e20f
+#define COST_INIT_MAX FLT_MAX
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Helpers

@@ -31,7 +31,7 @@
 #include "bmesh.h"
 #include "bmesh_path.h" /* own include */
 
-#define COST_INIT_MAX 1e20f
+#define COST_INIT_MAX FLT_MAX
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Helpers
