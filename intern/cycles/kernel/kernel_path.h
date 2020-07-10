@@ -288,7 +288,7 @@ ccl_device_forceinline bool kernel_path_shader_apply(KernelGlobals *kg,
     if (kernel_data.background.transparent) {
       L->transparent += average(holdout_weight * throughput);
     }
-    if (holdout_weight == make_float3(1.0f, 1.0f, 1.0f)) {
+    if (isequal_float3(holdout_weight, make_float3(1.0f, 1.0f, 1.0f))) {
       return false;
     }
   }
