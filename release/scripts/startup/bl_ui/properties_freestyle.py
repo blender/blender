@@ -115,6 +115,15 @@ class VIEWLAYER_PT_freestyle(ViewLayerFreestyleButtonsPanel, Panel):
     bl_label = "Freestyle"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
+    def draw_header(self, context):
+        view_layer = context.view_layer
+        rd = context.scene.render
+
+        layout = self.layout
+
+        layout.active = rd.use_freestyle
+        layout.prop(view_layer, "use_freestyle", text="")
+
     def draw(self, context):
         layout = self.layout
 
