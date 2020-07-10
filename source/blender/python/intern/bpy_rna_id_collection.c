@@ -132,7 +132,7 @@ static int foreach_libblock_id_user_map_callback(LibraryIDLinkCallbackData *cb_d
 PyDoc_STRVAR(bpy_user_map_doc,
              ".. method:: user_map([subset=(id1, id2, ...)], key_types={..}, value_types={..})\n"
              "\n"
-             "   Returns a mapping of all ID datablocks in current ``bpy.data`` to a set of all "
+             "   Returns a mapping of all ID data-blocks in current ``bpy.data`` to a set of all "
              "datablocks using them.\n"
              "\n"
              "   For list of valid set members for key_types & value_types, see: "

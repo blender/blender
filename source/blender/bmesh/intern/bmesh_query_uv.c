@@ -135,11 +135,11 @@ bool BM_loop_uv_share_edge_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_
 bool BM_loop_uv_share_vert_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_offset)
 {
   BLI_assert(l_a->v == l_b->v);
-    const MLoopUV *luv_a = BM_ELEM_CD_GET_VOID_P(l_a, cd_loop_uv_offset);
-    const MLoopUV *luv_b = BM_ELEM_CD_GET_VOID_P(l_b, cd_loop_uv_offset);
-    if (!equals_v2v2(luv_a->uv, luv_b->uv)) {
-      return false;
-    }
+  const MLoopUV *luv_a = BM_ELEM_CD_GET_VOID_P(l_a, cd_loop_uv_offset);
+  const MLoopUV *luv_b = BM_ELEM_CD_GET_VOID_P(l_b, cd_loop_uv_offset);
+  if (!equals_v2v2(luv_a->uv, luv_b->uv)) {
+    return false;
+  }
   return true;
 }
 

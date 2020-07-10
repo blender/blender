@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
       fprintf(stderr, "|\n|--* Errors were detected\n");
     }
     else {
-      fprintf(stderr, "|\n|--* Test exited succesfully\n");
+      fprintf(stderr, "|\n|--* Test exited successfully\n");
     }
 
     fprintf(stderr, "|\n*** Finished test\n\n");

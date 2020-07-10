@@ -8823,7 +8823,7 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER;
 
   ot->prop = RNA_def_boolean(
-      ot->srna, "contiguous", false, "Contiguous", "Mask only contiguos color areas");
+      ot->srna, "contiguous", false, "Contiguous", "Mask only contiguous color areas");
 
   ot->prop = RNA_def_boolean(ot->srna, "invert", false, "Invert", "Invert the generated mask");
   ot->prop = RNA_def_boolean(

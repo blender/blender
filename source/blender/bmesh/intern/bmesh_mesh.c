@@ -2390,6 +2390,7 @@ BMLoop *BM_loop_at_index_find(BMesh *bm, const int index)
         if (i == 0) {
           return l_iter;
         }
+        i -= 1;
       } while ((l_iter = l_iter->next) != l_first);
     }
     i -= f->len;

@@ -4584,7 +4584,7 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
           if ((but->drawflag & (UI_BUT_TEXT_LEFT | UI_BUT_TEXT_RIGHT)) == 0) {
             but->drawflag |= UI_BUT_TEXT_LEFT;
           }
-          /* widget_optionbut() carefully sets the text rectangle for fine tuned paddings. If the
+          /* #widget_optionbut() carefully sets the text rectangle for fine tuned paddings. If the
            * text drawing were to add its own padding, DPI and zoom factor would be applied twice
            * in the final padding, so it's difficult to control it. */
           but->drawflag |= UI_BUT_NO_TEXT_PADDING;

@@ -271,7 +271,7 @@ static void base_surface_grids_allocate(MultiresReshapeSmoothContext *reshape_sm
 
   for (int grid_index = 0; grid_index < num_grids; ++grid_index) {
     surface_grid[grid_index].points = MEM_calloc_arrayN(
-        sizeof(SurfacePoint), grid_area, "delta grid dispalcement");
+        sizeof(SurfacePoint), grid_area, "delta grid displacement");
   }
 
   reshape_smooth_context->base_surface_grids = surface_grid;

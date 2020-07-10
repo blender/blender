@@ -165,24 +165,28 @@ static void free_softbody_intern(SoftBody *sb);
 
 /*physical unit of force is [kg * m / sec^2]*/
 
-static float sb_grav_force_scale(Object *UNUSED(ob))
-/* since unit of g is [m/sec^2] and F = mass * g we rescale unit mass of node to 1 gramm
- * put it to a function here, so we can add user options later without touching simulation code
+/**
+ * Since unit of g is [m/sec^2] and F = mass * g we re-scale unit mass of node to 1 gram
+ * put it to a function here, so we can add user options later without touching simulation code.
  */
+static float sb_grav_force_scale(Object *UNUSED(ob))
 {
   return (0.001f);
 }
 
-static float sb_fric_force_scale(Object *UNUSED(ob))
-/* rescaling unit of drag [1 / sec] to somehow reasonable
- * put it to a function here, so we can add user options later without touching simulation code
+/**
+ * Re-scaling unit of drag [1 / sec] to somehow reasonable
+ * put it to a function here, so we can add user options later without touching simulation code.
  */
+static float sb_fric_force_scale(Object *UNUSED(ob))
 {
   return (0.01f);
 }
 
+/**
+ * Defining the frames to *real* time relation.
+ */
 static float sb_time_scale(Object *ob)
-/* defining the frames to *real* time relation */
 {
   SoftBody *sb = ob->soft; /* is supposed to be there */
   if (sb) {
