@@ -15,6 +15,8 @@
  */
 
 #include "BLI_dot_export.hh"
+#include "BLI_stack.hh"
+
 #include "FN_multi_function_network.hh"
 
 namespace blender::fn {
@@ -234,6 +236,35 @@ void MFNetwork::remove(Span<MFNode *> nodes)
 {
   for (MFNode *node : nodes) {
     this->remove(*node);
+  }
+}
+
+void MFNetwork::find_dependencies(Span<const MFInputSocket *> sockets,
+                                  VectorSet<const MFOutputSocket *> &r_dummy_sockets,
+                                  VectorSet<const MFInputSocket *> &r_unlinked_inputs) const
+{
+  Set<const MFNode *> visited_nodes;
+  Stack<const MFInputSocket *> sockets_to_check;
+  sockets_to_check.push_multiple(sockets);
+
+  while (!sockets_to_check.is_empty()) {
+    const MFInputSocket &socket = *sockets_to_check.pop();
+    const MFOutputSocket *origin_socket = socket.origin();
+    if (origin_socket == nullptr) {
+      r_unlinked_inputs.add(&socket);
+      continue;
+    }
+
+    const MFNode &origin_node = origin_socket->node();
+
+    if (origin_node.is_dummy()) {
+      r_dummy_sockets.add(origin_socket);
+      continue;
+    }
+
+    if (visited_nodes.add(&origin_node)) {
+      sockets_to_check.push_multiple(origin_node.inputs());
+    }
   }
 }
 

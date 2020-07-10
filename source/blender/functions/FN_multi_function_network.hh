@@ -229,6 +229,10 @@ class MFNetwork : NonCopyable, NonMovable {
   MFSocket *socket_or_null_by_id(uint id);
   const MFSocket *socket_or_null_by_id(uint id) const;
 
+  void find_dependencies(Span<const MFInputSocket *> sockets,
+                         VectorSet<const MFOutputSocket *> &r_dummy_sockets,
+                         VectorSet<const MFInputSocket *> &r_unlinked_inputs) const;
+
   std::string to_dot(Span<const MFNode *> marked_nodes = {}) const;
 };
 
