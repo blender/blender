@@ -107,6 +107,48 @@ class CPPType {
 
   using DebugPrintF = void (*)(const void *value, std::stringstream &ss);
 
+ private:
+  uint size_;
+  uint alignment_;
+  uintptr_t alignment_mask_;
+  bool is_trivially_destructible_;
+
+  ConstructDefaultF construct_default_;
+  ConstructDefaultNF construct_default_n_;
+  ConstructDefaultIndicesF construct_default_indices_;
+
+  DestructF destruct_;
+  DestructNF destruct_n_;
+  DestructIndicesF destruct_indices_;
+
+  CopyToInitializedF copy_to_initialized_;
+  CopyToInitializedNF copy_to_initialized_n_;
+  CopyToInitializedIndicesF copy_to_initialized_indices_;
+
+  CopyToUninitializedF copy_to_uninitialized_;
+  CopyToUninitializedNF copy_to_uninitialized_n_;
+  CopyToUninitializedIndicesF copy_to_uninitialized_indices_;
+
+  RelocateToInitializedF relocate_to_initialized_;
+  RelocateToInitializedNF relocate_to_initialized_n_;
+  RelocateToInitializedIndicesF relocate_to_initialized_indices_;
+
+  RelocateToUninitializedF relocate_to_uninitialized_;
+  RelocateToUninitializedNF relocate_to_uninitialized_n_;
+  RelocateToUninitializedIndicesF relocate_to_uninitialized_indices_;
+
+  FillInitializedF fill_initialized_;
+  FillInitializedIndicesF fill_initialized_indices_;
+
+  FillUninitializedF fill_uninitialized_;
+  FillUninitializedIndicesF fill_uninitialized_indices_;
+
+  DebugPrintF debug_print_;
+
+  const void *default_value_;
+  std::string name_;
+
+ public:
   CPPType(std::string name,
           uint size,
           uint alignment,
@@ -167,6 +209,22 @@ class CPPType {
     BLI_assert(is_power_of_2_i(alignment_));
     alignment_mask_ = (uintptr_t)alignment_ - (uintptr_t)1;
   }
+
+  /**
+   * Two types only compare equal when their pointer is equal. No two instances of CPPType for the
+   * same C++ type should be created.
+   */
+  friend bool operator==(const CPPType &a, const CPPType &b)
+  {
+    return &a == &b;
+  }
+
+  friend bool operator!=(const CPPType &a, const CPPType &b)
+  {
+    return !(&a == &b);
+  }
+
+  template<typename T> static const CPPType &get();
 
   /**
    * Returns the name of the type for debugging purposes. This name should not be used as
@@ -487,67 +545,10 @@ class CPPType {
     return DefaultHash<const CPPType *>{}(this);
   }
 
-  /**
-   * Two types only compare equal when their pointer is equal. No two instances of CPPType for the
-   * same C++ type should be created.
-   */
-  friend bool operator==(const CPPType &a, const CPPType &b)
-  {
-    return &a == &b;
-  }
-
-  friend bool operator!=(const CPPType &a, const CPPType &b)
-  {
-    return !(&a == &b);
-  }
-
-  template<typename T> static const CPPType &get();
-
   template<typename T> bool is() const
   {
     return this == &CPPType::get<T>();
   }
-
- private:
-  uint size_;
-  uint alignment_;
-  uintptr_t alignment_mask_;
-  bool is_trivially_destructible_;
-
-  ConstructDefaultF construct_default_;
-  ConstructDefaultNF construct_default_n_;
-  ConstructDefaultIndicesF construct_default_indices_;
-
-  DestructF destruct_;
-  DestructNF destruct_n_;
-  DestructIndicesF destruct_indices_;
-
-  CopyToInitializedF copy_to_initialized_;
-  CopyToInitializedNF copy_to_initialized_n_;
-  CopyToInitializedIndicesF copy_to_initialized_indices_;
-
-  CopyToUninitializedF copy_to_uninitialized_;
-  CopyToUninitializedNF copy_to_uninitialized_n_;
-  CopyToUninitializedIndicesF copy_to_uninitialized_indices_;
-
-  RelocateToInitializedF relocate_to_initialized_;
-  RelocateToInitializedNF relocate_to_initialized_n_;
-  RelocateToInitializedIndicesF relocate_to_initialized_indices_;
-
-  RelocateToUninitializedF relocate_to_uninitialized_;
-  RelocateToUninitializedNF relocate_to_uninitialized_n_;
-  RelocateToUninitializedIndicesF relocate_to_uninitialized_indices_;
-
-  FillInitializedF fill_initialized_;
-  FillInitializedIndicesF fill_initialized_indices_;
-
-  FillUninitializedF fill_uninitialized_;
-  FillUninitializedIndicesF fill_uninitialized_indices_;
-
-  DebugPrintF debug_print_;
-
-  const void *default_value_;
-  std::string name_;
 };
 
 /* --------------------------------------------------------------------
@@ -715,7 +716,7 @@ template<typename T> void debug_print_cb(const void *value, std::stringstream &s
 }  // namespace CPPTypeUtil
 
 template<typename T>
-static std::unique_ptr<const CPPType> create_cpp_type(StringRef name, const T &default_value)
+inline std::unique_ptr<const CPPType> create_cpp_type(StringRef name, const T &default_value)
 {
   using namespace CPPTypeUtil;
   const CPPType *type = new CPPType(name,
