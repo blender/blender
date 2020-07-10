@@ -14,10 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "FN_cpp_types.hh"
 #include "FN_multi_function_builder.hh"
 
-#include "BLI_float3.hh"
 #include "BLI_hash.hh"
 
 namespace blender::fn {
@@ -41,31 +39,7 @@ void CustomMF_GenericConstant::call(IndexMask mask,
 
 uint CustomMF_GenericConstant::hash() const
 {
-  if (type_ == CPPType_float3) {
-    return DefaultHash<float3>{}(*(float3 *)value_);
-  }
-  if (type_ == CPPType_int32) {
-    return DefaultHash<int32_t>{}(*(int32_t *)value_);
-  }
-  if (type_ == CPPType_float) {
-    return DefaultHash<float>{}(*(float *)value_);
-  }
-  return MultiFunction::hash();
-}
-
-/* This should be moved into CPPType. */
-bool generic_values_are_equal(const CPPType &type, const void *a, const void *b)
-{
-  if (type == CPPType_float3) {
-    return *(float3 *)a == *(float3 *)b;
-  }
-  if (type == CPPType_int32) {
-    return *(int *)a == *(int *)b;
-  }
-  if (type == CPPType_float) {
-    return *(float *)a == *(float *)b;
-  }
-  return false;
+  return type_.hash(value_);
 }
 
 bool CustomMF_GenericConstant::equals(const MultiFunction &other) const
@@ -77,7 +51,7 @@ bool CustomMF_GenericConstant::equals(const MultiFunction &other) const
   if (type_ != _other->type_) {
     return false;
   }
-  return generic_values_are_equal(type_, value_, _other->value_);
+  return type_.is_equal(value_, _other->value_);
 }
 
 static std::string gspan_to_string(GSpan array)
