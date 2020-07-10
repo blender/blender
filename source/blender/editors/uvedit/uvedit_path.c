@@ -265,10 +265,10 @@ static void mouse_mesh_uv_shortest_path_vert(Scene *scene,
 
   if (path) {
     if ((l_dst_add_to_path != NULL) && (BLI_linklist_index(path, l_dst_add_to_path) == -1)) {
-      /* Weak, we could find the last and append after that. */
-      BLI_linklist_reverse(&path);
-      BLI_linklist_prepend(&path, l_dst_add_to_path);
-      BLI_linklist_reverse(&path);
+      /* Append, this isn't optimal compared to #BLI_linklist_append, it's a one-off lookup. */
+      LinkNode *path_last = BLI_linklist_find_last(path);
+      BLI_linklist_insert_after(&path_last, l_dst_add_to_path);
+      BLI_assert(BLI_linklist_find_last(path)->link == l_dst_add_to_path);
     }
 
     /* toggle the flag */
