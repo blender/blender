@@ -101,6 +101,7 @@ BMVert *BM_vert_create(BMesh *bm,
   /* may add to middle of the pool */
   bm->elem_index_dirty |= BM_VERT;
   bm->elem_table_dirty |= BM_VERT;
+  bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
 
   bm->totvert++;
 
@@ -190,6 +191,7 @@ BMEdge *BM_edge_create(
   /* may add to middle of the pool */
   bm->elem_index_dirty |= BM_EDGE;
   bm->elem_table_dirty |= BM_EDGE;
+  bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
 
   bm->totedge++;
 
@@ -259,6 +261,7 @@ static BMLoop *bm_loop_create(BMesh *bm,
 
   /* may add to middle of the pool */
   bm->elem_index_dirty |= BM_LOOP;
+  bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
 
   bm->totloop++;
 
@@ -402,6 +405,7 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
   /* may add to middle of the pool */
   bm->elem_index_dirty |= BM_FACE;
   bm->elem_table_dirty |= BM_FACE;
+  bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
 
   bm->totface++;
 
@@ -748,6 +752,7 @@ static void bm_kill_only_vert(BMesh *bm, BMVert *v)
   bm->totvert--;
   bm->elem_index_dirty |= BM_VERT;
   bm->elem_table_dirty |= BM_VERT;
+  bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
 
   BM_select_history_remove(bm, v);
 
@@ -770,6 +775,7 @@ static void bm_kill_only_edge(BMesh *bm, BMEdge *e)
   bm->totedge--;
   bm->elem_index_dirty |= BM_EDGE;
   bm->elem_table_dirty |= BM_EDGE;
+  bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
 
   BM_select_history_remove(bm, (BMElem *)e);
 
@@ -796,6 +802,7 @@ static void bm_kill_only_face(BMesh *bm, BMFace *f)
   bm->totface--;
   bm->elem_index_dirty |= BM_FACE;
   bm->elem_table_dirty |= BM_FACE;
+  bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
 
   BM_select_history_remove(bm, (BMElem *)f);
 
@@ -817,6 +824,8 @@ static void bm_kill_only_loop(BMesh *bm, BMLoop *l)
 {
   bm->totloop--;
   bm->elem_index_dirty |= BM_LOOP;
+  bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
+
   if (l->head.data) {
     CustomData_bmesh_free_block(&bm->ldata, &l->head.data);
   }
