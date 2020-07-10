@@ -30,6 +30,7 @@
 
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_rand.hh"
 #include "BLI_threads.h"
 
 /* defines BLI_INLINE */
@@ -38,13 +39,6 @@
 #include "BLI_strict_flags.h"
 #include "BLI_sys_types.h"
 
-#define MULTIPLIER 0x5DEECE66Dll
-#define MASK 0x0000FFFFFFFFFFFFll
-#define MASK_BYTES 2
-
-#define ADDEND 0xB
-#define LOWSEED 0x330E
-
 extern "C" unsigned char BLI_noise_hash_uchar_512[512]; /* noise.c */
 #define hash BLI_noise_hash_uchar_512
 
@@ -52,15 +46,15 @@ extern "C" unsigned char BLI_noise_hash_uchar_512[512]; /* noise.c */
  * Random Number Generator.
  */
 struct RNG {
-  uint64_t X;
+  blender::RandomNumberGenerator rng;
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("RNG")
 };
 
 RNG *BLI_rng_new(unsigned int seed)
 {
-  RNG *rng = (RNG *)MEM_mallocN(sizeof(*rng), "rng");
-
-  BLI_rng_seed(rng, seed);
-
+  RNG *rng = new RNG();
+  rng->rng.seed(seed);
   return rng;
 }
 
@@ -69,26 +63,24 @@ RNG *BLI_rng_new(unsigned int seed)
  */
 RNG *BLI_rng_new_srandom(unsigned int seed)
 {
-  RNG *rng = (RNG *)MEM_mallocN(sizeof(*rng), "rng");
-
-  BLI_rng_srandom(rng, seed);
-
+  RNG *rng = new RNG();
+  rng->rng.seed_random(seed);
   return rng;
 }
 
 RNG *BLI_rng_copy(RNG *rng)
 {
-  return (RNG *)MEM_dupallocN(rng);
+  return new RNG(*rng);
 }
 
 void BLI_rng_free(RNG *rng)
 {
-  MEM_freeN(rng);
+  delete rng;
 }
 
 void BLI_rng_seed(RNG *rng, unsigned int seed)
 {
-  rng->X = (((uint64_t)seed) << 16) | LOWSEED;
+  rng->rng.seed(seed);
 }
 
 /**
@@ -96,67 +88,23 @@ void BLI_rng_seed(RNG *rng, unsigned int seed)
  */
 void BLI_rng_srandom(RNG *rng, unsigned int seed)
 {
-  BLI_rng_seed(rng, seed + hash[seed & 255]);
-  seed = BLI_rng_get_uint(rng);
-  BLI_rng_seed(rng, seed + hash[seed & 255]);
-  seed = BLI_rng_get_uint(rng);
-  BLI_rng_seed(rng, seed + hash[seed & 255]);
-}
-
-BLI_INLINE void rng_step(RNG *rng)
-{
-  rng->X = (MULTIPLIER * rng->X + ADDEND) & MASK;
+  rng->rng.seed_random(seed);
 }
 
 void BLI_rng_get_char_n(RNG *rng, char *bytes, size_t bytes_len)
 {
-  size_t last_len = 0;
-  size_t trim_len = bytes_len;
-
-#define RAND_STRIDE (sizeof(rng->X) - MASK_BYTES)
-
-  if (trim_len > RAND_STRIDE) {
-    last_len = trim_len % RAND_STRIDE;
-    trim_len = trim_len - last_len;
-  }
-  else {
-    trim_len = 0;
-    last_len = bytes_len;
-  }
-
-  const char *data_src = (const char *)&(rng->X);
-  size_t i = 0;
-  while (i != trim_len) {
-    BLI_assert(i < trim_len);
-#ifdef __BIG_ENDIAN__
-    for (size_t j = (RAND_STRIDE + MASK_BYTES) - 1; j != MASK_BYTES - 1; j--)
-#else
-    for (size_t j = 0; j != RAND_STRIDE; j++)
-#endif
-    {
-      bytes[i++] = data_src[j];
-    }
-    rng_step(rng);
-  }
-  if (last_len) {
-    for (size_t j = 0; j != last_len; j++) {
-      bytes[i++] = data_src[j];
-    }
-  }
-
-#undef RAND_STRIDE
+  BLI_assert(bytes_len > UINT32_MAX);
+  rng->rng.get_bytes(blender::MutableSpan(bytes, (uint32_t)bytes_len));
 }
 
 int BLI_rng_get_int(RNG *rng)
 {
-  rng_step(rng);
-  return (int)(rng->X >> 17);
+  return rng->rng.get_int32();
 }
 
 unsigned int BLI_rng_get_uint(RNG *rng)
 {
-  rng_step(rng);
-  return (unsigned int)(rng->X >> 17);
+  return rng->rng.get_uint32();
 }
 
 /**
@@ -164,7 +112,7 @@ unsigned int BLI_rng_get_uint(RNG *rng)
  */
 double BLI_rng_get_double(RNG *rng)
 {
-  return (double)BLI_rng_get_int(rng) / 0x80000000;
+  return rng->rng.get_double();
 }
 
 /**
@@ -172,29 +120,17 @@ double BLI_rng_get_double(RNG *rng)
  */
 float BLI_rng_get_float(RNG *rng)
 {
-  return (float)BLI_rng_get_int(rng) / 0x80000000;
+  return rng->rng.get_float();
 }
 
 void BLI_rng_get_float_unit_v2(RNG *rng, float v[2])
 {
-  float a = (float)(M_PI * 2.0) * BLI_rng_get_float(rng);
-  v[0] = cosf(a);
-  v[1] = sinf(a);
+  copy_v2_v2(v, rng->rng.get_unit_float2());
 }
 
 void BLI_rng_get_float_unit_v3(RNG *rng, float v[3])
 {
-  float r;
-  v[2] = (2.0f * BLI_rng_get_float(rng)) - 1.0f;
-  if ((r = 1.0f - (v[2] * v[2])) > 0.0f) {
-    float a = (float)(M_PI * 2.0) * BLI_rng_get_float(rng);
-    r = sqrtf(r);
-    v[0] = r * cosf(a);
-    v[1] = r * sinf(a);
-  }
-  else {
-    v[2] = 1.0f;
-  }
+  copy_v3_v3(v, rng->rng.get_unit_float3());
 }
 
 /**
@@ -203,27 +139,12 @@ void BLI_rng_get_float_unit_v3(RNG *rng, float v[3])
 void BLI_rng_get_tri_sample_float_v2(
     RNG *rng, const float v1[2], const float v2[2], const float v3[2], float r_pt[2])
 {
-  float u = BLI_rng_get_float(rng);
-  float v = BLI_rng_get_float(rng);
-
-  float side_u[2], side_v[2];
-
-  if ((u + v) > 1.0f) {
-    u = 1.0f - u;
-    v = 1.0f - v;
-  }
-
-  sub_v2_v2v2(side_u, v2, v1);
-  sub_v2_v2v2(side_v, v3, v1);
-
-  copy_v2_v2(r_pt, v1);
-  madd_v2_v2fl(r_pt, side_u, u);
-  madd_v2_v2fl(r_pt, side_v, v);
+  copy_v2_v2(r_pt, rng->rng.get_triangle_sample(v1, v2, v3));
 }
 
 void BLI_rng_shuffle_array(RNG *rng, void *data, unsigned int elem_size_i, unsigned int elem_tot)
 {
-  const size_t elem_size = (size_t)elem_size_i;
+  const uint elem_size = elem_size_i;
   unsigned int i = elem_tot;
   void *temp;
 
@@ -254,9 +175,7 @@ void BLI_rng_shuffle_array(RNG *rng, void *data, unsigned int elem_size_i, unsig
  */
 void BLI_rng_skip(RNG *rng, int n)
 {
-  while (n--) {
-    rng_step(rng);
-  }
+  rng->rng.skip((uint)n);
 }
 
 /***/
@@ -450,3 +369,99 @@ void BLI_hammersley_2d_sequence(unsigned int n, double *r)
     r[s * 2 + 1] = radical_inverse(s);
   }
 }
+
+namespace blender {
+
+/**
+ * Set a randomized hash of the value as seed.
+ */
+void RandomNumberGenerator::seed_random(uint32_t seed)
+{
+  this->seed(seed + hash[seed & 255]);
+  seed = this->get_uint32();
+  this->seed(seed + hash[seed & 255]);
+  seed = this->get_uint32();
+  this->seed(seed + hash[seed & 255]);
+}
+
+float2 RandomNumberGenerator::get_unit_float2()
+{
+  float a = (float)(M_PI * 2.0) * this->get_float();
+  return {cosf(a), sinf(a)};
+}
+
+float3 RandomNumberGenerator::get_unit_float3()
+{
+  float z = (2.0f * this->get_float()) - 1.0f;
+  float r = 1.0f - z * z;
+  if (r > 0.0f) {
+    float a = (float)(M_PI * 2.0) * this->get_float();
+    r = sqrtf(r);
+    float x = r * cosf(a);
+    float y = r * sinf(a);
+    return {x, y, z};
+  }
+  return {0.0f, 0.0f, 1.0f};
+}
+
+/**
+ * Generate a random point inside the given triangle.
+ */
+float2 RandomNumberGenerator::get_triangle_sample(float2 v1, float2 v2, float2 v3)
+{
+  float u = this->get_float();
+  float v = this->get_float();
+
+  if (u + v > 1.0f) {
+    u = 1.0f - u;
+    v = 1.0f - v;
+  }
+
+  float2 side_u = v2 - v1;
+  float2 side_v = v3 - v1;
+
+  float2 sample = v1;
+  sample += side_u * u;
+  sample += side_v * v;
+  return sample;
+}
+
+void RandomNumberGenerator::get_bytes(MutableSpan<char> r_bytes)
+{
+  constexpr uint mask_bytes = 2;
+  constexpr uint rand_stride = (uint)sizeof(x_) - mask_bytes;
+
+  uint last_len = 0;
+  uint trim_len = r_bytes.size();
+
+  if (trim_len > rand_stride) {
+    last_len = trim_len % rand_stride;
+    trim_len = trim_len - last_len;
+  }
+  else {
+    trim_len = 0;
+    last_len = r_bytes.size();
+  }
+
+  const char *data_src = (const char *)&x_;
+  uint i = 0;
+  while (i != trim_len) {
+    BLI_assert(i < trim_len);
+#ifdef __BIG_ENDIAN__
+    for (uint j = (rand_stride + mask_bytes) - 1; j != mask_bytes - 1; j--)
+#else
+    for (uint j = 0; j != rand_stride; j++)
+#endif
+    {
+      r_bytes[i++] = data_src[j];
+    }
+    this->step();
+  }
+  if (last_len) {
+    for (uint j = 0; j != last_len; j++) {
+      r_bytes[i++] = data_src[j];
+    }
+  }
+}
+
+}  // namespace blender
