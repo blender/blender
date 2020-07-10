@@ -1431,12 +1431,8 @@ static int rna_property_override_diff_propptr(Main *bmain,
                 RNA_property_##_typename##_set((_ptr), (_prop), (_value)))
 
 int rna_property_override_diff_default(Main *bmain,
-                                       PointerRNA *ptr_a,
-                                       PointerRNA *ptr_b,
-                                       PropertyRNA *prop_a,
-                                       PropertyRNA *prop_b,
-                                       const int len_a,
-                                       const int len_b,
+                                       PropertyRNAOrID *prop_a,
+                                       PropertyRNAOrID *prop_b,
                                        const int mode,
                                        IDOverrideLibrary *override,
                                        const char *rna_path,
@@ -1444,6 +1440,13 @@ int rna_property_override_diff_default(Main *bmain,
                                        const int flags,
                                        bool *r_override_changed)
 {
+  PointerRNA *ptr_a = &prop_a->ptr;
+  PointerRNA *ptr_b = &prop_b->ptr;
+  PropertyRNA *rawprop_a = prop_a->rawprop;
+  PropertyRNA *rawprop_b = prop_b->rawprop;
+  const uint len_a = prop_a->array_len;
+  const uint len_b = prop_b->array_len;
+
   BLI_assert(len_a == len_b);
 
   /* Note: at this point, we are sure that when len_a is zero,
@@ -1452,7 +1455,16 @@ int rna_property_override_diff_default(Main *bmain,
   const bool do_create = override != NULL && (flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 &&
                          rna_path != NULL;
 
-  switch (RNA_property_type(prop_a)) {
+  const bool no_ownership = (prop_a->rnaprop->flag & PROP_PTR_NO_OWNERSHIP) != 0;
+  const bool no_prop_name = (prop_a->rnaprop->flag_override & PROPOVERRIDE_NO_PROP_NAME) != 0;
+
+  /* Note: we assume we only insert in ptr_a (i.e. we can only get new items in ptr_a),
+   * and that we never remove anything. */
+  const bool use_collection_insertion = (prop_a->rnaprop->flag_override &
+                                         PROPOVERRIDE_LIBRARY_INSERTION) &&
+                                        do_create;
+
+  switch (RNA_property_type(prop_a->rnaprop)) {
     case PROP_BOOLEAN: {
       if (len_a) {
         bool array_stack_a[RNA_STACK_ARRAY], array_stack_b[RNA_STACK_ARRAY];
@@ -1463,8 +1475,8 @@ int rna_property_override_diff_default(Main *bmain,
         array_b = (len_b > RNA_STACK_ARRAY) ? MEM_mallocN(sizeof(bool) * len_b, "RNA equals") :
                                               array_stack_b;
 
-        RNA_property_boolean_get_array(ptr_a, prop_a, array_a);
-        RNA_property_boolean_get_array(ptr_b, prop_b, array_b);
+        RNA_property_boolean_get_array(ptr_a, rawprop_a, array_a);
+        RNA_property_boolean_get_array(ptr_b, rawprop_b, array_b);
 
         const int comp = memcmp(array_a, array_b, sizeof(bool) * len_a);
 
@@ -1496,8 +1508,8 @@ int rna_property_override_diff_default(Main *bmain,
         return comp;
       }
       else {
-        const bool value_a = RNA_property_boolean_get(ptr_a, prop_a);
-        const bool value_b = RNA_property_boolean_get(ptr_b, prop_b);
+        const bool value_a = RNA_property_boolean_get(ptr_a, rawprop_a);
+        const bool value_b = RNA_property_boolean_get(ptr_b, rawprop_b);
         const int comp = (value_a < value_b) ? -1 : (value_a > value_b) ? 1 : 0;
 
         if (do_create && comp != 0) {
@@ -1528,8 +1540,8 @@ int rna_property_override_diff_default(Main *bmain,
         array_b = (len_b > RNA_STACK_ARRAY) ? MEM_mallocN(sizeof(int) * len_b, "RNA equals") :
                                               array_stack_b;
 
-        RNA_property_int_get_array(ptr_a, prop_a, array_a);
-        RNA_property_int_get_array(ptr_b, prop_b, array_b);
+        RNA_property_int_get_array(ptr_a, rawprop_a, array_a);
+        RNA_property_int_get_array(ptr_b, rawprop_b, array_b);
 
         const int comp = memcmp(array_a, array_b, sizeof(int) * len_a);
 
@@ -1561,8 +1573,8 @@ int rna_property_override_diff_default(Main *bmain,
         return comp;
       }
       else {
-        const int value_a = RNA_property_int_get(ptr_a, prop_a);
-        const int value_b = RNA_property_int_get(ptr_b, prop_b);
+        const int value_a = RNA_property_int_get(ptr_a, rawprop_a);
+        const int value_b = RNA_property_int_get(ptr_b, rawprop_b);
         const int comp = (value_a < value_b) ? -1 : (value_a > value_b) ? 1 : 0;
 
         if (do_create && comp != 0) {
@@ -1593,8 +1605,8 @@ int rna_property_override_diff_default(Main *bmain,
         array_b = (len_b > RNA_STACK_ARRAY) ? MEM_mallocN(sizeof(float) * len_b, "RNA equals") :
                                               array_stack_b;
 
-        RNA_property_float_get_array(ptr_a, prop_a, array_a);
-        RNA_property_float_get_array(ptr_b, prop_b, array_b);
+        RNA_property_float_get_array(ptr_a, rawprop_a, array_a);
+        RNA_property_float_get_array(ptr_b, rawprop_b, array_b);
 
         const int comp = memcmp(array_a, array_b, sizeof(float) * len_a);
 
@@ -1626,8 +1638,8 @@ int rna_property_override_diff_default(Main *bmain,
         return comp;
       }
       else {
-        const float value_a = RNA_property_float_get(ptr_a, prop_a);
-        const float value_b = RNA_property_float_get(ptr_b, prop_b);
+        const float value_a = RNA_property_float_get(ptr_a, rawprop_a);
+        const float value_b = RNA_property_float_get(ptr_b, rawprop_b);
         const int comp = (value_a < value_b) ? -1 : (value_a > value_b) ? 1 : 0;
 
         if (do_create && comp != 0) {
@@ -1649,8 +1661,8 @@ int rna_property_override_diff_default(Main *bmain,
     }
 
     case PROP_ENUM: {
-      const int value_a = RNA_property_enum_get(ptr_a, prop_a);
-      const int value_b = RNA_property_enum_get(ptr_b, prop_b);
+      const int value_a = RNA_property_enum_get(ptr_a, rawprop_a);
+      const int value_b = RNA_property_enum_get(ptr_b, rawprop_b);
       const int comp = value_a != value_b;
 
       if (do_create && comp != 0) {
@@ -1674,9 +1686,9 @@ int rna_property_override_diff_default(Main *bmain,
       char fixed_a[4096], fixed_b[4096];
       int len_str_a, len_str_b;
       char *value_a = RNA_property_string_get_alloc(
-          ptr_a, prop_a, fixed_a, sizeof(fixed_a), &len_str_a);
+          ptr_a, rawprop_a, fixed_a, sizeof(fixed_a), &len_str_a);
       char *value_b = RNA_property_string_get_alloc(
-          ptr_b, prop_b, fixed_b, sizeof(fixed_b), &len_str_b);
+          ptr_b, rawprop_b, fixed_b, sizeof(fixed_b), &len_str_b);
       /* TODO we could do a check on length too,
        * but then we would not have a 'real' string comparison...
        * Maybe behind a eRNAOverrideMatch flag? */
@@ -1712,16 +1724,13 @@ int rna_property_override_diff_default(Main *bmain,
     }
 
     case PROP_POINTER: {
-      if (STREQ(RNA_property_identifier(prop_a), "rna_type")) {
+      if (STREQ(prop_a->identifier, "rna_type")) {
         /* Dummy 'pass' answer, this is a meta-data and must be ignored... */
         return 0;
       }
       else {
-        PointerRNA propptr_a = RNA_property_pointer_get(ptr_a, prop_a);
-        PointerRNA propptr_b = RNA_property_pointer_get(ptr_b, prop_b);
-        const bool no_ownership = (RNA_property_flag(prop_a) & PROP_PTR_NO_OWNERSHIP) != 0;
-        const bool no_prop_name = (RNA_property_override_flag(prop_a) &
-                                   PROPOVERRIDE_NO_PROP_NAME) != 0;
+        PointerRNA propptr_a = RNA_property_pointer_get(ptr_a, rawprop_a);
+        PointerRNA propptr_b = RNA_property_pointer_get(ptr_b, rawprop_b);
         return rna_property_override_diff_propptr(bmain,
                                                   &propptr_a,
                                                   &propptr_b,
@@ -1742,14 +1751,6 @@ int rna_property_override_diff_default(Main *bmain,
     }
 
     case PROP_COLLECTION: {
-      /* Note: we assume we only insert in ptr_a (i.e. we can only get new items in ptr_a),
-       * and that we never remove anything. */
-      const bool use_insertion = (RNA_property_override_flag(prop_a) &
-                                  PROPOVERRIDE_LIBRARY_INSERTION) &&
-                                 do_create;
-      const bool no_ownership = (RNA_property_flag(prop_a) & PROP_PTR_NO_OWNERSHIP) != 0;
-      const bool no_prop_name = (RNA_property_override_flag(prop_a) & PROPOVERRIDE_NO_PROP_NAME) !=
-                                0;
       bool equals = true;
       bool abort = false;
       bool is_first_insert = true;
@@ -1757,8 +1758,8 @@ int rna_property_override_diff_default(Main *bmain,
       int idx_b = 0;
 
       CollectionPropertyIterator iter_a, iter_b;
-      RNA_property_collection_begin(ptr_a, prop_a, &iter_a);
-      RNA_property_collection_begin(ptr_b, prop_b, &iter_b);
+      RNA_property_collection_begin(ptr_a, rawprop_a, &iter_a);
+      RNA_property_collection_begin(ptr_b, rawprop_b, &iter_b);
 
       char buff_a[4096];
       char buff_prev_a[4096] = {0};
@@ -1773,7 +1774,7 @@ int rna_property_override_diff_default(Main *bmain,
         do {
           bool is_id = false, is_null = false, is_type_diff = false;
 
-          is_valid_for_insertion = use_insertion;
+          is_valid_for_insertion = use_collection_insertion;
 
           /* If false, it means that the whole data itself is different,
            * so no point in going inside of it at all! */
@@ -1846,7 +1847,7 @@ int rna_property_override_diff_default(Main *bmain,
           /* Collections do not support replacement of their data (except for collections of ID
            * pointers), since they do not support removing, only in *some* cases, insertion. We
            * also assume then that _a data is the one where things are inserted. */
-          if (is_valid_for_insertion && use_insertion) {
+          if (is_valid_for_insertion && use_collection_insertion) {
             bool created;
             IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
                 override, rna_path, &created);
@@ -1930,7 +1931,7 @@ int rna_property_override_diff_default(Main *bmain,
             break;
           }
 
-          if (!(use_insertion && !(is_id || is_valid_for_diffing))) {
+          if (!(use_collection_insertion && !(is_id || is_valid_for_diffing))) {
             break;
           }
 

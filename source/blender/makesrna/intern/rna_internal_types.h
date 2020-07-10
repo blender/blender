@@ -195,23 +195,17 @@ typedef struct PropertyRNAOrID {
 } PropertyRNAOrID;
 
 /**
- * If \a override is NULL, merely do comparison between prop_a from ptr_a and prop_b from ptr_b,
+ * If \a override is NULL, merely do comparison between prop_a and prop_b,
  * following comparison mode given.
  * If \a override and \a rna_path are not NULL, it will add a new override operation for
  * overridable properties that differ and have not yet been overridden
  * (and set accordingly \a r_override_changed if given).
  *
- * \note Given PropertyRNA are final (in case of IDProps...).
- * \note In non-array cases, \a len values are 0.
  * \note \a override, \a rna_path and \a r_override_changed may be NULL pointers.
  */
 typedef int (*RNAPropOverrideDiff)(struct Main *bmain,
-                                   struct PointerRNA *ptr_a,
-                                   struct PointerRNA *ptr_b,
-                                   struct PropertyRNA *prop_a,
-                                   struct PropertyRNA *prop_b,
-                                   const int len_a,
-                                   const int len_b,
+                                   struct PropertyRNAOrID *prop_a,
+                                   struct PropertyRNAOrID *prop_b,
                                    const int mode,
                                    struct IDOverrideLibrary *override,
                                    const char *rna_path,

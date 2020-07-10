@@ -177,11 +177,8 @@ bool RNA_property_copy(
 }
 
 static int rna_property_override_diff(Main *bmain,
-                                      PointerRNA *ptr_a,
-                                      PointerRNA *ptr_b,
-                                      PropertyRNA *prop,
-                                      PropertyRNA *prop_a,
-                                      PropertyRNA *prop_b,
+                                      PropertyRNAOrID *prop_a,
+                                      PropertyRNAOrID *prop_b,
                                       const char *rna_path,
                                       const size_t rna_path_len,
                                       eRNACompareMode mode,
@@ -194,8 +191,12 @@ bool RNA_property_equals(
 {
   BLI_assert(ELEM(mode, RNA_EQ_STRICT, RNA_EQ_UNSET_MATCH_ANY, RNA_EQ_UNSET_MATCH_NONE));
 
-  return (rna_property_override_diff(
-              bmain, ptr_a, ptr_b, prop, NULL, NULL, NULL, 0, mode, NULL, 0, NULL) == 0);
+  PropertyRNAOrID prop_a, prop_b;
+
+  rna_property_rna_or_id_get(prop, ptr_a, &prop_a);
+  rna_property_rna_or_id_get(prop, ptr_b, &prop_b);
+
+  return (rna_property_override_diff(bmain, &prop_a, &prop_b, NULL, 0, mode, NULL, 0, NULL) == 0);
 }
 
 bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mode)
@@ -247,11 +248,8 @@ bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACo
  * but we cannot determine an order (greater than/lesser than), we return 1.
  */
 static int rna_property_override_diff(Main *bmain,
-                                      PointerRNA *ptr_a,
-                                      PointerRNA *ptr_b,
-                                      PropertyRNA *prop,
-                                      PropertyRNA *prop_a,
-                                      PropertyRNA *prop_b,
+                                      PropertyRNAOrID *prop_a,
+                                      PropertyRNAOrID *prop_b,
                                       const char *rna_path,
                                       const size_t rna_path_len,
                                       eRNACompareMode mode,
@@ -259,47 +257,33 @@ static int rna_property_override_diff(Main *bmain,
                                       const eRNAOverrideMatch flags,
                                       eRNAOverrideMatchResult *r_report_flags)
 {
-  if (prop != NULL) {
-    BLI_assert(prop_a == NULL && prop_b == NULL);
-    prop_a = prop;
-    prop_b = prop;
-  }
+  BLI_assert(!ELEM(NULL, prop_a, prop_b));
 
-  if (ELEM(NULL, prop_a, prop_b)) {
-    return (prop_a == prop_b) ? 0 : 1;
-  }
-
-  if (!RNA_property_comparable(ptr_a, prop_a) || !RNA_property_comparable(ptr_b, prop_b)) {
+  if (prop_a->rnaprop->flag_override & PROPOVERRIDE_NO_COMPARISON ||
+      prop_b->rnaprop->flag_override & PROPOVERRIDE_NO_COMPARISON) {
     return 0;
   }
 
   if (mode == RNA_EQ_UNSET_MATCH_ANY) {
     /* Unset properties are assumed to match anything. */
-    if (!RNA_property_is_set(ptr_a, prop_a) || !RNA_property_is_set(ptr_b, prop_b)) {
+    if (!prop_a->is_set || !prop_b->is_set) {
       return 0;
     }
   }
   else if (mode == RNA_EQ_UNSET_MATCH_NONE) {
     /* Unset properties never match set properties. */
-    if (RNA_property_is_set(ptr_a, prop_a) != RNA_property_is_set(ptr_b, prop_b)) {
+    if (prop_a->is_set != prop_b->is_set) {
       return 1;
     }
   }
 
-  if (prop != NULL) {
-    /* Ensure we get real property data, be it an actual RNA property,
-     * or an IDProperty in disguise. */
-    prop_a = rna_ensure_property_realdata(&prop_a, ptr_a);
-    prop_b = rna_ensure_property_realdata(&prop_b, ptr_b);
-
-    if (ELEM(NULL, prop_a, prop_b)) {
-      return (prop_a == prop_b) ? 0 : 1;
-    }
+  if (prop_a->is_idprop && ELEM(NULL, prop_a->idprop, prop_b->idprop)) {
+    return (prop_a->idprop == prop_b->idprop) ? 0 : 1;
   }
 
   /* Check if we are working with arrays. */
-  const bool is_array_a = RNA_property_array_check(prop_a);
-  const bool is_array_b = RNA_property_array_check(prop_b);
+  const bool is_array_a = prop_a->is_array;
+  const bool is_array_b = prop_b->is_array;
 
   if (is_array_a != is_array_b) {
     /* Should probably never happen actually... */
@@ -308,8 +292,8 @@ static int rna_property_override_diff(Main *bmain,
   }
 
   /* Get the length of the array to work with. */
-  const int len_a = RNA_property_array_length(ptr_a, prop_a);
-  const int len_b = RNA_property_array_length(ptr_b, prop_b);
+  const uint len_a = prop_a->array_len;
+  const uint len_b = prop_b->array_len;
 
   if (len_a != len_b) {
     /* Do not handle override in that case,
@@ -324,30 +308,31 @@ static int rna_property_override_diff(Main *bmain,
 
   RNAPropOverrideDiff override_diff = NULL;
   /* Special case for IDProps, we use default callback then. */
-  if (prop_a->magic != RNA_MAGIC) {
+  if (prop_a->is_idprop) {
     override_diff = rna_property_override_diff_default;
-    if (prop_b->magic == RNA_MAGIC && prop_b->override_diff != override_diff) {
+    if (!prop_b->is_idprop && prop_b->rnaprop->override_diff != override_diff) {
       override_diff = NULL;
     }
   }
-  else if (prop_b->magic != RNA_MAGIC) {
+  else if (prop_b->is_idprop) {
     override_diff = rna_property_override_diff_default;
-    if (prop_a->override_diff != override_diff) {
+    if (prop_a->rnaprop->override_diff != override_diff) {
       override_diff = NULL;
     }
   }
-  else if (prop_a->override_diff == prop_b->override_diff) {
-    override_diff = prop_a->override_diff;
+  else if (prop_a->rnaprop->override_diff == prop_b->rnaprop->override_diff) {
+    override_diff = prop_a->rnaprop->override_diff;
+    if (override_diff == NULL) {
+      override_diff = rna_property_override_diff_default;
+    }
   }
 
   if (override_diff == NULL) {
 #ifndef NDEBUG
     printf("'%s' gives unmatching or NULL RNA diff callbacks, should not happen (%d vs. %d).\n",
-           rna_path ?
-               rna_path :
-               (prop_a->magic != RNA_MAGIC ? ((IDProperty *)prop_a)->name : prop_a->identifier),
-           prop_a->magic == RNA_MAGIC,
-           prop_b->magic == RNA_MAGIC);
+           rna_path ? rna_path : prop_a->identifier,
+           !prop_a->is_idprop,
+           !prop_b->is_idprop);
 #endif
     BLI_assert(0);
     return 1;
@@ -355,16 +340,12 @@ static int rna_property_override_diff(Main *bmain,
 
   bool override_changed = false;
   eRNAOverrideMatch diff_flags = flags;
-  if (!RNA_property_overridable_get(ptr_a, prop_a)) {
+  if (!RNA_property_overridable_get(&prop_a->ptr, prop_a->rawprop)) {
     diff_flags &= ~RNA_OVERRIDE_COMPARE_CREATE;
   }
   const int diff = override_diff(bmain,
-                                 ptr_a,
-                                 ptr_b,
                                  prop_a,
                                  prop_b,
-                                 len_a,
-                                 len_b,
                                  mode,
                                  override,
                                  rna_path,
@@ -426,10 +407,13 @@ static bool rna_property_override_operation_store(Main *bmain,
   }
   else if (prop_local->override_store == prop_reference->override_store) {
     override_store = prop_local->override_store;
+    if (override_store == NULL) {
+      override_store = rna_property_override_store_default;
+    }
   }
 
   if (ptr_storage != NULL && prop_storage->magic == RNA_MAGIC &&
-      prop_storage->override_store != override_store) {
+      !ELEM(prop_storage->override_store, NULL, override_store)) {
     override_store = NULL;
   }
 
@@ -512,10 +496,13 @@ static bool rna_property_override_operation_apply(Main *bmain,
   }
   else if (prop_dst->override_apply == prop_src->override_apply) {
     override_apply = prop_dst->override_apply;
+    if (override_apply == NULL) {
+      override_apply = rna_property_override_apply_default;
+    }
   }
 
   if (ptr_storage && prop_storage->magic == RNA_MAGIC &&
-      prop_storage->override_apply != override_apply) {
+      !ELEM(prop_storage->override_apply, NULL, override_apply)) {
     override_apply = NULL;
   }
 
@@ -612,38 +599,29 @@ bool RNA_struct_override_matches(Main *bmain,
 
   for (RNA_property_collection_begin(ptr_local, iterprop, &iter); iter.valid;
        RNA_property_collection_next(&iter)) {
-    PropertyRNA *prop_local = iter.ptr.data;
-    PropertyRNA *prop_reference = iter.ptr.data;
+    PropertyRNA *rawprop = iter.ptr.data;
 
-    /* Ensure we get real property data, be it an actual RNA property,
-     * or an IDProperty in disguise. */
-    prop_local = rna_ensure_property_realdata(&prop_local, ptr_local);
-    prop_reference = rna_ensure_property_realdata(&prop_reference, ptr_reference);
+    PropertyRNAOrID prop_local;
+    PropertyRNAOrID prop_reference;
 
-    /* IDProps (custom properties) are even more of a PITA here, we cannot use
-     * `rna_ensure_property_realdata()` to deal with them, we have to use the path generated from
-     * `prop_local` (which is valid) to access to the actual reference counterpart... */
-    if (prop_local != NULL && prop_local->magic != RNA_MAGIC && prop_local == prop_reference) {
-      /* We could also use (lower in this code, after rna_path has been computed):
-       *    RNA_path_resolve_property(ptr_reference, rna_path, &some_rna_ptr, &prop_reference);
-       * But that would be much more costly, and would also fail when ptr_reference
-       * is not an ID pointer itself, so we'd need to rebuild it from its owner_id, then check that
-       * generated some_rna_ptr and ptr_reference do point to the same data, etc.
-       * For now, let's try that simple access, it won't cover all cases but should handle fine
-       * most basic custom properties situations. */
-      prop_reference = (PropertyRNA *)rna_idproperty_find(ptr_reference,
-                                                          ((IDProperty *)prop_local)->name);
-    }
+    rna_property_rna_or_id_get(rawprop, ptr_local, &prop_local);
+    rna_property_rna_or_id_get(rawprop, ptr_reference, &prop_reference);
 
-    if (ELEM(NULL, prop_local, prop_reference)) {
+    BLI_assert(prop_local.rnaprop != NULL);
+    BLI_assert(prop_local.rnaprop == prop_reference.rnaprop);
+    BLI_assert(prop_local.is_idprop == prop_reference.is_idprop);
+
+    if ((prop_local.is_idprop && prop_local.idprop == NULL) ||
+        (prop_reference.is_idprop && prop_reference.idprop == NULL)) {
       continue;
     }
 
-    if (ignore_non_overridable && !RNA_property_overridable_get(ptr_local, prop_local)) {
+    if (ignore_non_overridable && !RNA_property_overridable_get(&prop_local.ptr, rawprop)) {
       continue;
     }
 
-    if (RNA_property_override_flag(prop_local) & PROPOVERRIDE_IGNORE) {
+    if (!prop_local.is_idprop &&
+        RNA_property_override_flag(prop_local.rnaprop) & PROPOVERRIDE_IGNORE) {
       continue;
     }
 
@@ -665,11 +643,11 @@ bool RNA_struct_override_matches(Main *bmain,
     if (root_path) {
       BLI_assert(strlen(root_path) == root_path_len);
 
-      const char *prop_name = RNA_property_identifier(prop_local);
+      const char *prop_name = prop_local.identifier;
       const size_t prop_name_len = strlen(prop_name);
 
       /* Inlined building, much much more efficient. */
-      if (prop_local->magic == RNA_MAGIC) {
+      if (!prop_local.is_idprop) {
         rna_path_len = root_path_len + 1 + prop_name_len;
         if (rna_path_len >= RNA_PATH_BUFFSIZE) {
           rna_path = MEM_mallocN(rna_path_len + 1, __func__);
@@ -697,7 +675,7 @@ bool RNA_struct_override_matches(Main *bmain,
     }
     else {
       /* This is rather slow, but is not much called, so not really worth optimizing. */
-      rna_path = RNA_path_from_ID_to_property(ptr_local, prop_local);
+      rna_path = RNA_path_from_ID_to_property(ptr_local, rawprop);
       if (rna_path != NULL) {
         rna_path_len = strlen(rna_path);
       }
@@ -726,11 +704,8 @@ bool RNA_struct_override_matches(Main *bmain,
 
     eRNAOverrideMatchResult report_flags = 0;
     const int diff = rna_property_override_diff(bmain,
-                                                ptr_local,
-                                                ptr_reference,
-                                                NULL,
-                                                prop_local,
-                                                prop_reference,
+                                                &prop_local,
+                                                &prop_reference,
                                                 rna_path,
                                                 rna_path_len,
                                                 RNA_EQ_STRICT,
@@ -764,7 +739,7 @@ bool RNA_struct_override_matches(Main *bmain,
         /* We are allowed to restore to reference's values. */
         if (ELEM(NULL, op, opop) || opop->operation == IDOVERRIDE_LIBRARY_OP_NOOP) {
           /* We should restore that property to its reference value */
-          if (RNA_property_editable(ptr_local, prop_local)) {
+          if (RNA_property_editable(ptr_local, rawprop)) {
             IDOverrideLibraryPropertyOperation opop_tmp = {
                 .operation = IDOVERRIDE_LIBRARY_OP_REPLACE,
                 .subitem_reference_index = -1,
@@ -774,8 +749,8 @@ bool RNA_struct_override_matches(Main *bmain,
                                                   ptr_local,
                                                   ptr_reference,
                                                   NULL,
-                                                  prop_local,
-                                                  prop_reference,
+                                                  rawprop,
+                                                  rawprop,
                                                   NULL,
                                                   NULL,
                                                   NULL,

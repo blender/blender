@@ -2145,9 +2145,7 @@ bool RNA_property_editable_info(PointerRNA *ptr, PropertyRNA *prop, const char *
       return false;
     }
     if (ID_IS_OVERRIDE_LIBRARY(id)) {
-      /* We need the real data property in case of IDProperty here... */
-      PropertyRNA *real_prop = rna_ensure_property_realdata(&prop, ptr);
-      if (real_prop == NULL || !RNA_property_overridable_get(ptr, real_prop)) {
+      if (!RNA_property_overridable_get(ptr, prop)) {
         if (!(*r_info)[0]) {
           *r_info = N_("Can't edit this property from an override data-block");
         }
