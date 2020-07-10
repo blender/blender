@@ -971,7 +971,7 @@ class ConstraintButtonsSubPanel(Panel):
         self.layout.context_pointer_set("constraint", con)
         return con
 
-    def draw_transform_source(self, context):
+    def draw_transform_from(self, context):
         layout = self.layout
         con = self.get_constraint(context)
 
@@ -980,36 +980,29 @@ class ConstraintButtonsSubPanel(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = True
 
+        from_axes = [con.map_to_x_from, con.map_to_y_from, con.map_to_z_from]
+
         if con.map_from == 'ROTATION':
             layout.prop(con, "from_rotation_mode", text="Mode")
 
         ext = "" if con.map_from == 'LOCATION' else "_rot" if con.map_from == 'ROTATION' else "_scale"
 
         col = layout.column(align=True)
+        col.active = "X" in from_axes
         col.prop(con, "from_min_x" + ext, text="X Min")
         col.prop(con, "from_max_x" + ext, text="Max")
 
         col = layout.column(align=True)
+        col.active = "Y" in from_axes
         col.prop(con, "from_min_y" + ext, text="Y Min")
         col.prop(con, "from_max_y" + ext, text="Max")
 
         col = layout.column(align=True)
+        col.active = "Z" in from_axes
         col.prop(con, "from_min_z" + ext, text="Z Min")
         col.prop(con, "from_max_z" + ext, text="Max")
 
-    def draw_transform_mapping(self, context):
-        layout = self.layout
-        con = self.get_constraint(context)
-        layout.use_property_split = True
-        layout.use_property_decorate = True
-        
-        layout.prop(con, "map_to_x_from", expand=False, text="Source Axis X")
-
-        layout.prop(con, "map_to_y_from", expand=False, text="Y")
-
-        layout.prop(con, "map_to_z_from", expand=False, text="Z")
-
-    def draw_transform_destination(self, context):
+    def draw_transform_to(self, context):
         layout = self.layout
         con = self.get_constraint(context)
 
@@ -1024,15 +1017,18 @@ class ConstraintButtonsSubPanel(Panel):
         ext = "" if con.map_to == 'LOCATION' else "_rot" if con.map_to == 'ROTATION' else "_scale"
 
         col = layout.column(align=True)
-        col.prop(con, "to_min_x" + ext, text="X Min")
+        col.prop(con, "map_to_x_from", expand=False, text="X Source Axis")
+        col.prop(con, "to_min_x" + ext, text="Min")
         col.prop(con, "to_max_x" + ext, text="Max")
 
         col = layout.column(align=True)
-        col.prop(con, "to_min_y" + ext, text="Y Min")
+        col.prop(con, "map_to_y_from", expand=False, text="Y Source Axis")
+        col.prop(con, "to_min_y" + ext, text="Min")
         col.prop(con, "to_max_y" + ext, text="Max")
 
         col = layout.column(align=True)
-        col.prop(con, "to_min_z" + ext, text="Z Min")
+        col.prop(con, "map_to_z_from", expand=False, text="Z Source Axis")
+        col.prop(con, "to_min_z" + ext, text="Min")
         col.prop(con, "to_max_z" + ext, text="Max")      
 
         layout.prop(con, "mix_mode" + ext, text="Mix")
@@ -1387,50 +1383,34 @@ class BONE_PT_bTransformConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
 
 class OBJECT_PT_bTransformConstraint_source(ObjectConstraintPanel, ConstraintButtonsSubPanel):
     bl_parent_id = "OBJECT_PT_bTransformConstraint"
-    bl_label = "Source"
+    bl_label = "Map From"
 
     def draw(self, context):
-        self.draw_transform_source(context)
+        self.draw_transform_from(context)
 
 
-class BONE_PT_bTransformConstraint_source(BoneConstraintPanel, ConstraintButtonsSubPanel):
+class BONE_PT_bTransformConstraint_from(BoneConstraintPanel, ConstraintButtonsSubPanel):
     bl_parent_id = "BONE_PT_bTransformConstraint"
-    bl_label = "Source"
+    bl_label = "Map From"
 
     def draw(self, context):
-        self.draw_transform_source(context)
-
-
-class OBJECT_PT_bTransformConstraint_mapping(ObjectConstraintPanel, ConstraintButtonsSubPanel):
-    bl_parent_id = "OBJECT_PT_bTransformConstraint"
-    bl_label = "Mapping"
-
-    def draw(self, context):
-        self.draw_transform_mapping(context)
-
-
-class BONE_PT_bTransformConstraint_mapping(BoneConstraintPanel, ConstraintButtonsSubPanel):
-    bl_parent_id = "BONE_PT_bTransformConstraint"
-    bl_label = "Mapping"
-    
-    def draw(self, context):
-        self.draw_transform_mapping(context)
+        self.draw_transform_from(context)
 
   
 class OBJECT_PT_bTransformConstraint_destination(ObjectConstraintPanel, ConstraintButtonsSubPanel):
     bl_parent_id = "OBJECT_PT_bTransformConstraint"
-    bl_label = "Destination"
+    bl_label = "Map To"
 
     def draw(self, context):
-        self.draw_transform_destination(context)
+        self.draw_transform_to(context)
 
 
-class BONE_PT_bTransformConstraint_destination(BoneConstraintPanel, ConstraintButtonsSubPanel):
+class BONE_PT_bTransformConstraint_to(BoneConstraintPanel, ConstraintButtonsSubPanel):
     bl_parent_id = "BONE_PT_bTransformConstraint"
-    bl_label = "Destination"
+    bl_label = "Map To"
 
     def draw(self, context):
-        self.draw_transform_destination(context)
+        self.draw_transform_to(context)
 
 
 # Shrinkwrap Constraint
@@ -1619,7 +1599,6 @@ classes = (
     OBJECT_PT_bClampToConstraint,
     OBJECT_PT_bTransformConstraint,
     OBJECT_PT_bTransformConstraint_source,
-    OBJECT_PT_bTransformConstraint_mapping,
     OBJECT_PT_bTransformConstraint_destination,
     OBJECT_PT_bShrinkwrapConstraint,
     OBJECT_PT_bDampTrackConstraint,
@@ -1653,9 +1632,8 @@ classes = (
     BONE_PT_bMinMaxConstraint,
     BONE_PT_bClampToConstraint,
     BONE_PT_bTransformConstraint,
-    BONE_PT_bTransformConstraint_source,
-    BONE_PT_bTransformConstraint_mapping,
-    BONE_PT_bTransformConstraint_destination,
+    BONE_PT_bTransformConstraint_from,
+    BONE_PT_bTransformConstraint_to,
     BONE_PT_bShrinkwrapConstraint,
     BONE_PT_bDampTrackConstraint,
     BONE_PT_bSplineIKConstraint,
