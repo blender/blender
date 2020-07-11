@@ -814,7 +814,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
 
   /* Special case: if we have selected faces, isolated them.
    * This isn't a rip, however it's useful for users as a quick way
-   * to detech the selection.
+   * to detach the selection.
    *
    * We could also extract an edge loop from the boundary
    * however in practice it's not that useful, see T78751. */

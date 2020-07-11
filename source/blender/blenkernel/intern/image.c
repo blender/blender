@@ -4363,7 +4363,7 @@ static ImBuf *load_image_single(Image *ima,
 
       /* make packed file for autopack */
       if ((has_packed == false) && (G.fileflags & G_FILE_AUTOPACK)) {
-        ImagePackedFile *imapf = MEM_mallocN(sizeof(ImagePackedFile), "Image Packefile");
+        ImagePackedFile *imapf = MEM_mallocN(sizeof(ImagePackedFile), "Image Pack-file");
         BLI_addtail(&ima->packedfiles, imapf);
 
         STRNCPY(imapf->filepath, filepath);

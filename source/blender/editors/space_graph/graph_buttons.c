@@ -1420,7 +1420,7 @@ void graph_buttons_register(ARegionType *art)
   pt->poll = graph_panel_drivers_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers pover");
+  pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers popover");
   strcpy(pt->idname, "GRAPH_PT_drivers_popover");
   strcpy(pt->label, N_("Add/Edit Driver"));
   strcpy(pt->category, "Drivers");

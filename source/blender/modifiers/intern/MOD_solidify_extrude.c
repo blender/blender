@@ -284,7 +284,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     new_edge_arr = MEM_malloc_arrayN(((numEdges * 2) + numVerts), sizeof(*new_edge_arr), __func__);
 
     edge_users = MEM_malloc_arrayN(numEdges, sizeof(*edge_users), "solid_mod edges");
-    edge_order = MEM_malloc_arrayN(numEdges, sizeof(*edge_order), "solid_mod eorder");
+    edge_order = MEM_malloc_arrayN(numEdges, sizeof(*edge_order), "solid_mod order");
 
     /* save doing 2 loops here... */
 #if 0

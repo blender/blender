@@ -1324,7 +1324,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         int revert_to;
 
         /* as ICCCM say, we need reply this event
-         * with a SetInputFocus, the data[1] have
+         * with a #SetInputFocus, the data[1] have
          * the valid timestamp (send by the wm).
          *
          * Some WM send this event before the
@@ -1345,7 +1345,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       else {
 #ifdef WITH_XDND
         /* try to handle drag event
-         * (if there's no such events, GHOST_HandleClientMessage will return zero) */
+         * (if there's no such events, #GHOST_HandleClientMessage will return zero) */
         if (window->getDropTarget()->GHOST_HandleClientMessage(xe) == false) {
           /* Unknown client message, ignore */
         }
@@ -1366,12 +1366,12 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
     case EnterNotify:
     case LeaveNotify: {
-      /* XCrossingEvents pointer leave enter window.
-       * also do cursor move here, MotionNotify only
+      /* #XCrossingEvents pointer leave enter window.
+       * also do cursor move here, #MotionNotify only
        * happens when motion starts & ends inside window.
        * we only do moves when the crossing mode is 'normal'
-       * (really crossing between windows) since some windowmanagers
-       * also send grab/ungrab crossings for mousewheel events.
+       * (really crossing between windows) since some window-managers
+       * also send grab/un-grab crossings for mouse-wheel events.
        */
       XCrossingEvent &xce = xe->xcrossing;
       if (xce.mode == NotifyNormal) {
@@ -1396,11 +1396,11 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
     case MapNotify:
       /*
        * From ICCCM:
-       * [ Clients can select for StructureNotify on their
+       * [ Clients can select for #StructureNotify on their
        *   top-level windows to track transition between
-       *   Normal and Iconic states. Receipt of a MapNotify
+       *   Normal and Iconic states. Receipt of a #MapNotify
        *   event will indicate a transition to the Normal
-       *   state, and receipt of an UnmapNotify event will
+       *   state, and receipt of an #UnmapNotify event will
        *   indicate a transition to the Iconic state. ]
        */
       if (window->m_post_init == True) {
@@ -1441,7 +1441,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       nxe.xselection.target = xse->target;
       nxe.xselection.time = xse->time;
 
-      /* Check to see if the requestor is asking for String */
+      /* Check to see if the requester is asking for String */
       if (xse->target == utf8_string || xse->target == string || xse->target == compound_text ||
           xse->target == c_string) {
         if (xse->selection == XInternAtom(m_display, "PRIMARY", False)) {
@@ -1487,7 +1487,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         nxe.xselection.property = None;
       }
 
-      /* Send the event to the client 0 0 == False, SelectionNotify */
+      /* Send the event to the client 0 0 == False, #SelectionNotify */
       XSendEvent(m_display, xse->requestor, 0, 0, &nxe);
       XFlush(m_display);
       break;
@@ -1513,7 +1513,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
           /* Note: This event might be generated with incomplete data-set
            * (don't exactly know why, looks like in some cases, if the value does not change,
-           * it is not included in subsequent XDeviceMotionEvent events).
+           * it is not included in subsequent #XDeviceMotionEvent events).
            * So we have to check which values this event actually contains!
            */
 
@@ -1569,14 +1569,13 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 GHOST_TSuccess GHOST_SystemX11::getModifierKeys(GHOST_ModifierKeys &keys) const
 {
 
-  /* Analyze the masks returned from XQueryPointer. */
+  /* Analyze the masks returned from #XQueryPointer. */
 
   memset((void *)m_keyboard_vector, 0, sizeof(m_keyboard_vector));
 
   XQueryKeymap(m_display, (char *)m_keyboard_vector);
 
-  /* now translate key symbols into keycodes and
-   * test with vector. */
+  /* Now translate key symbols into key-codes and test with vector. */
 
   const static KeyCode shift_l = XKeysymToKeycode(m_display, XK_Shift_L);
   const static KeyCode shift_r = XKeysymToKeycode(m_display, XK_Shift_R);
@@ -1671,7 +1670,7 @@ GHOST_TSuccess GHOST_SystemX11::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y
 {
 
   /* This is a brute force move in screen coordinates
-   * XWarpPointer does relative moves so first determine the
+   * #XWarpPointer does relative moves so first determine the
    * current pointer position. */
 
   int cx, cy;

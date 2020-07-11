@@ -209,13 +209,13 @@ bool Device::bind_fallback_display_space_shader(const float width, const float h
     glUseProgram(fallback_shader_program);
     image_texture_location = glGetUniformLocation(fallback_shader_program, "image_texture");
     if (image_texture_location < 0) {
-      LOG(ERROR) << "Shader doesn't containt the 'image_texture' uniform.";
+      LOG(ERROR) << "Shader doesn't contain the 'image_texture' uniform.";
       return false;
     }
 
     fullscreen_location = glGetUniformLocation(fallback_shader_program, "fullscreen");
     if (fullscreen_location < 0) {
-      LOG(ERROR) << "Shader doesn't containt the 'fullscreen' uniform.";
+      LOG(ERROR) << "Shader doesn't contain the 'fullscreen' uniform.";
       return false;
     }
 

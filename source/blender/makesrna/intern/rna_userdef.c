@@ -3973,12 +3973,13 @@ static void rna_def_userdef_studiolights(BlenderRNA *brna)
 
   func = RNA_def_function(srna, "new", "rna_StudioLights_new");
   RNA_def_function_ui_description(func, "Create studiolight from default lighting");
-  parm = RNA_def_string(func,
-                        "path",
-                        NULL,
-                        0,
-                        "Path",
-                        "Path to the file that will contain the lighing info (without extension)");
+  parm = RNA_def_string(
+      func,
+      "path",
+      NULL,
+      0,
+      "Path",
+      "Path to the file that will contain the lighting info (without extension)");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "studio_light", "StudioLight", "", "Newly created StudioLight");
   RNA_def_function_return(func, parm);

@@ -522,7 +522,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
   switch (event) {
     case UI_ID_BROWSE:
     case UI_ID_PIN:
-      RNA_warning("warning, id event %d shouldnt come here", event);
+      RNA_warning("warning, id event %d shouldn't come here", event);
       break;
     case UI_ID_OPEN:
     case UI_ID_ADD_NEW:
