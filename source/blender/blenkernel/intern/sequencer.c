@@ -1331,30 +1331,6 @@ ListBase *BKE_sequence_seqbase_get(Sequence *seq, int *r_offset)
 
 /*********************** DO THE SEQUENCE *************************/
 
-static void make_black_ibuf(ImBuf *ibuf)
-{
-  unsigned int *rect;
-  float *rect_float;
-  int tot;
-
-  if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) {
-    return;
-  }
-
-  tot = ibuf->x * ibuf->y;
-
-  rect = ibuf->rect;
-  rect_float = ibuf->rect_float;
-
-  if (rect) {
-    memset(rect, 0, tot * sizeof(char) * 4);
-  }
-
-  if (rect_float) {
-    memset(rect_float, 0, tot * sizeof(float) * 4);
-  }
-}
-
 static void multibuf(ImBuf *ibuf, const float fmul)
 {
   char *rt;
