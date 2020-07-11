@@ -683,7 +683,6 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 #  ifdef WITH_SDL
   printf("  $SDL_AUDIODRIVER          LibSDL audio driver - alsa, esd, dma.\n");
 #  endif
-  printf("  $PYTHONHOME               Path to the Python directory, eg. /usr/lib/python.\n\n");
 
   exit(0);
 
