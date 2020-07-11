@@ -203,6 +203,30 @@ template<typename Mut1> class CustomMF_SM : public MultiFunction {
 };
 
 /**
+ * Generates a multi-function that converts between two types.
+ */
+template<typename From, typename To> class CustomMF_Convert : public MultiFunction {
+ public:
+  CustomMF_Convert()
+  {
+    std::string name = CPPType::get<From>().name() + " to " + CPPType::get<To>().name();
+    MFSignatureBuilder signature = this->get_builder(std::move(name));
+    signature.single_input<From>("Input");
+    signature.single_output<To>("Output");
+  }
+
+  void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
+  {
+    VSpan<From> inputs = params.readonly_single_input<From>(0);
+    MutableSpan<To> outputs = params.uninitialized_single_output<To>(1);
+
+    for (uint i : mask) {
+      new ((void *)&outputs[i]) To(inputs[i]);
+    }
+  }
+};
+
+/**
  * A multi-function that outputs the same value every time. The value is not owned by an instance
  * of this function. The caller is responsible for destructing and freeing the value.
  */
