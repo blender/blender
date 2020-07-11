@@ -247,7 +247,7 @@ static AttributeNodeMap deduplicate_attribute_nodes(fn::MFNetwork &network,
       attribute_nodes_by_name_and_type;
   for (uint i : IndexRange(amount)) {
     attribute_nodes_by_name_and_type
-        .lookup_or_add_default({attribute_names[i], name_sockets[i]->data_type()})
+        .lookup_or_add_default({attribute_names[i], name_sockets[i]->node().output(0).data_type()})
         .append(&name_sockets[i]->node());
   }
 

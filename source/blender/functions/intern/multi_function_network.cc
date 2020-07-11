@@ -197,6 +197,7 @@ MFInputSocket &MFNetwork::add_output(StringRef name, MFDataType data_type)
 void MFNetwork::relink(MFOutputSocket &old_output, MFOutputSocket &new_output)
 {
   BLI_assert(&old_output != &new_output);
+  BLI_assert(old_output.data_type_ == new_output.data_type_);
   for (MFInputSocket *input : old_output.targets()) {
     input->origin_ = &new_output;
   }
