@@ -191,7 +191,7 @@ class IMAGE_MT_select_linked(Menu):
         layout = self.layout
 
         layout.operator("uv.select_linked", text="Linked")
-        layout.operator("uv.shortest_path_pick", text="Shortest Path")
+        layout.operator("uv.shortest_path_select", text="Shortest Path")
 
 
 class IMAGE_MT_image(Menu):

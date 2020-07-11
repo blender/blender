@@ -175,6 +175,19 @@ bool ED_uvedit_nearest_uv_multi(const struct Scene *scene,
                                 float *dist_sq,
                                 float r_uv[2]);
 
+struct BMFace **ED_uvedit_selected_faces(struct Scene *scene,
+                                         struct BMesh *bm,
+                                         int len_max,
+                                         int *r_faces_len);
+struct BMLoop **ED_uvedit_selected_edges(struct Scene *scene,
+                                         struct BMesh *bm,
+                                         int len_max,
+                                         int *r_edges_len);
+struct BMLoop **ED_uvedit_selected_verts(struct Scene *scene,
+                                         struct BMesh *bm,
+                                         int len_max,
+                                         int *r_verts_len);
+
 void ED_uvedit_get_aspect(struct Object *obedit, float *r_aspx, float *r_aspy);
 
 void ED_uvedit_active_vert_loop_set(struct BMesh *bm, struct BMLoop *l);

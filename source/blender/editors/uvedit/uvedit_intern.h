@@ -111,6 +111,7 @@ void UV_OT_stitch(struct wmOperatorType *ot);
 
 /* uvedit_path.c */
 void UV_OT_shortest_path_pick(struct wmOperatorType *ot);
+void UV_OT_shortest_path_select(struct wmOperatorType *ot);
 
 /* uvedit_select.c */
 
