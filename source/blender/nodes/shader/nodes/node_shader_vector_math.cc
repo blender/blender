@@ -160,6 +160,43 @@ static void node_shader_update_vector_math(bNodeTree *UNUSED(ntree), bNode *node
   }
 }
 
+static void sh_node_vector_math_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+{
+  using blender::float3;
+
+  /* TODO: Implement other operations. */
+  const int mode = builder.bnode().custom1;
+  switch (mode) {
+    case NODE_VECTOR_MATH_ADD: {
+      static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
+          "Add", [](float3 a, float3 b) { return a + b; }};
+      builder.set_matching_fn(fn);
+      break;
+    }
+    case NODE_VECTOR_MATH_SUBTRACT: {
+      static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
+          "Subtract", [](float3 a, float3 b) { return a - b; }};
+      builder.set_matching_fn(fn);
+      break;
+    }
+    case NODE_VECTOR_MATH_MULTIPLY: {
+      static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
+          "Multiply", [](float3 a, float3 b) { return a * b; }};
+      builder.set_matching_fn(fn);
+      break;
+    }
+    case NODE_VECTOR_MATH_DIVIDE: {
+      static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
+          "Divide", [](float3 a, float3 b) { return float3::safe_divide(a, b); }};
+      builder.set_matching_fn(fn);
+      break;
+    }
+    default:
+      BLI_assert(false);
+      break;
+  };
+}
+
 void register_node_type_sh_vect_math(void)
 {
   static bNodeType ntype;
@@ -169,6 +206,7 @@ void register_node_type_sh_vect_math(void)
   node_type_label(&ntype, node_vector_math_label);
   node_type_gpu(&ntype, gpu_shader_vector_math);
   node_type_update(&ntype, node_shader_update_vector_math);
+  ntype.expand_in_mf_network = sh_node_vector_math_expand_in_mf_network;
 
   nodeRegisterType(&ntype);
 }
