@@ -146,6 +146,41 @@ static int gpu_shader_math(GPUMaterial *mat,
   }
 }
 
+static void sh_node_math_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+{
+  /* TODO: Implement clamp and other operations. */
+  const int mode = builder.bnode().custom1;
+  switch (mode) {
+    case NODE_MATH_ADD: {
+      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
+          "Add", [](float a, float b) { return a + b; }};
+      builder.set_matching_fn(fn);
+      break;
+    }
+    case NODE_MATH_SUBTRACT: {
+      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
+          "Subtract", [](float a, float b) { return a - b; }};
+      builder.set_matching_fn(fn);
+      break;
+    }
+    case NODE_MATH_MULTIPLY: {
+      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
+          "Multiply", [](float a, float b) { return a * b; }};
+      builder.set_matching_fn(fn);
+      break;
+    }
+    case NODE_MATH_DIVIDE: {
+      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
+          "Divide", [](float a, float b) { return (b != 0.0f) ? a / b : 0.0f; }};
+      builder.set_matching_fn(fn);
+      break;
+    }
+    default:
+      BLI_assert(false);
+      break;
+  }
+}
+
 void register_node_type_sh_math(void)
 {
   static bNodeType ntype;
@@ -155,6 +190,7 @@ void register_node_type_sh_math(void)
   node_type_label(&ntype, node_math_label);
   node_type_gpu(&ntype, gpu_shader_math);
   node_type_update(&ntype, node_math_update);
+  ntype.expand_in_mf_network = sh_node_math_expand_in_mf_network;
 
   nodeRegisterType(&ntype);
 }
