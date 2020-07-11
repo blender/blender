@@ -34,44 +34,74 @@ static bNodeSocketTemplate sh_node_vector_math_in[] = {
 static bNodeSocketTemplate sh_node_vector_math_out[] = {
     {SOCK_VECTOR, N_("Vector")}, {SOCK_FLOAT, N_("Value")}, {-1, ""}};
 
+static const char *gpu_shader_get_name(int mode)
+{
+  switch (mode) {
+    case NODE_VECTOR_MATH_ADD:
+      return "vector_math_add";
+    case NODE_VECTOR_MATH_SUBTRACT:
+      return "vector_math_subtract";
+    case NODE_VECTOR_MATH_MULTIPLY:
+      return "vector_math_multiply";
+    case NODE_VECTOR_MATH_DIVIDE:
+      return "vector_math_divide";
+
+    case NODE_VECTOR_MATH_CROSS_PRODUCT:
+      return "vector_math_cross";
+    case NODE_VECTOR_MATH_PROJECT:
+      return "vector_math_project";
+    case NODE_VECTOR_MATH_REFLECT:
+      return "vector_math_reflect";
+    case NODE_VECTOR_MATH_DOT_PRODUCT:
+      return "vector_math_dot";
+
+    case NODE_VECTOR_MATH_DISTANCE:
+      return "vector_math_distance";
+    case NODE_VECTOR_MATH_LENGTH:
+      return "vector_math_length";
+    case NODE_VECTOR_MATH_SCALE:
+      return "vector_math_scale";
+    case NODE_VECTOR_MATH_NORMALIZE:
+      return "vector_math_normalize";
+
+    case NODE_VECTOR_MATH_SNAP:
+      return "vector_math_snap";
+    case NODE_VECTOR_MATH_FLOOR:
+      return "vector_math_floor";
+    case NODE_VECTOR_MATH_CEIL:
+      return "vector_math_ceil";
+    case NODE_VECTOR_MATH_MODULO:
+      return "vector_math_modulo";
+    case NODE_VECTOR_MATH_FRACTION:
+      return "vector_math_fraction";
+    case NODE_VECTOR_MATH_ABSOLUTE:
+      return "vector_math_absolute";
+    case NODE_VECTOR_MATH_MINIMUM:
+      return "vector_math_minimum";
+    case NODE_VECTOR_MATH_MAXIMUM:
+      return "vector_math_maximum";
+    case NODE_VECTOR_MATH_WRAP:
+      return "vector_math_wrap";
+    case NODE_VECTOR_MATH_SINE:
+      return "vector_math_sine";
+    case NODE_VECTOR_MATH_COSINE:
+      return "vector_math_cosine";
+    case NODE_VECTOR_MATH_TANGENT:
+      return "vector_math_tangent";
+  }
+
+  return nullptr;
+}
+
 static int gpu_shader_vector_math(GPUMaterial *mat,
                                   bNode *node,
                                   bNodeExecData *UNUSED(execdata),
                                   GPUNodeStack *in,
                                   GPUNodeStack *out)
 {
-  static const char *names[] = {
-      [NODE_VECTOR_MATH_ADD] = "vector_math_add",
-      [NODE_VECTOR_MATH_SUBTRACT] = "vector_math_subtract",
-      [NODE_VECTOR_MATH_MULTIPLY] = "vector_math_multiply",
-      [NODE_VECTOR_MATH_DIVIDE] = "vector_math_divide",
-
-      [NODE_VECTOR_MATH_CROSS_PRODUCT] = "vector_math_cross",
-      [NODE_VECTOR_MATH_PROJECT] = "vector_math_project",
-      [NODE_VECTOR_MATH_REFLECT] = "vector_math_reflect",
-      [NODE_VECTOR_MATH_DOT_PRODUCT] = "vector_math_dot",
-
-      [NODE_VECTOR_MATH_DISTANCE] = "vector_math_distance",
-      [NODE_VECTOR_MATH_LENGTH] = "vector_math_length",
-      [NODE_VECTOR_MATH_SCALE] = "vector_math_scale",
-      [NODE_VECTOR_MATH_NORMALIZE] = "vector_math_normalize",
-
-      [NODE_VECTOR_MATH_SNAP] = "vector_math_snap",
-      [NODE_VECTOR_MATH_FLOOR] = "vector_math_floor",
-      [NODE_VECTOR_MATH_CEIL] = "vector_math_ceil",
-      [NODE_VECTOR_MATH_MODULO] = "vector_math_modulo",
-      [NODE_VECTOR_MATH_FRACTION] = "vector_math_fraction",
-      [NODE_VECTOR_MATH_ABSOLUTE] = "vector_math_absolute",
-      [NODE_VECTOR_MATH_MINIMUM] = "vector_math_minimum",
-      [NODE_VECTOR_MATH_MAXIMUM] = "vector_math_maximum",
-      [NODE_VECTOR_MATH_WRAP] = "vector_math_wrap",
-      [NODE_VECTOR_MATH_SINE] = "vector_math_sine",
-      [NODE_VECTOR_MATH_COSINE] = "vector_math_cosine",
-      [NODE_VECTOR_MATH_TANGENT] = "vector_math_tangent",
-  };
-
-  if (node->custom1 < ARRAY_SIZE(names) && names[node->custom1]) {
-    return GPU_stack_link(mat, node, names[node->custom1], in, out);
+  const char *name = gpu_shader_get_name(node->custom1);
+  if (name != nullptr) {
+    return GPU_stack_link(mat, node, name, in, out);
   }
   else {
     return 0;
@@ -80,8 +110,8 @@ static int gpu_shader_vector_math(GPUMaterial *mat,
 
 static void node_shader_update_vector_math(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  bNodeSocket *sockB = BLI_findlink(&node->inputs, 1);
-  bNodeSocket *sockC = BLI_findlink(&node->inputs, 2);
+  bNodeSocket *sockB = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
+  bNodeSocket *sockC = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
   bNodeSocket *sockScale = nodeFindSocket(node, SOCK_IN, "Scale");
 
   bNodeSocket *sockVector = nodeFindSocket(node, SOCK_OUT, "Vector");
