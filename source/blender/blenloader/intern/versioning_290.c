@@ -21,6 +21,7 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
@@ -36,6 +37,7 @@
 #include "BKE_colortools.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 
 #include "BLO_readfile.h"
 #include "readfile.h"
@@ -254,6 +256,28 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
           ((WeightVGEditModifierData *)md)->edit_flags &= ~MOD_WVG_EDIT_WEIGHTS_NORMALIZE;
         }
       }
+    }
+
+    /* Initialize parameters of the new Nishita sky model. */
+    if (!DNA_struct_elem_find(fd->filesdna, "NodeTexSky", "float", "sun_size")) {
+      FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+        if (ntree->type == NTREE_SHADER) {
+          LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+            if (node->type == SH_NODE_TEX_SKY && node->storage) {
+              NodeTexSky *tex = (NodeTexSky *)node->storage;
+              tex->sun_disc = true;
+              tex->sun_size = DEG2RADF(0.545);
+              tex->sun_elevation = M_PI_2;
+              tex->sun_rotation = 0.0f;
+              tex->altitude = 0.0f;
+              tex->air_density = 1.0f;
+              tex->dust_density = 1.0f;
+              tex->ozone_density = 1.0f;
+            }
+          }
+        }
+      }
+      FOREACH_NODETREE_END;
     }
   }
 
