@@ -572,6 +572,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
     f = BM_face_create_verts(bm, f_verts, 4, NULL, BM_CREATE_NOP, true);
 #endif
 
+    bm_extrude_copy_face_loop_attributes(bm, f);
     if (join_face) {
       BMVert *v1 = e->v1;
       BMVert *v2 = e->v2;
@@ -583,10 +584,10 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
         BMO_elem_flag_enable(bm, v2, EXT_TAG);
         dissolve_verts[dissolve_verts_len++] = v2;
       }
+      /* Tag the edges that can collapse. */
+      BMO_elem_flag_enable(bm, f_edges[0], EXT_TAG);
+      BMO_elem_flag_enable(bm, f_edges[1], EXT_TAG);
       bmesh_kernel_join_face_kill_edge(bm, join_face, f, e);
-    }
-    else {
-      bm_extrude_copy_face_loop_attributes(bm, f);
     }
   }
 
@@ -613,7 +614,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
       BMEdge *e_other = BM_DISK_EDGE_NEXT(e, v);
       if ((e_other == e) || (BM_DISK_EDGE_NEXT(e_other, v) == e)) {
         /* Lose edge or BMVert is edge pair. */
-        BM_edge_collapse(bm, e, v, true, false);
+        BM_edge_collapse(bm, BMO_elem_flag_test(bm, e, EXT_TAG) ? e : e_other, v, true, false);
       }
       else {
         BLI_assert(!BM_vert_is_edge_pair(v));
