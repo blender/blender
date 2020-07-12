@@ -828,13 +828,17 @@ void SkyTextureNode::compile(SVMCompiler &compiler)
   else if (type == NODE_SKY_HOSEK)
     sky_texture_precompute_hosek(&sunsky, sun_direction, turbidity, ground_albedo);
   else if (type == NODE_SKY_NISHITA) {
+    /* Clamp altitude to reasonable values.
+     * Below 1m causes numerical issues and above 60km is space. */
+    float clamped_altitude = clamp(altitude, 1.0f, 59999.0f);
+
     sky_texture_precompute_nishita(&sunsky,
                                    sun_disc,
                                    sun_size,
                                    sun_intensity,
                                    sun_elevation,
                                    sun_rotation,
-                                   altitude,
+                                   clamped_altitude,
                                    air_density,
                                    dust_density);
     /* precomputed texture image parameters */
@@ -846,7 +850,7 @@ void SkyTextureNode::compile(SVMCompiler &compiler)
     /* precompute sky texture */
     if (handle.empty()) {
       SkyLoader *loader = new SkyLoader(
-          sun_elevation, altitude, air_density, dust_density, ozone_density);
+          sun_elevation, clamped_altitude, air_density, dust_density, ozone_density);
       handle = image_manager->add_image(loader, impar);
     }
   }
@@ -920,13 +924,17 @@ void SkyTextureNode::compile(OSLCompiler &compiler)
   else if (type == NODE_SKY_HOSEK)
     sky_texture_precompute_hosek(&sunsky, sun_direction, turbidity, ground_albedo);
   else if (type == NODE_SKY_NISHITA) {
+    /* Clamp altitude to reasonable values.
+     * Below 1m causes numerical issues and above 60km is space. */
+    float clamped_altitude = clamp(altitude, 1.0f, 59999.0f);
+
     sky_texture_precompute_nishita(&sunsky,
                                    sun_disc,
                                    sun_size,
                                    sun_intensity,
                                    sun_elevation,
                                    sun_rotation,
-                                   altitude,
+                                   clamped_altitude,
                                    air_density,
                                    dust_density);
     /* precomputed texture image parameters */
@@ -938,7 +946,7 @@ void SkyTextureNode::compile(OSLCompiler &compiler)
     /* precompute sky texture */
     if (handle.empty()) {
       SkyLoader *loader = new SkyLoader(
-          sun_elevation, altitude, air_density, dust_density, ozone_density);
+          sun_elevation, clamped_altitude, air_density, dust_density, ozone_density);
       handle = image_manager->add_image(loader, impar);
     }
   }
