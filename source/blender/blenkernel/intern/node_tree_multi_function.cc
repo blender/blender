@@ -158,6 +158,10 @@ static fn::MFOutputSocket *try_find_origin(CommonMFNetworkBuilderData &common,
 static const fn::MultiFunction *try_get_conversion_function(fn::MFDataType from, fn::MFDataType to)
 {
   if (from == fn::MFDataType::ForSingle<float>()) {
+    if (to == fn::MFDataType::ForSingle<int32_t>()) {
+      static fn::CustomMF_Convert<float, int32_t> function;
+      return &function;
+    }
     if (to == fn::MFDataType::ForSingle<float3>()) {
       static fn::CustomMF_Convert<float, float3> function;
       return &function;
@@ -170,6 +174,18 @@ static const fn::MultiFunction *try_get_conversion_function(fn::MFDataType from,
       return &function;
     }
   }
+  if (from == fn::MFDataType::ForSingle<int32_t>()) {
+    if (to == fn::MFDataType::ForSingle<float>()) {
+      static fn::CustomMF_Convert<int32_t, float> function;
+      return &function;
+    }
+    if (to == fn::MFDataType::ForSingle<float3>()) {
+      static fn::CustomMF_SI_SO<int32_t, float3> function{
+          "int32 to float3", [](int32_t a) { return float3((float)a); }};
+      return &function;
+    }
+  }
+
   return nullptr;
 }
 
@@ -223,7 +239,6 @@ static void insert_links(CommonMFNetworkBuilderData &common)
       }
       else {
         from_socket = &insert_default_value_for_type(common, to_type);
-        continue;
       }
     }
 
