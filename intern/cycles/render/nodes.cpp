@@ -761,6 +761,12 @@ static void sky_texture_precompute_nishita(SunSky *sunsky,
   float altitude_f = (float)altitude;
   SKY_nishita_skymodel_precompute_sun(
       sun_elevation, sun_size, altitude_f, air_density, dust_density, pixel_bottom, pixel_top);
+  /* limit sun rotation between 0 and 360 degrees */
+  sun_rotation = fmodf(sun_rotation, M_2PI_F);
+  if (sun_rotation < 0.0f) {
+    sun_rotation += M_2PI_F;
+  }
+  sun_rotation = M_2PI_F - sun_rotation;
   /* send data to svm_sky */
   sunsky->nishita_data[0] = pixel_bottom[0];
   sunsky->nishita_data[1] = pixel_bottom[1];
@@ -769,7 +775,7 @@ static void sky_texture_precompute_nishita(SunSky *sunsky,
   sunsky->nishita_data[4] = pixel_top[1];
   sunsky->nishita_data[5] = pixel_top[2];
   sunsky->nishita_data[6] = sun_elevation;
-  sunsky->nishita_data[7] = M_2PI_F - sun_rotation;
+  sunsky->nishita_data[7] = sun_rotation;
   sunsky->nishita_data[8] = sun_disc ? sun_size : 0.0f;
 }
 
