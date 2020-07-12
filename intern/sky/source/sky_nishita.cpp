@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-#include "sky_model.h"
 #include "sky_float3.h"
+#include "sky_model.h"
 
 /* Constants */
 static const float rayleigh_scale = 8000.0f;        // Rayleigh scale height (m)
 static const float mie_scale = 1200.0f;             // Mie scale height (m)
 static const float mie_coeff = 2e-5f;               // Mie scattering coefficient
 static const float mie_G = 0.76f;                   // aerosols anisotropy
+static const float sqr_G = mie_G * mie_G;           // squared aerosols anisotropy
 static const float earth_radius = 6360000.0f;       // radius of Earth (m)
 static const float atmosphere_radius = 6420000.0f;  // radius of atmosphere (m)
 static const int steps = 32;                        // segments per primary ray
 static const int steps_light = 16;                  // segments per sun connection ray
 static const int num_wavelengths = 21;              // number of wavelengths
+static const int max_luminous_efficacy = 683;       // maximum luminous efficacy
+static const float step_lambda = (num_wavelengths - 1) *
+                                 1e-9f;  // step between each sampled wavelength
 /* irradiance at top of atmosphere */
 static const float irradiance[] = {
     1.45756829855592995315f, 1.56596305559738380175f, 1.65148449067670455293f,
@@ -90,7 +94,7 @@ static float3 spec_to_xyz(float *spectrum)
     xyz.y += cmf_xyz[i][1] * spectrum[i];
     xyz.z += cmf_xyz[i][2] * spectrum[i];
   }
-  return xyz * (20 * 683 * 1e-9f);
+  return xyz * step_lambda * max_luminous_efficacy;
 }
 
 /* Atmosphere volume models */
@@ -122,8 +126,6 @@ static float phase_rayleigh(float mu)
 
 static float phase_mie(float mu)
 {
-  static const float sqr_G = mie_G * mie_G;
-
   return (3.0f * (1.0f - sqr_G) * (1.0f + sqr(mu))) /
          (8.0f * M_PI_F * (2.0f + sqr_G) * powf((1.0f + sqr_G - 2.0f * mie_G * mu), 1.5));
 }
@@ -167,6 +169,7 @@ static float3 ray_optical_depth(float3 ray_origin, float3 ray_dir)
 
   /* The density of each segment is evaluated at its middle. */
   float3 P = ray_origin + 0.5f * segment;
+
   for (int i = 0; i < steps_light; i++) {
     /* Compute height above sea level. */
     float height = len(P) - earth_radius;
@@ -174,13 +177,13 @@ static float3 ray_optical_depth(float3 ray_origin, float3 ray_dir)
     /* Accumulate optical depth of this segment (density is assumed to be constant along it). */
     float3 density = make_float3(
         density_rayleigh(height), density_mie(height), density_ozone(height));
-    optical_depth += segment_length * density;
+    optical_depth += density;
 
     /* Advance along ray. */
     P += segment;
   }
 
-  return optical_depth;
+  return optical_depth * segment_length;
 }
 
 /* Single Scattering implementation */
@@ -219,6 +222,7 @@ static void single_scattering(float3 ray_dir,
 
   /* The density and in-scattering of each segment is evaluated at its middle. */
   float3 P = ray_origin + 0.5f * segment;
+
   for (int i = 0; i < steps; i++) {
     /* Compute height above sea level. */
     float height = len(P) - earth_radius;
@@ -268,16 +272,16 @@ static void single_scattering(float3 ray_dir,
 
 /* calculate texture array */
 void SKY_nishita_skymodel_precompute_texture(float *pixels,
-                                         int stride,
-                                         int start_y,
-                                         int end_y,
-                                         int width,
-                                         int height,
-                                         float sun_elevation,
-                                         float altitude,
-                                         float air_density,
-                                         float dust_density,
-                                         float ozone_density)
+                                             int stride,
+                                             int start_y,
+                                             int end_y,
+                                             int width,
+                                             int height,
+                                             float sun_elevation,
+                                             float altitude,
+                                             float air_density,
+                                             float dust_density,
+                                             float ozone_density)
 {
   /* calculate texture pixels */
   float spectrum[num_wavelengths];
@@ -301,13 +305,15 @@ void SKY_nishita_skymodel_precompute_texture(float *pixels,
       single_scattering(dir, sun_dir, cam_pos, air_density, dust_density, ozone_density, spectrum);
       float3 xyz = spec_to_xyz(spectrum);
 
-      pixel_row[x * stride + 0] = xyz.x;
-      pixel_row[x * stride + 1] = xyz.y;
-      pixel_row[x * stride + 2] = xyz.z;
-      int mirror_x = width - x - 1;
-      pixel_row[mirror_x * stride + 0] = xyz.x;
-      pixel_row[mirror_x * stride + 1] = xyz.y;
-      pixel_row[mirror_x * stride + 2] = xyz.z;
+      int pos_x = x * stride;
+      pixel_row[pos_x] = xyz.x;
+      pixel_row[pos_x + 1] = xyz.y;
+      pixel_row[pos_x + 2] = xyz.z;
+      /* mirror sky */
+      int mirror_x = (width - x - 1) * stride;
+      pixel_row[mirror_x] = xyz.x;
+      pixel_row[mirror_x + 1] = xyz.y;
+      pixel_row[mirror_x + 2] = xyz.z;
     }
   }
 }
@@ -328,17 +334,17 @@ static void sun_radiation(float3 cam_dir,
     /* Combine spectra and the optical depth into transmittance. */
     float transmittance = rayleigh_coeff[i] * optical_depth.x * air_density +
                           1.11f * mie_coeff * optical_depth.y * dust_density;
-    r_spectrum[i] = (irradiance[i] / solid_angle) * expf(-transmittance);
+    r_spectrum[i] = irradiance[i] * expf(-transmittance) / solid_angle;
   }
 }
 
 void SKY_nishita_skymodel_precompute_sun(float sun_elevation,
-                                     float angular_diameter,
-                                     float altitude,
-                                     float air_density,
-                                     float dust_density,
-                                     float *pixel_bottom,
-                                     float *pixel_top)
+                                         float angular_diameter,
+                                         float altitude,
+                                         float air_density,
+                                         float dust_density,
+                                         float *r_pixel_bottom,
+                                         float *r_pixel_top)
 {
   /* definitions */
   float half_angular = angular_diameter / 2.0f;
@@ -360,10 +366,10 @@ void SKY_nishita_skymodel_precompute_sun(float sun_elevation,
   pix_top = spec_to_xyz(spectrum);
 
   /* store pixels */
-  pixel_bottom[0] = pix_bottom.x;
-  pixel_bottom[1] = pix_bottom.y;
-  pixel_bottom[2] = pix_bottom.z;
-  pixel_top[0] = pix_top.x;
-  pixel_top[1] = pix_top.y;
-  pixel_top[2] = pix_top.z;
+  r_pixel_bottom[0] = pix_bottom.x;
+  r_pixel_bottom[1] = pix_bottom.y;
+  r_pixel_bottom[2] = pix_bottom.z;
+  r_pixel_top[0] = pix_top.x;
+  r_pixel_top[1] = pix_top.y;
+  r_pixel_top[2] = pix_top.z;
 }

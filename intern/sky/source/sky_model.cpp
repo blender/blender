@@ -292,9 +292,9 @@ void SKY_arhosekskymodelstate_free(SKY_ArHosekSkyModelState *state)
 }
 
 double SKY_arhosekskymodel_radiance(SKY_ArHosekSkyModelState *state,
-                                double theta,
-                                double gamma,
-                                double wavelength)
+                                    double theta,
+                                    double gamma,
+                                    double wavelength)
 {
   int low_wl = (int)((wavelength - 320.0) / 40.0);
 
@@ -323,8 +323,8 @@ double SKY_arhosekskymodel_radiance(SKY_ArHosekSkyModelState *state,
 // xyz and rgb versions
 
 SKY_ArHosekSkyModelState *SKY_arhosek_xyz_skymodelstate_alloc_init(const double turbidity,
-                                                           const double albedo,
-                                                           const double elevation)
+                                                                   const double albedo,
+                                                                   const double elevation)
 {
   SKY_ArHosekSkyModelState *state = ALLOC(SKY_ArHosekSkyModelState);
 

@@ -356,8 +356,8 @@ typedef struct SKY_ArHosekSkyModelState {
 ---------------------------------------------------------------------------- */
 
 SKY_ArHosekSkyModelState *SKY_arhosekskymodelstate_alloc_init(const double solar_elevation,
-                                                      const double atmospheric_turbidity,
-                                                      const double ground_albedo);
+                                                              const double atmospheric_turbidity,
+                                                              const double ground_albedo);
 
 /* ----------------------------------------------------------------------------
 
@@ -398,56 +398,55 @@ SKY_ArHosekSkyModelState *SKY_arhosekskymodelstate_alienworld_alloc_init(
 void SKY_arhosekskymodelstate_free(SKY_ArHosekSkyModelState *state);
 
 double SKY_arhosekskymodel_radiance(SKY_ArHosekSkyModelState *state,
-                                double theta,
-                                double gamma,
-                                double wavelength);
+                                    double theta,
+                                    double gamma,
+                                    double wavelength);
 
 // CIE XYZ and RGB versions
 
 SKY_ArHosekSkyModelState *SKY_arhosek_xyz_skymodelstate_alloc_init(const double turbidity,
-                                                           const double albedo,
-                                                           const double elevation);
+                                                                   const double albedo,
+                                                                   const double elevation);
 
 SKY_ArHosekSkyModelState *SKY_arhosek_rgb_skymodelstate_alloc_init(const double turbidity,
-                                                           const double albedo,
-                                                           const double elevation);
+                                                                   const double albedo,
+                                                                   const double elevation);
 
 double SKY_arhosek_tristim_skymodel_radiance(SKY_ArHosekSkyModelState *state,
-                                         double theta,
-                                         double gamma,
-                                         int channel);
+                                             double theta,
+                                             double gamma,
+                                             int channel);
 
 //   Delivers the complete function: sky + sun, including limb darkening.
 //   Please read the above description before using this - there are several
 //   caveats!
 
 double SKY_arhosekskymodel_solar_radiance(SKY_ArHosekSkyModelState *state,
-                                      double theta,
-                                      double gamma,
-                                      double wavelength);
-
+                                          double theta,
+                                          double gamma,
+                                          double wavelength);
 
 /* Nishita improved sky model */
 
 void SKY_nishita_skymodel_precompute_texture(float *pixels,
-                                         int stride,
-                                         int start_y,
-                                         int end_y,
-                                         int width,
-                                         int height,
-                                         float sun_elevation,
+                                             int stride,
+                                             int start_y,
+                                             int end_y,
+                                             int width,
+                                             int height,
+                                             float sun_elevation,
+                                             float altitude,
+                                             float air_density,
+                                             float dust_density,
+                                             float ozone_density);
+
+void SKY_nishita_skymodel_precompute_sun(float sun_elevation,
+                                         float angular_diameter,
                                          float altitude,
                                          float air_density,
                                          float dust_density,
-                                         float ozone_density);
-
-void SKY_nishita_skymodel_precompute_sun(float sun_elevation,
-                                     float angular_diameter,
-                                     float altitude,
-                                     float air_density,
-                                     float dust_density,
-                                     float *pixel_bottom,
-                                     float *pixel_top);
+                                         float *r_pixel_bottom,
+                                         float *r_pixel_top);
 
 #ifdef __cplusplus
 }
