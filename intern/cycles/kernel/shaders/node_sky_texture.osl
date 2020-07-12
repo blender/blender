@@ -127,12 +127,13 @@ float precise_angle(vector a, vector b)
   return 2.0 * atan2(length(a - b), length(a + b));
 }
 
-color sky_radiance_nishita(vector dir, float nishita_data[9], string filename)
+color sky_radiance_nishita(vector dir, float nishita_data[10], string filename)
 {
   /* definitions */
   float sun_elevation = nishita_data[6];
   float sun_rotation = nishita_data[7];
   float angular_diameter = nishita_data[8];
+  float sun_intensity = nishita_data[9];
   int sun_disc = angular_diameter > 0;
   float alpha = 1.0;
   color xyz;
@@ -158,13 +159,13 @@ color sky_radiance_nishita(vector dir, float nishita_data[9], string filename)
       if (sun_elevation - half_angular > 0.0) {
         if ((sun_elevation + half_angular) > 0.0) {
           y = ((dir_elevation - sun_elevation) / angular_diameter) + 0.5;
-          xyz = mix(pixel_bottom, pixel_top, y);
+          xyz = mix(pixel_bottom, pixel_top, y) * sun_intensity;
         }
       }
       else {
         if (sun_elevation + half_angular > 0.0) {
           y = dir_elevation / (sun_elevation + half_angular);
-          xyz = mix(pixel_bottom, pixel_top, y);
+          xyz = mix(pixel_bottom, pixel_top, y) * sun_intensity;
         }
       }
       /* limb darkening, coefficient is 0.6f */
@@ -206,19 +207,20 @@ color sky_radiance_nishita(vector dir, float nishita_data[9], string filename)
   return xyz_to_rgb(xyz[0], xyz[1], xyz[2]) * 120000.0;
 }
 
-shader node_sky_texture(int use_mapping = 0,
-                        matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                        vector Vector = P,
-                        string type = "hosek_wilkie",
-                        float theta = 0.0,
-                        float phi = 0.0,
-                        string filename = "",
-                        color radiance = color(0.0, 0.0, 0.0),
-                        float config_x[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                        float config_y[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                        float config_z[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                        float nishita_data[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                        output color Color = color(0.0, 0.0, 0.0))
+shader node_sky_texture(
+    int use_mapping = 0,
+    matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+    vector Vector = P,
+    string type = "hosek_wilkie",
+    float theta = 0.0,
+    float phi = 0.0,
+    string filename = "",
+    color radiance = color(0.0, 0.0, 0.0),
+    float config_x[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    float config_y[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    float config_z[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    float nishita_data[10] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    output color Color = color(0.0, 0.0, 0.0))
 {
   vector p = Vector;
 

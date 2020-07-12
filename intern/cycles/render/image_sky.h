@@ -21,14 +21,14 @@ CCL_NAMESPACE_BEGIN
 class SkyLoader : public ImageLoader {
  private:
   float sun_elevation;
-  int altitude;
+  float altitude;
   float air_density;
   float dust_density;
   float ozone_density;
 
  public:
   SkyLoader(float sun_elevation,
-            int altitude,
+            float altitude,
             float air_density,
             float dust_density,
             float ozone_density);

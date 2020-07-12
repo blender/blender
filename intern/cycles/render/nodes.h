@@ -170,9 +170,10 @@ class SkyTextureNode : public TextureNode {
   float ground_albedo;
   bool sun_disc;
   float sun_size;
+  float sun_intensity;
   float sun_elevation;
   float sun_rotation;
-  int altitude;
+  float altitude;
   float air_density;
   float dust_density;
   float ozone_density;

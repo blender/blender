@@ -136,6 +136,7 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals *kg,
   float sun_elevation = nishita_data[6];
   float sun_rotation = nishita_data[7];
   float angular_diameter = nishita_data[8];
+  float sun_intensity = nishita_data[9];
   bool sun_disc = (angular_diameter > 0.0f);
   float3 xyz;
   /* convert dir to spherical coordinates */
@@ -160,13 +161,13 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals *kg,
       if (sun_elevation - half_angular > 0.0f) {
         if (sun_elevation + half_angular > 0.0f) {
           y = ((dir_elevation - sun_elevation) / angular_diameter) + 0.5f;
-          xyz = interp(pixel_bottom, pixel_top, y);
+          xyz = interp(pixel_bottom, pixel_top, y) * sun_intensity;
         }
       }
       else {
         if (sun_elevation + half_angular > 0.0f) {
           y = dir_elevation / (sun_elevation + half_angular);
-          xyz = interp(pixel_bottom, pixel_top, y);
+          xyz = interp(pixel_bottom, pixel_top, y) * sun_intensity;
         }
       }
       /* limb darkening, coefficient is 0.6f */
@@ -301,7 +302,7 @@ ccl_device void svm_node_tex_sky(
   /* Nishita */
   else {
     /* Define variables */
-    float nishita_data[9];
+    float nishita_data[10];
 
     float4 data = read_node_float(kg, offset);
     nishita_data[0] = data.x;
@@ -317,7 +318,8 @@ ccl_device void svm_node_tex_sky(
 
     data = read_node_float(kg, offset);
     nishita_data[8] = data.x;
-    uint texture_id = __float_as_uint(data.y);
+    nishita_data[9] = data.y;
+    uint texture_id = __float_as_uint(data.z);
 
     /* Compute Sky */
     f = sky_radiance_nishita(kg, dir, nishita_data, texture_id);

@@ -25,8 +25,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-SkyLoader::SkyLoader(
-    float sun_elevation, int altitude, float air_density, float dust_density, float ozone_density)
+SkyLoader::SkyLoader(float sun_elevation,
+                     float altitude,
+                     float air_density,
+                     float dust_density,
+                     float ozone_density)
     : sun_elevation(sun_elevation),
       altitude(altitude),
       air_density(air_density),
@@ -57,7 +60,6 @@ bool SkyLoader::load_pixels(const ImageMetaData &metadata,
   int width = metadata.width;
   int height = metadata.height;
   float *pixel_data = (float *)pixels;
-  float altitude_f = (float)altitude;
 
   /* precompute sky texture */
   const int rows_per_task = divide_up(1024, width);
@@ -70,7 +72,7 @@ bool SkyLoader::load_pixels(const ImageMetaData &metadata,
                                                          width,
                                                          height,
                                                          sun_elevation,
-                                                         altitude_f,
+                                                         altitude,
                                                          air_density,
                                                          dust_density,
                                                          ozone_density);

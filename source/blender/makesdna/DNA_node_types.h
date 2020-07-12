@@ -845,14 +845,15 @@ typedef struct NodeTexSky {
   float turbidity;
   float ground_albedo;
   float sun_size;
+  float sun_intensity;
   float sun_elevation;
   float sun_rotation;
-  int altitude;
+  float altitude;
   float air_density;
   float dust_density;
   float ozone_density;
   char sun_disc;
-  char _pad[3];
+  char _pad[7];
 } NodeTexSky;
 
 typedef struct NodeTexImage {
