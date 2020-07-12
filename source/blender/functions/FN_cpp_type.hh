@@ -70,10 +70,11 @@
 #include "BLI_index_mask.hh"
 #include "BLI_math_base.h"
 #include "BLI_string_ref.hh"
+#include "BLI_utility_mixins.hh"
 
 namespace blender::fn {
 
-class CPPType {
+class CPPType : NonCopyable, NonMovable {
  public:
   using ConstructDefaultF = void (*)(void *ptr);
   using ConstructDefaultNF = void (*)(void *ptr, uint n);
