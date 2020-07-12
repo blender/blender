@@ -4421,7 +4421,7 @@ static void def_sh_tex_sky(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, NULL, "sky_model");
   RNA_def_property_enum_items(prop, prop_sky_type);
   RNA_def_property_ui_text(prop, "Sky Type", "Which sky model should be used");
-  RNA_def_property_update(prop, 0, "rna_Node_update");
+  RNA_def_property_update(prop, 0, "rna_ShaderNode_socket_update");
 
   prop = RNA_def_property(srna, "sun_direction", PROP_FLOAT, PROP_DIRECTION);
   RNA_def_property_ui_text(prop, "Sun Direction", "Direction from where the sun is shining");
@@ -4445,7 +4445,7 @@ static void def_sh_tex_sky(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Sun Disc", "Include the sun itself in the output");
   RNA_def_property_boolean_sdna(prop, NULL, "sun_disc", 1);
   RNA_def_property_boolean_default(prop, true);
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, 0, "rna_ShaderNode_socket_update");
 
   prop = RNA_def_property(srna, "sun_size", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_ui_text(prop, "Sun Size", "Size of sun disc (angular diameter)");

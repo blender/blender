@@ -214,6 +214,14 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat,
   }
 }
 
+static void node_shader_update_sky(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  bNodeSocket *sockVector = nodeFindSocket(node, SOCK_IN, "Vector");
+
+  NodeTexSky *tex = (NodeTexSky *)node->storage;
+  nodeSetSocketAvailability(sockVector, !(tex->sky_model == 2 && tex->sun_disc == 1));
+}
+
 /* node type definition */
 void register_node_type_sh_tex_sky(void)
 {
@@ -225,6 +233,8 @@ void register_node_type_sh_tex_sky(void)
   node_type_init(&ntype, node_shader_init_tex_sky);
   node_type_storage(&ntype, "NodeTexSky", node_free_standard_storage, node_copy_standard_storage);
   node_type_gpu(&ntype, node_shader_gpu_tex_sky);
+  /* remove Vector input for Nishita */
+  node_type_update(&ntype, node_shader_update_sky);
 
   nodeRegisterType(&ntype);
 }
