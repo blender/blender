@@ -510,6 +510,7 @@ class ParticleFunctionEvaluator {
     BLI_assert(expected_name == real_name);
     BLI_assert(is_computed_);
 #endif
+    UNUSED_VARS_NDEBUG(expected_name);
     const void *buffer = outputs_[output_index];
     const fn::CPPType &type = particle_fn_.output_types_[output_index].single_type();
     if (particle_fn_.output_is_global_[output_index]) {
@@ -731,12 +732,12 @@ static void simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulatio
   fn::MFNetwork network;
   ResourceCollector resources;
   MFNetworkTreeMap network_map = insert_node_tree_into_mf_network(network, tree, resources);
+  WM_clipboard_text_set(tree.to_dot().c_str(), false);
   Map<const fn::MFOutputSocket *, std::string> attribute_inputs = deduplicate_attribute_nodes(
       network, network_map, tree);
   fn::mf_network_optimization::constant_folding(network, resources);
   fn::mf_network_optimization::common_subnetwork_elimination(network);
   fn::mf_network_optimization::dead_node_removal(network);
-  WM_clipboard_text_set(network.to_dot().c_str(), false);
 
   Map<std::string, Vector<const ParticleForce *>> forces_by_simulation = collect_forces(
       network_map, resources, attribute_inputs);
