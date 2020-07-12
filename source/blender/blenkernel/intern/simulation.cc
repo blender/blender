@@ -176,6 +176,10 @@ static void ensure_attributes_exist(ParticleSimulationState *state)
     CustomData_add_layer_named(
         &state->attributes, CD_LOCATION, CD_CALLOC, nullptr, state->tot_particles, "Velocity");
   }
+  if (CustomData_get_layer_named(&state->attributes, CD_PROP_INT32, "ID") == nullptr) {
+    CustomData_add_layer_named(
+        &state->attributes, CD_PROP_INT32, CD_CALLOC, nullptr, state->tot_particles, "ID");
+  }
 }
 
 static void copy_states_to_cow(Simulation *simulation_orig, Simulation *simulation_cow)
@@ -211,11 +215,8 @@ static void copy_states_to_cow(Simulation *simulation_orig, Simulation *simulati
   }
 }
 
-using AttributeNodeMap = Map<fn::MFDummyNode *, std::pair<std::string, fn::MFDataType>>;
-
-static AttributeNodeMap deduplicate_attribute_nodes(fn::MFNetwork &network,
-                                                    MFNetworkTreeMap &network_map,
-                                                    const DerivedNodeTree &tree)
+static Map<const fn::MFOutputSocket *, std::string> deduplicate_attribute_nodes(
+    fn::MFNetwork &network, MFNetworkTreeMap &network_map, const DerivedNodeTree &tree)
 {
   Span<const DNode *> attribute_dnodes = tree.nodes_by_type("SimulationNodeParticleAttribute");
   uint amount = attribute_dnodes.size();
@@ -251,7 +252,7 @@ static AttributeNodeMap deduplicate_attribute_nodes(fn::MFNetwork &network,
         .append(&name_sockets[i]->node());
   }
 
-  AttributeNodeMap final_attribute_nodes;
+  Map<const fn::MFOutputSocket *, std::string> attribute_inputs;
   for (auto item : attribute_nodes_by_name_and_type.items()) {
     StringRef attribute_name = item.key.first;
     fn::MFDataType data_type = item.key.second;
@@ -264,10 +265,10 @@ static AttributeNodeMap deduplicate_attribute_nodes(fn::MFNetwork &network,
     }
     network.remove(nodes);
 
-    final_attribute_nodes.add_new(&new_attribute_socket.node().as_dummy(), item.key);
+    attribute_inputs.add_new(&new_attribute_socket, attribute_name);
   }
 
-  return final_attribute_nodes;
+  return attribute_inputs;
 }
 
 class CustomDataAttributesRef {
@@ -282,7 +283,16 @@ class CustomDataAttributesRef {
     fn::AttributesInfoBuilder builder;
     for (const CustomDataLayer &layer : Span(custom_data.layers, custom_data.totlayer)) {
       buffers_.append(layer.data);
-      builder.add<float3>(layer.name, {0, 0, 0});
+      switch (layer.type) {
+        case CD_PROP_INT32: {
+          builder.add<int32_t>(layer.name, 0);
+          break;
+        }
+        case CD_LOCATION: {
+          builder.add<float3>(layer.name, {0, 0, 0});
+          break;
+        }
+      }
     }
     info_ = std::make_unique<fn::AttributesInfo>(builder);
     size_ = size;
@@ -386,6 +396,321 @@ static void update_simulation_state_list(Simulation *simulation, const DerivedNo
   add_missing_particle_states(simulation, state_names);
 }
 
+class ParticleFunctionInput {
+ public:
+  virtual ~ParticleFunctionInput() = default;
+  virtual void add_input(fn::AttributesRef attributes,
+                         fn::MFParamsBuilder &params,
+                         ResourceCollector &resources) const = 0;
+};
+
+class ParticleFunction {
+ private:
+  const fn::MultiFunction *global_fn_;
+  const fn::MultiFunction *per_particle_fn_;
+  Array<const ParticleFunctionInput *> global_inputs_;
+  Array<const ParticleFunctionInput *> per_particle_inputs_;
+  Array<bool> output_is_global_;
+  Vector<uint> global_output_indices_;
+  Vector<uint> per_particle_output_indices_;
+  Vector<fn::MFDataType> output_types_;
+  Vector<StringRefNull> output_names_;
+
+  friend class ParticleFunctionEvaluator;
+
+ public:
+  ParticleFunction(const fn::MultiFunction *global_fn,
+                   const fn::MultiFunction *per_particle_fn,
+                   Span<const ParticleFunctionInput *> global_inputs,
+                   Span<const ParticleFunctionInput *> per_particle_inputs,
+                   Span<bool> output_is_global)
+      : global_fn_(global_fn),
+        per_particle_fn_(per_particle_fn),
+        global_inputs_(global_inputs),
+        per_particle_inputs_(per_particle_inputs),
+        output_is_global_(output_is_global)
+  {
+    for (uint i : output_is_global_.index_range()) {
+      if (output_is_global_[i]) {
+        uint param_index = global_inputs_.size() + global_output_indices_.size();
+        fn::MFParamType param_type = global_fn_->param_type(param_index);
+        BLI_assert(param_type.is_output());
+        output_types_.append(param_type.data_type());
+        output_names_.append(global_fn_->param_name(param_index));
+        global_output_indices_.append(i);
+      }
+      else {
+        uint param_index = per_particle_inputs_.size() + per_particle_output_indices_.size();
+        fn::MFParamType param_type = per_particle_fn_->param_type(param_index);
+        BLI_assert(param_type.is_output());
+        output_types_.append(param_type.data_type());
+        output_names_.append(per_particle_fn_->param_name(param_index));
+        per_particle_output_indices_.append(i);
+      }
+    }
+  }
+};
+
+class ParticleFunctionEvaluator {
+ private:
+  ResourceCollector resources_;
+  const ParticleFunction &particle_fn_;
+  IndexMask mask_;
+  fn::MFContextBuilder global_context_;
+  fn::MFContextBuilder per_particle_context_;
+  fn::AttributesRef particle_attributes_;
+  Vector<void *> outputs_;
+  bool is_computed_ = false;
+
+ public:
+  ParticleFunctionEvaluator(const ParticleFunction &particle_fn,
+                            IndexMask mask,
+                            fn::AttributesRef particle_attributes)
+      : particle_fn_(particle_fn),
+        mask_(mask),
+        particle_attributes_(particle_attributes),
+        outputs_(particle_fn_.output_types_.size(), nullptr)
+  {
+  }
+
+  ~ParticleFunctionEvaluator()
+  {
+    for (uint output_index : outputs_.index_range()) {
+      void *buffer = outputs_[output_index];
+      fn::MFDataType data_type = particle_fn_.output_types_[output_index];
+      BLI_assert(data_type.is_single()); /* For now. */
+      const fn::CPPType &type = data_type.single_type();
+
+      if (particle_fn_.output_is_global_[output_index]) {
+        type.destruct(buffer);
+      }
+      else {
+        type.destruct_indices(outputs_[0], mask_);
+      }
+    }
+  }
+
+  void compute()
+  {
+    BLI_assert(!is_computed_);
+    this->compute_globals();
+    this->compute_per_particle();
+    is_computed_ = true;
+  }
+
+  template<typename T> fn::VSpan<T> get(uint output_index, StringRef expected_name) const
+  {
+    return this->get(output_index, expected_name).typed<T>();
+  }
+
+  fn::GVSpan get(uint output_index, StringRef expected_name) const
+  {
+#ifdef DEBUG
+    StringRef real_name = particle_fn_.output_names_[output_index];
+    BLI_assert(expected_name == real_name);
+    BLI_assert(is_computed_);
+#endif
+    const void *buffer = outputs_[output_index];
+    const fn::CPPType &type = particle_fn_.output_types_[output_index].single_type();
+    if (particle_fn_.output_is_global_[output_index]) {
+      return fn::GVSpan::FromSingleWithMaxSize(type, buffer);
+    }
+    else {
+      return fn::GVSpan(fn::GSpan(type, buffer, mask_.min_array_size()));
+    }
+  }
+
+ private:
+  void compute_globals()
+  {
+    if (particle_fn_.global_fn_ == nullptr) {
+      return;
+    }
+
+    fn::MFParamsBuilder params(*particle_fn_.global_fn_, mask_.min_array_size());
+
+    /* Add input parameters. */
+    for (const ParticleFunctionInput *input : particle_fn_.global_inputs_) {
+      input->add_input(particle_attributes_, params, resources_);
+    }
+
+    /* Add output parameters. */
+    for (uint output_index : particle_fn_.global_output_indices_) {
+      fn::MFDataType data_type = particle_fn_.output_types_[output_index];
+      BLI_assert(data_type.is_single()); /* For now. */
+
+      const fn::CPPType &type = data_type.single_type();
+      void *buffer = resources_.linear_allocator().allocate(type.size(), type.alignment());
+      params.add_uninitialized_single_output(fn::GMutableSpan(type, buffer, 1));
+      outputs_[output_index] = buffer;
+    }
+
+    particle_fn_.global_fn_->call({0}, params, global_context_);
+  }
+
+  void compute_per_particle()
+  {
+    if (particle_fn_.per_particle_fn_ == nullptr) {
+      return;
+    }
+
+    fn::MFParamsBuilder params(*particle_fn_.per_particle_fn_, mask_.min_array_size());
+
+    /* Add input parameters. */
+    for (const ParticleFunctionInput *input : particle_fn_.per_particle_inputs_) {
+      input->add_input(particle_attributes_, params, resources_);
+    }
+
+    /* Add output parameters. */
+    for (uint output_index : particle_fn_.per_particle_output_indices_) {
+      fn::MFDataType data_type = particle_fn_.output_types_[output_index];
+      BLI_assert(data_type.is_single()); /* For now. */
+
+      const fn::CPPType &type = data_type.single_type();
+      void *buffer = resources_.linear_allocator().allocate(type.size() * mask_.min_array_size(),
+                                                            type.alignment());
+      params.add_uninitialized_single_output(
+          fn::GMutableSpan(type, buffer, mask_.min_array_size()));
+      outputs_[output_index] = buffer;
+    }
+
+    particle_fn_.per_particle_fn_->call(mask_, params, global_context_);
+  }
+};
+
+class ParticleAttributeInput : public ParticleFunctionInput {
+ private:
+  std::string attribute_name_;
+  const fn::CPPType &attribute_type_;
+
+ public:
+  ParticleAttributeInput(std::string attribute_name, const fn::CPPType &attribute_type)
+      : attribute_name_(std::move(attribute_name)), attribute_type_(attribute_type)
+  {
+  }
+
+  void add_input(fn::AttributesRef attributes,
+                 fn::MFParamsBuilder &params,
+                 ResourceCollector &UNUSED(resources)) const override
+  {
+    std::optional<fn::GSpan> span = attributes.try_get(attribute_name_, attribute_type_);
+    if (span.has_value()) {
+      params.add_readonly_single_input(*span);
+    }
+    else {
+      params.add_readonly_single_input(fn::GVSpan::FromDefault(attribute_type_));
+    }
+  }
+};
+
+static const ParticleFunction *create_particle_function_for_inputs(
+    Span<const fn::MFInputSocket *> sockets_to_compute,
+    ResourceCollector &resources,
+    const Map<const fn::MFOutputSocket *, std::string> &attribute_inputs)
+{
+  BLI_assert(sockets_to_compute.size() >= 1);
+  const fn::MFNetwork &network = sockets_to_compute[0]->node().network();
+
+  VectorSet<const fn::MFOutputSocket *> dummy_deps;
+  VectorSet<const fn::MFInputSocket *> unlinked_input_deps;
+  network.find_dependencies(sockets_to_compute, dummy_deps, unlinked_input_deps);
+  BLI_assert(unlinked_input_deps.size() == 0);
+
+  Vector<const ParticleFunctionInput *> per_particle_inputs;
+  for (const fn::MFOutputSocket *socket : dummy_deps) {
+    StringRef attribute_name = attribute_inputs.lookup(socket);
+    per_particle_inputs.append(&resources.construct<ParticleAttributeInput>(
+        AT, attribute_name, socket->data_type().single_type()));
+  }
+
+  const fn::MultiFunction &per_particle_fn = resources.construct<fn::MFNetworkEvaluator>(
+      AT, dummy_deps.as_span(), sockets_to_compute);
+
+  Array<bool> output_is_global(sockets_to_compute.size(), false);
+
+  const ParticleFunction &particle_fn = resources.construct<ParticleFunction>(
+      AT,
+      nullptr,
+      &per_particle_fn,
+      Span<const ParticleFunctionInput *>(),
+      per_particle_inputs.as_span(),
+      output_is_global.as_span());
+
+  return &particle_fn;
+}
+
+class ParticleForce {
+ public:
+  virtual ~ParticleForce() = default;
+  virtual void add_force(fn::AttributesRef attributes,
+                         MutableSpan<float3> r_combined_force) const = 0;
+};
+
+class ParticleFunctionForce : public ParticleForce {
+ private:
+  const ParticleFunction &particle_fn_;
+
+ public:
+  ParticleFunctionForce(const ParticleFunction &particle_fn) : particle_fn_(particle_fn)
+  {
+  }
+
+  void add_force(fn::AttributesRef attributes, MutableSpan<float3> r_combined_force) const override
+  {
+    IndexMask mask = IndexRange(attributes.size());
+    ParticleFunctionEvaluator evaluator{particle_fn_, mask, attributes};
+    evaluator.compute();
+    fn::VSpan<float3> forces = evaluator.get<float3>(0, "Force");
+    for (uint i : mask) {
+      r_combined_force[i] += forces[i];
+    }
+  }
+};
+
+static Vector<const ParticleForce *> create_forces_for_particle_simulation(
+    const DNode &simulation_node,
+    MFNetworkTreeMap &network_map,
+    ResourceCollector &resources,
+    const Map<const fn::MFOutputSocket *, std::string> &attribute_inputs)
+{
+  Vector<const ParticleForce *> forces;
+  for (const DOutputSocket *origin_socket : simulation_node.input(2, "Forces").linked_sockets()) {
+    const DNode &origin_node = origin_socket->node();
+    if (origin_node.idname() != "SimulationNodeForce") {
+      continue;
+    }
+
+    const fn::MFInputSocket &force_socket = network_map.lookup_dummy(
+        origin_node.input(0, "Force"));
+
+    const ParticleFunction *particle_fn = create_particle_function_for_inputs(
+        {&force_socket}, resources, attribute_inputs);
+
+    if (particle_fn == nullptr) {
+      continue;
+    }
+
+    const ParticleForce &force = resources.construct<ParticleFunctionForce>(AT, *particle_fn);
+    forces.append(&force);
+  }
+  return forces;
+}
+
+static Map<std::string, Vector<const ParticleForce *>> collect_forces(
+    MFNetworkTreeMap &network_map,
+    ResourceCollector &resources,
+    const Map<const fn::MFOutputSocket *, std::string> &attribute_inputs)
+{
+  Map<std::string, Vector<const ParticleForce *>> forces_by_simulation;
+  for (const DNode *dnode : network_map.tree().nodes_by_type("SimulationNodeParticleSimulation")) {
+    std::string name = dnode_to_path(*dnode);
+    Vector<const ParticleForce *> forces = create_forces_for_particle_simulation(
+        *dnode, network_map, resources, attribute_inputs);
+    forces_by_simulation.add_new(std::move(name), std::move(forces));
+  }
+  return forces_by_simulation;
+}
+
 static void simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulation *simulation_cow)
 {
   int current_frame = scene->r.cfra;
@@ -406,12 +731,15 @@ static void simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulatio
   fn::MFNetwork network;
   ResourceCollector resources;
   MFNetworkTreeMap network_map = insert_node_tree_into_mf_network(network, tree, resources);
-  AttributeNodeMap attribute_node_map = deduplicate_attribute_nodes(network, network_map, tree);
+  Map<const fn::MFOutputSocket *, std::string> attribute_inputs = deduplicate_attribute_nodes(
+      network, network_map, tree);
   fn::mf_network_optimization::constant_folding(network, resources);
   fn::mf_network_optimization::common_subnetwork_elimination(network);
   fn::mf_network_optimization::dead_node_removal(network);
-  UNUSED_VARS(attribute_node_map);
-  // WM_clipboard_text_set(network.to_dot().c_str(), false);
+  WM_clipboard_text_set(network.to_dot().c_str(), false);
+
+  Map<std::string, Vector<const ParticleForce *>> forces_by_simulation = collect_forces(
+      network_map, resources, attribute_inputs);
 
   if (current_frame == 1) {
     reinitialize_empty_simulation_states(simulation_orig, tree);
@@ -420,7 +748,7 @@ static void simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulatio
 
     simulation_orig->current_frame = 1;
     LISTBASE_FOREACH (ParticleSimulationState *, state, &simulation_orig->states) {
-      state->tot_particles = 100;
+      state->tot_particles = 1000;
       CustomData_realloc(&state->attributes, state->tot_particles);
       ensure_attributes_exist(state);
 
@@ -430,10 +758,12 @@ static void simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulatio
       fn::MutableAttributesRef attributes = custom_data_attributes;
       MutableSpan<float3> positions = attributes.get<float3>("Position");
       MutableSpan<float3> velocities = attributes.get<float3>("Velocity");
+      MutableSpan<int32_t> ids = attributes.get<int32_t>("ID");
 
       for (uint i : positions.index_range()) {
-        positions[i] = {i / 10.0f, 0, 0};
+        positions[i] = {i / 100.0f, 0, 0};
         velocities[i] = {0, BLI_rng_get_float(rng), BLI_rng_get_float(rng) * 2 + 1};
+        ids[i] = i;
       }
     }
 
@@ -456,8 +786,14 @@ static void simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulatio
       MutableSpan<float3> positions = attributes.get<float3>("Position");
       MutableSpan<float3> velocities = attributes.get<float3>("Velocity");
 
+      Array<float3> force_vectors{(uint)state->tot_particles, {0, 0, 0}};
+      Span<const ParticleForce *> forces = forces_by_simulation.lookup_as(state->head.name);
+      for (const ParticleForce *force : forces) {
+        force->add_force(attributes, force_vectors);
+      }
+
       for (uint i : positions.index_range()) {
-        velocities[i].z += -1.0f * time_step;
+        velocities[i] += force_vectors[i] * time_step;
         positions[i] += velocities[i] * time_step;
       }
     }
