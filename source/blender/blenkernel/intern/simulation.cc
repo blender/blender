@@ -732,7 +732,7 @@ static void simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulatio
   fn::MFNetwork network;
   ResourceCollector resources;
   MFNetworkTreeMap network_map = insert_node_tree_into_mf_network(network, tree, resources);
-  WM_clipboard_text_set(tree.to_dot().c_str(), false);
+  // WM_clipboard_text_set(tree.to_dot().c_str(), false);
   Map<const fn::MFOutputSocket *, std::string> attribute_inputs = deduplicate_attribute_nodes(
       network, network_map, tree);
   fn::mf_network_optimization::constant_folding(network, resources);
