@@ -344,6 +344,11 @@ class GVSpan : public VSpanBase<void> {
     return GVSpan::FromSingle(type, value, UINT32_MAX);
   }
 
+  static GVSpan FromDefault(const CPPType &type)
+  {
+    return GVSpan::FromSingleWithMaxSize(type, type.default_value());
+  }
+
   static GVSpan FromFullPointerArray(const CPPType &type, const void *const *values, uint size)
   {
     GVSpan ref;

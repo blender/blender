@@ -144,6 +144,11 @@ class MFParamType {
     return ELEM(interface_type_, Output, Mutable);
   }
 
+  bool is_output() const
+  {
+    return interface_type_ == Output;
+  }
+
   friend bool operator==(const MFParamType &a, const MFParamType &b);
   friend bool operator!=(const MFParamType &a, const MFParamType &b);
 };

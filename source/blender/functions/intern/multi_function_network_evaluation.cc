@@ -106,30 +106,30 @@ MFNetworkEvaluator::MFNetworkEvaluator(Vector<const MFOutputSocket *> inputs,
   BLI_assert(outputs_.size() > 0);
   MFSignatureBuilder signature = this->get_builder("Function Tree");
 
-  for (auto socket : inputs_) {
+  for (const MFOutputSocket *socket : inputs_) {
     BLI_assert(socket->node().is_dummy());
 
     MFDataType type = socket->data_type();
     switch (type.category()) {
       case MFDataType::Single:
-        signature.single_input("Input", type.single_type());
+        signature.single_input(socket->name(), type.single_type());
         break;
       case MFDataType::Vector:
-        signature.vector_input("Input", type.vector_base_type());
+        signature.vector_input(socket->name(), type.vector_base_type());
         break;
     }
   }
 
-  for (auto socket : outputs_) {
+  for (const MFInputSocket *socket : outputs_) {
     BLI_assert(socket->node().is_dummy());
 
     MFDataType type = socket->data_type();
     switch (type.category()) {
       case MFDataType::Single:
-        signature.single_output("Output", type.single_type());
+        signature.single_output(socket->name(), type.single_type());
         break;
       case MFDataType::Vector:
-        signature.vector_output("Output", type.vector_base_type());
+        signature.vector_output(socket->name(), type.vector_base_type());
         break;
     }
   }

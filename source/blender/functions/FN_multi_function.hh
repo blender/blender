@@ -73,6 +73,11 @@ class MultiFunction {
     return false;
   }
 
+  uint param_amount() const
+  {
+    return signature_.param_types.size();
+  }
+
   IndexRange param_indices() const
   {
     return signature_.param_types.index_range();
