@@ -152,7 +152,7 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals *kg,
 
     /* if ray inside sun disc render it, otherwise render sky */
     if (sun_disc && sun_dir_angle < half_angular) {
-      /* get 3 pixels data */
+      /* get 2 pixels data */
       float3 pixel_bottom = make_float3(nishita_data[0], nishita_data[1], nishita_data[2]);
       float3 pixel_top = make_float3(nishita_data[3], nishita_data[4], nishita_data[5]);
       float y;
@@ -179,7 +179,8 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals *kg,
     else {
       /* sky interpolation */
       float x = (direction.y + M_PI_F + sun_rotation) / M_2PI_F;
-      float y = dir_elevation / M_PI_2_F;
+      /* more pixels toward horizon compensation */
+      float y = safe_sqrtf(dir_elevation / M_PI_2_F);
       if (x > 1.0f) {
         x -= 1.0f;
       }

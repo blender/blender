@@ -287,11 +287,13 @@ void SKY_nishita_skymodel_precompute_texture(float *pixels,
 
   float latitude_step = M_PI_2_F / height;
   float longitude_step = M_2PI_F / width;
+  float half_lat_step = latitude_step / 2.0f;
 
   for (int y = start_y; y < end_y; y++) {
-    float latitude = latitude_step * y;
+    /* sample more pixels toward the horizon */
+    float latitude = (M_PI_2_F + half_lat_step) * sqr((float)y / height);
 
-    float *pixel_row = pixels + (y * width) * stride;
+    float *pixel_row = pixels + (y * width * stride);
     for (int x = 0; x < half_width; x++) {
       float longitude = longitude_step * x - M_PI_F;
 
