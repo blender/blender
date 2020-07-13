@@ -954,7 +954,13 @@ DenoiseParams BlenderSync::get_denoise_params(BL::Scene &b_scene,
       denoising.strength = get_float(clayer, "denoising_strength");
       denoising.feature_strength = get_float(clayer, "denoising_feature_strength");
       denoising.relative_pca = get_boolean(clayer, "denoising_relative_pca");
-      denoising.optix_input_passes = get_enum(clayer, "denoising_optix_input_passes");
+
+      denoising.input_passes = (DenoiserInput)get_enum(
+          clayer,
+          (denoising.type == DENOISER_OPTIX) ? "denoising_optix_input_passes" :
+                                               "denoising_openimagedenoise_input_passes",
+          DENOISER_INPUT_NUM,
+          DENOISER_INPUT_RGB_ALBEDO_NORMAL);
 
       denoising.store_passes = get_boolean(clayer, "denoising_store_passes");
     }

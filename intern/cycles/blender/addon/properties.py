@@ -212,7 +212,7 @@ def enum_denoiser(self, context):
     items += enum_openimagedenoise_denoiser(self, context)
     return items
 
-enum_denoising_optix_input_passes = (
+enum_denoising_input_passes = (
     ('RGB', "Color", "Use only color as input", 1),
     ('RGB_ALBEDO', "Color + Albedo", "Use color and albedo data as input", 2),
     ('RGB_ALBEDO_NORMAL', "Color + Albedo + Normal", "Use color, albedo and normal data as input", 3),
@@ -1451,9 +1451,16 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
 
     denoising_optix_input_passes: EnumProperty(
         name="Input Passes",
-        description="Passes handed over to the OptiX denoiser (this can have different effects on the denoised image)",
-        items=enum_denoising_optix_input_passes,
+        description="Passes used by the denoiser to distinguish noise from shader and geometry detail",
+        items=enum_denoising_input_passes,
         default='RGB_ALBEDO',
+    )
+
+    denoising_openimagedenoise_input_passes: EnumProperty(
+        name="Input Passes",
+        description="Passes used by the denoiser to distinguish noise from shader and geometry detail",
+        items=enum_denoising_input_passes,
+        default='RGB_ALBEDO_NORMAL',
     )
 
     use_pass_crypto_object: BoolProperty(

@@ -877,7 +877,7 @@ class OptiXDevice : public CUDADevice {
 
 #  if OPTIX_DENOISER_NO_PIXEL_STRIDE
       device_only_memory<float> input_rgb(this, "denoiser input rgb");
-      input_rgb.alloc_to_device(rect_size.x * rect_size.y * 3 * task.denoising.optix_input_passes);
+      input_rgb.alloc_to_device(rect_size.x * rect_size.y * 3 * task.denoising.input_passes);
 
       void *input_args[] = {&input_rgb.device_pointer,
                             &input_ptr,
@@ -886,7 +886,7 @@ class OptiXDevice : public CUDADevice {
                             &input_stride,
                             &task.pass_stride,
                             const_cast<int *>(pass_offset),
-                            &task.denoising.optix_input_passes,
+                            &task.denoising.input_passes,
                             &rtile.sample};
       launch_filter_kernel(
           "kernel_cuda_filter_convert_to_rgb", rect_size.x, rect_size.y, input_args);
@@ -897,7 +897,7 @@ class OptiXDevice : public CUDADevice {
 #  endif
 
       const bool recreate_denoiser = (denoiser == NULL) ||
-                                     (task.denoising.optix_input_passes != denoiser_input_passes);
+                                     (task.denoising.input_passes != denoiser_input_passes);
       if (recreate_denoiser) {
         // Destroy existing handle before creating new one
         if (denoiser != NULL) {
@@ -906,9 +906,9 @@ class OptiXDevice : public CUDADevice {
 
         // Create OptiX denoiser handle on demand when it is first used
         OptixDenoiserOptions denoiser_options;
-        assert(task.denoising.optix_input_passes >= 1 && task.denoising.optix_input_passes <= 3);
+        assert(task.denoising.input_passes >= 1 && task.denoising.input_passes <= 3);
         denoiser_options.inputKind = static_cast<OptixDenoiserInputKind>(
-            OPTIX_DENOISER_INPUT_RGB + (task.denoising.optix_input_passes - 1));
+            OPTIX_DENOISER_INPUT_RGB + (task.denoising.input_passes - 1));
 #  if OPTIX_ABI_VERSION < 28
         denoiser_options.pixelFormat = OPTIX_PIXEL_FORMAT_FLOAT3;
 #  endif
@@ -917,7 +917,7 @@ class OptiXDevice : public CUDADevice {
             optixDenoiserSetModel(denoiser, OPTIX_DENOISER_MODEL_KIND_HDR, NULL, 0));
 
         // OptiX denoiser handle was created with the requested number of input passes
-        denoiser_input_passes = task.denoising.optix_input_passes;
+        denoiser_input_passes = task.denoising.input_passes;
       }
 
       OptixDenoiserSizes sizes = {};
@@ -992,7 +992,7 @@ class OptiXDevice : public CUDADevice {
                                                  denoiser_state.device_pointer,
                                                  scratch_offset,
                                                  input_layers,
-                                                 task.denoising.optix_input_passes,
+                                                 task.denoising.input_passes,
                                                  overlap_offset.x,
                                                  overlap_offset.y,
                                                  output_layers,

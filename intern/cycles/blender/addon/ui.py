@@ -1008,6 +1008,7 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
             col.prop(cycles_view_layer, "denoising_optix_input_passes")
             return
         elif denoiser == 'OPENIMAGEDENOISE':
+            col.prop(cycles_view_layer, "denoising_openimagedenoise_input_passes")
             return
 
         col.prop(cycles_view_layer, "denoising_radius", text="Radius")
