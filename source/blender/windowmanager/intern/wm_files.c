@@ -1027,13 +1027,6 @@ void wm_homefile_read(bContext *C,
                                    },
                                    NULL);
     }
-    if (BLI_listbase_is_empty(&U.themes)) {
-      if (G.debug & G_DEBUG) {
-        printf("\nNote: No (valid) '%s' found, fall back to built-in default.\n\n",
-               filepath_startup);
-      }
-      success = false;
-    }
     if (success) {
       if (update_defaults) {
         if (use_data) {
