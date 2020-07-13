@@ -1090,6 +1090,64 @@ void BKE_sequence_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, cons
   BKE_sequence_calc(scene, seq);
 }
 
+void BKE_sequence_movie_reload_if_needed(struct Main *bmain,
+                                         struct Scene *scene,
+                                         struct Sequence *seq,
+                                         bool *r_was_reloaded,
+                                         bool *r_can_produce_frames)
+{
+  BLI_assert(seq->type == SEQ_TYPE_MOVIE ||
+             !"This function is only implemented for movie strips.");
+
+  bool must_reload = false;
+
+  /* The Sequence struct allows for multiple anim structs to be associated with one strip. This
+   * function will return true only if there is at least one 'anim' AND all anims can produce
+   * frames. */
+
+  if (BLI_listbase_is_empty(&seq->anims)) {
+    /* No anim present, so reloading is always necessary. */
+    must_reload = true;
+  }
+  else {
+    LISTBASE_FOREACH (StripAnim *, sanim, &seq->anims) {
+      if (!IMB_anim_can_produce_frames(sanim->anim)) {
+        /* Anim cannot produce frames, try reloading. */
+        must_reload = true;
+        break;
+      }
+    };
+  }
+
+  if (!must_reload) {
+    /* There are one or more anims, and all can produce frames. */
+    *r_was_reloaded = false;
+    *r_can_produce_frames = true;
+    return;
+  }
+
+  BKE_sequence_reload_new_file(bmain, scene, seq, true);
+  *r_was_reloaded = true;
+
+  if (BLI_listbase_is_empty(&seq->anims)) {
+    /* No anims present after reloading => no frames can be produced. */
+    *r_can_produce_frames = false;
+    return;
+  }
+
+  /* Check if there are still anims that cannot produce frames. */
+  LISTBASE_FOREACH (StripAnim *, sanim, &seq->anims) {
+    if (!IMB_anim_can_produce_frames(sanim->anim)) {
+      /* There still is an anim that cannot produce frames. */
+      *r_can_produce_frames = false;
+      return;
+    }
+  };
+
+  /* There are one or more anims, and all can produce frames. */
+  *r_can_produce_frames = true;
+}
+
 void BKE_sequencer_sort(Scene *scene)
 {
   /* all strips together per kind, and in order of y location ("machine") */

@@ -205,33 +205,28 @@ static Sequence *rna_Sequences_new_image(ID *id,
   return seq;
 }
 
-static Sequence *rna_Sequences_new_movie(ID *id,
-                                         Editing *ed,
-                                         ReportList *reports,
-                                         const char *name,
-                                         const char *file,
-                                         int channel,
-                                         int frame_start)
+static Sequence *rna_Sequences_new_movie(
+    ID *id, Editing *ed, const char *name, const char *file, int channel, int frame_start)
 {
   Scene *scene = (Scene *)id;
   Sequence *seq;
   StripAnim *sanim;
 
-  struct anim *an = openanim(file, IB_rect, 0, NULL);
-
-  if (an == NULL) {
-    BKE_report(reports, RPT_ERROR, "Sequences.new_movie: unable to open movie file");
-    return NULL;
-  }
-
   seq = alloc_generic_sequence(ed, name, frame_start, channel, SEQ_TYPE_MOVIE, file);
 
-  sanim = MEM_mallocN(sizeof(StripAnim), "Strip Anim");
-  BLI_addtail(&seq->anims, sanim);
-  sanim->anim = an;
+  struct anim *an = openanim(file, IB_rect, 0, NULL);
+  if (an == NULL) {
+    /* Without anim, the strip gets duration 0, which makes it impossible to select in the UI. */
+    seq->len = 1;
+  }
+  else {
+    sanim = MEM_mallocN(sizeof(StripAnim), "Strip Anim");
+    BLI_addtail(&seq->anims, sanim);
+    sanim->anim = an;
 
-  seq->anim_preseek = IMB_anim_get_preseek(an);
-  seq->len = IMB_anim_get_duration(an, IMB_TC_RECORD_RUN);
+    seq->anim_preseek = IMB_anim_get_preseek(an);
+    seq->len = IMB_anim_get_duration(an, IMB_TC_RECORD_RUN);
+  }
 
   BKE_sequence_calc_disp(scene, seq);
   BKE_sequence_invalidate_cache_composite(scene, seq);
@@ -667,7 +662,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_movie", "rna_Sequences_new_movie");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
   RNA_def_function_ui_description(func, "Add a new movie sequence");
   parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);

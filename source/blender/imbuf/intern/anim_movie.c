@@ -304,6 +304,21 @@ struct anim *IMB_open_anim(const char *name,
   return (anim);
 }
 
+bool IMB_anim_can_produce_frames(const struct anim *anim)
+{
+#ifdef WITH_AVI
+  if (anim->avi != NULL) {
+    return true;
+  }
+#endif
+#ifdef WITH_FFMPEG
+  if (anim->pCodecCtx != NULL) {
+    return true;
+  }
+#endif
+  return false;
+}
+
 void IMB_suffix_anim(struct anim *anim, const char *suffix)
 {
   BLI_strncpy(anim->suffix, suffix, sizeof(anim->suffix));

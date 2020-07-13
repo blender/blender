@@ -285,6 +285,11 @@ void BKE_sequence_reload_new_file(struct Main *bmain,
                                   struct Scene *scene,
                                   struct Sequence *seq,
                                   const bool lock_range);
+void BKE_sequence_movie_reload_if_needed(struct Main *bmain,
+                                         struct Scene *scene,
+                                         struct Sequence *seq,
+                                         bool *r_was_reloaded,
+                                         bool *r_can_produce_frames);
 int BKE_sequencer_evaluate_frame(struct Scene *scene, int cfra);
 int BKE_sequencer_get_shown_sequences(struct ListBase *seqbasep,
                                       int cfra,

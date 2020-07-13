@@ -367,6 +367,7 @@ struct anim *IMB_open_anim(const char *name,
 void IMB_suffix_anim(struct anim *anim, const char *suffix);
 void IMB_close_anim(struct anim *anim);
 void IMB_close_anim_proxies(struct anim *anim);
+bool IMB_anim_can_produce_frames(const struct anim *anim);
 
 /**
  *

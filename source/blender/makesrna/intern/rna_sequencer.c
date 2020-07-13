@@ -749,6 +749,25 @@ static IDProperty *rna_Sequence_idprops(PointerRNA *ptr, bool create)
   return seq->prop;
 }
 
+static bool rna_MovieSequence_reload_if_needed(ID *scene_id, Sequence *seq, Main *bmain)
+{
+  Scene *scene = (Scene *)scene_id;
+  bool has_reloaded;
+  bool can_produce_frames;
+
+  BKE_sequence_movie_reload_if_needed(bmain, scene, seq, &has_reloaded, &can_produce_frames);
+
+  if (has_reloaded && can_produce_frames) {
+    BKE_sequence_calc(scene, seq);
+    BKE_sequence_invalidate_cache_raw(scene, seq);
+
+    DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+    WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
+  }
+
+  return can_produce_frames;
+}
+
 static PointerRNA rna_MovieSequence_metadata_get(Sequence *seq)
 {
   if (seq == NULL || seq->anims.first == NULL) {
@@ -2384,6 +2403,13 @@ static void rna_def_movie(BlenderRNA *brna)
                                 "rna_Sequence_filepath_length",
                                 "rna_Sequence_filepath_set");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_filepath_update");
+
+  func = RNA_def_function(srna, "reload_if_needed", "rna_MovieSequence_reload_if_needed");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+  /* return type */
+  parm = RNA_def_boolean(
+      func, "can_produce_frames", 0, "True if the strip can produce frames, False otherwise", "");
+  RNA_def_function_return(func, parm);
 
   /* metadata */
   func = RNA_def_function(srna, "metadata", "rna_MovieSequence_metadata_get");
