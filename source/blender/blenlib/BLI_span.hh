@@ -440,21 +440,6 @@ template<typename T> class MutableSpan {
   {
   }
 
-  /**
-   * Reference an initializer_list. Note that the data in the initializer_list is only valid until
-   * the expression containing it is fully computed.
-   *
-   * Do:
-   *  call_function_with_array({1, 2, 3, 4});
-   *
-   * Don't:
-   *  MutableSpan<int> span = {1, 2, 3, 4};
-   *  call_function_with_array(span);
-   */
-  MutableSpan(std::initializer_list<T> &list) : MutableSpan(list.begin(), list.size())
-  {
-  }
-
   MutableSpan(std::vector<T> &vector) : MutableSpan(vector.data(), vector.size())
   {
   }
