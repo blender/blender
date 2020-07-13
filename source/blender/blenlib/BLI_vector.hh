@@ -167,6 +167,10 @@ class Vector {
   {
   }
 
+  Vector(const std::initializer_list<T> &values) : Vector(Span<T>(values))
+  {
+  }
+
   template<typename U,
            size_t N,
            typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>

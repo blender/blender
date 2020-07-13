@@ -105,6 +105,10 @@ class Array {
   {
   }
 
+  Array(const std::initializer_list<T> &values) : Array(Span<T>(values))
+  {
+  }
+
   /**
    * Create a new array with the given size. All values will be default constructed. For trivial
    * types like int, default construction does nothing.

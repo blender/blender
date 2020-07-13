@@ -369,7 +369,7 @@ TEST(multi_function, CustomMF_Convert)
   CustomMF_Convert<float, int> fn;
 
   Array<float> inputs = {5.4f, 7.1f, 9.0f};
-  Array<int> outputs{inputs.size(), 0};
+  Array<int> outputs(inputs.size(), 0);
 
   MFParamsBuilder params(fn, inputs.size());
   params.add_readonly_single_input(inputs.as_span());

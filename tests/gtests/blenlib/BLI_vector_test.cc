@@ -651,4 +651,13 @@ TEST(vector, OveralignedValues)
   }
 }
 
+TEST(vector, ConstructVoidPointerVector)
+{
+  int a;
+  float b;
+  double c;
+  Vector<void *> vec = {&a, &b, &c};
+  EXPECT_EQ(vec.size(), 3);
+}
+
 }  // namespace blender

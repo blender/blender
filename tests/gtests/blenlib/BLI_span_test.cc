@@ -285,4 +285,14 @@ TEST(span, CastLargerSize)
   EXPECT_EQ(new_a_span.size(), 2u);
 }
 
+TEST(span, VoidPointerSpan)
+{
+  int a;
+  float b;
+  double c;
+
+  auto func1 = [](Span<void *> span) { EXPECT_EQ(span.size(), 3); };
+  func1({&a, &b, &c});
+}
+
 }  // namespace blender
