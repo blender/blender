@@ -560,7 +560,10 @@ static PropertyRNA *arraytypemap[IDP_NUMTYPES] = {
 
 /* This function initializes a PropertyRNAOrID with all required info, from a given PropertyRNA
  * and PointerRNA data. It deals properly with the three cases (static RNA, runtime RNA, and
- * IDProperty). */
+ * IDProperty).
+ * WARNING: given `ptr` PointerRNA is assumed to be a valid data one here, calling code is
+ * responsible to ensure that.
+ */
 void rna_property_rna_or_id_get(PropertyRNA *prop,
                                 PointerRNA *ptr,
                                 PropertyRNAOrID *r_prop_rna_or_id)
@@ -617,8 +620,8 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
 
     r_prop_rna_or_id->idprop = idprop_evaluated;
     r_prop_rna_or_id->is_idprop = true;
-    /* Full IDProperties are always set. */
-    r_prop_rna_or_id->is_set = true;
+    /* Full IDProperties are always set, if it exists. */
+    r_prop_rna_or_id->is_set = (idprop_evaluated != NULL);
 
     r_prop_rna_or_id->identifier = idprop->name;
     if (idprop->type == IDP_ARRAY) {
