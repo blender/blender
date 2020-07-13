@@ -1184,6 +1184,41 @@ void trans_mesh_customdata_correction_init(TransInfo *t)
   }
 }
 
+static void trans_mesh_customdata_correction_restore(struct TransDataContainer *tc)
+{
+  struct TransCustomDataLayer *tcld = tc->custom.type.data;
+  if (!tcld) {
+    return;
+  }
+
+  BMesh *bm = tcld->bm;
+  struct TransCustomDataLayerVert *tcld_vert_iter = &tcld->data[0];
+  for (int i = tcld->data_len; i--; tcld_vert_iter++) {
+    BMLoop *l;
+    BMIter liter;
+    BMVert *v = tcld_vert_iter->v;
+    BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
+      BMFace *f_copy = BLI_ghash_lookup(tcld->origfaces, l->f);
+      if (f_copy) {
+        BMLoop *l_iter_a, *l_first_a;
+        BMLoop *l_iter_b, *l_first_b;
+        l_iter_a = l_first_a = BM_FACE_FIRST_LOOP(f_copy);
+        l_iter_b = l_first_b = BM_FACE_FIRST_LOOP(l->f);
+        do {
+          BM_elem_attrs_copy(tcld->bm_origfaces, bm, l_iter_a, l_iter_b);
+        } while (((l_iter_a = l_iter_a->next) != l_first_a) &&
+                 ((l_iter_b = l_iter_b->next) != l_first_b));
+
+        BM_elem_attrs_copy_ex(
+            tcld->bm_origfaces, bm, f_copy, l->f, BM_ELEM_SELECT, CD_MASK_NORMAL);
+
+        /* Remove the key to not copy the face again. */
+        BLI_ghash_popkey(tcld->origfaces, l->f, NULL);
+      }
+    }
+  }
+}
+
 /**
  * If we're sliding the vert, return its original location, if not, the current location is good.
  */
@@ -1195,7 +1230,7 @@ static const float *trans_vert_orig_co_get(struct TransCustomDataLayer *tcld, BM
 
 static void trans_mesh_customdata_correction_apply_vert(struct TransCustomDataLayer *tcld,
                                                         struct TransCustomDataLayerVert *tcld_vert,
-                                                        bool is_final)
+                                                        bool do_loop_mdisps)
 {
   BMesh *bm = tcld->bm;
   BMVert *v = tcld_vert->v;
@@ -1295,8 +1330,8 @@ static void trans_mesh_customdata_correction_apply_vert(struct TransCustomDataLa
    * Interpolate from every other loop (not ideal)
    * However values will only be taken from loops which overlap other mdisps.
    * */
-  const bool do_loop_mdisps = is_moved && is_final && (tcld->cd_loop_mdisp_offset != -1);
-  if (do_loop_mdisps) {
+  const bool update_loop_mdisps = is_moved && do_loop_mdisps && (tcld->cd_loop_mdisp_offset != -1);
+  if (update_loop_mdisps) {
     float(*faces_center)[3] = BLI_array_alloca(faces_center, l_num);
     BMLoop *l;
 
@@ -1332,12 +1367,12 @@ static void trans_mesh_customdata_correction_apply(struct TransDataContainer *tc
     return;
   }
 
-  const bool has_mdisps = (tcld->cd_loop_mdisp_offset != -1);
+  const bool do_loop_mdisps = is_final && (tcld->cd_loop_mdisp_offset != -1);
   struct TransCustomDataLayerVert *tcld_vert_iter = &tcld->data[0];
 
   for (int i = tcld->data_len; i--; tcld_vert_iter++) {
-    if (tcld_vert_iter->cd_loop_groups || has_mdisps) {
-      trans_mesh_customdata_correction_apply_vert(tcld, tcld_vert_iter, is_final);
+    if (tcld_vert_iter->cd_loop_groups || do_loop_mdisps) {
+      trans_mesh_customdata_correction_apply_vert(tcld, tcld_vert_iter, do_loop_mdisps);
     }
   }
 }
@@ -1388,8 +1423,9 @@ static void transform_apply_to_mirror(TransInfo *t)
 
 void recalcData_mesh(TransInfo *t)
 {
+  bool is_cancelling = t->state == TRANS_CANCEL;
   /* mirror modifier clipping? */
-  if (t->state != TRANS_CANCEL) {
+  if (!is_cancelling) {
     /* apply clipping after so we never project past the clip plane [#25423] */
     applyProject(t);
     clipMirrorModifier(t);
@@ -1400,7 +1436,12 @@ void recalcData_mesh(TransInfo *t)
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    trans_mesh_customdata_correction_apply(tc, false);
+    if (is_cancelling) {
+      trans_mesh_customdata_correction_restore(tc);
+    }
+    else {
+      trans_mesh_customdata_correction_apply(tc, false);
+    }
 
     DEG_id_tag_update(tc->obedit->data, 0); /* sets recalc flags */
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
@@ -1416,15 +1457,15 @@ void recalcData_mesh(TransInfo *t)
 
 void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 {
-  const bool canceled = (t->state == TRANS_CANCEL);
-  const bool use_automerge = !canceled && (t->flag & (T_AUTOMERGE | T_AUTOSPLIT)) != 0;
+  const bool is_cancelling = (t->state == TRANS_CANCEL);
+  const bool use_automerge = !is_cancelling && (t->flag & (T_AUTOMERGE | T_AUTOSPLIT)) != 0;
 
-  if (TRANS_DATA_CONTAINER_FIRST_OK(t)->custom.type.data != NULL) {
+  if (!is_cancelling && TRANS_DATA_CONTAINER_FIRST_OK(t)->custom.type.data != NULL) {
     /* Handle multires re-projection, done
      * on transform completion since it's
      * really slow -joeedh. */
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      trans_mesh_customdata_correction_apply(tc, !canceled);
+      trans_mesh_customdata_correction_apply(tc, true);
     }
   }
 
