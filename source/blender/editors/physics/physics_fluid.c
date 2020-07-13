@@ -546,6 +546,7 @@ static int fluid_bake_exec(struct bContext *C, struct wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   if (!fluid_validatepaths(job, op->reports)) {
+    fluid_bake_free(job);
     return OPERATOR_CANCELLED;
   }
   WM_report_banners_cancel(job->bmain);
@@ -574,6 +575,7 @@ static int fluid_bake_invoke(struct bContext *C,
   }
 
   if (!fluid_validatepaths(job, op->reports)) {
+    fluid_bake_free(job);
     return OPERATOR_CANCELLED;
   }
 
@@ -651,6 +653,7 @@ static int fluid_free_exec(struct bContext *C, struct wmOperator *op)
   job->name = op->type->name;
 
   if (!fluid_validatepaths(job, op->reports)) {
+    fluid_bake_free(job);
     return OPERATOR_CANCELLED;
   }
 
