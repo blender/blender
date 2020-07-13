@@ -1075,23 +1075,6 @@ static void trans_mesh_customdata_correction_init_container(TransInfo *t, TransD
     return;
   }
 
-  if (!ELEM(t->mode,
-            TFM_TRANSLATION,
-            TFM_ROTATION,
-            TFM_RESIZE,
-            TFM_TOSPHERE,
-            TFM_SHEAR,
-            TFM_BEND,
-            TFM_SHRINKFATTEN,
-            TFM_TRACKBALL,
-            TFM_PUSHPULL,
-            TFM_ALIGN,
-            TFM_EDGE_SLIDE,
-            TFM_VERT_SLIDE)) {
-    /* Currently only modes that change the position of vertices are supported. */
-    return;
-  }
-
   BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
   BMesh *bm = em->bm;
 
@@ -1173,6 +1156,23 @@ static void trans_mesh_customdata_correction_init_container(TransInfo *t, TransD
 
 void trans_mesh_customdata_correction_init(TransInfo *t)
 {
+  if (!ELEM(t->mode,
+            TFM_TRANSLATION,
+            TFM_ROTATION,
+            TFM_RESIZE,
+            TFM_TOSPHERE,
+            TFM_SHEAR,
+            TFM_BEND,
+            TFM_SHRINKFATTEN,
+            TFM_TRACKBALL,
+            TFM_PUSHPULL,
+            TFM_ALIGN,
+            TFM_EDGE_SLIDE,
+            TFM_VERT_SLIDE)) {
+    /* Currently only modes that change the position of vertices are supported. */
+    return;
+  }
+
   const char uvcalc_correct_flag = ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE) ?
                                        UVCALC_TRANSFORM_CORRECT_SLIDE :
                                        UVCALC_TRANSFORM_CORRECT;
