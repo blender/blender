@@ -291,7 +291,7 @@ TEST(span, VoidPointerSpan)
   float b;
   double c;
 
-  auto func1 = [](Span<void *> span) { EXPECT_EQ(span.size(), 3); };
+  auto func1 = [](Span<void *> span) { EXPECT_EQ(span.size(), 3u); };
   func1({&a, &b, &c});
 }
 
