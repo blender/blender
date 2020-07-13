@@ -1683,7 +1683,7 @@ void OBJECT_OT_constraints_clear(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = object_constraints_clear_exec;
-  ot->poll = ED_operator_object_active_editable;
+  ot->poll = ED_operator_object_active_local_editable;
 }
 
 /** \} */

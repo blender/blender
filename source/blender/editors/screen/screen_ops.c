@@ -360,6 +360,13 @@ bool ED_operator_object_active_editable(bContext *C)
   return operator_object_active_editable_ex(ob);
 }
 
+/** Object must be editable and fully local (i.e. not an override). */
+bool ED_operator_object_active_local_editable(bContext *C)
+{
+  Object *ob = ED_object_active_context(C);
+  return operator_object_active_editable_ex(ob) && !ID_IS_OVERRIDE_LIBRARY(ob);
+}
+
 bool ED_operator_object_active_editable_mesh(bContext *C)
 {
   Object *ob = ED_object_active_context(C);

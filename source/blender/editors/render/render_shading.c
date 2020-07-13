@@ -162,7 +162,7 @@ void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = material_slot_add_exec;
-  ot->poll = ED_operator_object_active_editable;
+  ot->poll = ED_operator_object_active_local_editable;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
@@ -207,7 +207,7 @@ void OBJECT_OT_material_slot_remove(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = material_slot_remove_exec;
-  ot->poll = ED_operator_object_active_editable;
+  ot->poll = ED_operator_object_active_local_editable;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
@@ -310,7 +310,7 @@ void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = material_slot_assign_exec;
-  ot->poll = ED_operator_object_active_editable;
+  ot->poll = ED_operator_object_active_local_editable;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
@@ -564,6 +564,7 @@ void OBJECT_OT_material_slot_move(wmOperatorType *ot)
   ot->description = "Move the active material up/down in the list";
 
   /* api callbacks */
+  ot->poll = ED_operator_object_active_local_editable;
   ot->exec = material_slot_move_exec;
 
   /* flags */
@@ -638,7 +639,7 @@ void OBJECT_OT_material_slot_remove_unused(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = material_slot_remove_unused_exec;
-  ot->poll = ED_operator_object_active_editable;
+  ot->poll = ED_operator_object_active_local_editable;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -707,6 +708,7 @@ void MATERIAL_OT_new(wmOperatorType *ot)
   ot->description = "Add a new material";
 
   /* api callbacks */
+  ot->poll = ED_operator_object_active_local_editable;
   ot->exec = new_material_exec;
 
   /* flags */
