@@ -23,6 +23,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLI_compiler_attrs.h"
+
 #include "rna_internal_types.h"
 
 #include "UI_resources.h"
@@ -478,9 +480,11 @@ extern StructRNA RNA_PropertyGroupItem;
 extern StructRNA RNA_PropertyGroup;
 #endif
 
-struct IDProperty *rna_idproperty_check(struct PropertyRNA **prop, struct PointerRNA *ptr);
+struct IDProperty *rna_idproperty_check(struct PropertyRNA **prop,
+                                        struct PointerRNA *ptr) ATTR_WARN_UNUSED_RESULT;
 struct PropertyRNA *rna_ensure_property_realdata(struct PropertyRNA **prop,
-                                                 struct PointerRNA *ptr);
+                                                 struct PointerRNA *ptr) ATTR_WARN_UNUSED_RESULT;
+struct PropertyRNA *rna_ensure_property(struct PropertyRNA *prop) ATTR_WARN_UNUSED_RESULT;
 
 /* Override default callbacks. */
 /* Default override callbacks for all types. */
