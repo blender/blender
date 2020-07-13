@@ -581,8 +581,10 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
             undo_push_label = "Make Local";
           }
         }
-        RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, NULL);
-        RNA_property_update(C, &template_ui->ptr, template_ui->prop);
+        if (undo_push_label != NULL) {
+          RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, NULL);
+          RNA_property_update(C, &template_ui->ptr, template_ui->prop);
+        }
       }
       break;
     case UI_ID_OVERRIDE:
