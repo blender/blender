@@ -1441,13 +1441,13 @@ int *BLI_bvhtree_intersect_plane(BVHTree *tree, float plane[4], uint *r_intersec
   int *intersect = NULL;
   size_t total = 0;
 
-  BVHNode *root = tree->nodes[tree->totleaf];
-  if (root != NULL) {
+  if (tree->totleaf) {
     BVHIntersectPlaneData data;
     data.tree = tree;
     copy_v4_v4(data.plane, plane);
     data.intersect = BLI_stack_new(sizeof(int), __func__);
 
+    BVHNode *root = tree->nodes[tree->totleaf];
     bvhtree_intersect_plane_dfs_recursive(&data, root);
 
     total = BLI_stack_count(data.intersect);
