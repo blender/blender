@@ -569,6 +569,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
               /* Assign new pointer, takes care of updates/notifiers */
               RNA_id_pointer_create(override_id, &idptr);
             }
+            undo_push_label = "Make Library Override";
           }
         }
         else {
@@ -577,11 +578,11 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 
             /* reassign to get get proper updates/notifiers */
             idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
+            undo_push_label = "Make Local";
           }
         }
         RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, NULL);
         RNA_property_update(C, &template_ui->ptr, template_ui->prop);
-        undo_push_label = "Make Local";
       }
       break;
     case UI_ID_OVERRIDE:
