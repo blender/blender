@@ -4118,42 +4118,46 @@ static void BKE_fluid_modifier_process(
 struct Mesh *BKE_fluid_modifier_do(
     FluidModifierData *fmd, Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me)
 {
-  /* Lock so preview render does not read smoke data while it gets modified. */
-  if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
-    BLI_rw_mutex_lock(fmd->domain->fluid_mutex, THREAD_LOCK_WRITE);
-  }
-
-  BKE_fluid_modifier_process(fmd, depsgraph, scene, ob, me);
-
-  if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
-    BLI_rw_mutex_unlock(fmd->domain->fluid_mutex);
-  }
-
   /* Optimization: Do not update viewport during bakes (except in replay mode)
    * Reason: UI is locked and updated liquid / smoke geometry is not visible anyways. */
   bool needs_viewport_update = false;
-  if (fmd->domain) {
-    FluidDomainSettings *fds = fmd->domain;
 
-    /* Always update viewport in cache replay mode. */
-    if (fds->cache_type == FLUID_DOMAIN_CACHE_REPLAY ||
-        fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) {
-      needs_viewport_update = true;
+  /* Optimization: Only process modifier if object is not being altered. */
+  if (!G.moving) {
+    /* Lock so preview render does not read smoke data while it gets modified. */
+    if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
+      BLI_rw_mutex_lock(fmd->domain->fluid_mutex, THREAD_LOCK_WRITE);
     }
-    /* In other cache modes, only update the viewport when no bake is going on. */
-    else {
-      bool with_mesh;
-      with_mesh = fds->flags & FLUID_DOMAIN_USE_MESH;
-      bool baking_data, baking_noise, baking_mesh, baking_particles, baking_guide;
-      baking_data = fds->cache_flag & FLUID_DOMAIN_BAKING_DATA;
-      baking_noise = fds->cache_flag & FLUID_DOMAIN_BAKING_NOISE;
-      baking_mesh = fds->cache_flag & FLUID_DOMAIN_BAKING_MESH;
-      baking_particles = fds->cache_flag & FLUID_DOMAIN_BAKING_PARTICLES;
-      baking_guide = fds->cache_flag & FLUID_DOMAIN_BAKING_GUIDE;
 
-      if (with_mesh && !baking_data && !baking_noise && !baking_mesh && !baking_particles &&
-          !baking_guide) {
+    BKE_fluid_modifier_process(fmd, depsgraph, scene, ob, me);
+
+    if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
+      BLI_rw_mutex_unlock(fmd->domain->fluid_mutex);
+    }
+
+    if (fmd->domain) {
+      FluidDomainSettings *fds = fmd->domain;
+
+      /* Always update viewport in cache replay mode. */
+      if (fds->cache_type == FLUID_DOMAIN_CACHE_REPLAY ||
+          fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) {
         needs_viewport_update = true;
+      }
+      /* In other cache modes, only update the viewport when no bake is going on. */
+      else {
+        bool with_mesh;
+        with_mesh = fds->flags & FLUID_DOMAIN_USE_MESH;
+        bool baking_data, baking_noise, baking_mesh, baking_particles, baking_guide;
+        baking_data = fds->cache_flag & FLUID_DOMAIN_BAKING_DATA;
+        baking_noise = fds->cache_flag & FLUID_DOMAIN_BAKING_NOISE;
+        baking_mesh = fds->cache_flag & FLUID_DOMAIN_BAKING_MESH;
+        baking_particles = fds->cache_flag & FLUID_DOMAIN_BAKING_PARTICLES;
+        baking_guide = fds->cache_flag & FLUID_DOMAIN_BAKING_GUIDE;
+
+        if (with_mesh && !baking_data && !baking_noise && !baking_mesh && !baking_particles &&
+            !baking_guide) {
+          needs_viewport_update = true;
+        }
       }
     }
   }
