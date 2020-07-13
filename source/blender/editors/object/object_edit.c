@@ -1463,13 +1463,6 @@ static const EnumPropertyItem *object_mode_set_itemsf(bContext *C,
   return item;
 }
 
-static bool object_mode_set_poll(bContext *C)
-{
-  /* Needed as #ED_operator_object_active_editable doesn't call use 'active_object'. */
-  Object *ob = CTX_data_active_object(C);
-  return ED_operator_object_active_editable_ex(C, ob);
-}
-
 static int object_mode_set_exec(bContext *C, wmOperator *op)
 {
   const bool use_submode = STREQ(op->idname, "OBJECT_OT_mode_set_with_submode");
@@ -1574,7 +1567,7 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = object_mode_set_exec;
-  ot->poll = object_mode_set_poll;
+  ot->poll = ED_operator_object_active_editable;
 
   /* flags */
   ot->flag = 0; /* no register/undo here, leave it to operators being called */
