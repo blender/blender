@@ -216,7 +216,11 @@ static void workbench_cache_hair_populate(WORKBENCH_PrivateData *wpd,
                              workbench_image_hair_setup(wpd, ob, matnr, ima, NULL, interp) :
                              workbench_material_hair_setup(wpd, ob, matnr, color_type);
 
-  DRW_shgroup_hair_create_sub(ob, psys, md, grp);
+  grp = DRW_shgroup_hair_create_sub(ob, psys, md, grp);
+
+  if (use_texpaint_mode || (color_type == V3D_SHADING_TEXTURE_COLOR)) {
+    workbench_image_hair_setup_post(wpd, ob, matnr, use_texpaint_mode, ima, NULL, interp, grp);
+  }
 }
 
 /**

@@ -464,6 +464,14 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
                                           ImageUser *iuser,
                                           int interp,
                                           bool hair);
+void workbench_image_hair_setup_post(WORKBENCH_PrivateData *wpd,
+                                     Object *ob,
+                                     int mat_nr,
+                                     const bool use_texpaint_mode,
+                                     Image *ima,
+                                     ImageUser *iuser,
+                                     int interp,
+                                     DRWShadingGroup *grp);
 
 #define workbench_material_setup(wpd, ob, mat_nr, color_type, r_transp) \
   workbench_material_setup_ex(wpd, ob, mat_nr, color_type, false, r_transp)

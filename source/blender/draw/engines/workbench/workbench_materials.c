@@ -283,14 +283,62 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
   DRWShadingGroup *grp = (tex_tile_data) ? prepass->image_tiled_shgrp : prepass->image_shgrp;
 
   *grp_tex = grp = DRW_shgroup_create_sub(grp);
-  if (tex_tile_data) {
-    DRW_shgroup_uniform_texture_persistent(grp, "imageTileArray", tex);
-    DRW_shgroup_uniform_texture_persistent(grp, "imageTileData", tex_tile_data);
-  }
-  else {
-    DRW_shgroup_uniform_texture_persistent(grp, "imageTexture", tex);
+  if (!hair) {
+    if (tex_tile_data) {
+      DRW_shgroup_uniform_texture(grp, "imageTileArray", tex);
+      DRW_shgroup_uniform_texture(grp, "imageTileData", tex_tile_data);
+    }
+    else {
+      DRW_shgroup_uniform_texture(grp, "imageTexture", tex);
+    }
   }
   DRW_shgroup_uniform_bool_copy(grp, "imagePremult", (ima && ima->alpha_mode == IMA_ALPHA_PREMUL));
   DRW_shgroup_uniform_bool_copy(grp, "imageNearest", (interp == SHD_INTERP_CLOSEST));
   return grp;
+}
+
+/* Workaround for T77759 only present in LTS branch. */
+void workbench_image_hair_setup_post(WORKBENCH_PrivateData *wpd,
+                                     Object *ob,
+                                     int mat_nr,
+                                     const bool use_texpaint_mode,
+                                     Image *ima,
+                                     ImageUser *iuser,
+                                     int interp,
+                                     DRWShadingGroup *grp)
+{
+  GPUTexture *tex = NULL, *tex_tile_data = NULL;
+
+  if (!use_texpaint_mode) {
+    workbench_material_get_image(ob, mat_nr, &ima, &iuser, &interp);
+    if (ima == NULL) {
+      return;
+    }
+  }
+
+  if (ima == NULL) {
+    workbench_material_get_image(ob, mat_nr, &ima, &iuser, &interp);
+  }
+
+  if (ima) {
+    if (ima->source == IMA_SRC_TILED) {
+      tex = GPU_texture_from_blender(ima, iuser, NULL, GL_TEXTURE_2D_ARRAY);
+      tex_tile_data = GPU_texture_from_blender(ima, iuser, NULL, GL_TEXTURE_1D_ARRAY);
+    }
+    else {
+      tex = GPU_texture_from_blender(ima, iuser, NULL, GL_TEXTURE_2D);
+    }
+  }
+
+  if (tex == NULL) {
+    tex = wpd->dummy_image_tx;
+  }
+
+  if (tex_tile_data) {
+    DRW_shgroup_uniform_texture(grp, "imageTileArray", tex);
+    DRW_shgroup_uniform_texture(grp, "imageTileData", tex_tile_data);
+  }
+  else {
+    DRW_shgroup_uniform_texture(grp, "imageTexture", tex);
+  }
 }
