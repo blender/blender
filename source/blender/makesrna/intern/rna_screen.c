@@ -90,6 +90,12 @@ static bool rna_Screen_is_animation_playing_get(PointerRNA *UNUSED(ptr))
   return wm ? (ED_screen_animation_playing(wm) != NULL) : 0;
 }
 
+static bool rna_Screen_is_scrubbing_get(PointerRNA *ptr)
+{
+  bScreen *screen = (bScreen *)ptr->data;
+  return screen->scrubbing;
+}
+
 static int rna_region_alignment_get(PointerRNA *ptr)
 {
   ARegion *region = ptr->data;
@@ -547,6 +553,12 @@ static void rna_def_screen(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_boolean_funcs(prop, "rna_Screen_is_animation_playing_get", NULL);
   RNA_def_property_ui_text(prop, "Animation Playing", "Animation playback is active");
+
+  prop = RNA_def_property(srna, "is_scrubbing", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(prop, "rna_Screen_is_scrubbing_get", NULL);
+  RNA_def_property_ui_text(
+      prop, "User is Scrubbing", "True when the user is scrubbing through time");
 
   prop = RNA_def_property(srna, "is_temporary", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
