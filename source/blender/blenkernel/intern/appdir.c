@@ -1019,7 +1019,11 @@ void BKE_tempdir_session_purge(void)
 }
 
 /* Gets a good default directory for fonts */
-bool BKE_appdir_font_folder_default(const char *dir)
+
+bool BKE_appdir_font_folder_default(
+    /* This parameter can only be const on non-windows plaforms.
+     * NOLINTNEXTLINE: readability-non-const-parameter. */
+    char *dir)
 {
   bool success = false;
 #ifdef WIN32
