@@ -1067,7 +1067,7 @@ static void create_trans_vert_customdata_layer(BMVert *v,
   BLI_ghash_insert(tcld->origverts, v, r_tcld_vert);
 }
 
-static void trans_mesh_customdata_correction_init_container(TransInfo *t, TransDataContainer *tc)
+static void trans_mesh_customdata_correction_init_container(TransDataContainer *tc)
 {
   if (tc->custom.type.data) {
     /* Custom data correction has initiated before. */
@@ -1179,7 +1179,7 @@ void trans_mesh_customdata_correction_init(TransInfo *t)
 
   if (t->settings->uvcalc_flag & uvcalc_correct_flag) {
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      trans_mesh_customdata_correction_init_container(t, tc);
+      trans_mesh_customdata_correction_init_container(tc);
     }
   }
 }
@@ -1198,7 +1198,8 @@ static void trans_mesh_customdata_correction_restore(struct TransDataContainer *
     BMIter liter;
     BMVert *v = tcld_vert_iter->v;
     BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-      BMFace *f_copy = BLI_ghash_lookup(tcld->origfaces, l->f);
+      /* Pop the key to not restore the face again. */
+      BMFace *f_copy = BLI_ghash_popkey(tcld->origfaces, l->f, NULL);
       if (f_copy) {
         BMLoop *l_iter_a, *l_first_a;
         BMLoop *l_iter_b, *l_first_b;
@@ -1211,9 +1212,6 @@ static void trans_mesh_customdata_correction_restore(struct TransDataContainer *
 
         BM_elem_attrs_copy_ex(
             tcld->bm_origfaces, bm, f_copy, l->f, BM_ELEM_SELECT, CD_MASK_NORMAL);
-
-        /* Remove the key to not copy the face again. */
-        BLI_ghash_popkey(tcld->origfaces, l->f, NULL);
       }
     }
   }
