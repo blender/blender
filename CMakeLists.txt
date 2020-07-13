@@ -416,7 +416,7 @@ option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_ass
 mark_as_advanced(WITH_ASSERT_ABORT)
 
 if(UNIX AND NOT APPLE)
-  option(WITH_CLANG_TIDY "Use Clang Tidy to analyze the source code (only enable for development on Limux using Clang)" OFF)
+  option(WITH_CLANG_TIDY "Use Clang Tidy to analyze the source code (only enable for development on Linux using Clang)" OFF)
   mark_as_advanced(WITH_CLANG_TIDY)
 endif()
 
