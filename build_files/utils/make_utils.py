@@ -36,7 +36,7 @@ def check_output(cmd, exit_on_error=True):
     return output.strip()
 
 def git_branch(git_command):
-    # Test if we are building a specific release version.
+    # Get current branch name.
     try:
         branch = subprocess.check_output([git_command, "rev-parse", "--abbrev-ref", "HEAD"])
     except subprocess.CalledProcessError as e:
@@ -45,10 +45,23 @@ def git_branch(git_command):
 
     return branch.strip().decode('utf8')
 
-def git_branch_release_version(branch):
+def git_tag(git_command):
+    # Get current tag name.
+    try:
+        tag = subprocess.check_output([git_command, "describe", "--exact-match"])
+    except subprocess.CalledProcessError as e:
+        return None
+
+    return tag.strip().decode('utf8')
+
+def git_branch_release_version(branch, tag):
     release_version = re.search("^blender-v(.*)-release$", branch)
     if release_version:
         release_version = release_version.group(1)
+    elif tag:
+        release_version = re.search("^v([0-9]*\.[0-9]*).*", tag)
+        if release_version:
+            release_version = release_version.group(1)
     return release_version
 
 def svn_libraries_base_url(release_version):

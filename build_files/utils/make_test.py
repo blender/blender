@@ -40,7 +40,8 @@ if make_utils.command_missing(git_command):
 
 # Test if we are building a specific release version.
 branch = make_utils.git_branch(git_command)
-release_version = make_utils.git_branch_release_version(branch)
+tag = make_utils.git_tag(git_command)
+release_version = make_utils.git_branch_release_version(branch, tag)
 lib_tests_dirpath = os.path.join('..', 'lib', "tests")
 
 if not os.path.exists(lib_tests_dirpath):
