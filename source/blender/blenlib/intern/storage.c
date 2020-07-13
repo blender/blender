@@ -55,7 +55,7 @@
 #  include "utfconv.h"
 #  include <direct.h>
 #  include <io.h>
-#  include <shobjidl_core.h>
+#  include <ShObjIdl.h>
 #  include <stdbool.h>
 #else
 #  include <pwd.h>
