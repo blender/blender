@@ -2523,7 +2523,7 @@ static bool make_override_library_poll(bContext *C)
   Object *obact = CTX_data_active_object(C);
 
   /* Object must be directly linked to be overridable. */
-  return (BKE_lib_override_library_is_enabled() && ED_operator_objectmode(C) && obact != NULL &&
+  return (ED_operator_objectmode(C) && obact != NULL &&
           ((ID_IS_LINKED(obact) && obact->id.tag & LIB_TAG_EXTERN) ||
            (!ID_IS_LINKED(obact) && obact->instance_collection != NULL &&
             ID_IS_LINKED(obact->instance_collection))));

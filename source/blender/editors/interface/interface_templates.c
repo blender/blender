@@ -559,7 +559,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
     case UI_ID_LOCAL:
       if (id) {
         Main *bmain = CTX_data_main(C);
-        if (BKE_lib_override_library_is_enabled() && CTX_wm_window(C)->eventstate->shift) {
+        if (CTX_wm_window(C)->eventstate->shift) {
           if (ID_IS_OVERRIDABLE_LIBRARY(id)) {
             /* Only remap that specific ID usage to overriding local data-block. */
             ID *override_id = BKE_lib_override_library_create_from_id(bmain, id, false);
@@ -931,10 +931,8 @@ static void template_ID(const bContext *C,
                            0,
                            0,
                            0,
-                           BKE_lib_override_library_is_enabled() ?
-                               TIP_("Direct linked library data-block, click to make local, "
-                                    "Shift + Click to create a library override") :
-                               TIP_("Direct linked library data-block, click to make local"));
+                           TIP_("Direct linked library data-block, click to make local, "
+                                "Shift + Click to create a library override"));
         if (disabled) {
           UI_but_flag_enable(but, UI_BUT_DISABLED);
         }

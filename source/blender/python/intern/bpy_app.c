@@ -50,7 +50,6 @@
 #include "BKE_appdir.h"
 #include "BKE_blender_version.h"
 #include "BKE_global.h"
-#include "BKE_lib_override.h"
 
 #include "DNA_ID.h"
 
@@ -392,29 +391,6 @@ static PyObject *bpy_app_autoexec_fail_message_get(PyObject *UNUSED(self), void 
   return PyC_UnicodeFromByte(G.autoexec_fail);
 }
 
-PyDoc_STRVAR(bpy_app_use_override_library_doc,
-             "Boolean, whether library override is exposed in UI or not.");
-static PyObject *bpy_app_use_override_library_get(PyObject *UNUSED(self), void *UNUSED(closure))
-{
-  return PyBool_FromLong((long)BKE_lib_override_library_is_enabled());
-}
-
-static int bpy_app_use_override_library_set(PyObject *UNUSED(self),
-                                            PyObject *value,
-                                            void *UNUSED(closure))
-{
-  const int param = PyC_Long_AsBool(value);
-
-  if (param == -1 && PyErr_Occurred()) {
-    PyErr_SetString(PyExc_TypeError, "bpy.app.use_override_library must be a boolean");
-    return -1;
-  }
-
-  BKE_lib_override_library_enable((const bool)param);
-
-  return 0;
-}
-
 static PyGetSetDef bpy_app_getsets[] = {
     {"debug", bpy_app_debug_get, bpy_app_debug_set, bpy_app_debug_doc, (void *)G_DEBUG},
     {"debug_ffmpeg",
@@ -485,11 +461,6 @@ static PyGetSetDef bpy_app_getsets[] = {
      (void *)G_DEBUG_GPU_MEM},
     {"debug_io", bpy_app_debug_get, bpy_app_debug_set, bpy_app_debug_doc, (void *)G_DEBUG_IO},
 
-    {"use_override_library",
-     bpy_app_use_override_library_get,
-     bpy_app_use_override_library_set,
-     bpy_app_use_override_library_doc,
-     NULL},
     {"use_event_simulate",
      bpy_app_global_flag_get,
      bpy_app_global_flag_set__only_disable,

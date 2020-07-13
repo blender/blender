@@ -1177,10 +1177,6 @@ eRNAOverrideStatus RNA_property_override_library_status(PointerRNA *ptr,
 {
   uint override_status = 0;
 
-  if (!BKE_lib_override_library_is_enabled()) {
-    return override_status;
-  }
-
   if (!ptr || !prop || !ptr->owner_id || !ID_IS_OVERRIDE_LIBRARY(ptr->owner_id)) {
     return override_status;
   }

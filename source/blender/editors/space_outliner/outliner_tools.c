@@ -1563,7 +1563,7 @@ static bool outliner_id_operation_item_poll(bContext *C,
 
   switch (enum_value) {
     case OUTLINER_IDOP_OVERRIDE_LIBRARY:
-      return BKE_lib_override_library_is_enabled();
+      return true;
     case OUTLINER_IDOP_SINGLE:
       if (!soops || ELEM(soops->outlinevis, SO_SCENES, SO_VIEW_LAYER)) {
         return true;
@@ -1677,12 +1677,10 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       break;
     }
     case OUTLINER_IDOP_OVERRIDE_LIBRARY: {
-      if (BKE_lib_override_library_is_enabled()) {
-        /* make local */
-        outliner_do_libdata_operation(
-            C, op->reports, scene, soops, &soops->tree, id_override_library_cb, NULL);
-        ED_undo_push(C, "Overridden Data");
-      }
+      /* make local */
+      outliner_do_libdata_operation(
+          C, op->reports, scene, soops, &soops->tree, id_override_library_cb, NULL);
+      ED_undo_push(C, "Overridden Data");
       break;
     }
     case OUTLINER_IDOP_SINGLE: {

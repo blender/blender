@@ -51,9 +51,6 @@ struct Main;
 struct PointerRNA;
 struct PropertyRNA;
 
-void BKE_lib_override_library_enable(const bool do_enable);
-bool BKE_lib_override_library_is_enabled(void);
-
 struct IDOverrideLibrary *BKE_lib_override_library_init(struct ID *local_id,
                                                         struct ID *reference_id);
 void BKE_lib_override_library_copy(struct ID *dst_id,
