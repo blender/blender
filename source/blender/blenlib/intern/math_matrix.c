@@ -248,7 +248,7 @@ void swap_m4m4(float m1[4][4], float m2[4][4])
   }
 }
 
-void shuffle_m4(float R[4][4], int index[4])
+void shuffle_m4(float R[4][4], const int index[4])
 {
   zero_m4(R);
   for (int k = 0; k < 4; k++) {

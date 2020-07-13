@@ -437,13 +437,16 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
   BKE_pbvh_vertex_iter_end;
 }
 
-static void cloth_brush_build_nodes_constraints(Sculpt *sd,
-                                                Object *ob,
-                                                PBVHNode **nodes,
-                                                int totnode,
-                                                SculptClothSimulation *cloth_sim,
-                                                float initial_location[3],
-                                                const float radius)
+static void cloth_brush_build_nodes_constraints(
+    Sculpt *sd,
+    Object *ob,
+    PBVHNode **nodes,
+    int totnode,
+    SculptClothSimulation *cloth_sim,
+    /* Cannot be const, because it is assigned to a non-const variable.
+     * NOLINTNEXTLINE: readability-non-const-parameter. */
+    float initial_location[3],
+    const float radius)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
 

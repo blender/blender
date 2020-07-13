@@ -198,7 +198,7 @@ static void FHT2D(
 //------------------------------------------------------------------------------
 
 /* 2D convolution calc, d1 *= d2, M/N - > log2 of width/height */
-static void fht_convolve(fREAL *d1, fREAL *d2, unsigned int M, unsigned int N)
+static void fht_convolve(fREAL *d1, const fREAL *d2, unsigned int M, unsigned int N)
 {
   fREAL a, b;
   unsigned int i, j, k, L, mj, mL;

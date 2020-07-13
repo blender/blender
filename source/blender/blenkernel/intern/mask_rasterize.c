@@ -1256,7 +1256,7 @@ static float maskrasterize_layer_z_depth_quad(
   return w[2] + w[3]; /* we can make this assumption for small speedup */
 }
 
-static float maskrasterize_layer_isect(unsigned int *face,
+static float maskrasterize_layer_isect(const unsigned int *face,
                                        float (*cos)[3],
                                        const float dist_orig,
                                        const float xy[2])
@@ -1489,6 +1489,8 @@ static void maskrasterize_buffer_cb(void *__restrict userdata,
 void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
                               const unsigned int width,
                               const unsigned int height,
+                              /* Cannot be const, because it is assigned to non-const variable.
+                               * NOLINTNEXTLINE: readability-non-const-parameter. */
                               float *buffer)
 {
   const float x_inv = 1.0f / (float)width;

@@ -603,7 +603,7 @@ float BoneExtended::get_roll()
   return this->roll;
 }
 
-void BoneExtended::set_tail(float vec[])
+void BoneExtended::set_tail(const float vec[])
 {
   this->tail[0] = vec[0];
   this->tail[1] = vec[1];

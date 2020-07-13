@@ -67,7 +67,7 @@ class SceneHash : public SceneVisitor {
   }
 
  private:
-  void adler32(unsigned char *data, int size);
+  void adler32(const unsigned char *data, int size);
 
   uint32_t _sum;
   uint32_t _prevSum;

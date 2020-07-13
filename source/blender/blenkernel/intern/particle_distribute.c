@@ -433,7 +433,7 @@ static void psys_uv_to_w(float u, float v, int quad, float *w)
 }
 
 /* Find the index in "sum" array before "value" is crossed. */
-static int distribute_binary_search(float *sum, int n, float value)
+static int distribute_binary_search(const float *sum, int n, float value)
 {
   int mid, low = 0, high = n - 1;
 

@@ -90,7 +90,7 @@ typedef struct fmatrix3x3 {
 ///////////////////////////
 /* simple vector code */
 /* STATUS: verified */
-DO_INLINE void mul_fvector_S(float to[3], float from[3], float scalar)
+DO_INLINE void mul_fvector_S(float to[3], const float from[3], float scalar)
 {
   to[0] = from[0] * scalar;
   to[1] = from[1] * scalar;
@@ -429,7 +429,7 @@ DO_INLINE void mul_fmatrix_S(float matrix[3][3], float scalar)
 
 /* a vector multiplied by a 3x3 matrix */
 /* STATUS: verified */
-DO_INLINE void mul_fvector_fmatrix(float *to, float *from, float matrix[3][3])
+DO_INLINE void mul_fvector_fmatrix(float *to, const float *from, float matrix[3][3])
 {
   to[0] = matrix[0][0] * from[0] + matrix[1][0] * from[1] + matrix[2][0] * from[2];
   to[1] = matrix[0][1] * from[0] + matrix[1][1] * from[1] + matrix[2][1] * from[2];
@@ -478,7 +478,7 @@ DO_INLINE void muladd_fmatrix_fvector(float to[3], float matrix[3][3], float fro
   to[2] += dot_v3v3(matrix[2], from);
 }
 
-DO_INLINE void muladd_fmatrixT_fvector(float to[3], float matrix[3][3], float from[3])
+DO_INLINE void muladd_fmatrixT_fvector(float to[3], float matrix[3][3], const float from[3])
 {
   to[0] += matrix[0][0] * from[0] + matrix[1][0] * from[1] + matrix[2][0] * from[2];
   to[1] += matrix[0][1] * from[0] + matrix[1][1] * from[1] + matrix[2][1] * from[2];
@@ -1869,7 +1869,7 @@ bool BPH_mass_spring_force_spring_bending(
   }
 }
 
-BLI_INLINE void poly_avg(lfVector *data, int *inds, int len, float r_avg[3])
+BLI_INLINE void poly_avg(lfVector *data, const int *inds, int len, float r_avg[3])
 {
   float fact = 1.0f / (float)len;
 

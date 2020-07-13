@@ -48,6 +48,6 @@ struct bContext *BPy_GetContext(void);
 void BPy_SetContext(struct bContext *C);
 
 extern void bpy_context_set(struct bContext *C, PyGILState_STATE *gilstate);
-extern void bpy_context_clear(struct bContext *C, PyGILState_STATE *gilstate);
+extern void bpy_context_clear(struct bContext *C, const PyGILState_STATE *gilstate);
 
 #endif /* __BPY_CAPI_UTILS_H__ */

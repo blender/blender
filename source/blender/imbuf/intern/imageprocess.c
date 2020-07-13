@@ -456,7 +456,7 @@ void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[
   }
 }
 
-void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, float backcol[3])
+void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float backcol[3])
 {
   size_t a = ((size_t)x) * y;
   unsigned char *cp = rect;

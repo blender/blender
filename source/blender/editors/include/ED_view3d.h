@@ -150,7 +150,7 @@ void ED_view3d_cursor3d_update(struct bContext *C,
 struct Camera *ED_view3d_camera_data_get(struct View3D *v3d, struct RegionView3D *rv3d);
 
 void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], const float dist);
-void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], float *dist);
+void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], const float *dist);
 
 void ED_view3d_from_object(
     const struct Object *ob, float ofs[3], float quat[4], float *dist, float *lens);
@@ -502,7 +502,7 @@ bool ED_view3d_autodist_simple(struct ARegion *region,
                                const int mval[2],
                                float mouse_worldloc[3],
                                int margin,
-                               float *force_depth);
+                               const float *force_depth);
 bool ED_view3d_autodist_depth(struct ARegion *region, const int mval[2], int margin, float *depth);
 bool ED_view3d_autodist_depth_seg(struct ARegion *region,
                                   const int mval_sta[2],

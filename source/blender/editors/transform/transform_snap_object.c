@@ -1106,11 +1106,13 @@ static bool raycastObjects(SnapObjectContext *sctx,
                            const float ray_start[3],
                            const float ray_dir[3],
                            /* read/write args */
-                           float *ray_depth,
+                           /* Parameters below cannot be const, because they are assigned to a
+                            * non-const variable (readability-non-const-parameter). */
+                           float *ray_depth /* NOLINT */,
                            /* return args */
-                           float r_loc[3],
-                           float r_no[3],
-                           int *r_index,
+                           float r_loc[3] /* NOLINT */,
+                           float r_no[3] /* NOLINT */,
+                           int *r_index /* NOLINT */,
                            Object **r_ob,
                            float r_obmat[4][4],
                            ListBase *r_hit_list)
@@ -2789,11 +2791,13 @@ static short snapObjectsRay(SnapObjectContext *sctx,
                             SnapData *snapdata,
                             const struct SnapObjectParams *params,
                             /* read/write args */
-                            float *dist_px,
+                            /* Parameters below cannot be const, because they are assigned to a
+                             * non-const variable (readability-non-const-parameter). */
+                            float *dist_px /* NOLINT */,
                             /* return args */
-                            float r_loc[3],
-                            float r_no[3],
-                            int *r_index,
+                            float r_loc[3] /* NOLINT */,
+                            float r_no[3] /* NOLINT */,
+                            int *r_index /* NOLINT */,
                             Object **r_ob,
                             float r_obmat[4][4])
 {

@@ -655,7 +655,7 @@ void heat_bone_weighting(Object *ob,
                          bDeformGroup **dgroupflip,
                          float (*root)[3],
                          float (*tip)[3],
-                         int *selected,
+                         const int *selected,
                          const char **err_str)
 {
   LaplacianSystem *sys;
@@ -1236,7 +1236,7 @@ static float meshdeform_boundary_phi(const MeshDeformBind *mdb,
 }
 
 static float meshdeform_interp_w(MeshDeformBind *mdb,
-                                 float *gridvec,
+                                 const float *gridvec,
                                  float *UNUSED(vec),
                                  int UNUSED(cagevert))
 {

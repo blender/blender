@@ -1356,7 +1356,7 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
                                  Object *ob,
                                  ModifierData *md,
                                  Scene *scene,
-                                 float *color)
+                                 const float *color)
 {
   FluidModifierData *fmd = (FluidModifierData *)md;
   FluidDomainSettings *fds = fmd->domain;

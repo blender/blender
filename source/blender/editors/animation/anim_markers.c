@@ -540,7 +540,7 @@ static void draw_markers_background(rctf *rect)
   immUnbindProgram();
 }
 
-static bool marker_is_in_frame_range(TimeMarker *marker, int frame_range[2])
+static bool marker_is_in_frame_range(TimeMarker *marker, const int frame_range[2])
 {
   if (marker->frame < frame_range[0]) {
     return false;

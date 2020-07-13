@@ -205,7 +205,7 @@ MeshImporter::MeshImporter(
 }
 
 bool MeshImporter::set_poly_indices(
-    MPoly *mpoly, MLoop *mloop, int loop_index, unsigned int *indices, int loop_count)
+    MPoly *mpoly, MLoop *mloop, int loop_index, const unsigned int *indices, int loop_count)
 {
   mpoly->loopstart = loop_index;
   mpoly->totloop = loop_count;

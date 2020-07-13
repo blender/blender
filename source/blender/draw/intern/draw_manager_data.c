@@ -623,7 +623,7 @@ static void command_type_set(uint64_t *command_type_bits, int index, eDRWCommand
   command_type_bits[index / 16] |= ((uint64_t)type) << ((index % 16) * 4);
 }
 
-eDRWCommandType command_type_get(uint64_t *command_type_bits, int index)
+eDRWCommandType command_type_get(const uint64_t *command_type_bits, int index)
 {
   return ((command_type_bits[index / 16] >> ((index % 16) * 4)) & 0xF);
 }

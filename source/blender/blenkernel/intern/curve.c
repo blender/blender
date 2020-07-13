@@ -1157,7 +1157,7 @@ void BKE_nurb_knot_calc_v(Nurb *nu)
 }
 
 static void basisNurb(
-    float t, short order, int pnts, float *knots, float *basis, int *start, int *end)
+    float t, short order, int pnts, const float *knots, float *basis, int *start, int *end)
 {
   float d, e;
   int i, i1 = 0, i2 = 0, j, orderpluspnts, opp2, o2;
@@ -3560,8 +3560,13 @@ static void free_arrays(void *buffer)
 }
 
 /* computes in which direction to change h[i] to satisfy conditions better */
-static float bezier_relax_direction(
-    float *a, float *b, float *c, float *d, float *h, int i, int count)
+static float bezier_relax_direction(const float *a,
+                                    const float *b,
+                                    const float *c,
+                                    const float *d,
+                                    const float *h,
+                                    int i,
+                                    int count)
 {
   /* current deviation between sides of the equation */
   float state = a[i] * h[(i + count - 1) % count] + b[i] * h[i] + c[i] * h[(i + 1) % count] - d[i];
@@ -3577,8 +3582,15 @@ static void bezier_lock_unknown(float *a, float *b, float *c, float *d, int i, f
   d[i] = value;
 }
 
-static void bezier_restore_equation(
-    float *a, float *b, float *c, float *d, float *a0, float *b0, float *c0, float *d0, int i)
+static void bezier_restore_equation(float *a,
+                                    float *b,
+                                    float *c,
+                                    float *d,
+                                    const float *a0,
+                                    const float *b0,
+                                    const float *c0,
+                                    const float *d0,
+                                    int i)
 {
   a[i] = a0[i];
   b[i] = b0[i];
@@ -3586,8 +3598,14 @@ static void bezier_restore_equation(
   d[i] = d0[i];
 }
 
-static bool tridiagonal_solve_with_limits(
-    float *a, float *b, float *c, float *d, float *h, float *hmin, float *hmax, int solve_count)
+static bool tridiagonal_solve_with_limits(float *a,
+                                          float *b,
+                                          float *c,
+                                          float *d,
+                                          float *h,
+                                          const float *hmin,
+                                          const float *hmax,
+                                          int solve_count)
 {
   float *a0, *b0, *c0, *d0;
   float **arrays[] = {&a0, &b0, &c0, &d0, NULL};
@@ -3726,7 +3744,7 @@ static bool tridiagonal_solve_with_limits(
 /* clang-format on */
 
 static void bezier_eq_continuous(
-    float *a, float *b, float *c, float *d, float *dy, float *l, int i)
+    float *a, float *b, float *c, float *d, const float *dy, const float *l, int i)
 {
   a[i] = l[i] * l[i];
   b[i] = 2.0f * (l[i] + 1);
@@ -3735,7 +3753,7 @@ static void bezier_eq_continuous(
 }
 
 static void bezier_eq_noaccel_right(
-    float *a, float *b, float *c, float *d, float *dy, float *l, int i)
+    float *a, float *b, float *c, float *d, const float *dy, const float *l, int i)
 {
   a[i] = 0.0f;
   b[i] = 2.0f;
@@ -3744,7 +3762,7 @@ static void bezier_eq_noaccel_right(
 }
 
 static void bezier_eq_noaccel_left(
-    float *a, float *b, float *c, float *d, float *dy, float *l, int i)
+    float *a, float *b, float *c, float *d, const float *dy, const float *l, int i)
 {
   a[i] = l[i] * l[i];
   b[i] = 2.0f * l[i];
@@ -4823,7 +4841,7 @@ float (*BKE_curve_nurbs_key_vert_coords_alloc(ListBase *lb, float *key, int *r_v
   return cos;
 }
 
-void BKE_curve_nurbs_key_vert_tilts_apply(ListBase *lb, float *key)
+void BKE_curve_nurbs_key_vert_tilts_apply(ListBase *lb, const float *key)
 {
   Nurb *nu;
   int i;

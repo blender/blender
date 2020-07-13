@@ -67,7 +67,7 @@ GPU_PBVH_Buffers *GPU_pbvh_bmesh_buffers_build(bool smooth_shading);
 void GPU_pbvh_bmesh_buffers_update_free(GPU_PBVH_Buffers *buffers);
 void GPU_pbvh_grid_buffers_update_free(GPU_PBVH_Buffers *buffers,
                                        const struct DMFlagMat *grid_flag_mats,
-                                       int *grid_indices);
+                                       const int *grid_indices);
 
 /* Update mesh buffers without topology changes. Threaded. */
 enum {

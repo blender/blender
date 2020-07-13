@@ -175,7 +175,7 @@ static BLI_bitmap *multires_mdisps_upsample_hidden(BLI_bitmap *lo_hidden,
   return subd;
 }
 
-static BLI_bitmap *multires_mdisps_downsample_hidden(BLI_bitmap *old_hidden,
+static BLI_bitmap *multires_mdisps_downsample_hidden(const BLI_bitmap *old_hidden,
                                                      int old_level,
                                                      int new_level)
 {

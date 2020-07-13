@@ -1477,7 +1477,7 @@ void UV_OT_select_all(wmOperatorType *ot)
  * \{ */
 
 static bool uv_sticky_select(
-    float *limit, int hitv[], int v, float *hituv[], float *uv, int sticky, int hitlen)
+    const float *limit, const int hitv[], int v, float *hituv[], float *uv, int sticky, int hitlen)
 {
   int i;
 

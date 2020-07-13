@@ -351,7 +351,7 @@ void ED_gpencil_init_random_settings(struct Brush *brush,
 
 bool ED_gpencil_stroke_check_collision(struct GP_SpaceConversion *gsc,
                                        struct bGPDstroke *gps,
-                                       float mouse[2],
+                                       const float mouse[2],
                                        const int radius,
                                        const float diff_mat[4][4]);
 bool ED_gpencil_stroke_point_is_inside(struct bGPDstroke *gps,

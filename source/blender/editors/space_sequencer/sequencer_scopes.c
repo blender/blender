@@ -50,14 +50,14 @@ static void rgb_to_yuv_normalized(const float rgb[3], float yuv[3])
   yuv[2] += 0.5f;
 }
 
-static void scope_put_pixel(uchar *table, uchar *pos)
+static void scope_put_pixel(const uchar *table, uchar *pos)
 {
   uchar newval = table[*pos];
   pos[0] = pos[1] = pos[2] = newval;
   pos[3] = 255;
 }
 
-static void scope_put_pixel_single(uchar *table, uchar *pos, int col)
+static void scope_put_pixel_single(const uchar *table, uchar *pos, int col)
 {
   char newval = table[pos[col]];
   pos[col] = newval;

@@ -65,7 +65,7 @@ void SceneHash::visitIndexedFaceSet(IndexedFaceSet &ifs)
 
 static const int MOD_ADLER = 65521;
 
-void SceneHash::adler32(unsigned char *data, int size)
+void SceneHash::adler32(const unsigned char *data, int size)
 {
   uint32_t sum1 = _sum & 0xffff;
   uint32_t sum2 = (_sum >> 16) & 0xffff;

@@ -369,7 +369,7 @@ void DRW_engine_viewport_data_size_get(
 }
 
 /* WARNING: only use for custom pipeline. 99% of the time, you don't want to use this. */
-void DRW_render_viewport_size_set(int size[2])
+void DRW_render_viewport_size_set(const int size[2])
 {
   DST.size[0] = size[0];
   DST.size[1] = size[1];

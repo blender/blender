@@ -583,7 +583,7 @@ void drw_state_set(DRWState state);
 void drw_debug_draw(void);
 void drw_debug_init(void);
 
-eDRWCommandType command_type_get(uint64_t *command_type_bits, int index);
+eDRWCommandType command_type_get(const uint64_t *command_type_bits, int index);
 
 void drw_batch_cache_validate(Object *ob);
 void drw_batch_cache_generate_requested(struct Object *ob);

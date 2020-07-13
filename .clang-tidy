@@ -14,7 +14,6 @@ Checks:  >
 
   -readability-else-after-return,
   -readability-inconsistent-declaration-parameter-name,
-  -readability-non-const-parameter,
   -readability-redundant-preprocessor,
   -readability-function-size,
   -readability-function-size,

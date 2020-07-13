@@ -1146,7 +1146,7 @@ void BKE_gpencil_stroke_2d_flat_ref(const bGPDspoint *ref_points,
 static void gpencil_calc_stroke_fill_uv(const float (*points2d)[2],
                                         bGPDstroke *gps,
                                         const float minv[2],
-                                        float maxv[2],
+                                        const float maxv[2],
                                         float (*r_uv)[2])
 {
   const float s = sin(gps->uv_rotation);

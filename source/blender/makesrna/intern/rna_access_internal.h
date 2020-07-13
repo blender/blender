@@ -30,8 +30,8 @@ struct PropertyRNAOrID;
 
 PropertyRNA *rna_ensure_property(PropertyRNA *prop);
 void rna_property_rna_or_id_get(PropertyRNA *prop,
-                            PointerRNA *ptr,
-                            PropertyRNAOrID *r_prop_rna_or_id);
+                                PointerRNA *ptr,
+                                PropertyRNAOrID *r_prop_rna_or_id);
 
 void rna_idproperty_touch(struct IDProperty *idprop);
 struct IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name);

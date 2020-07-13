@@ -572,8 +572,12 @@ static void image_multiview_cb(bContext *C, void *rnd_pt, void *UNUSED(arg_v))
   WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
 }
 
-static void uiblock_layer_pass_buttons(
-    uiLayout *layout, Image *image, RenderResult *rr, ImageUser *iuser, int w, short *render_slot)
+static void uiblock_layer_pass_buttons(uiLayout *layout,
+                                       Image *image,
+                                       RenderResult *rr,
+                                       ImageUser *iuser,
+                                       int w,
+                                       const short *render_slot)
 {
   struct ImageUI_Data rnd_pt_local, *rnd_pt = NULL;
   uiBlock *block = uiLayoutGetBlock(layout);

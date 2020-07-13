@@ -2809,7 +2809,7 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
 static void filelist_readjob_do(const bool do_lib,
                                 FileList *filelist,
                                 const char *main_name,
-                                short *stop,
+                                const short *stop,
                                 short *do_update,
                                 float *progress,
                                 ThreadMutex *lock)

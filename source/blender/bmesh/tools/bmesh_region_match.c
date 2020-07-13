@@ -1299,7 +1299,9 @@ static UUIDFashMatch *bm_vert_fasthash_create(BMesh *bm, const uint depth)
   return id_curr;
 }
 
-static void bm_vert_fasthash_edge_order(UUIDFashMatch *fm, const BMEdge *e, UUIDFashMatch e_fm[2])
+static void bm_vert_fasthash_edge_order(const UUIDFashMatch *fm,
+                                        const BMEdge *e,
+                                        UUIDFashMatch e_fm[2])
 {
   e_fm[0] = fm[BM_elem_index_get(e->v1)];
   e_fm[1] = fm[BM_elem_index_get(e->v2)];

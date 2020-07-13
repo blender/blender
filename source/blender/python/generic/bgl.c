@@ -487,7 +487,7 @@ static int gl_buffer_type_from_py_buffer(Py_buffer *pybuffer)
   return -1; /* UNKNOWN */
 }
 
-static bool compare_dimensions(int ndim, int *dim1, Py_ssize_t *dim2)
+static bool compare_dimensions(int ndim, const int *dim1, const Py_ssize_t *dim2)
 {
   for (int i = 0; i < ndim; i++) {
     if (dim1[i] != dim2[i]) {

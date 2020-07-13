@@ -363,7 +363,7 @@ void IMB_mask_filter_extend(char *mask, int width, int height)
   MEM_freeN(temprect);
 }
 
-void IMB_mask_clear(ImBuf *ibuf, char *mask, int val)
+void IMB_mask_clear(ImBuf *ibuf, const char *mask, int val)
 {
   int x, y;
   if (ibuf->rect_float) {

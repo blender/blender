@@ -147,7 +147,7 @@ typedef struct PTCacheID {
   /* copies point data to cache data */
   int (*write_point)(int index, void *calldata, void **data, int cfra);
   /* copies cache cata to point data */
-  void (*read_point)(int index, void *calldata, void **data, float cfra, float *old_data);
+  void (*read_point)(int index, void *calldata, void **data, float cfra, const float *old_data);
   /* interpolated between previously read point data and cache data */
   void (*interpolate_point)(int index,
                             void *calldata,
@@ -155,7 +155,7 @@ typedef struct PTCacheID {
                             float cfra,
                             float cfra1,
                             float cfra2,
-                            float *old_data);
+                            const float *old_data);
 
   /* copies point data to cache data */
   int (*write_stream)(PTCacheFile *pf, void *calldata);

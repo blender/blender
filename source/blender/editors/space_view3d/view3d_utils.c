@@ -1028,8 +1028,11 @@ void ED_view3d_autodist_init(Depsgraph *depsgraph, ARegion *region, View3D *v3d,
 }
 
 /* no 4x4 sampling, run #ED_view3d_autodist_init first */
-bool ED_view3d_autodist_simple(
-    ARegion *region, const int mval[2], float mouse_worldloc[3], int margin, float *force_depth)
+bool ED_view3d_autodist_simple(ARegion *region,
+                               const int mval[2],
+                               float mouse_worldloc[3],
+                               int margin,
+                               const float *force_depth)
 {
   float depth;
 
@@ -1458,7 +1461,7 @@ bool ED_view3d_lock(RegionView3D *rv3d)
  * \param quat: The view rotation, quaternion normally from RegionView3D.viewquat.
  * \param dist: The view distance from ofs, normally from RegionView3D.dist.
  */
-void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], float *dist)
+void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], const float *dist)
 {
   float nmat[3][3];
 

@@ -2390,7 +2390,7 @@ static void color_balance_byte_float(StripColorBalance *cb_,
 
 static void color_balance_float_float(StripColorBalance *cb_,
                                       float *rect_float,
-                                      float *mask_rect_float,
+                                      const float *mask_rect_float,
                                       int width,
                                       int height,
                                       float mul)

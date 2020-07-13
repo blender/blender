@@ -257,7 +257,7 @@ static ushort *brush_painter_mask_ibuf_new(BrushPainter *painter, const int size
 /* update rectangular section of the brush image */
 static void brush_painter_mask_imbuf_update(BrushPainter *painter,
                                             ImagePaintTile *tile,
-                                            ushort *tex_mask_old,
+                                            const ushort *tex_mask_old,
                                             int origx,
                                             int origy,
                                             int w,
@@ -1052,7 +1052,7 @@ static void paint_2d_lift_soften(ImagePaintState *s,
                                  ImagePaintTile *tile,
                                  ImBuf *ibuf,
                                  ImBuf *ibufb,
-                                 int *pos,
+                                 const int *pos,
                                  const short paint_tile)
 {
   bool sharpen = (tile->cache.invert ^ ((s->brush->flag & BRUSH_DIR_IN) != 0));
@@ -1255,7 +1255,7 @@ static void paint_2d_lift_smear(ImBuf *ibuf, ImBuf *ibufb, int *pos, short paint
   }
 }
 
-static ImBuf *paint_2d_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
+static ImBuf *paint_2d_lift_clone(ImBuf *ibuf, ImBuf *ibufb, const int *pos)
 {
   /* note: allocImbuf returns zero'd memory, so regions outside image will
    * have zero alpha, and hence not be blended onto the image */

@@ -59,7 +59,12 @@ struct ExportJobData {
   bool export_ok;
 };
 
-static void export_startjob(void *customdata, short *stop, short *do_update, float *progress)
+static void export_startjob(void *customdata,
+                            /* Cannot be const, this function implements wm_jobs_start_callback.
+                             * NOLINTNEXTLINE: readability-non-const-parameter. */
+                            short *stop,
+                            short *do_update,
+                            float *progress)
 {
   ExportJobData *data = static_cast<ExportJobData *>(customdata);
   data->export_ok = false;

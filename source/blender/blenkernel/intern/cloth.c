@@ -1037,7 +1037,7 @@ static void cloth_free_errorsprings(Cloth *cloth,
 }
 
 BLI_INLINE void cloth_bend_poly_dir(
-    ClothVertex *verts, int i, int j, int *inds, int len, float r_dir[3])
+    ClothVertex *verts, int i, int j, const int *inds, int len, float r_dir[3])
 {
   float cent[3] = {0};
   float fact = 1.0f / len;

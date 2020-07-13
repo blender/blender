@@ -224,7 +224,7 @@ void BKE_pbvh_bounding_box(const PBVH *pbvh, float min[3], float max[3]);
 unsigned int **BKE_pbvh_grid_hidden(const PBVH *pbvh);
 
 int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
-                              int *grid_indices,
+                              const int *grid_indices,
                               int totgrid,
                               int gridsize);
 

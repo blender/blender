@@ -76,7 +76,7 @@ struct BlockDXT1 {
   void decodeBlock(ColorBlock *block) const;
   void decodeBlockNV5x(ColorBlock *block) const;
 
-  void setIndices(int *idx);
+  void setIndices(const int *idx);
 
   void flip4();
   void flip2();
@@ -289,7 +289,7 @@ struct BlockCTX1 {
   };
 
   void evaluatePalette(Color32 color_array[4]) const;
-  void setIndices(int *idx);
+  void setIndices(const int *idx);
 
   void decodeBlock(ColorBlock *block) const;
 

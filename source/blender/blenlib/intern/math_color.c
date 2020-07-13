@@ -503,8 +503,12 @@ int constrain_rgb(float *r, float *g, float *b)
 
 /* ********************** lift/gamma/gain / ASC-CDL conversion ********************************* */
 
-void lift_gamma_gain_to_asc_cdl(
-    float *lift, float *gamma, float *gain, float *offset, float *slope, float *power)
+void lift_gamma_gain_to_asc_cdl(const float *lift,
+                                const float *gamma,
+                                const float *gain,
+                                float *offset,
+                                float *slope,
+                                float *power)
 {
   int c;
   for (c = 0; c < 3; c++) {

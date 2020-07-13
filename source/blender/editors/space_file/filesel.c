@@ -374,7 +374,7 @@ void ED_fileselect_set_params_from_userdef(SpaceFile *sfile)
  * pass its size here so we can store that in the preferences. Otherwise NULL.
  */
 void ED_fileselect_params_to_userdef(SpaceFile *sfile,
-                                     int temp_win_size[2],
+                                     const int temp_win_size[2],
                                      const bool is_maximized)
 {
   UserDef_FileSpaceData *sfile_udata_new = &U.file_space_data;

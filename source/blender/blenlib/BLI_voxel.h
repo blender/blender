@@ -35,10 +35,13 @@ extern "C" {
    (int64_t)(z) * (int64_t)(res)[0] * (int64_t)(res)[1])
 
 /* all input coordinates must be in bounding box 0.0 - 1.0 */
-float BLI_voxel_sample_nearest(float *data, const int res[3], const float co[3]);
-float BLI_voxel_sample_trilinear(float *data, const int res[3], const float co[3]);
-float BLI_voxel_sample_triquadratic(float *data, const int res[3], const float co[3]);
-float BLI_voxel_sample_tricubic(float *data, const int res[3], const float co[3], int bspline);
+float BLI_voxel_sample_nearest(const float *data, const int res[3], const float co[3]);
+float BLI_voxel_sample_trilinear(const float *data, const int res[3], const float co[3]);
+float BLI_voxel_sample_triquadratic(const float *data, const int res[3], const float co[3]);
+float BLI_voxel_sample_tricubic(const float *data,
+                                const int res[3],
+                                const float co[3],
+                                int bspline);
 
 #ifdef __cplusplus
 }

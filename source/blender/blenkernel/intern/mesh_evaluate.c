@@ -2888,7 +2888,7 @@ void BKE_mesh_loops_to_mface_corners(
 void BKE_mesh_loops_to_tessdata(CustomData *fdata,
                                 CustomData *ldata,
                                 MFace *mface,
-                                int *polyindices,
+                                const int *polyindices,
                                 unsigned int (*loopindices)[4],
                                 const int num_faces)
 {
@@ -2981,7 +2981,7 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata,
 void BKE_mesh_tangent_loops_to_tessdata(CustomData *fdata,
                                         CustomData *ldata,
                                         MFace *mface,
-                                        int *polyindices,
+                                        const int *polyindices,
                                         unsigned int (*loopindices)[4],
                                         const int num_faces,
                                         const char *layer_name)

@@ -348,7 +348,7 @@ static void gpencil_grid_cell_average_color_idx_get(tGP_BrushVertexpaintData *gs
   }
 }
 
-static int gpencil_grid_cell_index_get(tGP_BrushVertexpaintData *gso, int pc[2])
+static int gpencil_grid_cell_index_get(tGP_BrushVertexpaintData *gso, const int pc[2])
 {
   float bottom[2], top[2];
 

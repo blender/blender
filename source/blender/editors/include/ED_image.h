@@ -125,8 +125,8 @@ void ED_image_draw_info(struct Scene *scene,
                         const unsigned char cp[4],
                         const float fp[4],
                         const float linearcol[4],
-                        int *zp,
-                        float *zpf);
+                        const int *zp,
+                        const float *zpf);
 
 bool ED_space_image_show_cache(struct SpaceImage *sima);
 

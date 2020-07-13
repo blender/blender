@@ -624,7 +624,7 @@ void BKE_mask_point_segment_co(MaskSpline *spline, MaskSplinePoint *point, float
       co, bezt->vec[1], bezt->vec[2], bezt_next->vec[0], bezt_next->vec[1], u);
 }
 
-BLI_INLINE void orthogonal_direction_get(float vec[2], float result[2])
+BLI_INLINE void orthogonal_direction_get(const float vec[2], float result[2])
 {
   result[0] = -vec[1];
   result[1] = vec[0];

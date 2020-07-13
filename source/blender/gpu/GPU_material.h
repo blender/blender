@@ -169,8 +169,8 @@ void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link);
 
 void GPU_material_sss_profile_create(GPUMaterial *material,
                                      float radii[3],
-                                     short *falloff_type,
-                                     float *sharpness);
+                                     const short *falloff_type,
+                                     const float *sharpness);
 struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material,
                                                       int sample_len,
                                                       struct GPUTexture **tex_profile);

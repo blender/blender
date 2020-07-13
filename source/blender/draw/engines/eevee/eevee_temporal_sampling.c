@@ -96,7 +96,7 @@ static void invert_cdf(const float cdf[FILTER_CDF_TABLE_SIZE],
 }
 
 /* Evaluate a discrete function table with linear interpolation. */
-static float eval_table(float *table, float x)
+static float eval_table(const float *table, float x)
 {
   CLAMP(x, 0.0f, 1.0f);
   x = x * (FILTER_CDF_TABLE_SIZE - 1);

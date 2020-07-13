@@ -452,7 +452,7 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const MPoly *mpoly,
 static void gpu_pbvh_grid_fill_index_buffers(GPU_PBVH_Buffers *buffers,
                                              SubdivCCG *UNUSED(subdiv_ccg),
                                              const int *UNUSED(face_sets),
-                                             int *grid_indices,
+                                             const int *grid_indices,
                                              uint visible_quad_len,
                                              int totgrid,
                                              int gridsize)
@@ -583,7 +583,7 @@ static void gpu_pbvh_grid_fill_index_buffers(GPU_PBVH_Buffers *buffers,
 
 void GPU_pbvh_grid_buffers_update_free(GPU_PBVH_Buffers *buffers,
                                        const struct DMFlagMat *grid_flag_mats,
-                                       int *grid_indices)
+                                       const int *grid_indices)
 {
   const bool smooth = grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
 

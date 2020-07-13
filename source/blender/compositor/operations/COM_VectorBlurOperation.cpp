@@ -514,7 +514,7 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove)
 /* we make this into 3 points, center point is (0, 0) */
 /* and offset the center point just enough to make curve go through midpoint */
 
-static void quad_bezier_2d(float *result, float *v1, float *v2, float *ipodata)
+static void quad_bezier_2d(float *result, const float *v1, const float *v2, const float *ipodata)
 {
   float p1[2], p2[2], p3[2];
 

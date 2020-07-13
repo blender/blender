@@ -2668,7 +2668,7 @@ static void RVAddBitmaps_float(float *a, float *b, float *c, int width, int heig
 }
 
 static void RVIsolateHighlights_float(
-    float *in, float *out, int width, int height, float threshold, float boost, float clamp)
+    const float *in, float *out, int width, int height, float threshold, float boost, float clamp)
 {
   int x, y, index;
   float intensity;
@@ -3423,7 +3423,7 @@ static void do_gaussian_blur_effect_byte_x(Sequence *seq,
                                            int y,
                                            int frame_width,
                                            int UNUSED(frame_height),
-                                           unsigned char *rect,
+                                           const unsigned char *rect,
                                            unsigned char *out)
 {
 #define INDEX(_x, _y) (((_y) * (x) + (_x)) * 4)
@@ -3473,7 +3473,7 @@ static void do_gaussian_blur_effect_byte_y(Sequence *seq,
                                            int y,
                                            int UNUSED(frame_width),
                                            int frame_height,
-                                           unsigned char *rect,
+                                           const unsigned char *rect,
                                            unsigned char *out)
 {
 #define INDEX(_x, _y) (((_y) * (x) + (_x)) * 4)

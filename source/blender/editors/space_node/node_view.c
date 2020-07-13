@@ -419,7 +419,7 @@ static void sample_draw(const bContext *C, ARegion *region, void *arg_info)
  * And here we've got recursion in the comments tips...
  */
 bool ED_space_node_color_sample(
-    Main *bmain, SpaceNode *snode, ARegion *region, int mval[2], float r_col[3])
+    Main *bmain, SpaceNode *snode, ARegion *region, const int mval[2], float r_col[3])
 {
   void *lock;
   Image *ima;

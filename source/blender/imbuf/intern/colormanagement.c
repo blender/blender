@@ -1723,7 +1723,7 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 }
 
 static void display_buffer_apply_threaded(ImBuf *ibuf,
-                                          float *buffer,
+                                          const float *buffer,
                                           unsigned char *byte_buffer,
                                           float *display_buffer,
                                           unsigned char *display_buffer_byte,

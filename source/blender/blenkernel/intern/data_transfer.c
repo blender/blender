@@ -562,7 +562,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
                                                                  CustomData *cd_dst,
                                                                  const bool use_dupref_dst,
                                                                  const int tolayers,
-                                                                 bool *use_layers_src,
+                                                                 const bool *use_layers_src,
                                                                  const int num_layers_src,
                                                                  cd_datatransfer_interp interp,
                                                                  void *interp_data)

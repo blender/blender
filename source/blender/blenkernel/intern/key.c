@@ -529,7 +529,13 @@ static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float t[4], int cycl)
   return 0;
 }
 
-static void flerp(int tot, float *in, float *f0, float *f1, float *f2, float *f3, float *t)
+static void flerp(int tot,
+                  float *in,
+                  const float *f0,
+                  const float *f1,
+                  const float *f2,
+                  const float *f3,
+                  const float *t)
 {
   int a;
 
@@ -538,7 +544,7 @@ static void flerp(int tot, float *in, float *f0, float *f1, float *f2, float *f3
   }
 }
 
-static void rel_flerp(int tot, float *in, float *ref, float *out, float fac)
+static void rel_flerp(int tot, float *in, const float *ref, const float *out, float fac)
 {
   int a;
 

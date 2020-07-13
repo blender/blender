@@ -1403,6 +1403,8 @@ static void do_sequence_proxy(void *pjv,
                               int build_count,
                               int *build_undistort_sizes,
                               int build_undistort_count,
+                              /* Cannot be const, because it is assigned to a non-const variable.
+                               * NOLINTNEXTLINE: readability-non-const-parameter. */
                               short *stop,
                               short *do_update,
                               float *progress)

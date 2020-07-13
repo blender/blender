@@ -731,7 +731,9 @@ void CLIP_OT_select_lasso(wmOperatorType *ot)
 
 /********************** circle select operator *********************/
 
-static int point_inside_ellipse(float point[2], float offset[2], float ellipse[2])
+static int point_inside_ellipse(const float point[2],
+                                const float offset[2],
+                                const float ellipse[2])
 {
   /* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
   float x, y;

@@ -439,7 +439,7 @@ static bool add_vertex_new(const bContext *C, Mask *mask, MaskLayer *mask_layer,
 /* Convert coordinate from normalized space to pixel one.
  * TODO(sergey): Make the function more generally available. */
 static void mask_point_make_pixel_space(bContext *C,
-                                        float point_normalized[2],
+                                        const float point_normalized[2],
                                         float point_pixel[2])
 {
   ScrArea *area = CTX_wm_area(C);

@@ -137,9 +137,9 @@ bool BKE_fluid_reallocate_fluid(FluidDomainSettings *fds, int res[3], int free_o
 void BKE_fluid_reallocate_copy_fluid(FluidDomainSettings *fds,
                                      int o_res[3],
                                      int n_res[3],
-                                     int o_min[3],
-                                     int n_min[3],
-                                     int o_max[3],
+                                     const int o_min[3],
+                                     const int n_min[3],
+                                     const int o_max[3],
                                      int o_shift[3],
                                      int n_shift[3])
 {
@@ -559,7 +559,7 @@ static bool BKE_fluid_modifier_init(
 // forward declaration
 static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *view_layer);
 static float calc_voxel_transp(
-    float *result, float *input, int res[3], int *pixel, float *t_ray, float correct);
+    float *result, const float *input, int res[3], int *pixel, float *t_ray, float correct);
 static void update_distances(int index,
                              float *fesh_distances,
                              BVHTreeFromMesh *tree_data,
@@ -594,8 +594,8 @@ static int get_light(ViewLayer *view_layer, float *light)
 static void clamp_bounds_in_domain(FluidDomainSettings *fds,
                                    int min[3],
                                    int max[3],
-                                   float *min_vel,
-                                   float *max_vel,
+                                   const float *min_vel,
+                                   const float *max_vel,
                                    int margin,
                                    float dt)
 {
@@ -1830,7 +1830,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
                         float *velocity_map,
                         int index,
                         const int base_res[3],
-                        float flow_center[3],
+                        const float flow_center[3],
                         BVHTreeFromMesh *tree_data,
                         const float ray_start[3],
                         const float *vert_vel,
@@ -4196,7 +4196,7 @@ struct Mesh *BKE_fluid_modifier_do(
 }
 
 static float calc_voxel_transp(
-    float *result, float *input, int res[3], int *pixel, float *t_ray, float correct)
+    float *result, const float *input, int res[3], int *pixel, float *t_ray, float correct)
 {
   const size_t index = manta_get_index(pixel[0], res[0], pixel[1], res[1], pixel[2]);
 

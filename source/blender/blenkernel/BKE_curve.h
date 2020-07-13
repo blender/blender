@@ -140,7 +140,7 @@ void BKE_curve_nurbs_vert_coords_apply(struct ListBase *lb,
 float (*BKE_curve_nurbs_key_vert_coords_alloc(struct ListBase *lb,
                                               float *key,
                                               int *r_vert_len))[3];
-void BKE_curve_nurbs_key_vert_tilts_apply(struct ListBase *lb, float *key);
+void BKE_curve_nurbs_key_vert_tilts_apply(struct ListBase *lb, const float *key);
 
 void BKE_curve_editNurb_keyIndex_delCV(struct GHash *keyindex, const void *cv);
 void BKE_curve_editNurb_keyIndex_free(struct GHash **keyindex);

@@ -86,7 +86,7 @@ struct wmJob {
    * This performs the actual parallel work.
    * Executed in worker thread(s).
    */
-  void (*startjob)(void *, short *stop, short *do_update, float *progress);
+  wm_jobs_start_callback startjob;
   /**
    * Called if thread defines so (see `do_update` flag), and max once per timer step.
    * Executed in main thread.
@@ -378,7 +378,7 @@ void WM_jobs_delay_start(wmJob *wm_job, double delay_time)
 }
 
 void WM_jobs_callbacks(wmJob *wm_job,
-                       void (*startjob)(void *, short *, short *, float *),
+                       wm_jobs_start_callback startjob,
                        void (*initjob)(void *),
                        void (*update)(void *),
                        void (*endjob)(void *))

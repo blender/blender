@@ -4320,7 +4320,7 @@ static void exactinit(void)
  */
 
 static int fast_expansion_sum_zeroelim(
-    int elen, double *e, int flen, double *f, double *h) /* h cannot be e or f. */
+    int elen, const double *e, int flen, const double *f, double *h) /* h cannot be e or f. */
 {
   double Q;
   INEXACT double Qnew;
@@ -4405,7 +4405,7 @@ static int fast_expansion_sum_zeroelim(
  */
 
 static int scale_expansion_zeroelim(int elen,
-                                    double *e,
+                                    const double *e,
                                     double b,
                                     double *h) /* e and h cannot be the same. */
 {
@@ -4451,7 +4451,7 @@ static int scale_expansion_zeroelim(int elen,
  *  See either version of my paper for details.
  */
 
-static double estimate(int elen, double *e)
+static double estimate(int elen, const double *e)
 {
   double Q;
   int eindex;

@@ -2245,7 +2245,7 @@ static void gpencil_copy_points(
 }
 
 static void gpencil_insert_point(
-    bGPDstroke *gps, bGPDspoint *a_pt, bGPDspoint *b_pt, const float co_a[3], float co_b[3])
+    bGPDstroke *gps, bGPDspoint *a_pt, bGPDspoint *b_pt, const float co_a[3], const float co_b[3])
 {
   bGPDspoint *temp_points;
   int totnewpoints, oldtotpoints;
@@ -2764,7 +2764,7 @@ void ED_gpencil_init_random_settings(Brush *brush,
 }
 
 static void gpencil_sbuffer_vertex_color_random(
-    bGPdata *gpd, Brush *brush, tGPspoint *tpt, float random_color[3], float pen_pressure)
+    bGPdata *gpd, Brush *brush, tGPspoint *tpt, const float random_color[3], float pen_pressure)
 {
   BrushGpencilSettings *brush_settings = brush->gpencil_settings;
   if (brush_settings->flag & GP_BRUSH_GROUP_RANDOM) {
@@ -2895,7 +2895,7 @@ void ED_gpencil_sbuffer_vertex_color_set(Depsgraph *depsgraph,
 /* Check if the stroke collides with brush. */
 bool ED_gpencil_stroke_check_collision(GP_SpaceConversion *gsc,
                                        bGPDstroke *gps,
-                                       float mouse[2],
+                                       const float mouse[2],
                                        const int radius,
                                        const float diff_mat[4][4])
 {

@@ -33,7 +33,7 @@ struct Object;
 struct bDeformGroup;
 
 /* General vgroup operations */
-void BKE_object_defgroup_remap_update_users(struct Object *ob, int *map);
+void BKE_object_defgroup_remap_update_users(struct Object *ob, const int *map);
 
 bool BKE_object_defgroup_array_get(struct ID *id, struct MDeformVert **dvert_arr, int *dvert_tot);
 

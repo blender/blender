@@ -80,7 +80,7 @@
 /**
  * Used to check if a vertex is in a disconnected element ID.
  */
-static bool is_vertex_in_id(BMVert *v, int *elem_id, int elem)
+static bool is_vertex_in_id(BMVert *v, const int *elem_id, int elem)
 {
   const int v_index = BM_elem_index_get(v);
   return elem_id[v_index] == elem;

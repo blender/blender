@@ -1572,7 +1572,7 @@ void VIEW3D_OT_select_menu(wmOperatorType *ot)
 
 static Base *object_mouse_select_menu(bContext *C,
                                       ViewContext *vc,
-                                      uint *buffer,
+                                      const uint *buffer,
                                       int hits,
                                       const int mval[2],
                                       bool extend,

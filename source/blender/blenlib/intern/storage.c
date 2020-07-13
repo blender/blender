@@ -290,7 +290,7 @@ eFileAttributes BLI_file_attributes(const char *path)
 
 /* Return alias/shortcut file target. Apple version is defined in storage_apple.mm */
 #ifndef __APPLE__
-bool BLI_file_alias_target(char target[FILE_MAXDIR], const char *filepath)
+bool BLI_file_alias_target(const char target[FILE_MAXDIR], const char *filepath)
 {
 #  ifdef WIN32
   if (!BLI_path_extension_check(filepath, ".lnk")) {

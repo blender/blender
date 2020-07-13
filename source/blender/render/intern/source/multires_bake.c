@@ -1319,8 +1319,11 @@ static void bake_ibuf_filter(ImBuf *ibuf, char *mask, const int filter)
   }
 }
 
-static void bake_ibuf_normalize_displacement(
-    ImBuf *ibuf, float *displacement, char *mask, float displacement_min, float displacement_max)
+static void bake_ibuf_normalize_displacement(ImBuf *ibuf,
+                                             const float *displacement,
+                                             const char *mask,
+                                             float displacement_min,
+                                             float displacement_max)
 {
   int i;
   const float *current_displacement = displacement;

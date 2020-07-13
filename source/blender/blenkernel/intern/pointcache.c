@@ -206,7 +206,7 @@ static int ptcache_softbody_write(int index, void *soft_v, void **data, int UNUS
   return 1;
 }
 static void ptcache_softbody_read(
-    int index, void *soft_v, void **data, float UNUSED(cfra), float *old_data)
+    int index, void *soft_v, void **data, float UNUSED(cfra), const float *old_data)
 {
   SoftBody *soft = soft_v;
   BodyPoint *bp = soft->bpoint + index;
@@ -220,8 +220,13 @@ static void ptcache_softbody_read(
     PTCACHE_DATA_TO(data, BPHYS_DATA_VELOCITY, 0, bp->vec);
   }
 }
-static void ptcache_softbody_interpolate(
-    int index, void *soft_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)
+static void ptcache_softbody_interpolate(int index,
+                                         void *soft_v,
+                                         void **data,
+                                         float cfra,
+                                         float cfra1,
+                                         float cfra2,
+                                         const float *old_data)
 {
   SoftBody *soft = soft_v;
   BodyPoint *bp = soft->bpoint + index;
@@ -316,7 +321,7 @@ static int ptcache_particle_write(int index, void *psys_v, void **data, int cfra
   return 1 + (pa->state.time >= pa->time && pa->prev_state.time <= pa->time);
 }
 static void ptcache_particle_read(
-    int index, void *psys_v, void **data, float cfra, float *old_data)
+    int index, void *psys_v, void **data, float cfra, const float *old_data)
 {
   ParticleSystem *psys = psys_v;
   ParticleData *pa;
@@ -383,8 +388,13 @@ static void ptcache_particle_read(
     unit_qt(pa->state.rot);
   }
 }
-static void ptcache_particle_interpolate(
-    int index, void *psys_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)
+static void ptcache_particle_interpolate(int index,
+                                         void *psys_v,
+                                         void **data,
+                                         float cfra,
+                                         float cfra1,
+                                         float cfra2,
+                                         const float *old_data)
 {
   ParticleSystem *psys = psys_v;
   ParticleData *pa;
@@ -528,7 +538,7 @@ static int ptcache_cloth_write(int index, void *cloth_v, void **data, int UNUSED
   return 1;
 }
 static void ptcache_cloth_read(
-    int index, void *cloth_v, void **data, float UNUSED(cfra), float *old_data)
+    int index, void *cloth_v, void **data, float UNUSED(cfra), const float *old_data)
 {
   ClothModifierData *clmd = cloth_v;
   Cloth *cloth = clmd->clothObject;
@@ -545,8 +555,13 @@ static void ptcache_cloth_read(
     PTCACHE_DATA_TO(data, BPHYS_DATA_XCONST, 0, vert->xconst);
   }
 }
-static void ptcache_cloth_interpolate(
-    int index, void *cloth_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)
+static void ptcache_cloth_interpolate(int index,
+                                      void *cloth_v,
+                                      void **data,
+                                      float cfra,
+                                      float cfra1,
+                                      float cfra2,
+                                      const float *old_data)
 {
   ClothModifierData *clmd = cloth_v;
   Cloth *cloth = clmd->clothObject;
@@ -1509,7 +1524,7 @@ static int ptcache_rigidbody_write(int index, void *rb_v, void **data, int UNUSE
   return 1;
 }
 static void ptcache_rigidbody_read(
-    int index, void *rb_v, void **data, float UNUSED(cfra), float *old_data)
+    int index, void *rb_v, void **data, float UNUSED(cfra), const float *old_data)
 {
   RigidBodyWorld *rbw = rb_v;
   Object *ob = NULL;
@@ -1534,8 +1549,13 @@ static void ptcache_rigidbody_read(
     }
   }
 }
-static void ptcache_rigidbody_interpolate(
-    int index, void *rb_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)
+static void ptcache_rigidbody_interpolate(int index,
+                                          void *rb_v,
+                                          void **data,
+                                          float cfra,
+                                          float cfra1,
+                                          float cfra2,
+                                          const float *old_data)
 {
   RigidBodyWorld *rbw = rb_v;
   Object *ob = NULL;
@@ -1887,7 +1907,7 @@ static int ptcache_sim_particle_write(int index, void *state_v, void **data, int
   return 1;
 }
 static void ptcache_sim_particle_read(
-    int index, void *state_v, void **data, float UNUSED(cfra), float *UNUSED(old_data))
+    int index, void *state_v, void **data, float UNUSED(cfra), const float *UNUSED(old_data))
 {
   ParticleSimulationState *state = (ParticleSimulationState *)state_v;
 

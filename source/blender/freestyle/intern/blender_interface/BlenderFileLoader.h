@@ -128,7 +128,7 @@ class BlenderFileLoader {
                     bool em1,
                     bool em2,
                     bool em3,
-                    int clip[3]);
+                    const int clip[3]);
   void addTriangle(struct LoaderState *ls,
                    float v1[3],
                    float v2[3],

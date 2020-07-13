@@ -24,7 +24,10 @@
 #ifndef __AVI_MJPEG_H__
 #define __AVI_MJPEG_H__
 
-void *avi_converter_from_mjpeg(AviMovie *movie, int stream, unsigned char *buffer, size_t *size);
+void *avi_converter_from_mjpeg(AviMovie *movie,
+                               int stream,
+                               unsigned char *buffer,
+                               const size_t *size);
 void *avi_converter_to_mjpeg(AviMovie *movie, int stream, unsigned char *buffer, size_t *size);
 
 #endif /* __AVI_MJPEG_H__ */

@@ -588,7 +588,7 @@ static bool boundsIntersectDist(Bounds3D *b1, Bounds3D *b2, const float dist)
 }
 
 /* check whether bounds intersects a point with given radius */
-static bool boundIntersectPoint(Bounds3D *b, float point[3], const float radius)
+static bool boundIntersectPoint(Bounds3D *b, const float point[3], const float radius)
 {
   if (!b->valid) {
     return false;
@@ -4780,13 +4780,16 @@ static void dynamic_paint_paint_single_point_cb_ex(void *__restrict userdata,
   }
 }
 
-static int dynamicPaint_paintSinglePoint(Depsgraph *depsgraph,
-                                         DynamicPaintSurface *surface,
-                                         float *pointCoord,
-                                         DynamicPaintBrushSettings *brush,
-                                         Object *brushOb,
-                                         Scene *scene,
-                                         float timescale)
+static int dynamicPaint_paintSinglePoint(
+    Depsgraph *depsgraph,
+    DynamicPaintSurface *surface,
+    /* Cannot be const, because it is assigned to non-const variable.
+     * NOLINTNEXTLINE: readability-non-const-parameter. */
+    float *pointCoord,
+    DynamicPaintBrushSettings *brush,
+    Object *brushOb,
+    Scene *scene,
+    float timescale)
 {
   PaintSurfaceData *sData = surface->data;
   float brush_radius = brush->paint_distance * surface->radius_scale;
@@ -5456,11 +5459,14 @@ static void dynamic_paint_effect_drip_cb(void *__restrict userdata,
   }
 }
 
-static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface,
-                                      float *force,
-                                      PaintPoint *prevPoint,
-                                      float timescale,
-                                      float steps)
+static void dynamicPaint_doEffectStep(
+    DynamicPaintSurface *surface,
+    /* Cannot be const, because it is assigned to non-const variable.
+     * NOLINTNEXTLINE: readability-non-const-parameter. */
+    float *force,
+    PaintPoint *prevPoint,
+    float timescale,
+    float steps)
 {
   PaintSurfaceData *sData = surface->data;
 

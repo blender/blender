@@ -1029,7 +1029,7 @@ bool EDBM_vert_color_check(BMEditMesh *em)
 /** \name Mirror Cache API
  * \{ */
 
-static BMVert *cache_mirr_intptr_as_bmvert(intptr_t *index_lookup, int index)
+static BMVert *cache_mirr_intptr_as_bmvert(const intptr_t *index_lookup, int index)
 {
   intptr_t eve_i = index_lookup[index];
   return (eve_i == -1) ? NULL : (BMVert *)eve_i;

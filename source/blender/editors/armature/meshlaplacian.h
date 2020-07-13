@@ -56,7 +56,7 @@ void heat_bone_weighting(struct Object *ob,
                          struct bDeformGroup **dgroupflip,
                          float (*root)[3],
                          float (*tip)[3],
-                         int *selected,
+                         const int *selected,
                          const char **error);
 
 #ifdef RIGID_DEFORM

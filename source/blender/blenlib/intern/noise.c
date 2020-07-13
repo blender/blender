@@ -27,7 +27,7 @@
 #include "BLI_noise.h"
 
 /* local */
-static float noise3_perlin(float vec[3]);
+static float noise3_perlin(const float vec[3]);
 // static float turbulence_perlin(const float point[3], float lofreq, float hifreq);
 // static float turbulencep(float noisesize, float x, float y, float z, int nr);
 
@@ -779,7 +779,7 @@ static const float g_perlin_data_v3[512 + 2][3] = {
   } \
   (void)0
 
-static float noise3_perlin(float vec[3])
+static float noise3_perlin(const float vec[3])
 {
   const char *p = g_perlin_data_ub;
   const float(*g)[3] = g_perlin_data_v3;

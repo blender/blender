@@ -150,8 +150,8 @@ void ED_image_draw_info(Scene *scene,
                         const uchar cp[4],
                         const float fp[4],
                         const float linearcol[4],
-                        int *zp,
-                        float *zpf)
+                        const int *zp,
+                        const float *zpf)
 {
   rcti color_rect;
   char str[256];
@@ -463,7 +463,7 @@ void ED_image_draw_info(Scene *scene,
 
 /* image drawing */
 static void sima_draw_zbuf_pixels(
-    float x1, float y1, int rectx, int recty, int *rect, float zoomx, float zoomy)
+    float x1, float y1, int rectx, int recty, const int *rect, float zoomx, float zoomy)
 {
   float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 
@@ -489,7 +489,7 @@ static void sima_draw_zbuffloat_pixels(Scene *scene,
                                        float y1,
                                        int rectx,
                                        int recty,
-                                       float *rect_float,
+                                       const float *rect_float,
                                        float zoomx,
                                        float zoomy)
 {

@@ -411,7 +411,7 @@ void IMB_free_anim(struct anim *anim);
 
 void IMB_filter(struct ImBuf *ibuf);
 void IMB_mask_filter_extend(char *mask, int width, int height);
-void IMB_mask_clear(struct ImBuf *ibuf, char *mask, int val);
+void IMB_mask_clear(struct ImBuf *ibuf, const char *mask, int val);
 void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter);
 void IMB_makemipmap(struct ImBuf *ibuf, int use_filter);
 void IMB_remakemipmap(struct ImBuf *ibuf, int use_filter);
@@ -599,7 +599,7 @@ void bilinear_interpolation_color_wrap(
     struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
 
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3]);
-void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, float backcol[3]);
+void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float backcol[3]);
 
 void IMB_sampleImageAtLocation(
     struct ImBuf *ibuf, float x, float y, bool make_linear_rgb, float color[4]);

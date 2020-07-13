@@ -39,7 +39,9 @@
 #include "avi_mjpeg.h"
 
 static void jpegmemdestmgr_build(j_compress_ptr cinfo, unsigned char *buffer, size_t bufsize);
-static void jpegmemsrcmgr_build(j_decompress_ptr dinfo, unsigned char *buffer, size_t bufsize);
+static void jpegmemsrcmgr_build(j_decompress_ptr dinfo,
+                                const unsigned char *buffer,
+                                size_t bufsize);
 
 static size_t numbytes;
 
@@ -381,7 +383,10 @@ static void deinterlace(int odd, unsigned char *to, unsigned char *from, int wid
   }
 }
 
-void *avi_converter_from_mjpeg(AviMovie *movie, int stream, unsigned char *buffer, size_t *size)
+void *avi_converter_from_mjpeg(AviMovie *movie,
+                               int stream,
+                               unsigned char *buffer,
+                               const size_t *size)
 {
   int deint;
   unsigned char *buf;
@@ -553,7 +558,9 @@ static void jpegmemsrcmgr_term_source(j_decompress_ptr dinfo)
   MEM_freeN(dinfo->src);
 }
 
-static void jpegmemsrcmgr_build(j_decompress_ptr dinfo, unsigned char *buffer, size_t bufsize)
+static void jpegmemsrcmgr_build(j_decompress_ptr dinfo,
+                                const unsigned char *buffer,
+                                size_t bufsize)
 {
   dinfo->src = MEM_mallocN(sizeof(*(dinfo->src)), "avi.jpegmemsrcmgr_build");
 

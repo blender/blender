@@ -206,7 +206,7 @@ void PAINT_OT_vertex_color_from_weight(wmOperatorType *ot)
 /** \name Smooth Vertex Colors Operator
  * \{ */
 
-static void vertex_color_smooth_looptag(Mesh *me, bool *mlooptag)
+static void vertex_color_smooth_looptag(Mesh *me, const bool *mlooptag)
 {
   const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
   const MPoly *mp;

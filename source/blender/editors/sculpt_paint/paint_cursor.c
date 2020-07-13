@@ -875,8 +875,12 @@ static bool paint_draw_alpha_overlay(UnifiedPaintSettings *ups,
   return alpha_overlay_active;
 }
 
-BLI_INLINE void draw_tri_point(
-    uint pos, const float sel_col[4], float pivot_col[4], float *co, float width, bool selected)
+BLI_INLINE void draw_tri_point(uint pos,
+                               const float sel_col[4],
+                               const float pivot_col[4],
+                               float *co,
+                               float width,
+                               bool selected)
 {
   immUniformColor4fv(selected ? sel_col : pivot_col);
 
@@ -905,8 +909,12 @@ BLI_INLINE void draw_tri_point(
   immEnd();
 }
 
-BLI_INLINE void draw_rect_point(
-    uint pos, const float sel_col[4], float handle_col[4], float *co, float width, bool selected)
+BLI_INLINE void draw_rect_point(uint pos,
+                                const float sel_col[4],
+                                const float handle_col[4],
+                                const float *co,
+                                float width,
+                                bool selected)
 {
   immUniformColor4fv(selected ? sel_col : handle_col);
 

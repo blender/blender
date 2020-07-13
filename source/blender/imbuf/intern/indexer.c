@@ -894,7 +894,7 @@ static void index_rebuild_ffmpeg_proc_decoded_frame(FFmpegIndexBuilderContext *c
 }
 
 static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
-                                short *stop,
+                                const short *stop,
                                 short *do_update,
                                 float *progress)
 {
@@ -1090,7 +1090,7 @@ static void index_rebuild_fallback_finish(FallbackIndexBuilderContext *context, 
 }
 
 static void index_rebuild_fallback(FallbackIndexBuilderContext *context,
-                                   short *stop,
+                                   const short *stop,
                                    short *do_update,
                                    float *progress)
 {

@@ -249,7 +249,7 @@ void BKE_defvert_sync_mapped(MDeformVert *dvert_dst,
 /**
  * be sure all flip_map values are valid
  */
-void BKE_defvert_remap(MDeformVert *dvert, int *map, const int map_len)
+void BKE_defvert_remap(MDeformVert *dvert, const int *map, const int map_len)
 {
   MDeformWeight *dw = dvert->dw;
   unsigned int i;
@@ -1184,7 +1184,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
                                                                 CustomData *cd_dst,
                                                                 const bool UNUSED(use_dupref_dst),
                                                                 const int tolayers,
-                                                                bool *use_layers_src,
+                                                                const bool *use_layers_src,
                                                                 const int num_layers_src)
 {
   int idx_src;

@@ -73,7 +73,12 @@ static void build_depsgraph(Depsgraph *depsgraph, Main *bmain)
   DEG_graph_build_from_view_layer(depsgraph, bmain, scene, view_layer);
 }
 
-static void export_startjob(void *customdata, short *stop, short *do_update, float *progress)
+static void export_startjob(void *customdata,
+                            /* Cannot be const, this function implements wm_jobs_start_callback.
+                             * NOLINTNEXTLINE: readability-non-const-parameter. */
+                            short *stop,
+                            short *do_update,
+                            float *progress)
 {
   ExportJobData *data = static_cast<ExportJobData *>(customdata);
   data->was_canceled = false;

@@ -343,7 +343,7 @@ class BoneExtended {
   bool has_roll();
   float get_roll();
 
-  void set_tail(float vec[]);
+  void set_tail(const float vec[]);
   float *get_tail();
   bool has_tail();
 

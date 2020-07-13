@@ -213,7 +213,7 @@ static void voronoiParabola_setRight(VoronoiParabola *parabola, VoronoiParabola 
   right->parent = parabola;
 }
 
-static float voronoi_getY(VoronoiProcess *process, float p[2], float x)
+static float voronoi_getY(VoronoiProcess *process, const float p[2], float x)
 {
   float ly = process->current_y;
 

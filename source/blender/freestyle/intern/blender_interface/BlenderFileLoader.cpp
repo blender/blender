@@ -222,7 +222,7 @@ void BlenderFileLoader::clipTriangle(int numTris,
                                      bool em1,
                                      bool em2,
                                      bool em3,
-                                     int clip[3])
+                                     const int clip[3])
 {
   float *v[3], *n[3];
   bool em[3];

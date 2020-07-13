@@ -111,7 +111,11 @@ void BLI_system_backtrace(FILE *fp)
 /* NOTE: The code for CPU brand string is adopted from Cycles. */
 
 #if !defined(_WIN32) || defined(FREE_WINDOWS)
-static void __cpuid(int data[4], int selector)
+static void __cpuid(
+    /* Cannot be const, because it is modified below.
+     * NOLINTNEXTLINE: readability-non-const-parameter. */
+    int data[4],
+    int selector)
 {
 #  if defined(__x86_64__)
   asm("cpuid" : "=a"(data[0]), "=b"(data[1]), "=c"(data[2]), "=d"(data[3]) : "a"(selector));

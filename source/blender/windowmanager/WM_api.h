@@ -744,8 +744,13 @@ void *WM_jobs_customdata_get(struct wmJob *);
 void WM_jobs_customdata_set(struct wmJob *, void *customdata, void (*free)(void *));
 void WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned int endnote);
 void WM_jobs_delay_start(struct wmJob *, double delay_time);
+
+typedef void (*wm_jobs_start_callback)(void *custom_data,
+                                       short *stop,
+                                       short *do_update,
+                                       float *progress);
 void WM_jobs_callbacks(struct wmJob *,
-                       void (*startjob)(void *, short *, short *, float *),
+                       wm_jobs_start_callback startjob,
                        void (*initjob)(void *),
                        void (*update)(void *),
                        void (*endjob)(void *));

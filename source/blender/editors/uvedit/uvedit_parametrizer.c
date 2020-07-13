@@ -487,7 +487,7 @@ static void p_chart_uv_scale_xy(PChart *chart, float x, float y)
   }
 }
 
-static void p_chart_uv_translate(PChart *chart, float trans[2])
+static void p_chart_uv_translate(PChart *chart, const float trans[2])
 {
   PVert *v;
 
@@ -805,7 +805,7 @@ static PVert *p_vert_copy(PChart *chart, PVert *v)
   return nv;
 }
 
-static PEdge *p_edge_lookup(PHandle *handle, PHashKey *vkeys)
+static PEdge *p_edge_lookup(PHandle *handle, const PHashKey *vkeys)
 {
   PHashKey key = PHASH_edge(vkeys[0], vkeys[1]);
   PEdge *e = (PEdge *)phash_lookup(handle->hash_edges, key);
@@ -1146,14 +1146,14 @@ static PFace *p_face_add(PHandle *handle)
 
 static PFace *p_face_add_construct(PHandle *handle,
                                    ParamKey key,
-                                   ParamKey *vkeys,
+                                   const ParamKey *vkeys,
                                    float *co[4],
                                    float *uv[4],
                                    int i1,
                                    int i2,
                                    int i3,
-                                   ParamBool *pin,
-                                   ParamBool *select)
+                                   const ParamBool *pin,
+                                   const ParamBool *select)
 {
   PFace *f = p_face_add(handle);
   PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;

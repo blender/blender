@@ -238,7 +238,12 @@ static void compo_progressjob(void *cjv, float progress)
 }
 
 /* only this runs inside thread */
-static void compo_startjob(void *cjv, short *stop, short *do_update, float *progress)
+static void compo_startjob(void *cjv,
+                           /* Cannot be const, this function implements wm_jobs_start_callback.
+                            * NOLINTNEXTLINE: readability-non-const-parameter. */
+                           short *stop,
+                           short *do_update,
+                           float *progress)
 {
   CompoJob *cj = cjv;
   bNodeTree *ntree = cj->localtree;

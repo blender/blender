@@ -65,7 +65,7 @@ typedef struct XYZ_to_RGB /* transposed imbuf_xyz_to_rgb, passed as 3x vec3 */
   float r[3], g[3], b[3];
 } XYZ_to_RGB;
 
-static float sky_perez_function(float *lam, float theta, float gamma)
+static float sky_perez_function(const float *lam, float theta, float gamma)
 {
   float ctheta = cosf(theta);
   float cgamma = cosf(gamma);
@@ -74,7 +74,7 @@ static float sky_perez_function(float *lam, float theta, float gamma)
          (1.0 + lam[2] * expf(lam[3] * gamma) + lam[4] * cgamma * cgamma);
 }
 
-static void sky_precompute_old(SkyModelPreetham *sunsky, float sun_angles[], float turbidity)
+static void sky_precompute_old(SkyModelPreetham *sunsky, const float sun_angles[], float turbidity)
 {
   float theta = sun_angles[0];
   float theta2 = theta * theta;

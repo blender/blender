@@ -51,7 +51,7 @@ const char *BKE_appdir_program_path(void);
 const char *BKE_appdir_program_dir(void);
 
 /* Return OS fonts directory. */
-bool BKE_appdir_font_folder_default(char *dir);
+bool BKE_appdir_font_folder_default(const char *dir);
 
 /* find python executable */
 bool BKE_appdir_program_python_search(char *fullpath,

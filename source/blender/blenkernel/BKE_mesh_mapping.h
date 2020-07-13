@@ -199,7 +199,7 @@ void BKE_mesh_loop_islands_clear(MeshIslandStore *island_store);
 void BKE_mesh_loop_islands_free(MeshIslandStore *island_store);
 void BKE_mesh_loop_islands_add(MeshIslandStore *islands,
                                const int item_num,
-                               int *item_indices,
+                               const int *item_indices,
                                const int num_island_items,
                                int *island_item_indices,
                                const int num_innercut_items,

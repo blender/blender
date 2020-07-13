@@ -534,7 +534,7 @@ static void stitch_island_calculate_edge_rotation(UvEdge *edge,
                                                   StitchStateContainer *ssc,
                                                   StitchState *state,
                                                   UVVertAverage *uv_average,
-                                                  uint *uvfinal_map,
+                                                  const uint *uvfinal_map,
                                                   IslandStitchData *island_stitch_data)
 {
   BMesh *bm = state->em->bm;

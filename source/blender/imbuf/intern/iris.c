@@ -122,7 +122,7 @@ static int expandrow2(
 static void interleaverow(uchar *lptr, const uchar *cptr, int z, int n);
 static void interleaverow2(float *lptr, const uchar *cptr, int z, int n);
 static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt);
-static void lumrow(uchar *rgbptr, uchar *lumptr, int n);
+static void lumrow(const uchar *rgbptr, uchar *lumptr, int n);
 
 /*
  * byte order independent read/write of shorts and ints.
@@ -900,7 +900,7 @@ static int output_iris(uint *lptr, int xsize, int ysize, int zsize, const char *
 
 /* static utility functions for output_iris */
 
-static void lumrow(uchar *rgbptr, uchar *lumptr, int n)
+static void lumrow(const uchar *rgbptr, uchar *lumptr, int n)
 {
   lumptr += CHANOFFSET(0);
   while (n--) {

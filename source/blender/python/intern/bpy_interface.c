@@ -136,7 +136,7 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 }
 
 /* context should be used but not now because it causes some bugs */
-void bpy_context_clear(bContext *UNUSED(C), PyGILState_STATE *gilstate)
+void bpy_context_clear(bContext *UNUSED(C), const PyGILState_STATE *gilstate)
 {
   py_call_level--;
 

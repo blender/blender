@@ -497,8 +497,8 @@ static void compute_sss_translucence_kernel(const GPUSssKernelData *kd,
 
 void GPU_material_sss_profile_create(GPUMaterial *material,
                                      float radii[3],
-                                     short *falloff_type,
-                                     float *sharpness)
+                                     const short *falloff_type,
+                                     const float *sharpness)
 {
   copy_v3_v3(material->sss_radii, radii);
   material->sss_falloff = (falloff_type) ? *falloff_type : 0.0;

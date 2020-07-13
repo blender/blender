@@ -302,7 +302,7 @@ void BLI_halton_1d(unsigned int prime, double offset, int n, double *r)
   }
 }
 
-void BLI_halton_2d(unsigned int prime[2], double offset[2], int n, double *r)
+void BLI_halton_2d(const unsigned int prime[2], double offset[2], int n, double *r)
 {
   const double invprimes[2] = {1.0 / (double)prime[0], 1.0 / (double)prime[1]};
 
@@ -315,7 +315,7 @@ void BLI_halton_2d(unsigned int prime[2], double offset[2], int n, double *r)
   }
 }
 
-void BLI_halton_3d(unsigned int prime[3], double offset[3], int n, double *r)
+void BLI_halton_3d(const unsigned int prime[3], double offset[3], int n, double *r)
 {
   const double invprimes[3] = {
       1.0 / (double)prime[0], 1.0 / (double)prime[1], 1.0 / (double)prime[2]};
@@ -329,7 +329,7 @@ void BLI_halton_3d(unsigned int prime[3], double offset[3], int n, double *r)
   }
 }
 
-void BLI_halton_2d_sequence(unsigned int prime[2], double offset[2], int n, double *r)
+void BLI_halton_2d_sequence(const unsigned int prime[2], double offset[2], int n, double *r)
 {
   const double invprimes[2] = {1.0 / (double)prime[0], 1.0 / (double)prime[1]};
 

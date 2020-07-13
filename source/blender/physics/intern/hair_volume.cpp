@@ -303,7 +303,7 @@ void BPH_hair_volume_grid_clear(HairGrid *grid)
   }
 }
 
-BLI_INLINE bool hair_grid_point_valid(const float vec[3], float gmin[3], float gmax[3])
+BLI_INLINE bool hair_grid_point_valid(const float vec[3], const float gmin[3], const float gmax[3])
 {
   return !(vec[0] < gmin[0] || vec[1] < gmin[1] || vec[2] < gmin[2] || vec[0] > gmax[0] ||
            vec[1] > gmax[1] || vec[2] > gmax[2]);

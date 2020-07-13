@@ -147,19 +147,19 @@ static void init_complex(fftw_complex cmpl, float real, float image)
   cmpl[1] = image;
 }
 
-static void add_comlex_c(fftw_complex res, fftw_complex cmpl1, fftw_complex cmpl2)
+static void add_comlex_c(fftw_complex res, const fftw_complex cmpl1, const fftw_complex cmpl2)
 {
   res[0] = cmpl1[0] + cmpl2[0];
   res[1] = cmpl1[1] + cmpl2[1];
 }
 
-static void mul_complex_f(fftw_complex res, fftw_complex cmpl, float f)
+static void mul_complex_f(fftw_complex res, const fftw_complex cmpl, float f)
 {
   res[0] = cmpl[0] * (double)f;
   res[1] = cmpl[1] * (double)f;
 }
 
-static void mul_complex_c(fftw_complex res, fftw_complex cmpl1, fftw_complex cmpl2)
+static void mul_complex_c(fftw_complex res, const fftw_complex cmpl1, const fftw_complex cmpl2)
 {
   fftwf_complex temp;
   temp[0] = cmpl1[0] * cmpl2[0] - cmpl1[1] * cmpl2[1];
@@ -178,7 +178,7 @@ static float image_c(fftw_complex cmpl)
   return cmpl[1];
 }
 
-static void conj_complex(fftw_complex res, fftw_complex cmpl1)
+static void conj_complex(fftw_complex res, const fftw_complex cmpl1)
 {
   res[0] = cmpl1[0];
   res[1] = -cmpl1[1];

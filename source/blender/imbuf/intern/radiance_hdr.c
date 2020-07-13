@@ -176,7 +176,7 @@ static void RGBE2FLOAT(RGBE rgbe, fCOLOR fcol)
 }
 
 /* float color -> rgbe */
-static void FLOAT2RGBE(fCOLOR fcol, RGBE rgbe)
+static void FLOAT2RGBE(const fCOLOR fcol, RGBE rgbe)
 {
   int e;
   float d = (fcol[RED] > fcol[GRN]) ? fcol[RED] : fcol[GRN];
@@ -308,7 +308,8 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem,
 }
 
 /* ImBuf write */
-static int fwritecolrs(FILE *file, int width, int channels, unsigned char *ibufscan, float *fpscan)
+static int fwritecolrs(
+    FILE *file, int width, int channels, const unsigned char *ibufscan, const float *fpscan)
 {
   int beg, c2, cnt = 0;
   fCOLOR fcol;

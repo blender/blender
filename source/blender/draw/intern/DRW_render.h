@@ -623,7 +623,7 @@ void DRW_render_object_iter(void *vedata,
                                              struct RenderEngine *engine,
                                              struct Depsgraph *depsgraph));
 void DRW_render_instance_buffer_finish(void);
-void DRW_render_viewport_size_set(int size[2]);
+void DRW_render_viewport_size_set(const int size[2]);
 
 void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
                          struct Depsgraph *depsgraph,

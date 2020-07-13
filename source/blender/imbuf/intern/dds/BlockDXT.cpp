@@ -241,7 +241,7 @@ void BlockDXT1::decodeBlockNV5x(ColorBlock *block) const
   }
 }
 
-void BlockDXT1::setIndices(int *idx)
+void BlockDXT1::setIndices(const int *idx)
 {
   indices = 0;
   for (uint i = 0; i < 16; i++) {
@@ -580,7 +580,7 @@ void BlockCTX1::decodeBlock(ColorBlock *block) const
   }
 }
 
-void BlockCTX1::setIndices(int *idx)
+void BlockCTX1::setIndices(const int *idx)
 {
   indices = 0;
   for (uint i = 0; i < 16; i++) {

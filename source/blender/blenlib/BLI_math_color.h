@@ -148,8 +148,12 @@ void blackbody_temperature_to_rgb_table(float *r_table, int width, float min, fl
 
 /********* lift/gamma/gain / ASC-CDL conversion ***********/
 
-void lift_gamma_gain_to_asc_cdl(
-    float *lift, float *gamma, float *gain, float *offset, float *slope, float *power);
+void lift_gamma_gain_to_asc_cdl(const float *lift,
+                                const float *gamma,
+                                const float *gain,
+                                float *offset,
+                                float *slope,
+                                float *power);
 
 #if BLI_MATH_DO_INLINE
 #  include "intern/math_color_inline.c"
