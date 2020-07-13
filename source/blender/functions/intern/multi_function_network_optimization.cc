@@ -454,8 +454,9 @@ static void relink_duplicate_nodes(MFNetwork &network,
     }
 
     Vector<MFNode *, 16> nodes_to_check = nodes_with_same_hash;
-    Vector<MFNode *, 16> remaining_nodes;
     while (nodes_to_check.size() >= 2) {
+      Vector<MFNode *, 16> remaining_nodes;
+
       MFNode &deduplicated_node = *nodes_to_check[0];
       for (MFNode *node : nodes_to_check.as_span().drop_front(1)) {
         /* This is true with fairly high probability, but hash collisions can happen. So we have to
