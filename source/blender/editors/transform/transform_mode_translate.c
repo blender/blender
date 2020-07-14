@@ -67,15 +67,27 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
     dist = len_v3(t->num.val);
   }
   else {
+    int i = 0;
     float dvec[3];
-
-    copy_v3_v3(dvec, vec);
-    applyAspectRatio(t, dvec);
+    if (!(t->flag & T_2D_EDIT) && t->con.mode & CON_APPLY) {
+      zero_v3(dvec);
+      if (t->con.mode & CON_AXIS0) {
+        dvec[i++] = vec[0];
+      }
+      if (t->con.mode & CON_AXIS1) {
+        dvec[i++] = vec[1];
+      }
+      if (t->con.mode & CON_AXIS2) {
+        dvec[i++] = vec[2];
+      }
+    }
+    else {
+      copy_v3_v3(dvec, vec);
+      applyAspectRatio(t, dvec);
+    }
 
     dist = len_v3(vec);
     if (!(t->flag & T_2D_EDIT) && t->scene->unit.system) {
-      int i;
-
       for (i = 0; i < 3; i++) {
         bUnit_AsString2(&tvec[NUM_STR_REP_LEN * i],
                         NUM_STR_REP_LEN,
