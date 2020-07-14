@@ -127,11 +127,11 @@ typedef struct AutomaskFloodFillData {
 } AutomaskFloodFillData;
 
 static bool automask_floodfill_cb(
-    SculptSession *ss, int UNUSED(from_v), int to_v, bool UNUSED(is_duplicate), void *userdata)
+    SculptSession *ss, int from_v, int to_v, bool UNUSED(is_duplicate), void *userdata)
 {
   AutomaskFloodFillData *data = userdata;
 
-  data->automask_factor[to_v] = 1.0f;
+  data->automask_factor[from_v] = 1.0f;
   return (!data->use_radius ||
           SCULPT_is_vertex_inside_brush_radius_symm(
               SCULPT_vertex_co_get(ss, to_v), data->location, data->radius, data->symm));
