@@ -119,7 +119,6 @@ static void gpf_clear_all_strokes(bGPDframe *gpf)
 /* Reduce the number of points in the stroke
  *
  * Note: This won't be called if all points are present/removed
- * TODO: Allow blending of growing/shrinking tip (e.g. for more gradual transitions)
  */
 static void reduce_stroke_points(bGPDstroke *gps,
                                  const int num_points,
@@ -132,7 +131,6 @@ static void reduce_stroke_points(bGPDstroke *gps,
   }
 
   /* Which end should points be removed from */
-  // TODO: free stroke weights
   switch (transition) {
     case GP_BUILD_TRANSITION_GROW:   /* Show in forward order =
                                       * Remove ungrown-points from end of stroke. */
@@ -279,7 +277,6 @@ static void build_sequential(BuildGpencilModifierData *mmd, bGPDframe *gpf, floa
     }
     else {
       /* Some proportion of stroke is visible */
-      /* XXX: Will the transition settings still be valid now? */
       if ((first_visible <= cell->start_idx) && (last_visible >= cell->end_idx)) {
         /* Do nothing - whole stroke is visible */
       }
@@ -303,8 +300,6 @@ static void build_sequential(BuildGpencilModifierData *mmd, bGPDframe *gpf, floa
 /* --------------------------------------------- */
 
 /* Concurrent - Show multiple strokes at once */
-// TODO: Allow random offsets to start times
-// TODO: Allow varying speeds? Scaling of progress?
 static void build_concurrent(BuildGpencilModifierData *mmd, bGPDframe *gpf, float fac)
 {
   bGPDstroke *gps, *gps_next;
@@ -342,8 +337,7 @@ static void build_concurrent(BuildGpencilModifierData *mmd, bGPDframe *gpf, floa
         /* Build effect occurs over when fac = 0, to fac = relative_len */
         if (fac <= relative_len) {
           /* Scale fac to fit relative_len */
-          /* FIXME: prevent potential div by zero (e.g. very short stroke vs one very long one) */
-          const float scaled_fac = fac / relative_len;
+          const float scaled_fac = fac / MAX2(relative_len, PSEUDOINVERSE_EPSILON);
 
           if (reverse) {
             num_points = (int)roundf((1.0f - scaled_fac) * gps->totpoints);
@@ -371,8 +365,7 @@ static void build_concurrent(BuildGpencilModifierData *mmd, bGPDframe *gpf, floa
         const float start_fac = 1.0f - relative_len;
 
         if (fac >= start_fac) {
-          /* FIXME: prevent potential div by zero (e.g. very short stroke vs one very long one) */
-          const float scaled_fac = (fac - start_fac) / relative_len;
+          const float scaled_fac = (fac - start_fac) / MAX2(relative_len, PSEUDOINVERSE_EPSILON);
 
           if (reverse) {
             num_points = (int)roundf((1.0f - scaled_fac) * gps->totpoints);
@@ -393,8 +386,6 @@ static void build_concurrent(BuildGpencilModifierData *mmd, bGPDframe *gpf, floa
 
         break;
       }
-
-        /* TODO... */
     }
 
     /* Modify the stroke geometry */
