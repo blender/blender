@@ -500,6 +500,10 @@ static void doVertSlide(TransInfo *t, float perc)
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     VertSlideData *sld = tc->custom.mode.data;
+    if (sld == NULL) {
+      continue;
+    }
+
     TransDataVertSlideVert *svlist = sld->sv, *sv;
     int i;
 
