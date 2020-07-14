@@ -38,6 +38,7 @@
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
+#include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 
@@ -352,6 +353,56 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain)
   BLI_freelistN(&todo_ids);
 
   return success;
+}
+
+static bool lib_override_hierarchy_recursive_tag(Main *bmain, ID *id)
+{
+  MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->id_user_to_used, id);
+
+  /* This way we won't process again that ID should we encounter it again through another
+   * relationship hierarchy.
+   * Note that this does not free any memory from relations, so we can still use the entries.
+   */
+  BKE_main_relations_ID_remove(bmain, id);
+
+  for (; entry != NULL; entry = entry->next) {
+    /* We only consider IDs from the same library. */
+    if (entry->id_pointer != NULL && (*entry->id_pointer)->lib == id->lib) {
+      if (lib_override_hierarchy_recursive_tag(bmain, *entry->id_pointer)) {
+        id->tag |= LIB_TAG_DOIT;
+      }
+    }
+  }
+
+  return (id->tag & LIB_TAG_DOIT) != 0;
+}
+
+/**
+ * Tag all IDs in given \a bmain that use (depends on) given \a id_root ID.
+ *
+ * This will include all local IDs, and all IDs from the same library as the \a id_root.
+ *
+ * \param id_root The root of the hierarchy of dependencies to be tagged.
+ * \param do_create_main_relashionships Whether main relations needs to be created or already exist
+ *                                      (in any case, they will be freed by this function).
+ */
+void BKE_lib_override_dependencies_tag(struct Main *bmain,
+                                       struct ID *id_root,
+                                       const uint tag,
+                                       const bool do_create_main_relashionships)
+{
+  id_root->tag |= tag;
+
+  if (do_create_main_relashionships) {
+    BKE_main_relations_create(bmain, 0);
+  }
+
+  /* Then we tag all intermediary data-blocks in-between two overridden ones (e.g. if a shapekey
+   * has a driver using an armature object's bone, we need to override the shapekey/obdata, the
+   * objects using them, etc.) */
+  lib_override_hierarchy_recursive_tag(bmain, id_root);
+
+  BKE_main_relations_free(bmain);
 }
 
 /* We only build override GHash on request. */

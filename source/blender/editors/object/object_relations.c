@@ -2242,28 +2242,6 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 /** \name Make Library Override Operator
  * \{ */
 
-static bool make_override_hierarchy_recursive_tag(Main *bmain, ID *id)
-{
-  MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->id_user_to_used, id);
-
-  /* This way we won't process again that ID should we encounter it again through another
-   * relationship hierarchy.
-   * Note that this does not free any memory from relations, so we can still use the entries.
-   */
-  BKE_main_relations_ID_remove(bmain, id);
-
-  for (; entry != NULL; entry = entry->next) {
-    /* We only consider IDs from the same library. */
-    if (entry->id_pointer != NULL && (*entry->id_pointer)->lib == id->lib) {
-      if (make_override_hierarchy_recursive_tag(bmain, *entry->id_pointer)) {
-        id->tag |= LIB_TAG_DOIT;
-      }
-    }
-  }
-
-  return (id->tag & LIB_TAG_DOIT) != 0;
-}
-
 static int make_override_tag_ids_cb(LibraryIDLinkCallbackData *cb_data)
 {
   if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_LOOPBACK)) {
@@ -2399,12 +2377,8 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* Then we tag all intermediary data-blocks in-between two overridden ones (e.g. if a shapekey
-   * has a driver using an armature object's bone, we need to override the shapekey/obdata, the
-   * objects using them, etc.) */
-  make_override_hierarchy_recursive_tag(bmain, id_root);
-
-  BKE_main_relations_free(bmain);
+  /* Note that this call will also free the main relations data we created above. */
+  BKE_lib_override_dependencies_tag(bmain, id_root, LIB_TAG_DOIT, false);
 
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
