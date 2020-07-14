@@ -1353,8 +1353,9 @@ static void offset_meet(EdgeHalf *e1,
 
 /**
  * Calculate the meeting point between e1 and e2 (one of which should have zero offsets),
- * where e1 precedes e2 in CCW order around their common vertex v (viewed from normal side).
- * If r_angle is provided, return the angle between e and emeet in *r_angle.
+ * where \a e1 precedes \a e2 in CCW order around their common vertex \a v
+ * (viewed from normal side).
+ * If \a r_angle is provided, return the angle between \a e and \a meetco in `*r_angle`.
  * If the angle is 0, or it is 180 degrees or larger, there will be no meeting point;
  * return false in that case, else true.
  */

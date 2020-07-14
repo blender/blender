@@ -1014,7 +1014,7 @@ class CPUDevice : public Device {
 
       if (passes[i].scale && scale != 1.0f) {
         /* Normalize albedo and normal passes as they are scaled by the number of samples.
-         * For the color passes OIDN will perform autoexposure making it unnecessary. */
+         * For the color passes OIDN will perform auto-exposure making it unnecessary. */
         array<float> &scaled_buffer = passes[i].scaled_buffer;
         scaled_buffer.resize(w * h * 3);
 

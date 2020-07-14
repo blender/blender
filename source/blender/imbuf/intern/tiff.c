@@ -84,7 +84,7 @@ typedef struct ImbTIFFMemFile {
 static void imb_tiff_DummyUnmapProc(
     thandle_t fd,
     tdata_t base,
-    /* Cannot be const, because this function implemements TIFFUnmapFileProc.
+    /* Cannot be const, because this function implements #TIFFUnmapFileProc.
      * NOLINTNEXTLINE: readability-non-const-parameter. */
     toff_t size)
 {
@@ -96,7 +96,7 @@ static void imb_tiff_DummyUnmapProc(
 static int imb_tiff_DummyMapProc(
     thandle_t fd,
     tdata_t *pbase,
-    /* Cannot be const, because this function implemements TIFFMapFileProc.
+    /* Cannot be const, because this function implements #TIFFMapFileProc.
      * NOLINTNEXTLINE: readability-non-const-parameter. */
     toff_t *psize)
 {
@@ -110,7 +110,7 @@ static int imb_tiff_DummyMapProc(
 /**
  * Reads data from an in-memory TIFF file.
  *
- * \param handle: Handle of the TIFF file (pointer to ImbTIFFMemFile).
+ * \param handle: Handle of the TIFF file (pointer to #ImbTIFFMemFile).
  * \param data:   Buffer to contain data (treat as (void *)).
  * \param n:      Number of bytes to read.
  *

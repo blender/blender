@@ -637,7 +637,7 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
   }
 
   if (select) {
-    /* expand for hotspot */
+    /* Expand for hot-spot. */
     const float size[2] = {size_real[0] + margin[0] / 2, size_real[1] + margin[1] / 2};
 
     if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE) {
@@ -694,7 +694,7 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
       bool show = false;
       if (gz->highlight_part == ED_GIZMO_CAGE2D_PART_TRANSLATE) {
         /* Only show if we're drawing the center handle
-         * otherwise the entire rectangle is the hotspot. */
+         * otherwise the entire rectangle is the hot-spot. */
         if (draw_options & ED_GIZMO_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE) {
           show = true;
         }
@@ -805,7 +805,7 @@ static int gizmo_cage2d_test_select(bContext *C, wmGizmo *gz, const int mval[2])
     return -1;
   }
 
-  /* expand for hotspot */
+  /* Expand for hots-pot. */
   const float size[2] = {size_real[0] + margin[0] / 2, size_real[1] + margin[1] / 2};
 
   const int transform_flag = RNA_enum_get(gz->ptr, "transform");
