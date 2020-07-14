@@ -2123,7 +2123,7 @@ static KnifeVert *knife_find_closest_vert_of_face(KnifeTool_OpData *kcd,
             !ED_view3d_clipping_test(kcd->vc.rv3d, kfv->cageco, true)) {
           curv = kfv;
           curdis_sq = dis_sq;
-          copy_v3_v3(cur_kfv_sco, kfv_sco);
+          copy_v2_v2(cur_kfv_sco, kfv_sco);
         }
       }
     }
@@ -2136,7 +2136,7 @@ static KnifeVert *knife_find_closest_vert_of_face(KnifeTool_OpData *kcd,
 
       /* update mouse coordinates to the snapped-to vertex's screen coordinates
        * this is important for angle snap, which uses the previous mouse position */
-      copy_v3_v3(kcd->curr.mval, cur_kfv_sco);
+      copy_v2_v2(kcd->curr.mval, cur_kfv_sco);
     }
 
     return curv;
