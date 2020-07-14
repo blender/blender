@@ -1270,6 +1270,9 @@ void createTransData(bContext *C, TransInfo *t)
         set_prop_dist(t, false);
       }
     }
+    else if (convert_type == TC_MESH_UV && t->flag & T_PROP_CONNECTED) {
+      /* Already calculated by uv_set_connectivity_distance. */
+    }
     else if (convert_type == TC_CURVE_VERTS && t->obedit_type == OB_CURVE) {
       set_prop_dist(t, false);
     }

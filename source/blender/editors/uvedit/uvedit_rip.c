@@ -962,7 +962,7 @@ void UV_OT_rip(wmOperatorType *ot)
   ot->poll = ED_operator_uvedit;
 
   /* translation data */
-  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  Transform_Properties(ot, P_MIRROR_DUMMY);
 
   /* properties */
   RNA_def_float_vector(

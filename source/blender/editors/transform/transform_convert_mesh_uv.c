@@ -26,6 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
@@ -51,6 +52,7 @@ static void UVsToTransData(const float aspect[2],
                            TransData2D *td2d,
                            float *uv,
                            const float *center,
+                           float calc_dist,
                            bool selected)
 {
   /* uv coords are scaled by aspects. this is needed for rotations and
@@ -79,10 +81,180 @@ static void UVsToTransData(const float aspect[2],
     td->dist = 0.0;
   }
   else {
-    td->dist = FLT_MAX;
+    td->dist = calc_dist;
   }
   unit_m3(td->mtx);
   unit_m3(td->smtx);
+}
+
+/**
+ * \param dists: Store the closest connected distance to selected vertices.
+ */
+static void uv_set_connectivity_distance(BMesh *bm, float *dists, const float aspect[2])
+{
+  /* Mostly copied from editmesh_set_connectivity_distance. */
+  BLI_LINKSTACK_DECLARE(queue, BMLoop *);
+
+  /* Any BM_ELEM_TAG'd loop is added to 'queue_next', this makes sure that we don't add things
+   * twice. */
+  BLI_LINKSTACK_DECLARE(queue_next, BMLoop *);
+
+  BLI_LINKSTACK_INIT(queue);
+  BLI_LINKSTACK_INIT(queue_next);
+
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  BMIter fiter, liter;
+  BMVert *f;
+  BMLoop *l;
+
+  BM_mesh_elem_index_ensure(bm, BM_LOOP);
+
+  BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+    /* Visable faces was tagged in createTransUVs. */
+    if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
+      continue;
+    }
+
+    BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+      float dist;
+      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+      bool uv_vert_sel = luv->flag & MLOOPUV_VERTSEL;
+
+      if (uv_vert_sel) {
+        BLI_LINKSTACK_PUSH(queue, l);
+        dist = 0.0f;
+      }
+      else {
+        dist = FLT_MAX;
+      }
+
+      /* Make sure all loops are in a clean tag state. */
+      BLI_assert(BM_elem_flag_test(l, BM_ELEM_TAG) == 0);
+
+      int loop_idx = BM_elem_index_get(l);
+
+      dists[loop_idx] = dist;
+    }
+  }
+
+  /* Need to be very careful of feedback loops here, store previous dist's to avoid feedback. */
+  float *dists_prev = MEM_dupallocN(dists);
+
+  do {
+    while ((l = BLI_LINKSTACK_POP(queue))) {
+      BLI_assert(dists[BM_elem_index_get(l)] != FLT_MAX);
+
+      BMLoop *l_other, *l_connected;
+      BMIter l_connected_iter;
+
+      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+      float l_uv[2];
+
+      copy_v2_v2(l_uv, luv->uv);
+      mul_v2_v2(l_uv, aspect);
+
+      BM_ITER_ELEM (l_other, &liter, l->f, BM_LOOPS_OF_FACE) {
+        if (l_other == l) {
+          continue;
+        }
+        float other_uv[2], edge_vec[2];
+        MLoopUV *luv_other = BM_ELEM_CD_GET_VOID_P(l_other, cd_loop_uv_offset);
+
+        copy_v2_v2(other_uv, luv_other->uv);
+        mul_v2_v2(other_uv, aspect);
+
+        sub_v2_v2v2(edge_vec, l_uv, other_uv);
+
+        const int i = BM_elem_index_get(l);
+        const int i_other = BM_elem_index_get(l_other);
+        float dist = len_v2(edge_vec) + dists_prev[i];
+
+        if (dist < dists[i_other]) {
+          dists[i_other] = dist;
+        }
+        else {
+          /* The face loop already has a shorter path to it. */
+          continue;
+        }
+
+        float connected_uv[2];
+        float uvdiff[2];
+
+        bool other_vert_sel, connected_vert_sel;
+
+        other_vert_sel = luv_other->flag & MLOOPUV_VERTSEL;
+
+        BM_ITER_ELEM (l_connected, &l_connected_iter, l_other->v, BM_LOOPS_OF_VERT) {
+          if (l_connected == l_other) {
+            continue;
+          }
+          /* Visable faces was tagged in createTransUVs. */
+          if (!BM_elem_flag_test(l_connected->f, BM_ELEM_TAG)) {
+            continue;
+          }
+
+          MLoopUV *luv_connected = BM_ELEM_CD_GET_VOID_P(l_connected, cd_loop_uv_offset);
+          connected_vert_sel = luv_connected->flag & MLOOPUV_VERTSEL;
+          copy_v2_v2(connected_uv, luv_connected->uv);
+          mul_v2_v2(connected_uv, aspect);
+
+          sub_v2_v2v2(uvdiff, connected_uv, other_uv);
+          /* Check if this loop is connected in UV space.
+           * If the uv loops share the same selection state (if not, they are not connected as
+           * they have been ripped or other edit commands have seperated them). */
+          bool connected = other_vert_sel == connected_vert_sel &&
+                           fabsf(uvdiff[0]) < STD_UV_CONNECT_LIMIT &&
+                           fabsf(uvdiff[1]) < STD_UV_CONNECT_LIMIT;
+          if (!connected) {
+            continue;
+          }
+
+          /* The loop vert is occupying the same space, so it has the same distance. */
+          const int i_connected = BM_elem_index_get(l_connected);
+          dists[i_connected] = dist;
+
+          if (BM_elem_flag_test(l_connected, BM_ELEM_TAG) == 0) {
+            BM_elem_flag_enable(l_connected, BM_ELEM_TAG);
+            BLI_LINKSTACK_PUSH(queue_next, l_connected);
+          }
+        }
+      }
+    }
+
+    /* Clear elem flags for the next loop. */
+    for (LinkNode *lnk = queue_next; lnk; lnk = lnk->next) {
+      BMLoop *l_link = lnk->link;
+      const int i = BM_elem_index_get(l_link);
+
+      BM_elem_flag_disable(l_link, BM_ELEM_TAG);
+
+      /* Store all new dist values. */
+      dists_prev[i] = dists[i];
+    }
+
+    BLI_LINKSTACK_SWAP(queue, queue_next);
+
+  } while (BLI_LINKSTACK_SIZE(queue));
+
+#ifndef NDEBUG
+  /* Check that we didn't leave any loops tagged */
+  BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+    /* Visable faces was tagged in createTransUVs. */
+    if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
+      continue;
+    }
+
+    BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+      BLI_assert(BM_elem_flag_test(l, BM_ELEM_TAG) == 0);
+    }
+  }
+#endif
+
+  BLI_LINKSTACK_FREE(queue);
+  BLI_LINKSTACK_FREE(queue_next);
+
+  MEM_freeN(dists_prev);
 }
 
 void createTransUVs(bContext *C, TransInfo *t)
@@ -103,12 +275,11 @@ void createTransUVs(bContext *C, TransInfo *t)
     BMFace *efa;
     BMIter iter, liter;
     UvElementMap *elementmap = NULL;
-    BLI_bitmap *island_enabled = NULL;
     struct {
       float co[2];
       int co_num;
     } *island_center = NULL;
-    int count = 0, countsel = 0, count_rejected = 0;
+    int count = 0, countsel = 0;
     const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
     if (!ED_space_image_show_uvedit(sima, tc->obedit)) {
@@ -116,22 +287,15 @@ void createTransUVs(bContext *C, TransInfo *t)
     }
 
     /* count */
-    if (is_prop_connected || is_island_center) {
+    if (is_island_center) {
       /* create element map with island information */
       const bool use_facesel = (ts->uv_flag & UV_SYNC_SELECTION) == 0;
-      const bool use_uvsel = !is_prop_connected;
-      elementmap = BM_uv_element_map_create(em->bm, scene, use_facesel, use_uvsel, false, true);
+      elementmap = BM_uv_element_map_create(em->bm, scene, use_facesel, true, false, true);
       if (elementmap == NULL) {
         continue;
       }
 
-      if (is_prop_connected) {
-        island_enabled = BLI_BITMAP_NEW(elementmap->totalIslands, "TransIslandData(UV Editing)");
-      }
-
-      if (is_island_center) {
-        island_center = MEM_callocN(sizeof(*island_center) * elementmap->totalIslands, __func__);
-      }
+      island_center = MEM_callocN(sizeof(*island_center) * elementmap->totalIslands, __func__);
     }
 
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -147,20 +311,14 @@ void createTransUVs(bContext *C, TransInfo *t)
         if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
           countsel++;
 
-          if (is_prop_connected || island_center) {
+          if (island_center) {
             UvElement *element = BM_uv_element_get(elementmap, efa, l);
 
-            if (is_prop_connected) {
-              BLI_BITMAP_ENABLE(island_enabled, element->island);
-            }
-
-            if (is_island_center) {
-              if (element->flag == false) {
-                MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-                add_v2_v2(island_center[element->island].co, luv->uv);
-                island_center[element->island].co_num++;
-                element->flag = true;
-              }
+            if (element->flag == false) {
+              MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+              add_v2_v2(island_center[element->island].co, luv->uv);
+              island_center[element->island].co_num++;
+              element->flag = true;
             }
           }
         }
@@ -198,6 +356,14 @@ void createTransUVs(bContext *C, TransInfo *t)
     td = tc->data;
     td2d = tc->data_2d;
 
+    float *prop_dists = NULL;
+
+    if (is_prop_connected) {
+      prop_dists = MEM_callocN(em->bm->totloop * sizeof(float), "TransObPropDists(UV Editing)");
+
+      uv_set_connectivity_distance(em->bm, prop_dists, t->aspect);
+    }
+
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
       BMLoop *l;
 
@@ -209,35 +375,27 @@ void createTransUVs(bContext *C, TransInfo *t)
         const bool selected = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
         MLoopUV *luv;
         const float *center = NULL;
+        float prop_distance = FLT_MAX;
 
         if (!is_prop_edit && !selected) {
           continue;
         }
 
-        if (is_prop_connected || is_island_center) {
+        if (is_prop_connected) {
+          const int idx = BM_elem_index_get(l);
+          prop_distance = prop_dists[idx];
+        }
+
+        if (is_island_center) {
           UvElement *element = BM_uv_element_get(elementmap, efa, l);
           if (element) {
-            if (is_prop_connected) {
-              if (!BLI_BITMAP_TEST(island_enabled, element->island)) {
-                count_rejected++;
-                continue;
-              }
-            }
-
-            if (is_island_center) {
-              center = island_center[element->island].co;
-            }
+            center = island_center[element->island].co;
           }
         }
 
-        BM_elem_flag_enable(l, BM_ELEM_TAG);
         luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        UVsToTransData(t->aspect, td++, td2d++, luv->uv, center, selected);
+        UVsToTransData(t->aspect, td++, td2d++, luv->uv, center, prop_distance, selected);
       }
-    }
-
-    if (is_prop_connected) {
-      tc->data_len -= count_rejected;
     }
 
     if (sima->flag & SI_LIVE_UNWRAP) {
@@ -245,16 +403,13 @@ void createTransUVs(bContext *C, TransInfo *t)
     }
 
   finally:
-    if (is_prop_connected || is_island_center) {
+    if (is_prop_connected) {
+      MEM_freeN(prop_dists);
+    }
+    if (is_island_center) {
       BM_uv_element_map_free(elementmap);
 
-      if (is_prop_connected) {
-        MEM_freeN(island_enabled);
-      }
-
-      if (island_center) {
-        MEM_freeN(island_center);
-      }
+      MEM_freeN(island_center);
     }
   }
 }
