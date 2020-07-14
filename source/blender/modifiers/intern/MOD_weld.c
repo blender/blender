@@ -395,55 +395,51 @@ static void weld_vert_ctx_alloc_and_setup(const uint mvert_len,
     *v_dest_iter = OUT_OF_CONTEXT;
   }
 
-  uint vert_kill_len = 0;
-  const BVHTreeOverlap *overlap_iter = &overlap[0];
-  for (uint i = 0; i < overlap_len; i++, overlap_iter++) {
+  const BVHTreeOverlap *overlap_iter, *overlap_end;
+  overlap_iter = &overlap[0];
+  overlap_end = overlap + overlap_len;
+  for (; overlap_iter < overlap_end; overlap_iter++) {
     uint indexA = overlap_iter->indexA;
     uint indexB = overlap_iter->indexB;
 
     BLI_assert(indexA < indexB);
+    r_vert_dest_map[indexA] = indexB;
+  }
 
-    uint va_dst = r_vert_dest_map[indexA];
-    uint vb_dst = r_vert_dest_map[indexB];
-    if (va_dst == OUT_OF_CONTEXT) {
-      if (vb_dst == OUT_OF_CONTEXT) {
-        vb_dst = indexA;
-        r_vert_dest_map[indexB] = vb_dst;
-      }
-      r_vert_dest_map[indexA] = vb_dst;
-      vert_kill_len++;
-    }
-    else if (vb_dst == OUT_OF_CONTEXT) {
-      r_vert_dest_map[indexB] = va_dst;
-      vert_kill_len++;
-    }
-    else if (va_dst != vb_dst) {
-      uint v_new, v_old;
-      if (va_dst < vb_dst) {
-        v_new = va_dst;
-        v_old = vb_dst;
-      }
-      else {
-        v_new = vb_dst;
-        v_old = va_dst;
-      }
-      BLI_assert(r_vert_dest_map[v_old] == v_old);
-      BLI_assert(r_vert_dest_map[v_new] == v_new);
-      vert_kill_len++;
+  /**
+   * Point all groups of merged vertices to the same vertex.
+   * That is, if the pairs of vertices are:
+   *   [1, 2], [2, 3] and [3, 4],
+   * Adjust they to:
+   *   [1, 4], [2, 4] and [3, 4].
+   */
+  v_dest_iter = &r_vert_dest_map[0];
+  for (uint i = 0; i < mvert_len; i++, v_dest_iter++) {
+    uint v_dest = *v_dest_iter;
+    uint v_dest_final = v_dest;
 
-      const BVHTreeOverlap *overlap_iter_b = &overlap[0];
-      for (uint j = i + 1; j--; overlap_iter_b++) {
-        indexA = overlap_iter_b->indexA;
-        indexB = overlap_iter_b->indexB;
-        va_dst = r_vert_dest_map[indexA];
-        vb_dst = r_vert_dest_map[indexB];
-        if (ELEM(v_old, vb_dst, va_dst)) {
-          r_vert_dest_map[indexA] = v_new;
-          r_vert_dest_map[indexB] = v_new;
-        }
-      }
-      BLI_assert(r_vert_dest_map[v_old] == v_new);
+    /* ELEM_MERGED or OUT_OF_CONTEXT. */
+    if ((int)v_dest_final < 0) {
+      continue;
     }
+
+    uint index_test;
+    while ((int)(index_test = r_vert_dest_map[v_dest_final]) >= 0) {
+      v_dest_final = index_test;
+    }
+
+    if (v_dest_final != v_dest) {
+      r_vert_dest_map[i] = v_dest_final;
+
+      /* Since we have found the final destination vertex,
+       * it is better to update the entire path at once. */
+      while ((int)(index_test = r_vert_dest_map[v_dest]) >= 0) {
+        r_vert_dest_map[v_dest] = v_dest_final;
+        v_dest = index_test;
+      }
+    }
+
+    r_vert_dest_map[v_dest_final] = ELEM_MERGED;
   }
 
   /* Vert Context. */
@@ -455,8 +451,13 @@ static void weld_vert_ctx_alloc_and_setup(const uint mvert_len,
 
   v_dest_iter = &r_vert_dest_map[0];
   for (uint i = 0; i < mvert_len; i++, v_dest_iter++) {
-    if (*v_dest_iter != OUT_OF_CONTEXT) {
-      wv->vert_dest = *v_dest_iter;
+    uint v_dest = *v_dest_iter;
+    if (v_dest != OUT_OF_CONTEXT) {
+      if (v_dest == ELEM_MERGED) {
+        /* Point to itself. Useful for finding groups. */
+        *v_dest_iter = v_dest = i;
+      }
+      wv->vert_dest = v_dest;
       wv->vert_orig = i;
       wv++;
       wvert_len++;
@@ -469,7 +470,7 @@ static void weld_vert_ctx_alloc_and_setup(const uint mvert_len,
 
   *r_wvert = MEM_reallocN(wvert, sizeof(*wvert) * wvert_len);
   *r_wvert_len = wvert_len;
-  *r_vert_kill_len = vert_kill_len;
+  *r_vert_kill_len = overlap_len;
 }
 
 static void weld_vert_groups_setup(const uint mvert_len,
