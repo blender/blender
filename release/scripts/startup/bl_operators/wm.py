@@ -1466,8 +1466,7 @@ class WM_OT_properties_edit(Operator):
 
         row = layout.row()
         row.prop(self, "use_soft_limits")
-        if bpy.app.use_override_library:
-            row.prop(self, "is_overridable_library")
+        row.prop(self, "is_overridable_library")
 
         row = layout.row(align=True)
         row.enabled = self.use_soft_limits

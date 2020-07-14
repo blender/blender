@@ -2256,8 +2256,7 @@ class VIEW3D_MT_object_relations(Menu):
 
         layout.operator("object.proxy_make", text="Make Proxy...")
 
-        if bpy.app.use_override_library:
-            layout.operator("object.make_override_library", text="Make Library Override...")
+        layout.operator("object.make_override_library", text="Make Library Override...")
 
         layout.operator("object.make_dupli_face")
 
