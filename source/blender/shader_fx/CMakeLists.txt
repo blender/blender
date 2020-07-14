@@ -24,8 +24,8 @@ set(INC
   intern
   ../blenfont
   ../blenkernel
-  ../blentranslation
   ../blenlib
+  ../blentranslation
   ../bmesh
   ../depsgraph
   ../editors/include

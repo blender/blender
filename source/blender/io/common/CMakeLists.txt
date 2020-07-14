@@ -31,9 +31,9 @@ set(INC_SYS
 
 set(SRC
   intern/abstract_hierarchy_iterator.cc
-  intern/object_identifier.cc
   intern/dupli_parent_finder.cc
   intern/dupli_persistent_id.cc
+  intern/object_identifier.cc
 
   IO_abstract_hierarchy_iterator.h
   IO_dupli_persistent_id.hh

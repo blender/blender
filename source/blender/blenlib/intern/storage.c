@@ -53,9 +53,9 @@
 #  include "BLI_string_utf8.h"
 #  include "BLI_winstuff.h"
 #  include "utfconv.h"
+#  include <ShObjIdl.h>
 #  include <direct.h>
 #  include <io.h>
-#  include <ShObjIdl.h>
 #  include <stdbool.h>
 #else
 #  include <pwd.h>

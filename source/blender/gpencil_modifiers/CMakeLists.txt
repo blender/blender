@@ -42,7 +42,6 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/MOD_gpencil_util.h
   intern/MOD_gpencil_ui_common.c
 
   intern/MOD_gpencil_util.c
@@ -65,8 +64,9 @@ set(SRC
   intern/MOD_gpenciltime.c
   intern/MOD_gpenciltint.c
 
-  intern/MOD_gpencil_ui_common.h
   MOD_gpencil_modifiertypes.h
+  intern/MOD_gpencil_ui_common.h
+  intern/MOD_gpencil_util.h
 )
 
 set(LIB
