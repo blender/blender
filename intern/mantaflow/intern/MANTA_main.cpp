@@ -1256,6 +1256,7 @@ bool MANTA::readData(FluidModifierData *fmd, int framenr, bool resumable)
        << ", '" << volume_format << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
     result &= runPythonString(pythonCommands);
+    return (mSmokeFromFile = result);
   }
   if (mUsingLiquid) {
     ss.str("");
@@ -1263,6 +1264,7 @@ bool MANTA::readData(FluidModifierData *fmd, int framenr, bool resumable)
        << ", '" << volume_format << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
     result &= runPythonString(pythonCommands);
+    return (mFlipFromFile = result);
   }
   return result;
 }
@@ -1296,7 +1298,7 @@ bool MANTA::readNoise(FluidModifierData *fmd, int framenr, bool resumable)
      << ", '" << volume_format << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
-  return runPythonString(pythonCommands);
+  return (mNoiseFromFile = runPythonString(pythonCommands));
 }
 
 bool MANTA::readMesh(FluidModifierData *fmd, int framenr)
@@ -1331,7 +1333,7 @@ bool MANTA::readMesh(FluidModifierData *fmd, int framenr)
     pythonCommands.push_back(ss.str());
   }
 
-  return runPythonString(pythonCommands);
+  return (mMeshFromFile = runPythonString(pythonCommands));
 }
 
 bool MANTA::readParticles(FluidModifierData *fmd, int framenr, bool resumable)
@@ -1365,7 +1367,7 @@ bool MANTA::readParticles(FluidModifierData *fmd, int framenr, bool resumable)
      << framenr << ", '" << volume_format << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
-  return runPythonString(pythonCommands);
+  return (mParticlesFromFile = runPythonString(pythonCommands));
 }
 
 bool MANTA::readGuiding(FluidModifierData *fmd, int framenr, bool sourceDomain)
