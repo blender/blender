@@ -315,10 +315,14 @@ int readObjFile(const std::string &name, Mesh *mesh, bool append)
     return 0;
   }
 
+  const Real dx = mesh->getParent()->getDx();
+  const Vec3 gs = toVec3(mesh->getParent()->getGridSize());
+
   if (!append)
     mesh->clear();
   int nodebase = mesh->numNodes();
-  int cnt = nodebase;
+  int cntNodes = nodebase, cntNormals = nodebase;
+
   while (ifs.good() && !ifs.eof()) {
     string id;
     ifs >> id;
@@ -333,19 +337,23 @@ int readObjFile(const std::string &name, Mesh *mesh, bool append)
     }
     else if (id == "vn") {
       // normals
-      if (!mesh->numNodes()) {
+      if (mesh->numNodes() != cntNodes) {
         errMsg("invalid amount of nodes");
         return 0;
       }
-      Node n = mesh->nodes(cnt);
-      ifs >> n.normal.x >> n.normal.y >> n.normal.z;
-      cnt++;
+      Node *n = &mesh->nodes(cntNormals);
+      ifs >> n->normal.x >> n->normal.y >> n->normal.z;
+      cntNormals++;
     }
     else if (id == "v") {
       // vertex
       Node n;
       ifs >> n.pos.x >> n.pos.y >> n.pos.z;
+      // convert to grid space
+      n.pos /= dx;
+      n.pos += gs * 0.5;
       mesh->addNode(n);
+      cntNodes++;
     }
     else if (id == "g") {
       // group
@@ -408,7 +416,6 @@ int writeObjFile(const string &name, Mesh *mesh)
   // write normals
   for (int i = 0; i < numVerts; i++) {
     Vector3D<float> n = toVec3f(mesh->nodes(i).normal);
-    // normalize to unit cube around 0
     ofs << "vn " << n.value[0] << " " << n.value[1] << " " << n.value[2] << " "
         << "\n";
   }
