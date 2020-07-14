@@ -194,10 +194,6 @@ template<typename T> void initialized_move_n(T *src, uint n, T *dst)
  */
 template<typename T> void uninitialized_move_n(T *src, uint n, T *dst)
 {
-  static_assert(std::is_nothrow_move_constructible_v<T>,
-                "Ideally, all types should have this property. We might have to remove this "
-                "limitation of a real reason comes up.");
-
   uint current = 0;
   try {
     for (; current < n; current++) {
