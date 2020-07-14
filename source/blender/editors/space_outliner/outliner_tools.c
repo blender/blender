@@ -789,7 +789,7 @@ static void id_override_library_cb(bContext *C,
         te->store_elem->id->tag |= LIB_TAG_DOIT;
         printf("%s: Tagging parent id %s\n", __func__, te->store_elem->id->name);
       }
-      BKE_lib_override_dependencies_tag(bmain, id_root, LIB_TAG_DOIT, true);
+      BKE_lib_override_library_dependencies_tag(bmain, id_root, LIB_TAG_DOIT, true);
       BKE_lib_override_library_create_from_tag(bmain);
     }
     else if (ID_IS_OVERRIDABLE_LIBRARY(id_root)) {

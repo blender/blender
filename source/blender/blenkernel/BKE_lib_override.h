@@ -63,10 +63,10 @@ struct ID *BKE_lib_override_library_create_from_id(struct Main *bmain,
                                                    struct ID *reference_id,
                                                    const bool do_tagged_remap);
 bool BKE_lib_override_library_create_from_tag(struct Main *bmain);
-void BKE_lib_override_dependencies_tag(struct Main *bmain,
-                                       struct ID *id_root,
-                                       const uint tag,
-                                       const bool do_create_main_relashionships);
+void BKE_lib_override_library_dependencies_tag(struct Main *bmain,
+                                               struct ID *id_root,
+                                               const uint tag,
+                                               const bool do_create_main_relashionships);
 
 struct IDOverrideLibraryProperty *BKE_lib_override_library_property_find(
     struct IDOverrideLibrary *override, const char *rna_path);

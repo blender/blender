@@ -386,10 +386,10 @@ static bool lib_override_hierarchy_recursive_tag(Main *bmain, ID *id)
  * \param do_create_main_relashionships Whether main relations needs to be created or already exist
  *                                      (in any case, they will be freed by this function).
  */
-void BKE_lib_override_dependencies_tag(struct Main *bmain,
-                                       struct ID *id_root,
-                                       const uint tag,
-                                       const bool do_create_main_relashionships)
+void BKE_lib_override_library_dependencies_tag(struct Main *bmain,
+                                               struct ID *id_root,
+                                               const uint tag,
+                                               const bool do_create_main_relashionships)
 {
   id_root->tag |= tag;
 
