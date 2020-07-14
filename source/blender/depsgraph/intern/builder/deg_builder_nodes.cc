@@ -1831,6 +1831,10 @@ void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)
     return;
   }
 
+  OperationNode *audio_entry_node = add_operation_node(
+      &scene->id, NodeType::AUDIO, OperationCode::AUDIO_ENTRY);
+  audio_entry_node->set_as_entry();
+
   add_operation_node(&scene->id, NodeType::AUDIO, OperationCode::SOUND_EVAL);
 
   Scene *scene_cow = get_cow_datablock(scene);
