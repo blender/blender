@@ -962,11 +962,9 @@ static PyObject *Quaternion_mul(PyObject *q1, PyObject *q2)
   }
 
   if (quat1 && quat2) { /* QUAT * QUAT (element-wise product) */
-#ifdef USE_MATHUTILS_ELEM_MUL
     float quat[QUAT_SIZE];
     mul_vn_vnvn(quat, quat1->quat, quat2->quat, QUAT_SIZE);
     return Quaternion_CreatePyObject(quat, Py_TYPE(q1));
-#endif
   }
   /* the only case this can happen (for a supported type is "FLOAT * QUAT") */
   else if (quat2) { /* FLOAT * QUAT */
@@ -1007,17 +1005,8 @@ static PyObject *Quaternion_imul(PyObject *q1, PyObject *q2)
     }
   }
 
-  if (quat1 && quat2) { /* QUAT *= QUAT (inplace element-wise product) */
-#ifdef USE_MATHUTILS_ELEM_MUL
+  if (quat1 && quat2) { /* QUAT *= QUAT (in-place element-wise product). */
     mul_vn_vn(quat1->quat, quat2->quat, QUAT_SIZE);
-#else
-    PyErr_Format(PyExc_TypeError,
-                 "In place element-wise multiplication: "
-                 "not supported between '%.200s' and '%.200s' types",
-                 Py_TYPE(q1)->tp_name,
-                 Py_TYPE(q2)->tp_name);
-    return NULL;
-#endif
   }
   else if (quat1 && (((scalar = PyFloat_AsDouble(q2)) == -1.0f && PyErr_Occurred()) == 0)) {
     /* QUAT *= FLOAT */

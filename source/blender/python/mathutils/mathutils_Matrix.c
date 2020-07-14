@@ -2526,7 +2526,6 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
   }
 
   if (mat1 && mat2) {
-#ifdef USE_MATHUTILS_ELEM_MUL
     /* MATRIX * MATRIX */
     float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
 
@@ -2540,7 +2539,6 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
     mul_vn_vnvn(mat, mat1->matrix, mat2->matrix, mat1->num_col * mat1->num_row);
 
     return Matrix_CreatePyObject(mat, mat2->num_col, mat1->num_row, Py_TYPE(mat1));
-#endif
   }
   else if (mat2) {
     /*FLOAT/INT * MATRIX */
@@ -2584,7 +2582,6 @@ static PyObject *Matrix_imul(PyObject *m1, PyObject *m2)
   }
 
   if (mat1 && mat2) {
-#ifdef USE_MATHUTILS_ELEM_MUL
     /* MATRIX *= MATRIX */
     if ((mat1->num_row != mat2->num_row) || (mat1->num_col != mat2->num_col)) {
       PyErr_SetString(PyExc_ValueError,
@@ -2594,14 +2591,6 @@ static PyObject *Matrix_imul(PyObject *m1, PyObject *m2)
     }
 
     mul_vn_vn(mat1->matrix, mat2->matrix, mat1->num_col * mat1->num_row);
-#else
-    PyErr_Format(PyExc_TypeError,
-                 "In place element-wise multiplication: "
-                 "not supported between '%.200s' and '%.200s' types",
-                 Py_TYPE(m1)->tp_name,
-                 Py_TYPE(m2)->tp_name);
-    return NULL;
-#endif
   }
   else if (mat1 && (((scalar = PyFloat_AsDouble(m2)) == -1.0f && PyErr_Occurred()) == 0)) {
     /* MATRIX *= FLOAT/INT */

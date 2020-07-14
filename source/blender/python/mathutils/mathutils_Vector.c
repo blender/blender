@@ -1738,7 +1738,7 @@ static PyObject *vector_mul_float(VectorObject *vec, const float scalar)
   mul_vn_vn_fl(tvec, vec->vec, vec->size, scalar);
   return Vector_CreatePyObject_alloc(tvec, vec->size, Py_TYPE(vec));
 }
-#ifdef USE_MATHUTILS_ELEM_MUL
+
 static PyObject *vector_mul_vec(VectorObject *vec1, VectorObject *vec2)
 {
   float *tvec = PyMem_Malloc(vec1->size * sizeof(float));
@@ -1752,7 +1752,7 @@ static PyObject *vector_mul_vec(VectorObject *vec1, VectorObject *vec2)
   mul_vn_vnvn(tvec, vec1->vec, vec2->vec, vec1->size);
   return Vector_CreatePyObject_alloc(tvec, vec1->size, Py_TYPE(vec1));
 }
-#endif
+
 static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 {
   VectorObject *vec1 = NULL, *vec2 = NULL;
@@ -1775,7 +1775,6 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 
   /* make sure v1 is always the vector */
   if (vec1 && vec2) {
-#ifdef USE_MATHUTILS_ELEM_MUL
     if (vec1->size != vec2->size) {
       PyErr_SetString(PyExc_ValueError,
                       "Vector multiplication: "
@@ -1785,7 +1784,6 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 
     /* element-wise product */
     return vector_mul_vec(vec1, vec2);
-#endif
   }
   else if (vec1) {
     if (((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) == 0) { /* VEC * FLOAT */
@@ -1832,7 +1830,6 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
   /* Intentionally don't support (Quaternion, Matrix) here, uses reverse order instead. */
 
   if (vec1 && vec2) {
-#ifdef USE_MATHUTILS_ELEM_MUL
     if (vec1->size != vec2->size) {
       PyErr_SetString(PyExc_ValueError,
                       "Vector multiplication: "
@@ -1840,16 +1837,8 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
       return NULL;
     }
 
-    /* element-wise product inplace */
+    /* Element-wise product in-place. */
     mul_vn_vn(vec1->vec, vec2->vec, vec1->size);
-#else
-    PyErr_Format(PyExc_TypeError,
-                 "In place element-wise multiplication: "
-                 "not supported between '%.200s' and '%.200s' types",
-                 Py_TYPE(v1)->tp_name,
-                 Py_TYPE(v2)->tp_name);
-    return NULL;
-#endif
   }
   else if (vec1 && (((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) ==
                     0)) { /* VEC *= FLOAT */
