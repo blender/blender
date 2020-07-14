@@ -870,9 +870,9 @@ void MANTA::initializeRNAMap(FluidModifierData *fmd)
   mRNAMap["GUIDING_ALPHA"] = to_string(fds->guide_alpha);
   mRNAMap["GUIDING_BETA"] = to_string(fds->guide_beta);
   mRNAMap["GUIDING_FACTOR"] = to_string(fds->guide_vel_factor);
-  mRNAMap["GRAVITY_X"] = to_string(fds->gravity[0]);
-  mRNAMap["GRAVITY_Y"] = to_string(fds->gravity[1]);
-  mRNAMap["GRAVITY_Z"] = to_string(fds->gravity[2]);
+  mRNAMap["GRAVITY_X"] = to_string(fds->gravity_final[0]);
+  mRNAMap["GRAVITY_Y"] = to_string(fds->gravity_final[1]);
+  mRNAMap["GRAVITY_Z"] = to_string(fds->gravity_final[2]);
   mRNAMap["CACHE_DIR"] = cacheDirectory;
   mRNAMap["COMPRESSION_OPENVDB"] = vdbCompressionMethod;
   mRNAMap["PRECISION_OPENVDB"] = vdbPrecisionHalf;

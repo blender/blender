@@ -491,6 +491,17 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
   fds->cell_size[2] /= (float)fds->base_res[2];
 }
 
+static void update_final_gravity(FluidDomainSettings *fds, Scene *scene)
+{
+  if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
+    copy_v3_v3(fds->gravity_final, scene->physics_settings.gravity);
+  }
+  else {
+    copy_v3_v3(fds->gravity_final, fds->gravity);
+  }
+  mul_v3_fl(fds->gravity_final, fds->effector_weights->global_gravity);
+}
+
 static bool BKE_fluid_modifier_init(
     FluidModifierData *fmd, Depsgraph *depsgraph, Object *ob, Scene *scene, Mesh *me)
 {
@@ -502,10 +513,7 @@ static bool BKE_fluid_modifier_init(
     /* Set domain dimensions from mesh. */
     manta_set_domain_from_mesh(fds, ob, me, true);
     /* Set domain gravity, use global gravity if enabled. */
-    if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
-      copy_v3_v3(fds->gravity, scene->physics_settings.gravity);
-    }
-    mul_v3_fl(fds->gravity, fds->effector_weights->global_gravity);
+    update_final_gravity(fds, scene);
     /* Reset domain values. */
     zero_v3_int(fds->shift);
     zero_v3(fds->shift_f);
@@ -3808,10 +3816,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
   fds->time_per_frame = 0;
 
   /* Ensure that gravity is copied over every frame (could be keyframed). */
-  if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
-    copy_v3_v3(fds->gravity, scene->physics_settings.gravity);
-    mul_v3_fl(fds->gravity, fds->effector_weights->global_gravity);
-  }
+  update_final_gravity(fds, scene);
 
   int next_frame = scene_framenr + 1;
   int prev_frame = scene_framenr - 1;
