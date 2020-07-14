@@ -1688,6 +1688,17 @@ static void rna_Modifier_show_expanded_set(PointerRNA *ptr, bool value)
   }
 }
 
+/**
+ * Only check the first bit of the expansion flag for the main panel's expansion,
+ * maintaining compatibility with older versions where there was only one expansion
+ * value.
+ */
+static bool rna_Modifier_show_expanded_get(PointerRNA *ptr)
+{
+  ModifierData *md = ptr->data;
+  return md->ui_expand_flag & (1 << 0);
+}
+
 #else
 
 /* NOTE: *MUST* return subdivision_type property. */
@@ -6959,7 +6970,8 @@ void RNA_def_modifier(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(prop, NULL, "rna_Modifier_show_expanded_set");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_Modifier_show_expanded_get", "rna_Modifier_show_expanded_set");
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_boolean_sdna(prop, NULL, "ui_expand_flag", 0);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
