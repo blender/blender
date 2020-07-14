@@ -5498,6 +5498,7 @@ static int ed_editcurve_addvert(Curve *cu,
 
       if (nu) {
         nurb_new = BKE_nurb_copy(nu, 1, 1);
+        memcpy(nurb_new->bezt, nu->bezt, sizeof(BezTriple));
       }
       else {
         nurb_new = MEM_callocN(sizeof(Nurb), "BLI_editcurve_addvert new_bezt_nurb 2");
