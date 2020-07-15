@@ -249,6 +249,34 @@ void BKE_collection_add_from_object(Main *bmain,
   BKE_main_collection_sync(bmain);
 }
 
+/**
+ * Add \a collection_dst to all scene collections that reference collection \a collection_src is
+ * in.
+ *
+ * Logic is very similar to #BKE_collection_object_add_from().
+ */
+void BKE_collection_add_from_collection(Main *bmain,
+                                        Scene *scene,
+                                        Collection *collection_src,
+                                        Collection *collection_dst)
+{
+  bool is_instantiated = false;
+
+  FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
+    if (!ID_IS_LINKED(collection) && BKE_collection_has_collection(collection, collection_src)) {
+      collection_child_add(collection, collection_dst, 0, true);
+      is_instantiated = true;
+    }
+  }
+  FOREACH_SCENE_COLLECTION_END;
+
+  if (!is_instantiated) {
+    collection_child_add(scene->master_collection, collection_dst, 0, true);
+  }
+
+  BKE_main_collection_sync(bmain);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
