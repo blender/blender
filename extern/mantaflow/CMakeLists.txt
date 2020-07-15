@@ -31,7 +31,7 @@ if(MSVC_CLANG AND WITH_OPENMP AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0.1
   remove_cc_flag("-fopenmp")
 endif()
 
-set(MANTAVERSION "0.12")
+set(MANTAVERSION "0.13")
 
 add_definitions(-DWITH_FLUID=1)
 
