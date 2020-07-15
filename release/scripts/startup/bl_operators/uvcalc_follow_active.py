@@ -160,7 +160,12 @@ def extend(obj, EXTEND_MODE):
         l_b_uv = [l[uv_act].uv for l in l_b]
 
         if EXTEND_MODE == 'LENGTH_AVERAGE':
-            fac = edge_lengths[l_b[2].edge.index][0] / edge_lengths[l_a[1].edge.index][0]
+            d1 = edge_lengths[l_a[1].edge.index][0]
+            d2 = edge_lengths[l_b[2].edge.index][0]
+            try:
+                fac = d2 / d1
+            except ZeroDivisionError:
+                fac = 1.0
         elif EXTEND_MODE == 'LENGTH':
             a0, b0, c0 = l_a[3].vert.co, l_a[0].vert.co, l_b[3].vert.co
             a1, b1, c1 = l_a[2].vert.co, l_a[1].vert.co, l_b[2].vert.co
