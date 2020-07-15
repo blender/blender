@@ -102,12 +102,9 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_bool_copy(grp, "isHair", false);
 
       pd->wires_all_grp[xray][use_coloring] = grp = DRW_shgroup_create(wires_sh, pass);
-      DRW_shgroup_uniform_texture_ref(grp, "depthTex", depth_tx);
       DRW_shgroup_uniform_float_copy(grp, "wireStepParam", 1.0f);
 
       pd->wires_hair_grp[xray][use_coloring] = grp = DRW_shgroup_create(wires_sh, pass);
-      /* TODO(fclem) texture ref persist */
-      DRW_shgroup_uniform_texture_ref(grp, "depthTex", depth_tx);
       DRW_shgroup_uniform_bool_copy(grp, "isHair", true);
       DRW_shgroup_uniform_float_copy(grp, "wireStepParam", 10.0f);
     }
