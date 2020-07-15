@@ -70,7 +70,7 @@
 #include "bmesh_tools.h"
 
 /* TODO(campbell): region filling, matching mesh selection. */
-// #define USE_FILL
+#define USE_FILL
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -258,10 +258,24 @@ static void mouse_mesh_uv_shortest_path_vert(Scene *scene,
       .aspect_y = aspect_y,
       .cd_loop_uv_offset = cd_loop_uv_offset,
   };
-  LinkNode *path = BM_mesh_calc_path_uv_vert(
-      bm, l_src, l_dst, &params, looptag_filter_cb, &user_data);
-  /* TODO: false when we support region selection. */
-  bool is_path_ordered = true;
+
+  LinkNode *path = NULL;
+  bool is_path_ordered = false;
+
+  if (l_src != l_dst) {
+    if (op_params->use_fill) {
+      path = BM_mesh_calc_path_uv_region_vert(bm,
+                                              (BMElem *)l_src,
+                                              (BMElem *)l_dst,
+                                              params.cd_loop_uv_offset,
+                                              looptag_filter_cb,
+                                              &user_data);
+    }
+    else {
+      is_path_ordered = true;
+      path = BM_mesh_calc_path_uv_vert(bm, l_src, l_dst, &params, looptag_filter_cb, &user_data);
+    }
+  }
 
   BMLoop *l_dst_last = l_dst;
 
@@ -374,10 +388,24 @@ static void mouse_mesh_uv_shortest_path_face(Scene *scene,
       .aspect_y = aspect_y,
       .cd_loop_uv_offset = cd_loop_uv_offset,
   };
-  LinkNode *path = BM_mesh_calc_path_uv_face(
-      bm, f_src, f_dst, &params, facetag_filter_cb, &user_data);
-  /* TODO: false when we support region selection. */
-  bool is_path_ordered = true;
+
+  LinkNode *path = NULL;
+  bool is_path_ordered = false;
+
+  if (f_src != f_dst) {
+    if (op_params->use_fill) {
+      path = BM_mesh_calc_path_uv_region_face(bm,
+                                              (BMElem *)f_src,
+                                              (BMElem *)f_dst,
+                                              params.cd_loop_uv_offset,
+                                              facetag_filter_cb,
+                                              &user_data);
+    }
+    else {
+      is_path_ordered = true;
+      path = BM_mesh_calc_path_uv_face(bm, f_src, f_dst, &params, facetag_filter_cb, &user_data);
+    }
+  }
 
   BMFace *f_dst_last = f_dst;
 
@@ -453,8 +481,10 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
     const ToolSettings *ts = scene->toolsettings;
     BMElem *ele_dst_final = NULL;
     if (ts->uv_selectmode & UV_SELECT_EDGE) {
-      bm_loop_calc_vert_pair_from_edge_pair(
-          cd_loop_uv_offset, aspect_y, &ele_src, &ele_dst, &ele_dst_final);
+      if (op_params->use_fill == false) {
+        bm_loop_calc_vert_pair_from_edge_pair(
+            cd_loop_uv_offset, aspect_y, &ele_src, &ele_dst, &ele_dst_final);
+      }
     }
     mouse_mesh_uv_shortest_path_vert(scene,
                                      obedit,
