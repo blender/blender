@@ -14,6 +14,10 @@ layout(std140) uniform viewBlock
 
   vec4 clipPlanes[6];
 
+  /* View frustum corners [NDC(-1.0, -1.0, -1.0) & NDC(1.0, 1.0, 1.0)].
+   * Fourth components are near and far values. */
+  vec4 ViewVecs[2];
+
   /* TODO move it elsewhere. */
   vec4 CameraTexCoFactors;
 };

@@ -380,6 +380,7 @@ typedef struct DRWViewUboStorage {
   float wininv[4][4];
 
   float clipplanes[6][4];
+  float viewvecs[2][4];
   /* Should not be here. Not view dependent (only main view). */
   float viewcamtexcofac[4];
 } DRWViewUboStorage;
