@@ -107,9 +107,9 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
   EEVEE_EffectsInfo *effects = stl->effects;
   EEVEE_PrivateData *g_data = stl->g_data;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  View3D *v3d = draw_ctx->v3d;
-  View3DShading *shading = &v3d->shading;
-  Scene *scene = draw_ctx->scene;
+  /* The view will be NULL when rendering previews. */
+  const View3D *v3d = draw_ctx->v3d;
+  const Scene *scene = draw_ctx->scene;
 
   const bool probe_render = pinfo != NULL;
 
@@ -150,6 +150,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
   }
 
   if (LOOK_DEV_STUDIO_LIGHT_ENABLED(v3d)) {
+    const View3DShading *shading = &v3d->shading;
     StudioLight *sl = BKE_studiolight_find(shading->lookdev_light,
                                            STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE);
     if (sl && (sl->flag & STUDIOLIGHT_TYPE_WORLD)) {
