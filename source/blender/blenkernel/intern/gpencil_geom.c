@@ -2088,6 +2088,7 @@ static int gpencil_walk_edge(GHash *v_table,
 
 static void gpencil_generate_edgeloops(Object *ob,
                                        bGPDframe *gpf_stroke,
+                                       int stroke_mat_index,
                                        const float angle,
                                        const int thickness,
                                        const float offset,
@@ -2175,7 +2176,7 @@ static void gpencil_generate_edgeloops(Object *ob,
 
     /* Create Stroke. */
     bGPDstroke *gps_stroke = BKE_gpencil_stroke_add(
-        gpf_stroke, 0, array_len + 1, thickness * thickness, false);
+        gpf_stroke, MAX2(stroke_mat_index, 0), array_len + 1, thickness * thickness, false);
 
     /* Create first segment. */
     float fpt[3];
@@ -2258,6 +2259,17 @@ static Material *gpencil_add_material(Main *bmain,
   return mat_gp;
 }
 
+static int gpencil_material_find_index_byname(Object *ob, char *name, const int num)
+{
+  for (int i = 0; i < ob->totcol; i++) {
+    Material *ma = BKE_object_material_get(ob, i + 1);
+    if ((ma != NULL) && (ma->gp_style != NULL) && (STREQLEN(ma->id.name + 2, name, num))) {
+      return i;
+    }
+  }
+
+  return -1;
+}
 /**
  * Convert a mesh object to grease pencil stroke.
  *
@@ -2273,6 +2285,7 @@ static Material *gpencil_add_material(Main *bmain,
  * \param frame_offset: Destination frame number offset.
  * \param use_seams: Only export seam edges.
  * \param use_faces: Export faces as filled strokes.
+ * \simple_material: Create only 2 materials (stroke and fill)
  */
 void BKE_gpencil_convert_mesh(Main *bmain,
                               Depsgraph *depsgraph,
@@ -2285,7 +2298,8 @@ void BKE_gpencil_convert_mesh(Main *bmain,
                               const float matrix[4][4],
                               const int frame_offset,
                               const bool use_seams,
-                              const bool use_faces)
+                              const bool use_faces,
+                              const bool simple_material)
 {
   if (ELEM(NULL, ob_gp, ob_mesh) || (ob_gp->type != OB_GPENCIL) || (ob_gp->data == NULL)) {
     return;
@@ -2300,6 +2314,8 @@ void BKE_gpencil_convert_mesh(Main *bmain,
   MLoop *mloop = me_eval->mloop;
   int mpoly_len = me_eval->totpoly;
   int i;
+  int stroke_mat_index = gpencil_material_find_index_byname(ob_gp, "Stroke", 6);
+  int fill_mat_index = gpencil_material_find_index_byname(ob_gp, "Fill", 4);
 
   /* If the object has enough materials means it was created in a previous step. */
   const bool create_mat = ((ob_gp->totcol > 0) && (ob_gp->totcol >= ob_mesh->totcol)) ? false :
@@ -2314,12 +2330,15 @@ void BKE_gpencil_convert_mesh(Main *bmain,
   const float default_colors[2][4] = {{0.0f, 0.0f, 0.0f, 1.0f}, {0.7f, 0.7f, 0.7f, 1.0f}};
   /* Create stroke material. */
   if (create_mat) {
-    gpencil_add_material(bmain, ob_gp, "Stroke", default_colors[0], true, false, &r_idx);
+    if (stroke_mat_index == -1) {
+      gpencil_add_material(bmain, ob_gp, "Stroke", default_colors[0], true, false, &r_idx);
+      stroke_mat_index = ob_gp->totcol - 1;
+    }
   }
   /* Export faces as filled strokes. */
   if (use_faces) {
     if (create_mat) {
-      /* Find a material slot with material assigned */
+      /* Find a material slot with material assigned. */
       bool material_found = false;
       for (i = 0; i < ob_mesh->totcol; i++) {
         Material *ma = BKE_object_material_get(ob_mesh, i + 1);
@@ -2329,9 +2348,12 @@ void BKE_gpencil_convert_mesh(Main *bmain,
         }
       }
 
-      /* If no materials, create a simple fill. */
-      if (!material_found) {
-        gpencil_add_material(bmain, ob_gp, "Fill", default_colors[1], false, true, &r_idx);
+      /* If no materials or use simple materials, create a simple fill. */
+      if ((!material_found) || (simple_material)) {
+        if (fill_mat_index == -1) {
+          gpencil_add_material(bmain, ob_gp, "Fill", default_colors[1], false, true, &r_idx);
+          fill_mat_index = ob_gp->totcol - 1;
+        }
       }
       else {
         /* Create all materials for fill. */
@@ -2359,8 +2381,11 @@ void BKE_gpencil_convert_mesh(Main *bmain,
       for (i = 0, mp = mpoly; i < mpoly_len; i++, mp++) {
         MLoop *ml = &mloop[mp->loopstart];
         /* Create fill stroke. */
-        bGPDstroke *gps_fill = BKE_gpencil_stroke_add(
-            gpf_fill, mp->mat_nr + 1, mp->totloop, 10, false);
+        int mat_idx = (simple_material) || (mp->mat_nr + 1 > ob_gp->totcol - 1) ?
+                          MAX2(fill_mat_index, 0) :
+                          mp->mat_nr + 1;
+
+        bGPDstroke *gps_fill = BKE_gpencil_stroke_add(gpf_fill, mat_idx, mp->totloop, 10, false);
         gps_fill->flag |= GP_STROKE_CYCLIC;
 
         /* Add points to strokes. */
@@ -2387,7 +2412,8 @@ void BKE_gpencil_convert_mesh(Main *bmain,
   }
   bGPDframe *gpf_stroke = BKE_gpencil_layer_frame_get(
       gpl_stroke, CFRA + frame_offset, GP_GETFRAME_ADD_NEW);
-  gpencil_generate_edgeloops(ob_eval, gpf_stroke, angle, thickness, offset, matrix, use_seams);
+  gpencil_generate_edgeloops(
+      ob_eval, gpf_stroke, stroke_mat_index, angle, thickness, offset, matrix, use_seams);
 
   /* Tag for recalculation */
   DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);

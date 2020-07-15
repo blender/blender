@@ -2451,7 +2451,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
                                matrix,
                                0,
                                use_seams,
-                               use_faces);
+                               use_faces,
+                               false);
       gpencilConverted = true;
 
       /* Remove unused materials. */

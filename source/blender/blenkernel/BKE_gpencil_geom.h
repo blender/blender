@@ -109,7 +109,8 @@ void BKE_gpencil_convert_mesh(struct Main *bmain,
                               const float matrix[4][4],
                               const int frame_offset,
                               const bool use_seams,
-                              const bool use_faces);
+                              const bool use_faces,
+                              const bool simple_material);
 
 #ifdef __cplusplus
 }
