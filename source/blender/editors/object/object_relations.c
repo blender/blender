@@ -2397,14 +2397,6 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
   /* Note that this call will also free the main relations data we created above. */
   BKE_lib_override_library_dependencies_tag(bmain, id_root, LIB_TAG_DOIT, false);
 
-  ID *id;
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (id->tag & LIB_TAG_DOIT && id->lib != NULL) {
-      printf("ID %s tagged for override\n", id->name);
-    }
-  }
-  FOREACH_MAIN_ID_END;
-
   success = BKE_lib_override_library_create_from_tag(bmain);
 
   if (success) {
