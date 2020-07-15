@@ -416,13 +416,8 @@ static void draw_uvs(SpaceImage *sima,
       const float dash_width = (sima->dt_uv == SI_UVDT_DASH) ? (4.0f * UI_DPI_FAC) : 9999.0f;
       eGPUBuiltinShader shader = (interpedges) ? GPU_SHADER_2D_UV_EDGES_SMOOTH :
                                                  GPU_SHADER_2D_UV_EDGES;
-
-#ifndef __APPLE__
-      GPU_batch_program_set_builtin(batch->edges, shader);
-#endif
-
-      if (sima->dt_uv == SI_UVDT_OUTLINE) {
 #ifdef __APPLE__
+      if (sima->dt_uv == SI_UVDT_OUTLINE) {
         /* Apple drivers do not support wide line. This is a workaround awaiting the 2D view
          * refactor. Limiting to OSX since this will slow down the drawing. (see T76806) */
         GPU_batch_program_set_builtin(batch->edges, GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
@@ -436,7 +431,13 @@ static void draw_uvs(SpaceImage *sima,
         GPU_batch_uniform_2fv(batch->edges, "viewportSize", &viewport[2]);
 
         GPU_batch_draw(batch->edges);
-#else
+      }
+#endif
+
+      GPU_batch_program_set_builtin(batch->edges, shader);
+
+      if (sima->dt_uv == SI_UVDT_OUTLINE) {
+#ifndef __APPLE__
         /* Black Outline. */
         GPU_line_width(3.0f);
         GPU_batch_uniform_4f(batch->edges, "edgeColor", 0.0f, 0.0f, 0.0f, overlay_alpha);
