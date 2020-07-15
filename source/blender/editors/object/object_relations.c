@@ -2293,14 +2293,9 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
     return OPERATOR_CANCELLED;
   }
 
-  /* Get object to work on - use a menu if we need to... */
-  if (!ID_IS_LINKED(obact) && obact->instance_collection != NULL &&
-      ID_IS_LINKED(obact->instance_collection)) {
-    /* Gives menu with list of objects in group. */
-    WM_enum_search_invoke(C, op, event);
-    return OPERATOR_CANCELLED;
-  }
-  if (ID_IS_LINKED(obact)) {
+  if ((!ID_IS_LINKED(obact) && obact->instance_collection != NULL &&
+       ID_IS_OVERRIDABLE_LIBRARY(obact->instance_collection)) ||
+      ID_IS_OVERRIDABLE_LIBRARY(obact)) {
     uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("OK?"), ICON_QUESTION);
     uiLayout *layout = UI_popup_menu_layout(pup);
 
@@ -2314,6 +2309,11 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
 
     /* This invoke just calls another instance of this operator... */
     return OPERATOR_INTERFACE;
+  }
+  else if (ID_IS_LINKED(obact)) {
+    /* Show menu with list of directly linked collections containing the active object. */
+    WM_enum_search_invoke(C, op, event);
+    return OPERATOR_CANCELLED;
   }
 
   /* Error.. cannot continue. */
@@ -2344,11 +2344,28 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     id_root = &obact->instance_collection->id;
   }
   else if (!ID_IS_OVERRIDABLE_LIBRARY(obact)) {
-    BKE_reportf(op->reports,
-                RPT_ERROR_INVALID_INPUT,
-                "Active object '%s' is not overridable",
-                obact->id.name + 2);
-    return OPERATOR_CANCELLED;
+    const int i = RNA_property_enum_get(op->ptr, op->type->prop);
+    const uint collection_session_uuid = *((uint *)&i);
+    if (collection_session_uuid == MAIN_ID_SESSION_UUID_UNSET) {
+      BKE_reportf(op->reports,
+                  RPT_ERROR_INVALID_INPUT,
+                  "Active object '%s' is not overridable",
+                  obact->id.name + 2);
+      return OPERATOR_CANCELLED;
+    }
+
+    Collection *collection = BLI_listbase_bytes_find(&bmain->collections,
+                                                     &collection_session_uuid,
+                                                     sizeof(collection_session_uuid),
+                                                     offsetof(ID, session_uuid));
+    if (!ID_IS_OVERRIDABLE_LIBRARY(collection)) {
+      BKE_reportf(op->reports,
+                  RPT_ERROR_INVALID_INPUT,
+                  "Could not find an overridable collection containing object '%s'",
+                  obact->id.name + 2);
+      return OPERATOR_CANCELLED;
+    }
+    id_root = &collection->id;
   }
   /* Else, poll func ensures us that ID_IS_LINKED(obact) is true. */
   else {
@@ -2498,9 +2515,39 @@ static bool make_override_library_poll(bContext *C)
 
   /* Object must be directly linked to be overridable. */
   return (ED_operator_objectmode(C) && obact != NULL &&
-          ((ID_IS_LINKED(obact) && obact->id.tag & LIB_TAG_EXTERN) ||
-           (!ID_IS_LINKED(obact) && obact->instance_collection != NULL &&
-            ID_IS_LINKED(obact->instance_collection))));
+          (ID_IS_LINKED(obact) || (obact->instance_collection != NULL &&
+                                   ID_IS_OVERRIDABLE_LIBRARY(obact->instance_collection))));
+}
+
+static const EnumPropertyItem *make_override_collections_of_linked_object_itemf(
+    bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+{
+  EnumPropertyItem item_tmp = {0}, *item = NULL;
+  int totitem = 0;
+
+  Object *object = ED_object_active_context(C);
+  Main *bmain = CTX_data_main(C);
+
+  if (!object || !ID_IS_LINKED(object)) {
+    return DummyRNA_DEFAULT_items;
+  }
+
+  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
+    /* Only check for directly linked collections. */
+    if (!ID_IS_LINKED(&collection->id) || (collection->id.tag & LIB_TAG_INDIRECT) != 0) {
+      continue;
+    }
+    if (BKE_collection_has_object_recursive(collection, object)) {
+      item_tmp.identifier = item_tmp.name = collection->id.name + 2;
+      item_tmp.value = *((int *)&collection->id.session_uuid);
+      RNA_enum_item_add(&item, &totitem, &item_tmp);
+    }
+  }
+
+  RNA_enum_item_end(&item, &totitem);
+  *r_free = true;
+
+  return item;
 }
 
 void OBJECT_OT_make_override_library(wmOperatorType *ot)
@@ -2521,12 +2568,13 @@ void OBJECT_OT_make_override_library(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
   prop = RNA_def_enum(ot->srna,
-                      "object",
+                      "collection",
                       DummyRNA_DEFAULT_items,
-                      0,
-                      "Override Object",
-                      "Name of lib-linked/collection object to make an override from");
-  RNA_def_enum_funcs(prop, proxy_collection_object_itemf);
+                      MAIN_ID_SESSION_UUID_UNSET,
+                      "Override Collection",
+                      "Name of directly linked collection containing the selected object, to make "
+                      "an override from");
+  RNA_def_enum_funcs(prop, make_override_collections_of_linked_object_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
 }
