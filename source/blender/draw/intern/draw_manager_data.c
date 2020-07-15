@@ -793,10 +793,10 @@ void DRW_shgroup_call_range(
   drw_command_draw_range(shgroup, geom, handle, v_sta, v_ct);
 }
 
+/* A count of 0 instance will use the default number of instance in the batch. */
 void DRW_shgroup_call_instance_range(
     DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint i_sta, uint i_ct)
 {
-  BLI_assert(i_ct > 0);
   BLI_assert(geom != NULL);
   if (G.f & G_FLAG_PICKSEL) {
     drw_command_set_select_id(shgroup, NULL, DST.select_id);

@@ -215,6 +215,7 @@ struct GPUBatch *DRW_cache_hair_edge_detection_get(struct Object *ob, bool *r_is
 
 /* PointCloud */
 struct GPUBatch *DRW_cache_pointcloud_get_dots(struct Object *obj);
+struct GPUBatch *DRW_cache_pointcloud_surface_get(struct Object *obj);
 
 /* Volume */
 typedef struct DRWVolumeGrid {

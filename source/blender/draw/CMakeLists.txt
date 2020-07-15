@@ -143,7 +143,6 @@ set(SRC
   engines/overlay/overlay_outline.c
   engines/overlay/overlay_paint.c
   engines/overlay/overlay_particle.c
-  engines/overlay/overlay_pointcloud.c
   engines/overlay/overlay_sculpt.c
   engines/overlay/overlay_shader.c
   engines/overlay/overlay_wireframe.c
@@ -270,6 +269,7 @@ data_to_c_simple(engines/workbench/shaders/workbench_material_lib.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_merge_infront_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_prepass_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_prepass_hair_vert.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_prepass_pointcloud_vert.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_prepass_vert.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_shader_interface_lib.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_shadow_caps_geom.glsl SRC)
@@ -284,6 +284,7 @@ data_to_c_simple(engines/workbench/shaders/workbench_world_light_lib.glsl SRC)
 
 data_to_c_simple(intern/shaders/common_colormanagement_lib.glsl SRC)
 data_to_c_simple(intern/shaders/common_globals_lib.glsl SRC)
+data_to_c_simple(intern/shaders/common_pointcloud_lib.glsl SRC)
 data_to_c_simple(intern/shaders/common_hair_lib.glsl SRC)
 data_to_c_simple(intern/shaders/common_hair_refine_vert.glsl SRC)
 data_to_c_simple(intern/shaders/common_view_lib.glsl SRC)
@@ -385,8 +386,6 @@ data_to_c_simple(engines/overlay/shaders/paint_weight_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/paint_wire_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/particle_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/particle_frag.glsl SRC)
-data_to_c_simple(engines/overlay/shaders/pointcloud_vert.glsl SRC)
-data_to_c_simple(engines/overlay/shaders/pointcloud_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/sculpt_mask_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/sculpt_mask_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/volume_velocity_vert.glsl SRC)

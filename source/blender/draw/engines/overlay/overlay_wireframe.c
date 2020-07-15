@@ -235,10 +235,15 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     }
   }
 
-  if (use_wire && ob->type == OB_VOLUME) {
-    /* Volume object as points exception. */
-    Volume *volume = ob->data;
-    if (volume->display.wireframe_type == VOLUME_WIREFRAME_POINTS) {
+  if (use_wire && ELEM(ob->type, OB_VOLUME, OB_POINTCLOUD)) {
+    bool draw_as_points = true;
+    if (ob->type == OB_VOLUME) {
+      /* Volume object as points exception. */
+      Volume *volume = ob->data;
+      draw_as_points = volume->display.wireframe_type == VOLUME_WIREFRAME_POINTS;
+    }
+
+    if (draw_as_points) {
       float *color;
       OVERLAY_ExtraCallBuffers *cb = OVERLAY_extra_call_buffer_get(vedata, ob);
       DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);

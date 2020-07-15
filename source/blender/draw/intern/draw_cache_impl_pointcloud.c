@@ -28,6 +28,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_base.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_object_types.h"
@@ -45,11 +46,18 @@ static void pointcloud_batch_cache_clear(PointCloud *pointcloud);
 /* PointCloud GPUBatch Cache */
 
 typedef struct PointCloudBatchCache {
-  GPUVertBuf *pos;
-  GPUBatch *batch;
+  GPUVertBuf *pos;  /* Position and radius. */
+  GPUVertBuf *geom; /* Instanced geometry for each point in the cloud (small sphere). */
+  GPUIndexBuf *geom_indices;
+
+  GPUBatch *dots;
+  GPUBatch *surface;
+  GPUBatch **surface_per_mat;
 
   /* settings to determine if cache is invalid */
   bool is_dirty;
+
+  int mat_len;
 } PointCloudBatchCache;
 
 /* GPUBatch cache management. */
@@ -57,7 +65,14 @@ typedef struct PointCloudBatchCache {
 static bool pointcloud_batch_cache_valid(PointCloud *pointcloud)
 {
   PointCloudBatchCache *cache = pointcloud->batch_cache;
-  return (cache && cache->is_dirty == false);
+
+  if (cache == NULL) {
+    return false;
+  }
+  if (cache->mat_len != DRW_pointcloud_material_count_get(pointcloud)) {
+    return false;
+  }
+  return cache->is_dirty == false;
 }
 
 static void pointcloud_batch_cache_init(PointCloud *pointcloud)
@@ -70,6 +85,10 @@ static void pointcloud_batch_cache_init(PointCloud *pointcloud)
   else {
     memset(cache, 0, sizeof(*cache));
   }
+
+  cache->mat_len = DRW_pointcloud_material_count_get(pointcloud);
+  cache->surface_per_mat = MEM_callocN(sizeof(GPUBatch *) * cache->mat_len,
+                                       "pointcloud suface_per_mat");
 
   cache->is_dirty = false;
 }
@@ -109,8 +128,18 @@ static void pointcloud_batch_cache_clear(PointCloud *pointcloud)
     return;
   }
 
-  GPU_BATCH_DISCARD_SAFE(cache->batch);
+  GPU_BATCH_DISCARD_SAFE(cache->dots);
+  GPU_BATCH_DISCARD_SAFE(cache->surface);
   GPU_VERTBUF_DISCARD_SAFE(cache->pos);
+  GPU_VERTBUF_DISCARD_SAFE(cache->geom);
+  GPU_INDEXBUF_DISCARD_SAFE(cache->geom_indices);
+
+  if (cache->surface_per_mat) {
+    for (int i = 0; i < cache->mat_len; i++) {
+      GPU_BATCH_DISCARD_SAFE(cache->surface_per_mat[i]);
+    }
+  }
+  MEM_SAFE_FREE(cache->surface_per_mat);
 }
 
 void DRW_pointcloud_batch_cache_free(PointCloud *pointcloud)
@@ -126,35 +155,83 @@ static void pointcloud_batch_cache_ensure_pos(Object *ob, PointCloudBatchCache *
   }
 
   PointCloud *pointcloud = ob->data;
+  const bool has_radius = pointcloud->radius != NULL;
 
   static GPUVertFormat format = {0};
-  static uint pos_id;
-  static uint radius_id;
+  static uint pos;
   if (format.attr_len == 0) {
     /* initialize vertex format */
-    pos_id = GPU_vertformat_attr_add(&format, "pointcloud_pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    radius_id = GPU_vertformat_attr_add(
-        &format, "pointcloud_radius", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    /* From the opengl wiki:
+     * Note that size​ does not have to exactly match the size used by the vertex shader. If the
+     * vertex shader has fewer components than the attribute provides, then the extras are ignored.
+     * If the vertex shader has more components than the array provides, the extras are given
+     * values from the vector (0, 0, 0, 1) for the missing XYZW components.
+     */
+    int comp_len = has_radius ? 4 : 3;
+    pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, comp_len, GPU_FETCH_FLOAT);
   }
 
-  GPU_VERTBUF_DISCARD_SAFE(cache->pos);
   cache->pos = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(cache->pos, pointcloud->totpoint);
-  GPU_vertbuf_attr_fill(cache->pos, pos_id, pointcloud->co);
 
-  if (pointcloud->radius) {
-    GPU_vertbuf_attr_fill(cache->pos, radius_id, pointcloud->radius);
-  }
-  else if (pointcloud->totpoint) {
-    /* TODO: optimize for constant radius by not including in vertex buffer at all? */
-    float *radius = MEM_malloc_arrayN(pointcloud->totpoint, sizeof(float), __func__);
+  if (has_radius) {
+    float(*vbo_data)[4] = (float(*)[4])cache->pos->data;
     for (int i = 0; i < pointcloud->totpoint; i++) {
-      /* TODO: add default radius to PointCloud data structure. */
-      radius[i] = 0.01f;
+      copy_v3_v3(vbo_data[i], pointcloud->co[i]);
+      /* TODO(fclem) remove multiplication here. Here only for keeping the size correct for now. */
+      vbo_data[i][3] = pointcloud->radius[i] * 100.0f;
     }
-    GPU_vertbuf_attr_fill(cache->pos, radius_id, radius);
-    MEM_freeN(radius);
   }
+  else {
+    GPU_vertbuf_attr_fill(cache->pos, pos, pointcloud->co);
+  }
+}
+
+static const float half_octahedron_normals[5][3] = {
+    {0.0f, 0.0f, 1.0f},
+    {1.0f, 0.0f, 0.0f},
+    {0.0f, 1.0f, 0.0f},
+    {-1.0f, 0.0f, 0.0f},
+    {0.0f, -1.0f, 0.0f},
+};
+
+static const uint half_octahedron_tris[4][3] = {
+    {0, 1, 2},
+    {0, 2, 3},
+    {0, 3, 4},
+    {0, 4, 1},
+};
+
+static void pointcloud_batch_cache_ensure_geom(Object *UNUSED(ob), PointCloudBatchCache *cache)
+{
+  if (cache->geom != NULL) {
+    return;
+  }
+
+  static GPUVertFormat format = {0};
+  static uint pos;
+  if (format.attr_len == 0) {
+    /* initialize vertex format */
+    pos = GPU_vertformat_attr_add(&format, "pos_inst", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    GPU_vertformat_alias_add(&format, "nor");
+  }
+
+  cache->geom = GPU_vertbuf_create_with_format(&format);
+  GPU_vertbuf_data_alloc(cache->geom, ARRAY_SIZE(half_octahedron_normals));
+
+  GPU_vertbuf_attr_fill(cache->geom, pos, half_octahedron_normals);
+
+  GPUIndexBufBuilder builder;
+  GPU_indexbuf_init(&builder,
+                    GPU_PRIM_TRIS,
+                    ARRAY_SIZE(half_octahedron_tris),
+                    ARRAY_SIZE(half_octahedron_normals));
+
+  for (int i = 0; i < ARRAY_SIZE(half_octahedron_tris); i++) {
+    GPU_indexbuf_add_tri_verts(&builder, UNPACK3(half_octahedron_tris[i]));
+  }
+
+  cache->geom_indices = GPU_indexbuf_build(&builder);
 }
 
 GPUBatch *DRW_pointcloud_batch_cache_get_dots(Object *ob)
@@ -162,12 +239,47 @@ GPUBatch *DRW_pointcloud_batch_cache_get_dots(Object *ob)
   PointCloud *pointcloud = ob->data;
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
 
-  if (cache->batch == NULL) {
+  if (cache->dots == NULL) {
     pointcloud_batch_cache_ensure_pos(ob, cache);
-    cache->batch = GPU_batch_create(GPU_PRIM_POINTS, cache->pos, NULL);
+    cache->dots = GPU_batch_create(GPU_PRIM_POINTS, cache->pos, NULL);
   }
 
-  return cache->batch;
+  return cache->dots;
+}
+
+GPUBatch *DRW_pointcloud_batch_cache_get_surface(Object *ob)
+{
+  PointCloud *pointcloud = ob->data;
+  PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
+
+  if (cache->surface == NULL) {
+    pointcloud_batch_cache_ensure_pos(ob, cache);
+    pointcloud_batch_cache_ensure_geom(ob, cache);
+
+    cache->surface = GPU_batch_create(GPU_PRIM_TRIS, cache->geom, cache->geom_indices);
+    GPU_batch_instbuf_add_ex(cache->surface, cache->pos, false);
+  }
+
+  return cache->surface;
+}
+
+GPUBatch **DRW_cache_pointcloud_surface_shaded_get(Object *ob,
+                                                   struct GPUMaterial **UNUSED(gpumat_array),
+                                                   uint gpumat_array_len)
+{
+  PointCloud *pointcloud = ob->data;
+  PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
+  BLI_assert(cache->mat_len == gpumat_array_len);
+
+  if (cache->surface_per_mat[0] == NULL) {
+    pointcloud_batch_cache_ensure_pos(ob, cache);
+    pointcloud_batch_cache_ensure_geom(ob, cache);
+
+    cache->surface_per_mat[0] = GPU_batch_create(GPU_PRIM_TRIS, cache->geom, cache->geom_indices);
+    GPU_batch_instbuf_add_ex(cache->surface_per_mat[0], cache->pos, false);
+  }
+
+  return cache->surface_per_mat;
 }
 
 int DRW_pointcloud_material_count_get(PointCloud *pointcloud)

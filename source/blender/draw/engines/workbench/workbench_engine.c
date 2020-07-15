@@ -130,6 +130,17 @@ static void workbench_cache_sculpt_populate(WORKBENCH_PrivateData *wpd,
   }
 }
 
+BLI_INLINE void workbench_object_drawcall(DRWShadingGroup *grp, struct GPUBatch *geom, Object *ob)
+{
+  if (ob->type == OB_POINTCLOUD) {
+    /* Draw range to avoid drawcall batching messing up the instance attrib. */
+    DRW_shgroup_call_instance_range(grp, ob, geom, 0, 0);
+  }
+  else {
+    DRW_shgroup_call(grp, geom, ob);
+  }
+}
+
 static void workbench_cache_texpaint_populate(WORKBENCH_PrivateData *wpd, Object *ob)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -145,7 +156,7 @@ static void workbench_cache_texpaint_populate(WORKBENCH_PrivateData *wpd, Object
       SET_FLAG_FROM_TEST(state, imapaint->interp == IMAGEPAINT_INTERP_LINEAR, GPU_SAMPLER_FILTER);
 
       DRWShadingGroup *grp = workbench_image_setup(wpd, ob, 0, ima, NULL, state);
-      DRW_shgroup_call(grp, geom, ob);
+      workbench_object_drawcall(grp, geom, ob);
     }
   }
   else {
@@ -157,7 +168,7 @@ static void workbench_cache_texpaint_populate(WORKBENCH_PrivateData *wpd, Object
           continue;
         }
         DRWShadingGroup *grp = workbench_image_setup(wpd, ob, i + 1, NULL, NULL, 0);
-        DRW_shgroup_call(grp, geoms[i], ob);
+        workbench_object_drawcall(grp, geoms[i], ob);
       }
     }
   }
@@ -194,7 +205,7 @@ static void workbench_cache_common_populate(WORKBENCH_PrivateData *wpd,
 
     if (geom) {
       DRWShadingGroup *grp = workbench_material_setup(wpd, ob, 0, color_type, r_transp);
-      DRW_shgroup_call(grp, geom, ob);
+      workbench_object_drawcall(grp, geom, ob);
     }
   }
   else {
@@ -207,7 +218,7 @@ static void workbench_cache_common_populate(WORKBENCH_PrivateData *wpd,
           continue;
         }
         DRWShadingGroup *grp = workbench_material_setup(wpd, ob, i + 1, color_type, r_transp);
-        DRW_shgroup_call(grp, geoms[i], ob);
+        workbench_object_drawcall(grp, geoms[i], ob);
       }
     }
   }
@@ -450,7 +461,7 @@ void workbench_cache_finish(void *ved)
   /* TODO don't free reuse next redraw. */
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < 2; j++) {
-      for (int k = 0; k < 2; k++) {
+      for (int k = 0; k < WORKBENCH_DATATYPE_MAX; k++) {
         if (wpd->prepass[i][j][k].material_hash) {
           BLI_ghash_free(wpd->prepass[i][j][k].material_hash, NULL, NULL);
           wpd->prepass[i][j][k].material_hash = NULL;

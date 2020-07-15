@@ -71,6 +71,14 @@ struct RenderEngine;
 struct RenderLayer;
 struct rcti;
 
+typedef enum eWORKBENCH_DataType {
+  WORKBENCH_DATATYPE_MESH = 0,
+  WORKBENCH_DATATYPE_HAIR,
+  WORKBENCH_DATATYPE_POINTCLOUD,
+
+  WORKBENCH_DATATYPE_MAX,
+} eWORKBENCH_DataType;
+
 typedef struct WORKBENCH_FramebufferList {
   struct GPUFrameBuffer *opaque_fb;
   struct GPUFrameBuffer *opaque_infront_fb;
@@ -292,8 +300,8 @@ typedef struct WORKBENCH_PrivateData {
   /** Object IDs buffer for curvature & outline. */
   struct GPUTexture *object_id_tx;
 
-  /** Pre-pass information for each draw types [transparent][infront][hair]. */
-  WORKBENCH_Prepass prepass[2][2][2];
+  /** Pre-pass information for each draw types [transparent][infront][datatype]. */
+  WORKBENCH_Prepass prepass[2][2][WORKBENCH_DATATYPE_MAX];
 
   /* Materials */
   /** Copy of vldata->material_ubo for faster access. */
@@ -392,14 +400,16 @@ void workbench_shadow_cache_init(WORKBENCH_Data *data);
 void workbench_shadow_cache_populate(WORKBENCH_Data *data, Object *ob, const bool has_transp_mat);
 
 /* workbench_shader.c */
-GPUShader *workbench_shader_opaque_get(WORKBENCH_PrivateData *wpd, bool hair);
-GPUShader *workbench_shader_opaque_image_get(WORKBENCH_PrivateData *wpd, bool hair, bool tiled);
+GPUShader *workbench_shader_opaque_get(WORKBENCH_PrivateData *wpd, eWORKBENCH_DataType data);
+GPUShader *workbench_shader_opaque_image_get(WORKBENCH_PrivateData *wpd,
+                                             eWORKBENCH_DataType data,
+                                             bool tiled);
 GPUShader *workbench_shader_composite_get(WORKBENCH_PrivateData *wpd);
 GPUShader *workbench_shader_merge_infront_get(WORKBENCH_PrivateData *wpd);
 
-GPUShader *workbench_shader_transparent_get(WORKBENCH_PrivateData *wpd, bool hair);
+GPUShader *workbench_shader_transparent_get(WORKBENCH_PrivateData *wpd, eWORKBENCH_DataType data);
 GPUShader *workbench_shader_transparent_image_get(WORKBENCH_PrivateData *wpd,
-                                                  bool hair,
+                                                  eWORKBENCH_DataType data,
                                                   bool tiled);
 GPUShader *workbench_shader_transparent_resolve_get(WORKBENCH_PrivateData *wpd);
 
@@ -454,7 +464,7 @@ DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
                                              Object *ob,
                                              int mat_nr,
                                              eV3DShadingColorType color_type,
-                                             bool hair,
+                                             eWORKBENCH_DataType datatype,
                                              bool *r_transp);
 DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
                                           Object *ob,
@@ -462,17 +472,20 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
                                           Image *ima,
                                           ImageUser *iuser,
                                           eGPUSamplerState sampler,
-                                          bool hair);
+                                          eWORKBENCH_DataType datatype);
+
+#define WORKBENCH_OBJECT_DATATYPE(ob) \
+  ((ob->type == OB_POINTCLOUD) ? WORKBENCH_DATATYPE_POINTCLOUD : WORKBENCH_DATATYPE_MESH)
 
 #define workbench_material_setup(wpd, ob, mat_nr, color_type, r_transp) \
-  workbench_material_setup_ex(wpd, ob, mat_nr, color_type, false, r_transp)
+  workbench_material_setup_ex(wpd, ob, mat_nr, color_type, WORKBENCH_OBJECT_DATATYPE(ob), r_transp)
 #define workbench_image_setup(wpd, ob, mat_nr, ima, iuser, interp) \
-  workbench_image_setup_ex(wpd, ob, mat_nr, ima, iuser, interp, false)
+  workbench_image_setup_ex(wpd, ob, mat_nr, ima, iuser, interp, WORKBENCH_OBJECT_DATATYPE(ob))
 
 #define workbench_material_hair_setup(wpd, ob, mat_nr, color_type) \
-  workbench_material_setup_ex(wpd, ob, mat_nr, color_type, true, 0)
+  workbench_material_setup_ex(wpd, ob, mat_nr, color_type, WORKBENCH_DATATYPE_HAIR, 0)
 #define workbench_image_hair_setup(wpd, ob, mat_nr, ima, iuser, interp) \
-  workbench_image_setup_ex(wpd, ob, mat_nr, ima, iuser, interp, true)
+  workbench_image_setup_ex(wpd, ob, mat_nr, ima, iuser, interp, WORKBENCH_DATATYPE_HAIR)
 
 /* workbench_data.c */
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd);

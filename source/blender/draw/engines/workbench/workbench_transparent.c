@@ -83,10 +83,10 @@ static void workbench_transparent_lighting_uniforms(WORKBENCH_PrivateData *wpd,
   }
 }
 
-void workbench_transparent_cache_init(WORKBENCH_Data *data)
+void workbench_transparent_cache_init(WORKBENCH_Data *vedata)
 {
-  WORKBENCH_PassList *psl = data->psl;
-  WORKBENCH_PrivateData *wpd = data->stl->wpd;
+  WORKBENCH_PassList *psl = vedata->psl;
+  WORKBENCH_PrivateData *wpd = vedata->stl->wpd;
   struct GPUShader *sh;
   DRWShadingGroup *grp;
 
@@ -105,30 +105,30 @@ void workbench_transparent_cache_init(WORKBENCH_Data *data)
         pass = psl->transp_accum_ps;
       }
 
-      for (int hair = 0; hair < 2; hair++) {
-        wpd->prepass[transp][infront][hair].material_hash = BLI_ghash_ptr_new(__func__);
+      for (eWORKBENCH_DataType data = 0; data < WORKBENCH_DATATYPE_MAX; data++) {
+        wpd->prepass[transp][infront][data].material_hash = BLI_ghash_ptr_new(__func__);
 
-        sh = workbench_shader_transparent_get(wpd, hair);
+        sh = workbench_shader_transparent_get(wpd, data);
 
-        wpd->prepass[transp][infront][hair].common_shgrp = grp = DRW_shgroup_create(sh, pass);
+        wpd->prepass[transp][infront][data].common_shgrp = grp = DRW_shgroup_create(sh, pass);
         DRW_shgroup_uniform_block(grp, "material_block", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", -1);
         workbench_transparent_lighting_uniforms(wpd, grp);
 
-        wpd->prepass[transp][infront][hair].vcol_shgrp = grp = DRW_shgroup_create(sh, pass);
+        wpd->prepass[transp][infront][data].vcol_shgrp = grp = DRW_shgroup_create(sh, pass);
         DRW_shgroup_uniform_block(grp, "material_block", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", 0); /* Default material. (uses vcol) */
 
-        sh = workbench_shader_transparent_image_get(wpd, hair, false);
+        sh = workbench_shader_transparent_image_get(wpd, data, false);
 
-        wpd->prepass[transp][infront][hair].image_shgrp = grp = DRW_shgroup_create(sh, pass);
+        wpd->prepass[transp][infront][data].image_shgrp = grp = DRW_shgroup_create(sh, pass);
         DRW_shgroup_uniform_block(grp, "material_block", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", 0); /* Default material. */
         workbench_transparent_lighting_uniforms(wpd, grp);
 
-        sh = workbench_shader_transparent_image_get(wpd, hair, true);
+        sh = workbench_shader_transparent_image_get(wpd, data, true);
 
-        wpd->prepass[transp][infront][hair].image_tiled_shgrp = grp = DRW_shgroup_create(sh, pass);
+        wpd->prepass[transp][infront][data].image_tiled_shgrp = grp = DRW_shgroup_create(sh, pass);
         DRW_shgroup_uniform_block(grp, "material_block", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", 0); /* Default material. */
         workbench_transparent_lighting_uniforms(wpd, grp);

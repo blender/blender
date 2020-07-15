@@ -829,7 +829,7 @@ GPUBatch *DRW_cache_object_face_wireframe_get(Object *ob)
     case OB_HAIR:
       return NULL;
     case OB_POINTCLOUD:
-      return NULL;
+      return DRW_pointcloud_batch_cache_get_dots(ob);
     case OB_VOLUME:
       return DRW_cache_volume_face_wireframe_get(ob);
     case OB_GPENCIL: {
@@ -880,7 +880,7 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
     case OB_HAIR:
       return NULL;
     case OB_POINTCLOUD:
-      return NULL;
+      return DRW_cache_pointcloud_surface_get(ob);
     case OB_VOLUME:
       return NULL;
     default:
@@ -958,7 +958,7 @@ GPUBatch **DRW_cache_object_surface_material_get(struct Object *ob,
     case OB_HAIR:
       return NULL;
     case OB_POINTCLOUD:
-      return NULL;
+      return DRW_cache_pointcloud_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
     case OB_VOLUME:
       return NULL;
     default:
@@ -3289,7 +3289,14 @@ GPUBatch *DRW_cache_lattice_vert_overlay_get(Object *ob)
 
 GPUBatch *DRW_cache_pointcloud_get_dots(Object *object)
 {
+  BLI_assert(object->type == OB_POINTCLOUD);
   return DRW_pointcloud_batch_cache_get_dots(object);
+}
+
+GPUBatch *DRW_cache_pointcloud_surface_get(Object *object)
+{
+  BLI_assert(object->type == OB_POINTCLOUD);
+  return DRW_pointcloud_batch_cache_get_surface(object);
 }
 
 /* -------------------------------------------------------------------- */
