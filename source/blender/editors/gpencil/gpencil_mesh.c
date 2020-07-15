@@ -82,7 +82,7 @@ static bool gpencil_bake_mesh_animation_poll(bContext *C)
 }
 
 typedef struct GpBakeOb {
-  struct GPBakelist *next, *prev;
+  struct GpBakeOb *next, *prev;
   Object *ob;
 } GpBakeOb;
 
