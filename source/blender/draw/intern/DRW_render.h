@@ -204,6 +204,11 @@ struct GPUShader *DRW_shader_create(const char *vert,
                                     const char *defines);
 struct GPUShader *DRW_shader_create_with_lib(
     const char *vert, const char *geom, const char *frag, const char *lib, const char *defines);
+struct GPUShader *DRW_shader_create_with_shaderlib(const char *vert,
+                                                   const char *geom,
+                                                   const char *frag,
+                                                   const DRWShaderLibrary *lib,
+                                                   const char *defines);
 struct GPUShader *DRW_shader_create_with_transform_feedback(const char *vert,
                                                             const char *geom,
                                                             const char *defines,
@@ -211,6 +216,9 @@ struct GPUShader *DRW_shader_create_with_transform_feedback(const char *vert,
                                                             const char **varying_names,
                                                             const int varying_count);
 struct GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines);
+struct GPUShader *DRW_shader_create_fullscreen_with_shaderlib(const char *frag,
+                                                              const DRWShaderLibrary *lib,
+                                                              const char *defines);
 struct GPUMaterial *DRW_shader_find_from_world(struct World *wo,
                                                const void *engine_type,
                                                const int options,
