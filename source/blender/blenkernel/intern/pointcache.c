@@ -1900,7 +1900,7 @@ static int ptcache_sim_particle_write(int index, void *state_v, void **data, int
   ParticleSimulationState *state = (ParticleSimulationState *)state_v;
 
   const float *positions = (const float *)CustomData_get_layer_named(
-      &state->attributes, CD_LOCATION, "Position");
+      &state->attributes, CD_PROP_FLOAT3, "Position");
 
   PTCACHE_DATA_FROM(data, BPHYS_DATA_LOCATION, positions + (index * 3));
 
@@ -1913,7 +1913,7 @@ static void ptcache_sim_particle_read(
 
   BLI_assert(index < state->tot_particles);
   float *positions = (float *)CustomData_get_layer_named(
-      &state->attributes, CD_LOCATION, "Position");
+      &state->attributes, CD_PROP_FLOAT3, "Position");
 
   PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, 0, positions + (index * 3));
 }

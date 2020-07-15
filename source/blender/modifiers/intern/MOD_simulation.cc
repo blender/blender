@@ -125,7 +125,7 @@ static PointCloud *modifyPointCloud(ModifierData *md,
   }
 
   const float3 *positions = (const float3 *)CustomData_get_layer_named(
-      &state->attributes, CD_LOCATION, "Position");
+      &state->attributes, CD_PROP_FLOAT3, "Position");
   memcpy(pointcloud->co, positions, sizeof(float3) * state->tot_particles);
 
   for (int i = 0; i < state->tot_particles; i++) {

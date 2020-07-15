@@ -168,13 +168,13 @@ namespace blender::bke {
 
 static void ensure_attributes_exist(ParticleSimulationState *state)
 {
-  if (CustomData_get_layer_named(&state->attributes, CD_LOCATION, "Position") == nullptr) {
+  if (CustomData_get_layer_named(&state->attributes, CD_PROP_FLOAT3, "Position") == nullptr) {
     CustomData_add_layer_named(
-        &state->attributes, CD_LOCATION, CD_CALLOC, nullptr, state->tot_particles, "Position");
+        &state->attributes, CD_PROP_FLOAT3, CD_CALLOC, nullptr, state->tot_particles, "Position");
   }
-  if (CustomData_get_layer_named(&state->attributes, CD_LOCATION, "Velocity") == nullptr) {
+  if (CustomData_get_layer_named(&state->attributes, CD_PROP_FLOAT3, "Velocity") == nullptr) {
     CustomData_add_layer_named(
-        &state->attributes, CD_LOCATION, CD_CALLOC, nullptr, state->tot_particles, "Velocity");
+        &state->attributes, CD_PROP_FLOAT3, CD_CALLOC, nullptr, state->tot_particles, "Velocity");
   }
   if (CustomData_get_layer_named(&state->attributes, CD_PROP_INT32, "ID") == nullptr) {
     CustomData_add_layer_named(
@@ -288,7 +288,7 @@ class CustomDataAttributesRef {
           builder.add<int32_t>(layer.name, 0);
           break;
         }
-        case CD_LOCATION: {
+        case CD_PROP_FLOAT3: {
           builder.add<float3>(layer.name, {0, 0, 0});
           break;
         }
