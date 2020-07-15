@@ -159,6 +159,33 @@ class VIEW3D_OT_edit_mesh_extrude_shrink_fatten(Operator):
         return self.execute(context)
 
 
+class VIEW3D_OT_edit_mesh_extrude_manifold_normal(Operator):
+    """Extrude manifold region along normals"""
+    bl_label = "Extrude Manifold Along Normals"
+    bl_idname = "view3d.edit_mesh_extrude_manifold_normal"
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return (obj is not None and obj.mode == 'EDIT')
+
+    def execute(self, context):
+        bpy.ops.mesh.extrude_manifold(
+            'INVOKE_REGION_WIN',
+            MESH_OT_extrude_region={
+                "use_dissolve_ortho_edges": True,
+            },
+            TRANSFORM_OT_translate={
+                "orient_type": 'NORMAL',
+                "constraint_axis": (False, False, True),
+            },
+        )
+        return {'FINISHED'}
+
+    def invoke(self, context, _event):
+        return self.execute(context)
+
+
 class VIEW3D_OT_transform_gizmo_set(Operator):
     """Set the current transform gizmo"""
     bl_label = "Transform Gizmo Set"
@@ -208,5 +235,6 @@ classes = (
     VIEW3D_OT_edit_mesh_extrude_individual_move,
     VIEW3D_OT_edit_mesh_extrude_move,
     VIEW3D_OT_edit_mesh_extrude_shrink_fatten,
+    VIEW3D_OT_edit_mesh_extrude_manifold_normal,
     VIEW3D_OT_transform_gizmo_set,
 )

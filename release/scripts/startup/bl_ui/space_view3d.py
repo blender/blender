@@ -3876,6 +3876,8 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
         layout.operator("view3d.edit_mesh_extrude_move_shrink_fatten", text="Extrude Faces Along Normals"),
         'FACE': lambda layout:
         layout.operator("mesh.extrude_faces_move", text="Extrude Individual Faces"),
+        'MANIFOLD': lambda layout:
+        layout.operator("view3d.edit_mesh_extrude_manifold_normal", text="Extrude Manifold"),
     }
 
     @staticmethod
@@ -3886,7 +3888,7 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
 
         menu = []
         if mesh.total_face_sel:
-            menu += ['REGION', 'REGION_VERT_NORMAL', 'FACE']
+            menu += ['REGION', 'REGION_VERT_NORMAL', 'FACE', 'MANIFOLD']
         if mesh.total_edge_sel and (select_mode[0] or select_mode[1]):
             menu += ['EDGE']
         if mesh.total_vert_sel and select_mode[0]:
