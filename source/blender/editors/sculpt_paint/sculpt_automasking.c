@@ -89,19 +89,65 @@ bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession *ss, co
   return false;
 }
 
+int SCULPT_automasking_mode_effective_bits(const Sculpt *sculpt, const Brush *brush)
+{
+  return sculpt->automasking_flags | brush->automasking_flags;
+}
+
+static bool SCULPT_automasking_needs_cache(const Sculpt *sd, const Brush *brush)
+{
+
+  const int automasking_flags = SCULPT_automasking_mode_effective_bits(sd, brush);
+  if (automasking_flags & BRUSH_AUTOMASKING_TOPOLOGY) {
+    return true;
+  }
+  if (automasking_flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
+    return brush->automasking_boundary_edges_propagation_steps != 1;
+  }
+  if (automasking_flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
+    return brush->automasking_boundary_edges_propagation_steps != 1;
+  }
+  return false;
+}
+
 float SCULPT_automasking_factor_get(SculptSession *ss, int vert)
 {
-  if (ss->cache && ss->cache->automask) {
-    return ss->cache->automask[vert];
+  if (!ss->cache) {
+    return 1.0f;
   }
+  /* If the cache is initialized with valid info, use the cache. This is used when the
+   * automasking information can't be computed in real time per vertex and needs to be
+   * initialized for the whole mesh when the stroke starts. */
+  if (ss->cache->automask_factor) {
+    return ss->cache->automask_factor[vert];
+  }
+
+  if (ss->cache->automask_settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
+    if (!SCULPT_vertex_has_face_set(ss, vert, ss->cache->automask_settings.initial_face_set)) {
+      return 0.0f;
+    }
+  }
+
+  if (ss->cache->automask_settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
+    if (SCULPT_vertex_is_boundary(ss, vert)) {
+      return 0.0f;
+    }
+  }
+
+  if (ss->cache->automask_settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
+    if (!SCULPT_vertex_has_unique_face_set(ss, vert)) {
+      return 0.0f;
+    }
+  }
+
   return 1.0f;
 }
 
 void SCULPT_automasking_end(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
-  if (ss->cache && ss->cache->automask) {
-    MEM_freeN(ss->cache->automask);
+  if (ss->cache && ss->cache->automask_factor) {
+    MEM_freeN(ss->cache->automask_factor);
   }
 }
 
@@ -153,7 +199,7 @@ static float *SCULPT_topology_automasking_init(Sculpt *sd, Object *ob, float *au
 
   const int totvert = SCULPT_vertex_count_get(ss);
   for (int i = 0; i < totvert; i++) {
-    ss->cache->automask[i] = 0.0f;
+    ss->cache->automask_factor[i] = 0.0f;
   }
 
   /* Flood fill automask to connected vertices. Limited to vertices inside
@@ -259,6 +305,14 @@ float *SCULPT_boundary_automasking_init(Object *ob,
   return automask_factor;
 }
 
+static void SCULPT_stroke_automasking_settings_update(SculptSession *ss, Sculpt *sd, Brush *brush)
+{
+  BLI_assert(ss->cache);
+
+  ss->cache->automask_settings.flags = SCULPT_automasking_mode_effective_bits(sd, brush);
+  ss->cache->automask_settings.initial_face_set = SCULPT_active_face_set_get(ss);
+}
+
 void SCULPT_automasking_init(Sculpt *sd, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
@@ -269,20 +323,26 @@ void SCULPT_automasking_init(Sculpt *sd, Object *ob)
     return;
   }
 
-  ss->cache->automask = MEM_callocN(sizeof(float) * SCULPT_vertex_count_get(ss),
-                                    "automask_factor");
+  SCULPT_stroke_automasking_settings_update(ss, sd, brush);
+  SCULPT_boundary_info_ensure(ob);
+
+  if (!SCULPT_automasking_needs_cache(sd, brush)) {
+    return;
+  }
+
+  ss->cache->automask_factor = MEM_malloc_arrayN(totvert, sizeof(float), "automask_factor");
 
   for (int i = 0; i < totvert; i++) {
-    ss->cache->automask[i] = 1.0f;
+    ss->cache->automask_factor[i] = 1.0f;
   }
 
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_TOPOLOGY)) {
     SCULPT_vertex_random_access_init(ss);
-    SCULPT_topology_automasking_init(sd, ob, ss->cache->automask);
+    SCULPT_topology_automasking_init(sd, ob, ss->cache->automask_factor);
   }
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_FACE_SETS)) {
     SCULPT_vertex_random_access_init(ss);
-    sculpt_face_sets_automasking_init(sd, ob, ss->cache->automask);
+    sculpt_face_sets_automasking_init(sd, ob, ss->cache->automask_factor);
   }
 
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
@@ -290,13 +350,13 @@ void SCULPT_automasking_init(Sculpt *sd, Object *ob)
     SCULPT_boundary_automasking_init(ob,
                                      AUTOMASK_INIT_BOUNDARY_EDGES,
                                      brush->automasking_boundary_edges_propagation_steps,
-                                     ss->cache->automask);
+                                     ss->cache->automask_factor);
   }
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
     SCULPT_vertex_random_access_init(ss);
     SCULPT_boundary_automasking_init(ob,
                                      AUTOMASK_INIT_BOUNDARY_FACE_SETS,
                                      brush->automasking_boundary_edges_propagation_steps,
-                                     ss->cache->automask);
+                                     ss->cache->automask_factor);
   }
 }

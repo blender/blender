@@ -24,6 +24,7 @@
  * \ingroup bke
  */
 
+#include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
 #include "DNA_object_enums.h"
 
@@ -291,6 +292,9 @@ typedef struct SculptPersistentBase {
 typedef struct SculptVertexInfo {
   /* Idexed by vertex, stores and ID of its topologycally connected component. */
   int *connected_component;
+
+  /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
+  BLI_bitmap *boundary;
 } SculptVertexInfo;
 
 typedef struct SculptFakeNeighbors {

@@ -389,7 +389,7 @@ bool SCULPT_vertex_any_face_set_visible_get(SculptSession *ss, int index)
   return true;
 }
 
-bool SCULPT_vertex_all_face_sets_visible_get(SculptSession *ss, int index)
+bool SCULPT_vertex_all_face_sets_visible_get(const SculptSession *ss, int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -788,28 +788,13 @@ void SCULPT_vertex_neighbors_get(SculptSession *ss,
   }
 }
 
-static bool sculpt_check_boundary_vertex_in_base_mesh(SculptSession *ss, const int index)
+static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss, const int index)
 {
-  const MeshElemMap *vert_map = &ss->pmap[index];
-  if (vert_map->count <= 1) {
-    return true;
-  }
-  for (int i = 0; i < vert_map->count; i++) {
-    const MPoly *p = &ss->mpoly[vert_map->indices[i]];
-    unsigned f_adj_v[2];
-    if (poly_get_adj_loops_from_vert(p, ss->mloop, index, f_adj_v) != -1) {
-      int j;
-      for (j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
-        if (!(vert_map->count != 2 || ss->pmap[f_adj_v[j]].count <= 2)) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
+  BLI_assert(ss->vertex_info.boundary);
+  return BLI_BITMAP_TEST(ss->vertex_info.boundary, index);
 }
 
-bool SCULPT_vertex_is_boundary(SculptSession *ss, const int index)
+bool SCULPT_vertex_is_boundary(const SculptSession *ss, const int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -8486,6 +8471,37 @@ static void sculpt_connected_components_ensure(Object *ob)
       next_id++;
     }
   }
+}
+
+void SCULPT_boundary_info_ensure(Object *object)
+{
+  SculptSession *ss = object->sculpt;
+  if (ss->vertex_info.boundary) {
+    return;
+  }
+
+  Mesh *base_mesh = BKE_mesh_from_object(object);
+  ss->vertex_info.boundary = BLI_BITMAP_NEW(base_mesh->totvert, "Boundary info");
+  int *adjacent_faces_edge_count = MEM_calloc_arrayN(
+      base_mesh->totedge, sizeof(int), "Adjacent face edge count");
+
+  for (int p = 0; p < base_mesh->totpoly; p++) {
+    MPoly *poly = &base_mesh->mpoly[p];
+    for (int l = 0; l < poly->totloop; l++) {
+      MLoop *loop = &base_mesh->mloop[l + poly->loopstart];
+      adjacent_faces_edge_count[loop->e]++;
+    }
+  }
+
+  for (int e = 0; e < base_mesh->totedge; e++) {
+    if (adjacent_faces_edge_count[e] < 2) {
+      MEdge *edge = &base_mesh->medge[e];
+      BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v1, true);
+      BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v2, true);
+    }
+  }
+
+  MEM_freeN(adjacent_faces_edge_count);
 }
 
 void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist)
