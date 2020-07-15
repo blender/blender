@@ -786,8 +786,8 @@ static void id_override_library_cb(bContext *C,
         }
         te->store_elem->id->tag |= LIB_TAG_DOIT;
       }
-      BKE_lib_override_library_dependencies_tag(bmain, id_root, LIB_TAG_DOIT, true);
-      BKE_lib_override_library_create_from_tag(bmain);
+      BKE_lib_override_library_create(
+          bmain, CTX_data_scene(C), CTX_data_view_layer(C), id_root, NULL);
     }
     else if (ID_IS_OVERRIDABLE_LIBRARY(id_root)) {
       BKE_lib_override_library_create_from_id(bmain, id_root, true);
