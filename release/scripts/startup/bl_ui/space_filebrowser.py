@@ -98,7 +98,7 @@ class FILEBROWSER_PT_filter(Panel):
         is_lib_browser = params.use_library_browsing
 
         row = layout.row(align=True)
-        row.prop(params, "use_filter", text="", toggle=0)
+        row.prop(params, "use_filter", text="", toggle=False)
         row.label(text="Filter")
 
         col = layout.column()
@@ -106,7 +106,7 @@ class FILEBROWSER_PT_filter(Panel):
 
         row = col.row()
         row.label(icon='FILE_FOLDER')
-        row.prop(params, "use_filter_folder", text="Folders", toggle=0)
+        row.prop(params, "use_filter_folder", text="Folders", toggle=False)
 
         if params.filter_glob:
             col.label(text=params.filter_glob)
@@ -114,33 +114,33 @@ class FILEBROWSER_PT_filter(Panel):
             row = col.row()
             row.label(icon='FILE_BLEND')
             row.prop(params, "use_filter_blender",
-                     text=".blend Files", toggle=0)
+                     text=".blend Files", toggle=False)
             row = col.row()
             row.label(icon='FILE_BACKUP')
             row.prop(params, "use_filter_backup",
-                     text="Backup .blend Files", toggle=0)
+                     text="Backup .blend Files", toggle=False)
             row = col.row()
             row.label(icon='FILE_IMAGE')
-            row.prop(params, "use_filter_image", text="Image Files", toggle=0)
+            row.prop(params, "use_filter_image", text="Image Files", toggle=False)
             row = col.row()
             row.label(icon='FILE_MOVIE')
-            row.prop(params, "use_filter_movie", text="Movie Files", toggle=0)
+            row.prop(params, "use_filter_movie", text="Movie Files", toggle=False)
             row = col.row()
             row.label(icon='FILE_SCRIPT')
             row.prop(params, "use_filter_script",
-                     text="Script Files", toggle=0)
+                     text="Script Files", toggle=False)
             row = col.row()
             row.label(icon='FILE_FONT')
-            row.prop(params, "use_filter_font", text="Font Files", toggle=0)
+            row.prop(params, "use_filter_font", text="Font Files", toggle=False)
             row = col.row()
             row.label(icon='FILE_SOUND')
-            row.prop(params, "use_filter_sound", text="Sound Files", toggle=0)
+            row.prop(params, "use_filter_sound", text="Sound Files", toggle=False)
             row = col.row()
             row.label(icon='FILE_TEXT')
-            row.prop(params, "use_filter_text", text="Text Files", toggle=0)
+            row.prop(params, "use_filter_text", text="Text Files", toggle=False)
             row = col.row()
             row.label(icon='FILE_VOLUME')
-            row.prop(params, "use_filter_volume", text="Volume Files", toggle=0)
+            row.prop(params, "use_filter_volume", text="Volume Files", toggle=False)
 
         col.separator()
 
@@ -148,7 +148,7 @@ class FILEBROWSER_PT_filter(Panel):
             row = col.row()
             row.label(icon='BLANK1')  # Indentation
             row.prop(params, "use_filter_blendid",
-                     text="Blender IDs", toggle=0)
+                     text="Blender IDs", toggle=False)
             if params.use_filter_blendid:
                 row = col.row()
                 row.label(icon='BLANK1')  # Indentation
