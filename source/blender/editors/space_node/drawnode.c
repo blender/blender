@@ -1015,7 +1015,8 @@ static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, Pointer
   if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
     PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
 
-    if (RNA_collection_length(&dataptr, "sculpt_vertex_colors")) {
+    if (U.experimental.use_sculpt_vertex_colors &&
+        RNA_collection_length(&dataptr, "sculpt_vertex_colors")) {
       uiItemPointerR(
           layout, ptr, "layer_name", &dataptr, "sculpt_vertex_colors", "", ICON_GROUP_VCOL);
     }

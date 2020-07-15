@@ -203,16 +203,17 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
             type = CD_MTFACE;
 
             if (layer == -1) {
-              layer = CustomData_get_named_layer(cd_ldata, CD_MLOOPCOL, name);
-              type = CD_MCOL;
-            }
-
-            if (layer == -1) {
               if (U.experimental.use_sculpt_vertex_colors) {
                 layer = CustomData_get_named_layer(cd_vdata, CD_PROP_COLOR, name);
                 type = CD_PROP_COLOR;
               }
             }
+
+            if (layer == -1) {
+              layer = CustomData_get_named_layer(cd_ldata, CD_MLOOPCOL, name);
+              type = CD_MCOL;
+            }
+
 #if 0 /* Tangents are always from UV's - this will never happen. */
             if (layer == -1) {
               layer = CustomData_get_named_layer(cd_ldata, CD_TANGENT, name);
@@ -262,13 +263,26 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
           }
           case CD_PROP_COLOR: {
             /* Sculpt Vertex Colors */
+            bool use_mloop_cols = false;
             if (layer == -1) {
               layer = (name[0] != '\0') ?
                           CustomData_get_named_layer(cd_vdata, CD_PROP_COLOR, name) :
                           CustomData_get_render_layer(cd_vdata, CD_PROP_COLOR);
+              /* Fallback to Vertex Color data */
+              if (layer == -1) {
+                layer = (name[0] != '\0') ?
+                            CustomData_get_named_layer(cd_ldata, CD_MLOOPCOL, name) :
+                            CustomData_get_render_layer(cd_ldata, CD_MLOOPCOL);
+                use_mloop_cols = true;
+              }
             }
             if (layer != -1) {
-              cd_used.sculpt_vcol |= (1 << layer);
+              if (use_mloop_cols) {
+                cd_used.vcol |= (1 << layer);
+              }
+              else {
+                cd_used.sculpt_vcol |= (1 << layer);
+              }
             }
             break;
           }

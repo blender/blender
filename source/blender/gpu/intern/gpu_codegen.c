@@ -649,6 +649,8 @@ static const char *attr_prefix_get(CustomDataType type)
       return "t";
     case CD_MCOL:
       return "c";
+    case CD_PROP_COLOR:
+      return "c";
     case CD_AUTO_FROM_NAME:
       return "a";
     default:
