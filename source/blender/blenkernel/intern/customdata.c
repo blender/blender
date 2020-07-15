@@ -1516,7 +1516,7 @@ static bool layerValidate_propfloat3(void *data, const uint totitems, const bool
 static void layerInterp_propfloat2(
     const void **sources, const float *weights, const float *sub_weights, int count, void *dest)
 {
-  vec2f result = {0.0f, 0.0f, 0.0f};
+  vec2f result = {0.0f, 0.0f};
   for (int i = 0; i < count; i++) {
     float weight = weights ? weights[i] : 1.0f;
     const vec2f *src = sources[i];
@@ -1979,6 +1979,8 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     "CDHairMapping",
     "CDPoint",
     "CDPropCol",
+    "CDPropFloat3",
+    "CDPropFloat2",
 };
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {
