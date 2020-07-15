@@ -449,6 +449,8 @@ void calc_distanceCurveVerts(TransData *head, TransData *tail, bool cyclic)
       }
     }
 
+    next_td = NULL;
+
     if (td - 1 >= head) {
       next_td = td - 1;
     }
