@@ -23,12 +23,14 @@ Checks:  >
   -readability-static-accessed-through-instance,
   -readability-redundant-declaration,
   -readability-qualified-auto,
+  -readability-use-anyofallof,
 
   bugprone-*,
   -bugprone-narrowing-conversions,
   -bugprone-unhandled-self-assignment,
   -bugprone-branch-clone,
   -bugprone-macro-parentheses,
+  -bugprone-reserved-identifier,
 
   -bugprone-sizeof-expression,
   -bugprone-integer-division,
