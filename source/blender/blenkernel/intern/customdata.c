@@ -1464,6 +1464,102 @@ static int layerMaxNum_propcol(void)
   return MAX_MCOL;
 }
 
+static void layerInterp_propfloat3(
+    const void **sources, const float *weights, const float *sub_weights, int count, void *dest)
+{
+  vec3f result = {0.0f, 0.0f, 0.0f};
+  for (int i = 0; i < count; i++) {
+    float weight = weights ? weights[i] : 1.0f;
+    const vec3f *src = sources[i];
+    if (sub_weights) {
+      madd_v3_v3fl(&result.x, &src->x, sub_weights[i] * weight);
+    }
+    else {
+      madd_v3_v3fl(&result.x, &src->x, weight);
+    }
+  }
+  copy_v3_v3((float *)dest, &result.x);
+}
+
+static void layerMultiply_propfloat3(void *data, float fac)
+{
+  vec3f *vec = data;
+  vec->x *= fac;
+  vec->y *= fac;
+  vec->z *= fac;
+}
+
+static void layerAdd_propfloat3(void *data1, const void *data2)
+{
+  vec3f *vec1 = data1;
+  const vec3f *vec2 = data2;
+  vec1->x += vec2->x;
+  vec1->y += vec2->y;
+  vec1->z += vec2->z;
+}
+
+static bool layerValidate_propfloat3(void *data, const uint totitems, const bool do_fixes)
+{
+  float *values = data;
+  bool has_errors = false;
+  for (int i = 0; i < totitems * 3; i++) {
+    if (!isfinite(values[i])) {
+      if (do_fixes) {
+        values[i] = 0.0f;
+      }
+      has_errors = true;
+    }
+  }
+  return has_errors;
+}
+
+static void layerInterp_propfloat2(
+    const void **sources, const float *weights, const float *sub_weights, int count, void *dest)
+{
+  vec2f result = {0.0f, 0.0f, 0.0f};
+  for (int i = 0; i < count; i++) {
+    float weight = weights ? weights[i] : 1.0f;
+    const vec2f *src = sources[i];
+    if (sub_weights) {
+      madd_v2_v2fl(&result.x, &src->x, sub_weights[i] * weight);
+    }
+    else {
+      madd_v2_v2fl(&result.x, &src->x, weight);
+    }
+  }
+  copy_v2_v2((float *)dest, &result.x);
+}
+
+static void layerMultiply_propfloat2(void *data, float fac)
+{
+  vec2f *vec = data;
+  vec->x *= fac;
+  vec->y *= fac;
+}
+
+static void layerAdd_propfloat2(void *data1, const void *data2)
+{
+  vec2f *vec1 = data1;
+  const vec2f *vec2 = data2;
+  vec1->x += vec2->x;
+  vec1->y += vec2->y;
+}
+
+static bool layerValidate_propfloat2(void *data, const uint totitems, const bool do_fixes)
+{
+  float *values = data;
+  bool has_errors = false;
+  for (int i = 0; i < totitems * 2; i++) {
+    if (!isfinite(values[i])) {
+      if (do_fixes) {
+        values[i] = 0.0f;
+      }
+      has_errors = true;
+    }
+  }
+  return has_errors;
+}
+
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 0: CD_MVERT */
     {sizeof(MVert), "MVert", 1, NULL, NULL, NULL, NULL, NULL, NULL},
@@ -1799,7 +1895,38 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      NULL,
      NULL,
      NULL,
-     layerMaxNum_propcol}};
+     layerMaxNum_propcol},
+    /* 48: CD_PROP_FLOAT3 */
+    {sizeof(float[3]),
+     "vec3f",
+     1,
+     N_("Float3"),
+     NULL,
+     NULL,
+     layerInterp_propfloat3,
+     NULL,
+     NULL,
+     layerValidate_propfloat3,
+     NULL,
+     layerMultiply_propfloat3,
+     NULL,
+     layerAdd_propfloat3},
+    /* 49: CD_PROP_FLOAT2 */
+    {sizeof(float[2]),
+     "vec2f",
+     1,
+     N_("Float2"),
+     NULL,
+     NULL,
+     layerInterp_propfloat2,
+     NULL,
+     NULL,
+     layerValidate_propfloat2,
+     NULL,
+     layerMultiply_propfloat2,
+     NULL,
+     layerAdd_propfloat2},
+};
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     /*   0-4 */ "CDMVert",
