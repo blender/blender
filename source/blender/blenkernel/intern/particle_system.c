@@ -4966,6 +4966,7 @@ void particle_system_update(struct Depsgraph *depsgraph,
       psys_orig->flag = (psys->flag & ~PSYS_SHARED_CACHES);
       psys_orig->cfra = psys->cfra;
       psys_orig->recalc = psys->recalc;
+      psys_orig->part->totpart = part->totpart;
     }
   }
 
