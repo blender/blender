@@ -5,7 +5,6 @@ struct LightData {
 };
 
 struct WorldData {
-  vec4 viewvecs[3];
   vec4 viewport_size;
   vec4 object_outline_color;
   vec4 shadow_direction_vs;

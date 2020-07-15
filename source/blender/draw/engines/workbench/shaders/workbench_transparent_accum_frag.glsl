@@ -15,7 +15,7 @@ layout(location = 1) out vec4 revealageAccum;
 layout(location = 2) out uint objectId;
 
 /* Special function only to be used with calculate_transparent_weight(). */
-float linear_zdepth(float depth, vec4 viewvecs[3], mat4 proj_mat)
+float linear_zdepth(float depth, vec4 viewvecs[2], mat4 proj_mat)
 {
   if (proj_mat[3][3] == 0.0) {
     float d = 2.0 * depth - 1.0;
@@ -33,7 +33,7 @@ float linear_zdepth(float depth, vec4 viewvecs[3], mat4 proj_mat)
  */
 float calculate_transparent_weight(void)
 {
-  float z = linear_zdepth(gl_FragCoord.z, world_data.viewvecs, ProjectionMatrix);
+  float z = linear_zdepth(gl_FragCoord.z, ViewVecs, ProjectionMatrix);
 #if 0
   /* Eq 10 : Good for surfaces with varying opacity (like particles) */
   float a = min(1.0, alpha * 10.0) + 0.01;
@@ -57,7 +57,7 @@ void main()
 {
   /* Normal and Incident vector are in viewspace. Lighting is evaluated in viewspace. */
   vec2 uv_viewport = gl_FragCoord.xy * world_data.viewport_size_inv;
-  vec3 I = view_vector_from_screen_uv(uv_viewport, world_data.viewvecs, ProjectionMatrix);
+  vec3 I = view_vector_from_screen_uv(uv_viewport, ViewVecs, ProjectionMatrix);
   vec3 N = normalize(normal_interp);
 
   vec3 color = color_interp;

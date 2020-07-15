@@ -28,7 +28,7 @@ void cavity_compute(vec2 screenco,
     return;
   }
 
-  vec3 position = view_position_from_depth(screenco, depth, world_data.viewvecs, ProjectionMatrix);
+  vec3 position = view_position_from_depth(screenco, depth, ViewVecs, ProjectionMatrix);
   vec3 normal = workbench_normal_decode(texture(normalBuffer, screenco));
 
   vec2 jitter_co = (screenco * world_data.viewport_size.xy) * world_data.cavity_jitter_scale;
@@ -68,8 +68,7 @@ void cavity_compute(vec2 screenco,
     bool is_background = (s_depth == 1.0);
     /* This trick provide good edge effect even if no neighbor is found. */
     s_depth = (is_background) ? depth : s_depth;
-    vec3 s_pos = view_position_from_depth(
-        uvcoords, s_depth, world_data.viewvecs, ProjectionMatrix);
+    vec3 s_pos = view_position_from_depth(uvcoords, s_depth, ViewVecs, ProjectionMatrix);
 
     if (is_background) {
       s_pos.z -= world_data.cavity_distance;

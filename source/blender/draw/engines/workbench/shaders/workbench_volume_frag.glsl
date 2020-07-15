@@ -194,10 +194,8 @@ void main()
 
   float depth = texelFetch(depthBuffer, ivec2(gl_FragCoord.xy), 0).r;
   float depth_end = min(depth, gl_FragCoord.z);
-  vec3 vs_ray_end = view_position_from_depth(
-      screen_uv, depth_end, world_data.viewvecs, ProjectionMatrix);
-  vec3 vs_ray_ori = view_position_from_depth(
-      screen_uv, 0.0, world_data.viewvecs, ProjectionMatrix);
+  vec3 vs_ray_end = view_position_from_depth(screen_uv, depth_end, ViewVecs, ProjectionMatrix);
+  vec3 vs_ray_ori = view_position_from_depth(screen_uv, 0.0, ViewVecs, ProjectionMatrix);
   vec3 vs_ray_dir = (is_persp) ? (vs_ray_end - vs_ray_ori) : vec3(0.0, 0.0, -1.0);
   vs_ray_dir /= abs(vs_ray_dir.z);
 

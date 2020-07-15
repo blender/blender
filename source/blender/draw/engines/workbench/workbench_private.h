@@ -168,7 +168,6 @@ typedef struct WORKBENCH_UBO_Material {
 } WORKBENCH_UBO_Material;
 
 typedef struct WORKBENCH_UBO_World {
-  float viewvecs[3][4];
   float viewport_size[2], viewport_size_inv[2];
   float object_outline_color[4];
   float shadow_direction_vs[4];

@@ -14,7 +14,7 @@ out vec4 fragColor;
 void main()
 {
   /* Normal and Incident vector are in viewspace. Lighting is evaluated in viewspace. */
-  vec3 I = view_vector_from_screen_uv(uvcoordsvar.st, world_data.viewvecs, ProjectionMatrix);
+  vec3 I = view_vector_from_screen_uv(uvcoordsvar.st, ViewVecs, ProjectionMatrix);
   vec3 N = workbench_normal_decode(texture(normalBuffer, uvcoordsvar.st));
   vec4 mat_data = texture(materialBuffer, uvcoordsvar.st);
 

@@ -86,43 +86,6 @@ static WORKBENCH_ViewLayerData *workbench_view_layer_data_ensure_ex(struct ViewL
 
 /* \} */
 
-static void workbench_viewvecs_update(float r_viewvecs[3][4])
-{
-  float invproj[4][4];
-  const bool is_persp = DRW_view_is_persp_get(NULL);
-  DRW_view_winmat_get(NULL, invproj, true);
-
-  /* view vectors for the corners of the view frustum.
-   * Can be used to recreate the world space position easily */
-  copy_v4_fl4(r_viewvecs[0], -1.0f, -1.0f, -1.0f, 1.0f);
-  copy_v4_fl4(r_viewvecs[1], 1.0f, -1.0f, -1.0f, 1.0f);
-  copy_v4_fl4(r_viewvecs[2], -1.0f, 1.0f, -1.0f, 1.0f);
-
-  /* convert the view vectors to view space */
-  for (int i = 0; i < 3; i++) {
-    mul_m4_v4(invproj, r_viewvecs[i]);
-    /* normalized trick see:
-     * http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
-    mul_v3_fl(r_viewvecs[i], 1.0f / r_viewvecs[i][3]);
-    if (is_persp) {
-      mul_v3_fl(r_viewvecs[i], 1.0f / r_viewvecs[i][2]);
-    }
-    r_viewvecs[i][3] = 1.0;
-  }
-
-  /* we need to store the differences */
-  r_viewvecs[1][0] -= r_viewvecs[0][0];
-  r_viewvecs[1][1] = r_viewvecs[2][1] - r_viewvecs[0][1];
-
-  /* calculate a depth offset as well */
-  if (!is_persp) {
-    float vec_far[] = {-1.0f, -1.0f, 1.0f, 1.0f};
-    mul_m4_v4(invproj, vec_far);
-    mul_v3_fl(vec_far, 1.0f / vec_far[3]);
-    r_viewvecs[1][2] = vec_far[2] - r_viewvecs[0][2];
-  }
-}
-
 static void workbench_studiolight_data_update(WORKBENCH_PrivateData *wpd, WORKBENCH_UBO_World *wd)
 {
   StudioLight *studiolight = wpd->studio_light;
@@ -311,7 +274,6 @@ void workbench_update_world_ubo(WORKBENCH_PrivateData *wpd)
   workbench_studiolight_data_update(wpd, &wd);
   workbench_shadow_data_update(wpd, &wd);
   workbench_cavity_data_update(wpd, &wd);
-  workbench_viewvecs_update(wd.viewvecs);
 
   DRW_uniformbuffer_update(wpd->world_ubo, &wd);
 }
