@@ -287,8 +287,8 @@ class GHOST_IWindow {
    * Set the shape of the cursor to a custom cursor.
    * \param   bitmap  The bitmap data for the cursor.
    * \param   mask    The mask data for the cursor.
-   * \param   hotX    The X coordinate of the cursor hotspot.
-   * \param   hotY    The Y coordinate of the cursor hotspot.
+   * \param   hotX    The X coordinate of the cursor hot-spot.
+   * \param   hotY    The Y coordinate of the cursor hot-spot.
    * \return  Indication of success.
    */
   virtual GHOST_TSuccess setCustomCursorShape(GHOST_TUns8 *bitmap,

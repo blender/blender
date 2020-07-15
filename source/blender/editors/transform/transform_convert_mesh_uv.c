@@ -55,10 +55,10 @@ static void UVsToTransData(const float aspect[2],
                            float calc_dist,
                            bool selected)
 {
-  /* uv coords are scaled by aspects. this is needed for rotations and
-   * proportional editing to be consistent with the stretched uv coords
-   * that are displayed. this also means that for display and numinput,
-   * and when the uv coords are flushed, these are converted each time */
+  /* UV coords are scaled by aspects. this is needed for rotations and
+   * proportional editing to be consistent with the stretched UV coords
+   * that are displayed. this also means that for display and number-input,
+   * and when the UV coords are flushed, these are converted each time. */
   td2d->loc[0] = uv[0] * aspect[0];
   td2d->loc[1] = uv[1] * aspect[1];
   td2d->loc[2] = 0.0f;
@@ -202,7 +202,7 @@ static void uv_set_connectivity_distance(BMesh *bm, float *dists, const float as
           sub_v2_v2v2(uvdiff, connected_uv, other_uv);
           /* Check if this loop is connected in UV space.
            * If the uv loops share the same selection state (if not, they are not connected as
-           * they have been ripped or other edit commands have seperated them). */
+           * they have been ripped or other edit commands have separated them). */
           bool connected = other_vert_sel == connected_vert_sel &&
                            fabsf(uvdiff[0]) < STD_UV_CONNECT_LIMIT &&
                            fabsf(uvdiff[1]) < STD_UV_CONNECT_LIMIT;

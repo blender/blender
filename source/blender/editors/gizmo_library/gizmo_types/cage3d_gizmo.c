@@ -314,7 +314,7 @@ static void gizmo_cage3d_draw_intern(
   }
 
   if (select) {
-    /* expand for hotspot */
+    /* Expand for hot-spot. */
 #if 0
     const float size[3] = {
         size_real[0] + margin[0] / 2,

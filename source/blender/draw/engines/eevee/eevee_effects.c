@@ -486,7 +486,7 @@ void EEVEE_downsample_buffer(EEVEE_Data *vedata, GPUTexture *texture_src, int le
 }
 
 /**
- * Simple down-sampling algorithm for cubemap. Reconstruct mip chain up to mip level.
+ * Simple down-sampling algorithm for cube-map. Reconstruct mip chain up to mip level.
  */
 void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, GPUTexture *texture_src, int level)
 {

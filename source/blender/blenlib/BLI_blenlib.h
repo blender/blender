@@ -28,7 +28,7 @@
  * a call to a BLI function that is not prototyped here, please add a
  * prototype here. The library offers mathematical operations (mainly
  * vector and matrix calculus), an abstraction layer for file i/o,
- * functions for calculating Perlin noise, scanfilling services for
+ * functions for calculating Perlin noise, scan-filling services for
  * triangles, and a system for guarded memory
  * allocation/deallocation. There is also a patch to make MS Windows
  * behave more or less Posix-compliant.

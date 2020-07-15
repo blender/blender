@@ -902,7 +902,7 @@ static void do_2d_mapping(
   float fx, fy, fac1, area[8];
   int ok, proj, areaflag = 0, wrap;
 
-  /* mtex variables localized, only cubemap doesn't cooperate yet... */
+  /* #MTex variables localized, only cube-map doesn't cooperate yet. */
   wrap = mtex->mapping;
   tex = mtex->tex;
 
