@@ -87,7 +87,7 @@ void transform_around_single_fallback_ex(TransInfo *t, int data_len_all);
 void transform_around_single_fallback(TransInfo *t);
 void posttrans_fcurve_clean(struct FCurve *fcu, const int sel_flag, const bool use_handle);
 bool constraints_list_needinv(TransInfo *t, ListBase *list);
-void calc_distanceCurveVerts(TransData *head, TransData *tail);
+void calc_distanceCurveVerts(TransData *head, TransData *tail, bool cyclic);
 struct TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTriple *bezt);
 char transform_convert_frame_side_dir_get(TransInfo *t, float cframe);
 bool FrameOnMouseSide(char side, float frame, float cframe);

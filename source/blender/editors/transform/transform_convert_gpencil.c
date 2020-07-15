@@ -354,7 +354,7 @@ void createTransGPencil(bContext *C, TransInfo *t)
 
               /* March over these points, and calculate the proportional editing distances */
               if (is_prop_edit && (head != tail)) {
-                calc_distanceCurveVerts(head, tail - 1);
+                calc_distanceCurveVerts(head, tail - 1, false);
               }
             }
           }

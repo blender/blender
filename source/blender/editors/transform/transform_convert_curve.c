@@ -350,12 +350,14 @@ void createTransCurveVerts(TransInfo *t)
             (void)hdata; /* quiet warning */
           }
           else if (is_prop_edit && head != tail) {
-            calc_distanceCurveVerts(head, tail - 1);
-            head = tail;
+            tail->flag |= TD_NOTCONNECTED;
+            td++;
+            tail++;
           }
         }
         if (is_prop_edit && head != tail) {
-          calc_distanceCurveVerts(head, tail - 1);
+          bool cyclic = (nu->flagu & CU_NURB_CYCLIC) != 0;
+          calc_distanceCurveVerts(head, tail - 1, cyclic);
         }
 
         /* TODO - in the case of tilt and radius we can also avoid allocating the
@@ -425,12 +427,14 @@ void createTransCurveVerts(TransInfo *t)
             }
           }
           else if (is_prop_edit && head != tail) {
-            calc_distanceCurveVerts(head, tail - 1);
-            head = tail;
+            tail->flag |= TD_NOTCONNECTED;
+            td++;
+            tail++;
           }
         }
         if (is_prop_edit && head != tail) {
-          calc_distanceCurveVerts(head, tail - 1);
+          bool cyclic = (nu->flagu & CU_NURB_CYCLIC) != 0;
+          calc_distanceCurveVerts(head, tail - 1, cyclic);
         }
       }
     }

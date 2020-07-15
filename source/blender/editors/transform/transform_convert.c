@@ -27,6 +27,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_kdtree.h"
+#include "BLI_linklist_stack.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
@@ -409,59 +410,64 @@ void transform_autoik_update(TransInfo *t, short mode)
 /** \name Curve Surface
  * \{ */
 
-void calc_distanceCurveVerts(TransData *head, TransData *tail)
+void calc_distanceCurveVerts(TransData *head, TransData *tail, bool cyclic)
 {
-  TransData *td, *td_near = NULL;
+  TransData *td;
+  BLI_LINKSTACK_DECLARE(queue, TransData *);
+  BLI_LINKSTACK_INIT(queue);
   for (td = head; td <= tail; td++) {
     if (td->flag & TD_SELECTED) {
-      td_near = td;
       td->dist = 0.0f;
-    }
-    else if (td_near) {
-      float dist;
-      float vec[3];
-
-      sub_v3_v3v3(vec, td_near->center, td->center);
-      mul_m3_v3(head->mtx, vec);
-      dist = len_v3(vec);
-
-      if (dist < (td - 1)->dist) {
-        td->dist = (td - 1)->dist;
-      }
-      else {
-        td->dist = dist;
-      }
+      BLI_LINKSTACK_PUSH(queue, td);
     }
     else {
       td->dist = FLT_MAX;
-      td->flag |= TD_NOTCONNECTED;
     }
   }
-  td_near = NULL;
-  for (td = tail; td >= head; td--) {
-    if (td->flag & TD_SELECTED) {
-      td_near = td;
-      td->dist = 0.0f;
+
+  while ((td = BLI_LINKSTACK_POP(queue))) {
+    float dist;
+    float vec[3];
+
+    TransData *next_td = NULL;
+
+    if (td + 1 <= tail) {
+      next_td = td + 1;
     }
-    else if (td_near) {
-      float dist;
-      float vec[3];
+    else if (cyclic) {
+      next_td = head;
+    }
 
-      sub_v3_v3v3(vec, td_near->center, td->center);
+    if (next_td != NULL && !(next_td->flag & TD_NOTCONNECTED)) {
+      sub_v3_v3v3(vec, next_td->center, td->center);
       mul_m3_v3(head->mtx, vec);
-      dist = len_v3(vec);
+      dist = len_v3(vec) + td->dist;
 
-      if (td->flag & TD_NOTCONNECTED || dist < td->dist || (td + 1)->dist < td->dist) {
-        td->flag &= ~TD_NOTCONNECTED;
-        if (dist < (td + 1)->dist) {
-          td->dist = (td + 1)->dist;
-        }
-        else {
-          td->dist = dist;
-        }
+      if (dist < next_td->dist) {
+        next_td->dist = dist;
+        BLI_LINKSTACK_PUSH(queue, next_td);
+      }
+    }
+
+    if (td - 1 >= head) {
+      next_td = td - 1;
+    }
+    else if (cyclic) {
+      next_td = tail;
+    }
+
+    if (next_td != NULL && !(next_td->flag & TD_NOTCONNECTED)) {
+      sub_v3_v3v3(vec, next_td->center, td->center);
+      mul_m3_v3(head->mtx, vec);
+      dist = len_v3(vec) + td->dist;
+
+      if (dist < next_td->dist) {
+        next_td->dist = dist;
+        BLI_LINKSTACK_PUSH(queue, next_td);
       }
     }
   }
+  BLI_LINKSTACK_FREE(queue);
 }
 
 /* Utility function for getting the handle data from bezier's */
