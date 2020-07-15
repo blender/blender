@@ -265,7 +265,8 @@ void DRW_shader_library_add_file(DRWShaderLibrary *lib, char *lib_code, const ch
 #define DRW_SHADER_LIB_ADD(lib, lib_name) \
   DRW_shader_library_add_file(lib, datatoc_##lib_name##_glsl, STRINGIFY(lib_name) ".glsl")
 
-char *DRW_shader_library_create_shader_string(DRWShaderLibrary *lib, char *shader_code);
+char *DRW_shader_library_create_shader_string(const DRWShaderLibrary *lib,
+                                              const char *shader_code);
 
 void DRW_shader_library_free(DRWShaderLibrary *lib);
 #define DRW_SHADER_LIB_FREE_SAFE(lib) \

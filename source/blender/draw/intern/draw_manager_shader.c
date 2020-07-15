@@ -541,7 +541,7 @@ void DRW_shader_library_free(DRWShaderLibrary *lib)
   MEM_SAFE_FREE(lib);
 }
 
-static int drw_shader_library_search(DRWShaderLibrary *lib, const char *name)
+static int drw_shader_library_search(const DRWShaderLibrary *lib, const char *name)
 {
   for (int i = 0; i < MAX_LIB; i++) {
     if (lib->libs[i]) {
@@ -557,18 +557,28 @@ static int drw_shader_library_search(DRWShaderLibrary *lib, const char *name)
 }
 
 /* Return bitmap of dependencies. */
-static uint32_t drw_shader_dependencies_get(DRWShaderLibrary *lib, char *lib_code)
+static uint32_t drw_shader_dependencies_get(const DRWShaderLibrary *lib, const char *lib_code)
 {
   /* Search dependencies. */
   uint32_t deps = 0;
-  char *haystack = lib_code;
+  const char *haystack = lib_code;
   while ((haystack = strstr(haystack, "BLENDER_REQUIRE("))) {
     haystack += 16;
     int dep = drw_shader_library_search(lib, haystack);
     if (dep == -1) {
+      char dbg_name[32];
+      int i = 0;
+      while ((haystack[0] != ')') && (i < 31)) {
+        dbg_name[i] = haystack[0];
+        haystack++;
+        i++;
+      }
+      dbg_name[i + 1] = '\0';
+
       printf(
-          "Error: Dependency not found.\n"
-          "This might be due to bad lib ordering.\n");
+          "Error: Dependency not found: %s\n"
+          "This might be due to bad lib ordering.\n",
+          dbg_name);
       BLI_assert(0);
     }
     else {
@@ -601,7 +611,7 @@ void DRW_shader_library_add_file(DRWShaderLibrary *lib, char *lib_code, const ch
 
 /* Return an allocN'ed string containing the shader code with its dependencies prepended.
  * Caller must free the string with MEM_freeN after use. */
-char *DRW_shader_library_create_shader_string(DRWShaderLibrary *lib, char *shader_code)
+char *DRW_shader_library_create_shader_string(const DRWShaderLibrary *lib, const char *shader_code)
 {
   uint32_t deps = drw_shader_dependencies_get(lib, shader_code);
 
