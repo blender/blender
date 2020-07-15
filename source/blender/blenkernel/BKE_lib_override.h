@@ -50,6 +50,8 @@ struct IDOverrideLibraryPropertyOperation;
 struct Main;
 struct PointerRNA;
 struct PropertyRNA;
+struct Scene;
+struct ViewLayer;
 
 struct IDOverrideLibrary *BKE_lib_override_library_init(struct ID *local_id,
                                                         struct ID *reference_id);
@@ -67,6 +69,11 @@ void BKE_lib_override_library_dependencies_tag(struct Main *bmain,
                                                struct ID *id_root,
                                                const uint tag,
                                                const bool do_create_main_relashionships);
+bool BKE_lib_override_library_create(struct Main *bmain,
+                                     struct Scene *scene,
+                                     struct ViewLayer *view_layer,
+                                     struct ID *id_root,
+                                     struct ID *id_reference);
 
 struct IDOverrideLibraryProperty *BKE_lib_override_library_property_find(
     struct IDOverrideLibrary *override, const char *rna_path);

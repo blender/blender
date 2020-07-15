@@ -2242,46 +2242,6 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 /** \name Make Library Override Operator
  * \{ */
 
-static int make_override_tag_ids_cb(LibraryIDLinkCallbackData *cb_data)
-{
-  if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_LOOPBACK)) {
-    return IDWALK_RET_STOP_RECURSION;
-  }
-
-  ID *id_root = cb_data->user_data;
-  Library *library_root = id_root->lib;
-  ID *id = *cb_data->id_pointer;
-  ID *id_owner = cb_data->id_owner;
-
-  BLI_assert(id_owner == cb_data->id_self);
-
-  if (ELEM(id, NULL, id_owner)) {
-    return IDWALK_RET_NOP;
-  }
-
-  BLI_assert(id->lib != NULL);
-  BLI_assert(id_owner->lib == library_root);
-
-  if (id->tag & LIB_TAG_DOIT) {
-    /* Already processed, but maybe not with the same chain of dependency, so we need to check that
-     * one nonetheless. */
-    return IDWALK_RET_STOP_RECURSION;
-  }
-
-  if (id->lib != library_root) {
-    /* We do not override data-blocks from other libraries, nor do we process them. */
-    return IDWALK_RET_STOP_RECURSION;
-  }
-
-  /* We tag all collections and objects for override. And we also tag all other data-blocks which
-   * would user one of those. */
-  if (ELEM(GS(id->name), ID_OB, ID_GR)) {
-    id->tag |= LIB_TAG_DOIT;
-  }
-
-  return IDWALK_RET_NOP;
-}
-
 /* Set the object to override. */
 static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -2326,10 +2286,10 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
 static int make_override_library_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *obact = CTX_data_active_object(C);
   ID *id_root = NULL;
-
-  bool success = false;
 
   if (!ID_IS_LINKED(obact) && obact->instance_collection != NULL &&
       ID_IS_LINKED(obact->instance_collection)) {
@@ -2374,126 +2334,14 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
 
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
-  /* Tag all collections and objects, as well as other IDs using them. */
-  id_root->tag |= LIB_TAG_DOIT;
+  const bool success = BKE_lib_override_library_create(
+      bmain, scene, view_layer, id_root, &obact->id);
 
-  BKE_main_relations_create(bmain, 0);
-
-  BKE_library_foreach_ID_link(
-      bmain, id_root, make_override_tag_ids_cb, id_root, IDWALK_READONLY | IDWALK_RECURSE);
-
-  /* Then, we remove (untag) bone shape objects, you shall never want to override those
-   * (hopefully)... */
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    if (ob->type == OB_ARMATURE && ob->pose != NULL && (ob->id.tag & LIB_TAG_DOIT)) {
-      for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan != NULL; pchan = pchan->next) {
-        if (pchan->custom != NULL) {
-          pchan->custom->id.tag &= ~LIB_TAG_DOIT;
-        }
-      }
-    }
+  /* Remove the instance empty from this scene, the items now have an overridden collection
+   * instead. */
+  if (success && id_root != &obact->id) {
+    ED_object_base_free_and_unlink(bmain, scene, obact);
   }
-
-  /* Note that this call will also free the main relations data we created above. */
-  BKE_lib_override_library_dependencies_tag(bmain, id_root, LIB_TAG_DOIT, false);
-
-  success = BKE_lib_override_library_create_from_tag(bmain);
-
-  if (success) {
-    Scene *scene = CTX_data_scene(C);
-    ViewLayer *view_layer = CTX_data_view_layer(C);
-
-    BKE_main_collection_sync(bmain);
-
-    switch (GS(id_root->name)) {
-      case ID_GR: {
-        Collection *collection_new = ((Collection *)id_root->newid);
-        BKE_collection_add_from_object(bmain, scene, obact, collection_new);
-
-        FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection_new, ob_new) {
-          if (ob_new != NULL && ob_new->id.override_library != NULL) {
-            Base *base;
-            if ((base = BKE_view_layer_base_find(view_layer, ob_new)) == NULL) {
-              BKE_collection_object_add_from(bmain, scene, obact, ob_new);
-              base = BKE_view_layer_base_find(view_layer, ob_new);
-              DEG_id_tag_update_ex(bmain, &ob_new->id, ID_RECALC_TRANSFORM | ID_RECALC_BASE_FLAGS);
-            }
-
-            if (ob_new == (Object *)obact->id.newid) {
-              /* TODO: is setting active needed? */
-              BKE_view_layer_base_select_and_set_active(view_layer, base);
-            }
-          }
-        }
-        FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-        break;
-      }
-      case ID_OB: {
-        BKE_collection_object_add_from(bmain, scene, obact, ((Object *)id_root->newid));
-        break;
-      }
-      default:
-        BLI_assert(0);
-    }
-
-    /* We need to ensure all new overrides of objects are properly instantiated. */
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      Object *ob_new = (Object *)ob->id.newid;
-      if (ob_new != NULL) {
-        BLI_assert(ob_new->id.override_library != NULL &&
-                   ob_new->id.override_library->reference == &ob->id);
-
-        Collection *default_instantiating_collection = NULL;
-        Base *base;
-        if ((base = BKE_view_layer_base_find(view_layer, ob_new)) == NULL) {
-          if (default_instantiating_collection == NULL) {
-            switch (GS(id_root->name)) {
-              case ID_GR: {
-                default_instantiating_collection = BKE_collection_add(
-                    bmain, (Collection *)id_root, "OVERRIDE_HIDDEN");
-                break;
-              }
-              case ID_OB: {
-                /* Add the new container collection to one of the collections instantiating the
-                 * root object, or scene's master collection if none found. */
-                Object *ob_root = (Object *)id_root;
-                LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-                  if (BKE_collection_has_object(collection, ob_root) &&
-                      BKE_view_layer_has_collection(view_layer, collection)) {
-                    default_instantiating_collection = BKE_collection_add(
-                        bmain, collection, "OVERRIDE_HIDDEN");
-                  }
-                }
-                if (default_instantiating_collection == NULL) {
-                  default_instantiating_collection = BKE_collection_add(
-                      bmain, scene->master_collection, "OVERRIDE_HIDDEN");
-                }
-                break;
-              }
-              default:
-                BLI_assert(0);
-            }
-            /* Hide the collection from viewport and render. */
-            default_instantiating_collection->flag |= COLLECTION_RESTRICT_VIEWPORT |
-                                                      COLLECTION_RESTRICT_RENDER;
-          }
-
-          BKE_collection_object_add(bmain, default_instantiating_collection, ob_new);
-          DEG_id_tag_update_ex(bmain, &ob_new->id, ID_RECALC_TRANSFORM | ID_RECALC_BASE_FLAGS);
-        }
-      }
-    }
-
-    /* Remove the instance empty from this scene, the items now have an overridden collection
-     * instead. */
-    if (id_root != &obact->id) {
-      ED_object_base_free_and_unlink(bmain, scene, obact);
-    }
-  }
-
-  /* Cleanup. */
-  BKE_main_id_clear_newpoins(bmain);
-  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
   DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_BASE_FLAGS | ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_WINDOW, NULL);
