@@ -1,10 +1,4 @@
 
-#ifdef GPU_VERTEX_SHADER
-#  define IN_OUT out
-#else
-#  define IN_OUT in
-#endif
-
 IN_OUT ShaderStageInterface
 {
   vec3 normal_interp;

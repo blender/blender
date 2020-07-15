@@ -453,7 +453,9 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
     int num_source = 0;
 
     source[num_source++] = gpu_shader_version();
-    source[num_source++] = "#define GPU_VERTEX_SHADER\n";
+    source[num_source++] =
+        "#define GPU_VERTEX_SHADER\n"
+        "#define IN_OUT out\n";
     source[num_source++] = standard_extensions;
     source[num_source++] = standard_defines;
 
@@ -484,7 +486,9 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
     int num_source = 0;
 
     source[num_source++] = gpu_shader_version();
-    source[num_source++] = "#define GPU_FRAGMENT_SHADER\n";
+    source[num_source++] =
+        "#define GPU_FRAGMENT_SHADER\n"
+        "#define IN_OUT in\n";
     source[num_source++] = standard_extensions;
     source[num_source++] = standard_defines;
 
