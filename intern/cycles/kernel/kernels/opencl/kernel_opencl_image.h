@@ -77,7 +77,7 @@ ccl_device_inline float4 svm_image_texture_read(KernelGlobals *kg,
     return make_float4(f, f, f, 1.0f);
   }
   /* Byte */
-#ifdef cl_khr_fp16
+#ifdef __KERNEL_CL_KHR_FP16__
   /* half and half4 are optional in OpenCL */
   else if (texture_type == IMAGE_DATA_TYPE_HALF) {
     float f = tex_fetch(half, info, offset);
