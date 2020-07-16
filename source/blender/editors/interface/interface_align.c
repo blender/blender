@@ -122,26 +122,6 @@ bool ui_but_can_align(const uiBut *but)
           (BLI_rctf_size_y(&but->rect) > 0.0f));
 }
 
-int ui_but_align_opposite_to_area_align_get(const ARegion *region)
-{
-  const ARegion *align_region = (region->alignment & RGN_SPLIT_PREV && region->prev) ?
-                                    region->prev :
-                                    region;
-
-  switch (RGN_ALIGN_ENUM_FROM_MASK(align_region->alignment)) {
-    case RGN_ALIGN_TOP:
-      return UI_BUT_ALIGN_DOWN;
-    case RGN_ALIGN_BOTTOM:
-      return UI_BUT_ALIGN_TOP;
-    case RGN_ALIGN_LEFT:
-      return UI_BUT_ALIGN_RIGHT;
-    case RGN_ALIGN_RIGHT:
-      return UI_BUT_ALIGN_LEFT;
-  }
-
-  return 0;
-}
-
 /**
  * This function checks a pair of buttons (assumed in a same align group),
  * and if they are neighbors, set needed data accordingly.
@@ -545,9 +525,9 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
 #  undef STITCH
 #  undef MAX_DELTA
 
-#else
+#else /* !USE_UIBUT_SPATIAL_ALIGN */
 
-bool ui_but_can_align(uiBut *but)
+bool ui_but_can_align(const uiBut *but)
 {
   return !ELEM(but->type,
                UI_BTYPE_LABEL,
@@ -730,7 +710,7 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
   }
 }
 
-void ui_block_align_calc(uiBlock *block)
+void ui_block_align_calc(uiBlock *block, const struct ARegion *UNUSED(region))
 {
   uiBut *but;
   short nr;
@@ -755,4 +735,25 @@ void ui_block_align_calc(uiBlock *block)
     }
   }
 }
-#endif
+
+#endif /* !USE_UIBUT_SPATIAL_ALIGN */
+
+int ui_but_align_opposite_to_area_align_get(const ARegion *region)
+{
+  const ARegion *align_region = (region->alignment & RGN_SPLIT_PREV && region->prev) ?
+                                    region->prev :
+                                    region;
+
+  switch (RGN_ALIGN_ENUM_FROM_MASK(align_region->alignment)) {
+    case RGN_ALIGN_TOP:
+      return UI_BUT_ALIGN_DOWN;
+    case RGN_ALIGN_BOTTOM:
+      return UI_BUT_ALIGN_TOP;
+    case RGN_ALIGN_LEFT:
+      return UI_BUT_ALIGN_RIGHT;
+    case RGN_ALIGN_RIGHT:
+      return UI_BUT_ALIGN_LEFT;
+  }
+
+  return 0;
+}
