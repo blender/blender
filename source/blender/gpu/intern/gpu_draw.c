@@ -55,6 +55,7 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
+#include "GPU_matrix.h"
 #include "GPU_platform.h"
 #include "GPU_texture.h"
 

@@ -147,6 +147,10 @@ const float (*GPU_matrix_normal_inverse_get(float m[3][3]))[3];
 void GPU_matrix_bind(const struct GPUShaderInterface *);
 bool GPU_matrix_dirty_get(void); /* since last bind */
 
+/* own working polygon offset */
+float GPU_polygon_offset_calc(const float (*winmat)[4], float viewdist, float dist);
+void GPU_polygon_offset(float viewdist, float dist);
+
 /* Python API needs to be able to inspect the stack so errors raise exceptions
  * instead of crashing. */
 #ifdef USE_GPU_PY_MATRIX_API

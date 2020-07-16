@@ -60,9 +60,8 @@
 
 #include "WM_api.h"
 
-#include "BIF_glutil.h"
-
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 #include "GPU_state.h"
 
 #include "ED_gpencil.h"
@@ -353,7 +352,7 @@ static void gpencil_draw_strokes(tGPDdraw *tgpw)
 
         /* first arg is normally rv3d->dist, but this isn't
          * available here and seems to work quite well without */
-        bglPolygonOffset(1.0f, 1.0f);
+        GPU_polygon_offset(1.0f, 1.0f);
       }
 
       /* 3D Stroke */
@@ -396,7 +395,7 @@ static void gpencil_draw_strokes(tGPDdraw *tgpw)
       if (no_xray) {
         GPU_depth_test(false);
 
-        bglPolygonOffset(0.0, 0.0);
+        GPU_polygon_offset(0.0f, 0.0f);
       }
     }
     /* if only one stroke, exit from loop */

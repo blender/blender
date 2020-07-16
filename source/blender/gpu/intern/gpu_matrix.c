@@ -738,3 +738,69 @@ int GPU_matrix_stack_level_get_projection(void)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Polygon Offset Hack
+ *
+ * Workaround the fact that PolygonOffset is implementation dependant.
+ * We modify the projection matrix (winmat) in order to change the final depth a tiny amount.
+ * \{ */
+
+float GPU_polygon_offset_calc(const float (*winmat)[4], float viewdist, float dist)
+{
+  /* Seems like we have a factor of 2 more offset than 2.79 for some reason. Correct for this. */
+  dist *= 0.5f;
+
+  if (winmat[3][3] > 0.5f) {
+#if 1
+    return 0.00001f * dist * viewdist;  // ortho tweaking
+#else
+    static float depth_fac = 0.0f;
+    if (depth_fac == 0.0f) {
+      int depthbits;
+      glGetIntegerv(GL_DEPTH_BITS, &depthbits);
+      depth_fac = 1.0f / (float)((1 << depthbits) - 1);
+    }
+    offs = (-1.0 / winmat[2][2]) * dist * depth_fac;
+
+    UNUSED_VARS(viewdist);
+#endif
+  }
+
+  /* This adjustment effectively results in reducing the Z value by 0.25%.
+   *
+   * winmat[4][3] actually evaluates to `-2 * far * near / (far - near)`,
+   * is very close to -0.2 with default clip range,
+   * and is used as the coefficient multiplied by `w / z`,
+   * thus controlling the z dependent part of the depth value.
+   */
+  return winmat[3][2] * -0.0025f * dist;
+}
+
+/**
+ * \note \a viewdist is only for ortho at the moment.
+ */
+void GPU_polygon_offset(float viewdist, float dist)
+{
+  static float winmat[4][4], offset = 0.0f;
+
+  if (dist != 0.0f) {
+    /* hack below is to mimic polygon offset */
+    GPU_matrix_projection_get(winmat);
+
+    /* dist is from camera to center point */
+
+    float offs = GPU_polygon_offset_calc(winmat, viewdist, dist);
+
+    winmat[3][2] -= offs;
+    offset += offs;
+  }
+  else {
+    winmat[3][2] += offset;
+    offset = 0.0;
+  }
+
+  GPU_matrix_projection_set(winmat);
+}
+
+/** \} */

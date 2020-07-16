@@ -473,68 +473,6 @@ void immDrawPixelsTex_clipping(IMMDrawPixelsTexState *state,
                                   color);
 }
 
-/* *************** glPolygonOffset hack ************* */
-
-float bglPolygonOffsetCalc(const float winmat[16], float viewdist, float dist)
-{
-  /* Seems like we have a factor of 2 more offset than 2.79 for some reason. Correct for this. */
-  dist *= 0.5f;
-
-  if (winmat[15] > 0.5f) {
-#if 1
-    return 0.00001f * dist * viewdist;  // ortho tweaking
-#else
-    static float depth_fac = 0.0f;
-    if (depth_fac == 0.0f) {
-      int depthbits;
-      glGetIntegerv(GL_DEPTH_BITS, &depthbits);
-      depth_fac = 1.0f / (float)((1 << depthbits) - 1);
-    }
-    offs = (-1.0 / winmat[10]) * dist * depth_fac;
-
-    UNUSED_VARS(viewdist);
-#endif
-  }
-
-  /* This adjustment effectively results in reducing the Z value by 0.25%.
-   *
-   * winmat[14] actually evaluates to `-2 * far * near / (far - near)`,
-   * is very close to -0.2 with default clip range,
-   * and is used as the coefficient multiplied by `w / z`,
-   * thus controlling the z dependent part of the depth value.
-   */
-  return winmat[14] * -0.0025f * dist;
-}
-
-/**
- * \note \a viewdist is only for ortho at the moment.
- */
-void bglPolygonOffset(float viewdist, float dist)
-{
-  static float winmat[16], offset = 0.0f;
-
-  if (dist != 0.0f) {
-    // glEnable(GL_POLYGON_OFFSET_FILL);
-    // glPolygonOffset(-1.0, -1.0);
-
-    /* hack below is to mimic polygon offset */
-    GPU_matrix_projection_get(winmat);
-
-    /* dist is from camera to center point */
-
-    float offs = bglPolygonOffsetCalc(winmat, viewdist, dist);
-
-    winmat[14] -= offs;
-    offset += offs;
-  }
-  else {
-    winmat[14] += offset;
-    offset = 0.0;
-  }
-
-  GPU_matrix_projection_set(winmat);
-}
-
 /* **** Color management helper functions for GLSL display/transform ***** */
 
 /* Draw given image buffer on a screen using GLSL for display transform */
