@@ -947,8 +947,11 @@ static uiBut *ui_item_with_label(uiLayout *layout,
   const bool use_prop_sep = ((layout->item.flag & UI_ITEM_PROP_SEP) != 0);
 #endif
 
-  /* Always align item with label since text is already given enough space not to overlap. */
-  sub = uiLayoutRow(layout, true);
+  /* Previously 'align' was enabled to make sure the label is spaced closely to the button.
+   * Set the space to zero instead as aligning a large number of labels can end up aligning
+   * thousands of buttons when displaying key-map search (a heavy operation), see: T78636. */
+  sub = uiLayoutRow(layout, false);
+  sub->space = 0;
   UI_block_layout_set_current(block, sub);
 
 #ifdef UI_PROP_DECORATE
