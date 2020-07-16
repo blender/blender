@@ -31,6 +31,8 @@
 
 #include "interface_intern.h"
 
+#include "MEM_guardedalloc.h"
+
 #ifdef USE_UIBUT_SPATIAL_ALIGN
 
 /**
@@ -416,7 +418,16 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
     return;
   }
 
-  butal_array = alloca(sizeof(*butal_array) * (size_t)num_buttons);
+  /* Note that this is typically less than ~20, and almost always under ~100.
+   * Even so, we can't ensure this value won't exceed available stack memory.
+   * Fallback to allocation instead of using #alloca, see: T78636. */
+  ButAlign butal_array_buf[256];
+  if (num_buttons <= ARRAY_SIZE(butal_array_buf)) {
+    butal_array = butal_array_buf;
+  }
+  else {
+    butal_array = MEM_mallocN(sizeof(*butal_array) * num_buttons, __func__);
+  }
   memset(butal_array, 0, sizeof(*butal_array) * (size_t)num_buttons);
 
   /* Second loop: we initialize our ButAlign data for each button. */
@@ -514,6 +525,9 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
             butal, side, side_opp, side_s2, side_s1, align, align_opp, co);
       }
     }
+  }
+  if (butal_array_buf != butal_array) {
+    MEM_freeN(butal_array);
   }
 }
 
