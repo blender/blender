@@ -52,6 +52,7 @@ static struct GPUTextureGlobal {
   GPUTexture *invalid_tex_3D;
   /** Sampler objects used to replace internal texture parameters. */
   GLuint samplers[GPU_SAMPLER_MAX];
+  GLuint icon_sampler;
 } GG = {NULL};
 
 /* Maximum number of FBOs a texture can be attached to. */
@@ -2176,11 +2177,23 @@ void GPU_samplers_init(void)
      * - GL_TEXTURE_LOD_BIAS is 0.0f.
      **/
   }
+
+  /* Custom sampler for icons. */
+  glGenSamplers(1, &GG.icon_sampler);
+  glSamplerParameteri(GG.icon_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+  glSamplerParameteri(GG.icon_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glSamplerParameteri(GG.icon_sampler, GL_TEXTURE_LOD_BIAS, -0.5f);
+}
+
+void GPU_sampler_icon_bind(int unit)
+{
+  glBindSampler(unit, GG.icon_sampler);
 }
 
 void GPU_samplers_free(void)
 {
   glDeleteSamplers(GPU_SAMPLER_MAX, GG.samplers);
+  glDeleteSamplers(1, &GG.icon_sampler);
 }
 
 /** \} */

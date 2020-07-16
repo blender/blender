@@ -298,6 +298,8 @@ int GPU_texture_opengl_bindcode(const GPUTexture *tex);
 
 void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size);
 
+void GPU_sampler_icon_bind(int number);
+
 #ifdef __cplusplus
 }
 #endif
