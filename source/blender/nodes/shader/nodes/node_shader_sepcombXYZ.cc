@@ -113,37 +113,11 @@ static int gpu_shader_combxyz(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "combine_xyz", in, out);
 }
 
-class MF_CombineXYZ : public blender::fn::MultiFunction {
- public:
-  MF_CombineXYZ()
-  {
-    blender::fn::MFSignatureBuilder signature = this->get_builder("Combine XYZ");
-    signature.single_input<float>("X");
-    signature.single_input<float>("Y");
-    signature.single_input<float>("Z");
-    signature.single_output<blender::float3>("XYZ");
-  }
-
-  void call(blender::IndexMask mask,
-            blender::fn::MFParams params,
-            blender::fn::MFContext UNUSED(context)) const override
-  {
-    blender::fn::VSpan<float> xs = params.readonly_single_input<float>(0, "X");
-    blender::fn::VSpan<float> ys = params.readonly_single_input<float>(1, "Y");
-    blender::fn::VSpan<float> zs = params.readonly_single_input<float>(2, "Z");
-    blender::MutableSpan<blender::float3> vectors =
-        params.uninitialized_single_output<blender::float3>(3, "XYZ");
-
-    for (uint i : mask) {
-      vectors[i] = {xs[i], ys[i], zs[i]};
-    }
-  }
-};
-
 static void sh_node_combxyz_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
 {
-  static MF_CombineXYZ combine_fn;
-  builder.set_matching_fn(combine_fn);
+  static blender::fn::CustomMF_SI_SI_SI_SO<float, float, float, blender::float3> fn{
+      "Combine Vector", [](float x, float y, float z) { return blender::float3(x, y, z); }};
+  builder.set_matching_fn(fn);
 }
 
 void register_node_type_sh_combxyz(void)
