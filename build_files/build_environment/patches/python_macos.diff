@@ -1,0 +1,289 @@
+diff -ru a/Doc/library/ctypes.rst b/Doc/library/ctypes.rst
+--- a/Doc/library/ctypes.rst	2020-03-10 07:11:12.000000000 +0100
++++ b/Doc/library/ctypes.rst	2020-07-14 08:10:10.000000000 +0200
+@@ -1551,6 +1551,13 @@
+       value usable as argument (integer, string, ctypes instance).  This allows
+       defining adapters that can adapt custom objects as function parameters.
+ 
++   .. attribute:: variadic
++
++      Assign a boolean to specify that the function takes a variable number of
++      arguments.   This does not matter on most platforms, but for Apple arm64
++      platforms variadic functions have a different calling convention than
++      normal functions.
++
+    .. attribute:: errcheck
+ 
+       Assign a Python function or another callable to this attribute. The
+diff -ru a/Modules/_ctypes/_ctypes.c b/Modules/_ctypes/_ctypes.c
+--- a/Modules/_ctypes/_ctypes.c	2020-03-10 07:11:12.000000000 +0100
++++ b/Modules/_ctypes/_ctypes.c	2020-07-14 08:14:41.000000000 +0200
+@@ -3175,6 +3175,35 @@
+ }
+ 
+ static int
++PyCFuncPtr_set_variadic(PyCFuncPtrObject *self, PyObject *ob, void *Py_UNUSED(ignored))
++{
++    StgDictObject *dict = PyObject_stgdict((PyObject *)self);
++    assert(dict);
++    int r = PyObject_IsTrue(ob);
++    if (r == 1) {
++        dict->flags |= FUNCFLAG_VARIADIC;
++        return 0;
++    } else if (r == 0) {
++        dict->flags &= ~FUNCFLAG_VARIADIC;
++        return 0;
++    } else {
++        return -1;
++    }
++}
++
++static PyObject *
++PyCFuncPtr_get_variadic(PyCFuncPtrObject *self, void *Py_UNUSED(ignored))
++{
++    StgDictObject *dict = PyObject_stgdict((PyObject *)self);
++    assert(dict); /* Cannot be NULL for PyCFuncPtrObject instances */
++    if (dict->flags & FUNCFLAG_VARIADIC)
++        Py_RETURN_TRUE;
++    else
++        Py_RETURN_FALSE;
++}
++
++
++static int
+ PyCFuncPtr_set_argtypes(PyCFuncPtrObject *self, PyObject *ob, void *Py_UNUSED(ignored))
+ {
+     PyObject *converters;
+@@ -5632,6 +5661,7 @@
+     PyModule_AddObject(m, "FUNCFLAG_USE_ERRNO", PyLong_FromLong(FUNCFLAG_USE_ERRNO));
+     PyModule_AddObject(m, "FUNCFLAG_USE_LASTERROR", PyLong_FromLong(FUNCFLAG_USE_LASTERROR));
+     PyModule_AddObject(m, "FUNCFLAG_PYTHONAPI", PyLong_FromLong(FUNCFLAG_PYTHONAPI));
++    PyModule_AddObject(m, "FUNCFLAG_VARIADIC", PyLong_FromLong(FUNCFLAG_VARIADIC));
+     PyModule_AddStringConstant(m, "__version__", "1.1.0");
+ 
+     PyModule_AddObject(m, "_memmove_addr", PyLong_FromVoidPtr(memmove));
+diff -ru a/Modules/_ctypes/callproc.c b/Modules/_ctypes/callproc.c
+--- a/Modules/_ctypes/callproc.c	2020-03-10 07:11:12.000000000 +0100
++++ b/Modules/_ctypes/callproc.c	2020-07-14 08:18:33.000000000 +0200
+@@ -767,7 +767,8 @@
+                                   ffi_type **atypes,
+                                   ffi_type *restype,
+                                   void *resmem,
+-                                  int argcount)
++                                  int argcount,
++                                  int argtypecount)
+ {
+     PyThreadState *_save = NULL; /* For Py_BLOCK_THREADS and Py_UNBLOCK_THREADS */
+     PyObject *error_object = NULL;
+@@ -793,15 +794,38 @@
+     if ((flags & FUNCFLAG_CDECL) == 0)
+         cc = FFI_STDCALL;
+ #endif
+-    if (FFI_OK != ffi_prep_cif(&cif,
+-                               cc,
+-                               argcount,
+-                               restype,
+-                               atypes)) {
+-        PyErr_SetString(PyExc_RuntimeError,
+-                        "ffi_prep_cif failed");
+-        return -1;
+-    }
++#if HAVE_FFI_PREP_CIF_VAR
++    /* Everyone SHOULD set f.variadic=True on variadic function pointers, but
++     * lots of existing code will not.  If there's at least one arg and more
++     * args are passed than are defined in the prototype, then it must be a
++     * variadic function. */
++    if ((flags & FUNCFLAG_VARIADIC) ||
++        (argtypecount != 0 && argcount > argtypecount))
++    {
++        if (FFI_OK != ffi_prep_cif_var(&cif,
++                                       cc,
++                                       argtypecount,
++                                       argcount,
++                                       restype,
++                                       atypes)) {
++            PyErr_SetString(PyExc_RuntimeError,
++                            "ffi_prep_cif_var failed");
++            return -1;
++        }
++    } else {
++#endif
++        if (FFI_OK != ffi_prep_cif(&cif,
++                                   cc,
++                                   argcount,
++                                   restype,
++                                   atypes)) {
++            PyErr_SetString(PyExc_RuntimeError,
++                            "ffi_prep_cif failed");
++            return -1;
++        }
++#if HAVE_FFI_PREP_CIF_VAR
++     }
++#endif
+ 
+     if (flags & (FUNCFLAG_USE_ERRNO | FUNCFLAG_USE_LASTERROR)) {
+         error_object = _ctypes_get_errobj(&space);
+@@ -1185,9 +1209,8 @@
+ 
+     if (-1 == _call_function_pointer(flags, pProc, avalues, atypes,
+                                      rtype, resbuf,
+-                                     Py_SAFE_DOWNCAST(argcount,
+-                                                      Py_ssize_t,
+-                                                      int)))
++                                     Py_SAFE_DOWNCAST(argcount, Py_ssize_t, int),
++                                     Py_SAFE_DOWNCAST(argtype_count, Py_ssize_t, int)))
+         goto cleanup;
+ 
+ #ifdef WORDS_BIGENDIAN
+diff -ru a/Modules/_ctypes/ctypes.h b/Modules/_ctypes/ctypes.h
+--- a/Modules/_ctypes/ctypes.h	2020-03-10 07:11:12.000000000 +0100
++++ b/Modules/_ctypes/ctypes.h	2020-07-14 08:30:53.000000000 +0200
+@@ -285,6 +285,7 @@
+ #define FUNCFLAG_PYTHONAPI 0x4
+ #define FUNCFLAG_USE_ERRNO 0x8
+ #define FUNCFLAG_USE_LASTERROR 0x10
++#define FUNCFLAG_VARIADIC 0x20
+ 
+ #define TYPEFLAG_ISPOINTER 0x100
+ #define TYPEFLAG_HASPOINTER 0x200
+diff -ru a/configure b/configure
+--- a/configure	2020-03-10 07:11:12.000000000 +0100
++++ b/configure	2020-07-14 08:03:27.000000000 +0200
+@@ -3374,7 +3374,7 @@
+   # has no effect, don't bother defining them
+   Darwin/[6789].*)
+     define_xopen_source=no;;
+-  Darwin/1[0-9].*)
++  Darwin/[12][0-9].*)
+     define_xopen_source=no;;
+   # On AIX 4 and 5.1, mbstate_t is defined only when _XOPEN_SOURCE == 500 but
+   # used in wcsnrtombs() and mbsnrtowcs() even if _XOPEN_SOURCE is not defined
+@@ -9251,6 +9251,9 @@
+     	ppc)
+     		MACOSX_DEFAULT_ARCH="ppc64"
+     		;;
++        arm64)
++            MACOSX_DEFAULT_ARCH="arm64"
++            ;;
+     	*)
+     		as_fn_error $? "Unexpected output of 'arch' on OSX" "$LINENO" 5
+     		;;
+diff -ru a/configure.ac b/configure.ac
+--- a/configure.ac	2020-03-10 07:11:12.000000000 +0100
++++ b/configure.ac	2020-07-14 08:03:27.000000000 +0200
+@@ -2456,6 +2456,9 @@
+     	ppc)
+     		MACOSX_DEFAULT_ARCH="ppc64"
+     		;;
++        arm64)
++            MACOSX_DEFAULT_ARCH="arm64"
++            ;;
+     	*)
+     		AC_MSG_ERROR([Unexpected output of 'arch' on OSX])
+     		;;
+diff -ru a/setup.py b/setup.py
+--- a/setup.py	2020-03-10 07:11:12.000000000 +0100
++++ b/setup.py	2020-07-14 08:28:12.000000000 +0200
+@@ -141,6 +141,13 @@
+             os.unlink(tmpfile)
+ 
+     return MACOS_SDK_ROOT
++ 
++def is_macosx_at_least(vers):
++    if host_platform == 'darwin':
++        dep_target = sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET')
++        if dep_target:
++            return tuple(map(int, dep_target.split('.'))) >= vers
++    return False
+ 
+ def is_macosx_sdk_path(path):
+     """
+@@ -150,6 +157,13 @@
+                 or path.startswith('/System/')
+                 or path.startswith('/Library/') )
+ 
++def grep_headers_for(function, headers):
++    for header in headers:
++        with open(header, 'r') as f:
++            if function in f.read():
++                return True
++    return False
++
+ def find_file(filename, std_dirs, paths):
+     """Searches for the directory where a given file is located,
+     and returns a possibly-empty list of additional directories, or None
+@@ -1972,7 +1986,11 @@
+         return True
+ 
+     def detect_ctypes(self, inc_dirs, lib_dirs):
+-        self.use_system_libffi = False
++        if not sysconfig.get_config_var("LIBFFI_INCLUDEDIR") and is_macosx_at_least((10,15)):
++            self.use_system_libffi = True
++        else:
++            self.use_system_libffi = '--with-system-ffi' in sysconfig.get_config_var("CONFIG_ARGS")
++
+         include_dirs = []
+         extra_compile_args = []
+         extra_link_args = []
+@@ -2016,32 +2034,48 @@
+         ext_test = Extension('_ctypes_test',
+                      sources=['_ctypes/_ctypes_test.c'],
+                      libraries=['m'])
++        ffi_inc = sysconfig.get_config_var("LIBFFI_INCLUDEDIR")
++        ffi_lib = None
++
+         self.extensions.extend([ext, ext_test])
+ 
+         if host_platform == 'darwin':
+-            if '--with-system-ffi' not in sysconfig.get_config_var("CONFIG_ARGS"):
++            if not self.use_system_libffi:
+                 return
+-            # OS X 10.5 comes with libffi.dylib; the include files are
+-            # in /usr/include/ffi
+-            inc_dirs.append('/usr/include/ffi')
+-
+-        ffi_inc = [sysconfig.get_config_var("LIBFFI_INCLUDEDIR")]
+-        if not ffi_inc or ffi_inc[0] == '':
+-            ffi_inc = find_file('ffi.h', [], inc_dirs)
+-        if ffi_inc is not None:
+-            ffi_h = ffi_inc[0] + '/ffi.h'
++            ffi_in_sdk = os.path.join(macosx_sdk_root(), "usr/include/ffi")
++            if os.path.exists(ffi_in_sdk):
++                ffi_inc = ffi_in_sdk
++                ffi_lib = 'ffi'
++            else:
++                # OS X 10.5 comes with libffi.dylib; the include files are
++                # in /usr/include/ffi
++                ffi_inc_dirs.append('/usr/include/ffi')
++
++        if not ffi_inc:
++            found = find_file('ffi.h', [], ffi_inc_dirs)
++            if found:
++                ffi_inc = found[0]
++        if ffi_inc:
++            ffi_h = ffi_inc + '/ffi.h'
+             if not os.path.exists(ffi_h):
+                 ffi_inc = None
+                 print('Header file {} does not exist'.format(ffi_h))
+-        ffi_lib = None
+-        if ffi_inc is not None:
++        if ffi_lib is None and ffi_inc:
+             for lib_name in ('ffi', 'ffi_pic'):
+                 if (self.compiler.find_library_file(lib_dirs, lib_name)):
+                     ffi_lib = lib_name
+                     break
+ 
+         if ffi_inc and ffi_lib:
+-            ext.include_dirs.extend(ffi_inc)
++            ffi_headers = glob(os.path.join(ffi_inc, '*.h'))
++            if grep_headers_for('ffi_closure_alloc', ffi_headers):
++                try:
++                    sources.remove('_ctypes/malloc_closure.c')
++                except ValueError:
++                    pass
++            if grep_headers_for('ffi_prep_cif_var', ffi_headers):
++                ext.extra_compile_args.append("-DHAVE_FFI_PREP_CIF_VAR=1")
++            ext.include_dirs.append(ffi_inc)
+             ext.libraries.append(ffi_lib)
+             self.use_system_libffi = True
+ 

@@ -86,3 +86,47 @@ index 1f9a3ee..d151e9a 100644
          return isnan( value );
  #else
          return std::isnan(value);
+
+
+diff --git a/DAEValidator/library/src/Dae.cpp b/DAEValidator/library/src/Dae.cpp
+index 9256ee1..241ad67 100644
+--- a/DAEValidator/library/src/Dae.cpp
++++ b/DAEValidator/library/src/Dae.cpp
+@@ -304,7 +304,7 @@ namespace opencollada
+ 			if (auto root_node = root())
+ 			{
+ 				const auto & nodes = root_node.selectNodes("//*[@id]");
+-				for (const auto & node : nodes)
++				for (const auto node : nodes)
+ 				{
+ 					string id = node.attribute("id").value();
+ 					mIdCache.insert(id);
+@@ -312,4 +312,4 @@ namespace opencollada
+ 			}
+ 		}
+ 	}
+-}
+\ No newline at end of file
++}
+diff --git a/DAEValidator/library/src/DaeValidator.cpp b/DAEValidator/library/src/DaeValidator.cpp
+index 715d903..24423ce 100644
+--- a/DAEValidator/library/src/DaeValidator.cpp
++++ b/DAEValidator/library/src/DaeValidator.cpp
+@@ -162,7 +162,7 @@ namespace opencollada
+ 
+ 		// Find xsi:schemaLocation attributes in dae and try to validate against specified xsd documents
+ 		const auto & elements = dae.root().selectNodes("//*[@xsi:schemaLocation]");
+-		for (const auto & element : elements)
++		for (const auto element : elements)
+ 		{
+ 			if (auto schemaLocation = element.attribute("schemaLocation"))
+ 			{
+@@ -274,7 +274,7 @@ namespace opencollada
+ 		int result = 0;
+ 		map<string, size_t> ids;
+ 		const auto & nodes = dae.root().selectNodes("//*[@id]");
+-		for (const auto & node : nodes)
++		for (const auto node : nodes)
+ 		{
+ 			string id = node.attribute("id").value();
+ 			size_t line = node.line();

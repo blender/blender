@@ -30,6 +30,11 @@ else()
   set(CLANG_GENERATOR "Unix Makefiles")
 endif()
 
+if(APPLE)
+  set(CLANG_EXTRA_ARGS ${CLANG_EXTRA_ARGS}
+    -DLIBXML2_LIBRARY=${LIBDIR}/xml2/lib/libxml2.a
+  )
+endif()
 
 ExternalProject_Add(external_clang
   URL ${CLANG_URI}

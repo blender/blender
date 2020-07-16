@@ -69,12 +69,17 @@ else()
       export ac_cv_header_libintl_h=no &&
       export ac_cv_lib_intl_textdomain=no
     )
+    if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
+      set(PYTHON_FUNC_CONFIGS ${PYTHON_FUNC_CONFIGS} && export PYTHON_DECIMAL_WITH_MACHINE=ansi64)
+    endif()
     set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV} && ${PYTHON_FUNC_CONFIGS})
     set(PYTHON_BINARY ${BUILD_DIR}/python/src/external_python/python.exe)
+    set(PYTHON_PATCH ${PATCH_CMD} --verbose -p1 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python_macos.diff)
   else()
     set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV})
     set(PYTHON_BINARY ${BUILD_DIR}/python/src/external_python/python)
-  endif()
+    set(PYTHON_PATCH ${PATCH_CMD} --verbose -p1 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python_linux.diff)
+ endif()
 
   set(PYTHON_CONFIGURE_EXTRA_ARGS "--with-openssl=${LIBDIR}/ssl")
   set(PYTHON_CFLAGS "-I${LIBDIR}/sqlite/include -I${LIBDIR}/bzip2/include -I${LIBDIR}/lzma/include -I${LIBDIR}/zlib/include")
@@ -84,7 +89,6 @@ else()
     export CPPFLAGS=${PYTHON_CFLAGS} &&
     export LDFLAGS=${PYTHON_LDFLAGS} &&
     export PKG_CONFIG_PATH=${LIBDIR}/ffi/lib/pkgconfig)
-  set(PYTHON_PATCH ${PATCH_CMD} --verbose -p1 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python_linux.diff)
 
   ExternalProject_Add(external_python
     URL ${PYTHON_URI}

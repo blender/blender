@@ -91,3 +91,41 @@ diff -Naur external_blosc.orig/blosc/blosc.c external_blosc/blosc/blosc.c
 
 
  /* Some useful units */
+ diff --git a/blosc/shuffle.c b/blosc/shuffle.c
+ index 84b5095..23053b4 100644
+ --- a/blosc/shuffle.c
+ +++ b/blosc/shuffle.c
+ @@ -490,12 +490,12 @@ void unshuffle(size_t bytesoftype, size_t blocksize,
+  #else   /* no __SSE2__ available */
+ 
+  void shuffle(size_t bytesoftype, size_t blocksize,
+ -             uint8_t* _src, uint8_t* _dest) {
+ +             const uint8_t* _src, uint8_t* _dest) {
+    _shuffle(bytesoftype, blocksize, _src, _dest);
+  }
+ 
+  void unshuffle(size_t bytesoftype, size_t blocksize,
+ -               uint8_t* _src, uint8_t* _dest) {
+ +               const uint8_t* _src, uint8_t* _dest) {
+    _unshuffle(bytesoftype, blocksize, _src, _dest);
+  }
+  --- a/cmake/FindSSE.cmake
+  +++ b/cmake/FindSSE.cmake
+  @@ -49,6 +49,17 @@
+         set(AVX_FOUND false CACHE BOOL "AVX available on host")
+      ENDIF (AVX_TRUE)
+   ELSEIF(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+  +   execute_process(COMMAND uname -m OUTPUT_VARIABLE ARCHITECTURE OUTPUT_STRIP_TRAILING_WHITESPACE)
+  +   message(STATUS "Detected architecture ${ARCHITECTURE}")
+  +   IF("${ARCHITECTURE}" STREQUAL "arm64")
+  +      set(SSE2_FOUND   false  CACHE BOOL "SSE2 available on host")
+  +      set(SSE3_FOUND   false CACHE BOOL "SSE3 available on host")
+  +      set(SSSE3_FOUND  false CACHE BOOL "SSSE3 available on host")
+  +      set(SSE4_1_FOUND false CACHE BOOL "SSE4.1 available on host")
+  +      set(AVX_FOUND false CACHE BOOL "AVX available on host")
+  +      return()
+  +   ENDIF()
+  +   
+      EXEC_PROGRAM("/usr/sbin/sysctl -n machdep.cpu.features" OUTPUT_VARIABLE
+         CPUINFO)
+ 

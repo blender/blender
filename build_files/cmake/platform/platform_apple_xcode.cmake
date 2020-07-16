@@ -21,8 +21,10 @@
 # Xcode and system configuration for Apple.
 
 if(NOT CMAKE_OSX_ARCHITECTURES)
-  set(CMAKE_OSX_ARCHITECTURES x86_64 CACHE STRING
-    "Choose the architecture you want to build Blender for: i386, x86_64 or ppc"
+  execute_process(COMMAND uname -m OUTPUT_VARIABLE ARCHITECTURE OUTPUT_STRIP_TRAILING_WHITESPACE)
+  message(STATUS "Detected native architecture ${ARCHITECTURE}.")
+  set(CMAKE_OSX_ARCHITECTURES ${ARCHITECTURE} CACHE STRING
+    "Choose the architecture you want to build Blender for: arm64 or x86_64"
     FORCE)
 endif()
 
@@ -129,14 +131,21 @@ if(${CMAKE_GENERATOR} MATCHES "Xcode")
 endif()
 unset(OSX_SDKROOT)
 
+
 # 10.13 is our min. target, if you use higher sdk, weak linking happens
+if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
+  set(OSX_MIN_DEPLOYMENT_TARGET 11.00)
+else()
+  set(OSX_MIN_DEPLOYMENT_TARGET 10.13)
+endif()
+
 if(CMAKE_OSX_DEPLOYMENT_TARGET)
-  if(${CMAKE_OSX_DEPLOYMENT_TARGET} VERSION_LESS 10.13)
-    message(STATUS "Setting deployment target to 10.13, lower versions are not supported")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "" FORCE)
+  if(${CMAKE_OSX_DEPLOYMENT_TARGET} VERSION_LESS ${OSX_MIN_DEPLOYMENT_TARGET})
+    message(STATUS "Setting deployment target to ${OSX_MIN_DEPLOYMENT_TARGET}, lower versions are not supported")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "${OSX_MIN_DEPLOYMENT_TARGET}" CACHE STRING "" FORCE)
   endif()
 else()
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "" FORCE)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "${OSX_MIN_DEPLOYMENT_TARGET}" CACHE STRING "" FORCE)
 endif()
 
 if(NOT ${CMAKE_GENERATOR} MATCHES "Xcode")

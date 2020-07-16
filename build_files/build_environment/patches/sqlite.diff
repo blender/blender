@@ -1,0 +1,14 @@
+Only in external_sqlite_orig: config.log
+diff -ru external_sqlite_orig/config.sub external_sqlite/config.sub
+--- external_sqlite_orig/config.sub	2020-07-10 14:06:42.000000000 +0200
++++ external_sqlite/config.sub	2020-07-10 14:10:24.000000000 +0200
+@@ -314,6 +314,7 @@
+ 	# Recognize the basic CPU types with company name.
+ 	580-* \
+ 	| a29k-* \
++	| aarch64-* \
+ 	| alpha-* | alphaev[4-8]-* | alphaev56-* | alphaev6[78]-* \
+ 	| alpha64-* | alpha64ev[4-8]-* | alpha64ev56-* | alpha64ev6[78]-* \
+ 	| alphapca5[67]-* | alpha64pca5[67]-* | arc-* \
+Only in external_sqlite: mksourceid
+Only in external_sqlite: sqlite3session.h

@@ -38,6 +38,7 @@ ExternalProject_Add(external_numpy
   PREFIX ${BUILD_DIR}/numpy
   PATCH_COMMAND ${NUMPY_PATCH}
   CONFIGURE_COMMAND ""
+  PATCH_COMMAND COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/numpy/src/external_numpy < ${PATCH_DIR}/numpy.diff
   LOG_BUILD 1
   BUILD_COMMAND ${PYTHON_BINARY} ${BUILD_DIR}/numpy/src/external_numpy/setup.py build ${NUMPY_BUILD_OPTION} install --old-and-unmanageable
   INSTALL_COMMAND ""

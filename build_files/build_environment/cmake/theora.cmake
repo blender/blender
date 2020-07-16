@@ -27,6 +27,7 @@ ExternalProject_Add(external_theora
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH SHA256=${THEORA_HASH}
   PREFIX ${BUILD_DIR}/theora
+  PATCH_COMMAND ${PATCH_CMD} -p 0 -d ${BUILD_DIR}/theora/src/external_theora < ${PATCH_DIR}/theora.diff
   CONFIGURE_COMMAND ${THEORA_CONFIGURE_ENV} && cd ${BUILD_DIR}/theora/src/external_theora/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/theora
     --disable-shared
     --enable-static

@@ -117,16 +117,28 @@ else()
       COMMAND xcodebuild -version -sdk macosx SDKVersion
       OUTPUT_VARIABLE MACOSX_SDK_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    set(OSX_ARCHITECTURES x86_64)
-    set(OSX_DEPLOYMENT_TARGET 10.13)
+    if(NOT CMAKE_OSX_ARCHITECTURES)
+      execute_process(COMMAND uname -m OUTPUT_VARIABLE ARCHITECTURE OUTPUT_STRIP_TRAILING_WHITESPACE)
+      message(STATUS "Detected native architecture ${ARCHITECTURE}.")
+      set(CMAKE_OSX_ARCHITECTURES "${ARCHITECTURE}")
+    endif()
+    if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
+      set(OSX_DEPLOYMENT_TARGET 10.13)
+    else()
+      set(OSX_DEPLOYMENT_TARGET 11.00)
+    endif()
     set(OSX_SYSROOT ${XCODE_DEV_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk)
 
-    set(PLATFORM_CFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET}")
-    set(PLATFORM_CXXFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET} -std=c++11 -stdlib=libc++")
-    set(PLATFORM_LDFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET}")
-    set(PLATFORM_BUILD_TARGET --build=x86_64-apple-darwin17.0.0) # OS X 10.13
+    set(PLATFORM_CFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES}")
+    set(PLATFORM_CXXFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET} -std=c++11 -stdlib=libc++ -arch ${CMAKE_OSX_ARCHITECTURES}")
+    set(PLATFORM_LDFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES}")
+    if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
+      set(PLATFORM_BUILD_TARGET --build=x86_64-apple-darwin17.0.0) # OS X 10.13
+    else()
+      set(PLATFORM_BUILD_TARGET --build=aarch64-apple-darwin20.0.0) # macOS 11.00
+    endif()
     set(PLATFORM_CMAKE_FLAGS
-      -DCMAKE_OSX_ARCHITECTURES:STRING=${OSX_ARCHITECTURES}
+      -DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}
       -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${OSX_DEPLOYMENT_TARGET}
       -DCMAKE_OSX_SYSROOT:PATH=${OSX_SYSROOT}
     )
