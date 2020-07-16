@@ -57,6 +57,8 @@ void GPU_mem_stats_get(int *totalmem, int *freemem);
 
 void GPU_code_generate_glsl_lib(void);
 
+bool GPU_stereo_quadbuffer_support(void);
+
 #ifdef __cplusplus
 }
 #endif
