@@ -1371,11 +1371,11 @@ void Mesh::updateDataFields()
   for (size_t i = 0; i < mNodes.size(); ++i) {
     Vec3 pos = mNodes[i].pos;
     for (IndexInt md = 0; md < (IndexInt)mMdataReal.size(); ++md)
-      mMdataReal[md]->initNewValue(i, mNodes[i].pos);
+      mMdataReal[md]->initNewValue(i, pos);
     for (IndexInt md = 0; md < (IndexInt)mMdataVec3.size(); ++md)
-      mMdataVec3[md]->initNewValue(i, mNodes[i].pos);
+      mMdataVec3[md]->initNewValue(i, pos);
     for (IndexInt md = 0; md < (IndexInt)mMdataInt.size(); ++md)
-      mMdataInt[md]->initNewValue(i, mNodes[i].pos);
+      mMdataInt[md]->initNewValue(i, pos);
   }
 }
 
