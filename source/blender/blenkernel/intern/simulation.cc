@@ -619,9 +619,12 @@ static const ParticleFunction *create_particle_function_for_inputs(
 
   Vector<const ParticleFunctionInput *> per_particle_inputs;
   for (const fn::MFOutputSocket *socket : dummy_deps) {
-    StringRef attribute_name = attribute_inputs.lookup(socket);
+    const std::string *attribute_name = attribute_inputs.lookup_ptr(socket);
+    if (attribute_name == nullptr) {
+      return nullptr;
+    }
     per_particle_inputs.append(&resources.construct<ParticleAttributeInput>(
-        AT, attribute_name, socket->data_type().single_type()));
+        AT, *attribute_name, socket->data_type().single_type()));
   }
 
   const fn::MultiFunction &per_particle_fn = resources.construct<fn::MFNetworkEvaluator>(
