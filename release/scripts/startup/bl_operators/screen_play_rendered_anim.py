@@ -143,10 +143,10 @@ class PlayRenderedAnim(Operator):
             ]
             cmd.extend(opts)
         elif preset == 'FRAMECYCLER':
-            opts = [file, f"{scene.frame_start:d}-{scene.frame_end:d}"]
+            opts = [file, "%d-%d" % (scene.frame_start, scene.frame_end)]
             cmd.extend(opts)
         elif preset == 'RV':
-            opts = ["-fps", str(rd.fps), "-play", f"[ {file:s} ]"]
+            opts = ["-fps", str(rd.fps), "-play", "[ %s ]" % file]
             cmd.extend(opts)
         elif preset == 'MPLAYER':
             opts = []
@@ -156,7 +156,7 @@ class PlayRenderedAnim(Operator):
                 opts += [
                     ("mf://" + file.replace("#", "?")),
                     "-mf",
-                    f"fps={fps_final:4f}"
+                    "fps=%.4f" % fps_final,
                 ]
 
             opts += ["-loop", "0", "-really-quiet", "-fs"]

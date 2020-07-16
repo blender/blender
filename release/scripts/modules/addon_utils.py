@@ -367,7 +367,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
 
         if mod.bl_info.get("blender", (0, 0, 0)) < (2, 80, 0):
             if _bpy.app.debug:
-                print(f"Warning: Add-on '{module_name:s}' was not upgraded for 2.80, ignoring")
+                print("Warning: Add-on '%s' was not upgraded for 2.80, ignoring" % module_name)
             return None
 
         # 2) Try register collected modules.

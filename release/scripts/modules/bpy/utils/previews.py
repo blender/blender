@@ -85,7 +85,7 @@ class ImagePreviewCollection(dict):
 
     def new(self, name):
         if name in self:
-            raise KeyError(f"key {name!r} already exists")
+            raise KeyError("key %r already exists" % name)
         p = self[name] = _utils_previews.new(
             self._gen_key(name))
         return p
@@ -93,7 +93,7 @@ class ImagePreviewCollection(dict):
 
     def load(self, name, path, path_type, force_reload=False):
         if name in self:
-            raise KeyError(f"key {name!r} already exists")
+            raise KeyError("key %r already exists" % name)
         p = self[name] = _utils_previews.load(
             self._gen_key(name), path, path_type, force_reload)
         return p
