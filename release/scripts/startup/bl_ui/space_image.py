@@ -699,7 +699,12 @@ class IMAGE_HT_header(Header):
 
             # Proportional Editing
             row = layout.row(align=True)
-            row.prop(tool_settings, "use_proportional_edit", icon_only=True)
+            row.prop(
+                tool_settings,
+                "use_proportional_edit",
+                icon_only=True,
+                icon='PROP_CON' if tool_settings.use_proportional_connected else 'PROP_ON',
+            )
             sub = row.row(align=True)
             sub.active = tool_settings.use_proportional_edit
             sub.prop_with_popover(
