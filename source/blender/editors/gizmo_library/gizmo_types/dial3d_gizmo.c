@@ -461,10 +461,6 @@ static void gizmo_dial_draw_select(const bContext *C, wmGizmo *gz, int select_id
 
   GPU_select_load_id(select_id);
   dial_draw_intern(C, gz, true, false, clip_plane);
-
-  if (clip_plane) {
-    glDisable(GL_CLIP_DISTANCE0);
-  }
 }
 
 static void gizmo_dial_draw(const bContext *C, wmGizmo *gz)
