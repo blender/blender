@@ -302,6 +302,17 @@ template<typename T> class CustomMF_Constant : public MultiFunction {
   }
 };
 
+class CustomMF_DefaultOutput : public MultiFunction {
+ private:
+  uint output_amount_;
+
+ public:
+  CustomMF_DefaultOutput(StringRef name,
+                         Span<MFDataType> input_types,
+                         Span<MFDataType> output_types);
+  void call(IndexMask mask, MFParams params, MFContext context) const override;
+};
+
 }  // namespace blender::fn
 
 #endif /* __FN_MULTI_FUNCTION_BUILDER_HH__ */

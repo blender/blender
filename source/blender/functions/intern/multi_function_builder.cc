@@ -87,4 +87,33 @@ void CustomMF_GenericConstantArray::call(IndexMask mask,
   }
 }
 
+CustomMF_DefaultOutput::CustomMF_DefaultOutput(StringRef name,
+                                               Span<MFDataType> input_types,
+                                               Span<MFDataType> output_types)
+    : output_amount_(output_types.size())
+{
+  MFSignatureBuilder signature = this->get_builder(name);
+  for (MFDataType data_type : input_types) {
+    signature.input("Input", data_type);
+  }
+  for (MFDataType data_type : output_types) {
+    signature.output("Output", data_type);
+  }
+}
+void CustomMF_DefaultOutput::call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const
+{
+  for (uint param_index : this->param_indices()) {
+    MFParamType param_type = this->param_type(param_index);
+    if (!param_type.is_output()) {
+      continue;
+    }
+
+    if (param_type.data_type().is_single()) {
+      GMutableSpan span = params.uninitialized_single_output(param_index);
+      const CPPType &type = span.type();
+      type.fill_uninitialized_indices(type.default_value(), span.buffer(), mask);
+    }
+  }
+}
+
 }  // namespace blender::fn

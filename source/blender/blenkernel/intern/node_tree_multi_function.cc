@@ -31,6 +31,35 @@ static std::optional<fn::MFDataType> try_get_multi_function_data_type_of_socket(
   return bsocket->typeinfo->get_mf_data_type();
 }
 
+const fn::MultiFunction &NodeMFNetworkBuilder::get_default_fn(StringRef name)
+{
+  Vector<fn::MFDataType, 10> input_types;
+  Vector<fn::MFDataType, 10> output_types;
+
+  for (const DInputSocket *dsocket : dnode_.inputs()) {
+    if (dsocket->is_available()) {
+      std::optional<fn::MFDataType> data_type = try_get_multi_function_data_type_of_socket(
+          dsocket->bsocket());
+      if (data_type.has_value()) {
+        input_types.append(*data_type);
+      }
+    }
+  }
+  for (const DOutputSocket *dsocket : dnode_.outputs()) {
+    if (dsocket->is_available()) {
+      std::optional<fn::MFDataType> data_type = try_get_multi_function_data_type_of_socket(
+          dsocket->bsocket());
+      if (data_type.has_value()) {
+        output_types.append(*data_type);
+      }
+    }
+  }
+
+  const fn::MultiFunction &fn = this->construct_fn<fn::CustomMF_DefaultOutput>(
+      name, input_types, output_types);
+  return fn;
+}
+
 static void insert_dummy_node(CommonMFNetworkBuilderData &common, const DNode &dnode)
 {
   constexpr uint stack_capacity = 10;
@@ -138,20 +167,21 @@ static fn::MFOutputSocket *try_find_origin(CommonMFNetworkBuilderData &common,
   }
 
   if (from_dsockets.size() == 1) {
-    if (is_multi_function_data_socket(from_dsockets[0]->bsocket())) {
-      return &common.network_map.lookup(*from_dsockets[0]);
-    }
-    else {
+    const DOutputSocket &from_dsocket = *from_dsockets[0];
+    if (!from_dsocket.is_available()) {
       return nullptr;
     }
+    if (is_multi_function_data_socket(from_dsocket.bsocket())) {
+      return &common.network_map.lookup(from_dsocket);
+    }
+    return nullptr;
   }
   else {
-    if (is_multi_function_data_socket(from_group_inputs[0]->bsocket())) {
-      return &common.network_map.lookup(*from_group_inputs[0]);
+    const DGroupInput &from_group_input = *from_group_inputs[0];
+    if (is_multi_function_data_socket(from_group_input.bsocket())) {
+      return &common.network_map.lookup(from_group_input);
     }
-    else {
-      return nullptr;
-    }
+    return nullptr;
   }
 }
 
