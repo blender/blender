@@ -218,6 +218,10 @@ MINLINE unsigned short round_db_to_ushort_clamp(double a);
 MINLINE int round_db_to_int_clamp(double a);
 MINLINE unsigned int round_db_to_uint_clamp(double a);
 
+MINLINE float safe_divide(float a, float b);
+MINLINE float safe_modf(float a, float b);
+MINLINE float safe_logf(float a, float base);
+
 int pow_i(int base, int exp);
 double double_round(double x, int ndigits);
 
