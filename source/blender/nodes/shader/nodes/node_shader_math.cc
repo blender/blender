@@ -146,38 +146,229 @@ static int gpu_shader_math(GPUMaterial *mat,
   }
 }
 
-static void sh_node_math_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+static const blender::fn::MultiFunction &get_base_multi_function(
+    blender::bke::NodeMFNetworkBuilder &builder)
 {
-  /* TODO: Implement clamp and other operations. */
   const int mode = builder.bnode().custom1;
   switch (mode) {
     case NODE_MATH_ADD: {
       static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
           "Add", [](float a, float b) { return a + b; }};
-      builder.set_matching_fn(fn);
-      break;
+      return fn;
     }
     case NODE_MATH_SUBTRACT: {
       static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
           "Subtract", [](float a, float b) { return a - b; }};
-      builder.set_matching_fn(fn);
-      break;
+      return fn;
     }
     case NODE_MATH_MULTIPLY: {
       static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
           "Multiply", [](float a, float b) { return a * b; }};
-      builder.set_matching_fn(fn);
-      break;
+      return fn;
     }
     case NODE_MATH_DIVIDE: {
-      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
-          "Divide", [](float a, float b) { return (b != 0.0f) ? a / b : 0.0f; }};
-      builder.set_matching_fn(fn);
-      break;
+      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{"Divide", safe_divide};
+      return fn;
     }
+    case NODE_MATH_MULTIPLY_ADD: {
+      static blender::fn::CustomMF_SI_SI_SI_SO<float, float, float, float> fn{
+          "Multiply Add", [](float a, float b, float c) { return a * b + c; }};
+      return fn;
+    }
+
+    case NODE_MATH_POWER: {
+      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{"Power", safe_powf};
+      return fn;
+    }
+    case NODE_MATH_LOGARITHM: {
+      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{"Logarithm", safe_logf};
+      return fn;
+    }
+    case NODE_MATH_EXPONENT: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Exponent", expf};
+      return fn;
+    }
+    case NODE_MATH_SQRT: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Sqrt", safe_sqrtf};
+      return fn;
+    }
+    case NODE_MATH_INV_SQRT: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Inverse Sqrt", safe_inverse_sqrtf};
+      return fn;
+    };
+    case NODE_MATH_ABSOLUTE: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Absolute",
+                                                          [](float a) { return fabs(a); }};
+      return fn;
+    }
+    case NODE_MATH_RADIANS: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Radians",
+                                                          [](float a) { return DEG2RAD(a); }};
+      return fn;
+    }
+    case NODE_MATH_DEGREES: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Degrees",
+                                                          [](float a) { return RAD2DEG(a); }};
+      return fn;
+    }
+
+    case NODE_MATH_MINIMUM: {
+      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
+          "Minimum", [](float a, float b) { return std::min(a, b); }};
+      return fn;
+    }
+    case NODE_MATH_MAXIMUM: {
+      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
+          "Maximum", [](float a, float b) { return std::max(a, b); }};
+      return fn;
+    }
+    case NODE_MATH_LESS_THAN: {
+      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
+          "Less Than", [](float a, float b) { return (float)(a < b); }};
+      return fn;
+    }
+    case NODE_MATH_GREATER_THAN: {
+      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
+          "Greater Than", [](float a, float b) { return (float)(a > b); }};
+      return fn;
+    }
+    case NODE_MATH_SIGN: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{
+          "Sign", [](float a) { return compatible_signf(a); }};
+      return fn;
+    }
+    case NODE_MATH_COMPARE: {
+      static blender::fn::CustomMF_SI_SI_SI_SO<float, float, float, float> fn{
+          "Compare", [](float a, float b, float c) -> float {
+            return ((a == b) || (fabsf(a - b) <= fmaxf(c, FLT_EPSILON))) ? 1.0f : 0.0f;
+          }};
+      return fn;
+    }
+    case NODE_MATH_SMOOTH_MIN: {
+      return builder.get_not_implemented_fn();
+    }
+    case NODE_MATH_SMOOTH_MAX: {
+      return builder.get_not_implemented_fn();
+    }
+
+    case NODE_MATH_ROUND: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{
+          "Round", [](float a) { return floorf(a + 0.5f); }};
+      return fn;
+    }
+    case NODE_MATH_FLOOR: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Floor",
+                                                          [](float a) { return floorf(a); }};
+      return fn;
+    }
+    case NODE_MATH_CEIL: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Ceil",
+                                                          [](float a) { return ceilf(a); }};
+      return fn;
+    }
+    case NODE_MATH_FRACTION: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Fraction",
+                                                          [](float a) { return a - floorf(a); }};
+      return fn;
+    }
+    case NODE_MATH_MODULO: {
+      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
+          "Modulo", [](float a, float b) { return safe_modf(a, b); }};
+      return fn;
+    }
+    case NODE_MATH_TRUNC: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{
+          "Trunc", [](float a) { return a >= 0.0f ? floorf(a) : ceilf(a); }};
+      return fn;
+    }
+    case NODE_MATH_SNAP: {
+      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
+          "Snap", [](float a, float b) { return floorf(safe_divide(a, b)) * b; }};
+      return fn;
+    }
+    case NODE_MATH_WRAP: {
+      return builder.get_not_implemented_fn();
+    }
+    case NODE_MATH_PINGPONG: {
+      return builder.get_not_implemented_fn();
+    }
+
+    case NODE_MATH_SINE: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Sine", [](float a) { return sinf(a); }};
+      return fn;
+    }
+    case NODE_MATH_COSINE: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Cosine",
+                                                          [](float a) { return cosf(a); }};
+      return fn;
+    }
+    case NODE_MATH_TANGENT: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Tangent",
+                                                          [](float a) { return tanf(a); }};
+      return fn;
+    }
+    case NODE_MATH_SINH: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Hyperbolic Sine",
+                                                          [](float a) { return sinhf(a); }};
+      return fn;
+    }
+    case NODE_MATH_COSH: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Hyperbolic Cosine",
+                                                          [](float a) { return coshf(a); }};
+      return fn;
+    }
+    case NODE_MATH_TANH: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Hyperbolic Tangent",
+                                                          [](float a) { return tanhf(a); }};
+      return fn;
+    }
+    case NODE_MATH_ARCSINE: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Arc Sine", safe_asinf};
+      return fn;
+    }
+    case NODE_MATH_ARCCOSINE: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Arc Cosine", safe_acosf};
+      return fn;
+    }
+    case NODE_MATH_ARCTANGENT: {
+      static blender::fn::CustomMF_SI_SO<float, float> fn{"Arc Tangent",
+                                                          [](float a) { return atanf(a); }};
+      return fn;
+    }
+    case NODE_MATH_ARCTAN2: {
+      static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{
+          "Arc Tangent 2", [](float a, float b) { return atan2f(a, b); }};
+      return fn;
+    }
+
     default:
       BLI_assert(false);
-      break;
+      return builder.get_not_implemented_fn();
+  }
+}
+
+static void sh_node_math_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+{
+  const blender::fn::MultiFunction &base_function = get_base_multi_function(builder);
+
+  const blender::bke::DNode &dnode = builder.dnode();
+  blender::fn::MFNetwork &network = builder.network();
+  blender::fn::MFFunctionNode &base_node = network.add_function(base_function);
+
+  builder.network_map().add_try_match(dnode.inputs(), base_node.inputs());
+
+  const bool clamp_output = builder.bnode().custom2 != 0;
+  if (clamp_output) {
+    static blender::fn::CustomMF_SI_SO<float, float> clamp_fn{"Clamp", [](float value) {
+                                                                CLAMP(value, 0.0f, 1.0f);
+                                                                return value;
+                                                              }};
+    blender::fn::MFFunctionNode &clamp_node = network.add_function(clamp_fn);
+    network.add_link(base_node.output(0), clamp_node.input(0));
+    builder.network_map().add(dnode.output(0), clamp_node.output(0));
+  }
+  else {
+    builder.network_map().add(dnode.output(0), base_node.output(0));
   }
 }
 
