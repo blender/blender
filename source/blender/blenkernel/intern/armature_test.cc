@@ -23,6 +23,8 @@
 
 #include "testing/testing.h"
 
+namespace blender::bke::tests {
+
 static const float FLOAT_EPSILON = 1.2e-7;
 
 TEST(mat3_vec_to_roll, UnitMatrix)
@@ -87,3 +89,5 @@ TEST(mat3_vec_to_roll, Rotationmatrix)
     EXPECT_NEAR(0.57158958f, roll, FLOAT_EPSILON);
   }
 }
+
+}  // namespace blender::bke::tests

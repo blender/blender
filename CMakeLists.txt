@@ -1628,10 +1628,6 @@ endif()
 #-----------------------------------------------------------------------------
 # Libraries
 
-if(WITH_GTESTS)
-  include(GTestTesting)
-endif()
-
 if(WITH_BLENDER)
   add_subdirectory(intern)
   add_subdirectory(extern)

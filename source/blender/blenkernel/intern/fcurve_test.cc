@@ -27,6 +27,8 @@ extern "C" {
 #include "DNA_anim_types.h"
 }
 
+namespace blender::bke::tests {
+
 // Epsilon for floating point comparisons.
 static const float EPSILON = 1e-7f;
 
@@ -209,3 +211,5 @@ TEST(evaluate_fcurve, ExtrapolationBezierKeys)
 
   BKE_fcurve_free(fcu);
 }
+
+}  // namespace blender::bke::tests

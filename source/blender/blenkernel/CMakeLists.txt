@@ -701,3 +701,16 @@ blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # Needed so we can use dna_type_offsets.h for defaults initialization.
 add_dependencies(bf_blenkernel bf_dna)
+
+
+if(WITH_GTESTS)
+  set(TEST_SRC
+    intern/armature_test.cc
+    intern/fcurve_test.cc
+  )
+  set(TEST_INC
+    ../editors/include
+  )
+  include(GTestTesting)
+  blender_add_test_lib(bf_blenkernel_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB}")
+endif()

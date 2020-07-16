@@ -18,6 +18,10 @@
 # All rights reserved.
 # ***** END GPL LICENSE BLOCK *****
 
+add_definitions(${GFLAGS_DEFINES})
+add_definitions(${GLOG_DEFINES})
+add_definitions(-DBLENDER_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
+
 set(INC
   .
   ..

@@ -1,18 +1,13 @@
 
-# GTest
 if(WITH_GTESTS)
-
-  include(GTestTesting)
-
-  add_definitions(${GFLAGS_DEFINES})
-  add_definitions(${GLOG_DEFINES})
-  add_definitions(-DBLENDER_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
-
   # Otherwise we get warnings here that we cant fix in external projects
   remove_strict_flags()
 
+  # Build common test runner
+  add_subdirectory(runner)
+
+  # Build tests not yet ported to the common runner
   add_subdirectory(testing)
-  add_subdirectory(blenkernel)
   add_subdirectory(blenlib)
   add_subdirectory(blenloader)
   add_subdirectory(guardedalloc)

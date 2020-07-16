@@ -37,6 +37,11 @@ macro(BLENDER_SRC_GTEST_EX)
     if(WIN32)
       set(MANIFEST "${CMAKE_BINARY_DIR}/tests.exe.manifest")
     endif()
+
+    add_definitions(-DBLENDER_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
+    add_definitions(${GFLAGS_DEFINES})
+    add_definitions(${GLOG_DEFINES})
+
     add_executable(${TARGET_NAME} ${ARG_SRC} ${MANIFEST})
     target_include_directories(${TARGET_NAME} PUBLIC "${TEST_INC}")
     target_include_directories(${TARGET_NAME} SYSTEM PUBLIC "${TEST_INC_SYS}")

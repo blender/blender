@@ -354,6 +354,42 @@ function(blender_add_lib
   set_property(GLOBAL APPEND PROPERTY BLENDER_LINK_LIBS ${name})
 endfunction()
 
+# blender_add_test_lib() is used to define a test library. It is intended to be
+# called in tandem with blender_add_lib(). The test library will be linked into
+# the bf_gtest_runner_test executable (see tests/gtests/CMakeLists.txt).
+function(blender_add_test_lib
+  name
+  sources
+  includes
+  includes_sys
+  library_deps
+  )
+
+  add_cc_flags_custom_test(${name} PARENT_SCOPE)
+
+  # Otherwise external projects will produce warnings that we cannot fix.
+  remove_strict_flags()
+
+  # This duplicates logic that's also in GTestTesting.cmake, macro BLENDER_SRC_GTEST_EX.
+  # TODO(Sybren): deduplicate after the general approach in D7649 has been approved.
+  LIST(APPEND includes
+    ${CMAKE_SOURCE_DIR}/tests/gtests
+  )
+  LIST(APPEND includes_sys
+    ${GLOG_INCLUDE_DIRS}
+    ${GFLAGS_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/extern/gtest/include
+    ${CMAKE_SOURCE_DIR}/extern/gmock/include
+  )
+  add_definitions(-DBLENDER_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
+  add_definitions(${GFLAGS_DEFINES})
+  add_definitions(${GLOG_DEFINES})
+
+  blender_add_lib__impl(${name} "${sources}" "${includes}" "${includes_sys}" "${library_deps}")
+
+  set_property(GLOBAL APPEND PROPERTY BLENDER_TEST_LIBS ${name})
+endfunction()
+
 # Ninja only: assign 'heavy pool' to some targets that are especially RAM-consuming to build.
 function(setup_heavy_lib_pool)
   if(WITH_NINJA_POOL_JOBS AND NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
