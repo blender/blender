@@ -2259,11 +2259,13 @@ static Material *gpencil_add_material(Main *bmain,
   return mat_gp;
 }
 
-static int gpencil_material_find_index_byname(Object *ob, char *name, const int num)
+static int gpencil_material_find_index_by_name_prefix(Object *ob, const char *name_prefix)
 {
+  const int name_prefix_len = strlen(name_prefix);
   for (int i = 0; i < ob->totcol; i++) {
     Material *ma = BKE_object_material_get(ob, i + 1);
-    if ((ma != NULL) && (ma->gp_style != NULL) && (STREQLEN(ma->id.name + 2, name, num))) {
+    if ((ma != NULL) && (ma->gp_style != NULL) &&
+        (STREQLEN(ma->id.name + 2, name_prefix, name_prefix_len))) {
       return i;
     }
   }
@@ -2314,8 +2316,8 @@ void BKE_gpencil_convert_mesh(Main *bmain,
   MLoop *mloop = me_eval->mloop;
   int mpoly_len = me_eval->totpoly;
   int i;
-  int stroke_mat_index = gpencil_material_find_index_byname(ob_gp, "Stroke", 6);
-  int fill_mat_index = gpencil_material_find_index_byname(ob_gp, "Fill", 4);
+  int stroke_mat_index = gpencil_material_find_index_by_name_prefix(ob_gp, "Stroke");
+  int fill_mat_index = gpencil_material_find_index_by_name_prefix(ob_gp, "Fill");
 
   /* If the object has enough materials means it was created in a previous step. */
   const bool create_mat = ((ob_gp->totcol > 0) && (ob_gp->totcol >= ob_mesh->totcol)) ? false :
