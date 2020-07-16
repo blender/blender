@@ -359,8 +359,8 @@ template<class T> void ParticleDataImpl<T>::setSource(Grid<T> *grid, bool isMAC)
 {
   mpGridSource = grid;
   mGridSourceMAC = isMAC;
-  if (isMAC)
-    assertMsg(dynamic_cast<MACGrid *>(grid) != NULL, "Given grid is not a valid MAC grid");
+  if (grid && isMAC)
+    assertMsg(grid->getType() & GridBase::TypeMAC, "Given grid is not a valid MAC grid");
 }
 
 template<class T> void ParticleDataImpl<T>::initNewValue(IndexInt idx, Vec3 pos)

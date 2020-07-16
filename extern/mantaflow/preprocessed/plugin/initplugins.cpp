@@ -1479,47 +1479,23 @@ void PbRegister_addTestParts()
 }
 
 //! calculate the difference between two pdata fields (note - slow!, not parallelized)
-
-Real pdataMaxDiff(const ParticleDataBase *a, const ParticleDataBase *b)
+template<class T> Real getPdataMaxDiff(const ParticleDataImpl<T> *a, const ParticleDataImpl<T> *b)
 {
-  double maxVal = 0.;
-  // debMsg(" PD "<< a->getType()<<"  as"<<a->getSizeSlow()<<"  bs"<<b->getSizeSlow() , 1);
   assertMsg(a->getType() == b->getType(), "pdataMaxDiff problem - different pdata types!");
   assertMsg(a->getSizeSlow() == b->getSizeSlow(), "pdataMaxDiff problem - different pdata sizes!");
 
-  if (a->getType() & ParticleDataBase::TypeReal) {
-    const ParticleDataImpl<Real> &av = *dynamic_cast<const ParticleDataImpl<Real> *>(a);
-    const ParticleDataImpl<Real> &bv = *dynamic_cast<const ParticleDataImpl<Real> *>(b);
-    FOR_PARTS(av)
-    {
-      maxVal = std::max(maxVal, (double)fabs(av[idx] - bv[idx]));
-    }
+  Real maxVal = 0.;
+  FOR_PARTS(*a)
+  {
+    T diff = a->get(idx) - b->get(idx);
+    Real s = (Real)sum(abs(diff));
+    maxVal = std::max(maxVal, s);
   }
-  else if (a->getType() & ParticleDataBase::TypeInt) {
-    const ParticleDataImpl<int> &av = *dynamic_cast<const ParticleDataImpl<int> *>(a);
-    const ParticleDataImpl<int> &bv = *dynamic_cast<const ParticleDataImpl<int> *>(b);
-    FOR_PARTS(av)
-    {
-      maxVal = std::max(maxVal, (double)fabs((double)av[idx] - bv[idx]));
-    }
-  }
-  else if (a->getType() & ParticleDataBase::TypeVec3) {
-    const ParticleDataImpl<Vec3> &av = *dynamic_cast<const ParticleDataImpl<Vec3> *>(a);
-    const ParticleDataImpl<Vec3> &bv = *dynamic_cast<const ParticleDataImpl<Vec3> *>(b);
-    FOR_PARTS(av)
-    {
-      double d = 0.;
-      for (int c = 0; c < 3; ++c) {
-        d += fabs((double)av[idx][c] - (double)bv[idx][c]);
-      }
-      maxVal = std::max(maxVal, d);
-    }
-  }
-  else {
-    errMsg("pdataMaxDiff: Grid Type is not supported (only Real, Vec3, int)");
-  }
-
   return maxVal;
+}
+Real pdataMaxDiff(const ParticleDataImpl<Real> *a, const ParticleDataImpl<Real> *b)
+{
+  return getPdataMaxDiff(a, b);
 }
 static PyObject *_W_15(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
 {
@@ -1531,8 +1507,8 @@ static PyObject *_W_15(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     PyObject *_retval = 0;
     {
       ArgLocker _lock;
-      const ParticleDataBase *a = _args.getPtr<ParticleDataBase>("a", 0, &_lock);
-      const ParticleDataBase *b = _args.getPtr<ParticleDataBase>("b", 1, &_lock);
+      const ParticleDataImpl<Real> *a = _args.getPtr<ParticleDataImpl<Real>>("a", 0, &_lock);
+      const ParticleDataImpl<Real> *b = _args.getPtr<ParticleDataImpl<Real>>("b", 1, &_lock);
       _retval = toPy(pdataMaxDiff(a, b));
       _args.check();
     }
@@ -1552,6 +1528,76 @@ void PbRegister_pdataMaxDiff()
 }
 }
 
+Real pdataMaxDiffInt(const ParticleDataImpl<int> *a, const ParticleDataImpl<int> *b)
+{
+  return getPdataMaxDiff(a, b);
+}
+static PyObject *_W_16(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+{
+  try {
+    PbArgs _args(_linargs, _kwds);
+    FluidSolver *parent = _args.obtainParent();
+    bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
+    pbPreparePlugin(parent, "pdataMaxDiffInt", !noTiming);
+    PyObject *_retval = 0;
+    {
+      ArgLocker _lock;
+      const ParticleDataImpl<int> *a = _args.getPtr<ParticleDataImpl<int>>("a", 0, &_lock);
+      const ParticleDataImpl<int> *b = _args.getPtr<ParticleDataImpl<int>>("b", 1, &_lock);
+      _retval = toPy(pdataMaxDiffInt(a, b));
+      _args.check();
+    }
+    pbFinalizePlugin(parent, "pdataMaxDiffInt", !noTiming);
+    return _retval;
+  }
+  catch (std::exception &e) {
+    pbSetError("pdataMaxDiffInt", e.what());
+    return 0;
+  }
+}
+static const Pb::Register _RP_pdataMaxDiffInt("", "pdataMaxDiffInt", _W_16);
+extern "C" {
+void PbRegister_pdataMaxDiffInt()
+{
+  KEEP_UNUSED(_RP_pdataMaxDiffInt);
+}
+}
+
+Real pdataMaxDiffVec3(const ParticleDataImpl<Vec3> *a, const ParticleDataImpl<Vec3> *b)
+{
+  return getPdataMaxDiff(a, b);
+}
+static PyObject *_W_17(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+{
+  try {
+    PbArgs _args(_linargs, _kwds);
+    FluidSolver *parent = _args.obtainParent();
+    bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
+    pbPreparePlugin(parent, "pdataMaxDiffVec3", !noTiming);
+    PyObject *_retval = 0;
+    {
+      ArgLocker _lock;
+      const ParticleDataImpl<Vec3> *a = _args.getPtr<ParticleDataImpl<Vec3>>("a", 0, &_lock);
+      const ParticleDataImpl<Vec3> *b = _args.getPtr<ParticleDataImpl<Vec3>>("b", 1, &_lock);
+      _retval = toPy(pdataMaxDiffVec3(a, b));
+      _args.check();
+    }
+    pbFinalizePlugin(parent, "pdataMaxDiffVec3", !noTiming);
+    return _retval;
+  }
+  catch (std::exception &e) {
+    pbSetError("pdataMaxDiffVec3", e.what());
+    return 0;
+  }
+}
+static const Pb::Register _RP_pdataMaxDiffVec3("", "pdataMaxDiffVec3", _W_17);
+extern "C" {
+void PbRegister_pdataMaxDiffVec3()
+{
+  KEEP_UNUSED(_RP_pdataMaxDiffVec3);
+}
+}
+
 //! calculate center of mass given density grid, for re-centering
 
 Vec3 calcCenterOfMass(const Grid<Real> &density)
@@ -1567,7 +1613,7 @@ Vec3 calcCenterOfMass(const Grid<Real> &density)
     p /= w;
   return p;
 }
-static PyObject *_W_16(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+static PyObject *_W_18(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
 {
   try {
     PbArgs _args(_linargs, _kwds);
@@ -1589,7 +1635,7 @@ static PyObject *_W_16(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     return 0;
   }
 }
-static const Pb::Register _RP_calcCenterOfMass("", "calcCenterOfMass", _W_16);
+static const Pb::Register _RP_calcCenterOfMass("", "calcCenterOfMass", _W_18);
 extern "C" {
 void PbRegister_calcCenterOfMass()
 {
@@ -1789,7 +1835,7 @@ void updateFractions(const FlagGrid &flags,
   fractions.setConst(Vec3(0.));
   KnUpdateFractions(flags, phiObs, fractions, boundaryWidth, fracThreshold);
 }
-static PyObject *_W_17(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+static PyObject *_W_19(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
 {
   try {
     PbArgs _args(_linargs, _kwds);
@@ -1816,7 +1862,7 @@ static PyObject *_W_17(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     return 0;
   }
 }
-static const Pb::Register _RP_updateFractions("", "updateFractions", _W_17);
+static const Pb::Register _RP_updateFractions("", "updateFractions", _W_19);
 extern "C" {
 void PbRegister_updateFractions()
 {
@@ -1968,7 +2014,7 @@ void setObstacleFlags(FlagGrid &flags,
 {
   KnUpdateFlagsObs(flags, fractions, phiObs, phiOut, phiIn, boundaryWidth);
 }
-static PyObject *_W_18(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+static PyObject *_W_20(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
 {
   try {
     PbArgs _args(_linargs, _kwds);
@@ -1996,7 +2042,7 @@ static PyObject *_W_18(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     return 0;
   }
 }
-static const Pb::Register _RP_setObstacleFlags("", "setObstacleFlags", _W_18);
+static const Pb::Register _RP_setObstacleFlags("", "setObstacleFlags", _W_20);
 extern "C" {
 void PbRegister_setObstacleFlags()
 {
@@ -2113,7 +2159,7 @@ void initVortexVelocity(const Grid<Real> &phiObs,
 {
   kninitVortexVelocity(phiObs, vel, center, radius);
 }
-static PyObject *_W_19(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+static PyObject *_W_21(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
 {
   try {
     PbArgs _args(_linargs, _kwds);
@@ -2139,7 +2185,7 @@ static PyObject *_W_19(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     return 0;
   }
 }
-static const Pb::Register _RP_initVortexVelocity("", "initVortexVelocity", _W_19);
+static const Pb::Register _RP_initVortexVelocity("", "initVortexVelocity", _W_21);
 extern "C" {
 void PbRegister_initVortexVelocity()
 {
@@ -2465,7 +2511,7 @@ int blurMacGrid(MACGrid &oG, MACGrid &tG, float si)
   }
   return tmGK.mDim;
 }
-static PyObject *_W_20(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+static PyObject *_W_22(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
 {
   try {
     PbArgs _args(_linargs, _kwds);
@@ -2489,7 +2535,7 @@ static PyObject *_W_20(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     return 0;
   }
 }
-static const Pb::Register _RP_blurMacGrid("", "blurMacGrid", _W_20);
+static const Pb::Register _RP_blurMacGrid("", "blurMacGrid", _W_22);
 extern "C" {
 void PbRegister_blurMacGrid()
 {
@@ -2501,7 +2547,7 @@ int blurRealGrid(Grid<Real> &oG, Grid<Real> &tG, float si)
 {
   return blurGrid<Real>(oG, tG, si);
 }
-static PyObject *_W_21(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+static PyObject *_W_23(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
 {
   try {
     PbArgs _args(_linargs, _kwds);
@@ -2525,7 +2571,7 @@ static PyObject *_W_21(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     return 0;
   }
 }
-static const Pb::Register _RP_blurRealGrid("", "blurRealGrid", _W_21);
+static const Pb::Register _RP_blurRealGrid("", "blurRealGrid", _W_23);
 extern "C" {
 void PbRegister_blurRealGrid()
 {

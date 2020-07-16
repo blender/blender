@@ -111,6 +111,8 @@ extern void PbRegister_checkSymmetryVec3();
 extern void PbRegister_projectPpmFull();
 extern void PbRegister_addTestParts();
 extern void PbRegister_pdataMaxDiff();
+extern void PbRegister_pdataMaxDiffInt();
+extern void PbRegister_pdataMaxDiffVec3();
 extern void PbRegister_calcCenterOfMass();
 extern void PbRegister_updateFractions();
 extern void PbRegister_setObstacleFlags();
@@ -306,6 +308,8 @@ void MantaEnsureRegistration()
   PbRegister_projectPpmFull();
   PbRegister_addTestParts();
   PbRegister_pdataMaxDiff();
+  PbRegister_pdataMaxDiffInt();
+  PbRegister_pdataMaxDiffVec3();
   PbRegister_calcCenterOfMass();
   PbRegister_updateFractions();
   PbRegister_setObstacleFlags();
