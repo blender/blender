@@ -109,3 +109,15 @@ else()
 endif()
 
 target_link_libraries(bf_usd INTERFACE ${TBB_LIBRARIES})
+
+if(WITH_GTESTS)
+  set(TEST_SRC
+    tests/usd_stage_creation_test.cc
+  )
+  set(TEST_INC
+  )
+  set(TEST_LIB
+  )
+  include(GTestTesting)
+  blender_add_test_lib(bf_io_usd_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+endif()

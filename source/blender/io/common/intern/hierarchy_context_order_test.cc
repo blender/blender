@@ -24,15 +24,19 @@ extern "C" {
 #include "BLI_utildefines.h"
 }
 
-using namespace blender::io;
+namespace blender::io {
 
-class HierarchyContextOrderTest : public testing::Test {
-};
+namespace {
 
-static Object *fake_pointer(int value)
+Object *fake_pointer(int value)
 {
   return static_cast<Object *>(POINTER_FROM_INT(value));
 }
+
+}  // namespace
+
+class HierarchyContextOrderTest : public testing::Test {
+};
 
 TEST_F(HierarchyContextOrderTest, ObjectPointerTest)
 {
@@ -121,3 +125,5 @@ TEST_F(HierarchyContextOrderTest, TransitiveTest)
   EXPECT_FALSE(ctx_d < ctx_b);
   EXPECT_FALSE(ctx_d < ctx_c);
 }
+
+}  // namespace blender::io

@@ -50,8 +50,6 @@ extern "C" {
 #include "wm.h"
 }
 
-DEFINE_string(test_assets_dir, "", "lib/tests directory from SVN containing the test assets.");
-
 BlendfileLoadingBaseTest::~BlendfileLoadingBaseTest()
 {
 }
@@ -125,19 +123,18 @@ void BlendfileLoadingBaseTest::TearDown()
 
 bool BlendfileLoadingBaseTest::blendfile_load(const char *filepath)
 {
-  if (FLAGS_test_assets_dir.empty()) {
-    ADD_FAILURE()
-        << "Pass the flag --test-assets-dir and point to the lib/tests directory from SVN.";
+  const std::string &test_assets_dir = blender::tests::flags_test_asset_dir();
+  if (test_assets_dir.empty()) {
     return false;
   }
 
   char abspath[FILENAME_MAX];
-  BLI_path_join(abspath, sizeof(abspath), FLAGS_test_assets_dir.c_str(), filepath, NULL);
+  BLI_path_join(abspath, sizeof(abspath), test_assets_dir.c_str(), filepath, NULL);
 
   bfile = BLO_read_from_file(abspath, BLO_READ_SKIP_NONE, NULL /* reports */);
   if (bfile == nullptr) {
     ADD_FAILURE() << "Unable to load file '" << filepath << "' from test assets dir '"
-                  << FLAGS_test_assets_dir << "'";
+                  << test_assets_dir << "'";
     return false;
   }
   return true;

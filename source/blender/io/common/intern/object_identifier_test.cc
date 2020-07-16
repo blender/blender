@@ -24,8 +24,7 @@
 
 #include <climits>
 
-namespace blender {
-namespace io {
+namespace blender::io {
 
 namespace {
 
@@ -232,5 +231,4 @@ TEST_F(PersistentIDTest, as_object_name_suffix)
   EXPECT_EQ("-3--2--1", TestPersistentID(-1, -2, -3).as_object_name_suffix());
 }
 
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io

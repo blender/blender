@@ -19,20 +19,20 @@
 #include "IO_abstract_hierarchy_iterator.h"
 #include "blenloader/blendfile_loading_base_test.h"
 
-extern "C" {
 #include "BLI_math.h"
 #include "DEG_depsgraph.h"
 #include "DNA_object_types.h"
-}
 
 #include <map>
 #include <set>
 
+namespace blender::io {
+
+namespace {
+
 /* Mapping from ID.name to set of export hierarchy path. Duplicated objects can be exported
  * multiple times with different export paths, hence the set. */
 typedef std::map<std::string, std::set<std::string>> used_writers;
-
-using namespace blender::io;
 
 class TestHierarchyWriter : public AbstractHierarchyWriter {
  public:
@@ -57,16 +57,7 @@ class TestHierarchyWriter : public AbstractHierarchyWriter {
   }
 };
 
-void debug_print_writers(const char *label, const used_writers &writers_map)
-{
-  printf("%s:\n", label);
-  for (auto idname_writers : writers_map) {
-    printf("    %s:\n", idname_writers.first.c_str());
-    for (const std::string &export_path : idname_writers.second) {
-      printf("      - %s\n", export_path.c_str());
-    }
-  }
-}
+}  // namespace
 
 class TestingHierarchyIterator : public AbstractHierarchyIterator {
  public: /* Public so that the test cases can directly inspect the created writers. */
@@ -84,19 +75,19 @@ class TestingHierarchyIterator : public AbstractHierarchyIterator {
   }
 
  protected:
-  AbstractHierarchyWriter *create_transform_writer(const HierarchyContext *context) override
+  AbstractHierarchyWriter *create_transform_writer(const HierarchyContext * /*context*/) override
   {
     return new TestHierarchyWriter("transform", transform_writers);
   }
-  AbstractHierarchyWriter *create_data_writer(const HierarchyContext *context) override
+  AbstractHierarchyWriter *create_data_writer(const HierarchyContext * /*context*/) override
   {
     return new TestHierarchyWriter("data", data_writers);
   }
-  AbstractHierarchyWriter *create_hair_writer(const HierarchyContext *context) override
+  AbstractHierarchyWriter *create_hair_writer(const HierarchyContext * /*context*/) override
   {
     return new TestHierarchyWriter("hair", hair_writers);
   }
-  AbstractHierarchyWriter *create_particle_writer(const HierarchyContext *context) override
+  AbstractHierarchyWriter *create_particle_writer(const HierarchyContext * /*context*/) override
   {
     return new TestHierarchyWriter("particle", particle_writers);
   }
@@ -325,3 +316,4 @@ TEST_F(USDHierarchyIteratorTest, ExportSubsetTest)
   EXPECT_EQ(expected_transforms, iterator->transform_writers);
   EXPECT_EQ(expected_data, iterator->data_writers);
 }
+}  // namespace blender::io

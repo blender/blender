@@ -48,3 +48,16 @@ set(LIB
 blender_add_lib(bf_io_common "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 target_link_libraries(bf_io_common INTERFACE)
+
+if(WITH_GTESTS)
+  set(TEST_SRC
+    intern/abstract_hierarchy_iterator_test.cc
+    intern/hierarchy_context_order_test.cc
+    intern/object_identifier_test.cc
+  )
+  set(TEST_LIB
+    bf_blenloader_test
+  )
+  include(GTestTesting)
+  blender_add_test_lib(bf_io_common_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+endif()
