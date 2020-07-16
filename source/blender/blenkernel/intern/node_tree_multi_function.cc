@@ -185,38 +185,43 @@ static fn::MFOutputSocket *try_find_origin(CommonMFNetworkBuilderData &common,
   }
 }
 
+using ImplicitConversionsMap =
+    Map<std::pair<fn::MFDataType, fn::MFDataType>, const fn::MultiFunction *>;
+
+template<typename From, typename To>
+static void add_implicit_conversion(ImplicitConversionsMap &map)
+{
+  static fn::CustomMF_Convert<From, To> function;
+  map.add({fn::MFDataType::ForSingle<From>(), fn::MFDataType::ForSingle<To>()}, &function);
+}
+
+template<typename From, typename To, typename ConversionF>
+static void add_implicit_conversion(ImplicitConversionsMap &map,
+                                    StringRef name,
+                                    ConversionF conversion)
+{
+  static fn::CustomMF_SI_SO<From, To> function{name, conversion};
+  map.add({fn::MFDataType::ForSingle<From>(), fn::MFDataType::ForSingle<To>()}, &function);
+}
+
+static ImplicitConversionsMap get_implicit_conversions()
+{
+  ImplicitConversionsMap conversions;
+  add_implicit_conversion<float, int32_t>(conversions);
+  add_implicit_conversion<float, float3>(conversions);
+  add_implicit_conversion<int32_t, float>(conversions);
+  add_implicit_conversion<float3, float>(
+      conversions, "Vector Length", [](float3 a) { return a.length(); });
+  add_implicit_conversion<int32_t, float3>(
+      conversions, "int32 to float3", [](int32_t a) { return float3((float)a); });
+  return conversions;
+}
+
 static const fn::MultiFunction *try_get_conversion_function(fn::MFDataType from, fn::MFDataType to)
 {
-  if (from == fn::MFDataType::ForSingle<float>()) {
-    if (to == fn::MFDataType::ForSingle<int32_t>()) {
-      static fn::CustomMF_Convert<float, int32_t> function;
-      return &function;
-    }
-    if (to == fn::MFDataType::ForSingle<float3>()) {
-      static fn::CustomMF_Convert<float, float3> function;
-      return &function;
-    }
-  }
-  if (from == fn::MFDataType::ForSingle<float3>()) {
-    if (to == fn::MFDataType::ForSingle<float>()) {
-      static fn::CustomMF_SI_SO<float3, float> function{"Vector Length",
-                                                        [](float3 a) { return a.length(); }};
-      return &function;
-    }
-  }
-  if (from == fn::MFDataType::ForSingle<int32_t>()) {
-    if (to == fn::MFDataType::ForSingle<float>()) {
-      static fn::CustomMF_Convert<int32_t, float> function;
-      return &function;
-    }
-    if (to == fn::MFDataType::ForSingle<float3>()) {
-      static fn::CustomMF_SI_SO<int32_t, float3> function{
-          "int32 to float3", [](int32_t a) { return float3((float)a); }};
-      return &function;
-    }
-  }
-
-  return nullptr;
+  static const ImplicitConversionsMap conversions = get_implicit_conversions();
+  const fn::MultiFunction *function = conversions.lookup_default({from, to}, nullptr);
+  return function;
 }
 
 static fn::MFOutputSocket &insert_default_value_for_type(CommonMFNetworkBuilderData &common,
