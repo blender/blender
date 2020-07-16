@@ -351,7 +351,7 @@ void WM_init(bContext *C, int argc, const char **argv)
   BKE_material_copybuf_clear();
   ED_render_clear_mtex_copybuf();
 
-  // glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+  // GPU_blend_set_func(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
   wm_history_file_read();
 

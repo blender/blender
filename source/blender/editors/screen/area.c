@@ -135,7 +135,7 @@ static void region_draw_emboss(const ARegion *region, const rcti *scirct, int si
   immUnbindProgram();
 
   GPU_blend(false);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
 }
 
 void ED_region_pixelspace(ARegion *region)

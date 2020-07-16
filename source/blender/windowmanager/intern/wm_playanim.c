@@ -316,7 +316,8 @@ static void playanim_toscreen(
   /* checkerboard for case alpha */
   if (ibuf->planes == 32) {
     GPU_blend(true);
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(
+        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
     imm_draw_box_checker_2d_ex(offs_x,
                                offs_y,
