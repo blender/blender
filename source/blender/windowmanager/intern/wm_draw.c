@@ -403,14 +403,8 @@ static void wm_draw_offscreen_texture_parameters(GPUOffScreen *offscreen)
   /* We don't support multisample textures here. */
   BLI_assert(GPU_texture_target(texture) == GL_TEXTURE_2D);
 
-  glBindTexture(GL_TEXTURE_2D, GPU_texture_opengl_bindcode(texture));
-
   /* No mipmaps or filtering. */
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-  /* GL_TEXTURE_BASE_LEVEL = 0 by default */
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glBindTexture(GL_TEXTURE_2D, 0);
+  GPU_texture_mipmap_mode(texture, false, false);
 }
 
 static void wm_draw_region_buffer_create(ARegion *region, bool stereo, bool use_viewport)
@@ -554,23 +548,9 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
     alpha = 1.0f;
   }
 
-  /* setup actual texture */
-  GPUTexture *texture = wm_draw_region_texture(region, view);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, GPU_texture_opengl_bindcode(texture));
-
   /* wmOrtho for the screen has this same offset */
   const float halfx = GLA_PIXEL_OFS / (BLI_rcti_size_x(&region->winrct) + 1);
   const float halfy = GLA_PIXEL_OFS / (BLI_rcti_size_y(&region->winrct) + 1);
-
-  if (blend) {
-    /* GL_ONE because regions drawn offscreen have premultiplied alpha. */
-    GPU_blend(true);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-  }
-
-  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
-  GPU_shader_bind(shader);
 
   rcti rect_geo = region->winrct;
   rect_geo.xmax += 1;
@@ -598,26 +578,39 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
     alpha = 1.0f;
   }
 
-  glUniform1i(GPU_shader_get_uniform(shader, "image"), 0);
-  glUniform4f(GPU_shader_get_uniform(shader, "rect_icon"),
-              rect_tex.xmin,
-              rect_tex.ymin,
-              rect_tex.xmax,
-              rect_tex.ymax);
-  glUniform4f(GPU_shader_get_uniform(shader, "rect_geom"),
-              rect_geo.xmin,
-              rect_geo.ymin,
-              rect_geo.xmax,
-              rect_geo.ymax);
-  glUniform4f(
-      GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR), alpha, alpha, alpha, alpha);
+  /* Not the same layout as rectf/recti. */
+  float rectt[4] = {rect_tex.xmin, rect_tex.ymin, rect_tex.xmax, rect_tex.ymax};
+  float rectg[4] = {rect_geo.xmin, rect_geo.ymin, rect_geo.xmax, rect_geo.ymax};
+
+  if (blend) {
+    /* GL_ONE because regions drawn offscreen have premultiplied alpha. */
+    GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend(true);
+  }
+
+  /* setup actual texture */
+  GPUTexture *texture = wm_draw_region_texture(region, view);
+
+  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
+  GPU_shader_bind(shader);
+
+  int color_loc = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR);
+  int rect_tex_loc = GPU_shader_get_uniform(shader, "rect_icon");
+  int rect_geo_loc = GPU_shader_get_uniform(shader, "rect_geom");
+  int texture_bind_loc = GPU_shader_get_texture_binding(shader, "image");
+
+  GPU_texture_bind(texture, texture_bind_loc);
+
+  GPU_shader_uniform_vector(shader, rect_tex_loc, 4, 1, rectt);
+  GPU_shader_uniform_vector(shader, rect_geo_loc, 4, 1, rectg);
+  GPU_shader_uniform_vector(shader, color_loc, 4, 1, (const float[4]){1, 1, 1, 1});
 
   GPU_draw_primitive(GPU_PRIM_TRI_STRIP, 4);
 
-  glBindTexture(GL_TEXTURE_2D, 0);
+  GPU_texture_unbind(texture);
 
   if (blend) {
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
     GPU_blend(false);
   }
 }
@@ -874,8 +867,7 @@ static void wm_draw_window(bContext *C, wmWindow *win)
         GPU_offscreen_unbind(offscreen, false);
 
         /* Draw offscreen buffer to screen. */
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, GPU_texture_opengl_bindcode(texture));
+        GPU_texture_bind(texture, 0);
 
         wmWindowViewport(win);
         if (win->stereo3d_format->display_mode == S3D_DISPLAY_SIDEBYSIDE) {
@@ -885,7 +877,7 @@ static void wm_draw_window(bContext *C, wmWindow *win)
           wm_stereo3d_draw_topbottom(win, view);
         }
 
-        glBindTexture(GL_TEXTURE_2D, 0);
+        GPU_texture_unbind(texture);
       }
 
       GPU_offscreen_free(offscreen);
