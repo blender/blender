@@ -34,7 +34,7 @@
 #include "BKE_cloth.h"
 #include "BKE_modifier.h"
 
-#include "BPH_mass_spring.h"
+#include "SIM_mass_spring.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -482,18 +482,18 @@ static void rna_def_cloth_solver_result(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem status_items[] = {
-      {BPH_SOLVER_SUCCESS, "SUCCESS", 0, "Success", "Computation was successful"},
-      {BPH_SOLVER_NUMERICAL_ISSUE,
+      {SIM_SOLVER_SUCCESS, "SUCCESS", 0, "Success", "Computation was successful"},
+      {SIM_SOLVER_NUMERICAL_ISSUE,
        "NUMERICAL_ISSUE",
        0,
        "Numerical Issue",
        "The provided data did not satisfy the prerequisites"},
-      {BPH_SOLVER_NO_CONVERGENCE,
+      {SIM_SOLVER_NO_CONVERGENCE,
        "NO_CONVERGENCE",
        0,
        "No Convergence",
        "Iterative procedure did not converge"},
-      {BPH_SOLVER_INVALID_INPUT,
+      {SIM_SOLVER_INVALID_INPUT,
        "INVALID_INPUT",
        0,
        "Invalid Input",

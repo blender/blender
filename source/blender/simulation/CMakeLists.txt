@@ -34,7 +34,7 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/BPH_mass_spring.cpp
+  intern/SIM_mass_spring.cpp
   intern/ConstrainedConjugateGradient.h
   intern/eigen_utils.h
   intern/hair_volume.cpp
@@ -42,7 +42,7 @@ set(SRC
   intern/implicit_blender.c
   intern/implicit_eigen.cpp
 
-  BPH_mass_spring.h
+  SIM_mass_spring.h
 )
 
 set(LIB

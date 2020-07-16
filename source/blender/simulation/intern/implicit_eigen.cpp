@@ -78,7 +78,7 @@ extern "C" {
 #  include "BKE_effect.h"
 #  include "BKE_global.h"
 
-#  include "BPH_mass_spring.h"
+#  include "SIM_mass_spring.h"
 }
 
 typedef float Scalar;
@@ -460,20 +460,20 @@ struct Implicit_Data {
   lMatrixCtor iS;           /* filtering matrix for constraints */
 };
 
-Implicit_Data *BPH_mass_spring_solver_create(int numverts, int numsprings)
+Implicit_Data *SIM_mass_spring_solver_create(int numverts, int numsprings)
 {
   Implicit_Data *id = new Implicit_Data(numverts);
   return id;
 }
 
-void BPH_mass_spring_solver_free(Implicit_Data *id)
+void SIM_mass_spring_solver_free(Implicit_Data *id)
 {
   if (id) {
     delete id;
   }
 }
 
-int BPH_mass_spring_solver_numvert(Implicit_Data *id)
+int SIM_mass_spring_solver_numvert(Implicit_Data *id)
 {
   if (id) {
     return id->numverts;
@@ -511,7 +511,7 @@ BLI_INLINE void root_to_world_m3(Implicit_Data *data, int index, float r[3][3], 
 
 /* ================================ */
 
-bool BPH_mass_spring_solve_velocities(Implicit_Data *data, float dt, ImplicitSolverResult *result)
+bool SIM_mass_spring_solve_velocities(Implicit_Data *data, float dt, ImplicitSolverResult *result)
 {
 #  ifdef USE_EIGEN_CORE
   typedef ConjugateGradient solver_t;
@@ -566,16 +566,16 @@ bool BPH_mass_spring_solve_velocities(Implicit_Data *data, float dt, ImplicitSol
 
   switch (cg.info()) {
     case Eigen::Success:
-      result->status = BPH_SOLVER_SUCCESS;
+      result->status = SIM_SOLVER_SUCCESS;
       break;
     case Eigen::NoConvergence:
-      result->status = BPH_SOLVER_NO_CONVERGENCE;
+      result->status = SIM_SOLVER_NO_CONVERGENCE;
       break;
     case Eigen::InvalidInput:
-      result->status = BPH_SOLVER_INVALID_INPUT;
+      result->status = SIM_SOLVER_INVALID_INPUT;
       break;
     case Eigen::NumericalIssue:
-      result->status = BPH_SOLVER_NUMERICAL_ISSUE;
+      result->status = SIM_SOLVER_NUMERICAL_ISSUE;
       break;
   }
 
@@ -585,7 +585,7 @@ bool BPH_mass_spring_solve_velocities(Implicit_Data *data, float dt, ImplicitSol
   return cg.info() == Eigen::Success;
 }
 
-bool BPH_mass_spring_solve_positions(Implicit_Data *data, float dt)
+bool SIM_mass_spring_solve_positions(Implicit_Data *data, float dt)
 {
   data->Xnew = data->X + data->Vnew * dt;
   return true;
@@ -593,13 +593,13 @@ bool BPH_mass_spring_solve_positions(Implicit_Data *data, float dt)
 
 /* ================================ */
 
-void BPH_mass_spring_apply_result(Implicit_Data *data)
+void SIM_mass_spring_apply_result(Implicit_Data *data)
 {
   data->X = data->Xnew;
   data->V = data->Vnew;
 }
 
-void BPH_mass_spring_set_vertex_mass(Implicit_Data *data, int index, float mass)
+void SIM_mass_spring_set_vertex_mass(Implicit_Data *data, int index, float mass)
 {
   float m[3][3];
   copy_m3_m3(m, I);
@@ -607,7 +607,7 @@ void BPH_mass_spring_set_vertex_mass(Implicit_Data *data, int index, float mass)
   data->iM.add(index, index, m);
 }
 
-void BPH_mass_spring_set_rest_transform(Implicit_Data *data, int index, float tfm[3][3])
+void SIM_mass_spring_set_rest_transform(Implicit_Data *data, int index, float tfm[3][3])
 {
 #  ifdef CLOTH_ROOT_FRAME
   copy_m3_m3(data->tfm[index], tfm);
@@ -617,7 +617,7 @@ void BPH_mass_spring_set_rest_transform(Implicit_Data *data, int index, float tf
 #  endif
 }
 
-void BPH_mass_spring_set_motion_state(Implicit_Data *data,
+void SIM_mass_spring_set_motion_state(Implicit_Data *data,
                                       int index,
                                       const float x[3],
                                       const float v[3])
@@ -626,17 +626,17 @@ void BPH_mass_spring_set_motion_state(Implicit_Data *data,
   world_to_root_v3(data, index, data->V.v3(index), v);
 }
 
-void BPH_mass_spring_set_position(Implicit_Data *data, int index, const float x[3])
+void SIM_mass_spring_set_position(Implicit_Data *data, int index, const float x[3])
 {
   world_to_root_v3(data, index, data->X.v3(index), x);
 }
 
-void BPH_mass_spring_set_velocity(Implicit_Data *data, int index, const float v[3])
+void SIM_mass_spring_set_velocity(Implicit_Data *data, int index, const float v[3])
 {
   world_to_root_v3(data, index, data->V.v3(index), v);
 }
 
-void BPH_mass_spring_get_motion_state(struct Implicit_Data *data,
+void SIM_mass_spring_get_motion_state(struct Implicit_Data *data,
                                       int index,
                                       float x[3],
                                       float v[3])
@@ -649,22 +649,22 @@ void BPH_mass_spring_get_motion_state(struct Implicit_Data *data,
   }
 }
 
-void BPH_mass_spring_get_position(struct Implicit_Data *data, int index, float x[3])
+void SIM_mass_spring_get_position(struct Implicit_Data *data, int index, float x[3])
 {
   root_to_world_v3(data, index, x, data->X.v3(index));
 }
 
-void BPH_mass_spring_get_new_velocity(Implicit_Data *data, int index, float v[3])
+void SIM_mass_spring_get_new_velocity(Implicit_Data *data, int index, float v[3])
 {
   root_to_world_v3(data, index, v, data->V.v3(index));
 }
 
-void BPH_mass_spring_set_new_velocity(Implicit_Data *data, int index, const float v[3])
+void SIM_mass_spring_set_new_velocity(Implicit_Data *data, int index, const float v[3])
 {
   world_to_root_v3(data, index, data->V.v3(index), v);
 }
 
-void BPH_mass_spring_clear_constraints(Implicit_Data *data)
+void SIM_mass_spring_clear_constraints(Implicit_Data *data)
 {
   int numverts = data->numverts;
   for (int i = 0; i < numverts; i++) {
@@ -673,14 +673,14 @@ void BPH_mass_spring_clear_constraints(Implicit_Data *data)
   }
 }
 
-void BPH_mass_spring_add_constraint_ndof0(Implicit_Data *data, int index, const float dV[3])
+void SIM_mass_spring_add_constraint_ndof0(Implicit_Data *data, int index, const float dV[3])
 {
   data->iS.sub(index, index, I);
 
   world_to_root_v3(data, index, data->z.v3(index), dV);
 }
 
-void BPH_mass_spring_add_constraint_ndof1(
+void SIM_mass_spring_add_constraint_ndof1(
     Implicit_Data *data, int index, const float c1[3], const float c2[3], const float dV[3])
 {
   float m[3][3], p[3], q[3], u[3], cmat[3][3];
@@ -701,7 +701,7 @@ void BPH_mass_spring_add_constraint_ndof1(
   add_v3_v3(data->z.v3(index), u);
 }
 
-void BPH_mass_spring_add_constraint_ndof2(Implicit_Data *data,
+void SIM_mass_spring_add_constraint_ndof2(Implicit_Data *data,
                                           int index,
                                           const float c1[3],
                                           const float dV[3])
@@ -719,14 +719,14 @@ void BPH_mass_spring_add_constraint_ndof2(Implicit_Data *data,
   add_v3_v3(data->z.v3(index), u);
 }
 
-void BPH_mass_spring_clear_forces(Implicit_Data *data)
+void SIM_mass_spring_clear_forces(Implicit_Data *data)
 {
   data->F.setZero();
   data->dFdX.setZero();
   data->dFdV.setZero();
 }
 
-void BPH_mass_spring_force_reference_frame(Implicit_Data *data,
+void SIM_mass_spring_force_reference_frame(Implicit_Data *data,
                                            int index,
                                            const float acceleration[3],
                                            const float omega[3],
@@ -781,7 +781,7 @@ void BPH_mass_spring_force_reference_frame(Implicit_Data *data,
 #  endif
 }
 
-void BPH_mass_spring_force_gravity(Implicit_Data *data, int index, float mass, const float g[3])
+void SIM_mass_spring_force_gravity(Implicit_Data *data, int index, float mass, const float g[3])
 {
   /* force = mass * acceleration (in this case: gravity) */
   float f[3];
@@ -791,7 +791,7 @@ void BPH_mass_spring_force_gravity(Implicit_Data *data, int index, float mass, c
   add_v3_v3(data->F.v3(index), f);
 }
 
-void BPH_mass_spring_force_drag(Implicit_Data *data, float drag)
+void SIM_mass_spring_force_drag(Implicit_Data *data, float drag)
 {
   int numverts = data->numverts;
   for (int i = 0; i < numverts; i++) {
@@ -806,7 +806,7 @@ void BPH_mass_spring_force_drag(Implicit_Data *data, float drag)
   }
 }
 
-void BPH_mass_spring_force_extern(
+void SIM_mass_spring_force_extern(
     struct Implicit_Data *data, int i, const float f[3], float dfdx[3][3], float dfdv[3][3])
 {
   float tf[3], tdfdx[3][3], tdfdv[3][3];
@@ -835,7 +835,7 @@ static float calc_nor_area_tri(float nor[3],
 
 /* XXX does not support force jacobians yet,
  * since the effector system does not provide them either. */
-void BPH_mass_spring_force_face_wind(
+void SIM_mass_spring_force_face_wind(
     Implicit_Data *data, int v1, int v2, int v3, const float (*winvec)[3])
 {
   const float effector_scale = 0.02f;
@@ -856,7 +856,7 @@ void BPH_mass_spring_force_face_wind(
   madd_v3_v3fl(data->F.v3(v3), nor, factor * dot_v3v3(win, nor));
 }
 
-void BPH_mass_spring_force_edge_wind(Implicit_Data *data, int v1, int v2, const float (*winvec)[3])
+void SIM_mass_spring_force_edge_wind(Implicit_Data *data, int v1, int v2, const float (*winvec)[3])
 {
   const float effector_scale = 0.01;
   float win[3], dir[3], nor[3], length;
@@ -1000,7 +1000,7 @@ BLI_INLINE void apply_spring(
   data->idFdV.sub(j, i, dfdv);
 }
 
-bool BPH_mass_spring_force_spring_linear(Implicit_Data *data,
+bool SIM_mass_spring_force_spring_linear(Implicit_Data *data,
                                          int i,
                                          int j,
                                          float restlen,
@@ -1063,7 +1063,7 @@ bool BPH_mass_spring_force_spring_linear(Implicit_Data *data,
 }
 
 /* See "Stable but Responsive Cloth" (Choi, Ko 2005) */
-bool BPH_mass_spring_force_spring_bending(Implicit_Data *data,
+bool SIM_mass_spring_force_spring_bending(Implicit_Data *data,
                                           int i,
                                           int j,
                                           float restlen,
@@ -1293,7 +1293,7 @@ BLI_INLINE void spring_angbend_estimate_dfdv(Implicit_Data *data,
 /* Angular spring that pulls the vertex toward the local target
  * See "Artistic Simulation of Curly Hair" (Pixar technical memo #12-03a)
  */
-bool BPH_mass_spring_force_spring_bending_angular(Implicit_Data *data,
+bool SIM_mass_spring_force_spring_bending_angular(Implicit_Data *data,
                                                   int i,
                                                   int j,
                                                   int k,
@@ -1444,7 +1444,7 @@ bool BPH_mass_spring_force_spring_bending_angular(Implicit_Data *data,
   return true;
 }
 
-bool BPH_mass_spring_force_spring_goal(Implicit_Data *data,
+bool SIM_mass_spring_force_spring_goal(Implicit_Data *data,
                                        int i,
                                        const float goal_x[3],
                                        const float goal_v[3],

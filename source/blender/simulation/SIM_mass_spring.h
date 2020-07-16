@@ -21,8 +21,8 @@
  * \ingroup bph
  */
 
-#ifndef __BPH_MASS_SPRING_H__
-#define __BPH_MASS_SPRING_H__
+#ifndef __SIM_MASS_SPRING_H__
+#define __SIM_MASS_SPRING_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,25 +35,25 @@ struct ListBase;
 struct Object;
 
 typedef enum eMassSpringSolverStatus {
-  BPH_SOLVER_SUCCESS = (1 << 0),
-  BPH_SOLVER_NUMERICAL_ISSUE = (1 << 1),
-  BPH_SOLVER_NO_CONVERGENCE = (1 << 2),
-  BPH_SOLVER_INVALID_INPUT = (1 << 3),
+  SIM_SOLVER_SUCCESS = (1 << 0),
+  SIM_SOLVER_NUMERICAL_ISSUE = (1 << 1),
+  SIM_SOLVER_NO_CONVERGENCE = (1 << 2),
+  SIM_SOLVER_INVALID_INPUT = (1 << 3),
 } eMassSpringSolverStatus;
 
-struct Implicit_Data *BPH_mass_spring_solver_create(int numverts, int numsprings);
-void BPH_mass_spring_solver_free(struct Implicit_Data *id);
-int BPH_mass_spring_solver_numvert(struct Implicit_Data *id);
+struct Implicit_Data *SIM_mass_spring_solver_create(int numverts, int numsprings);
+void SIM_mass_spring_solver_free(struct Implicit_Data *id);
+int SIM_mass_spring_solver_numvert(struct Implicit_Data *id);
 
-int BPH_cloth_solver_init(struct Object *ob, struct ClothModifierData *clmd);
-void BPH_cloth_solver_free(struct ClothModifierData *clmd);
-int BPH_cloth_solve(struct Depsgraph *depsgraph,
+int SIM_cloth_solver_init(struct Object *ob, struct ClothModifierData *clmd);
+void SIM_cloth_solver_free(struct ClothModifierData *clmd);
+int SIM_cloth_solve(struct Depsgraph *depsgraph,
                     struct Object *ob,
                     float frame,
                     struct ClothModifierData *clmd,
                     struct ListBase *effectors);
-void BKE_cloth_solver_set_positions(struct ClothModifierData *clmd);
-void BKE_cloth_solver_set_volume(ClothModifierData *clmd);
+void SIM_cloth_solver_set_positions(struct ClothModifierData *clmd);
+void SIM_cloth_solver_set_volume(ClothModifierData *clmd);
 
 #ifdef __cplusplus
 }

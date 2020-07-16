@@ -205,7 +205,7 @@ BLI_INLINE void hair_grid_interpolate(const HairGridVert *grid,
   }
 }
 
-void BPH_hair_volume_vertex_grid_forces(HairGrid *grid,
+void SIM_hair_volume_vertex_grid_forces(HairGrid *grid,
                                         const float x[3],
                                         const float v[3],
                                         float smoothfac,
@@ -244,7 +244,7 @@ void BPH_hair_volume_vertex_grid_forces(HairGrid *grid,
   mul_m3_fl(dfdv, smoothfac);
 }
 
-void BPH_hair_volume_grid_interpolate(HairGrid *grid,
+void SIM_hair_volume_grid_interpolate(HairGrid *grid,
                                       const float x[3],
                                       float *density,
                                       float velocity[3],
@@ -264,7 +264,7 @@ void BPH_hair_volume_grid_interpolate(HairGrid *grid,
                         velocity_gradient);
 }
 
-void BPH_hair_volume_grid_velocity(
+void SIM_hair_volume_grid_velocity(
     HairGrid *grid, const float x[3], const float v[3], float fluid_factor, float r_v[3])
 {
   float gdensity, gvelocity[3], gvel_smooth[3], ggrad[3], gvelgrad[3][3];
@@ -291,7 +291,7 @@ void BPH_hair_volume_grid_velocity(
   interp_v3_v3v3(r_v, v_pic, v_flip, fluid_factor);
 }
 
-void BPH_hair_volume_grid_clear(HairGrid *grid)
+void SIM_hair_volume_grid_clear(HairGrid *grid)
 {
   const int size = hair_grid_size(grid->res);
   int i;
@@ -362,7 +362,7 @@ BLI_INLINE void grid_to_world(HairGrid *grid, float vecw[3], const float vec[3])
   add_v3_v3(vecw, grid->gmin);
 }
 
-void BPH_hair_volume_add_vertex(HairGrid *grid, const float x[3], const float v[3])
+void SIM_hair_volume_add_vertex(HairGrid *grid, const float x[3], const float v[3])
 {
   const int res[3] = {grid->res[0], grid->res[1], grid->res[2]};
   float weights[8];
@@ -503,7 +503,7 @@ BLI_INLINE void hair_volume_add_segment_2D(HairGrid *grid,
  * The radius of influence around a segment is assumed to be at most 2*cellsize,
  * i.e. only cells containing the segment and their direct neighbors are examined.
  */
-void BPH_hair_volume_add_segment(HairGrid *grid,
+void SIM_hair_volume_add_segment(HairGrid *grid,
                                  const float x1[3],
                                  const float v1[3],
                                  const float x2[3],
@@ -633,7 +633,7 @@ BLI_INLINE void hair_volume_eval_grid_vertex_sample(HairGridVert *vert,
 /* XXX simplified test implementation using a series of discrete sample along the segment,
  * instead of finding the closest point for all affected grid vertices.
  */
-void BPH_hair_volume_add_segment(HairGrid *grid,
+void SIM_hair_volume_add_segment(HairGrid *grid,
                                  const float UNUSED(x1[3]),
                                  const float UNUSED(v1[3]),
                                  const float x2[3],
@@ -684,7 +684,7 @@ void BPH_hair_volume_add_segment(HairGrid *grid,
 }
 #endif
 
-void BPH_hair_volume_normalize_vertex_grid(HairGrid *grid)
+void SIM_hair_volume_normalize_vertex_grid(HairGrid *grid)
 {
   int i, size = hair_grid_size(grid->res);
   /* divide velocity with density */
@@ -715,7 +715,7 @@ BLI_INLINE float hair_volume_density_divergence(float density,
   }
 }
 
-bool BPH_hair_volume_solve_divergence(HairGrid *grid,
+bool SIM_hair_volume_solve_divergence(HairGrid *grid,
                                       float /*dt*/,
                                       float target_density,
                                       float target_strength)
@@ -1078,7 +1078,7 @@ BLI_INLINE void hair_volume_filter_box_convolute(
   }
 }
 
-void BPH_hair_volume_vertex_grid_filter_box(HairVertexGrid *grid, int kernel_size)
+void SIM_hair_volume_vertex_grid_filter_box(HairVertexGrid *grid, int kernel_size)
 {
   int size = hair_grid_size(grid->res);
   int kernel_sizev[3] = {kernel_size, kernel_size, kernel_size};
@@ -1113,7 +1113,7 @@ void BPH_hair_volume_vertex_grid_filter_box(HairVertexGrid *grid, int kernel_siz
 }
 #endif
 
-HairGrid *BPH_hair_volume_create_vertex_grid(float cellsize,
+HairGrid *SIM_hair_volume_create_vertex_grid(float cellsize,
                                              const float gmin[3],
                                              const float gmax[3])
 {
@@ -1170,7 +1170,7 @@ HairGrid *BPH_hair_volume_create_vertex_grid(float cellsize,
   return grid;
 }
 
-void BPH_hair_volume_free_vertex_grid(HairGrid *grid)
+void SIM_hair_volume_free_vertex_grid(HairGrid *grid)
 {
   if (grid) {
     if (grid->verts) {
@@ -1180,7 +1180,7 @@ void BPH_hair_volume_free_vertex_grid(HairGrid *grid)
   }
 }
 
-void BPH_hair_volume_grid_geometry(
+void SIM_hair_volume_grid_geometry(
     HairGrid *grid, float *cellsize, int res[3], float gmin[3], float gmax[3])
 {
   if (cellsize) {
