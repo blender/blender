@@ -96,6 +96,7 @@ set(SRC
   ../include/ED_util_imbuf.h
   ../include/ED_uvedit.h
   ../include/ED_view3d.h
+  ../include/ED_view3d_offscreen.h
   ../include/UI_icons.h
   ../include/UI_interface.h
   ../include/UI_interface_icons.h

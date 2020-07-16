@@ -39,6 +39,7 @@ set(SRC
   FN_attributes_ref.hh
   FN_cpp_type.hh
   FN_cpp_types.hh
+  FN_generic_vector_array.hh
   FN_multi_function.hh
   FN_multi_function_builder.hh
   FN_multi_function_context.hh

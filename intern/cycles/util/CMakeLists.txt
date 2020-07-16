@@ -100,6 +100,7 @@ set(SRC_HEADERS
   util_simd.h
   util_avxf.h
   util_avxb.h
+  util_avxi.h
   util_semaphore.h
   util_sseb.h
   util_ssef.h

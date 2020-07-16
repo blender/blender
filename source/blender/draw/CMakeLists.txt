@@ -148,6 +148,7 @@ set(SRC
   engines/overlay/overlay_wireframe.c
 
   DRW_engine.h
+  DRW_engine_types.h
   DRW_select_buffer.h
   intern/DRW_render.h
   intern/draw_cache.h

@@ -198,6 +198,7 @@ set(SRC
   BLI_kdtree.h
   BLI_kdtree_impl.h
   BLI_lasso_2d.h
+  BLI_linear_allocator.hh
   BLI_link_utils.h
   BLI_linklist.h
   BLI_linklist_lockfree.h
@@ -232,6 +233,7 @@ set(SRC
   BLI_probing_strategies.hh
   BLI_quadric.h
   BLI_rand.h
+  BLI_rand.hh
   BLI_rect.h
   BLI_resource_collector.hh
   BLI_scanfill.h

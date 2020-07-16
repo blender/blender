@@ -324,6 +324,7 @@ set(SRC
   BKE_idprop.h
   BKE_idtype.h
   BKE_image.h
+  BKE_image_save.h
   BKE_ipo.h
   BKE_kelvinlet.h
   BKE_key.h
@@ -376,6 +377,7 @@ set(SRC
   BKE_scene.h
   BKE_screen.h
   BKE_sequencer.h
+  BKE_sequencer_offscreen.h
   BKE_shader_fx.h
   BKE_shrinkwrap.h
   BKE_simulation.h
@@ -414,6 +416,7 @@ set(SRC
   intern/multires_inline.h
   intern/multires_reshape.h
   intern/multires_unsubdivide.h
+  intern/ocean_intern.h
   intern/pbvh_intern.h
   intern/subdiv_converter.h
   intern/subdiv_inline.h
