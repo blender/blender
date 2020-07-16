@@ -306,6 +306,10 @@ struct anim *IMB_open_anim(const char *name,
 
 bool IMB_anim_can_produce_frames(const struct anim *anim)
 {
+#if !(defined(WITH_AVI) || defined(WITH_FFMPEG))
+  UNUSED_VARS(anim);
+#endif
+
 #ifdef WITH_AVI
   if (anim->avi != NULL) {
     return true;

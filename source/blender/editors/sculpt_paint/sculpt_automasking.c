@@ -89,7 +89,7 @@ bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession *ss, co
   return false;
 }
 
-int SCULPT_automasking_mode_effective_bits(const Sculpt *sculpt, const Brush *brush)
+static int sculpt_automasking_mode_effective_bits(const Sculpt *sculpt, const Brush *brush)
 {
   return sculpt->automasking_flags | brush->automasking_flags;
 }
@@ -97,7 +97,7 @@ int SCULPT_automasking_mode_effective_bits(const Sculpt *sculpt, const Brush *br
 static bool SCULPT_automasking_needs_cache(const Sculpt *sd, const Brush *brush)
 {
 
-  const int automasking_flags = SCULPT_automasking_mode_effective_bits(sd, brush);
+  const int automasking_flags = sculpt_automasking_mode_effective_bits(sd, brush);
   if (automasking_flags & BRUSH_AUTOMASKING_TOPOLOGY) {
     return true;
   }
@@ -309,7 +309,7 @@ static void SCULPT_stroke_automasking_settings_update(SculptSession *ss, Sculpt 
 {
   BLI_assert(ss->cache);
 
-  ss->cache->automask_settings.flags = SCULPT_automasking_mode_effective_bits(sd, brush);
+  ss->cache->automask_settings.flags = sculpt_automasking_mode_effective_bits(sd, brush);
   ss->cache->automask_settings.initial_face_set = SCULPT_active_face_set_get(ss);
 }
 
