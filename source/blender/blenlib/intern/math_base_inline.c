@@ -70,13 +70,6 @@ MINLINE float pow7f(float x)
 {
   return pow2f(pow3f(x)) * x;
 }
-MINLINE float safe_powf(float base, float exponent)
-{
-  if (UNLIKELY(base < 0.0f && exponent != (int)exponent)) {
-    return 0.0f;
-  }
-  return powf(base, exponent);
-}
 
 MINLINE float sqrt3f(float f)
 {
@@ -347,24 +340,6 @@ MINLINE signed char round_db_to_char_clamp(double a){
 
 #undef _round_clamp_fl_impl
 #undef _round_clamp_db_impl
-
-MINLINE float safe_divide(float a, float b)
-{
-  return (b != 0.0f) ? a / b : 0.0f;
-}
-
-MINLINE float safe_modf(float a, float b)
-{
-  return (b != 0.0f) ? fmodf(a, b) : 0.0f;
-}
-
-MINLINE float safe_logf(float a, float base)
-{
-  if (UNLIKELY(a <= 0.0f || base <= 0.0f)) {
-    return 0.0f;
-  }
-  return safe_divide(logf(a), logf(base));
-}
 
 /* integer division that rounds 0.5 up, particularly useful for color blending
  * with integers, to avoid gradual darkening when rounding down */

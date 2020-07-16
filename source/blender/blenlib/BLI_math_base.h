@@ -103,7 +103,6 @@ MINLINE float pow2f(float x);
 MINLINE float pow3f(float x);
 MINLINE float pow4f(float x);
 MINLINE float pow7f(float x);
-MINLINE float safe_powf(float base, float exponent);
 
 MINLINE float sqrt3f(float f);
 MINLINE double sqrt3d(double d);
@@ -217,10 +216,6 @@ MINLINE short round_db_to_short_clamp(double a);
 MINLINE unsigned short round_db_to_ushort_clamp(double a);
 MINLINE int round_db_to_int_clamp(double a);
 MINLINE unsigned int round_db_to_uint_clamp(double a);
-
-MINLINE float safe_divide(float a, float b);
-MINLINE float safe_modf(float a, float b);
-MINLINE float safe_logf(float a, float base);
 
 int pow_i(int base, int exp);
 double double_round(double x, int ndigits);
