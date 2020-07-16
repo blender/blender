@@ -5725,7 +5725,7 @@ static Sequence *seq_dupli(const Scene *scene_src,
     struct SeqEffectHandle sh;
     sh = BKE_sequence_get_effect(seq);
     if (sh.copy) {
-      sh.copy(seq, seqn, flag);
+      sh.copy(seqn, seq, flag);
     }
 
     seqn->strip->stripdata = NULL;
