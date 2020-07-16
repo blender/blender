@@ -22,6 +22,11 @@
  */
 
 #include "IMB_colormanagement.h"
+
+#include "DNA_texture_types.h"
+
+#include "BLI_color.hh"
+
 #include "node_shader_util.h"
 
 /* **************** VALTORGB ******************** */
@@ -49,7 +54,7 @@ static void node_shader_exec_valtorgb(void *UNUSED(data),
     float fac;
     nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);
 
-    BKE_colorband_evaluate(node->storage, fac, out[0]->vec);
+    BKE_colorband_evaluate((ColorBand *)node->storage, fac, out[0]->vec);
     out[1]->vec[0] = out[0]->vec[3];
   }
 }
@@ -65,7 +70,7 @@ static int gpu_shader_valtorgb(GPUMaterial *mat,
                                GPUNodeStack *in,
                                GPUNodeStack *out)
 {
-  struct ColorBand *coba = node->storage;
+  struct ColorBand *coba = (ColorBand *)node->storage;
   float *array, layer;
   int size;
 
@@ -121,6 +126,44 @@ static int gpu_shader_valtorgb(GPUMaterial *mat,
   }
 }
 
+class ColorBandFunction : public blender::fn::MultiFunction {
+ private:
+  const ColorBand &color_band_;
+
+ public:
+  ColorBandFunction(const ColorBand &color_band) : color_band_(color_band)
+  {
+    blender::fn::MFSignatureBuilder signature = this->get_builder("Color Band");
+    signature.single_input<float>("Value");
+    signature.single_output<blender::Color4f>("Color");
+    signature.single_output<float>("Alpha");
+  }
+
+  void call(blender::IndexMask mask,
+            blender::fn::MFParams params,
+            blender::fn::MFContext UNUSED(context)) const override
+  {
+    blender::fn::VSpan<float> values = params.readonly_single_input<float>(0, "Value");
+    blender::MutableSpan<blender::Color4f> colors =
+        params.uninitialized_single_output<blender::Color4f>(1, "Color");
+    blender::MutableSpan<float> alphas = params.uninitialized_single_output<float>(2, "Alpha");
+
+    for (uint i : mask) {
+      blender::Color4f color;
+      BKE_colorband_evaluate(&color_band_, values[i], color);
+      colors[i] = color;
+      alphas[i] = color.a;
+    }
+  }
+};
+
+static void sh_node_valtorgb_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+{
+  bNode &bnode = builder.bnode();
+  const ColorBand *color_band = (const ColorBand *)bnode.storage;
+  builder.construct_and_set_matching_fn<ColorBandFunction>(*color_band);
+}
+
 void register_node_type_sh_valtorgb(void)
 {
   static bNodeType ntype;
@@ -132,6 +175,7 @@ void register_node_type_sh_valtorgb(void)
   node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
   node_type_exec(&ntype, NULL, NULL, node_shader_exec_valtorgb);
   node_type_gpu(&ntype, gpu_shader_valtorgb);
+  ntype.expand_in_mf_network = sh_node_valtorgb_expand_in_mf_network;
 
   nodeRegisterType(&ntype);
 }
