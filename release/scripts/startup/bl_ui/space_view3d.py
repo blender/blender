@@ -1086,7 +1086,7 @@ class VIEW3D_MT_mirror(Menu):
             for axis_index, axis_name in enumerate("XYZ"):
                 props = layout.operator("transform.mirror", text=f"{axis_name!s} {space_name!s}")
                 props.constraint_axis[axis_index] = True
-                props.orient_type = 'GLOBAL'
+                props.orient_type = space_id
 
             if space_id == 'GLOBAL':
                 layout.separator()
