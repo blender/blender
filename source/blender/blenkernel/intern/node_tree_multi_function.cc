@@ -16,6 +16,7 @@
 
 #include "BKE_node_tree_multi_function.hh"
 
+#include "BLI_color.hh"
 #include "BLI_float3.hh"
 
 namespace blender {
@@ -214,6 +215,10 @@ static ImplicitConversionsMap get_implicit_conversions()
       conversions, "Vector Length", [](float3 a) { return a.length(); });
   add_implicit_conversion<int32_t, float3>(
       conversions, "int32 to float3", [](int32_t a) { return float3((float)a); });
+  add_implicit_conversion<float3, Color4f>(
+      conversions, "float3 to Color4f", [](float3 a) { return Color4f(a.x, a.y, a.z, 1.0f); });
+  add_implicit_conversion<Color4f, float3>(
+      conversions, "Color4f to float3", [](Color4f a) { return float3(a.r, a.g, a.b); });
   return conversions;
 }
 
