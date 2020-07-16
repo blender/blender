@@ -186,12 +186,10 @@ void GPU_logic_op_invert_set(bool enable)
   if (enable) {
     glLogicOp(GL_INVERT);
     glEnable(GL_COLOR_LOGIC_OP);
-    glDisable(GL_DITHER);
   }
   else {
     glLogicOp(GL_COPY);
     glDisable(GL_COLOR_LOGIC_OP);
-    glEnable(GL_DITHER);
   }
 }
 
@@ -207,7 +205,6 @@ typedef struct {
   uint is_blend : 1;
   uint is_cull_face : 1;
   uint is_depth_test : 1;
-  uint is_dither : 1;
   /* uint is_lighting : 1; */ /* UNUSED */
   uint is_line_smooth : 1;
   uint is_color_logic_op : 1;
@@ -275,7 +272,6 @@ void gpuPushAttr(eGPUAttrMask mask)
 
     Attr.is_cull_face = glIsEnabled(GL_CULL_FACE);
     Attr.is_depth_test = glIsEnabled(GL_DEPTH_TEST);
-    Attr.is_dither = glIsEnabled(GL_DITHER);
     Attr.is_line_smooth = glIsEnabled(GL_LINE_SMOOTH);
     Attr.is_color_logic_op = glIsEnabled(GL_COLOR_LOGIC_OP);
     Attr.is_multisample = glIsEnabled(GL_MULTISAMPLE);
@@ -339,7 +335,6 @@ void gpuPopAttr(void)
 
     restore_mask(GL_CULL_FACE, Attr.is_cull_face);
     restore_mask(GL_DEPTH_TEST, Attr.is_depth_test);
-    restore_mask(GL_DITHER, Attr.is_dither);
     restore_mask(GL_LINE_SMOOTH, Attr.is_line_smooth);
     restore_mask(GL_COLOR_LOGIC_OP, Attr.is_color_logic_op);
     restore_mask(GL_MULTISAMPLE, Attr.is_multisample);
