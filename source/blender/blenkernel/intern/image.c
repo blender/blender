@@ -5213,24 +5213,32 @@ int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, bool *r_is_in_ran
 void BKE_image_user_frame_calc(Image *ima, ImageUser *iuser, int cfra)
 {
   if (iuser) {
-    bool is_in_range;
-    const int framenr = BKE_image_user_frame_get(iuser, cfra, &is_in_range);
+    if (ima && BKE_image_is_animated(ima)) {
+      /* Compute current frame for animated image. */
+      bool is_in_range;
+      const int framenr = BKE_image_user_frame_get(iuser, cfra, &is_in_range);
 
-    if (is_in_range) {
-      iuser->flag |= IMA_USER_FRAME_IN_RANGE;
+      if (is_in_range) {
+        iuser->flag |= IMA_USER_FRAME_IN_RANGE;
+      }
+      else {
+        iuser->flag &= ~IMA_USER_FRAME_IN_RANGE;
+      }
+
+      iuser->framenr = framenr;
     }
     else {
-      iuser->flag &= ~IMA_USER_FRAME_IN_RANGE;
+      /* Set fixed frame number for still image. */
+      iuser->framenr = 0;
+      iuser->flag |= IMA_USER_FRAME_IN_RANGE;
     }
 
-    iuser->framenr = framenr;
-
-    if (ima && BKE_image_is_animated(ima) && ima->gpuframenr != framenr) {
+    if (ima && ima->gpuframenr != iuser->framenr) {
       /* Note: a single texture and refresh doesn't really work when
        * multiple image users may use different frames, this is to
        * be improved with perhaps a GPU texture cache. */
       ima->gpuflag |= IMA_GPU_REFRESH;
-      ima->gpuframenr = framenr;
+      ima->gpuframenr = iuser->framenr;
     }
 
     if (iuser->ok == 0) {
