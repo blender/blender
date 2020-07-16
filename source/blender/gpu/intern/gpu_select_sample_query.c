@@ -88,7 +88,7 @@ void gpu_select_query_begin(
 
   gpuPushAttr(GPU_DEPTH_BUFFER_BIT | GPU_VIEWPORT_BIT | GPU_SCISSOR_BIT);
   /* disable writing to the framebuffer */
-  glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+  GPU_color_mask(false, false, false, false);
 
   /* In order to save some fill rate we minimize the viewport using rect.
    * We need to get the region of the viewport so that our geometry doesn't
@@ -206,7 +206,7 @@ uint gpu_select_query_end(void)
   MEM_freeN(g_query_state.queries);
   MEM_freeN(g_query_state.id);
   gpuPopAttr();
-  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+  GPU_color_mask(true, true, true, true);
 
   return hits;
 }

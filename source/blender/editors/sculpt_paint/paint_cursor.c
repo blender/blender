@@ -638,8 +638,8 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
   if (load_tex(brush, vc, zoom, col, primary)) {
     GPU_blend(true);
 
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glDepthMask(GL_FALSE);
+    GPU_color_mask(true, true, true, true);
+    GPU_depth_mask(false);
     glDepthFunc(GL_ALWAYS);
 
     if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
@@ -758,8 +758,8 @@ static bool paint_draw_cursor_overlay(
     float center[2];
     GPU_blend(true);
 
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glDepthMask(GL_FALSE);
+    GPU_color_mask(true, true, true, true);
+    GPU_depth_mask(false);
     glDepthFunc(GL_ALWAYS);
 
     if (ups->draw_anchored) {

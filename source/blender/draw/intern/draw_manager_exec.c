@@ -98,12 +98,7 @@ void drw_state_set(DRWState state)
   {
     int test;
     if ((test = CHANGED_TO(DRW_STATE_WRITE_DEPTH))) {
-      if (test == 1) {
-        glDepthMask(GL_TRUE);
-      }
-      else {
-        glDepthMask(GL_FALSE);
-      }
+      GPU_depth_mask(test == 1);
     }
   }
 
@@ -142,10 +137,10 @@ void drw_state_set(DRWState state)
     int test;
     if ((test = CHANGED_TO(DRW_STATE_WRITE_COLOR))) {
       if (test == 1) {
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        GPU_color_mask(true, true, true, true);
       }
       else {
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+        GPU_color_mask(false, false, false, false);
       }
     }
   }

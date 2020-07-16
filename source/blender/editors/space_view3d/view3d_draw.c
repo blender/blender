@@ -1085,7 +1085,7 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
   GPU_blend(true);
   GPU_blend_set_func_separate(
       GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-  glDepthMask(GL_FALSE); /* don't overwrite zbuf */
+  GPU_depth_mask(false); /* don't overwrite zbuf */
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
@@ -1175,7 +1175,7 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
   immUnbindProgram();
 
   GPU_blend(false);
-  glDepthMask(GL_TRUE);
+  GPU_depth_mask(true);
 }
 #endif /* WITH_INPUT_NDOF */
 

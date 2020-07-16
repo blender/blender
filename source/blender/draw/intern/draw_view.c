@@ -103,9 +103,9 @@ void DRW_draw_cursor(void)
   Scene *scene = draw_ctx->scene;
   ViewLayer *view_layer = draw_ctx->view_layer;
 
-  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-  glDepthMask(GL_FALSE);
-  glDisable(GL_DEPTH_TEST);
+  GPU_color_mask(true, true, true, true);
+  GPU_depth_mask(false);
+  GPU_depth_test(false);
 
   if (is_cursor_visible(draw_ctx, scene, view_layer)) {
     int co[2];
@@ -217,5 +217,5 @@ void DRW_draw_gizmo_2d(void)
 
   WM_gizmomap_draw(region->gizmo_map, draw_ctx->evil_C, WM_GIZMOMAP_DRAWSTEP_2D);
 
-  glDepthMask(GL_TRUE);
+  GPU_depth_mask(true);
 }

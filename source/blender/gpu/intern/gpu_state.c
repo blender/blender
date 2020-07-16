@@ -192,6 +192,28 @@ void GPU_logic_op_xor_set(bool enable)
   }
 }
 
+void GPU_color_mask(bool r, bool g, bool b, bool a)
+{
+  glColorMask(r, g, b, a);
+}
+
+void GPU_depth_mask(bool depth)
+{
+  glDepthMask(depth);
+}
+
+bool GPU_depth_mask_get(void)
+{
+  GLint mask;
+  glGetIntegerv(GL_DEPTH_WRITEMASK, &mask);
+  return mask == GL_TRUE;
+}
+
+void GPU_stencil_mask(uint stencil)
+{
+  glStencilMask(stencil);
+}
+
 /** \name GPU Push/Pop State
  * \{ */
 

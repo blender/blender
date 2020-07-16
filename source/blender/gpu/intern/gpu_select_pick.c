@@ -310,7 +310,7 @@ void gpu_select_pick_begin(uint (*buffer)[4], uint bufsize, const rcti *input, c
     gpuPushAttr(GPU_DEPTH_BUFFER_BIT | GPU_VIEWPORT_BIT);
 
     /* disable writing to the framebuffer */
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    GPU_color_mask(false, false, false, false);
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
@@ -539,7 +539,7 @@ uint gpu_select_pick_end(void)
       gpu_select_pick_load_id(ps->gl.prev_id, true);
     }
     gpuPopAttr();
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    GPU_color_mask(true, true, true, true);
   }
 
   /* assign but never free directly since it may be in cache */

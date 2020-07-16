@@ -548,7 +548,7 @@ static void gizmo_draw_select_3d_loop(const bContext *C,
       /* pass */
     }
     else {
-      glDepthMask(!is_depth_skip);
+      GPU_depth_mask(!is_depth_skip);
       is_depth_skip_prev = is_depth_skip;
     }
 
@@ -565,7 +565,7 @@ static void gizmo_draw_select_3d_loop(const bContext *C,
     GPU_depth_test(false);
   }
   if (is_depth_skip_prev) {
-    glDepthMask(true);
+    GPU_depth_mask(true);
   }
 }
 
