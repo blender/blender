@@ -443,7 +443,7 @@ set(LIB
   bf_intern_opensubdiv  # Uses stub when disabled.
   bf_modifiers
   bf_nodes
-  bf_physics
+  bf_simulation
   bf_rna
   bf_shader_fx
 )

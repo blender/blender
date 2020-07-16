@@ -54,4 +54,4 @@ if(WITH_OPENMP_STATIC)
   )
 endif()
 
-blender_add_lib(bf_physics "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+blender_add_lib(bf_simulation "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
