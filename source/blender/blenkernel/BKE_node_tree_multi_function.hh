@@ -348,6 +348,11 @@ class NodeMFNetworkBuilder : public MFNetworkBuilderBase {
 
   const fn::MultiFunction &get_default_fn(StringRef name);
 
+  const void set_not_implemented()
+  {
+    this->set_matching_fn(this->get_not_implemented_fn());
+  }
+
   /**
    * Tells the builder that the given function corresponds to the node that is being built. It will
    * try to match up sockets. For that it skips unavailable and non-data sockets.

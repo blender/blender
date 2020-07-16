@@ -50,22 +50,33 @@ static void node_shader_init_map_range(bNodeTree *UNUSED(ntree), bNode *node)
   node->custom2 = NODE_MAP_RANGE_LINEAR; /* interpolation */
 }
 
+static const char *gpu_shader_get_name(int mode)
+{
+  switch (mode) {
+    case NODE_MAP_RANGE_LINEAR:
+      return "map_range_linear";
+    case NODE_MAP_RANGE_STEPPED:
+      return "map_range_stepped";
+    case NODE_MAP_RANGE_SMOOTHSTEP:
+      return "map_range_smoothstep";
+    case NODE_MAP_RANGE_SMOOTHERSTEP:
+      return "map_range_smootherstep";
+  }
+
+  return nullptr;
+}
+
 static int gpu_shader_map_range(GPUMaterial *mat,
                                 bNode *node,
                                 bNodeExecData *UNUSED(execdata),
                                 GPUNodeStack *in,
                                 GPUNodeStack *out)
 {
-  static const char *names[] = {
-      [NODE_MAP_RANGE_LINEAR] = "map_range_linear",
-      [NODE_MAP_RANGE_STEPPED] = "map_range_stepped",
-      [NODE_MAP_RANGE_SMOOTHSTEP] = "map_range_smoothstep",
-      [NODE_MAP_RANGE_SMOOTHERSTEP] = "map_range_smootherstep",
-  };
+  const char *name = gpu_shader_get_name(node->custom2);
 
   int ret = 0;
-  if (node->custom2 < ARRAY_SIZE(names) && names[node->custom2]) {
-    ret = GPU_stack_link(mat, node, names[node->custom2], in, out);
+  if (name != nullptr) {
+    ret = GPU_stack_link(mat, node, name, in, out);
   }
   else {
     ret = GPU_stack_link(mat, node, "map_range_linear", in, out);
@@ -77,6 +88,68 @@ static int gpu_shader_map_range(GPUMaterial *mat,
   return ret;
 }
 
+class MapRangeFunction : public blender::fn::MultiFunction {
+ private:
+  bool clamp_;
+
+ public:
+  MapRangeFunction(bool clamp) : clamp_(clamp)
+  {
+    blender::fn::MFSignatureBuilder signature = this->get_builder("Map Range");
+    signature.single_input<float>("Value");
+    signature.single_input<float>("From Min");
+    signature.single_input<float>("From Max");
+    signature.single_input<float>("To Min");
+    signature.single_input<float>("To Max");
+    signature.single_output<float>("Result");
+  }
+
+  void call(blender::IndexMask mask,
+            blender::fn::MFParams params,
+            blender::fn::MFContext UNUSED(context)) const override
+  {
+    blender::fn::VSpan<float> values = params.readonly_single_input<float>(0, "Value");
+    blender::fn::VSpan<float> from_min = params.readonly_single_input<float>(1, "From Min");
+    blender::fn::VSpan<float> from_max = params.readonly_single_input<float>(2, "From Max");
+    blender::fn::VSpan<float> to_min = params.readonly_single_input<float>(3, "To Min");
+    blender::fn::VSpan<float> to_max = params.readonly_single_input<float>(4, "To Max");
+    blender::MutableSpan<float> results = params.uninitialized_single_output<float>(5, "Result");
+
+    for (uint i : mask) {
+      float factor = safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
+      results[i] = to_min[i] + factor * (to_max[i] - to_min[i]);
+    }
+
+    if (clamp_) {
+      for (uint i : mask) {
+        CLAMP(results[i], 0.0f, 1.0f);
+      }
+    }
+  }
+};
+
+static void sh_node_map_range_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+{
+  bNode &bnode = builder.bnode();
+  bool clamp = bnode.custom1 != 0;
+  int interpolation_type = bnode.custom2;
+
+  if (interpolation_type == NODE_MAP_RANGE_LINEAR) {
+    static MapRangeFunction fn_with_clamp{true};
+    static MapRangeFunction fn_without_clamp{false};
+
+    if (clamp) {
+      builder.set_matching_fn(fn_with_clamp);
+    }
+    else {
+      builder.set_matching_fn(fn_without_clamp);
+    }
+  }
+  else {
+    builder.set_not_implemented();
+  }
+}
+
 void register_node_type_sh_map_range(void)
 {
   static bNodeType ntype;
@@ -86,6 +159,7 @@ void register_node_type_sh_map_range(void)
   node_type_init(&ntype, node_shader_init_map_range);
   node_type_update(&ntype, node_shader_update_map_range);
   node_type_gpu(&ntype, gpu_shader_map_range);
+  ntype.expand_in_mf_network = sh_node_map_range_expand_in_mf_network;
 
   nodeRegisterType(&ntype);
 }
