@@ -193,7 +193,7 @@ set(SRC
   shader/nodes/node_shader_rgb.c
   shader/nodes/node_shader_script.c
   shader/nodes/node_shader_sepcombHSV.c
-  shader/nodes/node_shader_sepcombRGB.c
+  shader/nodes/node_shader_sepcombRGB.cc
   shader/nodes/node_shader_sepcombXYZ.cc
   shader/nodes/node_shader_shaderToRgb.c
   shader/nodes/node_shader_squeeze.c

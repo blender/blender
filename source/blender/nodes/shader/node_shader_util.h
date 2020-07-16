@@ -75,6 +75,7 @@
 
 #  include "BKE_node_tree_multi_function.hh"
 
+#  include "BLI_color.hh"
 #  include "BLI_float3.hh"
 
 extern "C" {
