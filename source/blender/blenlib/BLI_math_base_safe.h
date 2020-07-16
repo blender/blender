@@ -26,10 +26,6 @@
 
 #include "BLI_math_base.h"
 
-#if BLI_MATH_DO_INLINE
-#  include "intern/math_base_safe_inline.c"
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -45,6 +41,10 @@ MINLINE float safe_powf(float base, float exponent);
 
 #ifdef __cplusplus
 }
+#endif
+
+#if BLI_MATH_DO_INLINE
+#  include "intern/math_base_safe_inline.c"
 #endif
 
 #endif /* __BLI_MATH_BASE_SAFE_H__ */
