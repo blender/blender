@@ -640,31 +640,65 @@ void GPU_framebuffer_read_depth(GPUFrameBuffer *fb, int x, int y, int w, int h, 
   glReadPixels(x, y, w, h, type, GL_FLOAT, data);
 }
 
-void GPU_framebuffer_read_color(
-    GPUFrameBuffer *fb, int x, int y, int w, int h, int channels, int slot, float *data)
+static GLenum gpu_get_gl_datatype(eGPUDataFormat format)
 {
-  CHECK_FRAMEBUFFER_IS_BOUND(fb);
+  switch (format) {
+    case GPU_DATA_FLOAT:
+      return GL_FLOAT;
+    case GPU_DATA_INT:
+      return GL_INT;
+    case GPU_DATA_UNSIGNED_INT:
+      return GL_UNSIGNED_INT;
+    case GPU_DATA_UNSIGNED_BYTE:
+      return GL_UNSIGNED_BYTE;
+    case GPU_DATA_UNSIGNED_INT_24_8:
+      return GL_UNSIGNED_INT_24_8;
+    case GPU_DATA_10_11_11_REV:
+      return GL_UNSIGNED_INT_10F_11F_11F_REV;
+    default:
+      BLI_assert(!"Unhandled data format");
+      return GL_FLOAT;
+  }
+}
 
-  GLenum type;
+static GLenum gpu_get_gl_channel_type(int channels)
+{
   switch (channels) {
     case 1:
-      type = GL_RED;
-      break;
+      return GL_RED;
     case 2:
-      type = GL_RG;
-      break;
+      return GL_RG;
     case 3:
-      type = GL_RGB;
-      break;
+      return GL_RGB;
     case 4:
-      type = GL_RGBA;
-      break;
+      return GL_RGBA;
     default:
-      BLI_assert(false && "wrong number of read channels");
-      return;
+      BLI_assert(!"Wrong number of read channels");
+      return GL_RED;
   }
-  glReadBuffer(GL_COLOR_ATTACHMENT0 + slot);
-  glReadPixels(x, y, w, h, type, GL_FLOAT, data);
+}
+
+static void gpu_framebuffer_read_color_ex(
+    int x, int y, int w, int h, int channels, GLenum readfb, eGPUDataFormat format, float *data)
+{
+  GLenum type = gpu_get_gl_channel_type(channels);
+  GLenum gl_format = gpu_get_gl_datatype(format);
+  glReadBuffer(readfb);
+  glReadPixels(x, y, w, h, type, gl_format, data);
+}
+
+void GPU_framebuffer_read_color(GPUFrameBuffer *fb,
+                                int x,
+                                int y,
+                                int w,
+                                int h,
+                                int channels,
+                                int slot,
+                                eGPUDataFormat format,
+                                void *data)
+{
+  CHECK_FRAMEBUFFER_IS_BOUND(fb);
+  gpu_framebuffer_read_color_ex(x, y, w, h, channels, GL_COLOR_ATTACHMENT0 + slot, format, data);
 }
 
 /* read_slot and write_slot are only used for color buffers. */
@@ -749,9 +783,9 @@ void GPU_framebuffer_blit(GPUFrameBuffer *fb_read,
 }
 
 /**
- * Use this if you need to custom down-sample your texture and use the previous mip level as input.
- * This function only takes care of the correct texture handling.
- * It execute the callback for each texture level.
+ * Use this if you need to custom down-sample your texture and use the previous mip level as
+ * input. This function only takes care of the correct texture handling. It execute the callback
+ * for each texture level.
  */
 void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *fb,
                                           int max_lvl,
@@ -1034,4 +1068,11 @@ void GPU_clear_depth(float depth)
 void GPU_clear(eGPUFrameBufferBits flags)
 {
   glClear(convert_buffer_bits_to_gl(flags));
+}
+
+void GPU_frontbuffer_read_pixels(
+    int x, int y, int w, int h, int channels, eGPUDataFormat format, void *data)
+{
+  glReadBuffer(GL_FRONT);
+  gpu_framebuffer_read_color_ex(x, y, w, h, channels, GL_FRONT, format, data);
 }

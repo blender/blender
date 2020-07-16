@@ -212,6 +212,7 @@ void workbench_render(void *ved, RenderEngine *engine, RenderLayer *render_layer
                              BLI_rcti_size_y(rect),
                              4,
                              0,
+                             GPU_DATA_FLOAT,
                              rp->rect);
 
   workbench_render_result_z(render_layer, viewname, rect);

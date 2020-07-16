@@ -267,6 +267,7 @@ static void eevee_render_color_result(RenderLayer *rl,
                              BLI_rcti_size_y(rect),
                              num_channels,
                              0,
+                             GPU_DATA_FLOAT,
                              rp->rect);
 }
 

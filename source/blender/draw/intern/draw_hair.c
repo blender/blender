@@ -343,7 +343,7 @@ void DRW_hair_update(void)
 
       DRW_draw_pass_subset(g_tf_pass, pr_call->shgrp, pr_call->shgrp);
       /* Readback result to main memory. */
-      GPU_framebuffer_read_color(fb, 0, 0, width, height, 4, 0, data);
+      GPU_framebuffer_read_color(fb, 0, 0, width, height, 4, 0, GPU_DATA_FLOAT, data);
       /* Upload back to VBO. */
       GPU_vertbuf_use(pr_call->vbo);
       glBufferSubData(GL_ARRAY_BUFFER,

@@ -76,7 +76,7 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
   DRW_draw_pass(pass);
 
   float *data = MEM_mallocN(sizeof(float[3]) * w * h, "lut");
-  GPU_framebuffer_read_color(fb, 0, 0, w, h, 3, 0, data);
+  GPU_framebuffer_read_color(fb, 0, 0, w, h, 3, 0, GPU_DATA_FLOAT, data);
 
   printf("{");
   for (int i = 0; i < w * h * 3; i += 3) {

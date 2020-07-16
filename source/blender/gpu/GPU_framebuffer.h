@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-struct GPUTexture;
+#include "GPU_texture.h"
 
 typedef struct GPUAttachment {
   struct GPUTexture *tex;
@@ -176,8 +176,15 @@ void GPU_framebuffer_clear(GPUFrameBuffer *fb,
 void GPU_framebuffer_multi_clear(GPUFrameBuffer *fb, const float (*clear_cols)[4]);
 
 void GPU_framebuffer_read_depth(GPUFrameBuffer *fb, int x, int y, int w, int h, float *data);
-void GPU_framebuffer_read_color(
-    GPUFrameBuffer *fb, int x, int y, int w, int h, int channels, int slot, float *data);
+void GPU_framebuffer_read_color(GPUFrameBuffer *fb,
+                                int x,
+                                int y,
+                                int w,
+                                int h,
+                                int channels,
+                                int slot,
+                                eGPUDataFormat format,
+                                void *data);
 
 void GPU_framebuffer_blit(GPUFrameBuffer *fb_read,
                           int read_slot,
@@ -213,6 +220,9 @@ void GPU_offscreen_viewport_data_get(GPUOffScreen *ofs,
 void GPU_clear_color(float red, float green, float blue, float alpha);
 void GPU_clear_depth(float depth);
 void GPU_clear(eGPUFrameBufferBits flags);
+
+void GPU_frontbuffer_read_pixels(
+    int x, int y, int w, int h, int channels, eGPUDataFormat format, void *data);
 
 #ifdef __cplusplus
 }

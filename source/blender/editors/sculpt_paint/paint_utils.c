@@ -55,9 +55,10 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "GPU_glew.h"
+#include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
+#include "GPU_texture.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
@@ -246,7 +247,7 @@ static void imapaint_project(float matrix[4][4], const float co[3], float pco[4]
 }
 
 static void imapaint_tri_weights(float matrix[4][4],
-                                 const GLint view[4],
+                                 const int view[4],
                                  const float v1[3],
                                  const float v2[3],
                                  const float v3[3],
@@ -300,7 +301,7 @@ static void imapaint_pick_uv(
   int i, findex;
   float p[2], w[3], absw, minabsw;
   float matrix[4][4], proj[4][4];
-  GLint view[4];
+  int view[4];
   const eImagePaintMode mode = scene->toolsettings->imapaint.mode;
 
   const MLoopTri *lt = BKE_mesh_runtime_looptri_ensure(me_eval);
@@ -576,20 +577,16 @@ void paint_sample_color(
     }
 
     if (!sample_success) {
-      glReadBuffer(GL_FRONT);
-      glReadPixels(
-          x + region->winrct.xmin, y + region->winrct.ymin, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
-      glReadBuffer(GL_BACK);
+      GPU_frontbuffer_read_pixels(
+          x + region->winrct.xmin, y + region->winrct.ymin, 1, 1, 4, GPU_DATA_UNSIGNED_BYTE, &col);
     }
     else {
       return;
     }
   }
   else {
-    glReadBuffer(GL_FRONT);
-    glReadPixels(
-        x + region->winrct.xmin, y + region->winrct.ymin, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
-    glReadBuffer(GL_BACK);
+    GPU_frontbuffer_read_pixels(
+        x + region->winrct.xmin, y + region->winrct.ymin, 1, 1, 4, GPU_DATA_UNSIGNED_BYTE, &col);
   }
   cp = (uchar *)&col;
 

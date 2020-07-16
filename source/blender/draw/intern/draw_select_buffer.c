@@ -84,14 +84,15 @@ uint *DRW_select_buffer_read(struct Depsgraph *depsgraph,
 
       GPUFrameBuffer *select_id_fb = DRW_engine_select_framebuffer_get();
       GPU_framebuffer_bind(select_id_fb);
-      glReadBuffer(GL_COLOR_ATTACHMENT0);
-      glReadPixels(rect_clamp.xmin,
-                   rect_clamp.ymin,
-                   BLI_rcti_size_x(&rect_clamp),
-                   BLI_rcti_size_y(&rect_clamp),
-                   GL_RED_INTEGER,
-                   GL_UNSIGNED_INT,
-                   r_buf);
+      GPU_framebuffer_read_color(select_id_fb,
+                                 rect_clamp.xmin,
+                                 rect_clamp.ymin,
+                                 BLI_rcti_size_x(&rect_clamp),
+                                 BLI_rcti_size_y(&rect_clamp),
+                                 1,
+                                 0,
+                                 GPU_DATA_UNSIGNED_INT,
+                                 r_buf);
 
       if (!BLI_rcti_compare(rect, &rect_clamp)) {
         /* The rect has been clamped so you need to realign the buffer and fill in the blanks */

@@ -89,6 +89,7 @@
 #include "GPU_init_exit.h"
 #include "GPU_platform.h"
 #include "GPU_state.h"
+#include "GPU_texture.h"
 
 #include "UI_resources.h"
 
@@ -2054,9 +2055,7 @@ void WM_window_pixel_sample_read(const wmWindowManager *wm,
     GPU_context_active_set(win->gpuctx);
   }
 
-  glReadBuffer(GL_FRONT);
-  glReadPixels(pos[0], pos[1], 1, 1, GL_RGB, GL_FLOAT, r_col);
-  glReadBuffer(GL_BACK);
+  GPU_frontbuffer_read_pixels(pos[0], pos[1], 1, 1, 3, GPU_DATA_FLOAT, r_col);
 
   if (setup_context) {
     if (wm->windrawable) {
@@ -2089,10 +2088,7 @@ uint *WM_window_pixels_read(wmWindowManager *wm, wmWindow *win, int r_size[2])
   const uint rect_len = r_size[0] * r_size[1];
   uint *rect = MEM_mallocN(sizeof(*rect) * rect_len, __func__);
 
-  glReadBuffer(GL_FRONT);
-  glReadPixels(0, 0, r_size[0], r_size[1], GL_RGBA, GL_UNSIGNED_BYTE, rect);
-  glFinish();
-  glReadBuffer(GL_BACK);
+  GPU_frontbuffer_read_pixels(0, 0, r_size[0], r_size[1], 4, GPU_DATA_UNSIGNED_BYTE, rect);
 
   if (setup_context) {
     if (wm->windrawable) {

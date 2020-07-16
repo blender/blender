@@ -235,6 +235,7 @@ static void GPENCIL_render_result_combined(struct RenderLayer *rl,
                              BLI_rcti_size_y(rect),
                              4,
                              0,
+                             GPU_DATA_FLOAT,
                              rp->rect);
 }
 
