@@ -48,7 +48,7 @@ def git_branch(git_command):
 def git_tag(git_command):
     # Get current tag name.
     try:
-        tag = subprocess.check_output([git_command, "describe", "--exact-match"])
+        tag = subprocess.check_output([git_command, "describe", "--exact-match"], stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         return None
 
