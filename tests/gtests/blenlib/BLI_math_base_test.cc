@@ -113,3 +113,15 @@ TEST(math_base, Log2CeilU)
   EXPECT_EQ(log2_ceil_u(9), 4);
   EXPECT_EQ(log2_ceil_u(123456), 17);
 }
+
+TEST(math_base, SafePowf)
+{
+  EXPECT_FLOAT_EQ(safe_powf(4.0f, 3.0f), 64.0f);
+  EXPECT_FLOAT_EQ(safe_powf(3.2f, 5.6f), 674.2793796f);
+  EXPECT_FLOAT_EQ(safe_powf(4.0f, -2.0f), 0.0625f);
+  EXPECT_FLOAT_EQ(safe_powf(6.0f, -3.2f), 0.003235311f);
+  EXPECT_FLOAT_EQ(safe_powf(-4.0f, 6), 4096.0f);
+  EXPECT_FLOAT_EQ(safe_powf(-3.0f, 5.5), 0.0f);
+  EXPECT_FLOAT_EQ(safe_powf(-2.5f, -4.0f), 0.0256f);
+  EXPECT_FLOAT_EQ(safe_powf(-3.7f, -4.5f), 0.0f);
+}

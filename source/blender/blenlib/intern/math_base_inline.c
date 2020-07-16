@@ -70,6 +70,13 @@ MINLINE float pow7f(float x)
 {
   return pow2f(pow3f(x)) * x;
 }
+MINLINE float safe_powf(float base, float exponent)
+{
+  if (UNLIKELY(base < 0.0f && exponent != (int)exponent)) {
+    return 0.0f;
+  }
+  return powf(base, exponent);
+}
 
 MINLINE float sqrt3f(float f)
 {

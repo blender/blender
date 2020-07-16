@@ -103,6 +103,7 @@ MINLINE float pow2f(float x);
 MINLINE float pow3f(float x);
 MINLINE float pow4f(float x);
 MINLINE float pow7f(float x);
+MINLINE float safe_powf(float base, float exponent);
 
 MINLINE float sqrt3f(float f);
 MINLINE double sqrt3d(double d);
