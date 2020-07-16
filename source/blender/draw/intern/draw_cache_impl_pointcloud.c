@@ -162,7 +162,7 @@ static void pointcloud_batch_cache_ensure_pos(Object *ob, PointCloudBatchCache *
   if (format.attr_len == 0) {
     /* initialize vertex format */
     /* From the opengl wiki:
-     * Note that size​ does not have to exactly match the size used by the vertex shader. If the
+     * Note that size does not have to exactly match the size used by the vertex shader. If the
      * vertex shader has fewer components than the attribute provides, then the extras are ignored.
      * If the vertex shader has more components than the array provides, the extras are given
      * values from the vector (0, 0, 0, 1) for the missing XYZW components.

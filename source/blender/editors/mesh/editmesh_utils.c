@@ -805,7 +805,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
         sub_v2_v2v2(uvdiff, uv2, uv);
 
         /* Check if the uv loops share the same selection state (if not, they are not connected as
-         * they have been ripped or other edit commands have seperated them). */
+         * they have been ripped or other edit commands have separated them). */
         bool connected = uv_vert_sel == uv2_vert_sel && fabsf(uvdiff[0]) < STD_UV_CONNECT_LIMIT &&
                          fabsf(uvdiff[1]) < STD_UV_CONNECT_LIMIT;
 

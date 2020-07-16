@@ -449,7 +449,7 @@ static int lib_override_library_make_tag_ids_cb(LibraryIDLinkCallbackData *cb_da
 }
 
 /**
- * Advanced 'smart' function to create fully functionnal overrides.
+ * Advanced 'smart' function to create fully functional overrides.
  *
  * \note Currently it only does special things if given \a id_root is an object of collection, more
  * specific behaviors may be added in the future for other ID types.

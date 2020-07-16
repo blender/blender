@@ -7879,7 +7879,7 @@ void MESH_OT_mark_freestyle_face(wmOperatorType *ot)
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
 /* NOTE: We could add more here, like e.g. a switch between local or global coordinates of target,
- *       use numinput to type in explicit vector values... */
+ *       use number-input to type in explicit vector values. */
 enum {
   /* Generic commands. */
   EDBM_CLNOR_MODAL_CANCEL = 1,
