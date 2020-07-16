@@ -357,12 +357,12 @@ static void region_draw_status_text(ScrArea *area, ARegion *region)
   bool overlap = ED_region_is_overlap(area->spacetype, region->regiontype);
 
   if (overlap) {
-    GPU_clear_color(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+    GPU_clear(GPU_COLOR_BIT);
   }
   else {
     UI_ThemeClearColor(TH_HEADER);
-    glClear(GL_COLOR_BUFFER_BIT);
+    GPU_clear(GPU_COLOR_BIT);
   }
 
   int fontid = BLF_set_default();
@@ -527,7 +527,7 @@ void ED_region_do_draw(bContext *C, ARegion *region)
 
   if (area && area_is_pseudo_minimized(area)) {
     UI_ThemeClearColor(TH_EDITOR_OUTLINE);
-    glClear(GL_COLOR_BUFFER_BIT);
+    GPU_clear(GPU_COLOR_BIT);
     return;
   }
   /* optional header info instead? */
