@@ -160,41 +160,121 @@ static void node_shader_update_vector_math(bNodeTree *UNUSED(ntree), bNode *node
   }
 }
 
-static void sh_node_vector_math_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+static const blender::fn::MultiFunction &get_multi_function(
+    blender::bke::NodeMFNetworkBuilder &builder)
 {
   using blender::float3;
 
-  /* TODO: Implement other operations. */
   const int mode = builder.bnode().custom1;
   switch (mode) {
     case NODE_VECTOR_MATH_ADD: {
       static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
           "Add", [](float3 a, float3 b) { return a + b; }};
-      builder.set_matching_fn(fn);
-      break;
+      return fn;
     }
     case NODE_VECTOR_MATH_SUBTRACT: {
       static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
           "Subtract", [](float3 a, float3 b) { return a - b; }};
-      builder.set_matching_fn(fn);
-      break;
+      return fn;
     }
     case NODE_VECTOR_MATH_MULTIPLY: {
       static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
           "Multiply", [](float3 a, float3 b) { return a * b; }};
-      builder.set_matching_fn(fn);
-      break;
+      return fn;
     }
     case NODE_VECTOR_MATH_DIVIDE: {
       static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
           "Divide", [](float3 a, float3 b) { return float3::safe_divide(a, b); }};
-      builder.set_matching_fn(fn);
-      break;
+      return fn;
     }
+
+    case NODE_VECTOR_MATH_CROSS_PRODUCT: {
+      static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
+          "Cross Product", float3::cross_high_precision};
+      return fn;
+    }
+    case NODE_VECTOR_MATH_PROJECT: {
+      static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{"Project", float3::project};
+      return fn;
+    }
+    case NODE_VECTOR_MATH_REFLECT: {
+      static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
+          "Reflect", [](float3 a, float3 b) { return a.reflected(b); }};
+      return fn;
+    }
+    case NODE_VECTOR_MATH_DOT_PRODUCT: {
+      static blender::fn::CustomMF_SI_SI_SO<float3, float3, float> fn{"Dot Product", float3::dot};
+      return fn;
+    }
+
+    case NODE_VECTOR_MATH_DISTANCE: {
+      static blender::fn::CustomMF_SI_SI_SO<float3, float3, float> fn{"Distance",
+                                                                      float3::distance};
+      return fn;
+    }
+    case NODE_VECTOR_MATH_LENGTH: {
+      static blender::fn::CustomMF_SI_SO<float3, float> fn{"Length",
+                                                           [](float3 a) { return a.length(); }};
+      return fn;
+    }
+    case NODE_VECTOR_MATH_SCALE: {
+      static blender::fn::CustomMF_SI_SI_SO<float3, float, float3> fn{
+          "Scale", [](float3 a, float factor) { return a * factor; }};
+      return fn;
+    }
+    case NODE_VECTOR_MATH_NORMALIZE: {
+      static blender::fn::CustomMF_SI_SO<float3, float3> fn{
+          "Normalize", [](float3 a) { return a.normalized(); }};
+      return fn;
+    }
+
+    case NODE_VECTOR_MATH_SNAP: {
+      return builder.get_not_implemented_fn();
+    }
+    case NODE_VECTOR_MATH_FLOOR: {
+      return builder.get_not_implemented_fn();
+    }
+    case NODE_VECTOR_MATH_CEIL: {
+      return builder.get_not_implemented_fn();
+    }
+    case NODE_VECTOR_MATH_MODULO: {
+      return builder.get_not_implemented_fn();
+    }
+    case NODE_VECTOR_MATH_FRACTION: {
+      return builder.get_not_implemented_fn();
+    }
+    case NODE_VECTOR_MATH_ABSOLUTE: {
+      return builder.get_not_implemented_fn();
+    }
+    case NODE_VECTOR_MATH_MINIMUM: {
+      return builder.get_not_implemented_fn();
+    }
+    case NODE_VECTOR_MATH_MAXIMUM: {
+      return builder.get_not_implemented_fn();
+    }
+    case NODE_VECTOR_MATH_WRAP: {
+      return builder.get_not_implemented_fn();
+    }
+    case NODE_VECTOR_MATH_SINE: {
+      return builder.get_not_implemented_fn();
+    }
+    case NODE_VECTOR_MATH_COSINE: {
+      return builder.get_not_implemented_fn();
+    }
+    case NODE_VECTOR_MATH_TANGENT: {
+      return builder.get_not_implemented_fn();
+    }
+
     default:
       BLI_assert(false);
-      break;
+      return builder.get_not_implemented_fn();
   };
+}
+
+static void sh_node_vector_math_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+{
+  const blender::fn::MultiFunction &fn = get_multi_function(builder);
+  builder.set_matching_fn(fn);
 }
 
 void register_node_type_sh_vect_math(void)
