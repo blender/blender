@@ -36,7 +36,7 @@ set(INC
   ../makesrna
   ../modifiers
   ../nodes
-  ../physics
+  ../simulation
   ../shader_fx
   ../render/extern/include
   ../../../intern/ghost
