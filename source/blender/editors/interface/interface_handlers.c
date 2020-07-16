@@ -8418,7 +8418,7 @@ void UI_context_update_anim_flag(const bContext *C)
     for (block = region->uiblocks.first; block; block = block->next) {
       for (but = block->buttons.first; but; but = but->next) {
         ui_but_anim_flag(but, (scene) ? scene->r.cfra : 0.0f);
-        ui_but_override_flag(but);
+        ui_but_override_flag(CTX_data_main(C), but);
         if (UI_but_is_decorator(but)) {
           ui_but_anim_decorate_update_from_flag(but);
         }

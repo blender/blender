@@ -1484,16 +1484,24 @@ void RNA_struct_override_apply(struct Main *bmain,
                                struct PointerRNA *ptr_storage,
                                struct IDOverrideLibrary *override);
 
-struct IDOverrideLibraryProperty *RNA_property_override_property_find(PointerRNA *ptr,
+struct IDOverrideLibraryProperty *RNA_property_override_property_find(struct Main *bmain,
+                                                                      PointerRNA *ptr,
                                                                       PropertyRNA *prop,
                                                                       struct ID **r_owner_id);
-struct IDOverrideLibraryProperty *RNA_property_override_property_get(PointerRNA *ptr,
+struct IDOverrideLibraryProperty *RNA_property_override_property_get(struct Main *bmain,
+                                                                     PointerRNA *ptr,
                                                                      PropertyRNA *prop,
                                                                      bool *r_created);
 
 struct IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_find(
-    PointerRNA *ptr, PropertyRNA *prop, const int index, const bool strict, bool *r_strict);
+    struct Main *bmain,
+    PointerRNA *ptr,
+    PropertyRNA *prop,
+    const int index,
+    const bool strict,
+    bool *r_strict);
 struct IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_get(
+    struct Main *bmain,
     PointerRNA *ptr,
     PropertyRNA *prop,
     const short operation,
@@ -1502,7 +1510,8 @@ struct IDOverrideLibraryPropertyOperation *RNA_property_override_property_operat
     bool *r_strict,
     bool *r_created);
 
-eRNAOverrideStatus RNA_property_override_library_status(PointerRNA *ptr,
+eRNAOverrideStatus RNA_property_override_library_status(struct Main *bmainm,
+                                                        PointerRNA *ptr,
                                                         PropertyRNA *prop,
                                                         const int index);
 

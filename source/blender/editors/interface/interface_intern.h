@@ -548,7 +548,7 @@ extern bool ui_but_supports_cycling(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern int ui_but_is_pushed_ex(uiBut *but, double *value) ATTR_WARN_UNUSED_RESULT;
 extern int ui_but_is_pushed(uiBut *but) ATTR_WARN_UNUSED_RESULT;
 
-void ui_but_override_flag(uiBut *but);
+void ui_but_override_flag(struct Main *bmain, uiBut *but);
 
 extern void ui_block_bounds_calc(uiBlock *block);
 

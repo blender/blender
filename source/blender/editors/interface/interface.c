@@ -1500,10 +1500,10 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
   }
 }
 
-void ui_but_override_flag(uiBut *but)
+void ui_but_override_flag(Main *bmain, uiBut *but)
 {
   const uint override_status = RNA_property_override_library_status(
-      &but->rnapoin, but->rnaprop, but->rnaindex);
+      bmain, &but->rnapoin, but->rnaprop, but->rnaindex);
 
   if (override_status & RNA_OVERRIDE_STATUS_OVERRIDDEN) {
     but->flag |= UI_BUT_OVERRIDEN;
@@ -1762,7 +1762,7 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
     }
 
     ui_but_anim_flag(but, (scene) ? scene->r.cfra : 0.0f);
-    ui_but_override_flag(but);
+    ui_but_override_flag(CTX_data_main(C), but);
     if (UI_but_is_decorator(but)) {
       ui_but_anim_decorate_update_from_flag(but);
     }

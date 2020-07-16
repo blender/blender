@@ -1052,7 +1052,8 @@ void RNA_struct_override_apply(Main *bmain,
 #endif
 }
 
-static char *rna_property_override_property_real_id_owner(PointerRNA *ptr,
+static char *rna_property_override_property_real_id_owner(Main *bmain,
+                                                          PointerRNA *ptr,
                                                           PropertyRNA *prop,
                                                           ID **r_id)
 {
@@ -1079,10 +1080,9 @@ static char *rna_property_override_property_real_id_owner(PointerRNA *ptr,
         rna_path_prefix = "shape_keys.";
         break;
       case ID_GR:
-        /* Master collection, TODO. */
-        break;
       case ID_NT:
-        /* Root node trees, TODO. */
+        /* Master collections, Root node trees. */
+        owner_id = RNA_find_real_ID_and_path(bmain, id, &rna_path_prefix);
         break;
       default:
         BLI_assert(0);
@@ -1107,13 +1107,15 @@ static char *rna_property_override_property_real_id_owner(PointerRNA *ptr,
   return NULL;
 }
 
-IDOverrideLibraryProperty *RNA_property_override_property_find(PointerRNA *ptr,
+IDOverrideLibraryProperty *RNA_property_override_property_find(Main *bmain,
+                                                               PointerRNA *ptr,
                                                                PropertyRNA *prop,
                                                                ID **r_owner_id)
 {
   char *rna_path;
 
-  if ((rna_path = rna_property_override_property_real_id_owner(ptr, prop, r_owner_id)) != NULL) {
+  if ((rna_path = rna_property_override_property_real_id_owner(bmain, ptr, prop, r_owner_id)) !=
+      NULL) {
     IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(
         (*r_owner_id)->override_library, rna_path);
     MEM_freeN(rna_path);
@@ -1122,14 +1124,15 @@ IDOverrideLibraryProperty *RNA_property_override_property_find(PointerRNA *ptr,
   return NULL;
 }
 
-IDOverrideLibraryProperty *RNA_property_override_property_get(PointerRNA *ptr,
+IDOverrideLibraryProperty *RNA_property_override_property_get(Main *bmain,
+                                                              PointerRNA *ptr,
                                                               PropertyRNA *prop,
                                                               bool *r_created)
 {
   ID *id;
   char *rna_path;
 
-  if ((rna_path = rna_property_override_property_real_id_owner(ptr, prop, &id)) != NULL) {
+  if ((rna_path = rna_property_override_property_real_id_owner(bmain, ptr, prop, &id)) != NULL) {
     IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
         id->override_library, rna_path, r_created);
     MEM_freeN(rna_path);
@@ -1139,10 +1142,15 @@ IDOverrideLibraryProperty *RNA_property_override_property_get(PointerRNA *ptr,
 }
 
 IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_find(
-    PointerRNA *ptr, PropertyRNA *prop, const int index, const bool strict, bool *r_strict)
+    Main *bmain,
+    PointerRNA *ptr,
+    PropertyRNA *prop,
+    const int index,
+    const bool strict,
+    bool *r_strict)
 {
   ID *owner_id;
-  IDOverrideLibraryProperty *op = RNA_property_override_property_find(ptr, prop, &owner_id);
+  IDOverrideLibraryProperty *op = RNA_property_override_property_find(bmain, ptr, prop, &owner_id);
 
   if (!op) {
     return NULL;
@@ -1153,6 +1161,7 @@ IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_fin
 }
 
 IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_get(
+    Main *bmain,
     PointerRNA *ptr,
     PropertyRNA *prop,
     const short operation,
@@ -1161,7 +1170,7 @@ IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_get
     bool *r_strict,
     bool *r_created)
 {
-  IDOverrideLibraryProperty *op = RNA_property_override_property_get(ptr, prop, NULL);
+  IDOverrideLibraryProperty *op = RNA_property_override_property_get(bmain, ptr, prop, NULL);
 
   if (!op) {
     return NULL;
@@ -1171,7 +1180,8 @@ IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_get
       op, operation, NULL, NULL, index, index, strict, r_strict, r_created);
 }
 
-eRNAOverrideStatus RNA_property_override_library_status(PointerRNA *ptr,
+eRNAOverrideStatus RNA_property_override_library_status(Main *bmain,
+                                                        PointerRNA *ptr,
                                                         PropertyRNA *prop,
                                                         const int index)
 {
@@ -1186,7 +1196,7 @@ eRNAOverrideStatus RNA_property_override_library_status(PointerRNA *ptr,
   }
 
   IDOverrideLibraryPropertyOperation *opop = RNA_property_override_property_operation_find(
-      ptr, prop, index, false, NULL);
+      bmain, ptr, prop, index, false, NULL);
   if (opop != NULL) {
     override_status |= RNA_OVERRIDE_STATUS_OVERRIDDEN;
     if (opop->flag & IDOVERRIDE_LIBRARY_FLAG_MANDATORY) {
