@@ -447,15 +447,16 @@ void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
           (float[2]){event->x - region->winrct.xmin, event->y - region->winrct.ymin},
           (float)(info->sample_size / 2.0f) * sima->zoom);
 
-      glEnable(GL_COLOR_LOGIC_OP);
-      glLogicOp(GL_XOR);
+      GPU_logic_op_xor_set(true);
+
       GPU_line_width(1.0f);
       imm_draw_box_wire_2d(pos,
                            (float)sample_rect_fl.xmin,
                            (float)sample_rect_fl.ymin,
                            (float)sample_rect_fl.xmax,
                            (float)sample_rect_fl.ymax);
-      glDisable(GL_COLOR_LOGIC_OP);
+
+      GPU_logic_op_xor_set(false);
 
       immUnbindProgram();
     }

@@ -181,14 +181,13 @@ void GPU_finish(void)
   glFinish();
 }
 
-void GPU_logic_op_invert_set(bool enable)
+void GPU_logic_op_xor_set(bool enable)
 {
   if (enable) {
-    glLogicOp(GL_INVERT);
+    glLogicOp(GL_XOR);
     glEnable(GL_COLOR_LOGIC_OP);
   }
   else {
-    glLogicOp(GL_COPY);
     glDisable(GL_COLOR_LOGIC_OP);
   }
 }

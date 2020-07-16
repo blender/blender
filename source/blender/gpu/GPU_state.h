@@ -69,7 +69,7 @@ void GPU_viewport_size_get_i(int coords[4]);
 void GPU_flush(void);
 void GPU_finish(void);
 
-void GPU_logic_op_invert_set(bool enable);
+void GPU_logic_op_xor_set(bool enable);
 
 /* Attribute push & pop. */
 typedef enum eGPUAttrMask {

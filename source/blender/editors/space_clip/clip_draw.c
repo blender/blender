@@ -373,8 +373,7 @@ static void draw_stabilization_border(
 
     /* Exclusive OR allows to get orig value when second operand is 0,
      * and negative of orig value when second operand is 1. */
-    glEnable(GL_COLOR_LOGIC_OP);
-    glLogicOp(GL_XOR);
+    GPU_logic_op_xor_set(true);
 
     GPU_matrix_push();
     GPU_matrix_translate_2f(x, y);
@@ -399,7 +398,7 @@ static void draw_stabilization_border(
 
     GPU_matrix_pop();
 
-    glDisable(GL_COLOR_LOGIC_OP);
+    GPU_logic_op_xor_set(false);
   }
 }
 
@@ -790,15 +789,14 @@ static void draw_marker_areas(SpaceClip *sc,
       immUniform1f("dash_width", 6.0f);
       immUniform1f("dash_factor", 0.5f);
 
-      glEnable(GL_COLOR_LOGIC_OP);
-      glLogicOp(GL_XOR);
+      GPU_logic_op_xor_set(true);
 
       immBegin(GPU_PRIM_LINES, 2);
       immVertex2fv(shdr_pos, pos);
       immVertex2fv(shdr_pos, marker_pos);
       immEnd();
 
-      glDisable(GL_COLOR_LOGIC_OP);
+      GPU_logic_op_xor_set(false);
     }
   }
 
