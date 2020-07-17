@@ -38,27 +38,13 @@
 #include "FN_multi_function_network_evaluation.hh"
 #include "FN_multi_function_network_optimization.hh"
 
+#include "simulation_solver.hh"
+
 extern "C" {
 void WM_clipboard_text_set(const char *buf, bool selection);
 }
 
 namespace blender::sim {
-
-static void ensure_attributes_exist(ParticleSimulationState *state)
-{
-  if (CustomData_get_layer_named(&state->attributes, CD_PROP_FLOAT3, "Position") == nullptr) {
-    CustomData_add_layer_named(
-        &state->attributes, CD_PROP_FLOAT3, CD_CALLOC, nullptr, state->tot_particles, "Position");
-  }
-  if (CustomData_get_layer_named(&state->attributes, CD_PROP_FLOAT3, "Velocity") == nullptr) {
-    CustomData_add_layer_named(
-        &state->attributes, CD_PROP_FLOAT3, CD_CALLOC, nullptr, state->tot_particles, "Velocity");
-  }
-  if (CustomData_get_layer_named(&state->attributes, CD_PROP_INT32, "ID") == nullptr) {
-    CustomData_add_layer_named(
-        &state->attributes, CD_PROP_INT32, CD_CALLOC, nullptr, state->tot_particles, "ID");
-  }
-}
 
 static void copy_states_to_cow(Simulation *simulation_orig, Simulation *simulation_cow)
 {
@@ -141,44 +127,6 @@ static Map<const fn::MFOutputSocket *, std::string> deduplicate_attribute_nodes(
 
   return attribute_inputs;
 }
-
-class CustomDataAttributesRef {
- private:
-  Vector<void *> buffers_;
-  uint size_;
-  std::unique_ptr<fn::AttributesInfo> info_;
-
- public:
-  CustomDataAttributesRef(CustomData &custom_data, uint size)
-  {
-    fn::AttributesInfoBuilder builder;
-    for (const CustomDataLayer &layer : Span(custom_data.layers, custom_data.totlayer)) {
-      buffers_.append(layer.data);
-      switch (layer.type) {
-        case CD_PROP_INT32: {
-          builder.add<int32_t>(layer.name, 0);
-          break;
-        }
-        case CD_PROP_FLOAT3: {
-          builder.add<float3>(layer.name, {0, 0, 0});
-          break;
-        }
-      }
-    }
-    info_ = std::make_unique<fn::AttributesInfo>(builder);
-    size_ = size;
-  }
-
-  operator fn::MutableAttributesRef()
-  {
-    return fn::MutableAttributesRef(*info_, buffers_, size_);
-  }
-
-  operator fn::AttributesRef() const
-  {
-    return fn::AttributesRef(*info_, buffers_, size_);
-  }
-};
 
 static std::string dnode_to_path(const nodes::DNode &dnode)
 {
@@ -325,13 +273,6 @@ static const ParticleFunction *create_particle_function_for_inputs(
   return &particle_fn;
 }
 
-class ParticleForce {
- public:
-  virtual ~ParticleForce() = default;
-  virtual void add_force(fn::AttributesRef attributes,
-                         MutableSpan<float3> r_combined_force) const = 0;
-};
-
 class ParticleFunctionForce : public ParticleForce {
  private:
   const ParticleFunction &particle_fn_;
@@ -383,20 +324,21 @@ static Vector<const ParticleForce *> create_forces_for_particle_simulation(
   return forces;
 }
 
-static Map<std::string, Vector<const ParticleForce *>> collect_forces(
-    nodes::MFNetworkTreeMap &network_map,
-    ResourceCollector &resources,
-    const Map<const fn::MFOutputSocket *, std::string> &attribute_inputs)
+static void collect_forces(Simulation &simulation,
+                           nodes::MFNetworkTreeMap &network_map,
+                           ResourceCollector &resources,
+                           const Map<const fn::MFOutputSocket *, std::string> &attribute_inputs,
+                           SimulationInfluences &r_influences)
 {
-  Map<std::string, Vector<const ParticleForce *>> forces_by_simulation;
   for (const nodes::DNode *dnode :
        network_map.tree().nodes_by_type("SimulationNodeParticleSimulation")) {
     std::string name = dnode_to_path(*dnode);
     Vector<const ParticleForce *> forces = create_forces_for_particle_simulation(
         *dnode, network_map, resources, attribute_inputs);
-    forces_by_simulation.add_new(std::move(name), std::move(forces));
+    ParticleSimulationState *state = (ParticleSimulationState *)try_find_state_by_name(&simulation,
+                                                                                       name);
+    r_influences.particle_forces.add_new(state, std::move(forces));
   }
-  return forces_by_simulation;
 }
 
 void update_simulation_in_depsgraph(Depsgraph *depsgraph,
@@ -428,65 +370,24 @@ void update_simulation_in_depsgraph(Depsgraph *depsgraph,
   fn::mf_network_optimization::dead_node_removal(network);
   // WM_clipboard_text_set(network.to_dot().c_str(), false);
 
-  Map<std::string, Vector<const ParticleForce *>> forces_by_simulation = collect_forces(
-      network_map, resources, attribute_inputs);
+  SimulationInfluences simulation_influences;
+  collect_forces(
+      *simulation_orig, network_map, resources, attribute_inputs, simulation_influences);
 
   if (current_frame == 1) {
     reinitialize_empty_simulation_states(simulation_orig, tree);
 
-    RNG *rng = BLI_rng_new(0);
-
+    initialize_simulation_states(*simulation_orig, *depsgraph, simulation_influences);
     simulation_orig->current_frame = 1;
-    LISTBASE_FOREACH (ParticleSimulationState *, state, &simulation_orig->states) {
-      state->tot_particles = 1000;
-      CustomData_realloc(&state->attributes, state->tot_particles);
-      ensure_attributes_exist(state);
-
-      CustomDataAttributesRef custom_data_attributes{state->attributes,
-                                                     (uint)state->tot_particles};
-
-      fn::MutableAttributesRef attributes = custom_data_attributes;
-      MutableSpan<float3> positions = attributes.get<float3>("Position");
-      MutableSpan<float3> velocities = attributes.get<float3>("Velocity");
-      MutableSpan<int32_t> ids = attributes.get<int32_t>("ID");
-
-      for (uint i : positions.index_range()) {
-        positions[i] = {i / 100.0f, 0, 0};
-        velocities[i] = {0, BLI_rng_get_float(rng) - 0.5f, BLI_rng_get_float(rng) - 0.5f};
-        ids[i] = i;
-      }
-    }
-
-    BLI_rng_free(rng);
 
     copy_states_to_cow(simulation_orig, simulation_cow);
   }
   else if (current_frame == simulation_orig->current_frame + 1) {
     update_simulation_state_list(simulation_orig, tree);
+
     float time_step = 1.0f / 24.0f;
+    solve_simulation_time_step(*simulation_orig, *depsgraph, simulation_influences, time_step);
     simulation_orig->current_frame = current_frame;
-
-    LISTBASE_FOREACH (ParticleSimulationState *, state, &simulation_orig->states) {
-      ensure_attributes_exist(state);
-
-      CustomDataAttributesRef custom_data_attributes{state->attributes,
-                                                     (uint)state->tot_particles};
-
-      fn::MutableAttributesRef attributes = custom_data_attributes;
-      MutableSpan<float3> positions = attributes.get<float3>("Position");
-      MutableSpan<float3> velocities = attributes.get<float3>("Velocity");
-
-      Array<float3> force_vectors{(uint)state->tot_particles, {0, 0, 0}};
-      Span<const ParticleForce *> forces = forces_by_simulation.lookup_as(state->head.name);
-      for (const ParticleForce *force : forces) {
-        force->add_force(attributes, force_vectors);
-      }
-
-      for (uint i : positions.index_range()) {
-        velocities[i] += force_vectors[i] * time_step;
-        positions[i] += velocities[i] * time_step;
-      }
-    }
 
     copy_states_to_cow(simulation_orig, simulation_cow);
   }

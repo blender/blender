@@ -38,14 +38,17 @@ set(INC_SYS
 
 set(SRC
   intern/SIM_mass_spring.cpp
-  intern/ConstrainedConjugateGradient.h
-  intern/eigen_utils.h
   intern/hair_volume.cpp
-  intern/implicit.h
   intern/implicit_blender.c
   intern/implicit_eigen.cpp
+  intern/simulation_solver.cc
   intern/particle_function.cc
   intern/simulation_update.cc
+
+  intern/ConstrainedConjugateGradient.h
+  intern/eigen_utils.h
+  intern/implicit.h
+  intern/simulation_solver.hh
 
   SIM_mass_spring.h
   SIM_particle_function.hh
