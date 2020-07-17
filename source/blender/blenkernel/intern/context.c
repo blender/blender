@@ -694,6 +694,11 @@ wmWindowManager *CTX_wm_manager(const bContext *C)
   return C->wm.manager;
 }
 
+bool CTX_wm_interface_locked(const bContext *C)
+{
+  return (bool)C->wm.manager->is_interface_locked;
+}
+
 wmWindow *CTX_wm_window(const bContext *C)
 {
   return ctx_wm_python_context_get(C, "window", &RNA_Window, C->wm.window);

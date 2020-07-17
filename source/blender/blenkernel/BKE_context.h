@@ -312,6 +312,8 @@ int CTX_data_visible_gpencil_layers(const bContext *C, ListBase *list);
 int CTX_data_editable_gpencil_layers(const bContext *C, ListBase *list);
 int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
 
+bool CTX_wm_interface_locked(const bContext *C);
+
 /* Gets pointer to the dependency graph.
  * If it doesn't exist yet, it will be allocated.
  *

@@ -138,12 +138,6 @@ static void wm_region_draw_overlay(bContext *C, ScrArea *area, ARegion *region)
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
 
-  /* Don't draw overlay with locked interface. Drawing could access scene data that another thread
-   * may be modifying. */
-  if (wm->is_interface_locked) {
-    return;
-  }
-
   wmViewport(&region->winrct);
   UI_SetTheme(area->spacetype, region->regiontype);
   region->type->draw_overlay(C, region);
