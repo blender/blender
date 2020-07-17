@@ -1450,6 +1450,10 @@ class WM_OT_properties_edit(Operator):
         )
 
         layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         layout.prop(self, "property")
         layout.prop(self, "value")
 
@@ -1460,18 +1464,18 @@ class WM_OT_properties_edit(Operator):
         row.enabled = proptype in {int, float, str}
         row.prop(self, "default")
 
-        row = layout.row(align=True)
-        row.prop(self, "min")
-        row.prop(self, "max")
+        col = layout.column(align=True)
+        col.prop(self, "min")
+        col.prop(self, "max")
 
-        row = layout.row()
-        row.prop(self, "use_soft_limits")
-        row.prop(self, "is_overridable_library")
+        col = layout.column()
+        col.prop(self, "is_overridable_library")
+        col.prop(self, "use_soft_limits")
 
-        row = layout.row(align=True)
-        row.enabled = self.use_soft_limits
-        row.prop(self, "soft_min", text="Soft Min")
-        row.prop(self, "soft_max", text="Soft Max")
+        col = layout.column(align=True)
+        col.enabled = self.use_soft_limits
+        col.prop(self, "soft_min", text="Soft Min")
+        col.prop(self, "soft_max", text="Max")
         layout.prop(self, "description")
 
         if is_array and proptype == float:
