@@ -1962,15 +1962,40 @@ void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat, bool use_clamp)
   SET_FLAG_FROM_TEST(tex->sampler_state, !use_clamp, GPU_SAMPLER_CLAMP_BORDER);
 }
 
-void GPU_texture_swizzle_channel_auto(GPUTexture *tex, int channels)
+static int gpu_texture_swizzle_to_enum(const char swizzle)
+{
+  switch (swizzle) {
+    case 'w':
+    case 'a':
+      return GL_ALPHA;
+    case 'z':
+    case 'b':
+      return GL_BLUE;
+    case 'y':
+    case 'g':
+      return GL_GREEN;
+    case '0':
+      return GL_ZERO;
+    case '1':
+      return GL_ONE;
+    case 'x':
+    case 'r':
+    default:
+      return GL_RED;
+  }
+}
+
+void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4])
 {
   WARN_NOT_BOUND(tex);
 
+  GLint gl_swizzle[4] = {gpu_texture_swizzle_to_enum(swizzle[0]),
+                         gpu_texture_swizzle_to_enum(swizzle[1]),
+                         gpu_texture_swizzle_to_enum(swizzle[2]),
+                         gpu_texture_swizzle_to_enum(swizzle[3])};
+
   glActiveTexture(GL_TEXTURE0 + tex->number);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_R, GL_RED);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_G, (channels >= 2) ? GL_GREEN : GL_RED);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_B, (channels >= 3) ? GL_BLUE : GL_RED);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_A, (channels >= 4) ? GL_ALPHA : GL_ONE);
+  glTexParameteriv(tex->target_base, GL_TEXTURE_SWIZZLE_RGBA, gl_swizzle);
 }
 
 void GPU_texture_free(GPUTexture *tex)

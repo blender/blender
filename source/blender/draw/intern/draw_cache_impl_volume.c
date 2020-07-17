@@ -266,7 +266,7 @@ static DRWVolumeGrid *volume_grid_cache_get(Volume *volume,
                                                 NULL);
 
     GPU_texture_bind(cache_grid->texture, 0);
-    GPU_texture_swizzle_channel_auto(cache_grid->texture, channels);
+    GPU_texture_swizzle_set(cache_grid->texture, (channels == 3) ? "rgb1" : "rrr1");
     GPU_texture_wrap_mode(cache_grid->texture, false, false);
     GPU_texture_unbind(cache_grid->texture);
 
