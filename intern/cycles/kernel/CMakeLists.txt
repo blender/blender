@@ -539,7 +539,7 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
           ${SRC_UTIL_HEADERS}
         COMMAND ${CUBIN_CC_ENV}
             "$<TARGET_FILE:cycles_cubin_cc>"
-            -target 30
+            -target 52
             -ptx
             -i ${CMAKE_CURRENT_SOURCE_DIR}/${input}
             ${cuda_flags}
@@ -563,7 +563,7 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
         COMMAND
           ${CUDA_NVCC_EXECUTABLE}
           --ptx
-          -arch=sm_30
+          -arch=sm_52
           ${cuda_flags}
           ${input}
         WORKING_DIRECTORY
