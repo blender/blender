@@ -1465,16 +1465,8 @@ void GPU_texture_update_sub(GPUTexture *tex,
   BLI_assert((int)tex->format > -1);
   BLI_assert(tex->components > -1);
 
-  const uint bytesize = gpu_get_bytesize(tex->format);
   GLenum data_format = gpu_get_gl_dataformat(tex->format, &tex->format_flag);
   GLenum data_type = gpu_get_gl_datatype(gpu_data_format);
-  GLint alignment;
-
-  /* The default pack size for textures is 4, which won't work for byte based textures */
-  if (bytesize == 1) {
-    glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  }
 
   glBindTexture(tex->target, tex->bindcode);
   switch (tex->target) {
@@ -1503,10 +1495,6 @@ void GPU_texture_update_sub(GPUTexture *tex,
       break;
     default:
       BLI_assert(!"tex->target mode not supported");
-  }
-
-  if (bytesize == 1) {
-    glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
   }
 
   glBindTexture(tex->target, 0);

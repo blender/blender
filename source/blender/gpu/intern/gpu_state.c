@@ -412,6 +412,8 @@ void GPU_state_init(void)
   glCullFace(GL_BACK);
   glDisable(GL_CULL_FACE);
 
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
   /* Is default but better be explicit. */
   glEnable(GL_MULTISAMPLE);
 

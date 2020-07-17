@@ -1195,6 +1195,9 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf, bool use_srgb)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 
+  /* Reset to opengl Defaults. (Untested, might not be needed) */
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
   blocksize = (ibuf->dds_data.fourcc == FOURCC_DXT1) ? 8 : 16;
   for (i = 0; i < ibuf->dds_data.nummipmaps && (width || height); i++) {
     if (width == 0) {
@@ -1213,6 +1216,8 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf, bool use_srgb)
     width >>= 1;
     height >>= 1;
   }
+  /* Restore Blender default. */
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
   /* set number of mipmap levels we have, needed in case they don't go down to 1x1 */
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, i - 1);

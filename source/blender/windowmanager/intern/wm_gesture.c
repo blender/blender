@@ -357,11 +357,6 @@ static void draw_filled_lasso(wmGesture *gt)
     GPU_blend(true);
     GPU_blend_set_func(GPU_ONE, GPU_ONE);
 
-    GLint unpack_alignment;
-    glGetIntegerv(GL_UNPACK_ALIGNMENT, &unpack_alignment);
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
     IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
     GPU_shader_bind(state.shader);
     GPU_shader_uniform_vector(
@@ -381,8 +376,6 @@ static void draw_filled_lasso(wmGesture *gt)
                      NULL);
 
     GPU_shader_unbind();
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, unpack_alignment);
 
     MEM_freeN(pixel_buf);
 
