@@ -41,7 +41,7 @@ void wmViewport(const rcti *winrct)
   int height = BLI_rcti_size_y(winrct) + 1;
 
   GPU_viewport(winrct->xmin, winrct->ymin, width, height);
-  glScissor(winrct->xmin, winrct->ymin, width, height);
+  GPU_scissor(winrct->xmin, winrct->ymin, width, height);
 
   wmOrtho2_pixelspace(width, height);
   GPU_matrix_identity_set();
@@ -80,7 +80,7 @@ void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct
   }
 
   GPU_viewport(0, 0, width, height);
-  glScissor(x, y, scissor_width, scissor_height);
+  GPU_scissor(x, y, scissor_width, scissor_height);
 
   wmOrtho2_pixelspace(width, height);
   GPU_matrix_identity_set();
@@ -92,7 +92,7 @@ void wmWindowViewport(wmWindow *win)
   int height = WM_window_pixels_y(win);
 
   GPU_viewport(0, 0, width, height);
-  glScissor(0, 0, width, height);
+  GPU_scissor(0, 0, width, height);
 
   wmOrtho2_pixelspace(width, height);
   GPU_matrix_identity_set();

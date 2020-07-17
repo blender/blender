@@ -107,10 +107,10 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
       if (pc->poll == NULL || pc->poll(C)) {
         /* Prevent drawing outside region. */
         glEnable(GL_SCISSOR_TEST);
-        glScissor(region->winrct.xmin,
-                  region->winrct.ymin,
-                  BLI_rcti_size_x(&region->winrct) + 1,
-                  BLI_rcti_size_y(&region->winrct) + 1);
+        GPU_scissor(region->winrct.xmin,
+                    region->winrct.ymin,
+                    BLI_rcti_size_x(&region->winrct) + 1,
+                    BLI_rcti_size_y(&region->winrct) + 1);
 
         if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
           int x = 0, y = 0;
@@ -462,7 +462,7 @@ static void wm_draw_region_bind(ARegion *region, int view)
     /* For now scissor is expected by region drawing, we could disable it
      * and do the enable/disable in the specific cases that setup scissor. */
     glEnable(GL_SCISSOR_TEST);
-    glScissor(0, 0, region->winx, region->winy);
+    GPU_scissor(0, 0, region->winx, region->winy);
   }
 
   region->draw_buffer->bound_view = view;
