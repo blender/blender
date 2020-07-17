@@ -24,8 +24,11 @@ set(INC
   ../blenkernel
   ../blenlib
   ../depsgraph
+  ../functions
   ../imbuf
   ../makesdna
+  ../makesrna
+  ../nodes
   ../../../intern/guardedalloc
 )
 
@@ -41,11 +44,15 @@ set(SRC
   intern/implicit.h
   intern/implicit_blender.c
   intern/implicit_eigen.cpp
+  intern/simulation_update.cc
 
   SIM_mass_spring.h
+  SIM_simulation_update.hh
 )
 
 set(LIB
+  bf_blenkernel
+  bf_nodes
 )
 
 if(WITH_OPENMP_STATIC)

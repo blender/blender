@@ -304,7 +304,6 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
   bf_functions
   bf_intern_sky
 )
