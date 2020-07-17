@@ -31,6 +31,7 @@
 #include "GPU_primitive.h"
 #include "GPU_shader.h"
 #include "GPU_shader_interface.h"
+#include "GPU_texture.h"
 #include "GPU_vertex_format.h"
 
 #ifdef __cplusplus
@@ -114,6 +115,9 @@ void immUniform4f(const char *name, float x, float y, float z, float w);
 void immUniform4fv(const char *name, const float data[4]);
 void immUniformArray4fv(const char *bare_name, const float *data, int count);
 void immUniformMatrix4fv(const char *name, const float data[4][4]);
+
+void immBindTexture(const char *name, GPUTexture *tex);
+void immBindTextureSampler(const char *name, GPUTexture *tex, eGPUSamplerState state);
 
 /* Convenience functions for setting "uniform vec4 color". */
 /* The rgb functions have implicit alpha = 1.0. */
