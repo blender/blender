@@ -272,9 +272,6 @@ void GPU_texture_compare_mode(GPUTexture *tex, bool use_compare);
 void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
 void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter);
 void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat, bool use_clamp);
-void GPU_texture_filters(GPUTexture *tex,
-                         eGPUFilterFunction min_filter,
-                         eGPUFilterFunction mag_filter);
 void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4]);
 
 void GPU_texture_attach_framebuffer(GPUTexture *tex, struct GPUFrameBuffer *fb, int attachment);

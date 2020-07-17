@@ -81,10 +81,7 @@ extern char datatoc_gpu_shader_image_overlays_stereo_merge_frag_glsl[];
 extern char datatoc_gpu_shader_image_color_frag_glsl[];
 extern char datatoc_gpu_shader_image_desaturate_frag_glsl[];
 extern char datatoc_gpu_shader_image_varying_color_frag_glsl[];
-extern char datatoc_gpu_shader_image_alpha_color_frag_glsl[];
 extern char datatoc_gpu_shader_image_shuffle_color_frag_glsl[];
-extern char datatoc_gpu_shader_image_mask_uniform_color_frag_glsl[];
-extern char datatoc_gpu_shader_image_modulate_alpha_frag_glsl[];
 extern char datatoc_gpu_shader_3D_vert_glsl[];
 extern char datatoc_gpu_shader_3D_normal_vert_glsl[];
 extern char datatoc_gpu_shader_3D_flat_color_vert_glsl[];
@@ -909,16 +906,6 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
             .frag = datatoc_gpu_shader_simple_lighting_frag_glsl,
         },
 
-    [GPU_SHADER_2D_IMAGE_MASK_UNIFORM_COLOR] =
-        {
-            .vert = datatoc_gpu_shader_3D_image_vert_glsl,
-            .frag = datatoc_gpu_shader_image_mask_uniform_color_frag_glsl,
-        },
-    [GPU_SHADER_3D_IMAGE_MODULATE_ALPHA] =
-        {
-            .vert = datatoc_gpu_shader_3D_image_vert_glsl,
-            .frag = datatoc_gpu_shader_image_modulate_alpha_frag_glsl,
-        },
     [GPU_SHADER_2D_CHECKER] =
         {
             .vert = datatoc_gpu_shader_2D_vert_glsl,
@@ -970,11 +957,6 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
         {
             .vert = datatoc_gpu_shader_2D_image_vert_glsl,
             .frag = datatoc_gpu_shader_image_desaturate_frag_glsl,
-        },
-    [GPU_SHADER_2D_IMAGE_ALPHA_COLOR] =
-        {
-            .vert = datatoc_gpu_shader_2D_image_vert_glsl,
-            .frag = datatoc_gpu_shader_image_alpha_color_frag_glsl,
         },
     [GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR] =
         {
