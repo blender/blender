@@ -46,6 +46,7 @@ set(SRC
   intern/builder/deg_builder_nodes_view_layer.cc
   intern/builder/deg_builder_pchanmap.cc
   intern/builder/deg_builder_relations.cc
+  intern/builder/deg_builder_relations_drivers.cc
   intern/builder/deg_builder_relations_keys.cc
   intern/builder/deg_builder_relations_rig.cc
   intern/builder/deg_builder_relations_scene.cc
@@ -100,6 +101,7 @@ set(SRC
   intern/builder/deg_builder.h
   intern/builder/deg_builder_cache.h
   intern/builder/deg_builder_cycle.h
+  intern/builder/deg_builder_relations_drivers.h
   intern/builder/deg_builder_map.h
   intern/builder/deg_builder_nodes.h
   intern/builder/deg_builder_pchanmap.h

@@ -104,6 +104,7 @@
 
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_pchanmap.h"
+#include "intern/builder/deg_builder_relations_drivers.h"
 #include "intern/debug/deg_debug.h"
 #include "intern/depsgraph_physics.h"
 #include "intern/depsgraph_tag.h"
@@ -2841,121 +2842,6 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
     }
   }
 #endif
-}
-
-static bool is_reachable(const Node *const from, const Node *const to)
-{
-  if (from == to) {
-    return true;
-  }
-
-  // Perform a graph walk from 'to' towards its incoming connections.
-  // Walking from 'from' towards its outgoing connections is 10x slower on the Spring rig.
-  deque<const Node *> queue;
-  Set<const Node *> seen;
-  queue.push_back(to);
-  while (!queue.empty()) {
-    // Visit the next node to inspect.
-    const Node *visit = queue.back();
-    queue.pop_back();
-
-    if (visit == from) {
-      return true;
-    }
-
-    // Queue all incoming relations that we haven't seen before.
-    for (Relation *relation : visit->inlinks) {
-      const Node *prev_node = relation->from;
-      if (seen.add(prev_node)) {
-        queue.push_back(prev_node);
-      }
-    }
-  }
-  return false;
-}
-
-void DepsgraphRelationBuilder::build_driver_relations()
-{
-  for (IDNode *id_node : graph_->id_nodes) {
-    build_driver_relations(id_node);
-  }
-}
-
-void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
-{
-  /* Add relations between drivers that write to the same datablock.
-   *
-   * This prevents threading issues when two separate RNA properties write to
-   * the same memory address. For example:
-   * - Drivers on individual array elements, as the animation system will write
-   *   the whole array back to RNA even when changing individual array value.
-   * - Drivers on RNA properties that map to a single bit flag. Changing the RNA
-   *   value will write the entire int containing the bit, in a non-thread-safe
-   *   way.
-   */
-  ID *id_orig = id_node->id_orig;
-  AnimData *adt = BKE_animdata_from_id(id_orig);
-  if (adt == nullptr) {
-    return;
-  }
-
-  // Mapping from RNA prefix -> set of driver evaluation nodes:
-  Map<string, Vector<Node *>> driver_groups;
-
-  LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
-    if (fcu->rna_path == nullptr) {
-      continue;
-    }
-    // Get the RNA path except the part after the last dot.
-    char *last_dot = strrchr(fcu->rna_path, '.');
-    StringRef rna_prefix;
-    if (last_dot != nullptr) {
-      rna_prefix = StringRef(fcu->rna_path, last_dot);
-    }
-
-    // Insert this driver node into the group belonging to the RNA prefix.
-    OperationKey driver_key(
-        id_orig, NodeType::PARAMETERS, OperationCode::DRIVER, fcu->rna_path, fcu->array_index);
-    Node *node_driver = get_node(driver_key);
-    driver_groups.lookup_or_add_default_as(rna_prefix).append(node_driver);
-  }
-
-  for (Span<Node *> prefix_group : driver_groups.values()) {
-    // For each node in the driver group, try to connect it to another node
-    // in the same group without creating any cycles.
-    int num_drivers = prefix_group.size();
-    if (num_drivers < 2) {
-      // A relation requires two drivers.
-      continue;
-    }
-    for (int from_index = 0; from_index < num_drivers; ++from_index) {
-      Node *op_from = prefix_group[from_index];
-
-      // Start by trying the next node in the group.
-      for (int to_offset = 1; to_offset < num_drivers; ++to_offset) {
-        int to_index = (from_index + to_offset) % num_drivers;
-        Node *op_to = prefix_group[to_index];
-
-        // Investigate whether this relation would create a dependency cycle.
-        // Example graph:
-        //     A -> B -> C
-        // and investigating a potential connection C->A. Because A->C is an
-        // existing transitive connection, adding C->A would create a cycle.
-        if (is_reachable(op_to, op_from)) {
-          continue;
-        }
-
-        // No need to directly connect this node if there is already a transitive connection.
-        if (is_reachable(op_from, op_to)) {
-          break;
-        }
-
-        add_operation_relation(
-            op_from->get_exit_operation(), op_to->get_entry_operation(), "Driver Serialization");
-        break;
-      }
-    }
-  }
 }
 
 /* **** ID traversal callbacks functions **** */
