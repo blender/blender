@@ -270,6 +270,7 @@ GPUBatch **DRW_cache_pointcloud_surface_shaded_get(Object *ob,
   PointCloud *pointcloud = ob->data;
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
   BLI_assert(cache->mat_len == gpumat_array_len);
+  UNUSED_VARS(gpumat_array_len);
 
   if (cache->surface_per_mat[0] == NULL) {
     pointcloud_batch_cache_ensure_pos(ob, cache);
