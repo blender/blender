@@ -831,11 +831,13 @@ static void wm_draw_window(bContext *C, wmWindow *win)
   }
   else if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
     /* For pageflip we simply draw to both back buffers. */
-    glDrawBuffer(GL_BACK_LEFT);
+    GPU_backbuffer_bind(GPU_BACKBUFFER_LEFT);
     wm_draw_window_onscreen(C, win, 0);
-    glDrawBuffer(GL_BACK_RIGHT);
+
+    GPU_backbuffer_bind(GPU_BACKBUFFER_RIGHT);
     wm_draw_window_onscreen(C, win, 1);
-    glDrawBuffer(GL_BACK);
+
+    GPU_backbuffer_bind(GPU_BACKBUFFER);
   }
   else if (ELEM(win->stereo3d_format->display_mode, S3D_DISPLAY_ANAGLYPH, S3D_DISPLAY_INTERLACE)) {
     /* For anaglyph and interlace, we draw individual regions with

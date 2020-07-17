@@ -41,6 +41,12 @@ typedef enum eGPUFrameBufferBits {
   GPU_STENCIL_BIT = (1 << 2),
 } eGPUFrameBufferBits;
 
+typedef enum eGPUBackBuffer {
+  GPU_BACKBUFFER = 0,
+  GPU_BACKBUFFER_RIGHT,
+  GPU_BACKBUFFER_LEFT,
+} eGPUBackBuffer;
+
 typedef struct GPUFrameBuffer GPUFrameBuffer;
 typedef struct GPUOffScreen GPUOffScreen;
 
@@ -223,6 +229,8 @@ void GPU_clear(eGPUFrameBufferBits flags);
 
 void GPU_frontbuffer_read_pixels(
     int x, int y, int w, int h, int channels, eGPUDataFormat format, void *data);
+
+void GPU_backbuffer_bind(eGPUBackBuffer buffer);
 
 #ifdef __cplusplus
 }

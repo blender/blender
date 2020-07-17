@@ -1080,3 +1080,17 @@ void GPU_frontbuffer_read_pixels(
   glReadBuffer(GL_FRONT);
   gpu_framebuffer_read_color_ex(x, y, w, h, channels, GL_FRONT, format, data);
 }
+
+/* For stereo rendering. */
+void GPU_backbuffer_bind(eGPUBackBuffer buffer)
+{
+  if (buffer == GPU_BACKBUFFER) {
+    glDrawBuffer(GL_BACK);
+  }
+  else if (buffer == GPU_BACKBUFFER_LEFT) {
+    glDrawBuffer(GL_BACK_LEFT);
+  }
+  else if (buffer == GPU_BACKBUFFER_RIGHT) {
+    glDrawBuffer(GL_BACK_RIGHT);
+  }
+}
