@@ -61,6 +61,7 @@
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
+#include "GPU_texture.h"
 
 #include "UI_resources.h"
 
@@ -79,7 +80,7 @@
  */
 
 typedef struct TexSnapshot {
-  GLuint overlay_texture;
+  GPUTexture *overlay_texture;
   int winx;
   int winy;
   int old_size;
@@ -88,7 +89,7 @@ typedef struct TexSnapshot {
 } TexSnapshot;
 
 typedef struct CursorSnapshot {
-  GLuint overlay_texture;
+  GPUTexture *overlay_texture;
   int size;
   int zoom;
   int curve_preset;
@@ -102,13 +103,13 @@ static CursorSnapshot cursor_snap = {0};
 void paint_cursor_delete_textures(void)
 {
   if (primary_snap.overlay_texture) {
-    glDeleteTextures(1, &primary_snap.overlay_texture);
+    GPU_texture_free(primary_snap.overlay_texture);
   }
   if (secondary_snap.overlay_texture) {
-    glDeleteTextures(1, &secondary_snap.overlay_texture);
+    GPU_texture_free(secondary_snap.overlay_texture);
   }
   if (cursor_snap.overlay_texture) {
-    glDeleteTextures(1, &cursor_snap.overlay_texture);
+    GPU_texture_free(cursor_snap.overlay_texture);
   }
 
   memset(&primary_snap, 0, sizeof(TexSnapshot));
@@ -298,15 +299,15 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
       size = 512;
     }
 
-    if (target->old_size != size) {
+    if (target->old_size != size || target->old_col != col) {
       if (target->overlay_texture) {
-        glDeleteTextures(1, &target->overlay_texture);
-        target->overlay_texture = 0;
+        GPU_texture_free(target->overlay_texture);
+        target->overlay_texture = NULL;
       }
-
       init = false;
 
       target->old_size = size;
+      target->old_col = col;
     }
     if (col) {
       buffer = MEM_mallocN(sizeof(GLubyte) * size * size * 4, "load_tex");
@@ -347,41 +348,27 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
     }
 
     if (!target->overlay_texture) {
-      glGenTextures(1, &target->overlay_texture);
+      eGPUTextureFormat format = col ? GPU_RGBA8 : GPU_R8;
+      target->overlay_texture = GPU_texture_create_nD(
+          size, size, 0, 2, buffer, format, GPU_DATA_UNSIGNED_BYTE, 0, false, NULL);
+
+      if (!col) {
+        GPU_texture_bind(target->overlay_texture, 0);
+        GPU_texture_swizzle_set(target->overlay_texture, "rrrr");
+        GPU_texture_unbind(target->overlay_texture);
+      }
     }
-  }
-  else {
-    size = target->old_size;
-  }
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, target->overlay_texture);
-
-  if (refresh) {
-    GLenum format = col ? GL_RGBA : GL_RED;
-    GLenum internalformat = col ? GL_RGBA8 : GL_R8;
-
-    if (!init || (target->old_col != col)) {
-      glTexImage2D(
-          GL_TEXTURE_2D, 0, internalformat, size, size, 0, format, GL_UNSIGNED_BYTE, buffer);
-    }
-    else {
-      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, size, format, GL_UNSIGNED_BYTE, buffer);
+    if (init) {
+      GPU_texture_update(target->overlay_texture, GPU_DATA_UNSIGNED_BYTE, buffer);
     }
 
     if (buffer) {
       MEM_freeN(buffer);
     }
-
-    target->old_col = col;
   }
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  else {
+    size = target->old_size;
   }
 
   BKE_paint_reset_overlay_invalid(invalid);
@@ -459,8 +446,8 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 
     if (cursor_snap.size != size) {
       if (cursor_snap.overlay_texture) {
-        glDeleteTextures(1, &cursor_snap.overlay_texture);
-        cursor_snap.overlay_texture = 0;
+        GPU_texture_free(cursor_snap.overlay_texture);
+        cursor_snap.overlay_texture = NULL;
       }
 
       init = false;
@@ -482,34 +469,25 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
     BLI_task_parallel_range(0, size, &data, load_tex_cursor_task_cb, &settings);
 
     if (!cursor_snap.overlay_texture) {
-      glGenTextures(1, &cursor_snap.overlay_texture);
-    }
-  }
-  else {
-    size = cursor_snap.size;
-  }
+      cursor_snap.overlay_texture = GPU_texture_create_nD(
+          size, size, 0, 2, buffer, GPU_R8, GPU_DATA_UNSIGNED_BYTE, 0, false, NULL);
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, cursor_snap.overlay_texture);
-
-  if (refresh) {
-    if (!init) {
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, size, size, 0, GL_RED, GL_UNSIGNED_BYTE, buffer);
+      GPU_texture_bind(cursor_snap.overlay_texture, 0);
+      GPU_texture_swizzle_set(cursor_snap.overlay_texture, "rrrr");
+      GPU_texture_unbind(cursor_snap.overlay_texture);
     }
-    else {
-      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, size, GL_RED, GL_UNSIGNED_BYTE, buffer);
+
+    if (init) {
+      GPU_texture_update(cursor_snap.overlay_texture, GPU_DATA_UNSIGNED_BYTE, buffer);
     }
 
     if (buffer) {
       MEM_freeN(buffer);
     }
   }
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  else {
+    size = cursor_snap.size;
+  }
 
   cursor_snap.curve_preset = br->curve_preset;
   BKE_paint_reset_overlay_invalid(PAINT_OVERLAY_INVALID_CURVE);
@@ -636,8 +614,6 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
   }
 
   if (load_tex(brush, vc, zoom, col, primary)) {
-    GPU_blend(true);
-
     GPU_color_mask(true, true, true, true);
     GPU_depth_mask(false);
     glDepthFunc(GL_ALWAYS);
@@ -707,19 +683,28 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     uint texCoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    if (col) {
-      immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
-      immUniformColor4f(1.0f, 1.0f, 1.0f, overlay_alpha * 0.01f);
+    /* Premultiplied alpha blending. */
+    GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend(true);
+
+    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+
+    float final_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    if (!col) {
+      copy_v3_v3(final_color, U.sculpt_paint_overlay_col);
     }
-    else {
-      GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-      immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_ALPHA_COLOR);
-      immUniformColor3fvAlpha(U.sculpt_paint_overlay_col, overlay_alpha * 0.01f);
-    }
+    mul_v4_fl(final_color, overlay_alpha * 0.01f);
+    immUniformColor4fv(final_color);
+
+    GPUTexture *texture = (primary) ? primary_snap.overlay_texture :
+                                      secondary_snap.overlay_texture;
+
+    eGPUSamplerState state = GPU_SAMPLER_FILTER;
+    state |= (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) ? GPU_SAMPLER_CLAMP_BORDER :
+                                                            GPU_SAMPLER_REPEAT;
+    immBindTextureSampler("image", texture, state);
 
     /* Draw textured quad. */
-    immUniform1i("image", 0);
-
     immBegin(GPU_PRIM_TRI_FAN, 4);
     immAttr2f(texCoord, 0.0f, 0.0f);
     immVertex2f(pos, quad.xmin, quad.ymin);
@@ -732,6 +717,9 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
     immEnd();
 
     immUnbindProgram();
+
+    GPU_texture_unbind(texture);
+
     GPU_blend_set_func(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
 
     if (ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_VIEW)) {
@@ -756,11 +744,9 @@ static bool paint_draw_cursor_overlay(
   if (load_tex_cursor(brush, vc, zoom)) {
     bool do_pop = false;
     float center[2];
-    GPU_blend(true);
 
     GPU_color_mask(true, true, true, true);
-    GPU_depth_mask(false);
-    glDepthFunc(GL_ALWAYS);
+    GPU_depth_test(false);
 
     if (ups->draw_anchored) {
       copy_v2_v2(center, ups->anchored_initial_mouse);
@@ -794,14 +780,17 @@ static bool paint_draw_cursor_overlay(
     uint texCoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
     GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_ALPHA_COLOR);
+    GPU_blend(true);
 
-    immUniformColor3fvAlpha(U.sculpt_paint_overlay_col, brush->cursor_overlay_alpha * 0.01f);
+    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+
+    float final_color[4] = {UNPACK3(U.sculpt_paint_overlay_col), 1.0f};
+    mul_v4_fl(final_color, brush->cursor_overlay_alpha * 0.01f);
+    immUniformColor4fv(final_color);
 
     /* Draw textured quad. */
-
-    /* Draw textured quad. */
-    immUniform1i("image", 0);
+    immBindTextureSampler(
+        "image", cursor_snap.overlay_texture, GPU_SAMPLER_FILTER | GPU_SAMPLER_CLAMP_BORDER);
 
     immBegin(GPU_PRIM_TRI_FAN, 4);
     immAttr2f(texCoord, 0.0f, 0.0f);
@@ -813,6 +802,8 @@ static bool paint_draw_cursor_overlay(
     immAttr2f(texCoord, 0.0f, 1.0f);
     immVertex2f(pos, quad.xmin, quad.ymax);
     immEnd();
+
+    GPU_texture_unbind(cursor_snap.overlay_texture);
 
     immUnbindProgram();
 
