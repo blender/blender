@@ -44,9 +44,11 @@ set(SRC
   intern/implicit.h
   intern/implicit_blender.c
   intern/implicit_eigen.cpp
+  intern/particle_function.cc
   intern/simulation_update.cc
 
   SIM_mass_spring.h
+  SIM_particle_function.hh
   SIM_simulation_update.hh
 )
 
