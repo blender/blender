@@ -2,7 +2,6 @@
 
 #include "testing/testing.h"
 
-#include "FN_cpp_types.hh"
 #include "FN_multi_function_builder.hh"
 #include "FN_multi_function_network.hh"
 #include "FN_multi_function_network_evaluation.hh"
@@ -195,7 +194,7 @@ TEST(multi_function_network, Test2)
     Array<int> input_value_1 = {3, 6};
     int input_value_2 = 4;
 
-    GVectorArray output_value_1(CPPType_int32, 5);
+    GVectorArray output_value_1(CPPType::get<int32_t>(), 5);
     Array<int> output_value_2(5, -1);
 
     MFParamsBuilder params(network_fn, 5);
@@ -221,14 +220,14 @@ TEST(multi_function_network, Test2)
     EXPECT_EQ(output_value_2[4], 39);
   }
   {
-    GVectorArray input_value_1(CPPType_int32, 3);
+    GVectorArray input_value_1(CPPType::get<int32_t>(), 3);
     GVectorArrayRef<int> input_value_ref_1 = input_value_1;
     input_value_ref_1.extend(0, {3, 4, 5});
     input_value_ref_1.extend(1, {1, 2});
 
     Array<int> input_value_2 = {4, 2, 3};
 
-    GVectorArray output_value_1(CPPType_int32, 3);
+    GVectorArray output_value_1(CPPType::get<int32_t>(), 3);
     Array<int> output_value_2(3, -1);
 
     MFParamsBuilder params(network_fn, 3);

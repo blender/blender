@@ -3,7 +3,6 @@
 #include "testing/testing.h"
 
 #include "FN_cpp_type.hh"
-#include "FN_cpp_types.hh"
 
 namespace blender::fn {
 
@@ -75,6 +74,8 @@ struct TestType {
 };
 
 MAKE_CPP_TYPE(TestType, TestType)
+
+const CPPType &CPPType_TestType = CPPType::get<TestType>();
 
 TEST(cpp_type, Size)
 {
@@ -312,7 +313,7 @@ TEST(cpp_type, DebugPrint)
 {
   int value = 42;
   std::stringstream ss;
-  CPPType_int32.debug_print((void *)&value, ss);
+  CPPType::get<int32_t>().debug_print((void *)&value, ss);
   std::string text = ss.str();
   EXPECT_EQ(text, "42");
 }

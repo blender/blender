@@ -2,7 +2,6 @@
 
 #include "testing/testing.h"
 
-#include "FN_cpp_types.hh"
 #include "FN_multi_function.hh"
 #include "FN_multi_function_builder.hh"
 
@@ -126,7 +125,7 @@ TEST(multi_function, CreateRangeFunction)
 {
   CreateRangeFunction fn;
 
-  GVectorArray ranges(CPPType_uint32, 5);
+  GVectorArray ranges(CPPType::get<int32_t>(), 5);
   GVectorArrayRef<uint> ranges_ref(ranges);
   Array<uint> sizes = {3, 0, 6, 1, 4};
 
@@ -173,9 +172,9 @@ class GenericAppendFunction : public MultiFunction {
 
 TEST(multi_function, GenericAppendFunction)
 {
-  GenericAppendFunction fn(CPPType_int32);
+  GenericAppendFunction fn(CPPType::get<int32_t>());
 
-  GVectorArray vectors(CPPType_int32, 4);
+  GVectorArray vectors(CPPType::get<int32_t>(), 4);
   GVectorArrayRef<int> vectors_ref(vectors);
   vectors_ref.append(0, 1);
   vectors_ref.append(0, 2);
@@ -318,7 +317,7 @@ TEST(multi_function, CustomMF_Constant)
 TEST(multi_function, CustomMF_GenericConstant)
 {
   int value = 42;
-  CustomMF_GenericConstant fn{CPPType_int32, (const void *)&value};
+  CustomMF_GenericConstant fn{CPPType::get<int32_t>(), (const void *)&value};
   EXPECT_EQ(fn.param_name(0), "42");
 
   Array<int> outputs(4, 0);
@@ -342,7 +341,7 @@ TEST(multi_function, CustomMF_GenericConstantArray)
   CustomMF_GenericConstantArray fn{GSpan(Span(values))};
   EXPECT_EQ(fn.param_name(0), "[3, 4, 5, 6, ]");
 
-  GVectorArray g_vector_array{CPPType_int32, 4};
+  GVectorArray g_vector_array{CPPType::get<int32_t>(), 4};
   GVectorArrayRef<int> vector_array = g_vector_array;
 
   MFParamsBuilder params(fn, g_vector_array.size());

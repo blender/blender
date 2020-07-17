@@ -34,7 +34,6 @@
 #include "NOD_node_tree_multi_function.hh"
 
 #include "FN_attributes_ref.hh"
-#include "FN_cpp_types.hh"
 #include "FN_multi_function_network_evaluation.hh"
 #include "FN_multi_function_network_optimization.hh"
 
@@ -108,7 +107,7 @@ static Map<const fn::MFOutputSocket *, std::string> deduplicate_attribute_nodes(
   Array<std::string> attribute_names{amount, NoInitialization()};
   for (uint i : IndexRange(amount)) {
     params.add_uninitialized_single_output(
-        fn::GMutableSpan(fn::CPPType_string, attribute_names.data() + i, 1));
+        fn::GMutableSpan(fn::CPPType::get<std::string>(), attribute_names.data() + i, 1));
   }
 
   fn::MFContextBuilder context;

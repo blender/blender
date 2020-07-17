@@ -788,15 +788,12 @@ inline std::unique_ptr<const CPPType> create_cpp_type(StringRef name, const T &d
 }  // namespace blender::fn
 
 #define MAKE_CPP_TYPE(IDENTIFIER, TYPE_NAME) \
-  static TYPE_NAME default_value_##IDENTIFIER; \
-  static std::unique_ptr<const blender::fn::CPPType> CPPTYPE_##IDENTIFIER##_owner = \
-      blender::fn::create_cpp_type<TYPE_NAME>(STRINGIFY(IDENTIFIER), default_value_##IDENTIFIER); \
-  const blender::fn::CPPType &CPPType_##IDENTIFIER = *CPPTYPE_##IDENTIFIER##_owner; \
   template<> const blender::fn::CPPType &blender::fn::CPPType::get<TYPE_NAME>() \
   { \
-    /* This can happen when trying to access a CPPType during static storage initialization. */ \
-    BLI_assert(CPPTYPE_##IDENTIFIER##_owner.get() != nullptr); \
-    return CPPType_##IDENTIFIER; \
+    static TYPE_NAME default_value; \
+    static std::unique_ptr<const CPPType> cpp_type = blender::fn::create_cpp_type<TYPE_NAME>( \
+        STRINGIFY(IDENTIFIER), default_value); \
+    return *cpp_type; \
   }
 
 #endif /* __FN_CPP_TYPE_HH__ */
