@@ -187,7 +187,7 @@ class StringRefNull : public StringRefBase {
    * Reference a std::string. Remember that when the std::string is destructed, the StringRefNull
    * will point to uninitialized memory.
    */
-  StringRefNull(const std::string &str) : StringRefNull(str.data())
+  StringRefNull(const std::string &str) : StringRefNull(str.c_str())
   {
   }
 
@@ -199,6 +199,16 @@ class StringRefNull : public StringRefBase {
     /* Use '<=' instead of just '<', so that the null character can be accessed as well. */
     BLI_assert(index <= size_);
     return data_[index];
+  }
+
+  /**
+   * Returns the beginning of a null-terminated char array.
+   *
+   * This is like ->data(), but can only be called on a StringRefNull.
+   */
+  const char *c_str() const
+  {
+    return data_;
   }
 };
 

@@ -399,7 +399,7 @@ static void add_missing_particle_states(Simulation *simulation, Span<std::string
       continue;
     }
 
-    BKE_simulation_state_add(simulation, SIM_STATE_TYPE_PARTICLES, name.data());
+    BKE_simulation_state_add(simulation, SIM_STATE_TYPE_PARTICLES, name.c_str());
   }
 }
 

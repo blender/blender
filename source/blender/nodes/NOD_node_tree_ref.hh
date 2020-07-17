@@ -405,7 +405,7 @@ inline Span<const NodeRef *> NodeTreeRef::nodes() const
 
 inline Span<const NodeRef *> NodeTreeRef::nodes_by_type(StringRefNull idname) const
 {
-  const bNodeType *nodetype = nodeTypeFind(idname.data());
+  const bNodeType *nodetype = nodeTypeFind(idname.c_str());
   return this->nodes_by_type(nodetype);
 }
 

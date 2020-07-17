@@ -240,7 +240,7 @@ class MFNetworkBuilderBase {
     BLI_STATIC_ASSERT((std::is_base_of_v<fn::MultiFunction, T>), "");
     void *buffer = common_.resources.linear_allocator().allocate(sizeof(T), alignof(T));
     T *fn = new (buffer) T(std::forward<Args>(args)...);
-    common_.resources.add(destruct_ptr<T>(fn), fn->name().data());
+    common_.resources.add(destruct_ptr<T>(fn), fn->name().c_str());
     return *fn;
   }
 };

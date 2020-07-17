@@ -477,7 +477,7 @@ inline Span<const DNode *> DerivedNodeTree::nodes() const
 
 inline Span<const DNode *> DerivedNodeTree::nodes_by_type(StringRefNull idname) const
 {
-  const bNodeType *nodetype = nodeTypeFind(idname.data());
+  const bNodeType *nodetype = nodeTypeFind(idname.c_str());
   return this->nodes_by_type(nodetype);
 }
 
