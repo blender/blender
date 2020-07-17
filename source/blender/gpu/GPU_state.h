@@ -59,6 +59,7 @@ void GPU_blend_set_func_separate(eGPUBlendFunction src_rgb,
                                  eGPUBlendFunction src_alpha,
                                  eGPUBlendFunction dst_alpha);
 void GPU_face_culling(eGPUFaceCull culling);
+void GPU_front_facing(bool invert);
 void GPU_depth_range(float near, float far);
 void GPU_depth_test(bool enable);
 bool GPU_depth_test_enabled(void);
