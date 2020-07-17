@@ -16,6 +16,9 @@ CLEAN_REPOSITORY=0
 # Skip copying dependency files?
 WITH_DEPENDENCIES=0
 
+# Build with numpy support?
+USE_NUMPY=0
+
 # Choose which multithreading platform to use for Mantaflow preprocessing
 USE_OMP=0
 USE_TBB=1
@@ -53,7 +56,7 @@ fi
 MANTA_BUILD_PATH=$MANTA_INSTALLATION/build_blender/
 mkdir -p $MANTA_BUILD_PATH
 cd $MANTA_BUILD_PATH
-cmake ../mantaflowgit -DGUI=0 -DOPENMP=$USE_OMP -DTBB=$USE_TBB -DBLENDER=1 -DPREPDEBUG=1 && make -j8
+cmake ../mantaflowgit -DGUI=0 -DOPENMP=$USE_OMP -DTBB=$USE_TBB -DBLENDER=1 -DPREPDEBUG=1 -DNUMPY=$USE_NUMPY && make -j8
 
 # ==================== 3) COPY MANTAFLOW FILES TO BLENDER ROOT ===========================
 
