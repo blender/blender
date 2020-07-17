@@ -2956,7 +2956,7 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
       }
     }
   }
-}  // namespace DEG
+}
 
 /* **** ID traversal callbacks functions **** */
 
