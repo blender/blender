@@ -615,8 +615,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
 
   if (load_tex(brush, vc, zoom, col, primary)) {
     GPU_color_mask(true, true, true, true);
-    GPU_depth_mask(false);
-    glDepthFunc(GL_ALWAYS);
+    GPU_depth_test(false);
 
     if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
       GPU_matrix_push();

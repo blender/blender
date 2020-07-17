@@ -55,6 +55,7 @@ void GPU_blend_set_func_separate(eGPUBlendFunction src_rgb,
 void GPU_depth_range(float near, float far);
 void GPU_depth_test(bool enable);
 bool GPU_depth_test_enabled(void);
+void GPU_scissor_test(bool enable);
 void GPU_line_smooth(bool enable);
 void GPU_line_width(float width);
 void GPU_point_size(float size);

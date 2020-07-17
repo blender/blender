@@ -106,7 +106,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
 
       if (pc->poll == NULL || pc->poll(C)) {
         /* Prevent drawing outside region. */
-        glEnable(GL_SCISSOR_TEST);
+        GPU_scissor_test(true);
         GPU_scissor(region->winrct.xmin,
                     region->winrct.ymin,
                     BLI_rcti_size_x(&region->winrct) + 1,
@@ -121,7 +121,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
           pc->draw(C, win->eventstate->x, win->eventstate->y, pc->customdata);
         }
 
-        glDisable(GL_SCISSOR_TEST);
+        GPU_scissor_test(false);
       }
     }
   }
@@ -461,7 +461,7 @@ static void wm_draw_region_bind(ARegion *region, int view)
 
     /* For now scissor is expected by region drawing, we could disable it
      * and do the enable/disable in the specific cases that setup scissor. */
-    glEnable(GL_SCISSOR_TEST);
+    GPU_scissor_test(true);
     GPU_scissor(0, 0, region->winx, region->winy);
   }
 
@@ -480,7 +480,7 @@ static void wm_draw_region_unbind(ARegion *region)
     GPU_viewport_unbind(region->draw_buffer->viewport);
   }
   else {
-    glDisable(GL_SCISSOR_TEST);
+    GPU_scissor_test(false);
     GPU_offscreen_unbind(region->draw_buffer->offscreen, false);
   }
 }

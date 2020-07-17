@@ -979,10 +979,10 @@ void GPU_offscreen_bind(GPUOffScreen *ofs, bool save)
     GPUFrameBuffer *fb = GPU_framebuffer_active_get();
     gpuPushFrameBuffer(fb);
   }
-  glDisable(GL_SCISSOR_TEST);
   GPUFrameBuffer *ofs_fb = gpu_offscreen_fb_get(ofs);
   GPU_framebuffer_bind(ofs_fb);
   glDisable(GL_FRAMEBUFFER_SRGB);
+  GPU_scissor_test(false);
   GPU_shader_set_framebuffer_srgb_target(false);
 }
 

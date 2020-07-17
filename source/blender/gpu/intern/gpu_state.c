@@ -146,6 +146,16 @@ void GPU_program_point_size(bool enable)
   }
 }
 
+void GPU_scissor_test(bool enable)
+{
+  if (enable) {
+    glEnable(GL_SCISSOR_TEST);
+  }
+  else {
+    glDisable(GL_SCISSOR_TEST);
+  }
+}
+
 void GPU_scissor(int x, int y, int width, int height)
 {
   glScissor(x, y, width, height);
