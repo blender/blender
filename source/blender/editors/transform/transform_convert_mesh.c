@@ -28,6 +28,7 @@
 
 #include "BLI_alloca.h"
 #include "BLI_bitmap.h"
+#include "BLI_ghash.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
@@ -1192,28 +1193,24 @@ static void trans_mesh_customdata_correction_restore(struct TransDataContainer *
   }
 
   BMesh *bm = tcld->bm;
-  struct TransCustomDataLayerVert *tcld_vert_iter = &tcld->data[0];
-  for (int i = tcld->data_len; i--; tcld_vert_iter++) {
-    BMLoop *l;
-    BMIter liter;
-    BMVert *v = tcld_vert_iter->v;
-    BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-      /* Pop the key to not restore the face again. */
-      BMFace *f_copy = BLI_ghash_popkey(tcld->origfaces, l->f, NULL);
-      if (f_copy) {
-        BMLoop *l_iter_a, *l_first_a;
-        BMLoop *l_iter_b, *l_first_b;
-        l_iter_a = l_first_a = BM_FACE_FIRST_LOOP(f_copy);
-        l_iter_b = l_first_b = BM_FACE_FIRST_LOOP(l->f);
-        do {
-          BM_elem_attrs_copy(tcld->bm_origfaces, bm, l_iter_a, l_iter_b);
-        } while (((l_iter_a = l_iter_a->next) != l_first_a) &&
-                 ((l_iter_b = l_iter_b->next) != l_first_b));
+  BMesh *bm_copy = tcld->bm_origfaces;
 
-        BM_elem_attrs_copy_ex(
-            tcld->bm_origfaces, bm, f_copy, l->f, BM_ELEM_SELECT, CD_MASK_NORMAL);
-      }
-    }
+  GHashIterator gh_iter;
+  GHASH_ITER (gh_iter, tcld->origfaces) {
+    BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
+    BMFace *f_copy = BLI_ghashIterator_getValue(&gh_iter);
+    BLI_assert(f->len == f_copy->len);
+
+    BMLoop *l_iter, *l_first, *l_copy;
+    l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+    l_copy = BM_FACE_FIRST_LOOP(f_copy);
+    do {
+      /* TODO: Restore only the elements that transform. */
+      BM_elem_attrs_copy(bm_copy, bm, l_copy, l_iter);
+      l_copy = l_copy->next;
+    } while ((l_iter = l_iter->next) != l_first);
+
+    BM_elem_attrs_copy_ex(bm_copy, bm, f_copy, f, BM_ELEM_SELECT, CD_MASK_NORMAL);
   }
 }
 
