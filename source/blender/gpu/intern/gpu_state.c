@@ -181,6 +181,11 @@ void GPU_finish(void)
   glFinish();
 }
 
+void GPU_unpack_row_length_set(uint len)
+{
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, len);
+}
+
 void GPU_logic_op_xor_set(bool enable)
 {
   if (enable) {
@@ -413,6 +418,7 @@ void GPU_state_init(void)
   glDisable(GL_CULL_FACE);
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
   /* Is default but better be explicit. */
   glEnable(GL_MULTISAMPLE);

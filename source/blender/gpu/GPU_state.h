@@ -69,6 +69,7 @@ void GPU_color_mask(bool r, bool g, bool b, bool a);
 void GPU_depth_mask(bool depth);
 bool GPU_depth_mask_get(void);
 void GPU_stencil_mask(uint stencil);
+void GPU_unpack_row_length_set(uint len);
 
 void GPU_flush(void);
 void GPU_finish(void);

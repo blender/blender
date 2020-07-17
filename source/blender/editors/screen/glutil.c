@@ -120,9 +120,6 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
     type = GL_UNSIGNED_BYTE;
   }
 
-  GLint unpack_row_length;
-  glGetIntegerv(GL_UNPACK_ROW_LENGTH, &unpack_row_length);
-
   eGPUTextureFormat gpu_format = (type == GL_FLOAT) ? GPU_RGBA16F : GPU_RGBA8;
   eGPUDataFormat gpu_data = (type == GL_FLOAT) ? GPU_DATA_FLOAT : GPU_DATA_UNSIGNED_BYTE;
   GPUTexture *texture = GPU_texture_create_nD(
@@ -165,7 +162,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
     immUniformColor4fv((color) ? color : white);
   }
 
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, img_w);
+  GPU_unpack_row_length_set(img_w);
 
   for (subpart_y = 0; subpart_y < nsubparts_y; subpart_y++) {
     for (subpart_x = 0; subpart_x < nsubparts_x; subpart_x++) {
@@ -259,7 +256,8 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
   GPU_texture_unbind(texture);
   GPU_texture_free(texture);
 
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, unpack_row_length);
+  /* Restore default. */
+  GPU_unpack_row_length_set(0);
 }
 
 void immDrawPixelsTexScaled(IMMDrawPixelsTexState *state,

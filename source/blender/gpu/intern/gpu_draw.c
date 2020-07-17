@@ -683,9 +683,7 @@ static void gpu_texture_update_unscaled(uchar *rect,
 {
   /* Partial update without scaling. Stride and offset are used to copy only a
    * subset of a possible larger buffer than what we are updating. */
-  GLint row_length;
-  glGetIntegerv(GL_UNPACK_ROW_LENGTH, &row_length);
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, tex_stride);
+  GPU_unpack_row_length_set(tex_stride);
 
   if (layer >= 0) {
     if (rect_float == NULL) {
@@ -724,7 +722,8 @@ static void gpu_texture_update_unscaled(uchar *rect,
     }
   }
 
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
+  /* Restore default. */
+  GPU_unpack_row_length_set(0);
 }
 
 static void gpu_texture_update_from_ibuf(
