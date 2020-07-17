@@ -1244,10 +1244,10 @@ static void draw_plane_marker_image(Scene *scene,
       uint texCoord = GPU_vertformat_attr_add(
           imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-      immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA);
+      immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 
-      immUniform1f("alpha", plane_track->image_opacity);
       immUniform1i("image", 0);
+      immUniformColor4f(1.0f, 1.0f, 1.0f, plane_track->image_opacity);
 
       immBegin(GPU_PRIM_TRI_FAN, 4);
 
