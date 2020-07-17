@@ -30,6 +30,7 @@
 extern "C" {
 #endif
 
+struct AnimationEvalContext;
 struct ChannelDriver;
 struct DriverTarget;
 struct DriverVar;
@@ -97,7 +98,7 @@ void BKE_driver_invalidate_expression(struct ChannelDriver *driver,
 float evaluate_driver(struct PathResolvedRNA *anim_rna,
                       struct ChannelDriver *driver,
                       struct ChannelDriver *driver_orig,
-                      const float evaltime);
+                      const struct AnimationEvalContext *anim_eval_context);
 
 #ifdef __cplusplus
 }

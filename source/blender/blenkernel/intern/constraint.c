@@ -53,6 +53,7 @@
 
 #include "BKE_action.h"
 #include "BKE_anim_path.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_bvhutils.h"
 #include "BKE_cachefile.h"
@@ -2625,7 +2626,7 @@ static void actcon_flush_tars(bConstraint *con, ListBase *list, bool no_copy)
   }
 }
 
-static void actcon_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
+static void actcon_get_tarmat(struct Depsgraph *depsgraph,
                               bConstraint *con,
                               bConstraintOb *cob,
                               bConstraintTarget *ct,
@@ -2679,6 +2680,8 @@ static void actcon_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
     s = (vec[axis] - data->min) / (data->max - data->min);
     CLAMP(s, 0, 1);
     t = (s * (data->end - data->start)) + data->start;
+    const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
+                                                                                      t);
 
     if (G.debug & G_DEBUG) {
       printf("do Action Constraint %s - Ob %s Pchan %s\n",
@@ -2693,7 +2696,7 @@ static void actcon_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
 
       /* evaluate using workob */
       /* FIXME: we don't have any consistent standards on limiting effects on object... */
-      what_does_obaction(cob->ob, &workob, NULL, data->act, NULL, t);
+      what_does_obaction(cob->ob, &workob, NULL, data->act, NULL, &anim_eval_context);
       BKE_object_to_mat4(&workob, ct->matrix);
     }
     else if (cob->type == CONSTRAINT_OBTYPE_BONE) {
@@ -2710,7 +2713,7 @@ static void actcon_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
       tchan->rotmode = pchan->rotmode;
 
       /* evaluate action using workob (it will only set the PoseChannel in question) */
-      what_does_obaction(cob->ob, &workob, &pose, data->act, pchan->name, t);
+      what_does_obaction(cob->ob, &workob, &pose, data->act, pchan->name, &anim_eval_context);
 
       /* convert animation to matrices for use here */
       BKE_pchan_calc_mat(tchan);

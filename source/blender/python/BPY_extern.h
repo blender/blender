@@ -21,6 +21,7 @@
 #ifndef __BPY_EXTERN_H__
 #define __BPY_EXTERN_H__
 
+struct AnimationEvalContext;
 struct ChannelDriver; /* DNA_anim_types.h */
 struct ID;            /* DNA_ID.h */
 struct ListBase;      /* DNA_listBase.h */
@@ -117,7 +118,7 @@ void BPY_driver_reset(void);
 float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
                       struct ChannelDriver *driver,
                       struct ChannelDriver *driver_orig,
-                      const float evaltime);
+                      const struct AnimationEvalContext *anim_eval_context);
 
 void BPY_DECREF(void *pyob_ptr); /* Py_DECREF() */
 void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr);

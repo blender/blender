@@ -36,6 +36,7 @@
 #include "ED_keyframing.h"
 
 #include "BKE_anim_data.h"
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
@@ -332,7 +333,20 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
                                   &options) == -1) {
     return NULL;
   }
-  else if (self->ptr.type == &RNA_NlaStrip) {
+
+  /* This assumes that keyframes are only added on original data & using the active depsgraph. If
+   * it turns out to be necessary for some reason to insert keyframes on evaluated objects, we can
+   * revisit this and add an explicit `depsgraph` keyword argument to the function call.
+   *
+   * It is unlikely that driver code (which is the reason this depsgraph pointer is obtained) will
+   * be executed from this function call, as this only happens when `options` has
+   * `INSERTKEY_DRIVER`, which is not exposed to Python. */
+  bContext *C = BPy_GetContext();
+  struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
+                                                                                    cfra);
+
+  if (self->ptr.type == &RNA_NlaStrip) {
     /* Handle special properties for NLA Strips, whose F-Curves are stored on the
      * strips themselves. These are stored separately or else the properties will
      * not have any effect.
@@ -355,8 +369,8 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
     if (prop) {
       NlaStrip *strip = ptr.data;
       FCurve *fcu = BKE_fcurve_find(&strip->fcurves, RNA_property_identifier(prop), index);
-
-      result = insert_keyframe_direct(&reports, ptr, prop, fcu, cfra, keytype, NULL, options);
+      result = insert_keyframe_direct(
+          &reports, ptr, prop, fcu, &anim_eval_context, keytype, NULL, options);
     }
     else {
       BKE_reportf(&reports, RPT_ERROR, "Could not resolve path (%s)", path_full);
@@ -384,7 +398,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
                               group_name,
                               path_full,
                               index,
-                              cfra,
+                              &anim_eval_context,
                               keytype,
                               NULL,
                               options) != 0);

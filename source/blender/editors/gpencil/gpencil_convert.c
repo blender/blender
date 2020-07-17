@@ -48,6 +48,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -399,6 +400,7 @@ static void gpencil_stroke_path_animation_preprocess_gaps(tGpTimingData *gtd,
 static void gpencil_stroke_path_animation_add_keyframes(ReportList *reports,
                                                         PointerRNA ptr,
                                                         PropertyRNA *prop,
+                                                   Depsgraph *depsgraph,
                                                         FCurve *fcu,
                                                         Curve *cu,
                                                         tGpTimingData *gtd,
@@ -453,8 +455,16 @@ static void gpencil_stroke_path_animation_add_keyframes(ReportList *reports,
         if ((cfra - last_valid_time) < MIN_TIME_DELTA) {
           cfra = last_valid_time + MIN_TIME_DELTA;
         }
-        insert_keyframe_direct(
-            reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, NULL, INSERTKEY_FAST);
+        const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+            depsgraph, cfra);
+        insert_keyframe_direct(reports,
+                               ptr,
+                               prop,
+                               fcu,
+                               &anim_eval_context,
+                               BEZT_KEYTYPE_KEYFRAME,
+                               NULL,
+                               INSERTKEY_FAST);
         last_valid_time = cfra;
       }
       else if (G.debug & G_DEBUG) {
@@ -466,8 +476,16 @@ static void gpencil_stroke_path_animation_add_keyframes(ReportList *reports,
       if ((cfra - last_valid_time) < MIN_TIME_DELTA) {
         cfra = last_valid_time + MIN_TIME_DELTA;
       }
-      insert_keyframe_direct(
-          reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, NULL, INSERTKEY_FAST);
+      const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
+                                                                                        cfra);
+      insert_keyframe_direct(reports,
+                             ptr,
+                             prop,
+                             fcu,
+                             &anim_eval_context,
+                             BEZT_KEYTYPE_KEYFRAME,
+                             NULL,
+                             INSERTKEY_FAST);
       last_valid_time = cfra;
     }
     else {
@@ -475,8 +493,16 @@ static void gpencil_stroke_path_animation_add_keyframes(ReportList *reports,
        * and also far enough from (not yet added!) end_stroke keyframe!
        */
       if ((cfra - last_valid_time) > MIN_TIME_DELTA && (end_stroke_time - cfra) > MIN_TIME_DELTA) {
-        insert_keyframe_direct(
-            reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_BREAKDOWN, NULL, INSERTKEY_FAST);
+        const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+            depsgraph, cfra);
+        insert_keyframe_direct(reports,
+                               ptr,
+                               prop,
+                               fcu,
+                               &anim_eval_context,
+                               BEZT_KEYTYPE_BREAKDOWN,
+                               NULL,
+                               INSERTKEY_FAST);
         last_valid_time = cfra;
       }
       else if (G.debug & G_DEBUG) {
@@ -496,6 +522,7 @@ static void gpencil_stroke_path_animation(bContext *C,
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   bAction *act;
   FCurve *fcu;
   PointerRNA ptr;
@@ -537,8 +564,16 @@ static void gpencil_stroke_path_animation(bContext *C,
 
     cu->ctime = 0.0f;
     cfra = (float)gtd->start_frame;
-    insert_keyframe_direct(
-        reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, NULL, INSERTKEY_FAST);
+    AnimationEvalContext anim_eval_context_start = BKE_animsys_eval_context_construct(depsgraph,
+                                                                                      cfra);
+    insert_keyframe_direct(reports,
+                           ptr,
+                           prop,
+                           fcu,
+                           &anim_eval_context_start,
+                           BEZT_KEYTYPE_KEYFRAME,
+                           NULL,
+                           INSERTKEY_FAST);
 
     cu->ctime = cu->pathlen;
     if (gtd->realtime) {
@@ -547,8 +582,16 @@ static void gpencil_stroke_path_animation(bContext *C,
     else {
       cfra = (float)gtd->end_frame;
     }
-    insert_keyframe_direct(
-        reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, NULL, INSERTKEY_FAST);
+    AnimationEvalContext anim_eval_context_end = BKE_animsys_eval_context_construct(depsgraph,
+                                                                                    cfra);
+    insert_keyframe_direct(reports,
+                           ptr,
+                           prop,
+                           fcu,
+                           &anim_eval_context_end,
+                           BEZT_KEYTYPE_KEYFRAME,
+                           NULL,
+                           INSERTKEY_FAST);
   }
   else {
     /* Use actual recorded timing! */
@@ -575,7 +618,7 @@ static void gpencil_stroke_path_animation(bContext *C,
     }
 
     gpencil_stroke_path_animation_add_keyframes(
-        reports, ptr, prop, fcu, cu, gtd, rng, time_range, nbr_gaps, tot_gaps_time);
+        reports, ptr, prop, depsgraph, fcu, cu, gtd, rng, time_range, nbr_gaps, tot_gaps_time);
 
     BLI_rng_free(rng);
   }

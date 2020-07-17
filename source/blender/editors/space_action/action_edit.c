@@ -724,9 +724,10 @@ static void insert_action_keys(bAnimContext *ac, short mode)
   flag = ANIM_get_keyframing_flags(scene, true);
 
   /* insert keyframes */
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(ac->depsgraph,
+                                                                                    (float)CFRA);
   for (ale = anim_data.first; ale; ale = ale->next) {
     FCurve *fcu = (FCurve *)ale->key_data;
-    float cfra = (float)CFRA;
 
     /* Read value from property the F-Curve represents, or from the curve only?
      * - ale->id != NULL:
@@ -745,7 +746,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
                       ((fcu->grp) ? (fcu->grp->name) : (NULL)),
                       fcu->rna_path,
                       fcu->array_index,
-                      cfra,
+                      &anim_eval_context,
                       ts->keyframe_type,
                       &nla_cache,
                       flag);
@@ -754,8 +755,9 @@ static void insert_action_keys(bAnimContext *ac, short mode)
       AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
       /* adjust current frame for NLA-scaling */
+      float cfra = anim_eval_context.eval_time;
       if (adt) {
-        cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+        cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
       }
 
       const float curval = evaluate_fcurve(fcu, cfra);

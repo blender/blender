@@ -4708,6 +4708,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 
   ReportList *reports = CTX_wm_reports(C);
   Scene *scene = CTX_data_scene(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ToolSettings *ts = scene->toolsettings;
   ListBase nla_cache = {NULL, NULL};
   PointerRNA id_ptr, ptr;
@@ -4720,8 +4721,10 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
   RNA_id_pointer_create(id, &id_ptr);
 
   /* Get NLA context for value remapping */
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
+                                                                                    (float)CFRA);
   NlaKeyframingContext *nla_context = BKE_animsys_get_nla_keyframing_context(
-      &nla_cache, &id_ptr, adt, (float)CFRA, false);
+      &nla_cache, &id_ptr, adt, &anim_eval_context, false);
 
   /* get current frame and apply NLA-mapping to it (if applicable) */
   cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
@@ -4738,7 +4741,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 
     /* insert a keyframe for this F-Curve */
     done = insert_keyframe_direct(
-        reports, ptr, prop, fcu, cfra, ts->keyframe_type, nla_context, flag);
+        reports, ptr, prop, fcu, &anim_eval_context, ts->keyframe_type, nla_context, flag);
 
     if (done) {
       if (adt->action != NULL) {
@@ -4762,23 +4765,26 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 
   ReportList *reports = CTX_wm_reports(C);
   Scene *scene = CTX_data_scene(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ToolSettings *ts = scene->toolsettings;
   ListBase nla_cache = {NULL, NULL};
   PointerRNA id_ptr, ptr;
   PropertyRNA *prop;
   eInsertKeyFlags flag = 0;
   bool done = false;
-  float cfra;
 
   /* Get RNA pointer */
   RNA_id_pointer_create((ID *)key, &id_ptr);
 
   /* Get NLA context for value remapping */
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
+                                                                                    (float)CFRA);
   NlaKeyframingContext *nla_context = BKE_animsys_get_nla_keyframing_context(
-      &nla_cache, &id_ptr, key->adt, (float)CFRA, false);
+      &nla_cache, &id_ptr, key->adt, &anim_eval_context, false);
 
   /* get current frame and apply NLA-mapping to it (if applicable) */
-  cfra = BKE_nla_tweakedit_remap(key->adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+  const float remapped_frame = BKE_nla_tweakedit_remap(
+      key->adt, anim_eval_context.eval_time, NLATIME_CONVERT_UNMAP);
 
   /* get flags for keyframing */
   flag = ANIM_get_keyframing_flags(scene, true);
@@ -4791,13 +4797,21 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
     FCurve *fcu = ED_action_fcurve_ensure(bmain, act, NULL, &ptr, rna_path, 0);
 
     /* set the special 'replace' flag if on a keyframe */
-    if (fcurve_frame_has_keyframe(fcu, cfra, 0)) {
+    if (fcurve_frame_has_keyframe(fcu, remapped_frame, 0)) {
       flag |= INSERTKEY_REPLACE;
     }
 
     /* insert a keyframe for this F-Curve */
-    done = insert_keyframe_direct(
-        reports, ptr, prop, fcu, cfra, ts->keyframe_type, nla_context, flag);
+    const AnimationEvalContext remapped_anim_eval_context = BKE_animsys_eval_context_construct_at(
+        &anim_eval_context, remapped_frame);
+    done = insert_keyframe_direct(reports,
+                                  ptr,
+                                  prop,
+                                  fcu,
+                                  &remapped_anim_eval_context,
+                                  ts->keyframe_type,
+                                  nla_context,
+                                  flag);
 
     if (done) {
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
@@ -4848,7 +4862,11 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C,
     }
 
     /* insert a keyframe for this F-Curve */
-    done = insert_keyframe_direct(reports, ptr, prop, fcu, cfra, ts->keyframe_type, NULL, flag);
+    Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+    const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
+                                                                                      cfra);
+    done = insert_keyframe_direct(
+        reports, ptr, prop, fcu, &anim_eval_context, ts->keyframe_type, NULL, flag);
 
     if (done) {
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);

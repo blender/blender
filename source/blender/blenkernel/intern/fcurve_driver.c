@@ -43,6 +43,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve_driver.h"
@@ -1232,24 +1233,25 @@ static void evaluate_driver_min_max(ChannelDriver *driver)
 static void evaluate_driver_python(PathResolvedRNA *anim_rna,
                                    ChannelDriver *driver,
                                    ChannelDriver *driver_orig,
-                                   const float evaltime)
+                                   const AnimationEvalContext *anim_eval_context)
 {
   /* check for empty or invalid expression */
   if ((driver_orig->expression[0] == '\0') || (driver_orig->flag & DRIVER_FLAG_INVALID)) {
     driver->curval = 0.0f;
   }
-  else if (!driver_try_evaluate_simple_expr(driver, driver_orig, &driver->curval, evaltime)) {
+  else if (!driver_try_evaluate_simple_expr(
+               driver, driver_orig, &driver->curval, anim_eval_context->eval_time)) {
 #ifdef WITH_PYTHON
     /* this evaluates the expression using Python, and returns its result:
      * - on errors it reports, then returns 0.0f
      */
     BLI_mutex_lock(&python_driver_lock);
 
-    driver->curval = BPY_driver_exec(anim_rna, driver, driver_orig, evaltime);
+    driver->curval = BPY_driver_exec(anim_rna, driver, driver_orig, anim_eval_context);
 
     BLI_mutex_unlock(&python_driver_lock);
 #else  /* WITH_PYTHON*/
-    UNUSED_VARS(anim_rna, evaltime);
+    UNUSED_VARS(anim_rna, anim_eval_context);
 #endif /* WITH_PYTHON*/
   }
 }
@@ -1262,7 +1264,7 @@ static void evaluate_driver_python(PathResolvedRNA *anim_rna,
 float evaluate_driver(PathResolvedRNA *anim_rna,
                       ChannelDriver *driver,
                       ChannelDriver *driver_orig,
-                      const float evaltime)
+                      const AnimationEvalContext *anim_eval_context)
 {
   /* check if driver can be evaluated */
   if (driver_orig->flag & DRIVER_FLAG_INVALID) {
@@ -1279,7 +1281,7 @@ float evaluate_driver(PathResolvedRNA *anim_rna,
       evaluate_driver_min_max(driver);
       break;
     case DRIVER_TYPE_PYTHON: /* expression */
-      evaluate_driver_python(anim_rna, driver, driver_orig, evaltime);
+      evaluate_driver_python(anim_rna, driver, driver_orig, anim_eval_context);
       break;
     default:
       /* special 'hack' - just use stored value

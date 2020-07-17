@@ -1120,6 +1120,9 @@ int ANIM_apply_keyingset(
     /* for each possible index, perform operation
      * - assume that arraylen is greater than index
      */
+    Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+    const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
+                                                                                      cfra);
     for (; i < arraylen; i++) {
       /* action to take depends on mode */
       if (mode == MODIFYKEY_MODE_INSERT) {
@@ -1130,7 +1133,7 @@ int ANIM_apply_keyingset(
                                         groupname,
                                         ksp->rna_path,
                                         i,
-                                        cfra,
+                                        &anim_eval_context,
                                         keytype,
                                         &nla_cache,
                                         kflag2);

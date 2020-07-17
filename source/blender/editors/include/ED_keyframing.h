@@ -38,6 +38,7 @@ struct Scene;
 
 struct KeyingSet;
 
+struct AnimationEvalContext;
 struct BezTriple;
 struct FCurve;
 struct bAction;
@@ -118,7 +119,7 @@ bool insert_keyframe_direct(struct ReportList *reports,
                             struct PointerRNA ptr,
                             struct PropertyRNA *prop,
                             struct FCurve *fcu,
-                            float cfra,
+                            const struct AnimationEvalContext *anim_eval_context,
                             eBezTriple_KeyframeType keytype,
                             struct NlaKeyframingContext *nla,
                             eInsertKeyFlags flag);
@@ -136,7 +137,7 @@ int insert_keyframe(struct Main *bmain,
                     const char group[],
                     const char rna_path[],
                     int array_index,
-                    float cfra,
+                    const struct AnimationEvalContext *anim_eval_context,
                     eBezTriple_KeyframeType keytype,
                     struct ListBase *nla_cache,
                     eInsertKeyFlags flag);
@@ -458,7 +459,7 @@ bool fcurve_frame_has_keyframe(struct FCurve *fcu, float frame, short filter);
 bool fcurve_is_changed(struct PointerRNA ptr,
                        struct PropertyRNA *prop,
                        struct FCurve *fcu,
-                       float frame);
+                       const struct AnimationEvalContext *anim_eval_context);
 
 /**
  * Main Keyframe Checking API call:

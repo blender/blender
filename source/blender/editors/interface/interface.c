@@ -44,6 +44,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
@@ -1733,6 +1734,7 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
   wmWindow *window = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   uiBut *but;
 
   BLI_assert(block->active);
@@ -1761,7 +1763,9 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
       }
     }
 
-    ui_but_anim_flag(but, (scene) ? scene->r.cfra : 0.0f);
+    const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+        depsgraph, (scene) ? scene->r.cfra : 0.0f);
+    ui_but_anim_flag(but, &anim_eval_context);
     ui_but_override_flag(CTX_data_main(C), but);
     if (UI_but_is_decorator(but)) {
       ui_but_anim_decorate_update_from_flag(but);

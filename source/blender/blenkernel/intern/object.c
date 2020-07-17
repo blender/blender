@@ -2746,7 +2746,10 @@ void BKE_object_where_is_calc_time(Depsgraph *depsgraph, Scene *scene, Object *o
 {
   /* Execute drivers and animation. */
   const bool flush_to_original = DEG_is_active(depsgraph);
-  BKE_animsys_evaluate_animdata(&ob->id, ob->adt, ctime, ADT_RECALC_ALL, flush_to_original);
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
+                                                                                    ctime);
+  BKE_animsys_evaluate_animdata(
+      &ob->id, ob->adt, &anim_eval_context, ADT_RECALC_ALL, flush_to_original);
   object_where_is_calc_ex(depsgraph, scene, ob, ctime, NULL, NULL);
 }
 
@@ -4643,9 +4646,13 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
 
   /* was originally ID_RECALC_ALL - TODO - which flags are really needed??? */
   /* TODO(sergey): What about animation? */
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
+                                                                                    frame);
+
   ob->id.recalc |= ID_RECALC_ALL;
   if (update_mesh) {
-    BKE_animsys_evaluate_animdata(&ob->id, ob->adt, frame, ADT_RECALC_ANIM, flush_to_original);
+    BKE_animsys_evaluate_animdata(
+        &ob->id, ob->adt, &anim_eval_context, ADT_RECALC_ANIM, flush_to_original);
     /* ignore cache clear during subframe updates
      * to not mess up cache validity */
     object_cacheIgnoreClear(ob, 1);
@@ -4659,12 +4666,14 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
   /* for curve following objects, parented curve has to be updated too */
   if (ob->type == OB_CURVE) {
     Curve *cu = ob->data;
-    BKE_animsys_evaluate_animdata(&cu->id, cu->adt, frame, ADT_RECALC_ANIM, flush_to_original);
+    BKE_animsys_evaluate_animdata(
+        &cu->id, cu->adt, &anim_eval_context, ADT_RECALC_ANIM, flush_to_original);
   }
   /* and armatures... */
   if (ob->type == OB_ARMATURE) {
     bArmature *arm = ob->data;
-    BKE_animsys_evaluate_animdata(&arm->id, arm->adt, frame, ADT_RECALC_ANIM, flush_to_original);
+    BKE_animsys_evaluate_animdata(
+        &arm->id, arm->adt, &anim_eval_context, ADT_RECALC_ANIM, flush_to_original);
     BKE_pose_where_is(depsgraph, scene, ob);
   }
 

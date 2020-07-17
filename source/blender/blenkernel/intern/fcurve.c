@@ -1872,17 +1872,18 @@ float evaluate_fcurve_only_curve(FCurve *fcu, float evaltime)
 float evaluate_fcurve_driver(PathResolvedRNA *anim_rna,
                              FCurve *fcu,
                              ChannelDriver *driver_orig,
-                             float evaltime)
+                             const AnimationEvalContext *anim_eval_context)
 {
   BLI_assert(fcu->driver != NULL);
   float cvalue = 0.0f;
+  float evaltime = anim_eval_context->eval_time;
 
   /* If there is a driver (only if this F-Curve is acting as 'driver'),
    * evaluate it to find value to use as "evaltime" since drivers essentially act as alternative
    * input (i.e. in place of 'time') for F-Curves. */
   if (fcu->driver) {
     /* evaltime now serves as input for the curve */
-    evaltime = evaluate_driver(anim_rna, fcu->driver, driver_orig, evaltime);
+    evaltime = evaluate_driver(anim_rna, fcu->driver, driver_orig, anim_eval_context);
 
     /* only do a default 1-1 mapping if it's unlikely that anything else will set a value... */
     if (fcu->totvert == 0) {
@@ -1924,7 +1925,9 @@ bool BKE_fcurve_is_empty(FCurve *fcu)
 }
 
 /* Calculate the value of the given F-Curve at the given frame, and set its curval */
-float calculate_fcurve(PathResolvedRNA *anim_rna, FCurve *fcu, float evaltime)
+float calculate_fcurve(PathResolvedRNA *anim_rna,
+                       FCurve *fcu,
+                       const AnimationEvalContext *anim_eval_context)
 {
   /* only calculate + set curval (overriding the existing value) if curve has
    * any data which warrants this...
@@ -1936,10 +1939,10 @@ float calculate_fcurve(PathResolvedRNA *anim_rna, FCurve *fcu, float evaltime)
   /* calculate and set curval (evaluates driver too if necessary) */
   float curval;
   if (fcu->driver) {
-    curval = evaluate_fcurve_driver(anim_rna, fcu, fcu->driver, evaltime);
+    curval = evaluate_fcurve_driver(anim_rna, fcu, fcu->driver, anim_eval_context);
   }
   else {
-    curval = evaluate_fcurve(fcu, evaltime);
+    curval = evaluate_fcurve(fcu, anim_eval_context->eval_time);
   }
   fcu->curval = curval; /* debug display only, not thread safe! */
   return curval;

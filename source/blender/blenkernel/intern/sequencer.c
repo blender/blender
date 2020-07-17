@@ -3361,7 +3361,9 @@ static ImBuf *seq_render_mask(const SeqRenderData *context, Mask *mask, float nr
 
     /* anim-data */
     adt = BKE_animdata_from_id(&mask->id);
-    BKE_animsys_evaluate_animdata(&mask_temp->id, adt, mask->sfra + nr, ADT_RECALC_ANIM, false);
+    const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+        context->depsgraph, mask->sfra + nr);
+    BKE_animsys_evaluate_animdata(&mask_temp->id, adt, &anim_eval_context, ADT_RECALC_ANIM, false);
 
     maskbuf = MEM_mallocN(sizeof(float) * context->rectx * context->recty, __func__);
 

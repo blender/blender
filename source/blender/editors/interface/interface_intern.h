@@ -32,6 +32,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+struct AnimationEvalContext;
 struct ARegion;
 struct ID;
 struct ImBuf;
@@ -938,7 +939,7 @@ int ui_but_align_opposite_to_area_align_get(const struct ARegion *region) ATTR_W
 void ui_block_align_calc(uiBlock *block, const struct ARegion *region);
 
 /* interface_anim.c */
-void ui_but_anim_flag(uiBut *but, float cfra);
+void ui_but_anim_flag(uiBut *but, const struct AnimationEvalContext *anim_eval_context);
 void ui_but_anim_copy_driver(struct bContext *C);
 void ui_but_anim_paste_driver(struct bContext *C);
 bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen);

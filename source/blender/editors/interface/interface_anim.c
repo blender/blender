@@ -33,6 +33,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
@@ -65,7 +66,7 @@ static FCurve *ui_but_get_fcurve(
       but->block->evil_C, &but->rnapoin, but->rnaprop, rnaindex, adt, action, r_driven, r_special);
 }
 
-void ui_but_anim_flag(uiBut *but, float cfra)
+void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
 {
   AnimData *adt;
   bAction *act;
@@ -95,6 +96,7 @@ void ui_but_anim_flag(uiBut *but, float cfra)
        * we need to correct the frame number to "look inside" the
        * remapped action
        */
+      float cfra = anim_eval_context->eval_time;
       if (adt) {
         cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
       }
@@ -105,7 +107,9 @@ void ui_but_anim_flag(uiBut *but, float cfra)
 
       /* XXX: this feature is totally broken and useless with NLA */
       if (adt == NULL || adt->nla_tracks.first == NULL) {
-        if (fcurve_is_changed(but->rnapoin, but->rnaprop, fcu, cfra)) {
+        const AnimationEvalContext remapped_context = BKE_animsys_eval_context_construct_at(
+            anim_eval_context, cfra);
+        if (fcurve_is_changed(but->rnapoin, but->rnaprop, fcu, &remapped_context)) {
           but->drawflag |= UI_BUT_ANIMATED_CHANGED;
         }
       }

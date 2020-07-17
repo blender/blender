@@ -1219,7 +1219,9 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
   Scene *scene = CTX_data_scene(C);
-  float cframe = (float)CFRA;
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
+                                                                                    (float)CFRA);
   const bool only_select = RNA_boolean_get(op->ptr, "only_selected");
 
   FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
@@ -1240,7 +1242,8 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
       workob.adt = ob->adt;
       workob.pose = dummyPose;
 
-      BKE_animsys_evaluate_animdata(&workob.id, workob.adt, cframe, ADT_RECALC_ANIM, false);
+      BKE_animsys_evaluate_animdata(
+          &workob.id, workob.adt, &anim_eval_context, ADT_RECALC_ANIM, false);
 
       /* copy back values, but on selected bones only  */
       for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {

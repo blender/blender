@@ -48,6 +48,23 @@ struct bAction;
 struct bActionGroup;
 struct bContext;
 
+/* Container for data required to do FCurve and Driver evaluation. */
+typedef struct AnimationEvalContext {
+  /* For drivers, so that they have access to the dependency graph and the current view layer. See
+   * T77086. */
+  struct Depsgraph *const depsgraph;
+
+  /* FCurves and Drivers can be evaluated at a different time than the current scene time, for
+   * example when evaluating NLA strips. This means that, even though the current time is stored in
+   * the dependency graph, we need an explicit evaluation time. */
+  const float eval_time;
+} AnimationEvalContext;
+
+AnimationEvalContext BKE_animsys_eval_context_construct(struct Depsgraph *depsgraph,
+                                                        float eval_time);
+AnimationEvalContext BKE_animsys_eval_context_construct_at(
+    const AnimationEvalContext *anim_eval_context, float eval_time);
+
 /* ************************************* */
 /* KeyingSets API */
 
@@ -172,11 +189,12 @@ void BKE_fcurves_id_cb(struct ID *id, ID_FCurve_Edit_Callback func, void *user_d
 
 typedef struct NlaKeyframingContext NlaKeyframingContext;
 
-struct NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(struct ListBase *cache,
-                                                                    struct PointerRNA *ptr,
-                                                                    struct AnimData *adt,
-                                                                    float ctime,
-                                                                    const bool flush_to_original);
+struct NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
+    struct ListBase *cache,
+    struct PointerRNA *ptr,
+    struct AnimData *adt,
+    const struct AnimationEvalContext *anim_eval_context,
+    const bool flush_to_original);
 bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
                                            struct PointerRNA *prop_ptr,
                                            struct PropertyRNA *prop,
@@ -209,7 +227,7 @@ bool BKE_animsys_write_rna_setting(struct PathResolvedRNA *anim_rna, const float
 /* Evaluation loop for evaluating animation data  */
 void BKE_animsys_evaluate_animdata(struct ID *id,
                                    struct AnimData *adt,
-                                   float ctime,
+                                   const struct AnimationEvalContext *anim_eval_context,
                                    eAnimData_Recalc recalc,
                                    const bool flush_to_original);
 
@@ -229,14 +247,14 @@ void BKE_animsys_evaluate_all_animation(struct Main *main,
 /* Evaluate Action (F-Curve Bag) */
 void animsys_evaluate_action(struct PointerRNA *ptr,
                              struct bAction *act,
-                             float ctime,
+                             const struct AnimationEvalContext *anim_eval_context,
                              const bool flush_to_original);
 
 /* Evaluate Action Group */
 void animsys_evaluate_action_group(struct PointerRNA *ptr,
                                    struct bAction *act,
                                    struct bActionGroup *agrp,
-                                   float ctime);
+                                   const struct AnimationEvalContext *anim_eval_context);
 
 /* ************************************* */
 

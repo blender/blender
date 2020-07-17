@@ -32,6 +32,7 @@ extern "C" {
 #endif
 
 /* The following structures are defined in DNA_action_types.h, and DNA_anim_types.h */
+struct AnimationEvalContext;
 struct FCurve;
 struct Main;
 struct Object;
@@ -202,7 +203,7 @@ void what_does_obaction(struct Object *ob,
                         struct bPose *pose,
                         struct bAction *act,
                         char groupname[],
-                        float cframe);
+                        const struct AnimationEvalContext *anim_eval_context);
 
 /* for proxy */
 void BKE_pose_copy_pchan_result(struct bPoseChannel *pchanto,

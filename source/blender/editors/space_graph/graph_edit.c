@@ -681,9 +681,10 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
     }
   }
   else {
+    const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+        ac->depsgraph, (float)CFRA);
     for (ale = anim_data.first; ale; ale = ale->next) {
       FCurve *fcu = (FCurve *)ale->key_data;
-      float cfra = (float)CFRA;
 
       /* Read value from property the F-Curve represents, or from the curve only?
        *
@@ -705,7 +706,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
                         ((fcu->grp) ? (fcu->grp->name) : (NULL)),
                         fcu->rna_path,
                         fcu->array_index,
-                        cfra,
+                        &anim_eval_context,
                         ts->keyframe_type,
                         &nla_cache,
                         flag);
@@ -714,6 +715,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
         AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
         /* adjust current frame for NLA-mapping */
+        float cfra = (float)CFRA;
         if ((sipo) && (sipo->mode == SIPO_MODE_DRIVERS)) {
           cfra = sipo->cursorTime;
         }

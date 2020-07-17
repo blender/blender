@@ -115,7 +115,9 @@ static void autokeyframe_pose(
   ToolSettings *ts = scene->toolsettings;
   KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
   ListBase nla_cache = {NULL, NULL};
-  float cfra = (float)CFRA;
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
+                                                                                    (float)CFRA);
   eInsertKeyFlags flag = 0;
 
   /* flag is initialized from UserPref keyframing settings
@@ -146,7 +148,8 @@ static void autokeyframe_pose(
     /* only insert into active keyingset? */
     if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (active_ks)) {
       /* run the active Keying Set on the current datasource */
-      ANIM_apply_keyingset(C, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
+      ANIM_apply_keyingset(
+          C, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
     /* only insert into available channels? */
     else if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL)) {
@@ -169,7 +172,7 @@ static void autokeyframe_pose(
                             ((fcu->grp) ? (fcu->grp->name) : (NULL)),
                             fcu->rna_path,
                             fcu->array_index,
-                            cfra,
+                            &anim_eval_context,
                             ts->keyframe_type,
                             &nla_cache,
                             flag);
@@ -220,21 +223,25 @@ static void autokeyframe_pose(
 
       if (do_loc) {
         KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOCATION_ID);
-        ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+        ANIM_apply_keyingset(
+            C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
       }
       if (do_rot) {
         KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_ROTATION_ID);
-        ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+        ANIM_apply_keyingset(
+            C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
       }
       if (do_scale) {
         KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_SCALING_ID);
-        ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+        ANIM_apply_keyingset(
+            C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
       }
     }
     /* insert keyframe in all (transform) channels */
     else {
       KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOC_ROT_SCALE_ID);
-      ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+      ANIM_apply_keyingset(
+          C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
 
     /* free temp info */

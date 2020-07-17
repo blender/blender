@@ -1023,7 +1023,8 @@ static void poselib_backup_free_data(tPoseLib_PreviewData *pld)
  * - gets the string to print in the header
  * - this code is based on the code for extract_pose_from_action in blenkernel/action.c
  */
-static void poselib_apply_pose(tPoseLib_PreviewData *pld)
+static void poselib_apply_pose(tPoseLib_PreviewData *pld,
+                               const AnimationEvalContext *anim_eval_context)
 {
   PointerRNA *ptr = &pld->rna_ptr;
   bArmature *arm = pld->arm;
@@ -1049,6 +1050,8 @@ static void poselib_apply_pose(tPoseLib_PreviewData *pld)
   group_ok_cb = ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
   ked.f1 = ((float)frame) - 0.5f;
   ked.f2 = ((float)frame) + 0.5f;
+  AnimationEvalContext anim_context_at_frame = BKE_animsys_eval_context_construct_at(
+      anim_eval_context, frame);
 
   /* start applying - only those channels which have a key at this point in time! */
   for (agrp = act->groups.first; agrp; agrp = agrp->next) {
@@ -1075,7 +1078,7 @@ static void poselib_apply_pose(tPoseLib_PreviewData *pld)
         }
 
         if (ok) {
-          animsys_evaluate_action_group(ptr, act, agrp, (float)frame);
+          animsys_evaluate_action_group(ptr, act, agrp, &anim_context_at_frame);
         }
       }
     }
@@ -1150,7 +1153,11 @@ static void poselib_preview_apply(bContext *C, wmOperator *op)
     /* pose should be the right one to draw (unless we're temporarily not showing it) */
     if ((pld->flag & PL_PREVIEW_SHOWORIGINAL) == 0) {
       RNA_int_set(op->ptr, "pose_index", BLI_findindex(&pld->act->markers, pld->marker));
-      poselib_apply_pose(pld);
+      struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+
+      const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+          depsgraph, 0.0f /* poselib_apply_pose() determines its own evaluation time. */);
+      poselib_apply_pose(pld, &anim_eval_context);
     }
     else {
       RNA_int_set(op->ptr, "pose_index", -2); /* -2 means don't apply any pose */

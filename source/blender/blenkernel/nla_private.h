@@ -32,6 +32,8 @@
 extern "C" {
 #endif
 
+struct AnimationEvalContext;
+
 /* --------------- NLA Evaluation DataTypes ----------------------- */
 
 /* used for list of strips to accumulate at current time */
@@ -168,13 +170,17 @@ float nlastrip_get_frame(NlaStrip *strip, float cframe, short mode);
 /* these functions are only defined here to avoid problems with the order
  * in which they get defined. */
 
-NlaEvalStrip *nlastrips_ctime_get_strip(
-    ListBase *list, ListBase *strips, short index, float ctime, const bool flush_to_original);
+NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list,
+                                        ListBase *strips,
+                                        short index,
+                                        const struct AnimationEvalContext *anim_eval_context,
+                                        const bool flush_to_original);
 void nlastrip_evaluate(PointerRNA *ptr,
                        NlaEvalData *channels,
                        ListBase *modifiers,
                        NlaEvalStrip *nes,
                        NlaEvalSnapshot *snapshot,
+                       const struct AnimationEvalContext *anim_eval_context,
                        const bool flush_to_original);
 void nladata_flush_channels(PointerRNA *ptr,
                             NlaEvalData *channels,

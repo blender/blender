@@ -95,6 +95,8 @@ typedef struct bAnimContext {
   struct Scene *scene;
   /** active scene layer */
   struct ViewLayer *view_layer;
+  /** active dependency graph */
+  struct Depsgraph *depsgraph;
   /** active object */
   struct Object *obact;
   /** active set of markers */
