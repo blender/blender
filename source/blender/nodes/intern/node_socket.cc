@@ -34,13 +34,13 @@
 
 #include "BKE_lib_id.h"
 #include "BKE_node.h"
-#include "BKE_node_tree_multi_function.hh"
 
 #include "RNA_access.h"
 #include "RNA_types.h"
 
 #include "MEM_guardedalloc.h"
 
+#include "NOD_node_tree_multi_function.hh"
 #include "NOD_socket.h"
 
 struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree,
@@ -517,7 +517,7 @@ static bNodeSocketType *make_socket_type_bool()
 {
   bNodeSocketType *socktype = make_standard_socket_type(SOCK_BOOLEAN, PROP_NONE);
   socktype->get_mf_data_type = []() { return blender::fn::MFDataType::ForSingle<bool>(); };
-  socktype->expand_in_mf_network = [](blender::bke::SocketMFNetworkBuilder &builder) {
+  socktype->expand_in_mf_network = [](blender::nodes::SocketMFNetworkBuilder &builder) {
     bool value = builder.socket_default_value<bNodeSocketValueBoolean>()->value;
     builder.set_constant_value(value);
   };
@@ -528,7 +528,7 @@ static bNodeSocketType *make_socket_type_float(PropertySubType subtype)
 {
   bNodeSocketType *socktype = make_standard_socket_type(SOCK_FLOAT, subtype);
   socktype->get_mf_data_type = []() { return blender::fn::MFDataType::ForSingle<float>(); };
-  socktype->expand_in_mf_network = [](blender::bke::SocketMFNetworkBuilder &builder) {
+  socktype->expand_in_mf_network = [](blender::nodes::SocketMFNetworkBuilder &builder) {
     float value = builder.socket_default_value<bNodeSocketValueFloat>()->value;
     builder.set_constant_value(value);
   };
@@ -539,7 +539,7 @@ static bNodeSocketType *make_socket_type_int(PropertySubType subtype)
 {
   bNodeSocketType *socktype = make_standard_socket_type(SOCK_INT, subtype);
   socktype->get_mf_data_type = []() { return blender::fn::MFDataType::ForSingle<int>(); };
-  socktype->expand_in_mf_network = [](blender::bke::SocketMFNetworkBuilder &builder) {
+  socktype->expand_in_mf_network = [](blender::nodes::SocketMFNetworkBuilder &builder) {
     int value = builder.socket_default_value<bNodeSocketValueInt>()->value;
     builder.set_constant_value(value);
   };
@@ -552,7 +552,7 @@ static bNodeSocketType *make_socket_type_vector(PropertySubType subtype)
   socktype->get_mf_data_type = []() {
     return blender::fn::MFDataType::ForSingle<blender::float3>();
   };
-  socktype->expand_in_mf_network = [](blender::bke::SocketMFNetworkBuilder &builder) {
+  socktype->expand_in_mf_network = [](blender::nodes::SocketMFNetworkBuilder &builder) {
     blender::float3 value = builder.socket_default_value<bNodeSocketValueVector>()->value;
     builder.set_constant_value(value);
   };
@@ -565,7 +565,7 @@ static bNodeSocketType *make_socket_type_rgba()
   socktype->get_mf_data_type = []() {
     return blender::fn::MFDataType::ForSingle<blender::Color4f>();
   };
-  socktype->expand_in_mf_network = [](blender::bke::SocketMFNetworkBuilder &builder) {
+  socktype->expand_in_mf_network = [](blender::nodes::SocketMFNetworkBuilder &builder) {
     blender::Color4f value = builder.socket_default_value<bNodeSocketValueRGBA>()->value;
     builder.set_constant_value(value);
   };
@@ -576,7 +576,7 @@ static bNodeSocketType *make_socket_type_string()
 {
   bNodeSocketType *socktype = make_standard_socket_type(SOCK_STRING, PROP_NONE);
   socktype->get_mf_data_type = []() { return blender::fn::MFDataType::ForSingle<std::string>(); };
-  socktype->expand_in_mf_network = [](blender::bke::SocketMFNetworkBuilder &builder) {
+  socktype->expand_in_mf_network = [](blender::nodes::SocketMFNetworkBuilder &builder) {
     std::string value = builder.socket_default_value<bNodeSocketValueString>()->value;
     builder.set_constant_value(value);
   };

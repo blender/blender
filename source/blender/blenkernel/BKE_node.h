@@ -106,18 +106,18 @@ typedef struct bNodeSocketTemplate {
  * However, achieving this requires quite a few changes currently. */
 #ifdef __cplusplus
 namespace blender {
-namespace bke {
+namespace nodes {
 class SocketMFNetworkBuilder;
 class NodeMFNetworkBuilder;
-}  // namespace bke
+}  // namespace nodes
 namespace fn {
 class MFDataType;
 }
 }  // namespace blender
 
-using NodeExpandInMFNetworkFunction = void (*)(blender::bke::NodeMFNetworkBuilder &builder);
+using NodeExpandInMFNetworkFunction = void (*)(blender::nodes::NodeMFNetworkBuilder &builder);
 using SocketGetMFDataTypeFunction = blender::fn::MFDataType (*)();
-using SocketExpandInMFNetworkFunction = void (*)(blender::bke::SocketMFNetworkBuilder &builder);
+using SocketExpandInMFNetworkFunction = void (*)(blender::nodes::SocketMFNetworkBuilder &builder);
 
 #else
 typedef void *NodeExpandInMFNetworkFunction;

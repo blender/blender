@@ -39,7 +39,7 @@ static int gpu_shader_value(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "set_value", in, out, link);
 }
 
-static void sh_node_value_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+static void sh_node_value_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
 {
   const bNodeSocket *bsocket = builder.dnode().output(0).bsocket();
   const bNodeSocketValueFloat *value = (const bNodeSocketValueFloat *)bsocket->default_value;

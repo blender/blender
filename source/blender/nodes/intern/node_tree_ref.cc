@@ -14,11 +14,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "BKE_node_tree_ref.hh"
+#include "NOD_node_tree_ref.hh"
 
 #include "BLI_dot_export.hh"
 
-namespace blender::bke {
+namespace blender::nodes {
 
 NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
 {
@@ -174,4 +174,4 @@ std::string NodeTreeRef::to_dot() const
   return digraph.to_dot_string();
 }
 
-}  // namespace blender::bke
+}  // namespace blender::nodes

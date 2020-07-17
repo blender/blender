@@ -27,11 +27,11 @@
 #include "DNA_node_types.h"
 
 #include "BKE_node.h"
-#include "BKE_node_tree_multi_function.hh"
 
 #include "BLT_translation.h"
 
 #include "NOD_function.h"
+#include "NOD_node_tree_multi_function.hh"
 
 #include "node_util.h"
 

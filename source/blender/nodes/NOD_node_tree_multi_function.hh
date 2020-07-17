@@ -14,11 +14,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_NODE_TREE_FUNCTION_HH__
-#define __BKE_NODE_TREE_FUNCTION_HH__
+#ifndef __NOD_NODE_TREE_FUNCTION_HH__
+#define __NOD_NODE_TREE_FUNCTION_HH__
 
 /** \file
- * \ingroup bke
+ * \ingroup nodes
  *
  * This file allows you to generate a multi-function network from a user-generated node tree.
  */
@@ -26,12 +26,11 @@
 #include "FN_multi_function_builder.hh"
 #include "FN_multi_function_network.hh"
 
-#include "BKE_derived_node_tree.hh"
+#include "NOD_derived_node_tree.hh"
 
 #include "BLI_resource_collector.hh"
 
-namespace blender {
-namespace bke {
+namespace blender::nodes {
 
 /* Maybe this should be moved to BKE_node.h. */
 inline bool is_multi_function_data_socket(const bNodeSocket *bsocket)
@@ -44,7 +43,7 @@ inline bool is_multi_function_data_socket(const bNodeSocket *bsocket)
 }
 
 /**
- * A MFNetworkTreeMap maps various components of a bke::DerivedNodeTree to components of a
+ * A MFNetworkTreeMap maps various components of a DerivedNodeTree to components of a
  * fn::MFNetwork. This is necessary for further processing of a multi-function network that has
  * been generated from a node tree.
  */
@@ -384,7 +383,6 @@ MFNetworkTreeMap insert_node_tree_into_mf_network(fn::MFNetwork &network,
                                                   const DerivedNodeTree &tree,
                                                   ResourceCollector &resources);
 
-}  // namespace bke
-}  // namespace blender
+}  // namespace blender::nodes
 
-#endif /* __BKE_NODE_TREE_FUNCTION_HH__ */
+#endif /* __NOD_NODE_TREE_FUNCTION_HH__ */

@@ -14,11 +14,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_DERIVED_NODE_TREE_HH__
-#define __BKE_DERIVED_NODE_TREE_HH__
+#ifndef __NOD_DERIVED_NODE_TREE_HH__
+#define __NOD_DERIVED_NODE_TREE_HH__
 
 /** \file
- * \ingroup bke
+ * \ingroup nodes
  *
  * DerivedNodeTree provides a flattened view on a bNodeTree, i.e. node groups are inlined. It
  * builds on top of NodeTreeRef and supports similar queries efficiently.
@@ -30,9 +30,9 @@
  * There is a dot graph exporter for debugging purposes.
  */
 
-#include "BKE_node_tree_ref.hh"
+#include "NOD_node_tree_ref.hh"
 
-namespace blender::bke {
+namespace blender::nodes {
 
 class DSocket;
 class DInputSocket;
@@ -512,6 +512,6 @@ inline Span<const DGroupInput *> DerivedNodeTree::group_inputs() const
   return group_inputs_;
 }
 
-}  // namespace blender::bke
+}  // namespace blender::nodes
 
-#endif /* __BKE_DERIVED_NODE_TREE_HH__ */
+#endif /* __NOD_DERIVED_NODE_TREE_HH__ */

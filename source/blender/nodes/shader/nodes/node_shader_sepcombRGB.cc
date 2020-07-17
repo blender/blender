@@ -89,7 +89,7 @@ class SeparateRGBFunction : public blender::fn::MultiFunction {
   }
 };
 
-static void sh_node_seprgb_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+static void sh_node_seprgb_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
 {
   static SeparateRGBFunction fn;
   builder.set_matching_fn(fn);
@@ -146,7 +146,7 @@ static int gpu_shader_combrgb(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "combine_rgb", in, out);
 }
 
-static void sh_node_combrgb_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+static void sh_node_combrgb_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
 {
   static blender::fn::CustomMF_SI_SI_SI_SO<float, float, float, blender::Color4f> fn{
       "Combine RGB", [](float r, float g, float b) { return blender::Color4f(r, g, b, 1.0f); }};

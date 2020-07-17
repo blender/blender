@@ -157,7 +157,7 @@ class ColorBandFunction : public blender::fn::MultiFunction {
   }
 };
 
-static void sh_node_valtorgb_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+static void sh_node_valtorgb_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
 {
   bNode &bnode = builder.bnode();
   const ColorBand *color_band = (const ColorBand *)bnode.storage;

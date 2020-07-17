@@ -90,7 +90,7 @@ static const blender::fn::MultiFunction &get_multi_function(bNode &node)
   return blender::fn::dummy_multi_function;
 }
 
-static void node_float_compare_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+static void node_float_compare_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
 {
   const blender::fn::MultiFunction &fn = get_multi_function(builder.bnode());
   builder.set_matching_fn(fn);

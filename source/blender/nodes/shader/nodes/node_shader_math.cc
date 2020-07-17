@@ -147,7 +147,7 @@ static int gpu_shader_math(GPUMaterial *mat,
 }
 
 static const blender::fn::MultiFunction &get_base_multi_function(
-    blender::bke::NodeMFNetworkBuilder &builder)
+    blender::nodes::NodeMFNetworkBuilder &builder)
 {
   const int mode = builder.bnode().custom1;
   switch (mode) {
@@ -347,11 +347,11 @@ static const blender::fn::MultiFunction &get_base_multi_function(
   }
 }
 
-static void sh_node_math_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+static void sh_node_math_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
 {
   const blender::fn::MultiFunction &base_function = get_base_multi_function(builder);
 
-  const blender::bke::DNode &dnode = builder.dnode();
+  const blender::nodes::DNode &dnode = builder.dnode();
   blender::fn::MFNetwork &network = builder.network();
   blender::fn::MFFunctionNode &base_node = network.add_function(base_function);
 

@@ -74,7 +74,7 @@ class MF_SeparateXYZ : public blender::fn::MultiFunction {
   }
 };
 
-static void sh_node_sepxyz_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+static void sh_node_sepxyz_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
 {
   static MF_SeparateXYZ separate_fn;
   builder.set_matching_fn(separate_fn);
@@ -113,7 +113,7 @@ static int gpu_shader_combxyz(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "combine_xyz", in, out);
 }
 
-static void sh_node_combxyz_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+static void sh_node_combxyz_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
 {
   static blender::fn::CustomMF_SI_SI_SI_SO<float, float, float, blender::float3> fn{
       "Combine Vector", [](float x, float y, float z) { return blender::float3(x, y, z); }};

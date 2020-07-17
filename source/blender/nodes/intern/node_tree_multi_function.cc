@@ -14,13 +14,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "BKE_node_tree_multi_function.hh"
+#include "NOD_node_tree_multi_function.hh"
 
 #include "BLI_color.hh"
 #include "BLI_float3.hh"
 
-namespace blender {
-namespace bke {
+namespace blender::nodes {
 
 /* Maybe this should be moved to BKE_node.h. */
 static std::optional<fn::MFDataType> try_get_multi_function_data_type_of_socket(
@@ -342,5 +341,4 @@ MFNetworkTreeMap insert_node_tree_into_mf_network(fn::MFNetwork &network,
   return network_map;
 }
 
-}  // namespace bke
-}  // namespace blender
+}  // namespace blender::nodes

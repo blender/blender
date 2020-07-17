@@ -273,9 +273,12 @@ set(SRC
   texture/node_texture_tree.c
   texture/node_texture_util.c
 
+  intern/derived_node_tree.cc
   intern/node_common.c
   intern/node_exec.c
   intern/node_socket.cc
+  intern/node_tree_multi_function.cc
+  intern/node_tree_ref.cc
   intern/node_util.c
 
   composite/node_composite_util.h
@@ -286,7 +289,10 @@ set(SRC
 
   NOD_common.h
   NOD_composite.h
+  NOD_derived_node_tree.hh
   NOD_function.h
+  NOD_node_tree_multi_function.hh
+  NOD_node_tree_ref.hh
   NOD_shader.h
   NOD_simulation.h
   NOD_socket.h

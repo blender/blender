@@ -28,7 +28,7 @@ static bNodeSocketTemplate fn_node_combine_strings_out[] = {
 };
 
 static void fn_node_combine_strings_expand_in_mf_network(
-    blender::bke::NodeMFNetworkBuilder &builder)
+    blender::nodes::NodeMFNetworkBuilder &builder)
 {
   static blender::fn::CustomMF_SI_SI_SO<std::string, std::string, std::string> combine_fn{
       "Combine Strings", [](const std::string &a, const std::string &b) { return a + b; }};

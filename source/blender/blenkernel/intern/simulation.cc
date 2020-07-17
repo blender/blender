@@ -45,10 +45,10 @@
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_node_tree_multi_function.hh"
 #include "BKE_pointcache.h"
 #include "BKE_simulation.h"
 
+#include "NOD_node_tree_multi_function.hh"
 #include "NOD_simulation.h"
 
 #include "BLT_translation.h"
@@ -216,16 +216,19 @@ static void copy_states_to_cow(Simulation *simulation_orig, Simulation *simulati
 }
 
 static Map<const fn::MFOutputSocket *, std::string> deduplicate_attribute_nodes(
-    fn::MFNetwork &network, MFNetworkTreeMap &network_map, const DerivedNodeTree &tree)
+    fn::MFNetwork &network,
+    nodes::MFNetworkTreeMap &network_map,
+    const nodes::DerivedNodeTree &tree)
 {
-  Span<const DNode *> attribute_dnodes = tree.nodes_by_type("SimulationNodeParticleAttribute");
+  Span<const nodes::DNode *> attribute_dnodes = tree.nodes_by_type(
+      "SimulationNodeParticleAttribute");
   uint amount = attribute_dnodes.size();
   if (amount == 0) {
     return {};
   }
 
   Vector<fn::MFInputSocket *> name_sockets;
-  for (const DNode *dnode : attribute_dnodes) {
+  for (const nodes::DNode *dnode : attribute_dnodes) {
     fn::MFInputSocket &name_socket = network_map.lookup_dummy(dnode->input(0));
     name_sockets.append(&name_socket);
   }
@@ -309,10 +312,10 @@ class CustomDataAttributesRef {
   }
 };
 
-static std::string dnode_to_path(const DNode &dnode)
+static std::string dnode_to_path(const nodes::DNode &dnode)
 {
   std::string path;
-  for (const DParentNode *parent = dnode.parent(); parent; parent = parent->parent()) {
+  for (const nodes::DParentNode *parent = dnode.parent(); parent; parent = parent->parent()) {
     path = parent->node_ref().name() + "/" + path;
   }
   path = path + dnode.name();
@@ -373,10 +376,10 @@ static void add_missing_particle_states(Simulation *simulation, Span<std::string
 }
 
 static void reinitialize_empty_simulation_states(Simulation *simulation,
-                                                 const DerivedNodeTree &tree)
+                                                 const nodes::DerivedNodeTree &tree)
 {
   VectorSet<std::string> state_names;
-  for (const DNode *dnode : tree.nodes_by_type("SimulationNodeParticleSimulation")) {
+  for (const nodes::DNode *dnode : tree.nodes_by_type("SimulationNodeParticleSimulation")) {
     state_names.add(dnode_to_path(*dnode));
   }
 
@@ -385,10 +388,11 @@ static void reinitialize_empty_simulation_states(Simulation *simulation,
   add_missing_particle_states(simulation, state_names);
 }
 
-static void update_simulation_state_list(Simulation *simulation, const DerivedNodeTree &tree)
+static void update_simulation_state_list(Simulation *simulation,
+                                         const nodes::DerivedNodeTree &tree)
 {
   VectorSet<std::string> state_names;
-  for (const DNode *dnode : tree.nodes_by_type("SimulationNodeParticleSimulation")) {
+  for (const nodes::DNode *dnode : tree.nodes_by_type("SimulationNodeParticleSimulation")) {
     state_names.add(dnode_to_path(*dnode));
   }
 
@@ -672,14 +676,15 @@ class ParticleFunctionForce : public ParticleForce {
 };
 
 static Vector<const ParticleForce *> create_forces_for_particle_simulation(
-    const DNode &simulation_node,
-    MFNetworkTreeMap &network_map,
+    const nodes::DNode &simulation_node,
+    nodes::MFNetworkTreeMap &network_map,
     ResourceCollector &resources,
     const Map<const fn::MFOutputSocket *, std::string> &attribute_inputs)
 {
   Vector<const ParticleForce *> forces;
-  for (const DOutputSocket *origin_socket : simulation_node.input(2, "Forces").linked_sockets()) {
-    const DNode &origin_node = origin_socket->node();
+  for (const nodes::DOutputSocket *origin_socket :
+       simulation_node.input(2, "Forces").linked_sockets()) {
+    const nodes::DNode &origin_node = origin_socket->node();
     if (origin_node.idname() != "SimulationNodeForce") {
       continue;
     }
@@ -701,12 +706,13 @@ static Vector<const ParticleForce *> create_forces_for_particle_simulation(
 }
 
 static Map<std::string, Vector<const ParticleForce *>> collect_forces(
-    MFNetworkTreeMap &network_map,
+    nodes::MFNetworkTreeMap &network_map,
     ResourceCollector &resources,
     const Map<const fn::MFOutputSocket *, std::string> &attribute_inputs)
 {
   Map<std::string, Vector<const ParticleForce *>> forces_by_simulation;
-  for (const DNode *dnode : network_map.tree().nodes_by_type("SimulationNodeParticleSimulation")) {
+  for (const nodes::DNode *dnode :
+       network_map.tree().nodes_by_type("SimulationNodeParticleSimulation")) {
     std::string name = dnode_to_path(*dnode);
     Vector<const ParticleForce *> forces = create_forces_for_particle_simulation(
         *dnode, network_map, resources, attribute_inputs);
@@ -729,12 +735,12 @@ static void simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulatio
 
   Simulation *simulation_orig = (Simulation *)DEG_get_original_id(&simulation_cow->id);
 
-  NodeTreeRefMap tree_refs;
+  nodes::NodeTreeRefMap tree_refs;
   /* TODO: Use simulation_cow, but need to add depsgraph relations before that. */
-  const DerivedNodeTree tree{simulation_orig->nodetree, tree_refs};
+  const nodes::DerivedNodeTree tree{simulation_orig->nodetree, tree_refs};
   fn::MFNetwork network;
   ResourceCollector resources;
-  MFNetworkTreeMap network_map = insert_node_tree_into_mf_network(network, tree, resources);
+  nodes::MFNetworkTreeMap network_map = insert_node_tree_into_mf_network(network, tree, resources);
   Map<const fn::MFOutputSocket *, std::string> attribute_inputs = deduplicate_attribute_nodes(
       network, network_map, tree);
   fn::mf_network_optimization::constant_folding(network, resources);

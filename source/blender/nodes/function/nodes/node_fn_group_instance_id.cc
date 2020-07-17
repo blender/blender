@@ -22,11 +22,11 @@ static bNodeSocketTemplate fn_node_group_instance_id_out[] = {
 };
 
 static void fn_node_group_instance_id_expand_in_mf_network(
-    blender::bke::NodeMFNetworkBuilder &builder)
+    blender::nodes::NodeMFNetworkBuilder &builder)
 {
-  const blender::bke::DNode &node = builder.dnode();
+  const blender::nodes::DNode &node = builder.dnode();
   std::string id = "/";
-  for (const blender::bke::DParentNode *parent = node.parent(); parent;
+  for (const blender::nodes::DParentNode *parent = node.parent(); parent;
        parent = parent->parent()) {
     id = "/" + parent->node_ref().name() + id;
   }

@@ -161,7 +161,7 @@ static void node_shader_update_vector_math(bNodeTree *UNUSED(ntree), bNode *node
 }
 
 static const blender::fn::MultiFunction &get_multi_function(
-    blender::bke::NodeMFNetworkBuilder &builder)
+    blender::nodes::NodeMFNetworkBuilder &builder)
 {
   using blender::float3;
 
@@ -271,7 +271,7 @@ static const blender::fn::MultiFunction &get_multi_function(
   };
 }
 
-static void sh_node_vector_math_expand_in_mf_network(blender::bke::NodeMFNetworkBuilder &builder)
+static void sh_node_vector_math_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
 {
   const blender::fn::MultiFunction &fn = get_multi_function(builder);
   builder.set_matching_fn(fn);
