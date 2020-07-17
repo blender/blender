@@ -265,7 +265,6 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
 static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   Object *ob = CTX_data_active_object(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
   int mode = RNA_enum_get(op->ptr, "type");
@@ -285,6 +284,11 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
 
   SCULPT_undo_push_begin("color filter");
 
+  BKE_sculpt_color_layer_create_if_needed(ob);
+
+  /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of
+   * earlier steps modifying the data. */
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   bool needs_pmap = mode == COLOR_FILTER_SMOOTH;
   BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_pmap, false, true);
 

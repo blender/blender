@@ -1484,7 +1484,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
                                  Mesh *me_eval,
                                  bool need_pmap,
                                  bool need_mask,
-                                 bool need_colors)
+                                 bool UNUSED(need_colors))
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
   Sculpt *sd = scene->toolsettings->sculpt;
@@ -1511,16 +1511,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       if (!CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
         BKE_sculpt_mask_layers_ensure(ob, mmd);
       }
-    }
-  }
-
-  /* Add a color layer if a color tool is used. */
-  Mesh *orig_me = BKE_object_get_original_mesh(ob);
-  if (need_colors && U.experimental.use_sculpt_vertex_colors) {
-    if (!CustomData_has_layer(&orig_me->vdata, CD_PROP_COLOR)) {
-      CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
-      BKE_mesh_update_customdata_pointers(orig_me, true);
-      DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY);
     }
   }
 
@@ -1684,8 +1674,24 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
   Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
 
   BLI_assert(me_eval != NULL);
-
   sculpt_update_object(depsgraph, ob_orig, me_eval, false, false, false);
+}
+
+void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
+{
+  Mesh *orig_me = BKE_object_get_original_mesh(object);
+  if (!U.experimental.use_sculpt_vertex_colors) {
+    return;
+  }
+
+  if (CustomData_has_layer(&orig_me->vdata, CD_PROP_COLOR)) {
+    return;
+  }
+
+  CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
+  BKE_mesh_update_customdata_pointers(orig_me, true);
+  DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY);
+  return;
 }
 
 void BKE_sculpt_update_object_for_edit(
