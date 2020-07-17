@@ -1611,8 +1611,7 @@ static int uv_mouse_select_multi(bContext *C,
                                  uint objects_len,
                                  const float co[2],
                                  const bool extend,
-                                 const bool deselect_all,
-                                 const bool loop)
+                                 const bool deselect_all)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -1654,11 +1653,7 @@ static int uv_mouse_select_multi(bContext *C,
   }
 
   /* find nearest element */
-  if (loop) {
-    /* find edge */
-    found_item = uv_find_nearest_edge_multi(scene, objects, objects_len, co, &hit);
-  }
-  else if (selectmode == UV_SELECT_VERTEX) {
+  if (selectmode == UV_SELECT_VERTEX) {
     /* find vertex */
     found_item = uv_find_nearest_vert_multi(scene, objects, objects_len, co, penalty_dist, &hit);
     found_item = found_item && (!deselect_all || hit.dist_sq < penalty_dist);
@@ -1753,14 +1748,7 @@ static int uv_mouse_select_multi(bContext *C,
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
   /* do selection */
-  if (loop) {
-    if (!extend) {
-      /* TODO(MULTI_EDIT): We only need to de-select non-active */
-      uv_select_all_perform_multi(scene, objects, objects_len, SEL_DESELECT);
-    }
-    flush = uv_select_edgeloop(scene, obedit, &hit, limit, extend);
-  }
-  else if (selectmode == UV_SELECT_ISLAND) {
+  if (selectmode == UV_SELECT_ISLAND) {
     if (!extend) {
       /* TODO(MULTI_EDIT): We only need to de-select non-active */
       uv_select_all_perform_multi(scene, objects, objects_len, SEL_DESELECT);
@@ -1874,14 +1862,16 @@ static int uv_mouse_select_multi(bContext *C,
 
   return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
 }
-static int uv_mouse_select(
-    bContext *C, const float co[2], const bool extend, const bool deselect_all, const bool loop)
+static int uv_mouse_select(bContext *C,
+                           const float co[2],
+                           const bool extend,
+                           const bool deselect_all)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       view_layer, ((View3D *)NULL), &objects_len);
-  int ret = uv_mouse_select_multi(C, objects, objects_len, co, extend, deselect_all, loop);
+  int ret = uv_mouse_select_multi(C, objects, objects_len, co, extend, deselect_all);
   MEM_freeN(objects);
   return ret;
 }
@@ -1893,9 +1883,8 @@ static int uv_select_exec(bContext *C, wmOperator *op)
   RNA_float_get_array(op->ptr, "location", co);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
-  const bool loop = false;
 
-  return uv_mouse_select(C, co, extend, deselect_all, loop);
+  return uv_mouse_select(C, co, extend, deselect_all);
 }
 
 static int uv_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1955,16 +1944,69 @@ void UV_OT_select(wmOperatorType *ot)
 /** \name Loop Select Operator
  * \{ */
 
+static int uv_mouse_select_loop_multi(
+    bContext *C, Object **objects, uint objects_len, const float co[2], const bool extend)
+{
+  SpaceImage *sima = CTX_wm_space_image(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Scene *scene = CTX_data_scene(C);
+  const ToolSettings *ts = scene->toolsettings;
+  UvNearestHit hit = UV_NEAREST_HIT_INIT;
+  bool found_item = false;
+  /* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
+  int flush = 0;
+  float limit[2];
+
+  /* Find edge. */
+  found_item = uv_find_nearest_edge_multi(scene, objects, objects_len, co, &hit);
+  if (!found_item) {
+    return OPERATOR_CANCELLED;
+  }
+
+  Object *obedit = hit.ob;
+  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+  uv_select_limit_default(sima, limit);
+
+  /* Do selection. */
+  if (!extend) {
+    /* TODO(MULTI_EDIT): We only need to de-select non-active */
+    uv_select_all_perform_multi(scene, objects, objects_len, SEL_DESELECT);
+  }
+  flush = uv_select_edgeloop(scene, obedit, &hit, limit, extend);
+
+  if (ts->uv_flag & UV_SYNC_SELECTION) {
+    if (flush != 0) {
+      EDBM_selectmode_flush(em);
+    }
+  }
+
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obiter = objects[ob_index];
+    uv_select_tag_update_for_object(depsgraph, ts, obiter);
+  }
+
+  return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
+}
+static int uv_mouse_select_loop(bContext *C, const float co[2], const bool extend)
+{
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      view_layer, ((View3D *)NULL), &objects_len);
+  int ret = uv_mouse_select_loop_multi(C, objects, objects_len, co, extend);
+  MEM_freeN(objects);
+  return ret;
+}
+
 static int uv_select_loop_exec(bContext *C, wmOperator *op)
 {
   float co[2];
 
   RNA_float_get_array(op->ptr, "location", co);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
-  const bool deselect_all = false;
-  const bool loop = true;
 
-  return uv_mouse_select(C, co, extend, deselect_all, loop);
+  return uv_mouse_select_loop(C, co, extend);
 }
 
 static int uv_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
