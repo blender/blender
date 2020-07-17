@@ -40,6 +40,12 @@ typedef enum eGPUFilterFunction {
   GPU_LINEAR,
 } eGPUFilterFunction;
 
+typedef enum eGPUFaceCull {
+  GPU_CULL_NONE = 0, /* Culling disabled. */
+  GPU_CULL_FRONT,
+  GPU_CULL_BACK,
+} eGPUFaceCull;
+
 /* Initialize
  * - sets the default Blender opengl state, if in doubt, check
  *   the contents of this function
@@ -52,6 +58,7 @@ void GPU_blend_set_func_separate(eGPUBlendFunction src_rgb,
                                  eGPUBlendFunction dst_rgb,
                                  eGPUBlendFunction src_alpha,
                                  eGPUBlendFunction dst_alpha);
+void GPU_face_culling(eGPUFaceCull culling);
 void GPU_depth_range(float near, float far);
 void GPU_depth_test(bool enable);
 bool GPU_depth_test_enabled(void);

@@ -78,6 +78,17 @@ void GPU_blend_set_func_separate(eGPUBlendFunction src_rgb,
                       gpu_get_gl_blendfunction(dst_alpha));
 }
 
+void GPU_face_culling(eGPUFaceCull culling)
+{
+  if (culling == GPU_CULL_NONE) {
+    glDisable(GL_CULL_FACE);
+  }
+  else {
+    glEnable(GL_CULL_FACE);
+    glCullFace((culling == GPU_CULL_FRONT) ? GL_FRONT : GL_BACK);
+  }
+}
+
 void GPU_depth_range(float near, float far)
 {
   /* glDepthRangef is only for OpenGL 4.1 or higher */

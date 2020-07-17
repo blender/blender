@@ -1783,8 +1783,7 @@ void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rec
   UI_draw_roundbox_3ub_alpha(
       true, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 5.0f, wcol->inner, 255);
 
-  glCullFace(GL_BACK);
-  glEnable(GL_CULL_FACE);
+  GPU_face_culling(GPU_CULL_BACK);
 
   /* setup lights */
   ui_but_v3_get(but, light);
@@ -1809,7 +1808,7 @@ void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rec
   GPU_batch_draw(sphere);
 
   /* restore */
-  glDisable(GL_CULL_FACE);
+  GPU_face_culling(GPU_CULL_NONE);
 
   /* AA circle */
   GPUVertFormat *format = immVertexFormat();

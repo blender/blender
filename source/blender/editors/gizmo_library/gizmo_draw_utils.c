@@ -84,7 +84,7 @@ void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info,
   /* We may want to re-visit this, for now disable
    * since it causes issues leaving the GL state modified. */
 #if 0
-  glEnable(GL_CULL_FACE);
+  GPU_face_culling(GPU_CULL_BACK);
   GPU_depth_test(true);
 #endif
 
@@ -92,7 +92,7 @@ void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info,
 
 #if 0
   GPU_depth_test(false);
-  glDisable(GL_CULL_FACE);
+  GPU_face_culling(GPU_CULL_NONE);
 #endif
 
   GPU_batch_discard(batch);
