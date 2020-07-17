@@ -94,6 +94,12 @@ void GPU_front_facing(bool invert)
   glFrontFace((invert) ? GL_CW : GL_CCW);
 }
 
+void GPU_provoking_vertex(eGPUProvokingVertex vert)
+{
+  glProvokingVertex((vert == GPU_VERTEX_FIRST) ? GL_FIRST_VERTEX_CONVENTION :
+                                                 GL_LAST_VERTEX_CONVENTION);
+}
+
 void GPU_depth_range(float near, float far)
 {
   /* glDepthRangef is only for OpenGL 4.1 or higher */

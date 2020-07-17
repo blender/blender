@@ -408,7 +408,7 @@ static void draw_uvs(SpaceImage *sima,
     {
       /* We could modify the vbo's data filling
        * instead of modifying the provoking vert. */
-      glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
+      GPU_provoking_vertex(GPU_VERTEX_FIRST);
 
       UI_GetThemeColor3fv(TH_EDGE_SELECT, col2);
       col2[3] = overlay_alpha;
@@ -464,7 +464,7 @@ static void draw_uvs(SpaceImage *sima,
       GPU_batch_draw(batch->edges);
       GPU_depth_test(false);
 
-      glProvokingVertex(GL_LAST_VERTEX_CONVENTION);
+      GPU_provoking_vertex(GPU_VERTEX_LAST);
     }
 
     if (sima->flag & SI_SMOOTH_UV) {
