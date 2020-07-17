@@ -36,7 +36,7 @@ class ParticleForce {
 };
 
 struct SimulationInfluences {
-  Map<const ParticleSimulationState *, Vector<const ParticleForce *>> particle_forces;
+  Map<std::string, Vector<const ParticleForce *>> particle_forces;
 };
 
 void initialize_simulation_states(Simulation &simulation,

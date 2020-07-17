@@ -41,13 +41,15 @@ set(SRC
   intern/hair_volume.cpp
   intern/implicit_blender.c
   intern/implicit_eigen.cpp
-  intern/simulation_solver.cc
   intern/particle_function.cc
+  intern/simulation_collect_influences.cc
+  intern/simulation_solver.cc
   intern/simulation_update.cc
 
   intern/ConstrainedConjugateGradient.h
   intern/eigen_utils.h
   intern/implicit.h
+  intern/simulation_collect_influences.hh
   intern/simulation_solver.hh
 
   SIM_mass_spring.h

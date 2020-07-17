@@ -121,7 +121,8 @@ void solve_simulation_time_step(Simulation &simulation,
     MutableSpan<float3> velocities = attributes.get<float3>("Velocity");
 
     Array<float3> force_vectors{(uint)state->tot_particles, {0, 0, 0}};
-    const Vector<const ParticleForce *> *forces = influences.particle_forces.lookup_ptr(state);
+    const Vector<const ParticleForce *> *forces = influences.particle_forces.lookup_ptr(
+        state->head.name);
     if (forces != nullptr) {
       for (const ParticleForce *force : *forces) {
         force->add_force(attributes, force_vectors);
