@@ -39,6 +39,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_texture.h"
 
 #ifdef __APPLE__
 #  include "GPU_state.h"
@@ -47,30 +48,6 @@
 #include "UI_interface.h"
 
 /* ******************************************** */
-
-static int get_cached_work_texture(int *r_w, int *r_h)
-{
-  static GLint texid = -1;
-  static int tex_w = 256;
-  static int tex_h = 256;
-
-  if (texid == -1) {
-    glGenTextures(1, (GLuint *)&texid);
-
-    glBindTexture(GL_TEXTURE_2D, texid);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-  }
-
-  *r_w = tex_w;
-  *r_h = tex_h;
-  return texid;
-}
 
 static void immDrawPixelsTexSetupAttributes(IMMDrawPixelsTexState *state)
 {
@@ -132,27 +109,30 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
                                      float yzoom,
                                      float color[4])
 {
-  uchar *uc_rect = (uchar *)rect;
-  const float *f_rect = (float *)rect;
-  int subpart_x, subpart_y, tex_w, tex_h;
+  int subpart_x, subpart_y, tex_w = 256, tex_h = 256;
   int seamless, offset_x, offset_y, nsubparts_x, nsubparts_y;
-  int texid = get_cached_work_texture(&tex_w, &tex_h);
   int components;
   const bool use_clipping = ((clip_min_x < clip_max_x) && (clip_min_y < clip_max_y));
   float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
+  if (type != GL_FLOAT) {
+    BLI_assert(type == GL_UNSIGNED_BYTE);
+    type = GL_UNSIGNED_BYTE;
+  }
+
   GLint unpack_row_length;
   glGetIntegerv(GL_UNPACK_ROW_LENGTH, &unpack_row_length);
 
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, img_w);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texid);
-  glBindSampler(0, 0);
+  eGPUTextureFormat gpu_format = (type == GL_FLOAT) ? GPU_RGBA16F : GPU_RGBA8;
+  eGPUDataFormat gpu_data = (type == GL_FLOAT) ? GPU_DATA_FLOAT : GPU_DATA_UNSIGNED_BYTE;
+  GPUTexture *texture = GPU_texture_create_nD(
+      tex_w, tex_h, 0, 2, NULL, gpu_format, gpu_data, 0, false, NULL);
 
-  /* don't want nasty border artifacts */
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, zoomfilter);
+  /* TODO replace GL_NEAREST/LINEAR in callers. */
+  GPU_texture_filter_mode(texture, (zoomfilter == GL_LINEAR));
+  GPU_texture_wrap_mode(texture, false, true);
+
+  GPU_texture_bind(texture, 0);
 
   /* setup seamless 2=on, 0=off */
   seamless = ((tex_w < img_w || tex_h < img_h) && tex_w > 2 && tex_h > 2) ? 2 : 0;
@@ -177,17 +157,6 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
     return;
   }
 
-  if (type == GL_FLOAT) {
-    /* need to set internal format to higher range float */
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, tex_w, tex_h, 0, format, GL_FLOAT, NULL);
-  }
-  else {
-    /* switch to 8bit RGBA for byte buffer */
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_w, tex_h, 0, format, GL_UNSIGNED_BYTE, NULL);
-  }
-
-  uint pos = state->pos, texco = state->texco;
-
   /* optional */
   /* NOTE: Shader could be null for GLSL OCIO drawing, it is fine, since
    * it does not need color.
@@ -195,6 +164,8 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
   if (state->shader != NULL && GPU_shader_get_uniform(state->shader, "color") != -1) {
     immUniformColor4fv((color) ? color : white);
   }
+
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, img_w);
 
   for (subpart_y = 0; subpart_y < nsubparts_y; subpart_y++) {
     for (subpart_x = 0; subpart_x < nsubparts_x; subpart_x++) {
@@ -213,141 +184,62 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
         continue;
       }
 
+      int right = subpart_w - offset_right;
+      int top = subpart_h - offset_top;
+      int bottom = 0 + offset_bot;
+      int left = 0 + offset_left;
+
       if (use_clipping) {
-        if (rast_x + (float)(subpart_w - offset_right) * xzoom * scaleX < clip_min_x ||
-            rast_y + (float)(subpart_h - offset_top) * yzoom * scaleY < clip_min_y) {
+        if (rast_x + right * xzoom * scaleX < clip_min_x ||
+            rast_y + top * yzoom * scaleY < clip_min_y) {
           continue;
         }
-        if (rast_x + (float)offset_left * xzoom > clip_max_x ||
-            rast_y + (float)offset_bot * yzoom > clip_max_y) {
+        if (rast_x + left * xzoom > clip_max_x || rast_y + bottom * yzoom > clip_max_y) {
           continue;
         }
       }
 
-      if (type == GL_FLOAT) {
-        glTexSubImage2D(GL_TEXTURE_2D,
-                        0,
-                        0,
-                        0,
-                        subpart_w,
-                        subpart_h,
-                        format,
-                        GL_FLOAT,
-                        &f_rect[((size_t)subpart_y) * offset_y * img_w * components +
-                                subpart_x * offset_x * components]);
+      {
+        int src_y = subpart_y * offset_y;
+        int src_x = subpart_x * offset_x;
+        size_t stride = components * ((type == GL_FLOAT) ? sizeof(float) : sizeof(uchar));
 
-        /* add an extra border of pixels so linear looks ok at edges of full image */
+#define DATA(_y, _x) ((char *)rect + stride * ((size_t)(_y)*img_w + (_x)))
+        {
+          void *data = DATA(src_y, src_x);
+          glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, format, type, data);
+        }
+        /* Add an extra border of pixels so linear interpolation looks ok
+         * at edges of full image. */
         if (subpart_w < tex_w) {
-          glTexSubImage2D(GL_TEXTURE_2D,
-                          0,
-                          subpart_w,
-                          0,
-                          1,
-                          subpart_h,
-                          format,
-                          GL_FLOAT,
-                          &f_rect[((size_t)subpart_y) * offset_y * img_w * components +
-                                  (subpart_x * offset_x + subpart_w - 1) * components]);
+          void *data = DATA(src_y, src_x + subpart_w - 1);
+          glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, 0, 1, subpart_h, format, type, data);
         }
         if (subpart_h < tex_h) {
-          glTexSubImage2D(
-              GL_TEXTURE_2D,
-              0,
-              0,
-              subpart_h,
-              subpart_w,
-              1,
-              format,
-              GL_FLOAT,
-              &f_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components +
-                      subpart_x * offset_x * components]);
+          void *data = DATA(src_y + subpart_h - 1, src_x);
+          glTexSubImage2D(GL_TEXTURE_2D, 0, 0, subpart_h, subpart_w, 1, format, type, data);
         }
         if (subpart_w < tex_w && subpart_h < tex_h) {
-          glTexSubImage2D(
-              GL_TEXTURE_2D,
-              0,
-              subpart_w,
-              subpart_h,
-              1,
-              1,
-              format,
-              GL_FLOAT,
-              &f_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components +
-                      (subpart_x * offset_x + subpart_w - 1) * components]);
+          void *data = DATA(src_y + subpart_h - 1, src_x + subpart_w - 1);
+          glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, subpart_h, 1, 1, format, type, data);
         }
+#undef DATA
       }
-      else {
-        glTexSubImage2D(GL_TEXTURE_2D,
-                        0,
-                        0,
-                        0,
-                        subpart_w,
-                        subpart_h,
-                        format,
-                        GL_UNSIGNED_BYTE,
-                        &uc_rect[((size_t)subpart_y) * offset_y * img_w * components +
-                                 subpart_x * offset_x * components]);
 
-        if (subpart_w < tex_w) {
-          glTexSubImage2D(GL_TEXTURE_2D,
-                          0,
-                          subpart_w,
-                          0,
-                          1,
-                          subpart_h,
-                          format,
-                          GL_UNSIGNED_BYTE,
-                          &uc_rect[((size_t)subpart_y) * offset_y * img_w * components +
-                                   (subpart_x * offset_x + subpart_w - 1) * components]);
-        }
-        if (subpart_h < tex_h) {
-          glTexSubImage2D(
-              GL_TEXTURE_2D,
-              0,
-              0,
-              subpart_h,
-              subpart_w,
-              1,
-              format,
-              GL_UNSIGNED_BYTE,
-              &uc_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components +
-                       subpart_x * offset_x * components]);
-        }
-        if (subpart_w < tex_w && subpart_h < tex_h) {
-          glTexSubImage2D(
-              GL_TEXTURE_2D,
-              0,
-              subpart_w,
-              subpart_h,
-              1,
-              1,
-              format,
-              GL_UNSIGNED_BYTE,
-              &uc_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components +
-                       (subpart_x * offset_x + subpart_w - 1) * components]);
-        }
-      }
+      uint pos = state->pos, texco = state->texco;
 
       immBegin(GPU_PRIM_TRI_FAN, 4);
-      immAttr2f(texco, (float)(0 + offset_left) / tex_w, (float)(0 + offset_bot) / tex_h);
-      immVertex2f(pos, rast_x + (float)offset_left * xzoom, rast_y + (float)offset_bot * yzoom);
+      immAttr2f(texco, left / (float)tex_w, bottom / (float)tex_h);
+      immVertex2f(pos, rast_x + offset_left * xzoom, rast_y + offset_bot * yzoom);
 
-      immAttr2f(texco, (float)(subpart_w - offset_right) / tex_w, (float)(0 + offset_bot) / tex_h);
-      immVertex2f(pos,
-                  rast_x + (float)(subpart_w - offset_right) * xzoom * scaleX,
-                  rast_y + (float)offset_bot * yzoom);
+      immAttr2f(texco, right / (float)tex_w, bottom / (float)tex_h);
+      immVertex2f(pos, rast_x + right * xzoom * scaleX, rast_y + offset_bot * yzoom);
 
-      immAttr2f(texco,
-                (float)(subpart_w - offset_right) / tex_w,
-                (float)(subpart_h - offset_top) / tex_h);
-      immVertex2f(pos,
-                  rast_x + (float)(subpart_w - offset_right) * xzoom * scaleX,
-                  rast_y + (float)(subpart_h - offset_top) * yzoom * scaleY);
+      immAttr2f(texco, right / (float)tex_w, top / (float)tex_h);
+      immVertex2f(pos, rast_x + right * xzoom * scaleX, rast_y + top * yzoom * scaleY);
 
-      immAttr2f(texco, (float)(0 + offset_left) / tex_w, (float)(subpart_h - offset_top) / tex_h);
-      immVertex2f(pos,
-                  rast_x + (float)offset_left * xzoom,
-                  rast_y + (float)(subpart_h - offset_top) * yzoom * scaleY);
+      immAttr2f(texco, left / (float)tex_w, top / (float)tex_h);
+      immVertex2f(pos, rast_x + offset_left * xzoom, rast_y + top * yzoom * scaleY);
       immEnd();
 
       /* NOTE: Weirdly enough this is only required on macOS. Without this there is some sort of
@@ -364,7 +256,9 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
     immUnbindProgram();
   }
 
-  glBindTexture(GL_TEXTURE_2D, 0);
+  GPU_texture_unbind(texture);
+  GPU_texture_free(texture);
+
   glPixelStorei(GL_UNPACK_ROW_LENGTH, unpack_row_length);
 }
 
