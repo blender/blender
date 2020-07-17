@@ -890,12 +890,13 @@ static void extract_tris_finish(const MeshRenderData *mr, void *ibo, void *_data
   MeshExtract_Tri_Data *data = _data;
   GPU_indexbuf_build_in_place(&data->elb, ibo);
   /* HACK: Create ibo sub-ranges and assign them to each #GPUBatch. */
-  if (mr->use_final_mesh && mr->cache->surface_per_mat && mr->cache->surface_per_mat[0]) {
-    BLI_assert(mr->cache->surface_per_mat[0]->elem == ibo);
+  if (mr->use_final_mesh) {
     for (int i = 0; i < mr->mat_len; i++) {
       /* Multiply by 3 because these are triangle indices. */
-      const int start = data->tri_mat_start[i] * 3;
-      const int len = data->tri_mat_end[i] * 3 - data->tri_mat_start[i] * 3;
+      const int mat_start = data->tri_mat_start[i];
+      const int mat_end = data->tri_mat_end[i];
+      const int start = mat_start * 3;
+      const int len = (mat_end - mat_start) * 3;
       GPUIndexBuf *sub_ibo = GPU_indexbuf_create_subrange(ibo, start, len);
       /* WARNING: We modify the #GPUBatch here! */
       GPU_batch_elembuf_set(mr->cache->surface_per_mat[i], sub_ibo, true);

@@ -170,8 +170,7 @@ typedef enum DRWBatchFlag {
   MBC_WIRE_EDGES = (1 << 23),
   MBC_WIRE_LOOPS = (1 << 24),
   MBC_WIRE_LOOPS_UVS = (1 << 25),
-  MBC_SURF_PER_MAT = (1 << 26),
-  MBC_SKIN_ROOTS = (1 << 27),
+  MBC_SKIN_ROOTS = (1 << 26),
 } DRWBatchFlag;
 
 #define MBC_EDITUV \
