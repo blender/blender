@@ -66,7 +66,6 @@ class TestingHierarchyIterator : public AbstractHierarchyIterator {
   used_writers hair_writers;
   used_writers particle_writers;
 
- public:
   explicit TestingHierarchyIterator(Depsgraph *depsgraph) : AbstractHierarchyIterator(depsgraph)
   {
   }
