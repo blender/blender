@@ -1122,6 +1122,40 @@ void DRW_mesh_batch_cache_free_old(Mesh *me, int ctime)
   mesh_cd_layers_type_clear(&cache->cd_used_over_time);
 }
 
+#ifdef DEBUG
+/* Sanity check function to test if all requested batches are available. */
+static void drw_mesh_batch_cache_check_available(struct TaskGraph *task_graph, Mesh *me)
+{
+  MeshBatchCache *cache = mesh_batch_cache_get(me);
+  /* Make sure all requested batches have been setup. */
+  /* Note: The next line creates a different scheduling than during release builds what can lead to
+   * some issues (See T77867 where we needed to disable this function in order to debug what was
+   * happening in release builds). */
+  BLI_task_graph_work_and_wait(task_graph);
+  for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); i++) {
+    BLI_assert(!DRW_batch_requested(((GPUBatch **)&cache->batch)[i], 0));
+  }
+  for (int i = 0; i < sizeof(cache->final.vbo) / sizeof(void *); i++) {
+    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->final.vbo)[i]));
+  }
+  for (int i = 0; i < sizeof(cache->final.ibo) / sizeof(void *); i++) {
+    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->final.ibo)[i]));
+  }
+  for (int i = 0; i < sizeof(cache->cage.vbo) / sizeof(void *); i++) {
+    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->cage.vbo)[i]));
+  }
+  for (int i = 0; i < sizeof(cache->cage.ibo) / sizeof(void *); i++) {
+    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->cage.ibo)[i]));
+  }
+  for (int i = 0; i < sizeof(cache->uv_cage.vbo) / sizeof(void *); i++) {
+    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->uv_cage.vbo)[i]));
+  }
+  for (int i = 0; i < sizeof(cache->uv_cage.ibo) / sizeof(void *); i++) {
+    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->uv_cage.ibo)[i]));
+  }
+}
+#endif
+
 /* Can be called for any surface type. Mesh *me is the final mesh. */
 void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                            Object *ob,
@@ -1142,10 +1176,9 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
   /* Early out */
   if (cache->batch_requested == 0) {
 #ifdef DEBUG
-    goto check;
-#else
-    return;
+    drw_mesh_batch_cache_check_available(task_graph, me);
 #endif
+    return;
   }
 
   /* Sanity check. */
@@ -1282,10 +1315,9 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
   /* Second chance to early out */
   if ((batch_requested & ~cache->batch_ready) == 0) {
 #ifdef DEBUG
-    goto check;
-#else
-    return;
+    drw_mesh_batch_cache_check_available(task_graph, me);
 #endif
+    return;
   }
 
   cache->batch_ready |= batch_requested;
@@ -1537,32 +1569,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                      ts,
                                      use_hide);
 #ifdef DEBUG
-check:
-  /* Make sure all requested batches have been setup. */
-  /* TODO(jbakker): we should move this to the draw_manager but that needs refactoring and
-   * additional looping.*/
-  BLI_task_graph_work_and_wait(task_graph);
-  for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); i++) {
-    BLI_assert(!DRW_batch_requested(((GPUBatch **)&cache->batch)[i], 0));
-  }
-  for (int i = 0; i < sizeof(cache->final.vbo) / sizeof(void *); i++) {
-    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->final.vbo)[i]));
-  }
-  for (int i = 0; i < sizeof(cache->final.ibo) / sizeof(void *); i++) {
-    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->final.ibo)[i]));
-  }
-  for (int i = 0; i < sizeof(cache->cage.vbo) / sizeof(void *); i++) {
-    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->cage.vbo)[i]));
-  }
-  for (int i = 0; i < sizeof(cache->cage.ibo) / sizeof(void *); i++) {
-    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->cage.ibo)[i]));
-  }
-  for (int i = 0; i < sizeof(cache->uv_cage.vbo) / sizeof(void *); i++) {
-    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->uv_cage.vbo)[i]));
-  }
-  for (int i = 0; i < sizeof(cache->uv_cage.ibo) / sizeof(void *); i++) {
-    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->uv_cage.ibo)[i]));
-  }
+  drw_mesh_batch_cache_check_available(task_graph, me);
 #endif
 }
 
