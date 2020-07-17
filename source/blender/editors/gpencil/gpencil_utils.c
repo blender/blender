@@ -1772,7 +1772,7 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
   immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
   float viewport_size[4];
-  glGetFloatv(GL_VIEWPORT, viewport_size);
+  GPU_viewport_size_get_f(viewport_size);
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
   immUniformColor4f(1.0f, 0.39f, 0.39f, 0.78f);

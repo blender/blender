@@ -94,8 +94,8 @@ void gpu_select_query_begin(
    * We need to get the region of the viewport so that our geometry doesn't
    * get rejected before the depth test. Should probably cull rect against
    * the viewport but this is a rare case I think */
-  glGetFloatv(GL_VIEWPORT, viewport);
-  glViewport(viewport[0], viewport[1], BLI_rcti_size_x(input), BLI_rcti_size_y(input));
+  GPU_viewport_size_get_f(viewport);
+  GPU_viewport(viewport[0], viewport[1], BLI_rcti_size_x(input), BLI_rcti_size_y(input));
 
   /* occlusion queries operates on fragments that pass tests and since we are interested on all
    * objects in the view frustum independently of their order, we need to disable the depth test */

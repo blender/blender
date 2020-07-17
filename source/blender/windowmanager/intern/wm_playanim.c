@@ -1060,7 +1060,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       /* zoom always show entire image */
       ps->zoom = MIN2(zoomx, zoomy);
 
-      glViewport(0, 0, ps->win_x, ps->win_y);
+      GPU_viewport(0, 0, ps->win_x, ps->win_y);
       glScissor(0, 0, ps->win_x, ps->win_y);
 
       playanim_gl_matrix();
@@ -1322,7 +1322,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   int win_x, win_y;
   playanim_window_get_size(&win_x, &win_y);
-  glViewport(0, 0, win_x, win_y);
+  GPU_viewport(0, 0, win_x, win_y);
   glScissor(0, 0, win_x, win_y);
   playanim_gl_matrix();
 

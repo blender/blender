@@ -320,7 +320,7 @@ void gpu_select_pick_begin(uint (*buffer)[4], uint bufsize, const rcti *input, c
     glDepthFunc(GL_LEQUAL);
 
     float viewport[4];
-    glGetFloatv(GL_VIEWPORT, viewport);
+    GPU_viewport_size_get_f(viewport);
 
     ps->src.clip_rect = *input;
     ps->src.rect_len = rect_len;
@@ -330,7 +330,7 @@ void gpu_select_pick_begin(uint (*buffer)[4], uint bufsize, const rcti *input, c
     ps->gl.clip_readpixels[2] = BLI_rcti_size_x(&ps->src.clip_rect);
     ps->gl.clip_readpixels[3] = BLI_rcti_size_y(&ps->src.clip_rect);
 
-    glViewport(UNPACK4(ps->gl.clip_readpixels));
+    GPU_viewport(UNPACK4(ps->gl.clip_readpixels));
 
     /* It's possible we don't want to clear depth buffer,
      * so existing elements are masked by current z-buffer. */

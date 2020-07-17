@@ -1793,9 +1793,6 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 
   ViewportEngineData *data = drw_viewport_engine_data_ensure(draw_engine_type);
 
-  /* set default viewport */
-  glViewport(0, 0, size[0], size[1]);
-
   /* Main rendering. */
   rctf view_rect;
   rcti render_rect;
@@ -1809,12 +1806,15 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
   /* Reset state before drawing */
   DRW_state_reset();
 
+  /* set default viewport */
+  GPU_viewport(0, 0, size[0], size[1]);
+
   /* Init render result. */
   RenderResult *render_result = RE_engine_begin_result(engine,
                                                        0,
                                                        0,
-                                                       (int)size[0],
-                                                       (int)size[1],
+                                                       size[0],
+                                                       size[1],
                                                        view_layer->name,
                                                        /* RR_ALL_VIEWS */ NULL);
 

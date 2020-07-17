@@ -209,7 +209,7 @@ static void wm_gesture_draw_line(wmGesture *gt)
   immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
   float viewport_size[4];
-  glGetFloatv(GL_VIEWPORT, viewport_size);
+  GPU_viewport_size_get_f(viewport_size);
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
   immUniform1i("colors_len", 2); /* "advanced" mode */
@@ -252,7 +252,7 @@ static void wm_gesture_draw_rect(wmGesture *gt)
   immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
   float viewport_size[4];
-  glGetFloatv(GL_VIEWPORT, viewport_size);
+  GPU_viewport_size_get_f(viewport_size);
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
   immUniform1i("colors_len", 2); /* "advanced" mode */
@@ -291,7 +291,7 @@ static void wm_gesture_draw_circle(wmGesture *gt)
   immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
   float viewport_size[4];
-  glGetFloatv(GL_VIEWPORT, viewport_size);
+  GPU_viewport_size_get_f(viewport_size);
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
   immUniform1i("colors_len", 2); /* "advanced" mode */
@@ -408,7 +408,7 @@ static void wm_gesture_draw_lasso(wmGesture *gt, bool filled)
   immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
   float viewport_size[4];
-  glGetFloatv(GL_VIEWPORT, viewport_size);
+  GPU_viewport_size_get_f(viewport_size);
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
   immUniform1i("colors_len", 2); /* "advanced" mode */
@@ -442,7 +442,7 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
   immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
   float viewport_size[4];
-  glGetFloatv(GL_VIEWPORT, viewport_size);
+  GPU_viewport_size_get_f(viewport_size);
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
   immUniform1i("colors_len", 2); /* "advanced" mode */
