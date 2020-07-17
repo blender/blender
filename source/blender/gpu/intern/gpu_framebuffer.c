@@ -683,6 +683,10 @@ static void gpu_framebuffer_read_color_ex(
 {
   GLenum type = gpu_get_gl_channel_type(channels);
   GLenum gl_format = gpu_get_gl_datatype(format);
+  /* TODO: needed for selection buffers to work properly, this should be handled better. */
+  if (type == GL_RED && gl_format == GL_UNSIGNED_INT) {
+    type = GL_RED_INTEGER;
+  }
   glReadBuffer(readfb);
   glReadPixels(x, y, w, h, type, gl_format, data);
 }
