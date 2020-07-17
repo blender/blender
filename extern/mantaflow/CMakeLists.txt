@@ -35,15 +35,25 @@ set(MANTAVERSION "0.13")
 
 add_definitions(-DWITH_FLUID=1)
 
-set(MANTA_DEP
-  dependencies
-)
+# Compile Mantaflow dependencies too (e.g. cnpy for numpy file IO).
+# Make sure that dependencies exist before enabling this option by updating the source files in extern/
+set(WITH_MANTA_DEPENDENCIES 0)
+
+if(NOT WITH_MANTA_DEPENDENCIES)
+  add_definitions(-DNO_CNPY=1)
+endif()
+
 set(MANTA_HLP
   helper
 )
 set(MANTA_PP
   preprocessed
 )
+if(WITH_MANTA_DEPENDENCIES)
+  set(MANTA_DEP
+    dependencies
+  )
+endif()
 
 if(WITH_TBB)
   add_definitions(-DTBB=1)
@@ -96,9 +106,6 @@ if(WITH_OPENVDB)
 endif()
 
 set(SRC
-  ${MANTA_DEP}/cnpy/cnpy.cpp
-  ${MANTA_DEP}/cnpy/cnpy.h
-
   ${MANTA_PP}/commonkernels.h
   ${MANTA_PP}/commonkernels.h.reg.cpp
   ${MANTA_PP}/conjugategrad.cpp
@@ -220,6 +227,13 @@ set(SRC
   ${MANTA_HLP}/util/vectorbase.cpp
   ${MANTA_HLP}/util/vectorbase.h
 )
+
+if(WITH_MANTA_DEPENDENCIES)
+  list(APPEND SRC
+    ${MANTA_DEP}/cnpy/cnpy.cpp
+    ${MANTA_DEP}/cnpy/cnpy.h
+  )
+endif()
 
 set(LIB
   ${PYTHON_LINKFLAGS}

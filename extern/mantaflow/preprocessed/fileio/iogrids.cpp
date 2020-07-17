@@ -27,7 +27,10 @@ extern "C" {
 }
 #endif
 
-#include "cnpy.h"
+#if NO_CNPY != 1
+#  include "cnpy.h"
+#endif
+
 #include "mantaio.h"
 #include "grid.h"
 #include "vector4d.h"
@@ -965,12 +968,16 @@ int readGrid4dUni(
 };
 void readGrid4dUniCleanup(void **fileHandle)
 {
+#if NO_ZLIB != 1
   gzFile gzf = NULL;
   if (fileHandle) {
     gzf = (gzFile)(*fileHandle);
     gzclose(gzf);
     *fileHandle = NULL;
   }
+#else
+  debMsg("file format not supported without zlib", 1);
+#endif
 }
 
 template<class T> int writeGrid4dRaw(const string &name, Grid4d<T> *grid)
@@ -1021,15 +1028,13 @@ template<class T> int readGrid4dRaw(const string &name, Grid4d<T> *grid)
 
 template<class T> int writeGridNumpy(const string &name, Grid<T> *grid)
 {
-#if NO_ZLIB == 1
-  debMsg("file format not supported without zlib", 1);
-  return 0;
-#endif
+
 #if FLOATINGPOINT_PRECISION != 1
   errMsg("writeGridNumpy: Double precision not yet supported");
   return 0;
 #endif
 
+#if NO_CNPY != 1
   // find suffix to differentiate between npy <-> npz , TODO: check for actual "npy" string
   std::string::size_type idx;
   bool bUseNpz = false;
@@ -1075,19 +1080,21 @@ template<class T> int writeGridNumpy(const string &name, Grid<T> *grid)
     cnpy::npy_save(name, &grid[0], shape, "w");
   }
   return 1;
-};
+#else
+  debMsg("file format not supported without cnpy", 1);
+  return 0;
+#endif
+}
 
 template<class T> int readGridNumpy(const string &name, Grid<T> *grid)
 {
-#if NO_ZLIB == 1
-  debMsg("file format not supported without zlib", 1);
-  return 0;
-#endif
+
 #if FLOATINGPOINT_PRECISION != 1
   errMsg("readGridNumpy: Double precision not yet supported");
   return 0;
 #endif
 
+#if NO_CNPY != 1
   // find suffix to differentiate between npy <-> npz
   std::string::size_type idx;
   bool bUseNpz = false;
@@ -1144,7 +1151,11 @@ template<class T> int readGridNumpy(const string &name, Grid<T> *grid)
          gridArr.data<T>(),
          sizeof(T) * grid->getSizeX() * grid->getSizeY() * grid->getSizeZ());
   return 1;
-};
+#else
+  debMsg("file format not supported without cnpy", 1);
+  return 0;
+#endif
+}
 
 int writeGridsNumpy(const string &name, std::vector<PbClass *> *grids)
 {
@@ -1163,13 +1174,12 @@ void getNpzFileSize(
     const string &name, int &x, int &y, int &z, int *t = NULL, std::string *info = NULL)
 {
   x = y = z = 0;
-#if NO_ZLIB != 1
-  debMsg("file format not supported without zlib", 1);
-  return;
-#endif
+
 #if FLOATINGPOINT_PRECISION != 1
   errMsg("getNpzFileSize: Double precision not yet supported");
 #endif
+
+#if NO_CNPY != 1
   // find suffix to differentiate between npy <-> npz
   cnpy::NpyArray gridArr;
   cnpy::npz_t fNpz = cnpy::npz_load(name);
@@ -1180,6 +1190,9 @@ void getNpzFileSize(
   x = gridArr.shape[2];
   if (t)
     (*t) = 0;  // unused for now
+#else
+  debMsg("file format not supported without cnpy", 1);
+#endif
 }
 Vec3 getNpzFileSize(const string &name)
 {
