@@ -107,6 +107,58 @@ static void free_particle_simulation_state(ParticleSimulationState *state)
   MEM_freeN(state);
 }
 
+SimulationState *BKE_simulation_state_add(Simulation *simulation,
+                                          eSimulationStateType type,
+                                          const char *name)
+{
+  BLI_assert(simulation != nullptr);
+  BLI_assert(name != nullptr);
+
+  bool is_cow_simulation = DEG_is_evaluated_id(&simulation->id);
+
+  switch (type) {
+    case SIM_STATE_TYPE_PARTICLES: {
+      ParticleSimulationState *state = (ParticleSimulationState *)MEM_callocN(sizeof(*state), AT);
+      state->head.type = SIM_STATE_TYPE_PARTICLES;
+      state->head.name = BLI_strdup(name);
+      CustomData_reset(&state->attributes);
+
+      if (!is_cow_simulation) {
+        state->point_cache = BKE_ptcache_add(&state->ptcaches);
+      }
+
+      BLI_addtail(&simulation->states, state);
+      return &state->head;
+    }
+  }
+
+  BLI_assert(false);
+  return nullptr;
+}
+
+void BKE_simulation_state_remove(Simulation *simulation, SimulationState *state)
+{
+  BLI_assert(simulation != nullptr);
+  BLI_assert(state != nullptr);
+  BLI_assert(BLI_findindex(&simulation->states, state) >= 0);
+
+  BLI_remlink(&simulation->states, state);
+  switch ((eSimulationStateType)state->type) {
+    case SIM_STATE_TYPE_PARTICLES: {
+      free_particle_simulation_state((ParticleSimulationState *)state);
+      break;
+    }
+  }
+}
+
+void BKE_simulation_state_remove_all(Simulation *simulation)
+{
+  BLI_assert(simulation != nullptr);
+  while (!BLI_listbase_is_empty(&simulation->states)) {
+    BKE_simulation_state_remove(simulation, (SimulationState *)simulation->states.first);
+  }
+}
+
 static void simulation_free_data(ID *id)
 {
   Simulation *simulation = (Simulation *)id;
@@ -119,14 +171,7 @@ static void simulation_free_data(ID *id)
     simulation->nodetree = nullptr;
   }
 
-  LISTBASE_FOREACH_MUTABLE (SimulationState *, state, &simulation->states) {
-    switch ((eSimulationStateType)state->type) {
-      case SIM_STATE_TYPE_PARTICLES: {
-        free_particle_simulation_state((ParticleSimulationState *)state);
-        break;
-      }
-    }
-  }
+  BKE_simulation_state_remove_all(simulation);
 }
 
 static void simulation_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -184,31 +229,21 @@ static void ensure_attributes_exist(ParticleSimulationState *state)
 
 static void copy_states_to_cow(Simulation *simulation_orig, Simulation *simulation_cow)
 {
-  LISTBASE_FOREACH_MUTABLE (SimulationState *, state_cow, &simulation_cow->states) {
-    switch ((eSimulationStateType)state_cow->type) {
-      case SIM_STATE_TYPE_PARTICLES: {
-        BLI_remlink(&simulation_cow->states, state_cow);
-        free_particle_simulation_state((ParticleSimulationState *)state_cow);
-        break;
-      }
-    }
-  }
+  BKE_simulation_state_remove_all(simulation_cow);
   simulation_cow->current_frame = simulation_orig->current_frame;
 
   LISTBASE_FOREACH (SimulationState *, state_orig, &simulation_orig->states) {
     switch ((eSimulationStateType)state_orig->type) {
       case SIM_STATE_TYPE_PARTICLES: {
         ParticleSimulationState *particle_state_orig = (ParticleSimulationState *)state_orig;
-        ParticleSimulationState *particle_state_cow = (ParticleSimulationState *)MEM_callocN(
-            sizeof(*particle_state_cow), AT);
+        ParticleSimulationState *particle_state_cow = (ParticleSimulationState *)
+            BKE_simulation_state_add(simulation_cow, SIM_STATE_TYPE_PARTICLES, state_orig->name);
         particle_state_cow->tot_particles = particle_state_orig->tot_particles;
-        particle_state_cow->head.name = BLI_strdup(state_orig->name);
         CustomData_copy(&particle_state_orig->attributes,
                         &particle_state_cow->attributes,
                         CD_MASK_ALL,
                         CD_DUPLICATE,
                         particle_state_orig->tot_particles);
-        BLI_addtail(&simulation_cow->states, particle_state_cow);
         break;
       }
     }
@@ -326,8 +361,7 @@ static void remove_unused_states(Simulation *simulation, const VectorSet<std::st
 {
   LISTBASE_FOREACH_MUTABLE (SimulationState *, state, &simulation->states) {
     if (!state_names.contains(state->name)) {
-      BLI_remlink(&simulation->states, state);
-      free_particle_simulation_state((ParticleSimulationState *)state);
+      BKE_simulation_state_remove(simulation, state);
     }
   }
 }
@@ -365,13 +399,7 @@ static void add_missing_particle_states(Simulation *simulation, Span<std::string
       continue;
     }
 
-    ParticleSimulationState *particle_state = (ParticleSimulationState *)MEM_callocN(
-        sizeof(*particle_state), AT);
-    particle_state->head.type = SIM_STATE_TYPE_PARTICLES;
-    particle_state->head.name = BLI_strdup(name.data());
-    CustomData_reset(&particle_state->attributes);
-    particle_state->point_cache = BKE_ptcache_add(&particle_state->ptcaches);
-    BLI_addtail(&simulation->states, particle_state);
+    BKE_simulation_state_add(simulation, SIM_STATE_TYPE_PARTICLES, name.data());
   }
 }
 
