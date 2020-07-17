@@ -464,9 +464,6 @@ void ED_view3d_clipping_local(struct RegionView3D *rv3d, float mat[4][4]);
 bool ED_view3d_clipping_test(const struct RegionView3D *rv3d,
                              const float co[3],
                              const bool is_local);
-void ED_view3d_clipping_set(struct RegionView3D *rv3d);
-void ED_view3d_clipping_enable(void);
-void ED_view3d_clipping_disable(void);
 
 float ED_view3d_radius_to_dist_persp(const float angle, const float radius);
 float ED_view3d_radius_to_dist_ortho(const float lens, const float radius);

@@ -350,14 +350,10 @@ void drw_state_set(DRWState state)
     int test;
     if ((test = CHANGED_TO(DRW_STATE_CLIP_PLANES))) {
       if (test == 1) {
-        for (int i = 0; i < DST.view_active->clip_planes_len; i++) {
-          glEnable(GL_CLIP_DISTANCE0 + i);
-        }
+        GPU_clip_distances(DST.view_active->clip_planes_len);
       }
       else {
-        for (int i = 0; i < MAX_CLIP_PLANES; i++) {
-          glDisable(GL_CLIP_DISTANCE0 + i);
-        }
+        GPU_clip_distances(0);
       }
     }
   }

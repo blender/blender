@@ -1104,10 +1104,6 @@ int view3d_opengl_select(ViewContext *vc,
     GPU_depth_test(true);
   }
 
-  if (RV3D_CLIPPING_ENABLED(vc->v3d, vc->rv3d)) {
-    ED_view3d_clipping_set(vc->rv3d);
-  }
-
   /* If in xray mode, we select the wires in priority. */
   if (XRAY_ACTIVE(v3d) && use_nearest) {
     /* We need to call "GPU_select_*" API's inside DRW_draw_select_loop
@@ -1171,10 +1167,6 @@ int view3d_opengl_select(ViewContext *vc,
 
   if (!XRAY_ACTIVE(v3d)) {
     GPU_depth_test(false);
-  }
-
-  if (RV3D_CLIPPING_ENABLED(v3d, vc->rv3d)) {
-    ED_view3d_clipping_disable();
   }
 
   DRW_opengl_context_disable();

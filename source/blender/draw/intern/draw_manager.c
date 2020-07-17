@@ -2469,12 +2469,6 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
 #endif
 }
 
-/** See #DRW_shgroup_world_clip_planes_from_rv3d. */
-static void draw_world_clip_planes_from_rv3d(GPUBatch *batch, const float world_clip_planes[6][4])
-{
-  GPU_batch_uniform_4fv_array(batch, "WorldClipPlanes", 6, world_clip_planes[0]);
-}
-
 /**
  * Clears the Depth Buffer and draws only the specified object.
  */
@@ -2497,7 +2491,7 @@ void DRW_draw_depth_object(
 
   const float(*world_clip_planes)[4] = NULL;
   if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
-    ED_view3d_clipping_set(rv3d);
+    GPU_clip_distances(6);
     ED_view3d_clipping_local(rv3d, object->obmat);
     world_clip_planes = rv3d->clip_local;
   }
@@ -2525,7 +2519,7 @@ void DRW_draw_depth_object(
                                                           GPU_SHADER_CFG_DEFAULT;
       GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_DEPTH_ONLY, sh_cfg);
       if (world_clip_planes != NULL) {
-        draw_world_clip_planes_from_rv3d(batch, world_clip_planes);
+        GPU_batch_uniform_4fv_array(batch, "WorldClipPlanes", 6, world_clip_planes[0]);
       }
 
       GPU_batch_draw(batch);
@@ -2536,7 +2530,7 @@ void DRW_draw_depth_object(
   }
 
   if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
-    ED_view3d_clipping_disable();
+    GPU_clip_distances(0);
   }
 
   GPU_matrix_set(rv3d->viewmat);

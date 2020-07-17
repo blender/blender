@@ -256,6 +256,18 @@ void GPU_stencil_mask(uint stencil)
   glStencilMask(stencil);
 }
 
+void GPU_clip_distances(int distances_new)
+{
+  static int distances_enabled = 0;
+  for (int i = 0; i < distances_new; i++) {
+    glEnable(GL_CLIP_DISTANCE0 + i);
+  }
+  for (int i = distances_new; i < distances_enabled; i++) {
+    glDisable(GL_CLIP_DISTANCE0 + i);
+  }
+  distances_enabled = distances_new;
+}
+
 /** \name GPU Push/Pop State
  * \{ */
 

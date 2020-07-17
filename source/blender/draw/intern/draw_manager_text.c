@@ -38,6 +38,7 @@
 #include "DNA_view3d_types.h"
 
 #include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -149,8 +150,9 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, struct View3D *v3d)
   if (tot) {
     int col_pack_prev = 0;
 
+    /* Disable clipping for text */
     if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
-      ED_view3d_clipping_disable();
+      GPU_clip_distances(0);
     }
 
     float original_proj[4][4];
@@ -188,7 +190,7 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, struct View3D *v3d)
     GPU_matrix_projection_set(original_proj);
 
     if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
-      ED_view3d_clipping_enable();
+      GPU_clip_distances(6);
     }
   }
 }
