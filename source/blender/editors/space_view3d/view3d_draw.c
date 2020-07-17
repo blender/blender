@@ -2192,13 +2192,8 @@ static void view3d_opengl_read_Z_pixels(GPUViewport *viewport, rcti *rect, void 
   GPU_framebuffer_texture_attach(tmp_fb, dtxl->depth, 0, 0);
   GPU_framebuffer_bind(tmp_fb);
 
-  glReadPixels(rect->xmin,
-               rect->ymin,
-               BLI_rcti_size_x(rect),
-               BLI_rcti_size_y(rect),
-               GL_DEPTH_COMPONENT,
-               GL_FLOAT,
-               data);
+  GPU_framebuffer_read_depth(
+      tmp_fb, rect->xmin, rect->ymin, BLI_rcti_size_x(rect), BLI_rcti_size_y(rect), data);
 
   GPU_framebuffer_restore();
   GPU_framebuffer_free(tmp_fb);
@@ -2285,7 +2280,9 @@ void view3d_update_depths_rect(ARegion *region, ViewDepths *d, rcti *rect)
   if (d->damaged) {
     GPUViewport *viewport = WM_draw_region_get_viewport(region);
     view3d_opengl_read_Z_pixels(viewport, rect, d->depths);
-    glGetDoublev(GL_DEPTH_RANGE, d->depth_range);
+    /* Range is assumed to be this as they are never changed. */
+    d->depth_range[0] = 0.0;
+    d->depth_range[1] = 1.0;
     d->damaged = false;
   }
 }
@@ -2320,7 +2317,9 @@ void ED_view3d_depth_update(ARegion *region)
           .ymax = d->h,
       };
       view3d_opengl_read_Z_pixels(viewport, &r, d->depths);
-      glGetDoublev(GL_DEPTH_RANGE, d->depth_range);
+      /* Assumed to be this as they are never changed. */
+      d->depth_range[0] = 0.0;
+      d->depth_range[1] = 1.0;
       d->damaged = false;
     }
   }
