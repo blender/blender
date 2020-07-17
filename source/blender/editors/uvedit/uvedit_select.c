@@ -161,7 +161,7 @@ static void uvedit_vertex_select_tagged(BMEditMesh *em,
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
       if (BM_elem_flag_test(l->v, BM_ELEM_TAG)) {
-        uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+        uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
       }
     }
   }
@@ -202,7 +202,7 @@ bool uvedit_face_select_test(const Scene *scene, BMFace *efa, const int cd_loop_
   return uvedit_face_select_test_ex(scene->toolsettings, efa, cd_loop_uv_offset);
 }
 
-bool uvedit_face_select_set(const struct Scene *scene,
+void uvedit_face_select_set(const struct Scene *scene,
                             struct BMEditMesh *em,
                             struct BMFace *efa,
                             const bool select,
@@ -210,12 +210,14 @@ bool uvedit_face_select_set(const struct Scene *scene,
                             const int cd_loop_uv_offset)
 {
   if (select) {
-    return uvedit_face_select_enable(scene, em, efa, do_history, cd_loop_uv_offset);
+    uvedit_face_select_enable(scene, em, efa, do_history, cd_loop_uv_offset);
   }
-  return uvedit_face_select_disable(scene, em, efa, cd_loop_uv_offset);
+  else {
+    uvedit_face_select_disable(scene, em, efa, cd_loop_uv_offset);
+  }
 }
 
-bool uvedit_face_select_enable(const Scene *scene,
+void uvedit_face_select_enable(const Scene *scene,
                                BMEditMesh *em,
                                BMFace *efa,
                                const bool do_history,
@@ -238,14 +240,10 @@ bool uvedit_face_select_enable(const Scene *scene,
       luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
       luv->flag |= MLOOPUV_VERTSEL;
     }
-
-    return true;
   }
-
-  return false;
 }
 
-bool uvedit_face_select_disable(const Scene *scene,
+void uvedit_face_select_disable(const Scene *scene,
                                 BMEditMesh *em,
                                 BMFace *efa,
                                 const int cd_loop_uv_offset)
@@ -264,11 +262,7 @@ bool uvedit_face_select_disable(const Scene *scene,
       luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
       luv->flag &= ~MLOOPUV_VERTSEL;
     }
-
-    return true;
   }
-
-  return false;
 }
 
 bool uvedit_edge_select_test_ex(const ToolSettings *ts, BMLoop *l, const int cd_loop_uv_offset)
@@ -296,8 +290,8 @@ bool uvedit_edge_select_test(const Scene *scene, BMLoop *l, const int cd_loop_uv
   return uvedit_edge_select_test_ex(scene->toolsettings, l, cd_loop_uv_offset);
 }
 
-void uvedit_edge_select_set(BMEditMesh *em,
-                            const Scene *scene,
+void uvedit_edge_select_set(const Scene *scene,
+                            BMEditMesh *em,
                             BMLoop *l,
                             const bool select,
                             const bool do_history,
@@ -305,15 +299,15 @@ void uvedit_edge_select_set(BMEditMesh *em,
 
 {
   if (select) {
-    uvedit_edge_select_enable(em, scene, l, do_history, cd_loop_uv_offset);
+    uvedit_edge_select_enable(scene, em, l, do_history, cd_loop_uv_offset);
   }
   else {
-    uvedit_edge_select_disable(em, scene, l, cd_loop_uv_offset);
+    uvedit_edge_select_disable(scene, em, l, cd_loop_uv_offset);
   }
 }
 
-void uvedit_edge_select_enable(BMEditMesh *em,
-                               const Scene *scene,
+void uvedit_edge_select_enable(const Scene *scene,
+                               BMEditMesh *em,
                                BMLoop *l,
                                const bool do_history,
                                const int cd_loop_uv_offset)
@@ -348,8 +342,8 @@ void uvedit_edge_select_enable(BMEditMesh *em,
   }
 }
 
-void uvedit_edge_select_disable(BMEditMesh *em,
-                                const Scene *scene,
+void uvedit_edge_select_disable(const Scene *scene,
+                                BMEditMesh *em,
                                 BMLoop *l,
                                 const int cd_loop_uv_offset)
 
@@ -396,23 +390,23 @@ bool uvedit_uv_select_test(const Scene *scene, BMLoop *l, const int cd_loop_uv_o
   return uvedit_uv_select_test_ex(scene->toolsettings, l, cd_loop_uv_offset);
 }
 
-void uvedit_uv_select_set(BMEditMesh *em,
-                          const Scene *scene,
+void uvedit_uv_select_set(const Scene *scene,
+                          BMEditMesh *em,
                           BMLoop *l,
                           const bool select,
                           const bool do_history,
                           const int cd_loop_uv_offset)
 {
   if (select) {
-    uvedit_uv_select_enable(em, scene, l, do_history, cd_loop_uv_offset);
+    uvedit_uv_select_enable(scene, em, l, do_history, cd_loop_uv_offset);
   }
   else {
-    uvedit_uv_select_disable(em, scene, l, cd_loop_uv_offset);
+    uvedit_uv_select_disable(scene, em, l, cd_loop_uv_offset);
   }
 }
 
-void uvedit_uv_select_enable(BMEditMesh *em,
-                             const Scene *scene,
+void uvedit_uv_select_enable(const Scene *scene,
+                             BMEditMesh *em,
                              BMLoop *l,
                              const bool do_history,
                              const int cd_loop_uv_offset)
@@ -437,8 +431,8 @@ void uvedit_uv_select_enable(BMEditMesh *em,
   }
 }
 
-void uvedit_uv_select_disable(BMEditMesh *em,
-                              const Scene *scene,
+void uvedit_uv_select_disable(const Scene *scene,
+                              BMEditMesh *em,
                               BMLoop *l,
                               const int cd_loop_uv_offset)
 {
@@ -921,7 +915,7 @@ static int uv_select_edgeloop(
       iterv_curr = uv_select_edgeloop_vertex_map_get(vmap, efa, l);
 
       if (iterv_curr->flag) {
-        uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+        uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
       }
     }
   }
@@ -1476,18 +1470,21 @@ void UV_OT_select_all(wmOperatorType *ot)
 /** \name Mouse Select Operator
  * \{ */
 
-static bool uv_sticky_select(
-    const float *limit, const int hitv[], int v, float *hituv[], float *uv, int sticky, int hitlen)
+static bool uv_sticky_select(const float limit[2],
+                             const int hitv[],
+                             int v,
+                             float *hituv[],
+                             const float uv[2],
+                             int sticky,
+                             int hitlen)
 {
-  int i;
-
-  /* this function test if some vertex needs to selected
+  /* This function test if some vertex needs to selected
    * in addition to the existing ones due to sticky select */
   if (sticky == SI_STICKY_DISABLE) {
     return false;
   }
 
-  for (i = 0; i < hitlen; i++) {
+  for (int i = 0; i < hitlen; i++) {
     if (hitv[i] == v) {
       if (sticky == SI_STICKY_LOC) {
         if (fabsf(hituv[i][0] - uv[0]) < limit[0] && fabsf(hituv[i][1] - uv[1]) < limit[1]) {
@@ -1684,13 +1681,13 @@ static int uv_mouse_select_multi(bContext *C,
     if (selectmode == UV_SELECT_VERTEX) {
       /* (de)select uv vertex */
       select = !uvedit_uv_select_test(scene, hit.l, cd_loop_uv_offset);
-      uvedit_uv_select_set(em, scene, hit.l, select, true, cd_loop_uv_offset);
+      uvedit_uv_select_set(scene, em, hit.l, select, true, cd_loop_uv_offset);
       flush = 1;
     }
     else if (selectmode == UV_SELECT_EDGE) {
       /* (de)select edge */
       select = !(uvedit_edge_select_test(scene, hit.l, cd_loop_uv_offset));
-      uvedit_edge_select_set(em, scene, hit.l, select, true, cd_loop_uv_offset);
+      uvedit_edge_select_set(scene, em, hit.l, select, true, cd_loop_uv_offset);
       flush = 1;
     }
     else if (selectmode == UV_SELECT_FACE) {
@@ -1721,7 +1718,7 @@ static int uv_mouse_select_multi(bContext *C,
           luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
           if (uv_sticky_select(
                   limit, hitv, BM_elem_index_get(l->v), hituv, luv->uv, sticky, hitlen)) {
-            uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+            uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
           }
         }
       }
@@ -1735,12 +1732,12 @@ static int uv_mouse_select_multi(bContext *C,
 
     if (selectmode == UV_SELECT_VERTEX) {
       /* select vertex */
-      uvedit_uv_select_enable(em, scene, hit.l, true, cd_loop_uv_offset);
+      uvedit_uv_select_enable(scene, em, hit.l, true, cd_loop_uv_offset);
       flush = 1;
     }
     else if (selectmode == UV_SELECT_EDGE) {
       /* select edge */
-      uvedit_edge_select_enable(em, scene, hit.l, true, cd_loop_uv_offset);
+      uvedit_edge_select_enable(scene, em, hit.l, true, cd_loop_uv_offset);
       flush = 1;
     }
     else if (selectmode == UV_SELECT_FACE) {
@@ -1763,7 +1760,7 @@ static int uv_mouse_select_multi(bContext *C,
 
           if (uv_sticky_select(
                   limit, hitv, BM_elem_index_get(l->v), hituv, luv->uv, sticky, hitlen)) {
-            uvedit_uv_select_enable(em, scene, l, false, cd_loop_uv_offset);
+            uvedit_uv_select_enable(scene, em, l, false, cd_loop_uv_offset);
           }
 
           flush = 1;
@@ -2269,7 +2266,7 @@ static void uv_select_flush_from_tag_sticky_loc_internal(Scene *scene,
   UvMapVert *start_vlist = NULL, *vlist_iter;
   BMFace *efa_vlist;
 
-  uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+  uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
 
   vlist_iter = BM_uv_vert_map_at_index(vmap, BM_elem_index_get(l->v));
 
@@ -2300,7 +2297,7 @@ static void uv_select_flush_from_tag_sticky_loc_internal(Scene *scene,
       l_other = BM_iter_at_index(
           em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->loop_of_poly_index);
 
-      uvedit_uv_select_set(em, scene, l_other, select, false, cd_loop_uv_offset);
+      uvedit_uv_select_set(scene, em, l_other, select, false, cd_loop_uv_offset);
     }
     vlist_iter = vlist_iter->next;
   }
@@ -2353,7 +2350,7 @@ static void uv_select_flush_from_tag_face(SpaceImage *sima,
 
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (BM_elem_flag_test(l->v, BM_ELEM_TAG)) {
-          uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+          uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
         }
       }
     }
@@ -2440,7 +2437,7 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima,
 
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (BM_elem_flag_test(l->v, BM_ELEM_TAG)) {
-          uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+          uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
         }
       }
     }
@@ -2474,7 +2471,7 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima,
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (BM_elem_flag_test(l, BM_ELEM_TAG)) {
-          uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+          uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
         }
       }
     }
@@ -2582,8 +2579,8 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
           if ((select != luv_select) || (select != luv_select_prev)) {
             if (BLI_rctf_isect_pt_v(&rectf, luv->uv) &&
                 BLI_rctf_isect_pt_v(&rectf, luv_prev->uv)) {
-              uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
-              uvedit_uv_select_set(em, scene, l_prev, select, false, cd_loop_uv_offset);
+              uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
+              uvedit_uv_select_set(scene, em, l_prev, select, false, cd_loop_uv_offset);
               BM_elem_flag_enable(l->v, BM_ELEM_TAG);
               BM_elem_flag_enable(l_prev->v, BM_ELEM_TAG);
             }
@@ -2614,14 +2611,14 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
             if (!pinned || (ts->uv_flag & UV_SYNC_SELECTION)) {
               /* UV_SYNC_SELECTION - can't do pinned selection */
               if (BLI_rctf_isect_pt_v(&rectf, luv->uv)) {
-                uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+                uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
                 BM_elem_flag_enable(l->v, BM_ELEM_TAG);
                 has_selected = true;
               }
             }
             else if (pinned) {
               if ((luv->flag & MLOOPUV_PINNED) && BLI_rctf_isect_pt_v(&rectf, luv->uv)) {
-                uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+                uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
                 BM_elem_flag_enable(l->v, BM_ELEM_TAG);
               }
             }
@@ -2815,8 +2812,8 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
           if ((select != luv_select) || (select != luv_select_prev)) {
             if (uv_circle_select_is_edge_inside(luv->uv, luv_prev->uv, offset, ellipse)) {
               changed = true;
-              uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
-              uvedit_uv_select_set(em, scene, l_prev, select, false, cd_loop_uv_offset);
+              uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
+              uvedit_uv_select_set(scene, em, l_prev, select, false, cd_loop_uv_offset);
               BM_elem_flag_enable(l->v, BM_ELEM_TAG);
               BM_elem_flag_enable(l_prev->v, BM_ELEM_TAG);
             }
@@ -2844,7 +2841,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
             luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
             if (uv_circle_select_is_point_inside(luv->uv, offset, ellipse)) {
               changed = true;
-              uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+              uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
               BM_elem_flag_enable(l->v, BM_ELEM_TAG);
               has_selected = true;
             }
@@ -3012,8 +3009,8 @@ static bool do_lasso_select_mesh_uv(bContext *C,
                     region, &rect, mcoords, mcoords_len, luv->uv) &&
                 do_lasso_select_mesh_uv_is_point_inside(
                     region, &rect, mcoords, mcoords_len, luv_prev->uv)) {
-              uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
-              uvedit_uv_select_set(em, scene, l_prev, select, false, cd_loop_uv_offset);
+              uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
+              uvedit_uv_select_set(scene, em, l_prev, select, false, cd_loop_uv_offset);
               changed = true;
               BM_elem_flag_enable(l->v, BM_ELEM_TAG);
               BM_elem_flag_enable(l_prev->v, BM_ELEM_TAG);
@@ -3042,7 +3039,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
             MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
             if (do_lasso_select_mesh_uv_is_point_inside(
                     region, &rect, mcoords, mcoords_len, luv->uv)) {
-              uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+              uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
               changed = true;
               BM_elem_flag_enable(l->v, BM_ELEM_TAG);
               has_selected = true;
@@ -3149,7 +3146,7 @@ static int uv_select_pinned_exec(bContext *C, wmOperator *UNUSED(op))
         luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
         if (luv->flag & MLOOPUV_PINNED) {
-          uvedit_uv_select_enable(em, scene, l, false, cd_loop_uv_offset);
+          uvedit_uv_select_enable(scene, em, l, false, cd_loop_uv_offset);
           changed = true;
         }
       }

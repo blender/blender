@@ -115,51 +115,51 @@ bool uvedit_uv_select_test(const struct Scene *scene,
                            struct BMLoop *l,
                            const int cd_loop_uv_offset);
 /* uv face */
-bool uvedit_face_select_set(const struct Scene *scene,
+void uvedit_face_select_set(const struct Scene *scene,
                             struct BMEditMesh *em,
                             struct BMFace *efa,
                             const bool select,
                             const bool do_history,
                             const int cd_loop_uv_offset);
-bool uvedit_face_select_enable(const struct Scene *scene,
+void uvedit_face_select_enable(const struct Scene *scene,
                                struct BMEditMesh *em,
                                struct BMFace *efa,
                                const bool do_history,
                                const int cd_loop_uv_offset);
-bool uvedit_face_select_disable(const struct Scene *scene,
+void uvedit_face_select_disable(const struct Scene *scene,
                                 struct BMEditMesh *em,
                                 struct BMFace *efa,
                                 const int cd_loop_uv_offset);
 /* uv edge */
-void uvedit_edge_select_set(struct BMEditMesh *em,
-                            const struct Scene *scene,
+void uvedit_edge_select_set(const struct Scene *scene,
+                            struct BMEditMesh *em,
                             struct BMLoop *l,
                             const bool select,
                             const bool do_history,
                             const int cd_loop_uv_offset);
-void uvedit_edge_select_enable(struct BMEditMesh *em,
-                               const struct Scene *scene,
+void uvedit_edge_select_enable(const struct Scene *scene,
+                               struct BMEditMesh *em,
                                struct BMLoop *l,
                                const bool do_history,
                                const int cd_loop_uv_offset);
-void uvedit_edge_select_disable(struct BMEditMesh *em,
-                                const struct Scene *scene,
+void uvedit_edge_select_disable(const struct Scene *scene,
+                                struct BMEditMesh *em,
                                 struct BMLoop *l,
                                 const int cd_loop_uv_offset);
 /* uv vert */
-void uvedit_uv_select_set(struct BMEditMesh *em,
-                          const struct Scene *scene,
+void uvedit_uv_select_set(const struct Scene *scene,
+                          struct BMEditMesh *em,
                           struct BMLoop *l,
                           const bool select,
                           const bool do_history,
                           const int cd_loop_uv_offset);
-void uvedit_uv_select_enable(struct BMEditMesh *em,
-                             const struct Scene *scene,
+void uvedit_uv_select_enable(const struct Scene *scene,
+                             struct BMEditMesh *em,
                              struct BMLoop *l,
                              const bool do_history,
                              const int cd_loop_uv_offset);
-void uvedit_uv_select_disable(struct BMEditMesh *em,
-                              const struct Scene *scene,
+void uvedit_uv_select_disable(const struct Scene *scene,
+                              struct BMEditMesh *em,
                               struct BMLoop *l,
                               const int cd_loop_uv_offset);
 
