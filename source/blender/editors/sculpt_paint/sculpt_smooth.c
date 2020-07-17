@@ -415,6 +415,8 @@ void SCULPT_smooth(Sculpt *sd,
     return;
   }
 
+  SCULPT_vertex_random_access_init(ss);
+
   for (iteration = 0; iteration <= count; iteration++) {
     const float strength = (iteration != count) ? 1.0f : last;
 
