@@ -32,6 +32,11 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
+static bool compare_v2v2_v2(const float v1[2], const float v2[2], const float limit[2])
+{
+  return (compare_ff(v1[0], v2[0], limit[0]) && compare_ff(v1[1], v2[1], limit[1]));
+}
+
 static void uv_aspect(const BMLoop *l,
                       const float aspect[2],
                       const int cd_loop_uv_offset,
@@ -110,6 +115,26 @@ float BM_face_uv_calc_cross(const BMFace *f, const int cd_loop_uv_offset)
     copy_v2_v2(uvs[i++], luv->uv);
   } while ((l_iter = l_iter->next) != l_first);
   return cross_poly_v2(uvs, f->len);
+}
+
+/**
+ * Check if two loops that share an edge also have the same UV coordinates.
+ */
+bool BM_loop_uv_share_edge_check_with_limit(BMLoop *l_a,
+                                            BMLoop *l_b,
+                                            const float limit[2],
+                                            const int cd_loop_uv_offset)
+{
+  BLI_assert(l_a->e == l_b->e);
+  MLoopUV *luv_a_curr = BM_ELEM_CD_GET_VOID_P(l_a, cd_loop_uv_offset);
+  MLoopUV *luv_a_next = BM_ELEM_CD_GET_VOID_P(l_a->next, cd_loop_uv_offset);
+  MLoopUV *luv_b_curr = BM_ELEM_CD_GET_VOID_P(l_b, cd_loop_uv_offset);
+  MLoopUV *luv_b_next = BM_ELEM_CD_GET_VOID_P(l_b->next, cd_loop_uv_offset);
+  if (l_a->v != l_b->v) {
+    SWAP(MLoopUV *, luv_b_curr, luv_b_next);
+  }
+  return (compare_v2v2_v2(luv_a_curr->uv, luv_b_curr->uv, limit) &&
+          compare_v2v2_v2(luv_a_next->uv, luv_b_next->uv, limit));
 }
 
 /**
