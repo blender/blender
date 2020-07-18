@@ -1053,7 +1053,8 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), v
   const KnifeTool_OpData *kcd = arg;
   GPU_depth_test(false);
 
-  glPolygonOffset(1.0f, 1.0f);
+  GPU_matrix_push_projection();
+  GPU_polygon_offset(1.0f, 1.0f);
 
   GPU_matrix_push();
   GPU_matrix_mul(kcd->ob->obmat);
@@ -1224,6 +1225,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), v
   immUnbindProgram();
 
   GPU_matrix_pop();
+  GPU_matrix_pop_projection();
 
   /* Reset default */
   GPU_depth_test(true);
