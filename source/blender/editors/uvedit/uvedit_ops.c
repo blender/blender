@@ -2071,6 +2071,7 @@ void ED_operatortypes_uvedit(void)
   WM_operatortype_append(UV_OT_select_all);
   WM_operatortype_append(UV_OT_select);
   WM_operatortype_append(UV_OT_select_loop);
+  WM_operatortype_append(UV_OT_select_edge_ring);
   WM_operatortype_append(UV_OT_select_linked);
   WM_operatortype_append(UV_OT_select_linked_pick);
   WM_operatortype_append(UV_OT_select_split);

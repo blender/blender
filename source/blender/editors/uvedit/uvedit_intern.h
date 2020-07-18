@@ -126,6 +126,7 @@ const float *uvedit_first_selected_uv_from_vertex(struct Scene *scene,
 void UV_OT_select_all(struct wmOperatorType *ot);
 void UV_OT_select(struct wmOperatorType *ot);
 void UV_OT_select_loop(struct wmOperatorType *ot);
+void UV_OT_select_edge_ring(struct wmOperatorType *ot);
 void UV_OT_select_linked(struct wmOperatorType *ot);
 void UV_OT_select_linked_pick(struct wmOperatorType *ot);
 void UV_OT_select_split(struct wmOperatorType *ot);

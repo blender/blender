@@ -558,6 +558,32 @@ void uvedit_uv_select_disable(const Scene *scene,
   }
 }
 
+static BMLoop *uvedit_loop_find_other_radial_loop_with_visible_face(Scene *scene,
+                                                                    BMLoop *l_src,
+                                                                    const float limit[2],
+                                                                    const int cd_loop_uv_offset)
+{
+  BMLoop *l_other = NULL;
+  BMLoop *l_iter = l_src->radial_next;
+  if (l_iter != l_src) {
+    do {
+      if (uvedit_face_visible_test(scene, l_iter->f) &&
+          BM_loop_uv_share_edge_check_with_limit(l_src, l_iter, limit, cd_loop_uv_offset)) {
+        /* Check UV's are contiguous. */
+        if (l_other == NULL) {
+          l_other = l_iter;
+        }
+        else {
+          /* Only use when there is a single alternative. */
+          l_other = NULL;
+          break;
+        }
+      }
+    } while ((l_iter = l_iter->radial_next) != l_src);
+  }
+  return l_other;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1028,6 +1054,63 @@ static int uv_select_edgeloop(
 
   /* cleanup */
   BM_uv_vert_map_free(vmap);
+
+  return (select) ? 1 : -1;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edge Ring Select
+ * \{ */
+
+static int uv_select_edgering(const SpaceImage *sima,
+                              Scene *scene,
+                              Object *obedit,
+                              UvNearestHit *hit,
+                              const float limit[2],
+                              const bool extend)
+{
+  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  bool select;
+
+  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
+  if (!extend) {
+    uv_select_all_perform(scene, obedit, SEL_DESELECT);
+  }
+
+  BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
+
+  if (extend) {
+    select = !(uvedit_uv_select_test(scene, hit->l, cd_loop_uv_offset));
+  }
+  else {
+    select = true;
+  }
+
+  BMLoop *l_pair[2] = {
+      hit->l,
+      uvedit_loop_find_other_radial_loop_with_visible_face(
+          scene, hit->l, limit, cd_loop_uv_offset),
+  };
+
+  for (int side = 0; side < 2; side++) {
+    BMLoop *l_step = l_pair[side];
+    while (l_step && l_step->f->len == 4) {
+      if (BM_elem_flag_test(l_step->f, BM_ELEM_TAG) ||
+          !uvedit_face_visible_test(scene, l_step->f)) {
+        break;
+      }
+
+      uvedit_face_select_set_with_sticky(
+          sima, scene, em, l_step->f, select, false, limit, cd_loop_uv_offset);
+
+      BM_elem_flag_enable(l_step->f, BM_ELEM_TAG);
+      l_step = uvedit_loop_find_other_radial_loop_with_visible_face(
+          scene, l_step->next->next, limit, cd_loop_uv_offset);
+    }
+  }
 
   return (select) ? 1 : -1;
 }
@@ -1941,11 +2024,20 @@ void UV_OT_select(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Loop Select Operator
+/** \name Shared Edge Loop/Ring Select Operator Functions
  * \{ */
 
-static int uv_mouse_select_loop_multi(
-    bContext *C, Object **objects, uint objects_len, const float co[2], const bool extend)
+enum eUVLoopGenericType {
+  UV_LOOP_SELECT = 1,
+  UV_RING_SELECT = 2,
+};
+
+static int uv_mouse_select_loop_generic_multi(bContext *C,
+                                              Object **objects,
+                                              uint objects_len,
+                                              const float co[2],
+                                              const bool extend,
+                                              enum eUVLoopGenericType loop_type)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -1973,7 +2065,16 @@ static int uv_mouse_select_loop_multi(
     /* TODO(MULTI_EDIT): We only need to de-select non-active */
     uv_select_all_perform_multi(scene, objects, objects_len, SEL_DESELECT);
   }
-  flush = uv_select_edgeloop(scene, obedit, &hit, limit, extend);
+
+  if (loop_type == UV_LOOP_SELECT) {
+    flush = uv_select_edgeloop(scene, obedit, &hit, limit, extend);
+  }
+  else if (loop_type == UV_RING_SELECT) {
+    flush = uv_select_edgering(sima, scene, obedit, &hit, limit, extend);
+  }
+  else {
+    BLI_assert(0);
+  }
 
   if (ts->uv_flag & UV_SYNC_SELECTION) {
     if (flush != 0) {
@@ -1988,16 +2089,25 @@ static int uv_mouse_select_loop_multi(
 
   return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
 }
-static int uv_mouse_select_loop(bContext *C, const float co[2], const bool extend)
+static int uv_mouse_select_loop_generic(bContext *C,
+                                        const float co[2],
+                                        const bool extend,
+                                        enum eUVLoopGenericType loop_type)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       view_layer, ((View3D *)NULL), &objects_len);
-  int ret = uv_mouse_select_loop_multi(C, objects, objects_len, co, extend);
+  int ret = uv_mouse_select_loop_generic_multi(C, objects, objects_len, co, extend, loop_type);
   MEM_freeN(objects);
   return ret;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edge Loop Select Operator
+ * \{ */
 
 static int uv_select_loop_exec(bContext *C, wmOperator *op)
 {
@@ -2006,7 +2116,7 @@ static int uv_select_loop_exec(bContext *C, wmOperator *op)
   RNA_float_get_array(op->ptr, "location", co);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
 
-  return uv_mouse_select_loop(C, co, extend);
+  return uv_mouse_select_loop_generic(C, co, extend, UV_LOOP_SELECT);
 }
 
 static int uv_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2031,6 +2141,63 @@ void UV_OT_select_loop(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = uv_select_loop_exec;
   ot->invoke = uv_select_loop_invoke;
+  ot->poll = ED_operator_uvedit; /* requires space image */
+
+  /* properties */
+  RNA_def_boolean(ot->srna,
+                  "extend",
+                  0,
+                  "Extend",
+                  "Extend selection rather than clearing the existing selection");
+  RNA_def_float_vector(
+      ot->srna,
+      "location",
+      2,
+      NULL,
+      -FLT_MAX,
+      FLT_MAX,
+      "Location",
+      "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds",
+      -100.0f,
+      100.0f);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edge Ring Select Operator
+ * \{ */
+
+static int uv_select_edge_ring_exec(bContext *C, wmOperator *op)
+{
+  float co[2];
+  RNA_float_get_array(op->ptr, "location", co);
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  return uv_mouse_select_loop_generic(C, co, extend, UV_RING_SELECT);
+}
+
+static int uv_select_edge_ring_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const ARegion *region = CTX_wm_region(C);
+  float co[2];
+
+  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  RNA_float_set_array(op->ptr, "location", co);
+
+  return uv_select_edge_ring_exec(C, op);
+}
+
+void UV_OT_select_edge_ring(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Edge Ring Select";
+  ot->description = "Select an edge ring of connected UV vertices";
+  ot->idname = "UV_OT_select_edge_ring";
+  ot->flag = OPTYPE_UNDO;
+
+  /* api callbacks */
+  ot->exec = uv_select_edge_ring_exec;
+  ot->invoke = uv_select_edge_ring_invoke;
   ot->poll = ED_operator_uvedit; /* requires space image */
 
   /* properties */
