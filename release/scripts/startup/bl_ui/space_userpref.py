@@ -283,6 +283,22 @@ class USERPREF_PT_interface_temporary_windows(InterfacePanel, CenterAlignMixIn, 
         col.prop(view, "filebrowser_display_type", text="File Browser")
 
 
+class USERPREF_PT_interface_statusbar(InterfacePanel, CenterAlignMixIn, Panel):
+    bl_label = "Status Bar"
+    bl_parent_id = "USERPREF_PT_interface_editors"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        view = prefs.view
+
+        col = layout.column(heading="Show")
+        col.prop(view, "show_statusbar_stats", text="Scene Statistics")
+        col.prop(view, "show_statusbar_memory", text="System Memory")
+        col.prop(view, "show_statusbar_vram", text="Video Memory")
+        col.prop(view, "show_statusbar_version", text="Blender Version")
+
+
 class USERPREF_PT_interface_menus(InterfacePanel, Panel):
     bl_label = "Menus"
     bl_options = {'DEFAULT_CLOSED'}
@@ -2189,6 +2205,7 @@ classes = (
     USERPREF_PT_interface_display,
     USERPREF_PT_interface_editors,
     USERPREF_PT_interface_temporary_windows,
+    USERPREF_PT_interface_statusbar,
     USERPREF_PT_interface_translation,
     USERPREF_PT_interface_text,
     USERPREF_PT_interface_menus,

@@ -115,7 +115,6 @@ typedef struct ViewLayer {
   ListBase object_bases;
   /** Default allocated now. */
   struct SceneStats *stats;
-  char footer_str[128];
   struct Base *basact;
 
   /** A view layer has one top level layer collection, because a scene has only one top level

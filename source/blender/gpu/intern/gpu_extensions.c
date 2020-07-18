@@ -409,7 +409,7 @@ void gpu_extensions_exit(void)
 bool GPU_mem_stats_supported(void)
 {
 #ifndef GPU_STANDALONE
-  return (GLEW_NVX_gpu_memory_info || GLEW_ATI_meminfo) && (G.debug & G_DEBUG_GPU_MEM);
+  return (GLEW_NVX_gpu_memory_info || GLEW_ATI_meminfo);
 #else
   return false;
 #endif

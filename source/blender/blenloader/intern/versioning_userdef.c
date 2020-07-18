@@ -753,6 +753,10 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
     userdef->transopts &= ~USER_DOTRANSLATE_DEPRECATED;
   }
 
+  if (!USER_VERSION_ATLEAST(290, 1)) {
+    userdef->statusbar_flag = STATUSBAR_SHOW_VERSION;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

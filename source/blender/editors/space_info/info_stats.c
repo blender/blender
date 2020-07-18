@@ -43,6 +43,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_blender_version.h"
+#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
@@ -405,46 +406,6 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer)
   *(view_layer->stats) = stats;
 }
 
-static const char *footer_string(ViewLayer *view_layer)
-{
-#define MAX_INFO_MEM_LEN 64
-  char memstr[MAX_INFO_MEM_LEN];
-  char gpumemstr[MAX_INFO_MEM_LEN] = "";
-  char formatted_mem[15];
-  size_t ofs = 0;
-
-  uintptr_t mem_in_use = MEM_get_memory_in_use();
-
-  /* get memory statistics */
-  BLI_str_format_byte_unit(formatted_mem, mem_in_use, false);
-  ofs = BLI_snprintf(memstr, MAX_INFO_MEM_LEN, TIP_("Mem: %s"), formatted_mem);
-
-  if (GPU_mem_stats_supported()) {
-    int gpu_free_mem, gpu_tot_memory;
-
-    GPU_mem_stats_get(&gpu_tot_memory, &gpu_free_mem);
-
-    BLI_str_format_byte_unit(formatted_mem, gpu_free_mem, false);
-    ofs = BLI_snprintf(gpumemstr, MAX_INFO_MEM_LEN, TIP_(" | Free GPU Mem: %s"), formatted_mem);
-
-    if (gpu_tot_memory) {
-      BLI_str_format_byte_unit(formatted_mem, gpu_tot_memory, false);
-      BLI_snprintf(gpumemstr + ofs, MAX_INFO_MEM_LEN - ofs, TIP_("/%s"), formatted_mem);
-    }
-  }
-
-  BLI_snprintf(view_layer->footer_str,
-               sizeof(view_layer->footer_str),
-               "%s%s | %s",
-               memstr,
-               gpumemstr,
-               BKE_blender_version_string());
-
-  return view_layer->footer_str;
-
-#undef MAX_INFO_MEM_LEN
-}
-
 void ED_info_stats_clear(ViewLayer *view_layer)
 {
   if (view_layer->stats) {
@@ -453,45 +414,26 @@ void ED_info_stats_clear(ViewLayer *view_layer)
   }
 }
 
-const char *ED_info_footer_string(ViewLayer *view_layer)
-{
-  return footer_string(view_layer);
-}
-
-static void stats_row(int col1,
-                      const char *key,
-                      int col2,
-                      const char *value1,
-                      const char *value2,
-                      int *y,
-                      int height)
-{
-  *y -= height;
-  BLF_draw_default(col1, *y, 0.0f, key, 128);
-  char values[128];
-  BLI_snprintf(values, sizeof(values), (value2) ? "%s / %s" : "%s", value1, value2);
-  BLF_draw_default(col2, *y, 0.0f, values, sizeof(values));
-}
-
-void ED_info_draw_stats(
-    Main *bmain, Scene *scene, ViewLayer *view_layer, int x, int *y, int height)
+static bool format_stats(Main *bmain,
+                         Scene *scene,
+                         ViewLayer *view_layer,
+                         SceneStatsFmt *stats_fmt)
 {
   /* Create stats if they don't already exist. */
   if (!view_layer->stats) {
     /* Do not not access dependency graph if interface is marked as locked. */
     wmWindowManager *wm = bmain->wm.first;
     if (wm->is_interface_locked) {
-      return;
+      return false;
     }
     Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
     stats_update(depsgraph, view_layer);
   }
 
   SceneStats *stats = view_layer->stats;
-  SceneStatsFmt stats_fmt;
 
   /* Generate formatted numbers. */
-#define SCENE_STATS_FMT_INT(_id) BLI_str_format_uint64_grouped(stats_fmt._id, stats->_id)
+#define SCENE_STATS_FMT_INT(_id) BLI_str_format_uint64_grouped(stats_fmt->_id, stats->_id)
 
   SCENE_STATS_FMT_INT(totvert);
   SCENE_STATS_FMT_INT(totvertsel);
@@ -519,6 +461,176 @@ void ED_info_draw_stats(
   SCENE_STATS_FMT_INT(totgppoint);
 
 #undef SCENE_STATS_FMT_INT
+  return true;
+}
+
+static void get_stats_string(
+    char *info, int len, size_t *ofs, ViewLayer *view_layer, SceneStatsFmt *stats_fmt)
+{
+  Object *ob = OBACT(view_layer);
+  Object *obedit = OBEDIT_FROM_OBACT(ob);
+  eObjectMode object_mode = ob ? ob->mode : OB_MODE_OBJECT;
+  LayerCollection *layer_collection = view_layer->active_collection;
+
+  if (object_mode == OB_MODE_OBJECT) {
+    *ofs += BLI_snprintf(info + *ofs,
+                         len - *ofs,
+                         "%s | ",
+                         BKE_collection_ui_name_get(layer_collection->collection));
+  }
+
+  if (ob) {
+    *ofs += BLI_snprintf(info + *ofs, len - *ofs, "%s | ", ob->id.name + 2);
+  }
+
+  if (obedit) {
+    if (BKE_keyblock_from_object(obedit)) {
+      *ofs += BLI_strncpy_rlen(info + *ofs, TIP_("(Key) "), len - *ofs);
+    }
+
+    if (obedit->type == OB_MESH) {
+      *ofs += BLI_snprintf(info + *ofs,
+                           len - *ofs,
+                           TIP_("Verts:%s/%s | Edges:%s/%s | Faces:%s/%s | Tris:%s"),
+                           stats_fmt->totvertsel,
+                           stats_fmt->totvert,
+                           stats_fmt->totedgesel,
+                           stats_fmt->totedge,
+                           stats_fmt->totfacesel,
+                           stats_fmt->totface,
+                           stats_fmt->tottri);
+    }
+    else if (obedit->type == OB_ARMATURE) {
+      *ofs += BLI_snprintf(info + *ofs,
+                           len - *ofs,
+                           TIP_("Verts:%s/%s | Bones:%s/%s"),
+                           stats_fmt->totvertsel,
+                           stats_fmt->totvert,
+                           stats_fmt->totbonesel,
+                           stats_fmt->totbone);
+    }
+    else {
+      *ofs += BLI_snprintf(
+          info + *ofs, len - *ofs, TIP_("Verts:%s/%s"), stats_fmt->totvertsel, stats_fmt->totvert);
+    }
+  }
+  else if (ob && (object_mode & OB_MODE_POSE)) {
+    *ofs += BLI_snprintf(
+        info + *ofs, len - *ofs, TIP_("Bones:%s/%s"), stats_fmt->totbonesel, stats_fmt->totbone);
+  }
+  else if ((ob) && (ob->type == OB_GPENCIL)) {
+    *ofs += BLI_snprintf(info + *ofs,
+                         len - *ofs,
+                         TIP_("Layers:%s | Frames:%s | Strokes:%s | Points:%s"),
+                         stats_fmt->totgplayer,
+                         stats_fmt->totgpframe,
+                         stats_fmt->totgpstroke,
+                         stats_fmt->totgppoint);
+  }
+  else if (stats_is_object_dynamic_topology_sculpt(ob, object_mode)) {
+    *ofs += BLI_snprintf(info + *ofs,
+                         len - *ofs,
+                         TIP_("Verts:%s | Tris:%s"),
+                         stats_fmt->totvert,
+                         stats_fmt->tottri);
+  }
+  else {
+    *ofs += BLI_snprintf(info + *ofs,
+                         len - *ofs,
+                         TIP_("Verts:%s | Faces:%s | Tris:%s"),
+                         stats_fmt->totvert,
+                         stats_fmt->totface,
+                         stats_fmt->tottri);
+  }
+
+  *ofs += BLI_snprintf(
+      info + *ofs, len - *ofs, TIP_(" | Objects:%s/%s"), stats_fmt->totobjsel, stats_fmt->totobj);
+}
+
+const char *ED_info_statusbar_string(Main *bmain, bScreen *screen, bContext *C)
+{
+  char formatted_mem[15];
+  size_t ofs = 0;
+  char *info = screen->statusbar_info;
+  int len = sizeof(screen->statusbar_info);
+
+  info[0] = '\0';
+
+  /* Scene statistics. */
+  if (U.statusbar_flag & STATUSBAR_SHOW_STATS) {
+    ViewLayer *view_layer = CTX_data_view_layer(C);
+    Scene *scene = CTX_data_scene(C);
+    SceneStatsFmt stats_fmt;
+    if (format_stats(bmain, scene, view_layer, &stats_fmt)) {
+      get_stats_string(info + ofs, len, &ofs, view_layer, &stats_fmt);
+    }
+  }
+
+  /* Memory status. */
+  if (U.statusbar_flag & STATUSBAR_SHOW_MEMORY) {
+    if (info[0]) {
+      ofs += BLI_snprintf(info + ofs, len - ofs, " | ");
+    }
+    uintptr_t mem_in_use = MEM_get_memory_in_use();
+    BLI_str_format_byte_unit(formatted_mem, mem_in_use, false);
+    ofs += BLI_snprintf(info + ofs, len, TIP_("Memory: %s"), formatted_mem);
+  }
+
+  /* GPU VRAM status. */
+  if ((U.statusbar_flag & STATUSBAR_SHOW_VRAM) && (GPU_mem_stats_supported())) {
+    int gpu_free_mem_kb, gpu_tot_mem_kb;
+    GPU_mem_stats_get(&gpu_tot_mem_kb, &gpu_free_mem_kb);
+    float gpu_total_gb = gpu_tot_mem_kb / 1048576.0f;
+    float gpu_free_gb = gpu_free_mem_kb / 1048576.0f;
+    if (info[0]) {
+      ofs += BLI_snprintf(info + ofs, len - ofs, " | ");
+    }
+    if (gpu_free_mem_kb && gpu_tot_mem_kb) {
+      ofs += BLI_snprintf(info + ofs,
+                          len - ofs,
+                          TIP_("VRAM: %.1f/%.1f GiB"),
+                          gpu_total_gb - gpu_free_gb,
+                          gpu_total_gb);
+    }
+    else {
+      /* Can only show amount of GPU VRAM available. */
+      ofs += BLI_snprintf(info + ofs, len - ofs, TIP_("VRAM: %.1f GiB Free"), gpu_free_gb);
+    }
+  }
+
+  /* Blender version. */
+  if (U.statusbar_flag & STATUSBAR_SHOW_VERSION) {
+    if (info[0]) {
+      ofs += BLI_snprintf(info + ofs, len - ofs, " | ");
+    }
+    ofs += BLI_snprintf(info + ofs, len - ofs, TIP_("%s"), BKE_blender_version_string());
+  }
+
+  return info;
+}
+
+static void stats_row(int col1,
+                      const char *key,
+                      int col2,
+                      const char *value1,
+                      const char *value2,
+                      int *y,
+                      int height)
+{
+  *y -= height;
+  BLF_draw_default(col1, *y, 0.0f, key, 128);
+  char values[128];
+  BLI_snprintf(values, sizeof(values), (value2) ? "%s / %s" : "%s", value1, value2);
+  BLF_draw_default(col2, *y, 0.0f, values, sizeof(values));
+}
+
+void ED_info_draw_stats(
+    Main *bmain, Scene *scene, ViewLayer *view_layer, int x, int *y, int height)
+{
+  SceneStatsFmt stats_fmt;
+  if (!format_stats(bmain, scene, view_layer, &stats_fmt)) {
+    return;
+  }
 
   Object *ob = OBACT(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);

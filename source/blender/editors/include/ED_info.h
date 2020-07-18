@@ -31,9 +31,11 @@ struct Main;
 
 /* info_stats.c */
 void ED_info_stats_clear(struct ViewLayer *view_layer);
-const char *ED_info_footer_string(struct ViewLayer *view_layer);
+const char *ED_info_statusbar_string(struct Main *bmain,
+                                     struct bScreen *screen,
+                                     struct bContext *C);
 void ED_info_draw_stats(
-    Main *bmain, Scene *scene, ViewLayer *view_layer, int x, int *y, int height);
+    struct Main *bmain, Scene *scene, ViewLayer *view_layer, int x, int *y, int height);
 
 #ifdef __cplusplus
 }

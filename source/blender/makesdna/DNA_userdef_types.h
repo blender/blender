@@ -880,7 +880,9 @@ typedef struct UserDef {
   char _pad5[2];
 
   float collection_instance_empty_size;
-  char _pad10[4];
+  char _pad10[3];
+
+  char statusbar_flag; /* eUserpref_StatusBar_Flag */
 
   struct WalkNavigation walk_navigation;
 
@@ -1078,6 +1080,14 @@ typedef enum eUserpref_TableAPI {
 typedef enum eUserpref_APP_Flag {
   USER_APP_LOCK_UI_LAYOUT = (1 << 0),
 } eUserpref_APP_Flag;
+
+/** #UserDef.statusbar_flag */
+typedef enum eUserpref_StatusBar_Flag {
+  STATUSBAR_SHOW_MEMORY = (1 << 0),
+  STATUSBAR_SHOW_VRAM = (1 << 1),
+  STATUSBAR_SHOW_STATS = (1 << 2),
+  STATUSBAR_SHOW_VERSION = (1 << 3),
+} eUserpref_StatusBar_Flag;
 
 /**
  * Auto-Keying mode.

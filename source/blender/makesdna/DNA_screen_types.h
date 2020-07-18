@@ -69,6 +69,8 @@ typedef struct bScreen {
   /** User-setting for which editors get redrawn during anim playback. */
   short redraws_flag;
 
+  char statusbar_info[256];
+
   /** Temp screen in a temp window, don't save (like user prefs). */
   char temp;
   /** Temp screen for image render display or fileselect. */
