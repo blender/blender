@@ -742,8 +742,8 @@ int GPU_matrix_stack_level_get_projection(void)
 /* -------------------------------------------------------------------- */
 /** \name Polygon Offset Hack
  *
- * Workaround the fact that PolygonOffset is implementation dependant.
- * We modify the projection matrix (winmat) in order to change the final depth a tiny amount.
+ * Workaround the fact that polygon-offset is implementation dependent.
+ * We modify the projection matrix \a winmat in order to change the final depth a tiny amount.
  * \{ */
 
 float GPU_polygon_offset_calc(const float (*winmat)[4], float viewdist, float dist)

@@ -938,7 +938,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
       fp = setmntent(MOUNTED, "r");
       if (fp == NULL) {
-        fprintf(stderr, "could not get a list of mounted filesystems\n");
+        fprintf(stderr, "could not get a list of mounted file-systems\n");
       }
       else {
         while ((mnt = getmntent(fp))) {

@@ -236,7 +236,7 @@ Alembic::AbcGeom::IXform AbcObjectReader::xform()
    * parent Alembic object should contain the transform. */
   IObject abc_parent = m_iobject.getParent();
 
-  /* The archive's top object can be recognised by not having a parent. */
+  /* The archive's top object can be recognized by not having a parent. */
   if (abc_parent.getParent() && IXform::matches(abc_parent.getMetaData())) {
     try {
       return IXform(abc_parent, Alembic::AbcGeom::kWrapExisting);

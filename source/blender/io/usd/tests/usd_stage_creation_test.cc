@@ -49,15 +49,15 @@ TEST_F(USDStageCreationTest, JSONFileLoadingTest)
   usd_initialise_plugin_path(usd_datafiles_dir);
 
   /* Simply the ability to create a USD Stage for a specific filename means that the extension
-   * has been recognised by the USD library, and that a USD plugin has been loaded to write such
+   * has been recognized by the USD library, and that a USD plugin has been loaded to write such
    * files. Practically, this is a test to see whether the USD JSON files can be found and
    * loaded. */
   std::string filename = "usd-stage-creation-test.usdc";
   pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(filename);
   if (usd_stage != nullptr) {
-    /* Even though we don't call usd_stage->SaveFile(), a file is still created on the filesystem
-     * when we call CreateNew(). It's immediately closed, though, so we can safely call unlink()
-     * here. */
+    /* Even though we don't call `usd_stage->SaveFile()`, a file is still created on the
+     * file-system when we call CreateNew(). It's immediately closed, though,
+     * so we can safely call `unlink()` here. */
     unlink(filename.c_str());
   }
   else {
