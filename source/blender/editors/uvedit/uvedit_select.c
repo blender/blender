@@ -144,9 +144,25 @@ BMLoop *ED_uvedit_active_edge_loop_get(BMesh *bm)
 /** \name Visibility and Selection Utilities
  * \{ */
 
-static void uv_select_island_limit_default(SpaceImage *sima, float r_limit[2])
+static void uv_select_limit_default(SpaceImage *sima, float r_limit[2])
 {
   uvedit_pixel_to_float(sima, 0.05f, r_limit);
+}
+
+/**
+ * Apply a penalty to elements that are already selected
+ * so elements that aren't already selected are prioritized.
+ */
+static float uv_select_penalty_default(SpaceImage *sima)
+{
+  /* Notice 'limit' is the same no matter the zoom level, since this is like
+   * remove doubles and could annoying if it joined points when zoomed out.
+   * 'penalty' is in screen pixel space otherwise zooming in on a uv-vert and
+   * shift-selecting can consider an adjacent point close enough to add to
+   * the selection rather than de-selecting the closest. */
+  float penalty[2];
+  uvedit_pixel_to_float(sima, 5.0f / (sima ? sima->zoom : 1.0f), penalty);
+  return len_v2(penalty);
 }
 
 static void uvedit_vertex_select_tagged(BMEditMesh *em,
@@ -1517,7 +1533,7 @@ static int uv_mouse_select_multi(bContext *C,
   BMIter iter, liter;
   MLoopUV *luv;
   UvNearestHit hit = UV_NEAREST_HIT_INIT;
-  int i, selectmode, sticky, sync, *hitv = NULL;
+  int i, selectmode, sticky, *hitv = NULL;
   bool select = true;
   bool found_item = false;
   /* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
@@ -1525,24 +1541,11 @@ static int uv_mouse_select_multi(bContext *C,
   int hitlen = 0;
   float limit[2], **hituv = NULL;
 
-  /* notice 'limit' is the same no matter the zoom level, since this is like
-   * remove doubles and could annoying if it joined points when zoomed out.
-   * 'penalty' is in screen pixel space otherwise zooming in on a uv-vert and
-   * shift-selecting can consider an adjacent point close enough to add to
-   * the selection rather than de-selecting the closest. */
-
-  float penalty_dist;
-  {
-    float penalty[2];
-    uvedit_pixel_to_float(sima, 0.05f, limit);
-    uvedit_pixel_to_float(sima, 5.0f / (sima ? sima->zoom : 1.0f), penalty);
-    penalty_dist = len_v2(penalty);
-  }
+  const float penalty_dist = uv_select_penalty_default(sima);
+  uv_select_limit_default(sima, limit);
 
   /* retrieve operation mode */
   if (ts->uv_flag & UV_SYNC_SELECTION) {
-    sync = 1;
-
     if (ts->selectmode & SCE_SELECT_FACE) {
       selectmode = UV_SELECT_FACE;
     }
@@ -1556,9 +1559,8 @@ static int uv_mouse_select_multi(bContext *C,
     sticky = SI_STICKY_DISABLE;
   }
   else {
-    sync = 0;
     selectmode = ts->uv_selectmode;
-    sticky = (sima) ? sima->sticky : 1;
+    sticky = (sima) ? sima->sticky : SI_STICKY_DISABLE;
   }
 
   /* find nearest element */
@@ -1698,7 +1700,7 @@ static int uv_mouse_select_multi(bContext *C,
     }
 
     /* de-selecting an edge may deselect a face too - validate */
-    if (sync) {
+    if (ts->uv_flag & UV_SYNC_SELECTION) {
       if (select == false) {
         BM_select_history_validate(em->bm);
       }
@@ -1769,35 +1771,10 @@ static int uv_mouse_select_multi(bContext *C,
     }
   }
 
-  if (sync) {
-    /* flush for mesh selection */
-
-    /* before bmesh */
-#if 0
-    if (ts->selectmode != SCE_SELECT_FACE) {
-      if (flush == 1) {
-        EDBM_select_flush(em);
-      }
-      else if (flush == -1) {
-        EDBM_deselect_flush(em);
-      }
-    }
-#else
+  if (ts->uv_flag & UV_SYNC_SELECTION) {
     if (flush != 0) {
-      if (loop) {
-        /* push vertex -> edge selection */
-        if (select) {
-          EDBM_select_flush(em);
-        }
-        else {
-          EDBM_deselect_flush(em);
-        }
-      }
-      else {
-        EDBM_selectmode_flush(em);
-      }
+      EDBM_selectmode_flush(em);
     }
-#endif
   }
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -1973,7 +1950,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
     extend = RNA_boolean_get(op->ptr, "extend");
     deselect = RNA_boolean_get(op->ptr, "deselect");
   }
-  uv_select_island_limit_default(sima, limit);
+  uv_select_limit_default(sima, limit);
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
@@ -2360,7 +2337,7 @@ static void uv_select_flush_from_tag_face(SpaceImage *sima,
     float limit[2];
     uint efa_index;
 
-    uv_select_island_limit_default(sima, limit);
+    uv_select_limit_default(sima, limit);
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE);
     vmap = BM_uv_vert_map_create(em->bm, limit, false, false);
@@ -2447,7 +2424,7 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima,
     float limit[2];
     uint efa_index;
 
-    uv_select_island_limit_default(sima, limit);
+    uv_select_limit_default(sima, limit);
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE);
     vmap = BM_uv_vert_map_create(em->bm, limit, false, false);
@@ -2516,7 +2493,7 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
 
   pinned = RNA_boolean_get(op->ptr, "pinned");
 
-  uv_select_island_limit_default(sima, limit);
+  uv_select_limit_default(sima, limit);
 
   bool changed_multi = false;
 
@@ -2749,7 +2726,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 
   UI_view2d_region_to_view(&region->v2d, x, y, &offset[0], &offset[1]);
 
-  uv_select_island_limit_default(sima, limit);
+  uv_select_limit_default(sima, limit);
 
   bool changed_multi = false;
 
@@ -2948,7 +2925,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
   bool changed_multi = false;
   rcti rect;
 
-  uv_select_island_limit_default(sima, limit);
+  uv_select_limit_default(sima, limit);
 
   BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
