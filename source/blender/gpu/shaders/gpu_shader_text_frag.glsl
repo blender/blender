@@ -136,4 +136,5 @@ void main()
   }
 
   fragColor.a *= color_flat.a;
+  fragColor = blender_srgb_to_framebuffer_space(fragColor);
 }
