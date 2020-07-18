@@ -43,18 +43,42 @@ static std::string dnode_to_path(const nodes::DNode &dnode)
   return path;
 }
 
-static Map<const fn::MFOutputSocket *, std::string> find_and_deduplicate_particle_attribute_nodes(
-    nodes::MFNetworkTreeMap &network_map, DummyDataSources &r_data_sources)
+static std::optional<Array<std::string>> compute_global_string_inputs(
+    nodes::MFNetworkTreeMap &network_map, Span<const fn::MFInputSocket *> sockets)
+{
+  uint amount = sockets.size();
+  if (amount == 0) {
+    return Array<std::string>();
+  }
+
+  if (network_map.network().have_dummy_or_unlinked_dependencies(sockets)) {
+    return {};
+  }
+
+  fn::MFNetworkEvaluator network_fn{{}, sockets};
+
+  fn::MFParamsBuilder params{network_fn, 1};
+
+  Array<std::string> strings(amount, NoInitialization());
+  for (uint i : IndexRange(amount)) {
+    params.add_uninitialized_single_output(
+        fn::GMutableSpan(fn::CPPType::get<std::string>(), strings.data() + i, 1));
+  }
+
+  fn::MFContextBuilder context;
+  network_fn.call({0}, params, context);
+
+  return strings;
+}
+
+static void find_and_deduplicate_particle_attribute_nodes(nodes::MFNetworkTreeMap &network_map,
+                                                          DummyDataSources &r_data_sources)
 {
   fn::MFNetwork &network = network_map.network();
   const nodes::DerivedNodeTree &tree = network_map.tree();
 
   Span<const nodes::DNode *> attribute_dnodes = tree.nodes_by_type(
       "SimulationNodeParticleAttribute");
-  uint amount = attribute_dnodes.size();
-  if (amount == 0) {
-    return {};
-  }
 
   Vector<fn::MFInputSocket *> name_sockets;
   for (const nodes::DNode *dnode : attribute_dnodes) {
@@ -62,25 +86,18 @@ static Map<const fn::MFOutputSocket *, std::string> find_and_deduplicate_particl
     name_sockets.append(&name_socket);
   }
 
-  fn::MFNetworkEvaluator network_fn{{}, name_sockets.as_span()};
-
-  fn::MFParamsBuilder params{network_fn, 1};
-
-  Array<std::string> attribute_names{amount, NoInitialization()};
-  for (uint i : IndexRange(amount)) {
-    params.add_uninitialized_single_output(
-        fn::GMutableSpan(fn::CPPType::get<std::string>(), attribute_names.data() + i, 1));
+  std::optional<Array<std::string>> attribute_names = compute_global_string_inputs(network_map,
+                                                                                   name_sockets);
+  if (!attribute_names.has_value()) {
+    return;
   }
-
-  fn::MFContextBuilder context;
-  /* Todo: Check that the names don't depend on dummy nodes. */
-  network_fn.call({0}, params, context);
 
   Map<std::pair<std::string, fn::MFDataType>, Vector<fn::MFNode *>>
       attribute_nodes_by_name_and_type;
-  for (uint i : IndexRange(amount)) {
+  for (uint i : attribute_names->index_range()) {
     attribute_nodes_by_name_and_type
-        .lookup_or_add_default({attribute_names[i], name_sockets[i]->node().output(0).data_type()})
+        .lookup_or_add_default(
+            {(*attribute_names)[i], name_sockets[i]->node().output(0).data_type()})
         .append(&name_sockets[i]->node());
   }
 

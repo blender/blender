@@ -233,6 +233,8 @@ class MFNetwork : NonCopyable, NonMovable {
                          VectorSet<const MFOutputSocket *> &r_dummy_sockets,
                          VectorSet<const MFInputSocket *> &r_unlinked_inputs) const;
 
+  bool have_dummy_or_unlinked_dependencies(Span<const MFInputSocket *> sockets) const;
+
   std::string to_dot(Span<const MFNode *> marked_nodes = {}) const;
 };
 

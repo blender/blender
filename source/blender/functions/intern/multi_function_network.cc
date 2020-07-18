@@ -269,6 +269,14 @@ void MFNetwork::find_dependencies(Span<const MFInputSocket *> sockets,
   }
 }
 
+bool MFNetwork::have_dummy_or_unlinked_dependencies(Span<const MFInputSocket *> sockets) const
+{
+  VectorSet<const MFOutputSocket *> dummy_sockets;
+  VectorSet<const MFInputSocket *> unlinked_inputs;
+  this->find_dependencies(sockets, dummy_sockets, unlinked_inputs);
+  return dummy_sockets.size() + unlinked_inputs.size() > 0;
+}
+
 std::string MFNetwork::to_dot(Span<const MFNode *> marked_nodes) const
 {
   dot::DirectedGraph digraph;
