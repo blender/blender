@@ -218,6 +218,23 @@ bool uvedit_face_select_test(const Scene *scene, BMFace *efa, const int cd_loop_
   return uvedit_face_select_test_ex(scene->toolsettings, efa, cd_loop_uv_offset);
 }
 
+void uvedit_face_select_set_with_sticky(const SpaceImage *sima,
+                                        const Scene *scene,
+                                        BMEditMesh *em,
+                                        BMFace *efa,
+                                        const bool select,
+                                        const bool do_history,
+                                        const float limit[2],
+                                        const int cd_loop_uv_offset)
+{
+  BMLoop *l_iter, *l_first;
+  l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
+  do {
+    uvedit_uv_select_set_with_sticky(
+        sima, scene, em, l_iter, select, do_history, limit, cd_loop_uv_offset);
+  } while ((l_iter = l_iter->next) != l_first);
+}
+
 void uvedit_face_select_set(const struct Scene *scene,
                             struct BMEditMesh *em,
                             struct BMFace *efa,
@@ -304,6 +321,21 @@ bool uvedit_edge_select_test_ex(const ToolSettings *ts, BMLoop *l, const int cd_
 bool uvedit_edge_select_test(const Scene *scene, BMLoop *l, const int cd_loop_uv_offset)
 {
   return uvedit_edge_select_test_ex(scene->toolsettings, l, cd_loop_uv_offset);
+}
+
+void uvedit_edge_select_set_with_sticky(const struct SpaceImage *sima,
+                                        const Scene *scene,
+                                        BMEditMesh *em,
+                                        BMLoop *l,
+                                        const bool select,
+                                        const bool do_history,
+                                        const float limit[2],
+                                        const uint cd_loop_uv_offset)
+{
+  uvedit_uv_select_set_with_sticky(
+      sima, scene, em, l, select, do_history, limit, cd_loop_uv_offset);
+  uvedit_uv_select_set_with_sticky(
+      sima, scene, em, l->next, select, do_history, limit, cd_loop_uv_offset);
 }
 
 void uvedit_edge_select_set(const Scene *scene,
@@ -404,6 +436,64 @@ bool uvedit_uv_select_test_ex(const ToolSettings *ts, BMLoop *l, const int cd_lo
 bool uvedit_uv_select_test(const Scene *scene, BMLoop *l, const int cd_loop_uv_offset)
 {
   return uvedit_uv_select_test_ex(scene->toolsettings, l, cd_loop_uv_offset);
+}
+
+void uvedit_uv_select_set_with_sticky(const struct SpaceImage *sima,
+                                      const Scene *scene,
+                                      BMEditMesh *em,
+                                      BMLoop *l,
+                                      const bool select,
+                                      const bool do_history,
+                                      const float limit[2],
+                                      const uint cd_loop_uv_offset)
+{
+  const ToolSettings *ts = scene->toolsettings;
+  if (ts->uv_flag & UV_SYNC_SELECTION) {
+    uvedit_uv_select_set(scene, em, l, select, do_history, cd_loop_uv_offset);
+    return;
+  }
+
+  const int sticky = sima->sticky;
+  switch (sticky) {
+    case SI_STICKY_DISABLE: {
+      uvedit_uv_select_set(scene, em, l, select, do_history, cd_loop_uv_offset);
+      break;
+    }
+    default: {
+      /* #SI_STICKY_VERTEX or #SI_STICKY_LOC. */
+      const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+      BMEdge *e_first, *e_iter;
+      e_first = e_iter = l->e;
+      do {
+        if (e_iter->l) {
+          BMLoop *l_radial_iter = e_iter->l;
+          do {
+            if (l_radial_iter->v == l->v) {
+              if (uvedit_face_visible_test(scene, l_radial_iter->f)) {
+                bool do_select = false;
+                if (sticky == SI_STICKY_VERTEX) {
+                  do_select = true;
+                }
+                else {
+                  const MLoopUV *luv_other = BM_ELEM_CD_GET_VOID_P(l_radial_iter,
+                                                                   cd_loop_uv_offset);
+                  if (fabsf(luv_other->uv[0] - luv->uv[0]) < limit[0] &&
+                      fabsf(luv_other->uv[1] - luv->uv[1]) < limit[1]) {
+                    do_select = true;
+                  }
+                }
+
+                if (do_select) {
+                  uvedit_uv_select_set(
+                      scene, em, l_radial_iter, select, do_history, cd_loop_uv_offset);
+                }
+              }
+            }
+          } while ((l_radial_iter = l_radial_iter->radial_next) != e_iter->l);
+        }
+      } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, l->v)) != e_first);
+    }
+  }
 }
 
 void uvedit_uv_select_set(const Scene *scene,
@@ -741,7 +831,7 @@ bool ED_uvedit_nearest_uv_multi(const Scene *scene,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Loop Select
+/** \name Edge Loop Select
  * \{ */
 
 static void uv_select_edgeloop_vertex_loop_flag(UvMapVert *first)
