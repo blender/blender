@@ -135,7 +135,6 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
 
 static void wm_region_draw_overlay(bContext *C, ScrArea *area, ARegion *region)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
 
   wmViewport(&region->winrct);
