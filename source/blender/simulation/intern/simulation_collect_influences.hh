@@ -25,20 +25,14 @@
 
 namespace blender::sim {
 
-void collect_simulation_influences(const nodes::DerivedNodeTree &tree,
-                                   ResourceCollector &resources,
-                                   SimulationInfluences &r_influences);
+struct SimulationStatesInfo {
+  VectorSet<std::string> particle_simulation_names;
+};
 
-/* TODO: Move this to a better place. */
-inline std::string dnode_to_path(const nodes::DNode &dnode)
-{
-  std::string path;
-  for (const nodes::DParentNode *parent = dnode.parent(); parent; parent = parent->parent()) {
-    path = parent->node_ref().name() + "/" + path;
-  }
-  path = path + dnode.name();
-  return path;
-}
+void collect_simulation_influences(Simulation &simulation,
+                                   ResourceCollector &resources,
+                                   SimulationInfluences &r_influences,
+                                   SimulationStatesInfo &r_states_info);
 
 }  // namespace blender::sim
 

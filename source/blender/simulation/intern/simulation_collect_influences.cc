@@ -29,6 +29,16 @@ extern "C" {
 void WM_clipboard_text_set(const char *buf, bool selection);
 }
 
+static std::string dnode_to_path(const nodes::DNode &dnode)
+{
+  std::string path;
+  for (const nodes::DParentNode *parent = dnode.parent(); parent; parent = parent->parent()) {
+    path = parent->node_ref().name() + "/" + path;
+  }
+  path = path + dnode.name();
+  return path;
+}
+
 static Map<const fn::MFOutputSocket *, std::string> deduplicate_attribute_nodes(
     fn::MFNetwork &network,
     nodes::MFNetworkTreeMap &network_map,
@@ -217,10 +227,14 @@ static void collect_forces(nodes::MFNetworkTreeMap &network_map,
   }
 }
 
-void collect_simulation_influences(const nodes::DerivedNodeTree &tree,
+void collect_simulation_influences(Simulation &simulation,
                                    ResourceCollector &resources,
-                                   SimulationInfluences &r_influences)
+                                   SimulationInfluences &r_influences,
+                                   SimulationStatesInfo &r_states_info)
 {
+  nodes::NodeTreeRefMap tree_refs;
+  const nodes::DerivedNodeTree tree{simulation.nodetree, tree_refs};
+
   fn::MFNetwork &network = resources.construct<fn::MFNetwork>(AT);
   nodes::MFNetworkTreeMap network_map = insert_node_tree_into_mf_network(network, tree, resources);
   Map<const fn::MFOutputSocket *, std::string> attribute_inputs = deduplicate_attribute_nodes(
@@ -231,6 +245,10 @@ void collect_simulation_influences(const nodes::DerivedNodeTree &tree,
   // WM_clipboard_text_set(network.to_dot().c_str(), false);
 
   collect_forces(network_map, resources, attribute_inputs, r_influences);
+
+  for (const nodes::DNode *dnode : tree.nodes_by_type("SimulationNodeParticleSimulation")) {
+    r_states_info.particle_simulation_names.add(dnode_to_path(*dnode));
+  }
 }
 
 }  // namespace blender::sim

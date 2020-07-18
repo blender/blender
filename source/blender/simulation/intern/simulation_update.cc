@@ -107,28 +107,18 @@ static void add_missing_particle_states(Simulation *simulation, Span<std::string
 }
 
 static void reinitialize_empty_simulation_states(Simulation *simulation,
-                                                 const nodes::DerivedNodeTree &tree)
+                                                 const SimulationStatesInfo &states_info)
 {
-  VectorSet<std::string> state_names;
-  for (const nodes::DNode *dnode : tree.nodes_by_type("SimulationNodeParticleSimulation")) {
-    state_names.add(dnode_to_path(*dnode));
-  }
-
-  remove_unused_states(simulation, state_names);
+  remove_unused_states(simulation, states_info.particle_simulation_names);
   reset_states(simulation);
-  add_missing_particle_states(simulation, state_names);
+  add_missing_particle_states(simulation, states_info.particle_simulation_names);
 }
 
 static void update_simulation_state_list(Simulation *simulation,
-                                         const nodes::DerivedNodeTree &tree)
+                                         const SimulationStatesInfo &states_info)
 {
-  VectorSet<std::string> state_names;
-  for (const nodes::DNode *dnode : tree.nodes_by_type("SimulationNodeParticleSimulation")) {
-    state_names.add(dnode_to_path(*dnode));
-  }
-
-  remove_unused_states(simulation, state_names);
-  add_missing_particle_states(simulation, state_names);
+  remove_unused_states(simulation, states_info.particle_simulation_names);
+  add_missing_particle_states(simulation, states_info.particle_simulation_names);
 }
 
 void update_simulation_in_depsgraph(Depsgraph *depsgraph,
@@ -147,16 +137,15 @@ void update_simulation_in_depsgraph(Depsgraph *depsgraph,
 
   Simulation *simulation_orig = (Simulation *)DEG_get_original_id(&simulation_cow->id);
 
-  nodes::NodeTreeRefMap tree_refs;
-  /* TODO: Use simulation_cow, but need to add depsgraph relations before that. */
-  const nodes::DerivedNodeTree tree{simulation_orig->nodetree, tree_refs};
-
   ResourceCollector resources;
   SimulationInfluences influences;
-  collect_simulation_influences(tree, resources, influences);
+  SimulationStatesInfo states_info;
+
+  /* TODO: Use simulation_cow, but need to add depsgraph relations before that. */
+  collect_simulation_influences(*simulation_orig, resources, influences, states_info);
 
   if (current_frame == 1) {
-    reinitialize_empty_simulation_states(simulation_orig, tree);
+    reinitialize_empty_simulation_states(simulation_orig, states_info);
 
     initialize_simulation_states(*simulation_orig, *depsgraph, influences);
     simulation_orig->current_frame = 1;
@@ -164,7 +153,7 @@ void update_simulation_in_depsgraph(Depsgraph *depsgraph,
     copy_states_to_cow(simulation_orig, simulation_cow);
   }
   else if (current_frame == simulation_orig->current_frame + 1) {
-    update_simulation_state_list(simulation_orig, tree);
+    update_simulation_state_list(simulation_orig, states_info);
 
     float time_step = 1.0f / 24.0f;
     solve_simulation_time_step(*simulation_orig, *depsgraph, influences, time_step);
