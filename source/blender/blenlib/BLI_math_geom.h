@@ -671,6 +671,13 @@ void projmat_dimensions(const float projmat[4][4],
                         float *r_top,
                         float *r_near,
                         float *r_far);
+void projmat_dimensions_db(const float projmat[4][4],
+                           double *r_left,
+                           double *r_right,
+                           double *r_bottom,
+                           double *r_top,
+                           double *r_near,
+                           double *r_far);
 
 void projmat_from_subregion(const float projmat[4][4],
                             const int win_size[2],

@@ -4880,6 +4880,37 @@ void projmat_dimensions(const float projmat[4][4],
   }
 }
 
+void projmat_dimensions_db(const float projmat_fl[4][4],
+                           double *r_left,
+                           double *r_right,
+                           double *r_bottom,
+                           double *r_top,
+                           double *r_near,
+                           double *r_far)
+{
+  double projmat[4][4];
+  copy_m4d_m4(projmat, projmat_fl);
+
+  bool is_persp = projmat[3][3] == 0.0f;
+
+  if (is_persp) {
+    *r_left = (projmat[2][0] - 1.0) / projmat[0][0];
+    *r_right = (projmat[2][0] + 1.0) / projmat[0][0];
+    *r_bottom = (projmat[2][1] - 1.0) / projmat[1][1];
+    *r_top = (projmat[2][1] + 1.0) / projmat[1][1];
+    *r_near = projmat[3][2] / (projmat[2][2] - 1.0);
+    *r_far = projmat[3][2] / (projmat[2][2] + 1.0);
+  }
+  else {
+    *r_left = (-projmat[3][0] - 1.0) / projmat[0][0];
+    *r_right = (-projmat[3][0] + 1.0) / projmat[0][0];
+    *r_bottom = (-projmat[3][1] - 1.0) / projmat[1][1];
+    *r_top = (-projmat[3][1] + 1.0) / projmat[1][1];
+    *r_near = (projmat[3][2] + 1.0) / projmat[2][2];
+    *r_far = (projmat[3][2] - 1.0) / projmat[2][2];
+  }
+}
+
 /**
  * Creates a projection matrix for a small region of the viewport.
  *

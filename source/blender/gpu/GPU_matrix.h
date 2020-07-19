@@ -102,11 +102,15 @@ struct GPUMatrixUnproject_Precalc {
   float model_inverted[4][4];
   float view[4];
   bool is_persp;
-  /** Result of 'projmat_dimensions'. */
+  /**
+   * Result of #projmat_dimensions_db.
+   * Using double precision here is important as far clipping ranges
+   * can cause divide-by-zero when using float, see: T66937.
+   */
   struct {
-    float xmin, xmax;
-    float ymin, ymax;
-    float zmin, zmax;
+    double xmin, xmax;
+    double ymin, ymax;
+    double zmin, zmax;
   } dims;
 };
 

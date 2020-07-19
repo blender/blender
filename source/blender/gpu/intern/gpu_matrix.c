@@ -536,13 +536,13 @@ bool GPU_matrix_unproject_precalc(struct GPUMatrixUnproject_Precalc *precalc,
                                   const int view[4])
 {
   precalc->is_persp = proj[3][3] == 0.0f;
-  projmat_dimensions(proj,
-                     &precalc->dims.xmin,
-                     &precalc->dims.xmax,
-                     &precalc->dims.ymin,
-                     &precalc->dims.ymax,
-                     &precalc->dims.zmin,
-                     &precalc->dims.zmax);
+  projmat_dimensions_db(proj,
+                        &precalc->dims.xmin,
+                        &precalc->dims.xmax,
+                        &precalc->dims.ymin,
+                        &precalc->dims.ymax,
+                        &precalc->dims.zmin,
+                        &precalc->dims.zmax);
   if (isinf(precalc->dims.zmax)) {
     /* We cannot retrieve the actual value of the clip_end.
      * Use `FLT_MAX` to avoid nans. */
