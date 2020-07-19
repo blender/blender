@@ -310,8 +310,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         break;
       }
       case MESH_FILTER_RELAX: {
-        SCULPT_relax_vertex(
-            ss, &vd, clamp_f(fade * ss->filter_cache->automask[vd.index], 0.0f, 1.0f), false, val);
+        SCULPT_relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), false, val);
         sub_v3_v3v3(disp, val, vd.co);
         break;
       }
@@ -543,6 +542,10 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   SCULPT_undo_push_begin("Mesh filter");
 
+  if (ELEM(filter_type, MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
+    SCULPT_boundary_info_ensure(ob);
+  }
+
   SCULPT_filter_cache_init(ob, sd, SCULPT_UNDO_COORDS);
 
   if (use_face_sets) {
@@ -571,16 +574,6 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   ss->filter_cache->enabled_axis[0] = deform_axis & MESH_FILTER_DEFORM_X;
   ss->filter_cache->enabled_axis[1] = deform_axis & MESH_FILTER_DEFORM_Y;
   ss->filter_cache->enabled_axis[2] = deform_axis & MESH_FILTER_DEFORM_Z;
-
-  if (RNA_enum_get(op->ptr, "type") == MESH_FILTER_RELAX) {
-    ss->filter_cache->automask = MEM_mallocN(totvert * sizeof(float),
-                                             "Relax filter edge automask");
-    for (int i = 0; i < totvert; i++) {
-      ss->filter_cache->automask[i] = 1.0f;
-    }
-    SCULPT_boundary_automasking_init(
-        ob, AUTOMASK_INIT_BOUNDARY_EDGES, 1, ss->filter_cache->automask);
-  }
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
