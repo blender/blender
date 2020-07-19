@@ -1589,12 +1589,12 @@ static int mask_normals_make_consistent_exec(bContext *C, wmOperator *UNUSED(op)
   return OPERATOR_CANCELLED;
 }
 
-/* named to match mesh recalc normals */
+/* Named to match mesh recalculate normals. */
 void MASK_OT_normals_make_consistent(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Recalc Normals";
-  ot->description = "Re-calculate the direction of selected handles";
+  ot->name = "Recalculate Handles";
+  ot->description = "Recalculate the direction of selected handles";
   ot->idname = "MASK_OT_normals_make_consistent";
 
   /* api callbacks */
