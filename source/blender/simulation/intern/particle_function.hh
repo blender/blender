@@ -22,6 +22,8 @@
 
 #include "BLI_resource_collector.hh"
 
+#include "simulation_solver.hh"
+
 namespace blender::sim {
 
 class ParticleFunctionInput {
@@ -58,17 +60,16 @@ class ParticleFunctionEvaluator {
  private:
   ResourceCollector resources_;
   const ParticleFunction &particle_fn_;
+  const ParticleChunkContext &particle_chunk_context_;
   IndexMask mask_;
   fn::MFContextBuilder global_context_;
   fn::MFContextBuilder per_particle_context_;
-  fn::AttributesRef particle_attributes_;
   Vector<void *> outputs_;
   bool is_computed_ = false;
 
  public:
   ParticleFunctionEvaluator(const ParticleFunction &particle_fn,
-                            IndexMask mask,
-                            fn::AttributesRef particle_attributes);
+                            const ParticleChunkContext &particle_chunk_context);
   ~ParticleFunctionEvaluator();
 
   void compute();

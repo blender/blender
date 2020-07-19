@@ -32,6 +32,8 @@ typedef struct Simulation {
 
   int flag;
   float current_frame;
+  float current_simulation_time;
+  char _pad[4];
 
   /** List containing SimulationState objects. */
   struct ListBase states;
@@ -53,7 +55,7 @@ typedef struct ParticleSimulationState {
 
   /** Contains the state of the particles at time Simulation->current_frame. */
   int tot_particles;
-  int _pad;
+  int next_particle_id;
   struct CustomData attributes;
 
   /** Caches the state of the particles over time. The cache only exists on the original data

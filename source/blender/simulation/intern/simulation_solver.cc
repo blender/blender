@@ -26,6 +26,10 @@ ParticleForce::~ParticleForce()
 {
 }
 
+ParticleEmitter::~ParticleEmitter()
+{
+}
+
 class CustomDataAttributesRef {
  private:
   Vector<void *> buffers_;
@@ -84,48 +88,61 @@ void initialize_simulation_states(Simulation &simulation,
                                   Depsgraph &UNUSED(depsgraph),
                                   const SimulationInfluences &UNUSED(influences))
 {
-  RandomNumberGenerator rng;
-
-  LISTBASE_FOREACH (ParticleSimulationState *, state, &simulation.states) {
-    state->tot_particles = 1000;
-    CustomData_realloc(&state->attributes, state->tot_particles);
-    ensure_attributes_exist(state);
-
-    CustomDataAttributesRef custom_data_attributes{state->attributes, (uint)state->tot_particles};
-
-    fn::MutableAttributesRef attributes = custom_data_attributes;
-    MutableSpan<float3> positions = attributes.get<float3>("Position");
-    MutableSpan<float3> velocities = attributes.get<float3>("Velocity");
-    MutableSpan<int32_t> ids = attributes.get<int32_t>("ID");
-
-    for (uint i : positions.index_range()) {
-      positions[i] = {i / 100.0f, 0, 0};
-      velocities[i] = {0, rng.get_float() - 0.5f, rng.get_float() - 0.5f};
-      ids[i] = i;
-    }
-  }
+  simulation.current_simulation_time = 0.0f;
 }
 
 void solve_simulation_time_step(Simulation &simulation,
-                                Depsgraph &UNUSED(depsgraph),
+                                Depsgraph &depsgraph,
                                 const SimulationInfluences &influences,
                                 float time_step)
 {
+  SimulationSolveContext solve_context{simulation, depsgraph, influences};
+  TimeInterval simulation_time_interval{simulation.current_simulation_time, time_step};
+
+  Map<std::string, std::unique_ptr<fn::AttributesInfo>> attribute_infos;
+  Map<std::string, std::unique_ptr<ParticleAllocator>> particle_allocators;
   LISTBASE_FOREACH (ParticleSimulationState *, state, &simulation.states) {
     ensure_attributes_exist(state);
 
-    CustomDataAttributesRef custom_data_attributes{state->attributes, (uint)state->tot_particles};
+    fn::AttributesInfoBuilder builder;
+    CustomData &custom_data = state->attributes;
+    for (const CustomDataLayer &layer : Span(custom_data.layers, custom_data.totlayer)) {
+      switch (layer.type) {
+        case CD_PROP_INT32: {
+          builder.add<int32_t>(layer.name, 0);
+          break;
+        }
+        case CD_PROP_FLOAT3: {
+          builder.add<float3>(layer.name, {0, 0, 0});
+          break;
+        }
+      }
+    }
+    auto info = std::make_unique<fn::AttributesInfo>(builder);
+    particle_allocators.add_new(
+        state->head.name, std::make_unique<ParticleAllocator>(*info, state->next_particle_id));
+    attribute_infos.add_new(state->head.name, std::move(info));
+  }
 
+  LISTBASE_FOREACH (ParticleSimulationState *, state, &simulation.states) {
+    CustomDataAttributesRef custom_data_attributes{state->attributes, (uint)state->tot_particles};
     fn::MutableAttributesRef attributes = custom_data_attributes;
+
     MutableSpan<float3> positions = attributes.get<float3>("Position");
     MutableSpan<float3> velocities = attributes.get<float3>("Velocity");
 
     Array<float3> force_vectors{(uint)state->tot_particles, {0, 0, 0}};
     const Vector<const ParticleForce *> *forces = influences.particle_forces.lookup_ptr(
         state->head.name);
+
     if (forces != nullptr) {
+      ParticleChunkContext particle_chunk_context{IndexMask((uint)state->tot_particles),
+                                                  attributes};
+      ParticleForceContext particle_force_context{
+          solve_context, particle_chunk_context, force_vectors};
+
       for (const ParticleForce *force : *forces) {
-        force->add_force(attributes, force_vectors);
+        force->add_force(particle_force_context);
       }
     }
 
@@ -134,6 +151,44 @@ void solve_simulation_time_step(Simulation &simulation,
       positions[i] += velocities[i] * time_step;
     }
   }
+
+  for (const ParticleEmitter *emitter : influences.particle_emitters) {
+    ParticleEmitterContext emitter_context{
+        solve_context, particle_allocators, simulation_time_interval};
+    emitter->emit(emitter_context);
+  }
+
+  LISTBASE_FOREACH (ParticleSimulationState *, state, &simulation.states) {
+    ParticleAllocator &allocator = *particle_allocators.lookup_as(state->head.name);
+
+    const uint emitted_particle_amount = allocator.total_allocated();
+    const uint old_particle_amount = state->tot_particles;
+    const uint new_particle_amount = old_particle_amount + emitted_particle_amount;
+
+    CustomData_realloc(&state->attributes, new_particle_amount);
+
+    CustomDataAttributesRef custom_data_attributes{state->attributes, new_particle_amount};
+    fn::MutableAttributesRef attributes = custom_data_attributes;
+
+    uint offset = old_particle_amount;
+    for (fn::MutableAttributesRef emitted_attributes : allocator.get_allocations()) {
+      fn::MutableAttributesRef dst_attributes = attributes.slice(
+          IndexRange(offset, emitted_attributes.size()));
+      for (uint attribute_index : attributes.info().index_range()) {
+        fn::GMutableSpan emitted_data = emitted_attributes.get(attribute_index);
+        fn::GMutableSpan dst = dst_attributes.get(attribute_index);
+        const fn::CPPType &type = dst.type();
+        type.copy_to_uninitialized_n(
+            emitted_data.buffer(), dst.buffer(), emitted_attributes.size());
+      }
+      offset += emitted_attributes.size();
+    }
+
+    state->tot_particles = new_particle_amount;
+    state->next_particle_id += emitted_particle_amount;
+  }
+
+  simulation.current_simulation_time = simulation_time_interval.end();
 }
 
 }  // namespace blender::sim

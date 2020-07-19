@@ -14,7 +14,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "SIM_particle_function.hh"
 #include "SIM_simulation_update.hh"
 
 #include "BKE_customdata.h"
@@ -32,6 +31,7 @@
 #include "BLI_rand.h"
 #include "BLI_vector.hh"
 
+#include "particle_function.hh"
 #include "simulation_collect_influences.hh"
 #include "simulation_solver.hh"
 

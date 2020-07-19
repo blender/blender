@@ -15,13 +15,15 @@
  */
 
 #include "simulation_collect_influences.hh"
-#include "SIM_particle_function.hh"
+#include "particle_function.hh"
 
 #include "FN_attributes_ref.hh"
 #include "FN_multi_function_network_evaluation.hh"
 #include "FN_multi_function_network_optimization.hh"
 
 #include "NOD_node_tree_multi_function.hh"
+
+#include "BLI_rand.hh"
 
 namespace blender::sim {
 
@@ -191,12 +193,15 @@ class ParticleFunctionForce : public ParticleForce {
   {
   }
 
-  void add_force(fn::AttributesRef attributes, MutableSpan<float3> r_combined_force) const override
+  void add_force(ParticleForceContext &context) const override
   {
-    IndexMask mask = IndexRange(attributes.size());
-    ParticleFunctionEvaluator evaluator{particle_fn_, mask, attributes};
+    IndexMask mask = context.particle_chunk().index_mask();
+    MutableSpan<float3> r_combined_force = context.force_dst();
+
+    ParticleFunctionEvaluator evaluator{particle_fn_, context.particle_chunk()};
     evaluator.compute();
     fn::VSpan<float3> forces = evaluator.get<float3>(0, "Force");
+
     for (uint i : mask) {
       r_combined_force[i] += forces[i];
     }
@@ -247,6 +252,48 @@ static void collect_forces(nodes::MFNetworkTreeMap &network_map,
   }
 }
 
+class MyBasicEmitter : public ParticleEmitter {
+ private:
+  std::string name_;
+
+ public:
+  MyBasicEmitter(std::string name) : name_(std::move(name))
+  {
+  }
+
+  void emit(ParticleEmitterContext &context) const override
+  {
+    ParticleAllocator *allocator = context.try_get_particle_allocator(name_);
+    if (allocator == nullptr) {
+      return;
+    }
+
+    fn::MutableAttributesRef attributes = allocator->allocate(10);
+    RandomNumberGenerator rng{(uint)context.simulation_time_interval().start() ^
+                              DefaultHash<std::string>{}(name_)};
+
+    MutableSpan<float3> positions = attributes.get<float3>("Position");
+    MutableSpan<float3> velocities = attributes.get<float3>("Velocity");
+
+    for (uint i : IndexRange(attributes.size())) {
+      positions[i] = rng.get_unit_float3();
+      velocities[i] = rng.get_unit_float3();
+    }
+  }
+};
+
+static void collect_emitters(nodes::MFNetworkTreeMap &network_map,
+                             ResourceCollector &resources,
+                             SimulationInfluences &r_influences)
+{
+  for (const nodes::DNode *dnode :
+       network_map.tree().nodes_by_type("SimulationNodeParticleSimulation")) {
+    std::string name = dnode_to_path(*dnode);
+    ParticleEmitter &emitter = resources.construct<MyBasicEmitter>(AT, name);
+    r_influences.particle_emitters.append(&emitter);
+  }
+}
+
 void collect_simulation_influences(Simulation &simulation,
                                    ResourceCollector &resources,
                                    SimulationInfluences &r_influences,
@@ -267,6 +314,7 @@ void collect_simulation_influences(Simulation &simulation,
   // WM_clipboard_text_set(network.to_dot().c_str(), false);
 
   collect_forces(network_map, resources, data_sources, r_influences);
+  collect_emitters(network_map, resources, r_influences);
 
   for (const nodes::DNode *dnode : tree.nodes_by_type("SimulationNodeParticleSimulation")) {
     r_states_info.particle_simulation_names.add(dnode_to_path(*dnode));

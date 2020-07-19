@@ -14,7 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "SIM_particle_function.hh"
+#include "particle_function.hh"
 
 namespace blender::sim {
 
@@ -49,12 +49,11 @@ ParticleFunction::ParticleFunction(const fn::MultiFunction *global_fn,
   }
 }
 
-ParticleFunctionEvaluator::ParticleFunctionEvaluator(const ParticleFunction &particle_fn,
-                                                     IndexMask mask,
-                                                     fn::AttributesRef particle_attributes)
+ParticleFunctionEvaluator::ParticleFunctionEvaluator(
+    const ParticleFunction &particle_fn, const ParticleChunkContext &particle_chunk_context)
     : particle_fn_(particle_fn),
-      mask_(mask),
-      particle_attributes_(particle_attributes),
+      particle_chunk_context_(particle_chunk_context),
+      mask_(particle_chunk_context_.index_mask()),
       outputs_(particle_fn_.output_types_.size(), nullptr)
 {
 }
@@ -112,7 +111,7 @@ void ParticleFunctionEvaluator::compute_globals()
 
   /* Add input parameters. */
   for (const ParticleFunctionInput *input : particle_fn_.global_inputs_) {
-    input->add_input(particle_attributes_, params, resources_);
+    input->add_input(particle_chunk_context_.attributes(), params, resources_);
   }
 
   /* Add output parameters. */
@@ -139,7 +138,7 @@ void ParticleFunctionEvaluator::compute_per_particle()
 
   /* Add input parameters. */
   for (const ParticleFunctionInput *input : particle_fn_.per_particle_inputs_) {
-    input->add_input(particle_attributes_, params, resources_);
+    input->add_input(particle_chunk_context_.attributes(), params, resources_);
   }
 
   /* Add output parameters. */

@@ -129,7 +129,7 @@ static PointCloud *modifyPointCloud(ModifierData *md,
   memcpy(pointcloud->co, positions, sizeof(float3) * state->tot_particles);
 
   for (int i = 0; i < state->tot_particles; i++) {
-    pointcloud->radius[i] = 0.1f;
+    pointcloud->radius[i] = 0.03f;
   }
 
   return pointcloud;
