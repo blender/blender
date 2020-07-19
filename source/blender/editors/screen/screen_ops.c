@@ -4217,7 +4217,7 @@ void ED_screens_navigation_bar_tools_menu_create(bContext *C, uiLayout *layout, 
   uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
 }
 
-static void ED_screens_statusbar_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
+static void ed_screens_statusbar_menu_create(uiLayout *layout, void *UNUSED(arg))
 {
   PointerRNA ptr;
 
@@ -4242,7 +4242,7 @@ static int screen_context_menu_invoke(bContext *C,
   if (area && area->spacetype == SPACE_STATUSBAR) {
     pup = UI_popup_menu_begin(C, IFACE_("Status Bar"), ICON_NONE);
     layout = UI_popup_menu_layout(pup);
-    ED_screens_statusbar_menu_create(C, layout, NULL);
+    ed_screens_statusbar_menu_create(layout, NULL);
     UI_popup_menu_end(C, pup);
   }
   else if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
