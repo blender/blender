@@ -388,6 +388,19 @@ typedef enum eAutomasking_flag {
   BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS = (1 << 3),
 } eAutomasking_flag;
 
+typedef enum ePaintBrush_flag {
+  BRUSH_PAINT_HARDNESS_PRESSURE = (1 << 0),
+  BRUSH_PAINT_HARDNESS_PRESSURE_INVERT = (1 << 1),
+  BRUSH_PAINT_FLOW_PRESSURE = (1 << 2),
+  BRUSH_PAINT_FLOW_PRESSURE_INVERT = (1 << 3),
+  BRUSH_PAINT_WET_MIX_PRESSURE = (1 << 4),
+  BRUSH_PAINT_WET_MIX_PRESSURE_INVERT = (1 << 5),
+  BRUSH_PAINT_WET_PERSISTENCE_PRESSURE = (1 << 6),
+  BRUSH_PAINT_WET_PERSISTENCE_PRESSURE_INVERT = (1 << 7),
+  BRUSH_PAINT_DENSITY_PRESSURE = (1 << 8),
+  BRUSH_PAINT_DENSITY_PRESSURE_INVERT = (1 << 9),
+} ePaintBrush_flag;
+
 typedef struct Brush {
   ID id;
 
@@ -454,6 +467,7 @@ typedef struct Brush {
   float wet_persistence;
   /** Density */
   float density;
+  int paint_flags;
 
   /** Tip Shape */
   /* Factor that controls the shape of the brush tip by rounding the corners of a square. */
@@ -480,7 +494,7 @@ typedef struct Brush {
   /** Source for fill tool color gradient application. */
   char gradient_fill_mode;
 
-  char _pad0[1];
+  char _pad0[5];
 
   /** Projection shape (sphere, circle). */
   char falloff_shape;

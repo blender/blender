@@ -2283,6 +2283,84 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Tip Scale X", "Scale of the brush tip in the X axis");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "use_hardness_pressure", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "paint_flags", BRUSH_PAINT_HARDNESS_PRESSURE);
+  RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+  RNA_def_property_ui_text(prop, "Use Pressure for Hardness", "Use pressure to modulate hardness");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "invert_hardness_pressure", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "paint_flags", BRUSH_PAINT_HARDNESS_PRESSURE_INVERT);
+  RNA_def_property_ui_icon(prop, ICON_ARROW_LEFTRIGHT, 0);
+  RNA_def_property_ui_text(
+      prop, "Invert Pressure for Hardness", "Invert the modulation of pressure in hardness");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_flow_pressure", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "paint_flags", BRUSH_PAINT_FLOW_PRESSURE);
+  RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+  RNA_def_property_ui_text(prop, "Use Pressure for Flow", "Use pressure to modulate flow");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "invert_flow_pressure", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "paint_flags", BRUSH_PAINT_FLOW_PRESSURE_INVERT);
+  RNA_def_property_ui_icon(prop, ICON_ARROW_LEFTRIGHT, 0);
+  RNA_def_property_ui_text(
+      prop, "Invert Pressure for Flow", "Invert the modulation of pressure in flow");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_wet_mix_pressure", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "paint_flags", BRUSH_PAINT_WET_MIX_PRESSURE);
+  RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+  RNA_def_property_ui_text(prop, "Use Pressure for Wet Mix", "Use pressure to modulate wet mix");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "invert_wet_mix_pressure", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "paint_flags", BRUSH_PAINT_WET_MIX_PRESSURE_INVERT);
+  RNA_def_property_ui_icon(prop, ICON_ARROW_LEFTRIGHT, 0);
+  RNA_def_property_ui_text(
+      prop, "Invert Pressure for Wet Mix", "Invert the modulation of pressure in wet mix");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_wet_persistence_pressure", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "paint_flags", BRUSH_PAINT_WET_PERSISTENCE_PRESSURE);
+  RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+  RNA_def_property_ui_text(
+      prop, "Use Pressure for Wet Persistence", "Use pressure to modulate wet persistence");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "invert_wet_persistence_pressure", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, NULL, "paint_flags", BRUSH_PAINT_WET_PERSISTENCE_PRESSURE_INVERT);
+  RNA_def_property_ui_icon(prop, ICON_ARROW_LEFTRIGHT, 0);
+  RNA_def_property_ui_text(prop,
+                           "Invert Pressure for Wet Persistence",
+                           "Invert the modulation of pressure in wet persistence");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_density_pressure", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "paint_flags", BRUSH_PAINT_DENSITY_PRESSURE);
+  RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+  RNA_def_property_ui_text(prop, "Use Pressure for Density", "Use pressure to modulate density");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "invert_density_pressure", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "paint_flags", BRUSH_PAINT_DENSITY_PRESSURE_INVERT);
+  RNA_def_property_ui_icon(prop, ICON_ARROW_LEFTRIGHT, 0);
+  RNA_def_property_ui_text(
+      prop, "Invert Pressure for Density", "Invert the modulation of pressure in density");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "dash_ratio", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "dash_ratio");
   RNA_def_property_range(prop, 0.0f, 1.0f);

@@ -544,7 +544,11 @@ def brush_settings(layout, context, brush, popover=False):
 
         # normal_radius_factor
         layout.prop(brush, "normal_radius_factor", slider=True)
-        layout.prop(brush, "hardness", slider=True)
+
+        row = layout.row(align=True)
+        row.prop(brush, "hardness", slider=True)
+        row.prop(brush, "invert_hardness_pressure", text = "")
+        row.prop(brush, "use_hardness_pressure", text = "")
 
         # auto_smooth_factor and use_inverse_smooth_pressure
         if capabilities.has_auto_smooth:
@@ -674,13 +678,31 @@ def brush_settings(layout, context, brush, popover=False):
             layout.prop(brush, "use_grab_active_vertex")
 
         if brush.sculpt_tool == 'PAINT':
-            col = layout.column()
-            col.prop(brush, "flow")
-            col.prop(brush, "wet_mix")
-            col.prop(brush, "wet_persistence")
-            col.prop(brush, "density")
-            col.prop(brush, "tip_roundness")
-            col.prop(brush, "tip_scale_x")
+            row = layout.row(align=True)
+            row.prop(brush, "flow")
+            row.prop(brush, "invert_flow_pressure", text = "")
+            row.prop(brush, "use_flow_pressure", text= "")
+
+            row = layout.row(align=True)
+            row.prop(brush, "wet_mix")
+            row.prop(brush, "invert_wet_mix_pressure", text = "")
+            row.prop(brush, "use_wet_mix_pressure", text = "")
+
+            row = layout.row(align=True)
+            row.prop(brush, "wet_persistence")
+            row.prop(brush, "invert_wet_persistence_pressure", text ="")
+            row.prop(brush, "use_wet_persistence_pressure", text= "")
+
+            row = layout.row(align=True)
+            row.prop(brush, "density")
+            row.prop(brush, "invert_density_pressure", text = "")
+            row.prop(brush, "use_density_pressure", text = "")
+
+            row = layout.row()
+            row.prop(brush, "tip_roundness")
+
+            row = layout.row()
+            row.prop(brush, "tip_scale_x")
 
         if brush.sculpt_tool == 'SMEAR':
             col = layout.column()

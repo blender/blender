@@ -2418,7 +2418,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
 
   /* Hardness. */
   float final_len = len;
-  const float hardness = br->hardness;
+  const float hardness = cache->paint_brush.hardness;
   float p = len / cache->radius;
   if (p < hardness) {
     final_len = 0.0f;
@@ -6618,6 +6618,50 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
   }
 }
 
+static void sculpt_update_cache_paint_variants(StrokeCache *cache, const Brush *brush)
+{
+  cache->paint_brush.hardness = brush->hardness;
+  if (brush->paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE) {
+    cache->paint_brush.hardness *= brush->paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE_INVERT ?
+                                       1.0f - cache->pressure :
+                                       cache->pressure;
+  }
+
+  cache->paint_brush.flow = brush->flow;
+  if (brush->paint_flags & BRUSH_PAINT_FLOW_PRESSURE) {
+    cache->paint_brush.flow *= brush->paint_flags & BRUSH_PAINT_FLOW_PRESSURE_INVERT ?
+                                   1.0f - cache->pressure :
+                                   cache->pressure;
+  }
+
+  cache->paint_brush.wet_mix = brush->wet_mix;
+  if (brush->paint_flags & BRUSH_PAINT_WET_MIX_PRESSURE) {
+    cache->paint_brush.wet_mix *= brush->paint_flags & BRUSH_PAINT_WET_MIX_PRESSURE_INVERT ?
+                                      1.0f - cache->pressure :
+                                      cache->pressure;
+
+    /* This makes wet mix more sensible in higher values, which allows to create brushes that have
+     * a wider pressure range were they only blend colors without applying too much of the brush
+     * color. */
+    cache->paint_brush.wet_mix = 1.0f - pow2f(1.0f - cache->paint_brush.wet_mix);
+  }
+
+  cache->paint_brush.wet_persistence = brush->wet_persistence;
+  if (brush->paint_flags & BRUSH_PAINT_WET_PERSISTENCE_PRESSURE) {
+    cache->paint_brush.wet_persistence = brush->paint_flags &
+                                                 BRUSH_PAINT_WET_PERSISTENCE_PRESSURE_INVERT ?
+                                             1.0f - cache->pressure :
+                                             cache->pressure;
+  }
+
+  cache->paint_brush.density = brush->density;
+  if (brush->paint_flags & BRUSH_PAINT_DENSITY_PRESSURE) {
+    cache->paint_brush.density = brush->paint_flags & BRUSH_PAINT_DENSITY_PRESSURE_INVERT ?
+                                     1.0f - cache->pressure :
+                                     cache->pressure;
+  }
+}
+
 /* Initialize the stroke cache variants from operator properties. */
 static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, PointerRNA *ptr)
 {
@@ -6683,6 +6727,8 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
     cache->radius = cache->initial_radius;
     cache->dyntopo_pixel_radius = ups->initial_pixel_radius;
   }
+
+  sculpt_update_cache_paint_variants(cache, brush);
 
   cache->radius_squared = cache->radius * cache->radius;
 

@@ -827,6 +827,15 @@ typedef struct StrokeCache {
   bool original;
   float anchored_location[3];
 
+  /* Paint Brush. */
+  struct {
+    float hardness;
+    float flow;
+    float wet_mix;
+    float wet_persistence;
+    float density;
+  } paint_brush;
+
   /* Pose brush */
   struct SculptPoseIKChain *pose_ik_chain;
 

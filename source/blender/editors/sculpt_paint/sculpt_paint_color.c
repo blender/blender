@@ -164,7 +164,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
 
       /* Density. */
       float noise = 1.0f;
-      const float density = brush->density;
+      const float density = ss->cache->paint_brush.density;
       if (density < 1.0f) {
         const float hash_noise = BLI_hash_int_01(ss->cache->density_seed * 1000 * vd.index);
         if (hash_noise > density) {
@@ -178,11 +178,12 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
       float wet_mix_color[4];
       float buffer_color[4];
 
-      mul_v4_v4fl(paint_color, brush_color, fade * brush->flow);
-      mul_v4_v4fl(wet_mix_color, data->wet_mix_sampled_color, fade * brush->flow);
+      mul_v4_v4fl(paint_color, brush_color, fade * ss->cache->paint_brush.flow);
+      mul_v4_v4fl(wet_mix_color, data->wet_mix_sampled_color, fade * ss->cache->paint_brush.flow);
 
       /* Interpolate with the wet_mix color for wet paint mixing. */
-      blend_color_interpolate_float(paint_color, paint_color, wet_mix_color, brush->wet_mix);
+      blend_color_interpolate_float(
+          paint_color, paint_color, wet_mix_color, ss->cache->paint_brush.wet_mix);
       blend_color_mix_float(color_buffer->color[vd.i], color_buffer->color[vd.i], paint_color);
 
       /* Final mix over the original color using brush alpha. */
@@ -305,7 +306,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   /* Wet paint color sampling. */
   float wet_color[4] = {0.0f};
-  if (brush->wet_mix > 0.0f) {
+  if (ss->cache->paint_brush.wet_mix > 0.0f) {
     SculptThreadedTaskData task_data = {
         .sd = sd,
         .ob = ob,
@@ -332,8 +333,10 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
       if (ss->cache->first_time) {
         copy_v4_v4(ss->cache->wet_mix_prev_color, wet_color);
       }
-      blend_color_interpolate_float(
-          wet_color, wet_color, ss->cache->wet_mix_prev_color, brush->wet_persistence);
+      blend_color_interpolate_float(wet_color,
+                                    wet_color,
+                                    ss->cache->wet_mix_prev_color,
+                                    ss->cache->paint_brush.wet_persistence);
       copy_v4_v4(ss->cache->wet_mix_prev_color, wet_color);
       CLAMP4(ss->cache->wet_mix_prev_color, 0.0f, 1.0f);
     }
