@@ -177,6 +177,7 @@ static bool automask_floodfill_cb(
 {
   AutomaskFloodFillData *data = userdata;
 
+  data->automask_factor[to_v] = 1.0f;
   data->automask_factor[from_v] = 1.0f;
   return (!data->use_radius ||
           SCULPT_is_vertex_inside_brush_radius_symm(
