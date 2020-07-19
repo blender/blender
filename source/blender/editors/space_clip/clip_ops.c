@@ -1515,7 +1515,7 @@ static void proxy_endjob(void *pjv)
   }
 
   if (pj->clip->source == MCLIP_SRC_MOVIE) {
-    /* Timecode might have changed, so do a full reload to deal with this. */
+    /* Time-code might have changed, so do a full reload to deal with this. */
     DEG_id_tag_update(&pj->clip->id, ID_RECALC_SOURCE);
   }
   else {

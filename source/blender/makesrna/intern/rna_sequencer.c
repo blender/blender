@@ -2145,7 +2145,7 @@ static void rna_def_proxy(StructRNA *srna)
   prop = RNA_def_property(srna, "use_proxy", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_PROXY);
   RNA_def_property_ui_text(
-      prop, "Use Proxy / Timecode", "Use a preview proxy and/or timecode index for this strip");
+      prop, "Use Proxy / Timecode", "Use a preview proxy and/or time-code index for this strip");
   RNA_def_property_boolean_funcs(prop, NULL, "rna_Sequence_use_proxy_set");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 

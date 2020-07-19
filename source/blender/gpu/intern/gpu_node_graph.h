@@ -116,7 +116,7 @@ typedef struct GPUInput {
   struct GPUInput *next, *prev;
 
   GPUNode *node;
-  eGPUType type; /* datatype */
+  eGPUType type; /* data-type. */
   GPUNodeLink *link;
   int id; /* unique id as created by code generator */
 

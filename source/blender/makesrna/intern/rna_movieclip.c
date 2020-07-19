@@ -218,7 +218,7 @@ static void rna_def_movieclip_proxy(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "100%", "Build proxy resolution 100% of the original undistorted footage dimension");
 
-  /* build timecodes */
+  /* Build time-codes. */
   prop = RNA_def_property(srna, "build_record_run", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "build_tc_flag", IMB_TC_RECORD_RUN);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

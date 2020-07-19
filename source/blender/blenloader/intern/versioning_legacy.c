@@ -579,7 +579,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile <= 109) {
-    /* new variable: gridlines */
+    /* New variable: `gridlines`. */
     bScreen *screen = bmain->screens.first;
     while (screen) {
       ScrArea *area = screen->areabase.first;

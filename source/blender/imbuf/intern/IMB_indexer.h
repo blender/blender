@@ -31,9 +31,9 @@
 /*
  * separate animation index files to solve the following problems:
  *
- * a) different timecodes within one file (like DTS/PTS, Timecode-Track,
- *    "implicit" timecodes within DV-files and HDV-files etc.)
- * b) seeking difficulties within ffmpeg for files with timestamp holes
+ * a) different time-codes within one file (like DTS/PTS, Time-code-Track,
+ *    "implicit" time-codes within DV-files and HDV-files etc.)
+ * b) seeking difficulties within FFMPEG for files with timestamp holes
  * c) broken files that miss several frames / have varying framerates
  * d) use proxies accordingly
  *

@@ -661,9 +661,9 @@ typedef struct UserDef {
   char anim_player[1024];
   int anim_player_preset;
 
-  /** Minimum spacing between gridlines in View2D grids. */
+  /** Minimum spacing between grid-lines in View2D grids. */
   short v2d_min_gridsize;
-  /** #eTimecodeStyles, style of timecode display. */
+  /** #eTimecodeStyles, style of time-code display. */
   short timecode_style;
 
   short versions;
@@ -694,7 +694,7 @@ typedef struct UserDef {
   float ui_scale;
   /** Setting for UI line width. */
   int ui_line_width;
-  /** Runtime, full DPI divided by pixelsize. */
+  /** Runtime, full DPI divided by `pixelsize`. */
   int dpi;
   /** Runtime, multiplier to scale UI elements based on DPI. */
   float dpi_fac;
@@ -704,7 +704,7 @@ typedef struct UserDef {
   /** Deprecated, for forward compatibility. */
   int virtual_pixel;
 
-  /** Console scrollback limit. */
+  /** Console scroll-back limit. */
   int scrollback;
   /** Node insert offset (aka auto-offset) margin, but might be useful for later stuff as well. */
   char node_margin;

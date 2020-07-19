@@ -1209,7 +1209,7 @@ void IMB_exr_read_channels(void *handle)
   ExrHandle *data = (ExrHandle *)handle;
   int numparts = data->ifile->parts();
 
-  /* check if exr was saved with previous versions of blender which flipped images */
+  /* Check if EXR was saved with previous versions of blender which flipped images. */
   const StringAttribute *ta = data->ifile->header(0).findTypedAttribute<StringAttribute>(
       "BlenderMultiChannel");
 
@@ -1803,12 +1803,12 @@ static void imb_exr_type_by_channels(ChannelList &channels,
   }
 
   if (!layerNames.empty()) {
-    /* if layerNames is not empty, it means at least one layer is non-empty,
+    /* If `layerNames` is not empty, it means at least one layer is non-empty,
      * but it also could be layers without names in the file and such case
-     * shall be considered a multilayer exr
+     * shall be considered a multi-layer EXR.
      *
-     * that's what we do here: test whether there're empty layer names together
-     * with non-empty ones in the file
+     * That's what we do here: test whether there are empty layer names together
+     * with non-empty ones in the file.
      */
     for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); i++) {
       for (std::set<string>::iterator i = layerNames.begin(); i != layerNames.end(); i++) {

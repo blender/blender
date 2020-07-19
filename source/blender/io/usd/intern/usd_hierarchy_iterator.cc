@@ -73,7 +73,7 @@ std::string USDHierarchyIterator::make_valid_name(const std::string &name) const
 
 void USDHierarchyIterator::set_export_frame(float frame_nr)
 {
-  // The USD stage is already set up to have FPS timecodes per frame.
+  /* The USD stage is already set up to have FPS time-codes per frame. */
   export_time_ = pxr::UsdTimeCode(frame_nr);
 }
 

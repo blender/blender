@@ -64,7 +64,7 @@
 #include "BLI_mempool.h"
 #include "BLI_system.h"
 #include "BLI_threads.h"
-#include "BLI_timecode.h" /* for stamp timecode format */
+#include "BLI_timecode.h" /* For stamp time-code format. */
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"

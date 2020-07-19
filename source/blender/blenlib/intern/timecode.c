@@ -36,7 +36,7 @@
 #include "BLI_strict_flags.h"
 
 /**
- * Generate timecode/frame number string and store in \a str
+ * Generate time-code/frame number string and store in \a str
  *
  * \param str: destination string
  * \param maxncpy: maximum number of characters to copy ``sizeof(str)``
@@ -44,7 +44,7 @@
  *        used to specify how detailed we need to be
  * \param time_seconds: time total time in seconds
  * \param fps: frames per second, typically from the #FPS macro
- * \param timecode_style: enum from eTimecodeStyles
+ * \param timecode_style: enum from #eTimecodeStyles
  * \return length of \a str
  */
 

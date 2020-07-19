@@ -291,7 +291,7 @@ void IMB_rectblend_threaded(struct ImBuf *dbuf,
  */
 
 typedef enum IMB_Timecode_Type {
-  /** Don't use timecode files at all. */
+  /** Don't use time-code files at all. */
   IMB_TC_NONE = 0,
   /** use images in the order as they are recorded
    * (currently, this is the only one implemented
@@ -318,7 +318,7 @@ typedef enum IMB_Proxy_Size {
   IMB_PROXY_MAX_SLOT = 4,
 } IMB_Proxy_Size;
 
-/* defaults to BL_proxy within the directory of the animation */
+/* Defaults to BL_proxy within the directory of the animation. */
 void IMB_anim_set_index_dir(struct anim *anim, const char *dir);
 void IMB_anim_get_fname(struct anim *anim, char *file, int size);
 
@@ -328,7 +328,7 @@ IMB_Proxy_Size IMB_anim_proxy_get_existing(struct anim *anim);
 
 struct IndexBuildContext;
 
-/* prepare context for proxies/imecodes builder */
+/* Prepare context for proxies/time-codes builder. */
 struct IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
                                                          IMB_Timecode_Type tcs_in_use,
                                                          IMB_Proxy_Size proxy_sizes_in_use,
@@ -336,13 +336,13 @@ struct IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
                                                          const bool overwrite,
                                                          struct GSet *file_list);
 
-/* will rebuild all used indices and proxies at once */
+/* Will rebuild all used indices and proxies at once. */
 void IMB_anim_index_rebuild(struct IndexBuildContext *context,
                             short *stop,
                             short *do_update,
                             float *progress);
 
-/* finish rebuilding proxises/timecodes and free temporary contexts used */
+/* Finish rebuilding proxies/time-codes and free temporary contexts used. */
 void IMB_anim_index_rebuild_finish(struct IndexBuildContext *context, short stop);
 
 /**
@@ -391,7 +391,7 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
 /**
  *
  * \attention Defined in anim_movie.c
- * fetches a define previewframe, usually half way into the movie
+ * fetches a define preview-frame, usually half way into the movie.
  */
 struct ImBuf *IMB_anim_previewframe(struct anim *anim);
 

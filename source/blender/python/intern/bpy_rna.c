@@ -7660,8 +7660,8 @@ void BPY_update_rna_module(void)
 }
 
 #if 0
-/* This is a way we can access docstrings for RNA types
- * without having the datatypes in blender */
+/* This is a way we can access doc-strings for RNA types
+ * without having the data-types in Blender. */
 PyObject *BPY_rna_doc(void)
 {
   PointerRNA ptr;

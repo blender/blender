@@ -440,13 +440,12 @@ static void rna_userdef_timecode_style_set(PointerRNA *ptr, int value)
   UserDef *userdef = (UserDef *)ptr->data;
   int required_size = userdef->v2d_min_gridsize;
 
-  /* set the timecode style */
+  /* Set the time-code style. */
   userdef->timecode_style = value;
 
-  /* adjust the v2d gridsize if needed so that timecodes don't overlap
+  /* Adjust the v2d grid-size if needed so that time-codes don't overlap
    * NOTE: most of these have been hand-picked to avoid overlaps while still keeping
-   * things from getting too blown out
-   */
+   * things from getting too blown out. */
   switch (value) {
     case USER_TIMECODE_MINIMAL:
     case USER_TIMECODE_SECONDS_ONLY:
