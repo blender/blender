@@ -98,6 +98,14 @@ void ED_undo_push(bContext *C, const char *str)
   if (steps <= 0) {
     return;
   }
+  if (G.background) {
+    /* Python developers may have explicitly created the undo stack in background mode,
+     * otherwise allow it to be NULL, see: T60934.
+     * Otherwise it must never be NULL, even when undo is disabled. */
+    if (wm->undo_stack == NULL) {
+      return;
+    }
+  }
 
   /* Only apply limit if this is the last undo step. */
   if (wm->undo_stack->step_active && (wm->undo_stack->step_active->next == NULL)) {
