@@ -149,6 +149,7 @@ typedef struct OVERLAY_ExtraCallBuffers {
 
   DRWCallBuffer *extra_dashed_lines;
   DRWCallBuffer *extra_lines;
+  DRWCallBuffer *extra_points;
 
   DRWCallBuffer *field_curve;
   DRWCallBuffer *field_force;
@@ -388,6 +389,7 @@ typedef struct OVERLAY_InstanceFormats {
   struct GPUVertFormat *pos;
   struct GPUVertFormat *pos_color;
   struct GPUVertFormat *wire_extra;
+  struct GPUVertFormat *point_extra;
 } OVERLAY_InstanceFormats;
 
 /* Pack data into the last row of the 4x4 matrix. It will be decoded by the vertex shader. */
@@ -481,6 +483,7 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_speaker_cache_populate(OVERLAY_Data *vedata, Object *ob);
 
 OVERLAY_ExtraCallBuffers *OVERLAY_extra_call_buffer_get(OVERLAY_Data *vedata, Object *ob);
+void OVERLAY_extra_point(OVERLAY_ExtraCallBuffers *cb, const float point[3], const float color[4]);
 void OVERLAY_extra_line_dashed(OVERLAY_ExtraCallBuffers *cb,
                                const float start[3],
                                const float end[3],

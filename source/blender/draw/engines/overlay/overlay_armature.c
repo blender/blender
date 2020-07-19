@@ -178,6 +178,7 @@ void OVERLAY_armature_cache_init(OVERLAY_Data *vedata)
 
 #define BUF_INSTANCE DRW_shgroup_call_buffer_instance
 #define BUF_LINE(grp, format) DRW_shgroup_call_buffer(grp, format, GPU_PRIM_LINES)
+#define BUF_POINT(grp, format) DRW_shgroup_call_buffer(grp, format, GPU_PRIM_POINTS)
 
     {
       format = formats->instance_bone;

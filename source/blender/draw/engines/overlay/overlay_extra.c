@@ -199,6 +199,9 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
 
       cb->extra_loose_points = grp = DRW_shgroup_create(sh, extra_ps);
       DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+
+      /* Buffer access for drawing isolated points, matching `extra_lines`. */
+      cb->extra_points = BUF_POINT(grp, formats->point_extra);
     }
     {
       format = formats->pos;
@@ -228,6 +231,11 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
       cb->center_deselected_lib = BUF_POINT(grp_sub, format);
     }
   }
+}
+
+void OVERLAY_extra_point(OVERLAY_ExtraCallBuffers *cb, const float point[3], const float color[4])
+{
+  DRW_buffer_add_entry(cb->extra_points, point, color);
 }
 
 void OVERLAY_extra_line_dashed(OVERLAY_ExtraCallBuffers *cb,
