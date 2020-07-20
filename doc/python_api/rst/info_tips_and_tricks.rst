@@ -221,7 +221,7 @@ There are two ways to work around this:
   .. warning::
 
      The Python (major, minor) version must match the one that Blender comes with.
-     Therefor you can't use Python 3.6 with Blender built to use Python 3.7.
+     Therefore you can't use Python 3.6 with Blender built to use Python 3.7.
 
 - Copy or link the extensions into Blender's Python subdirectory so Blender can access them,
   you can also copy the entire Python installation into Blender's subdirectory,
@@ -274,8 +274,8 @@ The IPython prompt has auto-complete and some useful features that the standard 
    IPython.embed()
 
 
-Admittedly this highlights the lack of any Python debugging support built into Blender,
-but its still a handy thing to know.
+Admittedly, this highlights the lack of any Python debugging support built into Blender,
+but it's still a handy thing to know.
 
 
 Advanced
