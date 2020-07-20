@@ -97,9 +97,7 @@ class FILEBROWSER_PT_filter(Panel):
         params = space.params
         is_lib_browser = params.use_library_browsing
 
-        row = layout.row(align=True)
-        row.prop(params, "use_filter", text="", toggle=False)
-        row.label(text="Filter")
+        layout.prop(params, "use_filter", text="Filter", toggle=False)
 
         col = layout.column()
         col.active = params.use_filter
