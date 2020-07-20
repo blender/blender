@@ -196,7 +196,7 @@ static GPUTexture *create_density_texture(FluidDomainSettings *fds, int highres)
 
   float *data;
   if (highres) {
-    data = manta_smoke_turbulence_get_density(fds->fluid);
+    data = manta_noise_get_density(fds->fluid);
   }
   else {
     data = manta_smoke_get_density(fds->fluid);
@@ -212,14 +212,14 @@ static GPUTexture *create_density_texture(FluidDomainSettings *fds, int highres)
 
 static GPUTexture *create_color_texture(FluidDomainSettings *fds, int highres)
 {
-  const bool has_color = (highres) ? manta_smoke_turbulence_has_colors(fds->fluid) :
+  const bool has_color = (highres) ? manta_noise_has_colors(fds->fluid) :
                                      manta_smoke_has_colors(fds->fluid);
 
   if (!has_color) {
     return NULL;
   }
 
-  int cell_count = (highres) ? manta_smoke_turbulence_get_cells(fds->fluid) : fds->total_cells;
+  int cell_count = (highres) ? manta_noise_get_cells(fds->fluid) : fds->total_cells;
   int *dim = (highres) ? fds->res_noise : fds->res;
   float *data = MEM_callocN(sizeof(float) * cell_count * 4, "smokeColorTexture");
 
@@ -228,7 +228,7 @@ static GPUTexture *create_color_texture(FluidDomainSettings *fds, int highres)
   }
 
   if (highres) {
-    manta_smoke_turbulence_get_rgba(fds->fluid, data, 0);
+    manta_noise_get_rgba(fds->fluid, data, 0);
   }
   else {
     manta_smoke_get_rgba(fds->fluid, data, 0);
@@ -245,7 +245,7 @@ static GPUTexture *create_color_texture(FluidDomainSettings *fds, int highres)
 static GPUTexture *create_flame_texture(FluidDomainSettings *fds, int highres)
 {
   float *source = NULL;
-  const bool has_fuel = (highres) ? manta_smoke_turbulence_has_fuel(fds->fluid) :
+  const bool has_fuel = (highres) ? manta_noise_has_fuel(fds->fluid) :
                                     manta_smoke_has_fuel(fds->fluid);
   int *dim = (highres) ? fds->res_noise : fds->res;
 
@@ -254,7 +254,7 @@ static GPUTexture *create_flame_texture(FluidDomainSettings *fds, int highres)
   }
 
   if (highres) {
-    source = manta_smoke_turbulence_get_flame(fds->fluid);
+    source = manta_noise_get_flame(fds->fluid);
   }
   else {
     source = manta_smoke_get_flame(fds->fluid);

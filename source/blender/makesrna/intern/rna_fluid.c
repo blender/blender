@@ -718,10 +718,10 @@ static int rna_FluidModifier_grid_get_length(PointerRNA *ptr, int length[RNA_MAX
     /* high resolution smoke */
     int res[3];
 
-    manta_smoke_turbulence_get_res(fds->fluid, res);
+    manta_noise_get_res(fds->fluid, res);
     size = res[0] * res[1] * res[2];
 
-    density = manta_smoke_turbulence_get_density(fds->fluid);
+    density = manta_noise_get_density(fds->fluid);
   }
   else if (fds->fluid) {
     /* regular resolution */
@@ -790,7 +790,7 @@ static void rna_FluidModifier_density_grid_get(PointerRNA *ptr, float *values)
   BLI_rw_mutex_lock(fds->fluid_mutex, THREAD_LOCK_READ);
 
   if (fds->flags & FLUID_DOMAIN_USE_NOISE && fds->fluid) {
-    density = manta_smoke_turbulence_get_density(fds->fluid);
+    density = manta_noise_get_density(fds->fluid);
   }
   else {
     density = manta_smoke_get_density(fds->fluid);
@@ -837,11 +837,11 @@ static void rna_FluidModifier_color_grid_get(PointerRNA *ptr, float *values)
   }
   else {
     if (fds->flags & FLUID_DOMAIN_USE_NOISE) {
-      if (manta_smoke_turbulence_has_colors(fds->fluid)) {
-        manta_smoke_turbulence_get_rgba(fds->fluid, values, 0);
+      if (manta_noise_has_colors(fds->fluid)) {
+        manta_noise_get_rgba(fds->fluid, values, 0);
       }
       else {
-        manta_smoke_turbulence_get_rgba_fixed_color(fds->fluid, fds->active_color, values, 0);
+        manta_noise_get_rgba_fixed_color(fds->fluid, fds->active_color, values, 0);
       }
     }
     else {
@@ -867,7 +867,7 @@ static void rna_FluidModifier_flame_grid_get(PointerRNA *ptr, float *values)
   BLI_rw_mutex_lock(fds->fluid_mutex, THREAD_LOCK_READ);
 
   if (fds->flags & FLUID_DOMAIN_USE_NOISE && fds->fluid) {
-    flame = manta_smoke_turbulence_get_flame(fds->fluid);
+    flame = manta_noise_get_flame(fds->fluid);
   }
   else {
     flame = manta_smoke_get_flame(fds->fluid);
@@ -917,7 +917,7 @@ static void rna_FluidModifier_temperature_grid_get(PointerRNA *ptr, float *value
   BLI_rw_mutex_lock(fds->fluid_mutex, THREAD_LOCK_READ);
 
   if (fds->flags & FLUID_DOMAIN_USE_NOISE && fds->fluid) {
-    flame = manta_smoke_turbulence_get_flame(fds->fluid);
+    flame = manta_noise_get_flame(fds->fluid);
   }
   else {
     flame = manta_smoke_get_flame(fds->fluid);

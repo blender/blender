@@ -143,103 +143,78 @@ void BKE_fluid_reallocate_copy_fluid(FluidDomainSettings *fds,
                                      int o_shift[3],
                                      int n_shift[3])
 {
-  int x, y, z;
   struct MANTA *fluid_old = fds->fluid;
   const int block_size = fds->noise_scale;
   int new_shift[3] = {0};
   sub_v3_v3v3_int(new_shift, n_shift, o_shift);
 
-  /* allocate new fluid data */
+  /* Allocate new fluid data. */
   BKE_fluid_reallocate_fluid(fds, n_res, 0);
 
   int o_total_cells = o_res[0] * o_res[1] * o_res[2];
   int n_total_cells = n_res[0] * n_res[1] * n_res[2];
 
-  /* boundary cells will be skipped when copying data */
-  int bwidth = fds->boundary_width;
-
-  /* copy values from old fluid to new */
+  /* Copy values from old fluid to new fluid object. */
   if (o_total_cells > 1 && n_total_cells > 1) {
-    /* base smoke */
-    float *o_dens, *o_react, *o_flame, *o_fuel, *o_heat, *o_vx, *o_vy, *o_vz, *o_r, *o_g, *o_b;
-    float *n_dens, *n_react, *n_flame, *n_fuel, *n_heat, *n_vx, *n_vy, *n_vz, *n_r, *n_g, *n_b;
-    float dummy, *dummy_s;
-    int *dummy_p;
-    /* noise smoke */
+    float *o_dens = manta_smoke_get_density(fluid_old);
+    float *o_react = manta_smoke_get_react(fluid_old);
+    float *o_flame = manta_smoke_get_flame(fluid_old);
+    float *o_fuel = manta_smoke_get_fuel(fluid_old);
+    float *o_heat = manta_smoke_get_heat(fluid_old);
+    float *o_vx = manta_get_velocity_x(fluid_old);
+    float *o_vy = manta_get_velocity_y(fluid_old);
+    float *o_vz = manta_get_velocity_z(fluid_old);
+    float *o_r = manta_smoke_get_color_r(fluid_old);
+    float *o_g = manta_smoke_get_color_g(fluid_old);
+    float *o_b = manta_smoke_get_color_b(fluid_old);
+
+    float *n_dens = manta_smoke_get_density(fds->fluid);
+    float *n_react = manta_smoke_get_react(fds->fluid);
+    float *n_flame = manta_smoke_get_flame(fds->fluid);
+    float *n_fuel = manta_smoke_get_fuel(fds->fluid);
+    float *n_heat = manta_smoke_get_heat(fds->fluid);
+    float *n_vx = manta_get_velocity_x(fds->fluid);
+    float *n_vy = manta_get_velocity_y(fds->fluid);
+    float *n_vz = manta_get_velocity_z(fds->fluid);
+    float *n_r = manta_smoke_get_color_r(fds->fluid);
+    float *n_g = manta_smoke_get_color_g(fds->fluid);
+    float *n_b = manta_smoke_get_color_b(fds->fluid);
+
+    /* Noise smoke fields. */
     int wt_res_old[3];
-    float *o_wt_dens, *o_wt_react, *o_wt_flame, *o_wt_fuel, *o_wt_tcu, *o_wt_tcv, *o_wt_tcw,
-        *o_wt_tcu2, *o_wt_tcv2, *o_wt_tcw2, *o_wt_r, *o_wt_g, *o_wt_b;
-    float *n_wt_dens, *n_wt_react, *n_wt_flame, *n_wt_fuel, *n_wt_tcu, *n_wt_tcv, *n_wt_tcw,
-        *n_wt_tcu2, *n_wt_tcv2, *n_wt_tcw2, *n_wt_r, *n_wt_g, *n_wt_b;
+    float *o_wt_dens = manta_noise_get_density(fluid_old);
+    float *o_wt_react = manta_noise_get_react(fluid_old);
+    float *o_wt_flame = manta_noise_get_flame(fluid_old);
+    float *o_wt_fuel = manta_noise_get_fuel(fluid_old);
+    float *o_wt_r = manta_noise_get_color_r(fluid_old);
+    float *o_wt_g = manta_noise_get_color_g(fluid_old);
+    float *o_wt_b = manta_noise_get_color_b(fluid_old);
+    float *o_wt_tcu = manta_noise_get_texture_u(fluid_old);
+    float *o_wt_tcv = manta_noise_get_texture_v(fluid_old);
+    float *o_wt_tcw = manta_noise_get_texture_w(fluid_old);
+    float *o_wt_tcu2 = manta_noise_get_texture_u2(fluid_old);
+    float *o_wt_tcv2 = manta_noise_get_texture_v2(fluid_old);
+    float *o_wt_tcw2 = manta_noise_get_texture_w2(fluid_old);
 
-    if (fds->flags & FLUID_DOMAIN_USE_NOISE) {
-      manta_smoke_turbulence_export(fluid_old,
-                                    &o_wt_dens,
-                                    &o_wt_react,
-                                    &o_wt_flame,
-                                    &o_wt_fuel,
-                                    &o_wt_r,
-                                    &o_wt_g,
-                                    &o_wt_b,
-                                    &o_wt_tcu,
-                                    &o_wt_tcv,
-                                    &o_wt_tcw,
-                                    &o_wt_tcu2,
-                                    &o_wt_tcv2,
-                                    &o_wt_tcw2);
-      manta_smoke_turbulence_get_res(fluid_old, wt_res_old);
-      manta_smoke_turbulence_export(fds->fluid,
-                                    &n_wt_dens,
-                                    &n_wt_react,
-                                    &n_wt_flame,
-                                    &n_wt_fuel,
-                                    &n_wt_r,
-                                    &n_wt_g,
-                                    &n_wt_b,
-                                    &n_wt_tcu,
-                                    &n_wt_tcv,
-                                    &n_wt_tcw,
-                                    &n_wt_tcu2,
-                                    &n_wt_tcv2,
-                                    &n_wt_tcw2);
-    }
+    float *n_wt_dens = manta_noise_get_density(fds->fluid);
+    float *n_wt_react = manta_noise_get_react(fds->fluid);
+    float *n_wt_flame = manta_noise_get_flame(fds->fluid);
+    float *n_wt_fuel = manta_noise_get_fuel(fds->fluid);
+    float *n_wt_r = manta_noise_get_color_r(fds->fluid);
+    float *n_wt_g = manta_noise_get_color_g(fds->fluid);
+    float *n_wt_b = manta_noise_get_color_b(fds->fluid);
+    float *n_wt_tcu = manta_noise_get_texture_u(fds->fluid);
+    float *n_wt_tcv = manta_noise_get_texture_v(fds->fluid);
+    float *n_wt_tcw = manta_noise_get_texture_w(fds->fluid);
+    float *n_wt_tcu2 = manta_noise_get_texture_u2(fds->fluid);
+    float *n_wt_tcv2 = manta_noise_get_texture_v2(fds->fluid);
+    float *n_wt_tcw2 = manta_noise_get_texture_w2(fds->fluid);
 
-    manta_smoke_export(fluid_old,
-                       &dummy,
-                       &dummy,
-                       &o_dens,
-                       &o_react,
-                       &o_flame,
-                       &o_fuel,
-                       &o_heat,
-                       &o_vx,
-                       &o_vy,
-                       &o_vz,
-                       &o_r,
-                       &o_g,
-                       &o_b,
-                       &dummy_p,
-                       &dummy_s);
-    manta_smoke_export(fds->fluid,
-                       &dummy,
-                       &dummy,
-                       &n_dens,
-                       &n_react,
-                       &n_flame,
-                       &n_fuel,
-                       &n_heat,
-                       &n_vx,
-                       &n_vy,
-                       &n_vz,
-                       &n_r,
-                       &n_g,
-                       &n_b,
-                       &dummy_p,
-                       &dummy_s);
+    manta_noise_get_res(fluid_old, wt_res_old);
 
-    for (x = o_min[0]; x < o_max[0]; x++) {
-      for (y = o_min[1]; y < o_max[1]; y++) {
-        for (z = o_min[2]; z < o_max[2]; z++) {
+    for (int z = o_min[2]; z < o_max[2]; z++) {
+      for (int y = o_min[1]; y < o_max[1]; y++) {
+        for (int x = o_min[0]; x < o_max[0]; x++) {
           /* old grid index */
           int xo = x - o_min[0];
           int yo = y - o_min[1];
@@ -251,20 +226,31 @@ void BKE_fluid_reallocate_copy_fluid(FluidDomainSettings *fds,
           int zn = z - n_min[2] - new_shift[2];
           int index_new = manta_get_index(xn, n_res[0], yn, n_res[1], zn);
 
-          /* skip if outside new domain */
+          /* Skip if outside new domain. */
           if (xn < 0 || xn >= n_res[0] || yn < 0 || yn >= n_res[1] || zn < 0 || zn >= n_res[2]) {
             continue;
           }
-          /* skip if trying to copy from old boundary cell */
+#  if 0
+          /* Note (sebbas):
+           * Disabling this "skip section" as not copying borders results in weird cut-off effects.
+           * It is possible that this cutting off is the reason for line effects as seen in T74559.
+           * Since domain borders will be handled on the simulation side anyways,
+           * copying border values should not be an issue. */
+
+          /* boundary cells will be skipped when copying data */
+          int bwidth = fds->boundary_width;
+
+          /* Skip if trying to copy from old boundary cell. */
           if (xo < bwidth || yo < bwidth || zo < bwidth || xo >= o_res[0] - bwidth ||
               yo >= o_res[1] - bwidth || zo >= o_res[2] - bwidth) {
             continue;
           }
-          /* skip if trying to copy into new boundary cell */
+          /* Skip if trying to copy into new boundary cell. */
           if (xn < bwidth || yn < bwidth || zn < bwidth || xn >= n_res[0] - bwidth ||
               yn >= n_res[1] - bwidth || zn >= n_res[2] - bwidth) {
             continue;
           }
+#  endif
 
           /* copy data */
           if (fds->flags & FLUID_DOMAIN_USE_NOISE) {
@@ -1406,8 +1392,7 @@ static void update_obstacles(Depsgraph *depsgraph,
     /* Cannot use static mode with adaptive domain.
      * The adaptive domain might expand and only later in the simulations discover the static
      * object. */
-    bool is_static = is_static_object(effecobj) &&
-                     ((fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) == 0);
+    bool is_static = is_static_object(effecobj) && !use_adaptivedomain;
 
     /* Check for initialized effector object. */
     if ((fmd2->type & MOD_FLUID_TYPE_EFFEC) && fmd2->effector) {
@@ -2264,15 +2249,15 @@ static void adaptive_domain_adjust(
   int x, y, z;
   float *density = manta_smoke_get_density(fds->fluid);
   float *fuel = manta_smoke_get_fuel(fds->fluid);
-  float *bigdensity = manta_smoke_turbulence_get_density(fds->fluid);
-  float *bigfuel = manta_smoke_turbulence_get_fuel(fds->fluid);
+  float *bigdensity = manta_noise_get_density(fds->fluid);
+  float *bigfuel = manta_noise_get_fuel(fds->fluid);
   float *vx = manta_get_velocity_x(fds->fluid);
   float *vy = manta_get_velocity_y(fds->fluid);
   float *vz = manta_get_velocity_z(fds->fluid);
   int wt_res[3];
 
   if (fds->flags & FLUID_DOMAIN_USE_NOISE && fds->fluid) {
-    manta_smoke_turbulence_get_res(fds->fluid, wt_res);
+    manta_noise_get_res(fds->fluid, wt_res);
   }
 
   INIT_MINMAX(min_vel, max_vel);
@@ -3951,6 +3936,12 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
       break;
   }
 
+  /* Adaptive domain needs to know about current state, so save it here. */
+  copy_v3_v3_int(o_res, fds->res);
+  copy_v3_v3_int(o_min, fds->res_min);
+  copy_v3_v3_int(o_max, fds->res_max);
+  copy_v3_v3_int(o_shift, fds->shift);
+
   bool read_partial = false, read_all = false;
   /* Try to read from cache and keep track of read success. */
   if (read_cache) {
@@ -3983,27 +3974,14 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
       has_config = manta_read_config(fds->fluid, fmd, noise_frame);
 
       /* Only reallocate when just reading cache or when resuming during bake. */
-      if ((!baking_noise || (baking_noise && resume_noise)) && has_config &&
-          manta_needs_realloc(fds->fluid, fmd)) {
-        BKE_fluid_reallocate_fluid(fds, fds->res, 1);
+      if (has_data && has_config && manta_needs_realloc(fds->fluid, fmd)) {
+        BKE_fluid_reallocate_copy_fluid(
+            fds, o_res, fds->res, o_min, fds->res_min, o_max, o_shift, fds->shift);
       }
 
       read_partial = !baking_data && !baking_noise && next_noise;
       read_all = !read_partial && with_resumable_cache;
       has_noise = manta_read_noise(fds->fluid, fmd, noise_frame, read_all);
-
-      /* When using the adaptive domain, copy all data that was read to a new fluid object. */
-      if (with_adaptive && baking_noise) {
-        /* Adaptive domain needs to know about current state, so save it, then copy. */
-        copy_v3_v3_int(o_res, fds->res);
-        copy_v3_v3_int(o_min, fds->res_min);
-        copy_v3_v3_int(o_max, fds->res_max);
-        copy_v3_v3_int(o_shift, fds->shift);
-        if (has_config && manta_needs_realloc(fds->fluid, fmd)) {
-          BKE_fluid_reallocate_copy_fluid(
-              fds, o_res, fds->res, o_min, fds->res_min, o_max, o_shift, fds->shift);
-        }
-      }
 
       read_partial = !baking_data && !baking_noise && next_data && next_noise;
       read_all = !read_partial && with_resumable_cache;
@@ -4316,7 +4294,7 @@ static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *v
 {
   float bv[6] = {0};
   float light[3];
-  int a, z, slabsize = fds->res[0] * fds->res[1], size = fds->res[0] * fds->res[1] * fds->res[2];
+  int slabsize = fds->res[0] * fds->res[1];
   float *density = manta_smoke_get_density(fds->fluid);
   float *shadow = manta_smoke_get_shadow(fds->fluid);
   float correct = -7.0f * fds->dx;
@@ -4325,54 +4303,49 @@ static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *v
     return;
   }
 
-  /* convert light pos to sim cell space */
+  /* Convert light pos to sim cell space. */
   mul_m4_v3(fds->imat, light);
   light[0] = (light[0] - fds->p0[0]) / fds->cell_size[0] - 0.5f - (float)fds->res_min[0];
   light[1] = (light[1] - fds->p0[1]) / fds->cell_size[1] - 0.5f - (float)fds->res_min[1];
   light[2] = (light[2] - fds->p0[2]) / fds->cell_size[2] - 0.5f - (float)fds->res_min[2];
 
-  for (a = 0; a < size; a++) {
-    shadow[a] = -1.0f;
-  }
-
-  /* calculate domain bounds in sim cell space */
+  /* Calculate domain bounds in sim cell space. */
   // 0,2,4 = 0.0f
   bv[1] = (float)fds->res[0];  // x
   bv[3] = (float)fds->res[1];  // y
   bv[5] = (float)fds->res[2];  // z
 
-  for (z = 0; z < fds->res[2]; z++) {
+  for (int z = 0; z < fds->res[2]; z++) {
     size_t index = z * slabsize;
-    int x, y;
 
-    for (y = 0; y < fds->res[1]; y++) {
-      for (x = 0; x < fds->res[0]; x++, index++) {
+    for (int y = 0; y < fds->res[1]; y++) {
+      for (int x = 0; x < fds->res[0]; x++, index++) {
         float voxel_center[3];
         float pos[3];
         int cell[3];
         float t_ray = 1.0;
 
-        if (shadow[index] >= 0.0f) {
-          continue;
-        }
+        /* Reset shadow value.*/
+        shadow[index] = -1.0f;
+
         voxel_center[0] = (float)x;
         voxel_center[1] = (float)y;
         voxel_center[2] = (float)z;
 
-        // get starting cell (light pos)
+        /* Get starting cell (light pos). */
         if (BLI_bvhtree_bb_raycast(bv, light, voxel_center, pos) > FLT_EPSILON) {
-          // we're outside -> use point on side of domain
+          /* We're outside -> use point on side of domain. */
           cell[0] = (int)floor(pos[0]);
           cell[1] = (int)floor(pos[1]);
           cell[2] = (int)floor(pos[2]);
         }
         else {
-          // we're inside -> use light itself
+          /* We're inside -> use light itself. */
           cell[0] = (int)floor(light[0]);
           cell[1] = (int)floor(light[1]);
           cell[2] = (int)floor(light[2]);
         }
-        /* clamp within grid bounds */
+        /* Clamp within grid bounds */
         CLAMP(cell[0], 0, fds->res[0] - 1);
         CLAMP(cell[1], 0, fds->res[1] - 1);
         CLAMP(cell[2], 0, fds->res[2] - 1);
@@ -4390,7 +4363,7 @@ static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *v
                            fds->res,
                            correct);
 
-        // convention -> from a RGBA float array, use G value for t_ray
+        /* Convention -> from a RGBA float array, use G value for t_ray. */
         shadow[index] = t_ray;
       }
     }
