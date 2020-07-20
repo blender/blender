@@ -83,7 +83,7 @@ No updates after setting values
 -------------------------------
 
 Sometimes you want to modify values from Python and immediately access the updated values, e.g:
-Once changing the objects :class:`bpy.types.Object.location`
+Once changing the object's :class:`bpy.types.Object.location`
 you may want to access its transformation right after from :class:`bpy.types.Object.matrix_world`,
 but this doesn't work as you might expect.
 
