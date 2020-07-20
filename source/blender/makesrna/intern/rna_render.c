@@ -845,6 +845,14 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Use Eevee Viewport", "Uses Eevee for viewport shading in LookDev shading mode");
 
+  prop = RNA_def_property(srna, "bl_use_gpu_context", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_USE_GPU_CONTEXT);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(
+      prop,
+      "Use GPU Context",
+      "Enable OpenGL context for the render method, for engines that render using OpenGL");
+
   prop = RNA_def_property(srna, "bl_use_shading_nodes_custom", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_USE_SHADING_NODES_CUSTOM);
   RNA_def_property_boolean_default(prop, true);

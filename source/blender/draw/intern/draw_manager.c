@@ -1660,24 +1660,8 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
   RenderEngineType *engine_type = engine->type;
   RenderData *r = &scene->r;
   Render *render = engine->re;
-  /* Changing Context */
-  if (G.background && DST.gl_context == NULL) {
-    WM_init_opengl(G_MAIN);
-  }
 
-  void *re_gl_context = RE_gl_context_get(render);
-  void *re_gpu_context = NULL;
-
-  /* Changing Context */
-  if (re_gl_context != NULL) {
-    DRW_opengl_render_context_enable(re_gl_context);
-    /* We need to query gpu context after a gl context has been bound. */
-    re_gpu_context = RE_gpu_context_get(render);
-    DRW_gpu_render_context_enable(re_gpu_context);
-  }
-  else {
-    DRW_opengl_context_enable();
-  }
+  DRW_render_context_enable(render);
 
   /* Reset before using it. */
   drw_state_prepare_clean_for_draw(&DST);
@@ -1729,14 +1713,7 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
   /* Restore Drawing area. */
   GPU_framebuffer_restore();
 
-  /* Changing Context */
-  if (re_gl_context != NULL) {
-    DRW_gpu_render_context_disable(re_gpu_context);
-    DRW_opengl_render_context_disable(re_gl_context);
-  }
-  else {
-    DRW_opengl_context_disable();
-  }
+  DRW_render_context_disable(render);
 
   DST.buffer_finish_called = false;
 }
@@ -1748,24 +1725,6 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
   RenderEngineType *engine_type = engine->type;
   DrawEngineType *draw_engine_type = engine_type->draw_engine;
   Render *render = engine->re;
-
-  if (G.background && DST.gl_context == NULL) {
-    WM_init_opengl(G_MAIN);
-  }
-
-  void *re_gl_context = RE_gl_context_get(render);
-  void *re_gpu_context = NULL;
-
-  /* Changing Context */
-  if (re_gl_context != NULL) {
-    DRW_opengl_render_context_enable(re_gl_context);
-    /* We need to query gpu context after a gl context has been bound. */
-    re_gpu_context = RE_gpu_context_get(render);
-    DRW_gpu_render_context_enable(re_gpu_context);
-  }
-  else {
-    DRW_opengl_context_enable();
-  }
 
   /* IMPORTANT: We don't support immediate mode in render mode!
    * This shall remain in effect until immediate mode supports
@@ -1842,15 +1801,6 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 
   /* Reset state after drawing */
   DRW_state_reset();
-
-  /* Changing Context */
-  if (re_gl_context != NULL) {
-    DRW_gpu_render_context_disable(re_gpu_context);
-    DRW_opengl_render_context_disable(re_gl_context);
-  }
-  else {
-    DRW_opengl_context_disable();
-  }
 }
 
 void DRW_render_object_iter(
@@ -2763,6 +2713,42 @@ void DRW_engines_free(void)
   DRW_opengl_context_disable();
 }
 
+void DRW_render_context_enable(Render *render)
+{
+  if (G.background && DST.gl_context == NULL) {
+    WM_init_opengl(G_MAIN);
+  }
+
+  void *re_gl_context = RE_gl_context_get(render);
+
+  /* Changing Context */
+  if (re_gl_context != NULL) {
+    DRW_opengl_render_context_enable(re_gl_context);
+    /* We need to query gpu context after a gl context has been bound. */
+    void *re_gpu_context = NULL;
+    re_gpu_context = RE_gpu_context_get(render);
+    DRW_gpu_render_context_enable(re_gpu_context);
+  }
+  else {
+    DRW_opengl_context_enable();
+  }
+}
+
+void DRW_render_context_disable(Render *render)
+{
+  void *re_gl_context = RE_gl_context_get(render);
+
+  if (re_gl_context != NULL) {
+    void *re_gpu_context = NULL;
+    re_gpu_context = RE_gpu_context_get(render);
+    DRW_gpu_render_context_disable(re_gpu_context);
+    DRW_opengl_render_context_disable(re_gl_context);
+  }
+  else {
+    DRW_opengl_context_disable();
+  }
+}
+
 /** \} */
 
 /** \name Init/Exit (DRW_opengl_ctx)
@@ -2903,8 +2889,8 @@ void DRW_gpu_render_context_disable(void *UNUSED(re_gpu_context))
  * switch to it just to submit the final frame, which has notable performance impact.
  *
  * We could "inject" a context through DRW_opengl_render_context_enable(), but that would have to
- * work from the main thread, which is tricky to get working too. The preferable solution would be
- * using a separate thread for VR drawing where a single context can stay active. */
+ * work from the main thread, which is tricky to get working too. The preferable solution would
+ * be using a separate thread for VR drawing where a single context can stay active. */
 void *DRW_xr_opengl_context_get(void)
 {
   return DST.gl_context;

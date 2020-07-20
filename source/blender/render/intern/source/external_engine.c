@@ -863,7 +863,15 @@ int RE_engine_render(Render *re, int do_all)
         re->draw_lock(re->dlh, 0);
       }
 
+      if (engine->type->flag & RE_USE_GPU_CONTEXT) {
+        DRW_render_context_enable(engine->re);
+      }
+
       type->render(engine, engine->depsgraph);
+
+      if (engine->type->flag & RE_USE_GPU_CONTEXT) {
+        DRW_render_context_disable(engine->re);
+      }
 
       /* Grease pencil render over previous render result.
        *

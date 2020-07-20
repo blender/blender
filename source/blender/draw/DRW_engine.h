@@ -43,6 +43,7 @@ struct GPUViewport;
 struct ID;
 struct Main;
 struct Object;
+struct Render;
 struct RenderEngine;
 struct RenderEngineType;
 struct Scene;
@@ -136,6 +137,9 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
 /* This is here because GPUViewport needs it */
 struct DRWInstanceDataList *DRW_instance_data_list_create(void);
 void DRW_instance_data_list_free(struct DRWInstanceDataList *idatalist);
+
+void DRW_render_context_enable(struct Render *render);
+void DRW_render_context_disable(struct Render *render);
 
 void DRW_opengl_context_create(void);
 void DRW_opengl_context_destroy(void);

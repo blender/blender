@@ -641,7 +641,7 @@ RenderEngineType DRW_engine_viewport_workbench_type = {
     NULL,
     WORKBENCH_ENGINE,
     N_("Workbench"),
-    RE_INTERNAL | RE_USE_STEREO_VIEWPORT,
+    RE_INTERNAL | RE_USE_STEREO_VIEWPORT | RE_USE_GPU_CONTEXT,
     NULL,
     &DRW_render_to_image,
     NULL,

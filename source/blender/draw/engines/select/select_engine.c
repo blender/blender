@@ -378,7 +378,7 @@ RenderEngineType DRW_engine_viewport_select_type = {
     NULL,
     SELECT_ENGINE,
     N_("Select ID"),
-    RE_INTERNAL | RE_USE_STEREO_VIEWPORT,
+    RE_INTERNAL | RE_USE_STEREO_VIEWPORT | RE_USE_GPU_CONTEXT,
     NULL,
     NULL,
     NULL,
