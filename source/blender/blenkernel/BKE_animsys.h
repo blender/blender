@@ -52,12 +52,12 @@ struct bContext;
 typedef struct AnimationEvalContext {
   /* For drivers, so that they have access to the dependency graph and the current view layer. See
    * T77086. */
-  struct Depsgraph *const depsgraph;
+  struct Depsgraph *depsgraph;
 
   /* FCurves and Drivers can be evaluated at a different time than the current scene time, for
    * example when evaluating NLA strips. This means that, even though the current time is stored in
    * the dependency graph, we need an explicit evaluation time. */
-  const float eval_time;
+  float eval_time;
 } AnimationEvalContext;
 
 AnimationEvalContext BKE_animsys_eval_context_construct(struct Depsgraph *depsgraph,
