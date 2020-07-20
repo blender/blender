@@ -881,7 +881,7 @@ void UI_icons_reload_internal_textures(void)
     }
 
     if (need_icons_with_border && icongltex.tex[1] == NULL) {
-      icongltex.tex[0] = GPU_texture_create_nD(b32buf_border->x,
+      icongltex.tex[1] = GPU_texture_create_nD(b32buf_border->x,
                                                b32buf_border->y,
                                                0,
                                                2,
@@ -891,7 +891,7 @@ void UI_icons_reload_internal_textures(void)
                                                0,
                                                false,
                                                NULL);
-      GPU_texture_add_mipmap(icongltex.tex[0], GPU_DATA_UNSIGNED_BYTE, 1, b16buf_border->rect);
+      GPU_texture_add_mipmap(icongltex.tex[1], GPU_DATA_UNSIGNED_BYTE, 1, b16buf_border->rect);
     }
   }
 
