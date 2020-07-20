@@ -433,7 +433,7 @@ If you need to select between local and library data, there is a feature in ``bp
    # where the second argument excludes library data from being returned.
    obj = bpy.data.objects["my_obj", None]
 
-   # both the examples above also works for 'get'
+   # both of the examples above also work for 'get'
    obj = bpy.data.objects.get(("my_obj", None))
 
 
