@@ -594,6 +594,21 @@ template<typename T> class MutableSpan {
   }
 
   /**
+   * Does a linear search to count how often the value is in the array.
+   * Returns the number of occurrences.
+   */
+  int64_t count(const T &value) const
+  {
+    int64_t counter = 0;
+    for (const T &element : *this) {
+      if (element == value) {
+        counter++;
+      }
+    }
+    return counter;
+  }
+
+  /**
    * Returns a new span to the same underlying memory buffer. No conversions are done.
    */
   template<typename NewT> MutableSpan<NewT> cast() const

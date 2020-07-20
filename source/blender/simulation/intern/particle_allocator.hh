@@ -77,6 +77,11 @@ class ParticleAllocator : NonCopyable, NonMovable {
   {
   }
 
+  const fn::AttributesInfo &attributes_info() const
+  {
+    return attributes_allocator_.attributes_info();
+  }
+
   Span<fn::MutableAttributesRef> get_allocations() const
   {
     return attributes_allocator_.get_allocations();

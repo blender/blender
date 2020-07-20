@@ -57,13 +57,50 @@ class SimulationSolveContext {
   Simulation &simulation_;
   Depsgraph &depsgraph_;
   const SimulationInfluences &influences_;
+  TimeInterval solve_interval_;
 
  public:
   SimulationSolveContext(Simulation &simulation,
                          Depsgraph &depsgraph,
-                         const SimulationInfluences &influences)
-      : simulation_(simulation), depsgraph_(depsgraph), influences_(influences)
+                         const SimulationInfluences &influences,
+                         TimeInterval solve_interval)
+      : simulation_(simulation),
+        depsgraph_(depsgraph),
+        influences_(influences),
+        solve_interval_(solve_interval)
   {
+  }
+
+  TimeInterval solve_interval() const
+  {
+    return solve_interval_;
+  }
+
+  const SimulationInfluences &influences() const
+  {
+    return influences_;
+  }
+};
+
+class ParticleAllocators {
+ private:
+  Map<std::string, std::unique_ptr<ParticleAllocator>> &allocators_;
+
+ public:
+  ParticleAllocators(Map<std::string, std::unique_ptr<ParticleAllocator>> &allocators)
+      : allocators_(allocators)
+  {
+  }
+
+  ParticleAllocator *try_get_allocator(StringRef particle_simulation_name)
+  {
+    auto *ptr = allocators_.lookup_ptr_as(particle_simulation_name);
+    if (ptr != nullptr) {
+      return ptr->get();
+    }
+    else {
+      return nullptr;
+    }
   }
 };
 
@@ -97,12 +134,12 @@ class ParticleChunkContext {
 class ParticleEmitterContext {
  private:
   SimulationSolveContext &solve_context_;
-  Map<std::string, std::unique_ptr<ParticleAllocator>> &particle_allocators_;
+  ParticleAllocators &particle_allocators_;
   TimeInterval simulation_time_interval_;
 
  public:
   ParticleEmitterContext(SimulationSolveContext &solve_context,
-                         Map<std::string, std::unique_ptr<ParticleAllocator>> &particle_allocators,
+                         ParticleAllocators &particle_allocators,
                          TimeInterval simulation_time_interval)
       : solve_context_(solve_context),
         particle_allocators_(particle_allocators),
@@ -112,13 +149,7 @@ class ParticleEmitterContext {
 
   ParticleAllocator *try_get_particle_allocator(StringRef particle_simulation_name)
   {
-    auto *ptr = particle_allocators_.lookup_ptr_as(particle_simulation_name);
-    if (ptr != nullptr) {
-      return ptr->get();
-    }
-    else {
-      return nullptr;
-    }
+    return particle_allocators_.try_get_allocator(particle_simulation_name);
   }
 
   TimeInterval simulation_time_interval() const

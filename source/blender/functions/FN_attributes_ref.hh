@@ -179,6 +179,11 @@ class MutableAttributesRef {
     return range_.size();
   }
 
+  IndexRange index_range() const
+  {
+    return IndexRange(this->size());
+  }
+
   const AttributesInfo &info() const
   {
     return *info_;

@@ -278,10 +278,12 @@ class MyBasicEmitter : public ParticleEmitter {
 
     MutableSpan<float3> positions = attributes.get<float3>("Position");
     MutableSpan<float3> velocities = attributes.get<float3>("Velocity");
+    MutableSpan<float> birth_times = attributes.get<float>("Birth Time");
 
     for (int i : IndexRange(attributes.size())) {
       positions[i] = rng.get_unit_float3();
       velocities[i] = rng.get_unit_float3();
+      birth_times[i] = context.simulation_time_interval().start();
     }
   }
 };
@@ -307,6 +309,9 @@ static void prepare_particle_attribute_builders(nodes::MFNetworkTreeMap &network
     builder.add<float3>("Position", {0, 0, 0});
     builder.add<float3>("Velocity", {0, 0, 0});
     builder.add<int>("ID", 0);
+    /* TODO: Use bool property, but need to add CD_PROP_BOOL first. */
+    builder.add<int>("Dead", 0);
+    builder.add<float>("Birth Time", 0.0f);
     r_influences.particle_attributes_builder.add_new(std::move(name), &builder);
   }
 }
