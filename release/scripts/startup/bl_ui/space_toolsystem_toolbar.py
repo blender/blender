@@ -2496,15 +2496,17 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_sculpt.cloth_filter,
             lambda context: (
                 (_defs_sculpt.color_filter,)
-                if bpy.context.preferences.view.show_developer_ui and \
-                   bpy.context.preferences.experimental.use_sculpt_vertex_colors
+                if context is None or (
+                        context.preferences.view.show_developer_ui and
+                        context.preferences.experimental.use_sculpt_vertex_colors)
                 else ()
             ),
             None,
             lambda context: (
                 (_defs_sculpt.mask_by_color,)
-                if bpy.context.preferences.view.show_developer_ui and \
-                   bpy.context.preferences.experimental.use_sculpt_vertex_colors
+                if context is None or (
+                        context.preferences.view.show_developer_ui and
+                        context.preferences.experimental.use_sculpt_vertex_colors)
                 else ()
             ),
             None,

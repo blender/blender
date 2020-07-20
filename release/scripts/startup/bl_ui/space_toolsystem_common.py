@@ -271,18 +271,23 @@ class ToolSelectPanelHelper:
                     yield item, i
                     i += 1
 
-    # Special internal function, gives use items that contain keymaps.
     @staticmethod
-    def _tools_flatten_with_keymap(tools):
+    def _tools_flatten_with_dynamic(tools, *, context):
+        """
+        Expands dynamic items, indices aren't aligned with other flatten functions.
+        The context may be None, use as signal to return all items.
+        """
         for item_parent in tools:
             if item_parent is None:
-                continue
+                yield None
             for item in item_parent if (type(item_parent) is tuple) else (item_parent,):
-                # skip None or generator function
-                if item is None or _item_is_fn(item):
-                    continue
-                if item.keymap is not None:
+                if item is None:
+                    yield None
+                elif _item_is_fn(item):
+                    yield from ToolSelectPanelHelper._tools_flatten_with_dynamic(item(context), context=context)
+                else:
                     yield item
+
 
     @classmethod
     def _tool_get_active(cls, context, space_type, mode, with_icon=False):
@@ -484,8 +489,12 @@ class ToolSelectPanelHelper:
             else:
                 context_descr = context_mode.replace("_", " ").title()
 
-            for item in cls._tools_flatten_with_keymap(tools):
+            for item in cls._tools_flatten_with_dynamic(tools, context=None):
+                if item is None:
+                    continue
                 keymap_data = item.keymap
+                if keymap_data is None:
+                    continue
                 if callable(keymap_data[0]):
                     cls._km_action_simple(kc_default, kc_default, context_descr, item.label, keymap_data)
 
@@ -498,8 +507,13 @@ class ToolSelectPanelHelper:
 
         for context_mode_test, tools in cls.tools_all():
             if context_mode_test == context_mode:
-                for item in cls._tools_flatten_with_keymap(tools):
-                    km_name = item.keymap[0]
+                for item in cls._tools_flatten(tools):
+                    if item is None:
+                        continue
+                    keymap_data = item.keymap
+                    if keymap_data is None:
+                        continue
+                    km_name = keymap_data[0]
                     # print((km.name, cls.bl_space_type, 'WINDOW', []))
 
                     if km_name in visited:
