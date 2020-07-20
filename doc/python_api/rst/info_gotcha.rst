@@ -389,9 +389,9 @@ Its better practice not to reference objects by names at all,
 once created you can store the data in a list, dictionary, on a class, etc;
 there is rarely a reason to have to keep searching for the same data by name.
 
-If you do need to use name references, its best to use a dictionary to maintain
-a mapping between the names of the imported assets and the newly created data,
-this way you don't run this risk of referencing existing data from the blend-file, or worse modifying it.
+If you do need to use name references, it's best to use a dictionary to maintain
+a mapping between the names of the imported assets and the newly created data.
+This way you don't run into the risk of referencing existing data from the blend-file, or worse modifying it.
 
 .. code-block:: python
 
