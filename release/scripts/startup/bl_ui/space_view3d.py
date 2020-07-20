@@ -6153,7 +6153,7 @@ class VIEW3D_PT_overlay_motion_tracking(Panel):
 
     def draw_header(self, context):
         view = context.space_data
-        self.layout.prop(view, "show_reconstruction", text="")
+        self.layout.prop(view, "show_reconstruction", text=self.bl_label)
 
     def draw(self, context):
         layout = self.layout
