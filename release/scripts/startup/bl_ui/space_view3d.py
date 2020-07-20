@@ -6996,7 +6996,7 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
             col.separator()
 
             col.menu("VIEW3D_MT_mirror", text="Mirror Points")
-            col.menu("VIEW3D_MT_snap", text="Snap Points")
+            col.menu("GPENCIL_MT_snap", text="Snap Points")
 
             col.separator()
 
