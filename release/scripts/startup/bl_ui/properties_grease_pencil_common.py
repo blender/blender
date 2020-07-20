@@ -279,6 +279,29 @@ class GPENCIL_MT_snap(Menu):
         layout.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid")
 
 
+class GPENCIL_MT_snap_pie(Menu):
+    bl_label = "Snap"
+
+    def draw(self, _context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        pie.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid", icon='CURSOR')
+        pie.operator("gpencil.snap_to_grid", text="Selection to Grid", icon='RESTRICT_SELECT_OFF')
+        pie.operator("gpencil.snap_cursor_to_selected", text="Cursor to Selected", icon='CURSOR')
+        pie.operator(
+            "gpencil.snap_to_cursor",
+            text="Selection to Cursor",
+            icon='RESTRICT_SELECT_OFF'
+            ).use_offset = False
+        pie.operator(
+            "gpencil.snap_to_cursor",
+            text="Selection to Cursor (Keep Offset)",
+            icon='RESTRICT_SELECT_OFF'
+            ).use_offset = True
+        pie.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin", icon='CURSOR')
+
+
 class GPENCIL_MT_move_to_layer(Menu):
     bl_label = "Move to Layer"
 
@@ -901,6 +924,7 @@ class GreasePencilFlipTintColors(Operator):
 
 classes = (
     GPENCIL_MT_snap,
+    GPENCIL_MT_snap_pie,
     GPENCIL_MT_cleanup,
     GPENCIL_MT_move_to_layer,
     GPENCIL_MT_layer_active,
