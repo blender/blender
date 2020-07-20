@@ -24,7 +24,7 @@
 
 namespace blender {
 
-static Vector<Array<int64_t, 0, RawAllocator>, 1, RawAllocator> arrays;
+static RawVector<RawArray<int64_t, 0>> arrays;
 static int64_t current_array_size = 0;
 static int64_t *current_array = nullptr;
 static std::mutex current_array_mutex;
@@ -44,7 +44,7 @@ Span<int64_t> IndexRange::as_span() const
   }
 
   int64_t new_size = std::max<int64_t>(1000, power_of_2_max_u(min_required_size));
-  Array<int64_t, 0, RawAllocator> new_array(new_size);
+  RawArray<int64_t, 0> new_array(new_size);
   for (int64_t i = 0; i < new_size; i++) {
     new_array[i] = i;
   }

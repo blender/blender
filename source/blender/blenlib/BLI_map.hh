@@ -92,11 +92,8 @@ template<
      * The minimum number of elements that can be stored in this Map without doing a heap
      * allocation. This is useful when you expect to have many small maps. However, keep in mind
      * that (unlike vector) initializing a map has a O(n) cost in the number of slots.
-     *
-     * When Key or Value are large, the small buffer optimization is disabled by default to avoid
-     * large unexpected allocations on the stack. It can still be enabled explicitly though.
      */
-    int64_t InlineBufferCapacity = (sizeof(Key) + sizeof(Value) < 100) ? 4 : 0,
+    int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(Key) + sizeof(Value)),
     /**
      * The strategy used to deal with collisions. They are defined in BLI_probing_strategies.hh.
      */
@@ -1161,6 +1158,21 @@ class Map {
     }
   }
 };
+
+/**
+ * Same as a normal Map, but does not use Blender's guarded allocator. This is useful when
+ * allocating memory with static storage duration.
+ */
+template<typename Key,
+         typename Value,
+         int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(Key) +
+                                                                       sizeof(Value)),
+         typename ProbingStrategy = DefaultProbingStrategy,
+         typename Hash = DefaultHash<Key>,
+         typename IsEqual = DefaultEquality,
+         typename Slot = typename DefaultMapSlot<Key, Value>::type>
+using RawMap =
+    Map<Key, Value, InlineBufferCapacity, ProbingStrategy, Hash, IsEqual, Slot, RawAllocator>;
 
 /**
  * A wrapper for std::unordered_map with the API of blender::Map. This can be used for

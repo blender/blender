@@ -73,11 +73,8 @@ template<
      * The number of values that can be stored in this stack, without doing a heap allocation.
      * Sometimes it can make sense to increase this value a lot. The memory in the inline buffer is
      * not initialized when it is not needed.
-     *
-     * When T is large, the small buffer optimization is disabled by default to avoid large
-     * unexpected allocations on the stack. It can still be enabled explicitly though.
      */
-    int64_t InlineBufferCapacity = (sizeof(T) < 100) ? 4 : 0,
+    int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(T)),
     /**
      * The allocator used by this stack. Should rarely be changed, except when you don't want that
      * MEM_* is used internally.
@@ -380,6 +377,13 @@ class Stack {
     }
   }
 };
+
+/**
+ * Same as a normal Stack, but does not use Blender's guarded allocator. This is useful when
+ * allocating memory with static storage duration.
+ */
+template<typename T, int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(T))>
+using RawStack = Stack<T, InlineBufferCapacity, RawAllocator>;
 
 } /* namespace blender */
 

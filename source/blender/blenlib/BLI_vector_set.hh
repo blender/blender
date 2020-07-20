@@ -732,6 +732,17 @@ class VectorSet {
   }
 };
 
+/**
+ * Same as a normal VectorSet, but does not use Blender's guarded allocator. This is useful when
+ * allocating memory with static storage duration.
+ */
+template<typename Key,
+         typename ProbingStrategy = DefaultProbingStrategy,
+         typename Hash = DefaultHash<Key>,
+         typename IsEqual = DefaultEquality,
+         typename Slot = typename DefaultVectorSetSlot<Key>::type>
+using RawVectorSet = VectorSet<Key, ProbingStrategy, Hash, IsEqual, Slot, RawAllocator>;
+
 }  // namespace blender
 
 #endif /* __BLI_VECTOR_SET_HH__ */

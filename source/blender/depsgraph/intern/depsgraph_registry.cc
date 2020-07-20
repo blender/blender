@@ -30,9 +30,7 @@
 namespace blender {
 namespace deg {
 
-/* TODO: Static variables should use RawAllocator to avoid false positives of Blender's memory leak
- * detector. */
-static Map<Main *, VectorSet<Depsgraph *>> g_graph_registry;
+static RawMap<Main *, RawVectorSet<Depsgraph *>> g_graph_registry;
 
 void register_graph(Depsgraph *depsgraph)
 {
@@ -43,7 +41,7 @@ void register_graph(Depsgraph *depsgraph)
 void unregister_graph(Depsgraph *depsgraph)
 {
   Main *bmain = depsgraph->bmain;
-  VectorSet<Depsgraph *> &graphs = g_graph_registry.lookup(bmain);
+  RawVectorSet<Depsgraph *> &graphs = g_graph_registry.lookup(bmain);
   graphs.remove(depsgraph);
 
   // If this was the last depsgraph associated with the main, remove the main entry as well.
@@ -54,7 +52,7 @@ void unregister_graph(Depsgraph *depsgraph)
 
 Span<Depsgraph *> get_all_registered_graphs(Main *bmain)
 {
-  VectorSet<Depsgraph *> *graphs = g_graph_registry.lookup_ptr(bmain);
+  RawVectorSet<Depsgraph *> *graphs = g_graph_registry.lookup_ptr(bmain);
   if (graphs != nullptr) {
     return *graphs;
   }

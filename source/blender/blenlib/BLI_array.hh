@@ -53,11 +53,8 @@ template<
     typename T,
     /**
      * The number of values that can be stored in the array, without doing a heap allocation.
-     *
-     * When T is large, the small buffer optimization is disabled by default to avoid large
-     * unexpected allocations on the stack. It can still be enabled explicitly though.
      */
-    int64_t InlineBufferCapacity = (sizeof(T) < 100) ? 4 : 0,
+    int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(T)),
     /**
      * The allocator used by this array. Should rarely be changed, except when you don't want that
      * MEM_* functions are used internally.
@@ -363,6 +360,13 @@ class Array {
     return data_ == inline_buffer_;
   }
 };
+
+/**
+ * Same as a normal Array, but does not use Blender's guarded allocator. This is useful when
+ * allocating memory with static storage duration.
+ */
+template<typename T, int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(T))>
+using RawArray = Array<T, InlineBufferCapacity, RawAllocator>;
 
 }  // namespace blender
 

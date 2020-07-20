@@ -89,11 +89,8 @@ template<
      * The minimum number of elements that can be stored in this Set without doing a heap
      * allocation. This is useful when you expect to have many small sets. However, keep in mind
      * that (unlike vector) initializing a set has a O(n) cost in the number of slots.
-     *
-     * When Key is large, the small buffer optimization is disabled by default to avoid large
-     * unexpected allocations on the stack. It can still be enabled explicitly though.
      */
-    int64_t InlineBufferCapacity = (sizeof(Key) < 100) ? 4 : 0,
+    int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(Key)),
     /**
      * The strategy used to deal with collisions. They are defined in BLI_probing_strategies.hh.
      */
@@ -820,6 +817,18 @@ template<typename Key> class StdUnorderedSetWrapper {
     return set_.end();
   }
 };
+
+/**
+ * Same as a normal Set, but does not use Blender's guarded allocator. This is useful when
+ * allocating memory with static storage duration.
+ */
+template<typename Key,
+         int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(Key)),
+         typename ProbingStrategy = DefaultProbingStrategy,
+         typename Hash = DefaultHash<Key>,
+         typename IsEqual = DefaultEquality,
+         typename Slot = typename DefaultSetSlot<Key>::type>
+using RawSet = Set<Key, InlineBufferCapacity, ProbingStrategy, Hash, IsEqual, Slot, RawAllocator>;
 
 }  // namespace blender
 

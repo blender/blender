@@ -419,6 +419,15 @@ template<typename From, typename To>
 inline constexpr bool is_convertible_pointer_v =
     std::is_convertible_v<From, To> &&std::is_pointer_v<From> &&std::is_pointer_v<To>;
 
+/**
+ * Inline buffers for small-object-optimization should be disable by default. Otherwise we might
+ * get large unexpected allocations on the stack.
+ */
+inline constexpr int64_t default_inline_buffer_capacity(size_t element_size)
+{
+  return ((int64_t)element_size < 100) ? 4 : 0;
+}
+
 }  // namespace blender
 
 #endif /* __BLI_MEMORY_UTILS_HH__ */

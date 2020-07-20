@@ -70,7 +70,7 @@ template<
      * When T is large, the small buffer optimization is disabled by default to avoid large
      * unexpected allocations on the stack. It can still be enabled explicitly though.
      */
-    int64_t InlineBufferCapacity = (sizeof(T) < 100) ? 4 : 0,
+    int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(T)),
     /**
      * The allocator used by this vector. Should rarely be changed, except when you don't want that
      * MEM_* is used internally.
@@ -823,6 +823,13 @@ class Vector {
 };
 
 #undef UPDATE_VECTOR_SIZE
+
+/**
+ * Same as a normal Vector, but does not use Blender's guarded allocator. This is useful when
+ * allocating memory with static storage duration.
+ */
+template<typename T, int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(T))>
+using RawVector = Vector<T, InlineBufferCapacity, RawAllocator>;
 
 } /* namespace blender */
 

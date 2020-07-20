@@ -33,9 +33,9 @@ namespace blender::fn {
 struct MFSignature {
   std::string function_name;
   /* Use RawAllocator so that a MultiFunction can have static storage duration. */
-  Vector<std::string, 4, RawAllocator> param_names;
-  Vector<MFParamType, 4, RawAllocator> param_types;
-  Vector<int, 4, RawAllocator> param_data_indices;
+  RawVector<std::string> param_names;
+  RawVector<MFParamType> param_types;
+  RawVector<int> param_data_indices;
 
   int data_index(int param_index) const
   {
