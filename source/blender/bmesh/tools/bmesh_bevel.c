@@ -6730,11 +6730,19 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
     verts[2] = mesh_vert(vm2, i2, 0, nseg - k)->v;
     if (odd && k == mid + 1) {
       BMFace *fchoices[2] = {f1, f2};
-      edges[0] = edges[1] = NULL;
-      edges[2] = edges[3] = bme;
       f_choice = choose_rep_face(bp, fchoices, 2);
       if (e1->is_seam) {
-        /* Straddles a seam: choose to interpolate in f_choice and snap right edge to bme. */
+        /* Straddles a seam: choose to interpolate in f_choice and snap the loops whose verts
+         * are in the non-chosen face to bme for interpolation purposes.
+         */
+        if (f_choice == f1) {
+          edges[0] = edges[1] = NULL;
+          edges[2] = edges[3] = bme;
+        }
+        else {
+          edges[0] = edges[1] = bme;
+          edges[2] = edges[3] = NULL;
+        }
         r_f = bev_create_ngon(bm, verts, 4, NULL, f_choice, edges, mat_nr, true);
       }
       else {
