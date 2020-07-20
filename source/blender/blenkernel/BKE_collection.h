@@ -153,7 +153,8 @@ bool BKE_collection_move(struct Main *bmain,
                          bool relative_after,
                          struct Collection *collection);
 
-bool BKE_collection_find_cycle(struct Collection *new_ancestor, struct Collection *collection);
+bool BKE_collection_cycle_find(struct Collection *new_ancestor, struct Collection *collection);
+bool BKE_collection_cycles_fix(struct Main *bmain, struct Collection *collection);
 
 bool BKE_collection_has_collection(struct Collection *parent, struct Collection *collection);
 
