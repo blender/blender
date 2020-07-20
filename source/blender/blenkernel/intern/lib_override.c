@@ -1120,11 +1120,11 @@ void BKE_lib_override_library_main_operations_create(Main *bmain, const bool for
   TaskPool *task_pool = BLI_task_pool_create(bmain, TASK_PRIORITY_HIGH);
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if ((ID_IS_OVERRIDE_LIBRARY_REAL(id) && force_auto) ||
-        (id->tag & LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH)) {
+    if (ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
+        (force_auto || (id->tag & LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH))) {
       BLI_task_pool_push(task_pool, lib_override_library_operations_create_cb, id, false, NULL);
-      id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
     }
+    id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
   }
   FOREACH_MAIN_ID_END;
 
