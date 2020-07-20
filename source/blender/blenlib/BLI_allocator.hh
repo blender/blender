@@ -85,7 +85,7 @@ class RawAllocator {
     void *used_ptr = (void *)((uintptr_t)POINTER_OFFSET(ptr, alignment + sizeof(MemHead)) &
                               ~((uintptr_t)alignment - 1));
     int offset = (int)((uintptr_t)used_ptr - (uintptr_t)ptr);
-    BLI_assert(offset >= sizeof(MemHead));
+    BLI_assert((size_t)offset >= sizeof(MemHead));
     ((MemHead *)used_ptr - 1)->offset = (int)offset;
     return used_ptr;
   }
