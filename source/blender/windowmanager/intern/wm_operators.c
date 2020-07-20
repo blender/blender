@@ -2799,7 +2799,9 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
    * new value is displayed in sliders/numfields */
   WM_event_add_notifier(C, NC_WINDOW, NULL);
 
-  GPU_texture_free(rc->texture);
+  if (rc->texture != NULL) {
+    GPU_texture_free(rc->texture);
+  }
 
   MEM_freeN(rc);
 }
