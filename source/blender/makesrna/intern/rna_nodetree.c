@@ -4448,7 +4448,7 @@ static void def_sh_tex_sky(StructRNA *srna)
   RNA_def_property_update(prop, 0, "rna_ShaderNode_socket_update");
 
   prop = RNA_def_property(srna, "sun_size", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_ui_text(prop, "Sun Size", "Size of sun disc (angular diameter)");
+  RNA_def_property_ui_text(prop, "Sun Size", "Size of sun disc");
   RNA_def_property_range(prop, 0.0f, M_PI_2);
   RNA_def_property_float_default(prop, DEG2RADF(0.545));
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
@@ -4460,7 +4460,7 @@ static void def_sh_tex_sky(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "sun_elevation", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_ui_text(prop, "Sun Elevation", "Angle between sun and horizon");
+  RNA_def_property_ui_text(prop, "Sun Elevation", "Sun angle from horizon");
   RNA_def_property_range(prop, -M_PI_2, M_PI_2);
   RNA_def_property_float_default(prop, M_PI_2);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
@@ -4471,25 +4471,25 @@ static void def_sh_tex_sky(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "altitude", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Altitude", "Height from sea level in km");
+  RNA_def_property_ui_text(prop, "Altitude", "Height from sea level");
   RNA_def_property_range(prop, 0.0f, 60.0f);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "air_density", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_ui_text(prop, "Air", "Density of air molecules (Rayleigh scattering)");
+  RNA_def_property_ui_text(prop, "Air", "Density of air molecules");
   RNA_def_property_range(prop, 0.0f, 10.0f);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "dust_density", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_ui_text(prop, "Dust", "Density of dust and water molecules (Mie scattering)");
+  RNA_def_property_ui_text(prop, "Dust", "Density of dust molecules and water droplets");
   RNA_def_property_range(prop, 0.0f, 10.0f);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "ozone_density", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_ui_text(prop, "Ozone", "Density of Ozone layer (Ozone absorption)");
+  RNA_def_property_ui_text(prop, "Ozone", "Density of Ozone layer");
   RNA_def_property_range(prop, 0.0f, 10.0f);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");

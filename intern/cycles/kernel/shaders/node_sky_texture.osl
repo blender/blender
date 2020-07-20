@@ -204,8 +204,8 @@ color sky_radiance_nishita(vector dir, float nishita_data[10], string filename)
             mul;
     }
   }
-  /* convert to RGB and adjust strength */
-  return xyz_to_rgb(xyz[0], xyz[1], xyz[2]) * 120000.0;
+  /* convert to RGB */
+  return xyz_to_rgb(xyz[0], xyz[1], xyz[2]);
 }
 
 shader node_sky_texture(

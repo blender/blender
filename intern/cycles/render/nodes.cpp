@@ -798,7 +798,7 @@ NODE_DEFINE(SkyTextureNode)
   SOCKET_BOOLEAN(sun_disc, "Sun Disc", true);
   SOCKET_FLOAT(sun_size, "Sun Size", 0.009512f);
   SOCKET_FLOAT(sun_intensity, "Sun Intensity", 1.0f);
-  SOCKET_FLOAT(sun_elevation, "Sun Elevation", M_PI_2_F);
+  SOCKET_FLOAT(sun_elevation, "Sun Elevation", 15.0f * M_PI_F / 180.0f);
   SOCKET_FLOAT(sun_rotation, "Sun Rotation", 0.0f);
   SOCKET_FLOAT(altitude, "Altitude", 1.0f);
   SOCKET_FLOAT(air_density, "Air", 1.0f);

@@ -43,9 +43,9 @@ static void node_shader_init_tex_sky(bNodeTree *UNUSED(ntree), bNode *node)
   tex->turbidity = 2.2f;
   tex->ground_albedo = 0.3f;
   tex->sun_disc = true;
-  tex->sun_size = DEG2RADF(0.545);
+  tex->sun_size = DEG2RADF(0.545f);
   tex->sun_intensity = 1.0f;
-  tex->sun_elevation = M_PI_2;
+  tex->sun_elevation = DEG2RADF(15.0f);
   tex->sun_rotation = 0.0f;
   tex->altitude = 0.0f;
   tex->air_density = 1.0f;

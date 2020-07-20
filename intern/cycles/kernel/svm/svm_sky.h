@@ -205,8 +205,8 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals *kg,
     }
   }
 
-  /* convert to rgb and adjust strength */
-  return xyz_to_rgb(kg, xyz) * 120000.0f;
+  /* convert to RGB */
+  return xyz_to_rgb(kg, xyz);
 }
 
 ccl_device void svm_node_tex_sky(
