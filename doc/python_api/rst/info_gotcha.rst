@@ -115,9 +115,9 @@ Can I redraw during script execution?
 The official answer to this is no, or... *"You don't want to do that"*.
 To give some background on the topic:
 
-While a script executes Blender waits for it to finish and is effectively locked until its done,
-while in this state Blender won't redraw or respond to user input.
-Normally this is not such a problem because scripts distributed with Blender
+While a script executes Blender waits for it to finish and is effectively locked until it's done.
+In this state, Blender won't redraw or respond to user input.
+Normally, this is not such a problem because scripts distributed with Blender
 tend not to run for an extended period of time,
 nevertheless scripts *can* take a long time to complete and it would be nice to see progress in the viewport.
 
