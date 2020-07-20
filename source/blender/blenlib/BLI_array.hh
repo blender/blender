@@ -269,6 +269,14 @@ class Array {
   }
 
   /**
+   * Copies the given value to every element in the array.
+   */
+  void fill(const T &value) const
+  {
+    initialized_fill_n(data_, size_, value);
+  }
+
+  /**
    * Get a pointer to the beginning of the array.
    */
   const T *data() const

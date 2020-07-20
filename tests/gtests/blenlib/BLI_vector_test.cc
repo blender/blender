@@ -624,4 +624,16 @@ TEST(vector, ConstructVoidPointerVector)
   EXPECT_EQ(vec.size(), 3);
 }
 
+TEST(vector, Fill)
+{
+  Vector<int> vec(5);
+  vec.fill(3);
+  EXPECT_EQ(vec.size(), 5u);
+  EXPECT_EQ(vec[0], 3);
+  EXPECT_EQ(vec[1], 3);
+  EXPECT_EQ(vec[2], 3);
+  EXPECT_EQ(vec[3], 3);
+  EXPECT_EQ(vec[4], 3);
+}
+
 }  // namespace blender

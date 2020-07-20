@@ -161,4 +161,16 @@ TEST(array, NoInitializationSizeConstructor)
   }
 }
 
+TEST(array, Fill)
+{
+  Array<int> array(5);
+  array.fill(3);
+  EXPECT_EQ(array.size(), 5u);
+  EXPECT_EQ(array[0], 3);
+  EXPECT_EQ(array[1], 3);
+  EXPECT_EQ(array[2], 3);
+  EXPECT_EQ(array[3], 3);
+  EXPECT_EQ(array[4], 3);
+}
+
 }  // namespace blender

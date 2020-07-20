@@ -703,6 +703,14 @@ class Vector {
   }
 
   /**
+   * Copies the given value to every element in the vector.
+   */
+  void fill(const T &value) const
+  {
+    initialized_fill_n(begin_, this->size(), value);
+  }
+
+  /**
    * Get access to the underlying array.
    */
   T *data()
