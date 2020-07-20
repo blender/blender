@@ -46,15 +46,15 @@ class DSocket : NonCopyable, NonMovable {
  protected:
   DNode *node_;
   const SocketRef *socket_ref_;
-  uint id_;
+  int id_;
 
   friend DerivedNodeTree;
 
  public:
   const DNode &node() const;
 
-  uint id() const;
-  uint index() const;
+  int id() const;
+  int index() const;
 
   bool is_input() const;
   bool is_output() const;
@@ -105,7 +105,7 @@ class DGroupInput : NonCopyable, NonMovable {
   const InputSocketRef *socket_ref_;
   DParentNode *parent_;
   Vector<DInputSocket *> linked_sockets_;
-  uint id_;
+  int id_;
 
   friend DerivedNodeTree;
 
@@ -114,7 +114,7 @@ class DGroupInput : NonCopyable, NonMovable {
   bNodeSocket *bsocket() const;
   const DParentNode *parent() const;
   Span<const DInputSocket *> linked_sockets() const;
-  uint id() const;
+  int id() const;
   StringRefNull name() const;
 };
 
@@ -126,7 +126,7 @@ class DNode : NonCopyable, NonMovable {
   Span<DInputSocket *> inputs_;
   Span<DOutputSocket *> outputs_;
 
-  uint id_;
+  int id_;
 
   friend DerivedNodeTree;
 
@@ -137,13 +137,13 @@ class DNode : NonCopyable, NonMovable {
   Span<const DInputSocket *> inputs() const;
   Span<const DOutputSocket *> outputs() const;
 
-  const DInputSocket &input(uint index) const;
-  const DOutputSocket &output(uint index) const;
+  const DInputSocket &input(int index) const;
+  const DOutputSocket &output(int index) const;
 
-  const DInputSocket &input(uint index, StringRef expected_name) const;
-  const DOutputSocket &output(uint index, StringRef expected_name) const;
+  const DInputSocket &input(int index, StringRef expected_name) const;
+  const DOutputSocket &output(int index, StringRef expected_name) const;
 
-  uint id() const;
+  int id() const;
 
   PointerRNA *rna() const;
   StringRefNull idname() const;
@@ -157,14 +157,14 @@ class DParentNode : NonCopyable, NonMovable {
  private:
   const NodeRef *node_ref_;
   DParentNode *parent_;
-  uint id_;
+  int id_;
 
   friend DerivedNodeTree;
 
  public:
   const DParentNode *parent() const;
   const NodeRef &node_ref() const;
-  uint id() const;
+  int id() const;
 };
 
 using NodeTreeRefMap = Map<bNodeTree *, std::unique_ptr<const NodeTreeRef>>;
@@ -240,12 +240,12 @@ inline const DNode &DSocket::node() const
   return *node_;
 }
 
-inline uint DSocket::id() const
+inline int DSocket::id() const
 {
   return id_;
 }
 
-inline uint DSocket::index() const
+inline int DSocket::index() const
 {
   return socket_ref_->index();
 }
@@ -367,7 +367,7 @@ inline Span<const DInputSocket *> DGroupInput::linked_sockets() const
   return linked_sockets_;
 }
 
-inline uint DGroupInput::id() const
+inline int DGroupInput::id() const
 {
   return id_;
 }
@@ -401,17 +401,17 @@ inline Span<const DOutputSocket *> DNode::outputs() const
   return outputs_;
 }
 
-inline const DInputSocket &DNode::input(uint index) const
+inline const DInputSocket &DNode::input(int index) const
 {
   return *inputs_[index];
 }
 
-inline const DOutputSocket &DNode::output(uint index) const
+inline const DOutputSocket &DNode::output(int index) const
 {
   return *outputs_[index];
 }
 
-inline const DInputSocket &DNode::input(uint index, StringRef expected_name) const
+inline const DInputSocket &DNode::input(int index, StringRef expected_name) const
 {
   const DInputSocket &socket = *inputs_[index];
   BLI_assert(socket.name() == expected_name);
@@ -419,7 +419,7 @@ inline const DInputSocket &DNode::input(uint index, StringRef expected_name) con
   return socket;
 }
 
-inline const DOutputSocket &DNode::output(uint index, StringRef expected_name) const
+inline const DOutputSocket &DNode::output(int index, StringRef expected_name) const
 {
   const DOutputSocket &socket = *outputs_[index];
   BLI_assert(socket.name() == expected_name);
@@ -427,7 +427,7 @@ inline const DOutputSocket &DNode::output(uint index, StringRef expected_name) c
   return socket;
 }
 
-inline uint DNode::id() const
+inline int DNode::id() const
 {
   return id_;
 }
@@ -461,7 +461,7 @@ inline const NodeRef &DParentNode::node_ref() const
   return *node_ref_;
 }
 
-inline uint DParentNode::id() const
+inline int DParentNode::id() const
 {
   return id_;
 }

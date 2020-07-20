@@ -78,7 +78,7 @@ class ConcatVectorsFunction : public MultiFunction {
     GVectorArrayRef<int> a = params.vector_mutable<int>(0);
     VArraySpan<int> b = params.readonly_vector_input<int>(1);
 
-    for (uint i : mask) {
+    for (int64_t i : mask) {
       a.extend(i, b[i]);
     }
   }
@@ -98,7 +98,7 @@ class AppendFunction : public MultiFunction {
     GVectorArrayRef<int> vectors = params.vector_mutable<int>(0);
     VSpan<int> values = params.readonly_single_input<int>(1);
 
-    for (uint i : mask) {
+    for (int64_t i : mask) {
       vectors.append(i, values[i]);
     }
   }
@@ -118,10 +118,10 @@ class SumVectorFunction : public MultiFunction {
     VArraySpan<int> vectors = params.readonly_vector_input<int>(0);
     MutableSpan<int> sums = params.uninitialized_single_output<int>(1);
 
-    for (uint i : mask) {
+    for (int64_t i : mask) {
       int sum = 0;
       VSpan<int> vector = vectors[i];
-      for (uint j = 0; j < vector.size(); j++) {
+      for (int j = 0; j < vector.size(); j++) {
         sum += vector[j];
       }
       sums[i] = sum;
@@ -143,7 +143,7 @@ class CreateRangeFunction : public MultiFunction {
     VSpan<int> sizes = params.readonly_single_input<int>(0, "Size");
     GVectorArrayRef<int> ranges = params.vector_output<int>(1, "Range");
 
-    for (int i : mask) {
+    for (int64_t i : mask) {
       int size = sizes[i];
       for (int j : IndexRange(size)) {
         ranges.append(i, j);

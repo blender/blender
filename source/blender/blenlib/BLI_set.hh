@@ -93,7 +93,7 @@ template<
      * When Key is large, the small buffer optimization is disabled by default to avoid large
      * unexpected allocations on the stack. It can still be enabled explicitly though.
      */
-    uint32_t InlineBufferCapacity = (sizeof(Key) < 100) ? 4 : 0,
+    int64_t InlineBufferCapacity = (sizeof(Key) < 100) ? 4 : 0,
     /**
      * The strategy used to deal with collisions. They are defined in BLI_probing_strategies.hh.
      */
@@ -128,20 +128,20 @@ class Set {
    * Slots are either empty, occupied or removed. The number of occupied slots can be computed by
    * subtracting the removed slots from the occupied-and-removed slots.
    */
-  uint32_t removed_slots_;
-  uint32_t occupied_and_removed_slots_;
+  int64_t removed_slots_;
+  int64_t occupied_and_removed_slots_;
 
   /**
    * The maximum number of slots that can be used (either occupied or removed) until the set has to
    * grow. This is the total number of slots times the max load factor.
    */
-  uint32_t usable_slots_;
+  int64_t usable_slots_;
 
   /**
    * The number of slots minus one. This is a bit mask that can be used to turn any integer into a
    * valid slot index efficiently.
    */
-  uint32_t slot_mask_;
+  uint64_t slot_mask_;
 
   /** This is called to hash incoming keys. */
   Hash hash_;
@@ -384,11 +384,11 @@ class Set {
   class Iterator {
    private:
     const Slot *slots_;
-    uint32_t total_slots_;
-    uint32_t current_slot_;
+    int64_t total_slots_;
+    int64_t current_slot_;
 
    public:
-    Iterator(const Slot *slots, uint32_t total_slots, uint32_t current_slot)
+    Iterator(const Slot *slots, int64_t total_slots, int64_t current_slot)
         : slots_(slots), total_slots_(total_slots), current_slot_(current_slot)
     {
     }
@@ -418,7 +418,7 @@ class Set {
 
   Iterator begin() const
   {
-    for (uint32_t i = 0; i < slots_.size(); i++) {
+    for (int64_t i = 0; i < slots_.size(); i++) {
       if (slots_[i].is_occupied()) {
         return Iterator(slots_.data(), slots_.size(), i);
       }
@@ -444,7 +444,7 @@ class Set {
    * Get the number of collisions that the probing strategy has to go through to find the key or
    * determine that it is not in the set.
    */
-  uint32_t count_collisions(const Key &key) const
+  int64_t count_collisions(const Key &key) const
   {
     return this->count_collisions__impl(key, hash_(key));
   }
@@ -470,7 +470,7 @@ class Set {
   /**
    * Returns the number of keys stored in the set.
    */
-  uint32_t size() const
+  int64_t size() const
   {
     return occupied_and_removed_slots_ - removed_slots_;
   }
@@ -486,7 +486,7 @@ class Set {
   /**
    * Returns the number of available slots. This is mostly for debugging purposes.
    */
-  uint32_t capacity() const
+  int64_t capacity() const
   {
     return slots_.size();
   }
@@ -494,7 +494,7 @@ class Set {
   /**
    * Returns the amount of removed slots in the set. This is mostly for debugging purposes.
    */
-  uint32_t removed_amount() const
+  int64_t removed_amount() const
   {
     return removed_slots_;
   }
@@ -502,7 +502,7 @@ class Set {
   /**
    * Returns the bytes required per element. This is mostly for debugging purposes.
    */
-  uint32_t size_per_element() const
+  int64_t size_per_element() const
   {
     return sizeof(Slot);
   }
@@ -511,7 +511,7 @@ class Set {
    * Returns the approximate memory requirements of the set in bytes. This is more correct for
    * larger sets.
    */
-  uint32_t size_in_bytes() const
+  int64_t size_in_bytes() const
   {
     return sizeof(Slot) * slots_.size();
   }
@@ -520,7 +520,7 @@ class Set {
    * Potentially resize the set such that it can hold the specified number of keys without another
    * grow operation.
    */
-  void reserve(const uint32_t n)
+  void reserve(const int64_t n)
   {
     if (usable_slots_ < n) {
       this->realloc_and_reinsert(n);
@@ -554,12 +554,13 @@ class Set {
   }
 
  private:
-  BLI_NOINLINE void realloc_and_reinsert(const uint32_t min_usable_slots)
+  BLI_NOINLINE void realloc_and_reinsert(const int64_t min_usable_slots)
   {
-    uint32_t total_slots, usable_slots;
+    int64_t total_slots, usable_slots;
     max_load_factor_.compute_total_and_usable_slots(
         SlotArray::inline_buffer_capacity(), min_usable_slots, &total_slots, &usable_slots);
-    const uint32_t new_slot_mask = total_slots - 1;
+    BLI_assert(total_slots >= 1);
+    const uint64_t new_slot_mask = (uint64_t)total_slots - 1;
 
     /**
      * Optimize the case when the set was empty beforehand. We can avoid some copies here.
@@ -595,9 +596,9 @@ class Set {
 
   void add_after_grow_and_destruct_old(Slot &old_slot,
                                        SlotArray &new_slots,
-                                       const uint32_t new_slot_mask)
+                                       const uint64_t new_slot_mask)
   {
-    const uint32_t hash = old_slot.get_hash(Hash());
+    const uint64_t hash = old_slot.get_hash(Hash());
 
     SLOT_PROBING_BEGIN (ProbingStrategy, hash, new_slot_mask, slot_index) {
       Slot &slot = new_slots[slot_index];
@@ -610,7 +611,7 @@ class Set {
   }
 
   template<typename ForwardKey>
-  bool contains__impl(const ForwardKey &key, const uint32_t hash) const
+  bool contains__impl(const ForwardKey &key, const uint64_t hash) const
   {
     SET_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.is_empty()) {
@@ -624,7 +625,7 @@ class Set {
   }
 
   template<typename ForwardKey>
-  const Key &lookup_key__impl(const ForwardKey &key, const uint32_t hash) const
+  const Key &lookup_key__impl(const ForwardKey &key, const uint64_t hash) const
   {
     BLI_assert(this->contains_as(key));
 
@@ -637,7 +638,7 @@ class Set {
   }
 
   template<typename ForwardKey>
-  const Key *lookup_key_ptr__impl(const ForwardKey &key, const uint32_t hash) const
+  const Key *lookup_key_ptr__impl(const ForwardKey &key, const uint64_t hash) const
   {
     SET_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, is_equal_, hash)) {
@@ -650,7 +651,7 @@ class Set {
     SET_SLOT_PROBING_END();
   }
 
-  template<typename ForwardKey> void add_new__impl(ForwardKey &&key, const uint32_t hash)
+  template<typename ForwardKey> void add_new__impl(ForwardKey &&key, const uint64_t hash)
   {
     BLI_assert(!this->contains_as(key));
 
@@ -666,7 +667,7 @@ class Set {
     SET_SLOT_PROBING_END();
   }
 
-  template<typename ForwardKey> bool add__impl(ForwardKey &&key, const uint32_t hash)
+  template<typename ForwardKey> bool add__impl(ForwardKey &&key, const uint64_t hash)
   {
     this->ensure_can_add();
 
@@ -683,7 +684,7 @@ class Set {
     SET_SLOT_PROBING_END();
   }
 
-  template<typename ForwardKey> bool remove__impl(const ForwardKey &key, const uint32_t hash)
+  template<typename ForwardKey> bool remove__impl(const ForwardKey &key, const uint64_t hash)
   {
     SET_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, is_equal_, hash)) {
@@ -699,7 +700,7 @@ class Set {
   }
 
   template<typename ForwardKey>
-  void remove_contained__impl(const ForwardKey &key, const uint32_t hash)
+  void remove_contained__impl(const ForwardKey &key, const uint64_t hash)
   {
     BLI_assert(this->contains_as(key));
     removed_slots_++;
@@ -714,9 +715,9 @@ class Set {
   }
 
   template<typename ForwardKey>
-  uint32_t count_collisions__impl(const ForwardKey &key, const uint32_t hash) const
+  int64_t count_collisions__impl(const ForwardKey &key, const uint64_t hash) const
   {
-    uint32_t collisions = 0;
+    int64_t collisions = 0;
 
     SET_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, is_equal_, hash)) {
@@ -749,9 +750,9 @@ template<typename Key> class StdUnorderedSetWrapper {
   SetType set_;
 
  public:
-  uint32_t size() const
+  int64_t size() const
   {
-    return (uint32_t)set_.size();
+    return (int64_t)set_.size();
   }
 
   bool is_empty() const
@@ -759,7 +760,7 @@ template<typename Key> class StdUnorderedSetWrapper {
     return set_.empty();
   }
 
-  void reserve(uint32_t n)
+  void reserve(int64_t n)
   {
     set_.reserve(n);
   }

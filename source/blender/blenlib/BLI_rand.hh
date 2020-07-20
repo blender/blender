@@ -86,7 +86,7 @@ class RandomNumberGenerator {
   /**
    * Simulate getting \a n random values.
    */
-  void skip(uint n)
+  void skip(int64_t n)
   {
     while (n--) {
       this->step();

@@ -93,8 +93,7 @@ void BLI_rng_srandom(RNG *rng, unsigned int seed)
 
 void BLI_rng_get_char_n(RNG *rng, char *bytes, size_t bytes_len)
 {
-  BLI_assert(bytes_len > UINT32_MAX);
-  rng->rng.get_bytes(blender::MutableSpan(bytes, (uint32_t)bytes_len));
+  rng->rng.get_bytes(blender::MutableSpan(bytes, (int64_t)bytes_len));
 }
 
 int BLI_rng_get_int(RNG *rng)
@@ -428,11 +427,11 @@ float2 RandomNumberGenerator::get_triangle_sample(float2 v1, float2 v2, float2 v
 
 void RandomNumberGenerator::get_bytes(MutableSpan<char> r_bytes)
 {
-  constexpr uint mask_bytes = 2;
-  constexpr uint rand_stride = (uint)sizeof(x_) - mask_bytes;
+  constexpr int64_t mask_bytes = 2;
+  constexpr int64_t rand_stride = (int64_t)sizeof(x_) - mask_bytes;
 
-  uint last_len = 0;
-  uint trim_len = r_bytes.size();
+  int64_t last_len = 0;
+  int64_t trim_len = r_bytes.size();
 
   if (trim_len > rand_stride) {
     last_len = trim_len % rand_stride;
@@ -444,13 +443,13 @@ void RandomNumberGenerator::get_bytes(MutableSpan<char> r_bytes)
   }
 
   const char *data_src = (const char *)&x_;
-  uint i = 0;
+  int64_t i = 0;
   while (i != trim_len) {
     BLI_assert(i < trim_len);
 #ifdef __BIG_ENDIAN__
-    for (uint j = (rand_stride + mask_bytes) - 1; j != mask_bytes - 1; j--)
+    for (int64_t j = (rand_stride + mask_bytes) - 1; j != mask_bytes - 1; j--)
 #else
-    for (uint j = 0; j != rand_stride; j++)
+    for (int64_t j = 0; j != rand_stride; j++)
 #endif
     {
       r_bytes[i++] = data_src[j];
@@ -458,7 +457,7 @@ void RandomNumberGenerator::get_bytes(MutableSpan<char> r_bytes)
     this->step();
   }
   if (last_len) {
-    for (uint j = 0; j != last_len; j++) {
+    for (int64_t j = 0; j != last_len; j++) {
       r_bytes[i++] = data_src[j];
     }
   }

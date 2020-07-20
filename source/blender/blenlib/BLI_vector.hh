@@ -70,7 +70,7 @@ template<
      * When T is large, the small buffer optimization is disabled by default to avoid large
      * unexpected allocations on the stack. It can still be enabled explicitly though.
      */
-    uint InlineBufferCapacity = (sizeof(T) < 100) ? 4 : 0,
+    int64_t InlineBufferCapacity = (sizeof(T) < 100) ? 4 : 0,
     /**
      * The allocator used by this vector. Should rarely be changed, except when you don't want that
      * MEM_* is used internally.
@@ -100,8 +100,8 @@ class Vector {
    * annoying. Knowing the size of a vector is often quite essential when debugging some code.
    */
 #ifndef NDEBUG
-  uint debug_size_;
-#  define UPDATE_VECTOR_SIZE(ptr) (ptr)->debug_size_ = (uint)((ptr)->end_ - (ptr)->begin_)
+  int64_t debug_size_;
+#  define UPDATE_VECTOR_SIZE(ptr) (ptr)->debug_size_ = (int64_t)((ptr)->end_ - (ptr)->begin_)
 #else
 #  define UPDATE_VECTOR_SIZE(ptr) ((void)0)
 #endif
@@ -110,7 +110,7 @@ class Vector {
    * Be a friend with other vector instantiations. This is necessary to implement some memory
    * management logic.
    */
-  template<typename OtherT, uint OtherInlineBufferCapacity, typename OtherAllocator>
+  template<typename OtherT, int64_t OtherInlineBufferCapacity, typename OtherAllocator>
   friend class Vector;
 
  public:
@@ -131,7 +131,7 @@ class Vector {
    * The elements will be default constructed.
    * If T is trivially constructible, the elements in the vector are not touched.
    */
-  explicit Vector(uint size) : Vector()
+  explicit Vector(int64_t size) : Vector()
   {
     this->resize(size);
   }
@@ -139,7 +139,7 @@ class Vector {
   /**
    * Create a vector filled with a specific value.
    */
-  Vector(uint size, const T &value) : Vector()
+  Vector(int64_t size, const T &value) : Vector()
   {
     this->resize(size, value);
   }
@@ -150,7 +150,7 @@ class Vector {
   template<typename U, typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>
   Vector(Span<U> values, Allocator allocator = {}) : Vector(allocator)
   {
-    const uint size = values.size();
+    const int64_t size = values.size();
     this->reserve(size);
     this->increase_size_by_unchecked(size);
     uninitialized_convert_n<U, T>(values.data(), size, begin_);
@@ -217,7 +217,7 @@ class Vector {
    * Create a copy of a vector with a different InlineBufferCapacity. This needs to be handled
    * separately, so that the other one is a valid copy constructor.
    */
-  template<uint OtherInlineBufferCapacity>
+  template<int64_t OtherInlineBufferCapacity>
   Vector(const Vector<T, OtherInlineBufferCapacity, Allocator> &other)
       : Vector(other.as_span(), other.allocator_)
   {
@@ -227,11 +227,11 @@ class Vector {
    * Steal the elements from another vector. This does not do an allocation. The other vector will
    * have zero elements afterwards.
    */
-  template<uint OtherInlineBufferCapacity>
+  template<int64_t OtherInlineBufferCapacity>
   Vector(Vector<T, OtherInlineBufferCapacity, Allocator> &&other) noexcept
       : allocator_(other.allocator_)
   {
-    const uint size = other.size();
+    const int64_t size = other.size();
 
     if (other.is_inline()) {
       if (size <= InlineBufferCapacity) {
@@ -243,8 +243,8 @@ class Vector {
       }
       else {
         /* Copy from inline buffer to newly allocated buffer. */
-        const uint capacity = size;
-        begin_ = (T *)allocator_.allocate(sizeof(T) * capacity, alignof(T), AT);
+        const int64_t capacity = size;
+        begin_ = (T *)allocator_.allocate(sizeof(T) * (size_t)capacity, alignof(T), AT);
         end_ = begin_ + size;
         capacity_end_ = begin_ + capacity;
         uninitialized_relocate_n(other.begin_, size, begin_);
@@ -302,14 +302,16 @@ class Vector {
    * Get the value at the given index. This invokes undefined behavior when the index is out of
    * bounds.
    */
-  const T &operator[](uint index) const
+  const T &operator[](int64_t index) const
   {
+    BLI_assert(index >= 0);
     BLI_assert(index < this->size());
     return begin_[index];
   }
 
-  T &operator[](uint index)
+  T &operator[](int64_t index)
   {
+    BLI_assert(index >= 0);
     BLI_assert(index < this->size());
     return begin_[index];
   }
@@ -351,7 +353,7 @@ class Vector {
    * This won't necessarily make an allocation when min_capacity is small.
    * The actual size of the vector does not change.
    */
-  void reserve(const uint min_capacity)
+  void reserve(const int64_t min_capacity)
   {
     if (min_capacity > this->capacity()) {
       this->realloc_to_at_least(min_capacity);
@@ -364,9 +366,10 @@ class Vector {
    * destructed. If new_size is larger than the old size, the new elements at the end are default
    * constructed. If T is trivially constructible, the memory is not touched by this function.
    */
-  void resize(const uint new_size)
+  void resize(const int64_t new_size)
   {
-    const uint old_size = this->size();
+    BLI_assert(new_size >= 0);
+    const int64_t old_size = this->size();
     if (new_size > old_size) {
       this->reserve(new_size);
       default_construct_n(begin_ + old_size, new_size - old_size);
@@ -384,9 +387,10 @@ class Vector {
    * destructed. If new_size is larger than the old size, the new elements will be copy constructed
    * from the given value.
    */
-  void resize(const uint new_size, const T &value)
+  void resize(const int64_t new_size, const T &value)
   {
-    const uint old_size = this->size();
+    BLI_assert(new_size >= 0);
+    const int64_t old_size = this->size();
     if (new_size > old_size) {
       this->reserve(new_size);
       uninitialized_fill_n(begin_ + old_size, new_size - old_size, value);
@@ -447,9 +451,9 @@ class Vector {
    * Append the value to the vector and return the index that can be used to access the newly
    * added value.
    */
-  uint append_and_get_index(const T &value)
+  int64_t append_and_get_index(const T &value)
   {
-    const uint index = this->size();
+    const int64_t index = this->size();
     this->append(value);
     return index;
   }
@@ -490,8 +494,9 @@ class Vector {
    * Insert the same element n times at the end of the vector.
    * This might result in a reallocation internally.
    */
-  void append_n_times(const T &value, const uint n)
+  void append_n_times(const T &value, const int64_t n)
   {
+    BLI_assert(n >= 0);
     this->reserve(this->size() + n);
     blender::uninitialized_fill_n(end_, n, value);
     this->increase_size_by_unchecked(n);
@@ -503,7 +508,7 @@ class Vector {
    * useful when you want to call constructors in the vector yourself. This should only be done in
    * very rare cases and has to be justified every time.
    */
-  void increase_size_by_unchecked(const uint n)
+  void increase_size_by_unchecked(const int64_t n)
   {
     BLI_assert(end_ + n <= capacity_end_);
     end_ += n;
@@ -519,7 +524,7 @@ class Vector {
   {
     this->extend(array.data(), array.size());
   }
-  void extend(const T *start, uint amount)
+  void extend(const T *start, int64_t amount)
   {
     this->reserve(this->size() + amount);
     this->extend_unchecked(start, amount);
@@ -545,8 +550,9 @@ class Vector {
   {
     this->extend_unchecked(array.data(), array.size());
   }
-  void extend_unchecked(const T *start, uint amount)
+  void extend_unchecked(const T *start, int64_t amount)
   {
+    BLI_assert(amount >= 0);
     BLI_assert(begin_ + amount <= capacity_end_);
     blender::uninitialized_copy_n(start, amount, end_);
     end_ += amount;
@@ -569,28 +575,12 @@ class Vector {
   }
 
   /**
-   * Replace every element with a new value.
-   */
-  void fill(const T &value)
-  {
-    initialized_fill_n(begin_, this->size(), value);
-  }
-
-  /**
-   * Copy the value to all positions specified by the indices array.
-   */
-  void fill_indices(Span<uint> indices, const T &value)
-  {
-    MutableSpan<T>(*this).fill_indices(indices, value);
-  }
-
-  /**
    * Return how many values are currently stored in the vector.
    */
-  uint size() const
+  int64_t size() const
   {
-    BLI_assert(debug_size_ == (uint)(end_ - begin_));
-    return (uint)(end_ - begin_);
+    BLI_assert(debug_size_ == (int64_t)(end_ - begin_));
+    return (int64_t)(end_ - begin_);
   }
 
   /**
@@ -635,8 +625,9 @@ class Vector {
    * Delete any element in the vector. The empty space will be filled by the previously last
    * element. This takes O(1) time.
    */
-  void remove_and_reorder(const uint index)
+  void remove_and_reorder(const int64_t index)
   {
+    BLI_assert(index >= 0);
     BLI_assert(index < this->size());
     T *element_to_remove = begin_ + index;
     end_--;
@@ -653,8 +644,8 @@ class Vector {
    */
   void remove_first_occurrence_and_reorder(const T &value)
   {
-    const uint index = this->first_index_of(value);
-    this->remove_and_reorder((uint)index);
+    const int64_t index = this->first_index_of(value);
+    this->remove_and_reorder(index);
   }
 
   /**
@@ -664,11 +655,12 @@ class Vector {
    *
    * This is similar to std::vector::erase.
    */
-  void remove(const uint index)
+  void remove(const int64_t index)
   {
+    BLI_assert(index >= 0);
     BLI_assert(index < this->size());
-    const uint last_index = this->size() - 1;
-    for (uint i = index; i < last_index; i++) {
+    const int64_t last_index = this->size() - 1;
+    for (int64_t i = index; i < last_index; i++) {
       begin_[i] = std::move(begin_[i + 1]);
     }
     begin_[last_index].~T();
@@ -680,11 +672,11 @@ class Vector {
    * Do a linear search to find the value in the vector.
    * When found, return the first index, otherwise return -1.
    */
-  int first_index_of_try(const T &value) const
+  int64_t first_index_of_try(const T &value) const
   {
     for (const T *current = begin_; current != end_; current++) {
       if (*current == value) {
-        return (int)(current - begin_);
+        return (int64_t)(current - begin_);
       }
     }
     return -1;
@@ -694,11 +686,11 @@ class Vector {
    * Do a linear search to find the value in the vector and return the found index. This invokes
    * undefined behavior when the value is not in the vector.
    */
-  uint first_index_of(const T &value) const
+  int64_t first_index_of(const T &value) const
   {
-    const int index = this->first_index_of_try(value);
+    const int64_t index = this->first_index_of_try(value);
     BLI_assert(index >= 0);
-    return (uint)index;
+    return index;
   }
 
   /**
@@ -748,9 +740,9 @@ class Vector {
    * Get the current capacity of the vector, i.e. the maximum number of elements the vector can
    * hold, before it has to reallocate.
    */
-  uint capacity() const
+  int64_t capacity() const
   {
-    return (uint)(capacity_end_ - begin_);
+    return (int64_t)(capacity_end_ - begin_);
   }
 
   /**
@@ -758,7 +750,7 @@ class Vector {
    * Obviously, this should only be used when you actually need the index in the loop.
    *
    * Example:
-   *  for (uint i : myvector.index_range()) {
+   *  for (int64_t i : myvector.index_range()) {
    *    do_something(i, my_vector[i]);
    *  }
    */
@@ -796,7 +788,7 @@ class Vector {
     }
   }
 
-  BLI_NOINLINE void realloc_to_at_least(const uint min_capacity)
+  BLI_NOINLINE void realloc_to_at_least(const int64_t min_capacity)
   {
     if (this->capacity() >= min_capacity) {
       return;
@@ -804,12 +796,12 @@ class Vector {
 
     /* At least double the size of the previous allocation. Otherwise consecutive calls to grow can
      * cause a reallocation every time even though min_capacity only increments.  */
-    const uint min_new_capacity = this->capacity() * 2;
+    const int64_t min_new_capacity = this->capacity() * 2;
 
-    const uint new_capacity = std::max(min_capacity, min_new_capacity);
-    const uint size = this->size();
+    const int64_t new_capacity = std::max(min_capacity, min_new_capacity);
+    const int64_t size = this->size();
 
-    T *new_array = (T *)allocator_.allocate(new_capacity * (uint)sizeof(T), alignof(T), AT);
+    T *new_array = (T *)allocator_.allocate((size_t)new_capacity * sizeof(T), alignof(T), AT);
     uninitialized_relocate_n(begin_, size, new_array);
 
     if (!this->is_inline()) {

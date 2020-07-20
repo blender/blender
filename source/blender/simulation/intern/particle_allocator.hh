@@ -31,13 +31,13 @@ class AttributesAllocator : NonCopyable, NonMovable {
  private:
   struct AttributesBlock {
     Array<void *> buffers;
-    uint size;
+    int size;
   };
 
   const fn::AttributesInfo &attributes_info_;
   Vector<std::unique_ptr<AttributesBlock>> allocated_blocks_;
   Vector<fn::MutableAttributesRef> allocated_attributes_;
-  uint total_allocated_ = 0;
+  int total_allocated_ = 0;
   std::mutex mutex_;
 
  public:
@@ -53,7 +53,7 @@ class AttributesAllocator : NonCopyable, NonMovable {
     return allocated_attributes_;
   }
 
-  uint total_allocated() const
+  int total_allocated() const
   {
     return total_allocated_;
   }
@@ -63,16 +63,16 @@ class AttributesAllocator : NonCopyable, NonMovable {
     return attributes_info_;
   }
 
-  fn::MutableAttributesRef allocate_uninitialized(uint size);
+  fn::MutableAttributesRef allocate_uninitialized(int size);
 };
 
 class ParticleAllocator : NonCopyable, NonMovable {
  private:
   AttributesAllocator attributes_allocator_;
-  std::atomic<uint> next_id_;
+  std::atomic<int> next_id_;
 
  public:
-  ParticleAllocator(const fn::AttributesInfo &attributes_info, uint next_id)
+  ParticleAllocator(const fn::AttributesInfo &attributes_info, int next_id)
       : attributes_allocator_(attributes_info), next_id_(next_id)
   {
   }
@@ -82,12 +82,12 @@ class ParticleAllocator : NonCopyable, NonMovable {
     return attributes_allocator_.get_allocations();
   }
 
-  uint total_allocated() const
+  int total_allocated() const
   {
     return attributes_allocator_.total_allocated();
   }
 
-  fn::MutableAttributesRef allocate(uint size);
+  fn::MutableAttributesRef allocate(int size);
 };
 
 }  // namespace blender::sim

@@ -63,14 +63,14 @@ static const fn::CPPType &custom_to_cpp_data_type(CustomDataType type)
 class CustomDataAttributesRef {
  private:
   Array<void *> buffers_;
-  uint size_;
+  int64_t size_;
   const fn::AttributesInfo &info_;
 
  public:
-  CustomDataAttributesRef(CustomData &custom_data, uint size, const fn::AttributesInfo &info)
+  CustomDataAttributesRef(CustomData &custom_data, int64_t size, const fn::AttributesInfo &info)
       : buffers_(info.size(), nullptr), size_(size), info_(info)
   {
-    for (uint attribute_index : info.index_range()) {
+    for (int attribute_index : info.index_range()) {
       StringRefNull name = info.name_of(attribute_index);
       const fn::CPPType &cpp_type = info.type_of(attribute_index);
       CustomDataType custom_type = cpp_to_custom_data_type(cpp_type);
@@ -108,7 +108,7 @@ static void ensure_attributes_exist(ParticleSimulationState *state, const fn::At
     }
   } while (found_layer_to_remove);
 
-  for (uint attribute_index : info.index_range()) {
+  for (int attribute_index : info.index_range()) {
     StringRefNull attribute_name = info.name_of(attribute_index);
     const fn::CPPType &cpp_type = info.type_of(attribute_index);
     CustomDataType custom_type = cpp_to_custom_data_type(cpp_type);
@@ -120,8 +120,7 @@ static void ensure_attributes_exist(ParticleSimulationState *state, const fn::At
                                               nullptr,
                                               state->tot_particles,
                                               attribute_name.c_str());
-      cpp_type.fill_uninitialized(
-          info.default_of(attribute_index), data, (uint)state->tot_particles);
+      cpp_type.fill_uninitialized(info.default_of(attribute_index), data, state->tot_particles);
     }
   }
 }
@@ -156,21 +155,21 @@ void solve_simulation_time_step(Simulation &simulation,
   }
 
   LISTBASE_FOREACH (ParticleSimulationState *, state, &simulation.states) {
+
     const fn::AttributesInfo &attributes_info = *attribute_infos.lookup_as(state->head.name);
     CustomDataAttributesRef custom_data_attributes{
-        state->attributes, (uint)state->tot_particles, attributes_info};
+        state->attributes, state->tot_particles, attributes_info};
     fn::MutableAttributesRef attributes = custom_data_attributes;
 
     MutableSpan<float3> positions = attributes.get<float3>("Position");
     MutableSpan<float3> velocities = attributes.get<float3>("Velocity");
 
-    Array<float3> force_vectors{(uint)state->tot_particles, {0, 0, 0}};
+    Array<float3> force_vectors{state->tot_particles, {0, 0, 0}};
     const Vector<const ParticleForce *> *forces = influences.particle_forces.lookup_ptr(
         state->head.name);
 
     if (forces != nullptr) {
-      ParticleChunkContext particle_chunk_context{IndexMask((uint)state->tot_particles),
-                                                  attributes};
+      ParticleChunkContext particle_chunk_context{IndexMask(state->tot_particles), attributes};
       ParticleForceContext particle_force_context{
           solve_context, particle_chunk_context, force_vectors};
 
@@ -179,7 +178,7 @@ void solve_simulation_time_step(Simulation &simulation,
       }
     }
 
-    for (uint i : positions.index_range()) {
+    for (int i : positions.index_range()) {
       velocities[i] += force_vectors[i] * time_step;
       positions[i] += velocities[i] * time_step;
     }
@@ -195,9 +194,9 @@ void solve_simulation_time_step(Simulation &simulation,
     const fn::AttributesInfo &attributes_info = *attribute_infos.lookup_as(state->head.name);
     ParticleAllocator &allocator = *particle_allocators.lookup_as(state->head.name);
 
-    const uint emitted_particle_amount = allocator.total_allocated();
-    const uint old_particle_amount = state->tot_particles;
-    const uint new_particle_amount = old_particle_amount + emitted_particle_amount;
+    const int emitted_particle_amount = allocator.total_allocated();
+    const int old_particle_amount = state->tot_particles;
+    const int new_particle_amount = old_particle_amount + emitted_particle_amount;
 
     CustomData_realloc(&state->attributes, new_particle_amount);
 
@@ -205,11 +204,11 @@ void solve_simulation_time_step(Simulation &simulation,
         state->attributes, new_particle_amount, attributes_info};
     fn::MutableAttributesRef attributes = custom_data_attributes;
 
-    uint offset = old_particle_amount;
+    int offset = old_particle_amount;
     for (fn::MutableAttributesRef emitted_attributes : allocator.get_allocations()) {
       fn::MutableAttributesRef dst_attributes = attributes.slice(
           IndexRange(offset, emitted_attributes.size()));
-      for (uint attribute_index : attributes.info().index_range()) {
+      for (int attribute_index : attributes.info().index_range()) {
         fn::GMutableSpan emitted_data = emitted_attributes.get(attribute_index);
         fn::GMutableSpan dst = dst_attributes.get(attribute_index);
         const fn::CPPType &type = dst.type();

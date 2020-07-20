@@ -30,6 +30,8 @@
 namespace blender {
 namespace deg {
 
+/* TODO: Static variables should use RawAllocator to avoid false positives of Blender's memory leak
+ * detector. */
 static Map<Main *, VectorSet<Depsgraph *>> g_graph_registry;
 
 void register_graph(Depsgraph *depsgraph)

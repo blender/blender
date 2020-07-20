@@ -263,8 +263,8 @@ NodeWithSocketsRef::NodeWithSocketsRef(Node &node,
   ss << "</b></td></tr>";
 
   /* Sockets */
-  uint socket_max_amount = std::max(input_names.size(), output_names.size());
-  for (uint i = 0; i < socket_max_amount; i++) {
+  int socket_max_amount = std::max(input_names.size(), output_names.size());
+  for (int i = 0; i < socket_max_amount; i++) {
     ss << "<tr>";
     if (i < input_names.size()) {
       StringRef name = input_names[i];

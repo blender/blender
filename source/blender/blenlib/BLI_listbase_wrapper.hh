@@ -96,9 +96,9 @@ template<typename T> class ListBaseWrapper {
     return (T *)ptr;
   }
 
-  uint index_of(const T *value) const
+  int64_t index_of(const T *value) const
   {
-    uint index = 0;
+    int64_t index = 0;
     for (T *ptr : *this) {
       if (ptr == value) {
         return index;
@@ -106,7 +106,7 @@ template<typename T> class ListBaseWrapper {
       index++;
     }
     BLI_assert(false);
-    return 0;
+    return -1;
   }
 };
 

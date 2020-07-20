@@ -67,7 +67,7 @@ bool IDNode::ComponentIDKey::operator==(const ComponentIDKey &other) const
   return type == other.type && STREQ(name, other.name);
 }
 
-uint32_t IDNode::ComponentIDKey::hash() const
+uint64_t IDNode::ComponentIDKey::hash() const
 {
   const int type_as_int = static_cast<int>(type);
   return BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(type_as_int),

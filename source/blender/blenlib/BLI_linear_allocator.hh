@@ -39,10 +39,10 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
 
   uintptr_t current_begin_;
   uintptr_t current_end_;
-  uint next_min_alloc_size_;
+  int64_t next_min_alloc_size_;
 
 #ifdef DEBUG
-  uint debug_allocated_amount_ = 0;
+  int64_t debug_allocated_amount_ = 0;
 #endif
 
  public:
@@ -66,8 +66,9 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
    *
    * The alignment has to be a power of 2.
    */
-  void *allocate(const uint size, const uint alignment)
+  void *allocate(const int64_t size, const int64_t alignment)
   {
+    BLI_assert(size >= 0);
     BLI_assert(alignment >= 1);
     BLI_assert(is_power_of_2_i(alignment));
 
@@ -105,7 +106,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
    *
    * This method only allocates memory and does not construct the instance.
    */
-  template<typename T> MutableSpan<T> allocate_array(uint size)
+  template<typename T> MutableSpan<T> allocate_array(int64_t size)
   {
     return MutableSpan<T>((T *)this->allocate(sizeof(T) * size, alignof(T)), size);
   }
@@ -141,22 +142,22 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
    */
   StringRefNull copy_string(StringRef str)
   {
-    const uint alloc_size = str.size() + 1;
+    const int64_t alloc_size = str.size() + 1;
     char *buffer = (char *)this->allocate(alloc_size, 1);
     str.copy(buffer, alloc_size);
     return StringRefNull((const char *)buffer);
   }
 
-  MutableSpan<void *> allocate_elements_and_pointer_array(uint element_amount,
-                                                          uint element_size,
-                                                          uint element_alignment)
+  MutableSpan<void *> allocate_elements_and_pointer_array(int64_t element_amount,
+                                                          int64_t element_size,
+                                                          int64_t element_alignment)
   {
     void *pointer_buffer = this->allocate(element_amount * sizeof(void *), alignof(void *));
     void *elements_buffer = this->allocate(element_amount * element_size, element_alignment);
 
     MutableSpan<void *> pointers((void **)pointer_buffer, element_amount);
     void *next_element_buffer = elements_buffer;
-    for (uint i : IndexRange(element_amount)) {
+    for (int64_t i : IndexRange(element_amount)) {
       pointers[i] = next_element_buffer;
       next_element_buffer = POINTER_OFFSET(next_element_buffer, element_size);
     }
@@ -165,13 +166,13 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
   }
 
   template<typename T, typename... Args>
-  Span<T *> construct_elements_and_pointer_array(uint n, Args &&... args)
+  Span<T *> construct_elements_and_pointer_array(int64_t n, Args &&... args)
   {
     MutableSpan<void *> void_pointers = this->allocate_elements_and_pointer_array(
         n, sizeof(T), alignof(T));
     MutableSpan<T *> pointers = void_pointers.cast<T *>();
 
-    for (uint i : IndexRange(n)) {
+    for (int64_t i : IndexRange(n)) {
       new ((void *)pointers[i]) T(std::forward<Args>(args)...);
     }
 
@@ -194,9 +195,9 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
   }
 
  private:
-  void allocate_new_buffer(uint min_allocation_size)
+  void allocate_new_buffer(int64_t min_allocation_size)
   {
-    for (uint i : unused_borrowed_buffers_.index_range()) {
+    for (int64_t i : unused_borrowed_buffers_.index_range()) {
       Span<char> buffer = unused_borrowed_buffers_[i];
       if (buffer.size() >= min_allocation_size) {
         unused_borrowed_buffers_.remove_and_reorder(i);
@@ -206,7 +207,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
       }
     }
 
-    const uint size_in_bytes = power_of_2_min_u(
+    const int64_t size_in_bytes = power_of_2_min_u(
         std::max(min_allocation_size, next_min_alloc_size_));
     next_min_alloc_size_ = size_in_bytes * 2;
 

@@ -50,7 +50,7 @@ TEST(virtual_array_span, MultipleArrayConstructor)
   std::array<int, 2> values1 = {6, 7};
   std::array<int, 1> values2 = {8};
   std::array<const int *, 3> starts = {values0.data(), values1.data(), values2.data()};
-  std::array<uint, 3> sizes{values0.size(), values1.size(), values2.size()};
+  std::array<int64_t, 3> sizes{values0.size(), values1.size(), values2.size()};
 
   VArraySpan<int> span{starts, sizes};
   EXPECT_EQ(span.size(), 3);

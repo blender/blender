@@ -39,17 +39,17 @@ enum class VArraySpanCategory {
 
 template<typename T> class VArraySpanBase {
  protected:
-  uint virtual_size_;
+  int64_t virtual_size_;
   VArraySpanCategory category_;
 
   union {
     struct {
       const T *start;
-      uint size;
+      int64_t size;
     } single_array;
     struct {
       const T *const *starts;
-      const uint *sizes;
+      const int64_t *sizes;
     } starts_and_sizes;
   } data_;
 
@@ -71,7 +71,7 @@ template<typename T> class VArraySpanBase {
     return this->virtual_size_ == 0;
   }
 
-  uint size() const
+  int64_t size() const
   {
     return this->virtual_size_;
   }
@@ -99,15 +99,16 @@ template<typename T> class VArraySpan : public VArraySpanBase<T> {
     this->data_.starts_and_sizes.sizes = nullptr;
   }
 
-  VArraySpan(Span<T> span, uint virtual_size)
+  VArraySpan(Span<T> span, int64_t virtual_size)
   {
+    BLI_assert(virtual_size >= 0);
     this->virtual_size_ = virtual_size;
     this->category_ = VArraySpanCategory::SingleArray;
     this->data_.single_array.start = span.data();
     this->data_.single_array.size = span.size();
   }
 
-  VArraySpan(Span<const T *> starts, Span<uint> sizes)
+  VArraySpan(Span<const T *> starts, Span<int64_t> sizes)
   {
     BLI_assert(starts.size() == sizes.size());
     this->virtual_size_ = starts.size();
@@ -116,8 +117,9 @@ template<typename T> class VArraySpan : public VArraySpanBase<T> {
     this->data_.starts_and_sizes.sizes = sizes.begin();
   }
 
-  VSpan<T> operator[](uint index) const
+  VSpan<T> operator[](int64_t index) const
   {
+    BLI_assert(index >= 0);
     BLI_assert(index < this->virtual_size_);
     switch (this->category_) {
       case VArraySpanCategory::SingleArray:
@@ -151,7 +153,7 @@ class GVArraySpan : public VArraySpanBase<void> {
     this->data_.starts_and_sizes.sizes = nullptr;
   }
 
-  GVArraySpan(GSpan array, uint virtual_size)
+  GVArraySpan(GSpan array, int64_t virtual_size)
   {
     this->type_ = &array.type();
     this->virtual_size_ = virtual_size;
@@ -160,7 +162,7 @@ class GVArraySpan : public VArraySpanBase<void> {
     this->data_.single_array.size = array.size();
   }
 
-  GVArraySpan(const CPPType &type, Span<const void *> starts, Span<uint> sizes)
+  GVArraySpan(const CPPType &type, Span<const void *> starts, Span<int64_t> sizes)
   {
     BLI_assert(starts.size() == sizes.size());
     this->type_ = &type;
@@ -187,7 +189,7 @@ class GVArraySpan : public VArraySpanBase<void> {
     return VArraySpan<T>(*this);
   }
 
-  GVSpan operator[](uint index) const
+  GVSpan operator[](int64_t index) const
   {
     BLI_assert(index < virtual_size_);
     switch (category_) {

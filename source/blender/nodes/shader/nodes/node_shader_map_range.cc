@@ -115,13 +115,13 @@ class MapRangeFunction : public blender::fn::MultiFunction {
     blender::fn::VSpan<float> to_max = params.readonly_single_input<float>(4, "To Max");
     blender::MutableSpan<float> results = params.uninitialized_single_output<float>(5, "Result");
 
-    for (uint i : mask) {
+    for (int64_t i : mask) {
       float factor = safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
       results[i] = to_min[i] + factor * (to_max[i] - to_min[i]);
     }
 
     if (clamp_) {
-      for (uint i : mask) {
+      for (int64_t i : mask) {
         CLAMP(results[i], 0.0f, 1.0f);
       }
     }

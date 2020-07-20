@@ -58,7 +58,7 @@ TEST(mutable_attributes_ref, ComplexTest)
   info_builder.add<std::string>("Name", "<no name>");
   AttributesInfo info{info_builder};
 
-  uint amount = 5;
+  int amount = 5;
   Array<float3> positions(amount);
   Array<uint> ids(amount, 0);
   Array<float> sizes(amount);

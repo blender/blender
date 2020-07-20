@@ -46,7 +46,7 @@ namespace blender {
 class IndexMask {
  private:
   /* The underlying reference to sorted integers. */
-  Span<uint> indices_;
+  Span<int64_t> indices_;
 
  public:
   /* Creates an IndexMask that contains no indices. */
@@ -57,10 +57,10 @@ class IndexMask {
    * This constructor asserts that the given integers are in ascending order and that there are no
    * duplicates.
    */
-  IndexMask(Span<uint> indices) : indices_(indices)
+  IndexMask(Span<int64_t> indices) : indices_(indices)
   {
 #ifdef DEBUG
-    for (uint i = 1; i < indices.size(); i++) {
+    for (int64_t i = 1; i < indices.size(); i++) {
       BLI_assert(indices[i - 1] < indices[i]);
     }
 #endif
@@ -84,28 +84,28 @@ class IndexMask {
    * Do this:
    *   do_something_with_an_index_mask({3, 4, 5});
    */
-  IndexMask(const std::initializer_list<uint> &indices) : IndexMask(Span<uint>(indices))
+  IndexMask(const std::initializer_list<int64_t> &indices) : IndexMask(Span<int64_t>(indices))
   {
   }
 
   /**
    * Creates an IndexMask that references the indices [0, n-1].
    */
-  explicit IndexMask(uint n) : IndexMask(IndexRange(n))
+  explicit IndexMask(int64_t n) : IndexMask(IndexRange(n))
   {
   }
 
-  operator Span<uint>() const
+  operator Span<int64_t>() const
   {
     return indices_;
   }
 
-  const uint *begin() const
+  const int64_t *begin() const
   {
     return indices_.begin();
   }
 
-  const uint *end() const
+  const int64_t *end() const
   {
     return indices_.end();
   }
@@ -114,7 +114,7 @@ class IndexMask {
    * Returns the n-th index referenced by this IndexMask. The `index_mask` method returns an
    * IndexRange containing all indices that can be used as parameter here.
    */
-  uint operator[](uint n) const
+  int64_t operator[](int64_t n) const
   {
     return indices_[n];
   }
@@ -123,7 +123,7 @@ class IndexMask {
    * Returns the minimum size an array has to have, if the integers in this IndexMask are going to
    * be used as indices in that array.
    */
-  uint min_array_size() const
+  int64_t min_array_size() const
   {
     if (indices_.size() == 0) {
       return 0;
@@ -133,7 +133,7 @@ class IndexMask {
     }
   }
 
-  Span<uint> indices() const
+  Span<int64_t> indices() const
   {
     return indices_;
   }
@@ -167,12 +167,12 @@ class IndexMask {
   {
     if (this->is_range()) {
       IndexRange range = this->as_range();
-      for (uint i : range) {
+      for (int64_t i : range) {
         callback(i);
       }
     }
     else {
-      for (uint i : indices_) {
+      for (int64_t i : indices_) {
         callback(i);
       }
     }
@@ -193,7 +193,7 @@ class IndexMask {
   /**
    * Returns the largest index that is referenced by this IndexMask.
    */
-  uint last() const
+  int64_t last() const
   {
     return indices_.last();
   }
@@ -201,7 +201,7 @@ class IndexMask {
   /**
    * Returns the number of indices referenced by this IndexMask.
    */
-  uint size() const
+  int64_t size() const
   {
     return indices_.size();
   }

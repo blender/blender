@@ -49,7 +49,7 @@ class ModifierDataBackupID {
 
   friend bool operator==(const ModifierDataBackupID &a, const ModifierDataBackupID &b);
 
-  uint32_t hash() const;
+  uint64_t hash() const;
 
   ModifierData *modifier_data;
   ModifierType type;

@@ -35,9 +35,9 @@ struct MFSignature {
   /* Use RawAllocator so that a MultiFunction can have static storage duration. */
   Vector<std::string, 4, RawAllocator> param_names;
   Vector<MFParamType, 4, RawAllocator> param_types;
-  Vector<uint, 4, RawAllocator> param_data_indices;
+  Vector<int, 4, RawAllocator> param_data_indices;
 
-  uint data_index(uint param_index) const
+  int data_index(int param_index) const
   {
     return param_data_indices[param_index];
   }
@@ -46,10 +46,10 @@ struct MFSignature {
 class MFSignatureBuilder {
  private:
   MFSignature &data_;
-  uint span_count_ = 0;
-  uint virtual_span_count_ = 0;
-  uint virtual_array_span_count_ = 0;
-  uint vector_array_count_ = 0;
+  int span_count_ = 0;
+  int virtual_span_count_ = 0;
+  int virtual_array_span_count_ = 0;
+  int vector_array_count_ = 0;
 
  public:
   MFSignatureBuilder(MFSignature &data) : data_(data)

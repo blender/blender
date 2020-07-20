@@ -10,42 +10,42 @@ namespace blender {
 TEST(index_range, DefaultConstructor)
 {
   IndexRange range;
-  EXPECT_EQ(range.size(), 0u);
+  EXPECT_EQ(range.size(), 0);
 
-  Vector<uint> vector;
-  for (uint value : range) {
+  Vector<int64_t> vector;
+  for (int64_t value : range) {
     vector.append(value);
   }
-  EXPECT_EQ(vector.size(), 0u);
+  EXPECT_EQ(vector.size(), 0);
 }
 
 TEST(index_range, SingleElementRange)
 {
   IndexRange range(4, 1);
-  EXPECT_EQ(range.size(), 1u);
-  EXPECT_EQ(*range.begin(), 4u);
+  EXPECT_EQ(range.size(), 1);
+  EXPECT_EQ(*range.begin(), 4);
 
-  Vector<uint> vector;
-  for (uint value : range) {
+  Vector<int64_t> vector;
+  for (int64_t value : range) {
     vector.append(value);
   }
 
-  EXPECT_EQ(vector.size(), 1u);
-  EXPECT_EQ(vector[0], 4u);
+  EXPECT_EQ(vector.size(), 1);
+  EXPECT_EQ(vector[0], 4);
 }
 
 TEST(index_range, MultipleElementRange)
 {
   IndexRange range(6, 4);
-  EXPECT_EQ(range.size(), 4u);
+  EXPECT_EQ(range.size(), 4);
 
-  Vector<uint> vector;
-  for (uint value : range) {
+  Vector<int64_t> vector;
+  for (int64_t value : range) {
     vector.append(value);
   }
 
-  EXPECT_EQ(vector.size(), 4u);
-  for (uint i = 0; i < 4; i++) {
+  EXPECT_EQ(vector.size(), 4);
+  for (int i = 0; i < 4; i++) {
     EXPECT_EQ(vector[i], i + 6);
   }
 }
@@ -53,28 +53,28 @@ TEST(index_range, MultipleElementRange)
 TEST(index_range, SubscriptOperator)
 {
   IndexRange range(5, 5);
-  EXPECT_EQ(range[0], 5u);
-  EXPECT_EQ(range[1], 6u);
-  EXPECT_EQ(range[2], 7u);
+  EXPECT_EQ(range[0], 5);
+  EXPECT_EQ(range[1], 6);
+  EXPECT_EQ(range[2], 7);
 }
 
 TEST(index_range, Before)
 {
   IndexRange range = IndexRange(5, 5).before(3);
-  EXPECT_EQ(range[0], 2u);
-  EXPECT_EQ(range[1], 3u);
-  EXPECT_EQ(range[2], 4u);
-  EXPECT_EQ(range.size(), 3u);
+  EXPECT_EQ(range[0], 2);
+  EXPECT_EQ(range[1], 3);
+  EXPECT_EQ(range[2], 4);
+  EXPECT_EQ(range.size(), 3);
 }
 
 TEST(index_range, After)
 {
   IndexRange range = IndexRange(5, 5).after(4);
-  EXPECT_EQ(range[0], 10u);
-  EXPECT_EQ(range[1], 11u);
-  EXPECT_EQ(range[2], 12u);
-  EXPECT_EQ(range[3], 13u);
-  EXPECT_EQ(range.size(), 4u);
+  EXPECT_EQ(range[0], 10);
+  EXPECT_EQ(range[1], 11);
+  EXPECT_EQ(range[2], 12);
+  EXPECT_EQ(range[3], 13);
+  EXPECT_EQ(range.size(), 4);
 }
 
 TEST(index_range, Contains)
@@ -90,54 +90,54 @@ TEST(index_range, Contains)
 TEST(index_range, First)
 {
   IndexRange range = IndexRange(5, 3);
-  EXPECT_EQ(range.first(), 5u);
+  EXPECT_EQ(range.first(), 5);
 }
 
 TEST(index_range, Last)
 {
   IndexRange range = IndexRange(5, 3);
-  EXPECT_EQ(range.last(), 7u);
+  EXPECT_EQ(range.last(), 7);
 }
 
 TEST(index_range, OneAfterEnd)
 {
   IndexRange range = IndexRange(5, 3);
-  EXPECT_EQ(range.one_after_last(), 8u);
+  EXPECT_EQ(range.one_after_last(), 8);
 }
 
 TEST(index_range, Start)
 {
   IndexRange range = IndexRange(6, 2);
-  EXPECT_EQ(range.start(), 6u);
+  EXPECT_EQ(range.start(), 6);
 }
 
 TEST(index_range, Slice)
 {
   IndexRange range = IndexRange(5, 15);
   IndexRange slice = range.slice(2, 6);
-  EXPECT_EQ(slice.size(), 6u);
-  EXPECT_EQ(slice.first(), 7u);
-  EXPECT_EQ(slice.last(), 12u);
+  EXPECT_EQ(slice.size(), 6);
+  EXPECT_EQ(slice.first(), 7);
+  EXPECT_EQ(slice.last(), 12);
 }
 
 TEST(index_range, SliceRange)
 {
   IndexRange range = IndexRange(5, 15);
   IndexRange slice = range.slice(IndexRange(3, 5));
-  EXPECT_EQ(slice.size(), 5u);
-  EXPECT_EQ(slice.first(), 8u);
-  EXPECT_EQ(slice.last(), 12u);
+  EXPECT_EQ(slice.size(), 5);
+  EXPECT_EQ(slice.first(), 8);
+  EXPECT_EQ(slice.last(), 12);
 }
 
 TEST(index_range, AsSpan)
 {
   IndexRange range = IndexRange(4, 6);
-  Span<uint> span = range.as_span();
-  EXPECT_EQ(span.size(), 6u);
-  EXPECT_EQ(span[0], 4u);
-  EXPECT_EQ(span[1], 5u);
-  EXPECT_EQ(span[2], 6u);
-  EXPECT_EQ(span[3], 7u);
+  Span<int64_t> span = range.as_span();
+  EXPECT_EQ(span.size(), 6);
+  EXPECT_EQ(span[0], 4);
+  EXPECT_EQ(span[1], 5);
+  EXPECT_EQ(span[2], 6);
+  EXPECT_EQ(span[3], 7);
 }
 
 }  // namespace blender

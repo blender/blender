@@ -20,7 +20,7 @@ namespace blender::fn {
 
 AttributesInfoBuilder::~AttributesInfoBuilder()
 {
-  for (uint i : defaults_.index_range()) {
+  for (int i : defaults_.index_range()) {
     types_[i]->destruct(defaults_[i]);
   }
 }
@@ -45,7 +45,7 @@ void AttributesInfoBuilder::add(StringRef name, const CPPType &type, const void 
 
 AttributesInfo::AttributesInfo(const AttributesInfoBuilder &builder)
 {
-  for (uint i : builder.types_.index_range()) {
+  for (int i : builder.types_.index_range()) {
     StringRefNull name = allocator_.copy_string(builder.names_[i]);
     const CPPType &type = *builder.types_[i];
     const void *default_value = builder.defaults_[i];
@@ -62,7 +62,7 @@ AttributesInfo::AttributesInfo(const AttributesInfoBuilder &builder)
 
 AttributesInfo::~AttributesInfo()
 {
-  for (uint i : defaults_.index_range()) {
+  for (int i : defaults_.index_range()) {
     type_by_index_[i]->destruct(defaults_[i]);
   }
 }

@@ -55,10 +55,10 @@ class MFNetworkEvaluationStorage {
   LinearAllocator<> allocator_;
   IndexMask mask_;
   Array<Value *> value_per_output_id_;
-  uint min_array_size_;
+  int64_t min_array_size_;
 
  public:
-  MFNetworkEvaluationStorage(IndexMask mask, uint socket_id_amount);
+  MFNetworkEvaluationStorage(IndexMask mask, int socket_id_amount);
   ~MFNetworkEvaluationStorage();
 
   /* Add the values that have been provided by the caller of the multi-function network. */
@@ -155,8 +155,8 @@ void MFNetworkEvaluator::call(IndexMask mask, MFParams params, MFContext context
 BLI_NOINLINE void MFNetworkEvaluator::copy_inputs_to_storage(MFParams params,
                                                              Storage &storage) const
 {
-  for (uint input_index : inputs_.index_range()) {
-    uint param_index = input_index + 0;
+  for (int input_index : inputs_.index_range()) {
+    int param_index = input_index + 0;
     const MFOutputSocket &socket = *inputs_[input_index];
     switch (socket.data_type().category()) {
       case MFDataType::Single: {
@@ -178,8 +178,8 @@ BLI_NOINLINE void MFNetworkEvaluator::copy_outputs_to_storage(
     Storage &storage,
     Vector<const MFInputSocket *> &outputs_to_initialize_in_the_end) const
 {
-  for (uint output_index : outputs_.index_range()) {
-    uint param_index = output_index + inputs_.size();
+  for (int output_index : outputs_.index_range()) {
+    int param_index = output_index + inputs_.size();
     const MFInputSocket &socket = *outputs_[output_index];
     const MFOutputSocket &origin = *socket.origin();
 
@@ -263,7 +263,7 @@ BLI_NOINLINE void MFNetworkEvaluator::evaluate_function(MFContext &global_contex
      * function only on a single element. This can avoid many duplicate computations. */
     MFParamsBuilder params{function, 1};
 
-    for (uint param_index : function.param_indices()) {
+    for (int param_index : function.param_indices()) {
       MFParamType param_type = function.param_type(param_index);
       switch (param_type.category()) {
         case MFParamType::SingleInput: {
@@ -312,7 +312,7 @@ BLI_NOINLINE void MFNetworkEvaluator::evaluate_function(MFContext &global_contex
   else {
     MFParamsBuilder params{function, storage.mask().min_array_size()};
 
-    for (uint param_index : function.param_indices()) {
+    for (int param_index : function.param_indices()) {
       MFParamType param_type = function.param_type(param_index);
       switch (param_type.category()) {
         case MFParamType::SingleInput: {
@@ -384,7 +384,7 @@ BLI_NOINLINE void MFNetworkEvaluator::initialize_remaining_outputs(
     MFParams params, Storage &storage, Span<const MFInputSocket *> remaining_outputs) const
 {
   for (const MFInputSocket *socket : remaining_outputs) {
-    uint param_index = inputs_.size() + outputs_.first_index_of(socket);
+    int param_index = inputs_.size() + outputs_.first_index_of(socket);
 
     switch (socket->data_type().category()) {
       case MFDataType::Single: {
@@ -506,7 +506,7 @@ struct OwnVectorValue : public Value {
 /** \name Storage methods
  * \{ */
 
-MFNetworkEvaluationStorage::MFNetworkEvaluationStorage(IndexMask mask, uint socket_id_amount)
+MFNetworkEvaluationStorage::MFNetworkEvaluationStorage(IndexMask mask, int socket_id_amount)
     : mask_(mask),
       value_per_output_id_(socket_id_amount, nullptr),
       min_array_size_(mask.min_array_size())

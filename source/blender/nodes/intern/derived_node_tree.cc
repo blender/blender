@@ -83,7 +83,7 @@ DNode &DerivedNodeTree::create_node(const NodeRef &node_ref,
   node.outputs_ = allocator_.construct_elements_and_pointer_array<DOutputSocket>(
       node_ref.outputs().size());
 
-  for (uint i : node.inputs_.index_range()) {
+  for (int i : node.inputs_.index_range()) {
     const InputSocketRef &socket_ref = node_ref.input(i);
     DInputSocket &socket = *node.inputs_[i];
 
@@ -94,7 +94,7 @@ DNode &DerivedNodeTree::create_node(const NodeRef &node_ref,
     r_sockets_map[socket_ref.id()] = &socket;
   }
 
-  for (uint i : node.outputs_.index_range()) {
+  for (int i : node.outputs_.index_range()) {
     const OutputSocketRef &socket_ref = node_ref.output(i);
     DOutputSocket &socket = *node.outputs_[i];
 
@@ -113,7 +113,7 @@ BLI_NOINLINE void DerivedNodeTree::expand_groups(Vector<DNode *> &all_nodes,
                                                  Vector<DParentNode *> &all_parent_nodes,
                                                  NodeTreeRefMap &node_tree_refs)
 {
-  for (uint i = 0; i < all_nodes.size(); i++) {
+  for (int i = 0; i < all_nodes.size(); i++) {
     DNode &node = *all_nodes[i];
     if (node.node_ref_->is_group_node()) {
       this->expand_group_node(node, all_nodes, all_group_inputs, all_parent_nodes, node_tree_refs);
@@ -181,10 +181,10 @@ BLI_NOINLINE void DerivedNodeTree::relink_group_inputs(const NodeTreeRef &group_
   const NodeRef &input_node_ref = *node_refs[0];
   DNode &input_node = *nodes_by_id[input_node_ref.id()];
 
-  uint input_amount = group_node.inputs().size();
+  int input_amount = group_node.inputs().size();
   BLI_assert(input_amount == input_node_ref.outputs().size() - 1);
 
-  for (uint input_index : IndexRange(input_amount)) {
+  for (int input_index : IndexRange(input_amount)) {
     DInputSocket *outside_group = group_node.inputs_[input_index];
     DOutputSocket *inside_group = input_node.outputs_[input_index];
 
@@ -228,10 +228,10 @@ BLI_NOINLINE void DerivedNodeTree::relink_group_outputs(const NodeTreeRef &group
   const NodeRef &output_node_ref = *node_refs[0];
   DNode &output_node = *nodes_by_id[output_node_ref.id()];
 
-  uint output_amount = group_node.outputs().size();
+  int output_amount = group_node.outputs().size();
   BLI_assert(output_amount == output_node_ref.inputs().size() - 1);
 
-  for (uint output_index : IndexRange(output_amount)) {
+  for (int output_index : IndexRange(output_amount)) {
     DOutputSocket *outside_group = group_node.outputs_[output_index];
     DInputSocket *inside_group = output_node.inputs_[output_index];
 
@@ -316,7 +316,7 @@ BLI_NOINLINE void DerivedNodeTree::store_in_this_and_init_ids(
   group_inputs_ = std::move(all_group_inputs);
   parent_nodes_ = std::move(all_parent_nodes);
 
-  for (uint node_index : nodes_by_id_.index_range()) {
+  for (int node_index : nodes_by_id_.index_range()) {
     DNode *node = nodes_by_id_[node_index];
     node->id_ = node_index;
 
@@ -333,7 +333,7 @@ BLI_NOINLINE void DerivedNodeTree::store_in_this_and_init_ids(
     }
   }
 
-  for (uint i : group_inputs_.index_range()) {
+  for (int i : group_inputs_.index_range()) {
     group_inputs_[i]->id_ = i;
   }
 }

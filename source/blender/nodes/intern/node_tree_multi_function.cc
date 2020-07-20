@@ -62,7 +62,7 @@ const fn::MultiFunction &NodeMFNetworkBuilder::get_default_fn(StringRef name)
 
 static void insert_dummy_node(CommonMFNetworkBuilderData &common, const DNode &dnode)
 {
-  constexpr uint stack_capacity = 10;
+  constexpr int stack_capacity = 10;
 
   Vector<fn::MFDataType, stack_capacity> input_types;
   Vector<StringRef, stack_capacity> input_names;
@@ -159,7 +159,7 @@ static fn::MFOutputSocket *try_find_origin(CommonMFNetworkBuilderData &common,
 {
   Span<const DOutputSocket *> from_dsockets = to_dsocket.linked_sockets();
   Span<const DGroupInput *> from_group_inputs = to_dsocket.linked_group_inputs();
-  uint total_linked_amount = from_dsockets.size() + from_group_inputs.size();
+  int total_linked_amount = from_dsockets.size() + from_group_inputs.size();
   BLI_assert(total_linked_amount <= 1);
 
   if (total_linked_amount == 0) {

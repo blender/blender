@@ -47,7 +47,7 @@ class AnimatedPropertyID {
   AnimatedPropertyID(ID *id, StructRNA *type, const char *property_name);
   AnimatedPropertyID(ID *id, StructRNA *type, void *data, const char *property_name);
 
-  uint32_t hash() const;
+  uint64_t hash() const;
   friend bool operator==(const AnimatedPropertyID &a, const AnimatedPropertyID &b);
 
   /* Corresponds to PointerRNA.data. */

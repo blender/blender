@@ -13,7 +13,7 @@ TEST(disjoint_set, Test)
   EXPECT_FALSE(disjoint_set.in_same_set(1, 2));
   EXPECT_FALSE(disjoint_set.in_same_set(5, 3));
   EXPECT_TRUE(disjoint_set.in_same_set(2, 2));
-  EXPECT_EQ(disjoint_set.find_root(3), 3u);
+  EXPECT_EQ(disjoint_set.find_root(3), 3);
 
   disjoint_set.join(1, 2);
 

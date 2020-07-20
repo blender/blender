@@ -23,7 +23,7 @@ class AddFunction : public MultiFunction {
     VSpan<int> b = params.readonly_single_input<int>(1, "B");
     MutableSpan<int> result = params.uninitialized_single_output<int>(2, "Result");
 
-    for (uint i : mask) {
+    for (int64_t i : mask) {
       result[i] = a[i] + b[i];
     }
   }
@@ -65,7 +65,7 @@ class AddPrefixFunction : public MultiFunction {
     VSpan<std::string> prefixes = params.readonly_single_input<std::string>(0, "Prefix");
     MutableSpan<std::string> strings = params.single_mutable<std::string>(1, "Strings");
 
-    for (uint i : mask) {
+    for (int64_t i : mask) {
       strings[i] = prefixes[i] + strings[i];
     }
   }
@@ -112,7 +112,7 @@ class CreateRangeFunction : public MultiFunction {
     VSpan<uint> sizes = params.readonly_single_input<uint>(0, "Size");
     GVectorArrayRef<uint> ranges = params.vector_output<uint>(1, "Range");
 
-    for (uint i : mask) {
+    for (int64_t i : mask) {
       uint size = sizes[i];
       for (uint j : IndexRange(size)) {
         ranges.append(i, j);
@@ -164,7 +164,7 @@ class GenericAppendFunction : public MultiFunction {
     GVectorArray &vectors = params.vector_mutable(0, "Vector");
     GVSpan values = params.readonly_single_input(1, "Value");
 
-    for (uint i : mask) {
+    for (int64_t i : mask) {
       vectors.append(i, values[i]);
     }
   }
@@ -355,7 +355,7 @@ TEST(multi_function, CustomMF_GenericConstantArray)
   EXPECT_EQ(vector_array[1].size(), 4);
   EXPECT_EQ(vector_array[2].size(), 4);
   EXPECT_EQ(vector_array[3].size(), 4);
-  for (uint i = 1; i < 4; i++) {
+  for (int i = 1; i < 4; i++) {
     EXPECT_EQ(vector_array[i][0], 3);
     EXPECT_EQ(vector_array[i][1], 4);
     EXPECT_EQ(vector_array[i][2], 5);

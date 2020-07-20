@@ -65,7 +65,7 @@ class MF_SeparateXYZ : public blender::fn::MultiFunction {
     blender::MutableSpan<float> ys = params.uninitialized_single_output<float>(2, "Y");
     blender::MutableSpan<float> zs = params.uninitialized_single_output<float>(3, "Z");
 
-    for (uint i : mask) {
+    for (int64_t i : mask) {
       blender::float3 xyz = vectors[i];
       xs[i] = xyz.x;
       ys[i] = xyz.y;

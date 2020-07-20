@@ -27,29 +27,29 @@
  * I'd argue that the second loop is more readable and less error prone than the first one. That is
  * not necessarily always the case, but often it is.
  *
- *  for (uint i = 0; i < 10; i++) {
- *    for (uint j = 0; j < 20; j++) {
- *       for (uint k = 0; k < 30; k++) {
+ *  for (int64_t i = 0; i < 10; i++) {
+ *    for (int64_t j = 0; j < 20; j++) {
+ *       for (int64_t k = 0; k < 30; k++) {
  *
- *  for (uint i : IndexRange(10)) {
- *    for (uint j : IndexRange(20)) {
- *      for (uint k : IndexRange(30)) {
+ *  for (int64_t i : IndexRange(10)) {
+ *    for (int64_t j : IndexRange(20)) {
+ *      for (int64_t k : IndexRange(30)) {
  *
  * Some containers like blender::Vector have an index_range() method. This will return the
  * IndexRange that contains all indices that can be used to access the container. This is
  * particularly useful when you want to iterate over the indices and the elements (much like
  * Python's enumerate(), just worse). Again, I think the second example here is better:
  *
- *  for (uint i = 0; i < my_vector_with_a_long_name.size(); i++) {
+ *  for (int64_t i = 0; i < my_vector_with_a_long_name.size(); i++) {
  *    do_something(i, my_vector_with_a_long_name[i]);
  *
- *  for (uint i : my_vector_with_a_long_name.index_range()) {
+ *  for (int64_t i : my_vector_with_a_long_name.index_range()) {
  *    do_something(i, my_vector_with_a_long_name[i]);
  *
  * Ideally this could be could be even closer to Python's enumerate(). We might get that in the
  * future with newer C++ versions.
  *
- * One other important feature is the as_span method. This method returns an Span<uint>
+ * One other important feature is the as_span method. This method returns an Span<int64_t>
  * that contains the interval as individual numbers.
  */
 
@@ -70,18 +70,21 @@ template<typename T> class Span;
 
 class IndexRange {
  private:
-  uint start_ = 0;
-  uint size_ = 0;
+  int64_t start_ = 0;
+  int64_t size_ = 0;
 
  public:
   IndexRange() = default;
 
-  explicit IndexRange(uint size) : start_(0), size_(size)
+  explicit IndexRange(int64_t size) : start_(0), size_(size)
   {
+    BLI_assert(size >= 0);
   }
 
-  IndexRange(uint start, uint size) : start_(start), size_(size)
+  IndexRange(int64_t start, int64_t size) : start_(start), size_(size)
   {
+    BLI_assert(start >= 0);
+    BLI_assert(size >= 0);
   }
 
   template<typename T>
@@ -91,10 +94,10 @@ class IndexRange {
 
   class Iterator {
    private:
-    uint current_;
+    int64_t current_;
 
    public:
-    Iterator(uint current) : current_(current)
+    Iterator(int64_t current) : current_(current)
     {
     }
 
@@ -109,7 +112,7 @@ class IndexRange {
       return current_ != iterator.current_;
     }
 
-    uint operator*() const
+    int64_t operator*() const
     {
       return current_;
     }
@@ -128,8 +131,9 @@ class IndexRange {
   /**
    * Access an element in the range.
    */
-  uint operator[](uint index) const
+  int64_t operator[](int64_t index) const
   {
+    BLI_assert(index >= 0);
     BLI_assert(index < this->size());
     return start_ + index;
   }
@@ -145,7 +149,7 @@ class IndexRange {
   /**
    * Get the amount of numbers in the range.
    */
-  uint size() const
+  int64_t size() const
   {
     return size_;
   }
@@ -153,16 +157,18 @@ class IndexRange {
   /**
    * Create a new range starting at the end of the current one.
    */
-  IndexRange after(uint n) const
+  IndexRange after(int64_t n) const
   {
+    BLI_assert(n >= 0);
     return IndexRange(start_ + size_, n);
   }
 
   /**
    * Create a new range that ends at the start of the current one.
    */
-  IndexRange before(uint n) const
+  IndexRange before(int64_t n) const
   {
+    BLI_assert(n >= 0);
     return IndexRange(start_ - n, n);
   }
 
@@ -170,7 +176,7 @@ class IndexRange {
    * Get the first element in the range.
    * Asserts when the range is empty.
    */
-  uint first() const
+  int64_t first() const
   {
     BLI_assert(this->size() > 0);
     return start_;
@@ -180,7 +186,7 @@ class IndexRange {
    * Get the last element in the range.
    * Asserts when the range is empty.
    */
-  uint last() const
+  int64_t last() const
   {
     BLI_assert(this->size() > 0);
     return start_ + size_ - 1;
@@ -189,7 +195,7 @@ class IndexRange {
   /**
    * Get the element one after the end. The returned value is undefined when the range is empty.
    */
-  uint one_after_last() const
+  int64_t one_after_last() const
   {
     return start_ + size_;
   }
@@ -197,7 +203,7 @@ class IndexRange {
   /**
    * Get the first element in the range. The returned value is undefined when the range is empty.
    */
-  uint start() const
+  int64_t start() const
   {
     return start_;
   }
@@ -205,7 +211,7 @@ class IndexRange {
   /**
    * Returns true when the range contains a certain number, otherwise false.
    */
-  bool contains(uint value) const
+  bool contains(int64_t value) const
   {
     return value >= start_ && value < start_ + size_;
   }
@@ -213,9 +219,11 @@ class IndexRange {
   /**
    * Returns a new range, that contains a sub-interval of the current one.
    */
-  IndexRange slice(uint start, uint size) const
+  IndexRange slice(int64_t start, int64_t size) const
   {
-    uint new_start = start_ + start;
+    BLI_assert(start >= 0);
+    BLI_assert(size >= 0);
+    int64_t new_start = start_ + start;
     BLI_assert(new_start + size <= start_ + size_ || size == 0);
     return IndexRange(new_start, size);
   }
@@ -227,7 +235,7 @@ class IndexRange {
   /**
    * Get read-only access to a memory buffer that contains the range as actual numbers.
    */
-  Span<uint> as_span() const;
+  Span<int64_t> as_span() const;
 
   friend std::ostream &operator<<(std::ostream &stream, IndexRange range)
   {

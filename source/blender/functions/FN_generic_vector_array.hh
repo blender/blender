@@ -42,10 +42,10 @@ template<typename T> class GVectorArrayRef;
 class GVectorArray : NonCopyable, NonMovable {
  private:
   const CPPType &type_;
-  uint element_size_;
+  int64_t element_size_;
   Array<void *, 1> starts_;
-  Array<uint, 1> lengths_;
-  Array<uint, 1> capacities_;
+  Array<int64_t, 1> lengths_;
+  Array<int64_t, 1> capacities_;
   LinearAllocator<> allocator_;
 
   template<typename T> friend class GVectorArrayRef;
@@ -53,16 +53,16 @@ class GVectorArray : NonCopyable, NonMovable {
  public:
   GVectorArray() = delete;
 
-  GVectorArray(const CPPType &type, uint array_size)
+  GVectorArray(const CPPType &type, int64_t array_size)
       : type_(type),
         element_size_(type.size()),
         starts_(array_size),
         lengths_(array_size),
         capacities_(array_size)
   {
-    starts_.fill(nullptr);
-    lengths_.fill(0);
-    capacities_.fill(0);
+    starts_.as_mutable_span().fill(nullptr);
+    lengths_.as_mutable_span().fill(0);
+    capacities_.as_mutable_span().fill(0);
   }
 
   ~GVectorArray()
@@ -71,7 +71,7 @@ class GVectorArray : NonCopyable, NonMovable {
       return;
     }
 
-    for (uint i : starts_.index_range()) {
+    for (int64_t i : starts_.index_range()) {
       type_.destruct_n(starts_[i], lengths_[i]);
     }
   }
@@ -86,7 +86,7 @@ class GVectorArray : NonCopyable, NonMovable {
     return starts_.size() == 0;
   }
 
-  uint size() const
+  int64_t size() const
   {
     return starts_.size();
   }
@@ -101,14 +101,14 @@ class GVectorArray : NonCopyable, NonMovable {
     return starts_;
   }
 
-  Span<uint> lengths() const
+  Span<int64_t> lengths() const
   {
     return lengths_;
   }
 
-  void append(uint index, const void *src)
+  void append(int64_t index, const void *src)
   {
-    uint old_length = lengths_[index];
+    int64_t old_length = lengths_[index];
     if (old_length == capacities_[index]) {
       this->grow_at_least_one(index);
     }
@@ -118,10 +118,10 @@ class GVectorArray : NonCopyable, NonMovable {
     lengths_[index]++;
   }
 
-  void extend(uint index, GVSpan span)
+  void extend(int64_t index, GVSpan span)
   {
     BLI_assert(type_ == span.type());
-    for (uint i = 0; i < span.size(); i++) {
+    for (int64_t i = 0; i < span.size(); i++) {
       this->append(index, span[i]);
     }
   }
@@ -130,12 +130,12 @@ class GVectorArray : NonCopyable, NonMovable {
   {
     BLI_assert(type_ == array_span.type());
     BLI_assert(mask.min_array_size() <= array_span.size());
-    for (uint i : mask) {
+    for (int64_t i : mask) {
       this->extend(i, array_span[i]);
     }
   }
 
-  GMutableSpan operator[](uint index)
+  GMutableSpan operator[](int64_t index)
   {
     BLI_assert(index < starts_.size());
     return GMutableSpan(type_, starts_[index], lengths_[index]);
@@ -146,10 +146,10 @@ class GVectorArray : NonCopyable, NonMovable {
   }
 
  private:
-  void grow_at_least_one(uint index)
+  void grow_at_least_one(int64_t index)
   {
     BLI_assert(lengths_[index] == capacities_[index]);
-    uint new_capacity = lengths_[index] * 2 + 1;
+    int64_t new_capacity = lengths_[index] * 2 + 1;
 
     void *new_buffer = allocator_.allocate(element_size_ * new_capacity, type_.alignment());
     type_.relocate_to_uninitialized_n(starts_[index], new_buffer, lengths_[index]);
@@ -169,28 +169,28 @@ template<typename T> class GVectorArrayRef {
     BLI_assert(vector_array.type_.is<T>());
   }
 
-  void append(uint index, const T &value)
+  void append(int64_t index, const T &value)
   {
     vector_array_->append(index, &value);
   }
 
-  void extend(uint index, Span<T> values)
+  void extend(int64_t index, Span<T> values)
   {
     vector_array_->extend(index, values);
   }
 
-  void extend(uint index, VSpan<T> values)
+  void extend(int64_t index, VSpan<T> values)
   {
     vector_array_->extend(index, GVSpan(values));
   }
 
-  MutableSpan<T> operator[](uint index)
+  MutableSpan<T> operator[](int64_t index)
   {
     BLI_assert(index < vector_array_->starts_.size());
     return MutableSpan<T>((T *)vector_array_->starts_[index], vector_array_->lengths_[index]);
   }
 
-  uint size() const
+  int64_t size() const
   {
     return vector_array_->size();
   }

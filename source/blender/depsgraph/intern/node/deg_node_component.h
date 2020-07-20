@@ -54,7 +54,7 @@ struct ComponentNode : public Node {
 
     string identifier() const;
     bool operator==(const OperationIDKey &other) const;
-    uint32_t hash() const;
+    uint64_t hash() const;
   };
 
   /* Typedef for container of operations */

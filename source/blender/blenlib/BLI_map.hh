@@ -96,7 +96,7 @@ template<
      * When Key or Value are large, the small buffer optimization is disabled by default to avoid
      * large unexpected allocations on the stack. It can still be enabled explicitly though.
      */
-    uint32_t InlineBufferCapacity = (sizeof(Key) + sizeof(Value) < 100) ? 4 : 0,
+    int64_t InlineBufferCapacity = (sizeof(Key) + sizeof(Value) < 100) ? 4 : 0,
     /**
      * The strategy used to deal with collisions. They are defined in BLI_probing_strategies.hh.
      */
@@ -129,20 +129,20 @@ class Map {
    * Slots are either empty, occupied or removed. The number of occupied slots can be computed by
    * subtracting the removed slots from the occupied-and-removed slots.
    */
-  uint32_t removed_slots_;
-  uint32_t occupied_and_removed_slots_;
+  int64_t removed_slots_;
+  int64_t occupied_and_removed_slots_;
 
   /**
    * The maximum number of slots that can be used (either occupied or removed) until the set has to
    * grow. This is the total number of slots times the max load factor.
    */
-  uint32_t usable_slots_;
+  int64_t usable_slots_;
 
   /**
    * The number of slots minus one. This is a bit mask that can be used to turn any integer into a
    * valid slot index efficiently.
    */
-  uint32_t slot_mask_;
+  uint64_t slot_mask_;
 
   /** This is called to hash incoming keys. */
   Hash hash_;
@@ -577,8 +577,8 @@ class Map {
    */
   template<typename FuncT> void foreach_item(const FuncT &func) const
   {
-    uint32_t size = slots_.size();
-    for (uint32_t i = 0; i < size; i++) {
+    int64_t size = slots_.size();
+    for (int64_t i = 0; i < size; i++) {
       const Slot &slot = slots_[i];
       if (slot.is_occupied()) {
         const Key &key = *slot.key();
@@ -594,10 +594,10 @@ class Map {
    */
   template<typename SubIterator> struct BaseIterator {
     Slot *slots_;
-    uint32_t total_slots_;
-    uint32_t current_slot_;
+    int64_t total_slots_;
+    int64_t current_slot_;
 
-    BaseIterator(const Slot *slots, uint32_t total_slots, uint32_t current_slot)
+    BaseIterator(const Slot *slots, int64_t total_slots, int64_t current_slot)
         : slots_(const_cast<Slot *>(slots)), total_slots_(total_slots), current_slot_(current_slot)
     {
     }
@@ -621,7 +621,7 @@ class Map {
 
     SubIterator begin() const
     {
-      for (uint32_t i = 0; i < total_slots_; i++) {
+      for (int64_t i = 0; i < total_slots_; i++) {
         if (slots_[i].is_occupied()) {
           return SubIterator(slots_, total_slots_, i);
         }
@@ -642,7 +642,7 @@ class Map {
 
   class KeyIterator final : public BaseIterator<KeyIterator> {
    public:
-    KeyIterator(const Slot *slots, uint32_t total_slots, uint32_t current_slot)
+    KeyIterator(const Slot *slots, int64_t total_slots, int64_t current_slot)
         : BaseIterator<KeyIterator>(slots, total_slots, current_slot)
     {
     }
@@ -655,7 +655,7 @@ class Map {
 
   class ValueIterator final : public BaseIterator<ValueIterator> {
    public:
-    ValueIterator(const Slot *slots, uint32_t total_slots, uint32_t current_slot)
+    ValueIterator(const Slot *slots, int64_t total_slots, int64_t current_slot)
         : BaseIterator<ValueIterator>(slots, total_slots, current_slot)
     {
     }
@@ -668,7 +668,7 @@ class Map {
 
   class MutableValueIterator final : public BaseIterator<MutableValueIterator> {
    public:
-    MutableValueIterator(const Slot *slots, uint32_t total_slots, uint32_t current_slot)
+    MutableValueIterator(const Slot *slots, int64_t total_slots, int64_t current_slot)
         : BaseIterator<MutableValueIterator>(slots, total_slots, current_slot)
     {
     }
@@ -696,7 +696,7 @@ class Map {
 
   class ItemIterator final : public BaseIterator<ItemIterator> {
    public:
-    ItemIterator(const Slot *slots, uint32_t total_slots, uint32_t current_slot)
+    ItemIterator(const Slot *slots, int64_t total_slots, int64_t current_slot)
         : BaseIterator<ItemIterator>(slots, total_slots, current_slot)
     {
     }
@@ -710,7 +710,7 @@ class Map {
 
   class MutableItemIterator final : public BaseIterator<MutableItemIterator> {
    public:
-    MutableItemIterator(const Slot *slots, uint32_t total_slots, uint32_t current_slot)
+    MutableItemIterator(const Slot *slots, int64_t total_slots, int64_t current_slot)
         : BaseIterator<MutableItemIterator>(slots, total_slots, current_slot)
     {
     }
@@ -783,7 +783,7 @@ class Map {
   /**
    * Return the number of key-value-pairs that are stored in the map.
    */
-  uint32_t size() const
+  int64_t size() const
   {
     return occupied_and_removed_slots_ - removed_slots_;
   }
@@ -801,7 +801,7 @@ class Map {
   /**
    * Returns the number of available slots. This is mostly for debugging purposes.
    */
-  uint32_t capacity() const
+  int64_t capacity() const
   {
     return slots_.size();
   }
@@ -809,7 +809,7 @@ class Map {
   /**
    * Returns the amount of removed slots in the set. This is mostly for debugging purposes.
    */
-  uint32_t removed_amount() const
+  int64_t removed_amount() const
   {
     return removed_slots_;
   }
@@ -817,7 +817,7 @@ class Map {
   /**
    * Returns the bytes required per element. This is mostly for debugging purposes.
    */
-  uint32_t size_per_element() const
+  int64_t size_per_element() const
   {
     return sizeof(Slot);
   }
@@ -826,16 +826,16 @@ class Map {
    * Returns the approximate memory requirements of the map in bytes. This becomes more exact the
    * larger the map becomes.
    */
-  uint32_t size_in_bytes() const
+  int64_t size_in_bytes() const
   {
-    return (uint32_t)(sizeof(Slot) * slots_.size());
+    return (int64_t)(sizeof(Slot) * slots_.size());
   }
 
   /**
    * Potentially resize the map such that the specified number of elements can be added without
    * another grow operation.
    */
-  void reserve(uint32_t n)
+  void reserve(int64_t n)
   {
     if (usable_slots_ < n) {
       this->realloc_and_reinsert(n);
@@ -855,18 +855,19 @@ class Map {
    * Get the number of collisions that the probing strategy has to go through to find the key or
    * determine that it is not in the map.
    */
-  uint32_t count_collisions(const Key &key) const
+  int64_t count_collisions(const Key &key) const
   {
     return this->count_collisions__impl(key, hash_(key));
   }
 
  private:
-  BLI_NOINLINE void realloc_and_reinsert(uint32_t min_usable_slots)
+  BLI_NOINLINE void realloc_and_reinsert(int64_t min_usable_slots)
   {
-    uint32_t total_slots, usable_slots;
+    int64_t total_slots, usable_slots;
     max_load_factor_.compute_total_and_usable_slots(
         SlotArray::inline_buffer_capacity(), min_usable_slots, &total_slots, &usable_slots);
-    uint32_t new_slot_mask = total_slots - 1;
+    BLI_assert(total_slots >= 1);
+    const uint64_t new_slot_mask = (uint64_t)total_slots - 1;
 
     /**
      * Optimize the case when the map was empty beforehand. We can avoid some copies here.
@@ -901,9 +902,9 @@ class Map {
 
   void add_after_grow_and_destruct_old(Slot &old_slot,
                                        SlotArray &new_slots,
-                                       uint32_t new_slot_mask)
+                                       uint64_t new_slot_mask)
   {
-    uint32_t hash = old_slot.get_hash(Hash());
+    uint64_t hash = old_slot.get_hash(Hash());
     SLOT_PROBING_BEGIN (ProbingStrategy, hash, new_slot_mask, slot_index) {
       Slot &slot = new_slots[slot_index];
       if (slot.is_empty()) {
@@ -914,7 +915,7 @@ class Map {
     SLOT_PROBING_END();
   }
 
-  template<typename ForwardKey> bool contains__impl(const ForwardKey &key, uint32_t hash) const
+  template<typename ForwardKey> bool contains__impl(const ForwardKey &key, uint64_t hash) const
   {
     MAP_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.is_empty()) {
@@ -928,7 +929,7 @@ class Map {
   }
 
   template<typename ForwardKey, typename ForwardValue>
-  void add_new__impl(ForwardKey &&key, ForwardValue &&value, uint32_t hash)
+  void add_new__impl(ForwardKey &&key, ForwardValue &&value, uint64_t hash)
   {
     BLI_assert(!this->contains_as(key));
 
@@ -945,7 +946,7 @@ class Map {
   }
 
   template<typename ForwardKey, typename ForwardValue>
-  bool add__impl(ForwardKey &&key, ForwardValue &&value, uint32_t hash)
+  bool add__impl(ForwardKey &&key, ForwardValue &&value, uint64_t hash)
   {
     this->ensure_can_add();
 
@@ -962,7 +963,7 @@ class Map {
     MAP_SLOT_PROBING_END();
   }
 
-  template<typename ForwardKey> bool remove__impl(const ForwardKey &key, uint32_t hash)
+  template<typename ForwardKey> bool remove__impl(const ForwardKey &key, uint64_t hash)
   {
     MAP_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, is_equal_, hash)) {
@@ -977,7 +978,7 @@ class Map {
     MAP_SLOT_PROBING_END();
   }
 
-  template<typename ForwardKey> void remove_contained__impl(const ForwardKey &key, uint32_t hash)
+  template<typename ForwardKey> void remove_contained__impl(const ForwardKey &key, uint64_t hash)
   {
     BLI_assert(this->contains_as(key));
 
@@ -992,7 +993,7 @@ class Map {
     MAP_SLOT_PROBING_END();
   }
 
-  template<typename ForwardKey> Value pop__impl(const ForwardKey &key, uint32_t hash)
+  template<typename ForwardKey> Value pop__impl(const ForwardKey &key, uint64_t hash)
   {
     BLI_assert(this->contains_as(key));
 
@@ -1009,7 +1010,7 @@ class Map {
   }
 
   template<typename ForwardKey>
-  std::optional<Value> pop_try__impl(const ForwardKey &key, uint32_t hash)
+  std::optional<Value> pop_try__impl(const ForwardKey &key, uint64_t hash)
   {
     MAP_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, is_equal_, hash)) {
@@ -1026,7 +1027,7 @@ class Map {
   }
 
   template<typename ForwardKey, typename ForwardValue>
-  Value pop_default__impl(const ForwardKey &key, ForwardValue &&default_value, uint32_t hash)
+  Value pop_default__impl(const ForwardKey &key, ForwardValue &&default_value, uint64_t hash)
   {
     MAP_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, is_equal_, hash)) {
@@ -1046,7 +1047,7 @@ class Map {
   auto add_or_modify__impl(ForwardKey &&key,
                            const CreateValueF &create_value,
                            const ModifyValueF &modify_value,
-                           uint32_t hash) -> decltype(create_value(nullptr))
+                           uint64_t hash) -> decltype(create_value(nullptr))
   {
     using CreateReturnT = decltype(create_value(nullptr));
     using ModifyReturnT = decltype(modify_value(nullptr));
@@ -1071,7 +1072,7 @@ class Map {
   }
 
   template<typename ForwardKey, typename CreateValueF>
-  Value &lookup_or_add_cb__impl(ForwardKey &&key, const CreateValueF &create_value, uint32_t hash)
+  Value &lookup_or_add_cb__impl(ForwardKey &&key, const CreateValueF &create_value, uint64_t hash)
   {
     this->ensure_can_add();
 
@@ -1089,7 +1090,7 @@ class Map {
   }
 
   template<typename ForwardKey, typename ForwardValue>
-  Value &lookup_or_add__impl(ForwardKey &&key, ForwardValue &&value, uint32_t hash)
+  Value &lookup_or_add__impl(ForwardKey &&key, ForwardValue &&value, uint64_t hash)
   {
     this->ensure_can_add();
 
@@ -1107,7 +1108,7 @@ class Map {
   }
 
   template<typename ForwardKey, typename ForwardValue>
-  bool add_overwrite__impl(ForwardKey &&key, ForwardValue &&value, uint32_t hash)
+  bool add_overwrite__impl(ForwardKey &&key, ForwardValue &&value, uint64_t hash)
   {
     auto create_func = [&](Value *ptr) {
       new ((void *)ptr) Value(std::forward<ForwardValue>(value));
@@ -1122,7 +1123,7 @@ class Map {
   }
 
   template<typename ForwardKey>
-  const Value *lookup_ptr__impl(const ForwardKey &key, uint32_t hash) const
+  const Value *lookup_ptr__impl(const ForwardKey &key, uint64_t hash) const
   {
     MAP_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.is_empty()) {
@@ -1136,9 +1137,9 @@ class Map {
   }
 
   template<typename ForwardKey>
-  uint32_t count_collisions__impl(const ForwardKey &key, uint32_t hash) const
+  int64_t count_collisions__impl(const ForwardKey &key, uint64_t hash) const
   {
-    uint32_t collisions = 0;
+    int64_t collisions = 0;
 
     MAP_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, is_equal_, hash)) {
@@ -1171,9 +1172,9 @@ template<typename Key, typename Value> class StdUnorderedMapWrapper {
   MapType map_;
 
  public:
-  uint32_t size() const
+  int64_t size() const
   {
-    return (uint32_t)map_.size();
+    return (int64_t)map_.size();
   }
 
   bool is_empty() const
@@ -1181,7 +1182,7 @@ template<typename Key, typename Value> class StdUnorderedMapWrapper {
     return map_.empty();
   }
 
-  void reserve(uint32_t n)
+  void reserve(int64_t n)
   {
     map_.reserve(n);
   }

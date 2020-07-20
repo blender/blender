@@ -51,7 +51,7 @@ class ResourceCollector : NonCopyable, NonMovable {
   ~ResourceCollector()
   {
     /* Free in reversed order. */
-    for (uint i = m_resources.size(); i--;) {
+    for (int64_t i = m_resources.size(); i--;) {
       ResourceData &data = m_resources[i];
       data.free(data.data);
     }

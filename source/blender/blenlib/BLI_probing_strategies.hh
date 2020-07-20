@@ -25,17 +25,17 @@
  * values based on an initial hash value.
  *
  * A probing strategy has to implement the following methods:
- * - Constructor(uint32_t hash): Start a new probing sequence based on the given hash.
- * - get() const -> uint32_t: Get the current value in the sequence.
+ * - Constructor(uint64_t hash): Start a new probing sequence based on the given hash.
+ * - get() const -> uint64_t: Get the current value in the sequence.
  * - next() -> void: Update the internal state, so that the next value can be accessed with get().
- * - linear_steps() -> uint32_t: Returns number of linear probing steps that should be done.
+ * - linear_steps() -> int64_t: Returns number of linear probing steps that should be done.
  *
  * Using linear probing steps between larger jumps can result in better performance, due to
  * improved cache usage. It's a way of getting the benefits or linear probing without the
  * clustering issues. However, more linear steps can also make things slower when the initial hash
  * produces many collisions.
  *
- * Every probing strategy has to guarantee, that every possible uint32_t is returned eventually.
+ * Every probing strategy has to guarantee, that every possible uint64_t is returned eventually.
  * This is necessary for correctness. If this is not the case, empty slots might not be found.
  *
  * The SLOT_PROBING_BEGIN and SLOT_PROBING_END macros can be used to implement a loop that iterates
@@ -65,10 +65,10 @@ namespace blender {
  */
 class LinearProbingStrategy {
  private:
-  uint32_t hash_;
+  uint64_t hash_;
 
  public:
-  LinearProbingStrategy(const uint32_t hash) : hash_(hash)
+  LinearProbingStrategy(const uint64_t hash) : hash_(hash)
   {
   }
 
@@ -77,12 +77,12 @@ class LinearProbingStrategy {
     hash_++;
   }
 
-  uint32_t get() const
+  uint64_t get() const
   {
     return hash_;
   }
 
-  uint32_t linear_steps() const
+  int64_t linear_steps() const
   {
     return UINT32_MAX;
   }
@@ -101,12 +101,12 @@ class LinearProbingStrategy {
  */
 class QuadraticProbingStrategy {
  private:
-  uint32_t original_hash_;
-  uint32_t current_hash_;
-  uint32_t iteration_;
+  uint64_t original_hash_;
+  uint64_t current_hash_;
+  uint64_t iteration_;
 
  public:
-  QuadraticProbingStrategy(const uint32_t hash)
+  QuadraticProbingStrategy(const uint64_t hash)
       : original_hash_(hash), current_hash_(hash), iteration_(1)
   {
   }
@@ -117,12 +117,12 @@ class QuadraticProbingStrategy {
     iteration_++;
   }
 
-  uint32_t get() const
+  uint64_t get() const
   {
     return current_hash_;
   }
 
-  uint32_t linear_steps() const
+  int64_t linear_steps() const
   {
     return 1;
   }
@@ -138,13 +138,13 @@ class QuadraticProbingStrategy {
  * PreShuffle: When true, the initial call to next() will be done to the constructor. This can help
  *   when the hash function has put little information into the lower bits.
  */
-template<uint32_t LinearSteps = 1, bool PreShuffle = false> class PythonProbingStrategy {
+template<uint64_t LinearSteps = 1, bool PreShuffle = false> class PythonProbingStrategy {
  private:
-  uint32_t hash_;
-  uint32_t perturb_;
+  uint64_t hash_;
+  uint64_t perturb_;
 
  public:
-  PythonProbingStrategy(const uint32_t hash) : hash_(hash), perturb_(hash)
+  PythonProbingStrategy(const uint64_t hash) : hash_(hash), perturb_(hash)
   {
     if (PreShuffle) {
       this->next();
@@ -157,12 +157,12 @@ template<uint32_t LinearSteps = 1, bool PreShuffle = false> class PythonProbingS
     hash_ = 5 * hash_ + 1 + perturb_;
   }
 
-  uint32_t get() const
+  uint64_t get() const
   {
     return hash_;
   }
 
-  uint32_t linear_steps() const
+  int64_t linear_steps() const
   {
     return LinearSteps;
   }
@@ -173,13 +173,13 @@ template<uint32_t LinearSteps = 1, bool PreShuffle = false> class PythonProbingS
  * method. This way more bits are taken into account earlier. After a couple of collisions (that
  * should happen rarely), it will fallback to a sequence that hits every slot.
  */
-template<uint32_t LinearSteps = 2, bool PreShuffle = false> class ShuffleProbingStrategy {
+template<uint64_t LinearSteps = 2, bool PreShuffle = false> class ShuffleProbingStrategy {
  private:
-  uint32_t hash_;
-  uint32_t perturb_;
+  uint64_t hash_;
+  uint64_t perturb_;
 
  public:
-  ShuffleProbingStrategy(const uint32_t hash) : hash_(hash), perturb_(hash)
+  ShuffleProbingStrategy(const uint64_t hash) : hash_(hash), perturb_(hash)
   {
     if (PreShuffle) {
       this->next();
@@ -197,12 +197,12 @@ template<uint32_t LinearSteps = 2, bool PreShuffle = false> class ShuffleProbing
     }
   }
 
-  uint32_t get() const
+  uint64_t get() const
   {
     return hash_;
   }
 
-  uint32_t linear_steps() const
+  int64_t linear_steps() const
   {
     return LinearSteps;
   }
@@ -233,10 +233,10 @@ using DefaultProbingStrategy = PythonProbingStrategy<>;
 #define SLOT_PROBING_BEGIN(PROBING_STRATEGY, HASH, MASK, R_SLOT_INDEX) \
   PROBING_STRATEGY probing_strategy(HASH); \
   do { \
-    uint32_t linear_offset = 0; \
-    uint32_t current_hash = probing_strategy.get(); \
+    int64_t linear_offset = 0; \
+    uint64_t current_hash = probing_strategy.get(); \
     do { \
-      uint32_t R_SLOT_INDEX = (current_hash + linear_offset) & MASK;
+      int64_t R_SLOT_INDEX = (int64_t)((current_hash + (uint64_t)linear_offset) & MASK);
 
 #define SLOT_PROBING_END() \
     } while (++linear_offset < probing_strategy.linear_steps()); \

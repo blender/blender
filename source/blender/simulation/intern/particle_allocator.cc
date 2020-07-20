@@ -21,7 +21,7 @@ namespace blender::sim {
 AttributesAllocator::~AttributesAllocator()
 {
   for (std::unique_ptr<AttributesBlock> &block : allocated_blocks_) {
-    for (uint i : attributes_info_.index_range()) {
+    for (int i : attributes_info_.index_range()) {
       const fn::CPPType &type = attributes_info_.type_of(i);
       type.destruct_n(block->buffers[i], block->size);
       MEM_freeN(block->buffers[i]);
@@ -29,13 +29,13 @@ AttributesAllocator::~AttributesAllocator()
   }
 }
 
-fn::MutableAttributesRef AttributesAllocator::allocate_uninitialized(uint size)
+fn::MutableAttributesRef AttributesAllocator::allocate_uninitialized(int size)
 {
   std::unique_ptr<AttributesBlock> block = std::make_unique<AttributesBlock>();
   block->buffers = Array<void *>(attributes_info_.size(), nullptr);
   block->size = size;
 
-  for (uint i : attributes_info_.index_range()) {
+  for (int i : attributes_info_.index_range()) {
     const fn::CPPType &type = attributes_info_.type_of(i);
     void *buffer = MEM_mallocN_aligned(size * type.size(), type.alignment(), AT);
     block->buffers[i] = buffer;
@@ -53,17 +53,17 @@ fn::MutableAttributesRef AttributesAllocator::allocate_uninitialized(uint size)
   return attributes;
 }
 
-fn::MutableAttributesRef ParticleAllocator::allocate(uint size)
+fn::MutableAttributesRef ParticleAllocator::allocate(int size)
 {
   const fn::AttributesInfo &info = attributes_allocator_.attributes_info();
   fn::MutableAttributesRef attributes = attributes_allocator_.allocate_uninitialized(size);
-  for (uint i : info.index_range()) {
+  for (int i : info.index_range()) {
     const fn::CPPType &type = info.type_of(i);
     StringRef name = info.name_of(i);
     if (name == "ID") {
-      uint start_id = next_id_.fetch_add(size);
+      int start_id = next_id_.fetch_add(size);
       MutableSpan<int> ids = attributes.get<int>("ID");
-      for (uint pindex : IndexRange(size)) {
+      for (int pindex : IndexRange(size)) {
         ids[pindex] = start_id + pindex;
       }
     }

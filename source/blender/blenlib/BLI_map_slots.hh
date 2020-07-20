@@ -155,7 +155,7 @@ template<typename Key, typename Value> class SimpleMapSlot {
    * Returns the hash of the currently stored key. In this simple map slot implementation, we just
    * computed the hash here. Other implementations might store the hash in the slot instead.
    */
-  template<typename Hash> uint32_t get_hash(const Hash &hash)
+  template<typename Hash> uint64_t get_hash(const Hash &hash)
   {
     BLI_assert(this->is_occupied());
     return hash(*key_buffer_);
@@ -165,7 +165,7 @@ template<typename Key, typename Value> class SimpleMapSlot {
    * Move the other slot into this slot and destruct it. We do destruction here, because this way
    * we can avoid a comparison with the state, since we know the slot is occupied.
    */
-  void relocate_occupied_here(SimpleMapSlot &other, uint32_t UNUSED(hash))
+  void relocate_occupied_here(SimpleMapSlot &other, uint64_t UNUSED(hash))
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(other.is_occupied());
@@ -181,7 +181,7 @@ template<typename Key, typename Value> class SimpleMapSlot {
    * key. The hash can be used by other slot implementations to determine inequality faster.
    */
   template<typename ForwardKey, typename IsEqual>
-  bool contains(const ForwardKey &key, const IsEqual &is_equal, uint32_t UNUSED(hash)) const
+  bool contains(const ForwardKey &key, const IsEqual &is_equal, uint64_t UNUSED(hash)) const
   {
     if (state_ == Occupied) {
       return is_equal(key, *key_buffer_);
@@ -194,7 +194,7 @@ template<typename Key, typename Value> class SimpleMapSlot {
    * constructed by calling the constructor with the given key/value as parameter.
    */
   template<typename ForwardKey, typename ForwardValue>
-  void occupy(ForwardKey &&key, ForwardValue &&value, uint32_t hash)
+  void occupy(ForwardKey &&key, ForwardValue &&value, uint64_t hash)
   {
     BLI_assert(!this->is_occupied());
     this->occupy_without_value(std::forward<ForwardKey>(key), hash);
@@ -205,7 +205,7 @@ template<typename Key, typename Value> class SimpleMapSlot {
    * Change the state of this slot from empty/removed to occupied, but leave the value
    * uninitialized. The caller is responsible to construct the value afterwards.
    */
-  template<typename ForwardKey> void occupy_without_value(ForwardKey &&key, uint32_t UNUSED(hash))
+  template<typename ForwardKey> void occupy_without_value(ForwardKey &&key, uint64_t UNUSED(hash))
   {
     BLI_assert(!this->is_occupied());
     state_ = Occupied;
@@ -292,13 +292,13 @@ template<typename Key, typename Value, typename KeyInfo> class IntrusiveMapSlot 
     return KeyInfo::is_empty(key_);
   }
 
-  template<typename Hash> uint32_t get_hash(const Hash &hash)
+  template<typename Hash> uint64_t get_hash(const Hash &hash)
   {
     BLI_assert(this->is_occupied());
     return hash(key_);
   }
 
-  void relocate_occupied_here(IntrusiveMapSlot &other, uint32_t UNUSED(hash))
+  void relocate_occupied_here(IntrusiveMapSlot &other, uint64_t UNUSED(hash))
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(other.is_occupied());
@@ -309,14 +309,14 @@ template<typename Key, typename Value, typename KeyInfo> class IntrusiveMapSlot 
   }
 
   template<typename ForwardKey, typename IsEqual>
-  bool contains(const ForwardKey &key, const IsEqual &is_equal, uint32_t UNUSED(hash)) const
+  bool contains(const ForwardKey &key, const IsEqual &is_equal, uint64_t UNUSED(hash)) const
   {
     BLI_assert(KeyInfo::is_not_empty_or_removed(key));
     return is_equal(key, key_);
   }
 
   template<typename ForwardKey, typename ForwardValue>
-  void occupy(ForwardKey &&key, ForwardValue &&value, uint32_t hash)
+  void occupy(ForwardKey &&key, ForwardValue &&value, uint64_t hash)
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(KeyInfo::is_not_empty_or_removed(key));
@@ -324,7 +324,7 @@ template<typename Key, typename Value, typename KeyInfo> class IntrusiveMapSlot 
     new (&value_buffer_) Value(std::forward<ForwardValue>(value));
   }
 
-  template<typename ForwardKey> void occupy_without_value(ForwardKey &&key, uint32_t UNUSED(hash))
+  template<typename ForwardKey> void occupy_without_value(ForwardKey &&key, uint64_t UNUSED(hash))
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(KeyInfo::is_not_empty_or_removed(key));

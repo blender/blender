@@ -133,7 +133,7 @@ template<typename Key> class SimpleSetSlot {
    * Return the hash of the currently stored key. In this simple set slot implementation, we just
    * compute the hash here. Other implementations might store the hash in the slot instead.
    */
-  template<typename Hash> uint32_t get_hash(const Hash &hash) const
+  template<typename Hash> uint64_t get_hash(const Hash &hash) const
   {
     BLI_assert(this->is_occupied());
     return hash(*key_buffer_);
@@ -143,7 +143,7 @@ template<typename Key> class SimpleSetSlot {
    * Move the other slot into this slot and destruct it. We do destruction here, because this way
    * we can avoid a comparison with the state, since we know the slot is occupied.
    */
-  void relocate_occupied_here(SimpleSetSlot &other, uint32_t UNUSED(hash))
+  void relocate_occupied_here(SimpleSetSlot &other, uint64_t UNUSED(hash))
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(other.is_occupied());
@@ -157,7 +157,7 @@ template<typename Key> class SimpleSetSlot {
    * key. The hash is used by other slot implementations to determine inequality faster.
    */
   template<typename ForwardKey, typename IsEqual>
-  bool contains(const ForwardKey &key, const IsEqual &is_equal, uint32_t UNUSED(hash)) const
+  bool contains(const ForwardKey &key, const IsEqual &is_equal, uint64_t UNUSED(hash)) const
   {
     if (state_ == Occupied) {
       return is_equal(key, *key_buffer_);
@@ -169,7 +169,7 @@ template<typename Key> class SimpleSetSlot {
    * Change the state of this slot from empty/removed to occupied. The key has to be constructed
    * by calling the constructor with the given key as parameter.
    */
-  template<typename ForwardKey> void occupy(ForwardKey &&key, uint32_t UNUSED(hash))
+  template<typename ForwardKey> void occupy(ForwardKey &&key, uint64_t UNUSED(hash))
   {
     BLI_assert(!this->is_occupied());
     state_ = Occupied;
@@ -199,7 +199,7 @@ template<typename Key> class HashedSetSlot {
     Removed = 2,
   };
 
-  uint32_t hash_;
+  uint64_t hash_;
   State state_;
   TypedBuffer<Key> key_buffer_;
 
@@ -254,13 +254,13 @@ template<typename Key> class HashedSetSlot {
     return state_ == Empty;
   }
 
-  template<typename Hash> uint32_t get_hash(const Hash &UNUSED(hash)) const
+  template<typename Hash> uint64_t get_hash(const Hash &UNUSED(hash)) const
   {
     BLI_assert(this->is_occupied());
     return hash_;
   }
 
-  void relocate_occupied_here(HashedSetSlot &other, const uint32_t hash)
+  void relocate_occupied_here(HashedSetSlot &other, const uint64_t hash)
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(other.is_occupied());
@@ -271,7 +271,7 @@ template<typename Key> class HashedSetSlot {
   }
 
   template<typename ForwardKey, typename IsEqual>
-  bool contains(const ForwardKey &key, const IsEqual &is_equal, const uint32_t hash) const
+  bool contains(const ForwardKey &key, const IsEqual &is_equal, const uint64_t hash) const
   {
     /* hash_ might be uninitialized here, but that is ok. */
     if (hash_ == hash) {
@@ -282,7 +282,7 @@ template<typename Key> class HashedSetSlot {
     return false;
   }
 
-  template<typename ForwardKey> void occupy(ForwardKey &&key, const uint32_t hash)
+  template<typename ForwardKey> void occupy(ForwardKey &&key, const uint64_t hash)
   {
     BLI_assert(!this->is_occupied());
     state_ = Occupied;
@@ -336,13 +336,13 @@ template<typename Key, typename KeyInfo> class IntrusiveSetSlot {
     return KeyInfo::is_empty(key_);
   }
 
-  template<typename Hash> uint32_t get_hash(const Hash &hash) const
+  template<typename Hash> uint64_t get_hash(const Hash &hash) const
   {
     BLI_assert(this->is_occupied());
     return hash(key_);
   }
 
-  void relocate_occupied_here(IntrusiveSetSlot &other, const uint32_t UNUSED(hash))
+  void relocate_occupied_here(IntrusiveSetSlot &other, const uint64_t UNUSED(hash))
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(other.is_occupied());
@@ -351,13 +351,13 @@ template<typename Key, typename KeyInfo> class IntrusiveSetSlot {
   }
 
   template<typename ForwardKey, typename IsEqual>
-  bool contains(const ForwardKey &key, const IsEqual &is_equal, const uint32_t UNUSED(hash)) const
+  bool contains(const ForwardKey &key, const IsEqual &is_equal, const uint64_t UNUSED(hash)) const
   {
     BLI_assert(KeyInfo::is_not_empty_or_removed(key));
     return is_equal(key_, key);
   }
 
-  template<typename ForwardKey> void occupy(ForwardKey &&key, const uint32_t UNUSED(hash))
+  template<typename ForwardKey> void occupy(ForwardKey &&key, const uint64_t UNUSED(hash))
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(KeyInfo::is_not_empty_or_removed(key));

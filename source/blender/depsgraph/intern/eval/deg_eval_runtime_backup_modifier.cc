@@ -41,7 +41,7 @@ bool operator==(const ModifierDataBackupID &a, const ModifierDataBackupID &b)
   return a.modifier_data == b.modifier_data && a.type == b.type;
 }
 
-uint32_t ModifierDataBackupID::hash() const
+uint64_t ModifierDataBackupID::hash() const
 {
   uintptr_t ptr = (uintptr_t)modifier_data;
   return (ptr >> 4) ^ (uintptr_t)type;

@@ -29,9 +29,9 @@ ParticleFunction::ParticleFunction(const fn::MultiFunction *global_fn,
       per_particle_inputs_(per_particle_inputs),
       output_is_global_(output_is_global)
 {
-  for (uint i : output_is_global_.index_range()) {
+  for (int i : output_is_global_.index_range()) {
     if (output_is_global_[i]) {
-      uint param_index = global_inputs_.size() + global_output_indices_.size();
+      int param_index = global_inputs_.size() + global_output_indices_.size();
       fn::MFParamType param_type = global_fn_->param_type(param_index);
       BLI_assert(param_type.is_output());
       output_types_.append(param_type.data_type());
@@ -39,7 +39,7 @@ ParticleFunction::ParticleFunction(const fn::MultiFunction *global_fn,
       global_output_indices_.append(i);
     }
     else {
-      uint param_index = per_particle_inputs_.size() + per_particle_output_indices_.size();
+      int param_index = per_particle_inputs_.size() + per_particle_output_indices_.size();
       fn::MFParamType param_type = per_particle_fn_->param_type(param_index);
       BLI_assert(param_type.is_output());
       output_types_.append(param_type.data_type());
@@ -60,7 +60,7 @@ ParticleFunctionEvaluator::ParticleFunctionEvaluator(
 
 ParticleFunctionEvaluator::~ParticleFunctionEvaluator()
 {
-  for (uint output_index : outputs_.index_range()) {
+  for (int output_index : outputs_.index_range()) {
     void *buffer = outputs_[output_index];
     fn::MFDataType data_type = particle_fn_.output_types_[output_index];
     BLI_assert(data_type.is_single()); /* For now. */
@@ -83,7 +83,7 @@ void ParticleFunctionEvaluator::compute()
   is_computed_ = true;
 }
 
-fn::GVSpan ParticleFunctionEvaluator::get(uint output_index, StringRef expected_name) const
+fn::GVSpan ParticleFunctionEvaluator::get(int output_index, StringRef expected_name) const
 {
 #ifdef DEBUG
   StringRef real_name = particle_fn_.output_names_[output_index];
@@ -115,7 +115,7 @@ void ParticleFunctionEvaluator::compute_globals()
   }
 
   /* Add output parameters. */
-  for (uint output_index : particle_fn_.global_output_indices_) {
+  for (int output_index : particle_fn_.global_output_indices_) {
     fn::MFDataType data_type = particle_fn_.output_types_[output_index];
     BLI_assert(data_type.is_single()); /* For now. */
 
@@ -142,7 +142,7 @@ void ParticleFunctionEvaluator::compute_per_particle()
   }
 
   /* Add output parameters. */
-  for (uint output_index : particle_fn_.per_particle_output_indices_) {
+  for (int output_index : particle_fn_.per_particle_output_indices_) {
     fn::MFDataType data_type = particle_fn_.output_types_[output_index];
     BLI_assert(data_type.is_single()); /* For now. */
 

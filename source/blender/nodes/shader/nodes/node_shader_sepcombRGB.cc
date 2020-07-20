@@ -80,7 +80,7 @@ class SeparateRGBFunction : public blender::fn::MultiFunction {
     blender::MutableSpan<float> gs = params.uninitialized_single_output<float>(2, "G");
     blender::MutableSpan<float> bs = params.uninitialized_single_output<float>(3, "B");
 
-    for (uint i : mask) {
+    for (int64_t i : mask) {
       blender::Color4f color = colors[i];
       rs[i] = color.r;
       gs[i] = color.g;

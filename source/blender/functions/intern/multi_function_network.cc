@@ -50,9 +50,9 @@ void MFNode::destruct_sockets()
  */
 MFFunctionNode &MFNetwork::add_function(const MultiFunction &function)
 {
-  Vector<uint, 16> input_param_indices, output_param_indices;
+  Vector<int, 16> input_param_indices, output_param_indices;
 
-  for (uint param_index : function.param_indices()) {
+  for (int param_index : function.param_indices()) {
     switch (function.param_type(param_index).interface_type()) {
       case MFParamType::Input: {
         input_param_indices.append(param_index);
@@ -77,16 +77,16 @@ MFFunctionNode &MFNetwork::add_function(const MultiFunction &function)
   node.is_dummy_ = false;
   node.id_ = node_or_null_by_id_.append_and_get_index(&node);
   node.function_ = &function;
-  node.input_param_indices_ = allocator_.construct_array_copy<uint>(input_param_indices);
-  node.output_param_indices_ = allocator_.construct_array_copy<uint>(output_param_indices);
+  node.input_param_indices_ = allocator_.construct_array_copy<int>(input_param_indices);
+  node.output_param_indices_ = allocator_.construct_array_copy<int>(output_param_indices);
 
   node.inputs_ = allocator_.construct_elements_and_pointer_array<MFInputSocket>(
       input_param_indices.size());
   node.outputs_ = allocator_.construct_elements_and_pointer_array<MFOutputSocket>(
       output_param_indices.size());
 
-  for (uint i : input_param_indices.index_range()) {
-    uint param_index = input_param_indices[i];
+  for (int i : input_param_indices.index_range()) {
+    int param_index = input_param_indices[i];
     MFParamType param = function.param_type(param_index);
     BLI_assert(param.is_input_or_mutable());
 
@@ -100,8 +100,8 @@ MFFunctionNode &MFNetwork::add_function(const MultiFunction &function)
     socket.id_ = socket_or_null_by_id_.append_and_get_index(&socket);
   }
 
-  for (uint i : output_param_indices.index_range()) {
-    uint param_index = output_param_indices[i];
+  for (int i : output_param_indices.index_range()) {
+    int param_index = output_param_indices[i];
     MFParamType param = function.param_type(param_index);
     BLI_assert(param.is_output_or_mutable());
 
@@ -145,7 +145,7 @@ MFDummyNode &MFNetwork::add_dummy(StringRef name,
   node.input_names_ = allocator_.allocate_array<StringRefNull>(input_types.size());
   node.output_names_ = allocator_.allocate_array<StringRefNull>(output_types.size());
 
-  for (uint i : input_types.index_range()) {
+  for (int i : input_types.index_range()) {
     MFInputSocket &socket = *node.inputs_[i];
     socket.data_type_ = input_types[i];
     socket.node_ = &node;
@@ -156,7 +156,7 @@ MFDummyNode &MFNetwork::add_dummy(StringRef name,
     node.input_names_[i] = socket.name_;
   }
 
-  for (uint i : output_types.index_range()) {
+  for (int i : output_types.index_range()) {
     MFOutputSocket &socket = *node.outputs_[i];
     socket.data_type_ = output_types[i];
     socket.node_ = &node;

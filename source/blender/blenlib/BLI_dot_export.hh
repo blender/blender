@@ -274,13 +274,13 @@ class NodeWithSocketsRef {
     return *node_;
   }
 
-  NodePort input(uint index) const
+  NodePort input(int index) const
   {
     std::string port = "\"in" + std::to_string(index) + "\"";
     return NodePort(*node_, port);
   }
 
-  NodePort output(uint index) const
+  NodePort output(int index) const
   {
     std::string port = "\"out" + std::to_string(index) + "\"";
     return NodePort(*node_, port);

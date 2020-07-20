@@ -109,10 +109,10 @@ struct float4x4 {
     return result;
   }
 
-  uint32_t hash() const
+  uint64_t hash() const
   {
-    uint32_t h = 435109;
-    for (uint i = 0; i < 16; i++) {
+    uint64_t h = 435109;
+    for (int i = 0; i < 16; i++) {
       float value = ((const float *)this)[i];
       h = h * 33 + (*(uint32_t *)&value);
     }

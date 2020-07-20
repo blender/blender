@@ -53,7 +53,7 @@ static Span<const nodes::DNode *> get_particle_simulation_nodes(const nodes::Der
 static std::optional<Array<std::string>> compute_global_string_inputs(
     nodes::MFNetworkTreeMap &network_map, Span<const fn::MFInputSocket *> sockets)
 {
-  uint amount = sockets.size();
+  int amount = sockets.size();
   if (amount == 0) {
     return Array<std::string>();
   }
@@ -67,7 +67,7 @@ static std::optional<Array<std::string>> compute_global_string_inputs(
   fn::MFParamsBuilder params{network_fn, 1};
 
   Array<std::string> strings(amount, NoInitialization());
-  for (uint i : IndexRange(amount)) {
+  for (int i : IndexRange(amount)) {
     params.add_uninitialized_single_output(
         fn::GMutableSpan(fn::CPPType::get<std::string>(), strings.data() + i, 1));
   }
@@ -101,7 +101,7 @@ static void find_and_deduplicate_particle_attribute_nodes(nodes::MFNetworkTreeMa
 
   Map<std::pair<std::string, fn::MFDataType>, Vector<fn::MFNode *>>
       attribute_nodes_by_name_and_type;
-  for (uint i : attribute_names->index_range()) {
+  for (int i : attribute_names->index_range()) {
     attribute_nodes_by_name_and_type
         .lookup_or_add_default(
             {(*attribute_names)[i], name_sockets[i]->node().output(0).data_type()})
@@ -207,7 +207,7 @@ class ParticleFunctionForce : public ParticleForce {
     evaluator.compute();
     fn::VSpan<float3> forces = evaluator.get<float3>(0, "Force");
 
-    for (uint i : mask) {
+    for (int64_t i : mask) {
       r_combined_force[i] += forces[i];
     }
   }
@@ -273,13 +273,13 @@ class MyBasicEmitter : public ParticleEmitter {
     }
 
     fn::MutableAttributesRef attributes = allocator->allocate(10);
-    RandomNumberGenerator rng{(uint)context.simulation_time_interval().start() ^
-                              DefaultHash<std::string>{}(name_)};
+    RandomNumberGenerator rng{(uint32_t)context.simulation_time_interval().start() ^
+                              (uint32_t)DefaultHash<std::string>{}(name_)};
 
     MutableSpan<float3> positions = attributes.get<float3>("Position");
     MutableSpan<float3> velocities = attributes.get<float3>("Velocity");
 
-    for (uint i : IndexRange(attributes.size())) {
+    for (int i : IndexRange(attributes.size())) {
       positions[i] = rng.get_unit_float3();
       velocities[i] = rng.get_unit_float3();
     }

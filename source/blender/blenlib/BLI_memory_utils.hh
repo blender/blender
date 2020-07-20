@@ -43,8 +43,10 @@ namespace blender {
  * After:
  *  ptr: uninitialized
  */
-template<typename T> void destruct_n(T *ptr, uint n)
+template<typename T> void destruct_n(T *ptr, int64_t n)
 {
+  BLI_assert(n >= 0);
+
   static_assert(std::is_nothrow_destructible_v<T>,
                 "This should be true for all types. Destructors are noexcept by default.");
 
@@ -54,7 +56,7 @@ template<typename T> void destruct_n(T *ptr, uint n)
     return;
   }
 
-  for (uint i = 0; i < n; i++) {
+  for (int64_t i = 0; i < n; i++) {
     ptr[i].~T();
   }
 }
@@ -70,15 +72,17 @@ template<typename T> void destruct_n(T *ptr, uint n)
  * After:
  *  ptr: initialized
  */
-template<typename T> void default_construct_n(T *ptr, uint n)
+template<typename T> void default_construct_n(T *ptr, int64_t n)
 {
+  BLI_assert(n >= 0);
+
   /* This is not strictly necessary, because the loop below will be optimized away anyway. It is
    * nice to make behavior this explicitly, though. */
   if (std::is_trivially_constructible_v<T>) {
     return;
   }
 
-  uint current = 0;
+  int64_t current = 0;
   try {
     for (; current < n; current++) {
       new ((void *)(ptr + current)) T;
@@ -102,9 +106,11 @@ template<typename T> void default_construct_n(T *ptr, uint n)
  *  src: initialized
  *  dst: initialized
  */
-template<typename T> void initialized_copy_n(const T *src, uint n, T *dst)
+template<typename T> void initialized_copy_n(const T *src, int64_t n, T *dst)
 {
-  for (uint i = 0; i < n; i++) {
+  BLI_assert(n >= 0);
+
+  for (int64_t i = 0; i < n; i++) {
     dst[i] = src[i];
   }
 }
@@ -121,9 +127,11 @@ template<typename T> void initialized_copy_n(const T *src, uint n, T *dst)
  *  src: initialized
  *  dst: initialized
  */
-template<typename T> void uninitialized_copy_n(const T *src, uint n, T *dst)
+template<typename T> void uninitialized_copy_n(const T *src, int64_t n, T *dst)
 {
-  uint current = 0;
+  BLI_assert(n >= 0);
+
+  int64_t current = 0;
   try {
     for (; current < n; current++) {
       new ((void *)(dst + current)) T(src[current]);
@@ -147,9 +155,12 @@ template<typename T> void uninitialized_copy_n(const T *src, uint n, T *dst)
  *  src: initialized
  *  dst: initialized
  */
-template<typename From, typename To> void uninitialized_convert_n(const From *src, uint n, To *dst)
+template<typename From, typename To>
+void uninitialized_convert_n(const From *src, int64_t n, To *dst)
 {
-  uint current = 0;
+  BLI_assert(n >= 0);
+
+  int64_t current = 0;
   try {
     for (; current < n; current++) {
       new ((void *)(dst + current)) To((To)src[current]);
@@ -173,9 +184,11 @@ template<typename From, typename To> void uninitialized_convert_n(const From *sr
  *  src: initialized, moved-from
  *  dst: initialized
  */
-template<typename T> void initialized_move_n(T *src, uint n, T *dst)
+template<typename T> void initialized_move_n(T *src, int64_t n, T *dst)
 {
-  for (uint i = 0; i < n; i++) {
+  BLI_assert(n >= 0);
+
+  for (int64_t i = 0; i < n; i++) {
     dst[i] = std::move(src[i]);
   }
 }
@@ -192,9 +205,11 @@ template<typename T> void initialized_move_n(T *src, uint n, T *dst)
  *  src: initialized, moved-from
  *  dst: initialized
  */
-template<typename T> void uninitialized_move_n(T *src, uint n, T *dst)
+template<typename T> void uninitialized_move_n(T *src, int64_t n, T *dst)
 {
-  uint current = 0;
+  BLI_assert(n >= 0);
+
+  int64_t current = 0;
   try {
     for (; current < n; current++) {
       new ((void *)(dst + current)) T(std::move(src[current]));
@@ -219,8 +234,10 @@ template<typename T> void uninitialized_move_n(T *src, uint n, T *dst)
  *  src: uninitialized
  *  dst: initialized
  */
-template<typename T> void initialized_relocate_n(T *src, uint n, T *dst)
+template<typename T> void initialized_relocate_n(T *src, int64_t n, T *dst)
 {
+  BLI_assert(n >= 0);
+
   initialized_move_n(src, n, dst);
   destruct_n(src, n);
 }
@@ -238,8 +255,10 @@ template<typename T> void initialized_relocate_n(T *src, uint n, T *dst)
  *  src: uninitialized
  *  dst: initialized
  */
-template<typename T> void uninitialized_relocate_n(T *src, uint n, T *dst)
+template<typename T> void uninitialized_relocate_n(T *src, int64_t n, T *dst)
 {
+  BLI_assert(n >= 0);
+
   uninitialized_move_n(src, n, dst);
   destruct_n(src, n);
 }
@@ -254,9 +273,11 @@ template<typename T> void uninitialized_relocate_n(T *src, uint n, T *dst)
  * After:
  *  dst: initialized
  */
-template<typename T> void initialized_fill_n(T *dst, uint n, const T &value)
+template<typename T> void initialized_fill_n(T *dst, int64_t n, const T &value)
 {
-  for (uint i = 0; i < n; i++) {
+  BLI_assert(n >= 0);
+
+  for (int64_t i = 0; i < n; i++) {
     dst[i] = value;
   }
 }
@@ -271,9 +292,11 @@ template<typename T> void initialized_fill_n(T *dst, uint n, const T &value)
  * After:
  *  dst: initialized
  */
-template<typename T> void uninitialized_fill_n(T *dst, uint n, const T &value)
+template<typename T> void uninitialized_fill_n(T *dst, int64_t n, const T &value)
 {
-  uint current = 0;
+  BLI_assert(n >= 0);
+
+  int64_t current = 0;
   try {
     for (; current < n; current++) {
       new ((void *)(dst + current)) T(value);
@@ -334,9 +357,9 @@ template<size_t Size, size_t Alignment> class alignas(Alignment) AlignedBuffer {
  * lifetime of the object they are embedded in. It's used by containers with small buffer
  * optimization and hash table implementations.
  */
-template<typename T, size_t Size = 1> class TypedBuffer {
+template<typename T, int64_t Size = 1> class TypedBuffer {
  private:
-  AlignedBuffer<sizeof(T) * Size, alignof(T)> buffer_;
+  AlignedBuffer<sizeof(T) * (size_t)Size, alignof(T)> buffer_;
 
  public:
   operator T *()

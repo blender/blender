@@ -53,7 +53,7 @@ template<typename Key> class SimpleVectorSetSlot {
   /**
    * After the default constructor has run, the slot has to be in the empty state.
    */
-  int32_t state_ = s_is_empty;
+  int64_t state_ = s_is_empty;
 
  public:
   /**
@@ -75,10 +75,10 @@ template<typename Key> class SimpleVectorSetSlot {
   /**
    * Return the stored index. It is assumed that the slot is occupied.
    */
-  uint32_t index() const
+  int64_t index() const
   {
     BLI_assert(this->is_occupied());
-    return (uint32_t)state_;
+    return state_;
   }
 
   /**
@@ -88,7 +88,7 @@ template<typename Key> class SimpleVectorSetSlot {
   template<typename ForwardKey, typename IsEqual>
   bool contains(const ForwardKey &key,
                 const IsEqual &is_equal,
-                uint32_t UNUSED(hash),
+                uint64_t UNUSED(hash),
                 const Key *keys) const
   {
     if (state_ >= 0) {
@@ -102,7 +102,7 @@ template<typename Key> class SimpleVectorSetSlot {
    * we can avoid a comparison with the state, since we know the slot is occupied. For this
    * specific slot implementation, this does not make a difference.
    */
-  void relocate_occupied_here(SimpleVectorSetSlot &other, uint32_t UNUSED(hash))
+  void relocate_occupied_here(SimpleVectorSetSlot &other, uint64_t UNUSED(hash))
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(other.is_occupied());
@@ -113,20 +113,20 @@ template<typename Key> class SimpleVectorSetSlot {
    * Change the state of this slot from empty/removed to occupied. The hash can be used by other
    * slot implementations.
    */
-  void occupy(uint32_t index, uint32_t UNUSED(hash))
+  void occupy(int64_t index, uint64_t UNUSED(hash))
   {
     BLI_assert(!this->is_occupied());
-    state_ = (int32_t)index;
+    state_ = index;
   }
 
   /**
    * The key has changed its position in the vector, so the index has to be updated. This method
    * can assume that the slot is currently occupied.
    */
-  void update_index(uint32_t index)
+  void update_index(int64_t index)
   {
     BLI_assert(this->is_occupied());
-    state_ = (int32_t)index;
+    state_ = index;
   }
 
   /**
@@ -141,16 +141,16 @@ template<typename Key> class SimpleVectorSetSlot {
   /**
    * Return true if this slot is currently occupied and its corresponding key has the given index.
    */
-  bool has_index(uint32_t index) const
+  bool has_index(int64_t index) const
   {
-    return (uint32_t)state_ == index;
+    return state_ == index;
   }
 
   /**
    * Return the hash of the currently stored key. In this simple set slot implementation, we just
    * compute the hash here. Other implementations might store the hash in the slot instead.
    */
-  template<typename Hash> uint32_t get_hash(const Key &key, const Hash &hash) const
+  template<typename Hash> uint64_t get_hash(const Key &key, const Hash &hash) const
   {
     BLI_assert(this->is_occupied());
     return hash(key);
