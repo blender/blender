@@ -1205,7 +1205,29 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
   }
 
   IMB_freeImBuf(anim->last_frame);
-  anim->last_frame = IMB_allocImBuf(anim->x, anim->y, 32, IB_rect);
+
+  /* Certain versions of FFmpeg have a bug in libswscale which ends up in crash
+   * when destination buffer is not properly aligned. For example, this happens
+   * in FFmpeg 4.3.1. It got fixed later on, but for compatibility reasons is
+   * still best to avoid crash.
+   *
+   * This is achieved by using own allocation call rather than relying on
+   * IMB_allocImBuf() to do so since the IMB_allocImBuf() is not guaranteed
+   * to perform aligned allocation.
+   *
+   * In theory this could give better performance, since SIMD operations on
+   * aligned data are usually faster.
+   *
+   * Note that even though sometimes vertical flip is required it does not
+   * affect on alignment of data passed to sws_scale because if the X dimension
+   * is not 32 byte aligned special intermediate buffer is allocated.
+   *
+   * The issue was reported to FFmpeg under ticket #8747 in the FFmpeg tracker
+   * and is fixed in the newer versions than 4.3.1. */
+  anim->last_frame = IMB_allocImBuf(anim->x, anim->y, 32, 0);
+  anim->last_frame->rect = MEM_mallocN_aligned((size_t)4 * anim->x * anim->y, 32, "ffmpeg ibuf");
+  anim->last_frame->mall |= IB_rect;
+
   anim->last_frame->rect_colorspace = colormanage_colorspace_get_named(anim->colorspace);
 
   ffmpeg_postprocess(anim);
