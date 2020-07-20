@@ -1564,15 +1564,12 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   void **val_p;
   float s[2], se1[2], se2[2], sint[2];
   float r1[3], r2[3];
-  float d, d1, d2, lambda;
+  float d1, d2, lambda;
   float vert_tol, vert_tol_sq;
   float line_tol, line_tol_sq;
   float face_tol, face_tol_sq;
-  int isect_kind;
   uint tot;
   int i;
-  const bool use_hit_prev = true;
-  const bool use_hit_curr = (kcd->is_drag_hold == false);
 
   if (kcd->linehits) {
     MEM_freeN(kcd->linehits);
@@ -1703,10 +1700,25 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
        val_p = BLI_smallhash_iternext_p(&hiter, (uintptr_t *)&v)) {
     KnifeEdge *kfe_hit = NULL;
 
-    knife_project_v2(kcd, v->cageco, s);
-    d = dist_squared_to_line_segment_v2(s, s1, s2);
-    if ((d <= vert_tol_sq) &&
-        (point_is_visible(kcd, v->cageco, s, bm_elem_from_knife_vert(v, &kfe_hit)))) {
+    bool kfv_is_in_cut = false;
+    if (ELEM(v, kcd->prev.vert, kcd->curr.vert)) {
+      /* This KnifeVert was captured by the snap system.
+       * Since the tolerance distance can be different, add this vertex directly.
+       * Otherwise, the cut may fail or a close cut on a connected edge can be performed. */
+      bm_elem_from_knife_vert(v, &kfe_hit);
+      copy_v2_v2(s, (v == kcd->prev.vert) ? kcd->prev.mval : kcd->curr.mval);
+      kfv_is_in_cut = true;
+    }
+    else {
+      knife_project_v2(kcd, v->cageco, s);
+      float d = dist_squared_to_line_segment_v2(s, s1, s2);
+      if ((d <= vert_tol_sq) &&
+          (point_is_visible(kcd, v->cageco, s, bm_elem_from_knife_vert(v, &kfe_hit)))) {
+        kfv_is_in_cut = true;
+      }
+    }
+
+    if (kfv_is_in_cut) {
       memset(&hit, 0, sizeof(hit));
       hit.v = v;
 
@@ -1724,7 +1736,9 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
       BLI_array_append(linehits, hit);
     }
     else {
-      /* note that these vertes aren't used */
+      /* This vertex isn't used so remove from `kfvs`.
+       * This is useful to detect KnifeEdges that can be skipped.
+       * And it optimizes smallhash_iternext a little bit. */
       *val_p = NULL;
     }
   }
@@ -1732,29 +1746,37 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   /* now edge hits; don't add if a vertex at end of edge should have hit */
   for (val = BLI_smallhash_iternew(&kfes, &hiter, (uintptr_t *)&kfe); val;
        val = BLI_smallhash_iternext(&hiter, (uintptr_t *)&kfe)) {
-    int kfe_verts_in_cut;
-    /* if we intersect both verts, don't attempt to intersect the edge */
 
-    kfe_verts_in_cut = (BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v1) != NULL) +
-                       (BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v2) != NULL);
-
-    if (kfe_verts_in_cut == 2) {
+    /* If we intersect any of the vertices, don't attempt to intersect the edge. */
+    if (BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v1) ||
+        BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v2)) {
       continue;
     }
 
     knife_project_v2(kcd, kfe->v1->cageco, se1);
     knife_project_v2(kcd, kfe->v2->cageco, se2);
-    isect_kind = (kfe_verts_in_cut) ? -1 : isect_seg_seg_v2_point(s1, s2, se1, se2, sint);
-    if (isect_kind == -1) {
-      /* isect_seg_seg_v2_simple doesn't do tolerance test around ends of s1-s2 */
-      closest_to_line_segment_v2(sint, s1, se1, se2);
-      if (len_squared_v2v2(sint, s1) <= line_tol_sq) {
-        isect_kind = 1;
-      }
-      else {
-        closest_to_line_segment_v2(sint, s2, se1, se2);
-        if (len_squared_v2v2(sint, s2) <= line_tol_sq) {
+    int isect_kind = 1;
+    if (kfe == kcd->prev.edge) {
+      /* This KnifeEdge was captured by the snap system. */
+      copy_v2_v2(sint, kcd->prev.mval);
+    }
+    else if (kfe == kcd->curr.edge) {
+      /* This KnifeEdge was captured by the snap system. */
+      copy_v2_v2(sint, kcd->curr.mval);
+    }
+    else {
+      isect_kind = isect_seg_seg_v2_point_ex(s1, s2, se1, se2, 0.0f, sint);
+      if (isect_kind == -1) {
+        /* isect_seg_seg_v2_point doesn't do tolerance test around ends of s1-s2 */
+        closest_to_line_segment_v2(sint, s1, se1, se2);
+        if (len_squared_v2v2(sint, s1) <= line_tol_sq) {
           isect_kind = 1;
+        }
+        else {
+          closest_to_line_segment_v2(sint, s2, se1, se2);
+          if (len_squared_v2v2(sint, s2) <= line_tol_sq) {
+            isect_kind = 1;
+          }
         }
       }
     }
@@ -1790,32 +1812,38 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
       }
     }
   }
+
   /* now face hits; don't add if a vertex or edge in face should have hit */
-  for (val = BLI_smallhash_iternew(&faces, &hiter, (uintptr_t *)&f); val;
-       val = BLI_smallhash_iternext(&hiter, (uintptr_t *)&f)) {
-    float p[3], p_cage[3];
+  const bool use_hit_prev = (kcd->prev.vert == NULL) && (kcd->prev.edge == NULL);
+  const bool use_hit_curr = (kcd->curr.vert == NULL) && (kcd->curr.edge == NULL) &&
+                            !kcd->is_drag_hold;
+  if (use_hit_prev || use_hit_curr) {
+    for (val = BLI_smallhash_iternew(&faces, &hiter, (uintptr_t *)&f); val;
+         val = BLI_smallhash_iternext(&hiter, (uintptr_t *)&f)) {
+      float p[3], p_cage[3];
 
-    if (use_hit_prev && knife_ray_intersect_face(kcd, s1, v1, v3, f, face_tol_sq, p, p_cage)) {
-      if (point_is_visible(kcd, p_cage, s1, (BMElem *)f)) {
-        memset(&hit, 0, sizeof(hit));
-        hit.f = f;
-        copy_v3_v3(hit.hit, p);
-        copy_v3_v3(hit.cagehit, p_cage);
-        copy_v2_v2(hit.schit, s1);
-        set_linehit_depth(kcd, &hit);
-        BLI_array_append(linehits, hit);
+      if (use_hit_prev && knife_ray_intersect_face(kcd, s1, v1, v3, f, face_tol_sq, p, p_cage)) {
+        if (point_is_visible(kcd, p_cage, s1, (BMElem *)f)) {
+          memset(&hit, 0, sizeof(hit));
+          hit.f = f;
+          copy_v3_v3(hit.hit, p);
+          copy_v3_v3(hit.cagehit, p_cage);
+          copy_v2_v2(hit.schit, s1);
+          set_linehit_depth(kcd, &hit);
+          BLI_array_append(linehits, hit);
+        }
       }
-    }
 
-    if (use_hit_curr && knife_ray_intersect_face(kcd, s2, v2, v4, f, face_tol_sq, p, p_cage)) {
-      if (point_is_visible(kcd, p_cage, s2, (BMElem *)f)) {
-        memset(&hit, 0, sizeof(hit));
-        hit.f = f;
-        copy_v3_v3(hit.hit, p);
-        copy_v3_v3(hit.cagehit, p_cage);
-        copy_v2_v2(hit.schit, s2);
-        set_linehit_depth(kcd, &hit);
-        BLI_array_append(linehits, hit);
+      if (use_hit_curr && knife_ray_intersect_face(kcd, s2, v2, v4, f, face_tol_sq, p, p_cage)) {
+        if (point_is_visible(kcd, p_cage, s2, (BMElem *)f)) {
+          memset(&hit, 0, sizeof(hit));
+          hit.f = f;
+          copy_v3_v3(hit.hit, p);
+          copy_v3_v3(hit.cagehit, p_cage);
+          copy_v2_v2(hit.schit, s2);
+          set_linehit_depth(kcd, &hit);
+          BLI_array_append(linehits, hit);
+        }
       }
     }
   }
