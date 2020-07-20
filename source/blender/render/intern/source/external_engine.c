@@ -624,10 +624,6 @@ void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
     return;
   }
 
-#ifdef WITH_PYTHON
-  BPy_BEGIN_ALLOW_THREADS;
-#endif
-
   Render *re = engine->re;
   double cfra = (double)frame + (double)subframe;
 
@@ -636,10 +632,6 @@ void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
   BKE_scene_graph_update_for_newframe(engine->depsgraph, re->main);
 
   BKE_scene_camera_switch_update(re->scene);
-
-#ifdef WITH_PYTHON
-  BPy_END_ALLOW_THREADS;
-#endif
 }
 
 /* Bake */

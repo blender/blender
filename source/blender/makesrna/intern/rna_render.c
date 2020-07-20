@@ -27,6 +27,8 @@
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
+#include "BPY_extern.h"
+
 #include "DEG_depsgraph.h"
 
 #include "BKE_image.h"
@@ -408,6 +410,19 @@ static PointerRNA rna_RenderEngine_camera_override_get(PointerRNA *ptr)
   }
 }
 
+static void rna_RenderEngine_engine_frame_set(RenderEngine *engine, int frame, float subframe)
+{
+#  ifdef WITH_PYTHON
+  BPy_BEGIN_ALLOW_THREADS;
+#  endif
+
+  RE_engine_frame_set(engine, frame, subframe);
+
+#  ifdef WITH_PYTHON
+  BPy_END_ALLOW_THREADS;
+#  endif
+}
+
 static void rna_RenderResult_views_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   RenderResult *rr = (RenderResult *)ptr->data;
@@ -673,7 +688,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   parm = RNA_def_string(func, "info", NULL, 0, "Info", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
-  func = RNA_def_function(srna, "frame_set", "RE_engine_frame_set");
+  func = RNA_def_function(srna, "frame_set", "rna_RenderEngine_engine_frame_set");
   RNA_def_function_ui_description(func, "Evaluate scene at a different frame (for motion blur)");
   parm = RNA_def_int(func, "frame", 0, INT_MIN, INT_MAX, "Frame", "", INT_MIN, INT_MAX);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
