@@ -2088,7 +2088,7 @@ void BKE_object_make_proxy(Main *bmain, Object *ob, Object *target, Object *cob)
   /* type conversions */
   if (target->type == OB_ARMATURE) {
     copy_object_pose(ob, target, 0);             /* data copy, object pointers in constraints */
-    BKE_pose_rest(ob->pose);                     /* clear all transforms in channels */
+    BKE_pose_rest(ob->pose, false);              /* clear all transforms in channels */
     BKE_pose_rebuild(bmain, ob, ob->data, true); /* set all internal links */
 
     armature_set_id_extern(ob);

@@ -1262,10 +1262,8 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
       MEM_freeN(dummyPose);
     }
     else {
-      /* no animation, so just reset whole pose to rest pose
-       * (cannot just restore for selected though)
-       */
-      BKE_pose_rest(ob->pose);
+      /* No animation, so just reset to the rest pose. */
+      BKE_pose_rest(ob->pose, only_select);
     }
 
     /* notifiers and updates */
@@ -1282,7 +1280,7 @@ void POSE_OT_user_transforms_clear(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Clear User Transforms";
   ot->idname = "POSE_OT_user_transforms_clear";
-  ot->description = "Reset pose on selected bones to keyframed state";
+  ot->description = "Reset pose bone transforms to keyframed state";
 
   /* callbacks */
   ot->exec = pose_clear_user_transforms_exec;

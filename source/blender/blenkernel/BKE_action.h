@@ -209,8 +209,8 @@ void what_does_obaction(struct Object *ob,
 void BKE_pose_copy_pchan_result(struct bPoseChannel *pchanto,
                                 const struct bPoseChannel *pchanfrom);
 bool BKE_pose_copy_result(struct bPose *to, struct bPose *from);
-/* clear all transforms */
-void BKE_pose_rest(struct bPose *pose);
+/* Clear transforms. */
+void BKE_pose_rest(struct bPose *pose, bool selected_bones_only);
 
 /* Tag pose for recalc. Also tag all related data to be recalc. */
 void BKE_pose_tag_recalc(struct Main *bmain, struct bPose *pose);

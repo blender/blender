@@ -1512,8 +1512,10 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
 
 /* ************** Pose Management Tools ****************** */
 
-/* for do_all_pose_actions, clears the pose. Now also exported for proxy and tools */
-void BKE_pose_rest(bPose *pose)
+/**
+ * Zero the pose transforms for the entire pose or only for selected bones.
+ */
+void BKE_pose_rest(bPose *pose, bool selected_bones_only)
 {
   bPoseChannel *pchan;
 
@@ -1525,6 +1527,9 @@ void BKE_pose_rest(bPose *pose)
   memset(pose->cyclic_offset, 0, sizeof(pose->cyclic_offset));
 
   for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+    if (selected_bones_only && pchan->bone != NULL && (pchan->bone->flag & BONE_SELECTED) == 0) {
+      continue;
+    }
     zero_v3(pchan->loc);
     zero_v3(pchan->eul);
     unit_qt(pchan->quat);

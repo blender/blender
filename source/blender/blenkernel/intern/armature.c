@@ -2164,7 +2164,7 @@ static void pose_proxy_sync(Object *ob, Object *from, int layer_protected)
   }
 
   /* clear all transformation values from library */
-  BKE_pose_rest(frompose);
+  BKE_pose_rest(frompose, false);
 
   /* copy over all of the proxy's bone groups */
   /* TODO for later
