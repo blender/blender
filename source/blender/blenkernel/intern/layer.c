@@ -708,9 +708,8 @@ static void layer_collection_sync(ViewLayer *view_layer,
    * linking we can only sync after the fact. */
 
   /* Remove layer collections that no longer have a corresponding scene collection. */
-  for (LayerCollection *lc = lb_layer_collections->first; lc;) {
-    /* Note ID remap can set lc->collection to NULL when deleting collections. */
-    LayerCollection *lc_next = lc->next;
+  LISTBASE_FOREACH_MUTABLE (LayerCollection *, lc, lb_layer_collections) {
+    /* Note that ID remap can set lc->collection to NULL when deleting collections. */
     Collection *collection = (lc->collection) ?
                                  BLI_findptr(lb_collections,
                                              lc->collection,
@@ -726,8 +725,6 @@ static void layer_collection_sync(ViewLayer *view_layer,
       layer_collection_free(view_layer, lc);
       BLI_freelinkN(lb_layer_collections, lc);
     }
-
-    lc = lc_next;
   }
 
   /* Add layer collections for any new scene collections, and ensure order is the same. */
