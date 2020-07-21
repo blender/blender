@@ -124,8 +124,8 @@ static void InputVerticalRatio(TransInfo *t, MouseInput *mi, const double mval[2
 {
   const int winy = t->region ? t->region->winy : 1;
 
-  /* Flip so dragging up increases (matching viewport zoom). */
-  output[0] = ((mval[1] - mi->imval[1]) / winy) * -2.0f;
+  /* Dragging up increases (matching viewport zoom). */
+  output[0] = ((mval[1] - mi->imval[1]) / winy) * 2.0f;
 }
 
 /** Callback for #INPUT_VERTICAL_ABSOLUTE */
@@ -139,8 +139,8 @@ static void InputVerticalAbsolute(TransInfo *t,
   InputVector(t, mi, mval, vec);
   project_v3_v3v3(vec, vec, t->viewinv[1]);
 
-  /* Flip so dragging up increases (matching viewport zoom). */
-  output[0] = dot_v3v3(t->viewinv[1], vec) * -2.0f;
+  /* Dragging up increases (matching viewport zoom). */
+  output[0] = dot_v3v3(t->viewinv[1], vec) * 2.0f;
 }
 
 /** Callback for #INPUT_CUSTOM_RATIO_FLIP */
