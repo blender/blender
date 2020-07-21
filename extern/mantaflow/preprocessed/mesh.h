@@ -240,35 +240,8 @@ class Mesh : public PbClass {
     }
   }
 
-  void load(std::string name, bool append = false);
-  static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
-  {
-    try {
-      PbArgs _args(_linargs, _kwds);
-      Mesh *pbo = dynamic_cast<Mesh *>(Pb::objFromPy(_self));
-      bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
-      pbPreparePlugin(pbo->getParent(), "Mesh::load", !noTiming);
-      PyObject *_retval = 0;
-      {
-        ArgLocker _lock;
-        std::string name = _args.get<std::string>("name", 0, &_lock);
-        bool append = _args.getOpt<bool>("append", 1, false, &_lock);
-        pbo->_args.copy(_args);
-        _retval = getPyNone();
-        pbo->load(name, append);
-        pbo->_args.check();
-      }
-      pbFinalizePlugin(pbo->getParent(), "Mesh::load", !noTiming);
-      return _retval;
-    }
-    catch (std::exception &e) {
-      pbSetError("Mesh::load", e.what());
-      return 0;
-    }
-  }
-
   void fromShape(Shape &shape, bool append = false);
-  static PyObject *_W_3(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+  static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
       PbArgs _args(_linargs, _kwds);
@@ -294,34 +267,8 @@ class Mesh : public PbClass {
     }
   }
 
-  void save(std::string name);
-  static PyObject *_W_4(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
-  {
-    try {
-      PbArgs _args(_linargs, _kwds);
-      Mesh *pbo = dynamic_cast<Mesh *>(Pb::objFromPy(_self));
-      bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
-      pbPreparePlugin(pbo->getParent(), "Mesh::save", !noTiming);
-      PyObject *_retval = 0;
-      {
-        ArgLocker _lock;
-        std::string name = _args.get<std::string>("name", 0, &_lock);
-        pbo->_args.copy(_args);
-        _retval = getPyNone();
-        pbo->save(name);
-        pbo->_args.check();
-      }
-      pbFinalizePlugin(pbo->getParent(), "Mesh::save", !noTiming);
-      return _retval;
-    }
-    catch (std::exception &e) {
-      pbSetError("Mesh::save", e.what());
-      return 0;
-    }
-  }
-
   void advectInGrid(FlagGrid &flags, MACGrid &vel, int integrationMode);
-  static PyObject *_W_5(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+  static PyObject *_W_3(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
       PbArgs _args(_linargs, _kwds);
@@ -349,7 +296,7 @@ class Mesh : public PbClass {
   }
 
   void scale(Vec3 s);
-  static PyObject *_W_6(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+  static PyObject *_W_4(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
       PbArgs _args(_linargs, _kwds);
@@ -375,7 +322,7 @@ class Mesh : public PbClass {
   }
 
   void offset(Vec3 o);
-  static PyObject *_W_7(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+  static PyObject *_W_5(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
       PbArgs _args(_linargs, _kwds);
@@ -401,7 +348,7 @@ class Mesh : public PbClass {
   }
 
   void rotate(Vec3 thetas);
-  static PyObject *_W_8(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+  static PyObject *_W_6(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
       PbArgs _args(_linargs, _kwds);
@@ -427,7 +374,7 @@ class Mesh : public PbClass {
   }
 
   void computeVelocity(Mesh &oldMesh, MACGrid &vel);
-  static PyObject *_W_9(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+  static PyObject *_W_7(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
       PbArgs _args(_linargs, _kwds);
@@ -449,6 +396,58 @@ class Mesh : public PbClass {
     }
     catch (std::exception &e) {
       pbSetError("Mesh::computeVelocity", e.what());
+      return 0;
+    }
+  }
+
+  //! file io
+  int load(std::string name, bool append = false);
+  static PyObject *_W_8(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+  {
+    try {
+      PbArgs _args(_linargs, _kwds);
+      Mesh *pbo = dynamic_cast<Mesh *>(Pb::objFromPy(_self));
+      bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
+      pbPreparePlugin(pbo->getParent(), "Mesh::load", !noTiming);
+      PyObject *_retval = 0;
+      {
+        ArgLocker _lock;
+        std::string name = _args.get<std::string>("name", 0, &_lock);
+        bool append = _args.getOpt<bool>("append", 1, false, &_lock);
+        pbo->_args.copy(_args);
+        _retval = toPy(pbo->load(name, append));
+        pbo->_args.check();
+      }
+      pbFinalizePlugin(pbo->getParent(), "Mesh::load", !noTiming);
+      return _retval;
+    }
+    catch (std::exception &e) {
+      pbSetError("Mesh::load", e.what());
+      return 0;
+    }
+  }
+
+  int save(std::string name);
+  static PyObject *_W_9(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+  {
+    try {
+      PbArgs _args(_linargs, _kwds);
+      Mesh *pbo = dynamic_cast<Mesh *>(Pb::objFromPy(_self));
+      bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
+      pbPreparePlugin(pbo->getParent(), "Mesh::save", !noTiming);
+      PyObject *_retval = 0;
+      {
+        ArgLocker _lock;
+        std::string name = _args.get<std::string>("name", 0, &_lock);
+        pbo->_args.copy(_args);
+        _retval = toPy(pbo->save(name));
+        pbo->_args.check();
+      }
+      pbFinalizePlugin(pbo->getParent(), "Mesh::save", !noTiming);
+      return _retval;
+    }
+    catch (std::exception &e) {
+      pbSetError("Mesh::save", e.what());
       return 0;
     }
   }
@@ -1564,7 +1563,7 @@ template<class T> class MeshDataImpl : public MeshDataBase {
   }
 
   //! file io
-  void save(const std::string name);
+  int save(const std::string name);
   static PyObject *_W_41(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
@@ -1577,8 +1576,7 @@ template<class T> class MeshDataImpl : public MeshDataBase {
         ArgLocker _lock;
         const std::string name = _args.get<std::string>("name", 0, &_lock);
         pbo->_args.copy(_args);
-        _retval = getPyNone();
-        pbo->save(name);
+        _retval = toPy(pbo->save(name));
         pbo->_args.check();
       }
       pbFinalizePlugin(pbo->getParent(), "MeshDataImpl::save", !noTiming);
@@ -1590,7 +1588,7 @@ template<class T> class MeshDataImpl : public MeshDataBase {
     }
   }
 
-  void load(const std::string name);
+  int load(const std::string name);
   static PyObject *_W_42(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
@@ -1603,8 +1601,7 @@ template<class T> class MeshDataImpl : public MeshDataBase {
         ArgLocker _lock;
         const std::string name = _args.get<std::string>("name", 0, &_lock);
         pbo->_args.copy(_args);
-        _retval = getPyNone();
-        pbo->load(name);
+        _retval = toPy(pbo->load(name));
         pbo->_args.check();
       }
       pbFinalizePlugin(pbo->getParent(), "MeshDataImpl::load", !noTiming);
