@@ -475,20 +475,29 @@ static int view_edge_pan_modal(bContext *C, wmOperator *op, const wmEvent *event
    * On successful handling, always pass events on to other handlers. */
   const int success_retval = OPERATOR_PASS_THROUGH;
 
-  /* Find whether the mouse is beyond X and Y edges. */
+  int outside_padding = RNA_int_get(op->ptr, "outside_padding") * UI_UNIT_X;
+  rcti padding_rect;
+  if (outside_padding != 0) {
+    padding_rect = region->winrct;
+    BLI_rcti_pad(&padding_rect, outside_padding, outside_padding);
+  }
+
   int pan_dir_x = 0;
   int pan_dir_y = 0;
-  if (event->x > region->winrct.xmax - EDGE_PAN_REGION_PAD) {
-    pan_dir_x = 1;
-  }
-  else if (event->x < region->winrct.xmin + EDGE_PAN_REGION_PAD) {
-    pan_dir_x = -1;
-  }
-  if (event->y > region->winrct.ymax - EDGE_PAN_REGION_PAD) {
-    pan_dir_y = 1;
-  }
-  else if (event->y < region->winrct.ymin + EDGE_PAN_REGION_PAD) {
-    pan_dir_y = -1;
+  if ((outside_padding == 0) || BLI_rcti_isect_pt(&padding_rect, event->x, event->y)) {
+    /* Find whether the mouse is beyond X and Y edges. */
+    if (event->x > region->winrct.xmax - EDGE_PAN_REGION_PAD) {
+      pan_dir_x = 1;
+    }
+    else if (event->x < region->winrct.xmin + EDGE_PAN_REGION_PAD) {
+      pan_dir_x = -1;
+    }
+    if (event->y > region->winrct.ymax - EDGE_PAN_REGION_PAD) {
+      pan_dir_y = 1;
+    }
+    else if (event->y < region->winrct.ymin + EDGE_PAN_REGION_PAD) {
+      pan_dir_y = -1;
+    }
   }
 
   const double current_time = PIL_check_seconds_timer();
@@ -532,6 +541,16 @@ static void VIEW2D_OT_edge_pan(wmOperatorType *ot)
 
   /* operator is modal */
   ot->flag = OPTYPE_INTERNAL;
+  RNA_def_int(ot->srna,
+              "outside_padding",
+              0,
+              0,
+              100,
+              "Outside Padding",
+              "Padding around the region in UI units within which panning is activated (0 to "
+              "disable boundary)",
+              0,
+              100);
 }
 
 #undef EDGE_PAN_REGION_PAD

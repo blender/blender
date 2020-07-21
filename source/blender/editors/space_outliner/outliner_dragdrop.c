@@ -858,6 +858,8 @@ void OUTLINER_OT_collection_drop(wmOperatorType *ot)
 
 /* ********************* Outliner Drag Operator ******************** */
 
+#define OUTLINER_DRAG_SCOLL_OUTSIDE_PAD 7 /* In UI units */
+
 static TreeElement *outliner_item_drag_element_find(SpaceOutliner *soops,
                                                     ARegion *region,
                                                     const wmEvent *event)
@@ -892,8 +894,16 @@ static int outliner_item_drag_drop_invoke(bContext *C,
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
-  /* Scroll view when dragging near edges */
-  WM_operator_name_call(C, "VIEW2D_OT_edge_pan", WM_OP_INVOKE_DEFAULT, NULL);
+  /* Scroll the view when dragging near edges, but not
+   * when the drag goes too far outside the region. */
+  {
+    wmOperatorType *ot = WM_operatortype_find("VIEW2D_OT_edge_pan", true);
+    PointerRNA op_ptr;
+    WM_operator_properties_create_ptr(&op_ptr, ot);
+    RNA_int_set(&op_ptr, "outside_padding", OUTLINER_DRAG_SCOLL_OUTSIDE_PAD);
+    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &op_ptr);
+    WM_operator_properties_free(&op_ptr);
+  }
 
   wmDrag *drag = WM_event_start_drag(C, data.icon, WM_DRAG_ID, NULL, 0.0, WM_DRAG_NOP);
 
@@ -992,6 +1002,8 @@ void OUTLINER_OT_item_drag_drop(wmOperatorType *ot)
   ot->invoke = outliner_item_drag_drop_invoke;
   ot->poll = ED_operator_outliner_active;
 }
+
+#undef OUTLINER_DRAG_SCOLL_OUTSIDE_PAD
 
 /* *************************** Drop Boxes ************************** */
 
