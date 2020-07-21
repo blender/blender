@@ -3100,11 +3100,23 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
                                                       thread_id);
       float current_disp[3];
       float current_disp_norm[3];
-      float final_disp[3];
-      zero_v3(final_disp);
-      sub_v3_v3v3(current_disp, ss->cache->location, ss->cache->last_location);
+      float final_disp[3] = {0.0f, 0.0f, 0.0f};
+
+      switch (brush->slide_deform_type) {
+        case BRUSH_SLIDE_DEFORM_DRAG:
+          sub_v3_v3v3(current_disp, ss->cache->location, ss->cache->last_location);
+          break;
+        case BRUSH_SLIDE_DEFORM_PINCH:
+          sub_v3_v3v3(current_disp, ss->cache->location, vd.co);
+          break;
+        case BRUSH_SLIDE_DEFORM_EXPAND:
+          sub_v3_v3v3(current_disp, vd.co, ss->cache->location);
+          break;
+      }
+
       normalize_v3_v3(current_disp_norm, current_disp);
       mul_v3_v3fl(current_disp, current_disp_norm, ss->cache->bstrength);
+
       SculptVertexNeighborIter ni;
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
         float vertex_disp[3];

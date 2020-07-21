@@ -708,6 +708,10 @@ def brush_settings(layout, context, brush, popover=False):
             col = layout.column()
             col.prop(brush, "smear_deform_type")
 
+        if brush.sculpt_tool == 'TOPOLOGY':
+            col = layout.column()
+            col.prop(brush, "slide_deform_type")
+
         if brush.sculpt_tool == 'MULTIPLANE_SCRAPE':
             col = layout.column()
             col.prop(brush, "multiplane_scrape_angle")

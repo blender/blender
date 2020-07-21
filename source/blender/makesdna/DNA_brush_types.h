@@ -349,6 +349,12 @@ typedef enum eBrushSmearDeformType {
   BRUSH_SMEAR_DEFORM_EXPAND = 2,
 } eBrushSmearDeformType;
 
+typedef enum eBrushSlideDeformType {
+  BRUSH_SLIDE_DEFORM_DRAG = 0,
+  BRUSH_SLIDE_DEFORM_PINCH = 1,
+  BRUSH_SLIDE_DEFORM_EXPAND = 2,
+} eBrushSlideDeformType;
+
 /* Gpencilsettings.Vertex_mode */
 typedef enum eGp_Vertex_Mode {
   /* Affect to Stroke only. */
@@ -494,7 +500,7 @@ typedef struct Brush {
   /** Source for fill tool color gradient application. */
   char gradient_fill_mode;
 
-  char _pad0[5];
+  char _pad0[1];
 
   /** Projection shape (sphere, circle). */
   char falloff_shape;
@@ -577,6 +583,9 @@ typedef struct Brush {
 
   /* smear */
   int smear_deform_type;
+
+  /* slide/relax */
+  int slide_deform_type;
 
   /* overlay */
   int texture_overlay_alpha;
