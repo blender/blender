@@ -69,7 +69,7 @@ static void metaball_instance_data_set(
 
 void OVERLAY_edit_metaball_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
-  const bool do_in_front = (ob->dtx & OB_DRAWXRAY) != 0;
+  const bool do_in_front = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
   const bool is_select = DRW_state_is_select();
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   MetaBall *mb = ob->data;
@@ -112,7 +112,7 @@ void OVERLAY_edit_metaball_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
 void OVERLAY_metaball_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
-  const bool do_in_front = (ob->dtx & OB_DRAWXRAY) != 0;
+  const bool do_in_front = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   MetaBall *mb = ob->data;
   const DRWContextState *draw_ctx = DRW_context_state_get();

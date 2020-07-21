@@ -131,7 +131,7 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
 static void wireframe_hair_cache_populate(OVERLAY_Data *vedata, Object *ob, ParticleSystem *psys)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  const bool is_xray = (ob->dtx & OB_DRAWXRAY) != 0;
+  const bool is_xray = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
 
   Object *dupli_parent = DRW_object_get_dupli_parent(ob);
   DupliObject *dupli_object = DRW_object_get_dupli(ob);
@@ -167,7 +167,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool all_wires = (ob->dtx & OB_DRAW_ALL_EDGES) != 0;
-  const bool is_xray = (ob->dtx & OB_DRAWXRAY) != 0;
+  const bool is_xray = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
   const bool is_mesh = ob->type == OB_MESH;
   const bool is_mesh_verts_only = is_mesh && (((Mesh *)ob->data)->totedge == 0 &&
                                               ((Mesh *)ob->data)->totvert > 0);

@@ -270,7 +270,7 @@ void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
   struct GPUBatch *geom = NULL;
 
   bool draw_as_solid = (ob->dt > OB_WIRE);
-  bool do_in_front = (ob->dtx & OB_DRAWXRAY) != 0;
+  bool do_in_front = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
   bool do_occlude_wire = (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_OCCLUDE_WIRE) != 0;
   bool do_show_mesh_analysis = (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_STATVIS) != 0;
   bool fnormals_do = (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_FACE_NORMALS) != 0;
@@ -312,7 +312,7 @@ void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
     overlay_edit_mesh_add_ob_to_pass(pd, ob, do_in_front);
   }
 
-  pd->edit_mesh.ghost_ob += (ob->dtx & OB_DRAWXRAY) ? 1 : 0;
+  pd->edit_mesh.ghost_ob += (ob->dtx & OB_DRAW_IN_FRONT) ? 1 : 0;
   pd->edit_mesh.edit_ob += 1;
 
   if (DRW_state_show_text() && (pd->edit_mesh.flag & OVERLAY_EDIT_TEXT)) {

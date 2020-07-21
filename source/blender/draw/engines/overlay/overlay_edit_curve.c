@@ -78,7 +78,7 @@ void OVERLAY_edit_curve_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   bool draw_normals = (pd->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_NORMALS) != 0;
-  bool do_xray = (ob->dtx & OB_DRAWXRAY) != 0;
+  bool do_xray = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
 
   Curve *cu = ob->data;
   struct GPUBatch *geom;

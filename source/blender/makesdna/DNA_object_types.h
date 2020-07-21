@@ -564,7 +564,7 @@ enum {
   /* for solid+wire display */
   OB_DRAWWIRE = 1 << 5,
   /* for overdraw s*/
-  OB_DRAWXRAY = 1 << 6,
+  OB_DRAW_IN_FRONT = 1 << 6,
   /* enable transparent draw */
   OB_DRAWTRANSP = 1 << 7,
   OB_DRAW_ALL_EDGES = 1 << 8, /* only for meshes currently */

@@ -2122,7 +2122,8 @@ static void armature_context_setup(ArmatureDrawContext *ctx,
                                    const float *const_color)
 {
   const bool is_object_mode = !do_envelope_dist;
-  const bool is_xray = (ob->dtx & OB_DRAWXRAY) != 0 || (pd->armature.do_pose_xray && is_pose_mode);
+  const bool is_xray = (ob->dtx & OB_DRAW_IN_FRONT) != 0 ||
+                       (pd->armature.do_pose_xray && is_pose_mode);
   const bool draw_as_wire = (ob->dt < OB_SOLID);
   const bool is_filled = (!pd->armature.transparent && !draw_as_wire) || !is_object_mode;
   const bool is_transparent = pd->armature.transparent || (draw_as_wire && !is_object_mode);

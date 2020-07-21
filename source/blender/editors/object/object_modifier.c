@@ -2362,7 +2362,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph,
   BKE_object_transform_copy(arm_ob, skin_ob);
   arm = arm_ob->data;
   arm->layer = 1;
-  arm_ob->dtx |= OB_DRAWXRAY;
+  arm_ob->dtx |= OB_DRAW_IN_FRONT;
   arm->drawtype = ARM_LINE;
   arm->edbo = MEM_callocN(sizeof(ListBase), "edbo armature");
 

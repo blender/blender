@@ -168,7 +168,7 @@ DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
   Image *ima = NULL;
   ImageUser *iuser = NULL;
   eGPUSamplerState sampler;
-  const bool infront = (ob->dtx & OB_DRAWXRAY) != 0;
+  const bool infront = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
 
   if (color_type == V3D_SHADING_TEXTURE_COLOR) {
     workbench_material_get_image(ob, mat_nr, &ima, &iuser, &sampler);
@@ -273,7 +273,7 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
     tex = wpd->dummy_image_tx;
   }
 
-  const bool infront = (ob->dtx & OB_DRAWXRAY) != 0;
+  const bool infront = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
   const bool transp = wpd->shading.xray_alpha < 1.0f;
   WORKBENCH_Prepass *prepass = &wpd->prepass[transp][infront][datatype];
 

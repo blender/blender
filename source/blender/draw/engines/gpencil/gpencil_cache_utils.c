@@ -106,7 +106,7 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd, Object *ob)
   copy_v3_v3(tgp_ob->plane_mat[3], center);
 
   /* Add to corresponding list if is in front. */
-  if (ob->dtx & OB_DRAWXRAY) {
+  if (ob->dtx & OB_DRAW_IN_FRONT) {
     BLI_LINKS_APPEND(&pd->tobjects_infront, tgp_ob);
   }
   else {
@@ -258,7 +258,7 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
 {
   bGPdata *gpd = (bGPdata *)ob->data;
 
-  const bool is_in_front = (ob->dtx & OB_DRAWXRAY);
+  const bool is_in_front = (ob->dtx & OB_DRAW_IN_FRONT);
   const bool is_screenspace = (gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS) != 0;
   const bool overide_vertcol = (pd->v3d_color_type != -1);
   const bool is_vert_col_mode = (pd->v3d_color_type == V3D_SHADING_VERTEX_COLOR) ||
