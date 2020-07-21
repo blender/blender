@@ -67,9 +67,9 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
     dist = len_v3(t->num.val);
   }
   else {
-    int i = 0;
     float dvec[3];
     if (!(t->flag & T_2D_EDIT) && t->con.mode & CON_APPLY) {
+      int i = 0;
       zero_v3(dvec);
       if (t->con.mode & CON_AXIS0) {
         dvec[i++] = vec[0];
@@ -88,7 +88,7 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
 
     dist = len_v3(vec);
     if (!(t->flag & T_2D_EDIT) && t->scene->unit.system) {
-      for (i = 0; i < 3; i++) {
+      for (int i = 0; i < 3; i++) {
         bUnit_AsString2(&tvec[NUM_STR_REP_LEN * i],
                         NUM_STR_REP_LEN,
                         dvec[i] * t->scene->unit.scale_length,
