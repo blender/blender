@@ -71,6 +71,7 @@ class TestingHierarchyIterator : public AbstractHierarchyIterator {
   }
   virtual ~TestingHierarchyIterator()
   {
+    release_writers();
   }
 
  protected:
