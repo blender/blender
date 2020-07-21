@@ -33,6 +33,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -46,6 +47,7 @@
 #include "BKE_armature.h"
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"
+#include "BKE_gpencil_geom.h"
 #include "BKE_lattice.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
@@ -303,6 +305,11 @@ struct XFormObjectData_MetaBall {
   struct ElemData_MetaBall elem_array[0];
 };
 
+struct XFormObjectData_GPencil {
+  struct XFormObjectData base;
+  struct GPencilPointCoordinates elem_array[0];
+};
+
 struct XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode)
 {
   struct XFormObjectData *xod_base = NULL;
@@ -391,6 +398,15 @@ struct XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode
       xod_base = &xod->base;
       break;
     }
+    case ID_GD: {
+      bGPdata *gpd = (bGPdata *)id;
+      const int elem_array_len = BKE_gpencil_stroke_point_count(gpd);
+      struct XFormObjectData_GPencil *xod = MEM_mallocN(
+          sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__);
+      BKE_gpencil_point_coords_get(gpd, xod->elem_array);
+      xod_base = &xod->base;
+      break;
+    }
     default: {
       break;
     }
@@ -471,6 +487,12 @@ void ED_object_data_xform_by_mat4(struct XFormObjectData *xod_base, const float 
       metaball_coords_and_quats_apply_with_mat4(mb, xod->elem_array, mat);
       break;
     }
+    case ID_GD: {
+      bGPdata *gpd = (bGPdata *)xod_base->id;
+      struct XFormObjectData_GPencil *xod = (struct XFormObjectData_GPencil *)xod_base;
+      BKE_gpencil_point_coords_apply_with_mat4(gpd, xod->elem_array, mat);
+      break;
+    }
     default: {
       break;
     }
@@ -529,6 +551,12 @@ void ED_object_data_xform_restore(struct XFormObjectData *xod_base)
       metaball_coords_and_quats_apply(mb, xod->elem_array);
       break;
     }
+    case ID_GD: {
+      bGPdata *gpd = (bGPdata *)xod_base->id;
+      struct XFormObjectData_GPencil *xod = (struct XFormObjectData_GPencil *)xod_base;
+      BKE_gpencil_point_coords_apply(gpd, xod->elem_array);
+      break;
+    }
     default: {
       break;
     }
@@ -570,6 +598,12 @@ void ED_object_data_xform_tag_update(struct XFormObjectData *xod_base)
       /* Generic update. */
       MetaBall *mb = (MetaBall *)xod_base->id;
       DEG_id_tag_update(&mb->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+      break;
+    }
+    case ID_GD: {
+      /* Generic update. */
+      bGPdata *gpd = (bGPdata *)xod_base->id;
+      DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
       break;
     }
 

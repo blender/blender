@@ -2458,4 +2458,133 @@ void BKE_gpencil_transform(bGPdata *gpd, float mat[4][4])
     }
   }
 }
+
+/* Used for "move only origins" in object_data_transform.c */
+int BKE_gpencil_stroke_point_count(bGPdata *gpd)
+{
+  int total_points = 0;
+
+  if (gpd == NULL) {
+    return 0;
+  }
+
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    /* FIXME: For now, we just skip parented layers.
+     * Otherwise, we have to update each frame to find
+     * the current parent position/effects.
+     */
+    if (gpl->parent) {
+      continue;
+    }
+
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+        total_points += gps->totpoints;
+      }
+    }
+  }
+  return total_points;
+}
+
+/* Used for "move only origins" in object_data_transform.c */
+void BKE_gpencil_point_coords_get(bGPdata *gpd, GPencilPointCoordinates *elem_data)
+{
+  if (gpd == NULL) {
+    return;
+  }
+
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    /* FIXME: For now, we just skip parented layers.
+     * Otherwise, we have to update each frame to find
+     * the current parent position/effects.
+     */
+    if (gpl->parent) {
+      continue;
+    }
+
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+        bGPDspoint *pt;
+        int i;
+
+        for (pt = gps->points, i = 0; i < gps->totpoints; pt++, i++) {
+          copy_v3_v3(elem_data->co, &pt->x);
+          elem_data->pressure = pt->pressure;
+          elem_data++;
+        }
+      }
+    }
+  }
+}
+
+/* Used for "move only origins" in object_data_transform.c */
+void BKE_gpencil_point_coords_apply(bGPdata *gpd, const GPencilPointCoordinates *elem_data)
+{
+  if (gpd == NULL) {
+    return;
+  }
+
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    /* FIXME: For now, we just skip parented layers.
+     * Otherwise, we have to update each frame to find
+     * the current parent position/effects.
+     */
+    if (gpl->parent) {
+      continue;
+    }
+
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+        bGPDspoint *pt;
+        int i;
+
+        for (pt = gps->points, i = 0; i < gps->totpoints; pt++, i++) {
+          copy_v3_v3(&pt->x, elem_data->co);
+          pt->pressure = elem_data->pressure;
+          elem_data++;
+        }
+
+        /* Distortion may mean we need to re-triangulate. */
+        BKE_gpencil_stroke_geometry_update(gps);
+      }
+    }
+  }
+}
+
+/* Used for "move only origins" in object_data_transform.c */
+void BKE_gpencil_point_coords_apply_with_mat4(bGPdata *gpd,
+                                              const GPencilPointCoordinates *elem_data,
+                                              const float mat[4][4])
+{
+  if (gpd == NULL) {
+    return;
+  }
+
+  const float scalef = mat4_to_scale(mat);
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    /* FIXME: For now, we just skip parented layers.
+     * Otherwise, we have to update each frame to find
+     * the current parent position/effects.
+     */
+    if (gpl->parent) {
+      continue;
+    }
+
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+        bGPDspoint *pt;
+        int i;
+
+        for (pt = gps->points, i = 0; i < gps->totpoints; pt++, i++) {
+          mul_v3_m4v3(&pt->x, mat, elem_data->co);
+          pt->pressure = elem_data->pressure * scalef;
+          elem_data++;
+        }
+
+        /* Distortion may mean we need to re-triangulate. */
+        BKE_gpencil_stroke_geometry_update(gps);
+      }
+    }
+  }
+}
 /** \} */
