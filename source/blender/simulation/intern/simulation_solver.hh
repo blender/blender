@@ -24,6 +24,8 @@
 
 #include "FN_attributes_ref.hh"
 
+#include "BKE_persistent_data_handle.hh"
+
 #include "particle_allocator.hh"
 #include "time_interval.hh"
 
@@ -50,6 +52,7 @@ struct SimulationInfluences {
   Map<std::string, Vector<const ParticleForce *>> particle_forces;
   Map<std::string, fn::AttributesInfoBuilder *> particle_attributes_builder;
   Vector<const ParticleEmitter *> particle_emitters;
+  VectorSet<ID *> used_data_blocks;
 };
 
 class SimulationSolveContext {
@@ -58,16 +61,19 @@ class SimulationSolveContext {
   Depsgraph &depsgraph_;
   const SimulationInfluences &influences_;
   TimeInterval solve_interval_;
+  const bke::PersistentDataHandleMap &id_handle_map_;
 
  public:
   SimulationSolveContext(Simulation &simulation,
                          Depsgraph &depsgraph,
                          const SimulationInfluences &influences,
-                         TimeInterval solve_interval)
+                         TimeInterval solve_interval,
+                         const bke::PersistentDataHandleMap &handle_map)
       : simulation_(simulation),
         depsgraph_(depsgraph),
         influences_(influences),
-        solve_interval_(solve_interval)
+        solve_interval_(solve_interval),
+        id_handle_map_(handle_map)
   {
   }
 
@@ -79,6 +85,11 @@ class SimulationSolveContext {
   const SimulationInfluences &influences() const
   {
     return influences_;
+  }
+
+  const bke::PersistentDataHandleMap &handle_map() const
+  {
+    return id_handle_map_;
   }
 };
 
@@ -147,6 +158,11 @@ class ParticleEmitterContext {
   {
   }
 
+  SimulationSolveContext &solve_context()
+  {
+    return solve_context_;
+  }
+
   ParticleAllocator *try_get_particle_allocator(StringRef particle_simulation_name)
   {
     return particle_allocators_.try_get_allocator(particle_simulation_name);
@@ -172,6 +188,11 @@ class ParticleForceContext {
         particle_chunk_context_(particle_chunk_context),
         force_dst_(force_dst)
   {
+  }
+
+  SimulationSolveContext &solve_context()
+  {
+    return solve_context_;
   }
 
   const ParticleChunkContext &particle_chunk() const

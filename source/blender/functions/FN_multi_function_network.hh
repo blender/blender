@@ -95,7 +95,7 @@ class MFNode : NonCopyable, NonMovable {
   Span<MFOutputSocket *> outputs();
   Span<const MFOutputSocket *> outputs() const;
 
-  bool all_inputs_have_origin() const;
+  bool has_unlinked_inputs() const;
 
  private:
   void destruct_sockets();
@@ -341,14 +341,14 @@ inline Span<const MFOutputSocket *> MFNode::outputs() const
   return outputs_;
 }
 
-inline bool MFNode::all_inputs_have_origin() const
+inline bool MFNode::has_unlinked_inputs() const
 {
   for (const MFInputSocket *socket : inputs_) {
     if (socket->origin() == nullptr) {
-      return false;
+      return true;
     }
   }
-  return true;
+  return false;
 }
 
 /* --------------------------------------------------------------------

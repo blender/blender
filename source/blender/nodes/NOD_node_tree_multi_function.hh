@@ -288,7 +288,12 @@ class SocketMFNetworkBuilder : public MFNetworkBuilderBase {
    */
   template<typename T> void set_constant_value(T value)
   {
-    const fn::MultiFunction &fn = this->construct_fn<fn::CustomMF_Constant<T>>(std::move(value));
+    this->construct_generator_fn<fn::CustomMF_Constant<T>>(std::move(value));
+  }
+
+  template<typename T, typename... Args> void construct_generator_fn(Args &&... args)
+  {
+    const fn::MultiFunction &fn = this->construct_fn<T>(std::forward<Args>(args)...);
     this->set_generator_fn(fn);
   }
 

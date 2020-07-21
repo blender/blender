@@ -98,6 +98,11 @@ class MultiFunction {
     return signature_.function_name;
   }
 
+  bool depends_on_context() const
+  {
+    return signature_.depends_on_context;
+  }
+
   const MFSignature &signature() const
   {
     return signature_;

@@ -34,6 +34,7 @@
 
 #include "BKE_lib_id.h"
 #include "BKE_node.h"
+#include "BKE_persistent_data_handle.hh"
 
 #include "RNA_access.h"
 #include "RNA_types.h"
@@ -583,6 +584,59 @@ static bNodeSocketType *make_socket_type_string()
   return socktype;
 }
 
+class ObjectSocketMultiFunction : public blender::fn::MultiFunction {
+ private:
+  const Object *object_;
+
+ public:
+  ObjectSocketMultiFunction(const Object *object) : object_(object)
+  {
+    blender::fn::MFSignatureBuilder signature = this->get_builder("Object Socket");
+    signature.depends_on_context();
+    signature.single_output<blender::bke::PersistentObjectHandle>("Object");
+  }
+
+  void call(blender::IndexMask mask,
+            blender::fn::MFParams params,
+            blender::fn::MFContext context) const override
+  {
+    blender::MutableSpan output =
+        params.uninitialized_single_output<blender::bke::PersistentObjectHandle>(0, "Object");
+
+    /* Try to get a handle map, so that the object can be converted to a handle. */
+    const blender::bke::PersistentDataHandleMap *handle_map =
+        context.get_global_context<blender::bke::PersistentDataHandleMap>(
+            "PersistentDataHandleMap");
+
+    if (handle_map == nullptr) {
+      /* Return empty handles when there is no handle map. */
+      output.fill_indices(mask, blender::bke::PersistentObjectHandle());
+      return;
+    }
+
+    blender::bke::PersistentObjectHandle handle = handle_map->lookup(object_);
+    for (int64_t i : mask) {
+      output[i] = handle;
+    }
+  }
+};
+
+MAKE_CPP_TYPE(PersistentObjectHandle, blender::bke::PersistentObjectHandle);
+
+static bNodeSocketType *make_socket_type_object()
+{
+  bNodeSocketType *socktype = make_standard_socket_type(SOCK_OBJECT, PROP_NONE);
+  socktype->get_mf_data_type = []() {
+    /* Objects are not passed along as raw pointers, but as handles. */
+    return blender::fn::MFDataType::ForSingle<blender::bke::PersistentObjectHandle>();
+  };
+  socktype->expand_in_mf_network = [](blender::nodes::SocketMFNetworkBuilder &builder) {
+    const Object *object = builder.socket_default_value<bNodeSocketValueObject>()->value;
+    builder.construct_generator_fn<ObjectSocketMultiFunction>(object);
+  };
+  return socktype;
+}
+
 void register_standard_node_socket_types(void)
 {
   /* draw callbacks are set in drawnode.c to avoid bad-level calls */
@@ -615,7 +669,7 @@ void register_standard_node_socket_types(void)
 
   nodeRegisterSocketType(make_standard_socket_type(SOCK_SHADER, PROP_NONE));
 
-  nodeRegisterSocketType(make_standard_socket_type(SOCK_OBJECT, PROP_NONE));
+  nodeRegisterSocketType(make_socket_type_object());
 
   nodeRegisterSocketType(make_standard_socket_type(SOCK_IMAGE, PROP_NONE));
 

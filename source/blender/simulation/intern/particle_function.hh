@@ -60,6 +60,7 @@ class ParticleFunctionEvaluator {
  private:
   ResourceCollector resources_;
   const ParticleFunction &particle_fn_;
+  const SimulationSolveContext &solve_context_;
   const ParticleChunkContext &particle_chunk_context_;
   IndexMask mask_;
   fn::MFContextBuilder global_context_;
@@ -69,6 +70,7 @@ class ParticleFunctionEvaluator {
 
  public:
   ParticleFunctionEvaluator(const ParticleFunction &particle_fn,
+                            const SimulationSolveContext &solve_context,
                             const ParticleChunkContext &particle_chunk_context);
   ~ParticleFunctionEvaluator();
 

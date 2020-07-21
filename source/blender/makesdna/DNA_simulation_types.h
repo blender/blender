@@ -37,6 +37,9 @@ typedef struct Simulation {
 
   /** List containing SimulationState objects. */
   struct ListBase states;
+
+  /** List containing PersistentDataHandleItem objects. */
+  struct ListBase persistent_data_handles;
 } Simulation;
 
 typedef struct SimulationState {
@@ -63,6 +66,15 @@ typedef struct ParticleSimulationState {
   struct PointCache *point_cache;
   struct ListBase ptcaches;
 } ParticleSimulationState;
+
+/** Stores a mapping between an integer handle and a corresponding ID data block. */
+typedef struct PersistentDataHandleItem {
+  struct PersistentDataHandleItem *next;
+  struct PersistentDataHandleItem *prev;
+  struct ID *id;
+  int handle;
+  char _pad[4];
+} PersistentDataHandleItem;
 
 /* Simulation.flag */
 enum {

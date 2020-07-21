@@ -50,12 +50,18 @@ ParticleFunction::ParticleFunction(const fn::MultiFunction *global_fn,
 }
 
 ParticleFunctionEvaluator::ParticleFunctionEvaluator(
-    const ParticleFunction &particle_fn, const ParticleChunkContext &particle_chunk_context)
+    const ParticleFunction &particle_fn,
+    const SimulationSolveContext &solve_context,
+    const ParticleChunkContext &particle_chunk_context)
     : particle_fn_(particle_fn),
+      solve_context_(solve_context),
       particle_chunk_context_(particle_chunk_context),
       mask_(particle_chunk_context_.index_mask()),
       outputs_(particle_fn_.output_types_.size(), nullptr)
 {
+  global_context_.add_global_context("PersistentDataHandleMap", &solve_context_.handle_map());
+  per_particle_context_.add_global_context("PersistentDataHandleMap",
+                                           &solve_context_.handle_map());
 }
 
 ParticleFunctionEvaluator::~ParticleFunctionEvaluator()

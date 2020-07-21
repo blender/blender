@@ -142,13 +142,24 @@ void dead_node_removal(MFNetwork &network)
  *
  * \{ */
 
+static bool function_node_can_be_constant(MFFunctionNode *node)
+{
+  if (node->has_unlinked_inputs()) {
+    return false;
+  }
+  if (node->function().depends_on_context()) {
+    return false;
+  }
+  return true;
+}
+
 static Vector<MFNode *> find_non_constant_nodes(MFNetwork &network)
 {
   Vector<MFNode *> non_constant_nodes;
   non_constant_nodes.extend(network.dummy_nodes());
 
   for (MFFunctionNode *node : network.function_nodes()) {
-    if (!node->all_inputs_have_origin()) {
+    if (!function_node_can_be_constant(node)) {
       non_constant_nodes.append(node);
     }
   }
@@ -319,17 +330,18 @@ void constant_folding(MFNetwork &network, ResourceCollector &resources)
 
 static uint64_t compute_node_hash(MFFunctionNode &node, RNG *rng, Span<uint64_t> node_hashes)
 {
+  if (node.function().depends_on_context()) {
+    return BLI_rng_get_uint(rng);
+  }
+  if (node.has_unlinked_inputs()) {
+    return BLI_rng_get_uint(rng);
+  }
+
   uint64_t combined_inputs_hash = 394659347u;
   for (MFInputSocket *input_socket : node.inputs()) {
     MFOutputSocket *origin_socket = input_socket->origin();
-    uint64_t input_hash;
-    if (origin_socket == nullptr) {
-      input_hash = BLI_rng_get_uint(rng);
-    }
-    else {
-      input_hash = BLI_ghashutil_combine_hash(node_hashes[origin_socket->node().id()],
-                                              origin_socket->index());
-    }
+    uint64_t input_hash = BLI_ghashutil_combine_hash(node_hashes[origin_socket->node().id()],
+                                                     origin_socket->index());
     combined_inputs_hash = BLI_ghashutil_combine_hash(combined_inputs_hash, input_hash);
   }
 

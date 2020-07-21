@@ -4345,6 +4345,7 @@ static void registerFunctionNodes(void)
   register_node_type_fn_switch();
   register_node_type_fn_group_instance_id();
   register_node_type_fn_combine_strings();
+  register_node_type_fn_object_transforms();
 }
 
 void init_nodesystem(void)

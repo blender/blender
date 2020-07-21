@@ -26,6 +26,7 @@ void register_node_type_fn_float_compare(void);
 void register_node_type_fn_switch(void);
 void register_node_type_fn_group_instance_id(void);
 void register_node_type_fn_combine_strings(void);
+void register_node_type_fn_object_transforms(void);
 
 #ifdef __cplusplus
 }

@@ -230,7 +230,7 @@ BLI_NOINLINE void MFNetworkEvaluator::evaluate_network_to_compute_outputs(
     }
 
     BLI_assert(node.is_function());
-    BLI_assert(node.all_inputs_have_origin());
+    BLI_assert(!node.has_unlinked_inputs());
     const MFFunctionNode &function_node = node.as_function();
 
     bool all_origins_are_computed = true;

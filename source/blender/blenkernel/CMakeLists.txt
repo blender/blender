@@ -363,6 +363,7 @@ set(SRC
   BKE_packedFile.h
   BKE_paint.h
   BKE_particle.h
+  BKE_persistent_data_handle.hh
   BKE_pbvh.h
   BKE_pointcache.h
   BKE_pointcloud.h

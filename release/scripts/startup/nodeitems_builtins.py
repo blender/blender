@@ -485,6 +485,7 @@ simulation_node_categories = [
         NodeItem("SimulationNodeParticleAttribute"),
         NodeItem("FunctionNodeGroupInstanceID"),
         NodeItem("ShaderNodeValue"),
+        NodeItem("FunctionNodeObjectTransforms"),
     ]),
     SimulationNodeCategory("SIM_EMITTERS", "Emitters", items=[
         NodeItem("SimulationNodeParticleMeshEmitter"),

@@ -68,6 +68,10 @@ class MFParamsBuilder {
     virtual_array_spans_.append(ref);
   }
 
+  template<typename T> void add_uninitialized_single_output(T *value)
+  {
+    this->add_uninitialized_single_output(GMutableSpan(CPPType::get<T>(), value, 1));
+  }
   void add_uninitialized_single_output(GMutableSpan ref)
   {
     this->assert_current_param_type(MFParamType::ForSingleOutput(ref.type()));

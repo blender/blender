@@ -135,6 +135,7 @@ set(SRC
   function/nodes/node_fn_combine_strings.cc
   function/nodes/node_fn_float_compare.cc
   function/nodes/node_fn_group_instance_id.cc
+  function/nodes/node_fn_object_transforms.cc
   function/nodes/node_fn_switch.cc
   function/node_function_util.cc
 
