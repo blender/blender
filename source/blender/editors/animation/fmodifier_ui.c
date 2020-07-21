@@ -515,8 +515,7 @@ static void draw_modifier__cycles(uiLayout *layout,
   RNA_pointer_create(fcurve_owner_id, &RNA_FModifierCycles, fcm, &ptr);
 
   /* split into 2 columns
-   * NOTE: the mode comboboxes shouldn't get labels, otherwise there isn't enough room
-   */
+   * NOTE: the mode combination-boxes shouldn't get labels, otherwise there isn't enough room. */
   split = uiLayoutSplit(layout, 0.5f, false);
 
   /* before range */

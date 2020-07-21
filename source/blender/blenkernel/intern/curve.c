@@ -4629,7 +4629,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
       bp1++;
       bp2--;
     }
-    /* If there're odd number of points no need to touch coord of middle one,
+    /* If there are odd number of points no need to touch coord of middle one,
      * but still need to change it's tilt.
      */
     if (nu->pntsu & 1) {

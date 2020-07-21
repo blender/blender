@@ -456,7 +456,7 @@ bool ED_space_node_color_sample(
 
     if (ibuf->rect_float) {
       fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
-      /* IB_PROFILE_NONE is default but infact its linear */
+      /* #IB_PROFILE_NONE is default but in fact its linear. */
       copy_v3_v3(r_col, fp);
       ret = true;
     }

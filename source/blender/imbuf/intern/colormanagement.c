@@ -698,7 +698,7 @@ void colormanagement_init(void)
     OCIO_configRelease(config);
   }
 
-  /* If there're no valid display/views, use fallback mode. */
+  /* If there are no valid display/views, use fallback mode. */
   if (global_tot_display == 0 || global_tot_view == 0) {
     printf("Color management: no displays/views in the config, using fallback mode instead\n");
 

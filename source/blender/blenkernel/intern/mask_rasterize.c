@@ -769,8 +769,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
 
             BLI_assert(tot_diff_feather_points == tot_diff_point);
 
-            /* note: only added for convenience, we don't infact use these to scanfill,
-             * only to create feather faces after scanfill */
+            /* Note: only added for convenience, we don't in fact use these to scan-fill,
+             * only to create feather faces after scan-fill. */
             for (j = 0; j < tot_diff_feather_points; j++) {
               copy_v2_v2(co_feather, diff_feather_points[j]);
               sf_vert = BLI_scanfill_vert_add(&sf_ctx, co_feather);
