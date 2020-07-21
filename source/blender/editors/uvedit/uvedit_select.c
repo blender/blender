@@ -220,6 +220,12 @@ void uvedit_face_select_set_with_sticky(const SpaceImage *sima,
                                         const bool do_history,
                                         const int cd_loop_uv_offset)
 {
+  const ToolSettings *ts = scene->toolsettings;
+  if (ts->uv_flag & UV_SYNC_SELECTION) {
+    uvedit_face_select_set(scene, em, efa, select, do_history, cd_loop_uv_offset);
+    return;
+  }
+
   BMLoop *l_iter, *l_first;
   l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
   do {
@@ -324,6 +330,12 @@ void uvedit_edge_select_set_with_sticky(const struct SpaceImage *sima,
                                         const bool do_history,
                                         const uint cd_loop_uv_offset)
 {
+  const ToolSettings *ts = scene->toolsettings;
+  if (ts->uv_flag & UV_SYNC_SELECTION) {
+    uvedit_edge_select_set(scene, em, l, select, do_history, cd_loop_uv_offset);
+    return;
+  }
+
   uvedit_uv_select_set_with_sticky(sima, scene, em, l, select, do_history, cd_loop_uv_offset);
   uvedit_uv_select_set_with_sticky(
       sima, scene, em, l->next, select, do_history, cd_loop_uv_offset);
