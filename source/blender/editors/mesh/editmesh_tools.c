@@ -3677,7 +3677,10 @@ static void edbm_blend_from_shape_ui(bContext *C, wmOperator *op)
   RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
   RNA_id_pointer_create((ID *)me->key, &ptr_key);
 
-  uiItemPointerR(layout, &ptr, "shape", &ptr_key, "key_blocks", "", ICON_SHAPEKEY_DATA);
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
+  uiItemPointerR(layout, &ptr, "shape", &ptr_key, "key_blocks", NULL, ICON_SHAPEKEY_DATA);
   uiItemR(layout, &ptr, "blend", 0, NULL, ICON_NONE);
   uiItemR(layout, &ptr, "add", 0, NULL, ICON_NONE);
 }
@@ -5587,25 +5590,26 @@ static bool edbm_decimate_check(bContext *UNUSED(C), wmOperator *UNUSED(op))
 
 static void edbm_decimate_ui(bContext *UNUSED(C), wmOperator *op)
 {
-  uiLayout *layout = op->layout, *box, *row, *col;
+  uiLayout *layout = op->layout, *row, *col, *sub;
   PointerRNA ptr;
 
   RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
 
+  uiLayoutSetPropSep(layout, true);
+
   uiItemR(layout, &ptr, "ratio", 0, NULL, ICON_NONE);
 
-  box = uiLayoutBox(layout);
-  uiItemR(box, &ptr, "use_vertex_group", 0, NULL, ICON_NONE);
-  col = uiLayoutColumn(box, false);
+  uiItemR(layout, &ptr, "use_vertex_group", 0, NULL, ICON_NONE);
+  col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, RNA_boolean_get(&ptr, "use_vertex_group"));
   uiItemR(col, &ptr, "vertex_group_factor", 0, NULL, ICON_NONE);
   uiItemR(col, &ptr, "invert_vertex_group", 0, NULL, ICON_NONE);
 
-  box = uiLayoutBox(layout);
-  uiItemR(box, &ptr, "use_symmetry", 0, NULL, ICON_NONE);
-  row = uiLayoutRow(box, true);
-  uiLayoutSetActive(row, RNA_boolean_get(&ptr, "use_symmetry"));
-  uiItemR(row, &ptr, "symmetry_axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  row = uiLayoutRowWithHeading(layout, true, IFACE_("Symmetry"));
+  uiItemR(row, &ptr, "use_symmetry", 0, "", ICON_NONE);
+  sub = uiLayoutRow(row, true);
+  uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_symmetry"));
+  uiItemR(sub, &ptr, "symmetry_axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 }
 
 void MESH_OT_decimate(wmOperatorType *ot)
@@ -8403,6 +8407,8 @@ static void edbm_point_normals_ui(bContext *C, wmOperator *op)
 
   RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
+  uiLayoutSetPropSep(layout, true);
+
   /* Main auto-draw call */
   uiDefAutoButsRNA(layout, &ptr, point_normals_draw_check_prop, NULL, NULL, '\0', false);
 }
@@ -8874,6 +8880,8 @@ static void edbm_average_normals_ui(bContext *C, wmOperator *op)
   PointerRNA ptr;
 
   RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
 
   /* Main auto-draw call */
   uiDefAutoButsRNA(layout, &ptr, average_normals_draw_check_prop, NULL, NULL, '\0', false);

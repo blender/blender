@@ -564,6 +564,9 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
   PropertyRNA *prop_codec;
   PropertyRNA *prop_bitrate;
 
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
   AUD_Container container = RNA_enum_get(op->ptr, "container");
   AUD_Codec codec = RNA_enum_get(op->ptr, "codec");
 

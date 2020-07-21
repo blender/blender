@@ -938,36 +938,25 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 static void edbm_bevel_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  uiLayout *row, *col, *split;
+  uiLayout *col, *row;
   PointerRNA ptr, toolsettings_ptr;
-  PropertyRNA *prop;
-  const char *offset_name;
 
   RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
 
   int profile_type = RNA_enum_get(&ptr, "profile_type");
+  int offset_type = RNA_enum_get(&ptr, "offset_type");
 
-  if (RNA_enum_get(&ptr, "offset_type") == BEVEL_AMT_PERCENT) {
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
+  uiItemR(layout, &ptr, "offset_type", 0, NULL, ICON_NONE);
+
+  if (offset_type == BEVEL_AMT_PERCENT) {
     uiItemR(layout, &ptr, "offset_pct", 0, NULL, ICON_NONE);
   }
   else {
-    prop = RNA_struct_find_property(op->ptr, "offset_type");
-    RNA_property_enum_name_gettexted(
-        C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &offset_name);
-    uiItemR(layout, &ptr, "offset", 0, offset_name, ICON_NONE);
+    uiItemR(layout, &ptr, "offset", 0, NULL, ICON_NONE);
   }
-  row = uiLayoutRow(layout, true);
-  uiItemR(row, &ptr, "offset_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-
-  split = uiLayoutSplit(layout, 0.5f, true);
-  col = uiLayoutColumn(split, true);
-  uiItemR(col, &ptr, "vertex_only", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "clamp_overlap", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "loop_slide", 0, NULL, ICON_NONE);
-  col = uiLayoutColumn(split, true);
-  uiItemR(col, &ptr, "mark_seam", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "mark_sharp", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "harden_normals", 0, NULL, ICON_NONE);
 
   uiItemR(layout, &ptr, "segments", 0, NULL, ICON_NONE);
   if (ELEM(profile_type, BEVEL_PROFILE_SUPERELLIPSE, BEVEL_PROFILE_CUSTOM)) {
@@ -980,23 +969,32 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
   }
   uiItemR(layout, &ptr, "material", 0, NULL, ICON_NONE);
 
-  uiItemL(layout, "Miter Type:", ICON_NONE);
-  uiItemR(layout, &ptr, "miter_outer", 0, "Outer", ICON_NONE);
-  uiItemR(layout, &ptr, "miter_inner", 0, "Inner", ICON_NONE);
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col, &ptr, "harden_normals", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "vertex_only", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "clamp_overlap", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "loop_slide", 0, NULL, ICON_NONE);
+
+  col = uiLayoutColumnWithHeading(layout, true, IFACE_("Mark"));
+  uiItemR(col, &ptr, "mark_seam", 0, IFACE_("Seams"), ICON_NONE);
+  uiItemR(col, &ptr, "mark_sharp", 0, IFACE_("Sharp"), ICON_NONE);
+
+  uiItemS(layout);
+
+  uiItemR(layout, &ptr, "miter_outer", 0, IFACE_("Miter Outer"), ICON_NONE);
+  uiItemR(layout, &ptr, "miter_inner", 0, IFACE_("Inner"), ICON_NONE);
   if (RNA_enum_get(&ptr, "miter_inner") == BEVEL_MITER_ARC) {
     uiItemR(layout, &ptr, "spread", 0, NULL, ICON_NONE);
   }
 
-  uiItemL(layout, "Face Strength Mode:", ICON_NONE);
-  row = uiLayoutRow(layout, true);
-  uiItemR(row, &ptr, "face_strength_mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemS(layout);
 
-  uiItemL(layout, "Intersection Type:", ICON_NONE);
-  row = uiLayoutRow(layout, true);
-  uiItemR(row, &ptr, "vmesh_method", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "face_strength_mode", 0, IFACE_("Face Strength"), ICON_NONE);
+  uiItemR(layout, &ptr, "vmesh_method", 0, IFACE_("Intersection Type"), ICON_NONE);
 
-  uiItemL(layout, "Profile Type:", ICON_NONE);
-  row = uiLayoutRow(layout, true);
+  uiItemS(layout);
+
+  row = uiLayoutRow(layout, false);
   uiItemR(row, &ptr, "profile_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
   if (profile_type == BEVEL_PROFILE_CUSTOM) {
     /* Get an RNA pointer to ToolSettings to give to the curve profile template code. */
@@ -1156,7 +1154,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
               -1,
               -1,
               INT_MAX,
-              "Material",
+              "Material Index",
               "Material for bevel faces (-1 means use adjacent faces)",
               -1,
               100);

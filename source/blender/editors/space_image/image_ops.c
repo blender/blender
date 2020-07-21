@@ -2595,7 +2595,7 @@ static int image_new_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 
 static void image_new_draw(bContext *UNUSED(C), wmOperator *op)
 {
-  uiLayout *split, *col[2];
+  uiLayout *col;
   uiLayout *layout = op->layout;
   PointerRNA ptr;
 #if 0
@@ -2607,33 +2607,18 @@ static void image_new_draw(bContext *UNUSED(C), wmOperator *op)
 
   /* copy of WM_operator_props_dialog_popup() layout */
 
-  split = uiLayoutSplit(layout, 0.5f, false);
-  col[0] = uiLayoutColumn(split, false);
-  col[1] = uiLayoutColumn(split, false);
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
 
-  uiItemL(col[0], IFACE_("Name"), ICON_NONE);
-  uiItemR(col[1], &ptr, "name", 0, "", ICON_NONE);
-
-  uiItemL(col[0], IFACE_("Width"), ICON_NONE);
-  uiItemR(col[1], &ptr, "width", 0, "", ICON_NONE);
-
-  uiItemL(col[0], IFACE_("Height"), ICON_NONE);
-  uiItemR(col[1], &ptr, "height", 0, "", ICON_NONE);
-
-  uiItemL(col[0], IFACE_("Color"), ICON_NONE);
-  uiItemR(col[1], &ptr, "color", 0, "", ICON_NONE);
-
-  uiItemL(col[0], "", ICON_NONE);
-  uiItemR(col[1], &ptr, "alpha", 0, NULL, ICON_NONE);
-
-  uiItemL(col[0], IFACE_("Generated Type"), ICON_NONE);
-  uiItemR(col[1], &ptr, "generated_type", 0, "", ICON_NONE);
-
-  uiItemL(col[0], "", ICON_NONE);
-  uiItemR(col[1], &ptr, "float", 0, NULL, ICON_NONE);
-
-  uiItemL(col[0], "", ICON_NONE);
-  uiItemR(col[1], &ptr, "tiled", 0, NULL, ICON_NONE);
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, &ptr, "name", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "width", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "height", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "color", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "alpha", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "generated_type", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "float", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "tiled", 0, NULL, ICON_NONE);
 
 #if 0
   if (is_multiview) {

@@ -158,99 +158,78 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
 
 static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
 {
-  uiLayout *box;
-  uiLayout *row;
-  uiLayout *col;
+  uiLayout *box, *row, *col, *sub;
+
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
 
   box = uiLayoutBox(layout);
-  row = uiLayoutRow(box, false);
-  uiItemL(row, IFACE_("Manual Transform:"), ICON_NONE);
+  uiItemL(box, IFACE_("Manual Transform"), ICON_NONE);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "global_scale", 0, NULL, ICON_NONE);
+  uiItemR(box, imfptr, "global_scale", 0, NULL, ICON_NONE);
 
   /* Scene Options */
   box = uiLayoutBox(layout);
   row = uiLayoutRow(box, false);
-  uiItemL(row, IFACE_("Scene Options:"), ICON_SCENE_DATA);
+  uiItemL(row, IFACE_("Scene Options"), ICON_SCENE_DATA);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "start", 0, NULL, ICON_NONE);
+  col = uiLayoutColumn(box, false);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "end", 0, NULL, ICON_NONE);
+  sub = uiLayoutColumn(col, true);
+  uiItemR(sub, imfptr, "start", 0, IFACE_("Frame Start"), ICON_NONE);
+  uiItemR(sub, imfptr, "end", 0, IFACE_("End"), ICON_NONE);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "xsamples", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "xsamples", 0, IFACE_("Samples Transform"), ICON_NONE);
+  uiItemR(col, imfptr, "gsamples", 0, IFACE_("Geometry"), ICON_NONE);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "gsamples", 0, NULL, ICON_NONE);
+  sub = uiLayoutColumn(col, true);
+  uiItemR(sub, imfptr, "sh_open", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+  uiItemR(sub, imfptr, "sh_close", UI_ITEM_R_SLIDER, IFACE_("Close"), ICON_NONE);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "sh_open", 0, NULL, ICON_NONE);
+  uiItemS(col);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "sh_close", 0, NULL, ICON_NONE);
-
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "selected", 0, NULL, ICON_NONE);
-
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "renderable_only", 0, NULL, ICON_NONE);
-
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "visible_objects_only", 0, NULL, ICON_NONE);
-
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "flatten", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "flatten", 0, NULL, ICON_NONE);
+  sub = uiLayoutColumnWithHeading(col, true, IFACE_("Only"));
+  uiItemR(sub, imfptr, "selected", 0, IFACE_("Selected Objects"), ICON_NONE);
+  uiItemR(sub, imfptr, "renderable_only", 0, IFACE_("Renderable Objects"), ICON_NONE);
+  uiItemR(sub, imfptr, "visible_objects_only", 0, IFACE_("Visible Objects"), ICON_NONE);
 
   /* Object Data */
   box = uiLayoutBox(layout);
   row = uiLayoutRow(box, false);
-  uiItemL(row, IFACE_("Object Options:"), ICON_OBJECT_DATA);
+  uiItemL(row, IFACE_("Object Options"), ICON_OBJECT_DATA);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "uvs", 0, NULL, ICON_NONE);
+  col = uiLayoutColumn(box, false);
 
-  row = uiLayoutRow(box, false);
+  uiItemR(col, imfptr, "uvs", 0, NULL, ICON_NONE);
+  row = uiLayoutRow(col, false);
+  uiLayoutSetActive(row, RNA_boolean_get(imfptr, "uvs"));
   uiItemR(row, imfptr, "packuv", 0, NULL, ICON_NONE);
-  uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "uvs"));
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "normals", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "normals", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "vcolors", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "face_sets", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "curves_as_mesh", 0, NULL, ICON_NONE);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "vcolors", 0, NULL, ICON_NONE);
+  uiItemS(col);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "face_sets", 0, NULL, ICON_NONE);
+  sub = uiLayoutColumnWithHeading(col, true, IFACE_("Subdivisions"));
+  uiItemR(sub, imfptr, "apply_subdiv", 0, IFACE_("Apply"), ICON_NONE);
+  uiItemR(sub, imfptr, "subdiv_schema", 0, IFACE_("Use Schema"), ICON_NONE);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "subdiv_schema", 0, NULL, ICON_NONE);
+  uiItemS(col);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "apply_subdiv", 0, NULL, ICON_NONE);
+  col = uiLayoutColumn(box, false);
+  uiItemR(col, imfptr, "triangulate", 0, NULL, ICON_NONE);
+  sub = uiLayoutColumn(col, false);
+  uiLayoutSetActive(sub, RNA_boolean_get(imfptr, "triangulate"));
+  uiItemR(sub, imfptr, "quad_method", 0, IFACE_("Method Quads"), ICON_NONE);
+  uiItemR(sub, imfptr, "ngon_method", 0, IFACE_("Polygons"), ICON_NONE);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "curves_as_mesh", 0, NULL, ICON_NONE);
-
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "triangulate", 0, NULL, ICON_NONE);
-
-  const bool triangulate = RNA_boolean_get(imfptr, "triangulate");
-
-  row = uiLayoutRow(box, false);
-  uiLayoutSetEnabled(row, triangulate);
-  uiItemR(row, imfptr, "quad_method", 0, NULL, ICON_NONE);
-
-  row = uiLayoutRow(box, false);
-  uiLayoutSetEnabled(row, triangulate);
-  uiItemR(row, imfptr, "ngon_method", 0, NULL, ICON_NONE);
-
-  /* Object Data */
+  /* Particle Data */
   box = uiLayoutBox(layout);
   row = uiLayoutRow(box, false);
-  uiItemL(row, IFACE_("Particle Systems:"), ICON_PARTICLE_DATA);
+  uiItemL(row, IFACE_("Particle Systems"), ICON_PARTICLE_DATA);
 
   col = uiLayoutColumn(box, true);
   uiItemR(col, imfptr, "export_hair", 0, NULL, ICON_NONE);
@@ -578,28 +557,25 @@ static int get_sequence_len(char *filename, int *ofs)
 
 static void ui_alembic_import_settings(uiLayout *layout, PointerRNA *imfptr)
 {
+
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
   uiLayout *box = uiLayoutBox(layout);
   uiLayout *row = uiLayoutRow(box, false);
-  uiItemL(row, IFACE_("Manual Transform:"), ICON_NONE);
+  uiItemL(row, IFACE_("Manual Transform"), ICON_NONE);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "scale", 0, NULL, ICON_NONE);
+  uiItemR(box, imfptr, "scale", 0, NULL, ICON_NONE);
 
   box = uiLayoutBox(layout);
   row = uiLayoutRow(box, false);
-  uiItemL(row, IFACE_("Options:"), ICON_NONE);
+  uiItemL(row, IFACE_("Options"), ICON_NONE);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "relative_path", 0, NULL, ICON_NONE);
-
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "set_frame_range", 0, NULL, ICON_NONE);
-
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "is_sequence", 0, NULL, ICON_NONE);
-
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "validate_meshes", 0, NULL, ICON_NONE);
+  uiLayout *col = uiLayoutColumn(box, false);
+  uiItemR(col, imfptr, "relative_path", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "set_frame_range", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "is_sequence", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "validate_meshes", 0, NULL, ICON_NONE);
 }
 
 static void wm_alembic_import_draw(bContext *UNUSED(C), wmOperator *op)
