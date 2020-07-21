@@ -75,6 +75,9 @@ static void initData(ModifierData *md)
   mmd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
   mmd->quality = 4;
   mmd->flags |= (eMultiresModifierFlag_UseCrease | eMultiresModifierFlag_ControlEdges);
+
+  /* Open subdivision panels by default. */
+  md->ui_expand_flag = (1 << 0) | (1 << 1);
 }
 
 static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int flag)
@@ -287,12 +290,36 @@ static void deformMatrices(ModifierData *md,
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *row, *col, *split, *col2;
+  uiLayout *col;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+
+  uiLayoutSetPropSep(layout, true);
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col, &ptr, "levels", 0, IFACE_("Level Viewport"), ICON_NONE);
+  uiItemR(col, &ptr, "sculpt_levels", 0, IFACE_("Sculpt"), ICON_NONE);
+  uiItemR(col, &ptr, "render_levels", 0, IFACE_("Render"), ICON_NONE);
+
+  uiItemR(layout, &ptr, "show_only_control_edges", 0, NULL, ICON_NONE);
+
+  modifier_panel_end(layout, &ptr);
+}
+
+static void subdivisions_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *row;
   uiLayout *layout = panel->layout;
 
   PointerRNA ptr;
   PointerRNA ob_ptr;
   modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetEnabled(layout, RNA_enum_get(&ob_ptr, "mode") != OB_MODE_EDIT);
+
+  MultiresModifierData *mmd = (MultiresModifierData *)ptr.data;
 
   /**
    * Changing some of the properties can not be done once there is an
@@ -304,33 +331,9 @@ static void panel_draw(const bContext *C, Panel *panel)
    * non-zero displacement, but such checks will be too slow to be done
    * on every redraw.
    */
-  bool has_displacement = RNA_int_get(&ptr, "total_levels") != 0;
-  MultiresModifierData *mmd = (MultiresModifierData *)ptr.data;
 
-  uiLayoutSetPropSep(layout, true);
-
-  col = uiLayoutColumn(layout, false);
-  uiLayoutSetEnabled(col, !has_displacement);
-  uiItemR(col, &ptr, "subdivision_type", 0, NULL, ICON_NONE);
-
-  col = uiLayoutColumn(layout, true);
-  uiItemR(col, &ptr, "sculpt_levels", 0, IFACE_("Levels Sculpt"), ICON_NONE);
-  uiItemR(col, &ptr, "levels", 0, IFACE_("Viewport"), ICON_NONE);
-  uiItemR(col, &ptr, "render_levels", 0, IFACE_("Render"), ICON_NONE);
-  uiItemR(layout, &ptr, "show_only_control_edges", 0, NULL, ICON_NONE);
-
-  uiItemS(layout);
-
-  split = uiLayoutSplit(layout, 0.5f, false);
-  uiLayoutSetEnabled(split, RNA_enum_get(&ob_ptr, "mode") != OB_MODE_EDIT);
-  col = uiLayoutColumn(split, false);
-  col2 = uiLayoutColumn(split, false);
-
-  uiItemO(col, IFACE_("Unsubdivide"), ICON_NONE, "OBJECT_OT_multires_unsubdivide");
-
-  row = uiLayoutRow(col2, true);
   PointerRNA op_ptr;
-  uiItemFullO(row,
+  uiItemFullO(layout,
               "OBJECT_OT_multires_subdivide",
               IFACE_("Subdivide"),
               ICON_NONE,
@@ -340,10 +343,12 @@ static void panel_draw(const bContext *C, Panel *panel)
               &op_ptr);
   RNA_enum_set(&op_ptr, "mode", MULTIRES_SUBDIVIDE_CATMULL_CLARK);
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
+
+  row = uiLayoutRow(layout, false);
   uiItemFullO(row,
               "OBJECT_OT_multires_subdivide",
               IFACE_("Simple"),
-              ICON_NONE, /* TODO: Needs icon, remove text */
+              ICON_NONE,
               NULL,
               WM_OP_EXEC_DEFAULT,
               0,
@@ -353,7 +358,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemFullO(row,
               "OBJECT_OT_multires_subdivide",
               IFACE_("Linear"),
-              ICON_NONE, /* TODO: Needs icon, remove text */
+              ICON_NONE,
               NULL,
               WM_OP_EXEC_DEFAULT,
               0,
@@ -361,13 +366,41 @@ static void panel_draw(const bContext *C, Panel *panel)
   RNA_enum_set(&op_ptr, "mode", MULTIRES_SUBDIVIDE_LINEAR);
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
 
-  uiItemL(col, "", ICON_NONE);
-  uiItemO(col2, IFACE_("Delete Higher"), ICON_NONE, "OBJECT_OT_multires_higher_levels_delete");
-
-  uiItemO(col, IFACE_("Reshape"), ICON_NONE, "OBJECT_OT_multires_reshape");
-  uiItemO(col2, IFACE_("Apply Base"), ICON_NONE, "OBJECT_OT_multires_base_apply");
-
   uiItemS(layout);
+
+  uiItemO(layout, IFACE_("Unsubdivide"), ICON_NONE, "OBJECT_OT_multires_unsubdivide");
+
+  row = uiLayoutRow(layout, false);
+  uiItemL(row, "", ICON_NONE);
+  uiItemO(row, IFACE_("Delete Higher"), ICON_NONE, "OBJECT_OT_multires_higher_levels_delete");
+}
+
+static void shape_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *row;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  PointerRNA ob_ptr;
+  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+
+  uiLayoutSetEnabled(layout, RNA_enum_get(&ob_ptr, "mode") != OB_MODE_EDIT);
+
+  row = uiLayoutRow(layout, false);
+  uiItemO(row, IFACE_("Reshape"), ICON_NONE, "OBJECT_OT_multires_reshape");
+  uiItemO(row, IFACE_("Apply Base"), ICON_NONE, "OBJECT_OT_multires_base_apply");
+}
+
+static void generate_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *col, *row;
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ptr;
+  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  MultiresModifierData *mmd = (MultiresModifierData *)ptr.data;
+
+  bool is_external = RNA_boolean_get(&ptr, "is_external");
 
   if (mmd->totlvl == 0) {
     uiItemO(
@@ -376,16 +409,15 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   col = uiLayoutColumn(layout, false);
   row = uiLayoutRow(col, false);
-  if (RNA_boolean_get(&ptr, "is_external")) {
+  if (is_external) {
     uiItemO(row, IFACE_("Pack External"), ICON_NONE, "OBJECT_OT_multires_external_pack");
+    uiLayoutSetPropSep(col, true);
     row = uiLayoutRow(col, false);
-    uiItemR(row, &ptr, "filepath", 0, "", ICON_NONE);
+    uiItemR(row, &ptr, "filepath", 0, NULL, ICON_NONE);
   }
   else {
     uiItemO(col, IFACE_("Save External..."), ICON_NONE, "OBJECT_OT_multires_external_save");
   }
-
-  modifier_panel_end(layout, &ptr);
 }
 
 static void advanced_panel_draw(const bContext *C, Panel *panel)
@@ -400,20 +432,26 @@ static void advanced_panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  col = uiLayoutColumn(layout, false);
-  uiLayoutSetEnabled(col, !has_displacement);
-  uiItemR(col, &ptr, "quality", 0, NULL, ICON_NONE);
+  uiLayoutSetEnabled(layout, !has_displacement);
 
-  uiItemR(layout, &ptr, "uv_smooth", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "subdivision_type", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "quality", 0, NULL, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiLayoutSetEnabled(col, !has_displacement);
-  uiItemR(col, &ptr, "use_creases", 0, NULL, ICON_NONE);
+  uiLayoutSetEnabled(col, true);
+  uiItemR(col, &ptr, "uv_smooth", 0, NULL, ICON_NONE);
+
+  uiItemR(layout, &ptr, "use_creases", 0, NULL, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Multires, panel_draw);
+  modifier_subpanel_register(
+      region_type, "subdivide", "Subdivions", NULL, subdivisions_panel_draw, panel_type);
+  modifier_subpanel_register(region_type, "shape", "Shape", NULL, shape_panel_draw, panel_type);
+  modifier_subpanel_register(
+      region_type, "generate", "Generate", NULL, generate_panel_draw, panel_type);
   modifier_subpanel_register(
       region_type, "advanced", "Advanced", NULL, advanced_panel_draw, panel_type);
 }
