@@ -1640,31 +1640,6 @@ void UV_OT_select_all(wmOperatorType *ot)
 /** \name Mouse Select Operator
  * \{ */
 
-static bool uv_sticky_select(
-    const int hitv[], int v, float *hituv[], const float uv[2], int sticky, int hitlen)
-{
-  /* This function test if some vertex needs to selected
-   * in addition to the existing ones due to sticky select */
-  if (sticky == SI_STICKY_DISABLE) {
-    return false;
-  }
-
-  for (int i = 0; i < hitlen; i++) {
-    if (hitv[i] == v) {
-      if (sticky == SI_STICKY_LOC) {
-        if (equals_v2v2(hituv[i], uv)) {
-          return true;
-        }
-      }
-      else if (sticky == SI_STICKY_VERTEX) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
 static int uv_mouse_select_multi(bContext *C,
                                  Object **objects,
                                  uint objects_len,
@@ -1676,18 +1651,11 @@ static int uv_mouse_select_multi(bContext *C,
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
-  BMFace *efa;
-  BMLoop *l;
-  BMIter iter, liter;
-  MLoopUV *luv;
   UvNearestHit hit = UV_NEAREST_HIT_INIT;
-  int i, selectmode, sticky, *hitv = NULL;
-  bool select = true;
+  int selectmode, sticky;
   bool found_item = false;
   /* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
   int flush = 0;
-  int hitlen = 0;
-  float **hituv = NULL;
 
   const float penalty_dist = uv_select_penalty_default(sima);
 
@@ -1717,16 +1685,6 @@ static int uv_mouse_select_multi(bContext *C,
     found_item = found_item && (!deselect_all || hit.dist_sq < penalty_dist);
 
     if (found_item) {
-      /* mark 1 vertex as being hit */
-      hitv = BLI_array_alloca(hitv, hit.efa->len);
-      hituv = BLI_array_alloca(hituv, hit.efa->len);
-      copy_vn_i(hitv, hit.efa->len, 0xFFFFFFFF);
-
-      hitv[hit.lindex] = BM_elem_index_get(hit.l->v);
-      hituv[hit.lindex] = hit.luv->uv;
-
-      hitlen = hit.efa->len;
-
       if ((ts->uv_flag & UV_SYNC_SELECTION) == 0) {
         BMesh *bm = BKE_editmesh_from_object(hit.ob)->bm;
         ED_uvedit_active_vert_loop_set(bm, hit.l);
@@ -1739,18 +1697,6 @@ static int uv_mouse_select_multi(bContext *C,
     found_item = found_item && (!deselect_all || hit.dist_sq < penalty_dist);
 
     if (found_item) {
-      /* mark 2 edge vertices as being hit */
-      hitv = BLI_array_alloca(hitv, hit.efa->len);
-      hituv = BLI_array_alloca(hituv, hit.efa->len);
-      copy_vn_i(hitv, hit.efa->len, 0xFFFFFFFF);
-
-      hitv[hit.lindex] = BM_elem_index_get(hit.l->v);
-      hitv[(hit.lindex + 1) % hit.efa->len] = BM_elem_index_get(hit.l->next->v);
-      hituv[hit.lindex] = hit.luv->uv;
-      hituv[(hit.lindex + 1) % hit.efa->len] = hit.luv_next->uv;
-
-      hitlen = hit.efa->len;
-
       if ((ts->uv_flag & UV_SYNC_SELECTION) == 0) {
         BMesh *bm = BKE_editmesh_from_object(hit.ob)->bm;
         ED_uvedit_active_edge_loop_set(bm, hit.l);
@@ -1763,23 +1709,8 @@ static int uv_mouse_select_multi(bContext *C,
     found_item = found_item && (!deselect_all || hit.dist_sq < penalty_dist);
 
     if (found_item) {
-      BMEditMesh *em = BKE_editmesh_from_object(hit.ob);
-      const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
-      /* make active */
-      BM_mesh_active_face_set(em->bm, hit.efa);
-
-      /* mark all face vertices as being hit */
-
-      hitv = BLI_array_alloca(hitv, hit.efa->len);
-      hituv = BLI_array_alloca(hituv, hit.efa->len);
-      BM_ITER_ELEM_INDEX (l, &liter, hit.efa, BM_LOOPS_OF_FACE, i) {
-        luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        hituv[i] = luv->uv;
-        hitv[i] = BM_elem_index_get(l->v);
-      }
-
-      hitlen = hit.efa->len;
+      BMesh *bm = BKE_editmesh_from_object(hit.ob)->bm;
+      BM_mesh_active_face_set(bm, hit.efa);
     }
   }
   else if (selectmode == UV_SELECT_ISLAND) {
@@ -1816,22 +1747,24 @@ static int uv_mouse_select_multi(bContext *C,
     uv_select_linked_multi(scene, objects, objects_len, &hit, false, false, extend, false);
   }
   else if (extend) {
+    bool select = true;
     if (selectmode == UV_SELECT_VERTEX) {
       /* (de)select uv vertex */
       select = !uvedit_uv_select_test(scene, hit.l, cd_loop_uv_offset);
-      uvedit_uv_select_set(scene, em, hit.l, select, true, cd_loop_uv_offset);
+      uvedit_uv_select_set_with_sticky(sima, scene, em, hit.l, select, true, cd_loop_uv_offset);
       flush = 1;
     }
     else if (selectmode == UV_SELECT_EDGE) {
       /* (de)select edge */
       select = !(uvedit_edge_select_test(scene, hit.l, cd_loop_uv_offset));
-      uvedit_edge_select_set(scene, em, hit.l, select, true, cd_loop_uv_offset);
+      uvedit_edge_select_set_with_sticky(sima, scene, em, hit.l, select, true, cd_loop_uv_offset);
       flush = 1;
     }
     else if (selectmode == UV_SELECT_FACE) {
       /* (de)select face */
       select = !(uvedit_face_select_test(scene, hit.efa, cd_loop_uv_offset));
-      uvedit_face_select_set(scene, em, hit.efa, select, true, cd_loop_uv_offset);
+      uvedit_face_select_set_with_sticky(
+          sima, scene, em, hit.efa, select, true, cd_loop_uv_offset);
       flush = -1;
     }
 
@@ -1844,64 +1777,29 @@ static int uv_mouse_select_multi(bContext *C,
 
     /* (de)select sticky uv nodes */
     if (sticky != SI_STICKY_DISABLE) {
-
-      BM_mesh_elem_index_ensure(em->bm, BM_VERT);
-
-      BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-        if (!uvedit_face_visible_test(scene, efa)) {
-          continue;
-        }
-
-        BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-          if (uv_sticky_select(hitv, BM_elem_index_get(l->v), hituv, luv->uv, sticky, hitlen)) {
-            uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
-          }
-        }
-      }
-
       flush = select ? 1 : -1;
     }
   }
   else {
+    const bool select = true;
     /* deselect all */
     uv_select_all_perform_multi(scene, objects, objects_len, SEL_DESELECT);
 
     if (selectmode == UV_SELECT_VERTEX) {
       /* select vertex */
-      uvedit_uv_select_enable(scene, em, hit.l, true, cd_loop_uv_offset);
+      uvedit_uv_select_set_with_sticky(sima, scene, em, hit.l, select, true, cd_loop_uv_offset);
       flush = 1;
     }
     else if (selectmode == UV_SELECT_EDGE) {
       /* select edge */
-      uvedit_edge_select_enable(scene, em, hit.l, true, cd_loop_uv_offset);
+      uvedit_edge_select_set_with_sticky(sima, scene, em, hit.l, select, true, cd_loop_uv_offset);
       flush = 1;
     }
     else if (selectmode == UV_SELECT_FACE) {
       /* select face */
-      uvedit_face_select_enable(scene, em, hit.efa, true, cd_loop_uv_offset);
-    }
-
-    /* select sticky uvs */
-    if (sticky != SI_STICKY_DISABLE) {
-      BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-        if (!uvedit_face_visible_test(scene, efa)) {
-          continue;
-        }
-
-        BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          if (sticky == SI_STICKY_DISABLE) {
-            continue;
-          }
-          luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-          if (uv_sticky_select(hitv, BM_elem_index_get(l->v), hituv, luv->uv, sticky, hitlen)) {
-            uvedit_uv_select_enable(scene, em, l, false, cd_loop_uv_offset);
-          }
-
-          flush = 1;
-        }
-      }
+      uvedit_face_select_set_with_sticky(
+          sima, scene, em, hit.efa, select, true, cd_loop_uv_offset);
+      flush = 1;
     }
   }
 
