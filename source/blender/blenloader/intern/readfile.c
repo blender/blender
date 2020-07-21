@@ -8982,18 +8982,23 @@ static BHead *read_data_into_datamap(FileData *fd, BHead *bhead, const char *all
   bhead = blo_bhead_next(fd, bhead);
 
   while (bhead && bhead->code == DATA) {
-    void *data;
+    /* The code below is useful for debugging leaks in data read from the blend file.
+     * Without this the messages only tell us what ID-type the memory came from,
+     * eg: `Data from OB len 64`, see #dataname.
+     * With the code below we get the struct-name to help tracking down the leak.
+     * This is kept disabled as the #malloc for the text always leaks memory. */
 #if 0
-    /* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */
-    short *sp = fd->filesdna->structs[bhead->SDNAnr];
-    char *tmp = malloc(100);
-    allocname = fd->filesdna->types[sp[0]];
-    strcpy(tmp, allocname);
-    data = read_struct(fd, bhead, tmp);
-#else
-    data = read_struct(fd, bhead, allocname);
+    {
+      const short *sp = fd->filesdna->structs[bhead->SDNAnr];
+      allocname = fd->filesdna->types[sp[0]];
+      size_t allocname_size = strlen(allocname) + 1;
+      char *allocname_buf = malloc(allocname_size);
+      memcpy(allocname_buf, allocname, allocname_size);
+      allocname = allocname_buf;
+    }
 #endif
 
+    void *data = read_struct(fd, bhead, allocname);
     if (data) {
       oldnewmap_insert(fd->datamap, bhead->old, data, 0);
     }
