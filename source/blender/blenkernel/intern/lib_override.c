@@ -571,7 +571,8 @@ bool BKE_lib_override_library_create(
                 Object *ob_root = (Object *)id_root;
                 LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
                   if (BKE_collection_has_object(collection, ob_root) &&
-                      BKE_view_layer_has_collection(view_layer, collection)) {
+                      BKE_view_layer_has_collection(view_layer, collection) &&
+                      !ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection)) {
                     default_instantiating_collection = BKE_collection_add(
                         bmain, collection, "OVERRIDE_HIDDEN");
                   }
