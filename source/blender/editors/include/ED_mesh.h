@@ -123,7 +123,6 @@ struct BMFace *EDBM_uv_active_face_get(struct BMEditMesh *em,
 void BM_uv_vert_map_free(struct UvVertMap *vmap);
 struct UvMapVert *BM_uv_vert_map_at_index(struct UvVertMap *vmap, unsigned int v);
 struct UvVertMap *BM_uv_vert_map_create(struct BMesh *bm,
-                                        const float limit[2],
                                         const bool use_select,
                                         const bool use_winding);
 

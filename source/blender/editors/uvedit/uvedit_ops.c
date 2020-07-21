@@ -1843,7 +1843,6 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
   const bool mark_seams = RNA_boolean_get(op->ptr, "mark_seams");
   const bool mark_sharp = RNA_boolean_get(op->ptr, "mark_sharp");
   bool changed_multi = false;
@@ -1884,23 +1883,10 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
           continue;
         }
 
-        const MLoopUV *luv_curr = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
-        const MLoopUV *luv_next = BM_ELEM_CD_GET_VOID_P(l_iter->next, cd_loop_uv_offset);
-
         bool mark = false;
         BMLoop *l_other = l_iter->radial_next;
         do {
-          const MLoopUV *luv_other_curr = BM_ELEM_CD_GET_VOID_P(l_other, cd_loop_uv_offset);
-          const MLoopUV *luv_other_next = BM_ELEM_CD_GET_VOID_P(l_other->next, cd_loop_uv_offset);
-          if (l_iter->v != l_other->v) {
-            SWAP(const MLoopUV *, luv_other_curr, luv_other_next);
-          }
-
-          if (!compare_ff(luv_curr->uv[0], luv_other_curr->uv[0], limit[0]) ||
-              !compare_ff(luv_curr->uv[1], luv_other_curr->uv[1], limit[1]) ||
-
-              !compare_ff(luv_next->uv[0], luv_other_next->uv[0], limit[0]) ||
-              !compare_ff(luv_next->uv[1], luv_other_next->uv[1], limit[1])) {
+          if (!BM_loop_uv_share_edge_check(l_iter, l_other, cd_loop_uv_offset)) {
             mark = true;
             break;
           }
