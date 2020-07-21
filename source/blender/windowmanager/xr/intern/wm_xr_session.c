@@ -159,6 +159,13 @@ static void wm_xr_session_draw_data_populate(wmXrData *xr_data,
   wm_xr_session_base_pose_calc(r_draw_data->scene, settings, &r_draw_data->base_pose);
 }
 
+typedef enum wmXrSessionStateEvent {
+  SESSION_STATE_EVENT_NONE = 0,
+  SESSION_STATE_EVENT_START,
+  SESSION_STATE_EVENT_RESET_TO_BASE_POSE,
+  SESSION_STATE_EVENT_POSITON_TRACKING_TOGGLE,
+} wmXrSessionStateEvent;
+
 static bool wm_xr_session_draw_data_needs_reset_to_base_pose(const wmXrSessionState *state,
                                                              const XrSessionSettings *settings)
 {
@@ -170,36 +177,64 @@ static bool wm_xr_session_draw_data_needs_reset_to_base_pose(const wmXrSessionSt
           (state->prev_base_pose_object != settings->base_pose_object));
 }
 
+wmXrSessionStateEvent wm_xr_session_state_to_event(const wmXrSessionState *state,
+                                                   const XrSessionSettings *settings)
+{
+  if (!state->is_view_data_set) {
+    return SESSION_STATE_EVENT_START;
+  }
+  else if (wm_xr_session_draw_data_needs_reset_to_base_pose(state, settings)) {
+    return SESSION_STATE_EVENT_RESET_TO_BASE_POSE;
+  }
+  else {
+    const bool position_tracking_toggled = ((state->prev_settings_flag &
+                                             XR_SESSION_USE_POSITION_TRACKING) !=
+                                            (settings->flag & XR_SESSION_USE_POSITION_TRACKING));
+    if (position_tracking_toggled) {
+      return SESSION_STATE_EVENT_POSITON_TRACKING_TOGGLE;
+    }
+  }
+
+  return SESSION_STATE_EVENT_NONE;
+}
+
 void wm_xr_session_draw_data_update(const wmXrSessionState *state,
                                     const XrSessionSettings *settings,
                                     const GHOST_XrDrawViewInfo *draw_view,
                                     wmXrDrawData *draw_data)
 {
-  const bool position_tracking_toggled = ((state->prev_settings_flag &
-                                           XR_SESSION_USE_POSITION_TRACKING) !=
-                                          (settings->flag & XR_SESSION_USE_POSITION_TRACKING));
-  const bool use_position_tracking = settings->flag & XR_SESSION_USE_POSITION_TRACKING;
+  const wmXrSessionStateEvent event = wm_xr_session_state_to_event(state, settings);
+  const bool use_position_tracking = (settings->flag & XR_SESSION_USE_POSITION_TRACKING);
 
-  /* Set the eye position offset, it's used to offset the base pose when changing positional
-   * tracking. */
-  if (!state->is_view_data_set ||
-      wm_xr_session_draw_data_needs_reset_to_base_pose(state, settings)) {
-    /* Always use the exact base pose with no offset when starting the session. */
-    copy_v3_fl(draw_data->eye_position_ofs, 0.0f);
-  }
-  else if (position_tracking_toggled) {
-    if (use_position_tracking) {
+  switch (event) {
+    case SESSION_STATE_EVENT_START:
+      /* Always use the exact base pose with no offset when starting the session. */
       copy_v3_fl(draw_data->eye_position_ofs, 0.0f);
-    }
-    else {
-      /* Store the current local offset (local pose) so that we can apply that to the eyes. This
-       * way the eyes stay exactly where they are when disabling positional tracking. */
-      copy_v3_v3(draw_data->eye_position_ofs, draw_view->local_pose.position);
-    }
-  }
-  else if (!use_position_tracking) {
-    /* Keep previous offset when positional tracking is disabled. */
-    copy_v3_v3(draw_data->eye_position_ofs, state->prev_eye_position_ofs);
+      break;
+      /* This should be triggered by the VR add-on if a landmark changes. */
+    case SESSION_STATE_EVENT_RESET_TO_BASE_POSE:
+      if (use_position_tracking) {
+        /* Switch exactly to base pose, so use eye offset to cancel out current position delta. */
+        copy_v3_v3(draw_data->eye_position_ofs, draw_view->local_pose.position);
+      }
+      else {
+        copy_v3_fl(draw_data->eye_position_ofs, 0.0f);
+      }
+      break;
+    case SESSION_STATE_EVENT_POSITON_TRACKING_TOGGLE:
+      if (use_position_tracking) {
+        /* Keep the current position, and let the user move from there. */
+        copy_v3_v3(draw_data->eye_position_ofs, state->prev_eye_position_ofs);
+      }
+      else {
+        /* Back to the exact base-pose position. */
+        copy_v3_fl(draw_data->eye_position_ofs, 0.0f);
+      }
+      break;
+    case SESSION_STATE_EVENT_NONE:
+      /* Keep previous offset when positional tracking is disabled. */
+      copy_v3_v3(draw_data->eye_position_ofs, state->prev_eye_position_ofs);
+      break;
   }
 }
 
@@ -299,9 +334,9 @@ bool WM_xr_session_state_viewer_pose_matrix_info_get(const wmXrData *xr,
 /**
  * \brief Call Ghost-XR to draw a frame
  *
- * Draw callback for the XR-session surface. It's expected to be called on each main loop iteration
- * and tells Ghost-XR to submit a new frame by drawing its views. Note that for drawing each view,
- * #wm_xr_draw_view() will be called through Ghost-XR (see GHOST_XrDrawViewFunc()).
+ * Draw callback for the XR-session surface. It's expected to be called on each main loop
+ * iteration and tells Ghost-XR to submit a new frame by drawing its views. Note that for drawing
+ * each view, #wm_xr_draw_view() will be called through Ghost-XR (see GHOST_XrDrawViewFunc()).
  */
 static void wm_xr_session_surface_draw(bContext *C)
 {
