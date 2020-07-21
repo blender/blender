@@ -751,15 +751,15 @@ class _defs_edit_mesh:
                     layout.prop(props, "offset_type", text="")
                 else:
                     layout.row().prop(props, "affect", expand=True)
-
+                    layout.separator()
                     layout.prop(props, "offset_type")
 
                 layout.prop(props, "segments")
 
-                row = layout.row()
-                row.prop(props, "profile_type", text="" if region_is_header else None)
-                if props.profile_type == 'SUPERELLIPSE':
-                    layout.prop(props, "profile", text="Shape", slider=True)
+                if region_is_header:
+                    layout.prop(props, "affect", text="")
+
+                layout.prop(props, "profile", text="Shape", slider=True)
 
                 if region_is_header:
                     layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
@@ -769,14 +769,6 @@ class _defs_edit_mesh:
             if extra:
                 layout.use_property_split = True
                 layout.use_property_decorate = False
-
-                if region_is_header:
-                    layout.row().prop(props, "affect", expand=True)
-
-                if props.profile_type == 'CUSTOM':
-                    col = layout.column()
-                    col.active = edge_bevel
-                    col.prop(props, "profile", text="Miter Shape", slider=True)
 
                 layout.prop(props, "material")
 
@@ -797,6 +789,16 @@ class _defs_edit_mesh:
                 col.prop(props, "miter_inner", text="Inner")
                 if props.miter_inner == 'ARC':
                     col.prop(props, "spread")
+
+                layout.separator()
+
+                col = layout.column()
+                col.active = edge_bevel
+                col.prop(props, "vmesh_method", text="Intersections")
+
+                layout.prop(props, "face_strength_mode", text="Face Strength")
+
+                layout.prop(props, "profile_type")
 
                 if props.profile_type == 'CUSTOM':
                     tool_settings = context.tool_settings
