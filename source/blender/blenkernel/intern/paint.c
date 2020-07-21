@@ -1314,6 +1314,13 @@ static void sculptsession_free_pbvh(Object *object)
 
   MEM_SAFE_FREE(ss->preview_vert_index_list);
   ss->preview_vert_index_count = 0;
+
+  MEM_SAFE_FREE(ss->preview_vert_index_list);
+
+  MEM_SAFE_FREE(ss->vertex_info.connected_component);
+  MEM_SAFE_FREE(ss->vertex_info.boundary);
+
+  MEM_SAFE_FREE(ss->fake_neighbors.fake_neighbor_index);
 }
 
 void BKE_sculptsession_bm_to_me_for_render(Object *object)
@@ -1365,13 +1372,6 @@ void BKE_sculptsession_free(Object *ob)
     MEM_SAFE_FREE(ss->orig_cos);
     MEM_SAFE_FREE(ss->deform_cos);
     MEM_SAFE_FREE(ss->deform_imats);
-
-    MEM_SAFE_FREE(ss->preview_vert_index_list);
-
-    MEM_SAFE_FREE(ss->vertex_info.connected_component);
-    MEM_SAFE_FREE(ss->vertex_info.boundary);
-
-    MEM_SAFE_FREE(ss->fake_neighbors.fake_neighbor_index);
 
     if (ss->pose_ik_chain_preview) {
       for (int i = 0; i < ss->pose_ik_chain_preview->tot_segments; i++) {
