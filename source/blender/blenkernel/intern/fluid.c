@@ -3817,9 +3817,8 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
   floater = fds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM;
 
   bool with_resumable_cache = fds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE;
-  bool with_script, with_adaptive, with_noise, with_mesh, with_particles, with_guide;
+  bool with_script, with_noise, with_mesh, with_particles, with_guide;
   with_script = fds->flags & FLUID_DOMAIN_EXPORT_MANTA_SCRIPT;
-  with_adaptive = fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN;
   with_noise = fds->flags & FLUID_DOMAIN_USE_NOISE;
   with_mesh = fds->flags & FLUID_DOMAIN_USE_MESH;
   with_guide = fds->flags & FLUID_DOMAIN_USE_GUIDE;
