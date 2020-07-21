@@ -66,7 +66,7 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
   virtual AbstractHierarchyWriter *create_particle_writer(
       const HierarchyContext *context) override;
 
-  virtual void delete_object_writer(AbstractHierarchyWriter *writer) override;
+  virtual void release_writer(AbstractHierarchyWriter *writer) override;
 
  private:
   USDExporterContext create_usd_export_context(const HierarchyContext *context);

@@ -165,7 +165,7 @@ void AbstractHierarchyIterator::iterate_and_write()
 void AbstractHierarchyIterator::release_writers()
 {
   for (WriterMap::value_type it : writers_) {
-    delete_object_writer(it.second);
+    release_writer(it.second);
   }
   writers_.clear();
 }

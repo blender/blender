@@ -89,7 +89,7 @@ bool ABCHierarchyIterator::mark_as_weak_export(const Object *object) const
   return false;
 }
 
-void ABCHierarchyIterator::delete_object_writer(AbstractHierarchyWriter *writer)
+void ABCHierarchyIterator::release_writer(AbstractHierarchyWriter *writer)
 {
   delete writer;
 }

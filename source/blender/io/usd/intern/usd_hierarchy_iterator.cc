@@ -61,7 +61,7 @@ bool USDHierarchyIterator::mark_as_weak_export(const Object *object) const
   return false;
 }
 
-void USDHierarchyIterator::delete_object_writer(AbstractHierarchyWriter *writer)
+void USDHierarchyIterator::release_writer(AbstractHierarchyWriter *writer)
 {
   delete static_cast<USDAbstractWriter *>(writer);
 }

@@ -78,7 +78,7 @@ class ABCHierarchyIterator : public AbstractHierarchyIterator {
   virtual AbstractHierarchyWriter *create_particle_writer(
       const HierarchyContext *context) override;
 
-  virtual void delete_object_writer(AbstractHierarchyWriter *writer) override;
+  virtual void release_writer(AbstractHierarchyWriter *writer) override;
 
  private:
   Alembic::Abc::OObject get_alembic_parent(const HierarchyContext *context) const;

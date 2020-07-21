@@ -340,7 +340,7 @@ class AbstractHierarchyIterator {
   virtual AbstractHierarchyWriter *create_particle_writer(const HierarchyContext *context) = 0;
 
   /* Called by release_writers() to free what the create_XXX_writer() functions allocated. */
-  virtual void delete_object_writer(AbstractHierarchyWriter *writer) = 0;
+  virtual void release_writer(AbstractHierarchyWriter *writer) = 0;
 
   AbstractHierarchyWriter *get_writer(const std::string &export_path) const;
   ExportChildren &graph_children(const HierarchyContext *parent_context);
