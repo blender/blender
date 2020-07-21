@@ -115,7 +115,7 @@ enum {
   BEV_MODAL_SEGMENTS_DOWN,
   BEV_MODAL_OFFSET_MODE_CHANGE,
   BEV_MODAL_CLAMP_OVERLAP_TOGGLE,
-  BEV_MODAL_VERTEX_ONLY_TOGGLE,
+  BEV_MODAL_AFFECT_CHANGE,
   BEV_MODAL_HARDEN_NORMALS_TOGGLE,
   BEV_MODAL_MARK_SEAM_TOGGLE,
   BEV_MODAL_MARK_SHARP_TOGGLE,
@@ -146,7 +146,7 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
   int available_len = sizeof(buf);
   Scene *sce = CTX_data_scene(C);
   char offset_str[NUM_STR_REP_LEN];
-  const char *mode_str, *omiter_str, *imiter_str, *vmesh_str, *profile_type_str;
+  const char *mode_str, *omiter_str, *imiter_str, *vmesh_str, *profile_type_str, *affect_str;
   PropertyRNA *prop;
 
 #define WM_MODALKEY(_id) \
@@ -182,6 +182,9 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
   prop = RNA_struct_find_property(op->ptr, "vmesh_method");
   RNA_property_enum_name_gettexted(
       C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &vmesh_str);
+  prop = RNA_struct_find_property(op->ptr, "affect");
+  RNA_property_enum_name_gettexted(
+      C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &affect_str);
 
   BLI_snprintf(status_text,
                sizeof(status_text),
@@ -192,7 +195,7 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
                     "%s: Segments (%d), "
                     "%s: Profile (%.3f), "
                     "%s: Clamp Overlap (%s), "
-                    "%s: Vertex Only (%s), "
+                    "%s: Affect (%s), "
                     "%s: Outer Miter (%s), "
                     "%s: Inner Miter (%s), "
                     "%s: Harden Normals (%s), "
@@ -212,8 +215,8 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
                RNA_float_get(op->ptr, "profile"),
                WM_MODALKEY(BEV_MODAL_CLAMP_OVERLAP_TOGGLE),
                WM_bool_as_string(RNA_boolean_get(op->ptr, "clamp_overlap")),
-               WM_MODALKEY(BEV_MODAL_VERTEX_ONLY_TOGGLE),
-               WM_bool_as_string(RNA_boolean_get(op->ptr, "vertex_only")),
+               WM_MODALKEY(BEV_MODAL_AFFECT_CHANGE),
+               affect_str,
                WM_MODALKEY(BEV_MODAL_OUTER_MITER_CHANGE),
                omiter_str,
                WM_MODALKEY(BEV_MODAL_INNER_MITER_CHANGE),
@@ -333,7 +336,7 @@ static bool edbm_bevel_calc(wmOperator *op)
   const int profile_type = RNA_enum_get(op->ptr, "profile_type");
   const int segments = RNA_int_get(op->ptr, "segments");
   const float profile = RNA_float_get(op->ptr, "profile");
-  const bool vertex_only = RNA_boolean_get(op->ptr, "vertex_only");
+  const bool affect = RNA_enum_get(op->ptr, "affect");
   const bool clamp_overlap = RNA_boolean_get(op->ptr, "clamp_overlap");
   const int material_init = RNA_int_get(op->ptr, "material");
   const bool loop_slide = RNA_boolean_get(op->ptr, "loop_slide");
@@ -367,7 +370,7 @@ static bool edbm_bevel_calc(wmOperator *op)
     EDBM_op_init(em,
                  &bmop,
                  op,
-                 "bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i "
+                 "bevel geom=%hev offset=%f segments=%i affect=%i offset_type=%i "
                  "profile_type=%i profile=%f clamp_overlap=%b material=%i loop_slide=%b "
                  "mark_seam=%b mark_sharp=%b harden_normals=%b face_strength_mode=%i "
                  "miter_outer=%i miter_inner=%i spread=%f smoothresh=%f custom_profile=%p "
@@ -375,7 +378,7 @@ static bool edbm_bevel_calc(wmOperator *op)
                  BM_ELEM_SELECT,
                  offset,
                  segments,
-                 vertex_only,
+                 affect,
                  offset_type,
                  profile_type,
                  profile,
@@ -654,11 +657,11 @@ wmKeyMap *bevel_modal_keymap(wmKeyConfig *keyconf)
        0,
        "Toggle clamp overlap",
        "Toggle clamp overlap flag"},
-      {BEV_MODAL_VERTEX_ONLY_TOGGLE,
-       "VERTEX_ONLY_TOGGLE",
+      {BEV_MODAL_AFFECT_CHANGE,
+       "AFFECT_CHANGE",
        0,
-       "Toggle vertex only",
-       "Toggle vertex only flag"},
+       "Change affect type",
+       "Change which geometry type the operation affects, edges or vertices"},
       {BEV_MODAL_HARDEN_NORMALS_TOGGLE,
        "HARDEN_NORMALS_TOGGLE",
        0,
@@ -830,9 +833,13 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
         edbm_bevel_calc_initial_length(op, event, true);
         break;
 
-      case BEV_MODAL_VERTEX_ONLY_TOGGLE: {
-        bool vertex_only = RNA_boolean_get(op->ptr, "vertex_only");
-        RNA_boolean_set(op->ptr, "vertex_only", !vertex_only);
+      case BEV_MODAL_AFFECT_CHANGE: {
+        int affect_type = RNA_enum_get(op->ptr, "affect");
+        affect_type++;
+        if (affect_type > BEVEL_AFFECT_EDGES) {
+          affect_type = BEVEL_AFFECT_VERTICES;
+        }
+        RNA_enum_set(op->ptr, "affect", affect_type);
         edbm_bevel_calc(op);
         edbm_bevel_update_status_text(C, op);
         handled = true;
@@ -945,9 +952,15 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
 
   int profile_type = RNA_enum_get(&ptr, "profile_type");
   int offset_type = RNA_enum_get(&ptr, "offset_type");
+  bool affect_type = RNA_enum_get(&ptr, "affect");
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
+
+  row = uiLayoutRow(layout, false);
+  uiItemR(row, &ptr, "affect", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
+  uiItemS(layout);
 
   uiItemR(layout, &ptr, "offset_type", 0, NULL, ICON_NONE);
 
@@ -971,26 +984,31 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
 
   col = uiLayoutColumn(layout, true);
   uiItemR(col, &ptr, "harden_normals", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "vertex_only", 0, NULL, ICON_NONE);
   uiItemR(col, &ptr, "clamp_overlap", 0, NULL, ICON_NONE);
   uiItemR(col, &ptr, "loop_slide", 0, NULL, ICON_NONE);
 
   col = uiLayoutColumnWithHeading(layout, true, IFACE_("Mark"));
+  uiLayoutSetActive(col, affect_type == BEVEL_AFFECT_EDGES);
   uiItemR(col, &ptr, "mark_seam", 0, IFACE_("Seams"), ICON_NONE);
   uiItemR(col, &ptr, "mark_sharp", 0, IFACE_("Sharp"), ICON_NONE);
 
   uiItemS(layout);
 
-  uiItemR(layout, &ptr, "miter_outer", 0, IFACE_("Miter Outer"), ICON_NONE);
-  uiItemR(layout, &ptr, "miter_inner", 0, IFACE_("Inner"), ICON_NONE);
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(col, affect_type == BEVEL_AFFECT_EDGES);
+  uiItemR(col, &ptr, "miter_outer", 0, IFACE_("Miter Outer"), ICON_NONE);
+  uiItemR(col, &ptr, "miter_inner", 0, IFACE_("Inner"), ICON_NONE);
   if (RNA_enum_get(&ptr, "miter_inner") == BEVEL_MITER_ARC) {
-    uiItemR(layout, &ptr, "spread", 0, NULL, ICON_NONE);
+    uiItemR(col, &ptr, "spread", 0, NULL, ICON_NONE);
   }
 
   uiItemS(layout);
 
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(col, affect_type == BEVEL_AFFECT_EDGES);
+  uiItemR(col, &ptr, "vmesh_method", 0, IFACE_("Intersection Type"), ICON_NONE);
+
   uiItemR(layout, &ptr, "face_strength_mode", 0, IFACE_("Face Strength"), ICON_NONE);
-  uiItemR(layout, &ptr, "vmesh_method", 0, IFACE_("Intersection Type"), ICON_NONE);
 
   uiItemS(layout);
 
@@ -1074,6 +1092,12 @@ void MESH_OT_bevel(wmOperatorType *ot)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem prop_affect_items[] = {
+      {BEVEL_AFFECT_VERTICES, "VERTICES", 0, "Vertices", "Affect only vertices"},
+      {BEVEL_AFFECT_EDGES, "EDGES", 0, "Edges", "Affect only edges"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   /* identifiers */
   ot->name = "Bevel";
   ot->description = "Cut into selected items at an angle to create bevel or chamfer";
@@ -1134,7 +1158,12 @@ void MESH_OT_bevel(wmOperatorType *ot)
                 PROFILE_HARD_MIN,
                 1.0f);
 
-  RNA_def_boolean(ot->srna, "vertex_only", false, "Vertex Only", "Bevel only vertices");
+  prop = RNA_def_enum(ot->srna,
+                      "affect",
+                      prop_affect_items,
+                      BEVEL_AFFECT_EDGES,
+                      "Affect",
+                      "Affect Edges or Vertices");
 
   RNA_def_boolean(ot->srna,
                   "clamp_overlap",

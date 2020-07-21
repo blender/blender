@@ -139,6 +139,12 @@ enum {
   BEVEL_VMESH_CUTOFF,
 };
 
+/* Bevel affect option. */
+enum {
+  BEVEL_AFFECT_VERTICES = 0,
+  BEVEL_AFFECT_EDGES = 1,
+};
+
 /* Normal Face Strength values */
 enum {
   FACE_STRENGTH_WEAK = -16384,

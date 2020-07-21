@@ -3697,7 +3697,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.separator()
 
             col.operator("mesh.extrude_vertices_move", text="Extrude Vertices")
-            col.operator("mesh.bevel", text="Bevel Vertices").vertex_only = True
+            col.operator("mesh.bevel", text="Bevel Vertices").affect = 'VERTICES'
 
             if selected_verts_len > 1:
                 col.separator()
@@ -3746,7 +3746,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.separator()
 
             col.operator("mesh.extrude_edges_move", text="Extrude Edges")
-            col.operator("mesh.bevel", text="Bevel Edges").vertex_only = False
+            col.operator("mesh.bevel", text="Bevel Edges").affect = 'EDGES'
             if selected_edges_len >= 2:
                 col.operator("mesh.bridge_edge_loops")
             if selected_edges_len >= 1:
@@ -3920,7 +3920,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("mesh.extrude_vertices_move", text="Extrude Vertices")
-        layout.operator("mesh.bevel", text="Bevel Vertices").vertex_only = True
+        layout.operator("mesh.bevel", text="Bevel Vertices").affect = 'VERTICES'
 
         layout.separator()
 
@@ -4005,7 +4005,7 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("mesh.extrude_edges_move", text="Extrude Edges")
-        layout.operator("mesh.bevel", text="Bevel Edges").vertex_only = False
+        layout.operator("mesh.bevel", text="Bevel Edges").affect = 'EDGES'
         layout.operator("mesh.bridge_edge_loops")
         layout.operator("mesh.screw")
 

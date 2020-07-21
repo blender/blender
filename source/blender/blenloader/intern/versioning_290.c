@@ -413,5 +413,19 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
       FOREACH_NODETREE_END;
     }
+
+    /* Refactor bevel affect type to use an enum. */
+    if (!DNA_struct_elem_find(fd->filesdna, "BevelModifierData", "char", "affect_type")) {
+      for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+        LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+          if (md->type == eModifierType_Bevel) {
+            BevelModifierData *bmd = (BevelModifierData *)md;
+            const bool use_vertex_bevel = bmd->flags & MOD_BEVEL_VERT_DEPRECATED;
+            bmd->affect_type = use_vertex_bevel ? MOD_BEVEL_AFFECT_VERTICES :
+                                                  MOD_BEVEL_AFFECT_EDGES;
+          }
+        }
+      }
+    }
   }
 }

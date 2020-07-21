@@ -744,10 +744,14 @@ class _defs_edit_mesh:
 
             region_is_header = context.region.type == 'TOOL_HEADER'
 
+            edge_bevel = props.affect == 'EDGES'
+
             if not extra:
                 if region_is_header:
                     layout.prop(props, "offset_type", text="")
                 else:
+                    layout.row().prop(props, "affect", expand=True)
+
                     layout.prop(props, "offset_type")
 
                 layout.prop(props, "segments")
@@ -766,25 +770,33 @@ class _defs_edit_mesh:
                 layout.use_property_split = True
                 layout.use_property_decorate = False
 
+                if region_is_header:
+                    layout.row().prop(props, "affect", expand=True)
+
                 if props.profile_type == 'CUSTOM':
-                    layout.prop(props, "profile", text="Miter Shape", slider=True)
-
-                col = layout.column()
-                col.prop(props, "vertex_only")
-                col.prop(props, "clamp_overlap")
-                col.prop(props, "loop_slide")
-                col.prop(props, "harden_normals")
-
-                col = layout.column(heading="Mark")
-                col.prop(props, "mark_seam", text="Seam")
-                col.prop(props, "mark_sharp", text="Sharp")
+                    col = layout.column()
+                    col.active = edge_bevel
+                    col.prop(props, "profile", text="Miter Shape", slider=True)
 
                 layout.prop(props, "material")
 
-                layout.prop(props, "miter_outer", text="Outer Miter")
-                layout.prop(props, "miter_inner", text="Inner Miter")
+                col = layout.column()
+                col.prop(props, "harden_normals")
+                col.prop(props, "clamp_overlap")
+                col.prop(props, "loop_slide")
+
+                col = layout.column(heading="Mark")
+                col.active = edge_bevel
+                col.prop(props, "mark_seam", text="Seam")
+                col.prop(props, "mark_sharp", text="Sharp")
+
+
+                col = layout.column()
+                col.active = edge_bevel
+                col.prop(props, "miter_outer", text="Miter Outer")
+                col.prop(props, "miter_inner", text="Inner")
                 if props.miter_inner == 'ARC':
-                    layout.prop(props, "spread")
+                    col.prop(props, "spread")
 
                 if props.profile_type == 'CUSTOM':
                     tool_settings = context.tool_settings

@@ -117,7 +117,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MDeformVert *dvert = NULL;
   BevelModifierData *bmd = (BevelModifierData *)md;
   const float threshold = cosf(bmd->bevel_angle + 0.000000175f);
-  const bool vertex_only = (bmd->flags & MOD_BEVEL_VERT) != 0;
   const bool do_clamp = !(bmd->flags & MOD_BEVEL_OVERLAP_OK);
   const int offset_type = bmd->val_flags;
   const int profile_type = bmd->profile_type;
@@ -131,7 +130,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   const int miter_outer = bmd->miter_outer;
   const int miter_inner = bmd->miter_inner;
   const float spread = bmd->spread;
-  const int vmesh_method = bmd->vmesh_method;
   const bool invert_vgroup = (bmd->flags & MOD_BEVEL_INVERT_VGROUP) != 0;
 
   bm = BKE_mesh_to_bmesh_ex(mesh,
@@ -152,7 +150,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     MOD_get_vgroup(ctx->object, mesh, bmd->defgrp_name, &dvert, &vgroup);
   }
 
-  if (vertex_only) {
+  if (bmd->affect_type == MOD_BEVEL_AFFECT_VERTICES) {
     BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
       if (bmd->lim_flags & MOD_BEVEL_WEIGHT) {
         weight = BM_elem_float_data_get(&bm->vdata, v, CD_BWEIGHT);
@@ -230,7 +228,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                 profile_type,
                 bmd->res,
                 bmd->profile,
-                vertex_only,
+                bmd->affect_type,
                 bmd->lim_flags & MOD_BEVEL_WEIGHT,
                 do_clamp,
                 dvert,
@@ -246,7 +244,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                 spread,
                 mesh->smoothresh,
                 bmd->custom_profile,
-                vmesh_method);
+                bmd->vmesh_method);
 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
 
@@ -286,7 +284,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA ob_ptr;
   modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
 
-  bool edge_bevel = RNA_enum_get(&ptr, "affect") != MOD_BEVEL_VERT;
+  bool edge_bevel = RNA_enum_get(&ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
   uiItemR(layout, &ptr, "affect", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
@@ -331,7 +329,7 @@ static void profile_panel_draw(const bContext *C, Panel *panel)
   int profile_type = RNA_enum_get(&ptr, "profile_type");
   int miter_inner = RNA_enum_get(&ptr, "miter_inner");
   int miter_outer = RNA_enum_get(&ptr, "miter_outer");
-  bool edge_bevel = RNA_enum_get(&ptr, "affect") != MOD_BEVEL_VERT;
+  bool edge_bevel = RNA_enum_get(&ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
   uiItemR(layout, &ptr, "profile_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
@@ -368,7 +366,7 @@ static void geometry_panel_draw(const bContext *C, Panel *panel)
   PointerRNA ptr;
   modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
 
-  bool edge_bevel = RNA_enum_get(&ptr, "affect") != MOD_BEVEL_VERT;
+  bool edge_bevel = RNA_enum_get(&ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
   uiLayoutSetPropSep(layout, true);
 
@@ -402,7 +400,7 @@ static void shading_panel_draw(const bContext *C, Panel *panel)
   PointerRNA ptr;
   modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
 
-  bool edge_bevel = RNA_enum_get(&ptr, "affect") != MOD_BEVEL_VERT;
+  bool edge_bevel = RNA_enum_get(&ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
   uiLayoutSetPropSep(layout, true);
 

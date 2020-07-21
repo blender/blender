@@ -4047,8 +4047,8 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem prop_affect_items[] = {
-      {0, "EDGES", 0, "Edges", "Affect only edges"},
-      {MOD_BEVEL_VERT, "VERTICES", 0, "Vertices", "Affect only vertices"},
+      {MOD_BEVEL_AFFECT_VERTICES, "VERTICES", 0, "Vertices", "Affect only vertices"},
+      {MOD_BEVEL_AFFECT_EDGES, "EDGES", 0, "Edges", "Affect only edges"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -4081,7 +4081,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_BevelModifier_update_segments");
 
   prop = RNA_def_property(srna, "affect", PROP_ENUM, PROP_NONE); /* as an enum */
-  RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
+  RNA_def_property_enum_sdna(prop, NULL, "affect_type");
   RNA_def_property_enum_items(prop, prop_affect_items);
   RNA_def_property_ui_text(prop, "Affect", "Affect edges or vertices");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");

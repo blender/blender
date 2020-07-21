@@ -1755,6 +1755,12 @@ static BMO_FlagSet bmo_enum_bevel_vmesh_method[] = {
   {0, NULL},
 };
 
+static BMO_FlagSet bmo_enum_bevel_affect_type[] = {
+  {BEVEL_AFFECT_VERTICES, "VERTICES"},
+  {BEVEL_AFFECT_EDGES, "EDGES"},
+  {0, NULL},
+};
+
 /*
  * Bevel.
  *
@@ -1768,10 +1774,11 @@ static BMOpDefine bmo_bevel_def = {
    {"offset_type", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM},
     bmo_enum_bevel_offset_type},          /* how to measure the offset */
    {"profile_type", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM},
-    bmo_enum_bevel_profile_type},      /* The profile type to use for bevel. */
+    bmo_enum_bevel_profile_type},         /* The profile type to use for bevel. */
    {"segments", BMO_OP_SLOT_INT},         /* number of segments in bevel */
    {"profile", BMO_OP_SLOT_FLT},          /* profile shape, 0->1 (.5=>round) */
-   {"vertex_only", BMO_OP_SLOT_BOOL},     /* only bevel vertices, not edges */
+   {"affect", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM},
+    bmo_enum_bevel_affect_type},          /* Whether to bevel vertices or edges. */
    {"clamp_overlap", BMO_OP_SLOT_BOOL},   /* do not allow beveled edges/vertices to overlap each other */
    {"material", BMO_OP_SLOT_INT},         /* material for bevel faces, -1 means get from adjacent faces */
    {"loop_slide", BMO_OP_SLOT_BOOL},      /* prefer to slide along edges to having even widths */

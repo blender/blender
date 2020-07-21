@@ -35,7 +35,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
   const int offset_type = BMO_slot_int_get(op->slots_in, "offset_type");
   const int profile_type = BMO_slot_int_get(op->slots_in, "profile_type");
   const int seg = BMO_slot_int_get(op->slots_in, "segments");
-  const bool vonly = BMO_slot_bool_get(op->slots_in, "vertex_only");
+  const int affect_type = BMO_slot_int_get(op->slots_in, "affect");
   const float profile = BMO_slot_float_get(op->slots_in, "profile");
   const bool clamp_overlap = BMO_slot_bool_get(op->slots_in, "clamp_overlap");
   const int material = BMO_slot_int_get(op->slots_in, "material");
@@ -79,7 +79,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
                   profile_type,
                   seg,
                   profile,
-                  vonly,
+                  affect_type,
                   false,
                   clamp_overlap,
                   NULL,
