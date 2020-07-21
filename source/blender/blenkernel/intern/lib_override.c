@@ -463,7 +463,8 @@ static int lib_override_library_make_tag_ids_cb(LibraryIDLinkCallbackData *cb_da
  * \param id_root The root ID to create an override from.
  * \param id_reference some reference ID used to do some post-processing after overrides have been
  *                     created, may be NULL. Typically, the Empty object instantiating the linked
- * collection we override, currently. \return true if override was successfully created.
+ *                     collection we override, currently.
+ * \return true if override was successfully created.
  */
 bool BKE_lib_override_library_create(
     Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_root, ID *id_reference)
