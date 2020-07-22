@@ -1697,6 +1697,8 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
+  do_tag_update |= ED_node_is_simulation(snode);
+
   snode_notify(C, snode);
   if (do_tag_update) {
     snode_dag_update(C, snode);
@@ -1738,6 +1740,8 @@ static int node_delete_exec(bContext *C, wmOperator *UNUSED(op))
       nodeRemoveNode(bmain, snode->edittree, node, true);
     }
   }
+
+  do_tag_update |= ED_node_is_simulation(snode);
 
   ntreeUpdateTree(CTX_data_main(C), snode->edittree);
 
