@@ -362,7 +362,11 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain)
 
 static bool lib_override_hierarchy_recursive_tag(Main *bmain, ID *id, const uint tag)
 {
-  MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->id_user_to_used, id);
+  void **entry_vp = BLI_ghash_lookup_p(bmain->relations->id_user_to_used, id);
+  if (entry_vp == NULL) {
+    /* Already processed. */
+    return (id->tag & tag) != 0;
+  }
 
   /* This way we won't process again that ID should we encounter it again through another
    * relationship hierarchy.
@@ -370,7 +374,12 @@ static bool lib_override_hierarchy_recursive_tag(Main *bmain, ID *id, const uint
    */
   BKE_main_relations_ID_remove(bmain, id);
 
-  for (; entry != NULL; entry = entry->next) {
+  for (MainIDRelationsEntry *entry = *entry_vp; entry != NULL; entry = entry->next) {
+    if ((entry->usage_flag & IDWALK_CB_LOOPBACK) != 0) {
+      /* Never consider 'loop back' relationships ('from', 'parents', 'owner' etc. pointers) as
+       * actual dependencies. */
+      continue;
+    }
     /* We only consider IDs from the same library. */
     if (entry->id_pointer != NULL && (*entry->id_pointer)->lib == id->lib) {
       if (lib_override_hierarchy_recursive_tag(bmain, *entry->id_pointer, tag)) {
