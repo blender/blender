@@ -112,6 +112,8 @@ bool BKE_gpencil_stroke_shrink(struct bGPDstroke *gps, const float dist);
 
 float BKE_gpencil_stroke_length(const struct bGPDstroke *gps, bool use_3d);
 
+void BKE_gpencil_stroke_set_random_color(struct bGPDstroke *gps);
+
 void BKE_gpencil_convert_mesh(struct Main *bmain,
                               struct Depsgraph *depsgraph,
                               struct Scene *scene,
