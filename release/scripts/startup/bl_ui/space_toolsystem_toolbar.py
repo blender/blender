@@ -455,6 +455,11 @@ class _defs_view3d_add:
         row = layout.row()
         row.prop(props, "plane_axis", text="")
         row = layout.row()
+        row.scale_x = 0.8
+        row.label(text="Orientation:")
+        row = layout.row()
+        row.prop(props, "plane_orientation", text="")
+        row = layout.row()
         row.scale_x = 0.7
         row.prop(props, "plane_origin")
 
