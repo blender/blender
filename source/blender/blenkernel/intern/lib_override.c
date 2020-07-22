@@ -155,8 +155,8 @@ void BKE_lib_override_library_clear(IDOverrideLibrary *override, const bool do_i
 {
   BLI_assert(override != NULL);
 
-  if (override->runtime != NULL) {
-    BLI_ghash_clear(override->runtime, NULL, NULL);
+  if (!ELEM(NULL, override->runtime, override->runtime->rna_path_to_override_properties)) {
+    BLI_ghash_clear(override->runtime->rna_path_to_override_properties, NULL, NULL);
   }
 
   LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &override->properties) {
@@ -176,8 +176,10 @@ void BKE_lib_override_library_free(struct IDOverrideLibrary **override, const bo
   BLI_assert(*override != NULL);
 
   if ((*override)->runtime != NULL) {
-    BLI_ghash_free((*override)->runtime, NULL, NULL);
-    (*override)->runtime = NULL;
+    if ((*override)->runtime->rna_path_to_override_properties != NULL) {
+      BLI_ghash_free((*override)->runtime->rna_path_to_override_properties, NULL, NULL);
+    }
+    MEM_SAFE_FREE((*override)->runtime);
   }
 
   BKE_lib_override_library_clear(*override, do_id_user);
@@ -615,19 +617,28 @@ bool BKE_lib_override_library_create(
   return success;
 }
 
-/* We only build override GHash on request. */
-BLI_INLINE IDOverrideLibraryRuntime *override_library_rna_path_mapping_ensure(
+BLI_INLINE IDOverrideLibraryRuntime *override_library_rna_path_runtime_ensure(
     IDOverrideLibrary *override)
 {
   if (override->runtime == NULL) {
-    override->runtime = BLI_ghash_new(
+    override->runtime = MEM_callocN(sizeof(*override->runtime), __func__);
+  }
+  return override->runtime;
+}
+
+/* We only build override GHash on request. */
+BLI_INLINE GHash *override_library_rna_path_mapping_ensure(IDOverrideLibrary *override)
+{
+  IDOverrideLibraryRuntime *override_runtime = override_library_rna_path_runtime_ensure(override);
+  if (override_runtime->rna_path_to_override_properties == NULL) {
+    override_runtime->rna_path_to_override_properties = BLI_ghash_new(
         BLI_ghashutil_strhash_p_murmur, BLI_ghashutil_strcmp, __func__);
     for (IDOverrideLibraryProperty *op = override->properties.first; op != NULL; op = op->next) {
-      BLI_ghash_insert(override->runtime, op->rna_path, op);
+      BLI_ghash_insert(override_runtime->rna_path_to_override_properties, op->rna_path, op);
     }
   }
 
-  return override->runtime;
+  return override_runtime->rna_path_to_override_properties;
 }
 
 /**
@@ -636,7 +647,7 @@ BLI_INLINE IDOverrideLibraryRuntime *override_library_rna_path_mapping_ensure(
 IDOverrideLibraryProperty *BKE_lib_override_library_property_find(IDOverrideLibrary *override,
                                                                   const char *rna_path)
 {
-  IDOverrideLibraryRuntime *override_runtime = override_library_rna_path_mapping_ensure(override);
+  GHash *override_runtime = override_library_rna_path_mapping_ensure(override);
   return BLI_ghash_lookup(override_runtime, rna_path);
 }
 
@@ -654,8 +665,7 @@ IDOverrideLibraryProperty *BKE_lib_override_library_property_get(IDOverrideLibra
     op->rna_path = BLI_strdup(rna_path);
     BLI_addtail(&override->properties, op);
 
-    IDOverrideLibraryRuntime *override_runtime = override_library_rna_path_mapping_ensure(
-        override);
+    GHash *override_runtime = override_library_rna_path_mapping_ensure(override);
     BLI_ghash_insert(override_runtime, op->rna_path, op);
 
     if (r_created) {
@@ -701,8 +711,11 @@ void lib_override_library_property_clear(IDOverrideLibraryProperty *op)
 void BKE_lib_override_library_property_delete(IDOverrideLibrary *override,
                                               IDOverrideLibraryProperty *override_property)
 {
-  if (override->runtime != NULL) {
-    BLI_ghash_remove(override->runtime, override_property->rna_path, NULL, NULL);
+  if (!ELEM(NULL, override->runtime, override->runtime->rna_path_to_override_properties)) {
+    BLI_ghash_remove(override->runtime->rna_path_to_override_properties,
+                     override_property->rna_path,
+                     NULL,
+                     NULL);
   }
   lib_override_library_property_clear(override_property);
   BLI_freelinkN(&override->properties, override_property);

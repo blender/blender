@@ -215,8 +215,18 @@ enum {
   IDOVERRIDE_LIBRARY_TAG_UNUSED = 1 << 0,
 };
 
-/* We do not need a full struct for that currently, just a GHash. */
-typedef struct GHash IDOverrideLibraryRuntime;
+#
+#
+typedef struct IDOverrideLibraryRuntime {
+  struct GHash *rna_path_to_override_properties;
+  uint tag;
+} IDOverrideLibraryRuntime;
+
+/* IDOverrideLibraryRuntime->tag. */
+enum {
+  /** This override needs to be reloaded. */
+  IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RELOAD = 1 << 0,
+};
 
 /* Main container for all overriding data info of a data-block. */
 typedef struct IDOverrideLibrary {
