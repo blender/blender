@@ -1066,7 +1066,11 @@ static int uv_select_edgeloop(Scene *scene, Object *obedit, UvNearestHit *hit, c
 static int uv_select_edgering(
     const SpaceImage *sima, Scene *scene, Object *obedit, UvNearestHit *hit, const bool extend)
 {
+  const ToolSettings *ts = scene->toolsettings;
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  const bool use_face_select = (ts->uv_flag & UV_SYNC_SELECTION) ?
+                                   (ts->selectmode & SCE_SELECT_FACE) :
+                                   (ts->uv_selectmode & UV_SELECT_FACE);
   bool select;
 
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
@@ -1075,7 +1079,7 @@ static int uv_select_edgering(
     uv_select_all_perform(scene, obedit, SEL_DESELECT);
   }
 
-  BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
+  BM_mesh_elem_hflag_disable_all(em->bm, BM_EDGE, BM_ELEM_TAG, false);
 
   if (extend) {
     select = !(uvedit_uv_select_test(scene, hit->l, cd_loop_uv_offset));
@@ -1091,18 +1095,39 @@ static int uv_select_edgering(
 
   for (int side = 0; side < 2; side++) {
     BMLoop *l_step = l_pair[side];
-    while (l_step && l_step->f->len == 4) {
-      if (BM_elem_flag_test(l_step->f, BM_ELEM_TAG) ||
-          !uvedit_face_visible_test(scene, l_step->f)) {
+    /* Disable since we start from the same edge. */
+    BM_elem_flag_disable(hit->l->e, BM_ELEM_TAG);
+    while (l_step) {
+      if (!uvedit_face_visible_test(scene, l_step->f)) {
         break;
       }
 
-      uvedit_face_select_set_with_sticky(
-          sima, scene, em, l_step->f, select, false, cd_loop_uv_offset);
+      if (use_face_select) {
+        uvedit_face_select_set_with_sticky(
+            sima, scene, em, l_step->f, select, false, cd_loop_uv_offset);
+      }
+      else {
+        uvedit_edge_select_set_with_sticky(
+            sima, scene, em, l_step, select, false, cd_loop_uv_offset);
+      }
 
-      BM_elem_flag_enable(l_step->f, BM_ELEM_TAG);
-      l_step = uvedit_loop_find_other_radial_loop_with_visible_face(
-          scene, l_step->next->next, cd_loop_uv_offset);
+      BM_elem_flag_enable(l_step->e, BM_ELEM_TAG);
+      if (l_step->f->len == 4) {
+        BMLoop *l_step_opposite = l_step->next->next;
+        l_step = uvedit_loop_find_other_radial_loop_with_visible_face(
+            scene, l_step_opposite, cd_loop_uv_offset);
+        if (l_step == NULL) {
+          /* Ensure we touch the opposite edge if we cant walk over it. */
+          l_step = l_step_opposite;
+        }
+      }
+      else {
+        l_step = NULL;
+      }
+
+      if (l_step && BM_elem_flag_test(l_step->e, BM_ELEM_TAG)) {
+        break;
+      }
     }
   }
 
