@@ -4229,10 +4229,7 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
   MEM_freeN(objects);
 
   if (!found_active_elt) {
-    BKE_report(op->reports,
-               RPT_ERROR,
-               (objects_len == 1 ? "Mesh has no active vert/edge/face" :
-                                   "Meshes have no active vert/edge/face"));
+    BKE_report(op->reports, RPT_ERROR, "Mesh object(s) have no active vertex/edge/face");
     return OPERATOR_CANCELLED;
   }
 

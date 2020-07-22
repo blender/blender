@@ -3005,7 +3005,7 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
   /* properties */
   prop = RNA_def_boolean(ot->srna, "use_all_groups", 0, "All Groups", "Remove from all groups");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "use_all_verts", 0, "All Verts", "Clear the active group");
+  prop = RNA_def_boolean(ot->srna, "use_all_verts", 0, "All Vertices", "Clear the active group");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -3494,12 +3494,12 @@ void OBJECT_OT_vertex_group_invert(wmOperatorType *ot)
                   "auto_assign",
                   true,
                   "Add Weights",
-                  "Add verts from groups that have zero weight before inverting");
+                  "Add vertices from groups that have zero weight before inverting");
   RNA_def_boolean(ot->srna,
                   "auto_remove",
                   true,
                   "Remove Weights",
-                  "Remove verts from groups that have zero weight after inverting");
+                  "Remove vertices from groups that have zero weight after inverting");
 }
 
 /** \} */
@@ -4352,7 +4352,7 @@ void OBJECT_OT_vertex_weight_paste(wmOperatorType *ot)
   ot->name = "Paste Weight to Selected";
   ot->idname = "OBJECT_OT_vertex_weight_paste";
   ot->description =
-      "Copy this group's weight to other selected verts (disabled if vertex group is locked)";
+      "Copy this group's weight to other selected vertices (disabled if vertex group is locked)";
 
   /* api callbacks */
   ot->poll = vertex_group_vert_select_mesh_poll;

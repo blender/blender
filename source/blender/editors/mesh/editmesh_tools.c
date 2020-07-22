@@ -5664,7 +5664,7 @@ static void edbm_dissolve_prop__use_verts(wmOperatorType *ot, bool value, int fl
   PropertyRNA *prop;
 
   prop = RNA_def_boolean(
-      ot->srna, "use_verts", value, "Dissolve Verts", "Dissolve remaining vertices");
+      ot->srna, "use_verts", value, "Dissolve Vertices", "Dissolve remaining vertices");
 
   if (flag) {
     RNA_def_property_flag(prop, flag);
@@ -5729,7 +5729,7 @@ void MESH_OT_dissolve_verts(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Dissolve Vertices";
-  ot->description = "Dissolve verts, merge edges and faces";
+  ot->description = "Dissolve vertices, merge edges and faces";
   ot->idname = "MESH_OT_dissolve_verts";
 
   /* api callbacks */
@@ -5996,7 +5996,7 @@ void MESH_OT_dissolve_limited(wmOperatorType *ot)
   ot->name = "Limited Dissolve";
   ot->idname = "MESH_OT_dissolve_limited";
   ot->description =
-      "Dissolve selected edges and verts, limited by the angle of surrounding geometry";
+      "Dissolve selected edges and vertices, limited by the angle of surrounding geometry";
 
   /* api callbacks */
   ot->exec = edbm_dissolve_limited_exec;
@@ -8697,17 +8697,21 @@ enum {
 };
 
 static EnumPropertyItem average_method_items[] = {
-    {EDBM_CLNOR_AVERAGE_LOOP, "CUSTOM_NORMAL", 0, "Custom Normal", "Take Average of vert Normals"},
+    {EDBM_CLNOR_AVERAGE_LOOP,
+     "CUSTOM_NORMAL",
+     0,
+     "Custom Normal",
+     "Take average of vertex normals"},
     {EDBM_CLNOR_AVERAGE_FACE_AREA,
      "FACE_AREA",
      0,
      "Face Area",
-     "Set all vert normals by Face Area"},
+     "Set all vertex normals by face area"},
     {EDBM_CLNOR_AVERAGE_ANGLE,
      "CORNER_ANGLE",
      0,
      "Corner Angle",
-     "Set all vert normals by Corner Angle"},
+     "Set all vertex normals by corner angle"},
     {0, NULL, 0, NULL, NULL},
 };
 

@@ -3376,7 +3376,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   /* readonly editmesh info - use for extrude menu */
   prop = RNA_def_property(srna, "total_vert_sel", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_funcs(prop, "rna_Mesh_tot_vert_get", NULL, NULL);
-  RNA_def_property_ui_text(prop, "Selected Vert Total", "Selected vertex count in editmode");
+  RNA_def_property_ui_text(prop, "Selected Vertex Total", "Selected vertex count in editmode");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "total_edge_sel", PROP_INT, PROP_UNSIGNED);

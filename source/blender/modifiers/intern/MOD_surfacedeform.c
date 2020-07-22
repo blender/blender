@@ -1130,7 +1130,7 @@ static bool surfacedeformBind(SurfaceDeformModifierData *smd_orig,
     freeData((ModifierData *)smd_orig);
   }
   else if (data.success == MOD_SDEF_BIND_RESULT_OVERLAP_ERR) {
-    BKE_modifier_set_error((ModifierData *)smd_eval, "Target contains overlapping verts");
+    BKE_modifier_set_error((ModifierData *)smd_eval, "Target contains overlapping vertices");
     freeData((ModifierData *)smd_orig);
   }
   else if (data.success == MOD_SDEF_BIND_RESULT_GENERIC_ERR) {
@@ -1280,7 +1280,7 @@ static void surfacedeformModifier_do(ModifierData *md,
 
   /* Poly count checks */
   if (smd->numverts != numverts) {
-    BKE_modifier_set_error(md, "Verts changed from %u to %u", smd->numverts, numverts);
+    BKE_modifier_set_error(md, "Vertices changed from %u to %u", smd->numverts, numverts);
     return;
   }
   else if (smd->numpoly != tnumpoly) {

@@ -52,7 +52,7 @@
 
 #ifdef RNA_RUNTIME
 static const EnumPropertyItem part_from_items[] = {
-    {PART_FROM_VERT, "VERT", 0, "Verts", ""},
+    {PART_FROM_VERT, "VERT", 0, "Vertices", ""},
     {PART_FROM_FACE, "FACE", 0, "Faces", ""},
     {PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
     {0, NULL, 0, NULL, NULL},
@@ -61,7 +61,7 @@ static const EnumPropertyItem part_from_items[] = {
 
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem part_reactor_from_items[] = {
-    {PART_FROM_VERT, "VERT", 0, "Verts", ""},
+    {PART_FROM_VERT, "VERT", 0, "Vertices", ""},
     {PART_FROM_FACE, "FACE", 0, "Faces", ""},
     {PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
     {0, NULL, 0, NULL, NULL},

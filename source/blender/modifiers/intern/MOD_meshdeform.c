@@ -409,11 +409,12 @@ static void meshdeformModifier_do(ModifierData *md,
   totcagevert = cagemesh->totvert;
 
   if (mmd->totvert != totvert) {
-    BKE_modifier_set_error(md, "Verts changed from %d to %d", mmd->totvert, totvert);
+    BKE_modifier_set_error(md, "Vertices changed from %d to %d", mmd->totvert, totvert);
     goto finally;
   }
   else if (mmd->totcagevert != totcagevert) {
-    BKE_modifier_set_error(md, "Cage verts changed from %d to %d", mmd->totcagevert, totcagevert);
+    BKE_modifier_set_error(
+        md, "Cage vertices changed from %d to %d", mmd->totcagevert, totcagevert);
     goto finally;
   }
   else if (mmd->bindcagecos == NULL) {

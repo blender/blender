@@ -174,7 +174,7 @@ static const EnumPropertyItem parent_type_items[] = {
 
 #define INSTANCE_ITEMS_SHARED \
   {0, "NONE", 0, "None", ""}, \
-      {OB_DUPLIVERTS, "VERTS", 0, "Verts", "Instantiate child objects on all vertices"}, \
+      {OB_DUPLIVERTS, "VERTS", 0, "Vertices", "Instantiate child objects on all vertices"}, \
   { \
     OB_DUPLIFACES, "FACES", 0, "Faces", "Instantiate child objects on all faces" \
   }

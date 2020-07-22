@@ -3257,12 +3257,12 @@ static void rna_def_modifier_correctivesmooth(BlenderRNA *brna)
        "ORCO",
        0,
        "Original Coords",
-       "Use base mesh vert coords as the rest position"},
+       "Use base mesh vertex coords as the rest position"},
       {MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND,
        "BIND",
        0,
        "Bind Coords",
-       "Use bind vert coords for rest position"},
+       "Use bind vertex coords for rest position"},
       {0, NULL, 0, NULL, NULL},
   };
 
