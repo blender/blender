@@ -80,6 +80,26 @@ static void initData(ModifierData *md)
   md->ui_expand_flag = (1 << 0) | (1 << 1);
 }
 
+static void requiredDataMask(Object *UNUSED(ob),
+                             ModifierData *md,
+                             CustomData_MeshMasks *r_cddata_masks)
+{
+  MultiresModifierData *mmd = (MultiresModifierData *)md;
+  if (mmd->flags & eMultiresModifierFlag_UseCustomNormals) {
+    r_cddata_masks->lmask |= CD_MASK_NORMAL;
+    r_cddata_masks->lmask |= CD_MASK_CUSTOMLOOPNORMAL;
+  }
+}
+
+static bool dependsOnNormals(ModifierData *md)
+{
+  MultiresModifierData *mmd = (MultiresModifierData *)md;
+  if (mmd->flags & eMultiresModifierFlag_UseCustomNormals) {
+    return true;
+  }
+  return false;
+}
+
 static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int flag)
 {
   BKE_modifier_copydata_generic(md_src, md_dst, flag);
@@ -208,6 +228,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* Happens on bad topology, ut also on empty input mesh. */
     return result;
   }
+  const bool use_clnors = mmd->flags & eMultiresModifierFlag_UseCustomNormals &&
+                          mesh->flag & ME_AUTOSMOOTH &&
+                          CustomData_has_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
   /* NOTE: Orco needs final coordinates on CPU side, which are expected to be
    * accessible via MVert. For this reason we do not evaluate multires to
    * grids when orco is requested. */
@@ -243,7 +266,22 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     // BKE_subdiv_stats_print(&subdiv->stats);
   }
   else {
+    if (use_clnors) {
+      /* If custom normals are present and the option is turned on calculate the split
+       * normals and clear flag so the normals get interpolated to the result mesh. */
+      BKE_mesh_calc_normals_split(mesh);
+      CustomData_clear_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+    }
+
     result = multires_as_mesh(mmd, ctx, mesh, subdiv);
+
+    if (use_clnors) {
+      float(*lnors)[3] = CustomData_get_layer(&result->ldata, CD_NORMAL);
+      BLI_assert(lnors != NULL);
+      BKE_mesh_set_custom_normals(result, lnors);
+      CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+      CustomData_set_layer_flag(&result->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+    }
     // BKE_subdiv_stats_print(&subdiv->stats);
     if (subdiv != runtime_data->subdiv) {
       BKE_subdiv_free(subdiv);
@@ -442,6 +480,7 @@ static void advanced_panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, &ptr, "uv_smooth", 0, NULL, ICON_NONE);
 
   uiItemR(layout, &ptr, "use_creases", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "use_custom_normals", 0, NULL, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)
@@ -476,12 +515,12 @@ ModifierTypeInfo modifierType_Multires = {
     /* modifyVolume */ NULL,
 
     /* initData */ initData,
-    /* requiredDataMask */ NULL,
+    /* requiredDataMask */ requiredDataMask,
     /* freeData */ freeData,
     /* isDisabled */ NULL,
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
+    /* dependsOnNormals */ dependsOnNormals,
     /* foreachObjectLink */ NULL,
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,

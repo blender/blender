@@ -36,6 +36,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
+#include "BKE_mesh.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_subdiv.h"
@@ -75,6 +76,26 @@ static void initData(ModifierData *md)
   smd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
   smd->quality = 3;
   smd->flags |= (eSubsurfModifierFlag_UseCrease | eSubsurfModifierFlag_ControlEdges);
+}
+
+static void requiredDataMask(Object *UNUSED(ob),
+                             ModifierData *md,
+                             CustomData_MeshMasks *r_cddata_masks)
+{
+  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+  if (smd->flags & eSubsurfModifierFlag_UseCustomNormals) {
+    r_cddata_masks->lmask |= CD_MASK_NORMAL;
+    r_cddata_masks->lmask |= CD_MASK_CUSTOMLOOPNORMAL;
+  }
+}
+
+static bool dependsOnNormals(ModifierData *md)
+{
+  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+  if (smd->flags & eSubsurfModifierFlag_UseCustomNormals) {
+    return true;
+  }
+  return false;
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -242,6 +263,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* Happens on bad topology, but also on empty input mesh. */
     return result;
   }
+  const bool use_clnors = (smd->flags & eSubsurfModifierFlag_UseCustomNormals) &&
+                          (mesh->flag & ME_AUTOSMOOTH) &&
+                          CustomData_has_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
+  if (use_clnors) {
+    /* If custom normals are present and the option is turned on calculate the split
+     * normals and clear flag so the normals get interpolated to the result mesh. */
+    BKE_mesh_calc_normals_split(mesh);
+    CustomData_clear_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+  }
   /* TODO(sergey): Decide whether we ever want to use CCG for subsurf,
    * maybe when it is a last modifier in the stack? */
   if (true) {
@@ -249,6 +279,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
   else {
     result = subdiv_as_ccg(smd, ctx, mesh, subdiv);
+  }
+
+  if (use_clnors) {
+    float(*lnors)[3] = CustomData_get_layer(&result->ldata, CD_NORMAL);
+    BLI_assert(lnors != NULL);
+    BKE_mesh_set_custom_normals(result, lnors);
+    CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_set_layer_flag(&result->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
   // BKE_subdiv_stats_print(&subdiv->stats);
   if (subdiv != runtime_data->subdiv) {
@@ -416,6 +454,7 @@ static void advanced_panel_draw(const bContext *C, Panel *panel)
   uiItemR(layout, &ptr, "quality", 0, NULL, ICON_NONE);
   uiItemR(layout, &ptr, "uv_smooth", 0, NULL, ICON_NONE);
   uiItemR(layout, &ptr, "use_creases", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "use_custom_normals", 0, NULL, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)
@@ -453,12 +492,12 @@ ModifierTypeInfo modifierType_Subsurf = {
     /* modifyVolume */ NULL,
 
     /* initData */ initData,
-    /* requiredDataMask */ NULL,
+    /* requiredDataMask */ requiredDataMask,
     /* freeData */ freeData,
     /* isDisabled */ isDisabled,
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
+    /* dependsOnNormals */ dependsOnNormals,
     /* foreachObjectLink */ NULL,
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,

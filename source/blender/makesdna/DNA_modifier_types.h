@@ -155,6 +155,7 @@ typedef enum {
   /* DEPRECATED, ONLY USED FOR DO-VERSIONS */
   eSubsurfModifierFlag_SubsurfUv_DEPRECATED = (1 << 3),
   eSubsurfModifierFlag_UseCrease = (1 << 4),
+  eSubsurfModifierFlag_UseCustomNormals = (1 << 5),
 } SubsurfModifierFlag;
 
 typedef enum {
@@ -1026,6 +1027,7 @@ typedef enum {
   /* DEPRECATED, only used for versioning. */
   eMultiresModifierFlag_PlainUv_DEPRECATED = (1 << 1),
   eMultiresModifierFlag_UseCrease = (1 << 2),
+  eMultiresModifierFlag_UseCustomNormals = (1 << 3),
 } MultiresModifierFlag;
 
 /* DEPRECATED, only used for versioning. */

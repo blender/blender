@@ -1818,6 +1818,12 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
       prop, "Use Creases", "Use mesh edge crease information to sharpen edges");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  prop = RNA_def_property(srna, "use_custom_normals", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", eSubsurfModifierFlag_UseCustomNormals);
+  RNA_def_property_ui_text(
+      prop, "Use Custom Normals", "Interpolates existing custom normals to resulting mesh");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
   RNA_define_lib_overridable(false);
 }
 
@@ -2017,6 +2023,12 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flags", eMultiresModifierFlag_UseCrease);
   RNA_def_property_ui_text(
       prop, "Use Creases", "Use mesh edge crease information to sharpen edges");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_custom_normals", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", eMultiresModifierFlag_UseCustomNormals);
+  RNA_def_property_ui_text(
+      prop, "Use Custom Normals", "Interpolates existing custom normals to resulting mesh");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   RNA_define_lib_overridable(false);
