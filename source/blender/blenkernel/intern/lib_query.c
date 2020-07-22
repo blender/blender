@@ -412,6 +412,8 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
       return ELEM(id_type_used, ID_MA);
     case ID_VO:
       return ELEM(id_type_used, ID_MA);
+    case ID_SIM:
+      return ELEM(id_type_used, ID_OB, ID_IM);
     case ID_IM:
     case ID_VF:
     case ID_TXT:
@@ -422,7 +424,6 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
     case ID_PAL:
     case ID_PC:
     case ID_CF:
-    case ID_SIM:
       /* Those types never use/reference other IDs... */
       return false;
     case ID_IP:

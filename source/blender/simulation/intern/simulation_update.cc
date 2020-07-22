@@ -108,8 +108,7 @@ void update_simulation_in_depsgraph(Depsgraph *depsgraph,
   SimulationInfluences influences;
   RequiredStates required_states;
 
-  /* TODO: Use simulation_cow, but need to add depsgraph relations before that. */
-  collect_simulation_influences(*simulation_orig, resources, influences, required_states);
+  collect_simulation_influences(*simulation_cow, resources, influences, required_states);
 
   if (current_frame == 1) {
     reinitialize_empty_simulation_states(simulation_orig, required_states);

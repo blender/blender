@@ -1780,8 +1780,10 @@ void DepsgraphNodeBuilder::build_simulation(Simulation *simulation)
     return;
   }
   add_id_node(&simulation->id);
+  build_idproperties(simulation->id.properties);
   build_animdata(&simulation->id);
   build_parameters(&simulation->id);
+  build_nodetree(simulation->nodetree);
 
   Simulation *simulation_cow = get_cow_datablock(simulation);
   Scene *scene_cow = get_cow_datablock(scene_);
