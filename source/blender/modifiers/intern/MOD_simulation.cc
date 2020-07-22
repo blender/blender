@@ -131,6 +131,9 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA ob_ptr;
   modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
 
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
   uiItemR(layout, &ptr, "simulation", 0, NULL, ICON_NONE);
   uiItemR(layout, &ptr, "data_path", 0, NULL, ICON_NONE);
 
