@@ -73,6 +73,7 @@ static void initData(ModifierData *md)
   bmd->face_str_mode = MOD_BEVEL_FACE_STRENGTH_NONE;
   bmd->miter_inner = MOD_BEVEL_MITER_SHARP;
   bmd->miter_outer = MOD_BEVEL_MITER_SHARP;
+  bmd->affect_type = MOD_BEVEL_AFFECT_EDGES;
   bmd->spread = 0.1f;
   bmd->mat = -1;
   bmd->profile = 0.5f;
