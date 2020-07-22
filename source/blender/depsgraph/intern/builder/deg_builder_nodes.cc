@@ -1466,6 +1466,18 @@ void DepsgraphNodeBuilder::build_light(Light *lamp)
                      function_bind(BKE_light_eval, _1, lamp_cow));
 }
 
+void DepsgraphNodeBuilder::build_nodetree_socket(bNodeSocket *socket)
+{
+  build_idproperties(socket->prop);
+
+  if (socket->type == SOCK_OBJECT) {
+    build_id((ID *)((bNodeSocketValueObject *)socket->default_value)->value);
+  }
+  else if (socket->type == SOCK_IMAGE) {
+    build_id((ID *)((bNodeSocketValueImage *)socket->default_value)->value);
+  }
+}
+
 void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 {
   if (ntree == nullptr) {
@@ -1494,10 +1506,10 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
     build_idproperties(bnode->prop);
     LISTBASE_FOREACH (bNodeSocket *, socket, &bnode->inputs) {
-      build_idproperties(socket->prop);
+      build_nodetree_socket(socket);
     }
     LISTBASE_FOREACH (bNodeSocket *, socket, &bnode->outputs) {
-      build_idproperties(socket->prop);
+      build_nodetree_socket(socket);
     }
 
     ID *id = bnode->id;
