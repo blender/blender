@@ -180,6 +180,10 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   wl_surface_commit(w->surface);
   wl_display_roundtrip(m_system->display());
 
+#ifdef GHOST_OPENGL_ALPHA
+  setOpaque();
+#endif
+
   setState(state);
 
   setTitle(title);
@@ -214,6 +218,10 @@ GHOST_TSuccess GHOST_WindowWayland::deactivate()
 
 GHOST_TSuccess GHOST_WindowWayland::notify_size()
 {
+#ifdef GHOST_OPENGL_ALPHA
+  setOpaque();
+#endif
+
   return m_system->pushEvent(
       new GHOST_Event(m_system->getMilliSeconds(), GHOST_kEventWindowSize, this));
 }
@@ -384,6 +392,19 @@ bool GHOST_WindowWayland::isDialog() const
 {
   return w->is_dialog;
 }
+
+#ifdef GHOST_OPENGL_ALPHA
+void GHOST_WindowWayland::setOpaque() const
+{
+  struct wl_region *region;
+
+  /* Make the window opaque. */
+  region = wl_compositor_create_region(m_system->compositor());
+  wl_region_add(region, 0, 0, w->width, w->height);
+  wl_surface_set_opaque_region(w->surface, region);
+  wl_region_destroy(region);
+}
+#endif
 
 /**
  * \param type  The type of rendering context create.

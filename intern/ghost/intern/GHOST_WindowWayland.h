@@ -109,6 +109,10 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   bool isDialog() const override;
 
+#ifdef GHOST_OPENGL_ALPHA
+  void setOpaque() const;
+#endif
+
  private:
   GHOST_SystemWayland *m_system;
   struct window_t *w;
