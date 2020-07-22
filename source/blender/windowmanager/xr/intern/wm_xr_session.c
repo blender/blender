@@ -177,8 +177,8 @@ static bool wm_xr_session_draw_data_needs_reset_to_base_pose(const wmXrSessionSt
           (state->prev_base_pose_object != settings->base_pose_object));
 }
 
-wmXrSessionStateEvent wm_xr_session_state_to_event(const wmXrSessionState *state,
-                                                   const XrSessionSettings *settings)
+static wmXrSessionStateEvent wm_xr_session_state_to_event(const wmXrSessionState *state,
+                                                          const XrSessionSettings *settings)
 {
   if (!state->is_view_data_set) {
     return SESSION_STATE_EVENT_START;
