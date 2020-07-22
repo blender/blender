@@ -51,6 +51,7 @@
 #include "NOD_node_tree_multi_function.hh"
 #include "NOD_simulation.h"
 
+#include "BLI_map.hh"
 #include "BLT_translation.h"
 
 #include "FN_attributes_ref.hh"
@@ -61,6 +62,22 @@
 #include "DEG_depsgraph_query.h"
 
 #include "SIM_simulation_update.hh"
+
+using StateInitFunction = void (*)(SimulationState *state);
+using StateResetFunction = void (*)(SimulationState *state);
+using StateRemoveFunction = void (*)(SimulationState *state);
+using StateCopyFunction = void (*)(const SimulationState *src, SimulationState *dst);
+
+struct SimulationStateType {
+  const char *name;
+  int size;
+  StateInitFunction init;
+  StateResetFunction reset;
+  StateRemoveFunction remove;
+  StateCopyFunction copy;
+};
+
+static const SimulationStateType *try_get_state_type(blender::StringRefNull type_name);
 
 static void simulation_init_data(ID *id)
 {
@@ -76,7 +93,7 @@ static void simulation_init_data(ID *id)
 static void simulation_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
 {
   Simulation *simulation_dst = (Simulation *)id_dst;
-  Simulation *simulation_src = (Simulation *)id_src;
+  const Simulation *simulation_src = (const Simulation *)id_src;
 
   /* We always need allocation of our private ID data. */
   const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
@@ -89,74 +106,14 @@ static void simulation_copy_data(Main *bmain, ID *id_dst, const ID *id_src, cons
   }
 
   BLI_listbase_clear(&simulation_dst->states);
+  LISTBASE_FOREACH (const SimulationState *, state_src, &simulation_src->states) {
+    SimulationState *state_dst = BKE_simulation_state_add(
+        simulation_dst, state_src->type, state_src->name);
+    BKE_simulation_state_copy_data(state_src, state_dst);
+  }
 
   BLI_duplicatelist(&simulation_dst->persistent_data_handles,
                     &simulation_src->persistent_data_handles);
-}
-
-static void free_simulation_state_head(SimulationState *state)
-{
-  MEM_freeN(state->name);
-}
-
-static void free_particle_simulation_state(ParticleSimulationState *state)
-{
-  free_simulation_state_head(&state->head);
-  CustomData_free(&state->attributes, state->tot_particles);
-  BKE_ptcache_free_list(&state->ptcaches);
-  MEM_freeN(state);
-}
-
-SimulationState *BKE_simulation_state_add(Simulation *simulation,
-                                          eSimulationStateType type,
-                                          const char *name)
-{
-  BLI_assert(simulation != nullptr);
-  BLI_assert(name != nullptr);
-
-  bool is_cow_simulation = DEG_is_evaluated_id(&simulation->id);
-
-  switch (type) {
-    case SIM_STATE_TYPE_PARTICLES: {
-      ParticleSimulationState *state = (ParticleSimulationState *)MEM_callocN(sizeof(*state), AT);
-      state->head.type = SIM_STATE_TYPE_PARTICLES;
-      state->head.name = BLI_strdup(name);
-      CustomData_reset(&state->attributes);
-
-      if (!is_cow_simulation) {
-        state->point_cache = BKE_ptcache_add(&state->ptcaches);
-      }
-
-      BLI_addtail(&simulation->states, state);
-      return &state->head;
-    }
-  }
-
-  BLI_assert(false);
-  return nullptr;
-}
-
-void BKE_simulation_state_remove(Simulation *simulation, SimulationState *state)
-{
-  BLI_assert(simulation != nullptr);
-  BLI_assert(state != nullptr);
-  BLI_assert(BLI_findindex(&simulation->states, state) >= 0);
-
-  BLI_remlink(&simulation->states, state);
-  switch ((eSimulationStateType)state->type) {
-    case SIM_STATE_TYPE_PARTICLES: {
-      free_particle_simulation_state((ParticleSimulationState *)state);
-      break;
-    }
-  }
-}
-
-void BKE_simulation_state_remove_all(Simulation *simulation)
-{
-  BLI_assert(simulation != nullptr);
-  while (!BLI_listbase_is_empty(&simulation->states)) {
-    BKE_simulation_state_remove(simulation, (SimulationState *)simulation->states.first);
-  }
 }
 
 static void simulation_free_data(ID *id)
@@ -215,7 +172,195 @@ void *BKE_simulation_add(Main *bmain, const char *name)
   return simulation;
 }
 
+SimulationState *BKE_simulation_state_add(Simulation *simulation,
+                                          const char *type,
+                                          const char *name)
+{
+  BLI_assert(simulation != nullptr);
+  BLI_assert(name != nullptr);
+
+  const SimulationStateType *state_type = try_get_state_type(type);
+  BLI_assert(state_type != nullptr);
+
+  SimulationState *state = (SimulationState *)MEM_callocN(state_type->size, AT);
+  state->type = BLI_strdup(type);
+  state->name = BLI_strdup(name);
+
+  state_type->init(state);
+  BLI_addtail(&simulation->states, state);
+  return state;
+}
+
+void BKE_simulation_state_remove(Simulation *simulation, SimulationState *state)
+{
+  BLI_assert(simulation != nullptr);
+  BLI_assert(state != nullptr);
+  BLI_assert(BLI_findindex(&simulation->states, state) >= 0);
+
+  BLI_remlink(&simulation->states, state);
+  const SimulationStateType *state_type = try_get_state_type(state->type);
+  BLI_assert(state_type != nullptr);
+  state_type->remove(state);
+  MEM_freeN(state->name);
+  MEM_freeN(state->type);
+  MEM_freeN(state);
+}
+
+void BKE_simulation_state_remove_all(Simulation *simulation)
+{
+  BLI_assert(simulation != nullptr);
+
+  while (!BLI_listbase_is_empty(&simulation->states)) {
+    BKE_simulation_state_remove(simulation, (SimulationState *)simulation->states.first);
+  }
+}
+
+void BKE_simulation_state_reset(Simulation *UNUSED(simulation), SimulationState *state)
+{
+  BLI_assert(state != nullptr);
+
+  const SimulationStateType *state_type = try_get_state_type(state->type);
+  BLI_assert(state_type != nullptr);
+  state_type->reset(state);
+}
+
+void BKE_simulation_state_reset_all(Simulation *simulation)
+{
+  BLI_assert(simulation != nullptr);
+
+  LISTBASE_FOREACH (SimulationState *, state, &simulation->states) {
+    BKE_simulation_state_reset(simulation, state);
+  }
+}
+
+void BKE_simulation_state_copy_data(const SimulationState *src_state, SimulationState *dst_state)
+{
+  BLI_assert(src_state != nullptr);
+  BLI_assert(dst_state != nullptr);
+  BLI_assert(STREQ(src_state->type, dst_state->type));
+
+  const SimulationStateType *state_type = try_get_state_type(src_state->type);
+  BLI_assert(state_type != nullptr);
+  state_type->copy(src_state, dst_state);
+}
+
+SimulationState *BKE_simulation_state_try_find_by_name(Simulation *simulation, const char *name)
+{
+  if (simulation == nullptr) {
+    return nullptr;
+  }
+  if (name == nullptr) {
+    return nullptr;
+  }
+
+  LISTBASE_FOREACH (SimulationState *, state, &simulation->states) {
+    if (STREQ(state->name, name)) {
+      return state;
+    }
+  }
+  return nullptr;
+}
+
+SimulationState *BKE_simulation_state_try_find_by_name_and_type(Simulation *simulation,
+                                                                const char *name,
+                                                                const char *type)
+{
+  if (type == nullptr) {
+    return nullptr;
+  }
+
+  SimulationState *state = BKE_simulation_state_try_find_by_name(simulation, name);
+  if (state == nullptr) {
+    return nullptr;
+  }
+  if (STREQ(state->type, type)) {
+    return state;
+  }
+  return nullptr;
+}
+
 void BKE_simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulation *simulation)
 {
   blender::sim::update_simulation_in_depsgraph(depsgraph, scene, simulation);
+}
+
+using StateTypeMap = blender::Map<std::string, std::unique_ptr<SimulationStateType>>;
+
+template<typename T>
+static void add_state_type(StateTypeMap &map,
+                           const char *name,
+                           void (*init)(T *state),
+                           void (*reset)(T *state),
+                           void (*remove)(T *state),
+                           void (*copy)(const T *src, T *dst))
+{
+  SimulationStateType state_type{
+      name,
+      (int)sizeof(T),
+      (StateInitFunction)init,
+      (StateResetFunction)reset,
+      (StateRemoveFunction)remove,
+      (StateCopyFunction)copy,
+  };
+  map.add_new(name, std::make_unique<SimulationStateType>(state_type));
+}
+
+static StateTypeMap init_state_types()
+{
+  StateTypeMap map;
+  add_state_type<ParticleSimulationState>(
+      map,
+      SIM_TYPE_NAME_PARTICLE_SIMULATION,
+      [](ParticleSimulationState *state) { CustomData_reset(&state->attributes); },
+      [](ParticleSimulationState *state) {
+        CustomData_free(&state->attributes, state->tot_particles);
+        state->tot_particles = 0;
+        state->next_particle_id = 0;
+      },
+      [](ParticleSimulationState *state) {
+        CustomData_free(&state->attributes, state->tot_particles);
+      },
+      [](const ParticleSimulationState *src, ParticleSimulationState *dst) {
+        CustomData_free(&dst->attributes, dst->tot_particles);
+        dst->tot_particles = src->tot_particles;
+        dst->next_particle_id = src->next_particle_id;
+        CustomData_copy(
+            &src->attributes, &dst->attributes, CD_MASK_ALL, CD_DUPLICATE, src->tot_particles);
+      });
+
+  add_state_type<ParticleMeshEmitterSimulationState>(
+      map,
+      SIM_TYPE_NAME_PARTICLE_MESH_EMITTER,
+      [](ParticleMeshEmitterSimulationState *UNUSED(state)) {},
+      [](ParticleMeshEmitterSimulationState *state) { state->last_birth_time = 0.0f; },
+      [](ParticleMeshEmitterSimulationState *UNUSED(state)) {},
+      [](const ParticleMeshEmitterSimulationState *src, ParticleMeshEmitterSimulationState *dst) {
+        dst->last_birth_time = src->last_birth_time;
+      });
+  return map;
+}
+
+static StateTypeMap &get_state_types()
+{
+  static StateTypeMap state_type_map = init_state_types();
+  return state_type_map;
+}
+
+static const SimulationStateType *try_get_state_type(blender::StringRefNull type_name)
+{
+  std::unique_ptr<SimulationStateType> *type = get_state_types().lookup_ptr_as(type_name);
+  if (type == nullptr) {
+    return nullptr;
+  }
+  return type->get();
+}
+
+template<> const char *BKE_simulation_get_state_type_name<ParticleSimulationState>()
+{
+  return SIM_TYPE_NAME_PARTICLE_SIMULATION;
+}
+
+template<> const char *BKE_simulation_get_state_type_name<ParticleMeshEmitterSimulationState>()
+{
+  return SIM_TYPE_NAME_PARTICLE_MESH_EMITTER;
 }

@@ -93,20 +93,8 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
 
 static const ParticleSimulationState *find_particle_state(SimulationModifierData *smd)
 {
-  if (smd->simulation == nullptr) {
-    return nullptr;
-  }
-  if (smd->data_path == nullptr) {
-    return nullptr;
-  }
-  LISTBASE_FOREACH (const SimulationState *, state, &smd->simulation->states) {
-    if (STREQ(smd->data_path, state->name)) {
-      if (state->type == SIM_STATE_TYPE_PARTICLES) {
-        return (ParticleSimulationState *)state;
-      }
-    }
-  }
-  return nullptr;
+  return (const ParticleSimulationState *)BKE_simulation_state_try_find_by_name_and_type(
+      smd->simulation, smd->data_path, SIM_TYPE_NAME_PARTICLE_SIMULATION);
 }
 
 static PointCloud *modifyPointCloud(ModifierData *md,

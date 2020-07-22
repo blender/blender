@@ -3833,30 +3833,32 @@ static void write_simulation(BlendWriter *writer, Simulation *simulation, const 
 
     LISTBASE_FOREACH (SimulationState *, state, &simulation->states) {
       BLO_write_string(writer, state->name);
-      switch ((eSimulationStateType)state->type) {
-        case SIM_STATE_TYPE_PARTICLES: {
-          ParticleSimulationState *particle_state = (ParticleSimulationState *)state;
-          BLO_write_struct(writer, ParticleSimulationState, particle_state);
+      BLO_write_string(writer, state->type);
+      /* TODO: Decentralize this part. */
+      if (STREQ(state->type, SIM_TYPE_NAME_PARTICLE_SIMULATION)) {
+        ParticleSimulationState *particle_state = (ParticleSimulationState *)state;
+        BLO_write_struct(writer, ParticleSimulationState, particle_state);
 
-          CustomDataLayer *layers = NULL;
-          CustomDataLayer layers_buff[CD_TEMP_CHUNK_SIZE];
-          CustomData_file_write_prepare(
-              &particle_state->attributes, &layers, layers_buff, ARRAY_SIZE(layers_buff));
+        CustomDataLayer *layers = NULL;
+        CustomDataLayer layers_buff[CD_TEMP_CHUNK_SIZE];
+        CustomData_file_write_prepare(
+            &particle_state->attributes, &layers, layers_buff, ARRAY_SIZE(layers_buff));
 
-          write_customdata(writer,
-                           &simulation->id,
-                           particle_state->tot_particles,
-                           &particle_state->attributes,
-                           layers,
-                           CD_MASK_ALL);
+        write_customdata(writer,
+                         &simulation->id,
+                         particle_state->tot_particles,
+                         &particle_state->attributes,
+                         layers,
+                         CD_MASK_ALL);
 
-          if (layers != NULL && layers != layers_buff) {
-            MEM_freeN(layers);
-          }
-
-          write_pointcaches(writer, &particle_state->ptcaches);
-          break;
+        if (layers != NULL && layers != layers_buff) {
+          MEM_freeN(layers);
         }
+      }
+      else if (STREQ(state->type, SIM_TYPE_NAME_PARTICLE_MESH_EMITTER)) {
+        ParticleMeshEmitterSimulationState *emitter_state = (ParticleMeshEmitterSimulationState *)
+            state;
+        BLO_write_struct(writer, ParticleMeshEmitterSimulationState, emitter_state);
       }
     }
 

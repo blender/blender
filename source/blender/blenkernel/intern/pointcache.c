@@ -1885,81 +1885,6 @@ void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, Object *ob, RigidBodyWorld *r
   pid->file_type = PTCACHE_FILE_PTCACHE;
 }
 
-static int ptcache_sim_particle_totpoint(void *state_v, int UNUSED(cfra))
-{
-  ParticleSimulationState *state = (ParticleSimulationState *)state_v;
-  return state->tot_particles;
-}
-
-static void ptcache_sim_particle_error(void *UNUSED(state_v), const char *UNUSED(message))
-{
-}
-
-static int ptcache_sim_particle_write(int index, void *state_v, void **data, int UNUSED(cfra))
-{
-  ParticleSimulationState *state = (ParticleSimulationState *)state_v;
-
-  const float *positions = (const float *)CustomData_get_layer_named(
-      &state->attributes, CD_PROP_FLOAT3, "Position");
-
-  PTCACHE_DATA_FROM(data, BPHYS_DATA_LOCATION, positions + (index * 3));
-
-  return 1;
-}
-static void ptcache_sim_particle_read(
-    int index, void *state_v, void **data, float UNUSED(cfra), const float *UNUSED(old_data))
-{
-  ParticleSimulationState *state = (ParticleSimulationState *)state_v;
-
-  BLI_assert(index < state->tot_particles);
-  float *positions = (float *)CustomData_get_layer_named(
-      &state->attributes, CD_PROP_FLOAT3, "Position");
-
-  PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, 0, positions + (index * 3));
-}
-
-void BKE_ptcache_id_from_sim_particles(PTCacheID *pid,
-                                       ParticleSimulationState *state_orig,
-                                       ParticleSimulationState *state_cow)
-{
-  memset(pid, 0, sizeof(PTCacheID));
-
-  pid->calldata = state_cow;
-  pid->type = PTCACHE_TYPE_SIM_PARTICLES;
-  pid->cache = state_orig->point_cache;
-  pid->cache_ptr = &state_orig->point_cache;
-  pid->ptcaches = &state_orig->ptcaches;
-  pid->totpoint = ptcache_sim_particle_totpoint;
-  pid->totwrite = ptcache_sim_particle_totpoint;
-  pid->error = ptcache_sim_particle_error;
-
-  pid->write_point = ptcache_sim_particle_write;
-  pid->read_point = ptcache_sim_particle_read;
-  pid->interpolate_point = NULL;
-
-  pid->write_stream = NULL;
-  pid->read_stream = NULL;
-
-  pid->write_openvdb_stream = NULL;
-  pid->read_openvdb_stream = NULL;
-
-  pid->write_extra_data = NULL;
-  pid->read_extra_data = NULL;
-  pid->interpolate_extra_data = NULL;
-
-  pid->write_header = NULL;
-  pid->read_header = NULL;
-
-  pid->data_types = 1 << BPHYS_DATA_LOCATION;
-  pid->info_types = 0;
-
-  pid->stack_index = 0;
-
-  pid->default_step = 1;
-  pid->max_step = 1;
-  pid->file_type = PTCACHE_FILE_PTCACHE;
-}
-
 /**
  * \param ob: Optional, may be NULL.
  * \param scene: Optional may be NULL.
@@ -2059,17 +1984,7 @@ static bool foreach_object_modifier_ptcache(Object *object,
       }
     }
     else if (md->type == eModifierType_Simulation) {
-      SimulationModifierData *smd = (SimulationModifierData *)md;
-      if (smd->simulation) {
-        LISTBASE_FOREACH (SimulationState *, state, &smd->simulation->states) {
-          switch ((eSimulationStateType)state->type) {
-            case SIM_STATE_TYPE_PARTICLES: {
-              /* TODO(jacques) */
-              break;
-            }
-          }
-        }
-      }
+      /* TODO(jacques) */
     }
   }
   return true;

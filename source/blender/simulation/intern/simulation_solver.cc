@@ -312,20 +312,21 @@ void solve_simulation_time_step(Simulation &simulation,
     handle_map.add(handle->handle, *handle->id);
   }
 
+  SimulationStateMap state_map;
+  LISTBASE_FOREACH (SimulationState *, state, &simulation.states) {
+    state_map.add(state);
+  }
+
   SimulationSolveContext solve_context{simulation,
                                        depsgraph,
                                        influences,
                                        TimeInterval(simulation.current_simulation_time, time_step),
+                                       state_map,
                                        handle_map};
   TimeInterval simulation_time_interval{simulation.current_simulation_time, time_step};
 
-  Vector<SimulationState *> simulation_states{simulation.states};
-  Vector<ParticleSimulationState *> particle_simulation_states;
-  for (SimulationState *state : simulation_states) {
-    if (state->type == SIM_STATE_TYPE_PARTICLES) {
-      particle_simulation_states.append((ParticleSimulationState *)state);
-    }
-  }
+  Span<ParticleSimulationState *> particle_simulation_states =
+      state_map.lookup<ParticleSimulationState>();
 
   Map<std::string, std::unique_ptr<fn::AttributesInfo>> attribute_infos;
   Map<std::string, std::unique_ptr<ParticleAllocator>> particle_allocators_map;

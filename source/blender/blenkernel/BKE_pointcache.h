@@ -86,12 +86,10 @@ struct ListBase;
 struct Main;
 struct Object;
 struct ParticleKey;
-struct ParticleSimulationState;
 struct ParticleSystem;
 struct PointCache;
 struct RigidBodyWorld;
 struct Scene;
-struct Simulation;
 struct SoftBody;
 struct ViewLayer;
 
@@ -296,9 +294,6 @@ void BKE_ptcache_id_from_dynamicpaint(PTCacheID *pid,
                                       struct Object *ob,
                                       struct DynamicPaintSurface *surface);
 void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, struct Object *ob, struct RigidBodyWorld *rbw);
-void BKE_ptcache_id_from_sim_particles(PTCacheID *pid,
-                                       struct ParticleSimulationState *state_orig,
-                                       struct ParticleSimulationState *state_cow);
 
 PTCacheID BKE_ptcache_id_find(struct Object *ob, struct Scene *scene, struct PointCache *cache);
 void BKE_ptcache_ids_from_object(struct ListBase *lb,
