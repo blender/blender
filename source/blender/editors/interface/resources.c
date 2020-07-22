@@ -1471,7 +1471,7 @@ void UI_ThemeClearColor(int colorid)
   float col[3];
 
   UI_GetThemeColor3fv(colorid, col);
-  GPU_clear_color(col[0], col[1], col[2], 0.0f);
+  GPU_clear_color(col[0], col[1], col[2], 1.0f);
 }
 
 void UI_ThemeClearColorAlpha(int colorid, float alpha)

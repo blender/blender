@@ -204,7 +204,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
 
   /* clear and setup matrix */
   UI_GetThemeColor3fv(TH_BACK, col);
-  GPU_clear_color(col[0], col[1], col[2], 0.0);
+  GPU_clear_color(col[0], col[1], col[2], 1.0f);
   GPU_clear(GPU_COLOR_BIT);
 
   UI_view2d_view_ortho(v2d);
@@ -362,7 +362,7 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
 
   /* clear and setup matrix */
   UI_GetThemeColor3fv(TH_BACK, col);
-  GPU_clear_color(col[0], col[1], col[2], 0.0);
+  GPU_clear_color(col[0], col[1], col[2], 1.0f);
   GPU_clear(GPU_COLOR_BIT);
 
   UI_view2d_view_ortho(v2d);

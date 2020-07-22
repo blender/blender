@@ -649,7 +649,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     }
 #endif
     /* until screens get drawn, make it nice gray */
-    GPU_clear_color(0.55, 0.55, 0.55, 0.0);
+    GPU_clear_color(0.55, 0.55, 0.55, 1.0f);
     /* Crash on OSS ATI: bugs.launchpad.net/ubuntu/+source/mesa/+bug/656100 */
     if (!GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
       GPU_clear(GPU_COLOR_BIT);
