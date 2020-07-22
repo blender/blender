@@ -225,6 +225,7 @@ else:
         "aud",
         "bgl",
         "blf",
+        "bl_math",
         "imbuf",
         "bmesh",
         "bmesh.ops",
@@ -1798,8 +1799,18 @@ def write_rst_contents(basepath):
 
     standalone_modules = (
         # submodules are added in parent page
-        "mathutils", "freestyle", "bgl", "blf", "imbuf", "gpu", "gpu_extras",
-        "aud", "bpy_extras", "idprop.types", "bmesh",
+        "aud",
+        "bgl",
+        "bl_math",
+        "blf",
+        "bmesh",
+        "bpy_extras",
+        "freestyle",
+        "gpu",
+        "gpu_extras",
+        "idprop.types",
+        "imbuf",
+        "mathutils",
     )
 
     for mod in standalone_modules:
@@ -1951,6 +1962,7 @@ def write_rst_importable_modules(basepath):
         "mathutils.kdtree": "KDTree Utilities",
         "mathutils.interpolate": "Interpolation Utilities",
         "mathutils.noise": "Noise Utilities",
+        "bl_math": "Additional Math Functions",
         "freestyle": "Freestyle Module",
         "freestyle.types": "Freestyle Types",
         "freestyle.predicates": "Freestyle Predicates",
