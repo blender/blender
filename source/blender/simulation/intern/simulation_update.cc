@@ -90,6 +90,8 @@ static void update_simulation_state_list(Simulation *simulation,
   add_missing_states(simulation, required_states);
 }
 
+/* TODO: It might be better to do this as part of ntreeUpdateTree, so that the information
+ * about referenced data blocks is available when building the depsgraph. */
 static void update_persistent_data_handles(Simulation &simulation_orig,
                                            const UsedPersistentData &used_persistent_data)
 {
