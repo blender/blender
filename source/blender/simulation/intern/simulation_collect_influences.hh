@@ -58,10 +58,29 @@ class RequiredStates {
   }
 };
 
+class UsedPersistentData {
+ private:
+  VectorSet<ID *> used_ids_;
+
+ public:
+  void add(ID *id)
+  {
+    BLI_assert(id != nullptr);
+    BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
+    used_ids_.add(id);
+  }
+
+  const VectorSet<ID *> &used_ids() const
+  {
+    return used_ids_;
+  }
+};
+
 void collect_simulation_influences(Simulation &simulation,
                                    ResourceCollector &resources,
                                    SimulationInfluences &r_influences,
-                                   RequiredStates &r_required_states);
+                                   RequiredStates &r_required_states,
+                                   UsedPersistentData &r_used_persistent_data);
 
 }  // namespace blender::sim
 

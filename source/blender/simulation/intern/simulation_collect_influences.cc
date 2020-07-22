@@ -23,6 +23,8 @@
 
 #include "NOD_node_tree_multi_function.hh"
 
+#include "DEG_depsgraph_query.h"
+
 #include "BLI_rand.hh"
 
 namespace blender::sim {
@@ -434,8 +436,8 @@ static void prepare_particle_attribute_builders(nodes::MFNetworkTreeMap &network
   }
 }
 
-static void find_used_data_blocks(const nodes::DerivedNodeTree &tree,
-                                  SimulationInfluences &r_influences)
+static void find_used_persistent_data(const nodes::DerivedNodeTree &tree,
+                                      UsedPersistentData &r_used_persistent_data)
 {
   const bNodeSocketType *socktype = nodeSocketTypeFind("NodeSocketObject");
   BLI_assert(socktype != nullptr);
@@ -443,9 +445,9 @@ static void find_used_data_blocks(const nodes::DerivedNodeTree &tree,
   for (const nodes::DInputSocket *dsocket : tree.input_sockets()) {
     const bNodeSocket *bsocket = dsocket->bsocket();
     if (bsocket->typeinfo == socktype) {
-      Object *value = ((const bNodeSocketValueObject *)bsocket->default_value)->value;
-      if (value != nullptr) {
-        r_influences.used_data_blocks.add(&value->id);
+      Object *object = ((const bNodeSocketValueObject *)bsocket->default_value)->value;
+      if (object != nullptr) {
+        r_used_persistent_data.add(DEG_get_original_id(&object->id));
       }
     }
   }
@@ -454,7 +456,8 @@ static void find_used_data_blocks(const nodes::DerivedNodeTree &tree,
 void collect_simulation_influences(Simulation &simulation,
                                    ResourceCollector &resources,
                                    SimulationInfluences &r_influences,
-                                   RequiredStates &r_required_states)
+                                   RequiredStates &r_required_states,
+                                   UsedPersistentData &r_used_persistent_data)
 {
   nodes::NodeTreeRefMap tree_refs;
   const nodes::DerivedNodeTree tree{simulation.nodetree, tree_refs};
@@ -479,7 +482,7 @@ void collect_simulation_influences(Simulation &simulation,
     r_required_states.add(dnode_to_path(*dnode), SIM_TYPE_NAME_PARTICLE_SIMULATION);
   }
 
-  find_used_data_blocks(tree, r_influences);
+  find_used_persistent_data(tree, r_used_persistent_data);
 }
 
 }  // namespace blender::sim

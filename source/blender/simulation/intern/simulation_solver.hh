@@ -53,7 +53,6 @@ struct SimulationInfluences {
   Map<std::string, Vector<const ParticleForce *>> particle_forces;
   Map<std::string, fn::AttributesInfoBuilder *> particle_attributes_builder;
   Vector<const ParticleEmitter *> particle_emitters;
-  VectorSet<ID *> used_data_blocks;
 };
 
 class SimulationStateMap {
@@ -265,11 +264,13 @@ class ParticleForceContext {
 
 void initialize_simulation_states(Simulation &simulation,
                                   Depsgraph &depsgraph,
-                                  const SimulationInfluences &influences);
+                                  const SimulationInfluences &influences,
+                                  const bke::PersistentDataHandleMap &handle_map);
 
 void solve_simulation_time_step(Simulation &simulation,
                                 Depsgraph &depsgraph,
                                 const SimulationInfluences &influences,
+                                const bke::PersistentDataHandleMap &handle_map,
                                 float time_step);
 
 }  // namespace blender::sim
