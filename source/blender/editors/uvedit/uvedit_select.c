@@ -1982,8 +1982,11 @@ static int uv_mouse_select_loop_generic_multi(bContext *C,
   }
 
   if (ts->uv_flag & UV_SYNC_SELECTION) {
-    if (flush != 0) {
-      EDBM_selectmode_flush(em);
+    if (flush == 1) {
+      EDBM_select_flush(em);
+    }
+    else if (flush == -1) {
+      EDBM_deselect_flush(em);
     }
   }
 
