@@ -37,6 +37,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 #include "BKE_sequencer.h"
 
 #include "RNA_access.h"
@@ -99,6 +100,24 @@ int BIF_snappingSupported(Object *obedit)
   return status;
 }
 #endif
+
+static bool snap_use_backface_culling(const TransInfo *t)
+{
+  BLI_assert(t->spacetype == SPACE_VIEW3D);
+  View3D *v3d = t->view;
+  if ((v3d->shading.type == OB_SOLID) && (v3d->shading.flag & V3D_SHADING_BACKFACE_CULLING)) {
+    return true;
+  }
+  if (v3d->shading.type == OB_RENDER &&
+      (t->scene->display.shading.flag & V3D_SHADING_BACKFACE_CULLING) &&
+      BKE_scene_uses_blender_workbench(t->scene)) {
+    return true;
+  }
+  if (t->settings->snap_flag & SCE_SNAP_BACKFACE_CULLING) {
+    return true;
+  }
+  return false;
+}
 
 bool validSnap(const TransInfo *t)
 {
@@ -315,8 +334,7 @@ void applyProject(TransInfo *t)
                       .snap_select = t->tsnap.modeSelect,
                       .use_object_edit_cage = (t->flag & T_EDIT) != 0,
                       .use_occlusion_test = false,
-                      .use_backface_culling = (t->scene->toolsettings->snap_flag &
-                                               SCE_SNAP_BACKFACE_CULLING) != 0,
+                      .use_backface_culling = t->tsnap.use_backface_culling,
                   },
                   mval_fl,
                   NULL,
@@ -601,6 +619,7 @@ static void initSnappingMode(TransInfo *t)
 
   if (t->spacetype == SPACE_VIEW3D) {
     if (t->tsnap.object_context == NULL) {
+      t->tsnap.use_backface_culling = snap_use_backface_culling(t);
       t->tsnap.object_context = ED_transform_snap_object_context_create_view3d(
           t->scene, 0, t->region, t->view);
 
@@ -1120,13 +1139,12 @@ short snapObjectsTransform(
   return ED_transform_snap_object_project_view3d_ex(
       t->tsnap.object_context,
       t->depsgraph,
-      t->scene->toolsettings->snap_mode,
+      t->settings->snap_mode,
       &(const struct SnapObjectParams){
           .snap_select = t->tsnap.modeSelect,
           .use_object_edit_cage = (t->flag & T_EDIT) != 0,
-          .use_occlusion_test = t->scene->toolsettings->snap_mode != SCE_SNAP_MODE_FACE,
-          .use_backface_culling = (t->scene->toolsettings->snap_flag &
-                                   SCE_SNAP_BACKFACE_CULLING) != 0,
+          .use_occlusion_test = t->settings->snap_mode != SCE_SNAP_MODE_FACE,
+          .use_backface_culling = t->tsnap.use_backface_culling,
       },
       mval,
       target,

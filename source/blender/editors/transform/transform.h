@@ -81,6 +81,7 @@ typedef struct TransSnap {
   bool snap_self;
   bool peel;
   bool snap_spatial_grid;
+  bool use_backface_culling;
   char status;
   /* Snapped Element Type (currently for objects only). */
   char snapElem;
