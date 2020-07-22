@@ -30,20 +30,19 @@
 
 #include "bl_math_py_api.h"
 
-/*------------------------------------------------------------*/
-/**
- * \name Module doc string
+/* -------------------------------------------------------------------- */
+/** \name Module Doc String
  * \{ */
 
-PyDoc_STRVAR(M_Math_doc, "Miscellaneous math utilities module");
+PyDoc_STRVAR(M_bl_math_doc, "Miscellaneous math utilities module");
 
 /** \} */
-/*------------------------------------------------------------*/
-/**
- * \name Python functions
+
+/* -------------------------------------------------------------------- */
+/** \name Python Functions
  * \{ */
 
-PyDoc_STRVAR(M_Math_clamp_doc,
+PyDoc_STRVAR(py_bl_math_clamp_doc,
              ".. function:: clamp(value, min=0, max=1)\n"
              "\n"
              "   Clamps the float value between minimum and maximum. To avoid\n"
@@ -57,7 +56,7 @@ PyDoc_STRVAR(M_Math_clamp_doc,
              "   :type max: float\n"
              "   :return: The clamped value.\n"
              "   :rtype: float\n");
-static PyObject *M_Math_clamp(PyObject *UNUSED(self), PyObject *args)
+static PyObject *py_bl_math_clamp(PyObject *UNUSED(self), PyObject *args)
 {
   double x, minv = 0.0, maxv = 1.0;
 
@@ -77,7 +76,7 @@ static PyObject *M_Math_clamp(PyObject *UNUSED(self), PyObject *args)
   return PyFloat_FromDouble(x);
 }
 
-PyDoc_STRVAR(M_Math_lerp_doc,
+PyDoc_STRVAR(py_bl_math_lerp_doc,
              ".. function:: lerp(from, to, factor)\n"
              "\n"
              "   Linearly interpolate between two float values based on factor.\n"
@@ -90,7 +89,7 @@ PyDoc_STRVAR(M_Math_lerp_doc,
              "   :type factor: float\n"
              "   :return: The interpolated value.\n"
              "   :rtype: float\n");
-static PyObject *M_Math_lerp(PyObject *UNUSED(self), PyObject *args)
+static PyObject *py_bl_math_lerp(PyObject *UNUSED(self), PyObject *args)
 {
   double a, b, x;
   if (!PyArg_ParseTuple(args, "ddd:lerp", &a, &b, &x)) {
@@ -101,7 +100,7 @@ static PyObject *M_Math_lerp(PyObject *UNUSED(self), PyObject *args)
 }
 
 PyDoc_STRVAR(
-    M_Math_smoothstep_doc,
+    py_bl_math_smoothstep_doc,
     ".. function:: smoothstep(from, to, value)\n"
     "\n"
     "   Performs smooth interpolation between 0 and 1 as value changes between from and to.\n"
@@ -115,7 +114,7 @@ PyDoc_STRVAR(
     "   :type factor: float\n"
     "   :return: The interpolated value in [0.0, 1.0].\n"
     "   :rtype: float\n");
-static PyObject *M_Math_smoothstep(PyObject *UNUSED(self), PyObject *args)
+static PyObject *py_bl_math_smoothstep(PyObject *UNUSED(self), PyObject *args)
 {
   double a, b, x;
   if (!PyArg_ParseTuple(args, "ddd:smoothstep", &a, &b, &x)) {
@@ -130,33 +129,33 @@ static PyObject *M_Math_smoothstep(PyObject *UNUSED(self), PyObject *args)
 }
 
 /** \} */
-/*------------------------------------------------------------*/
-/**
- * \name Module definition
+
+/* -------------------------------------------------------------------- */
+/** \name Module Definition
  * \{ */
 
-static PyMethodDef M_Math_methods[] = {
-    {"clamp", (PyCFunction)M_Math_clamp, METH_VARARGS, M_Math_clamp_doc},
-    {"lerp", (PyCFunction)M_Math_lerp, METH_VARARGS, M_Math_lerp_doc},
-    {"smoothstep", (PyCFunction)M_Math_smoothstep, METH_VARARGS, M_Math_smoothstep_doc},
+static PyMethodDef M_bl_math_methods[] = {
+    {"clamp", (PyCFunction)py_bl_math_clamp, METH_VARARGS, py_bl_math_clamp_doc},
+    {"lerp", (PyCFunction)py_bl_math_lerp, METH_VARARGS, py_bl_math_lerp_doc},
+    {"smoothstep", (PyCFunction)py_bl_math_smoothstep, METH_VARARGS, py_bl_math_smoothstep_doc},
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyModuleDef M_Math_module_def = {
+static struct PyModuleDef M_bl_math_module_def = {
     PyModuleDef_HEAD_INIT,
-    "bl_math",      /* m_name */
-    M_Math_doc,     /* m_doc */
-    0,              /* m_size */
-    M_Math_methods, /* m_methods */
-    NULL,           /* m_reload */
-    NULL,           /* m_traverse */
-    NULL,           /* m_clear */
-    NULL,           /* m_free */
+    "bl_math",         /* m_name */
+    M_bl_math_doc,     /* m_doc */
+    0,                 /* m_size */
+    M_bl_math_methods, /* m_methods */
+    NULL,              /* m_reload */
+    NULL,              /* m_traverse */
+    NULL,              /* m_clear */
+    NULL,              /* m_free */
 };
 
 PyMODINIT_FUNC BPyInit_bl_math(void)
 {
-  PyObject *submodule = PyModule_Create(&M_Math_module_def);
+  PyObject *submodule = PyModule_Create(&M_bl_math_module_def);
   return submodule;
 }
 
