@@ -112,6 +112,7 @@ static void simulation_copy_data(Main *bmain, ID *id_dst, const ID *id_src, cons
     BKE_simulation_state_copy_data(state_src, state_dst);
   }
 
+  BLI_listbase_clear(&simulation_dst->persistent_data_handles);
   BLI_duplicatelist(&simulation_dst->persistent_data_handles,
                     &simulation_src->persistent_data_handles);
 }

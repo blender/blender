@@ -257,6 +257,7 @@ static void update_persistent_data_handles(Simulation &simulation,
       PersistentDataHandleItem *, handle_item, &simulation.persistent_data_handles) {
     if (handle_item->id == nullptr) {
       BLI_remlink(&simulation.persistent_data_handles, handle_item);
+      MEM_freeN(handle_item);
       continue;
     }
     if (!used_data_blocks.contains(handle_item->id)) {
