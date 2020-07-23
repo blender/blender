@@ -1182,7 +1182,7 @@ static void node_find_update_fn(const struct bContext *C,
       else {
         BLI_strncpy(name, node->name, 256);
       }
-      if (!UI_search_item_add(items, name, node, ICON_NONE, 0)) {
+      if (!UI_search_item_add(items, name, node, ICON_NONE, 0, 0)) {
         break;
       }
     }

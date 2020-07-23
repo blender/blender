@@ -6431,7 +6431,8 @@ static void operator_enum_search_update_fn(const struct bContext *C,
       /* note: need to give the index rather than the
        * identifier because the enum can be freed */
       if (BLI_strcasestr(item->name, str)) {
-        if (!UI_search_item_add(items, item->name, POINTER_FROM_INT(item->value), item->icon, 0)) {
+        if (!UI_search_item_add(
+                items, item->name, POINTER_FROM_INT(item->value), item->icon, 0, 0)) {
           break;
         }
       }
