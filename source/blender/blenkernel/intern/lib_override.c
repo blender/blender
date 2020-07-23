@@ -1453,6 +1453,12 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
     /* This is some kind of hard-coded 'always enforced override'... */
     BKE_lib_id_swap(bmain, &local_key->id, &tmp_key->id);
     tmp_key->id.flag |= (local_key->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE);
+    /* The swap of local and tmp_id inverted those pointers, we need to redefine proper
+     * relationships. */
+    *BKE_key_from_id_p(local) = local_key;
+    *BKE_key_from_id_p(tmp_id) = tmp_key;
+    local_key->from = local;
+    tmp_key->from = tmp_id;
   }
 
   /* Again, horribly inn-efficient in our case, we need something off-Main
