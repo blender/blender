@@ -158,7 +158,7 @@ class GVArraySpan : public VArraySpanBase<void> {
     this->type_ = &array.type();
     this->virtual_size_ = virtual_size;
     this->category_ = VArraySpanCategory::SingleArray;
-    this->data_.single_array.start = array.buffer();
+    this->data_.single_array.start = array.data();
     this->data_.single_array.size = array.size();
   }
 

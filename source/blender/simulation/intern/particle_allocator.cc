@@ -68,7 +68,7 @@ fn::MutableAttributesRef ParticleAllocator::allocate(int size)
       }
     }
     else {
-      type.fill_uninitialized(info.default_of(i), attributes.get(i).buffer(), size);
+      type.fill_uninitialized(info.default_of(i), attributes.get(i).data(), size);
     }
   }
   return attributes;

@@ -234,7 +234,7 @@ BLI_NOINLINE static void remove_dead_and_add_new_particles(ParticleSimulationSta
     if (layer.data != nullptr) {
       MEM_freeN(layer.data);
     }
-    layer.data = new_buffer.buffer();
+    layer.data = new_buffer.data();
   }
 
   BLI_assert(dead_layer != nullptr);

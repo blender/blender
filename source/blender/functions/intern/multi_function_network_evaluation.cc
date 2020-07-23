@@ -390,7 +390,7 @@ BLI_NOINLINE void MFNetworkEvaluator::initialize_remaining_outputs(
       case MFDataType::Single: {
         GVSpan values = storage.get_single_input__full(*socket);
         GMutableSpan output_values = params.uninitialized_single_output(param_index);
-        values.materialize_to_uninitialized(storage.mask(), output_values.buffer());
+        values.materialize_to_uninitialized(storage.mask(), output_values.data());
         break;
       }
       case MFDataType::Vector: {
@@ -524,11 +524,11 @@ MFNetworkEvaluationStorage::~MFNetworkEvaluationStorage()
       GMutableSpan span = value->span;
       const CPPType &type = span.type();
       if (value->is_single_allocated) {
-        type.destruct(span.buffer());
+        type.destruct(span.data());
       }
       else {
-        type.destruct_indices(span.buffer(), mask_);
-        MEM_freeN(span.buffer());
+        type.destruct_indices(span.data(), mask_);
+        MEM_freeN(span.data());
       }
     }
     else if (any_value->type == ValueType::OwnVector) {
@@ -634,11 +634,11 @@ void MFNetworkEvaluationStorage::finish_input_socket(const MFInputSocket &socket
         GMutableSpan span = value->span;
         const CPPType &type = span.type();
         if (value->is_single_allocated) {
-          type.destruct(span.buffer());
+          type.destruct(span.data());
         }
         else {
-          type.destruct_indices(span.buffer(), mask_);
-          MEM_freeN(span.buffer());
+          type.destruct_indices(span.data(), mask_);
+          MEM_freeN(span.data());
         }
         value_per_output_id_[origin.id()] = nullptr;
       }
@@ -791,7 +791,7 @@ GMutableSpan MFNetworkEvaluationStorage::get_mutable_single__full(const MFInputS
     BLI_assert(to_any_value->type == ValueType::OutputSingle);
     GMutableSpan span = ((OutputSingleValue *)to_any_value)->span;
     GVSpan virtual_span = this->get_single_input__full(input);
-    virtual_span.materialize_to_uninitialized(mask_, span.buffer());
+    virtual_span.materialize_to_uninitialized(mask_, span.data());
     return span;
   }
 
@@ -808,7 +808,7 @@ GMutableSpan MFNetworkEvaluationStorage::get_mutable_single__full(const MFInputS
   GVSpan virtual_span = this->get_single_input__full(input);
   void *new_buffer = MEM_mallocN_aligned(min_array_size_ * type.size(), type.alignment(), AT);
   GMutableSpan new_array_ref(type, new_buffer, min_array_size_);
-  virtual_span.materialize_to_uninitialized(mask_, new_array_ref.buffer());
+  virtual_span.materialize_to_uninitialized(mask_, new_array_ref.data());
 
   OwnSingleValue *new_value = allocator_.construct<OwnSingleValue>(
       new_array_ref, to.targets().size(), false);
@@ -953,7 +953,7 @@ GVSpan MFNetworkEvaluationStorage::get_single_input__full(const MFInputSocket &s
   if (any_value->type == ValueType::OwnSingle) {
     OwnSingleValue *value = (OwnSingleValue *)any_value;
     if (value->is_single_allocated) {
-      return GVSpan::FromSingle(value->span.type(), value->span.buffer(), min_array_size_);
+      return GVSpan::FromSingle(value->span.type(), value->span.data(), min_array_size_);
     }
     else {
       return value->span;

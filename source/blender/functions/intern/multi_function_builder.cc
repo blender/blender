@@ -34,7 +34,7 @@ void CustomMF_GenericConstant::call(IndexMask mask,
                                     MFContext UNUSED(context)) const
 {
   GMutableSpan output = params.uninitialized_single_output(0);
-  type_.fill_uninitialized_indices(value_, output.buffer(), mask);
+  type_.fill_uninitialized_indices(value_, output.data(), mask);
 }
 
 uint64_t CustomMF_GenericConstant::hash() const
@@ -111,7 +111,7 @@ void CustomMF_DefaultOutput::call(IndexMask mask, MFParams params, MFContext UNU
     if (param_type.data_type().is_single()) {
       GMutableSpan span = params.uninitialized_single_output(param_index);
       const CPPType &type = span.type();
-      type.fill_uninitialized_indices(type.default_value(), span.buffer(), mask);
+      type.fill_uninitialized_indices(type.default_value(), span.data(), mask);
     }
   }
 }

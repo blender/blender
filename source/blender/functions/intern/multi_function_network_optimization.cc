@@ -265,7 +265,7 @@ static Array<MFOutputSocket *> add_constant_folded_sockets(const MultiFunction &
       case MFDataType::Single: {
         const CPPType &cpp_type = data_type.single_type();
         GMutableSpan array = params.computed_array(param_index);
-        void *buffer = array.buffer();
+        void *buffer = array.data();
         resources.add(buffer, array.type().destruct_cb(), AT);
 
         constant_fn = &resources.construct<CustomMF_GenericConstant>(AT, cpp_type, buffer);
