@@ -278,6 +278,8 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
   state->prev_base_pose_type = settings->base_pose_type;
   state->prev_base_pose_object = settings->base_pose_object;
   state->is_view_data_set = true;
+  /* Assume this was already done through wm_xr_session_draw_data_update(). */
+  state->force_reset_to_base_pose = false;
 }
 
 wmXrSessionState *WM_xr_session_state_handle_get(const wmXrData *xr)
