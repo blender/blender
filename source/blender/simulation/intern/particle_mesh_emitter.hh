@@ -39,6 +39,8 @@ class ParticleMeshEmitter final : public ParticleEmitter {
   {
   }
 
+  ~ParticleMeshEmitter();
+
   void emit(ParticleEmitterContext &context) const override;
 };
 

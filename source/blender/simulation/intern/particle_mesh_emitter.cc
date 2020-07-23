@@ -28,6 +28,8 @@
 
 namespace blender::sim {
 
+ParticleMeshEmitter::~ParticleMeshEmitter() = default;
+
 struct EmitterSettings {
   Object *object;
   float rate;
