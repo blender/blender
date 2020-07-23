@@ -35,6 +35,7 @@
 #include "BKE_screen.h"
 #include "BKE_shader_fx.h"
 
+#include "ED_buttons.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_view3d.h" /* To draw toolbar UI. */
@@ -137,6 +138,98 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *region)
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Property Editor", SPACE_PROPERTIES, 0);
   WM_event_add_keymap_handler(&region->handlers, keymap);
+}
+
+/**
+ * Fills an array with the tab context values for the properties editor. -1 signals a separator.
+ *
+ * \return The total number of items in the array returned.
+ */
+int ED_buttons_tabs_list(SpaceProperties *sbuts, int *context_tabs_array)
+{
+  int length = 0;
+  if (sbuts->pathflag & (1 << BCONTEXT_TOOL)) {
+    context_tabs_array[length] = BCONTEXT_TOOL;
+    length++;
+  }
+  if (length != 0) {
+    context_tabs_array[length] = -1;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_RENDER)) {
+    context_tabs_array[length] = BCONTEXT_RENDER;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_OUTPUT)) {
+    context_tabs_array[length] = BCONTEXT_OUTPUT;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_VIEW_LAYER)) {
+    context_tabs_array[length] = BCONTEXT_VIEW_LAYER;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_SCENE)) {
+    context_tabs_array[length] = BCONTEXT_SCENE;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_WORLD)) {
+    context_tabs_array[length] = BCONTEXT_WORLD;
+    length++;
+  }
+  if (length != 0) {
+    context_tabs_array[length] = -1;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_OBJECT)) {
+    context_tabs_array[length] = BCONTEXT_OBJECT;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_MODIFIER)) {
+    context_tabs_array[length] = BCONTEXT_MODIFIER;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_SHADERFX)) {
+    context_tabs_array[length] = BCONTEXT_SHADERFX;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_PARTICLE)) {
+    context_tabs_array[length] = BCONTEXT_PARTICLE;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_PHYSICS)) {
+    context_tabs_array[length] = BCONTEXT_PHYSICS;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_CONSTRAINT)) {
+    context_tabs_array[length] = BCONTEXT_CONSTRAINT;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_DATA)) {
+    context_tabs_array[length] = BCONTEXT_DATA;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_BONE)) {
+    context_tabs_array[length] = BCONTEXT_BONE;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_BONE_CONSTRAINT)) {
+    context_tabs_array[length] = BCONTEXT_BONE_CONSTRAINT;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_MATERIAL)) {
+    context_tabs_array[length] = BCONTEXT_MATERIAL;
+    length++;
+  }
+  if (length != 0) {
+    context_tabs_array[length] = -1;
+    length++;
+  }
+  if (sbuts->pathflag & (1 << BCONTEXT_TEXTURE)) {
+    context_tabs_array[length] = BCONTEXT_TEXTURE;
+    length++;
+  }
+
+  return length;
 }
 
 static void buttons_main_region_layout_properties(const bContext *C,
