@@ -48,9 +48,19 @@ class ParticleForce {
 };
 
 struct SimulationInfluences {
+  /* TODO: Use a special type for a map that contains vectors. */
   Map<std::string, Vector<const ParticleForce *>> particle_forces;
   Map<std::string, fn::AttributesInfoBuilder *> particle_attributes_builder;
   Vector<const ParticleEmitter *> particle_emitters;
+
+  Span<const ParticleForce *> get_particle_forces(StringRef particle_name) const
+  {
+    const Vector<const ParticleForce *> *forces = particle_forces.lookup_ptr(particle_name);
+    if (forces == nullptr) {
+      return {};
+    }
+    return *forces;
+  }
 };
 
 class SimulationStateMap {

@@ -129,6 +129,41 @@ static void ensure_attributes_exist(ParticleSimulationState *state, const fn::At
   }
 }
 
+BLI_NOINLINE static void simulate_particle_chunk(SimulationSolveContext &solve_context,
+                                                 ParticleSimulationState &state,
+                                                 fn::MutableAttributesRef attributes,
+                                                 MutableSpan<float> remaining_durations,
+                                                 float end_time)
+{
+  int particle_amount = attributes.size();
+  Array<float3> force_vectors{particle_amount, {0, 0, 0}};
+  Span<const ParticleForce *> forces = solve_context.influences().get_particle_forces(
+      state.head.name);
+
+  ParticleChunkContext particle_chunk_context{IndexMask(particle_amount), attributes};
+  ParticleForceContext particle_force_context{
+      solve_context, particle_chunk_context, force_vectors};
+
+  for (const ParticleForce *force : forces) {
+    force->add_force(particle_force_context);
+  }
+
+  MutableSpan<float3> positions = attributes.get<float3>("Position");
+  MutableSpan<float3> velocities = attributes.get<float3>("Velocity");
+  MutableSpan<float> birth_times = attributes.get<float>("Birth Time");
+  MutableSpan<int> dead_states = attributes.get<int>("Dead");
+
+  for (int i : IndexRange(particle_amount)) {
+    const float time_step = remaining_durations[i];
+    velocities[i] += force_vectors[i] * time_step;
+    positions[i] += velocities[i] * time_step;
+
+    if (end_time - birth_times[i] > 2) {
+      dead_states[i] = true;
+    }
+  }
+}
+
 BLI_NOINLINE static void simulate_existing_particles(SimulationSolveContext &solve_context,
                                                      ParticleSimulationState &state,
                                                      const fn::AttributesInfo &attributes_info)
@@ -137,34 +172,9 @@ BLI_NOINLINE static void simulate_existing_particles(SimulationSolveContext &sol
       state.attributes, state.tot_particles, attributes_info};
   fn::MutableAttributesRef attributes = custom_data_attributes;
 
-  Array<float3> force_vectors{state.tot_particles, {0, 0, 0}};
-  const Vector<const ParticleForce *> *forces =
-      solve_context.influences().particle_forces.lookup_ptr(state.head.name);
-
-  if (forces != nullptr) {
-    ParticleChunkContext particle_chunk_context{IndexMask(state.tot_particles), attributes};
-    ParticleForceContext particle_force_context{
-        solve_context, particle_chunk_context, force_vectors};
-
-    for (const ParticleForce *force : *forces) {
-      force->add_force(particle_force_context);
-    }
-  }
-
-  MutableSpan<float3> positions = attributes.get<float3>("Position");
-  MutableSpan<float3> velocities = attributes.get<float3>("Velocity");
-  MutableSpan<float> birth_times = attributes.get<float>("Birth Time");
-  MutableSpan<int> dead_states = attributes.get<int>("Dead");
-  float end_time = solve_context.solve_interval().end();
-  float time_step = solve_context.solve_interval().duration();
-  for (int i : positions.index_range()) {
-    velocities[i] += force_vectors[i] * time_step;
-    positions[i] += velocities[i] * time_step;
-
-    if (end_time - birth_times[i] > 2) {
-      dead_states[i] = true;
-    }
-  }
+  Array<float> remaining_durations(state.tot_particles, solve_context.solve_interval().duration());
+  simulate_particle_chunk(
+      solve_context, state, attributes, remaining_durations, solve_context.solve_interval().end());
 }
 
 BLI_NOINLINE static void run_emitters(SimulationSolveContext &solve_context,
@@ -301,6 +311,17 @@ void solve_simulation_time_step(Simulation &simulation,
 
   for (ParticleSimulationState *state : particle_simulation_states) {
     ParticleAllocator &allocator = *particle_allocators.try_get_allocator(state->head.name);
+
+    for (fn::MutableAttributesRef attributes : allocator.get_allocations()) {
+      Array<float> remaining_durations(attributes.size());
+      Span<float> birth_times = attributes.get<float>("Birth Time");
+      const float end_time = solve_context.solve_interval().end();
+      for (int i : attributes.index_range()) {
+        remaining_durations[i] = end_time - birth_times[i];
+      }
+      simulate_particle_chunk(solve_context, *state, attributes, remaining_durations, end_time);
+    }
+
     remove_dead_and_add_new_particles(*state, allocator);
   }
 
