@@ -51,6 +51,7 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
+#include "GPU_platform.h"
 #include "GPU_state.h"
 
 #ifdef WITH_INPUT_IME
@@ -1374,6 +1375,26 @@ void UI_widgetbase_draw_cache_end(void)
   GPU_blend(false);
 }
 
+/* Disable cached/instanced drawing and enforce single widget drawing pipeline.
+ * Works around interface artifacts happening on certain driver and hardware
+ * configurations. */
+static bool draw_widgetbase_batch_skip_draw_cache(void)
+{
+  /* MacOS is known to have issues on Mac Mini and MacBook Pro with Intel Iris GPU.
+   * For example, T78307. */
+  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY)) {
+    return true;
+  }
+
+  /* There are also reports that some AMD and Mesa driver configuration suffer from the
+   * same issue, T78803. */
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
+    return true;
+  }
+
+  return false;
+}
+
 static void draw_widgetbase_batch(GPUBatch *batch, uiWidgetBase *wtb)
 {
   wtb->uniform_params.tria1_size = wtb->tria1.size;
@@ -1381,7 +1402,7 @@ static void draw_widgetbase_batch(GPUBatch *batch, uiWidgetBase *wtb)
   copy_v2_v2(wtb->uniform_params.tria1_center, wtb->tria1.center);
   copy_v2_v2(wtb->uniform_params.tria2_center, wtb->tria2.center);
 
-  if (g_widget_base_batch.enabled) {
+  if (g_widget_base_batch.enabled && !draw_widgetbase_batch_skip_draw_cache()) {
     if (g_widget_base_batch.batch == NULL) {
       g_widget_base_batch.batch = ui_batch_roundbox_widget_get(ROUNDBOX_TRIA_ARROWS);
     }
