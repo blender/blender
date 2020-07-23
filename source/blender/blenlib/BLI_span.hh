@@ -609,6 +609,17 @@ template<typename T> class MutableSpan {
   }
 
   /**
+   * Copy all values from another span into this span. This invokes undefined behavior when the
+   * destination contains uninitialized data and T is not trivially copy constructible.
+   * The size of both spans is expected to be the same.
+   */
+  void copy_from(Span<T> values)
+  {
+    BLI_assert(size_ == values.size());
+    initialized_copy_n(values.data(), size_, start_);
+  }
+
+  /**
    * Returns a new span to the same underlying memory buffer. No conversions are done.
    */
   template<typename NewT> MutableSpan<NewT> cast() const

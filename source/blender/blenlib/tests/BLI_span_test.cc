@@ -295,4 +295,17 @@ TEST(span, VoidPointerSpan)
   func1({&a, &b, &c});
 }
 
+TEST(span, CopyFrom)
+{
+  std::array<int, 4> src = {5, 6, 7, 8};
+  std::array<int, 4> dst = {1, 2, 3, 4};
+
+  EXPECT_EQ(dst[2], 3);
+  MutableSpan(dst).copy_from(src);
+  EXPECT_EQ(dst[0], 5);
+  EXPECT_EQ(dst[1], 6);
+  EXPECT_EQ(dst[2], 7);
+  EXPECT_EQ(dst[3], 8);
+}
+
 }  // namespace blender::tests
