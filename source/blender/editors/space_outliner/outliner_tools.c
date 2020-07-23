@@ -867,11 +867,17 @@ static void id_select_linked_cb(bContext *C,
 static void singleuser_action_cb(bContext *C,
                                  ReportList *UNUSED(reports),
                                  Scene *UNUSED(scene),
-                                 TreeElement *UNUSED(te),
+                                 TreeElement *te,
                                  TreeStoreElem *tsep,
                                  TreeStoreElem *tselem,
                                  void *UNUSED(user_data))
 {
+  /* This callback runs for all selected elements, some of which may not be actions which results
+   * in a crash. */
+  if (te->idcode != ID_AC) {
+    return;
+  }
+
   ID *id = tselem->id;
 
   if (id) {
