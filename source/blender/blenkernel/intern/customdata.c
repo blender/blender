@@ -2643,11 +2643,13 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
   }
 
   if (alloctype == CD_DUPLICATE && layerdata) {
-    if (typeInfo->copy) {
-      typeInfo->copy(layerdata, newlayerdata, totelem);
-    }
-    else {
-      memcpy(newlayerdata, layerdata, (size_t)totelem * typeInfo->size);
+    if (totelem > 0) {
+      if (typeInfo->copy) {
+        typeInfo->copy(layerdata, newlayerdata, totelem);
+      }
+      else {
+        memcpy(newlayerdata, layerdata, (size_t)totelem * typeInfo->size);
+      }
     }
   }
   else if (alloctype == CD_DEFAULT) {
