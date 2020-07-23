@@ -267,6 +267,7 @@ set(SRC
   BLI_utility_mixins.hh
   BLI_uvproject.h
   BLI_vector.hh
+  BLI_vector_adaptor.hh
   BLI_vector_set.hh
   BLI_vector_set_slots.hh
   BLI_vfontdata.h

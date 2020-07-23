@@ -586,10 +586,10 @@ static bNodeSocketType *make_socket_type_string()
 
 class ObjectSocketMultiFunction : public blender::fn::MultiFunction {
  private:
-  const Object *object_;
+  Object *object_;
 
  public:
-  ObjectSocketMultiFunction(const Object *object) : object_(object)
+  ObjectSocketMultiFunction(Object *object) : object_(object)
   {
     blender::fn::MFSignatureBuilder signature = this->get_builder("Object Socket");
     signature.depends_on_context();
@@ -631,7 +631,7 @@ static bNodeSocketType *make_socket_type_object()
     return blender::fn::MFDataType::ForSingle<blender::bke::PersistentObjectHandle>();
   };
   socktype->expand_in_mf_network = [](blender::nodes::SocketMFNetworkBuilder &builder) {
-    const Object *object = builder.socket_default_value<bNodeSocketValueObject>()->value;
+    Object *object = builder.socket_default_value<bNodeSocketValueObject>()->value;
     builder.construct_generator_fn<ObjectSocketMultiFunction>(object);
   };
   return socktype;

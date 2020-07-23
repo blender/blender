@@ -63,6 +63,15 @@ class RandomNumberGenerator {
   }
 
   /**
+   * \return Random value (0..N), but never N.
+   */
+  int32_t get_int32(int32_t max_exclusive)
+  {
+    BLI_assert(max_exclusive > 0);
+    return this->get_int32() % max_exclusive;
+  }
+
+  /**
    * \return Random value (0..1), but never 1.0.
    */
   double get_double()
@@ -76,6 +85,35 @@ class RandomNumberGenerator {
   float get_float()
   {
     return (float)this->get_int32() / 0x80000000;
+  }
+
+  template<typename T> void shuffle(MutableSpan<T> values)
+  {
+    /* Cannot shuffle arrays of this size yet. */
+    BLI_assert(values.size() <= INT32_MAX);
+
+    for (int i = values.size() - 1; i >= 2; i--) {
+      int j = this->get_int32(i);
+      if (i != j) {
+        std::swap(values[i], values[j]);
+      }
+    }
+  }
+
+  /**
+   * Compute uniformly distributed barycentric coordinates.
+   */
+  float3 get_barycentric_coordinates()
+  {
+    float rand1 = this->get_float();
+    float rand2 = this->get_float();
+
+    if (rand1 + rand2 > 1.0f) {
+      rand1 = 1.0f - rand1;
+      rand2 = 1.0f - rand2;
+    }
+
+    return float3(rand1, rand2, 1.0f - rand1 - rand2);
   }
 
   float2 get_unit_float2();

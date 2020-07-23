@@ -71,8 +71,8 @@ struct float4x4 {
 
   float4x4 inverted() const
   {
-    float result[4][4];
-    invert_m4_m4(result, values);
+    float4x4 result;
+    invert_m4_m4(result.values, values);
     return result;
   }
 
@@ -84,6 +84,13 @@ struct float4x4 {
     BLI_assert(values[0][3] == 0.0f && values[1][3] == 0.0f && values[2][3] == 0.0f &&
                values[3][3] == 1.0f);
     return this->inverted();
+  }
+
+  float4x4 transposed() const
+  {
+    float4x4 result;
+    transpose_m4_m4(result.values, values);
+    return result;
   }
 
   struct float3x3_ref {

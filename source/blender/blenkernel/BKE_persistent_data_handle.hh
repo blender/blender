@@ -85,45 +85,45 @@ class PersistentObjectHandle : public PersistentIDHandle {
 
 class PersistentDataHandleMap {
  private:
-  Map<int32_t, const ID *> id_by_handle_;
-  Map<const ID *, int32_t> handle_by_id_;
+  Map<int32_t, ID *> id_by_handle_;
+  Map<ID *, int32_t> handle_by_id_;
 
  public:
-  void add(int32_t handle, const ID &id)
+  void add(int32_t handle, ID &id)
   {
     BLI_assert(handle >= 0);
     handle_by_id_.add(&id, handle);
     id_by_handle_.add(handle, &id);
   }
 
-  PersistentIDHandle lookup(const ID *id) const
+  PersistentIDHandle lookup(ID *id) const
   {
     const int handle = handle_by_id_.lookup_default(id, -1);
     return PersistentIDHandle(handle);
   }
 
-  PersistentObjectHandle lookup(const Object *object) const
+  PersistentObjectHandle lookup(Object *object) const
   {
-    const int handle = handle_by_id_.lookup_default((const ID *)object, -1);
+    const int handle = handle_by_id_.lookup_default((ID *)object, -1);
     return PersistentObjectHandle(handle);
   }
 
-  const ID *lookup(const PersistentIDHandle &handle) const
+  ID *lookup(const PersistentIDHandle &handle) const
   {
-    const ID *id = id_by_handle_.lookup_default(handle.handle_, nullptr);
+    ID *id = id_by_handle_.lookup_default(handle.handle_, nullptr);
     return id;
   }
 
-  const Object *lookup(const PersistentObjectHandle &handle) const
+  Object *lookup(const PersistentObjectHandle &handle) const
   {
-    const ID *id = this->lookup((const PersistentIDHandle &)handle);
+    ID *id = this->lookup((const PersistentIDHandle &)handle);
     if (id == nullptr) {
       return nullptr;
     }
     if (GS(id->name) != ID_OB) {
       return nullptr;
     }
-    return (const Object *)id;
+    return (Object *)id;
   }
 };
 

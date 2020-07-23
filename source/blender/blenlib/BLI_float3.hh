@@ -143,6 +143,17 @@ struct float3 {
     return normalize_v3(*this);
   }
 
+  /**
+   * Normalizes the vector inplace.
+   */
+  void normalize()
+  {
+    normalize_v3(*this);
+  }
+
+  /**
+   * Returns a normalized vector. The original vector is not changed.
+   */
   float3 normalized() const
   {
     float3 result;
