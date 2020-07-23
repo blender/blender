@@ -76,9 +76,9 @@ static int kill_selection(Object *obedit, int ins);
 /** \name Internal Utilities
  * \{ */
 
-static wchar_t findaccent(wchar_t char1, uint code)
+static char32_t findaccent(char32_t char1, uint code)
 {
-  wchar_t new = 0;
+  char32_t new = 0;
 
   if (char1 == 'a') {
     if (code == '`') {
@@ -1661,7 +1661,7 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   uintptr_t ascii = event->ascii;
   int alt = event->alt, shift = event->shift, ctrl = event->ctrl;
   int event_type = event->type, event_val = event->val;
-  wchar_t inserted_text[2] = {0};
+  char32_t inserted_text[2] = {0};
 
   if (RNA_struct_property_is_set(op->ptr, "text")) {
     return insert_text_exec(C, op);
@@ -1733,7 +1733,7 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     /* store as utf8 in RNA string */
     char inserted_utf8[8] = {0};
 
-    BLI_strncpy_wchar_as_utf8(inserted_utf8, inserted_text, sizeof(inserted_utf8));
+    BLI_str_utf32_as_utf8(inserted_utf8, inserted_text, sizeof(inserted_utf8));
     RNA_string_set(op->ptr, "text", inserted_utf8);
   }
 
@@ -1876,7 +1876,7 @@ void ED_curve_editfont_make(Object *obedit)
     ef->textbufinfo = MEM_callocN((MAXTEXT + 4) * sizeof(CharInfo), "texteditbufinfo");
   }
 
-  /* Convert the original text to wchar_t */
+  /* Convert the original text to chat32_t. */
   len_char32 = BLI_str_utf8_as_utf32(ef->textbuf, cu->str, MAXTEXT + 4);
   BLI_assert(len_char32 == cu->len_char32);
   ef->len = len_char32;
