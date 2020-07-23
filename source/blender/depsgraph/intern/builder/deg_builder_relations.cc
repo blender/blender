@@ -2275,7 +2275,7 @@ void DepsgraphRelationBuilder::build_light(Light *lamp)
   add_relation(lamp_parameters_key, shading_key, "Light Shading Parameters");
 }
 
-void DepsgraphRelationBuilder::build_nodetree_socket(bNodeTree *ntree, bNodeSocket *socket)
+void DepsgraphRelationBuilder::build_nodetree_socket(bNodeSocket *socket)
 {
   build_idproperties(socket->prop);
 
@@ -2309,10 +2309,10 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
   LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
     build_idproperties(bnode->prop);
     LISTBASE_FOREACH (bNodeSocket *, socket, &bnode->inputs) {
-      build_nodetree_socket(ntree, socket);
+      build_nodetree_socket(socket);
     }
     LISTBASE_FOREACH (bNodeSocket *, socket, &bnode->outputs) {
-      build_nodetree_socket(ntree, socket);
+      build_nodetree_socket(socket);
     }
 
     ID *id = bnode->id;
