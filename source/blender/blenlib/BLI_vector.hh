@@ -561,7 +561,7 @@ class Vector {
 
   /**
    * Return a reference to the last element in the vector.
-   * This will assert when the vector is empty.
+   * This invokes undefined behavior when the vector is empty.
    */
   const T &last() const
   {

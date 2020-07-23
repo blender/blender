@@ -50,52 +50,56 @@ class MFParamsBuilder {
 
   MFParamsBuilder(const class MultiFunction &fn, int64_t min_array_size);
 
-  template<typename T> void add_readonly_single_input(const T *value)
+  template<typename T> void add_readonly_single_input(const T *value, StringRef expected_name = "")
   {
-    this->add_readonly_single_input(GVSpan::FromSingle(CPPType::get<T>(), value, min_array_size_));
+    this->add_readonly_single_input(GVSpan::FromSingle(CPPType::get<T>(), value, min_array_size_),
+                                    expected_name);
   }
-  void add_readonly_single_input(GVSpan ref)
+  void add_readonly_single_input(GVSpan ref, StringRef expected_name = "")
   {
-    this->assert_current_param_type(MFParamType::ForSingleInput(ref.type()));
+    this->assert_current_param_type(MFParamType::ForSingleInput(ref.type()), expected_name);
     BLI_assert(ref.size() >= min_array_size_);
     virtual_spans_.append(ref);
   }
 
-  void add_readonly_vector_input(GVArraySpan ref)
+  void add_readonly_vector_input(GVArraySpan ref, StringRef expected_name = "")
   {
-    this->assert_current_param_type(MFParamType::ForVectorInput(ref.type()));
+    this->assert_current_param_type(MFParamType::ForVectorInput(ref.type()), expected_name);
     BLI_assert(ref.size() >= min_array_size_);
     virtual_array_spans_.append(ref);
   }
 
-  template<typename T> void add_uninitialized_single_output(T *value)
+  template<typename T> void add_uninitialized_single_output(T *value, StringRef expected_name = "")
   {
-    this->add_uninitialized_single_output(GMutableSpan(CPPType::get<T>(), value, 1));
+    this->add_uninitialized_single_output(GMutableSpan(CPPType::get<T>(), value, 1),
+                                          expected_name);
   }
-  void add_uninitialized_single_output(GMutableSpan ref)
+  void add_uninitialized_single_output(GMutableSpan ref, StringRef expected_name = "")
   {
-    this->assert_current_param_type(MFParamType::ForSingleOutput(ref.type()));
+    this->assert_current_param_type(MFParamType::ForSingleOutput(ref.type()), expected_name);
     BLI_assert(ref.size() >= min_array_size_);
     mutable_spans_.append(ref);
   }
 
-  void add_vector_output(GVectorArray &vector_array)
+  void add_vector_output(GVectorArray &vector_array, StringRef expected_name = "")
   {
-    this->assert_current_param_type(MFParamType::ForVectorOutput(vector_array.type()));
+    this->assert_current_param_type(MFParamType::ForVectorOutput(vector_array.type()),
+                                    expected_name);
     BLI_assert(vector_array.size() >= min_array_size_);
     vector_arrays_.append(&vector_array);
   }
 
-  void add_single_mutable(GMutableSpan ref)
+  void add_single_mutable(GMutableSpan ref, StringRef expected_name = "")
   {
-    this->assert_current_param_type(MFParamType::ForMutableSingle(ref.type()));
+    this->assert_current_param_type(MFParamType::ForMutableSingle(ref.type()), expected_name);
     BLI_assert(ref.size() >= min_array_size_);
     mutable_spans_.append(ref);
   }
 
-  void add_vector_mutable(GVectorArray &vector_array)
+  void add_vector_mutable(GVectorArray &vector_array, StringRef expected_name = "")
   {
-    this->assert_current_param_type(MFParamType::ForMutableVector(vector_array.type()));
+    this->assert_current_param_type(MFParamType::ForMutableVector(vector_array.type()),
+                                    expected_name);
     BLI_assert(vector_array.size() >= min_array_size_);
     vector_arrays_.append(&vector_array);
   }
@@ -119,11 +123,17 @@ class MFParamsBuilder {
   }
 
  private:
-  void assert_current_param_type(MFParamType param_type)
+  void assert_current_param_type(MFParamType param_type, StringRef expected_name = "")
   {
-    UNUSED_VARS_NDEBUG(param_type);
+    UNUSED_VARS_NDEBUG(param_type, expected_name);
 #ifdef DEBUG
     int param_index = this->current_param_index();
+
+    if (expected_name != "") {
+      StringRef actual_name = signature_->param_names[param_index];
+      BLI_assert(actual_name == expected_name);
+    }
+
     MFParamType expected_type = signature_->param_types[param_index];
     BLI_assert(expected_type == param_type);
 #endif

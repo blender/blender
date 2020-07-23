@@ -21,7 +21,7 @@
 
 #include "BLI_resource_collector.hh"
 
-#include "simulation_solver.hh"
+#include "simulation_solver_influences.hh"
 
 namespace blender::sim {
 

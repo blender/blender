@@ -16,6 +16,7 @@
 
 #include "simulation_collect_influences.hh"
 #include "particle_function.hh"
+#include "particle_mesh_emitter.hh"
 
 #include "FN_attributes_ref.hh"
 #include "FN_multi_function_network_evaluation.hh"
@@ -279,83 +280,6 @@ static void collect_forces(nodes::MFNetworkTreeMap &network_map,
   }
 }
 
-class MyBasicEmitter : public ParticleEmitter {
- private:
-  Array<std::string> names_;
-  std::string my_state_;
-  const fn::MultiFunction &inputs_fn_;
-  uint32_t seed_;
-
- public:
-  MyBasicEmitter(Array<std::string> names,
-                 std::string my_state,
-                 const fn::MultiFunction &inputs_fn,
-                 uint32_t seed)
-      : names_(std::move(names)),
-        my_state_(std::move(my_state)),
-        inputs_fn_(inputs_fn),
-        seed_(seed)
-  {
-  }
-
-  void emit(ParticleEmitterContext &context) const override
-  {
-    auto *state = context.solve_context().state_map().lookup<ParticleMeshEmitterSimulationState>(
-        my_state_);
-    if (state == nullptr) {
-      return;
-    }
-
-    fn::MFContextBuilder mf_context;
-    mf_context.add_global_context("PersistentDataHandleMap",
-                                  &context.solve_context().handle_map());
-
-    fn::MFParamsBuilder mf_params{inputs_fn_, 1};
-    bke::PersistentObjectHandle object_handle;
-    float rate;
-    mf_params.add_uninitialized_single_output(&object_handle);
-    mf_params.add_uninitialized_single_output(&rate);
-    inputs_fn_.call(IndexRange(1), mf_params, mf_context);
-
-    const Object *object = context.solve_context().handle_map().lookup(object_handle);
-    if (object == nullptr) {
-      return;
-    }
-
-    Vector<float3> new_positions;
-    Vector<float3> new_velocities;
-    Vector<float> new_birth_times;
-
-    TimeInterval time_interval = context.simulation_time_interval();
-    float start_time = time_interval.start();
-    RandomNumberGenerator rng{(*(uint32_t *)&start_time) ^ seed_};
-
-    const float time_between_particles = 1.0f / rate;
-    while (state->last_birth_time + time_between_particles < time_interval.end()) {
-      new_positions.append(rng.get_unit_float3() * 0.3 + float3(object->loc));
-      new_velocities.append(rng.get_unit_float3());
-      const float birth_time = state->last_birth_time + time_between_particles;
-      new_birth_times.append(birth_time);
-      state->last_birth_time = birth_time;
-    }
-
-    for (StringRef name : names_) {
-      ParticleAllocator *allocator = context.try_get_particle_allocator(name);
-      if (allocator == nullptr) {
-        return;
-      }
-
-      int amount = new_positions.size();
-      fn::MutableAttributesRef attributes = allocator->allocate(amount);
-
-      initialized_copy_n(new_positions.data(), amount, attributes.get<float3>("Position").data());
-      initialized_copy_n(new_velocities.data(), amount, attributes.get<float3>("Velocity").data());
-      initialized_copy_n(
-          new_birth_times.data(), amount, attributes.get<float>("Birth Time").data());
-    }
-  }
-};
-
 static Vector<const nodes::DNode *> find_linked_particle_simulations(
     const nodes::DOutputSocket &output_socket)
 {
@@ -396,11 +320,10 @@ static ParticleEmitter *create_particle_emitter(const nodes::DNode &dnode,
   fn::MultiFunction &inputs_fn = resources.construct<fn::MFNetworkEvaluator>(
       AT, Span<const fn::MFOutputSocket *>(), input_sockets.as_span());
 
-  std::string my_state_name = dnode_to_path(dnode);
-  r_required_states.add(my_state_name, SIM_TYPE_NAME_PARTICLE_MESH_EMITTER);
-  uint32_t seed = DefaultHash<std::string>{}(my_state_name);
-  ParticleEmitter &emitter = resources.construct<MyBasicEmitter>(
-      AT, std::move(names), std::move(my_state_name), inputs_fn, seed);
+  std::string own_state_name = dnode_to_path(dnode);
+  r_required_states.add(own_state_name, SIM_TYPE_NAME_PARTICLE_MESH_EMITTER);
+  ParticleEmitter &emitter = resources.construct<ParticleMeshEmitter>(
+      AT, std::move(own_state_name), std::move(names), inputs_fn);
   return &emitter;
 }
 
