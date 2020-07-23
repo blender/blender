@@ -119,8 +119,11 @@ class PREFERENCES_OT_copy_prev(Operator):
         # Find config folder from previous version.
         import os
         version = bpy.app.version
+        version_new = ((version[0] * 100) + version[1])
         version_old = ((version[0] * 100) + version[1]) - 1
-        while version_old % 10 > 0:
+        # Ensure we only try to copy files from a point release.
+        # The check below ensures the second numbers match.
+        while (version_new % 100) // 10 == (version_old % 100) // 10:
             version_split = version_old // 100, version_old % 100
             if os.path.isdir(cls._old_version_path(version_split)):
                 return version_split
