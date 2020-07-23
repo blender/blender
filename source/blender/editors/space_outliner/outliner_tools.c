@@ -754,12 +754,11 @@ static void id_override_library_create_cb(bContext *C,
 {
   BLI_assert(TSE_IS_REAL_ID(tselem));
   ID *id_root = tselem->id;
+  OutlinerLibOverrideData *data = user_data;
+  const bool do_hierarchy = data->do_hierarchy;
 
-  if (ID_IS_LINKED(id_root) &&
-      (BKE_idtype_get_info_from_id(id_root)->flags & IDTYPE_FLAGS_NO_LIBLINKING) == 0) {
+  if (ID_IS_OVERRIDABLE_LIBRARY(id_root) || (ID_IS_LINKED(id_root) && do_hierarchy)) {
     Main *bmain = CTX_data_main(C);
-    OutlinerLibOverrideData *data = user_data;
-    const bool do_hierarchy = data->do_hierarchy;
 
     id_root->tag |= LIB_TAG_DOIT;
 
