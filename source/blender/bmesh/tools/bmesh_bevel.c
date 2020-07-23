@@ -835,6 +835,7 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
   BMFace *bmf, *bmf_other;
   BMEdge *bme;
   BMFace **stack;
+  bool *in_stack;
   BMIter eiter, fiter;
 
   bp->math_layer_info.has_math_layers = false;
@@ -855,24 +856,29 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
   face_component = BLI_memarena_alloc(bp->mem_arena, totface * sizeof(int));
   bp->math_layer_info.face_component = face_component;
 
+  /* Use an array as a stack. Stack size can't exceed total faces if keep track of what is in
+   * stack. */
+  stack = MEM_malloc_arrayN(totface, sizeof(BMFace *), __func__);
+  in_stack = MEM_malloc_arrayN(totface, sizeof(bool), __func__);
+
   /* Set all component ids by DFS from faces with unassigned components. */
   for (f = 0; f < totface; f++) {
     face_component[f] = -1;
+    in_stack[f] = false;
   }
   current_component = -1;
-
-  /* Use an array as a stack. Stack size can't exceed double total faces. */
-  stack = MEM_malloc_arrayN(2 * totface, sizeof(BMFace *), __func__);
   for (f = 0; f < totface; f++) {
-    if (face_component[f] == -1) {
+    if (face_component[f] == -1 && !in_stack[f]) {
       stack_top = 0;
       current_component++;
-      BLI_assert(stack_top < 2 * totface);
+      BLI_assert(stack_top < totface);
       stack[stack_top] = BM_face_at_index(bm, f);
+      in_stack[f] = true;
       while (stack_top >= 0) {
         bmf = stack[stack_top];
         stack_top--;
         bmf_index = BM_elem_index_get(bmf);
+        in_stack[bmf_index] = false;
         if (face_component[bmf_index] != -1) {
           continue;
         }
@@ -885,13 +891,14 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
           BM_ITER_ELEM (bmf_other, &fiter, bme, BM_FACES_OF_EDGE) {
             if (bmf_other != bmf) {
               bmf_other_index = BM_elem_index_get(bmf_other);
-              if (face_component[bmf_other_index] != -1) {
+              if (face_component[bmf_other_index] != -1 || in_stack[bmf_other_index]) {
                 continue;
               }
               if (contig_ldata_across_edge(bm, bme, bmf, bmf_other)) {
                 stack_top++;
-                BLI_assert(stack_top < 2 * totface);
+                BLI_assert(stack_top < totface);
                 stack[stack_top] = bmf_other;
+                in_stack[bmf_other_index] = true;
               }
             }
           }
@@ -900,6 +907,7 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
     }
   }
   MEM_freeN(stack);
+  MEM_freeN(in_stack);
 }
 
 /**
@@ -909,7 +917,7 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
  * segment (and its continuation into vmesh) can usually arbitrarily be
  * the previous face or the next face.
  * Or, for the center polygon of a corner, all of the faces around
- * the vertex are possible choices.
+ * the vertex are possibleface_component choices.
  * If we just choose randomly, the resulting UV maps or material
  * assignment can look ugly/inconsistent.
  * Allow for the case when arguments are null.
