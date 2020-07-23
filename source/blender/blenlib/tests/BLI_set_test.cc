@@ -12,6 +12,7 @@
 #include "testing/testing.h"
 
 namespace blender {
+namespace tests {
 
 TEST(set, DefaultConstructor)
 {
@@ -81,7 +82,7 @@ TEST(set, MoveConstructor)
   Set<int> set = {1, 2, 3};
   EXPECT_EQ(set.size(), 3);
   Set<int> set2(std::move(set));
-  EXPECT_EQ(set.size(), 0);
+  EXPECT_EQ(set.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(set2.size(), 3);
 }
 
@@ -106,7 +107,7 @@ TEST(set, MoveAssignment)
   EXPECT_EQ(set.size(), 3);
   Set<int> set2;
   set2 = std::move(set);
-  EXPECT_EQ(set.size(), 0);
+  EXPECT_EQ(set.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(set2.size(), 3);
 }
 
@@ -279,30 +280,31 @@ struct Type2 {
   uint32_t value;
 };
 
-bool operator==(const Type1 &a, const Type1 &b)
+static bool operator==(const Type1 &a, const Type1 &b)
 {
   return a.value == b.value;
 }
-bool operator==(const Type1 &a, const Type2 &b)
-{
-  return a.value == b.value;
-}
-bool operator==(const Type2 &a, const Type1 &b)
+static bool operator==(const Type2 &a, const Type1 &b)
 {
   return a.value == b.value;
 }
 
-template<> struct DefaultHash<Type1> {
-  uint32_t operator()(const Type1 &value) const
+}  // namespace tests
+
+/* This has to be defined in ::blender namespace. */
+template<> struct DefaultHash<tests::Type1> {
+  uint32_t operator()(const tests::Type1 &value) const
   {
     return value.value;
   }
 
-  uint32_t operator()(const Type2 &value) const
+  uint32_t operator()(const tests::Type2 &value) const
   {
     return value.value;
   }
 };
+
+namespace tests {
 
 TEST(set, ContainsAs)
 {
@@ -559,4 +561,5 @@ TEST(set, Benchmark)
 
 #endif /* Benchmark */
 
+}  // namespace tests
 }  // namespace blender

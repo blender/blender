@@ -5,7 +5,7 @@
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-namespace blender {
+namespace blender::tests {
 
 TEST(string_ref_null, DefaultConstructor)
 {
@@ -274,4 +274,4 @@ TEST(string_ref, Copy)
   EXPECT_EQ(ref, dst);
 }
 
-}  // namespace blender
+}  // namespace blender::tests

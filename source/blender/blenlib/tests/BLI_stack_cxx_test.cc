@@ -5,7 +5,7 @@
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-namespace blender {
+namespace blender::tests {
 
 TEST(stack, DefaultConstructor)
 {
@@ -45,7 +45,7 @@ TEST(stack, MoveConstructor)
 {
   Stack<int> stack1 = {1, 2, 3, 4, 5, 6, 7};
   Stack<int> stack2 = std::move(stack1);
-  EXPECT_EQ(stack1.size(), 0);
+  EXPECT_EQ(stack1.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(stack2.size(), 7);
   for (int i = 7; i >= 1; i--) {
     EXPECT_EQ(stack2.pop(), i);
@@ -75,7 +75,7 @@ TEST(stack, MoveAssignment)
   Stack<int> stack1 = {1, 2, 3, 4, 5, 6, 7};
   Stack<int> stack2 = {5, 3, 7, 2, 2};
   stack2 = std::move(stack1);
-  EXPECT_EQ(stack1.size(), 0);
+  EXPECT_EQ(stack1.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(stack2.size(), 7);
   for (int i = 7; i >= 1; i--) {
     EXPECT_EQ(stack2.pop(), i);
@@ -185,4 +185,4 @@ TEST(stack, OveralignedValues)
   }
 }
 
-}  // namespace blender
+}  // namespace blender::tests

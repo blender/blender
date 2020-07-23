@@ -5,7 +5,7 @@
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-namespace blender {
+namespace blender::tests {
 
 TEST(span, FromSmallVector)
 {
@@ -295,4 +295,4 @@ TEST(span, VoidPointerSpan)
   func1({&a, &b, &c});
 }
 
-}  // namespace blender
+}  // namespace blender::tests

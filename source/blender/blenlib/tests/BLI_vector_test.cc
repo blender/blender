@@ -5,7 +5,7 @@
 #include "testing/testing.h"
 #include <forward_list>
 
-namespace blender {
+namespace blender::tests {
 
 TEST(vector, DefaultConstructor)
 {
@@ -167,7 +167,7 @@ TEST(vector, MoveConstructor)
   Vector<int> vec1 = {1, 2, 3, 4};
   Vector<int> vec2(std::move(vec1));
 
-  EXPECT_EQ(vec1.size(), 0);
+  EXPECT_EQ(vec1.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(vec2.size(), 4);
   EXPECT_EQ(vec2[0], 1);
   EXPECT_EQ(vec2[1], 2);
@@ -180,7 +180,7 @@ TEST(vector, MoveConstructor2)
   Vector<int, 2> vec1 = {1, 2, 3, 4};
   Vector<int, 3> vec2(std::move(vec1));
 
-  EXPECT_EQ(vec1.size(), 0);
+  EXPECT_EQ(vec1.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(vec2.size(), 4);
   EXPECT_EQ(vec2[0], 1);
   EXPECT_EQ(vec2[1], 2);
@@ -193,7 +193,7 @@ TEST(vector, MoveConstructor3)
   Vector<int, 20> vec1 = {1, 2, 3, 4};
   Vector<int, 1> vec2(std::move(vec1));
 
-  EXPECT_EQ(vec1.size(), 0);
+  EXPECT_EQ(vec1.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(vec2.size(), 4);
   EXPECT_EQ(vec2[2], 3);
 }
@@ -203,7 +203,7 @@ TEST(vector, MoveConstructor4)
   Vector<int, 5> vec1 = {1, 2, 3, 4};
   Vector<int, 6> vec2(std::move(vec1));
 
-  EXPECT_EQ(vec1.size(), 0);
+  EXPECT_EQ(vec1.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(vec2.size(), 4);
   EXPECT_EQ(vec2[3], 4);
 }
@@ -473,11 +473,11 @@ class TypeConstructMock {
   {
   }
 
-  TypeConstructMock(const TypeConstructMock &other) : copy_constructed(true)
+  TypeConstructMock(const TypeConstructMock &UNUSED(other)) : copy_constructed(true)
   {
   }
 
-  TypeConstructMock(TypeConstructMock &&other) noexcept : move_constructed(true)
+  TypeConstructMock(TypeConstructMock &&UNUSED(other)) noexcept : move_constructed(true)
   {
   }
 
@@ -636,4 +636,4 @@ TEST(vector, Fill)
   EXPECT_EQ(vec[4], 3);
 }
 
-}  // namespace blender
+}  // namespace blender::tests

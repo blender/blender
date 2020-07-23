@@ -5,7 +5,7 @@
 #include "BLI_strict_flags.h"
 #include "testing/testing.h"
 
-namespace blender {
+namespace blender::tests {
 
 struct MyValue {
   static inline int alive = 0;
@@ -19,7 +19,7 @@ struct MyValue {
     alive++;
   }
 
-  MyValue(const MyValue &other)
+  MyValue(const MyValue &UNUSED(other))
   {
     if (alive == 15) {
       throw std::exception();
@@ -156,4 +156,4 @@ static_assert(is_convertible_pointer_v<int **, int **const>);
 static_assert(is_convertible_pointer_v<int **, int *const *>);
 static_assert(is_convertible_pointer_v<int **, int const *const *>);
 
-}  // namespace blender
+}  // namespace blender::tests

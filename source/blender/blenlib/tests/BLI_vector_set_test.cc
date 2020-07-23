@@ -4,7 +4,7 @@
 #include "BLI_vector_set.hh"
 #include "testing/testing.h"
 
-namespace blender {
+namespace blender::tests {
 
 TEST(vector_set, DefaultConstructor)
 {
@@ -57,7 +57,7 @@ TEST(vector_set, Move)
 {
   VectorSet<int> set1 = {1, 2, 3};
   VectorSet<int> set2 = std::move(set1);
-  EXPECT_EQ(set1.size(), 0);
+  EXPECT_EQ(set1.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(set2.size(), 3);
 }
 
@@ -66,7 +66,7 @@ TEST(vector_set, MoveAssignment)
   VectorSet<int> set1 = {1, 2, 3};
   VectorSet<int> set2 = {};
   set2 = std::move(set1);
-  EXPECT_EQ(set1.size(), 0);
+  EXPECT_EQ(set1.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(set2.size(), 3);
 }
 
@@ -161,4 +161,4 @@ TEST(vector_set, Remove)
   EXPECT_FALSE(set.contains(5));
 }
 
-}  // namespace blender
+}  // namespace blender::tests

@@ -8,7 +8,7 @@
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-namespace blender {
+namespace blender::tests {
 
 TEST(map, DefaultConstructor)
 {
@@ -335,7 +335,7 @@ TEST(map, MoveConstructorSmall)
   EXPECT_EQ(map2.size(), 2);
   EXPECT_EQ(map2.lookup(1), 2.0f);
   EXPECT_EQ(map2.lookup(4), 1.0f);
-  EXPECT_EQ(map1.size(), 0);
+  EXPECT_EQ(map1.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(map1.lookup_ptr(4), nullptr);
 }
 
@@ -349,7 +349,7 @@ TEST(map, MoveConstructorLarge)
   EXPECT_EQ(map2.size(), 100);
   EXPECT_EQ(map2.lookup(1), 1);
   EXPECT_EQ(map2.lookup(4), 4);
-  EXPECT_EQ(map1.size(), 0);
+  EXPECT_EQ(map1.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(map1.lookup_ptr(4), nullptr);
 }
 
@@ -363,7 +363,7 @@ TEST(map, MoveAssignment)
   EXPECT_EQ(map2.size(), 2);
   EXPECT_EQ(map2.lookup(1), 2.0f);
   EXPECT_EQ(map2.lookup(4), 1.0f);
-  EXPECT_EQ(map1.size(), 0);
+  EXPECT_EQ(map1.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(map1.lookup_ptr(4), nullptr);
 }
 
@@ -587,4 +587,4 @@ TEST(map, Benchmark)
 
 #endif /* Benchmark */
 
-}  // namespace blender
+}  // namespace blender::tests

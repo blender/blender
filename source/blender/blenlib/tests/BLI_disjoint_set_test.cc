@@ -5,7 +5,7 @@
 
 #include "testing/testing.h"
 
-namespace blender {
+namespace blender::tests {
 
 TEST(disjoint_set, Test)
 {
@@ -33,4 +33,4 @@ TEST(disjoint_set, Test)
   EXPECT_FALSE(disjoint_set.in_same_set(0, 4));
 }
 
-}  // namespace blender
+}  // namespace blender::tests

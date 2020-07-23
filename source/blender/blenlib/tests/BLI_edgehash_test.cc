@@ -5,10 +5,8 @@
 #include <random>
 #include <vector>
 
-extern "C" {
 #include "BLI_edgehash.h"
 #include "BLI_utildefines.h"
-}
 
 #define VALUE_1 POINTER_FROM_INT(1)
 #define VALUE_2 POINTER_FROM_INT(2)
@@ -334,10 +332,12 @@ TEST(edgehash, StressTest)
   /* check if the right ones have been removed */
   for (int i = 0; i < shuffled.size(); i++) {
     bool haskey = BLI_edgehash_haskey(eh, shuffled[i].v1, shuffled[i].v2);
-    if (i < remove_until)
+    if (i < remove_until) {
       ASSERT_FALSE(haskey);
-    else
+    }
+    else {
       ASSERT_TRUE(haskey);
+    }
   }
 
   /* reinsert all edges */

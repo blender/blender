@@ -4,7 +4,7 @@
 #include "BLI_strict_flags.h"
 #include "testing/testing.h"
 
-namespace blender {
+namespace blender::tests {
 
 TEST(array, DefaultConstructor)
 {
@@ -72,7 +72,7 @@ TEST(array, MoveConstructor)
   Array<int> array = {5, 6, 7, 8};
   Array<int> new_array(std::move(array));
 
-  EXPECT_EQ(array.size(), 0);
+  EXPECT_EQ(array.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(new_array.size(), 4);
   EXPECT_EQ(new_array[0], 5);
   EXPECT_EQ(new_array[1], 6);
@@ -101,7 +101,7 @@ TEST(array, MoveAssignment)
   EXPECT_EQ(new_array.size(), 1);
   new_array = std::move(array);
   EXPECT_EQ(new_array.size(), 3);
-  EXPECT_EQ(array.size(), 0);
+  EXPECT_EQ(array.size(), 0); /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(new_array[0], 1);
   EXPECT_EQ(new_array[1], 2);
   EXPECT_EQ(new_array[2], 3);
@@ -141,7 +141,7 @@ TEST(array, NoInitializationSizeConstructor)
   using MyArray = Array<ConstructibleType>;
 
   TypedBuffer<MyArray> buffer;
-  memset(buffer, 100, sizeof(MyArray));
+  memset((void *)&buffer, 100, sizeof(MyArray));
 
   /* Doing this to avoid some compiler optimization. */
   for (int64_t i : IndexRange(sizeof(MyArray))) {
@@ -173,4 +173,4 @@ TEST(array, Fill)
   EXPECT_EQ(array[4], 3);
 }
 
-}  // namespace blender
+}  // namespace blender::tests

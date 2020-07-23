@@ -5,7 +5,7 @@
 #include "BLI_vector.hh"
 #include "testing/testing.h"
 
-namespace blender {
+namespace blender::tests {
 
 TEST(index_range, DefaultConstructor)
 {
@@ -140,4 +140,4 @@ TEST(index_range, AsSpan)
   EXPECT_EQ(span[3], 7);
 }
 
-}  // namespace blender
+}  // namespace blender::tests

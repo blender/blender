@@ -4,7 +4,7 @@
 #include "BLI_strict_flags.h"
 #include "testing/testing.h"
 
-namespace blender {
+namespace blender::tests {
 
 static bool is_aligned(void *ptr, uint alignment)
 {
@@ -115,4 +115,4 @@ TEST(linear_allocator, ConstructArrayCopy)
   EXPECT_EQ(span2[2], 3);
 }
 
-}  // namespace blender
+}  // namespace blender::tests
