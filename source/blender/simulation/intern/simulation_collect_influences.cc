@@ -436,28 +436,10 @@ static void prepare_particle_attribute_builders(nodes::MFNetworkTreeMap &network
   }
 }
 
-static void find_used_persistent_data(const nodes::DerivedNodeTree &tree,
-                                      UsedPersistentData &r_used_persistent_data)
-{
-  const bNodeSocketType *socktype = nodeSocketTypeFind("NodeSocketObject");
-  BLI_assert(socktype != nullptr);
-
-  for (const nodes::DInputSocket *dsocket : tree.input_sockets()) {
-    const bNodeSocket *bsocket = dsocket->bsocket();
-    if (bsocket->typeinfo == socktype) {
-      Object *object = ((const bNodeSocketValueObject *)bsocket->default_value)->value;
-      if (object != nullptr) {
-        r_used_persistent_data.add(DEG_get_original_id(&object->id));
-      }
-    }
-  }
-}
-
 void collect_simulation_influences(Simulation &simulation,
                                    ResourceCollector &resources,
                                    SimulationInfluences &r_influences,
-                                   RequiredStates &r_required_states,
-                                   UsedPersistentData &r_used_persistent_data)
+                                   RequiredStates &r_required_states)
 {
   nodes::NodeTreeRefMap tree_refs;
   const nodes::DerivedNodeTree tree{simulation.nodetree, tree_refs};
@@ -481,8 +463,6 @@ void collect_simulation_influences(Simulation &simulation,
   for (const nodes::DNode *dnode : get_particle_simulation_nodes(tree)) {
     r_required_states.add(dnode_to_path(*dnode), SIM_TYPE_NAME_PARTICLE_SIMULATION);
   }
-
-  find_used_persistent_data(tree, r_used_persistent_data);
 }
 
 }  // namespace blender::sim

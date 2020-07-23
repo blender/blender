@@ -285,6 +285,14 @@ void BKE_simulation_data_update(Depsgraph *depsgraph, Scene *scene, Simulation *
   blender::sim::update_simulation_in_depsgraph(depsgraph, scene, simulation);
 }
 
+void BKE_simulation_update_dependencies(Simulation *simulation, Main *bmain)
+{
+  bool dependencies_changed = blender::sim::update_simulation_dependencies(simulation);
+  if (dependencies_changed) {
+    DEG_relations_tag_update(bmain);
+  }
+}
+
 using StateTypeMap = blender::Map<std::string, std::unique_ptr<SimulationStateType>>;
 
 template<typename T>

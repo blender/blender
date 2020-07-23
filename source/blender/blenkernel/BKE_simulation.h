@@ -32,6 +32,7 @@ void *BKE_simulation_add(struct Main *bmain, const char *name);
 void BKE_simulation_data_update(struct Depsgraph *depsgraph,
                                 struct Scene *scene,
                                 struct Simulation *simulation);
+void BKE_simulation_update_dependencies(struct Simulation *simulation, struct Main *bmain);
 
 SimulationState *BKE_simulation_state_add(Simulation *simulation,
                                           const char *type,

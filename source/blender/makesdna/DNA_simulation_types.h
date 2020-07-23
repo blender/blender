@@ -72,12 +72,18 @@ typedef struct PersistentDataHandleItem {
   struct PersistentDataHandleItem *prev;
   struct ID *id;
   int handle;
-  char _pad[4];
+  int flag;
 } PersistentDataHandleItem;
 
 /* Simulation.flag */
 enum {
   SIM_DS_EXPAND = (1 << 0),
+};
+
+/* PersistentDataHandleItem.flag */
+enum {
+  SIM_HANDLE_DEPENDS_ON_TRANSFORM = (1 << 0),
+  SIM_HANDLE_DEPENDS_ON_GEOMETRY = (1 << 1),
 };
 
 #define SIM_TYPE_NAME_PARTICLE_SIMULATION "Particle Simulation"
