@@ -232,6 +232,21 @@ void DNA_alias_maps(enum eDNA_RenameDir version_dir, GHash **r_struct_map, GHash
     for (int i = 0; i < ARRAY_SIZE(data); i++) {
       BLI_ghash_insert(struct_map, (void *)data[i][elem_key], (void *)data[i][elem_val]);
     }
+
+    if (version_dir == DNA_RENAME_STATIC_FROM_ALIAS) {
+      const char *renames[][2] = {
+          {"int8_t", "char"}, /* Note that a char is always unsigned in Blender. */
+          {"uint8_t", "uchar"},
+          {"int16_t", "short"},
+          {"uint16_t", "ushort"},
+          {"int32_t", "int"},
+          {"uint32_t", "int"},
+      };
+      for (int i = 0; i < ARRAY_SIZE(renames); i++) {
+        BLI_ghash_insert(struct_map, (void *)renames[i][0], (void *)renames[i][1]);
+      }
+    }
+
     *r_struct_map = struct_map;
 
     /* We know the direction of this, for local use. */
