@@ -939,6 +939,21 @@ static void lib_relocate_do(Main *bmain,
     }
   }
 
+  /* Update overrides of reloaded linked data-blocks.
+   * Note that this will not necessarily fully update the override, it might need to be manually
+   * 're-generated' depending on changes in linked data. */
+  ID *id;
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (ID_IS_LINKED(id) || !ID_IS_OVERRIDE_LIBRARY_REAL(id) ||
+        (id->tag & LIB_TAG_PRE_EXISTING) == 0) {
+      continue;
+    }
+    if (id->override_library->reference->lib == library) {
+      BKE_lib_override_library_update(bmain, id);
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
   BKE_main_collection_sync(bmain);
 
   BKE_main_lib_objects_recalc_all(bmain);
