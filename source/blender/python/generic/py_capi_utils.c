@@ -841,7 +841,7 @@ void PyC_SetHomePath(const char *py_path_bundle)
 #  endif
 
   {
-    static wchar_t py_path_bundle_wchar[1024];
+    wchar_t py_path_bundle_wchar[1024];
 
     /* Can't use this, on linux gives bug: #23018,
      * TODO: try LANG="en_US.UTF-8" /usr/bin/blender, suggested 2008 */
