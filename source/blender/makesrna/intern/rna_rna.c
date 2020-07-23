@@ -1250,6 +1250,7 @@ static int rna_property_override_diff_propptr(Main *bmain,
                                               IDOverrideLibrary *override,
                                               const char *rna_path,
                                               size_t rna_path_len,
+                                              const uint property_type,
                                               const char *rna_itemname_a,
                                               const char *rna_itemname_b,
                                               const int rna_itemindex_a,
@@ -1257,6 +1258,8 @@ static int rna_property_override_diff_propptr(Main *bmain,
                                               const int flags,
                                               bool *r_override_changed)
 {
+  BLI_assert(ELEM(property_type, PROP_POINTER, PROP_COLLECTION));
+
   const bool do_create = override != NULL && (flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 &&
                          rna_path != NULL;
 
@@ -1299,6 +1302,13 @@ static int rna_property_override_diff_propptr(Main *bmain,
         /* If not yet overridden, or if we are handling sub-items (inside a collection)... */
         if (op != NULL) {
           BKE_lib_override_library_operations_tag(op, IDOVERRIDE_LIBRARY_TAG_UNUSED, false);
+
+          if (created || op->rna_prop_type == 0) {
+            op->rna_prop_type = property_type;
+          }
+          else {
+            BLI_assert(op->rna_prop_type == property_type);
+          }
 
           if (created || rna_itemname_a != NULL || rna_itemname_b != NULL ||
               rna_itemindex_a != -1 || rna_itemindex_b != -1) {
@@ -1464,7 +1474,11 @@ int rna_property_override_diff_default(Main *bmain,
                                          PROPOVERRIDE_LIBRARY_INSERTION) &&
                                         do_create;
 
-  switch (RNA_property_type(prop_a->rnaprop)) {
+  const uint rna_prop_type = RNA_property_type(prop_a->rnaprop);
+  bool created = false;
+  IDOverrideLibraryProperty *op = NULL;
+
+  switch (rna_prop_type) {
     case PROP_BOOLEAN: {
       if (len_a) {
         bool array_stack_a[RNA_STACK_ARRAY], array_stack_b[RNA_STACK_ARRAY];
@@ -1482,9 +1496,7 @@ int rna_property_override_diff_default(Main *bmain,
 
         if (do_create && comp != 0) {
           /* XXX TODO this will have to be refined to handle array items */
-          bool created = false;
-          IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
-              override, rna_path, &created);
+          op = BKE_lib_override_library_property_get(override, rna_path, &created);
 
           if (op != NULL && created) {
             BKE_lib_override_library_property_operation_get(
@@ -1513,9 +1525,7 @@ int rna_property_override_diff_default(Main *bmain,
         const int comp = (value_a < value_b) ? -1 : (value_a > value_b) ? 1 : 0;
 
         if (do_create && comp != 0) {
-          bool created = false;
-          IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
-              override, rna_path, &created);
+          op = BKE_lib_override_library_property_get(override, rna_path, &created);
 
           if (op != NULL && created) { /* If not yet overridden... */
             BKE_lib_override_library_property_operation_get(
@@ -1547,9 +1557,7 @@ int rna_property_override_diff_default(Main *bmain,
 
         if (do_create && comp != 0) {
           /* XXX TODO this will have to be refined to handle array items */
-          bool created = false;
-          IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
-              override, rna_path, &created);
+          op = BKE_lib_override_library_property_get(override, rna_path, &created);
 
           if (op != NULL && created) {
             BKE_lib_override_library_property_operation_get(
@@ -1578,9 +1586,7 @@ int rna_property_override_diff_default(Main *bmain,
         const int comp = (value_a < value_b) ? -1 : (value_a > value_b) ? 1 : 0;
 
         if (do_create && comp != 0) {
-          bool created = false;
-          IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
-              override, rna_path, &created);
+          op = BKE_lib_override_library_property_get(override, rna_path, &created);
 
           if (op != NULL && created) { /* If not yet overridden... */
             BKE_lib_override_library_property_operation_get(
@@ -1612,9 +1618,7 @@ int rna_property_override_diff_default(Main *bmain,
 
         if (do_create && comp != 0) {
           /* XXX TODO this will have to be refined to handle array items */
-          bool created = false;
-          IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
-              override, rna_path, &created);
+          op = BKE_lib_override_library_property_get(override, rna_path, &created);
 
           if (op != NULL && created) {
             BKE_lib_override_library_property_operation_get(
@@ -1643,9 +1647,7 @@ int rna_property_override_diff_default(Main *bmain,
         const int comp = (value_a < value_b) ? -1 : (value_a > value_b) ? 1 : 0;
 
         if (do_create && comp != 0) {
-          bool created = false;
-          IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
-              override, rna_path, &created);
+          op = BKE_lib_override_library_property_get(override, rna_path, &created);
 
           if (op != NULL && created) { /* If not yet overridden... */
             BKE_lib_override_library_property_operation_get(
@@ -1666,9 +1668,7 @@ int rna_property_override_diff_default(Main *bmain,
       const int comp = value_a != value_b;
 
       if (do_create && comp != 0) {
-        bool created = false;
-        IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
-            override, rna_path, &created);
+        op = BKE_lib_override_library_property_get(override, rna_path, &created);
 
         if (op != NULL && created) { /* If not yet overridden... */
           BKE_lib_override_library_property_operation_get(
@@ -1700,9 +1700,7 @@ int rna_property_override_diff_default(Main *bmain,
       const int comp = strcmp(value_a, value_b);
 
       if (do_create && comp != 0) {
-        bool created = false;
-        IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
-            override, rna_path, &created);
+        op = BKE_lib_override_library_property_get(override, rna_path, &created);
 
         if (op != NULL && created) { /* If not yet overridden... */
           BKE_lib_override_library_property_operation_get(
@@ -1740,6 +1738,7 @@ int rna_property_override_diff_default(Main *bmain,
                                                   override,
                                                   rna_path,
                                                   rna_path_len,
+                                                  PROP_POINTER,
                                                   NULL,
                                                   NULL,
                                                   -1,
@@ -1848,9 +1847,7 @@ int rna_property_override_diff_default(Main *bmain,
            * pointers), since they do not support removing, only in *some* cases, insertion. We
            * also assume then that _a data is the one where things are inserted. */
           if (is_valid_for_insertion && use_collection_insertion) {
-            bool created;
-            IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
-                override, rna_path, &created);
+            op = BKE_lib_override_library_property_get(override, rna_path, &created);
 
             if (is_first_insert) {
               /* We need to clean up all possible existing insertion operations,
@@ -1883,6 +1880,7 @@ int rna_property_override_diff_default(Main *bmain,
                    prev_propname_a,
                    idx_a - 1);
 #  endif
+            op = NULL;
           }
           else if (is_id || is_valid_for_diffing) {
             if (equals || do_create) {
@@ -1895,6 +1893,7 @@ int rna_property_override_diff_default(Main *bmain,
                                                                 override,
                                                                 rna_path,
                                                                 rna_path_len,
+                                                                PROP_COLLECTION,
                                                                 propname_a,
                                                                 propname_b,
                                                                 idx_a,
@@ -1961,6 +1960,15 @@ int rna_property_override_diff_default(Main *bmain,
 
     default:
       break;
+  }
+
+  if (op != NULL) {
+    if (created || op->rna_prop_type == 0) {
+      op->rna_prop_type = rna_prop_type;
+    }
+    else {
+      BLI_assert(op->rna_prop_type == rna_prop_type);
+    }
   }
 
   return 0;

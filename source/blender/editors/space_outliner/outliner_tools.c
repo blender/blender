@@ -744,22 +744,21 @@ typedef struct OutlinerLibOverrideData {
   bool do_hierarchy;
 } OutlinerLibOverrideData;
 
-static void id_override_library_cb(bContext *C,
-                                   ReportList *UNUSED(reports),
-                                   Scene *UNUSED(scene),
-                                   TreeElement *te,
-                                   TreeStoreElem *UNUSED(tsep),
-                                   TreeStoreElem *tselem,
-                                   void *user_data)
+static void id_override_library_create_cb(bContext *C,
+                                          ReportList *UNUSED(reports),
+                                          Scene *UNUSED(scene),
+                                          TreeElement *te,
+                                          TreeStoreElem *UNUSED(tsep),
+                                          TreeStoreElem *tselem,
+                                          void *user_data)
 {
   BLI_assert(TSE_IS_REAL_ID(tselem));
   ID *id_root = tselem->id;
+  OutlinerLibOverrideData *data = user_data;
+  const bool do_hierarchy = data->do_hierarchy;
 
-  if (ID_IS_LINKED(id_root) &&
-      (BKE_idtype_get_info_from_id(id_root)->flags & IDTYPE_FLAGS_NO_LIBLINKING) == 0) {
+  if (ID_IS_OVERRIDABLE_LIBRARY(id_root) || (ID_IS_LINKED(id_root) && do_hierarchy)) {
     Main *bmain = CTX_data_main(C);
-    OutlinerLibOverrideData *data = user_data;
-    const bool do_hierarchy = data->do_hierarchy;
 
     id_root->tag |= LIB_TAG_DOIT;
 
@@ -795,6 +794,34 @@ static void id_override_library_cb(bContext *C,
 
     BKE_main_id_clear_newpoins(bmain);
     BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+  }
+}
+
+static void id_override_library_reset_cb(bContext *C,
+                                         ReportList *UNUSED(reports),
+                                         Scene *UNUSED(scene),
+                                         TreeElement *UNUSED(te),
+                                         TreeStoreElem *UNUSED(tsep),
+                                         TreeStoreElem *tselem,
+                                         void *user_data)
+{
+  BLI_assert(TSE_IS_REAL_ID(tselem));
+  ID *id_root = tselem->id;
+  OutlinerLibOverrideData *data = user_data;
+  const bool do_hierarchy = data->do_hierarchy;
+
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(id_root)) {
+    Main *bmain = CTX_data_main(C);
+
+    if (do_hierarchy) {
+      BKE_lib_override_library_id_hierarchy_reset(bmain, id_root);
+    }
+    else {
+      BKE_lib_override_library_id_reset(bmain, id_root);
+    }
+
+    WM_event_add_notifier(C, NC_WM | ND_DATACHANGED, NULL);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
   }
 }
 
@@ -1546,8 +1573,10 @@ typedef enum eOutlinerIdOpTypes {
 
   OUTLINER_IDOP_UNLINK,
   OUTLINER_IDOP_LOCAL,
-  OUTLINER_IDOP_OVERRIDE_LIBRARY,
-  OUTLINER_IDOP_OVERRIDE_LIBRARY_HIERARCHY,
+  OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE,
+  OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY,
+  OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET,
+  OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET_HIERARCHY,
   OUTLINER_IDOP_SINGLE,
   OUTLINER_IDOP_DELETE,
   OUTLINER_IDOP_REMAP,
@@ -1566,16 +1595,6 @@ typedef enum eOutlinerIdOpTypes {
 static const EnumPropertyItem prop_id_op_types[] = {
     {OUTLINER_IDOP_UNLINK, "UNLINK", 0, "Unlink", ""},
     {OUTLINER_IDOP_LOCAL, "LOCAL", 0, "Make Local", ""},
-    {OUTLINER_IDOP_OVERRIDE_LIBRARY,
-     "OVERRIDE_LIBRARY",
-     0,
-     "Add Library Override",
-     "Add a local override of this linked data-block"},
-    {OUTLINER_IDOP_OVERRIDE_LIBRARY_HIERARCHY,
-     "OVERRIDE_LIBRARY_HIERARCHY",
-     0,
-     "Add Library Override Hierarchy",
-     "Add a local override of this linked data-block, and its hierarchy of dependencies"},
     {OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
     {OUTLINER_IDOP_DELETE, "DELETE", ICON_X, "Delete", ""},
     {OUTLINER_IDOP_REMAP,
@@ -1583,6 +1602,27 @@ static const EnumPropertyItem prop_id_op_types[] = {
      0,
      "Remap Users",
      "Make all users of selected data-blocks to use instead current (clicked) one"},
+    {0, "", 0, NULL, NULL},
+    {OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE,
+     "OVERRIDE_LIBRARY_CREATE",
+     0,
+     "Add Library Override",
+     "Add a local override of this linked data-block"},
+    {OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY,
+     "OVERRIDE_LIBRARY_CREATE_HIERARCHY",
+     0,
+     "Add Library Override Hierarchy",
+     "Add a local override of this linked data-block, and its hierarchy of dependencies"},
+    {OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET,
+     "OVERRIDE_LIBRARY_RESET",
+     0,
+     "Reset Library Override",
+     "Reset this local override to its linked values"},
+    {OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET_HIERARCHY,
+     "OVERRIDE_LIBRARY_RESET_HIERARCHY",
+     0,
+     "Reset Library Override Hierarchy",
+     "Reset this local override to its linked values, as well as its hierarchy of dependencies"},
     {0, "", 0, NULL, NULL},
     {OUTLINER_IDOP_COPY, "COPY", ICON_COPYDOWN, "Copy", ""},
     {OUTLINER_IDOP_PASTE, "PASTE", ICON_PASTEDOWN, "Paste", ""},
@@ -1607,7 +1647,11 @@ static bool outliner_id_operation_item_poll(bContext *C,
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
 
   switch (enum_value) {
-    case OUTLINER_IDOP_OVERRIDE_LIBRARY:
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE:
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY:
+      return true;
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET:
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET_HIERARCHY:
       return true;
     case OUTLINER_IDOP_SINGLE:
       if (!soops || ELEM(soops->outlinevis, SO_SCENES, SO_VIEW_LAYER)) {
@@ -1721,28 +1765,52 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       ED_undo_push(C, "Localized Data");
       break;
     }
-    case OUTLINER_IDOP_OVERRIDE_LIBRARY: {
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE: {
       /* make local */
       outliner_do_libdata_operation(C,
                                     op->reports,
                                     scene,
                                     soops,
                                     &soops->tree,
-                                    id_override_library_cb,
+                                    id_override_library_create_cb,
                                     &(OutlinerLibOverrideData){.do_hierarchy = false});
       ED_undo_push(C, "Overridden Data");
       break;
     }
-    case OUTLINER_IDOP_OVERRIDE_LIBRARY_HIERARCHY: {
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY: {
       /* make local */
       outliner_do_libdata_operation(C,
                                     op->reports,
                                     scene,
                                     soops,
                                     &soops->tree,
-                                    id_override_library_cb,
+                                    id_override_library_create_cb,
                                     &(OutlinerLibOverrideData){.do_hierarchy = true});
-      ED_undo_push(C, "Overridden Data");
+      ED_undo_push(C, "Overridden Data Hierarchy");
+      break;
+    }
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET: {
+      /* make local */
+      outliner_do_libdata_operation(C,
+                                    op->reports,
+                                    scene,
+                                    soops,
+                                    &soops->tree,
+                                    id_override_library_reset_cb,
+                                    &(OutlinerLibOverrideData){.do_hierarchy = false});
+      ED_undo_push(C, "Reset Overridden Data");
+      break;
+    }
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET_HIERARCHY: {
+      /* make local */
+      outliner_do_libdata_operation(C,
+                                    op->reports,
+                                    scene,
+                                    soops,
+                                    &soops->tree,
+                                    id_override_library_reset_cb,
+                                    &(OutlinerLibOverrideData){.do_hierarchy = true});
+      ED_undo_push(C, "Reset Overridden Data Hierarchy");
       break;
     }
     case OUTLINER_IDOP_SINGLE: {

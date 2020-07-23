@@ -206,7 +206,10 @@ typedef struct IDOverrideLibraryProperty {
 
   /** Runtime, tags are common to both IDOverrideProperty and IDOverridePropertyOperation. */
   short tag;
-  char _pad0[6];
+  char _pad[2];
+
+  /** The property type matching the rna_path. */
+  unsigned int rna_prop_type;
 } IDOverrideLibraryProperty;
 
 /* IDOverrideProperty->tag and IDOverridePropertyOperation->tag. */
@@ -215,8 +218,18 @@ enum {
   IDOVERRIDE_LIBRARY_TAG_UNUSED = 1 << 0,
 };
 
-/* We do not need a full struct for that currently, just a GHash. */
-typedef struct GHash IDOverrideLibraryRuntime;
+#
+#
+typedef struct IDOverrideLibraryRuntime {
+  struct GHash *rna_path_to_override_properties;
+  uint tag;
+} IDOverrideLibraryRuntime;
+
+/* IDOverrideLibraryRuntime->tag. */
+enum {
+  /** This override needs to be reloaded. */
+  IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RELOAD = 1 << 0,
+};
 
 /* Main container for all overriding data info of a data-block. */
 typedef struct IDOverrideLibrary {
@@ -468,7 +481,8 @@ typedef enum ID_Type {
 /* Note that this is a fairly high-level check, should be used at user interaction level, not in
  * BKE_library_override typically (especially due to the check on LIB_TAG_EXTERN). */
 #define ID_IS_OVERRIDABLE_LIBRARY(_id) \
-  (ID_IS_LINKED(_id) && !ID_MISSING(_id) && (((const ID *)(_id))->tag & LIB_TAG_EXTERN) != 0)
+  (ID_IS_LINKED(_id) && !ID_MISSING(_id) && (((const ID *)(_id))->tag & LIB_TAG_EXTERN) != 0 && \
+   (BKE_idtype_get_info_from_id((const ID *)(_id))->flags & IDTYPE_FLAGS_NO_LIBLINKING) == 0)
 
 #define ID_IS_OVERRIDE_LIBRARY_REAL(_id) \
   (((const ID *)(_id))->override_library != NULL && \
