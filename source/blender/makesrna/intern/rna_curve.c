@@ -570,7 +570,7 @@ static void rna_Curve_body_set(PointerRNA *ptr, const char *value)
 
   Curve *cu = (Curve *)ptr->owner_id;
 
-  cu->len_wchar = len_chars;
+  cu->len_char32 = len_chars;
   cu->len = len_bytes;
   cu->pos = len_chars;
 
@@ -1206,7 +1206,7 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "body_format", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "strinfo", "len_wchar");
+  RNA_def_property_collection_sdna(prop, NULL, "strinfo", "len_char32");
   RNA_def_property_struct_type(prop, "TextCharacterFormat");
   RNA_def_property_ui_text(prop, "Character Info", "Stores the style of each character");
 

@@ -797,7 +797,7 @@ static bool vfont_to_curve(Object *ob,
   }
   else {
     char32_t *mem_tmp;
-    slen = cu->len_wchar;
+    slen = cu->len_char32;
 
     /* Create unicode string */
     mem_tmp = MEM_malloc_arrayN((slen + 1), sizeof(*mem_tmp), "convertedmem");

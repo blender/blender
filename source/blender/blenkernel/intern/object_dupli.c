@@ -523,7 +523,7 @@ static void make_duplis_font(const DupliContext *ctx)
   /* Safety check even if it might fail badly when called for original object. */
   const bool is_eval_curve = DEG_is_evaluated_id(&cu->id);
 
-  /* advance matching BLI_strncpy_wchar_from_utf8 */
+  /* Advance matching BLI_str_utf8_as_utf32. */
   for (a = 0; a < text_len; a++, ct++) {
 
     /* XXX That G.main is *really* ugly, but not sure what to do here...

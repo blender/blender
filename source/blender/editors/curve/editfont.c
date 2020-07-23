@@ -682,7 +682,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, const 
   cu->strinfo = MEM_callocN((nchars + 4) * sizeof(CharInfo), "strinfo");
 
   cu->len = 0;
-  cu->len_wchar = nchars - 1;
+  cu->len_char32 = nchars - 1;
   cu->pos = 0;
 
   s = cu->str;
@@ -703,7 +703,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, const 
     }
   }
 
-  cu->pos = cu->len_wchar;
+  cu->pos = cu->len_char32;
   *s = '\0';
 
   WM_event_add_notifier(C, NC_OBJECT | NA_ADDED, obedit);
@@ -1867,7 +1867,7 @@ void ED_curve_editfont_make(Object *obedit)
 {
   Curve *cu = obedit->data;
   EditFont *ef = cu->editfont;
-  int len_wchar;
+  int len_char32;
 
   if (ef == NULL) {
     ef = cu->editfont = MEM_callocN(sizeof(EditFont), "editfont");
@@ -1877,9 +1877,9 @@ void ED_curve_editfont_make(Object *obedit)
   }
 
   /* Convert the original text to wchar_t */
-  len_wchar = BLI_str_utf8_as_utf32(ef->textbuf, cu->str, MAXTEXT + 4);
-  BLI_assert(len_wchar == cu->len_wchar);
-  ef->len = len_wchar;
+  len_char32 = BLI_str_utf8_as_utf32(ef->textbuf, cu->str, MAXTEXT + 4);
+  BLI_assert(len_char32 == cu->len_char32);
+  ef->len = len_char32;
   BLI_assert(ef->len >= 0);
 
   memcpy(ef->textbufinfo, cu->strinfo, ef->len * sizeof(CharInfo));
@@ -1908,7 +1908,7 @@ void ED_curve_editfont_load(Object *obedit)
   MEM_freeN(cu->str);
 
   /* Calculate the actual string length in UTF-8 variable characters */
-  cu->len_wchar = ef->len;
+  cu->len_char32 = ef->len;
   cu->len = BLI_str_utf32_as_utf8_len(ef->textbuf);
 
   /* Alloc memory for UTF-8 variable char length string */
@@ -1920,8 +1920,8 @@ void ED_curve_editfont_load(Object *obedit)
   if (cu->strinfo) {
     MEM_freeN(cu->strinfo);
   }
-  cu->strinfo = MEM_callocN((cu->len_wchar + 4) * sizeof(CharInfo), "texteditinfo");
-  memcpy(cu->strinfo, ef->textbufinfo, cu->len_wchar * sizeof(CharInfo));
+  cu->strinfo = MEM_callocN((cu->len_char32 + 4) * sizeof(CharInfo), "texteditinfo");
+  memcpy(cu->strinfo, ef->textbufinfo, cu->len_char32 * sizeof(CharInfo));
 
   /* Other vars */
   cu->pos = ef->pos;

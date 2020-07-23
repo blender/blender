@@ -274,9 +274,12 @@ typedef struct Curve {
   int selstart, selend;
 
   /* text data */
-  /** Number of characters (strinfo). */
-  int len_wchar;
-  /** Number of bytes (str - utf8). */
+  /**
+   * Number of characters (unicode code-points)
+   * This is the length of #Curve.strinfo and the result of `BLI_strlen_utf8(cu->str)`.
+   */
+  int len_char32;
+  /** Number of bytes: `strlen(Curve.str)`. */
   int len;
   char *str;
   struct EditFont *editfont;

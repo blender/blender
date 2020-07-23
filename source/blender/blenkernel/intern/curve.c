@@ -223,7 +223,7 @@ void BKE_curve_init(Curve *cu, const short curve_type)
     cu->vfont->id.us += 4;
     cu->str = MEM_malloc_arrayN(12, sizeof(unsigned char), "str");
     BLI_strncpy(cu->str, "Text", 12);
-    cu->len = cu->len_wchar = cu->pos = 4;
+    cu->len = cu->len_char32 = cu->pos = 4;
     cu->strinfo = MEM_calloc_arrayN(12, sizeof(CharInfo), "strinfo new");
     cu->totbox = cu->actbox = 1;
     cu->tb = MEM_calloc_arrayN(MAXTEXTBOX, sizeof(TextBox), "textbox");
@@ -5437,7 +5437,7 @@ void BKE_curve_material_index_remove(Curve *cu, int index)
   if (curvetype == OB_FONT) {
     struct CharInfo *info = cu->strinfo;
     int i;
-    for (i = cu->len_wchar - 1; i >= 0; i--, info++) {
+    for (i = cu->len_char32 - 1; i >= 0; i--, info++) {
       if (info->mat_nr && info->mat_nr >= index) {
         info->mat_nr--;
       }
@@ -5461,7 +5461,7 @@ bool BKE_curve_material_index_used(Curve *cu, int index)
   if (curvetype == OB_FONT) {
     struct CharInfo *info = cu->strinfo;
     int i;
-    for (i = cu->len_wchar - 1; i >= 0; i--, info++) {
+    for (i = cu->len_char32 - 1; i >= 0; i--, info++) {
       if (info->mat_nr == index) {
         return true;
       }
@@ -5487,7 +5487,7 @@ void BKE_curve_material_index_clear(Curve *cu)
   if (curvetype == OB_FONT) {
     struct CharInfo *info = cu->strinfo;
     int i;
-    for (i = cu->len_wchar - 1; i >= 0; i--, info++) {
+    for (i = cu->len_char32 - 1; i >= 0; i--, info++) {
       info->mat_nr = 0;
     }
   }
@@ -5509,7 +5509,7 @@ bool BKE_curve_material_index_validate(Curve *cu)
     CharInfo *info = cu->strinfo;
     const int max_idx = max_ii(0, cu->totcol); /* OB_FONT use 1 as first mat index, not 0!!! */
     int i;
-    for (i = cu->len_wchar - 1; i >= 0; i--, info++) {
+    for (i = cu->len_char32 - 1; i >= 0; i--, info++) {
       if (info->mat_nr > max_idx) {
         info->mat_nr = 0;
         is_valid = false;
@@ -5557,7 +5557,7 @@ void BKE_curve_material_remap(Curve *cu, const unsigned int *remap, unsigned int
     }
     else {
       strinfo = cu->strinfo;
-      charinfo_len = cu->len_wchar;
+      charinfo_len = cu->len_char32;
     }
 
     for (i = 0; i <= charinfo_len; i++) {

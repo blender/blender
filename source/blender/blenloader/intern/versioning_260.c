@@ -2520,7 +2520,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     for (cu = bmain->curves.first; cu; cu = cu->id.next) {
       if (cu->str) {
-        cu->len_wchar = BLI_strlen_utf8(cu->str);
+        cu->len_char32 = BLI_strlen_utf8(cu->str);
       }
     }
   }

@@ -4162,7 +4162,7 @@ static void direct_link_curve(BlendDataReader *reader, Curve *cu)
   direct_link_animdata(reader, cu->adt);
 
   /* Protect against integer overflow vulnerability. */
-  CLAMP(cu->len_wchar, 0, INT_MAX - 4);
+  CLAMP(cu->len_char32, 0, INT_MAX - 4);
 
   BLO_read_pointer_array(reader, (void **)&cu->mat);
 

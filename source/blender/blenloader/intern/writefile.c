@@ -2007,7 +2007,7 @@ static void write_curve(BlendWriter *writer, Curve *cu, const void *id_address)
 
     if (cu->vfont) {
       BLO_write_raw(writer, cu->len + 1, cu->str);
-      BLO_write_struct_array(writer, CharInfo, cu->len_wchar + 1, cu->strinfo);
+      BLO_write_struct_array(writer, CharInfo, cu->len_char32 + 1, cu->strinfo);
       BLO_write_struct_array(writer, TextBox, cu->totbox, cu->tb);
     }
     else {
