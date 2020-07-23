@@ -804,8 +804,12 @@ void PyC_MainModule_Restore(PyObject *main_mod)
   Py_XDECREF(main_mod);
 }
 
-/* Must be called before Py_Initialize,
- * expects output of BKE_appdir_folder_id(BLENDER_PYTHON, NULL). */
+/**
+ * - Must be called before #Py_Initialize.
+ * - Expects output of `BKE_appdir_folder_id(BLENDER_PYTHON, NULL)`.
+ * - Note that the `PYTHONPATH` environment variable isn't reliable, see T31506.
+     Use #Py_SetPythonHome instead.
+ */
 void PyC_SetHomePath(const char *py_path_bundle)
 {
   if (py_path_bundle == NULL) {
@@ -824,20 +828,10 @@ void PyC_SetHomePath(const char *py_path_bundle)
   /* OSX allow file/directory names to contain : character (represented as / in the Finder)
    * but current Python lib (release 3.1.1) doesn't handle these correctly */
   if (strchr(py_path_bundle, ':')) {
-    printf(
-        "Warning : Blender application is located in a path containing : or / chars\
-           \nThis may make python import function fail\n");
+    fprintf(stderr,
+            "Warning! Blender application is located in a path containing ':' or '/' chars\n"
+            "This may make python import function fail\n");
   }
-#  endif
-
-#  if 0 /* disable for now [#31506] - campbell */
-#    ifdef _WIN32
-  /* cmake/MSVC debug build crashes without this, why only
-   * in this case is unknown.. */
-  {
-    /*BLI_setenv("PYTHONPATH", py_path_bundle)*/;
-  }
-#    endif
 #  endif
 
   {
