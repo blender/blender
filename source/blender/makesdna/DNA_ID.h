@@ -206,7 +206,10 @@ typedef struct IDOverrideLibraryProperty {
 
   /** Runtime, tags are common to both IDOverrideProperty and IDOverridePropertyOperation. */
   short tag;
-  char _pad0[6];
+  char _pad[2];
+
+  /** The property type matching the rna_path. */
+  unsigned int rna_prop_type;
 } IDOverrideLibraryProperty;
 
 /* IDOverrideProperty->tag and IDOverridePropertyOperation->tag. */
