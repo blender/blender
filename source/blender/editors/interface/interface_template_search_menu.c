@@ -1009,7 +1009,7 @@ static void menu_search_update_fn(const bContext *UNUSED(C),
     }
 
     if (index == words_len) {
-      if (!UI_search_item_add(items, item->drawwstr_full, item, item->icon, item->state)) {
+      if (!UI_search_item_add(items, item->drawwstr_full, item, item->icon, item->state, 0)) {
         break;
       }
     }

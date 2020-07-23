@@ -367,13 +367,19 @@ static bool id_search_add(const bContext *C,
 
       /* When using previews, the library hint (linked, overridden, missing) is added with a
        * character prefix, otherwise we can use a icon. */
-      BKE_id_full_name_ui_prefix_get(name_ui, id, use_lib_prefix, UI_SEP_CHAR);
+      int name_prefix_offset;
+      BKE_id_full_name_ui_prefix_get(
+          name_ui, id, use_lib_prefix, UI_SEP_CHAR, &name_prefix_offset);
       if (!use_lib_prefix) {
         iconid = UI_library_icon_get(id);
       }
 
-      if (!UI_search_item_add(
-              items, name_ui, id, iconid, has_sep_char ? UI_BUT_HAS_SEP_CHAR : 0)) {
+      if (!UI_search_item_add(items,
+                              name_ui,
+                              id,
+                              iconid,
+                              has_sep_char ? UI_BUT_HAS_SEP_CHAR : 0,
+                              name_prefix_offset)) {
         return false;
       }
     }

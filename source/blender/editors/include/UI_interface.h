@@ -1575,7 +1575,13 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
                                      const bool compact);
 
 /* use inside searchfunc to add items */
-bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int iconid, int state);
+bool UI_search_item_add(uiSearchItems *items,
+                        const char *name,
+                        void *poin,
+                        int iconid,
+                        int state,
+                        uint8_t name_prefix_offset);
+
 void UI_but_func_search_set(uiBut *but,
                             uiButSearchCreateFn search_create_fn,
                             uiButSearchUpdateFn search_update_fn,

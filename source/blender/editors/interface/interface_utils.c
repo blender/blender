@@ -382,6 +382,7 @@ typedef struct CollItemSearch {
   int index;
   int iconid;
   bool is_id;
+  int name_prefix_offset;
   uint has_sep_char : 1;
 } CollItemSearch;
 
@@ -432,6 +433,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
       }
     }
 
+    int name_prefix_offset = 0;
     int iconid = ICON_NONE;
     bool has_sep_char = false;
     bool is_id = itemptr.type && RNA_struct_is_ID(itemptr.type);
@@ -447,7 +449,8 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
       }
       else {
         const ID *id = itemptr.data;
-        BKE_id_full_name_ui_prefix_get(name_buf, itemptr.data, true, UI_SEP_CHAR);
+        BKE_id_full_name_ui_prefix_get(
+            name_buf, itemptr.data, true, UI_SEP_CHAR, &name_prefix_offset);
         BLI_STATIC_ASSERT(sizeof(name_buf) >= MAX_ID_FULL_NAME_UI,
                           "Name string buffer should be big enough to hold full UI ID name");
         name = name_buf;
@@ -459,13 +462,14 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
     }
 
     if (name) {
-      if (skip_filter || BLI_strcasestr(name, str)) {
+      if (skip_filter || BLI_strcasestr(name + name_prefix_offset, str)) {
         cis = MEM_callocN(sizeof(CollItemSearch), "CollectionItemSearch");
         cis->data = itemptr.data;
         cis->name = BLI_strdup(name);
         cis->index = i;
         cis->iconid = iconid;
         cis->is_id = is_id;
+        cis->name_prefix_offset = name_prefix_offset;
         cis->has_sep_char = has_sep_char;
         BLI_addtail(items_list, cis);
       }
@@ -484,11 +488,12 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
   for (cis = items_list->first; cis; cis = cis->next) {
     /* If no item has an own icon to display, libraries can use the library icons rather than the
      * name prefix for showing the library status. */
+    int name_prefix_offset = cis->name_prefix_offset;
     if (!has_id_icon && cis->is_id) {
       cis->iconid = UI_library_icon_get(cis->data);
       /* No need to re-allocate, string should be shorter than before (lib status prefix is
        * removed). */
-      BKE_id_full_name_ui_prefix_get(name_buf, cis->data, false, UI_SEP_CHAR);
+      BKE_id_full_name_ui_prefix_get(name_buf, cis->data, false, UI_SEP_CHAR, &name_prefix_offset);
       BLI_assert(strlen(name_buf) <= MEM_allocN_len(cis->name));
       strcpy(cis->name, name_buf);
     }
@@ -497,7 +502,8 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
                             cis->name,
                             cis->data,
                             cis->iconid,
-                            cis->has_sep_char ? UI_BUT_HAS_SEP_CHAR : 0)) {
+                            cis->has_sep_char ? UI_BUT_HAS_SEP_CHAR : 0,
+                            name_prefix_offset)) {
       break;
     }
   }

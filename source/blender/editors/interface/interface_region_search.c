@@ -76,6 +76,7 @@ struct uiSearchItems {
   void **pointers;
   int *icons;
   int *states;
+  uint8_t *name_prefix_offsets;
 
   /** Is there any item with an icon? */
   bool has_icon;
@@ -117,7 +118,12 @@ typedef struct uiSearchboxData {
  * typically #UI_BUT_DISABLED / #UI_BUT_INACTIVE.
  * \return false if there is nothing to add.
  */
-bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int iconid, int state)
+bool UI_search_item_add(uiSearchItems *items,
+                        const char *name,
+                        void *poin,
+                        int iconid,
+                        int state,
+                        const uint8_t name_prefix_offset)
 {
   /* hijack for autocomplete */
   if (items->autocpl) {
@@ -159,6 +165,15 @@ bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int 
     items->icons[items->totitem] = iconid;
   }
 
+  if (name_prefix_offset != 0) {
+    /* Lazy initialize, as this isn't used often. */
+    if (items->name_prefix_offsets == NULL) {
+      items->name_prefix_offsets = MEM_callocN(
+          items->maxitem * sizeof(*items->name_prefix_offsets), "search name prefix offsets");
+    }
+    items->name_prefix_offsets[items->totitem] = name_prefix_offset;
+  }
+
   /* Limit flags that can be set so flags such as 'UI_SELECT' aren't accidentally set
    * which will cause problems, add others as needed. */
   BLI_assert(
@@ -184,10 +199,18 @@ int UI_searchbox_size_x(void)
 
 int UI_search_items_find_index(uiSearchItems *items, const char *name)
 {
-  int i;
-  for (i = 0; i < items->totitem; i++) {
-    if (STREQ(name, items->names[i])) {
-      return i;
+  if (items->name_prefix_offsets != NULL) {
+    for (int i = 0; i < items->totitem; i++) {
+      if (STREQ(name, items->names[i] + items->name_prefix_offsets[i])) {
+        return i;
+      }
+    }
+  }
+  else {
+    for (int i = 0; i < items->totitem; i++) {
+      if (STREQ(name, items->names[i])) {
+        return i;
+      }
     }
   }
   return -1;
@@ -283,7 +306,12 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
   but->func_arg2 = NULL;
 
   if (data->active != -1) {
-    const char *name = data->items.names[data->active];
+    const char *name = data->items.names[data->active] +
+                       /* Never include the prefix in the button. */
+                       (data->items.name_prefix_offsets ?
+                            data->items.name_prefix_offsets[data->active] :
+                            0);
+
     const char *name_sep = data->use_sep ? strrchr(name, UI_SEP_CHAR) : NULL;
 
     BLI_strncpy(but->editstr, name, name_sep ? (name_sep - name) + 1 : data->items.maxstrlen);
@@ -472,7 +500,10 @@ void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool re
     int a;
 
     for (a = 0; a < data->items.totitem; a++) {
-      const char *name = data->items.names[a];
+      const char *name = data->items.names[a] +
+                         /* Never include the prefix in the button. */
+                         (data->items.name_prefix_offsets ? data->items.name_prefix_offsets[a] :
+                                                            0);
       const char *name_sep = data->use_sep ? strrchr(name, UI_SEP_CHAR) : NULL;
       if (STREQLEN(but->editstr, name, name_sep ? (name_sep - name) : data->items.maxstrlen)) {
         data->active = a;
@@ -633,6 +664,10 @@ static void ui_searchbox_region_free_cb(ARegion *region)
   MEM_freeN(data->items.pointers);
   MEM_freeN(data->items.icons);
   MEM_freeN(data->items.states);
+
+  if (data->items.name_prefix_offsets != NULL) {
+    MEM_freeN(data->items.name_prefix_offsets);
+  }
 
   MEM_freeN(data);
   region->regiondata = NULL;
@@ -802,6 +837,7 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
   data->items.pointers = MEM_callocN(data->items.maxitem * sizeof(void *), "search pointers");
   data->items.icons = MEM_callocN(data->items.maxitem * sizeof(int), "search icons");
   data->items.states = MEM_callocN(data->items.maxitem * sizeof(int), "search flags");
+  data->items.name_prefix_offsets = NULL; /* Lazy initialized as needed. */
   for (i = 0; i < data->items.maxitem; i++) {
     data->items.names[i] = MEM_callocN(but->hardmax + 1, "search pointers");
   }

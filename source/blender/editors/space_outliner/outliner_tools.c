@@ -543,7 +543,7 @@ static void merged_element_search_cb_recursive(
 
         /* Don't allow duplicate named items */
         if (UI_search_items_find_index(items, name) == -1) {
-          if (!UI_search_item_add(items, name, te, iconid, 0)) {
+          if (!UI_search_item_add(items, name, te, iconid, 0, 0)) {
             break;
           }
         }
