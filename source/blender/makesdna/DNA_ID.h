@@ -478,7 +478,8 @@ typedef enum ID_Type {
 /* Note that this is a fairly high-level check, should be used at user interaction level, not in
  * BKE_library_override typically (especially due to the check on LIB_TAG_EXTERN). */
 #define ID_IS_OVERRIDABLE_LIBRARY(_id) \
-  (ID_IS_LINKED(_id) && !ID_MISSING(_id) && (((const ID *)(_id))->tag & LIB_TAG_EXTERN) != 0)
+  (ID_IS_LINKED(_id) && !ID_MISSING(_id) && (((const ID *)(_id))->tag & LIB_TAG_EXTERN) != 0 && \
+   (BKE_idtype_get_info_from_id((const ID *)(_id))->flags & IDTYPE_FLAGS_NO_LIBLINKING) == 0)
 
 #define ID_IS_OVERRIDE_LIBRARY_REAL(_id) \
   (((const ID *)(_id))->override_library != NULL && \
