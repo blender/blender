@@ -1530,12 +1530,21 @@ int main(int argc, char **argv)
 
 #endif /* if 0 */
 
-/* even though DNA supports, 'long' shouldn't be used since it can be either 32 or 64bit,
- * use int or int64_t instead.
+/**
+ * Disable types:
+ *
+ * - 'long': even though DNA supports, 'long' shouldn't be used since it can be either 32 or 64bit,
+ *   use int, int32_t or int64_t instead.
+ * - 'int8_t': as DNA doesn't yet support 'signed char' types,
+ *   all char types are assumed to be unsigned.
+ *   We should be able to support this, it's just not something which has been added yet.
+ *
  * Only valid use would be as a runtime variable if an API expected a long,
- * but so far we dont have this happening. */
+ * but so far we don't have this happening.
+ */
 #ifdef __GNUC__
 #  pragma GCC poison long
+#  pragma GCC poison int8_t
 #endif
 
 #include "DNA_ID.h"
