@@ -2599,10 +2599,9 @@ void BKE_gpencil_stroke_set_random_color(bGPDstroke *gps)
 
   float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   bGPDspoint *pt = &gps->points[0];
-  color[0] *= BLI_hash_int_01(BLI_hash_int_2d(gps->totpoints, pt->x));
-  color[1] *= BLI_hash_int_01(BLI_hash_int_2d(gps->totpoints, pt->y));
-  color[2] *= BLI_hash_int_01(BLI_hash_int_2d(gps->totpoints, pt->z));
-
+  color[0] *= BLI_hash_int_01(BLI_hash_int_2d(gps->totpoints / 5, pt->x + pt->z));
+  color[1] *= BLI_hash_int_01(BLI_hash_int_2d(gps->totpoints + pt->x, pt->y * pt->z + pt->x));
+  color[2] *= BLI_hash_int_01(BLI_hash_int_2d(gps->totpoints - pt->x, pt->z * pt->x + pt->y));
   for (int i = 0; i < gps->totpoints; i++) {
     pt = &gps->points[i];
     copy_v4_v4(pt->vert_color, color);
