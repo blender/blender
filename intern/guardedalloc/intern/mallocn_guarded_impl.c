@@ -898,6 +898,10 @@ void MEM_guarded_freeN(void *vmemh)
     memt = (MemTail *)(((char *)memh) + sizeof(MemHead) + memh->len);
     if (memt->tag3 == MEMTAG3) {
 
+      if (leak_detector_has_run) {
+        MemorY_ErroR(memh->name, free_after_leak_detection_message);
+      }
+
       memh->tag1 = MEMFREE;
       memh->tag2 = MEMFREE;
       memt->tag3 = MEMFREE;

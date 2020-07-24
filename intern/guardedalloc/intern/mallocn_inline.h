@@ -33,6 +33,10 @@
 #ifndef __MALLOCN_INLINE_H__
 #define __MALLOCN_INLINE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 MEM_INLINE bool MEM_size_safe_multiply(size_t a, size_t b, size_t *result)
 {
   /* A size_t with its high-half bits all set to 1. */
@@ -51,5 +55,9 @@ MEM_INLINE bool MEM_size_safe_multiply(size_t a, size_t b, size_t *result)
    */
   return ((high_bits & (a | b)) == 0 || (*result / b == a));
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MALLOCN_INLINE_H__ */

@@ -100,10 +100,17 @@ size_t malloc_usable_size(void *ptr);
 
 #include "mallocn_inline.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define ALIGNED_MALLOC_MINIMUM_ALIGNMENT sizeof(void *)
 
 void *aligned_malloc(size_t size, size_t alignment);
 void aligned_free(void *ptr);
+
+extern bool leak_detector_has_run;
+extern char free_after_leak_detection_message[];
 
 /* Prototypes for counted allocator functions */
 size_t MEM_lockfree_allocN_len(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
@@ -189,6 +196,10 @@ void MEM_guarded_reset_peak_memory(void);
 size_t MEM_guarded_get_peak_memory(void) ATTR_WARN_UNUSED_RESULT;
 #ifndef NDEBUG
 const char *MEM_guarded_name_ptr(void *vmemh);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __MALLOCN_INTERN_H__ */

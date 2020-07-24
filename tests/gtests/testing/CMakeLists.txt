@@ -28,6 +28,7 @@ set(INC
   ${GLOG_INCLUDE_DIRS}
   ${GFLAGS_INCLUDE_DIRS}
   ../../../extern/gtest/include
+  ../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -40,6 +41,7 @@ set(SRC
 )
 
 set(LIB
+  bf_intern_guardedalloc
 )
 
 blender_add_lib(bf_testing_main "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
