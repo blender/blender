@@ -346,9 +346,11 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
 
         enable_edit = ob.mode != 'EDIT'
         enable_edit_value = False
+        enable_pin = False
 
-        if ob.show_only_shape_key is False:
-            if enable_edit or (ob.type == 'MESH' and ob.use_shape_key_edit_mode):
+        if enable_edit or (ob.use_shape_key_edit_mode and ob.type == 'MESH'):
+            enable_pin = True
+            if ob.show_only_shape_key:
                 enable_edit_value = True
 
         row = layout.row()
@@ -386,7 +388,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
             sub = row.row(align=True)
             sub.label()  # XXX, for alignment only
             subsub = sub.row(align=True)
-            subsub.active = enable_edit_value
+            subsub.active = enable_pin
             subsub.prop(ob, "show_only_shape_key", text="")
             sub.prop(ob, "use_shape_key_edit_mode", text="")
 
