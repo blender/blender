@@ -630,7 +630,7 @@ float dist_squared_ray_to_seg_v3(const float ray_origin[3],
                                  float *r_depth)
 {
   float lambda, depth;
-  if (isect_ray_seg_v3(ray_origin, ray_direction, v0, v1, &lambda)) {
+  if (isect_ray_line_v3(ray_origin, ray_direction, v0, v1, &lambda)) {
     if (lambda <= 0.0f) {
       copy_v3_v3(r_point, v0);
     }
@@ -2129,11 +2129,11 @@ bool isect_ray_seg_v2(const float ray_origin[2],
   return false;
 }
 
-bool isect_ray_seg_v3(const float ray_origin[3],
-                      const float ray_direction[3],
-                      const float v0[3],
-                      const float v1[3],
-                      float *r_lambda)
+bool isect_ray_line_v3(const float ray_origin[3],
+                       const float ray_direction[3],
+                       const float v0[3],
+                       const float v1[3],
+                       float *r_lambda)
 {
   float a[3], t[3], n[3];
   sub_v3_v3v3(a, v1, v0);

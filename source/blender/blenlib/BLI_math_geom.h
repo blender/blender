@@ -454,11 +454,11 @@ bool isect_ray_seg_v2(const float ray_origin[2],
                       float *r_lambda,
                       float *r_u);
 
-bool isect_ray_seg_v3(const float ray_origin[3],
-                      const float ray_direction[3],
-                      const float v0[3],
-                      const float v1[3],
-                      float *r_lambda);
+bool isect_ray_line_v3(const float ray_origin[3],
+                       const float ray_direction[3],
+                       const float v0[3],
+                       const float v1[3],
+                       float *r_lambda);
 
 /* point in polygon */
 bool isect_point_poly_v2(const float pt[2],
