@@ -1276,7 +1276,7 @@ static bool test_projected_edge_dist(const struct DistProjectedAABBPrecalc *prec
                                      float r_co[3])
 {
   float near_co[3], lambda;
-  if (!isect_ray_seg_v3(precalc->ray_origin, precalc->ray_direction, va, vb, &lambda)) {
+  if (!isect_ray_line_v3(precalc->ray_origin, precalc->ray_direction, va, vb, &lambda)) {
     copy_v3_v3(near_co, va);
   }
   else {
@@ -1668,11 +1668,11 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
   };
 
   float lambda;
-  if (!isect_ray_seg_v3(neasrest_precalc.ray_origin,
-                        neasrest_precalc.ray_direction,
-                        v_pair[0],
-                        v_pair[1],
-                        &lambda)) {
+  if (!isect_ray_line_v3(neasrest_precalc.ray_origin,
+                         neasrest_precalc.ray_direction,
+                         v_pair[0],
+                         v_pair[1],
+                         &lambda)) {
     /* do nothing */
   }
   else {
