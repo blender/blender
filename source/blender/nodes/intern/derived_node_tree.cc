@@ -321,7 +321,7 @@ BLI_NOINLINE void DerivedNodeTree::store_in_this_and_init_ids(
     node->id_ = node_index;
 
     const bNodeType *nodetype = node->node_ref_->bnode()->typeinfo;
-    nodes_by_type_.lookup_or_add_default(nodetype).append(node);
+    nodes_by_type_.add(nodetype, node);
 
     for (DInputSocket *socket : node->inputs_) {
       socket->id_ = sockets_by_id_.append_and_get_index(socket);

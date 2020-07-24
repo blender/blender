@@ -18,6 +18,7 @@
 #define __SIM_SIMULATION_SOLVER_INFLUENCES_HH__
 
 #include "BLI_float3.hh"
+#include "BLI_multi_value_map.hh"
 #include "BLI_span.hh"
 
 #include "DNA_simulation_types.h"
@@ -48,31 +49,21 @@ class ParticleForce {
 };
 
 struct SimulationInfluences {
-  /* TODO: Use a special type for a map that contains vectors. */
-  Map<std::string, Vector<const ParticleForce *>> particle_forces;
+  MultiValueMap<std::string, const ParticleForce *> particle_forces;
   Map<std::string, fn::AttributesInfoBuilder *> particle_attributes_builder;
   Vector<const ParticleEmitter *> particle_emitters;
-
-  Span<const ParticleForce *> get_particle_forces(StringRef particle_name) const
-  {
-    const Vector<const ParticleForce *> *forces = particle_forces.lookup_ptr(particle_name);
-    if (forces == nullptr) {
-      return {};
-    }
-    return *forces;
-  }
 };
 
 class SimulationStateMap {
  private:
   Map<StringRefNull, SimulationState *> states_by_name_;
-  Map<StringRefNull, Vector<SimulationState *>> states_by_type_;
+  MultiValueMap<StringRefNull, SimulationState *> states_by_type_;
 
  public:
   void add(SimulationState *state)
   {
     states_by_name_.add_new(state->name, state);
-    states_by_type_.lookup_or_add_default(state->type).append(state);
+    states_by_type_.add(state->type, state);
   }
 
   template<typename StateType> StateType *lookup(StringRef name) const
@@ -101,13 +92,7 @@ class SimulationStateMap {
 
   Span<SimulationState *> lookup_type(StringRef type) const
   {
-    const Vector<SimulationState *> *states = states_by_type_.lookup_ptr_as(type);
-    if (states == nullptr) {
-      return {};
-    }
-    else {
-      return states->as_span();
-    }
+    return states_by_type_.lookup_as(type);
   }
 };
 

@@ -79,7 +79,7 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
 
   for (NodeRef *node : nodes_by_id_) {
     const bNodeType *nodetype = node->bnode_->typeinfo;
-    nodes_by_type_.lookup_or_add_default(nodetype).append(node);
+    nodes_by_type_.add(nodetype, node);
   }
 }
 

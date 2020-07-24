@@ -47,6 +47,7 @@
 #include "BLI_array.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_map.hh"
+#include "BLI_multi_value_map.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_timeit.hh"
 #include "BLI_utility_mixins.hh"
@@ -162,7 +163,7 @@ class NodeTreeRef : NonCopyable, NonMovable {
   Vector<SocketRef *> sockets_by_id_;
   Vector<InputSocketRef *> input_sockets_;
   Vector<OutputSocketRef *> output_sockets_;
-  Map<const bNodeType *, Vector<NodeRef *>> nodes_by_type_;
+  MultiValueMap<const bNodeType *, NodeRef *> nodes_by_type_;
 
  public:
   NodeTreeRef(bNodeTree *btree);
@@ -411,13 +412,7 @@ inline Span<const NodeRef *> NodeTreeRef::nodes_by_type(StringRefNull idname) co
 
 inline Span<const NodeRef *> NodeTreeRef::nodes_by_type(const bNodeType *nodetype) const
 {
-  const Vector<NodeRef *> *nodes = nodes_by_type_.lookup_ptr(nodetype);
-  if (nodes == nullptr) {
-    return {};
-  }
-  else {
-    return *nodes;
-  }
+  return nodes_by_type_.lookup(nodetype);
 }
 
 inline Span<const SocketRef *> NodeTreeRef::sockets() const

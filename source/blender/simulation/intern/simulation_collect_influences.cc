@@ -122,13 +122,12 @@ static void find_and_deduplicate_particle_attribute_nodes(nodes::MFNetworkTreeMa
     return;
   }
 
-  Map<std::pair<std::string, fn::MFDataType>, Vector<fn::MFNode *>>
+  MultiValueMap<std::pair<std::string, fn::MFDataType>, fn::MFNode *>
       attribute_nodes_by_name_and_type;
   for (int i : attribute_names->index_range()) {
-    attribute_nodes_by_name_and_type
-        .lookup_or_add_default(
-            {(*attribute_names)[i], name_sockets[i]->node().output(0).data_type()})
-        .append(&name_sockets[i]->node());
+    attribute_nodes_by_name_and_type.add(
+        {(*attribute_names)[i], name_sockets[i]->node().output(0).data_type()},
+        &name_sockets[i]->node());
   }
 
   Map<const fn::MFOutputSocket *, std::string> attribute_inputs;
@@ -237,11 +236,11 @@ class ParticleFunctionForce : public ParticleForce {
   }
 };
 
-static Vector<const ParticleForce *> create_forces_for_particle_simulation(
-    const nodes::DNode &simulation_node,
-    nodes::MFNetworkTreeMap &network_map,
-    ResourceCollector &resources,
-    DummyDataSources &data_sources)
+static void create_forces_for_particle_simulation(const nodes::DNode &simulation_node,
+                                                  nodes::MFNetworkTreeMap &network_map,
+                                                  ResourceCollector &resources,
+                                                  DummyDataSources &data_sources,
+                                                  SimulationInfluences &r_influences)
 {
   Vector<const ParticleForce *> forces;
   for (const nodes::DOutputSocket *origin_socket :
@@ -264,7 +263,9 @@ static Vector<const ParticleForce *> create_forces_for_particle_simulation(
     const ParticleForce &force = resources.construct<ParticleFunctionForce>(AT, *particle_fn);
     forces.append(&force);
   }
-  return forces;
+
+  std::string particle_name = dnode_to_path(simulation_node);
+  r_influences.particle_forces.add_multiple(std::move(particle_name), forces);
 }
 
 static void collect_forces(nodes::MFNetworkTreeMap &network_map,
@@ -273,10 +274,8 @@ static void collect_forces(nodes::MFNetworkTreeMap &network_map,
                            SimulationInfluences &r_influences)
 {
   for (const nodes::DNode *dnode : get_particle_simulation_nodes(network_map.tree())) {
-    std::string name = dnode_to_path(*dnode);
-    Vector<const ParticleForce *> forces = create_forces_for_particle_simulation(
-        *dnode, network_map, resources, data_sources);
-    r_influences.particle_forces.add_new(std::move(name), std::move(forces));
+    create_forces_for_particle_simulation(
+        *dnode, network_map, resources, data_sources, r_influences);
   }
 }
 

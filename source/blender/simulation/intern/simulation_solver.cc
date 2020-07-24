@@ -137,7 +137,7 @@ BLI_NOINLINE static void simulate_particle_chunk(SimulationSolveContext &solve_c
 {
   int particle_amount = attributes.size();
   Array<float3> force_vectors{particle_amount, {0, 0, 0}};
-  Span<const ParticleForce *> forces = solve_context.influences().get_particle_forces(
+  Span<const ParticleForce *> forces = solve_context.influences().particle_forces.lookup_as(
       state.head.name);
 
   ParticleChunkContext particle_chunk_context{IndexMask(particle_amount), attributes};
