@@ -295,6 +295,7 @@ int main(int argc,
         break;
       }
     }
+    MEM_initialize_memleak_detection();
   }
 
 #ifdef BUILD_DATE

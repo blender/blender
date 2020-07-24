@@ -101,6 +101,10 @@ size_t MEM_lockfree_allocN_len(const void *vmemh)
 
 void MEM_lockfree_freeN(void *vmemh)
 {
+  if (leak_detector_has_run) {
+    print_error(free_after_leak_detection_message);
+  }
+
   MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
   size_t len = MEM_lockfree_allocN_len(vmemh);
 

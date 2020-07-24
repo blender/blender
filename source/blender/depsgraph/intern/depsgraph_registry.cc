@@ -30,29 +30,35 @@
 namespace blender {
 namespace deg {
 
-static RawMap<Main *, RawVectorSet<Depsgraph *>> g_graph_registry;
+using GraphRegistry = Map<Main *, VectorSet<Depsgraph *>>;
+static GraphRegistry &get_graph_registry()
+{
+  static GraphRegistry graph_registry;
+  return graph_registry;
+}
 
 void register_graph(Depsgraph *depsgraph)
 {
   Main *bmain = depsgraph->bmain;
-  g_graph_registry.lookup_or_add_default(bmain).add_new(depsgraph);
+  get_graph_registry().lookup_or_add_default(bmain).add_new(depsgraph);
 }
 
 void unregister_graph(Depsgraph *depsgraph)
 {
   Main *bmain = depsgraph->bmain;
-  RawVectorSet<Depsgraph *> &graphs = g_graph_registry.lookup(bmain);
+  GraphRegistry &graph_registry = get_graph_registry();
+  VectorSet<Depsgraph *> &graphs = graph_registry.lookup(bmain);
   graphs.remove(depsgraph);
 
   // If this was the last depsgraph associated with the main, remove the main entry as well.
   if (graphs.is_empty()) {
-    g_graph_registry.remove(bmain);
+    graph_registry.remove(bmain);
   }
 }
 
 Span<Depsgraph *> get_all_registered_graphs(Main *bmain)
 {
-  RawVectorSet<Depsgraph *> *graphs = g_graph_registry.lookup_ptr(bmain);
+  VectorSet<Depsgraph *> *graphs = get_graph_registry().lookup_ptr(bmain);
   if (graphs != nullptr) {
     return *graphs;
   }

@@ -5144,7 +5144,10 @@ static void mem_error_cb(const char *errorStr)
 
 int main(int argc, char **argv)
 {
-  int totblock, return_status = 0;
+  int return_status = 0;
+
+  MEM_initialize_memleak_detection();
+  MEM_set_error_callback(mem_error_cb);
 
   CLG_init();
 
@@ -5165,13 +5168,6 @@ int main(int argc, char **argv)
   }
 
   CLG_exit();
-
-  totblock = MEM_get_memory_blocks_in_use();
-  if (totblock != 0) {
-    fprintf(stderr, "Error Totblock: %d\n", totblock);
-    MEM_set_error_callback(mem_error_cb);
-    MEM_printmemlist();
-  }
 
   return return_status;
 }
