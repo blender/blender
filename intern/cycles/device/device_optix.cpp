@@ -1746,10 +1746,11 @@ void device_optix_info(const vector<DeviceInfo> &cuda_devices, vector<DeviceInfo
   for (DeviceInfo info : cuda_devices) {
     assert(info.type == DEVICE_CUDA);
 
-    int major;
+    int major, minor;
     cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, info.num);
-    if (major < 5) {
-      continue;  // Only Maxwell and up are supported by OptiX
+    cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, info.num);
+    if (major < 5 || (major == 5 && minor < 2)) {
+      continue;  // Only Maxwell 2.0 and up are supported by OptiX
     }
 
     info.type = DEVICE_OPTIX;
