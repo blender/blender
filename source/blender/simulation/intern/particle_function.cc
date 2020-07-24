@@ -56,12 +56,11 @@ ParticleFunctionEvaluator::ParticleFunctionEvaluator(
     : particle_fn_(particle_fn),
       solve_context_(solve_context),
       particle_chunk_context_(particle_chunk_context),
-      mask_(particle_chunk_context_.index_mask()),
+      mask_(particle_chunk_context_.index_mask),
       outputs_(particle_fn_.output_types_.size(), nullptr)
 {
-  global_context_.add_global_context("PersistentDataHandleMap", &solve_context_.handle_map());
-  per_particle_context_.add_global_context("PersistentDataHandleMap",
-                                           &solve_context_.handle_map());
+  global_context_.add_global_context("PersistentDataHandleMap", &solve_context_.handle_map);
+  per_particle_context_.add_global_context("PersistentDataHandleMap", &solve_context_.handle_map);
 }
 
 ParticleFunctionEvaluator::~ParticleFunctionEvaluator()
@@ -117,7 +116,7 @@ void ParticleFunctionEvaluator::compute_globals()
 
   /* Add input parameters. */
   for (const ParticleFunctionInput *input : particle_fn_.global_inputs_) {
-    input->add_input(particle_chunk_context_.attributes(), params, resources_);
+    input->add_input(particle_chunk_context_.attributes, params, resources_);
   }
 
   /* Add output parameters. */
@@ -144,7 +143,7 @@ void ParticleFunctionEvaluator::compute_per_particle()
 
   /* Add input parameters. */
   for (const ParticleFunctionInput *input : particle_fn_.per_particle_inputs_) {
-    input->add_input(particle_chunk_context_.attributes(), params, resources_);
+    input->add_input(particle_chunk_context_.attributes, params, resources_);
   }
 
   /* Add output parameters. */

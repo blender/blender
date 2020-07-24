@@ -26,6 +26,7 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "BLI_hash.h"
 #include "BLI_rand.hh"
 
 namespace blender::sim {
@@ -222,11 +223,11 @@ class ParticleFunctionForce : public ParticleForce {
 
   void add_force(ParticleForceContext &context) const override
   {
-    IndexMask mask = context.particle_chunk().index_mask();
-    MutableSpan<float3> r_combined_force = context.force_dst();
+    IndexMask mask = context.particle_chunk_context.index_mask;
+    MutableSpan<float3> r_combined_force = context.force_dst;
 
     ParticleFunctionEvaluator evaluator{
-        particle_fn_, context.solve_context(), context.particle_chunk()};
+        particle_fn_, context.solve_context, context.particle_chunk_context};
     evaluator.compute();
     fn::VSpan<float3> forces = evaluator.get<float3>(0, "Force");
 
@@ -341,6 +342,35 @@ static void collect_emitters(nodes::MFNetworkTreeMap &network_map,
   }
 }
 
+class RandomizeVelocityAction : public ParticleAction {
+ public:
+  void execute(ParticleActionContext &context) const override
+  {
+    MutableSpan<int> hashes = context.particle_chunk_context.attributes.get<int>("Hash");
+    MutableSpan<float3> velocities = context.particle_chunk_context.attributes.get<float3>(
+        "Velocity");
+    for (int i : context.particle_chunk_context.index_mask) {
+      const float x = BLI_hash_int_01((uint32_t)hashes[i] ^ 23423523u) - 0.5f;
+      const float y = BLI_hash_int_01((uint32_t)hashes[i] ^ 76463521u) - 0.5f;
+      const float z = BLI_hash_int_01((uint32_t)hashes[i] ^ 43523762u) - 0.5f;
+      float3 vector{x, y, z};
+      vector.normalize();
+      velocities[i] += vector * 0.3;
+    }
+  }
+};
+
+static void collect_birth_events(nodes::MFNetworkTreeMap &network_map,
+                                 ResourceCollector &resources,
+                                 SimulationInfluences &r_influences)
+{
+  RandomizeVelocityAction &action = resources.construct<RandomizeVelocityAction>(AT);
+  for (const nodes::DNode *dnode : get_particle_simulation_nodes(network_map.tree())) {
+    std::string particle_name = dnode_to_path(*dnode);
+    r_influences.particle_birth_actions.add_as(std::move(particle_name), &action);
+  }
+}
+
 static void prepare_particle_attribute_builders(nodes::MFNetworkTreeMap &network_map,
                                                 ResourceCollector &resources,
                                                 SimulationInfluences &r_influences)
@@ -353,6 +383,8 @@ static void prepare_particle_attribute_builders(nodes::MFNetworkTreeMap &network
     builder.add<int>("ID", 0);
     /* TODO: Use bool property, but need to add CD_PROP_BOOL first. */
     builder.add<int>("Dead", 0);
+    /* TODO: Use uint32_t, but we don't have a corresponding custom property type. */
+    builder.add<int>("Hash", 0);
     builder.add<float>("Birth Time", 0.0f);
     r_influences.particle_attributes_builder.add_new(std::move(name), &builder);
   }
@@ -381,6 +413,7 @@ void collect_simulation_influences(Simulation &simulation,
 
   collect_forces(network_map, resources, data_sources, r_influences);
   collect_emitters(network_map, resources, r_influences, r_required_states);
+  collect_birth_events(network_map, resources, r_influences);
 
   for (const nodes::DNode *dnode : get_particle_simulation_nodes(tree)) {
     r_required_states.add(dnode_to_path(*dnode), SIM_TYPE_NAME_PARTICLE_SIMULATION);

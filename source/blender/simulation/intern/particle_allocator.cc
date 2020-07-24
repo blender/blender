@@ -16,6 +16,8 @@
 
 #include "particle_allocator.hh"
 
+#include "BLI_rand.hh"
+
 namespace blender::sim {
 
 AttributesAllocator::~AttributesAllocator()
@@ -65,6 +67,13 @@ fn::MutableAttributesRef ParticleAllocator::allocate(int size)
       MutableSpan<int> ids = attributes.get<int>("ID");
       for (int pindex : IndexRange(size)) {
         ids[pindex] = start_id + pindex;
+      }
+    }
+    else if (name == "Hash") {
+      MutableSpan<int> hashes = attributes.get<int>("Hash");
+      RandomNumberGenerator rng(hash_seed_ ^ (uint32_t)next_id_);
+      for (int pindex : IndexRange(size)) {
+        hashes[pindex] = (int)rng.get_uint32();
       }
     }
     else {

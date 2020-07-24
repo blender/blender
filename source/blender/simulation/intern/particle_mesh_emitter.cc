@@ -291,7 +291,7 @@ static BLI_NOINLINE EmitterSettings compute_settings(const fn::MultiFunction &in
   EmitterSettings parameters;
 
   fn::MFContextBuilder mf_context;
-  mf_context.add_global_context("PersistentDataHandleMap", &context.solve_context().handle_map());
+  mf_context.add_global_context("PersistentDataHandleMap", &context.solve_context.handle_map);
 
   fn::MFParamsBuilder mf_params{inputs_fn, 1};
   bke::PersistentObjectHandle object_handle;
@@ -300,7 +300,7 @@ static BLI_NOINLINE EmitterSettings compute_settings(const fn::MultiFunction &in
 
   inputs_fn.call(IndexRange(1), mf_params, mf_context);
 
-  parameters.object = context.solve_context().handle_map().lookup(object_handle);
+  parameters.object = context.solve_context.handle_map.lookup(object_handle);
   return parameters;
 }
 
@@ -318,7 +318,7 @@ void ParticleMeshEmitter::emit(ParticleEmitterContext &context) const
   Vector<float> new_birth_times;
 
   if (!compute_new_particle_attributes(settings,
-                                       context.emit_interval(),
+                                       context.emit_interval,
                                        *state,
                                        new_positions,
                                        new_velocities,

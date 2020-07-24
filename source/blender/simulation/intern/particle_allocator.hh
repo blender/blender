@@ -70,10 +70,11 @@ class ParticleAllocator : NonCopyable, NonMovable {
  private:
   AttributesAllocator attributes_allocator_;
   std::atomic<int> next_id_;
+  uint32_t hash_seed_;
 
  public:
-  ParticleAllocator(const fn::AttributesInfo &attributes_info, int next_id)
-      : attributes_allocator_(attributes_info), next_id_(next_id)
+  ParticleAllocator(const fn::AttributesInfo &attributes_info, int next_id, uint32_t hash_seed)
+      : attributes_allocator_(attributes_info), next_id_(next_id), hash_seed_(hash_seed)
   {
   }
 

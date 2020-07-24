@@ -33,8 +33,17 @@
 
 namespace blender::sim {
 
+using fn::AttributesInfo;
+using fn::AttributesInfoBuilder;
+using fn::AttributesRef;
+using fn::CPPType;
+using fn::GMutableSpan;
+using fn::GSpan;
+using fn::MutableAttributesRef;
+
 class ParticleEmitterContext;
 class ParticleForceContext;
+class ParticleActionContext;
 
 class ParticleEmitter {
  public:
@@ -48,9 +57,16 @@ class ParticleForce {
   virtual void add_force(ParticleForceContext &context) const = 0;
 };
 
+class ParticleAction {
+ public:
+  virtual ~ParticleAction();
+  virtual void execute(ParticleActionContext &context) const = 0;
+};
+
 struct SimulationInfluences {
   MultiValueMap<std::string, const ParticleForce *> particle_forces;
-  Map<std::string, fn::AttributesInfoBuilder *> particle_attributes_builder;
+  MultiValueMap<std::string, const ParticleAction *> particle_birth_actions;
+  Map<std::string, AttributesInfoBuilder *> particle_attributes_builder;
   Vector<const ParticleEmitter *> particle_emitters;
 };
 
@@ -96,50 +112,13 @@ class SimulationStateMap {
   }
 };
 
-class SimulationSolveContext {
- private:
-  Simulation &simulation_;
-  Depsgraph &depsgraph_;
-  const SimulationInfluences &influences_;
-  TimeInterval solve_interval_;
-  const SimulationStateMap &state_map_;
-  const bke::PersistentDataHandleMap &id_handle_map_;
-
- public:
-  SimulationSolveContext(Simulation &simulation,
-                         Depsgraph &depsgraph,
-                         const SimulationInfluences &influences,
-                         TimeInterval solve_interval,
-                         const SimulationStateMap &state_map,
-                         const bke::PersistentDataHandleMap &handle_map)
-      : simulation_(simulation),
-        depsgraph_(depsgraph),
-        influences_(influences),
-        solve_interval_(solve_interval),
-        state_map_(state_map),
-        id_handle_map_(handle_map)
-  {
-  }
-
-  TimeInterval solve_interval() const
-  {
-    return solve_interval_;
-  }
-
-  const SimulationInfluences &influences() const
-  {
-    return influences_;
-  }
-
-  const bke::PersistentDataHandleMap &handle_map() const
-  {
-    return id_handle_map_;
-  }
-
-  const SimulationStateMap &state_map() const
-  {
-    return state_map_;
-  }
+struct SimulationSolveContext {
+  Simulation &simulation;
+  Depsgraph &depsgraph;
+  const SimulationInfluences &influences;
+  TimeInterval solve_interval;
+  const SimulationStateMap &state_map;
+  const bke::PersistentDataHandleMap &handle_map;
 };
 
 class ParticleAllocators {
@@ -164,100 +143,41 @@ class ParticleAllocators {
   }
 };
 
-class ParticleChunkContext {
- private:
-  IndexMask index_mask_;
-  fn::MutableAttributesRef attributes_;
-
- public:
-  ParticleChunkContext(IndexMask index_mask, fn::MutableAttributesRef attributes)
-      : index_mask_(index_mask), attributes_(attributes)
-  {
-  }
-
-  IndexMask index_mask() const
-  {
-    return index_mask_;
-  }
-
-  fn::MutableAttributesRef attributes()
-  {
-    return attributes_;
-  }
-
-  fn::AttributesRef attributes() const
-  {
-    return attributes_;
-  }
+struct MutableParticleChunkContext {
+  IndexMask index_mask;
+  MutableAttributesRef attributes;
 };
 
-class ParticleEmitterContext {
- private:
-  SimulationSolveContext &solve_context_;
-  ParticleAllocators &particle_allocators_;
-  TimeInterval emit_interval_;
+struct ParticleChunkContext {
+  IndexMask index_mask;
+  AttributesRef attributes;
+};
 
- public:
-  ParticleEmitterContext(SimulationSolveContext &solve_context,
-                         ParticleAllocators &particle_allocators,
-                         TimeInterval emit_interval)
-      : solve_context_(solve_context),
-        particle_allocators_(particle_allocators),
-        emit_interval_(emit_interval)
-  {
-  }
+struct ParticleEmitterContext {
+  SimulationSolveContext &solve_context;
+  ParticleAllocators &particle_allocators;
+  TimeInterval emit_interval;
 
   template<typename StateType> StateType *lookup_state(StringRef name)
   {
-    return solve_context_.state_map().lookup<StateType>(name);
-  }
-
-  SimulationSolveContext &solve_context()
-  {
-    return solve_context_;
+    return solve_context.state_map.lookup<StateType>(name);
   }
 
   ParticleAllocator *try_get_particle_allocator(StringRef particle_simulation_name)
   {
-    return particle_allocators_.try_get_allocator(particle_simulation_name);
-  }
-
-  TimeInterval emit_interval() const
-  {
-    return emit_interval_;
+    return particle_allocators.try_get_allocator(particle_simulation_name);
   }
 };
 
-class ParticleForceContext {
- private:
-  SimulationSolveContext &solve_context_;
-  const ParticleChunkContext &particle_chunk_context_;
-  MutableSpan<float3> force_dst_;
+struct ParticleForceContext {
+  SimulationSolveContext &solve_context;
+  ParticleChunkContext &particle_chunk_context;
+  MutableSpan<float3> force_dst;
+};
 
- public:
-  ParticleForceContext(SimulationSolveContext &solve_context,
-                       const ParticleChunkContext &particle_chunk_context,
-                       MutableSpan<float3> force_dst)
-      : solve_context_(solve_context),
-        particle_chunk_context_(particle_chunk_context),
-        force_dst_(force_dst)
-  {
-  }
-
-  SimulationSolveContext &solve_context()
-  {
-    return solve_context_;
-  }
-
-  const ParticleChunkContext &particle_chunk() const
-  {
-    return particle_chunk_context_;
-  }
-
-  MutableSpan<float3> force_dst()
-  {
-    return force_dst_;
-  }
+struct ParticleActionContext {
+  SimulationSolveContext &solve_context;
+  MutableParticleChunkContext &particle_chunk_context;
 };
 
 }  // namespace blender::sim
