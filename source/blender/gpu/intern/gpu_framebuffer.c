@@ -1077,7 +1077,6 @@ void GPU_clear(eGPUFrameBufferBits flags)
 void GPU_frontbuffer_read_pixels(
     int x, int y, int w, int h, int channels, eGPUDataFormat format, void *data)
 {
-  glReadBuffer(GL_FRONT);
   gpu_framebuffer_read_color_ex(x, y, w, h, channels, GL_FRONT, format, data);
 }
 
