@@ -394,7 +394,8 @@ static bool lib_override_hierarchy_recursive_tag(Main *bmain, ID *id, const uint
 }
 
 /**
- * Tag all IDs in given \a bmain that use (depends on) given \a id_root ID.
+ * Tag all IDs in given \a bmain that are being used by given \a id_root ID or its dependencies,
+ * recursively.
  *
  * This will include all local IDs, and all IDs from the same library as the \a id_root.
  *
