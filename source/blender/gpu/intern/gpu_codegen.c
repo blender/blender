@@ -281,18 +281,15 @@ static const char *gpu_builtin_name(eGPUBuiltin builtin)
 
 static void codegen_set_unique_ids(GPUNodeGraph *graph)
 {
-  GPUNode *node;
-  GPUInput *input;
-  GPUOutput *output;
   int id = 1;
 
-  for (node = graph->nodes.first; node; node = node->next) {
-    for (input = node->inputs.first; input; input = input->next) {
+  LISTBASE_FOREACH (GPUNode *, node, &graph->nodes) {
+    LISTBASE_FOREACH (GPUInput *, input, &node->inputs) {
       /* set id for unique names of uniform variables */
       input->id = id++;
     }
 
-    for (output = node->outputs.first; output; output = output->next) {
+    LISTBASE_FOREACH (GPUOutput *, output, &node->outputs) {
       /* set id for unique names of tmp variables storing output */
       output->id = id++;
     }
@@ -306,8 +303,6 @@ static int codegen_process_uniforms_functions(GPUMaterial *material,
                                               DynStr *ds,
                                               GPUNodeGraph *graph)
 {
-  GPUNode *node;
-  GPUInput *input;
   const char *name;
   int builtins = 0;
   ListBase ubo_inputs = {NULL, NULL};
@@ -338,8 +333,9 @@ static int codegen_process_uniforms_functions(GPUMaterial *material,
   }
 
   /* Print other uniforms */
-  for (node = graph->nodes.first; node; node = node->next) {
-    for (input = node->inputs.first; input; input = input->next) {
+
+  LISTBASE_FOREACH (GPUNode *, node, &graph->nodes) {
+    LISTBASE_FOREACH (GPUInput *, input, &node->inputs) {
       if (input->source == GPU_SOURCE_BUILTIN) {
         /* only define each builtin uniform/varying once */
         if (!(builtins & input->builtin)) {
@@ -381,7 +377,7 @@ static int codegen_process_uniforms_functions(GPUMaterial *material,
     BLI_dynstr_appendf(ds, "\nlayout (std140) uniform %s {\n", GPU_UBO_BLOCK_NAME);
 
     LISTBASE_FOREACH (LinkData *, link, &ubo_inputs) {
-      input = link->data;
+      GPUInput *input = (GPUInput *)(link->data);
       BLI_dynstr_appendf(ds, "\t%s unf%d;\n", gpu_data_type_to_string(input->type), input->id);
     }
     BLI_dynstr_append(ds, "};\n");
@@ -395,12 +391,9 @@ static int codegen_process_uniforms_functions(GPUMaterial *material,
 
 static void codegen_declare_tmps(DynStr *ds, GPUNodeGraph *graph)
 {
-  GPUNode *node;
-  GPUOutput *output;
-
-  for (node = graph->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (GPUNode *, node, &graph->nodes) {
     /* declare temporary variables for node output storage */
-    for (output = node->outputs.first; output; output = output->next) {
+    LISTBASE_FOREACH (GPUOutput *, output, &node->outputs) {
       if (output->type == GPU_CLOSURE) {
         BLI_dynstr_appendf(ds, "\tClosure tmp%d;\n", output->id);
       }
@@ -409,20 +402,15 @@ static void codegen_declare_tmps(DynStr *ds, GPUNodeGraph *graph)
       }
     }
   }
-
   BLI_dynstr_append(ds, "\n");
 }
 
 static void codegen_call_functions(DynStr *ds, GPUNodeGraph *graph, GPUOutput *finaloutput)
 {
-  GPUNode *node;
-  GPUInput *input;
-  GPUOutput *output;
-
-  for (node = graph->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (GPUNode *, node, &graph->nodes) {
     BLI_dynstr_appendf(ds, "\t%s(", node->name);
 
-    for (input = node->inputs.first; input; input = input->next) {
+    LISTBASE_FOREACH (GPUInput *, input, &node->inputs) {
       if (input->source == GPU_SOURCE_TEX) {
         BLI_dynstr_append(ds, input->texture->sampler_name);
       }
@@ -503,7 +491,7 @@ static void codegen_call_functions(DynStr *ds, GPUNodeGraph *graph, GPUOutput *f
       BLI_dynstr_append(ds, ", ");
     }
 
-    for (output = node->outputs.first; output; output = output->next) {
+    LISTBASE_FOREACH (GPUOutput *, output, &node->outputs) {
       BLI_dynstr_appendf(ds, "tmp%d", output->id);
       if (output->next) {
         BLI_dynstr_append(ds, ", ");
@@ -661,8 +649,6 @@ static const char *attr_prefix_get(CustomDataType type)
 static char *code_generate_vertex(GPUNodeGraph *graph, const char *vert_code, bool use_geom)
 {
   DynStr *ds = BLI_dynstr_new();
-  GPUNode *node;
-  GPUInput *input;
   char *code;
   int builtins = 0;
 
@@ -707,8 +693,8 @@ static char *code_generate_vertex(GPUNodeGraph *graph, const char *vert_code, bo
                        use_geom ? "g" : "");
   }
 
-  for (node = graph->nodes.first; node; node = node->next) {
-    for (input = node->inputs.first; input; input = input->next) {
+  LISTBASE_FOREACH (GPUNode *, node, &graph->nodes) {
+    LISTBASE_FOREACH (GPUInput *, input, &node->inputs) {
       if (input->source == GPU_SOURCE_BUILTIN) {
         builtins |= input->builtin;
       }
@@ -882,8 +868,6 @@ static char *code_generate_geometry(GPUNodeGraph *graph,
                                     const char *defines)
 {
   DynStr *ds = BLI_dynstr_new();
-  GPUNode *node;
-  GPUInput *input;
   char *code;
   int builtins = 0;
 
@@ -895,15 +879,15 @@ static char *code_generate_geometry(GPUNodeGraph *graph,
   BLI_dynstr_append(ds, "void calc_barycentric_distances(vec3 pos0, vec3 pos1, vec3 pos2);\n");
   BLI_dynstr_append(ds, "#define USE_ATTR\n");
 
-  /* Generate varying declarations. */
-  for (node = graph->nodes.first; node; node = node->next) {
-    for (input = node->inputs.first; input; input = input->next) {
+  LISTBASE_FOREACH (GPUNode *, node, &graph->nodes) {
+    LISTBASE_FOREACH (GPUInput *, input, &node->inputs) {
       if (input->source == GPU_SOURCE_BUILTIN) {
         builtins |= input->builtin;
       }
     }
   }
 
+  /* Generate varying declarations. */
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph->attributes) {
     BLI_dynstr_appendf(ds, "in %s var%dg[];\n", gpu_data_type_to_string(attr->gputype), attr->id);
     BLI_dynstr_appendf(ds, "out %s var%d;\n", gpu_data_type_to_string(attr->gputype), attr->id);
