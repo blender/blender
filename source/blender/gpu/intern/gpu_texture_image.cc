@@ -213,7 +213,7 @@ static uint gpu_texture_create_tile_mapping(Image *ima, const int multiview_eye)
   float array_w = GPU_texture_width(tilearray);
   float array_h = GPU_texture_height(tilearray);
 
-  ImageTile *last_tile = ima->tiles.last;
+  ImageTile *last_tile = (ImageTile *)ima->tiles.last;
   /* Tiles are sorted by number. */
   int max_tile = last_tile->tile_number - 1001;
 
@@ -223,7 +223,7 @@ static uint gpu_texture_create_tile_mapping(Image *ima, const int multiview_eye)
   glBindTexture(GL_TEXTURE_1D_ARRAY, bindcode);
 
   int width = max_tile + 1;
-  float *data = MEM_callocN(width * 8 * sizeof(float), __func__);
+  float *data = (float *)MEM_callocN(width * 8 * sizeof(float), __func__);
   for (int i = 0; i < width; i++) {
     data[4 * i] = -1.0f;
   }
@@ -257,8 +257,8 @@ typedef struct PackTile {
 
 static int compare_packtile(const void *a, const void *b)
 {
-  const PackTile *tile_a = a;
-  const PackTile *tile_b = b;
+  const PackTile *tile_a = (const PackTile *)a;
+  const PackTile *tile_b = (const PackTile *)b;
 
   return tile_a->pack_score < tile_b->pack_score;
 }
@@ -276,7 +276,7 @@ static uint gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
 
     if (ibuf) {
-      PackTile *packtile = MEM_callocN(sizeof(PackTile), __func__);
+      PackTile *packtile = (PackTile *)MEM_callocN(sizeof(PackTile), __func__);
       packtile->tile = tile;
       packtile->boxpack.w = ibuf->x;
       packtile->boxpack.h = ibuf->y;
@@ -380,7 +380,7 @@ static uint gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
 
         const bool store_premultiplied = ima->alpha_mode != IMA_ALPHA_STRAIGHT;
         if (ibuf->channels != 4 || !store_premultiplied) {
-          rect_float = MEM_mallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, __func__);
+          rect_float = (float *)MEM_mallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, __func__);
           IMB_colormanagement_imbuf_to_float_texture(
               rect_float, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
         }
@@ -412,7 +412,7 @@ static uint gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
         unsigned int *rect = ibuf->rect;
 
         if (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace)) {
-          rect = MEM_mallocN(sizeof(uchar) * 4 * ibuf->x * ibuf->y, __func__);
+          rect = (uint *)MEM_mallocN(sizeof(uchar) * 4 * ibuf->x * ibuf->y, __func__);
           IMB_colormanagement_imbuf_to_byte_texture((uchar *)rect,
                                                     0,
                                                     0,
@@ -495,7 +495,7 @@ static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
     if (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace)) {
       compress_as_srgb = !IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace);
 
-      rect = MEM_mallocN(sizeof(uchar) * 4 * ibuf->x * ibuf->y, __func__);
+      rect = (uchar *)MEM_mallocN(sizeof(uchar) * 4 * ibuf->x * ibuf->y, __func__);
       if (rect == NULL) {
         return bindcode;
       }
@@ -517,7 +517,7 @@ static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
     const bool store_premultiplied = ima ? (ima->alpha_mode != IMA_ALPHA_STRAIGHT) : false;
 
     if (ibuf->channels != 4 || !store_premultiplied) {
-      rect_float = MEM_mallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, __func__);
+      rect_float = (float *)MEM_mallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, __func__);
       if (rect_float == NULL) {
         return bindcode;
       }
@@ -553,31 +553,28 @@ static GPUTexture **gpu_get_movieclip_gputexture(MovieClip *clip,
                                                  MovieClipUser *cuser,
                                                  GLenum textarget)
 {
-  MovieClip_RuntimeGPUTexture *tex;
-  for (tex = clip->runtime.gputextures.first; tex; tex = tex->next) {
+  LISTBASE_FOREACH (MovieClip_RuntimeGPUTexture *, tex, &clip->runtime.gputextures) {
     if (memcmp(&tex->user, cuser, sizeof(MovieClipUser)) == 0) {
-      break;
+      if (tex == NULL) {
+        tex = (MovieClip_RuntimeGPUTexture *)MEM_mallocN(sizeof(MovieClip_RuntimeGPUTexture),
+                                                         __func__);
+
+        for (int i = 0; i < TEXTARGET_COUNT; i++) {
+          tex->gputexture[i] = NULL;
+        }
+
+        memcpy(&tex->user, cuser, sizeof(MovieClipUser));
+        BLI_addtail(&clip->runtime.gputextures, tex);
+      }
+
+      if (textarget == GL_TEXTURE_2D) {
+        return &tex->gputexture[TEXTARGET_TEXTURE_2D];
+      }
+      else if (textarget == GL_TEXTURE_CUBE_MAP) {
+        return &tex->gputexture[TEXTARGET_TEXTURE_CUBE_MAP];
+      }
     }
   }
-
-  if (tex == NULL) {
-    tex = MEM_mallocN(sizeof(MovieClip_RuntimeGPUTexture), __func__);
-
-    for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      tex->gputexture[i] = NULL;
-    }
-
-    memcpy(&tex->user, cuser, sizeof(MovieClipUser));
-    BLI_addtail(&clip->runtime.gputextures, tex);
-  }
-
-  if (textarget == GL_TEXTURE_2D) {
-    return &tex->gputexture[TEXTARGET_TEXTURE_2D];
-  }
-  else if (textarget == GL_TEXTURE_CUBE_MAP) {
-    return &tex->gputexture[TEXTARGET_TEXTURE_CUBE_MAP];
-  }
-
   return NULL;
 }
 
@@ -765,7 +762,7 @@ static void gpu_texture_update_from_ibuf(
       const bool compress_as_srgb = !IMB_colormanagement_space_is_scene_linear(
           ibuf->rect_colorspace);
 
-      rect = MEM_mallocN(sizeof(uchar) * 4 * w * h, __func__);
+      rect = (uchar *)MEM_mallocN(sizeof(uchar) * 4 * w * h, __func__);
       if (rect == NULL) {
         return;
       }
@@ -785,7 +782,7 @@ static void gpu_texture_update_from_ibuf(
     const bool store_premultiplied = (ima->alpha_mode != IMA_ALPHA_STRAIGHT);
 
     if (ibuf->channels != 4 || scaled || !store_premultiplied) {
-      rect_float = MEM_mallocN(sizeof(float) * 4 * w * h, __func__);
+      rect_float = (float *)MEM_mallocN(sizeof(float) * 4 * w * h, __func__);
       if (rect_float == NULL) {
         return;
       }
@@ -965,7 +962,8 @@ void GPU_free_texture_movieclip(struct MovieClip *clip)
   const int MOVIECLIP_NUM_GPUTEXTURES = 1;
 
   while (BLI_listbase_count(&clip->runtime.gputextures) > MOVIECLIP_NUM_GPUTEXTURES) {
-    MovieClip_RuntimeGPUTexture *tex = BLI_pophead(&clip->runtime.gputextures);
+    MovieClip_RuntimeGPUTexture *tex = (MovieClip_RuntimeGPUTexture *)BLI_pophead(
+        &clip->runtime.gputextures);
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
       /* free glsl image binding */
       if (tex->gputexture[i]) {
@@ -989,7 +987,7 @@ static void **gpu_gen_cube_map(uint *rect, float *frect, int rectw, int recth)
   }
 
   /* PosX, NegX, PosY, NegY, PosZ, NegZ */
-  sides = MEM_mallocN(sizeof(void *) * 6, "");
+  sides = (void **)MEM_mallocN(sizeof(void *) * 6, "");
   for (int i = 0; i < 6; i++) {
     sides[i] = MEM_mallocN(block_size * w * h, "");
   }
@@ -1270,7 +1268,8 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
   GTS.texpaint = !mipmap;
 
   if (mipmap) {
-    for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
+
+    LISTBASE_FOREACH (Image *, ima, &bmain->images) {
       if (BKE_image_has_opengl_texture(ima)) {
         if (ima->gpuflag & IMA_GPU_MIPMAP_COMPLETE) {
           for (int eye = 0; eye < 2; eye++) {
@@ -1297,7 +1296,7 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
     }
   }
   else {
-    for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
+    LISTBASE_FOREACH (Image *, ima, &bmain->images) {
       if (BKE_image_has_opengl_texture(ima)) {
         for (int eye = 0; eye < 2; eye++) {
           for (int a = 0; a < TEXTARGET_COUNT; a++) {
@@ -1363,12 +1362,10 @@ static void gpu_free_unused_buffers()
   BLI_mutex_lock(&gpu_texture_queue_mutex);
 
   if (gpu_texture_free_queue != NULL) {
-    for (LinkNode *node = gpu_texture_free_queue; node; node = node->next) {
-      GPUTexture *tex = node->link;
+    GPUTexture *tex;
+    while ((tex = (GPUTexture *)BLI_linklist_pop(&gpu_texture_free_queue))) {
       GPU_texture_free(tex);
     }
-
-    BLI_linklist_free(gpu_texture_free_queue, NULL);
     gpu_texture_free_queue = NULL;
   }
 
@@ -1412,7 +1409,7 @@ void GPU_free_image(Image *ima)
 void GPU_free_images(Main *bmain)
 {
   if (bmain) {
-    for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
+    LISTBASE_FOREACH (Image *, ima, &bmain->images) {
       GPU_free_image(ima);
     }
   }
@@ -1422,7 +1419,7 @@ void GPU_free_images(Main *bmain)
 void GPU_free_images_anim(Main *bmain)
 {
   if (bmain) {
-    for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
+    LISTBASE_FOREACH (Image *, ima, &bmain->images) {
       if (BKE_image_is_animated(ima)) {
         GPU_free_image(ima);
       }
@@ -1450,8 +1447,7 @@ void GPU_free_images_old(Main *bmain)
 
   lasttime = ctime;
 
-  Image *ima = bmain->images.first;
-  while (ima) {
+  LISTBASE_FOREACH (Image *, ima, &bmain->images) {
     if ((ima->flag & IMA_NOCOLLECT) == 0 && ctime - ima->lastused > U.textimeout) {
       /* If it's in GL memory, deallocate and set time tag to current time
        * This gives textures a "second chance" to be used before dying. */
@@ -1464,6 +1460,5 @@ void GPU_free_images_old(Main *bmain)
         BKE_image_free_buffers(ima);
       }
     }
-    ima = ima->id.next;
   }
 }

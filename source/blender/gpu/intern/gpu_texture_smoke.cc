@@ -62,7 +62,8 @@ static void create_flame_spectrum_texture(float *data)
 #  define MAX_FIRE_ALPHA 0.06f
 #  define FULL_ON_FIRE 100
 
-  float *spec_pixels = MEM_mallocN(TFUNC_WIDTH * 4 * 16 * 16 * sizeof(float), "spec_pixels");
+  float *spec_pixels = (float *)MEM_mallocN(TFUNC_WIDTH * 4 * 16 * 16 * sizeof(float),
+                                            "spec_pixels");
 
   blackbody_temperature_to_rgb_table(data, TFUNC_WIDTH, 1500, 3000);
 
@@ -105,7 +106,7 @@ static void create_color_ramp(const struct ColorBand *coba, float *data)
 
 static GPUTexture *create_transfer_function(int type, const struct ColorBand *coba)
 {
-  float *data = MEM_mallocN(sizeof(float) * 4 * TFUNC_WIDTH, __func__);
+  float *data = (float *)MEM_mallocN(sizeof(float) * 4 * TFUNC_WIDTH, __func__);
 
   switch (type) {
     case TFUNC_FLAME_SPECTRUM:
@@ -221,7 +222,7 @@ static GPUTexture *create_color_texture(FluidDomainSettings *fds, int highres)
 
   int cell_count = (highres) ? manta_noise_get_cells(fds->fluid) : fds->total_cells;
   int *dim = (highres) ? fds->res_noise : fds->res;
-  float *data = MEM_callocN(sizeof(float) * cell_count * 4, "smokeColorTexture");
+  float *data = (float *)MEM_callocN(sizeof(float) * cell_count * 4, "smokeColorTexture");
 
   if (data == NULL) {
     return NULL;

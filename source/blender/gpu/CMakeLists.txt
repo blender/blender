@@ -58,8 +58,6 @@ set(SRC
   intern/gpu_batch_utils.c
   intern/gpu_buffers.c
   intern/gpu_codegen.c
-  intern/gpu_draw.c
-  intern/gpu_draw_smoke.c
   intern/gpu_element.c
   intern/gpu_extensions.c
   intern/gpu_framebuffer.c
@@ -81,6 +79,8 @@ set(SRC
   intern/gpu_shader_interface.c
   intern/gpu_state.c
   intern/gpu_texture.c
+  intern/gpu_texture_image.cc
+  intern/gpu_texture_smoke.cc
   intern/gpu_uniformbuffer.c
   intern/gpu_vertex_buffer.c
   intern/gpu_vertex_format.c
