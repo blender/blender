@@ -86,7 +86,7 @@ void GPU_indexbuf_init_ex(GPUIndexBufBuilder *builder,
   builder->max_index_len = index_len;
   builder->index_len = 0;  // start empty
   builder->prim_type = prim_type;
-  builder->data = MEM_callocN(builder->max_index_len * sizeof(uint), "GPUIndexBuf data");
+  builder->data = (uint *)MEM_callocN(builder->max_index_len * sizeof(uint), "GPUIndexBuf data");
 }
 
 void GPU_indexbuf_init(GPUIndexBufBuilder *builder,
@@ -241,7 +241,7 @@ void GPU_indexbuf_set_tri_restart(GPUIndexBufBuilder *builder, uint elem)
 
 GPUIndexBuf *GPU_indexbuf_create_subrange(GPUIndexBuf *elem_src, uint start, uint length)
 {
-  GPUIndexBuf *elem = MEM_callocN(sizeof(GPUIndexBuf), "GPUIndexBuf");
+  GPUIndexBuf *elem = (GPUIndexBuf *)MEM_callocN(sizeof(GPUIndexBuf), "GPUIndexBuf");
   GPU_indexbuf_create_subrange_in_place(elem, elem_src, start, length);
   return elem;
 }
@@ -331,7 +331,7 @@ static void squeeze_indices_short(GPUIndexBufBuilder *builder,
 
 GPUIndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *builder)
 {
-  GPUIndexBuf *elem = MEM_callocN(sizeof(GPUIndexBuf), "GPUIndexBuf");
+  GPUIndexBuf *elem = (GPUIndexBuf *)MEM_callocN(sizeof(GPUIndexBuf), "GPUIndexBuf");
   GPU_indexbuf_build_in_place(builder, elem);
   return elem;
 }
