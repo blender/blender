@@ -70,7 +70,7 @@ set(SRC
   intern/gpu_material_library.c
   intern/gpu_matrix.c
   intern/gpu_node_graph.c
-  intern/gpu_platform.c
+  intern/gpu_platform.cc
   intern/gpu_primitive.c
   intern/gpu_select.c
   intern/gpu_select_pick.c
