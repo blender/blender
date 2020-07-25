@@ -51,6 +51,12 @@ void key_curve_normal_weights(float t, float data[4], int type);
 float *BKE_key_evaluate_object_ex(struct Object *ob, int *r_totelem, float *arr, size_t arr_size);
 float *BKE_key_evaluate_object(struct Object *ob, int *r_totelem);
 
+int BKE_keyblock_element_count_from_shape(const struct Key *key, const int shape_index);
+int BKE_keyblock_element_count(const struct Key *key);
+
+size_t BKE_keyblock_element_calc_size_from_shape(const struct Key *key, const int shape_index);
+size_t BKE_keyblock_element_calc_size(const struct Key *key);
+
 bool BKE_key_idtype_support(const short id_type);
 
 struct Key **BKE_key_from_id_p(struct ID *id);
@@ -74,6 +80,10 @@ void BKE_keyblock_convert_from_lattice(struct Lattice *lt, struct KeyBlock *kb);
 void BKE_keyblock_convert_to_lattice(struct KeyBlock *kb, struct Lattice *lt);
 
 int BKE_keyblock_curve_element_count(struct ListBase *nurb);
+void BKE_keyblock_curve_data_transform(const struct ListBase *nurb,
+                                       const float mat[4][4],
+                                       const void *src,
+                                       void *dst);
 void BKE_keyblock_update_from_curve(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
 void BKE_keyblock_convert_from_curve(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
 void BKE_keyblock_convert_to_curve(struct KeyBlock *kb, struct Curve *cu, struct ListBase *nurb);
@@ -103,6 +113,28 @@ void BKE_keyblock_update_from_offset(struct Object *ob,
 bool BKE_keyblock_move(struct Object *ob, int org_index, int new_index);
 
 bool BKE_keyblock_is_basis(struct Key *key, const int index);
+
+/* -------------------------------------------------------------------- */
+/** \name Key-Block Data Access
+ * \{ */
+
+void BKE_keyblock_data_get_from_shape(const struct Key *key,
+                                      float (*arr)[3],
+                                      const int shape_index);
+void BKE_keyblock_data_get(const struct Key *key, float (*arr)[3]);
+
+void BKE_keyblock_data_set_with_mat4(struct Key *key,
+                                     const int shape_index,
+                                     const float (*vertices)[3],
+                                     const float mat[4][4]);
+void BKE_keyblock_curve_data_set_with_mat4(struct Key *key,
+                                           const struct ListBase *nurb,
+                                           const int shape_index,
+                                           const void *data,
+                                           const float mat[4][4]);
+void BKE_keyblock_data_set(struct Key *key, const int shape_index, const void *data);
+
+/** \} */
 
 #ifdef __cplusplus
 };

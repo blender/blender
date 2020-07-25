@@ -492,7 +492,7 @@ struct XFormObjectData *ED_object_data_xform_create_ex(struct ID *id, bool is_ed
 struct XFormObjectData *ED_object_data_xform_create(struct ID *id);
 struct XFormObjectData *ED_object_data_xform_create_from_edit_mode(ID *id);
 
-void ED_object_data_xform_destroy(struct XFormObjectData *xod);
+void ED_object_data_xform_destroy(struct XFormObjectData *xod_base);
 
 void ED_object_data_xform_by_mat4(struct XFormObjectData *xod, const float mat[4][4]);
 

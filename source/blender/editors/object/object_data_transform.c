@@ -48,6 +48,7 @@
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"
 #include "BKE_gpencil_geom.h"
+#include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
@@ -282,16 +283,22 @@ struct XFormObjectData {
 
 struct XFormObjectData_Mesh {
   struct XFormObjectData base;
+  /* Optional data for shape keys. */
+  void *key_data;
   float elem_array[0][3];
 };
 
 struct XFormObjectData_Lattice {
   struct XFormObjectData base;
+  /* Optional data for shape keys. */
+  void *key_data;
   float elem_array[0][3];
 };
 
 struct XFormObjectData_Curve {
   struct XFormObjectData base;
+  /* Optional data for shape keys. */
+  void *key_data;
   float elem_array[0][3];
 };
 
@@ -316,48 +323,98 @@ struct XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode
   if (id == NULL) {
     return xod_base;
   }
+
   switch (GS(id->name)) {
     case ID_ME: {
       Mesh *me = (Mesh *)id;
+      struct Key *key = me->key;
+      const int key_index = -1;
+
       if (is_edit_mode) {
         BMesh *bm = me->edit_mesh->bm;
+        /* Always operate on all keys for the moment. */
+        // key_index = bm->shapenr - 1;
         const int elem_array_len = bm->totvert;
         struct XFormObjectData_Mesh *xod = MEM_mallocN(
             sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__);
+        memset(xod, 0x0, sizeof(*xod));
+
         BM_mesh_vert_coords_get(bm, xod->elem_array);
         xod_base = &xod->base;
+
+        if (key != NULL) {
+          const size_t key_size = BKE_keyblock_element_calc_size_from_shape(key, key_index);
+          if (key_size) {
+            xod->key_data = MEM_mallocN(key_size, __func__);
+            BKE_keyblock_data_get_from_shape(key, xod->key_data, key_index);
+          }
+        }
       }
       else {
         const int elem_array_len = me->totvert;
         struct XFormObjectData_Mesh *xod = MEM_mallocN(
             sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__);
+        memset(xod, 0x0, sizeof(*xod));
+
         BKE_mesh_vert_coords_get(me, xod->elem_array);
         xod_base = &xod->base;
+
+        if (key != NULL) {
+          const size_t key_size = BKE_keyblock_element_calc_size_from_shape(key, key_index);
+          if (key_size) {
+            xod->key_data = MEM_mallocN(key_size, __func__);
+            BKE_keyblock_data_get_from_shape(key, xod->key_data, key_index);
+          }
+        }
       }
       break;
     }
     case ID_LT: {
       Lattice *lt_orig = (Lattice *)id;
       Lattice *lt = is_edit_mode ? lt_orig->editlatt->latt : lt_orig;
+      struct Key *key = lt->key;
+      const int key_index = -1;
+
+      if (is_edit_mode) {
+        /* Always operate on all keys for the moment. */
+        // key_index = lt_orig->editlatt->shapenr - 1;
+      }
+
       const int elem_array_len = lt->pntsu * lt->pntsv * lt->pntsw;
       struct XFormObjectData_Lattice *xod = MEM_mallocN(
           sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__);
+      memset(xod, 0x0, sizeof(*xod));
+
       BKE_lattice_vert_coords_get(lt, xod->elem_array);
       xod_base = &xod->base;
+
+      if (key != NULL) {
+        const size_t key_size = BKE_keyblock_element_calc_size_from_shape(key, key_index);
+        if (key_size) {
+          xod->key_data = MEM_mallocN(key_size, __func__);
+          BKE_keyblock_data_get_from_shape(key, xod->key_data, key_index);
+        }
+      }
+
       break;
     }
     case ID_CU: {
       Curve *cu = (Curve *)id;
+      struct Key *key = cu->key;
+
       const short ob_type = BKE_curve_type_get(cu);
       if (ob_type == OB_FONT) {
         /* We could support translation. */
         break;
       }
 
+      const int key_index = -1;
       ListBase *nurbs;
       if (is_edit_mode) {
         EditNurb *editnurb = cu->editnurb;
         nurbs = &editnurb->nurbs;
+        /* Always operate on all keys for the moment. */
+        // key_index = editnurb->shapenr - 1;
       }
       else {
         nurbs = &cu->nurb;
@@ -366,8 +423,19 @@ struct XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode
       const int elem_array_len = BKE_nurbList_verts_count(nurbs);
       struct XFormObjectData_Curve *xod = MEM_mallocN(
           sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__);
+      memset(xod, 0x0, sizeof(*xod));
+
       BKE_curve_nurbs_vert_coords_get(nurbs, xod->elem_array, elem_array_len);
       xod_base = &xod->base;
+
+      if (key != NULL) {
+        const size_t key_size = BKE_keyblock_element_calc_size_from_shape(key, key_index);
+        if (key_size) {
+          xod->key_data = MEM_mallocN(key_size, __func__);
+          BKE_keyblock_data_get_from_shape(key, xod->key_data, key_index);
+        }
+      }
+
       break;
     }
     case ID_AR: {
@@ -376,6 +444,8 @@ struct XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode
         const int elem_array_len = BLI_listbase_count(arm->edbo);
         struct XFormObjectData_Armature *xod = MEM_mallocN(
             sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__);
+        memset(xod, 0x0, sizeof(*xod));
+
         edit_armature_coords_and_quats_get(arm, xod->elem_array);
         xod_base = &xod->base;
       }
@@ -383,6 +453,8 @@ struct XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode
         const int elem_array_len = BKE_armature_bonelist_count(&arm->bonebase);
         struct XFormObjectData_Armature *xod = MEM_mallocN(
             sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__);
+        memset(xod, 0x0, sizeof(*xod));
+
         armature_coords_and_quats_get(arm, xod->elem_array);
         xod_base = &xod->base;
       }
@@ -394,6 +466,8 @@ struct XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode
       const int elem_array_len = BLI_listbase_count(&mb->elems);
       struct XFormObjectData_MetaBall *xod = MEM_mallocN(
           sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__);
+      memset(xod, 0x0, sizeof(*xod));
+
       metaball_coords_and_quats_get(mb, xod->elem_array);
       xod_base = &xod->base;
       break;
@@ -403,6 +477,8 @@ struct XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode
       const int elem_array_len = BKE_gpencil_stroke_point_count(gpd);
       struct XFormObjectData_GPencil *xod = MEM_mallocN(
           sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__);
+      memset(xod, 0x0, sizeof(*xod));
+
       BKE_gpencil_point_coords_get(gpd, xod->elem_array);
       xod_base = &xod->base;
       break;
@@ -428,9 +504,35 @@ struct XFormObjectData *ED_object_data_xform_create_from_edit_mode(ID *id)
   return ED_object_data_xform_create_ex(id, true);
 }
 
-void ED_object_data_xform_destroy(struct XFormObjectData *xod)
+void ED_object_data_xform_destroy(struct XFormObjectData *xod_base)
 {
-  MEM_freeN(xod);
+  switch (GS(xod_base->id->name)) {
+    case ID_ME: {
+      struct XFormObjectData_Mesh *xod = (struct XFormObjectData_Mesh *)xod_base;
+      if (xod->key_data != NULL) {
+        MEM_freeN(xod->key_data);
+      }
+      break;
+    }
+    case ID_LT: {
+      struct XFormObjectData_Lattice *xod = (struct XFormObjectData_Lattice *)xod_base;
+      if (xod->key_data != NULL) {
+        MEM_freeN(xod->key_data);
+      }
+      break;
+    }
+    case ID_CU: {
+      struct XFormObjectData_Curve *xod = (struct XFormObjectData_Curve *)xod_base;
+      if (xod->key_data != NULL) {
+        MEM_freeN(xod->key_data);
+      }
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+  MEM_freeN(xod_base);
 }
 
 void ED_object_data_xform_by_mat4(struct XFormObjectData *xod_base, const float mat[4][4])
@@ -438,34 +540,72 @@ void ED_object_data_xform_by_mat4(struct XFormObjectData *xod_base, const float 
   switch (GS(xod_base->id->name)) {
     case ID_ME: {
       Mesh *me = (Mesh *)xod_base->id;
+
+      struct Key *key = me->key;
+      const int key_index = -1;
+
       struct XFormObjectData_Mesh *xod = (struct XFormObjectData_Mesh *)xod_base;
       if (xod_base->is_edit_mode) {
         BMesh *bm = me->edit_mesh->bm;
         BM_mesh_vert_coords_apply_with_mat4(bm, xod->elem_array, mat);
+        /* Always operate on all keys for the moment. */
+        // key_index = bm->shapenr - 1;
       }
       else {
         BKE_mesh_vert_coords_apply_with_mat4(me, xod->elem_array, mat);
       }
+
+      if (key != NULL) {
+        BKE_keyblock_data_set_with_mat4(key, key_index, xod->key_data, mat);
+      }
+
       break;
     }
     case ID_LT: {
       Lattice *lt_orig = (Lattice *)xod_base->id;
       Lattice *lt = xod_base->is_edit_mode ? lt_orig->editlatt->latt : lt_orig;
+
+      struct Key *key = lt->key;
+      const int key_index = -1;
+
       struct XFormObjectData_Lattice *xod = (struct XFormObjectData_Lattice *)xod_base;
       BKE_lattice_vert_coords_apply_with_mat4(lt, xod->elem_array, mat);
+      if (xod_base->is_edit_mode) {
+        /* Always operate on all keys for the moment. */
+        // key_index = lt_orig->editlatt->shapenr - 1;
+      }
+
+      if ((key != NULL) && (xod->key_data != NULL)) {
+        BKE_keyblock_data_set_with_mat4(key, key_index, xod->key_data, mat);
+      }
+
       break;
     }
     case ID_CU: {
       BLI_assert(xod_base->is_edit_mode == false); /* Not used currently. */
       Curve *cu = (Curve *)xod_base->id;
+
+      struct Key *key = cu->key;
+      const int key_index = -1;
+      ListBase *nurb = NULL;
+
       struct XFormObjectData_Curve *xod = (struct XFormObjectData_Curve *)xod_base;
       if (xod_base->is_edit_mode) {
         EditNurb *editnurb = cu->editnurb;
+        nurb = &editnurb->nurbs;
         BKE_curve_nurbs_vert_coords_apply_with_mat4(&editnurb->nurbs, xod->elem_array, mat, true);
+        /* Always operate on all keys for the moment. */
+        // key_index = editnurb->shapenr - 1;
       }
       else {
+        nurb = &cu->nurb;
         BKE_curve_nurbs_vert_coords_apply_with_mat4(&cu->nurb, xod->elem_array, mat, true);
       }
+
+      if ((key != NULL) && (xod->key_data != NULL)) {
+        BKE_keyblock_curve_data_set_with_mat4(key, nurb, key_index, xod->key_data, mat);
+      }
+
       break;
     }
     case ID_AR: {
@@ -504,33 +644,68 @@ void ED_object_data_xform_restore(struct XFormObjectData *xod_base)
   switch (GS(xod_base->id->name)) {
     case ID_ME: {
       Mesh *me = (Mesh *)xod_base->id;
+
+      struct Key *key = me->key;
+      const int key_index = -1;
+
       struct XFormObjectData_Mesh *xod = (struct XFormObjectData_Mesh *)xod_base;
       if (xod_base->is_edit_mode) {
         BMesh *bm = me->edit_mesh->bm;
         BM_mesh_vert_coords_apply(bm, xod->elem_array);
+        /* Always operate on all keys for the moment. */
+        // key_index = bm->shapenr - 1;
       }
       else {
         BKE_mesh_vert_coords_apply(me, xod->elem_array);
       }
+
+      if ((key != NULL) && (xod->key_data != NULL)) {
+        BKE_keyblock_data_set(key, key_index, xod->key_data);
+      }
+
       break;
     }
     case ID_LT: {
       Lattice *lt_orig = (Lattice *)xod_base->id;
       Lattice *lt = xod_base->is_edit_mode ? lt_orig->editlatt->latt : lt_orig;
+
+      struct Key *key = lt->key;
+      const int key_index = -1;
+
       struct XFormObjectData_Lattice *xod = (struct XFormObjectData_Lattice *)xod_base;
       BKE_lattice_vert_coords_apply(lt, xod->elem_array);
+      if (xod_base->is_edit_mode) {
+        /* Always operate on all keys for the moment. */
+        // key_index = lt_orig->editlatt->shapenr - 1;
+      }
+
+      if ((key != NULL) && (xod->key_data != NULL)) {
+        BKE_keyblock_data_set(key, key_index, xod->key_data);
+      }
+
       break;
     }
     case ID_CU: {
       Curve *cu = (Curve *)xod_base->id;
+
+      struct Key *key = cu->key;
+      const int key_index = -1;
+
       struct XFormObjectData_Curve *xod = (struct XFormObjectData_Curve *)xod_base;
       if (xod_base->is_edit_mode) {
         EditNurb *editnurb = cu->editnurb;
         BKE_curve_nurbs_vert_coords_apply(&editnurb->nurbs, xod->elem_array, true);
+        /* Always operate on all keys for the moment. */
+        // key_index = editnurb->shapenr - 1;
       }
       else {
         BKE_curve_nurbs_vert_coords_apply(&cu->nurb, xod->elem_array, true);
       }
+
+      if ((key != NULL) && (xod->key_data != NULL)) {
+        BKE_keyblock_data_set(key, key_index, xod->key_data);
+      }
+
       break;
     }
     case ID_AR: {
