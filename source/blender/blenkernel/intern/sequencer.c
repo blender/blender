@@ -4301,6 +4301,10 @@ void BKE_sequence_invalidate_movieclip_strips(Main *bmain, MovieClip *clip_targe
 
 void BKE_sequencer_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
 {
+  if (scene->ed == NULL) {
+    return;
+  }
+
   Sequence *seq;
 
   BKE_sequencer_cache_cleanup(scene);
