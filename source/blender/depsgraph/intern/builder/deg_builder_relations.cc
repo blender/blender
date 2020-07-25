@@ -2636,19 +2636,18 @@ void DepsgraphRelationBuilder::build_simulation(Simulation *simulation)
       &simulation->nodetree->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
   add_relation(nodetree_key, simulation_eval_key, "NodeTree -> Simulation", 0);
 
-  LISTBASE_FOREACH (
-      PersistentDataHandleItem *, handle_item, &simulation->persistent_data_handles) {
-    if (handle_item->id == nullptr) {
+  LISTBASE_FOREACH (SimulationDependency *, dependency, &simulation->dependencies) {
+    if (dependency->id == nullptr) {
       continue;
     }
-    build_id(handle_item->id);
-    if (GS(handle_item->id->name) == ID_OB) {
-      Object *object = (Object *)handle_item->id;
-      if (handle_item->flag & SIM_HANDLE_DEPENDS_ON_TRANSFORM) {
+    build_id(dependency->id);
+    if (GS(dependency->id->name) == ID_OB) {
+      Object *object = (Object *)dependency->id;
+      if (dependency->flag & SIM_DEPENDS_ON_TRANSFORM) {
         ComponentKey object_transform_key(&object->id, NodeType::TRANSFORM);
         add_relation(object_transform_key, simulation_eval_key, "Object Transform -> Simulation");
       }
-      if (handle_item->flag & SIM_HANDLE_DEPENDS_ON_GEOMETRY) {
+      if (dependency->flag & SIM_DEPENDS_ON_GEOMETRY) {
         ComponentKey object_geometry_key(&object->id, NodeType::GEOMETRY);
         add_relation(object_geometry_key, simulation_eval_key, "Object Geometry -> Simulation");
       }

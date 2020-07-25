@@ -115,10 +115,9 @@ void update_simulation_in_depsgraph(Depsgraph *depsgraph,
   collect_simulation_influences(*simulation_cow, resources, influences, required_states);
 
   bke::PersistentDataHandleMap handle_map;
-  LISTBASE_FOREACH (
-      PersistentDataHandleItem *, handle_item, &simulation_orig->persistent_data_handles) {
-    ID *id_cow = DEG_get_evaluated_id(depsgraph, handle_item->id);
-    handle_map.add(handle_item->handle, *id_cow);
+  LISTBASE_FOREACH (SimulationDependency *, dependency, &simulation_orig->dependencies) {
+    ID *id_cow = DEG_get_evaluated_id(depsgraph, dependency->id);
+    handle_map.add(dependency->handle, *id_cow);
   }
 
   if (current_frame == 1) {
@@ -146,28 +145,28 @@ bool update_simulation_dependencies(Simulation *simulation)
   nodes::NodeTreeDependencies dependencies = nodes::find_node_tree_dependencies(
       *simulation->nodetree);
 
-  ListBase *handle_list = &simulation->persistent_data_handles;
+  ListBase *dependency_list = &simulation->dependencies;
 
   bool dependencies_changed = false;
 
-  Map<ID *, PersistentDataHandleItem *> handle_item_by_id;
-  Map<PersistentDataHandleItem *, int> old_flag_by_handle_item;
+  Map<ID *, SimulationDependency *> dependency_by_id;
+  Map<SimulationDependency *, int> old_flag_by_dependency;
   Set<int> used_handles;
 
   /* Remove unused handle items and clear flags that are reinitialized later. */
-  LISTBASE_FOREACH_MUTABLE (PersistentDataHandleItem *, handle_item, handle_list) {
-    if (dependencies.depends_on(handle_item->id)) {
-      handle_item_by_id.add_new(handle_item->id, handle_item);
-      used_handles.add_new(handle_item->handle);
-      old_flag_by_handle_item.add_new(handle_item, handle_item->flag);
-      handle_item->flag &= ~(SIM_HANDLE_DEPENDS_ON_TRANSFORM | SIM_HANDLE_DEPENDS_ON_GEOMETRY);
+  LISTBASE_FOREACH_MUTABLE (SimulationDependency *, dependency, dependency_list) {
+    if (dependencies.depends_on(dependency->id)) {
+      dependency_by_id.add_new(dependency->id, dependency);
+      used_handles.add_new(dependency->handle);
+      old_flag_by_dependency.add_new(dependency, dependency->flag);
+      dependency->flag &= ~(SIM_DEPENDS_ON_TRANSFORM | SIM_DEPENDS_ON_GEOMETRY);
     }
     else {
-      if (handle_item->id != nullptr) {
-        id_us_min(handle_item->id);
+      if (dependency->id != nullptr) {
+        id_us_min(dependency->id);
       }
-      BLI_remlink(handle_list, handle_item);
-      MEM_freeN(handle_item);
+      BLI_remlink(dependency_list, dependency);
+      MEM_freeN(dependency);
       dependencies_changed = true;
     }
   }
@@ -175,38 +174,38 @@ bool update_simulation_dependencies(Simulation *simulation)
   /* Add handle items for new id dependencies. */
   int next_handle = 0;
   for (ID *id : dependencies.id_dependencies()) {
-    handle_item_by_id.lookup_or_add_cb(id, [&]() {
+    dependency_by_id.lookup_or_add_cb(id, [&]() {
       while (used_handles.contains(next_handle)) {
         next_handle++;
       }
       used_handles.add_new(next_handle);
 
-      PersistentDataHandleItem *handle_item = (PersistentDataHandleItem *)MEM_callocN(
-          sizeof(*handle_item), AT);
+      SimulationDependency *dependency = (SimulationDependency *)MEM_callocN(sizeof(*dependency),
+                                                                             AT);
       id_us_plus(id);
-      handle_item->id = id;
-      handle_item->handle = next_handle;
-      BLI_addtail(handle_list, handle_item);
+      dependency->id = id;
+      dependency->handle = next_handle;
+      BLI_addtail(dependency_list, dependency);
 
-      return handle_item;
+      return dependency;
     });
   }
 
   /* Set appropriate dependency flags. */
   for (Object *object : dependencies.transform_dependencies()) {
-    PersistentDataHandleItem *handle_item = handle_item_by_id.lookup(&object->id);
-    handle_item->flag |= SIM_HANDLE_DEPENDS_ON_TRANSFORM;
+    SimulationDependency *dependency = dependency_by_id.lookup(&object->id);
+    dependency->flag |= SIM_DEPENDS_ON_TRANSFORM;
   }
   for (Object *object : dependencies.geometry_dependencies()) {
-    PersistentDataHandleItem *handle_item = handle_item_by_id.lookup(&object->id);
-    handle_item->flag |= SIM_HANDLE_DEPENDS_ON_GEOMETRY;
+    SimulationDependency *dependency = dependency_by_id.lookup(&object->id);
+    dependency->flag |= SIM_DEPENDS_ON_GEOMETRY;
   }
 
   if (!dependencies_changed) {
     /* Check if any flags have changed. */
-    LISTBASE_FOREACH (PersistentDataHandleItem *, handle_item, handle_list) {
-      int old_flag = old_flag_by_handle_item.lookup_default(handle_item, 0);
-      int new_flag = handle_item->flag;
+    LISTBASE_FOREACH (SimulationDependency *, dependency, dependency_list) {
+      uint32_t old_flag = old_flag_by_dependency.lookup_default(dependency, 0);
+      uint32_t new_flag = dependency->flag;
       if (old_flag != new_flag) {
         dependencies_changed = true;
         break;
