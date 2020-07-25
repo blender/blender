@@ -58,7 +58,6 @@ set(SRC
   intern/gpu_batch_utils.c
   intern/gpu_buffers.c
   intern/gpu_codegen.c
-  intern/gpu_context.cpp
   intern/gpu_debug.c
   intern/gpu_draw.c
   intern/gpu_draw_smoke.c
@@ -66,6 +65,7 @@ set(SRC
   intern/gpu_extensions.c
   intern/gpu_framebuffer.c
   intern/gpu_immediate.c
+  intern/gpu_context.cc
   intern/gpu_immediate_util.c
   intern/gpu_init_exit.c
   intern/gpu_material.c
