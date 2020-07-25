@@ -2751,6 +2751,8 @@ class VIEW3D_MT_object_quick_effects(Menu):
         layout.operator("object.quick_explode")
         layout.operator("object.quick_smoke")
         layout.operator("object.quick_liquid")
+        if _context.preferences.experimental.use_new_particle_system:
+            layout.operator("object.quick_particles")
 
 
 class VIEW3D_MT_object_showhide(Menu):
