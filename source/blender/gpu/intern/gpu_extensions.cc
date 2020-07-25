@@ -104,7 +104,8 @@ static struct GPUGlobal {
 static void gpu_detect_mip_render_workaround(void)
 {
   int cube_size = 2;
-  float *source_pix = MEM_callocN(sizeof(float) * 4 * 6 * cube_size * cube_size, __func__);
+  float *source_pix = (float *)MEM_callocN(sizeof(float) * 4 * 6 * cube_size * cube_size,
+                                           __func__);
   float clear_color[4] = {1.0f, 0.5f, 0.0f, 0.0f};
 
   GPUTexture *tex = GPU_texture_create_cube(cube_size, GPU_RGBA16F, source_pix, NULL);
@@ -123,7 +124,7 @@ static void gpu_detect_mip_render_workaround(void)
   GPU_framebuffer_restore();
   GPU_framebuffer_free(fb);
 
-  float *data = GPU_texture_read(tex, GPU_DATA_FLOAT, 1);
+  float *data = (float *)GPU_texture_read(tex, GPU_DATA_FLOAT, 1);
   GG.mip_render_workaround = !equals_v4v4(clear_color, data);
 
   MEM_freeN(data);
