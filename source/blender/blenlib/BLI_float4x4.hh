@@ -93,6 +93,11 @@ struct float4x4 {
     return result;
   }
 
+  float4x4 inverted_transposed_affine() const
+  {
+    return this->inverted_affine().transposed();
+  }
+
   struct float3x3_ref {
     const float4x4 &data;
 

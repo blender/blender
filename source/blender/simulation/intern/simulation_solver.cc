@@ -26,18 +26,6 @@
 
 namespace blender::sim {
 
-ParticleForce::~ParticleForce()
-{
-}
-
-ParticleEmitter::~ParticleEmitter()
-{
-}
-
-ParticleAction::~ParticleAction()
-{
-}
-
 static CustomDataType cpp_to_custom_data_type(const CPPType &type)
 {
   if (type.is<float3>()) {
@@ -178,7 +166,7 @@ BLI_NOINLINE static void simulate_existing_particles(SimulationSolveContext &sol
 
   Array<float> remaining_durations(state.tot_particles, solve_context.solve_interval.duration());
   simulate_particle_chunk(
-      solve_context, state, attributes, remaining_durations, solve_context.solve_interval.end());
+      solve_context, state, attributes, remaining_durations, solve_context.solve_interval.stop());
 }
 
 BLI_NOINLINE static void run_emitters(SimulationSolveContext &solve_context,
@@ -273,6 +261,7 @@ void solve_simulation_time_step(Simulation &simulation,
                                 Depsgraph &depsgraph,
                                 const SimulationInfluences &influences,
                                 const bke::PersistentDataHandleMap &handle_map,
+                                const DependencyAnimations &dependency_animations,
                                 float time_step)
 {
   SimulationStateMap state_map;
@@ -285,7 +274,8 @@ void solve_simulation_time_step(Simulation &simulation,
                                        influences,
                                        TimeInterval(simulation.current_simulation_time, time_step),
                                        state_map,
-                                       handle_map};
+                                       handle_map,
+                                       dependency_animations};
 
   Span<ParticleSimulationState *> particle_simulation_states =
       state_map.lookup<ParticleSimulationState>();
@@ -335,7 +325,7 @@ void solve_simulation_time_step(Simulation &simulation,
     for (MutableAttributesRef attributes : allocator.get_allocations()) {
       Array<float> remaining_durations(attributes.size());
       Span<float> birth_times = attributes.get<float>("Birth Time");
-      const float end_time = solve_context.solve_interval.end();
+      const float end_time = solve_context.solve_interval.stop();
       for (int i : attributes.index_range()) {
         remaining_durations[i] = end_time - birth_times[i];
       }
@@ -345,7 +335,7 @@ void solve_simulation_time_step(Simulation &simulation,
     remove_dead_and_add_new_particles(*state, allocator);
   }
 
-  simulation.current_simulation_time = solve_context.solve_interval.end();
+  simulation.current_simulation_time = solve_context.solve_interval.stop();
 }
 
 }  // namespace blender::sim

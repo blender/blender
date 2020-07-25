@@ -18,6 +18,7 @@
 #define __SIM_SIMULATION_SOLVER_INFLUENCES_HH__
 
 #include "BLI_float3.hh"
+#include "BLI_float4x4.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_span.hh"
 
@@ -112,6 +113,16 @@ class SimulationStateMap {
   }
 };
 
+class DependencyAnimations {
+ public:
+  ~DependencyAnimations();
+
+  virtual bool is_object_transform_changing(Object &object) const;
+  virtual void get_object_transforms(Object &object,
+                                     Span<float> simulation_times,
+                                     MutableSpan<float4x4> r_transforms) const;
+};
+
 struct SimulationSolveContext {
   Simulation &simulation;
   Depsgraph &depsgraph;
@@ -119,6 +130,7 @@ struct SimulationSolveContext {
   TimeInterval solve_interval;
   const SimulationStateMap &state_map;
   const bke::PersistentDataHandleMap &handle_map;
+  const DependencyAnimations &dependency_animations;
 };
 
 class ParticleAllocators {

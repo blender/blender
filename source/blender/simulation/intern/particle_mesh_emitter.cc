@@ -46,7 +46,7 @@ static BLI_NOINLINE void compute_birth_times(float rate,
     counter++;
     const float time_offset = counter * time_between_particles;
     const float birth_time = state.last_birth_time + time_offset;
-    if (birth_time > emit_interval.end()) {
+    if (birth_time > emit_interval.stop()) {
       break;
     }
     if (birth_time <= emit_interval.start()) {
@@ -217,8 +217,8 @@ static BLI_NOINLINE void sample_looptris(RandomNumberGenerator &rng,
   }
 }
 
-static BLI_NOINLINE bool compute_new_particle_attributes(EmitterSettings &settings,
-                                                         TimeInterval emit_interval,
+static BLI_NOINLINE bool compute_new_particle_attributes(ParticleEmitterContext &context,
+                                                         EmitterSettings &settings,
                                                          ParticleMeshEmitterSimulationState &state,
                                                          Vector<float3> &r_positions,
                                                          Vector<float3> &r_velocities,
@@ -238,19 +238,17 @@ static BLI_NOINLINE bool compute_new_particle_attributes(EmitterSettings &settin
     return false;
   }
 
-  const float4x4 local_to_world = settings.object->obmat;
-  float4x4 local_to_world_normal = local_to_world.inverted_affine().transposed();
-
-  const float start_time = emit_interval.start();
+  const float start_time = context.emit_interval.start();
   const uint32_t seed = DefaultHash<StringRef>{}(state.head.name);
   RandomNumberGenerator rng{(*(uint32_t *)&start_time) ^ seed};
 
-  compute_birth_times(settings.rate, emit_interval, state, r_birth_times);
+  compute_birth_times(settings.rate, context.emit_interval, state, r_birth_times);
   const int particle_amount = r_birth_times.size();
   if (particle_amount == 0) {
     return false;
   }
 
+  const float last_birth_time = r_birth_times.last();
   rng.shuffle(r_birth_times.as_mutable_span());
 
   Span<MLoopTri> triangles = get_mesh_triangles(mesh);
@@ -266,22 +264,36 @@ static BLI_NOINLINE bool compute_new_particle_attributes(EmitterSettings &settin
     return false;
   }
 
-  Array<float3> local_positions(particle_amount);
-  Array<float3> local_normals(particle_amount);
-  sample_looptris(rng, mesh, triangles, triangles_to_sample, local_positions, local_normals);
+  r_positions.resize(particle_amount);
+  r_velocities.resize(particle_amount);
+  sample_looptris(rng, mesh, triangles, triangles_to_sample, r_positions, r_velocities);
 
-  r_positions.reserve(particle_amount);
-  r_velocities.reserve(particle_amount);
-  for (int i : IndexRange(particle_amount)) {
-    float3 position = local_to_world * local_positions[i];
-    float3 normal = local_to_world_normal.ref_3x3() * local_normals[i];
-    normal.normalize();
+  if (context.solve_context.dependency_animations.is_object_transform_changing(*settings.object)) {
+    Array<float4x4> local_to_world_matrices(particle_amount);
+    context.solve_context.dependency_animations.get_object_transforms(
+        *settings.object, r_birth_times, local_to_world_matrices);
 
-    r_positions.append(position);
-    r_velocities.append(normal);
+    for (int i : IndexRange(particle_amount)) {
+      const float4x4 &position_to_world = local_to_world_matrices[i];
+      const float4x4 normal_to_world = position_to_world.inverted_transposed_affine();
+      r_positions[i] = position_to_world * r_positions[i];
+      r_velocities[i] = normal_to_world * r_velocities[i];
+    }
+  }
+  else {
+    const float4x4 position_to_world = settings.object->obmat;
+    const float4x4 normal_to_world = position_to_world.inverted_transposed_affine();
+    for (int i : IndexRange(particle_amount)) {
+      r_positions[i] = position_to_world * r_positions[i];
+      r_velocities[i] = normal_to_world * r_velocities[i];
+    }
   }
 
-  state.last_birth_time = r_birth_times.last();
+  for (int i : IndexRange(particle_amount)) {
+    r_velocities[i].normalize();
+  }
+
+  state.last_birth_time = last_birth_time;
   return true;
 }
 
@@ -317,12 +329,8 @@ void ParticleMeshEmitter::emit(ParticleEmitterContext &context) const
   Vector<float3> new_velocities;
   Vector<float> new_birth_times;
 
-  if (!compute_new_particle_attributes(settings,
-                                       context.emit_interval,
-                                       *state,
-                                       new_positions,
-                                       new_velocities,
-                                       new_birth_times)) {
+  if (!compute_new_particle_attributes(
+          context, settings, *state, new_positions, new_velocities, new_birth_times)) {
     return;
   }
 
