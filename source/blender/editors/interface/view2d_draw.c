@@ -174,23 +174,35 @@ static void get_parallel_lines_draw_steps(const ParallelLinesSet *lines,
   }
 }
 
+/**
+ * \param rect_mask: Region size in pixels.
+ */
 static void draw_parallel_lines(const ParallelLinesSet *lines,
                                 const rctf *rect,
-                                const uchar *color,
+                                const rcti *rect_mask,
+                                const uchar color[3],
                                 char direction)
 {
   float first;
-  uint steps;
+  uint steps, steps_max;
 
   if (direction == 'v') {
     get_parallel_lines_draw_steps(lines, rect->xmin, rect->xmax, &first, &steps);
+    steps_max = BLI_rcti_size_x(rect_mask);
   }
   else {
     BLI_assert(direction == 'h');
     get_parallel_lines_draw_steps(lines, rect->ymin, rect->ymax, &first, &steps);
+    steps_max = BLI_rcti_size_y(rect_mask);
   }
 
   if (steps == 0) {
+    return;
+  }
+
+  if (UNLIKELY(steps >= steps_max)) {
+    /* Note that we could draw a solid color,
+     * however this flickers because of numeric instability when zoomed out. */
     return;
   }
 
@@ -234,12 +246,12 @@ static void draw_parallel_lines(const ParallelLinesSet *lines,
 
 static void view2d_draw_lines_internal(const View2D *v2d,
                                        const ParallelLinesSet *lines,
-                                       const uchar *color,
+                                       const uchar color[3],
                                        char direction)
 {
   GPU_matrix_push_projection();
   UI_view2d_view_ortho(v2d);
-  draw_parallel_lines(lines, &v2d->cur, color, direction);
+  draw_parallel_lines(lines, &v2d->cur, &v2d->mask, color, direction);
   GPU_matrix_pop_projection();
 }
 
@@ -248,17 +260,18 @@ static void view2d_draw_lines(const View2D *v2d,
                               bool display_minor_lines,
                               char direction)
 {
-  uchar major_color[3];
-  uchar minor_color[3];
-  UI_GetThemeColor3ubv(TH_GRID, major_color);
-  UI_GetThemeColorShade3ubv(TH_GRID, 16, minor_color);
-
-  ParallelLinesSet major_lines;
-  major_lines.distance = major_distance;
-  major_lines.offset = 0;
-  view2d_draw_lines_internal(v2d, &major_lines, major_color, direction);
+  {
+    uchar major_color[3];
+    UI_GetThemeColor3ubv(TH_GRID, major_color);
+    ParallelLinesSet major_lines;
+    major_lines.distance = major_distance;
+    major_lines.offset = 0;
+    view2d_draw_lines_internal(v2d, &major_lines, major_color, direction);
+  }
 
   if (display_minor_lines) {
+    uchar minor_color[3];
+    UI_GetThemeColorShade3ubv(TH_GRID, 16, minor_color);
     ParallelLinesSet minor_lines;
     minor_lines.distance = major_distance;
     minor_lines.offset = major_distance / 2.0f;
@@ -284,9 +297,6 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
     return;
   }
 
-  GPU_matrix_push_projection();
-  wmOrtho2_region_pixelspace(region);
-
   float start;
   uint steps;
   {
@@ -298,7 +308,14 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
                                   UI_view2d_region_to_view_x(v2d, rect->xmax),
                                   &start,
                                   &steps);
+    const uint steps_max = BLI_rcti_size_x(&v2d->mask);
+    if (UNLIKELY(steps >= steps_max)) {
+      return;
+    }
   }
+
+  GPU_matrix_push_projection();
+  wmOrtho2_region_pixelspace(region);
 
   const int font_id = BLF_default();
   UI_FontThemeColor(font_id, colorid);
@@ -339,9 +356,6 @@ static void draw_vertical_scale_indicators(const ARegion *region,
     return;
   }
 
-  GPU_matrix_push_projection();
-  wmOrtho2_region_pixelspace(region);
-
   float start;
   uint steps;
   {
@@ -353,7 +367,14 @@ static void draw_vertical_scale_indicators(const ARegion *region,
                                   UI_view2d_region_to_view_y(v2d, rect->ymax),
                                   &start,
                                   &steps);
+    const uint steps_max = BLI_rcti_size_y(&v2d->mask);
+    if (UNLIKELY(steps >= steps_max)) {
+      return;
+    }
   }
+
+  GPU_matrix_push_projection();
+  wmOrtho2_region_pixelspace(region);
 
   const int font_id = BLF_default();
   UI_FontThemeColor(font_id, colorid);
