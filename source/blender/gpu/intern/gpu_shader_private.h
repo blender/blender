@@ -24,6 +24,10 @@
 #include "GPU_glew.h"
 #include "GPU_shader_interface.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct GPUShader {
   /** Handle for full program (links shader stages below). */
   GLuint program;
@@ -46,5 +50,9 @@ struct GPUShader {
 
 /* XXX do not use it. Special hack to use OCIO with batch API. */
 void immGetProgram(GLuint *program, GPUShaderInterface **shaderface);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __GPU_SHADER_PRIVATE_H__ */
