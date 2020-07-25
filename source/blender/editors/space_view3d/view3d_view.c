@@ -50,7 +50,6 @@
 
 #include "UI_resources.h"
 
-#include "GPU_glew.h"
 #include "GPU_matrix.h"
 #include "GPU_select.h"
 #include "GPU_state.h"

@@ -32,8 +32,6 @@
 #include "CCGSubSurf.h"
 #include "CCGSubSurf_intern.h"
 
-#include "GPU_glew.h"
-
 /***/
 
 int BKE_ccg_gridsize(int level)

@@ -56,7 +56,6 @@
 #include "IMB_imbuf.h"
 
 #include "GPU_framebuffer.h"
-#include "GPU_glew.h"
 #include "GPU_matrix.h"
 
 #include "WM_api.h"

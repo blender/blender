@@ -52,7 +52,6 @@
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
-#include "GPU_glew.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 

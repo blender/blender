@@ -29,7 +29,6 @@
 #include "ED_view3d.h"
 
 #include "GPU_batch.h"
-#include "GPU_glew.h"
 #include "GPU_immediate.h"
 
 #include "MEM_guardedalloc.h"

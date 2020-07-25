@@ -39,8 +39,6 @@
 
 #include "RNA_access.h"
 
-#include "GPU_glew.h"
-
 #include "UI_interface.h"
 
 #include "IMB_colormanagement.h"

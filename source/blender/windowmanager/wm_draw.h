@@ -24,8 +24,6 @@
 #ifndef __WM_DRAW_H__
 #define __WM_DRAW_H__
 
-#include "GPU_glew.h"
-
 struct GPUOffScreen;
 struct GPUTexture;
 struct GPUViewport;

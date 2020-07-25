@@ -50,8 +50,6 @@
 
 #include "UI_resources.h"
 
-#include "GPU_glew.h"
-
 #include "buttons_intern.h" /* own include */
 
 /* ******************** default callbacks for buttons space ***************** */

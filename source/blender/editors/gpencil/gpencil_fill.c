@@ -416,10 +416,10 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
 
   /* create a image to see result of template */
   if (ibuf->rect_float) {
-    GPU_offscreen_read_pixels(offscreen, GL_FLOAT, ibuf->rect_float);
+    GPU_offscreen_read_pixels(offscreen, GPU_DATA_FLOAT, ibuf->rect_float);
   }
   else if (ibuf->rect) {
-    GPU_offscreen_read_pixels(offscreen, GL_UNSIGNED_BYTE, ibuf->rect);
+    GPU_offscreen_read_pixels(offscreen, GPU_DATA_UNSIGNED_BYTE, ibuf->rect);
   }
   if (ibuf->rect_float && ibuf->rect) {
     IMB_rect_from_float(ibuf);
