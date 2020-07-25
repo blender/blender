@@ -569,10 +569,12 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
     }
 
     BMLoop *l_src = ED_uvedit_active_edge_loop_get(bm);
-    const MLoopUV *luv_src_v1 = BM_ELEM_CD_GET_VOID_P(l_src, cd_loop_uv_offset);
-    const MLoopUV *luv_src_v2 = BM_ELEM_CD_GET_VOID_P(l_src->next, cd_loop_uv_offset);
-    if ((luv_src_v1->flag & MLOOPUV_VERTSEL) == 0 && (luv_src_v2->flag & MLOOPUV_VERTSEL) == 0) {
-      l_src = NULL;
+    if (l_src != NULL) {
+      const MLoopUV *luv_src_v1 = BM_ELEM_CD_GET_VOID_P(l_src, cd_loop_uv_offset);
+      const MLoopUV *luv_src_v2 = BM_ELEM_CD_GET_VOID_P(l_src->next, cd_loop_uv_offset);
+      if ((luv_src_v1->flag & MLOOPUV_VERTSEL) == 0 && (luv_src_v2->flag & MLOOPUV_VERTSEL) == 0) {
+        l_src = NULL;
+      }
     }
 
     ele_src = (BMElem *)l_src;
@@ -585,9 +587,11 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
     }
 
     BMLoop *l_src = ED_uvedit_active_vert_loop_get(bm);
-    const MLoopUV *luv_src = BM_ELEM_CD_GET_VOID_P(l_src, cd_loop_uv_offset);
-    if ((luv_src->flag & MLOOPUV_VERTSEL) == 0) {
-      l_src = NULL;
+    if (l_src != NULL) {
+      const MLoopUV *luv_src = BM_ELEM_CD_GET_VOID_P(l_src, cd_loop_uv_offset);
+      if ((luv_src->flag & MLOOPUV_VERTSEL) == 0) {
+        l_src = NULL;
+      }
     }
 
     ele_src = (BMElem *)l_src;
