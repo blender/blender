@@ -26,35 +26,6 @@
 #include "GPU_primitive.h"
 #include "gpu_primitive_private.h"
 
-GPUPrimClass GPU_primtype_class(GPUPrimType prim_type)
-{
-  static const GPUPrimClass classes[] = {
-      [GPU_PRIM_POINTS] = GPU_PRIM_CLASS_POINT,
-      [GPU_PRIM_LINES] = GPU_PRIM_CLASS_LINE,
-      [GPU_PRIM_LINE_STRIP] = GPU_PRIM_CLASS_LINE,
-      [GPU_PRIM_LINE_LOOP] = GPU_PRIM_CLASS_LINE,
-      [GPU_PRIM_TRIS] = GPU_PRIM_CLASS_SURFACE,
-      [GPU_PRIM_TRI_STRIP] = GPU_PRIM_CLASS_SURFACE,
-      [GPU_PRIM_TRI_FAN] = GPU_PRIM_CLASS_SURFACE,
-
-      [GPU_PRIM_LINES_ADJ] = GPU_PRIM_CLASS_LINE,
-      [GPU_PRIM_LINE_STRIP_ADJ] = GPU_PRIM_CLASS_LINE,
-      [GPU_PRIM_TRIS_ADJ] = GPU_PRIM_CLASS_SURFACE,
-
-      [GPU_PRIM_NONE] = GPU_PRIM_CLASS_NONE,
-  };
-
-  return classes[prim_type];
-}
-
-bool GPU_primtype_belongs_to_class(GPUPrimType prim_type, GPUPrimClass prim_class)
-{
-  if (prim_class == GPU_PRIM_CLASS_NONE && prim_type == GPU_PRIM_NONE) {
-    return true;
-  }
-  return prim_class & GPU_primtype_class(prim_type);
-}
-
 GLenum convert_prim_type_to_gl(GPUPrimType prim_type)
 {
 #if TRUST_NO_ONE

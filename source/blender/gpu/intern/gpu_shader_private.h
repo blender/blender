@@ -21,7 +21,6 @@
 #ifndef __GPU_SHADER_PRIVATE_H__
 #define __GPU_SHADER_PRIVATE_H__
 
-#include "GPU_glew.h"
 #include "GPU_shader_interface.h"
 
 #ifdef __cplusplus

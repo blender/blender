@@ -29,7 +29,6 @@
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 
-#include "GPU_glew.h"
 #include "GPU_material.h"
 #include "GPU_shader.h"
 

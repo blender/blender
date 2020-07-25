@@ -24,8 +24,6 @@
 #ifndef __GPU_DEBUG_H__
 #define __GPU_DEBUG_H__
 
-#include "GPU_glew.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

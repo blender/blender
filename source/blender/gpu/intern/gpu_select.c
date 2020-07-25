@@ -26,7 +26,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "GPU_glew.h"
 #include "GPU_select.h"
 
 #include "MEM_guardedalloc.h"
