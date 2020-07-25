@@ -89,7 +89,7 @@ GPUBatch *GPU_batch_create_ex(GPUPrimType prim_type,
                               GPUIndexBuf *elem,
                               uint owns_flag)
 {
-  GPUBatch *batch = MEM_callocN(sizeof(GPUBatch), "GPUBatch");
+  GPUBatch *batch = (GPUBatch *)MEM_callocN(sizeof(GPUBatch), "GPUBatch");
   GPU_batch_init_ex(batch, prim_type, verts, elem, owns_flag);
   return batch;
 }
@@ -327,10 +327,10 @@ static GLuint batch_vao_get(GPUBatch *batch)
       }
       /* Init dynamic arrays and let the branch below set the values. */
       batch->dynamic_vaos.count = GPU_BATCH_VAO_DYN_ALLOC_COUNT;
-      batch->dynamic_vaos.interfaces = MEM_callocN(
+      batch->dynamic_vaos.interfaces = (const GPUShaderInterface **)MEM_callocN(
           batch->dynamic_vaos.count * sizeof(GPUShaderInterface *), "dyn vaos interfaces");
-      batch->dynamic_vaos.vao_ids = MEM_callocN(batch->dynamic_vaos.count * sizeof(GLuint),
-                                                "dyn vaos ids");
+      batch->dynamic_vaos.vao_ids = (GLuint *)MEM_callocN(
+          batch->dynamic_vaos.count * sizeof(GLuint), "dyn vaos ids");
     }
   }
 
@@ -346,11 +346,11 @@ static GLuint batch_vao_get(GPUBatch *batch)
       /* Not enough place, realloc the array. */
       i = batch->dynamic_vaos.count;
       batch->dynamic_vaos.count += GPU_BATCH_VAO_DYN_ALLOC_COUNT;
-      batch->dynamic_vaos.interfaces = MEM_recallocN((void *)batch->dynamic_vaos.interfaces,
-                                                     sizeof(GPUShaderInterface *) *
-                                                         batch->dynamic_vaos.count);
-      batch->dynamic_vaos.vao_ids = MEM_recallocN(batch->dynamic_vaos.vao_ids,
-                                                  sizeof(GLuint) * batch->dynamic_vaos.count);
+      batch->dynamic_vaos.interfaces = (const GPUShaderInterface **)MEM_recallocN(
+          (void *)batch->dynamic_vaos.interfaces,
+          sizeof(GPUShaderInterface *) * batch->dynamic_vaos.count);
+      batch->dynamic_vaos.vao_ids = (GLuint *)MEM_recallocN(
+          batch->dynamic_vaos.vao_ids, sizeof(GLuint) * batch->dynamic_vaos.count);
     }
     batch->dynamic_vaos.interfaces[i] = batch->interface;
     batch->dynamic_vaos.vao_ids[i] = new_vao = GPU_vao_alloc();
@@ -839,7 +839,7 @@ struct GPUDrawList {
 
 GPUDrawList *GPU_draw_list_create(int length)
 {
-  GPUDrawList *list = MEM_callocN(sizeof(GPUDrawList), "GPUDrawList");
+  GPUDrawList *list = (GPUDrawList *)MEM_callocN(sizeof(GPUDrawList), "GPUDrawList");
   /* Alloc the biggest possible command list which is indexed. */
   list->buffer_size = sizeof(GPUDrawCommandIndexed) * length;
   if (USE_MULTI_DRAW_INDIRECT) {
@@ -848,7 +848,7 @@ GPUDrawList *GPU_draw_list_create(int length)
     glBufferData(GL_DRAW_INDIRECT_BUFFER, list->buffer_size, NULL, GL_DYNAMIC_DRAW);
   }
   else {
-    list->commands = MEM_mallocN(list->buffer_size, "GPUDrawList data");
+    list->commands = (GPUDrawCommand *)MEM_mallocN(list->buffer_size, "GPUDrawList data");
   }
   return list;
 }
@@ -880,7 +880,7 @@ void GPU_draw_list_init(GPUDrawList *list, GPUBatch *batch)
         list->cmd_offset = 0;
       }
       GLenum flags = GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_FLUSH_EXPLICIT_BIT;
-      list->commands = glMapBufferRange(
+      list->commands = (GPUDrawCommand *)glMapBufferRange(
           GL_DRAW_INDIRECT_BUFFER, list->cmd_offset, list->buffer_size - list->cmd_offset, flags);
     }
   }

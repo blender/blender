@@ -52,8 +52,8 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/gpu_batch.c
   intern/gpu_attr_binding.cc
+  intern/gpu_batch.cc
   intern/gpu_batch_presets.c
   intern/gpu_batch_utils.c
   intern/gpu_buffers.c
