@@ -1547,6 +1547,134 @@ float *BKE_key_evaluate_object(Object *ob, int *r_totelem)
   return BKE_key_evaluate_object_ex(ob, r_totelem, NULL, 0);
 }
 
+/**
+ * \param shape_index: The index to use or all (when -1).
+ */
+int BKE_keyblock_element_count_from_shape(const Key *key, const int shape_index)
+{
+  int result = 0;
+  int index = 0;
+  for (const KeyBlock *kb = key->block.first; kb; kb = kb->next, index++) {
+    if ((shape_index == -1) || (index == shape_index)) {
+      result += kb->totelem;
+    }
+  }
+  return result;
+}
+
+int BKE_keyblock_element_count(const Key *key)
+{
+  return BKE_keyblock_element_count_from_shape(key, -1);
+}
+
+/**
+ * \param shape_index: The index to use or all (when -1).
+ */
+size_t BKE_keyblock_element_calc_size_from_shape(const Key *key, const int shape_index)
+{
+  return (size_t)BKE_keyblock_element_count_from_shape(key, shape_index) * key->elemsize;
+}
+
+size_t BKE_keyblock_element_calc_size(const Key *key)
+{
+  return BKE_keyblock_element_calc_size_from_shape(key, -1);
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Key-Block Data Access
+ *
+ * Utilities for getting/setting key data as a single array,
+ * use #BKE_keyblock_element_calc_size to allocate the size of the data needed.
+ * \{ */
+
+/**
+ * \param shape_index: The index to use or all (when -1).
+ */
+void BKE_keyblock_data_get_from_shape(const Key *key, float (*arr)[3], const int shape_index)
+{
+  uint8_t *elements = (uint8_t *)arr;
+  int index = 0;
+  for (const KeyBlock *kb = key->block.first; kb; kb = kb->next, index++) {
+    if ((shape_index == -1) || (index == shape_index)) {
+      const int block_elem_len = kb->totelem * key->elemsize;
+      memcpy(elements, kb->data, block_elem_len);
+      elements += block_elem_len;
+    }
+  }
+}
+
+void BKE_keyblock_data_get(const Key *key, float (*arr)[3])
+{
+  BKE_keyblock_data_get_from_shape(key, arr, -1);
+}
+
+/**
+ * Set the data to all key-blocks (or shape_index if != -1).
+ */
+void BKE_keyblock_data_set_with_mat4(Key *key,
+                                     const int shape_index,
+                                     const float (*coords)[3],
+                                     const float mat[4][4])
+{
+  if (key->elemsize != sizeof(float[3])) {
+    BLI_assert(!"Invalid elemsize");
+    return;
+  }
+
+  const float(*elements)[3] = coords;
+
+  int index = 0;
+  for (KeyBlock *kb = key->block.first; kb; kb = kb->next, index++) {
+    if ((shape_index == -1) || (index == shape_index)) {
+      const int block_elem_len = kb->totelem;
+      float(*block_data)[3] = (float(*)[3])kb->data;
+      for (int data_offset = 0; data_offset < block_elem_len; ++data_offset) {
+        const float *src_data = (const float *)(elements + data_offset);
+        float *dst_data = (float *)(block_data + data_offset);
+        mul_v3_m4v3(dst_data, mat, src_data);
+      }
+      elements += block_elem_len;
+    }
+  }
+}
+
+/**
+ * Set the data for all key-blocks (or shape_index if != -1),
+ * transforming by \a mat.
+ */
+void BKE_keyblock_curve_data_set_with_mat4(
+    Key *key, const ListBase *nurb, const int shape_index, const void *data, const float mat[4][4])
+{
+  const uint8_t *elements = data;
+
+  int index = 0;
+  for (KeyBlock *kb = key->block.first; kb; kb = kb->next, index++) {
+    if ((shape_index == -1) || (index == shape_index)) {
+      const int block_elem_size = kb->totelem * key->elemsize;
+      BKE_keyblock_curve_data_transform(nurb, mat, elements, kb->data);
+      elements += block_elem_size;
+    }
+  }
+}
+
+/**
+ * Set the data for all key-blocks (or shape_index if != -1).
+ */
+void BKE_keyblock_data_set(Key *key, const int shape_index, const void *data)
+{
+  const uint8_t *elements = data;
+  int index = 0;
+  for (KeyBlock *kb = key->block.first; kb; kb = kb->next, index++) {
+    if ((shape_index == -1) || (index == shape_index)) {
+      const int block_elem_size = kb->totelem * key->elemsize;
+      memcpy(kb->data, elements, block_elem_size);
+      elements += block_elem_size;
+    }
+  }
+}
+
+/** \} */
+
 bool BKE_key_idtype_support(const short id_type)
 {
   switch (id_type) {
@@ -1898,6 +2026,37 @@ void BKE_keyblock_update_from_curve(Curve *UNUSED(cu), KeyBlock *kb, ListBase *n
         fp[3] = bp->tilt;
         fp[4] = bp->radius;
         fp += KEYELEM_FLOAT_LEN_BPOINT;
+      }
+    }
+  }
+}
+
+void BKE_keyblock_curve_data_transform(const ListBase *nurb,
+                                       const float mat[4][4],
+                                       const void *src_data,
+                                       void *dst_data)
+{
+  const float *src = src_data;
+  float *dst = dst_data;
+  for (Nurb *nu = nurb->first; nu; nu = nu->next) {
+    if (nu->bezt) {
+      for (int a = nu->pntsu; a; a--) {
+        for (int i = 0; i < 3; i++) {
+          mul_v3_m4v3(&dst[i * 3], mat, &src[i * 3]);
+        }
+        dst[9] = src[9];
+        dst[10] = src[10];
+        src += KEYELEM_FLOAT_LEN_BEZTRIPLE;
+        dst += KEYELEM_FLOAT_LEN_BEZTRIPLE;
+      }
+    }
+    else {
+      for (int a = nu->pntsu * nu->pntsv; a; a--) {
+        mul_v3_m4v3(dst, mat, src);
+        dst[3] = src[3];
+        dst[4] = src[4];
+        src += KEYELEM_FLOAT_LEN_BPOINT;
+        dst += KEYELEM_FLOAT_LEN_BPOINT;
       }
     }
   }
