@@ -155,7 +155,10 @@ static void pointcloud_batch_cache_ensure_pos(Object *ob, PointCloudBatchCache *
   }
 
   PointCloud *pointcloud = ob->data;
-  const bool has_radius = pointcloud->radius != NULL;
+  /* Assume points always have a radius for now.
+   * TODO: Check if the logic below makes sense when there are multiple point clouds, some that
+   * have a radius and others that don't. */
+  const bool has_radius = true;
 
   static GPUVertFormat format = {0};
   static uint pos;
