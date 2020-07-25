@@ -32,7 +32,7 @@ extern "C" {
 
 typedef struct GPUAttachment {
   struct GPUTexture *tex;
-  int mip, layer;
+  int layer, mip;
 } GPUAttachment;
 
 typedef enum eGPUFrameBufferBits {

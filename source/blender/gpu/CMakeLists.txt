@@ -58,12 +58,12 @@ set(SRC
   intern/gpu_batch_utils.c
   intern/gpu_buffers.c
   intern/gpu_codegen.c
-  intern/gpu_framebuffer.c
   intern/gpu_immediate.c
   intern/gpu_context.cc
   intern/gpu_debug.cc
   intern/gpu_element.cc
   intern/gpu_extensions.cc
+  intern/gpu_framebuffer.cc
   intern/gpu_immediate_util.c
   intern/gpu_init_exit.c
   intern/gpu_material.c

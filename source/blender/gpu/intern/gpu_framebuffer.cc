@@ -53,6 +53,10 @@ typedef enum {
   GPU_FB_MAX_ATTACHEMENT,
 } GPUAttachmentType;
 
+#define FOREACH_ATTACHMENT_RANGE(att, _start, _end) \
+  for (GPUAttachmentType att = static_cast<GPUAttachmentType>(_start); att < _end; \
+       att = static_cast<GPUAttachmentType>(att + 1))
+
 #define GPU_FB_MAX_COLOR_ATTACHMENT (GPU_FB_MAX_ATTACHEMENT - GPU_FB_COLOR_ATTACHMENT0)
 
 #define GPU_FB_DIRTY_DRAWBUFFER (1 << 15)
@@ -98,7 +102,7 @@ static GPUAttachmentType attachment_type_from_tex(GPUTexture *tex, int slot)
     case GPU_DEPTH32F_STENCIL8:
       return GPU_FB_DEPTH_STENCIL_ATTACHMENT;
     default:
-      return GPU_FB_COLOR_ATTACHMENT0 + slot;
+      return static_cast<GPUAttachmentType>(GPU_FB_COLOR_ATTACHMENT0 + slot);
   }
 }
 
@@ -198,7 +202,7 @@ GPUFrameBuffer *GPU_framebuffer_create(void)
 {
   /* We generate the FB object later at first use in order to
    * create the framebuffer in the right opengl context. */
-  return MEM_callocN(sizeof(GPUFrameBuffer), "GPUFrameBuffer");
+  return (GPUFrameBuffer *)MEM_callocN(sizeof(GPUFrameBuffer), "GPUFrameBuffer");
 }
 
 static void gpu_framebuffer_init(GPUFrameBuffer *fb)
@@ -210,7 +214,8 @@ static void gpu_framebuffer_init(GPUFrameBuffer *fb)
 
 void GPU_framebuffer_free(GPUFrameBuffer *fb)
 {
-  for (GPUAttachmentType type = 0; type < GPU_FB_MAX_ATTACHEMENT; type++) {
+  for (int i_type = 0; i_type < GPU_FB_MAX_ATTACHEMENT; i_type++) {
+    GPUAttachmentType type = static_cast<GPUAttachmentType>(i_type);
     if (fb->attachments[type].tex != NULL) {
       GPU_framebuffer_texture_detach(fb, fb->attachments[type].tex);
     }
@@ -304,7 +309,7 @@ void GPU_framebuffer_texture_detach_slot(GPUFrameBuffer *fb, GPUTexture *tex, in
 
 void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex)
 {
-  GPUAttachmentType type = GPU_texture_detach_framebuffer(tex, fb);
+  GPUAttachmentType type = (GPUAttachmentType)GPU_texture_detach_framebuffer(tex, fb);
   GPU_framebuffer_texture_detach_slot(fb, tex, type);
 }
 
@@ -387,8 +392,8 @@ static void gpu_framebuffer_update_attachments(GPUFrameBuffer *fb)
   BLI_assert(GPU_framebuffer_active_get() == fb);
 
   /* Update attachments */
-  for (GPUAttachmentType type = 0; type < GPU_FB_MAX_ATTACHEMENT; type++) {
-
+  FOREACH_ATTACHMENT_RANGE(type, 0, GPU_FB_MAX_ATTACHEMENT)
+  {
     if (type >= GPU_FB_COLOR_ATTACHMENT0) {
       if (fb->attachments[type].tex) {
         gl_attachments[numslots] = convert_attachment_type_to_gl(type);
@@ -438,7 +443,8 @@ static void gpu_framebuffer_update_attachments_and_fill_empty_slots(GPUFrameBuff
   BLI_assert(GPU_framebuffer_active_get() == fb);
 
   /* Update attachments */
-  for (GPUAttachmentType type = GPU_FB_MAX_ATTACHEMENT; type--;) {
+  for (int i_type = GPU_FB_MAX_ATTACHEMENT; i_type >= 0; --i_type) {
+    GPUAttachmentType type = static_cast<GPUAttachmentType>(i_type);
     GPUTexture *tex = fb->attachments[type].tex;
 
     if (type >= GPU_FB_COLOR_ATTACHMENT0) {
@@ -623,8 +629,9 @@ void GPU_framebuffer_multi_clear(GPUFrameBuffer *fb, const float (*clear_cols)[4
 
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-  GPUAttachmentType type = GPU_FB_COLOR_ATTACHMENT0;
-  for (int i = 0; type < GPU_FB_MAX_ATTACHEMENT; i++, type++) {
+  int i_type = GPU_FB_COLOR_ATTACHMENT0;
+  for (int i = 0; i_type < GPU_FB_MAX_ATTACHEMENT; i++, i_type++) {
+    GPUAttachmentType type = static_cast<GPUAttachmentType>(i_type);
     if (fb->attachments[type].tex != NULL) {
       glClearBufferfv(GL_COLOR, i, clear_cols[i]);
     }
@@ -702,7 +709,8 @@ void GPU_framebuffer_read_color(GPUFrameBuffer *fb,
                                 void *data)
 {
   CHECK_FRAMEBUFFER_IS_BOUND(fb);
-  gpu_framebuffer_read_color_ex(x, y, w, h, channels, GL_COLOR_ATTACHMENT0 + slot, format, data);
+  gpu_framebuffer_read_color_ex(
+      x, y, w, h, channels, GL_COLOR_ATTACHMENT0 + slot, format, (float *)data);
 }
 
 /* read_slot and write_slot are only used for color buffers. */
@@ -815,7 +823,8 @@ void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *fb,
     current_dim[0] = max_ii(current_dim[0] / 2, 1);
     current_dim[1] = max_ii(current_dim[1] / 2, 1);
 
-    for (GPUAttachmentType type = 0; type < GPU_FB_MAX_ATTACHEMENT; type++) {
+    for (int i_type = 0; i_type < GPU_FB_MAX_ATTACHEMENT; i_type++) {
+      GPUAttachmentType type = static_cast<GPUAttachmentType>(i_type);
       if (fb->attachments[type].tex != NULL) {
         /* Some Intel HDXXX have issue with rendering to a mipmap that is below
          * the texture GL_TEXTURE_MAX_LEVEL. So even if it not correct, in this case
@@ -844,7 +853,8 @@ void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *fb,
     }
   }
 
-  for (GPUAttachmentType type = 0; type < GPU_FB_MAX_ATTACHEMENT; type++) {
+  for (int i_type = 0; i_type < GPU_FB_MAX_ATTACHEMENT; i_type++) {
+    GPUAttachmentType type = static_cast<GPUAttachmentType>(i_type);
     if (fb->attachments[type].tex != NULL) {
       /* reset mipmap level range */
       GPUTexture *tex = fb->attachments[type].tex;
@@ -885,9 +895,11 @@ static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
   for (int i = 0; i < MAX_CTX_FB_LEN; i++) {
     if (ofs->framebuffers[i].fb == NULL) {
       ofs->framebuffers[i].ctx = ctx;
-      GPU_framebuffer_ensure_config(
-          &ofs->framebuffers[i].fb,
-          {GPU_ATTACHMENT_TEXTURE(ofs->depth), GPU_ATTACHMENT_TEXTURE(ofs->color)});
+      GPU_framebuffer_ensure_config(&ofs->framebuffers[i].fb,
+                                    {
+                                        GPU_ATTACHMENT_TEXTURE(ofs->depth),
+                                        GPU_ATTACHMENT_TEXTURE(ofs->color),
+                                    });
     }
 
     if (ofs->framebuffers[i].ctx == ctx) {
@@ -916,9 +928,7 @@ static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
 GPUOffScreen *GPU_offscreen_create(
     int width, int height, bool depth, bool high_bitdepth, char err_out[256])
 {
-  GPUOffScreen *ofs;
-
-  ofs = MEM_callocN(sizeof(GPUOffScreen), "GPUOffScreen");
+  GPUOffScreen *ofs = (GPUOffScreen *)MEM_callocN(sizeof(GPUOffScreen), __func__);
 
   /* Sometimes areas can have 0 height or width and this will
    * create a 1D texture which we don't want. */
@@ -975,7 +985,7 @@ void GPU_offscreen_free(GPUOffScreen *ofs)
 void GPU_offscreen_bind(GPUOffScreen *ofs, bool save)
 {
   if (save) {
-    gpuPushAttr(GPU_SCISSOR_BIT | GPU_VIEWPORT_BIT);
+    gpuPushAttr((eGPUAttrMask)(GPU_SCISSOR_BIT | GPU_VIEWPORT_BIT));
     GPUFrameBuffer *fb = GPU_framebuffer_active_get();
     gpuPushFrameBuffer(fb);
   }
@@ -1077,7 +1087,7 @@ void GPU_clear(eGPUFrameBufferBits flags)
 void GPU_frontbuffer_read_pixels(
     int x, int y, int w, int h, int channels, eGPUDataFormat format, void *data)
 {
-  gpu_framebuffer_read_color_ex(x, y, w, h, channels, GL_FRONT, format, data);
+  gpu_framebuffer_read_color_ex(x, y, w, h, channels, GL_FRONT, format, (float *)data);
 }
 
 /* For stereo rendering. */
