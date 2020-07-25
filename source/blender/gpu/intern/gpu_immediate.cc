@@ -29,6 +29,7 @@
 
 #include "GPU_attr_binding.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 #include "GPU_texture.h"
 
 #include "gpu_attr_binding_private.h"
@@ -39,10 +40,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-
-/* necessary functions from matrix API */
-extern void GPU_matrix_bind(const GPUShaderInterface *);
-extern bool GPU_matrix_dirty_get(void);
 
 typedef struct ImmediateDrawBuffer {
   GLuint vbo_id;
@@ -281,7 +278,7 @@ void immBegin(GPUPrimType prim_type, uint vertex_len)
   }
 #endif
 
-  active_buffer->buffer_data = glMapBufferRange(
+  active_buffer->buffer_data = (GLubyte *)glMapBufferRange(
       GL_ARRAY_BUFFER,
       active_buffer->buffer_offset,
       bytes_needed,
