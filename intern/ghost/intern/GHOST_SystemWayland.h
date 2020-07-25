@@ -34,6 +34,16 @@ class GHOST_WindowWayland;
 
 struct display_t;
 
+struct output_t {
+  struct wl_output *output;
+  int32_t width_pxl, height_pxl;  // dimensions in pixel
+  int32_t width_mm, height_mm;    // dimensions in millimeter
+  int transform;
+  int scale;
+  std::string make;
+  std::string model;
+};
+
 class GHOST_SystemWayland : public GHOST_System {
  public:
   GHOST_SystemWayland();
@@ -83,6 +93,10 @@ class GHOST_SystemWayland : public GHOST_System {
   wl_compositor *compositor();
 
   xdg_wm_base *shell();
+
+  const std::vector<output_t *> &outputs() const;
+
+  wl_shm *shm() const;
 
   void setSelection(const std::string &selection);
 
