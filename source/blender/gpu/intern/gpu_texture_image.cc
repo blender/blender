@@ -182,23 +182,14 @@ float GPU_get_anisotropic(void)
   return GTS.anisotropic;
 }
 
-/* Set OpenGL state for an MTFace */
-
-static GPUTexture **gpu_get_image_gputexture(Image *ima, GLenum textarget, const int multiview_eye)
+static GPUTexture **gpu_get_image_gputexture(Image *ima, int textarget, const int multiview_eye)
 {
-  if (textarget == GL_TEXTURE_2D) {
-    return &(ima->gputexture[TEXTARGET_TEXTURE_2D][multiview_eye]);
-  }
-  else if (textarget == GL_TEXTURE_CUBE_MAP) {
-    return &(ima->gputexture[TEXTARGET_TEXTURE_CUBE_MAP][multiview_eye]);
-  }
-  else if (textarget == GL_TEXTURE_2D_ARRAY) {
-    return &(ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY][multiview_eye]);
-  }
-  else if (textarget == GL_TEXTURE_1D_ARRAY) {
-    return &(ima->gputexture[TEXTARGET_TEXTURE_TILE_MAPPING][multiview_eye]);
-  }
+  const bool in_range = (textarget >= 0) && (textarget < TEXTARGET_COUNT);
+  BLI_assert(in_range);
 
+  if (in_range) {
+    return &(ima->gputexture[textarget][multiview_eye]);
+  }
   return NULL;
 }
 
@@ -895,10 +886,10 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, ImBuf *ibuf, 
     }
   }
 
-  if (textarget == GL_TEXTURE_2D_ARRAY) {
+  if (textarget == TEXTARGET_TEXTURE_2D_ARRAY) {
     bindcode = gpu_texture_create_tile_array(ima, ibuf_intern);
   }
-  else if (textarget == GL_TEXTURE_1D_ARRAY) {
+  else if (textarget == TEXTARGET_TEXTURE_TILE_MAPPING) {
     bindcode = gpu_texture_create_tile_mapping(ima, iuser ? iuser->multiview_eye : 0);
   }
   else {
@@ -914,7 +905,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, ImBuf *ibuf, 
 
   GPU_texture_orig_size_set(*tex, ibuf_intern->x, ibuf_intern->y);
 
-  if (textarget == GL_TEXTURE_1D_ARRAY) {
+  if (textarget == TEXTARGET_TEXTURE_TILE_MAPPING) {
     /* Special for tile mapping. */
     GPU_texture_mipmap_mode(*tex, false, false);
   }

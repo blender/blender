@@ -261,11 +261,11 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
 
   if (ima) {
     if (ima->source == IMA_SRC_TILED) {
-      tex = GPU_texture_from_blender(ima, iuser, NULL, GL_TEXTURE_2D_ARRAY);
-      tex_tile_data = GPU_texture_from_blender(ima, iuser, NULL, GL_TEXTURE_1D_ARRAY);
+      tex = GPU_texture_from_blender(ima, iuser, NULL, TEXTARGET_TEXTURE_2D_ARRAY);
+      tex_tile_data = GPU_texture_from_blender(ima, iuser, NULL, TEXTARGET_TEXTURE_TILE_MAPPING);
     }
     else {
-      tex = GPU_texture_from_blender(ima, iuser, NULL, GL_TEXTURE_2D);
+      tex = GPU_texture_from_blender(ima, iuser, NULL, TEXTARGET_TEXTURE_2D);
     }
   }
 

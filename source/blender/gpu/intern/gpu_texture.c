@@ -1186,8 +1186,21 @@ GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat tex_format, const GLuint
   return tex;
 }
 
-GPUTexture *GPU_texture_from_bindcode(int textarget, int bindcode)
+static GLenum convert_target_to_gl(int target)
 {
+  static const GLenum table[] = {
+      [TEXTARGET_TEXTURE_2D] = GL_TEXTURE_2D,
+      [TEXTARGET_TEXTURE_CUBE_MAP] = GL_TEXTURE_CUBE_MAP,
+      [TEXTARGET_TEXTURE_2D_ARRAY] = GL_TEXTURE_2D_ARRAY,
+      [TEXTARGET_TEXTURE_TILE_MAPPING] = GL_TEXTURE_1D_ARRAY,
+  };
+  return table[target];
+}
+
+GPUTexture *GPU_texture_from_bindcode(int target, int bindcode)
+{
+  GLenum textarget = convert_target_to_gl(target);
+
   GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
   tex->bindcode = bindcode;
   tex->refcount = 1;
