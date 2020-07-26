@@ -625,6 +625,10 @@ void BKE_sequencer_color_balance_apply(struct StripColorBalance *cb,
 void BKE_sequencer_all_free_anim_ibufs(struct Scene *scene, int cfra);
 bool BKE_sequencer_check_scene_recursion(struct Scene *scene, struct ReportList *reports);
 bool BKE_sequencer_render_loop_check(struct Sequence *seq_main, struct Sequence *seq);
+void BKE_sequencer_flag_for_removal(struct Scene *scene,
+                                    struct ListBase *seqbase,
+                                    struct Sequence *seq);
+void BKE_sequencer_remove_flagged_sequences(struct Scene *scene, struct ListBase *seqbase);
 
 #ifdef __cplusplus
 }

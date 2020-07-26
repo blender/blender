@@ -6069,3 +6069,61 @@ bool BKE_sequencer_render_loop_check(Sequence *seq_main, Sequence *seq)
 
   return false;
 }
+
+static void sequencer_flag_users_for_removal(Scene *scene, ListBase *seqbase, Sequence *seq)
+{
+  LISTBASE_FOREACH (Sequence *, user_seq, seqbase) {
+    /* Look in metas for usage of seq. */
+    if (user_seq->type == SEQ_TYPE_META) {
+      sequencer_flag_users_for_removal(scene, &user_seq->seqbase, seq);
+    }
+
+    /* Clear seq from modifiers. */
+    SequenceModifierData *smd;
+    for (smd = user_seq->modifiers.first; smd; smd = smd->next) {
+      if (smd->mask_sequence == seq) {
+        smd->mask_sequence = NULL;
+      }
+    }
+
+    /* Remove effects, that use seq. */
+    if ((user_seq->seq1 && user_seq->seq1 == seq) || (user_seq->seq2 && user_seq->seq2 == seq) ||
+        (user_seq->seq3 && user_seq->seq3 == seq)) {
+      user_seq->flag |= SEQ_FLAG_DELETE;
+      /* Strips can be used as mask even if not in same seqbase. */
+      sequencer_flag_users_for_removal(scene, &scene->ed->seqbase, user_seq);
+    }
+  }
+}
+
+/* Flag seq and its users (effects) for removal. */
+void BKE_sequencer_flag_for_removal(Scene *scene, ListBase *seqbase, Sequence *seq)
+{
+  if (seq == NULL || (seq->flag & SEQ_FLAG_DELETE) != 0) {
+    return;
+  }
+
+  /* Flag and remove meta children. */
+  if (seq->type == SEQ_TYPE_META) {
+    LISTBASE_FOREACH (Sequence *, meta_child, &seq->seqbase) {
+      BKE_sequencer_flag_for_removal(scene, &seq->seqbase, meta_child);
+    }
+  }
+
+  seq->flag |= SEQ_FLAG_DELETE;
+  sequencer_flag_users_for_removal(scene, seqbase, seq);
+}
+
+/* Remove all flagged sequences, return true if sequence is removed. */
+void BKE_sequencer_remove_flagged_sequences(Scene *scene, ListBase *seqbase)
+{
+  LISTBASE_FOREACH_MUTABLE (Sequence *, seq, seqbase) {
+    if (seq->flag & SEQ_FLAG_DELETE) {
+      if (seq->type == SEQ_TYPE_META) {
+        BKE_sequencer_remove_flagged_sequences(scene, &seq->seqbase);
+      }
+      BLI_remlink(seqbase, seq);
+      BKE_sequence_free(scene, seq, true);
+    }
+  }
+}
