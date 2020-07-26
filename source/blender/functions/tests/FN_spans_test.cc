@@ -4,7 +4,7 @@
 
 #include "FN_spans.hh"
 
-namespace blender::fn {
+namespace blender::fn::tests {
 
 TEST(generic_span, TypeConstructor)
 {
@@ -211,4 +211,4 @@ TEST(generic_virtual_span, SingleConstructor)
   EXPECT_EQ(converted[2], 5);
 }
 
-}  // namespace blender::fn
+}  // namespace blender::fn::tests

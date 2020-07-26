@@ -7,7 +7,7 @@
 
 #include "BLI_array.hh"
 
-namespace blender::fn {
+namespace blender::fn::tests {
 
 TEST(virtual_array_span, EmptyConstructor)
 {
@@ -129,4 +129,4 @@ TEST(generic_virtual_array_span, IsSingleArray2)
   EXPECT_FALSE(converted.is_single_array());
 }
 
-}  // namespace blender::fn
+}  // namespace blender::fn::tests

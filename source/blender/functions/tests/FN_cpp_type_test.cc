@@ -4,7 +4,7 @@
 
 #include "FN_cpp_type.hh"
 
-namespace blender::fn {
+namespace blender::fn::tests {
 
 static const int default_constructed_value = 1;
 static const int copy_constructed_value = 2;
@@ -62,7 +62,7 @@ struct TestType {
     return stream;
   }
 
-  friend bool operator==(const TestType &a, const TestType &b)
+  friend bool operator==(const TestType &UNUSED(a), const TestType &UNUSED(b))
   {
     return false;
   }
@@ -73,7 +73,11 @@ struct TestType {
   }
 };
 
-MAKE_CPP_TYPE(TestType, TestType)
+}  // namespace blender::fn::tests
+
+MAKE_CPP_TYPE(TestType, blender::fn::tests::TestType)
+
+namespace blender::fn::tests {
 
 const CPPType &CPPType_TestType = CPPType::get<TestType>();
 
@@ -318,4 +322,4 @@ TEST(cpp_type, DebugPrint)
   EXPECT_EQ(text, "42");
 }
 
-}  // namespace blender::fn
+}  // namespace blender::fn::tests
