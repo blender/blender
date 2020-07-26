@@ -2094,6 +2094,7 @@ void ED_operatortypes_uvedit(void)
   WM_operatortype_append(UV_OT_reset);
   WM_operatortype_append(UV_OT_sphere_project);
   WM_operatortype_append(UV_OT_unwrap);
+  WM_operatortype_append(UV_OT_smart_project);
 
   WM_operatortype_append(UV_OT_reveal);
   WM_operatortype_append(UV_OT_hide);

@@ -46,7 +46,6 @@ _modules = [
     "userpref",
     "uvcalc_follow_active",
     "uvcalc_lightmap",
-    "uvcalc_smart_project",
     "vertexpaint_dirt",
     "view3d",
     "gpencil_mesh_bake",
