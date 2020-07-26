@@ -3062,9 +3062,9 @@ void BKE_object_dimensions_set_ex(Object *ob,
           }
         }
 
-        if (len[i] > 0.0f) {
-
-          ob->scale[i] = copysignf(value[i] / len[i], ob->scale[i]);
+        const float scale = copysignf(value[i] / len[i], ob->scale[i]);
+        if (isfinite(scale)) {
+          ob->scale[i] = scale;
         }
       }
     }
