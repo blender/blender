@@ -1683,6 +1683,15 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
                            "and reduce the boundary smoothening effect)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
 
+  prop = RNA_def_property(srna, "sys_particle_maximum", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "sys_particle_maximum");
+  RNA_def_property_range(prop, 0, INT_MAX);
+  RNA_def_property_ui_text(
+      prop,
+      "System Maximum",
+      "Maximum number of fluid particles that are allowed in this simulation");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
+
   /*  diffusion options */
 
   prop = RNA_def_property(srna, "use_diffusion", PROP_BOOLEAN, PROP_NONE);
