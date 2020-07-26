@@ -50,8 +50,6 @@
 #  include "DNA_image_types.h"
 #  include "DNA_scene_types.h"
 
-#  include "GPU_glew.h"
-
 #  include "MEM_guardedalloc.h"
 
 static void rna_ImagePackedFile_save(ImagePackedFile *imapf, Main *bmain, ReportList *reports)

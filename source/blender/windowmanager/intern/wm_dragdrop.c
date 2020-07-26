@@ -39,7 +39,6 @@
 #include "BKE_context.h"
 #include "BKE_idtype.h"
 
-#include "GPU_glew.h"
 #include "GPU_shader.h"
 #include "GPU_state.h"
 #include "GPU_viewport.h"

@@ -82,7 +82,6 @@
 
 #include "BIF_glutil.h"
 
-#include "GPU_glew.h"
 #include "GPU_shader.h"
 
 #include "RE_engine.h"

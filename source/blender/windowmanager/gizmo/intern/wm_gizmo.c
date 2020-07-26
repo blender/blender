@@ -29,7 +29,6 @@
 #include "BKE_context.h"
 
 #include "GPU_batch.h"
-#include "GPU_glew.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
