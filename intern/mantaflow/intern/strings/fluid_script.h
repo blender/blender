@@ -770,8 +770,6 @@ if (GUI):\n\
 cache_resumable       = $CACHE_RESUMABLE$\n\
 cache_dir             = '$CACHE_DIR$'\n\
 file_format_data      = '$CACHE_DATA_FORMAT$'\n\
-file_format_noise     = '$CACHE_NOISE_FORMAT$'\n\
-file_format_particles = '$CACHE_PARTICLE_FORMAT$'\n\
 file_format_mesh      = '$CACHE_MESH_FORMAT$'\n\
 \n\
 # How many frame to load from cache\n\
