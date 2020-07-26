@@ -477,7 +477,7 @@ const std::string liquid_standalone =
 def load(frame, cache_resumable):\n\
     liquid_load_data_$ID$(os.path.join(cache_dir, 'data'), frame, file_format_data, cache_resumable)\n\
     if using_sndparts_s$ID$:\n\
-        liquid_load_particles_$ID$(os.path.join(cache_dir, 'particles'), frame, file_format_particles, cache_resumable)\n\
+        liquid_load_particles_$ID$(os.path.join(cache_dir, 'particles'), frame, file_format_data, cache_resumable)\n\
     if using_mesh_s$ID$:\n\
         liquid_load_mesh_$ID$(os.path.join(cache_dir, 'mesh'), frame, file_format_mesh)\n\
     if using_guiding_s$ID$:\n\

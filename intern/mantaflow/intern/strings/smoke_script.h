@@ -601,7 +601,7 @@ const std::string smoke_standalone =
 def load(frame, cache_resumable):\n\
     smoke_load_data_$ID$(os.path.join(cache_dir, 'data'), frame, file_format_data, cache_resumable)\n\
     if using_noise_s$ID$:\n\
-        smoke_load_noise_$ID$(os.path.join(cache_dir, 'noise'), frame, file_format_noise, cache_resumable)\n\
+        smoke_load_noise_$ID$(os.path.join(cache_dir, 'noise'), frame, file_format_data, cache_resumable)\n\
     if using_guiding_s$ID$:\n\
         fluid_load_guiding_$ID$(os.path.join(cache_dir, 'guiding'), frame, file_format_data)\n\
 \n\
