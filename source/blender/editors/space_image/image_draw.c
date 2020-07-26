@@ -468,20 +468,19 @@ static void sima_draw_zbuf_pixels(
   float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 
   /* Slowwww */
-  int *recti = MEM_mallocN(rectx * recty * sizeof(int), "temp");
+  float *rectf = MEM_mallocN(rectx * recty * sizeof(float), "temp");
   for (int a = rectx * recty - 1; a >= 0; a--) {
     /* zbuffer values are signed, so we need to shift color range */
-    recti[a] = rect[a] * 0.5f + 0.5f;
+    rectf[a] = rect[a] * 0.5f + 0.5f;
   }
 
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
   GPU_shader_uniform_vector(
       state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, red);
 
-  immDrawPixelsTex(
-      &state, x1, y1, rectx, recty, GL_RED, GL_INT, GL_NEAREST, recti, zoomx, zoomy, NULL);
+  immDrawPixelsTex(&state, x1, y1, rectx, recty, GPU_R16F, false, rectf, zoomx, zoomy, NULL);
 
-  MEM_freeN(recti);
+  MEM_freeN(rectf);
 }
 
 static void sima_draw_zbuffloat_pixels(Scene *scene,
@@ -526,8 +525,7 @@ static void sima_draw_zbuffloat_pixels(Scene *scene,
   GPU_shader_uniform_vector(
       state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, red);
 
-  immDrawPixelsTex(
-      &state, x1, y1, rectx, recty, GL_RED, GL_FLOAT, GL_NEAREST, rectf, zoomx, zoomy, NULL);
+  immDrawPixelsTex(&state, x1, y1, rectx, recty, GL_R16F, false, rectf, zoomx, zoomy, NULL);
 
   MEM_freeN(rectf);
 }
@@ -612,8 +610,7 @@ static void draw_image_buffer(const bContext *C,
     /* If RGBA display with color management */
     if ((sima_flag & (SI_SHOW_R | SI_SHOW_G | SI_SHOW_B | SI_SHOW_ALPHA)) == 0) {
 
-      ED_draw_imbuf_ctx_clipping(
-          C, ibuf, x, y, GL_NEAREST, 0, 0, clip_max_x, clip_max_y, zoomx, zoomy);
+      ED_draw_imbuf_ctx_clipping(C, ibuf, x, y, false, 0, 0, clip_max_x, clip_max_y, zoomx, zoomy);
     }
     else {
       float shuffle[4] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -649,9 +646,8 @@ static void draw_image_buffer(const bContext *C,
                                   y,
                                   ibuf->x,
                                   ibuf->y,
-                                  GL_RGBA,
-                                  GL_UNSIGNED_BYTE,
-                                  GL_NEAREST,
+                                  GPU_RGBA8,
+                                  false,
                                   display_buffer,
                                   0,
                                   0,
@@ -780,18 +776,8 @@ static void draw_image_paint_helpers(
           GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
       IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-      immDrawPixelsTex(&state,
-                       x,
-                       y,
-                       ibuf->x,
-                       ibuf->y,
-                       GL_RGBA,
-                       GL_UNSIGNED_BYTE,
-                       GL_NEAREST,
-                       display_buffer,
-                       zoomx,
-                       zoomy,
-                       col);
+      immDrawPixelsTex(
+          &state, x, y, ibuf->x, ibuf->y, GPU_RGBA8, false, display_buffer, zoomx, zoomy, col);
 
       GPU_blend(false);
 

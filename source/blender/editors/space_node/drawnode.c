@@ -3676,9 +3676,8 @@ void draw_nodespace_back_pix(const bContext *C,
                          y,
                          ibuf->x,
                          ibuf->y,
-                         GL_RGBA,
-                         GL_UNSIGNED_BYTE,
-                         GL_NEAREST,
+                         GPU_RGBA8,
+                         false,
                          display_buffer,
                          snode->zoom,
                          snode->zoom,
@@ -3691,12 +3690,12 @@ void draw_nodespace_back_pix(const bContext *C,
         GPU_blend_set_func_separate(
             GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
-        ED_draw_imbuf_ctx(C, ibuf, x, y, GL_NEAREST, snode->zoom, snode->zoom);
+        ED_draw_imbuf_ctx(C, ibuf, x, y, false, snode->zoom, snode->zoom);
 
         GPU_blend(false);
       }
       else {
-        ED_draw_imbuf_ctx(C, ibuf, x, y, GL_NEAREST, snode->zoom, snode->zoom);
+        ED_draw_imbuf_ctx(C, ibuf, x, y, false, snode->zoom, snode->zoom);
       }
 
       if (cache_handle) {

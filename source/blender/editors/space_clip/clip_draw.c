@@ -322,7 +322,7 @@ static void draw_movieclip_buffer(const bContext *C,
                                   float zoomy)
 {
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  int filter = GL_LINEAR;
+  bool use_filter = true;
   int x, y;
 
   /* find window pixel coordinates of origin */
@@ -340,10 +340,10 @@ static void draw_movieclip_buffer(const bContext *C,
   /* non-scaled proxy shouldn't use filtering */
   if ((clip->flag & MCLIP_USE_PROXY) == 0 ||
       ELEM(sc->user.render_size, MCLIP_PROXY_RENDER_SIZE_FULL, MCLIP_PROXY_RENDER_SIZE_100)) {
-    filter = GL_NEAREST;
+    use_filter = false;
   }
 
-  ED_draw_imbuf_ctx(C, ibuf, x, y, filter, zoomx * width / ibuf->x, zoomy * height / ibuf->y);
+  ED_draw_imbuf_ctx(C, ibuf, x, y, use_filter, zoomx * width / ibuf->x, zoomy * height / ibuf->y);
 
   if (ibuf->planes == 32) {
     GPU_blend(false);

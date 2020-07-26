@@ -1517,18 +1517,8 @@ static void icon_draw_rect(float x,
     immUniform1f("factor", desaturate);
   }
 
-  immDrawPixelsTex(&state,
-                   draw_x,
-                   draw_y,
-                   draw_w,
-                   draw_h,
-                   GL_RGBA,
-                   GL_UNSIGNED_BYTE,
-                   GL_NEAREST,
-                   rect,
-                   1.0f,
-                   1.0f,
-                   col);
+  immDrawPixelsTex(
+      &state, draw_x, draw_y, draw_w, draw_h, GPU_RGBA8, false, rect, 1.0f, 1.0f, col);
 
   if (ima) {
     IMB_freeImBuf(ima);
