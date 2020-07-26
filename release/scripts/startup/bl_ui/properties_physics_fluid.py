@@ -473,6 +473,7 @@ class PHYSICS_PT_liquid(PhysicButtonsPanel, Panel):
         col = flow.column()
         col.prop(domain, "simulation_method", expand=False)
         col.prop(domain, "flip_ratio", text="FLIP Ratio")
+        col.prop(domain, "sys_particle_maximum", text="System Maximum")
         col = col.column(align=True)
         col.prop(domain, "particle_radius", text="Particle Radius")
         col.prop(domain, "particle_number", text="Sampling")

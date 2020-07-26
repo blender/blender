@@ -4856,6 +4856,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *fmd)
     fmd->domain->particle_radius = 1.0f;
     fmd->domain->particle_band_width = 3.0f;
     fmd->domain->fractions_threshold = 0.05f;
+    fmd->domain->sys_particle_maximum = 0;
 
     /* diffusion options*/
     fmd->domain->surface_tension = 0.0f;
@@ -5100,6 +5101,7 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
     tfds->particle_radius = fds->particle_radius;
     tfds->particle_band_width = fds->particle_band_width;
     tfds->fractions_threshold = fds->fractions_threshold;
+    tfds->sys_particle_maximum = fds->sys_particle_maximum;
 
     /* diffusion options*/
     tfds->surface_tension = fds->surface_tension;

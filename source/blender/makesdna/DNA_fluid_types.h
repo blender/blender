@@ -524,8 +524,9 @@ typedef struct FluidDomainSettings {
   float particle_band_width;
   float fractions_threshold;
   float flip_ratio;
+  int sys_particle_maximum;
   short simulation_method;
-  char _pad4[6];
+  char _pad4[2];
 
   /* Diffusion options. */
   float surface_tension;
