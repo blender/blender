@@ -147,7 +147,13 @@ typedef struct UnwrapOptions {
   /** Connectivity based on UV coordinates instead of seams. */
   bool topology_from_uvs;
   /** Only affect selected faces. */
-  bool only_selected;
+  bool only_selected_faces;
+  /**
+   * Only affect selected UV's.
+   * \note Disable this for operations that don't run in the image-window.
+   * Unwrapping from the 3D view for example, where only 'only_selected_faces' should be used.
+   */
+  bool only_selected_uvs;
   /** Fill holes to better preserve shape. */
   bool fill_holes;
   /** Correct for mapped image texture aspect ratio. */
@@ -299,7 +305,7 @@ static ParamHandle *construct_param_handle(const Scene *scene,
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
 
     if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) ||
-        (options->only_selected && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0)) {
+        (options->only_selected_faces && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0)) {
       continue;
     }
 
@@ -307,10 +313,12 @@ static ParamHandle *construct_param_handle(const Scene *scene,
       bool is_loopsel = false;
 
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-        if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-          is_loopsel = true;
-          break;
+        if (options->only_selected_uvs &&
+            (uvedit_uv_select_test(scene, l, cd_loop_uv_offset) == false)) {
+          continue;
         }
+        is_loopsel = true;
+        break;
       }
       if (is_loopsel == false) {
         continue;
@@ -382,7 +390,7 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
     BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
 
       if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) ||
-          (options->only_selected && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0)) {
+          (options->only_selected_faces && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0)) {
         continue;
       }
 
@@ -390,10 +398,12 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
         bool is_loopsel = false;
 
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-            is_loopsel = true;
-            break;
+          if (options->only_selected_uvs &&
+              (uvedit_uv_select_test(scene, l, cd_loop_uv_offset) == false)) {
+            continue;
           }
+          is_loopsel = true;
+          break;
         }
         if (is_loopsel == false) {
           continue;
@@ -571,7 +581,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
     }
     else {
       if (BM_elem_flag_test(origFace, BM_ELEM_HIDDEN) ||
-          (options->only_selected && !BM_elem_flag_test(origFace, BM_ELEM_SELECT))) {
+          (options->only_selected_faces && !BM_elem_flag_test(origFace, BM_ELEM_SELECT))) {
         continue;
       }
     }
@@ -671,7 +681,8 @@ static bool minimize_stretch_init(bContext *C, wmOperator *op)
   const UnwrapOptions options = {
       .topology_from_uvs = true,
       .fill_holes = RNA_boolean_get(op->ptr, "fill_holes"),
-      .only_selected = true,
+      .only_selected_faces = true,
+      .only_selected_uvs = true,
       .correct_aspect = true,
   };
 
@@ -933,7 +944,8 @@ static void uvedit_pack_islands(const Scene *scene, Object *ob, BMesh *bm)
 {
   const UnwrapOptions options = {
       .topology_from_uvs = true,
-      .only_selected = false,
+      .only_selected_faces = false,
+      .only_selected_uvs = true,
       .fill_holes = false,
       .correct_aspect = false,
   };
@@ -975,7 +987,8 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 
   const UnwrapOptions options = {
       .topology_from_uvs = true,
-      .only_selected = true,
+      .only_selected_faces = true,
+      .only_selected_uvs = true,
       .fill_holes = false,
       .correct_aspect = true,
   };
@@ -1040,7 +1053,8 @@ static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
 
   const UnwrapOptions options = {
       .topology_from_uvs = true,
-      .only_selected = true,
+      .only_selected_faces = true,
+      .only_selected_uvs = true,
       .fill_holes = false,
       .correct_aspect = true,
   };
@@ -1114,7 +1128,8 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 
   const UnwrapOptions options = {
       .topology_from_uvs = false,
-      .only_selected = false,
+      .only_selected_faces = false,
+      .only_selected_uvs = true,
       .fill_holes = (scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES) != 0,
       .correct_aspect = (scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT) == 0,
   };
@@ -1635,7 +1650,8 @@ void ED_uvedit_live_unwrap(const Scene *scene, Object **objects, int objects_len
   if (scene->toolsettings->edge_mode_live_unwrap) {
     const UnwrapOptions options = {
         .topology_from_uvs = false,
-        .only_selected = false,
+        .only_selected_faces = false,
+        .only_selected_uvs = true,
         .fill_holes = (scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES) != 0,
         .correct_aspect = (scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT) == 0,
     };
@@ -1670,7 +1686,8 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
   const UnwrapOptions options = {
       .topology_from_uvs = false,
-      .only_selected = true,
+      .only_selected_faces = true,
+      .only_selected_uvs = true,
       .fill_holes = RNA_boolean_get(op->ptr, "fill_holes"),
       .correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect"),
   };
