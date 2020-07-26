@@ -6046,3 +6046,26 @@ bool BKE_sequencer_check_scene_recursion(Scene *scene, ReportList *reports)
 
   return false;
 }
+
+/* Check if "seq_main" (indirectly) uses strip "seq". */
+bool BKE_sequencer_render_loop_check(Sequence *seq_main, Sequence *seq)
+{
+  if (seq_main == seq) {
+    return true;
+  }
+
+  if (seq_main->seq1 && BKE_sequencer_render_loop_check(seq_main->seq1, seq) ||
+      seq_main->seq2 && BKE_sequencer_render_loop_check(seq_main->seq2, seq) ||
+      seq_main->seq3 && BKE_sequencer_render_loop_check(seq_main->seq3, seq)) {
+    return true;
+  }
+
+  SequenceModifierData *smd;
+  for (smd = seq_main->modifiers.first; smd; smd = smd->next) {
+    if (smd->mask_sequence && BKE_sequencer_render_loop_check(smd->mask_sequence, seq)) {
+      return true;
+    }
+  }
+
+  return false;
+}

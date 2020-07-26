@@ -624,6 +624,7 @@ void BKE_sequencer_color_balance_apply(struct StripColorBalance *cb,
 
 void BKE_sequencer_all_free_anim_ibufs(struct Scene *scene, int cfra);
 bool BKE_sequencer_check_scene_recursion(struct Scene *scene, struct ReportList *reports);
+bool BKE_sequencer_render_loop_check(struct Sequence *seq_main, struct Sequence *seq);
 
 #ifdef __cplusplus
 }
