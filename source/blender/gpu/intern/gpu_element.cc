@@ -26,6 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "GPU_element.h"
+#include "GPU_glew.h"
 
 #include "gpu_context_private.h"
 
@@ -37,21 +38,18 @@
 
 static GLenum convert_index_type_to_gl(GPUIndexBufType type)
 {
-  static const GLenum table[] = {
-      [GPU_INDEX_U16] = GL_UNSIGNED_SHORT,
-      [GPU_INDEX_U32] = GL_UNSIGNED_INT,
-  };
-  return table[type];
+#if GPU_TRACK_INDEX_RANGE
+  return (type == GPU_INDEX_U32) ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT;
+#else
+  return GL_UNSIGNED_INT;
+#endif
 }
 
 uint GPU_indexbuf_size_get(const GPUIndexBuf *elem)
 {
 #if GPU_TRACK_INDEX_RANGE
-  static const uint table[] = {
-      [GPU_INDEX_U16] = sizeof(GLushort),
-      [GPU_INDEX_U32] = sizeof(GLuint),
-  };
-  return elem->index_len * table[elem->index_type];
+  return elem->index_len *
+         ((elem->index_type == GPU_INDEX_U32) ? sizeof(GLuint) : sizeof(GLshort));
 #else
   return elem->index_len * sizeof(GLuint);
 #endif

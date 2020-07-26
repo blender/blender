@@ -78,17 +78,25 @@ struct GPUFrameBuffer {
 
 static GLenum convert_attachment_type_to_gl(GPUAttachmentType type)
 {
-  static const GLenum table[] = {
-      [GPU_FB_DEPTH_ATTACHMENT] = GL_DEPTH_ATTACHMENT,
-      [GPU_FB_DEPTH_STENCIL_ATTACHMENT] = GL_DEPTH_STENCIL_ATTACHMENT,
-      [GPU_FB_COLOR_ATTACHMENT0] = GL_COLOR_ATTACHMENT0,
-      [GPU_FB_COLOR_ATTACHMENT1] = GL_COLOR_ATTACHMENT1,
-      [GPU_FB_COLOR_ATTACHMENT2] = GL_COLOR_ATTACHMENT2,
-      [GPU_FB_COLOR_ATTACHMENT3] = GL_COLOR_ATTACHMENT3,
-      [GPU_FB_COLOR_ATTACHMENT4] = GL_COLOR_ATTACHMENT4,
-      [GPU_FB_COLOR_ATTACHMENT5] = GL_COLOR_ATTACHMENT5,
-  };
-  return table[type];
+#define ATTACHMENT(type) \
+  case GPU_FB_##type: { \
+    return GL_##type; \
+  } \
+    ((void)0)
+
+  switch (type) {
+    ATTACHMENT(DEPTH_ATTACHMENT);
+    ATTACHMENT(DEPTH_STENCIL_ATTACHMENT);
+    ATTACHMENT(COLOR_ATTACHMENT0);
+    ATTACHMENT(COLOR_ATTACHMENT1);
+    ATTACHMENT(COLOR_ATTACHMENT2);
+    ATTACHMENT(COLOR_ATTACHMENT3);
+    ATTACHMENT(COLOR_ATTACHMENT4);
+    ATTACHMENT(COLOR_ATTACHMENT5);
+    default:
+      BLI_assert(0);
+      return GL_COLOR_ATTACHMENT0;
+  }
 }
 
 static GPUAttachmentType attachment_type_from_tex(GPUTexture *tex, int slot)
