@@ -488,7 +488,7 @@ simulation_node_categories = [
     ]),
     SimulationNodeCategory("SIM_INPUTS", "Input", items=[
         not_implemented_node("SimulationNodeTime"),
-        not_implemented_node("SimulationNodeParticleAttribute"),
+        NodeItem("SimulationNodeParticleAttribute"),
         NodeItem("FunctionNodeGroupInstanceID"),
         NodeItem("ShaderNodeValue"),
         NodeItem("FunctionNodeObjectTransforms"),
