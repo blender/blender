@@ -467,30 +467,6 @@ static bool seq_is_parent(Sequence *par, Sequence *seq)
   return ((par->seq1 == seq) || (par->seq2 == seq) || (par->seq3 == seq));
 }
 
-static bool seq_is_predecessor(Sequence *pred, Sequence *seq)
-{
-  if (!pred) {
-    return 0;
-  }
-  if (pred == seq) {
-    return 0;
-  }
-  if (seq_is_parent(pred, seq)) {
-    return 1;
-  }
-  if (pred->seq1 && seq_is_predecessor(pred->seq1, seq)) {
-    return 1;
-  }
-  if (pred->seq2 && seq_is_predecessor(pred->seq2, seq)) {
-    return 1;
-  }
-  if (pred->seq3 && seq_is_predecessor(pred->seq3, seq)) {
-    return 1;
-  }
-
-  return 0;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2233,14 +2209,16 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
   }
 
   if (!seq_effect_find_selected(
-          scene, last_seq, last_seq->type, &seq1, &seq2, &seq3, &error_msg)) {
+          scene, last_seq, last_seq->type, &seq1, &seq2, &seq3, &error_msg) ||
+      BKE_sequence_effect_get_num_inputs(last_seq->type) == 0) {
     BKE_report(op->reports, RPT_ERROR, error_msg);
     return OPERATOR_CANCELLED;
   }
   /* Check if reassigning would create recursivity. */
-  if (seq_is_predecessor(seq1, last_seq) || seq_is_predecessor(seq2, last_seq) ||
-      seq_is_predecessor(seq3, last_seq)) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot reassign inputs: no cycles allowed");
+  if (BKE_sequencer_render_loop_check(seq1, last_seq) ||
+      BKE_sequencer_render_loop_check(seq2, last_seq) ||
+      BKE_sequencer_render_loop_check(seq3, last_seq)) {
+    BKE_report(op->reports, RPT_ERROR, "Cannot reassign inputs: recursion detected.");
     return OPERATOR_CANCELLED;
   }
 
