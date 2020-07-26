@@ -175,7 +175,7 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
       }
       width = ibuf->x;
       height = ibuf->y;
-      tex = GPU_texture_from_blender(image, iuser, ibuf, TEXTARGET_TEXTURE_2D);
+      tex = GPU_texture_from_blender(image, iuser, ibuf, TEXTARGET_2D);
       BKE_image_release_ibuf(image, ibuf, lock);
       iuser->scene = NULL;
 
@@ -203,7 +203,7 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
       }
 
       BKE_movieclip_user_set_frame(&bgpic->cuser, ctime);
-      tex = GPU_texture_from_movieclip(clip, &bgpic->cuser, TEXTARGET_TEXTURE_2D);
+      tex = GPU_texture_from_movieclip(clip, &bgpic->cuser, TEXTARGET_2D);
       if (tex == NULL) {
         return NULL;
       }
@@ -383,7 +383,7 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
     if (ima != NULL) {
       ImageUser iuser = *ob->iuser;
       camera_background_images_stereo_setup(draw_ctx->scene, draw_ctx->v3d, ima, &iuser);
-      tex = GPU_texture_from_blender(ima, &iuser, NULL, TEXTARGET_TEXTURE_2D);
+      tex = GPU_texture_from_blender(ima, &iuser, NULL, TEXTARGET_2D);
       if (tex) {
         size[0] = GPU_texture_orig_width(tex);
         size[1] = GPU_texture_orig_height(tex);

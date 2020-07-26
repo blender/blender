@@ -1189,10 +1189,10 @@ GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat tex_format, const GLuint
 static GLenum convert_target_to_gl(int target)
 {
   static const GLenum table[] = {
-      [TEXTARGET_TEXTURE_2D] = GL_TEXTURE_2D,
-      [TEXTARGET_TEXTURE_CUBE_MAP] = GL_TEXTURE_CUBE_MAP,
-      [TEXTARGET_TEXTURE_2D_ARRAY] = GL_TEXTURE_2D_ARRAY,
-      [TEXTARGET_TEXTURE_TILE_MAPPING] = GL_TEXTURE_1D_ARRAY,
+      [TEXTARGET_2D] = GL_TEXTURE_2D,
+      [TEXTARGET_CUBE_MAP] = GL_TEXTURE_CUBE_MAP,
+      [TEXTARGET_2D_ARRAY] = GL_TEXTURE_2D_ARRAY,
+      [TEXTARGET_TILE_MAPPING] = GL_TEXTURE_1D_ARRAY,
   };
   return table[target];
 }

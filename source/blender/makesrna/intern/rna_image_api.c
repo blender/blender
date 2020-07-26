@@ -222,7 +222,7 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int frame)
   BKE_imageuser_default(&iuser);
   iuser.framenr = frame;
 
-  GPUTexture *tex = GPU_texture_from_blender(image, &iuser, NULL, TEXTARGET_TEXTURE_2D);
+  GPUTexture *tex = GPU_texture_from_blender(image, &iuser, NULL, TEXTARGET_2D);
 
   if (tex == NULL) {
     BKE_reportf(reports, RPT_ERROR, "Failed to load image texture '%s'", image->id.name + 2);
@@ -239,7 +239,7 @@ static int rna_Image_gl_touch(Image *image, ReportList *reports, int frame)
 
   BKE_image_tag_time(image);
 
-  if (image->gputexture[TEXTARGET_TEXTURE_2D] == NULL) {
+  if (image->gputexture[TEXTARGET_2D] == NULL) {
     error = rna_Image_gl_load(image, reports, frame);
   }
 

@@ -195,7 +195,7 @@ static GPUTexture **gpu_get_image_gputexture(Image *ima, int textarget, const in
 
 static uint gpu_texture_create_tile_mapping(Image *ima, const int multiview_eye)
 {
-  GPUTexture *tilearray = ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY][multiview_eye];
+  GPUTexture *tilearray = ima->gputexture[TEXTARGET_2D_ARRAY][multiview_eye];
 
   if (tilearray == NULL) {
     return 0;
@@ -559,10 +559,10 @@ static GPUTexture **gpu_get_movieclip_gputexture(MovieClip *clip,
       }
 
       if (textarget == GL_TEXTURE_2D) {
-        return &tex->gputexture[TEXTARGET_TEXTURE_2D];
+        return &tex->gputexture[TEXTARGET_2D];
       }
       else if (textarget == GL_TEXTURE_CUBE_MAP) {
-        return &tex->gputexture[TEXTARGET_TEXTURE_CUBE_MAP];
+        return &tex->gputexture[TEXTARGET_CUBE_MAP];
       }
     }
   }
@@ -886,10 +886,10 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, ImBuf *ibuf, 
     }
   }
 
-  if (textarget == TEXTARGET_TEXTURE_2D_ARRAY) {
+  if (textarget == TEXTARGET_2D_ARRAY) {
     bindcode = gpu_texture_create_tile_array(ima, ibuf_intern);
   }
-  else if (textarget == TEXTARGET_TEXTURE_TILE_MAPPING) {
+  else if (textarget == TEXTARGET_TILE_MAPPING) {
     bindcode = gpu_texture_create_tile_mapping(ima, iuser ? iuser->multiview_eye : 0);
   }
   else {
@@ -905,7 +905,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, ImBuf *ibuf, 
 
   GPU_texture_orig_size_set(*tex, ibuf_intern->x, ibuf_intern->y);
 
-  if (textarget == TEXTARGET_TEXTURE_TILE_MAPPING) {
+  if (textarget == TEXTARGET_TILE_MAPPING) {
     /* Special for tile mapping. */
     GPU_texture_mipmap_mode(*tex, false, false);
   }
@@ -1265,7 +1265,7 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
         if (ima->gpuflag & IMA_GPU_MIPMAP_COMPLETE) {
           for (int eye = 0; eye < 2; eye++) {
             for (int a = 0; a < TEXTARGET_COUNT; a++) {
-              if (ELEM(a, TEXTARGET_TEXTURE_2D, TEXTARGET_TEXTURE_2D_ARRAY)) {
+              if (ELEM(a, TEXTARGET_2D, TEXTARGET_2D_ARRAY)) {
                 GPUTexture *tex = ima->gputexture[a][eye];
                 if (tex != NULL) {
                   GPU_texture_bind(tex, 0);
@@ -1291,7 +1291,7 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
       if (BKE_image_has_opengl_texture(ima)) {
         for (int eye = 0; eye < 2; eye++) {
           for (int a = 0; a < TEXTARGET_COUNT; a++) {
-            if (ELEM(a, TEXTARGET_TEXTURE_2D, TEXTARGET_TEXTURE_2D_ARRAY)) {
+            if (ELEM(a, TEXTARGET_2D, TEXTARGET_2D_ARRAY)) {
               GPUTexture *tex = ima->gputexture[a][eye];
               if (tex != NULL) {
                 GPU_texture_bind(tex, 0);
@@ -1322,14 +1322,14 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
     GPU_free_image(ima);
   }
 
-  GPUTexture *tex = ima->gputexture[TEXTARGET_TEXTURE_2D][0];
+  GPUTexture *tex = ima->gputexture[TEXTARGET_2D][0];
   /* Check if we need to update the main gputexture. */
   if (tex != NULL && tile == ima->tiles.first) {
     gpu_texture_update_from_ibuf(tex, ima, ibuf, NULL, x, y, w, h);
   }
 
   /* Check if we need to update the array gputexture. */
-  tex = ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY][0];
+  tex = ima->gputexture[TEXTARGET_2D_ARRAY][0];
   if (tex != NULL) {
     gpu_texture_update_from_ibuf(tex, ima, ibuf, tile, x, y, w, h);
   }
