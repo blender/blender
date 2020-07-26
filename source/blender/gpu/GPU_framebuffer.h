@@ -120,35 +120,35 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *fb, const GPUAttachment *confi
 
 #define GPU_ATTACHMENT_NONE \
   { \
-    .tex = NULL, .layer = -1, .mip = 0, \
+    NULL, -1, 0, \
   }
 #define GPU_ATTACHMENT_LEAVE \
   { \
-    .tex = NULL, .layer = -1, .mip = -1, \
+    NULL, -1, -1, \
   }
 #define GPU_ATTACHMENT_TEXTURE(_tex) \
   { \
-    .tex = _tex, .layer = -1, .mip = 0, \
+    _tex, -1, 0, \
   }
 #define GPU_ATTACHMENT_TEXTURE_MIP(_tex, _mip) \
   { \
-    .tex = _tex, .layer = -1, .mip = _mip, \
+    _tex, -1, _mip, \
   }
 #define GPU_ATTACHMENT_TEXTURE_LAYER(_tex, _layer) \
   { \
-    .tex = _tex, .layer = _layer, .mip = 0, \
+    _tex, _layer, 0, \
   }
 #define GPU_ATTACHMENT_TEXTURE_LAYER_MIP(_tex, _layer, _mip) \
   { \
-    .tex = _tex, .layer = _layer, .mip = _mip, \
+    _tex, _layer, _mip, \
   }
 #define GPU_ATTACHMENT_TEXTURE_CUBEFACE(_tex, _face) \
   { \
-    .tex = _tex, .layer = _face, .mip = 0, \
+    _tex, _face, 0, \
   }
 #define GPU_ATTACHMENT_TEXTURE_CUBEFACE_MIP(_tex, _face, _mip) \
   { \
-    .tex = _tex, .layer = _face, .mip = _mip, \
+    _tex, _face, _mip, \
   }
 
 /* Framebuffer operations */
