@@ -6054,9 +6054,9 @@ bool BKE_sequencer_render_loop_check(Sequence *seq_main, Sequence *seq)
     return true;
   }
 
-  if (seq_main->seq1 && BKE_sequencer_render_loop_check(seq_main->seq1, seq) ||
-      seq_main->seq2 && BKE_sequencer_render_loop_check(seq_main->seq2, seq) ||
-      seq_main->seq3 && BKE_sequencer_render_loop_check(seq_main->seq3, seq)) {
+  if ((seq_main->seq1 && BKE_sequencer_render_loop_check(seq_main->seq1, seq)) ||
+      (seq_main->seq2 && BKE_sequencer_render_loop_check(seq_main->seq2, seq)) ||
+      (seq_main->seq3 && BKE_sequencer_render_loop_check(seq_main->seq3, seq))) {
     return true;
   }
 
