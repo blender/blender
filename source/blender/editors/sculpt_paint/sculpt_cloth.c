@@ -254,8 +254,7 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
   /* Gravity */
   float gravity[3] = {0.0f};
   if (ss->cache->supports_gravity) {
-    madd_v3_v3fl(
-        gravity, ss->cache->gravity_direction, -ss->cache->radius * data->sd->gravity_factor);
+    madd_v3_v3fl(gravity, ss->cache->gravity_direction, -data->sd->gravity_factor);
   }
 
   /* Original data for deform brushes. */
@@ -278,6 +277,11 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
     else {
       copy_v3_v3(current_vertex_location, vd.co);
     }
+
+    /* Apply gravity in the entire simulation area. */
+    float vertex_gravity[3];
+    mul_v3_v3fl(vertex_gravity, gravity, sim_factor);
+    cloth_brush_apply_force_to_vertex(ss, ss->cache->cloth_sim, vertex_gravity, vd.index);
 
     /* When using the plane falloff mode the falloff is not constrained by the brush radius. */
     if (sculpt_brush_test_sq_fn(&test, current_vertex_location) || use_falloff_plane) {
@@ -355,8 +359,6 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
           zero_v3(force);
           break;
       }
-
-      madd_v3_v3fl(force, gravity, fade);
 
       cloth_brush_apply_force_to_vertex(ss, ss->cache->cloth_sim, force, vd.index);
     }
