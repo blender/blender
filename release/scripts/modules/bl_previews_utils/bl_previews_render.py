@@ -314,7 +314,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
     do_save = True
 
     if do_data_intern:
-        bpy.ops.wm.previews_clear(id_type='SHADING')
+        bpy.ops.wm.previews_clear(id_type={'SHADING'})
         bpy.ops.wm.previews_ensure()
 
     render_contexts = {}
@@ -439,7 +439,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
 
 def do_clear_previews(do_objects, do_collections, do_scenes, do_data_intern):
     if do_data_intern:
-        bpy.ops.wm.previews_clear(id_type='SHADING')
+        bpy.ops.wm.previews_clear(id_type={'SHADING'})
 
     if do_objects:
         for ob in ids_nolib(bpy.data.objects):
