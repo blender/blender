@@ -517,10 +517,10 @@ extern void ui_but_string_get(uiBut *but, char *str, const size_t maxlen) ATTR_N
 extern char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size);
 extern void ui_but_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen) ATTR_NONNULL();
 extern bool ui_but_string_set(struct bContext *C, uiBut *but, const char *str) ATTR_NONNULL();
-extern bool ui_but_string_set_eval_num(struct bContext *C,
-                                       uiBut *but,
-                                       const char *str,
-                                       double *value) ATTR_NONNULL();
+extern bool ui_but_string_eval_number(struct bContext *C,
+                                      const uiBut *but,
+                                      const char *str,
+                                      double *value) ATTR_NONNULL();
 extern int ui_but_string_get_max_length(uiBut *but);
 /* Clear & exit the active button's string. */
 extern void ui_but_active_string_clear_and_exit(struct bContext *C, uiBut *but) ATTR_NONNULL();
