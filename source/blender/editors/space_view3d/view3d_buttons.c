@@ -1474,6 +1474,7 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
   uiLayout *col;
 
   if (!mball || !(mball->lastelem)) {
+    uiItemL(layout, IFACE_("Nothing selected"), ICON_NONE);
     return;
   }
 
