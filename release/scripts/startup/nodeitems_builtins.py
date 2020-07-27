@@ -523,7 +523,7 @@ simulation_node_categories = [
     ]),
     SimulationNodeCategory("SIM_CONVERTER", "Converter", items=[
         NodeItem("ShaderNodeMapRange"),
-        not_implemented_node("ShaderNodeClamp"),
+        NodeItem("ShaderNodeClamp"),
         NodeItem("ShaderNodeMath"),
         NodeItem("ShaderNodeValToRGB"),
         NodeItem("ShaderNodeVectorMath"),
