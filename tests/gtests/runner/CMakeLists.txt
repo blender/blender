@@ -82,5 +82,5 @@ gtest_discover_tests(blender_test
 # So that unit tests know where to find files:
   EXTRA_ARGS
     --test-assets-dir "${CMAKE_SOURCE_DIR}/../lib/tests"
-    --test-release-dir "$<TARGET_FILE_DIR:blender>/${BLENDER_VERSION}"
+    --test-release-dir "${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}"
 )
