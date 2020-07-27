@@ -93,6 +93,19 @@ class RNANodeQuery {
 
   /* Make sure ID data exists for the given ID, and returns it. */
   RNANodeQueryIDData *ensure_id_data(const ID *id);
+
+  /* Check whether prop_identifier contains rna_path_component.
+   *
+   * This checks more than a substring:
+   *
+   * prop_identifier           contains(prop_identifier, "location")
+   * ------------------------  -------------------------------------
+   * location                  true
+   * ["test_location"]         false
+   * pose["bone"].location     true
+   * pose["bone"].location.x   true
+   */
+  static bool contains(const char *prop_identifier, const char *rna_path_component);
 };
 
 }  // namespace deg
