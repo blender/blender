@@ -634,7 +634,7 @@ error_cleanup:
 
 PyObject *PyC_ExceptionBuffer_Simple(void)
 {
-  PyObject *string_io_buf;
+  PyObject *string_io_buf = NULL;
 
   PyObject *error_type, *error_value, *error_traceback;
 
@@ -648,7 +648,19 @@ PyObject *PyC_ExceptionBuffer_Simple(void)
     return NULL;
   }
 
-  string_io_buf = PyObject_Str(error_value);
+  if (PyErr_GivenExceptionMatches(error_type, PyExc_SyntaxError)) {
+    /* Special exception for syntax errors,
+     * in these cases the full error is verbose and not very useful,
+     * just use the initial text so we know what the error is. */
+    if (PyTuple_CheckExact(error_value) && PyTuple_GET_SIZE(error_value) >= 1) {
+      string_io_buf = PyObject_Str(PyTuple_GET_ITEM(error_value, 0));
+    }
+  }
+
+  if (string_io_buf == NULL) {
+    string_io_buf = PyObject_Str(error_value);
+  }
+
   /* Python does this too */
   if (UNLIKELY(string_io_buf == NULL)) {
     string_io_buf = PyUnicode_FromFormat("<unprintable %s object>", Py_TYPE(error_value)->tp_name);
