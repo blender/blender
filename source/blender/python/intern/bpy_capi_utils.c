@@ -97,7 +97,10 @@ void BPy_reports_write_stdout(const ReportList *reports, const char *header)
   }
 }
 
-bool BPy_errors_to_report_ex(ReportList *reports, const bool use_full, const bool use_location)
+bool BPy_errors_to_report_ex(ReportList *reports,
+                             const char *error_prefix,
+                             const bool use_full,
+                             const bool use_location)
 {
   PyObject *pystring;
 
@@ -124,6 +127,11 @@ bool BPy_errors_to_report_ex(ReportList *reports, const bool use_full, const boo
     return 0;
   }
 
+  if (error_prefix == NULL) {
+    /* Not very helpful, better than nothing. */
+    error_prefix = "Python";
+  }
+
   if (use_location) {
     const char *filename;
     int lineno;
@@ -135,17 +143,22 @@ bool BPy_errors_to_report_ex(ReportList *reports, const bool use_full, const boo
 
     BKE_reportf(reports,
                 RPT_ERROR,
-                TIP_("%s\nlocation: %s:%d\n"),
+                TIP_("%s: %s\nlocation: %s:%d\n"),
+                error_prefix,
                 _PyUnicode_AsString(pystring),
                 filename,
                 lineno);
 
     /* Not exactly needed. Useful for developers tracking down issues. */
-    fprintf(
-        stderr, TIP_("%s\nlocation: %s:%d\n"), _PyUnicode_AsString(pystring), filename, lineno);
+    fprintf(stderr,
+            TIP_("%s: %s\nlocation: %s:%d\n"),
+            error_prefix,
+            _PyUnicode_AsString(pystring),
+            filename,
+            lineno);
   }
   else {
-    BKE_report(reports, RPT_ERROR, _PyUnicode_AsString(pystring));
+    BKE_reportf(reports, RPT_ERROR, "%s: %s", error_prefix, _PyUnicode_AsString(pystring));
   }
 
   Py_DECREF(pystring);
@@ -154,5 +167,5 @@ bool BPy_errors_to_report_ex(ReportList *reports, const bool use_full, const boo
 
 bool BPy_errors_to_report(ReportList *reports)
 {
-  return BPy_errors_to_report_ex(reports, true, true);
+  return BPy_errors_to_report_ex(reports, NULL, true, true);
 }

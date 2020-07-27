@@ -26,6 +26,8 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_scene.h"
 #include "BKE_unit.h"
@@ -277,8 +279,12 @@ static bool editstr_insert_at_cursor(NumInput *n, const char *buf, const int buf
   return true;
 }
 
-bool user_string_to_number(
-    bContext *C, const char *str, const UnitSettings *unit, int type, double *r_value)
+bool user_string_to_number(bContext *C,
+                           const char *str,
+                           const UnitSettings *unit,
+                           int type,
+                           const char *error_prefix,
+                           double *r_value)
 {
 #ifdef WITH_PYTHON
   double unit_scale = BKE_scene_unit_scale(unit, type, 1.0);
@@ -288,10 +294,10 @@ bool user_string_to_number(
     bUnit_ReplaceString(
         str_unit_convert, sizeof(str_unit_convert), str, unit_scale, unit->system, type);
 
-    return BPY_execute_string_as_number(C, NULL, str_unit_convert, true, r_value);
+    return BPY_execute_string_as_number(C, NULL, str_unit_convert, error_prefix, r_value);
   }
 
-  int success = BPY_execute_string_as_number(C, NULL, str, true, r_value);
+  int success = BPY_execute_string_as_number(C, NULL, str, error_prefix, r_value);
   *r_value *= bUnit_PreferredInputUnitScalar(unit, type);
   *r_value /= unit_scale;
   return success;
@@ -573,7 +579,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
     Scene *sce = CTX_data_scene(C);
 
     double val;
-    int success = user_string_to_number(C, n->str, &sce->unit, n->unit_type[idx], &val);
+    int success = user_string_to_number(
+        C, n->str, &sce->unit, n->unit_type[idx], IFACE_("Numeric input evaluation"), &val);
 
     if (success) {
       n->val[idx] = (float)val;

@@ -103,8 +103,12 @@ bool handleNumInput(struct bContext *C, NumInput *n, const struct wmEvent *event
 #define NUM_MODAL_INCREMENT_UP 18
 #define NUM_MODAL_INCREMENT_DOWN 19
 
-bool user_string_to_number(
-    bContext *C, const char *str, const struct UnitSettings *unit, int type, double *r_value);
+bool user_string_to_number(bContext *C,
+                           const char *str,
+                           const struct UnitSettings *unit,
+                           int type,
+                           const char *error_prefix,
+                           double *r_value);
 
 /** \} */
 

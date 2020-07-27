@@ -39,8 +39,10 @@ char *BPy_enum_as_string(const struct EnumPropertyItem *item);
 short BPy_reports_to_error(struct ReportList *reports, PyObject *exception, const bool clear);
 void BPy_reports_write_stdout(const struct ReportList *reports, const char *header);
 bool BPy_errors_to_report_ex(struct ReportList *reports,
+                             const char *error_prefix,
                              const bool use_full,
                              const bool use_location);
+bool BPy_errors_to_report_brief_with_prefix(struct ReportList *reports, const char *error_prefix);
 bool BPy_errors_to_report(struct ReportList *reports);
 
 /* TODO - find a better solution! */

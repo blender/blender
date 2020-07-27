@@ -2800,10 +2800,16 @@ char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size)
   return str;
 }
 
+/**
+ * Report a generic error prefix when evaluating a string with #BPY_execute_string_as_number
+ * as the Python error on it's own doesn't provide enough context.
+ */
+#define UI_NUMBER_EVAL_ERROR_PREFIX IFACE_("Error evaluating number, see Info editor for details")
+
 static bool ui_number_from_string_units(
     bContext *C, const char *str, const int unit_type, const UnitSettings *unit, double *r_value)
 {
-  return user_string_to_number(C, str, unit, unit_type, r_value);
+  return user_string_to_number(C, str, unit, unit_type, UI_NUMBER_EVAL_ERROR_PREFIX, r_value);
 }
 
 static bool ui_number_from_string_units_with_but(bContext *C,
@@ -2820,7 +2826,7 @@ static bool ui_number_from_string(bContext *C, const char *str, double *r_value)
 {
   bool ok;
 #ifdef WITH_PYTHON
-  ok = BPY_execute_string_as_number(C, NULL, str, true, r_value);
+  ok = BPY_execute_string_as_number(C, NULL, str, UI_NUMBER_EVAL_ERROR_PREFIX, r_value);
 #else
   UNUSED_VARS(C);
   *r_value = atof(str);
