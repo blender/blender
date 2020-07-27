@@ -217,7 +217,7 @@ template<typename T> struct VSpanBase {
       case VSpanCategory::FullArray:
         return true;
       case VSpanCategory::FullPointerArray:
-        return false;
+        return virtual_size_ <= 1;
     }
     BLI_assert(false);
     return false;
