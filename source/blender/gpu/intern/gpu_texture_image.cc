@@ -482,6 +482,8 @@ static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, eGPUTextureTar
     gpu_create_gl_tex_compressed(&bindcode, textarget, ima, ibuf);
     return bindcode;
   }
+#else
+  (void)gpu_create_gl_tex_compressed;
 #endif
 
   /* Regular uncompressed texture. */
@@ -1232,7 +1234,7 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf, bool use_srgb, uint *bindcode)
   glBindTexture(GL_TEXTURE_2D, 0);
   return true;
 #else
-  UNUSED_VARS(ibuf, use_srgb);
+  UNUSED_VARS(ibuf, use_srgb, bindcode);
   return false;
 #endif
 }
