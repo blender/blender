@@ -105,18 +105,22 @@ static void deformStroke(GpencilModifierData *md,
     bGPDspoint *pt = &gps->points[i];
     MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
 
-    /* verify vertex group */
+    /* Verify vertex group. */
     const float weight = get_modifier_point_weight(
         dvert, (mmd->flag & GP_OFFSET_INVERT_VGROUP) != 0, def_nr);
     if (weight < 0.0f) {
       continue;
     }
-    /* calculate matrix */
+    /* Calculate matrix. */
     mul_v3_v3fl(loc, mmd->loc, weight);
     mul_v3_v3fl(rot, mmd->rot, weight);
     mul_v3_v3fl(scale, mmd->scale, weight);
     add_v3_fl(scale, 1.0);
     loc_eul_size_to_mat4(mat, loc, rot, scale);
+
+    /* Apply scale to thickness. */
+    float unit_scale = (scale[0] + scale[1] + scale[2]) / 3.0f;
+    pt->pressure *= unit_scale;
 
     mul_m4_v3(mat, &pt->x);
   }
