@@ -36,7 +36,7 @@ endif()
 # directly referenced from other code.
 get_property(_test_libs GLOBAL PROPERTY BLENDER_TEST_LIBS)
 if(WIN32)
-  list(APPEND TEST_LIBS ${_test_libs})
+  # Win32 is set using target_link_options after target creation.
 elseif(APPLE)
   list(APPEND TEST_LIBS "-Wl,-force_load" ${_test_libs})
 elseif(UNIX)
@@ -44,7 +44,6 @@ elseif(UNIX)
 else()
   message(FATAL_ERROR "Unknown how to link whole-archive with your compiler ${CMAKE_CXX_COMPILER_ID}")
 endif()
-unset(_test_libs)
 
 # This builds `bin/tests/blender_test`, but does not add it as a single test.
 setup_libdirs()
@@ -56,6 +55,18 @@ BLENDER_SRC_GTEST_EX(
 )
 setup_liblinks(blender_test)
 
+if(WIN32)
+  foreach(_lib ${_test_libs})
+    # Both target_link_libraries and target_link_options are required here
+    # target_link_libraries will add any dependend libraries, while just setting
+    # the wholearchive flag in target link options will not.
+    target_link_libraries(blender_test ${_lib})
+    target_link_options(blender_test PRIVATE /wholearchive:$<TARGET_FILE:${_lib}>)
+  endforeach()
+endif()
+
+unset(_test_libs)
+
 # This runs the blender_test executable with `--gtest_list_tests`, then
 # exposes those tests individually to the ctest runner.
 # See https://cmake.org/cmake/help/v3.18/module/GoogleTest.html
@@ -66,7 +77,9 @@ set(_GOOGLETEST_DISCOVER_TESTS_SCRIPT
 )
 
 gtest_discover_tests(blender_test
-  # So that unit tests know where to find files:
+# So that the binary can find its shared libs on window.
+  WORKING_DIRECTORY "$<TARGET_FILE_DIR:blender>"
+# So that unit tests know where to find files:
   EXTRA_ARGS
     --test-assets-dir "${CMAKE_SOURCE_DIR}/../lib/tests"
     --test-release-dir "$<TARGET_FILE_DIR:blender>/${BLENDER_VERSION}"
