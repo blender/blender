@@ -485,6 +485,7 @@ void GPENCIL_OT_active_frames_delete_all(struct wmOperatorType *ot);
 void GPENCIL_OT_frame_duplicate(struct wmOperatorType *ot);
 void GPENCIL_OT_frame_clean_fill(struct wmOperatorType *ot);
 void GPENCIL_OT_frame_clean_loose(struct wmOperatorType *ot);
+void GPENCIL_OT_frame_clean_duplicate(struct wmOperatorType *ot);
 
 void GPENCIL_OT_convert(struct wmOperatorType *ot);
 void GPENCIL_OT_bake_mesh_animation(struct wmOperatorType *ot);

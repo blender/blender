@@ -861,6 +861,154 @@ void GPENCIL_OT_frame_clean_loose(wmOperatorType *ot)
               INT_MAX);
 }
 
+/* ********************* Clean Duplicated Frames ************************** */
+static bool gpencil_frame_is_equal(bGPDframe *gpf_a, bGPDframe *gpf_b)
+{
+  if ((gpf_a == NULL) || (gpf_b == NULL)) {
+    return false;
+  }
+  /* If the number of strokes is different, cannot be equal. */
+  int totstrokes_a = BLI_listbase_count(&gpf_a->strokes);
+  int totstrokes_b = BLI_listbase_count(&gpf_b->strokes);
+  if ((totstrokes_a == 0) || (totstrokes_b == 0) || (totstrokes_a != totstrokes_b)) {
+    return false;
+  }
+  /* Loop all strokes and check. */
+  bGPDstroke *gps_a = gpf_a->strokes.first;
+  bGPDstroke *gps_b = gpf_b->strokes.first;
+  for (int i = 0; i < totstrokes_a; i++) {
+    /* If the number of points is different, cannot be equal. */
+    if (gps_a->totpoints != gps_b->totpoints) {
+      return false;
+    }
+    /* Check other variables. */
+    if (!equals_v4v4(gps_a->vert_color_fill, gps_b->vert_color_fill)) {
+      return false;
+    }
+    if (gps_a->thickness != gps_b->thickness) {
+      return false;
+    }
+    if (gps_a->mat_nr != gps_b->mat_nr) {
+      return false;
+    }
+    if (gps_a->caps[0] != gps_b->caps[0]) {
+      return false;
+    }
+    if (gps_a->caps[1] != gps_b->caps[1]) {
+      return false;
+    }
+    if (gps_a->hardeness != gps_b->hardeness) {
+      return false;
+    }
+    if (!equals_v2v2(gps_a->aspect_ratio, gps_b->aspect_ratio)) {
+      return false;
+    }
+    if (gps_a->uv_rotation != gps_b->uv_rotation) {
+      return false;
+    }
+    if (!equals_v2v2(gps_a->uv_translation, gps_b->uv_translation)) {
+      return false;
+    }
+    if (gps_a->uv_scale != gps_b->uv_scale) {
+      return false;
+    }
+
+    /* Loop points and check if equals or not. */
+    for (int p = 0; p < gps_a->totpoints; p++) {
+      bGPDspoint *pt_a = &gps_a->points[p];
+      bGPDspoint *pt_b = &gps_b->points[p];
+      if (!equals_v3v3(&pt_a->x, &pt_b->x)) {
+        return false;
+      }
+      if (pt_a->pressure != pt_b->pressure) {
+        return false;
+      }
+      if (pt_a->strength != pt_b->strength) {
+        return false;
+      }
+      if (pt_a->uv_fac != pt_b->uv_fac) {
+        return false;
+      }
+      if (pt_a->uv_rot != pt_b->uv_rot) {
+        return false;
+      }
+      if (!equals_v4v4(pt_a->vert_color, pt_b->vert_color)) {
+        return false;
+      }
+    }
+
+    /* Look at next pair of strokes. */
+    gps_a = gps_a->next;
+    gps_b = gps_b->next;
+  }
+
+  return true;
+}
+
+static int gpencil_frame_clean_duplicate_exec(bContext *C, wmOperator *op)
+{
+#define SELECTED 1
+
+  bool changed = false;
+  Object *ob = CTX_data_active_object(C);
+  bGPdata *gpd = (bGPdata *)ob->data;
+  const int type = RNA_enum_get(op->ptr, "type");
+
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    /* Only editable and visible layers are considered. */
+    if (BKE_gpencil_layer_is_editable(gpl) && (gpl->frames.first != NULL)) {
+      bGPDframe *gpf = gpl->frames.first;
+
+      if ((type == SELECTED) && ((gpf->flag & GP_FRAME_SELECT) == 0)) {
+        continue;
+      }
+
+      while (gpf != NULL) {
+        if (gpencil_frame_is_equal(gpf, gpf->next)) {
+          /* Remove frame. */
+          BKE_gpencil_layer_frame_delete(gpl, gpf->next);
+          /* Tag for recalc. */
+          changed = true;
+        }
+        else {
+          gpf = gpf->next;
+        }
+      }
+    }
+  }
+
+  /* notifiers */
+  if (changed) {
+    DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_frame_clean_duplicate(wmOperatorType *ot)
+{
+  static const EnumPropertyItem clean_type[] = {
+      {0, "ALL", 0, "All Frames", ""},
+      {1, "SELECTED", 0, "Selected Frames", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  /* identifiers */
+  ot->name = "Clean Duplicated Frames";
+  ot->idname = "GPENCIL_OT_frame_clean_duplicate";
+  ot->description = "Remove any duplicated frame";
+
+  /* callbacks */
+  ot->exec = gpencil_frame_clean_duplicate_exec;
+  ot->poll = gpencil_active_layer_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(ot->srna, "type", clean_type, 0, "Type", "");
+}
+
 /* *********************** Hide Layers ******************************** */
 
 static int gpencil_hide_exec(bContext *C, wmOperator *op)
