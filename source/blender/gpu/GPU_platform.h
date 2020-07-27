@@ -27,10 +27,6 @@
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* GPU platform support */
 
 /* GPU Types */
@@ -65,6 +61,10 @@ typedef enum eGPUSupportLevel {
   GPU_SUPPORT_LEVEL_LIMITED,
   GPU_SUPPORT_LEVEL_UNSUPPORTED,
 } eGPUSupportLevel;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 bool GPU_type_matches(eGPUDeviceType device, eGPUOSType os, eGPUDriverType driver);
 eGPUSupportLevel GPU_platform_support_level(void);
