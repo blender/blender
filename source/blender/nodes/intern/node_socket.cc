@@ -356,6 +356,54 @@ void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
   to->flag |= (from->flag & SOCK_HIDE_VALUE);
 }
 
+void node_socket_skip_reroutes(
+    ListBase *links, bNode *node, bNodeSocket *socket, bNode **r_node, bNodeSocket **r_socket)
+{
+  const int loop_limit = 100; /* Limit in case there is a connection cycle. */
+
+  if (socket->in_out == SOCK_IN) {
+    bNodeLink *first_link = (bNodeLink *)links->first;
+
+    for (int i = 0; node->type == NODE_REROUTE && i < loop_limit; i++) {
+      bNodeLink *link = first_link;
+
+      for (; link; link = link->next) {
+        if (link->fromnode == node && link->tonode != node) {
+          break;
+        }
+      }
+
+      if (link) {
+        node = link->tonode;
+        socket = link->tosock;
+      }
+      else {
+        break;
+      }
+    }
+  }
+  else {
+    for (int i = 0; node->type == NODE_REROUTE && i < loop_limit; i++) {
+      bNodeSocket *input = (bNodeSocket *)node->inputs.first;
+
+      if (input && input->link) {
+        node = input->link->fromnode;
+        socket = input->link->fromsock;
+      }
+      else {
+        break;
+      }
+    }
+  }
+
+  if (r_node) {
+    *r_node = node;
+  }
+  if (r_socket) {
+    *r_socket = socket;
+  }
+}
+
 static void standard_node_socket_interface_init_socket(bNodeTree *UNUSED(ntree),
                                                        bNodeSocket *stemp,
                                                        bNode *UNUSED(node),

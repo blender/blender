@@ -56,6 +56,7 @@
 #include "UI_resources.h"
 
 #include "NOD_common.h"
+#include "NOD_socket.h"
 #include "node_intern.h" /* own include */
 
 static bool node_group_operator_active(bContext *C)
@@ -719,8 +720,8 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
   Main *bmain = CTX_data_main(C);
   bNodeTree *ngroup = (bNodeTree *)gnode->id;
   bNodeLink *link, *linkn;
-  bNode *node, *nextn;
-  bNodeSocket *sock;
+  bNode *node, *nextn, *link_node;
+  bNodeSocket *sock, *link_sock;
   ListBase anim_basepaths = {NULL, NULL};
   float min[2], max[2], real_min[2], real_max[2], center[2];
   int totselect;
@@ -821,12 +822,9 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
        */
       nodeRemLink(ntree, link);
     }
-    else if (fromselect && toselect) {
-      BLI_remlink(&ntree->links, link);
-      BLI_addtail(&ngroup->links, link);
-    }
-    else if (toselect) {
-      bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocket(ngroup, link->tonode, link->tosock);
+    else if (toselect && !fromselect) {
+      node_socket_skip_reroutes(&ntree->links, link->tonode, link->tosock, &link_node, &link_sock);
+      bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocket(ngroup, link_node, link_sock);
       bNodeSocket *input_sock;
 
       /* update the group node and interface node sockets,
@@ -843,7 +841,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
       link->tonode = gnode;
       link->tosock = node_group_find_input_socket(gnode, iosock->identifier);
     }
-    else if (fromselect) {
+    else if (fromselect && !toselect) {
       /* First check whether the source of this link is already connected to an output.
        * If yes, reuse that output instead of duplicating it. */
       bool connected = false;
@@ -859,8 +857,9 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
       }
 
       if (!connected) {
-        bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocket(
-            ngroup, link->fromnode, link->fromsock);
+        node_socket_skip_reroutes(
+            &ntree->links, link->fromnode, link->fromsock, &link_node, &link_sock);
+        bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocket(ngroup, link_node, link_sock);
         bNodeSocket *output_sock;
 
         /* update the group node and interface node sockets,
@@ -877,6 +876,19 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
         link->fromnode = gnode;
         link->fromsock = node_group_find_output_socket(gnode, iosock->identifier);
       }
+    }
+  }
+
+  /* move internal links */
+  for (link = ntree->links.first; link; link = linkn) {
+    int fromselect = node_group_make_use_node(link->fromnode, gnode);
+    int toselect = node_group_make_use_node(link->tonode, gnode);
+
+    linkn = link->next;
+
+    if (fromselect && toselect) {
+      BLI_remlink(&ntree->links, link);
+      BLI_addtail(&ngroup->links, link);
     }
   }
 
