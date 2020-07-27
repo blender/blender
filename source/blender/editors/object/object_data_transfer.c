@@ -508,13 +508,15 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 
   BLI_freelistN(&ctx_objects);
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
+  if (changed) {
+    DEG_relations_tag_update(CTX_data_main(C));
+    WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
+  }
 
 #if 0 /* TODO */
   /* Note: issue with that is that if canceled, operator cannot be redone... Nasty in our case. */
   return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 #else
-  (void)changed;
   return OPERATOR_FINISHED;
 #endif
 }
