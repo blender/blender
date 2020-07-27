@@ -80,9 +80,9 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
   std::vector<uint8_t> orders;
   Imath::V3f temp_vert;
 
-  Alembic::AbcGeom::BasisType curve_basis;
-  Alembic::AbcGeom::CurveType curve_type;
-  Alembic::AbcGeom::CurvePeriodicity periodicity;
+  Alembic::AbcGeom::BasisType curve_basis = Alembic::AbcGeom::kNoBasis;
+  Alembic::AbcGeom::CurveType curve_type = Alembic::AbcGeom::kVariableOrder;
+  Alembic::AbcGeom::CurvePeriodicity periodicity = Alembic::AbcGeom::kNonPeriodic;
 
   Nurb *nurbs = static_cast<Nurb *>(curve->nurb.first);
   for (; nurbs; nurbs = nurbs->next) {
