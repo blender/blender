@@ -67,6 +67,8 @@ class ParticleAction {
 struct SimulationInfluences {
   MultiValueMap<std::string, const ParticleForce *> particle_forces;
   MultiValueMap<std::string, const ParticleAction *> particle_birth_actions;
+  MultiValueMap<std::string, const ParticleAction *> particle_time_step_begin_actions;
+  MultiValueMap<std::string, const ParticleAction *> particle_time_step_end_actions;
   Map<std::string, AttributesInfoBuilder *> particle_attributes_builder;
   Vector<const ParticleEmitter *> particle_emitters;
 };
@@ -155,14 +157,9 @@ class ParticleAllocators {
   }
 };
 
-struct MutableParticleChunkContext {
-  IndexMask index_mask;
-  MutableAttributesRef attributes;
-};
-
 struct ParticleChunkContext {
   IndexMask index_mask;
-  AttributesRef attributes;
+  MutableAttributesRef attributes;
 };
 
 struct ParticleEmitterContext {
@@ -183,13 +180,13 @@ struct ParticleEmitterContext {
 
 struct ParticleForceContext {
   SimulationSolveContext &solve_context;
-  ParticleChunkContext &particle_chunk_context;
+  ParticleChunkContext &particles;
   MutableSpan<float3> force_dst;
 };
 
 struct ParticleActionContext {
   SimulationSolveContext &solve_context;
-  MutableParticleChunkContext &particle_chunk_context;
+  ParticleChunkContext &particles;
 };
 
 }  // namespace blender::sim

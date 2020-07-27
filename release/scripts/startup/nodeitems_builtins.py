@@ -498,16 +498,16 @@ simulation_node_categories = [
         not_implemented_node("SimulationNodeEmitParticles"),
     ]),
     SimulationNodeCategory("SIM_EVENTS", "Events", items=[
-        not_implemented_node("SimulationNodeParticleBirthEvent"),
-        not_implemented_node("SimulationNodeParticleTimeStepEvent"),
+        NodeItem("SimulationNodeParticleBirthEvent"),
+        NodeItem("SimulationNodeParticleTimeStepEvent"),
         not_implemented_node("SimulationNodeParticleMeshCollisionEvent"),
     ]),
     SimulationNodeCategory("SIM_FORCES", "Forces", items=[
         NodeItem("SimulationNodeForce"),
     ]),
     SimulationNodeCategory("SIM_EXECUTE", "Execute", items=[
-        not_implemented_node("SimulationNodeSetParticleAttribute"),
-        not_implemented_node("SimulationNodeExecuteCondition"),
+        NodeItem("SimulationNodeSetParticleAttribute"),
+        NodeItem("SimulationNodeExecuteCondition"),
         not_implemented_node("SimulationNodeMultiExecute"),
     ]),
     SimulationNodeCategory("SIM_NOISE", "Noise", items=[

@@ -18,6 +18,7 @@
 #include "node_simulation_util.h"
 
 static bNodeSocketTemplate sim_node_set_particle_attribute_in[] = {
+    {SOCK_CONTROL_FLOW, N_("Execute")},
     {SOCK_STRING, N_("Name")},
     {SOCK_FLOAT, N_("Float"), 0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
     {SOCK_INT, N_("Int"), 0, 0, 0, 0, -10000, 10000},
@@ -38,7 +39,7 @@ static void sim_node_set_particle_attribute_update(bNodeTree *UNUSED(ntree), bNo
 {
   int index = 0;
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (index >= 1) {
+    if (index >= 2) {
       nodeSetSocketAvailability(sock, sock->type == node->custom1);
     }
     index++;

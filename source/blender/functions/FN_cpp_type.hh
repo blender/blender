@@ -371,7 +371,7 @@ class CPPType : NonCopyable, NonMovable {
 
   void copy_to_initialized_n(const void *src, void *dst, int64_t n) const
   {
-    BLI_assert(src != dst);
+    BLI_assert(n == 0 || src != dst);
     BLI_assert(n == 0 || this->pointer_can_point_to_instance(src));
     BLI_assert(n == 0 || this->pointer_can_point_to_instance(dst));
 
@@ -380,7 +380,7 @@ class CPPType : NonCopyable, NonMovable {
 
   void copy_to_initialized_indices(const void *src, void *dst, IndexMask mask) const
   {
-    BLI_assert(src != dst);
+    BLI_assert(mask.size() == 0 || src != dst);
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
 
@@ -406,7 +406,7 @@ class CPPType : NonCopyable, NonMovable {
 
   void copy_to_uninitialized_n(const void *src, void *dst, int64_t n) const
   {
-    BLI_assert(src != dst);
+    BLI_assert(n == 0 || src != dst);
     BLI_assert(n == 0 || this->pointer_can_point_to_instance(src));
     BLI_assert(n == 0 || this->pointer_can_point_to_instance(dst));
 
@@ -415,7 +415,7 @@ class CPPType : NonCopyable, NonMovable {
 
   void copy_to_uninitialized_indices(const void *src, void *dst, IndexMask mask) const
   {
-    BLI_assert(src != dst);
+    BLI_assert(mask.size() == 0 || src != dst);
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
 
@@ -441,7 +441,7 @@ class CPPType : NonCopyable, NonMovable {
 
   void relocate_to_initialized_n(void *src, void *dst, int64_t n) const
   {
-    BLI_assert(src != dst);
+    BLI_assert(n == 0 || src != dst);
     BLI_assert(n == 0 || this->pointer_can_point_to_instance(src));
     BLI_assert(n == 0 || this->pointer_can_point_to_instance(dst));
 
@@ -450,7 +450,7 @@ class CPPType : NonCopyable, NonMovable {
 
   void relocate_to_initialized_indices(void *src, void *dst, IndexMask mask) const
   {
-    BLI_assert(src != dst);
+    BLI_assert(mask.size() == 0 || src != dst);
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
 
@@ -476,7 +476,7 @@ class CPPType : NonCopyable, NonMovable {
 
   void relocate_to_uninitialized_n(void *src, void *dst, int64_t n) const
   {
-    BLI_assert(src != dst);
+    BLI_assert(n == 0 || src != dst);
     BLI_assert(n == 0 || this->pointer_can_point_to_instance(src));
     BLI_assert(n == 0 || this->pointer_can_point_to_instance(dst));
 
@@ -485,7 +485,7 @@ class CPPType : NonCopyable, NonMovable {
 
   void relocate_to_uninitialized_indices(void *src, void *dst, IndexMask mask) const
   {
-    BLI_assert(src != dst);
+    BLI_assert(mask.size() == 0 || src != dst);
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
 

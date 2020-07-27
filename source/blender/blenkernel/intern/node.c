@@ -846,12 +846,12 @@ static void socket_id_user_increment(bNodeSocket *sock)
   switch ((eNodeSocketDatatype)sock->type) {
     case SOCK_OBJECT: {
       bNodeSocketValueObject *default_value = sock->default_value;
-      id_us_plus(&default_value->value->id);
+      id_us_plus((ID *)default_value->value);
       break;
     }
     case SOCK_IMAGE: {
       bNodeSocketValueImage *default_value = sock->default_value;
-      id_us_plus(&default_value->value->id);
+      id_us_plus((ID *)default_value->value);
       break;
     }
     case SOCK_FLOAT:

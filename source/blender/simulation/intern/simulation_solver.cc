@@ -128,15 +128,21 @@ BLI_NOINLINE static void simulate_particle_chunk(SimulationSolveContext &solve_c
                                                  float end_time)
 {
   int particle_amount = attributes.size();
+
+  Span<const ParticleAction *> begin_actions =
+      solve_context.influences.particle_time_step_begin_actions.lookup_as(state.head.name);
+  for (const ParticleAction *action : begin_actions) {
+    ParticleChunkContext particles{IndexMask(particle_amount), attributes};
+    ParticleActionContext action_context{solve_context, particles};
+    action->execute(action_context);
+  }
+
   Array<float3> force_vectors{particle_amount, {0, 0, 0}};
   Span<const ParticleForce *> forces = solve_context.influences.particle_forces.lookup_as(
       state.head.name);
-
-  ParticleChunkContext particle_chunk_context{IndexMask(particle_amount), attributes};
-  ParticleForceContext particle_force_context{
-      solve_context, particle_chunk_context, force_vectors};
-
   for (const ParticleForce *force : forces) {
+    ParticleChunkContext particles{IndexMask(particle_amount), attributes};
+    ParticleForceContext particle_force_context{solve_context, particles, force_vectors};
     force->add_force(particle_force_context);
   }
 
@@ -153,6 +159,14 @@ BLI_NOINLINE static void simulate_particle_chunk(SimulationSolveContext &solve_c
     if (end_time - birth_times[i] > 2) {
       dead_states[i] = true;
     }
+  }
+
+  Span<const ParticleAction *> end_actions =
+      solve_context.influences.particle_time_step_end_actions.lookup_as(state.head.name);
+  for (const ParticleAction *action : end_actions) {
+    ParticleChunkContext particles{IndexMask(particle_amount), attributes};
+    ParticleActionContext action_context{solve_context, particles};
+    action->execute(action_context);
   }
 }
 
@@ -312,7 +326,7 @@ void solve_simulation_time_step(Simulation &simulation,
       Span<const ParticleAction *> actions = influences.particle_birth_actions.lookup_as(
           state->head.name);
       for (const ParticleAction *action : actions) {
-        MutableParticleChunkContext chunk_context{IndexRange(attributes.size()), attributes};
+        ParticleChunkContext chunk_context{IndexRange(attributes.size()), attributes};
         ParticleActionContext action_context{solve_context, chunk_context};
         action->execute(action_context);
       }

@@ -209,6 +209,20 @@ template<typename T> struct VSpanBase {
     return false;
   }
 
+  bool is_full_array() const
+  {
+    switch (category_) {
+      case VSpanCategory::Single:
+        return virtual_size_ == 1;
+      case VSpanCategory::FullArray:
+        return true;
+      case VSpanCategory::FullPointerArray:
+        return false;
+    }
+    BLI_assert(false);
+    return false;
+  }
+
   bool is_empty() const
   {
     return this->virtual_size_ == 0;
@@ -284,6 +298,22 @@ template<typename T> class VSpan : public VSpanBase<T> {
     }
     BLI_assert(false);
     return *this->data_.single.data;
+  }
+
+  const T &as_single_element() const
+  {
+    BLI_assert(this->is_single_element());
+    return (*this)[0];
+  }
+
+  Span<T> as_full_array() const
+  {
+    BLI_assert(this->is_full_array());
+    if (this->virtual_size_ == 0) {
+      return Span<T>();
+    }
+    const T *data = &(*this)[0];
+    return Span<T>(data, this->virtual_size_);
   }
 };
 
@@ -393,6 +423,16 @@ class GVSpan : public VSpanBase<void> {
   {
     BLI_assert(this->is_single_element());
     return (*this)[0];
+  }
+
+  GSpan as_full_array() const
+  {
+    BLI_assert(this->is_full_array());
+    if (this->virtual_size_ == 0) {
+      return GSpan(*this->type_);
+    }
+    const void *data = (*this)[0];
+    return GSpan(*this->type_, data, this->virtual_size_);
   }
 
   void materialize_to_uninitialized(void *dst) const

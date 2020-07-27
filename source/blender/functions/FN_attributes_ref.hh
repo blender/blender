@@ -50,12 +50,12 @@ class AttributesInfoBuilder : NonCopyable, NonMovable {
   AttributesInfoBuilder() = default;
   ~AttributesInfoBuilder();
 
-  template<typename T> void add(StringRef name, const T &default_value)
+  template<typename T> bool add(StringRef name, const T &default_value)
   {
-    this->add(name, CPPType::get<T>(), (const void *)&default_value);
+    return this->add(name, CPPType::get<T>(), (const void *)&default_value);
   }
 
-  void add(StringRef name, const CPPType &type, const void *default_value = nullptr);
+  bool add(StringRef name, const CPPType &type, const void *default_value = nullptr);
 };
 
 /**

@@ -61,7 +61,7 @@ class ParticleFunctionEvaluator {
   ResourceCollector resources_;
   const ParticleFunction &particle_fn_;
   const SimulationSolveContext &solve_context_;
-  const ParticleChunkContext &particle_chunk_context_;
+  const ParticleChunkContext &particles_;
   IndexMask mask_;
   fn::MFContextBuilder global_context_;
   fn::MFContextBuilder per_particle_context_;
@@ -71,13 +71,13 @@ class ParticleFunctionEvaluator {
  public:
   ParticleFunctionEvaluator(const ParticleFunction &particle_fn,
                             const SimulationSolveContext &solve_context,
-                            const ParticleChunkContext &particle_chunk_context);
+                            const ParticleChunkContext &particles);
   ~ParticleFunctionEvaluator();
 
   void compute();
-  fn::GVSpan get(int output_index, StringRef expected_name) const;
+  fn::GVSpan get(int output_index, StringRef expected_name = "") const;
 
-  template<typename T> fn::VSpan<T> get(int output_index, StringRef expected_name) const
+  template<typename T> fn::VSpan<T> get(int output_index, StringRef expected_name = "") const
   {
     return this->get(output_index, expected_name).typed<T>();
   }
