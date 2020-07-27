@@ -685,7 +685,8 @@ static bool node_group_make_test_selected(bNodeTree *ntree,
   return true;
 }
 
-static int node_get_selected_minmax(bNodeTree *ntree, bNode *gnode, float *min, float *max)
+static int node_get_selected_minmax(
+    bNodeTree *ntree, bNode *gnode, float *min, float *max, bool use_size)
 {
   bNode *node;
   float loc[2];
@@ -696,6 +697,11 @@ static int node_get_selected_minmax(bNodeTree *ntree, bNode *gnode, float *min, 
     if (node_group_make_use_node(node, gnode)) {
       nodeToView(node, 0.0f, 0.0f, &loc[0], &loc[1]);
       minmax_v2v2_v2(min, max, loc);
+      if (use_size) {
+        loc[0] += node->width;
+        loc[1] -= node->height;
+        minmax_v2v2_v2(min, max, loc);
+      }
       totselect++;
     }
   }
@@ -716,7 +722,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
   bNode *node, *nextn;
   bNodeSocket *sock;
   ListBase anim_basepaths = {NULL, NULL};
-  float min[2], max[2], center[2];
+  float min[2], max[2], real_min[2], real_max[2], center[2];
   int totselect;
   bool expose_visible = false;
   bNode *input_node, *output_node;
@@ -730,9 +736,11 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
     nodeSetSelected(node, false);
   }
 
-  totselect = node_get_selected_minmax(ntree, gnode, min, max);
+  totselect = node_get_selected_minmax(ntree, gnode, min, max, false);
   add_v2_v2v2(center, min, max);
   mul_v2_fl(center, 0.5f);
+
+  node_get_selected_minmax(ntree, gnode, real_min, real_max, true);
 
   /* auto-add interface for "solo" nodes */
   if (totselect == 1) {
@@ -792,12 +800,12 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 
   /* create input node */
   input_node = nodeAddStaticNode(C, ngroup, NODE_GROUP_INPUT);
-  input_node->locx = min[0] - center[0] - offsetx;
+  input_node->locx = real_min[0] - center[0] - offsetx;
   input_node->locy = -offsety;
 
   /* create output node */
   output_node = nodeAddStaticNode(C, ngroup, NODE_GROUP_OUTPUT);
-  output_node->locx = max[0] - center[0] + offsetx;
+  output_node->locx = real_max[0] - center[0] + offsetx * 0.25f;
   output_node->locy = -offsety;
 
   /* relink external sockets */
@@ -953,7 +961,7 @@ static bNode *node_group_make_from_selected(const bContext *C,
   float min[2], max[2];
   int totselect;
 
-  totselect = node_get_selected_minmax(ntree, NULL, min, max);
+  totselect = node_get_selected_minmax(ntree, NULL, min, max, false);
   /* don't make empty group */
   if (totselect == 0) {
     return NULL;
