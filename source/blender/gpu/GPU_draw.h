@@ -58,21 +58,7 @@ float GPU_get_anisotropic(void);
 
 void GPU_paint_update_image(
     struct Image *ima, struct ImageUser *iuser, int x, int y, int w, int h);
-void GPU_create_gl_tex(unsigned int *bind,
-                       unsigned int *rect,
-                       float *frect,
-                       int rectw,
-                       int recth,
-                       int textarget,
-                       bool mipmap,
-                       bool half_float,
-                       bool use_srgb,
-                       struct Image *ima);
-void GPU_create_gl_tex_compressed(unsigned int *bind,
-                                  int textarget,
-                                  struct Image *ima,
-                                  struct ImBuf *ibuf);
-bool GPU_upload_dxt_texture(struct ImBuf *ibuf, bool use_srgb);
+bool GPU_upload_dxt_texture(struct ImBuf *ibuf, bool use_srgb, uint *bindcode);
 void GPU_free_image(struct Image *ima);
 void GPU_free_images(struct Main *bmain);
 void GPU_free_images_anim(struct Main *bmain);

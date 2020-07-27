@@ -1295,7 +1295,7 @@ static void drw_shgroup_material_texture(DRWShadingGroup *grp,
                                          GPUMaterialTexture *tex,
                                          const char *name,
                                          eGPUSamplerState state,
-                                         int textarget)
+                                         eGPUTextureTarget textarget)
 {
   GPUTexture *gputex = GPU_texture_from_blender(tex->ima, tex->iuser, NULL, textarget);
 
@@ -1316,13 +1316,13 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, struct GPUMaterial
       /* Image */
       if (tex->tiled_mapping_name[0]) {
         drw_shgroup_material_texture(
-            grp, tex, tex->sampler_name, tex->sampler_state, GL_TEXTURE_2D_ARRAY);
+            grp, tex, tex->sampler_name, tex->sampler_state, TEXTARGET_2D_ARRAY);
         drw_shgroup_material_texture(
-            grp, tex, tex->tiled_mapping_name, tex->sampler_state, GL_TEXTURE_1D_ARRAY);
+            grp, tex, tex->tiled_mapping_name, tex->sampler_state, TEXTARGET_TILE_MAPPING);
       }
       else {
         drw_shgroup_material_texture(
-            grp, tex, tex->sampler_name, tex->sampler_state, GL_TEXTURE_2D);
+            grp, tex, tex->sampler_name, tex->sampler_state, TEXTARGET_2D);
       }
     }
     else if (tex->colorband) {

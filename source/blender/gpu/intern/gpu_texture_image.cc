@@ -63,6 +63,20 @@
 
 static void gpu_free_image(Image *ima, const bool immediate);
 static void gpu_free_unused_buffers(void);
+static void gpu_create_gl_tex_compressed(unsigned int *bind,
+                                         eGPUTextureTarget textarget,
+                                         Image *ima,
+                                         ImBuf *ibuf);
+static void gpu_create_gl_tex(uint *bind,
+                              uint *rect,
+                              float *frect,
+                              int rectw,
+                              int recth,
+                              eGPUTextureTarget textarget,
+                              bool mipmap,
+                              bool half_float,
+                              bool use_srgb,
+                              Image *ima);
 
 //* Checking powers of two for images since OpenGL ES requires it */
 #ifdef WITH_DDS
@@ -456,7 +470,7 @@ static uint gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
   return bindcode;
 }
 
-static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
+static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, eGPUTextureTarget textarget)
 {
   uint bindcode = 0;
   const bool mipmap = GPU_get_mipmap();
@@ -465,7 +479,7 @@ static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
 #ifdef WITH_DDS
   if (ibuf->ftype == IMB_FTYPE_DDS) {
     /* DDS is loaded directly in compressed form. */
-    GPU_create_gl_tex_compressed(&bindcode, textarget, ima, ibuf);
+    gpu_create_gl_tex_compressed(&bindcode, textarget, ima, ibuf);
     return bindcode;
   }
 #endif
@@ -518,7 +532,7 @@ static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
   }
 
   /* Create OpenGL texture. */
-  GPU_create_gl_tex(&bindcode,
+  gpu_create_gl_tex(&bindcode,
                     (uint *)rect,
                     rect_float,
                     ibuf->x,
@@ -542,7 +556,7 @@ static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
 
 static GPUTexture **gpu_get_movieclip_gputexture(MovieClip *clip,
                                                  MovieClipUser *cuser,
-                                                 GLenum textarget)
+                                                 eGPUTextureTarget textarget)
 {
   LISTBASE_FOREACH (MovieClip_RuntimeGPUTexture *, tex, &clip->runtime.gputextures) {
     if (memcmp(&tex->user, cuser, sizeof(MovieClipUser)) == 0) {
@@ -558,12 +572,7 @@ static GPUTexture **gpu_get_movieclip_gputexture(MovieClip *clip,
         BLI_addtail(&clip->runtime.gputextures, tex);
       }
 
-      if (textarget == GL_TEXTURE_2D) {
-        return &tex->gputexture[TEXTARGET_2D];
-      }
-      else if (textarget == GL_TEXTURE_CUBE_MAP) {
-        return &tex->gputexture[TEXTARGET_CUBE_MAP];
-      }
+      return &tex->gputexture[textarget];
     }
   }
   return NULL;
@@ -841,7 +850,10 @@ static void gpu_texture_update_from_ibuf(
  *
  * `iuser` and `ibuf` are mutual exclusive parameters. The caller can pass the `ibuf` when already
  * available. It is also required when requesting the GPUTexture for a render result. */
-GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, ImBuf *ibuf, int textarget)
+GPUTexture *GPU_texture_from_blender(Image *ima,
+                                     ImageUser *iuser,
+                                     ImBuf *ibuf,
+                                     eGPUTextureTarget textarget)
 {
 #ifndef GPU_STANDALONE
   if (ima == NULL) {
@@ -915,7 +927,9 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, ImBuf *ibuf, 
   return NULL;
 }
 
-GPUTexture *GPU_texture_from_movieclip(MovieClip *clip, MovieClipUser *cuser, int textarget)
+GPUTexture *GPU_texture_from_movieclip(MovieClip *clip,
+                                       MovieClipUser *cuser,
+                                       eGPUTextureTarget textarget)
 {
 #ifndef GPU_STANDALONE
   if (clip == NULL) {
@@ -1039,17 +1053,19 @@ static void gpu_del_cube_map(void **cube_map)
 }
 
 /* Image *ima can be NULL */
-void GPU_create_gl_tex(uint *bind,
-                       uint *rect,
-                       float *frect,
-                       int rectw,
-                       int recth,
-                       int textarget,
-                       bool mipmap,
-                       bool half_float,
-                       bool use_srgb,
-                       Image *ima)
+static void gpu_create_gl_tex(uint *bind,
+                              uint *rect,
+                              float *frect,
+                              int rectw,
+                              int recth,
+                              eGPUTextureTarget target,
+                              bool mipmap,
+                              bool half_float,
+                              bool use_srgb,
+                              Image *ima)
 {
+  GLenum textarget = (target == TEXTARGET_2D) ? GL_TEXTURE_2D : GL_TEXTURE_CUBE_MAP;
+
   ImBuf *ibuf = NULL;
 
   if (textarget == GL_TEXTURE_2D && is_over_resolution_limit(textarget, rectw, recth)) {
@@ -1140,13 +1156,14 @@ void GPU_create_gl_tex(uint *bind,
 }
 
 /**
- * GPU_upload_dxt_texture() assumes that the texture is already bound and ready to go.
- * This is so the viewport and the BGE can share some code.
  * Returns false if the provided ImBuf doesn't have a supported DXT compression format
  */
-bool GPU_upload_dxt_texture(ImBuf *ibuf, bool use_srgb)
+bool GPU_upload_dxt_texture(ImBuf *ibuf, bool use_srgb, uint *bindcode)
 {
 #ifdef WITH_DDS
+  glGenTextures(1, (GLuint *)bindcode);
+  glBindTexture(GL_TEXTURE_2D, *bindcode);
+
   GLint format = 0;
   int blocksize, height, width, i, size, offset = 0;
 
@@ -1170,6 +1187,7 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf, bool use_srgb)
 
   if (format == 0) {
     fprintf(stderr, "Unable to find a suitable DXT compression, falling back to uncompressed\n");
+    glDeleteTextures(1, (GLuint *)bindcode);
     return false;
   }
 
@@ -1177,6 +1195,7 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf, bool use_srgb)
     fprintf(
         stderr,
         "Unable to load non-power-of-two DXT image resolution, falling back to uncompressed\n");
+    glDeleteTextures(1, (GLuint *)bindcode);
     return false;
   }
 
@@ -1210,6 +1229,7 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf, bool use_srgb)
   /* set number of mipmap levels we have, needed in case they don't go down to 1x1 */
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, i - 1);
 
+  glBindTexture(GL_TEXTURE_2D, 0);
   return true;
 #else
   UNUSED_VARS(ibuf, use_srgb);
@@ -1217,7 +1237,10 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf, bool use_srgb)
 #endif
 }
 
-void GPU_create_gl_tex_compressed(unsigned int *bind, int textarget, Image *ima, ImBuf *ibuf)
+static void gpu_create_gl_tex_compressed(unsigned int *bind,
+                                         eGPUTextureTarget textarget,
+                                         Image *ima,
+                                         ImBuf *ibuf)
 {
   /* For DDS we only support data, scene linear and sRGB. Converting to
    * different colorspace would break the compression. */
@@ -1229,19 +1252,19 @@ void GPU_create_gl_tex_compressed(unsigned int *bind, int textarget, Image *ima,
 #ifndef WITH_DDS
   (void)ibuf;
   /* Fall back to uncompressed if DDS isn't enabled */
-  GPU_create_gl_tex(
+  gpu_create_gl_tex(
       bind, ibuf->rect, NULL, ibuf->x, ibuf->y, textarget, mipmap, half_float, use_srgb, ima);
 #else
-  glGenTextures(1, (GLuint *)bind);
-  glBindTexture(textarget, *bind);
 
-  if (textarget == GL_TEXTURE_2D && GPU_upload_dxt_texture(ibuf, use_srgb) == 0) {
-    glDeleteTextures(1, (GLuint *)bind);
-    GPU_create_gl_tex(
-        bind, ibuf->rect, NULL, ibuf->x, ibuf->y, textarget, mipmap, half_float, use_srgb, ima);
+  if (textarget == TEXTARGET_2D) {
+    if (GPU_upload_dxt_texture(ibuf, use_srgb, bind)) {
+      /* All went fine! */
+      return;
+    }
   }
-
-  glBindTexture(textarget, 0);
+  /* Fallback. */
+  gpu_create_gl_tex(
+      bind, ibuf->rect, NULL, ibuf->x, ibuf->y, textarget, mipmap, half_float, use_srgb, ima);
 #endif
 }
 

@@ -117,14 +117,6 @@ typedef struct ImageTile {
 #define IMA_NEED_FRAME_RECALC (1 << 3)
 #define IMA_SHOW_STEREO (1 << 4)
 
-enum {
-  TEXTARGET_2D = 0,
-  TEXTARGET_CUBE_MAP,
-  TEXTARGET_2D_ARRAY,
-  TEXTARGET_TILE_MAPPING,
-  TEXTARGET_COUNT,
-};
-
 typedef struct Image {
   ID id;
 

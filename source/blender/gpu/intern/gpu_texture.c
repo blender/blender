@@ -1186,18 +1186,24 @@ GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat tex_format, const GLuint
   return tex;
 }
 
-static GLenum convert_target_to_gl(int target)
+static GLenum convert_target_to_gl(eGPUTextureTarget target)
 {
-  static const GLenum table[] = {
-      [TEXTARGET_2D] = GL_TEXTURE_2D,
-      [TEXTARGET_CUBE_MAP] = GL_TEXTURE_CUBE_MAP,
-      [TEXTARGET_2D_ARRAY] = GL_TEXTURE_2D_ARRAY,
-      [TEXTARGET_TILE_MAPPING] = GL_TEXTURE_1D_ARRAY,
-  };
-  return table[target];
+  switch (target) {
+    case TEXTARGET_2D:
+      return GL_TEXTURE_2D;
+    case TEXTARGET_CUBE_MAP:
+      return GL_TEXTURE_CUBE_MAP;
+    case TEXTARGET_2D_ARRAY:
+      return GL_TEXTURE_2D_ARRAY;
+    case TEXTARGET_TILE_MAPPING:
+      return GL_TEXTURE_1D_ARRAY;
+    default:
+      BLI_assert(0);
+      return GL_TEXTURE_2D;
+  }
 }
 
-GPUTexture *GPU_texture_from_bindcode(int target, int bindcode)
+GPUTexture *GPU_texture_from_bindcode(eGPUTextureTarget target, int bindcode)
 {
   GLenum textarget = convert_target_to_gl(target);
 
