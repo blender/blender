@@ -1922,4 +1922,15 @@ SubdivCCGAdjacencyType BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(const Subdi
   return SUBDIV_CCG_ADJACENT_NONE;
 }
 
+void BKE_subdiv_ccg_grid_hidden_ensure(SubdivCCG *subdiv_ccg, int grid_index)
+{
+  if (subdiv_ccg->grid_hidden[grid_index] != NULL) {
+    return;
+  }
+
+  CCGKey key;
+  BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
+  subdiv_ccg->grid_hidden[grid_index] = BLI_BITMAP_NEW(key.grid_area, __func__);
+}
+
 /** \} */
