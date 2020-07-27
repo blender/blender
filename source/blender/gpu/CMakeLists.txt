@@ -83,7 +83,7 @@ set(SRC
   intern/gpu_texture_smoke.cc
   intern/gpu_uniformbuffer.c
   intern/gpu_vertex_buffer.c
-  intern/gpu_vertex_format.c
+  intern/gpu_vertex_format.cc
   intern/gpu_viewport.c
 
   GPU_attr_binding.h

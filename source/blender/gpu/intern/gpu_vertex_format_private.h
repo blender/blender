@@ -33,6 +33,7 @@ extern "C" {
 void VertexFormat_pack(GPUVertFormat *format);
 uint padding(uint offset, uint alignment);
 uint vertex_buffer_size(const GPUVertFormat *format, uint vertex_len);
+GLenum convert_comp_type_to_gl(GPUVertCompType type);
 
 #ifdef __cplusplus
 }

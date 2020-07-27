@@ -42,7 +42,7 @@ extern "C" {
 #define GPU_MAX_SAFE_ATTR_NAME 12
 
 typedef enum {
-  GPU_COMP_I8,
+  GPU_COMP_I8 = 0,
   GPU_COMP_U8,
   GPU_COMP_I16,
   GPU_COMP_U16,
@@ -52,17 +52,21 @@ typedef enum {
   GPU_COMP_F32,
 
   GPU_COMP_I10,
+  /* Warning! adjust GPUVertAttr if changing. */
 } GPUVertCompType;
 
 typedef enum {
-  GPU_FETCH_FLOAT,
+  GPU_FETCH_FLOAT = 0,
   GPU_FETCH_INT,
   GPU_FETCH_INT_TO_FLOAT_UNIT, /* 127 (ubyte) -> 0.5 (and so on for other int types) */
   GPU_FETCH_INT_TO_FLOAT,      /* 127 (any int type) -> 127.0 */
+  /* Warning! adjust GPUVertAttr if changing. */
 } GPUVertFetchMode;
 
 typedef struct GPUVertAttr {
+  /* GPUVertFetchMode */
   uint fetch_mode : 2;
+  /* GPUVertCompType */
   uint comp_type : 3;
   /* 1 to 4 or 8 or 12 or 16 */
   uint comp_len : 5;
@@ -72,8 +76,6 @@ typedef struct GPUVertAttr {
   uint offset : 11;
   /* up to GPU_VERT_ATTR_MAX_NAMES */
   uint name_len : 3;
-  uint gl_comp_type;
-  /* -- 8 Bytes -- */
   uchar names[GPU_VERT_ATTR_MAX_NAMES];
 } GPUVertAttr;
 

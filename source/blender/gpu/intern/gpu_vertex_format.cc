@@ -63,21 +63,29 @@ void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat *src)
   memcpy(dest, src, sizeof(GPUVertFormat));
 }
 
-static GLenum convert_comp_type_to_gl(GPUVertCompType type)
+GLenum convert_comp_type_to_gl(GPUVertCompType type)
 {
-  static const GLenum table[] = {
-      [GPU_COMP_I8] = GL_BYTE,
-      [GPU_COMP_U8] = GL_UNSIGNED_BYTE,
-      [GPU_COMP_I16] = GL_SHORT,
-      [GPU_COMP_U16] = GL_UNSIGNED_SHORT,
-      [GPU_COMP_I32] = GL_INT,
-      [GPU_COMP_U32] = GL_UNSIGNED_INT,
-
-      [GPU_COMP_F32] = GL_FLOAT,
-
-      [GPU_COMP_I10] = GL_INT_2_10_10_10_REV,
-  };
-  return table[type];
+  switch (type) {
+    case GPU_COMP_I8:
+      return GL_BYTE;
+    case GPU_COMP_U8:
+      return GL_UNSIGNED_BYTE;
+    case GPU_COMP_I16:
+      return GL_SHORT;
+    case GPU_COMP_U16:
+      return GL_UNSIGNED_SHORT;
+    case GPU_COMP_I32:
+      return GL_INT;
+    case GPU_COMP_U32:
+      return GL_UNSIGNED_INT;
+    case GPU_COMP_F32:
+      return GL_FLOAT;
+    case GPU_COMP_I10:
+      return GL_INT_2_10_10_10_REV;
+    default:
+      BLI_assert(0);
+      return GL_FLOAT;
+  }
 }
 
 static uint comp_sz(GPUVertCompType type)
@@ -94,7 +102,7 @@ static uint attr_sz(const GPUVertAttr *a)
   if (a->comp_type == GPU_COMP_I10) {
     return 4; /* always packed as 10_10_10_2 */
   }
-  return a->comp_len * comp_sz(a->comp_type);
+  return a->comp_len * comp_sz(static_cast<GPUVertCompType>(a->comp_type));
 }
 
 static uint attr_align(const GPUVertAttr *a)
@@ -102,7 +110,7 @@ static uint attr_align(const GPUVertAttr *a)
   if (a->comp_type == GPU_COMP_I10) {
     return 4; /* always packed as 10_10_10_2 */
   }
-  uint c = comp_sz(a->comp_type);
+  uint c = comp_sz(static_cast<GPUVertCompType>(a->comp_type));
   if (a->comp_len == 3 && c <= 2) {
     return 4 * c; /* AMD HW can't fetch these well, so pad it out (other vendors too?) */
   }
@@ -185,7 +193,6 @@ uint GPU_vertformat_attr_add(GPUVertFormat *format,
 
   attr->names[attr->name_len++] = copy_attr_name(format, name);
   attr->comp_type = comp_type;
-  attr->gl_comp_type = convert_comp_type_to_gl(comp_type);
   attr->comp_len = (comp_type == GPU_COMP_I10) ?
                        4 :
                        comp_len; /* system needs 10_10_10_2 to be 4 or BGRA */
@@ -279,7 +286,7 @@ void GPU_vertformat_attr_rename(GPUVertFormat *format, int attr_id, const char *
 /* Encode 8 original bytes into 11 safe bytes. */
 static void safe_bytes(char out[11], const char data[8])
 {
-  char safe_chars[63] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+  char safe_chars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
 
   uint64_t in = *(uint64_t *)data;
   for (int i = 0; i < 11; i++) {
@@ -368,14 +375,6 @@ static void show_pack(uint a_idx, uint sz, uint pad)
 
 void VertexFormat_pack(GPUVertFormat *format)
 {
-  /* For now, attributes are packed in the order they were added,
-   * making sure each attribute is naturally aligned (add padding where necessary)
-   * Later we can implement more efficient packing w/ reordering
-   * (keep attribute ID order, adjust their offsets to reorder in buffer). */
-
-  /* TODO: realloc just enough to hold the final combo string. And just enough to
-   * hold used attributes, not all 16. */
-
   GPUVertAttr *a0 = &format->attrs[0];
   a0->offset = 0;
   uint offset = a0->sz;
@@ -512,7 +511,6 @@ void GPU_vertformat_from_shader(GPUVertFormat *format, const GPUShader *shader)
     attr->sz = attr->comp_len * 4;
     attr->fetch_mode = fetch_mode;
     attr->comp_type = comp_type;
-    attr->gl_comp_type = convert_comp_type_to_gl(comp_type);
     attr += 1;
   }
 }

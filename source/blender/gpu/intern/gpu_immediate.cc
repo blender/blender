@@ -364,17 +364,18 @@ static void immDrawSetup(void)
     const GLvoid *pointer = (const GLubyte *)0 + offset;
 
     const uint loc = read_attr_location(&imm.attr_binding, a_idx);
+    const GLenum type = convert_comp_type_to_gl(static_cast<GPUVertCompType>(a->comp_type));
 
     switch (a->fetch_mode) {
       case GPU_FETCH_FLOAT:
       case GPU_FETCH_INT_TO_FLOAT:
-        glVertexAttribPointer(loc, a->comp_len, a->gl_comp_type, GL_FALSE, stride, pointer);
+        glVertexAttribPointer(loc, a->comp_len, type, GL_FALSE, stride, pointer);
         break;
       case GPU_FETCH_INT_TO_FLOAT_UNIT:
-        glVertexAttribPointer(loc, a->comp_len, a->gl_comp_type, GL_TRUE, stride, pointer);
+        glVertexAttribPointer(loc, a->comp_len, type, GL_TRUE, stride, pointer);
         break;
       case GPU_FETCH_INT:
-        glVertexAttribIPointer(loc, a->comp_len, a->gl_comp_type, stride, pointer);
+        glVertexAttribIPointer(loc, a->comp_len, type, stride, pointer);
     }
   }
 
