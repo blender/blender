@@ -3147,21 +3147,49 @@ void SCULPT_relax_vertex(SculptSession *ss,
 {
   float smooth_pos[3];
   float final_disp[3];
-  int count = 0;
+  float boundary_normal[3];
+  int avg_count = 0;
+  int neighbor_count = 0;
   zero_v3(smooth_pos);
+  zero_v3(boundary_normal);
+  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vd->index);
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd->index, ni) {
+    neighbor_count++;
     if (!filter_boundary_face_sets ||
         (filter_boundary_face_sets && !SCULPT_vertex_has_unique_face_set(ss, ni.index))) {
-      add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.index));
-      count++;
+
+      /* When the vertex to relax is boundary, use only connected boundary vertices for the average
+       * position. */
+      if (is_boundary) {
+        if (SCULPT_vertex_is_boundary(ss, ni.index)) {
+          add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.index));
+          avg_count++;
+
+          /* Calculate a normal for the constraint plane using the edges of the boundary. */
+          float to_neighbor[3];
+          sub_v3_v3v3(to_neighbor, SCULPT_vertex_co_get(ss, ni.index), vd->co);
+          normalize_v3(to_neighbor);
+          add_v3_v3(boundary_normal, to_neighbor);
+        }
+      }
+      else {
+        add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.index));
+        avg_count++;
+      }
     }
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-  if (count > 0) {
-    mul_v3_fl(smooth_pos, 1.0f / (float)count);
+  /* Don't modify corner vertices. */
+  if (neighbor_count <= 2) {
+    copy_v3_v3(r_final_pos, vd->co);
+    return;
+  }
+
+  if (avg_count > 0) {
+    mul_v3_fl(smooth_pos, 1.0f / (float)avg_count);
   }
   else {
     copy_v3_v3(r_final_pos, vd->co);
@@ -3171,11 +3199,12 @@ void SCULPT_relax_vertex(SculptSession *ss,
   float plane[4];
   float smooth_closest_plane[3];
   float vno[3];
-  if (vd->no) {
-    normal_short_to_float_v3(vno, vd->no);
+
+  if (is_boundary && avg_count == 2) {
+    normalize_v3_v3(vno, boundary_normal);
   }
   else {
-    copy_v3_v3(vno, vd->fno);
+    SCULPT_vertex_normal_get(ss, vd->index, vno);
   }
 
   if (is_zero_v3(vno)) {
@@ -3256,6 +3285,7 @@ static void do_slide_relax_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   if (ss->cache->alt_smooth) {
+    SCULPT_boundary_info_ensure(ob);
     for (int i = 0; i < 4; i++) {
       BLI_task_parallel_range(0, totnode, &data, do_topology_relax_task_cb_ex, &settings);
     }
@@ -7140,7 +7170,6 @@ static void sculpt_brush_init_tex(const Scene *scene, Sculpt *sd, SculptSession 
 
 static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 {
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -7163,6 +7192,14 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 
   is_smooth = sculpt_needs_connectivity_info(sd, brush, ss, mode);
   needs_colors = ELEM(brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR);
+
+  if (needs_colors) {
+    BKE_sculpt_color_layer_create_if_needed(ob);
+  }
+
+  /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of
+   * earlier steps modifying the data. */
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, is_smooth, need_mask, needs_colors);
 }
 
