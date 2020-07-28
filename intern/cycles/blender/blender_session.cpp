@@ -492,27 +492,15 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
   /* Update denoising parameters. */
   session->set_denoising(session_params.denoising);
 
-  bool use_denoising = session_params.denoising.use;
-  bool store_denoising_passes = session_params.denoising.store_passes;
-
-  buffer_params.denoising_data_pass = use_denoising || store_denoising_passes;
-  buffer_params.denoising_clean_pass = (scene->film->denoising_flags & DENOISING_CLEAN_ALL_PASSES);
-  buffer_params.denoising_prefiltered_pass = store_denoising_passes &&
-                                             session_params.denoising.type == DENOISER_NLM;
-
-  scene->film->denoising_data_pass = buffer_params.denoising_data_pass;
-  scene->film->denoising_clean_pass = buffer_params.denoising_clean_pass;
-  scene->film->denoising_prefiltered_pass = buffer_params.denoising_prefiltered_pass;
-
-  /* Add passes */
+  /* Compute render passes and film settings. */
   vector<Pass> passes = sync->sync_render_passes(
       b_rlay, b_view_layer, session_params.adaptive_sampling, session_params.denoising);
-  buffer_params.passes = passes;
 
-  scene->film->pass_alpha_threshold = b_view_layer.pass_alpha_threshold();
-  scene->film->tag_passes_update(scene, passes);
-  scene->film->tag_update(scene);
-  scene->integrator->tag_update(scene);
+  /* Set buffer params, using film settings from sync_render_passes. */
+  buffer_params.passes = passes;
+  buffer_params.denoising_data_pass = scene->film->denoising_data_pass;
+  buffer_params.denoising_clean_pass = scene->film->denoising_clean_pass;
+  buffer_params.denoising_prefiltered_pass = scene->film->denoising_prefiltered_pass;
 
   BL::RenderResult::views_iterator b_view_iter;
 
