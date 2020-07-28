@@ -58,6 +58,9 @@ bool USDTransformWriter::check_is_animated(const HierarchyContext &context) cons
      * depsgraph whether this object instance has a time source. */
     return true;
   }
+  if (check_has_physics(context)) {
+    return true;
+  }
   return BKE_object_moves_in_time(context.object, context.animation_check_include_parent);
 }
 
