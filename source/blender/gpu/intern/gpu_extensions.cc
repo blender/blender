@@ -312,7 +312,7 @@ void gpu_extensions_init(void)
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
     /* Limit this fix to older hardware with GL < 4.5. This means Broadwell GPUs are
      * covered since they only support GL 4.4 on windows.
-     * This fixes some issues with workbench antialiasing on Win + Intel GPU. (see T76273) */
+     * This fixes some issues with workbench anti-aliasing on Win + Intel GPU. (see T76273) */
     if (!GLEW_VERSION_4_5) {
       GG.texture_copy_workaround = true;
     }

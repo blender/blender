@@ -2409,7 +2409,7 @@ static bool ob_parcurve(Object *ob, Object *par, float mat[4][4])
   /* ctime is now a proper var setting of Curve which gets set by Animato like any other var
    * that's animated, but this will only work if it actually is animated.
    *
-   * We divide the curvetime calculated in the previous step by the length of the path,
+   * We divide the curve-time calculated in the previous step by the length of the path,
    * to get a time factor, which then gets clamped to lie within 0.0 - 1.0 range.
    */
   if (cu->pathlen) {
@@ -3964,17 +3964,20 @@ int BKE_object_is_modified(Scene *scene, Object *ob)
   return flag;
 }
 
-/* Check of objects moves in time. */
-/* NOTE: This function is currently optimized for usage in combination
- * with mti->canDeform, so modifiers can quickly check if their target
- * objects moves (causing deformation motion blur) or not.
+/**
+ * Check of objects moves in time.
+ *
+ * \note This function is currently optimized for usage in combination
+ * with modifier deformation checks (#eModifierTypeType_OnlyDeform),
+ * so modifiers can quickly check if their target objects moves
+ * (causing deformation motion blur) or not.
  *
  * This makes it possible to give some degree of false-positives here,
  * but it's currently an acceptable tradeoff between complexity and check
  * speed. In combination with checks of modifier stack and real life usage
  * percentage of false-positives shouldn't be that high.
  *
- * NOTE: This function does not consider physics systems.
+ * \note This function does not consider physics systems.
  */
 bool BKE_object_moves_in_time(const Object *object, bool recurse_parent)
 {

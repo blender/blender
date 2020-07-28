@@ -1628,9 +1628,9 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
     plane_from_point_normal_v3(plane, v1, plane);
   }
 
-  /* First use bvh tree to find faces, knife edges, and knife verts that might
+  /* First use BVH tree to find faces, knife edges, and knife verts that might
    * intersect the cut plane with rays v1-v3 and v2-v4.
-   * This deduplicates the candidates before doing more expensive intersection tests. */
+   * This de-duplicates the candidates before doing more expensive intersection tests. */
 
   tree = BKE_bmbvh_tree_get(kcd->bmbvh);
   results = BLI_bvhtree_intersect_plane(tree, plane, &tot);

@@ -144,7 +144,7 @@ struct float3 {
   }
 
   /**
-   * Normalizes the vector inplace.
+   * Normalizes the vector in place.
    */
   void normalize()
   {

@@ -96,7 +96,7 @@ class RNANodeQuery {
 
   /* Check whether prop_identifier contains rna_path_component.
    *
-   * This checks more than a substring:
+   * This checks more than a sub-string:
    *
    * prop_identifier           contains(prop_identifier, "location")
    * ------------------------  -------------------------------------
