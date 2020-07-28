@@ -1376,13 +1376,13 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         ID *id = tselem->id;
         bGPDlayer *gpl = (bGPDlayer *)te->directdata;
 
-        if (soops->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
+        if (soops->show_restrict_flags & SO_RESTRICT_HIDE) {
           bt = uiDefIconButBitS(block,
                                 UI_BTYPE_ICON_TOGGLE,
                                 GP_LAYER_HIDE,
                                 0,
                                 ICON_HIDE_OFF,
-                                (int)(region->v2d.cur.xmax - restrict_offsets.viewport),
+                                (int)(region->v2d.cur.xmax - restrict_offsets.hide),
                                 te->ys,
                                 UI_UNIT_X,
                                 UI_UNIT_Y,
