@@ -26,10 +26,15 @@
 
 namespace blender::sim {
 
+struct ParticleFunctionInputContext {
+  const SimulationSolveContext &solve_context;
+  const ParticleChunkContext &particles;
+};
+
 class ParticleFunctionInput {
  public:
   virtual ~ParticleFunctionInput() = default;
-  virtual void add_input(fn::AttributesRef attributes,
+  virtual void add_input(ParticleFunctionInputContext &context,
                          fn::MFParamsBuilder &params,
                          ResourceCollector &resources) const = 0;
 };

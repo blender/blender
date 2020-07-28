@@ -79,6 +79,12 @@ class ResourceCollector : NonCopyable, NonMovable {
    */
   template<typename T> void add(destruct_ptr<T> resource, const char *name)
   {
+    /* There is no need to keep track of such types. */
+    if (std::is_trivially_destructible_v<T>) {
+      resource.release();
+      return;
+    }
+
     BLI_assert(resource.get() != nullptr);
     this->add(
         resource.release(),

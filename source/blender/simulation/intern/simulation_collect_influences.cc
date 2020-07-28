@@ -28,12 +28,15 @@
 
 #include "BLI_hash.h"
 #include "BLI_rand.hh"
+#include "BLI_set.hh"
 
 namespace blender::sim {
 
 using fn::GVSpan;
 using fn::MFContextBuilder;
 using fn::MFDataType;
+using fn::MFDummyNode;
+using fn::MFFunctionNode;
 using fn::MFInputSocket;
 using fn::MFNetwork;
 using fn::MFNetworkEvaluator;
@@ -53,6 +56,8 @@ using nodes::NodeTreeRefMap;
 
 struct DummyDataSources {
   Map<const MFOutputSocket *, std::string> particle_attributes;
+  Set<const MFOutputSocket *> simulation_time;
+  Set<const MFOutputSocket *> scene_time;
 };
 
 extern "C" {
@@ -226,6 +231,47 @@ static void prepare_particle_attribute_nodes(CollectContext &context)
   }
 }
 
+static void prepare_time_input_nodes(CollectContext &context)
+{
+  Span<const DNode *> time_input_dnodes = nodes_by_type(context, "SimulationNodeTime");
+  Vector<const DNode *> simulation_time_inputs;
+  Vector<const DNode *> scene_time_inputs;
+  for (const DNode *dnode : time_input_dnodes) {
+    NodeSimInputTimeType type = (NodeSimInputTimeType)dnode->node_ref().bnode()->custom1;
+    switch (type) {
+      case NODE_SIM_INPUT_SIMULATION_TIME: {
+        simulation_time_inputs.append(dnode);
+        break;
+      }
+      case NODE_SIM_INPUT_SCENE_TIME: {
+        scene_time_inputs.append(dnode);
+        break;
+      }
+    }
+  }
+
+  if (simulation_time_inputs.size() > 0) {
+    MFOutputSocket &new_socket = context.network.add_input("Simulation Time",
+                                                           MFDataType::ForSingle<float>());
+    for (const DNode *dnode : simulation_time_inputs) {
+      MFOutputSocket &old_socket = context.network_map.lookup_dummy(dnode->output(0));
+      context.network.relink(old_socket, new_socket);
+      context.network.remove(old_socket.node());
+    }
+    context.data_sources.simulation_time.add(&new_socket);
+  }
+  if (scene_time_inputs.size() > 0) {
+    MFOutputSocket &new_socket = context.network.add_input("Scene Time",
+                                                           MFDataType::ForSingle<float>());
+    for (const DNode *dnode : scene_time_inputs) {
+      MFOutputSocket &old_socket = context.network_map.lookup_dummy(dnode->output(0));
+      context.network.relink(old_socket, new_socket);
+      context.network.remove(old_socket.node());
+    }
+    context.data_sources.scene_time.add(&new_socket);
+  }
+}
+
 class ParticleAttributeInput : public ParticleFunctionInput {
  private:
   std::string attribute_name_;
@@ -237,17 +283,41 @@ class ParticleAttributeInput : public ParticleFunctionInput {
   {
   }
 
-  void add_input(AttributesRef attributes,
+  void add_input(ParticleFunctionInputContext &context,
                  MFParamsBuilder &params,
                  ResourceCollector &UNUSED(resources)) const override
   {
-    std::optional<GSpan> span = attributes.try_get(attribute_name_, attribute_type_);
+    std::optional<GSpan> span = context.particles.attributes.try_get(attribute_name_,
+                                                                     attribute_type_);
     if (span.has_value()) {
       params.add_readonly_single_input(*span);
     }
     else {
       params.add_readonly_single_input(GVSpan::FromDefault(attribute_type_));
     }
+  }
+};
+
+class SceneTimeInput : public ParticleFunctionInput {
+  void add_input(ParticleFunctionInputContext &context,
+                 MFParamsBuilder &params,
+                 ResourceCollector &resources) const override
+  {
+    const float time = DEG_get_ctime(&context.solve_context.depsgraph);
+    float *time_ptr = &resources.construct<float>(AT, time);
+    params.add_readonly_single_input(time_ptr);
+  }
+};
+
+class SimulationTimeInput : public ParticleFunctionInput {
+  void add_input(ParticleFunctionInputContext &context,
+                 MFParamsBuilder &params,
+                 ResourceCollector &resources) const override
+  {
+    /* TODO: Vary this per particle. */
+    const float time = context.solve_context.solve_interval.stop();
+    float *time_ptr = &resources.construct<float>(AT, time);
+    params.add_readonly_single_input(time_ptr);
   }
 };
 
@@ -264,13 +334,21 @@ static const ParticleFunction *create_particle_function_for_inputs(
 
   Vector<const ParticleFunctionInput *> per_particle_inputs;
   for (const MFOutputSocket *socket : dummy_deps) {
-    const std::string *attribute_name = context.data_sources.particle_attributes.lookup_ptr(
-        socket);
-    if (attribute_name == nullptr) {
-      return nullptr;
+    if (context.data_sources.particle_attributes.contains(socket)) {
+      const std::string *attribute_name = context.data_sources.particle_attributes.lookup_ptr(
+          socket);
+      if (attribute_name == nullptr) {
+        return nullptr;
+      }
+      per_particle_inputs.append(&context.resources.construct<ParticleAttributeInput>(
+          AT, *attribute_name, socket->data_type().single_type()));
     }
-    per_particle_inputs.append(&context.resources.construct<ParticleAttributeInput>(
-        AT, *attribute_name, socket->data_type().single_type()));
+    else if (context.data_sources.scene_time.contains(socket)) {
+      per_particle_inputs.append(&context.resources.construct<SceneTimeInput>(AT));
+    }
+    else if (context.data_sources.simulation_time.contains(socket)) {
+      per_particle_inputs.append(&context.resources.construct<SimulationTimeInput>(AT));
+    }
   }
 
   const MultiFunction &per_particle_fn = context.resources.construct<MFNetworkEvaluator>(
@@ -689,6 +767,7 @@ void collect_simulation_influences(Simulation &simulation,
   initialize_particle_attribute_builders(context);
 
   prepare_particle_attribute_nodes(context);
+  prepare_time_input_nodes(context);
 
   collect_forces(context);
   collect_emitters(context);
