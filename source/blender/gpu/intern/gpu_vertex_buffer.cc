@@ -39,17 +39,22 @@ static uint vbo_memory_usage;
 
 static GLenum convert_usage_type_to_gl(GPUUsageType type)
 {
-  static const GLenum table[] = {
-      [GPU_USAGE_STREAM] = GL_STREAM_DRAW,
-      [GPU_USAGE_STATIC] = GL_STATIC_DRAW,
-      [GPU_USAGE_DYNAMIC] = GL_DYNAMIC_DRAW,
-  };
-  return table[type];
+  switch (type) {
+    case GPU_USAGE_STREAM:
+      return GL_STREAM_DRAW;
+    case GPU_USAGE_DYNAMIC:
+      return GL_DYNAMIC_DRAW;
+    case GPU_USAGE_STATIC:
+      return GL_STATIC_DRAW;
+    default:
+      BLI_assert(0);
+      return GL_STATIC_DRAW;
+  }
 }
 
 GPUVertBuf *GPU_vertbuf_create(GPUUsageType usage)
 {
-  GPUVertBuf *verts = MEM_mallocN(sizeof(GPUVertBuf), "GPUVertBuf");
+  GPUVertBuf *verts = (GPUVertBuf *)MEM_mallocN(sizeof(GPUVertBuf), "GPUVertBuf");
   GPU_vertbuf_init(verts, usage);
   return verts;
 }
@@ -109,7 +114,7 @@ GPUVertBuf *GPU_vertbuf_duplicate(GPUVertBuf *verts)
   }
 
   if (verts->data) {
-    verts_dst->data = MEM_dupallocN(verts->data);
+    verts_dst->data = (uchar *)MEM_dupallocN(verts->data);
   }
   return verts_dst;
 }
@@ -161,7 +166,7 @@ void GPU_vertbuf_data_alloc(GPUVertBuf *verts, uint v_len)
 #endif
   verts->dirty = true;
   verts->vertex_len = verts->vertex_alloc = v_len;
-  verts->data = MEM_mallocN(sizeof(GLubyte) * GPU_vertbuf_size_get(verts), "GPUVertBuf data");
+  verts->data = (uchar *)MEM_mallocN(sizeof(GLubyte) * GPU_vertbuf_size_get(verts), __func__);
 }
 
 /* resize buffer keeping existing data */
@@ -178,7 +183,7 @@ void GPU_vertbuf_data_resize(GPUVertBuf *verts, uint v_len)
 #endif
   verts->dirty = true;
   verts->vertex_len = verts->vertex_alloc = v_len;
-  verts->data = MEM_reallocN(verts->data, sizeof(GLubyte) * GPU_vertbuf_size_get(verts));
+  verts->data = (uchar *)MEM_reallocN(verts->data, sizeof(GLubyte) * GPU_vertbuf_size_get(verts));
 }
 
 /* Set vertex count but does not change allocation.
