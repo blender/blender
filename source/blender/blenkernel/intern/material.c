@@ -959,14 +959,13 @@ void BKE_object_material_array_assign(Main *bmain,
                                       const bool to_object_only)
 {
   int actcol_orig = ob->actcol;
-  short i;
 
   while ((ob->totcol > totcol) && BKE_object_material_slot_remove(bmain, ob)) {
     /* pass */
   }
 
   /* now we have the right number of slots */
-  for (i = 0; i < totcol; i++) {
+  for (int i = 0; i < totcol; i++) {
     if (to_object_only && ob->matbits[i] == 0) {
       /* If we only assign to object, and that slot uses obdata material, do nothing. */
       continue;
