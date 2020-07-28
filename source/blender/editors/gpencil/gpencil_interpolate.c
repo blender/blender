@@ -604,6 +604,8 @@ static int gpencil_interpolate_modal(bContext *C, wmOperator *op, const wmEvent 
 
           /* make copy of source stroke, then adjust pointer to points too */
           gps_dst = BKE_gpencil_stroke_duplicate(gps_src, true);
+          gps_dst->flag &= ~GP_STROKE_TAG;
+
           /* Calc geometry data. */
           BKE_gpencil_stroke_geometry_update(gps_dst);
 
