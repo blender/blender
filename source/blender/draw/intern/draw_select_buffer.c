@@ -395,7 +395,7 @@ uint DRW_select_buffer_find_nearest_to_point(struct Depsgraph *depsgraph,
           int center_x = width / 2;
           int center_y = height / 2;
 
-          /* Manhatten distance in keeping with other screen-based selection. */
+          /* Manhattan distance in keeping with other screen-based selection. */
           *dist = (uint)(abs(hit_x - center_x) + abs(hit_y - center_y));
 
           /* Indices start at 1 here. */

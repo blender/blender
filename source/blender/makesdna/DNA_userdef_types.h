@@ -733,7 +733,7 @@ typedef struct UserDef {
   char _pad1[2];
   int undomemory;
   float gpu_viewport_quality DNA_DEPRECATED;
-  short gp_manhattendist, gp_euclideandist, gp_eraser;
+  short gp_manhattandist, gp_euclideandist, gp_eraser;
   /** #eGP_UserdefSettings. */
   short gp_settings;
   char _pad13[4];

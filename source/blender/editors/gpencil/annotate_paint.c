@@ -200,7 +200,7 @@ typedef struct tGPsdata {
 
 /* Macros for accessing sensitivity thresholds... */
 /* minimum number of pixels mouse should move before new point created */
-#define MIN_MANHATTEN_PX (U.gp_manhattendist)
+#define MIN_MANHATTAN_PX (U.gp_manhattandist)
 /* minimum length of new segment before new point can be added */
 #define MIN_EUCLIDEAN_PX (U.gp_euclideandist)
 
@@ -297,7 +297,7 @@ static bool annotation_stroke_filtermval(tGPsdata *p, const float mval[2], float
     return false;
   }
 
-  if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX)) {
+  if ((dx > MIN_MANHATTAN_PX) && (dy > MIN_MANHATTAN_PX)) {
     return true;
   }
 

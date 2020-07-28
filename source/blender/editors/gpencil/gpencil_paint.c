@@ -268,7 +268,7 @@ typedef struct tGPsdata {
 
 /* Macros for accessing sensitivity thresholds... */
 /* minimum number of pixels mouse should move before new point created */
-#define MIN_MANHATTEN_PX (U.gp_manhattendist)
+#define MIN_MANHATTEN_PX (U.gp_manhattandist)
 /* minimum length of new segment before new point can be added */
 #define MIN_EUCLIDEAN_PX (U.gp_euclideandist)
 

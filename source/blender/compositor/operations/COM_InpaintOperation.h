@@ -34,7 +34,7 @@ class InpaintSimpleOperation : public NodeOperation {
 
   int *m_pixelorder;
   int m_area_size;
-  short *m_manhatten_distance;
+  short *m_manhattan_distance;
 
  public:
   InpaintSimpleOperation();
@@ -65,7 +65,7 @@ class InpaintSimpleOperation : public NodeOperation {
                                         rcti *output);
 
  private:
-  void calc_manhatten_distance();
+  void calc_manhattan_distance();
   void clamp_xy(int &x, int &y);
   float *get_pixel(int x, int y);
   int mdist(int x, int y);

@@ -4988,7 +4988,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 
   /* grease pencil */
   prop = RNA_def_property(srna, "grease_pencil_manhattan_distance", PROP_INT, PROP_PIXEL);
-  RNA_def_property_int_sdna(prop, NULL, "gp_manhattendist");
+  RNA_def_property_int_sdna(prop, NULL, "gp_manhattandist");
   RNA_def_property_range(prop, 0, 100);
   RNA_def_property_ui_text(prop,
                            "Grease Pencil Manhattan Distance",

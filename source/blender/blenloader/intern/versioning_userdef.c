@@ -366,7 +366,7 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
   }
   if (!USER_VERSION_ATLEAST(250, 0)) {
     /* adjust grease-pencil distances */
-    userdef->gp_manhattendist = 1;
+    userdef->gp_manhattandist = 1;
     userdef->gp_euclideandist = 2;
 
     /* adjust default interpolation for new IPO-curves */
