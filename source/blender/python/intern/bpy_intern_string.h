@@ -21,6 +21,10 @@
  * \ingroup pythonintern
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void bpy_intern_string_init(void);
 void bpy_intern_string_exit(void);
 
@@ -40,5 +44,9 @@ extern PyObject *bpy_intern_str_properties;
 extern PyObject *bpy_intern_str_register;
 extern PyObject *bpy_intern_str_self;
 extern PyObject *bpy_intern_str_unregister;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BPY_INTERN_STRING_H__ */

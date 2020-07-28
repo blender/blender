@@ -29,6 +29,10 @@
 
 struct SDNA;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * DNAstr contains the prebuilt SDNA structure defining the layouts of the types
  * used by this version of Blender. It is defined in a file dna.c, which is
@@ -133,5 +137,9 @@ bool DNA_struct_alias_elem_find(const struct SDNA *sdna,
                                 const char *vartype,
                                 const char *name);
 void DNA_sdna_alias_data_ensure_structs_map(struct SDNA *sdna);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __DNA_GENFILE_H__ */

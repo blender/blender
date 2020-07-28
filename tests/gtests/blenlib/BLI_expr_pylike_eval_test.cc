@@ -4,10 +4,8 @@
 
 #include <string.h>
 
-extern "C" {
 #include "BLI_expr_pylike_eval.h"
 #include "BLI_math.h"
-};
 
 #define TRUE_VAL 1.0
 #define FALSE_VAL 0.0

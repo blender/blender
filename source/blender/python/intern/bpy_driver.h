@@ -21,7 +21,15 @@
 #ifndef __BPY_DRIVER_H__
 #define __BPY_DRIVER_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int bpy_pydriver_create_dict(void);
 extern PyObject *bpy_pydriver_Dict;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BPY_DRIVER_H__ */

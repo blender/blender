@@ -19,13 +19,11 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BKE_fcurve.h"
 
 #include "ED_keyframing.h"
 
 #include "DNA_anim_types.h"
-}
 
 namespace blender::bke::tests {
 

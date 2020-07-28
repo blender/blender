@@ -34,8 +34,6 @@ using namespace Freestyle;
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
-
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_freestyle_types.h"
@@ -64,6 +62,8 @@ extern "C" {
 #include "renderpipeline.h"
 
 #include "FRS_freestyle.h"
+
+extern "C" {
 
 #define DEFAULT_SPHERE_RADIUS 1.0f
 #define DEFAULT_DKR_EPSILON 0.0f

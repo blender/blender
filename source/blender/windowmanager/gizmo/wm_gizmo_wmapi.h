@@ -36,6 +36,10 @@ struct wmEventHandler_Op;
 struct wmGizmoMap;
 struct wmOperatorType;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* -------------------------------------------------------------------- */
 /* wmGizmo */
 
@@ -91,5 +95,9 @@ struct ListBase *wm_gizmomap_groups_get(wmGizmoMap *gzmap);
 /* wmGizmoMapType */
 
 void wm_gizmomaptypes_free(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __WM_GIZMO_WMAPI_H__ */

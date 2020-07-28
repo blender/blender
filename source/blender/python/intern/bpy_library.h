@@ -21,9 +21,17 @@
 #ifndef __BPY_LIBRARY_H__
 #define __BPY_LIBRARY_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int BPY_library_load_type_ready(void);
 extern PyMethodDef BPY_library_load_method_def;
 
 extern PyMethodDef BPY_library_write_method_def;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BPY_LIBRARY_H__ */

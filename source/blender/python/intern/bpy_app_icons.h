@@ -21,6 +21,14 @@
 #ifndef __BPY_APP_ICONS_H__
 #define __BPY_APP_ICONS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 PyObject *BPY_app_icons_module(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BPY_APP_ICONS_H__ */

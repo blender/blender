@@ -20,9 +20,7 @@
 
 #include "testing/testing.h"
 
-extern "C" {
 #include "BLI_utildefines.h"
-}
 
 namespace blender::io {
 

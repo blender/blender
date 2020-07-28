@@ -30,6 +30,10 @@ struct wmWindow;
 
 #include "gizmo/wm_gizmo_wmapi.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct wmPaintCursor {
   struct wmPaintCursor *next, *prev;
 
@@ -96,5 +100,9 @@ void wm_stereo3d_set_cancel(bContext *C, wmOperator *op);
 /* init operator properties */
 void wm_open_init_load_ui(wmOperator *op, bool use_prefs);
 void wm_open_init_use_scripts(wmOperator *op, bool use_prefs);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

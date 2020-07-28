@@ -34,6 +34,10 @@ struct wmMsgSubscribeKey;
 struct wmMsgSubscribeValue;
 struct wmMsgSubscribeValueLink;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef void (*wmMsgNotifyFn)(struct bContext *C,
                               struct wmMsgSubscribeKey *msg_key,
                               struct wmMsgSubscribeValue *msg_val);
@@ -286,5 +290,9 @@ void WM_msg_publish_ID(struct wmMsgBus *mbus, struct ID *id);
                                 __func__); \
   } \
   ((void)0)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __WM_MESSAGE_BUS_H__ */

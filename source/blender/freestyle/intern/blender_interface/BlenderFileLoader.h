@@ -37,7 +37,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -56,7 +55,6 @@ extern "C" {
 #include "BLI_iterator.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-}
 
 #include "DEG_depsgraph_query.h"
 

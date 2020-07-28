@@ -37,10 +37,8 @@
 
 #include "BKE_global.h"
 
-extern "C" {
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-}
 
 namespace Freestyle {
 

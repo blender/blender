@@ -21,6 +21,14 @@
 #ifndef __BPY_PATH_H__
 #define __BPY_PATH_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 PyObject *BPyInit__bpy_path(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

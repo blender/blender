@@ -21,6 +21,14 @@
 #ifndef __BPY_RNA_TYPES_CAPI_H__
 #define __BPY_RNA_TYPES_CAPI_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void BPY_rna_types_extend_capi(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BPY_RNA_TYPES_CAPI_H__ */

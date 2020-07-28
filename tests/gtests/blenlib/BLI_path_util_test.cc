@@ -2,7 +2,6 @@
 
 #include "testing/testing.h"
 
-extern "C" {
 #include "../../../source/blender/imbuf/IMB_imbuf.h"
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
@@ -11,7 +10,6 @@ extern "C" {
 #ifdef _WIN32
 #  include "../../../source/blender/blenkernel/BKE_global.h"
 #endif
-}
 
 /* -------------------------------------------------------------------- */
 /* stubs */

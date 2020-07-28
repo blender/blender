@@ -29,6 +29,10 @@ struct ImBuf;
 struct Mesh;
 struct Render;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct BakeImage {
   struct Image *image;
   int width;
@@ -119,5 +123,9 @@ void RE_bake_normal_world_to_world(const BakePixel pixel_array[],
                                    const eBakeNormalSwizzle normal_swizzle[3]);
 
 void RE_bake_ibuf_clear(struct Image *image, const bool is_tangent);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __RE_BAKE_H__ */

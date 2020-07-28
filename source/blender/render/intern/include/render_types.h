@@ -43,6 +43,10 @@ struct Object;
 struct RenderEngine;
 struct ReportList;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* this is handed over to threaded hiding/passes/shading engine */
 typedef struct RenderPart {
   struct RenderPart *next, *prev;
@@ -159,5 +163,9 @@ struct Render {
 
 /* R.flag */
 #define R_ANIMATION 1
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __RENDER_TYPES_H__ */

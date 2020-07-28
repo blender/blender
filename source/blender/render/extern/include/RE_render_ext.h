@@ -32,6 +32,10 @@ struct Depsgraph;
 struct ImagePool;
 struct MTex;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* render_texture.c */
 bool RE_texture_evaluate(const struct MTex *mtex,
                          const float vec[3],
@@ -71,5 +75,9 @@ void RE_point_density_sample(struct Depsgraph *depsgraph,
 void RE_point_density_free(struct PointDensity *pd);
 
 void RE_point_density_fix_linking(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __RE_RENDER_EXT_H__ */

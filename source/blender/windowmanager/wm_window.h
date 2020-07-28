@@ -26,6 +26,10 @@
 
 struct wmOperator;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* *************** internal api ************** */
 void wm_ghost_init(bContext *C);
 void wm_ghost_exit(void);
@@ -84,5 +88,9 @@ int wm_window_new_exec(bContext *C, struct wmOperator *op);
 int wm_window_new_main_exec(bContext *C, struct wmOperator *op);
 
 void wm_test_autorun_warning(bContext *C);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __WM_WINDOW_H__ */

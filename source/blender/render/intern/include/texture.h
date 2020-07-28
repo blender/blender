@@ -24,6 +24,10 @@
 #ifndef __TEXTURE_H__
 #define __TEXTURE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define BRICONT \
   texres->tin = (texres->tin - 0.5f) * tex->contrast + tex->bright - 0.5f; \
   if (!(tex->flag & TEX_NO_CLAMP)) { \
@@ -94,5 +98,9 @@ void image_sample(struct Image *ima,
                   float dy,
                   float result[4],
                   struct ImagePool *pool);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __TEXTURE_H__ */

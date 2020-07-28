@@ -28,6 +28,10 @@ struct Main;
 struct wmGenericCallback;
 struct wmOperatorType;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* wm_files.c */
 void wm_history_file_read(void);
 void wm_homefile_read(struct bContext *C,
@@ -67,5 +71,9 @@ void WM_OT_append(struct wmOperatorType *ot);
 
 void WM_OT_lib_relocate(struct wmOperatorType *ot);
 void WM_OT_lib_reload(struct wmOperatorType *ot);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __WM_FILES_H__ */
