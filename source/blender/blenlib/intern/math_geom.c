@@ -4176,8 +4176,8 @@ int interp_sparse_array(float *array, const int list_size, const float skipval)
 
 #define DIR_V2_SET(d_len, va, vb) \
   { \
-    sub_v2_v2v2((d_len)->dir, va, vb); \
-    (d_len)->len = len_v2((d_len)->dir); \
+    sub_v2db_v2fl_v2fl((d_len)->dir, va, vb); \
+    (d_len)->len = len_v2_db((d_len)->dir); \
   } \
   (void)0
 
@@ -4185,8 +4185,8 @@ struct Float3_Len {
   float dir[3], len;
 };
 
-struct Float2_Len {
-  float dir[2], len;
+struct Double2_Len {
+  double dir[2], len;
 };
 
 /* Mean value weights - smooth interpolation weights for polygons with
@@ -4209,21 +4209,30 @@ static float mean_value_half_tan_v3(const struct Float3_Len *d_curr,
   return 0.0f;
 }
 
-static float mean_value_half_tan_v2(const struct Float2_Len *d_curr,
-                                    const struct Float2_Len *d_next)
+/**
+ * Mean value weights - same as #mean_value_half_tan_v3 but for 2D vectors.
+ *
+ * \note When interpolating a 2D polygon, a point can be considered "outside"
+ * the polygon's bounds. Thus, when the point is very distant and the vectors
+ * have relatively close values, the precision problems are evident since they
+ * do not indicate a point "inside" the polygon.
+ * To resolve this, doubles are used.
+ */
+static double mean_value_half_tan_v2_db(const struct Double2_Len *d_curr,
+                                        const struct Double2_Len *d_next)
 {
-  /* different from the 3d version but still correct */
-  const float area = cross_v2v2(d_curr->dir, d_next->dir);
+  /* Different from the 3d version but still correct. */
+  const double area = cross_v2v2_db(d_curr->dir, d_next->dir);
   /* Compare against zero since 'FLT_EPSILON' can be too large, see: T73348. */
-  if (LIKELY(area != 0.0f)) {
-    const float dot = dot_v2v2(d_curr->dir, d_next->dir);
-    const float len = d_curr->len * d_next->len;
-    const float result = (len - dot) / area;
+  if (LIKELY(area != 0.0)) {
+    const double dot = dot_v2v2_db(d_curr->dir, d_next->dir);
+    const double len = d_curr->len * d_next->len;
+    const double result = (len - dot) / area;
     if (isfinite(result)) {
       return result;
     }
   }
-  return 0.0f;
+  return 0.0;
 }
 
 void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[3])
@@ -4328,11 +4337,11 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
   const float eps_sq = eps * eps;
 
   const float *v_curr, *v_next;
-  float ht_prev, ht; /* half tangents */
+  double ht_prev, ht; /* half tangents */
   float totweight = 0.0f;
   int i_curr, i_next;
   char ix_flag = 0;
-  struct Float2_Len d_curr, d_next;
+  struct Double2_Len d_curr, d_next;
 
   /* loop over 'i_next' */
   i_curr = n - 1;
@@ -4343,7 +4352,7 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
 
   DIR_V2_SET(&d_curr, v_curr - 2 /* v[n - 2] */, co);
   DIR_V2_SET(&d_next, v_curr /* v[n - 1] */, co);
-  ht_prev = mean_value_half_tan_v2(&d_curr, &d_next);
+  ht_prev = mean_value_half_tan_v2_db(&d_curr, &d_next);
 
   while (i_next < n) {
     /* Mark Mayer et al algorithm that is used here does not operate well if vertex is close
@@ -4362,8 +4371,8 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
 
     d_curr = d_next;
     DIR_V2_SET(&d_next, v_next, co);
-    ht = mean_value_half_tan_v2(&d_curr, &d_next);
-    w[i_curr] = (ht_prev + ht) / d_curr.len;
+    ht = mean_value_half_tan_v2_db(&d_curr, &d_next);
+    w[i_curr] = (float)((ht_prev + ht) / d_curr.len);
     totweight += w[i_curr];
 
     /* step */
