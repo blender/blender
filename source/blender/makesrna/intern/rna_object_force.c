@@ -809,7 +809,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
       if (fmd->domain->effector_weights == ew) {
         char name_esc[sizeof(md->name) * 2];
         BLI_strescape(name_esc, md->name, sizeof(name_esc));
-        return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
+        return BLI_sprintfN("modifiers[\"%s\"].domain_settings.effector_weights", name_esc);
       }
     }
 
