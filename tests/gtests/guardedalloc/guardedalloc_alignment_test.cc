@@ -2,9 +2,7 @@
 
 #include "testing/testing.h"
 
-extern "C" {
 #include "BLI_utildefines.h"
-}
 
 #include "MEM_guardedalloc.h"
 

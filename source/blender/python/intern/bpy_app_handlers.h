@@ -21,6 +21,14 @@
 #ifndef __BPY_APP_HANDLERS_H__
 #define __BPY_APP_HANDLERS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 PyObject *BPY_app_handlers_struct(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BPY_APP_HANDLERS_H__ */

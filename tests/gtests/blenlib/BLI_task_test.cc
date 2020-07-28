@@ -7,13 +7,11 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BLI_utildefines.h"
 
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
 #include "BLI_task.h"
-};
 
 #define NUM_ITEMS 10000
 

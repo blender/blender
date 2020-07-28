@@ -9,7 +9,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BLI_utildefines.h"
 
 #include "BLI_listbase.h"
@@ -17,7 +16,6 @@ extern "C" {
 #include "BLI_task.h"
 
 #include "PIL_time.h"
-}
 
 #define NUM_RUN_AVERAGED 100
 

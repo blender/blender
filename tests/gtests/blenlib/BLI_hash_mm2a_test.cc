@@ -2,9 +2,7 @@
 
 #include "testing/testing.h"
 
-extern "C" {
 #include "BLI_hash_mm2a.h"
-}
 
 /* Note: Reference results are taken from reference implementation
  * (cpp code, CMurmurHash2A variant):

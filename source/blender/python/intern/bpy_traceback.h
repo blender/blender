@@ -21,6 +21,14 @@
 #ifndef __BPY_TRACEBACK_H__
 #define __BPY_TRACEBACK_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void python_script_error_jump(const char *filepath, int *lineno, int *offset);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BPY_TRACEBACK_H__ */

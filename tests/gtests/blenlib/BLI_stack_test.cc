@@ -3,11 +3,9 @@
 #include "testing/testing.h"
 #include <string.h>
 
-extern "C" {
 #include "BLI_array.h"
 #include "BLI_stack.h"
 #include "BLI_utildefines.h"
-};
 
 #define SIZE 1024
 

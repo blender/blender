@@ -25,6 +25,10 @@
 #  error "Python 3.7 or greater is required, you'll need to update your Python."
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct EnumPropertyItem;
 struct ReportList;
 
@@ -51,5 +55,9 @@ void BPy_SetContext(struct bContext *C);
 
 extern void bpy_context_set(struct bContext *C, PyGILState_STATE *gilstate);
 extern void bpy_context_clear(struct bContext *C, const PyGILState_STATE *gilstate);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BPY_CAPI_UTILS_H__ */

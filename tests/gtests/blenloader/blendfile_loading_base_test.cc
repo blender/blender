@@ -19,7 +19,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BKE_appdir.h"
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -48,7 +47,6 @@ extern "C" {
 
 #include "WM_api.h"
 #include "wm.h"
-}
 
 BlendfileLoadingBaseTest::~BlendfileLoadingBaseTest()
 {

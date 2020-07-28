@@ -24,10 +24,18 @@
 #ifndef __INITRENDER_H__
 #define __INITRENDER_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Functions */
 
 void RE_parts_init(Render *re);
 void RE_parts_free(Render *re);
 void RE_parts_clamp(Render *re);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __INITRENDER_H__ */

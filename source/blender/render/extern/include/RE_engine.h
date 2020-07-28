@@ -48,6 +48,10 @@ struct ViewLayer;
 struct bNode;
 struct bNodeTree;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* External Engine */
 
 /* RenderEngineType.flag */
@@ -236,5 +240,9 @@ void RE_bake_engine_set_engine_parameters(struct Render *re,
                                           struct Scene *scene);
 
 void RE_engine_free_blender_memory(struct RenderEngine *engine);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __RE_ENGINE_H__ */

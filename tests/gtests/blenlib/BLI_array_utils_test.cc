@@ -2,11 +2,9 @@
 
 #include "testing/testing.h"
 
-extern "C" {
 #include "BLI_array_utils.h"
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
-}
 
 /* -------------------------------------------------------------------- */
 /* tests */

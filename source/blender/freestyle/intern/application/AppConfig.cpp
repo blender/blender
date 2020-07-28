@@ -26,9 +26,7 @@
 
 using namespace std;
 
-extern "C" {
 #include "BKE_appdir.h"
-}
 
 namespace Freestyle {
 

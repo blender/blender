@@ -67,6 +67,10 @@
 
 struct ID;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern PyTypeObject pyrna_struct_meta_idprop_Type;
 extern PyTypeObject pyrna_struct_Type;
 extern PyTypeObject pyrna_prop_Type;
@@ -264,5 +268,9 @@ extern PyMethodDef meth_bpy_owner_id_set;
 extern PyMethodDef meth_bpy_owner_id_get;
 
 extern BPy_StructRNA *bpy_context_module;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

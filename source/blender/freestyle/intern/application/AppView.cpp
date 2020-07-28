@@ -33,7 +33,6 @@
 #include "../view_map/Silhouette.h"
 #include "../view_map/ViewMap.h"
 
-extern "C" {
 #include "BLI_blenlib.h"
 
 #include "IMB_imbuf.h"
@@ -45,7 +44,6 @@ extern "C" {
 #endif
 
 #include "FRS_freestyle.h"
-}
 
 namespace Freestyle {
 

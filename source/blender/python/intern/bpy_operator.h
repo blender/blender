@@ -21,6 +21,10 @@
 #ifndef __BPY_OPERATOR_H__
 #define __BPY_OPERATOR_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern PyTypeObject pyop_base_Type;
 
 #define BPy_OperatorBase_Check(v) (PyObject_TypeCheck(v, &pyop_base_Type))
@@ -30,5 +34,9 @@ typedef struct {
 } BPy_OperatorBase;
 
 PyObject *BPY_operator_module(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

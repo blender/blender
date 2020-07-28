@@ -4,13 +4,11 @@
 #include "exporter/abc_archive.h"
 #include "intern/abc_util.h"
 
-extern "C" {
 #include "BKE_main.h"
 #include "BLI_fileops.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "DNA_scene_types.h"
-}
 
 #include "DEG_depsgraph.h"
 

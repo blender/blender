@@ -28,10 +28,8 @@
 #include <string>
 #include <vector>
 
-extern "C" {
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-}
 
 using namespace std;
 

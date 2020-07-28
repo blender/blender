@@ -21,6 +21,14 @@
 #ifndef __BPY_MSGBUS_H__
 #define __BPY_MSGBUS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 PyObject *BPY_msgbus_module(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BPY_MSGBUS_H__ */

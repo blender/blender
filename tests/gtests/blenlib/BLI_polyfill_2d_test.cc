@@ -11,7 +11,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BLI_array_utils.h"
 #include "BLI_edgehash.h"
 #include "BLI_math.h"
@@ -27,7 +26,6 @@ extern "C" {
 #  include "BLI_memarena.h"
 #  include "BLI_polyfill_2d_beautify.h"
 #endif
-}
 
 #include "stubs/bf_intern_eigen_stubs.h"
 

@@ -27,6 +27,10 @@
 
 struct wmMsgBus;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* wmGizmoGroup */
 typedef bool (*wmGizmoGroupFnPoll)(const struct bContext *,
                                    struct wmGizmoGroupType *) ATTR_WARN_UNUSED_RESULT;
@@ -84,5 +88,9 @@ typedef struct wmGizmoPropertyFnParams {
   wmGizmoPropertyFnFree free_fn;
   void *user_data;
 } wmGizmoPropertyFnParams;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __WM_GIZMO_FN_H__ */

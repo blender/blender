@@ -22,9 +22,7 @@
  * \brief Classes defining the basic "Iterator" design pattern
  */
 
-extern "C" {
 #include "render_types.h"
-}
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"

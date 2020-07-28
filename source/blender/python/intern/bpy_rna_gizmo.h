@@ -21,6 +21,14 @@
 #ifndef __BPY_RNA_GIZMO_H__
 #define __BPY_RNA_GIZMO_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int BPY_rna_gizmo_module(PyObject *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BPY_RNA_GIZMO_H__ */

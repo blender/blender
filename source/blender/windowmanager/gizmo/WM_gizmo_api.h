@@ -52,6 +52,10 @@ struct wmWindowManager;
 
 #include "wm_gizmo_fn.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* -------------------------------------------------------------------- */
 /* wmGizmo */
 
@@ -395,5 +399,9 @@ void WM_gizmo_group_tag_remove(struct wmGizmoGroup *gzgroup);
 /* Wrap Group Type Callbacks. */
 bool WM_gizmo_group_type_poll(const struct bContext *C, const struct wmGizmoGroupType *gzgt);
 void WM_gizmo_group_refresh(const struct bContext *C, struct wmGizmoGroup *gzgroup);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __WM_GIZMO_API_H__ */

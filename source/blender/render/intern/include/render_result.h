@@ -44,6 +44,10 @@ struct RenderResult;
 struct Scene;
 struct rcti;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* New */
 
 struct RenderResult *render_result_new(struct Render *re,
@@ -147,5 +151,9 @@ bool render_result_has_views(struct RenderResult *rr);
   } \
   } \
   ((void)0)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __RENDER_RESULT_H__ */

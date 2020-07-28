@@ -24,6 +24,14 @@
 #ifndef __BPY_APP_OPENVDB_H__
 #define __BPY_APP_OPENVDB_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 PyObject *BPY_app_openvdb_struct(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BPY_APP_OPENVDB_H__ */
