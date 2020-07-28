@@ -51,6 +51,8 @@
 /* Own include. */
 #include "transform_convert.h"
 
+#define USE_FACE_SUBSTITUTE
+
 /* -------------------------------------------------------------------- */
 /** \name Island Creation
  *
@@ -958,41 +960,44 @@ void createTransEditVerts(TransInfo *t)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name CustomData Layer Correction (for meshes)
+/** \name CustomData Layer Correction
  *
  * \{ */
 
-struct TransCustomDataLayerVert {
-  BMVert *v;
-  float co_orig_3d[3];
+struct TransCustomDataMergeGroup {
+  /** map {BMVert: TransCustomDataLayerVert} */
   struct LinkNode **cd_loop_groups;
 };
 
 struct TransCustomDataLayer {
   BMesh *bm;
+  struct MemArena *arena;
 
-  int cd_loop_mdisp_offset;
-
-  /** map {BMVert: TransCustomDataLayerVert} */
-  struct GHash *origverts;
   struct GHash *origfaces;
   struct BMesh *bm_origfaces;
 
-  struct MemArena *arena;
-  /** Number of math BMLoop layers. */
-  int layer_math_map_num;
-  /** Array size of 'layer_math_map_num'
-   * maps TransCustomDataLayerVert.cd_group index to absolute CustomData layer index */
-  int *layer_math_map;
+  /* Special handle for multi-resolution. */
+  int cd_loop_mdisp_offset;
 
-  /* Array with all elements transformed. */
-  struct TransCustomDataLayerVert *data;
-  int data_len;
+  /* Optionally merge custom-data groups (this keeps UVs connected for example). */
+  struct {
+    /** map {BMVert: TransDataBasic} */
+    struct GHash *origverts;
+    struct TransCustomDataMergeGroup *data;
+    int data_len;
+    /** Array size of 'layer_math_map_len'
+     * maps #TransCustomDataLayerVert.cd_group index to absolute #CustomData layer index */
+    int *customdatalayer_map;
+    /** Number of math BMLoop layers. */
+    int customdatalayer_map_len;
+  } merge_group;
+
+  bool use_merge_group;
 };
 
-static void trans_mesh_customdata_free_cb(struct TransInfo *UNUSED(t),
-                                          struct TransDataContainer *UNUSED(tc),
-                                          struct TransCustomData *custom_data)
+static void mesh_customdatacorrect_free_cb(struct TransInfo *UNUSED(t),
+                                           struct TransDataContainer *UNUSED(tc),
+                                           struct TransCustomData *custom_data)
 {
   struct TransCustomDataLayer *tcld = custom_data->data;
   bmesh_edit_end(tcld->bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
@@ -1003,77 +1008,205 @@ static void trans_mesh_customdata_free_cb(struct TransInfo *UNUSED(t),
   if (tcld->origfaces) {
     BLI_ghash_free(tcld->origfaces, NULL, NULL);
   }
-  if (tcld->origverts) {
-    BLI_ghash_free(tcld->origverts, NULL, NULL);
+  if (tcld->merge_group.origverts) {
+    BLI_ghash_free(tcld->merge_group.origverts, NULL, NULL);
   }
   if (tcld->arena) {
     BLI_memarena_free(tcld->arena);
   }
-  if (tcld->layer_math_map) {
-    MEM_freeN(tcld->layer_math_map);
+  if (tcld->merge_group.customdatalayer_map) {
+    MEM_freeN(tcld->merge_group.customdatalayer_map);
   }
 
   MEM_freeN(tcld);
   custom_data->data = NULL;
 }
 
-static void create_trans_vert_customdata_layer(BMVert *v,
-                                               struct TransCustomDataLayer *tcld,
-                                               struct TransCustomDataLayerVert *r_tcld_vert)
+#ifdef USE_FACE_SUBSTITUTE
+
+#  define FACE_SUBSTITUTE_INDEX INT_MIN
+
+/* Search for a neighboring face with area and preferably without selected vertex.
+ * Used to replace arealess faces in customdata correction. */
+static BMFace *mesh_customdatacorrect_find_best_face_substitute(BMFace *f)
+{
+  BMFace *best_face = NULL;
+  BMLoop *l;
+  BMIter liter;
+  BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+    BMLoop *l_radial_next = l->radial_next;
+    BMFace *f_test = l_radial_next->f;
+    if (f_test == f) {
+      continue;
+    }
+    if (is_zero_v3(f_test->no)) {
+      continue;
+    }
+
+    /* Check the loops edge isn't selected. */
+    if (!BM_elem_flag_test(l_radial_next->v, BM_ELEM_SELECT) &&
+        !BM_elem_flag_test(l_radial_next->next->v, BM_ELEM_SELECT)) {
+      /* Prefer edges with unselected vertices.
+       * Useful for extrude. */
+      best_face = f_test;
+      break;
+    }
+    if (best_face == NULL) {
+      best_face = f_test;
+    }
+  }
+  return best_face;
+}
+
+static void mesh_customdatacorrect_face_substitute_set(struct TransCustomDataLayer *tcld,
+                                                       BMFace *f,
+                                                       BMFace *f_copy)
+{
+  BLI_assert(is_zero_v3(f->no));
+  BMesh *bm = tcld->bm;
+  /* It is impossible to calculate the loops weights of a face without area.
+   * Find a substitute. */
+  BMFace *f_substitute = mesh_customdatacorrect_find_best_face_substitute(f);
+  if (f_substitute) {
+    /* Copy the custom-data from the substitute face. */
+    BMLoop *l_iter, *l_first;
+    l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+    do {
+      BM_loop_interp_from_face(bm, l_iter, f_substitute, false, false);
+    } while ((l_iter = l_iter->next) != l_first);
+
+    /* Use the substitute face as the reference during the transformation. */
+    BMFace *f_substitute_copy = BM_face_copy(tcld->bm_origfaces, bm, f_substitute, true, true);
+
+    /* Hack: reference substitute face in `f_copy->no`.
+     * `tcld->origfaces` is already used to restore the initial value. */
+    BM_elem_index_set(f_copy, FACE_SUBSTITUTE_INDEX);
+    *((BMFace **)&f_copy->no[0]) = f_substitute_copy;
+  }
+}
+
+static BMFace *mesh_customdatacorrect_face_substitute_get(BMFace *f_copy)
+{
+  BLI_assert(BM_elem_index_get(f_copy) == FACE_SUBSTITUTE_INDEX);
+  return *((BMFace **)&f_copy->no[0]);
+}
+
+#endif /* USE_FACE_SUBSTITUTE */
+
+static void mesh_customdatacorrect_init_vert(struct TransCustomDataLayer *tcld,
+                                             BMVert *v,
+                                             const int index)
 {
   BMesh *bm = tcld->bm;
   BMIter liter;
   int j, l_num;
   float *loop_weights;
 
-  /* copy face data */
   // BM_ITER_ELEM (l, &liter, sv->v, BM_LOOPS_OF_VERT) {
   BM_iter_init(&liter, bm, BM_LOOPS_OF_VERT, v);
   l_num = liter.count;
-  loop_weights = BLI_array_alloca(loop_weights, l_num);
+  loop_weights = tcld->use_merge_group ? BLI_array_alloca(loop_weights, l_num) : NULL;
   for (j = 0; j < l_num; j++) {
     BMLoop *l = BM_iter_step(&liter);
     BMLoop *l_prev, *l_next;
+
+    /* Generic custom-data correction. Copy face data. */
     void **val_p;
     if (!BLI_ghash_ensure_p(tcld->origfaces, l->f, &val_p)) {
       BMFace *f_copy = BM_face_copy(tcld->bm_origfaces, bm, l->f, true, true);
       *val_p = f_copy;
+#ifdef USE_FACE_SUBSTITUTE
+      if (is_zero_v3(l->f->no)) {
+        mesh_customdatacorrect_face_substitute_set(tcld, l->f, f_copy);
+      }
+#endif
     }
 
-    if ((l_prev = BM_loop_find_prev_nodouble(l, l->next, FLT_EPSILON)) &&
-        (l_next = BM_loop_find_next_nodouble(l, l_prev, FLT_EPSILON))) {
-      loop_weights[j] = angle_v3v3v3(l_prev->v->co, l->v->co, l_next->v->co);
+    if (tcld->use_merge_group) {
+      if ((l_prev = BM_loop_find_prev_nodouble(l, l->next, FLT_EPSILON)) &&
+          (l_next = BM_loop_find_next_nodouble(l, l_prev, FLT_EPSILON))) {
+        loop_weights[j] = angle_v3v3v3(l_prev->v->co, l->v->co, l_next->v->co);
+      }
+      else {
+        loop_weights[j] = 0.0f;
+      }
+    }
+  }
+
+  if (tcld->use_merge_group) {
+    /* Store cd_loop_groups. */
+    struct TransCustomDataMergeGroup *merge_data = &tcld->merge_group.data[index];
+    if (l_num != 0) {
+      merge_data->cd_loop_groups = BLI_memarena_alloc(
+          tcld->arena, tcld->merge_group.customdatalayer_map_len * sizeof(void *));
+      for (j = 0; j < tcld->merge_group.customdatalayer_map_len; j++) {
+        const int layer_nr = tcld->merge_group.customdatalayer_map[j];
+        merge_data->cd_loop_groups[j] = BM_vert_loop_groups_data_layer_create(
+            bm, v, layer_nr, loop_weights, tcld->arena);
+      }
     }
     else {
-      loop_weights[j] = 0.0f;
+      merge_data->cd_loop_groups = NULL;
     }
-  }
 
-  /* store cd_loop_groups */
-  if (tcld->layer_math_map_num && (l_num != 0)) {
-    r_tcld_vert->cd_loop_groups = BLI_memarena_alloc(tcld->arena,
-                                                     tcld->layer_math_map_num * sizeof(void *));
-    for (j = 0; j < tcld->layer_math_map_num; j++) {
-      const int layer_nr = tcld->layer_math_map[j];
-      r_tcld_vert->cd_loop_groups[j] = BM_vert_loop_groups_data_layer_create(
-          bm, v, layer_nr, loop_weights, tcld->arena);
-    }
+    BLI_ghash_insert(tcld->merge_group.origverts, v, merge_data);
   }
-  else {
-    r_tcld_vert->cd_loop_groups = NULL;
-  }
-
-  r_tcld_vert->v = v;
-  copy_v3_v3(r_tcld_vert->co_orig_3d, v->co);
-  BLI_ghash_insert(tcld->origverts, v, r_tcld_vert);
 }
 
-static void trans_mesh_customdata_correction_init_container(TransDataContainer *tc)
+static void mesh_customdatacorrect_init_container_generic(TransDataContainer *UNUSED(tc),
+                                                          struct TransCustomDataLayer *tcld)
+{
+  BMesh *bm = tcld->bm;
+
+  struct GHash *origfaces = BLI_ghash_ptr_new(__func__);
+  struct BMesh *bm_origfaces = BM_mesh_create(&bm_mesh_allocsize_default,
+                                              &((struct BMeshCreateParams){
+                                                  .use_toolflags = false,
+                                              }));
+
+  /* We need to have matching custom-data. */
+  BM_mesh_copy_init_customdata(bm_origfaces, bm, NULL);
+  tcld->origfaces = origfaces;
+  tcld->bm_origfaces = bm_origfaces;
+
+  bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
+  tcld->cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+}
+
+static void mesh_customdatacorrect_init_container_merge_group(TransDataContainer *tc,
+                                                              struct TransCustomDataLayer *tcld)
+{
+  BMesh *bm = tcld->bm;
+  BLI_assert(CustomData_has_math(&bm->ldata));
+
+  /* TODO: We don't need `layer_math_map` when there are no loops linked
+   * to one of the sliding vertices. */
+
+  /* Over allocate, only 'math' layers are indexed. */
+  int *customdatalayer_map = MEM_mallocN(sizeof(int) * bm->ldata.totlayer, __func__);
+  int layer_math_map_len = 0;
+  for (int i = 0; i < bm->ldata.totlayer; i++) {
+    if (CustomData_layer_has_math(&bm->ldata, i)) {
+      customdatalayer_map[layer_math_map_len++] = i;
+    }
+  }
+  BLI_assert(layer_math_map_len != 0);
+
+  tcld->merge_group.data_len = tc->data_len + tc->data_mirror_len;
+  tcld->merge_group.customdatalayer_map = customdatalayer_map;
+  tcld->merge_group.customdatalayer_map_len = layer_math_map_len;
+  tcld->merge_group.origverts = BLI_ghash_ptr_new_ex(__func__, tcld->merge_group.data_len);
+  tcld->merge_group.data = BLI_memarena_alloc(
+      tcld->arena, tcld->merge_group.data_len * sizeof(*tcld->merge_group.data));
+}
+
+static void mesh_customdatacorrect_init_container(TransDataContainer *tc,
+                                                  const bool use_merge_group)
 {
   if (tc->custom.type.data) {
-    /* Custom data correction has initiated before. */
-    BLI_assert(tc->custom.type.free_cb == trans_mesh_customdata_free_cb);
-    return;
+    /* The custom-data correction has been initiated before.
+     * Free since some modes have different settings. */
+    mesh_customdatacorrect_free_cb(NULL, tc, &tc->custom.type);
   }
 
   BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
@@ -1082,135 +1215,81 @@ static void trans_mesh_customdata_correction_init_container(TransDataContainer *
   if (bm->shapenr > 1) {
     /* Don't do this at all for non-basis shape keys, too easy to
      * accidentally break uv maps or vertex colors then */
-    /* create copies of faces for customdata projection. */
+    /* create copies of faces for custom-data projection. */
+    return;
+  }
+  if (!CustomData_has_math(&bm->ldata) && !CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+    /* There is no custom-data to correct. */
     return;
   }
 
-  const bool has_layer_math = CustomData_has_math(&bm->ldata);
-  const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
-  if (!has_layer_math && (cd_loop_mdisp_offset == -1)) {
-    return;
-  }
-
-  bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
-
-  struct GHash *origfaces = BLI_ghash_ptr_new(__func__);
-  struct BMesh *bm_origfaces = BM_mesh_create(&bm_mesh_allocsize_default,
-                                              &((struct BMeshCreateParams){
-                                                  .use_toolflags = false,
-                                              }));
-
-  /* we need to have matching customdata */
-  BM_mesh_copy_init_customdata(bm_origfaces, bm, NULL);
-
-  int *layer_math_map = NULL;
-  int layer_math_map_len = 0;
-  {
-    /* TODO: We don't need `sod->layer_math_map` when there are no loops linked
-     * to one of the sliding vertices. */
-    if (has_layer_math) {
-      /* over alloc, only 'math' layers are indexed */
-      layer_math_map = MEM_mallocN(bm->ldata.totlayer * sizeof(int), __func__);
-      for (int i = 0; i < bm->ldata.totlayer; i++) {
-        if (CustomData_layer_has_math(&bm->ldata, i)) {
-          layer_math_map[layer_math_map_len++] = i;
-        }
-      }
-      BLI_assert(layer_math_map_len != 0);
-    }
-  }
-
-  struct TransCustomDataLayer *tcld = MEM_mallocN(sizeof(*tcld), __func__);
-  int data_len = tc->data_len + tc->data_mirror_len;
-
+  struct TransCustomDataLayer *tcld = MEM_callocN(sizeof(*tcld), __func__);
   tcld->bm = bm;
-  tcld->origfaces = origfaces;
-  tcld->bm_origfaces = bm_origfaces;
-  tcld->cd_loop_mdisp_offset = cd_loop_mdisp_offset;
-  tcld->layer_math_map = layer_math_map;
-  tcld->layer_math_map_num = layer_math_map_len;
   tcld->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
-  tcld->origverts = BLI_ghash_ptr_new_ex(__func__, data_len);
-  tcld->data = BLI_memarena_alloc(tcld->arena, data_len * sizeof(*tcld->data));
-  tcld->data_len = data_len;
+
+  /* Init `cd_loop_mdisp_offset` to -1 to avoid problems with a valid index. */
+  tcld->cd_loop_mdisp_offset = -1;
+  tcld->use_merge_group = use_merge_group;
+
+  mesh_customdatacorrect_init_container_generic(tc, tcld);
+
+  if (tcld->use_merge_group) {
+    mesh_customdatacorrect_init_container_merge_group(tc, tcld);
+  }
 
   {
     /* Setup Verts. */
-    struct TransCustomDataLayerVert *tcld_vert_iter = &tcld->data[0];
+    int i = 0;
 
     TransData *tob = tc->data;
-    for (int i = tc->data_len; i--; tob++, tcld_vert_iter++) {
+    for (int j = tc->data_len; j--; tob++, i++) {
       BMVert *v = tob->extra;
-      create_trans_vert_customdata_layer(v, tcld, tcld_vert_iter);
+      mesh_customdatacorrect_init_vert(tcld, v, i);
     }
 
     TransDataMirror *td_mirror = tc->data_mirror;
-    for (int i = tc->data_mirror_len; i--; td_mirror++, tcld_vert_iter++) {
+    for (int j = tc->data_mirror_len; j--; td_mirror++, i++) {
       BMVert *v = td_mirror->extra;
-      create_trans_vert_customdata_layer(v, tcld, tcld_vert_iter);
+      mesh_customdatacorrect_init_vert(tcld, v, i);
     }
   }
 
   tc->custom.type.data = tcld;
-  tc->custom.type.free_cb = trans_mesh_customdata_free_cb;
+  tc->custom.type.free_cb = mesh_customdatacorrect_free_cb;
 }
 
-void trans_mesh_customdata_correction_init(TransInfo *t)
+void mesh_customdatacorrect_init(TransInfo *t)
 {
-  if (!ELEM(t->mode,
-            TFM_TRANSLATION,
-            TFM_ROTATION,
-            TFM_RESIZE,
-            TFM_TOSPHERE,
-            TFM_SHEAR,
-            TFM_BEND,
-            TFM_SHRINKFATTEN,
-            TFM_TRACKBALL,
-            TFM_PUSHPULL,
-            TFM_ALIGN,
-            TFM_EDGE_SLIDE,
-            TFM_VERT_SLIDE)) {
-    /* Currently only modes that change the position of vertices are supported. */
-    return;
+  bool use_merge_group = false;
+  if (ELEM(t->mode, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+    if (!(t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT_SLIDE)) {
+      /* No custom-data correction. */
+      return;
+    }
+    use_merge_group = true;
   }
-
-  const char uvcalc_correct_flag = ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE) ?
-                                       UVCALC_TRANSFORM_CORRECT_SLIDE :
-                                       UVCALC_TRANSFORM_CORRECT;
-
-  if (t->settings->uvcalc_flag & uvcalc_correct_flag) {
-    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      trans_mesh_customdata_correction_init_container(tc);
+  else if (ELEM(t->mode,
+                TFM_TRANSLATION,
+                TFM_ROTATION,
+                TFM_RESIZE,
+                TFM_TOSPHERE,
+                TFM_SHEAR,
+                TFM_BEND,
+                TFM_SHRINKFATTEN,
+                TFM_TRACKBALL,
+                TFM_PUSHPULL,
+                TFM_ALIGN)) {
+    {
+      if (!(t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT)) {
+        /* No custom-data correction. */
+        return;
+      }
+      use_merge_group = (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT_KEEP_CONNECTED) != 0;
     }
   }
-}
 
-static void trans_mesh_customdata_correction_restore(struct TransDataContainer *tc)
-{
-  struct TransCustomDataLayer *tcld = tc->custom.type.data;
-  if (!tcld) {
-    return;
-  }
-
-  BMesh *bm = tcld->bm;
-  BMesh *bm_copy = tcld->bm_origfaces;
-
-  GHashIterator gh_iter;
-  GHASH_ITER (gh_iter, tcld->origfaces) {
-    BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
-    BMFace *f_copy = BLI_ghashIterator_getValue(&gh_iter);
-    BLI_assert(f->len == f_copy->len);
-
-    BMLoop *l_iter, *l_first, *l_copy;
-    l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-    l_copy = BM_FACE_FIRST_LOOP(f_copy);
-    do {
-      /* TODO: Restore only the elements that transform. */
-      BM_elem_attrs_copy(bm_copy, bm, l_copy, l_iter);
-      l_copy = l_copy->next;
-    } while ((l_iter = l_iter->next) != l_first);
-
-    BM_elem_attrs_copy_ex(bm_copy, bm, f_copy, f, BM_ELEM_SELECT, CD_MASK_NORMAL);
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    mesh_customdatacorrect_init_container(tc, use_merge_group);
   }
 }
 
@@ -1219,23 +1298,24 @@ static void trans_mesh_customdata_correction_restore(struct TransDataContainer *
  */
 static const float *trans_vert_orig_co_get(struct TransCustomDataLayer *tcld, BMVert *v)
 {
-  struct TransCustomDataLayerVert *tcld_vert = BLI_ghash_lookup(tcld->origverts, v);
-  return tcld_vert ? tcld_vert->co_orig_3d : v->co;
+  TransDataBasic *td = BLI_ghash_lookup(tcld->merge_group.origverts, v);
+  return td ? td->iloc : v->co;
 }
 
-static void trans_mesh_customdata_correction_apply_vert(struct TransCustomDataLayer *tcld,
-                                                        struct TransCustomDataLayerVert *tcld_vert,
-                                                        bool do_loop_mdisps)
+static void mesh_customdatacorrect_apply_vert(struct TransCustomDataLayer *tcld,
+                                              struct TransDataBasic *td,
+                                              struct TransCustomDataMergeGroup *merge_data,
+                                              bool do_loop_mdisps)
 {
   BMesh *bm = tcld->bm;
-  BMVert *v = tcld_vert->v;
-  const float *co_orig_3d = tcld_vert->co_orig_3d;
+  BMVert *v = td->extra;
+  const float *co_orig_3d = td->iloc;
 
   BMIter liter;
   int j, l_num;
   float *loop_weights;
   const bool is_moved = (len_squared_v3v3(v->co, co_orig_3d) > FLT_EPSILON);
-  const bool do_loop_weight = is_moved && tcld->layer_math_map_num;
+  const bool do_loop_weight = is_moved && tcld->merge_group.customdatalayer_map_len;
   const float *v_proj_axis = v->no;
   /* original (l->prev, l, l->next) projections for each loop ('l' remains unchanged) */
   float v_proj[3][3];
@@ -1253,6 +1333,14 @@ static void trans_mesh_customdata_correction_apply_vert(struct TransCustomDataLa
     BMLoop *l = BM_iter_step(&liter);
 
     f_copy = BLI_ghash_lookup(tcld->origfaces, l->f);
+
+#ifdef USE_FACE_SUBSTITUTE
+    /* In some faces it is not possible to calculate interpolation,
+     * so we use a substitute. */
+    if (BM_elem_index_get(f_copy) == FACE_SUBSTITUTE_INDEX) {
+      f_copy = mesh_customdatacorrect_face_substitute_get(f_copy);
+    }
+#endif
 
     /* only loop data, no vertex data since that contains shape keys,
      * and we do not want to mess up other shape keys */
@@ -1305,17 +1393,20 @@ static void trans_mesh_customdata_correction_apply_vert(struct TransCustomDataLa
     }
   }
 
-  struct LinkNode **cd_loop_groups = tcld_vert->cd_loop_groups;
-  if (tcld->layer_math_map_num && cd_loop_groups) {
-    if (do_loop_weight) {
-      for (j = 0; j < tcld->layer_math_map_num; j++) {
-        BM_vert_loop_groups_data_layer_merge_weights(
-            bm, cd_loop_groups[j], tcld->layer_math_map[j], loop_weights);
+  if (tcld->use_merge_group) {
+    struct LinkNode **cd_loop_groups = merge_data->cd_loop_groups;
+    if (tcld->merge_group.customdatalayer_map_len && cd_loop_groups) {
+      if (do_loop_weight) {
+        for (j = 0; j < tcld->merge_group.customdatalayer_map_len; j++) {
+          BM_vert_loop_groups_data_layer_merge_weights(
+              bm, cd_loop_groups[j], tcld->merge_group.customdatalayer_map[j], loop_weights);
+        }
       }
-    }
-    else {
-      for (j = 0; j < tcld->layer_math_map_num; j++) {
-        BM_vert_loop_groups_data_layer_merge(bm, cd_loop_groups[j], tcld->layer_math_map[j]);
+      else {
+        for (j = 0; j < tcld->merge_group.customdatalayer_map_len; j++) {
+          BM_vert_loop_groups_data_layer_merge(
+              bm, cd_loop_groups[j], tcld->merge_group.customdatalayer_map[j]);
+        }
       }
     }
   }
@@ -1355,19 +1446,63 @@ static void trans_mesh_customdata_correction_apply_vert(struct TransCustomDataLa
   }
 }
 
-static void trans_mesh_customdata_correction_apply(struct TransDataContainer *tc, bool is_final)
+static void mesh_customdatacorrect_apply(TransInfo *t, bool is_final)
 {
-  struct TransCustomDataLayer *tcld = tc->custom.type.data;
-  if (!tcld) {
-    return;
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    if (!tc->custom.type.data) {
+      continue;
+    }
+    struct TransCustomDataLayer *tcld = tc->custom.type.data;
+    const bool use_merge_group = tcld->use_merge_group;
+
+    struct TransCustomDataMergeGroup *merge_data = tcld->merge_group.data;
+    TransData *tob = tc->data;
+    for (int i = tc->data_len; i--; tob++) {
+      mesh_customdatacorrect_apply_vert(tcld, (TransDataBasic *)tob, merge_data, is_final);
+
+      if (use_merge_group) {
+        merge_data++;
+      }
+    }
+
+    TransDataMirror *td_mirror = tc->data_mirror;
+    for (int i = tc->data_mirror_len; i--; td_mirror++) {
+      mesh_customdatacorrect_apply_vert(tcld, (TransDataBasic *)td_mirror, merge_data, is_final);
+
+      if (use_merge_group) {
+        merge_data++;
+      }
+    }
   }
+}
 
-  const bool do_loop_mdisps = is_final && (tcld->cd_loop_mdisp_offset != -1);
-  struct TransCustomDataLayerVert *tcld_vert_iter = &tcld->data[0];
+static void mesh_customdatacorrect_restore(struct TransInfo *t)
+{
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    struct TransCustomDataLayer *tcld = tc->custom.type.data;
+    if (!tcld) {
+      continue;
+    }
 
-  for (int i = tcld->data_len; i--; tcld_vert_iter++) {
-    if (tcld_vert_iter->cd_loop_groups || do_loop_mdisps) {
-      trans_mesh_customdata_correction_apply_vert(tcld, tcld_vert_iter, do_loop_mdisps);
+    BMesh *bm = tcld->bm;
+    BMesh *bm_copy = tcld->bm_origfaces;
+
+    GHashIterator gh_iter;
+    GHASH_ITER (gh_iter, tcld->origfaces) {
+      BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
+      BMFace *f_copy = BLI_ghashIterator_getValue(&gh_iter);
+      BLI_assert(f->len == f_copy->len);
+
+      BMLoop *l_iter, *l_first, *l_copy;
+      l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+      l_copy = BM_FACE_FIRST_LOOP(f_copy);
+      do {
+        /* TODO: Restore only the elements that transform. */
+        BM_elem_attrs_copy(bm_copy, bm, l_copy, l_iter);
+        l_copy = l_copy->next;
+      } while ((l_iter = l_iter->next) != l_first);
+
+      BM_elem_attrs_copy_ex(bm_copy, bm, f_copy, f, BM_ELEM_SELECT, CD_MASK_NORMAL);
     }
   }
 }
@@ -1428,16 +1563,14 @@ void recalcData_mesh(TransInfo *t)
     if ((t->flag & T_NO_MIRROR) == 0 && (t->options & CTX_NO_MIRROR) == 0) {
       transform_apply_to_mirror(t);
     }
+
+    mesh_customdatacorrect_apply(t, false);
+  }
+  else {
+    mesh_customdatacorrect_restore(t);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    if (is_cancelling) {
-      trans_mesh_customdata_correction_restore(tc);
-    }
-    else {
-      trans_mesh_customdata_correction_apply(tc, false);
-    }
-
     DEG_id_tag_update(tc->obedit->data, 0); /* sets recalc flags */
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
     EDBM_mesh_normals_update(em);
@@ -1455,13 +1588,11 @@ void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
   const bool is_cancelling = (t->state == TRANS_CANCEL);
   const bool use_automerge = !is_cancelling && (t->flag & (T_AUTOMERGE | T_AUTOSPLIT)) != 0;
 
-  if (!is_cancelling && TRANS_DATA_CONTAINER_FIRST_OK(t)->custom.type.data != NULL) {
+  if (!is_cancelling && ELEM(t->mode, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
     /* Handle multires re-projection, done
      * on transform completion since it's
      * really slow -joeedh. */
-    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      trans_mesh_customdata_correction_apply(tc, true);
-    }
+    mesh_customdatacorrect_apply(t, true);
   }
 
   if (use_automerge) {

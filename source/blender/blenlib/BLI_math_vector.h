@@ -133,6 +133,7 @@ MINLINE void sub_v3_v3v3_db(double r[3], const double a[3], const double b[3]);
 MINLINE void sub_v4_v4(float r[4], const float a[4]);
 MINLINE void sub_v4_v4v4(float r[4], const float a[4], const float b[4]);
 
+MINLINE void sub_v2db_v2fl_v2fl(double r[2], const float a[2], const float b[2]);
 MINLINE void sub_v3db_v3fl_v3fl(double r[3], const float a[3], const float b[3]);
 
 MINLINE void mul_v2_fl(float r[2], float f);
@@ -205,6 +206,7 @@ MINLINE double dot_v3db_v3fl(const double a[3], const float b[3]) ATTR_WARN_UNUS
 MINLINE double dot_v3v3_db(const double a[3], const double b[3]) ATTR_WARN_UNUSED_RESULT;
 
 MINLINE float cross_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE double cross_v2v2_db(const double a[2], const double b[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3]);
 MINLINE void cross_v3_v3v3_hi_prec(float r[3], const float a[3], const float b[3]);
 MINLINE void cross_v3_v3v3_db(double r[3], const double a[3], const double b[3]);
@@ -221,6 +223,7 @@ MINLINE float len_manhattan_v2(const float v[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE int len_manhattan_v2_int(const int v[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_manhattan_v3(const float v[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_v2(const float a[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE double len_v2_db(const double v[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE double len_v2v2_db(const double a[2], const double b[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_v2v2_int(const int v1[2], const int v2[2]);

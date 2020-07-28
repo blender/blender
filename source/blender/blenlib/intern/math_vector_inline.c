@@ -509,6 +509,12 @@ MINLINE void sub_v3_v3v3_db(double r[3], const double a[3], const double b[3])
   r[2] = a[2] - b[2];
 }
 
+MINLINE void sub_v2db_v2fl_v2fl(double r[2], const float a[2], const float b[2])
+{
+  r[0] = (double)a[0] - (double)b[0];
+  r[1] = (double)a[1] - (double)b[1];
+}
+
 MINLINE void sub_v3db_v3fl_v3fl(double r[3], const float a[3], const float b[3])
 {
   r[0] = (double)a[0] - (double)b[0];
@@ -917,6 +923,11 @@ MINLINE float cross_v2v2(const float a[2], const float b[2])
   return a[0] * b[1] - a[1] * b[0];
 }
 
+MINLINE double cross_v2v2_db(const double a[2], const double b[2])
+{
+  return a[0] * b[1] - a[1] * b[0];
+}
+
 MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3])
 {
   BLI_assert(r != a && r != b);
@@ -995,6 +1006,11 @@ MINLINE float len_manhattan_v3(const float v[3])
 MINLINE float len_v2(const float v[2])
 {
   return sqrtf(v[0] * v[0] + v[1] * v[1]);
+}
+
+MINLINE double len_v2_db(const double v[2])
+{
+  return sqrt(v[0] * v[0] + v[1] * v[1]);
 }
 
 MINLINE float len_v2v2(const float v1[2], const float v2[2])

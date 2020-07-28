@@ -3090,6 +3090,15 @@ static void rna_def_tool_settings(BlenderRNA *brna)
                            "Correct data such as UV's and vertex colors when transforming");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
+  prop = RNA_def_property(srna, "use_transform_correct_keep_connected", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, NULL, "uvcalc_flag", UVCALC_TRANSFORM_CORRECT_KEEP_CONNECTED);
+  RNA_def_property_ui_text(
+      prop,
+      "Keep Connected",
+      "During the Face Attributes correction, merge attributes connected to the same vertex");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
   prop = RNA_def_property(srna, "use_mesh_automerge", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "automerge", AUTO_MERGE);
   RNA_def_property_ui_text(
