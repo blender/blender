@@ -1723,11 +1723,25 @@ static const char *exr_rgba_channelname(MultiPartInputFile &file, const char *ch
   return chan;
 }
 
-static bool exr_has_rgb(MultiPartInputFile &file)
+static int exr_has_rgb(MultiPartInputFile &file, const char *rgb_channels[3])
 {
-  return file.header(0).channels().findChannel("R") != NULL &&
-         file.header(0).channels().findChannel("G") != NULL &&
-         file.header(0).channels().findChannel("B") != NULL;
+  /* Common names for RGB-like channels in order. */
+  static const char *channel_names[] = {
+      "R", "Red", "G", "Green", "B", "Blue", "AR", "RA", "AG", "GA", "AB", "BA", NULL};
+
+  const Header &header = file.header(0);
+  int num_channels = 0;
+
+  for (int i = 0; channel_names[i]; i++) {
+    if (header.channels().findChannel(channel_names[i])) {
+      rgb_channels[num_channels++] = channel_names[i];
+      if (num_channels == 3) {
+        break;
+      }
+    }
+  }
+
+  return num_channels;
 }
 
 static bool exr_has_luma(MultiPartInputFile &file)
@@ -1735,23 +1749,27 @@ static bool exr_has_luma(MultiPartInputFile &file)
   /* Y channel is the luma and should always present fir luma space images,
    * optionally it could be also channels for chromas called BY and RY.
    */
-  return file.header(0).channels().findChannel("Y") != NULL;
+  const Header &header = file.header(0);
+  return header.channels().findChannel("Y") != NULL;
 }
 
 static bool exr_has_chroma(MultiPartInputFile &file)
 {
-  return file.header(0).channels().findChannel("BY") != NULL &&
-         file.header(0).channels().findChannel("RY") != NULL;
+  const Header &header = file.header(0);
+  return header.channels().findChannel("BY") != NULL &&
+         header.channels().findChannel("RY") != NULL;
 }
 
 static bool exr_has_zbuffer(MultiPartInputFile &file)
 {
-  return !(file.header(0).channels().findChannel("Z") == NULL);
+  const Header &header = file.header(0);
+  return !(header.channels().findChannel("Z") == NULL);
 }
 
 static bool exr_has_alpha(MultiPartInputFile &file)
 {
-  return !(file.header(0).channels().findChannel("A") == NULL);
+  const Header &header = file.header(0);
+  return !(header.channels().findChannel("A") == NULL);
 }
 
 static bool exr_is_half_float(MultiPartInputFile &file)
@@ -1957,7 +1975,8 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
           }
         }
         else {
-          const bool has_rgb = exr_has_rgb(*file);
+          const char *rgb_channels[3];
+          const int num_rgb_channels = exr_has_rgb(*file, rgb_channels);
           const bool has_luma = exr_has_luma(*file);
           FrameBuffer frameBuffer;
           float *first;
@@ -1972,13 +1991,11 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
           /* but, since we read y-flipped (negative y stride) we move to last scanline */
           first += 4 * (height - 1) * width;
 
-          if (has_rgb) {
-            frameBuffer.insert(exr_rgba_channelname(*file, "R"),
-                               Slice(Imf::FLOAT, (char *)first, xstride, ystride));
-            frameBuffer.insert(exr_rgba_channelname(*file, "G"),
-                               Slice(Imf::FLOAT, (char *)(first + 1), xstride, ystride));
-            frameBuffer.insert(exr_rgba_channelname(*file, "B"),
-                               Slice(Imf::FLOAT, (char *)(first + 2), xstride, ystride));
+          if (num_rgb_channels > 0) {
+            for (int i = 0; i < num_rgb_channels; i++) {
+              frameBuffer.insert(exr_rgba_channelname(*file, rgb_channels[i]),
+                                 Slice(Imf::FLOAT, (char *)(first + i), xstride, ystride));
+            }
           }
           else if (has_luma) {
             frameBuffer.insert(exr_rgba_channelname(*file, "Y"),
@@ -2021,24 +2038,27 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
           //     IMB_rect_from_float(ibuf);
           // }
 
-          if (!has_rgb && has_luma) {
-            size_t a;
-            if (exr_has_chroma(*file)) {
-              for (a = 0; a < (size_t)ibuf->x * ibuf->y; a++) {
-                float *color = ibuf->rect_float + a * 4;
-                ycc_to_rgb(color[0] * 255.0f,
-                           color[1] * 255.0f,
-                           color[2] * 255.0f,
-                           &color[0],
-                           &color[1],
-                           &color[2],
-                           BLI_YCC_ITU_BT709);
-              }
+          if (num_rgb_channels == 0 && has_luma && exr_has_chroma(*file)) {
+            for (size_t a = 0; a < (size_t)ibuf->x * ibuf->y; a++) {
+              float *color = ibuf->rect_float + a * 4;
+              ycc_to_rgb(color[0] * 255.0f,
+                         color[1] * 255.0f,
+                         color[2] * 255.0f,
+                         &color[0],
+                         &color[1],
+                         &color[2],
+                         BLI_YCC_ITU_BT709);
             }
-            else {
-              for (a = 0; a < (size_t)ibuf->x * ibuf->y; a++) {
-                float *color = ibuf->rect_float + a * 4;
-                color[1] = color[2] = color[0];
+          }
+          else if (num_rgb_channels <= 1) {
+            /* Convert 1 to 3 channels. */
+            for (size_t a = 0; a < (size_t)ibuf->x * ibuf->y; a++) {
+              float *color = ibuf->rect_float + a * 4;
+              if (num_rgb_channels <= 1) {
+                color[1] = color[0];
+              }
+              if (num_rgb_channels <= 2) {
+                color[2] = color[0];
               }
             }
           }
