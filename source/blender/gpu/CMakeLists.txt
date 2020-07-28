@@ -75,7 +75,8 @@ set(SRC
   intern/gpu_select.c
   intern/gpu_select_pick.c
   intern/gpu_select_sample_query.c
-  intern/gpu_shader.c
+  intern/gpu_shader.cc
+  intern/gpu_shader_builtin.c
   intern/gpu_shader_interface.c
   intern/gpu_state.cc
   intern/gpu_texture.cc
