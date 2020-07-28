@@ -446,6 +446,7 @@ void DRW_state_reset(void)
   DRW_state_reset_ex(DRW_STATE_DEFAULT);
 
   GPU_texture_unbind_all();
+  GPU_uniformbuffer_unbind_all();
 
   /* Should stay constant during the whole rendering. */
   GPU_point_size(5);
@@ -773,10 +774,11 @@ static bool ubo_bindings_validate(DRWShadingGroup *shgroup)
       DRWPass *parent_pass = DRW_memblock_elem_from_handle(DST.vmempool->passes,
                                                            &shgroup->pass_handle);
 
-      printf("Pass : %s, Shader : %s, Block : %s\n",
+      printf("Pass : %s, Shader : %s, Block : %s, Binding %d\n",
              parent_pass->name,
              shgroup->shader->name,
-             blockname);
+             blockname,
+             binding);
     }
   }
 #  endif
@@ -1106,6 +1108,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
       /* Unbinding can be costly. Skip in normal condition. */
       if (G.debug & G_DEBUG_GPU) {
         GPU_texture_unbind_all();
+        GPU_uniformbuffer_unbind_all();
       }
     }
     GPU_shader_bind(shgroup->shader);

@@ -42,8 +42,7 @@ void GPU_uniformbuffer_dynamic_update(GPUUniformBuffer *ubo_);
 
 void GPU_uniformbuffer_bind(GPUUniformBuffer *ubo, int number);
 void GPU_uniformbuffer_unbind(GPUUniformBuffer *ubo);
-
-int GPU_uniformbuffer_bindpoint(GPUUniformBuffer *ubo);
+void GPU_uniformbuffer_unbind_all(void);
 
 bool GPU_uniformbuffer_is_empty(GPUUniformBuffer *ubo);
 bool GPU_uniformbuffer_is_dirty(GPUUniformBuffer *ubo);
