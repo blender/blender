@@ -41,7 +41,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   endif()
 endif()
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
 # Prever LEGACY OpenGL to eb compatible with all the existing releases and
 # platforms which don't hare GLVND yet. Only do it if preference was not set
