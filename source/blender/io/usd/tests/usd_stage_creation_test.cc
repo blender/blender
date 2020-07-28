@@ -61,7 +61,9 @@ TEST_F(USDStageCreationTest, JSONFileLoadingTest)
     unlink(filename.c_str());
   }
   else {
-    FAIL() << "unable to find suitable USD plugin to write " << filename;
+    FAIL() << "unable to find suitable USD plugin to write " << filename
+           << "; re-run with the environment variable PXR_PATH_DEBUG non-empty to see which paths "
+              "are considered.";
   }
 }
 
