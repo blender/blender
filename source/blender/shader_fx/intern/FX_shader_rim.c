@@ -72,11 +72,11 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(layout, &ptr, "mask_color", 0, NULL, ICON_NONE);
   uiItemR(layout, &ptr, "mode", 0, IFACE_("Blend Mode"), ICON_NONE);
 
-  /* Add the X, Z labels manually because offset is a #PROP_PIXEL. */
+  /* Add the X, Y labels manually because offset is a #PROP_PIXEL. */
   col = uiLayoutColumn(layout, true);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, "offset");
   uiItemFullR(col, &ptr, prop, 0, 0, 0, IFACE_("Offset X"), ICON_NONE);
-  uiItemFullR(col, &ptr, prop, 1, 0, 0, IFACE_("Z"), ICON_NONE);
+  uiItemFullR(col, &ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
 
   shaderfx_panel_end(layout, &ptr);
 }
@@ -91,11 +91,11 @@ static void blur_panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  /* Add the X, Z labels manually because blur is a #PROP_PIXEL. */
+  /* Add the X, Y labels manually because blur is a #PROP_PIXEL. */
   col = uiLayoutColumn(layout, true);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, "blur");
   uiItemFullR(col, &ptr, prop, 0, 0, 0, IFACE_("Blur X"), ICON_NONE);
-  uiItemFullR(col, &ptr, prop, 1, 0, 0, IFACE_("Z"), ICON_NONE);
+  uiItemFullR(col, &ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
 
   uiItemR(layout, &ptr, "samples", 0, NULL, ICON_NONE);
 }
