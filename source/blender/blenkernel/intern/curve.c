@@ -3112,8 +3112,9 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
       if (bl->poly > 0) {
         BevPoint *bevp;
 
-        min = 300000.0;
         bevp = bl->bevpoints;
+        bevp1 = bl->bevpoints;
+        min = bevp1->vec[0];
         nr = bl->nr;
         while (nr--) {
           if (min > bevp->vec[0]) {
