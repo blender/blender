@@ -3973,6 +3973,8 @@ int BKE_object_is_modified(Scene *scene, Object *ob)
  * but it's currently an acceptable tradeoff between complexity and check
  * speed. In combination with checks of modifier stack and real life usage
  * percentage of false-positives shouldn't be that high.
+ *
+ * NOTE: This function does not consider physics systems.
  */
 bool BKE_object_moves_in_time(const Object *object, bool recurse_parent)
 {
