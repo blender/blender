@@ -1691,7 +1691,6 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
   CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
   BKE_mesh_update_customdata_pointers(orig_me, true);
   DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY);
-  return;
 }
 
 void BKE_sculpt_update_object_for_edit(
