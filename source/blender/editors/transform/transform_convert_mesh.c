@@ -51,6 +51,8 @@
 /* Own include. */
 #include "transform_convert.h"
 
+#define USE_FACE_SUBSTITUTE
+
 /* -------------------------------------------------------------------- */
 /** \name Island Creation
  *
@@ -1020,6 +1022,77 @@ static void mesh_customdatacorrect_free_cb(struct TransInfo *UNUSED(t),
   custom_data->data = NULL;
 }
 
+#ifdef USE_FACE_SUBSTITUTE
+
+#  define FACE_SUBSTITUTE_INDEX INT_MIN
+
+/* Search for a neighboring face with area and preferably without selected vertex.
+ * Used to replace arealess faces in customdata correction. */
+static BMFace *mesh_customdatacorrect_find_best_face_substitute(BMFace *f)
+{
+  BMFace *best_face = NULL;
+  BMLoop *l;
+  BMIter liter;
+  BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+    BMLoop *l_radial_next = l->radial_next;
+    BMFace *f_test = l_radial_next->f;
+    if (f_test == f) {
+      continue;
+    }
+    if (is_zero_v3(f_test->no)) {
+      continue;
+    }
+
+    /* Check the loops edge isn't selected. */
+    if (!BM_elem_flag_test(l_radial_next->v, BM_ELEM_SELECT) &&
+        !BM_elem_flag_test(l_radial_next->next->v, BM_ELEM_SELECT)) {
+      /* Prefer edges with unselected vertices.
+       * Useful for extrude. */
+      best_face = f_test;
+      break;
+    }
+    if (best_face == NULL) {
+      best_face = f_test;
+    }
+  }
+  return best_face;
+}
+
+static void mesh_customdatacorrect_face_substitute_set(struct TransCustomDataLayer *tcld,
+                                                       BMFace *f,
+                                                       BMFace *f_copy)
+{
+  BLI_assert(is_zero_v3(f->no));
+  BMesh *bm = tcld->bm;
+  /* It is impossible to calculate the loops weights of a face without area.
+   * Find a substitute. */
+  BMFace *f_substitute = mesh_customdatacorrect_find_best_face_substitute(f);
+  if (f_substitute) {
+    /* Copy the custom-data from the substitute face. */
+    BMLoop *l_iter, *l_first;
+    l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+    do {
+      BM_loop_interp_from_face(bm, l_iter, f_substitute, false, false);
+    } while ((l_iter = l_iter->next) != l_first);
+
+    /* Use the substitute face as the reference during the transformation. */
+    BMFace *f_substitute_copy = BM_face_copy(tcld->bm_origfaces, bm, f_substitute, true, true);
+
+    /* Hack: reference substitute face in `f_copy->no`.
+     * `tcld->origfaces` is already used to restore the initial value. */
+    BM_elem_index_set(f_copy, FACE_SUBSTITUTE_INDEX);
+    *((BMFace **)&f_copy->no[0]) = f_substitute_copy;
+  }
+}
+
+static BMFace *mesh_customdatacorrect_face_substitute_get(BMFace *f_copy)
+{
+  BLI_assert(BM_elem_index_get(f_copy) == FACE_SUBSTITUTE_INDEX);
+  return *((BMFace **)&f_copy->no[0]);
+}
+
+#endif /* USE_FACE_SUBSTITUTE */
+
 static void mesh_customdatacorrect_init_vert(struct TransCustomDataLayer *tcld,
                                              BMVert *v,
                                              const int index)
@@ -1042,6 +1115,11 @@ static void mesh_customdatacorrect_init_vert(struct TransCustomDataLayer *tcld,
     if (!BLI_ghash_ensure_p(tcld->origfaces, l->f, &val_p)) {
       BMFace *f_copy = BM_face_copy(tcld->bm_origfaces, bm, l->f, true, true);
       *val_p = f_copy;
+#ifdef USE_FACE_SUBSTITUTE
+      if (is_zero_v3(l->f->no)) {
+        mesh_customdatacorrect_face_substitute_set(tcld, l->f, f_copy);
+      }
+#endif
     }
 
     if (tcld->use_merge_group) {
@@ -1255,6 +1333,14 @@ static void mesh_customdatacorrect_apply_vert(struct TransCustomDataLayer *tcld,
     BMLoop *l = BM_iter_step(&liter);
 
     f_copy = BLI_ghash_lookup(tcld->origfaces, l->f);
+
+#ifdef USE_FACE_SUBSTITUTE
+    /* In some faces it is not possible to calculate interpolation,
+     * so we use a substitute. */
+    if (BM_elem_index_get(f_copy) == FACE_SUBSTITUTE_INDEX) {
+      f_copy = mesh_customdatacorrect_face_substitute_get(f_copy);
+    }
+#endif
 
     /* only loop data, no vertex data since that contains shape keys,
      * and we do not want to mess up other shape keys */
