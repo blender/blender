@@ -84,7 +84,8 @@ void BKE_object_material_assign(
 void BKE_object_material_array_assign(struct Main *bmain,
                                       struct Object *ob,
                                       struct Material ***matar,
-                                      short totcol);
+                                      int totcol,
+                                      const bool to_object_only);
 
 short BKE_object_material_slot_find_index(struct Object *ob, struct Material *ma);
 bool BKE_object_material_slot_add(struct Main *bmain, struct Object *ob);

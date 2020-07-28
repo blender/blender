@@ -955,7 +955,8 @@ void BKE_object_material_remap_calc(Object *ob_dst, Object *ob_src, short *remap
 void BKE_object_material_array_assign(Main *bmain,
                                       struct Object *ob,
                                       struct Material ***matar,
-                                      short totcol)
+                                      int totcol,
+                                      const bool to_object_only)
 {
   int actcol_orig = ob->actcol;
   short i;
@@ -966,7 +967,15 @@ void BKE_object_material_array_assign(Main *bmain,
 
   /* now we have the right number of slots */
   for (i = 0; i < totcol; i++) {
-    BKE_object_material_assign(bmain, ob, (*matar)[i], i + 1, BKE_MAT_ASSIGN_USERPREF);
+    if (to_object_only && ob->matbits[i] == 0) {
+      /* If we only assign to object, and that slot uses obdata material, do nothing. */
+      continue;
+    }
+    BKE_object_material_assign(bmain,
+                               ob,
+                               (*matar)[i],
+                               i + 1,
+                               to_object_only ? BKE_MAT_ASSIGN_OBJECT : BKE_MAT_ASSIGN_USERPREF);
   }
 
   if (actcol_orig > ob->totcol) {
