@@ -76,6 +76,9 @@ struct BlenderCamera {
   int full_width;
   int full_height;
 
+  int render_width;
+  int render_height;
+
   BoundBox2D border;
   BoundBox2D pano_viewplane;
   BoundBox2D viewport_camera_border;
@@ -126,8 +129,10 @@ static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings &b_rende
   bcam->matrix = transform_identity();
 
   /* render resolution */
-  bcam->full_width = render_resolution_x(b_render);
-  bcam->full_height = render_resolution_y(b_render);
+  bcam->render_width = render_resolution_x(b_render);
+  bcam->render_height = render_resolution_y(b_render);
+  bcam->full_width = bcam->render_width;
+  bcam->full_height = bcam->render_height;
 }
 
 static float blender_camera_focal_distance(BL::RenderEngine &b_engine,
@@ -398,8 +403,8 @@ static void blender_camera_sync(Camera *cam,
 
   /* panorama sensor */
   if (bcam->type == CAMERA_PANORAMA && bcam->panorama_type == PANORAMA_FISHEYE_EQUISOLID) {
-    float fit_xratio = (float)bcam->full_width * bcam->pixelaspect.x;
-    float fit_yratio = (float)bcam->full_height * bcam->pixelaspect.y;
+    float fit_xratio = (float)bcam->render_width * bcam->pixelaspect.x;
+    float fit_yratio = (float)bcam->render_height * bcam->pixelaspect.y;
     bool horizontal_fit;
     float sensor_size;
 
