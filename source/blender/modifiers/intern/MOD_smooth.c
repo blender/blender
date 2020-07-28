@@ -147,7 +147,7 @@ static void smoothModifier_do(
       MDeformVert *dv = dvert;
       for (int i = 0; i < numVerts; i++, dv++) {
         float *vco_orig = vertexCos[i];
-        if (num_accumulated_vecs[0] > 0) {
+        if (num_accumulated_vecs[i] > 0) {
           mul_v3_fl(accumulated_vecs[i], 1.0f / (float)num_accumulated_vecs[i]);
         }
         float *vco_new = accumulated_vecs[i];
@@ -174,7 +174,7 @@ static void smoothModifier_do(
     else { /* no vertex group */
       for (int i = 0; i < numVerts; i++) {
         float *vco_orig = vertexCos[i];
-        if (num_accumulated_vecs[0] > 0) {
+        if (num_accumulated_vecs[i] > 0) {
           mul_v3_fl(accumulated_vecs[i], 1.0f / (float)num_accumulated_vecs[i]);
         }
         float *vco_new = accumulated_vecs[i];
