@@ -465,17 +465,27 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = ED_object_context(C);
-  Material ***matar;
+  Material ***matar_obdata;
 
-  if (!ob || !(matar = BKE_object_material_array_p(ob))) {
+  if (!ob || !(matar_obdata = BKE_object_material_array_p(ob))) {
     return OPERATOR_CANCELLED;
+  }
+
+  BLI_assert(ob->totcol == *BKE_object_material_len_p(ob));
+
+  Material ***matar_object = &ob->mat;
+
+  Material **matar = MEM_callocN(sizeof(*matar) * (size_t)ob->totcol, __func__);
+  for (int i = ob->totcol; i--;) {
+    matar[i] = ob->matbits[i] ? (*matar_object)[i] : (*matar_obdata)[i];
   }
 
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
     if (ob != ob_iter && BKE_object_material_array_p(ob_iter)) {
-      if (ob->data != ob_iter->data) {
-        BKE_object_material_array_assign(bmain, ob_iter, matar, ob->totcol);
-      }
+      /* If we are using the same obdata, we only assign slots in ob_iter that are using object
+       * materials, and not obdata ones. */
+      const bool is_same_obdata = ob->data == ob_iter->data;
+      BKE_object_material_array_assign(bmain, ob_iter, &matar, ob->totcol, is_same_obdata);
 
       if (ob_iter->totcol == ob->totcol) {
         ob_iter->actcol = ob->actcol;
@@ -485,6 +495,8 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
   CTX_DATA_END;
+
+  MEM_freeN(matar);
 
   return OPERATOR_FINISHED;
 }
