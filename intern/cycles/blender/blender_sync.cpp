@@ -697,6 +697,16 @@ vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay,
   }
   RNA_END;
 
+  scene->film->denoising_data_pass = denoising.use || denoising.store_passes;
+  scene->film->denoising_clean_pass = (scene->film->denoising_flags & DENOISING_CLEAN_ALL_PASSES);
+  scene->film->denoising_prefiltered_pass = denoising.store_passes &&
+                                            denoising.type == DENOISER_NLM;
+
+  scene->film->pass_alpha_threshold = b_view_layer.pass_alpha_threshold();
+  scene->film->tag_passes_update(scene, passes);
+  scene->film->tag_update(scene);
+  scene->integrator->tag_update(scene);
+
   return passes;
 }
 
