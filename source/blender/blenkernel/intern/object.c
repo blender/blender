@@ -3972,7 +3972,7 @@ int BKE_object_is_modified(Scene *scene, Object *ob)
  * This makes it possible to give some degree of false-positives here,
  * but it's currently an acceptable tradeoff between complexity and check
  * speed. In combination with checks of modifier stack and real life usage
- * percentage of false-positives shouldn't be that height.
+ * percentage of false-positives shouldn't be that high.
  */
 bool BKE_object_moves_in_time(const Object *object, bool recurse_parent)
 {
