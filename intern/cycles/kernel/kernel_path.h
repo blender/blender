@@ -665,11 +665,9 @@ ccl_device void kernel_path_trace(
 
   kernel_path_trace_setup(kg, sample, x, y, &rng_hash, &ray);
 
-#  ifndef __KERNEL_OPTIX__
   if (ray.t == 0.0f) {
     return;
   }
-#  endif
 
   /* Initialize state. */
   float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
