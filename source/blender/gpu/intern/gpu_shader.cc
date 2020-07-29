@@ -44,7 +44,7 @@
 
 #include "gpu_shader_private.h"
 
-extern char datatoc_gpu_shader_colorspace_lib_glsl[];
+extern "C" char datatoc_gpu_shader_colorspace_lib_glsl[];
 
 /* Adjust these constants as needed. */
 #define MAX_DEFINE_LENGTH 256
