@@ -475,7 +475,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_id_pointer_set(result, &obpose->id);
     }
     return 1;
-    return -1; /* found but not available */
   }
   if (CTX_data_equals(member, "sequences")) {
     Editing *ed = BKE_sequencer_editing_get(scene, false);
