@@ -126,7 +126,8 @@ static void cloth_brush_reallocate_constraints(SculptClothSimulation *cloth_sim)
 static void cloth_brush_add_length_constraint(SculptSession *ss,
                                               SculptClothSimulation *cloth_sim,
                                               const int v1,
-                                              const int v2)
+                                              const int v2,
+                                              const bool use_persistent)
 {
   SculptClothLengthConstraint *length_constraint =
       &cloth_sim->length_constraints[cloth_sim->tot_length_constraints];
@@ -137,7 +138,14 @@ static void cloth_brush_add_length_constraint(SculptSession *ss,
   length_constraint->elem_position_a = cloth_sim->pos[v1];
   length_constraint->elem_position_b = cloth_sim->pos[v2];
 
-  length_constraint->length = len_v3v3(SCULPT_vertex_co_get(ss, v1), SCULPT_vertex_co_get(ss, v2));
+  if (use_persistent) {
+    length_constraint->length = len_v3v3(SCULPT_vertex_persistent_co_get(ss, v1),
+                                         SCULPT_vertex_persistent_co_get(ss, v2));
+  }
+  else {
+    length_constraint->length = len_v3v3(SCULPT_vertex_co_get(ss, v1),
+                                         SCULPT_vertex_co_get(ss, v2));
+  }
   length_constraint->strength = 1.0f;
 
   cloth_sim->tot_length_constraints++;
@@ -180,6 +188,8 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
 
   PBVHVertexIter vd;
 
+  const bool use_persistent = brush != NULL && brush->flag & BRUSH_PERSISTENT;
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     if (len_squared_v3v3(vd.co, data->cloth_sim_initial_location) <
@@ -211,7 +221,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
           if (c_i != c_j && !cloth_brush_sim_has_length_constraint(
                                 data->cloth_sim, build_indices[c_i], build_indices[c_j])) {
             cloth_brush_add_length_constraint(
-                ss, data->cloth_sim, build_indices[c_i], build_indices[c_j]);
+                ss, data->cloth_sim, build_indices[c_i], build_indices[c_j], use_persistent);
           }
         }
       }

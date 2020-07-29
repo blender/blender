@@ -365,7 +365,7 @@ static bool rna_BrushCapabilities_has_overlay_get(PointerRNA *ptr)
 static bool rna_BrushCapabilitiesSculpt_has_persistence_get(PointerRNA *ptr)
 {
   Brush *br = (Brush *)ptr->data;
-  return br->sculpt_tool == SCULPT_TOOL_LAYER;
+  return ELEM(br->sculpt_tool, SCULPT_TOOL_LAYER, SCULPT_TOOL_CLOTH);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_pinch_factor_get(PointerRNA *ptr)

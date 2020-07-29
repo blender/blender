@@ -98,6 +98,9 @@ void SCULPT_vertex_normal_get(SculptSession *ss, int index, float no[3]);
 float SCULPT_vertex_mask_get(struct SculptSession *ss, int index);
 const float *SCULPT_vertex_color_get(SculptSession *ss, int index);
 
+const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, int index);
+void SCULPT_vertex_persistent_normal_get(SculptSession *ss, int index, float no[3]);
+
 #define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 256
 typedef struct SculptVertexNeighborIter {
   /* Storage */
