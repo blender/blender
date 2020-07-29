@@ -2824,6 +2824,12 @@ static void rna_def_brush(BlenderRNA *brna)
       "create a softer transitionwith with unnafected areas");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "use_cloth_collisions", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_CLOTH_USE_COLLISIONS);
+  RNA_def_property_ui_text(
+      prop, "Enable Collisions", "Collide with objects during the simulation");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "invert_to_scrape_fill", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_INVERT_TO_SCRAPE_FILL);
   RNA_def_property_ui_text(prop,

@@ -43,7 +43,9 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_brush.h"
+#include "BKE_bvhutils.h"
 #include "BKE_ccg.h"
+#include "BKE_collision.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
@@ -69,6 +71,7 @@
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "WM_api.h"
 #include "WM_message.h"
@@ -468,10 +471,36 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
+static ListBase *cloth_brush_collider_cache_create(Depsgraph *depsgraph)
+{
+  ListBase *cache = NULL;
+  DEG_OBJECT_ITER_BEGIN (depsgraph,
+                         ob,
+                         DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                             DEG_ITER_OBJECT_FLAG_DUPLI) {
+    CollisionModifierData *cmd = (CollisionModifierData *)BKE_modifiers_findby_type(
+        ob, eModifierType_Collision);
+    if (cmd && cmd->bvhtree) {
+      if (cache == NULL) {
+        cache = MEM_callocN(sizeof(ListBase), "ColliderCache array");
+      }
+
+      ColliderCache *col = MEM_callocN(sizeof(ColliderCache), "ColliderCache");
+      col->ob = ob;
+      col->collmd = cmd;
+      collision_move_object(cmd, 1.0, 0.0, true);
+      BLI_addtail(cache, col);
+    }
+  }
+  DEG_OBJECT_ITER_END;
+  return cache;
+}
+
 static SculptClothSimulation *cloth_brush_simulation_create(SculptSession *ss,
                                                             Brush *brush,
                                                             const float cloth_mass,
-                                                            const float cloth_damping)
+                                                            const float cloth_damping,
+                                                            const bool use_collisions)
 {
   const int totverts = SCULPT_vertex_count_get(ss);
   SculptClothSimulation *cloth_sim;
@@ -487,6 +516,8 @@ static SculptClothSimulation *cloth_brush_simulation_create(SculptSession *ss,
       totverts, 3 * sizeof(float), "cloth sim acceleration");
   cloth_sim->pos = MEM_calloc_arrayN(totverts, 3 * sizeof(float), "cloth sim pos");
   cloth_sim->prev_pos = MEM_calloc_arrayN(totverts, 3 * sizeof(float), "cloth sim prev pos");
+  cloth_sim->last_iteration_pos = MEM_calloc_arrayN(
+      totverts, sizeof(float) * 3, "cloth sim last iteration pos");
   cloth_sim->init_pos = MEM_calloc_arrayN(totverts, 3 * sizeof(float), "cloth sim init pos");
   cloth_sim->length_constraint_tweak = MEM_calloc_arrayN(
       totverts, sizeof(float), "cloth sim length tweak");
@@ -501,7 +532,108 @@ static SculptClothSimulation *cloth_brush_simulation_create(SculptSession *ss,
   cloth_sim->mass = cloth_mass;
   cloth_sim->damping = cloth_damping;
 
+  if (use_collisions) {
+    cloth_sim->collider_list = cloth_brush_collider_cache_create(ss->depsgraph);
+  }
+
   return cloth_sim;
+}
+
+typedef struct ClothBrushCollision {
+  CollisionModifierData *col_data;
+  struct IsectRayPrecalc isect_precalc;
+} ClothBrushCollision;
+
+static void cloth_brush_collision_cb(void *userdata,
+                                     int index,
+                                     const BVHTreeRay *ray,
+                                     BVHTreeRayHit *hit)
+{
+  ClothBrushCollision *col = (ClothBrushCollision *)userdata;
+  CollisionModifierData *col_data = col->col_data;
+  MVertTri *verttri = &col_data->tri[index];
+  MVert *mverts = col_data->x;
+  float *tri[3], no[3], co[3];
+
+  tri[0] = mverts[verttri->tri[0]].co;
+  tri[1] = mverts[verttri->tri[1]].co;
+  tri[2] = mverts[verttri->tri[2]].co;
+  float dist = 0.0f;
+
+  bool tri_hit = isect_ray_tri_watertight_v3(
+      ray->origin, &col->isect_precalc, UNPACK3(tri), &dist, NULL);
+  normal_tri_v3(no, UNPACK3(tri));
+  madd_v3_v3v3fl(co, ray->origin, ray->direction, dist);
+
+  if (tri_hit && dist < hit->dist) {
+    hit->index = index;
+    hit->dist = dist;
+
+    copy_v3_v3(hit->co, co);
+    copy_v3_v3(hit->no, no);
+  }
+}
+
+static void cloth_brush_solve_collision(Object *object,
+                                        SculptClothSimulation *cloth_sim,
+                                        const int i)
+{
+  const int raycast_flag = BVH_RAYCAST_DEFAULT & ~(BVH_RAYCAST_WATERTIGHT);
+
+  ColliderCache *collider_cache;
+  BVHTreeRayHit hit;
+
+  float obmat_inv[4][4];
+  invert_m4_m4(obmat_inv, object->obmat);
+
+  for (collider_cache = cloth_sim->collider_list->first; collider_cache;
+       collider_cache = collider_cache->next) {
+    float ray_start[3], ray_normal[3];
+    float pos_world_space[3], prev_pos_world_space[3];
+
+    mul_v3_m4v3(pos_world_space, object->obmat, cloth_sim->pos[i]);
+    mul_v3_m4v3(prev_pos_world_space, object->obmat, cloth_sim->last_iteration_pos[i]);
+    sub_v3_v3v3(ray_normal, pos_world_space, prev_pos_world_space);
+    copy_v3_v3(ray_start, prev_pos_world_space);
+    hit.index = -1;
+    hit.dist = len_v3(ray_normal);
+    normalize_v3(ray_normal);
+
+    ClothBrushCollision col;
+    CollisionModifierData *collmd = collider_cache->collmd;
+    col.col_data = collmd;
+    isect_ray_tri_watertight_v3_precalc(&col.isect_precalc, ray_normal);
+
+    BLI_bvhtree_ray_cast_ex(collmd->bvhtree,
+                            ray_start,
+                            ray_normal,
+                            0.3f,
+                            &hit,
+                            cloth_brush_collision_cb,
+                            &col,
+                            raycast_flag);
+
+    if (hit.index != -1) {
+
+      float collision_disp[3];
+      float movement_disp[3];
+      mul_v3_v3fl(collision_disp, hit.no, 0.005f);
+      sub_v3_v3v3(movement_disp, pos_world_space, prev_pos_world_space);
+      float friction_plane[4];
+      float pos_on_friction_plane[3];
+      plane_from_point_normal_v3(friction_plane, hit.co, hit.no);
+      closest_to_plane_v3(pos_on_friction_plane, friction_plane, pos_world_space);
+      sub_v3_v3v3(movement_disp, pos_on_friction_plane, hit.co);
+
+      /* TODO(pablodp606): This can be exposed in a brush/filter property as friction. */
+      mul_v3_fl(movement_disp, 0.35f);
+
+      copy_v3_v3(cloth_sim->pos[i], hit.co);
+      add_v3_v3(cloth_sim->pos[i], movement_disp);
+      add_v3_v3(cloth_sim->pos[i], collision_disp);
+      mul_v3_m4v3(cloth_sim->pos[i], obmat_inv, cloth_sim->pos[i]);
+    }
+  }
 }
 
 static void do_cloth_brush_solve_simulation_task_cb_ex(
@@ -534,14 +666,22 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
 
       const float mask_v = (1.0f - (vd.mask ? *vd.mask : 0.0f)) *
                            SCULPT_automasking_factor_get(ss, vd.index);
+
       madd_v3_v3fl(cloth_sim->pos[i], pos_diff, mask_v);
       madd_v3_v3fl(cloth_sim->pos[i], cloth_sim->acceleration[i], mask_v);
 
-      copy_v3_v3(cloth_sim->prev_pos[i], temp);
+      if (cloth_sim->collider_list != NULL) {
+        cloth_brush_solve_collision(data->ob, cloth_sim, i);
+      }
 
+      copy_v3_v3(cloth_sim->last_iteration_pos[i], cloth_sim->pos[i]);
+
+      copy_v3_v3(cloth_sim->prev_pos[i], temp);
+      copy_v3_v3(cloth_sim->last_iteration_pos[i], cloth_sim->pos[i]);
       copy_v3_fl(cloth_sim->acceleration[i], 0.0f);
 
       copy_v3_v3(vd.co, cloth_sim->pos[vd.index]);
+
       if (vd.mvert) {
         vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
       }
@@ -765,14 +905,13 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
     /* The simulation structure only needs to be created on the first symmetry pass. */
     if (SCULPT_stroke_is_first_brush_step(ss->cache) || !ss->cache->cloth_sim) {
-      ss->cache->cloth_sim = cloth_brush_simulation_create(
-          ss, brush, brush->cloth_mass, brush->cloth_damping);
-
       const bool is_cloth_deform_brush = SCULPT_is_cloth_deform_brush(brush);
-
+      ss->cache->cloth_sim = cloth_brush_simulation_create(
+          ss, brush, brush->cloth_mass, brush->cloth_damping, brush->flag2 & BRUSH_CLOTH_USE_COLLISIONS);
       for (int i = 0; i < totverts; i++) {
-        copy_v3_v3(ss->cache->cloth_sim->prev_pos[i], SCULPT_vertex_co_get(ss, i));
+        copy_v3_v3(ss->cache->cloth_sim->last_iteration_pos[i], SCULPT_vertex_co_get(ss, i));
         copy_v3_v3(ss->cache->cloth_sim->init_pos[i], SCULPT_vertex_co_get(ss, i));
+        copy_v3_v3(ss->cache->cloth_sim->prev_pos[i], SCULPT_vertex_co_get(ss, i));
         if (is_cloth_deform_brush) {
           copy_v3_v3(ss->cache->cloth_sim->deformation_pos[i], SCULPT_vertex_co_get(ss, i));
         }
@@ -803,12 +942,16 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 void SCULPT_cloth_simulation_free(struct SculptClothSimulation *cloth_sim)
 {
   MEM_SAFE_FREE(cloth_sim->pos);
+  MEM_SAFE_FREE(cloth_sim->last_iteration_pos);
   MEM_SAFE_FREE(cloth_sim->prev_pos);
   MEM_SAFE_FREE(cloth_sim->acceleration);
   MEM_SAFE_FREE(cloth_sim->length_constraints);
   MEM_SAFE_FREE(cloth_sim->length_constraint_tweak);
   MEM_SAFE_FREE(cloth_sim->deformation_pos);
   MEM_SAFE_FREE(cloth_sim->init_pos);
+  if (cloth_sim->collider_list) {
+    BKE_collider_cache_free(&cloth_sim->collider_list);
+  }
   MEM_SAFE_FREE(cloth_sim);
 }
 
@@ -985,6 +1128,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   const int totverts = SCULPT_vertex_count_get(ss);
+
   for (int i = 0; i < totverts; i++) {
     copy_v3_v3(ss->filter_cache->cloth_sim->pos[i], SCULPT_vertex_co_get(ss, i));
   }
@@ -1016,7 +1160,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
 static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
 
@@ -1037,11 +1181,14 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
 
   const float cloth_mass = RNA_float_get(op->ptr, "cloth_mass");
   const float cloth_damping = RNA_float_get(op->ptr, "cloth_damping");
-  ss->filter_cache->cloth_sim = cloth_brush_simulation_create(ss, NULL, cloth_mass, cloth_damping);
+  const bool use_collisions = RNA_boolean_get(op->ptr, "use_collisions");
+  ss->filter_cache->cloth_sim = cloth_brush_simulation_create(ss, NULL, cloth_mass, cloth_damping, use_collisions);
+
   copy_v3_v3(ss->filter_cache->cloth_sim_pinch_point, SCULPT_active_vertex_co_get(ss));
 
   const int totverts = SCULPT_vertex_count_get(ss);
   for (int i = 0; i < totverts; i++) {
+    copy_v3_v3(ss->filter_cache->cloth_sim->last_iteration_pos[i], SCULPT_vertex_co_get(ss, i));
     copy_v3_v3(ss->filter_cache->cloth_sim->prev_pos[i], SCULPT_vertex_co_get(ss, i));
     copy_v3_v3(ss->filter_cache->cloth_sim->init_pos[i], SCULPT_vertex_co_get(ss, i));
   }
@@ -1113,4 +1260,9 @@ void SCULPT_OT_cloth_filter(struct wmOperatorType *ot)
                              false,
                              "Use Face Sets",
                              "Apply the filter only to the Face Set under the cursor");
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "use_collisions",
+                             false,
+                             "Use Collisions",
+                             "Collide with other collider objects in the scene");
 }

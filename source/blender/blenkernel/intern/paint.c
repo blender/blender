@@ -1493,6 +1493,8 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
   const bool use_face_sets = (ob->mode & OB_MODE_SCULPT) != 0;
 
+  ss->depsgraph = depsgraph;
+
   ss->deform_modifiers_active = sculpt_modifiers_active(scene, sd, ob);
   ss->show_mask = (sd->flags & SCULPT_HIDE_MASK) == 0;
   ss->show_face_sets = (sd->flags & SCULPT_HIDE_FACE_SETS) == 0;
