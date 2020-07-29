@@ -1440,8 +1440,6 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
               mesh->medge, mesh->totedge, mesh->mvert, verts_len, &loose_vert_len);
         }
 
-        /* TODO: a global mutex lock held during the expensive operation of
-         * building the BVH tree is really bad for performance. */
         tree = bvhtree_from_mesh_verts_ex(data,
                                           mesh->mvert,
                                           verts_len,
