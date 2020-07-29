@@ -43,8 +43,6 @@
 /** \name Mesh Runtime Struct Utils
  * \{ */
 
-static ThreadRWMutex loops_cache_lock = PTHREAD_RWLOCK_INITIALIZER;
-
 /**
  * Default values defined at read time.
  */
@@ -159,23 +157,21 @@ const MLoopTri *BKE_mesh_runtime_looptri_ensure(Mesh *mesh)
 {
   MLoopTri *looptri;
 
-  BLI_rw_mutex_lock(&loops_cache_lock, THREAD_LOCK_READ);
+  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)mesh->runtime.eval_mutex;
+  BLI_mutex_lock(mesh_eval_mutex);
+
   looptri = mesh->runtime.looptris.array;
-  BLI_rw_mutex_unlock(&loops_cache_lock);
 
   if (looptri != NULL) {
     BLI_assert(BKE_mesh_runtime_looptri_len(mesh) == mesh->runtime.looptris.len);
   }
   else {
-    BLI_rw_mutex_lock(&loops_cache_lock, THREAD_LOCK_WRITE);
-    /* We need to ensure array is still NULL inside mutex-protected code,
-     * some other thread might have already recomputed those looptris. */
-    if (mesh->runtime.looptris.array == NULL) {
-      BKE_mesh_runtime_looptri_recalc(mesh);
-    }
+    BKE_mesh_runtime_looptri_recalc(mesh);
     looptri = mesh->runtime.looptris.array;
-    BLI_rw_mutex_unlock(&loops_cache_lock);
   }
+
+  BLI_mutex_unlock(mesh_eval_mutex);
+
   return looptri;
 }
 
