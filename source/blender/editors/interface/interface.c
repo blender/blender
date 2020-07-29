@@ -1486,7 +1486,7 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
           continue;
         }
       }
-      else if (but->dt != UI_EMBOSS_PULLDOWN) {
+      else if (but->emboss != UI_EMBOSS_PULLDOWN) {
         continue;
       }
 
@@ -3354,7 +3354,7 @@ void UI_block_region_set(uiBlock *block, ARegion *region)
   block->oldblock = oldblock;
 }
 
-uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, short dt)
+uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, char emboss)
 {
   uiBlock *block;
   wmWindow *window;
@@ -3365,7 +3365,7 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, sh
 
   block = MEM_callocN(sizeof(uiBlock), "uiBlock");
   block->active = 1;
-  block->dt = dt;
+  block->emboss = emboss;
   block->evil_C = (void *)C; /* XXX */
 
   if (scn) {
@@ -3404,12 +3404,12 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, sh
 
 char UI_block_emboss_get(uiBlock *block)
 {
-  return block->dt;
+  return block->emboss;
 }
 
-void UI_block_emboss_set(uiBlock *block, char dt)
+void UI_block_emboss_set(uiBlock *block, char emboss)
 {
-  block->dt = dt;
+  block->emboss = emboss;
 }
 
 void UI_block_theme_style_set(uiBlock *block, char theme_style)
@@ -3789,7 +3789,7 @@ static uiBut *ui_def_but(uiBlock *block,
   but->tip = tip;
 
   but->disabled_info = block->lockstr;
-  but->dt = block->dt;
+  but->emboss = block->emboss;
   but->pie_dir = UI_RADIAL_NONE;
 
   but->block = block; /* pointer back, used for frontbuffer status, and picker */
@@ -4322,7 +4322,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
   }
 
   if (type == UI_BTYPE_MENU) {
-    if (but->dt == UI_EMBOSS_PULLDOWN) {
+    if (but->emboss == UI_EMBOSS_PULLDOWN) {
       ui_but_submenu_enable(block, but);
     }
   }

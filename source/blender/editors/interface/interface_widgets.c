@@ -1356,7 +1356,7 @@ static void widget_draw_preview(BIFIconID icon, float alpha, const rcti *rect)
 
 static int ui_but_draw_menu_icon(const uiBut *but)
 {
-  return (but->flag & UI_BUT_ICON_SUBMENU) && (but->dt == UI_EMBOSS_PULLDOWN);
+  return (but->flag & UI_BUT_ICON_SUBMENU) && (but->emboss == UI_EMBOSS_PULLDOWN);
 }
 
 /* icons have been standardized... and this call draws in untransformed coordinates */
@@ -1417,7 +1417,7 @@ static void widget_draw_icon(
           but->str && but->str[0] == '\0') {
         xs = rect->xmin + 2.0f * ofs;
       }
-      else if (but->dt == UI_EMBOSS_NONE || but->type == UI_BTYPE_LABEL) {
+      else if (but->emboss == UI_EMBOSS_NONE || but->type == UI_BTYPE_LABEL) {
         xs = rect->xmin + 2.0f * ofs;
       }
       else {
@@ -2375,7 +2375,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
       /* pass (even if its a menu toolbar) */
     }
     else if (ui_block_is_pie_menu(but->block)) {
-      if (but->dt == UI_EMBOSS_RADIAL) {
+      if (but->emboss == UI_EMBOSS_RADIAL) {
         rect->xmin += 0.3f * U.widget_unit;
       }
     }
@@ -4501,7 +4501,7 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
   uiWidgetType *wt = NULL;
 
   /* handle menus separately */
-  if (but->dt == UI_EMBOSS_PULLDOWN) {
+  if (but->emboss == UI_EMBOSS_PULLDOWN) {
     switch (but->type) {
       case UI_BTYPE_LABEL:
         widget_draw_text_icon(&style->widgetlabel, &tui->wcol_menu_back, but, rect);
@@ -4514,7 +4514,7 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
         break;
     }
   }
-  else if (but->dt == UI_EMBOSS_NONE) {
+  else if (but->emboss == UI_EMBOSS_NONE) {
     /* "nothing" */
     switch (but->type) {
       case UI_BTYPE_LABEL:
@@ -4525,11 +4525,11 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
         break;
     }
   }
-  else if (but->dt == UI_EMBOSS_RADIAL) {
+  else if (but->emboss == UI_EMBOSS_RADIAL) {
     wt = widget_type(UI_WTYPE_MENU_ITEM_RADIAL);
   }
   else {
-    BLI_assert(but->dt == UI_EMBOSS);
+    BLI_assert(but->emboss == UI_EMBOSS);
 
     switch (but->type) {
       case UI_BTYPE_LABEL:
@@ -4778,7 +4778,7 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
     }
 
     if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
-      if (but->dt != UI_EMBOSS_PULLDOWN) {
+      if (but->emboss != UI_EMBOSS_PULLDOWN) {
         disabled = true;
       }
     }

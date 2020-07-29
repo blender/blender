@@ -674,7 +674,7 @@ static void ui_item_array(uiLayout *layout,
 
       /* show checkboxes for rna on a non-emboss block (menu for eg) */
       if (type == PROP_BOOLEAN &&
-          ELEM(layout->root->block->dt, UI_EMBOSS_NONE, UI_EMBOSS_PULLDOWN)) {
+          ELEM(layout->root->block->emboss, UI_EMBOSS_NONE, UI_EMBOSS_PULLDOWN)) {
         boolarr = MEM_callocN(sizeof(bool) * len, __func__);
         RNA_property_boolean_get_array(ptr, prop, boolarr);
       }
@@ -2330,7 +2330,7 @@ void uiItemFullR(uiLayout *layout,
 
   /* Mark non-embossed textfields inside a listbox. */
   if (but && (block->flag & UI_BLOCK_LIST_ITEM) && (but->type == UI_BTYPE_TEXT) &&
-      (but->dt & UI_EMBOSS_NONE)) {
+      (but->emboss & UI_EMBOSS_NONE)) {
     UI_but_flag_enable(but, UI_BUT_LIST_ITEM);
   }
 
@@ -3828,7 +3828,7 @@ static void ui_litem_layout_radial(uiLayout *litem)
         bitem->but->rect.xmax += 1.5f * UI_UNIT_X;
         /* enable drawing as pie item if supported by widget */
         if (ui_item_is_radial_drawable(bitem)) {
-          bitem->but->dt = UI_EMBOSS_RADIAL;
+          bitem->but->emboss = UI_EMBOSS_RADIAL;
           bitem->but->drawflag |= UI_BUT_ICON_LEFT;
         }
       }
@@ -5036,7 +5036,7 @@ float uiLayoutGetUnitsY(uiLayout *layout)
 int uiLayoutGetEmboss(uiLayout *layout)
 {
   if (layout->emboss == UI_EMBOSS_UNDEFINED) {
-    return layout->root->block->dt;
+    return layout->root->block->emboss;
   }
   return layout->emboss;
 }
@@ -5411,7 +5411,7 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
   }
 
   if (layout->emboss != UI_EMBOSS_UNDEFINED) {
-    but->dt = layout->emboss;
+    but->emboss = layout->emboss;
   }
 }
 
