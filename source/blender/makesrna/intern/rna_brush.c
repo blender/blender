@@ -2568,6 +2568,15 @@ static void rna_def_brush(BlenderRNA *brna)
                            "Area to apply deformation falloff to the effects of the simulation");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "cloth_constraint_softbody_strength", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "cloth_constraint_softbody_strength");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_text(
+      prop,
+      "Soft Body Influence",
+      "How much the simulation preserves the original shape, acting as a soft body");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "hardness", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "hardness");
   RNA_def_property_range(prop, 0.0f, 1.0f);

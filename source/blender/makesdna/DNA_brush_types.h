@@ -508,7 +508,7 @@ typedef struct Brush {
   /** Source for fill tool color gradient application. */
   char gradient_fill_mode;
 
-  char _pad0[1];
+  char _pad0[5];
 
   /** Projection shape (sphere, circle). */
   char falloff_shape;
@@ -579,6 +579,8 @@ typedef struct Brush {
 
   float cloth_sim_limit;
   float cloth_sim_falloff;
+
+  float cloth_constraint_softbody_strength;
 
   /* smooth */
   int smooth_deform_type;

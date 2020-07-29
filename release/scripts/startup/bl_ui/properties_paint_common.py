@@ -662,6 +662,7 @@ def brush_settings(layout, context, brush, popover=False):
             layout.separator()
             layout.prop(brush, "cloth_mass")
             layout.prop(brush, "cloth_damping")
+            layout.prop(brush, "cloth_constraint_softbody_strength")
             layout.separator()
 
         elif sculpt_tool == 'SCRAPE':
