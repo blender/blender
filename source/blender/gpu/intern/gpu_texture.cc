@@ -81,6 +81,8 @@ typedef enum eGPUTextureFormatFlag {
   GPU_FORMAT_ARRAY = (1 << 14),
 } eGPUTextureFormatFlag;
 
+ENUM_OPERATORS(eGPUTextureFormatFlag)
+
 /* GPUTexture */
 struct GPUTexture {
   int w, h, d;        /* width/height/depth */
@@ -113,7 +115,7 @@ static void gpu_texture_framebuffer_ensure(GPUTexture *tex);
 /* ------ Memory Management ------- */
 /* Records every texture allocation / free
  * to estimate the Texture Pool Memory consumption */
-static uint memory_usage;
+static uint memory_usage = 0;
 
 static uint gpu_texture_memory_footprint_compute(GPUTexture *tex)
 {
@@ -171,54 +173,58 @@ uint GPU_texture_memory_usage_get(void)
 
 static const char *gl_enum_to_str(GLenum e)
 {
-#define ENUM_TO_STRING(e) [GL_##e] = STRINGIFY_ARG(e)
-  static const char *enum_strings[] = {
-      ENUM_TO_STRING(TEXTURE_CUBE_MAP),
-      ENUM_TO_STRING(TEXTURE_CUBE_MAP_ARRAY),
-      ENUM_TO_STRING(TEXTURE_2D),
-      ENUM_TO_STRING(TEXTURE_2D_ARRAY),
-      ENUM_TO_STRING(TEXTURE_1D),
-      ENUM_TO_STRING(TEXTURE_1D_ARRAY),
-      ENUM_TO_STRING(TEXTURE_3D),
-      ENUM_TO_STRING(TEXTURE_2D_MULTISAMPLE),
-      ENUM_TO_STRING(RGBA32F),
-      ENUM_TO_STRING(RGBA16F),
-      ENUM_TO_STRING(RGBA16UI),
-      ENUM_TO_STRING(RGBA16I),
-      ENUM_TO_STRING(RGBA16),
-      ENUM_TO_STRING(RGBA8UI),
-      ENUM_TO_STRING(RGBA8I),
-      ENUM_TO_STRING(RGBA8),
-      ENUM_TO_STRING(RGB16F),
-      ENUM_TO_STRING(RG32F),
-      ENUM_TO_STRING(RG16F),
-      ENUM_TO_STRING(RG16UI),
-      ENUM_TO_STRING(RG16I),
-      ENUM_TO_STRING(RG16),
-      ENUM_TO_STRING(RG8UI),
-      ENUM_TO_STRING(RG8I),
-      ENUM_TO_STRING(RG8),
-      ENUM_TO_STRING(R8UI),
-      ENUM_TO_STRING(R8I),
-      ENUM_TO_STRING(R8),
-      ENUM_TO_STRING(R32F),
-      ENUM_TO_STRING(R32UI),
-      ENUM_TO_STRING(R32I),
-      ENUM_TO_STRING(R16F),
-      ENUM_TO_STRING(R16UI),
-      ENUM_TO_STRING(R16I),
-      ENUM_TO_STRING(R16),
-      ENUM_TO_STRING(R11F_G11F_B10F),
-      ENUM_TO_STRING(SRGB8_ALPHA8),
-      ENUM_TO_STRING(DEPTH24_STENCIL8),
-      ENUM_TO_STRING(DEPTH32F_STENCIL8),
-      ENUM_TO_STRING(DEPTH_COMPONENT32F),
-      ENUM_TO_STRING(DEPTH_COMPONENT24),
-      ENUM_TO_STRING(DEPTH_COMPONENT16),
+#define ENUM_TO_STRING(e) \
+  case GL_##e: { \
+    return STRINGIFY_ARG(e); \
+  }
+
+  switch (e) {
+    ENUM_TO_STRING(TEXTURE_CUBE_MAP);
+    ENUM_TO_STRING(TEXTURE_CUBE_MAP_ARRAY);
+    ENUM_TO_STRING(TEXTURE_2D);
+    ENUM_TO_STRING(TEXTURE_2D_ARRAY);
+    ENUM_TO_STRING(TEXTURE_1D);
+    ENUM_TO_STRING(TEXTURE_1D_ARRAY);
+    ENUM_TO_STRING(TEXTURE_3D);
+    ENUM_TO_STRING(TEXTURE_2D_MULTISAMPLE);
+    ENUM_TO_STRING(RGBA32F);
+    ENUM_TO_STRING(RGBA16F);
+    ENUM_TO_STRING(RGBA16UI);
+    ENUM_TO_STRING(RGBA16I);
+    ENUM_TO_STRING(RGBA16);
+    ENUM_TO_STRING(RGBA8UI);
+    ENUM_TO_STRING(RGBA8I);
+    ENUM_TO_STRING(RGBA8);
+    ENUM_TO_STRING(RGB16F);
+    ENUM_TO_STRING(RG32F);
+    ENUM_TO_STRING(RG16F);
+    ENUM_TO_STRING(RG16UI);
+    ENUM_TO_STRING(RG16I);
+    ENUM_TO_STRING(RG16);
+    ENUM_TO_STRING(RG8UI);
+    ENUM_TO_STRING(RG8I);
+    ENUM_TO_STRING(RG8);
+    ENUM_TO_STRING(R8UI);
+    ENUM_TO_STRING(R8I);
+    ENUM_TO_STRING(R8);
+    ENUM_TO_STRING(R32F);
+    ENUM_TO_STRING(R32UI);
+    ENUM_TO_STRING(R32I);
+    ENUM_TO_STRING(R16F);
+    ENUM_TO_STRING(R16UI);
+    ENUM_TO_STRING(R16I);
+    ENUM_TO_STRING(R16);
+    ENUM_TO_STRING(R11F_G11F_B10F);
+    ENUM_TO_STRING(SRGB8_ALPHA8);
+    ENUM_TO_STRING(DEPTH24_STENCIL8);
+    ENUM_TO_STRING(DEPTH32F_STENCIL8);
+    ENUM_TO_STRING(DEPTH_COMPONENT32F);
+    ENUM_TO_STRING(DEPTH_COMPONENT24);
+    ENUM_TO_STRING(DEPTH_COMPONENT16);
+    default:
+      return "Unkown enum";
   };
 #undef ENUM_TO_STRING
-
-  return enum_strings[e];
 }
 
 static int gpu_get_component_count(eGPUTextureFormat format)
@@ -621,8 +627,8 @@ static eGPUTextureFormat gl_internalformat_to_gpu_format(const GLint glformat)
       return GPU_DEPTH_COMPONENT16;
     default:
       BLI_assert(!"Internal format incorrect or unsupported\n");
+      return GPU_RGBA8;
   }
-  return -1;
 }
 
 static GLenum gpu_get_gl_datatype(eGPUDataFormat format)
@@ -650,8 +656,8 @@ static float *GPU_texture_rescale_3d(
     GPUTexture *tex, int w, int h, int d, int channels, const float *fpixels)
 {
   const uint xf = w / tex->w, yf = h / tex->h, zf = d / tex->d;
-  float *nfpixels = MEM_mallocN(channels * sizeof(float) * tex->w * tex->h * tex->d,
-                                "GPUTexture Rescaled 3Dtex");
+  float *nfpixels = (float *)MEM_mallocN(channels * sizeof(float) * tex->w * tex->h * tex->d,
+                                         "GPUTexture Rescaled 3Dtex");
 
   if (nfpixels) {
     GPU_print_error_debug("You need to scale a 3D texture, feel the pain!");
@@ -838,7 +844,7 @@ GPUTexture *GPU_texture_create_nD(int w,
     tex_format = GPU_DEPTH32F_STENCIL8;
   }
 
-  GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
+  GPUTexture *tex = (GPUTexture *)MEM_callocN(sizeof(GPUTexture), __func__);
   tex->w = w;
   tex->h = h;
   tex->d = d;
@@ -847,7 +853,7 @@ GPUTexture *GPU_texture_create_nD(int w,
   tex->format = tex_format;
   tex->components = gpu_get_component_count(tex_format);
   tex->mipmaps = 0;
-  tex->format_flag = 0;
+  tex->format_flag = static_cast<eGPUTextureFormatFlag>(0);
   tex->number = -1;
 
   if (n == 2) {
@@ -931,7 +937,7 @@ GPUTexture *GPU_texture_create_nD(int w,
                                      data_type,
                                      tex->components,
                                      can_rescale,
-                                     pixels,
+                                     (float *)pixels,
                                      &rescaled_pixels);
 
   if (G.debug & G_DEBUG_GPU || !valid) {
@@ -962,7 +968,7 @@ GPUTexture *GPU_texture_create_nD(int w,
   gpu_texture_memory_footprint_add(tex);
 
   /* Upload Texture */
-  const float *pix = (rescaled_pixels) ? rescaled_pixels : pixels;
+  const void *pix = (rescaled_pixels) ? rescaled_pixels : pixels;
 
   if (tex->target == GL_TEXTURE_2D || tex->target == GL_TEXTURE_2D_MULTISAMPLE ||
       tex->target == GL_TEXTURE_1D_ARRAY) {
@@ -1012,7 +1018,7 @@ GPUTexture *GPU_texture_cube_create(int w,
                                     eGPUDataFormat gpu_data_format,
                                     char err_out[256])
 {
-  GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
+  GPUTexture *tex = (GPUTexture *)MEM_callocN(sizeof(GPUTexture), __func__);
   tex->w = w;
   tex->h = w;
   tex->d = d;
@@ -1136,11 +1142,11 @@ GPUTexture *GPU_texture_cube_create(int w,
 /* Special buffer textures. tex_format must be compatible with the buffer content. */
 GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat tex_format, const GLuint buffer)
 {
-  GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
+  GPUTexture *tex = (GPUTexture *)MEM_callocN(sizeof(GPUTexture), __func__);
   tex->refcount = 1;
   tex->format = tex_format;
   tex->components = gpu_get_component_count(tex_format);
-  tex->format_flag = 0;
+  tex->format_flag = static_cast<eGPUTextureFormatFlag>(0);
   tex->target_base = tex->target = GL_TEXTURE_BUFFER;
   tex->mipmaps = 0;
   tex->number = -1;
@@ -1203,11 +1209,13 @@ static GLenum convert_target_to_gl(eGPUTextureTarget target)
   }
 }
 
+/* TODO(fclem) This function should be remove and gpu_texture_image rewritten to not use any GL
+ * commands. */
 GPUTexture *GPU_texture_from_bindcode(eGPUTextureTarget target, int bindcode)
 {
   GLenum textarget = convert_target_to_gl(target);
 
-  GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
+  GPUTexture *tex = (GPUTexture *)MEM_callocN(sizeof(GPUTexture), __func__);
   tex->bindcode = bindcode;
   tex->refcount = 1;
   tex->target = textarget;
@@ -2176,7 +2184,7 @@ void GPU_samplers_init(void)
 {
   glGenSamplers(GPU_SAMPLER_MAX, GG.samplers);
   for (int i = 0; i < GPU_SAMPLER_MAX; i++) {
-    eGPUSamplerState state = i;
+    eGPUSamplerState state = static_cast<eGPUSamplerState>(i);
     GLenum clamp_type = (state & GPU_SAMPLER_CLAMP_BORDER) ? GL_CLAMP_TO_BORDER : GL_CLAMP_TO_EDGE;
     GLenum wrap_s = (state & GPU_SAMPLER_REPEAT_S) ? GL_REPEAT : clamp_type;
     GLenum wrap_t = (state & GPU_SAMPLER_REPEAT_T) ? GL_REPEAT : clamp_type;

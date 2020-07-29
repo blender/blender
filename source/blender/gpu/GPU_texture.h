@@ -52,7 +52,6 @@ typedef enum eGPUTextureTarget {
  * - Internally used by textures.
  * - All states are created at startup to avoid runtime costs.
  */
-
 typedef enum eGPUSamplerState {
   GPU_SAMPLER_FILTER = (1 << 0),
   GPU_SAMPLER_MIPMAP = (1 << 1),
@@ -65,6 +64,8 @@ typedef enum eGPUSamplerState {
   /* Don't use that. */
   GPU_SAMPLER_MAX = (1 << 8),
 } eGPUSamplerState;
+
+ENUM_OPERATORS(eGPUSamplerState)
 
 #ifdef __cplusplus
 extern "C" {
