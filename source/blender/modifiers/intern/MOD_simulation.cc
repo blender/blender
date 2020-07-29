@@ -114,12 +114,12 @@ static PointCloud *modifyPointCloud(ModifierData *md,
 
   const float3 *positions = (const float3 *)CustomData_get_layer_named(
       &state->attributes, CD_PROP_FLOAT3, "Position");
-  const float *sizes = (const float *)CustomData_get_layer_named(
-      &state->attributes, CD_PROP_FLOAT, "Size");
+  const float *radii = (const float *)CustomData_get_layer_named(
+      &state->attributes, CD_PROP_FLOAT, "Radius");
   memcpy(pointcloud->co, positions, sizeof(float3) * state->tot_particles);
 
   for (int i = 0; i < state->tot_particles; i++) {
-    pointcloud->radius[i] = sizes[i] / 2.0f;
+    pointcloud->radius[i] = radii[i];
   }
 
   return pointcloud;

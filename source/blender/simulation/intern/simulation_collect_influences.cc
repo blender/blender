@@ -740,7 +740,7 @@ static void initialize_particle_attribute_builders(CollectContext &context)
     /* TODO: Use uint32_t, but we don't have a corresponding custom property type. */
     attributes_builder.add<int>("Hash", 0);
     attributes_builder.add<float>("Birth Time", 0.0f);
-    attributes_builder.add<float>("Size", 0.03f);
+    attributes_builder.add<float>("Radius", 0.02f);
     context.influences.particle_attributes_builder.add_new(name, &attributes_builder);
   }
 }
