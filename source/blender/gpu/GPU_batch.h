@@ -127,9 +127,8 @@ int GPU_batch_vertbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
 
 #define GPU_batch_vertbuf_add(batch, verts) GPU_batch_vertbuf_add_ex(batch, verts, false)
 
-void GPU_batch_program_set_no_use(GPUBatch *, uint32_t program, const GPUShaderInterface *);
-void GPU_batch_program_set(GPUBatch *, uint32_t program, const GPUShaderInterface *);
-void GPU_batch_program_set_shader(GPUBatch *, GPUShader *shader);
+void GPU_batch_set_shader(GPUBatch *batch, GPUShader *shader);
+void GPU_batch_set_shader_no_bind(GPUBatch *batch, GPUShader *shader);
 void GPU_batch_program_set_imm_shader(GPUBatch *batch);
 void GPU_batch_program_set_builtin(GPUBatch *batch, eGPUBuiltinShader shader_id);
 void GPU_batch_program_set_builtin_with_config(GPUBatch *batch,

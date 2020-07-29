@@ -670,8 +670,7 @@ BLI_INLINE void draw_geometry_bind(DRWShadingGroup *shgroup, GPUBatch *geom)
 
   DST.batch = geom;
 
-  GPU_batch_program_set_no_use(
-      geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
+  GPU_batch_set_shader_no_bind(geom, shgroup->shader);
 
   geom->program_in_use = true; /* XXX hacking #GPUBatch */
 

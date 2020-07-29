@@ -47,6 +47,7 @@
 
 extern "C" {
 #include "GPU_immediate.h"
+#include "GPU_shader.h"
 }
 
 using namespace OCIO_NAMESPACE;
@@ -94,18 +95,15 @@ struct OCIO_GLSLCurveMappingParameters {
 struct OCIO_GLSLShader {
   /** Cache IDs */
   std::string cacheId;
-  /** TODO(fclem): Remove. IMM shader interface. */
-  struct GPUShaderInterface *interface;
-  /** OpenGL Shader objects handles. */
-  GLuint frag;
-  GLuint vert;
-  GLuint program;
+
+  struct GPUShader *shader;
   /** Uniform locations. */
   GLint dither_loc;
   GLint overlay_loc;
   GLint overlay_tex_loc;
   GLint predivide_loc;
   GLint curve_mapping_loc;
+  GLint ubo_bind;
   /** Error checking. */
   bool valid;
 };
@@ -152,56 +150,6 @@ static OCIO_GLSLDrawState *allocateOpenGLState(void)
 /** \name Shader
  * \{ */
 
-static GLuint compileShaderText(GLenum shader_type, const char *text)
-{
-  GLuint shader;
-  GLint stat;
-
-  shader = glCreateShader(shader_type);
-  glShaderSource(shader, 1, (const GLchar **)&text, NULL);
-  glCompileShader(shader);
-  glGetShaderiv(shader, GL_COMPILE_STATUS, &stat);
-
-  if (!stat) {
-    GLchar log[1000];
-    GLsizei len;
-    glGetShaderInfoLog(shader, 1000, &len, log);
-    fprintf(stderr, "Shader compile error:\n%s\n", log);
-    return 0;
-  }
-
-  return shader;
-}
-
-static GLuint linkShaders(GLuint frag, GLuint vert)
-{
-  if (!frag || !vert) {
-    return 0;
-  }
-
-  GLuint program = glCreateProgram();
-
-  glAttachShader(program, frag);
-  glAttachShader(program, vert);
-
-  glLinkProgram(program);
-
-  /* check link */
-  {
-    GLint stat;
-    glGetProgramiv(program, GL_LINK_STATUS, &stat);
-    if (!stat) {
-      GLchar log[1000];
-      GLsizei len;
-      glGetProgramInfoLog(program, 1000, &len, log);
-      fprintf(stderr, "Shader link error:\n%s\n", log);
-      return 0;
-    }
-  }
-
-  return program;
-}
-
 static void updateGLSLShader(OCIO_GLSLShader *shader,
                              ConstProcessorRcPtr *processor_scene_to_ui,
                              ConstProcessorRcPtr *processpr_ui_to_display,
@@ -213,28 +161,14 @@ static void updateGLSLShader(OCIO_GLSLShader *shader,
   }
 
   /* Delete any previous shader. */
-  glDeleteProgram(shader->program);
-  glDeleteShader(shader->frag);
-  glDeleteShader(shader->vert);
-
-  if (shader->interface) {
-    GPU_shaderinterface_discard(shader->interface);
+  if (shader->shader) {
+    GPU_shader_free(shader->shader);
   }
 
-  {
-    /* Vertex shader */
-    std::ostringstream osv;
-
-    osv << "#version 330\n";
-    osv << datatoc_gpu_shader_display_transform_vertex_glsl;
-
-    shader->vert = compileShaderText(GL_VERTEX_SHADER, osv.str().c_str());
-  }
+  std::ostringstream os;
   {
     /* Fragment shader */
-    std::ostringstream os;
 
-    os << "#version 330\n";
     /* Work around OpenColorIO not supporting latest GLSL yet. */
     os << "#define texture2D texture\n";
     os << "#define texture3D texture\n";
@@ -246,41 +180,36 @@ static void updateGLSLShader(OCIO_GLSLShader *shader,
     os << (*processpr_ui_to_display)->getGpuShaderText(*shader_desc) << "\n";
 
     os << datatoc_gpu_shader_display_transform_glsl;
-
-    shader->frag = compileShaderText(GL_FRAGMENT_SHADER, os.str().c_str());
   }
 
-  /* shader_Program */
-  if (shader->frag && shader->vert) {
-    shader->program = linkShaders(shader->frag, shader->vert);
-  }
+  shader->shader = GPU_shader_create(datatoc_gpu_shader_display_transform_vertex_glsl,
+                                     os.str().c_str(),
+                                     NULL,
+                                     NULL,
+                                     NULL,
+                                     __func__);
 
-  if (shader->program) {
-    shader->dither_loc = glGetUniformLocation(shader->program, "dither");
-    shader->overlay_tex_loc = glGetUniformLocation(shader->program, "overlay_texture");
-    shader->overlay_loc = glGetUniformLocation(shader->program, "overlay");
-    shader->predivide_loc = glGetUniformLocation(shader->program, "predivide");
-    shader->curve_mapping_loc = glGetUniformLocation(shader->program, "curve_mapping");
+  if (shader->shader) {
+    shader->dither_loc = GPU_shader_get_uniform(shader->shader, "dither");
+    shader->overlay_tex_loc = GPU_shader_get_uniform(shader->shader, "overlay_texture");
+    shader->overlay_loc = GPU_shader_get_uniform(shader->shader, "overlay");
+    shader->predivide_loc = GPU_shader_get_uniform(shader->shader, "predivide");
+    shader->curve_mapping_loc = GPU_shader_get_uniform(shader->shader, "curve_mapping");
+    shader->ubo_bind = GPU_shader_get_uniform_block_binding(shader->shader,
+                                                            "OCIO_GLSLCurveMappingParameters");
 
-    glUseProgram(shader->program);
-
-    /* TODO(fclem) Remove this. Make caller always assume viewport space and
-     * specify texco via vertex attribs. */
-    shader->interface = GPU_shaderinterface_create(shader->program);
-
-    /* Set UBO binding location. */
-    GLuint index = glGetUniformBlockIndex(shader->program, "OCIO_GLSLCurveMappingParameters");
-    glUniformBlockBinding(shader->program, index, UBO_BIND_LOC);
+    GPU_shader_bind(shader->shader);
 
     /* Set texture bind point uniform once. This is saved by the shader. */
-    glUniform1i(glGetUniformLocation(shader->program, "image_texture"), 0);
-    glUniform1i(glGetUniformLocation(shader->program, "lut3d_texture"), 2);
-    glUniform1i(glGetUniformLocation(shader->program, "lut3d_display_texture"), 3);
-    glUniform1i(glGetUniformLocation(shader->program, "curve_mapping_texture"), 4);
+    GPUShader *sh = shader->shader;
+    GPU_shader_uniform_int(sh, GPU_shader_get_uniform(sh, "image_texture"), 0);
+    GPU_shader_uniform_int(sh, GPU_shader_get_uniform(sh, "lut3d_texture"), 2);
+    GPU_shader_uniform_int(sh, GPU_shader_get_uniform(sh, "lut3d_display_texture"), 3);
+    GPU_shader_uniform_int(sh, GPU_shader_get_uniform(sh, "curve_mapping_texture"), 4);
   }
 
   shader->cacheId = cache_id;
-  shader->valid = (shader->program != 0);
+  shader->valid = (shader->shader != NULL);
 }
 
 static void ensureGLSLShader(OCIO_GLSLShader **shader_ptr,
@@ -302,12 +231,8 @@ static void ensureGLSLShader(OCIO_GLSLShader **shader_ptr,
 
 static void freeGLSLShader(OCIO_GLSLShader *shader)
 {
-  glDeleteProgram(shader->program);
-  glDeleteShader(shader->frag);
-  glDeleteShader(shader->vert);
-
-  if (shader->interface) {
-    GPU_shaderinterface_discard(shader->interface);
+  if (shader->shader) {
+    GPU_shader_free(shader->shader);
   }
 
   OBJECT_GUARDED_DELETE(shader, OCIO_GLSLShader);
@@ -674,10 +599,10 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r,
     glActiveTexture(GL_TEXTURE0);
 
     /* Bind UBO. */
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, shader_curvemap->buffer);
+    glBindBufferBase(GL_UNIFORM_BUFFER, shader->ubo_bind, shader_curvemap->buffer);
 
     /* TODO(fclem) remove remains of IMM. */
-    immBindProgram(shader->program, shader->interface);
+    immBindShader(shader->shader);
 
     /* Bind Shader and set uniforms. */
     // glUseProgram(shader->program);

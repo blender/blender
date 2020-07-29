@@ -694,11 +694,6 @@ int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 /** \name Getters
  * \{ */
 
-void *GPU_shader_get_interface(GPUShader *shader)
-{
-  return shader->interface;
-}
-
 /* Clement : Temp */
 int GPU_shader_get_program(GPUShader *shader)
 {

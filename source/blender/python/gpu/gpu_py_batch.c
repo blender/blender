@@ -184,8 +184,7 @@ static PyObject *bpygpu_Batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_sh
   }
 
   GPUShader *shader = py_shader->shader;
-  GPU_batch_program_set(
-      self->batch, GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
+  GPU_batch_set_shader(self->batch, shader);
 
 #ifdef USE_GPU_PY_REFERENCES
   /* Remove existing user (if any), hold new user. */
@@ -229,9 +228,7 @@ static PyObject *bpygpu_Batch_draw(BPyGPUBatch *self, PyObject *args)
     }
   }
   else if (self->batch->program != GPU_shader_get_program(py_program->shader)) {
-    GPU_batch_program_set(self->batch,
-                          GPU_shader_get_program(py_program->shader),
-                          GPU_shader_get_interface(py_program->shader));
+    GPU_batch_set_shader(self->batch, py_program->shader);
   }
 
   GPU_batch_draw(self->batch);

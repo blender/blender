@@ -184,8 +184,7 @@ void DRW_draw_cursor(void)
 
       GPUBatch *cursor_batch = DRW_cache_cursor_get(is_aligned);
       GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_FLAT_COLOR);
-      GPU_batch_program_set(
-          cursor_batch, GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
+      GPU_batch_set_shader(cursor_batch, shader);
 
       GPU_batch_draw(cursor_batch);
 

@@ -72,7 +72,7 @@ typedef struct {
 
   GLuint vao_id;
 
-  GLuint bound_program;
+  GPUShader *bound_program;
   const GPUShaderInterface *shader_interface;
   GPUAttrBinding attr_binding;
   uint16_t prev_enabled_attr_bits; /* <-- only affects this VAO, so we're ok */
@@ -143,48 +143,47 @@ GPUVertFormat *immVertexFormat(void)
   return &imm.vertex_format;
 }
 
-void immBindProgram(GLuint program, const GPUShaderInterface *shaderface)
+void immBindShader(GPUShader *shader)
 {
 #if TRUST_NO_ONE
-  assert(imm.bound_program == 0);
-  assert(glIsProgram(program));
+  assert(imm.bound_program == NULL);
+  assert(glIsProgram(shader->program));
 #endif
 
-  imm.bound_program = program;
-  imm.shader_interface = shaderface;
+  imm.bound_program = shader;
+  imm.shader_interface = shader->interface;
 
   if (!imm.vertex_format.packed) {
     VertexFormat_pack(&imm.vertex_format);
   }
 
-  glUseProgram(program);
-  get_attr_locations(&imm.vertex_format, &imm.attr_binding, shaderface);
-  GPU_matrix_bind(shaderface);
-  GPU_shader_set_srgb_uniform(shaderface);
+  GPU_shader_bind(shader);
+  get_attr_locations(&imm.vertex_format, &imm.attr_binding, imm.shader_interface);
+  GPU_matrix_bind(imm.shader_interface);
+  GPU_shader_set_srgb_uniform(imm.shader_interface);
 }
 
 void immBindBuiltinProgram(eGPUBuiltinShader shader_id)
 {
   GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
-  immBindProgram(shader->program, shader->interface);
+  immBindShader(shader);
 }
 
 void immUnbindProgram(void)
 {
 #if TRUST_NO_ONE
-  assert(imm.bound_program != 0);
+  assert(imm.bound_program != NULL);
 #endif
 #if PROGRAM_NO_OPTI
   glUseProgram(0);
 #endif
-  imm.bound_program = 0;
+  imm.bound_program = NULL;
 }
 
 /* XXX do not use it. Special hack to use OCIO with batch API. */
-void immGetProgram(GLuint *program, GPUShaderInterface **shaderface)
+GPUShader *immGetShader(void)
 {
-  *program = imm.bound_program;
-  *shaderface = (GPUShaderInterface *)imm.shader_interface;
+  return imm.bound_program;
 }
 
 #if TRUST_NO_ONE
@@ -423,7 +422,7 @@ void immEnd(void)
       GPU_vertbuf_data_resize(imm.batch->verts[0], imm.vertex_len);
       /* TODO: resize only if vertex count is much smaller */
     }
-    GPU_batch_program_set(imm.batch, imm.bound_program, imm.shader_interface);
+    GPU_batch_set_shader(imm.batch, imm.bound_program);
     imm.batch->phase = GPU_BATCH_READY_TO_DRAW;
     imm.batch = NULL; /* don't free, batch belongs to caller */
   }

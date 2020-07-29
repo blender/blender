@@ -42,7 +42,7 @@ extern "C" {
 GPUVertFormat *immVertexFormat(void);
 
 /** Every immBegin must have a program bound first. */
-void immBindProgram(uint32_t program, const GPUShaderInterface *);
+void immBindShader(GPUShader *shader);
 /** Call after your last immEnd, or before binding another program. */
 void immUnbindProgram(void);
 
@@ -134,7 +134,7 @@ void immUniformColor3ubvAlpha(const unsigned char rgb[3], unsigned char a);
 void immUniformColor4ubv(const unsigned char rgba[4]);
 
 /**
- * Extend #immBindProgram to use Blender’s library of built-in shader programs.
+ * Extend #immBindShader to use Blender’s library of built-in shader programs.
  * Use #immUnbindProgram() when done.
  */
 void immBindBuiltinProgram(eGPUBuiltinShader shader_id);

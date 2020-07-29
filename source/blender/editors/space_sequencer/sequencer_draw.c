@@ -1599,7 +1599,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
         GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
   }
 
-  /* Format needs to be created prior to any immBindProgram call.
+  /* Format needs to be created prior to any immBindShader call.
    * Do it here because OCIO binds it's own shader. */
   eGPUTextureFormat format;
   eGPUDataFormat data;
