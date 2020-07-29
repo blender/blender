@@ -81,11 +81,8 @@ static void workbench_volume_modifier_cache_populate(WORKBENCH_Data *vedata,
   if (fds->use_coba) {
     GPU_create_smoke_coba_field(fmd);
   }
-  else if (!(fds->flags & FLUID_DOMAIN_USE_NOISE)) {
-    GPU_create_smoke(fmd, 0);
-  }
-  else if (fds->flags & FLUID_DOMAIN_USE_NOISE) {
-    GPU_create_smoke(fmd, 1);
+  else {
+    GPU_create_smoke(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
   }
 
   if ((!fds->use_coba && (fds->tex_density == NULL && fds->tex_color == NULL)) ||

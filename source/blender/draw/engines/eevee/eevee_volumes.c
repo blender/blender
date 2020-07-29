@@ -504,12 +504,7 @@ static bool eevee_volume_object_mesh_init(Scene *scene,
 #endif
 
     if (fds->fluid && (fds->type == FLUID_DOMAIN_TYPE_GAS) /* && show_smoke */) {
-      if (!(fds->flags & FLUID_DOMAIN_USE_NOISE)) {
-        GPU_create_smoke(fmd, 0);
-      }
-      else if (fds->flags & FLUID_DOMAIN_USE_NOISE) {
-        GPU_create_smoke(fmd, 1);
-      }
+      GPU_create_smoke(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
       BLI_addtail(&e_data.smoke_domains, BLI_genericNodeN(fmd));
     }
 
