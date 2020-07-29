@@ -176,7 +176,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
-  Brush *brush = data->brush;
+  const Brush *brush = data->brush;
 
   PBVHVertexIter vd;
 

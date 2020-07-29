@@ -30,6 +30,7 @@ struct ModifierData;
 struct FluidModifierData;
 struct Object;
 struct ParticleSystem;
+struct RegionView3D;
 struct ViewLayer;
 
 #define UBO_FIRST_COLOR colorWire
@@ -160,14 +161,14 @@ void DRW_globals_update(void);
 void DRW_globals_free(void);
 
 struct DRWView *DRW_view_create_with_zoffset(const struct DRWView *parent_view,
-                                             const RegionView3D *rv3d,
+                                             const struct RegionView3D *rv3d,
                                              float offset);
 
 int DRW_object_wire_theme_get(struct Object *ob, struct ViewLayer *view_layer, float **r_color);
 float *DRW_color_background_blend_get(int theme_id);
 
-bool DRW_object_is_flat(Object *ob, int *r_axis);
-bool DRW_object_axis_orthogonal_to_view(Object *ob, int axis);
+bool DRW_object_is_flat(struct Object *ob, int *r_axis);
+bool DRW_object_axis_orthogonal_to_view(struct Object *ob, int axis);
 
 /* draw_hair.c */
 

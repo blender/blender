@@ -37,6 +37,8 @@
 
 #include "GPU_texture.h"
 
+#include "draw_common.h" /* Own include. */
+
 #ifdef WITH_FLUID
 #  include "manta_fluid_API.h"
 #endif
