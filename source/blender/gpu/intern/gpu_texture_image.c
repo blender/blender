@@ -132,13 +132,16 @@ static GPUTexture **gpu_get_movieclip_gputexture(MovieClip *clip,
   return NULL;
 }
 
-/* Apply colormanagement and scale buffer if needed. */
-static void *get_ibuf_data(const Image *ima,
-                           const ImBuf *ibuf,
-                           const bool do_rescale,
-                           const int rescale_size[2],
-                           const bool compress_as_srgb,
-                           bool *r_freebuf)
+/**
+ * Apply colormanagement and scale buffer if needed.
+ * *r_freedata is set to true if the returned buffer need to be manually freed.
+ **/
+static void *IMB_gpu_get_data(const ImBuf *ibuf,
+                              const bool do_rescale,
+                              const int rescale_size[2],
+                              const bool compress_as_srgb,
+                              const bool store_premultiplied,
+                              bool *r_freedata)
 {
   const bool is_float_rect = (ibuf->rect_float != NULL);
   void *data_rect = (is_float_rect) ? (void *)ibuf->rect_float : (void *)ibuf->rect;
@@ -147,11 +150,9 @@ static void *get_ibuf_data(const Image *ima,
     /* Float image is already in scene linear colorspace or non-color data by
      * convention, no colorspace conversion needed. But we do require 4 channels
      * currently. */
-    const bool store_premultiplied = ima ? (ima->alpha_mode != IMA_ALPHA_STRAIGHT) : false;
-
     if (ibuf->channels != 4 || !store_premultiplied) {
       data_rect = MEM_mallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, __func__);
-      *r_freebuf = true;
+      *r_freedata = true;
 
       if (data_rect == NULL) {
         return NULL;
@@ -171,7 +172,7 @@ static void *get_ibuf_data(const Image *ima,
      * and consistency with float images. */
     if (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace)) {
       data_rect = MEM_mallocN(sizeof(uchar) * 4 * ibuf->x * ibuf->y, __func__);
-      *r_freebuf = true;
+      *r_freedata = true;
 
       if (data_rect == NULL) {
         return NULL;
@@ -182,7 +183,6 @@ static void *get_ibuf_data(const Image *ima,
        * this allows us to use sRGB texture formats and preserves color values in
        * zero alpha areas, and appears generally closer to what game engines that we
        * want to be compatible with do. */
-      const bool store_premultiplied = ima ? (ima->alpha_mode == IMA_ALPHA_PREMUL) : true;
       IMB_colormanagement_imbuf_to_byte_texture(
           (uchar *)data_rect, 0, 0, ibuf->x, ibuf->y, ibuf, compress_as_srgb, store_premultiplied);
     }
@@ -196,7 +196,7 @@ static void *get_ibuf_data(const Image *ima,
     IMB_scaleImBuf(scale_ibuf, UNPACK2(rescale_size));
 
     data_rect = (is_float_rect) ? (void *)scale_ibuf->rect_float : (void *)scale_ibuf->rect;
-    *r_freebuf = true;
+    *r_freedata = true;
     /* Steal the rescaled buffer to avoid double free. */
     scale_ibuf->rect_float = NULL;
     scale_ibuf->rect = NULL;
@@ -205,15 +205,15 @@ static void *get_ibuf_data(const Image *ima,
   return data_rect;
 }
 
-static void get_texture_format_from_ibuf(const Image *ima,
-                                         const ImBuf *ibuf,
-                                         eGPUDataFormat *r_data_format,
-                                         eGPUTextureFormat *r_texture_format)
+static void IMB_gpu_get_format(const ImBuf *ibuf,
+                               bool high_bitdepth,
+                               eGPUDataFormat *r_data_format,
+                               eGPUTextureFormat *r_texture_format)
 {
   const bool float_rect = (ibuf->rect_float != NULL);
-  const bool high_bitdepth = (!(ibuf->flags & IB_halffloat) && (ima->flag & IMA_HIGH_BITDEPTH));
   const bool use_srgb = (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace) &&
                          !IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace));
+  high_bitdepth = (!(ibuf->flags & IB_halffloat) && high_bitdepth);
 
   *r_data_format = (float_rect) ? GPU_DATA_FLOAT : GPU_DATA_UNSIGNED_BYTE;
 
@@ -225,33 +225,30 @@ static void get_texture_format_from_ibuf(const Image *ima,
   }
 }
 
-/* Return false if no suitable format was found. */
-static bool get_texture_compressed_format_from_ibuf(const ImBuf *ibuf,
-                                                    eGPUTextureFormat *r_data_format)
-{
 #ifdef WITH_DDS
+/* Return false if no suitable format was found. */
+static bool IMB_gpu_get_compressed_format(const ImBuf *ibuf, eGPUTextureFormat *r_texture_format)
+{
   /* For DDS we only support data, scene linear and sRGB. Converting to
    * different colorspace would break the compression. */
   const bool use_srgb = (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace) &&
                          !IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace));
 
   if (ibuf->dds_data.fourcc == FOURCC_DXT1) {
-    *r_data_format = (use_srgb) ? GPU_SRGB8_A8_DXT1 : GPU_RGBA8_DXT1;
+    *r_texture_format = (use_srgb) ? GPU_SRGB8_A8_DXT1 : GPU_RGBA8_DXT1;
   }
   else if (ibuf->dds_data.fourcc == FOURCC_DXT3) {
-    *r_data_format = (use_srgb) ? GPU_SRGB8_A8_DXT3 : GPU_RGBA8_DXT3;
+    *r_texture_format = (use_srgb) ? GPU_SRGB8_A8_DXT3 : GPU_RGBA8_DXT3;
   }
   else if (ibuf->dds_data.fourcc == FOURCC_DXT5) {
-    *r_data_format = (use_srgb) ? GPU_SRGB8_A8_DXT5 : GPU_RGBA8_DXT5;
+    *r_texture_format = (use_srgb) ? GPU_SRGB8_A8_DXT5 : GPU_RGBA8_DXT5;
   }
   else {
     return false;
   }
   return true;
-#else
-  return false;
-#endif
 }
+#endif
 
 static bool mipmap_enabled(void)
 {
@@ -379,10 +376,10 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
     arraylayers++;
   }
 
+  const bool use_high_bitdepth = (ima->flag & IMA_HIGH_BITDEPTH);
   eGPUDataFormat data_format;
   eGPUTextureFormat tex_format;
-  get_texture_format_from_ibuf(ima, main_ibuf, &data_format, &tex_format);
-
+  IMB_gpu_get_format(main_ibuf, use_high_bitdepth, &data_format, &tex_format);
   /* Create Texture. */
   GPUTexture *tex = GPU_texture_create_nD(
       arraywidth, arrayheight, arraylayers, 2, NULL, tex_format, data_format, 0, false, NULL);
@@ -407,10 +404,12 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
     if (ibuf) {
       const bool needs_scale = (ibuf->x != tilesize[0] || ibuf->y != tilesize[1]);
       const bool compress_as_srgb = (tex_format == GPU_SRGB8_A8);
+      const bool store_premultiplied = ibuf->rect_float ? (ima->alpha_mode != IMA_ALPHA_STRAIGHT) :
+                                                          (ima->alpha_mode == IMA_ALPHA_PREMUL);
       bool freebuf = false;
 
-      void *pixeldata = get_ibuf_data(
-          ima, ibuf, needs_scale, tilesize, compress_as_srgb, &freebuf);
+      void *pixeldata = IMB_gpu_get_data(
+          ibuf, needs_scale, tilesize, compress_as_srgb, store_premultiplied, &freebuf);
       GPU_texture_update_sub(
           tex, data_format, pixeldata, UNPACK2(tileoffset), tilelayer, UNPACK2(tilesize), 1);
 
@@ -424,9 +423,13 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
 
   if (mipmap_enabled()) {
     GPU_texture_generate_mipmap(tex);
+    GPU_texture_mipmap_mode(tex, true, true);
     if (ima) {
       ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
     }
+  }
+  else {
+    GPU_texture_mipmap_mode(tex, false, true);
   }
 
   GPU_texture_unbind(tex);
@@ -440,7 +443,7 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
 /** \name Regular gpu texture
  * \{ */
 
-static GPUTexture *gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf)
+static GPUTexture *IMB_create_gpu_texture(ImBuf *ibuf, bool use_high_bitdepth, bool use_premult)
 {
   GPUTexture *tex = NULL;
   bool do_rescale = is_over_resolution_limit(ibuf->x, ibuf->y);
@@ -448,7 +451,7 @@ static GPUTexture *gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf)
 #ifdef WITH_DDS
   if (ibuf->ftype == IMB_FTYPE_DDS) {
     eGPUTextureFormat compressed_format;
-    if (!get_texture_compressed_format_from_ibuf(ibuf, &compressed_format)) {
+    if (!IMB_gpu_get_compressed_format(ibuf, &compressed_format)) {
       fprintf(stderr, "Unable to find a suitable DXT compression,");
     }
     else if (do_rescale) {
@@ -471,13 +474,11 @@ static GPUTexture *gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf)
     /* Fallback to uncompressed texture. */
     fprintf(stderr, " falling back to uncompressed.\n");
   }
-#else
-  (void)get_texture_compressed_format_from_ibuf;
 #endif
 
   eGPUDataFormat data_format;
   eGPUTextureFormat tex_format;
-  get_texture_format_from_ibuf(ima, ibuf, &data_format, &tex_format);
+  IMB_gpu_get_format(ibuf, use_high_bitdepth, &data_format, &tex_format);
 
   int size[2] = {ibuf->x, ibuf->y};
   if (do_rescale) {
@@ -488,25 +489,12 @@ static GPUTexture *gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf)
   const bool compress_as_srgb = (tex_format == GPU_SRGB8_A8);
   bool freebuf = false;
 
-  void *data = get_ibuf_data(ima, ibuf, do_rescale, size, compress_as_srgb, &freebuf);
+  void *data = IMB_gpu_get_data(ibuf, do_rescale, size, compress_as_srgb, use_premult, &freebuf);
 
   /* Create Texture. */
   tex = GPU_texture_create_nD(UNPACK2(size), 0, 2, data, tex_format, data_format, 0, false, NULL);
 
   GPU_texture_anisotropic_filter(tex, true);
-
-  if (mipmap_enabled()) {
-    GPU_texture_bind(tex, 0);
-    GPU_texture_generate_mipmap(tex);
-    GPU_texture_unbind(tex);
-    if (ima) {
-      ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
-    }
-    GPU_texture_mipmap_mode(tex, true, true);
-  }
-  else {
-    GPU_texture_mipmap_mode(tex, false, true);
-  }
 
   if (freebuf) {
     MEM_SAFE_FREE(data);
@@ -573,7 +561,25 @@ GPUTexture *GPU_texture_from_blender(Image *ima,
     *tex = gpu_texture_create_tile_mapping(ima, iuser ? iuser->multiview_eye : 0);
   }
   else {
-    *tex = gpu_texture_create_from_ibuf(ima, ibuf_intern);
+    const bool use_high_bitdepth = (ima->flag & IMA_HIGH_BITDEPTH);
+    const bool store_premultiplied = ibuf_intern->rect_float ?
+                                         (ima ? (ima->alpha_mode != IMA_ALPHA_STRAIGHT) : false) :
+                                         (ima ? (ima->alpha_mode == IMA_ALPHA_PREMUL) : true);
+
+    *tex = IMB_create_gpu_texture(ibuf_intern, use_high_bitdepth, store_premultiplied);
+
+    if (mipmap_enabled()) {
+      GPU_texture_bind(*tex, 0);
+      GPU_texture_generate_mipmap(*tex);
+      GPU_texture_unbind(*tex);
+      if (ima) {
+        ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
+      }
+      GPU_texture_mipmap_mode(*tex, true, true);
+    }
+    else {
+      GPU_texture_mipmap_mode(*tex, false, true);
+    }
   }
 
   /* if `ibuf` was given, we don't own the `ibuf_intern` */
@@ -588,16 +594,14 @@ GPUTexture *GPU_texture_from_blender(Image *ima,
   return NULL;
 }
 
-GPUTexture *GPU_texture_from_movieclip(MovieClip *clip,
-                                       MovieClipUser *cuser,
-                                       eGPUTextureTarget textarget)
+GPUTexture *GPU_texture_from_movieclip(MovieClip *clip, MovieClipUser *cuser)
 {
 #ifndef GPU_STANDALONE
   if (clip == NULL) {
     return NULL;
   }
 
-  GPUTexture **tex = gpu_get_movieclip_gputexture(clip, cuser, textarget);
+  GPUTexture **tex = gpu_get_movieclip_gputexture(clip, cuser, TEXTARGET_2D);
   if (*tex) {
     return *tex;
   }
@@ -605,11 +609,17 @@ GPUTexture *GPU_texture_from_movieclip(MovieClip *clip,
   /* check if we have a valid image buffer */
   ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, cuser);
   if (ibuf == NULL) {
-    *tex = GPU_texture_create_error(textarget);
+    *tex = GPU_texture_create_error(TEXTARGET_2D);
     return *tex;
   }
 
-  *tex = gpu_texture_create_from_ibuf(NULL, ibuf);
+  /* This only means RGBA16F instead of RGBA32F. */
+  const bool high_bitdepth = false;
+  const bool store_premultiplied = ibuf->rect_float ? false : true;
+  *tex = IMB_create_gpu_texture(ibuf, high_bitdepth, store_premultiplied);
+
+  /* Do not generate mips for movieclips... too slow. */
+  GPU_texture_mipmap_mode(*tex, false, true);
 
   IMB_freeImBuf(ibuf);
 

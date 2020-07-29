@@ -48,9 +48,7 @@ struct GPUTexture *GPU_texture_from_blender(struct Image *ima,
                                             struct ImBuf *ibuf,
                                             eGPUTextureTarget target);
 
-struct GPUTexture *GPU_texture_from_movieclip(struct MovieClip *clip,
-                                              struct MovieClipUser *cuser,
-                                              eGPUTextureTarget target);
+struct GPUTexture *GPU_texture_from_movieclip(struct MovieClip *clip, struct MovieClipUser *cuser);
 
 /* Fluid simulation.  */
 void GPU_create_smoke(struct FluidModifierData *fmd, int highres);

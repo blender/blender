@@ -203,7 +203,7 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
       }
 
       BKE_movieclip_user_set_frame(&bgpic->cuser, ctime);
-      tex = GPU_texture_from_movieclip(clip, &bgpic->cuser, TEXTARGET_2D);
+      tex = GPU_texture_from_movieclip(clip, &bgpic->cuser);
       if (tex == NULL) {
         return NULL;
       }
