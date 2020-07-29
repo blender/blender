@@ -40,6 +40,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_math.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_editmesh.h"
@@ -96,9 +97,14 @@ Mesh *BKE_mesh_wrapper_from_editmesh(BMEditMesh *em,
 
 void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
 {
+  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
+  BLI_mutex_lock(mesh_eval_mutex);
+
   if (me->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA) {
+    BLI_mutex_unlock(mesh_eval_mutex);
     return;
   }
+
   const eMeshWrapperType geom_type_orig = me->runtime.wrapper_type;
   me->runtime.wrapper_type = ME_WRAPPER_TYPE_MDATA;
 
@@ -130,6 +136,8 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
   if (me->runtime.wrapper_type_finalize) {
     BKE_mesh_wrapper_deferred_finalize(me, &me->runtime.cd_mask_extra);
   }
+
+  BLI_mutex_unlock(mesh_eval_mutex);
 }
 
 bool BKE_mesh_wrapper_minmax(const Mesh *me, float min[3], float max[3])
