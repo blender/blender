@@ -1393,6 +1393,9 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
 
         col = layout.column(align=True)
         if brush is not None:
+            col.prop(gp_settings, "brush_draw_mode")
+            col.separator()
+
             if brush.gpencil_tool != 'FILL':
                 col.prop(gp_settings, "input_samples")
                 col.separator()

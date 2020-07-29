@@ -2688,7 +2688,11 @@ void ED_gpencil_tag_scene_gpencil(Scene *scene)
 
 void ED_gpencil_fill_vertex_color_set(ToolSettings *ts, Brush *brush, bGPDstroke *gps)
 {
-  if (GPENCIL_USE_VERTEX_COLOR_FILL(ts, brush)) {
+  const bool is_vertex = (GPENCIL_USE_VERTEX_COLOR_FILL(ts, brush) &&
+                          (brush->gpencil_settings->brush_draw_mode != GP_BRUSH_MODE_MATERIAL)) ||
+                         (!GPENCIL_USE_VERTEX_COLOR_FILL(ts, brush) &&
+                          (brush->gpencil_settings->brush_draw_mode == GP_BRUSH_MODE_VERTEXCOLOR));
+  if (is_vertex) {
     copy_v3_v3(gps->vert_color_fill, brush->rgb);
     gps->vert_color_fill[3] = brush->gpencil_settings->vertex_factor;
     srgb_to_linearrgb_v4(gps->vert_color_fill, gps->vert_color_fill);
@@ -2703,7 +2707,12 @@ void ED_gpencil_point_vertex_color_set(ToolSettings *ts,
                                        bGPDspoint *pt,
                                        tGPspoint *tpt)
 {
-  if (GPENCIL_USE_VERTEX_COLOR_STROKE(ts, brush)) {
+  const bool is_vertex = (GPENCIL_USE_VERTEX_COLOR_STROKE(ts, brush) &&
+                          (brush->gpencil_settings->brush_draw_mode != GP_BRUSH_MODE_MATERIAL)) ||
+                         (!GPENCIL_USE_VERTEX_COLOR_STROKE(ts, brush) &&
+                          (brush->gpencil_settings->brush_draw_mode == GP_BRUSH_MODE_VERTEXCOLOR));
+
+  if (is_vertex) {
     if (tpt == NULL) {
       copy_v3_v3(pt->vert_color, brush->rgb);
       pt->vert_color[3] = brush->gpencil_settings->vertex_factor;
@@ -2859,6 +2868,18 @@ void ED_gpencil_sbuffer_vertex_color_set(Depsgraph *depsgraph,
   bGPdata *gpd_eval = (bGPdata *)ob_eval->data;
   MaterialGPencilStyle *gp_style = material->gp_style;
 
+  const bool is_vertex_fill =
+      (GPENCIL_USE_VERTEX_COLOR_FILL(ts, brush) &&
+       (brush->gpencil_settings->brush_draw_mode != GP_BRUSH_MODE_MATERIAL)) ||
+      (!GPENCIL_USE_VERTEX_COLOR_FILL(ts, brush) &&
+       (brush->gpencil_settings->brush_draw_mode == GP_BRUSH_MODE_VERTEXCOLOR));
+
+  const bool is_vertex_stroke =
+      (GPENCIL_USE_VERTEX_COLOR_STROKE(ts, brush) &&
+       (brush->gpencil_settings->brush_draw_mode != GP_BRUSH_MODE_MATERIAL)) ||
+      (!GPENCIL_USE_VERTEX_COLOR_STROKE(ts, brush) &&
+       (brush->gpencil_settings->brush_draw_mode == GP_BRUSH_MODE_VERTEXCOLOR));
+
   int idx = gpd->runtime.sbuffer_used;
   tGPspoint *tpt = (tGPspoint *)gpd->runtime.sbuffer + idx;
 
@@ -2868,14 +2889,14 @@ void ED_gpencil_sbuffer_vertex_color_set(Depsgraph *depsgraph,
   srgb_to_linearrgb_v4(vertex_color, vertex_color);
 
   /* Copy fill vertex color. */
-  if (GPENCIL_USE_VERTEX_COLOR_FILL(ts, brush)) {
+  if (is_vertex_fill) {
     copy_v4_v4(gpd->runtime.vert_color_fill, vertex_color);
   }
   else {
     copy_v4_v4(gpd->runtime.vert_color_fill, gp_style->fill_rgba);
   }
   /* Copy stroke vertex color. */
-  if (GPENCIL_USE_VERTEX_COLOR_STROKE(ts, brush)) {
+  if (is_vertex_stroke) {
     copy_v4_v4(tpt->vert_color, vertex_color);
   }
   else {
