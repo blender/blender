@@ -47,6 +47,7 @@
 #endif
 
 #include "GPU_buffers.h"
+#include "GPU_draw.h"
 #include "GPU_material.h"
 
 #include "intern/gpu_codegen.h"

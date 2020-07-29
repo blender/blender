@@ -45,6 +45,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
+#include "GPU_draw.h"
 #include "GPU_framebuffer.h"
 #include "GPU_primitive.h"
 #include "GPU_shader.h"

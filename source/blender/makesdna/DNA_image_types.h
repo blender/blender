@@ -117,6 +117,14 @@ typedef struct ImageTile {
 #define IMA_NEED_FRAME_RECALC (1 << 3)
 #define IMA_SHOW_STEREO (1 << 4)
 
+/* Used to get the correct gpu texture from an Image datablock. */
+typedef enum eGPUTextureTarget {
+  TEXTARGET_2D = 0,
+  TEXTARGET_2D_ARRAY,
+  TEXTARGET_TILE_MAPPING,
+  TEXTARGET_COUNT,
+} eGPUTextureTarget;
+
 typedef struct Image {
   ID id;
 

@@ -54,8 +54,6 @@
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
-#include "GPU_matrix.h"
-#include "GPU_platform.h"
 #include "GPU_texture.h"
 
 #include "PIL_time.h"
@@ -982,7 +980,7 @@ void GPU_free_image(Image *ima)
   gpu_free_image(ima, BLI_thread_is_main());
 }
 
-void GPU_free_texture_movieclip(struct MovieClip *clip)
+void GPU_free_movieclip(struct MovieClip *clip)
 {
   /* number of gpu textures to keep around as cache
    * We don't want to keep too many GPU textures for

@@ -33,6 +33,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 
+#include "GPU_draw.h"
 #include "GPU_uniformbuffer.h"
 
 #include "ED_uvedit.h"

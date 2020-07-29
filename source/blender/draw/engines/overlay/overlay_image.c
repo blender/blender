@@ -232,7 +232,7 @@ static void OVERLAY_image_free_movieclips_textures(OVERLAY_Data *data)
   LinkData *link;
   while ((link = BLI_pophead(&data->stl->pd->bg_movie_clips))) {
     MovieClip *clip = (MovieClip *)link->data;
-    GPU_free_texture_movieclip(clip);
+    GPU_free_movieclip(clip);
     MEM_freeN(link);
   }
 }
