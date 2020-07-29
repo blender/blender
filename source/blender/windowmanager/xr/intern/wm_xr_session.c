@@ -41,8 +41,8 @@
 #include "wm_window.h"
 #include "wm_xr_intern.h"
 
-wmSurface *g_xr_surface = NULL;
-CLG_LogRef LOG = {"wm.xr"};
+static wmSurface *g_xr_surface = NULL;
+static CLG_LogRef LOG = {"wm.xr"};
 
 /* -------------------------------------------------------------------- */
 
