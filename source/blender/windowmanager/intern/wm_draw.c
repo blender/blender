@@ -51,7 +51,6 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
-#include "GPU_draw.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_state.h"

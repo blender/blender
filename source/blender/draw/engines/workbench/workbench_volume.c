@@ -38,8 +38,6 @@
 #include "BKE_volume.h"
 #include "BKE_volume_render.h"
 
-#include "GPU_draw.h"
-
 void workbench_volume_engine_init(WORKBENCH_Data *vedata)
 {
   WORKBENCH_TextureList *txl = vedata->txl;
@@ -79,10 +77,10 @@ static void workbench_volume_modifier_cache_populate(WORKBENCH_Data *vedata,
 
   wpd->volumes_do = true;
   if (fds->use_coba) {
-    GPU_create_smoke_coba_field(fmd);
+    DRW_smoke_ensure_coba_field(fmd);
   }
   else {
-    GPU_create_smoke(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
+    DRW_smoke_ensure(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
   }
 
   if ((!fds->use_coba && (fds->tex_density == NULL && fds->tex_color == NULL)) ||
@@ -290,7 +288,7 @@ void workbench_volume_draw_finish(WORKBENCH_Data *vedata)
    * all viewport in a redraw at least. */
   LISTBASE_FOREACH (LinkData *, link, &wpd->smoke_domains) {
     FluidModifierData *fmd = (FluidModifierData *)link->data;
-    GPU_free_smoke(fmd);
+    DRW_smoke_free(fmd);
   }
   BLI_freelistN(&wpd->smoke_domains);
 }

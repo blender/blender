@@ -27,6 +27,7 @@ struct DRWPass;
 struct DRWShadingGroup;
 struct GPUMaterial;
 struct ModifierData;
+struct FluidModifierData;
 struct Object;
 struct ParticleSystem;
 struct ViewLayer;
@@ -187,6 +188,16 @@ void DRW_hair_duplimat_get(struct Object *object,
 void DRW_hair_init(void);
 void DRW_hair_update(void);
 void DRW_hair_free(void);
+
+/* draw_fluid.c */
+
+/* Fluid simulation.  */
+void DRW_smoke_ensure(struct FluidModifierData *fmd, int highres);
+void DRW_smoke_ensure_coba_field(struct FluidModifierData *fmd);
+void DRW_smoke_ensure_velocity(struct FluidModifierData *fmd);
+
+void DRW_smoke_free(struct FluidModifierData *fmd);
+void DRW_smoke_free_velocity(struct FluidModifierData *fmd);
 
 /* draw_common.c */
 struct DRW_Global {

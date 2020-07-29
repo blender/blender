@@ -100,8 +100,6 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "GPU_draw.h"
-
 #include "IMB_colormanagement.h"
 
 //#include "bmesh_tools.h"

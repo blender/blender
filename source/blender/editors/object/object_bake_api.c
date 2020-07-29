@@ -68,8 +68,6 @@
 #include "ED_screen.h"
 #include "ED_uvedit.h"
 
-#include "GPU_draw.h"
-
 #include "object_intern.h"
 
 /* prototypes */

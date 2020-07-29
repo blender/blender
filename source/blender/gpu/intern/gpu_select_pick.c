@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "GPU_draw.h"
 #include "GPU_glew.h"
 #include "GPU_immediate.h"
 #include "GPU_select.h"

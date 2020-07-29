@@ -72,7 +72,6 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "GPU_draw.h"
 #include "GPU_texture.h"
 
 #ifdef WITH_OPENEXR

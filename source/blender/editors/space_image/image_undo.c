@@ -60,8 +60,6 @@
 #include "ED_undo.h"
 #include "ED_util.h"
 
-#include "GPU_draw.h"
-
 #include "WM_api.h"
 
 static CLG_LogRef LOG = {"ed.image.undo"};

@@ -19,8 +19,6 @@
 
 #include "../node_shader_util.h"
 
-#include "GPU_draw.h"
-
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_tex_environment_in[] = {

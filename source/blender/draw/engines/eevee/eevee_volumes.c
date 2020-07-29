@@ -44,7 +44,6 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
 #include "GPU_texture.h"
@@ -504,7 +503,7 @@ static bool eevee_volume_object_mesh_init(Scene *scene,
 #endif
 
     if (fds->fluid && (fds->type == FLUID_DOMAIN_TYPE_GAS) /* && show_smoke */) {
-      GPU_create_smoke(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
+      DRW_smoke_ensure(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
       BLI_addtail(&e_data.smoke_domains, BLI_genericNodeN(fmd));
     }
 
@@ -836,7 +835,7 @@ void EEVEE_volumes_free_smoke_textures(void)
   /* Free Smoke Textures after rendering */
   LISTBASE_FOREACH (LinkData *, link, &e_data.smoke_domains) {
     FluidModifierData *fmd = (FluidModifierData *)link->data;
-    GPU_free_smoke(fmd);
+    DRW_smoke_free(fmd);
   }
   BLI_freelistN(&e_data.smoke_domains);
 }

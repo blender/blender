@@ -729,7 +729,6 @@ static void gpu_texture_update_from_ibuf(
  * quicker than fully updating the texture for high resolution images. */
 void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int w, int h)
 {
-#ifndef GPU_STANDALONE
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
   ImageTile *tile = BKE_image_get_tile_from_iuser(ima, iuser);
 
@@ -751,7 +750,6 @@ void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int
   }
 
   BKE_image_release_ibuf(ima, ibuf, NULL);
-#endif
 }
 
 /* these two functions are called on entering and exiting texture paint mode,

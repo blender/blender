@@ -53,8 +53,6 @@
 
 #include "ED_view3d.h"
 
-#include "GPU_draw.h"
-
 #include "overlay_private.h"
 
 #include "draw_common.h"
@@ -1422,7 +1420,7 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
       line_count /= fds->res[axis];
     }
 
-    GPU_create_smoke_velocity(fmd);
+    DRW_smoke_ensure_velocity(fmd);
 
     GPUShader *sh = OVERLAY_shader_volume_velocity(use_needle);
     DRWShadingGroup *grp = DRW_shgroup_create(sh, data->psl->extra_ps[0]);
@@ -1452,7 +1450,7 @@ static void OVERLAY_volume_free_smoke_textures(OVERLAY_Data *data)
   LinkData *link;
   while ((link = BLI_pophead(&data->stl->pd->smoke_domains))) {
     FluidModifierData *fmd = (FluidModifierData *)link->data;
-    GPU_free_smoke_velocity(fmd);
+    DRW_smoke_free_velocity(fmd);
     MEM_freeN(link);
   }
 }

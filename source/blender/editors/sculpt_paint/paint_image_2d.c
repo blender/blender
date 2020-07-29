@@ -57,8 +57,6 @@
 
 #include "UI_view2d.h"
 
-#include "GPU_draw.h"
-
 #include "paint_intern.h"
 
 /* Brush Painting for 2D image editor */

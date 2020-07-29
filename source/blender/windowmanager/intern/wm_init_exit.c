@@ -121,7 +121,6 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "GPU_draw.h"
 #include "GPU_init_exit.h"
 #include "GPU_material.h"
 

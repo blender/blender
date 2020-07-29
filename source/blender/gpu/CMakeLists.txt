@@ -80,7 +80,6 @@ set(SRC
   intern/gpu_shader_interface.c
   intern/gpu_state.cc
   intern/gpu_texture.cc
-  intern/gpu_texture_fluid.c
   intern/gpu_uniformbuffer.cc
   intern/gpu_vertex_buffer.cc
   intern/gpu_vertex_format.cc
@@ -94,7 +93,6 @@ set(SRC
   GPU_common.h
   GPU_context.h
   GPU_debug.h
-  GPU_draw.h
   GPU_element.h
   GPU_extensions.h
   GPU_framebuffer.h

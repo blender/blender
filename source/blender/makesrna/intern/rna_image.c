@@ -67,7 +67,6 @@ static const EnumPropertyItem image_source_items[] = {
 
 #  include "BKE_global.h"
 
-#  include "GPU_draw.h"
 #  include "GPU_texture.h"
 
 #  include "IMB_imbuf.h"

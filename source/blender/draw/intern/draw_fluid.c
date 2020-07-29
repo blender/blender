@@ -35,7 +35,6 @@
 
 #include "BKE_colorband.h"
 
-#include "GPU_draw.h"
 #include "GPU_texture.h"
 
 #ifdef WITH_FLUID
@@ -276,7 +275,7 @@ static GPUTexture *create_flame_texture(FluidDomainSettings *fds, int highres)
 /** \name Public API
  * \{ */
 
-void GPU_free_smoke(FluidModifierData *fmd)
+void DRW_smoke_free(FluidModifierData *fmd)
 {
   if (fmd->type & MOD_FLUID_TYPE_DOMAIN && fmd->domain) {
     if (fmd->domain->tex_density) {
@@ -316,7 +315,7 @@ void GPU_free_smoke(FluidModifierData *fmd)
   }
 }
 
-void GPU_create_smoke_coba_field(FluidModifierData *fmd)
+void DRW_smoke_ensure_coba_field(FluidModifierData *fmd)
 {
 #ifndef WITH_FLUID
   UNUSED_VARS(fmd);
@@ -334,7 +333,7 @@ void GPU_create_smoke_coba_field(FluidModifierData *fmd)
 #endif
 }
 
-void GPU_create_smoke(FluidModifierData *fmd, int highres)
+void DRW_smoke_ensure(FluidModifierData *fmd, int highres)
 {
 #ifndef WITH_FLUID
   UNUSED_VARS(fmd, highres);
@@ -368,7 +367,7 @@ void GPU_create_smoke(FluidModifierData *fmd, int highres)
 #endif /* WITH_FLUID */
 }
 
-void GPU_create_smoke_velocity(FluidModifierData *fmd)
+void DRW_smoke_ensure_velocity(FluidModifierData *fmd)
 {
 #ifndef WITH_FLUID
   UNUSED_VARS(fmd);
@@ -393,8 +392,8 @@ void GPU_create_smoke_velocity(FluidModifierData *fmd)
 #endif /* WITH_FLUID */
 }
 
-/* TODO Unify with the other GPU_free_smoke. */
-void GPU_free_smoke_velocity(FluidModifierData *fmd)
+/* TODO Unify with the other DRW_smoke_free. */
+void DRW_smoke_free_velocity(FluidModifierData *fmd)
 {
   if (fmd->type & MOD_FLUID_TYPE_DOMAIN && fmd->domain) {
     if (fmd->domain->tex_velocity_x) {

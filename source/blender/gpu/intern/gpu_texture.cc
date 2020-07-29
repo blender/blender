@@ -37,7 +37,6 @@
 #include "GPU_batch.h"
 #include "GPU_context.h"
 #include "GPU_debug.h"
-#include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_framebuffer.h"
 #include "GPU_glew.h"

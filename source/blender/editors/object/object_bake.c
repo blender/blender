@@ -60,8 +60,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "GPU_draw.h" /* BKE_image_free_gputextures */
-
 #include "WM_api.h"
 #include "WM_types.h"
 
