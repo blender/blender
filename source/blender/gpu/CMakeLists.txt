@@ -80,8 +80,8 @@ set(SRC
   intern/gpu_shader_interface.c
   intern/gpu_state.cc
   intern/gpu_texture.cc
-  intern/gpu_texture_image.cc
-  intern/gpu_texture_smoke.cc
+  intern/gpu_texture_image.c
+  intern/gpu_texture_fluid.c
   intern/gpu_uniformbuffer.cc
   intern/gpu_vertex_buffer.cc
   intern/gpu_vertex_format.cc
