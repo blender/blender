@@ -999,7 +999,7 @@ void wm_draw_update(bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win;
 
-  GPU_free_unused_buffers();
+  BKE_image_free_unused_gpu_textures();
 
   for (win = wm->windows.first; win; win = win->next) {
 #ifdef WIN32

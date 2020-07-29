@@ -268,6 +268,12 @@ void GPU_clip_distances(int distances_new)
   distances_enabled = distances_new;
 }
 
+bool GPU_mipmap_enabled(void)
+{
+  /* TODO(fclem) this used to be a userdef option. */
+  return true;
+}
+
 /** \name GPU Push/Pop State
  * \{ */
 

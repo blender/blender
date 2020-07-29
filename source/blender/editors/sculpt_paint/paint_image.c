@@ -182,7 +182,7 @@ void imapaint_image_update(
     int h = imapaintpartial.y2 - imapaintpartial.y1;
     if (w && h) {
       /* Testing with partial update in uv editor too */
-      GPU_paint_update_image(image, iuser, imapaintpartial.x1, imapaintpartial.y1, w, h);
+      BKE_image_update_gputexture(image, iuser, imapaintpartial.x1, imapaintpartial.y1, w, h);
     }
   }
 }
@@ -1164,9 +1164,9 @@ void ED_object_texture_paint_mode_enter_ex(Main *bmain, Scene *scene, Object *ob
   BKE_paint_toolslots_brush_validate(bmain, &imapaint->paint);
 
   if (U.glreslimit != 0) {
-    GPU_free_images(bmain);
+    BKE_image_free_all_gputextures(bmain);
   }
-  GPU_paint_set_mipmap(bmain, 0);
+  BKE_image_paint_set_mipmap(bmain, 0);
 
   toggle_paint_cursor(scene, true);
 
@@ -1189,9 +1189,9 @@ void ED_object_texture_paint_mode_exit_ex(Main *bmain, Scene *scene, Object *ob)
   ob->mode &= ~OB_MODE_TEXTURE_PAINT;
 
   if (U.glreslimit != 0) {
-    GPU_free_images(bmain);
+    BKE_image_free_all_gputextures(bmain);
   }
-  GPU_paint_set_mipmap(bmain, 1);
+  BKE_image_paint_set_mipmap(bmain, 1);
   toggle_paint_cursor(scene, false);
 
   Mesh *me = BKE_mesh_from_object(ob);

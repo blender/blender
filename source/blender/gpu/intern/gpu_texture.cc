@@ -1118,15 +1118,15 @@ GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat tex_format, const GLuint
   return tex;
 }
 
-static GLenum convert_target_to_gl(eGPUTextureTarget target)
+static GLenum convert_target_to_gl(int dimension, bool is_array)
 {
-  switch (target) {
-    case TEXTARGET_2D:
-      return GL_TEXTURE_2D;
-    case TEXTARGET_2D_ARRAY:
-      return GL_TEXTURE_2D_ARRAY;
-    case TEXTARGET_TILE_MAPPING:
-      return GL_TEXTURE_1D_ARRAY;
+  switch (dimension) {
+    case 1:
+      return is_array ? GL_TEXTURE_1D : GL_TEXTURE_1D_ARRAY;
+    case 2:
+      return is_array ? GL_TEXTURE_2D : GL_TEXTURE_2D_ARRAY;
+    case 3:
+      return GL_TEXTURE_3D;
     default:
       BLI_assert(0);
       return GL_TEXTURE_2D;
@@ -1134,9 +1134,9 @@ static GLenum convert_target_to_gl(eGPUTextureTarget target)
 }
 
 /* Create an error texture that will bind an invalid texture (pink) at draw time. */
-GPUTexture *GPU_texture_create_error(eGPUTextureTarget target)
+GPUTexture *GPU_texture_create_error(int dimension, bool is_array)
 {
-  GLenum textarget = convert_target_to_gl(target);
+  GLenum textarget = convert_target_to_gl(dimension, is_array);
 
   GPUTexture *tex = (GPUTexture *)MEM_callocN(sizeof(GPUTexture), __func__);
   tex->bindcode = 0;

@@ -153,7 +153,6 @@ const struct GPUShaderConfigData GPU_shader_cfg_data[GPU_SHADER_CFG_LEN] = {
 
 /* cache of built-in shaders (each is created on first use) */
 static GPUShader *builtin_shaders[GPU_SHADER_CFG_LEN][GPU_SHADER_BUILTIN_LEN] = {{NULL}};
-static int g_shader_builtin_srgb_transform = 0;
 
 typedef struct {
   const char *vert;

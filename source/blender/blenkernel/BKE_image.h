@@ -55,6 +55,7 @@ void BKE_image_free_packedfiles(struct Image *image);
 void BKE_image_free_views(struct Image *image);
 void BKE_image_free_buffers(struct Image *image);
 void BKE_image_free_buffers_ex(struct Image *image, bool do_lock);
+void BKE_image_free_gputextures(struct Image *ima);
 /* call from library */
 void BKE_image_free(struct Image *image);
 
@@ -274,6 +275,10 @@ void BKE_image_free_anim_ibufs(struct Image *ima, int except_frame);
 /* does all images with type MOVIE or SEQUENCE */
 void BKE_image_all_free_anim_ibufs(struct Main *bmain, int except_frame);
 
+void BKE_image_free_all_gputextures(struct Main *bmain);
+void BKE_image_free_anim_gputextures(struct Main *bmain);
+void BKE_image_free_old_gputextures(struct Main *bmain);
+
 bool BKE_image_memorypack(struct Image *ima);
 void BKE_image_packfiles(struct ReportList *reports, struct Image *ima, const char *basepath);
 void BKE_image_packfiles_from_mem(struct ReportList *reports,
@@ -361,6 +366,30 @@ void BKE_image_file_format_set(struct Image *image,
 bool BKE_image_has_loaded_ibuf(struct Image *image);
 struct ImBuf *BKE_image_get_ibuf_with_name(struct Image *image, const char *name);
 struct ImBuf *BKE_image_get_first_ibuf(struct Image *image);
+
+/* Not to be use directly. */
+struct GPUTexture *BKE_image_create_gpu_texture_from_ibuf(struct Image *image, struct ImBuf *ibuf);
+
+/* Get the GPUTexture for a given `Image`.
+ *
+ * `iuser` and `ibuf` are mutual exclusive parameters. The caller can pass the `ibuf` when already
+ * available. It is also required when requesting the GPUTexture for a render result. */
+struct GPUTexture *BKE_image_get_gpu_texture(struct Image *image,
+                                             struct ImageUser *iuser,
+                                             struct ImBuf *ibuf);
+struct GPUTexture *BKE_image_get_gpu_tiles(struct Image *image,
+                                           struct ImageUser *iuser,
+                                           struct ImBuf *ibuf);
+struct GPUTexture *BKE_image_get_gpu_tilemap(struct Image *image,
+                                             struct ImageUser *iuser,
+                                             struct ImBuf *ibuf);
+
+void BKE_image_update_gputexture(
+    struct Image *ima, struct ImageUser *iuser, int x, int y, int w, int h);
+void BKE_image_paint_set_mipmap(struct Main *bmain, bool mipmap);
+
+/* Delayed free of OpenGL buffers by main thread */
+void BKE_image_free_unused_gpu_textures(void);
 
 struct RenderSlot *BKE_image_add_renderslot(struct Image *ima, const char *name);
 bool BKE_image_remove_renderslot(struct Image *ima, struct ImageUser *iuser, int slot);

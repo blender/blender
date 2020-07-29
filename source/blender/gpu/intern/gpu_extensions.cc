@@ -31,6 +31,8 @@
 #include "BKE_global.h"
 #include "MEM_guardedalloc.h"
 
+#include "DNA_userdef_types.h"
+
 #include "GPU_extensions.h"
 #include "GPU_framebuffer.h"
 #include "GPU_glew.h"
@@ -237,6 +239,13 @@ bool GPU_crappy_amd_driver(void)
 {
   /* Currently are the same drivers with the `unused_fb_slot` problem. */
   return GG.broken_amd_driver;
+}
+
+int GPU_texture_size_with_limit(int res)
+{
+  int size = GPU_max_texture_size();
+  int reslimit = (U.glreslimit != 0) ? min_ii(U.glreslimit, size) : size;
+  return min_ii(reslimit, res);
 }
 
 void gpu_extensions_init(void)

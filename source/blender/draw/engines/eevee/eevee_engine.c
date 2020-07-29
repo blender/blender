@@ -32,6 +32,8 @@
 
 #include "DNA_world_types.h"
 
+#include "IMB_imbuf.h"
+
 #include "eevee_private.h"
 
 #include "eevee_engine.h" /* own include */

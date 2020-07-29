@@ -36,6 +36,7 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -1617,7 +1618,7 @@ void view3d_main_region_draw(const bContext *C, ARegion *region)
   view3d_draw_view(C, region);
 
   DRW_cache_free_old_batches(bmain);
-  GPU_free_images_old(bmain);
+  BKE_image_free_old_gputextures(bmain);
   GPU_pass_cache_garbage_collect();
 
   /* XXX This is in order to draw UI batches with the DRW
@@ -1707,7 +1708,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
   {
     /* free images which can have changed on frame-change
      * warning! can be slow so only free animated images - campbell */
-    GPU_free_images_anim(G.main); /* XXX :((( */
+    BKE_image_free_anim_gputextures(G.main); /* XXX :((( */
   }
 
   GPU_matrix_push_projection();

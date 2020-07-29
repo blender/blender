@@ -90,6 +90,12 @@ struct Stereo3dFormat;
 
 /**
  *
+ * \attention defined in GPU_texture.h
+ */
+struct GPUTexture;
+
+/**
+ *
  * \attention Defined in allocimbuf.c
  */
 void IMB_init(void);
@@ -726,6 +732,24 @@ void IMB_processor_apply_threaded_scanlines(int total_scanlines,
 /* ffmpeg */
 void IMB_ffmpeg_init(void);
 const char *IMB_ffmpeg_last_error(void);
+
+/**
+ *
+ * \attention defined in util_gpu.c
+ */
+void IMB_gpu_get_format(const struct ImBuf *ibuf,
+                        bool high_bitdepth,
+                        uint *r_data_format,
+                        uint *r_texture_format);
+void *IMB_gpu_get_data(const struct ImBuf *ibuf,
+                       const bool do_rescale,
+                       const int rescale_size[2],
+                       const bool compress_as_srgb,
+                       const bool store_premultiplied,
+                       bool *r_freedata);
+struct GPUTexture *IMB_create_gpu_texture(struct ImBuf *ibuf,
+                                          bool use_high_bitdepth,
+                                          bool use_premult);
 
 /**
  *

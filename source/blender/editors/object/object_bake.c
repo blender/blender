@@ -60,7 +60,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "GPU_draw.h" /* GPU_free_image */
+#include "GPU_draw.h" /* BKE_image_free_gputextures */
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -530,7 +530,7 @@ static void multiresbake_freejob(void *bkv)
     /* delete here, since this delete will be called from main thread */
     for (link = data->images.first; link; link = link->next) {
       Image *ima = (Image *)link->data;
-      GPU_free_image(ima);
+      BKE_image_free_gputextures(ima);
     }
 
     MEM_freeN(data->ob_image.array);

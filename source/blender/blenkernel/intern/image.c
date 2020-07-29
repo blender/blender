@@ -90,7 +90,6 @@
 
 #include "RE_pipeline.h"
 
-#include "GPU_draw.h"
 #include "GPU_texture.h"
 
 #include "BLI_sys_types.h"  // for intptr_t support
@@ -393,7 +392,7 @@ void BKE_image_free_buffers_ex(Image *ima, bool do_lock)
     ima->rr = NULL;
   }
 
-  GPU_free_image(ima);
+  BKE_image_free_gputextures(ima);
 
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
     tile->ok = IMA_OK;

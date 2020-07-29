@@ -13,35 +13,23 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
 
 /** \file
- * \ingroup gpu
- *
- * Utility functions for dealing with OpenGL texture & material context,
- * mipmap generation and light objects.
- *
- * These are some obscure rendering functions shared between the game engine (not anymore)
- * and the blender, in this module to avoid duplication
- * and abstract them away from the rest a bit.
+ * \ingroup bke
  */
 
-#include <string.h>
+#include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_boxpack_2d.h"
 #include "BLI_linklist.h"
-#include "BLI_math.h"
+#include "BLI_listbase.h"
 #include "BLI_threads.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_image_types.h"
-#include "DNA_movieclip_types.h"
 #include "DNA_userdef_types.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
@@ -50,217 +38,30 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
-#include "BKE_movieclip.h"
 
-#include "GPU_draw.h"
 #include "GPU_extensions.h"
+#include "GPU_state.h"
 #include "GPU_texture.h"
 
 #include "PIL_time.h"
 
-static void gpu_free_image(Image *ima, const bool immediate);
+/* Prototypes. */
 static void gpu_free_unused_buffers(void);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Utility functions
- * \{ */
-
-/** Checking powers of two for images since OpenGL ES requires it */
-#ifdef WITH_DDS
-static bool is_power_of_2_resolution(int w, int h)
-{
-  return is_power_of_2_i(w) && is_power_of_2_i(h);
-}
-#endif
-
-static bool is_over_resolution_limit(int w, int h)
-{
-  int size = GPU_max_texture_size();
-  int reslimit = (U.glreslimit != 0) ? min_ii(U.glreslimit, size) : size;
-
-  return (w > reslimit || h > reslimit);
-}
-
-static int smaller_power_of_2_limit(int num)
-{
-  int reslimit = (U.glreslimit != 0) ? min_ii(U.glreslimit, GPU_max_texture_size()) :
-                                       GPU_max_texture_size();
-  /* take texture clamping into account */
-  if (num > reslimit) {
-    return reslimit;
-  }
-
-  return power_of_2_min_i(num);
-}
-
-static GPUTexture **gpu_get_image_gputexture(Image *ima,
-                                             eGPUTextureTarget textarget,
-                                             const int multiview_eye)
-{
-  const bool in_range = (textarget >= 0) && (textarget < TEXTARGET_COUNT);
-  BLI_assert(in_range);
-
-  if (in_range) {
-    return &(ima->gputexture[textarget][multiview_eye]);
-  }
-  return NULL;
-}
-
-static GPUTexture **gpu_get_movieclip_gputexture(MovieClip *clip,
-                                                 MovieClipUser *cuser,
-                                                 eGPUTextureTarget textarget)
-{
-  LISTBASE_FOREACH (MovieClip_RuntimeGPUTexture *, tex, &clip->runtime.gputextures) {
-    if (memcmp(&tex->user, cuser, sizeof(MovieClipUser)) == 0) {
-      if (tex == NULL) {
-        tex = (MovieClip_RuntimeGPUTexture *)MEM_mallocN(sizeof(MovieClip_RuntimeGPUTexture),
-                                                         __func__);
-
-        for (int i = 0; i < TEXTARGET_COUNT; i++) {
-          tex->gputexture[i] = NULL;
-        }
-
-        memcpy(&tex->user, cuser, sizeof(MovieClipUser));
-        BLI_addtail(&clip->runtime.gputextures, tex);
-      }
-
-      return &tex->gputexture[textarget];
-    }
-  }
-  return NULL;
-}
-
-/**
- * Apply colormanagement and scale buffer if needed.
- * *r_freedata is set to true if the returned buffer need to be manually freed.
- **/
-static void *IMB_gpu_get_data(const ImBuf *ibuf,
-                              const bool do_rescale,
-                              const int rescale_size[2],
-                              const bool compress_as_srgb,
-                              const bool store_premultiplied,
-                              bool *r_freedata)
-{
-  const bool is_float_rect = (ibuf->rect_float != NULL);
-  void *data_rect = (is_float_rect) ? (void *)ibuf->rect_float : (void *)ibuf->rect;
-
-  if (is_float_rect) {
-    /* Float image is already in scene linear colorspace or non-color data by
-     * convention, no colorspace conversion needed. But we do require 4 channels
-     * currently. */
-    if (ibuf->channels != 4 || !store_premultiplied) {
-      data_rect = MEM_mallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, __func__);
-      *r_freedata = true;
-
-      if (data_rect == NULL) {
-        return NULL;
-      }
-
-      IMB_colormanagement_imbuf_to_float_texture(
-          (float *)data_rect, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
-    }
-  }
-  else {
-    /* Byte image is in original colorspace from the file. If the file is sRGB
-     * scene linear, or non-color data no conversion is needed. Otherwise we
-     * compress as scene linear + sRGB transfer function to avoid precision loss
-     * in common cases.
-     *
-     * We must also convert to premultiplied for correct texture interpolation
-     * and consistency with float images. */
-    if (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace)) {
-      data_rect = MEM_mallocN(sizeof(uchar) * 4 * ibuf->x * ibuf->y, __func__);
-      *r_freedata = true;
-
-      if (data_rect == NULL) {
-        return NULL;
-      }
-
-      /* Texture storage of images is defined by the alpha mode of the image. The
-       * downside of this is that there can be artifacts near alpha edges. However,
-       * this allows us to use sRGB texture formats and preserves color values in
-       * zero alpha areas, and appears generally closer to what game engines that we
-       * want to be compatible with do. */
-      IMB_colormanagement_imbuf_to_byte_texture(
-          (uchar *)data_rect, 0, 0, ibuf->x, ibuf->y, ibuf, compress_as_srgb, store_premultiplied);
-    }
-  }
-
-  if (do_rescale) {
-    uint *rect = (is_float_rect) ? NULL : (uint *)data_rect;
-    float *rect_float = (is_float_rect) ? (float *)data_rect : NULL;
-
-    ImBuf *scale_ibuf = IMB_allocFromBuffer(rect, rect_float, ibuf->x, ibuf->y, 4);
-    IMB_scaleImBuf(scale_ibuf, UNPACK2(rescale_size));
-
-    data_rect = (is_float_rect) ? (void *)scale_ibuf->rect_float : (void *)scale_ibuf->rect;
-    *r_freedata = true;
-    /* Steal the rescaled buffer to avoid double free. */
-    scale_ibuf->rect_float = NULL;
-    scale_ibuf->rect = NULL;
-    IMB_freeImBuf(scale_ibuf);
-  }
-  return data_rect;
-}
-
-static void IMB_gpu_get_format(const ImBuf *ibuf,
-                               bool high_bitdepth,
-                               eGPUDataFormat *r_data_format,
-                               eGPUTextureFormat *r_texture_format)
-{
-  const bool float_rect = (ibuf->rect_float != NULL);
-  const bool use_srgb = (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace) &&
-                         !IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace));
-  high_bitdepth = (!(ibuf->flags & IB_halffloat) && high_bitdepth);
-
-  *r_data_format = (float_rect) ? GPU_DATA_FLOAT : GPU_DATA_UNSIGNED_BYTE;
-
-  if (float_rect) {
-    *r_texture_format = high_bitdepth ? GPU_RGBA32F : GPU_RGBA16F;
-  }
-  else {
-    *r_texture_format = use_srgb ? GPU_SRGB8_A8 : GPU_RGBA8;
-  }
-}
-
-#ifdef WITH_DDS
-/* Return false if no suitable format was found. */
-static bool IMB_gpu_get_compressed_format(const ImBuf *ibuf, eGPUTextureFormat *r_texture_format)
-{
-  /* For DDS we only support data, scene linear and sRGB. Converting to
-   * different colorspace would break the compression. */
-  const bool use_srgb = (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace) &&
-                         !IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace));
-
-  if (ibuf->dds_data.fourcc == FOURCC_DXT1) {
-    *r_texture_format = (use_srgb) ? GPU_SRGB8_A8_DXT1 : GPU_RGBA8_DXT1;
-  }
-  else if (ibuf->dds_data.fourcc == FOURCC_DXT3) {
-    *r_texture_format = (use_srgb) ? GPU_SRGB8_A8_DXT3 : GPU_RGBA8_DXT3;
-  }
-  else if (ibuf->dds_data.fourcc == FOURCC_DXT5) {
-    *r_texture_format = (use_srgb) ? GPU_SRGB8_A8_DXT5 : GPU_RGBA8_DXT5;
-  }
-  else {
-    return false;
-  }
-  return true;
-}
-#endif
-
-static bool mipmap_enabled(void)
-{
-  /* This used to be a userpref option. Maybe it will be re-introduce late. */
-  return true;
-}
-
-/** \} */
+static void image_free_gpu(Image *ima, const bool immediate);
 
 /* -------------------------------------------------------------------- */
 /** \name UDIM gpu texture
  * \{ */
+
+static bool is_over_resolution_limit(int w, int h)
+{
+  return (w > GPU_texture_size_with_limit(w) || h > GPU_texture_size_with_limit(h));
+}
+
+static int smaller_power_of_2_limit(int num)
+{
+  return power_of_2_min_i(GPU_texture_size_with_limit(num));
+}
 
 static GPUTexture *gpu_texture_create_tile_mapping(Image *ima, const int multiview_eye)
 {
@@ -421,7 +222,7 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
     BKE_image_release_ibuf(ima, ibuf, NULL);
   }
 
-  if (mipmap_enabled()) {
+  if (GPU_mipmap_enabled()) {
     GPU_texture_generate_mipmap(tex);
     GPU_texture_mipmap_mode(tex, true, true);
     if (ima) {
@@ -443,76 +244,37 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
 /** \name Regular gpu texture
  * \{ */
 
-static GPUTexture *IMB_create_gpu_texture(ImBuf *ibuf, bool use_high_bitdepth, bool use_premult)
+static GPUTexture **get_image_gpu_texture_ptr(Image *ima,
+                                              eGPUTextureTarget textarget,
+                                              const int multiview_eye)
 {
-  GPUTexture *tex = NULL;
-  bool do_rescale = is_over_resolution_limit(ibuf->x, ibuf->y);
+  const bool in_range = (textarget >= 0) && (textarget < TEXTARGET_COUNT);
+  BLI_assert(in_range);
 
-#ifdef WITH_DDS
-  if (ibuf->ftype == IMB_FTYPE_DDS) {
-    eGPUTextureFormat compressed_format;
-    if (!IMB_gpu_get_compressed_format(ibuf, &compressed_format)) {
-      fprintf(stderr, "Unable to find a suitable DXT compression,");
-    }
-    else if (do_rescale) {
-      fprintf(stderr, "Unable to load DXT image resolution,");
-    }
-    else if (!is_power_of_2_resolution(ibuf->x, ibuf->y)) {
-      fprintf(stderr, "Unable to load non-power-of-two DXT image resolution,");
-    }
-    else {
-      tex = GPU_texture_create_compressed(
-          ibuf->x, ibuf->y, ibuf->dds_data.nummipmaps, compressed_format, ibuf->dds_data.data);
-
-      if (tex != NULL) {
-        return tex;
-      }
-      else {
-        fprintf(stderr, "ST3C support not found,");
-      }
-    }
-    /* Fallback to uncompressed texture. */
-    fprintf(stderr, " falling back to uncompressed.\n");
+  if (in_range) {
+    return &(ima->gputexture[textarget][multiview_eye]);
   }
-#endif
-
-  eGPUDataFormat data_format;
-  eGPUTextureFormat tex_format;
-  IMB_gpu_get_format(ibuf, use_high_bitdepth, &data_format, &tex_format);
-
-  int size[2] = {ibuf->x, ibuf->y};
-  if (do_rescale) {
-    size[0] = smaller_power_of_2_limit(size[0]);
-    size[1] = smaller_power_of_2_limit(size[1]);
-  }
-
-  const bool compress_as_srgb = (tex_format == GPU_SRGB8_A8);
-  bool freebuf = false;
-
-  void *data = IMB_gpu_get_data(ibuf, do_rescale, size, compress_as_srgb, use_premult, &freebuf);
-
-  /* Create Texture. */
-  tex = GPU_texture_create_nD(UNPACK2(size), 0, 2, data, tex_format, data_format, 0, false, NULL);
-
-  GPU_texture_anisotropic_filter(tex, true);
-
-  if (freebuf) {
-    MEM_SAFE_FREE(data);
-  }
-
-  return tex;
+  return NULL;
 }
 
-/* Get the GPUTexture for a given `Image`.
- *
- * `iuser` and `ibuf` are mutual exclusive parameters. The caller can pass the `ibuf` when already
- * available. It is also required when requesting the GPUTexture for a render result. */
-GPUTexture *GPU_texture_from_blender(Image *ima,
-                                     ImageUser *iuser,
-                                     ImBuf *ibuf,
-                                     eGPUTextureTarget textarget)
+static GPUTexture *image_gpu_texture_error_create(eGPUTextureTarget textarget)
 {
-#ifndef GPU_STANDALONE
+  switch (textarget) {
+    case TEXTARGET_2D_ARRAY:
+      return GPU_texture_create_error(2, true);
+    case TEXTARGET_TILE_MAPPING:
+      return GPU_texture_create_error(1, true);
+    case TEXTARGET_2D:
+    default:
+      return GPU_texture_create_error(2, false);
+  }
+}
+
+static GPUTexture *image_get_gpu_texture(Image *ima,
+                                         ImageUser *iuser,
+                                         ImBuf *ibuf,
+                                         eGPUTextureTarget textarget)
+{
   if (ima == NULL) {
     return NULL;
   }
@@ -523,7 +285,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima,
 
   /* currently, gpu refresh tagging is used by ima sequences */
   if (ima->gpuflag & IMA_GPU_REFRESH) {
-    gpu_free_image(ima, true);
+    image_free_gpu(ima, true);
     ima->gpuflag &= ~IMA_GPU_REFRESH;
   }
 
@@ -531,7 +293,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima,
   BKE_image_tag_time(ima);
 
   /* Test if we already have a texture. */
-  GPUTexture **tex = gpu_get_image_gputexture(ima, textarget, iuser ? iuser->multiview_eye : 0);
+  GPUTexture **tex = get_image_gpu_texture_ptr(ima, textarget, iuser ? iuser->multiview_eye : 0);
   if (*tex) {
     return *tex;
   }
@@ -540,7 +302,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima,
    * texture with zero bindcode so we don't keep trying. */
   ImageTile *tile = BKE_image_get_tile(ima, 0);
   if (tile == NULL || tile->ok == 0) {
-    *tex = GPU_texture_create_error(textarget);
+    *tex = image_gpu_texture_error_create(textarget);
     return *tex;
   }
 
@@ -549,7 +311,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima,
   if (ibuf_intern == NULL) {
     ibuf_intern = BKE_image_acquire_ibuf(ima, iuser, NULL);
     if (ibuf_intern == NULL) {
-      *tex = GPU_texture_create_error(textarget);
+      *tex = image_gpu_texture_error_create(textarget);
       return *tex;
     }
   }
@@ -568,7 +330,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima,
 
     *tex = IMB_create_gpu_texture(ibuf_intern, use_high_bitdepth, store_premultiplied);
 
-    if (mipmap_enabled()) {
+    if (GPU_mipmap_enabled()) {
       GPU_texture_bind(*tex, 0);
       GPU_texture_generate_mipmap(*tex);
       GPU_texture_unbind(*tex);
@@ -590,45 +352,150 @@ GPUTexture *GPU_texture_from_blender(Image *ima,
   GPU_texture_orig_size_set(*tex, ibuf_intern->x, ibuf_intern->y);
 
   return *tex;
-#endif
-  return NULL;
 }
 
-GPUTexture *GPU_texture_from_movieclip(MovieClip *clip, MovieClipUser *cuser)
+GPUTexture *BKE_image_get_gpu_texture(Image *image, ImageUser *iuser, ImBuf *ibuf)
 {
-#ifndef GPU_STANDALONE
-  if (clip == NULL) {
-    return NULL;
-  }
-
-  GPUTexture **tex = gpu_get_movieclip_gputexture(clip, cuser, TEXTARGET_2D);
-  if (*tex) {
-    return *tex;
-  }
-
-  /* check if we have a valid image buffer */
-  ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, cuser);
-  if (ibuf == NULL) {
-    *tex = GPU_texture_create_error(TEXTARGET_2D);
-    return *tex;
-  }
-
-  /* This only means RGBA16F instead of RGBA32F. */
-  const bool high_bitdepth = false;
-  const bool store_premultiplied = ibuf->rect_float ? false : true;
-  *tex = IMB_create_gpu_texture(ibuf, high_bitdepth, store_premultiplied);
-
-  /* Do not generate mips for movieclips... too slow. */
-  GPU_texture_mipmap_mode(*tex, false, true);
-
-  IMB_freeImBuf(ibuf);
-
-  return *tex;
-#else
-  return NULL;
-#endif
+  return image_get_gpu_texture(image, iuser, ibuf, TEXTARGET_2D);
 }
 
+GPUTexture *BKE_image_get_gpu_tiles(Image *image, ImageUser *iuser, ImBuf *ibuf)
+{
+  return image_get_gpu_texture(image, iuser, ibuf, TEXTARGET_2D_ARRAY);
+}
+
+GPUTexture *BKE_image_get_gpu_tilemap(Image *image, ImageUser *iuser, ImBuf *ibuf)
+{
+  return image_get_gpu_texture(image, iuser, ibuf, TEXTARGET_TILE_MAPPING);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delayed GPU texture free
+ *
+ * Image datablocks can be deleted by any thread, but there may not be any active OpenGL context.
+ * In that case we push them into a queue and free the buffers later.
+ * \{ */
+
+static LinkNode *gpu_texture_free_queue = NULL;
+static ThreadMutex gpu_texture_queue_mutex = BLI_MUTEX_INITIALIZER;
+
+static void gpu_free_unused_buffers(void)
+{
+  if (gpu_texture_free_queue == NULL) {
+    return;
+  }
+
+  BLI_mutex_lock(&gpu_texture_queue_mutex);
+
+  if (gpu_texture_free_queue != NULL) {
+    GPUTexture *tex;
+    while ((tex = (GPUTexture *)BLI_linklist_pop(&gpu_texture_free_queue))) {
+      GPU_texture_free(tex);
+    }
+    gpu_texture_free_queue = NULL;
+  }
+
+  BLI_mutex_unlock(&gpu_texture_queue_mutex);
+}
+
+void BKE_image_free_unused_gpu_textures()
+{
+  if (BLI_thread_is_main()) {
+    gpu_free_unused_buffers();
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Deletion
+ * \{ */
+
+static void image_free_gpu(Image *ima, const bool immediate)
+{
+  for (int eye = 0; eye < 2; eye++) {
+    for (int i = 0; i < TEXTARGET_COUNT; i++) {
+      if (ima->gputexture[i][eye] != NULL) {
+        if (immediate) {
+          GPU_texture_free(ima->gputexture[i][eye]);
+        }
+        else {
+          BLI_mutex_lock(&gpu_texture_queue_mutex);
+          BLI_linklist_prepend(&gpu_texture_free_queue, ima->gputexture[i][eye]);
+          BLI_mutex_unlock(&gpu_texture_queue_mutex);
+        }
+
+        ima->gputexture[i][eye] = NULL;
+      }
+    }
+  }
+
+  ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
+}
+
+void BKE_image_free_gputextures(Image *ima)
+{
+  image_free_gpu(ima, BLI_thread_is_main());
+}
+
+void BKE_image_free_all_gputextures(Main *bmain)
+{
+  if (bmain) {
+    LISTBASE_FOREACH (Image *, ima, &bmain->images) {
+      BKE_image_free_gputextures(ima);
+    }
+  }
+}
+
+/* same as above but only free animated images */
+void BKE_image_free_anim_gputextures(Main *bmain)
+{
+  if (bmain) {
+    LISTBASE_FOREACH (Image *, ima, &bmain->images) {
+      if (BKE_image_is_animated(ima)) {
+        BKE_image_free_gputextures(ima);
+      }
+    }
+  }
+}
+
+void BKE_image_free_old_gputextures(Main *bmain)
+{
+  static int lasttime = 0;
+  int ctime = (int)PIL_check_seconds_timer();
+
+  /*
+   * Run garbage collector once for every collecting period of time
+   * if textimeout is 0, that's the option to NOT run the collector
+   */
+  if (U.textimeout == 0 || ctime % U.texcollectrate || ctime == lasttime) {
+    return;
+  }
+
+  /* of course not! */
+  if (G.is_rendering) {
+    return;
+  }
+
+  lasttime = ctime;
+
+  LISTBASE_FOREACH (Image *, ima, &bmain->images) {
+    if ((ima->flag & IMA_NOCOLLECT) == 0 && ctime - ima->lastused > U.textimeout) {
+      /* If it's in GL memory, deallocate and set time tag to current time
+       * This gives textures a "second chance" to be used before dying. */
+      if (BKE_image_has_opengl_texture(ima)) {
+        BKE_image_free_gputextures(ima);
+        ima->lastused = ctime;
+      }
+      /* Otherwise, just kill the buffers */
+      else {
+        BKE_image_free_buffers(ima);
+      }
+    }
+  }
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -745,10 +612,6 @@ static void gpu_texture_update_unscaled(GPUTexture *tex,
 static void gpu_texture_update_from_ibuf(
     GPUTexture *tex, Image *ima, ImBuf *ibuf, ImageTile *tile, int x, int y, int w, int h)
 {
-  /* Partial update of texture for texture painting. This is often much
-   * quicker than fully updating the texture for high resolution images. */
-  GPU_texture_bind(tex, 0);
-
   bool scaled;
   if (tile != NULL) {
     int *tilesize = tile->runtime.tilearray_size;
@@ -814,6 +677,8 @@ static void gpu_texture_update_from_ibuf(
     }
   }
 
+  GPU_texture_bind(tex, 0);
+
   if (scaled) {
     /* Slower update where we first have to scale the input pixels. */
     if (tile != NULL) {
@@ -850,7 +715,7 @@ static void gpu_texture_update_from_ibuf(
     MEM_freeN(rect_float);
   }
 
-  if (mipmap_enabled()) {
+  if (GPU_mipmap_enabled()) {
     GPU_texture_generate_mipmap(tex);
   }
   else {
@@ -860,7 +725,9 @@ static void gpu_texture_update_from_ibuf(
   GPU_texture_unbind(tex);
 }
 
-void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, int h)
+/* Partial update of texture for texture painting. This is often much
+ * quicker than fully updating the texture for high resolution images. */
+void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int w, int h)
 {
 #ifndef GPU_STANDALONE
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
@@ -868,7 +735,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 
   if ((ibuf == NULL) || (w == 0) || (h == 0)) {
     /* Full reload of texture. */
-    GPU_free_image(ima);
+    BKE_image_free_gputextures(ima);
   }
 
   GPUTexture *tex = ima->gputexture[TEXTARGET_2D][0];
@@ -891,9 +758,8 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
  * temporary disabling/enabling mipmapping on all images for quick texture
  * updates with glTexSubImage2D. images that didn't change don't have to be
  * re-uploaded to OpenGL */
-void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
+void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap)
 {
-#ifndef GPU_STANDALONE
   LISTBASE_FOREACH (Image *, ima, &bmain->images) {
     if (BKE_image_has_opengl_texture(ima)) {
       if (ima->gpuflag & IMA_GPU_MIPMAP_COMPLETE) {
@@ -909,161 +775,11 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
         }
       }
       else {
-        GPU_free_image(ima);
+        BKE_image_free_gputextures(ima);
       }
     }
     else {
       ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
-    }
-  }
-#endif /* GPU_STANDALONE */
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Delayed GPU texture free
- *
- * Image datablocks can be deleted by any thread, but there may not be any active OpenGL context.
- * In that case we push them into a queue and free the buffers later.
- * \{ */
-
-static LinkNode *gpu_texture_free_queue = NULL;
-static ThreadMutex gpu_texture_queue_mutex = BLI_MUTEX_INITIALIZER;
-
-static void gpu_free_unused_buffers()
-{
-  if (gpu_texture_free_queue == NULL) {
-    return;
-  }
-
-  BLI_mutex_lock(&gpu_texture_queue_mutex);
-
-  if (gpu_texture_free_queue != NULL) {
-    GPUTexture *tex;
-    while ((tex = (GPUTexture *)BLI_linklist_pop(&gpu_texture_free_queue))) {
-      GPU_texture_free(tex);
-    }
-    gpu_texture_free_queue = NULL;
-  }
-
-  BLI_mutex_unlock(&gpu_texture_queue_mutex);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Deletion
- * \{ */
-
-static void gpu_free_image(Image *ima, const bool immediate)
-{
-  for (int eye = 0; eye < 2; eye++) {
-    for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      if (ima->gputexture[i][eye] != NULL) {
-        if (immediate) {
-          GPU_texture_free(ima->gputexture[i][eye]);
-        }
-        else {
-          BLI_mutex_lock(&gpu_texture_queue_mutex);
-          BLI_linklist_prepend(&gpu_texture_free_queue, ima->gputexture[i][eye]);
-          BLI_mutex_unlock(&gpu_texture_queue_mutex);
-        }
-
-        ima->gputexture[i][eye] = NULL;
-      }
-    }
-  }
-
-  ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
-}
-
-void GPU_free_unused_buffers()
-{
-  if (BLI_thread_is_main()) {
-    gpu_free_unused_buffers();
-  }
-}
-
-void GPU_free_image(Image *ima)
-{
-  gpu_free_image(ima, BLI_thread_is_main());
-}
-
-void GPU_free_movieclip(struct MovieClip *clip)
-{
-  /* number of gpu textures to keep around as cache
-   * We don't want to keep too many GPU textures for
-   * movie clips around, as they can be large.*/
-  const int MOVIECLIP_NUM_GPUTEXTURES = 1;
-
-  while (BLI_listbase_count(&clip->runtime.gputextures) > MOVIECLIP_NUM_GPUTEXTURES) {
-    MovieClip_RuntimeGPUTexture *tex = (MovieClip_RuntimeGPUTexture *)BLI_pophead(
-        &clip->runtime.gputextures);
-    for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      /* free glsl image binding */
-      if (tex->gputexture[i]) {
-        GPU_texture_free(tex->gputexture[i]);
-        tex->gputexture[i] = NULL;
-      }
-    }
-    MEM_freeN(tex);
-  }
-}
-
-void GPU_free_images(Main *bmain)
-{
-  if (bmain) {
-    LISTBASE_FOREACH (Image *, ima, &bmain->images) {
-      GPU_free_image(ima);
-    }
-  }
-}
-
-/* same as above but only free animated images */
-void GPU_free_images_anim(Main *bmain)
-{
-  if (bmain) {
-    LISTBASE_FOREACH (Image *, ima, &bmain->images) {
-      if (BKE_image_is_animated(ima)) {
-        GPU_free_image(ima);
-      }
-    }
-  }
-}
-
-void GPU_free_images_old(Main *bmain)
-{
-  static int lasttime = 0;
-  int ctime = (int)PIL_check_seconds_timer();
-
-  /*
-   * Run garbage collector once for every collecting period of time
-   * if textimeout is 0, that's the option to NOT run the collector
-   */
-  if (U.textimeout == 0 || ctime % U.texcollectrate || ctime == lasttime) {
-    return;
-  }
-
-  /* of course not! */
-  if (G.is_rendering) {
-    return;
-  }
-
-  lasttime = ctime;
-
-  LISTBASE_FOREACH (Image *, ima, &bmain->images) {
-    if ((ima->flag & IMA_NOCOLLECT) == 0 && ctime - ima->lastused > U.textimeout) {
-      /* If it's in GL memory, deallocate and set time tag to current time
-       * This gives textures a "second chance" to be used before dying. */
-      if (BKE_image_has_opengl_texture(ima)) {
-        GPU_free_image(ima);
-        ima->lastused = ctime;
-      }
-      /* Otherwise, just kill the buffers */
-      else {
-        BKE_image_free_buffers(ima);
-      }
     }
   }
 }

@@ -2769,7 +2769,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
   ED_image_undo_push_end();
 
   /* force GPU reupload, all image is invalid */
-  GPU_free_image(ima);
+  BKE_image_free_gputextures(ima);
 
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
@@ -2860,7 +2860,7 @@ static int image_scale_exec(bContext *C, wmOperator *op)
   ED_image_undo_push_end();
 
   /* force GPU reupload, all image is invalid */
-  GPU_free_image(ima);
+  BKE_image_free_gputextures(ima);
 
   DEG_id_tag_update(&ima->id, 0);
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);

@@ -233,6 +233,8 @@ GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat data_type, const uint bu
 GPUTexture *GPU_texture_create_compressed(
     int w, int h, int miplen, eGPUTextureFormat format, const void *data);
 
+GPUTexture *GPU_texture_create_error(int dimension, bool array);
+
 void GPU_texture_add_mipmap(GPUTexture *tex,
                             eGPUDataFormat gpu_data_format,
                             int miplvl,

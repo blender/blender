@@ -1867,3 +1867,84 @@ void BKE_movieclip_eval_selection_update(struct Depsgraph *depsgraph, MovieClip 
   DEG_debug_print_eval(depsgraph, __func__, clip->id.name, clip);
   movieclip_selection_sync(clip, (MovieClip *)clip->id.orig_id);
 }
+
+/* -------------------------------------------------------------------- */
+/** \name GPU textures
+ * \{ */
+
+static GPUTexture **movieclip_get_gputexture_ptr(MovieClip *clip,
+                                                 MovieClipUser *cuser,
+                                                 eGPUTextureTarget textarget)
+{
+  LISTBASE_FOREACH (MovieClip_RuntimeGPUTexture *, tex, &clip->runtime.gputextures) {
+    if (memcmp(&tex->user, cuser, sizeof(MovieClipUser)) == 0) {
+      if (tex == NULL) {
+        tex = (MovieClip_RuntimeGPUTexture *)MEM_mallocN(sizeof(MovieClip_RuntimeGPUTexture),
+                                                         __func__);
+
+        for (int i = 0; i < TEXTARGET_COUNT; i++) {
+          tex->gputexture[i] = NULL;
+        }
+
+        memcpy(&tex->user, cuser, sizeof(MovieClipUser));
+        BLI_addtail(&clip->runtime.gputextures, tex);
+      }
+
+      return &tex->gputexture[textarget];
+    }
+  }
+  return NULL;
+}
+
+GPUTexture *BKE_movieclip_get_gpu_texture(MovieClip *clip, MovieClipUser *cuser)
+{
+  if (clip == NULL) {
+    return NULL;
+  }
+
+  GPUTexture **tex = movieclip_get_gputexture_ptr(clip, cuser, TEXTARGET_2D);
+  if (*tex) {
+    return *tex;
+  }
+
+  /* check if we have a valid image buffer */
+  ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, cuser);
+  if (ibuf == NULL) {
+    *tex = GPU_texture_create_error(2, false);
+    return *tex;
+  }
+
+  /* This only means RGBA16F instead of RGBA32F. */
+  const bool high_bitdepth = false;
+  const bool store_premultiplied = ibuf->rect_float ? false : true;
+  *tex = IMB_create_gpu_texture(ibuf, high_bitdepth, store_premultiplied);
+
+  /* Do not generate mips for movieclips... too slow. */
+  GPU_texture_mipmap_mode(*tex, false, true);
+
+  IMB_freeImBuf(ibuf);
+
+  return *tex;
+}
+
+void BKE_movieclip_free_gputexture(struct MovieClip *clip)
+{
+  /* number of gpu textures to keep around as cache
+   * We don't want to keep too many GPU textures for
+   * movie clips around, as they can be large.*/
+  const int MOVIECLIP_NUM_GPUTEXTURES = 1;
+
+  while (BLI_listbase_count(&clip->runtime.gputextures) > MOVIECLIP_NUM_GPUTEXTURES) {
+    MovieClip_RuntimeGPUTexture *tex = (MovieClip_RuntimeGPUTexture *)BLI_pophead(
+        &clip->runtime.gputextures);
+    for (int i = 0; i < TEXTARGET_COUNT; i++) {
+      /* free glsl image binding */
+      if (tex->gputexture[i]) {
+        GPU_texture_free(tex->gputexture[i]);
+        tex->gputexture[i] = NULL;
+      }
+    }
+    MEM_freeN(tex);
+  }
+}
+/** \} */

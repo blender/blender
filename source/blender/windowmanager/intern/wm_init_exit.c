@@ -59,6 +59,7 @@
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
+#include "BKE_image.h"
 #include "BKE_keyconfig.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
@@ -575,7 +576,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
   BKE_subdiv_exit();
 
   if (opengl_is_init) {
-    GPU_free_unused_buffers();
+    BKE_image_free_unused_gpu_textures();
   }
 
   BKE_blender_free(); /* blender.c, does entire library and spacetypes */

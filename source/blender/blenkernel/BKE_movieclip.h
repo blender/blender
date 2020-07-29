@@ -113,6 +113,11 @@ bool BKE_movieclip_put_frame_if_possible(struct MovieClip *clip,
                                          struct MovieClipUser *user,
                                          struct ImBuf *ibuf);
 
+struct GPUTexture *BKE_movieclip_get_gpu_texture(struct MovieClip *clip,
+                                                 struct MovieClipUser *cuser);
+
+void BKE_movieclip_free_gputexture(struct MovieClip *clip);
+
 /* Dependency graph evaluation. */
 
 void BKE_movieclip_eval_update(struct Depsgraph *depsgraph,
