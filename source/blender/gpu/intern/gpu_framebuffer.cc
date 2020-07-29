@@ -1046,7 +1046,7 @@ void GPU_offscreen_read_pixels(GPUOffScreen *ofs, eGPUDataFormat type, void *pix
   const int w = GPU_texture_width(ofs->color);
   const int h = GPU_texture_height(ofs->color);
 
-  BLI_assert(ELEM(type, GPU_DATA_UNSIGNED_BYTE, GL_FLOAT));
+  BLI_assert(ELEM(type, GPU_DATA_UNSIGNED_BYTE, GPU_DATA_FLOAT));
   GLenum gl_type = (type == GPU_DATA_FLOAT) ? GL_FLOAT : GL_UNSIGNED_BYTE;
 
   glReadPixels(0, 0, w, h, GL_RGBA, gl_type, pixels);
