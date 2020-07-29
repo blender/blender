@@ -510,10 +510,12 @@ static void applyObjectConstraintVec(
   else {
     /* Specific TransData's space. */
     copy_v3_v3(out, in);
-    mul_m3_v3(t->spacemtx_inv, out);
-    mul_m3_v3(td->axismtx, out);
-    if (t->flag & T_EDIT) {
-      mul_m3_v3(tc->mat3_unit, out);
+    if (t->con.mode & CON_APPLY) {
+      mul_m3_v3(t->spacemtx_inv, out);
+      mul_m3_v3(td->axismtx, out);
+      if (t->flag & T_EDIT) {
+        mul_m3_v3(tc->mat3_unit, out);
+      }
     }
   }
 }
