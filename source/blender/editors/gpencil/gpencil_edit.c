@@ -94,6 +94,8 @@
 /** \name Stroke Edit Mode Management
  * \{ */
 
+static void gpencil_flip_stroke(bGPDstroke *gps);
+
 /* poll callback for all stroke editing operators */
 static bool gpencil_stroke_edit_poll(bContext *C)
 {
@@ -1124,6 +1126,11 @@ static void gpencil_add_move_points(bGPDframe *gpf, bGPDstroke *gps)
       /* select new */
       pt = &gps->points[gps->totpoints - 1];
       pt->flag |= GP_SPOINT_SELECT;
+    }
+
+    /* Flip stroke if it was only one point to consider extrude point as last point. */
+    if (gps->totpoints == 2) {
+      gpencil_flip_stroke(gps);
     }
 
     /* Calc geometry data. */
