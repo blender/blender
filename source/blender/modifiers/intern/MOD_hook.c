@@ -40,6 +40,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
 
@@ -393,6 +394,11 @@ static void deformVertsEM(struct ModifierData *md,
   HookModifierData *hmd = (HookModifierData *)md;
   Mesh *mesh_src = MOD_deform_mesh_eval_get(
       ctx->object, editData, mesh, NULL, numVerts, false, false);
+
+  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  if (mesh_src != NULL) {
+    BKE_mesh_wrapper_ensure_mdata(mesh_src);
+  }
 
   deformVerts_do(hmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
 
