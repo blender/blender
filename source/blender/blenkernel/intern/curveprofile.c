@@ -886,7 +886,7 @@ void BKE_curveprofile_create_samples(CurveProfile *profile,
  */
 static void curveprofile_make_table(CurveProfile *profile)
 {
-  int n_samples = PROF_N_TABLE(profile->path_len);
+  int n_samples = PROF_TABLE_LEN(profile->path_len);
   CurveProfilePoint *new_table = MEM_callocN(sizeof(CurveProfilePoint) * (n_samples + 1),
                                              "high-res table");
 
@@ -1059,7 +1059,7 @@ void BKE_curveprofile_initialize(CurveProfile *profile, short segments_len)
  */
 static float curveprofile_distance_to_next_table_point(const CurveProfile *profile, int i)
 {
-  BLI_assert(i < PROF_N_TABLE(profile->path_len));
+  BLI_assert(i < PROF_TABLE_LEN(profile->path_len));
 
   return len_v2v2(&profile->table[i].x, &profile->table[i + 1].x);
 }
@@ -1072,7 +1072,7 @@ static float curveprofile_distance_to_next_table_point(const CurveProfile *profi
 float BKE_curveprofile_total_length(const CurveProfile *profile)
 {
   float total_length = 0;
-  for (int i = 0; i < PROF_N_TABLE(profile->path_len) - 1; i++) {
+  for (int i = 0; i < PROF_TABLE_LEN(profile->path_len) - 1; i++) {
     total_length += len_v2v2(&profile->table[i].x, &profile->table[i + 1].x);
   }
   return total_length;
@@ -1160,7 +1160,7 @@ void BKE_curveprofile_evaluate_length_portion(const CurveProfile *profile,
   float length_travelled = 0.0f;
   while (length_travelled < requested_length) {
     /* Check if we reached the last point before the final one. */
-    if (i == PROF_N_TABLE(profile->path_len) - 2) {
+    if (i == PROF_TABLE_LEN(profile->path_len) - 2) {
       break;
     }
     float new_length = curveprofile_distance_to_next_table_point(profile, i);
