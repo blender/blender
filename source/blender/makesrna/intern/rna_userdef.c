@@ -190,6 +190,7 @@ static const EnumPropertyItem rna_enum_userdef_viewport_aa_items[] = {
 #  include "GPU_draw.h"
 #  include "GPU_extensions.h"
 #  include "GPU_select.h"
+#  include "GPU_texture.h"
 
 #  include "BLF_api.h"
 
@@ -363,7 +364,8 @@ static void rna_userdef_load_ui_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 
 static void rna_userdef_anisotropic_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  GPU_set_anisotropic(U.anisotropic_filter);
+  GPU_samplers_free();
+  GPU_samplers_init();
   rna_userdef_update(bmain, scene, ptr);
 }
 

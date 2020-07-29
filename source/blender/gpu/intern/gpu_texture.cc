@@ -26,6 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_image_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_base.h"
@@ -439,6 +440,13 @@ static uint gpu_get_bytesize(eGPUTextureFormat data_type)
     case GPU_R8:
     case GPU_R8UI:
       return 1;
+    case GPU_SRGB8_A8_DXT1:
+    case GPU_SRGB8_A8_DXT3:
+    case GPU_SRGB8_A8_DXT5:
+    case GPU_RGBA8_DXT1:
+    case GPU_RGBA8_DXT3:
+    case GPU_RGBA8_DXT5:
+      return 1; /* Incorrect but actual size is fractional. */
     default:
       BLI_assert(!"Texture format incorrect or unsupported\n");
       return 0;
@@ -524,7 +532,18 @@ static GLenum gpu_format_to_gl_internalformat(eGPUTextureFormat format)
     case GPU_RGB16F:
       return GL_RGB16F;
     /* Special formats texture only */
-    /* ** Add Format here */
+    case GPU_SRGB8_A8_DXT1:
+      return GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT;
+    case GPU_SRGB8_A8_DXT3:
+      return GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT;
+    case GPU_SRGB8_A8_DXT5:
+      return GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
+    case GPU_RGBA8_DXT1:
+      return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+    case GPU_RGBA8_DXT3:
+      return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+    case GPU_RGBA8_DXT5:
+      return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
     /* Depth Formats */
     case GPU_DEPTH_COMPONENT32F:
       return GL_DEPTH_COMPONENT32F;
@@ -535,99 +554,6 @@ static GLenum gpu_format_to_gl_internalformat(eGPUTextureFormat format)
     default:
       BLI_assert(!"Texture format incorrect or unsupported\n");
       return 0;
-  }
-}
-
-static eGPUTextureFormat gl_internalformat_to_gpu_format(const GLint glformat)
-{
-  /* You can add any of the available type to this list
-   * For available types see GPU_texture.h */
-  switch (glformat) {
-    /* Formats texture & renderbuffer */
-    case GL_RGBA8UI:
-      return GPU_RGBA8UI;
-    case GL_RGBA8I:
-      return GPU_RGBA8I;
-    case GL_RGBA8:
-      return GPU_RGBA8;
-    case GL_RGBA32UI:
-      return GPU_RGBA32UI;
-    case GL_RGBA32I:
-      return GPU_RGBA32I;
-    case GL_RGBA32F:
-      return GPU_RGBA32F;
-    case GL_RGBA16UI:
-      return GPU_RGBA16UI;
-    case GL_RGBA16I:
-      return GPU_RGBA16I;
-    case GL_RGBA16F:
-      return GPU_RGBA16F;
-    case GL_RGBA16:
-      return GPU_RGBA16;
-    case GL_RG8UI:
-      return GPU_RG8UI;
-    case GL_RG8I:
-      return GPU_RG8I;
-    case GL_RG8:
-      return GPU_RG8;
-    case GL_RG32UI:
-      return GPU_RG32UI;
-    case GL_RG32I:
-      return GPU_RG32I;
-    case GL_RG32F:
-      return GPU_RG32F;
-    case GL_RG16UI:
-      return GPU_RG16UI;
-    case GL_RG16I:
-      return GPU_RG16I;
-    case GL_RG16F:
-      return GPU_RGBA32F;
-    case GL_RG16:
-      return GPU_RG16;
-    case GL_R8UI:
-      return GPU_R8UI;
-    case GL_R8I:
-      return GPU_R8I;
-    case GL_R8:
-      return GPU_R8;
-    case GL_R32UI:
-      return GPU_R32UI;
-    case GL_R32I:
-      return GPU_R32I;
-    case GL_R32F:
-      return GPU_R32F;
-    case GL_R16UI:
-      return GPU_R16UI;
-    case GL_R16I:
-      return GPU_R16I;
-    case GL_R16F:
-      return GPU_R16F;
-    case GL_R16:
-      return GPU_R16;
-    /* Special formats texture & renderbuffer */
-    case GL_R11F_G11F_B10F:
-      return GPU_R11F_G11F_B10F;
-    case GL_DEPTH32F_STENCIL8:
-      return GPU_DEPTH32F_STENCIL8;
-    case GL_DEPTH24_STENCIL8:
-      return GPU_DEPTH24_STENCIL8;
-    case GL_SRGB8_ALPHA8:
-      return GPU_SRGB8_A8;
-    /* Texture only format */
-    case GL_RGB16F:
-      return GPU_RGB16F;
-    /* Special formats texture only */
-    /* ** Add Format here */
-    /* Depth Formats */
-    case GL_DEPTH_COMPONENT32F:
-      return GPU_DEPTH_COMPONENT32F;
-    case GL_DEPTH_COMPONENT24:
-      return GPU_DEPTH_COMPONENT24;
-    case GL_DEPTH_COMPONENT16:
-      return GPU_DEPTH_COMPONENT16;
-    default:
-      BLI_assert(!"Internal format incorrect or unsupported\n");
-      return GPU_RGBA8;
   }
 }
 
@@ -1197,8 +1123,6 @@ static GLenum convert_target_to_gl(eGPUTextureTarget target)
   switch (target) {
     case TEXTARGET_2D:
       return GL_TEXTURE_2D;
-    case TEXTARGET_CUBE_MAP:
-      return GL_TEXTURE_CUBE_MAP;
     case TEXTARGET_2D_ARRAY:
       return GL_TEXTURE_2D_ARRAY;
     case TEXTARGET_TILE_MAPPING:
@@ -1209,47 +1133,71 @@ static GLenum convert_target_to_gl(eGPUTextureTarget target)
   }
 }
 
-/* TODO(fclem) This function should be remove and gpu_texture_image rewritten to not use any GL
- * commands. */
-GPUTexture *GPU_texture_from_bindcode(eGPUTextureTarget target, int bindcode)
+/* Create an error texture that will bind an invalid texture (pink) at draw time. */
+GPUTexture *GPU_texture_create_error(eGPUTextureTarget target)
 {
   GLenum textarget = convert_target_to_gl(target);
 
   GPUTexture *tex = (GPUTexture *)MEM_callocN(sizeof(GPUTexture), __func__);
-  tex->bindcode = bindcode;
+  tex->bindcode = 0;
   tex->refcount = 1;
   tex->target = textarget;
   tex->target_base = textarget;
   tex->samples = 0;
-  tex->sampler_state = GPU_SAMPLER_REPEAT | GPU_SAMPLER_ANISO;
-  if (GPU_get_mipmap()) {
-    tex->sampler_state |= (GPU_SAMPLER_MIPMAP | GPU_SAMPLER_FILTER);
-  }
+  tex->sampler_state = GPU_SAMPLER_DEFAULT;
   tex->number = -1;
 
-  if (!glIsTexture(tex->bindcode)) {
-    GPU_print_error_debug("Blender Texture Not Loaded");
-  }
-  else {
-    GLint w, h, gl_format;
-    GLenum gettarget;
-    gettarget = (textarget == GL_TEXTURE_CUBE_MAP) ? GL_TEXTURE_CUBE_MAP_POSITIVE_X : textarget;
+  GPU_print_error_debug("Blender Texture Not Loaded");
+  return tex;
+}
 
-    glBindTexture(textarget, tex->bindcode);
-    glGetTexLevelParameteriv(gettarget, 0, GL_TEXTURE_WIDTH, &w);
-    glGetTexLevelParameteriv(gettarget, 0, GL_TEXTURE_HEIGHT, &h);
-    glGetTexLevelParameteriv(gettarget, 0, GL_TEXTURE_INTERNAL_FORMAT, &gl_format);
-    tex->w = w;
-    tex->h = h;
-    tex->format = gl_internalformat_to_gpu_format(gl_format);
-    tex->components = gpu_get_component_count(tex->format);
-    glBindTexture(textarget, 0);
-
-    /* Depending on how this bindcode was obtained, the memory used here could
-     * already have been computed.
-     * But that is not the case currently. */
-    gpu_texture_memory_footprint_add(tex);
+/* DDS texture loading. Return NULL if support is not available. */
+GPUTexture *GPU_texture_create_compressed(
+    int w, int h, int miplen, eGPUTextureFormat tex_format, const void *data)
+{
+  if (!GLEW_EXT_texture_compression_s3tc) {
+    return NULL;
   }
+
+  GPUTexture *tex = (GPUTexture *)MEM_callocN(sizeof(GPUTexture), __func__);
+  tex->w = w;
+  tex->h = h;
+  tex->refcount = 1;
+  tex->target = tex->target_base = GL_TEXTURE_2D;
+  tex->format_flag = static_cast<eGPUTextureFormatFlag>(0);
+  tex->components = gpu_get_component_count(tex_format);
+  tex->mipmaps = miplen - 1;
+  tex->sampler_state = GPU_SAMPLER_DEFAULT;
+  tex->number = -1;
+
+  GLenum internalformat = gpu_format_to_gl_internalformat(tex_format);
+
+  glGenTextures(1, &tex->bindcode);
+  glBindTexture(tex->target, tex->bindcode);
+
+  /* Reset to opengl Defaults. (Untested, might not be needed) */
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
+  int blocksize = (ELEM(tex_format, GPU_RGBA8_DXT1, GPU_SRGB8_A8_DXT1)) ? 8 : 16;
+
+  size_t ofs = 0;
+  for (int mip = 0; mip < miplen && (w || h); mip++, w >>= 1, h >>= 1) {
+    w = max_ii(1, w);
+    h = max_ii(1, h);
+    size_t size = ((w + 3) / 4) * ((h + 3) / 4) * blocksize;
+
+    glCompressedTexImage2D(tex->target, mip, internalformat, w, h, 0, size, (uchar *)data + ofs);
+
+    ofs += size;
+  }
+
+  /* Restore Blender default. */
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+  glTexParameteri(tex->target, GL_TEXTURE_MAX_LEVEL, tex->mipmaps);
+  glTexParameteri(tex->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+  glBindTexture(tex->target, 0);
 
   return tex;
 }
@@ -1970,6 +1918,14 @@ void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter)
   SET_FLAG_FROM_TEST(tex->sampler_state, use_filter, GPU_SAMPLER_FILTER);
 }
 
+void GPU_texture_anisotropic_filter(GPUTexture *tex, bool use_aniso)
+{
+  /* Stencil and integer format does not support filtering. */
+  BLI_assert(!(use_aniso) || !(GPU_texture_stencil(tex) || GPU_texture_integer(tex)));
+
+  SET_FLAG_FROM_TEST(tex->sampler_state, use_aniso, GPU_SAMPLER_ANISO);
+}
+
 void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat, bool use_clamp)
 {
   SET_FLAG_FROM_TEST(tex->sampler_state, use_repeat, GPU_SAMPLER_REPEAT);
@@ -2194,8 +2150,9 @@ void GPU_samplers_init(void)
                             ((state & GPU_SAMPLER_MIPMAP) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR) :
                             ((state & GPU_SAMPLER_MIPMAP) ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST);
     GLenum compare_mode = (state & GPU_SAMPLER_COMPARE) ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE;
+    /* TODO(fclem) Anisotropic level should be a render engine parameter. */
     float aniso_filter = ((state & GPU_SAMPLER_MIPMAP) && (state & GPU_SAMPLER_ANISO)) ?
-                             GPU_get_anisotropic() :
+                             U.anisotropic_filter :
                              1.0f;
 
     glSamplerParameteri(GG.samplers[i], GL_TEXTURE_WRAP_S, wrap_s);

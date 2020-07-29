@@ -171,7 +171,7 @@ void WM_init_state_start_with_console_set(bool value)
  */
 static bool opengl_is_init = false;
 
-void WM_init_opengl(Main *bmain)
+void WM_init_opengl(Main *UNUSED(bmain))
 {
   /* must be called only once */
   BLI_assert(opengl_is_init == false);
@@ -185,9 +185,6 @@ void WM_init_opengl(Main *bmain)
   DRW_opengl_context_create();
 
   GPU_init();
-  GPU_set_mipmap(bmain, true);
-  GPU_set_linear_mipmap(true);
-  GPU_set_anisotropic(U.anisotropic_filter);
 
   GPU_pass_cache_init();
 

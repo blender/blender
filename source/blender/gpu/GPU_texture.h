@@ -41,7 +41,6 @@ typedef struct GPUTexture GPUTexture;
 /* Used to get the correct gpu texture from an Image datablock. */
 typedef enum eGPUTextureTarget {
   TEXTARGET_2D = 0,
-  TEXTARGET_CUBE_MAP,
   TEXTARGET_2D_ARRAY,
   TEXTARGET_TILE_MAPPING,
   TEXTARGET_COUNT,
@@ -131,7 +130,6 @@ typedef enum eGPUTextureFormat {
 #if 0
   GPU_RGB10_A2,
   GPU_RGB10_A2UI,
-  GPU_SRGB8_A8,
 #endif
   GPU_R11F_G11F_B10F,
   GPU_DEPTH32F_STENCIL8,
@@ -160,7 +158,13 @@ typedef enum eGPUTextureFormat {
   GPU_R8_SNORM,
 #endif
 
-/* Special formats texture only */
+  /* Special formats texture only */
+  GPU_SRGB8_A8_DXT1,
+  GPU_SRGB8_A8_DXT3,
+  GPU_SRGB8_A8_DXT5,
+  GPU_RGBA8_DXT1,
+  GPU_RGBA8_DXT3,
+  GPU_RGBA8_DXT5,
 #if 0
   GPU_SRGB8,
   GPU_RGB9_E5,
@@ -233,7 +237,10 @@ GPUTexture *GPU_texture_create_cube_array(
 GPUTexture *GPU_texture_create_from_vertbuf(struct GPUVertBuf *vert);
 GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat data_type, const uint buffer);
 
-GPUTexture *GPU_texture_from_bindcode(eGPUTextureTarget target, int bindcode);
+GPUTexture *GPU_texture_create_error(eGPUTextureTarget target);
+GPUTexture *GPU_texture_create_compressed(
+    int w, int h, int miplen, eGPUTextureFormat format, const void *data);
+
 GPUTexture *GPU_texture_from_blender(struct Image *ima,
                                      struct ImageUser *iuser,
                                      struct ImBuf *ibuf,
@@ -279,6 +286,7 @@ void GPU_texture_unbind_all(void);
 void GPU_texture_copy(GPUTexture *dst, GPUTexture *src);
 
 void GPU_texture_generate_mipmap(GPUTexture *tex);
+void GPU_texture_anisotropic_filter(GPUTexture *tex, bool use_aniso);
 void GPU_texture_compare_mode(GPUTexture *tex, bool use_compare);
 void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
 void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter);

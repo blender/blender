@@ -36,7 +36,6 @@
 #include "BKE_colorband.h"
 
 #include "GPU_draw.h"
-#include "GPU_glew.h"
 #include "GPU_texture.h"
 
 #ifdef WITH_FLUID

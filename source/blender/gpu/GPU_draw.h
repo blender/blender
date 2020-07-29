@@ -42,23 +42,13 @@ struct Main;
 /* Mipmap settings
  * - these will free textures on changes */
 
-void GPU_set_mipmap(struct Main *bmain, bool mipmap);
-bool GPU_get_mipmap(void);
-void GPU_set_linear_mipmap(bool linear);
-bool GPU_get_linear_mipmap(void);
 void GPU_paint_set_mipmap(struct Main *bmain, bool mipmap);
-
-/* Anisotropic filtering settings
- * - these will free textures on changes */
-void GPU_set_anisotropic(float value);
-float GPU_get_anisotropic(void);
 
 /* Image updates and free
  * - these deal with images bound as opengl textures */
 
 void GPU_paint_update_image(
     struct Image *ima, struct ImageUser *iuser, int x, int y, int w, int h);
-bool GPU_upload_dxt_texture(struct ImBuf *ibuf, bool use_srgb, uint *bindcode);
 void GPU_free_image(struct Image *ima);
 void GPU_free_images(struct Main *bmain);
 void GPU_free_images_anim(struct Main *bmain);

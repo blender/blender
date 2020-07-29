@@ -125,8 +125,8 @@ typedef struct Image {
 
   /** Not written in file. */
   struct MovieCache *cache;
-  /** Not written in file 4 = TEXTARGET_COUNT, 2 = stereo eyes. */
-  struct GPUTexture *gputexture[4][2];
+  /** Not written in file 3 = TEXTARGET_COUNT, 2 = stereo eyes. */
+  struct GPUTexture *gputexture[3][2];
 
   /* sources from: */
   ListBase anims;
