@@ -566,7 +566,7 @@ static PyObject *_py_pgettext(PyObject *args,
 
 PyDoc_STRVAR(
     app_translations_pgettext_doc,
-    ".. method:: pgettext(msgid, msgctxt)\n"
+    ".. method:: pgettext(msgid, msgctxt=None)\n"
     "\n"
     "   Try to translate the given msgid (with optional msgctxt).\n"
     "\n"
@@ -600,7 +600,7 @@ static PyObject *app_translations_pgettext(BlenderAppTranslations *UNUSED(self),
 }
 
 PyDoc_STRVAR(app_translations_pgettext_iface_doc,
-             ".. method:: pgettext_iface(msgid, msgctxt)\n"
+             ".. method:: pgettext_iface(msgid, msgctxt=None)\n"
              "\n"
              "   Try to translate the given msgid (with optional msgctxt), if labels' translation "
              "is enabled.\n"
@@ -622,7 +622,7 @@ static PyObject *app_translations_pgettext_iface(BlenderAppTranslations *UNUSED(
 }
 
 PyDoc_STRVAR(app_translations_pgettext_tip_doc,
-             ".. method:: pgettext_tip(msgid, msgctxt)\n"
+             ".. method:: pgettext_tip(msgid, msgctxt=None)\n"
              "\n"
              "   Try to translate the given msgid (with optional msgctxt), if tooltips' "
              "translation is enabled.\n"
@@ -644,7 +644,7 @@ static PyObject *app_translations_pgettext_tip(BlenderAppTranslations *UNUSED(se
 }
 
 PyDoc_STRVAR(app_translations_pgettext_data_doc,
-             ".. method:: pgettext_data(msgid, msgctxt)\n"
+             ".. method:: pgettext_data(msgid, msgctxt=None)\n"
              "\n"
              "   Try to translate the given msgid (with optional msgctxt), if new data name's "
              "translation is enabled.\n"
