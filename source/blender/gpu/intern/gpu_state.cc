@@ -300,7 +300,8 @@ typedef struct {
 } GPUAttrStack;
 
 static GPUAttrStack state = {
-    .top = 0,
+    {},
+    0,
 };
 
 #define AttrStack state
