@@ -126,14 +126,27 @@ void PreviewOperation::determineResolution(unsigned int resolution[2],
                                            unsigned int preferredResolution[2])
 {
   NodeOperation::determineResolution(resolution, preferredResolution);
-  int width = resolution[0];
-  int height = resolution[1];
+
+  /* If resolution is 0 there are two possible scenarios:
+   * - Either node is not connected at all
+   * - It is connected to input which doesn't have own resolution (i.e. color input).
+   *
+   * In the former case we rely on the execution system to not evaluate this node.
+   *
+   * For the latter case we use 1 pixel preview, so that it's possible to see preview color in the
+   * preview. This is how final F12 render will behave (flood-fill final frame with the color).
+   *
+   * Having things consistent in terms that node preview is scaled down F12 render is a very
+   * natural thing to do. */
+  int width = max_ii(1, resolution[0]);
+  int height = max_ii(1, resolution[1]);
+
   this->m_divider = 0.0f;
   if (width > height) {
-    this->m_divider = COM_PREVIEW_SIZE / (width - 1);
+    this->m_divider = (float)COM_PREVIEW_SIZE / (width);
   }
   else {
-    this->m_divider = COM_PREVIEW_SIZE / (height - 1);
+    this->m_divider = (float)COM_PREVIEW_SIZE / (height);
   }
   width = width * this->m_divider;
   height = height * this->m_divider;

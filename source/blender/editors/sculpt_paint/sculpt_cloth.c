@@ -254,8 +254,7 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
   /* Gravity */
   float gravity[3] = {0.0f};
   if (ss->cache->supports_gravity) {
-    madd_v3_v3fl(
-        gravity, ss->cache->gravity_direction, -ss->cache->radius * data->sd->gravity_factor);
+    madd_v3_v3fl(gravity, ss->cache->gravity_direction, -data->sd->gravity_factor);
   }
 
   /* Original data for deform brushes. */
@@ -278,6 +277,11 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
     else {
       copy_v3_v3(current_vertex_location, vd.co);
     }
+
+    /* Apply gravity in the entire simulation area. */
+    float vertex_gravity[3];
+    mul_v3_v3fl(vertex_gravity, gravity, sim_factor);
+    cloth_brush_apply_force_to_vertex(ss, ss->cache->cloth_sim, vertex_gravity, vd.index);
 
     /* When using the plane falloff mode the falloff is not constrained by the brush radius. */
     if (sculpt_brush_test_sq_fn(&test, current_vertex_location) || use_falloff_plane) {
@@ -355,8 +359,6 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
           zero_v3(force);
           break;
       }
-
-      madd_v3_v3fl(force, gravity, fade);
 
       cloth_brush_apply_force_to_vertex(ss, ss->cache->cloth_sim, force, vd.index);
     }
@@ -639,12 +641,13 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   /* In the first brush step of each symmetry pass, build the constraints for the vertices in all
    * nodes inside the simulation's limits. */
-  /* Brush stroke types that restore the mesh on each brush step also need the cloth sim data to be
-   * created on each step. */
+  /* Brushes that use anchored strokes and restore the mesh can't rely on symmetry passes and steps
+   * count as it is always the first step, so the simulation needs to be created when it does not
+   * exist for this stroke. */
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache) || !ss->cache->cloth_sim) {
 
     /* The simulation structure only needs to be created on the first symmetry pass. */
-    if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+    if (SCULPT_stroke_is_first_brush_step(ss->cache) || !ss->cache->cloth_sim) {
       ss->cache->cloth_sim = cloth_brush_simulation_create(
           ss, brush->cloth_mass, brush->cloth_damping);
       for (int i = 0; i < totverts; i++) {
