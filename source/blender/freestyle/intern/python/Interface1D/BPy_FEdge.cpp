@@ -81,7 +81,7 @@ static int FEdge_init(BPy_FEdge *self, PyObject *args, PyObject *kwds)
       self->fe = new FEdge(*(((BPy_FEdge *)obj1)->fe));
     }
   }
-  else if (PyErr_Clear(),
+  else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "O!O!",

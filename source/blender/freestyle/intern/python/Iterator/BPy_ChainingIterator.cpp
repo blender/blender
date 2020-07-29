@@ -91,8 +91,8 @@ static int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args,
           args, kwds, "O!", (char **)kwlist_1, &ChainingIterator_Type, &obj1)) {
     self->c_it = new ChainingIterator(*(((BPy_ChainingIterator *)obj1)->c_it));
   }
-  else if (PyErr_Clear(),
-           (obj1 = obj2 = obj3 = obj4 = 0),
+  else if ((void)PyErr_Clear(),
+           (void)(obj1 = obj2 = obj3 = obj4 = 0),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "|O!O!O&O!",

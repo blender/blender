@@ -114,8 +114,8 @@ static int ChainPredicateIterator_init(BPy_ChainPredicateIterator *self,
     Py_INCREF(self->upred);
     Py_INCREF(self->bpred);
   }
-  else if (PyErr_Clear(),
-           (obj3 = obj4 = obj5 = obj6 = 0),
+  else if ((void)PyErr_Clear(),
+           (void)(obj3 = obj4 = obj5 = obj6 = 0),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "O!O!|O!O!O&O!",

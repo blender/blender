@@ -82,7 +82,7 @@ static int SVertexIterator_init(BPy_SVertexIterator *self, PyObject *args, PyObj
       self->sv_it = new ViewEdgeInternal::SVertexIterator(*(((BPy_SVertexIterator *)obj1)->sv_it));
     }
   }
-  else if (PyErr_Clear(),
+  else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "O!O!O!O!f",

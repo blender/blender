@@ -82,8 +82,8 @@ static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, P
       self->at_start = ((BPy_AdjacencyIterator *)obj1)->at_start;
     }
   }
-  else if (PyErr_Clear(),
-           (obj2 = obj3 = 0),
+  else if ((void)PyErr_Clear(),
+           (void)(obj2 = obj3 = 0),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "O!|O!O!",

@@ -72,7 +72,7 @@ static int SVertex_init(BPy_SVertex *self, PyObject *args, PyObject *kwds)
       self->sv = new SVertex(*(((BPy_SVertex *)obj)->sv));
     }
   }
-  else if (PyErr_Clear(),
+  else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(
                args, kwds, "O&O!", (char **)kwlist_2, convert_v3, v, &Id_Type, &obj)) {
     Vec3r point_3d(v[0], v[1], v[2]);

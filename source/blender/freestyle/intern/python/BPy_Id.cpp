@@ -75,7 +75,7 @@ static int Id_init(BPy_Id *self, PyObject *args, PyObject *kwds)
   if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_1, &Id_Type, &brother)) {
     self->id = new Id(*(((BPy_Id *)brother)->id));
   }
-  else if (PyErr_Clear(),
+  else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args, kwds, "|ii", (char **)kwlist_2, &first, &second)) {
     self->id = new Id(first, second);
   }

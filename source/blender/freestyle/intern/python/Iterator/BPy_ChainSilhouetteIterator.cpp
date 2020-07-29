@@ -91,8 +91,8 @@ static int ChainSilhouetteIterator_init(BPy_ChainSilhouetteIterator *self,
           args, kwds, "O!", (char **)kwlist_1, &ChainSilhouetteIterator_Type, &obj1)) {
     self->cs_it = new ChainSilhouetteIterator(*(((BPy_ChainSilhouetteIterator *)obj1)->cs_it));
   }
-  else if (PyErr_Clear(),
-           (obj1 = obj2 = obj3 = 0),
+  else if ((void)PyErr_Clear(),
+           (void)(obj1 = obj2 = obj3 = 0),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "|O!O&O!",

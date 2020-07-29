@@ -110,7 +110,7 @@ static int StrokeAttribute_init(BPy_StrokeAttribute *self, PyObject *args, PyObj
       self->sa = new StrokeAttribute(*(((BPy_StrokeAttribute *)obj1)->sa));
     }
   }
-  else if (PyErr_Clear(),
+  else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "O!O!f",
@@ -123,7 +123,7 @@ static int StrokeAttribute_init(BPy_StrokeAttribute *self, PyObject *args, PyObj
     self->sa = new StrokeAttribute(
         *(((BPy_StrokeAttribute *)obj1)->sa), *(((BPy_StrokeAttribute *)obj2)->sa), t);
   }
-  else if (PyErr_Clear(),
+  else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "ffffff",

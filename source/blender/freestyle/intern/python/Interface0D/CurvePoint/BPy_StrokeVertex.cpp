@@ -107,7 +107,7 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
       self->sv = new StrokeVertex(*(((BPy_StrokeVertex *)obj1)->sv));
     }
   }
-  else if (PyErr_Clear(),
+  else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "O!O!f",
@@ -129,7 +129,7 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
     }
     self->sv = new StrokeVertex(sv1, sv2, t3d);
   }
-  else if (PyErr_Clear(),
+  else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(
                args, kwds, "O!", (char **)kwlist_3, &CurvePoint_Type, &obj1)) {
     CurvePoint *cp = ((BPy_CurvePoint *)obj1)->cp;
@@ -139,8 +139,8 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
     }
     self->sv = new StrokeVertex(cp);
   }
-  else if (PyErr_Clear(),
-           (obj2 = 0),
+  else if ((void)PyErr_Clear(),
+           (void)(obj2 = 0),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "O!|O!",

@@ -78,8 +78,8 @@ static int ViewEdgeIterator_init(BPy_ViewEdgeIterator *self, PyObject *args, PyO
           args, kwds, "O!", (char **)kwlist_1, &ViewEdgeIterator_Type, &obj1)) {
     self->ve_it = new ViewEdgeInternal::ViewEdgeIterator(*(((BPy_ViewEdgeIterator *)obj1)->ve_it));
   }
-  else if (PyErr_Clear(),
-           (obj1 = obj2 = 0),
+  else if ((void)PyErr_Clear(),
+           (void)(obj1 = obj2 = 0),
            PyArg_ParseTupleAndKeywords(
                args, kwds, "|O&O!", (char **)kwlist_2, check_begin, &obj1, &PyBool_Type, &obj2)) {
     ViewEdge *begin = (!obj1 || obj1 == Py_None) ? NULL : ((BPy_ViewEdge *)obj1)->ve;

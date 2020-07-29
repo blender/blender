@@ -365,8 +365,8 @@ static PyObject *Operators_sequential_split(BPy_Operators * /*self*/,
       return NULL;
     }
   }
-  else if (PyErr_Clear(),
-           (f = 0.0f),
+  else if ((void)PyErr_Clear(),
+           (void)(f = 0.0f),
            PyArg_ParseTupleAndKeywords(
                args, kwds, "O!|f", (char **)kwlist_2, &UnaryPredicate0D_Type, &obj1, &f)) {
     if (!((BPy_UnaryPredicate0D *)obj1)->up0D) {
@@ -484,8 +484,8 @@ static PyObject *Operators_recursive_split(BPy_Operators * /*self*/,
       return NULL;
     }
   }
-  else if (PyErr_Clear(),
-           (f = 0.0f),
+  else if ((void)PyErr_Clear(),
+           (void)(f = 0.0f),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "O!O!O!|f",
