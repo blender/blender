@@ -299,7 +299,7 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   }
 
   /* Check if we have a valid image. If not, we return a dummy
-   * texture with zero bindcode so we don't keep trying. */
+   * texture with zero bind-code so we don't keep trying. */
   ImageTile *tile = BKE_image_get_tile(ima, 0);
   if (tile == NULL || tile->ok == 0) {
     *tex = image_gpu_texture_error_create(textarget);

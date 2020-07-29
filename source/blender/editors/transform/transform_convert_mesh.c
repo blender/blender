@@ -1026,8 +1026,10 @@ static void mesh_customdatacorrect_free_cb(struct TransInfo *UNUSED(t),
 
 #  define FACE_SUBSTITUTE_INDEX INT_MIN
 
-/* Search for a neighboring face with area and preferably without selected vertex.
- * Used to replace arealess faces in customdata correction. */
+/**
+ * Search for a neighboring face with area and preferably without selected vertex.
+ * Used to replace area-less faces in custom-data correction.
+ */
 static BMFace *mesh_customdatacorrect_find_best_face_substitute(BMFace *f)
 {
   BMFace *best_face = NULL;

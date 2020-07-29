@@ -262,7 +262,7 @@ typedef struct SculptPoseIKChain {
 typedef struct SculptClothLengthConstraint {
   /* Elements that are affected by the constraint. */
   /* Element a should always be a mesh vertex with the index stored in elem_index_a as it is always
-   * deformed. Element b cound be another vertex of the same mesh or any other position (arbitrary
+   * deformed. Element b could be another vertex of the same mesh or any other position (arbitrary
    * point, position for a previous state). In that case, elem_index_a and elem_index_b should be
    * the same to avoid affecting two different vertices when solving the constraints.
    * *elem_position points to the position which is owned by the element. */

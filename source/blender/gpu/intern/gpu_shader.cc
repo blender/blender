@@ -807,14 +807,14 @@ void GPU_shader_uniform_vector_int(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name sRGB rendering workaround.
+/** \name sRGB Rendering Workaround
  *
- * The viewport overlay framebuffer is sRGB and will expect shaders to output display refered
- * Linear colors. But other framebuffers (i.e: the area framebuffers) are not sRGB and require the
- * shader output color to be in sRGB space (assumed display encoded colorspace as the time of
- * writting).
+ * The viewport overlay frame-buffer is sRGB and will expect shaders to output display referred
+ * Linear colors. But other frame-buffers (i.e: the area frame-buffers) are not sRGB and require
+ * the shader output color to be in sRGB space
+ * (assumed display encoded color-space as the time of writing).
  * For this reason we have a uniform to switch the transform on and off depending on the current
- * framebuffer colorspace.
+ * frame-buffer color-space.
  * \{ */
 
 static int g_shader_builtin_srgb_transform = 0;
