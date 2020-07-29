@@ -54,6 +54,11 @@ set(SRC
   intern/builder/deg_builder_remove_noop.cc
   intern/builder/deg_builder_rna.cc
   intern/builder/deg_builder_transitive.cc
+  intern/builder/pipeline.cc
+  intern/builder/pipeline_compositor.cc
+  intern/builder/pipeline_from_ids.cc
+  intern/builder/pipeline_render.cc
+  intern/builder/pipeline_view_layer.cc
   intern/debug/deg_debug.cc
   intern/debug/deg_debug_relations_graphviz.cc
   intern/debug/deg_debug_stats_gnuplot.cc
@@ -110,6 +115,11 @@ set(SRC
   intern/builder/deg_builder_remove_noop.h
   intern/builder/deg_builder_rna.h
   intern/builder/deg_builder_transitive.h
+  intern/builder/pipeline.h
+  intern/builder/pipeline_compositor.h
+  intern/builder/pipeline_from_ids.h
+  intern/builder/pipeline_render.h
+  intern/builder/pipeline_view_layer.h
   intern/debug/deg_debug.h
   intern/debug/deg_time_average.h
   intern/eval/deg_eval.h
