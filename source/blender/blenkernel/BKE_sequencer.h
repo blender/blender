@@ -527,6 +527,9 @@ typedef struct Sequence *(*SeqLoadFn)(struct bContext *, ListBase *, struct SeqL
 
 struct Sequence *BKE_sequence_alloc(ListBase *lb, int cfra, int machine, int type);
 
+/* Generate new UUID for the given sequence. */
+void BKE_sequence_session_uuid_generate(struct Sequence *sequence);
+
 void BKE_sequence_alpha_mode_from_extension(struct Sequence *seq);
 void BKE_sequence_init_colorspace(struct Sequence *seq);
 

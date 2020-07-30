@@ -46,6 +46,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_path_util.h"
+#include "BLI_session_uuid.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
@@ -5352,7 +5353,14 @@ Sequence *BKE_sequence_alloc(ListBase *lb, int cfra, int machine, int type)
   seq->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Sequence Stereo Format");
   seq->cache_flag = SEQ_CACHE_STORE_RAW | SEQ_CACHE_STORE_PREPROCESSED | SEQ_CACHE_STORE_COMPOSITE;
 
+  BKE_sequence_session_uuid_generate(seq);
+
   return seq;
+}
+
+void BKE_sequence_session_uuid_generate(struct Sequence *sequence)
+{
+  sequence->runtime.session_uuid = BLI_session_uuid_generate();
 }
 
 void BKE_sequence_alpha_mode_from_extension(Sequence *seq)
@@ -5663,6 +5671,10 @@ static Sequence *seq_dupli(const Scene *scene_src,
                            const int flag)
 {
   Sequence *seqn = MEM_dupallocN(seq);
+
+  if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
+    BKE_sequence_session_uuid_generate(seq);
+  }
 
   seq->tmp = seqn;
   seqn->strip = MEM_dupallocN(seq->strip);
