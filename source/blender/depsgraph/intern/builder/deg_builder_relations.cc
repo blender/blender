@@ -1704,6 +1704,16 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
       if (object->rigidbody_object->type == RBO_TYPE_PASSIVE) {
         continue;
       }
+
+      if (object->parent != nullptr && object->parent->rigidbody_object != nullptr &&
+          object->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND) {
+        /* If we are a child of a compound shape object, the transforms and sim evaluation will be
+         * handled by the parent compound shape object. Do not add any evaluation triggers
+         * for the child objects.
+         */
+        continue;
+      }
+
       OperationKey rb_transform_copy_key(
           &object->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
       /* Rigid body synchronization depends on the actual simulation. */

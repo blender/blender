@@ -75,6 +75,11 @@ const EnumPropertyItem rna_enum_rigidbody_object_shape_items[] = {
      "Mesh",
      "Mesh consisting of triangles only, allowing for more detailed interactions than convex "
      "hulls"},
+    {RB_SHAPE_COMPOUND,
+     "COMPOUND",
+     ICON_MESH_DATA,
+     "Compound Parent",
+     "Combines all of its direct rigid body children into one rigid object."},
     {0, NULL, 0, NULL, NULL},
 };
 

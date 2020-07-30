@@ -406,17 +406,17 @@ void	btPolyhedralConvexShape::calculateLocalInertia(btScalar mass,btVector3& ine
 #ifndef __SPU__
 	//not yet, return box inertia
 
-	btScalar margin = getMargin();
+	//btScalar margin = getMargin();
 
 	btTransform ident;
 	ident.setIdentity();
 	btVector3 aabbMin,aabbMax;
-	getAabb(ident,aabbMin,aabbMax);
+	getAabb(ident,aabbMin,aabbMax); // This already contains the margin
 	btVector3 halfExtents = (aabbMax-aabbMin)*btScalar(0.5);
 
-	btScalar lx=btScalar(2.)*(halfExtents.x()+margin);
-	btScalar ly=btScalar(2.)*(halfExtents.y()+margin);
-	btScalar lz=btScalar(2.)*(halfExtents.z()+margin);
+	btScalar lx=btScalar(2.)*(halfExtents.x());
+	btScalar ly=btScalar(2.)*(halfExtents.y());
+	btScalar lz=btScalar(2.)*(halfExtents.z());
 	const btScalar x2 = lx*lx;
 	const btScalar y2 = ly*ly;
 	const btScalar z2 = lz*lz;
@@ -476,10 +476,10 @@ void	btPolyhedralConvexAabbCachingShape::recalcLocalAabb()
 	
 	for ( int i = 0; i < 3; ++i )
 	{
-		m_localAabbMax[i] = _supporting[i][i] + m_collisionMargin;
-		m_localAabbMin[i] = _supporting[i + 3][i] - m_collisionMargin;
+		m_localAabbMax[i] = _supporting[i][i];
+		m_localAabbMin[i] = _supporting[i + 3][i];
 	}
-	
+
 	#else
 
 	for (int i=0;i<3;i++)

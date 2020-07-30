@@ -180,7 +180,7 @@ void btCompoundShape::getAabb(const btTransform& trans,btVector3& aabbMin,btVect
 	localHalfExtents += btVector3(getMargin(),getMargin(),getMargin());
 		
 
-	btMatrix3x3 abs_b = trans.getBasis().absolute();  
+	btMatrix3x3 abs_b = trans.getBasis().absolute();
 
 	btVector3 center = trans(localCenter);
 
