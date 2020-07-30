@@ -100,6 +100,28 @@
 #include <stdlib.h>
 #include <string.h>
 
+static float cloth_brush_simulation_falloff_get(const Brush *brush,
+                                                const float radius,
+                                                const float location[3],
+                                                const float co[3])
+{
+  const float distance = len_v3v3(location, co);
+  const float limit = radius + (radius * brush->cloth_sim_limit);
+  const float falloff = radius + (radius * brush->cloth_sim_limit * brush->cloth_sim_falloff);
+
+  if (distance > limit) {
+    /* Outiside the limits. */
+    return 0.0f;
+  }
+  if (distance < falloff) {
+    /* Before the falloff area. */
+    return 1.0f;
+  }
+  /* Do a smoothstep transition inside the falloff area. */
+  float p = 1.0f - ((distance - falloff) / (limit - falloff));
+  return 3.0f * p * p - 2.0f * p * p * p;
+}
+
 #define CLOTH_LENGTH_CONSTRAINTS_BLOCK 100000
 #define CLOTH_SIMULATION_ITERATIONS 5
 #define CLOTH_MAX_CONSTRAINTS_PER_VERTEX 1024
@@ -210,6 +232,9 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
 
   PBVHVertexIter vd;
 
+  const bool pin_simulation_boundary = ss->cache != NULL && brush != NULL &&
+                                       brush->flag2 & BRUSH_CLOTH_PIN_SIMULATION_BOUNDARY;
+
   const bool use_persistent = brush != NULL && brush->flag & BRUSH_PERSISTENT;
 
   /* Brush can be NULL in tools that use the solver without relying of constraints with deformation
@@ -264,30 +289,19 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
       const float fade = BKE_brush_curve_strength(brush, sqrtf(len_squared), ss->cache->radius);
       cloth_brush_add_deformation_constraint(data->cloth_sim, vd.index, fade);
     }
+
+    if (pin_simulation_boundary) {
+      const float sim_falloff = cloth_brush_simulation_falloff_get(
+          brush, ss->cache->initial_radius, ss->cache->location, vd.co);
+      /* Vertex is inside the area of the simulation without any falloff aplied. */
+      if (sim_falloff < 1.0f) {
+        /* Create constraints with more strength the closer the vertex is to the simulation
+         * boundary. */
+        cloth_brush_add_softbody_constraint(data->cloth_sim, vd.index, 1.0f - sim_falloff);
+      }
+    }
   }
   BKE_pbvh_vertex_iter_end;
-}
-
-static float cloth_brush_simulation_falloff_get(const Brush *brush,
-                                                const float radius,
-                                                const float location[3],
-                                                const float co[3])
-{
-  const float distance = len_v3v3(location, co);
-  const float limit = radius + (radius * brush->cloth_sim_limit);
-  const float falloff = radius + (radius * brush->cloth_sim_limit * brush->cloth_sim_falloff);
-
-  if (distance > limit) {
-    /* Outiside the limits. */
-    return 0.0f;
-  }
-  if (distance < falloff) {
-    /* Before the falloff area. */
-    return 1.0f;
-  }
-  /* Do a smoothstep transition inside the falloff area. */
-  float p = 1.0f - ((distance - falloff) / (limit - falloff));
-  return 3.0f * p * p - 2.0f * p * p * p;
 }
 
 static void cloth_brush_apply_force_to_vertex(SculptSession *UNUSED(ss),

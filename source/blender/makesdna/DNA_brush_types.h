@@ -726,6 +726,7 @@ typedef enum eBrushFlags2 {
   BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW = (1 << 1),
   BRUSH_POSE_IK_ANCHORED = (1 << 2),
   BRUSH_USE_CONNECTED_ONLY = (1 << 3),
+  BRUSH_CLOTH_PIN_SIMULATION_BOUNDARY = (1 << 4),
 } eBrushFlags2;
 
 typedef enum {

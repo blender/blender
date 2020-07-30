@@ -2793,6 +2793,15 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Connected Only", "Affect only topologically connected elements");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "use_cloth_pin_simulation_boundary", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_CLOTH_PIN_SIMULATION_BOUNDARY);
+  RNA_def_property_ui_text(
+      prop,
+      "Pin Simulation Boundary",
+      "Lock the position of the vertices in the simulation falloff area to avoid artifacts and "
+      "create a softer transitionwith with unnafected areas");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "invert_to_scrape_fill", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_INVERT_TO_SCRAPE_FILL);
   RNA_def_property_ui_text(prop,
