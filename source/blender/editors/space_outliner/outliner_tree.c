@@ -2192,7 +2192,9 @@ static bool outliner_element_is_collection_or_object(TreeElement *te)
   if ((tselem->type == 0) && (te->idcode == ID_OB)) {
     return true;
   }
-  if (outliner_is_collection_tree_element(te)) {
+
+  /* Collection instance datablocks should not be extracted. */
+  if (outliner_is_collection_tree_element(te) && !(te->parent && te->parent->idcode == ID_OB)) {
     return true;
   }
 
