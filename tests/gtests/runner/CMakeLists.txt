@@ -77,10 +77,11 @@ set(_GOOGLETEST_DISCOVER_TESTS_SCRIPT
 )
 
 gtest_discover_tests(blender_test
-# So that the binary can find its shared libs on window.
-  WORKING_DIRECTORY "$<TARGET_FILE_DIR:blender>"
+  WORKING_DIRECTORY "${TEST_INSTALL_DIR}"
+# So that it will run after the install phase that will copy the required libraries
+  DISCOVERY_MODE PRE_TEST
 # So that unit tests know where to find files:
   EXTRA_ARGS
     --test-assets-dir "${CMAKE_SOURCE_DIR}/../lib/tests"
-    --test-release-dir "${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}"
+    --test-release-dir "${TEST_INSTALL_DIR}/${BLENDER_VERSION}"
 )
