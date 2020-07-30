@@ -69,9 +69,6 @@
 
 #include "bmesh_tools.h"
 
-/* TODO(campbell): region filling, matching mesh selection. */
-#define USE_FILL
-
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
  * \{ */
@@ -84,8 +81,12 @@
  *
  * While the code below is a bit awkward, it's significantly less overhead than
  * adding full edge selection which is nearly the same as vertex path in the case of UV's.
+ *
+ * \param use_nearest: When false use the post distant pair of loops,
+ * use when filling a region as we want both verts from each edge to be included in the region.
  */
-static void bm_loop_calc_vert_pair_from_edge_pair(const int cd_loop_uv_offset,
+static void bm_loop_calc_vert_pair_from_edge_pair(const bool use_nearest,
+                                                  const int cd_loop_uv_offset,
                                                   const float aspect_y,
                                                   BMElem **ele_src_p,
                                                   BMElem **ele_dst_p,
@@ -116,8 +117,15 @@ static void bm_loop_calc_vert_pair_from_edge_pair(const int cd_loop_uv_offset,
   };
   int i_best = 0;
   for (int i = 1; i < ARRAY_SIZE(tests); i++) {
-    if (tests[i].len_sq < tests[i_best].len_sq) {
-      i_best = i;
+    if (use_nearest) {
+      if (tests[i].len_sq < tests[i_best].len_sq) {
+        i_best = i;
+      }
+    }
+    else {
+      if (tests[i].len_sq > tests[i_best].len_sq) {
+        i_best = i;
+      }
     }
   }
 
@@ -139,14 +147,13 @@ struct PathSelectParams {
   bool track_active;
   bool use_topology_distance;
   bool use_face_step;
-#ifdef USE_FILL
   bool use_fill;
-#endif
   struct CheckerIntervalParams interval_params;
 };
 
 struct UserData_UV {
   Scene *scene;
+  BMEditMesh *em;
   uint cd_loop_uv_offset;
 };
 
@@ -162,13 +169,11 @@ static void path_select_properties(wmOperatorType *ot)
                   false,
                   "Topology Distance",
                   "Find the minimum number of steps, ignoring spatial distance");
-#ifdef USE_FILL
   RNA_def_boolean(ot->srna,
                   "use_fill",
                   false,
                   "Fill Region",
                   "Select all paths between the source/destination elements");
-#endif
 
   WM_operator_properties_checker_interval(ot, true);
 }
@@ -177,9 +182,7 @@ static void path_select_params_from_op(wmOperator *op, struct PathSelectParams *
 {
   op_params->track_active = false;
   op_params->use_face_step = RNA_boolean_get(op->ptr, "use_face_step");
-#ifdef USE_FILL
   op_params->use_fill = RNA_boolean_get(op->ptr, "use_fill");
-#endif
   op_params->use_topology_distance = RNA_boolean_get(op->ptr, "use_topology_distance");
   WM_operator_properties_checker_interval_from_op(op, &op_params->interval_params);
 }
@@ -200,6 +203,7 @@ static bool looptag_test_cb(BMLoop *l, void *user_data_v)
 {
   /* All connected loops are selected or we return false. */
   struct UserData_UV *user_data = user_data_v;
+  const Scene *scene = user_data->scene;
   const uint cd_loop_uv_offset = user_data->cd_loop_uv_offset;
   const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
   BMIter iter;
@@ -208,7 +212,7 @@ static bool looptag_test_cb(BMLoop *l, void *user_data_v)
     if (looptag_filter_cb(l_iter, user_data)) {
       const MLoopUV *luv_iter = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
       if (equals_v2v2(luv->uv, luv_iter->uv)) {
-        if ((luv_iter->flag & MLOOPUV_VERTSEL) == 0) {
+        if (!uvedit_uv_select_test(scene, l_iter, cd_loop_uv_offset)) {
           return false;
         }
       }
@@ -219,6 +223,8 @@ static bool looptag_test_cb(BMLoop *l, void *user_data_v)
 static void looptag_set_cb(BMLoop *l, bool val, void *user_data_v)
 {
   struct UserData_UV *user_data = user_data_v;
+  const Scene *scene = user_data->scene;
+  BMEditMesh *em = user_data->em;
   const uint cd_loop_uv_offset = user_data->cd_loop_uv_offset;
   const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
   BMIter iter;
@@ -227,28 +233,56 @@ static void looptag_set_cb(BMLoop *l, bool val, void *user_data_v)
     if (looptag_filter_cb(l_iter, user_data)) {
       MLoopUV *luv_iter = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
       if (equals_v2v2(luv->uv, luv_iter->uv)) {
-        SET_FLAG_FROM_TEST(luv_iter->flag, val, MLOOPUV_VERTSEL);
+        uvedit_uv_select_set(scene, em, l_iter, val, false, cd_loop_uv_offset);
       }
     }
   }
 }
 
-static void mouse_mesh_uv_shortest_path_vert(Scene *scene,
-                                             Object *obedit,
-                                             const struct PathSelectParams *op_params,
-                                             BMLoop *l_src,
-                                             BMLoop *l_dst,
-                                             BMLoop *l_dst_add_to_path,
-                                             const float aspect_y,
-                                             const int cd_loop_uv_offset)
+static int mouse_mesh_uv_shortest_path_vert(Scene *scene,
+                                            Object *obedit,
+                                            const struct PathSelectParams *op_params,
+                                            BMLoop *l_src,
+                                            BMLoop *l_dst,
+                                            const float aspect_y,
+                                            const int cd_loop_uv_offset)
 {
-  const ToolSettings *ts = scene->toolsettings;
-  const bool use_fake_edge_select = (ts->uv_selectmode & UV_SELECT_EDGE);
+  const char uv_selectmode = ED_uvedit_select_mode_get(scene);
+  const bool use_fake_edge_select = (uv_selectmode & UV_SELECT_EDGE);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
+  int flush = 0;
+
+  /* Variables to use when `use_fake_edge_select` is set. */
+  struct {
+    BMLoop *l_dst_activate;
+    BMLoop *l_dst_add_to_path;
+  } fake_edge_select = {NULL};
+
+  if (use_fake_edge_select) {
+    fake_edge_select.l_dst_activate = l_dst;
+
+    /* Use most distant when doing region selection.
+     * without this we get dangling edges outside the region. */
+    bool use_neaerst = (op_params->use_fill == false);
+    BMElem *ele_src = (BMElem *)l_src;
+    BMElem *ele_dst = (BMElem *)l_dst;
+    BMElem *ele_dst_final = NULL;
+    bm_loop_calc_vert_pair_from_edge_pair(
+        use_neaerst, cd_loop_uv_offset, aspect_y, &ele_src, &ele_dst, &ele_dst_final);
+
+    if (op_params->use_fill == false) {
+      /* Always activate the item under the cursor. */
+      fake_edge_select.l_dst_add_to_path = (BMLoop *)ele_dst_final;
+    }
+
+    l_src = (BMLoop *)ele_src;
+    l_dst = (BMLoop *)ele_dst;
+  }
 
   struct UserData_UV user_data = {
       .scene = scene,
+      .em = em,
       .cd_loop_uv_offset = cd_loop_uv_offset,
   };
 
@@ -280,11 +314,14 @@ static void mouse_mesh_uv_shortest_path_vert(Scene *scene,
   BMLoop *l_dst_last = l_dst;
 
   if (path) {
-    if ((l_dst_add_to_path != NULL) && (BLI_linklist_index(path, l_dst_add_to_path) == -1)) {
-      /* Append, this isn't optimal compared to #BLI_linklist_append, it's a one-off lookup. */
-      LinkNode *path_last = BLI_linklist_find_last(path);
-      BLI_linklist_insert_after(&path_last, l_dst_add_to_path);
-      BLI_assert(BLI_linklist_find_last(path)->link == l_dst_add_to_path);
+    if (use_fake_edge_select) {
+      if ((fake_edge_select.l_dst_add_to_path != NULL) &&
+          (BLI_linklist_index(path, fake_edge_select.l_dst_add_to_path) == -1)) {
+        /* Append, this isn't optimal compared to #BLI_linklist_append, it's a one-off lookup. */
+        LinkNode *path_last = BLI_linklist_find_last(path);
+        BLI_linklist_insert_after(&path_last, fake_edge_select.l_dst_add_to_path);
+        BLI_assert(BLI_linklist_find_last(path)->link == fake_edge_select.l_dst_add_to_path);
+      }
     }
 
     /* toggle the flag */
@@ -310,6 +347,7 @@ static void mouse_mesh_uv_shortest_path_vert(Scene *scene,
     } while ((void)depth++, (node = node->next));
 
     BLI_linklist_free(path, NULL);
+    flush = all_set ? -1 : 1;
   }
   else {
     const bool is_act = !looptag_test_cb(l_dst, &user_data);
@@ -319,12 +357,17 @@ static void mouse_mesh_uv_shortest_path_vert(Scene *scene,
   if (op_params->track_active) {
     /* Fake edge selection. */
     if (use_fake_edge_select) {
-      ED_uvedit_active_edge_loop_set(bm, l_dst_last);
+      BMLoop *l_dst_activate = fake_edge_select.l_dst_activate;
+      /* TODO(campbell): Search for an active loop attached to 'l_dst'.
+       * when `BLI_linklist_index(path, l_dst_activate) == -1`
+       * In practice this rarely happens though. */
+      ED_uvedit_active_edge_loop_set(bm, l_dst_activate);
     }
     else {
       ED_uvedit_active_vert_loop_set(bm, l_dst_last);
     }
   }
+  return flush;
 }
 
 /** \} */
@@ -343,12 +386,12 @@ static bool facetag_test_cb(BMFace *f, void *user_data_v)
 {
   /* All connected loops are selected or we return false. */
   struct UserData_UV *user_data = user_data_v;
+  const Scene *scene = user_data->scene;
   const uint cd_loop_uv_offset = user_data->cd_loop_uv_offset;
   BMIter iter;
   BMLoop *l_iter;
   BM_ITER_ELEM (l_iter, &iter, f, BM_LOOPS_OF_FACE) {
-    const MLoopUV *luv_iter = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
-    if ((luv_iter->flag & MLOOPUV_VERTSEL) == 0) {
+    if (!uvedit_uv_select_test(scene, l_iter, cd_loop_uv_offset)) {
       return false;
     }
   }
@@ -357,28 +400,27 @@ static bool facetag_test_cb(BMFace *f, void *user_data_v)
 static void facetag_set_cb(BMFace *f, bool val, void *user_data_v)
 {
   struct UserData_UV *user_data = user_data_v;
+  const Scene *scene = user_data->scene;
+  BMEditMesh *em = user_data->em;
   const uint cd_loop_uv_offset = user_data->cd_loop_uv_offset;
-  BMIter iter;
-  BMLoop *l_iter;
-  BM_ITER_ELEM (l_iter, &iter, f, BM_LOOPS_OF_FACE) {
-    MLoopUV *luv_iter = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
-    SET_FLAG_FROM_TEST(luv_iter->flag, val, MLOOPUV_VERTSEL);
-  }
+  uvedit_face_select_set(scene, em, f, val, false, cd_loop_uv_offset);
 }
 
-static void mouse_mesh_uv_shortest_path_face(Scene *scene,
-                                             Object *obedit,
-                                             const struct PathSelectParams *op_params,
-                                             BMFace *f_src,
-                                             BMFace *f_dst,
-                                             const float aspect_y,
-                                             const int cd_loop_uv_offset)
+static int mouse_mesh_uv_shortest_path_face(Scene *scene,
+                                            Object *obedit,
+                                            const struct PathSelectParams *op_params,
+                                            BMFace *f_src,
+                                            BMFace *f_dst,
+                                            const float aspect_y,
+                                            const int cd_loop_uv_offset)
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
+  int flush = 0;
 
   struct UserData_UV user_data = {
       .scene = scene,
+      .em = em,
       .cd_loop_uv_offset = cd_loop_uv_offset,
   };
 
@@ -433,6 +475,7 @@ static void mouse_mesh_uv_shortest_path_face(Scene *scene,
     } while ((void)depth++, (node = node->next));
 
     BLI_linklist_free(path, NULL);
+    flush = all_set ? -1 : 1;
   }
   else {
     const bool is_act = !facetag_test_cb(f_dst, &user_data);
@@ -443,6 +486,7 @@ static void mouse_mesh_uv_shortest_path_face(Scene *scene,
     /* Unlike other types, we can track active without it being selected. */
     BM_mesh_active_face_set(bm, f_dst_last);
   }
+  return flush;
 }
 
 /** \} */
@@ -462,44 +506,56 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
                                      const float aspect_y,
                                      const int cd_loop_uv_offset)
 {
+  const ToolSettings *ts = scene->toolsettings;
+  const char uv_selectmode = ED_uvedit_select_mode_get(scene);
   bool ok = false;
+  int flush = 0;
 
   if (ELEM(NULL, ele_src, ele_dst) || (ele_src->head.htype != ele_dst->head.htype)) {
     /* pass */
   }
   else if (ele_src->head.htype == BM_FACE) {
-    mouse_mesh_uv_shortest_path_face(scene,
-                                     obedit,
-                                     op_params,
-                                     (BMFace *)ele_src,
-                                     (BMFace *)ele_dst,
-                                     aspect_y,
-                                     cd_loop_uv_offset);
+    flush = mouse_mesh_uv_shortest_path_face(scene,
+                                             obedit,
+                                             op_params,
+                                             (BMFace *)ele_src,
+                                             (BMFace *)ele_dst,
+                                             aspect_y,
+                                             cd_loop_uv_offset);
     ok = true;
   }
   else if (ele_src->head.htype == BM_LOOP) {
-    const ToolSettings *ts = scene->toolsettings;
-    BMElem *ele_dst_final = NULL;
-    if (ts->uv_selectmode & UV_SELECT_EDGE) {
-      if (op_params->use_fill == false) {
-        bm_loop_calc_vert_pair_from_edge_pair(
-            cd_loop_uv_offset, aspect_y, &ele_src, &ele_dst, &ele_dst_final);
-      }
-    }
-    mouse_mesh_uv_shortest_path_vert(scene,
-                                     obedit,
-                                     op_params,
-                                     (BMLoop *)ele_src,
-                                     (BMLoop *)ele_dst,
-                                     (BMLoop *)ele_dst_final,
-                                     aspect_y,
-                                     cd_loop_uv_offset);
+    flush = mouse_mesh_uv_shortest_path_vert(scene,
+                                             obedit,
+                                             op_params,
+                                             (BMLoop *)ele_src,
+                                             (BMLoop *)ele_dst,
+                                             aspect_y,
+                                             cd_loop_uv_offset);
     ok = true;
   }
 
   if (ok) {
-    Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
-    BKE_mesh_batch_cache_dirty_tag(obedit_eval->data, BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT);
+    if (flush != 0) {
+      const bool select = (flush == 1);
+      BMEditMesh *em = BKE_editmesh_from_object(obedit);
+      if (ts->uv_flag & UV_SYNC_SELECTION) {
+        if (uv_selectmode & UV_SELECT_EDGE) {
+          /* Special case as we don't use true edge selection,
+           * flush the selection from the vertices. */
+          BM_mesh_select_mode_flush_ex(em->bm, SCE_SELECT_VERTEX);
+        }
+      }
+      ED_uvedit_select_sync_flush(scene->toolsettings, em, select);
+    }
+
+    if (ts->uv_flag & UV_SYNC_SELECTION) {
+      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
+    }
+    else {
+      Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
+      BKE_mesh_batch_cache_dirty_tag(obedit_eval->data, BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT);
+    }
     /* Only for region redraw. */
     WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
   }
@@ -511,13 +567,9 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
 {
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
+  const char uv_selectmode = ED_uvedit_select_mode_get(scene);
 
   /* We could support this, it needs further testing. */
-  if (ts->uv_flag & UV_SYNC_SELECTION) {
-    BKE_report(op->reports, RPT_ERROR, "Sync selection doesn't support path select");
-    return OPERATOR_CANCELLED;
-  }
-
   if (RNA_struct_property_is_set(op->ptr, "index")) {
     return uv_shortest_path_pick_exec(C, op);
   }
@@ -550,7 +602,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
 
   BMElem *ele_src = NULL, *ele_dst = NULL;
 
-  if (ts->uv_selectmode & UV_SELECT_FACE) {
+  if (uv_selectmode == UV_SELECT_FACE) {
     UvNearestHit hit = UV_NEAREST_HIT_INIT;
     if (!uv_find_nearest_face(scene, obedit, co, &hit)) {
       return OPERATOR_CANCELLED;
@@ -562,21 +614,30 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
     ele_src = (BMElem *)f_src;
     ele_dst = (BMElem *)hit.efa;
   }
-  else if (ts->uv_selectmode & UV_SELECT_EDGE) {
+
+  else if (uv_selectmode & UV_SELECT_EDGE) {
     UvNearestHit hit = UV_NEAREST_HIT_INIT;
     if (!uv_find_nearest_edge(scene, obedit, co, &hit)) {
       return OPERATOR_CANCELLED;
     }
 
-    BMLoop *l_src = ED_uvedit_active_edge_loop_get(bm);
-    if (l_src != NULL) {
-      const MLoopUV *luv_src_v1 = BM_ELEM_CD_GET_VOID_P(l_src, cd_loop_uv_offset);
-      const MLoopUV *luv_src_v2 = BM_ELEM_CD_GET_VOID_P(l_src->next, cd_loop_uv_offset);
-      if ((luv_src_v1->flag & MLOOPUV_VERTSEL) == 0 && (luv_src_v2->flag & MLOOPUV_VERTSEL) == 0) {
-        l_src = NULL;
+    BMLoop *l_src = NULL;
+    if (ts->uv_flag & UV_SYNC_SELECTION) {
+      BMEdge *e_src = BM_mesh_active_edge_get(bm);
+      if (e_src != NULL) {
+        l_src = uv_find_nearest_loop_from_edge(scene, obedit, e_src, co);
       }
     }
-
+    else {
+      l_src = ED_uvedit_active_edge_loop_get(bm);
+      if (l_src != NULL) {
+        if ((!uvedit_uv_select_test(scene, l_src, cd_loop_uv_offset)) &&
+            (!uvedit_uv_select_test(scene, l_src->next, cd_loop_uv_offset))) {
+          l_src = NULL;
+        }
+        ele_src = (BMElem *)l_src;
+      }
+    }
     ele_src = (BMElem *)l_src;
     ele_dst = (BMElem *)hit.l;
   }
@@ -586,14 +647,21 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
       return OPERATOR_CANCELLED;
     }
 
-    BMLoop *l_src = ED_uvedit_active_vert_loop_get(bm);
-    if (l_src != NULL) {
-      const MLoopUV *luv_src = BM_ELEM_CD_GET_VOID_P(l_src, cd_loop_uv_offset);
-      if ((luv_src->flag & MLOOPUV_VERTSEL) == 0) {
-        l_src = NULL;
+    BMLoop *l_src = NULL;
+    if (ts->uv_flag & UV_SYNC_SELECTION) {
+      BMVert *v_src = BM_mesh_active_vert_get(bm);
+      if (v_src != NULL) {
+        l_src = uv_find_nearest_loop_from_vert(scene, obedit, v_src, co);
       }
     }
-
+    else {
+      l_src = ED_uvedit_active_vert_loop_get(bm);
+      if (l_src != NULL) {
+        if (!uvedit_uv_select_test(scene, l_src, cd_loop_uv_offset)) {
+          l_src = NULL;
+        }
+      }
+    }
     ele_src = (BMElem *)l_src;
     ele_dst = (BMElem *)hit.l;
   }
@@ -607,11 +675,11 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
 
   /* To support redo. */
   int index;
-  if (ts->uv_selectmode & UV_SELECT_FACE) {
+  if (uv_selectmode & UV_SELECT_FACE) {
     BM_mesh_elem_index_ensure(bm, BM_FACE);
     index = BM_elem_index_get(ele_dst);
   }
-  else if (ts->uv_selectmode & UV_SELECT_EDGE) {
+  else if (uv_selectmode & UV_SELECT_EDGE) {
     BM_mesh_elem_index_ensure(bm, BM_LOOP);
     index = BM_elem_index_get(ele_dst);
   }
@@ -628,7 +696,7 @@ static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
-  const ToolSettings *ts = scene->toolsettings;
+  const char uv_selectmode = ED_uvedit_select_mode_get(scene);
   Object *obedit = CTX_data_edit_object(C);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
@@ -645,7 +713,7 @@ static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
 
   BMElem *ele_src, *ele_dst;
 
-  if (ts->uv_selectmode & UV_SELECT_FACE) {
+  if (uv_selectmode & UV_SELECT_FACE) {
     if (index < 0 || index >= bm->totface) {
       return OPERATOR_CANCELLED;
     }
@@ -654,7 +722,7 @@ static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
   }
-  else if (ts->uv_selectmode & UV_SELECT_EDGE) {
+  else if (uv_selectmode & UV_SELECT_EDGE) {
     if (index < 0 || index >= bm->totloop) {
       return OPERATOR_CANCELLED;
     }
@@ -720,7 +788,7 @@ static int uv_shortest_path_select_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
-  const ToolSettings *ts = scene->toolsettings;
+  const char uv_selectmode = ED_uvedit_select_mode_get(scene);
   bool found_valid_elements = false;
 
   float aspect_y;
@@ -746,10 +814,10 @@ static int uv_shortest_path_select_exec(bContext *C, wmOperator *op)
     {
       BMElem **ele_array = NULL;
       int ele_array_len = 0;
-      if (ts->uv_selectmode & UV_SELECT_FACE) {
+      if (uv_selectmode & UV_SELECT_FACE) {
         ele_array = (BMElem **)ED_uvedit_selected_faces(scene, bm, 3, &ele_array_len);
       }
-      else if (ts->uv_selectmode & UV_SELECT_EDGE) {
+      else if (uv_selectmode & UV_SELECT_EDGE) {
         ele_array = (BMElem **)ED_uvedit_selected_edges(scene, bm, 3, &ele_array_len);
       }
       else {
