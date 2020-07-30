@@ -450,7 +450,7 @@ static void gpu_framebuffer_update_attachments_and_fill_empty_slots(GPUFrameBuff
   BLI_assert(GPU_framebuffer_active_get() == fb);
 
   /* Update attachments */
-  for (int i_type = GPU_FB_MAX_ATTACHEMENT; i_type >= 0; --i_type) {
+  for (int i_type = GPU_FB_MAX_ATTACHEMENT - 1; i_type >= 0; --i_type) {
     GPUAttachmentType type = static_cast<GPUAttachmentType>(i_type);
     GPUTexture *tex = fb->attachments[type].tex;
 
