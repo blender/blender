@@ -45,10 +45,8 @@
 #  pragma warning(pop)
 #endif
 
-extern "C" {
 #include "GPU_immediate.h"
 #include "GPU_shader.h"
-}
 
 using namespace OCIO_NAMESPACE;
 
