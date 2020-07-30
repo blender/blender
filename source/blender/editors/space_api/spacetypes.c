@@ -44,7 +44,6 @@
 #include "ED_gizmo_library.h"
 #include "ED_gpencil.h"
 #include "ED_lattice.h"
-#include "ED_logic.h"
 #include "ED_markers.h"
 #include "ED_mask.h"
 #include "ED_mball.h"

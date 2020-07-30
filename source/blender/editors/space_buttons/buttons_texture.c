@@ -63,7 +63,6 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "ED_buttons.h"
 #include "ED_node.h"
 #include "ED_screen.h"
 
