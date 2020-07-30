@@ -56,7 +56,6 @@
 #include "RNA_access.h"
 
 #include "ED_armature.h"
-#include "ED_buttons.h"
 #include "ED_physics.h"
 #include "ED_screen.h"
 
