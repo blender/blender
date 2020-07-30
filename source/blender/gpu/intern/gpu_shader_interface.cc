@@ -47,47 +47,66 @@
 
 static const char *BuiltinUniform_name(GPUUniformBuiltin u)
 {
-  static const char *names[] = {
-      [GPU_UNIFORM_MODEL] = "ModelMatrix",
-      [GPU_UNIFORM_VIEW] = "ViewMatrix",
-      [GPU_UNIFORM_MODELVIEW] = "ModelViewMatrix",
-      [GPU_UNIFORM_PROJECTION] = "ProjectionMatrix",
-      [GPU_UNIFORM_VIEWPROJECTION] = "ViewProjectionMatrix",
-      [GPU_UNIFORM_MVP] = "ModelViewProjectionMatrix",
+  switch (u) {
+    case GPU_UNIFORM_MODEL:
+      return "ModelMatrix";
+    case GPU_UNIFORM_VIEW:
+      return "ViewMatrix";
+    case GPU_UNIFORM_MODELVIEW:
+      return "ModelViewMatrix";
+    case GPU_UNIFORM_PROJECTION:
+      return "ProjectionMatrix";
+    case GPU_UNIFORM_VIEWPROJECTION:
+      return "ViewProjectionMatrix";
+    case GPU_UNIFORM_MVP:
+      return "ModelViewProjectionMatrix";
 
-      [GPU_UNIFORM_MODEL_INV] = "ModelMatrixInverse",
-      [GPU_UNIFORM_VIEW_INV] = "ViewMatrixInverse",
-      [GPU_UNIFORM_MODELVIEW_INV] = "ModelViewMatrixInverse",
-      [GPU_UNIFORM_PROJECTION_INV] = "ProjectionMatrixInverse",
-      [GPU_UNIFORM_VIEWPROJECTION_INV] = "ViewProjectionMatrixInverse",
+    case GPU_UNIFORM_MODEL_INV:
+      return "ModelMatrixInverse";
+    case GPU_UNIFORM_VIEW_INV:
+      return "ViewMatrixInverse";
+    case GPU_UNIFORM_MODELVIEW_INV:
+      return "ModelViewMatrixInverse";
+    case GPU_UNIFORM_PROJECTION_INV:
+      return "ProjectionMatrixInverse";
+    case GPU_UNIFORM_VIEWPROJECTION_INV:
+      return "ViewProjectionMatrixInverse";
 
-      [GPU_UNIFORM_NORMAL] = "NormalMatrix",
-      [GPU_UNIFORM_ORCO] = "OrcoTexCoFactors",
-      [GPU_UNIFORM_CLIPPLANES] = "WorldClipPlanes",
+    case GPU_UNIFORM_NORMAL:
+      return "NormalMatrix";
+    case GPU_UNIFORM_ORCO:
+      return "OrcoTexCoFactors";
+    case GPU_UNIFORM_CLIPPLANES:
+      return "WorldClipPlanes";
 
-      [GPU_UNIFORM_COLOR] = "color",
-      [GPU_UNIFORM_BASE_INSTANCE] = "baseInstance",
-      [GPU_UNIFORM_RESOURCE_CHUNK] = "resourceChunk",
-      [GPU_UNIFORM_RESOURCE_ID] = "resourceId",
-      [GPU_UNIFORM_SRGB_TRANSFORM] = "srgbTarget",
+    case GPU_UNIFORM_COLOR:
+      return "color";
+    case GPU_UNIFORM_BASE_INSTANCE:
+      return "baseInstance";
+    case GPU_UNIFORM_RESOURCE_CHUNK:
+      return "resourceChunk";
+    case GPU_UNIFORM_RESOURCE_ID:
+      return "resourceId";
+    case GPU_UNIFORM_SRGB_TRANSFORM:
+      return "srgbTarget";
 
-      [GPU_NUM_UNIFORMS] = NULL,
-  };
-
-  return names[u];
+    default:
+      return NULL;
+  }
 }
 
 static const char *BuiltinUniformBlock_name(GPUUniformBlockBuiltin u)
 {
-  static const char *names[] = {
-      [GPU_UNIFORM_BLOCK_VIEW] = "viewBlock",
-      [GPU_UNIFORM_BLOCK_MODEL] = "modelBlock",
-      [GPU_UNIFORM_BLOCK_INFO] = "infoBlock",
-
-      [GPU_NUM_UNIFORM_BLOCKS] = NULL,
-  };
-
-  return names[u];
+  switch (u) {
+    case GPU_UNIFORM_BLOCK_VIEW:
+      return "viewBlock";
+    case GPU_UNIFORM_BLOCK_MODEL:
+      return "modelBlock";
+    case GPU_UNIFORM_BLOCK_INFO:
+      return "infoBlock";
+    default:
+      return NULL;
+  }
 }
 
 GPU_INLINE bool match(const char *a, const char *b)
@@ -273,7 +292,7 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
   /* Bit set to true if uniform comes from a uniform block. */
   BLI_bitmap *uniforms_from_blocks = BLI_BITMAP_NEW(active_uniform_len, __func__);
   /* Set uniforms from block for exclusion. */
-  GLint *ubo_uni_ids = MEM_mallocN(sizeof(GLint) * max_ubo_uni_len, __func__);
+  GLint *ubo_uni_ids = (GLint *)MEM_mallocN(sizeof(GLint) * max_ubo_uni_len, __func__);
   for (int i = 0; i < ubo_len; i++) {
     GLint ubo_uni_len;
     glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &ubo_uni_len);
@@ -291,16 +310,18 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
   int input_tot_len = attr_len + ubo_len + uniform_len;
   size_t interface_size = sizeof(GPUShaderInterface) + sizeof(GPUShaderInput) * input_tot_len;
 
-  GPUShaderInterface *shaderface = MEM_callocN(interface_size, "GPUShaderInterface");
+  GPUShaderInterface *shaderface = (GPUShaderInterface *)MEM_callocN(interface_size,
+                                                                     "GPUShaderInterface");
   shaderface->attribute_len = attr_len;
   shaderface->ubo_len = ubo_len;
   shaderface->uniform_len = uniform_len;
-  shaderface->name_buffer = MEM_mallocN(name_buffer_len, "name_buffer");
+  shaderface->name_buffer = (char *)MEM_mallocN(name_buffer_len, "name_buffer");
   GPUShaderInput *inputs = shaderface->inputs;
 
   /* Temp buffer. */
   int input_tmp_len = max_iii(attr_len, ubo_len, uniform_len);
-  GPUShaderInput *inputs_tmp = MEM_mallocN(sizeof(GPUShaderInput) * input_tmp_len, "name_buffer");
+  GPUShaderInput *inputs_tmp = (GPUShaderInput *)MEM_mallocN(
+      sizeof(GPUShaderInput) * input_tmp_len, "name_buffer");
 
   /* Attributes */
   shaderface->enabled_attr_mask = 0;
@@ -366,27 +387,29 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
   sort_input_list(inputs, inputs_tmp, shaderface->uniform_len);
 
   /* Builtin Uniforms */
-  for (GPUUniformBuiltin u = 0; u < GPU_NUM_UNIFORMS; u++) {
+  for (int32_t u_int = 0; u_int < GPU_NUM_UNIFORMS; u_int++) {
+    GPUUniformBuiltin u = static_cast<GPUUniformBuiltin>(u_int);
     shaderface->builtins[u] = glGetUniformLocation(program, BuiltinUniform_name(u));
   }
 
   /* Builtin Uniforms Blocks */
-  for (GPUUniformBlockBuiltin u = 0; u < GPU_NUM_UNIFORM_BLOCKS; u++) {
+  for (int32_t u_int = 0; u_int < GPU_NUM_UNIFORM_BLOCKS; u_int++) {
+    GPUUniformBlockBuiltin u = static_cast<GPUUniformBlockBuiltin>(u_int);
     const GPUShaderInput *block = GPU_shaderinterface_ubo(shaderface, BuiltinUniformBlock_name(u));
     shaderface->builtin_blocks[u] = (block != NULL) ? block->binding : -1;
   }
 
   /* Batches ref buffer */
   shaderface->batches_len = GPU_SHADERINTERFACE_REF_ALLOC_COUNT;
-  shaderface->batches = MEM_callocN(shaderface->batches_len * sizeof(GPUBatch *),
-                                    "GPUShaderInterface batches");
+  shaderface->batches = (GPUBatch **)MEM_callocN(shaderface->batches_len * sizeof(GPUBatch *),
+                                                 "GPUShaderInterface batches");
 
   MEM_freeN(uniforms_from_blocks);
   MEM_freeN(inputs_tmp);
 
   /* Resize name buffer to save some memory. */
   if (name_buffer_offset < name_buffer_len) {
-    shaderface->name_buffer = MEM_reallocN(shaderface->name_buffer, name_buffer_offset);
+    shaderface->name_buffer = (char *)MEM_reallocN(shaderface->name_buffer, name_buffer_offset);
   }
 
 #if DEBUG_SHADER_INTERFACE
@@ -501,8 +524,8 @@ void GPU_shaderinterface_add_batch_ref(GPUShaderInterface *shaderface, GPUBatch 
     /* Not enough place, realloc the array. */
     i = shaderface->batches_len;
     shaderface->batches_len += GPU_SHADERINTERFACE_REF_ALLOC_COUNT;
-    shaderface->batches = MEM_recallocN(shaderface->batches,
-                                        sizeof(GPUBatch *) * shaderface->batches_len);
+    shaderface->batches = (GPUBatch **)MEM_recallocN(shaderface->batches,
+                                                     sizeof(GPUBatch *) * shaderface->batches_len);
   }
   shaderface->batches[i] = batch;
 }
