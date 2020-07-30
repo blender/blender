@@ -6081,3 +6081,32 @@ bool BKE_sequencer_render_loop_check(Sequence *seq_main, Sequence *seq)
 
   return false;
 }
+
+void BKE_sequencer_check_uuids_unique_and_report(const Scene *scene)
+{
+  if (scene->ed == NULL) {
+    return;
+  }
+
+  struct GSet *used_uuids = BLI_gset_new(
+      BLI_session_uuid_ghash_hash, BLI_session_uuid_ghash_compare, "sequencer used uuids");
+
+  const Sequence *sequence;
+  SEQ_BEGIN (scene->ed, sequence) {
+    const SessionUUID *session_uuid = &sequence->runtime.session_uuid;
+    if (!BLI_session_uuid_is_generated(session_uuid)) {
+      printf("Sequence %s does not have UUID generated.\n", sequence->name);
+      continue;
+    }
+
+    if (BLI_gset_lookup(used_uuids, session_uuid) != NULL) {
+      printf("Sequence %s has duplicate UUID generated.\n", sequence->name);
+      continue;
+    }
+
+    BLI_gset_insert(used_uuids, (void *)session_uuid);
+  }
+  SEQ_END;
+
+  BLI_gset_free(used_uuids, NULL);
+}

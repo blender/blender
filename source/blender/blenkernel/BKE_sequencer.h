@@ -629,6 +629,10 @@ void BKE_sequencer_all_free_anim_ibufs(struct Scene *scene, int cfra);
 bool BKE_sequencer_check_scene_recursion(struct Scene *scene, struct ReportList *reports);
 bool BKE_sequencer_render_loop_check(struct Sequence *seq_main, struct Sequence *seq);
 
+/* A debug and development function which checks whether sequences have unique UUIDs.
+ * Errors will be reported to the console. */
+void BKE_sequencer_check_uuids_unique_and_report(const struct Scene *scene);
+
 #ifdef __cplusplus
 }
 #endif
