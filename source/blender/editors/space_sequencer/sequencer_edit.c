@@ -2269,6 +2269,8 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
   split_side = RNA_enum_get(op->ptr, "side");
   ignore_selection = RNA_boolean_get(op->ptr, "ignore_selection");
 
+  BKE_sequencer_prefetch_stop(scene);
+
   if (split_hard == SEQ_SPLIT_HARD) {
     changed = split_seq_list(bmain,
                              scene,
