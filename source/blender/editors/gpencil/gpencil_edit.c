@@ -4290,8 +4290,11 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
   base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_prev, dupflag);
   ob_dst = base_new->object;
   ob_dst->mode = OB_MODE_OBJECT;
-  /* create new grease pencil datablock */
+  /* Duplication will increment bGPdata usercount, but since we create a new greasepencil datablock
+   * for ob_dst (which gets its own user automatically), we have to decrement the usercount again.
+   */
   gpd_dst = BKE_gpencil_data_addnew(bmain, gpd_src->id.name + 2);
+  id_us_min(ob_dst->data);
   ob_dst->data = (bGPdata *)gpd_dst;
 
   /* loop old datablock and separate parts */
