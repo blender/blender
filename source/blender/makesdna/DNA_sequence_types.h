@@ -34,6 +34,7 @@
 #include "DNA_color_types.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
+#include "DNA_session_uuid_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_vfont_types.h"
 
@@ -118,6 +119,10 @@ typedef struct Strip {
   /* color management */
   ColorManagedColorspaceSettings colorspace_settings;
 } Strip;
+
+typedef struct SequenceRuntime {
+  SessionUUID session_uuid;
+} SequenceRuntime;
 
 /**
  * The sequence structure is the basic struct used by any strip.
@@ -237,6 +242,10 @@ typedef struct Sequence {
   int cache_flag;
   int _pad2[3];
 
+  SequenceRuntime runtime;
+
+  /* NOTE: Technically this is a runtime data as well, but it is aimed to be removed once the
+   * UUID is in place. */
   struct Sequence *orig_sequence;
   void *_pad3;
 } Sequence;
