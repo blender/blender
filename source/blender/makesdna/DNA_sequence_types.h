@@ -243,11 +243,6 @@ typedef struct Sequence {
   int _pad2[3];
 
   SequenceRuntime runtime;
-
-  /* NOTE: Technically this is a runtime data as well, but it is aimed to be removed once the
-   * UUID is in place. */
-  struct Sequence *orig_sequence;
-  void *_pad3;
 } Sequence;
 
 typedef struct MetaStack {
