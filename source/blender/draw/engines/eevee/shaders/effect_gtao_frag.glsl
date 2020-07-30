@@ -1,14 +1,34 @@
+
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
+#pragma BLENDER_REQUIRE(ambient_occlusion_lib.glsl)
+
 /**
  * This shader only compute maximum horizon angles for each directions.
  * The final integration is done at the resolve stage with the shading normal.
  */
 
-uniform float rotationOffset;
-
 out vec4 FragColor;
 
-#ifdef DEBUG_AO
 uniform sampler2D normalBuffer;
+#ifdef LAYERED_DEPTH
+uniform sampler2DArray depthBufferLayered;
+uniform int layer;
+#  define gtao_depthBuffer depthBufferLayered
+#  define gtao_textureLod(a, b, c) textureLod(a, vec3(b, layer), c)
+
+#else
+uniform sampler2D depthBuffer;
+#  define gtao_depthBuffer depthBuffer
+#  define gtao_textureLod(a, b, c) textureLod(a, b, c)
+
+#endif
+
+uniform float rotationOffset;
+
+#ifdef DEBUG_AO
 
 void main()
 {
@@ -33,18 +53,6 @@ void main()
 }
 
 #else
-
-#  ifdef LAYERED_DEPTH
-uniform sampler2DArray depthBufferLayered;
-uniform int layer;
-#    define gtao_depthBuffer depthBufferLayered
-#    define gtao_textureLod(a, b, c) textureLod(a, vec3(b, layer), c)
-
-#  else
-#    define gtao_depthBuffer depthBuffer
-#    define gtao_textureLod(a, b, c) textureLod(a, b, c)
-
-#  endif
 
 void main()
 {

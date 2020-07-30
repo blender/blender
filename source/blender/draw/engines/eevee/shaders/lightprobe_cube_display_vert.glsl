@@ -1,4 +1,6 @@
 
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+
 /* XXX TODO fix code duplication */
 struct CubeData {
   vec4 position_type;

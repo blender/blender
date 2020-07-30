@@ -1,8 +1,76 @@
 
-uniform sampler2DArrayShadow shadowCubeTexture;
-uniform sampler2DArrayShadow shadowCascadeTexture;
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(raytrace_lib.glsl)
+#pragma BLENDER_REQUIRE(ltc_lib.glsl)
 
-#define LAMPS_LIB
+#ifndef MAX_CASCADE_NUM
+#  define MAX_CASCADE_NUM 4
+#endif
+
+/* ---------------------------------------------------------------------- */
+/** \name Structure
+ * \{ */
+
+struct LightData {
+  vec4 position_influence;     /* w : InfluenceRadius (inversed and squared) */
+  vec4 color_spec;             /* w : Spec Intensity */
+  vec4 spotdata_radius_shadow; /* x : spot size, y : spot blend, z : radius, w: shadow id */
+  vec4 rightvec_sizex;         /* xyz: Normalized up vector, w: area size X or spot scale X */
+  vec4 upvec_sizey;            /* xyz: Normalized right vector, w: area size Y or spot scale Y */
+  vec4 forwardvec_type;        /* xyz: Normalized forward vector, w: Light Type */
+};
+
+/* convenience aliases */
+#define l_color color_spec.rgb
+#define l_spec color_spec.a
+#define l_position position_influence.xyz
+#define l_influence position_influence.w
+#define l_sizex rightvec_sizex.w
+#define l_sizey upvec_sizey.w
+#define l_right rightvec_sizex.xyz
+#define l_up upvec_sizey.xyz
+#define l_forward forwardvec_type.xyz
+#define l_type forwardvec_type.w
+#define l_spot_size spotdata_radius_shadow.x
+#define l_spot_blend spotdata_radius_shadow.y
+#define l_radius spotdata_radius_shadow.z
+#define l_shadowid spotdata_radius_shadow.w
+
+struct ShadowData {
+  vec4 near_far_bias_id;
+  vec4 contact_shadow_data;
+};
+
+struct ShadowCubeData {
+  mat4 shadowmat;
+  vec4 position;
+};
+
+struct ShadowCascadeData {
+  mat4 shadowmat[MAX_CASCADE_NUM];
+  vec4 split_start_distances;
+  vec4 split_end_distances;
+  vec4 shadow_vec_id;
+};
+
+/* convenience aliases */
+#define sh_near near_far_bias_id.x
+#define sh_far near_far_bias_id.y
+#define sh_bias near_far_bias_id.z
+#define sh_data_index near_far_bias_id.w
+#define sh_contact_dist contact_shadow_data.x
+#define sh_contact_offset contact_shadow_data.y
+#define sh_contact_spread contact_shadow_data.z
+#define sh_contact_thickness contact_shadow_data.w
+#define sh_shadow_vec shadow_vec_id.xyz
+#define sh_tex_index shadow_vec_id.w
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Resources
+ * \{ */
 
 layout(std140) uniform shadow_block
 {
@@ -15,6 +83,15 @@ layout(std140) uniform light_block
 {
   LightData lights_data[MAX_LIGHT];
 };
+
+uniform sampler2DArrayShadow shadowCubeTexture;
+uniform sampler2DArrayShadow shadowCascadeTexture;
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Shadow Functions
+ * \{ */
 
 /* type */
 #define POINT 0.0
@@ -133,9 +210,11 @@ float sample_cascade_shadow(int shadow_id, vec3 W)
 #undef scube
 #undef scsmd
 
-/* ----------------------------------------------------------- */
-/* --------------------- Light Functions --------------------- */
-/* ----------------------------------------------------------- */
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Light Functions
+ * \{ */
 
 /* From Frostbite PBR Course
  * Distance based attenuation
@@ -258,7 +337,6 @@ float light_visibility(LightData ld,
                          l_atten);
 }
 
-#ifdef USE_LTC
 float light_diffuse(LightData ld, vec3 N, vec3 V, vec4 l_vector)
 {
   if (ld.l_type == AREA_RECT) {
@@ -321,4 +399,5 @@ float light_specular(LightData ld, vec4 ltc_mat, vec3 N, vec3 V, vec4 l_vector)
     return ltc_evaluate_disk(N, V, ltc_matrix(ltc_mat), points);
   }
 }
-#endif
+
+/** \} */

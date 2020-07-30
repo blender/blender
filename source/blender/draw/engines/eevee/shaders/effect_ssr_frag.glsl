@@ -1,4 +1,11 @@
 
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
+#pragma BLENDER_REQUIRE(raytrace_lib.glsl)
+#pragma BLENDER_REQUIRE(lightprobe_lib.glsl)
+#pragma BLENDER_REQUIRE(ssr_lib.glsl)
+
 /* Based on Stochastic Screen Space Reflections
  * https://www.ea.com/frostbite/news/stochastic-screen-space-reflections */
 
@@ -131,7 +138,7 @@ void main()
     return;
   }
 
-  vec4 rand = texelFetch(utilTex, ivec3(halfres_texel % LUT_SIZE, 2), 0);
+  vec4 rand = texelfetch_noise_tex(halfres_texel);
 
   /* Gives *perfect* reflection for very small roughness */
   if (roughness < 0.04) {

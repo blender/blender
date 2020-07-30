@@ -22,6 +22,16 @@ layout(std140) uniform viewBlock
   vec4 CameraTexCoFactors;
 };
 
+#define ViewNear (ViewVecs[0].w)
+#define ViewFar (ViewVecs[1].w)
+
+#define cameraForward ViewMatrixInverse[2].xyz
+#define cameraPos ViewMatrixInverse[3].xyz
+#define cameraVec \
+  ((ProjectionMatrix[3][3] == 0.0) ? normalize(cameraPos - worldPosition) : cameraForward)
+#define viewCameraVec \
+  ((ProjectionMatrix[3][3] == 0.0) ? normalize(-viewPosition) : vec3(0.0, 0.0, 1.0))
+
 #ifdef world_clip_planes_calc_clip_distance
 #  undef world_clip_planes_calc_clip_distance
 #  define world_clip_planes_calc_clip_distance(p) \
@@ -104,10 +114,13 @@ uniform int resourceId;
 
 /* Use this to declare and pass the value if
  * the fragment shader uses the resource_id. */
-#  define RESOURCE_ID_VARYING flat out int resourceIDFrag;
-#  define RESOURCE_ID_VARYING_GEOM flat out int resourceIDGeom;
-#  define PASS_RESOURCE_ID resourceIDFrag = resource_id;
-#  define PASS_RESOURCE_ID_GEOM resourceIDGeom = resource_id;
+#  ifdef USE_GEOMETRY_SHADER
+#    define RESOURCE_ID_VARYING flat out int resourceIDGeom;
+#    define PASS_RESOURCE_ID resourceIDGeom = resource_id;
+#  else
+#    define RESOURCE_ID_VARYING flat out int resourceIDFrag;
+#    define PASS_RESOURCE_ID resourceIDFrag = resource_id;
+#  endif
 #endif
 
 /* If used in a fragment / geometry shader, we pass
@@ -118,7 +131,7 @@ uniform int resourceId;
     flat in int resourceIDGeom[];
 
 #  define resource_id resourceIDGeom
-#  define PASS_RESOURCE_ID(i) resourceIDFrag = resource_id[i];
+#  define PASS_RESOURCE_ID resourceIDFrag = resource_id[0];
 #endif
 
 #ifdef GPU_FRAGMENT_SHADER
@@ -171,9 +184,12 @@ uniform mat4 ModelMatrixInverse;
  * Note: This is only valid because we are only using the mat3 of the ViewMatrixInverse.
  * ViewMatrix * transpose(ModelMatrixInverse)
  **/
-#define normal_object_to_view(n) (mat3(ViewMatrix) * (transpose(mat3(ModelMatrixInverse)) * n))
-#define normal_object_to_world(n) (transpose(mat3(ModelMatrixInverse)) * n)
-#define normal_world_to_object(n) (transpose(mat3(ModelMatrix)) * n)
+#define NormalMatrix transpose(mat3(ModelMatrixInverse))
+#define NormalMatrixInverse transpose(mat3(ModelMatrix))
+
+#define normal_object_to_view(n) (mat3(ViewMatrix) * (NormalMatrix * n))
+#define normal_object_to_world(n) (NormalMatrix * n)
+#define normal_world_to_object(n) (NormalMatrixInverse * n)
 #define normal_world_to_view(n) (mat3(ViewMatrix) * n)
 #define normal_view_to_world(n) (mat3(ViewMatrixInverse) * n)
 
@@ -199,3 +215,78 @@ uniform mat4 ModelMatrixInverse;
 #define DRW_BASE_FROM_DUPLI (1 << 2)
 #define DRW_BASE_FROM_SET (1 << 3)
 #define DRW_BASE_ACTIVE (1 << 4)
+
+/* ---- Opengl Depth conversion ---- */
+
+float linear_depth(bool is_persp, float z, float zf, float zn)
+{
+  if (is_persp) {
+    return (zn * zf) / (z * (zn - zf) + zf);
+  }
+  else {
+    return (z * 2.0 - 1.0) * zf;
+  }
+}
+
+float buffer_depth(bool is_persp, float z, float zf, float zn)
+{
+  if (is_persp) {
+    return (zf * (zn - z)) / (z * (zn - zf));
+  }
+  else {
+    return (z / (zf * 2.0)) + 0.5;
+  }
+}
+
+float get_view_z_from_depth(float depth)
+{
+  if (ProjectionMatrix[3][3] == 0.0) {
+    float d = 2.0 * depth - 1.0;
+    return -ProjectionMatrix[3][2] / (d + ProjectionMatrix[2][2]);
+  }
+  else {
+    return ViewVecs[0].z + depth * ViewVecs[1].z;
+  }
+}
+
+float get_depth_from_view_z(float z)
+{
+  if (ProjectionMatrix[3][3] == 0.0) {
+    float d = (-ProjectionMatrix[3][2] / z) - ProjectionMatrix[2][2];
+    return d * 0.5 + 0.5;
+  }
+  else {
+    return (z - ViewVecs[0].z) / ViewVecs[1].z;
+  }
+}
+
+vec2 get_uvs_from_view(vec3 view)
+{
+  vec4 ndc = ProjectionMatrix * vec4(view, 1.0);
+  return (ndc.xy / ndc.w) * 0.5 + 0.5;
+}
+
+vec3 get_view_space_from_depth(vec2 uvcoords, float depth)
+{
+  if (ProjectionMatrix[3][3] == 0.0) {
+    return vec3(ViewVecs[0].xy + uvcoords * ViewVecs[1].xy, 1.0) * get_view_z_from_depth(depth);
+  }
+  else {
+    return ViewVecs[0].xyz + vec3(uvcoords, depth) * ViewVecs[1].xyz;
+  }
+}
+
+vec3 get_world_space_from_depth(vec2 uvcoords, float depth)
+{
+  return (ViewMatrixInverse * vec4(get_view_space_from_depth(uvcoords, depth), 1.0)).xyz;
+}
+
+vec3 get_view_vector_from_screen_uv(vec2 uv)
+{
+  if (ProjectionMatrix[3][3] == 0.0) {
+    return normalize(vec3(ViewVecs[0].xy + uv * ViewVecs[1].xy, 1.0));
+  }
+  else {
+    return vec3(0.0, 0.0, 1.0);
+  }
+}

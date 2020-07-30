@@ -1,4 +1,6 @@
 
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+
 uniform float sphere_size;
 uniform int offset;
 uniform ivec3 grid_resolution;

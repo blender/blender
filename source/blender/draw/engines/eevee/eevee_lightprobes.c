@@ -326,38 +326,28 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
   {
     DRW_PASS_CREATE(psl->probe_background, DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
 
-    struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
     DRWShadingGroup *grp = NULL;
+    EEVEE_lookdev_cache_init(vedata, sldata, psl->probe_background, pinfo, &grp);
 
-    Scene *scene = draw_ctx->scene;
-    World *wo = scene->world;
+    if (grp == NULL) {
+      Scene *scene = draw_ctx->scene;
+      World *world = (scene->world) ? scene->world : EEVEE_world_default_get();
 
-    /* LookDev */
-    EEVEE_lookdev_cache_init(vedata, sldata, &grp, psl->probe_background, wo, pinfo);
-
-    if (!grp && wo) {
-      struct GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, NULL, wo, VAR_WORLD_PROBE);
+      const int options = VAR_WORLD_BACKGROUND | VAR_WORLD_PROBE;
+      struct GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, NULL, world, options);
 
       grp = DRW_shgroup_material_create(gpumat, psl->probe_background);
       DRW_shgroup_uniform_float_copy(grp, "backgroundAlpha", 1.0f);
-      /* TODO (fclem): remove those (need to clean the GLSL files). */
-      DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-      DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
-      DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
-      DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
-      DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
-      DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
-      DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
-      DRW_shgroup_call(grp, geom, NULL);
     }
 
-    /* Fallback if shader fails or if not using nodetree. */
-    if (grp == NULL) {
-      grp = DRW_shgroup_create(EEVEE_shaders_probe_default_sh_get(), psl->probe_background);
-      DRW_shgroup_uniform_vec3(grp, "color", G_draw.block.colorBackground, 1);
-      DRW_shgroup_uniform_float_copy(grp, "backgroundAlpha", 1.0f);
-      DRW_shgroup_call(grp, geom, NULL);
-    }
+    DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+    DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
+    DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
+    DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
+    DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
+    DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
+    DRW_shgroup_uniform_block_ref(grp, "renderpass_block", &stl->g_data->renderpass_ubo);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
 
   if (DRW_state_draw_support()) {

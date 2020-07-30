@@ -1,4 +1,7 @@
 
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_hair_lib.glsl)
+
 uniform mat4 currModelMatrix;
 uniform mat4 prevModelMatrix;
 uniform mat4 nextModelMatrix;
@@ -19,6 +22,8 @@ out vec3 nextWorldPos;
 
 void main()
 {
+  GPU_INTEL_VERTEX_SHADER_WORKAROUND
+
 #ifdef HAIR
   bool is_persp = (ProjectionMatrix[3][3] == 0.0);
   float time, thick_time, thickness;

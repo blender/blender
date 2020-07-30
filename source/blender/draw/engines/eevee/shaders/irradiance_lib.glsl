@@ -1,17 +1,70 @@
 
-uniform sampler2DArray irradianceGrid;
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_uniforms_lib.glsl)
+#pragma BLENDER_REQUIRE(octahedron_lib.glsl)
 
 #define IRRADIANCE_LIB
+
+/* ---------------------------------------------------------------------- */
+/** \name Structure
+ * \{ */
 
 #if defined(IRRADIANCE_SH_L2)
 struct IrradianceData {
   vec3 shcoefs[9];
 };
+
 #else /* defined(IRRADIANCE_HL2) */
 struct IrradianceData {
   vec3 cubesides[3];
 };
+
 #endif
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Resources
+ * \{ */
+
+uniform sampler2DArray irradianceGrid;
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Functions
+ * \{ */
+
+vec4 irradiance_encode(vec3 rgb)
+{
+  float maxRGB = max_v3(rgb);
+  float fexp = ceil(log2(maxRGB));
+  return vec4(rgb / exp2(fexp), (fexp + 128.0) / 255.0);
+}
+
+vec3 irradiance_decode(vec4 data)
+{
+  float fexp = data.a * 255.0 - 128.0;
+  return data.rgb * exp2(fexp);
+}
+
+vec4 visibility_encode(vec2 accum, float range)
+{
+  accum /= range;
+
+  vec4 data;
+  data.x = fract(accum.x);
+  data.y = floor(accum.x) / 255.0;
+  data.z = fract(accum.y);
+  data.w = floor(accum.y) / 255.0;
+
+  return data;
+}
+
+vec2 visibility_decode(vec4 data, float range)
+{
+  return (data.xz + data.yw * 255.0) * range;
+}
 
 IrradianceData load_irradiance_cell(int cell, vec3 N)
 {
@@ -155,3 +208,5 @@ vec3 irradiance_from_cell_get(int cell, vec3 ir_dir)
   IrradianceData ir_data = load_irradiance_cell(cell, ir_dir);
   return compute_irradiance(ir_dir, ir_data);
 }
+
+/** \} */

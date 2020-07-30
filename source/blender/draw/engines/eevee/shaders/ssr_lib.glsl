@@ -1,3 +1,10 @@
+
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(bsdf_common_lib.glsl)
+#pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
+#pragma BLENDER_REQUIRE(raytrace_lib.glsl)
+#pragma BLENDER_REQUIRE(surface_lib.glsl)
+
 /* ------------ Refraction ------------ */
 
 #define BTDF_BIAS 0.85

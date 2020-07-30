@@ -1,16 +1,14 @@
 
+#pragma BLENDER_REQUIRE(common_hair_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+
 #ifndef HAIR_SHADER
 in vec3 pos;
 #endif
 
 void main()
 {
-#ifdef GPU_INTEL
-  /* Due to some shader compiler bug, we somewhat
-   * need to access gl_VertexID to make it work. even
-   * if it's actually dead code. */
-  gl_Position.x = float(gl_VertexID);
-#endif
+  GPU_INTEL_VERTEX_SHADER_WORKAROUND
 
 #ifdef HAIR_SHADER
   float time, thick_time, thickness;
@@ -34,5 +32,4 @@ void main()
 #ifdef CLIP_PLANES
   gl_ClipDistance[0] = dot(vec4(worldPosition.xyz, 1.0), clipPlanes[0]);
 #endif
-  /* TODO motion vectors */
 }

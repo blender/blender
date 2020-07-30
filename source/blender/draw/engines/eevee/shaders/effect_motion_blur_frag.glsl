@@ -1,4 +1,6 @@
 
+#pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
+
 /*
  * Based on:
  * A Fast and Stable Feature-Aware Motion Blur Filter
@@ -14,11 +16,6 @@ uniform sampler2D velocityBuffer;
 uniform sampler2D tileMaxBuffer;
 
 #define KERNEL 8
-
-/* TODO(fclem) deduplicate this code. */
-uniform sampler2DArray utilTex;
-#define LUT_SIZE 64
-#define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
 
 uniform float depthScale;
 uniform ivec2 tileBufferSize;

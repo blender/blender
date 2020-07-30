@@ -341,7 +341,7 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
   gpu_shader_standard_extensions(standard_extensions);
 
   if (vertexcode) {
-    const char *source[6];
+    const char *source[7];
     /* custom limit, may be too small, beware */
     int num_source = 0;
 
@@ -352,6 +352,9 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
     source[num_source++] = standard_extensions;
     source[num_source++] = standard_defines;
 
+    if (geocode) {
+      source[num_source++] = "#define USE_GEOMETRY_SHADER\n";
+    }
     if (defines) {
       source[num_source++] = defines;
     }
@@ -375,7 +378,7 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
   }
 
   if (fragcode) {
-    const char *source[7];
+    const char *source[8];
     int num_source = 0;
 
     source[num_source++] = gpu_shader_version();
@@ -385,6 +388,9 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
     source[num_source++] = standard_extensions;
     source[num_source++] = standard_defines;
 
+    if (geocode) {
+      source[num_source++] = "#define USE_GEOMETRY_SHADER\n";
+    }
     if (defines) {
       source[num_source++] = defines;
     }
@@ -453,6 +459,9 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
   if (!status) {
     glGetProgramInfoLog(shader->program, sizeof(log), &length, log);
     /* print attached shaders in pipeline order */
+    if (defines) {
+      shader_print_errors("linking", log, &defines, 1);
+    }
     if (vertexcode) {
       shader_print_errors("linking", log, &vertexcode, 1);
     }

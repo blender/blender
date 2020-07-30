@@ -198,6 +198,17 @@ void DRW_uniformbuffer_free(struct GPUUniformBuffer *ubo);
   } while (0)
 
 /* Shaders */
+
+#ifndef __GPU_MATERIAL_H__
+/* FIXME: Meh avoid including all GPUMaterial. */
+typedef void(GPUMaterialEvalCallbackFn)(struct GPUMaterial *mat,
+                                        int options,
+                                        const char **vert_code,
+                                        const char **geom_code,
+                                        const char **frag_lib,
+                                        const char **defines);
+#endif
+
 struct GPUShader *DRW_shader_create(const char *vert,
                                     const char *geom,
                                     const char *frag,
@@ -237,7 +248,8 @@ struct GPUMaterial *DRW_shader_create_from_world(struct Scene *scene,
                                                  const char *geom,
                                                  const char *frag_lib,
                                                  const char *defines,
-                                                 bool deferred);
+                                                 bool deferred,
+                                                 GPUMaterialEvalCallbackFn *callback);
 struct GPUMaterial *DRW_shader_create_from_material(struct Scene *scene,
                                                     struct Material *ma,
                                                     struct bNodeTree *ntree,
@@ -248,7 +260,8 @@ struct GPUMaterial *DRW_shader_create_from_material(struct Scene *scene,
                                                     const char *geom,
                                                     const char *frag_lib,
                                                     const char *defines,
-                                                    bool deferred);
+                                                    bool deferred,
+                                                    GPUMaterialEvalCallbackFn *callback);
 void DRW_shader_free(struct GPUShader *shader);
 #define DRW_SHADER_FREE_SAFE(shader) \
   do { \

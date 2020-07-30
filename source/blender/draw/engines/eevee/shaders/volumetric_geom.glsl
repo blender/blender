@@ -1,4 +1,6 @@
 
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+
 #ifdef MESH_SHADER
 /* TODO tight slices */
 layout(triangles) in;
@@ -12,11 +14,15 @@ in vec4 vPos[];
 
 flat out int slice;
 
+RESOURCE_ID_VARYING
+
 #ifdef MESH_SHADER
 /* TODO tight slices */
 void main()
 {
   gl_Layer = slice = int(vPos[0].z);
+
+  PASS_RESOURCE_ID
 
 #  ifdef USE_ATTR
   pass_attr(0);
@@ -47,6 +53,8 @@ void main()
 void main()
 {
   gl_Layer = slice = int(vPos[0].z);
+
+  PASS_RESOURCE_ID
 
 #  ifdef USE_ATTR
   pass_attr(0);

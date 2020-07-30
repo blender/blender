@@ -1,4 +1,8 @@
 
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+
+uniform sampler2D depthBuffer;
+
 uniform mat4 prevViewProjMatrix;
 uniform mat4 currViewProjMatrixInv;
 uniform mat4 nextViewProjMatrix;

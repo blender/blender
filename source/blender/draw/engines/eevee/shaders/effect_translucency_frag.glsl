@@ -1,11 +1,16 @@
 
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
+#pragma BLENDER_REQUIRE(lights_lib.glsl)
+
 in vec4 uvcoordsvar;
 
 out vec4 FragColor;
 
+uniform sampler2D depthBuffer;
 uniform sampler1D sssTexProfile;
 uniform sampler2D sssRadius;
-
 uniform sampler2DArray sssShadowCubes;
 uniform sampler2DArray sssShadowCascades;
 
@@ -26,12 +31,6 @@ vec3 sss_profile(float s)
   s /= radii_max_radius.w;
   return texture(sssTexProfile, saturate(s) * SSS_LUT_SCALE + SSS_LUT_BIAS).rgb;
 }
-
-#ifndef UTIL_TEX
-#  define UTIL_TEX
-uniform sampler2DArray utilTex;
-#  define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
-#endif /* UTIL_TEX */
 
 float light_translucent_power_with_falloff(LightData ld, vec3 N, vec4 l_vector)
 {

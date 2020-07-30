@@ -14,19 +14,6 @@ layout(depth_greater) out float gl_FragDepth;
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec4 lineOutput;
 
-#define cameraPos ViewMatrixInverse[3].xyz
-
-float get_depth_from_view_z(float z)
-{
-  if (ProjectionMatrix[3][3] == 0.0) {
-    z = (-ProjectionMatrix[3][2] / z) - ProjectionMatrix[2][2];
-  }
-  else {
-    z = z * ProjectionMatrix[2][2] / (1.0 - ProjectionMatrix[3][2]);
-  }
-  return z * 0.5 + 0.5;
-}
-
 void main()
 {
   const float sphere_radius = 0.05;

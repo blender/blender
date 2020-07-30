@@ -1,4 +1,8 @@
 
+#pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(irradiance_lib.glsl)
+
 uniform samplerCube probeHdr;
 uniform int probeSize;
 uniform float lodFactor;

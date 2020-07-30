@@ -50,9 +50,6 @@
 #include "eevee_private.h"
 
 static struct {
-  char *volumetric_common_lib;
-  char *volumetric_common_lights_lib;
-
   struct GPUShader *volumetric_clear_sh;
   struct GPUShader *scatter_sh;
   struct GPUShader *scatter_with_lights_sh;
@@ -96,57 +93,48 @@ extern char datatoc_common_fullscreen_vert_glsl[];
 
 static void eevee_create_shader_volumes(void)
 {
-  e_data.volumetric_common_lib = BLI_string_joinN(datatoc_common_view_lib_glsl,
-                                                  datatoc_common_uniforms_lib_glsl,
-                                                  datatoc_bsdf_common_lib_glsl,
-                                                  datatoc_volumetric_lib_glsl);
+  DRWShaderLibrary *lib = EEVEE_shader_lib_get();
 
-  e_data.volumetric_common_lights_lib = BLI_string_joinN(datatoc_common_view_lib_glsl,
-                                                         datatoc_common_uniforms_lib_glsl,
-                                                         datatoc_bsdf_common_lib_glsl,
-                                                         datatoc_octahedron_lib_glsl,
-                                                         datatoc_cubemap_lib_glsl,
-                                                         datatoc_irradiance_lib_glsl,
-                                                         datatoc_lights_lib_glsl,
-                                                         datatoc_volumetric_lib_glsl);
+  e_data.volumetric_clear_sh = DRW_shader_create_with_shaderlib(datatoc_volumetric_vert_glsl,
+                                                                datatoc_volumetric_geom_glsl,
+                                                                datatoc_volumetric_frag_glsl,
+                                                                lib,
+                                                                SHADER_DEFINES
+                                                                "#define VOLUMETRICS\n"
+                                                                "#define CLEAR\n");
 
-  e_data.volumetric_clear_sh = DRW_shader_create_with_lib(datatoc_volumetric_vert_glsl,
-                                                          datatoc_volumetric_geom_glsl,
-                                                          datatoc_volumetric_frag_glsl,
-                                                          e_data.volumetric_common_lib,
-                                                          "#define VOLUMETRICS\n"
-                                                          "#define CLEAR\n");
-  e_data.scatter_sh = DRW_shader_create_with_lib(datatoc_volumetric_vert_glsl,
-                                                 datatoc_volumetric_geom_glsl,
-                                                 datatoc_volumetric_scatter_frag_glsl,
-                                                 e_data.volumetric_common_lights_lib,
-                                                 SHADER_DEFINES
-                                                 "#define VOLUMETRICS\n"
-                                                 "#define VOLUME_SHADOW\n");
-  e_data.scatter_with_lights_sh = DRW_shader_create_with_lib(datatoc_volumetric_vert_glsl,
-                                                             datatoc_volumetric_geom_glsl,
-                                                             datatoc_volumetric_scatter_frag_glsl,
-                                                             e_data.volumetric_common_lights_lib,
-                                                             SHADER_DEFINES
-                                                             "#define VOLUMETRICS\n"
-                                                             "#define VOLUME_LIGHTING\n"
-                                                             "#define VOLUME_SHADOW\n");
-  e_data.volumetric_integration_sh = DRW_shader_create_with_lib(
+  e_data.scatter_sh = DRW_shader_create_with_shaderlib(datatoc_volumetric_vert_glsl,
+                                                       datatoc_volumetric_geom_glsl,
+                                                       datatoc_volumetric_scatter_frag_glsl,
+                                                       lib,
+                                                       SHADER_DEFINES
+                                                       "#define VOLUMETRICS\n"
+                                                       "#define VOLUME_SHADOW\n");
+
+  e_data.scatter_with_lights_sh = DRW_shader_create_with_shaderlib(
+      datatoc_volumetric_vert_glsl,
+      datatoc_volumetric_geom_glsl,
+      datatoc_volumetric_scatter_frag_glsl,
+      lib,
+      SHADER_DEFINES
+      "#define VOLUMETRICS\n"
+      "#define VOLUME_LIGHTING\n"
+      "#define VOLUME_SHADOW\n");
+
+  e_data.volumetric_integration_sh = DRW_shader_create_with_shaderlib(
       datatoc_volumetric_vert_glsl,
       datatoc_volumetric_geom_glsl,
       datatoc_volumetric_integration_frag_glsl,
-      e_data.volumetric_common_lib,
+      lib,
       USE_VOLUME_OPTI ? "#extension GL_ARB_shader_image_load_store: enable\n"
                         "#extension GL_ARB_shading_language_420pack: enable\n"
-                        "#define USE_VOLUME_OPTI\n" :
-                        NULL);
-  e_data.volumetric_resolve_sh = DRW_shader_create_with_lib(datatoc_common_fullscreen_vert_glsl,
-                                                            NULL,
-                                                            datatoc_volumetric_resolve_frag_glsl,
-                                                            e_data.volumetric_common_lib,
-                                                            NULL);
-  e_data.volumetric_accum_sh = DRW_shader_create_fullscreen(datatoc_volumetric_accum_frag_glsl,
-                                                            NULL);
+                        "#define USE_VOLUME_OPTI\n" SHADER_DEFINES :
+                        SHADER_DEFINES);
+
+  e_data.volumetric_resolve_sh = DRW_shader_create_fullscreen_with_shaderlib(
+      datatoc_volumetric_resolve_frag_glsl, lib, SHADER_DEFINES);
+  e_data.volumetric_accum_sh = DRW_shader_create_fullscreen_with_shaderlib(
+      datatoc_volumetric_accum_frag_glsl, lib, SHADER_DEFINES);
 
   const float density[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   e_data.dummy_density = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, density);
@@ -258,17 +246,11 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     common_data->vol_shadow_steps = 0;
   }
 
-  /* Update view_vecs */
-  float invproj[4][4], winmat[4][4];
-  DRW_view_winmat_get(NULL, winmat, false);
-  DRW_view_winmat_get(NULL, invproj, true);
-  EEVEE_update_viewvecs(invproj, winmat, sldata->common_data.view_vecs);
-
   if (DRW_view_is_persp_get(NULL)) {
     float sample_distribution = scene_eval->eevee.volumetric_sample_distribution;
     sample_distribution = 4.0f * (max_ff(1.0f - sample_distribution, 1e-2f));
 
-    const float clip_start = common_data->view_vecs[0][2];
+    const float clip_start = DRW_view_near_distance_get(NULL);
     /* Negate */
     float near = integration_start = min_ff(-integration_start, clip_start - 1e-4f);
     float far = integration_end = min_ff(-integration_end, near - 1e-4f);
@@ -279,8 +261,8 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     common_data->vol_depth_param[2] = sample_distribution;
   }
   else {
-    const float clip_start = common_data->view_vecs[0][2];
-    const float clip_end = clip_start + common_data->view_vecs[1][2];
+    const float clip_start = DRW_view_near_distance_get(NULL);
+    const float clip_end = DRW_view_far_distance_get(NULL);
     integration_start = min_ff(integration_end, clip_start);
     integration_end = max_ff(-integration_end, clip_end);
 
@@ -842,9 +824,6 @@ void EEVEE_volumes_free_smoke_textures(void)
 
 void EEVEE_volumes_free(void)
 {
-  MEM_SAFE_FREE(e_data.volumetric_common_lib);
-  MEM_SAFE_FREE(e_data.volumetric_common_lights_lib);
-
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_scatter);
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_transmit);
 

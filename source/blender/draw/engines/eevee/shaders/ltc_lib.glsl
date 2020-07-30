@@ -8,12 +8,6 @@
 
 #define USE_LTC
 
-#ifndef UTIL_TEX
-#  define UTIL_TEX
-uniform sampler2DArray utilTex;
-#  define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
-#endif /* UTIL_TEX */
-
 /* Diffuse *clipped* sphere integral. */
 float diffuse_sphere_integral(float avg_dir_z, float form_factor)
 {

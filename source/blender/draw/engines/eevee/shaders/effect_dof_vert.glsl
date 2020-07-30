@@ -1,4 +1,6 @@
 
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+
 uniform vec4 bokehParams[2];
 
 #define bokeh_rotation bokehParams[0].x
@@ -14,8 +16,6 @@ flat out float weight;
 flat out float smoothFac;
 flat out ivec2 edge;
 out vec2 particlecoord;
-
-#define M_PI 3.1415926535897932384626433832795
 
 /* Scatter pass, calculate a triangle covering the CoC. */
 void main()

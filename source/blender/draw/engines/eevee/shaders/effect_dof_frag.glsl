@@ -1,4 +1,8 @@
 
+
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+
 uniform sampler2D colorBuffer;
 uniform sampler2D depthBuffer;
 
@@ -18,9 +22,6 @@ uniform vec4 bokehParams[2];
 
 uniform vec2 nearFar; /* Near & far view depths values */
 
-#define M_PI 3.1415926535897932384626433832795
-#define M_2PI 6.2831853071795864769252868
-
 /* -------------- Utils ------------- */
 
 /* divide by sensor size to get the normalized size */
@@ -33,11 +34,6 @@ uniform vec2 nearFar; /* Near & far view depths values */
 
 #define weighted_sum(a, b, c, d, e) \
   (a * e.x + b * e.y + c * e.z + d * e.w) / max(1e-6, dot(e, vec4(1.0)));
-
-float max_v4(vec4 v)
-{
-  return max(max(v.x, v.y), max(v.z, v.w));
-}
 
 vec4 safe_color(vec4 c)
 {

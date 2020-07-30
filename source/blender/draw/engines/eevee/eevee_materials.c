@@ -56,37 +56,6 @@ static struct {
   float noise_offsets[3];
 } e_data = {NULL}; /* Engine data */
 
-extern char datatoc_lights_lib_glsl[];
-extern char datatoc_lightprobe_lib_glsl[];
-extern char datatoc_ambient_occlusion_lib_glsl[];
-extern char datatoc_prepass_frag_glsl[];
-extern char datatoc_prepass_vert_glsl[];
-extern char datatoc_default_frag_glsl[];
-extern char datatoc_default_world_frag_glsl[];
-extern char datatoc_ltc_lib_glsl[];
-extern char datatoc_bsdf_common_lib_glsl[];
-extern char datatoc_bsdf_sampling_lib_glsl[];
-extern char datatoc_common_uniforms_lib_glsl[];
-extern char datatoc_common_hair_lib_glsl[];
-extern char datatoc_common_view_lib_glsl[];
-extern char datatoc_irradiance_lib_glsl[];
-extern char datatoc_octahedron_lib_glsl[];
-extern char datatoc_cubemap_lib_glsl[];
-extern char datatoc_lit_surface_frag_glsl[];
-extern char datatoc_lit_surface_vert_glsl[];
-extern char datatoc_raytrace_lib_glsl[];
-extern char datatoc_ssr_lib_glsl[];
-extern char datatoc_shadow_vert_glsl[];
-extern char datatoc_lightprobe_geom_glsl[];
-extern char datatoc_lightprobe_vert_glsl[];
-extern char datatoc_background_vert_glsl[];
-extern char datatoc_update_noise_frag_glsl[];
-extern char datatoc_volumetric_vert_glsl[];
-extern char datatoc_volumetric_geom_glsl[];
-extern char datatoc_volumetric_frag_glsl[];
-extern char datatoc_volumetric_lib_glsl[];
-extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
-
 typedef struct EeveeMaterialCache {
   struct DRWShadingGroup *depth_grp;
   struct DRWShadingGroup *shading_grp;
@@ -238,46 +207,6 @@ void EEVEE_update_noise(EEVEE_PassList *psl, EEVEE_FramebufferList *fbl, const d
   DRW_draw_pass(psl->update_noise_pass);
 }
 
-void EEVEE_update_viewvecs(float invproj[4][4], float winmat[4][4], float (*r_viewvecs)[4])
-{
-  /* view vectors for the corners of the view frustum.
-   * Can be used to recreate the world space position easily */
-  float view_vecs[4][4] = {
-      {-1.0f, -1.0f, -1.0f, 1.0f},
-      {1.0f, -1.0f, -1.0f, 1.0f},
-      {-1.0f, 1.0f, -1.0f, 1.0f},
-      {-1.0f, -1.0f, 1.0f, 1.0f},
-  };
-
-  /* convert the view vectors to view space */
-  const bool is_persp = (winmat[3][3] == 0.0f);
-  for (int i = 0; i < 4; i++) {
-    mul_project_m4_v3(invproj, view_vecs[i]);
-    /* normalized trick see:
-     * http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
-    if (is_persp) {
-      /* Divide XY by Z. */
-      mul_v2_fl(view_vecs[i], 1.0f / view_vecs[i][2]);
-    }
-  }
-
-  /**
-   * If ortho : view_vecs[0] is the near-bottom-left corner of the frustum and
-   *            view_vecs[1] is the vector going from the near-bottom-left corner to
-   *            the far-top-right corner.
-   * If Persp : view_vecs[0].xy and view_vecs[1].xy are respectively the bottom-left corner
-   *            when Z = 1, and top-left corner if Z = 1.
-   *            view_vecs[0].z the near clip distance and view_vecs[1].z is the (signed)
-   *            distance from the near plane to the far clip plane.
-   */
-  copy_v4_v4(r_viewvecs[0], view_vecs[0]);
-
-  /* we need to store the differences */
-  r_viewvecs[1][0] = view_vecs[1][0] - view_vecs[0][0];
-  r_viewvecs[1][1] = view_vecs[2][1] - view_vecs[0][1];
-  r_viewvecs[1][2] = view_vecs[3][2] - view_vecs[0][2];
-}
-
 void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
                           EEVEE_Data *vedata,
                           EEVEE_StorageList *stl,
@@ -302,15 +231,6 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
     BLI_halton_1d(5, 0.0, stl->effects->taa_current_sample - 1, &r);
     sldata->common_data.alpha_hash_offset = (float)r;
     sldata->common_data.alpha_hash_scale = 0.01f;
-  }
-
-  {
-    /* Update view_vecs */
-    float invproj[4][4], winmat[4][4];
-    DRW_view_winmat_get(NULL, winmat, false);
-    DRW_view_winmat_get(NULL, invproj, true);
-
-    EEVEE_update_viewvecs(invproj, winmat, sldata->common_data.view_vecs);
   }
 
   {
@@ -391,39 +311,28 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   {
     DRW_PASS_CREATE(psl->background_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
 
-    struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
     DRWShadingGroup *grp = NULL;
+    EEVEE_lookdev_cache_init(vedata, sldata, psl->background_ps, NULL, &grp);
 
-    Scene *scene = draw_ctx->scene;
-    World *wo = scene->world;
+    if (grp == NULL) {
+      Scene *scene = draw_ctx->scene;
+      World *world = (scene->world) ? scene->world : EEVEE_world_default_get();
 
-    EEVEE_lookdev_cache_init(vedata, sldata, &grp, psl->background_ps, wo, NULL);
-
-    if (!grp && wo) {
-      struct GPUMaterial *gpumat = EEVEE_material_get(
-          vedata, scene, NULL, wo, VAR_WORLD_BACKGROUND);
+      const int options = VAR_WORLD_BACKGROUND;
+      struct GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, NULL, world, options);
 
       grp = DRW_shgroup_material_create(gpumat, psl->background_ps);
       DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
-      /* TODO (fclem): remove those (need to clean the GLSL files). */
-      DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-      DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
-      DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
-      DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
-      DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
-      DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
-      DRW_shgroup_uniform_block_ref(grp, "renderpass_block", &stl->g_data->renderpass_ubo);
-      DRW_shgroup_call(grp, geom, NULL);
     }
 
-    /* Fallback if shader fails or if not using nodetree. */
-    if (grp == NULL) {
-      GPUShader *sh = EEVEE_shaders_default_background_sh_get();
-      grp = DRW_shgroup_create(sh, psl->background_ps);
-      DRW_shgroup_uniform_vec3(grp, "color", G_draw.block.colorBackground, 1);
-      DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
-      DRW_shgroup_call(grp, geom, NULL);
-    }
+    DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+    DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
+    DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
+    DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
+    DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
+    DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
+    DRW_shgroup_uniform_block_ref(grp, "renderpass_block", &stl->g_data->renderpass_ubo);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
 
 #define EEVEE_PASS_CREATE(pass, state) \

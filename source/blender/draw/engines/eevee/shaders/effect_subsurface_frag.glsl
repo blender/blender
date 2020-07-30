@@ -1,4 +1,9 @@
 
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
+#pragma BLENDER_REQUIRE(common_uniforms_lib.glsl)
+
 /* Based on Separable SSS. by Jorge Jimenez and Diego Gutierrez */
 
 #define MAX_SSS_SAMPLES 65
@@ -14,28 +19,7 @@ uniform sampler2D sssIrradiance;
 uniform sampler2D sssRadius;
 uniform sampler2D sssAlbedo;
 
-#ifndef UTIL_TEX
-#  define UTIL_TEX
-uniform sampler2DArray utilTex;
-#  define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
-#endif /* UTIL_TEX */
-
 layout(location = 0) out vec4 sssRadiance;
-
-float get_view_z_from_depth(float depth)
-{
-  if (ProjectionMatrix[3][3] == 0.0) {
-    float d = 2.0 * depth - 1.0;
-    return -ProjectionMatrix[3][2] / (d + ProjectionMatrix[2][2]);
-  }
-  else {
-    return viewVecs[0].z + depth * viewVecs[1].z;
-  }
-}
-
-#define LUT_SIZE 64
-#define M_PI_2 1.5707963267948966 /* pi/2 */
-#define M_2PI 6.2831853071795865  /* 2*pi */
 
 void main(void)
 {
@@ -43,7 +27,8 @@ void main(void)
   vec2 uvs = gl_FragCoord.xy * pixel_size;
   vec3 sss_irradiance = texture(sssIrradiance, uvs).rgb;
   float sss_radius = texture(sssRadius, uvs).r;
-  float depth_view = get_view_z_from_depth(texture(depthBuffer, uvs).r);
+  float depth = texture(depthBuffer, uvs).r;
+  float depth_view = get_view_z_from_depth(depth);
 
   float rand = texelfetch_noise_tex(gl_FragCoord.xy).r;
 #ifdef FIRST_PASS

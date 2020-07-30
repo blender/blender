@@ -199,12 +199,10 @@ void EEVEE_renderpasses_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ve
                                       EEVEE_RENDERPASSES_WITH_POST_PROCESSING) > 0;
   if (needs_post_processing) {
     if (e_data.postprocess_sh == NULL) {
-      char *frag_str = BLI_string_joinN(datatoc_common_view_lib_glsl,
-                                        datatoc_common_uniforms_lib_glsl,
-                                        datatoc_bsdf_common_lib_glsl,
-                                        datatoc_renderpass_postprocess_frag_glsl);
-      e_data.postprocess_sh = DRW_shader_create_fullscreen(frag_str, NULL);
-      MEM_freeN(frag_str);
+      DRWShaderLibrary *lib = EEVEE_shader_lib_get();
+
+      e_data.postprocess_sh = DRW_shader_create_fullscreen_with_shaderlib(
+          datatoc_renderpass_postprocess_frag_glsl, lib, NULL);
     }
 
     DRW_PASS_CREATE(psl->renderpass_pass, DRW_STATE_WRITE_COLOR);

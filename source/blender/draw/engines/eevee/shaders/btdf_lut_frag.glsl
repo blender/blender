@@ -1,3 +1,4 @@
+#pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
 
 uniform float a2;
 
@@ -7,8 +8,8 @@ void main()
 {
   vec3 N, T, B, V;
 
-  float x = gl_FragCoord.x / BRDF_LUT_SIZE;
-  float y = gl_FragCoord.y / BRDF_LUT_SIZE;
+  float x = gl_FragCoord.x / LUT_SIZE;
+  float y = gl_FragCoord.y / LUT_SIZE;
   /* There is little variation if ior > 1.0 so we
    * maximize LUT precision for ior < 1.0 */
   x = x * 1.1;

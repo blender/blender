@@ -1,10 +1,10 @@
 
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+
 uniform sampler2D blueNoise;
 uniform vec3 offsets;
 
 out vec4 FragColor;
-
-#define M_2PI 6.28318530717958647692
 
 void main(void)
 {

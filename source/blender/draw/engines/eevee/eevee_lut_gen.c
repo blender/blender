@@ -31,6 +31,8 @@
 #include "BLI_rand.h"
 #include "BLI_string_utils.h"
 
+#include "eevee_private.h"
+
 extern char datatoc_bsdf_lut_frag_glsl[];
 extern char datatoc_btdf_lut_frag_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
@@ -45,15 +47,13 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
   static float samples_len = 8192.0f;
   static float inv_samples_len = 1.0f / 8192.0f;
 
-  char *lib_str = BLI_string_joinN(datatoc_bsdf_common_lib_glsl, datatoc_bsdf_sampling_lib_glsl);
+  DRWShaderLibrary *lib = EEVEE_shader_lib_get();
 
-  struct GPUShader *sh = DRW_shader_create_with_lib(datatoc_lightprobe_vert_glsl,
-                                                    datatoc_lightprobe_geom_glsl,
-                                                    datatoc_bsdf_lut_frag_glsl,
-                                                    lib_str,
-                                                    "#define HAMMERSLEY_SIZE 8192\n"
-                                                    "#define BRDF_LUT_SIZE 64\n"
-                                                    "#define NOISE_SIZE 64\n");
+  struct GPUShader *sh = DRW_shader_create_with_shaderlib(datatoc_lightprobe_vert_glsl,
+                                                          datatoc_lightprobe_geom_glsl,
+                                                          datatoc_bsdf_lut_frag_glsl,
+                                                          lib,
+                                                          "#define HAMMERSLEY_SIZE 8192\n");
 
   DRWPass *pass = DRW_pass_create("LightProbe Filtering", DRW_STATE_WRITE_COLOR);
   DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
@@ -105,16 +105,10 @@ static struct GPUTexture *create_ggx_refraction_lut_texture(int w, int h)
   static float a2 = 0.0f;
   static float inv_samples_len = 1.0f / 8192.0f;
 
-  char *frag_str = BLI_string_joinN(
-      datatoc_bsdf_common_lib_glsl, datatoc_bsdf_sampling_lib_glsl, datatoc_btdf_lut_frag_glsl);
+  DRWShaderLibrary *lib = EEVEE_shader_lib_get();
 
-  struct GPUShader *sh = DRW_shader_create_fullscreen(frag_str,
-                                                      "#define HAMMERSLEY_SIZE 8192\n"
-                                                      "#define BRDF_LUT_SIZE 64\n"
-                                                      "#define NOISE_SIZE 64\n"
-                                                      "#define LUT_SIZE 64\n");
-
-  MEM_freeN(frag_str);
+  struct GPUShader *sh = DRW_shader_create_fullscreen_with_shaderlib(
+      datatoc_btdf_lut_frag_glsl, lib, "#define HAMMERSLEY_SIZE 8192\n");
 
   DRWPass *pass = DRW_pass_create("LightProbe Filtering", DRW_STATE_WRITE_COLOR);
   DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);

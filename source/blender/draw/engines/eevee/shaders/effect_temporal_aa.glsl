@@ -1,5 +1,11 @@
 
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+
+uniform sampler2D colorBuffer;
+uniform sampler2D depthBuffer;
 uniform sampler2D colorHistoryBuffer;
+
 uniform mat4 prevViewProjectionMatrix;
 
 out vec4 FragColor;

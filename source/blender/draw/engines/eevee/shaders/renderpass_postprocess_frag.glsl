@@ -1,3 +1,7 @@
+
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+
 #define PASS_POST_UNDEFINED 0
 #define PASS_POST_ACCUMULATED_COLOR 1
 #define PASS_POST_ACCUMULATED_LIGHT 2
@@ -9,6 +13,8 @@
 
 uniform int postProcessType;
 uniform int currentSample;
+
+uniform sampler2D depthBuffer;
 uniform sampler2D inputBuffer;
 uniform sampler2D inputSecondLightBuffer;
 uniform sampler2D inputColorBuffer;

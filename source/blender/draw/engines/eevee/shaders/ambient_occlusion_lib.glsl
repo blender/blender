@@ -1,4 +1,7 @@
 
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(raytrace_lib.glsl)
+
 /* Based on Practical Realtime Strategies for Accurate Indirect Occlusion
  * http://blog.selfshadow.com/publications/s2016-shading-course/activision/s2016_pbs_activision_occlusion.pdf
  * http://blog.selfshadow.com/publications/s2016-shading-course/activision/s2016_pbs_activision_occlusion.pptx
@@ -23,12 +26,6 @@
 #define MAX_PHI_STEP 32
 #define MAX_SEARCH_ITER 32
 #define MAX_LOD 6.0
-
-#ifndef UTIL_TEX
-#  define UTIL_TEX
-uniform sampler2DArray utilTex;
-#  define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
-#endif /* UTIL_TEX */
 
 uniform sampler2D horizonBuffer;
 
@@ -241,6 +238,11 @@ float gtao_multibounce(float visibility, vec3 albedo)
 
   float x = visibility;
   return max(x, ((x * a + b) * x + c) * x);
+}
+
+float specular_occlusion(float NV, float AO, float roughness)
+{
+  return saturate(pow(NV + AO, roughness) - 1.0 + AO);
 }
 
 /* Use the right occlusion  */

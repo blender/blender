@@ -28,6 +28,8 @@
 #include "workbench_engine.h"
 #include "workbench_private.h"
 
+extern char datatoc_common_math_lib_glsl[];
+extern char datatoc_common_math_geom_lib_glsl[];
 extern char datatoc_common_hair_lib_glsl[];
 extern char datatoc_common_pointcloud_lib_glsl[];
 extern char datatoc_common_view_lib_glsl[];
@@ -119,6 +121,8 @@ void workbench_shader_library_ensure(void)
   if (e_data.lib == NULL) {
     e_data.lib = DRW_shader_library_create();
     /* NOTE: Theses needs to be ordered by dependencies. */
+    DRW_SHADER_LIB_ADD(e_data.lib, common_math_lib);
+    DRW_SHADER_LIB_ADD(e_data.lib, common_math_geom_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, common_hair_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, common_view_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, common_pointcloud_lib);

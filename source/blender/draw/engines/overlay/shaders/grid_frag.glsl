@@ -14,8 +14,6 @@ uniform float meshSize;
 uniform float lineKernel = 0.0;
 uniform sampler2D depthBuffer;
 
-#define cameraPos (ViewMatrixInverse[3].xyz)
-
 uniform int gridFlag;
 
 #define STEPS_LEN 8

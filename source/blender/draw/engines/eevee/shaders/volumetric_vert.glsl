@@ -1,5 +1,9 @@
 
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+
 out vec4 vPos;
+
+RESOURCE_ID_VARYING
 
 void main()
 {
@@ -25,7 +29,9 @@ void main()
   vPos.z = float(t_id);
   vPos.w = 1.0;
 
+  PASS_RESOURCE_ID
+
 #ifdef USE_ATTR
-  pass_attr(vec3(0.0));
+  pass_attr(vec3(0.0), mat3(1), mat4(1));
 #endif
 }

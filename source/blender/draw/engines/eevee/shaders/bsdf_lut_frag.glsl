@@ -1,3 +1,4 @@
+#pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
 
 out vec4 FragColor;
 
@@ -5,8 +6,8 @@ void main()
 {
   vec3 N, T, B, V;
 
-  float NV = (1.0 - (clamp(gl_FragCoord.y / BRDF_LUT_SIZE, 1e-4, 0.9999)));
-  float sqrtRoughness = clamp(gl_FragCoord.x / BRDF_LUT_SIZE, 1e-4, 0.9999);
+  float NV = (1.0 - (clamp(gl_FragCoord.y / b, 1e-4, 0.9999)));
+  float sqrtRoughness = clamp(gl_FragCoord.x / LUT_SIZE, 1e-4, 0.9999);
   float a = sqrtRoughness * sqrtRoughness;
   float a2 = a * a;
 

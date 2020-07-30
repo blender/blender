@@ -1,4 +1,8 @@
 
+#pragma BLENDER_REQUIRE(lights_lib.glsl)
+#pragma BLENDER_REQUIRE(lightprobe_lib.glsl)
+#pragma BLENDER_REQUIRE(irradiance_lib.glsl)
+
 /* Based on Frosbite Unified Volumetric.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */
 
@@ -58,7 +62,6 @@ float phase_function(vec3 v, vec3 l, float g)
   return (1 - sqr_g) / max(1e-8, 4.0 * M_PI * pow(1 + sqr_g - 2 * g * cos_theta, 3.0 / 2.0));
 }
 
-#ifdef LAMPS_LIB
 vec3 light_volume(LightData ld, vec4 l_vector)
 {
   float power;
@@ -95,7 +98,7 @@ vec3 light_volume(LightData ld, vec4 l_vector)
   return tint * lum;
 }
 
-#  define VOLUMETRIC_SHADOW_MAX_STEP 32.0
+#define VOLUMETRIC_SHADOW_MAX_STEP 32.0
 
 vec3 participating_media_extinction(vec3 wpos, sampler3D volume_extinction)
 {
@@ -109,7 +112,7 @@ vec3 participating_media_extinction(vec3 wpos, sampler3D volume_extinction)
 
 vec3 light_volume_shadow(LightData ld, vec3 ray_wpos, vec4 l_vector, sampler3D volume_extinction)
 {
-#  if defined(VOLUME_SHADOW)
+#if defined(VOLUME_SHADOW)
   /* Heterogeneous volume shadows */
   float dd = l_vector.w / volShadowSteps;
   vec3 L = l_vector.xyz * l_vector.w;
@@ -120,27 +123,24 @@ vec3 light_volume_shadow(LightData ld, vec3 ray_wpos, vec4 l_vector, sampler3D v
     shadow *= exp(-s_extinction * dd);
   }
   return shadow;
-#  else
+#else
   return vec3(1.0);
-#  endif /* VOLUME_SHADOW */
+#endif /* VOLUME_SHADOW */
 }
-#endif
 
-#ifdef IRRADIANCE_LIB
 vec3 irradiance_volumetric(vec3 wpos)
 {
-#  ifdef IRRADIANCE_HL2
+#ifdef IRRADIANCE_HL2
   IrradianceData ir_data = load_irradiance_cell(0, vec3(1.0));
   vec3 irradiance = ir_data.cubesides[0] + ir_data.cubesides[1] + ir_data.cubesides[2];
   ir_data = load_irradiance_cell(0, vec3(-1.0));
   irradiance += ir_data.cubesides[0] + ir_data.cubesides[1] + ir_data.cubesides[2];
   irradiance *= 0.16666666; /* 1/6 */
   return irradiance;
-#  else
+#else
   return vec3(0.0);
-#  endif
-}
 #endif
+}
 
 uniform sampler3D inScattering;
 uniform sampler3D inTransmittance;

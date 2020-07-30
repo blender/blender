@@ -1,32 +1,8 @@
 
-#ifndef LIT_SURFACE_UNIFORM
-#  define LIT_SURFACE_UNIFORM
-
-uniform float refractionDepth;
-
-#  ifndef UTIL_TEX
-#    define UTIL_TEX
-uniform sampler2DArray utilTex;
-#    define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
-#  endif /* UTIL_TEX */
-
-in vec3 worldPosition;
-in vec3 viewPosition;
-
-in vec3 worldNormal;
-in vec3 viewNormal;
-
-#  ifdef HAIR_SHADER
-in vec3 hairTangent; /* world space */
-in float hairThickTime;
-in float hairThickness;
-in float hairTime;
-flat in int hairStrandID;
-
-uniform int hairThicknessRes = 1;
-#  endif
-
-#endif /* LIT_SURFACE_UNIFORM */
+#pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
+#pragma BLENDER_REQUIRE(lightprobe_lib.glsl)
+#pragma BLENDER_REQUIRE(ambient_occlusion_lib.glsl)
+#pragma BLENDER_REQUIRE(ssr_lib.glsl)
 
 /**
  * AUTO CONFIG
@@ -209,7 +185,7 @@ void CLOSURE_NAME(vec3 N
 
   vec3 V = cameraVec;
 
-  vec4 rand = texelFetch(utilTex, ivec3(ivec2(gl_FragCoord.xy) % LUT_SIZE, 2.0), 0);
+  vec4 rand = texelfetch_noise_tex(gl_FragCoord.xy);
 
   /* ---------------------------------------------------------------- */
   /* -------------------- SCENE LIGHTS LIGHTING --------------------- */
@@ -328,11 +304,11 @@ void CLOSURE_NAME(vec3 N
 #  endif
 
 #  ifdef CLOSURE_GLOSSY
-  vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughnessSquared);
+  vec3 spec_dir = specular_dominant_dir(N, V, roughnessSquared);
 #  endif
 
 #  ifdef CLOSURE_CLEARCOAT
-  vec3 C_spec_dir = get_specular_reflection_dominant_dir(C_N, V, C_roughnessSquared);
+  vec3 C_spec_dir = specular_dominant_dir(C_N, V, C_roughnessSquared);
 #  endif
 
 #  ifdef CLOSURE_REFRACTION
@@ -345,7 +321,7 @@ void CLOSURE_NAME(vec3 N
                       line_plane_intersect(
                           worldPosition, refr_V, worldPosition - N * refractionDepth, N) :
                       worldPosition;
-  vec3 refr_dir = get_specular_refraction_dominant_dir(N, refr_V, roughness, final_ior);
+  vec3 refr_dir = refraction_dominant_dir(N, refr_V, roughness, final_ior);
 #  endif
 
 #  ifdef CLOSURE_REFRACTION
@@ -485,7 +461,7 @@ void CLOSURE_NAME(vec3 N
 #  endif
 
 #  ifdef CLOSURE_REFRACTION
-  float btdf = get_btdf_lut(utilTex, NV, roughness, ior);
+  float btdf = get_btdf_lut(NV, roughness, ior);
 
   out_refr += refr_accum.rgb * btdf;
 #  endif

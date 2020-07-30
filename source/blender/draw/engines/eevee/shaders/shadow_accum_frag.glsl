@@ -1,11 +1,11 @@
 
-out vec4 fragColor;
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
+#pragma BLENDER_REQUIRE(lights_lib.glsl)
 
-#ifndef UTIL_TEX
-#  define UTIL_TEX
-uniform sampler2DArray utilTex;
-#  define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
-#endif /* UTIL_TEX */
+uniform sampler2D depthBuffer;
+
+out vec4 fragColor;
 
 void main()
 {

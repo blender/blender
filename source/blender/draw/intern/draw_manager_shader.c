@@ -430,7 +430,8 @@ GPUMaterial *DRW_shader_create_from_world(struct Scene *scene,
                                           const char *geom,
                                           const char *frag_lib,
                                           const char *defines,
-                                          bool deferred)
+                                          bool deferred,
+                                          GPUMaterialEvalCallbackFn *callback)
 {
   GPUMaterial *mat = NULL;
   if (DRW_state_is_image_render() || !deferred) {
@@ -450,7 +451,8 @@ GPUMaterial *DRW_shader_create_from_world(struct Scene *scene,
                                      geom,
                                      frag_lib,
                                      defines,
-                                     wo->id.name);
+                                     wo->id.name,
+                                     callback);
   }
 
   if (GPU_material_status(mat) == GPU_MAT_QUEUED) {
@@ -470,7 +472,8 @@ GPUMaterial *DRW_shader_create_from_material(struct Scene *scene,
                                              const char *geom,
                                              const char *frag_lib,
                                              const char *defines,
-                                             bool deferred)
+                                             bool deferred,
+                                             GPUMaterialEvalCallbackFn *callback)
 {
   GPUMaterial *mat = NULL;
   if (DRW_state_is_image_render() || !deferred) {
@@ -490,7 +493,8 @@ GPUMaterial *DRW_shader_create_from_material(struct Scene *scene,
                                      geom,
                                      frag_lib,
                                      defines,
-                                     ma->id.name);
+                                     ma->id.name,
+                                     callback);
   }
 
   if (GPU_material_status(mat) == GPU_MAT_QUEUED) {

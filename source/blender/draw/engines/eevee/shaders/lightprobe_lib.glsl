@@ -1,3 +1,12 @@
+
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
+#pragma BLENDER_REQUIRE(common_uniforms_lib.glsl)
+#pragma BLENDER_REQUIRE(cubemap_lib.glsl)
+#pragma BLENDER_REQUIRE(ambient_occlusion_lib.glsl)
+#pragma BLENDER_REQUIRE(irradiance_lib.glsl)
+
 /* ----------- Uniforms --------- */
 
 uniform sampler2DArray probePlanars;
@@ -72,12 +81,6 @@ struct GridData {
 #ifndef MAX_PLANAR
 #  define MAX_PLANAR 1
 #endif
-
-#ifndef UTIL_TEX
-#  define UTIL_TEX
-uniform sampler2DArray utilTex;
-#  define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
-#endif /* UTIL_TEX */
 
 layout(std140) uniform probe_block
 {
@@ -218,7 +221,7 @@ void fallback_cubemap(vec3 N,
                       inout vec4 spec_accum)
 {
   /* Specular probes */
-  vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughnessSquared);
+  vec3 spec_dir = specular_dominant_dir(N, V, roughnessSquared);
 
 #ifdef SSR_AO
   vec4 rand = texelfetch_noise_tex(gl_FragCoord.xy);
@@ -246,7 +249,6 @@ void fallback_cubemap(vec3 N,
   }
 }
 
-#ifdef IRRADIANCE_LIB
 vec3 probe_evaluate_grid(GridData gd, vec3 W, vec3 N, vec3 localpos)
 {
   localpos = localpos * 0.5 + 0.5;
@@ -308,5 +310,3 @@ vec3 probe_evaluate_world_diff(vec3 N)
 {
   return irradiance_from_cell_get(0, N);
 }
-
-#endif /* IRRADIANCE_LIB */

@@ -53,17 +53,14 @@ extern char datatoc_effect_gtao_frag_glsl[];
 
 static void eevee_create_shader_occlusion(void)
 {
-  char *frag_str = BLI_string_joinN(datatoc_common_view_lib_glsl,
-                                    datatoc_common_uniforms_lib_glsl,
-                                    datatoc_bsdf_common_lib_glsl,
-                                    datatoc_ambient_occlusion_lib_glsl,
-                                    datatoc_effect_gtao_frag_glsl);
+  DRWShaderLibrary *lib = EEVEE_shader_lib_get();
 
-  e_data.gtao_sh = DRW_shader_create_fullscreen(frag_str, NULL);
-  e_data.gtao_layer_sh = DRW_shader_create_fullscreen(frag_str, "#define LAYERED_DEPTH\n");
-  e_data.gtao_debug_sh = DRW_shader_create_fullscreen(frag_str, "#define DEBUG_AO\n");
-
-  MEM_freeN(frag_str);
+  e_data.gtao_sh = DRW_shader_create_fullscreen_with_shaderlib(
+      datatoc_effect_gtao_frag_glsl, lib, NULL);
+  e_data.gtao_layer_sh = DRW_shader_create_fullscreen_with_shaderlib(
+      datatoc_effect_gtao_frag_glsl, lib, "#define LAYERED_DEPTH\n");
+  e_data.gtao_debug_sh = DRW_shader_create_fullscreen_with_shaderlib(
+      datatoc_effect_gtao_frag_glsl, lib, "#define DEBUG_AO\n");
 }
 
 int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)

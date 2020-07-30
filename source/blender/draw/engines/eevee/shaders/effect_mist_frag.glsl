@@ -1,5 +1,10 @@
+
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+
 /* Convert depth to Mist factor */
 uniform vec3 mistSettings;
+uniform sampler2D depthBuffer;
 
 #define mistStart mistSettings.x
 #define mistInvDistance mistSettings.y

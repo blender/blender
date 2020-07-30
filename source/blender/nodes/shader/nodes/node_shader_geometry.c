@@ -45,6 +45,9 @@ static int node_shader_gpu_geometry(GPUMaterial *mat,
   float val[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   GPUNodeLink *bary_link = (!out[5].hasoutput) ? GPU_constant(val) :
                                                  GPU_builtin(GPU_BARYCENTRIC_TEXCO);
+  if (out[5].hasoutput) {
+    GPU_material_flag_set(mat, GPU_MATFLAG_BARYCENTRIC);
+  }
   /* Opti: don't request orco if not needed. */
   GPUNodeLink *orco_link = (!out[2].hasoutput) ? GPU_constant(val) :
                                                  GPU_attribute(mat, CD_ORCO, "");

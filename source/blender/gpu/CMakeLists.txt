@@ -214,6 +214,8 @@ data_to_c_simple(shaders/gpu_shader_text_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_keyframe_diamond_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_keyframe_diamond_frag.glsl SRC)
 
+data_to_c_simple(shaders/gpu_shader_codegen_lib.glsl SRC)
+
 data_to_c_simple(shaders/gpu_shader_geometry.glsl SRC)
 
 data_to_c_simple(shaders/material/gpu_shader_material_add_shader.glsl SRC)

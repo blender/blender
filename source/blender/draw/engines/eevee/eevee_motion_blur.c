@@ -68,27 +68,23 @@ extern char datatoc_common_view_lib_glsl[];
 
 static void eevee_create_shader_motion_blur(void)
 {
-  e_data.motion_blur_sh = DRW_shader_create_fullscreen(
-      datatoc_effect_motion_blur_frag_glsl,
-      "#define EEVEE_VELOCITY_TILE_SIZE " STRINGIFY(EEVEE_VELOCITY_TILE_SIZE) "\n");
-  e_data.motion_blur_object_sh = DRW_shader_create_with_lib(datatoc_object_motion_vert_glsl,
-                                                            NULL,
-                                                            datatoc_object_motion_frag_glsl,
-                                                            datatoc_common_view_lib_glsl,
-                                                            NULL);
-  e_data.velocity_tiles_sh = DRW_shader_create_fullscreen(
-      datatoc_effect_velocity_tile_frag_glsl,
-      "#define TILE_GATHER\n"
-      "#define EEVEE_VELOCITY_TILE_SIZE " STRINGIFY(EEVEE_VELOCITY_TILE_SIZE) "\n");
-  e_data.velocity_tiles_expand_sh = DRW_shader_create_fullscreen(
-      datatoc_effect_velocity_tile_frag_glsl,
-      "#define TILE_EXPANSION\n"
-      "#define EEVEE_VELOCITY_TILE_SIZE " STRINGIFY(EEVEE_VELOCITY_TILE_SIZE) "\n");
+#define TILE_SIZE_STR "#define EEVEE_VELOCITY_TILE_SIZE " STRINGIFY(EEVEE_VELOCITY_TILE_SIZE) "\n"
+  DRWShaderLibrary *lib = EEVEE_shader_lib_get();
+  e_data.motion_blur_sh = DRW_shader_create_fullscreen_with_shaderlib(
+      datatoc_effect_motion_blur_frag_glsl, lib, TILE_SIZE_STR);
+  e_data.motion_blur_object_sh = DRW_shader_create_with_shaderlib(
+      datatoc_object_motion_vert_glsl, NULL, datatoc_object_motion_frag_glsl, lib, NULL);
 
-  char *vert = BLI_string_joinN(datatoc_common_hair_lib_glsl, datatoc_object_motion_vert_glsl);
-  e_data.motion_blur_hair_sh = DRW_shader_create_with_lib(
-      vert, NULL, datatoc_object_motion_frag_glsl, datatoc_common_view_lib_glsl, "#define HAIR\n");
-  MEM_freeN(vert);
+  e_data.motion_blur_hair_sh = DRW_shader_create_with_shaderlib(datatoc_object_motion_vert_glsl,
+                                                                NULL,
+                                                                datatoc_object_motion_frag_glsl,
+                                                                lib,
+                                                                "#define HAIR\n");
+
+  e_data.velocity_tiles_sh = DRW_shader_create_fullscreen(datatoc_effect_velocity_tile_frag_glsl,
+                                                          "#define TILE_GATHER\n" TILE_SIZE_STR);
+  e_data.velocity_tiles_expand_sh = DRW_shader_create_fullscreen(
+      datatoc_effect_velocity_tile_frag_glsl, "#define TILE_EXPANSION\n" TILE_SIZE_STR);
 }
 
 int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)

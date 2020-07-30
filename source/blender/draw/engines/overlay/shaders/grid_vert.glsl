@@ -7,8 +7,6 @@ uniform float meshSize;
 
 uniform int gridFlag;
 
-#define cameraPos (ViewMatrixInverse[3].xyz)
-
 #define PLANE_XY (1 << 4)
 #define PLANE_XZ (1 << 5)
 #define PLANE_YZ (1 << 6)

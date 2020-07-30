@@ -42,11 +42,6 @@ static struct {
 extern char datatoc_shadow_vert_glsl[];
 extern char datatoc_shadow_frag_glsl[];
 extern char datatoc_shadow_accum_frag_glsl[];
-extern char datatoc_common_view_lib_glsl[];
-extern char datatoc_common_uniforms_lib_glsl[];
-extern char datatoc_bsdf_common_lib_glsl[];
-extern char datatoc_lights_lib_glsl[];
-extern char datatoc_raytrace_lib_glsl[];
 
 void eevee_contact_shadow_setup(const Light *la, EEVEE_Shadow *evsh)
 {
@@ -65,23 +60,13 @@ void EEVEE_shadows_init(EEVEE_ViewLayerData *sldata)
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
   if (!e_data.shadow_sh) {
-    e_data.shadow_sh = DRW_shader_create_with_lib(datatoc_shadow_vert_glsl,
-                                                  NULL,
-                                                  datatoc_shadow_frag_glsl,
-                                                  datatoc_common_view_lib_glsl,
-                                                  NULL);
-  }
+    DRWShaderLibrary *lib = EEVEE_shader_lib_get();
 
-  if (!e_data.shadow_accum_sh) {
-    char *frag_str = BLI_string_joinN(datatoc_common_view_lib_glsl,
-                                      datatoc_common_uniforms_lib_glsl,
-                                      datatoc_bsdf_common_lib_glsl,
-                                      datatoc_raytrace_lib_glsl,
-                                      datatoc_lights_lib_glsl,
-                                      datatoc_shadow_accum_frag_glsl);
+    e_data.shadow_sh = DRW_shader_create_with_shaderlib(
+        datatoc_shadow_vert_glsl, NULL, datatoc_shadow_frag_glsl, lib, NULL);
 
-    e_data.shadow_accum_sh = DRW_shader_create_fullscreen(frag_str, SHADER_DEFINES);
-    MEM_freeN(frag_str);
+    e_data.shadow_accum_sh = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_shadow_accum_frag_glsl, lib, SHADER_DEFINES);
   }
 
   if (!sldata->lights) {

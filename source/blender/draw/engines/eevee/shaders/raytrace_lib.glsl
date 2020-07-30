@@ -1,3 +1,11 @@
+
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_uniforms_lib.glsl)
+
+uniform sampler2D maxzBuffer;
+uniform sampler2DArray planarDepth;
+
 #define MAX_STEP 256
 
 float sample_depth(vec2 uv, int index, float lod)

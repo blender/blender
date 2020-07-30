@@ -1,8 +1,9 @@
 
+#pragma BLENDER_REQUIRE(volumetric_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_lib.glsl)
+
 /* Based on Frosbite Unified Volumetric.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */
-
-#define NODETREE_EXEC
 
 #ifdef MESH_SHADER
 uniform vec3 volumeOrcoLoc;

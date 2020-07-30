@@ -1,4 +1,5 @@
 
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_common_obinfos_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_data_lib.glsl)
@@ -31,11 +32,6 @@ out vec4 fragColor;
 float phase_function_isotropic()
 {
   return 1.0 / (4.0 * M_PI);
-}
-
-float max_v3(vec3 v)
-{
-  return max(v.x, max(v.y, v.z));
 }
 
 float line_unit_box_intersect_dist(vec3 lineorigin, vec3 linedirection)
@@ -194,8 +190,8 @@ void main()
 
   float depth = texelFetch(depthBuffer, ivec2(gl_FragCoord.xy), 0).r;
   float depth_end = min(depth, gl_FragCoord.z);
-  vec3 vs_ray_end = view_position_from_depth(screen_uv, depth_end, ViewVecs, ProjectionMatrix);
-  vec3 vs_ray_ori = view_position_from_depth(screen_uv, 0.0, ViewVecs, ProjectionMatrix);
+  vec3 vs_ray_end = get_view_space_from_depth(screen_uv, depth_end);
+  vec3 vs_ray_ori = get_view_space_from_depth(screen_uv, 0.0);
   vec3 vs_ray_dir = (is_persp) ? (vs_ray_end - vs_ray_ori) : vec3(0.0, 0.0, -1.0);
   vs_ray_dir /= abs(vs_ray_dir.z);
 

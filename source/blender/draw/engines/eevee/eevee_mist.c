@@ -56,14 +56,10 @@ void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
   if (e_data.mist_sh == NULL) {
-    char *frag_str = BLI_string_joinN(datatoc_common_view_lib_glsl,
-                                      datatoc_common_uniforms_lib_glsl,
-                                      datatoc_bsdf_common_lib_glsl,
-                                      datatoc_effect_mist_frag_glsl);
+    DRWShaderLibrary *lib = EEVEE_shader_lib_get();
 
-    e_data.mist_sh = DRW_shader_create_fullscreen(frag_str, "#define FIRST_PASS\n");
-
-    MEM_freeN(frag_str);
+    e_data.mist_sh = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_mist_frag_glsl, lib, "#define FIRST_PASS\n");
   }
 
   /* Create FrameBuffer. */
@@ -98,11 +94,11 @@ void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     }
   }
   else {
-    float near = -sldata->common_data.view_vecs[0][2];
-    float range = sldata->common_data.view_vecs[1][2];
+    float near = DRW_view_near_distance_get(NULL);
+    float far = DRW_view_far_distance_get(NULL);
     /* Fallback */
     g_data->mist_start = near;
-    g_data->mist_inv_dist = 1.0f / fabsf(range);
+    g_data->mist_inv_dist = 1.0f / fabsf(far - near);
     g_data->mist_falloff = 1.0f;
   }
 
