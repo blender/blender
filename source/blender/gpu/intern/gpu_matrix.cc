@@ -37,8 +37,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#define DEBUG_MATRIX_BIND 0
-
 #define MATRIX_STACK_DEPTH 32
 
 typedef float Mat4[4][4];
@@ -79,7 +77,7 @@ GPUMatrixState *GPU_matrix_state_create(void)
     } \
   }
 
-  GPUMatrixState *state = MEM_mallocN(sizeof(*state), __func__);
+  GPUMatrixState *state = (GPUMatrixState *)MEM_mallocN(sizeof(*state), __func__);
   const MatrixStack identity_stack = {{MATRIX_4X4_IDENTITY}, 0};
 
   state->model_view_stack = state->projection_stack = identity_stack;
@@ -662,51 +660,32 @@ void GPU_matrix_bind(const GPUShaderInterface *shaderface)
   int32_t MV_inv = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_MODELVIEW_INV);
   int32_t P_inv = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_PROJECTION_INV);
 
+  /* XXX(fclem) this works but this assumes shader is unused inside GPU_shader_uniform_vector. */
+  GPUShader *sh = NULL;
   if (MV != -1) {
-#if DEBUG_MATRIX_BIND
-    puts("setting MV matrix");
-#endif
-
-    glUniformMatrix4fv(MV, 1, GL_FALSE, (const float *)GPU_matrix_model_view_get(NULL));
+    GPU_shader_uniform_vector(sh, MV, 16, 1, (const float *)GPU_matrix_model_view_get(NULL));
   }
-
   if (P != -1) {
-#if DEBUG_MATRIX_BIND
-    puts("setting P matrix");
-#endif
-
-    glUniformMatrix4fv(P, 1, GL_FALSE, (const float *)GPU_matrix_projection_get(NULL));
+    GPU_shader_uniform_vector(sh, P, 16, 1, (const float *)GPU_matrix_projection_get(NULL));
   }
-
   if (MVP != -1) {
-#if DEBUG_MATRIX_BIND
-    puts("setting MVP matrix");
-#endif
-
-    glUniformMatrix4fv(
-        MVP, 1, GL_FALSE, (const float *)GPU_matrix_model_view_projection_get(NULL));
+    GPU_shader_uniform_vector(
+        sh, MVP, 16, 1, (const float *)GPU_matrix_model_view_projection_get(NULL));
   }
-
   if (N != -1) {
-#if DEBUG_MATRIX_BIND
-    puts("setting normal matrix");
-#endif
-
-    glUniformMatrix3fv(N, 1, GL_FALSE, (const float *)GPU_matrix_normal_get(NULL));
+    GPU_shader_uniform_vector(sh, N, 9, 1, (const float *)GPU_matrix_normal_get(NULL));
   }
-
   if (MV_inv != -1) {
     Mat4 m;
     GPU_matrix_model_view_get(m);
     invert_m4(m);
-    glUniformMatrix4fv(MV_inv, 1, GL_FALSE, (const float *)m);
+    GPU_shader_uniform_vector(sh, MV_inv, 16, 1, (const float *)m);
   }
-
   if (P_inv != -1) {
     Mat4 m;
     GPU_matrix_projection_get(m);
     invert_m4(m);
-    glUniformMatrix4fv(P_inv, 1, GL_FALSE, (const float *)m);
+    GPU_shader_uniform_vector(sh, P_inv, 16, 1, (const float *)m);
   }
 
   gpu_matrix_state_active_set_dirty(false);
