@@ -283,6 +283,11 @@ typedef struct SculptClothSimulation {
   int capacity_length_constraints;
   float *length_constraint_tweak;
 
+  /* Position anchors for deformation brushes. These positions are modified by the brush and the
+   * final positions of the simulated vertices are updated with constraints that use these points
+   * as targets. */
+  float (*deformation_pos)[3];
+
   float mass;
   float damping;
 
