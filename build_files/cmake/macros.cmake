@@ -169,6 +169,26 @@ function(blender_include_dirs_sys
   include_directories(SYSTEM ${_ALL_INCS})
 endfunction()
 
+# Set include paths for header files included with "*.h" syntax.
+# This enables auto-complete suggestions for user header files on Xcode.
+# Build process is not affected since the include paths are the same
+# as in HEADER_SEARCH_PATHS.
+function(blender_user_header_search_paths
+  name
+  includes
+  )
+
+  if(XCODE)
+    set(_ALL_INCS "")
+    foreach(_INC ${includes})
+      get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
+      # _ALL_INCS is a space-separated string of file paths in quotes.
+      set(_ALL_INCS "${_ALL_INCS} \"${_ABS_INC}\"")
+    endforeach()
+    set_target_properties(${name} PROPERTIES XCODE_ATTRIBUTE_USER_HEADER_SEARCH_PATHS "${_ALL_INCS}")
+  endif()
+endfunction()
+
 function(blender_source_group
   name
   sources
@@ -317,6 +337,7 @@ function(blender_add_lib__impl
   # works fine without having the includes
   # listed is helpful for IDE's (QtCreator/MSVC)
   blender_source_group("${name}" "${sources}")
+  blender_user_header_search_paths("${name}" "${includes}")
 
   list_assert_duplicates("${sources}")
   list_assert_duplicates("${includes}")
