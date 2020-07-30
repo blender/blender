@@ -1698,6 +1698,12 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
       if (object->type != OB_MESH) {
         continue;
       }
+      if (object->rigidbody_object == nullptr) {
+        continue;
+      }
+      if (object->rigidbody_object->type == RBO_TYPE_PASSIVE) {
+        continue;
+      }
       OperationKey rb_transform_copy_key(
           &object->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
       /* Rigid body synchronization depends on the actual simulation. */
@@ -1747,13 +1753,18 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
       /* final result of the constraint object's transform controls how
        * the constraint affects the physics sim for these objects. */
       ComponentKey trans_key(&object->id, NodeType::TRANSFORM);
-      OperationKey ob1_key(
-          &rbc->ob1->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
-      OperationKey ob2_key(
-          &rbc->ob2->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
-      /* Constrained-objects sync depends on the constraint-holder. */
-      add_relation(trans_key, ob1_key, "RigidBodyConstraint -> RBC.Object_1");
-      add_relation(trans_key, ob2_key, "RigidBodyConstraint -> RBC.Object_2");
+      if (rbc->ob1->rigidbody_object->type == RBO_TYPE_ACTIVE) {
+        OperationKey ob1_key(
+            &rbc->ob1->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
+        /* Constrained-objects sync depends on the constraint-holder. */
+        add_relation(trans_key, ob1_key, "RigidBodyConstraint -> RBC.Object_1");
+      }
+      if (rbc->ob2->rigidbody_object->type == RBO_TYPE_ACTIVE) {
+        OperationKey ob2_key(
+            &rbc->ob2->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
+        /* Constrained-objects sync depends on the constraint-holder. */
+        add_relation(trans_key, ob2_key, "RigidBodyConstraint -> RBC.Object_2");
+      }
       /* Ensure that sim depends on this constraint's transform. */
       add_relation(trans_key, rb_simulate_key, "RigidBodyConstraint Transform -> RB Simulation");
     }
