@@ -469,12 +469,13 @@ static SculptClothSimulation *cloth_brush_simulation_create(SculptSession *ss,
                                               "cloth length constraints");
   cloth_sim->capacity_length_constraints = CLOTH_LENGTH_CONSTRAINTS_BLOCK;
 
-  cloth_sim->acceleration = MEM_callocN(sizeof(float) * 3 * totverts, "cloth sim acceleration");
-  cloth_sim->pos = MEM_callocN(sizeof(float) * 3 * totverts, "cloth sim pos");
-  cloth_sim->prev_pos = MEM_callocN(sizeof(float) * 3 * totverts, "cloth sim prev pos");
-  cloth_sim->init_pos = MEM_callocN(sizeof(float) * 3 * totverts, "cloth sim init pos");
-  cloth_sim->length_constraint_tweak = MEM_callocN(sizeof(float) * totverts,
-                                                   "cloth sim length tweak");
+  cloth_sim->acceleration = MEM_calloc_arrayN(
+      totverts, 3 * sizeof(float), "cloth sim acceleration");
+  cloth_sim->pos = MEM_calloc_arrayN(totverts, 3 * sizeof(float), "cloth sim pos");
+  cloth_sim->prev_pos = MEM_calloc_arrayN(totverts, 3 * sizeof(float), "cloth sim prev pos");
+  cloth_sim->init_pos = MEM_calloc_arrayN(totverts, 3 * sizeof(float), "cloth sim init pos");
+  cloth_sim->length_constraint_tweak = MEM_calloc_arrayN(
+      totverts, sizeof(float), "cloth sim length tweak");
 
   /* Brush can be NULL for tools that neeed the solver but don't rely on constraint to deformation
    * positions. */
