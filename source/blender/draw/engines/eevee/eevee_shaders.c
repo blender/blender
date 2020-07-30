@@ -688,7 +688,7 @@ static struct GPUMaterial *eevee_material_get_ex(
   char *frag = eevee_get_frag(options);
 
   if (ma) {
-    GPUMaterialEvalCallbackFn *cbfn = &eevee_material_post_eval;
+    GPUMaterialEvalCallbackFn cbfn = &eevee_material_post_eval;
 
     bNodeTree *ntree = !is_default ? ma->nodetree : EEVEE_shader_default_surface_nodetree(ma);
     mat = DRW_shader_create_from_material(
