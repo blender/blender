@@ -39,7 +39,7 @@
 
 /* gpu ibuf utils */
 
-static void IMB_gpu_get_format(const ImBuf *ibuf,
+static void imb_gpu_get_format(const ImBuf *ibuf,
                                bool high_bitdepth,
                                eGPUDataFormat *r_data_format,
                                eGPUTextureFormat *r_texture_format)
@@ -88,7 +88,7 @@ static bool IMB_gpu_get_compressed_format(const ImBuf *ibuf, eGPUTextureFormat *
  * Apply colormanagement and scale buffer if needed.
  * *r_freedata is set to true if the returned buffer need to be manually freed.
  **/
-static void *IMB_gpu_get_data(const ImBuf *ibuf,
+static void *imb_gpu_get_data(const ImBuf *ibuf,
                               const bool do_rescale,
                               const int rescale_size[2],
                               const bool compress_as_srgb,
@@ -163,7 +163,7 @@ GPUTexture *IMB_touch_gpu_texture(ImBuf *ibuf, int w, int h, int layers, bool us
 {
   eGPUDataFormat data_format;
   eGPUTextureFormat tex_format;
-  IMB_gpu_get_format(ibuf, use_high_bitdepth, &data_format, &tex_format);
+  imb_gpu_get_format(ibuf, use_high_bitdepth, &data_format, &tex_format);
 
   GPUTexture *tex = GPU_texture_create_nD(
       w, h, layers, 2, NULL, tex_format, data_format, 0, false, NULL);
@@ -190,12 +190,12 @@ void IMB_update_gpu_texture_sub(GPUTexture *tex,
 
   eGPUDataFormat data_format;
   eGPUTextureFormat tex_format;
-  IMB_gpu_get_format(ibuf, use_high_bitdepth, &data_format, &tex_format);
+  imb_gpu_get_format(ibuf, use_high_bitdepth, &data_format, &tex_format);
 
   const bool compress_as_srgb = (tex_format == GPU_SRGB8_A8);
   bool freebuf = false;
 
-  void *data = IMB_gpu_get_data(ibuf, do_rescale, size, compress_as_srgb, use_premult, &freebuf);
+  void *data = imb_gpu_get_data(ibuf, do_rescale, size, compress_as_srgb, use_premult, &freebuf);
 
   /* Update Texture. */
   GPU_texture_update_sub(tex, data_format, data, x, y, z, w, h, 1);
@@ -241,12 +241,12 @@ GPUTexture *IMB_create_gpu_texture(ImBuf *ibuf, bool use_high_bitdepth, bool use
 
   eGPUDataFormat data_format;
   eGPUTextureFormat tex_format;
-  IMB_gpu_get_format(ibuf, use_high_bitdepth, &data_format, &tex_format);
+  imb_gpu_get_format(ibuf, use_high_bitdepth, &data_format, &tex_format);
 
   const bool compress_as_srgb = (tex_format == GPU_SRGB8_A8);
   bool freebuf = false;
 
-  void *data = IMB_gpu_get_data(ibuf, do_rescale, size, compress_as_srgb, use_premult, &freebuf);
+  void *data = imb_gpu_get_data(ibuf, do_rescale, size, compress_as_srgb, use_premult, &freebuf);
 
   /* Create Texture. */
   tex = GPU_texture_create_nD(UNPACK2(size), 0, 2, data, tex_format, data_format, 0, false, NULL);
