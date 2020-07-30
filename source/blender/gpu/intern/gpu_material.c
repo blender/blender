@@ -660,7 +660,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
                                         const char *frag_lib,
                                         const char *defines,
                                         const char *name,
-                                        GPUMaterialEvalCallbackFn *callback)
+                                        GPUMaterialEvalCallbackFn callback)
 {
   LinkData *link;
   bool has_volume_output, has_surface_output;

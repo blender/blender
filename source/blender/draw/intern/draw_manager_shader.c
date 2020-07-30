@@ -431,7 +431,7 @@ GPUMaterial *DRW_shader_create_from_world(struct Scene *scene,
                                           const char *frag_lib,
                                           const char *defines,
                                           bool deferred,
-                                          GPUMaterialEvalCallbackFn *callback)
+                                          GPUMaterialEvalCallbackFn callback)
 {
   GPUMaterial *mat = NULL;
   if (DRW_state_is_image_render() || !deferred) {
@@ -473,7 +473,7 @@ GPUMaterial *DRW_shader_create_from_material(struct Scene *scene,
                                              const char *frag_lib,
                                              const char *defines,
                                              bool deferred,
-                                             GPUMaterialEvalCallbackFn *callback)
+                                             GPUMaterialEvalCallbackFn callback)
 {
   GPUMaterial *mat = NULL;
   if (DRW_state_is_image_render() || !deferred) {
