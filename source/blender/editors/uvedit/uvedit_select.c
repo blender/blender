@@ -529,7 +529,7 @@ void uvedit_uv_select_enable(const Scene *scene,
     }
 
     if (do_history) {
-      BM_select_history_remove(em->bm, (BMElem *)l->v);
+      BM_select_history_store(em->bm, (BMElem *)l->v);
     }
   }
   else {
