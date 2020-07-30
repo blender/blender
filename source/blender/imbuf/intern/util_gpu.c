@@ -39,10 +39,10 @@
 
 /* gpu ibuf utils */
 
-void IMB_gpu_get_format(const ImBuf *ibuf,
-                        bool high_bitdepth,
-                        uint *r_data_format /* eGPUDataFormat */,
-                        uint *r_texture_format /* eGPUTextureFormat */)
+static void IMB_gpu_get_format(const ImBuf *ibuf,
+                               bool high_bitdepth,
+                               eGPUDataFormat *r_data_format,
+                               eGPUTextureFormat *r_texture_format)
 {
   const bool float_rect = (ibuf->rect_float != NULL);
   const bool use_srgb = (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace) &&
@@ -88,12 +88,12 @@ static bool IMB_gpu_get_compressed_format(const ImBuf *ibuf, eGPUTextureFormat *
  * Apply colormanagement and scale buffer if needed.
  * *r_freedata is set to true if the returned buffer need to be manually freed.
  **/
-void *IMB_gpu_get_data(const ImBuf *ibuf,
-                       const bool do_rescale,
-                       const int rescale_size[2],
-                       const bool compress_as_srgb,
-                       const bool store_premultiplied,
-                       bool *r_freedata)
+static void *IMB_gpu_get_data(const ImBuf *ibuf,
+                              const bool do_rescale,
+                              const int rescale_size[2],
+                              const bool compress_as_srgb,
+                              const bool store_premultiplied,
+                              bool *r_freedata)
 {
   const bool is_float_rect = (ibuf->rect_float != NULL);
   void *data_rect = (is_float_rect) ? (void *)ibuf->rect_float : (void *)ibuf->rect;
@@ -155,6 +155,54 @@ void *IMB_gpu_get_data(const ImBuf *ibuf,
     IMB_freeImBuf(scale_ibuf);
   }
   return data_rect;
+}
+
+/* The ibuf is only here to detect the storage type. The produced texture will have undefined
+ * content. It will need to be populated by using IMB_update_gpu_texture_sub(). */
+GPUTexture *IMB_touch_gpu_texture(ImBuf *ibuf, int w, int h, int layers, bool use_high_bitdepth)
+{
+  eGPUDataFormat data_format;
+  eGPUTextureFormat tex_format;
+  IMB_gpu_get_format(ibuf, use_high_bitdepth, &data_format, &tex_format);
+
+  GPUTexture *tex = GPU_texture_create_nD(
+      w, h, layers, 2, NULL, tex_format, data_format, 0, false, NULL);
+
+  GPU_texture_anisotropic_filter(tex, true);
+  return tex;
+}
+
+/* Will update a GPUTexture using the content of the ImBuf. Only one layer will be updated.
+ * Will resize the ibuf if needed.
+ * z is the layer to update. Unused if the texture is 2D. */
+void IMB_update_gpu_texture_sub(GPUTexture *tex,
+                                ImBuf *ibuf,
+                                int x,
+                                int y,
+                                int z,
+                                int w,
+                                int h,
+                                bool use_high_bitdepth,
+                                bool use_premult)
+{
+  const bool do_rescale = (ibuf->x != w || ibuf->y != h);
+  int size[2] = {w, h};
+
+  eGPUDataFormat data_format;
+  eGPUTextureFormat tex_format;
+  IMB_gpu_get_format(ibuf, use_high_bitdepth, &data_format, &tex_format);
+
+  const bool compress_as_srgb = (tex_format == GPU_SRGB8_A8);
+  bool freebuf = false;
+
+  void *data = IMB_gpu_get_data(ibuf, do_rescale, size, compress_as_srgb, use_premult, &freebuf);
+
+  /* Update Texture. */
+  GPU_texture_update_sub(tex, data_format, data, x, y, z, w, h, 1);
+
+  if (freebuf) {
+    MEM_freeN(data);
+  }
 }
 
 GPUTexture *IMB_create_gpu_texture(ImBuf *ibuf, bool use_high_bitdepth, bool use_premult)

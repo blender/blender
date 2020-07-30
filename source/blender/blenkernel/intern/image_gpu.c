@@ -178,12 +178,9 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
   }
 
   const bool use_high_bitdepth = (ima->flag & IMA_HIGH_BITDEPTH);
-  eGPUDataFormat data_format;
-  eGPUTextureFormat tex_format;
-  IMB_gpu_get_format(main_ibuf, use_high_bitdepth, &data_format, &tex_format);
-  /* Create Texture. */
-  GPUTexture *tex = GPU_texture_create_nD(
-      arraywidth, arrayheight, arraylayers, 2, NULL, tex_format, data_format, 0, false, NULL);
+  /* Create Texture without content. */
+  GPUTexture *tex = IMB_touch_gpu_texture(
+      main_ibuf, arraywidth, arrayheight, arraylayers, use_high_bitdepth);
 
   GPU_texture_bind(tex, 0);
 
@@ -203,20 +200,15 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
 
     if (ibuf) {
-      const bool needs_scale = (ibuf->x != tilesize[0] || ibuf->y != tilesize[1]);
-      const bool compress_as_srgb = (tex_format == GPU_SRGB8_A8);
       const bool store_premultiplied = ibuf->rect_float ? (ima->alpha_mode != IMA_ALPHA_STRAIGHT) :
                                                           (ima->alpha_mode == IMA_ALPHA_PREMUL);
-      bool freebuf = false;
-
-      void *pixeldata = IMB_gpu_get_data(
-          ibuf, needs_scale, tilesize, compress_as_srgb, store_premultiplied, &freebuf);
-      GPU_texture_update_sub(
-          tex, data_format, pixeldata, UNPACK2(tileoffset), tilelayer, UNPACK2(tilesize), 1);
-
-      if (freebuf) {
-        MEM_SAFE_FREE(pixeldata);
-      }
+      IMB_update_gpu_texture_sub(tex,
+                                 ibuf,
+                                 UNPACK2(tileoffset),
+                                 tilelayer,
+                                 UNPACK2(tilesize),
+                                 use_high_bitdepth,
+                                 store_premultiplied);
     }
 
     BKE_image_release_ibuf(ima, ibuf, NULL);

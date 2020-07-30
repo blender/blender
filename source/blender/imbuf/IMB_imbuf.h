@@ -737,19 +737,20 @@ const char *IMB_ffmpeg_last_error(void);
  *
  * \attention defined in util_gpu.c
  */
-void IMB_gpu_get_format(const struct ImBuf *ibuf,
-                        bool high_bitdepth,
-                        uint *r_data_format,
-                        uint *r_texture_format);
-void *IMB_gpu_get_data(const struct ImBuf *ibuf,
-                       const bool do_rescale,
-                       const int rescale_size[2],
-                       const bool compress_as_srgb,
-                       const bool store_premultiplied,
-                       bool *r_freedata);
 struct GPUTexture *IMB_create_gpu_texture(struct ImBuf *ibuf,
                                           bool use_high_bitdepth,
                                           bool use_premult);
+struct GPUTexture *IMB_touch_gpu_texture(
+    struct ImBuf *ibuf, int w, int h, int layers, bool use_high_bitdepth);
+void IMB_update_gpu_texture_sub(struct GPUTexture *tex,
+                                struct ImBuf *ibuf,
+                                int x,
+                                int y,
+                                int z,
+                                int w,
+                                int h,
+                                bool use_high_bitdepth,
+                                bool use_premult);
 
 /**
  *
