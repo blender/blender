@@ -286,12 +286,14 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
       }
     }
     else if (dl->type == DL_SURF) {
-      int tot;
-      totvert += dl->parts * dl->nr;
-      tot = (dl->parts - 1 + ((dl->flag & DL_CYCL_V) == 2)) *
-            (dl->nr - 1 + (dl->flag & DL_CYCL_U));
-      totpoly += tot;
-      totloop += tot * 4;
+      if (dl->parts != 0) {
+        int tot;
+        totvert += dl->parts * dl->nr;
+        tot = (((dl->flag & DL_CYCL_U) ? 1 : 0) + (dl->nr - 1)) *
+              (((dl->flag & DL_CYCL_V) ? 1 : 0) + (dl->parts - 1));
+        totpoly += tot;
+        totloop += tot * 4;
+      }
     }
     else if (dl->type == DL_INDEX3) {
       int tot;
