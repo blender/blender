@@ -163,7 +163,7 @@ void BM_face_calc_tessellation(const BMFace *f,
     float(*projverts)[2] = BLI_array_alloca(projverts, f->len);
     int j;
 
-    axis_dominant_v3_to_m3(axis_mat, f->no);
+    axis_dominant_v3_to_m3_negate(axis_mat, f->no);
 
     j = 0;
     l_iter = l_first;
@@ -174,7 +174,7 @@ void BM_face_calc_tessellation(const BMFace *f,
     } while ((l_iter = l_iter->next) != l_first);
 
     /* complete the loop */
-    BLI_polyfill_calc(projverts, f->len, -1, r_index);
+    BLI_polyfill_calc(projverts, f->len, 1, r_index);
   }
 }
 
