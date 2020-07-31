@@ -404,6 +404,13 @@ data_to_c_simple(engines/overlay/shaders/xray_fade_frag.glsl SRC)
 list(APPEND INC
 )
 
+if(WITH_MOD_FLUID)
+  list(APPEND INC
+    ../../../intern/mantaflow/extern
+  )
+  add_definitions(-DWITH_FLUID)
+endif()
+
 if(WITH_FREESTYLE)
   add_definitions(-DWITH_FREESTYLE)
 endif()
