@@ -67,6 +67,7 @@ def create_builder_from_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('builder_name')
     parser.add_argument('branch', default='master', nargs='?')
+    parser.add_argument("--codesign", action="store_true")
     args = parser.parse_args()
     return Builder(args.builder_name, args.branch)
 

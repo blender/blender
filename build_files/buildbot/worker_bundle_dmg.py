@@ -82,6 +82,10 @@ def create_argument_parser():
         type=Path,
         help="Optional path to applescript to set up folder looks of DMG."
              "If not provided default Blender's one is used.")
+    parser.add_argument(
+        '--codesign',
+        action="store_true"
+        help="Code sign and notarize DMG contents.")
     return parser
 
 
@@ -395,7 +399,8 @@ def create_final_dmg(app_bundles: List[Path],
                      dmg_filepath: Path,
                      background_image_filepath: Path,
                      volume_name: str,
-                     applescript: Path) -> None:
+                     applescript: Path,
+                     codesign: bool) -> None:
     """
     Create DMG with all app bundles
 
@@ -421,7 +426,8 @@ def create_final_dmg(app_bundles: List[Path],
     #
     # This allows to recurs into the content of bundles without worrying about
     # possible interfereice of Application symlink.
-    codesign_app_bundles_in_dmg(mount_directory)
+    if codesign:
+        codesign_app_bundles_in_dmg(mount_directory)
 
     copy_background_if_needed(background_image_filepath, mount_directory)
     create_applications_link(mount_directory)
@@ -434,7 +440,8 @@ def create_final_dmg(app_bundles: List[Path],
     compress_dmg(writable_dmg_filepath, dmg_filepath)
     writable_dmg_filepath.unlink()
 
-    codesign_and_notarize_dmg(dmg_filepath)
+    if codesign:
+        codesign_and_notarize_dmg(dmg_filepath)
 
 
 def ensure_dmg_extension(filepath: Path) -> Path:
@@ -521,6 +528,7 @@ def main():
     source_dir = args.source_dir.absolute()
     background_image_filepath = get_background_image(args.background_image)
     applescript = get_applescript(args.applescript)
+    codesign = args.codesign
 
     app_bundles = collect_and_log_app_bundles(source_dir)
     if not app_bundles:
@@ -535,7 +543,8 @@ def main():
                      dmg_filepath,
                      background_image_filepath,
                      volume_name,
-                     applescript)
+                     applescript,
+                     codesign)
 
 
 if __name__ == "__main__":
