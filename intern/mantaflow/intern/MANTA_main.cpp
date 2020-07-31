@@ -27,10 +27,6 @@
 #include <sstream>
 #include <zlib.h>
 
-#if OPENVDB == 1
-#  include "openvdb/openvdb.h"
-#endif
-
 #include "MANTA_main.h"
 #include "Python.h"
 #include "fluid_script.h"
@@ -59,13 +55,6 @@ using std::to_string;
 
 atomic<int> MANTA::solverID(0);
 int MANTA::with_debug(0);
-
-/* Number of particles that the cache reads at once (with zlib). */
-#define PARTICLE_CHUNK 20000
-/* Number of mesh nodes that the cache reads at once (with zlib). */
-#define NODE_CHUNK 20000
-/* Number of mesh triangles that the cache reads at once (with zlib). */
-#define TRIANGLE_CHUNK 20000
 
 MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
 {
@@ -96,8 +85,7 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
   mUsingInvel = (fds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL);
   mUsingOutflow = (fds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW);
 
-  // Simulation constants
-  mTempAmb = 0;  // TODO: Maybe use this later for buoyancy calculation
+  /* Simulation constants. */
   mResX = res[0];
   mResY = res[1];
   mResZ = res[2];
@@ -105,7 +93,7 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
   mTotalCells = mResX * mResY * mResZ;
   mResGuiding = fds->res;
 
-  // Smoke low res grids
+  /* Smoke low res grids. */
   mDensity = nullptr;
   mShadow = nullptr;
   mHeat = nullptr;
@@ -131,7 +119,7 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
   mReactIn = nullptr;
   mEmissionIn = nullptr;
 
-  // Smoke high res grids
+  /* Smoke high res grids. */
   mDensityHigh = nullptr;
   mFlameHigh = nullptr;
   mFuelHigh = nullptr;
@@ -146,19 +134,19 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
   mTextureV2 = nullptr;
   mTextureW2 = nullptr;
 
-  // Fluid low res grids
+  /* Fluid low res grids. */
   mPhiIn = nullptr;
   mPhiStaticIn = nullptr;
   mPhiOutIn = nullptr;
   mPhiOutStaticIn = nullptr;
   mPhi = nullptr;
 
-  // Mesh
+  /* Mesh. */
   mMeshNodes = nullptr;
   mMeshTriangles = nullptr;
   mMeshVelocities = nullptr;
 
-  // Fluid obstacle
+  /* Fluid obstacle. */
   mPhiObsIn = nullptr;
   mPhiObsStaticIn = nullptr;
   mNumObstacle = nullptr;
@@ -166,39 +154,39 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
   mObVelocityY = nullptr;
   mObVelocityZ = nullptr;
 
-  // Fluid guiding
+  /* Fluid guiding. */
   mPhiGuideIn = nullptr;
   mNumGuide = nullptr;
   mGuideVelocityX = nullptr;
   mGuideVelocityY = nullptr;
   mGuideVelocityZ = nullptr;
 
-  // Fluid initial velocity
+  /* Fluid initial velocity. */
   mInVelocityX = nullptr;
   mInVelocityY = nullptr;
   mInVelocityZ = nullptr;
 
-  // Secondary particles
+  /* Secondary particles. */
   mFlipParticleData = nullptr;
   mFlipParticleVelocity = nullptr;
-  mSndParticleData = nullptr;
-  mSndParticleVelocity = nullptr;
-  mSndParticleLife = nullptr;
+  mParticleData = nullptr;
+  mParticleVelocity = nullptr;
+  mParticleLife = nullptr;
 
-  // Cache read success indicators
+  /* Cache read success indicators. */
   mFlipFromFile = false;
   mMeshFromFile = false;
   mParticlesFromFile = false;
 
-  // Setup Mantaflow in Python
+  /* Setup Mantaflow in Python. */
   initializeMantaflow();
 
-  // Initializa RNA map with values that Python will need
+  /* Initializa RNA map with values that Python will need. */
   initializeRNAMap(fmd);
 
   bool initSuccess = true;
-  // Initialize Mantaflow variables in Python
-  // Liquid
+  /* Initialize Mantaflow variables in Python. */
+  /* Liquid. */
   if (mUsingLiquid) {
     initSuccess &= initDomain();
     initSuccess &= initLiquid();
@@ -227,7 +215,7 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
       mResZMesh = mUpresMesh * mResZ;
       mTotalCellsMesh = mResXMesh * mResYMesh * mResZMesh;
 
-      // Initialize Mantaflow variables in Python
+      /* Initialize Mantaflow variables in Python. */
       initSuccess &= initMesh();
       initSuccess &= initLiquidMesh();
     }
@@ -245,7 +233,7 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
     }
   }
 
-  // Smoke
+  /* Smoke. */
   if (mUsingSmoke) {
     initSuccess &= initDomain();
     initSuccess &= initSmoke();
@@ -274,7 +262,7 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
       mResZNoise = amplify * mResZ;
       mTotalCellsHigh = mResXNoise * mResYNoise * mResZNoise;
 
-      // Initialize Mantaflow variables in Python
+      /* Initialize Mantaflow variables in Python. */
       initSuccess &= initNoise();
       initSuccess &= initSmokeNoise();
       if (mUsingFire)
@@ -290,17 +278,17 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
 
 bool MANTA::initDomain(FluidModifierData *fmd)
 {
-  // Vector will hold all python commands that are to be executed
+  /* Vector will hold all python commands that are to be executed. */
   vector<string> pythonCommands;
 
-  // Set manta debug level first
+  /* Set manta debug level first. */
   pythonCommands.push_back(manta_import + manta_debuglevel);
 
   ostringstream ss;
   ss << "set_manta_debuglevel(" << with_debug << ")";
   pythonCommands.push_back(ss.str());
 
-  // Now init basic fluid domain
+  /* Now init basic fluid domain. */
   string tmpString = fluid_variables + fluid_solver + fluid_alloc + fluid_cache_helper +
                      fluid_bake_multiprocessing + fluid_bake_data + fluid_bake_noise +
                      fluid_bake_mesh + fluid_bake_particles + fluid_bake_guiding +
@@ -541,7 +529,7 @@ bool MANTA::initSndParts(FluidModifierData *fmd)
 
 bool MANTA::initLiquidSndParts(FluidModifierData *fmd)
 {
-  if (!mSndParticleData) {
+  if (!mParticleData) {
     vector<string> pythonCommands;
     string tmpString = liquid_alloc_particles + liquid_variables_particles +
                        liquid_step_particles + fluid_with_sndparts + liquid_load_particles +
@@ -560,7 +548,7 @@ MANTA::~MANTA()
     cout << "~FLUID: " << mCurrentID << " with res(" << mResX << ", " << mResY << ", " << mResZ
          << ")" << endl;
 
-  // Destruction string for Python
+  /* Destruction string for Python. */
   string tmpString = "";
   vector<string> pythonCommands;
   bool result = false;
@@ -568,10 +556,10 @@ MANTA::~MANTA()
   tmpString += manta_import;
   tmpString += fluid_delete_all;
 
-  // Initializa RNA map with values that Python will need
+  /* Initializa RNA map with values that Python will need. */
   initializeRNAMap();
 
-  // Leave out fmd argument in parseScript since only looking up IDs
+  /* Leave out fmd argument in parseScript since only looking up IDs. */
   string finalString = parseScript(tmpString);
   pythonCommands.push_back(finalString);
   result = runPythonString(pythonCommands);
@@ -633,10 +621,10 @@ void MANTA::initializeMantaflow()
   string filename = "manta_scene_" + to_string(mCurrentID) + ".py";
   vector<string> fill = vector<string>();
 
-  // Initialize extension classes and wrappers
+  /* Initialize extension classes and wrappers. */
   srand(0);
   PyGILState_STATE gilstate = PyGILState_Ensure();
-  Pb::setup(filename, fill);  // Namespace from Mantaflow (registry)
+  Pb::setup(filename, fill); /* Namespace from Mantaflow (registry). */
   PyGILState_Release(gilstate);
 }
 
@@ -646,7 +634,7 @@ void MANTA::terminateMantaflow()
     cout << "Fluid: Releasing Mantaflow framework" << endl;
 
   PyGILState_STATE gilstate = PyGILState_Ensure();
-  Pb::finalize();  // Namespace from Mantaflow (registry)
+  Pb::finalize(); /* Namespace from Mantaflow (registry). */
   PyGILState_Release(gilstate);
 }
 
@@ -1087,7 +1075,7 @@ string MANTA::parseScript(const string &setup_string, FluidModifierData *fmd)
   ostringstream res;
   string line = "";
 
-  // Update RNA map if modifier data is handed over
+  /* Update RNA map if modifier data is handed over. */
   if (fmd) {
     initializeRNAMap(fmd);
   }
@@ -1125,7 +1113,8 @@ bool MANTA::writeConfiguration(FluidModifierData *fmd, int framenr)
   /* Create 'config' subdir if it does not exist already. */
   BLI_dir_create_recursive(directory.c_str());
 
-  gzFile gzf = (gzFile)BLI_gzopen(file.c_str(), "wb1");  // do some compression
+  /* Open new file with some compression. */
+  gzFile gzf = (gzFile)BLI_gzopen(file.c_str(), "wb1");
   if (!gzf) {
     cerr << "Fluid Error -- Cannot open file " << file << endl;
     return false;
@@ -1629,10 +1618,10 @@ void MANTA::exportSmokeScript(FluidModifierData *fmd)
 
   string manta_script;
 
-  // Libraries
+  /* Libraries. */
   manta_script += header_libraries + manta_import;
 
-  // Variables
+  /* Variables. */
   manta_script += header_variables + fluid_variables + smoke_variables;
   if (noise) {
     manta_script += fluid_variables_noise + smoke_variables_noise;
@@ -1640,14 +1629,14 @@ void MANTA::exportSmokeScript(FluidModifierData *fmd)
   if (guiding)
     manta_script += fluid_variables_guiding;
 
-  // Solvers
+  /* Solvers. */
   manta_script += header_solvers + fluid_solver;
   if (noise)
     manta_script += fluid_solver_noise;
   if (guiding)
     manta_script += fluid_solver_guiding;
 
-  // Grids
+  /* Grids. */
   manta_script += header_grids + fluid_alloc + smoke_alloc;
   if (noise) {
     manta_script += smoke_alloc_noise;
@@ -1671,36 +1660,36 @@ void MANTA::exportSmokeScript(FluidModifierData *fmd)
   if (outflow)
     manta_script += fluid_alloc_outflow;
 
-  // Noise field
+  /* Noise field. */
   if (noise)
     manta_script += smoke_wavelet_noise;
 
-  // Time
+  /* Time. */
   manta_script += header_time + fluid_time_stepping + fluid_adapt_time_step;
 
-  // Import
+  /* Import. */
   manta_script += header_import + fluid_file_import + fluid_cache_helper + smoke_load_data;
   if (noise)
     manta_script += smoke_load_noise;
   if (guiding)
     manta_script += fluid_load_guiding;
 
-  // Pre/Post Steps
+  /* Pre/Post Steps. */
   manta_script += header_prepost + fluid_pre_step + fluid_post_step;
 
-  // Steps
+  /* Steps. */
   manta_script += header_steps + smoke_adaptive_step + smoke_step;
   if (noise) {
     manta_script += smoke_step_noise;
   }
 
-  // Main
+  /* Main. */
   manta_script += header_main + smoke_standalone + fluid_standalone;
 
-  // Fill in missing variables in script
+  /* Fill in missing variables in script. */
   string final_script = MANTA::parseScript(manta_script, fmd);
 
-  // Write script
+  /* Write script. */
   ofstream myfile;
   myfile.open(cacheDirScript);
   myfile << final_script;
@@ -1739,10 +1728,10 @@ void MANTA::exportLiquidScript(FluidModifierData *fmd)
 
   string manta_script;
 
-  // Libraries
+  /* Libraries. */
   manta_script += header_libraries + manta_import;
 
-  // Variables
+  /* Variables. */
   manta_script += header_variables + fluid_variables + liquid_variables;
   if (mesh)
     manta_script += fluid_variables_mesh;
@@ -1751,7 +1740,7 @@ void MANTA::exportLiquidScript(FluidModifierData *fmd)
   if (guiding)
     manta_script += fluid_variables_guiding;
 
-  // Solvers
+  /* Solvers. */
   manta_script += header_solvers + fluid_solver;
   if (mesh)
     manta_script += fluid_solver_mesh;
@@ -1760,7 +1749,7 @@ void MANTA::exportLiquidScript(FluidModifierData *fmd)
   if (guiding)
     manta_script += fluid_solver_guiding;
 
-  // Grids
+  /* Grids. */
   manta_script += header_grids + fluid_alloc + liquid_alloc;
   if (mesh)
     manta_script += liquid_alloc_mesh;
@@ -1777,13 +1766,13 @@ void MANTA::exportLiquidScript(FluidModifierData *fmd)
   if (outflow)
     manta_script += fluid_alloc_outflow;
 
-  // Domain init
+  /* Domain init. */
   manta_script += header_gridinit + liquid_init_phi;
 
-  // Time
+  /* Time. */
   manta_script += header_time + fluid_time_stepping + fluid_adapt_time_step;
 
-  // Import
+  /* Import. */
   manta_script += header_import + fluid_file_import + fluid_cache_helper + liquid_load_data;
   if (mesh)
     manta_script += liquid_load_mesh;
@@ -1792,23 +1781,23 @@ void MANTA::exportLiquidScript(FluidModifierData *fmd)
   if (guiding)
     manta_script += fluid_load_guiding;
 
-  // Pre/Post Steps
+  /* Pre/Post Steps. */
   manta_script += header_prepost + fluid_pre_step + fluid_post_step;
 
-  // Steps
+  /* Steps. */
   manta_script += header_steps + liquid_adaptive_step + liquid_step;
   if (mesh)
     manta_script += liquid_step_mesh;
   if (drops || bubble || floater || tracer)
     manta_script += liquid_step_particles;
 
-  // Main
+  /* Main. */
   manta_script += header_main + liquid_standalone + fluid_standalone;
 
-  // Fill in missing variables in script
+  /* Fill in missing variables in script. */
   string final_script = MANTA::parseScript(manta_script, fmd);
 
-  // Write script
+  /* Write script. */
   ofstream myfile;
   myfile.open(cacheDirScript);
   myfile << final_script;
@@ -2108,9 +2097,9 @@ void MANTA::updatePointers(FluidModifierData *fmd)
   mMeshVelocities = (meshvel) ? getPointer<vector<pVel>>("mVel" + mesh_ext, func) : nullptr;
 
   /* Secondary particles. */
-  mSndParticleData = (parts) ? getPointer<vector<pData>>("ppSnd" + snd_ext, func) : nullptr;
-  mSndParticleVelocity = (parts) ? getPointer<vector<pVel>>("pVelSnd" + pp_ext, func) : nullptr;
-  mSndParticleLife = (parts) ? getPointer<vector<float>>("pLifeSnd" + pp_ext, func) : nullptr;
+  mParticleData = (parts) ? getPointer<vector<pData>>("ppSnd" + snd_ext, func) : nullptr;
+  mParticleVelocity = (parts) ? getPointer<vector<pVel>>("pVelSnd" + pp_ext, func) : nullptr;
+  mParticleLife = (parts) ? getPointer<vector<float>>("pLifeSnd" + pp_ext, func) : nullptr;
 
   mFlipFromFile = false;
   mMeshFromFile = false;

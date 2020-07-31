@@ -2048,6 +2048,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       prop,
       "Start",
       "Frame on which the simulation starts. This is the first frame that will be baked");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "cache_frame_end", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, NULL, "cache_frame_end");
@@ -2057,6 +2058,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       prop,
       "End",
       "Frame on which the simulation stops. This is the last frame that will be baked");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "cache_frame_offset", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, NULL, "cache_frame_offset");
@@ -2066,6 +2068,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       "Offset",
       "Frame offset that is used when loading the simulation from the cache. It is not considered "
       "when baking the simulation, only when loading it");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "cache_frame_pause_data", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, NULL, "cache_frame_pause_data");
@@ -2089,6 +2092,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       prop, NULL, "rna_Fluid_cachetype_mesh_set", "rna_Fluid_cachetype_mesh_itemf");
   RNA_def_property_ui_text(
       prop, "File Format", "Select the file format to be used for caching surface data");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_meshcache_reset");
 
   prop = RNA_def_property(srna, "cache_data_format", PROP_ENUM, PROP_NONE);
@@ -2098,6 +2102,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       prop, NULL, "rna_Fluid_cachetype_data_set", "rna_Fluid_cachetype_volume_itemf");
   RNA_def_property_ui_text(
       prop, "File Format", "Select the file format to be used for caching volumetric data");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
 
   prop = RNA_def_property(srna, "cache_particle_format", PROP_ENUM, PROP_NONE);
@@ -2107,6 +2112,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       prop, NULL, "rna_Fluid_cachetype_particle_set", "rna_Fluid_cachetype_particle_itemf");
   RNA_def_property_ui_text(
       prop, "File Format", "Select the file format to be used for caching particle data");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_particlescache_reset");
 
   prop = RNA_def_property(srna, "cache_noise_format", PROP_ENUM, PROP_NONE);
@@ -2116,6 +2122,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       prop, NULL, "rna_Fluid_cachetype_noise_set", "rna_Fluid_cachetype_volume_itemf");
   RNA_def_property_ui_text(
       prop, "File Format", "Select the file format to be used for caching noise data");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_noisecache_reset");
 
   prop = RNA_def_property(srna, "cache_type", PROP_ENUM, PROP_NONE);
@@ -2123,6 +2130,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, cache_types);
   RNA_def_property_enum_funcs(prop, NULL, "rna_Fluid_cachetype_set", NULL);
   RNA_def_property_ui_text(prop, "Type", "Change the cache type of the simulation");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Fluid_domain_data_reset");
 
   prop = RNA_def_property(srna, "cache_resumable", PROP_BOOLEAN, PROP_NONE);
@@ -2133,6 +2141,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       "Additional data will be saved so that the bake jobs can be resumed after pausing. Because "
       "more data will be written to disk it is recommended to avoid enabling this option when "
       "baking at high resolutions");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
 
   prop = RNA_def_property(srna, "cache_directory", PROP_STRING, PROP_DIRPATH);
