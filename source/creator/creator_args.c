@@ -2192,6 +2192,12 @@ void main_args_setup(bContext *C, bArgs *ba)
   BLI_argsAdd(ba,
               1,
               NULL,
+              "--debug-depsgraph-uuid",
+              CB_EX(arg_handle_debug_mode_generic_set, depsgraph_build),
+              (void *)G_DEBUG_DEPSGRAPH_UUID);
+  BLI_argsAdd(ba,
+              1,
+              NULL,
               "--debug-gpumem",
               CB_EX(arg_handle_debug_mode_generic_set, gpumem),
               (void *)G_DEBUG_GPU_MEM);

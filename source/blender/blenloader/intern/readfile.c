@@ -6461,6 +6461,9 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
     link_recurs_seq(reader, &ed->seqbase);
 
     SEQ_BEGIN (ed, seq) {
+      /* Do as early as possible, so that other parts of reading can rely on valid session UUID. */
+      BKE_sequence_session_uuid_generate(seq);
+
       BLO_read_data_address(reader, &seq->seq1);
       BLO_read_data_address(reader, &seq->seq2);
       BLO_read_data_address(reader, &seq->seq3);

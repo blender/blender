@@ -145,18 +145,19 @@ enum {
   G_DEBUG_DEPSGRAPH_TIME = (1 << 11),       /* depsgraph timing statistics and messages */
   G_DEBUG_DEPSGRAPH_NO_THREADS = (1 << 12), /* single threaded depsgraph */
   G_DEBUG_DEPSGRAPH_PRETTY = (1 << 13),     /* use pretty colors in depsgraph messages */
+  G_DEBUG_DEPSGRAPH_UUID = (1 << 14),       /* use pretty colors in depsgraph messages */
   G_DEBUG_DEPSGRAPH = (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_EVAL | G_DEBUG_DEPSGRAPH_TAG |
-                       G_DEBUG_DEPSGRAPH_TIME),
-  G_DEBUG_SIMDATA = (1 << 14),               /* sim debug data display */
-  G_DEBUG_GPU_MEM = (1 << 15),               /* gpu memory in status bar */
-  G_DEBUG_GPU = (1 << 16),                   /* gpu debug */
-  G_DEBUG_IO = (1 << 17),                    /* IO Debugging (for Collada, ...)*/
-  G_DEBUG_GPU_SHADERS = (1 << 18),           /* GLSL shaders */
-  G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 19), /* force gpu workarounds bypassing detections. */
-  G_DEBUG_XR = (1 << 20),                    /* XR/OpenXR messages */
-  G_DEBUG_XR_TIME = (1 << 21),               /* XR/OpenXR timing messages */
+                       G_DEBUG_DEPSGRAPH_TIME | G_DEBUG_DEPSGRAPH_UUID),
+  G_DEBUG_SIMDATA = (1 << 15),               /* sim debug data display */
+  G_DEBUG_GPU_MEM = (1 << 16),               /* gpu memory in status bar */
+  G_DEBUG_GPU = (1 << 17),                   /* gpu debug */
+  G_DEBUG_IO = (1 << 18),                    /* IO Debugging (for Collada, ...)*/
+  G_DEBUG_GPU_SHADERS = (1 << 19),           /* GLSL shaders */
+  G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 20), /* force gpu workarounds bypassing detections. */
+  G_DEBUG_XR = (1 << 21),                    /* XR/OpenXR messages */
+  G_DEBUG_XR_TIME = (1 << 22),               /* XR/OpenXR timing messages */
 
-  G_DEBUG_GHOST = (1 << 20), /* Debug GHOST module. */
+  G_DEBUG_GHOST = (1 << 23), /* Debug GHOST module. */
 };
 
 #define G_DEBUG_ALL \

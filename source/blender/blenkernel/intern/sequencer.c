@@ -46,6 +46,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_path_util.h"
+#include "BLI_session_uuid.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
@@ -5352,7 +5353,14 @@ Sequence *BKE_sequence_alloc(ListBase *lb, int cfra, int machine, int type)
   seq->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Sequence Stereo Format");
   seq->cache_flag = SEQ_CACHE_STORE_RAW | SEQ_CACHE_STORE_PREPROCESSED | SEQ_CACHE_STORE_COMPOSITE;
 
+  BKE_sequence_session_uuid_generate(seq);
+
   return seq;
+}
+
+void BKE_sequence_session_uuid_generate(struct Sequence *sequence)
+{
+  sequence->runtime.session_uuid = BLI_session_uuid_generate();
 }
 
 void BKE_sequence_alpha_mode_from_extension(Sequence *seq)
@@ -5663,6 +5671,10 @@ static Sequence *seq_dupli(const Scene *scene_src,
                            const int flag)
 {
   Sequence *seqn = MEM_dupallocN(seq);
+
+  if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
+    BKE_sequence_session_uuid_generate(seq);
+  }
 
   seq->tmp = seqn;
   seqn->strip = MEM_dupallocN(seq->strip);
@@ -6126,4 +6138,33 @@ void BKE_sequencer_remove_flagged_sequences(Scene *scene, ListBase *seqbase)
       BKE_sequence_free(scene, seq, true);
     }
   }
+}
+
+void BKE_sequencer_check_uuids_unique_and_report(const Scene *scene)
+{
+  if (scene->ed == NULL) {
+    return;
+  }
+
+  struct GSet *used_uuids = BLI_gset_new(
+      BLI_session_uuid_ghash_hash, BLI_session_uuid_ghash_compare, "sequencer used uuids");
+
+  const Sequence *sequence;
+  SEQ_BEGIN (scene->ed, sequence) {
+    const SessionUUID *session_uuid = &sequence->runtime.session_uuid;
+    if (!BLI_session_uuid_is_generated(session_uuid)) {
+      printf("Sequence %s does not have UUID generated.\n", sequence->name);
+      continue;
+    }
+
+    if (BLI_gset_lookup(used_uuids, session_uuid) != NULL) {
+      printf("Sequence %s has duplicate UUID generated.\n", sequence->name);
+      continue;
+    }
+
+    BLI_gset_insert(used_uuids, (void *)session_uuid);
+  }
+  SEQ_END;
+
+  BLI_gset_free(used_uuids, NULL);
 }
