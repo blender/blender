@@ -3617,6 +3617,12 @@ static int manta_step(
     fds->time_per_frame = time_per_frame;
     fds->time_total = time_total;
   }
+
+  /* Replay mode does not lock the UI. Ensure that fluid data is always up to date. */
+  if (mode_replay) {
+    manta_update_pointers(fds->fluid, fmd);
+  }
+
   /* Total time must not exceed framecount times framelength. Correct tiny errors here. */
   CLAMP(fds->time_total, fds->time_total, time_total_old + fds->frame_length);
 

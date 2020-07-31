@@ -42,28 +42,28 @@ void manta_ensure_obstacle(MANTA *fluid, struct FluidModifierData *fmd)
   if (!fluid)
     return;
   fluid->initObstacle(fmd);
-  fluid->updatePointers();
+  fluid->updatePointers(fmd);
 }
 void manta_ensure_guiding(MANTA *fluid, struct FluidModifierData *fmd)
 {
   if (!fluid)
     return;
   fluid->initGuiding(fmd);
-  fluid->updatePointers();
+  fluid->updatePointers(fmd);
 }
 void manta_ensure_invelocity(MANTA *fluid, struct FluidModifierData *fmd)
 {
   if (!fluid)
     return;
   fluid->initInVelocity(fmd);
-  fluid->updatePointers();
+  fluid->updatePointers(fmd);
 }
 void manta_ensure_outflow(MANTA *fluid, struct FluidModifierData *fmd)
 {
   if (!fluid)
     return;
   fluid->initOutflow(fmd);
-  fluid->updatePointers();
+  fluid->updatePointers(fmd);
 }
 
 int manta_write_config(MANTA *fluid, FluidModifierData *fmd, int framenr)
@@ -229,9 +229,16 @@ void manta_adapt_timestep(MANTA *fluid)
 
 bool manta_needs_realloc(MANTA *fluid, FluidModifierData *fmd)
 {
-  if (!fluid)
+  if (!fluid || !fmd)
     return false;
   return fluid->needsRealloc(fmd);
+}
+
+void manta_update_pointers(struct MANTA *fluid, struct FluidModifierData *fmd)
+{
+  if (!fluid || !fmd)
+    return;
+  fluid->updatePointers(fmd);
 }
 
 /* Fluid accessors */
@@ -445,7 +452,7 @@ void manta_smoke_ensure_heat(MANTA *smoke, struct FluidModifierData *fmd)
 {
   if (smoke) {
     smoke->initHeat(fmd);
-    smoke->updatePointers();
+    smoke->updatePointers(fmd);
   }
 }
 
@@ -456,7 +463,7 @@ void manta_smoke_ensure_fire(MANTA *smoke, struct FluidModifierData *fmd)
     if (smoke->usingNoise()) {
       smoke->initFireHigh(fmd);
     }
-    smoke->updatePointers();
+    smoke->updatePointers(fmd);
   }
 }
 
@@ -467,7 +474,7 @@ void manta_smoke_ensure_colors(MANTA *smoke, struct FluidModifierData *fmd)
     if (smoke->usingNoise()) {
       smoke->initColorsHigh(fmd);
     }
-    smoke->updatePointers();
+    smoke->updatePointers(fmd);
   }
 }
 
@@ -649,7 +656,7 @@ void manta_liquid_ensure_sndparts(MANTA *liquid, struct FluidModifierData *fmd)
 {
   if (liquid) {
     liquid->initLiquidSndParts(fmd);
-    liquid->updatePointers();
+    liquid->updatePointers(fmd);
   }
 }
 

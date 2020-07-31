@@ -282,7 +282,8 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
         initColorsHigh();
     }
   }
-  updatePointers();
+
+  updatePointers(fmd);
 }
 
 void MANTA::initDomain(FluidModifierData *fmd)
@@ -1823,8 +1824,14 @@ static PyObject *callPythonFunction(string varName, string functionName, bool is
   /* Be sure to initialize Python before using it. */
   Py_Initialize();
 
-  // Get pyobject that holds result value
+  /* Get pyobject that holds result value. */
   if (!manta_main_module) {
+    PyGILState_Release(gilstate);
+    return nullptr;
+  }
+
+  /* Ensure that requested variable is present in module - avoid attribute errors later on. */
+  if (!PyObject_HasAttrString(manta_main_module, varName.c_str())) {
     PyGILState_Release(gilstate);
     return nullptr;
   }
@@ -1911,6 +1918,11 @@ static long pyObjectToLong(PyObject *inputObject)
   return result;
 }
 
+template<class T> static T *getPointer(string pyObjectName, string pyFunctionName)
+{
+  return static_cast<T *>(pyObjectToPointer(callPythonFunction(pyObjectName, pyFunctionName)));
+}
+
 int MANTA::getFrame()
 {
   if (with_debug)
@@ -1955,137 +1967,137 @@ void MANTA::adaptTimestep()
   runPythonString(pythonCommands);
 }
 
-void MANTA::updatePointers()
+void MANTA::updatePointers(FluidModifierData *fmd)
 {
   if (with_debug)
     cout << "MANTA::updatePointers()" << endl;
+
+  FluidDomainSettings *fds = fmd->domain;
+
+  bool liquid = (fds->type == FLUID_DOMAIN_TYPE_LIQUID);
+  bool smoke = (fds->type == FLUID_DOMAIN_TYPE_GAS);
+  bool noise = smoke && fds->flags & FLUID_DOMAIN_USE_NOISE;
+  bool heat = smoke && fds->active_fields & FLUID_DOMAIN_ACTIVE_HEAT;
+  bool colors = smoke && fds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS;
+  bool fire = smoke && fds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE;
+  bool obstacle = fds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE;
+  bool guiding = fds->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
+  bool invel = fds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
+  bool outflow = fds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW;
+  bool drops = liquid && fds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY;
+  bool bubble = liquid && fds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE;
+  bool floater = liquid && fds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM;
+  bool tracer = liquid && fds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER;
+  bool parts = liquid && (drops | bubble | floater | tracer);
+  bool mesh = liquid && fds->flags & FLUID_DOMAIN_USE_MESH;
+  bool meshvel = liquid && mesh && fds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS;
 
   string func = "getDataPointer";
   string funcNodes = "getNodesDataPointer";
   string funcTris = "getTrisDataPointer";
 
   string id = to_string(mCurrentID);
-  string solver = "s" + id;
-  string parts = "pp" + id;
-  string snd = "sp" + id;
-  string mesh = "sm" + id;
-  string mesh2 = "mesh" + id;
-  string noise = "sn" + id;
-  string solver_ext = "_" + solver;
-  string parts_ext = "_" + parts;
-  string snd_ext = "_" + snd;
-  string mesh_ext = "_" + mesh;
-  string mesh_ext2 = "_" + mesh2;
-  string noise_ext = "_" + noise;
+  string s_ext = "_s" + id;
+  string pp_ext = "_pp" + id;
+  string snd_ext = "_sp" + id;
+  string sm_ext = "_sm" + id;
+  string mesh_ext = "_mesh" + id;
+  string sn_ext = "_sn" + id;
 
-  mFlags = (int *)pyObjectToPointer(callPythonFunction("flags" + solver_ext, func));
-  mPhiIn = (float *)pyObjectToPointer(callPythonFunction("phiIn" + solver_ext, func));
-  mPhiStaticIn = (float *)pyObjectToPointer(callPythonFunction("phiSIn" + solver_ext, func));
-  mVelocityX = (float *)pyObjectToPointer(callPythonFunction("x_vel" + solver_ext, func));
-  mVelocityY = (float *)pyObjectToPointer(callPythonFunction("y_vel" + solver_ext, func));
-  mVelocityZ = (float *)pyObjectToPointer(callPythonFunction("z_vel" + solver_ext, func));
-  mForceX = (float *)pyObjectToPointer(callPythonFunction("x_force" + solver_ext, func));
-  mForceY = (float *)pyObjectToPointer(callPythonFunction("y_force" + solver_ext, func));
-  mForceZ = (float *)pyObjectToPointer(callPythonFunction("z_force" + solver_ext, func));
+  mFlags = getPointer<int>("flags" + s_ext, func);
+  mPhiIn = getPointer<float>("phiIn" + s_ext, func);
+  mPhiStaticIn = getPointer<float>("phiSIn" + s_ext, func);
+  mVelocityX = getPointer<float>("x_vel" + s_ext, func);
+  mVelocityY = getPointer<float>("y_vel" + s_ext, func);
+  mVelocityZ = getPointer<float>("z_vel" + s_ext, func);
+  mForceX = getPointer<float>("x_force" + s_ext, func);
+  mForceY = getPointer<float>("y_force" + s_ext, func);
+  mForceZ = getPointer<float>("z_force" + s_ext, func);
 
-  if (mUsingOutflow) {
-    mPhiOutIn = (float *)pyObjectToPointer(callPythonFunction("phiOutIn" + solver_ext, func));
-    mPhiOutStaticIn = (float *)pyObjectToPointer(
-        callPythonFunction("phiOutSIn" + solver_ext, func));
-  }
-  if (mUsingObstacle) {
-    mPhiObsIn = (float *)pyObjectToPointer(callPythonFunction("phiObsIn" + solver_ext, func));
-    mPhiObsStaticIn = (float *)pyObjectToPointer(
-        callPythonFunction("phiObsSIn" + solver_ext, func));
-    mObVelocityX = (float *)pyObjectToPointer(callPythonFunction("x_obvel" + solver_ext, func));
-    mObVelocityY = (float *)pyObjectToPointer(callPythonFunction("y_obvel" + solver_ext, func));
-    mObVelocityZ = (float *)pyObjectToPointer(callPythonFunction("z_obvel" + solver_ext, func));
-    mNumObstacle = (float *)pyObjectToPointer(callPythonFunction("numObs" + solver_ext, func));
-  }
-  if (mUsingGuiding) {
-    mPhiGuideIn = (float *)pyObjectToPointer(callPythonFunction("phiGuideIn" + solver_ext, func));
-    mGuideVelocityX = (float *)pyObjectToPointer(
-        callPythonFunction("x_guidevel" + solver_ext, func));
-    mGuideVelocityY = (float *)pyObjectToPointer(
-        callPythonFunction("y_guidevel" + solver_ext, func));
-    mGuideVelocityZ = (float *)pyObjectToPointer(
-        callPythonFunction("z_guidevel" + solver_ext, func));
-    mNumGuide = (float *)pyObjectToPointer(callPythonFunction("numGuides" + solver_ext, func));
-  }
-  if (mUsingInvel) {
-    mInVelocityX = (float *)pyObjectToPointer(callPythonFunction("x_invel" + solver_ext, func));
-    mInVelocityY = (float *)pyObjectToPointer(callPythonFunction("y_invel" + solver_ext, func));
-    mInVelocityZ = (float *)pyObjectToPointer(callPythonFunction("z_invel" + solver_ext, func));
-  }
-  if (mUsingSmoke) {
-    mDensity = (float *)pyObjectToPointer(callPythonFunction("density" + solver_ext, func));
-    mDensityIn = (float *)pyObjectToPointer(callPythonFunction("densityIn" + solver_ext, func));
-    mShadow = (float *)pyObjectToPointer(callPythonFunction("shadow" + solver_ext, func));
-    mEmissionIn = (float *)pyObjectToPointer(callPythonFunction("emissionIn" + solver_ext, func));
-  }
-  if (mUsingSmoke && mUsingHeat) {
-    mHeat = (float *)pyObjectToPointer(callPythonFunction("heat" + solver_ext, func));
-    mHeatIn = (float *)pyObjectToPointer(callPythonFunction("heatIn" + solver_ext, func));
-  }
-  if (mUsingSmoke && mUsingFire) {
-    mFlame = (float *)pyObjectToPointer(callPythonFunction("flame" + solver_ext, func));
-    mFuel = (float *)pyObjectToPointer(callPythonFunction("fuel" + solver_ext, func));
-    mReact = (float *)pyObjectToPointer(callPythonFunction("react" + solver_ext, func));
-    mFuelIn = (float *)pyObjectToPointer(callPythonFunction("fuelIn" + solver_ext, func));
-    mReactIn = (float *)pyObjectToPointer(callPythonFunction("reactIn" + solver_ext, func));
-  }
-  if (mUsingSmoke && mUsingColors) {
-    mColorR = (float *)pyObjectToPointer(callPythonFunction("color_r" + solver_ext, func));
-    mColorG = (float *)pyObjectToPointer(callPythonFunction("color_g" + solver_ext, func));
-    mColorB = (float *)pyObjectToPointer(callPythonFunction("color_b" + solver_ext, func));
-    mColorRIn = (float *)pyObjectToPointer(callPythonFunction("color_r_in" + solver_ext, func));
-    mColorGIn = (float *)pyObjectToPointer(callPythonFunction("color_g_in" + solver_ext, func));
-    mColorBIn = (float *)pyObjectToPointer(callPythonFunction("color_b_in" + solver_ext, func));
-  }
-  if (mUsingSmoke && mUsingNoise) {
-    mDensityHigh = (float *)pyObjectToPointer(callPythonFunction("density" + noise_ext, func));
-    mTextureU = (float *)pyObjectToPointer(callPythonFunction("texture_u" + solver_ext, func));
-    mTextureV = (float *)pyObjectToPointer(callPythonFunction("texture_v" + solver_ext, func));
-    mTextureW = (float *)pyObjectToPointer(callPythonFunction("texture_w" + solver_ext, func));
-    mTextureU2 = (float *)pyObjectToPointer(callPythonFunction("texture_u2" + solver_ext, func));
-    mTextureV2 = (float *)pyObjectToPointer(callPythonFunction("texture_v2" + solver_ext, func));
-    mTextureW2 = (float *)pyObjectToPointer(callPythonFunction("texture_w2" + solver_ext, func));
-  }
-  if (mUsingSmoke && mUsingNoise && mUsingFire) {
-    mFlameHigh = (float *)pyObjectToPointer(callPythonFunction("flame" + noise_ext, func));
-    mFuelHigh = (float *)pyObjectToPointer(callPythonFunction("fuel" + noise_ext, func));
-    mReactHigh = (float *)pyObjectToPointer(callPythonFunction("react" + noise_ext, func));
-  }
-  if (mUsingSmoke && mUsingNoise && mUsingColors) {
-    mColorRHigh = (float *)pyObjectToPointer(callPythonFunction("color_r" + noise_ext, func));
-    mColorGHigh = (float *)pyObjectToPointer(callPythonFunction("color_g" + noise_ext, func));
-    mColorBHigh = (float *)pyObjectToPointer(callPythonFunction("color_b" + noise_ext, func));
-  }
-  if (mUsingLiquid) {
-    mPhi = (float *)pyObjectToPointer(callPythonFunction("phi" + solver_ext, func));
-    mFlipParticleData = (vector<pData> *)pyObjectToPointer(
-        callPythonFunction("pp" + solver_ext, func));
-    mFlipParticleVelocity = (vector<pVel> *)pyObjectToPointer(
-        callPythonFunction("pVel" + parts_ext, func));
-  }
-  if (mUsingLiquid && mUsingMesh) {
-    mMeshNodes = (vector<Node> *)pyObjectToPointer(
-        callPythonFunction("mesh" + mesh_ext, funcNodes));
-    mMeshTriangles = (vector<Triangle> *)pyObjectToPointer(
-        callPythonFunction("mesh" + mesh_ext, funcTris));
-  }
-  if (mUsingLiquid && mUsingMVel) {
-    mMeshVelocities = (vector<pVel> *)pyObjectToPointer(
-        callPythonFunction("mVel" + mesh_ext2, func));
-  }
-  if (mUsingLiquid && (mUsingDrops | mUsingBubbles | mUsingFloats | mUsingTracers)) {
-    mSndParticleData = (vector<pData> *)pyObjectToPointer(
-        callPythonFunction("ppSnd" + snd_ext, func));
-    mSndParticleVelocity = (vector<pVel> *)pyObjectToPointer(
-        callPythonFunction("pVelSnd" + parts_ext, func));
-    mSndParticleLife = (vector<float> *)pyObjectToPointer(
-        callPythonFunction("pLifeSnd" + parts_ext, func));
-  }
+  /* Outflow. */
+  mPhiOutIn = (outflow) ? getPointer<float>("phiOutIn" + s_ext, func) : nullptr;
+  mPhiOutStaticIn = (outflow) ? getPointer<float>("phiOutSIn" + s_ext, func) : nullptr;
+
+  /* Obstacles. */
+  mPhiObsIn = (obstacle) ? getPointer<float>("phiObsIn" + s_ext, func) : nullptr;
+  mPhiObsStaticIn = (obstacle) ? getPointer<float>("phiObsSIn" + s_ext, func) : nullptr;
+  mObVelocityX = (obstacle) ? getPointer<float>("x_obvel" + s_ext, func) : nullptr;
+  mObVelocityY = (obstacle) ? getPointer<float>("y_obvel" + s_ext, func) : nullptr;
+  mObVelocityZ = (obstacle) ? getPointer<float>("z_obvel" + s_ext, func) : nullptr;
+  mNumObstacle = (obstacle) ? getPointer<float>("numObs" + s_ext, func) : nullptr;
+
+  /* Guiding. */
+  mPhiGuideIn = (guiding) ? getPointer<float>("phiGuideIn" + s_ext, func) : nullptr;
+  mGuideVelocityX = (guiding) ? getPointer<float>("x_guidevel" + s_ext, func) : nullptr;
+  mGuideVelocityY = (guiding) ? getPointer<float>("y_guidevel" + s_ext, func) : nullptr;
+  mGuideVelocityZ = (guiding) ? getPointer<float>("z_guidevel" + s_ext, func) : nullptr;
+  mNumGuide = (guiding) ? getPointer<float>("numGuides" + s_ext, func) : nullptr;
+
+  /* Initial velocities. */
+  mInVelocityX = (invel) ? getPointer<float>("x_invel" + s_ext, func) : nullptr;
+  mInVelocityY = (invel) ? getPointer<float>("y_invel" + s_ext, func) : nullptr;
+  mInVelocityZ = (invel) ? getPointer<float>("z_invel" + s_ext, func) : nullptr;
+
+  /* Smoke. */
+  mDensity = (smoke) ? getPointer<float>("density" + s_ext, func) : nullptr;
+  mDensityIn = (smoke) ? getPointer<float>("densityIn" + s_ext, func) : nullptr;
+  mShadow = (smoke) ? getPointer<float>("shadow" + s_ext, func) : nullptr;
+  mEmissionIn = (smoke) ? getPointer<float>("emissionIn" + s_ext, func) : nullptr;
+
+  /* Heat. */
+  mHeat = (heat) ? getPointer<float>("heat" + s_ext, func) : nullptr;
+  mHeatIn = (heat) ? getPointer<float>("heatIn" + s_ext, func) : nullptr;
+
+  /* Fire. */
+  mFlame = (fire) ? getPointer<float>("flame" + s_ext, func) : nullptr;
+  mFuel = (fire) ? getPointer<float>("fuel" + s_ext, func) : nullptr;
+  mReact = (fire) ? getPointer<float>("react" + s_ext, func) : nullptr;
+  mFuelIn = (fire) ? getPointer<float>("fuelIn" + s_ext, func) : nullptr;
+  mReactIn = (fire) ? getPointer<float>("reactIn" + s_ext, func) : nullptr;
+
+  /* Colors. */
+  mColorR = (colors) ? getPointer<float>("color_r" + s_ext, func) : nullptr;
+  mColorG = (colors) ? getPointer<float>("color_g" + s_ext, func) : nullptr;
+  mColorB = (colors) ? getPointer<float>("color_b" + s_ext, func) : nullptr;
+  mColorRIn = (colors) ? getPointer<float>("color_r_in" + s_ext, func) : nullptr;
+  mColorGIn = (colors) ? getPointer<float>("color_g_in" + s_ext, func) : nullptr;
+  mColorBIn = (colors) ? getPointer<float>("color_b_in" + s_ext, func) : nullptr;
+
+  /* Noise. */
+  mDensityHigh = (noise) ? getPointer<float>("density" + sn_ext, func) : nullptr;
+  mTextureU = (noise) ? getPointer<float>("texture_u" + s_ext, func) : nullptr;
+  mTextureV = (noise) ? getPointer<float>("texture_v" + s_ext, func) : nullptr;
+  mTextureW = (noise) ? getPointer<float>("texture_w" + s_ext, func) : nullptr;
+  mTextureU2 = (noise) ? getPointer<float>("texture_u2" + s_ext, func) : nullptr;
+  mTextureV2 = (noise) ? getPointer<float>("texture_v2" + s_ext, func) : nullptr;
+  mTextureW2 = (noise) ? getPointer<float>("texture_w2" + s_ext, func) : nullptr;
+
+  /* Fire with noise. */
+  mFlameHigh = (noise && fire) ? getPointer<float>("flame" + sn_ext, func) : nullptr;
+  mFuelHigh = (noise && fire) ? getPointer<float>("fuel" + sn_ext, func) : nullptr;
+  mReactHigh = (noise && fire) ? getPointer<float>("react" + sn_ext, func) : nullptr;
+
+  /* Colors with noise. */
+  mColorRHigh = (noise && colors) ? getPointer<float>("color_r" + sn_ext, func) : nullptr;
+  mColorGHigh = (noise && colors) ? getPointer<float>("color_g" + sn_ext, func) : nullptr;
+  mColorBHigh = (noise && colors) ? getPointer<float>("color_b" + sn_ext, func) : nullptr;
+
+  /* Liquid. */
+  mPhi = (liquid) ? getPointer<float>("phi" + s_ext, func) : nullptr;
+  mFlipParticleData = (liquid) ? getPointer<vector<pData>>("pp" + s_ext, func) : nullptr;
+  mFlipParticleVelocity = (liquid) ? getPointer<vector<pVel>>("pVel" + pp_ext, func) : nullptr;
+
+  /* Mesh. */
+  mMeshNodes = (mesh) ? getPointer<vector<Node>>("mesh" + sm_ext, funcNodes) : nullptr;
+  mMeshTriangles = (mesh) ? getPointer<vector<Triangle>>("mesh" + sm_ext, funcTris) : nullptr;
+
+  /* Mesh velocities. */
+  mMeshVelocities = (meshvel) ? getPointer<vector<pVel>>("mVel" + mesh_ext, func) : nullptr;
+
+  /* Secondary particles. */
+  mSndParticleData = (parts) ? getPointer<vector<pData>>("ppSnd" + snd_ext, func) : nullptr;
+  mSndParticleVelocity = (parts) ? getPointer<vector<pVel>>("pVelSnd" + pp_ext, func) : nullptr;
+  mSndParticleLife = (parts) ? getPointer<vector<float>>("pLifeSnd" + pp_ext, func) : nullptr;
 
   mFlipFromFile = false;
   mMeshFromFile = false;

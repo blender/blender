@@ -81,7 +81,7 @@ struct MANTA {
   void initLiquidSndParts(FluidModifierData *fmd = NULL);
 
   // Pointer transfer: Mantaflow -> Blender
-  void updatePointers();
+  void updatePointers(FluidModifierData *fmd);
 
   // Write cache
   bool writeConfiguration(FluidModifierData *fmd, int framenr);
