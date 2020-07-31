@@ -238,7 +238,7 @@ static inline string image_user_file_path(BL::ImageUser &iuser,
 {
   char filepath[1024];
   iuser.tile(0);
-  BKE_image_user_frame_calc(NULL, iuser.ptr.data, cfra);
+  BKE_image_user_frame_calc(ima.ptr.data, iuser.ptr.data, cfra);
   BKE_image_user_file_path(iuser.ptr.data, ima.ptr.data, filepath);
 
   string filepath_str = string(filepath);
@@ -248,9 +248,9 @@ static inline string image_user_file_path(BL::ImageUser &iuser,
   return filepath_str;
 }
 
-static inline int image_user_frame_number(BL::ImageUser &iuser, int cfra)
+static inline int image_user_frame_number(BL::ImageUser &iuser, BL::Image &ima, int cfra)
 {
-  BKE_image_user_frame_calc(NULL, iuser.ptr.data, cfra);
+  BKE_image_user_frame_calc(ima.ptr.data, iuser.ptr.data, cfra);
   return iuser.frame_current();
 }
 

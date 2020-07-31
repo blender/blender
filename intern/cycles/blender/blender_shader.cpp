@@ -678,7 +678,7 @@ static ShaderNode *add_node(Scene *scene,
          * builtin names for packed images and movies
          */
         int scene_frame = b_scene.frame_current();
-        int image_frame = image_user_frame_number(b_image_user, scene_frame);
+        int image_frame = image_user_frame_number(b_image_user, b_image, scene_frame);
         image->handle = scene->image_manager->add_image(
             new BlenderImageLoader(b_image, image_frame), image->image_params());
       }
@@ -713,7 +713,7 @@ static ShaderNode *add_node(Scene *scene,
 
       if (is_builtin) {
         int scene_frame = b_scene.frame_current();
-        int image_frame = image_user_frame_number(b_image_user, scene_frame);
+        int image_frame = image_user_frame_number(b_image_user, b_image, scene_frame);
         env->handle = scene->image_manager->add_image(new BlenderImageLoader(b_image, image_frame),
                                                       env->image_params());
       }
