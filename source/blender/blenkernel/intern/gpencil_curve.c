@@ -363,7 +363,7 @@ static void gpencil_convert_spline(Main *bmain,
         BKE_nurb_makeCurve(nu, coord_array, NULL, NULL, NULL, resolu, sizeof(float[3]));
 
         /* Allocate memory for storage points. */
-        gps->totpoints = nurb_points - 1;
+        gps->totpoints = nurb_points;
         gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
 
         /* Add points. */
