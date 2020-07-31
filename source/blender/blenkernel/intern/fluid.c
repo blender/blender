@@ -1119,6 +1119,7 @@ static void ensure_obstaclefields(FluidDomainSettings *fds)
   if (fds->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE) {
     manta_ensure_guiding(fds->fluid, fds->fmd);
   }
+  manta_update_pointers(fds->fluid, fds->fmd);
 }
 
 static void update_obstacleflags(FluidDomainSettings *fds,
@@ -2605,6 +2606,7 @@ static void ensure_flowsfields(FluidDomainSettings *fds)
        fds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER)) {
     manta_liquid_ensure_sndparts(fds->fluid, fds->fmd);
   }
+  manta_update_pointers(fds->fluid, fds->fmd);
 }
 
 static void update_flowsflags(FluidDomainSettings *fds, Object **flowobjs, int numflowobj)
@@ -3627,11 +3629,7 @@ static int manta_step(
     manta_smoke_calc_transparency(fds, DEG_get_evaluated_view_layer(depsgraph));
   }
 
-  /* Ensure that fluid data is always up to date. */
-  manta_update_pointers(fds->fluid, fmd);
-
   BLI_mutex_unlock(&object_update_lock);
-
   return result;
 }
 
@@ -4079,6 +4077,9 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
       }
     }
   }
+
+  /* Ensure that fluid pointers are always up to date at the end of modifier processing. */
+  manta_update_pointers(fds->fluid, fmd);
 
   fds->flags &= ~FLUID_DOMAIN_FILE_LOAD;
   fmd->time = scene_framenr;
