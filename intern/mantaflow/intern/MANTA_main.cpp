@@ -196,17 +196,18 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
   // Initializa RNA map with values that Python will need
   initializeRNAMap(fmd);
 
+  bool initSuccess = true;
   // Initialize Mantaflow variables in Python
   // Liquid
   if (mUsingLiquid) {
-    initDomain();
-    initLiquid();
+    initSuccess &= initDomain();
+    initSuccess &= initLiquid();
     if (mUsingObstacle)
-      initObstacle();
+      initSuccess &= initObstacle();
     if (mUsingInvel)
-      initInVelocity();
+      initSuccess &= initInVelocity();
     if (mUsingOutflow)
-      initOutflow();
+      initSuccess &= initOutflow();
 
     if (mUsingDrops || mUsingBubbles || mUsingFloats || mUsingTracers) {
       mUpresParticle = fds->particle_scale;
@@ -215,8 +216,8 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
       mResZParticle = mUpresParticle * mResZ;
       mTotalCellsParticles = mResXParticle * mResYParticle * mResZParticle;
 
-      initSndParts();
-      initLiquidSndParts();
+      initSuccess &= initSndParts();
+      initSuccess &= initLiquidSndParts();
     }
 
     if (mUsingMesh) {
@@ -227,43 +228,43 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
       mTotalCellsMesh = mResXMesh * mResYMesh * mResZMesh;
 
       // Initialize Mantaflow variables in Python
-      initMesh();
-      initLiquidMesh();
+      initSuccess &= initMesh();
+      initSuccess &= initLiquidMesh();
     }
 
     if (mUsingDiffusion) {
-      initCurvature();
+      initSuccess &= initCurvature();
     }
 
     if (mUsingGuiding) {
       mResGuiding = (fds->guide_parent) ? fds->guide_res : fds->res;
-      initGuiding();
+      initSuccess &= initGuiding();
     }
     if (mUsingFractions) {
-      initFractions();
+      initSuccess &= initFractions();
     }
   }
 
   // Smoke
   if (mUsingSmoke) {
-    initDomain();
-    initSmoke();
+    initSuccess &= initDomain();
+    initSuccess &= initSmoke();
     if (mUsingHeat)
-      initHeat();
+      initSuccess &= initHeat();
     if (mUsingFire)
-      initFire();
+      initSuccess &= initFire();
     if (mUsingColors)
-      initColors();
+      initSuccess &= initColors();
     if (mUsingObstacle)
-      initObstacle();
+      initSuccess &= initObstacle();
     if (mUsingInvel)
-      initInVelocity();
+      initSuccess &= initInVelocity();
     if (mUsingOutflow)
-      initOutflow();
+      initSuccess &= initOutflow();
 
     if (mUsingGuiding) {
       mResGuiding = (fds->guide_parent) ? fds->guide_res : fds->res;
-      initGuiding();
+      initSuccess &= initGuiding();
     }
 
     if (mUsingNoise) {
@@ -274,19 +275,20 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
       mTotalCellsHigh = mResXNoise * mResYNoise * mResZNoise;
 
       // Initialize Mantaflow variables in Python
-      initNoise();
-      initSmokeNoise();
+      initSuccess &= initNoise();
+      initSuccess &= initSmokeNoise();
       if (mUsingFire)
-        initFireHigh();
+        initSuccess &= initFireHigh();
       if (mUsingColors)
-        initColorsHigh();
+        initSuccess &= initColorsHigh();
     }
   }
-
+  /* All requested initializations must not fail in constructor. */
+  BLI_assert(initSuccess);
   updatePointers(fmd);
 }
 
-void MANTA::initDomain(FluidModifierData *fmd)
+bool MANTA::initDomain(FluidModifierData *fmd)
 {
   // Vector will hold all python commands that are to be executed
   vector<string> pythonCommands;
@@ -306,20 +308,20 @@ void MANTA::initDomain(FluidModifierData *fmd)
                      fluid_adapt_time_step + fluid_time_stepping;
   string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
-  runPythonString(pythonCommands);
+  return runPythonString(pythonCommands);
 }
 
-void MANTA::initNoise(FluidModifierData *fmd)
+bool MANTA::initNoise(FluidModifierData *fmd)
 {
   vector<string> pythonCommands;
   string tmpString = fluid_variables_noise + fluid_solver_noise;
   string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
-  runPythonString(pythonCommands);
+  return runPythonString(pythonCommands);
 }
 
-void MANTA::initSmoke(FluidModifierData *fmd)
+bool MANTA::initSmoke(FluidModifierData *fmd)
 {
   vector<string> pythonCommands;
   string tmpString = smoke_variables + smoke_alloc + smoke_adaptive_step + smoke_save_data +
@@ -327,10 +329,10 @@ void MANTA::initSmoke(FluidModifierData *fmd)
   string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
-  runPythonString(pythonCommands);
+  return runPythonString(pythonCommands);
 }
 
-void MANTA::initSmokeNoise(FluidModifierData *fmd)
+bool MANTA::initSmokeNoise(FluidModifierData *fmd)
 {
   vector<string> pythonCommands;
   string tmpString = smoke_variables_noise + smoke_alloc_noise + smoke_wavelet_noise +
@@ -338,11 +340,11 @@ void MANTA::initSmokeNoise(FluidModifierData *fmd)
   string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
-  runPythonString(pythonCommands);
   mUsingNoise = true;
+  return runPythonString(pythonCommands);
 }
 
-void MANTA::initHeat(FluidModifierData *fmd)
+bool MANTA::initHeat(FluidModifierData *fmd)
 {
   if (!mHeat) {
     vector<string> pythonCommands;
@@ -350,12 +352,13 @@ void MANTA::initHeat(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    runPythonString(pythonCommands);
     mUsingHeat = true;
+    return runPythonString(pythonCommands);
   }
+  return false;
 }
 
-void MANTA::initFire(FluidModifierData *fmd)
+bool MANTA::initFire(FluidModifierData *fmd)
 {
   if (!mFuel) {
     vector<string> pythonCommands;
@@ -363,12 +366,13 @@ void MANTA::initFire(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    runPythonString(pythonCommands);
     mUsingFire = true;
+    return runPythonString(pythonCommands);
   }
+  return false;
 }
 
-void MANTA::initFireHigh(FluidModifierData *fmd)
+bool MANTA::initFireHigh(FluidModifierData *fmd)
 {
   if (!mFuelHigh) {
     vector<string> pythonCommands;
@@ -376,12 +380,13 @@ void MANTA::initFireHigh(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    runPythonString(pythonCommands);
     mUsingFire = true;
+    return runPythonString(pythonCommands);
   }
+  return false;
 }
 
-void MANTA::initColors(FluidModifierData *fmd)
+bool MANTA::initColors(FluidModifierData *fmd)
 {
   if (!mColorR) {
     vector<string> pythonCommands;
@@ -389,12 +394,13 @@ void MANTA::initColors(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    runPythonString(pythonCommands);
     mUsingColors = true;
+    return runPythonString(pythonCommands);
   }
+  return false;
 }
 
-void MANTA::initColorsHigh(FluidModifierData *fmd)
+bool MANTA::initColorsHigh(FluidModifierData *fmd)
 {
   if (!mColorRHigh) {
     vector<string> pythonCommands;
@@ -402,12 +408,13 @@ void MANTA::initColorsHigh(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    runPythonString(pythonCommands);
     mUsingColors = true;
+    return runPythonString(pythonCommands);
   }
+  return false;
 }
 
-void MANTA::initLiquid(FluidModifierData *fmd)
+bool MANTA::initLiquid(FluidModifierData *fmd)
 {
   if (!mPhiIn) {
     vector<string> pythonCommands;
@@ -416,44 +423,45 @@ void MANTA::initLiquid(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    runPythonString(pythonCommands);
     mUsingLiquid = true;
+    return runPythonString(pythonCommands);
   }
+  return false;
 }
 
-void MANTA::initMesh(FluidModifierData *fmd)
+bool MANTA::initMesh(FluidModifierData *fmd)
 {
   vector<string> pythonCommands;
   string tmpString = fluid_variables_mesh + fluid_solver_mesh + liquid_load_mesh;
   string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
-  runPythonString(pythonCommands);
   mUsingMesh = true;
+  return runPythonString(pythonCommands);
 }
 
-void MANTA::initLiquidMesh(FluidModifierData *fmd)
+bool MANTA::initLiquidMesh(FluidModifierData *fmd)
 {
   vector<string> pythonCommands;
   string tmpString = liquid_alloc_mesh + liquid_step_mesh + liquid_save_mesh;
   string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
-  runPythonString(pythonCommands);
   mUsingMesh = true;
+  return runPythonString(pythonCommands);
 }
 
-void MANTA::initCurvature(FluidModifierData *fmd)
+bool MANTA::initCurvature(FluidModifierData *fmd)
 {
   std::vector<std::string> pythonCommands;
   std::string finalString = parseScript(liquid_alloc_curvature, fmd);
   pythonCommands.push_back(finalString);
 
-  runPythonString(pythonCommands);
   mUsingDiffusion = true;
+  return runPythonString(pythonCommands);
 }
 
-void MANTA::initObstacle(FluidModifierData *fmd)
+bool MANTA::initObstacle(FluidModifierData *fmd)
 {
   if (!mPhiObsIn) {
     vector<string> pythonCommands;
@@ -461,12 +469,13 @@ void MANTA::initObstacle(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    runPythonString(pythonCommands);
     mUsingObstacle = true;
+    return runPythonString(pythonCommands);
   }
+  return false;
 }
 
-void MANTA::initGuiding(FluidModifierData *fmd)
+bool MANTA::initGuiding(FluidModifierData *fmd)
 {
   if (!mPhiGuideIn) {
     vector<string> pythonCommands;
@@ -475,23 +484,24 @@ void MANTA::initGuiding(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    runPythonString(pythonCommands);
     mUsingGuiding = true;
+    return runPythonString(pythonCommands);
   }
+  return false;
 }
 
-void MANTA::initFractions(FluidModifierData *fmd)
+bool MANTA::initFractions(FluidModifierData *fmd)
 {
   vector<string> pythonCommands;
   string tmpString = fluid_alloc_fractions + fluid_with_fractions;
   string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
-  runPythonString(pythonCommands);
   mUsingFractions = true;
+  return runPythonString(pythonCommands);
 }
 
-void MANTA::initInVelocity(FluidModifierData *fmd)
+bool MANTA::initInVelocity(FluidModifierData *fmd)
 {
   if (!mInVelocityX) {
     vector<string> pythonCommands;
@@ -499,12 +509,13 @@ void MANTA::initInVelocity(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    runPythonString(pythonCommands);
     mUsingInvel = true;
+    return runPythonString(pythonCommands);
   }
+  return false;
 }
 
-void MANTA::initOutflow(FluidModifierData *fmd)
+bool MANTA::initOutflow(FluidModifierData *fmd)
 {
   if (!mPhiOutIn) {
     vector<string> pythonCommands;
@@ -512,22 +523,23 @@ void MANTA::initOutflow(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    runPythonString(pythonCommands);
     mUsingOutflow = true;
+    return runPythonString(pythonCommands);
   }
+  return false;
 }
 
-void MANTA::initSndParts(FluidModifierData *fmd)
+bool MANTA::initSndParts(FluidModifierData *fmd)
 {
   vector<string> pythonCommands;
   string tmpString = fluid_variables_particles + fluid_solver_particles;
   string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
-  runPythonString(pythonCommands);
+  return runPythonString(pythonCommands);
 }
 
-void MANTA::initLiquidSndParts(FluidModifierData *fmd)
+bool MANTA::initLiquidSndParts(FluidModifierData *fmd)
 {
   if (!mSndParticleData) {
     vector<string> pythonCommands;
@@ -537,8 +549,9 @@ void MANTA::initLiquidSndParts(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    runPythonString(pythonCommands);
+    return runPythonString(pythonCommands);
   }
+  return false;
 }
 
 MANTA::~MANTA()

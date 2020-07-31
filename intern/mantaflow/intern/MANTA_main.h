@@ -64,21 +64,21 @@ struct MANTA {
   void step(struct FluidModifierData *fmd, int startFrame);
 
   // Grid initialization functions
-  void initHeat(struct FluidModifierData *fmd = NULL);
-  void initFire(struct FluidModifierData *fmd = NULL);
-  void initColors(struct FluidModifierData *fmd = NULL);
-  void initFireHigh(struct FluidModifierData *fmd = NULL);
-  void initColorsHigh(struct FluidModifierData *fmd = NULL);
-  void initLiquid(FluidModifierData *fmd = NULL);
-  void initLiquidMesh(FluidModifierData *fmd = NULL);
-  void initObstacle(FluidModifierData *fmd = NULL);
-  void initCurvature(FluidModifierData *fmd = NULL);
-  void initGuiding(FluidModifierData *fmd = NULL);
-  void initFractions(FluidModifierData *fmd = NULL);
-  void initInVelocity(FluidModifierData *fmd = NULL);
-  void initOutflow(FluidModifierData *fmd = NULL);
-  void initSndParts(FluidModifierData *fmd = NULL);
-  void initLiquidSndParts(FluidModifierData *fmd = NULL);
+  bool initHeat(struct FluidModifierData *fmd = NULL);
+  bool initFire(struct FluidModifierData *fmd = NULL);
+  bool initColors(struct FluidModifierData *fmd = NULL);
+  bool initFireHigh(struct FluidModifierData *fmd = NULL);
+  bool initColorsHigh(struct FluidModifierData *fmd = NULL);
+  bool initLiquid(FluidModifierData *fmd = NULL);
+  bool initLiquidMesh(FluidModifierData *fmd = NULL);
+  bool initObstacle(FluidModifierData *fmd = NULL);
+  bool initCurvature(FluidModifierData *fmd = NULL);
+  bool initGuiding(FluidModifierData *fmd = NULL);
+  bool initFractions(FluidModifierData *fmd = NULL);
+  bool initInVelocity(FluidModifierData *fmd = NULL);
+  bool initOutflow(FluidModifierData *fmd = NULL);
+  bool initSndParts(FluidModifierData *fmd = NULL);
+  bool initLiquidSndParts(FluidModifierData *fmd = NULL);
 
   // Pointer transfer: Mantaflow -> Blender
   void updatePointers(FluidModifierData *fmd);
@@ -874,12 +874,12 @@ struct MANTA {
   vector<pVel> *mSndParticleVelocity;
   vector<float> *mSndParticleLife;
 
-  void initializeRNAMap(struct FluidModifierData *fmd = NULL);
-  void initDomain(struct FluidModifierData *fmd = NULL);
-  void initNoise(struct FluidModifierData *fmd = NULL);
-  void initMesh(struct FluidModifierData *fmd = NULL);
-  void initSmoke(struct FluidModifierData *fmd = NULL);
-  void initSmokeNoise(struct FluidModifierData *fmd = NULL);
+  void initializeRNAMap(struct FluidModifierData *doRnaRefresh = NULL);
+  bool initDomain(struct FluidModifierData *doRnaRefresh = NULL);
+  bool initNoise(struct FluidModifierData *doRnaRefresh = NULL);
+  bool initMesh(struct FluidModifierData *doRnaRefresh = NULL);
+  bool initSmoke(struct FluidModifierData *doRnaRefresh = NULL);
+  bool initSmokeNoise(struct FluidModifierData *doRnaRefresh = NULL);
   void initializeMantaflow();
   void terminateMantaflow();
   bool runPythonString(vector<string> commands);
