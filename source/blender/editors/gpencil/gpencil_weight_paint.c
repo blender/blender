@@ -453,9 +453,9 @@ static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
 
           /* To each point individually... */
           pt = &gps->points[i];
-          pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
-          index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i;
+          pt_active = pt->runtime.pt_orig;
           if (pt_active != NULL) {
+            index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i;
             gpencil_save_selected_point(gso, gps_active, index, pc1);
           }
 
@@ -469,9 +469,9 @@ static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
            */
           if (i + 1 == gps->totpoints - 1) {
             pt = &gps->points[i + 1];
-            pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
-            index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i + 1;
+            pt_active = pt->runtime.pt_orig;
             if (pt_active != NULL) {
+              index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i + 1;
               gpencil_save_selected_point(gso, gps_active, index, pc2);
               include_last = false;
             }
@@ -487,9 +487,9 @@ static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
            * (but wasn't added then, to avoid double-ups).
            */
           pt = &gps->points[i];
-          pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
-          index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i;
+          pt_active = pt->runtime.pt_orig;
           if (pt_active != NULL) {
+            index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i;
             gpencil_save_selected_point(gso, gps_active, index, pc1);
 
             include_last = false;
