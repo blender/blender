@@ -214,6 +214,8 @@ if(WITH_GHOST_X11)
   option(WITH_GHOST_XDND    "Enable drag'n'drop support on X11 using XDND protocol" ON)
 endif()
 
+option(WITH_GMP "Use the gmp library for more accurate booleans" OFF)
+
 # Misc...
 option(WITH_HEADLESS      "Build without graphical support (renderfarm, server mode only)" OFF)
 mark_as_advanced(WITH_HEADLESS)

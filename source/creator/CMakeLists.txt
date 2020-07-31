@@ -694,6 +694,23 @@ elseif(WIN32)
     )
   endif()
 
+  if(WITH_GMP)
+    install(
+          FILES ${LIBDIR}/gmp/lib/libgmp-10.dll
+          DESTINATION "."
+    )
+    install(
+          FILES ${LIBDIR}/gmp/lib/libgmpxx.dll
+          DESTINATION "."
+          CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+    )
+    install(
+          FILES ${LIBDIR}/gmp/lib/libgmpxx_d.dll
+          DESTINATION "."
+          CONFIGURATIONS Debug
+    )
+  endif()
+
   if(WITH_WINDOWS_PDB)
     if(WITH_WINDOWS_STRIPPED_PDB)
       # Icky hack for older cmake from https://stackoverflow.com/a/21198501

@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.1)
+project(libgmpxx)
+
+include_directories(. cxx ${GMP_INCLUDE_DIR})
+add_definitions(-D__GMP_WITHIN_GMPXX)
+add_library(libgmpxx SHARED
+  cxx/dummy.cc
+  cxx/isfuns.cc
+  cxx/ismpf.cc
+  cxx/ismpq.cc
+  cxx/ismpz.cc
+  cxx/ismpznw.cc
+  cxx/limits.cc
+  cxx/osdoprnti.cc
+  cxx/osfuns.cc
+  cxx/osmpf.cc
+  cxx/osmpq.cc
+  cxx/osmpz.cc
+)
+
+target_link_libraries(libgmpxx ${GMP_LIBRARY})
+install(TARGETS libgmpxx DESTINATION lib)

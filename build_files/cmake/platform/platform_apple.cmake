@@ -437,6 +437,14 @@ if(WITH_XR_OPENXR)
   endif()
 endif()
 
+if(WITH_GMP)
+  find_package(GMP)
+  if(NOT GMP_FOUND)
+    message(WARNING "GMP not found, disabling WITH_GMP")
+    set(WITH_GMP OFF)
+  endif()
+endif()
+
 set(EXETYPE MACOSX_BUNDLE)
 
 set(CMAKE_C_FLAGS_DEBUG "-fno-strict-aliasing -g")
