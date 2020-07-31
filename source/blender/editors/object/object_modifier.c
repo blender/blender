@@ -1347,7 +1347,7 @@ static bool modifier_apply_poll_ex(bContext *C, bool allow_shared)
   Object *ob = (ptr.owner_id != NULL) ? (Object *)ptr.owner_id : ED_object_active_context(C);
   ModifierData *md = ptr.data; /* May be NULL. */
 
-  if (ID_IS_OVERRIDE_LIBRARY(ob) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+  if (ID_IS_OVERRIDE_LIBRARY(ob) || ((ob->data != NULL) && ID_IS_OVERRIDE_LIBRARY(ob->data))) {
     CTX_wm_operator_poll_msg_set(C, "Modifiers cannot be applied on override data");
     return false;
   }
