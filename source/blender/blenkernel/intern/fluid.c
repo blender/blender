@@ -3619,17 +3619,17 @@ static int manta_step(
     fds->time_total = time_total;
   }
 
-  /* Replay mode does not lock the UI. Ensure that fluid data is always up to date. */
-  if (mode_replay) {
-    manta_update_pointers(fds->fluid, fmd);
-  }
-
   /* Total time must not exceed framecount times framelength. Correct tiny errors here. */
   CLAMP(fds->time_total, fds->time_total, time_total_old + fds->frame_length);
 
+  /* Compute shadow grid for gas simulations. Make sure to skip if bake job was canceled early. */
   if (fds->type == FLUID_DOMAIN_TYPE_GAS && result) {
     manta_smoke_calc_transparency(fds, DEG_get_evaluated_view_layer(depsgraph));
   }
+
+  /* Ensure that fluid data is always up to date. */
+  manta_update_pointers(fds->fluid, fmd);
+
   BLI_mutex_unlock(&object_update_lock);
 
   return result;
