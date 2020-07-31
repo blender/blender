@@ -31,7 +31,7 @@ static const SessionUUID global_session_uuid_none = {BLI_SESSION_UUID_NONE};
 
 /* Denotes last used UUID.
  * It might eventually overflow, and easiest is to add more bits to it. */
-static SessionUUID global_session_uuid = global_session_uuid_none;
+static SessionUUID global_session_uuid = {BLI_SESSION_UUID_NONE};
 
 SessionUUID BLI_session_uuid_generate(void)
 {
