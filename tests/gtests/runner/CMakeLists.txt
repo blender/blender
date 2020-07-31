@@ -75,10 +75,12 @@ unset(_test_libs)
 # This runs the blender_test executable with `--gtest_list_tests`, then
 # exposes those tests individually to the ctest runner.
 # See https://cmake.org/cmake/help/v3.18/module/GoogleTest.html
-include(GoogleTest)
+#
+# We have our own modified copy of this CMake module.
+include(GTest)
 
 set(_GOOGLETEST_DISCOVER_TESTS_SCRIPT
-  ${CMAKE_CURRENT_LIST_DIR}/BlenderAddTests.cmake
+  ${CMAKE_SOURCE_DIR}/build_files/cmake/Modules/GTestAddTests.cmake
 )
 
 gtest_discover_tests(blender_test
