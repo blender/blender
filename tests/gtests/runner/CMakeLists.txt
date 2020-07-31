@@ -35,10 +35,8 @@ endif()
 # Test libraries need to be linked "whole archive", because they're not
 # directly referenced from other code.
 get_property(_test_libs GLOBAL PROPERTY BLENDER_TEST_LIBS)
-if(WIN32)
-  # Win32 is set using target_link_options after target creation.
-elseif(APPLE)
-  list(APPEND TEST_LIBS "-Wl,-force_load" ${_test_libs})
+if(WIN32 OR APPLE)
+  # Windows and macOS set target_link_options after target creation.
 elseif(UNIX)
   list(APPEND TEST_LIBS "-Wl,--whole-archive" ${_test_libs} "-Wl,--no-whole-archive")
 else()
@@ -62,6 +60,13 @@ if(WIN32)
     # the wholearchive flag in target link options will not.
     target_link_libraries(blender_test ${_lib})
     target_link_options(blender_test PRIVATE /wholearchive:$<TARGET_FILE:${_lib}>)
+  endforeach()
+elseif(APPLE)
+  foreach(_lib ${_test_libs})
+    # We need -force_load for every test library and target_link_libraries will
+    # deduplicate it. So explicitly set as linker option for every test lib.
+    target_link_libraries(blender_test ${_lib})
+    target_link_options(blender_test PRIVATE "LINKER:-force_load,$<TARGET_FILE:${_lib}>")
   endforeach()
 endif()
 
