@@ -551,7 +551,7 @@ static rbCollisionShape *rigidbody_validate_sim_shape_helper(RigidBodyWorld *rbw
       new_shape = rigidbody_get_shape_trimesh_from_mesh(ob);
       break;
     case RB_SHAPE_COMPOUND:
-      new_shape = RB_shape_new_compound(radius);
+      new_shape = RB_shape_new_compound();
       rbCollisionShape *childShape = NULL;
       float loc[3], rot[4];
       float mat[4][4];

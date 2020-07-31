@@ -240,7 +240,7 @@ rbCollisionShape *RB_shape_new_gimpact_mesh(rbMeshData *mesh);
 
 /* Compound Shape ---------------- */
 
-rbCollisionShape *RB_shape_new_compound();
+rbCollisionShape *RB_shape_new_compound(void);
 void RB_compound_add_child_shape(rbCollisionShape *collisionShape,
                                  rbCollisionShape *shape,
                                  const float loc[3],
