@@ -1707,7 +1707,7 @@ void GPENCIL_OT_convert(wmOperatorType *ot)
               0,
               0,
               32,
-              "Bevel_Resolution",
+              "Bevel Resolution",
               "Bevel resolution when depth is non-zero",
               0,
               32);
@@ -1722,7 +1722,7 @@ void GPENCIL_OT_convert(wmOperatorType *ot)
                 1.0f,
                 0.0f,
                 1000.0f,
-                "Radius Fac",
+                "Radius Factor",
                 "Multiplier for the points' radii (set from stroke width)",
                 0.0f,
                 10.0f);
