@@ -2177,7 +2177,7 @@ void GPU_samplers_init(void)
   glGenSamplers(1, &GG.icon_sampler);
   glSamplerParameteri(GG.icon_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
   glSamplerParameteri(GG.icon_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glSamplerParameteri(GG.icon_sampler, GL_TEXTURE_LOD_BIAS, -0.5f);
+  glSamplerParameterf(GG.icon_sampler, GL_TEXTURE_LOD_BIAS, -0.5f);
 }
 
 void GPU_sampler_icon_bind(int unit)
