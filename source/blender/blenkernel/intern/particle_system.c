@@ -4584,7 +4584,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
       psys->dt_frac = get_base_time_step(part);
     }
     else if ((int)cfra == startframe) {
-      /* Variable time step; initialise to subframes */
+      /* Variable time step; initialize to sub-frames. */
       psys->dt_frac = get_base_time_step(part);
     }
     else if (psys->dt_frac < MIN_TIMESTEP) {

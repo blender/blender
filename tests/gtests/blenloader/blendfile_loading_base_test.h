@@ -47,7 +47,7 @@ class BlendfileLoadingBaseTest : public testing::Test {
    * Requires the CLI argument --test-asset-dir to point to ../../lib/tests.
    *
    * WARNING: only files saved with Blender 2.80+ can be loaded. Since Blender
-   * is only partially initialised (most importantly, without window manager),
+   * is only partially initialized (most importantly, without window manager),
    * the space types are not registered, so any versioning code that handles
    * those will SEGFAULT.
    */

@@ -427,7 +427,7 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
   ac->spacetype = (area) ? area->spacetype : 0;
   ac->regiontype = (region) ? region->regiontype : 0;
 
-  /* initialise default y-scale factor */
+  /* Initialize default y-scale factor. */
   animedit_get_yscale_factor(ac);
 
   /* get data context info */

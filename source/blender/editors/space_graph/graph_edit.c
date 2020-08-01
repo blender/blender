@@ -1487,7 +1487,7 @@ static int graphkeys_decimate_invoke(bContext *C, wmOperator *op, const wmEvent 
   dgo->area = CTX_wm_area(C);
   dgo->region = CTX_wm_region(C);
 
-  /* initialise percentage so that it will have the correct value before the first mouse move. */
+  /* Initialize percentage so that it will have the correct value before the first mouse move. */
   decimate_mouse_update_percentage(dgo, op, event);
 
   decimate_draw_status_header(op, dgo);

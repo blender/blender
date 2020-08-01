@@ -172,7 +172,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
       return;
     }
 
-    /* initialise the iteration variables */
+    /* Initialize the iteration variables. */
     float *buffer = init_buffer_iterator(
         input, source, co, dist_min, dist_max, x, y, num, v, dv, falloff_factor);
     zero_v3(border);

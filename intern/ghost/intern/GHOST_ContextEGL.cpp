@@ -118,7 +118,7 @@ static const char *get_egl_error_message_string(EGLint error)
     case EGL_CONTEXT_LOST:
       return (
           "A power management event has occurred. "
-          "The application must destroy all contexts and reinitialise OpenGL ES state "
+          "The application must destroy all contexts and reinitialize OpenGL ES state "
           "and objects to continue rendering.");
 
     default:

@@ -374,7 +374,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
       break;
   }
 
-  /* set initialized flag so that View2D doesn't get reinitialised next time again */
+  /* set initialized flag so that View2D doesn't get reinitialized next time again */
   v2d->flag |= V2D_IS_INIT;
 
   /* store view size */

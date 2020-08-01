@@ -603,7 +603,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
     /* store settings */
     copy_v2_v2(&pt->x, mval);
     pt->pressure = pressure;
-    /* unused for annotations, but initialise for easier conversions to GP Object */
+    /* Unused for annotations, but initialize for easier conversions to GP Object. */
     pt->strength = 1.0f;
 
     /* point time */

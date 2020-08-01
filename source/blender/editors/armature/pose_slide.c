@@ -251,7 +251,7 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
    */
   BLI_dlrbTree_init(&pso->keys);
 
-  /* initialise numeric input */
+  /* Initialize numeric input. */
   initNumInput(&pso->num);
   pso->num.idx_max = 0; /* one axis */
   pso->num.val_flag[0] |= NUM_NO_NEGATIVE;
@@ -1310,7 +1310,7 @@ static int pose_slide_push_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   pso = op->customdata;
 
-  /* initialise percentage so that it won't pop on first mouse move */
+  /* Initialize percentage so that it won't pop on first mouse move. */
   pose_slide_mouse_update_percentage(pso, op, event);
 
   /* do common setup work */
@@ -1370,7 +1370,7 @@ static int pose_slide_relax_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
   pso = op->customdata;
 
-  /* initialise percentage so that it won't pop on first mouse move */
+  /* Initialize percentage so that it won't pop on first mouse move. */
   pose_slide_mouse_update_percentage(pso, op, event);
 
   /* do common setup work */
@@ -1429,7 +1429,7 @@ static int pose_slide_push_rest_invoke(bContext *C, wmOperator *op, const wmEven
 
   pso = op->customdata;
 
-  /* initialise percentage so that it won't pop on first mouse move */
+  /* Initialize percentage so that it won't pop on first mouse move. */
   pose_slide_mouse_update_percentage(pso, op, event);
 
   /* do common setup work */
@@ -1489,7 +1489,7 @@ static int pose_slide_relax_rest_invoke(bContext *C, wmOperator *op, const wmEve
 
   pso = op->customdata;
 
-  /* initialise percentage so that it won't pop on first mouse move */
+  /* Initialize percentage so that it won't pop on first mouse move. */
   pose_slide_mouse_update_percentage(pso, op, event);
 
   /* do common setup work */
@@ -1549,7 +1549,7 @@ static int pose_slide_breakdown_invoke(bContext *C, wmOperator *op, const wmEven
 
   pso = op->customdata;
 
-  /* initialise percentage so that it won't pop on first mouse move */
+  /* Initialize percentage so that it won't pop on first mouse move. */
   pose_slide_mouse_update_percentage(pso, op, event);
 
   /* do common setup work */
