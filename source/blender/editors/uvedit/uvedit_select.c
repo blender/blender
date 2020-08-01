@@ -2300,7 +2300,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
     }
   }
 
-  if (!extend) {
+  if (!extend && !deselect) {
     uv_select_all_perform_multi(scene, objects, objects_len, SEL_DESELECT);
   }
 
