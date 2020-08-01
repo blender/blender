@@ -32,6 +32,10 @@ ParticleAction::~ParticleAction()
 {
 }
 
+ParticleEvent::~ParticleEvent()
+{
+}
+
 DependencyAnimations::~DependencyAnimations()
 {
 }

@@ -45,6 +45,7 @@ using fn::MutableAttributesRef;
 struct ParticleEmitterContext;
 struct ParticleForceContext;
 struct ParticleActionContext;
+struct ParticleEventFilterContext;
 
 class ParticleEmitter {
  public:
@@ -64,11 +65,19 @@ class ParticleAction {
   virtual void execute(ParticleActionContext &context) const = 0;
 };
 
+class ParticleEvent {
+ public:
+  virtual ~ParticleEvent();
+  virtual void filter(ParticleEventFilterContext &context) const = 0;
+  virtual void execute(ParticleActionContext &context) const = 0;
+};
+
 struct SimulationInfluences {
   MultiValueMap<std::string, const ParticleForce *> particle_forces;
   MultiValueMap<std::string, const ParticleAction *> particle_birth_actions;
   MultiValueMap<std::string, const ParticleAction *> particle_time_step_begin_actions;
   MultiValueMap<std::string, const ParticleAction *> particle_time_step_end_actions;
+  MultiValueMap<std::string, const ParticleEvent *> particle_events;
   Map<std::string, AttributesInfoBuilder *> particle_attributes_builder;
   Vector<const ParticleEmitter *> particle_emitters;
 };
@@ -157,9 +166,37 @@ class ParticleAllocators {
   }
 };
 
+struct ParticleChunkIntegrationContext {
+  MutableSpan<float3> position_diffs;
+  MutableSpan<float3> velocity_diffs;
+  MutableSpan<float> durations;
+  float end_time;
+};
+
 struct ParticleChunkContext {
+  ParticleSimulationState &state;
   IndexMask index_mask;
   MutableAttributesRef attributes;
+  ParticleChunkIntegrationContext *integration = nullptr;
+
+  void update_diffs_after_velocity_change()
+  {
+    if (integration == nullptr) {
+      return;
+    }
+
+    Span<float> remaining_durations = integration->durations;
+    MutableSpan<float3> position_diffs = integration->position_diffs;
+    Span<float3> velocities = attributes.get<float3>("Velocity");
+
+    for (int i : index_mask) {
+      const float duration = remaining_durations[i];
+      /* This is certainly not a perfect way to "re-integrate" the velocity, but it should be good
+       * enough for most use cases. Changing the velocity in an instant is not physically correct
+       * anyway. */
+      position_diffs[i] = velocities[i] * duration;
+    }
+  }
 };
 
 struct ParticleEmitterContext {
@@ -187,6 +224,12 @@ struct ParticleForceContext {
 struct ParticleActionContext {
   SimulationSolveContext &solve_context;
   ParticleChunkContext &particles;
+};
+
+struct ParticleEventFilterContext {
+  SimulationSolveContext &solve_context;
+  ParticleChunkContext &particles;
+  MutableSpan<float> factor_dst;
 };
 
 }  // namespace blender::sim

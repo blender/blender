@@ -674,12 +674,18 @@ class ParticleConditionAction : public ParticleAction {
       }
 
       if (action_true_ != nullptr) {
-        ParticleChunkContext chunk_context{true_indices.as_span(), context.particles.attributes};
+        ParticleChunkContext chunk_context{context.particles.state,
+                                           true_indices.as_span(),
+                                           context.particles.attributes,
+                                           context.particles.integration};
         ParticleActionContext action_context{context.solve_context, chunk_context};
         action_true_->execute(action_context);
       }
       if (action_false_ != nullptr) {
-        ParticleChunkContext chunk_context{false_indices.as_span(), context.particles.attributes};
+        ParticleChunkContext chunk_context{context.particles.state,
+                                           false_indices.as_span(),
+                                           context.particles.attributes,
+                                           context.particles.integration};
         ParticleActionContext action_context{context.solve_context, chunk_context};
         action_false_->execute(action_context);
       }
@@ -753,6 +759,63 @@ static void optimize_function_network(CollectContext &context)
   // WM_clipboard_text_set(network.to_dot().c_str(), false);
 }
 
+class AgeReachedEvent : public ParticleEvent {
+ private:
+  std::string attribute_name_;
+
+ public:
+  AgeReachedEvent(std::string attribute_name) : attribute_name_(std::move(attribute_name))
+  {
+  }
+
+  void filter(ParticleEventFilterContext &context) const override
+  {
+    Span<float> birth_times = context.particles.attributes.get<float>("Birth Time");
+    Span<int> has_been_triggered = context.particles.attributes.get<int>(attribute_name_);
+    const float age = 5.0f;
+
+    const float end_time = context.particles.integration->end_time;
+    for (int i : context.particles.index_mask) {
+      if (has_been_triggered[i]) {
+        continue;
+      }
+      const float birth_time = birth_times[i];
+      const float trigger_time = birth_time + age;
+      if (trigger_time > end_time) {
+        continue;
+      }
+
+      const float duration = context.particles.integration->durations[i];
+      TimeInterval interval(end_time - duration, duration);
+      const float time_factor = interval.safe_factor_at_time(trigger_time);
+
+      context.factor_dst[i] = std::max<float>(0.0f, time_factor);
+    }
+  }
+
+  void execute(ParticleActionContext &context) const override
+  {
+    MutableSpan<int> dead_states = context.particles.attributes.get<int>("Dead");
+    MutableSpan<int> has_been_triggered = context.particles.attributes.get<int>(attribute_name_);
+    for (int i : context.particles.index_mask) {
+      dead_states[i] = true;
+      has_been_triggered[i] = 1;
+    }
+  }
+};
+
+static void collect_age_reached_events(CollectContext &context)
+{
+  /* TODO: Actually implement an Age Reached Event node. */
+  std::string attribute_name = "Has Been Triggered";
+  const AgeReachedEvent &event = context.resources.construct<AgeReachedEvent>(AT, attribute_name);
+  for (const DNode *dnode : context.particle_simulation_nodes) {
+    StringRefNull name = get_identifier(context, *dnode);
+    context.influences.particle_events.add_as(name, &event);
+    context.influences.particle_attributes_builder.lookup_as(name)->add<int>(attribute_name, 0);
+  }
+}
+
 void collect_simulation_influences(Simulation &simulation,
                                    ResourceCollector &resources,
                                    SimulationInfluences &r_influences,
@@ -774,6 +837,7 @@ void collect_simulation_influences(Simulation &simulation,
   collect_emitters(context);
   collect_birth_events(context);
   collect_time_step_events(context);
+  collect_age_reached_events(context);
 
   optimize_function_network(context);
 

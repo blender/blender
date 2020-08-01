@@ -121,6 +121,170 @@ static void ensure_attributes_exist(ParticleSimulationState *state, const Attrib
   }
 }
 
+BLI_NOINLINE static void apply_remaining_diffs(ParticleChunkContext &context)
+{
+  BLI_assert(context.integration != nullptr);
+  MutableSpan<float3> positions = context.attributes.get<float3>("Position");
+  MutableSpan<float3> velocities = context.attributes.get<float3>("Velocity");
+
+  for (int i : context.index_mask) {
+    positions[i] += context.integration->position_diffs[i];
+    velocities[i] += context.integration->velocity_diffs[i];
+  }
+}
+
+BLI_NOINLINE static void find_next_event_per_particle(
+    SimulationSolveContext &solve_context,
+    ParticleChunkContext &particles,
+    Span<const ParticleEvent *> events,
+    MutableSpan<int> r_next_event_indices,
+    MutableSpan<float> r_time_factors_to_next_event)
+{
+  r_next_event_indices.fill_indices(particles.index_mask, -1);
+  r_time_factors_to_next_event.fill_indices(particles.index_mask, 1.0f);
+
+  Array<float> time_factors(particles.index_mask.min_array_size(), -1.0f);
+  for (int event_index : events.index_range()) {
+    ParticleEventFilterContext event_context{solve_context, particles, time_factors};
+    const ParticleEvent &event = *events[event_index];
+    event.filter(event_context);
+
+    for (int i : particles.index_mask) {
+      const float time_factor = time_factors[i];
+      const float previously_smallest_time_factor = r_time_factors_to_next_event[i];
+      if (time_factor >= 0.0f && time_factor <= previously_smallest_time_factor) {
+        r_time_factors_to_next_event[i] = time_factor;
+        r_next_event_indices[i] = event_index;
+      }
+    }
+  }
+}
+
+BLI_NOINLINE static void forward_particles_to_next_event_or_end(
+    ParticleChunkContext &particles, Span<float> time_factors_to_next_event)
+{
+  MutableSpan<float3> positions = particles.attributes.get<float3>("Position");
+  MutableSpan<float3> velocities = particles.attributes.get<float3>("Velocity");
+
+  MutableSpan<float3> position_diffs = particles.integration->position_diffs;
+  MutableSpan<float3> velocity_diffs = particles.integration->velocity_diffs;
+  MutableSpan<float> durations = particles.integration->durations;
+
+  for (int i : particles.index_mask) {
+    const float time_factor = time_factors_to_next_event[i];
+    positions[i] += position_diffs[i] * time_factor;
+    velocities[i] += velocity_diffs[i] * time_factor;
+
+    const float remaining_time_factor = 1.0f - time_factor;
+    position_diffs[i] *= remaining_time_factor;
+    velocity_diffs[i] *= remaining_time_factor;
+    durations[i] *= remaining_time_factor;
+  }
+}
+
+BLI_NOINLINE static void group_particles_by_event(
+    IndexMask mask,
+    Span<int> next_event_indices,
+    MutableSpan<Vector<int64_t>> r_particles_per_event)
+{
+  for (int i : mask) {
+    int event_index = next_event_indices[i];
+    if (event_index >= 0) {
+      r_particles_per_event[event_index].append(i);
+    }
+  }
+}
+
+BLI_NOINLINE static void execute_events(SimulationSolveContext &solve_context,
+                                        ParticleChunkContext &all_particles,
+                                        Span<const ParticleEvent *> events,
+                                        Span<Vector<int64_t>> particles_per_event)
+{
+  for (int event_index : events.index_range()) {
+    Span<int64_t> pindices = particles_per_event[event_index];
+    if (pindices.is_empty()) {
+      continue;
+    }
+
+    const ParticleEvent &event = *events[event_index];
+    ParticleChunkContext particles{
+        all_particles.state, pindices, all_particles.attributes, all_particles.integration};
+    ParticleActionContext action_context{solve_context, particles};
+    event.execute(action_context);
+  }
+}
+
+BLI_NOINLINE static void find_unfinished_particles(IndexMask index_mask,
+                                                   Span<float> time_factors_to_next_event,
+                                                   Vector<int64_t> &r_unfinished_pindices)
+{
+  for (int i : index_mask) {
+    float time_factor = time_factors_to_next_event[i];
+    if (time_factor < 1.0f) {
+      r_unfinished_pindices.append(i);
+    }
+  }
+}
+
+BLI_NOINLINE static void simulate_to_next_event(SimulationSolveContext &solve_context,
+                                                ParticleChunkContext &particles,
+                                                Span<const ParticleEvent *> events,
+                                                Vector<int64_t> &r_unfinished_pindices)
+{
+  int array_size = particles.index_mask.min_array_size();
+  Array<int> next_event_indices(array_size);
+  Array<float> time_factors_to_next_event(array_size);
+
+  find_next_event_per_particle(
+      solve_context, particles, events, next_event_indices, time_factors_to_next_event);
+
+  forward_particles_to_next_event_or_end(particles, time_factors_to_next_event);
+
+  Array<Vector<int64_t>> particles_per_event(events.size());
+  group_particles_by_event(particles.index_mask, next_event_indices, particles_per_event);
+
+  execute_events(solve_context, particles, events, particles_per_event);
+  find_unfinished_particles(
+      particles.index_mask, time_factors_to_next_event, r_unfinished_pindices);
+}
+
+BLI_NOINLINE static void simulate_with_max_n_events(SimulationSolveContext &solve_context,
+                                                    ParticleSimulationState &state,
+                                                    ParticleChunkContext &particles,
+                                                    int max_events)
+{
+  Span<const ParticleEvent *> events = solve_context.influences.particle_events.lookup_as(
+      state.head.name);
+  if (events.size() == 0) {
+    apply_remaining_diffs(particles);
+    return;
+  }
+
+  Vector<int64_t> unfininished_pindices = particles.index_mask.indices();
+  for (int iteration : IndexRange(max_events)) {
+    UNUSED_VARS(iteration);
+    if (unfininished_pindices.is_empty()) {
+      break;
+    }
+
+    Vector<int64_t> new_unfinished_pindices;
+    ParticleChunkContext remaining_particles{particles.state,
+                                             unfininished_pindices.as_span(),
+                                             particles.attributes,
+                                             particles.integration};
+    simulate_to_next_event(solve_context, remaining_particles, events, new_unfinished_pindices);
+    unfininished_pindices = std::move(new_unfinished_pindices);
+  }
+
+  if (!unfininished_pindices.is_empty()) {
+    ParticleChunkContext remaining_particles{particles.state,
+                                             unfininished_pindices.as_span(),
+                                             particles.attributes,
+                                             particles.integration};
+    apply_remaining_diffs(remaining_particles);
+  }
+}
+
 BLI_NOINLINE static void simulate_particle_chunk(SimulationSolveContext &solve_context,
                                                  ParticleSimulationState &state,
                                                  MutableAttributesRef attributes,
@@ -132,7 +296,7 @@ BLI_NOINLINE static void simulate_particle_chunk(SimulationSolveContext &solve_c
   Span<const ParticleAction *> begin_actions =
       solve_context.influences.particle_time_step_begin_actions.lookup_as(state.head.name);
   for (const ParticleAction *action : begin_actions) {
-    ParticleChunkContext particles{IndexMask(particle_amount), attributes};
+    ParticleChunkContext particles{state, IndexMask(particle_amount), attributes};
     ParticleActionContext action_context{solve_context, particles};
     action->execute(action_context);
   }
@@ -141,30 +305,32 @@ BLI_NOINLINE static void simulate_particle_chunk(SimulationSolveContext &solve_c
   Span<const ParticleForce *> forces = solve_context.influences.particle_forces.lookup_as(
       state.head.name);
   for (const ParticleForce *force : forces) {
-    ParticleChunkContext particles{IndexMask(particle_amount), attributes};
+    ParticleChunkContext particles{state, IndexMask(particle_amount), attributes};
     ParticleForceContext particle_force_context{solve_context, particles, force_vectors};
     force->add_force(particle_force_context);
   }
 
-  MutableSpan<float3> positions = attributes.get<float3>("Position");
   MutableSpan<float3> velocities = attributes.get<float3>("Velocity");
-  MutableSpan<float> birth_times = attributes.get<float>("Birth Time");
-  MutableSpan<int> dead_states = attributes.get<int>("Dead");
 
+  Array<float3> position_diffs(particle_amount);
+  Array<float3> velocity_diffs(particle_amount);
   for (int i : IndexRange(particle_amount)) {
     const float time_step = remaining_durations[i];
-    velocities[i] += force_vectors[i] * time_step;
-    positions[i] += velocities[i] * time_step;
-
-    if (end_time - birth_times[i] > 2) {
-      dead_states[i] = true;
-    }
+    velocity_diffs[i] = force_vectors[i] * time_step;
+    position_diffs[i] = (velocities[i] + velocity_diffs[i] / 2.0f) * time_step;
   }
+
+  ParticleChunkIntegrationContext integration_context = {
+      position_diffs, velocity_diffs, remaining_durations, end_time};
+  ParticleChunkContext particle_chunk_context{
+      state, IndexMask(particle_amount), attributes, &integration_context};
+
+  simulate_with_max_n_events(solve_context, state, particle_chunk_context, 10);
 
   Span<const ParticleAction *> end_actions =
       solve_context.influences.particle_time_step_end_actions.lookup_as(state.head.name);
   for (const ParticleAction *action : end_actions) {
-    ParticleChunkContext particles{IndexMask(particle_amount), attributes};
+    ParticleChunkContext particles{state, IndexMask(particle_amount), attributes};
     ParticleActionContext action_context{solve_context, particles};
     action->execute(action_context);
   }
@@ -326,7 +492,7 @@ void solve_simulation_time_step(Simulation &simulation,
       Span<const ParticleAction *> actions = influences.particle_birth_actions.lookup_as(
           state->head.name);
       for (const ParticleAction *action : actions) {
-        ParticleChunkContext chunk_context{IndexRange(attributes.size()), attributes};
+        ParticleChunkContext chunk_context{*state, IndexRange(attributes.size()), attributes};
         ParticleActionContext action_context{solve_context, chunk_context};
         action->execute(action_context);
       }
