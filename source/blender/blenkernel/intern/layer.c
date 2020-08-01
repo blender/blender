@@ -221,7 +221,7 @@ ViewLayer *BKE_view_layer_add(Scene *scene,
       view_layer_new = view_layer_add(name);
       BLI_addtail(&scene->view_layers, view_layer_new);
 
-      /* Initialise layercollections */
+      /* Initialize layer-collections. */
       BKE_layer_collection_sync(scene, view_layer_new);
       layer_collection_exclude_all(view_layer_new->layer_collections.first);
 

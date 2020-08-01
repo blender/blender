@@ -910,13 +910,13 @@ typedef struct tGPSB_CloneBrushData {
   GHash *new_colors;
 } tGPSB_CloneBrushData;
 
-/* Initialise "clone" brush data */
+/* Initialize "clone" brush data. */
 static void gpencil_brush_clone_init(bContext *C, tGP_BrushEditData *gso)
 {
   tGPSB_CloneBrushData *data;
   bGPDstroke *gps;
 
-  /* init custom data */
+  /* Initialize custom-data. */
   gso->customdata = data = MEM_callocN(sizeof(tGPSB_CloneBrushData), "CloneBrushData");
 
   /* compute midpoint of strokes on clipboard */

@@ -43,7 +43,7 @@ SessionUUID BLI_session_uuid_generate(void)
      * Just request the UUID once again, hoping that there are no a lot of high-priority threads
      * which will overflow the counter once again between the previous call and this one.
      *
-     * NOTE: It is possible to have collissions after such overflow. */
+     * NOTE: It is possible to have collisions after such overflow. */
     result.uuid_ = atomic_add_and_fetch_uint64(&global_session_uuid.uuid_, 1);
   }
   return result;

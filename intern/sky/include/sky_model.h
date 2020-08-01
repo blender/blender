@@ -351,7 +351,7 @@ typedef struct SKY_ArHosekSkyModelState {
     arhosekskymodelstate_alloc_init() function
     ------------------------------------------
 
-    Initialises an ArHosekSkyModelState struct for a terrestrial setting.
+    Initializes an #ArHosekSkyModelState struct for a terrestrial setting.
 
 ---------------------------------------------------------------------------- */
 
@@ -364,7 +364,7 @@ SKY_ArHosekSkyModelState *SKY_arhosekskymodelstate_alloc_init(const double solar
     arhosekskymodelstate_alienworld_alloc_init() function
     -----------------------------------------------------
 
-    Initialises an ArHosekSkyModelState struct for an "alien world" setting
+    Initializes an ArHosekSkyModelState struct for an "alien world" setting
     with a sun of a surface temperature given in 'kelvin'. The parameter
     'solar_intensity' controls the overall brightness of the sky, relative
     to the solar irradiance on Earth. A value of 1.0 yields a sky dome that

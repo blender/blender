@@ -477,7 +477,7 @@ static SculptClothSimulation *cloth_brush_simulation_create(SculptSession *ss,
   cloth_sim->length_constraint_tweak = MEM_calloc_arrayN(
       totverts, sizeof(float), "cloth sim length tweak");
 
-  /* Brush can be NULL for tools that neeed the solver but don't rely on constraint to deformation
+  /* Brush can be NULL for tools that need the solver but don't rely on constraint to deformation
    * positions. */
   if (brush && SCULPT_is_cloth_deform_brush(brush)) {
     cloth_sim->deformation_pos = MEM_calloc_arrayN(

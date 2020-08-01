@@ -1771,7 +1771,7 @@ static int gpencil_blank_frame_add_exec(bContext *C, wmOperator *op)
 
   const bool all_layers = RNA_boolean_get(op->ptr, "all_layers");
 
-  /* Initialise datablock and an active layer if nothing exists yet */
+  /* Initialize data-block and an active layer if nothing exists yet. */
   if (ELEM(NULL, gpd, active_gpl)) {
     /* Let's just be lazy, and call the "Add New Layer" operator,
      * which sets everything up as required. */
@@ -4290,14 +4290,14 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
   base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_prev, dupflag);
   ob_dst = base_new->object;
   ob_dst->mode = OB_MODE_OBJECT;
-  /* Duplication will increment bGPdata usercount, but since we create a new greasepencil datablock
-   * for ob_dst (which gets its own user automatically), we have to decrement the usercount again.
-   */
+  /* Duplication will increment #bGPdata user-count, but since we create a new grease-pencil
+   * data-block for ob_dst (which gets its own user automatically),
+   * we have to decrement the user-count again. */
   gpd_dst = BKE_gpencil_data_addnew(bmain, gpd_src->id.name + 2);
   id_us_min(ob_dst->data);
   ob_dst->data = (bGPdata *)gpd_dst;
 
-  /* loop old datablock and separate parts */
+  /* Loop old data-block and separate parts. */
   if ((mode == GP_SEPARATE_POINT) || (mode == GP_SEPARATE_STROKE)) {
     CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
       gpl_dst = NULL;

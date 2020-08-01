@@ -1150,7 +1150,7 @@ static int nlaevalchan_validate_index(NlaEvalChannel *nec, int index)
   return 0;
 }
 
-/* Initialise default values for NlaEvalChannel from the property data. */
+/* Initialize default values for NlaEvalChannel from the property data. */
 static void nlaevalchan_get_default_values(NlaEvalChannel *nec, float *r_values)
 {
   PointerRNA *ptr = &nec->key.ptr;

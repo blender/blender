@@ -2924,8 +2924,8 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   /* This moves strips from meta to parent, sating within same edit and no new strips are
-   * allocated. If the UUID was unique already (as it should) it will stay unique. Nn need to
-   * re-generate the UUIDs.*/
+   * allocated. If the UUID was unique already (as it should) it will stay unique.
+   * No need to re-generate the UUIDs. */
   BLI_movelisttolist(ed->seqbasep, &last_seq->seqbase);
 
   BLI_listbase_clear(&last_seq->seqbase);

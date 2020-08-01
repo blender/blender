@@ -1951,7 +1951,7 @@ void GHOST_SystemX11::getClipboard_xcout(const XEvent *evt,
   switch (*context) {
     /* There is no context, do an XConvertSelection() */
     case XCLIB_XCOUT_NONE:
-      /* Initialise return length to 0 */
+      /* Initialize return length to 0. */
       if (*len > 0) {
         free(*txt);
         *len = 0;

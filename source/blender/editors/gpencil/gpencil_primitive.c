@@ -1085,7 +1085,7 @@ static void gpencil_primitive_update(bContext *C, wmOperator *op, tGPDprimitive 
   gpencil_primitive_update_strokes(C, tgpi);
 }
 
-/* Initialise mouse points */
+/* Initialize mouse points. */
 static void gpencil_primitive_interaction_begin(tGPDprimitive *tgpi, const wmEvent *event)
 {
   copy_v2fl_v2i(tgpi->mval, event->mval);
