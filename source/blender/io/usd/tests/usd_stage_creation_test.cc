@@ -28,7 +28,7 @@
 
 extern "C" {
 /* Workaround to make it possible to pass a path at runtime to USD. See creator.c. */
-void usd_init_plugin_path(const char *datafiles_usd_path);
+void usd_initialise_plugin_path(const char *datafiles_usd_path);
 }
 
 namespace blender::io::usd {
@@ -46,7 +46,7 @@ TEST_F(USDStageCreationTest, JSONFileLoadingTest)
   char usd_datafiles_dir[FILE_MAX];
   BLI_path_join(usd_datafiles_dir, FILE_MAX, release_dir.c_str(), "datafiles", "usd", nullptr);
 
-  usd_init_plugin_path(usd_datafiles_dir);
+  usd_initialise_plugin_path(usd_datafiles_dir);
 
   /* Simply the ability to create a USD Stage for a specific filename means that the extension
    * has been recognized by the USD library, and that a USD plugin has been loaded to write such

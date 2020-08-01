@@ -127,7 +127,7 @@ void main_python_exit(void);
  *
  * This function is implemented in the USD source code, `pxr/base/lib/plug/initConfig.cpp`.
  */
-void usd_init_plugin_path(const char *datafiles_usd_path);
+void usd_initialise_plugin_path(const char *datafiles_usd_path);
 #endif
 
 /* written to by 'creator_args.c' */
@@ -443,7 +443,7 @@ int main(int argc,
 #ifdef WITH_USD
   /* Tell USD which directory to search for its JSON files. If 'datafiles/usd'
    * does not exist, the USD library will not be able to read or write any files. */
-  usd_init_plugin_path(BKE_appdir_folder_id(BLENDER_DATAFILES, "usd"));
+  usd_initialise_plugin_path(BKE_appdir_folder_id(BLENDER_DATAFILES, "usd"));
 #endif
 
   if (G.background == 0) {
