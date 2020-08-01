@@ -215,7 +215,7 @@ static void use_values_from_fcurves(StabContext *ctx, bool toggle)
 /* Prepare per call private working area.
  * Used for access to possibly animated values: retrieve available F-curves.
  */
-static StabContext *initialize_stabilization_working_context(MovieClip *clip)
+static StabContext *init_stabilization_working_context(MovieClip *clip)
 {
   StabContext *ctx = MEM_callocN(sizeof(StabContext), "2D stabilization animation runtime data");
   ctx->clip = clip;
@@ -841,14 +841,14 @@ static int establish_track_initialization_order(StabContext *ctx, TrackInitOrder
  *
  * NOTE: when done, this track is marked as initialized
  */
-static void initialize_track_for_stabilization(StabContext *ctx,
-                                               MovieTrackingTrack *track,
-                                               int reference_frame,
-                                               float aspect,
-                                               const float average_translation[2],
-                                               const float pivot[2],
-                                               const float average_angle,
-                                               const float average_scale_step)
+static void init_track_for_stabilization(StabContext *ctx,
+                                         MovieTrackingTrack *track,
+                                         int reference_frame,
+                                         float aspect,
+                                         const float average_translation[2],
+                                         const float pivot[2],
+                                         const float average_angle,
+                                         const float average_scale_step)
 {
   float pos[2], angle, len;
   TrackStabilizationBase *local_data = access_stabilization_baseline_data(ctx, track);
@@ -876,7 +876,7 @@ static void initialize_track_for_stabilization(StabContext *ctx,
   local_data->is_init_for_stabilization = true;
 }
 
-static void initialize_all_tracks(StabContext *ctx, float aspect)
+static void init_all_tracks(StabContext *ctx, float aspect)
 {
   size_t track_len = 0;
   MovieClip *clip = ctx->clip;
@@ -936,14 +936,14 @@ static void initialize_all_tracks(StabContext *ctx, float aspect)
                                   &average_angle,
                                   &average_scale_step);
     }
-    initialize_track_for_stabilization(ctx,
-                                       track,
-                                       reference_frame,
-                                       aspect,
-                                       average_translation,
-                                       pivot,
-                                       average_angle,
-                                       average_scale_step);
+    init_track_for_stabilization(ctx,
+                                 track,
+                                 reference_frame,
+                                 aspect,
+                                 average_translation,
+                                 pivot,
+                                 average_angle,
+                                 average_scale_step);
   }
 
 cleanup:
@@ -1257,9 +1257,9 @@ static float calculate_autoscale_factor(StabContext *ctx, int size, float aspect
  */
 static StabContext *init_stabilizer(MovieClip *clip, int size, float aspect)
 {
-  StabContext *ctx = initialize_stabilization_working_context(clip);
+  StabContext *ctx = init_stabilization_working_context(clip);
   BLI_assert(ctx != NULL);
-  initialize_all_tracks(ctx, aspect);
+  init_all_tracks(ctx, aspect);
   if (ctx->stab->flag & TRACKING_AUTOSCALE) {
     ctx->stab->scale = 1.0;
     ctx->stab->scale = calculate_autoscale_factor(ctx, size, aspect);

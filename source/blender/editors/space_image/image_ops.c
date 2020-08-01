@@ -3714,7 +3714,7 @@ static void draw_fill_tile(PointerRNA *ptr, uiLayout *layout)
   uiItemR(col[1], ptr, "float", 0, NULL, ICON_NONE);
 }
 
-static void initialize_fill_tile(PointerRNA *ptr, Image *ima, ImageTile *tile)
+static void tile_fill_init(PointerRNA *ptr, Image *ima, ImageTile *tile)
 {
   ImageUser iuser;
   BKE_imageuser_default(&iuser);
@@ -3827,7 +3827,7 @@ static int tile_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
   }
 
   ImageTile *tile = BLI_findlink(&ima->tiles, ima->active_tile_index);
-  initialize_fill_tile(op->ptr, ima, tile);
+  tile_fill_init(op->ptr, ima, tile);
 
   RNA_int_set(op->ptr, "number", next_number);
   RNA_int_set(op->ptr, "count", 1);
@@ -3973,7 +3973,7 @@ static int tile_fill_exec(bContext *C, wmOperator *op)
 
 static int tile_fill_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  initialize_fill_tile(op->ptr, CTX_data_edit_image(C), NULL);
+  tile_fill_init(op->ptr, CTX_data_edit_image(C), NULL);
 
   return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X);
 }

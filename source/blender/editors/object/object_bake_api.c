@@ -673,7 +673,7 @@ static void build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
 /*
  * returns the total number of pixels
  */
-static size_t initialize_internal_images(BakeImages *bake_images, ReportList *reports)
+static size_t init_internal_images(BakeImages *bake_images, ReportList *reports)
 {
   int i;
   size_t tot_size = 0;
@@ -828,7 +828,7 @@ static int bake(Render *re,
   build_image_lookup(bmain, ob_low, &bake_images);
 
   if (is_save_internal) {
-    num_pixels = initialize_internal_images(&bake_images, reports);
+    num_pixels = init_internal_images(&bake_images, reports);
 
     if (num_pixels == 0) {
       goto cleanup;

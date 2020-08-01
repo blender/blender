@@ -73,7 +73,7 @@ void *node_initexec_curves(bNodeExecContext *UNUSED(context),
                            bNode *node,
                            bNodeInstanceKey UNUSED(key))
 {
-  BKE_curvemapping_initialize(node->storage);
+  BKE_curvemapping_init(node->storage);
   return NULL; /* unused return */
 }
 

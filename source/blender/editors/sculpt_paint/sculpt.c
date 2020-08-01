@@ -2966,7 +2966,7 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
   /* XXX - this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
    * initialize before threads so they can do curve mapping. */
-  BKE_curvemapping_initialize(brush->curve);
+  BKE_curvemapping_init(brush->curve);
 
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data = {
@@ -3043,7 +3043,7 @@ static void do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 
   /* XXX - this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
    * initialize before threads so they can do curve mapping. */
-  BKE_curvemapping_initialize(brush->curve);
+  BKE_curvemapping_init(brush->curve);
 
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data = {
@@ -3273,7 +3273,7 @@ static void do_slide_relax_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
     return;
   }
 
-  BKE_curvemapping_initialize(brush->curve);
+  BKE_curvemapping_init(brush->curve);
 
   SculptThreadedTaskData data = {
       .sd = sd,
@@ -6390,7 +6390,7 @@ static void sculpt_update_cache_invariants(
         brush = br;
         cache->saved_smooth_size = BKE_brush_size_get(scene, brush);
         BKE_brush_size_set(scene, brush, size);
-        BKE_curvemapping_initialize(brush->curve);
+        BKE_curvemapping_init(brush->curve);
       }
     }
   }
@@ -6458,7 +6458,7 @@ static void sculpt_update_cache_invariants(
 
 #define PIXEL_INPUT_THRESHHOLD 5
   if (brush->sculpt_tool == SCULPT_TOOL_ROTATE) {
-    cache->dial = BLI_dial_initialize(cache->initial_mouse, PIXEL_INPUT_THRESHHOLD);
+    cache->dial = BLI_dial_init(cache->initial_mouse, PIXEL_INPUT_THRESHHOLD);
   }
 
 #undef PIXEL_INPUT_THRESHHOLD

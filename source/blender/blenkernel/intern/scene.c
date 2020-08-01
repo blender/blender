@@ -127,7 +127,7 @@ static void scene_init_data(ID *id)
 
   mblur_shutter_curve = &scene->r.mblur_shutter_curve;
   BKE_curvemapping_set_defaults(mblur_shutter_curve, 1, 0.0f, 0.0f, 1.0f, 1.0f);
-  BKE_curvemapping_initialize(mblur_shutter_curve);
+  BKE_curvemapping_init(mblur_shutter_curve);
   BKE_curvemap_reset(mblur_shutter_curve->cm,
                      &mblur_shutter_curve->clipr,
                      CURVE_PRESET_MAX,
@@ -140,13 +140,13 @@ static void scene_init_data(ID *id)
   /* grease pencil multiframe falloff curve */
   scene->toolsettings->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   CurveMapping *gp_falloff_curve = scene->toolsettings->gp_sculpt.cur_falloff;
-  BKE_curvemapping_initialize(gp_falloff_curve);
+  BKE_curvemapping_init(gp_falloff_curve);
   BKE_curvemap_reset(
       gp_falloff_curve->cm, &gp_falloff_curve->clipr, CURVE_PRESET_GAUSS, CURVEMAP_SLOPE_POSITIVE);
 
   scene->toolsettings->gp_sculpt.cur_primitive = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   CurveMapping *gp_primitive_curve = scene->toolsettings->gp_sculpt.cur_primitive;
-  BKE_curvemapping_initialize(gp_primitive_curve);
+  BKE_curvemapping_init(gp_primitive_curve);
   BKE_curvemap_reset(gp_primitive_curve->cm,
                      &gp_primitive_curve->clipr,
                      CURVE_PRESET_BELL,

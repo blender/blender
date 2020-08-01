@@ -45,7 +45,7 @@ struct Dial {
   bool initialized;
 };
 
-Dial *BLI_dial_initialize(const float start_position[2], float threshold)
+Dial *BLI_dial_init(const float start_position[2], float threshold)
 {
   Dial *dial = MEM_callocN(sizeof(Dial), "dial");
 

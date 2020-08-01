@@ -2576,7 +2576,7 @@ void BKE_pose_where_is(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
     }
 
     /* 2a. construct the IK tree (standard IK) */
-    BIK_initialize_tree(depsgraph, scene, ob, ctime);
+    BIK_init_tree(depsgraph, scene, ob, ctime);
 
     /* 2b. construct the Spline IK trees
      * - this is not integrated as an IK plugin, since it should be able

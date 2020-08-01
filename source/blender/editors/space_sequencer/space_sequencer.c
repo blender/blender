@@ -231,12 +231,12 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
     case SEQ_VIEW_SEQUENCE:
       if (region_main && (region_main->flag & RGN_FLAG_HIDDEN)) {
         region_main->flag &= ~RGN_FLAG_HIDDEN;
-        region_main->v2d.flag &= ~V2D_IS_INITIALISED;
+        region_main->v2d.flag &= ~V2D_IS_INIT;
         view_changed = true;
       }
       if (region_preview && !(region_preview->flag & RGN_FLAG_HIDDEN)) {
         region_preview->flag |= RGN_FLAG_HIDDEN;
-        region_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+        region_preview->v2d.flag &= ~V2D_IS_INIT;
         WM_event_remove_handlers((bContext *)C, &region_preview->handlers);
         view_changed = true;
       }
@@ -252,13 +252,13 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
     case SEQ_VIEW_PREVIEW:
       if (region_main && !(region_main->flag & RGN_FLAG_HIDDEN)) {
         region_main->flag |= RGN_FLAG_HIDDEN;
-        region_main->v2d.flag &= ~V2D_IS_INITIALISED;
+        region_main->v2d.flag &= ~V2D_IS_INIT;
         WM_event_remove_handlers((bContext *)C, &region_main->handlers);
         view_changed = true;
       }
       if (region_preview && (region_preview->flag & RGN_FLAG_HIDDEN)) {
         region_preview->flag &= ~RGN_FLAG_HIDDEN;
-        region_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+        region_preview->v2d.flag &= ~V2D_IS_INIT;
         region_preview->v2d.cur = region_preview->v2d.tot;
         view_changed = true;
       }
@@ -281,13 +281,13 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
          * 'full window' views before, though... Better than nothing. */
         if (region_main->flag & RGN_FLAG_HIDDEN) {
           region_main->flag &= ~RGN_FLAG_HIDDEN;
-          region_main->v2d.flag &= ~V2D_IS_INITIALISED;
+          region_main->v2d.flag &= ~V2D_IS_INIT;
           region_preview->sizey = (int)(height - region_main->sizey);
           view_changed = true;
         }
         if (region_preview->flag & RGN_FLAG_HIDDEN) {
           region_preview->flag &= ~RGN_FLAG_HIDDEN;
-          region_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+          region_preview->v2d.flag &= ~V2D_IS_INIT;
           region_preview->v2d.cur = region_preview->v2d.tot;
           region_main->sizey = (int)(height - region_preview->sizey);
           view_changed = true;
@@ -312,7 +312,7 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
   }
 
   if (view_changed) {
-    ED_area_initialize(wm, window, area);
+    ED_area_init(wm, window, area);
     ED_area_tag_redraw(area);
   }
 }

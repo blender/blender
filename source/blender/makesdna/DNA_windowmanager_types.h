@@ -198,8 +198,8 @@ typedef struct wmWindowManager {
 
 /* wmWindowManager.initialized */
 enum {
-  WM_WINDOW_IS_INITIALIZED = (1 << 0),
-  WM_KEYCONFIG_IS_INITIALIZED = (1 << 1),
+  WM_WINDOW_IS_INIT = (1 << 0),
+  WM_KEYCONFIG_IS_INIT = (1 << 1),
 };
 
 /* wmWindowManager.outliner_sync_select_dirty */

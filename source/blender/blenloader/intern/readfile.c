@@ -5516,7 +5516,7 @@ static void direct_link_gpencil_modifiers(BlendDataReader *reader, ListBase *lb)
       if (gpmd->curve_intensity) {
         BKE_curvemapping_blend_read(reader, gpmd->curve_intensity);
         /* initialize the curve. Maybe this could be moved to modififer logic */
-        BKE_curvemapping_initialize(gpmd->curve_intensity);
+        BKE_curvemapping_init(gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Thick) {
@@ -5525,7 +5525,7 @@ static void direct_link_gpencil_modifiers(BlendDataReader *reader, ListBase *lb)
       BLO_read_data_address(reader, &gpmd->curve_thickness);
       if (gpmd->curve_thickness) {
         BKE_curvemapping_blend_read(reader, gpmd->curve_thickness);
-        BKE_curvemapping_initialize(gpmd->curve_thickness);
+        BKE_curvemapping_init(gpmd->curve_thickness);
       }
     }
     else if (md->type == eGpencilModifierType_Tint) {
@@ -5534,7 +5534,7 @@ static void direct_link_gpencil_modifiers(BlendDataReader *reader, ListBase *lb)
       BLO_read_data_address(reader, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
         BKE_curvemapping_blend_read(reader, gpmd->curve_intensity);
-        BKE_curvemapping_initialize(gpmd->curve_intensity);
+        BKE_curvemapping_init(gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Smooth) {
@@ -5542,7 +5542,7 @@ static void direct_link_gpencil_modifiers(BlendDataReader *reader, ListBase *lb)
       BLO_read_data_address(reader, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
         BKE_curvemapping_blend_read(reader, gpmd->curve_intensity);
-        BKE_curvemapping_initialize(gpmd->curve_intensity);
+        BKE_curvemapping_init(gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Color) {
@@ -5550,7 +5550,7 @@ static void direct_link_gpencil_modifiers(BlendDataReader *reader, ListBase *lb)
       BLO_read_data_address(reader, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
         BKE_curvemapping_blend_read(reader, gpmd->curve_intensity);
-        BKE_curvemapping_initialize(gpmd->curve_intensity);
+        BKE_curvemapping_init(gpmd->curve_intensity);
       }
     }
     else if (md->type == eGpencilModifierType_Opacity) {
@@ -5558,7 +5558,7 @@ static void direct_link_gpencil_modifiers(BlendDataReader *reader, ListBase *lb)
       BLO_read_data_address(reader, &gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
         BKE_curvemapping_blend_read(reader, gpmd->curve_intensity);
-        BKE_curvemapping_initialize(gpmd->curve_intensity);
+        BKE_curvemapping_init(gpmd->curve_intensity);
       }
     }
   }

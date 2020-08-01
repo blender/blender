@@ -5184,7 +5184,7 @@ static void region_blend_end(bContext *C, ARegion *region, const bool is_running
   else {
     if (rgi->hidden) {
       rgi->region->flag |= rgi->hidden;
-      ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), rgi->area);
+      ED_area_init(CTX_wm_manager(C), CTX_wm_window(C), rgi->area);
     }
     /* area decoration needs redraw in end */
     ED_area_tag_redraw(rgi->area);
@@ -5215,7 +5215,7 @@ void ED_region_visibility_change_update_animated(bContext *C, ScrArea *area, ARe
 
   /* blend in, reinitialize regions because it got unhidden */
   if (rgi->hidden == 0) {
-    ED_area_initialize(wm, win, area);
+    ED_area_init(wm, win, area);
   }
   else {
     WM_event_remove_handlers(C, &region->handlers);

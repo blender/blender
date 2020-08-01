@@ -39,7 +39,7 @@ static void time_colorfn(
     fac = (p->cfra - node->custom1) / (float)(node->custom2 - node->custom1);
   }
 
-  BKE_curvemapping_initialize(node->storage);
+  BKE_curvemapping_init(node->storage);
   fac = BKE_curvemapping_evaluateF(node->storage, 0, fac);
   out[0] = CLAMPIS(fac, 0.0f, 1.0f);
 }

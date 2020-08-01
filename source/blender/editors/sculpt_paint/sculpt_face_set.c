@@ -192,7 +192,7 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  BKE_curvemapping_initialize(brush->curve);
+  BKE_curvemapping_init(brush->curve);
 
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data = {

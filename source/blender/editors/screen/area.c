@@ -813,7 +813,7 @@ void ED_workspace_status_text(bContext *C, const char *str)
 
 /* ************************************************************ */
 
-static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea *area)
+static void area_azone_init(wmWindow *win, const bScreen *screen, ScrArea *area)
 {
   AZone *az;
 
@@ -883,7 +883,7 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
   }
 }
 
-static void fullscreen_azone_initialize(ScrArea *area, ARegion *region)
+static void fullscreen_azone_init(ScrArea *area, ARegion *region)
 {
   AZone *az;
 
@@ -1007,10 +1007,10 @@ static bool region_azone_edge_poll(const ARegion *region, const bool is_fullscre
   return true;
 }
 
-static void region_azone_edge_initialize(ScrArea *area,
-                                         ARegion *region,
-                                         AZEdge edge,
-                                         const bool is_fullscreen)
+static void region_azone_edge_init(ScrArea *area,
+                                   ARegion *region,
+                                   AZEdge edge,
+                                   const bool is_fullscreen)
 {
   AZone *az = NULL;
   const bool is_hidden = (region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL));
@@ -1033,9 +1033,9 @@ static void region_azone_edge_initialize(ScrArea *area,
   }
 }
 
-static void region_azone_scrollbar_initialize(ScrArea *area,
-                                              ARegion *region,
-                                              AZScrollDirection direction)
+static void region_azone_scrollbar_init(ScrArea *area,
+                                        ARegion *region,
+                                        AZScrollDirection direction)
 {
   rcti scroller_vert = (direction == AZ_SCROLL_VERT) ? region->v2d.vert : region->v2d.hor;
   AZone *az = MEM_callocN(sizeof(*az), __func__);
@@ -1061,16 +1061,16 @@ static void region_azone_scrollbar_initialize(ScrArea *area,
   BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
-static void region_azones_scrollbars_initialize(ScrArea *area, ARegion *region)
+static void region_azones_scrollbars_init(ScrArea *area, ARegion *region)
 {
   const View2D *v2d = &region->v2d;
 
   if ((v2d->scroll & V2D_SCROLL_VERTICAL) && ((v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) == 0)) {
-    region_azone_scrollbar_initialize(area, region, AZ_SCROLL_VERT);
+    region_azone_scrollbar_init(area, region, AZ_SCROLL_VERT);
   }
   if ((v2d->scroll & V2D_SCROLL_HORIZONTAL) &&
       ((v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) == 0)) {
-    region_azone_scrollbar_initialize(area, region, AZ_SCROLL_HOR);
+    region_azone_scrollbar_init(area, region, AZ_SCROLL_HOR);
   }
 }
 
@@ -1083,16 +1083,16 @@ static void region_azones_add_edge(ScrArea *area,
 
   /* edge code (t b l r) is along which area edge azone will be drawn */
   if (alignment == RGN_ALIGN_TOP) {
-    region_azone_edge_initialize(area, region, AE_BOTTOM_TO_TOPLEFT, is_fullscreen);
+    region_azone_edge_init(area, region, AE_BOTTOM_TO_TOPLEFT, is_fullscreen);
   }
   else if (alignment == RGN_ALIGN_BOTTOM) {
-    region_azone_edge_initialize(area, region, AE_TOP_TO_BOTTOMRIGHT, is_fullscreen);
+    region_azone_edge_init(area, region, AE_TOP_TO_BOTTOMRIGHT, is_fullscreen);
   }
   else if (alignment == RGN_ALIGN_RIGHT) {
-    region_azone_edge_initialize(area, region, AE_LEFT_TO_TOPRIGHT, is_fullscreen);
+    region_azone_edge_init(area, region, AE_LEFT_TO_TOPRIGHT, is_fullscreen);
   }
   else if (alignment == RGN_ALIGN_LEFT) {
-    region_azone_edge_initialize(area, region, AE_RIGHT_TO_TOPLEFT, is_fullscreen);
+    region_azone_edge_init(area, region, AE_RIGHT_TO_TOPLEFT, is_fullscreen);
   }
 }
 
@@ -1116,10 +1116,10 @@ static void region_azones_add(const bScreen *screen, ScrArea *area, ARegion *reg
   }
 
   if (is_fullscreen) {
-    fullscreen_azone_initialize(area, region);
+    fullscreen_azone_init(area, region);
   }
 
-  region_azones_scrollbars_initialize(area, region);
+  region_azones_scrollbars_init(area, region);
 }
 
 /* dir is direction to check, not the splitting edge direction! */
@@ -1828,7 +1828,7 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
   region_rect_recursive(area, area->regionbase.first, &rect, &overlap_rect, 0);
 
   /* Dynamically sized regions may have changed region sizes, so we have to force azone update. */
-  area_azone_initialize(win, screen, area);
+  area_azone_init(win, screen, area);
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     region_subwindow(region);
@@ -1847,7 +1847,7 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
 }
 
 /* called in screen_refresh, or screens_init, also area size changes */
-void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *area)
+void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
 {
   WorkSpace *workspace = WM_window_get_active_workspace(win);
   const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
@@ -1890,7 +1890,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *area)
   }
 
   /* clear all azones, add the area triangle widgets */
-  area_azone_initialize(win, screen, area);
+  area_azone_init(win, screen, area);
 
   /* region windows, default and own handlers */
   for (region = area->regionbase.first; region; region = region->next) {
@@ -1944,7 +1944,7 @@ void ED_region_update_rect(ARegion *region)
 }
 
 /* externally called for floating regions like menus */
-void ED_region_floating_initialize(ARegion *region)
+void ED_region_floating_init(ARegion *region)
 {
   BLI_assert(region->alignment == RGN_ALIGN_FLOAT);
 
@@ -1980,7 +1980,7 @@ void ED_region_visibility_change_update(bContext *C, ScrArea *area, ARegion *reg
     WM_event_remove_handlers(C, &region->handlers);
   }
 
-  ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), area);
+  ED_area_init(CTX_wm_manager(C), CTX_wm_window(C), area);
   ED_area_tag_redraw(area);
 }
 
@@ -2066,8 +2066,8 @@ void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
   ED_area_data_copy(tmp, sa1, false);
   ED_area_data_copy(sa1, sa2, true);
   ED_area_data_copy(sa2, tmp, true);
-  ED_area_initialize(CTX_wm_manager(C), win, sa1);
-  ED_area_initialize(CTX_wm_manager(C), win, sa2);
+  ED_area_init(CTX_wm_manager(C), win, sa1);
+  ED_area_init(CTX_wm_manager(C), win, sa2);
 
   BKE_screen_area_free(tmp);
   MEM_freeN(tmp);
@@ -2204,7 +2204,7 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
       }
     }
 
-    ED_area_initialize(CTX_wm_manager(C), win, area);
+    ED_area_init(CTX_wm_manager(C), win, area);
 
     /* tell WM to refresh, cursor types etc */
     WM_event_add_mousemove(win);

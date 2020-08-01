@@ -702,7 +702,7 @@ static float rna_CurveMapping_evaluateF(struct CurveMapping *cumap,
 
 static void rna_CurveMap_initialize(struct CurveMapping *cumap)
 {
-  BKE_curvemapping_initialize(cumap);
+  BKE_curvemapping_init(cumap);
 }
 #else
 

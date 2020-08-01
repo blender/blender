@@ -367,7 +367,7 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
     ED_area_update_region_sizes(wm, win, area);
   }
 
-  ED_region_floating_initialize(region);
+  ED_region_floating_init(region);
   ED_region_tag_redraw(region);
 
   /* Reset zoom level (not well supported). */

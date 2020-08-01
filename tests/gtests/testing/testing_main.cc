@@ -48,7 +48,7 @@ const std::string &flags_test_release_dir()
 
 int main(int argc, char **argv)
 {
-  MEM_initialize_memleak_detection();
+  MEM_init_memleak_detection();
   testing::InitGoogleTest(&argc, argv);
   BLENDER_GFLAGS_NAMESPACE::ParseCommandLineFlags(&argc, &argv, true);
   google::InitGoogleLogging(argv[0]);

@@ -1202,7 +1202,7 @@ int BKE_curvemapping_RGBA_does_something(const CurveMapping *cumap)
   return 0;
 }
 
-void BKE_curvemapping_initialize(CurveMapping *cumap)
+void BKE_curvemapping_init(CurveMapping *cumap)
 {
   int a;
 

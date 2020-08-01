@@ -658,7 +658,7 @@ void BKE_pose_eval_init_ik(struct Depsgraph *depsgraph, Scene *scene, Object *ob
     return;
   }
   /* construct the IK tree (standard IK) */
-  BIK_initialize_tree(depsgraph, scene, object, ctime);
+  BIK_init_tree(depsgraph, scene, object, ctime);
   /* construct the Spline IK trees
    * - this is not integrated as an IK plugin, since it should be able
    *   to function in conjunction with standard IK.  */

@@ -1137,7 +1137,7 @@ int ED_curve_updateAnimPaths(Main *bmain, Curve *cu)
 /** \name Edit Mode Conversion (Make & Load)
  * \{ */
 
-static int *initialize_index_map(Object *obedit, int *r_old_totvert)
+static int *init_index_map(Object *obedit, int *r_old_totvert)
 {
   Curve *curve = (Curve *)obedit->data;
   EditNurb *editnurb = curve->editnurb;
@@ -1225,7 +1225,7 @@ static void remap_hooks_and_vertex_parents(Main *bmain, Object *obedit)
     if ((object->parent) && (object->parent->data == curve) &&
         ELEM(object->partype, PARVERT1, PARVERT3)) {
       if (old_to_new_map == NULL) {
-        old_to_new_map = initialize_index_map(obedit, &old_totvert);
+        old_to_new_map = init_index_map(obedit, &old_totvert);
       }
 
       if (object->par1 < old_totvert) {
@@ -1254,7 +1254,7 @@ static void remap_hooks_and_vertex_parents(Main *bmain, Object *obedit)
           int i, j;
 
           if (old_to_new_map == NULL) {
-            old_to_new_map = initialize_index_map(obedit, &old_totvert);
+            old_to_new_map = init_index_map(obedit, &old_totvert);
           }
 
           for (i = j = 0; i < hmd->totindex; i++) {

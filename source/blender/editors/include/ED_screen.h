@@ -73,7 +73,7 @@ void ED_region_exit(struct bContext *C, struct ARegion *region);
 void ED_region_remove(struct bContext *C, struct ScrArea *area, struct ARegion *region);
 void ED_region_pixelspace(struct ARegion *region);
 void ED_region_update_rect(struct ARegion *region);
-void ED_region_floating_initialize(struct ARegion *region);
+void ED_region_floating_init(struct ARegion *region);
 void ED_region_tag_redraw(struct ARegion *region);
 void ED_region_tag_redraw_partial(struct ARegion *region, const struct rcti *rct, bool rebuild);
 void ED_region_tag_redraw_cursor(struct ARegion *region);
@@ -171,7 +171,7 @@ void ED_spacetypes_keymap(struct wmKeyConfig *keyconf);
 int ED_area_header_switchbutton(const struct bContext *C, struct uiBlock *block, int yco);
 
 /* areas */
-void ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *area);
+void ED_area_init(struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *area);
 void ED_area_exit(struct bContext *C, struct ScrArea *area);
 int ED_screen_area_active(const struct bContext *C);
 void ED_screen_global_areas_refresh(struct wmWindow *win);
@@ -221,7 +221,7 @@ ScrArea *ED_screen_areas_iter_next(const bScreen *screen, const ScrArea *area);
                                                                       vert_name->next)
 
 /* screens */
-void ED_screens_initialize(struct Main *bmain, struct wmWindowManager *wm);
+void ED_screens_init(struct Main *bmain, struct wmWindowManager *wm);
 void ED_screen_draw_edges(struct wmWindow *win);
 void ED_screen_draw_join_shape(struct ScrArea *sa1, struct ScrArea *sa2);
 void ED_screen_draw_split_preview(struct ScrArea *area, const int dir, const float fac);

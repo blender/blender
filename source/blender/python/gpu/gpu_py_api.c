@@ -43,9 +43,9 @@
 /** \name Utils to invalidate functions
  * \{ */
 
-bool bpygpu_is_initialized_or_error(void)
+bool bpygpu_is_init_or_error(void)
 {
-  if (!GPU_is_initialized()) {
+  if (!GPU_is_init()) {
     PyErr_SetString(PyExc_SystemError,
                     "GPU functions for drawing are not available in background mode");
 

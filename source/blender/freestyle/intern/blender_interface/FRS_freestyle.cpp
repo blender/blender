@@ -100,7 +100,7 @@ static bCallbackFuncStore load_post_callback_funcstore = {
 //   Initialization
 //=======================================================
 
-void FRS_initialize()
+void FRS_init()
 {
   if (freestyle_is_initialized) {
     return;

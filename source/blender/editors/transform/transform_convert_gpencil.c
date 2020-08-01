@@ -104,7 +104,7 @@ void createTransGPencil(bContext *C, TransInfo *t)
 
   /* initialize falloff curve */
   if (is_multiedit) {
-    BKE_curvemapping_initialize(ts->gp_sculpt.cur_falloff);
+    BKE_curvemapping_init(ts->gp_sculpt.cur_falloff);
   }
 
   /* First Pass: Count the number of data-points required for the strokes,

@@ -146,7 +146,7 @@ static void rna_CurveProfile_evaluate(struct CurveProfile *profile,
 
 static void rna_CurveProfile_initialize(struct CurveProfile *profile, int segments_len)
 {
-  BKE_curveprofile_initialize(profile, (short)segments_len);
+  BKE_curveprofile_init(profile, (short)segments_len);
 }
 
 static void rna_CurveProfile_update(struct CurveProfile *profile)

@@ -137,7 +137,7 @@ enum {
   /* apply pixel offsets on y-axis when setting view matrices */
   V2D_PIXELOFS_Y = (1 << 3),
   /* view settings need to be set still... */
-  V2D_IS_INITIALISED = (1 << 10),
+  V2D_IS_INIT = (1 << 10),
 };
 
 /* scroller flags for View2D (v2d->scroll) */

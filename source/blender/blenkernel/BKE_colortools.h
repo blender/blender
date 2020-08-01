@@ -70,7 +70,7 @@ void BKE_curvemapping_changed(struct CurveMapping *cumap, const bool rem_doubles
 void BKE_curvemapping_changed_all(struct CurveMapping *cumap);
 
 /* call before _all_ evaluation functions */
-void BKE_curvemapping_initialize(struct CurveMapping *cumap);
+void BKE_curvemapping_init(struct CurveMapping *cumap);
 
 /* keep these (const CurveMap) - to help with thread safety */
 /* single curve, no table check */

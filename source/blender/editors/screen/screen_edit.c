@@ -516,7 +516,7 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
     ED_screen_areas_iter (win, screen, area) {
       /* set spacetype and region callbacks, calls init() */
       /* sets subwindows for regions, adds handlers */
-      ED_area_initialize(wm, win, area);
+      ED_area_init(wm, win, area);
     }
 
     /* wake up animtimer */
@@ -536,7 +536,7 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 }
 
 /* file read, set all screens, ... */
-void ED_screens_initialize(Main *bmain, wmWindowManager *wm)
+void ED_screens_init(Main *bmain, wmWindowManager *wm)
 {
   wmWindow *win;
 

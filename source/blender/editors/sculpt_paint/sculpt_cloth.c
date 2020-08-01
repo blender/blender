@@ -680,7 +680,7 @@ static void cloth_brush_apply_brush_foces(Sculpt *sd, Object *ob, PBVHNode **nod
       .mat = imat,
   };
 
-  BKE_curvemapping_initialize(brush->curve);
+  BKE_curvemapping_init(brush->curve);
 
   /* Init the grab delta. */
   copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);

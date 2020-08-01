@@ -72,7 +72,7 @@ void BKE_curveprofile_create_samples(struct CurveProfile *profile,
                                      bool sample_straight_edges,
                                      struct CurveProfilePoint *r_samples);
 
-void BKE_curveprofile_initialize(struct CurveProfile *profile, short segments_len);
+void BKE_curveprofile_init(struct CurveProfile *profile, short segments_len);
 
 /* Called for a complete update of the widget after modifications */
 enum {

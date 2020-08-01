@@ -999,7 +999,7 @@ static int gizmo_cage2d_modal(bContext *C,
     if (data->dial == NULL) {
       MUL_V2_V3_M4_FINAL(test_co, data->orig_matrix_offset[3]);
 
-      data->dial = BLI_dial_initialize(test_co, FLT_EPSILON);
+      data->dial = BLI_dial_init(test_co, FLT_EPSILON);
 
       MUL_V2_V3_M4_FINAL(test_co, data->orig_mouse);
       BLI_dial_angle(data->dial, test_co);

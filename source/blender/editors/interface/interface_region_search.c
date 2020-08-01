@@ -819,7 +819,7 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
   }
 
   /* adds subwindow */
-  ED_region_floating_initialize(region);
+  ED_region_floating_init(region);
 
   /* notify change and redraw */
   ED_region_tag_redraw(region);

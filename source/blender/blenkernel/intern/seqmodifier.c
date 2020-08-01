@@ -396,7 +396,7 @@ static void curves_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *m
   float black[3] = {0.0f, 0.0f, 0.0f};
   float white[3] = {1.0f, 1.0f, 1.0f};
 
-  BKE_curvemapping_initialize(&cmd->curve_mapping);
+  BKE_curvemapping_init(&cmd->curve_mapping);
 
   BKE_curvemapping_premultiply(&cmd->curve_mapping, 0);
   BKE_curvemapping_set_black_white(&cmd->curve_mapping, black, white);
@@ -525,7 +525,7 @@ static void hue_correct_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImB
 {
   HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
 
-  BKE_curvemapping_initialize(&hcmd->curve_mapping);
+  BKE_curvemapping_init(&hcmd->curve_mapping);
 
   modifier_apply_threaded(ibuf, mask, hue_correct_apply_threaded, &hcmd->curve_mapping);
 }

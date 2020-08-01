@@ -455,7 +455,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
     }
     buffer = MEM_mallocN(sizeof(GLubyte) * size * size, "load_tex");
 
-    BKE_curvemapping_initialize(br->curve);
+    BKE_curvemapping_init(br->curve);
 
     LoadTexData data = {
         .br = br,

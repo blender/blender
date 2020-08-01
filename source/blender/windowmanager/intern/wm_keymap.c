@@ -363,7 +363,7 @@ void WM_keyconfig_set_active(wmWindowManager *wm, const char *idname)
   WM_keyconfig_update(wm);
 
   BLI_strncpy(U.keyconfigstr, idname, sizeof(U.keyconfigstr));
-  if (wm->initialized & WM_KEYCONFIG_IS_INITIALIZED) {
+  if (wm->initialized & WM_KEYCONFIG_IS_INIT) {
     U.runtime.is_dirty = true;
   }
 

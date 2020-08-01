@@ -6173,7 +6173,7 @@ static bool texture_paint_image_from_view_poll(bContext *C)
     CTX_wm_operator_poll_msg_set(C, "No 3D viewport found to create image from");
     return false;
   }
-  if (G.background || !GPU_is_initialized()) {
+  if (G.background || !GPU_is_init()) {
     return false;
   }
   return true;

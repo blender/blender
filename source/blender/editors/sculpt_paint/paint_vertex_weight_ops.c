@@ -811,7 +811,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
     VPaint *wp = ts->wpaint;
     struct Brush *brush = BKE_paint_brush(&wp->paint);
 
-    BKE_curvemapping_initialize(brush->curve);
+    BKE_curvemapping_init(brush->curve);
 
     data.brush = brush;
     data.weightpaint = BKE_brush_weight_get(scene, brush);

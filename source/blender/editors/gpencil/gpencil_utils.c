@@ -1500,7 +1500,7 @@ void ED_gpencil_add_defaults(bContext *C, Object *ob)
   if (ts->gp_sculpt.cur_falloff == NULL) {
     ts->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
     CurveMapping *gp_falloff_curve = ts->gp_sculpt.cur_falloff;
-    BKE_curvemapping_initialize(gp_falloff_curve);
+    BKE_curvemapping_init(gp_falloff_curve);
     BKE_curvemap_reset(gp_falloff_curve->cm,
                        &gp_falloff_curve->clipr,
                        CURVE_PRESET_GAUSS,

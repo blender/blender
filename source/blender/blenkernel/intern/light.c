@@ -58,7 +58,7 @@ static void light_init_data(ID *id)
   MEMCPY_STRUCT_AFTER(la, DNA_struct_default_get(Light), id);
 
   la->curfalloff = BKE_curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
-  BKE_curvemapping_initialize(la->curfalloff);
+  BKE_curvemapping_init(la->curfalloff);
 }
 
 /**

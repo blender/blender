@@ -235,7 +235,7 @@ static void file_ensure_valid_region_state(bContext *C,
   ARegion *region_ui = BKE_area_find_region_type(area, RGN_TYPE_UI);
   ARegion *region_props = BKE_area_find_region_type(area, RGN_TYPE_TOOL_PROPS);
   ARegion *region_execute = BKE_area_find_region_type(area, RGN_TYPE_EXECUTE);
-  bool needs_init = false; /* To avoid multiple ED_area_initialize() calls. */
+  bool needs_init = false; /* To avoid multiple ED_area_init() calls. */
 
   /* If there's an file-operation, ensure we have the option and execute region */
   if (sfile->op && (region_props == NULL)) {
@@ -261,7 +261,7 @@ static void file_ensure_valid_region_state(bContext *C,
   }
 
   if (needs_init) {
-    ED_area_initialize(wm, win, area);
+    ED_area_init(wm, win, area);
   }
 }
 

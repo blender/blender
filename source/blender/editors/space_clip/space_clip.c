@@ -684,7 +684,7 @@ static void clip_refresh(const bContext *C, ScrArea *area)
   if (main_visible) {
     if (region_main && (region_main->flag & RGN_FLAG_HIDDEN)) {
       region_main->flag &= ~RGN_FLAG_HIDDEN;
-      region_main->v2d.flag &= ~V2D_IS_INITIALISED;
+      region_main->v2d.flag &= ~V2D_IS_INIT;
       view_changed = true;
     }
 
@@ -696,7 +696,7 @@ static void clip_refresh(const bContext *C, ScrArea *area)
   else {
     if (region_main && !(region_main->flag & RGN_FLAG_HIDDEN)) {
       region_main->flag |= RGN_FLAG_HIDDEN;
-      region_main->v2d.flag &= ~V2D_IS_INITIALISED;
+      region_main->v2d.flag &= ~V2D_IS_INIT;
       WM_event_remove_handlers((bContext *)C, &region_main->handlers);
       view_changed = true;
     }
@@ -709,7 +709,7 @@ static void clip_refresh(const bContext *C, ScrArea *area)
   if (properties_visible) {
     if (region_properties && (region_properties->flag & RGN_FLAG_HIDDEN)) {
       region_properties->flag &= ~RGN_FLAG_HIDDEN;
-      region_properties->v2d.flag &= ~V2D_IS_INITIALISED;
+      region_properties->v2d.flag &= ~V2D_IS_INIT;
       view_changed = true;
     }
     if (region_properties && region_properties->alignment != RGN_ALIGN_RIGHT) {
@@ -720,7 +720,7 @@ static void clip_refresh(const bContext *C, ScrArea *area)
   else {
     if (region_properties && !(region_properties->flag & RGN_FLAG_HIDDEN)) {
       region_properties->flag |= RGN_FLAG_HIDDEN;
-      region_properties->v2d.flag &= ~V2D_IS_INITIALISED;
+      region_properties->v2d.flag &= ~V2D_IS_INIT;
       WM_event_remove_handlers((bContext *)C, &region_properties->handlers);
       view_changed = true;
     }
@@ -733,7 +733,7 @@ static void clip_refresh(const bContext *C, ScrArea *area)
   if (tools_visible) {
     if (region_tools && (region_tools->flag & RGN_FLAG_HIDDEN)) {
       region_tools->flag &= ~RGN_FLAG_HIDDEN;
-      region_tools->v2d.flag &= ~V2D_IS_INITIALISED;
+      region_tools->v2d.flag &= ~V2D_IS_INIT;
       view_changed = true;
     }
     if (region_tools && region_tools->alignment != RGN_ALIGN_LEFT) {
@@ -744,7 +744,7 @@ static void clip_refresh(const bContext *C, ScrArea *area)
   else {
     if (region_tools && !(region_tools->flag & RGN_FLAG_HIDDEN)) {
       region_tools->flag |= RGN_FLAG_HIDDEN;
-      region_tools->v2d.flag &= ~V2D_IS_INITIALISED;
+      region_tools->v2d.flag &= ~V2D_IS_INIT;
       WM_event_remove_handlers((bContext *)C, &region_tools->handlers);
       view_changed = true;
     }
@@ -757,7 +757,7 @@ static void clip_refresh(const bContext *C, ScrArea *area)
   if (preview_visible) {
     if (region_preview && (region_preview->flag & RGN_FLAG_HIDDEN)) {
       region_preview->flag &= ~RGN_FLAG_HIDDEN;
-      region_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+      region_preview->v2d.flag &= ~V2D_IS_INIT;
       region_preview->v2d.cur = region_preview->v2d.tot;
       view_changed = true;
     }
@@ -769,7 +769,7 @@ static void clip_refresh(const bContext *C, ScrArea *area)
   else {
     if (region_preview && !(region_preview->flag & RGN_FLAG_HIDDEN)) {
       region_preview->flag |= RGN_FLAG_HIDDEN;
-      region_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+      region_preview->v2d.flag &= ~V2D_IS_INIT;
       WM_event_remove_handlers((bContext *)C, &region_preview->handlers);
       view_changed = true;
     }
@@ -782,7 +782,7 @@ static void clip_refresh(const bContext *C, ScrArea *area)
   if (channels_visible) {
     if (region_channels && (region_channels->flag & RGN_FLAG_HIDDEN)) {
       region_channels->flag &= ~RGN_FLAG_HIDDEN;
-      region_channels->v2d.flag &= ~V2D_IS_INITIALISED;
+      region_channels->v2d.flag &= ~V2D_IS_INIT;
       view_changed = true;
     }
     if (region_channels && region_channels->alignment != RGN_ALIGN_LEFT) {
@@ -793,7 +793,7 @@ static void clip_refresh(const bContext *C, ScrArea *area)
   else {
     if (region_channels && !(region_channels->flag & RGN_FLAG_HIDDEN)) {
       region_channels->flag |= RGN_FLAG_HIDDEN;
-      region_channels->v2d.flag &= ~V2D_IS_INITIALISED;
+      region_channels->v2d.flag &= ~V2D_IS_INIT;
       WM_event_remove_handlers((bContext *)C, &region_channels->handlers);
       view_changed = true;
     }
@@ -804,7 +804,7 @@ static void clip_refresh(const bContext *C, ScrArea *area)
   }
 
   if (view_changed) {
-    ED_area_initialize(wm, window, area);
+    ED_area_init(wm, window, area);
     ED_area_tag_redraw(area);
   }
 

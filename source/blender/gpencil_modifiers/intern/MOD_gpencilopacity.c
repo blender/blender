@@ -70,7 +70,7 @@ static void initData(GpencilModifierData *md)
   gpmd->curve_intensity = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   if (gpmd->curve_intensity) {
     CurveMapping *curve = gpmd->curve_intensity;
-    BKE_curvemapping_initialize(curve);
+    BKE_curvemapping_init(curve);
   }
 }
 

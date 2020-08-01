@@ -3958,7 +3958,7 @@ static void curve_mapping_to_ocio_settings(CurveMapping *curve_mapping,
 {
   int i;
 
-  BKE_curvemapping_initialize(curve_mapping);
+  BKE_curvemapping_init(curve_mapping);
   BKE_curvemapping_premultiply(curve_mapping, false);
   BKE_curvemapping_table_RGBA(
       curve_mapping, &curve_mapping_settings->lut, &curve_mapping_settings->lut_size);

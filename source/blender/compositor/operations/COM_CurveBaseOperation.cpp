@@ -35,7 +35,7 @@ CurveBaseOperation::~CurveBaseOperation()
 
 void CurveBaseOperation::initExecution()
 {
-  BKE_curvemapping_initialize(this->m_curveMapping);
+  BKE_curvemapping_init(this->m_curveMapping);
 }
 void CurveBaseOperation::deinitExecution()
 {

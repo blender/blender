@@ -236,7 +236,7 @@ static void warpModifier_do(WarpModifierData *wmd,
   }
 
   if (wmd->curfalloff) {
-    BKE_curvemapping_initialize(wmd->curfalloff);
+    BKE_curvemapping_init(wmd->curfalloff);
   }
 
   invert_m4_m4(obinv, ob->obmat);

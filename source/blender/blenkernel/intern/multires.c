@@ -241,7 +241,7 @@ static void multires_mdisps_subdivide_hidden(MDisps *md, int new_level)
   md->hidden = subd;
 }
 
-static MDisps *multires_mdisps_initialize_hidden(Mesh *me, int level)
+static MDisps *multires_mdisps_init_hidden(Mesh *me, int level)
 {
   MDisps *mdisps = CustomData_add_layer(&me->ldata, CD_MDISPS, CD_CALLOC, NULL, me->totloop);
   int gridsize = BKE_ccg_gridsize(level);
@@ -868,7 +868,7 @@ static void multires_subdivide_legacy(
 
   mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
   if (!mdisps) {
-    mdisps = multires_mdisps_initialize_hidden(me, totlvl);
+    mdisps = multires_mdisps_init_hidden(me, totlvl);
   }
 
   if (mdisps->disps && !updateblock && lvl != 0) {

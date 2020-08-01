@@ -56,7 +56,7 @@ static bool view2d_poll(bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
 
-  return (region != NULL) && (region->v2d.flag & V2D_IS_INITIALISED);
+  return (region != NULL) && (region->v2d.flag & V2D_IS_INIT);
 }
 
 /** \} */

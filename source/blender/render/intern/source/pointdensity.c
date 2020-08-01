@@ -557,7 +557,7 @@ static float density_falloff(PointDensityRangeData *pdr, int index, float square
   }
 
   if (pdr->density_curve && dist != 0.0f) {
-    BKE_curvemapping_initialize(pdr->density_curve);
+    BKE_curvemapping_init(pdr->density_curve);
     density = BKE_curvemapping_evaluateF(pdr->density_curve, 0, density / dist) * dist;
   }
 

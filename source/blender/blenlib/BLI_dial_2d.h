@@ -38,7 +38,7 @@
  * float angle;
  * Dial *dial;
  *
- * dial = BLI_dial_initialize(start_position, threshold);
+ * dial = BLI_dial_init(start_position, threshold);
  *
  * angle = BLI_dial_angle(dial, current_position);
  *
@@ -52,7 +52,7 @@ extern "C" {
 
 typedef struct Dial Dial;
 
-Dial *BLI_dial_initialize(const float start_position[2], float threshold);
+Dial *BLI_dial_init(const float start_position[2], float threshold);
 
 float BLI_dial_angle(Dial *dial, const float current_position[2]);
 

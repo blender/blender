@@ -36,7 +36,7 @@ struct bConstraint;
 struct bPose;
 struct bPoseChannel;
 
-void BIK_initialize_tree(struct Depsgraph *depsgraph,
+void BIK_init_tree(struct Depsgraph *depsgraph,
                          struct Scene *scene,
                          struct Object *ob,
                          float ctime);

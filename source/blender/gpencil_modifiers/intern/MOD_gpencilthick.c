@@ -65,7 +65,7 @@ static void initData(GpencilModifierData *md)
   gpmd->material = NULL;
   gpmd->curve_thickness = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   if (gpmd->curve_thickness) {
-    BKE_curvemapping_initialize(gpmd->curve_thickness);
+    BKE_curvemapping_init(gpmd->curve_thickness);
   }
 }
 

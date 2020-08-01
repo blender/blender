@@ -651,7 +651,7 @@ BLI_INLINE int DOWNSAMPLE_FLOAT_TO_16BIT(const float _val)
 #define COMP_24_CS 1041666   /*Maximum size per color component for 2K & 4K @ 24fps*/
 #define COMP_48_CS 520833    /*Maximum size per color component for 2K @ 48fps*/
 
-static int initialise_4K_poc(opj_poc_t *POC, int numres)
+static int init_4K_poc(opj_poc_t *POC, int numres)
 {
   POC[0].tile = 1;
   POC[0].resno0 = 0;
@@ -750,7 +750,7 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,
       else {
         parameters->cp_rsiz = DCP_CINEMA2K;
       }
-      parameters->numpocs = initialise_4K_poc(parameters->POC, parameters->numresolution);
+      parameters->numpocs = init_4K_poc(parameters->POC, parameters->numresolution);
       break;
     case OPJ_OFF:
       /* do nothing */

@@ -95,7 +95,7 @@ void GPU_exit(void)
   initialized = false;
 }
 
-bool GPU_is_initialized(void)
+bool GPU_is_init(void)
 {
   return initialized;
 }

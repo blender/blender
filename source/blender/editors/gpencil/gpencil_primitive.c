@@ -740,13 +740,13 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
   gpencil_session_validatebuffer(tgpi);
   gpencil_init_colors(tgpi);
   if (gset->flag & GP_SCULPT_SETT_FLAG_PRIMITIVE_CURVE) {
-    BKE_curvemapping_initialize(ts->gp_sculpt.cur_primitive);
+    BKE_curvemapping_init(ts->gp_sculpt.cur_primitive);
   }
   if (brush_settings->flag & GP_BRUSH_USE_JITTER_PRESSURE) {
-    BKE_curvemapping_initialize(brush_settings->curve_jitter);
+    BKE_curvemapping_init(brush_settings->curve_jitter);
   }
   if (brush_settings->flag & GP_BRUSH_USE_STENGTH_PRESSURE) {
-    BKE_curvemapping_initialize(brush_settings->curve_strength);
+    BKE_curvemapping_init(brush_settings->curve_strength);
   }
 
   /* get an array of depths, far depths are blended */

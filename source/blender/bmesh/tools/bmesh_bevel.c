@@ -7156,7 +7156,7 @@ static void set_profile_spacing(BevelParams *bp, ProfileSpacing *pro_spacing, bo
     if (custom) {
       /* Make sure the curve profile's sample table is full. */
       if (bp->custom_profile->segments_len != seg || !bp->custom_profile->segments) {
-        BKE_curveprofile_initialize((CurveProfile *)bp->custom_profile, (short)seg);
+        BKE_curveprofile_init((CurveProfile *)bp->custom_profile, (short)seg);
       }
 
       /* Copy segment locations into the profile spacing struct. */
@@ -7185,7 +7185,7 @@ static void set_profile_spacing(BevelParams *bp, ProfileSpacing *pro_spacing, bo
                                                           (size_t)(seg_2 + 1) * sizeof(double));
       if (custom) {
         /* Make sure the curve profile widget's sample table is full of the seg_2 samples. */
-        BKE_curveprofile_initialize((CurveProfile *)bp->custom_profile, (short)seg_2);
+        BKE_curveprofile_init((CurveProfile *)bp->custom_profile, (short)seg_2);
 
         /* Copy segment locations into the profile spacing struct. */
         for (int i = 0; i < seg_2 + 1; i++) {

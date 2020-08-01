@@ -570,7 +570,7 @@ void psys_thread_context_free(ParticleThreadContext *ctx)
   }
 }
 
-static void initialize_particle_texture(ParticleSimulationData *sim, ParticleData *pa, int p)
+static void init_particle_texture(ParticleSimulationData *sim, ParticleData *pa, int p)
 {
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = psys->part;
@@ -595,7 +595,7 @@ static void initialize_particle_texture(ParticleSimulationData *sim, ParticleDat
 }
 
 /* set particle parameters that don't change during particle's life */
-void initialize_particle(ParticleSimulationData *sim, ParticleData *pa)
+void init_particle(ParticleSimulationData *sim, ParticleData *pa)
 {
   ParticleSettings *part = sim->psys->part;
   float birth_time = (float)(pa - sim->psys->particles) / (float)sim->psys->totpart;
@@ -629,7 +629,7 @@ static void initialize_all_particles(ParticleSimulationData *sim)
   LOOP_PARTICLES
   {
     if (!(emit_from_volume_grid && (pa->flag & PARS_UNEXIST) != 0)) {
-      initialize_particle(sim, pa);
+      init_particle(sim, pa);
     }
   }
 }
@@ -1092,7 +1092,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
    * We could only do it now because we'll need to know coordinate
    * before sampling the texture.
    */
-  initialize_particle_texture(sim, pa, p);
+  init_particle_texture(sim, pa, p);
 
   if (part->phystype == PART_PHYS_BOIDS && pa->boid) {
     BoidParticle *bpa = pa->boid;

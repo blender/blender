@@ -83,7 +83,7 @@ void weightvg_do_map(
   }
 
   if (cmap && falloff_type == MOD_WVG_MAPPING_CURVE) {
-    BKE_curvemapping_initialize(cmap);
+    BKE_curvemapping_init(cmap);
   }
 
   /* Map each weight (vertex) to its new value, accordingly to the chosen mode. */

@@ -32,7 +32,7 @@ extern "C" {
 
 void GPU_init(void);
 void GPU_exit(void);
-bool GPU_is_initialized(void);
+bool GPU_is_init(void);
 
 #ifdef __cplusplus
 }

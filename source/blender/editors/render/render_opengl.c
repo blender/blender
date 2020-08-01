@@ -962,7 +962,7 @@ static void screen_opengl_render_cancel(bContext *C, wmOperator *op)
 }
 
 /* share between invoke and exec */
-static bool screen_opengl_render_anim_initialize(bContext *C, wmOperator *op)
+static bool screen_opengl_render_anim_init(bContext *C, wmOperator *op)
 {
   /* initialize animation */
   OGLRender *oglrender;
@@ -1256,7 +1256,7 @@ static int screen_opengl_render_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   if (anim) {
-    if (!screen_opengl_render_anim_initialize(C, op)) {
+    if (!screen_opengl_render_anim_init(C, op)) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -1292,7 +1292,7 @@ static int screen_opengl_render_exec(bContext *C, wmOperator *op)
 
   bool ret = true;
 
-  if (!screen_opengl_render_anim_initialize(C, op)) {
+  if (!screen_opengl_render_anim_init(C, op)) {
     return OPERATOR_CANCELLED;
   }
 

@@ -242,7 +242,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
   bool tot_changed = false, do_init;
   const uiStyle *style = UI_style_get();
 
-  do_init = (v2d->flag & V2D_IS_INITIALISED) == 0;
+  do_init = (v2d->flag & V2D_IS_INIT) == 0;
 
   /* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
   switch (type) {
@@ -375,7 +375,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
   }
 
   /* set initialized flag so that View2D doesn't get reinitialised next time again */
-  v2d->flag |= V2D_IS_INITIALISED;
+  v2d->flag |= V2D_IS_INIT;
 
   /* store view size */
   v2d->winx = winx;

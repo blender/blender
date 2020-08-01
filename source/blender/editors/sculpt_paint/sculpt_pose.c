@@ -1000,7 +1000,7 @@ void SCULPT_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Brush *br
 static void sculpt_pose_do_translate_deform(SculptSession *ss, Brush *brush)
 {
   SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
-  BKE_curvemapping_initialize(brush->curve);
+  BKE_curvemapping_init(brush->curve);
   pose_solve_translate_chain(ik_chain, ss->cache->grab_delta);
 }
 
@@ -1041,7 +1041,7 @@ static void sculpt_pose_do_twist_deform(SculptSession *ss, Brush *brush)
 
   /* Calculate the maximum roll. 0.02 radians per pixel works fine. */
   float roll = (ss->cache->initial_mouse[0] - ss->cache->mouse[0]) * ss->cache->bstrength * 0.02f;
-  BKE_curvemapping_initialize(brush->curve);
+  BKE_curvemapping_init(brush->curve);
   pose_solve_roll_chain(ik_chain, brush, roll);
 }
 

@@ -72,7 +72,7 @@ static void initData(ModifierData *md)
   wmd->default_weight = 0.0f;
 
   wmd->cmap_curve = BKE_curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
-  BKE_curvemapping_initialize(wmd->cmap_curve);
+  BKE_curvemapping_init(wmd->cmap_curve);
 
   wmd->rem_threshold = 0.01f;
   wmd->add_threshold = 0.01f;

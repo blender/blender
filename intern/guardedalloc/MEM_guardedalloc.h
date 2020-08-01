@@ -213,7 +213,7 @@ extern const char *(*MEM_name_ptr)(void *vmemh);
 
 /** This should be called as early as possible in the program. When it has been called, information
  * about memory leaks will be printed on exit. */
-void MEM_initialize_memleak_detection(void);
+void MEM_init_memleak_detection(void);
 
 /* Switch allocator to slower but fully guarded mode. */
 void MEM_use_guarded_allocator(void);

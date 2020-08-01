@@ -284,7 +284,7 @@ static void deformVerts_do(HookModifierData *hmd,
   }
 
   if (hmd->curfalloff) {
-    BKE_curvemapping_initialize(hmd->curfalloff);
+    BKE_curvemapping_init(hmd->curfalloff);
   }
 
   /* Generic data needed for applying per-vertex calculations (initialize all members) */

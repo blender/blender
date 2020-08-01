@@ -94,7 +94,7 @@ static void initData(GpencilModifierData *md)
   gpmd->falloff_type = eGPHook_Falloff_Smooth;
   gpmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   if (gpmd->curfalloff) {
-    BKE_curvemapping_initialize(gpmd->curfalloff);
+    BKE_curvemapping_init(gpmd->curfalloff);
   }
 }
 

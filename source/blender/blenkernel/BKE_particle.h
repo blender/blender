@@ -580,7 +580,7 @@ void psys_particle_on_dm(struct Mesh *mesh_final,
 
 /* particle_system.c */
 void distribute_particles(struct ParticleSimulationData *sim, int from);
-void initialize_particle(struct ParticleSimulationData *sim, struct ParticleData *pa);
+void init_particle(struct ParticleSimulationData *sim, struct ParticleData *pa);
 void psys_calc_dmcache(struct Object *ob,
                        struct Mesh *mesh_final,
                        struct Mesh *mesh_original,

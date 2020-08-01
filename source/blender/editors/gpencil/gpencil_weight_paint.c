@@ -295,7 +295,7 @@ static bool gpencil_weightpaint_brush_init(bContext *C, wmOperator *op)
   gso->bmain = CTX_data_main(C);
 
   gso->brush = paint->brush;
-  BKE_curvemapping_initialize(gso->brush->curve);
+  BKE_curvemapping_init(gso->brush->curve);
 
   gso->is_painting = false;
   gso->first = true;
@@ -326,7 +326,7 @@ static bool gpencil_weightpaint_brush_init(bContext *C, wmOperator *op)
   /* Init multi-edit falloff curve data before doing anything,
    * so we won't have to do it again later. */
   if (gso->is_multiframe) {
-    BKE_curvemapping_initialize(ts->gp_sculpt.cur_falloff);
+    BKE_curvemapping_init(ts->gp_sculpt.cur_falloff);
   }
 
   /* Setup space conversions. */

@@ -46,7 +46,7 @@ class MemLeakPrinter {
 };
 }  // namespace
 
-void MEM_initialize_memleak_detection(void)
+void MEM_init_memleak_detection(void)
 {
   /**
    * This variable is constructed when this function is first called. This should happen as soon as

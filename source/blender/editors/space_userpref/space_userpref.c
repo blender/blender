@@ -115,7 +115,7 @@ static void userpref_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   /* do not use here, the properties changed in userprefs do a system-wide refresh,
    * then scroller jumps back */
-  /*  region->v2d.flag &= ~V2D_IS_INITIALISED; */
+  /*  region->v2d.flag &= ~V2D_IS_INIT; */
 
   region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
 

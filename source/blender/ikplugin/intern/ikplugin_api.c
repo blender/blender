@@ -80,7 +80,7 @@ static IKPlugin *get_plugin(bPose *pose)
 /*----------------------------------------*/
 /* Plugin API                             */
 
-void BIK_initialize_tree(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float ctime)
+void BIK_init_tree(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float ctime)
 {
   IKPlugin *plugin = get_plugin(ob->pose);
 

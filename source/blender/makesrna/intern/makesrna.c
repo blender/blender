@@ -5146,7 +5146,7 @@ int main(int argc, char **argv)
 {
   int return_status = 0;
 
-  MEM_initialize_memleak_detection();
+  MEM_init_memleak_detection();
   MEM_set_error_callback(mem_error_cb);
 
   CLG_init();

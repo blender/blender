@@ -1163,7 +1163,7 @@ static void rna_BevelModifier_update_segments(Main *bmain, Scene *scene, Pointer
   BevelModifierData *bmd = (BevelModifierData *)ptr->data;
   if (RNA_enum_get(ptr, "profile_type") == MOD_BEVEL_PROFILE_CUSTOM) {
     short segments = (short)RNA_int_get(ptr, "segments");
-    BKE_curveprofile_initialize(bmd->custom_profile, segments);
+    BKE_curveprofile_init(bmd->custom_profile, segments);
   }
   rna_Modifier_update(bmain, scene, ptr);
 }

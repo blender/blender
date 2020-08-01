@@ -1188,7 +1188,7 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
 
   Paint *paint = &ts->gp_sculptpaint->paint;
   gso->brush = paint->brush;
-  BKE_curvemapping_initialize(gso->brush->curve);
+  BKE_curvemapping_init(gso->brush->curve);
 
   /* save mask */
   gso->mask = ts->gpencil_selectmode_sculpt;
@@ -1200,7 +1200,7 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
   /* Init multi-edit falloff curve data before doing anything,
    * so we won't have to do it again later. */
   if (gso->is_multiframe) {
-    BKE_curvemapping_initialize(ts->gp_sculpt.cur_falloff);
+    BKE_curvemapping_init(ts->gp_sculpt.cur_falloff);
   }
 
   /* initialise custom data for brushes */
