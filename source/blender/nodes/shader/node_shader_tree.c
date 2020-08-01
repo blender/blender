@@ -344,15 +344,23 @@ static void ntree_shader_unlink_hidden_value_sockets(bNode *group_node, bNodeSoc
   bool removed_link = false;
 
   for (node = group_ntree->nodes.first; node; node = node->next) {
+    const bool is_group = ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && (node->id != NULL);
+
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      if ((sock->flag & SOCK_HIDE_VALUE) == 0) {
+      if (!is_group && (sock->flag & SOCK_HIDE_VALUE) == 0) {
         continue;
       }
       /* If socket is linked to a group input node and sockets id match. */
       if (sock && sock->link && sock->link->fromnode->type == NODE_GROUP_INPUT) {
         if (STREQ(isock->identifier, sock->link->fromsock->identifier)) {
-          nodeRemLink(group_ntree, sock->link);
-          removed_link = true;
+          if (is_group) {
+            /* Recursively unlink sockets within the nested group. */
+            ntree_shader_unlink_hidden_value_sockets(node, sock);
+          }
+          else {
+            nodeRemLink(group_ntree, sock->link);
+            removed_link = true;
+          }
         }
       }
     }
