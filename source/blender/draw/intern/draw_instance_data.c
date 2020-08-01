@@ -93,7 +93,7 @@ static void instance_batch_free(GPUBatch *geom, void *UNUSED(user_data))
     BLI_memblock_iter iter;
     BLI_memblock_iternew(memblock, &iter);
     GPUBatch *batch;
-    while ((batch = (GPUBatch *)BLI_memblock_iterstep(&iter))) {
+    while ((batch = *(GPUBatch **)BLI_memblock_iterstep(&iter))) {
       /* Only check verts[0] that's enough. */
       if (batch->verts[0] == geom->verts[0]) {
         GPU_batch_clear(batch);
@@ -142,7 +142,12 @@ GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
   /* Only call with one of them. */
   BLI_assert((instancer != NULL) != (buf != NULL));
 
-  GPUBatch *batch = BLI_memblock_alloc(idatalist->pool_instancing);
+  GPUBatch **batch_ptr = BLI_memblock_alloc(idatalist->pool_instancing);
+  if (*batch_ptr == NULL) {
+    *batch_ptr = MEM_callocN(sizeof(GPUBatch), "GPUBatch");
+  }
+
+  GPUBatch *batch = *batch_ptr;
   bool instancer_compat = buf ? ((batch->inst[0] == buf) && (buf->vbo_id != 0)) :
                                 ((batch->inst[0] == instancer->inst[0]) &&
                                  (batch->inst[1] == instancer->inst[1]));
@@ -173,7 +178,12 @@ GPUBatch *DRW_temp_batch_request(DRWInstanceDataList *idatalist,
                                  GPUVertBuf *buf,
                                  GPUPrimType prim_type)
 {
-  GPUBatch *batch = BLI_memblock_alloc(idatalist->pool_batching);
+  GPUBatch **batch_ptr = BLI_memblock_alloc(idatalist->pool_instancing);
+  if (*batch_ptr == NULL) {
+    *batch_ptr = MEM_callocN(sizeof(GPUBatch), "GPUBatch");
+  }
+
+  GPUBatch *batch = *batch_ptr;
   bool is_compatible = (batch->verts[0] == buf) && (buf->vbo_id != 0) &&
                        (batch->gl_prim_type == convert_prim_type_to_gl(prim_type));
   if (!is_compatible) {
@@ -187,6 +197,11 @@ static void temp_buffer_handle_free(DRWTempBufferHandle *handle)
 {
   handle->format = NULL;
   GPU_vertbuf_clear(&handle->buf);
+}
+
+static void temp_batch_free(GPUBatch **batch)
+{
+  GPU_BATCH_DISCARD_SAFE(*batch);
 }
 
 void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
@@ -207,10 +222,11 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
     }
   }
   /* Finish pending instancing batches. */
-  GPUBatch *batch;
+  GPUBatch *batch, **batch_ptr;
   BLI_memblock_iternew(idatalist->pool_instancing, &iter);
-  while ((batch = BLI_memblock_iterstep(&iter))) {
-    if (batch->phase == GPU_BATCH_READY_TO_BUILD) {
+  while ((batch_ptr = BLI_memblock_iterstep(&iter))) {
+    batch = *batch_ptr;
+    if (batch && batch->phase == GPU_BATCH_READY_TO_BUILD) {
       GPUVertBuf *inst_buf = batch->inst[0];
       /* HACK see DRW_temp_batch_instance_request. */
       GPUBatch *inst_batch = (void *)batch->inst[1];
@@ -228,8 +244,8 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
   }
   /* Resize pools and free unused. */
   BLI_memblock_clear(idatalist->pool_buffers, (MemblockValFreeFP)temp_buffer_handle_free);
-  BLI_memblock_clear(idatalist->pool_instancing, (MemblockValFreeFP)GPU_batch_clear);
-  BLI_memblock_clear(idatalist->pool_batching, (MemblockValFreeFP)GPU_batch_clear);
+  BLI_memblock_clear(idatalist->pool_instancing, (MemblockValFreeFP)temp_batch_free);
+  BLI_memblock_clear(idatalist->pool_batching, (MemblockValFreeFP)temp_batch_free);
 }
 
 /** \} */
@@ -300,8 +316,8 @@ DRWInstanceDataList *DRW_instance_data_list_create(void)
 {
   DRWInstanceDataList *idatalist = MEM_callocN(sizeof(DRWInstanceDataList), "DRWInstanceDataList");
 
-  idatalist->pool_batching = BLI_memblock_create(sizeof(GPUBatch));
-  idatalist->pool_instancing = BLI_memblock_create(sizeof(GPUBatch));
+  idatalist->pool_batching = BLI_memblock_create(sizeof(GPUBatch *));
+  idatalist->pool_instancing = BLI_memblock_create(sizeof(GPUBatch *));
   idatalist->pool_buffers = BLI_memblock_create(sizeof(DRWTempBufferHandle));
 
   BLI_addtail(&g_idatalists, idatalist);
@@ -324,8 +340,8 @@ void DRW_instance_data_list_free(DRWInstanceDataList *idatalist)
   }
 
   BLI_memblock_destroy(idatalist->pool_buffers, (MemblockValFreeFP)temp_buffer_handle_free);
-  BLI_memblock_destroy(idatalist->pool_instancing, (MemblockValFreeFP)GPU_batch_clear);
-  BLI_memblock_destroy(idatalist->pool_batching, (MemblockValFreeFP)GPU_batch_clear);
+  BLI_memblock_destroy(idatalist->pool_instancing, (MemblockValFreeFP)temp_batch_free);
+  BLI_memblock_destroy(idatalist->pool_batching, (MemblockValFreeFP)temp_batch_free);
 
   BLI_remlink(&g_idatalists, idatalist);
 }
