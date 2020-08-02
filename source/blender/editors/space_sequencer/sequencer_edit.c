@@ -1000,6 +1000,7 @@ static bool sequence_offset_after_frame(Scene *scene, const int delta, const int
     if (seq->startdisp >= cfra) {
       BKE_sequence_translate(scene, seq, delta);
       BKE_sequence_calc(scene, seq);
+      BKE_sequence_invalidate_cache_preprocessed(scene, seq);
       done = true;
     }
   }
