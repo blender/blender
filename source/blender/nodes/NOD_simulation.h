@@ -39,6 +39,8 @@ void register_node_type_sim_particle_mesh_collision_event(void);
 void register_node_type_sim_emit_particles(void);
 void register_node_type_sim_time(void);
 void register_node_type_sim_particle_attribute(void);
+void register_node_type_sim_age_reached_event(void);
+void register_node_type_sim_kill_particle(void);
 
 #ifdef __cplusplus
 }

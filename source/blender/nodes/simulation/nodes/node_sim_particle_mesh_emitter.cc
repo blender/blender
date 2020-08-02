@@ -21,6 +21,7 @@
 static bNodeSocketTemplate sim_node_particle_mesh_emitter_in[] = {
     {SOCK_OBJECT, N_("Object")},
     {SOCK_FLOAT, N_("Rate"), 100.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX},
+    {SOCK_CONTROL_FLOW, N_("Execute")},
     {-1, ""},
 };
 

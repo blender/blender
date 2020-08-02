@@ -367,6 +367,17 @@ static const ParticleFunction *create_particle_function_for_inputs(
   return &particle_fn;
 }
 
+static const ParticleFunction *create_particle_function_for_inputs(
+    CollectContext &context, Span<const DInputSocket *> dsockets_to_compute)
+{
+  Vector<const MFInputSocket *> sockets_to_compute;
+  for (const DInputSocket *dsocket : dsockets_to_compute) {
+    const MFInputSocket &socket = context.network_map.lookup_dummy(*dsocket);
+    sockets_to_compute.append(&socket);
+  }
+  return create_particle_function_for_inputs(context, sockets_to_compute);
+}
+
 class ParticleFunctionForce : public ParticleForce {
  private:
   const ParticleFunction &particle_fn_;
@@ -401,11 +412,8 @@ static void create_forces_for_particle_simulation(CollectContext &context,
       continue;
     }
 
-    const MFInputSocket &force_socket = context.network_map.lookup_dummy(
-        origin_node.input(0, "Force"));
-
-    const ParticleFunction *particle_fn = create_particle_function_for_inputs(context,
-                                                                              {&force_socket});
+    const ParticleFunction *particle_fn = create_particle_function_for_inputs(
+        context, {&origin_node.input(0, "Force")});
 
     if (particle_fn == nullptr) {
       continue;
@@ -434,7 +442,7 @@ static ParticleEmitter *create_particle_emitter(CollectContext &context, const D
     return nullptr;
   }
 
-  Array<const MFInputSocket *> input_sockets{dnode.inputs().size()};
+  Array<const MFInputSocket *> input_sockets{2};
   for (int i : input_sockets.index_range()) {
     input_sockets[i] = &context.network_map.lookup_dummy(dnode.input(i));
   }
@@ -446,10 +454,13 @@ static ParticleEmitter *create_particle_emitter(CollectContext &context, const D
   MultiFunction &inputs_fn = context.resources.construct<MFNetworkEvaluator>(
       AT, Span<const MFOutputSocket *>(), input_sockets.as_span());
 
+  const ParticleAction *birth_action = create_particle_action(
+      context, dnode.input(2, "Execute"), names);
+
   StringRefNull own_state_name = get_identifier(context, dnode);
   context.required_states.add(own_state_name, SIM_TYPE_NAME_PARTICLE_MESH_EMITTER);
   ParticleEmitter &emitter = context.resources.construct<ParticleMeshEmitter>(
-      AT, own_state_name, names.as_span(), inputs_fn);
+      AT, own_state_name, names.as_span(), inputs_fn, birth_action);
   return &emitter;
 }
 
@@ -490,15 +501,10 @@ static void collect_time_step_events(CollectContext &context)
 {
   for (const DNode *event_dnode : nodes_by_type(context, "SimulationNodeParticleTimeStepEvent")) {
     const DInputSocket &execute_input = event_dnode->input(0);
-    if (execute_input.linked_sockets().size() != 1) {
-      continue;
-    }
-
     Array<StringRefNull> particle_names = find_linked_particle_simulations(context,
                                                                            event_dnode->output(0));
 
-    const DOutputSocket &execute_source = *execute_input.linked_sockets()[0];
-    const ParticleAction *action = create_particle_action(context, execute_source, particle_names);
+    const ParticleAction *action = create_particle_action(context, execute_input, particle_names);
     if (action == nullptr) {
       continue;
     }
@@ -570,6 +576,10 @@ class SetParticleAttributeAction : public ParticleAction {
       cpp_type_.copy_to_initialized_indices(
           value_array.data(), attribute_array->data(), context.particles.index_mask);
     }
+
+    if (attribute_name_ == "Velocity") {
+      context.particles.update_diffs_after_velocity_change();
+    }
   }
 };
 
@@ -595,21 +605,28 @@ static const ParticleAction *create_set_particle_attribute_action(
     CollectContext &context, const DOutputSocket &dsocket, Span<StringRefNull> particle_names)
 {
   const DNode &dnode = dsocket.node();
+
+  const ParticleAction *previous_action = create_particle_action(
+      context, dnode.input(0), particle_names);
+
   MFInputSocket &name_socket = context.network_map.lookup_dummy(dnode.input(1));
   MFInputSocket &value_socket = name_socket.node().input(1);
   std::optional<Array<std::string>> names = compute_global_string_inputs(context.network_map,
                                                                          {&name_socket});
   if (!names.has_value()) {
-    return nullptr;
+    return previous_action;
   }
 
   std::string attribute_name = (*names)[0];
+  if (attribute_name.empty()) {
+    return previous_action;
+  }
   const CPPType &attribute_type = value_socket.data_type().single_type();
 
   const ParticleFunction *inputs_fn = create_particle_function_for_inputs(context,
                                                                           {&value_socket});
   if (inputs_fn == nullptr) {
-    return nullptr;
+    return previous_action;
   }
 
   for (StringRef particle_name : particle_names) {
@@ -619,9 +636,6 @@ static const ParticleAction *create_set_particle_attribute_action(
 
   ParticleAction &this_action = context.resources.construct<SetParticleAttributeAction>(
       AT, attribute_name, attribute_type, *inputs_fn);
-
-  const ParticleAction *previous_action = create_particle_action(
-      context, dnode.input(0), particle_names);
 
   return concatenate_actions(context, {previous_action, &this_action});
 }
@@ -698,10 +712,9 @@ static const ParticleAction *create_particle_condition_action(CollectContext &co
                                                               Span<StringRefNull> particle_names)
 {
   const DNode &dnode = dsocket.node();
-  MFInputSocket &condition_socket = context.network_map.lookup_dummy(dnode.input(0));
 
-  const ParticleFunction *inputs_fn = create_particle_function_for_inputs(context,
-                                                                          {&condition_socket});
+  const ParticleFunction *inputs_fn = create_particle_function_for_inputs(
+      context, {&dnode.input(0, "Condition")});
   if (inputs_fn == nullptr) {
     return nullptr;
   }
@@ -718,16 +731,31 @@ static const ParticleAction *create_particle_condition_action(CollectContext &co
       AT, *inputs_fn, true_action, false_action);
 }
 
+class KillParticleAction : public ParticleAction {
+ public:
+  void execute(ParticleActionContext &context) const override
+  {
+    MutableSpan<int> dead_states = context.particles.attributes.get<int>("Dead");
+    for (int i : context.particles.index_mask) {
+      dead_states[i] = true;
+    }
+  }
+};
+
 static const ParticleAction *create_particle_action(CollectContext &context,
                                                     const DOutputSocket &dsocket,
                                                     Span<StringRefNull> particle_names)
 {
   const DNode &dnode = dsocket.node();
-  if (dnode.idname() == "SimulationNodeSetParticleAttribute") {
+  StringRef idname = dnode.idname();
+  if (idname == "SimulationNodeSetParticleAttribute") {
     return create_set_particle_attribute_action(context, dsocket, particle_names);
   }
-  if (dnode.idname() == "SimulationNodeExecuteCondition") {
+  if (idname == "SimulationNodeExecuteCondition") {
     return create_particle_condition_action(context, dsocket, particle_names);
+  }
+  if (idname == "SimulationNodeKillParticle") {
+    return &context.resources.construct<KillParticleAction>(AT);
   }
   return nullptr;
 }
@@ -762,25 +790,38 @@ static void optimize_function_network(CollectContext &context)
 class AgeReachedEvent : public ParticleEvent {
  private:
   std::string attribute_name_;
+  const ParticleFunction &inputs_fn_;
+  const ParticleAction &action_;
 
  public:
-  AgeReachedEvent(std::string attribute_name) : attribute_name_(std::move(attribute_name))
+  AgeReachedEvent(std::string attribute_name,
+                  const ParticleFunction &inputs_fn,
+                  const ParticleAction &action)
+      : attribute_name_(std::move(attribute_name)), inputs_fn_(inputs_fn), action_(action)
   {
   }
 
   void filter(ParticleEventFilterContext &context) const override
   {
     Span<float> birth_times = context.particles.attributes.get<float>("Birth Time");
-    Span<int> has_been_triggered = context.particles.attributes.get<int>(attribute_name_);
-    const float age = 5.0f;
+    std::optional<Span<int>> has_been_triggered = context.particles.attributes.try_get<int>(
+        attribute_name_);
+    if (!has_been_triggered.has_value()) {
+      return;
+    }
+
+    ParticleFunctionEvaluator evaluator{inputs_fn_, context.solve_context, context.particles};
+    evaluator.compute();
+    VSpan<float> trigger_ages = evaluator.get<float>(0, "Age");
 
     const float end_time = context.particles.integration->end_time;
     for (int i : context.particles.index_mask) {
-      if (has_been_triggered[i]) {
+      if ((*has_been_triggered)[i]) {
         continue;
       }
+      const float trigger_age = trigger_ages[i];
       const float birth_time = birth_times[i];
-      const float trigger_time = birth_time + age;
+      const float trigger_time = birth_time + trigger_age;
       if (trigger_time > end_time) {
         continue;
       }
@@ -795,24 +836,41 @@ class AgeReachedEvent : public ParticleEvent {
 
   void execute(ParticleActionContext &context) const override
   {
-    MutableSpan<int> dead_states = context.particles.attributes.get<int>("Dead");
     MutableSpan<int> has_been_triggered = context.particles.attributes.get<int>(attribute_name_);
     for (int i : context.particles.index_mask) {
-      dead_states[i] = true;
       has_been_triggered[i] = 1;
     }
+    action_.execute(context);
   }
 };
 
 static void collect_age_reached_events(CollectContext &context)
 {
-  /* TODO: Actually implement an Age Reached Event node. */
-  std::string attribute_name = "Has Been Triggered";
-  const AgeReachedEvent &event = context.resources.construct<AgeReachedEvent>(AT, attribute_name);
-  for (const DNode *dnode : context.particle_simulation_nodes) {
-    StringRefNull name = get_identifier(context, *dnode);
-    context.influences.particle_events.add_as(name, &event);
-    context.influences.particle_attributes_builder.lookup_as(name)->add<int>(attribute_name, 0);
+  for (const DNode *dnode : nodes_by_type(context, "SimulationNodeAgeReachedEvent")) {
+    const DInputSocket &age_input = dnode->input(0, "Age");
+    const DInputSocket &execute_input = dnode->input(1, "Execute");
+    Array<StringRefNull> particle_names = find_linked_particle_simulations(context,
+                                                                           dnode->output(0));
+    const ParticleAction *action = create_particle_action(context, execute_input, particle_names);
+    if (action == nullptr) {
+      continue;
+    }
+    const ParticleFunction *inputs_fn = create_particle_function_for_inputs(context, {&age_input});
+    if (inputs_fn == nullptr) {
+      continue;
+    }
+
+    std::string attribute_name = get_identifier(context, *dnode);
+    const ParticleEvent &event = context.resources.construct<AgeReachedEvent>(
+        AT, attribute_name, *inputs_fn, *action);
+    for (StringRefNull particle_name : particle_names) {
+      const bool added_attribute = context.influences.particle_attributes_builder
+                                       .lookup_as(particle_name)
+                                       ->add<int>(attribute_name, 0);
+      if (added_attribute) {
+        context.influences.particle_events.add_as(particle_name, &event);
+      }
+    }
   }
 }
 

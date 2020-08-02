@@ -136,6 +136,7 @@ set(SRC
   function/nodes/node_fn_float_compare.cc
   function/nodes/node_fn_group_instance_id.cc
   function/nodes/node_fn_object_transforms.cc
+  function/nodes/node_fn_random_float.cc
   function/nodes/node_fn_switch.cc
   function/node_function_util.cc
 
@@ -232,10 +233,12 @@ set(SRC
   shader/node_shader_tree.c
   shader/node_shader_util.c
 
+  simulation/nodes/node_sim_age_reached_event.cc
   simulation/nodes/node_sim_common.cc
   simulation/nodes/node_sim_emit_particles.cc
   simulation/nodes/node_sim_execute_condition.cc
   simulation/nodes/node_sim_force.cc
+  simulation/nodes/node_sim_kill_particle.cc
   simulation/nodes/node_sim_multi_execute.cc
   simulation/nodes/node_sim_particle_attribute.cc
   simulation/nodes/node_sim_particle_birth_event.cc

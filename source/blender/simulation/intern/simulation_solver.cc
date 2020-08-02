@@ -143,8 +143,9 @@ BLI_NOINLINE static void find_next_event_per_particle(
   r_next_event_indices.fill_indices(particles.index_mask, -1);
   r_time_factors_to_next_event.fill_indices(particles.index_mask, 1.0f);
 
-  Array<float> time_factors(particles.index_mask.min_array_size(), -1.0f);
+  Array<float> time_factors(particles.index_mask.min_array_size());
   for (int event_index : events.index_range()) {
+    time_factors.fill(-1.0f);
     ParticleEventFilterContext event_context{solve_context, particles, time_factors};
     const ParticleEvent &event = *events[event_index];
     event.filter(event_context);

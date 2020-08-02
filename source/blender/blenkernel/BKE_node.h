@@ -1331,6 +1331,8 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define SIM_NODE_EMIT_PARTICLES 1009
 #define SIM_NODE_TIME 1010
 #define SIM_NODE_PARTICLE_ATTRIBUTE 1011
+#define SIM_NODE_AGE_REACHED_EVENT 1012
+#define SIM_NODE_KILL_PARTICLE 1013
 
 /** \} */
 
@@ -1344,6 +1346,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define FN_NODE_GROUP_INSTANCE_ID 1203
 #define FN_NODE_COMBINE_STRINGS 1204
 #define FN_NODE_OBJECT_TRANSFORMS 1205
+#define FN_NODE_RANDOM_FLOAT 1206
 
 /** \} */
 

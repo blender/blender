@@ -4352,6 +4352,8 @@ static void registerSimulationNodes(void)
   register_node_type_sim_emit_particles();
   register_node_type_sim_time();
   register_node_type_sim_particle_attribute();
+  register_node_type_sim_age_reached_event();
+  register_node_type_sim_kill_particle();
 }
 
 static void registerFunctionNodes(void)
@@ -4362,6 +4364,7 @@ static void registerFunctionNodes(void)
   register_node_type_fn_group_instance_id();
   register_node_type_fn_combine_strings();
   register_node_type_fn_object_transforms();
+  register_node_type_fn_random_float();
 }
 
 void init_nodesystem(void)

@@ -27,6 +27,10 @@ AttributesInfoBuilder::~AttributesInfoBuilder()
 
 bool AttributesInfoBuilder::add(StringRef name, const CPPType &type, const void *default_value)
 {
+  if (name.size() == 0) {
+    std::cout << "Warning: Tried to add an attribute with empty name.\n";
+    return false;
+  }
   if (names_.add_as(name)) {
     types_.append(&type);
 

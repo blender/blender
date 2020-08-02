@@ -14,23 +14,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __NOD_FUNCTION_H__
-#define __NOD_FUNCTION_H__
+#include "node_simulation_util.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+static bNodeSocketTemplate sim_node_age_reached_event_in[] = {
+    {SOCK_FLOAT, N_("Age"), 3, 0, 0, 0, 0, 10000000},
+    {SOCK_CONTROL_FLOW, N_("Execute")},
+    {-1, ""},
+};
 
-void register_node_type_fn_boolean_math(void);
-void register_node_type_fn_float_compare(void);
-void register_node_type_fn_switch(void);
-void register_node_type_fn_group_instance_id(void);
-void register_node_type_fn_combine_strings(void);
-void register_node_type_fn_object_transforms(void);
-void register_node_type_fn_random_float(void);
+static bNodeSocketTemplate sim_node_age_reached_event_out[] = {
+    {SOCK_EVENTS, N_("Event")},
+    {-1, ""},
+};
 
-#ifdef __cplusplus
+void register_node_type_sim_age_reached_event()
+{
+  static bNodeType ntype;
+
+  sim_node_type_base(&ntype, SIM_NODE_AGE_REACHED_EVENT, "Age Reached Event", 0, 0);
+  node_type_socket_templates(
+      &ntype, sim_node_age_reached_event_in, sim_node_age_reached_event_out);
+  nodeRegisterType(&ntype);
 }
-#endif
-
-#endif /* __NOD_FUNCTION_H__ */

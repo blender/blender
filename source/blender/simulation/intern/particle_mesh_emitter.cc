@@ -346,6 +346,16 @@ void ParticleMeshEmitter::emit(ParticleEmitterContext &context) const
     attributes.get<float3>("Position").copy_from(new_positions);
     attributes.get<float3>("Velocity").copy_from(new_velocities);
     attributes.get<float>("Birth Time").copy_from(new_birth_times);
+
+    if (action_ != nullptr) {
+      ParticleChunkContext particles{
+          *context.solve_context.state_map.lookup<ParticleSimulationState>(name),
+          IndexRange(amount),
+          attributes,
+          nullptr};
+      ParticleActionContext action_context{context.solve_context, particles};
+      action_->execute(action_context);
+    }
   }
 }
 

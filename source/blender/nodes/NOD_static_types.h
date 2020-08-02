@@ -270,6 +270,8 @@ DefNode(SimulationNode, SIM_NODE_PARTICLE_MESH_COLLISION_EVENT, 0,       "PARTIC
 DefNode(SimulationNode, SIM_NODE_EMIT_PARTICLES, 0,                      "EMIT_PARTICLES",      EmitParticles,      "Emit Particles",       "")
 DefNode(SimulationNode, SIM_NODE_TIME,           def_sim_time,           "TIME",                Time,               "Time",                 "")
 DefNode(SimulationNode, SIM_NODE_PARTICLE_ATTRIBUTE, def_sim_particle_attribute, "PARTICLE_ATTRIBUTE",  ParticleAttribute,  "Particle Attribute",   "")
+DefNode(SimulationNode, SIM_NODE_AGE_REACHED_EVENT, 0, "AGE_REACHED_EVENT", AgeReachedEvent, "Age Reached Event", "")
+DefNode(SimulationNode, SIM_NODE_KILL_PARTICLE, 0, "KILL_PARTICLE", KillParticle, "Kill Particle", "")
 
 DefNode(FunctionNode, FN_NODE_BOOLEAN_MATH,  def_boolean_math,  "BOOLEAN_MATH",  BooleanMath,  "Boolean Math", "")
 DefNode(FunctionNode, FN_NODE_FLOAT_COMPARE, def_float_compare, "FLOAT_COMPARE", FloatCompare, "Float Compare", "")
@@ -277,7 +279,7 @@ DefNode(FunctionNode, FN_NODE_SWITCH,        def_fn_switch,     "SWITCH",       
 DefNode(FunctionNode, FN_NODE_GROUP_INSTANCE_ID, 0,             "GROUP_INSTANCE_ID", GroupInstanceID,  "Group Instance ID", "")
 DefNode(FunctionNode, FN_NODE_COMBINE_STRINGS, 0,               "COMBINE_STRINGS", CombineStrings, "Combine Strings", "")
 DefNode(FunctionNode, FN_NODE_OBJECT_TRANSFORMS, 0,             "OBJECT_TRANSFORMS", ObjectTransforms, "Object Transforms", "")
-
+DefNode(FunctionNode, FN_NODE_RANDOM_FLOAT, 0,                  "RANDOM_FLOAT", RandomFloat, "Random Float", "")
 
 
 /* undefine macros */
