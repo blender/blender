@@ -255,13 +255,13 @@ void ED_object_base_init_transform_on_add(Object *object, const float loc[3], co
 /* Uses context to figure out transform for primitive.
  * Returns standard diameter. */
 float ED_object_new_primitive_matrix(
-    bContext *C, Object *obedit, const float loc[3], const float rot[3], float primmat[4][4])
+    bContext *C, Object *obedit, const float loc[3], const float rot[3], float r_primmat[4][4])
 {
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
   float mat[3][3], rmat[3][3], cmat[3][3], imat[3][3];
 
-  unit_m4(primmat);
+  unit_m4(r_primmat);
 
   eul_to_mat3(rmat, rot);
   invert_m3(rmat);
@@ -270,13 +270,13 @@ float ED_object_new_primitive_matrix(
   copy_m3_m4(mat, obedit->obmat);
   mul_m3_m3m3(cmat, rmat, mat);
   invert_m3_m3(imat, cmat);
-  copy_m4_m3(primmat, imat);
+  copy_m4_m3(r_primmat, imat);
 
   /* center */
-  copy_v3_v3(primmat[3], loc);
-  sub_v3_v3v3(primmat[3], primmat[3], obedit->obmat[3]);
+  copy_v3_v3(r_primmat[3], loc);
+  sub_v3_v3v3(r_primmat[3], r_primmat[3], obedit->obmat[3]);
   invert_m3_m3(imat, mat);
-  mul_m3_v3(imat, primmat[3]);
+  mul_m3_v3(imat, r_primmat[3]);
 
   {
     const float dia = v3d ? ED_view3d_grid_scale(scene, v3d, NULL) :

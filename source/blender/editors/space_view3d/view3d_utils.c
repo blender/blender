@@ -335,7 +335,7 @@ void ED_view3d_clipping_calc(
  *
  * \{ */
 
-static bool view3d_boundbox_clip_m4(const BoundBox *bb, float persmatob[4][4])
+static bool view3d_boundbox_clip_m4(const BoundBox *bb, const float persmatob[4][4])
 {
   int a, flag = -1, fl;
 
@@ -1243,7 +1243,9 @@ float ED_view3d_radius_to_dist(const View3D *v3d,
  * \param fallback_dist: The distance to use if the object is too near or in front of \a ofs.
  * \returns A newly calculated distance or the fallback.
  */
-float ED_view3d_offset_distance(float mat[4][4], const float ofs[3], const float fallback_dist)
+float ED_view3d_offset_distance(const float mat[4][4],
+                                const float ofs[3],
+                                const float fallback_dist)
 {
   float pos[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   float dir[4] = {0.0f, 0.0f, 1.0f, 0.0f};
@@ -1374,11 +1376,11 @@ static float view3d_quat_axis[6][4][4] = {
 
 };
 
-bool ED_view3d_quat_from_axis_view(const char view, const char view_axis_roll, float quat[4])
+bool ED_view3d_quat_from_axis_view(const char view, const char view_axis_roll, float r_quat[4])
 {
   BLI_assert(view_axis_roll <= RV3D_VIEW_AXIS_ROLL_270);
   if (RV3D_VIEW_IS_AXIS(view)) {
-    copy_qt_qt(quat, view3d_quat_axis[view - RV3D_VIEW_FRONT][view_axis_roll]);
+    copy_qt_qt(r_quat, view3d_quat_axis[view - RV3D_VIEW_FRONT][view_axis_roll]);
     return true;
   }
   return false;

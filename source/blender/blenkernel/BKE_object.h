@@ -144,21 +144,21 @@ struct Object *BKE_object_duplicate(struct Main *bmain,
 
 void BKE_object_obdata_size_init(struct Object *ob, const float scale);
 
-void BKE_object_scale_to_mat3(struct Object *ob, float mat[3][3]);
-void BKE_object_rot_to_mat3(const struct Object *ob, float mat[3][3], bool use_drot);
-void BKE_object_mat3_to_rot(struct Object *ob, float mat[3][3], bool use_compat);
-void BKE_object_to_mat3(struct Object *ob, float mat[3][3]);
-void BKE_object_to_mat4(struct Object *ob, float mat[4][4]);
+void BKE_object_scale_to_mat3(struct Object *ob, float r_mat[3][3]);
+void BKE_object_rot_to_mat3(const struct Object *ob, float r_mat[3][3], bool use_drot);
+void BKE_object_mat3_to_rot(struct Object *ob, float r_mat[3][3], bool use_compat);
+void BKE_object_to_mat3(struct Object *ob, float r_mat[3][3]);
+void BKE_object_to_mat4(struct Object *ob, float r_mat[4][4]);
 void BKE_object_apply_mat4(struct Object *ob,
-                           float mat[4][4],
+                           const float mat[4][4],
                            const bool use_compat,
                            const bool use_parent);
 void BKE_object_apply_mat4_ex(struct Object *ob,
-                              float mat[4][4],
+                              const float mat[4][4],
                               struct Object *parent,
-                              float parentinv[4][4],
+                              const float parentinv[4][4],
                               const bool use_compat);
-void BKE_object_matrix_local_get(struct Object *ob, float mat[4][4]);
+void BKE_object_matrix_local_get(struct Object *ob, float r_mat[4][4]);
 
 bool BKE_object_pose_context_check(const struct Object *ob);
 struct Object *BKE_object_pose_armature_get(struct Object *ob);
@@ -188,7 +188,7 @@ struct Base **BKE_object_pose_base_array_get(struct ViewLayer *view_layer,
                                              struct View3D *v3d,
                                              unsigned int *r_bases_len);
 
-void BKE_object_get_parent_matrix(struct Object *ob, struct Object *par, float parentmat[4][4]);
+void BKE_object_get_parent_matrix(struct Object *ob, struct Object *par, float r_parentmat[4][4]);
 void BKE_object_where_is_calc(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 void BKE_object_where_is_calc_ex(struct Depsgraph *depsgraph,
                                  struct Scene *scene,
@@ -199,7 +199,7 @@ void BKE_object_where_is_calc_time(struct Depsgraph *depsgraph,
                                    struct Scene *scene,
                                    struct Object *ob,
                                    float ctime);
-void BKE_object_where_is_calc_mat4(struct Object *ob, float obmat[4][4]);
+void BKE_object_where_is_calc_mat4(struct Object *ob, float r_obmat[4][4]);
 
 /* possibly belong in own moduke? */
 struct BoundBox *BKE_boundbox_alloc_unit(void);
@@ -207,12 +207,12 @@ void BKE_boundbox_init_from_minmax(struct BoundBox *bb, const float min[3], cons
 void BKE_boundbox_calc_center_aabb(const struct BoundBox *bb, float r_cent[3]);
 void BKE_boundbox_calc_size_aabb(const struct BoundBox *bb, float r_size[3]);
 void BKE_boundbox_minmax(const struct BoundBox *bb,
-                         float obmat[4][4],
+                         const float obmat[4][4],
                          float r_min[3],
                          float r_max[3]);
 
 struct BoundBox *BKE_object_boundbox_get(struct Object *ob);
-void BKE_object_dimensions_get(struct Object *ob, float vec[3]);
+void BKE_object_dimensions_get(struct Object *ob, float r_vec[3]);
 void BKE_object_dimensions_set_ex(struct Object *ob,
                                   const float value[3],
                                   int axis_mask,
@@ -233,7 +233,7 @@ bool BKE_object_minmax_dupli(struct Depsgraph *depsgraph,
 
 /* sometimes min-max isn't enough, we need to loop over each point */
 void BKE_object_foreach_display_point(struct Object *ob,
-                                      float obmat[4][4],
+                                      const float obmat[4][4],
                                       void (*func_cb)(const float[3], void *),
                                       void *user_data);
 void BKE_scene_foreach_display_point(struct Depsgraph *depsgraph,

@@ -5110,8 +5110,11 @@ bool BKE_curve_center_bounds(Curve *cu, float cent[3])
   return false;
 }
 
-void BKE_curve_transform_ex(
-    Curve *cu, float mat[4][4], const bool do_keys, const bool do_props, const float unit_scale)
+void BKE_curve_transform_ex(Curve *cu,
+                            const float mat[4][4],
+                            const bool do_keys,
+                            const bool do_props,
+                            const float unit_scale)
 {
   Nurb *nu;
   BPoint *bp;
@@ -5174,13 +5177,13 @@ void BKE_curve_transform_ex(
   }
 }
 
-void BKE_curve_transform(Curve *cu, float mat[4][4], const bool do_keys, const bool do_props)
+void BKE_curve_transform(Curve *cu, const float mat[4][4], const bool do_keys, const bool do_props)
 {
   float unit_scale = mat4_to_scale(mat);
   BKE_curve_transform_ex(cu, mat, do_keys, do_props, unit_scale);
 }
 
-void BKE_curve_translate(Curve *cu, float offset[3], const bool do_keys)
+void BKE_curve_translate(Curve *cu, const float offset[3], const bool do_keys)
 {
   ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
   Nurb *nu;

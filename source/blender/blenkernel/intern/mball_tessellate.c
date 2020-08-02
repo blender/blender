@@ -315,7 +315,7 @@ static float densfunc(const MetaElem *ball, float x, float y, float z)
   float dist2;
   float dvec[3] = {x, y, z};
 
-  mul_m4_v3((float(*)[4])ball->imat, dvec);
+  mul_m4_v3((const float(*)[4])ball->imat, dvec);
 
   switch (ball->type) {
     case MB_BALL:

@@ -2344,7 +2344,7 @@ void BKE_object_tfm_copy(Object *object_dst, const Object *object_src)
 #undef TFMCPY4D
 }
 
-void BKE_object_to_mat3(Object *ob, float mat[3][3]) /* no parent */
+void BKE_object_to_mat3(Object *ob, float r_mat[3][3]) /* no parent */
 {
   float smat[3][3];
   float rmat[3][3];
@@ -2355,38 +2355,38 @@ void BKE_object_to_mat3(Object *ob, float mat[3][3]) /* no parent */
 
   /* rot */
   BKE_object_rot_to_mat3(ob, rmat, true);
-  mul_m3_m3m3(mat, rmat, smat);
+  mul_m3_m3m3(r_mat, rmat, smat);
 }
 
-void BKE_object_to_mat4(Object *ob, float mat[4][4])
+void BKE_object_to_mat4(Object *ob, float r_mat[4][4])
 {
   float tmat[3][3];
 
   BKE_object_to_mat3(ob, tmat);
 
-  copy_m4_m3(mat, tmat);
+  copy_m4_m3(r_mat, tmat);
 
-  add_v3_v3v3(mat[3], ob->loc, ob->dloc);
+  add_v3_v3v3(r_mat[3], ob->loc, ob->dloc);
 }
 
-void BKE_object_matrix_local_get(struct Object *ob, float mat[4][4])
+void BKE_object_matrix_local_get(struct Object *ob, float r_mat[4][4])
 {
   if (ob->parent) {
     float par_imat[4][4];
 
     BKE_object_get_parent_matrix(ob, ob->parent, par_imat);
     invert_m4(par_imat);
-    mul_m4_m4m4(mat, par_imat, ob->obmat);
+    mul_m4_m4m4(r_mat, par_imat, ob->obmat);
   }
   else {
-    copy_m4_m4(mat, ob->obmat);
+    copy_m4_m4(r_mat, ob->obmat);
   }
 }
 
 /**
  * \return success if \a mat is set.
  */
-static bool ob_parcurve(Object *ob, Object *par, float mat[4][4])
+static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
 {
   Curve *cu = par->data;
   float vec[4], dir[3], quat[4], radius, ctime;
@@ -2420,34 +2420,34 @@ static bool ob_parcurve(Object *ob, Object *par, float mat[4][4])
   }
   CLAMP(ctime, 0.0f, 1.0f);
 
-  unit_m4(mat);
+  unit_m4(r_mat);
 
   /* vec: 4 items! */
   if (where_on_path(par, ctime, vec, dir, (cu->flag & CU_FOLLOW) ? quat : NULL, &radius, NULL)) {
     if (cu->flag & CU_FOLLOW) {
       quat_apply_track(quat, ob->trackflag, ob->upflag);
       normalize_qt(quat);
-      quat_to_mat4(mat, quat);
+      quat_to_mat4(r_mat, quat);
     }
     if (cu->flag & CU_PATH_RADIUS) {
       float tmat[4][4], rmat[4][4];
       scale_m4_fl(tmat, radius);
-      mul_m4_m4m4(rmat, tmat, mat);
-      copy_m4_m4(mat, rmat);
+      mul_m4_m4m4(rmat, tmat, r_mat);
+      copy_m4_m4(r_mat, rmat);
     }
-    copy_v3_v3(mat[3], vec);
+    copy_v3_v3(r_mat[3], vec);
   }
 
   return true;
 }
 
-static void ob_parbone(Object *ob, Object *par, float mat[4][4])
+static void ob_parbone(Object *ob, Object *par, float r_mat[4][4])
 {
   bPoseChannel *pchan;
   float vec[3];
 
   if (par->type != OB_ARMATURE) {
-    unit_m4(mat);
+    unit_m4(r_mat);
     return;
   }
 
@@ -2456,7 +2456,7 @@ static void ob_parbone(Object *ob, Object *par, float mat[4][4])
   if (!pchan || !pchan->bone) {
     CLOG_ERROR(
         &LOG, "Object %s with Bone parent: bone %s doesn't exist", ob->id.name + 2, ob->parsubstr);
-    unit_m4(mat);
+    unit_m4(r_mat);
     return;
   }
 
@@ -2464,15 +2464,15 @@ static void ob_parbone(Object *ob, Object *par, float mat[4][4])
   if (pchan->bone->flag & BONE_RELATIVE_PARENTING) {
     /* the new option uses the root - expected behavior, but differs from old... */
     /* XXX check on version patching? */
-    copy_m4_m4(mat, pchan->chan_mat);
+    copy_m4_m4(r_mat, pchan->chan_mat);
   }
   else {
-    copy_m4_m4(mat, pchan->pose_mat);
+    copy_m4_m4(r_mat, pchan->pose_mat);
 
     /* but for backwards compatibility, the child has to move to the tail */
-    copy_v3_v3(vec, mat[1]);
+    copy_v3_v3(vec, r_mat[1]);
     mul_v3_fl(vec, pchan->bone->length);
-    add_v3_v3(mat[3], vec);
+    add_v3_v3(r_mat[3], vec);
   }
 }
 
@@ -2594,7 +2594,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
   }
 }
 
-static void ob_parvert3(Object *ob, Object *par, float mat[4][4])
+static void ob_parvert3(Object *ob, Object *par, float r_mat[4][4])
 {
 
   /* in local ob space */
@@ -2607,16 +2607,16 @@ static void ob_parvert3(Object *ob, Object *par, float mat[4][4])
 
     tri_to_quat(q, v1, v2, v3);
     quat_to_mat3(cmat, q);
-    copy_m4_m3(mat, cmat);
+    copy_m4_m3(r_mat, cmat);
 
-    mid_v3_v3v3v3(mat[3], v1, v2, v3);
+    mid_v3_v3v3v3(r_mat[3], v1, v2, v3);
   }
   else {
-    unit_m4(mat);
+    unit_m4(r_mat);
   }
 }
 
-void BKE_object_get_parent_matrix(Object *ob, Object *par, float parentmat[4][4])
+void BKE_object_get_parent_matrix(Object *ob, Object *par, float r_parentmat[4][4])
 {
   float tmat[4][4];
   float vec[3];
@@ -2632,31 +2632,31 @@ void BKE_object_get_parent_matrix(Object *ob, Object *par, float parentmat[4][4]
       }
 
       if (ok) {
-        mul_m4_m4m4(parentmat, par->obmat, tmat);
+        mul_m4_m4m4(r_parentmat, par->obmat, tmat);
       }
       else {
-        copy_m4_m4(parentmat, par->obmat);
+        copy_m4_m4(r_parentmat, par->obmat);
       }
 
       break;
     case PARBONE:
       ob_parbone(ob, par, tmat);
-      mul_m4_m4m4(parentmat, par->obmat, tmat);
+      mul_m4_m4m4(r_parentmat, par->obmat, tmat);
       break;
 
     case PARVERT1:
-      unit_m4(parentmat);
+      unit_m4(r_parentmat);
       give_parvert(par, ob->par1, vec);
-      mul_v3_m4v3(parentmat[3], par->obmat, vec);
+      mul_v3_m4v3(r_parentmat[3], par->obmat, vec);
       break;
     case PARVERT3:
       ob_parvert3(ob, par, tmat);
 
-      mul_m4_m4m4(parentmat, par->obmat, tmat);
+      mul_m4_m4m4(r_parentmat, par->obmat, tmat);
       break;
 
     case PARSKEL:
-      copy_m4_m4(parentmat, par->obmat);
+      copy_m4_m4(r_parentmat, par->obmat);
       break;
   }
 }
@@ -2672,7 +2672,7 @@ void BKE_object_get_parent_matrix(Object *ob, Object *par, float parentmat[4][4]
  * (without its own matrix applied)
  */
 static void solve_parenting(
-    Object *ob, Object *par, float obmat[4][4], float r_originmat[3][3], const bool set_origin)
+    Object *ob, Object *par, const bool set_origin, float r_obmat[4][4], float r_originmat[3][3])
 {
   float totmat[4][4];
   float tmat[4][4];
@@ -2684,7 +2684,7 @@ static void solve_parenting(
 
   /* total */
   mul_m4_m4m4(tmat, totmat, ob->parentinv);
-  mul_m4_m4m4(obmat, tmat, locmat);
+  mul_m4_m4m4(r_obmat, tmat, locmat);
 
   if (r_originmat) {
     /* usable originmat */
@@ -2714,7 +2714,7 @@ static void object_where_is_calc_ex(Depsgraph *depsgraph,
     Object *par = ob->parent;
 
     /* calculate parent matrix */
-    solve_parenting(ob, par, ob->obmat, r_originmat, true);
+    solve_parenting(ob, par, true, ob->obmat, r_originmat);
   }
   else {
     BKE_object_to_mat4(ob, ob->obmat);
@@ -2757,14 +2757,14 @@ void BKE_object_where_is_calc_time(Depsgraph *depsgraph, Scene *scene, Object *o
  * constraints -- assume dependencies are already solved by depsgraph.
  * no changes to object and it's parent would be done.
  * used for bundles orientation in 3d space relative to parented blender camera */
-void BKE_object_where_is_calc_mat4(Object *ob, float obmat[4][4])
+void BKE_object_where_is_calc_mat4(Object *ob, float r_obmat[4][4])
 {
   if (ob->parent) {
     Object *par = ob->parent;
-    solve_parenting(ob, par, obmat, NULL, false);
+    solve_parenting(ob, par, false, r_obmat, NULL);
   }
   else {
-    BKE_object_to_mat4(ob, obmat);
+    BKE_object_to_mat4(ob, r_obmat);
   }
 }
 
@@ -2825,8 +2825,11 @@ void BKE_object_workob_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *o
  * \param use_compat: true to ensure that rotations are set using the
  * min difference between the old and new orientation.
  */
-void BKE_object_apply_mat4_ex(
-    Object *ob, float mat[4][4], Object *parent, float parentinv[4][4], const bool use_compat)
+void BKE_object_apply_mat4_ex(Object *ob,
+                              const float mat[4][4],
+                              Object *parent,
+                              const float parentinv[4][4],
+                              const bool use_compat)
 {
   /* see BKE_pchan_apply_mat4() for the equivalent 'pchan' function */
 
@@ -2867,7 +2870,7 @@ void BKE_object_apply_mat4_ex(
 
 /* XXX: should be removed after COW operators port to use BKE_object_apply_mat4_ex directly */
 void BKE_object_apply_mat4(Object *ob,
-                           float mat[4][4],
+                           const float mat[4][4],
                            const bool use_compat,
                            const bool use_parent)
 {
@@ -2917,7 +2920,10 @@ void BKE_boundbox_calc_size_aabb(const BoundBox *bb, float r_size[3])
   r_size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
 }
 
-void BKE_boundbox_minmax(const BoundBox *bb, float obmat[4][4], float r_min[3], float r_max[3])
+void BKE_boundbox_minmax(const BoundBox *bb,
+                         const float obmat[4][4],
+                         float r_min[3],
+                         float r_max[3])
 {
   int i;
   for (i = 0; i < 8; i++) {
@@ -3009,7 +3015,7 @@ void BKE_object_boundbox_calc_from_mesh(struct Object *ob, struct Mesh *me_eval)
  * \warning Setting dimensions is prone to feedback loops in evaluation.
  * \{ */
 
-void BKE_object_dimensions_get(Object *ob, float vec[3])
+void BKE_object_dimensions_get(Object *ob, float r_vec[3])
 {
   BoundBox *bb = NULL;
 
@@ -3019,12 +3025,12 @@ void BKE_object_dimensions_get(Object *ob, float vec[3])
 
     mat4_to_size(scale, ob->obmat);
 
-    vec[0] = fabsf(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
-    vec[1] = fabsf(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
-    vec[2] = fabsf(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
+    r_vec[0] = fabsf(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
+    r_vec[1] = fabsf(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
+    r_vec[2] = fabsf(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
   }
   else {
-    zero_v3(vec);
+    zero_v3(r_vec);
   }
 }
 
@@ -3293,7 +3299,7 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
 }
 
 void BKE_object_foreach_display_point(Object *ob,
-                                      float obmat[4][4],
+                                      const float obmat[4][4],
                                       void (*func_cb)(const float[3], void *),
                                       void *user_data)
 {

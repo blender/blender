@@ -1305,7 +1305,7 @@ bool BKE_mesh_minmax(const Mesh *me, float r_min[3], float r_max[3])
   return (me->totvert != 0);
 }
 
-void BKE_mesh_transform(Mesh *me, float mat[4][4], bool do_keys)
+void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
 {
   int i;
   MVert *mvert = me->mvert;

@@ -76,7 +76,7 @@ void BKE_gpencil_stroke_fill_triangulate(struct bGPDstroke *gps);
 void BKE_gpencil_stroke_geometry_update(struct bGPDstroke *gps);
 void BKE_gpencil_stroke_uv_update(struct bGPDstroke *gps);
 
-void BKE_gpencil_transform(struct bGPdata *gpd, float mat[4][4]);
+void BKE_gpencil_transform(struct bGPdata *gpd, const float mat[4][4]);
 
 typedef struct GPencilPointCoordinates {
   /* This is used when doing "move only origin" in object_data_transform.c.

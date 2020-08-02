@@ -303,12 +303,12 @@ eV3DProjStatus ED_view3d_project_float_object(const ARegion *region,
 
 float ED_view3d_pixel_size(const RegionView3D *rv3d, const float co[3])
 {
-  return mul_project_m4_v3_zfac((float(*)[4])rv3d->persmat, co) * rv3d->pixsize * U.pixelsize;
+  return mul_project_m4_v3_zfac(rv3d->persmat, co) * rv3d->pixsize * U.pixelsize;
 }
 
 float ED_view3d_pixel_size_no_ui_scale(const RegionView3D *rv3d, const float co[3])
 {
-  return mul_project_m4_v3_zfac((float(*)[4])rv3d->persmat, co) * rv3d->pixsize;
+  return mul_project_m4_v3_zfac(rv3d->persmat, co) * rv3d->pixsize;
 }
 
 /**
@@ -316,7 +316,7 @@ float ED_view3d_pixel_size_no_ui_scale(const RegionView3D *rv3d, const float co[
  */
 float ED_view3d_calc_zfac(const RegionView3D *rv3d, const float co[3], bool *r_flip)
 {
-  float zfac = mul_project_m4_v3_zfac((float(*)[4])rv3d->persmat, co);
+  float zfac = mul_project_m4_v3_zfac(rv3d->persmat, co);
 
   if (r_flip) {
     *r_flip = (zfac < 0.0f);
@@ -483,11 +483,11 @@ void ED_view3d_global_to_vector(const RegionView3D *rv3d, const float coord[3], 
     p1[3] = 1.0f;
     copy_v3_v3(p2, p1);
     p2[3] = 1.0f;
-    mul_m4_v4((float(*)[4])rv3d->viewmat, p2);
+    mul_m4_v4(rv3d->viewmat, p2);
 
     mul_v3_fl(p2, 2.0f);
 
-    mul_m4_v4((float(*)[4])rv3d->viewinv, p2);
+    mul_m4_v4(rv3d->viewinv, p2);
 
     sub_v3_v3v3(vec, p1, p2);
   }
@@ -749,25 +749,26 @@ bool ED_view3d_win_to_segment_clipped(struct Depsgraph *depsgraph,
   return true;
 }
 
-/* Utility functions for projection
- * ******************************** */
+/* -------------------------------------------------------------------- */
+/** \name Utility functions for projection
+ * \{ */
 
-void ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, Object *ob, float pmat[4][4])
+void ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, Object *ob, float r_pmat[4][4])
 {
   float vmat[4][4];
 
-  mul_m4_m4m4(vmat, (float(*)[4])rv3d->viewmat, ob->obmat);
-  mul_m4_m4m4(pmat, (float(*)[4])rv3d->winmat, vmat);
+  mul_m4_m4m4(vmat, rv3d->viewmat, ob->obmat);
+  mul_m4_m4m4(r_pmat, rv3d->winmat, vmat);
 }
 
 void ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,
-                                             float obmat[4][4],
-                                             float pmat[4][4])
+                                             const float obmat[4][4],
+                                             float r_pmat[4][4])
 {
   float vmat[4][4];
 
-  mul_m4_m4m4(vmat, (float(*)[4])rv3d->viewmat, obmat);
-  mul_m4_m4m4(pmat, (float(*)[4])rv3d->winmat, vmat);
+  mul_m4_m4m4(vmat, rv3d->viewmat, obmat);
+  mul_m4_m4m4(r_pmat, rv3d->winmat, vmat);
 }
 
 /**
@@ -791,3 +792,5 @@ bool ED_view3d_unproject(
 
   return GPU_matrix_unproject(region_co, rv3d->viewmat, rv3d->winmat, viewport, world);
 }
+
+/** \} */

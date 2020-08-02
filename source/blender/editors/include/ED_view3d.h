@@ -135,13 +135,13 @@ bool ED_view3d_has_workbench_in_texture_color(const struct Scene *scene,
 void ED_view3d_cursor3d_position(struct bContext *C,
                                  const int mval[2],
                                  const bool use_depth,
-                                 float cursor_co[3]);
+                                 float r_cursor_co[3]);
 void ED_view3d_cursor3d_position_rotation(struct bContext *C,
                                           const int mval[2],
                                           const bool use_depth,
                                           enum eV3DCursorOrient orientation,
-                                          float cursor_co[3],
-                                          float cursor_quat[4]);
+                                          float r_cursor_co[3],
+                                          float r_cursor_quat[4]);
 void ED_view3d_cursor3d_update(struct bContext *C,
                                const int mval[2],
                                const bool use_depth,
@@ -403,10 +403,10 @@ bool ED_view3d_win_to_segment_clipped(struct Depsgraph *depsgraph,
                                       const bool do_clip);
 void ED_view3d_ob_project_mat_get(const struct RegionView3D *v3d,
                                   struct Object *ob,
-                                  float pmat[4][4]);
+                                  float r_pmat[4][4]);
 void ED_view3d_ob_project_mat_get_from_obmat(const struct RegionView3D *rv3d,
-                                             float obmat[4][4],
-                                             float pmat[4][4]);
+                                             const float obmat[4][4],
+                                             float r_pmat[4][4]);
 
 void ED_view3d_project(const struct ARegion *region, const float world[3], float r_region_co[3]);
 bool ED_view3d_unproject(
@@ -460,7 +460,7 @@ void ED_view3d_clipping_calc(struct BoundBox *bb,
                              const struct ARegion *region,
                              const struct Object *ob,
                              const struct rcti *rect);
-void ED_view3d_clipping_local(struct RegionView3D *rv3d, float mat[4][4]);
+void ED_view3d_clipping_local(struct RegionView3D *rv3d, const float mat[4][4]);
 bool ED_view3d_clipping_test(const struct RegionView3D *rv3d,
                              const float co[3],
                              const bool is_local);
@@ -601,8 +601,8 @@ void ED_view3d_draw_setup_view(const struct wmWindowManager *wm,
                                struct Scene *scene,
                                struct ARegion *region,
                                struct View3D *v3d,
-                               float viewmat[4][4],
-                               float winmat[4][4],
+                               const float viewmat[4][4],
+                               const float winmat[4][4],
                                const struct rcti *rect);
 
 struct Base *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval[2]);
@@ -613,11 +613,11 @@ void ED_view3d_update_viewmat(struct Depsgraph *depsgraph,
                               const struct Scene *scene,
                               struct View3D *v3d,
                               struct ARegion *region,
-                              float viewmat[4][4],
-                              float winmat[4][4],
+                              const float viewmat[4][4],
+                              const float winmat[4][4],
                               const struct rcti *rect,
                               bool offscreen);
-bool ED_view3d_quat_from_axis_view(const char view, const char view_axis_roll, float quat[4]);
+bool ED_view3d_quat_from_axis_view(const char view, const char view_axis_roll, float r_quat[4]);
 bool ED_view3d_quat_to_axis_view(const float viewquat[4],
                                  const float epsilon,
                                  char *r_view,
@@ -676,7 +676,9 @@ void ED_view3d_lock_clear(struct View3D *v3d);
 #define VIEW3D_MARGIN 1.4f
 #define VIEW3D_DIST_FALLBACK 1.0f
 
-float ED_view3d_offset_distance(float mat[4][4], const float ofs[3], const float dist_fallback);
+float ED_view3d_offset_distance(const float mat[4][4],
+                                const float ofs[3],
+                                const float dist_fallback);
 void ED_view3d_distance_set(struct RegionView3D *rv3d, const float dist);
 bool ED_view3d_distance_set_from_location(struct RegionView3D *rv3d,
                                           const float dist_co[3],

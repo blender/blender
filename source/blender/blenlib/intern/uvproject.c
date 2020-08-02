@@ -183,7 +183,7 @@ ProjCameraInfo *BLI_uvproject_camera_info(Object *ob, float (*rotmat)[4], float 
   return NULL;
 }
 
-void BLI_uvproject_from_view_ortho(float target[2], float source[3], float rotmat[4][4])
+void BLI_uvproject_from_view_ortho(float target[2], float source[3], const float rotmat[4][4])
 {
   float pv[3];
 

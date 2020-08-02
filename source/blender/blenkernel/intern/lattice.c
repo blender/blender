@@ -672,7 +672,7 @@ void BKE_lattice_center_bounds(Lattice *lt, float cent[3])
   mid_v3_v3v3(cent, min, max);
 }
 
-void BKE_lattice_transform(Lattice *lt, float mat[4][4], bool do_keys)
+void BKE_lattice_transform(Lattice *lt, const float mat[4][4], bool do_keys)
 {
   BPoint *bp = lt->def;
   int i = lt->pntsu * lt->pntsv * lt->pntsw;
@@ -694,7 +694,7 @@ void BKE_lattice_transform(Lattice *lt, float mat[4][4], bool do_keys)
   }
 }
 
-void BKE_lattice_translate(Lattice *lt, float offset[3], bool do_keys)
+void BKE_lattice_translate(Lattice *lt, const float offset[3], bool do_keys)
 {
   int i, numVerts;
 
