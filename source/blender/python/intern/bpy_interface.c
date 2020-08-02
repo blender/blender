@@ -921,8 +921,11 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 /* TODO, reloading the module isn't functional at the moment. */
 
 static void bpy_module_free(void *mod);
+
+/* Defined in 'creator.c' when building as a Python module. */
 extern int main_python_enter(int argc, const char **argv);
 extern void main_python_exit(void);
+
 static struct PyModuleDef bpy_proxy_def = {
     PyModuleDef_HEAD_INIT,
     "bpy",           /* m_name */

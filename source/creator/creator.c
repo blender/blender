@@ -110,25 +110,10 @@
 #include "creator_intern.h" /* own include */
 
 /* Local Function prototypes. */
-#ifdef WITH_PYTHON_MODULE
-int main_python_enter(int argc, const char **argv);
-void main_python_exit(void);
-#endif
 
-#ifdef WITH_USD
-/**
- * Workaround to make it possible to pass a path at runtime to USD.
- *
- * USD requires some JSON files, and it uses a static constructor to determine the possible
- * file-system paths to find those files. This made it impossible for Blender to pass a path to the
- * USD library at runtime, as the constructor would run before Blender's main() function. We have
- * patched USD (see usd.diff) to avoid that particular static constructor, and have an
- * initialization function instead.
- *
- * This function is implemented in the USD source code, `pxr/base/lib/plug/initConfig.cpp`.
- */
-void usd_initialise_plugin_path(const char *datafiles_usd_path);
-#endif
+/* -------------------------------------------------------------------- */
+/** \name Local Application State
+ * \{ */
 
 /* written to by 'creator_args.c' */
 struct ApplicationState app_state = {
@@ -142,6 +127,8 @@ struct ApplicationState app_state = {
             .python = 0,
         },
 };
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Application Level Callbacks
@@ -199,11 +186,19 @@ static void callback_clg_fatal(void *fp)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Main Function
+/** \name Blender as a Stand-Alone Python Module (bpy)
+ *
+ * While not officially supported, this can be useful for Python developers.
+ * See: https://wiki.blender.org/wiki/Building_Blender/Other/BlenderAsPyModule
  * \{ */
 
 #ifdef WITH_PYTHON_MODULE
-/* allow python module to call main */
+
+/* Called in `bpy_interface.c` when building as a Python module. */
+int main_python_enter(int argc, const char **argv);
+void main_python_exit(void);
+
+/* Rename the 'main' function, allowing Python initialization to call it. */
 #  define main main_python_enter
 static void *evil_C = NULL;
 
@@ -211,8 +206,15 @@ static void *evil_C = NULL;
 /* Environment is not available in macOS shared libraries. */
 #    include <crt_externs.h>
 char **environ = NULL;
-#  endif
-#endif
+#  endif /* __APPLE__ */
+
+#endif /* WITH_PYTHON_MODULE */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Main Function
+ * \{ */
 
 /**
  * Blender's main function responsibilities are:
@@ -441,10 +443,21 @@ int main(int argc,
   BKE_materials_init();
 
 #ifdef WITH_USD
+  /* Workaround to make it possible to pass a path at runtime to USD.
+   *
+   * USD requires some JSON files, and it uses a static constructor to determine the possible
+   * file-system paths to find those files. This made it impossible for Blender to pass a path to
+   * the USD library at runtime, as the constructor would run before Blender's main() function.
+   * We have patched USD (see usd.diff) to avoid that particular static constructor, and have an
+   * initialization function instead.
+   *
+   * This function is implemented in the USD source code, `pxr/base/lib/plug/initConfig.cpp`. */
+  extern void usd_initialise_plugin_path(const char *datafiles_usd_path);
+
   /* Tell USD which directory to search for its JSON files. If 'datafiles/usd'
    * does not exist, the USD library will not be able to read or write any files. */
   usd_initialise_plugin_path(BKE_appdir_folder_id(BLENDER_DATAFILES, "usd"));
-#endif
+#endif /* WITH_USD */
 
   if (G.background == 0) {
 #ifndef WITH_PYTHON_MODULE
