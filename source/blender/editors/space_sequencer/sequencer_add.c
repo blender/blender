@@ -151,7 +151,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   int proximity = INT_MAX;
 
   if (!ed || !ed->seqbasep) {
-    return 2;
+    return 1;
   }
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
@@ -165,7 +165,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   if (tgt) {
     return tgt->machine + 1;
   }
-  return 2;
+  return 1;
 }
 
 static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, int flag, int type)
@@ -581,10 +581,10 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 
       seq = seq_load_fn(C, ed->seqbasep, &seq_load);
       if (seq) {
-        sequencer_add_apply_overlap(C, op, seq);
         if (seq_load.seq_sound) {
           sequencer_add_apply_overlap(C, op, seq_load.seq_sound);
         }
+        sequencer_add_apply_overlap(C, op, seq);
       }
     }
     RNA_END;
@@ -594,10 +594,10 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
     seq = seq_load_fn(C, ed->seqbasep, &seq_load);
 
     if (seq) {
-      sequencer_add_apply_overlap(C, op, seq);
       if (seq_load.seq_sound) {
         sequencer_add_apply_overlap(C, op, seq_load.seq_sound);
       }
+      sequencer_add_apply_overlap(C, op, seq);
     }
   }
 
