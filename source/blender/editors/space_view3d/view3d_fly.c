@@ -16,6 +16,10 @@
 
 /** \file
  * \ingroup spview3d
+ *
+ * Interactive fly navigation modal operator (flying around in space).
+ *
+ * \note Similar logic to `view3d_walk.c` changes here may apply there too.
  */
 
 /* defines VIEW3D_OT_fly modal operator */
@@ -997,19 +1001,6 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
       /* impose a directional lag */
       interp_v3_v3v3(
           dvec, dvec_tmp, fly->dvec_prev, (1.0f / (1.0f + (time_redraw * FLY_SMOOTH_FAC))));
-
-      if (rv3d->persp == RV3D_CAMOB) {
-        Object *lock_ob = ED_view3d_cameracontrol_object_get(fly->v3d_camera_control);
-        if (lock_ob->protectflag & OB_LOCK_LOCX) {
-          dvec[0] = 0.0;
-        }
-        if (lock_ob->protectflag & OB_LOCK_LOCY) {
-          dvec[1] = 0.0;
-        }
-        if (lock_ob->protectflag & OB_LOCK_LOCZ) {
-          dvec[2] = 0.0;
-        }
-      }
 
       add_v3_v3(rv3d->ofs, dvec);
 
