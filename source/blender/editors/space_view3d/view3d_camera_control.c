@@ -198,6 +198,56 @@ struct View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph
 }
 
 /**
+ * A version of #BKE_object_apply_mat4 that respects #Object.protectflag,
+ * applying the locking back to the view to avoid the view.
+ * This is needed so the view doesn't get out of sync with the object,
+ * causing visible jittering when in fly/walk mode for e.g.
+ *
+ * \note This could be exposed as an API option, as we might not want the view
+ * to be constrained by the thing it's controlling.
+ */
+static bool object_apply_mat4_with_protect(Object *ob,
+                                           const float obmat[4][4],
+                                           const bool use_parent,
+                                           /* Only use when applying lock. */
+                                           RegionView3D *rv3d,
+                                           const float view_mat[4][4])
+{
+  const bool use_protect = (ob->protectflag != 0);
+  bool view_changed = false;
+
+  ObjectTfmProtectedChannels obtfm;
+  if (use_protect) {
+    BKE_object_tfm_protected_backup(ob, &obtfm);
+  }
+
+  BKE_object_apply_mat4(ob, obmat, true, use_parent);
+
+  if (use_protect) {
+    float obmat_noprotect[4][4], obmat_protect[4][4];
+
+    BKE_object_to_mat4(ob, obmat_noprotect);
+    BKE_object_tfm_protected_restore(ob, &obtfm, ob->protectflag);
+    BKE_object_to_mat4(ob, obmat_protect);
+
+    if (!equals_m4m4(obmat_noprotect, obmat_protect)) {
+      /* Apply the lock protection back to the view, without this the view
+       * keeps moving, ignoring the object locking, causing jittering in some cases. */
+      float diff_mat[4][4];
+      float view_mat_protect[4][4];
+      float obmat_noprotect_inv[4][4];
+      invert_m4_m4(obmat_noprotect_inv, obmat_noprotect);
+      mul_m4_m4m4(diff_mat, obmat_protect, obmat_noprotect_inv);
+
+      mul_m4_m4m4(view_mat_protect, diff_mat, view_mat);
+      ED_view3d_from_m4(view_mat_protect, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
+      view_changed = true;
+    }
+  }
+  return view_changed;
+}
+
+/**
  * Updates cameras from the ``rv3d`` values, optionally auto-keyframing.
  */
 void ED_view3d_cameracontrol_update(View3DCameraControl *vctrl,
@@ -216,21 +266,25 @@ void ED_view3d_cameracontrol_update(View3DCameraControl *vctrl,
 
   ID *id_key;
 
+  float view_mat[4][4];
+  ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+
   /* transform the parent or the camera? */
   if (vctrl->root_parent) {
     Object *ob_update;
 
-    float view_mat[4][4];
     float prev_view_imat[4][4];
     float diff_mat[4][4];
     float parent_mat[4][4];
 
     invert_m4_m4(prev_view_imat, vctrl->view_mat_prev);
-    ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
     mul_m4_m4m4(diff_mat, view_mat, prev_view_imat);
     mul_m4_m4m4(parent_mat, diff_mat, vctrl->root_parent->obmat);
 
-    BKE_object_apply_mat4(vctrl->root_parent, parent_mat, true, false);
+    if (object_apply_mat4_with_protect(vctrl->root_parent, parent_mat, false, rv3d, view_mat)) {
+      /* Calculate again since the view locking changes the matrix.  */
+      ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+    }
 
     ob_update = v3d->camera->parent;
     while (ob_update) {
@@ -243,18 +297,16 @@ void ED_view3d_cameracontrol_update(View3DCameraControl *vctrl,
     id_key = &vctrl->root_parent->id;
   }
   else {
-    float view_mat[4][4];
     float scale_mat[4][4];
     float scale_back[3];
 
     /* even though we handle the scale matrix, this still changes over time */
     copy_v3_v3(scale_back, v3d->camera->scale);
 
-    ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
     size_to_mat4(scale_mat, v3d->camera->scale);
     mul_m4_m4m4(view_mat, view_mat, scale_mat);
 
-    BKE_object_apply_mat4(v3d->camera, view_mat, true, true);
+    object_apply_mat4_with_protect(v3d->camera, view_mat, true, rv3d, view_mat);
 
     DEG_id_tag_update(&v3d->camera->id, ID_RECALC_TRANSFORM);
 

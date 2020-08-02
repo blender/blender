@@ -16,6 +16,11 @@
 
 /** \file
  * \ingroup spview3d
+ *
+ * Interactive walk navigation modal operator
+ * (similar to walking around in a first person game).
+ *
+ * \note Similar logic to `view3d_fly.c` changes here may apply there too.
  */
 
 /* defines VIEW3D_OT_navigate - walk modal operator */
@@ -1293,19 +1298,6 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 
         copy_v3_v3(cur_loc, walk->rv3d->viewinv[3]);
         sub_v3_v3v3(dvec, cur_loc, new_loc);
-      }
-
-      if (rv3d->persp == RV3D_CAMOB) {
-        Object *lock_ob = ED_view3d_cameracontrol_object_get(walk->v3d_camera_control);
-        if (lock_ob->protectflag & OB_LOCK_LOCX) {
-          dvec[0] = 0.0f;
-        }
-        if (lock_ob->protectflag & OB_LOCK_LOCY) {
-          dvec[1] = 0.0f;
-        }
-        if (lock_ob->protectflag & OB_LOCK_LOCZ) {
-          dvec[2] = 0.0f;
-        }
       }
 
       /* scale the movement to the scene size */
