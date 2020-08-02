@@ -2427,7 +2427,7 @@ void BKE_gpencil_convert_mesh(Main *bmain,
  * \param gpd: Grease pencil data-block
  * \param mat: Transformation matrix
  */
-void BKE_gpencil_transform(bGPdata *gpd, float mat[4][4])
+void BKE_gpencil_transform(bGPdata *gpd, const float mat[4][4])
 {
   if (gpd == NULL) {
     return;

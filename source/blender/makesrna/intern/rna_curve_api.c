@@ -37,7 +37,7 @@
 #ifdef RNA_RUNTIME
 static void rna_Curve_transform(Curve *cu, float *mat, bool shape_keys)
 {
-  BKE_curve_transform(cu, (float(*)[4])mat, shape_keys, true);
+  BKE_curve_transform(cu, (const float(*)[4])mat, shape_keys, true);
 
   DEG_id_tag_update(&cu->id, 0);
 }

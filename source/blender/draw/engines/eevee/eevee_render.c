@@ -160,7 +160,7 @@ void EEVEE_render_view_sync(EEVEE_Data *vedata, RenderEngine *engine, struct Dep
   struct Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
 
   RE_GetCameraWindow(engine->re, ob_camera_eval, winmat);
-  RE_GetCameraWindowWithOverscan(engine->re, winmat, g_data->overscan);
+  RE_GetCameraWindowWithOverscan(engine->re, g_data->overscan, winmat);
   RE_GetCameraModelMatrix(engine->re, ob_camera_eval, viewinv);
 
   invert_m4_m4(viewmat, viewinv);

@@ -1382,7 +1382,7 @@ void get_objectspace_bone_matrix(struct Bone *bone,
 }
 
 /* Convert World-Space Matrix to Pose-Space Matrix */
-void BKE_armature_mat_world_to_pose(Object *ob, float inmat[4][4], float outmat[4][4])
+void BKE_armature_mat_world_to_pose(Object *ob, const float inmat[4][4], float outmat[4][4])
 {
   float obmat[4][4];
 
@@ -1674,7 +1674,9 @@ void BKE_bone_parent_transform_apply(const struct BoneParentTransform *bpt,
 /* Convert Pose-Space Matrix to Bone-Space Matrix.
  * NOTE: this cannot be used to convert to pose-space transforms of the supplied
  *       pose-channel into its local space (i.e. 'visual'-keyframing) */
-void BKE_armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[4][4], float outmat[4][4])
+void BKE_armature_mat_pose_to_bone(bPoseChannel *pchan,
+                                   const float inmat[4][4],
+                                   float outmat[4][4])
 {
   BoneParentTransform bpt;
 
@@ -1684,7 +1686,9 @@ void BKE_armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[4][4], float
 }
 
 /* Convert Bone-Space Matrix to Pose-Space Matrix. */
-void BKE_armature_mat_bone_to_pose(bPoseChannel *pchan, float inmat[4][4], float outmat[4][4])
+void BKE_armature_mat_bone_to_pose(bPoseChannel *pchan,
+                                   const float inmat[4][4],
+                                   float outmat[4][4])
 {
   BoneParentTransform bpt;
 
@@ -1720,7 +1724,7 @@ void BKE_armature_loc_pose_to_bone(bPoseChannel *pchan, const float inloc[3], fl
 void BKE_armature_mat_pose_to_bone_ex(struct Depsgraph *depsgraph,
                                       Object *ob,
                                       bPoseChannel *pchan,
-                                      float inmat[4][4],
+                                      const float inmat[4][4],
                                       float outmat[4][4])
 {
   bPoseChannel work_pchan = *pchan;
@@ -1741,7 +1745,7 @@ void BKE_armature_mat_pose_to_bone_ex(struct Depsgraph *depsgraph,
 /**
  * Same as #BKE_object_mat3_to_rot().
  */
-void BKE_pchan_mat3_to_rot(bPoseChannel *pchan, float mat[3][3], bool use_compat)
+void BKE_pchan_mat3_to_rot(bPoseChannel *pchan, const float mat[3][3], bool use_compat)
 {
   BLI_ASSERT_UNIT_M3(mat);
 
@@ -1766,17 +1770,17 @@ void BKE_pchan_mat3_to_rot(bPoseChannel *pchan, float mat[3][3], bool use_compat
 /**
  * Same as #BKE_object_rot_to_mat3().
  */
-void BKE_pchan_rot_to_mat3(const bPoseChannel *pchan, float mat[3][3])
+void BKE_pchan_rot_to_mat3(const bPoseChannel *pchan, float r_mat[3][3])
 {
   /* rotations may either be quats, eulers (with various rotation orders), or axis-angle */
   if (pchan->rotmode > 0) {
     /* euler rotations (will cause gimble lock,
      * but this can be alleviated a bit with rotation orders) */
-    eulO_to_mat3(mat, pchan->eul, pchan->rotmode);
+    eulO_to_mat3(r_mat, pchan->eul, pchan->rotmode);
   }
   else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
     /* axis-angle - not really that great for 3D-changing orientations */
-    axis_angle_to_mat3(mat, pchan->rotAxis, pchan->rotAngle);
+    axis_angle_to_mat3(r_mat, pchan->rotAxis, pchan->rotAngle);
   }
   else {
     /* quats are normalized before use to eliminate scaling issues */
@@ -1786,7 +1790,7 @@ void BKE_pchan_rot_to_mat3(const bPoseChannel *pchan, float mat[3][3])
      * since this was kindof evil in some cases but if this proves to be too problematic,
      * switch back to the old system of operating directly on the stored copy. */
     normalize_qt_qt(quat, pchan->quat);
-    quat_to_mat3(mat, quat);
+    quat_to_mat3(r_mat, quat);
   }
 }
 
@@ -1794,7 +1798,7 @@ void BKE_pchan_rot_to_mat3(const bPoseChannel *pchan, float mat[3][3])
  * Apply a 4x4 matrix to the pose bone,
  * similar to #BKE_object_apply_mat4().
  */
-void BKE_pchan_apply_mat4(bPoseChannel *pchan, float mat[4][4], bool use_compat)
+void BKE_pchan_apply_mat4(bPoseChannel *pchan, const float mat[4][4], bool use_compat)
 {
   float rot[3][3];
   mat4_to_loc_rot_size(pchan->loc, rot, pchan->size, mat);
@@ -1998,7 +2002,7 @@ void mat3_vec_to_roll(const float mat[3][3], const float vec[3], float *r_roll)
  *                        └ -2 * x * z,   x^2 - z^2 ┘
  * </pre>
  */
-void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float mat[3][3])
+void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float r_mat[3][3])
 {
 #define THETA_THRESHOLD_NEGY 1.0e-9f
 #define THETA_THRESHOLD_NEGY_CLOSE 1.0e-5f
@@ -2052,18 +2056,18 @@ void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float mat
   axis_angle_normalized_to_mat3(rMatrix, nor, roll);
 
   /* Combine and output result */
-  mul_m3_m3m3(mat, rMatrix, bMatrix);
+  mul_m3_m3m3(r_mat, rMatrix, bMatrix);
 
 #undef THETA_THRESHOLD_NEGY
 #undef THETA_THRESHOLD_NEGY_CLOSE
 }
 
-void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3])
+void vec_roll_to_mat3(const float vec[3], const float roll, float r_mat[3][3])
 {
   float nor[3];
 
   normalize_v3_v3(nor, vec);
-  vec_roll_to_mat3_normalized(nor, roll, mat);
+  vec_roll_to_mat3_normalized(nor, roll, r_mat);
 }
 
 /** \} */
@@ -2418,8 +2422,10 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
 /** \name Pose Solver
  * \{ */
 
-/* loc/rot/size to given mat4 */
-void BKE_pchan_to_mat4(const bPoseChannel *pchan, float chan_mat[4][4])
+/**
+ * Convert the loc/rot/size to \a r_chanmat (typically #bPoseChannel.chan_mat).
+ */
+void BKE_pchan_to_mat4(const bPoseChannel *pchan, float r_chanmat[4][4])
 {
   float smat[3][3];
   float rmat[3][3];
@@ -2433,12 +2439,12 @@ void BKE_pchan_to_mat4(const bPoseChannel *pchan, float chan_mat[4][4])
 
   /* calculate matrix of bone (as 3x3 matrix, but then copy the 4x4) */
   mul_m3_m3m3(tmat, rmat, smat);
-  copy_m4_m3(chan_mat, tmat);
+  copy_m4_m3(r_chanmat, tmat);
 
   /* prevent action channels breaking chains */
   /* need to check for bone here, CONSTRAINT_TYPE_ACTION uses this call */
   if ((pchan->bone == NULL) || !(pchan->bone->flag & BONE_CONNECTED)) {
-    copy_v3_v3(chan_mat[3], pchan->loc);
+    copy_v3_v3(r_chanmat[3], pchan->loc);
   }
 }
 

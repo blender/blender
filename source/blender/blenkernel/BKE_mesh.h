@@ -231,7 +231,7 @@ void BKE_mesh_nomain_to_meshkey(struct Mesh *mesh_src, struct Mesh *mesh_dst, st
 /* vertex level transformations & checks (no derived mesh) */
 
 bool BKE_mesh_minmax(const struct Mesh *me, float r_min[3], float r_max[3]);
-void BKE_mesh_transform(struct Mesh *me, float mat[4][4], bool do_keys);
+void BKE_mesh_transform(struct Mesh *me, const float mat[4][4], bool do_keys);
 void BKE_mesh_translate(struct Mesh *me, const float offset[3], const bool do_keys);
 
 void BKE_mesh_ensure_navmesh(struct Mesh *me);

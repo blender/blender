@@ -225,10 +225,10 @@ void ED_armature_ebone_remove(struct bArmature *arm, EditBone *exBone);
 bool ED_armature_ebone_is_child_recursive(EditBone *ebone_parent, EditBone *ebone_child);
 EditBone *ED_armature_ebone_find_shared_parent(EditBone *ebone_child[],
                                                const unsigned int ebone_child_tot);
-void ED_armature_ebone_to_mat3(EditBone *ebone, float mat[3][3]);
-void ED_armature_ebone_to_mat4(EditBone *ebone, float mat[4][4]);
-void ED_armature_ebone_from_mat3(EditBone *ebone, float mat[3][3]);
-void ED_armature_ebone_from_mat4(EditBone *ebone, float mat[4][4]);
+void ED_armature_ebone_to_mat3(EditBone *ebone, float r_mat[3][3]);
+void ED_armature_ebone_to_mat4(EditBone *ebone, float r_mat[4][4]);
+void ED_armature_ebone_from_mat3(EditBone *ebone, const float mat[3][3]);
+void ED_armature_ebone_from_mat4(EditBone *ebone, const float mat[4][4]);
 EditBone *ED_armature_ebone_find_name(const struct ListBase *edbo, const char *name);
 EditBone *ED_armature_ebone_get_mirrored(const struct ListBase *edbo, EditBone *ebo);
 void ED_armature_ebone_transform_mirror_update(struct bArmature *arm,

@@ -229,7 +229,7 @@ EditBone *ED_armature_ebone_find_shared_parent(EditBone *ebone_child[], const ui
   return NULL;
 }
 
-void ED_armature_ebone_to_mat3(EditBone *ebone, float mat[3][3])
+void ED_armature_ebone_to_mat3(EditBone *ebone, float r_mat[3][3])
 {
   float delta[3], roll;
 
@@ -246,20 +246,20 @@ void ED_armature_ebone_to_mat3(EditBone *ebone, float mat[3][3])
     }
   }
 
-  vec_roll_to_mat3_normalized(delta, roll, mat);
+  vec_roll_to_mat3_normalized(delta, roll, r_mat);
 }
 
-void ED_armature_ebone_to_mat4(EditBone *ebone, float mat[4][4])
+void ED_armature_ebone_to_mat4(EditBone *ebone, float r_mat[4][4])
 {
   float m3[3][3];
 
   ED_armature_ebone_to_mat3(ebone, m3);
 
-  copy_m4_m3(mat, m3);
-  copy_v3_v3(mat[3], ebone->head);
+  copy_m4_m3(r_mat, m3);
+  copy_v3_v3(r_mat[3], ebone->head);
 }
 
-void ED_armature_ebone_from_mat3(EditBone *ebone, float mat[3][3])
+void ED_armature_ebone_from_mat3(EditBone *ebone, const float mat[3][3])
 {
   float vec[3], roll;
   const float len = len_v3v3(ebone->head, ebone->tail);
@@ -270,7 +270,7 @@ void ED_armature_ebone_from_mat3(EditBone *ebone, float mat[3][3])
   ebone->roll = roll;
 }
 
-void ED_armature_ebone_from_mat4(EditBone *ebone, float mat[4][4])
+void ED_armature_ebone_from_mat4(EditBone *ebone, const float mat[4][4])
 {
   float mat3[3][3];
 
