@@ -1005,7 +1005,6 @@ bool bUnit_ReplaceString(
 
   /* Fix cases like "-1m50cm" which would evaluate to -0.5m without this. */
   changed |= unit_distribute_negatives(str, len_max);
-  printf("%s\n", str);
 
   /* Try to find a default unit from current or previous string. */
   default_unit = unit_detect_from_str(usys, str, str_prev);
