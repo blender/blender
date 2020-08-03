@@ -371,7 +371,7 @@ static void ui_block_align_but_to_region(uiBut *but, const ARegion *region)
       rect->xmin = rect->xmax - but_width;
       break;
     default:
-      BLI_assert(0);
+      /* Tabs may be shown in unaligned regions too, they just appear as regular buttons then. */
       break;
   }
 }
