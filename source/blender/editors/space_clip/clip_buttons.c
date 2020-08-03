@@ -259,6 +259,8 @@ typedef struct {
   MovieTrackingTrack *track;
   MovieTrackingMarker *marker;
 
+  /** current frame number */
+  int framenr;
   /** position of marker in pixel coords */
   float marker_pos[2];
   /** position and dimensions of marker pattern in pixel coords */
@@ -286,7 +288,8 @@ static void marker_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
     return;
   }
 
-  MovieTrackingMarker *marker = cb->marker;
+  int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(cb->clip, cb->framenr);
+  MovieTrackingMarker *marker = BKE_tracking_marker_ensure(cb->track, clip_framenr);
   marker->flag = cb->marker_flag;
 
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, NULL);
@@ -300,7 +303,9 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 
   BKE_movieclip_get_size(cb->clip, cb->user, &width, &height);
 
-  MovieTrackingMarker *marker = cb->marker;
+  int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(cb->clip, cb->framenr);
+  MovieTrackingMarker *marker = BKE_tracking_marker_ensure(cb->track, clip_framenr);
+
   if (event == B_MARKER_POS) {
     marker->pos[0] = cb->marker_pos[0] / width;
     marker->pos[1] = cb->marker_pos[1] / height;
@@ -456,6 +461,7 @@ void uiTemplateMarker(uiLayout *layout,
   cb->track = track;
   cb->marker = marker;
   cb->marker_flag = marker->flag;
+  cb->framenr = user->framenr;
 
   if (compact) {
     block = uiLayoutGetBlock(layout);
