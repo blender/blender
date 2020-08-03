@@ -1024,14 +1024,18 @@ static void rna_Fluid_flowtype_set(struct PointerRNA *ptr, int value)
   FluidFlowSettings *settings = (FluidFlowSettings *)ptr->data;
 
   if (value != settings->type) {
+    short prev_value = settings->type;
     settings->type = value;
 
-    /* Force flow source to mesh */
+    /* Force flow source to mesh for liquids.
+     * Also use different surface emission. Liquids should by default not emit around surface. */
     if (value == FLUID_FLOW_TYPE_LIQUID) {
       rna_Fluid_flowsource_set(ptr, FLUID_FLOW_SOURCE_MESH);
       settings->surface_distance = 0.0f;
     }
-    else {
+    /* Use some surface emission when switching to a gas emitter. Gases should by default emit a
+     * bit around surface. */
+    if (prev_value == FLUID_FLOW_TYPE_LIQUID) {
       settings->surface_distance = 1.5f;
     }
   }
