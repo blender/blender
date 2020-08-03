@@ -1277,7 +1277,11 @@ typedef struct OceanModifierData {
   struct Ocean *ocean;
   struct OceanCache *oceancache;
 
+  /** Render resolution. */
   int resolution;
+  /** Viewport resolution for the non-render case. */
+  int viewport_resolution;
+
   int spatial_size;
 
   float wind_velocity;
@@ -1293,8 +1297,6 @@ typedef struct OceanModifierData {
   float chop_amount;
   float foam_coverage;
   float time;
-
-  char _pad1[4];
 
   /* Spectrum being used. */
   int spectrum;

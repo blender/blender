@@ -753,18 +753,20 @@ struct Ocean *BKE_ocean_add(void)
   return oc;
 }
 
-bool BKE_ocean_ensure(struct OceanModifierData *omd)
+bool BKE_ocean_ensure(struct OceanModifierData *omd, const int resolution)
 {
   if (omd->ocean) {
     return false;
   }
 
   omd->ocean = BKE_ocean_add();
-  BKE_ocean_init_from_modifier(omd->ocean, omd);
+  BKE_ocean_init_from_modifier(omd->ocean, omd, resolution);
   return true;
 }
 
-void BKE_ocean_init_from_modifier(struct Ocean *ocean, struct OceanModifierData const *omd)
+void BKE_ocean_init_from_modifier(struct Ocean *ocean,
+                                  struct OceanModifierData const *omd,
+                                  const int resolution)
 {
   short do_heightfield, do_chop, do_normals, do_jacobian;
 
@@ -774,9 +776,10 @@ void BKE_ocean_init_from_modifier(struct Ocean *ocean, struct OceanModifierData 
   do_jacobian = (omd->flag & MOD_OCEAN_GENERATE_FOAM);
 
   BKE_ocean_free_data(ocean);
+
   BKE_ocean_init(ocean,
-                 omd->resolution * omd->resolution,
-                 omd->resolution * omd->resolution,
+                 resolution * resolution,
+                 resolution * resolution,
                  omd->spatial_size,
                  omd->spatial_size,
                  omd->wind_velocity,
@@ -1607,7 +1610,8 @@ void BKE_ocean_bake(struct Ocean *UNUSED(o),
 }
 
 void BKE_ocean_init_from_modifier(struct Ocean *UNUSED(ocean),
-                                  struct OceanModifierData const *UNUSED(omd))
+                                  struct OceanModifierData const *UNUSED(omd),
+                                  int UNUSED(resolution))
 {
 }
 

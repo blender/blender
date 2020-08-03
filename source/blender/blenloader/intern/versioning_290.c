@@ -452,5 +452,16 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         cache_file->velocity_unit = CACHEFILE_VELOCITY_UNIT_SECOND;
       }
     }
+
+    if (!DNA_struct_elem_find(fd->filesdna, "OceanModifierData", "int", "viewport_resolution")) {
+      for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+        LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+          if (md->type == eModifierType_Ocean) {
+            OceanModifierData *omd = (OceanModifierData *)md;
+            omd->viewport_resolution = omd->resolution;
+          }
+        }
+      }
+    }
   }
 }

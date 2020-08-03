@@ -113,7 +113,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
     {0, "", 0, N_("Generate"), ""},
     {eModifierType_Array,
      "ARRAY",
-  ICON_MOD_ARRAY,
+     ICON_MOD_ARRAY,
      "Array",
      "Create copies of the shape with offsets"},
     {eModifierType_Bevel,
@@ -5712,7 +5712,17 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 1, 1024);
   RNA_def_property_ui_range(prop, 1, 32, 1, -1);
-  RNA_def_property_ui_text(prop, "Resolution", "Resolution of the generated surface");
+  RNA_def_property_ui_text(
+      prop, "Render Resolution", "Resolution of the generated surface for rendering and baking");
+  RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
+
+  prop = RNA_def_property(srna, "viewport_resolution", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, NULL, "viewport_resolution");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_range(prop, 1, 1024);
+  RNA_def_property_ui_range(prop, 1, 32, 1, -1);
+  RNA_def_property_ui_text(
+      prop, "Viewport Resolution", "Viewport resolution of the generated surface");
   RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 
   prop = RNA_def_property(srna, "spatial_size", PROP_INT, PROP_NONE);

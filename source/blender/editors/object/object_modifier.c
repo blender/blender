@@ -2813,7 +2813,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 
   /* make a copy of ocean to use for baking - threadsafety */
   ocean = BKE_ocean_add();
-  BKE_ocean_init_from_modifier(ocean, omd);
+  BKE_ocean_init_from_modifier(ocean, omd, omd->resolution);
 
 #if 0
   BKE_ocean_bake(ocean, och);

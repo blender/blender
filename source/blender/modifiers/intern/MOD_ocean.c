@@ -59,7 +59,7 @@
 #include "MOD_ui_common.h"
 
 #ifdef WITH_OCEANSIM
-static void init_cache_data(Object *ob, struct OceanModifierData *omd)
+static void init_cache_data(Object *ob, struct OceanModifierData *omd, const int resolution)
 {
   const char *relbase = BKE_modifier_path_relbase_from_global(ob);
 
@@ -71,7 +71,7 @@ static void init_cache_data(Object *ob, struct OceanModifierData *omd)
                                          omd->chop_amount,
                                          omd->foam_coverage,
                                          omd->foam_fade,
-                                         omd->resolution);
+                                         resolution);
 }
 
 static void simulate_ocean_modifier(struct OceanModifierData *omd)
@@ -87,7 +87,11 @@ static void initData(ModifierData *md)
 #ifdef WITH_OCEANSIM
   OceanModifierData *omd = (OceanModifierData *)md;
 
+  /* Render resolution */
   omd->resolution = 7;
+  /* Display resolution for the non-render case */
+  omd->viewport_resolution = 7;
+
   omd->spatial_size = 50;
 
   omd->wave_alignment = 0.0;
@@ -126,7 +130,7 @@ static void initData(ModifierData *md)
   omd->spraylayername[0] = '\0'; /* layer name empty by default */
 
   omd->ocean = BKE_ocean_add();
-  BKE_ocean_init_from_modifier(omd->ocean, omd);
+  BKE_ocean_init_from_modifier(omd->ocean, omd, omd->viewport_resolution);
   simulate_ocean_modifier(omd);
 #else  /* WITH_OCEANSIM */
   /* unused */
@@ -164,7 +168,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   tomd->oceancache = NULL;
 
   tomd->ocean = BKE_ocean_add();
-  BKE_ocean_init_from_modifier(tomd->ocean, tomd);
+  BKE_ocean_init_from_modifier(tomd->ocean, tomd, tomd->viewport_resolution);
   simulate_ocean_modifier(tomd);
 #else  /* WITH_OCEANSIM */
   /* unused */
@@ -288,7 +292,7 @@ static void generate_ocean_geometry_uvs(void *__restrict userdata,
   }
 }
 
-static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig)
+static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, const int resolution)
 {
   Mesh *result;
 
@@ -297,10 +301,10 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig)
   int num_verts;
   int num_polys;
 
-  const bool use_threading = omd->resolution > 4;
+  const bool use_threading = resolution > 4;
 
-  gogd.rx = omd->resolution * omd->resolution;
-  gogd.ry = omd->resolution * omd->resolution;
+  gogd.rx = resolution * resolution;
+  gogd.ry = resolution * resolution;
   gogd.res_x = gogd.rx * omd->repeat_x;
   gogd.res_y = gogd.ry * omd->repeat_y;
 
@@ -362,6 +366,9 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   Mesh *result = NULL;
   OceanResult ocr;
 
+  const int resolution = (ctx->flag & MOD_APPLY_RENDER) ? omd->resolution :
+                                                          omd->viewport_resolution;
+
   MVert *mverts;
 
   int cfra_for_cache;
@@ -383,7 +390,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   /* do ocean simulation */
   if (omd->cached == true) {
     if (!omd->oceancache) {
-      init_cache_data(ob, omd);
+      init_cache_data(ob, omd, resolution);
     }
     BKE_ocean_simulate_cache(omd->oceancache, cfra_scene);
   }
@@ -393,12 +400,12 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
      * This function is only called on an original object when applying the modifier
      * using the 'Apply Modifier' button, and thus it is not called frequently for
      * simulation. */
-    allocated_ocean |= BKE_ocean_ensure(omd);
+    allocated_ocean |= BKE_ocean_ensure(omd, resolution);
     simulate_ocean_modifier(omd);
   }
 
   if (omd->geometry_mode == MOD_OCEAN_GEOM_GENERATE) {
-    result = generate_ocean_geometry(omd, mesh);
+    result = generate_ocean_geometry(omd, mesh, resolution);
     BKE_mesh_ensure_normals(result);
   }
   else if (omd->geometry_mode == MOD_OCEAN_GEOM_DISPLACE) {
@@ -558,7 +565,10 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(sub, &ptr, "repeat_x", 0, IFACE_("Repeat X"), ICON_NONE);
     uiItemR(sub, &ptr, "repeat_y", 0, IFACE_("Y"), ICON_NONE);
   }
-  uiItemR(col, &ptr, "resolution", 0, NULL, ICON_NONE);
+
+  sub = uiLayoutColumn(col, true);
+  uiItemR(sub, &ptr, "viewport_resolution", 0, IFACE_("Resolution Viewport"), ICON_NONE);
+  uiItemR(sub, &ptr, "resolution", 0, IFACE_("Render"), ICON_NONE);
 
   uiItemR(col, &ptr, "time", 0, NULL, ICON_NONE);
 
