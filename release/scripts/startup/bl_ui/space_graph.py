@@ -293,7 +293,7 @@ class GRAPH_MT_key(Menu):
 
         # Using the modal operation doesn't make sense for this variant
         # as we do not have a modal mode for it, so just execute it.
-        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("graph.decimate", text="Decimate (Allowed Change)").mode = 'ERROR'
         layout.operator_context = operator_context
 

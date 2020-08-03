@@ -986,7 +986,7 @@ class VIEW3D_MT_transform_base(Menu):
 
         if context.mode != 'OBJECT':
             layout.operator("transform.vertex_warp", text="Warp")
-            layout.operator_context = 'EXEC_DEFAULT'
+            layout.operator_context = 'EXEC_REGION_WIN'
             layout.operator("transform.vertex_random", text="Randomize").offset = 0.1
             layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -2058,7 +2058,7 @@ class VIEW3D_MT_edit_metaball_context_menu(Menu):
         layout.separator()
 
         # Remove
-        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("mball.delete_metaelems", text="Delete")
 
 
@@ -2333,7 +2333,7 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
-        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("object.delete", text="Delete").use_global = False
         layout.operator("object.delete", text="Delete Global").use_global = True
 
@@ -2597,7 +2597,7 @@ class VIEW3D_MT_object_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("object.delete", text="Delete").use_global = False
 
 
@@ -2683,7 +2683,7 @@ class VIEW3D_MT_object_parent(Menu):
 
         layout.separator()
 
-        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("object.parent_no_inverse_set")
         layout.operator_context = operator_context_default
 
@@ -2774,7 +2774,7 @@ class VIEW3D_MT_make_single_user(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator_context = 'EXEC_REGION_WIN'
 
         props = layout.operator("object.make_single_user", text="Object")
         props.object = True
@@ -3714,7 +3714,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.operator("transform.shrink_fatten", text="Shrink/Fatten")
             col.operator("transform.shear", text="Shear")
             col.operator("transform.vert_slide", text="Slide Vertices")
-            col.operator_context = 'EXEC_DEFAULT'
+            col.operator_context = 'EXEC_REGION_WIN'
             col.operator("transform.vertex_random", text="Randomize Vertices").offset = 0.1
             col.operator("mesh.vertices_smooth", text="Smooth Vertices").factor = 0.5
             col.operator_context = 'INVOKE_REGION_WIN'
@@ -3941,7 +3941,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.separator()
 
         layout.operator("transform.vert_slide", text="Slide Vertices")
-        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("mesh.vertices_smooth", text="Smooth Vertices").factor = 0.5
         layout.operator("mesh.vertices_smooth_laplacian", text="Smooth Vertices (Laplacian)")
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -4195,7 +4195,7 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("transform.rotate_normal", text="Rotate...")
         layout.operator("mesh.point_normals", text="Point to Target...")
-        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator_context = 'EXEC_REGION_WIN'
 
         layout.operator("mesh.merge_normals", text="Merge")
         layout.operator("mesh.split_normals", text="Split")
@@ -4662,7 +4662,7 @@ class VIEW3D_MT_edit_meta(Menu):
 
         layout.menu("VIEW3D_MT_edit_meta_showhide")
 
-        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("mball.delete_metaelems", text="Delete")
 
 

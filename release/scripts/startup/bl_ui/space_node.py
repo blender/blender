@@ -433,7 +433,7 @@ class NODE_MT_context_menu(Menu):
         layout.operator("node.delete")
         layout.operator("node.clipboard_copy", text="Copy")
         layout.operator("node.clipboard_paste", text="Paste")
-        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator_context = 'EXEC_REGION_WIN'
 
         layout.operator("node.delete_reconnect")
 
