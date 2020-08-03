@@ -269,17 +269,17 @@ static void transform_decompose(DecomposedTransform *decomp, const Transform *tf
   /* extract scale and shear first */
   float3 scale, shear;
   scale.x = len(colx);
-  colx /= scale.x;
+  colx = safe_divide_float3_float(colx, scale.x);
   shear.z = dot(colx, coly);
   coly -= shear.z * colx;
   scale.y = len(coly);
-  coly /= scale.y;
+  coly = safe_divide_float3_float(coly, scale.y);
   shear.y = dot(colx, colz);
   colz -= shear.y * colx;
   shear.x = dot(coly, colz);
   colz -= shear.x * coly;
   scale.z = len(colz);
-  colz /= scale.z;
+  colz = safe_divide_float3_float(colz, scale.z);
 
   transform_set_column(&M, 0, colx);
   transform_set_column(&M, 1, coly);
@@ -300,6 +300,7 @@ static void transform_decompose(DecomposedTransform *decomp, const Transform *tf
 
 void transform_motion_decompose(DecomposedTransform *decomp, const Transform *motion, size_t size)
 {
+  /* Decompose and correct rotation. */
   for (size_t i = 0; i < size; i++) {
     transform_decompose(decomp + i, motion + i);
 
@@ -308,6 +309,27 @@ void transform_motion_decompose(DecomposedTransform *decomp, const Transform *mo
        * but this means we don't have to do the check in quat_interpolate */
       if (dot(decomp[i - 1].x, decomp[i].x) < 0.0f)
         decomp[i].x = -decomp[i].x;
+    }
+  }
+
+  /* Copy rotation to decomposed transform where scale is degenerate. This avoids weird object
+   * rotation interpolation when the scale goes to 0 for a time step.
+   *
+   * Note that this is very simple and naive implementation, which only deals with degenerated
+   * scale happening only on one frame. It is possible to improve it further by interpolating
+   * rotation into s degenerated range using rotation from timesteps from adjacent non-degenerated
+   * time steps. */
+  for (size_t i = 0; i < size; i++) {
+    const float3 scale = make_float3(decomp[i].y.w, decomp[i].z.w, decomp[i].w.w);
+    if (!is_zero(scale)) {
+      continue;
+    }
+
+    if (i > 0) {
+      decomp[i].x = decomp[i - 1].x;
+    }
+    else if (i < size - 1) {
+      decomp[i].x = decomp[i + 1].x;
     }
   }
 }
