@@ -37,6 +37,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
+#include "BLI_session_uuid.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
@@ -482,6 +483,11 @@ void action_groups_clear_tempflags(bAction *act)
 
 /* *************** Pose channels *************** */
 
+void BKE_pose_channel_session_uuid_generate(bPoseChannel *pchan)
+{
+  pchan->runtime.session_uuid = BLI_session_uuid_generate();
+}
+
 /**
  * Return a pointer to the pose channel of the given name
  * from this pose.
@@ -523,6 +529,8 @@ bPoseChannel *BKE_pose_channel_verify(bPose *pose, const char *name)
 
   /* If not, create it and add it */
   chan = MEM_callocN(sizeof(bPoseChannel), "verifyPoseChannel");
+
+  BKE_pose_channel_session_uuid_generate(chan);
 
   BLI_strncpy(chan->name, name, sizeof(chan->name));
 
@@ -698,6 +706,10 @@ void BKE_pose_copy_data_ex(bPose **dst,
       id_us_plus((ID *)pchan->custom);
     }
 
+    if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
+      BKE_pose_channel_session_uuid_generate(pchan);
+    }
+
     /* warning, O(n2) here, if done without the hash, but these are rarely used features. */
     if (pchan->custom_tx) {
       pchan->custom_tx = BKE_pose_channel_find_name(outPose, pchan->custom_tx->name);
@@ -726,7 +738,7 @@ void BKE_pose_copy_data_ex(bPose **dst,
     pchan->draw_data = NULL; /* Drawing cache, no need to copy. */
 
     /* Runtime data, no need to copy. */
-    memset(&pchan->runtime, 0, sizeof(pchan->runtime));
+    BKE_pose_channel_runtime_reset_on_copy(&pchan->runtime);
   }
 
   /* for now, duplicate Bone Groups too when doing this */
@@ -954,6 +966,14 @@ void BKE_pose_channel_free_ex(bPoseChannel *pchan, bool do_id_user)
 void BKE_pose_channel_runtime_reset(bPoseChannel_Runtime *runtime)
 {
   memset(runtime, 0, sizeof(*runtime));
+}
+
+/* Reset all non-persistent fields. */
+void BKE_pose_channel_runtime_reset_on_copy(bPoseChannel_Runtime *runtime)
+{
+  const SessionUUID uuid = runtime->session_uuid;
+  memset(runtime, 0, sizeof(*runtime));
+  runtime->session_uuid = uuid;
 }
 
 /** Deallocates runtime cache of a pose channel */
@@ -1691,4 +1711,31 @@ void what_does_obaction(Object *ob,
     /* execute effects of Action on to workob (or it's PoseChannels) */
     BKE_animsys_evaluate_animdata(&workob->id, &adt, anim_eval_context, ADT_RECALC_ANIM, false);
   }
+}
+
+void BKE_pose_check_uuids_unique_and_report(const bPose *pose)
+{
+  if (pose == NULL) {
+    return;
+  }
+
+  struct GSet *used_uuids = BLI_gset_new(
+      BLI_session_uuid_ghash_hash, BLI_session_uuid_ghash_compare, "sequencer used uuids");
+
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
+    const SessionUUID *session_uuid = &pchan->runtime.session_uuid;
+    if (!BLI_session_uuid_is_generated(session_uuid)) {
+      printf("Pose channel %s does not have UUID generated.\n", pchan->name);
+      continue;
+    }
+
+    if (BLI_gset_lookup(used_uuids, session_uuid) != NULL) {
+      printf("Pose channel %s has duplicate UUID generated.\n", pchan->name);
+      continue;
+    }
+
+    BLI_gset_insert(used_uuids, (void *)session_uuid);
+  }
+
+  BLI_gset_free(used_uuids, NULL);
 }
