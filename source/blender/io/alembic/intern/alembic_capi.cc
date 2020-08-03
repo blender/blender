@@ -22,6 +22,7 @@
 
 #include <Alembic/AbcMaterial/IMaterial.h>
 
+#include "abc_axis_conversion.h"
 #include "abc_reader_archive.h"
 #include "abc_reader_camera.h"
 #include "abc_reader_curves.h"
@@ -70,7 +71,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+using Alembic::Abc::IV3fArrayProperty;
 using Alembic::Abc::ObjectHeader;
+using Alembic::Abc::PropertyHeader;
+using Alembic::Abc::V3fArraySamplePtr;
 using Alembic::AbcGeom::ICamera;
 using Alembic::AbcGeom::ICurves;
 using Alembic::AbcGeom::IFaceSet;
@@ -79,9 +83,11 @@ using Alembic::AbcGeom::INuPatch;
 using Alembic::AbcGeom::IObject;
 using Alembic::AbcGeom::IPoints;
 using Alembic::AbcGeom::IPolyMesh;
+using Alembic::AbcGeom::IPolyMeshSchema;
 using Alembic::AbcGeom::ISampleSelector;
 using Alembic::AbcGeom::ISubD;
 using Alembic::AbcGeom::IXform;
+using Alembic::AbcGeom::kWrapExisting;
 using Alembic::AbcGeom::MetaData;
 using Alembic::AbcMaterial::IMaterial;
 
@@ -858,4 +864,137 @@ CacheReader *CacheReader_open_alembic_object(AbcArchiveHandle *handle,
   abc_reader->incref();
 
   return reinterpret_cast<CacheReader *>(abc_reader);
+}
+
+/* ************************************************************************** */
+
+static const PropertyHeader *get_property_header(const IPolyMeshSchema &schema, const char *name)
+{
+  const PropertyHeader *prop_header = schema.getPropertyHeader(name);
+
+  if (prop_header) {
+    return prop_header;
+  }
+
+  ICompoundProperty prop = schema.getArbGeomParams();
+
+  if (!has_property(prop, name)) {
+    return nullptr;
+  }
+
+  return prop.getPropertyHeader(name);
+}
+
+bool ABC_has_vec3_array_property_named(struct CacheReader *reader, const char *name)
+{
+  AbcObjectReader *abc_reader = reinterpret_cast<AbcObjectReader *>(reader);
+
+  if (!abc_reader) {
+    return false;
+  }
+
+  IObject iobject = abc_reader->iobject();
+
+  if (!iobject.valid()) {
+    return false;
+  }
+
+  const ObjectHeader &header = iobject.getHeader();
+
+  if (!IPolyMesh::matches(header)) {
+    return false;
+  }
+
+  IPolyMesh mesh(iobject, kWrapExisting);
+  IPolyMeshSchema schema = mesh.getSchema();
+
+  const PropertyHeader *prop_header = get_property_header(schema, name);
+
+  if (!prop_header) {
+    return false;
+  }
+
+  return IV3fArrayProperty::matches(prop_header->getMetaData());
+}
+
+static V3fArraySamplePtr get_velocity_prop(const IPolyMeshSchema &schema,
+                                           const ISampleSelector &iss,
+                                           const std::string &name)
+{
+  const PropertyHeader *prop_header = schema.getPropertyHeader(name);
+
+  if (prop_header) {
+    const IV3fArrayProperty &velocity_prop = IV3fArrayProperty(schema, name, 0);
+    return velocity_prop.getValue(iss);
+  }
+
+  ICompoundProperty prop = schema.getArbGeomParams();
+
+  if (!has_property(prop, name)) {
+    return V3fArraySamplePtr();
+  }
+
+  const IV3fArrayProperty &velocity_prop = IV3fArrayProperty(prop, name, 0);
+
+  if (velocity_prop) {
+    return velocity_prop.getValue(iss);
+  }
+
+  return V3fArraySamplePtr();
+}
+
+int ABC_read_velocity_cache(CacheReader *reader,
+                            const char *velocity_name,
+                            const float time,
+                            float velocity_scale,
+                            int num_vertices,
+                            float *r_vertex_velocities)
+{
+  AbcObjectReader *abc_reader = reinterpret_cast<AbcObjectReader *>(reader);
+
+  if (!abc_reader) {
+    return -1;
+  }
+
+  IObject iobject = abc_reader->iobject();
+
+  if (!iobject.valid()) {
+    return -1;
+  }
+
+  const ObjectHeader &header = iobject.getHeader();
+
+  if (!IPolyMesh::matches(header)) {
+    return -1;
+  }
+
+  IPolyMesh mesh(iobject, kWrapExisting);
+  IPolyMeshSchema schema = mesh.getSchema();
+  ISampleSelector sample_sel(time);
+  const IPolyMeshSchema::Sample sample = schema.getValue(sample_sel);
+
+  V3fArraySamplePtr velocities = get_velocity_prop(schema, sample_sel, velocity_name);
+
+  if (!velocities) {
+    return -1;
+  }
+
+  float vel[3];
+
+  int num_velocity_vectors = static_cast<int>(velocities->size());
+
+  if (num_velocity_vectors != num_vertices) {
+    return -1;
+  }
+
+  for (size_t i = 0; i < velocities->size(); ++i) {
+    const Imath::V3f &vel_in = (*velocities)[i];
+    copy_zup_from_yup(vel, vel_in.getValue());
+
+    mul_v3_fl(vel, velocity_scale);
+
+    copy_v3_v3(r_vertex_velocities + i * 3, vel);
+  }
+
+  return num_vertices;
 }

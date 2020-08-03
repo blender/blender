@@ -33,6 +33,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_cachefile.h"
 #include "BKE_context.h"
 #include "BKE_lib_query.h"
@@ -65,6 +67,9 @@ static void initData(ModifierData *md)
   mcmd->cache_file = NULL;
   mcmd->object_path[0] = '\0';
   mcmd->read_flag = MOD_MESHSEQ_READ_ALL;
+  mcmd->velocity_scale = 1.0f;
+  mcmd->vertex_velocities = NULL;
+  mcmd->num_vertices = 0;
 
   mcmd->reader = NULL;
   mcmd->reader_object_path[0] = '\0';
@@ -90,6 +95,10 @@ static void freeData(ModifierData *md)
   if (mcmd->reader) {
     mcmd->reader_object_path[0] = '\0';
     BKE_cachefile_reader_free(mcmd->cache_file, &mcmd->reader);
+  }
+
+  if (mcmd->vertex_velocities) {
+    MEM_freeN(mcmd->vertex_velocities);
   }
 }
 
@@ -153,6 +162,17 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   Mesh *result = ABC_read_mesh(mcmd->reader, ctx->object, mesh, time, &err_str, mcmd->read_flag);
+
+  mcmd->velocity_delta = 1.0f;
+  if (mcmd->cache_file->velocity_unit == CACHEFILE_VELOCITY_UNIT_SECOND) {
+    mcmd->velocity_delta /= FPS;
+  }
+
+  mcmd->last_lookup_time = time;
+
+  if (result != NULL) {
+    mcmd->num_vertices = result->totvert;
+  }
 
   if (err_str) {
     BKE_modifier_set_error(md, "%s", err_str);
@@ -220,6 +240,8 @@ static void panel_draw(const bContext *C, Panel *panel)
   if (RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
     uiItemR(layout, &ptr, "read_data", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
   }
+
+  uiItemR(layout, &ptr, "velocity_scale", 0, NULL, ICON_NONE);
 
   modifier_panel_end(layout, &ptr);
 }

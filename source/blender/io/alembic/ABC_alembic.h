@@ -128,6 +128,16 @@ struct CacheReader *CacheReader_open_alembic_object(struct AbcArchiveHandle *han
                                                     struct Object *object,
                                                     const char *object_path);
 
+bool ABC_has_vec3_array_property_named(struct CacheReader *reader, const char *name);
+
+/* r_vertex_velocities should point to a preallocated array of num_vertices floats */
+int ABC_read_velocity_cache(struct CacheReader *reader,
+                            const char *velocity_name,
+                            float time,
+                            float fps,
+                            int num_vertices,
+                            float *r_vertex_velocities);
+
 #ifdef __cplusplus
 }
 #endif

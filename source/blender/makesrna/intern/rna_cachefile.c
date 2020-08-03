@@ -174,6 +174,33 @@ static void rna_def_cachefile(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Object Paths", "Paths of the objects inside the Alembic archive");
 
+  /* ----------------- Alembic Velocity Attribute ----------------- */
+
+  prop = RNA_def_property(srna, "velocity_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(prop,
+                           "Velocity Attribute",
+                           "Name of the Alembic attribute used for generating motion blur data");
+  RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_update(prop, 0, "rna_CacheFile_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  static const EnumPropertyItem velocity_unit_items[] = {
+      {CACHEFILE_VELOCITY_UNIT_SECOND, "SECOND", 0, "Second", ""},
+      {CACHEFILE_VELOCITY_UNIT_FRAME, "FRAME", 0, "Frame", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  prop = RNA_def_property(srna, "velocity_unit", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "velocity_unit");
+  RNA_def_property_enum_items(prop, velocity_unit_items);
+  RNA_def_property_ui_text(
+      prop,
+      "Velocity Unit",
+      "Define how the velocity vectors are interpreted with regard to time, 'frame' means "
+      "the delta time is 1 frame, 'second' means the delta time is 1 / FPS");
+  RNA_def_property_update(prop, 0, "rna_CacheFile_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
   RNA_define_lib_overridable(false);
 
   rna_def_cachefile_object_paths(brna, prop);

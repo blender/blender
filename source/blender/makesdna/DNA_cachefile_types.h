@@ -53,6 +53,13 @@ typedef struct AlembicObjectPath {
   char path[4096];
 } AlembicObjectPath;
 
+/* CacheFile::velocity_unit
+ * Determines what temporal unit is used to interpret velocity vectors for motion blur effects. */
+enum {
+  CACHEFILE_VELOCITY_UNIT_FRAME,
+  CACHEFILE_VELOCITY_UNIT_SECOND,
+};
+
 typedef struct CacheFile {
   ID id;
   struct AnimData *adt;
@@ -78,7 +85,11 @@ typedef struct CacheFile {
   short flag;
   short draw_flag; /* UNUSED */
 
-  char _pad[4];
+  char _pad[3];
+
+  char velocity_unit;
+  /* Name of the velocity property in the Alembic file. */
+  char velocity_name[64];
 
   /* Runtime */
   struct AbcArchiveHandle *handle;

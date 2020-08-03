@@ -923,6 +923,73 @@ static void create_subd_mesh(Scene *scene,
 
 /* Sync */
 
+static BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b_ob, BL::Scene b_scene)
+{
+  BL::Object::modifiers_iterator b_mod;
+
+  for (b_ob.modifiers.begin(b_mod); b_mod != b_ob.modifiers.end(); ++b_mod) {
+    if (!b_mod->is_a(&RNA_MeshSequenceCacheModifier)) {
+      continue;
+    }
+
+    BL::MeshSequenceCacheModifier mesh_cache = BL::MeshSequenceCacheModifier(*b_mod);
+
+    if (MeshSequenceCacheModifier_has_velocity_get(&mesh_cache.ptr)) {
+      return mesh_cache;
+    }
+  }
+
+  return BL::MeshSequenceCacheModifier(PointerRNA_NULL);
+}
+
+static void sync_mesh_cached_velocities(BL::Object &b_ob,
+                                        BL::Scene b_scene,
+                                        Scene *scene,
+                                        Mesh *mesh)
+{
+  if (scene->need_motion() == Scene::MOTION_NONE)
+    return;
+
+  BL::MeshSequenceCacheModifier b_mesh_cache = object_mesh_cache_find(b_ob, b_scene);
+
+  if (!b_mesh_cache) {
+    return;
+  }
+
+  /* Find or add attribute */
+  float3 *P = &mesh->verts[0];
+  Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+  if (!attr_mP) {
+    attr_mP = mesh->attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
+  }
+
+  if (!MeshSequenceCacheModifier_read_velocity_get(&b_mesh_cache.ptr)) {
+    return;
+  }
+
+  const size_t numverts = mesh->verts.size();
+
+  if (b_mesh_cache.vertex_velocities.length() != numverts) {
+    return;
+  }
+
+  /* Only export previous and next frame, we don't have any in between data. */
+  float motion_times[2] = {-1.0f, 1.0f};
+  for (int step = 0; step < 2; step++) {
+    const float relative_time = motion_times[step] * scene->motion_shutter_time() * 0.5f;
+    float3 *mP = attr_mP->data_float3() + step * numverts;
+
+    BL::MeshSequenceCacheModifier::vertex_velocities_iterator vvi;
+    int i = 0;
+
+    for (b_mesh_cache.vertex_velocities.begin(vvi); vvi != b_mesh_cache.vertex_velocities.end();
+         ++vvi, ++i) {
+      mP[i] = P[i] + get_float3(vvi->velocity()) * relative_time;
+    }
+  }
+}
+
 static void sync_mesh_fluid_motion(BL::Object &b_ob, Scene *scene, Mesh *mesh)
 {
   if (scene->need_motion() == Scene::MOTION_NONE)
@@ -1002,6 +1069,9 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph,
     }
   }
 
+  /* cached velocities (e.g. from alembic archive) */
+  sync_mesh_cached_velocities(b_ob, b_depsgraph.scene(), scene, mesh);
+
   /* mesh fluid motion mantaflow */
   sync_mesh_fluid_motion(b_ob, scene, mesh);
 
@@ -1020,6 +1090,12 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
   /* Fluid motion blur already exported. */
   BL::FluidDomainSettings b_fluid_domain = object_fluid_liquid_domain_find(b_ob);
   if (b_fluid_domain) {
+    return;
+  }
+
+  /* Cached motion blur already exported. */
+  BL::MeshSequenceCacheModifier mesh_cache = object_mesh_cache_find(b_ob, b_scene);
+  if (mesh_cache) {
     return;
   }
 
