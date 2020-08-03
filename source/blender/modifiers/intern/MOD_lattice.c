@@ -130,10 +130,15 @@ static void deformVerts(ModifierData *md,
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
                           struct BMEditMesh *em,
-                          struct Mesh *UNUSED(mesh),
+                          struct Mesh *mesh,
                           float (*vertexCos)[3],
                           int numVerts)
 {
+  if (mesh != NULL) {
+    deformVerts(md, ctx, mesh, vertexCos, numVerts);
+    return;
+  }
+
   LatticeModifierData *lmd = (LatticeModifierData *)md;
 
   MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
