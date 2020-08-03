@@ -7143,68 +7143,67 @@ static float find_profile_fullness(BevelParams *bp)
  */
 static void set_profile_spacing(BevelParams *bp, ProfileSpacing *pro_spacing, bool custom)
 {
-  int seg, seg_2;
+  int seg = bp->seg;
 
-  seg = bp->seg;
-  seg_2 = power_of_2_max_i(bp->seg);
-  if (seg > 1) {
-    /* Sample the input number of segments. */
-    pro_spacing->xvals = (double *)BLI_memarena_alloc(bp->mem_arena,
-                                                      (size_t)(seg + 1) * sizeof(double));
-    pro_spacing->yvals = (double *)BLI_memarena_alloc(bp->mem_arena,
-                                                      (size_t)(seg + 1) * sizeof(double));
-    if (custom) {
-      /* Make sure the curve profile's sample table is full. */
-      if (bp->custom_profile->segments_len != seg || !bp->custom_profile->segments) {
-        BKE_curveprofile_init((CurveProfile *)bp->custom_profile, (short)seg);
-      }
-
-      /* Copy segment locations into the profile spacing struct. */
-      for (int i = 0; i < seg + 1; i++) {
-        pro_spacing->xvals[i] = (double)bp->custom_profile->segments[i].y;
-        pro_spacing->yvals[i] = (double)bp->custom_profile->segments[i].x;
-      }
-    }
-    else {
-      find_even_superellipse_chords(seg, bp->pro_super_r, pro_spacing->xvals, pro_spacing->yvals);
-    }
-
-    /* Sample the seg_2 segments used for subdividing the vertex meshes. */
-    if (seg_2 == 2) {
-      seg_2 = 4;
-    }
-    bp->pro_spacing.seg_2 = seg_2;
-    if (seg_2 == seg) {
-      pro_spacing->xvals_2 = pro_spacing->xvals;
-      pro_spacing->yvals_2 = pro_spacing->yvals;
-    }
-    else {
-      pro_spacing->xvals_2 = (double *)BLI_memarena_alloc(bp->mem_arena,
-                                                          (size_t)(seg_2 + 1) * sizeof(double));
-      pro_spacing->yvals_2 = (double *)BLI_memarena_alloc(bp->mem_arena,
-                                                          (size_t)(seg_2 + 1) * sizeof(double));
-      if (custom) {
-        /* Make sure the curve profile widget's sample table is full of the seg_2 samples. */
-        BKE_curveprofile_init((CurveProfile *)bp->custom_profile, (short)seg_2);
-
-        /* Copy segment locations into the profile spacing struct. */
-        for (int i = 0; i < seg_2 + 1; i++) {
-          pro_spacing->xvals_2[i] = (double)bp->custom_profile->segments[i].y;
-          pro_spacing->yvals_2[i] = (double)bp->custom_profile->segments[i].x;
-        }
-      }
-      else {
-        find_even_superellipse_chords(
-            seg_2, bp->pro_super_r, pro_spacing->xvals_2, pro_spacing->yvals_2);
-      }
-    }
-  }
-  else { /* Only 1 segment, we don't need any profile information. */
+  if (seg <= 1) {
+    /* Only 1 segment, we don't need any profile information. */
     pro_spacing->xvals = NULL;
     pro_spacing->yvals = NULL;
     pro_spacing->xvals_2 = NULL;
     pro_spacing->yvals_2 = NULL;
     pro_spacing->seg_2 = 0;
+    return;
+  }
+
+  int seg_2 = power_of_2_max_i(bp->seg);
+
+  /* Sample the input number of segments. */
+  pro_spacing->xvals = (double *)BLI_memarena_alloc(bp->mem_arena, sizeof(double) * (seg + 1));
+  pro_spacing->yvals = (double *)BLI_memarena_alloc(bp->mem_arena, sizeof(double) * (seg + 1));
+  if (custom) {
+    /* Make sure the curve profile's sample table is full. */
+    if (bp->custom_profile->segments_len != seg || !bp->custom_profile->segments) {
+      BKE_curveprofile_init((CurveProfile *)bp->custom_profile, (short)seg);
+    }
+
+    /* Copy segment locations into the profile spacing struct. */
+    for (int i = 0; i < seg + 1; i++) {
+      pro_spacing->xvals[i] = (double)bp->custom_profile->segments[i].y;
+      pro_spacing->yvals[i] = (double)bp->custom_profile->segments[i].x;
+    }
+  }
+  else {
+    find_even_superellipse_chords(seg, bp->pro_super_r, pro_spacing->xvals, pro_spacing->yvals);
+  }
+
+  /* Sample the seg_2 segments used during vertex mesh subdivision. */
+  if (seg_2 == 2) {
+    seg_2 = 4;
+  }
+  bp->pro_spacing.seg_2 = seg_2;
+  if (seg_2 == seg) {
+    pro_spacing->xvals_2 = pro_spacing->xvals;
+    pro_spacing->yvals_2 = pro_spacing->yvals;
+  }
+  else {
+    pro_spacing->xvals_2 = (double *)BLI_memarena_alloc(bp->mem_arena,
+                                                        sizeof(double) * (seg_2 + 1));
+    pro_spacing->yvals_2 = (double *)BLI_memarena_alloc(bp->mem_arena,
+                                                        sizeof(double) * (seg_2 + 1));
+    if (custom) {
+      /* Make sure the curve profile widget's sample table is full of the seg_2 samples. */
+      BKE_curveprofile_init((CurveProfile *)bp->custom_profile, (short)seg_2);
+
+      /* Copy segment locations into the profile spacing struct. */
+      for (int i = 0; i < seg_2 + 1; i++) {
+        pro_spacing->xvals_2[i] = (double)bp->custom_profile->segments[i].y;
+        pro_spacing->yvals_2[i] = (double)bp->custom_profile->segments[i].x;
+      }
+    }
+    else {
+      find_even_superellipse_chords(
+          seg_2, bp->pro_super_r, pro_spacing->xvals_2, pro_spacing->yvals_2);
+    }
   }
 }
 

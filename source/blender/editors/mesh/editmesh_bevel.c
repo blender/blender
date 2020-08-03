@@ -1158,12 +1158,12 @@ void MESH_OT_bevel(wmOperatorType *ot)
                 PROFILE_HARD_MIN,
                 1.0f);
 
-  prop = RNA_def_enum(ot->srna,
-                      "affect",
-                      prop_affect_items,
-                      BEVEL_AFFECT_EDGES,
-                      "Affect",
-                      "Affect Edges or Vertices");
+  RNA_def_enum(ot->srna,
+               "affect",
+               prop_affect_items,
+               BEVEL_AFFECT_EDGES,
+               "Affect",
+               "Affect Edges or Vertices");
 
   RNA_def_boolean(ot->srna,
                   "clamp_overlap",
