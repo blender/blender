@@ -2961,7 +2961,7 @@ PyDoc_STRVAR(BPy_StringProperty_doc,
              "default=\"\", "
              "maxlen=0, "
              "options={'ANIMATABLE'}, "
-             "options=set(), "
+             "override=set(), "
              "tags=set(), "
              "subtype='NONE', "
              "update=None, "
