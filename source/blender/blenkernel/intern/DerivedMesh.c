@@ -80,11 +80,9 @@
 //#define USE_MODIFIER_VALIDATE
 
 #ifdef USE_MODIFIER_VALIDATE
-#  define ASSERT_IS_VALID_DM(dm) (BLI_assert((dm == NULL) || (DM_is_valid(dm) == true)))
 #  define ASSERT_IS_VALID_MESH(mesh) \
     (BLI_assert((mesh == NULL) || (BKE_mesh_is_valid(mesh) == true)))
 #else
-#  define ASSERT_IS_VALID_DM(dm)
 #  define ASSERT_IS_VALID_MESH(mesh)
 #endif
 

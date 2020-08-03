@@ -274,8 +274,8 @@ static void emDM_calc_loop_tangents_thread(TaskPool *__restrict UNUSED(pool), vo
 /**
  * \see #BKE_mesh_calc_loop_tangent, same logic but used arrays instead of #BMesh data.
  *
- * \note This function is not so normal, its using `bm->ldata` as input,
- * but output's to `dm->loopData`.
+ * \note This function is not so normal, its using #BMesh.ldata as input,
+ * but output's to #Mesh.ldata.
  * This is done because #CD_TANGENT is cache data used only for drawing.
  */
 void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,

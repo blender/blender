@@ -699,17 +699,6 @@ float ED_view3d_grid_view_scale(struct Scene *scene,
 
 void ED_scene_draw_fps(const struct Scene *scene, int xoffset, int *yoffset);
 
-/* view matrix properties utilities */
-/* unused */
-#if 0
-void ED_view3d_operator_properties_viewmat(struct wmOperatorType *ot);
-void ED_view3d_operator_properties_viewmat_set(struct bContext *C, struct wmOperator *op);
-void ED_view3d_operator_properties_viewmat_get(struct wmOperator *op,
-                                               int *winx,
-                                               int *winy,
-                                               float persmat[4][4]);
-#endif
-
 /* render */
 void ED_view3d_stop_render_preview(struct wmWindowManager *wm, struct ARegion *region);
 void ED_view3d_shade_update(struct Main *bmain, struct View3D *v3d, struct ScrArea *area);
