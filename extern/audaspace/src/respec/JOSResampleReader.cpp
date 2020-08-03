@@ -119,8 +119,8 @@ void JOSResampleReader::updateBuffer(int size, double factor, int samplesize)
 			P = int_to_fp(m_L) - P;\
 \
 			end = std::floor((m_len - 1) / double(m_L) + m_P) - 1;\
-			if(m_cache_valid - m_n - 2 < end)\
-				end = m_cache_valid - m_n - 2;\
+			if(m_cache_valid - int(m_n) - 2 < end)\
+				end = m_cache_valid - int(m_n) - 2;\
 \
 			data = buf + (m_n + 2 + end) * m_channels - 1;\
 			l = fp_to_int(P);\
@@ -166,8 +166,8 @@ void JOSResampleReader::updateBuffer(int size, double factor, int samplesize)
 			P = 0 - P;\
 \
 			end = (int_to_fp(m_len) - P) / P_increment - 1;\
-			if(m_cache_valid - m_n - 2 < end)\
-				end = m_cache_valid - m_n - 2;\
+			if(m_cache_valid - int(m_n) - 2 < end)\
+				end = m_cache_valid - int(m_n) - 2;\
 \
 			P += P_increment * end;\
 			data = buf + (m_n + 2 + end) * m_channels - 1;\
