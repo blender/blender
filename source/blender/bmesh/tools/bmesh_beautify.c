@@ -141,7 +141,8 @@ static void erot_state_alternate(const BMEdge *e, EdRotState *e_state)
 static float bm_edge_calc_rotate_beauty__area(const float v1[3],
                                               const float v2[3],
                                               const float v3[3],
-                                              const float v4[3])
+                                              const float v4[3],
+                                              const bool lock_degenerate)
 {
   /* not a loop (only to be able to break out) */
   do {
@@ -199,7 +200,8 @@ static float bm_edge_calc_rotate_beauty__area(const float v1[3],
      * Allowing to rotate out of a degenerate state can flip the faces
      * (when performed iteratively).
      */
-    return BLI_polyfill_beautify_quad_rotate_calc_ex(v1_xy, v2_xy, v3_xy, v4_xy, true, NULL);
+    return BLI_polyfill_beautify_quad_rotate_calc_ex(
+        v1_xy, v2_xy, v3_xy, v4_xy, lock_degenerate, NULL);
   } while (false);
 
   return FLT_MAX;
@@ -262,7 +264,8 @@ float BM_verts_calc_rotate_beauty(const BMVert *v1,
 
     switch (method) {
       case 0:
-        return bm_edge_calc_rotate_beauty__area(v1->co, v2->co, v3->co, v4->co);
+        return bm_edge_calc_rotate_beauty__area(
+            v1->co, v2->co, v3->co, v4->co, flag & EDGE_RESTRICT_DEGENERATE);
       default:
         return bm_edge_calc_rotate_beauty__angle(v1->co, v2->co, v3->co, v4->co);
     }
