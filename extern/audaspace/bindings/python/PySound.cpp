@@ -1395,9 +1395,9 @@ PyDoc_STRVAR(M_aud_Sound_threshold_doc,
 			 "   all between to 0.\n\n"
 			 "   :arg threshold: Threshold value over which an amplitude counts\n"
 			 "      non-zero.\n\n"
-			 ":type threshold: float\n"
-			 ":return: The created :class:`Sound` object.\n"
-			 ":rtype: :class:`Sound`");
+			 "   :type threshold: float\n"
+			 "   :return: The created :class:`Sound` object.\n"
+			 "   :rtype: :class:`Sound`");
 
 static PyObject *
 Sound_threshold(Sound* self, PyObject* args)
