@@ -22,7 +22,10 @@
  */
 
 enum {
+  /** Vertices tags must match (special case). */
   VERT_RESTRICT_TAG = (1 << 0),
+  /** Don't rotate out of degenerate state (needed for iterative rotation). */
+  EDGE_RESTRICT_DEGENERATE = (1 << 1),
 };
 
 void BM_mesh_beautify_fill(BMesh *bm,

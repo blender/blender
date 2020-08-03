@@ -39,7 +39,10 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
   BMFace *f;
   BMEdge *e;
   const bool use_restrict_tag = BMO_slot_bool_get(op->slots_in, "use_restrict_tag");
-  const short flag = (use_restrict_tag ? VERT_RESTRICT_TAG : 0);
+  const short flag =
+      ((use_restrict_tag ? VERT_RESTRICT_TAG : 0) |
+       /* Enable to avoid iterative edge rotation to cause the direction of faces to flip. */
+       EDGE_RESTRICT_DEGENERATE);
   const short method = (short)BMO_slot_int_get(op->slots_in, "method");
 
   BMEdge **edge_array;
