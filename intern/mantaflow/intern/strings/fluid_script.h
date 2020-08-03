@@ -418,19 +418,6 @@ const std::string fluid_post_step =
     "\n\
 def fluid_post_step_$ID$():\n\
     mantaMsg('Fluid post step')\n\
-    forces_s$ID$.clear()\n\
-    x_force_s$ID$.clear()\n\
-    y_force_s$ID$.clear()\n\
-    z_force_s$ID$.clear()\n\
-    \n\
-    if using_guiding_s$ID$:\n\
-        weightGuide_s$ID$.clear()\n\
-    if using_invel_s$ID$:\n\
-        x_invel_s$ID$.clear()\n\
-        y_invel_s$ID$.clear()\n\
-        z_invel_s$ID$.clear()\n\
-        invel_s$ID$.clear()\n\
-        invelC_s$ID$.clear()\n\
     \n\
     # Copy vel grid to reals grids (which Blender internal will in turn use for vel access)\n\
     copyVec3ToReal(source=vel_s$ID$, targetX=x_vel_s$ID$, targetY=y_vel_s$ID$, targetZ=z_vel_s$ID$)\n";

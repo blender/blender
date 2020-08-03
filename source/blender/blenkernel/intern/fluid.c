@@ -2927,8 +2927,21 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
   float *velx_initial = manta_get_in_velocity_x(fds->fluid);
   float *vely_initial = manta_get_in_velocity_y(fds->fluid);
   float *velz_initial = manta_get_in_velocity_z(fds->fluid);
-  uint z;
 
+  float *forcex = manta_get_force_x(fds->fluid);
+  float *forcey = manta_get_force_y(fds->fluid);
+  float *forcez = manta_get_force_z(fds->fluid);
+
+  BLI_assert(forcex && forcey && forcez);
+
+  /* Either all or no components have to exist. */
+  BLI_assert((color_r && color_g && color_b) || (!color_r && !color_g && !color_b));
+  BLI_assert((color_r_in && color_g_in && color_b_in) ||
+             (!color_r_in && !color_g_in && !color_b_in));
+  BLI_assert((velx_initial && vely_initial && velz_initial) ||
+             (!velx_initial && !vely_initial && !velz_initial));
+
+  uint z;
   /* Grid reset before writing again. */
   for (z = 0; z < fds->res[0] * fds->res[1] * fds->res[2]; z++) {
     /* Only reset static phi on first frame, dynamic phi gets reset every time. */
@@ -2952,7 +2965,7 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
     if (heat_in) {
       heat_in[z] = heat[z];
     }
-    if (color_r_in) {
+    if (color_r_in && color_g_in && color_b_in) {
       color_r_in[z] = color_r[z];
       color_g_in[z] = color_b[z];
       color_b_in[z] = color_g[z];
@@ -2964,11 +2977,15 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
     if (emission_in) {
       emission_in[z] = 0.0f;
     }
-    if (velx_initial) {
+    if (velx_initial && vely_initial && velz_initial) {
       velx_initial[z] = 0.0f;
       vely_initial[z] = 0.0f;
       velz_initial[z] = 0.0f;
     }
+    /* Reset forces here as update_effectors() is skipped when no external forces are present. */
+    forcex[z] = 0.0f;
+    forcey[z] = 0.0f;
+    forcez[z] = 0.0f;
   }
 
   /* Apply emission data for every flow object. */
@@ -3152,13 +3169,13 @@ static void update_effectors_task_cb(void *__restrict userdata,
         continue;
       }
 
-      /* get velocities from manta grid space and convert to blender units */
+      /* Get velocities from manta grid space and convert to blender units. */
       vel[0] = data->velocity_x[index];
       vel[1] = data->velocity_y[index];
       vel[2] = data->velocity_z[index];
       mul_v3_fl(vel, fds->dx);
 
-      /* convert vel to global space */
+      /* Convert vel to global space. */
       mag = len_v3(vel);
       mul_mat3_m4_v3(fds->obmat, vel);
       normalize_v3(vel);
@@ -3169,18 +3186,18 @@ static void update_effectors_task_cb(void *__restrict userdata,
       voxel_center[2] = fds->p0[2] + fds->cell_size[2] * ((float)(z + fds->res_min[2]) + 0.5f);
       mul_m4_v3(fds->obmat, voxel_center);
 
-      /* do effectors */
+      /* Do effectors. */
       pd_point_from_loc(data->scene, voxel_center, vel, index, &epoint);
       BKE_effectors_apply(
           data->effectors, NULL, fds->effector_weights, &epoint, retvel, NULL, NULL);
 
-      /* convert retvel to local space */
+      /* Convert retvel to local space. */
       mag = len_v3(retvel);
       mul_mat3_m4_v3(fds->imat, retvel);
       normalize_v3(retvel);
       mul_v3_fl(retvel, mag);
 
-      /* constrain forces to interval -1 to 1 */
+      /* Constrain forces to interval -1 to 1. */
       data->force_x[index] = min_ff(max_ff(-1.0f, retvel[0] * 0.2f), 1.0f);
       data->force_y[index] = min_ff(max_ff(-1.0f, retvel[1] * 0.2f), 1.0f);
       data->force_z[index] = min_ff(max_ff(-1.0f, retvel[2] * 0.2f), 1.0f);
