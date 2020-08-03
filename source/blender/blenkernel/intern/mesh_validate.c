@@ -547,6 +547,16 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     for (i = 0, mp = mpolys; i < totpoly; i++, mp++, sp++) {
       sp->index = i;
 
+      /* Material index, isolated from other tests here. While large indices are clamped,
+       * negative indices aren't supported by drawing, exporters etc.
+       * To check the indices are in range, use #BKE_mesh_validate_material_indices */
+      if (mp->mat_nr < 0) {
+        PRINT_ERR("\tPoly %u has invalid material (%d)", sp->index, mp->mat_nr);
+        if (do_fixes) {
+          mp->mat_nr = 0;
+        }
+      }
+
       if (mp->loopstart < 0 || mp->totloop < 3) {
         /* Invalid loop data. */
         PRINT_ERR("\tPoly %u is invalid (loopstart: %d, totloop: %d)",
@@ -1133,14 +1143,15 @@ bool BKE_mesh_is_valid(Mesh *me)
  */
 bool BKE_mesh_validate_material_indices(Mesh *me)
 {
+  /* Cast to unsigned to catch negative indices too. */
+  const uint16_t mat_nr_max = max_ii(0, me->totcol - 1);
   MPoly *mp;
-  const int max_idx = max_ii(0, me->totcol - 1);
   const int totpoly = me->totpoly;
   int i;
   bool is_valid = true;
 
   for (mp = me->mpoly, i = 0; i < totpoly; i++, mp++) {
-    if (mp->mat_nr > max_idx) {
+    if ((uint16_t)mp->mat_nr > mat_nr_max) {
       mp->mat_nr = 0;
       is_valid = false;
     }
