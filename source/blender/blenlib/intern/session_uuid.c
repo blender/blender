@@ -40,7 +40,7 @@ SessionUUID BLI_session_uuid_generate(void)
   if (!BLI_session_uuid_is_generated(&result)) {
     /* Happens when the UUID overflows.
      *
-     * Just request the UUID once again, hoping that there are no a lot of high-priority threads
+     * Just request the UUID once again, hoping that there are not a lot of high-priority threads
      * which will overflow the counter once again between the previous call and this one.
      *
      * NOTE: It is possible to have collisions after such overflow. */
