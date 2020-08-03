@@ -1817,6 +1817,9 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
   if (scene->ed == nullptr) {
     return;
   }
+  if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_SCENE_SEQUENCER)) {
+    return;
+  }
   build_scene_audio(scene);
   Scene *scene_cow = get_cow_datablock(scene);
   add_operation_node(&scene->id,
