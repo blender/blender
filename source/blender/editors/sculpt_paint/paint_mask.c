@@ -25,6 +25,7 @@
 
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_vec_types.h"
 
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_lasso_2d.h"
@@ -290,27 +291,32 @@ static void mask_box_select_task_cb(void *__restrict userdata,
   }
 }
 
-bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *rect, bool select)
+static int paint_mask_gesture_box_exec(bContext *C, wmOperator *op)
 {
+  ViewContext vc;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Sculpt *sd = vc->scene->toolsettings->sculpt;
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+
+  Sculpt *sd = vc.scene->toolsettings->sculpt;
   BoundBox bb;
   float clip_planes[4][4];
   float clip_planes_final[4][4];
-  ARegion *region = vc->region;
-  Object *ob = vc->obact;
-  PaintMaskFloodMode mode;
+  ARegion *region = vc.region;
+  Object *ob = vc.obact;
   bool multires;
   PBVH *pbvh;
   PBVHNode **nodes;
   int totnode;
   int symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
-  mode = PAINT_MASK_FLOOD_VALUE;
-  float value = select ? 1.0f : 0.0f;
+  const PaintMaskFloodMode mode = RNA_enum_get(op->ptr, "mode");
+  const float value = RNA_float_get(op->ptr, "value");
+
+  rcti rect;
+  WM_operator_properties_border_to_rcti(op, &rect);
 
   /* Transform the clip planes in object space. */
-  ED_view3d_clipping_calc(&bb, clip_planes, vc->region, vc->obact, rect);
+  ED_view3d_clipping_calc(&bb, clip_planes, vc.region, vc.obact, &rect);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
   pbvh = ob->sculpt->pbvh;
@@ -576,6 +582,36 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 
   /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
+
+  RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", NULL);
+  RNA_def_float(
+      ot->srna,
+      "value",
+      1.0f,
+      0.0f,
+      1.0f,
+      "Value",
+      "Mask level to use when mode is 'Value'; zero means no masking and one is fully masked",
+      0.0f,
+      1.0f);
+}
+
+void PAINT_OT_mask_box_gesture(wmOperatorType *ot)
+{
+  ot->name = "Mask Box Gesture";
+  ot->idname = "PAINT_OT_mask_box_gesture";
+  ot->description = "Add mask within the box as you move the brush";
+
+  ot->invoke = WM_gesture_box_invoke;
+  ot->modal = WM_gesture_box_modal;
+  ot->exec = paint_mask_gesture_box_exec;
+
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  /* Properties. */
+  WM_operator_properties_border(ot);
 
   RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", NULL);
   RNA_def_float(

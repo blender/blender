@@ -6288,10 +6288,10 @@ def km_3d_view_tool_sculpt_box_mask(params):
         "3D View Tool: Sculpt, Box Mask",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("view3d.select_box", {"type": params.tool_tweak, "value": 'ANY'},
-             {"properties": [("mode", 'ADD')]}),
-            ("view3d.select_box", {"type": params.tool_tweak, "value": 'ANY', "ctrl": True},
-             {"properties": [("mode", 'SUB')]}),
+            ("paint.mask_box_gesture", {"type": params.tool_tweak, "value": 'ANY'},
+             {"properties": [("value", 1.0)]}),
+            ("paint.mask_box_gesture", {"type": params.tool_tweak, "value": 'ANY', "ctrl": True},
+             {"properties": [("value", 0.0)]}),
         ]},
     )
 
