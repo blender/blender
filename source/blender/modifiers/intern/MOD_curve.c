@@ -150,10 +150,15 @@ static void deformVerts(ModifierData *md,
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
                           BMEditMesh *em,
-                          Mesh *UNUSED(mesh),
+                          Mesh *mesh,
                           float (*vertexCos)[3],
                           int numVerts)
 {
+  if (mesh != NULL) {
+    deformVerts(md, ctx, mesh, vertexCos, numVerts);
+    return;
+  }
+
   CurveModifierData *cmd = (CurveModifierData *)md;
   bool use_dverts = false;
   int defgrp_index = -1;
