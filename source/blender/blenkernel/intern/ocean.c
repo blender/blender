@@ -756,7 +756,13 @@ struct Ocean *BKE_ocean_add(void)
 bool BKE_ocean_ensure(struct OceanModifierData *omd, const int resolution)
 {
   if (omd->ocean) {
-    return false;
+    /* Check that the ocean has the same resolution than we want now. */
+    if (omd->ocean->_M == resolution * resolution) {
+      return false;
+    }
+    else {
+      BKE_ocean_free(omd->ocean);
+    }
   }
 
   omd->ocean = BKE_ocean_add();
