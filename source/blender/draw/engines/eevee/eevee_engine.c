@@ -459,6 +459,7 @@ static void eevee_render_to_image(void *vedata,
   }
   EEVEE_PrivateData *g_data = ved->stl->g_data;
 
+  int initial_frame = CFRA;
   int steps = max_ii(1, scene->eevee.motion_blur_steps);
   int time_steps_tot = (do_motion_blur) ? steps : 1;
   g_data->render_tot_samples = divide_ceil_u(scene->eevee.taa_render_samples, time_steps_tot);
@@ -558,6 +559,11 @@ static void eevee_render_to_image(void *vedata,
 
   /* Restore original viewport size. */
   DRW_render_viewport_size_set((int[2]){g_data->size_orig[0], g_data->size_orig[1]});
+
+  if (CFRA != initial_frame) {
+    /* Restore original frame number. This is because the render pipeline expects it. */
+    RE_engine_frame_set(engine, initial_frame, 0.0f);
+  }
 }
 
 static void eevee_engine_free(void)
