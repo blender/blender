@@ -37,9 +37,9 @@ struct bPose;
 struct bPoseChannel;
 
 void BIK_init_tree(struct Depsgraph *depsgraph,
-                         struct Scene *scene,
-                         struct Object *ob,
-                         float ctime);
+                   struct Scene *scene,
+                   struct Object *ob,
+                   float ctime);
 void BIK_execute_tree(struct Depsgraph *depsgraph,
                       struct Scene *scene,
                       struct Object *ob,
