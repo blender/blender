@@ -1119,7 +1119,7 @@ static void ensure_obstaclefields(FluidDomainSettings *fds)
   if (fds->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE) {
     manta_ensure_guiding(fds->fluid, fds->fmd);
   }
-  manta_update_pointers(fds->fluid, fds->fmd);
+  manta_update_pointers(fds->fluid, fds->fmd, false);
 }
 
 static void update_obstacleflags(FluidDomainSettings *fds,
@@ -2606,7 +2606,7 @@ static void ensure_flowsfields(FluidDomainSettings *fds)
        fds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER)) {
     manta_liquid_ensure_sndparts(fds->fluid, fds->fmd);
   }
-  manta_update_pointers(fds->fluid, fds->fmd);
+  manta_update_pointers(fds->fluid, fds->fmd, false);
 }
 
 static void update_flowsflags(FluidDomainSettings *fds, Object **flowobjs, int numflowobj)
@@ -3738,28 +3738,34 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
   int mode = fds->cache_type;
 
   /* Do not process modifier if current frame is out of cache range. */
+  bool escape = false;
   switch (mode) {
     case FLUID_DOMAIN_CACHE_ALL:
     case FLUID_DOMAIN_CACHE_MODULAR:
       if (fds->cache_frame_offset > 0) {
         if (scene_framenr < fds->cache_frame_start ||
             scene_framenr > fds->cache_frame_end + fds->cache_frame_offset) {
-          return;
+          escape = true;
         }
       }
       else {
         if (scene_framenr < fds->cache_frame_start + fds->cache_frame_offset ||
             scene_framenr > fds->cache_frame_end) {
-          return;
+          escape = true;
         }
       }
       break;
     case FLUID_DOMAIN_CACHE_REPLAY:
     default:
       if (scene_framenr < fds->cache_frame_start || scene_framenr > fds->cache_frame_end) {
-        return;
+        escape = true;
       }
       break;
+  }
+  /* If modifier will not be processed, update/flush pointers from (old) fluid object once more. */
+  if (escape && fds->fluid) {
+    manta_update_pointers(fds->fluid, fmd, true);
+    return;
   }
 
   /* Reset fluid if no fluid present. Also resets active fields. */
@@ -4096,7 +4102,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
   }
 
   /* Ensure that fluid pointers are always up to date at the end of modifier processing. */
-  manta_update_pointers(fds->fluid, fmd);
+  manta_update_pointers(fds->fluid, fmd, false);
 
   fds->flags &= ~FLUID_DOMAIN_FILE_LOAD;
   fmd->time = scene_framenr;

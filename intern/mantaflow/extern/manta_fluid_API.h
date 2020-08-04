@@ -77,7 +77,7 @@ int manta_get_frame(struct MANTA *fluid);
 float manta_get_timestep(struct MANTA *fluid);
 void manta_adapt_timestep(struct MANTA *fluid);
 bool manta_needs_realloc(struct MANTA *fluid, struct FluidModifierData *fmd);
-void manta_update_pointers(struct MANTA *fluid, struct FluidModifierData *fmd);
+void manta_update_pointers(struct MANTA *fluid, struct FluidModifierData *fmd, bool flush);
 
 /* Fluid accessors */
 size_t manta_get_index(int x, int max_x, int y, int max_y, int z /*, int max_z */);

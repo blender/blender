@@ -230,11 +230,11 @@ bool manta_needs_realloc(MANTA *fluid, FluidModifierData *fmd)
   return fluid->needsRealloc(fmd);
 }
 
-void manta_update_pointers(struct MANTA *fluid, struct FluidModifierData *fmd)
+void manta_update_pointers(struct MANTA *fluid, struct FluidModifierData *fmd, bool flush)
 {
   if (!fluid || !fmd)
     return;
-  fluid->updatePointers(fmd);
+  fluid->updatePointers(fmd, flush);
 }
 
 /* Fluid accessors */

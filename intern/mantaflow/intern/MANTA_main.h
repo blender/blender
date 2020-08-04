@@ -77,14 +77,14 @@ struct MANTA {
   bool initSndParts(FluidModifierData *fmd = nullptr);
   bool initLiquidSndParts(FluidModifierData *fmd = nullptr);
 
-  /* Pointer transfer: Mantaflow -> Blender. */
-  void updatePointers(FluidModifierData *fmd);
+  /* Pointer transfer: Mantaflow -> Blender. Use flush to reset all pointers to nullptr. */
+  void updatePointers(FluidModifierData *fmd, bool flush = false);
 
   /* Write cache. */
   bool writeConfiguration(FluidModifierData *fmd, int framenr);
   bool writeData(FluidModifierData *fmd, int framenr);
   bool writeNoise(FluidModifierData *fmd, int framenr);
-  // write calls for mesh and particles were left in bake calls for now
+  /* Write calls for mesh and particles were left in bake calls for now. */
 
   /* Read cache (via Python). */
   bool readConfiguration(FluidModifierData *fmd, int framenr);

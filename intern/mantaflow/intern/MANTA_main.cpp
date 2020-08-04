@@ -1969,30 +1969,30 @@ void MANTA::adaptTimestep()
   runPythonString(pythonCommands);
 }
 
-void MANTA::updatePointers(FluidModifierData *fmd)
+void MANTA::updatePointers(FluidModifierData *fmd, bool flush)
 {
   if (with_debug)
     cout << "MANTA::updatePointers()" << endl;
 
   FluidDomainSettings *fds = fmd->domain;
 
-  bool liquid = (fds->type == FLUID_DOMAIN_TYPE_LIQUID);
-  bool smoke = (fds->type == FLUID_DOMAIN_TYPE_GAS);
-  bool noise = smoke && fds->flags & FLUID_DOMAIN_USE_NOISE;
-  bool heat = smoke && fds->active_fields & FLUID_DOMAIN_ACTIVE_HEAT;
-  bool colors = smoke && fds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS;
-  bool fire = smoke && fds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE;
-  bool obstacle = fds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE;
-  bool guiding = fds->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
-  bool invel = fds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
-  bool outflow = fds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW;
-  bool drops = liquid && fds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY;
-  bool bubble = liquid && fds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE;
-  bool floater = liquid && fds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM;
-  bool tracer = liquid && fds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER;
-  bool parts = liquid && (drops | bubble | floater | tracer);
-  bool mesh = liquid && fds->flags & FLUID_DOMAIN_USE_MESH;
-  bool meshvel = liquid && mesh && fds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS;
+  bool liquid = !flush && (fds->type == FLUID_DOMAIN_TYPE_LIQUID);
+  bool smoke = !flush && (fds->type == FLUID_DOMAIN_TYPE_GAS);
+  bool noise = !flush && smoke && fds->flags & FLUID_DOMAIN_USE_NOISE;
+  bool heat = !flush && smoke && fds->active_fields & FLUID_DOMAIN_ACTIVE_HEAT;
+  bool colors = !flush && smoke && fds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS;
+  bool fire = !flush && smoke && fds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE;
+  bool obstacle = !flush && fds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE;
+  bool guiding = !flush && fds->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
+  bool invel = !flush && fds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
+  bool outflow = !flush && fds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW;
+  bool drops = !flush && liquid && fds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY;
+  bool bubble = !flush && liquid && fds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE;
+  bool floater = !flush && liquid && fds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM;
+  bool tracer = !flush && liquid && fds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER;
+  bool parts = !flush && liquid && (drops | bubble | floater | tracer);
+  bool mesh = !flush && liquid && fds->flags & FLUID_DOMAIN_USE_MESH;
+  bool meshvel = !flush && liquid && mesh && fds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS;
 
   string func = "getDataPointer";
   string funcNodes = "getNodesDataPointer";
@@ -2006,15 +2006,15 @@ void MANTA::updatePointers(FluidModifierData *fmd)
   string mesh_ext = "_mesh" + id;
   string sn_ext = "_sn" + id;
 
-  mFlags = getPointer<int>("flags" + s_ext, func);
-  mPhiIn = getPointer<float>("phiIn" + s_ext, func);
-  mPhiStaticIn = getPointer<float>("phiSIn" + s_ext, func);
-  mVelocityX = getPointer<float>("x_vel" + s_ext, func);
-  mVelocityY = getPointer<float>("y_vel" + s_ext, func);
-  mVelocityZ = getPointer<float>("z_vel" + s_ext, func);
-  mForceX = getPointer<float>("x_force" + s_ext, func);
-  mForceY = getPointer<float>("y_force" + s_ext, func);
-  mForceZ = getPointer<float>("z_force" + s_ext, func);
+  mFlags = (smoke || liquid) ? getPointer<int>("flags" + s_ext, func) : nullptr;
+  mPhiIn = (smoke || liquid) ? getPointer<float>("phiIn" + s_ext, func) : nullptr;
+  mPhiStaticIn = (smoke || liquid) ? getPointer<float>("phiSIn" + s_ext, func) : nullptr;
+  mVelocityX = (smoke || liquid) ? getPointer<float>("x_vel" + s_ext, func) : nullptr;
+  mVelocityY = (smoke || liquid) ? getPointer<float>("y_vel" + s_ext, func) : nullptr;
+  mVelocityZ = (smoke || liquid) ? getPointer<float>("z_vel" + s_ext, func) : nullptr;
+  mForceX = (smoke || liquid) ? getPointer<float>("x_force" + s_ext, func) : nullptr;
+  mForceY = (smoke || liquid) ? getPointer<float>("y_force" + s_ext, func) : nullptr;
+  mForceZ = (smoke || liquid) ? getPointer<float>("z_force" + s_ext, func) : nullptr;
 
   /* Outflow. */
   mPhiOutIn = (outflow) ? getPointer<float>("phiOutIn" + s_ext, func) : nullptr;
