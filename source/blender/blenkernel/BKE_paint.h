@@ -486,6 +486,10 @@ struct PBVH *BKE_sculpt_object_pbvh_ensure(struct Depsgraph *depsgraph, struct O
 
 void BKE_sculpt_bvh_update_from_ccg(struct PBVH *pbvh, struct SubdivCCG *subdiv_ccg);
 
+/* This ensure that all elements in the mesh (both vertices and grids) have their visibility
+ * updated according to the face sets. */
+void BKE_sculpt_sync_face_set_visibility(struct Mesh *mesh, struct SubdivCCG *subdiv_ccg);
+
 bool BKE_sculptsession_use_pbvh_draw(const struct Object *ob, const struct View3D *v3d);
 
 enum {
