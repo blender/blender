@@ -72,7 +72,7 @@ class SpellChecker:
         "wasn",  # wasn't
 
         # Merged words
-        "antialiasing",
+        "antialiasing", "antialias",
         "arcsine", "arccosine", "arctangent",
         "autoclip",
         "autocomplete",
@@ -241,7 +241,7 @@ class SpellChecker:
         "unsets",
         "unshadowed",
         "unspill",
-        "unstitchable",
+        "unstitchable", "unstitch",
         "unsubdivided", "unsubdivide",
         "untrusted",
         "vectorscope",
@@ -421,6 +421,7 @@ class SpellChecker:
         "searchable",
         "spacebar",
         "subtractive",
+        "superellipse",
         "tooltip", "tooltips",
         "trackpad",
         "tuple",
@@ -618,6 +619,7 @@ class SpellChecker:
         "musgrave",
         "nayar",
         "netravali",
+        "nishita",
         "ogawa",
         "oren",
         "peucker",  # Ramer-Douglas-Peucker

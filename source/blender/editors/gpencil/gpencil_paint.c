@@ -836,7 +836,7 @@ static short gpencil_stroke_addpoint(tGPsdata *p,
     }
 
     /* color strength */
-    if (brush_settings->flag & GP_BRUSH_USE_STENGTH_PRESSURE) {
+    if (brush_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) {
       pt->strength *= BKE_curvemapping_evaluateF(brush_settings->curve_strength, 0, pressure);
       CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
     }

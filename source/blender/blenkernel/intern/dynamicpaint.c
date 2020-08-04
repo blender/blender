@@ -4203,7 +4203,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
                        brushVelocity[v3].v,
                        weights);
 
-      /* substract canvas point velocity */
+      /* subtract canvas point velocity */
       if (bData->velocity) {
         sub_v3_v3v3(velocity, brushPointVelocity, bData->velocity[index].v);
       }
@@ -4548,7 +4548,7 @@ static void dynamic_paint_paint_particle_cell_point_cb_ex(
       ParticleData *pa = psys->particles + part_index;
       mul_v3_v3fl(velocity, pa->state.vel, particle_timestep);
 
-      /* substract canvas point velocity */
+      /* subtract canvas point velocity */
       if (bData->velocity) {
         sub_v3_v3(velocity, bData->velocity[index].v);
       }
@@ -4739,7 +4739,7 @@ static void dynamic_paint_paint_single_point_cb_ex(void *__restrict userdata,
     if (brush->flags & MOD_DPAINT_USES_VELOCITY) {
       float velocity[3];
 
-      /* substract canvas point velocity */
+      /* subtract canvas point velocity */
       if (bData->velocity) {
         sub_v3_v3v3(velocity, brushVelocity->v, bData->velocity[index].v);
       }

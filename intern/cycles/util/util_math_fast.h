@@ -87,7 +87,7 @@ ccl_device_inline int fast_rint(float x)
   /* Single roundps instruction on SSE4.1+ (for gcc/clang at least). */
   return float_to_int(rintf(x));
 #else
-  /* emulate rounding by adding/substracting 0.5. */
+  /* emulate rounding by adding/subtracting 0.5. */
   return float_to_int(x + copysignf(0.5f, x));
 #endif
 }

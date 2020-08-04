@@ -3000,7 +3000,7 @@ int isect_line_line_epsilon_v3(const float v1[3],
     mul_v3_fl(a, dot_v3v3(cb, ab) / dot_v3v3(ab, ab));
     add_v3_v3v3(r_i1, v1, a);
 
-    /* for the second line, just substract the offset from the first intersection point */
+    /* for the second line, just subtract the offset from the first intersection point */
     sub_v3_v3v3(r_i2, r_i1, t);
 
     return 2; /* two nearest points */
