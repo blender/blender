@@ -23,6 +23,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_math.h"
 
 #include "BLT_translation.h"
@@ -140,7 +141,10 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 struct HookData_cb {
   float (*vertexCos)[3];
 
-  MDeformVert *dvert;
+  /**
+   * When anything other than -1, use deform groups.
+   * This is not the same as checking `dvert` for NULL when we have edit-meshes.
+   */
   int defgrp_index;
 
   struct CurveMapping *curfalloff;
@@ -160,6 +164,20 @@ struct HookData_cb {
 
   bool invert_vgroup;
 };
+
+static BLI_bitmap *hook_index_array_to_bitmap(HookModifierData *hmd, const int numVerts)
+{
+  BLI_bitmap *indexar_used = BLI_BITMAP_NEW(numVerts, __func__);
+  int i;
+  int *index_pt;
+  for (i = 0, index_pt = hmd->indexar; i < hmd->totindex; i++, index_pt++) {
+    const int j = *index_pt;
+    if (j < numVerts) {
+      BLI_BITMAP_ENABLE(indexar_used, i);
+    }
+  }
+  return indexar_used;
+}
 
 static float hook_falloff(const struct HookData_cb *hd, const float len_sq)
 {
@@ -227,7 +245,7 @@ static float hook_falloff(const struct HookData_cb *hd, const float len_sq)
   }
 }
 
-static void hook_co_apply(struct HookData_cb *hd, const int j)
+static void hook_co_apply(struct HookData_cb *hd, int j, const MDeformVert *dv)
 {
   float *co = hd->vertexCos[j];
   float fac;
@@ -251,9 +269,9 @@ static void hook_co_apply(struct HookData_cb *hd, const int j)
   }
 
   if (fac) {
-    if (hd->dvert) {
-      fac *= hd->invert_vgroup ? 1.0f - BKE_defvert_find_weight(&hd->dvert[j], hd->defgrp_index) :
-                                 BKE_defvert_find_weight(&hd->dvert[j], hd->defgrp_index);
+    if (dv != NULL) {
+      fac *= hd->invert_vgroup ? 1.0f - BKE_defvert_find_weight(dv, hd->defgrp_index) :
+                                 BKE_defvert_find_weight(dv, hd->defgrp_index);
     }
 
     if (fac) {
@@ -268,6 +286,7 @@ static void deformVerts_do(HookModifierData *hmd,
                            const ModifierEvalContext *UNUSED(ctx),
                            Object *ob,
                            Mesh *mesh,
+                           BMEditMesh *em,
                            float (*vertexCos)[3],
                            int numVerts)
 {
@@ -275,6 +294,7 @@ static void deformVerts_do(HookModifierData *hmd,
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob_target->pose, hmd->subtarget);
   float dmat[4][4];
   int i, *index_pt;
+  MDeformVert *dvert;
   struct HookData_cb hd;
   const bool invert_vgroup = (hmd->flag & MOD_HOOK_INVERT_VGROUP) != 0;
 
@@ -289,7 +309,16 @@ static void deformVerts_do(HookModifierData *hmd,
 
   /* Generic data needed for applying per-vertex calculations (initialize all members) */
   hd.vertexCos = vertexCos;
-  MOD_get_vgroup(ob, mesh, hmd->name, &hd.dvert, &hd.defgrp_index);
+
+  MOD_get_vgroup(ob, mesh, hmd->name, &dvert, &hd.defgrp_index);
+  int cd_dvert_offset = -1;
+
+  if ((em != NULL) && (hd.defgrp_index != -1)) {
+    cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+    if (cd_dvert_offset == -1) {
+      hd.defgrp_index = -1;
+    }
+  }
 
   hd.curfalloff = hmd->curfalloff;
 
@@ -338,32 +367,62 @@ static void deformVerts_do(HookModifierData *hmd,
   }
   else if (hmd->indexar) { /* vertex indices? */
     const int *origindex_ar;
-
     /* if mesh is present and has original index data, use it */
     if (mesh && (origindex_ar = CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX))) {
-      for (i = 0, index_pt = hmd->indexar; i < hmd->totindex; i++, index_pt++) {
-        if (*index_pt < numVerts) {
-          int j;
-
-          for (j = 0; j < numVerts; j++) {
-            if (origindex_ar[j] == *index_pt) {
-              hook_co_apply(&hd, j);
-            }
+      int numVerts_orig = numVerts;
+      if (ob->type == OB_MESH) {
+        const Mesh *me_orig = ob->data;
+        numVerts_orig = me_orig->totvert;
+      }
+      BLI_bitmap *indexar_used = hook_index_array_to_bitmap(hmd, numVerts_orig);
+      for (i = 0; i < numVerts; i++) {
+        int i_orig = origindex_ar[i];
+        BLI_assert(i_orig < numVerts_orig);
+        if (BLI_BITMAP_TEST(indexar_used, i_orig)) {
+          hook_co_apply(&hd, i, dvert ? &dvert[i] : NULL);
+        }
+      }
+      MEM_freeN(indexar_used);
+    }
+    else { /* missing mesh or ORIGINDEX */
+      if ((em != NULL) && (hd.defgrp_index != -1)) {
+        BLI_assert(em->bm->totvert == numVerts);
+        BLI_bitmap *indexar_used = hook_index_array_to_bitmap(hmd, numVerts);
+        BMIter iter;
+        BMVert *v;
+        BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+          if (BLI_BITMAP_TEST(indexar_used, i)) {
+            const MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset);
+            hook_co_apply(&hd, i, dv);
+          }
+        }
+        MEM_freeN(indexar_used);
+      }
+      else {
+        for (i = 0, index_pt = hmd->indexar; i < hmd->totindex; i++, index_pt++) {
+          const int j = *index_pt;
+          if (j < numVerts) {
+            hook_co_apply(&hd, j, dvert ? &dvert[j] : NULL);
           }
         }
       }
     }
-    else { /* missing mesh or ORIGINDEX */
-      for (i = 0, index_pt = hmd->indexar; i < hmd->totindex; i++, index_pt++) {
-        if (*index_pt < numVerts) {
-          hook_co_apply(&hd, *index_pt);
-        }
+  }
+  else if (hd.defgrp_index != -1) { /* vertex group hook */
+    if (em != NULL) {
+      BLI_assert(em->bm->totvert == numVerts);
+      BMIter iter;
+      BMVert *v;
+      BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+        const MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset);
+        hook_co_apply(&hd, i, dv);
       }
     }
-  }
-  else if (hd.dvert) { /* vertex group hook */
-    for (i = 0; i < numVerts; i++) {
-      hook_co_apply(&hd, i);
+    else {
+      BLI_assert(dvert != NULL);
+      for (i = 0; i < numVerts; i++) {
+        hook_co_apply(&hd, i, &dvert[i]);
+      }
     }
   }
 }
@@ -377,7 +436,7 @@ static void deformVerts(struct ModifierData *md,
   HookModifierData *hmd = (HookModifierData *)md;
   Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
 
-  deformVerts_do(hmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
+  deformVerts_do(hmd, ctx, ctx->object, mesh_src, NULL, vertexCos, numVerts);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);
@@ -392,19 +451,8 @@ static void deformVertsEM(struct ModifierData *md,
                           int numVerts)
 {
   HookModifierData *hmd = (HookModifierData *)md;
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(
-      ctx->object, editData, mesh, NULL, numVerts, false, false);
 
-  /* TODO(Campbell): use edit-mode data only (remove this line). */
-  if (mesh_src != NULL) {
-    BKE_mesh_wrapper_ensure_mdata(mesh_src);
-  }
-
-  deformVerts_do(hmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
-
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
-  }
+  deformVerts_do(hmd, ctx, ctx->object, mesh, mesh ? NULL : editData, vertexCos, numVerts);
 }
 
 static void panel_draw(const bContext *C, Panel *panel)
