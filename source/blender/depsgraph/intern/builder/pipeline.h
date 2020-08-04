@@ -27,9 +27,9 @@
 
 #include "intern/depsgraph_type.h"
 
-class Main;
-class Scene;
-class ViewLayer;
+struct Main;
+struct Scene;
+struct ViewLayer;
 struct Depsgraph;
 
 namespace blender {
