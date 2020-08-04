@@ -33,10 +33,11 @@ def is_tool(name):
     return which(name) is not None
 
 class Builder:
-    def __init__(self, name, branch):
+    def __init__(self, name, branch, codesign):
         self.name = name
         self.branch = branch
         self.is_release_branch = re.match("^blender-v(.*)-release$", branch) is not None
+        self.codesign = codesign
 
         # Buildbot runs from build/ directory
         self.blender_dir = os.path.abspath(os.path.join('..', 'blender.git'))
@@ -69,7 +70,7 @@ def create_builder_from_arguments():
     parser.add_argument('branch', default='master', nargs='?')
     parser.add_argument("--codesign", action="store_true")
     args = parser.parse_args()
-    return Builder(args.builder_name, args.branch)
+    return Builder(args.builder_name, args.branch, args.codesign)
 
 
 class VersionInfo:
