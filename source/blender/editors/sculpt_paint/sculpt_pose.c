@@ -1025,8 +1025,10 @@ static void sculpt_pose_do_scale_deform(SculptSession *ss, Brush *brush)
   copy_v3_v3(ik_target, ss->cache->true_location);
   add_v3_v3(ik_target, ss->cache->grab_delta);
 
-  /* Solve the IK for the first segment to include rotation as part of scale. */
-  pose_solve_ik_chain(ik_chain, ik_target, brush->flag2 & BRUSH_POSE_IK_ANCHORED);
+  /* Solve the IK for the first segment to include rotation as part of scale if enabled. */
+  if (!(brush->flag2 & BRUSH_POSE_USE_LOCK_ROTATION)) {
+    pose_solve_ik_chain(ik_chain, ik_target, brush->flag2 & BRUSH_POSE_IK_ANCHORED);
+  }
 
   float scale[3];
   copy_v3_fl(scale, sculpt_pose_get_scale_from_grab_delta(ss, ik_target));

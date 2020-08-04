@@ -2803,6 +2803,13 @@ static void rna_def_brush(BlenderRNA *brna)
       prop, "Keep Anchor Point", "Keep the position of the last segment in the IK chain fixed");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "use_pose_lock_rotation", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_POSE_USE_LOCK_ROTATION);
+  RNA_def_property_ui_text(prop,
+                           "Lock Rotation When Scaling",
+                           "Do not rotate the segment when using the scale deform mode");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "use_connected_only", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_USE_CONNECTED_ONLY);
   RNA_def_property_ui_text(prop, "Connected Only", "Affect only topologically connected elements");
