@@ -45,6 +45,11 @@
 
 #include "./intern/bmesh_private.h"
 
+// #define BEVEL_DEBUG_TIME
+#ifdef BEVEL_DEBUG_TIME
+#  include "PIL_time.h"
+#endif
+
 #define BEVEL_EPSILON_D 1e-6
 #define BEVEL_EPSILON 1e-6f
 #define BEVEL_EPSILON_SQ 1e-12f
@@ -1891,6 +1896,57 @@ static void get_profile_point(BevelParams *bp, const Profile *pro, int i, int ns
 }
 
 /**
+ * Helper for #calculate_profile that builds the 3D locations for the segments
+ * and the higher power of 2 segments.
+ */
+static void calculate_profile_segments(const Profile *profile,
+                                       const float map[4][4],
+                                       const bool use_map,
+                                       const bool reversed,
+                                       const int ns,
+                                       const double *xvals,
+                                       const double *yvals,
+                                       float *r_prof_co)
+{
+  /* Iterate over the vertices along the boundary arc. */
+  for (int k = 0; k <= ns; k++) {
+    float co[3];
+    if (k == 0) {
+      copy_v3_v3(co, profile->start);
+    }
+    else if (k == ns) {
+      copy_v3_v3(co, profile->end);
+    }
+    else {
+      if (use_map) {
+        float p[3] = {reversed ? (float)yvals[ns - k] : (float)xvals[k],
+                      reversed ? (float)xvals[ns - k] : (float)yvals[k],
+                      0.0f};
+        /* Do the 2D->3D transformation of the profile coordinates. */
+        mul_v3_m4v3(co, map, p);
+      }
+      else {
+        interp_v3_v3v3(co, profile->start, profile->end, (float)k / (float)ns);
+      }
+    }
+    /* Finish the 2D->3D transformation by projecting onto the final profile plane. */
+    float *prof_co_k = r_prof_co + 3 * k;
+    if (!is_zero_v3(profile->proj_dir)) {
+      float co2[3];
+      add_v3_v3v3(co2, co, profile->proj_dir);
+      /* pro->plane_co and pro->plane_no are filled in #set_profile_params. */
+      if (!isect_line_plane_v3(prof_co_k, co, co2, profile->plane_co, profile->plane_no)) {
+        /* Shouldn't happen. */
+        copy_v3_v3(prof_co_k, co);
+      }
+    }
+    else {
+      copy_v3_v3(prof_co_k, co);
+    }
+  }
+}
+
+/**
  * Calculate the actual coordinate values for bndv's profile.
  * This is only needed if bp->seg > 1.
  * Allocate the space for them if that hasn't been done already.
@@ -1900,12 +1956,6 @@ static void get_profile_point(BevelParams *bp, const Profile *pro, int i, int ns
  */
 static void calculate_profile(BevelParams *bp, BoundVert *bndv, bool reversed, bool miter)
 {
-  int i, k, ns;
-  const double *xvals, *yvals;
-  float co[3], co2[3], p[3], map[4][4], bottom_corner[3], top_corner[3];
-  float *prof_co, *prof_co_k;
-  float r;
-  bool need_2, map_ok;
   Profile *pro = &bndv->profile;
   ProfileSpacing *pro_spacing = (miter) ? &bp->pro_spacing_miter : &bp->pro_spacing;
 
@@ -1913,89 +1963,51 @@ static void calculate_profile(BevelParams *bp, BoundVert *bndv, bool reversed, b
     return;
   }
 
-  need_2 = bp->seg != bp->pro_spacing.seg_2;
-  if (!pro->prof_co) {
-    pro->prof_co = (float *)BLI_memarena_alloc(bp->mem_arena,
-                                               ((size_t)bp->seg + 1) * 3 * sizeof(float));
+  bool need_2 = bp->seg != bp->pro_spacing.seg_2;
+  if (pro->prof_co == NULL) {
+    pro->prof_co = (float *)BLI_memarena_alloc(bp->mem_arena, sizeof(float) * 3 * (bp->seg + 1));
     if (need_2) {
       pro->prof_co_2 = (float *)BLI_memarena_alloc(
-          bp->mem_arena, ((size_t)bp->pro_spacing.seg_2 + 1) * 3 * sizeof(float));
+          bp->mem_arena, sizeof(float) * 3 * (bp->pro_spacing.seg_2 + 1));
     }
     else {
       pro->prof_co_2 = pro->prof_co;
     }
   }
-  r = pro->super_r;
-  if (bp->profile_type == BEVEL_PROFILE_SUPERELLIPSE && r == PRO_LINE_R) {
-    map_ok = false;
+
+  bool use_map;
+  float map[4][4];
+  if (bp->profile_type == BEVEL_PROFILE_SUPERELLIPSE && pro->super_r == PRO_LINE_R) {
+    use_map = false;
   }
   else {
-    map_ok = make_unit_square_map(pro->start, pro->middle, pro->end, map);
+    use_map = make_unit_square_map(pro->start, pro->middle, pro->end, map);
   }
 
-  if (bp->vmesh_method == BEVEL_VMESH_CUTOFF && map_ok) {
+  if (bp->vmesh_method == BEVEL_VMESH_CUTOFF && use_map) {
     /* Calculate the "height" of the profile by putting the (0,0) and (1,1) corners of the
      * un-transformed profile through the 2D->3D map and calculating the distance between them. */
-    zero_v3(p);
-    mul_v3_m4v3(bottom_corner, map, p);
-    p[0] = 1.0f;
-    p[1] = 1.0f;
-    mul_v3_m4v3(top_corner, map, p);
+    float bottom_corner[3] = {0.0f, 0.0f, 0.0f};
+    mul_v3_m4v3(bottom_corner, map, bottom_corner);
+    float top_corner[3] = {1.0f, 1.0f, 0.0f};
+    mul_v3_m4v3(top_corner, map, top_corner);
+
     pro->height = len_v3v3(bottom_corner, top_corner);
   }
 
-  /* The first iteration is the nseg case, the second is the seg_2 case (if it's needed) .*/
-  for (i = 0; i < 2; i++) {
-    if (i == 0) {
-      ns = bp->seg;
-      xvals = pro_spacing->xvals;
-      yvals = pro_spacing->yvals;
-      prof_co = pro->prof_co;
-    }
-    else {
-      if (!need_2) {
-        break; /* Shares coords with pro->prof_co. */
-      }
-      ns = bp->pro_spacing.seg_2;
-      xvals = pro_spacing->xvals_2;
-      yvals = pro_spacing->yvals_2;
-      prof_co = pro->prof_co_2;
-    }
-
-    /* Iterate over the vertices along the boundary arc. */
-    for (k = 0; k <= ns; k++) {
-      if (k == 0) {
-        copy_v3_v3(co, pro->start);
-      }
-      else if (k == ns) {
-        copy_v3_v3(co, pro->end);
-      }
-      else {
-        if (map_ok) {
-          p[0] = reversed ? (float)yvals[ns - k] : (float)xvals[k];
-          p[1] = reversed ? (float)xvals[ns - k] : (float)yvals[k];
-          p[2] = 0.0f;
-          /* Do the 2D->3D transformation of the profile coordinates. */
-          mul_v3_m4v3(co, map, p);
-        }
-        else {
-          interp_v3_v3v3(co, pro->start, pro->end, (float)k / (float)ns);
-        }
-      }
-      /* Finish the 2D->3D transformation by projecting onto the final profile plane. */
-      prof_co_k = prof_co + 3 * k; /* Each coord takes up 3 spaces. */
-      if (!is_zero_v3(pro->proj_dir)) {
-        add_v3_v3v3(co2, co, pro->proj_dir);
-        /* pro->plane_co and pro->plane_no are filled in "set_profile_params". */
-        if (!isect_line_plane_v3(prof_co_k, co, co2, pro->plane_co, pro->plane_no)) {
-          /* Shouldn't happen. */
-          copy_v3_v3(prof_co_k, co);
-        }
-      }
-      else {
-        copy_v3_v3(prof_co_k, co);
-      }
-    }
+  /* Calculate the 3D locations for the profile points */
+  calculate_profile_segments(
+      pro, map, use_map, reversed, bp->seg, pro_spacing->xvals, pro_spacing->yvals, pro->prof_co);
+  /* Also calcualte for the is the seg_2 case if it's needed .*/
+  if (need_2) {
+    calculate_profile_segments(pro,
+                               map,
+                               use_map,
+                               reversed,
+                               bp->pro_spacing.seg_2,
+                               pro_spacing->xvals_2,
+                               pro_spacing->yvals_2,
+                               pro->prof_co_2);
   }
 }
 
@@ -7489,6 +7501,10 @@ void BM_mesh_bevel(BMesh *bm,
   bp.custom_profile = custom_profile;
   bp.vmesh_method = vmesh_method;
 
+#ifdef BEVEL_DEBUG_TIME
+  double start_time = PIL_check_seconds_timer();
+#endif
+
   /* Disable the miters with the cutoff vertex mesh method, the combination isn't useful anyway. */
   if (bp.vmesh_method == BEVEL_VMESH_CUTOFF) {
     bp.miter_outer = BEVEL_MITER_SHARP;
@@ -7657,4 +7673,8 @@ void BM_mesh_bevel(BMesh *bm,
     BLI_ghash_free(bp.face_hash, NULL, NULL);
     BLI_memarena_free(bp.mem_arena);
   }
+#ifdef BEVEL_DEBUG_TIME
+  double end_time = PIL_check_seconds_timer();
+  printf("BMESH BEVEL TIME = %.3f\n", end_time - start_time);
+#endif
 }
