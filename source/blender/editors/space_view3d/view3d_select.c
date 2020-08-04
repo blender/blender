@@ -2112,7 +2112,7 @@ static bool ed_object_select_pick(bContext *C,
 
     if (hits > 0) {
       /* note: bundles are handling in the same way as bones */
-      const bool has_bones = selectbuffer_has_bones(buffer, hits);
+      const bool has_bones = object ? false : selectbuffer_has_bones(buffer, hits);
 
       /* note; shift+alt goes to group-flush-selecting */
       if (enumerate) {
