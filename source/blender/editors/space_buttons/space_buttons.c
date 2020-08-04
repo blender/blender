@@ -584,6 +584,10 @@ static void buttons_area_listener(wmWindow *UNUSED(win),
       if (wmn->data == ND_SPACE_PROPERTIES) {
         ED_area_tag_redraw(area);
       }
+      else if (wmn->data == ND_SPACE_CHANGED) {
+        ED_area_tag_redraw(area);
+        sbuts->preview = 1;
+      }
       break;
     case NC_ID:
       if (wmn->action == NA_RENAME) {
@@ -620,6 +624,12 @@ static void buttons_area_listener(wmWindow *UNUSED(win),
     /* Listener for preview render, when doing an global undo. */
     case NC_WM:
       if (wmn->data == ND_UNDO) {
+        ED_area_tag_redraw(area);
+        sbuts->preview = 1;
+      }
+      break;
+    case NC_SCREEN:
+      if (wmn->data == ND_LAYOUTSET) {
         ED_area_tag_redraw(area);
         sbuts->preview = 1;
       }
