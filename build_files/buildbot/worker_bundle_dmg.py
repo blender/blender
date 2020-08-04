@@ -84,7 +84,7 @@ def create_argument_parser():
              "If not provided default Blender's one is used.")
     parser.add_argument(
         '--codesign',
-        action="store_true"
+        action="store_true",
         help="Code sign and notarize DMG contents.")
     return parser
 
