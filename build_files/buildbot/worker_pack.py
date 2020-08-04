@@ -117,6 +117,8 @@ def pack_mac(builder):
     if info.is_development_build:
         background_image = os.path.join(release_dir, 'buildbot', 'background.tif')
         command += ['--background-image', background_image]
+    if builder.codesign:
+        command += ['--codesign']
     command += [builder.install_dir]
     buildbot_utils.call(command)
 
@@ -150,7 +152,8 @@ def pack_win(builder):
 
         package_filename = package_name + '.msi'
         package_filepath = os.path.join(builder.build_dir, package_filename)
-        sign_file_or_directory(package_filepath)
+        if builder.codesign:
+            sign_file_or_directory(package_filepath)
 
         package_files += [(package_filepath, package_filename)]
 
