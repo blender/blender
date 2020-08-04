@@ -925,14 +925,16 @@ GPUTexture *GPU_texture_create_nD(int w,
                                      &rescaled_pixels);
 
   if (G.debug & G_DEBUG_GPU || !valid) {
-    printf("GPUTexture: create : %s, %s, w : %d, h : %d, d : %d, comp : %d, size : %.2f MiB\n",
-           gl_enum_to_str(tex->target),
-           gl_enum_to_str(internalformat),
-           w,
-           h,
-           d,
-           tex->components,
-           gpu_texture_memory_footprint_compute(tex) / 1048576.0f);
+    printf(
+        "GPUTexture: create : %s,\t w : %5d, h : %5d, d : %5d, comp : %4d, size : %.2f "
+        "MiB,\t %s\n",
+        gl_enum_to_str(tex->target),
+        w,
+        h,
+        d,
+        tex->components,
+        gpu_texture_memory_footprint_compute(tex) / 1048576.0f,
+        gl_enum_to_str(internalformat));
   }
 
   if (!valid) {
@@ -1054,14 +1056,16 @@ GPUTexture *GPU_texture_cube_create(int w,
   }
 
   if (G.debug & G_DEBUG_GPU) {
-    printf("GPUTexture: create : %s, %s, w : %d, h : %d, d : %d, comp : %d, size : %.2f MiB\n",
-           gl_enum_to_str(tex->target),
-           gl_enum_to_str(internalformat),
-           w,
-           w,
-           d,
-           tex->components,
-           gpu_texture_memory_footprint_compute(tex) / 1048576.0f);
+    printf(
+        "GPUTexture: create : %s,\t w : %5d, h : %5d, d : %5d, comp : %4d, size : %.2f "
+        "MiB,\t %s\n",
+        gl_enum_to_str(tex->target),
+        w,
+        w,
+        d * 6,
+        tex->components,
+        gpu_texture_memory_footprint_compute(tex) / 1048576.0f,
+        gl_enum_to_str(internalformat));
   }
 
   gpu_texture_memory_footprint_add(tex);
