@@ -1,3 +1,5 @@
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(irradiance_lib.glsl)
 
 flat in int cellOffset;
 in vec2 quadCoord;
