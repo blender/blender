@@ -251,6 +251,12 @@ static bNodeSocket *best_socket_output(bNodeTree *ntree,
     }
   }
 
+  /* Always allow linking to an reroute node. The socket type of the reroute sockets might change
+   * after the link has been created. */
+  if (node->type == NODE_REROUTE) {
+    return node->outputs.first;
+  }
+
   return NULL;
 }
 
