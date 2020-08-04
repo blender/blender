@@ -2109,7 +2109,7 @@ void ED_operatormacros_uvedit(void)
 
   ot = WM_operatortype_append_macro("UV_OT_rip_move",
                                     "UV Rip Move",
-                                    "unstitch UV's and move the result",
+                                    "Unstitch UV's and move the result",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "UV_OT_rip");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");

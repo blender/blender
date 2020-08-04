@@ -322,6 +322,6 @@ void SCULPT_OT_color_filter(struct wmOperatorType *ot)
       ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter Strength", -10.0f, 10.0f);
 
   PropertyRNA *prop = RNA_def_float_color(
-      ot->srna, "fill_color", 3, NULL, 0.0f, FLT_MAX, "Fill Color", "fill color", 0.0f, 1.0f);
+      ot->srna, "fill_color", 3, NULL, 0.0f, FLT_MAX, "Fill Color", "", 0.0f, 1.0f);
   RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
 }

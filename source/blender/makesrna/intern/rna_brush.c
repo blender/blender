@@ -1525,7 +1525,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
   prop = RNA_def_property(srna, "use_strength_pressure", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_USE_STENGTH_PRESSURE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_USE_STRENGTH_PRESSURE);
   RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
   RNA_def_property_ui_text(
       prop, "Use Pressure Strength", "Use tablet pressure for color strength");
@@ -2289,7 +2289,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Wet Persistence",
-      "Amount of wet paint that stays in the brush after applyig paint to the surface");
+      "Amount of wet paint that stays in the brush after applying paint to the surface");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "density", PROP_FLOAT, PROP_FACTOR);

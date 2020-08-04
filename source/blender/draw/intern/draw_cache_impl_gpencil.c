@@ -272,7 +272,7 @@ static void gpencil_buffer_add_point(gpStrokeVert *verts,
                                      int v,
                                      bool is_endpoint)
 {
-  /* Note: we use the sign of stength and thickness to pass cap flag. */
+  /* Note: we use the sign of strength and thickness to pass cap flag. */
   const bool round_cap0 = (gps->caps[0] == GP_STROKE_CAP_ROUND);
   const bool round_cap1 = (gps->caps[1] == GP_STROKE_CAP_ROUND);
   gpStrokeVert *vert = &verts[v];

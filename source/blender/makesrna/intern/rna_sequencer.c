@@ -872,7 +872,7 @@ static void rna_Sequence_input_set(PointerRNA *ptr,
   Sequence *input = ptr_value.data;
 
   if (BKE_sequencer_render_loop_check(input, seq)) {
-    BKE_report(reports, RPT_ERROR, "Cannot reassign inputs: recursion detected.");
+    BKE_report(reports, RPT_ERROR, "Cannot reassign inputs: recursion detected");
     return;
   }
 

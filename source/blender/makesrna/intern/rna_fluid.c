@@ -2398,7 +2398,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "openvdb_cache_compress_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "openvdb_compression");
   RNA_def_property_enum_items(prop, prop_compression_items);
-  RNA_def_property_ui_text(prop, "Compression", "facession method to be used");
+  RNA_def_property_ui_text(prop, "Compression", "Compression method to be used");
 
   prop = RNA_def_property(srna, "openvdb_data_depth", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "openvdb_data_depth");
