@@ -3576,6 +3576,8 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
       break;
     }
   }
+
+  uiItemR(layout, ptr, "hide_value", DEFAULT_FLAGS, NULL, 0);
 }
 
 void ED_init_standard_node_socket_type(bNodeSocketType *stype)

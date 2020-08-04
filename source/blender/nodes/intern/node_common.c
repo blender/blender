@@ -132,6 +132,9 @@ static bNodeSocket *group_verify_socket(
   if (sock) {
     strcpy(sock->name, iosock->name);
 
+    const int mask = SOCK_HIDE_VALUE;
+    sock->flag = (sock->flag & ~mask) | (iosock->flag & mask);
+
     if (iosock->typeinfo->interface_verify_socket) {
       iosock->typeinfo->interface_verify_socket(ntree, iosock, gnode, sock, "interface");
     }
