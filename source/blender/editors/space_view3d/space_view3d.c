@@ -260,7 +260,7 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *area)
 
 /* ******************** default callbacks for view3d space ***************** */
 
-static SpaceLink *view3d_new(const ScrArea *UNUSED(area), const Scene *scene)
+static SpaceLink *view3d_create(const ScrArea *UNUSED(area), const Scene *scene)
 {
   ARegion *region;
   View3D *v3d;
@@ -1611,7 +1611,7 @@ void ED_spacetype_view3d(void)
   st->spaceid = SPACE_VIEW3D;
   strncpy(st->name, "View3D", BKE_ST_MAXNAME);
 
-  st->new = view3d_new;
+  st->create = view3d_create;
   st->free = view3d_free;
   st->init = view3d_init;
   st->listener = space_view3d_listener;

@@ -244,7 +244,7 @@ void snode_group_offset(SpaceNode *snode, float *x, float *y)
 
 /* ******************** default callbacks for node space ***************** */
 
-static SpaceLink *node_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
   ARegion *region;
   SpaceNode *snode;
@@ -954,7 +954,7 @@ void ED_spacetype_node(void)
   st->spaceid = SPACE_NODE;
   strncpy(st->name, "Node", BKE_ST_MAXNAME);
 
-  st->new = node_new;
+  st->create = node_create;
   st->free = node_free;
   st->init = node_init;
   st->duplicate = node_duplicate;

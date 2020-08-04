@@ -294,7 +294,7 @@ static void outliner_header_region_listener(wmWindow *UNUSED(win),
 
 /* ******************** default callbacks for outliner space ***************** */
 
-static SpaceLink *outliner_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *outliner_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
   ARegion *region;
   SpaceOutliner *soutliner;
@@ -407,7 +407,7 @@ void ED_spacetype_outliner(void)
   st->spaceid = SPACE_OUTLINER;
   strncpy(st->name, "Outliner", BKE_ST_MAXNAME);
 
-  st->new = outliner_new;
+  st->create = outliner_create;
   st->free = outliner_free;
   st->init = outliner_init;
   st->duplicate = outliner_duplicate;

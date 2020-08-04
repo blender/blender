@@ -91,7 +91,7 @@ static ARegion *file_tool_props_region_ensure(ScrArea *area, ARegion *region_pre
 
 /* ******************** default callbacks for file space ***************** */
 
-static SpaceLink *file_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *file_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
   ARegion *region;
   SpaceFile *sfile;
@@ -693,7 +693,7 @@ void ED_spacetype_file(void)
   st->spaceid = SPACE_FILE;
   strncpy(st->name, "File", BKE_ST_MAXNAME);
 
-  st->new = file_new;
+  st->create = file_create;
   st->free = file_free;
   st->init = file_init;
   st->exit = file_exit;

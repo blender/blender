@@ -237,7 +237,7 @@ static void clip_area_sync_frame_from_scene(ScrArea *area, Scene *scene)
 
 /* ******************** default callbacks for clip space ***************** */
 
-static SpaceLink *clip_new(const ScrArea *area, const Scene *scene)
+static SpaceLink *clip_create(const ScrArea *area, const Scene *scene)
 {
   ARegion *region;
   SpaceClip *sc;
@@ -1351,7 +1351,7 @@ void ED_spacetype_clip(void)
   st->spaceid = SPACE_CLIP;
   strncpy(st->name, "Clip", BKE_ST_MAXNAME);
 
-  st->new = clip_new;
+  st->create = clip_create;
   st->free = clip_free;
   st->init = clip_init;
   st->duplicate = clip_duplicate;

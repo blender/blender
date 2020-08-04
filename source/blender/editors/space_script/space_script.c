@@ -51,7 +51,7 @@
 
 /* ******************** default callbacks for script space ***************** */
 
-static SpaceLink *script_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *script_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
   ARegion *region;
   SpaceScript *sscript;
@@ -179,7 +179,7 @@ void ED_spacetype_script(void)
   st->spaceid = SPACE_SCRIPT;
   strncpy(st->name, "Script", BKE_ST_MAXNAME);
 
-  st->new = script_new;
+  st->create = script_create;
   st->free = script_free;
   st->init = script_init;
   st->duplicate = script_duplicate;

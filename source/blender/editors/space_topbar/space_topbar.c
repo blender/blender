@@ -52,7 +52,7 @@
 
 /* ******************** default callbacks for topbar space ***************** */
 
-static SpaceLink *topbar_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *topbar_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
   ARegion *region;
   SpaceTopBar *stopbar;
@@ -250,7 +250,7 @@ void ED_spacetype_topbar(void)
   st->spaceid = SPACE_TOPBAR;
   strncpy(st->name, "Top Bar", BKE_ST_MAXNAME);
 
-  st->new = topbar_new;
+  st->create = topbar_create;
   st->free = topbar_free;
   st->init = topbar_init;
   st->duplicate = topbar_duplicate;

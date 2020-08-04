@@ -117,7 +117,7 @@ static void image_user_refresh_scene(const bContext *C, SpaceImage *sima)
 
 /* ******************** default callbacks for image space ***************** */
 
-static SpaceLink *image_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *image_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
   ARegion *region;
   SpaceImage *simage;
@@ -1093,7 +1093,7 @@ void ED_spacetype_image(void)
   st->spaceid = SPACE_IMAGE;
   strncpy(st->name, "Image", BKE_ST_MAXNAME);
 
-  st->new = image_new;
+  st->create = image_create;
   st->free = image_free;
   st->init = image_init;
   st->duplicate = image_duplicate;

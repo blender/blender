@@ -73,7 +73,7 @@ typedef struct SpaceType {
 
   /* Initial allocation, after this WM will call init() too. Some editors need
    * area and scene data (e.g. frame range) to set their initial scrolling. */
-  struct SpaceLink *(*new)(const struct ScrArea *area, const struct Scene *scene);
+  struct SpaceLink *(*create)(const struct ScrArea *area, const struct Scene *scene);
   /* not free spacelink itself */
   void (*free)(struct SpaceLink *sl);
 

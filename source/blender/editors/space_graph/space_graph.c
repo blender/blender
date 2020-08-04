@@ -64,7 +64,7 @@
 
 /* ******************** default callbacks for ipo space ***************** */
 
-static SpaceLink *graph_new(const ScrArea *UNUSED(area), const Scene *scene)
+static SpaceLink *graph_create(const ScrArea *UNUSED(area), const Scene *scene)
 {
   ARegion *region;
   SpaceGraph *sipo;
@@ -838,7 +838,7 @@ void ED_spacetype_ipo(void)
   st->spaceid = SPACE_GRAPH;
   strncpy(st->name, "Graph", BKE_ST_MAXNAME);
 
-  st->new = graph_new;
+  st->create = graph_create;
   st->free = graph_free;
   st->init = graph_init;
   st->duplicate = graph_duplicate;

@@ -48,11 +48,8 @@
 #include "BKE_idtype.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
-#include "BKE_workspace.h"
-
-#define new new_
 #include "BKE_screen.h"
-#undef new
+#include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_debug.h"

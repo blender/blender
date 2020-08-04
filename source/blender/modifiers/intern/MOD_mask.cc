@@ -44,12 +44,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
-
-/* SpaceType struct has a member called 'new' which obviously conflicts with C++
- * so temporarily redefining the new keyword to make it compile. */
-#define new extern_new
 #include "BKE_screen.h"
-#undef new
 
 #include "UI_interface.h"
 #include "UI_resources.h"

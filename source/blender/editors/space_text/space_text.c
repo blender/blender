@@ -53,7 +53,7 @@
 
 /* ******************** default callbacks for text space ***************** */
 
-static SpaceLink *text_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *text_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
   ARegion *region;
   SpaceText *stext;
@@ -445,7 +445,7 @@ void ED_spacetype_text(void)
   st->spaceid = SPACE_TEXT;
   strncpy(st->name, "Text", BKE_ST_MAXNAME);
 
-  st->new = text_new;
+  st->create = text_create;
   st->free = text_free;
   st->init = text_init;
   st->duplicate = text_duplicate;

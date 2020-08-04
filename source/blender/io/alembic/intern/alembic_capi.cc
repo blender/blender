@@ -48,17 +48,12 @@
 #include "BKE_lib_id.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "ED_undo.h"
-
-/* SpaceType struct has a member called 'new' which obviously conflicts with C++
- * so temporarily redefining the new keyword to make it compile. */
-#define new extern_new
-#include "BKE_screen.h"
-#undef new
 
 #include "BLI_compiler_compat.h"
 #include "BLI_fileops.h"

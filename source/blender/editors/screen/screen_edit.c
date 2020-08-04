@@ -897,7 +897,7 @@ static void screen_global_area_refresh(wmWindow *win,
   else {
     area = screen_area_create_with_geometry(&win->global_areas, rect, space_type);
     SpaceType *stype = BKE_spacetype_from_id(space_type);
-    SpaceLink *slink = stype->new (area, WM_window_get_active_scene(win));
+    SpaceLink *slink = stype->create(area, WM_window_get_active_scene(win));
 
     area->regionbase = slink->regionbase;
 

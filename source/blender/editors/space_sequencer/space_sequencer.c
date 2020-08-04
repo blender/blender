@@ -86,7 +86,7 @@ static ARegion *sequencer_find_region(ScrArea *area, short type)
 
 /* ******************** default callbacks for sequencer space ***************** */
 
-static SpaceLink *sequencer_new(const ScrArea *UNUSED(area), const Scene *scene)
+static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *scene)
 {
   ARegion *region;
   SpaceSeq *sseq;
@@ -852,7 +852,7 @@ void ED_spacetype_sequencer(void)
   st->spaceid = SPACE_SEQ;
   strncpy(st->name, "Sequencer", BKE_ST_MAXNAME);
 
-  st->new = sequencer_new;
+  st->create = sequencer_create;
   st->free = sequencer_free;
   st->init = sequencer_init;
   st->duplicate = sequencer_duplicate;

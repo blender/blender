@@ -42,7 +42,7 @@
 
 /* ******************** default callbacks for statusbar space ********************  */
 
-static SpaceLink *statusbar_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *statusbar_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
   ARegion *region;
   SpaceStatusBar *sstatusbar;
@@ -158,7 +158,7 @@ void ED_spacetype_statusbar(void)
   st->spaceid = SPACE_STATUSBAR;
   strncpy(st->name, "Status Bar", BKE_ST_MAXNAME);
 
-  st->new = statusbar_new;
+  st->create = statusbar_create;
   st->free = statusbar_free;
   st->init = statusbar_init;
   st->duplicate = statusbar_duplicate;

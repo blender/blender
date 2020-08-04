@@ -53,7 +53,7 @@
 
 /* ******************** default callbacks for info space ***************** */
 
-static SpaceLink *info_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *info_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
   ARegion *region;
   SpaceInfo *sinfo;
@@ -287,7 +287,7 @@ void ED_spacetype_info(void)
   st->spaceid = SPACE_INFO;
   strncpy(st->name, "Info", BKE_ST_MAXNAME);
 
-  st->new = info_new;
+  st->create = info_create;
   st->free = info_free;
   st->init = info_init;
   st->duplicate = info_duplicate;

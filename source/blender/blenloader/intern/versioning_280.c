@@ -190,7 +190,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 static void do_version_area_change_space_to_space_action(ScrArea *area, const Scene *scene)
 {
   SpaceType *stype = BKE_spacetype_from_id(SPACE_ACTION);
-  SpaceAction *saction = (SpaceAction *)stype->new (area, scene);
+  SpaceAction *saction = (SpaceAction *)stype->create(area, scene);
   ARegion *region_channels;
 
   /* Properly free current regions */

@@ -45,7 +45,7 @@
 
 /* ******************** default callbacks for userpref space ***************** */
 
-static SpaceLink *userpref_new(const ScrArea *area, const Scene *UNUSED(scene))
+static SpaceLink *userpref_create(const ScrArea *area, const Scene *UNUSED(scene))
 {
   ARegion *region;
   SpaceUserPref *spref;
@@ -235,7 +235,7 @@ void ED_spacetype_userpref(void)
   st->spaceid = SPACE_USERPREF;
   strncpy(st->name, "Userpref", BKE_ST_MAXNAME);
 
-  st->new = userpref_new;
+  st->create = userpref_create;
   st->free = userpref_free;
   st->init = userpref_init;
   st->duplicate = userpref_duplicate;

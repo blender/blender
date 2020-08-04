@@ -54,7 +54,7 @@
 
 /* ******************** default callbacks for buttons space ***************** */
 
-static SpaceLink *buttons_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *buttons_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
   ARegion *region;
   SpaceProperties *sbuts;
@@ -699,7 +699,7 @@ void ED_spacetype_buttons(void)
   st->spaceid = SPACE_PROPERTIES;
   strncpy(st->name, "Buttons", BKE_ST_MAXNAME);
 
-  st->new = buttons_new;
+  st->create = buttons_create;
   st->free = buttons_free;
   st->init = buttons_init;
   st->duplicate = buttons_duplicate;

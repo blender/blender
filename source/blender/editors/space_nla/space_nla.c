@@ -57,7 +57,7 @@
 
 /* ******************** default callbacks for nla space ***************** */
 
-static SpaceLink *nla_new(const ScrArea *area, const Scene *scene)
+static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
 {
   ARegion *region;
   SpaceNla *snla;
@@ -608,7 +608,7 @@ void ED_spacetype_nla(void)
   st->spaceid = SPACE_NLA;
   strncpy(st->name, "NLA", BKE_ST_MAXNAME);
 
-  st->new = nla_new;
+  st->create = nla_create;
   st->free = nla_free;
   st->init = nla_init;
   st->duplicate = nla_duplicate;
