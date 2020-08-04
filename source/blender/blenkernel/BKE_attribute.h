@@ -64,6 +64,7 @@ void BKE_id_attribute_remove(struct ID *id,
 
 AttributeDomain BKE_id_attribute_domain(struct ID *id, struct CustomDataLayer *layer);
 int BKE_id_attribute_data_length(struct ID *id, struct CustomDataLayer *layer);
+bool BKE_id_attribute_required(struct ID *id, struct CustomDataLayer *layer);
 bool BKE_id_attribute_rename(struct ID *id,
                              struct CustomDataLayer *layer,
                              const char *new_name,

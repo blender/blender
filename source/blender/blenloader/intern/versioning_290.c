@@ -31,8 +31,10 @@
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_hair_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_shader_fx_types.h"
@@ -248,6 +250,25 @@ static void panels_remove_x_closed_flag_recursive(Panel *panel)
 
   LISTBASE_FOREACH (Panel *, child_panel, &panel->children) {
     panels_remove_x_closed_flag_recursive(child_panel);
+  }
+}
+
+static void do_versions_point_attributes(CustomData *pdata)
+{
+  /* Change to generic named float/float3 attributes. */
+  const int CD_LOCATION = 43;
+  const int CD_RADIUS = 44;
+
+  for (int i = 0; i < pdata->totlayer; i++) {
+    CustomDataLayer *layer = &pdata->layers[i];
+    if (layer->type == CD_LOCATION) {
+      STRNCPY(layer->name, "Position");
+      layer->type = CD_PROP_FLOAT3;
+    }
+    else if (layer->type == CD_RADIUS) {
+      STRNCPY(layer->name, "Radius");
+      layer->type = CD_PROP_FLOAT;
+    }
   }
 }
 
@@ -553,6 +574,15 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         ToolSettings *ts = scene->toolsettings;
         ts->gp_interpolate.step = 1;
       }
+    }
+
+    /* Hair and PointCloud attributes. */
+    for (Hair *hair = bmain->hairs.first; hair != NULL; hair = hair->id.next) {
+      do_versions_point_attributes(&hair->pdata);
+    }
+    for (PointCloud *pointcloud = bmain->pointclouds.first; pointcloud != NULL;
+         pointcloud = pointcloud->id.next) {
+      do_versions_point_attributes(&pointcloud->pdata);
     }
 
     /* Keep this block, even when empty. */

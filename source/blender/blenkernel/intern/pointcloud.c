@@ -51,6 +51,9 @@
 
 static void pointcloud_random(PointCloud *pointcloud);
 
+const char *POINTCLOUD_ATTR_POSITION = "Position";
+const char *POINTCLOUD_ATTR_RADIUS = "Radius";
+
 static void pointcloud_init_data(ID *id)
 {
   PointCloud *pointcloud = (PointCloud *)id;
@@ -59,8 +62,18 @@ static void pointcloud_init_data(ID *id)
   MEMCPY_STRUCT_AFTER(pointcloud, DNA_struct_default_get(PointCloud), id);
 
   CustomData_reset(&pointcloud->pdata);
-  CustomData_add_layer(&pointcloud->pdata, CD_LOCATION, CD_CALLOC, NULL, pointcloud->totpoint);
-  CustomData_add_layer(&pointcloud->pdata, CD_RADIUS, CD_CALLOC, NULL, pointcloud->totpoint);
+  CustomData_add_layer_named(&pointcloud->pdata,
+                             CD_PROP_FLOAT3,
+                             CD_CALLOC,
+                             NULL,
+                             pointcloud->totpoint,
+                             POINTCLOUD_ATTR_POSITION);
+  CustomData_add_layer_named(&pointcloud->pdata,
+                             CD_PROP_FLOAT,
+                             CD_CALLOC,
+                             NULL,
+                             pointcloud->totpoint,
+                             POINTCLOUD_ATTR_RADIUS);
   BKE_pointcloud_update_customdata_pointers(pointcloud);
 
   pointcloud_random(pointcloud);
@@ -189,8 +202,15 @@ BoundBox *BKE_pointcloud_boundbox_get(Object *ob)
 
 void BKE_pointcloud_update_customdata_pointers(PointCloud *pointcloud)
 {
-  pointcloud->co = CustomData_get_layer(&pointcloud->pdata, CD_LOCATION);
-  pointcloud->radius = CustomData_get_layer(&pointcloud->pdata, CD_RADIUS);
+  pointcloud->co = CustomData_get_layer_named(
+      &pointcloud->pdata, CD_PROP_FLOAT3, POINTCLOUD_ATTR_POSITION);
+  pointcloud->radius = CustomData_get_layer_named(
+      &pointcloud->pdata, CD_PROP_FLOAT, POINTCLOUD_ATTR_RADIUS);
+}
+
+bool BKE_pointcloud_customdata_required(PointCloud *UNUSED(pointcloud), CustomDataLayer *layer)
+{
+  return layer->type == CD_PROP_FLOAT3 && STREQ(layer->name, POINTCLOUD_ATTR_POSITION);
 }
 
 /* Dependency Graph */
@@ -259,7 +279,8 @@ static PointCloud *pointcloud_evaluate_modifiers(struct Depsgraph *depsgraph,
       }
 
       /* Ensure we are not overwriting referenced data. */
-      CustomData_duplicate_referenced_layer(&pointcloud->pdata, CD_LOCATION, pointcloud->totpoint);
+      CustomData_duplicate_referenced_layer_named(
+          &pointcloud->pdata, CD_PROP_FLOAT3, POINTCLOUD_ATTR_POSITION, pointcloud->totpoint);
       BKE_pointcloud_update_customdata_pointers(pointcloud);
 
       /* Created deformed coordinates array on demand. */

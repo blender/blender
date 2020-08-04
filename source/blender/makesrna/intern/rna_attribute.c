@@ -67,6 +67,8 @@ static const EnumPropertyItem rna_enum_attribute_domain_items[] = {
 
 #  include "DEG_depsgraph.h"
 
+#  include "BLT_translation.h"
+
 #  include "WM_api.h"
 
 /* Attribute */
@@ -80,6 +82,17 @@ static char *rna_Attribute_path(PointerRNA *ptr)
 static void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
 {
   BKE_id_attribute_rename(ptr->owner_id, ptr->data, value, NULL);
+}
+
+static int rna_Attribute_name_editable(PointerRNA *ptr, const char **r_info)
+{
+  CustomDataLayer *layer = ptr->data;
+  if (BKE_id_attribute_required(ptr->owner_id, layer)) {
+    *r_info = N_("Can't modify name of required geometry attribute");
+    return false;
+  }
+
+  return true;
 }
 
 static int rna_Attribute_type_get(PointerRNA *ptr)
@@ -551,6 +564,7 @@ static void rna_def_attribute(BlenderRNA *brna)
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Attribute_name_set");
+  RNA_def_property_editable_func(prop, "rna_Attribute_name_editable");
   RNA_def_property_ui_text(prop, "Name", "Name of the Attribute");
   RNA_def_struct_name_property(srna, prop);
 

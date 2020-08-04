@@ -47,6 +47,9 @@
 
 #include "DEG_depsgraph_query.h"
 
+const char *HAIR_ATTR_POSITION = "Position";
+const char *HAIR_ATTR_RADIUS = "Radius";
+
 /* Hair datablock */
 
 static void hair_random(Hair *hair);
@@ -61,8 +64,10 @@ static void hair_init_data(ID *id)
   CustomData_reset(&hair->pdata);
   CustomData_reset(&hair->cdata);
 
-  CustomData_add_layer(&hair->pdata, CD_LOCATION, CD_CALLOC, NULL, hair->totpoint);
-  CustomData_add_layer(&hair->pdata, CD_RADIUS, CD_CALLOC, NULL, hair->totpoint);
+  CustomData_add_layer_named(
+      &hair->pdata, CD_PROP_FLOAT3, CD_CALLOC, NULL, hair->totpoint, HAIR_ATTR_POSITION);
+  CustomData_add_layer_named(
+      &hair->pdata, CD_PROP_FLOAT, CD_CALLOC, NULL, hair->totpoint, HAIR_ATTR_RADIUS);
   CustomData_add_layer(&hair->cdata, CD_HAIRCURVE, CD_CALLOC, NULL, hair->totcurve);
   BKE_hair_update_customdata_pointers(hair);
 
@@ -222,10 +227,15 @@ BoundBox *BKE_hair_boundbox_get(Object *ob)
 
 void BKE_hair_update_customdata_pointers(Hair *hair)
 {
-  hair->co = CustomData_get_layer(&hair->pdata, CD_LOCATION);
-  hair->radius = CustomData_get_layer(&hair->pdata, CD_RADIUS);
+  hair->co = CustomData_get_layer_named(&hair->pdata, CD_PROP_FLOAT3, HAIR_ATTR_POSITION);
+  hair->radius = CustomData_get_layer_named(&hair->pdata, CD_PROP_FLOAT, HAIR_ATTR_RADIUS);
   hair->curves = CustomData_get_layer(&hair->cdata, CD_HAIRCURVE);
   hair->mapping = CustomData_get_layer(&hair->cdata, CD_HAIRMAPPING);
+}
+
+bool BKE_hair_customdata_required(Hair *UNUSED(hair), CustomDataLayer *layer)
+{
+  return layer->type == CD_PROP_FLOAT3 && STREQ(layer->name, HAIR_ATTR_POSITION);
 }
 
 /* Dependency Graph */
@@ -294,7 +304,8 @@ static Hair *hair_evaluate_modifiers(struct Depsgraph *depsgraph,
       }
 
       /* Ensure we are not overwriting referenced data. */
-      CustomData_duplicate_referenced_layer(&hair->pdata, CD_LOCATION, hair->totpoint);
+      CustomData_duplicate_referenced_layer_named(
+          &hair->pdata, CD_PROP_FLOAT3, HAIR_ATTR_POSITION, hair->totpoint);
       BKE_hair_update_customdata_pointers(hair);
 
       /* Created deformed coordinates array on demand. */

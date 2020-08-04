@@ -39,6 +39,8 @@
 
 #include "BKE_attribute.h"
 #include "BKE_customdata.h"
+#include "BKE_hair.h"
+#include "BKE_pointcloud.h"
 #include "BKE_report.h"
 
 #include "RNA_access.h"
@@ -104,6 +106,11 @@ bool BKE_id_attribute_rename(ID *id,
                              const char *new_name,
                              ReportList *reports)
 {
+  if (BKE_id_attribute_required(id, layer)) {
+    BLI_assert(!"Required attribute name is not editable");
+    return false;
+  }
+
   CustomData *customdata = attribute_customdata_find(id, layer);
   if (customdata == NULL) {
     BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
@@ -141,6 +148,11 @@ void BKE_id_attribute_remove(ID *id, CustomDataLayer *layer, ReportList *reports
 
   if (index == -1) {
     BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
+    return;
+  }
+
+  if (BKE_id_attribute_required(id, layer)) {
+    BKE_report(reports, RPT_ERROR, "Attribute is required and can't be removed");
     return;
   }
 
@@ -195,6 +207,20 @@ int BKE_id_attribute_data_length(ID *id, CustomDataLayer *layer)
 
   BLI_assert(!"Custom data layer not found in geometry");
   return 0;
+}
+
+bool BKE_id_attribute_required(ID *id, CustomDataLayer *layer)
+{
+  switch (GS(id->name)) {
+    case ID_PT: {
+      return BKE_pointcloud_customdata_required((PointCloud *)id, layer);
+    }
+    case ID_HA: {
+      return BKE_hair_customdata_required((Hair *)id, layer);
+    }
+    default:
+      return false;
+  }
 }
 
 CustomDataLayer *BKE_id_attributes_active_get(ID *id)

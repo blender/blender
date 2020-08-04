@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 struct BoundBox;
+struct CustomDataLayer;
 struct Depsgraph;
 struct Main;
 struct Object;
@@ -37,6 +38,8 @@ struct PointCloud *BKE_pointcloud_copy(struct Main *bmain, const struct PointClo
 struct BoundBox *BKE_pointcloud_boundbox_get(struct Object *ob);
 
 void BKE_pointcloud_update_customdata_pointers(struct PointCloud *pointcloud);
+bool BKE_pointcloud_customdata_required(struct PointCloud *pointcloud,
+                                        struct CustomDataLayer *layer);
 
 /* Dependency Graph */
 
