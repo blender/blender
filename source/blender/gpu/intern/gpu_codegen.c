@@ -478,7 +478,7 @@ static void codegen_call_functions(DynStr *ds, GPUNodeGraph *graph, GPUOutput *f
         BLI_dynstr_appendf(ds, "cons%d", input->id);
       }
       else if (input->source == GPU_SOURCE_ATTR) {
-        BLI_dynstr_appendf(ds, "var%d", input->attr->id);
+        codegen_convert_datatype(ds, input->attr->gputype, input->type, "var", input->attr->id);
       }
 
       BLI_dynstr_append(ds, ", ");

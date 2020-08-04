@@ -25,6 +25,7 @@ static bNodeSocketTemplate sh_node_attribute_out[] = {
     {SOCK_RGBA, N_("Color")},
     {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_FLOAT, N_("Fac"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_FACTOR},
+    {SOCK_FLOAT, N_("Alpha"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_FACTOR},
     {-1, ""},
 };
 
@@ -51,6 +52,10 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
     }
     if (out[2].hasoutput) {
       out[2].link = GPU_volume_grid(mat, attr->name, GPU_VOLUME_DEFAULT_0);
+    }
+    if (out[3].hasoutput) {
+      static const float default_alpha = 1.0f;
+      out[3].link = GPU_constant(&default_alpha);
     }
 
     return 1;
