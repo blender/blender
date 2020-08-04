@@ -180,7 +180,6 @@ static void rna_def_cachefile(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Velocity Attribute",
                            "Name of the Alembic attribute used for generating motion blur data");
-  RNA_def_struct_name_property(srna, prop);
   RNA_def_property_update(prop, 0, "rna_CacheFile_update");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
