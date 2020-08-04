@@ -61,6 +61,10 @@ static bool drw_texture_format_supports_framebuffer(eGPUTextureFormat format)
 
 void drw_texture_set_parameters(GPUTexture *tex, DRWTextureFlag flags)
 {
+  if (tex == NULL) {
+    return;
+  }
+
   if (flags & DRW_TEX_MIPMAP) {
     GPU_texture_mipmap_mode(tex, true, flags & DRW_TEX_FILTER);
     GPU_texture_bind(tex, 0);
@@ -119,7 +123,6 @@ GPUTexture *DRW_texture_create_cube(int w,
 {
   GPUTexture *tex = GPU_texture_create_cube(w, format, fpixels, NULL);
   drw_texture_set_parameters(tex, flags);
-
   return tex;
 }
 
@@ -128,7 +131,6 @@ GPUTexture *DRW_texture_create_cube_array(
 {
   GPUTexture *tex = GPU_texture_create_cube_array(w, d, format, fpixels, NULL);
   drw_texture_set_parameters(tex, flags);
-
   return tex;
 }
 

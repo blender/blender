@@ -6048,6 +6048,7 @@ static void direct_link_lightcache_texture(BlendDataReader *reader, LightCacheTe
 
 static void direct_link_lightcache(BlendDataReader *reader, LightCache *cache)
 {
+  cache->flag &= ~LIGHTCACHE_NOT_USABLE;
   direct_link_lightcache_texture(reader, &cache->cube_tx);
   direct_link_lightcache_texture(reader, &cache->grid_tx);
 

@@ -945,6 +945,11 @@ static int light_cache_bake_modal(bContext *C, wmOperator *op, const wmEvent *ev
 
   /* no running blender, remove handler and pass through */
   if (0 == WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER)) {
+    LightCache *lcache = scene->eevee.light_cache_data;
+    if (lcache && (lcache->flag & LIGHTCACHE_INVALID)) {
+      BKE_report(op->reports, RPT_ERROR, "Lightcache cannot allocate resources");
+      return OPERATOR_CANCELLED;
+    }
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
 
