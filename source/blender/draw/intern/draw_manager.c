@@ -2716,7 +2716,7 @@ void DRW_engines_free(void)
 void DRW_render_context_enable(Render *render)
 {
   if (G.background && DST.gl_context == NULL) {
-    WM_init_opengl(G_MAIN);
+    WM_init_opengl();
   }
 
   void *re_gl_context = RE_gl_context_get(render);
@@ -2835,7 +2835,7 @@ void DRW_opengl_context_disable_ex(bool restore)
 void DRW_opengl_context_enable(void)
 {
   if (G.background && DST.gl_context == NULL) {
-    WM_init_opengl(G_MAIN);
+    WM_init_opengl();
   }
   DRW_opengl_context_enable_ex(true);
 }

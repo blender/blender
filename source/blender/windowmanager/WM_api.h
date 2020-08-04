@@ -99,7 +99,7 @@ void WM_main(struct bContext *C) ATTR_NORETURN;
 
 void WM_init_splash(struct bContext *C);
 
-void WM_init_opengl(struct Main *bmain);
+void WM_init_opengl(void);
 
 void WM_check(struct bContext *C);
 void WM_reinit_gizmomap_all(struct Main *bmain);
