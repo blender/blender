@@ -2461,7 +2461,9 @@ void outliner_build_tree(
         te_object->directdata = base;
       }
 
-      outliner_make_object_parent_hierarchy(&soops->tree);
+      if ((soops->filter & SO_FILTER_NO_CHILDREN) == 0) {
+        outliner_make_object_parent_hierarchy(&soops->tree);
+      }
     }
     else {
       /* Show collections in the view layer. */
