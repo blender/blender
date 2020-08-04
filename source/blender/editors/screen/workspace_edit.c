@@ -88,22 +88,15 @@ static void workspace_change_update(WorkSpace *workspace_new,
 #endif
 }
 
-static bool workspace_change_find_new_layout_cb(const WorkSpaceLayout *layout, void *UNUSED(arg))
-{
-  /* return false to stop the iterator if we've found a layout that can be activated */
-  return workspace_layout_set_poll(layout) ? false : true;
-}
-
 static WorkSpaceLayout *workspace_change_get_new_layout(Main *bmain,
                                                         WorkSpace *workspace_new,
                                                         wmWindow *win)
 {
-  /* ED_workspace_duplicate may have stored a layout to activate
-   * once the workspace gets activated. */
   WorkSpaceLayout *layout_old = WM_window_get_active_layout(win);
   WorkSpaceLayout *layout_new;
-  bScreen *screen_new;
 
+  /* ED_workspace_duplicate may have stored a layout to activate
+   * once the workspace gets activated. */
   if (win->workspace_hook->temp_workspace_store) {
     layout_new = win->workspace_hook->temp_layout_store;
   }
@@ -113,20 +106,9 @@ static WorkSpaceLayout *workspace_change_get_new_layout(Main *bmain,
       layout_new = workspace_new->layouts.first;
     }
   }
-  screen_new = BKE_workspace_layout_screen_get(layout_new);
 
-  if (screen_new->winid) {
-    /* screen is already used, try to find a free one */
-    WorkSpaceLayout *layout_temp = BKE_workspace_layout_iter_circular(
-        workspace_new, layout_new, workspace_change_find_new_layout_cb, NULL, false);
-    if (!layout_temp) {
-      /* fallback solution: duplicate layout from old workspace */
-      layout_temp = ED_workspace_layout_duplicate(bmain, workspace_new, layout_old, win);
-    }
-    layout_new = layout_temp;
-  }
-
-  return layout_new;
+  return ED_workspace_screen_change_ensure_unused_layout(
+      bmain, workspace_new, layout_new, layout_old, win);
 }
 
 /**
@@ -153,10 +135,7 @@ bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager 
     return false;
   }
 
-  screen_new = screen_change_prepare(screen_old, screen_new, bmain, C, win);
-  if (BKE_workspace_layout_screen_get(layout_new) != screen_new) {
-    layout_new = BKE_workspace_layout_find(workspace_new, screen_new);
-  }
+  screen_change_prepare(screen_old, screen_new, bmain, C, win);
 
   if (screen_new == NULL) {
     return false;

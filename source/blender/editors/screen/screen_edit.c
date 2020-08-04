@@ -985,39 +985,14 @@ void ED_screen_global_areas_refresh(wmWindow *win)
 /* -------------------------------------------------------------------- */
 /* Screen changing */
 
-static bScreen *screen_fullscreen_find_associated_normal_screen(const Main *bmain, bScreen *screen)
-{
-  for (bScreen *screen_iter = bmain->screens.first; screen_iter;
-       screen_iter = screen_iter->id.next) {
-    if ((screen_iter != screen) && ELEM(screen_iter->state, SCREENMAXIMIZED, SCREENFULL)) {
-      ScrArea *area = screen_iter->areabase.first;
-      if (area && area->full == screen) {
-        return screen_iter;
-      }
-    }
-  }
-
-  return screen;
-}
-
 /**
  * \return the screen to activate.
  * \warning The returned screen may not always equal \a screen_new!
  */
-bScreen *screen_change_prepare(
+void screen_change_prepare(
     bScreen *screen_old, bScreen *screen_new, Main *bmain, bContext *C, wmWindow *win)
 {
-  /* validate screen, it's called with notifier reference */
-  if (BLI_findindex(&bmain->screens, screen_new) == -1) {
-    return NULL;
-  }
-
-  screen_new = screen_fullscreen_find_associated_normal_screen(bmain, screen_new);
-
-  /* check for valid winid */
-  if (!(screen_new->winid == 0 || screen_new->winid == win->winid)) {
-    return NULL;
-  }
+  BLI_assert(BLI_findindex(&bmain->screens, screen_new) != -1);
 
   if (screen_old != screen_new) {
     wmTimer *wt = screen_old->animtimer;
@@ -1038,11 +1013,7 @@ bScreen *screen_change_prepare(
     if (wt) {
       screen_new->animtimer = wt;
     }
-
-    return screen_new;
   }
-
-  return NULL;
 }
 
 void screen_change_update(bContext *C, wmWindow *win, bScreen *screen)
@@ -1075,12 +1046,20 @@ bool ED_screen_change(bContext *C, bScreen *screen)
 {
   Main *bmain = CTX_data_main(C);
   wmWindow *win = CTX_wm_window(C);
+  WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
+  WorkSpaceLayout *layout = BKE_workspace_layout_find(workspace, screen);
   bScreen *screen_old = CTX_wm_screen(C);
-  bScreen *screen_new = screen_change_prepare(screen_old, screen, bmain, C, win);
 
-  if (screen_new) {
-    WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
-    WM_window_set_active_screen(win, workspace, screen);
+  /* Get the actual layout/screen to be activated (guaranteed to be unused, even if that means
+   * having to duplicate an existing one). */
+  WorkSpaceLayout *layout_new = ED_workspace_screen_change_ensure_unused_layout(
+      bmain, workspace, layout, layout, win);
+  bScreen *screen_new = BKE_workspace_layout_screen_get(layout_new);
+
+  screen_change_prepare(screen_old, screen_new, bmain, C, win);
+
+  if (screen_old != screen_new) {
+    WM_window_set_active_screen(win, workspace, screen_new);
     screen_change_update(C, win, screen_new);
 
     return true;
