@@ -923,7 +923,8 @@ static void create_subd_mesh(Scene *scene,
 
 /* Sync */
 
-static BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b_ob, BL::Scene b_scene)
+static BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b_ob,
+                                                            BL::Scene /*b_scene*/)
 {
   BL::Object::modifiers_iterator b_mod;
 
