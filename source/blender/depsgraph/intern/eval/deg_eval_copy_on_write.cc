@@ -288,6 +288,14 @@ bool id_copy_inplace_no_main(const ID *id, ID *newid)
 {
   const ID *id_for_copy = id;
 
+  if (G.debug & G_DEBUG_DEPSGRAPH_UUID) {
+    const ID_Type id_type = GS(id_for_copy->name);
+    if (id_type == ID_OB) {
+      const Object *object = reinterpret_cast<const Object *>(id_for_copy);
+      BKE_pose_check_uuids_unique_and_report(object->pose);
+    }
+  }
+
 #ifdef NESTED_ID_NASTY_WORKAROUND
   NestedIDHackTempStorage id_hack_storage;
   id_for_copy = nested_id_hack_get_discarded_pointers(&id_hack_storage, id);

@@ -477,6 +477,24 @@ ccl_device_inline float4 safe_divide_float4_float(const float4 a, const float b)
   return (b != 0.0f) ? a / b : make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
+ccl_device_inline bool isfinite4_safe(float4 v)
+{
+  return isfinite_safe(v.x) && isfinite_safe(v.y) && isfinite_safe(v.z) && isfinite_safe(v.w);
+}
+
+ccl_device_inline float4 ensure_finite4(float4 v)
+{
+  if (!isfinite_safe(v.x))
+    v.x = 0.0f;
+  if (!isfinite_safe(v.y))
+    v.y = 0.0f;
+  if (!isfinite_safe(v.z))
+    v.z = 0.0f;
+  if (!isfinite_safe(v.w))
+    v.w = 0.0f;
+  return v;
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_MATH_FLOAT4_H__ */

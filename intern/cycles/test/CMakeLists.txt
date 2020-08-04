@@ -112,3 +112,4 @@ set_source_files_properties(util_avxf_avx_test.cpp PROPERTIES COMPILE_FLAGS "${C
 CYCLES_TEST(util_avxf_avx "cycles_util;bf_intern_numaapi;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
 set_source_files_properties(util_avxf_avx2_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
 CYCLES_TEST(util_avxf_avx2 "cycles_util;bf_intern_numaapi;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
+CYCLES_TEST(util_transform "cycles_util;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")

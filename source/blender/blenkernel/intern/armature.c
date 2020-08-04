@@ -2205,7 +2205,7 @@ static void pose_proxy_sync(Object *ob, Object *from, int layer_protected)
       pchan->mpath = NULL;
 
       /* Reset runtime data, we don't want to share that with the proxy. */
-      BKE_pose_channel_runtime_reset(&pchanw.runtime);
+      BKE_pose_channel_runtime_reset_on_copy(&pchanw.runtime);
 
       /* this is freed so copy a copy, else undo crashes */
       if (pchanw.prop) {

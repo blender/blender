@@ -384,6 +384,7 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
         BLI_remlink(curarm->edbo, curbone);
         BLI_addtail(arm->edbo, curbone);
 
+        /* Pose channel is moved from one storage to another, its UUID is still unique. */
         BLI_remlink(&opose->chanbase, pchan);
         BLI_addtail(&pose->chanbase, pchan);
         BKE_pose_channels_hash_free(opose);
