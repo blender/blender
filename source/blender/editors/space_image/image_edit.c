@@ -400,7 +400,10 @@ bool ED_image_slot_cycle(struct Image *image, int direction)
     }
   }
 
-  if (i == num_slots) {
+  if (num_slots == 1) {
+    image->render_slot = 0;
+  }
+  else if (i == num_slots) {
     image->render_slot = ((cur == 1) ? 0 : 1);
   }
 
