@@ -3983,8 +3983,9 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
 
     /* Read mesh cache. */
     if (with_liquid && with_mesh) {
-      if (mesh_frame != scene_framenr)
+      if (mesh_frame != scene_framenr) {
         has_config = manta_read_config(fds->fluid, fmd, mesh_frame);
+      }
 
       /* Update mesh data from file is faster than via Python (manta_read_mesh()). */
       has_mesh = manta_read_mesh(fds->fluid, fmd, mesh_frame);
@@ -3992,8 +3993,9 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
 
     /* Read particles cache. */
     if (with_liquid && with_particles) {
-      if (particles_frame != scene_framenr)
+      if (particles_frame != scene_framenr) {
         has_config = manta_read_config(fds->fluid, fmd, particles_frame);
+      }
 
       read_partial = !baking_data && !baking_particles && next_particles;
       read_all = !read_partial && with_resumable_cache;
@@ -4008,8 +4010,9 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
 
     /* Read noise and data cache */
     if (with_smoke && with_noise) {
-      if (noise_frame != scene_framenr)
+      if (noise_frame != scene_framenr) {
         has_config = manta_read_config(fds->fluid, fmd, noise_frame);
+      }
 
       /* Only reallocate when just reading cache or when resuming during bake. */
       if (has_data && has_config && manta_needs_realloc(fds->fluid, fmd)) {
@@ -4027,8 +4030,9 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
     }
     /* Read data cache only */
     else {
-      if (data_frame != scene_framenr)
+      if (data_frame != scene_framenr) {
         has_config = manta_read_config(fds->fluid, fmd, data_frame);
+      }
 
       if (with_smoke) {
         /* Read config and realloc fluid object if needed. */
