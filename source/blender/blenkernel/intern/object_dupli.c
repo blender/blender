@@ -37,6 +37,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
 
@@ -367,17 +368,13 @@ static void vertex_dupli(const VertexDupliData *vdd,
   DupliObject *dob;
   float obmat[4][4], space_mat[4][4];
 
-  /* obmat is transform to vertex */
-  get_duplivert_transform(co, no, vdd->use_rotation, inst_ob->trackflag, inst_ob->upflag, obmat);
+  /* space_mat is transform to vertex */
+  get_duplivert_transform(
+      co, no, vdd->use_rotation, inst_ob->trackflag, inst_ob->upflag, space_mat);
   /* make offset relative to inst_ob using relative child transform */
-  mul_mat3_m4_v3((float(*)[4])vdd->child_imat, obmat[3]);
+  mul_mat3_m4_v3((float(*)[4])vdd->child_imat, space_mat[3]);
   /* apply obmat _after_ the local vertex transform */
-  mul_m4_m4m4(obmat, inst_ob->obmat, obmat);
-
-  /* space matrix is constructed by removing obmat transform,
-   * this yields the worldspace transform for recursive duplis
-   */
-  mul_m4_m4m4(space_mat, obmat, inst_ob->imat);
+  mul_m4_m4m4(obmat, inst_ob->obmat, space_mat);
 
   dob = make_dupli(vdd->ctx, vdd->inst_ob, obmat, index);
 
@@ -571,6 +568,63 @@ static void make_duplis_font(const DupliContext *ctx)
 static const DupliGenerator gen_dupli_verts_font = {
     OB_DUPLIVERTS,   /* type */
     make_duplis_font /* make_duplis */
+};
+
+/* OB_DUPLIVERTS - PointCloud */
+static void make_child_duplis_pointcloud(const DupliContext *ctx,
+                                         void *UNUSED(userdata),
+                                         Object *child)
+{
+  const Object *parent = ctx->object;
+  const PointCloud *pointcloud = parent->data;
+  const float(*co)[3] = pointcloud->co;
+  const float *radius = pointcloud->radius;
+  const float(*rotation)[4] = NULL; /* TODO: add optional rotation attribute. */
+  const float(*orco)[3] = NULL;     /* TODO: add optional texture coordinate attribute. */
+
+  /* Relative transform from parent to child space. */
+  float child_imat[4][4];
+  mul_m4_m4m4(child_imat, child->imat, parent->obmat);
+
+  for (int i = 0; i < pointcloud->totpoint; i++) {
+    /* Transform matrix from point position, radius and rotation. */
+    float quat[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+    float size[3] = {1.0f, 1.0f, 1.0f};
+    if (radius) {
+      copy_v3_fl(size, radius[i]);
+    }
+    if (rotation) {
+      copy_v4_v4(quat, rotation[i]);
+    }
+
+    float space_mat[4][4];
+    loc_quat_size_to_mat4(space_mat, co[i], quat, size);
+
+    /* Make offset relative to child object using relative child transform,
+     * and apply object matrix after local vertex transform. */
+    mul_mat3_m4_v3(child_imat, space_mat[3]);
+
+    /* Create dupli object. */
+    float obmat[4][4];
+    mul_m4_m4m4(obmat, child->obmat, space_mat);
+    DupliObject *dob = make_dupli(ctx, child, obmat, i);
+    if (orco) {
+      copy_v3_v3(dob->orco, orco[i]);
+    }
+
+    /* Recursion. */
+    make_recursive_duplis(ctx, child, space_mat, i);
+  }
+}
+
+static void make_duplis_pointcloud(const DupliContext *ctx)
+{
+  make_child_duplis(ctx, NULL, make_child_duplis_pointcloud);
+}
+
+static const DupliGenerator gen_dupli_verts_pointcloud = {
+    OB_DUPLIVERTS,         /* type */
+    make_duplis_pointcloud /* make_duplis */
 };
 
 /* OB_DUPLIFACES */
@@ -1104,6 +1158,9 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
     }
     else if (ctx->object->type == OB_FONT) {
       return &gen_dupli_verts_font;
+    }
+    else if (ctx->object->type == OB_POINTCLOUD) {
+      return &gen_dupli_verts_pointcloud;
     }
   }
   else if (transflag & OB_DUPLIFACES) {
