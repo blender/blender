@@ -2519,6 +2519,8 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   Sequence *seq;
 
+  BKE_sequencer_prefetch_stop(scene);
+
   SEQP_BEGIN (scene->ed, seq) {
     if (seq->flag & SELECT) {
       BKE_sequencer_flag_for_removal(scene, ed->seqbasep, seq);
