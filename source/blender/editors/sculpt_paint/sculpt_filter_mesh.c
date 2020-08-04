@@ -132,6 +132,7 @@ void SCULPT_filter_cache_free(SculptSession *ss)
   MEM_SAFE_FREE(ss->filter_cache->automask);
   MEM_SAFE_FREE(ss->filter_cache->surface_smooth_laplacian_disp);
   MEM_SAFE_FREE(ss->filter_cache->sharpen_factor);
+  MEM_SAFE_FREE(ss->filter_cache->sharpen_detail_directions);
   MEM_SAFE_FREE(ss->filter_cache);
 }
 
@@ -356,6 +357,17 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         mul_v3_v3fl(
             disp_avg, disp_avg, smooth_ratio * pow2f(ss->filter_cache->sharpen_factor[vd.index]));
         add_v3_v3v3(disp, disp_avg, disp_sharpen);
+
+        /* Intensify details. */
+        if (ss->filter_cache->sharpen_intensify_detail_strength > 0.0f) {
+          float detail_strength[3];
+          normal_short_to_float_v3(detail_strength, orig_data.no);
+          copy_v3_v3(detail_strength, ss->filter_cache->sharpen_detail_directions[vd.index]);
+          madd_v3_v3fl(disp,
+                       detail_strength,
+                       -ss->filter_cache->sharpen_intensify_detail_strength *
+                           ss->filter_cache->sharpen_factor[vd.index]);
+        }
         break;
       }
     }
@@ -388,8 +400,10 @@ static void mesh_filter_sharpen_init_factors(SculptSession *ss)
   for (int i = 0; i < totvert; i++) {
     float avg[3];
     SCULPT_neighbor_coords_average(ss, avg, i);
-    ss->filter_cache->sharpen_factor[i] = len_v3v3(avg, SCULPT_vertex_co_get(ss, i));
+    sub_v3_v3v3(ss->filter_cache->sharpen_detail_directions[i], avg, SCULPT_vertex_co_get(ss, i));
+    ss->filter_cache->sharpen_factor[i] = len_v3(ss->filter_cache->sharpen_detail_directions[i]);
   }
+
   float max_factor = 0.0f;
   for (int i = 0; i < totvert; i++) {
     if (ss->filter_cache->sharpen_factor[i] > max_factor) {
@@ -401,6 +415,31 @@ static void mesh_filter_sharpen_init_factors(SculptSession *ss)
   for (int i = 0; i < totvert; i++) {
     ss->filter_cache->sharpen_factor[i] *= max_factor;
     ss->filter_cache->sharpen_factor[i] = 1.0f - pow2f(1.0f - ss->filter_cache->sharpen_factor[i]);
+  }
+
+  /* Smooth the calculated factors and directions to remove high frecuency detail. */
+  for (int smooth_iterations = 0;
+       smooth_iterations < ss->filter_cache->sharpen_curvature_smooth_iterations;
+       smooth_iterations++) {
+    for (int i = 0; i < totvert; i++) {
+      float direction_avg[3] = {0.0f, 0.0f, 0.0f};
+      float sharpen_avg = 0;
+      int total = 0;
+
+      SculptVertexNeighborIter ni;
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+        add_v3_v3(direction_avg, ss->filter_cache->sharpen_detail_directions[ni.index]);
+        sharpen_avg += ss->filter_cache->sharpen_factor[ni.index];
+        total++;
+      }
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+      if (total > 0) {
+        mul_v3_v3fl(
+            ss->filter_cache->sharpen_detail_directions[i], direction_avg, 1.0f / (float)total);
+        ss->filter_cache->sharpen_factor[i] = sharpen_avg / (float)total;
+      }
+    }
   }
 }
 
@@ -566,7 +605,14 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   if (RNA_enum_get(op->ptr, "type") == MESH_FILTER_SHARPEN) {
     ss->filter_cache->sharpen_smooth_ratio = RNA_float_get(op->ptr, "sharpen_smooth_ratio");
+    ss->filter_cache->sharpen_intensify_detail_strength = RNA_float_get(
+        op->ptr, "sharpen_intensify_detail_strength");
+    ss->filter_cache->sharpen_curvature_smooth_iterations = RNA_int_get(
+        op->ptr, "sharpen_curvature_smooth_iterations");
+
     ss->filter_cache->sharpen_factor = MEM_mallocN(sizeof(float) * totvert, "sharpen factor");
+    ss->filter_cache->sharpen_detail_directions = MEM_malloc_arrayN(
+        totvert, 3 * sizeof(float), "sharpen detail direction");
 
     mesh_filter_sharpen_init_factors(ss);
   }
@@ -642,4 +688,24 @@ void SCULPT_OT_mesh_filter(struct wmOperatorType *ot)
                 "How much smoothing is applied to polished surfaces",
                 0.0f,
                 1.0f);
+
+  RNA_def_float(ot->srna,
+                "sharpen_intensify_detail_strength",
+                0.0f,
+                0.0f,
+                10.0f,
+                "Intensify Details",
+                "How much creases and valleys are intensified",
+                0.0f,
+                1.0f);
+
+  RNA_def_int(ot->srna,
+              "sharpen_curvature_smooth_iterations",
+              0,
+              0,
+              10,
+              "Curvature Smooth Iterations",
+              "How much smooth the resulting shape is, ignoring high frequency details",
+              0,
+              10);
 }
