@@ -34,5 +34,5 @@ void main()
   packed_rough_metal = workbench_float_pair_encode(roughness, metallic);
 #endif
 
-  object_id = int((uint(resource_id) + 1u) & 0xFFu);
+  object_id = int(uint(resource_handle) & 0xFFFFu) + 1;
 }
