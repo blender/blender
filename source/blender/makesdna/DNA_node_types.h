@@ -923,6 +923,8 @@ typedef struct NodeTexMagic {
 
 typedef struct NodeShaderAttribute {
   char name[64];
+  int type;
+  char _pad[4];
 } NodeShaderAttribute;
 
 typedef struct NodeShaderVectTransform {
@@ -1091,6 +1093,13 @@ typedef struct NodeDenoise {
 #define SHD_VECT_TRANSFORM_SPACE_WORLD 0
 #define SHD_VECT_TRANSFORM_SPACE_OBJECT 1
 #define SHD_VECT_TRANSFORM_SPACE_CAMERA 2
+
+/* attribute */
+enum {
+  SHD_ATTRIBUTE_GEOMETRY = 0,
+  SHD_ATTRIBUTE_OBJECT = 1,
+  SHD_ATTRIBUTE_INSTANCER = 2,
+};
 
 /* toon modes */
 #define SHD_TOON_DIFFUSE 0

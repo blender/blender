@@ -128,6 +128,8 @@ void drw_resource_buffer_finish(ViewportMemoryPool *vmempool)
     GPU_uniformbuf_update(vmempool->obinfos_ubo[i], data_infos);
   }
 
+  DRW_uniform_attrs_pool_flush_all(vmempool->obattrs_ubo_pool);
+
   /* Aligned alloc to avoid unaligned memcpy. */
   DRWCommandChunk *chunk_tmp = MEM_mallocN_aligned(sizeof(DRWCommandChunk), 16, "tmp call chunk");
   DRWCommandChunk *chunk;
@@ -208,6 +210,9 @@ static void drw_shgroup_uniform_create_ex(DRWShadingGroup *shgroup,
     case DRW_UNIFORM_TEXTURE_REF:
       uni->texture_ref = (GPUTexture **)value;
       uni->sampler_state = sampler_state;
+      break;
+    case DRW_UNIFORM_BLOCK_OBATTRS:
+      uni->uniform_attrs = (GPUUniformAttrList *)value;
       break;
     default:
       uni->pvalue = (const float *)value;
@@ -609,6 +614,15 @@ static DRWResourceHandle drw_resource_handle(DRWShadingGroup *shgroup,
 
       drw_call_obinfos_init(ob_infos, ob);
     }
+  }
+
+  if (shgroup->uniform_attrs) {
+    drw_uniform_attrs_pool_update(DST.vmempool->obattrs_ubo_pool,
+                                  shgroup->uniform_attrs,
+                                  &DST.ob_handle,
+                                  ob,
+                                  DST.dupli_parent,
+                                  DST.dupli_source);
   }
 
   return DST.ob_handle;
@@ -1184,6 +1198,7 @@ void DRW_buffer_add_entry_array(DRWCallBuffer *callbuf, const void *attr[], uint
 static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
 {
   shgroup->uniforms = NULL;
+  shgroup->uniform_attrs = NULL;
 
   int view_ubo_location = GPU_shader_get_builtin_block(shader, GPU_UNIFORM_BLOCK_VIEW);
   int model_ubo_location = GPU_shader_get_builtin_block(shader, GPU_UNIFORM_BLOCK_MODEL);
@@ -1328,6 +1343,13 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, struct GPUMaterial
   GPUUniformBuf *ubo = GPU_material_uniform_buffer_get(material);
   if (ubo != NULL) {
     DRW_shgroup_uniform_block(grp, GPU_UBO_BLOCK_NAME, ubo);
+  }
+
+  GPUUniformAttrList *uattrs = GPU_material_uniform_attributes(material);
+  if (uattrs != NULL) {
+    int loc = GPU_shader_get_uniform_block_binding(grp->shader, GPU_ATTRIBUTE_UBO_BLOCK_NAME);
+    drw_shgroup_uniform_create_ex(grp, loc, DRW_UNIFORM_BLOCK_OBATTRS, uattrs, 0, 0, 1);
+    grp->uniform_attrs = uattrs;
   }
 }
 

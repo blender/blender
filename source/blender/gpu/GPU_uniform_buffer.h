@@ -53,6 +53,7 @@ void GPU_uniformbuf_unbind(GPUUniformBuf *ubo);
 void GPU_uniformbuf_unbind_all(void);
 
 #define GPU_UBO_BLOCK_NAME "nodeTree"
+#define GPU_ATTRIBUTE_UBO_BLOCK_NAME "uniformAttrs"
 
 #ifdef __cplusplus
 }

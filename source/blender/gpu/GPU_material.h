@@ -34,6 +34,7 @@
 extern "C" {
 #endif
 
+struct GHash;
 struct GPUMaterial;
 struct GPUNode;
 struct GPUNodeLink;
@@ -143,6 +144,7 @@ typedef void (*GPUMaterialEvalCallbackFn)(GPUMaterial *mat,
 GPUNodeLink *GPU_constant(const float *num);
 GPUNodeLink *GPU_uniform(const float *num);
 GPUNodeLink *GPU_attribute(GPUMaterial *mat, CustomDataType type, const char *name);
+GPUNodeLink *GPU_uniform_attribute(GPUMaterial *mat, const char *name, bool use_dupli);
 GPUNodeLink *GPU_image(GPUMaterial *mat,
                        struct Image *ima,
                        struct ImageUser *iuser,
@@ -258,6 +260,31 @@ typedef struct GPUMaterialVolumeGrid {
 ListBase GPU_material_attributes(GPUMaterial *material);
 ListBase GPU_material_textures(GPUMaterial *material);
 ListBase GPU_material_volume_grids(GPUMaterial *material);
+
+typedef struct GPUUniformAttr {
+  struct GPUUniformAttr *next, *prev;
+
+  /* Meaningful part of the attribute set key. */
+  char name[64]; /* MAX_CUSTOMDATA_LAYER_NAME */
+  bool use_dupli;
+
+  /* Helper fields used by code generation. */
+  short id;
+  int users;
+} GPUUniformAttr;
+
+typedef struct GPUUniformAttrList {
+  ListBase list; /* GPUUniformAttr */
+
+  /* List length and hash code precomputed for fast lookup and comparison. */
+  unsigned int count, hash_code;
+} GPUUniformAttrList;
+
+GPUUniformAttrList *GPU_material_uniform_attributes(GPUMaterial *material);
+
+struct GHash *GPU_uniform_attr_list_hash_new(const char *info);
+void GPU_uniform_attr_list_copy(GPUUniformAttrList *dest, GPUUniformAttrList *src);
+void GPU_uniform_attr_list_free(GPUUniformAttrList *set);
 
 #ifdef __cplusplus
 }

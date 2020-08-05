@@ -42,6 +42,7 @@ typedef enum eGPUDataSource {
   GPU_SOURCE_CONSTANT,
   GPU_SOURCE_UNIFORM,
   GPU_SOURCE_ATTR,
+  GPU_SOURCE_UNIFORM_ATTR,
   GPU_SOURCE_BUILTIN,
   GPU_SOURCE_STRUCT,
   GPU_SOURCE_TEX,
@@ -53,6 +54,7 @@ typedef enum eGPUDataSource {
 typedef enum {
   GPU_NODE_LINK_NONE = 0,
   GPU_NODE_LINK_ATTR,
+  GPU_NODE_LINK_UNIFORM_ATTR,
   GPU_NODE_LINK_BUILTIN,
   GPU_NODE_LINK_COLORBAND,
   GPU_NODE_LINK_CONSTANT,
@@ -96,6 +98,8 @@ struct GPUNodeLink {
     struct GPUOutput *output;
     /* GPU_NODE_LINK_ATTR */
     struct GPUMaterialAttribute *attr;
+    /* GPU_NODE_LINK_UNIFORM_ATTR */
+    struct GPUUniformAttr *uniform_attr;
     /* GPU_NODE_LINK_IMAGE_BLENDER */
     struct GPUMaterialTexture *texture;
   };
@@ -130,6 +134,8 @@ typedef struct GPUInput {
     struct GPUMaterialTexture *texture;
     /* GPU_SOURCE_ATTR */
     struct GPUMaterialAttribute *attr;
+    /* GPU_SOURCE_UNIFORM_ATTR */
+    struct GPUUniformAttr *uniform_attr;
     /* GPU_SOURCE_VOLUME_GRID | GPU_SOURCE_VOLUME_GRID_TRANSFORM */
     struct GPUMaterialVolumeGrid *volume_grid;
   };
@@ -146,11 +152,15 @@ typedef struct GPUNodeGraph {
   ListBase attributes;
   ListBase textures;
   ListBase volume_grids;
+
+  /* The list of uniform attributes. */
+  GPUUniformAttrList uniform_attrs;
 } GPUNodeGraph;
 
 /* Node Graph */
 
 void gpu_node_graph_prune_unused(GPUNodeGraph *graph);
+void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph);
 void gpu_node_graph_free_nodes(GPUNodeGraph *graph);
 void gpu_node_graph_free(GPUNodeGraph *graph);
 

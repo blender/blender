@@ -42,8 +42,9 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
                                      GPUNodeStack *out)
 {
   NodeShaderAttribute *attr = node->storage;
+  bool is_varying = attr->type == SHD_ATTRIBUTE_GEOMETRY;
 
-  if (GPU_material_is_volume_shader(mat)) {
+  if (GPU_material_is_volume_shader(mat) && is_varying) {
     if (out[0].hasoutput) {
       out[0].link = GPU_volume_grid(mat, attr->name, GPU_VOLUME_DEFAULT_0);
     }
@@ -61,7 +62,15 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
     return 1;
   }
 
-  GPUNodeLink *cd_attr = GPU_attribute(mat, CD_AUTO_FROM_NAME, attr->name);
+  GPUNodeLink *cd_attr;
+
+  if (is_varying) {
+    cd_attr = GPU_attribute(mat, CD_AUTO_FROM_NAME, attr->name);
+  }
+  else {
+    cd_attr = GPU_uniform_attribute(mat, attr->name, attr->type == SHD_ATTRIBUTE_INSTANCER);
+  }
+
   GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);
 
   /* for each output. */

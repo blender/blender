@@ -467,6 +467,8 @@ static void drw_viewport_cache_resize(void)
     BLI_memblock_clear(DST.vmempool->passes, NULL);
     BLI_memblock_clear(DST.vmempool->views, NULL);
     BLI_memblock_clear(DST.vmempool->images, NULL);
+
+    DRW_uniform_attrs_pool_clear_all(DST.vmempool->obattrs_ubo_pool);
   }
 
   DRW_instance_data_list_free_unused(DST.idatalist);
@@ -592,6 +594,9 @@ static void drw_viewport_var_init(void)
     }
     if (DST.vmempool->images == NULL) {
       DST.vmempool->images = BLI_memblock_create(sizeof(GPUTexture *));
+    }
+    if (DST.vmempool->obattrs_ubo_pool == NULL) {
+      DST.vmempool->obattrs_ubo_pool = DRW_uniform_attrs_pool_new();
     }
 
     DST.resource_handle = 0;

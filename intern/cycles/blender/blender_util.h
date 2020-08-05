@@ -40,6 +40,9 @@ float *BKE_image_get_float_pixels_for_frame(void *image, int frame, int tile);
 
 CCL_NAMESPACE_BEGIN
 
+typedef BL::ShaderNodeAttribute::attribute_type_enum BlenderAttributeType;
+BlenderAttributeType blender_attribute_name_split_type(ustring name, string *r_real_name);
+
 void python_thread_state_save(void **python_thread_state);
 void python_thread_state_restore(void **python_thread_state);
 

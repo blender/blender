@@ -234,6 +234,10 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
   /* special case not tracked by object update flags */
 
+  if (sync_object_attributes(b_instance, object)) {
+    object_updated = true;
+  }
+
   /* holdout */
   if (use_holdout != object->use_holdout) {
     object->use_holdout = use_holdout;
@@ -341,6 +345,132 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   }
 
   return object;
+}
+
+/* This function mirrors drw_uniform_property_lookup in draw_instance_data.cpp */
+static bool lookup_property(BL::ID b_id, const string &name, float4 *r_value)
+{
+  PointerRNA ptr;
+  PropertyRNA *prop;
+
+  if (!RNA_path_resolve(&b_id.ptr, name.c_str(), &ptr, &prop)) {
+    return false;
+  }
+
+  PropertyType type = RNA_property_type(prop);
+  int arraylen = RNA_property_array_length(&ptr, prop);
+
+  if (arraylen == 0) {
+    float value;
+
+    if (type == PROP_FLOAT)
+      value = RNA_property_float_get(&ptr, prop);
+    else if (type == PROP_INT)
+      value = RNA_property_int_get(&ptr, prop);
+    else
+      return false;
+
+    *r_value = make_float4(value, value, value, 1.0f);
+    return true;
+  }
+  else if (type == PROP_FLOAT && arraylen <= 4) {
+    *r_value = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
+    RNA_property_float_get_array(&ptr, prop, &r_value->x);
+    return true;
+  }
+
+  return false;
+}
+
+/* This function mirrors drw_uniform_attribute_lookup in draw_instance_data.cpp */
+static float4 lookup_instance_property(BL::DepsgraphObjectInstance &b_instance,
+                                       const string &name,
+                                       bool use_instancer)
+{
+  string idprop_name = string_printf("[\"%s\"]", name.c_str());
+  float4 value;
+
+  /* If requesting instance data, check the parent particle system and object. */
+  if (use_instancer && b_instance.is_instance()) {
+    BL::ParticleSystem b_psys = b_instance.particle_system();
+
+    if (b_psys) {
+      if (lookup_property(b_psys.settings(), idprop_name, &value) ||
+          lookup_property(b_psys.settings(), name, &value)) {
+        return value;
+      }
+    }
+    if (lookup_property(b_instance.parent(), idprop_name, &value) ||
+        lookup_property(b_instance.parent(), name, &value)) {
+      return value;
+    }
+  }
+
+  /* Check the object and mesh. */
+  BL::Object b_ob = b_instance.object();
+  BL::ID b_data = b_ob.data();
+
+  if (lookup_property(b_ob, idprop_name, &value) || lookup_property(b_ob, name, &value) ||
+      lookup_property(b_data, idprop_name, &value) || lookup_property(b_data, name, &value)) {
+    return value;
+  }
+
+  return make_float4(0.0f);
+}
+
+bool BlenderSync::sync_object_attributes(BL::DepsgraphObjectInstance &b_instance, Object *object)
+{
+  /* Find which attributes are needed. */
+  AttributeRequestSet requests = object->geometry->needed_attributes();
+
+  /* Delete attributes that became unnecessary. */
+  vector<ParamValue> &attributes = object->attributes;
+  bool changed = false;
+
+  for (int i = attributes.size() - 1; i >= 0; i--) {
+    if (!requests.find(attributes[i].name())) {
+      attributes.erase(attributes.begin() + i);
+      changed = true;
+    }
+  }
+
+  /* Update attribute values. */
+  foreach (AttributeRequest &req, requests.requests) {
+    ustring name = req.name;
+
+    std::string real_name;
+    BlenderAttributeType type = blender_attribute_name_split_type(name, &real_name);
+
+    if (type != BL::ShaderNodeAttribute::attribute_type_GEOMETRY) {
+      bool use_instancer = (type == BL::ShaderNodeAttribute::attribute_type_INSTANCER);
+      float4 value = lookup_instance_property(b_instance, real_name, use_instancer);
+
+      /* Try finding the existing attribute value. */
+      ParamValue *param = NULL;
+
+      for (size_t i = 0; i < attributes.size(); i++) {
+        if (attributes[i].name() == name) {
+          param = &attributes[i];
+          break;
+        }
+      }
+
+      /* Replace or add the value. */
+      ParamValue new_param(name, TypeDesc::TypeFloat4, 1, &value);
+      assert(new_param.datasize() == sizeof(value));
+
+      if (!param) {
+        changed = true;
+        attributes.push_back(new_param);
+      }
+      else if (memcmp(param->data(), &value, sizeof(value)) != 0) {
+        changed = true;
+        *param = new_param;
+      }
+    }
+  }
+
+  return changed;
 }
 
 /* Object Loop */

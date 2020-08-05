@@ -38,6 +38,7 @@ extern "C" {
 #define GPU_INFO_SIZE 512 /* IMA_MAX_RENDER_TEXT */
 #define GLA_PIXEL_OFS 0.375f
 
+typedef struct GHash GHash;
 typedef struct GPUViewport GPUViewport;
 
 struct GPUFrameBuffer;
@@ -57,6 +58,7 @@ typedef struct ViewportMemoryPool {
   struct BLI_memblock *images;
   struct GPUUniformBuf **matrices_ubo;
   struct GPUUniformBuf **obinfos_ubo;
+  struct GHash *obattrs_ubo_pool;
   uint ubo_len;
 } ViewportMemoryPool;
 
