@@ -740,6 +740,7 @@ static bool gpu_texture_check_capacity(
       case GL_PROXY_TEXTURE_3D:
         glTexImage3D(
             proxy, 0, internalformat, tex->w, tex->h, tex->d, 0, data_format, data_type, NULL);
+        break;
       case GL_PROXY_TEXTURE_CUBE_MAP_ARRAY_ARB:
         glTexImage3D(
             proxy, 0, internalformat, tex->w, tex->h, tex->d * 6, 0, data_format, data_type, NULL);
