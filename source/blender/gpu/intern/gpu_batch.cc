@@ -85,12 +85,17 @@ void GPU_batch_vao_cache_clear(GPUBatch *batch)
   batch->context = NULL;
 }
 
+GPUBatch *GPU_batch_calloc(uint count)
+{
+  return (GPUBatch *)MEM_callocN(sizeof(GPUBatch) * count, "GPUBatch");
+}
+
 GPUBatch *GPU_batch_create_ex(GPUPrimType prim_type,
                               GPUVertBuf *verts,
                               GPUIndexBuf *elem,
                               uint owns_flag)
 {
-  GPUBatch *batch = (GPUBatch *)MEM_callocN(sizeof(GPUBatch), "GPUBatch");
+  GPUBatch *batch = GPU_batch_calloc(1);
   GPU_batch_init_ex(batch, prim_type, verts, elem, owns_flag);
   return batch;
 }

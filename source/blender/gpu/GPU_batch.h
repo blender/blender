@@ -102,6 +102,7 @@ enum {
   GPU_BATCH_OWNS_INDEX = (1u << 31u),
 };
 
+GPUBatch *GPU_batch_calloc(uint count);
 GPUBatch *GPU_batch_create_ex(GPUPrimType, GPUVertBuf *, GPUIndexBuf *, uint owns_flag);
 void GPU_batch_init_ex(GPUBatch *, GPUPrimType, GPUVertBuf *, GPUIndexBuf *, uint owns_flag);
 void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src);

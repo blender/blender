@@ -92,8 +92,9 @@ static void instance_batch_free(GPUBatch *geom, void *UNUSED(user_data))
     BLI_memblock *memblock = data_list->pool_instancing;
     BLI_memblock_iter iter;
     BLI_memblock_iternew(memblock, &iter);
-    GPUBatch *batch;
-    while ((batch = *(GPUBatch **)BLI_memblock_iterstep(&iter))) {
+    GPUBatch **batch_ptr;
+    while ((batch_ptr = (GPUBatch **)BLI_memblock_iterstep(&iter))) {
+      GPUBatch *batch = *batch_ptr;
       /* Only check verts[0] that's enough. */
       if (batch->verts[0] == geom->verts[0]) {
         GPU_batch_clear(batch);
@@ -144,7 +145,7 @@ GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
 
   GPUBatch **batch_ptr = BLI_memblock_alloc(idatalist->pool_instancing);
   if (*batch_ptr == NULL) {
-    *batch_ptr = MEM_callocN(sizeof(GPUBatch), "GPUBatch");
+    *batch_ptr = GPU_batch_calloc(1);
   }
 
   GPUBatch *batch = *batch_ptr;
@@ -180,7 +181,7 @@ GPUBatch *DRW_temp_batch_request(DRWInstanceDataList *idatalist,
 {
   GPUBatch **batch_ptr = BLI_memblock_alloc(idatalist->pool_instancing);
   if (*batch_ptr == NULL) {
-    *batch_ptr = MEM_callocN(sizeof(GPUBatch), "GPUBatch");
+    *batch_ptr = GPU_batch_calloc(1);
   }
 
   GPUBatch *batch = *batch_ptr;
@@ -222,10 +223,10 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
     }
   }
   /* Finish pending instancing batches. */
-  GPUBatch *batch, **batch_ptr;
+  GPUBatch **batch_ptr;
   BLI_memblock_iternew(idatalist->pool_instancing, &iter);
   while ((batch_ptr = BLI_memblock_iterstep(&iter))) {
-    batch = *batch_ptr;
+    GPUBatch *batch = *batch_ptr;
     if (batch && batch->phase == GPU_BATCH_READY_TO_BUILD) {
       GPUVertBuf *inst_buf = batch->inst[0];
       /* HACK see DRW_temp_batch_instance_request. */
