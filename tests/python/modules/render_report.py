@@ -104,6 +104,8 @@ class Report:
         'reference_dir',
         'idiff',
         'pixelated',
+        'fail_threshold',
+        'fail_percent',
         'verbose',
         'update',
         'failed_tests',
@@ -118,6 +120,8 @@ class Report:
         self.reference_dir = 'reference_renders'
         self.idiff = idiff
         self.compare_engines = None
+        self.fail_threshold = 0.016
+        self.fail_percent = 1
 
         self.pixelated = False
         self.verbose = os.environ.get("BLENDER_VERBOSE") is not None
@@ -135,6 +139,9 @@ class Report:
 
     def set_pixelated(self, pixelated):
         self.pixelated = pixelated
+
+    def set_fail_threshold(self, threshold):
+        self.fail_threshold = threshold
 
     def set_reference_dir(self, reference_dir):
         self.reference_dir = reference_dir
@@ -366,8 +373,8 @@ class Report:
             # Diff images test with threshold.
             command = (
                 self.idiff,
-                "-fail", "0.016",
-                "-failpercent", "1",
+                "-fail", str(self.fail_threshold),
+                "-failpercent", str(self.fail_percent),
                 ref_img,
                 tmp_filepath,
             )

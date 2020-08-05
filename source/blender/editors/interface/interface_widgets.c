@@ -1401,7 +1401,7 @@ static void widget_draw_icon(
     }
   }
   else if (ELEM(but->type, UI_BTYPE_BUT)) {
-    if (but->flag & UI_BUT_DISABLED) {
+    if (but->flag & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
       alpha *= 0.5f;
     }
   }

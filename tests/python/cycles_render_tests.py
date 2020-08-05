@@ -63,6 +63,11 @@ def main():
     report.set_pixelated(True)
     report.set_reference_dir("cycles_renders")
     report.set_compare_engines('cycles', 'eevee')
+
+    # Increase threshold for motion blur, see T78777.
+    if test_dir == 'motion_blur':
+        report.set_fail_threshold(0.032)
+
     ok = report.run(test_dir, blender, get_arguments, batch=True)
 
     sys.exit(not ok)
