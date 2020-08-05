@@ -164,7 +164,7 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
     for (i = 0; i < tc->data_len; i++, td++) {
-      const float *center, *co;
+      const float *center;
       if (td->flag & TD_SKIP) {
         continue;
       }
@@ -178,19 +178,15 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 
       if (is_local_center) {
         center = td->center;
-        co = td->loc;
       }
       else {
         center = tc->center_local;
-        co = td->center;
       }
 
-      sub_v3_v3v3(vec, co, center);
-
+      sub_v3_v3v3(vec, td->iloc, center);
       mul_m3_v3(tmat, vec);
-
       add_v3_v3(vec, center);
-      sub_v3_v3(vec, co);
+      sub_v3_v3(vec, td->iloc);
 
       if (t->options & CTX_GPENCIL_STROKES) {
         /* grease pencil multiframe falloff */
