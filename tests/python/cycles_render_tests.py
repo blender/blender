@@ -7,6 +7,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 
 def get_arguments(filepath, output_filepath):
@@ -65,7 +66,8 @@ def main():
     report.set_compare_engines('cycles', 'eevee')
 
     # Increase threshold for motion blur, see T78777.
-    if test_dir == 'motion_blur':
+    test_dir_name = Path(test_dir).name
+    if test_dir_name == 'motion_blur':
         report.set_fail_threshold(0.032)
 
     ok = report.run(test_dir, blender, get_arguments, batch=True)
