@@ -445,12 +445,10 @@ ccl_device_inline float fast_expf(float x)
   return fast_exp2f(x / M_LN2_F);
 }
 
-#ifndef __KERNEL_GPU__
-/* MSVC seems to have a code-gen bug here in at least SSE41/AVX
- * see T78047 for details. */
-#  ifdef _MSC_VER
-#    pragma optimize("", off)
-#  endif
+#if defined(__KERNEL_CPU__) && !defined(_MSC_VER)
+/* MSVC seems to have a code-gen bug here in at least SSE41/AVX, see
+ * T78047 and T78869 for details. Just disable for now, it only makes
+ * a small difference in denoising performance. */
 ccl_device float4 fast_exp2f4(float4 x)
 {
   const float4 one = make_float4(1.0f);
@@ -466,13 +464,15 @@ ccl_device float4 fast_exp2f4(float4 x)
   r = madd4(x, r, make_float4(1.0f));
   return __int4_as_float4(__float4_as_int4(r) + (m << 23));
 }
-#  ifdef _MSC_VER
-#    pragma optimize("", on)
-#  endif
 
 ccl_device_inline float4 fast_expf4(float4 x)
 {
   return fast_exp2f4(x / M_LN2_F);
+}
+#else
+ccl_device_inline float4 fast_expf4(float4 x)
+{
+  return make_float4(fast_expf(x.x), fast_expf(x.y), fast_expf(x.z), fast_expf(x.w));
 }
 #endif
 
