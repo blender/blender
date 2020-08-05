@@ -321,7 +321,7 @@ void UI_list_panel_unique_str(Panel *panel, char *r_name)
  * Remove the #uiBlock corresponding to a panel. The lookup is needed because panels don't store
  * a reference to their corresponding #uiBlock.
  */
-static void panel_free_block(ARegion *region, Panel *panel)
+static void panel_free_block(const bContext *C, ARegion *region, Panel *panel)
 {
   BLI_assert(panel->type);
 
@@ -334,7 +334,7 @@ static void panel_free_block(ARegion *region, Panel *panel)
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     if (STREQ(block->name, block_name)) {
       BLI_remlink(&region->uiblocks, block);
-      UI_block_free(NULL, block);
+      UI_block_free(C, block);
       break; /* Only delete one block for this panel. */
     }
   }
@@ -347,15 +347,15 @@ static void panel_free_block(ARegion *region, Panel *panel)
  * \note The only panels that should need to be deleted at runtime are panels with the
  * #PNL_INSTANCED flag set.
  */
-static void panel_delete(ARegion *region, ListBase *panels, Panel *panel)
+static void panel_delete(const bContext *C, ARegion *region, ListBase *panels, Panel *panel)
 {
   /* Recursively delete children. */
   LISTBASE_FOREACH_MUTABLE (Panel *, child, &panel->children) {
-    panel_delete(region, &panel->children, child);
+    panel_delete(C, region, &panel->children, child);
   }
   BLI_freelistN(&panel->children);
 
-  panel_free_block(region, panel);
+  panel_free_block(C, region, panel);
 
   BLI_remlink(panels, panel);
   if (panel->activedata) {
@@ -386,7 +386,7 @@ void UI_panels_free_instanced(bContext *C, ARegion *region)
       }
 
       /* Free the panel and its sub-panels. */
-      panel_delete(region, &region->panels, panel);
+      panel_delete(C, region, &region->panels, panel);
     }
   }
 }
