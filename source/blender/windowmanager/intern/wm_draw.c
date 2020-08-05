@@ -51,6 +51,7 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "GPU_context.h"
 #include "GPU_draw.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
@@ -999,6 +1000,7 @@ void wm_draw_update(bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win;
 
+  GPU_context_main_lock();
   GPU_free_unused_buffers();
 
   for (win = wm->windows.first; win; win = win->next) {
@@ -1036,6 +1038,8 @@ void wm_draw_update(bContext *C)
 
   /* Draw non-windows (surfaces) */
   wm_surfaces_iter(C, wm_draw_surface);
+
+  GPU_context_main_unlock();
 }
 
 void wm_draw_region_clear(wmWindow *win, ARegion *UNUSED(region))

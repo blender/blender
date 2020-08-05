@@ -531,6 +531,12 @@ void EEVEE_lightcache_free(LightCache *lcache)
 
 static void eevee_lightbake_context_enable(EEVEE_LightBake *lbake)
 {
+  if (GPU_use_main_context_workaround() && !BLI_thread_is_main()) {
+    GPU_context_main_lock();
+    DRW_opengl_context_enable();
+    return;
+  }
+
   if (lbake->gl_context) {
     DRW_opengl_render_context_enable(lbake->gl_context);
     if (lbake->gpu_context == NULL) {
@@ -545,6 +551,12 @@ static void eevee_lightbake_context_enable(EEVEE_LightBake *lbake)
 
 static void eevee_lightbake_context_disable(EEVEE_LightBake *lbake)
 {
+  if (GPU_use_main_context_workaround() && !BLI_thread_is_main()) {
+    DRW_opengl_context_disable();
+    GPU_context_main_unlock();
+    return;
+  }
+
   if (lbake->gl_context) {
     DRW_gpu_render_context_disable(lbake->gpu_context);
     DRW_opengl_render_context_disable(lbake->gl_context);
@@ -697,7 +709,7 @@ wmJob *EEVEE_lightbake_job_create(struct wmWindowManager *wm,
     lbake->delay = delay;
     lbake->frame = frame;
 
-    if (lbake->gl_context == NULL) {
+    if (lbake->gl_context == NULL && !GPU_use_main_context_workaround()) {
       lbake->gl_context = WM_opengl_context_create();
       wm_window_reset_drawable();
     }
@@ -742,7 +754,7 @@ void *EEVEE_lightbake_job_data_alloc(struct Main *bmain,
   lbake->mutex = BLI_mutex_alloc();
   lbake->frame = frame;
 
-  if (run_as_job) {
+  if (run_as_job && !GPU_use_main_context_workaround()) {
     lbake->gl_context = WM_opengl_context_create();
     wm_window_reset_drawable();
   }

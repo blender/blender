@@ -2719,6 +2719,12 @@ void DRW_render_context_enable(Render *render)
     WM_init_opengl(G_MAIN);
   }
 
+  if (GPU_use_main_context_workaround()) {
+    GPU_context_main_lock();
+    DRW_opengl_context_enable();
+    return;
+  }
+
   void *re_gl_context = RE_gl_context_get(render);
 
   /* Changing Context */
@@ -2736,6 +2742,12 @@ void DRW_render_context_enable(Render *render)
 
 void DRW_render_context_disable(Render *render)
 {
+  if (GPU_use_main_context_workaround()) {
+    DRW_opengl_context_disable();
+    GPU_context_main_unlock();
+    return;
+  }
+
   void *re_gl_context = RE_gl_context_get(render);
 
   if (re_gl_context != NULL) {

@@ -42,6 +42,14 @@ void GPU_context_discard(GPUContext *);
 void GPU_context_active_set(GPUContext *);
 GPUContext *GPU_context_active_get(void);
 
+/* Legacy GPU (Intel HD4000 series) do not support sharing GPU objects between GPU
+ * contexts. EEVEE/Workbench can create different contexts for image/preview rendering, baking or
+ * compiling. When a legacy GPU is detected (`GPU_use_main_context_workaround()`) any worker
+ * threads should use the draw manager opengl context and make sure that they are the only one
+ * using it by locking the main context using these two functions. */
+void GPU_context_main_lock(void);
+void GPU_context_main_unlock(void);
+
 #ifdef __cplusplus
 }
 #endif

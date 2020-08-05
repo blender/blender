@@ -34,6 +34,7 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "GPU_extensions.h"
 #include "GPU_material.h"
 #include "GPU_shader.h"
 
@@ -106,6 +107,12 @@ static void drw_deferred_shader_compilation_exec(
   BLI_assert(gl_context != NULL);
 #endif
 
+  const bool use_main_context_workaround = GPU_use_main_context_workaround();
+  if (use_main_context_workaround) {
+    BLI_assert(gl_context == DST.gl_context);
+    GPU_context_main_lock();
+  }
+
   WM_opengl_context_activate(gl_context);
 
   while (true) {
@@ -154,6 +161,9 @@ static void drw_deferred_shader_compilation_exec(
   }
 
   WM_opengl_context_release(gl_context);
+  if (use_main_context_workaround) {
+    GPU_context_main_unlock();
+  }
 }
 
 static void drw_deferred_shader_compilation_free(void *custom_data)
@@ -196,6 +206,8 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
     GPU_material_compile(mat);
     return;
   }
+  const bool use_main_context = GPU_use_main_context_workaround();
+  const bool job_own_context = !use_main_context;
 
   DRWDeferredShader *dsh = MEM_callocN(sizeof(DRWDeferredShader), "Deferred Shader");
 
@@ -227,7 +239,7 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
     if (old_comp->gl_context) {
       comp->gl_context = old_comp->gl_context;
       old_comp->own_context = false;
-      comp->own_context = true;
+      comp->own_context = job_own_context;
     }
   }
 
@@ -235,9 +247,14 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
 
   /* Create only one context. */
   if (comp->gl_context == NULL) {
-    comp->gl_context = WM_opengl_context_create();
-    WM_opengl_context_activate(DST.gl_context);
-    comp->own_context = true;
+    if (use_main_context) {
+      comp->gl_context = DST.gl_context;
+    }
+    else {
+      comp->gl_context = WM_opengl_context_create();
+      WM_opengl_context_activate(DST.gl_context);
+    }
+    comp->own_context = job_own_context;
   }
 
   WM_jobs_customdata_set(wm_job, comp, drw_deferred_shader_compilation_free);
