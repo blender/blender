@@ -67,7 +67,9 @@ typedef struct BrushGpencilSettings {
   short draw_smoothlvl;
   /** Number of times to subdivide new strokes. */
   short draw_subdivide;
-  char _pad[4];
+  /** Layers used for fill. */
+  short fill_layer_mode;
+  char _pad[2];
 
   /** Factor for transparency. */
   float fill_threshold;
@@ -251,6 +253,16 @@ typedef enum eGP_FillDrawModes {
   GP_FILL_DMODE_STROKE = 1,
   GP_FILL_DMODE_CONTROL = 2,
 } eGP_FillDrawModes;
+
+/* BrushGpencilSettings->fill_layer_mode */
+typedef enum eGP_FillLayerModes {
+  GP_FILL_GPLMODE_VISIBLE = 0,
+  GP_FILL_GPLMODE_ACTIVE = 1,
+  GP_FILL_GPLMODE_ALL_ABOVE = 2,
+  GP_FILL_GPLMODE_ALL_BELOW = 3,
+  GP_FILL_GPLMODE_ABOVE = 4,
+  GP_FILL_GPLMODE_BELOW = 5,
+} eGP_FillLayerModes;
 
 /* BrushGpencilSettings->gp_eraser_mode */
 typedef enum eGP_BrushEraserMode {

@@ -1424,6 +1424,11 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
                 row = col.row(align=True)
                 row.prop(gp_settings, "fill_draw_mode", text="Boundary")
                 row.prop(gp_settings, "show_fill_boundary", text="", icon='GRID')
+
+                col.separator()
+                row = col.row(align=True)
+                row.prop(gp_settings, "fill_layer_mode", text="Layers")
+
                 col.separator()
                 col.prop(gp_settings, "fill_factor", text="Resolution")
                 if gp_settings.fill_draw_mode != 'STROKE':

@@ -104,6 +104,8 @@ typedef struct tGPDfill {
   struct bGPdata *gpd;
   /** current material */
   struct Material *mat;
+  /** current brush */
+  struct Brush *brush;
   /** layer */
   struct bGPDlayer *gpl;
   /** frame */
@@ -233,6 +235,8 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
 
   Object *ob = tgpf->ob;
   bGPdata *gpd = tgpf->gpd;
+  Brush *brush = tgpf->brush;
+  BrushGpencilSettings *brush_settings = brush->gpencil_settings;
 
   tGPDdraw tgpw;
   tgpw.rv3d = tgpf->rv3d;
@@ -249,6 +253,12 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
 
   GPU_blend(true);
 
+  bGPDlayer *gpl_active = BKE_gpencil_layer_active_get(gpd);
+  BLI_assert(gpl_active != NULL);
+
+  const int gpl_active_index = BLI_findindex(&gpd->layers, gpl_active);
+  BLI_assert(gpl_active_index >= 0);
+
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     /* calculate parent position */
     BKE_gpencil_parent_matrix_get(tgpw.depsgraph, ob, gpl, tgpw.diff_mat);
@@ -256,6 +266,44 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
     /* do not draw layer if hidden */
     if (gpl->flag & GP_LAYER_HIDE) {
       continue;
+    }
+
+    /* Decide if layer is included or not depending of the layer mode. */
+    const int gpl_index = BLI_findindex(&gpd->layers, gpl);
+    switch (brush_settings->fill_layer_mode) {
+      case GP_FILL_GPLMODE_ACTIVE: {
+        if (gpl_index != gpl_active_index) {
+          continue;
+        }
+        break;
+      }
+      case GP_FILL_GPLMODE_ABOVE: {
+        if (gpl_index != gpl_active_index + 1) {
+          continue;
+        }
+        break;
+      }
+      case GP_FILL_GPLMODE_BELOW: {
+        if (gpl_index != gpl_active_index - 1) {
+          continue;
+        }
+        break;
+      }
+      case GP_FILL_GPLMODE_ALL_ABOVE: {
+        if (gpl_index <= gpl_active_index) {
+          continue;
+        }
+        break;
+      }
+      case GP_FILL_GPLMODE_ALL_BELOW: {
+        if (gpl_index >= gpl_active_index) {
+          continue;
+        }
+        break;
+      }
+      case GP_FILL_GPLMODE_VISIBLE:
+      default:
+        break;
     }
 
     /* if active layer and no keyframe, create a new one */
@@ -1247,6 +1295,7 @@ static tGPDfill *gpencil_session_init_fill(bContext *C, wmOperator *UNUSED(op))
 
   /* save filling parameters */
   Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
+  tgpf->brush = brush;
   tgpf->flag = brush->gpencil_settings->flag;
   tgpf->fill_leak = brush->gpencil_settings->fill_leak;
   tgpf->fill_threshold = brush->gpencil_settings->fill_threshold;
