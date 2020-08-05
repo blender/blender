@@ -467,14 +467,14 @@ short ED_transform_calc_orientation_from_type_ex(const bContext *C,
       return V3D_ORIENT_GLOBAL;
     }
     case V3D_ORIENT_GIMBAL: {
-      if (gimbal_axis(ob, r_mat)) {
+      if (ob && gimbal_axis(ob, r_mat)) {
         return V3D_ORIENT_GIMBAL;
       }
       /* if not gimbal, fall through to normal */
       ATTR_FALLTHROUGH;
     }
     case V3D_ORIENT_NORMAL: {
-      if (obedit || ob->mode & OB_MODE_POSE) {
+      if (obedit || (ob && ob->mode & OB_MODE_POSE)) {
         ED_getTransformOrientationMatrix(C, r_mat, pivot_point);
         return V3D_ORIENT_NORMAL;
       }
