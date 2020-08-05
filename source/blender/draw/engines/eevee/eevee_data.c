@@ -185,7 +185,7 @@ EEVEE_GeometryMotionData *EEVEE_motion_blur_hair_data_get(EEVEE_MotionBlurData *
     key = DEG_get_original_object(ob)->data;
   }
 
-  return motion_blur_geometry_data_get(mb, DEG_get_original_object(ob), true);
+  return motion_blur_geometry_data_get(mb, key, true);
 }
 
 /* View Layer data. */
