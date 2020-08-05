@@ -269,7 +269,13 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
       }
     }
     else {
-      effects->bypass_drawing = true;
+      /* Fix Texture painting (see T79370). */
+      if (DRW_state_is_navigating()) {
+        effects->taa_current_sample = 1;
+      }
+      else {
+        effects->bypass_drawing = true;
+      }
     }
 
     return repro_flag | EFFECT_TAA | EFFECT_DOUBLE_BUFFER | EFFECT_DEPTH_DOUBLE_BUFFER |
