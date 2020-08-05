@@ -4714,3 +4714,9 @@ void BKE_object_to_mesh_clear(Object *object)
   BKE_id_free(NULL, object->runtime.object_as_temp_mesh);
   object->runtime.object_as_temp_mesh = NULL;
 }
+
+void BKE_object_check_uuids_unique_and_report(const Object *object)
+{
+  BKE_pose_check_uuids_unique_and_report(object->pose);
+  BKE_modifier_check_uuids_unique_and_report(object);
+}

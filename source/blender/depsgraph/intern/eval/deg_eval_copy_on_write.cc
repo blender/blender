@@ -292,7 +292,7 @@ bool id_copy_inplace_no_main(const ID *id, ID *newid)
     const ID_Type id_type = GS(id_for_copy->name);
     if (id_type == ID_OB) {
       const Object *object = reinterpret_cast<const Object *>(id_for_copy);
-      BKE_pose_check_uuids_unique_and_report(object->pose);
+      BKE_object_check_uuids_unique_and_report(object);
     }
   }
 

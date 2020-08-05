@@ -5296,6 +5296,8 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
   BLO_read_list(reader, lb);
 
   for (md = lb->first; md; md = md->next) {
+    BKE_modifier_session_uuid_generate(md);
+
     md->error = NULL;
     md->runtime = NULL;
 

@@ -22,6 +22,7 @@
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
+#include "DNA_session_uuid_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,6 +125,11 @@ typedef struct ModifierData {
 
   /* Pointer to a ModifierData in the original domain. */
   struct ModifierData *orig_modifier_data;
+
+  /* Runtime field which contains unique identifier of the modifier. */
+  SessionUUID session_uuid;
+
+  /* Runtime field which contains runtime data which is specific to a modifier type. */
   void *runtime;
 } ModifierData;
 
