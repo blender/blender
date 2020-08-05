@@ -203,6 +203,21 @@ static bool eevee_lightcache_version_check(LightCache *lcache)
   }
 }
 
+static bool eevee_lightcache_can_be_saved(LightCache *lcache)
+{
+  if (lcache->grid_tx.data) {
+    if (MEM_allocN_len(lcache->grid_tx.data) >= INT_MAX) {
+      return false;
+    }
+  }
+  if (lcache->cube_tx.data) {
+    if (MEM_allocN_len(lcache->cube_tx.data) >= INT_MAX) {
+      return false;
+    }
+  }
+  return true;
+}
+
 static int eevee_lightcache_irradiance_sample_count(LightCache *lcache)
 {
   int total_irr_samples = 0;
@@ -243,6 +258,13 @@ void EEVEE_lightcache_info_update(SceneEEVEE *eevee)
     if (lcache->flag & LIGHTCACHE_BAKING) {
       BLI_strncpy(
           eevee->light_cache_info, TIP_("Baking light cache"), sizeof(eevee->light_cache_info));
+      return;
+    }
+
+    if (!eevee_lightcache_can_be_saved(lcache)) {
+      BLI_strncpy(eevee->light_cache_info,
+                  TIP_("Error: LightCache is too large and will not be saved to disk"),
+                  sizeof(eevee->light_cache_info));
       return;
     }
 
