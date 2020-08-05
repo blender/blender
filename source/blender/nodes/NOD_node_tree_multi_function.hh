@@ -251,19 +251,17 @@ class MFNetworkBuilderBase {
  */
 class SocketMFNetworkBuilder : public MFNetworkBuilderBase {
  private:
-  const DSocket *dsocket_ = nullptr;
-  const DGroupInput *group_input_ = nullptr;
   bNodeSocket *bsocket_;
   fn::MFOutputSocket *built_socket_ = nullptr;
 
  public:
   SocketMFNetworkBuilder(CommonMFNetworkBuilderData &common, const DSocket &dsocket)
-      : MFNetworkBuilderBase(common), dsocket_(&dsocket), bsocket_(dsocket.bsocket())
+      : MFNetworkBuilderBase(common), bsocket_(dsocket.bsocket())
   {
   }
 
   SocketMFNetworkBuilder(CommonMFNetworkBuilderData &common, const DGroupInput &group_input)
-      : MFNetworkBuilderBase(common), group_input_(&group_input), bsocket_(group_input.bsocket())
+      : MFNetworkBuilderBase(common), bsocket_(group_input.bsocket())
   {
   }
 

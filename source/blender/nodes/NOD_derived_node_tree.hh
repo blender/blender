@@ -172,7 +172,6 @@ using NodeTreeRefMap = Map<bNodeTree *, std::unique_ptr<const NodeTreeRef>>;
 class DerivedNodeTree : NonCopyable, NonMovable {
  private:
   LinearAllocator<> allocator_;
-  bNodeTree *btree_;
   Vector<DNode *> nodes_by_id_;
   Vector<DGroupInput *> group_inputs_;
   Vector<DParentNode *> parent_nodes_;

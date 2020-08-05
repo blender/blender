@@ -28,7 +28,7 @@ static const NodeTreeRef &get_tree_ref(NodeTreeRefMap &node_tree_refs, bNodeTree
                                           [&]() { return std::make_unique<NodeTreeRef>(btree); });
 }
 
-DerivedNodeTree::DerivedNodeTree(bNodeTree *btree, NodeTreeRefMap &node_tree_refs) : btree_(btree)
+DerivedNodeTree::DerivedNodeTree(bNodeTree *btree, NodeTreeRefMap &node_tree_refs)
 {
   const NodeTreeRef &main_tree_ref = get_tree_ref(node_tree_refs, btree);
 
