@@ -892,6 +892,12 @@ bool UI_but_active_only_ex(
     }
   }
   if ((activate == true) || (found == false)) {
+    /* There might still be another active button. */
+    uiBut *old_active = ui_region_find_active_but(region);
+    if (old_active) {
+      ui_but_active_free(C, old_active);
+    }
+
     ui_but_activate_event((bContext *)C, region, but);
   }
   else if ((found == true) && (isactive == false)) {

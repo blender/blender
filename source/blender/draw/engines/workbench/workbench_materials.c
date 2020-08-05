@@ -231,15 +231,15 @@ DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
       workbench_material_ubo_data(wpd, ob, NULL, &wpd->material_ubo_data_curr[mat_id], color_type);
 
       const bool transp = wpd->shading.xray_alpha < 1.0f || ob->color[3] < 1.0f;
-      DRWShadingGroup *grp = wpd->prepass[transp][infront][datatype].common_shgrp;
+      DRWShadingGroup **grp = &wpd->prepass[transp][infront][datatype].common_shgrp;
       if (resource_changed) {
-        grp = DRW_shgroup_create_sub(grp);
-        DRW_shgroup_uniform_block(grp, "material_block", wpd->material_ubo_curr);
+        *grp = DRW_shgroup_create_sub(*grp);
+        DRW_shgroup_uniform_block(*grp, "material_block", wpd->material_ubo_curr);
       }
       if (r_transp && transp) {
         *r_transp = true;
       }
-      return grp;
+      return *grp;
     }
   }
 }

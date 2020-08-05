@@ -8001,6 +8001,9 @@ static void button_activate_init(bContext *C,
 {
   uiHandleButtonData *data;
 
+  /* Only ever one active button! */
+  BLI_assert(ui_region_find_active_but(region) == NULL);
+
   /* setup struct */
   data = MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData");
   data->wm = CTX_wm_manager(C);
