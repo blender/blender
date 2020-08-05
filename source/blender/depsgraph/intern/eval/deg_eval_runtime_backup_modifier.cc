@@ -23,28 +23,14 @@
 
 #include "intern/eval/deg_eval_runtime_backup_modifier.h"
 
+#include "DNA_modifier_types.h"
+
 namespace blender {
 namespace deg {
 
-ModifierDataBackupID::ModifierDataBackupID(const Depsgraph * /*depsgraph*/)
-    : ModifierDataBackupID(nullptr, eModifierType_None)
+ModifierDataBackup::ModifierDataBackup(ModifierData *modifier_data)
+    : type(static_cast<ModifierType>(modifier_data->type)), runtime(modifier_data->runtime)
 {
-}
-
-ModifierDataBackupID::ModifierDataBackupID(ModifierData *modifier_data, ModifierType type)
-    : modifier_data(modifier_data), type(type)
-{
-}
-
-bool operator==(const ModifierDataBackupID &a, const ModifierDataBackupID &b)
-{
-  return a.modifier_data == b.modifier_data && a.type == b.type;
-}
-
-uint64_t ModifierDataBackupID::hash() const
-{
-  uintptr_t ptr = (uintptr_t)modifier_data;
-  return (ptr >> 4) ^ (uintptr_t)type;
 }
 
 }  // namespace deg

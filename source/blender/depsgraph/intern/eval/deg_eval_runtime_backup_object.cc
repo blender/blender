@@ -62,21 +62,18 @@ void ObjectRuntimeBackup::init_from_object(Object *object)
   backup_pose_channel_runtime_data(object);
 }
 
-inline ModifierDataBackupID create_modifier_data_id(const ModifierData *modifier_data)
-{
-  return ModifierDataBackupID(modifier_data->orig_modifier_data,
-                              static_cast<ModifierType>(modifier_data->type));
-}
-
 void ObjectRuntimeBackup::backup_modifier_runtime_data(Object *object)
 {
   LISTBASE_FOREACH (ModifierData *, modifier_data, &object->modifiers) {
     if (modifier_data->runtime == nullptr) {
       continue;
     }
+
+    const SessionUUID &session_uuid = modifier_data->session_uuid;
+    BLI_assert(BLI_session_uuid_is_generated(&session_uuid));
+
     BLI_assert(modifier_data->orig_modifier_data != nullptr);
-    ModifierDataBackupID modifier_data_id = create_modifier_data_id(modifier_data);
-    modifier_runtime_data.add(modifier_data_id, modifier_data->runtime);
+    modifier_runtime_data.add(session_uuid, ModifierDataBackup(modifier_data));
     modifier_data->runtime = nullptr;
   }
 }
@@ -153,17 +150,17 @@ void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object)
 {
   LISTBASE_FOREACH (ModifierData *, modifier_data, &object->modifiers) {
     BLI_assert(modifier_data->orig_modifier_data != nullptr);
-    ModifierDataBackupID modifier_data_id = create_modifier_data_id(modifier_data);
-    void *runtime = modifier_runtime_data.pop_default(modifier_data_id, nullptr);
-    if (runtime != nullptr) {
-      modifier_data->runtime = runtime;
+    const SessionUUID &session_uuid = modifier_data->session_uuid;
+    optional<ModifierDataBackup> backup = modifier_runtime_data.pop_try(session_uuid);
+    if (backup.has_value()) {
+      modifier_data->runtime = backup->runtime;
     }
   }
 
-  for (ModifierRuntimeDataBackup::Item item : modifier_runtime_data.items()) {
-    const ModifierTypeInfo *modifier_type_info = BKE_modifier_get_info(item.key.type);
+  for (ModifierDataBackup &backup : modifier_runtime_data.values()) {
+    const ModifierTypeInfo *modifier_type_info = BKE_modifier_get_info(backup.type);
     BLI_assert(modifier_type_info != nullptr);
-    modifier_type_info->freeRuntimeData(item.value);
+    modifier_type_info->freeRuntimeData(backup.runtime);
   }
 }
 

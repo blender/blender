@@ -36,6 +36,8 @@ struct Object;
 namespace blender {
 namespace deg {
 
+struct Depsgraph;
+
 class ObjectRuntimeBackup {
  public:
   ObjectRuntimeBackup(const Depsgraph *depsgraph);
@@ -56,7 +58,7 @@ class ObjectRuntimeBackup {
   Object_Runtime runtime;
   short base_flag;
   unsigned short base_local_view_bits;
-  ModifierRuntimeDataBackup modifier_runtime_data;
+  Map<SessionUUID, ModifierDataBackup> modifier_runtime_data;
   Map<SessionUUID, bPoseChannel_Runtime> pose_channel_runtime_data;
 };
 
