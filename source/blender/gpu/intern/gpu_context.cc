@@ -62,6 +62,7 @@ static std::vector<GLuint> orphaned_buffer_ids;
 static std::vector<GLuint> orphaned_texture_ids;
 
 static std::mutex orphans_mutex;
+static std::mutex main_context_mutex;
 
 struct GPUContext {
   GLuint default_vao;
@@ -344,4 +345,14 @@ struct GPUMatrixState *gpu_context_active_matrix_state_get()
 {
   BLI_assert(active_ctx);
   return active_ctx->matrix_state;
+}
+
+void GPU_context_main_lock(void)
+{
+  main_context_mutex.lock();
+}
+
+void GPU_context_main_unlock(void)
+{
+  main_context_mutex.unlock();
 }

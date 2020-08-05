@@ -992,20 +992,8 @@ bool GPU_pass_compile(GPUPass *pass, const char *shname)
         shader = NULL;
       }
     }
-    else if (!BLI_thread_is_main() && GPU_context_local_shaders_workaround()) {
-      pass->binary.content = GPU_shader_get_binary(
-          shader, &pass->binary.format, &pass->binary.len);
-      GPU_shader_free(shader);
-      shader = NULL;
-    }
-
     pass->shader = shader;
     pass->compiled = true;
-  }
-  else if (pass->binary.content && BLI_thread_is_main()) {
-    pass->shader = GPU_shader_load_from_binary(
-        pass->binary.content, pass->binary.format, pass->binary.len, shname);
-    MEM_SAFE_FREE(pass->binary.content);
   }
 
   return success;
@@ -1027,9 +1015,6 @@ static void gpu_pass_free(GPUPass *pass)
   MEM_SAFE_FREE(pass->geometrycode);
   MEM_SAFE_FREE(pass->vertexcode);
   MEM_SAFE_FREE(pass->defines);
-  if (pass->binary.content) {
-    MEM_freeN(pass->binary.content);
-  }
   MEM_freeN(pass);
 }
 

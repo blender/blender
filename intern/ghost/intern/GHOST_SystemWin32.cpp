@@ -1144,9 +1144,13 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
     int r;
     GetKeyboardState((PBYTE)state);
 
+    /* No text with control key pressed. */
+    if (state[VK_CONTROL] & 0x80) {
+      utf8_char[0] = '\0';
+    }
     // Don't call ToUnicodeEx on dead keys as it clears the buffer and so won't allow diacritical
     // composition.
-    if (MapVirtualKeyW(vk, 2) != 0) {
+    else if (MapVirtualKeyW(vk, 2) != 0) {
       // todo: ToUnicodeEx can respond with up to 4 utf16 chars (only 2 here).
       // Could be up to 24 utf8 bytes.
       if ((r = ToUnicodeEx(
