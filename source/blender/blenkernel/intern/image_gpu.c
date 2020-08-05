@@ -381,12 +381,9 @@ static void gpu_free_unused_buffers(void)
 
   BLI_mutex_lock(&gpu_texture_queue_mutex);
 
-  if (gpu_texture_free_queue != NULL) {
-    GPUTexture *tex;
-    while ((tex = (GPUTexture *)BLI_linklist_pop(&gpu_texture_free_queue))) {
-      GPU_texture_free(tex);
-    }
-    gpu_texture_free_queue = NULL;
+  while (gpu_texture_free_queue != NULL) {
+    GPUTexture *tex = BLI_linklist_pop(&gpu_texture_free_queue);
+    GPU_texture_free(tex);
   }
 
   BLI_mutex_unlock(&gpu_texture_queue_mutex);
