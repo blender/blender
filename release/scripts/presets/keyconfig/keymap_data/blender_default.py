@@ -4533,6 +4533,8 @@ def km_mesh(params):
         ("mesh.dissolve_mode", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
         ("mesh.knife_tool", {"type": 'K', "value": 'PRESS'},
          {"properties": [("use_occlude_geometry", True), ("only_selected", False)]}),
+        ("mesh.knife_tool", {"type": 'K', "value": 'PRESS', "shift": True},
+         {"properties": [("use_occlude_geometry", False), ("only_selected", True)]}),
         ("object.vertex_parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
         # Menus.
         op_menu("VIEW3D_MT_edit_mesh_faces", {"type": 'F', "value": 'PRESS', "ctrl": True}),
@@ -4568,8 +4570,6 @@ def km_mesh(params):
             ("mesh.faces_select_linked_flat", {"type": 'F', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
             ("mesh.spin", {"type": 'R', "value": 'PRESS', "alt": True}, None),
             ("mesh.beautify_fill", {"type": 'F', "value": 'PRESS', "shift": True, "alt": True}, None),
-            ("mesh.knife_tool", {"type": 'K', "value": 'PRESS', "shift": True},
-             {"properties": [("use_occlude_geometry", False), ("only_selected", True)]}),
             *_template_items_object_subdivision_set(),
         ])
 
