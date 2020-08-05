@@ -29,6 +29,8 @@
 
 #include "DNA_lightprobe_types.h"
 
+#include "GPU_viewport.h"
+
 #include "BKE_camera.h"
 
 struct EEVEE_ShadowCasterBuffer;
@@ -890,6 +892,7 @@ typedef struct EEVEE_Data {
   EEVEE_TextureList *txl;
   EEVEE_PassList *psl;
   EEVEE_StorageList *stl;
+  char info[GPU_INFO_SIZE];
 } EEVEE_Data;
 
 typedef struct EEVEE_PrivateData {

@@ -23,6 +23,7 @@
 #include "DRW_render.h"
 
 #include "BLI_rand.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_image_types.h"
@@ -161,6 +162,7 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
+  vedata->info[0] = '\0';
 
   if (!e_data.hammersley) {
     EEVEE_shaders_lightprobe_shaders_init();
@@ -176,6 +178,13 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     stl->g_data->light_cache = scene_eval->eevee.light_cache_data;
   }
   else {
+    if (scene_eval->eevee.light_cache_data &&
+        (scene_eval->eevee.light_cache_data->flag & LIGHTCACHE_NOT_USABLE)) {
+      /* Error message info. */
+      BLI_snprintf(
+          vedata->info, sizeof(vedata->info), "Error: LightCache cannot be loaded on this GPU");
+    }
+
     if (!sldata->fallback_lightcache) {
 #if defined(IRRADIANCE_SH_L2)
       int grid_res = 4;
