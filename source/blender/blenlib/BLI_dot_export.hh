@@ -44,9 +44,8 @@ class NodePort;
 class DirectedEdge;
 class UndirectedEdge;
 class Cluster;
-class AttributeList;
 
-class AttributeList {
+class Attributes {
  private:
   Map<std::string, std::string> attributes_;
 
@@ -57,11 +56,15 @@ class AttributeList {
   {
     attributes_.add_overwrite(key, value);
   }
+
+  void set(StringRef key, float value)
+  {
+    attributes_.add_overwrite(key, std::to_string(value));
+  }
 };
 
 class Graph {
  private:
-  AttributeList attributes_;
   Vector<std::unique_ptr<Node>> nodes_;
   Vector<std::unique_ptr<Cluster>> clusters_;
 
@@ -72,19 +75,17 @@ class Graph {
   friend Node;
 
  public:
+  Attributes attributes;
+
+ public:
   Node &new_node(StringRef label);
   Cluster &new_cluster(StringRef label = "");
 
   void export__declare_nodes_and_clusters(std::stringstream &ss) const;
 
-  void set_attribute(StringRef key, StringRef value)
-  {
-    attributes_.set(key, value);
-  }
-
   void set_rankdir(Attr_rankdir rankdir)
   {
-    this->set_attribute("rankdir", rankdir_to_string(rankdir));
+    attributes.set("rankdir", rankdir_to_string(rankdir));
   }
 
   void set_random_cluster_bgcolors();
@@ -92,7 +93,6 @@ class Graph {
 
 class Cluster {
  private:
-  AttributeList attributes_;
   Graph &graph_;
   Cluster *parent_ = nullptr;
   Set<Cluster *> children_;
@@ -101,6 +101,9 @@ class Cluster {
   friend Graph;
   friend Node;
 
+ public:
+  Attributes attributes;
+
   Cluster(Graph &graph) : graph_(graph)
   {
   }
@@ -108,9 +111,9 @@ class Cluster {
  public:
   void export__declare_nodes_and_clusters(std::stringstream &ss) const;
 
-  void set_attribute(StringRef key, StringRef value)
+  std::string name() const
   {
-    attributes_.set(key, value);
+    return "cluster_" + std::to_string((uintptr_t)this);
   }
 
   void set_parent_cluster(Cluster *cluster);
@@ -119,53 +122,52 @@ class Cluster {
     this->set_parent_cluster(&cluster);
   }
 
+  Cluster *parent_cluster()
+  {
+    return parent_;
+  }
+
   void set_random_cluster_bgcolors();
+
+  bool contains(Node &node) const;
 };
 
 class Node {
  private:
-  AttributeList attributes_;
   Graph &graph_;
   Cluster *cluster_ = nullptr;
 
   friend Graph;
+
+ public:
+  Attributes attributes;
 
   Node(Graph &graph) : graph_(graph)
   {
   }
 
  public:
-  const AttributeList &attributes() const
-  {
-    return attributes_;
-  }
-
-  AttributeList &attributes()
-  {
-    return attributes_;
-  }
-
   void set_parent_cluster(Cluster *cluster);
   void set_parent_cluster(Cluster &cluster)
   {
     this->set_parent_cluster(&cluster);
   }
 
-  void set_attribute(StringRef key, StringRef value)
+  Cluster *parent_cluster()
   {
-    attributes_.set(key, value);
+    return cluster_;
   }
 
   void set_shape(Attr_shape shape)
   {
-    this->set_attribute("shape", shape_to_string(shape));
+    attributes.set("shape", shape_to_string(shape));
   }
 
   /* See https://www.graphviz.org/doc/info/attrs.html#k:color. */
   void set_background_color(StringRef name)
   {
-    this->set_attribute("fillcolor", name);
-    this->set_attribute("style", "filled");
+    attributes.set("fillcolor", name);
+    attributes.set("style", "filled");
   }
 
   void export__as_id(std::stringstream &ss) const;
@@ -209,38 +211,35 @@ class NodePort {
 
 class Edge : blender::NonCopyable, blender::NonMovable {
  protected:
-  AttributeList attributes_;
   NodePort a_;
   NodePort b_;
+
+ public:
+  Attributes attributes;
 
  public:
   Edge(NodePort a, NodePort b) : a_(std::move(a)), b_(std::move(b))
   {
   }
 
-  void set_attribute(StringRef key, StringRef value)
-  {
-    attributes_.set(key, value);
-  }
-
   void set_arrowhead(Attr_arrowType type)
   {
-    this->set_attribute("arrowhead", arrowType_to_string(type));
+    attributes.set("arrowhead", arrowType_to_string(type));
   }
 
   void set_arrowtail(Attr_arrowType type)
   {
-    this->set_attribute("arrowtail", arrowType_to_string(type));
+    attributes.set("arrowtail", arrowType_to_string(type));
   }
 
   void set_dir(Attr_dirType type)
   {
-    this->set_attribute("dir", dirType_to_string(type));
+    attributes.set("dir", dirType_to_string(type));
   }
 
   void set_label(StringRef label)
   {
-    this->set_attribute("label", label);
+    attributes.set("label", label);
   }
 };
 
