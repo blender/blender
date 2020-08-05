@@ -674,12 +674,16 @@ static bool gpu_texture_check_capacity(
         break;
       case GL_PROXY_TEXTURE_1D_ARRAY:
       case GL_PROXY_TEXTURE_2D:
+      case GL_PROXY_TEXTURE_CUBE_MAP:
         glTexImage2D(proxy, 0, internalformat, tex->w, tex->h, 0, data_format, data_type, NULL);
         break;
       case GL_PROXY_TEXTURE_2D_ARRAY:
       case GL_PROXY_TEXTURE_3D:
         glTexImage3D(
             proxy, 0, internalformat, tex->w, tex->h, tex->d, 0, data_format, data_type, NULL);
+      case GL_PROXY_TEXTURE_CUBE_MAP_ARRAY_ARB:
+        glTexImage3D(
+            proxy, 0, internalformat, tex->w, tex->h, tex->d * 6, 0, data_format, data_type, NULL);
         break;
     }
     int width = 0;
@@ -705,8 +709,11 @@ static bool gpu_texture_try_alloc(GPUTexture *tex,
   ret = gpu_texture_check_capacity(tex, proxy, internalformat, data_format, data_type);
 
   if (!ret && try_rescale) {
-    BLI_assert(
-        !ELEM(proxy, GL_PROXY_TEXTURE_1D_ARRAY, GL_PROXY_TEXTURE_2D_ARRAY));  // not implemented
+    BLI_assert(!ELEM(proxy,
+                     GL_PROXY_TEXTURE_1D_ARRAY,
+                     GL_PROXY_TEXTURE_2D_ARRAY,
+                     GL_PROXY_TEXTURE_CUBE_MAP,
+                     GL_PROXY_TEXTURE_CUBE_MAP_ARRAY_ARB));  // not implemented
 
     const int w = tex->w, h = tex->h, d = tex->d;
 
@@ -957,10 +964,14 @@ GPUTexture *GPU_texture_cube_create(int w,
   tex->format_flag = GPU_FORMAT_CUBE;
   tex->number = -1;
 
+  GLenum proxy;
+
   if (d == 0) {
+    proxy = GL_PROXY_TEXTURE_CUBE_MAP;
     tex->target_base = tex->target = GL_TEXTURE_CUBE_MAP;
   }
   else {
+    proxy = GL_PROXY_TEXTURE_CUBE_MAP_ARRAY_ARB;
     tex->target_base = tex->target = GL_TEXTURE_CUBE_MAP_ARRAY_ARB;
     tex->format_flag |= GPU_FORMAT_ARRAY;
 
@@ -996,7 +1007,10 @@ GPUTexture *GPU_texture_cube_create(int w,
     return NULL;
   }
 
-  if (G.debug & G_DEBUG_GPU) {
+  bool valid = gpu_texture_try_alloc(
+      tex, proxy, internalformat, data_format, data_type, tex->components, false, NULL, NULL);
+
+  if (G.debug & G_DEBUG_GPU || !valid) {
     printf(
         "GPUTexture: create : %s,\t w : %5d, h : %5d, d : %5d, comp : %4d, size : %.2f "
         "MiB,\t %s\n",
@@ -1007,6 +1021,22 @@ GPUTexture *GPU_texture_cube_create(int w,
         tex->components,
         gpu_texture_memory_footprint_compute(tex) / 1048576.0f,
         gl_enum_to_str(internalformat));
+  }
+
+  if (!valid) {
+    if (err_out) {
+      BLI_strncpy(err_out, "GPUTexture: texture alloc failed\n", 256);
+    }
+    else {
+      fprintf(stderr,
+              "GPUTexture: texture alloc failed. Likely not enough Video Memory or the requested "
+              "size is not supported by the implementation.\n");
+      fprintf(stderr,
+              "Current texture memory usage : %.2f MiB.\n",
+              gpu_texture_memory_footprint_compute(tex) / 1048576.0f);
+    }
+    GPU_texture_free(tex);
+    return NULL;
   }
 
   gpu_texture_memory_footprint_add(tex);
