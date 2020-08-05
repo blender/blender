@@ -237,6 +237,11 @@ class Edge : blender::NonCopyable, blender::NonMovable {
   {
     this->set_attribute("dir", dirType_to_string(type));
   }
+
+  void set_label(StringRef label)
+  {
+    this->set_attribute("label", label);
+  }
 };
 
 class DirectedEdge : public Edge {
