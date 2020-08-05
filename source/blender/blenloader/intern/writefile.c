@@ -2555,7 +2555,12 @@ static void write_lightcache_texture(WriteData *wd, LightCacheTexture *tex)
     else if (tex->data_type == LIGHTCACHETEX_UINT) {
       data_size *= sizeof(uint);
     }
-    writedata(wd, DATA, data_size, tex->data);
+
+    /* FIXME: We can't save more than what 32bit systems can handle.
+     * The solution would be to split the texture but it is too late for 2.90. (see T78529) */
+    if (data_size < INT_MAX) {
+      writedata(wd, DATA, data_size, tex->data);
+    }
   }
 }
 

@@ -6501,7 +6501,7 @@ static void direct_link_lightcache_texture(FileData *fd, LightCacheTexture *lcte
 
   if (lctex->data) {
     lctex->data = newdataadr(fd, lctex->data);
-    if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+    if (lctex->data && fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
       int data_size = lctex->components * lctex->tex_size[0] * lctex->tex_size[1] *
                       lctex->tex_size[2];
 
@@ -6512,6 +6512,10 @@ static void direct_link_lightcache_texture(FileData *fd, LightCacheTexture *lcte
         BLI_endian_switch_uint32_array((uint *)lctex->data, data_size * sizeof(uint));
       }
     }
+  }
+
+  if (lctex->data == NULL) {
+    zero_v3_int(lctex->tex_size);
   }
 }
 
