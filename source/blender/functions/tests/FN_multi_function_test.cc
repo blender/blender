@@ -6,6 +6,7 @@
 #include "FN_multi_function_builder.hh"
 
 namespace blender::fn::tests {
+namespace {
 
 class AddFunction : public MultiFunction {
  public:
@@ -125,7 +126,7 @@ TEST(multi_function, CreateRangeFunction)
 {
   CreateRangeFunction fn;
 
-  GVectorArray ranges(CPPType::get<int32_t>(), 5);
+  GVectorArray ranges(CPPType::get<uint>(), 5);
   GVectorArrayRef<uint> ranges_ref(ranges);
   Array<uint> sizes = {3, 0, 6, 1, 4};
 
@@ -382,4 +383,5 @@ TEST(multi_function, CustomMF_Convert)
   EXPECT_EQ(outputs[2], 9);
 }
 
+}  // namespace
 }  // namespace blender::fn::tests
