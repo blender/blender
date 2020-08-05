@@ -25,6 +25,7 @@ RING_AMOUNT = 10
 offscreen = gpu.types.GPUOffScreen(WIDTH, HEIGHT)
 
 with offscreen.bind():
+    bgl.glClearColor(0.0, 0.0, 0.0, 0.0)
     bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
     with gpu.matrix.push_pop():
         # reset matrices -> use normalized device coordinates [-1, 1]

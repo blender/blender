@@ -20,6 +20,7 @@ from gpu_extras.presets import draw_circle_2d
 offscreen = gpu.types.GPUOffScreen(512, 512)
 
 with offscreen.bind():
+    bgl.glClearColor(0.0, 0.0, 0.0, 0.0)
     bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
     with gpu.matrix.push_pop():
         # reset matrices -> use normalized device coordinates [-1, 1]
