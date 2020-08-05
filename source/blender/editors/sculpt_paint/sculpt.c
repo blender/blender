@@ -8160,6 +8160,14 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
     return;
   }
 
+  if (!ss->deform_modifiers_active) {
+    return;
+  }
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    return;
+  }
+
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   if (!ss->pmap) {

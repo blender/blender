@@ -351,7 +351,6 @@ void SCULPT_cloth_simulation_free(struct SculptClothSimulation *cloth_sim);
 
 void SCULPT_cloth_simulation_limits_draw(const uint gpuattr,
                                          const struct Brush *brush,
-                                         const float obmat[4][4],
                                          const float location[3],
                                          const float normal[3],
                                          const float rds,
@@ -397,6 +396,7 @@ void SCULPT_pose_ik_chain_free(struct SculptPoseIKChain *ik_chain);
 /* Multiplane Scrape Brush. */
 void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,
+                                           Brush *brush,
                                            SculptSession *ss,
                                            const float outline_col[3],
                                            const float outline_alpha);

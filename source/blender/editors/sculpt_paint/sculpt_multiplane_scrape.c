@@ -399,10 +399,15 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
 }
 
 void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,
+                                           Brush *brush,
                                            SculptSession *ss,
                                            const float outline_col[3],
                                            const float outline_alpha)
 {
+  if (!(brush->flag2 & BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW)) {
+    return;
+  }
+
   float local_mat_inv[4][4];
   invert_m4_m4(local_mat_inv, ss->cache->stroke_local_mat);
   GPU_matrix_mul(local_mat_inv);

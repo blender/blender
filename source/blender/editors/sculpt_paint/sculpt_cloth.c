@@ -962,7 +962,6 @@ void SCULPT_cloth_simulation_free(struct SculptClothSimulation *cloth_sim)
 /* Cursor drawing function. */
 void SCULPT_cloth_simulation_limits_draw(const uint gpuattr,
                                          const Brush *brush,
-                                         const float obmat[4][4],
                                          const float location[3],
                                          const float normal[3],
                                          const float rds,
@@ -973,10 +972,11 @@ void SCULPT_cloth_simulation_limits_draw(const uint gpuattr,
   float cursor_trans[4][4], cursor_rot[4][4];
   float z_axis[4] = {0.0f, 0.0f, 1.0f, 0.0f};
   float quat[4];
-  copy_m4_m4(cursor_trans, obmat);
+  unit_m4(cursor_trans);
   translate_m4(cursor_trans, location[0], location[1], location[2]);
   rotation_between_vecs_to_quat(quat, z_axis, normal);
   quat_to_mat4(cursor_rot, quat);
+  GPU_matrix_push();
   GPU_matrix_mul(cursor_trans);
   GPU_matrix_mul(cursor_rot);
 
@@ -986,6 +986,7 @@ void SCULPT_cloth_simulation_limits_draw(const uint gpuattr,
       gpuattr, 0, 0, rds + (rds * brush->cloth_sim_limit * brush->cloth_sim_falloff), 320);
   immUniformColor3fvAlpha(outline_col, alpha * 0.7f);
   imm_draw_circle_wire_3d(gpuattr, 0, 0, rds + rds * brush->cloth_sim_limit, 80);
+  GPU_matrix_pop();
 }
 
 void SCULPT_cloth_plane_falloff_preview_draw(const uint gpuattr,
