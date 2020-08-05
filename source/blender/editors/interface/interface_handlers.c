@@ -1382,6 +1382,9 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
 
 static bool ui_drag_toggle_but_is_supported(const uiBut *but)
 {
+  if (but->flag & UI_BUT_DISABLED) {
+    return false;
+  }
   if (ui_but_is_bool(but)) {
     return true;
   }
