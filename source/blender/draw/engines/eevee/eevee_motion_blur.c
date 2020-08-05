@@ -284,8 +284,8 @@ void EEVEE_motion_blur_hair_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
     /* Store transform  */
     DRW_hair_duplimat_get(ob, psys, md, mb_data->obmat[mb_step]);
 
-    EEVEE_GeometryMotionData *mb_geom = EEVEE_motion_blur_geometry_data_get(
-        &effects->motion_blur, ob, true);
+    EEVEE_GeometryMotionData *mb_geom = EEVEE_motion_blur_hair_data_get(
+        &effects->motion_blur, ob, md);
 
     if (mb_step == MB_CURR) {
       /* Fill missing matrices if the object was hidden in previous or next frame. */
@@ -342,8 +342,8 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
     /* Store transform  */
     copy_m4_m4(mb_data->obmat[mb_step], ob->obmat);
 
-    EEVEE_GeometryMotionData *mb_geom = EEVEE_motion_blur_geometry_data_get(
-        &effects->motion_blur, ob, false);
+    EEVEE_GeometryMotionData *mb_geom = EEVEE_motion_blur_geometry_data_get(&effects->motion_blur,
+                                                                            ob);
 
     if (mb_step == MB_CURR) {
       GPUBatch *batch = DRW_cache_object_surface_get(ob);
