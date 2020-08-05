@@ -317,7 +317,7 @@ void transform_motion_decompose(DecomposedTransform *decomp, const Transform *mo
    *
    * Note that this is very simple and naive implementation, which only deals with degenerated
    * scale happening only on one frame. It is possible to improve it further by interpolating
-   * rotation into s degenerated range using rotation from timesteps from adjacent non-degenerated
+   * rotation into s degenerated range using rotation from time-steps from adjacent non-degenerated
    * time steps. */
   for (size_t i = 0; i < size; i++) {
     const float3 scale = make_float3(decomp[i].y.w, decomp[i].z.w, decomp[i].w.w);

@@ -1618,7 +1618,7 @@ static int prev_adjacent_edge_point_index(const SubdivCCG *subdiv_ccg, const int
   return point_index - 1;
 }
 
-/* When the point index corresponds to a grid corner, returs the point index which corresponds to
+/* When the point index corresponds to a grid corner, returns the point index which corresponds to
  * the corner of the adjacent grid, as the adjacent edge has two separate points for each grid
  * corner at the middle of the edge. */
 static int adjacent_grid_corner_point_index_on_edge(const SubdivCCG *subdiv_ccg,
@@ -1650,7 +1650,7 @@ static void neighbor_coords_edge_get(const SubdivCCG *subdiv_ccg,
   if (include_duplicates) {
     num_duplicates += num_adjacent_faces - 1;
     if (is_corner) {
-      /* When the coord is a grid corner, add an extra duplicate per adajacent grid in all adjacent
+      /* When the coord is a grid corner, add an extra duplicate per adjacent grid in all adjacent
        * faces to the edge. */
       num_duplicates += num_adjacent_faces;
     }

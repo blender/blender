@@ -484,8 +484,8 @@ void ShaderGraph::remove_proxy_nodes()
         vector<ShaderInput *> links(output->links);
 
         foreach (ShaderInput *to, links) {
-          /* remove any autoconvert nodes too if they lead to
-           * sockets with an automatically set default value */
+          /* Remove any auto-convert nodes too if they lead to
+           * sockets with an automatically set default value. */
           ShaderNode *tonode = to->parent;
 
           if (tonode->special_type == SHADER_SPECIAL_TYPE_AUTOCONVERT) {
