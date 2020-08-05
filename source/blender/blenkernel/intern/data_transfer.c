@@ -43,6 +43,7 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
@@ -1467,6 +1468,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   if (!me_src) {
     return changed;
   }
+  BKE_mesh_wrapper_ensure_mdata(me_src);
 
   if (auto_transform) {
     if (space_transform == NULL) {
