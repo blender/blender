@@ -907,7 +907,11 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     if (SCULPT_stroke_is_first_brush_step(ss->cache) || !ss->cache->cloth_sim) {
       const bool is_cloth_deform_brush = SCULPT_is_cloth_deform_brush(brush);
       ss->cache->cloth_sim = cloth_brush_simulation_create(
-          ss, brush, brush->cloth_mass, brush->cloth_damping, brush->flag2 & BRUSH_CLOTH_USE_COLLISIONS);
+          ss,
+          brush,
+          brush->cloth_mass,
+          brush->cloth_damping,
+          (brush->flag2 & BRUSH_CLOTH_USE_COLLISION));
       for (int i = 0; i < totverts; i++) {
         copy_v3_v3(ss->cache->cloth_sim->last_iteration_pos[i], SCULPT_vertex_co_get(ss, i));
         copy_v3_v3(ss->cache->cloth_sim->init_pos[i], SCULPT_vertex_co_get(ss, i));
@@ -1182,7 +1186,8 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   const float cloth_mass = RNA_float_get(op->ptr, "cloth_mass");
   const float cloth_damping = RNA_float_get(op->ptr, "cloth_damping");
   const bool use_collisions = RNA_boolean_get(op->ptr, "use_collisions");
-  ss->filter_cache->cloth_sim = cloth_brush_simulation_create(ss, NULL, cloth_mass, cloth_damping, use_collisions);
+  ss->filter_cache->cloth_sim = cloth_brush_simulation_create(
+      ss, NULL, cloth_mass, cloth_damping, use_collisions);
 
   copy_v3_v3(ss->filter_cache->cloth_sim_pinch_point, SCULPT_active_vertex_co_get(ss));
 
