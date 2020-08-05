@@ -4047,8 +4047,9 @@ static bool write_file_handle(Main *mainvar,
    * avoid thumbnail detecting changes because of this. */
   mywrite_flush(wd);
 
-  OverrideLibraryStorage *override_storage =
-      wd->use_memfile ? NULL : BKE_lib_override_library_operations_store_initialize();
+  OverrideLibraryStorage *override_storage = wd->use_memfile ?
+                                                 NULL :
+                                                 BKE_lib_override_library_operations_store_init();
 
 #define ID_BUFFER_STATIC_SIZE 8192
   /* This outer loop allows to save first data-blocks from real mainvar,
