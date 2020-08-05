@@ -1718,6 +1718,29 @@ static void material_default_volume_init(Material *ma)
   nodeSetActive(ntree, output);
 }
 
+static void material_default_holdout_init(Material *ma)
+{
+  bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
+  ma->nodetree = ntree;
+  ma->use_nodes = true;
+
+  bNode *holdout = nodeAddStaticNode(NULL, ntree, SH_NODE_HOLDOUT);
+  bNode *output = nodeAddStaticNode(NULL, ntree, SH_NODE_OUTPUT_MATERIAL);
+
+  nodeAddLink(ntree,
+              holdout,
+              nodeFindSocket(holdout, SOCK_OUT, "Holdout"),
+              output,
+              nodeFindSocket(output, SOCK_IN, "Surface"));
+
+  holdout->locx = 10.0f;
+  holdout->locy = 300.0f;
+  output->locx = 300.0f;
+  output->locy = 300.0f;
+
+  nodeSetActive(ntree, output);
+}
+
 Material *BKE_material_default_empty(void)
 {
   return &default_material_empty;
@@ -1763,6 +1786,7 @@ void BKE_materials_init(void)
 
   material_default_surface_init(&default_material_surface);
   material_default_volume_init(&default_material_volume);
+  material_default_holdout_init(&default_material_holdout);
   material_default_gpencil_init(&default_material_gpencil);
 }
 
