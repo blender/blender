@@ -83,6 +83,12 @@ set(_GOOGLETEST_DISCOVER_TESTS_SCRIPT
   ${CMAKE_SOURCE_DIR}/build_files/cmake/Modules/GTestAddTests.cmake
 )
 
+if(APPLE)
+  set(_test_release_dir ${TEST_INSTALL_DIR}/Blender.app/Contents/Resources/${BLENDER_VERSION})
+else()
+  set(_test_release_dir ${TEST_INSTALL_DIR}/${BLENDER_VERSION})
+endif()
+
 gtest_discover_tests(blender_test
   WORKING_DIRECTORY "${TEST_INSTALL_DIR}"
 # So that it will run after the install phase that will copy the required libraries
@@ -90,5 +96,7 @@ gtest_discover_tests(blender_test
 # So that unit tests know where to find files:
   EXTRA_ARGS
     --test-assets-dir "${CMAKE_SOURCE_DIR}/../lib/tests"
-    --test-release-dir "${TEST_INSTALL_DIR}/${BLENDER_VERSION}"
+    --test-release-dir "${_test_release_dir}"
 )
+
+unset(_test_release_dir)
