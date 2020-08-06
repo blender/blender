@@ -269,8 +269,9 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
       }
     }
     else {
-      /* Fix Texture painting (see T79370). */
-      if (DRW_state_is_navigating()) {
+      const bool all_shaders_compiled = stl->g_data->queued_shaders_count_prev == 0;
+      /* Fix Texture painting (see T79370) and shader compilation (see T78520). */
+      if (DRW_state_is_navigating() || !all_shaders_compiled) {
         effects->taa_current_sample = 1;
       }
       else {
