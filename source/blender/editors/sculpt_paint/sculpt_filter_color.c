@@ -80,7 +80,7 @@ typedef enum eSculptColorFilterTypes {
   COLOR_FILTER_SMOOTH,
 } eSculptColorFilterTypes;
 
-EnumPropertyItem prop_color_filter_types[] = {
+static EnumPropertyItem prop_color_filter_types[] = {
     {COLOR_FILTER_FILL, "FILL", 0, "Fill", "Fill with a specific color"},
     {COLOR_FILTER_HUE, "HUE", 0, "Hue", "Change hue"},
     {COLOR_FILTER_SATURATION, "SATURATION", 0, "Saturation", "Change saturation"},
