@@ -945,8 +945,14 @@ void Session::set_pause(bool pause_)
     }
   }
 
-  if (notify)
-    pause_cond.notify_all();
+  if (session_thread) {
+    if (notify) {
+      pause_cond.notify_all();
+    }
+  }
+  else if (pause_) {
+    update_status_time(pause_);
+  }
 }
 
 void Session::set_denoising(const DenoiseParams &denoising)

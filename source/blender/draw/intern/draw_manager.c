@@ -1658,7 +1658,6 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
   RenderEngineType *engine_type = engine->type;
-  RenderData *r = &scene->r;
   Render *render = engine->re;
 
   DRW_render_context_enable(render);
@@ -1680,7 +1679,7 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
   drw_context_state_init();
 
   DST.viewport = GPU_viewport_create();
-  const int size[2] = {(r->size * r->xsch) / 100, (r->size * r->ysch) / 100};
+  const int size[2] = {engine->resolution_x, engine->resolution_y};
   GPU_viewport_size_set(DST.viewport, size);
 
   drw_viewport_var_init();
