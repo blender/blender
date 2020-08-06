@@ -643,9 +643,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
   // View2DScrollers *scrollers;
   float col[3];
 
-  /* XXX This is in order to draw UI batches with the DRW
-   * old context since we now use it for drawing the entire area. */
-  gpu_batch_presets_reset();
+  GPU_batch_presets_reset();
 
   GPUViewport *viewport = region->draw_buffer->viewport;
   DefaultFramebufferList *fbl = GPU_viewport_framebuffer_list_get(viewport);
