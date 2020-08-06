@@ -141,6 +141,7 @@ void immBindBuiltinProgram(eGPUBuiltinShader shader_id);
 
 /* Extend immUniformColor to take Blender's themes */
 void immUniformThemeColor(int color_id);
+void immUniformThemeColorAlpha(int color_id, float a);
 void immUniformThemeColor3(int color_id);
 void immUniformThemeColorShade(int color_id, int offset);
 void immUniformThemeColorShadeAlpha(int color_id, int color_offset, int alpha_offset);
