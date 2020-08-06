@@ -545,7 +545,7 @@ static void OVERLAY_forcefield(OVERLAY_ExtraCallBuffers *cb, Object *ob, ViewLay
       if (cu && (cu->flag & CU_PATH) && ob->runtime.curve_cache->path &&
           ob->runtime.curve_cache->path->data) {
         instdata.size_x = instdata.size_y = instdata.size_z = pd->f_strength;
-        float pos[3], tmp[3];
+        float pos[4], tmp[3];
         where_on_path(ob, 0.0f, pos, tmp, NULL, NULL, NULL);
         copy_v3_v3(instdata.pos, ob->obmat[3]);
         translate_m4(instdata.mat, pos[0], pos[1], pos[2]);
