@@ -59,6 +59,7 @@ BlenderSession::BlenderSession(BL::RenderEngine &b_engine,
                                BL::BlendData &b_data,
                                bool preview_osl)
     : session(NULL),
+      scene(NULL),
       sync(NULL),
       b_engine(b_engine),
       b_userpref(b_userpref),
@@ -88,6 +89,7 @@ BlenderSession::BlenderSession(BL::RenderEngine &b_engine,
                                int width,
                                int height)
     : session(NULL),
+      scene(NULL),
       sync(NULL),
       b_engine(b_engine),
       b_userpref(b_userpref),
@@ -970,7 +972,8 @@ void BlenderSession::update_status_progress()
     remaining_time = (1.0 - (double)progress) * (render_time / (double)progress);
 
   if (background) {
-    scene_status += " | " + scene->name;
+    if (scene)
+      scene_status += " | " + scene->name;
     if (b_rlay_name != "")
       scene_status += ", " + b_rlay_name;
 
