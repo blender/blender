@@ -35,6 +35,7 @@ blender_include_dirs(
 set(SRC
   dna_utils.c
   makesdna.c
+  ../../blenlib/intern/BLI_assert.c
   ../../blenlib/intern/BLI_ghash.c
   ../../blenlib/intern/BLI_ghash_utils.c
   ../../blenlib/intern/BLI_memarena.c
@@ -126,6 +127,7 @@ set(INC_SYS
 )
 
 set(SRC
+  ../../blenlib/intern/BLI_assert.c
   ../../blenlib/intern/BLI_ghash.c
   ../../blenlib/intern/BLI_ghash_utils.c
   ../../blenlib/intern/BLI_linklist.c

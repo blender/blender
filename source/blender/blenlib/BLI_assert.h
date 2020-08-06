@@ -30,58 +30,33 @@
 extern "C" {
 #endif
 
-#ifndef NDEBUG /* for BLI_assert */
-#  include <stdio.h>
-#endif
+/* Utility functions. */
+void _BLI_assert_print_pos(const char *file, const int line, const char *function, const char *id);
+void _BLI_assert_print_backtrace(void);
+void _BLI_assert_abort(void);
 
 #ifdef _MSC_VER
 #  include <crtdbg.h> /* for _STATIC_ASSERT */
 #endif
 
-/* BLI_assert(), default only to print
- * for aborting need to define WITH_ASSERT_ABORT
- */
-/* For 'abort' only. */
-#include <stdlib.h>
-
 #ifndef NDEBUG
-#  include "BLI_system.h"
 /* _BLI_ASSERT_PRINT_POS */
 #  if defined(__GNUC__)
-#    define _BLI_ASSERT_PRINT_POS(a) \
-      fprintf(stderr, \
-              "BLI_assert failed: %s:%d, %s(), at \'%s\'\n", \
-              __FILE__, \
-              __LINE__, \
-              __func__, \
-              #a)
+#    define _BLI_ASSERT_PRINT_POS(a) _BLI_assert_print_pos(__FILE__, __LINE__, __func__, #    a)
 #  elif defined(_MSC_VER)
-#    define _BLI_ASSERT_PRINT_POS(a) \
-      fprintf(stderr, \
-              "BLI_assert failed: %s:%d, %s(), at \'%s\'\n", \
-              __FILE__, \
-              __LINE__, \
-              __FUNCTION__, \
-              #a)
+#    define _BLI_ASSERT_PRINT_POS(a) _BLI_assert_print_pos(__FILE__, __LINE__, __func__, #    a)
 #  else
-#    define _BLI_ASSERT_PRINT_POS(a) \
-      fprintf(stderr, "BLI_assert failed: %s:%d, at \'%s\'\n", __FILE__, __LINE__, #a)
+#    define _BLI_ASSERT_PRINT_POS(a) _BLI_assert_print_pos(__FILE__, __LINE__, "<?>", #    a)
 #  endif
 /* _BLI_ASSERT_ABORT */
 #  ifdef WITH_ASSERT_ABORT
-#    ifdef __GNUC__
-/* Cast to remove 'noreturn' attribute since this suppresses missing return statements,
- * allowing changes to debug builds to accidentally to break release builds. */
-#      define _BLI_ASSERT_ABORT ((void (*)(void))(*(((void **)abort))))
-#    else
-#      define _BLI_ASSERT_ABORT abort
-#    endif
+#    define _BLI_ASSERT_ABORT _BLI_assert_abort
 #  else
 #    define _BLI_ASSERT_ABORT() (void)0
 #  endif
 /* BLI_assert */
 #  define BLI_assert(a) \
-    (void)((!(a)) ? ((BLI_system_backtrace(stderr), \
+    (void)((!(a)) ? ((_BLI_assert_print_backtrace(), \
                       _BLI_ASSERT_PRINT_POS(a), \
                       _BLI_ASSERT_ABORT(), \
                       NULL)) : \
