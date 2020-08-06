@@ -28,6 +28,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -35,6 +36,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
+#include "BKE_gpencil.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -180,6 +182,23 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           }
           default:
             break;
+        }
+      }
+    }
+
+    /* Patch first frame for old files. */
+    Scene *scene = bmain->scenes.first;
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->type != OB_GPENCIL) {
+        continue;
+      }
+      bGPdata *gpd = ob->data;
+      LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+        bGPDframe *gpf = gpl->frames.first;
+        if (gpf && gpf->framenum > scene->r.sfra) {
+          bGPDframe *gpf_dup = BKE_gpencil_frame_duplicate(gpf);
+          gpf_dup->framenum = scene->r.sfra;
+          BLI_addhead(&gpl->frames, gpf_dup);
         }
       }
     }
