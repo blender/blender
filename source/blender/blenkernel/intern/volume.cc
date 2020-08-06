@@ -218,7 +218,9 @@ static struct VolumeFileCache {
       cache.erase(entry);
     }
     else if (entry.num_tree_users == 0) {
-      entry.grid->clear();
+      /* Note we replace the grid rather than clearing, so that if there is
+       * any other shared pointer to the grid it will keep the tree. */
+      entry.grid = entry.grid->copyGridWithNewTree();
       entry.is_loaded = false;
     }
   }
@@ -239,15 +241,14 @@ struct VolumeGrid {
   VolumeGrid(const VolumeFileCache::Entry &template_entry) : entry(NULL), is_loaded(false)
   {
     entry = GLOBAL_CACHE.add_metadata_user(template_entry);
-    vdb = entry->grid;
   }
 
-  VolumeGrid(const openvdb::GridBase::Ptr &vdb) : vdb(vdb), entry(NULL), is_loaded(true)
+  VolumeGrid(const openvdb::GridBase::Ptr &grid) : entry(NULL), local_grid(grid), is_loaded(true)
   {
   }
 
   VolumeGrid(const VolumeGrid &other)
-      : vdb(other.vdb), entry(other.entry), is_loaded(other.is_loaded)
+      : entry(other.entry), local_grid(other.local_grid), is_loaded(other.is_loaded)
   {
     if (entry) {
       GLOBAL_CACHE.copy_user(*entry, is_loaded);
@@ -330,7 +331,7 @@ struct VolumeGrid {
   void clear_reference(const char *UNUSED(volume_name))
   {
     /* Clear any reference to a grid in the file cache. */
-    vdb = vdb->copyGridWithNewTree();
+    local_grid = grid()->copyGridWithNewTree();
     if (entry) {
       GLOBAL_CACHE.remove_user(*entry, is_loaded);
       entry = NULL;
@@ -344,7 +345,7 @@ struct VolumeGrid {
      * file cache. Load file grid into memory first if needed. */
     load(volume_name, filepath);
     /* TODO: avoid deep copy if we are the only user. */
-    vdb = vdb->deepCopyGrid();
+    local_grid = grid()->deepCopyGrid();
     if (entry) {
       GLOBAL_CACHE.remove_user(*entry, is_loaded);
       entry = NULL;
@@ -356,7 +357,7 @@ struct VolumeGrid {
   {
     /* Don't use vdb.getName() since it copies the string, we want a pointer to the
      * original so it doesn't get freed out of scope. */
-    openvdb::StringMetadata::ConstPtr name_meta = vdb->getMetadata<openvdb::StringMetadata>(
+    openvdb::StringMetadata::ConstPtr name_meta = grid()->getMetadata<openvdb::StringMetadata>(
         openvdb::GridBase::META_GRID_NAME);
     return (name_meta) ? name_meta->value().c_str() : "";
   }
@@ -371,10 +372,22 @@ struct VolumeGrid {
     }
   }
 
-  /* OpenVDB grid. */
-  openvdb::GridBase::Ptr vdb;
-  /* File cache entry. */
+  const bool grid_is_loaded() const
+  {
+    return is_loaded;
+  }
+
+  const openvdb::GridBase::Ptr &grid() const
+  {
+    return (entry) ? entry->grid : local_grid;
+  }
+
+ protected:
+  /* File cache entry when grid comes directly from a file and may be shared
+   * with other volume datablocks. */
   VolumeFileCache::Entry *entry;
+  /* OpenVDB grid if it's not shared through the file cache. */
+  openvdb::GridBase::Ptr local_grid;
   /* Indicates if the tree has been loaded for this grid. Note that vdb.tree()
    * may actually be loaded by another user while this is false. But only after
    * calling load() and is_loaded changes to true is it safe to access. */
@@ -1047,7 +1060,7 @@ void BKE_volume_grid_unload(const Volume *volume, VolumeGrid *grid)
 bool BKE_volume_grid_is_loaded(const VolumeGrid *grid)
 {
 #ifdef WITH_OPENVDB
-  return grid->is_loaded;
+  return grid->grid_is_loaded();
 #else
   UNUSED_VARS(grid);
   return true;
@@ -1069,7 +1082,7 @@ const char *BKE_volume_grid_name(const VolumeGrid *volume_grid)
 VolumeGridType BKE_volume_grid_type(const VolumeGrid *volume_grid)
 {
 #ifdef WITH_OPENVDB
-  const openvdb::GridBase::Ptr &grid = volume_grid->vdb;
+  const openvdb::GridBase::Ptr &grid = volume_grid->grid();
 
   if (grid->isType<openvdb::FloatGrid>()) {
     return VOLUME_GRID_FLOAT;
@@ -1138,7 +1151,7 @@ int BKE_volume_grid_channels(const VolumeGrid *grid)
 void BKE_volume_grid_transform_matrix(const VolumeGrid *volume_grid, float mat[4][4])
 {
 #ifdef WITH_OPENVDB
-  const openvdb::GridBase::Ptr &grid = volume_grid->vdb;
+  const openvdb::GridBase::Ptr &grid = volume_grid->grid();
   const openvdb::math::Transform &transform = grid->transform();
 
   /* Perspective not supported for now, getAffineMap() will leave out the
@@ -1162,7 +1175,7 @@ bool BKE_volume_grid_bounds(const VolumeGrid *volume_grid, float min[3], float m
 {
 #ifdef WITH_OPENVDB
   /* TODO: we can get this from grid metadata in some cases? */
-  const openvdb::GridBase::Ptr &grid = volume_grid->vdb;
+  const openvdb::GridBase::Ptr &grid = volume_grid->grid();
   BLI_assert(BKE_volume_grid_is_loaded(volume_grid));
 
   openvdb::CoordBBox coordbbox;
@@ -1287,14 +1300,14 @@ void BKE_volume_grid_remove(Volume *volume, VolumeGrid *grid)
 #ifdef WITH_OPENVDB
 openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_metadata(const VolumeGrid *grid)
 {
-  return grid->vdb;
+  return grid->grid();
 }
 
 openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_read(const Volume *volume,
                                                              VolumeGrid *grid)
 {
   BKE_volume_grid_load(volume, grid);
-  return grid->vdb;
+  return grid->grid();
 }
 
 openvdb::GridBase::Ptr BKE_volume_grid_openvdb_for_write(const Volume *volume,
@@ -1310,6 +1323,6 @@ openvdb::GridBase::Ptr BKE_volume_grid_openvdb_for_write(const Volume *volume,
     grid->duplicate_reference(volume_name, grids.filepath);
   }
 
-  return grid->vdb;
+  return grid->grid();
 }
 #endif

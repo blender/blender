@@ -406,4 +406,17 @@ void gpu_batch_presets_exit(void)
   BLI_mutex_end(&g_presets_3d.mutex);
 }
 
+/**
+ * This function only needs to be accessed externally because
+ * we are drawing UI batches with the DRW old context.
+ *
+ * And now we use it for drawing the entire area.
+ *
+ * XXX (Clément) - to cleanup in the upcoming 2.91 refactor.
+ **/
+void GPU_batch_presets_reset()
+{
+  gpu_batch_presets_reset();
+}
+
 /** \} */
