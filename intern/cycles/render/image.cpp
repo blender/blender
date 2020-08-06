@@ -362,9 +362,11 @@ ImageHandle ImageManager::add_image(const string &filename,
   return handle;
 }
 
-ImageHandle ImageManager::add_image(ImageLoader *loader, const ImageParams &params)
+ImageHandle ImageManager::add_image(ImageLoader *loader,
+                                    const ImageParams &params,
+                                    const bool builtin)
 {
-  const int slot = add_image_slot(loader, params, true);
+  const int slot = add_image_slot(loader, params, builtin);
 
   ImageHandle handle;
   handle.tile_slots.push_back(slot);
