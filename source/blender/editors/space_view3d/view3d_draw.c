@@ -668,7 +668,8 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
 
   /* safety border */
   if (ca) {
-    immUniformThemeColorBlend(TH_VIEW_OVERLAY, TH_BACK, 0.25f);
+    GPU_blend(true);
+    immUniformThemeColorAlpha(TH_VIEW_OVERLAY, 0.75f);
 
     if (ca->dtx & CAM_DTX_CENTER) {
       float x3, y3;
@@ -778,6 +779,8 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
        * 2.0f round corner effect was nearly not visible anyway... */
       imm_draw_box_wire_2d(shdr_pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
     }
+
+    GPU_blend(false);
   }
 
   immUnbindProgram();
