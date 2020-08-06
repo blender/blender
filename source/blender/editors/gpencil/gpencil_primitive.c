@@ -412,7 +412,8 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
   }
   else if (tgpi->type == GP_STROKE_POLYLINE) {
     BLI_strncpy(msg_str,
-                TIP_("Line: ESC to cancel, LMB to set, Enter/MMB to confirm, Shift to align"),
+                TIP_("Polyline: ESC to cancel, LMB to set, Enter/MMB to confirm, WHEEL/+- to "
+                     "adjust subdivision number, Shift to align"),
                 UI_MAX_DRAW_STR);
   }
   else if (tgpi->type == GP_STROKE_BOX) {
