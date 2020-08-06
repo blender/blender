@@ -455,6 +455,7 @@ bool CustomData_from_bmeshpoly_test(CustomData *fdata, CustomData *ldata, bool f
 bool CustomData_layer_validate(struct CustomDataLayer *layer,
                                const uint totitems,
                                const bool do_fixes);
+void CustomData_layers__print(struct CustomData *data);
 
 /* External file storage */
 

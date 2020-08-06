@@ -4571,6 +4571,32 @@ bool CustomData_layer_validate(CustomDataLayer *layer, const uint totitems, cons
   return false;
 }
 
+void CustomData_layers__print(CustomData *data)
+{
+  int i;
+  const CustomDataLayer *layer;
+
+  printf("{\n");
+
+  for (i = 0, layer = data->layers; i < data->totlayer; i++, layer++) {
+
+    const char *name = CustomData_layertype_name(layer->type);
+    const int size = CustomData_sizeof(layer->type);
+    const char *structname;
+    int structnum;
+    CustomData_file_write_info(layer->type, &structname, &structnum);
+    printf("        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
+           name,
+           structname,
+           layer->type,
+           (const void *)layer->data,
+           size,
+           (int)(MEM_allocN_len(layer->data) / size));
+  }
+
+  printf("}\n");
+}
+
 /****************************** External Files *******************************/
 
 static void customdata_external_filename(char filename[FILE_MAX],
