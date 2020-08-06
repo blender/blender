@@ -25,6 +25,7 @@
 
 #include <cstdarg>
 
+#include "BLI_dot_export.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_listBase.h"
@@ -41,14 +42,13 @@
 #include "intern/node/deg_node_time.h"
 
 namespace deg = blender::deg;
+namespace dot = blender::dot;
 
 /* ****************** */
 /* Graphviz Debugging */
 
 namespace blender {
 namespace deg {
-
-#define NL "\r\n"
 
 /* Only one should be enabled, defines whether graphviz nodes
  * get colored by individual types or classes.
@@ -158,47 +158,43 @@ static int deg_debug_node_color_index(const Node *node)
 #endif
 }
 
-struct DebugContext {
-  FILE *file;
+struct DotExportContext {
   bool show_tags;
+  dot::DirectedGraph &digraph;
+  Map<const Node *, dot::Node *> nodes_map;
+  Map<const Node *, dot::Cluster *> clusters_map;
 };
 
-static void deg_debug_fprintf(const DebugContext &ctx, const char *fmt, ...)
-    ATTR_PRINTF_FORMAT(2, 3);
-static void deg_debug_fprintf(const DebugContext &ctx, const char *fmt, ...)
+static void deg_debug_graphviz_legend_color(const char *name,
+                                            const char *color,
+                                            std::stringstream &ss)
 {
-  va_list args;
-  va_start(args, fmt);
-  vfprintf(ctx.file, fmt, args);
-  va_end(args);
+
+  ss << "<TR>";
+  ss << "<TD>" << name << "</TD>";
+  ss << "<TD BGCOLOR=\"" << color << "\"></TD>";
+  ss << "</TR>";
 }
 
-static void deg_debug_graphviz_legend_color(const DebugContext &ctx,
-                                            const char *name,
-                                            const char *color)
+static void deg_debug_graphviz_legend(DotExportContext &ctx)
 {
-  deg_debug_fprintf(ctx, "<TR>");
-  deg_debug_fprintf(ctx, "<TD>%s</TD>", name);
-  deg_debug_fprintf(ctx, "<TD BGCOLOR=\"%s\"></TD>", color);
-  deg_debug_fprintf(ctx, "</TR>" NL);
-}
+  dot::Node &legend_node = ctx.digraph.new_node("");
+  legend_node.attributes.set("rank", "sink");
+  legend_node.attributes.set("shape", "none");
+  legend_node.attributes.set("margin", 0);
 
-static void deg_debug_graphviz_legend(const DebugContext &ctx)
-{
-  deg_debug_fprintf(ctx, "{" NL);
-  deg_debug_fprintf(ctx, "rank = sink;" NL);
-  deg_debug_fprintf(ctx, "Legend [shape=none, margin=0, label=<" NL);
-  deg_debug_fprintf(
-      ctx, "  <TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"4\">" NL);
-  deg_debug_fprintf(ctx, "<TR><TD COLSPAN=\"2\"><B>Legend</B></TD></TR>" NL);
+  std::stringstream ss;
+  ss << "<";
+  ss << "<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"4\">";
+  ss << "<TR><TD COLSPAN=\"2\"><B>Legend</B></TD></TR>";
 
 #ifdef COLOR_SCHEME_NODE_CLASS
   const char **colors = deg_debug_colors_light;
-  deg_debug_graphviz_legend_color(ctx, "Operation", colors[4]);
-  deg_debug_graphviz_legend_color(ctx, "Component", colors[1]);
-  deg_debug_graphviz_legend_color(ctx, "ID Node", colors[5]);
-  deg_debug_graphviz_legend_color(ctx, "NOOP", colors[8]);
-  deg_debug_graphviz_legend_color(ctx, "Pinned OP", colors[7]);
+  deg_debug_graphviz_legend_color("Operation", colors[4], ss);
+  deg_debug_graphviz_legend_color("Component", colors[1], ss);
+  deg_debug_graphviz_legend_color("ID Node", colors[5], ss);
+  deg_debug_graphviz_legend_color("NOOP", colors[8], ss);
+  deg_debug_graphviz_legend_color("Pinned OP", colors[7], ss);
 #endif
 
 #ifdef COLOR_SCHEME_NODE_TYPE
@@ -206,18 +202,19 @@ static void deg_debug_graphviz_legend(const DebugContext &ctx)
   for (pair = deg_debug_node_type_color_map; (*pair)[0] >= 0; pair++) {
     DepsNodeFactory *nti = type_get_factory((NodeType)(*pair)[0]);
     deg_debug_graphviz_legend_color(
-        ctx, nti->tname().c_str(), deg_debug_colors_light[(*pair)[1] % deg_debug_max_colors]);
+        ctx, nti->tname().c_str(), deg_debug_colors_light[(*pair)[1] % deg_debug_max_colors], ss);
   }
 #endif
 
-  deg_debug_fprintf(ctx, "</TABLE>" NL);
-  deg_debug_fprintf(ctx, ">" NL);
-  deg_debug_fprintf(ctx, ",fontname=\"%s\"", deg_debug_graphviz_fontname);
-  deg_debug_fprintf(ctx, "];" NL);
-  deg_debug_fprintf(ctx, "}" NL);
+  ss << "</TABLE>";
+  ss << ">";
+  legend_node.attributes.set("label", ss.str());
+  legend_node.attributes.set("fontname", deg_debug_graphviz_fontname);
 }
 
-static void deg_debug_graphviz_node_color(const DebugContext &ctx, const Node *node)
+static void deg_debug_graphviz_node_color(DotExportContext &ctx,
+                                          const Node *node,
+                                          dot::Attributes &dot_attributes)
 {
   const char *color_default = "black";
   const char *color_modified = "orangered4";
@@ -234,10 +231,12 @@ static void deg_debug_graphviz_node_color(const DebugContext &ctx, const Node *n
       }
     }
   }
-  deg_debug_fprintf(ctx, "\"%s\"", color);
+  dot_attributes.set("color", color);
 }
 
-static void deg_debug_graphviz_node_penwidth(const DebugContext &ctx, const Node *node)
+static void deg_debug_graphviz_node_penwidth(DotExportContext &ctx,
+                                             const Node *node,
+                                             dot::Attributes &dot_attributes)
 {
   float penwidth_default = 1.0f;
   float penwidth_modified = 4.0f;
@@ -254,20 +253,20 @@ static void deg_debug_graphviz_node_penwidth(const DebugContext &ctx, const Node
       }
     }
   }
-  deg_debug_fprintf(ctx, "\"%f\"", penwidth);
+  dot_attributes.set("penwidth", penwidth);
 }
 
-static void deg_debug_graphviz_node_fillcolor(const DebugContext &ctx, const Node *node)
+static void deg_debug_graphviz_node_fillcolor(const Node *node, dot::Attributes &dot_attributes)
 {
   const char *defaultcolor = "gainsboro";
   int color_index = deg_debug_node_color_index(node);
   const char *fillcolor = color_index < 0 ?
                               defaultcolor :
                               deg_debug_colors_light[color_index % deg_debug_max_colors];
-  deg_debug_fprintf(ctx, "\"%s\"", fillcolor);
+  dot_attributes.set("fillcolor", fillcolor);
 }
 
-static void deg_debug_graphviz_relation_color(const DebugContext &ctx, const Relation *rel)
+static void deg_debug_graphviz_relation_color(const Relation *rel, dot::DirectedEdge &edge)
 {
   const char *color_default = "black";
   const char *color_cyclic = "red4";   /* The color of crime scene. */
@@ -279,10 +278,10 @@ static void deg_debug_graphviz_relation_color(const DebugContext &ctx, const Rel
   else if (rel->flag & RELATION_FLAG_GODMODE) {
     color = color_godmode;
   }
-  deg_debug_fprintf(ctx, "%s", color);
+  edge.attributes.set("color", color);
 }
 
-static void deg_debug_graphviz_relation_style(const DebugContext &ctx, const Relation *rel)
+static void deg_debug_graphviz_relation_style(const Relation *rel, dot::DirectedEdge &edge)
 {
   const char *style_default = "solid";
   const char *style_no_flush = "dashed";
@@ -294,10 +293,10 @@ static void deg_debug_graphviz_relation_style(const DebugContext &ctx, const Rel
   if (rel->flag & RELATION_FLAG_FLUSH_USER_EDIT_ONLY) {
     style = style_flush_user_only;
   }
-  deg_debug_fprintf(ctx, "%s", style);
+  edge.attributes.set("style", style);
 }
 
-static void deg_debug_graphviz_relation_arrowhead(const DebugContext &ctx, const Relation *rel)
+static void deg_debug_graphviz_relation_arrowhead(const Relation *rel, dot::DirectedEdge &edge)
 {
   const char *shape_default = "normal";
   const char *shape_no_cow = "box";
@@ -311,12 +310,14 @@ static void deg_debug_graphviz_relation_arrowhead(const DebugContext &ctx, const
       shape = shape_no_cow;
     }
   }
-  deg_debug_fprintf(ctx, "%s", shape);
+  edge.attributes.set("arrowhead", shape);
 }
 
-static void deg_debug_graphviz_node_style(const DebugContext &ctx, const Node *node)
+static void deg_debug_graphviz_node_style(DotExportContext &ctx,
+                                          const Node *node,
+                                          dot::Attributes &dot_attributes)
 {
-  const char *base_style = "filled"; /* default style */
+  StringRef base_style = "filled"; /* default style */
   if (ctx.show_tags) {
     if (node->get_class() == NodeClass::OPERATION) {
       OperationNode *op_node = (OperationNode *)node;
@@ -327,95 +328,78 @@ static void deg_debug_graphviz_node_style(const DebugContext &ctx, const Node *n
   }
   switch (node->get_class()) {
     case NodeClass::GENERIC:
-      deg_debug_fprintf(ctx, "\"%s\"", base_style);
+      dot_attributes.set("style", base_style);
       break;
     case NodeClass::COMPONENT:
-      deg_debug_fprintf(ctx, "\"%s\"", base_style);
+      dot_attributes.set("style", base_style);
       break;
     case NodeClass::OPERATION:
-      deg_debug_fprintf(ctx, "\"%s,rounded\"", base_style);
+      dot_attributes.set("style", base_style + ",rounded");
       break;
   }
 }
 
-static void deg_debug_graphviz_node_single(const DebugContext &ctx, const Node *node)
+static void deg_debug_graphviz_node_single(DotExportContext &ctx,
+                                           const Node *node,
+                                           dot::Cluster *parent_cluster)
 {
-  const char *shape = "box";
   string name = node->identifier();
-  deg_debug_fprintf(ctx, "// %s\n", name.c_str());
-  deg_debug_fprintf(ctx, "\"node_%p\"", node);
-  deg_debug_fprintf(ctx, "[");
-  //  deg_debug_fprintf(ctx, "label=<<B>%s</B>>", name);
-  deg_debug_fprintf(ctx, "label=<%s>", name.c_str());
-  deg_debug_fprintf(ctx, ",fontname=\"%s\"", deg_debug_graphviz_fontname);
-  deg_debug_fprintf(ctx, ",fontsize=%f", deg_debug_graphviz_node_label_size);
-  deg_debug_fprintf(ctx, ",shape=%s", shape);
-  deg_debug_fprintf(ctx, ",style=");
-  deg_debug_graphviz_node_style(ctx, node);
-  deg_debug_fprintf(ctx, ",color=");
-  deg_debug_graphviz_node_color(ctx, node);
-  deg_debug_fprintf(ctx, ",fillcolor=");
-  deg_debug_graphviz_node_fillcolor(ctx, node);
-  deg_debug_fprintf(ctx, ",penwidth=");
-  deg_debug_graphviz_node_penwidth(ctx, node);
-  deg_debug_fprintf(ctx, "];" NL);
-  deg_debug_fprintf(ctx, NL);
+
+  dot::Node &dot_node = ctx.digraph.new_node(name);
+  ctx.nodes_map.add_new(node, &dot_node);
+  dot_node.set_parent_cluster(parent_cluster);
+  dot_node.attributes.set("fontname", deg_debug_graphviz_fontname);
+  dot_node.attributes.set("frontsize", deg_debug_graphviz_node_label_size);
+  dot_node.attributes.set("shape", "box");
+
+  deg_debug_graphviz_node_style(ctx, node, dot_node.attributes);
+  deg_debug_graphviz_node_color(ctx, node, dot_node.attributes);
+  deg_debug_graphviz_node_fillcolor(node, dot_node.attributes);
+  deg_debug_graphviz_node_penwidth(ctx, node, dot_node.attributes);
 }
 
-static void deg_debug_graphviz_node_cluster_begin(const DebugContext &ctx, const Node *node)
+static dot::Cluster &deg_debug_graphviz_node_cluster_create(DotExportContext &ctx,
+                                                            const Node *node,
+                                                            dot::Cluster *parent_cluster)
 {
   string name = node->identifier();
-  deg_debug_fprintf(ctx, "// %s\n", name.c_str());
-  deg_debug_fprintf(ctx, "subgraph \"cluster_%p\" {" NL, node);
-  //  deg_debug_fprintf(ctx, "label=<<B>%s</B>>;" NL, name);
-  deg_debug_fprintf(ctx, "label=<%s>;" NL, name.c_str());
-  deg_debug_fprintf(ctx, "fontname=\"%s\";" NL, deg_debug_graphviz_fontname);
-  deg_debug_fprintf(ctx, "fontsize=%f;" NL, deg_debug_graphviz_node_label_size);
-  deg_debug_fprintf(ctx, "margin=\"%d\";" NL, 16);
-  deg_debug_fprintf(ctx, "style=");
-  deg_debug_graphviz_node_style(ctx, node);
-  deg_debug_fprintf(ctx, ";" NL);
-  deg_debug_fprintf(ctx, "color=");
-  deg_debug_graphviz_node_color(ctx, node);
-  deg_debug_fprintf(ctx, ";" NL);
-  deg_debug_fprintf(ctx, "fillcolor=");
-  deg_debug_graphviz_node_fillcolor(ctx, node);
-  deg_debug_fprintf(ctx, ";" NL);
-  deg_debug_fprintf(ctx, "penwidth=");
-  deg_debug_graphviz_node_penwidth(ctx, node);
-  deg_debug_fprintf(ctx, ";" NL);
+  dot::Cluster &cluster = ctx.digraph.new_cluster(name);
+  cluster.set_parent_cluster(parent_cluster);
+  cluster.attributes.set("fontname", deg_debug_graphviz_fontname);
+  cluster.attributes.set("fontsize", deg_debug_graphviz_node_label_size);
+  cluster.attributes.set("margin", 16);
+  deg_debug_graphviz_node_style(ctx, node, cluster.attributes);
+  deg_debug_graphviz_node_color(ctx, node, cluster.attributes);
+  deg_debug_graphviz_node_fillcolor(node, cluster.attributes);
+  deg_debug_graphviz_node_penwidth(ctx, node, cluster.attributes);
   /* dummy node, so we can add edges between clusters */
-  deg_debug_fprintf(ctx, "\"node_%p\"", node);
-  deg_debug_fprintf(ctx, "[");
-  deg_debug_fprintf(ctx, "shape=%s", "point");
-  deg_debug_fprintf(ctx, ",style=%s", "invis");
-  deg_debug_fprintf(ctx, "];" NL);
-  deg_debug_fprintf(ctx, NL);
+  dot::Node &dot_node = ctx.digraph.new_node("");
+  dot_node.attributes.set("shape", "point");
+  dot_node.attributes.set("style", "invis");
+  dot_node.set_parent_cluster(&cluster);
+  ctx.nodes_map.add_new(node, &dot_node);
+  ctx.clusters_map.add_new(node, &cluster);
+  return cluster;
 }
 
-static void deg_debug_graphviz_node_cluster_end(const DebugContext &ctx)
-{
-  deg_debug_fprintf(ctx, "}" NL);
-  deg_debug_fprintf(ctx, NL);
-}
+static void deg_debug_graphviz_graph_nodes(DotExportContext &ctx, const Depsgraph *graph);
+static void deg_debug_graphviz_graph_relations(DotExportContext &ctx, const Depsgraph *graph);
 
-static void deg_debug_graphviz_graph_nodes(const DebugContext &ctx, const Depsgraph *graph);
-static void deg_debug_graphviz_graph_relations(const DebugContext &ctx, const Depsgraph *graph);
-
-static void deg_debug_graphviz_node(const DebugContext &ctx, const Node *node)
+static void deg_debug_graphviz_node(DotExportContext &ctx,
+                                    const Node *node,
+                                    dot::Cluster *parent_cluster)
 {
   switch (node->type) {
     case NodeType::ID_REF: {
       const IDNode *id_node = (const IDNode *)node;
       if (id_node->components.is_empty()) {
-        deg_debug_graphviz_node_single(ctx, node);
+        deg_debug_graphviz_node_single(ctx, node, parent_cluster);
       }
       else {
-        deg_debug_graphviz_node_cluster_begin(ctx, node);
+        dot::Cluster &cluster = deg_debug_graphviz_node_cluster_create(ctx, node, parent_cluster);
         for (const ComponentNode *comp : id_node->components.values()) {
-          deg_debug_graphviz_node(ctx, comp);
+          deg_debug_graphviz_node(ctx, comp, &cluster);
         }
-        deg_debug_graphviz_node_cluster_end(ctx);
       }
       break;
     }
@@ -445,127 +429,72 @@ static void deg_debug_graphviz_node(const DebugContext &ctx, const Node *node)
     case NodeType::GENERIC_DATABLOCK:
     case NodeType::SIMULATION: {
       ComponentNode *comp_node = (ComponentNode *)node;
-      if (!comp_node->operations.is_empty()) {
-        deg_debug_graphviz_node_cluster_begin(ctx, node);
-        for (Node *op_node : comp_node->operations) {
-          deg_debug_graphviz_node(ctx, op_node);
-        }
-        deg_debug_graphviz_node_cluster_end(ctx);
+      if (comp_node->operations.is_empty()) {
+        deg_debug_graphviz_node_single(ctx, node, parent_cluster);
       }
       else {
-        deg_debug_graphviz_node_single(ctx, node);
+        dot::Cluster &cluster = deg_debug_graphviz_node_cluster_create(ctx, node, parent_cluster);
+        for (Node *op_node : comp_node->operations) {
+          deg_debug_graphviz_node(ctx, op_node, &cluster);
+        }
       }
       break;
     }
     case NodeType::UNDEFINED:
     case NodeType::TIMESOURCE:
     case NodeType::OPERATION:
-      deg_debug_graphviz_node_single(ctx, node);
+      deg_debug_graphviz_node_single(ctx, node, parent_cluster);
       break;
     case NodeType::NUM_TYPES:
       break;
   }
 }
 
-static bool deg_debug_graphviz_is_cluster(const Node *node)
-{
-  switch (node->type) {
-    case NodeType::ID_REF: {
-      const IDNode *id_node = (const IDNode *)node;
-      return !id_node->components.is_empty();
-    }
-    case NodeType::PARAMETERS:
-    case NodeType::ANIMATION:
-    case NodeType::TRANSFORM:
-    case NodeType::PROXY:
-    case NodeType::GEOMETRY:
-    case NodeType::SEQUENCER:
-    case NodeType::EVAL_POSE:
-    case NodeType::BONE: {
-      ComponentNode *comp_node = (ComponentNode *)node;
-      return !comp_node->operations.is_empty();
-    }
-    default:
-      return false;
-  }
-}
-
-static bool deg_debug_graphviz_is_owner(const Node *node, const Node *other)
-{
-  switch (node->get_class()) {
-    case NodeClass::COMPONENT: {
-      ComponentNode *comp_node = (ComponentNode *)node;
-      if (comp_node->owner == other) {
-        return true;
-      }
-      break;
-    }
-    case NodeClass::OPERATION: {
-      OperationNode *op_node = (OperationNode *)node;
-      if (op_node->owner == other) {
-        return true;
-      }
-      else if (op_node->owner->owner == other) {
-        return true;
-      }
-      break;
-    }
-    default:
-      break;
-  }
-  return false;
-}
-
-static void deg_debug_graphviz_node_relations(const DebugContext &ctx, const Node *node)
+static void deg_debug_graphviz_node_relations(DotExportContext &ctx, const Node *node)
 {
   for (Relation *rel : node->inlinks) {
     float penwidth = 2.0f;
 
-    const Node *tail = rel->to; /* same as node */
-    const Node *head = rel->from;
-    deg_debug_fprintf(
-        ctx, "// %s -> %s\n", head->identifier().c_str(), tail->identifier().c_str());
-    deg_debug_fprintf(ctx, "\"node_%p\"", head);
-    deg_debug_fprintf(ctx, " -> ");
-    deg_debug_fprintf(ctx, "\"node_%p\"", tail);
+    const Node *head = rel->to; /* same as node */
+    const Node *tail = rel->from;
+    dot::Node &dot_tail = *ctx.nodes_map.lookup(tail);
+    dot::Node &dot_head = *ctx.nodes_map.lookup(head);
 
-    deg_debug_fprintf(ctx, "[");
+    dot::DirectedEdge &edge = ctx.digraph.new_edge(dot_tail, dot_head);
+
     /* Note: without label an id seem necessary to avoid bugs in graphviz/dot */
-    deg_debug_fprintf(ctx, "id=\"%s\"", rel->name);
-    // deg_debug_fprintf(ctx, "label=\"%s\"", rel->name);
-    deg_debug_fprintf(ctx, ",color=");
-    deg_debug_graphviz_relation_color(ctx, rel);
-    deg_debug_fprintf(ctx, ",style=");
-    deg_debug_graphviz_relation_style(ctx, rel);
-    deg_debug_fprintf(ctx, ",arrowhead=");
-    deg_debug_graphviz_relation_arrowhead(ctx, rel);
-    deg_debug_fprintf(ctx, ",penwidth=\"%f\"", penwidth);
+    edge.attributes.set("id", rel->name);
+    deg_debug_graphviz_relation_color(rel, edge);
+    deg_debug_graphviz_relation_style(rel, edge);
+    deg_debug_graphviz_relation_arrowhead(rel, edge);
+    edge.attributes.set("penwidth", penwidth);
+
     /* NOTE: edge from node to own cluster is not possible and gives graphviz
      * warning, avoid this here by just linking directly to the invisible
      * placeholder node. */
-    if (deg_debug_graphviz_is_cluster(tail) && !deg_debug_graphviz_is_owner(head, tail)) {
-      deg_debug_fprintf(ctx, ",ltail=\"cluster_%p\"", tail);
+    dot::Cluster *tail_cluster = ctx.clusters_map.lookup_default(tail, nullptr);
+    if (tail_cluster != nullptr && tail_cluster->contains(dot_head)) {
+      edge.attributes.set("ltail", tail_cluster->name());
     }
-    if (deg_debug_graphviz_is_cluster(head) && !deg_debug_graphviz_is_owner(tail, head)) {
-      deg_debug_fprintf(ctx, ",lhead=\"cluster_%p\"", head);
+    dot::Cluster *head_cluster = ctx.clusters_map.lookup_default(head, nullptr);
+    if (head_cluster != nullptr && head_cluster->contains(dot_tail)) {
+      edge.attributes.set("lhead", head_cluster->name());
     }
-    deg_debug_fprintf(ctx, "];" NL);
-    deg_debug_fprintf(ctx, NL);
   }
 }
 
-static void deg_debug_graphviz_graph_nodes(const DebugContext &ctx, const Depsgraph *graph)
+static void deg_debug_graphviz_graph_nodes(DotExportContext &ctx, const Depsgraph *graph)
 {
   for (Node *node : graph->id_nodes) {
-    deg_debug_graphviz_node(ctx, node);
+    deg_debug_graphviz_node(ctx, node, nullptr);
   }
   TimeSourceNode *time_source = graph->find_time_source();
   if (time_source != nullptr) {
-    deg_debug_graphviz_node(ctx, time_source);
+    deg_debug_graphviz_node(ctx, time_source, nullptr);
   }
 }
 
-static void deg_debug_graphviz_graph_relations(const DebugContext &ctx, const Depsgraph *graph)
+static void deg_debug_graphviz_graph_relations(DotExportContext &ctx, const Depsgraph *graph)
 {
   for (IDNode *id_node : graph->id_nodes) {
     for (ComponentNode *comp_node : id_node->components.values()) {
@@ -592,27 +521,23 @@ void DEG_debug_relations_graphviz(const Depsgraph *graph, FILE *f, const char *l
 
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
 
-  deg::DebugContext ctx;
-  ctx.file = f;
+  dot::DirectedGraph digraph;
+  deg::DotExportContext ctx{false, digraph};
 
-  deg::deg_debug_fprintf(ctx, "digraph depgraph {" NL);
-  deg::deg_debug_fprintf(ctx, "rankdir=LR;" NL);
-  deg::deg_debug_fprintf(ctx, "graph [");
-  deg::deg_debug_fprintf(ctx, "compound=true");
-  deg::deg_debug_fprintf(ctx, ",labelloc=\"t\"");
-  deg::deg_debug_fprintf(ctx, ",fontsize=%f", deg::deg_debug_graphviz_graph_label_size);
-  deg::deg_debug_fprintf(ctx, ",fontname=\"%s\"", deg::deg_debug_graphviz_fontname);
-  deg::deg_debug_fprintf(ctx, ",label=\"%s\"", label);
-  deg::deg_debug_fprintf(ctx, ",splines=ortho");
-  deg::deg_debug_fprintf(ctx, ",overlap=scalexy");  // XXX: only when using neato
-  deg::deg_debug_fprintf(ctx, "];" NL);
+  digraph.set_rankdir(dot::Attr_rankdir::LeftToRight);
+  digraph.attributes.set("compound", "true");
+  digraph.attributes.set("labelloc", "t");
+  digraph.attributes.set("fontsize", deg::deg_debug_graphviz_graph_label_size);
+  digraph.attributes.set("fontname", deg::deg_debug_graphviz_fontname);
+  digraph.attributes.set("label", label);
+  digraph.attributes.set("splines", "ortho");
+  digraph.attributes.set("overlap", "scalexy");
 
   deg::deg_debug_graphviz_graph_nodes(ctx, deg_graph);
   deg::deg_debug_graphviz_graph_relations(ctx, deg_graph);
 
   deg::deg_debug_graphviz_legend(ctx);
 
-  deg::deg_debug_fprintf(ctx, "}" NL);
+  std::string dot_string = digraph.to_dot_string();
+  fprintf(f, "%s", dot_string.c_str());
 }
-
-#undef NL
