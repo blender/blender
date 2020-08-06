@@ -34,6 +34,8 @@
 #include "GPU_context.h"
 #include "GPU_framebuffer.h"
 
+#include "GHOST_C-api.h"
+
 #include "gpu_batch_private.h"
 #include "gpu_context_private.h"
 #include "gpu_matrix_private.h"
@@ -138,12 +140,18 @@ static void orphans_clear(GPUContext *ctx)
   orphans_mutex.unlock();
 }
 
-GPUContext *GPU_context_create(GLuint default_framebuffer)
+GPUContext *GPU_context_create(void *ghost_window)
 {
   /* BLI_assert(thread_is_main()); */
   GPUContext *ctx = new GPUContext;
   glGenVertexArrays(1, &ctx->default_vao);
-  ctx->default_framebuffer = default_framebuffer;
+  if (ghost_window != NULL) {
+    ctx->default_framebuffer = GHOST_GetDefaultOpenGLFramebuffer((GHOST_WindowHandle)ghost_window);
+  }
+  else {
+    ctx->default_framebuffer = 0;
+  }
+
   ctx->matrix_state = GPU_matrix_state_create();
   GPU_context_active_set(ctx);
   return ctx;

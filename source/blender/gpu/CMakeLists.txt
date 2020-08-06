@@ -42,6 +42,7 @@ set(INC
   ../nodes
   ../nodes/intern
 
+  ../../../intern/ghost
   ../../../intern/glew-mx
   ../../../intern/guardedalloc
   ../../../intern/mantaflow/extern

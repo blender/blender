@@ -330,8 +330,7 @@ MainWindow *mainwindow_new(MultiTestApp *app)
   if (win) {
     MainWindow *mw = MEM_callocN(sizeof(*mw), "mainwindow_new");
 
-    GLuint default_fb = GHOST_GetDefaultOpenGLFramebuffer(win);
-    mw->gpu_context = GPU_context_create(default_fb);
+    mw->gpu_context = GPU_context_create(win);
     GPU_init();
 
     mw->app = app;
@@ -587,8 +586,7 @@ LoggerWindow *loggerwindow_new(MultiTestApp *app)
   if (win) {
     LoggerWindow *lw = MEM_callocN(sizeof(*lw), "loggerwindow_new");
 
-    GLuint default_fb = GHOST_GetDefaultOpenGLFramebuffer(win);
-    lw->gpu_context = GPU_context_create(default_fb);
+    lw->gpu_context = GPU_context_create(win);
     GPU_init();
 
     int bbox[2][2];
@@ -788,8 +786,7 @@ ExtraWindow *extrawindow_new(MultiTestApp *app)
   if (win) {
     ExtraWindow *ew = MEM_callocN(sizeof(*ew), "mainwindow_new");
 
-    GLuint default_fb = GHOST_GetDefaultOpenGLFramebuffer(win);
-    ew->gpu_context = GPU_context_create(default_fb);
+    ew->gpu_context = GPU_context_create(win);
     GPU_init();
 
     ew->app = app;
