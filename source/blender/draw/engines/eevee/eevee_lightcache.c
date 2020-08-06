@@ -861,11 +861,6 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
     DRW_view_set_active(view);
   }
 
-  if (sldata->common_ubo == NULL) {
-    sldata->common_ubo = DRW_uniformbuffer_create(sizeof(sldata->common_data),
-                                                  &sldata->common_data);
-  }
-
   /* HACK: set txl->color but unset it before Draw Manager frees it. */
   txl->color = lbake->rt_color;
   int viewport_size[2] = {

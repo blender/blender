@@ -1283,6 +1283,9 @@ bool EEVEE_render_init(EEVEE_Data *vedata,
 void EEVEE_render_view_sync(EEVEE_Data *vedata,
                             struct RenderEngine *engine,
                             struct Depsgraph *depsgraph);
+void EEVEE_render_modules_init(EEVEE_Data *vedata,
+                               struct RenderEngine *engine,
+                               struct Depsgraph *depsgraph);
 void EEVEE_render_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_render_cache(void *vedata,
                         struct Object *ob,

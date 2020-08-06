@@ -37,6 +37,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_screen_types.h"
 
 #include "ED_screen.h"
@@ -325,10 +326,20 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
     return;
   }
 
-  const bool is_dupli = (ob->base_flag & BASE_FROM_DUPLI) != 0;
+  RigidBodyOb *rbo = ob->rigidbody_object;
+
+  /* active rigidbody objects only, as only those are affected by sim. */
+  const bool has_rigidbody = (rbo && (rbo->type == RBO_TYPE_ACTIVE));
+#if 0
   /* For now we assume dupli objects are moving. */
-  const bool object_moves = is_dupli || BKE_object_moves_in_time(ob, true);
-  const bool is_deform = BKE_object_is_deform_modified(DRW_context_state_get()->scene, ob);
+  const bool is_dupli = (ob->base_flag & BASE_FROM_DUPLI) != 0;
+  const bool object_moves = is_dupli || has_rigidbody || BKE_object_moves_in_time(ob, true);
+#else
+  /* BKE_object_moves_in_time does not work in some cases. Better  */
+  const bool object_moves = true;
+#endif
+  const bool is_deform = BKE_object_is_deform_modified(DRW_context_state_get()->scene, ob) ||
+                         (has_rigidbody && (rbo->flag & RBO_FLAG_USE_DEFORM) != 0);
 
   if (!(object_moves || is_deform)) {
     return;
@@ -359,14 +370,6 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
         copy_m4_m4(mb_data->obmat[MB_NEXT], mb_data->obmat[MB_CURR]);
       }
 
-      grp = DRW_shgroup_create(e_data.motion_blur_object_sh, psl->velocity_object);
-      DRW_shgroup_uniform_mat4(grp, "prevModelMatrix", mb_data->obmat[MB_PREV]);
-      DRW_shgroup_uniform_mat4(grp, "currModelMatrix", mb_data->obmat[MB_CURR]);
-      DRW_shgroup_uniform_mat4(grp, "nextModelMatrix", mb_data->obmat[MB_NEXT]);
-      DRW_shgroup_uniform_bool(grp, "useDeform", &mb_geom->use_deform, 1);
-
-      DRW_shgroup_call(grp, batch, ob);
-
       if (mb_geom->use_deform) {
         EEVEE_ObjectEngineData *oedata = EEVEE_object_data_ensure(ob);
         if (!oedata->geom_update) {
@@ -382,6 +385,21 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
         /* Keep to modify later (after init). */
         mb_geom->batch = batch;
       }
+
+      /* Avoid drawing object that has no motions since object_moves is always true. */
+      if (!mb_geom->use_deform && /* Object deformation can happen without transform.  */
+          equals_m4m4(mb_data->obmat[MB_PREV], mb_data->obmat[MB_CURR]) &&
+          equals_m4m4(mb_data->obmat[MB_NEXT], mb_data->obmat[MB_CURR])) {
+        return;
+      }
+
+      grp = DRW_shgroup_create(e_data.motion_blur_object_sh, psl->velocity_object);
+      DRW_shgroup_uniform_mat4(grp, "prevModelMatrix", mb_data->obmat[MB_PREV]);
+      DRW_shgroup_uniform_mat4(grp, "currModelMatrix", mb_data->obmat[MB_CURR]);
+      DRW_shgroup_uniform_mat4(grp, "nextModelMatrix", mb_data->obmat[MB_NEXT]);
+      DRW_shgroup_uniform_bool(grp, "useDeform", &mb_geom->use_deform, 1);
+
+      DRW_shgroup_call(grp, batch, ob);
     }
     else if (is_deform) {
       /* Store vertex position buffer. */
