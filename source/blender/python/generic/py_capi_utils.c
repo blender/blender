@@ -360,7 +360,7 @@ void PyC_StackSpit(void)
   }
 }
 
-void PyC_StackPrint(FILE *fp)
+void PyC_StackPrint(/* FILE */ void *fp)
 {
   PyThreadState *tstate = PyGILState_GetThisThreadState();
   if (tstate != NULL && tstate->frame != NULL) {

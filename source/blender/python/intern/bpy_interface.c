@@ -436,7 +436,7 @@ static void python_script_error_jump_text(struct Text *text)
   }
 }
 
-void BPY_python_backtrace(FILE *fp)
+void BPY_python_backtrace(/* FILE */ void *fp)
 {
   fputs("\n# Python backtrace\n", fp);
   PyC_StackPrint(fp);
