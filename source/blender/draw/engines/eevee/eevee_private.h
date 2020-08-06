@@ -913,6 +913,7 @@ typedef struct EEVEE_PrivateData {
   /* Render Matrices */
   float studiolight_matrix[3][3];
   float overscan, overscan_pixels;
+  float camtexcofac[4];
   float size_orig[2];
 
   /* Mist Settings */
