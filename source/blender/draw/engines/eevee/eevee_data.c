@@ -237,6 +237,11 @@ EEVEE_ViewLayerData *EEVEE_view_layer_data_get(void)
   return (EEVEE_ViewLayerData *)DRW_view_layer_engine_data_get(&draw_engine_eevee_type);
 }
 
+static void eevee_view_layer_init(EEVEE_ViewLayerData *sldata)
+{
+  sldata->common_ubo = DRW_uniformbuffer_create(sizeof(sldata->common_data), NULL);
+}
+
 EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure_ex(struct ViewLayer *view_layer)
 {
   EEVEE_ViewLayerData **sldata = (EEVEE_ViewLayerData **)DRW_view_layer_engine_data_ensure_ex(
@@ -244,6 +249,7 @@ EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure_ex(struct ViewLayer *view_laye
 
   if (*sldata == NULL) {
     *sldata = MEM_callocN(sizeof(**sldata), "EEVEE_ViewLayerData");
+    eevee_view_layer_init(*sldata);
   }
 
   return *sldata;
@@ -256,6 +262,7 @@ EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure(void)
 
   if (*sldata == NULL) {
     *sldata = MEM_callocN(sizeof(**sldata), "EEVEE_ViewLayerData");
+    eevee_view_layer_init(*sldata);
   }
 
   return *sldata;
