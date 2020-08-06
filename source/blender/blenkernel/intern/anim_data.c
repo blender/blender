@@ -505,24 +505,43 @@ static bool animpath_matches_basepath(const char path[], const char basepath[])
   return (path && basepath) && STRPREFIX(path, basepath);
 }
 
+static void animpath_update_basepath(FCurve *fcu,
+                                     const char *old_basepath,
+                                     const char *new_basepath)
+{
+  BLI_assert(animpath_matches_basepath(fcu->rna_path, old_basepath));
+  if (STREQ(old_basepath, new_basepath)) {
+    return;
+  }
+
+  char *new_path = BLI_sprintfN("%s%s", new_basepath, fcu->rna_path + strlen(old_basepath));
+  MEM_freeN(fcu->rna_path);
+  fcu->rna_path = new_path;
+}
+
 /* Move F-Curves in src action to dst action, setting up all the necessary groups
  * for this to happen, but only if the F-Curves being moved have the appropriate
  * "base path".
  * - This is used when data moves from one data-block to another, causing the
  *   F-Curves to need to be moved over too
  */
-void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const char basepath[])
+static void action_move_fcurves_by_basepath(bAction *srcAct,
+                                            bAction *dstAct,
+                                            const char *src_basepath,
+                                            const char *dst_basepath)
 {
   FCurve *fcu, *fcn = NULL;
 
   /* sanity checks */
-  if (ELEM(NULL, srcAct, dstAct, basepath)) {
+  if (ELEM(NULL, srcAct, dstAct, src_basepath, dst_basepath)) {
     if (G.debug & G_DEBUG) {
       CLOG_ERROR(&LOG,
-                 "srcAct: %p, dstAct: %p, basepath: %p has insufficient info to work with",
+                 "srcAct: %p, dstAct: %p, src_basepath: %p, dst_basepath: %p has insufficient "
+                 "info to work with",
                  (void *)srcAct,
                  (void *)dstAct,
-                 (void *)basepath);
+                 (void *)src_basepath,
+                 (void *)dst_basepath);
     }
     return;
   }
@@ -540,7 +559,7 @@ void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const cha
     /* should F-Curve be moved over?
      * - we only need the start of the path to match basepath
      */
-    if (animpath_matches_basepath(fcu->rna_path, basepath)) {
+    if (animpath_matches_basepath(fcu->rna_path, src_basepath)) {
       bActionGroup *agrp = NULL;
 
       /* if grouped... */
@@ -561,6 +580,8 @@ void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const cha
 
       /* perform the migration now */
       action_groups_remove_channel(srcAct, fcu);
+
+      animpath_update_basepath(fcu, src_basepath, dst_basepath);
 
       if (agrp) {
         action_groups_add_channel(dstAct, agrp, fcu);
@@ -594,14 +615,31 @@ void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const cha
   }
 }
 
+static void animdata_move_drivers_by_basepath(AnimData *srcAdt,
+                                              AnimData *dstAdt,
+                                              const char *src_basepath,
+                                              const char *dst_basepath)
+{
+  LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, &srcAdt->drivers) {
+    if (animpath_matches_basepath(fcu->rna_path, src_basepath)) {
+      animpath_update_basepath(fcu, src_basepath, dst_basepath);
+      BLI_remlink(&srcAdt->drivers, fcu);
+      BLI_addtail(&dstAdt->drivers, fcu);
+
+      /* TODO: add depsgraph flushing calls? */
+    }
+  }
+}
+
 /* Transfer the animation data from srcID to dstID where the srcID
  * animation data is based off "basepath", creating new AnimData and
- * associated data as necessary
+ * associated data as necessary.
+ *
+ * basepaths is a list of AnimationBasePathChange.
  */
-void BKE_animdata_separate_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBase *basepaths)
+void BKE_animdata_transfer_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBase *basepaths)
 {
   AnimData *srcAdt = NULL, *dstAdt = NULL;
-  LinkData *ld;
 
   /* sanity checks */
   if (ELEM(NULL, srcID, dstID)) {
@@ -643,35 +681,19 @@ void BKE_animdata_separate_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBa
     }
 
     /* loop over base paths, trying to fix for each one... */
-    for (ld = basepaths->first; ld; ld = ld->next) {
-      const char *basepath = (const char *)ld->data;
-      action_move_fcurves_by_basepath(srcAdt->action, dstAdt->action, basepath);
+    LISTBASE_FOREACH (const AnimationBasePathChange *, basepath_change, basepaths) {
+      action_move_fcurves_by_basepath(srcAdt->action,
+                                      dstAdt->action,
+                                      basepath_change->src_basepath,
+                                      basepath_change->dst_basepath);
     }
   }
 
   /* drivers */
   if (srcAdt->drivers.first) {
-    FCurve *fcu, *fcn = NULL;
-
-    /* check each driver against all the base paths to see if any should go */
-    for (fcu = srcAdt->drivers.first; fcu; fcu = fcn) {
-      fcn = fcu->next;
-
-      /* try each basepath in turn, but stop on the first one which works */
-      for (ld = basepaths->first; ld; ld = ld->next) {
-        const char *basepath = (const char *)ld->data;
-
-        if (animpath_matches_basepath(fcu->rna_path, basepath)) {
-          /* just need to change lists */
-          BLI_remlink(&srcAdt->drivers, fcu);
-          BLI_addtail(&dstAdt->drivers, fcu);
-
-          /* TODO: add depsgraph flushing calls? */
-
-          /* can stop now, as moved already */
-          break;
-        }
-      }
+    LISTBASE_FOREACH (const AnimationBasePathChange *, basepath_change, basepaths) {
+      animdata_move_drivers_by_basepath(
+          srcAdt, dstAdt, basepath_change->src_basepath, basepath_change->dst_basepath);
     }
   }
 }

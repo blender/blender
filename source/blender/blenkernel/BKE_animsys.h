@@ -148,16 +148,17 @@ bool BKE_animdata_fix_paths_remove(struct ID *id, const char *path);
 
 /* -------------------------------------- */
 
+typedef struct AnimationBasePathChange {
+  struct AnimationBasePathChange *next, *prev;
+  const char *src_basepath;
+  const char *dst_basepath;
+} AnimationBasePathChange;
+
 /* Move animation data from src to destination if it's paths are based on basepaths */
-void BKE_animdata_separate_by_basepath(struct Main *bmain,
+void BKE_animdata_transfer_by_basepath(struct Main *bmain,
                                        struct ID *srcID,
                                        struct ID *dstID,
                                        struct ListBase *basepaths);
-
-/* Move F-Curves from src to destination if it's path is based on basepath */
-void action_move_fcurves_by_basepath(struct bAction *srcAct,
-                                     struct bAction *dstAct,
-                                     const char basepath[]);
 
 char *BKE_animdata_driver_path_hack(struct bContext *C,
                                     struct PointerRNA *ptr,
