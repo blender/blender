@@ -2887,7 +2887,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "userjit");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 0, 1000);
-  RNA_def_property_ui_text(prop, "P/F", "Emission locations / face (0 = automatic)");
+  RNA_def_property_ui_text(prop, "Particles/Face", "Emission locations per face (0 = automatic)");
   RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
   prop = RNA_def_property(srna, "grid_resolution", PROP_INT, PROP_UNSIGNED);

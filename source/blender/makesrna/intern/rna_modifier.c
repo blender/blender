@@ -302,7 +302,7 @@ const EnumPropertyItem rna_enum_modifier_triangulate_quad_method_items[] = {
     {MOD_TRIANGULATE_QUAD_BEAUTY,
      "BEAUTY",
      0,
-     "Beauty ",
+     "Beauty",
      "Split the quads in nice triangles, slower method"},
     {MOD_TRIANGULATE_QUAD_FIXED,
      "FIXED",
@@ -5960,7 +5960,7 @@ static void rna_def_modifier_triangulate(BlenderRNA *brna)
 static void rna_def_modifier_meshcache(BlenderRNA *brna)
 {
   static const EnumPropertyItem prop_format_type_items[] = {
-      {MOD_MESHCACHE_TYPE_MDD, "MDD", 0, "MDD ", ""},
+      {MOD_MESHCACHE_TYPE_MDD, "MDD", 0, "MDD", ""},
       {MOD_MESHCACHE_TYPE_PC2, "PC2", 0, "PC2", ""},
       {0, NULL, 0, NULL, NULL},
   };
@@ -5981,7 +5981,7 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem prop_interpolation_type_items[] = {
-      {MOD_MESHCACHE_INTERP_NONE, "NONE", 0, "None ", ""},
+      {MOD_MESHCACHE_INTERP_NONE, "NONE", 0, "None", ""},
       {MOD_MESHCACHE_INTERP_LINEAR, "LINEAR", 0, "Linear", ""},
       /* for cardinal we'd need to read 4x cache's */
       // {MOD_MESHCACHE_INTERP_CARDINAL, "CARDINAL", 0, "Cardinal", ""},

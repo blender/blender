@@ -164,7 +164,7 @@ void MESH_OT_knife_project(wmOperatorType *ot)
   /* description */
   ot->name = "Knife Project";
   ot->idname = "MESH_OT_knife_project";
-  ot->description = "Use other objects outlines & boundaries to project knife cuts";
+  ot->description = "Use other objects outlines and boundaries to project knife cuts";
 
   /* callbacks */
   ot->exec = knifeproject_exec;

@@ -1681,7 +1681,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.001, 1.0);
   RNA_def_property_ui_range(prop, 0.01, 1.0, 0.05, -1);
   RNA_def_property_ui_text(prop,
-                           "Obstacle-Fluid Threshold ",
+                           "Obstacle-Fluid Threshold",
                            "Determines how much fluid is allowed in an obstacle cell "
                            "(higher values will tag a boundary cell as an obstacle easier "
                            "and reduce the boundary smoothening effect)");
