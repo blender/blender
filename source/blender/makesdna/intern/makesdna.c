@@ -54,6 +54,7 @@
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
 #include "BLI_sys_types.h" /* for intptr_t support */
+#include "BLI_system.h"    /* for 'BLI_system_backtrace' stub. */
 #include "BLI_utildefines.h"
 
 #include "dna_utils.h"

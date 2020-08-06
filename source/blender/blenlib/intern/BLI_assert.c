@@ -14,27 +14,38 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_ALLOCA_H__
-#define __BLI_ALLOCA_H__
-
 /** \file
  * \ingroup bli
  *
- * Defines alloca and utility macro BLI_array_alloca
+ * Helper functions for BLI_assert.h header.
  */
 
-/* BLI_array_alloca / alloca */
+#include "BLI_assert.h" /* Own include. */
+#include "BLI_system.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
-#if defined(__GNUC__) || defined(__clang__)
-#  if defined(__cplusplus) && (__cplusplus > 199711L)
-#    define BLI_array_alloca(arr, realsize) (decltype(arr)) alloca(sizeof(*arr) * (realsize))
-#  else
-#    define BLI_array_alloca(arr, realsize) (typeof(arr)) alloca(sizeof(*arr) * (realsize))
-#  endif
-#else
-#  define BLI_array_alloca(arr, realsize) alloca(sizeof(*arr) * (realsize))
-#endif
+void _BLI_assert_print_pos(const char *file, int line, const char *function, const char *id)
+{
+  fprintf(stderr, "BLI_assert failed: %s:%d, %s(), at \'%s\'\n", file, line, function, id);
+}
 
-#endif /* __BLI_ALLOCA_H__ */
+void _BLI_assert_print_backtrace(void)
+{
+#ifndef NDEBUG
+  BLI_system_backtrace(stderr);
+#endif
+}
+
+/**
+ * Wrap to remove 'noreturn' attribute since this suppresses missing return statements,
+ * allowing changes to debug builds to accidentally to break release builds.
+ *
+ * For example `BLI_assert(0);` at the end of a function that returns a value,
+ * will hide that it's missing a return.
+ */
+void _BLI_assert_abort(void)
+{
+  abort();
+}
