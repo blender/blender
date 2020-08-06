@@ -1612,8 +1612,9 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
   /* Main inactive cursor. */
   paint_cursor_draw_main_inactive_cursor(pcontext);
 
-  /* Cloth brush simulation areas. */
-  if (brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
+  /* Cloth brush local simulation areas. */
+  if (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
+      brush->cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_LOCAL) {
     const float white[3] = {1.0f, 1.0f, 1.0f};
     const float zero_v[3] = {0.0f};
     /* This functions sets its own drawing space in order to draw the simulation limits when the
@@ -1691,9 +1692,10 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
       SCULPT_cloth_plane_falloff_preview_draw(
           pcontext->pos, ss, pcontext->outline_col, pcontext->outline_alpha);
     }
-    else if (brush->cloth_force_falloff_type == BRUSH_CLOTH_FORCE_FALLOFF_RADIAL) {
+    else if (brush->cloth_force_falloff_type == BRUSH_CLOTH_FORCE_FALLOFF_RADIAL &&
+             brush->cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_LOCAL) {
       /* Display the simulation limits if sculpting outside them. */
-      /* This does not makes much sense of plane fallof as the fallof is infinte. */
+      /* This does not makes much sense of plane fallof as the fallof is infinte or global. */
 
       if (len_v3v3(ss->cache->true_location, ss->cache->true_initial_location) >
           ss->cache->radius * (1.0f + brush->cloth_sim_limit)) {

@@ -108,6 +108,11 @@ static float cloth_brush_simulation_falloff_get(const Brush *brush,
                                                 const float location[3],
                                                 const float co[3])
 {
+  /* Global simulation does not have any falloff as the entire mesh is being simulated. */
+  if (brush->cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_GLOBAL) {
+    return 1.0f;
+  }
+
   const float distance = len_v3v3(location, co);
   const float limit = radius + (radius * brush->cloth_sim_limit);
   const float falloff = radius + (radius * brush->cloth_sim_limit * brush->cloth_sim_falloff);
@@ -249,7 +254,11 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
     radius_squared = ss->cache->initial_radius * ss->cache->initial_radius;
   }
 
-  const float cloth_sim_radius_squared = data->cloth_sim_radius * data->cloth_sim_radius;
+  /* Only limit the contraint creation to a radius when the simulation is local. */
+  const float cloth_sim_radius_squared = brush->cloth_simulation_area_type ==
+                                                 BRUSH_CLOTH_SIMULATION_AREA_LOCAL ?
+                                             data->cloth_sim_radius * data->cloth_sim_radius :
+                                             FLT_MAX;
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {

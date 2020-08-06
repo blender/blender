@@ -656,9 +656,12 @@ def brush_settings(layout, context, brush, popover=False):
 
         elif sculpt_tool == 'CLOTH':
             layout.separator()
-            layout.prop(brush, "cloth_sim_limit")
-            layout.prop(brush, "cloth_sim_falloff")
-            layout.prop(brush, "use_cloth_pin_simulation_boundary")
+            layout.prop(brush, "cloth_simulation_area_type")
+            if brush.cloth_simulation_area_type == 'LOCAL':
+                layout.prop(brush, "cloth_sim_limit")
+                layout.prop(brush, "cloth_sim_falloff")
+                layout.prop(brush, "use_cloth_pin_simulation_boundary")
+
             layout.separator()
             layout.prop(brush, "cloth_deform_type")
             layout.prop(brush, "cloth_force_falloff_type")
