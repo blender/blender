@@ -3688,7 +3688,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
         row = layout.row()
 
         if is_vert_mode:
-            col = row.column()
+            col = row.column(align=True)
 
             col.label(text="Vertex Context Menu", icon='VERTEXSEL')
             col.separator()
@@ -3738,7 +3738,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
         if is_edge_mode:
             render = context.scene.render
 
-            col = row.column()
+            col = row.column(align=True)
             col.label(text="Edge Context Menu", icon='EDGESEL')
             col.separator()
 
@@ -3806,7 +3806,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.operator("mesh.delete", text="Delete Edges").type = 'EDGE'
 
         if is_face_mode:
-            col = row.column()
+            col = row.column(align=True)
 
             col.label(text="Face Context Menu", icon='FACESEL')
             col.separator()
