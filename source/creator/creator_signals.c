@@ -59,6 +59,10 @@
 
 #  include <signal.h>
 
+#  ifdef WITH_PYTHON
+#    include "BPY_extern.h" /* BPY_python_backtrace */
+#  endif
+
 #  include "creator_intern.h" /* own include */
 
 // #define USE_WRITE_CRASH_BLEND
@@ -173,6 +177,11 @@ static void sig_handle_crash(int signum)
     }
 
     sig_handle_crash_backtrace(fp);
+
+#  ifdef WITH_PYTHON
+    /* Generate python back-trace if Python is currently active. */
+    BPY_python_backtrace(fp);
+#  endif
 
     fclose(fp);
   }

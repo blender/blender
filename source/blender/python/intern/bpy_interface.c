@@ -438,6 +438,12 @@ static void python_script_error_jump_text(struct Text *text)
   }
 }
 
+void BPY_python_backtrace(FILE *fp)
+{
+  fputs("\n# Python backtrace\n", fp);
+  PyC_StackPrint(fp);
+}
+
 /* super annoying, undo _PyModule_Clear(), bug [#23871] */
 #define PYMODULE_CLEAR_WORKAROUND
 
