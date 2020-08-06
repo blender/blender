@@ -41,6 +41,8 @@ extern "C" {
 
 typedef struct GPUViewport GPUViewport;
 
+struct GPUFrameBuffer;
+
 /* Contains memory pools information */
 typedef struct ViewportMemoryPool {
   struct BLI_memblock *commands;
@@ -150,6 +152,9 @@ GPUTexture *GPU_viewport_texture_pool_query(
 
 bool GPU_viewport_engines_data_validate(GPUViewport *viewport, void **engine_handle_array);
 void GPU_viewport_cache_release(GPUViewport *viewport);
+
+struct GPUFrameBuffer *GPU_viewport_framebuffer_default_get(GPUViewport *viewport);
+struct GPUFrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewport);
 
 #ifdef __cplusplus
 }

@@ -1036,3 +1036,15 @@ void GPU_viewport_free(GPUViewport *viewport)
 
   MEM_freeN(viewport);
 }
+
+GPUFrameBuffer *GPU_viewport_framebuffer_default_get(GPUViewport *viewport)
+{
+  DefaultFramebufferList *fbl = GPU_viewport_framebuffer_list_get(viewport);
+  return fbl->default_fb;
+}
+
+GPUFrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewport)
+{
+  DefaultFramebufferList *fbl = GPU_viewport_framebuffer_list_get(viewport);
+  return fbl->overlay_fb;
+}
