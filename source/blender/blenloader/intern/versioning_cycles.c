@@ -1447,7 +1447,7 @@ void do_versions_after_linking_cycles(Main *bmain)
           if (is_fstop) {
             continue;
           }
-          else if (aperture_size > 0.0f) {
+          if (aperture_size > 0.0f) {
             if (camera->type == CAM_ORTHO) {
               camera->dof.aperture_fstop = 1.0f / (2.0f * aperture_size);
             }

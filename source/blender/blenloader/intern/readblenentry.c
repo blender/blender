@@ -102,28 +102,27 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
     if (bhead->code == ENDB) {
       break;
     }
-    else {
-      const short *sp = fd->filesdna->structs[bhead->SDNAnr];
-      const char *name = fd->filesdna->types[sp[0]];
-      char buf[4];
 
-      buf[0] = (bhead->code >> 24) & 0xFF;
-      buf[1] = (bhead->code >> 16) & 0xFF;
-      buf[2] = (bhead->code >> 8) & 0xFF;
-      buf[3] = (bhead->code >> 0) & 0xFF;
+    const short *sp = fd->filesdna->structs[bhead->SDNAnr];
+    const char *name = fd->filesdna->types[sp[0]];
+    char buf[4];
 
-      buf[0] = buf[0] ? buf[0] : ' ';
-      buf[1] = buf[1] ? buf[1] : ' ';
-      buf[2] = buf[2] ? buf[2] : ' ';
-      buf[3] = buf[3] ? buf[3] : ' ';
+    buf[0] = (bhead->code >> 24) & 0xFF;
+    buf[1] = (bhead->code >> 16) & 0xFF;
+    buf[2] = (bhead->code >> 8) & 0xFF;
+    buf[3] = (bhead->code >> 0) & 0xFF;
 
-      fprintf(fp,
-              "['%.4s', '%s', %d, %ld ],\n",
-              buf,
-              name,
-              bhead->nr,
-              (long int)(bhead->len + sizeof(BHead)));
-    }
+    buf[0] = buf[0] ? buf[0] : ' ';
+    buf[1] = buf[1] ? buf[1] : ' ';
+    buf[2] = buf[2] ? buf[2] : ' ';
+    buf[3] = buf[3] ? buf[3] : ' ';
+
+    fprintf(fp,
+            "['%.4s', '%s', %d, %ld ],\n",
+            buf,
+            name,
+            bhead->nr,
+            (long int)(bhead->len + sizeof(BHead)));
   }
   fprintf(fp, "]\n");
 }
@@ -268,7 +267,7 @@ LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
     if (bhead->code == ENDB) {
       break;
     }
-    else if (BKE_idtype_idcode_is_valid(bhead->code)) {
+    if (BKE_idtype_idcode_is_valid(bhead->code)) {
       if (BKE_idtype_idcode_is_linkable(bhead->code)) {
         const char *str = BKE_idtype_idcode_to_name(bhead->code);
 

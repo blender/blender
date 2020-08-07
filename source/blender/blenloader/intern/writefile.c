@@ -240,9 +240,8 @@ static bool ww_open_none(WriteWrap *ww, const char *filepath)
     FILE_HANDLE(ww) = file;
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 static bool ww_close_none(WriteWrap *ww)
 {
@@ -267,9 +266,8 @@ static bool ww_open_zlib(WriteWrap *ww, const char *filepath)
     FILE_HANDLE(ww) = file;
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 static bool ww_close_zlib(WriteWrap *ww)
 {

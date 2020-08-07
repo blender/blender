@@ -242,7 +242,7 @@ static void do_version_action_editor_properties_region(ListBase *regionbase)
       /* already exists */
       return;
     }
-    else if (region->regiontype == RGN_TYPE_WINDOW) {
+    if (region->regiontype == RGN_TYPE_WINDOW) {
       /* add new region here */
       ARegion *arnew = MEM_callocN(sizeof(ARegion), "buttons for action");
 
@@ -377,9 +377,8 @@ static char *replace_bbone_easing_rnapath(char *old_path)
     MEM_freeN(old_path);
     return new_path;
   }
-  else {
-    return old_path;
-  }
+
+  return old_path;
 }
 
 static void do_version_bbone_easing_fcurve_fix(ID *UNUSED(id),
