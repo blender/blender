@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_SCANFILL_H__
-#define __BLI_SCANFILL_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -130,6 +129,4 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

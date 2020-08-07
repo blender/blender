@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_AVERAGE_AREA_GRID_DENSITY_PROVIDER_H__
-#define __FREESTYLE_AVERAGE_AREA_GRID_DENSITY_PROVIDER_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -63,5 +62,3 @@ class AverageAreaGridDensityProviderFactory : public GridDensityProviderFactory 
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_AVERAGE_AREA_GRID_DENSITY_PROVIDER_H__

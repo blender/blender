@@ -20,8 +20,7 @@
  * \ingroup draw
  */
 
-#ifndef __DRAW_INSTANCE_DATA_H__
-#define __DRAW_INSTANCE_DATA_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
@@ -55,5 +54,3 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist);
 void DRW_instance_data_list_reset(DRWInstanceDataList *idatalist);
 void DRW_instance_data_list_free_unused(DRWInstanceDataList *idatalist);
 void DRW_instance_data_list_resize(DRWInstanceDataList *idatalist);
-
-#endif /* __DRAW_INSTANCE_DATA_H__ */

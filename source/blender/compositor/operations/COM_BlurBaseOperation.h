@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_BLURBASEOPERATION_H__
-#define __COM_BLURBASEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
@@ -77,4 +77,3 @@ class BlurBaseOperation : public NodeOperation, public QualityStepHelper {
 
   void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 };
-#endif

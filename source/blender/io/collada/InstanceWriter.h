@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __INSTANCEWRITER_H__
-#define __INSTANCEWRITER_H__
+#pragma once
 
 #include "COLLADASWBindMaterial.h"
 
@@ -31,5 +30,3 @@ class InstanceWriter {
                              Object *ob,
                              bool active_uv_only);
 };
-
-#endif

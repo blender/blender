@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_EFFECT_TYPES_H__
-#define __DNA_EFFECT_TYPES_H__
+#pragma once
 
 /* don't forget, new effects also in writefile.c for dna!!! */
 
@@ -130,5 +129,3 @@ typedef struct WaveEff {
   float timeoffs, lifetime;
 
 } WaveEff;
-
-#endif

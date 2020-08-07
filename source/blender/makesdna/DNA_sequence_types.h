@@ -28,8 +28,7 @@
  * - Meta Strip (SEQ_TYPE_META): Support for nesting Sequences.
  */
 
-#ifndef __DNA_SEQUENCE_TYPES_H__
-#define __DNA_SEQUENCE_TYPES_H__
+#pragma once
 
 #include "DNA_color_types.h"
 #include "DNA_defs.h"
@@ -696,5 +695,3 @@ enum {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DNA_SEQUENCE_TYPES_H__ */

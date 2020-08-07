@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_EDITMESH_CACHE_H__
-#define __BKE_EDITMESH_CACHE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -41,5 +40,3 @@ bool BKE_editmesh_cache_calc_minmax(struct BMEditMesh *em,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_EDITMESH_CACHE_H__ */

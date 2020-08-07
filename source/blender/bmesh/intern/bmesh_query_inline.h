@@ -18,8 +18,7 @@
  * \ingroup bmesh
  */
 
-#ifndef __BMESH_QUERY_INLINE_H__
-#define __BMESH_QUERY_INLINE_H__
+#pragma once
 
 /**
  * Returns whether or not a given vertex is
@@ -152,5 +151,3 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE bool BM_vert_is_wire_endpoint
   }
   return false;
 }
-
-#endif /* __BMESH_QUERY_INLINE_H__ */

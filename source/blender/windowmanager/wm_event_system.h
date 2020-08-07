@@ -21,8 +21,7 @@
  * \ingroup wm
  */
 
-#ifndef __WM_EVENT_SYSTEM_H__
-#define __WM_EVENT_SYSTEM_H__
+#pragma once
 
 /* return value of handler-operator call */
 #define WM_HANDLER_CONTINUE 0
@@ -172,5 +171,3 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __WM_EVENT_SYSTEM_H__ */

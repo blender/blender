@@ -18,8 +18,7 @@
  * \ingroup wm
  */
 
-#ifndef __WM_MESSAGE_BUS_H__
-#define __WM_MESSAGE_BUS_H__
+#pragma once
 
 #include "RNA_types.h"
 #include <stdio.h>
@@ -294,5 +293,3 @@ void WM_msg_publish_ID(struct wmMsgBus *mbus, struct ID *id);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __WM_MESSAGE_BUS_H__ */

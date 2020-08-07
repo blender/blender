@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_HASH_MM2A_H__
-#define __BLI_HASH_MM2A_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -47,5 +46,3 @@ uint32_t BLI_hash_mm2(const unsigned char *data, size_t len, uint32_t seed);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_HASH_MM2A_H__ */

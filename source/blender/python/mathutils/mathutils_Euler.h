@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __MATHUTILS_EULER_H__
-#define __MATHUTILS_EULER_H__
+#pragma once
 
 /** \file
  * \ingroup pymathutils
@@ -50,5 +49,3 @@ PyObject *Euler_CreatePyObject_cb(PyObject *cb_user,
                                   unsigned char cb_subtype) ATTR_WARN_UNUSED_RESULT;
 
 short euler_order_from_string(const char *str, const char *error_prefix);
-
-#endif /* __MATHUTILS_EULER_H__ */

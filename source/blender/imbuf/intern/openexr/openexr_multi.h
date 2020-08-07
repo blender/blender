@@ -21,8 +21,7 @@
  * \ingroup openexr
  */
 
-#ifndef __OPENEXR_MULTI_H__
-#define __OPENEXR_MULTI_H__
+#pragma once
 
 /* experiment with more advanced exr api */
 
@@ -99,5 +98,3 @@ bool IMB_exr_has_multilayer(void *handle);
 #ifdef __cplusplus
 }  // extern "C"
 #endif
-
-#endif /* __OPENEXR_MULTI_H */

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PBVH_INTERN_H__
-#define __PBVH_INTERN_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -235,5 +234,3 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,
                                     bool use_original);
 
 void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode);
-
-#endif

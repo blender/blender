@@ -21,8 +21,7 @@
  * \ingroup nodes
  */
 
-#ifndef __NOD_SOCKET_H__
-#define __NOD_SOCKET_H__
+#pragma once
 
 #include "DNA_listBase.h"
 
@@ -58,5 +57,3 @@ void register_standard_node_socket_types(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __NOD_SOCKET_H__ */

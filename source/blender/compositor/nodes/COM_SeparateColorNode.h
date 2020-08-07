@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_SEPARATECOLORNODE_H__
-#define __COM_SEPARATECOLORNODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -65,5 +64,3 @@ class SeparateYUVANode : public SeparateColorNode {
 
   NodeOperation *getColorConverter(const CompositorContext &context) const;
 };
-
-#endif

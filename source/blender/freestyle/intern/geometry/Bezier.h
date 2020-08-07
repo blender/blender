@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BEZIER_H__
-#define __BEZIER_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -92,5 +91,3 @@ class BezierCurve {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __BEZIER_H__

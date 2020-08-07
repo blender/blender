@@ -21,8 +21,7 @@
  * \ingroup edinterface
  */
 
-#ifndef __INTERFACE_INTERN_H__
-#define __INTERFACE_INTERN_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_rect.h"
@@ -1078,5 +1077,3 @@ bool ui_jump_to_target_button_poll(struct bContext *C);
 
 /* interface_queries.c */
 void ui_interface_tag_script_reload_queries(void);
-
-#endif /* __INTERFACE_INTERN_H__ */

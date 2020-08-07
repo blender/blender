@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_CHAIN_H__
-#define __FREESTYLE_CHAIN_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -109,5 +108,3 @@ class Chain : public Curve {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_CHAIN_H__

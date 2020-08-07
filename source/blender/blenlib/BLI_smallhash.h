@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_SMALLHASH_H__
-#define __BLI_SMALLHASH_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -81,5 +80,3 @@ double BLI_smallhash_calc_quality(SmallHash *sh);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_SMALLHASH_H__ */

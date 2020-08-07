@@ -23,8 +23,7 @@
  * This is external code.
  */
 
-#ifndef __AVI_ENDIAN_H__
-#define __AVI_ENDIAN_H__
+#pragma once
 
 #define AVI_RAW 0
 #define AVI_CHUNK 1
@@ -36,5 +35,3 @@
 #define AVI_MJPEGU 7
 
 void awrite(AviMovie *movie, void *datain, int block, int size, FILE *fp, int type);
-
-#endif /* __AVI_ENDIAN_H__ */

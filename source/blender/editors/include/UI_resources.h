@@ -21,8 +21,7 @@
  * \ingroup editorui
  */
 
-#ifndef __UI_RESOURCES_H__
-#define __UI_RESOURCES_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 
@@ -458,5 +457,3 @@ void UI_make_axis_color(const unsigned char *src_col, unsigned char *dst_col, co
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __UI_RESOURCES_H__ */

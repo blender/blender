@@ -27,8 +27,7 @@
  * Hmm. I thought the two formats would have more in common!
  */
 
-#ifndef __LOGIMAGECORE_H__
-#define __LOGIMAGECORE_H__
+#pragma once
 
 #include <stdio.h>
 
@@ -295,5 +294,3 @@ BLI_INLINE unsigned int float_uint(float value, unsigned int max)
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __LOGIMAGECORE_H__ */

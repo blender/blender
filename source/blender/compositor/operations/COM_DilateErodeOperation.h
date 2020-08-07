@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_DILATEERODEOPERATION_H__
-#define __COM_DILATEERODEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class DilateErodeThresholdOperation : public NodeOperation {
@@ -180,5 +180,3 @@ class ErodeStepOperation : public DilateStepOperation {
 
   void *initializeTileData(rcti *rect);
 };
-
-#endif

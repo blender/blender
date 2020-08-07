@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_IMAGE_H__
-#define __ED_IMAGE_H__
+#pragma once
 
 #include "DNA_listBase.h"
 #include "DNA_space_types.h"
@@ -157,5 +156,3 @@ ListBase ED_image_filesel_detect_sequences(struct Main *bmain,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_IMAGE_H__ */

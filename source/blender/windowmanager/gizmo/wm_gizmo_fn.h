@@ -20,8 +20,7 @@
  * Callback function definitions, needed for both Types & API headers.
  */
 
-#ifndef __WM_GIZMO_FN_H__
-#define __WM_GIZMO_FN_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
 
@@ -92,5 +91,3 @@ typedef struct wmGizmoPropertyFnParams {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __WM_GIZMO_FN_H__ */

@@ -21,8 +21,7 @@
  * \ingroup spnode
  */
 
-#ifndef __NODE_INTERN_H__
-#define __NODE_INTERN_H__
+#pragma once
 
 #include "BKE_node.h"
 #include "UI_interface.h"
@@ -301,5 +300,3 @@ enum eNodeSpace_ButEvents {
   B_NODE_LOADIMAGE,
   B_NODE_SETIMAGE,
 };
-
-#endif /* __NODE_INTERN_H__ */

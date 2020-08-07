@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_SETALPHAOPERATION_H__
-#define __COM_SETALPHAOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 /**
@@ -43,4 +43,3 @@ class SetAlphaOperation : public NodeOperation {
   void initExecution();
   void deinitExecution();
 };
-#endif

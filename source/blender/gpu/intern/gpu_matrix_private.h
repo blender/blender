@@ -18,8 +18,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_MATRIX_PRIVATE_H__
-#define __GPU_MATRIX_PRIVATE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,5 +30,3 @@ void GPU_matrix_state_discard(struct GPUMatrixState *state);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_MATRIX_PRIVATE_H__ */

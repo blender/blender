@@ -20,8 +20,7 @@
  * BMesh inline operator functions.
  */
 
-#ifndef __BMESH_OPERATOR_API_INLINE_H__
-#define __BMESH_OPERATOR_API_INLINE_H__
+#pragma once
 
 /* tool flag API. never, ever ever should tool code put junk in
  * header flags (element->head.flag), nor should they use
@@ -236,5 +235,3 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
 
   return NULL;
 }
-
-#endif /* __BMESH_OPERATOR_API_INLINE_H__ */

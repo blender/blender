@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_TRANSLATEOPERATION_H__
-#define __COM_TRANSLATEOPERATION_H__
+#pragma once
 
 #include "COM_NodeOperation.h"
 
@@ -65,5 +64,3 @@ class TranslateOperation : public NodeOperation {
 
   void setFactorXY(float factorX, float factorY);
 };
-
-#endif

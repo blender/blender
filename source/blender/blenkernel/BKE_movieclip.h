@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_MOVIECLIP_H__
-#define __BKE_MOVIECLIP_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -131,6 +130,4 @@ void BKE_movieclip_eval_selection_update(struct Depsgraph *depsgraph, struct Mov
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

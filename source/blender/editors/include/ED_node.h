@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_NODE_H__
-#define __ED_NODE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -127,5 +126,3 @@ bool ED_space_node_color_sample(struct Main *bmain,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_NODE_H__ */

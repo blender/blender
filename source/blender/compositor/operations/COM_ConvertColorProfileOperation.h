@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_CONVERTCOLORPROFILEOPERATION_H__
-#define __COM_CONVERTCOLORPROFILEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 /**
@@ -80,4 +80,3 @@ class ConvertColorProfileOperation : public NodeOperation {
     this->m_predivided = predivided;
   }
 };
-#endif

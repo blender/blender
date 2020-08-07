@@ -21,8 +21,7 @@
  * \ingroup blf
  */
 
-#ifndef __BLF_INTERNAL_H__
-#define __BLF_INTERNAL_H__
+#pragma once
 
 struct FontBLF;
 struct GlyphBLF;
@@ -151,5 +150,3 @@ extern FT_Error FT_New_Face__win32_compat(FT_Library library,
                                           FT_Face *aface);
 #  endif
 #endif
-
-#endif /* __BLF_INTERNAL_H__ */

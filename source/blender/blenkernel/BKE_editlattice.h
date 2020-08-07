@@ -18,8 +18,7 @@
  * \ingroup bke
  */
 
-#ifndef __BKE_EDITLATTICE_H__
-#define __BKE_EDITLATTICE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,5 +33,3 @@ void BKE_editlattice_load(struct Object *obedit);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_EDITLATTICE_H__ */

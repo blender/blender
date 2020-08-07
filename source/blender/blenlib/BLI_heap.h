@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_HEAP_H__
-#define __BLI_HEAP_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -61,5 +60,3 @@ bool BLI_heap_is_valid(const Heap *heap);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_HEAP_H__ */

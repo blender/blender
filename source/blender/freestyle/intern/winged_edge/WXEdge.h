@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_WX_EDGE_H__
-#define __FREESTYLE_WX_EDGE_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -845,5 +844,3 @@ bool WXVertex::isFeature()
 }
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_WX_EDGE_H__

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_ITERATOR_H__
-#define __FREESTYLE_ITERATOR_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -73,5 +72,3 @@ class Iterator {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_ITERATOR_H__

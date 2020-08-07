@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_MULTILAYERIMAGEOPERATION_H__
-#define __COM_MULTILAYERIMAGEOPERATION_H__
+#pragma once
 
 #include "COM_ImageOperation.h"
 
@@ -67,5 +66,3 @@ class MultilayerVectorOperation : public MultilayerBaseOperation {
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
-#endif

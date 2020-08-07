@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_STROKE_REP_H__
-#define __FREESTYLE_STROKE_REP_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -278,5 +277,3 @@ class StrokeRep {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_STROKE_REP_H__

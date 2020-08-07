@@ -22,8 +22,7 @@
  * \brief ID and Library types, which are fundamental for sdna.
  */
 
-#ifndef __DNA_ID_H__
-#define __DNA_ID_H__
+#pragma once
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
@@ -819,6 +818,4 @@ enum {
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

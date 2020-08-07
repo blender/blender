@@ -21,8 +21,7 @@
  * \ingroup wm
  */
 
-#ifndef __WM_H__
-#define __WM_H__
+#pragma once
 
 struct ARegion;
 struct ReportList;
@@ -103,6 +102,4 @@ void wm_open_init_use_scripts(wmOperator *op, bool use_prefs);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

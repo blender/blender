@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_MEMBLOCK_H__
-#define __BLI_MEMBLOCK_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -63,5 +62,3 @@ void *BLI_memblock_elem_get(BLI_memblock *mblk, int chunk, int elem) ATTR_WARN_U
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MEMBLOCK_H__ */

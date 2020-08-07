@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __IMAGEEXPORTER_H__
-#define __IMAGEEXPORTER_H__
+#pragma once
 
 #include <string>
 #include <vector>
@@ -47,5 +46,3 @@ class ImagesExporter : COLLADASW::LibraryImages {
   KeyImageMap &key_image_map;
   void export_UV_Image(Image *image, bool use_texture_copies);
 };
-
-#endif

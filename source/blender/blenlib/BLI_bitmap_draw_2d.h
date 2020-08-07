@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_BITMAP_DRAW_2D_H__
-#define __BLI_BITMAP_DRAW_2D_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -48,5 +47,3 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_BITMAP_DRAW_2D_H__ */

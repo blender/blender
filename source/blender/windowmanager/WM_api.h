@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
  */
-#ifndef __WM_API_H__
-#define __WM_API_H__
+#pragma once
 
 /** \file
  * \ingroup wm
@@ -904,5 +903,3 @@ bool WM_xr_session_state_viewer_pose_matrix_info_get(const wmXrData *xr,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __WM_API_H__ */

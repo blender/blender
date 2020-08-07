@@ -48,8 +48,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef __DIRECTDRAWSURFACE_H__
-#define __DIRECTDRAWSURFACE_H__
+#pragma once
 
 #include <ColorBlock.h>
 #include <Common.h>
@@ -184,5 +183,3 @@ void mem_read(Stream &mem, DDSPixelFormat &pf);
 void mem_read(Stream &mem, DDSCaps &caps);
 void mem_read(Stream &mem, DDSHeader &header);
 void mem_read(Stream &mem, DDSHeader10 &header);
-
-#endif /* __DIRECTDRAWSURFACE_H__ */

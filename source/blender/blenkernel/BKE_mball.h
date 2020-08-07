@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_MBALL_H__
-#define __BKE_MBALL_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -91,6 +90,4 @@ extern void (*BKE_mball_batch_cache_free_cb)(struct MetaBall *mb);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

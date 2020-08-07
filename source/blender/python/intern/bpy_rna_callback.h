@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BPY_RNA_CALLBACK_H__
-#define __BPY_RNA_CALLBACK_H__
+#pragma once
 
 /** \file
  * \ingroup pythonintern
@@ -39,5 +38,3 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *cls, PyObject *args);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_RNA_CALLBACK_H__ */

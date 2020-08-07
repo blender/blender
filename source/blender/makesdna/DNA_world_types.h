@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_WORLD_TYPES_H__
-#define __DNA_WORLD_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_defs.h"
@@ -111,5 +110,3 @@ enum {
  * otherwise anim-editors will not read correctly
  */
 #define WO_DS_SHOW_TEXS (1 << 2)
-
-#endif

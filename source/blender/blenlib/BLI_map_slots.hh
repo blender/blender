@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_MAP_SLOTS_HH__
-#define __BLI_MAP_SLOTS_HH__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -357,5 +356,3 @@ template<typename Key, typename Value> struct DefaultMapSlot<Key *, Value> {
 };
 
 }  // namespace blender
-
-#endif /* __BLI_MAP_SLOTS_HH__ */

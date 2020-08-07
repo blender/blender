@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_IPO_H__
-#define __BKE_IPO_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -36,6 +35,4 @@ void do_versions_ipos_to_animato(struct Main *main);
 
 #ifdef __cplusplus
 };
-#endif
-
 #endif

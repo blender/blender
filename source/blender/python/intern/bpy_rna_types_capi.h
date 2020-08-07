@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_RNA_TYPES_CAPI_H__
-#define __BPY_RNA_TYPES_CAPI_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,5 +29,3 @@ void BPY_rna_types_extend_capi(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_RNA_TYPES_CAPI_H__ */

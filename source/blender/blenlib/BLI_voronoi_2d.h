@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_VORONOI_2D_H__
-#define __BLI_VORONOI_2D_H__
+#pragma once
 
 struct ListBase;
 
@@ -81,5 +80,3 @@ void BLI_voronoi_triangulate(const VoronoiSite *sites,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_VORONOI_2D_H__ */

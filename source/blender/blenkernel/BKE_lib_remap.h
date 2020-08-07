@@ -13,8 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef __BKE_LIB_REMAP_H__
-#define __BKE_LIB_REMAP_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -113,5 +112,3 @@ void BKE_library_callback_remap_editor_id_reference_set(
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_LIB_REMAP_H__ */

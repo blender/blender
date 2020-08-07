@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_CONTEXT_FUNCTIONS_H__
-#define __FREESTYLE_CONTEXT_FUNCTIONS_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -106,5 +105,3 @@ FEdge *GetSelectedFEdgeCF();
 }  // end of namespace ContextFunctions
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_CONTEXT_FUNCTIONS_H__

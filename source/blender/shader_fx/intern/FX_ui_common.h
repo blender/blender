@@ -18,8 +18,7 @@
  * \ingroup modifiers
  */
 
-#ifndef __FX_UI_COMMON_H__
-#define __FX_UI_COMMON_H__
+#pragma once
 
 #include "FX_shader_types.h"
 
@@ -52,5 +51,3 @@ struct PanelType *shaderfx_subpanel_register(struct ARegionType *region_type,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FX_UI_COMMON_H__ */

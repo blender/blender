@@ -23,8 +23,7 @@
  * Also handles DPX files (almost)
  */
 
-#ifndef __CINEONLIB_H__
-#define __CINEONLIB_H__
+#pragma once
 
 #include "logImageCore.h"
 
@@ -135,5 +134,3 @@ LogImageFile *cineonCreate(
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __CINEONLIB_H__ */

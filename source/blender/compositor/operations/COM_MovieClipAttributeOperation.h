@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_MOVIECLIPATTRIBUTEOPERATION_H__
-#define __COM_MOVIECLIPATTRIBUTEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 #include "DNA_movieclip_types.h"
 
@@ -70,4 +70,3 @@ class MovieClipAttributeOperation : public NodeOperation {
     this->m_invert = invert;
   }
 };
-#endif

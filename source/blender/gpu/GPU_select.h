@@ -21,8 +21,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_SELECT_H__
-#define __GPU_SELECT_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 
@@ -62,6 +61,4 @@ void GPU_select_buffer_stride_realign(const struct rcti *src, const struct rcti 
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

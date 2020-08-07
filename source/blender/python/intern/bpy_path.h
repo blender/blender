@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_PATH_H__
-#define __BPY_PATH_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,6 +28,4 @@ PyObject *BPyInit__bpy_path(void);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

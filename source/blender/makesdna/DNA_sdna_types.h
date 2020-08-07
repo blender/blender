@@ -20,8 +20,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_SDNA_TYPES_H__
-#define __DNA_SDNA_TYPES_H__
+#pragma once
 
 struct MemArena;
 
@@ -101,5 +100,3 @@ typedef struct BHead8 {
   int64_t old;
   int SDNAnr, nr;
 } BHead8;
-
-#endif

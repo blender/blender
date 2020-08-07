@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_TIMEIT_HH__
-#define __BLI_TIMEIT_HH__
+#pragma once
 
 #include <chrono>
 #include <iostream>
@@ -56,5 +55,3 @@ class ScopedTimer {
 }  // namespace blender::timeit
 
 #define SCOPED_TIMER(name) blender::timeit::ScopedTimer scoped_timer(name)
-
-#endif /* __BLI_TIMEIT_HH__ */

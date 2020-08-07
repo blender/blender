@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_COLLECTION_H__
-#define __BKE_COLLECTION_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -255,5 +254,3 @@ void BKE_scene_objects_iterator_end(struct BLI_Iterator *iter);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_COLLECTION_H__ */

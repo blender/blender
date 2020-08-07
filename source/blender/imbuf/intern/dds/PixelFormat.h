@@ -48,8 +48,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef __PIXELFORMAT_H__
-#define __PIXELFORMAT_H__
+#pragma once
 
 #include "Common.h"
 
@@ -126,5 +125,3 @@ inline float quantizeFloor(float f, int bits)
 #endif
 
 }  // namespace PixelFormat
-
-#endif /* __PIXELFORMAT_H__ */

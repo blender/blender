@@ -16,8 +16,7 @@
  * Copyright 2012, Blender Foundation.
  */
 
-#ifndef __COM_KEYINGOPERATION_H__
-#define __COM_KEYINGOPERATION_H__
+#pragma once
 
 #include <string.h>
 
@@ -48,5 +47,3 @@ class KeyingOperation : public NodeOperation {
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
-#endif

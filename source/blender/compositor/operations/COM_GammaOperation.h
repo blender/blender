@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_GAMMAOPERATION_H__
-#define __COM_GAMMAOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class GammaOperation : public NodeOperation {
@@ -46,4 +46,3 @@ class GammaOperation : public NodeOperation {
    */
   void deinitExecution();
 };
-#endif

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_COMPILER_TYPECHECK_H__
-#define __BLI_COMPILER_TYPECHECK_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -692,5 +691,3 @@
 /* clang-format on */
 
 #define GENERIC_TYPE_ANY(...) VA_NARGS_CALL_OVERLOAD(_VA_GENERIC_TYPE_ANY, __VA_ARGS__)
-
-#endif /* __BLI_COMPILER_TYPECHECK_H__ */

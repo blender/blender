@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __IO_ALEMBIC_H__
-#define __IO_ALEMBIC_H__
+#pragma once
 
 /** \file
  * \ingroup editor/io
@@ -28,5 +27,3 @@ struct wmOperatorType;
 
 void WM_OT_alembic_export(struct wmOperatorType *ot);
 void WM_OT_alembic_import(struct wmOperatorType *ot);
-
-#endif /* __IO_ALEMBIC_H__ */

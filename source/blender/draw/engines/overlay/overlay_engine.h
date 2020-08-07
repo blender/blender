@@ -20,9 +20,6 @@
  * \ingroup draw_engine
  */
 
-#ifndef __OVERLAY_ENGINE_H__
-#define __OVERLAY_ENGINE_H__
+#pragma once
 
 extern DrawEngineType draw_engine_overlay_type;
-
-#endif /* __OVERLAY_ENGINE_H__ */

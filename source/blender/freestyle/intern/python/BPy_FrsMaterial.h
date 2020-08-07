@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_FRSMATERIAL_H__
-#define __FREESTYLE_PYTHON_FRSMATERIAL_H__
+#pragma once
 
 extern "C" {
 #include <Python.h>
@@ -55,5 +54,3 @@ void FrsMaterial_mathutils_register_callback();
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_FRSMATERIAL_H__ */

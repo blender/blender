@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_PERSISTENT_DATA_HANDLE_H__
-#define __BKE_PERSISTENT_DATA_HANDLE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -128,5 +127,3 @@ class PersistentDataHandleMap {
 };
 
 }  // namespace blender::bke
-
-#endif /*  __BKE_PERSISTENT_DATA_HANDLE_H__ */

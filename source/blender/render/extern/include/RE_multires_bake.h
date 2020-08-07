@@ -21,8 +21,7 @@
  * \ingroup render
  */
 
-#ifndef __RE_MULTIRES_BAKE_H__
-#define __RE_MULTIRES_BAKE_H__
+#pragma once
 
 struct MultiresBakeRender;
 struct Scene;
@@ -69,6 +68,4 @@ void RE_multires_bake_images(struct MultiresBakeRender *bkr);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

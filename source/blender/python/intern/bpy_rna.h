@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_RNA_H__
-#define __BPY_RNA_H__
+#pragma once
 
 /* --- bpy build options --- */
 #ifdef WITH_PYTHON_SAFETY
@@ -271,6 +270,4 @@ extern BPy_StructRNA *bpy_context_module;
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

@@ -23,8 +23,7 @@
  * Generate shader code from the intermediate node graph.
  */
 
-#ifndef __GPU_CODEGEN_H__
-#define __GPU_CODEGEN_H__
+#pragma once
 
 struct GPUMaterial;
 struct GPUNodeGraph;
@@ -62,5 +61,3 @@ void GPU_pass_release(GPUPass *pass);
 
 void gpu_codegen_init(void);
 void gpu_codegen_exit(void);
-
-#endif /* __GPU_CODEGEN_H__ */

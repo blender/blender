@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_MEDIUMTYPE_H__
-#define __FREESTYLE_PYTHON_MEDIUMTYPE_H__
+#pragma once
 
 extern "C" {
 #include <Python.h>
@@ -62,5 +61,3 @@ extern PyLongObject _BPy_MediumType_OPAQUE_MEDIUM;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_MEDIUMTYPE_H__ */

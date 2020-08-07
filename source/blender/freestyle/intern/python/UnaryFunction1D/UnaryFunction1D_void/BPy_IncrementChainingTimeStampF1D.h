@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_INCREMENTCHAININGTIMESTAMPF1D_H__
-#define __FREESTYLE_PYTHON_INCREMENTCHAININGTIMESTAMPF1D_H__
+#pragma once
 
 #include "../BPy_UnaryFunction1DVoid.h"
 
@@ -45,5 +44,3 @@ typedef struct {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_INCREMENTCHAININGTIMESTAMPF1D_H__ */

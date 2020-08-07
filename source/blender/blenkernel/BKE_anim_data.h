@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_ANIM_DATA_H__
-#define __BKE_ANIM_DATA_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -98,5 +97,3 @@ void BKE_animdata_merge_copy(struct Main *bmain,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_ANIM_DATA_H__*/

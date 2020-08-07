@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_MAPVALUEOPERATION_H__
-#define __COM_MAPVALUEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 #include "DNA_texture_types.h"
 
@@ -62,4 +62,3 @@ class MapValueOperation : public NodeOperation {
     this->m_settings = settings;
   }
 };
-#endif

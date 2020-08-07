@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_CAMERA_H__
-#define __BKE_CAMERA_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -166,6 +165,4 @@ void BKE_camera_background_image_clear(struct Camera *cam);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

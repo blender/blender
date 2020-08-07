@@ -27,8 +27,7 @@
  *         FRANCE
  */
 
-#ifndef __FREESTYLE_CURVATURE_H__
-#define __FREESTYLE_CURVATURE_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -142,5 +141,3 @@ void compute_curvature_tensor_one_ring(WVertex *start, NormalCycle &nc);
 }  // namespace OGF
 
 } /* namespace Freestyle */
-
-#endif /* __FREESTYLE_CURVATURE_H__ */

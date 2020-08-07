@@ -21,8 +21,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_EXTENSIONS_H__
-#define __GPU_EXTENSIONS_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,5 +61,3 @@ bool GPU_stereo_quadbuffer_support(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_EXTENSIONS_H__ */

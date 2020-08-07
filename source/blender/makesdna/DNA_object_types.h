@@ -22,8 +22,7 @@
  * \brief Object is a sort of wrapper for general info.
  */
 
-#ifndef __DNA_OBJECT_TYPES_H__
-#define __DNA_OBJECT_TYPES_H__
+#pragma once
 
 #include "DNA_object_enums.h"
 
@@ -495,19 +494,19 @@ enum {
         ID_VO))
 
 #define OB_DATA_SUPPORT_ID_CASE \
-ID_ME: \
-case ID_CU: \
-case ID_MB: \
-case ID_LA: \
-case ID_SPK: \
-case ID_LP: \
-case ID_CA: \
-case ID_LT: \
-case ID_GD: \
-case ID_AR: \
-case ID_HA: \
-case ID_PT: \
-case ID_VO
+  ID_ME: \
+  case ID_CU: \
+  case ID_MB: \
+  case ID_LA: \
+  case ID_SPK: \
+  case ID_LP: \
+  case ID_CA: \
+  case ID_LT: \
+  case ID_GD: \
+  case ID_AR: \
+  case ID_HA: \
+  case ID_PT: \
+  case ID_VO
 
 /* partype: first 4 bits: type */
 enum {
@@ -714,6 +713,4 @@ enum {
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

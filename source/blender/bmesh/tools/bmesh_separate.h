@@ -14,13 +14,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_SEPARATE_H__
-#define __BMESH_SEPARATE_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
  */
 
 void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_data);
-
-#endif /* __BMESH_SEPARATE_H__ */

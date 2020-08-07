@@ -21,8 +21,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_DRAW_H__
-#define __GPU_DRAW_H__
+#pragma once
 
 #include "BLI_utildefines.h"
 #include "DNA_object_enums.h"
@@ -90,6 +89,4 @@ void GPU_free_unused_buffers(void);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

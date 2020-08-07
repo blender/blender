@@ -21,8 +21,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_APP_USD_H__
-#define __BPY_APP_USD_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,5 +32,3 @@ PyObject *BPY_app_usd_struct(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_APP_USD_H__ */

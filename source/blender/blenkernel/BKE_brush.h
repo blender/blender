@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_BRUSH_H__
-#define __BKE_BRUSH_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -156,6 +155,4 @@ void BKE_brush_debug_print_state(struct Brush *br);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

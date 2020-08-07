@@ -20,8 +20,7 @@
  * Group generic defines for all DNA headers may use in this file.
  */
 
-#ifndef __DNA_DEFS_H__
-#define __DNA_DEFS_H__
+#pragma once
 
 /* makesdna ignores */
 #ifdef DNA_DEPRECATED_ALLOW
@@ -61,5 +60,3 @@
 
 /* non-id name variables should use this length */
 #define MAX_NAME 64
-
-#endif /* __DNA_DEFS_H__ */

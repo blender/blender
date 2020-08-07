@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_DEFORM_H__
-#define __BKE_DEFORM_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -166,5 +165,3 @@ void BKE_defvert_weight_to_rgb(float r_rgb[3], const float weight);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_DEFORM_H__ */

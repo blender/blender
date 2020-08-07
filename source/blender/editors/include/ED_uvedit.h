@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_UVEDIT_H__
-#define __ED_UVEDIT_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -243,5 +242,3 @@ void ED_uvedit_buttons_register(struct ARegionType *art);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_UVEDIT_H__ */

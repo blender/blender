@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __MATHUTILS_H__
-#define __MATHUTILS_H__
+#pragma once
 
 /** \file
  * \ingroup pymathutils
@@ -195,5 +194,3 @@ int column_vector_multiplication(float rvec[4], VectorObject *vec, MatrixObject 
 /* dynstr as python string utility functions */
 PyObject *mathutils_dynstr_to_py(struct DynStr *ds);
 #endif
-
-#endif /* __MATHUTILS_H__ */

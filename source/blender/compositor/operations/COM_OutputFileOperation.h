@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_OUTPUTFILEOPERATION_H__
-#define __COM_OUTPUTFILEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 #include "BLI_path_util.h"
@@ -140,5 +140,3 @@ void free_exr_channels(void *exrhandle,
                        const char *layerName,
                        const DataType datatype);
 int get_datatype_size(DataType datatype);
-
-#endif

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_BOIDS_H__
-#define __BKE_BOIDS_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -61,6 +60,4 @@ BoidState *boid_get_current_state(BoidSettings *boids);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

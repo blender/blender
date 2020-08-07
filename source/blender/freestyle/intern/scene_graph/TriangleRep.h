@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_TRIANGLE_REP_H__
-#define __FREESTYLE_TRIANGLE_REP_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -142,5 +141,3 @@ class TriangleRep : public Rep {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_TRIANGLE_REP_H__

@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_FASTGAUSSIANBLUROPERATION_H__
-#define __COM_FASTGAUSSIANBLUROPERATION_H__
+#pragma once
 
 #include "COM_BlurBaseOperation.h"
 #include "DNA_node_types.h"
@@ -80,5 +79,3 @@ class FastGaussianBlurValueOperation : public NodeOperation {
     this->m_overlay = overlay;
   }
 };
-
-#endif

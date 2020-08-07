@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_CONVERT_H__
-#define __FREESTYLE_PYTHON_CONVERT_H__
+#pragma once
 
 extern "C" {
 #include <Python.h>
@@ -177,5 +176,3 @@ int convert_v2(PyObject *obj, void *v);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_CONVERT_H__ */

@@ -21,8 +21,7 @@
  * \ingroup bke
  */
 
-#ifndef __BKE_SUBDIV_MESH_H__
-#define __BKE_SUBDIV_MESH_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 
@@ -53,5 +52,3 @@ struct Mesh *BKE_subdiv_to_mesh(struct Subdiv *subdiv,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_SUBDIV)MESH_H__ */

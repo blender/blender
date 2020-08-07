@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_LIB_OVERRIDE_H__
-#define __BKE_LIB_OVERRIDE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -151,5 +150,3 @@ void BKE_lib_override_library_operations_store_finalize(OverrideLibraryStorage *
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_LIB_OVERRIDE_H__ */

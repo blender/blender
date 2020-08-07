@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __EXPORTSETTINGS_H__
-#define __EXPORTSETTINGS_H__
+#pragma once
 
 #include "BLI_linklist.h"
 #include "BlenderContext.h"
@@ -289,7 +288,5 @@ class BCExportSettings {
     return bc_is_base_node(get_export_set(), ob, get_view_layer());
   }
 };
-
-#endif
 
 #endif

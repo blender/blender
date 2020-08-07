@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GEOM_H__
-#define __GEOM_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -69,5 +68,3 @@ typedef VecMat::SquareMatrix<real, 4> Matrix44r;
 }  // end of namespace Geometry
 
 } /* namespace Freestyle */
-
-#endif  // __GEOM_H__

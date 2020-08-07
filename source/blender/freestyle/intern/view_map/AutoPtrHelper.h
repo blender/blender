@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_AUTOPTR_HELPER_H__
-#define __FREESTYLE_AUTOPTR_HELPER_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -47,5 +46,3 @@ template<typename T> class AutoPtr : public std::unique_ptr<T> {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_AUTOPTR_HELPER_H__

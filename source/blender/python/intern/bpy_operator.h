@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_OPERATOR_H__
-#define __BPY_OPERATOR_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,6 +36,4 @@ PyObject *BPY_operator_module(void);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

@@ -21,8 +21,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_VIEWPORT_H__
-#define __GPU_VIEWPORT_H__
+#pragma once
 
 #include <stdbool.h>
 
@@ -159,5 +158,3 @@ struct GPUFrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewpor
 #ifdef __cplusplus
 }
 #endif
-
-#endif  // __GPU_VIEWPORT_H__

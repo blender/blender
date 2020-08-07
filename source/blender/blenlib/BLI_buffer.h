@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_BUFFER_H__
-#define __BLI_BUFFER_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -100,5 +99,3 @@ void _bli_buffer_free(BLI_Buffer *buffer);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_BUFFER_H__ */

@@ -19,9 +19,6 @@
  * \ingroup pygen
  */
 
-#ifndef __BL_MATH_PY_API_H__
-#define __BL_MATH_PY_API_H__
+#pragma once
 
 PyMODINIT_FUNC BPyInit_bl_math(void);
-
-#endif /* __BL_MATH_PY_API_H__ */

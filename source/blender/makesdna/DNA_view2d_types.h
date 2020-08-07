@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_VIEW2D_TYPES_H__
-#define __DNA_VIEW2D_TYPES_H__
+#pragma once
 
 #include "DNA_vec_types.h"
 
@@ -181,5 +180,3 @@ enum {
   V2D_ALIGN_NO_POS_Y = (1 << 2),
   V2D_ALIGN_NO_NEG_Y = (1 << 3),
 };
-
-#endif

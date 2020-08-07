@@ -18,8 +18,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_SCENE_H__
-#define __ED_SCENE_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
 
@@ -46,5 +45,3 @@ void ED_operatortypes_scene(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_SCENE_H__ */

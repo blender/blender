@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_ITERATOR_H__
-#define __BLI_ITERATOR_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -58,5 +57,3 @@ typedef void (*IteratorBeginCb)(BLI_Iterator *iter, void *data_in);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_ITERATOR_H__ */

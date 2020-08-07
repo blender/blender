@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_CONSTRAINT_H__
-#define __BKE_CONSTRAINT_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -223,6 +222,4 @@ void BKE_constraints_solve(struct Depsgraph *depsgraph,
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

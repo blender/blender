@@ -20,11 +20,8 @@
 /** \file
  * \ingroup wm
  */
-#ifndef __WM_PLATFORM_SUPPORT_H__
-#define __WM_PLATFORM_SUPPORT_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 
 bool WM_platform_support_perform_checks(void);
-
-#endif

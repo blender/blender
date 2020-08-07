@@ -18,8 +18,7 @@
  * \ingroup bke
  */
 
-#ifndef __BKE_WORKSPACE_H__
-#define __BKE_WORKSPACE_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
 
@@ -112,5 +111,3 @@ void BKE_workspace_id_tag_all_visible(struct Main *bmain, int tag) ATTR_NONNULL(
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_WORKSPACE_H__ */

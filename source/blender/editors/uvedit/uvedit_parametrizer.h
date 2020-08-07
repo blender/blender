@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __UVEDIT_PARAMETRIZER_H__
-#define __UVEDIT_PARAMETRIZER_H__
+#pragma once
 
 /** \file
  * \ingroup eduv
@@ -109,5 +108,3 @@ void param_flush_restore(ParamHandle *handle);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*__UVEDIT_PARAMETRIZER_H__*/

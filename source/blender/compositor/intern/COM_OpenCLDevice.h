@@ -18,8 +18,7 @@
 
 class OpenCLDevice;
 
-#ifndef __COM_OPENCLDEVICE_H__
-#define __COM_OPENCLDEVICE_H__
+#pragma once
 
 #include "COM_Device.h"
 #include "COM_ReadBufferOperation.h"
@@ -133,5 +132,3 @@ class OpenCLDevice : public Device {
                           NodeOperation *operation);
   cl_kernel COM_clCreateKernel(const char *kernelname, list<cl_kernel> *clKernelsToCleanUp);
 };
-
-#endif

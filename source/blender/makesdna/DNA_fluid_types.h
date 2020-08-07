@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_FLUID_TYPES_H__
-#define __DNA_FLUID_TYPES_H__
+#pragma once
 
 #include "DNA_listBase.h"
 
@@ -784,5 +783,3 @@ typedef struct FluidEffectorSettings {
   short guide_mode;
   char _pad2[2];
 } FluidEffectorSettings;
-
-#endif

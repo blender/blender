@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_DRIVER_H__
-#define __BPY_DRIVER_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,5 +30,3 @@ extern PyObject *bpy_pydriver_Dict;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_DRIVER_H__ */

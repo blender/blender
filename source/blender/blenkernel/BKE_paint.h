@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_PAINT_H__
-#define __BKE_PAINT_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -484,6 +483,4 @@ enum {
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

@@ -18,8 +18,7 @@
  * external writefile function prototypes
  */
 
-#ifndef __BLO_UNDOFILE_H__
-#define __BLO_UNDOFILE_H__
+#pragma once
 
 /** \file
  * \ingroup blenloader
@@ -85,5 +84,3 @@ extern struct Main *BLO_memfile_main_get(struct MemFile *memfile,
                                          struct Main *bmain,
                                          struct Scene **r_scene);
 extern bool BLO_memfile_write_file(struct MemFile *memfile, const char *filename);
-
-#endif /* __BLO_UNDOFILE_H__ */

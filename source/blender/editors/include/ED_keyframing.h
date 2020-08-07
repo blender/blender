@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_KEYFRAMING_H__
-#define __ED_KEYFRAMING_H__
+#pragma once
 
 #include "DNA_anim_types.h"
 #include "RNA_types.h"
@@ -516,5 +515,3 @@ bool ED_autokeyframe_property(struct bContext *C,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*  __ED_KEYFRAMING_H__ */

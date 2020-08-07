@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_PATH_REGION_H__
-#define __BMESH_PATH_REGION_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -41,5 +40,3 @@ struct LinkNode *BM_mesh_calc_path_region_face(BMesh *bm,
                                                bool (*test_fn)(BMFace *, void *user_data),
                                                void *user_data) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2, 3);
-
-#endif /* __BMESH_PATH_REGION_H__ */

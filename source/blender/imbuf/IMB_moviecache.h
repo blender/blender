@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __IMB_MOVIECACHE_H__
-#define __IMB_MOVIECACHE_H__
+#pragma once
 
 /** \file
  * \ingroup imbuf
@@ -84,6 +83,4 @@ void *IMB_moviecacheIter_getUserKey(struct MovieCacheIter *iter);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

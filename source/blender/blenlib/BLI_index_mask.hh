@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_INDEX_MASK_HH__
-#define __BLI_INDEX_MASK_HH__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -208,5 +207,3 @@ class IndexMask {
 };
 
 }  // namespace blender
-
-#endif /* __BLI_INDEX_MASK_HH__ */

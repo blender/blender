@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_CHAIN_H__
-#define __FREESTYLE_PYTHON_CHAIN_H__
+#pragma once
 
 #include "../BPy_FrsCurve.h"
 
@@ -46,5 +45,3 @@ typedef struct {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_CHAIN_H__ */

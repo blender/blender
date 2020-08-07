@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_UNARYFUNCTION0D_H__
-#define __FREESTYLE_PYTHON_UNARYFUNCTION0D_H__
+#pragma once
 
 extern "C" {
 #include <Python.h>
@@ -54,5 +53,3 @@ int UnaryFunction0D_Init(PyObject *module);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_UNARYFUNCTION0D_H__ */

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BCSAMPLEDATA_H__
-#define __BCSAMPLEDATA_H__
+#pragma once
 
 #include <algorithm>
 #include <map>
@@ -62,5 +61,3 @@ class BCSample {
 typedef std::map<Object *, BCSample *> BCSampleMap;
 typedef std::map<int, const BCSample *> BCFrameSampleMap;
 typedef std::map<int, const BCMatrix *> BCMatrixSampleMap;
-
-#endif /* __BCSAMPLEDATA_H__ */

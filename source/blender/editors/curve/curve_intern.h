@@ -21,8 +21,7 @@
  * \ingroup edcurve
  */
 
-#ifndef __CURVE_INTERN_H__
-#define __CURVE_INTERN_H__
+#pragma once
 
 /* internal exports only */
 struct EditNurb;
@@ -194,5 +193,3 @@ void ED_curve_nurb_vert_selected_find(
 
 /* editcurve_paint.c */
 void CURVE_OT_draw(struct wmOperatorType *ot);
-
-#endif /* __CURVE_INTERN_H__ */

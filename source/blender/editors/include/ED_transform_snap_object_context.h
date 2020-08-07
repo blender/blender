@@ -18,8 +18,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_TRANSFORM_SNAP_OBJECT_CONTEXT_H__
-#define __ED_TRANSFORM_SNAP_OBJECT_CONTEXT_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -157,5 +156,3 @@ bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_TRANSFORM_SNAP_OBJECT_CONTEXT_H__ */

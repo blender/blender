@@ -20,8 +20,7 @@
  * \ingroup draw
  */
 
-#ifndef __GPENCIL_ENGINE_H__
-#define __GPENCIL_ENGINE_H__
+#pragma once
 
 #include "DNA_gpencil_types.h"
 
@@ -439,5 +438,3 @@ void GPENCIL_render_to_image(void *vedata,
 void gpencil_light_pool_free(void *storage);
 void gpencil_material_pool_free(void *storage);
 GPENCIL_ViewLayerData *GPENCIL_view_layer_data_ensure(void);
-
-#endif /* __GPENCIL_ENGINE_H__ */

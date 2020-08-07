@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_HASH_H__
-#define __BLI_HASH_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -91,5 +90,3 @@ BLI_INLINE void BLI_hash_pointer_to_color(const void *ptr, int *r, int *g, int *
 #ifdef __cplusplus
 }
 #endif
-
-#endif  // __BLI_HASH_H__

@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_LUMINANCEMATTEOPERATION_H__
-#define __COM_LUMINANCEMATTEOPERATION_H__
+#pragma once
+
 #include "COM_MixOperation.h"
 
 /**
@@ -48,4 +48,3 @@ class LuminanceMatteOperation : public NodeOperation {
     this->m_settings = nodeChroma;
   }
 };
-#endif

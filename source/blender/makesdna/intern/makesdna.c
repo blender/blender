@@ -1540,7 +1540,6 @@ int main(int argc, char **argv)
 #  pragma GCC poison long
 #endif
 
-#include "DNA_session_uuid_types.h"
 #include "DNA_ID.h"
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
@@ -1595,6 +1594,7 @@ int main(int argc, char **argv)
 #include "DNA_screen_types.h"
 #include "DNA_sdna_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_session_uuid_types.h"
 #include "DNA_shader_fx_types.h"
 #include "DNA_simulation_types.h"
 #include "DNA_sound_types.h"

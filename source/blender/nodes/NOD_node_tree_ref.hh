@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __NOD_NODE_TREE_REF_HH__
-#define __NOD_NODE_TREE_REF_HH__
+#pragma once
 
 /** \file
  * \ingroup nodes
@@ -441,5 +440,3 @@ inline bNodeTree *NodeTreeRef::btree() const
 }
 
 }  // namespace blender::nodes
-
-#endif /* __NOD_NODE_TREE_REF_HH__ */

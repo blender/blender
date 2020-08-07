@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_OPERATOR_API_H__
-#define __BMESH_OPERATOR_API_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -668,5 +667,3 @@ int BMO_opcode_from_opname(const char *opname);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BMESH_OPERATOR_API_H__ */

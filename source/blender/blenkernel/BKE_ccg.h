@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_CCG_H__
-#define __BKE_CCG_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -165,6 +164,4 @@ BLI_INLINE CCGElem *CCG_elem_next(const CCGKey *key, CCGElem *elem)
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

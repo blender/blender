@@ -23,8 +23,7 @@
  * This interface allow GPU to manage VAOs for multiple context and threads.
  */
 
-#ifndef __GPU_CONTEXT_H__
-#define __GPU_CONTEXT_H__
+#pragma once
 
 #include "GPU_batch.h"
 #include "GPU_common.h"
@@ -53,5 +52,3 @@ void GPU_context_main_unlock(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_CONTEXT_H__ */

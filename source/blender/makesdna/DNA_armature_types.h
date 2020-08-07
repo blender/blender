@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_ARMATURE_TYPES_H__
-#define __DNA_ARMATURE_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_defs.h"
@@ -281,5 +280,3 @@ typedef enum eBone_BBoneHandleType {
 } eBone_BBoneHandleType;
 
 #define MAXBONENAME 64
-
-#endif

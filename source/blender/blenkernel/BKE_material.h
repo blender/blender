@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_MATERIAL_H__
-#define __BKE_MATERIAL_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -135,6 +134,4 @@ void BKE_material_eval(struct Depsgraph *depsgraph, struct Material *material);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

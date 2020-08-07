@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_DIAL_2D_H__
-#define __BLI_DIAL_2D_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -59,5 +58,3 @@ float BLI_dial_angle(Dial *dial, const float current_position[2]);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_DIAL_2D_H__ */

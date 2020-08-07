@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_TRUEBP1D_H__
-#define __FREESTYLE_PYTHON_TRUEBP1D_H__
+#pragma once
 
 #include "../BPy_BinaryPredicate1D.h"
 
@@ -43,5 +42,3 @@ typedef struct {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_TRUEBP1D_H__ */

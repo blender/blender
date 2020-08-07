@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BPY_RNA_ANIM_H__
-#define __BPY_RNA_ANIM_H__
+#pragma once
 
 /** \file
  * \ingroup pythonintern
@@ -38,5 +37,3 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_RNA_ANIM_H__ */

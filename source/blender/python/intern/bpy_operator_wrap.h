@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_OPERATOR_WRAP_H__
-#define __BPY_OPERATOR_WRAP_H__
+#pragma once
 
 struct wmOperatorType;
 
@@ -36,6 +35,4 @@ void BPY_RNA_operator_macro_wrapper(struct wmOperatorType *ot, void *userdata);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

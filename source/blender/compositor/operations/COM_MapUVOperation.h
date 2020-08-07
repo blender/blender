@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_MAPUVOPERATION_H__
-#define __COM_MAPUVOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class MapUVOperation : public NodeOperation {
@@ -65,5 +65,3 @@ class MapUVOperation : public NodeOperation {
  private:
   bool read_uv(float x, float y, float &r_u, float &r_v, float &r_alpha);
 };
-
-#endif

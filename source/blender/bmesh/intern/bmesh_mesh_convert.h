@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BMESH_MESH_CONV_H__
-#define __BMESH_MESH_CONV_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -71,5 +70,3 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm,
                                struct Mesh *me,
                                const struct CustomData_MeshMasks *cd_mask_extra)
     ATTR_NONNULL(1, 2);
-
-#endif /* __BMESH_MESH_CONV_H__ */

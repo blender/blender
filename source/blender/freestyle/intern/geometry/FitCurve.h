@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FITCURVE_H__
-#define __FITCURVE_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -109,5 +108,3 @@ class FitCurveWrapper {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FITCURVE_H__

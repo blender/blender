@@ -17,8 +17,7 @@
  * All rights reserved.
  * */
 
-#ifndef __BLI_MATH_STATISTICS_H__
-#define __BLI_MATH_STATISTICS_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -57,5 +56,3 @@ void BLI_covariance_m3_v3n(const float (*cos_v3)[3],
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MATH_STATISTICS_H__ */

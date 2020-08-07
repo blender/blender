@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_ARMATURE_H__
-#define __BKE_ARMATURE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -388,6 +387,4 @@ void BKE_armature_deform_coords_with_editmesh(const struct Object *ob_arm,
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

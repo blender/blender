@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_BOID_TYPES_H__
-#define __DNA_BOID_TYPES_H__
+#pragma once
 
 #include "DNA_listBase.h"
 
@@ -223,5 +222,3 @@ typedef struct BoidSettings {
 //#define BOID_RULE_LAND            (1 << 3)        /* goal */
 //#define BOID_RULE_WITH_BOIDS      (1 << 4)        /* avoid collision */
 //#define BOID_RULE_WITH_DEFLECTORS (1 << 5)    /* avoid collision */
-
-#endif

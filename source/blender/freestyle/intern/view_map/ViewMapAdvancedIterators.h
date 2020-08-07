@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_VIEW_MAP_ADVANCED_ITERATORS_H__
-#define __FREESTYLE_VIEW_MAP_ADVANCED_ITERATORS_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -816,5 +815,3 @@ class vertex_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTa
 }  // end of namespace ViewEdgeInternal
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_VIEW_MAP_ADVANCED_ITERATORS_H__

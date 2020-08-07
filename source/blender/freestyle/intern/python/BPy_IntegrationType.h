@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_INTEGRATIONTYPE_H__
-#define __FREESTYLE_PYTHON_INTEGRATIONTYPE_H__
+#pragma once
 
 extern "C" {
 #include <Python.h>
@@ -49,5 +48,3 @@ int IntegrationType_Init(PyObject *module);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_INTEGRATIONTYPE_H__ */

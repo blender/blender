@@ -14,13 +14,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __MATHUTILS_INTERPOLATE_H__
-#define __MATHUTILS_INTERPOLATE_H__
+#pragma once
 
 /** \file
  * \ingroup pymathutils
  */
 
 PyMODINIT_FUNC PyInit_mathutils_interpolate(void);
-
-#endif /* __MATHUTILS_INTERPOLATE_H__ */

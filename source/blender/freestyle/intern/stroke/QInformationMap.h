@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_Q_INFORMATION_MAP_H__
-#define __FREESTYLE_Q_INFORMATION_MAP_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -59,5 +58,3 @@ class QInformationMap : public InformationMap {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_Q_INFORMATION_MAP_H__

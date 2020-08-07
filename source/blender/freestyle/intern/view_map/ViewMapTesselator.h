@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_VIEW_MAP_TESSELATOR_H__
-#define __FREESTYLE_VIEW_MAP_TESSELATOR_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -225,5 +224,3 @@ NodeGroup *ViewMapTesselator::Tesselate(ViewEdgesIterator begin, ViewEdgesIterat
 }
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_VIEW_MAP_TESSELATOR_H__

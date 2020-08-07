@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_NLA_H__
-#define __BKE_NLA_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -148,6 +147,4 @@ float BKE_nla_tweakedit_remap(struct AnimData *adt, float cframe, short mode);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

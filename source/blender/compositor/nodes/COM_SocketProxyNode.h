@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_SOCKETPROXYNODE_H__
-#define __COM_SOCKETPROXYNODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -52,5 +51,3 @@ class SocketBufferNode : public Node {
   SocketBufferNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif

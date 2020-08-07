@@ -18,8 +18,7 @@
  * \ingroup spinfo
  */
 
-#ifndef __TEXTVIEW_H__
-#define __TEXTVIEW_H__
+#pragma once
 
 enum eTextViewContext_LineFlag {
   TVC_LINE_FG = (1 << 0),
@@ -79,5 +78,3 @@ int textview_draw(struct TextViewContext *tvc,
                   const int mval_init[2],
                   void **r_mval_pick_item,
                   int *r_mval_pick_offset);
-
-#endif /* __TEXTVIEW_H__ */

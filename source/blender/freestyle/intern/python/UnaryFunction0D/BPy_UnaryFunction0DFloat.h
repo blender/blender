@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_UNARYFUNCTION0DFLOAT_H__
-#define __FREESTYLE_PYTHON_UNARYFUNCTION0DFLOAT_H__
+#pragma once
 
 #include "../BPy_UnaryFunction0D.h"
 
@@ -48,5 +47,3 @@ int UnaryFunction0DFloat_Init(PyObject *module);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_UNARYFUNCTION0DFLOAT_H__ */

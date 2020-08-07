@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_CUSTOMDATA_FILE_H__
-#define __BKE_CUSTOMDATA_FILE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -60,5 +59,3 @@ CDataFileLayer *cdf_layer_add(CDataFile *cdf, int type, const char *name, size_t
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_CUSTOMDATA_FILE_H__ */

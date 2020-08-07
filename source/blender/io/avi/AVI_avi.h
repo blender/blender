@@ -39,8 +39,7 @@
  * code. So we keep it like this.
  */
 
-#ifndef __AVI_AVI_H__
-#define __AVI_AVI_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 #include <stdio.h> /* for FILE */
@@ -295,5 +294,3 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...);
  * Unused but still external
  */
 AviError AVI_print_error(AviError error);
-
-#endif /* __AVI_AVI_H__ */

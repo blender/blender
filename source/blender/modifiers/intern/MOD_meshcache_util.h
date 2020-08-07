@@ -18,8 +18,7 @@
  * \ingroup modifiers
  */
 
-#ifndef __MOD_MESHCACHE_UTIL_H__
-#define __MOD_MESHCACHE_UTIL_H__
+#pragma once
 
 /* MOD_meshcache_mdd.c */
 bool MOD_meshcache_read_mdd_index(FILE *fp,
@@ -73,5 +72,3 @@ void MOD_meshcache_calc_range(const float frame,
                               float *r_factor);
 
 #define FRAME_SNAP_EPS 0.0001f
-
-#endif /* __MOD_MESHCACHE_UTIL_H__ */

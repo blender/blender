@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_RENDER_H__
-#define __ED_RENDER_H__
+#pragma once
 
 #include "DNA_vec_types.h"
 
@@ -109,6 +108,4 @@ void ED_render_internal_init(void);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

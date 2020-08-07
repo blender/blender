@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_GAMMACORRECTOPERATION_H__
-#define __COM_GAMMACORRECTOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class GammaCorrectOperation : public NodeOperation {
@@ -71,5 +71,3 @@ class GammaUncorrectOperation : public NodeOperation {
    */
   void deinitExecution();
 };
-
-#endif

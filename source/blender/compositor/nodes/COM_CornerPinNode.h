@@ -15,8 +15,7 @@
  * Copyright 2014, Blender Foundation.
  */
 
-#ifndef __COM_CORNERPINNODE_H__
-#define __COM_CORNERPINNODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -31,5 +30,3 @@ class CornerPinNode : public Node {
   CornerPinNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif /* __COM_CORNERPINNODE_H__ */

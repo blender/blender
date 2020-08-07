@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_WORKSCHEDULER_H__
-#define __COM_WORKSCHEDULER_H__
+#pragma once
 
 #include "COM_ExecutionGroup.h"
 
@@ -116,5 +115,3 @@ class WorkScheduler {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:WorkScheduler")
 #endif
 };
-
-#endif /* __COM_WORKSCHEDULER_H__ */

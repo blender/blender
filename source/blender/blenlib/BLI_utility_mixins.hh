@@ -18,8 +18,7 @@
  * \ingroup bli
  */
 
-#ifndef __BLI_UTILITY_MIXINS_HH__
-#define __BLI_UTILITY_MIXINS_HH__
+#pragma once
 
 namespace blender {
 
@@ -54,5 +53,3 @@ class NonMovable {
 };
 
 }  // namespace blender
-
-#endif /* __BLI_UTILITY_MIXINS_HH__ */

@@ -18,8 +18,7 @@
  * \ingroup pymathutils
  */
 
-#ifndef __MATHUTILS_VECTOR_H__
-#define __MATHUTILS_VECTOR_H__
+#pragma once
 
 extern PyTypeObject vector_Type;
 
@@ -48,5 +47,3 @@ PyObject *Vector_CreatePyObject_alloc(float *vec,
                                       const int size,
                                       PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
-
-#endif /* __MATHUTILS_VECTOR_H__ */

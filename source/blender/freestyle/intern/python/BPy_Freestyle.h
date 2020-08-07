@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_FREESTYLE_H__
-#define __FREESTYLE_PYTHON_FREESTYLE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,5 +37,3 @@ PyObject *Freestyle_Init(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_FREESTYLE_H__ */

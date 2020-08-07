@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_ITERATOR_H__
-#define __FREESTYLE_PYTHON_ITERATOR_H__
+#pragma once
 
 extern "C" {
 #include <Python.h>
@@ -53,5 +52,3 @@ int Iterator_Init(PyObject *module);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_ITERATOR_H__ */

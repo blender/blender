@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_APP_TRANSLATIONS_H__
-#define __BPY_APP_TRANSLATIONS_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,5 +30,3 @@ void BPY_app_translations_end(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_APP_TRANSLATIONS_H__ */

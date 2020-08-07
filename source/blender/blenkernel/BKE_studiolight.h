@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_STUDIOLIGHT_H__
-#define __BKE_STUDIOLIGHT_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -168,5 +167,3 @@ void BKE_studiolight_unset_icon_id(StudioLight *sl, int icon_id);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*  __BKE_STUDIOLIGHT_H__ */

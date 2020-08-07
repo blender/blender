@@ -15,8 +15,7 @@
  *
  * */
 
-#ifndef __BLI_MATH_BITS_H__
-#define __BLI_MATH_BITS_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -68,5 +67,3 @@ MINLINE float xor_fl(float x, int y);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MATH_BITS_H__ */

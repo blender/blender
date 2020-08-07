@@ -21,8 +21,7 @@
  * \ingroup spscript
  */
 
-#ifndef __SCRIPT_INTERN_H__
-#define __SCRIPT_INTERN_H__
+#pragma once
 
 /* internal exports only */
 
@@ -33,5 +32,3 @@ void script_keymap(struct wmKeyConfig *keyconf);
 /* script_edit.c */
 void SCRIPT_OT_reload(struct wmOperatorType *ot);
 void SCRIPT_OT_python_file_run(struct wmOperatorType *ot);
-
-#endif /* __SCRIPT_INTERN_H__ */

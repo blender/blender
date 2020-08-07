@@ -20,8 +20,7 @@
  * \note light addition to Python.h, use py_capi_utils.h for larger features.
  */
 
-#ifndef __PYTHON_UTILDEFINES_H__
-#define __PYTHON_UTILDEFINES_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,5 +56,3 @@ Py_LOCAL_INLINE(int) PyList_APPEND(PyObject *op, PyObject *v)
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __PYTHON_UTILDEFINES_H__ */

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_STRING_H__
-#define __BLI_STRING_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -206,5 +205,3 @@ int BLI_string_find_split_words(const char *str,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_STRING_H__ */

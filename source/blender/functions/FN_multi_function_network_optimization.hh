@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FN_MULTI_FUNCTION_NETWORK_OPTIMIZATION_HH__
-#define __FN_MULTI_FUNCTION_NETWORK_OPTIMIZATION_HH__
+#pragma once
 
 #include "FN_multi_function_network.hh"
 
@@ -28,5 +27,3 @@ void constant_folding(MFNetwork &network, ResourceCollector &resources);
 void common_subnetwork_elimination(MFNetwork &network);
 
 }  // namespace blender::fn::mf_network_optimization
-
-#endif /* __FN_MULTI_FUNCTION_NETWORK_OPTIMIZATION_HH__ */

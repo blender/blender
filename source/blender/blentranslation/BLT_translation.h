@@ -21,8 +21,7 @@
  * \ingroup blt
  */
 
-#ifndef __BLT_TRANSLATION_H__
-#define __BLT_TRANSLATION_H__
+#pragma once
 
 #include "BLI_utildefines.h" /* for bool type */
 
@@ -221,5 +220,3 @@ typedef struct {
 #ifdef __cplusplus
 };
 #endif
-
-#endif /* __BLT_TRANSLATION_H__ */

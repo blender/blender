@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_MESH_REMAP_H__
-#define __BKE_MESH_REMAP_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -234,5 +233,3 @@ void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_MESH_REMAP_H__ */

@@ -23,11 +23,8 @@
  * GPU vertex format
  */
 
-#ifndef __GPU_VERTEX_FORMAT_PRIVATE_H__
-#define __GPU_VERTEX_FORMAT_PRIVATE_H__
+#pragma once
 
 void VertexFormat_pack(GPUVertFormat *format);
 uint padding(uint offset, uint alignment);
 uint vertex_buffer_size(const GPUVertFormat *format, uint vertex_len);
-
-#endif /* __GPU_VERTEX_FORMAT_PRIVATE_H__ */

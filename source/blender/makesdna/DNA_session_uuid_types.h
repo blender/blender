@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_SESSION_UUID_TYPES_H__
-#define __DNA_SESSION_UUID_TYPES_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 
@@ -42,5 +41,3 @@ typedef struct SessionUUID {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DNA_SESSION_UUID_TYPES_H__ */

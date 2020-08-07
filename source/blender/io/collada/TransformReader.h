@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __TRANSFORMREADER_H__
-#define __TRANSFORMREADER_H__
+#pragma once
 
 #include "COLLADAFWMatrix.h"
 #include "COLLADAFWNode.h"
@@ -68,5 +67,3 @@ class TransformReader {
   void dae_scale_to_v3(COLLADAFW::Transformation *tm, float v[3]);
   void dae_vector3_to_v3(const COLLADABU::Math::Vector3 &v3, float v[3]);
 };
-
-#endif

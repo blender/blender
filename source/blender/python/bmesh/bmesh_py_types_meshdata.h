@@ -21,8 +21,7 @@
  * \ingroup pybmesh
  */
 
-#ifndef __BMESH_PY_TYPES_MESHDATA_H__
-#define __BMESH_PY_TYPES_MESHDATA_H__
+#pragma once
 
 extern PyTypeObject BPy_BMLoopUV_Type;
 extern PyTypeObject BPy_BMDeformVert_Type;
@@ -51,5 +50,3 @@ int BPy_BMDeformVert_AssignPyObject(struct MDeformVert *dvert, PyObject *value);
 PyObject *BPy_BMDeformVert_CreatePyObject(struct MDeformVert *dvert);
 
 void BPy_BM_init_types_meshdata(void);
-
-#endif /* __BMESH_PY_TYPES_MESHDATA_H__ */

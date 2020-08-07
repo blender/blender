@@ -20,8 +20,7 @@
  * \ingroup draw
  */
 
-#ifndef __DRAW_CACHE_IMPL_H__
-#define __DRAW_CACHE_IMPL_H__
+#pragma once
 
 struct GPUBatch;
 struct GPUIndexBuf;
@@ -254,5 +253,3 @@ struct GPUBatch *DRW_particles_batch_cache_get_edit_inner_points(struct Object *
 struct GPUBatch *DRW_particles_batch_cache_get_edit_tip_points(struct Object *object,
                                                                struct ParticleSystem *psys,
                                                                struct PTCacheEdit *edit);
-
-#endif /* __DRAW_CACHE_IMPL_H__ */

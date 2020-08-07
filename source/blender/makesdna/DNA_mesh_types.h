@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_MESH_TYPES_H__
-#define __DNA_MESH_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
@@ -319,6 +318,4 @@ enum {
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

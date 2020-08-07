@@ -16,8 +16,7 @@
  * Copyright 2019, Blender Foundation.
  */
 
-#ifndef __COM_DENOISEOPERATION_H__
-#define __COM_DENOISEOPERATION_H__
+#pragma once
 
 #include "COM_SingleThreadedOperation.h"
 #include "DNA_node_types.h"
@@ -65,5 +64,3 @@ class DenoiseOperation : public SingleThreadedOperation {
 
   MemoryBuffer *createMemoryBuffer(rcti *rect);
 };
-
-#endif /* __COM_DENOISEOPERATION_H__ */

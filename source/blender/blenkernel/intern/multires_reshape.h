@@ -21,8 +21,7 @@
  * \ingroup bke
  */
 
-#ifndef __BKE_INTERN_MULTIRES_RESHAPE_H__
-#define __BKE_INTERN_MULTIRES_RESHAPE_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 
@@ -331,4 +330,3 @@ void multires_reshape_apply_base_refine_from_base(MultiresReshapeContext *reshap
  *
  * NOTE: Will re-evaluate all leading modifiers, so it's not cheap. */
 void multires_reshape_apply_base_refine_from_deform(MultiresReshapeContext *reshape_context);
-#endif /* __BKE_INTERN_MULTIRES_RESHAPE_H__ */

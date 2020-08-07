@@ -21,8 +21,7 @@
  * \ingroup sptext
  */
 
-#ifndef __TEXT_FORMAT_H__
-#define __TEXT_FORMAT_H__
+#pragma once
 
 /* *** Flatten String *** */
 typedef struct FlattenString {
@@ -110,5 +109,3 @@ void ED_text_format_register_pov_ini(void);
 
 #define STR_LITERAL_STARTSWITH(str, str_literal, len_var) \
   (strncmp(str, str_literal, len_var = (sizeof(str_literal) - 1)) == 0)
-
-#endif /* __TEXT_FORMAT_H__ */

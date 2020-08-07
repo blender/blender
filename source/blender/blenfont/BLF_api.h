@@ -21,8 +21,7 @@
  * \ingroup blf
  */
 
-#ifndef __BLF_API_H__
-#define __BLF_API_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
@@ -305,5 +304,3 @@ struct ResultBLF {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLF_API_H__ */

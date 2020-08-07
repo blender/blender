@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_ID_H__
-#define __FREESTYLE_ID_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -138,5 +137,3 @@ inline std::ostream &operator<<(std::ostream &s, const Id &id)
 }
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_ID_H__

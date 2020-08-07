@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_LINKLIST_H__
-#define __BLI_LINKLIST_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -101,5 +100,3 @@ LinkNode *BLI_linklist_sort_r(LinkNode *list,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_LINKLIST_H__ */

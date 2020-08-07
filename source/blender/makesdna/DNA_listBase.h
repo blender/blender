@@ -25,8 +25,7 @@
  * with Link.
  */
 
-#ifndef __DNA_LISTBASE_H__
-#define __DNA_LISTBASE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,6 +51,4 @@ typedef struct ListBase {
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

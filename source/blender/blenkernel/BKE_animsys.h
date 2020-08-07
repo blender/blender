@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_ANIMSYS_H__
-#define __BKE_ANIMSYS_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -276,5 +275,3 @@ void BKE_animsys_update_driver_array(struct ID *id);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_ANIMSYS_H__*/

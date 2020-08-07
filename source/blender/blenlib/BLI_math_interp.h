@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_MATH_INTERP_H__
-#define __BLI_MATH_INTERP_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -95,5 +94,3 @@ void BLI_ewa_filter(const int width,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MATH_INTERP_H__ */

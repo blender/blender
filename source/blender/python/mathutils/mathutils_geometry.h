@@ -14,13 +14,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __MATHUTILS_GEOMETRY_H__
-#define __MATHUTILS_GEOMETRY_H__
+#pragma once
 
 /** \file
  * \ingroup pymathutils
  */
 
 PyMODINIT_FUNC PyInit_mathutils_geometry(void);
-
-#endif /* __MATHUTILS_GEOMETRY_H__ */

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_HASH_MD5_H__
-#define __BLI_HASH_MD5_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -43,5 +42,3 @@ char *BLI_hash_md5_to_hexdigest(void *resblock, char r_hex_digest[33]);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_HASH_MD5_H__ */

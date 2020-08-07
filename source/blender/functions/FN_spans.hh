@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FN_SPANS_HH__
-#define __FN_SPANS_HH__
+#pragma once
 
 /** \file
  * \ingroup fn
@@ -412,5 +411,3 @@ class GVSpan : public VSpanBase<void> {
 };
 
 }  // namespace blender::fn
-
-#endif /* __FN_SPANS_HH__ */

@@ -20,8 +20,7 @@
 
 /* simple memory stream functions with buffer overflow check */
 
-#ifndef __STREAM_H__
-#define __STREAM_H__
+#pragma once
 
 struct Stream {
   unsigned char *mem;  // location in memory
@@ -40,5 +39,3 @@ unsigned int mem_read(Stream &mem, unsigned int &i);
 unsigned int mem_read(Stream &mem, unsigned short &i);
 unsigned int mem_read(Stream &mem, unsigned char &i);
 unsigned int mem_read(Stream &mem, unsigned char *i, unsigned int cnt);
-
-#endif /* __STREAM_H__ */

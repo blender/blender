@@ -21,8 +21,7 @@
  * \ingroup render
  */
 
-#ifndef __RE_PIPELINE_H__
-#define __RE_PIPELINE_H__
+#pragma once
 
 #include "DEG_depsgraph.h"
 #include "DNA_listBase.h"
@@ -392,5 +391,3 @@ RenderResult *RE_DuplicateRenderResult(RenderResult *rr);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __RE_PIPELINE_H__ */

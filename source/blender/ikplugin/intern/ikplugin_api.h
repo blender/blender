@@ -22,8 +22,7 @@
  * \ingroup ikplugin
  */
 
-#ifndef __IKPLUGIN_API_H__
-#define __IKPLUGIN_API_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,5 +55,3 @@ typedef struct IKPlugin IKPlugin;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __IKPLUGIN_API_H__ */

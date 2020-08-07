@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_VARIABLESIZEBOKEHBLUROPERATION_H__
-#define __COM_VARIABLESIZEBOKEHBLUROPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
@@ -122,5 +122,4 @@ class InverseSearchRadiusOperation : public NodeOperation {
     this->m_maxBlur = maxRadius;
   }
 };
-#endif
 #endif

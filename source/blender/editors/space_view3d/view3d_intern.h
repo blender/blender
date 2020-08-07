@@ -21,8 +21,7 @@
  * \ingroup spview3d
  */
 
-#ifndef __VIEW3D_INTERN_H__
-#define __VIEW3D_INTERN_H__
+#pragma once
 
 #include "ED_view3d.h"
 
@@ -284,5 +283,3 @@ void VIEW3D_GGT_placement(struct wmGizmoGroupType *gzgt);
 extern uchar view3d_camera_border_hack_col[3];
 extern bool view3d_camera_border_hack_test;
 #endif
-
-#endif /* __VIEW3D_INTERN_H__ */

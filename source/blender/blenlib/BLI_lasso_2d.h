@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_LASSO_2D_H__
-#define __BLI_LASSO_2D_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -47,5 +46,3 @@ bool BLI_lasso_is_edge_inside(const int mcoords[][2],
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_LASSO_2D_H__ */

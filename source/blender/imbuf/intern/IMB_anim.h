@@ -21,8 +21,7 @@
  * \ingroup imbuf
  */
 
-#ifndef __IMB_ANIM_H__
-#define __IMB_ANIM_H__
+#pragma once
 
 #ifdef _WIN32
 #  define INC_OLE2
@@ -152,5 +151,3 @@ struct anim {
 
   struct IDProperty *metadata;
 };
-
-#endif

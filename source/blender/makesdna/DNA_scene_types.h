@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_SCENE_TYPES_H__
-#define __DNA_SCENE_TYPES_H__
+#pragma once
 
 #include "DNA_defs.h"
 
@@ -2414,5 +2413,3 @@ enum {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DNA_SCENE_TYPES_H__ */

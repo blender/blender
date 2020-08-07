@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_ARRAY_STORE_UTILS_H__
-#define __BLI_ARRAY_STORE_UTILS_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -47,5 +46,3 @@ void BLI_array_store_at_size_calc_memory_usage(struct BArrayStore_AtSize *bs_str
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_ARRAY_STORE_UTILS_H__ */

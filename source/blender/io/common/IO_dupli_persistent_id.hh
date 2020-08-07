@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2020 Blender Foundation.
  * All rights reserved.
  */
-#ifndef __IO_COMMON_DUPLI_PERSISTENT_ID_H__
-#define __IO_COMMON_DUPLI_PERSISTENT_ID_H__
+#pragma once
 
 #include "BKE_duplilist.h"
 
@@ -64,5 +63,3 @@ class PersistentID {
 };
 
 }  // namespace blender::io
-
-#endif  // __IO_COMMON_DUPLI_PARENT_FINDER_H__

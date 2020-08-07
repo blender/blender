@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_KEY_H__
-#define __BKE_KEY_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -139,5 +138,3 @@ void BKE_keyblock_data_set(struct Key *key, const int shape_index, const void *d
 #ifdef __cplusplus
 };
 #endif
-
-#endif /* __BKE_KEY_H__ */

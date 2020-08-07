@@ -24,8 +24,7 @@
  * by multiple tracking files but which should not be public.
  */
 
-#ifndef __TRACKING_PRIVATE_H__
-#define __TRACKING_PRIVATE_H__
+#pragma once
 
 #include "BLI_threads.h"
 
@@ -152,5 +151,3 @@ void tracking_image_accessor_destroy(TrackingImageAccessor *accessor);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __TRACKING_PRIVATE_H__ */

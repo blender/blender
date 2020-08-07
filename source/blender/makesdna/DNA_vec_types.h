@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_VEC_TYPES_H__
-#define __DNA_VEC_TYPES_H__
+#pragma once
 
 /* types */
 
@@ -91,5 +90,3 @@ typedef struct DualQuat {
   float scale[4][4];
   float scale_weight;
 } DualQuat;
-
-#endif

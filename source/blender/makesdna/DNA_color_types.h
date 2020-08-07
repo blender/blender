@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_COLOR_TYPES_H__
-#define __DNA_COLOR_TYPES_H__
+#pragma once
 
 #include "DNA_defs.h"
 #include "DNA_vec_types.h"
@@ -215,5 +214,3 @@ typedef struct ColorManagedColorspaceSettings {
 enum {
   COLORMANAGE_VIEW_USE_CURVES = (1 << 0),
 };
-
-#endif

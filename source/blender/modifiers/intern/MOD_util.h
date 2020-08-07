@@ -18,8 +18,7 @@
  * \ingroup modifiers
  */
 
-#ifndef __MOD_UTIL_H__
-#define __MOD_UTIL_H__
+#pragma once
 
 /* so modifier types match their defines */
 #include "MOD_modifiertypes.h"
@@ -60,4 +59,3 @@ void MOD_depsgraph_update_object_bone_relation(struct DepsNodeHandle *node,
                                                struct Object *object,
                                                const char *bonename,
                                                const char *description);
-#endif /* __MOD_UTIL_H__ */

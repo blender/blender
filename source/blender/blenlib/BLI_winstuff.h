@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_WINSTUFF_H__
-#define __BLI_WINSTUFF_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -111,5 +110,3 @@ int BLI_getInstallationDir(char *str);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_WINSTUFF_H__ */

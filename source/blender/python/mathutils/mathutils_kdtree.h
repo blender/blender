@@ -18,11 +18,8 @@
  * \ingroup mathutils
  */
 
-#ifndef __MATHUTILS_KDTREE_H__
-#define __MATHUTILS_KDTREE_H__
+#pragma once
 
 PyMODINIT_FUNC PyInit_mathutils_kdtree(void);
 
 extern PyTypeObject PyKDTree_Type;
-
-#endif /* __MATHUTILS_KDTREE_H__ */

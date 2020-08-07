@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __ANIMATIONIMPORTER_H__
-#define __ANIMATIONIMPORTER_H__
+#pragma once
 
 #include <map>
 #include <vector>
@@ -250,5 +249,3 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
 
   void extra_data_importer(std::string elementName);
 };
-
-#endif

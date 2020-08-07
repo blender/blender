@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_FCURVE_DRIVER_H__
-#define __BKE_FCURVE_DRIVER_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -103,5 +102,3 @@ float evaluate_driver(struct PathResolvedRNA *anim_rna,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_FCURVE_DRIVER_H__*/

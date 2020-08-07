@@ -17,8 +17,7 @@
  * This is a new part of Blender
  */
 
-#ifndef __BKE_GPENCIL_CURVE_H__
-#define __BKE_GPENCIL_CURVE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -43,5 +42,3 @@ void BKE_gpencil_convert_curve(struct Main *bmain,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*  __BKE_GPENCIL_CURVE_H__ */

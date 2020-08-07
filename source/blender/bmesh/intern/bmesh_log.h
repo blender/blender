@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_LOG_H__
-#define __BMESH_LOG_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -98,5 +97,3 @@ void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const 
 /* For internal use only (unit testing) */
 BMLogEntry *BM_log_current_entry(BMLog *log);
 struct RangeTreeUInt *BM_log_unused_ids(BMLog *log);
-
-#endif

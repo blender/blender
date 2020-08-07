@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_BOXPACK_2D_H__
-#define __BLI_BOXPACK_2D_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -64,5 +63,3 @@ void BLI_box_pack_2d_fixedarea(struct ListBase *boxes,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_BOXPACK_2D_H__ */

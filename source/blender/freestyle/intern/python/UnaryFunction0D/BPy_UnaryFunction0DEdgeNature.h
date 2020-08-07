@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_UNARYFUNCTION0DEDGENATURE_H__
-#define __FREESTYLE_PYTHON_UNARYFUNCTION0DEDGENATURE_H__
+#pragma once
 
 #include "../BPy_UnaryFunction0D.h"
 
@@ -50,5 +49,3 @@ int UnaryFunction0DEdgeNature_Init(PyObject *module);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_UNARYFUNCTION0DEDGENATURE_H__ */

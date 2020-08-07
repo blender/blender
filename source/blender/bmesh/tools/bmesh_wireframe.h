@@ -20,8 +20,7 @@
  * Wire Frame.
  */
 
-#ifndef __BMESH_WIREFRAME_H__
-#define __BMESH_WIREFRAME_H__
+#pragma once
 
 void BM_mesh_wireframe(BMesh *bm,
                        const float offset,
@@ -38,5 +37,3 @@ void BM_mesh_wireframe(BMesh *bm,
                        const short mat_offset,
                        const short mat_max,
                        const bool use_tag);
-
-#endif /* __BMESH_WIREFRAME_H__ */

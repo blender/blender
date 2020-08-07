@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_VFONTDATA_H__
-#define __BLI_VFONTDATA_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -58,6 +57,4 @@ VChar *BLI_vfontchar_copy(const VChar *vchar_src, const int flag);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

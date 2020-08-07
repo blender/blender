@@ -21,8 +21,7 @@
  * \ingroup spaction
  */
 
-#ifndef __ACTION_INTERN_H__
-#define __ACTION_INTERN_H__
+#pragma once
 
 struct ARegion;
 struct ARegionType;
@@ -142,5 +141,3 @@ enum eActKeys_Mirror_Mode {
 /* action_ops.c */
 void action_operatortypes(void);
 void action_keymap(struct wmKeyConfig *keyconf);
-
-#endif /* __ACTION_INTERN_H__ */

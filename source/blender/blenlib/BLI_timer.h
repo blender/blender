@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_TIMER_H__
-#define __BLI_TIMER_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 
@@ -61,5 +60,3 @@ void BLI_timer_on_file_load(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_TIMER_H__ */

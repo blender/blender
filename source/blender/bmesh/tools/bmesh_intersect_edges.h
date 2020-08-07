@@ -18,10 +18,7 @@
  * \ingroup bmesh
  */
 
-#ifndef __BMESH_INTERSECT_EDGES_H__
-#define __BMESH_INTERSECT_EDGES_H__
+#pragma once
 
 bool BM_mesh_intersect_edges(
     BMesh *bm, const char hflag, const float dist, const bool split_faces, GHash *r_targetmap);
-
-#endif /* __BMESH_INTERSECT_EDGES_H__ */

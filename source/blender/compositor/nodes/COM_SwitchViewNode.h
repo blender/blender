@@ -16,8 +16,7 @@
  * Copyright 2015, Blender Foundation.
  */
 
-#ifndef __COM_SWITCHVIEWNODE_H__
-#define __COM_SWITCHVIEWNODE_H__
+#pragma once
 
 #include "COM_Node.h"
 #include "COM_NodeOperation.h"
@@ -31,4 +30,3 @@ class SwitchViewNode : public Node {
   SwitchViewNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-#endif

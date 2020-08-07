@@ -22,8 +22,7 @@
  * \brief API for Blender-side Rigid Body stuff
  */
 
-#ifndef __BKE_RIGIDBODY_H__
-#define __BKE_RIGIDBODY_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -162,5 +161,3 @@ void BKE_rigidbody_object_sync_transforms(struct Depsgraph *depsgraph,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_RIGIDBODY_H__ */

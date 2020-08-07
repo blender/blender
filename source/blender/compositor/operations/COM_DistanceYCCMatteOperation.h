@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_DISTANCEYCCMATTEOPERATION_H__
-#define __COM_DISTANCEYCCMATTEOPERATION_H__
+#pragma once
+
 #include "COM_DistanceRGBMatteOperation.h"
 #include "COM_MixOperation.h"
 
@@ -35,4 +35,3 @@ class DistanceYCCMatteOperation : public DistanceRGBMatteOperation {
    */
   DistanceYCCMatteOperation();
 };
-#endif

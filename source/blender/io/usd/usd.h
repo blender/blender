@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __USD_H__
-#define __USD_H__
+#pragma once
 
 #include "DEG_depsgraph.h"
 
@@ -59,5 +58,3 @@ int USD_get_version(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __USD_H__ */

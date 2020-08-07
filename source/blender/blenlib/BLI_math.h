@@ -20,8 +20,7 @@
  *
  * */
 
-#ifndef __BLI_MATH_H__
-#define __BLI_MATH_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -73,5 +72,3 @@
 #include "BLI_math_solvers.h"
 #include "BLI_math_statistics.h"
 #include "BLI_math_vector.h"
-
-#endif /* __BLI_MATH_H__ */

@@ -21,8 +21,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_TEXTURE_H__
-#define __GPU_TEXTURE_H__
+#pragma once
 
 #include "BLI_utildefines.h"
 #include "GPU_state.h"
@@ -301,5 +300,3 @@ void GPU_sampler_icon_bind(int number);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_TEXTURE_H__ */

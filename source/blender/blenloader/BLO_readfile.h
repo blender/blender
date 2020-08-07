@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BLO_READFILE_H__
-#define __BLO_READFILE_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 
@@ -196,5 +195,3 @@ extern const struct UserDef U_default;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLO_READFILE_H__ */

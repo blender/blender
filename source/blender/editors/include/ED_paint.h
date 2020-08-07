@@ -18,8 +18,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_PAINT_H__
-#define __ED_PAINT_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -104,5 +103,3 @@ void ED_paintcurve_undosys_type(struct UndoType *ut);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_PAINT_H__ */

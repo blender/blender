@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_SOCKETREADER_H__
-#define __COM_SOCKETREADER_H__
+#pragma once
+
 #include "BLI_rect.h"
 #include "COM_defines.h"
 
@@ -138,5 +138,3 @@ class SocketReader {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:SocketReader")
 #endif
 };
-
-#endif /* __COM_SOCKETREADER_H__ */

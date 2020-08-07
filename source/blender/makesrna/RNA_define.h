@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __RNA_DEFINE_H__
-#define __RNA_DEFINE_H__
+#pragma once
 
 /** \file
  * \ingroup RNA
@@ -531,5 +530,3 @@ extern const float rna_default_scale_3d[3];
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __RNA_DEFINE_H__ */

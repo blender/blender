@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_SEQUENCER_H__
-#define __BKE_SEQUENCER_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -636,5 +635,3 @@ void BKE_sequencer_check_uuids_unique_and_report(const struct Scene *scene);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_SEQUENCER_H__ */

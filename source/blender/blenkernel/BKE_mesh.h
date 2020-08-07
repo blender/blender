@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_MESH_H__
-#define __BKE_MESH_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -707,5 +706,3 @@ BLI_INLINE int BKE_mesh_origindex_mface_mpoly(const int *index_mf_to_mpoly,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_MESH_H__ */

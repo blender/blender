@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_LINKLIST_STACK_H__
-#define __BLI_LINKLIST_STACK_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -194,5 +193,3 @@
   (void)0
 
 /** \} */
-
-#endif /* __BLI_LINKLIST_STACK_H__ */

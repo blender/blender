@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_DRAWING_STYLE_H__
-#define __FREESTYLE_DRAWING_STYLE_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -124,5 +123,3 @@ DrawingStyle &DrawingStyle::operator=(const DrawingStyle &ds)
 }
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_DRAWING_STYLE_H__

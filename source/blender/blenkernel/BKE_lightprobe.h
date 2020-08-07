@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_LIGHTPROBE_H__
-#define __BKE_LIGHTPROBE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -39,5 +38,3 @@ struct LightProbe *BKE_lightprobe_copy(struct Main *bmain, const struct LightPro
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_LIGHTPROBE_H__ */

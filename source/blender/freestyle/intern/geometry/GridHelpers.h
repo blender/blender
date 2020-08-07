@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GRIDHELPERS_H__
-#define __GRIDHELPERS_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -212,5 +211,3 @@ inline void expandProscenium(real proscenium[4], const Vec3r &point)
 };  // namespace GridHelpers
 
 } /* namespace Freestyle */
-
-#endif  // __GRIDHELPERS_H__

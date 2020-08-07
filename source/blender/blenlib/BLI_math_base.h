@@ -20,8 +20,7 @@
  *
  * */
 
-#ifndef __BLI_MATH_BASE_H__
-#define __BLI_MATH_BASE_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -289,5 +288,3 @@ double double_round(double x, int ndigits);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MATH_BASE_H__ */

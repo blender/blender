@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_CONSTRUCT_H__
-#define __BMESH_CONSTRUCT_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -78,5 +77,3 @@ char BM_vert_flag_from_mflag(const char mflag);
 char BM_face_flag_to_mflag(BMFace *f);
 short BM_edge_flag_to_mflag(BMEdge *e);
 char BM_vert_flag_to_mflag(BMVert *v);
-
-#endif /* __BMESH_CONSTRUCT_H__ */

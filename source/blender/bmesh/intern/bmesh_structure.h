@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BMESH_STRUCTURE_H__
-#define __BMESH_STRUCTURE_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -93,5 +92,3 @@ BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2) ATTR_WARN_UNU
 bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 #include "intern/bmesh_structure_inline.h"
-
-#endif /* __BMESH_STRUCTURE_H__ */

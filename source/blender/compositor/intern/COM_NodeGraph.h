@@ -16,8 +16,7 @@
  * Copyright 2013, Blender Foundation.
  */
 
-#ifndef __COM_NODEGRAPH_H__
-#define __COM_NODEGRAPH_H__
+#pragma once
 
 #include <map>
 #include <set>
@@ -135,5 +134,3 @@ class NodeGraph {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeGraph")
 #endif
 };
-
-#endif /* __COM_NODEGRAPH_H__ */

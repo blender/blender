@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_WALKERS_H__
-#define __BMESH_WALKERS_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -130,5 +129,3 @@ enum {
 
 /* use with BMW_init, so as not to confuse with restrict flags */
 #define BMW_NIL_LAY 0
-
-#endif /* __BMESH_WALKERS_H__ */

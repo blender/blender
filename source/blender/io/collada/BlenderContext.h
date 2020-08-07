@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __BLENDERCONTEXT_H__
-#define __BLENDERCONTEXT_H__
+#pragma once
 
 #include "BKE_context.h"
 #include "BKE_main.h"
@@ -67,6 +66,4 @@ class BlenderContext {
   ViewLayer *get_view_layer();
   Main *get_main();
 };
-#endif
-
 #endif

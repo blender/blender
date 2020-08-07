@@ -20,8 +20,7 @@
  * \ingroup DNA
  */
 
-#ifndef __OVERLAY_PRIVATE_H__
-#define __OVERLAY_PRIVATE_H__
+#pragma once
 
 #ifdef __APPLE__
 #  define USE_GEOM_SHADER_WORKAROUND 1
@@ -630,5 +629,3 @@ GPUShader *OVERLAY_shader_xray_fade(void);
 OVERLAY_InstanceFormats *OVERLAY_shader_instance_formats_get(void);
 
 void OVERLAY_shader_free(void);
-
-#endif /* __OVERLAY_PRIVATE_H__ */

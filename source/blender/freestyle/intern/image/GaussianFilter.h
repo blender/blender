@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GAUSSIANFILTER_H__
-#define __GAUSSIANFILTER_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -151,5 +150,3 @@ template<class Map> float GaussianFilter::getSmoothedPixel(Map *map, int x, int 
 }
 
 } /* namespace Freestyle */
-
-#endif  // __GAUSSIANFILTER_H__

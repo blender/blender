@@ -20,8 +20,7 @@
  * \ingroup draw
  */
 
-#ifndef __DRW_SELECT_BUFFER_H__
-#define __DRW_SELECT_BUFFER_H__
+#pragma once
 
 #include "BLI_sys_types.h" /* for bool and uint */
 
@@ -126,5 +125,3 @@ uint DRW_select_buffer_find_nearest_to_point(struct Depsgraph *depsgraph,
 void DRW_select_buffer_context_create(struct Base **bases,
                                       const uint bases_len,
                                       short select_mode);
-
-#endif /* __DRW_SELECT_BUFFER_H__ */

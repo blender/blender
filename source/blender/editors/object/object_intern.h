@@ -21,8 +21,7 @@
  * \ingroup edobj
  */
 
-#ifndef __OBJECT_INTERN_H__
-#define __OBJECT_INTERN_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -311,5 +310,3 @@ void OBJECT_OT_datalayout_transfer(struct wmOperatorType *ot);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __OBJECT_INTERN_H__ */

@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_WINDOWMANAGER_TYPES_H__
-#define __DNA_WINDOWMANAGER_TYPES_H__
+#pragma once
 
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
@@ -557,5 +556,3 @@ enum {
    * (the regiontype is maintained to prevent errors) */
   OP_IS_MODAL_CURSOR_REGION = (1 << 3),
 };
-
-#endif /* __DNA_WINDOWMANAGER_TYPES_H__ */

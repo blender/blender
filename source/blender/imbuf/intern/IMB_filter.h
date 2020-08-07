@@ -22,8 +22,7 @@
  * \brief Function declarations for filter.c
  */
 
-#ifndef __IMB_FILTER_H__
-#define __IMB_FILTER_H__
+#pragma once
 
 struct ImBuf;
 
@@ -36,5 +35,3 @@ void IMB_unpremultiply_rect(unsigned int *rect, char planes, int w, int h);
 void IMB_unpremultiply_rect_float(float *rect_float, int channels, int w, int h);
 
 void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1);
-
-#endif

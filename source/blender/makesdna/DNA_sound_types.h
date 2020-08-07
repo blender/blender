@@ -20,8 +20,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_SOUND_TYPES_H__
-#define __DNA_SOUND_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_defs.h"
@@ -117,5 +116,3 @@ enum {
   SOUND_TAGS_WAVEFORM_NO_RELOAD = 1 << 0,
   SOUND_TAGS_WAVEFORM_LOADING = (1 << 6),
 };
-
-#endif /* __DNA_SOUND_TYPES_H__ */

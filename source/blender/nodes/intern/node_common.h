@@ -21,8 +21,7 @@
  * \ingroup nodes
  */
 
-#ifndef __NODE_COMMON_H__
-#define __NODE_COMMON_H__
+#pragma once
 
 #include "DNA_listBase.h"
 
@@ -39,6 +38,4 @@ void ntree_update_reroute_nodes(struct bNodeTree *ntree);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

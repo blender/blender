@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __IMBUF_PY_API_H__
-#define __IMBUF_PY_API_H__
+#pragma once
 
 /** \file
  * \ingroup pygen
@@ -24,5 +23,3 @@
 PyObject *BPyInit_imbuf(void);
 
 extern PyTypeObject Py_ImBuf_Type;
-
-#endif /* __IMBUF_PY_API_H__ */

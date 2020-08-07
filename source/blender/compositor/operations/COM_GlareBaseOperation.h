@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_GLAREBASEOPERATION_H__
-#define __COM_GLAREBASEOPERATION_H__
+#pragma once
 
 #include "COM_SingleThreadedOperation.h"
 #include "DNA_node_types.h"
@@ -74,4 +73,3 @@ class GlareBaseOperation : public SingleThreadedOperation {
 
   MemoryBuffer *createMemoryBuffer(rcti *rect);
 };
-#endif

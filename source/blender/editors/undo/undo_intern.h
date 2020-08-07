@@ -18,8 +18,7 @@
  * \ingroup edundo
  */
 
-#ifndef __UNDO_INTERN_H__
-#define __UNDO_INTERN_H__
+#pragma once
 
 /* internal exports only */
 
@@ -27,5 +26,3 @@ struct UndoType;
 
 /* memfile_undo.c */
 void ED_memfile_undosys_type(struct UndoType *ut);
-
-#endif /* __UNDO_INTERN_H__ */

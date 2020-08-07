@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_INPAINTOPERATION_H__
-#define __COM_INPAINTOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class InpaintSimpleOperation : public NodeOperation {
@@ -72,5 +72,3 @@ class InpaintSimpleOperation : public NodeOperation {
   bool next_pixel(int &x, int &y, int &curr, int iters);
   void pix_step(int x, int y);
 };
-
-#endif

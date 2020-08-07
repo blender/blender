@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FN_MULTI_FUNCTION_BUILDER_HH__
-#define __FN_MULTI_FUNCTION_BUILDER_HH__
+#pragma once
 
 /** \file
  * \ingroup fn
@@ -314,5 +313,3 @@ class CustomMF_DefaultOutput : public MultiFunction {
 };
 
 }  // namespace blender::fn
-
-#endif /* __FN_MULTI_FUNCTION_BUILDER_HH__ */

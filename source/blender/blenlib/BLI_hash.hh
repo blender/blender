@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_HASH_HH__
-#define __BLI_HASH_HH__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -210,5 +209,3 @@ template<typename T1, typename T2> struct DefaultHash<std::pair<T1, T2>> {
 };
 
 }  // namespace blender
-
-#endif /* __BLI_HASH_HH__ */

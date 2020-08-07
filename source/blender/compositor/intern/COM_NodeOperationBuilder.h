@@ -16,8 +16,7 @@
  * Copyright 2013, Blender Foundation.
  */
 
-#ifndef __COM_NODEOPERATIONBUILDER_H__
-#define __COM_NODEOPERATIONBUILDER_H__
+#pragma once
 
 #include <map>
 #include <set>
@@ -176,5 +175,3 @@ class NodeOperationBuilder {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeCompilerImpl")
 #endif
 };
-
-#endif /* __COM_NODEOPERATIONBUILDER_H__ */

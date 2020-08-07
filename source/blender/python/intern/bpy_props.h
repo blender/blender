@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_PROPS_H__
-#define __BPY_PROPS_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,6 +34,4 @@ StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

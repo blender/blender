@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_META_TYPES_H__
-#define __DNA_META_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_defs.h"
@@ -139,5 +138,3 @@ typedef struct MetaBall {
 #define MB_NEGATIVE 2
 #define MB_HIDE 8
 #define MB_SCALE_RAD 16
-
-#endif

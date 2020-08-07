@@ -16,8 +16,7 @@
  * Copyright 2012, Blender Foundation.
  */
 
-#ifndef __COM_TRACKPOSITIONOPERATION_H__
-#define __COM_TRACKPOSITIONOPERATION_H__
+#pragma once
 
 #include <string.h>
 
@@ -97,5 +96,3 @@ class TrackPositionOperation : public NodeOperation {
     return true;
   }
 };
-
-#endif

@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_CONVERTOPERATION_H__
-#define __COM_CONVERTOPERATION_H__
+#pragma once
 
 #include "COM_NodeOperation.h"
 
@@ -183,5 +182,3 @@ class CombineChannelsOperation : public NodeOperation {
   void initExecution();
   void deinitExecution();
 };
-
-#endif

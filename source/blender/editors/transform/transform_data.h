@@ -21,8 +21,7 @@
  * \ingroup edtransform
  */
 
-#ifndef __TRANSFORM_DATA_H__
-#define __TRANSFORM_DATA_H__
+#pragma once
 
 struct bConstraint;
 struct Object;
@@ -193,5 +192,3 @@ enum {
 /* Hard min/max for proportional size. */
 #define T_PROP_SIZE_MIN 1e-6f
 #define T_PROP_SIZE_MAX 1e12f
-
-#endif

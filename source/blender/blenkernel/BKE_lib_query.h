@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2014 by Blender Foundation.
  * All rights reserved.
  */
-#ifndef __BKE_LIB_QUERY_H__
-#define __BKE_LIB_QUERY_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -182,5 +181,3 @@ void BKE_library_indirectly_used_data_tag_clear(struct Main *bmain);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_LIB_QUERY_H__ */

@@ -22,8 +22,7 @@
  * \brief Utility defines for timing/benchmarks.
  */
 
-#ifndef __PIL_TIME_UTILDEFINES_H__
-#define __PIL_TIME_UTILDEFINES_H__
+#pragma once
 
 #include "BLI_utildefines.h" /* for AT */
 #include "PIL_time.h"        /* for PIL_check_seconds_timer */
@@ -127,5 +126,3 @@
     fflush(stdout); \
   } \
   (void)0
-
-#endif /* __PIL_TIME_UTILDEFINES_H__ */

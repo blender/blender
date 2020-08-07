@@ -21,8 +21,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_DEBUG_H__
-#define __GPU_DEBUG_H__
+#pragma once
 
 #include "GPU_glew.h"
 
@@ -39,5 +38,3 @@ void GPU_string_marker(const char *str);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_DEBUG_H__ */

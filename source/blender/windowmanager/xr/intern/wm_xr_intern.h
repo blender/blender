@@ -18,8 +18,7 @@
  * \ingroup wm
  */
 
-#ifndef __WM_XR_INTERN_H__
-#define __WM_XR_INTERN_H__
+#pragma once
 
 #include "CLG_log.h"
 
@@ -92,5 +91,3 @@ void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle context);
 
 void wm_xr_pose_to_viewmat(const GHOST_XrPose *pose, float r_viewmat[4][4]);
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata);
-
-#endif

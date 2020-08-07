@@ -21,8 +21,7 @@
  * \ingroup bke
  */
 
-#ifndef __BKE_SUBDIV_DEFORM_H__
-#define __BKE_SUBDIV_DEFORM_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 
@@ -48,5 +47,3 @@ void BKE_subdiv_deform_coarse_vertices(struct Subdiv *subdiv,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_SUBDIV_DEFORM_H__ */

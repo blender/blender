@@ -31,8 +31,7 @@
  * For these rogue platforms, we make the typedefs ourselves.
  */
 
-#ifndef __BLI_SYS_TYPES_H__
-#define __BLI_SYS_TYPES_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,5 +88,3 @@ typedef unsigned char uchar;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* eof */

@@ -18,8 +18,7 @@
  * \ingroup pymathutils
  */
 
-#ifndef __MATHUTILS_COLOR_H__
-#define __MATHUTILS_COLOR_H__
+#pragma once
 
 extern PyTypeObject color_Type;
 #define ColorObject_Check(v) PyObject_TypeCheck((v), &color_Type)
@@ -42,5 +41,3 @@ PyObject *Color_CreatePyObject_wrap(float col[3], PyTypeObject *base_type) ATTR_
 PyObject *Color_CreatePyObject_cb(PyObject *cb_user,
                                   unsigned char cb_type,
                                   unsigned char cb_subtype) ATTR_WARN_UNUSED_RESULT;
-
-#endif /* __MATHUTILS_COLOR_H__ */

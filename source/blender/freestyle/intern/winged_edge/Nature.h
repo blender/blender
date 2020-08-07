@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_NATURE_H__
-#define __FREESTYLE_NATURE_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -67,5 +66,3 @@ static const EdgeNature EDGE_MARK = (1 << 7);  // 128
 }  // end of namespace Nature
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_NATURE_H__

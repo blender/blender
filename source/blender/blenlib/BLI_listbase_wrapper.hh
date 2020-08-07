@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_LISTBASE_WRAPPER_HH__
-#define __BLI_LISTBASE_WRAPPER_HH__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -111,5 +110,3 @@ template<typename T> class ListBaseWrapper {
 };
 
 } /* namespace blender */
-
-#endif /* __BLI_LISTBASE_WRAPPER_HH__ */

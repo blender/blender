@@ -16,8 +16,7 @@
  * Copyright 2018, Blender Foundation.
  */
 
-#ifndef __COM_CRYPTOMATTENODE_H__
-#define __COM_CRYPTOMATTENODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -30,5 +29,3 @@ class CryptomatteNode : public Node {
   CryptomatteNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif

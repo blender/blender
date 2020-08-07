@@ -20,9 +20,6 @@
  * \ingroup draw_engine
  */
 
-#ifndef __BASIC_ENGINE_H__
-#define __BASIC_ENGINE_H__
+#pragma once
 
 extern DrawEngineType draw_engine_basic_type;
-
-#endif /* __BASIC_ENGINE_H__ */

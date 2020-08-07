@@ -21,13 +21,10 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_PACKEDFILE_TYPES_H__
-#define __DNA_PACKEDFILE_TYPES_H__
+#pragma once
 
 typedef struct PackedFile {
   int size;
   int seek;
   void *data;
 } PackedFile;
-
-#endif /* PACKEDFILE_TYPES_H */

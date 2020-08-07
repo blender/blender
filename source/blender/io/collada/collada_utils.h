@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __COLLADA_UTILS_H__
-#define __COLLADA_UTILS_H__
+#pragma once
 
 #include "COLLADAFWColorOrTexture.h"
 #include "COLLADAFWFloatOrDoubleArray.h"
@@ -393,5 +392,3 @@ COLLADASW::ColorOrTexture bc_get_cot_from_shader(bNode *shader,
 
 COLLADASW::ColorOrTexture bc_get_cot(float r, float g, float b, float a);
 COLLADASW::ColorOrTexture bc_get_cot(Color col, bool with_alpha = true);
-
-#endif

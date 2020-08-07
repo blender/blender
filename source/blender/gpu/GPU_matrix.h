@@ -21,8 +21,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_MATRIX_H__
-#define __GPU_MATRIX_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 
@@ -236,5 +235,3 @@ int GPU_matrix_stack_level_get_projection(void);
  * however we need to check these limits in code that calls into these API's. */
 #define GPU_MATRIX_ORTHO_CLIP_NEAR_DEFAULT (-100)
 #define GPU_MATRIX_ORTHO_CLIP_FAR_DEFAULT (100)
-
-#endif /* __GPU_MATRIX_H__ */

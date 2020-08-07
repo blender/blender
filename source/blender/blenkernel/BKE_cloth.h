@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) Blender Foundation.
  * All rights reserved.
  */
-#ifndef __BKE_CLOTH_H__
-#define __BKE_CLOTH_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -306,6 +305,4 @@ void cloth_parallel_transport_hair_frame(float mat[3][3],
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

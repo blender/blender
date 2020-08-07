@@ -21,8 +21,7 @@
  * \ingroup bke
  */
 
-#ifndef __BKE_CRAZYSPACE_H__
-#define __BKE_CRAZYSPACE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,6 +63,4 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

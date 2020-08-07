@@ -20,8 +20,7 @@
  * \ingroup edarmature
  */
 
-#ifndef __MESHLAPLACIAN_H__
-#define __MESHLAPLACIAN_H__
+#pragma once
 
 //#define RIGID_DEFORM
 
@@ -70,5 +69,3 @@ void rigid_deform_end(int cancel);
 /* Harmonic Coordinates */
 
 /* ED_mesh_deform_bind_callback(...) defined in ED_armature.h */
-
-#endif

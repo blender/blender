@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_LINESTYLE_H__
-#define __BKE_LINESTYLE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -106,5 +105,3 @@ void BKE_linestyle_default_shader(const struct bContext *C, FreestyleLineStyle *
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_LINESTYLE_H__ */

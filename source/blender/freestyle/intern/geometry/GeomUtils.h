@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GEOMUTILS_H__
-#define __GEOMUTILS_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -266,5 +265,3 @@ void fromCameraToWorld(const Vec3r &p, Vec3r &q, const real model_view_matrix[4]
 }  // end of namespace GeomUtils
 
 } /* namespace Freestyle */
-
-#endif  // __GEOMUTILS_H__

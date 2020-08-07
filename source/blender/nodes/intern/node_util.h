@@ -21,8 +21,7 @@
  * \ingroup nodes
  */
 
-#ifndef __NODE_UTIL_H__
-#define __NODE_UTIL_H__
+#pragma once
 
 #include "DNA_listBase.h"
 
@@ -109,6 +108,4 @@ void node_socket_set_vector(struct bNodeTree *ntree,
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

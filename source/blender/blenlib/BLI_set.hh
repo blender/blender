@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_SET_HH__
-#define __BLI_SET_HH__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -831,5 +830,3 @@ template<typename Key,
 using RawSet = Set<Key, InlineBufferCapacity, ProbingStrategy, Hash, IsEqual, Slot, RawAllocator>;
 
 }  // namespace blender
-
-#endif /* __BLI_SET_HH__ */

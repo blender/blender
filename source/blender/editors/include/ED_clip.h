@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_CLIP_H__
-#define __ED_CLIP_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -106,5 +105,3 @@ void ED_operatormacros_clip(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_CLIP_H__ */

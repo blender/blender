@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_CONSOLE_H__
-#define __BLI_CONSOLE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,5 +39,3 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_CONSOLE_H__ */

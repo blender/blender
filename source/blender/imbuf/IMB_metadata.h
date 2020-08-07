@@ -21,8 +21,7 @@
  * \ingroup imbuf
  */
 
-#ifndef __IMB_METADATA_H__
-#define __IMB_METADATA_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,5 +83,3 @@ void IMB_metadata_foreach(struct ImBuf *ibuf, IMBMetadataForeachCb callback, voi
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __IMB_METADATA_H__ */

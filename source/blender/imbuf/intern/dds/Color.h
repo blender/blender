@@ -27,8 +27,7 @@
 
 // This code is in the public domain -- castanyo@yahoo.es
 
-#ifndef __COLOR_H__
-#define __COLOR_H__
+#pragma once
 
 /// 32 bit color stored as BGRA.
 class Color32 {
@@ -116,5 +115,3 @@ class Color16 {
     unsigned short u;
   };
 };
-
-#endif /* __COLOR_H__ */

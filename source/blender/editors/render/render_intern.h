@@ -21,8 +21,7 @@
  * \ingroup edrend
  */
 
-#ifndef __RENDER_INTERN_H__
-#define __RENDER_INTERN_H__
+#pragma once
 
 struct ScrArea;
 struct bContext;
@@ -90,5 +89,3 @@ void RENDER_OT_view_cancel(struct wmOperatorType *ot);
 
 /* render_opengl.c */
 void RENDER_OT_opengl(struct wmOperatorType *ot);
-
-#endif /* __RENDER_INTERN_H__ */

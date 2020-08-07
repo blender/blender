@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_HAIR_H__
-#define __BKE_HAIR_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -60,6 +59,4 @@ extern void (*BKE_hair_batch_cache_free_cb)(struct Hair *hair);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

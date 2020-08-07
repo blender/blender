@@ -13,8 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef __BKE_MESH_WRAPPER_H__
-#define __BKE_MESH_WRAPPER_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -55,5 +54,3 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const struct Mesh *me,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_MESH_WRAPPER_H__ */

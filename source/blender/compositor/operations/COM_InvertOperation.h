@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_INVERTOPERATION_H__
-#define __COM_INVERTOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class InvertOperation : public NodeOperation {
@@ -58,4 +58,3 @@ class InvertOperation : public NodeOperation {
     this->m_alpha = alpha;
   }
 };
-#endif

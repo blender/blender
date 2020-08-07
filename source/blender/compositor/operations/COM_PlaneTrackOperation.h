@@ -16,8 +16,7 @@
  * Copyright 2013, Blender Foundation.
  */
 
-#ifndef __COM_PLANETRACKOPERATION_H__
-#define __COM_PLANETRACKOPERATION_H__
+#pragma once
 
 #include <string.h>
 
@@ -96,5 +95,3 @@ class PlaneTrackWarpImageOperation : public PlaneDistortWarpImageOperation,
     NodeOperation::determineResolution(temp, resolution);
   }
 };
-
-#endif

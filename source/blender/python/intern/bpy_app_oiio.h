@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_APP_OIIO_H__
-#define __BPY_APP_OIIO_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,5 +29,3 @@ PyObject *BPY_app_oiio_struct(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_APP_OIIO_H__ */

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_MESH_REMESH_VOXEL_H__
-#define __BKE_MESH_REMESH_VOXEL_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -66,5 +65,3 @@ void BKE_remesh_reproject_sculpt_face_sets(struct Mesh *target, struct Mesh *sou
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_MESH_REMESH_VOXEL_H__ */

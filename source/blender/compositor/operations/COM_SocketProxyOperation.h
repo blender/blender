@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_SOCKETPROXYOPERATION_H__
-#define __COM_SOCKETPROXYOPERATION_H__
+#pragma once
 
 #include "COM_NodeOperation.h"
 
@@ -46,5 +45,3 @@ class SocketProxyOperation : public NodeOperation {
  private:
   bool m_use_conversion;
 };
-
-#endif

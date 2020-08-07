@@ -25,8 +25,7 @@
  *      FRANCE
  */
 
-#ifndef __MESH_TOOLS_MATH_NORMAL_CYCLE__
-#define __MESH_TOOLS_MATH_NORMAL_CYCLE__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -145,5 +144,3 @@ inline void NormalCycle::accumulate_dihedral_angle(const Vec3r &edge,
 }  // namespace OGF
 
 } /* namespace Freestyle */
-
-#endif  // __MESH_TOOLS_MATH_NORMAL_CYCLE__

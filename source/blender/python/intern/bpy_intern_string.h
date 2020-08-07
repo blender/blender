@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BPY_INTERN_STRING_H__
-#define __BPY_INTERN_STRING_H__
+#pragma once
 
 /** \file
  * \ingroup pythonintern
@@ -48,5 +47,3 @@ extern PyObject *bpy_intern_str_unregister;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_INTERN_STRING_H__ */

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_BITMAP_H__
-#define __BLI_BITMAP_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -117,6 +116,4 @@ void BLI_bitmap_or_all(BLI_bitmap *dst, const BLI_bitmap *src, size_t bits);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

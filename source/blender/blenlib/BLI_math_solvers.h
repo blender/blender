@@ -17,8 +17,7 @@
  * All rights reserved.
  * */
 
-#ifndef __BLI_MATH_SOLVERS_H__
-#define __BLI_MATH_SOLVERS_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -76,5 +75,3 @@ bool BLI_newton3d_solve(Newton3D_DeltaFunc func_delta,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MATH_SOLVERS_H__ */

@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_COLORCURVEOPERATION_H__
-#define __COM_COLORCURVEOPERATION_H__
+#pragma once
+
 #include "COM_CurveBaseOperation.h"
 #include "COM_NodeOperation.h"
 #include "DNA_color_types.h"
@@ -88,5 +88,3 @@ class ConstantLevelColorCurveOperation : public CurveBaseOperation {
     copy_v3_v3(this->m_white, white);
   }
 };
-
-#endif

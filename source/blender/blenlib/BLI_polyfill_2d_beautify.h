@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_POLYFILL_2D_BEAUTIFY_H__
-#define __BLI_POLYFILL_2D_BEAUTIFY_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -51,5 +50,3 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(const float v1[2],
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_POLYFILL_2D_BEAUTIFY_H__ */

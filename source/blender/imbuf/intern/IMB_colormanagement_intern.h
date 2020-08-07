@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __IMB_COLORMANAGEMENT_INTERN_H__
-#define __IMB_COLORMANAGEMENT_INTERN_H__
+#pragma once
 
 /** \file
  * \ingroup imbuf
@@ -130,5 +129,3 @@ void colormanage_imbuf_make_linear(struct ImBuf *ibuf, const char *from_colorspa
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __IMB_COLORMANAGEMENT_INTERN_H__ */

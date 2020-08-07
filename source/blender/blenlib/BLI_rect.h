@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_RECT_H__
-#define __BLI_RECT_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -166,5 +165,3 @@ BLI_INLINE float BLI_rctf_size_y(const struct rctf *rct)
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_RECT_H__ */

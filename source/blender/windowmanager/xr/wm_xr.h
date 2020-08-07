@@ -18,8 +18,7 @@
  * \ingroup wm
  */
 
-#ifndef __WM_XR_H__
-#define __WM_XR_H__
+#pragma once
 
 struct wmWindowManager;
 struct wmXrData;
@@ -31,5 +30,3 @@ bool wm_xr_init(wmWindowManager *wm);
 void wm_xr_exit(wmWindowManager *wm);
 void wm_xr_session_toggle(wmWindowManager *wm, wmXrSessionExitFn session_exit_fn);
 bool wm_xr_events_handle(wmWindowManager *wm);
-
-#endif

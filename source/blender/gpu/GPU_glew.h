@@ -21,8 +21,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_GLEW_H__
-#define __GPU_GLEW_H__
+#pragma once
 
 #if defined(WITH_OPENGL)
 #  include "glew-mx.h"
@@ -30,5 +29,3 @@
 #    include "GPU_legacy_stubs.h"
 #  endif
 #endif
-
-#endif /* __GPU_GLEW_H__ */

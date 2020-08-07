@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_SINGLETHREADEDOPERATION_H__
-#define __COM_SINGLETHREADEDOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class SingleThreadedOperation : public NodeOperation {
@@ -57,4 +57,3 @@ class SingleThreadedOperation : public NodeOperation {
     return true;
   }
 };
-#endif

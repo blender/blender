@@ -23,8 +23,7 @@
  * GPU geometric primitives
  */
 
-#ifndef __GPU_PRIMITIVE_H__
-#define __GPU_PRIMITIVE_H__
+#pragma once
 
 #include "GPU_common.h"
 
@@ -63,5 +62,3 @@ bool GPU_primtype_belongs_to_class(GPUPrimType, GPUPrimClass);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_PRIMITIVE_H__ */

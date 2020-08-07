@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __RNA_ENUM_TYPES_H__
-#define __RNA_ENUM_TYPES_H__
+#pragma once
 
 /** \file
  * \ingroup RNA
@@ -323,5 +322,3 @@ const EnumPropertyItem *RNA_enum_node_tree_types_itemf_impl(struct bContext *C, 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __RNA_ENUM_TYPES_H__ */

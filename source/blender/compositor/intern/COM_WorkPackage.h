@@ -18,8 +18,8 @@
 
 class WorkPackage;
 
-#ifndef __COM_WORKPACKAGE_H__
-#define __COM_WORKPACKAGE_H__
+#pragma once
+
 class ExecutionGroup;
 #include "COM_ExecutionGroup.h"
 
@@ -67,5 +67,3 @@ class WorkPackage {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:WorkPackage")
 #endif
 };
-
-#endif

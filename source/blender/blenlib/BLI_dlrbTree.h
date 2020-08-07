@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_DLRBTREE_H__
-#define __BLI_DLRBTREE_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -166,5 +165,3 @@ void BLI_dlrbTree_insert(DLRBT_Tree *tree, DLRBT_Node *node);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_DLRBTREE_H__ */

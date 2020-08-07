@@ -20,9 +20,6 @@
  * \ingroup draw
  */
 
-#ifndef __DRAW_COLOR_MANAGEMENT_H__
-#define __DRAW_COLOR_MANAGEMENT_H__
+#pragma once
 
 void DRW_transform_none(struct GPUTexture *tex);
-
-#endif /* __DRAW_COLOR_MANAGEMENT_H__ */

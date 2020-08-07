@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_SETSAMPLEROPERATION_H__
-#define __COM_SETSAMPLEROPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 /**
@@ -47,4 +47,3 @@ class SetSamplerOperation : public NodeOperation {
   void initExecution();
   void deinitExecution();
 };
-#endif

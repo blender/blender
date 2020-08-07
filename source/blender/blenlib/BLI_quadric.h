@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_QUADRIC_H__
-#define __BLI_QUADRIC_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -50,5 +49,3 @@ bool BLI_quadric_optimize(const Quadric *q, double v[3], const double epsilon);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_QUADRIC_H__ */

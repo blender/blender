@@ -22,8 +22,7 @@
  * DPX image file format library definitions.
  */
 
-#ifndef __DPXLIB_H__
-#define __DPXLIB_H__
+#pragma once
 
 #include "logImageCore.h"
 
@@ -160,5 +159,3 @@ LogImageFile *dpxCreate(const char *filename,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DPXLIB_H__ */

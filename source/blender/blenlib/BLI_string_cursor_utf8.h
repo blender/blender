@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_STRING_CURSOR_UTF8_H__
-#define __BLI_STRING_CURSOR_UTF8_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -59,5 +58,3 @@ void BLI_str_cursor_step_utf32(const char32_t *str,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_STRING_CURSOR_UTF8_H__ */

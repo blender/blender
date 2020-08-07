@@ -26,8 +26,7 @@
  * Only included in WM_api.h
  */
 
-#ifndef __WM_GIZMO_API_H__
-#define __WM_GIZMO_API_H__
+#pragma once
 
 struct ARegion;
 struct GHashIterator;
@@ -403,5 +402,3 @@ void WM_gizmo_group_refresh(const struct bContext *C, struct wmGizmoGroup *gzgro
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __WM_GIZMO_API_H__ */

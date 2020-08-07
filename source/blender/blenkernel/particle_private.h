@@ -21,8 +21,7 @@
  * \ingroup bke
  */
 
-#ifndef __PARTICLE_PRIVATE_H__
-#define __PARTICLE_PRIVATE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,5 +71,3 @@ void do_child_modifiers(const ParticleChildModifierContext *modifier_ctx,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __PARTICLE_PRIVATE_H__ */

@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_KEYFRAMES_DRAW_H__
-#define __ED_KEYFRAMES_DRAW_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -273,5 +272,3 @@ int actkeyblock_get_valid_hold(ActKeyColumn *ab);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*  __ED_KEYFRAMES_DRAW_H__ */

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_WS_FILL_GRID_H__
-#define __FREESTYLE_WS_FILL_GRID_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -81,5 +80,3 @@ class WSFillGrid {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_WS_FILL_GRID_H__

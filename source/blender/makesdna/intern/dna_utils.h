@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_UTILS_H__
-#define __DNA_UTILS_H__
+#pragma once
 
 struct GHash;
 struct MemArena;
@@ -54,5 +53,3 @@ void DNA_alias_maps(enum eDNA_RenameDir version_dir,
 
 const char *DNA_struct_rename_legacy_hack_alias_from_static(const char *name);
 const char *DNA_struct_rename_legacy_hack_static_from_alias(const char *name);
-
-#endif /* __DNA_UTILS_H__ */

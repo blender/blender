@@ -24,8 +24,7 @@
  * This file contains any additions or modifications specific to Blender.
  */
 
-#ifndef __GPU_BATCH_PRESETS_H__
-#define __GPU_BATCH_PRESETS_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
@@ -55,5 +54,3 @@ void GPU_batch_presets_reset(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_BATCH_PRESETS_H__ */

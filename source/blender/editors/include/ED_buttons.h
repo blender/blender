@@ -20,8 +20,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_BUTTONS_H__
-#define __ED_BUTTONS_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,5 +29,3 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*  __ED_BUTTONS_H__ */

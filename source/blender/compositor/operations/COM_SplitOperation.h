@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_SPLITOPERATION_H__
-#define __COM_SPLITOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class SplitOperation : public NodeOperation {
@@ -43,4 +43,3 @@ class SplitOperation : public NodeOperation {
     this->m_xSplit = xsplit;
   }
 };
-#endif

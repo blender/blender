@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_SETVALUEOPERATION_H__
-#define __COM_SETVALUEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 /**
@@ -54,4 +54,3 @@ class SetValueOperation : public NodeOperation {
     return true;
   }
 };
-#endif

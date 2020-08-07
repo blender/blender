@@ -23,8 +23,7 @@
  * GPU vertex attribute binding
  */
 
-#ifndef __GPU_ATTR_BINDING_PRIVATE_H__
-#define __GPU_ATTR_BINDING_PRIVATE_H__
+#pragma once
 
 #include "GPU_shader_interface.h"
 #include "GPU_vertex_format.h"
@@ -35,5 +34,3 @@ void get_attr_locations(const GPUVertFormat *format,
                         GPUAttrBinding *binding,
                         const GPUShaderInterface *shaderface);
 uint read_attr_location(const GPUAttrBinding *binding, uint a_idx);
-
-#endif /* __GPU_ATTR_BINDING_PRIVATE_H__ */

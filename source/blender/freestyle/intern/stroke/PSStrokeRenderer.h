@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_PS_STROKE_RENDERER_H__
-#define __FREESTYLE_PS_STROKE_RENDERER_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -55,5 +54,3 @@ class PSStrokeRenderer : public StrokeRenderer {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_PS_STROKE_RENDERER_H__

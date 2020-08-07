@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_BOKEHIMAGEOPERATION_H__
-#define __COM_BOKEHIMAGEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 /**
@@ -149,4 +149,3 @@ class BokehImageOperation : public NodeOperation {
     this->m_deleteData = true;
   }
 };
-#endif

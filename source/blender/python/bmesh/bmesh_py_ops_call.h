@@ -21,8 +21,7 @@
  * \ingroup pybmesh
  */
 
-#ifndef __BMESH_PY_OPS_CALL_H__
-#define __BMESH_PY_OPS_CALL_H__
+#pragma once
 
 typedef struct {
   PyObject_HEAD /* required python macro   */
@@ -30,5 +29,3 @@ typedef struct {
 } BPy_BMeshOpFunc;
 
 PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw);
-
-#endif /* __BMESH_PY_OPS_CALL_H__ */

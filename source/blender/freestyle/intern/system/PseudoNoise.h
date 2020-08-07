@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_PSEUDO_NOISE_H__
-#define __FREESTYLE_PSEUDO_NOISE_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -56,5 +55,3 @@ class PseudoNoise {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_PSEUDO_NOISE_H__

@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_DIFFERENCEMATTEOPERATION_H__
-#define __COM_DIFFERENCEMATTEOPERATION_H__
+#pragma once
+
 #include "COM_MixOperation.h"
 
 /**
@@ -49,4 +49,3 @@ class DifferenceMatteOperation : public NodeOperation {
     this->m_settings = nodeChroma;
   }
 };
-#endif

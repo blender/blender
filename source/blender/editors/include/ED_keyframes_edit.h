@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_KEYFRAMES_EDIT_H__
-#define __ED_KEYFRAMES_EDIT_H__
+#pragma once
 
 #include "ED_anim_api.h" /* for enum eAnimFilter_Flags */
 
@@ -340,5 +339,3 @@ short paste_animedit_keys(struct bAnimContext *ac,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_KEYFRAMES_EDIT_H__ */

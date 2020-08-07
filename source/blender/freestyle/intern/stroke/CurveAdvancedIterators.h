@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_CURVE_ADVANCED_ITERATORS_H__
-#define __FREESTYLE_CURVE_ADVANCED_ITERATORS_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -388,5 +387,3 @@ class __point_iterator : public IteratorBase<Traits, BidirectionalIteratorTag_Tr
 }  // end of namespace CurveInternal
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_CURVE_ADVANCED_ITERATORS_H__

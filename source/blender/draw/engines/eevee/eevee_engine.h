@@ -20,9 +20,6 @@
  * \ingroup DNA
  */
 
-#ifndef __EEVEE_ENGINE_H__
-#define __EEVEE_ENGINE_H__
+#pragma once
 
 extern RenderEngineType DRW_engine_viewport_eevee_type;
-
-#endif /* __EEVEE_ENGINE_H__ */

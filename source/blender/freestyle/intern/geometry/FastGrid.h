@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FASTGRID_H__
-#define __FASTGRID_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -76,5 +75,3 @@ class FastGrid : public Grid {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FASTGRID_H__

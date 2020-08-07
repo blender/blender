@@ -18,8 +18,7 @@
  * \ingroup pygen
  */
 
-#ifndef __BGL_H__
-#define __BGL_H__
+#pragma once
 
 PyObject *BPyInit_bgl(void);
 
@@ -52,5 +51,3 @@ typedef struct _Buffer {
 
 /** The type object */
 extern PyTypeObject BGL_bufferType;
-
-#endif /* __BGL_H__ */

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_JITTER_2D_H__
-#define __BLI_JITTER_2D_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -35,5 +34,3 @@ void BLI_jitterate2(float (*jit1)[2], float (*jit2)[2], int num, float radius2);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_JITTER_2D_H__ */

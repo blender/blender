@@ -25,8 +25,7 @@
  *      FRANCE
  */
 
-#ifndef __MATRIX_UTIL__
-#define __MATRIX_UTIL__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -61,5 +60,3 @@ void semi_definite_symmetric_eigen(const double *mat, int n, double *eigen_vec, 
 }  // namespace OGF
 
 } /* namespace Freestyle */
-
-#endif  // __MATRIX_UTIL__

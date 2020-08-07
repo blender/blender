@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_BLENDER_USER_MENU_H__
-#define __BKE_BLENDER_USER_MENU_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -43,5 +42,3 @@ void BKE_blender_user_menu_item_free_list(struct ListBase *lb);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_BLENDER_USER_MENU_H__ */

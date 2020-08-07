@@ -20,8 +20,7 @@
  * \ingroup draw
  */
 
-#ifndef __DRAW_CACHE_EXTRACT_H__
-#define __DRAW_CACHE_EXTRACT_H__
+#pragma once
 
 struct TaskGraph;
 
@@ -269,5 +268,3 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         const Scene *scene,
                                         const ToolSettings *ts,
                                         const bool use_hide);
-
-#endif /* __DRAW_CACHE_EXTRACT_H__ */

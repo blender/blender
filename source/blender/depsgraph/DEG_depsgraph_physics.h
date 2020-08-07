@@ -23,8 +23,7 @@
  * Physics utilities for effectors and collision.
  */
 
-#ifndef __DEG_DEPSGRAPH_PHYSICS_H__
-#define __DEG_DEPSGRAPH_PHYSICS_H__
+#pragma once
 
 #include "DEG_depsgraph.h"
 
@@ -74,5 +73,3 @@ void DEG_add_forcefield_relations(struct DepsNodeHandle *handle,
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
-
-#endif /* __DEG_DEPSGRAPH_PHYSICS_H__ */

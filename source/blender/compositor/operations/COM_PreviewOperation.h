@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_PREVIEWOPERATION_H__
-#define __COM_PREVIEWOPERATION_H__
+#pragma once
+
 #include "BKE_global.h"
 #include "BLI_rect.h"
 #include "COM_NodeOperation.h"
@@ -61,4 +61,3 @@ class PreviewOperation : public NodeOperation {
     return true;
   }
 };
-#endif

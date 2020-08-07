@@ -21,8 +21,7 @@
  * \ingroup edgizmolib
  */
 
-#ifndef __GIZMO_LIBRARY_INTERN_H__
-#define __GIZMO_LIBRARY_INTERN_H__
+#pragma once
 
 /**
  * Data for common interactions. Used in gizmo_library_utils.c functions.
@@ -99,5 +98,3 @@ void wm_gizmo_geometryinfo_draw(const struct GizmoGeomInfo *info,
                                 const float color[4]);
 void wm_gizmo_vec_draw(
     const float color[4], const float (*verts)[3], uint vert_count, uint pos, uint primitive_type);
-
-#endif /* __GIZMO_LIBRARY_INTERN_H__ */

@@ -21,8 +21,7 @@
  * \ingroup spfile
  */
 
-#ifndef __FSMENU_H__
-#define __FSMENU_H__
+#pragma once
 
 /* XXX could become UserPref */
 #define FSMENU_RECENT_MAX 10
@@ -76,5 +75,3 @@ void fsmenu_refresh_bookmarks_status(struct wmWindowManager *wm, struct FSMenu *
 int fsmenu_get_active_indices(struct FSMenu *fsmenu,
                               enum FSMenuCategory category,
                               const char *dir);
-
-#endif

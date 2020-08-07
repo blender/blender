@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __IO_USD_H__
-#define __IO_USD_H__
+#pragma once
 
 /** \file
  * \ingroup editor/io
@@ -27,5 +26,3 @@
 struct wmOperatorType;
 
 void WM_OT_usd_export(struct wmOperatorType *ot);
-
-#endif /* __IO_USD_H__ */

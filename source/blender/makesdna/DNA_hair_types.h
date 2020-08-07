@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_HAIR_TYPES_H__
-#define __DNA_HAIR_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
@@ -74,5 +73,3 @@ enum {
 
 /* Only one material supported currently. */
 #define HAIR_MATERIAL_NR 1
-
-#endif /* __DNA_HAIR_TYPES_H__ */

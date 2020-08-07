@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  * All rights reserved.
  */
-#ifndef __BKE_COLORTOOLS_H__
-#define __BKE_COLORTOOLS_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -151,6 +150,4 @@ bool BKE_color_managed_colorspace_settings_equals(
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

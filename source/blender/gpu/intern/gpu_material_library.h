@@ -22,8 +22,7 @@
  *
  * Parsing of and code generation using GLSL shaders in gpu/shaders/material. */
 
-#ifndef __GPU_MATERIAL_LIBRARY_H__
-#define __GPU_MATERIAL_LIBRARY_H__
+#pragma once
 
 #include "GPU_material.h"
 
@@ -65,5 +64,3 @@ char *gpu_material_library_generate_code(struct GSet *used_libraries, const char
 
 char *gpu_str_skip_token(char *str, char *token, int max);
 const char *gpu_data_type_to_string(const eGPUType type);
-
-#endif /* __ __GPU_MATERIAL_LIBRARY_H__ */

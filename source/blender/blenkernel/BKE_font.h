@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_FONT_H__
-#define __BKE_FONT_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -101,6 +100,4 @@ void BKE_vfont_clipboard_get(char32_t **r_text_buf,
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

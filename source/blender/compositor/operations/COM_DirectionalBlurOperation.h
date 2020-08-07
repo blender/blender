@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_DIRECTIONALBLUROPERATION_H__
-#define __COM_DIRECTIONALBLUROPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
@@ -64,4 +64,3 @@ class DirectionalBlurOperation : public NodeOperation, public QualityStepHelper 
                      list<cl_mem> *clMemToCleanUp,
                      list<cl_kernel> *clKernelsToCleanUp);
 };
-#endif

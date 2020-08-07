@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __SIM_SIMULATION_SOLVER_HH__
-#define __SIM_SIMULATION_SOLVER_HH__
+#pragma once
 
 #include "BLI_float3.hh"
 #include "BLI_span.hh"
@@ -273,5 +272,3 @@ void solve_simulation_time_step(Simulation &simulation,
                                 float time_step);
 
 }  // namespace blender::sim
-
-#endif /* __SIM_SIMULATION_SOLVER_HH__ */

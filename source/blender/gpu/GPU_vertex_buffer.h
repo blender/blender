@@ -23,8 +23,7 @@
  * GPU vertex buffer
  */
 
-#ifndef __GPU_VERTEX_BUFFER_H__
-#define __GPU_VERTEX_BUFFER_H__
+#pragma once
 
 #include "GPU_vertex_format.h"
 
@@ -147,5 +146,3 @@ uint GPU_vertbuf_get_memory_usage(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_VERTEX_BUFFER_H__ */

@@ -20,8 +20,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_SEQUENCER_H__
-#define __ED_SEQUENCER_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,5 +52,3 @@ void ED_sequencer_special_preview_clear(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*  __ED_SEQUENCER_H__ */

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_OBJECT_DEFORM_H__
-#define __BKE_OBJECT_DEFORM_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -95,5 +94,3 @@ void BKE_object_defgroup_mirror_selection(struct Object *ob,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_OBJECT_DEFORM_H__ */

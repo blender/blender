@@ -21,8 +21,7 @@
  * \ingroup render
  */
 
-#ifndef __RE_BAKE_H__
-#define __RE_BAKE_H__
+#pragma once
 
 struct Depsgraph;
 struct ImBuf;
@@ -127,5 +126,3 @@ void RE_bake_ibuf_clear(struct Image *image, const bool is_tangent);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __RE_BAKE_H__ */

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_CURVEPROFILE_H__
-#define __BKE_CURVEPROFILE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -100,6 +99,4 @@ void BKE_curveprofile_blend_read(struct BlendDataReader *reader, struct CurvePro
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

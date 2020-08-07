@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_LINESTYLE_DEFAULTS_H__
-#define __DNA_LINESTYLE_DEFAULTS_H__
+#pragma once
 
 /* Struct members on own line. */
 /* clang-format off */
@@ -57,5 +56,3 @@
 /** \} */
 
 /* clang-format on */
-
-#endif /* __DNA_LINESTYLE_DEFAULTS_H__ */

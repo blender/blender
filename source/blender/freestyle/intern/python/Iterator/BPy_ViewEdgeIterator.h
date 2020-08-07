@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_VIEWEDGEITERATOR_H__
-#define __FREESTYLE_PYTHON_VIEWEDGEITERATOR_H__
+#pragma once
 
 #include "../BPy_Iterator.h"
 
@@ -47,5 +46,3 @@ typedef struct {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_VIEWEDGEITERATOR_H__ */

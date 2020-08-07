@@ -18,8 +18,7 @@
  * \ingroup RNA
  */
 
-#ifndef __RNA_ACCESS_INTERNAL_H__
-#define __RNA_ACCESS_INTERNAL_H__
+#pragma once
 
 #include "BLI_utildefines.h"
 
@@ -34,5 +33,3 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
 
 void rna_idproperty_touch(struct IDProperty *idprop);
 struct IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name);
-
-#endif /* __ACCESS_RNA_INTERNAL_H__ */

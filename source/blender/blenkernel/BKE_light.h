@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_LIGHT_H__
-#define __BKE_LIGHT_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -43,6 +42,4 @@ void BKE_light_eval(struct Depsgraph *depsgraph, struct Light *la);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

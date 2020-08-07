@@ -18,8 +18,7 @@
  * \ingroup wm
  */
 
-#ifndef __WM_MESSAGE_BUS_INTERN_H__
-#define __WM_MESSAGE_BUS_INTERN_H__
+#pragma once
 
 #include "../wm_message_bus.h"
 
@@ -47,5 +46,3 @@ BLI_INLINE wmMsg *wm_msg_subscribe_value_msg_cast_mut(wmMsgSubscribeKey *key)
 {
   return &((wmMsgSubscribeKey_Generic *)key)->msg;
 }
-
-#endif /* __WM_MESSAGE_BUS_INTERN_H__ */

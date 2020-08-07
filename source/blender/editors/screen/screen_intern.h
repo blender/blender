@@ -21,8 +21,7 @@
  * \ingroup edscr
  */
 
-#ifndef __SCREEN_INTERN_H__
-#define __SCREEN_INTERN_H__
+#pragma once
 
 struct Main;
 struct bContext;
@@ -97,5 +96,3 @@ void SCREEN_OT_screenshot(struct wmOperatorType *ot);
 
 /* workspace_layout_edit.c */
 bool workspace_layout_set_poll(const struct WorkSpaceLayout *layout);
-
-#endif /* __SCREEN_INTERN_H__ */

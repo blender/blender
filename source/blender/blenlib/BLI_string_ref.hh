@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_STRING_REF_HH__
-#define __BLI_STRING_REF_HH__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -371,5 +370,3 @@ inline StringRef StringRefBase::substr(const int64_t start, const int64_t size) 
 }
 
 }  // namespace blender
-
-#endif /* __BLI_STRING_REF_HH__ */

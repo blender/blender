@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __CONTROLLER_H__
-#define __CONTROLLER_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -278,5 +277,3 @@ class Controller {
 extern Controller *g_pController;
 
 } /* namespace Freestyle */
-
-#endif  // __CONTROLLER_H__

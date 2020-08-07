@@ -21,8 +21,7 @@
  * \ingroup nodes
  */
 
-#ifndef __NODE_EXEC_H__
-#define __NODE_EXEC_H__
+#pragma once
 
 #include "DNA_listBase.h"
 
@@ -104,6 +103,4 @@ void ntreeTexEndExecTree_internal(struct bNodeTreeExec *exec);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

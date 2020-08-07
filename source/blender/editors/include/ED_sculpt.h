@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_SCULPT_H__
-#define __ED_SCULPT_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,5 +61,3 @@ void ED_sculpt_undo_push_multires_mesh_end(struct bContext *C, const char *str);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_SCULPT_H__ */

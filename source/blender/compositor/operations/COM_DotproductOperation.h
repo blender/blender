@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_DOTPRODUCTOPERATION_H__
-#define __COM_DOTPRODUCTOPERATION_H__
+#pragma once
 
 #include "COM_NodeOperation.h"
 
@@ -33,5 +32,3 @@ class DotproductOperation : public NodeOperation {
   void initExecution();
   void deinitExecution();
 };
-
-#endif

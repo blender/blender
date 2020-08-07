@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) Blender Foundation.
  * All rights reserved.
  */
-#ifndef __BKE_COLLISION_H__
-#define __BKE_COLLISION_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -177,6 +176,4 @@ void BKE_collider_cache_free(struct ListBase **colliders);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

@@ -23,8 +23,7 @@
  * Blender copied the conventions quite some, and expanded it with internal new defines (ton)
  */
 
-#ifndef __WM_EVENT_TYPES_H__
-#define __WM_EVENT_TYPES_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -496,5 +495,3 @@ enum {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __WM_EVENT_TYPES_H__ */

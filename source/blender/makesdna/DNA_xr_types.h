@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_XR_TYPES_H__
-#define __DNA_XR_TYPES_H__
+#pragma once
 
 #include "DNA_view3d_types.h"
 
@@ -54,5 +53,3 @@ typedef enum eXRSessionBasePoseType {
   XR_BASE_POSE_OBJECT = 1,
   XR_BASE_POSE_CUSTOM = 2,
 } eXRSessionBasePoseType;
-
-#endif /* __DNA_XR_TYPES_H__ */

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_POW_23_GRID_DENSITY_PROVIDER_H__
-#define __FREESTYLE_POW_23_GRID_DENSITY_PROVIDER_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -64,5 +63,3 @@ class Pow23GridDensityProviderFactory : public GridDensityProviderFactory {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_POW_23_GRID_DENSITY_PROVIDER_H__

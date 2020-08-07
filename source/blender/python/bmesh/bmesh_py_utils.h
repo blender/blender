@@ -21,9 +21,6 @@
  * \ingroup pybmesh
  */
 
-#ifndef __BMESH_PY_UTILS_H__
-#define __BMESH_PY_UTILS_H__
+#pragma once
 
 PyObject *BPyInit_bmesh_utils(void);
-
-#endif /* __BMESH_PY_UTILS_H__ */

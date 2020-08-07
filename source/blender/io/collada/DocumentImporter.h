@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __DOCUMENTIMPORTER_H__
-#define __DOCUMENTIMPORTER_H__
+#pragma once
 
 #include "COLLADAFWColor.h"
 #include "COLLADAFWController.h"
@@ -168,5 +167,3 @@ class DocumentImporter : COLLADAFW::IWriter {
 
   void report_unknown_reference(const COLLADAFW::Node &node, const std::string object_type);
 };
-
-#endif

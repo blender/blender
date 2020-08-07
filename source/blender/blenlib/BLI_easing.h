@@ -28,8 +28,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_EASING_H__
-#define __BLI_EASING_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -80,5 +79,3 @@ float BLI_easing_sine_ease_in_out(float time, float begin, float change, float d
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_EASING_H__ */

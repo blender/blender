@@ -16,8 +16,7 @@
  * Copyright 2012, Blender Foundation.
  */
 
-#ifndef __COM_KEYINGSCREENOPERATION_H__
-#define __COM_KEYINGSCREENOPERATION_H__
+#pragma once
 
 #include <string.h>
 
@@ -83,5 +82,3 @@ class KeyingScreenOperation : public NodeOperation {
 
   void executePixel(float output[4], int x, int y, void *data);
 };
-
-#endif

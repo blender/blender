@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_TRACKING_H__
-#define __BKE_TRACKING_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -492,6 +491,4 @@ void BKE_tracking_get_rna_path_prefix_for_plane_track(
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

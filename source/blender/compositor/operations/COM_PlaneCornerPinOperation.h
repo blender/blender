@@ -15,8 +15,7 @@
  * Copyright 2014, Blender Foundation.
  */
 
-#ifndef __COM_PLANECORNERPINOPERATION_H__
-#define __COM_PLANECORNERPINOPERATION_H__
+#pragma once
 
 #include <string.h>
 
@@ -59,5 +58,3 @@ class PlaneCornerPinWarpImageOperation : public PlaneDistortWarpImageOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output);
 };
-
-#endif

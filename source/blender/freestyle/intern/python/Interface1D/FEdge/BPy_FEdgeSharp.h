@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_FEDGESHARP_H__
-#define __FREESTYLE_PYTHON_FEDGESHARP_H__
+#pragma once
 
 #include "../BPy_FEdge.h"
 
@@ -50,5 +49,3 @@ void FEdgeSharp_mathutils_register_callback();
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_FEDGESHARP_H__ */

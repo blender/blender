@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_ACTION_H__
-#define __BKE_ACTION_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -222,6 +221,4 @@ void BKE_pose_tag_recalc(struct Main *bmain, struct bPose *pose);
 
 #ifdef __cplusplus
 };
-#endif
-
 #endif

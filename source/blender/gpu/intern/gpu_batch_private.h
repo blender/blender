@@ -24,8 +24,7 @@
  * Contains VAOs + VBOs + Shader representing a drawable entity.
  */
 
-#ifndef __GPU_BATCH_PRIVATE_H__
-#define __GPU_BATCH_PRIVATE_H__
+#pragma once
 
 #include "GPU_batch.h"
 #include "GPU_context.h"
@@ -40,5 +39,3 @@ void gpu_batch_remove_interface_ref(GPUBatch *batch, const GPUShaderInterface *i
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_BATCH_PRIVATE_H__ */

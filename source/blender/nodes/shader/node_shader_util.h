@@ -21,8 +21,7 @@
  * \ingroup nodes
  */
 
-#ifndef __NODE_SHADER_UTIL_H__
-#define __NODE_SHADER_UTIL_H__
+#pragma once
 
 #include <float.h>
 #include <math.h>
@@ -115,6 +114,4 @@ void ntreeExecGPUNodes(struct bNodeTreeExec *exec,
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_FUNCTIONS_1D_H__
-#define __FREESTYLE_FUNCTIONS_1D_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -638,5 +637,3 @@ void getShapeF1D(Interface1D &inter, set<ViewShape *> &oShapes);
 }  // end of namespace Functions1D
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_FUNCTIONS_1D_H__

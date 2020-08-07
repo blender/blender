@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_BILATERALBLUROPERATION_H__
-#define __COM_BILATERALBLUROPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
@@ -55,4 +55,3 @@ class BilateralBlurOperation : public NodeOperation, public QualityStepHelper {
     this->m_data = data;
   }
 };
-#endif

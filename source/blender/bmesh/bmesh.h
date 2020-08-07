@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_H__
-#define __BMESH_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -231,5 +230,3 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BMESH_H__ */

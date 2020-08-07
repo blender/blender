@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_STROKEATTRIBUTE_H__
-#define __FREESTYLE_PYTHON_STROKEATTRIBUTE_H__
+#pragma once
 
 extern "C" {
 #include <Python.h>
@@ -56,5 +55,3 @@ void StrokeAttribute_mathutils_register_callback();
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_STROKEATTRIBUTE_H__ */

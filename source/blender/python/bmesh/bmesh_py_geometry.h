@@ -21,9 +21,6 @@
  * \ingroup pybmesh
  */
 
-#ifndef __BMESH_PY_GEOMETRY_H__
-#define __BMESH_PY_GEOMETRY_H__
+#pragma once
 
 PyObject *BPyInit_bmesh_geometry(void);
-
-#endif /* __BMESH_PY_GEOMETRY_H__ */

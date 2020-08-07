@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_PARTICLE_TYPES_H__
-#define __DNA_PARTICLE_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_boid_types.h"
@@ -691,5 +690,3 @@ typedef enum eParticleTextureInfluence {
   PAMAP_CHILD = (PAMAP_CLUMP | PAMAP_KINK_FREQ | PAMAP_KINK_AMP | PAMAP_ROUGH | PAMAP_LENGTH |
                  PAMAP_TWIST),
 } eParticleTextureInfluence;
-
-#endif

@@ -18,8 +18,7 @@
 
 class ExecutionGroup;
 
-#ifndef __COM_EXECUTIONSYSTEM_H__
-#define __COM_EXECUTIONSYSTEM_H__
+#pragma once
 
 #include "BKE_text.h"
 #include "COM_ExecutionGroup.h"
@@ -196,5 +195,3 @@ class ExecutionSystem {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionSystem")
 #endif
 };
-
-#endif /* __COM_EXECUTIONSYSTEM_H__ */

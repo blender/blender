@@ -20,8 +20,7 @@
  * \name Generic Gizmo Utilities.
  */
 
-#ifndef __ED_GIZMO_UTILS_H__
-#define __ED_GIZMO_UTILS_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,5 +45,3 @@ bool ED_gizmo_poll_or_unlink_delayed_from_tool(const struct bContext *C,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_GIZMO_UTILS_H__ */

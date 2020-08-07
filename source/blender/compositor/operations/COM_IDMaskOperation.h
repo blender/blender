@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_IDMASKOPERATION_H__
-#define __COM_IDMASKOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class IDMaskOperation : public NodeOperation {
@@ -35,4 +35,3 @@ class IDMaskOperation : public NodeOperation {
     this->m_objectIndex = objectIndex;
   }
 };
-#endif

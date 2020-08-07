@@ -22,8 +22,7 @@
  * \ingroup ikplugin
  */
 
-#ifndef __IKSOLVER_PLUGIN_H__
-#define __IKSOLVER_PLUGIN_H__
+#pragma once
 
 #include "ikplugin_api.h"
 
@@ -46,5 +45,3 @@ void iksolver_clear_data(struct bPose *pose);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __IKSOLVER_PLUGIN_H__ */

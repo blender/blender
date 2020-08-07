@@ -21,9 +21,6 @@
  * \ingroup pybmesh
  */
 
-#ifndef __BMESH_PY_API_H__
-#define __BMESH_PY_API_H__
+#pragma once
 
 PyObject *BPyInit_bmesh(void);
-
-#endif /* __BMESH_PY_API_H__ */

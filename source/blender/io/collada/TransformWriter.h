@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __TRANSFORMWRITER_H__
-#define __TRANSFORMWRITER_H__
+#pragma once
 
 #include "COLLADASWNode.h"
 
@@ -47,5 +46,3 @@ class TransformWriter {
                      const float rot[3],
                      const float scale[3]);
 };
-
-#endif

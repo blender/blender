@@ -21,8 +21,7 @@
  * \ingroup spoutliner
  */
 
-#ifndef __OUTLINER_INTERN_H__
-#define __OUTLINER_INTERN_H__
+#pragma once
 
 #include "RNA_types.h"
 
@@ -517,5 +516,3 @@ void outliner_scroll_view(struct ARegion *region, int delta_y);
 /* outliner_sync.c ---------------------------------------------- */
 
 void outliner_sync_selection(const struct bContext *C, struct SpaceOutliner *soops);
-
-#endif /* __OUTLINER_INTERN_H__ */

@@ -27,8 +27,7 @@
 
 // This code is in the public domain -- castanyo@yahoo.es
 
-#ifndef __COLORBLOCK_H__
-#define __COLORBLOCK_H__
+#pragma once
 
 #include <Color.h>
 #include <Image.h>
@@ -91,5 +90,3 @@ inline Color32 &ColorBlock::color(uint x, uint y)
 {
   return m_color[y * 4 + x];
 }
-
-#endif /* __COLORBLOCK_H__ */

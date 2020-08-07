@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_SPACE_API_H__
-#define __ED_SPACE_API_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -83,5 +82,3 @@ void ED_region_draw_mouse_line_cb(const struct bContext *C,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_SPACE_API_H__ */

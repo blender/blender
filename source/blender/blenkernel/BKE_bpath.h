@@ -20,8 +20,7 @@
  *   so for BPath we don't need to malloc
  */
 
-#ifndef __BKE_BPATH_H__
-#define __BKE_BPATH_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -92,5 +91,3 @@ void BKE_bpath_absolute_convert(struct Main *bmain,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_BPATH_H__ */

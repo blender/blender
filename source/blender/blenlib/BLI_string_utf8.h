@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_STRING_UTF8_H__
-#define __BLI_STRING_UTF8_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -114,6 +113,4 @@ int BLI_str_utf8_offset_from_column(const char *str, int column);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

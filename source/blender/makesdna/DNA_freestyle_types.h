@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __DNA_FREESTYLE_TYPES_H__
-#define __DNA_FREESTYLE_TYPES_H__
+#pragma once
 
 /** \file
  * \ingroup DNA
@@ -155,5 +154,3 @@ typedef struct FreestyleConfig {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DNA_FREESTYLE_TYPES_H__ */
