@@ -58,12 +58,11 @@ bool GlareBaseOperation::determineDependingAreaOfInterest(rcti * /*input*/,
   if (isCached()) {
     return false;
   }
-  else {
-    rcti newInput;
-    newInput.xmax = this->getWidth();
-    newInput.xmin = 0;
-    newInput.ymax = this->getHeight();
-    newInput.ymin = 0;
-    return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
-  }
+
+  rcti newInput;
+  newInput.xmax = this->getWidth();
+  newInput.xmin = 0;
+  newInput.ymax = this->getHeight();
+  newInput.ymin = 0;
+  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }

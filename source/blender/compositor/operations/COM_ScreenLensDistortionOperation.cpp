@@ -124,9 +124,8 @@ bool ScreenLensDistortionOperation::get_delta(float r_sq,
     distort_uv(uv, t, delta);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 void ScreenLensDistortionOperation::accumulate(MemoryBuffer *buffer,

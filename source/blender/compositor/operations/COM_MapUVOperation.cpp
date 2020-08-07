@@ -87,14 +87,13 @@ bool MapUVOperation::read_uv(float x, float y, float &r_u, float &r_v, float &r_
     r_alpha = 0.0f;
     return false;
   }
-  else {
-    float vector[3];
-    m_inputUVProgram->readSampled(vector, x, y, COM_PS_BILINEAR);
-    r_u = vector[0] * m_inputColorProgram->getWidth();
-    r_v = vector[1] * m_inputColorProgram->getHeight();
-    r_alpha = vector[2];
-    return true;
-  }
+
+  float vector[3];
+  m_inputUVProgram->readSampled(vector, x, y, COM_PS_BILINEAR);
+  r_u = vector[0] * m_inputColorProgram->getWidth();
+  r_v = vector[1] * m_inputColorProgram->getHeight();
+  r_alpha = vector[2];
+  return true;
 }
 
 void MapUVOperation::pixelTransform(const float xy[2],

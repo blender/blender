@@ -105,9 +105,9 @@ static int extrapolate9(float *E0,
     }
     return 1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
+
 #undef PEQ
 #undef PCPY
 }

@@ -199,7 +199,6 @@ CompositorPriority ViewerOperation::getRenderPriority() const
   if (this->isActiveViewerOutput()) {
     return COM_PRIORITY_HIGH;
   }
-  else {
-    return COM_PRIORITY_LOW;
-  }
+
+  return COM_PRIORITY_LOW;
 }

@@ -74,13 +74,12 @@ bool DisplaceOperation::read_displacement(
     r_v = 0.0f;
     return false;
   }
-  else {
-    float col[4];
-    m_inputVectorProgram->readSampled(col, x, y, COM_PS_BILINEAR);
-    r_u = origin[0] - col[0] * xscale;
-    r_v = origin[1] - col[1] * yscale;
-    return true;
-  }
+
+  float col[4];
+  m_inputVectorProgram->readSampled(col, x, y, COM_PS_BILINEAR);
+  r_u = origin[0] - col[0] * xscale;
+  r_v = origin[1] - col[1] * yscale;
+  return true;
 }
 
 void DisplaceOperation::pixelTransform(const float xy[2], float r_uv[2], float r_deriv[2][2])

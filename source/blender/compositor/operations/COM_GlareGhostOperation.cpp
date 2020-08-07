@@ -28,9 +28,8 @@ static float smoothMask(float x, float y)
   if ((t = 1.0f - sqrtf(x * x + y * y)) > 0.0f) {
     return t;
   }
-  else {
-    return 0.0f;
-  }
+
+  return 0.0f;
 }
 
 void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings)

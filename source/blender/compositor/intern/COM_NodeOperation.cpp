@@ -145,9 +145,8 @@ NodeOperation *NodeOperation::getInputOperation(unsigned int inputSocketIndex)
   if (input && input->isConnected()) {
     return &input->getLink()->getOperation();
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 void NodeOperation::getConnectedInputSockets(Inputs *sockets)
@@ -168,30 +167,29 @@ bool NodeOperation::determineDependingAreaOfInterest(rcti *input,
     BLI_rcti_init(output, input->xmin, input->xmax, input->ymin, input->ymax);
     return false;
   }
-  else {
-    rcti tempOutput;
-    bool first = true;
-    for (int i = 0; i < getNumberOfInputSockets(); i++) {
-      NodeOperation *inputOperation = this->getInputOperation(i);
-      if (inputOperation &&
-          inputOperation->determineDependingAreaOfInterest(input, readOperation, &tempOutput)) {
-        if (first) {
-          output->xmin = tempOutput.xmin;
-          output->ymin = tempOutput.ymin;
-          output->xmax = tempOutput.xmax;
-          output->ymax = tempOutput.ymax;
-          first = false;
-        }
-        else {
-          output->xmin = min(output->xmin, tempOutput.xmin);
-          output->ymin = min(output->ymin, tempOutput.ymin);
-          output->xmax = max(output->xmax, tempOutput.xmax);
-          output->ymax = max(output->ymax, tempOutput.ymax);
-        }
+
+  rcti tempOutput;
+  bool first = true;
+  for (int i = 0; i < getNumberOfInputSockets(); i++) {
+    NodeOperation *inputOperation = this->getInputOperation(i);
+    if (inputOperation &&
+        inputOperation->determineDependingAreaOfInterest(input, readOperation, &tempOutput)) {
+      if (first) {
+        output->xmin = tempOutput.xmin;
+        output->ymin = tempOutput.ymin;
+        output->xmax = tempOutput.xmax;
+        output->ymax = tempOutput.ymax;
+        first = false;
+      }
+      else {
+        output->xmin = min(output->xmin, tempOutput.xmin);
+        output->ymin = min(output->ymin, tempOutput.ymin);
+        output->xmax = max(output->xmax, tempOutput.xmax);
+        output->ymax = max(output->ymax, tempOutput.ymax);
       }
     }
-    return !first;
   }
+  return !first;
 }
 
 /*****************
@@ -210,9 +208,8 @@ SocketReader *NodeOperationInput::getReader()
   if (isConnected()) {
     return &m_link->getOperation();
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 void NodeOperationInput::determineResolution(unsigned int resolution[2],

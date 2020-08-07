@@ -1330,9 +1330,8 @@ bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti * /*input*/,
     newInput.ymin = 0;
     return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 void DoubleEdgeMaskOperation::initExecution()

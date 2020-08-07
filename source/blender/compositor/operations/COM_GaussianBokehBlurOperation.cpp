@@ -176,23 +176,22 @@ bool GaussianBokehBlurOperation::determineDependingAreaOfInterest(
   if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
     return true;
   }
-  else {
-    if (this->m_sizeavailable && this->m_gausstab != NULL) {
-      newInput.xmin = 0;
-      newInput.ymin = 0;
-      newInput.xmax = this->getWidth();
-      newInput.ymax = this->getHeight();
-    }
-    else {
-      int addx = this->m_radx;
-      int addy = this->m_rady;
-      newInput.xmax = input->xmax + addx;
-      newInput.xmin = input->xmin - addx;
-      newInput.ymax = input->ymax + addy;
-      newInput.ymin = input->ymin - addy;
-    }
-    return BlurBaseOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+
+  if (this->m_sizeavailable && this->m_gausstab != NULL) {
+    newInput.xmin = 0;
+    newInput.ymin = 0;
+    newInput.xmax = this->getWidth();
+    newInput.ymax = this->getHeight();
   }
+  else {
+    int addx = this->m_radx;
+    int addy = this->m_rady;
+    newInput.xmax = input->xmax + addx;
+    newInput.xmin = input->xmin - addx;
+    newInput.ymax = input->ymax + addy;
+    newInput.ymin = input->ymin - addy;
+  }
+  return BlurBaseOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
 // reference image
@@ -351,13 +350,12 @@ bool GaussianBlurReferenceOperation::determineDependingAreaOfInterest(
   if (operation->determineDependingAreaOfInterest(input, readOperation, output)) {
     return true;
   }
-  else {
-    int addx = this->m_data.sizex + 2;
-    int addy = this->m_data.sizey + 2;
-    newInput.xmax = input->xmax + addx;
-    newInput.xmin = input->xmin - addx;
-    newInput.ymax = input->ymax + addy;
-    newInput.ymin = input->ymin - addy;
-    return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
-  }
+
+  int addx = this->m_data.sizex + 2;
+  int addy = this->m_data.sizey + 2;
+  newInput.xmax = input->xmax + addx;
+  newInput.xmin = input->xmin - addx;
+  newInput.ymax = input->ymax + addy;
+  newInput.ymin = input->ymin - addy;
+  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }

@@ -136,10 +136,9 @@ float MemoryBuffer::getMaximumValue(rcti *rect)
     delete temp;
     return result;
   }
-  else {
-    BLI_assert(0);
-    return 0.0f;
-  }
+
+  BLI_assert(0);
+  return 0.0f;
 }
 
 MemoryBuffer::~MemoryBuffer()

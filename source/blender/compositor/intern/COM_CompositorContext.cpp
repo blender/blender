@@ -36,7 +36,6 @@ int CompositorContext::getFramenumber() const
   if (this->m_rd) {
     return this->m_rd->cfra;
   }
-  else {
-    return -1; /* this should never happen */
-  }
+
+  return -1; /* this should never happen */
 }

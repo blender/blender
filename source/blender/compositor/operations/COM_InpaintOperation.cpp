@@ -272,14 +272,13 @@ bool InpaintSimpleOperation::determineDependingAreaOfInterest(rcti * /*input*/,
   if (this->m_cached_buffer_ready) {
     return false;
   }
-  else {
-    rcti newInput;
 
-    newInput.xmax = getWidth();
-    newInput.xmin = 0;
-    newInput.ymax = getHeight();
-    newInput.ymin = 0;
+  rcti newInput;
 
-    return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
-  }
+  newInput.xmax = getWidth();
+  newInput.xmin = 0;
+  newInput.ymax = getHeight();
+  newInput.ymin = 0;
+
+  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
