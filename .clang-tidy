@@ -31,7 +31,6 @@ Checks:  >
   -bugprone-sizeof-expression,
   -bugprone-integer-division,
   -bugprone-incorrect-roundings,
-  -bugprone-not-null-terminated-result,
   -bugprone-suspicious-missing-comma,
   -bugprone-parent-virtual-call,
   -bugprone-copy-constructor-init,
