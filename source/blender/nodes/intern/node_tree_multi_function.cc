@@ -176,13 +176,12 @@ static fn::MFOutputSocket *try_find_origin(CommonMFNetworkBuilderData &common,
     }
     return nullptr;
   }
-  else {
-    const DGroupInput &from_group_input = *from_group_inputs[0];
-    if (is_multi_function_data_socket(from_group_input.bsocket())) {
-      return &common.network_map.lookup(from_group_input);
-    }
-    return nullptr;
+
+  const DGroupInput &from_group_input = *from_group_inputs[0];
+  if (is_multi_function_data_socket(from_group_input.bsocket())) {
+    return &common.network_map.lookup(from_group_input);
   }
+  return nullptr;
 }
 
 using ImplicitConversionsMap =

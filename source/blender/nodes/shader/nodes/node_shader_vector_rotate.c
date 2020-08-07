@@ -53,9 +53,8 @@ static int gpu_shader_vector_rotate(GPUMaterial *mat,
     float invert = (node->custom2) ? -1.0 : 1.0;
     return GPU_stack_link(mat, node, names[node->custom1], in, out, GPU_constant(&invert));
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 static void node_shader_update_vector_rotate(bNodeTree *UNUSED(ntree), bNode *node)

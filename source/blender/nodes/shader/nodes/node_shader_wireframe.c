@@ -42,15 +42,14 @@ static int node_shader_gpu_wireframe(GPUMaterial *mat,
     return GPU_stack_link(
         mat, node, "node_wireframe_screenspace", in, out, GPU_builtin(GPU_BARYCENTRIC_TEXCO));
   }
-  else {
-    return GPU_stack_link(mat,
-                          node,
-                          "node_wireframe",
-                          in,
-                          out,
-                          GPU_builtin(GPU_BARYCENTRIC_TEXCO),
-                          GPU_builtin(GPU_BARYCENTRIC_DIST));
-  }
+
+  return GPU_stack_link(mat,
+                        node,
+                        "node_wireframe",
+                        in,
+                        out,
+                        GPU_builtin(GPU_BARYCENTRIC_TEXCO),
+                        GPU_builtin(GPU_BARYCENTRIC_DIST));
 }
 
 /* node type definition */

@@ -45,28 +45,27 @@ static int node_shader_gpu_tangent(GPUMaterial *mat,
     return GPU_stack_link(
         mat, node, "node_tangentmap", in, out, GPU_attribute(mat, CD_TANGENT, attr->uv_map));
   }
-  else {
-    GPUNodeLink *orco = GPU_attribute(mat, CD_ORCO, "");
 
-    if (attr->axis == SHD_TANGENT_AXIS_X) {
-      GPU_link(mat, "tangent_orco_x", orco, &orco);
-    }
-    else if (attr->axis == SHD_TANGENT_AXIS_Y) {
-      GPU_link(mat, "tangent_orco_y", orco, &orco);
-    }
-    else {
-      GPU_link(mat, "tangent_orco_z", orco, &orco);
-    }
+  GPUNodeLink *orco = GPU_attribute(mat, CD_ORCO, "");
 
-    return GPU_stack_link(mat,
-                          node,
-                          "node_tangent",
-                          in,
-                          out,
-                          GPU_builtin(GPU_WORLD_NORMAL),
-                          orco,
-                          GPU_builtin(GPU_OBJECT_MATRIX));
+  if (attr->axis == SHD_TANGENT_AXIS_X) {
+    GPU_link(mat, "tangent_orco_x", orco, &orco);
   }
+  else if (attr->axis == SHD_TANGENT_AXIS_Y) {
+    GPU_link(mat, "tangent_orco_y", orco, &orco);
+  }
+  else {
+    GPU_link(mat, "tangent_orco_z", orco, &orco);
+  }
+
+  return GPU_stack_link(mat,
+                        node,
+                        "node_tangent",
+                        in,
+                        out,
+                        GPU_builtin(GPU_WORLD_NORMAL),
+                        orco,
+                        GPU_builtin(GPU_OBJECT_MATRIX));
 }
 
 /* node type definition */

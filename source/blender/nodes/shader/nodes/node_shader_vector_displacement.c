@@ -55,13 +55,12 @@ static int gpu_shader_vector_displacement(GPUMaterial *mat,
                           GPU_builtin(GPU_OBJECT_MATRIX),
                           GPU_builtin(GPU_VIEW_MATRIX));
   }
-  else if (node->custom1 == SHD_SPACE_OBJECT) {
+  if (node->custom1 == SHD_SPACE_OBJECT) {
     return GPU_stack_link(
         mat, node, "node_vector_displacement_object", in, out, GPU_builtin(GPU_OBJECT_MATRIX));
   }
-  else {
-    return GPU_stack_link(mat, node, "node_vector_displacement_world", in, out);
-  }
+
+  return GPU_stack_link(mat, node, "node_vector_displacement_world", in, out);
 }
 
 /* node type definition */

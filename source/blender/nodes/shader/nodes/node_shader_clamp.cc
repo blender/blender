@@ -60,9 +60,8 @@ static void sh_node_clamp_expand_in_mf_network(blender::nodes::NodeMFNetworkBuil
         if (a < b) {
           return clamp_f(value, a, b);
         }
-        else {
-          return clamp_f(value, b, a);
-        }
+
+        return clamp_f(value, b, a);
       }};
 
   int clamp_type = builder.bnode().custom1;

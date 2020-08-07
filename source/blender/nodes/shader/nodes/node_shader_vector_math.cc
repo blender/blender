@@ -103,9 +103,8 @@ static int gpu_shader_vector_math(GPUMaterial *mat,
   if (name != nullptr) {
     return GPU_stack_link(mat, node, name, in, out);
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 static void node_shader_update_vector_math(bNodeTree *UNUSED(ntree), bNode *node)

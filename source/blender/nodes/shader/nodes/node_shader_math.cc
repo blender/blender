@@ -141,9 +141,8 @@ static int gpu_shader_math(GPUMaterial *mat,
     }
     return ret;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 static const blender::fn::MultiFunction &get_base_multi_function(

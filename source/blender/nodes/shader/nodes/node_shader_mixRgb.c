@@ -98,9 +98,8 @@ static int gpu_shader_mix_rgb(GPUMaterial *mat,
     }
     return ret;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 void register_node_type_sh_mix_rgb(void)

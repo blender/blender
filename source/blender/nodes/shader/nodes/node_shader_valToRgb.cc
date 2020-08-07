@@ -121,9 +121,8 @@ static int gpu_shader_valtorgb(GPUMaterial *mat,
   if (coba->ipotype == COLBAND_INTERP_CONSTANT) {
     return GPU_stack_link(mat, node, "valtorgb_nearest", in, out, tex, GPU_constant(&layer));
   }
-  else {
-    return GPU_stack_link(mat, node, "valtorgb", in, out, tex, GPU_constant(&layer));
-  }
+
+  return GPU_stack_link(mat, node, "valtorgb", in, out, tex, GPU_constant(&layer));
 }
 
 class ColorBandFunction : public blender::fn::MultiFunction {
