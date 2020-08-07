@@ -270,9 +270,9 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
         break;
 
       case SPACE_OUTLINER: {
-        SpaceOutliner *soops = (SpaceOutliner *)sl;
+        SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
 
-        memcpy(&region->v2d, &soops->v2d, sizeof(View2D));
+        memcpy(&region->v2d, &space_outliner->v2d, sizeof(View2D));
 
         region->v2d.scroll &= ~V2D_SCROLL_LEFT;
         region->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);

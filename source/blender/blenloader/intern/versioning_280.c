@@ -1282,20 +1282,20 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
           if (space->spacetype == SPACE_OUTLINER) {
-            SpaceOutliner *soutliner = (SpaceOutliner *)space;
+            SpaceOutliner *space_outliner = (SpaceOutliner *)space;
 
-            soutliner->outlinevis = SO_VIEW_LAYER;
+            space_outliner->outlinevis = SO_VIEW_LAYER;
 
             if (BLI_listbase_count_at_most(&layer->layer_collections, 2) == 1) {
-              if (soutliner->treestore == NULL) {
-                soutliner->treestore = BLI_mempool_create(
+              if (space_outliner->treestore == NULL) {
+                space_outliner->treestore = BLI_mempool_create(
                     sizeof(TreeStoreElem), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
               }
 
               /* Create a tree store element for the collection. This is normally
                * done in check_persistent (outliner_tree.c), but we need to access
                * it here :/ (expand element if it's the only one) */
-              TreeStoreElem *tselem = BLI_mempool_calloc(soutliner->treestore);
+              TreeStoreElem *tselem = BLI_mempool_calloc(space_outliner->treestore);
               tselem->type = TSE_LAYER_COLLECTION;
               tselem->id = layer->layer_collections.first;
               tselem->nr = tselem->used = 0;
@@ -2025,15 +2025,15 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         for (area = screen->areabase.first; area; area = area->next) {
           for (sl = area->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_OUTLINER) {
-              SpaceOutliner *so = (SpaceOutliner *)sl;
+              SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
 
-              if (!ELEM(so->outlinevis,
+              if (!ELEM(space_outliner->outlinevis,
                         SO_SCENES,
                         SO_LIBRARIES,
                         SO_SEQUENCE,
                         SO_DATA_API,
                         SO_ID_ORPHANS)) {
-                so->outlinevis = SO_VIEW_LAYER;
+                space_outliner->outlinevis = SO_VIEW_LAYER;
               }
             }
           }
@@ -2413,9 +2413,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
             if (sl->spacetype == SPACE_OUTLINER) {
-              SpaceOutliner *soops = (SpaceOutliner *)sl;
-              soops->filter_id_type = ID_GR;
-              soops->outlinevis = SO_VIEW_LAYER;
+              SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+              space_outliner->filter_id_type = ID_GR;
+              space_outliner->outlinevis = SO_VIEW_LAYER;
             }
           }
         }
@@ -3412,9 +3412,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
               break;
             }
             case SPACE_OUTLINER: {
-              SpaceOutliner *so = (SpaceOutliner *)sl;
-              so->filter &= ~(SO_FILTER_UNUSED_1 | SO_FILTER_UNUSED_5 | SO_FILTER_UNUSED_12);
-              so->storeflag &= ~(SO_TREESTORE_UNUSED_1);
+              SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+              space_outliner->filter &= ~(SO_FILTER_UNUSED_1 | SO_FILTER_UNUSED_5 |
+                                          SO_FILTER_UNUSED_12);
+              space_outliner->storeflag &= ~(SO_TREESTORE_UNUSED_1);
               break;
             }
             case SPACE_FILE: {
@@ -4028,9 +4029,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           if (sl->spacetype != SPACE_OUTLINER) {
             continue;
           }
-          SpaceOutliner *so = (SpaceOutliner *)sl;
-          so->filter &= ~SO_FLAG_UNUSED_1;
-          so->show_restrict_flags = SO_RESTRICT_ENABLE | SO_RESTRICT_HIDE;
+          SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+          space_outliner->filter &= ~SO_FLAG_UNUSED_1;
+          space_outliner->show_restrict_flags = SO_RESTRICT_ENABLE | SO_RESTRICT_HIDE;
         }
       }
     }
@@ -4162,9 +4163,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           }
           /* Mark outliners as dirty for syncing and enable synced selection */
           if (sl->spacetype == SPACE_OUTLINER) {
-            SpaceOutliner *soutliner = (SpaceOutliner *)sl;
-            soutliner->sync_select_dirty |= WM_OUTLINER_SYNC_SELECT_FROM_ALL;
-            soutliner->flag |= SO_SYNC_SELECT;
+            SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+            space_outliner->sync_select_dirty |= WM_OUTLINER_SYNC_SELECT_FROM_ALL;
+            space_outliner->flag |= SO_SYNC_SELECT;
           }
         }
       }

@@ -90,13 +90,13 @@ static TreeElement *outliner_dropzone_element(TreeElement *te,
 }
 
 /* Find tree element to drop into. */
-static TreeElement *outliner_dropzone_find(const SpaceOutliner *soops,
+static TreeElement *outliner_dropzone_find(const SpaceOutliner *space_outliner,
                                            const float fmval[2],
                                            const bool children)
 {
   TreeElement *te;
 
-  for (te = soops->tree.first; te; te = te->next) {
+  for (te = space_outliner->tree.first; te; te = te->next) {
     TreeElement *te_valid = outliner_dropzone_element(te, fmval, children);
     if (te_valid) {
       return te_valid;
@@ -108,11 +108,11 @@ static TreeElement *outliner_dropzone_find(const SpaceOutliner *soops,
 static TreeElement *outliner_drop_find(bContext *C, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
-  SpaceOutliner *soops = CTX_wm_space_outliner(C);
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   float fmval[2];
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
-  return outliner_dropzone_find(soops, fmval, true);
+  return outliner_dropzone_find(space_outliner, fmval, true);
 }
 
 static ID *outliner_ID_drop_find(bContext *C, const wmEvent *event, short idcode)
@@ -131,14 +131,14 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
                                               const wmEvent *event,
                                               TreeElementInsertType *r_insert_type)
 {
-  SpaceOutliner *soops = CTX_wm_space_outliner(C);
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   ARegion *region = CTX_wm_region(C);
   TreeElement *te_hovered;
   float view_mval[2];
 
   UI_view2d_region_to_view(
       &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
-  te_hovered = outliner_find_item_at_y(soops, &soops->tree, view_mval[1]);
+  te_hovered = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
 
   if (te_hovered) {
     /* Mouse hovers an element (ignoring x-axis),
@@ -146,7 +146,7 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
     const float margin = UI_UNIT_Y * (1.0f / 4);
 
     if (view_mval[1] < (te_hovered->ys + margin)) {
-      if (TSELEM_OPEN(TREESTORE(te_hovered), soops)) {
+      if (TSELEM_OPEN(TREESTORE(te_hovered), space_outliner)) {
         /* inserting after a open item means we insert into it, but as first child */
         if (BLI_listbase_is_empty(&te_hovered->subtree)) {
           *r_insert_type = TE_INSERT_INTO;
@@ -168,8 +168,8 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
 
   /* Mouse doesn't hover any item (ignoring x-axis),
    * so it's either above list bounds or below. */
-  TreeElement *first = soops->tree.first;
-  TreeElement *last = soops->tree.last;
+  TreeElement *first = space_outliner->tree.first;
+  TreeElement *last = space_outliner->tree.last;
 
   if (view_mval[1] < last->ys) {
     *r_insert_type = TE_INSERT_AFTER;
@@ -262,11 +262,11 @@ static bool parent_drop_allowed(TreeElement *te, Object *potential_child)
   return true;
 }
 
-static bool allow_parenting_without_modifier_key(SpaceOutliner *soops)
+static bool allow_parenting_without_modifier_key(SpaceOutliner *space_outliner)
 {
-  switch (soops->outlinevis) {
+  switch (space_outliner->outlinevis) {
     case SO_VIEW_LAYER:
-      return soops->filter & SO_FILTER_NO_COLLECTION;
+      return space_outliner->filter & SO_FILTER_NO_COLLECTION;
     case SO_SCENES:
       return true;
     default:
@@ -279,9 +279,9 @@ static bool parent_drop_poll(bContext *C,
                              const wmEvent *event,
                              const char **UNUSED(r_tooltip))
 {
-  SpaceOutliner *soops = CTX_wm_space_outliner(C);
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
-  bool changed = outliner_flag_set(&soops->tree, TSE_DRAG_ANY, false);
+  bool changed = outliner_flag_set(&space_outliner->tree, TSE_DRAG_ANY, false);
   if (changed) {
     ED_region_tag_redraw_no_rebuild(CTX_wm_region(C));
   }
@@ -291,7 +291,7 @@ static bool parent_drop_poll(bContext *C,
     return false;
   }
 
-  if (!allow_parenting_without_modifier_key(soops)) {
+  if (!allow_parenting_without_modifier_key(space_outliner)) {
     if (!event->shift) {
       return false;
     }
@@ -319,9 +319,9 @@ static void parent_drop_set_parents(bContext *C,
                                     const bool keep_transform)
 {
   Main *bmain = CTX_data_main(C);
-  SpaceOutliner *soops = CTX_wm_space_outliner(C);
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
-  TreeElement *te = outliner_find_id(soops, &soops->tree, &parent->id);
+  TreeElement *te = outliner_find_id(space_outliner, &space_outliner->tree, &parent->id);
   Scene *scene = (Scene *)outliner_search_back(te, ID_SCE);
 
   if (scene == NULL) {
@@ -418,9 +418,9 @@ static bool parent_clear_poll(bContext *C,
                               const wmEvent *event,
                               const char **UNUSED(r_tooltip))
 {
-  SpaceOutliner *soops = CTX_wm_space_outliner(C);
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
-  if (!allow_parenting_without_modifier_key(soops)) {
+  if (!allow_parenting_without_modifier_key(space_outliner)) {
     if (!event->shift) {
       return false;
     }
@@ -649,7 +649,7 @@ static bool collection_drop_init(bContext *C,
                                  const wmEvent *event,
                                  CollectionDrop *data)
 {
-  SpaceOutliner *soops = CTX_wm_space_outliner(C);
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   /* Get collection to drop into. */
   TreeElementInsertType insert_type;
@@ -685,7 +685,7 @@ static bool collection_drop_init(bContext *C,
   /* Get collection to drag out of. */
   ID *parent = drag_id->from_parent;
   Collection *from_collection = collection_parent_from_ID(parent);
-  if (event->ctrl || soops->outlinevis == SO_SCENES) {
+  if (event->ctrl || space_outliner->outlinevis == SO_SCENES) {
     from_collection = NULL;
   }
 
@@ -712,9 +712,9 @@ static bool collection_drop_poll(bContext *C,
                                  const wmEvent *event,
                                  const char **r_tooltip)
 {
-  SpaceOutliner *soops = CTX_wm_space_outliner(C);
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   ARegion *region = CTX_wm_region(C);
-  bool changed = outliner_flag_set(&soops->tree, TSE_HIGHLIGHTED | TSE_DRAG_ANY, false);
+  bool changed = outliner_flag_set(&space_outliner->tree, TSE_HIGHLIGHTED | TSE_DRAG_ANY, false);
 
   CollectionDrop data;
   if (!event->shift && collection_drop_init(C, drag, event, &data)) {
@@ -787,12 +787,12 @@ static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
   bool relative_after = false;
 
   if (ELEM(data.insert_type, TE_INSERT_BEFORE, TE_INSERT_AFTER)) {
-    SpaceOutliner *soops = CTX_wm_space_outliner(C);
+    SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
     relative = data.to;
     relative_after = (data.insert_type == TE_INSERT_AFTER);
 
-    TreeElement *parent_te = outliner_find_parent_element(&soops->tree, NULL, data.te);
+    TreeElement *parent_te = outliner_find_parent_element(&space_outliner->tree, NULL, data.te);
     data.to = (parent_te) ? outliner_collection_from_tree_element(parent_te) : NULL;
   }
 
@@ -860,14 +860,14 @@ void OUTLINER_OT_collection_drop(wmOperatorType *ot)
 
 #define OUTLINER_DRAG_SCOLL_OUTSIDE_PAD 7 /* In UI units */
 
-static TreeElement *outliner_item_drag_element_find(SpaceOutliner *soops,
+static TreeElement *outliner_item_drag_element_find(SpaceOutliner *space_outliner,
                                                     ARegion *region,
                                                     const wmEvent *event)
 {
   /* note: using EVT_TWEAK_ events to trigger dragging is fine,
    * it sends coordinates from where dragging was started */
   const float my = UI_view2d_region_to_view_y(&region->v2d, event->mval[1]);
-  return outliner_find_item_at_y(soops, &soops->tree, my);
+  return outliner_find_item_at_y(space_outliner, &space_outliner->tree, my);
 }
 
 static int outliner_item_drag_drop_invoke(bContext *C,
@@ -875,8 +875,8 @@ static int outliner_item_drag_drop_invoke(bContext *C,
                                           const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
-  SpaceOutliner *soops = CTX_wm_space_outliner(C);
-  TreeElement *te = outliner_item_drag_element_find(soops, region, event);
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+  TreeElement *te = outliner_item_drag_element_find(space_outliner, region, event);
 
   if (!te) {
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
@@ -912,7 +912,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
 
     /* Only drag element under mouse if it was not selected before. */
     if ((TREESTORE(te)->flag & TSE_SELECTED) == 0) {
-      outliner_flag_set(&soops->tree, TSE_SELECTED, 0);
+      outliner_flag_set(&space_outliner->tree, TSE_SELECTED, 0);
       TREESTORE(te)->flag |= TSE_SELECTED;
     }
 
@@ -922,12 +922,20 @@ static int outliner_item_drag_drop_invoke(bContext *C,
     };
 
     if (GS(data.drag_id->name) == ID_OB) {
-      outliner_tree_traverse(
-          soops, &soops->tree, 0, TSE_SELECTED, outliner_find_selected_objects, &selected);
+      outliner_tree_traverse(space_outliner,
+                             &space_outliner->tree,
+                             0,
+                             TSE_SELECTED,
+                             outliner_find_selected_objects,
+                             &selected);
     }
     else {
-      outliner_tree_traverse(
-          soops, &soops->tree, 0, TSE_SELECTED, outliner_find_selected_collections, &selected);
+      outliner_tree_traverse(space_outliner,
+                             &space_outliner->tree,
+                             0,
+                             TSE_SELECTED,
+                             outliner_find_selected_collections,
+                             &selected);
     }
 
     LISTBASE_FOREACH (LinkData *, link, &selected.selected_array) {

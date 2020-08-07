@@ -45,7 +45,8 @@ void ED_outliner_select_sync_from_all_tag(struct bContext *C);
 
 bool ED_outliner_select_sync_is_dirty(const struct bContext *C);
 
-void ED_outliner_select_sync_from_outliner(struct bContext *C, struct SpaceOutliner *soops);
+void ED_outliner_select_sync_from_outliner(struct bContext *C,
+                                           struct SpaceOutliner *space_outliner);
 
 void ED_outliner_select_sync_flag_outliners(const struct bContext *C);
 

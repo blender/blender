@@ -159,15 +159,15 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
         break;
       }
       case SPACE_OUTLINER: {
-        SpaceOutliner *so = (SpaceOutliner *)sl;
+        SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
 
-        BKE_LIB_FOREACHID_PROCESS_ID(data, so->search_tse.id, IDWALK_CB_NOP);
+        BKE_LIB_FOREACHID_PROCESS_ID(data, space_outliner->search_tse.id, IDWALK_CB_NOP);
 
-        if (so->treestore != NULL) {
+        if (space_outliner->treestore != NULL) {
           TreeStoreElem *tselem;
           BLI_mempool_iter iter;
 
-          BLI_mempool_iternew(so->treestore, &iter);
+          BLI_mempool_iternew(space_outliner->treestore, &iter);
           while ((tselem = BLI_mempool_iterstep(&iter))) {
             BKE_LIB_FOREACHID_PROCESS_ID(data, tselem->id, IDWALK_CB_NOP);
           }

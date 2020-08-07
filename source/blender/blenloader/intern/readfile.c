@@ -6964,31 +6964,31 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       BLO_read_data_address(reader, &snla->ads);
     }
     else if (sl->spacetype == SPACE_OUTLINER) {
-      SpaceOutliner *soops = (SpaceOutliner *)sl;
+      SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
 
       /* use newdataadr_no_us and do not free old memory avoiding double
        * frees and use of freed memory. this could happen because of a
        * bug fixed in revision 58959 where the treestore memory address
        * was not unique */
-      TreeStore *ts = newdataadr_no_us(reader->fd, soops->treestore);
-      soops->treestore = NULL;
+      TreeStore *ts = newdataadr_no_us(reader->fd, space_outliner->treestore);
+      space_outliner->treestore = NULL;
       if (ts) {
         TreeStoreElem *elems = newdataadr_no_us(reader->fd, ts->data);
 
-        soops->treestore = BLI_mempool_create(
+        space_outliner->treestore = BLI_mempool_create(
             sizeof(TreeStoreElem), ts->usedelem, 512, BLI_MEMPOOL_ALLOW_ITER);
         if (ts->usedelem && elems) {
           int i;
           for (i = 0; i < ts->usedelem; i++) {
-            TreeStoreElem *new_elem = BLI_mempool_alloc(soops->treestore);
+            TreeStoreElem *new_elem = BLI_mempool_alloc(space_outliner->treestore);
             *new_elem = elems[i];
           }
         }
         /* we only saved what was used */
-        soops->storeflag |= SO_TREESTORE_CLEANUP;  // at first draw
+        space_outliner->storeflag |= SO_TREESTORE_CLEANUP;  // at first draw
       }
-      soops->treehash = NULL;
-      soops->tree.first = soops->tree.last = NULL;
+      space_outliner->treehash = NULL;
+      space_outliner->tree.first = space_outliner->tree.last = NULL;
     }
     else if (sl->spacetype == SPACE_IMAGE) {
       SpaceImage *sima = (SpaceImage *)sl;
@@ -7215,20 +7215,20 @@ static void lib_link_area(BlendLibReader *reader, ID *parent_id, ScrArea *area)
         break;
       }
       case SPACE_OUTLINER: {
-        SpaceOutliner *so = (SpaceOutliner *)sl;
-        BLO_read_id_address(reader, NULL, &so->search_tse.id);
+        SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+        BLO_read_id_address(reader, NULL, &space_outliner->search_tse.id);
 
-        if (so->treestore) {
+        if (space_outliner->treestore) {
           TreeStoreElem *tselem;
           BLI_mempool_iter iter;
 
-          BLI_mempool_iternew(so->treestore, &iter);
+          BLI_mempool_iternew(space_outliner->treestore, &iter);
           while ((tselem = BLI_mempool_iterstep(&iter))) {
             BLO_read_id_address(reader, NULL, &tselem->id);
           }
-          if (so->treehash) {
+          if (space_outliner->treehash) {
             /* rebuild hash table, because it depends on ids too */
-            so->storeflag |= SO_TREESTORE_REBUILD;
+            space_outliner->storeflag |= SO_TREESTORE_REBUILD;
           }
         }
         break;
@@ -7787,15 +7787,16 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
           }
         }
         else if (sl->spacetype == SPACE_OUTLINER) {
-          SpaceOutliner *so = (SpaceOutliner *)sl;
+          SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
 
-          so->search_tse.id = restore_pointer_by_name(id_map, so->search_tse.id, USER_IGNORE);
+          space_outliner->search_tse.id = restore_pointer_by_name(
+              id_map, space_outliner->search_tse.id, USER_IGNORE);
 
-          if (so->treestore) {
+          if (space_outliner->treestore) {
             TreeStoreElem *tselem;
             BLI_mempool_iter iter;
 
-            BLI_mempool_iternew(so->treestore, &iter);
+            BLI_mempool_iternew(space_outliner->treestore, &iter);
             while ((tselem = BLI_mempool_iterstep(&iter))) {
               /* Do not try to restore pointers to drivers/sequence/etc.,
                * can crash in undo case! */
@@ -7806,9 +7807,9 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
                 tselem->id = NULL;
               }
             }
-            if (so->treehash) {
+            if (space_outliner->treehash) {
               /* rebuild hash table, because it depends on ids too */
-              so->storeflag |= SO_TREESTORE_REBUILD;
+              space_outliner->storeflag |= SO_TREESTORE_REBUILD;
             }
           }
         }

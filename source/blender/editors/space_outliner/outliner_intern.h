@@ -170,7 +170,8 @@ typedef enum {
 
 /* The outliner display modes that support the filter system.
  * Note: keep it synced with space_outliner.py */
-#define SUPPORT_FILTER_OUTLINER(soops_) (ELEM((soops_)->outlinevis, SO_VIEW_LAYER))
+#define SUPPORT_FILTER_OUTLINER(space_outliner_) \
+  (ELEM((space_outliner_)->outlinevis, SO_VIEW_LAYER))
 
 /* Outliner Searching --
  *
@@ -227,13 +228,13 @@ typedef enum TreeItemSelectAction {
 /* outliner_tree.c ----------------------------------------------- */
 
 void outliner_free_tree(ListBase *tree);
-void outliner_cleanup_tree(struct SpaceOutliner *soops);
+void outliner_cleanup_tree(struct SpaceOutliner *space_outliner);
 void outliner_free_tree_element(TreeElement *element, ListBase *parent_subtree);
 
 void outliner_build_tree(struct Main *mainvar,
                          struct Scene *scene,
                          struct ViewLayer *view_layer,
-                         struct SpaceOutliner *soops,
+                         struct SpaceOutliner *space_outliner,
                          struct ARegion *region);
 
 bool outliner_element_needs_rebuild_on_open_change(const TreeStoreElem *tselem);
@@ -264,20 +265,20 @@ int tree_element_id_type_to_index(TreeElement *te);
 /* outliner_select.c -------------------------------------------- */
 eOLDrawState tree_element_type_active(struct bContext *C,
                                       const TreeViewContext *tvc,
-                                      struct SpaceOutliner *soops,
+                                      struct SpaceOutliner *space_outliner,
                                       TreeElement *te,
                                       TreeStoreElem *tselem,
                                       const eOLSetState set,
                                       bool recursive);
 eOLDrawState tree_element_active(struct bContext *C,
                                  const TreeViewContext *tvc,
-                                 SpaceOutliner *soops,
+                                 SpaceOutliner *space_outliner,
                                  TreeElement *te,
                                  const eOLSetState set,
                                  const bool handle_all_types);
 
 void outliner_item_select(struct bContext *C,
-                          struct SpaceOutliner *soops,
+                          struct SpaceOutliner *space_outliner,
                           struct TreeElement *te,
                           const short select_flag);
 
@@ -301,7 +302,7 @@ typedef void (*outliner_operation_fn)(struct bContext *C,
 void outliner_do_object_operation_ex(struct bContext *C,
                                      struct ReportList *reports,
                                      struct Scene *scene,
-                                     struct SpaceOutliner *soops,
+                                     struct SpaceOutliner *space_outliner,
                                      struct ListBase *lb,
                                      outliner_operation_fn operation_fn,
                                      void *user_data,
@@ -309,7 +310,7 @@ void outliner_do_object_operation_ex(struct bContext *C,
 void outliner_do_object_operation(struct bContext *C,
                                   struct ReportList *reports,
                                   struct Scene *scene,
-                                  struct SpaceOutliner *soops,
+                                  struct SpaceOutliner *space_outliner,
                                   struct ListBase *lb,
                                   outliner_operation_fn operation_fn);
 
@@ -371,7 +372,7 @@ void item_object_mode_exit_fn(struct bContext *C,
                               struct TreeStoreElem *tselem,
                               void *user_data);
 
-void outliner_set_coordinates(struct ARegion *region, struct SpaceOutliner *soops);
+void outliner_set_coordinates(struct ARegion *region, struct SpaceOutliner *space_outliner);
 
 void outliner_item_openclose(TreeElement *te, bool open, bool toggle_all);
 
@@ -485,34 +486,36 @@ void OUTLINER_OT_unhide_all(struct wmOperatorType *ot);
 
 void outliner_viewcontext_init(const struct bContext *C, TreeViewContext *tvc);
 
-TreeElement *outliner_find_item_at_y(const SpaceOutliner *soops,
+TreeElement *outliner_find_item_at_y(const SpaceOutliner *space_outliner,
                                      const ListBase *tree,
                                      float view_co_y);
-TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *soops,
+TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *space_outliner,
                                             const TreeElement *parent_te,
                                             float view_co_x,
                                             bool *multiple_objects);
-TreeElement *outliner_find_tse(struct SpaceOutliner *soops, const TreeStoreElem *tse);
+TreeElement *outliner_find_tse(struct SpaceOutliner *space_outliner, const TreeStoreElem *tse);
 TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store_elem);
 TreeElement *outliner_find_parent_element(ListBase *lb,
                                           TreeElement *parent_te,
                                           const TreeElement *child_te);
-TreeElement *outliner_find_id(struct SpaceOutliner *soops, ListBase *lb, const struct ID *id);
+TreeElement *outliner_find_id(struct SpaceOutliner *space_outliner,
+                              ListBase *lb,
+                              const struct ID *id);
 TreeElement *outliner_find_posechannel(ListBase *lb, const struct bPoseChannel *pchan);
 TreeElement *outliner_find_editbone(ListBase *lb, const struct EditBone *ebone);
 TreeElement *outliner_search_back_te(TreeElement *te, short idcode);
 struct ID *outliner_search_back(TreeElement *te, short idcode);
-bool outliner_tree_traverse(const SpaceOutliner *soops,
+bool outliner_tree_traverse(const SpaceOutliner *space_outliner,
                             ListBase *tree,
                             int filter_te_flag,
                             int filter_tselem_flag,
                             TreeTraversalFunc func,
                             void *customdata);
-float outliner_restrict_columns_width(const struct SpaceOutliner *soops);
+float outliner_restrict_columns_width(const struct SpaceOutliner *space_outliner);
 TreeElement *outliner_find_element_with_flag(const ListBase *lb, short flag);
 bool outliner_is_element_visible(const TreeElement *te);
 void outliner_scroll_view(struct ARegion *region, int delta_y);
 
 /* outliner_sync.c ---------------------------------------------- */
 
-void outliner_sync_selection(const struct bContext *C, struct SpaceOutliner *soops);
+void outliner_sync_selection(const struct bContext *C, struct SpaceOutliner *space_outliner);
