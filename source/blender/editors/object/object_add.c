@@ -720,7 +720,7 @@ static const char *get_effector_defname(ePFieldType type)
       return CTX_DATA_(BLT_I18NCONTEXT_ID_OBJECT, "Turbulence");
     case PFIELD_DRAG:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_OBJECT, "Drag");
-    case PFIELD_FLUIDFLOW :
+    case PFIELD_FLUIDFLOW:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_OBJECT, "FluidField");
     case PFIELD_NULL:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_OBJECT, "Field");
@@ -766,7 +766,8 @@ static int effector_add_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    ob = ED_object_add_type(C, OB_EMPTY, get_effector_defname(type), loc, rot, false, local_view_bits);
+    ob = ED_object_add_type(
+        C, OB_EMPTY, get_effector_defname(type), loc, rot, false, local_view_bits);
     BKE_object_obdata_size_init(ob, dia);
     if (ELEM(type, PFIELD_WIND, PFIELD_VORTEX)) {
       ob->empty_drawtype = OB_SINGLE_ARROW;
