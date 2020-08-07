@@ -216,10 +216,10 @@ FEdge *CurvePoint::getFEdge(Interface0D &inter)
     if (iVertexB->__B == 0) {
       return __A->getFEdge(*(iVertexB->__A));
     }
-    else if (iVertexB->__A == __A) {
+    if (iVertexB->__A == __A) {
       return __A->getFEdge(*(iVertexB->__B));
     }
-    else if (iVertexB->__B == __A) {
+    if (iVertexB->__B == __A) {
       return __A->getFEdge(*(iVertexB->__A));
     }
   }
@@ -227,7 +227,7 @@ FEdge *CurvePoint::getFEdge(Interface0D &inter)
     if (iVertexB->__A == __A) {
       return __B->getFEdge(*(iVertexB->__A));
     }
-    else if (iVertexB->__A == __B) {
+    if (iVertexB->__A == __B) {
       return __A->getFEdge(*(iVertexB->__A));
     }
   }

@@ -43,9 +43,8 @@ AutoPtr<GridDensityProvider> HeuristicGridDensityProviderFactory::newGridDensity
   if (avg->cellSize() > p23->cellSize()) {
     return (AutoPtr<GridDensityProvider>)p23;
   }
-  else {
-    return (AutoPtr<GridDensityProvider>)avg;
-  }
+
+  return (AutoPtr<GridDensityProvider>)avg;
 }
 
 AutoPtr<GridDensityProvider> HeuristicGridDensityProviderFactory::newGridDensityProvider(
@@ -58,9 +57,8 @@ AutoPtr<GridDensityProvider> HeuristicGridDensityProviderFactory::newGridDensity
   if (avg->cellSize() > p23->cellSize()) {
     return (AutoPtr<GridDensityProvider>)p23;
   }
-  else {
-    return (AutoPtr<GridDensityProvider>)avg;
-  }
+
+  return (AutoPtr<GridDensityProvider>)avg;
 }
 
 AutoPtr<GridDensityProvider> HeuristicGridDensityProviderFactory::newGridDensityProvider(
@@ -75,9 +73,8 @@ AutoPtr<GridDensityProvider> HeuristicGridDensityProviderFactory::newGridDensity
   if (avg->cellSize() > p23->cellSize()) {
     return (AutoPtr<GridDensityProvider>)p23;
   }
-  else {
-    return (AutoPtr<GridDensityProvider>)avg;
-  }
+
+  return (AutoPtr<GridDensityProvider>)avg;
 }
 
 } /* namespace Freestyle */

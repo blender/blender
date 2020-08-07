@@ -124,7 +124,7 @@ static PyObject *Interface0DIterator_iternext(BPy_Interface0DIterator *self)
       PyErr_SetNone(PyExc_StopIteration);
       return NULL;
     }
-    else if (self->at_start) {
+    if (self->at_start) {
       self->at_start = false;
     }
     else if (self->if0D_it->atLast()) {

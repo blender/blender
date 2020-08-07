@@ -508,9 +508,8 @@ static PyObject *BPy_FrsMaterial_richcmpr(PyObject *objectA,
     if (comparison_type == Py_NE) {
       Py_RETURN_TRUE;
     }
-    else {
-      Py_RETURN_FALSE;
-    }
+
+    Py_RETURN_FALSE;
   }
 
   matA = (BPy_FrsMaterial *)objectA;
@@ -531,9 +530,8 @@ static PyObject *BPy_FrsMaterial_richcmpr(PyObject *objectA,
   if (result == true) {
     Py_RETURN_TRUE;
   }
-  else {
-    Py_RETURN_FALSE;
-  }
+
+  Py_RETURN_FALSE;
 }
 
 static Py_hash_t FrsMaterial_hash(PyObject *self)

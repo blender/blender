@@ -114,7 +114,7 @@ bool WVertex::isBoundary()
   if (_Border == 1) {
     return true;
   }
-  else if (_Border == 0) {
+  if (_Border == 0) {
     return false;
   }
 
@@ -412,9 +412,8 @@ bool WFace::getOppositeEdge(const WVertex *v, WOEdge *&e)
   if (!e) {
     return false;
   }
-  else {
-    return true;
-  }
+
+  return true;
 }
 
 float WFace::getArea()

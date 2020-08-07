@@ -101,9 +101,8 @@ unsigned TextureManager::getBrushTextureIndex(string name, Stroke::MediumType lo
     cerr << "brush file " << name << " not found" << endl;
     return 0;
   }
-  else {
-    return _brushesMap[bt];
-  }
+
+  return _brushesMap[bt];
 }
 
 void TextureManager::Options::setPatternsPath(const string &path)

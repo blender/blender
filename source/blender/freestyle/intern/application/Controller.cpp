@@ -316,10 +316,9 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
       ClearRootNode();
       return 0;
     }
-    else {
-      delete _ViewMap;
-      _ViewMap = NULL;
-    }
+
+    delete _ViewMap;
+    _ViewMap = NULL;
   }
 
   _Chrono.start();

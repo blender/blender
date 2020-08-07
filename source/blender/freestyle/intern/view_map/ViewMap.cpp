@@ -323,18 +323,16 @@ static bool ViewEdgeComp(ViewVertex::directedViewEdge &dve1, ViewVertex::directe
     if (v2.y() < 0) {
       return true;
     }
-    else {
-      return (v1.x() > v2.x());
-    }
+
+    return (v1.x() > v2.x());
   }
-  else {
-    if (v2.y() > 0) {
-      return false;
-    }
-    else {
-      return (v1.x() < v2.x());
-    }
+
+  if (v2.y() > 0) {
+    return false;
   }
+
+  return (v1.x() < v2.x());
+
   return false;
 }
 

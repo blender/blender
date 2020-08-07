@@ -344,9 +344,8 @@ OWXFaceLayer ViewEdgeXBuilder::FindNextFaceLayer(const OWXFaceLayer &iFaceLayer)
           if (woeend == winner->getSmoothEdge()->woea()->twin()) {
             return OWXFaceLayer(winner, true);
           }
-          else {
-            return OWXFaceLayer(winner, false);
-          }
+
+          return OWXFaceLayer(winner, false);
         }
       }
       ++f;
@@ -368,19 +367,17 @@ OWXFaceLayer ViewEdgeXBuilder::FindNextFaceLayer(const OWXFaceLayer &iFaceLayer)
     if ((sameNatureLayers.empty()) || (sameNatureLayers.size() != 1)) {
       return OWXFaceLayer(NULL, true);
     }
-    else {
-      WXFaceLayer *winner = sameNatureLayers[0];
-      // check face mark continuity
-      if (winner->getFace()->GetMark() != iFaceLayer.fl->getFace()->GetMark()) {
-        return OWXFaceLayer(NULL, true);
-      }
-      if (woeend == winner->getSmoothEdge()->woea()->twin()) {
-        return OWXFaceLayer(winner, true);
-      }
-      else {
-        return OWXFaceLayer(winner, false);
-      }
+
+    WXFaceLayer *winner = sameNatureLayers[0];
+    // check face mark continuity
+    if (winner->getFace()->GetMark() != iFaceLayer.fl->getFace()->GetMark()) {
+      return OWXFaceLayer(NULL, true);
     }
+    if (woeend == winner->getSmoothEdge()->woea()->twin()) {
+      return OWXFaceLayer(winner, true);
+    }
+
+    return OWXFaceLayer(winner, false);
   }
   return OWXFaceLayer(NULL, true);
 }
@@ -429,9 +426,8 @@ OWXFaceLayer ViewEdgeXBuilder::FindPreviousFaceLayer(const OWXFaceLayer &iFaceLa
           if (woebegin == winner->getSmoothEdge()->woeb()->twin()) {
             return OWXFaceLayer(winner, true);
           }
-          else {
-            return OWXFaceLayer(winner, false);
-          }
+
+          return OWXFaceLayer(winner, false);
         }
       }
     }
@@ -452,19 +448,17 @@ OWXFaceLayer ViewEdgeXBuilder::FindPreviousFaceLayer(const OWXFaceLayer &iFaceLa
     if ((sameNatureLayers.empty()) || (sameNatureLayers.size() != 1)) {
       return OWXFaceLayer(NULL, true);
     }
-    else {
-      WXFaceLayer *winner = sameNatureLayers[0];
-      // check face mark continuity
-      if (winner->getFace()->GetMark() != iFaceLayer.fl->getFace()->GetMark()) {
-        return OWXFaceLayer(NULL, true);
-      }
-      if (woebegin == winner->getSmoothEdge()->woeb()->twin()) {
-        return OWXFaceLayer(winner, true);
-      }
-      else {
-        return OWXFaceLayer(winner, false);
-      }
+
+    WXFaceLayer *winner = sameNatureLayers[0];
+    // check face mark continuity
+    if (winner->getFace()->GetMark() != iFaceLayer.fl->getFace()->GetMark()) {
+      return OWXFaceLayer(NULL, true);
     }
+    if (woebegin == winner->getSmoothEdge()->woeb()->twin()) {
+      return OWXFaceLayer(winner, true);
+    }
+
+    return OWXFaceLayer(winner, false);
   }
   return OWXFaceLayer(NULL, true);
 }
@@ -631,11 +625,10 @@ OWXEdge ViewEdgeXBuilder::FindNextWEdge(const OWXEdge &iEdge)
       // So the vertex order is OK.
       return OWXEdge(wxe, true);
     }
-    else {
-      // That means that the face necessarily lies on the edge left.
-      // So the vertex order is OK.
-      return OWXEdge(wxe, false);
-    }
+
+    // That means that the face necessarily lies on the edge left.
+    // So the vertex order is OK.
+    return OWXEdge(wxe, false);
   }
   // we did not find:
   return OWXEdge(NULL, true);
@@ -679,9 +672,8 @@ OWXEdge ViewEdgeXBuilder::FindPreviousWEdge(const OWXEdge &iEdge)
     if (wxe->GetbVertex() == v) {
       return OWXEdge(wxe, true);
     }
-    else {
-      return OWXEdge(wxe, false);
-    }
+
+    return OWXEdge(wxe, false);
   }
   // we did not find:
   return OWXEdge(NULL, true);

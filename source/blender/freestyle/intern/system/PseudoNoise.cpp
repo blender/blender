@@ -33,9 +33,8 @@ static int modf_to_index(Freestyle::real x, unsigned int range)
     BLI_assert(i >= 0 && i < range);
     return i;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 namespace Freestyle {

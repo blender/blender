@@ -514,9 +514,8 @@ intersection_test intersectRayPlane(const Vec3r &orig,
     if (fabs((norm * orig) + d) <= epsilon) {
       return COINCIDENT;  // plane and ray are coincident
     }
-    else {
-      return COLINEAR;
-    }
+
+    return COLINEAR;
   }
 
   t = -(d + (norm * orig)) / denom;
@@ -766,9 +765,8 @@ inline bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, unsigned n)
       if (N < 0) {
         return false;
       }
-      else {
-        continue;
-      }
+
+      continue;
     }
 
     t = N / D;

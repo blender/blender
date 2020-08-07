@@ -125,7 +125,7 @@ static PyObject *StrokeVertexIterator_iternext(BPy_StrokeVertexIterator *self)
     }
     /* If at the start of the iterator, only return the object
      * and don't increment, to keep for-loops in sync */
-    else if (self->at_start) {
+    if (self->at_start) {
       self->at_start = false;
     }
     /* If sv_it.atLast() is true, the iterator is currently pointing to the final valid element.

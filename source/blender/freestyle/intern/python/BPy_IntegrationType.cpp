@@ -88,21 +88,20 @@ static PyObject *Integrator_integrate(PyObject * /*self*/, PyObject *args, PyObj
     double res = integrate(*fun, it, it_end, t);
     return PyFloat_FromDouble(res);
   }
-  else if (BPy_UnaryFunction0DFloat_Check(obj1)) {
+  if (BPy_UnaryFunction0DFloat_Check(obj1)) {
     UnaryFunction0D<float> *fun = ((BPy_UnaryFunction0DFloat *)obj1)->uf0D_float;
     float res = integrate(*fun, it, it_end, t);
     return PyFloat_FromDouble(res);
   }
-  else if (BPy_UnaryFunction0DUnsigned_Check(obj1)) {
+  if (BPy_UnaryFunction0DUnsigned_Check(obj1)) {
     UnaryFunction0D<unsigned int> *fun = ((BPy_UnaryFunction0DUnsigned *)obj1)->uf0D_unsigned;
     unsigned int res = integrate(*fun, it, it_end, t);
     return PyLong_FromLong(res);
   }
-  else {
-    string class_name(Py_TYPE(obj1)->tp_name);
-    PyErr_SetString(PyExc_TypeError, ("unsupported function type: " + class_name).c_str());
-    return NULL;
-  }
+
+  string class_name(Py_TYPE(obj1)->tp_name);
+  PyErr_SetString(PyExc_TypeError, ("unsupported function type: " + class_name).c_str());
+  return NULL;
 }
 
 /*-----------------------Integrator module docstring---------------------------------------*/

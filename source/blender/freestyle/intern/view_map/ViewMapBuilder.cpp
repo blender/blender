@@ -504,10 +504,10 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
       (*ve)->setaShape(0);
       continue;
     }
-    else {
-      ++qiMajority;
-      qiMajority >>= 1;
-    }
+
+    ++qiMajority;
+    qiMajority >>= 1;
+
 #if LOGGING
     if (_global.debug & G_DEBUG_FREESTYLE) {
       cout << "\tqiMajority: " << qiMajority << endl;
@@ -702,10 +702,10 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
       (*ve)->setaShape(0);
       continue;
     }
-    else {
-      ++qiMajority;
-      qiMajority >>= 1;
-    }
+
+    ++qiMajority;
+    qiMajority >>= 1;
+
 #if LOGGING
     if (_global.debug & G_DEBUG_FREESTYLE) {
       cout << "\tqiMajority: " << qiMajority << endl;
@@ -873,10 +873,9 @@ static void computeFastVisibility(ViewMap *ioViewMap, G &grid, real epsilon)
       (*ve)->setaShape(0);
       continue;
     }
-    else {
-      ++qiMajority;
-      qiMajority >>= 1;
-    }
+
+    ++qiMajority;
+    qiMajority >>= 1;
 
     even_test = true;
     maxIndex = 0;

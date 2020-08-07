@@ -110,22 +110,22 @@ PyObject *Any_BPy_Interface0D_from_Interface0D(Interface0D &if0D)
   if (typeid(if0D) == typeid(CurvePoint)) {
     return BPy_CurvePoint_from_CurvePoint(dynamic_cast<CurvePoint &>(if0D));
   }
-  else if (typeid(if0D) == typeid(StrokeVertex)) {
+  if (typeid(if0D) == typeid(StrokeVertex)) {
     return BPy_StrokeVertex_from_StrokeVertex(dynamic_cast<StrokeVertex &>(if0D));
   }
-  else if (typeid(if0D) == typeid(SVertex)) {
+  if (typeid(if0D) == typeid(SVertex)) {
     return BPy_SVertex_from_SVertex(dynamic_cast<SVertex &>(if0D));
   }
-  else if (typeid(if0D) == typeid(ViewVertex)) {
+  if (typeid(if0D) == typeid(ViewVertex)) {
     return BPy_ViewVertex_from_ViewVertex(dynamic_cast<ViewVertex &>(if0D));
   }
-  else if (typeid(if0D) == typeid(NonTVertex)) {
+  if (typeid(if0D) == typeid(NonTVertex)) {
     return BPy_NonTVertex_from_NonTVertex(dynamic_cast<NonTVertex &>(if0D));
   }
-  else if (typeid(if0D) == typeid(TVertex)) {
+  if (typeid(if0D) == typeid(TVertex)) {
     return BPy_TVertex_from_TVertex(dynamic_cast<TVertex &>(if0D));
   }
-  else if (typeid(if0D) == typeid(Interface0D)) {
+  if (typeid(if0D) == typeid(Interface0D)) {
     return BPy_Interface0D_from_Interface0D(if0D);
   }
   string msg("unexpected type: " + if0D.getExactTypeName());
@@ -138,22 +138,22 @@ PyObject *Any_BPy_Interface1D_from_Interface1D(Interface1D &if1D)
   if (typeid(if1D) == typeid(ViewEdge)) {
     return BPy_ViewEdge_from_ViewEdge(dynamic_cast<ViewEdge &>(if1D));
   }
-  else if (typeid(if1D) == typeid(Chain)) {
+  if (typeid(if1D) == typeid(Chain)) {
     return BPy_Chain_from_Chain(dynamic_cast<Chain &>(if1D));
   }
-  else if (typeid(if1D) == typeid(Stroke)) {
+  if (typeid(if1D) == typeid(Stroke)) {
     return BPy_Stroke_from_Stroke(dynamic_cast<Stroke &>(if1D));
   }
-  else if (typeid(if1D) == typeid(FEdgeSharp)) {
+  if (typeid(if1D) == typeid(FEdgeSharp)) {
     return BPy_FEdgeSharp_from_FEdgeSharp(dynamic_cast<FEdgeSharp &>(if1D));
   }
-  else if (typeid(if1D) == typeid(FEdgeSmooth)) {
+  if (typeid(if1D) == typeid(FEdgeSmooth)) {
     return BPy_FEdgeSmooth_from_FEdgeSmooth(dynamic_cast<FEdgeSmooth &>(if1D));
   }
-  else if (typeid(if1D) == typeid(FEdge)) {
+  if (typeid(if1D) == typeid(FEdge)) {
     return BPy_FEdge_from_FEdge(dynamic_cast<FEdge &>(if1D));
   }
-  else if (typeid(if1D) == typeid(Interface1D)) {
+  if (typeid(if1D) == typeid(Interface1D)) {
     return BPy_Interface1D_from_Interface1D(if1D);
   }
   string msg("unexpected type: " + if1D.getExactTypeName());
@@ -166,10 +166,10 @@ PyObject *Any_BPy_FEdge_from_FEdge(FEdge &fe)
   if (typeid(fe) == typeid(FEdgeSharp)) {
     return BPy_FEdgeSharp_from_FEdgeSharp(dynamic_cast<FEdgeSharp &>(fe));
   }
-  else if (typeid(fe) == typeid(FEdgeSmooth)) {
+  if (typeid(fe) == typeid(FEdgeSmooth)) {
     return BPy_FEdgeSmooth_from_FEdgeSmooth(dynamic_cast<FEdgeSmooth &>(fe));
   }
-  else if (typeid(fe) == typeid(FEdge)) {
+  if (typeid(fe) == typeid(FEdge)) {
     return BPy_FEdge_from_FEdge(fe);
   }
   string msg("unexpected type: " + fe.getExactTypeName());
@@ -182,10 +182,10 @@ PyObject *Any_BPy_ViewVertex_from_ViewVertex(ViewVertex &vv)
   if (typeid(vv) == typeid(NonTVertex)) {
     return BPy_NonTVertex_from_NonTVertex(dynamic_cast<NonTVertex &>(vv));
   }
-  else if (typeid(vv) == typeid(TVertex)) {
+  if (typeid(vv) == typeid(TVertex)) {
     return BPy_TVertex_from_TVertex(dynamic_cast<TVertex &>(vv));
   }
-  else if (typeid(vv) == typeid(ViewVertex)) {
+  if (typeid(vv) == typeid(ViewVertex)) {
     return BPy_ViewVertex_from_ViewVertex(vv);
   }
   string msg("unexpected type: " + vv.getExactTypeName());
@@ -773,7 +773,7 @@ bool float_array_from_PyObject(PyObject *obj, float *v, int n)
     }
     return 1;
   }
-  else if (ColorObject_Check(obj) && n == 3) {
+  if (ColorObject_Check(obj) && n == 3) {
     if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1) {
       return 0;
     }
@@ -782,10 +782,10 @@ bool float_array_from_PyObject(PyObject *obj, float *v, int n)
     }
     return 1;
   }
-  else if (PyList_Check(obj) && PyList_GET_SIZE(obj) == n) {
+  if (PyList_Check(obj) && PyList_GET_SIZE(obj) == n) {
     return float_array_from_PyList(obj, v, n);
   }
-  else if (PyTuple_Check(obj) && PyTuple_GET_SIZE(obj) == n) {
+  if (PyTuple_Check(obj) && PyTuple_GET_SIZE(obj) == n) {
     return float_array_from_PyTuple(obj, v, n);
   }
   return 0;
