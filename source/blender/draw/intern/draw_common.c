@@ -455,11 +455,11 @@ bool DRW_object_is_flat(Object *ob, int *r_axis)
     *r_axis = 0;
     return true;
   }
-  else if (dim[1] == 0.0f) {
+  if (dim[1] == 0.0f) {
     *r_axis = 1;
     return true;
   }
-  else if (dim[2] == 0.0f) {
+  if (dim[2] == 0.0f) {
     *r_axis = 2;
     return true;
   }

@@ -112,17 +112,15 @@ int workbench_antialiasing_sample_count_get(WORKBENCH_PrivateData *wpd)
     /* Only draw using SMAA or no AA when navigating. */
     return min_ii(wpd->preferences->viewport_aa, 1);
   }
-  else if (DRW_state_is_image_render()) {
+  if (DRW_state_is_image_render()) {
     if (draw_ctx->v3d) {
       return scene->display.viewport_aa;
     }
-    else {
-      return scene->display.render_aa;
-    }
+
+    return scene->display.render_aa;
   }
-  else {
-    return wpd->preferences->viewport_aa;
-  }
+
+  return wpd->preferences->viewport_aa;
 }
 
 void workbench_antialiasing_view_updated(WORKBENCH_Data *vedata)
@@ -361,53 +359,52 @@ bool workbench_antialiasing_setup(WORKBENCH_Data *vedata)
     /* TAA accumulation has finish. Just copy the result back */
     return false;
   }
-  else {
-    const float *viewport_size = DRW_viewport_size_get();
-    const DRWView *default_view = DRW_view_default_get();
-    float *transform_offset;
 
-    switch (wpd->taa_sample_len) {
-      default:
-      case 5:
-        transform_offset = e_data.jitter_5[min_ii(wpd->taa_sample, 5)];
-        break;
-      case 8:
-        transform_offset = e_data.jitter_8[min_ii(wpd->taa_sample, 8)];
-        break;
-      case 11:
-        transform_offset = e_data.jitter_11[min_ii(wpd->taa_sample, 11)];
-        break;
-      case 16:
-        transform_offset = e_data.jitter_16[min_ii(wpd->taa_sample, 16)];
-        break;
-      case 32:
-        transform_offset = e_data.jitter_32[min_ii(wpd->taa_sample, 32)];
-        break;
-    }
+  const float *viewport_size = DRW_viewport_size_get();
+  const DRWView *default_view = DRW_view_default_get();
+  float *transform_offset;
 
-    /* construct new matrices from transform delta */
-    float winmat[4][4], viewmat[4][4], persmat[4][4];
-    DRW_view_winmat_get(default_view, winmat, false);
-    DRW_view_viewmat_get(default_view, viewmat, false);
-    DRW_view_persmat_get(default_view, persmat, false);
-
-    window_translate_m4(winmat,
-                        persmat,
-                        transform_offset[0] / viewport_size[0],
-                        transform_offset[1] / viewport_size[1]);
-
-    if (wpd->view) {
-      /* When rendering just update the view. This avoids recomputing the culling. */
-      DRW_view_update_sub(wpd->view, viewmat, winmat);
-    }
-    else {
-      /* TAA is not making a big change to the matrices.
-       * Reuse the main view culling by creating a sub-view. */
-      wpd->view = DRW_view_create_sub(default_view, viewmat, winmat);
-    }
-    DRW_view_set_active(wpd->view);
-    return true;
+  switch (wpd->taa_sample_len) {
+    default:
+    case 5:
+      transform_offset = e_data.jitter_5[min_ii(wpd->taa_sample, 5)];
+      break;
+    case 8:
+      transform_offset = e_data.jitter_8[min_ii(wpd->taa_sample, 8)];
+      break;
+    case 11:
+      transform_offset = e_data.jitter_11[min_ii(wpd->taa_sample, 11)];
+      break;
+    case 16:
+      transform_offset = e_data.jitter_16[min_ii(wpd->taa_sample, 16)];
+      break;
+    case 32:
+      transform_offset = e_data.jitter_32[min_ii(wpd->taa_sample, 32)];
+      break;
   }
+
+  /* construct new matrices from transform delta */
+  float winmat[4][4], viewmat[4][4], persmat[4][4];
+  DRW_view_winmat_get(default_view, winmat, false);
+  DRW_view_viewmat_get(default_view, viewmat, false);
+  DRW_view_persmat_get(default_view, persmat, false);
+
+  window_translate_m4(winmat,
+                      persmat,
+                      transform_offset[0] / viewport_size[0],
+                      transform_offset[1] / viewport_size[1]);
+
+  if (wpd->view) {
+    /* When rendering just update the view. This avoids recomputing the culling. */
+    DRW_view_update_sub(wpd->view, viewmat, winmat);
+  }
+  else {
+    /* TAA is not making a big change to the matrices.
+     * Reuse the main view culling by creating a sub-view. */
+    wpd->view = DRW_view_create_sub(default_view, viewmat, winmat);
+  }
+  DRW_view_set_active(wpd->view);
+  return true;
 }
 
 void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)

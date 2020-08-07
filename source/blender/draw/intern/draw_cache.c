@@ -2909,9 +2909,8 @@ GPUBatch *DRW_cache_curve_edge_wire_get(Object *ob)
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_loose_edges(mesh_eval);
   }
-  else {
-    return DRW_curve_batch_cache_get_wire_edge(cu);
-  }
+
+  return DRW_curve_batch_cache_get_wire_edge(cu);
 }
 
 GPUBatch *DRW_cache_curve_edge_normal_get(Object *ob)
@@ -2947,9 +2946,8 @@ GPUBatch *DRW_cache_curve_surface_get(Object *ob)
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_surface(mesh_eval);
   }
-  else {
-    return DRW_curve_batch_cache_get_triangles_with_normals(cu);
-  }
+
+  return DRW_curve_batch_cache_get_triangles_with_normals(cu);
 }
 
 GPUBatch *DRW_cache_curve_loose_edges_get(Object *ob)
@@ -2961,11 +2959,10 @@ GPUBatch *DRW_cache_curve_loose_edges_get(Object *ob)
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_loose_edges(mesh_eval);
   }
-  else {
-    /* TODO */
-    UNUSED_VARS(cu);
-    return NULL;
-  }
+
+  /* TODO */
+  UNUSED_VARS(cu);
+  return NULL;
 }
 
 GPUBatch *DRW_cache_curve_face_wireframe_get(Object *ob)
@@ -2977,9 +2974,8 @@ GPUBatch *DRW_cache_curve_face_wireframe_get(Object *ob)
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_wireframes_face(mesh_eval);
   }
-  else {
-    return DRW_curve_batch_cache_get_wireframes_face(cu);
-  }
+
+  return DRW_curve_batch_cache_get_wireframes_face(cu);
 }
 
 GPUBatch *DRW_cache_curve_edge_detection_get(Object *ob, bool *r_is_manifold)
@@ -2990,9 +2986,8 @@ GPUBatch *DRW_cache_curve_edge_detection_get(Object *ob, bool *r_is_manifold)
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_edge_detection(mesh_eval, r_is_manifold);
   }
-  else {
-    return DRW_curve_batch_cache_get_edge_detection(cu, r_is_manifold);
-  }
+
+  return DRW_curve_batch_cache_get_edge_detection(cu, r_is_manifold);
 }
 
 /* Return list of batches */
@@ -3007,9 +3002,8 @@ GPUBatch **DRW_cache_curve_surface_shaded_get(Object *ob,
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_surface_shaded(mesh_eval, gpumat_array, gpumat_array_len);
   }
-  else {
-    return DRW_curve_batch_cache_get_surface_shaded(cu, gpumat_array, gpumat_array_len);
-  }
+
+  return DRW_curve_batch_cache_get_surface_shaded(cu, gpumat_array, gpumat_array_len);
 }
 
 /** \} */
@@ -3061,12 +3055,11 @@ GPUBatch *DRW_cache_text_edge_wire_get(Object *ob)
   if (!has_surface) {
     return NULL;
   }
-  else if (mesh_eval != NULL) {
+  if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_loose_edges(mesh_eval);
   }
-  else {
-    return DRW_curve_batch_cache_get_wire_edge(cu);
-  }
+
+  return DRW_curve_batch_cache_get_wire_edge(cu);
 }
 
 GPUBatch *DRW_cache_text_surface_get(Object *ob)
@@ -3080,9 +3073,8 @@ GPUBatch *DRW_cache_text_surface_get(Object *ob)
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_surface(mesh_eval);
   }
-  else {
-    return DRW_curve_batch_cache_get_triangles_with_normals(cu);
-  }
+
+  return DRW_curve_batch_cache_get_triangles_with_normals(cu);
 }
 
 GPUBatch *DRW_cache_text_edge_detection_get(Object *ob, bool *r_is_manifold)
@@ -3096,9 +3088,8 @@ GPUBatch *DRW_cache_text_edge_detection_get(Object *ob, bool *r_is_manifold)
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_edge_detection(mesh_eval, r_is_manifold);
   }
-  else {
-    return DRW_curve_batch_cache_get_edge_detection(cu, r_is_manifold);
-  }
+
+  return DRW_curve_batch_cache_get_edge_detection(cu, r_is_manifold);
 }
 
 GPUBatch *DRW_cache_text_loose_edges_get(Object *ob)
@@ -3112,9 +3103,8 @@ GPUBatch *DRW_cache_text_loose_edges_get(Object *ob)
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_loose_edges(mesh_eval);
   }
-  else {
-    return DRW_curve_batch_cache_get_wire_edge(cu);
-  }
+
+  return DRW_curve_batch_cache_get_wire_edge(cu);
 }
 
 GPUBatch *DRW_cache_text_face_wireframe_get(Object *ob)
@@ -3128,9 +3118,8 @@ GPUBatch *DRW_cache_text_face_wireframe_get(Object *ob)
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_wireframes_face(mesh_eval);
   }
-  else {
-    return DRW_curve_batch_cache_get_wireframes_face(cu);
-  }
+
+  return DRW_curve_batch_cache_get_wireframes_face(cu);
 }
 
 GPUBatch **DRW_cache_text_surface_shaded_get(Object *ob,
@@ -3146,9 +3135,8 @@ GPUBatch **DRW_cache_text_surface_shaded_get(Object *ob,
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_surface_shaded(mesh_eval, gpumat_array, gpumat_array_len);
   }
-  else {
-    return DRW_curve_batch_cache_get_surface_shaded(cu, gpumat_array, gpumat_array_len);
-  }
+
+  return DRW_curve_batch_cache_get_surface_shaded(cu, gpumat_array, gpumat_array_len);
 }
 
 /** \} */
@@ -3166,9 +3154,8 @@ GPUBatch *DRW_cache_surf_surface_get(Object *ob)
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_surface(mesh_eval);
   }
-  else {
-    return DRW_curve_batch_cache_get_triangles_with_normals(cu);
-  }
+
+  return DRW_curve_batch_cache_get_triangles_with_normals(cu);
 }
 
 GPUBatch *DRW_cache_surf_edge_wire_get(Object *ob)
@@ -3180,9 +3167,8 @@ GPUBatch *DRW_cache_surf_edge_wire_get(Object *ob)
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_loose_edges(mesh_eval);
   }
-  else {
-    return DRW_curve_batch_cache_get_wire_edge(cu);
-  }
+
+  return DRW_curve_batch_cache_get_wire_edge(cu);
 }
 
 GPUBatch *DRW_cache_surf_face_wireframe_get(Object *ob)
@@ -3194,9 +3180,8 @@ GPUBatch *DRW_cache_surf_face_wireframe_get(Object *ob)
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_wireframes_face(mesh_eval);
   }
-  else {
-    return DRW_curve_batch_cache_get_wireframes_face(cu);
-  }
+
+  return DRW_curve_batch_cache_get_wireframes_face(cu);
 }
 
 GPUBatch *DRW_cache_surf_edge_detection_get(Object *ob, bool *r_is_manifold)
@@ -3207,9 +3192,8 @@ GPUBatch *DRW_cache_surf_edge_detection_get(Object *ob, bool *r_is_manifold)
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_edge_detection(mesh_eval, r_is_manifold);
   }
-  else {
-    return DRW_curve_batch_cache_get_edge_detection(cu, r_is_manifold);
-  }
+
+  return DRW_curve_batch_cache_get_edge_detection(cu, r_is_manifold);
 }
 
 GPUBatch *DRW_cache_surf_loose_edges_get(Object *ob)
@@ -3221,11 +3205,10 @@ GPUBatch *DRW_cache_surf_loose_edges_get(Object *ob)
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_loose_edges(mesh_eval);
   }
-  else {
-    /* TODO */
-    UNUSED_VARS(cu);
-    return NULL;
-  }
+
+  /* TODO */
+  UNUSED_VARS(cu);
+  return NULL;
 }
 
 /* Return list of batches */
@@ -3240,9 +3223,8 @@ GPUBatch **DRW_cache_surf_surface_shaded_get(Object *ob,
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_surface_shaded(mesh_eval, gpumat_array, gpumat_array_len);
   }
-  else {
-    return DRW_curve_batch_cache_get_surface_shaded(cu, gpumat_array, gpumat_array_len);
-  }
+
+  return DRW_curve_batch_cache_get_surface_shaded(cu, gpumat_array, gpumat_array_len);
 }
 
 /** \} */

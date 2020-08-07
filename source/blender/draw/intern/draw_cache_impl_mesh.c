@@ -803,9 +803,8 @@ GPUBatch *DRW_mesh_batch_cache_get_loose_edges(Mesh *me)
   if (cache->no_loose_wire) {
     return NULL;
   }
-  else {
-    return DRW_batch_request(&cache->batch.loose_edges);
-  }
+
+  return DRW_batch_request(&cache->batch.loose_edges);
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_surface_weights(Mesh *me)

@@ -128,9 +128,8 @@ static bool particle_batch_cache_valid(ParticleSystem *psys)
   if (cache->is_dirty == false) {
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 
   return true;
 }
@@ -647,14 +646,13 @@ static float particle_key_weight(const ParticleData *particle, int strand, float
   if (t == 1.0) {
     return hkeys[part->totkey - 1].weight;
   }
-  else {
-    float interp = t / edit_key_seg_t;
-    int index = (int)interp;
-    interp -= floorf(interp); /* Time between 2 edit key */
-    float s1 = hkeys[index].weight;
-    float s2 = hkeys[index + 1].weight;
-    return s1 + interp * (s2 - s1);
-  }
+
+  float interp = t / edit_key_seg_t;
+  int index = (int)interp;
+  interp -= floorf(interp); /* Time between 2 edit key */
+  float s1 = hkeys[index].weight;
+  float s2 = hkeys[index + 1].weight;
+  return s1 + interp * (s2 - s1);
 }
 
 static int particle_batch_cache_fill_segments_edit(

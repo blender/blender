@@ -518,7 +518,7 @@ static bool draw_culling_box_test(const float (*frustum_planes)[4], const BoundB
          * Go to next plane. */
         break;
       }
-      else if (v == 7) {
+      if (v == 7) {
         /* 8 points behind this plane. */
         return false;
       }
@@ -995,9 +995,8 @@ static void draw_call_single_do(DRWShadingGroup *shgroup,
       draw_select_buffer(shgroup, state, batch, &handle);
       return;
     }
-    else {
-      GPU_select_load_id(state->select_id);
-    }
+
+    GPU_select_load_id(state->select_id);
   }
 
   draw_geometry_execute(shgroup,

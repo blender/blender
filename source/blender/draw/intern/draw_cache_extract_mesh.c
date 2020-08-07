@@ -474,10 +474,9 @@ BLI_INLINE const float *bm_vert_co_get(const MeshRenderData *mr, const BMVert *e
   if (vert_coords != NULL) {
     return vert_coords[BM_elem_index_get(eve)];
   }
-  else {
-    UNUSED_VARS(mr);
-    return eve->co;
-  }
+
+  UNUSED_VARS(mr);
+  return eve->co;
 }
 
 BLI_INLINE const float *bm_vert_no_get(const MeshRenderData *mr, const BMVert *eve)
@@ -486,10 +485,9 @@ BLI_INLINE const float *bm_vert_no_get(const MeshRenderData *mr, const BMVert *e
   if (vert_normals != NULL) {
     return vert_normals[BM_elem_index_get(eve)];
   }
-  else {
-    UNUSED_VARS(mr);
-    return eve->no;
-  }
+
+  UNUSED_VARS(mr);
+  return eve->no;
 }
 
 BLI_INLINE const float *bm_face_no_get(const MeshRenderData *mr, const BMFace *efa)
@@ -498,10 +496,9 @@ BLI_INLINE const float *bm_face_no_get(const MeshRenderData *mr, const BMFace *e
   if (poly_normals != NULL) {
     return poly_normals[BM_elem_index_get(efa)];
   }
-  else {
-    UNUSED_VARS(mr);
-    return efa->no;
-  }
+
+  UNUSED_VARS(mr);
+  return efa->no;
 }
 
 /** \} */
@@ -2937,7 +2934,7 @@ static float evaluate_vertex_weight(const MDeformVert *dvert, const DRW_MeshWeig
   if ((wstate->defgroup_active < 0) && (wstate->defgroup_len > 0)) {
     return -2.0f;
   }
-  else if (dvert == NULL) {
+  if (dvert == NULL) {
     return (wstate->alert_mode != OB_DRAW_GROUPUSER_NONE) ? -1.0f : 0.0f;
   }
 
@@ -4296,7 +4293,7 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
           /* non-manifold edge, yet... */
           continue;
         }
-        else if (*pval != NULL) {
+        if (*pval != NULL) {
           const float *f1_no = mr->poly_normals[mp_index];
           const float *f2_no = *pval;
           angle = angle_normalized_v3v3(f1_no, f2_no);

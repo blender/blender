@@ -480,16 +480,15 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
                 GPU_VERTBUF_DISCARD_SAFE(mb_geom->vbo[MB_NEXT]);
                 break;
               }
+
+              /* Modify the batch to include the previous & next position. */
+              if (i == MB_PREV) {
+                GPU_batch_vertbuf_add_ex(batch, vbo, true);
+                mb_geom->vbo[i] = NULL;
+              }
               else {
-                /* Modify the batch to include the previous & next position. */
-                if (i == MB_PREV) {
-                  GPU_batch_vertbuf_add_ex(batch, vbo, true);
-                  mb_geom->vbo[i] = NULL;
-                }
-                else {
-                  /* This VBO can be reuse by next time step. Don't pass ownership. */
-                  GPU_batch_vertbuf_add_ex(batch, vbo, false);
-                }
+                /* This VBO can be reuse by next time step. Don't pass ownership. */
+                GPU_batch_vertbuf_add_ex(batch, vbo, false);
               }
             }
           }

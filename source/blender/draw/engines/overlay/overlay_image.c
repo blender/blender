@@ -109,13 +109,12 @@ static eStereoViews camera_background_images_stereo_eye(const Scene *scene, cons
   if ((scene->r.scemode & R_MULTIVIEW) == 0) {
     return STEREO_LEFT_ID;
   }
-  else if (v3d->stereo3d_camera != STEREO_3D_ID) {
+  if (v3d->stereo3d_camera != STEREO_3D_ID) {
     /* show only left or right camera */
     return v3d->stereo3d_camera;
   }
-  else {
-    return v3d->multiview_eye;
-  }
+
+  return v3d->multiview_eye;
 }
 
 static void camera_background_images_stereo_setup(const Scene *scene,
@@ -162,9 +161,8 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
         /* Frame is out of range, dont show. */
         return NULL;
       }
-      else {
-        camera_background_images_stereo_setup(scene, draw_ctx->v3d, image, iuser);
-      }
+
+      camera_background_images_stereo_setup(scene, draw_ctx->v3d, image, iuser);
 
       iuser->scene = draw_ctx->scene;
       ImBuf *ibuf = BKE_image_acquire_ibuf(image, iuser, &lock);

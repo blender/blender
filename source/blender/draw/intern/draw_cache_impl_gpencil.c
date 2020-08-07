@@ -135,9 +135,8 @@ static GpencilBatchCache *gpencil_batch_cache_get(Object *ob, int cfra)
     gpencil_batch_cache_clear(cache);
     return gpencil_batch_cache_init(ob, cfra);
   }
-  else {
-    return cache;
-  }
+
+  return cache;
 }
 
 void DRW_gpencil_batch_cache_dirty_tag(bGPdata *gpd)

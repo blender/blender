@@ -1021,9 +1021,8 @@ static void compute_cell_id(EEVEE_LightGrid *egrid,
           if (visited_cells == cell_idx) {
             return;
           }
-          else {
-            visited_cells++;
-          }
+
+          visited_cells++;
         }
       }
     }

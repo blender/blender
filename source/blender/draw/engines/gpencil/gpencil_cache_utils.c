@@ -132,12 +132,11 @@ static int gpencil_tobject_dist_sort(const void *a, const void *b)
   if (ob_a->camera_z > ob_b->camera_z) {
     return 1;
   }
-  else if (ob_a->camera_z < ob_b->camera_z) {
+  if (ob_a->camera_z < ob_b->camera_z) {
     return -1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 void gpencil_object_cache_sort(GPENCIL_PrivateData *pd)
@@ -193,7 +192,7 @@ static float gpencil_layer_final_opacity_get(const GPENCIL_PrivateData *pd,
     if (is_obact && is_fade) {
       return gpl->opacity * pd->fade_layer_opacity;
     }
-    else if (!is_obact && (pd->fade_gp_object_opacity > -1.0f)) {
+    if (!is_obact && (pd->fade_gp_object_opacity > -1.0f)) {
       return gpl->opacity * pd->fade_gp_object_opacity;
     }
   }

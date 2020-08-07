@@ -83,10 +83,9 @@ static int lattice_render_verts_len_get(Lattice *lt)
   if ((lt->flag & LT_OUTSIDE) == 0) {
     return vert_len_calc(u, v, w);
   }
-  else {
-    /* TODO remove internal coords */
-    return vert_len_calc(u, v, w);
-  }
+
+  /* TODO remove internal coords */
+  return vert_len_calc(u, v, w);
 }
 
 static int lattice_render_edges_len_get(Lattice *lt)
@@ -102,10 +101,9 @@ static int lattice_render_edges_len_get(Lattice *lt)
   if ((lt->flag & LT_OUTSIDE) == 0) {
     return edge_len_calc(u, v, w);
   }
-  else {
-    /* TODO remove internal coords */
-    return edge_len_calc(u, v, w);
-  }
+
+  /* TODO remove internal coords */
+  return edge_len_calc(u, v, w);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -252,12 +250,11 @@ static bool lattice_batch_cache_valid(Lattice *lt)
   if (cache->is_dirty) {
     return false;
   }
-  else {
-    if ((cache->dims.u_len != lt->pntsu) || (cache->dims.v_len != lt->pntsv) ||
-        (cache->dims.w_len != lt->pntsw) ||
-        ((cache->show_only_outside != ((lt->flag & LT_OUTSIDE) != 0)))) {
-      return false;
-    }
+
+  if ((cache->dims.u_len != lt->pntsu) || (cache->dims.v_len != lt->pntsv) ||
+      (cache->dims.w_len != lt->pntsw) ||
+      ((cache->show_only_outside != ((lt->flag & LT_OUTSIDE) != 0)))) {
+    return false;
   }
 
   return true;

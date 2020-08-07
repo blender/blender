@@ -1018,9 +1018,8 @@ static float camera_offaxis_shiftx_get(Scene *scene,
     const float width = instdata->corner_x * 2.0f;
     return delta_shiftx * width;
   }
-  else {
-    return 0.0;
-  }
+
+  return 0.0;
 }
 /**
  * Draw the stereo 3d support elements (cameras, plane, volume).

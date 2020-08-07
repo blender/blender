@@ -924,12 +924,11 @@ static float get_bone_wire_thickness(const ArmatureDrawContext *ctx, int bonefla
   if (ctx->const_color) {
     return ctx->const_wire;
   }
-  else if (boneflag & (BONE_DRAW_ACTIVE | BONE_SELECTED)) {
+  if (boneflag & (BONE_DRAW_ACTIVE | BONE_SELECTED)) {
     return 2.0f;
   }
-  else {
-    return 1.0f;
-  }
+
+  return 1.0f;
 }
 
 static const float *get_bone_wire_color(const ArmatureDrawContext *ctx,
@@ -2219,13 +2218,13 @@ static bool POSE_is_driven_by_active_armature(Object *ob)
     }
     return is_active;
   }
-  else {
-    Object *ob_mesh_deform = BKE_modifiers_is_deformed_by_meshdeform(ob);
-    if (ob_mesh_deform) {
-      /* Recursive. */
-      return POSE_is_driven_by_active_armature(ob_mesh_deform);
-    }
+
+  Object *ob_mesh_deform = BKE_modifiers_is_deformed_by_meshdeform(ob);
+  if (ob_mesh_deform) {
+    /* Recursive. */
+    return POSE_is_driven_by_active_armature(ob_mesh_deform);
   }
+
   return false;
 }
 

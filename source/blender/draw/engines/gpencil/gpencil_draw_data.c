@@ -359,12 +359,11 @@ static float light_power_get(const Light *la)
   if (la->type == LA_AREA) {
     return 1.0f / (4.0f * M_PI);
   }
-  else if (la->type == LA_SPOT || la->type == LA_LOCAL) {
+  if (la->type == LA_SPOT || la->type == LA_LOCAL) {
     return 1.0f / (4.0f * M_PI * M_PI);
   }
-  else {
-    return 1.0f / M_PI;
-  }
+
+  return 1.0f / M_PI;
 }
 
 void gpencil_light_pool_populate(GPENCIL_LightPool *lightpool, Object *ob)

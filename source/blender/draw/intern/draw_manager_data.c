@@ -594,28 +594,26 @@ static DRWResourceHandle drw_resource_handle(DRWShadingGroup *shgroup,
       DRWResourceHandle handle = 0;
       return handle;
     }
-    else {
-      return drw_resource_handle_new(obmat, NULL);
+
+    return drw_resource_handle_new(obmat, NULL);
+  }
+
+  if (DST.ob_handle == 0) {
+    DST.ob_handle = drw_resource_handle_new(obmat, ob);
+    DST.ob_state_obinfo_init = false;
+  }
+
+  if (shgroup->objectinfo) {
+    if (!DST.ob_state_obinfo_init) {
+      DST.ob_state_obinfo_init = true;
+      DRWObjectInfos *ob_infos = DRW_memblock_elem_from_handle(DST.vmempool->obinfos,
+                                                               &DST.ob_handle);
+
+      drw_call_obinfos_init(ob_infos, ob);
     }
   }
-  else {
-    if (DST.ob_handle == 0) {
-      DST.ob_handle = drw_resource_handle_new(obmat, ob);
-      DST.ob_state_obinfo_init = false;
-    }
 
-    if (shgroup->objectinfo) {
-      if (!DST.ob_state_obinfo_init) {
-        DST.ob_state_obinfo_init = true;
-        DRWObjectInfos *ob_infos = DRW_memblock_elem_from_handle(DST.vmempool->obinfos,
-                                                                 &DST.ob_handle);
-
-        drw_call_obinfos_init(ob_infos, ob);
-      }
-    }
-
-    return DST.ob_handle;
-  }
+  return DST.ob_handle;
 }
 
 static void command_type_set(uint64_t *command_type_bits, int index, eDRWCommandType type)
@@ -1904,9 +1902,8 @@ float DRW_view_near_distance_get(const DRWView *view)
   if (DRW_view_is_persp_get(view)) {
     return -projmat[3][2] / (projmat[2][2] - 1.0f);
   }
-  else {
-    return -(projmat[3][2] + 1.0f) / projmat[2][2];
-  }
+
+  return -(projmat[3][2] + 1.0f) / projmat[2][2];
 }
 
 float DRW_view_far_distance_get(const DRWView *view)
@@ -1917,9 +1914,8 @@ float DRW_view_far_distance_get(const DRWView *view)
   if (DRW_view_is_persp_get(view)) {
     return -projmat[3][2] / (projmat[2][2] + 1.0f);
   }
-  else {
-    return -(projmat[3][2] - 1.0f) / projmat[2][2];
-  }
+
+  return -(projmat[3][2] - 1.0f) / projmat[2][2];
 }
 
 void DRW_view_viewmat_get(const DRWView *view, float mat[4][4], bool inverse)
@@ -2026,18 +2022,16 @@ static int pass_shgroup_dist_sort(const void *a, const void *b)
   if (shgrp_a->z_sorting.distance < shgrp_b->z_sorting.distance) {
     return 1;
   }
-  else if (shgrp_a->z_sorting.distance > shgrp_b->z_sorting.distance) {
+  if (shgrp_a->z_sorting.distance > shgrp_b->z_sorting.distance) {
     return -1;
   }
-  else {
-    /* If distances are the same, keep original order. */
-    if (shgrp_a->z_sorting.original_index > shgrp_b->z_sorting.original_index) {
-      return -1;
-    }
-    else {
-      return 0;
-    }
+
+  /* If distances are the same, keep original order. */
+  if (shgrp_a->z_sorting.original_index > shgrp_b->z_sorting.original_index) {
+    return -1;
   }
+
+  return 0;
 }
 
 /* ------------------ Shading group sorting --------------------- */

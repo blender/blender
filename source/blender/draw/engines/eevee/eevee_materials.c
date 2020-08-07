@@ -483,9 +483,8 @@ static EeveeMaterialCache material_opaque(EEVEE_Data *vedata,
   if (BLI_ghash_ensure_p(pd->material_hash, key, (void ***)&emc_p)) {
     return **emc_p;
   }
-  else {
-    *emc_p = emc = BLI_memblock_alloc(sldata->material_cache);
-  }
+
+  *emc_p = emc = BLI_memblock_alloc(sldata->material_cache);
 
   material_shadow(vedata, sldata, ma, is_hair, emc);
 
