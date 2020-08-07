@@ -178,11 +178,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   Object *other = bmd->object;
   mesh_other = BKE_modifier_get_evaluated_mesh_from_evaluated_object(other, false);
-  /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
-   * But for 2.90 better not try to be smart here. */
-  BKE_mesh_wrapper_ensure_mdata(mesh_other);
   if (mesh_other) {
     Object *object = ctx->object;
+
+    /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
+     * But for 2.90 better not try to be smart here. */
+    BKE_mesh_wrapper_ensure_mdata(mesh_other);
 
     /* when one of objects is empty (has got no faces) we could speed up
      * calculation a bit returning one of objects' derived meshes (or empty one)
