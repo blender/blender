@@ -139,12 +139,11 @@ static int svert_sum_cmp(const void *e1, const void *e2)
   if (sv1->sum_co > sv2->sum_co) {
     return 1;
   }
-  else if (sv1->sum_co < sv2->sum_co) {
+  if (sv1->sum_co < sv2->sum_co) {
     return -1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 static void svert_from_mvert(SortVertsElem *sv,
@@ -826,10 +825,10 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   if (amd->curve_ob && amd->curve_ob->type != OB_CURVE) {
     return true;
   }
-  else if (amd->start_cap && amd->start_cap->type != OB_MESH) {
+  if (amd->start_cap && amd->start_cap->type != OB_MESH) {
     return true;
   }
-  else if (amd->end_cap && amd->end_cap->type != OB_MESH) {
+  if (amd->end_cap && amd->end_cap->type != OB_MESH) {
     return true;
   }
 

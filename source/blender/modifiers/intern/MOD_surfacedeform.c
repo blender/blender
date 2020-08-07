@@ -372,9 +372,8 @@ BLI_INLINE uint nearestVert(SDefBindCalcData *const data, const float point_co[3
       len_squared_v3v3(point_co, data->targetCos[edge->v2])) {
     return edge->v1;
   }
-  else {
-    return edge->v2;
-  }
+
+  return edge->v2;
 }
 
 BLI_INLINE int isPolyValid(const float coords[][2], const uint nr)
@@ -1283,7 +1282,7 @@ static void surfacedeformModifier_do(ModifierData *md,
     BKE_modifier_set_error(md, "Vertices changed from %u to %u", smd->numverts, numverts);
     return;
   }
-  else if (smd->numpoly != tnumpoly) {
+  if (smd->numpoly != tnumpoly) {
     BKE_modifier_set_error(md, "Target polygons changed from %u to %u", smd->numpoly, tnumpoly);
     return;
   }

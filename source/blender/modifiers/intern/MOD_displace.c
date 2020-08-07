@@ -103,9 +103,8 @@ static bool dependsOnTime(ModifierData *md)
   if (dmd->texture) {
     return BKE_texture_dependsOnTime(dmd->texture);
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 static bool dependsOnNormals(ModifierData *md)

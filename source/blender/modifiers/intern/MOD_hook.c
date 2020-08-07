@@ -185,7 +185,7 @@ static float hook_falloff(const struct HookData_cb *hd, const float len_sq)
   if (len_sq > hd->falloff_sq) {
     return 0.0f;
   }
-  else if (len_sq > 0.0f) {
+  if (len_sq > 0.0f) {
     float fac;
 
     if (hd->falloff_type == eHook_Falloff_Const) {

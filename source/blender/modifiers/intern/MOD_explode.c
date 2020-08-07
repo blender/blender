@@ -1180,9 +1180,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       BKE_id_free(NULL, split_m);
       return explode;
     }
-    else {
-      return explodeMesh(emd, psmd, ctx, scene, mesh);
-    }
+
+    return explodeMesh(emd, psmd, ctx, scene, mesh);
   }
   return mesh;
 }

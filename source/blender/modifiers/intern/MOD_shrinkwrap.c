@@ -96,7 +96,7 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   if (!smd->target || smd->target->type != OB_MESH) {
     return true;
   }
-  else if (smd->auxTarget && smd->auxTarget->type != OB_MESH) {
+  if (smd->auxTarget && smd->auxTarget->type != OB_MESH) {
     return true;
   }
   return false;

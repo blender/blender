@@ -472,7 +472,7 @@ static bool is_valid_target(NormalEditModifierData *enmd)
   if (enmd->mode == MOD_NORMALEDIT_MODE_RADIAL) {
     return true;
   }
-  else if ((enmd->mode == MOD_NORMALEDIT_MODE_DIRECTIONAL) && enmd->target) {
+  if ((enmd->mode == MOD_NORMALEDIT_MODE_DIRECTIONAL) && enmd->target) {
     return true;
   }
   BKE_modifier_set_error((ModifierData *)enmd, "Invalid target settings");

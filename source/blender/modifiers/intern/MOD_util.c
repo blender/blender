@@ -143,10 +143,9 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
       MEM_freeN(done);
       return;
     }
-    else {
-      /* if there are no UVs, default to local */
-      texmapping = MOD_DISP_MAP_LOCAL;
-    }
+
+    /* if there are no UVs, default to local */
+    texmapping = MOD_DISP_MAP_LOCAL;
   }
 
   MVert *mv = mesh->mvert;

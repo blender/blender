@@ -1850,23 +1850,22 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
                 &iter, wp, weld_mesh.wloop, mloop, weld_mesh.loop_map, group_buffer)) {
           continue;
         }
-        else {
-          if (wp->poly_dst != OUT_OF_CONTEXT) {
-            continue;
+
+        if (wp->poly_dst != OUT_OF_CONTEXT) {
+          continue;
+        }
+        while (weld_iter_loop_of_poly_next(&iter)) {
+          customdata_weld(&mesh->ldata, &result->ldata, group_buffer, iter.group_len, loop_cur);
+          uint v = vert_final[iter.v];
+          uint e = edge_final[iter.e];
+          r_ml->v = v;
+          r_ml->e = e;
+          r_ml++;
+          loop_cur++;
+          if (iter.type) {
+            result->medge[e].flag &= ~ME_LOOSEEDGE;
           }
-          while (weld_iter_loop_of_poly_next(&iter)) {
-            customdata_weld(&mesh->ldata, &result->ldata, group_buffer, iter.group_len, loop_cur);
-            uint v = vert_final[iter.v];
-            uint e = edge_final[iter.e];
-            r_ml->v = v;
-            r_ml->e = e;
-            r_ml++;
-            loop_cur++;
-            if (iter.type) {
-              result->medge[e].flag &= ~ME_LOOSEEDGE;
-            }
-            BLI_assert((result->medge[e].flag & ME_LOOSEEDGE) == 0);
-          }
+          BLI_assert((result->medge[e].flag & ME_LOOSEEDGE) == 0);
         }
       }
 
@@ -1885,24 +1884,24 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
               &iter, wp, weld_mesh.wloop, mloop, weld_mesh.loop_map, group_buffer)) {
         continue;
       }
-      else {
-        if (wp->poly_dst != OUT_OF_CONTEXT) {
-          continue;
-        }
-        while (weld_iter_loop_of_poly_next(&iter)) {
-          customdata_weld(&mesh->ldata, &result->ldata, group_buffer, iter.group_len, loop_cur);
-          uint v = vert_final[iter.v];
-          uint e = edge_final[iter.e];
-          r_ml->v = v;
-          r_ml->e = e;
-          r_ml++;
-          loop_cur++;
-          if (iter.type) {
-            result->medge[e].flag &= ~ME_LOOSEEDGE;
-          }
-          BLI_assert((result->medge[e].flag & ME_LOOSEEDGE) == 0);
-        }
+
+      if (wp->poly_dst != OUT_OF_CONTEXT) {
+        continue;
       }
+      while (weld_iter_loop_of_poly_next(&iter)) {
+        customdata_weld(&mesh->ldata, &result->ldata, group_buffer, iter.group_len, loop_cur);
+        uint v = vert_final[iter.v];
+        uint e = edge_final[iter.e];
+        r_ml->v = v;
+        r_ml->e = e;
+        r_ml++;
+        loop_cur++;
+        if (iter.type) {
+          result->medge[e].flag &= ~ME_LOOSEEDGE;
+        }
+        BLI_assert((result->medge[e].flag & ME_LOOSEEDGE) == 0);
+      }
+
       r_mp->loopstart = loop_start;
       r_mp->totloop = loop_cur - loop_start;
       r_mp++;

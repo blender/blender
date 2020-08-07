@@ -198,12 +198,11 @@ static bool particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *ps
   if (maxp > minp) {
     return randp < minp || randp >= maxp;
   }
-  else if (maxp < minp) {
+  if (maxp < minp) {
     return randp < minp && randp >= maxp;
   }
-  else {
-    return true;
-  }
+
+  return true;
 
   return false;
 }

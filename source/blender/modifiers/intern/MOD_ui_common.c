@@ -179,12 +179,11 @@ static int modifier_is_simulation(ModifierData *md)
     return 1;
   }
   /* Particle Tab */
-  else if (md->type == eModifierType_ParticleSystem) {
+  if (md->type == eModifierType_ParticleSystem) {
     return 2;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 static bool modifier_can_delete(ModifierData *md)

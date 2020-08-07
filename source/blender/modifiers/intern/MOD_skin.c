@@ -222,9 +222,8 @@ static bool skin_frame_find_contained_faces(const Frame *frame, BMFace *fill_fac
   if (diag) {
     return BM_edge_face_pair(diag, &fill_faces[0], &fill_faces[1]);
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /* Returns true if hull is successfully built, false otherwise */
@@ -814,9 +813,8 @@ static int calc_edge_subdivisions(const MVert *mvert,
     if (v1_branch && v2_branch) {
       return 2;
     }
-    else {
-      return 0;
-    }
+
+    return 0;
   }
 
   avg_radius = half_v2(evs[0]->radius) + half_v2(evs[1]->radius);

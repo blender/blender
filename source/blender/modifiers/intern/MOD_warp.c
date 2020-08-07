@@ -123,9 +123,8 @@ static bool dependsOnTime(ModifierData *md)
   if (wmd->texture) {
     return BKE_texture_dependsOnTime(wmd->texture);
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 static void freeData(ModifierData *md)
